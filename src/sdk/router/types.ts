@@ -13,7 +13,7 @@ export interface PathOption {
 export type PathOptionSerie = PathOption[];
 
 export interface SwapTask {
-  swapOperation: bigint;
+  swapOperation: number;
   creditAccount: Address;
   tokenIn: Address;
   tokenOut: Address;

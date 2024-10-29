@@ -73,7 +73,7 @@ type CloseOptions = "close" | "zeroDebt";
 
 interface CloseCreditAccountProps {
   operation: CloseOptions;
-  ca: CreditAccountDataSlice;
+  creditAccount: CreditAccountDataSlice;
   assetsToWithdraw: Address[];
   to: Address;
   slippage?: bigint;
@@ -87,7 +87,7 @@ interface RepayCreditAccountProps extends RepayAndLiquidateCreditAccountProps {
 interface RepayAndLiquidateCreditAccountProps {
   collateralAssets: Asset[];
   assetsToWithdraw: Address[];
-  ca: CreditAccountDataSlice;
+  creditAccount: CreditAccountDataSlice;
   to: Address;
   permits: Record<string, PermitResult>;
 }
@@ -235,11 +235,11 @@ export class CreditAccountsService extends SDKConstruct {
     slippage = 50n,
   ): Promise<FullyLiquidateAccountResult> {
     const cm = this.sdk.marketRegister.findCreditManager(account.creditManager);
-    const routerCloseResult = await this.sdk.router.findBestClosePath(
-      account,
-      cm.creditManager,
+    const routerCloseResult = await this.sdk.router.findBestClosePath({
+      creditAccount: account,
+      creditManager: cm.creditManager,
       slippage,
-    );
+    });
     const priceUpdates = await this.getPriceUpdatesForFacade(account);
     const tx = cm.creditFacade.liquidateCreditAccount(
       account.creditAccount,
@@ -252,7 +252,7 @@ export class CreditAccountsService extends SDKConstruct {
   /**
    * Closes credit account or sets debt to zero (but keep account)
    * @param operation
-   * @param ca
+   * @param creditAccount
    * @param assetsToWithdraw Tokens to withdraw from credit account
    * @param to Address to withdraw underlying to
    * @param slippage
@@ -262,7 +262,7 @@ export class CreditAccountsService extends SDKConstruct {
   async closeCreditAccount({
     operation,
     assetsToWithdraw,
-    ca,
+    creditAccount: ca,
     to,
     slippage = 50n,
     closePath,
@@ -271,7 +271,11 @@ export class CreditAccountsService extends SDKConstruct {
 
     const routerCloseResult =
       closePath ||
-      (await this.sdk.router.findBestClosePath(ca, cm.creditManager, slippage));
+      (await this.sdk.router.findBestClosePath({
+        creditAccount: ca,
+        creditManager: cm.creditManager,
+        slippage,
+      }));
 
     const calls = [
       ...routerCloseResult.calls,
@@ -293,7 +297,7 @@ export class CreditAccountsService extends SDKConstruct {
   /**
    * Repays credit account or sets debt to zero (but keep account)
    * @param operation
-   * @param ca
+   * @param creditAccount
    * @param assetsToWithdraw Tokens to withdraw from credit account
    * @param collateralAssets Tokens to pay for
    * @param to Address to withdraw underlying to
@@ -305,7 +309,7 @@ export class CreditAccountsService extends SDKConstruct {
     operation,
     collateralAssets,
     assetsToWithdraw,
-    ca,
+    creditAccount: ca,
     permits,
     to,
   }: RepayCreditAccountProps): Promise<RepayCreditAccountResult> {
@@ -317,6 +321,7 @@ export class CreditAccountsService extends SDKConstruct {
       ...this.#prepareDisableQuotas(ca),
       ...this.#prepareDecreaseDebt(ca),
       ...this.#prepareDisableTokens(ca),
+      // TODO: probably needs a way to handle reward tokens
       ...assetsToWithdraw.map(t =>
         this.#prepareWithdrawToken(ca, t, MAX_UINT256, to),
       ),
@@ -331,7 +336,7 @@ export class CreditAccountsService extends SDKConstruct {
 
   /**
    * Repays liquidatable credit account
-   * @param ca
+   * @param creditAccount
    * @param assetsToWithdraw Tokens to withdraw from credit account
    * @param collateralAssets Tokens to pay for
    * @param to Address to withdraw underlying to
@@ -341,7 +346,7 @@ export class CreditAccountsService extends SDKConstruct {
   async repayAndLiquidateCreditAccount({
     collateralAssets,
     assetsToWithdraw,
-    ca,
+    creditAccount: ca,
     permits,
     to,
   }: RepayAndLiquidateCreditAccountProps): Promise<RepayCreditAccountResult> {

@@ -16,6 +16,7 @@ import type {
   RouterCloseResult,
   RouterResult,
   SwapOperation,
+  SwapTask,
 } from "./types";
 
 const MAX_GAS_PER_ROUTE = 200_000_000n;
@@ -32,6 +33,41 @@ const SWAP_OPERATIONS: Record<SwapOperation, number> = {
 };
 
 type abi = typeof routerV3Abi;
+
+interface FindAllSwapsProps {
+  creditAccount: CreditAccountDataSlice;
+  creditManager: CreditManagerSlice;
+  swapOperation: SwapOperation;
+  tokenIn: Address;
+  tokenOut: Address;
+  amount: bigint;
+  leftoverAmount: bigint;
+  slippage: number | bigint;
+}
+
+interface FindOneTokenPathProps {
+  creditAccount: CreditAccountDataSlice;
+  creditManager: CreditManagerSlice;
+  tokenIn: Address;
+  tokenOut: Address;
+  amount: bigint;
+  slippage: number | bigint;
+}
+
+interface FindOpenStrategyPathProps {
+  creditManager: CreditManagerSlice;
+  expectedBalances: Asset[];
+  leftoverBalances: Asset[];
+  target: Address;
+  slippage: number | bigint;
+}
+
+interface FindBestClosePathProps {
+  creditAccount: CreditAccountDataSlice;
+  creditManager: CreditManagerSlice;
+  slippage: bigint | number;
+  balances?: ClosePathBalances;
+}
 
 export interface FindClosePathInput {
   pathOptions: PathOptionSerie[];
@@ -103,19 +139,19 @@ export class RouterV3Contract
    * @param slippage
    * @returns
    */
-  public async findAllSwaps(
-    ca: CreditAccountDataSlice,
-    cm: CreditManagerSlice,
-    swapOperation: SwapOperation,
-    tokenIn: Address,
-    tokenOut: Address,
-    amount: bigint,
-    leftoverAmount: bigint,
-    slippage: number | bigint,
-  ): Promise<RouterResult[]> {
+  public async findAllSwaps({
+    creditAccount: ca,
+    creditManager: cm,
+    swapOperation,
+    tokenIn,
+    tokenOut,
+    amount,
+    leftoverAmount,
+    slippage,
+  }: FindAllSwapsProps): Promise<RouterResult[]> {
     const connectors = this.getAvailableConnectors(cm.collateralTokens);
 
-    const swapTask = {
+    const swapTask: SwapTask = {
       swapOperation: SWAP_OPERATIONS[swapOperation],
       creditAccount: ca.creditAccount as Address,
       tokenIn,
@@ -151,22 +187,22 @@ export class RouterV3Contract
 
   /**
    * Finds best path to swap all Normal tokens and tokens "on the way" to target one and vice versa
-   * @param ca
-   * @param cm
+   * @param creditAccount
+   * @param creditManager
    * @param tokenIn
    * @param tokenOut
    * @param amount
    * @param slippage
    * @returns
    */
-  public async findOneTokenPath(
-    ca: CreditAccountDataSlice,
-    cm: CreditManagerSlice,
-    tokenIn: Address,
-    tokenOut: Address,
-    amount: bigint,
-    slippage: number | bigint,
-  ): Promise<RouterResult> {
+  public async findOneTokenPath({
+    creditAccount: ca,
+    creditManager: cm,
+    tokenIn,
+    tokenOut,
+    amount,
+    slippage,
+  }: FindOneTokenPathProps): Promise<RouterResult> {
     const connectors = this.getAvailableConnectors(cm.collateralTokens);
 
     const { result } = await this.contract.simulate.findOneTokenPath(
@@ -192,7 +228,7 @@ export class RouterV3Contract
 
   /**
    * @dev Finds the best path for opening Credit Account and converting all NORMAL tokens and LP token in the way to TARGET
-   * @param cm CreditManagerData which represents credit manager you want to use to open Credit Account
+   * @param creditManager CreditManagerData which represents credit manager you want to use to open Credit Account
    * @param expectedBalances Expected balances which would be on account accounting also debt. For example,
    *    if you open an USDC Credit Account, borrow 50_000 USDC and provide 10 WETH and 10_USDC as collateral
    *    from your own funds, expectedBalances should be: { "USDC": 60_000 * (10**6), "<address of WETH>": WAD.mul(10) }
@@ -201,13 +237,13 @@ export class RouterV3Contract
    * @param slippage Slippage in PERCENTAGE_FORMAT (100% = 10_000) per operation
    * @returns PathFinderOpenStrategyResult which
    */
-  public async findOpenStrategyPath(
-    cm: CreditManagerSlice,
-    expectedBalances: Asset[],
-    leftoverBalances: Asset[],
-    target: Address,
-    slippage: number | bigint,
-  ): Promise<OpenStrategyResult> {
+  public async findOpenStrategyPath({
+    creditManager: cm,
+    expectedBalances,
+    leftoverBalances,
+    target,
+    slippage,
+  }: FindOpenStrategyPathProps): Promise<OpenStrategyResult> {
     const [expectedMap, leftoverMap] = [
       balancesMap(expectedBalances),
       balancesMap(leftoverBalances),
@@ -255,19 +291,19 @@ export class RouterV3Contract
   /**
    * @dev Finds the path to swap / withdraw all assets from CreditAccount into underlying asset
    *   Can bu used for closing Credit Account and for liquidations as well.
-   * @param ca CreditAccountStruct object used for close path computation
-   * @param cm CreditManagerSlice for corresponding credit manager
+   * @param creditAccount CreditAccountStruct object used for close path computation
+   * @param creditManager CreditManagerSlice for corresponding credit manager
    * @param slippage Slippage in PERCENTAGE_FORMAT (100% = 10_000) per operation
    * @return The best option in PathFinderCloseResult format, which
    *          - underlyingBalance - total balance of underlying token
    *          - calls - list of calls which should be done to swap & unwrap everything to underlying token
    */
-  public async findBestClosePath(
-    ca: CreditAccountDataSlice,
-    cm: CreditManagerSlice,
-    slippage: bigint | number,
-    balances?: ClosePathBalances,
-  ): Promise<RouterCloseResult> {
+  public async findBestClosePath({
+    creditAccount: ca,
+    creditManager: cm,
+    slippage,
+    balances,
+  }: FindBestClosePathProps): Promise<RouterCloseResult> {
     const { pathOptions, expected, leftover, connectors } =
       this.getFindClosePathInput(
         ca,
