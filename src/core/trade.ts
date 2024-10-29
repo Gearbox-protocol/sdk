@@ -189,7 +189,7 @@ export class Trade {
 
       if ((aSelected && bSelected) || (!aSelected && !bSelected)) {
         const sign = a.minExpectedAmount > b.minExpectedAmount ? -1 : 1;
-        return swapOperation === SwapOperation.EXACT_INPUT ? sign : -sign;
+        return swapOperation === "EXACT_INPUT" ? sign : -sign;
       }
 
       return aSelected ? -1 : 1;

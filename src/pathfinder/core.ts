@@ -1,10 +1,6 @@
 import { Address } from "viem";
 
-export enum SwapOperation {
-  EXACT_INPUT,
-  EXACT_INPUT_ALL,
-  EXACT_OUTPUT,
-}
+export type SwapOperation = "EXACT_INPUT" | "EXACT_INPUT_ALL" | "EXACT_OUTPUT";
 
 export interface MultiCall {
   target: Address;
