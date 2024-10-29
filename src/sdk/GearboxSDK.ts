@@ -268,6 +268,37 @@ export class GearboxSDK {
     );
   }
 
+  /**
+   * Return args, function, type and address name from contract call
+   * @param address
+   * @param calldata
+   * @returns
+   */
+  public parseFunctionDataToObject(address: Address, calldata: Hex) {
+    const contract = this.contracts.get(address);
+    // TODO: fallback to 4bytes directory
+
+    return contract
+      ? {
+          ...contract.parseFunctionDataToObject(calldata),
+          address,
+          type: contract.contractType,
+        }
+      : null;
+  }
+
+  /**
+   * Converts multicalls into call info
+   * @param address
+   * @param calldata
+   * @returns
+   */
+  public parseMultiCallToObject(calls: MultiCall[]) {
+    return calls.map(call =>
+      this.parseFunctionDataToObject(call.target, call.callData),
+    );
+  }
+
   public stateHuman(raw = true): GearboxStateHuman {
     return {
       block: Number(this.currentBlock),

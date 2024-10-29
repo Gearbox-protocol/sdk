@@ -174,6 +174,19 @@ export abstract class BaseContract<abi extends Abi | readonly unknown[]>
     return `${this.name}.${decoded.functionName}({${paramsHuman.join(", ")}})`;
   }
 
+  /**
+   * Return args and function name from calldata
+   * @param calldata
+   * @returns
+   */
+  public parseFunctionDataToObject(calldata: Hex) {
+    const decoded = decodeFunctionData({
+      abi: this.abi,
+      data: calldata,
+    });
+    return decoded;
+  }
+
   public parseFunctionParams(
     _params: DecodeFunctionDataReturnType<abi>,
   ): Array<string> | undefined {
