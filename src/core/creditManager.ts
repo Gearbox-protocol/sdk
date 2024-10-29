@@ -1,14 +1,11 @@
 import {
-  ADDRESS_0X0,
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   RAY,
   toBigInt,
-  tokenSymbolByAddress,
 } from "@gearbox-protocol/sdk-gov";
 import { Address, encodeFunctionData } from "viem";
 
-import { TxParser } from "../parsers/txParser";
 import { MultiCall } from "../pathfinder/core";
 import {
   ChartsCreditManagerPayload,
@@ -160,22 +157,6 @@ export class CreditManagerData {
       this.collateralTokens.push(tLc);
       this.supportedTokens[tLc] = true;
     });
-
-    TxParser.addCreditManager(this.address, this.version);
-    if (!!this.creditFacade && this.creditFacade !== ADDRESS_0X0) {
-      TxParser.addCreditFacade(
-        this.creditFacade,
-        tokenSymbolByAddress[this.underlyingToken],
-        this.version,
-      );
-
-      TxParser.addAdapters(
-        payload.adapters.map(a => ({
-          adapter: a.adapter,
-          contract: a.targetContract,
-        })),
-      );
-    }
   }
 
   get id(): Address {
