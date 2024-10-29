@@ -1,9 +1,6 @@
 import {
   contractParams,
-  decimals,
-  formatBN,
   isSupportedContract,
-  tokenSymbolByAddress,
   WAD,
 } from "@gearbox-protocol/sdk-gov";
 import { Address } from "viem";
@@ -75,24 +72,6 @@ export class Trade {
 
   getName(): string {
     return this.helper.name;
-  }
-
-  toString(): string {
-    const symbolFrom = tokenSymbolByAddress[this.tokenIn.toLowerCase()];
-    const symbolTo = tokenSymbolByAddress[this.tokenOut.toLowerCase()];
-    if (!symbolFrom) throw new Error(`Unknown token: ${this.tokenIn}`);
-    if (!symbolTo) throw new Error(`Unknown token: ${this.tokenOut}`);
-
-    const decimalsFrom = decimals[symbolFrom];
-    const decimalsTo = decimals[symbolTo];
-
-    return `${this.operationName} ${formatBN(
-      this.sourceAmount,
-      decimalsFrom,
-    )} ${symbolFrom} ⇒ ${formatBN(
-      this.minExpectedAmount,
-      decimalsTo,
-    )} ${symbolTo} on ${this.helper.name}`;
   }
 
   static getTrades({

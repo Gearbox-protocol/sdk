@@ -6,15 +6,6 @@ export interface MultiCall {
   target: Address;
   callData: Address;
 }
-export interface SwapTask {
-  swapOperation: number;
-  creditAccount: Address;
-  tokenIn: Address;
-  tokenOut: Address;
-  connectors: Address[];
-  amount: bigint;
-  leftoverAmount: bigint;
-}
 
 export interface PathFinderResult {
   amount: bigint;
