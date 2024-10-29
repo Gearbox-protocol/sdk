@@ -341,7 +341,10 @@ export class RouterV3Contract
           gas: GAS_PER_BLOCK,
         },
       );
-      results.push(result);
+      results.push({
+        ...result,
+        calls: [...result.calls],
+      });
     }
 
     const bestResult = results.reduce(compareRouterResults, {

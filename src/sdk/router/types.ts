@@ -25,7 +25,7 @@ export interface SwapTask {
 export interface RouterResult {
   amount: bigint;
   minAmount: bigint;
-  calls: readonly MultiCall[];
+  calls: MultiCall[];
 }
 
 export interface OpenStrategyResult extends RouterResult {
