@@ -5,11 +5,7 @@ import {
   iCreditAccountCompressorAbi,
   iCreditFacadeV3MulticallAbi,
 } from "../abi";
-import {
-  type CreditAccountData,
-  CreditManagerData,
-  SDKConstruct,
-} from "../base";
+import { type CreditAccountData, SDKConstruct } from "../base";
 import {
   ADDRESS_0X0,
   AP_CREDIT_ACCOUNT_COMPRESSOR,
@@ -18,7 +14,6 @@ import {
 } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
 import {
-  type CreditFactory,
   type IPriceFeedContract,
   type OnDemandPriceUpdate,
   type PriceOracleContract,
@@ -90,6 +85,23 @@ interface RepayAndLiquidateCreditAccountProps {
   creditAccount: CreditAccountDataSlice;
   to: Address;
   permits: Record<string, PermitResult>;
+}
+
+interface UpdateQuotasProps {
+  creditAccount: CreditAccountDataSlice;
+  minQuota: Asset[];
+  averageQuota: Asset[];
+}
+
+interface AddCollateralProps extends UpdateQuotasProps {
+  asset: Asset;
+  ethAmount: bigint;
+  permit?: PermitResult;
+}
+
+interface ChangeDeptProps {
+  creditAccount: CreditAccountDataSlice;
+  amount: bigint;
 }
 
 export interface PermitResult {
@@ -317,7 +329,7 @@ export class CreditAccountsService extends SDKConstruct {
     const addCollateral = collateralAssets.filter(a => a.balance > 0);
 
     const calls = [
-      ...this.#prepareAddCollateralCalls(addCollateral, ca, permits),
+      ...this.#prepareAddCollateral(addCollateral, ca, permits),
       ...this.#prepareDisableQuotas(ca),
       ...this.#prepareDecreaseDebt(ca),
       ...this.#prepareDisableTokens(ca),
@@ -358,7 +370,7 @@ export class CreditAccountsService extends SDKConstruct {
 
     const calls = [
       ...priceUpdates,
-      ...this.#prepareAddCollateralCalls(addCollateral, ca, permits),
+      ...this.#prepareAddCollateral(addCollateral, ca, permits),
       ...assetsToWithdraw.map(t =>
         this.#prepareWithdrawToken(ca, t, MAX_UINT256, to),
       ),
@@ -370,6 +382,73 @@ export class CreditAccountsService extends SDKConstruct {
       calls,
     );
     return { tx, calls };
+  }
+
+  public async updateQuotas(props: UpdateQuotasProps): Promise<RawTx> {
+    const { creditAccount } = props;
+    const cm = this.sdk.marketRegister.findCreditManager(
+      creditAccount.creditManager,
+    );
+    const priceUpdates = await this.getPriceUpdatesForFacade(creditAccount);
+    return cm.creditFacade.multicall(creditAccount.creditAccount, [
+      ...priceUpdates,
+      ...this.#prepareUpdateQuotas(props),
+    ]);
+  }
+
+  public async addCollateral(props: AddCollateralProps): Promise<RawTx> {
+    const { creditAccount, asset, permit, ethAmount } = props;
+    const cm = this.sdk.marketRegister.findCreditManager(
+      creditAccount.creditManager,
+    );
+    const priceUpdatesCalls =
+      await this.getPriceUpdatesForFacade(creditAccount);
+    const addCollateralCalls = this.#prepareAddCollateral(
+      [asset],
+      creditAccount,
+      permit ? { [asset.token]: permit } : {},
+    );
+    const updateQuotaCalls = this.#prepareUpdateQuotas(props);
+
+    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, [
+      ...priceUpdatesCalls,
+      ...addCollateralCalls,
+      ...updateQuotaCalls,
+    ]);
+    tx.value = ethAmount.toString(10);
+    return tx;
+  }
+
+  public async changeDebt({
+    creditAccount,
+    amount,
+  }: ChangeDeptProps): Promise<RawTx> {
+    if (amount === 0n) {
+      throw new Error("debt increase or decrease must be non-zero");
+    }
+    const isDecrease = amount < 0n;
+    const change = isDecrease ? -amount : amount;
+    const cm = this.sdk.marketRegister.findCreditManager(
+      creditAccount.creditManager,
+    );
+    const priceUpdatesCalls =
+      await this.getPriceUpdatesForFacade(creditAccount);
+    const underlyingEnabled = (creditAccount.enabledTokensMask & 1n) === 1n;
+    return cm.creditFacade.multicall(creditAccount.creditAccount, [
+      ...priceUpdatesCalls,
+      ...this.#prepareEnableTokens(
+        creditAccount,
+        isDecrease || underlyingEnabled ? [] : [creditAccount.underlying],
+      ),
+      {
+        target: creditAccount.creditFacade,
+        callData: encodeFunctionData({
+          abi: iCreditFacadeV3MulticallAbi,
+          functionName: isDecrease ? "increaseDebt" : "decreaseDebt",
+          args: [change],
+        }),
+      },
+    ]);
   }
 
   /**
@@ -500,6 +579,24 @@ export class CreditAccountsService extends SDKConstruct {
     return calls;
   }
 
+  #prepareUpdateQuotas(props: UpdateQuotasProps): MultiCall[] {
+    const { creditAccount, averageQuota, minQuota } = props;
+    const calls: MultiCall[] = [];
+    for (const { token, balance } of averageQuota) {
+      let min = minQuota.find(a => a.token === token)?.balance ?? 0n;
+      min = min >= 0n ? min : 0n;
+      calls.push({
+        target: creditAccount.creditFacade,
+        callData: encodeFunctionData({
+          abi: iCreditFacadeV3MulticallAbi,
+          functionName: "updateQuota",
+          args: [token, balance, min],
+        }),
+      });
+    }
+    return calls;
+  }
+
   #prepareDecreaseDebt(ca: CreditAccountDataSlice): MultiCall[] {
     if (ca.debt > 0n) {
       return [
@@ -537,6 +634,20 @@ export class CreditAccountsService extends SDKConstruct {
     return calls;
   }
 
+  #prepareEnableTokens(
+    ca: CreditAccountDataSlice,
+    tokens: Address[],
+  ): MultiCall[] {
+    return tokens.map(t => ({
+      target: ca.creditFacade,
+      callData: encodeFunctionData({
+        abi: iCreditFacadeV3MulticallAbi,
+        functionName: "enableToken",
+        args: [t],
+      }),
+    }));
+  }
+
   #prepareWithdrawToken(
     ca: CreditAccountDataSlice,
     token: Address,
@@ -553,7 +664,7 @@ export class CreditAccountsService extends SDKConstruct {
     };
   }
 
-  #prepareAddCollateralCalls(
+  #prepareAddCollateral(
     assets: Array<Asset>,
     ca: CreditAccountDataSlice,
     permits: Record<string, PermitResult>,
