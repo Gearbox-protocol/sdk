@@ -186,7 +186,9 @@ export class CreditAccountsService extends SDKConstruct {
       return raw;
     }
     const { txs: priceUpdateTxs, timestamp: _ } =
-      await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs();
+      await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(undefined, {
+        account,
+      });
     const resp = await simulateMulticall(this.provider.publicClient, {
       contracts: [
         ...priceUpdateTxs.map(rawTxToMulticallPriceUpdate),
@@ -744,7 +746,10 @@ export class CreditAccountsService extends SDKConstruct {
       const tokens = Array.from(tokensByPool.get(pool) ?? []);
       priceFeeds.push(...priceFeedFactory.priceFeedsForTokens(tokens));
     }
-    return this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(priceFeeds);
+    return this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(
+      priceFeeds,
+      creditAccount ? { account: creditAccount.creditAccount } : undefined,
+    );
   }
 
   /**

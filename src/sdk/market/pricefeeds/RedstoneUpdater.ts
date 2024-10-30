@@ -42,8 +42,10 @@ export class RedstoneUpdater extends SDKConstruct {
 
   public async getUpdateTxs(
     feeds: RedstonePriceFeedContract[],
+    logContext: Record<string, any> = {},
   ): Promise<UpdatePFTask[]> {
     this.#logger?.debug(
+      logContext,
       `generating update transactions for ${feeds.length} redstone price feeds`,
     );
 
@@ -86,6 +88,7 @@ export class RedstoneUpdater extends SDKConstruct {
       }
     }
     this.#logger?.debug(
+      logContext,
       `generated ${results.length} update transactions for redstone price feeds`,
     );
     return results;

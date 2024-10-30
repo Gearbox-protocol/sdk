@@ -64,10 +64,12 @@ export class PriceFeedRegister
   /**
    * Returns RawTxs to update price feeds
    * @param priceFeeds top-level price feeds, actual updatable price feeds will be derived. If not provided will use all price feeds that are attached
+   * @param logContext extra information for logging
    * @returns
    */
   public async generatePriceFeedsUpdateTxs(
     priceFeeds?: IPriceFeedContract[],
+    logContext: Record<string, any> = {},
   ): Promise<UpdatePriceFeedsResult> {
     const updateables = priceFeeds
       ? priceFeeds.flatMap(pf => pf.updatableDependencies())
@@ -83,8 +85,10 @@ export class PriceFeedRegister
 
     let maxTimestamp = 0;
     if (redstonePFs.length > 0) {
-      const redstoneUpdates =
-        await this.#redstoneUpdater.getUpdateTxs(redstonePFs);
+      const redstoneUpdates = await this.#redstoneUpdater.getUpdateTxs(
+        redstonePFs,
+        logContext,
+      );
       for (const { tx, timestamp } of redstoneUpdates) {
         if (timestamp > maxTimestamp) {
           maxTimestamp = timestamp;
@@ -95,6 +99,7 @@ export class PriceFeedRegister
 
     const result: UpdatePriceFeedsResult = { txs, timestamp: maxTimestamp };
     this.logger?.debug(
+      logContext,
       `generated ${txs.length} price feed update transactions, timestamp: ${maxTimestamp}`,
     );
     if (txs.length) {
