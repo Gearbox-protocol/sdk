@@ -132,6 +132,17 @@ export class CreditFacadeV300Contract extends BaseContract<abi> {
     });
   }
 
+  public openCreditAccount(
+    to: Address,
+    calls: MultiCall[],
+    referralCode: bigint,
+  ): RawTx {
+    return this.createRawTx({
+      functionName: "openCreditAccount",
+      args: [to, calls, referralCode],
+    });
+  }
+
   public parseFunctionParams(
     params: DecodeFunctionDataReturnType<abi>,
   ): string[] | undefined {

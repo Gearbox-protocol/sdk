@@ -120,12 +120,17 @@ export interface ClaimFarmRewardsProps extends PrepareUpdateQuotasProps {
 }
 
 interface OpenCAProps extends PrepareUpdateQuotasProps {
+  ethAmount: bigint;
   collateral: Array<Asset>;
-  permits: Record<string, PermitResult>;
   debt: bigint;
   withdrawDebt?: boolean;
-  referralCode: bigint;
+  permits: Record<string, PermitResult>;
+  calls: Array<MultiCall>;
+
+  creditManager: Address;
+
   to: Address;
+  referralCode: bigint;
 }
 
 interface ChangeDeptProps {
@@ -516,7 +521,9 @@ export class CreditAccountsService extends SDKConstruct {
     return { tx, calls };
   }
 
-  public async withdrawCollateral(props: WithdrawCollateralProps) {
+  public async withdrawCollateral(
+    props: WithdrawCollateralProps,
+  ): Promise<CommonResult> {
     const { creditAccount, assetsToWithdraw, to } = props;
 
     const cm = this.sdk.marketRegister.findCreditManager(
@@ -547,7 +554,7 @@ export class CreditAccountsService extends SDKConstruct {
     return { tx, calls };
   }
 
-  public async executeSwap(props: ExecuteSwapProps) {
+  public async executeSwap(props: ExecuteSwapProps): Promise<CommonResult> {
     const { creditAccount, calls: swapCalls } = props;
     if (swapCalls.length === 0) throw new Error("No path to execute");
 
@@ -573,16 +580,14 @@ export class CreditAccountsService extends SDKConstruct {
   }
 
   public async claimFarmRewards(props: ClaimFarmRewardsProps) {
-    const { tokensToDisable, calls: claimCalls, creditAccount } = props;
+    const { tokensToDisable, calls: claimCalls, creditAccount: ca } = props;
     if (claimCalls.length === 0) throw new Error("No path to execute");
 
-    const cm = this.sdk.marketRegister.findCreditManager(
-      creditAccount.creditManager,
-    );
+    const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
 
     const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
-      creditAccount.creditManager,
-      creditAccount,
+      ca.creditManager,
+      ca,
       props.averageQuota,
     );
 
@@ -591,14 +596,60 @@ export class CreditAccountsService extends SDKConstruct {
       ...priceUpdatesCalls,
       ...claimCalls,
       ...tokensToDisable.map(a =>
-        this.#prepareDisableToken(creditAccount.creditFacade, a.token),
+        this.#prepareDisableToken(ca.creditFacade, a.token),
       ),
-      ...this.#prepareUpdateQuotas(creditAccount.creditFacade, props),
+      ...this.#prepareUpdateQuotas(ca.creditFacade, props),
     ];
 
-    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
+    const tx = cm.creditFacade.multicall(ca.creditAccount, calls);
 
     return { tx, calls };
+  }
+
+  public async openCA(props: OpenCAProps): Promise<CommonResult> {
+    const {
+      ethAmount,
+      creditManager,
+      collateral,
+      permits,
+      debt,
+      withdrawDebt,
+      referralCode,
+      to,
+      calls: openPathCalls,
+    } = props;
+
+    const cmFactory = this.sdk.marketRegister.findCreditManager(creditManager);
+    const cm = cmFactory.creditManager;
+
+    const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
+      cm.address,
+      undefined,
+      props.averageQuota,
+    );
+
+    const calls = [
+      ...priceUpdatesCalls,
+      this.#prepareIncreaseDebt(cm.creditFacade, debt),
+      ...this.#prepareAddCollateral(cm.creditFacade, collateral, permits),
+      ...this.#prepareUpdateQuotas(cm.creditFacade, props),
+      ...openPathCalls,
+      ...(withdrawDebt
+        ? [this.#prepareWithdrawToken(cm.creditFacade, cm.underlying, debt, to)]
+        : []),
+    ];
+
+    const tx = cmFactory.creditFacade.openCreditAccount(
+      to,
+      calls,
+      referralCode,
+    );
+    tx.value = ethAmount.toString(10);
+
+    return {
+      calls,
+      tx,
+    };
   }
 
   /**
@@ -900,6 +951,16 @@ export class CreditAccountsService extends SDKConstruct {
     };
   }
 
+  #prepareIncreaseDebt(creditFacade: Address, debt: bigint): MultiCall {
+    return {
+      target: creditFacade,
+      callData: encodeFunctionData({
+        abi: iCreditFacadeV3MulticallAbi,
+        functionName: "increaseDebt",
+        args: [debt],
+      }),
+    };
+  }
   #prepareChangeDebt(
     creditFacade: Address,
     change: bigint,
