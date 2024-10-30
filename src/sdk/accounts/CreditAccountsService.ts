@@ -103,6 +103,15 @@ interface WithdrawCollateralProps extends UpdateQuotasProps {
   to: Address;
 }
 
+interface ExecuteSwapProps extends UpdateQuotasProps {
+  calls: Array<MultiCall>;
+}
+
+export interface ClaimFarmRewardsProps extends UpdateQuotasProps {
+  tokensToDisable: Array<Asset>;
+  calls: Array<MultiCall>;
+}
+
 interface ChangeDeptProps {
   creditAccount: CreditAccountDataSlice;
   amount: bigint;
@@ -337,7 +346,7 @@ export class CreditAccountsService extends SDKConstruct {
       ...this.#prepareDisableQuotas(ca),
       ...this.#prepareDecreaseDebt(ca),
       ...this.#prepareDisableTokens(ca),
-      // TODO: probably needs a way to handle reward tokens
+      // TODO: probably needs a better way to handle reward tokens
       ...assetsToWithdraw.map(t =>
         this.#prepareWithdrawToken(ca, t, MAX_UINT256, to),
       ),
@@ -490,6 +499,54 @@ export class CreditAccountsService extends SDKConstruct {
       ...priceUpdatesCalls,
       ...assetsToWithdraw.map(a =>
         this.#prepareWithdrawToken(creditAccount, a.token, a.balance, to),
+      ),
+      ...this.#prepareUpdateQuotas(props),
+    ];
+
+    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
+
+    return { tx, calls };
+  }
+
+  public async executeSwap(props: ExecuteSwapProps) {
+    const { creditAccount, calls: swapCalls } = props;
+    if (swapCalls.length === 0) throw new Error("No path to execute");
+
+    const cm = this.sdk.marketRegister.findCreditManager(
+      creditAccount.creditManager,
+    );
+
+    const priceUpdatesCalls =
+      await this.getPriceUpdatesForFacade(creditAccount);
+
+    const calls: Array<MultiCall> = [
+      ...priceUpdatesCalls,
+      ...swapCalls,
+      ...this.#prepareUpdateQuotas(props),
+    ];
+
+    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
+
+    return { tx, calls };
+  }
+
+  public async claimFarmRewards(props: ClaimFarmRewardsProps) {
+    const { tokensToDisable, calls: claimCalls, creditAccount } = props;
+    if (claimCalls.length === 0) throw new Error("No path to execute");
+
+    const cm = this.sdk.marketRegister.findCreditManager(
+      creditAccount.creditManager,
+    );
+
+    const priceUpdatesCalls =
+      await this.getPriceUpdatesForFacade(creditAccount);
+
+    // TODO: probably needs a better way to handle reward tokens
+    const calls = [
+      ...priceUpdatesCalls,
+      ...claimCalls,
+      ...tokensToDisable.map(a =>
+        this.#prepareDisableToken(a.token, creditAccount),
       ),
       ...this.#prepareUpdateQuotas(props),
     ];
@@ -675,17 +732,20 @@ export class CreditAccountsService extends SDKConstruct {
         (t.mask & ca.enabledTokensMask) !== 0n &&
         t.quota === 0n
       ) {
-        calls.push({
-          target: ca.creditFacade,
-          callData: encodeFunctionData({
-            abi: iCreditFacadeV3MulticallAbi,
-            functionName: "disableToken",
-            args: [t.token],
-          }),
-        });
+        calls.push(this.#prepareDisableToken(t.token, ca));
       }
     }
     return calls;
+  }
+  #prepareDisableToken(token: Address, ca: CreditAccountDataSlice): MultiCall {
+    return {
+      target: ca.creditFacade,
+      callData: encodeFunctionData({
+        abi: iCreditFacadeV3MulticallAbi,
+        functionName: "disableToken",
+        args: [token],
+      }),
+    };
   }
 
   #prepareEnableTokens(
