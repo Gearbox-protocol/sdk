@@ -384,7 +384,7 @@ export class RouterV3Contract
     // TODO: PathOptionFactory deals with token data from SDK
     // it needs to accept market data
     const pathOptions = PathOptionFactory.generatePathOptions(
-      ca.tokens as readonly Array<Asset>,
+      ca.tokens,
       this.provider.networkType,
       LOOPS_PER_TX,
     );
