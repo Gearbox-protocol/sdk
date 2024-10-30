@@ -49,11 +49,6 @@ export interface CreditAccountFilter {
   maxHealthFactor?: number;
 }
 
-export interface FullyLiquidateAccountResult {
-  tx: RawTx;
-  routerCloseResult: RouterCloseResult;
-}
-
 export interface CloseCreditAccountResult extends CommonResult {
   routerCloseResult: RouterCloseResult;
 }
@@ -281,7 +276,7 @@ export class CreditAccountsService extends SDKConstruct {
     account: CreditAccountDataSlice,
     to: Address,
     slippage = 50n,
-  ): Promise<FullyLiquidateAccountResult> {
+  ): Promise<CloseCreditAccountResult> {
     const cm = this.sdk.marketRegister.findCreditManager(account.creditManager);
     const routerCloseResult = await this.sdk.router.findBestClosePath({
       creditAccount: account,
@@ -293,12 +288,13 @@ export class CreditAccountsService extends SDKConstruct {
       account,
       undefined,
     );
+    const calls = [...priceUpdates, ...routerCloseResult.calls];
     const tx = cm.creditFacade.liquidateCreditAccount(
       account.creditAccount,
       to,
-      [...priceUpdates, ...routerCloseResult.calls],
+      calls,
     );
-    return { tx, routerCloseResult };
+    return { tx, calls, routerCloseResult };
   }
 
   /**
