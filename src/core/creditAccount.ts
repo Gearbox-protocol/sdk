@@ -135,17 +135,16 @@ const MAX_UINT16 = 65535;
 
 export class CreditAccountData {
   readonly isSuccessful: boolean;
-  readonly priceFeedsNeeded: Address[];
 
-  readonly addr: Address;
+  readonly creditAccount: Address;
   readonly borrower: Address;
   readonly creditManager: Address;
   readonly creditFacade: Address;
-  readonly underlyingToken: Address;
+  readonly underlying: Address;
   readonly expirationDate: number;
   readonly version: number;
 
-  readonly enabledTokenMask: bigint;
+  readonly enabledTokensMask: bigint;
   readonly healthFactor: number;
   isDeleting: boolean;
 
@@ -156,6 +155,7 @@ export class CreditAccountData {
   readonly accruedFees: bigint;
   readonly totalDebtUSD: bigint;
   readonly borrowedAmountPlusInterestAndFees: bigint;
+  readonly debt: bigint;
   readonly totalValue: bigint;
   readonly totalValueUSD: bigint;
   readonly twvUSD: bigint;
@@ -164,29 +164,29 @@ export class CreditAccountData {
 
   readonly balances: Record<Address, bigint> = {};
   readonly collateralTokens: Array<Address> = [];
-  readonly allBalances: Record<Address, CaTokenBalance> = {};
+  readonly tokens: Record<Address, CaTokenBalance> = {};
   readonly forbiddenTokens: Record<Address, true> = {};
   readonly quotedTokens: Record<Address, true> = {};
 
   constructor(payload: CreditAccountDataPayload) {
     this.isSuccessful = payload.isSuccessful;
-    this.priceFeedsNeeded = payload.priceFeedsNeeded.map(t => t);
 
-    this.addr = payload.addr.toLowerCase() as Address;
+    this.creditAccount = payload.addr.toLowerCase() as Address;
     this.borrower = payload.borrower.toLowerCase() as Address;
     this.creditManager = payload.creditManager.toLowerCase() as Address;
     this.creditFacade = payload.creditFacade.toLowerCase() as Address;
-    this.underlyingToken = payload.underlying.toLowerCase() as Address;
+    this.underlying = payload.underlying.toLowerCase() as Address;
     this.expirationDate = Number(payload.expirationDate);
     this.version = Number(payload.cfVersion);
 
     this.healthFactor = Number(payload.healthFactor || 0n);
-    this.enabledTokenMask = payload.enabledTokensMask;
+    this.enabledTokensMask = payload.enabledTokensMask;
     this.isDeleting = false;
 
     this.borrowedAmount = payload.debt;
     this.accruedInterest = payload.accruedInterest || 0n;
     this.accruedFees = payload.accruedFees || 0n;
+    this.debt = this.borrowedAmount;
     this.borrowedAmountPlusInterestAndFees =
       this.borrowedAmount + this.accruedInterest + this.accruedFees;
     this.totalDebtUSD = payload.totalDebtUSD;
@@ -209,6 +209,7 @@ export class CreditAccountData {
     payload.balances.forEach(b => {
       const token = b.token.toLowerCase() as Address;
       const balance: CaTokenBalance = {
+        success: b.success,
         token,
         balance: b.balance,
         isForbidden: b.isForbidden,
@@ -216,6 +217,7 @@ export class CreditAccountData {
         isQuoted: b.isQuoted,
         quota: b.quota,
         quotaRate: BigInt(b.quotaRate) * PERCENTAGE_DECIMALS,
+        mask: b.mask,
       };
 
       if (!b.isForbidden) {
@@ -229,7 +231,7 @@ export class CreditAccountData {
         this.quotedTokens[token] = true;
       }
 
-      this.allBalances[token] = balance;
+      this.tokens[token] = balance;
     });
   }
 
@@ -339,7 +341,7 @@ export class CreditAccountData {
   }
 
   isTokenEnabled(token: Address) {
-    return this.allBalances[token].isEnabled;
+    return this.tokens[token].isEnabled;
   }
 
   static calcMaxDebtIncrease(

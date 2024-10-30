@@ -1,6 +1,7 @@
 import { Address } from "viem";
 
 export interface CaTokenBalance {
+  success: boolean;
   token: Address;
   balance: bigint;
   isForbidden: boolean;
@@ -8,11 +9,11 @@ export interface CaTokenBalance {
   isQuoted: boolean;
   quota: bigint;
   quotaRate: bigint;
+  mask: bigint;
 }
 
 export interface CreditAccountDataPayload {
   isSuccessful: boolean;
-  priceFeedsNeeded: readonly Address[];
   addr: Address;
   borrower: Address;
   creditManager: Address;
@@ -29,6 +30,7 @@ export interface CreditAccountDataPayload {
   healthFactor: bigint;
   baseBorrowRate: bigint;
   balances: readonly {
+    success: boolean;
     token: Address;
     balance: bigint;
     isForbidden: boolean;
@@ -36,6 +38,7 @@ export interface CreditAccountDataPayload {
     isQuoted: boolean;
     quota: bigint;
     quotaRate: number;
+    mask: bigint;
   }[];
   cfVersion: bigint;
   expirationDate: number;
