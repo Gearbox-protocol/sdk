@@ -38,6 +38,7 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "example": "tsx --env-file .env scripts/example.ts | pino-pretty",
+    "test": "yarn -v",
     "prepare": "husky",
     "prettier": "prettier --write .",
     "prettier:ci": "npx prettier --check .",

@@ -399,7 +399,8 @@ const priceFeedToTicker: Record<NetworkType, Record<Address, Address>> = {
 /**
  * Mapping for v3 conversion token -> ticker
  */
-const tokenToTicker: Record<NetworkType, Record<Address, Address>> = {
+// TODO: unused
+export const tokenToTicker: Record<NetworkType, Record<Address, Address>> = {
   Mainnet: {
     "0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee":
       "0x8C23b9E4CB9884e807294c4b4C33820333cC613c",
