@@ -56,8 +56,8 @@ interface FindOneTokenPathProps {
 
 interface FindOpenStrategyPathProps {
   creditManager: CreditManagerSlice;
-  expectedBalances: Asset[];
-  leftoverBalances: Asset[];
+  expectedBalances: Array<Asset>;
+  leftoverBalances: Array<Asset>;
   target: Address;
   slippage: number | bigint;
 }
@@ -70,10 +70,10 @@ interface FindBestClosePathProps {
 }
 
 export interface FindClosePathInput {
-  pathOptions: PathOptionSerie[];
-  expected: Asset[];
-  leftover: Asset[];
-  connectors: Address[];
+  pathOptions: Array<PathOptionSerie>;
+  expected: Array<Asset>;
+  leftover: Array<Asset>;
+  connectors: Array<Address>;
 }
 
 export interface ClosePathBalances {
@@ -94,7 +94,7 @@ export type RouterHooks = {
  */
 interface CreditManagerSlice {
   address: Address;
-  collateralTokens: Address[];
+  collateralTokens: Array<Address>;
 }
 
 export type CreditAccountDataSlice = Pick<
@@ -112,7 +112,7 @@ export class RouterV3Contract
   extends BaseContract<abi>
   implements IHooks<RouterHooks>
 {
-  readonly #connectors: Address[];
+  readonly #connectors: Array<Address>;
   readonly #hooks = new Hooks<RouterHooks>();
 
   constructor(sdk: GearboxSDK, address: Address) {
@@ -148,7 +148,7 @@ export class RouterV3Contract
     amount,
     leftoverAmount,
     slippage,
-  }: FindAllSwapsProps): Promise<RouterResult[]> {
+  }: FindAllSwapsProps): Promise<Array<RouterResult>> {
     const connectors = this.getAvailableConnectors(cm.collateralTokens);
 
     const swapTask: SwapTask = {
@@ -248,12 +248,12 @@ export class RouterV3Contract
       balancesMap(expectedBalances),
       balancesMap(leftoverBalances),
     ];
-    const input: Asset[] = cm.collateralTokens.map(token => ({
+    const input: Array<Asset> = cm.collateralTokens.map(token => ({
       token,
       balance: expectedMap.get(token) ?? 0n,
     }));
 
-    const leftover: Asset[] = cm.collateralTokens.map(token => ({
+    const leftover: Array<Asset> = cm.collateralTokens.map(token => ({
       token,
       balance: leftoverMap.get(token) ?? 0n,
     }));
@@ -323,7 +323,7 @@ export class RouterV3Contract
       connectors,
     });
 
-    let results: RouterResult[] = [];
+    let results: Array<RouterResult> = [];
     for (const po of pathOptions) {
       // TODO: maybe Promise.all?
       const { result } = await this.contract.simulate.findBestClosePath(
@@ -384,12 +384,12 @@ export class RouterV3Contract
     // TODO: PathOptionFactory deals with token data from SDK
     // it needs to accept market data
     const pathOptions = PathOptionFactory.generatePathOptions(
-      ca.tokens as readonly Asset[],
+      ca.tokens as readonly Array<Asset>,
       this.provider.networkType,
       LOOPS_PER_TX,
     );
 
-    const expected: Asset[] = cm.collateralTokens.map(token => {
+    const expected: Array<Asset> = cm.collateralTokens.map(token => {
       // When we pass expected balances explicitly, we need to mimic router behaviour by filtering out leftover tokens
       // for example, we can have stETH balance of 2, because 1 transforms to 2 because of rebasing
       // https://github.com/Gearbox-protocol/router-v3/blob/c230a3aa568bb432e50463cfddc877fec8940cf5/contracts/RouterV3.sol#L222
@@ -400,7 +400,7 @@ export class RouterV3Contract
       };
     });
 
-    const leftover: Asset[] = cm.collateralTokens.map(token => ({
+    const leftover: Array<Asset> = cm.collateralTokens.map(token => ({
       token: token,
       balance: leftoverBalances.get(token)?.balance || 1n,
     }));
@@ -428,7 +428,9 @@ export class RouterV3Contract
     return { expectedBalances, leftoverBalances };
   }
 
-  public getAvailableConnectors(collateralTokens: Address[]): Address[] {
+  public getAvailableConnectors(
+    collateralTokens: Array<Address>,
+  ): Array<Address> {
     return collateralTokens.filter(t =>
       this.#connectors.includes(t.toLowerCase() as Address),
     );
@@ -439,10 +441,10 @@ function compareRouterResults(a: RouterResult, b: RouterResult): RouterResult {
   return a.amount > b.amount ? a : b;
 }
 
-export function balancesMap(assets: Asset[]): AddressMap<bigint> {
+export function balancesMap(assets: Array<Asset>): AddressMap<bigint> {
   return new AddressMap(assets.map(({ token, balance }) => [token, balance]));
 }
 
-export function assetsMap(assets: Asset[]): AddressMap<Asset> {
+export function assetsMap(assets: Array<Asset>): AddressMap<Asset> {
   return new AddressMap(assets.map(a => [a.token, a]));
 }

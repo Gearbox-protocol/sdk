@@ -10,14 +10,14 @@ export interface PathOption {
   totalOptions: number;
 }
 
-export type PathOptionSerie = PathOption[];
+export type PathOptionSerie = Array<PathOption>;
 
 export interface SwapTask {
   swapOperation: number;
   creditAccount: Address;
   tokenIn: Address;
   tokenOut: Address;
-  connectors: Address[];
+  connectors: Array<Address>;
   amount: bigint;
   leftoverAmount: bigint;
 }
@@ -25,7 +25,7 @@ export interface SwapTask {
 export interface RouterResult {
   amount: bigint;
   minAmount: bigint;
-  calls: MultiCall[];
+  calls: Array<MultiCall>;
 }
 
 export interface OpenStrategyResult extends RouterResult {
