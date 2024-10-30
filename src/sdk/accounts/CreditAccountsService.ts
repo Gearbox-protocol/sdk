@@ -98,6 +98,11 @@ interface AddCollateralProps extends UpdateQuotasProps {
   permit?: PermitResult;
 }
 
+interface WithdrawCollateralProps extends UpdateQuotasProps {
+  assetsToWithdraw: Array<Asset>;
+  to: Address;
+}
+
 interface ChangeDeptProps {
   creditAccount: CreditAccountDataSlice;
   amount: bigint;
@@ -415,18 +420,14 @@ export class CreditAccountsService extends SDKConstruct {
     const priceUpdatesCalls =
       await this.getPriceUpdatesForFacade(creditAccount);
 
-    const addCollateralCalls = this.#prepareAddCollateral(
-      [asset],
-      creditAccount,
-      permit ? { [asset.token]: permit } : {},
-    );
-
-    const updateQuotaCalls = this.#prepareUpdateQuotas(props);
-
     const calls: Array<MultiCall> = [
       ...priceUpdatesCalls,
-      ...addCollateralCalls,
-      ...updateQuotaCalls,
+      ...this.#prepareAddCollateral(
+        [asset],
+        creditAccount,
+        permit ? { [asset.token]: permit } : {},
+      ),
+      ...this.#prepareUpdateQuotas(props),
     ];
 
     const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
@@ -464,10 +465,33 @@ export class CreditAccountsService extends SDKConstruct {
         target: creditAccount.creditFacade,
         callData: encodeFunctionData({
           abi: iCreditFacadeV3MulticallAbi,
-          functionName: isDecrease ? "increaseDebt" : "decreaseDebt",
+          functionName: isDecrease ? "decreaseDebt" : "increaseDebt",
           args: [change],
         }),
       },
+    ];
+
+    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
+
+    return { tx, calls };
+  }
+
+  public async withdrawCollateral(props: WithdrawCollateralProps) {
+    const { creditAccount, assetsToWithdraw, to } = props;
+
+    const cm = this.sdk.marketRegister.findCreditManager(
+      creditAccount.creditManager,
+    );
+
+    const priceUpdatesCalls =
+      await this.getPriceUpdatesForFacade(creditAccount);
+
+    const calls: Array<MultiCall> = [
+      ...priceUpdatesCalls,
+      ...assetsToWithdraw.map(a =>
+        this.#prepareWithdrawToken(creditAccount, a.token, a.balance, to),
+      ),
+      ...this.#prepareUpdateQuotas(props),
     ];
 
     const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
@@ -603,8 +627,11 @@ export class CreditAccountsService extends SDKConstruct {
     return calls;
   }
 
-  #prepareUpdateQuotas(props: UpdateQuotasProps): Array<MultiCall> {
-    const { creditAccount, averageQuota, minQuota } = props;
+  #prepareUpdateQuotas({
+    creditAccount,
+    averageQuota,
+    minQuota,
+  }: UpdateQuotasProps): Array<MultiCall> {
     const minRecord = assetsMap(minQuota);
 
     const calls: Array<MultiCall> = averageQuota.map(q => {
