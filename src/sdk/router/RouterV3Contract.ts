@@ -439,10 +439,10 @@ function compareRouterResults(a: RouterResult, b: RouterResult): RouterResult {
   return a.amount > b.amount ? a : b;
 }
 
-function balancesMap(assets: Asset[]): AddressMap<bigint> {
+export function balancesMap(assets: Asset[]): AddressMap<bigint> {
   return new AddressMap(assets.map(({ token, balance }) => [token, balance]));
 }
 
-function assetsMap(assets: Asset[]): AddressMap<Asset> {
+export function assetsMap(assets: Asset[]): AddressMap<Asset> {
   return new AddressMap(assets.map(a => [a.token, a]));
 }
