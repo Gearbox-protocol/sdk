@@ -2,19 +2,32 @@ import type {
   Address,
   ContractEventName,
   DecodeFunctionDataReturnType,
+  GetEventArgs,
   Log,
 } from "viem";
 
 import { creditConfiguratorV3Abi } from "../abi";
 import type { CreditManagerData } from "../base";
 import { BaseContract } from "../base";
+import { RAMP_DURATION_BY_NETWORK } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
 import { formatDuration, percentFmt } from "../utils";
 
 type abi = typeof creditConfiguratorV3Abi;
 
+export type RampEvent = GetEventArgs<
+  abi,
+  "ScheduleTokenLiquidationThresholdRamp",
+  {
+    EnableUnion: false;
+    IndexedOnly: false;
+    Required: true;
+  }
+>;
+
 export class CreditConfiguratorContract extends BaseContract<abi> {
   public readonly adapters: Address[] = [];
+  public isPaused = false;
 
   constructor(
     sdk: GearboxSDK,
@@ -39,6 +52,12 @@ export class CreditConfiguratorContract extends BaseContract<abi> {
     >,
   ): void {
     switch (log.eventName) {
+      case "Paused":
+        this.isPaused = true;
+        break;
+      case "Unpaused":
+        this.isPaused = false;
+        break;
       case "AddCollateralToken":
       case "AddEmergencyLiquidator":
       case "AllowAdapter":
@@ -47,7 +66,6 @@ export class CreditConfiguratorContract extends BaseContract<abi> {
       case "ForbidAdapter":
       case "ForbidToken":
       case "NewController":
-      case "Paused":
       case "QuoteToken":
       case "RemoveEmergencyLiquidator":
       case "ResetCumulativeLoss":
@@ -61,11 +79,27 @@ export class CreditConfiguratorContract extends BaseContract<abi> {
       case "SetMaxEnabledTokens":
       case "SetPriceOracle":
       case "SetTokenLiquidationThreshold":
-      case "Unpaused":
       case "UpdateFees":
         this.dirty = true;
         break;
     }
+  }
+
+  public async checkRamps(): Promise<RampEvent[]> {
+    let fromBlock =
+      this.sdk.currentBlock -
+      RAMP_DURATION_BY_NETWORK[this.sdk.provider.networkType];
+    fromBlock = fromBlock < 0n ? 0n : fromBlock;
+
+    const logs = await this.provider.publicClient.getContractEvents({
+      address: this.address,
+      abi: this.abi,
+      fromBlock,
+      eventName: "ScheduleTokenLiquidationThresholdRamp",
+      strict: true,
+    });
+
+    return logs.map(({ args }) => args);
   }
 
   public parseFunctionParams(

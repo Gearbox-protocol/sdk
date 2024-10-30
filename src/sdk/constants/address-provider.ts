@@ -41,13 +41,3 @@ export const ADDRESS_PROVIDER: Record<NetworkType, Address> = {
   Optimism: "0x3761ca4BFAcFCFFc1B8034e69F19116dD6756726",
   Base: NOT_DEPLOYED,
 };
-
-/**
- * Block number when address provider was deployed
- */
-export const ADDRESS_PROVIDER_BLOCK: Record<NetworkType, bigint> = {
-  Mainnet: 18433056n,
-  Arbitrum: 184650310n,
-  Optimism: 118410666n,
-  Base: 0n,
-};
