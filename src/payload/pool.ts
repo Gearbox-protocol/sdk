@@ -46,6 +46,13 @@ export interface PoolDataPayload {
   }[];
 
   zappers: readonly PoolZapper[];
+
+  creditManagerDebtParams: readonly {
+    creditManager: Address;
+    borrowed: bigint;
+    limit: bigint;
+    availableToBorrow: bigint;
+  }[];
 }
 export interface PoolDataExtraPayload {
   stakedDieselToken: Array<Address>;
