@@ -24,7 +24,6 @@ import {
   type Asset,
   assetsMap,
   type CreditAccountDataSlice,
-  CreditManagerSlice,
   type RouterCloseResult,
 } from "../router";
 import type { MultiCall, RawTx } from "../types";
@@ -126,6 +125,7 @@ interface OpenCAProps extends PrepareUpdateQuotasProps {
   debt: bigint;
   withdrawDebt?: boolean;
   permits: Record<string, PermitResult>;
+  calls: Array<MultiCall>;
 
   creditManager: Address;
 
@@ -614,6 +614,7 @@ export class CreditAccountsService extends SDKConstruct {
       withdrawDebt,
       referralCode,
       to,
+      calls: openPathCalls,
     } = props;
 
     const cmFactory = this.sdk.marketRegister.findCreditManager(creditManager);
@@ -630,6 +631,7 @@ export class CreditAccountsService extends SDKConstruct {
       this.#prepareIncreaseDebt(cm.creditFacade, debt),
       ...this.#prepareAddCollateral(cm.creditFacade, collateral, permits),
       ...this.#prepareUpdateQuotas(cm.creditFacade, props),
+      ...openPathCalls,
       ...(withdrawDebt
         ? [this.#prepareWithdrawToken(cm.creditFacade, cm.underlying, debt, to)]
         : []),
