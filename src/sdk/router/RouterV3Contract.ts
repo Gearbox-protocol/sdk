@@ -445,6 +445,8 @@ export function balancesMap(assets: Array<Asset>): AddressMap<bigint> {
   return new AddressMap(assets.map(({ token, balance }) => [token, balance]));
 }
 
-export function assetsMap(assets: Array<Asset>): AddressMap<Asset> {
+export function assetsMap<T extends Asset>(
+  assets: Array<T> | readonly T[],
+): AddressMap<T> {
   return new AddressMap(assets.map(a => [a.token, a]));
 }
