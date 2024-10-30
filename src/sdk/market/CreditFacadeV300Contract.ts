@@ -17,6 +17,8 @@ import type { OnDemandPriceUpdate } from "./PriceOracleContract";
 
 type abi = typeof creditFacadeV3Abi;
 
+const extAbi = [...creditFacadeV3Abi, ...iCreditFacadeV3MulticallAbi];
+
 // Augmenting contract class with interface of compressor data object
 export interface CreditFacadeV300Contract
   extends Omit<CreditFacadeState, "baseParams">,
@@ -144,7 +146,7 @@ export class CreditFacadeV300Contract extends BaseContract<abi> {
   }
 
   public parseFunctionParams(
-    params: DecodeFunctionDataReturnType<abi>,
+    params: DecodeFunctionDataReturnType<typeof extAbi>,
   ): string[] | undefined {
     switch (params.functionName) {
       case "openCreditAccount": {
@@ -176,6 +178,20 @@ export class CreditFacadeV300Contract extends BaseContract<abi> {
           this.labelAddress(creditAccount),
           this.labelAddress(bot),
           fmtBinaryMask(permissions),
+        ];
+      }
+      case "storeExpectedBalances": {
+        const [deltas] = params.args;
+        return [
+          deltas
+            .map(({ token, amount }) => {
+              return (
+                this.labelAddress(token) +
+                ": " +
+                this.sdk.tokensMeta.formatBN(token, amount)
+              );
+            })
+            .join(","),
         ];
       }
 
