@@ -147,6 +147,10 @@ const PROTOCOL_DATA: Record<ExtendedProtocols, ProtocolData> = {
     name: "Lombard",
     icon: "/protocols/lombard.svg",
   },
+  Sky: {
+    name: "Sky",
+    icon: "/protocols/sky.svg",
+  },
 };
 
 export const isExtendedProtocol = (t: unknown): t is ExtendedProtocols =>
