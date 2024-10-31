@@ -281,7 +281,6 @@ export class TxUnstakeDiesel extends EVMTx implements PoolEvent {
 }
 
 interface SwapProps extends EVMTxProps {
-  protocol: string;
   operation: string;
   amountFrom: bigint;
   amountTo?: bigint;
@@ -292,7 +291,6 @@ interface SwapProps extends EVMTxProps {
 }
 
 export class TXSwap extends EVMTx implements CMEvent {
-  readonly protocol: string;
   readonly operation: string;
   readonly amountFrom: bigint;
   readonly amountTo?: bigint;
@@ -303,7 +301,6 @@ export class TXSwap extends EVMTx implements CMEvent {
 
   constructor(opts: SwapProps) {
     super(opts);
-    this.protocol = opts.protocol;
     this.operation = opts.operation;
     this.amountFrom = opts.amountFrom;
     this.amountTo = opts.amountTo;
@@ -328,7 +325,7 @@ export class TXSwap extends EVMTx implements CMEvent {
     }: ${this.operation} ${formatBN(
       this.amountFrom,
       fromDecimals || 18,
-    )} ${fromSymbol} ${toPart} on ${this.protocol}`;
+    )} ${fromSymbol} ${toPart}`;
   }
 
   serialize(): TxSerialized {
