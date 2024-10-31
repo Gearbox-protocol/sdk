@@ -289,6 +289,21 @@ export class CreditManagerData {
     };
   }
 
+  static withdrawAndUnwrap_Convex(
+    address: Address,
+    amount: bigint,
+    claim: boolean,
+  ): MultiCall {
+    return {
+      target: address,
+      callData: encodeFunctionData({
+        abi: iConvexV1BaseRewardPoolAdapterAbi,
+        functionName: "withdrawAndUnwrap",
+        args: [amount, claim],
+      }),
+    };
+  }
+
   static withdrawAllAndUnwrap_Convex(
     address: Address,
     claim: boolean,
