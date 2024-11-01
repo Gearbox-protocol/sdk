@@ -7,7 +7,6 @@ export * from "./core/creditManager";
 export * from "./core/creditSession";
 export * from "./core/endpoint";
 export * from "./core/eventOrTx";
-export * from "./core/events";
 export * from "./core/gauge";
 export * from "./core/gaugeMath";
 export * from "./core/pool";
