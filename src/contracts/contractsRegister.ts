@@ -1,43 +1,6 @@
-import { NetworkType } from "@gearbox-protocol/sdk-gov";
 import { Address } from "viem";
 
-export type MainnetPoolsV1 =
-  | "DAI_V1"
-  | "USDC_V1"
-  | "WETH_V1"
-  | "WBTC_V1"
-  | "WSTETH_V1"
-  | "FRAX_V1";
-
-export type MainnetPoolsV3 =
-  | "USDC_V3_TRADE"
-  | "WETH_V3_TRADE"
-  | "WBTC_V3_TRADE"
-  | "USDT_V3_BROKEN"
-  | "GHO_V3"
-  | "DAI_V3"
-  | "USDT_V3"
-  | "CRVUSD_V3";
-
-export type MainnetPools = MainnetPoolsV1 | MainnetPoolsV3;
-
-export type ArbitrumPools = "USDC_V3" | "USDC_e_V3" | "WETH_V3";
-export type OptimismPools = "USDC_V3" | "WETH_V3";
-export type BasePools = never;
-
-type PoolsListType = {
-  [key in NetworkType]: key extends "Mainnet"
-    ? Record<MainnetPools, Address>
-    : key extends "Arbitrum"
-    ? Record<ArbitrumPools, Address>
-    : key extends "Optimism"
-    ? Record<OptimismPools, Address>
-    : key extends "Base"
-    ? Record<BasePools, Address>
-    : never;
-};
-
-export const poolByNetwork: PoolsListType = {
+export const poolByNetwork = {
   Mainnet: {
     DAI_V1:
       "0x24946bCbBd028D5ABb62ad9B635EB1b1a67AF668".toLowerCase() as Address,
@@ -85,4 +48,4 @@ export const poolByNetwork: PoolsListType = {
       "0x42db77b3103c71059f4b997d6441cfb299fd0d94".toLowerCase() as Address,
   },
   Base: {},
-};
+} as const;
