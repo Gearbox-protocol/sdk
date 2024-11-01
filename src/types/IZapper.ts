@@ -62,6 +62,23 @@ export const iZapperAbi = [
   },
   {
     type: "function",
+    inputs: [
+      { name: "tokenOutAmount", internalType: "uint256", type: "uint256" },
+      { name: "receiver", internalType: "address", type: "address" },
+      { name: "nonce", internalType: "uint256", type: "uint256" },
+      { name: "expiry", internalType: "uint256", type: "uint256" },
+      { name: "v", internalType: "uint8", type: "uint8" },
+      { name: "r", internalType: "bytes32", type: "bytes32" },
+      { name: "s", internalType: "bytes32", type: "bytes32" },
+    ],
+    name: "redeemWithPermitAllowed",
+    outputs: [
+      { name: "tokenInAmount", internalType: "uint256", type: "uint256" },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     inputs: [],
     name: "tokenIn",
     outputs: [{ name: "", internalType: "address", type: "address" }],
