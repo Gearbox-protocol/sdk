@@ -8,19 +8,16 @@ import {
 } from "@gearbox-protocol/sdk-gov";
 import { Address } from "viem";
 
-import { getContractName } from "../contracts/contractsRegister";
 import { BigIntMath } from "../utils/math";
 import { Asset } from "./assets";
 import { EVMTx, EVMTxProps } from "./eventOrTx";
 
 interface CMEvent {
-  readonly creditManager: Address;
-  readonly creditManagerName?: string;
+  readonly creditManagerName: string;
 }
 
 interface PoolEvent {
-  readonly pool: string;
-  readonly poolName?: string;
+  readonly poolName: string;
 }
 
 export interface TxSerialized {
@@ -127,20 +124,20 @@ interface AddLiquidityProps extends EVMTxProps {
   amount: bigint;
   underlyingToken: Address;
   pool: Address;
-  poolName?: string;
+  poolName: string;
 }
 
 export class TxAddLiquidity extends EVMTx implements PoolEvent {
   readonly amount: bigint;
   readonly underlyingToken: Address;
-  readonly pool: Address;
-  readonly poolName?: string;
+
+  readonly poolName: string;
 
   constructor(opts: AddLiquidityProps) {
     super(opts);
     this.amount = opts.amount;
     this.underlyingToken = opts.underlyingToken;
-    this.pool = opts.pool;
+
     this.poolName = opts.poolName;
   }
 
@@ -149,7 +146,7 @@ export class TxAddLiquidity extends EVMTx implements PoolEvent {
       this.underlyingToken,
     );
 
-    return `${this.poolName || getContractName(this.pool)}: Deposit ${formatBN(
+    return `${this.poolName}: Deposit ${formatBN(
       this.amount,
       underlyingDecimals || 18,
     )} ${underlyingSymbol}`;
@@ -167,27 +164,27 @@ interface RemoveLiquidityProps extends EVMTxProps {
   amount: bigint;
   dieselToken: Address;
   pool: Address;
-  poolName?: string;
+  poolName: string;
 }
 
 export class TxRemoveLiquidity extends EVMTx implements PoolEvent {
   readonly amount: bigint;
   readonly dieselToken: Address;
-  readonly pool: Address;
-  readonly poolName?: string;
+
+  readonly poolName: string;
 
   constructor(opts: RemoveLiquidityProps) {
     super(opts);
     this.amount = opts.amount;
     this.dieselToken = opts.dieselToken;
-    this.pool = opts.pool;
+
     this.poolName = opts.poolName;
   }
 
   toString() {
     const [dSymbol, dDecimals] = extractTokenData(this.dieselToken);
 
-    return `${this.poolName || getContractName(this.pool)}: Withdraw ${formatBN(
+    return `${this.poolName}: Withdraw ${formatBN(
       this.amount,
       dDecimals || 18,
     )} ${dSymbol}`;
@@ -207,7 +204,7 @@ interface TxStakeDieselProps extends EVMTxProps {
   to: Address;
 
   pool: Address;
-  poolName?: string;
+  poolName: string;
 }
 
 export class TxStakeDiesel extends EVMTx implements PoolEvent {
@@ -215,15 +212,14 @@ export class TxStakeDiesel extends EVMTx implements PoolEvent {
   readonly from: Address;
   readonly to: Address;
 
-  readonly pool: Address;
-  readonly poolName?: string;
+  readonly poolName: string;
 
   constructor(opts: TxStakeDieselProps) {
     super(opts);
     this.amount = opts.amount;
     this.from = opts.from;
     this.to = opts.to;
-    this.pool = opts.pool;
+
     this.poolName = opts.poolName;
   }
 
@@ -231,7 +227,7 @@ export class TxStakeDiesel extends EVMTx implements PoolEvent {
     const [fromSymbol, fromDecimals] = extractTokenData(this.from);
     const [toSymbol] = extractTokenData(this.to);
 
-    return `${this.poolName || getContractName(this.pool)}: Stake ${formatBN(
+    return `${this.poolName}: Stake ${formatBN(
       this.amount,
       fromDecimals || 18,
     )} ${fromSymbol} => ${toSymbol}`;
@@ -250,15 +246,14 @@ export class TxUnstakeDiesel extends EVMTx implements PoolEvent {
   readonly from: Address;
   readonly to: Address;
 
-  readonly pool: Address;
-  readonly poolName?: string;
+  readonly poolName: string;
 
   constructor(opts: TxStakeDieselProps) {
     super(opts);
     this.amount = opts.amount;
     this.from = opts.from;
     this.to = opts.to;
-    this.pool = opts.pool;
+
     this.poolName = opts.poolName;
   }
 
@@ -266,7 +261,7 @@ export class TxUnstakeDiesel extends EVMTx implements PoolEvent {
     const [fromSymbol, fromDecimals] = extractTokenData(this.from);
     const [toSymbol] = extractTokenData(this.to);
 
-    return `${this.poolName || getContractName(this.pool)}: Unstake ${formatBN(
+    return `${this.poolName}: Unstake ${formatBN(
       this.amount,
       fromDecimals || 18,
     )} ${fromSymbol} => ${toSymbol}`;
@@ -286,8 +281,8 @@ interface SwapProps extends EVMTxProps {
   amountTo?: bigint;
   tokenFrom: Address;
   tokenTo?: Address;
-  creditManager: Address;
-  creditManagerName?: string;
+
+  creditManagerName: string;
 }
 
 export class TXSwap extends EVMTx implements CMEvent {
@@ -296,8 +291,8 @@ export class TXSwap extends EVMTx implements CMEvent {
   readonly amountTo?: bigint;
   readonly tokenFrom: Address;
   readonly tokenTo?: Address;
-  readonly creditManager: Address;
-  readonly creditManagerName?: string;
+
+  readonly creditManagerName: string;
 
   constructor(opts: SwapProps) {
     super(opts);
@@ -306,7 +301,7 @@ export class TXSwap extends EVMTx implements CMEvent {
     this.amountTo = opts.amountTo;
     this.tokenFrom = opts.tokenFrom;
     this.tokenTo = opts.tokenTo;
-    this.creditManager = opts.creditManager;
+
     this.creditManagerName = opts.creditManagerName;
   }
 
@@ -320,12 +315,9 @@ export class TXSwap extends EVMTx implements CMEvent {
 
     const [fromSymbol, fromDecimals] = extractTokenData(this.tokenFrom);
 
-    return `Credit Account ${
-      this.creditManagerName || getContractName(this.creditManager)
-    }: ${this.operation} ${formatBN(
-      this.amountFrom,
-      fromDecimals || 18,
-    )} ${fromSymbol} ${toPart}`;
+    return `Credit Account ${this.creditManagerName}: ${
+      this.operation
+    } ${formatBN(this.amountFrom, fromDecimals || 18)} ${fromSymbol} ${toPart}`;
   }
 
   serialize(): TxSerialized {
@@ -339,30 +331,28 @@ export class TXSwap extends EVMTx implements CMEvent {
 interface AddCollateralProps extends EVMTxProps {
   amount: bigint;
   addedToken: Address;
-  creditManager: Address;
-  creditManagerName?: string;
+
+  creditManagerName: string;
 }
 
 export class TxAddCollateral extends EVMTx implements CMEvent {
   readonly amount: bigint;
   readonly addedToken: Address;
-  readonly creditManager: Address;
-  readonly creditManagerName?: string;
+
+  readonly creditManagerName: string;
 
   constructor(opts: AddCollateralProps) {
     super(opts);
     this.amount = opts.amount;
     this.addedToken = opts.addedToken;
-    this.creditManager = opts.creditManager;
+
     this.creditManagerName = opts.creditManagerName;
   }
 
   toString() {
     const [addedSymbol, addedDecimals] = extractTokenData(this.addedToken);
 
-    return `Credit Account ${
-      this.creditManagerName || getContractName(this.creditManager)
-    }: Added ${formatBN(
+    return `Credit Account ${this.creditManagerName}: Added ${formatBN(
       this.amount,
       addedDecimals || 18,
     )} ${addedSymbol} as collateral`;
@@ -379,21 +369,21 @@ export class TxAddCollateral extends EVMTx implements CMEvent {
 interface IncreaseBorrowAmountProps extends EVMTxProps {
   amount: bigint;
   underlyingToken: Address;
-  creditManager: Address;
-  creditManagerName?: string;
+
+  creditManagerName: string;
 }
 
 export class TxIncreaseBorrowAmount extends EVMTx implements CMEvent {
   readonly amount: bigint;
   readonly underlyingToken: Address;
-  readonly creditManager: Address;
-  readonly creditManagerName?: string;
+
+  readonly creditManagerName: string;
 
   constructor(opts: IncreaseBorrowAmountProps) {
     super(opts);
     this.amount = opts.amount;
     this.underlyingToken = opts.underlyingToken;
-    this.creditManager = opts.creditManager;
+
     this.creditManagerName = opts.creditManagerName;
   }
 
@@ -401,7 +391,7 @@ export class TxIncreaseBorrowAmount extends EVMTx implements CMEvent {
     const [tokenSymbol, tokenDecimals] = extractTokenData(this.underlyingToken);
 
     return `Credit Account ${
-      this.creditManagerName || getContractName(this.creditManager)
+      this.creditManagerName
     }: Borrowed amount was increased for ${formatBN(
       this.amount,
       tokenDecimals || 18,
@@ -419,21 +409,21 @@ export class TxIncreaseBorrowAmount extends EVMTx implements CMEvent {
 interface DecreaseBorrowAmountProps extends EVMTxProps {
   amount: bigint;
   underlyingToken: Address;
-  creditManager: Address;
-  creditManagerName?: string;
+
+  creditManagerName: string;
 }
 
 export class TxDecreaseBorrowAmount extends EVMTx implements CMEvent {
   readonly amount: bigint;
   readonly underlyingToken: Address;
-  readonly creditManager: Address;
-  readonly creditManagerName?: string;
+
+  readonly creditManagerName: string;
 
   constructor(opts: DecreaseBorrowAmountProps) {
     super(opts);
     this.amount = opts.amount;
     this.underlyingToken = opts.underlyingToken;
-    this.creditManager = opts.creditManager;
+
     this.creditManagerName = opts.creditManagerName;
   }
 
@@ -441,7 +431,7 @@ export class TxDecreaseBorrowAmount extends EVMTx implements CMEvent {
     const [tokenSymbol, tokenDecimals] = extractTokenData(this.underlyingToken);
 
     return `Credit Account ${
-      this.creditManagerName || getContractName(this.creditManager)
+      this.creditManagerName
     }: Borrowed amount was decreased for ${formatBN(
       this.amount,
       tokenDecimals || 18,
@@ -460,32 +450,30 @@ interface OpenAccountProps extends EVMTxProps {
   amount: bigint;
   underlyingToken: Address;
   leverage: number;
-  creditManager: Address;
-  creditManagerName?: string;
+
+  creditManagerName: string;
 }
 
 export class TxOpenAccount extends EVMTx implements CMEvent {
   readonly amount: bigint;
   readonly underlyingToken: Address;
   readonly leverage: number;
-  readonly creditManager: Address;
-  readonly creditManagerName?: string;
+
+  readonly creditManagerName: string;
 
   constructor(opts: OpenAccountProps) {
     super(opts);
     this.amount = opts.amount;
     this.underlyingToken = opts.underlyingToken;
     this.leverage = opts.leverage;
-    this.creditManager = opts.creditManager;
+
     this.creditManagerName = opts.creditManagerName;
   }
 
   toString() {
     const [tokenSymbol, tokenDecimals] = extractTokenData(this.underlyingToken);
 
-    return `Credit Account ${
-      this.creditManagerName || getContractName(this.creditManager)
-    }: opening ${formatBN(
+    return `Credit Account ${this.creditManagerName}: opening ${formatBN(
       this.amount,
       tokenDecimals || 18,
     )} ${tokenSymbol} x ${this.leverage.toFixed(2)} ⇒ 
@@ -507,8 +495,8 @@ export class TxOpenAccount extends EVMTx implements CMEvent {
 
 interface TxOpenMultitokenAccountProps extends EVMTxProps {
   borrowedAmount: bigint;
-  creditManager: Address;
-  creditManagerName?: string;
+
+  creditManagerName: string;
   underlyingToken: Address;
   assets: Array<Address>;
   withdrawDebt: boolean;
@@ -516,8 +504,8 @@ interface TxOpenMultitokenAccountProps extends EVMTxProps {
 
 export class TxOpenMultitokenAccount extends EVMTx implements CMEvent {
   readonly borrowedAmount: bigint;
-  readonly creditManager: Address;
-  readonly creditManagerName?: string;
+
+  readonly creditManagerName: string;
   readonly underlyingToken: Address;
   readonly assets: Array<Address>;
   readonly withdrawDebt: boolean;
@@ -526,7 +514,7 @@ export class TxOpenMultitokenAccount extends EVMTx implements CMEvent {
     super(opts);
     this.borrowedAmount = opts.borrowedAmount;
     this.underlyingToken = opts.underlyingToken;
-    this.creditManager = opts.creditManager;
+
     this.creditManagerName = opts.creditManagerName;
     this.assets = opts.assets;
     this.withdrawDebt = opts.withdrawDebt;
@@ -544,7 +532,7 @@ export class TxOpenMultitokenAccount extends EVMTx implements CMEvent {
       [],
     );
 
-    const name = this.creditManagerName || getContractName(this.creditManager);
+    const name = this.creditManagerName;
 
     const [symbol, underlyingDecimals] = extractTokenData(this.underlyingToken);
     const borrowedAmount = `${formatBN(
@@ -646,24 +634,20 @@ export class TxClaimRewards extends EVMTx {
 }
 
 interface RepayAccountProps extends EVMTxProps {
-  creditManager: Address;
-  creditManagerName?: string;
+  creditManagerName: string;
 }
 
 export class TxRepayAccount extends EVMTx implements CMEvent {
-  readonly creditManager: Address;
-  readonly creditManagerName?: string;
+  readonly creditManagerName: string;
 
   constructor(opts: RepayAccountProps) {
     super(opts);
-    this.creditManager = opts.creditManager;
+
     this.creditManagerName = opts.creditManagerName;
   }
 
   toString() {
-    return `Credit Account ${
-      this.creditManagerName || getContractName(this.creditManager)
-    }: Repaying account`;
+    return `Credit Account ${this.creditManagerName}: Repaying account`;
   }
 
   serialize(): TxSerialized {
@@ -675,24 +659,20 @@ export class TxRepayAccount extends EVMTx implements CMEvent {
 }
 
 interface LiquidateAccountProps extends EVMTxProps {
-  creditManager: Address;
-  creditManagerName?: string;
+  creditManagerName: string;
 }
 
 export class TxLiquidateAccount extends EVMTx implements CMEvent {
-  readonly creditManager: Address;
-  readonly creditManagerName?: string;
+  readonly creditManagerName: string;
 
   constructor(opts: LiquidateAccountProps) {
     super(opts);
-    this.creditManager = opts.creditManager;
+
     this.creditManagerName = opts.creditManagerName;
   }
 
   toString() {
-    return `Credit Account ${
-      this.creditManagerName || getContractName(this.creditManager)
-    }: Liquidated`;
+    return `Credit Account ${this.creditManagerName}: Liquidated`;
   }
 
   serialize(): TxSerialized {
@@ -704,24 +684,20 @@ export class TxLiquidateAccount extends EVMTx implements CMEvent {
 }
 
 interface CloseAccountProps extends EVMTxProps {
-  creditManager: Address;
-  creditManagerName?: string;
+  creditManagerName: string;
 }
 
 export class TxCloseAccount extends EVMTx implements CMEvent {
-  readonly creditManager: Address;
-  readonly creditManagerName?: string;
+  readonly creditManagerName: string;
 
   constructor(opts: CloseAccountProps) {
     super(opts);
-    this.creditManager = opts.creditManager;
+
     this.creditManagerName = opts.creditManagerName;
   }
 
   toString() {
-    return `Credit Account ${
-      this.creditManagerName || getContractName(this.creditManager)
-    }: Closing account`;
+    return `Credit Account ${this.creditManagerName}: Closing account`;
   }
 
   serialize(): TxSerialized {
@@ -760,21 +736,21 @@ export class TxApprove extends EVMTx {
 interface TxEnableTokensProps extends EVMTxProps {
   enabledTokens: Array<Address>;
   disabledTokens: Array<Address>;
-  creditManager: Address;
-  creditManagerName?: string;
+
+  creditManagerName: string;
 }
 
 export class TxEnableTokens extends EVMTx implements CMEvent {
   readonly enabledTokens: Array<Address>;
   readonly disabledTokens: Array<Address>;
-  readonly creditManager: Address;
-  readonly creditManagerName?: string;
+
+  readonly creditManagerName: string;
 
   constructor(opts: TxEnableTokensProps) {
     super(opts);
     this.enabledTokens = opts.enabledTokens;
     this.disabledTokens = opts.disabledTokens;
-    this.creditManager = opts.creditManager;
+
     this.creditManagerName = opts.creditManagerName;
   }
 
@@ -796,9 +772,9 @@ export class TxEnableTokens extends EVMTx implements CMEvent {
         : "",
     ].filter(s => !!s);
 
-    return `Credit Account ${
-      this.creditManagerName || getContractName(this.creditManager)
-    }: ${currentSentences.join("; ")}`;
+    return `Credit Account ${this.creditManagerName}: ${currentSentences.join(
+      "; ",
+    )}`;
   }
 
   serialize(): TxSerialized {
@@ -812,20 +788,20 @@ export class TxEnableTokens extends EVMTx implements CMEvent {
 interface TxUpdateQuotaProps extends EVMTxProps {
   updatedQuotas: Array<Asset>;
   underlyingToken: Address;
-  creditManager: Address;
-  creditManagerName?: string;
+
+  creditManagerName: string;
 }
 
 export class TxUpdateQuota extends EVMTx implements CMEvent {
   readonly updatedQuotas: Array<Asset>;
   readonly underlyingToken: Address;
-  readonly creditManager: Address;
-  readonly creditManagerName?: string;
+
+  readonly creditManagerName: string;
 
   constructor(opts: TxUpdateQuotaProps) {
     super(opts);
     this.updatedQuotas = opts.updatedQuotas;
-    this.creditManager = opts.creditManager;
+
     this.creditManagerName = opts.creditManagerName;
     this.underlyingToken = opts.underlyingToken;
   }
@@ -846,7 +822,7 @@ export class TxUpdateQuota extends EVMTx implements CMEvent {
     });
 
     return `Credit Account ${
-      this.creditManagerName || getContractName(this.creditManager)
+      this.creditManagerName
     } quota updated: ${quota.join("; ")}`;
   }
 
@@ -958,32 +934,33 @@ interface WithdrawCollateralProps extends EVMTxProps {
   amount: bigint;
   token: Address;
   to: Address;
-  creditManager: Address;
-  creditManagerName?: string;
+
+  creditManagerName: string;
 }
 
 export class TxWithdrawCollateral extends EVMTx implements CMEvent {
   readonly amount: bigint;
   readonly token: Address;
   readonly to: Address;
-  readonly creditManager: Address;
-  readonly creditManagerName?: string;
+
+  readonly creditManagerName: string;
 
   constructor(opts: WithdrawCollateralProps) {
     super(opts);
     this.amount = opts.amount;
     this.token = opts.token;
     this.to = opts.to;
-    this.creditManager = opts.creditManager;
+
     this.creditManagerName = opts.creditManagerName;
   }
 
   toString() {
     const [symbol, decimals] = extractTokenData(this.token);
 
-    return `Credit Account ${
-      this.creditManagerName || getContractName(this.creditManager)
-    }: withdrawn ${formatBN(this.amount, decimals || 18)} ${symbol}`;
+    return `Credit Account ${this.creditManagerName}: withdrawn ${formatBN(
+      this.amount,
+      decimals || 18,
+    )} ${symbol}`;
   }
 
   serialize(): TxSerialized {
@@ -995,24 +972,19 @@ export class TxWithdrawCollateral extends EVMTx implements CMEvent {
 }
 
 interface TxAddBotProps extends EVMTxProps {
-  creditManager: Address;
-  creditManagerName?: string;
+  creditManagerName: string;
 }
 
 export class TxAddBot extends EVMTx implements CMEvent {
-  readonly creditManager: Address;
-  readonly creditManagerName?: string;
+  readonly creditManagerName: string;
 
   constructor(opts: TxAddBotProps) {
     super(opts);
-    this.creditManager = opts.creditManager;
     this.creditManagerName = opts.creditManagerName;
   }
 
   toString() {
-    return `Credit Account ${
-      this.creditManagerName || getContractName(this.creditManager)
-    }: bot enabled`;
+    return `Credit Account ${this.creditManagerName}: bot enabled`;
   }
 
   serialize(): TxSerialized {
@@ -1024,19 +996,16 @@ export class TxAddBot extends EVMTx implements CMEvent {
 }
 
 export class TxRemoveBot extends EVMTx implements CMEvent {
-  readonly creditManager: Address;
-  readonly creditManagerName?: string;
+  readonly creditManagerName: string;
 
   constructor(opts: TxAddBotProps) {
     super(opts);
-    this.creditManager = opts.creditManager;
+
     this.creditManagerName = opts.creditManagerName;
   }
 
   toString() {
-    return `Credit Account ${
-      this.creditManagerName || getContractName(this.creditManager)
-    }: bot disabled`;
+    return `Credit Account ${this.creditManagerName}: bot disabled`;
   }
 
   serialize(): TxSerialized {
