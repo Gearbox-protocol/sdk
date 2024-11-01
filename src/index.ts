@@ -26,7 +26,6 @@ export * from "./payload/gauge";
 export * from "./payload/graphPayload";
 export * from "./payload/pool";
 export * from "./payload/token";
-export * from "./redstone";
 export * from "./tokens/tokenData";
 export * from "./types";
 export * from "./utils/errors";
