@@ -1,8 +1,4 @@
-import {
-  contractParams,
-  formatBN,
-  SupportedContract,
-} from "@gearbox-protocol/sdk-gov";
+import { formatBN } from "@gearbox-protocol/sdk-gov";
 import { Address } from "viem";
 
 import { TokenData } from "../tokens/tokenData";
@@ -483,35 +479,6 @@ export class TxOpenMultitokenAccount extends EVMTx {
   }
 }
 
-interface TxClaimRewardProps extends EVMTxProps {
-  contracts: Array<SupportedContract>;
-}
-
-export class TxClaimReward extends EVMTx {
-  readonly contracts: Array<SupportedContract>;
-
-  constructor(opts: TxClaimRewardProps) {
-    super(opts);
-    this.contracts = opts.contracts;
-  }
-
-  toString() {
-    const contractNames = this.contracts.map(contract => {
-      const contractInfo = contractParams[contract];
-      return contractInfo.name;
-    });
-
-    return `Pools reward claimed: ${contractNames.join(", ")}`;
-  }
-
-  serialize(): TxSerialized {
-    return {
-      type: "TxClaimReward",
-      content: JSON.stringify(this),
-    };
-  }
-}
-
 export class TxClaimNFT extends EVMTx {
   toString() {
     return `NFT claimed`;
@@ -526,30 +493,40 @@ export class TxClaimNFT extends EVMTx {
 }
 
 interface TxClaimRewardsProps extends EVMTxProps {
-  token: Address;
-  amount: bigint;
+  rewards: Array<Asset>;
 
   tokensList: Record<Address, TokenData>;
 }
 
 export class TxClaimRewards extends EVMTx {
-  readonly token: TokenData;
-  readonly amount: bigint;
+  readonly rewards: Array<Omit<Asset, "token"> & { token: TokenData }>;
 
   constructor(opts: TxClaimRewardsProps) {
     super(opts);
 
-    this.amount = opts.amount;
-    this.token = opts.tokensList[opts.token];
+    this.rewards = opts.rewards.map(({ token, balance }) => ({
+      token: opts.tokensList[token],
+      balance,
+    }));
   }
 
   toString() {
-    const { title: symbol, decimals } = this.token;
+    const rewardsString =
+      this.rewards.length <= 2
+        ? this.rewards
+            .map(({ token, balance }) => {
+              const { title, decimals = 18 } = token;
+              return `${formatBN(balance, decimals)} ${title}`;
+            })
+            .join(", ")
+        : this.rewards
+            .map(({ token }) => {
+              const { title } = token;
+              return title;
+            })
+            .join(", ");
 
-    return `Rewards claimed: ${formatBN(
-      this.amount,
-      decimals || 18,
-    )} ${symbol} `;
+    return `Rewards claimed: ${rewardsString}`;
   }
 
   serialize(): TxSerialized {

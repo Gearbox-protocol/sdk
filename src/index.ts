@@ -13,7 +13,6 @@ export * from "./core/pool";
 export * from "./core/protocols";
 export * from "./core/rewardClaimer";
 export * from "./core/strategy";
-export * from "./core/tokenDistributor";
 export * from "./core/transactions";
 export * from "./gearboxRewards";
 export * from "./pathfinder";
