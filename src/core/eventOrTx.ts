@@ -1,7 +1,6 @@
 import { Address } from "viem";
 
 import { TokenData } from "../tokens/tokenData";
-import { PartialKeys } from "../utils/types";
 import type { TxSerialized } from "./transactions";
 
 export interface Display {
@@ -68,8 +67,8 @@ export abstract class EVMEvent extends EventOrTx {
   }
 }
 
-export type EVMTxProps = PartialKeys<EventOrTxProps, "block" | "txStatus">;
-
+export type EVMTxProps = Omit<EventOrTxProps, "block" | "txStatus"> &
+  Partial<Pick<EventOrTxProps, "block" | "txStatus">>;
 export abstract class EVMTx extends EventOrTx {
   constructor({
     txHash,

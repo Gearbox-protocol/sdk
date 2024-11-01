@@ -1,7 +1,7 @@
 import { Address } from "viem";
 
 import { TokenData } from "../tokens/tokenData";
-import { nonNegativeBn } from "../utils/math";
+import { BigIntMath } from "../utils/math";
 import { PriceUtils } from "../utils/price";
 import { CreditAccountData } from "./creditAccount";
 
@@ -110,7 +110,7 @@ export class AssetUtils {
         const unwrappedInWrapped = PriceUtils.convertByPrice(
           PriceUtils.calcTotalPrice(
             unwrappedPrice,
-            nonNegativeBn(unwrappedAmount),
+            BigIntMath.max(0n, unwrappedAmount),
             unwrappedToken.decimals,
           ),
           {
@@ -122,7 +122,7 @@ export class AssetUtils {
         // sum them
         assetsRecord[wrappedAddress] = {
           token: wrappedAddress,
-          balance: nonNegativeBn(wrappedAmount) + unwrappedInWrapped,
+          balance: BigIntMath.max(0n, wrappedAmount) + unwrappedInWrapped,
         };
         // remove unwrapped
         delete assetsRecord[unwrappedAddress];
@@ -147,7 +147,8 @@ export class AssetUtils {
       const aAsset = acc[bAsset.token];
       const { balance: amount = 0n } = aAsset || {};
 
-      const amountSum = nonNegativeBn(bAsset.balance) + nonNegativeBn(amount);
+      const amountSum =
+        BigIntMath.max(0n, bAsset.balance) + BigIntMath.max(0n, amount);
       const aOrB = aAsset || bAsset;
 
       acc[bAsset.token] = {
@@ -175,8 +176,9 @@ export class AssetUtils {
       const bAsset = bRecord[asset.token];
       const { balance: bAmount = 0n } = bAsset || {};
 
-      const amountSub = nonNegativeBn(asset.balance) - nonNegativeBn(bAmount);
-      return { ...asset, balance: nonNegativeBn(amountSub) };
+      const amountSub =
+        BigIntMath.max(0n, asset.balance) - BigIntMath.max(0n, bAmount);
+      return { ...asset, balance: BigIntMath.max(0n, amountSub) };
     });
   }
 }
