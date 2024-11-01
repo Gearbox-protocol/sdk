@@ -187,6 +187,10 @@ export class MarketRegister extends SDKConstruct {
     throw new Error(`cannot find price oracle ${address}`);
   }
 
+  public get marketsMap() {
+    return this.#markets;
+  }
+
   public get markets(): MarketFactory[] {
     return this.#markets.values();
   }
