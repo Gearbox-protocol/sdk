@@ -24,7 +24,7 @@ export class CurveAdapterParser extends AbstractParser implements IParser {
 
     let contractName = "";
 
-    const nCoins = (contractParams[contract] as CurveParams).tokens.length;
+    const nCoins = (contractParams[contract] as CurveParams)?.tokens?.length;
     switch (nCoins) {
       case 2:
         this.abi = iCurveV1_2AssetsAdapterAbi;

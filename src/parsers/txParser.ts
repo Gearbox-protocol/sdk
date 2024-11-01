@@ -217,6 +217,7 @@ export class TxParser {
         );
         break;
 
+      case "STAKING_REWARDS":
       case "CONVEX_V1_BASE_REWARD_POOL":
         TxParser._addParser(
           addressLC,
