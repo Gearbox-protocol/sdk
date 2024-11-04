@@ -164,7 +164,7 @@ export class StakingRewards {
     return res;
   }
 
-  static parseResults(
+  private static parseResults(
     response: Array<bigint>,
     distribution: DistributionList,
   ): Array<Rewards> {
@@ -193,7 +193,10 @@ export class StakingRewards {
     return result;
   }
 
-  static getRewardObject(reward: bigint, distribution: RewardDistribution) {
+  private static getRewardObject(
+    reward: bigint,
+    distribution: RewardDistribution,
+  ) {
     const callData = encodeFunctionData({
       abi: iBaseRewardPoolAbi,
       functionName: "getReward",

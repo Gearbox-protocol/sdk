@@ -37,14 +37,17 @@ export class RewardClaimer {
   ): Promise<Array<Rewards>> {
     const tokens = await RewardClaimer.findRewardTokens(cm, provider);
 
-    const zzz = await StakingRewards.findRewards(
-      ca,
-      provider,
-      tokens.staking.adapters,
-      tokens.staking.tokens,
-    );
+    const [convex, staking] = await Promise.all([
+      RewardConvex.findRewards(ca, cm, network, provider),
 
-    return RewardConvex.findRewards(ca, cm, network, provider);
+      StakingRewards.findRewards(
+        ca,
+        provider,
+        tokens.staking.adapters,
+        tokens.staking.tokens,
+      ),
+    ]);
+    return [...convex, ...staking];
   }
 
   static async findRewardTokens(cm: CreditManagerData, provider: PublicClient) {
