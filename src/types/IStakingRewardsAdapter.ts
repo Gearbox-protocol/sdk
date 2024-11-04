@@ -134,5 +134,4 @@ export const iStakingRewardsAdapterAbi = [
     ],
     stateMutability: "nonpayable",
   },
-] as const
-
+] as const;
