@@ -49,6 +49,11 @@ export interface SDKOptions {
    */
   redstoneHistoricTimestamp?: number | true;
   /**
+   * Will skip updateable prices on attach and sync
+   * Makes things faster when your service is not intereseted in prices
+   */
+  ignoreUpdateablePrices?: boolean;
+  /**
    * Bring your own logger
    */
   logger?: ILogger;
@@ -64,6 +69,7 @@ interface AttachOptionsInternal {
   riskCurators?: Address[];
   blockNumber?: bigint | number;
   redstoneHistoricTimestamp?: number | true;
+  ignoreUpdateablePrices?: boolean;
 }
 
 export interface SyncStateOptions {
@@ -130,8 +136,13 @@ export class GearboxSDK {
       ConnectionOptions &
       TransportOptions,
   ): Promise<GearboxSDK> {
-    const { logger, riskCurators, blockNumber, redstoneHistoricTimestamp } =
-      options;
+    const {
+      logger,
+      riskCurators,
+      blockNumber,
+      redstoneHistoricTimestamp,
+      ignoreUpdateablePrices,
+    } = options;
     let { networkType, addressProvider, chainId } = options;
 
     const attachClient = createPublicClient({
@@ -165,6 +176,7 @@ export class GearboxSDK {
       riskCurators,
       blockNumber,
       redstoneHistoricTimestamp,
+      ignoreUpdateablePrices,
     });
   }
 
@@ -180,6 +192,7 @@ export class GearboxSDK {
       blockNumber,
       redstoneHistoricTimestamp,
       riskCurators,
+      ignoreUpdateablePrices,
     } = opts;
     const time = Date.now();
     const block = await this.provider.publicClient.getBlock(
@@ -228,6 +241,7 @@ export class GearboxSDK {
     this.#marketRegister = new MarketRegister(this);
     await this.#marketRegister.loadMarkets(
       riskCurators ?? [TIMELOCK[this.provider.networkType]],
+      ignoreUpdateablePrices,
     );
 
     try {

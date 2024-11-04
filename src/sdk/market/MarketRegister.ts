@@ -1,5 +1,4 @@
 import type { Address } from "viem";
-import { getAddress } from "viem";
 
 import { iMarketCompressorAbi } from "../abi";
 import type { MarketData } from "../base";
@@ -10,7 +9,7 @@ import {
   AP_MARKET_CONFIGURATOR,
 } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
-import type { ILogger, MarketStateHuman, TVL } from "../types";
+import type { ILogger, MarketStateHuman, RawTx, TVL } from "../types";
 import { AddressMap, childLogger } from "../utils";
 import { simulateMulticall } from "../utils/viem";
 import type { CreditFactory } from "./CreditFactory";
@@ -42,9 +41,12 @@ export class MarketRegister extends SDKConstruct {
     }
   }
 
-  public async loadMarkets(curators: Address[]): Promise<void> {
+  public async loadMarkets(
+    curators: Address[],
+    ignoreUpdateablePrices?: boolean,
+  ): Promise<void> {
     this.#curators = curators;
-    await this.#loadMarkets(curators, []);
+    await this.#loadMarkets(curators, [], ignoreUpdateablePrices);
   }
 
   public async syncState(): Promise<void> {
@@ -63,15 +65,23 @@ export class MarketRegister extends SDKConstruct {
     }
   }
 
-  async #loadMarkets(curators: Address[], pools: Address[]): Promise<void> {
+  async #loadMarkets(
+    curators: Address[],
+    pools: Address[],
+    ignoreUpdateablePrices?: boolean,
+  ): Promise<void> {
     const marketCompressorAddress = this.sdk.addressProvider.getAddress(
       AP_MARKET_COMPRESSOR,
       3_10,
     );
-    // to have correct prices we must first get all updatable price feeds
-    await this.sdk.priceFeeds.loadUpdatablePriceFeeds(curators, pools);
-    // the generate updates
-    const { txs } = await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs();
+    let txs: RawTx[] = [];
+    if (!ignoreUpdateablePrices) {
+      // to have correct prices we must first get all updatable price feeds
+      await this.sdk.priceFeeds.loadUpdatablePriceFeeds(curators, pools);
+      // the generate updates
+      const updates = await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs();
+      txs = updates.txs;
+    }
     // ...and push them using multicall before getting answers
     const resp = await simulateMulticall(this.provider.publicClient, {
       contracts: [
