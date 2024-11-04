@@ -1,5 +1,6 @@
 import {
   AdapterInterface,
+  ADDRESS_0X0,
   contractParams,
   contractsByAddress,
   MULTICALL_ADDRESS,
@@ -36,14 +37,13 @@ export interface RewardDistribution {
   contractAddress: Address;
 }
 
-// convex[totalSupply, ...tokens] aura[totalSupply, multiplier, ...tokens]
 export class StakingRewards {
   static async findRewards(
     ca: CreditAccountData,
     provider: PublicClient,
 
     adapters: Array<AdapterWithType>,
-    rewardTokens: Array<Address>,
+    rewardTokens: Array<Address | undefined>,
   ): Promise<Array<Rewards>> {
     const prepared = StakingRewards.prepareMultiCalls(
       ca.addr,
@@ -79,7 +79,7 @@ export class StakingRewards {
     const calls = adapters.reduce<CallsList>((acc, a) => {
       acc.push([
         {
-          address: a.contractAddress,
+          address: a.adapter,
           abi: iStakingRewardsAdapterAbi,
           functionName: "rewardsToken",
           args: [],
@@ -119,7 +119,7 @@ export class StakingRewards {
   static prepareMultiCalls(
     creditAccount: Address,
     adapters: Array<AdapterWithType>,
-    rewardTokens: Array<Address>,
+    rewardTokens: Array<Address | undefined>,
   ) {
     if (adapters.length === 0) return undefined;
 
@@ -131,28 +131,31 @@ export class StakingRewards {
         const currentContract = contractParams[
           a.contract
         ] as StakingRewardsParams;
-        const rewardToken = rewardTokens[i];
+        const rewardToken = rewardTokens[i]?.toLowerCase() as Address;
 
         const currentCalls: CallsList[number] = [];
         const currentDistribution: DistributionList[number] = [];
 
-        currentCalls.push({
-          address: a.contractAddress,
-          abi: iBaseRewardPoolAbi,
-          functionName: "earned",
-          args: [creditAccount],
-        });
-        currentDistribution.push({
-          protocol: currentContract.protocol,
-          contract: a.contract,
-          token: tokenSymbolByAddress[rewardToken.toLowerCase()],
+        if (rewardToken && rewardToken !== ADDRESS_0X0) {
+          // since we generate 1 call above
+          currentCalls.push({
+            address: a.contractAddress,
+            abi: iBaseRewardPoolAbi,
+            functionName: "earned",
+            args: [creditAccount],
+          });
+          currentDistribution.push({
+            protocol: currentContract.protocol,
+            contract: a.contract,
+            token: tokenSymbolByAddress[rewardToken],
 
-          contractAddress: a.contractAddress,
-          adapter: a.adapter,
-        });
+            contractAddress: a.contractAddress,
+            adapter: a.adapter,
+          });
 
-        acc.calls.push(currentCalls);
-        acc.distribution.push(currentDistribution);
+          acc.calls.push(currentCalls);
+          acc.distribution.push(currentDistribution);
+        }
 
         return acc;
       },

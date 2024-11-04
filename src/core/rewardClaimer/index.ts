@@ -56,21 +56,21 @@ export class RewardClaimer {
 
     const stakingTotal = stakingCalls.flat(1);
 
-    const allCalls = [...stakingTotal];
-
-    const response = (await provider.multicall({
-      allowFailure: false,
+    const response = await provider.multicall({
+      allowFailure: true,
       multicallAddress: MULTICALL_ADDRESS,
-      contracts: allCalls,
-    })) as Array<Address>;
+      contracts: [...stakingTotal],
+    });
 
-    const takingEnd = stakingTotal.length;
-    const stakingRewardTokensResponse = response.slice(0, takingEnd);
+    const stakingEnd = stakingTotal.length;
+    const stakingRewardTokensResponse = response.slice(0, stakingEnd);
 
     return {
       staking: {
         adapters: stakingAdapters,
-        tokens: stakingRewardTokensResponse,
+        tokens: stakingRewardTokensResponse.map(
+          r => r?.result as Address | undefined,
+        ),
       },
     };
   }
