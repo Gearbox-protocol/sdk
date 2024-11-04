@@ -4,6 +4,7 @@ import {
   PartialRecord,
   SupportedToken,
 } from "@gearbox-protocol/sdk-gov";
+import { Address } from "viem";
 
 // all extra tokens
 type ExtraFarmTokens = Extract<
@@ -112,7 +113,7 @@ export const isLRT_LSTToken = (t: unknown): t is LRTAndLSTTokens => {
 };
 
 export type TokensWithAPY = LPTokens | ExtraTokensWithAPY;
-export type TokensWithApyRecord = PartialRecord<TokensWithAPY, number>;
+export type TokensAPYList = PartialRecord<Address, number>;
 
 export const isTokenWithAPY = (t: unknown): t is TokensWithAPY => {
   if (typeof t !== "string") return false;

@@ -7,7 +7,7 @@ import {
 import { expect } from "chai";
 import { Address } from "viem";
 
-import { TokensWithApyRecord } from "../apy";
+import { TokensAPYList } from "../apy";
 import { toBN } from "../utils/formatter";
 import { PriceUtils } from "../utils/price";
 import { Asset, AssetUtils } from "./assets";
@@ -48,7 +48,7 @@ const prices = {
   ),
 };
 
-const lpAPY = { STETH: 38434 } as TokensWithApyRecord;
+const lpAPY = { STETH: 38434 } as TokensAPYList;
 
 const caWithoutLP: CATestInfo = {
   assets: [

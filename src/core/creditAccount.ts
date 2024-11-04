@@ -12,7 +12,7 @@ import {
 } from "@gearbox-protocol/sdk-gov";
 import { Address } from "viem";
 
-import { TokensWithAPY, TokensWithApyRecord } from "../apy";
+import { TokensAPYList } from "../apy";
 import {
   CaTokenBalance,
   CreditAccountDataPayload,
@@ -30,7 +30,7 @@ export const MAX_UINT256 =
 
 export interface CalcOverallAPYProps {
   caAssets: Array<Asset>;
-  lpAPY: TokensWithApyRecord | undefined;
+  lpAPY: TokensAPYList | undefined;
 
   quotas: Record<Address, Asset>;
   quotaRates: Record<Address, Pick<QuotaInfo, "isActive" | "rate">>;
@@ -434,9 +434,9 @@ export class CreditAccountData {
     const assetAPYMoney = caAssets.reduce(
       (acc, { token: tokenAddress, balance: amount }) => {
         const tokenAddressLC = tokenAddress.toLowerCase() as Address;
-        const [symbol = "", tokenDecimals] = extractTokenData(tokenAddressLC);
+        const [_, tokenDecimals] = extractTokenData(tokenAddressLC);
 
-        const apy = lpAPY[symbol as TokensWithAPY] || 0;
+        const apy = lpAPY[tokenAddressLC] || 0;
         const price = prices[tokenAddressLC] || 0n;
 
         const money = PriceUtils.calcTotalPrice(price, amount, tokenDecimals);
