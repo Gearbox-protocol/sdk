@@ -202,7 +202,6 @@ export class StakingRewards {
 
     const base: Rewards = {
       contract: distribution.contract,
-      totalSupply: 0n,
       protocol: distribution.protocol,
       rewards: {
         [distribution.token]: reward,

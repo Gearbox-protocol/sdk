@@ -17,13 +17,13 @@ import {
 } from "@gearbox-protocol/sdk-gov";
 import { Abi, Address, encodeFunctionData, PublicClient } from "viem";
 
-import { getCVXMintAmount } from "../../apy";
-import { AURA_BOOSTER_ABI } from "../../apy/auraAbi";
-import { getAURAMintAmount } from "../../apy/auraAPY";
 import { iBaseRewardPoolAbi, iConvexTokenAbi } from "../../types";
 import { CreditAccountData } from "../creditAccount";
 import { CreditManagerData } from "../creditManager";
 import { AdapterWithType, Rewards } from "../rewardClaimer";
+import { getAURAMintAmount } from "./aura";
+import { AURA_BOOSTER_ABI } from "./auraAbi";
+import { getCVXMintAmount } from "./convex";
 
 type DistributionList = Array<Array<RewardDistribution>>;
 type CallsList = Array<
@@ -377,7 +377,6 @@ export class RewardConvex {
     // create base
     const base: Rewards = {
       contract: baseDistribution.contract,
-      totalSupply: totalSupply,
       protocol: baseDistribution.protocol,
       rewards: {
         [baseDistribution.token]: baseReward,

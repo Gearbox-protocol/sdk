@@ -133,7 +133,6 @@ describe("RewardConvex test", () => {
     const expected: Array<Rewards> = [
       {
         protocol: Protocols.Convex,
-        totalSupply: 0n,
         contract: "CONVEX_3CRV_POOL",
         rewards: {
           CRV: 1000n,

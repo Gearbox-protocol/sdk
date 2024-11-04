@@ -16,7 +16,6 @@ import { StakingRewards } from "./stakingRewards";
 
 export interface Rewards {
   contract: SupportedContract;
-  totalSupply: bigint;
   protocol: Protocols.Aura | Protocols.Convex | Protocols.Sky;
 
   rewards: PartialRecord<SupportedToken, bigint>;
@@ -44,8 +43,6 @@ export class RewardClaimer {
       tokens.staking.adapters,
       tokens.staking.tokens,
     );
-
-    console.log(zzz);
 
     return RewardConvex.findRewards(ca, cm, network, provider);
   }
