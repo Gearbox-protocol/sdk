@@ -1,13 +1,10 @@
 import {
-  curveTokens,
   NetworkType,
   PartialRecord,
   PERCENTAGE_FACTOR,
-  tokenDataByNetwork,
+  SupportedToken,
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
-import { CurveLPToken } from "@gearbox-protocol/sdk-gov/lib/tokens/curveLP";
-import { GearboxToken } from "@gearbox-protocol/sdk-gov/lib/tokens/gear";
 import axios from "axios";
 import { Address } from "viem";
 
@@ -82,8 +79,6 @@ interface CurvePoolDataResponse {
 type PoolRecord = Record<string, CurvePoolData>;
 type VolumeRecord = Record<string, VolumesResponse["data"]["pools"][number]>;
 
-type CurveAPYTokens = CurveLPToken | GearboxToken;
-
 const GEAR_POOL = "0x5Be6C45e2d074fAa20700C49aDA3E88a1cc0025d".toLowerCase();
 
 const CURVE_CHAINS: Record<NetworkType, string> = {
@@ -114,12 +109,15 @@ const getFactoryStableNgURL = (n: NetworkType) =>
 interface CurveAPY {
   base: number;
   crv: number;
-  gauge: Array<[string, number]>;
+  gauge: Array<[Address, number]>;
 }
-export type CurveAPYResult = PartialRecord<CurveAPYTokens, CurveAPY>;
 
-export async function getCurveAPY(network: NetworkType) {
-  const currentTokens = tokenDataByNetwork[network];
+export type CurveAPYResult = PartialRecord<Address, CurveAPY>;
+
+export async function getCurveAPY(
+  network: NetworkType,
+  currentTokens: Record<SupportedToken, Address>,
+) {
   const { mainnetVolumes, mainnetFactoryPools, volumes, pools } =
     await getCurvePools(network);
 
@@ -141,33 +139,32 @@ export async function getCurveAPY(network: NetworkType) {
     return acc;
   }, {});
 
-  const curveAPY = TypedObjectUtils.entries(curveTokens).reduce<CurveAPYResult>(
-    (acc, [curveSymbol]) => {
-      const address = (currentTokens?.[curveSymbol] || "").toLowerCase();
+  const curveAPY = TypedObjectUtils.entries(
+    currentTokens,
+  ).reduce<CurveAPYResult>((acc, [, address]) => {
+    if (!poolDataByAddress[address]) return acc;
 
-      const pool = poolDataByAddress[address];
-      const volume = volumeByAddress[(pool?.address || "").toLowerCase()];
+    const pool = poolDataByAddress[address];
+    const volume = volumeByAddress[(pool?.address || "").toLowerCase()];
 
-      const baseAPY = volume?.latestDailyApyPcent || 0;
-      const maxCrv = Math.max(...(pool?.gaugeCrvApy || []), 0);
+    const baseAPY = volume?.latestDailyApyPcent || 0;
+    const maxCrv = Math.max(...(pool?.gaugeCrvApy || []), 0);
 
-      const extraRewards = (pool?.gaugeRewards || []).map(
-        ({ apy = 0, symbol }): [string, number] => [
-          symbol.toLowerCase(),
-          curveAPYToBn(apy),
-        ],
-      );
+    const extraRewards = (pool?.gaugeRewards || []).map(
+      ({ apy = 0, tokenAddress }): [Address, number] => [
+        tokenAddress.toLowerCase() as Address,
+        curveAPYToBn(apy),
+      ],
+    );
 
-      acc[curveSymbol] = {
-        base: curveAPYToBn(baseAPY),
-        crv: curveAPYToBn(maxCrv),
-        gauge: extraRewards,
-      };
+    acc[address] = {
+      base: curveAPYToBn(baseAPY),
+      crv: curveAPYToBn(maxCrv),
+      gauge: extraRewards,
+    };
 
-      return acc;
-    },
-    {},
-  );
+    return acc;
+  }, {});
 
   const poolFactoryByAddress = (
     mainnetFactoryPools?.data?.data?.poolData || []
@@ -191,8 +188,8 @@ export async function getCurveAPY(network: NetworkType) {
     base: curveAPYToBn(gearVolume?.latestDailyApyPcent || 0),
     crv: curveAPYToBn(Math.max(...(gearPool?.gaugeCrvApy || []), 0)),
     gauge: (gearPool?.gaugeRewards || []).map(
-      ({ apy = 0, symbol }): [string, number] => [
-        symbol.toLowerCase(),
+      ({ apy = 0, tokenAddress }): [Address, number] => [
+        tokenAddress.toLowerCase() as Address,
         curveAPYToBn(apy),
       ],
     ),

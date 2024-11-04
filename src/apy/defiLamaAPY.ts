@@ -2,9 +2,10 @@ import {
   NetworkType,
   PartialRecord,
   PERCENTAGE_FACTOR,
-  TypedObjectUtils,
+  SupportedToken,
 } from "@gearbox-protocol/sdk-gov";
 import axios from "axios";
+import { Address } from "viem";
 
 import { GearboxBackendApi } from "../core/endpoint";
 import { TokensWithAPY } from ".";
@@ -25,6 +26,7 @@ interface LamaResponse {
 
 export async function getDefiLamaAPY(
   networkType: NetworkType,
+  currentTokens: Record<SupportedToken, Address>,
 ): Promise<PartialRecord<TokensWithAPY, number>> {
   const currentNormal = NORMAL_TO_LAMA[networkType];
   const idList = Object.values(currentNormal);
@@ -41,11 +43,13 @@ export async function getDefiLamaAPY(
     {},
   );
 
-  const allAPY = TypedObjectUtils.entries(
-    currentNormal as Record<TokensWithAPY, string>,
-  ).reduce<PartialRecord<TokensWithAPY, number>>((acc, [symbol, pool]) => {
+  const allAPY = Object.entries(currentNormal).reduce<
+    PartialRecord<Address, number>
+  >((acc, [symbol, pool]) => {
     const { apy = 0 } = itemsRecord[pool] || {};
-    acc[symbol] = Math.round(apy * Number(PERCENTAGE_FACTOR));
+    const token = currentTokens[symbol as SupportedToken];
+
+    acc[token] = Math.round(apy * Number(PERCENTAGE_FACTOR));
 
     return acc;
   }, {});

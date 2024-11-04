@@ -4,10 +4,8 @@ import {
   PartialRecord,
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
-  tokenDataByNetwork,
+  SupportedToken,
   TypedObjectUtils,
-  YearnLPToken,
-  yearnTokens,
 } from "@gearbox-protocol/sdk-gov";
 import axios from "axios";
 import { Address } from "viem";
@@ -27,15 +25,14 @@ type Response = Array<YearnAPYData>;
 const getUrl = (chainId: number) =>
   `https://ydaemon.yearn.finance/vaults/all?chainids=${chainId}&limit=2500`;
 
-export type YearnAPYResult = PartialRecord<YearnLPToken, number>;
+export type YearnAPYResult = PartialRecord<Address, number>;
 
 export async function getYearnAPY(
   network: NetworkType,
+  currentTokens: Record<SupportedToken, Address>,
 ): Promise<YearnAPYResult> {
   try {
     const chainId = CHAINS[network];
-    const currentTokens = tokenDataByNetwork[network];
-
     const { data } = await axios.get<Response>(getUrl(chainId));
 
     const dataByAddress = data.reduce<Record<string, YearnAPYData>>(
@@ -47,9 +44,9 @@ export async function getYearnAPY(
     );
 
     const yearnAPY = TypedObjectUtils.entries(
-      yearnTokens,
-    ).reduce<YearnAPYResult>((acc, [yearnSymbol]) => {
-      const address = (currentTokens?.[yearnSymbol] || "").toLowerCase();
+      currentTokens,
+    ).reduce<YearnAPYResult>((acc, [, address]) => {
+      if (!dataByAddress[address]) return acc;
 
       const data = dataByAddress[address];
       const { apr: apy } = data || {};
@@ -59,7 +56,7 @@ export async function getYearnAPY(
       const r = Math.round(
         netApy * Number(PERCENTAGE_FACTOR) * Number(PERCENTAGE_DECIMALS),
       );
-      acc[yearnSymbol] = r;
+      acc[address] = r;
 
       return acc;
     }, {});

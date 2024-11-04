@@ -20,7 +20,6 @@ export interface TxSerialized {
     | "TxCloseAccount"
     | "TxApprove"
     | "TxOpenMultitokenAccount"
-    | "TxClaimReward"
     | "TxClaimNFT"
     | "TxClaimRewards"
     | "TxUpdateQuota"
@@ -66,8 +65,6 @@ export class TxSerializer {
           return new TxApprove(params);
         case "TxOpenMultitokenAccount":
           return new TxOpenMultitokenAccount(params);
-        case "TxClaimReward":
-          return new TxClaimReward(params);
         case "TxClaimNFT":
           return new TxClaimNFT(params);
         case "TxClaimRewards":
