@@ -5,6 +5,7 @@ on:
     branches:
       - "master"
       - "next"
+      - "pre-v4-sdk-changes"
 
 env:
   HUSKY: 0
