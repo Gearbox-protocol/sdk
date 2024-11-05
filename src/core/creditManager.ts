@@ -19,6 +19,7 @@ import { LinearModel } from "../payload/pool";
 import {
   iConvexV1BaseRewardPoolAdapterAbi,
   iCreditFacadeV3MulticallAbi,
+  iStakingRewardsAdapterAbi,
 } from "../types";
 
 export type CreditManagerType = "universal" | "trade" | "farm" | "restaking";
@@ -289,6 +290,21 @@ export class CreditManagerData {
     };
   }
 
+  static withdrawAndUnwrap_Convex(
+    address: Address,
+    amount: bigint,
+    claim: boolean,
+  ): MultiCall {
+    return {
+      target: address,
+      callData: encodeFunctionData({
+        abi: iConvexV1BaseRewardPoolAdapterAbi,
+        functionName: "withdrawAndUnwrap",
+        args: [amount, claim],
+      }),
+    };
+  }
+
   static withdrawAllAndUnwrap_Convex(
     address: Address,
     claim: boolean,
@@ -299,6 +315,37 @@ export class CreditManagerData {
         abi: iConvexV1BaseRewardPoolAdapterAbi,
         functionName: "withdrawDiffAndUnwrap",
         args: [1n, claim],
+      }),
+    };
+  }
+
+  static withdrawAll_Rewards(address: Address): MultiCall {
+    return {
+      target: address,
+      callData: encodeFunctionData({
+        abi: iStakingRewardsAdapterAbi,
+        functionName: "withdrawDiff",
+        args: [1n],
+      }),
+    };
+  }
+  static withdraw_Rewards(address: Address, amount: bigint): MultiCall {
+    return {
+      target: address,
+      callData: encodeFunctionData({
+        abi: iStakingRewardsAdapterAbi,
+        functionName: "withdraw",
+        args: [amount],
+      }),
+    };
+  }
+  static claim_Rewards(address: Address): MultiCall {
+    return {
+      target: address,
+      callData: encodeFunctionData({
+        abi: iStakingRewardsAdapterAbi,
+        functionName: "getReward",
+        args: [],
       }),
     };
   }

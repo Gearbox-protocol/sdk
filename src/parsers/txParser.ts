@@ -30,6 +30,7 @@ import { IParser } from "./iParser";
 import { LidoAdapterParser } from "./lidoAdapterParser";
 import { LidoSTETHParser } from "./lidoSTETHParser";
 import { PriceOracleParser } from "./priceOracleParser";
+import { StakingRewardsAdapterParser } from "./stakingRewardsAdapterParser";
 import { UniswapV2AdapterParser } from "./uniV2AdapterParser";
 import { UniswapV3AdapterParser } from "./uniV3AdapterParser";
 import { WstETHAdapterParser } from "./wstETHAdapterParser";
@@ -214,6 +215,13 @@ export class TxParser {
         TxParser._addParser(
           addressLC,
           new YearnV2AdapterParser(contract, isContract),
+        );
+        break;
+
+      case "STAKING_REWARDS":
+        TxParser._addParser(
+          addressLC,
+          new StakingRewardsAdapterParser(contract, isContract),
         );
         break;
 

@@ -39,6 +39,7 @@ export * from "./IPriceFeed";
 export * from "./IPriceOracleBase";
 export * from "./IPriceOracleV3";
 export * from "./IRouterV3";
+export * from "./IStakingRewardsAdapter";
 export * from "./IstETH";
 export * from "./IUniswapV2Adapter";
 export * from "./IUniswapV3Adapter";

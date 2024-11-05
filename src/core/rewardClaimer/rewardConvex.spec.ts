@@ -10,9 +10,9 @@ import {
 import { expect } from "chai";
 import { Abi, Address, encodeFunctionData } from "viem";
 
-import { iBaseRewardPoolAbi, iConvexTokenAbi } from "../types";
-import { CreditManagerData } from "./creditManager";
-import { AdapterWithType, Rewards } from "./rewardClaimer";
+import { iBaseRewardPoolAbi, iConvexTokenAbi } from "../../types";
+import { CreditManagerData } from "../creditManager";
+import { AdapterWithType, Rewards } from "../rewardClaimer";
 import { RewardConvex, RewardDistribution } from "./rewardConvex";
 
 const ADAPTER_CONVEX_3CRV_POOL = DUMB_ADDRESS;
@@ -133,7 +133,6 @@ describe("RewardConvex test", () => {
     const expected: Array<Rewards> = [
       {
         protocol: Protocols.Convex,
-        totalSupply: 0n,
         contract: "CONVEX_3CRV_POOL",
         rewards: {
           CRV: 1000n,
