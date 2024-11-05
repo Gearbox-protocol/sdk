@@ -10,8 +10,8 @@
     },
     {
       "name": "pre-v4-sdk-changes",
-      "channel": "pre_vfour",
-      "prerelease": "pre_vfour"
+      "channel": "prevfour",
+      "prerelease": "prevfour"
     }
   ],
   "plugins": [
