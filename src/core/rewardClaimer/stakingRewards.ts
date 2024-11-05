@@ -46,7 +46,7 @@ export class StakingRewards {
     rewardTokens: Array<Address | undefined>,
   ): Promise<Array<Rewards>> {
     const prepared = StakingRewards.prepareMultiCalls(
-      ca.addr,
+      ca.creditAccount,
       adapters,
       rewardTokens,
     );
