@@ -15,9 +15,8 @@ import type { CreditFacadeStateHuman, MultiCall, RawTx } from "../types";
 import { fmtBinaryMask, formatBNvalue } from "../utils";
 import type { OnDemandPriceUpdate } from "./PriceOracleContract";
 
-type abi = typeof creditFacadeV3Abi;
-
-const extAbi = [...creditFacadeV3Abi, ...iCreditFacadeV3MulticallAbi];
+const abi = [...creditFacadeV3Abi, ...iCreditFacadeV3MulticallAbi];
+type abi = typeof abi;
 
 // Augmenting contract class with interface of compressor data object
 export interface CreditFacadeV300Contract
@@ -35,8 +34,7 @@ export class CreditFacadeV300Contract extends BaseContract<abi> {
     super(sdk, {
       ...baseParams,
       name: `CreditFacadeV3(${creditManager.name})`,
-      // Add multicall strictly for parsing, but use only creditFacadeV3Abi in types, so only this part is visible to typescript elsewhere
-      abi: [...creditFacadeV3Abi, ...iCreditFacadeV3MulticallAbi] as any,
+      abi,
     });
     Object.assign(this, rest);
     this.underlying = creditManager.underlying;
@@ -146,7 +144,7 @@ export class CreditFacadeV300Contract extends BaseContract<abi> {
   }
 
   public parseFunctionParams(
-    params: DecodeFunctionDataReturnType<typeof extAbi>,
+    params: DecodeFunctionDataReturnType<abi>,
   ): string[] | undefined {
     switch (params.functionName) {
       case "openCreditAccount": {
