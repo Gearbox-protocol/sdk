@@ -126,7 +126,6 @@ export const isFarmToken = (t: unknown): t is AllLPTokens => {
   return isLPToken(t) || isExtraFarmToken(t);
 };
 
-export * from "./convexAPY";
 export * from "./curveAPY";
 export * from "./defiLamaAPY";
 export * from "./lidoAPY";

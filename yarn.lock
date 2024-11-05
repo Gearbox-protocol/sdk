@@ -1424,10 +1424,10 @@
   dependencies:
     "@typechain/ethers-v5" "^10.2.1"
 
-"@gearbox-protocol/core-v3@^1.49.7":
-  version "1.49.7"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v3/-/core-v3-1.49.7.tgz#2e1743355649733f53486063703f7160a61ef454"
-  integrity sha512-Ovl5FNv6eL8CdsvFcjABFELBij/uP8HpPnn8gCW/BxFPK4TRhufnIoOM4RjhmN4pA2AxYbwpXyXC51Jynv5Cxg==
+"@gearbox-protocol/core-v3@^1.50.0":
+  version "1.50.0"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v3/-/core-v3-1.50.0.tgz#1327ed3a265ccfd6da02bcef165d0d347247d19e"
+  integrity sha512-c7APqdL3lt9XswPUl1/Obr+VJp7pYOte6azQbXsEm2oRDvFQ3KYq++mvk2dG/9mdK/PVAM/USKlKcqSrKqOrmA==
 
 "@gearbox-protocol/eslint-config@^1.4.1":
   version "1.6.1"
@@ -1458,15 +1458,15 @@
     "@gearbox-protocol/sdk" "^1.22.0"
     axios "^1.1.3"
 
-"@gearbox-protocol/integrations-v3@^1.40.4":
-  version "1.40.4"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/integrations-v3/-/integrations-v3-1.40.4.tgz#73a368cc264f5948b5692d37d08470b2d3baf562"
-  integrity sha512-1Cd8AB68TV4QMyTJrjm8vnWBpzVrH73CVO6XOyCLW01mEkTfWr7AdA/nAutbGDmLUCdLnxsCECdu8e/nlDWkJA==
+"@gearbox-protocol/integrations-v3@^1.43.0":
+  version "1.43.0"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/integrations-v3/-/integrations-v3-1.43.0.tgz#da760c8d6505f13ad2d05b0b7aba069fa7189320"
+  integrity sha512-PBhhdrwFW/obCPuP+8g/P5Na/nGLW+2KljtBzKgGvbrurRfY5fzkAfgXMgw0KC1nnF7celneuuXNan9H6di2mg==
 
-"@gearbox-protocol/oracles-v3@^1.10.3":
-  version "1.10.3"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/oracles-v3/-/oracles-v3-1.10.3.tgz#27a9c7ab89536ef79cfc9315b2a3114f1b700159"
-  integrity sha512-6K8ahmik2sFqK0cTDHadq5WXBN/mCeBef7yx7k9j+O4g7gXLf3bYdnQdNTVh3QPwF1hCKQ1dtvi4T9/M5oAWcw==
+"@gearbox-protocol/oracles-v3@^1.11.1":
+  version "1.11.1"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/oracles-v3/-/oracles-v3-1.11.1.tgz#9e2cf660ff5845f736cf4b5a6a903a6603e61d62"
+  integrity sha512-ff69kZ8GHVg9ZFXDhtCSclmic0hAI5JNOTXuLojdKGkNnxGXks0vm4qNw0xEemD01IhW/M0cWkY44iX/dtMk1A==
   dependencies:
     redstone-protocol "^1.0.5"
 
@@ -1484,10 +1484,10 @@
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/prettier-config/-/prettier-config-1.5.0.tgz#4df8e9fd2305fee6ab8c1417a02e31343836932a"
   integrity sha512-FUoprSsBdZyBjgxXCKL6mTkbeUJytaLzPJqIOoQpDmBRTX0seCc2o5I9PI9tySoRIlNnd/XXnKCXq1xHDEGbxw==
 
-"@gearbox-protocol/router-v3@^1.27.1":
-  version "1.27.1"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/router-v3/-/router-v3-1.27.1.tgz#1903c60487eac54a85311151c2327e435c0e2888"
-  integrity sha512-aN8fu7gX7UQF6XnTN6IOOFpQPsTftwlFE7zD7fpo1p60MqX01wFLuh/nIJgda+try3W/jMF8J23oK8L80edL8g==
+"@gearbox-protocol/router-v3@^1.36.1":
+  version "1.36.1"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/router-v3/-/router-v3-1.36.1.tgz#3771e0762dae1a9c94b2ef15cefb7b7c2964eb22"
+  integrity sha512-FoNSTLujMvYWf5v/q00FS3PFQ7Cfm5kynNYtNtp6zsvu2KXVFA5Y6EklBrSJCyEfmq4GNX5nF0MmANj7mbE4Fw==
   dependencies:
     "@gearbox-protocol/bots-v3" "^1.5.1"
     "@gearbox-protocol/integration-types" "^1.4.0"
@@ -1516,10 +1516,10 @@
     yarn "^1.22.19"
     zod "^3.22.2"
 
-"@gearbox-protocol/sdk-gov@^2.25.0":
-  version "2.25.0"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/sdk-gov/-/sdk-gov-2.25.0.tgz#6c26f80117a399c1a70e991fbeed03c5d11ecc77"
-  integrity sha512-F3TRfgj4TO+Kc5/bLNTjbe3p+N/pGG+g/GTB993Cdp+kBW9GdasAlVtLk0jT4fzPidH0KZkYsDocL2YJg7L+uw==
+"@gearbox-protocol/sdk-gov@v2.25.2-next.4":
+  version "2.25.2-next.4"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/sdk-gov/-/sdk-gov-2.25.2-next.4.tgz#bd875378687863bc448d7ae62378551f4e0073e5"
+  integrity sha512-Jw8VyKbPDIn/+pNeivb2SFmyr0pPoBuPHvaD6xaXkPLsI8mRqIaycyrOrtu5hbtvD4Kb9IppweXmcydUyheYVg==
   dependencies:
     ethers "6.12.1"
     humanize-duration-ts "^2.1.1"
