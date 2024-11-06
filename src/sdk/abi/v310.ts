@@ -3170,3 +3170,701 @@ export const iMarketConfiguratorV310Abi = [
     anonymous: false,
   },
 ] as const;
+
+export const iCreditConfiguratorV310Abi = [
+  {
+    type: "function",
+    name: "acl",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "addCollateralToken",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "liquidationThreshold",
+        type: "uint16",
+        internalType: "uint16",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "addEmergencyLiquidator",
+    inputs: [
+      {
+        name: "liquidator",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "allowAdapter",
+    inputs: [
+      {
+        name: "adapter",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "allowToken",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "allowedAdapters",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address[]",
+        internalType: "address[]",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "contractType",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "controller",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "creditFacade",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "creditManager",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "forbidAdapter",
+    inputs: [
+      {
+        name: "adapter",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "forbidBorrowing",
+    inputs: [],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "forbidToken",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "rampLiquidationThreshold",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "liquidationThresholdFinal",
+        type: "uint16",
+        internalType: "uint16",
+      },
+      {
+        name: "rampStart",
+        type: "uint40",
+        internalType: "uint40",
+      },
+      {
+        name: "rampDuration",
+        type: "uint24",
+        internalType: "uint24",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "removeEmergencyLiquidator",
+    inputs: [
+      {
+        name: "liquidator",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setController",
+    inputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setCreditFacade",
+    inputs: [
+      {
+        name: "newCreditFacade",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "migrateParams",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setDebtLimits",
+    inputs: [
+      {
+        name: "newMinDebt",
+        type: "uint128",
+        internalType: "uint128",
+      },
+      {
+        name: "newMaxDebt",
+        type: "uint128",
+        internalType: "uint128",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setExpirationDate",
+    inputs: [
+      {
+        name: "newExpirationDate",
+        type: "uint40",
+        internalType: "uint40",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setFees",
+    inputs: [
+      {
+        name: "feeLiquidation",
+        type: "uint16",
+        internalType: "uint16",
+      },
+      {
+        name: "liquidationPremium",
+        type: "uint16",
+        internalType: "uint16",
+      },
+      {
+        name: "feeLiquidationExpired",
+        type: "uint16",
+        internalType: "uint16",
+      },
+      {
+        name: "liquidationPremiumExpired",
+        type: "uint16",
+        internalType: "uint16",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setLiquidationThreshold",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "liquidationThreshold",
+        type: "uint16",
+        internalType: "uint16",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setLossLiquidator",
+    inputs: [
+      {
+        name: "newLossLiquidator",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setMaxDebtPerBlockMultiplier",
+    inputs: [
+      {
+        name: "newMaxDebtLimitPerBlockMultiplier",
+        type: "uint8",
+        internalType: "uint8",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setPriceOracle",
+    inputs: [
+      {
+        name: "newPriceOracle",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "underlying",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "upgradeCreditConfigurator",
+    inputs: [
+      {
+        name: "newCreditConfigurator",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "version",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "event",
+    name: "AddCollateralToken",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "AddEmergencyLiquidator",
+    inputs: [
+      {
+        name: "liquidator",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "AllowAdapter",
+    inputs: [
+      {
+        name: "targetContract",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "adapter",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "AllowToken",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "CreditConfiguratorUpgraded",
+    inputs: [
+      {
+        name: "creditConfigurator",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "ForbidAdapter",
+    inputs: [
+      {
+        name: "targetContract",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "adapter",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "ForbidToken",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "NewController",
+    inputs: [
+      {
+        name: "newController",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "RemoveEmergencyLiquidator",
+    inputs: [
+      {
+        name: "liquidator",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "ScheduleTokenLiquidationThresholdRamp",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "liquidationThresholdInitial",
+        type: "uint16",
+        indexed: false,
+        internalType: "uint16",
+      },
+      {
+        name: "liquidationThresholdFinal",
+        type: "uint16",
+        indexed: false,
+        internalType: "uint16",
+      },
+      {
+        name: "timestampRampStart",
+        type: "uint40",
+        indexed: false,
+        internalType: "uint40",
+      },
+      {
+        name: "timestampRampEnd",
+        type: "uint40",
+        indexed: false,
+        internalType: "uint40",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "SetBorrowingLimits",
+    inputs: [
+      {
+        name: "minDebt",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "maxDebt",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "SetCreditFacade",
+    inputs: [
+      {
+        name: "creditFacade",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "SetExpirationDate",
+    inputs: [
+      {
+        name: "expirationDate",
+        type: "uint40",
+        indexed: false,
+        internalType: "uint40",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "SetLossLiquidator",
+    inputs: [
+      {
+        name: "liquidator",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "SetMaxDebtPerBlockMultiplier",
+    inputs: [
+      {
+        name: "maxDebtPerBlockMultiplier",
+        type: "uint8",
+        indexed: false,
+        internalType: "uint8",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "SetPriceOracle",
+    inputs: [
+      {
+        name: "priceOracle",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "SetTokenLiquidationThreshold",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "liquidationThreshold",
+        type: "uint16",
+        indexed: false,
+        internalType: "uint16",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "UpdateFees",
+    inputs: [
+      {
+        name: "feeLiquidation",
+        type: "uint16",
+        indexed: false,
+        internalType: "uint16",
+      },
+      {
+        name: "liquidationPremium",
+        type: "uint16",
+        indexed: false,
+        internalType: "uint16",
+      },
+      {
+        name: "feeLiquidationExpired",
+        type: "uint16",
+        indexed: false,
+        internalType: "uint16",
+      },
+      {
+        name: "liquidationPremiumExpired",
+        type: "uint16",
+        indexed: false,
+        internalType: "uint16",
+      },
+    ],
+    anonymous: false,
+  },
+] as const;

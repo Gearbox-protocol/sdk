@@ -10,16 +10,17 @@ import type { IAdapterContract } from "./adapters";
 import { createAdapter } from "./adapters";
 
 type abi = typeof creditManagerV3Abi;
+const abi = creditManagerV3Abi;
 
 // Augmenting contract class with interface of compressor data object
-export interface CreditManagerContract
+export interface CreditManagerV300Contract
   extends Omit<
       CreditManagerState,
       "baseParams" | "collateralTokens" | "liquidationThresholds"
     >,
     BaseContract<abi> {}
 
-export class CreditManagerContract extends BaseContract<abi> {
+export class CreditManagerV300Contract extends BaseContract<abi> {
   /**
    * Mapping targetContract => adapter
    */
@@ -34,8 +35,8 @@ export class CreditManagerContract extends BaseContract<abi> {
       creditManager;
     super(sdk, {
       ...baseParams,
-      name: `CreditManagerV3(${creditManager.name})`,
-      abi: creditManagerV3Abi,
+      name: `CreditManagerV300(${creditManager.name})`,
+      abi,
     });
     Object.assign(this, rest);
     this.liquidationThresholds = new AddressMap(

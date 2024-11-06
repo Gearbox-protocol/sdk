@@ -13,7 +13,7 @@ import { ADDRESS_0X0 } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { CreditFacadeStateHuman, MultiCall, RawTx } from "../types";
 import { fmtBinaryMask, formatBNvalue } from "../utils";
-import type { OnDemandPriceUpdate } from "./PriceOracleContract";
+import type { OnDemandPriceUpdate } from "./PriceOracleBaseContract";
 
 const abi = [...creditFacadeV3Abi, ...iCreditFacadeV3MulticallAbi];
 type abi = typeof abi;

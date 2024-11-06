@@ -13,6 +13,7 @@ import { RAMP_DURATION_BY_NETWORK } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
 import { formatDuration, percentFmt } from "../utils";
 
+const abi = creditConfiguratorV3Abi;
 type abi = typeof creditConfiguratorV3Abi;
 
 export type RampEvent = GetEventArgs<
@@ -25,7 +26,7 @@ export type RampEvent = GetEventArgs<
   }
 >;
 
-export class CreditConfiguratorContract extends BaseContract<abi> {
+export class CreditConfiguratorV300Contract extends BaseContract<abi> {
   public readonly adapters: Address[] = [];
   public isPaused = false;
 
@@ -36,7 +37,7 @@ export class CreditConfiguratorContract extends BaseContract<abi> {
     super(sdk, {
       ...creditConfigurator.baseParams,
       name: `CreditConfigurator(${creditManager.name})`,
-      abi: creditConfiguratorV3Abi,
+      abi,
     });
   }
 

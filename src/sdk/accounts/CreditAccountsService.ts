@@ -15,8 +15,8 @@ import {
 import type { GearboxSDK } from "../GearboxSDK";
 import {
   type IPriceFeedContract,
+  type IPriceOracleContract,
   type OnDemandPriceUpdate,
-  type PriceOracleContract,
   rawTxToMulticallPriceUpdate,
   type UpdatePriceFeedsResult,
 } from "../market";
@@ -707,7 +707,7 @@ export class CreditAccountsService extends SDKConstruct {
   ): Promise<UpdatePriceFeedsResult> {
     // for each market, using pool address as key, gather tokens to update and find PriceFeedFactories
     const tokensByPool = new Map<Address, Set<Address>>();
-    const oracleByPool = new Map<Address, PriceOracleContract>();
+    const oracleByPool = new Map<Address, IPriceOracleContract>();
 
     for (const acc of accounts) {
       const market = this.sdk.marketRegister.findByCreditManager(
@@ -739,7 +739,7 @@ export class CreditAccountsService extends SDKConstruct {
   ): Promise<UpdatePriceFeedsResult> {
     // for each market, using pool address as key, gather tokens to update and find PriceFeedFactories
     const tokensByPool = new Map<Address, Set<Address>>();
-    const oracleByPool = new Map<Address, PriceOracleContract>();
+    const oracleByPool = new Map<Address, IPriceOracleContract>();
     const quotaRecord = desiredQuotas
       ? assetsMap(desiredQuotas)
       : desiredQuotas;
@@ -789,9 +789,9 @@ export class CreditAccountsService extends SDKConstruct {
 
     // priceFeeds can contain PriceFeeds from different markets
     const priceFeeds: Array<IPriceFeedContract> = [];
-    for (const [pool, priceFeedFactory] of oracleByPool.entries()) {
+    for (const [pool, oracle] of oracleByPool.entries()) {
       const tokens = Array.from(tokensByPool.get(pool) ?? []);
-      priceFeeds.push(...priceFeedFactory.priceFeedsForTokens(tokens));
+      priceFeeds.push(...oracle.priceFeedsForTokens(tokens));
     }
     return this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(
       priceFeeds,

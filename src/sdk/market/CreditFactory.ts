@@ -3,10 +3,12 @@ import type { Address } from "viem";
 import { type MarketData, SDKConstruct } from "../base";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { CreditFactoryStateHuman, TVL } from "../types";
-import { CreditConfiguratorContract } from "./CreditConfiguratorContract";
+import { CreditConfiguratorV300Contract } from "./CreditConfiguratorV300Contract";
+import { CreditConfiguratorV310Contract } from "./CreditConfiguratorV310Contract";
 import { CreditFacadeV300Contract } from "./CreditFacadeV300Contract";
 import { CreditFacadeV310Contract } from "./CreditFacadeV310Contract";
-import { CreditManagerContract } from "./CreditManagerContract";
+import { CreditManagerV300Contract } from "./CreditManagerV300Contract";
+import { CreditManagerV310Contract } from "./CreditManagerV310Contract";
 
 export class CreditFactory extends SDKConstruct {
   public readonly name: string;
@@ -17,11 +19,15 @@ export class CreditFactory extends SDKConstruct {
    */
   public readonly collateralTokens: Record<Address, number>;
 
-  public readonly creditManager: CreditManagerContract;
+  public readonly creditManager:
+    | CreditManagerV300Contract
+    | CreditManagerV310Contract;
   public readonly creditFacade:
     | CreditFacadeV300Contract
     | CreditFacadeV310Contract;
-  public readonly creditConfigurator: CreditConfiguratorContract;
+  public readonly creditConfigurator:
+    | CreditConfiguratorV300Contract
+    | CreditConfiguratorV310Contract;
 
   constructor(sdk: GearboxSDK, marketData: MarketData, index: number) {
     super(sdk);
@@ -37,7 +43,11 @@ export class CreditFactory extends SDKConstruct {
       collateralTokens.map((t, i) => [t, liquidationThresholds[i]]),
     );
 
-    this.creditManager = new CreditManagerContract(sdk, creditManager);
+    if (creditManager.creditManager.baseParams.version < 310) {
+      this.creditManager = new CreditManagerV300Contract(sdk, creditManager);
+    } else {
+      this.creditManager = new CreditManagerV310Contract(sdk, creditManager);
+    }
 
     if (creditManager.creditFacade.baseParams.version < 310) {
       this.creditFacade = new CreditFacadeV300Contract(sdk, creditManager);
@@ -45,10 +55,17 @@ export class CreditFactory extends SDKConstruct {
       this.creditFacade = new CreditFacadeV310Contract(sdk, creditManager);
     }
 
-    this.creditConfigurator = new CreditConfiguratorContract(
-      sdk,
-      creditManager,
-    );
+    if (creditManager.creditConfigurator.baseParams.version < 310) {
+      this.creditConfigurator = new CreditConfiguratorV300Contract(
+        sdk,
+        creditManager,
+      );
+    } else {
+      this.creditConfigurator = new CreditConfiguratorV310Contract(
+        sdk,
+        creditManager,
+      );
+    }
   }
 
   async tvl(): Promise<TVL> {

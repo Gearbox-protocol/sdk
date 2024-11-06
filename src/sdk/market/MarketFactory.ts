@@ -6,13 +6,16 @@ import type { GearboxSDK } from "../GearboxSDK";
 import type { MarketStateHuman } from "../types";
 import { CreditFactory } from "./CreditFactory";
 import { PoolFactory } from "./PoolFactory";
-import { PriceOracleContract } from "./PriceOracleContract";
+import { PriceOracleV300Contract } from "./PriceOracleV300Contract";
+import { PriceOracleV310Contract } from "./PriceOracleV310Contract";
 
 export class MarketFactory extends SDKConstruct {
   public readonly acl: Address;
   public readonly riskCurator: Address;
   public readonly poolFactory: PoolFactory;
-  public readonly priceOracle: PriceOracleContract;
+  public readonly priceOracle:
+    | PriceOracleV300Contract
+    | PriceOracleV310Contract;
   public readonly creditManagers: CreditFactory[] = [];
   /**
    * Original data received from compressor
@@ -38,11 +41,19 @@ export class MarketFactory extends SDKConstruct {
       this.creditManagers.push(new CreditFactory(sdk, marketData, i));
     }
 
-    this.priceOracle = new PriceOracleContract(
-      sdk,
-      marketData.priceOracleData,
-      marketData.pool.underlying,
-    );
+    if (marketData.priceOracleData.baseParams.version < 310) {
+      this.priceOracle = new PriceOracleV300Contract(
+        sdk,
+        marketData.priceOracleData,
+        marketData.pool.underlying,
+      );
+    } else {
+      this.priceOracle = new PriceOracleV310Contract(
+        sdk,
+        marketData.priceOracleData,
+        marketData.pool.underlying,
+      );
+    }
   }
 
   override get dirty(): boolean {
