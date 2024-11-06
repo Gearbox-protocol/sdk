@@ -31,7 +31,8 @@ interface CalculateMaxAPYProps {
 
 export class Strategy {
   readonly name: string;
-  readonly lpTokenSymbol: AllLPTokens;
+  readonly id: AllLPTokens;
+  readonly tokenOut: AllLPTokens;
   readonly protocolSymbol: string;
 
   readonly releaseAt: ReleaseAt;
@@ -40,7 +41,8 @@ export class Strategy {
 
   constructor(payload: StrategyPayload) {
     this.name = payload.name;
-    this.lpTokenSymbol = payload.lpTokenSymbol;
+    this.id = payload.lpTokenSymbol;
+    this.tokenOut = payload.lpTokenSymbol;
     this.protocolSymbol = payload.protocolSymbol;
     this.collateralTokens = payload.collateralTokens;
 
