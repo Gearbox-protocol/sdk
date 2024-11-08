@@ -12,30 +12,30 @@ export class ERC20Parser extends AbstractParser implements IParser {
     this.abi = ierc20Abi;
   }
   parse(calldata: Address): string {
-    const { functionName, functionData } = this.parseSelector(calldata);
+    const { operationName, functionData } = this.parseSelector(calldata);
 
     switch (functionData.functionName) {
       case "totalSupply": {
-        return `${functionName}()`;
+        return `${operationName}()`;
       }
       case "balanceOf": {
         const [address] = functionData.args || [];
-        return `${functionName}(${address})`;
+        return `${operationName}(${address})`;
       }
       case "allowance": {
         const [account, to] = functionData.args || [];
-        return `${functionName}(account: ${account}, to: ${to})`;
+        return `${operationName}(account: ${account}, to: ${to})`;
       }
 
       case "approve": {
         const [spender, amount] = functionData.args || [];
-        return `${functionName}(${spender}, [${toBigInt(amount).toString()}])`;
+        return `${operationName}(${spender}, [${toBigInt(amount).toString()}])`;
       }
 
       default:
         return this.reportUnknownFragment(
           this.adapterName || this.contract,
-          functionName,
+          operationName,
           calldata,
         );
     }

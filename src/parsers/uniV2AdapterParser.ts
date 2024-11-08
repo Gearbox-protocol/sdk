@@ -12,7 +12,7 @@ export class UniswapV2AdapterParser extends AbstractParser implements IParser {
     if (!isContract) this.adapterName = "UniswapV2Adapter";
   }
   parse(calldata: Address): string {
-    const { functionData, functionName } = this.parseSelector(calldata);
+    const { operationName, functionData } = this.parseSelector(calldata);
 
     switch (functionData.functionName) {
       case "swapExactTokensForTokens": {
@@ -25,7 +25,7 @@ export class UniswapV2AdapterParser extends AbstractParser implements IParser {
         const tokenOut = this.tokenSymbol(path[path.length - 1]);
         const amountInStr = this.formatBN(amountIn, tokenIn);
         const amountOutStr = this.formatBN(amountOutMin, tokenOut);
-        return `${functionName}(amountIn: ${amountInStr}, amountOutMin: ${amountOutStr}, path: [${pathStr}])`;
+        return `${operationName}(amountIn: ${amountInStr}, amountOutMin: ${amountOutStr}, path: [${pathStr}])`;
       }
 
       case "swapTokensForExactTokens": {
@@ -40,7 +40,7 @@ export class UniswapV2AdapterParser extends AbstractParser implements IParser {
         const amountOutStr = this.formatBN(amountOut, tokenIn);
         const amountInMaxStr = this.formatBN(amountInMax, tokenOut);
 
-        return `${functionName}(amountOut: ${amountOutStr}, amountInMax: ${amountInMaxStr}, path: [${pathStr}])`;
+        return `${operationName}(amountOut: ${amountOutStr}, amountInMax: ${amountInMaxStr}, path: [${pathStr}])`;
       }
 
       case "swapDiffTokensForTokens": {
@@ -48,7 +48,7 @@ export class UniswapV2AdapterParser extends AbstractParser implements IParser {
 
         const tokenIn = this.tokenSymbol(path[0]);
 
-        return `${functionName}(leftoverAmount: ${this.formatBN(
+        return `${operationName}(leftoverAmount: ${this.formatBN(
           leftoverAmount,
           tokenIn,
         )}, rate: ${formatBN(rateMinRAY, 27)}, path: [${(path as Array<Address>)
@@ -59,7 +59,7 @@ export class UniswapV2AdapterParser extends AbstractParser implements IParser {
       default:
         return this.reportUnknownFragment(
           this.adapterName || this.contract,
-          functionName,
+          operationName,
           calldata,
         );
     }

@@ -10,17 +10,17 @@ export class CreditManagerParser extends AbstractParser implements IParser {
     this.abi = version === 2 ? iCreditManagerV2Abi : iCreditManagerV3Abi;
   }
   parse(calldata: Address): string {
-    const { functionName, functionData } = this.parseSelector(calldata);
+    const { operationName, functionData } = this.parseSelector(calldata);
 
     switch (functionData.functionName) {
       case "creditConfigurator": {
-        return `${functionName}()`;
+        return `${operationName}()`;
       }
 
       default:
         return this.reportUnknownFragment(
           this.adapterName || this.contract,
-          functionName,
+          operationName,
           calldata,
         );
     }

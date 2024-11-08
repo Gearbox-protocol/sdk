@@ -45,7 +45,7 @@ export class CurveAdapterParser extends AbstractParser implements IParser {
     if (!isContract) this.adapterName = contractName;
   }
   parse(calldata: Address): string {
-    const { functionName, functionData } = this.parseSelector(calldata);
+    const { operationName, functionData } = this.parseSelector(calldata);
 
     switch (functionData.functionName) {
       case "exchange":
@@ -62,7 +62,7 @@ export class CurveAdapterParser extends AbstractParser implements IParser {
             ? this.getUnderlyingTokenByIndex(j)
             : this.getTokenByIndex(j);
 
-        return `${functionName}(i ,j: ${iSym} => ${jSym}, dx: ${this.formatBN(
+        return `${operationName}(i ,j: ${iSym} => ${jSym}, dx: ${this.formatBN(
           dx,
           iSym,
         )}, min_dy: ${this.formatBN(min_dy, jSym)})`;
@@ -82,7 +82,7 @@ export class CurveAdapterParser extends AbstractParser implements IParser {
             ? this.getUnderlyingTokenByIndex(j)
             : this.getTokenByIndex(j);
 
-        return `${functionName}(i: ${iSym}, j: ${jSym}, leftoverAmount: ${this.formatBN(
+        return `${operationName}(i: ${iSym}, j: ${jSym}, leftoverAmount: ${this.formatBN(
           leftoverAmount,
           iSym,
         )}, rateMinRAY: ${formatBN(rateMinRAY, 27)}`;
@@ -93,7 +93,7 @@ export class CurveAdapterParser extends AbstractParser implements IParser {
 
         const iSym = this.getTokenByIndex(i);
 
-        return `${functionName}(amount: ${this.formatBN(
+        return `${operationName}(amount: ${this.formatBN(
           amount,
           iSym,
         )}, i: ${iSym}, minAmount: ${this.formatBN(minAmount, this.lpToken)})`;
@@ -103,7 +103,7 @@ export class CurveAdapterParser extends AbstractParser implements IParser {
       case "remove_diff_liquidity_one_coin": {
         const [leftoverAmount, i, rateMinRAY] = functionData.args || [];
 
-        return `${functionName}(leftoverAmount: ${this.formatBN(
+        return `${operationName}(leftoverAmount: ${this.formatBN(
           leftoverAmount,
           i,
         )}, i: ${this.getTokenByIndex(i)}, rateMinRAY: ${formatBN(
@@ -115,7 +115,7 @@ export class CurveAdapterParser extends AbstractParser implements IParser {
       case "add_liquidity": {
         const [amounts, minAmount] = functionData.args || [];
 
-        return `${functionName}(amounts: [${this.convertAmounts(
+        return `${operationName}(amounts: [${this.convertAmounts(
           amounts,
         )}], minAmount: ${this.formatBN(minAmount, this.lpToken)})`;
       }
@@ -123,7 +123,7 @@ export class CurveAdapterParser extends AbstractParser implements IParser {
       case "remove_liquidity": {
         const [amount, min_amounts] = functionData.args || [];
 
-        return `${functionName}(amount: ${this.formatBN(
+        return `${operationName}(amount: ${this.formatBN(
           amount,
           this.lpToken,
         )}, min_amounts: [${this.convertAmounts(min_amounts)}])`;
@@ -132,7 +132,7 @@ export class CurveAdapterParser extends AbstractParser implements IParser {
       case "remove_liquidity_imbalance": {
         const [amounts, maxBurnAmount] = functionData.args || [];
 
-        return `${functionName}(amounts: [${this.convertAmounts(
+        return `${operationName}(amounts: [${this.convertAmounts(
           amounts,
         )}], max_burn_amount: ${this.formatBN(maxBurnAmount, this.lpToken)})`;
       }
@@ -142,37 +142,37 @@ export class CurveAdapterParser extends AbstractParser implements IParser {
 
         const iSym = this.getTokenByIndex(i);
 
-        return `${functionName}(amount: ${this.formatBN(
+        return `${operationName}(amount: ${this.formatBN(
           amount,
           this.lpToken,
         )},i: ${iSym}, min_amount: ${this.formatBN(min_amount, iSym)})`;
       }
 
       case "totalSupply": {
-        return `${functionName}()`;
+        return `${operationName}()`;
       }
 
       case "balances": {
         const [i] = functionData.args || [];
-        return `${functionName}(${this.getTokenByIndex(i)})`;
+        return `${operationName}(${this.getTokenByIndex(i)})`;
       }
       case "balanceOf": {
         const [address] = functionData.args || [];
-        return `${functionName}(${address})`;
+        return `${operationName}(${address})`;
       }
       case "get_virtual_price": {
-        return `${functionName}()`;
+        return `${operationName}()`;
       }
 
       case "allowance": {
         const [account, to] = functionData.args || [];
-        return `${functionName}(account: ${account}, to: ${to})`;
+        return `${operationName}(account: ${account}, to: ${to})`;
       }
 
       default:
         return this.reportUnknownFragment(
           this.adapterName || this.contract,
-          functionName,
+          operationName,
           calldata,
         );
     }

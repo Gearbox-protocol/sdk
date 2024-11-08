@@ -12,16 +12,16 @@ export class WstETHAdapterParser extends AbstractParser implements IParser {
     if (!isContract) this.adapterName = "wstETHAdapter";
   }
   parse(calldata: Address): string {
-    const { functionData, functionName } = this.parseSelector(calldata);
+    const { operationName, functionData } = this.parseSelector(calldata);
 
     switch (functionData.functionName) {
       case "wrap": {
         const [amount] = functionData.args || [];
-        return `${functionName}(amount: ${this.formatBN(amount, "STETH")})`;
+        return `${operationName}(amount: ${this.formatBN(amount, "STETH")})`;
       }
       case "wrapDiff": {
         const [leftoverAmount] = functionData.args || [];
-        return `${functionName}(leftoverAmount: ${this.formatBN(
+        return `${operationName}(leftoverAmount: ${this.formatBN(
           leftoverAmount,
           "STETH",
         )})`;
@@ -29,11 +29,11 @@ export class WstETHAdapterParser extends AbstractParser implements IParser {
 
       case "unwrap": {
         const [amount] = functionData.args || [];
-        return `${functionName}(amount: ${this.formatBN(amount, "wstETH")})`;
+        return `${operationName}(amount: ${this.formatBN(amount, "wstETH")})`;
       }
       case "unwrapDiff": {
         const [leftoverAmount] = functionData.args || [];
-        return `${functionName}(leftoverAmount: ${this.formatBN(
+        return `${operationName}(leftoverAmount: ${this.formatBN(
           leftoverAmount,
           "STETH",
         )})`;
@@ -41,21 +41,21 @@ export class WstETHAdapterParser extends AbstractParser implements IParser {
 
       case "balanceOf": {
         const [address] = functionData.args || [];
-        return `${functionName}(${address})`;
+        return `${operationName}(${address})`;
       }
       case "allowance": {
         const [account, to] = functionData.args || [];
-        return `${functionName}(account: ${account}, to: ${to})`;
+        return `${operationName}(account: ${account}, to: ${to})`;
       }
       case "approve": {
         const [spender, amount] = functionData.args || [];
-        return `${functionName}(${spender}, [${toBigInt(amount).toString()}])`;
+        return `${operationName}(${spender}, [${toBigInt(amount).toString()}])`;
       }
 
       default:
         return this.reportUnknownFragment(
           this.adapterName || this.contract,
-          functionName,
+          operationName,
           calldata,
         );
     }

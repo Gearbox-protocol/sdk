@@ -20,27 +20,27 @@ export class StakingRewardsAdapterParser
     if (!isContract) this.adapterName = "StakingRewardsAdapter";
   }
   parse(calldata: Address): string {
-    const { functionName, functionData } = this.parseSelector(calldata);
+    const { operationName, functionData } = this.parseSelector(calldata);
 
     switch (functionData.functionName) {
       case "withdraw": {
         const [amount] = functionData.args || [];
-        return `${functionName}(amount: ${this.formatAmount(amount)}`;
+        return `${operationName}(amount: ${this.formatAmount(amount)}`;
       }
       case "withdrawDiff": {
         const [leftoverAmount] = functionData.args || [];
-        return `${functionName}(leftoverAmount: ${this.formatAmount(
+        return `${operationName}(leftoverAmount: ${this.formatAmount(
           leftoverAmount,
         )}`;
       }
 
       case "getReward":
-        return `${functionName}()`;
+        return `${operationName}()`;
 
       default:
         return this.reportUnknownFragment(
           this.adapterName || this.contract,
-          functionName,
+          operationName,
           calldata,
         );
     }

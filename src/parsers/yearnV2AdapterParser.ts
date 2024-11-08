@@ -15,7 +15,7 @@ export class YearnV2AdapterParser extends AbstractParser implements IParser {
     if (!isContract) this.adapterName = "YearnV2Adapter";
   }
   parse(calldata: Address): string {
-    const { functionName, functionData } = this.parseSelector(calldata);
+    const { operationName, functionData } = this.parseSelector(calldata);
 
     switch (functionData.functionName) {
       case "deposit":
@@ -33,7 +33,7 @@ export class YearnV2AdapterParser extends AbstractParser implements IParser {
         const addressStr = address ? `, address: ${address}` : "";
         const maxLossStr = maxLoss ? `, maxLoss: ${maxLoss}` : "";
 
-        return `${functionName}(${amountStr}${addressStr}${maxLossStr})`;
+        return `${operationName}(${amountStr}${addressStr}${maxLossStr})`;
       }
 
       case "depositDiff": {
@@ -45,7 +45,7 @@ export class YearnV2AdapterParser extends AbstractParser implements IParser {
 
         const leftoverAmountStr = this.formatBN(leftoverAmount, yvSym);
 
-        return `${functionName}(leftoverAmount: ${leftoverAmountStr})`;
+        return `${operationName}(leftoverAmount: ${leftoverAmountStr})`;
       }
 
       case "withdrawDiff": {
@@ -57,26 +57,26 @@ export class YearnV2AdapterParser extends AbstractParser implements IParser {
 
         const leftoverAmountStr = this.formatBN(leftoverAmount, yvSym);
 
-        return `${functionName}(leftoverAmount: ${leftoverAmountStr})`;
+        return `${operationName}(leftoverAmount: ${leftoverAmountStr})`;
       }
 
       case "pricePerShare": {
-        return `${functionName}()`;
+        return `${operationName}()`;
       }
       case "balanceOf": {
         const [address] = functionData.args || [];
-        return `${functionName}(${address})`;
+        return `${operationName}(${address})`;
       }
 
       case "allowance": {
         const [account, to] = functionData.args || [];
-        return `${functionName}(account: ${account}, to: ${to})`;
+        return `${operationName}(account: ${account}, to: ${to})`;
       }
 
       default:
         return this.reportUnknownFragment(
           this.adapterName || this.contract,
-          functionName,
+          operationName,
           calldata,
         );
     }

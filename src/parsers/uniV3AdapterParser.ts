@@ -12,7 +12,7 @@ export class UniswapV3AdapterParser extends AbstractParser implements IParser {
     if (!isContract) this.adapterName = "UniswapV3Adapter";
   }
   parse(calldata: Address): string {
-    const { functionData, functionName } = this.parseSelector(calldata);
+    const { operationName, functionData } = this.parseSelector(calldata);
 
     switch (functionData.functionName) {
       case "exactInputSingle": {
@@ -24,7 +24,7 @@ export class UniswapV3AdapterParser extends AbstractParser implements IParser {
         const amountInStr = this.formatBN(amountIn, tokenIn);
         const amountOutMinimumStr = this.formatBN(amountOutMinimum, tokenOut);
 
-        return `${functionName}(amountIn: ${amountInStr}, amountOutMinimum: ${amountOutMinimumStr},  path: ${tokenInSym} ==(fee: ${fee})==> ${tokenOutSym})`;
+        return `${operationName}(amountIn: ${amountInStr}, amountOutMinimum: ${amountOutMinimumStr},  path: ${tokenInSym} ==(fee: ${fee})==> ${tokenOutSym})`;
       }
       case "exactDiffInputSingle": {
         const [{ tokenIn, tokenOut, fee, leftoverAmount, rateMinRAY }] =
@@ -33,7 +33,7 @@ export class UniswapV3AdapterParser extends AbstractParser implements IParser {
         const tokenOutSym = this.tokenSymbol(tokenOut);
 
         const leftoverAmountStr = this.formatBN(leftoverAmount, tokenIn);
-        return `${functionName}(leftoverAmount: ${leftoverAmountStr}, rate: ${formatBN(
+        return `${operationName}(leftoverAmount: ${leftoverAmountStr}, rate: ${formatBN(
           rateMinRAY,
           27,
         )},  path: ${tokenInSym} ==(fee: ${fee})==> ${tokenOutSym})`;
@@ -54,7 +54,7 @@ export class UniswapV3AdapterParser extends AbstractParser implements IParser {
           this.tokenSymbol(`0x${path.slice(-40, path.length)}`),
         );
 
-        return `${functionName}(amountIn: ${amountInStr}, amountOutMinimum: ${amountOutMinimumStr},  path: ${pathStr}`;
+        return `${operationName}(amountIn: ${amountInStr}, amountOutMinimum: ${amountOutMinimumStr},  path: ${pathStr}`;
       }
       case "exactDiffInput": {
         const [{ path, leftoverAmount, rateMinRAY }] = functionData.args || [
@@ -68,7 +68,7 @@ export class UniswapV3AdapterParser extends AbstractParser implements IParser {
 
         const pathStr = this.trackInputPath(path);
 
-        return `${functionName}(leftoverAmount: ${leftoverAmountStr}, rate: ${formatBN(
+        return `${operationName}(leftoverAmount: ${leftoverAmountStr}, rate: ${formatBN(
           rateMinRAY,
           27,
         )},  path: ${pathStr}`;
@@ -88,7 +88,7 @@ export class UniswapV3AdapterParser extends AbstractParser implements IParser {
           this.tokenSymbol(`0x${path.replace("0x", "").slice(0, 40)}`),
         );
 
-        return `${functionName}(amountInMaximum: ${amountInMaximumStr}, amountOut: ${amountOutStr},  path: ${pathStr}`;
+        return `${operationName}(amountInMaximum: ${amountInMaximumStr}, amountOut: ${amountOutStr},  path: ${pathStr}`;
       }
       case "exactOutputSingle": {
         const [{ tokenIn, tokenOut, fee, amountOut, amountInMaximum }] =
@@ -100,13 +100,13 @@ export class UniswapV3AdapterParser extends AbstractParser implements IParser {
         const amountInMaximumStr = this.formatBN(amountInMaximum, tokenInSym);
         const amountOutStr = this.formatBN(amountOut, tokenOutSym);
 
-        return `${functionName}(amountInMaximum: ${amountInMaximumStr}, amountOut: ${amountOutStr},  path: ${tokenInSym} ==(fee: ${fee})==> ${tokenOutSym})`;
+        return `${operationName}(amountInMaximum: ${amountInMaximumStr}, amountOut: ${amountOutStr},  path: ${tokenInSym} ==(fee: ${fee})==> ${tokenOutSym})`;
       }
 
       default:
         return this.reportUnknownFragment(
           this.adapterName || this.contract,
-          functionName,
+          operationName,
           calldata,
         );
     }

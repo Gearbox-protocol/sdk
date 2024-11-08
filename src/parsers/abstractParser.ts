@@ -36,13 +36,13 @@ export class AbstractParser {
     if (!functionData.functionName)
       throw new Error("Function fragment not found");
 
-    const functionName = `${this.adapterName}[${this.contract}].${functionData.functionName}`;
+    const operationName = `${this.adapterName}[${this.contract}].${functionData.functionName}`;
     return {
       functionData: functionData as {
         args: Array<any> | undefined;
         functionName: string;
       },
-      functionName,
+      operationName,
     };
   }
 
@@ -74,11 +74,11 @@ export class AbstractParser {
   }
 
   parseToObject(address: Address, calldata: Address): ParsedObject {
-    const { functionName, functionData } = this.parseSelector(calldata);
+    const { functionData } = this.parseSelector(calldata);
 
     return {
       address,
-      functionName,
+      functionName: functionData.functionName,
       args: functionData.args || [],
     };
   }

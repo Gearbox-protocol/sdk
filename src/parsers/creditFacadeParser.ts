@@ -30,7 +30,7 @@ export class CreditFacadeParser extends AbstractParser implements IParser {
     this.adapterName = "CreditFacade";
   }
   parse(calldata: Address): string {
-    const { functionName, functionData } = this.parseSelector(calldata);
+    const { operationName, functionData } = this.parseSelector(calldata);
 
     switch (functionData.functionName) {
       case "addCollateral": {
@@ -39,24 +39,24 @@ export class CreditFacadeParser extends AbstractParser implements IParser {
         const token = r[0];
         const amount = r[1];
 
-        return `${functionName}(token: ${this.tokenSymbol(
+        return `${operationName}(token: ${this.tokenSymbol(
           token,
         )}, amount: ${this.formatBN(amount, this.tokenSymbol(token))})`;
       }
       case "increaseDebt":
       case "decreaseDebt": {
         const [amount] = functionData.args || [];
-        return `${functionName}(amount: ${this.formatAmount(amount)})`;
+        return `${operationName}(amount: ${this.formatAmount(amount)})`;
       }
       case "enableToken":
       case "disableToken": {
         const [address] = functionData.args || [];
-        return `${functionName}(token: ${this.tokenSymbol(address)})`;
+        return `${operationName}(token: ${this.tokenSymbol(address)})`;
       }
 
       case "updateQuota": {
         const [address, quotaUpdate, minQuota] = functionData.args || [];
-        return `${functionName}(token: ${this.tokenSymbol(
+        return `${operationName}(token: ${this.tokenSymbol(
           address,
         )}, quotaUpdate: ${this.formatAmount(
           quotaUpdate,
@@ -77,13 +77,13 @@ export class CreditFacadeParser extends AbstractParser implements IParser {
           })
           .join(", ");
 
-        return `${functionName}(${balancesStr})`;
+        return `${operationName}(${balancesStr})`;
       }
 
       case "withdrawCollateral": {
         const [token, amount, to] = functionData.args || [];
 
-        return `${functionName}(token: ${this.tokenSymbol(
+        return `${operationName}(token: ${this.tokenSymbol(
           token,
         )}, withdraw: ${this.formatBN(
           amount,
@@ -95,7 +95,7 @@ export class CreditFacadeParser extends AbstractParser implements IParser {
         const [tokenAddress, amount, deadline, v, r, s] =
           functionData.args || [];
 
-        return `${functionName}(token: ${this.tokenSymbol(
+        return `${operationName}(token: ${this.tokenSymbol(
           tokenAddress,
         )}, amount: ${this.formatBN(
           amount,
@@ -104,13 +104,13 @@ export class CreditFacadeParser extends AbstractParser implements IParser {
       }
 
       case "compareBalances": {
-        return `${functionName}()`;
+        return `${operationName}()`;
       }
 
       case "setFullCheckParams": {
         const [collateralHints, minHealthFactor] = functionData.args || [];
 
-        return `${functionName}(token: ${collateralHints
+        return `${operationName}(token: ${collateralHints
           .map((a: BigNumberish) => this.formatAmount(a))
           .join(", ")}, minHealthFactor: ${minHealthFactor})`;
       }
@@ -118,7 +118,7 @@ export class CreditFacadeParser extends AbstractParser implements IParser {
       case "storeExpectedBalances": {
         const [balanceDeltas] = functionData.args || [];
 
-        return `${functionName}(balanceDeltas: ${balanceDeltas
+        return `${operationName}(balanceDeltas: ${balanceDeltas
           .map(
             (b: BalanceDeltaStructOutput) =>
               `${this.tokenSymbol(b.token)}: ${this.formatBN(
@@ -132,7 +132,7 @@ export class CreditFacadeParser extends AbstractParser implements IParser {
       case "onDemandPriceUpdate": {
         const [token, reserve, data] = functionData.args || [];
 
-        return `${functionName}(token: ${this.tokenOrTickerSymbol(
+        return `${operationName}(token: ${this.tokenOrTickerSymbol(
           token,
         )}, reserve: ${reserve}, data: ${data})`;
       }
@@ -140,7 +140,7 @@ export class CreditFacadeParser extends AbstractParser implements IParser {
       default:
         return this.reportUnknownFragment(
           this.adapterName || this.contract,
-          functionName,
+          operationName,
           calldata,
         );
     }

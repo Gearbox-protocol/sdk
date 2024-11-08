@@ -12,16 +12,16 @@ export class LidoAdapterParser extends AbstractParser implements IParser {
     if (!isContract) this.adapterName = "LidoV1Adapter";
   }
   parse(calldata: Address): string {
-    const { functionName, functionData } = this.parseSelector(calldata);
+    const { operationName, functionData } = this.parseSelector(calldata);
 
     switch (functionData.functionName) {
       case "submit": {
         const [amount] = functionData.args || [];
-        return `${functionName}(amount: ${this.formatBN(amount, "STETH")})`;
+        return `${operationName}(amount: ${this.formatBN(amount, "STETH")})`;
       }
       case "submitDiff": {
         const [leftoverAmount] = functionData.args || [];
-        return `${functionName}(leftoverAmount: ${this.formatBN(
+        return `${operationName}(leftoverAmount: ${this.formatBN(
           leftoverAmount,
           "STETH",
         )})`;
@@ -30,7 +30,7 @@ export class LidoAdapterParser extends AbstractParser implements IParser {
       default:
         return this.reportUnknownFragment(
           this.adapterName || this.contract,
-          functionName,
+          operationName,
           calldata,
         );
     }

@@ -11,16 +11,16 @@ export class ConvexRewardPoolParser extends AbstractParser implements IParser {
     this.abi = iBaseRewardPoolAbi;
   }
   parse(calldata: Address): string {
-    const { functionName, functionData } = this.parseSelector(calldata);
+    const { operationName, functionData } = this.parseSelector(calldata);
 
     switch (functionData.functionName) {
       case "rewardRate":
-        return `${functionName}()`;
+        return `${operationName}()`;
 
       default:
         return this.reportUnknownFragment(
           this.adapterName || this.contract,
-          functionName,
+          operationName,
           calldata,
         );
     }

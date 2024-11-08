@@ -10,18 +10,18 @@ export class PriceOracleParser extends AbstractParser implements IParser {
     this.abi = iPriceOracleBaseAbi;
   }
   parse(calldata: Address): string {
-    const { functionName, functionData } = this.parseSelector(calldata);
+    const { operationName, functionData } = this.parseSelector(calldata);
 
     switch (functionData.functionName) {
       case "getPrice": {
         const [token] = functionData.args || [];
-        return `${functionName}(${this.tokenSymbol(token)})`;
+        return `${operationName}(${this.tokenSymbol(token)})`;
       }
 
       default:
         return this.reportUnknownFragment(
           this.adapterName || this.contract,
-          functionName,
+          operationName,
           calldata,
         );
     }

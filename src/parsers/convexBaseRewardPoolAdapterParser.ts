@@ -20,17 +20,17 @@ export class ConvexBaseRewardPoolAdapterParser
     if (!isContract) this.adapterName = "ConvexV1BaseRewardPoolAdapter";
   }
   parse(calldata: Address): string {
-    const { functionName, functionData } = this.parseSelector(calldata);
+    const { operationName, functionData } = this.parseSelector(calldata);
 
     switch (functionData.functionName) {
       case "stake": {
         const [amount] = functionData.args || [];
-        return `${functionName}(amount: ${this.formatAmount(amount)})`;
+        return `${operationName}(amount: ${this.formatAmount(amount)})`;
       }
 
       case "stakeDiff": {
         const [leftoverAmount] = functionData.args || [];
-        return `${functionName}(leftoverAmount: ${this.formatAmount(
+        return `${operationName}(leftoverAmount: ${this.formatAmount(
           leftoverAmount,
         )})`;
       }
@@ -38,30 +38,30 @@ export class ConvexBaseRewardPoolAdapterParser
       case "withdraw":
       case "withdrawAndUnwrap": {
         const [amount, claim] = functionData.args || [];
-        return `${functionName}(amount: ${this.formatAmount(
+        return `${operationName}(amount: ${this.formatAmount(
           amount,
         )}, claim: ${claim})`;
       }
       case "withdrawDiff":
       case "withdrawDiffAndUnwrap": {
         const [leftoverAmount, claim] = functionData.args || [];
-        return `${functionName}(leftoverAmount: ${this.formatAmount(
+        return `${operationName}(leftoverAmount: ${this.formatAmount(
           leftoverAmount,
         )}, claim: ${claim})`;
       }
 
       case "rewardRate":
-        return `${functionName}()`;
+        return `${operationName}()`;
       case "totalSupply":
-        return `${functionName}()`;
+        return `${operationName}()`;
 
       case "getReward":
-        return `${functionName}()`;
+        return `${operationName}()`;
 
       default:
         return this.reportUnknownFragment(
           this.adapterName || this.contract,
-          functionName,
+          operationName,
           calldata,
         );
     }

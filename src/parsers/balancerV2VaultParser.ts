@@ -13,18 +13,18 @@ export class BalancerV2VaultParser extends AbstractParser implements IParser {
   }
 
   parse(calldata: Address): string {
-    const { functionName, functionData } = this.parseSelector(calldata);
+    const { operationName, functionData } = this.parseSelector(calldata);
 
     switch (functionData.functionName) {
       case "batchSwap": {
-        return `${functionName}(undefined)`;
+        return `${operationName}(undefined)`;
       }
 
       case "swapDiff": {
         const [{ leftoverAmount = 0, assetIn = "", assetOut = "" }] =
           functionData.args || [{}];
 
-        return `${functionName}(${this.tokenSymbol(
+        return `${operationName}(${this.tokenSymbol(
           assetIn,
         )} => ${this.tokenSymbol(assetOut)} ${this.formatBN(
           leftoverAmount,
@@ -36,7 +36,7 @@ export class BalancerV2VaultParser extends AbstractParser implements IParser {
         const [{ assetIn = "", assetOut = "", amount = 0 }] =
           functionData.args || [{}];
 
-        return `${functionName}(${this.tokenSymbol(
+        return `${operationName}(${this.tokenSymbol(
           assetIn,
         )} => ${this.tokenSymbol(assetOut)} ${this.formatBN(
           amount,
@@ -47,7 +47,7 @@ export class BalancerV2VaultParser extends AbstractParser implements IParser {
       default:
         return this.reportUnknownFragment(
           this.adapterName || this.contract,
-          functionName,
+          operationName,
           calldata,
         );
     }

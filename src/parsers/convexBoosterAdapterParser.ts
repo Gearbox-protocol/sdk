@@ -20,19 +20,19 @@ export class ConvexBoosterAdapterParser
     if (!isContract) this.adapterName = "ConvexV1BoosterAdapter";
   }
   parse(calldata: Address): string {
-    const { functionName, functionData } = this.parseSelector(calldata);
+    const { operationName, functionData } = this.parseSelector(calldata);
 
     switch (functionData.functionName) {
       case "deposit": {
         const [pid, amount, stake] = functionData.args || [];
-        return `${functionName}(pid: ${this.formatPid(
+        return `${operationName}(pid: ${this.formatPid(
           pid,
         )}, amount: ${this.formatAmount(amount, pid)}, stake: ${stake})`;
       }
 
       case "depositDiff": {
         const [pid, leftoverAmount, stake] = functionData.args || [];
-        return `${functionName}(pid: ${this.formatPid(
+        return `${operationName}(pid: ${this.formatPid(
           pid,
         )}, leftoverAmount: ${this.formatAmount(
           leftoverAmount,
@@ -42,14 +42,14 @@ export class ConvexBoosterAdapterParser
 
       case "withdraw": {
         const [pid, amount] = functionData.args || [];
-        return `${functionName}(pid: ${this.formatPid(
+        return `${operationName}(pid: ${this.formatPid(
           pid,
         )}, amount: ${this.formatAmount(amount, pid)})`;
       }
 
       case "withdrawDiff": {
         const [pid, leftoverAmount] = functionData.args || [];
-        return `${functionName}(pid: ${this.formatPid(
+        return `${operationName}(pid: ${this.formatPid(
           pid,
         )}, leftoverAmount: ${this.formatAmount(leftoverAmount, pid)})`;
       }
@@ -57,7 +57,7 @@ export class ConvexBoosterAdapterParser
       default:
         return this.reportUnknownFragment(
           this.adapterName || this.contract,
-          functionName,
+          operationName,
           calldata,
         );
     }
