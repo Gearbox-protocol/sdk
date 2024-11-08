@@ -3,24 +3,12 @@ import {
   NetworkType,
   PartialRecord,
   PERCENTAGE_FACTOR,
-  SupportedToken,
 } from "@gearbox-protocol/sdk-gov";
 import { Address } from "viem";
 
-import { AllLPTokens } from "../apy";
 import { CreditManagerData } from "./creditManager";
 
-type ReleaseAt = undefined | number | PartialRecord<NetworkType, number>;
-
-export interface StrategyPayload {
-  name: string;
-  lpTokenSymbol: AllLPTokens;
-  protocolSymbol: string;
-
-  collateralTokens: Array<SupportedToken>;
-
-  releaseAt?: ReleaseAt;
-}
+export type ReleaseAt = undefined | number | PartialRecord<NetworkType, number>;
 
 interface CalculateMaxAPYProps {
   apy: number;
@@ -29,26 +17,9 @@ interface CalculateMaxAPYProps {
   quotaRateWithFee: number;
 }
 
-export class Strategy {
-  readonly name: string;
-  readonly lpTokenSymbol: AllLPTokens;
-  readonly protocolSymbol: string;
-
-  readonly releaseAt: ReleaseAt;
-
-  readonly collateralTokens: Array<SupportedToken>;
-
-  constructor(payload: StrategyPayload) {
-    this.name = payload.name;
-    this.lpTokenSymbol = payload.lpTokenSymbol;
-    this.protocolSymbol = payload.protocolSymbol;
-    this.collateralTokens = payload.collateralTokens;
-
-    this.releaseAt = payload.releaseAt;
-  }
-
+export class PositionUtils {
   static maxLeverage(lpToken: Address, cms: Array<PartialCM>) {
-    const [maxThreshold] = Strategy.maxLeverageThreshold(lpToken, cms);
+    const [maxThreshold] = this.maxLeverageThreshold(lpToken, cms);
 
     const maxLeverage =
       (PERCENTAGE_FACTOR * LEVERAGE_DECIMALS) /
