@@ -48,7 +48,9 @@ const prices = {
   ),
 };
 
-const lpAPY = { STETH: 38434 } as TokensAPYList;
+const lpAPY: TokensAPYList = {
+  [tokenDataByNetwork.Mainnet.STETH.toLowerCase()]: 38434,
+};
 
 const caWithoutLP: CATestInfo = {
   assets: [
