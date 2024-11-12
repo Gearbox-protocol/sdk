@@ -14,6 +14,7 @@ import {
 } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
 import {
+  CreditFactory,
   type IPriceFeedContract,
   type IPriceOracleContract,
   type OnDemandPriceUpdate,
@@ -56,6 +57,7 @@ export interface CloseCreditAccountResult extends CommonResult {
 export interface CommonResult {
   tx: RawTx;
   calls: Array<MultiCall>;
+  creditFacade: CreditFactory["creditFacade"];
 }
 
 type CloseOptions = "close" | "zeroDebt";
@@ -294,7 +296,7 @@ export class CreditAccountsService extends SDKConstruct {
       to,
       calls,
     );
-    return { tx, calls, routerCloseResult };
+    return { tx, calls, routerCloseResult, creditFacade: cm.creditFacade };
   }
 
   /**
@@ -339,7 +341,7 @@ export class CreditAccountsService extends SDKConstruct {
       operation === "close"
         ? cm.creditFacade.closeCreditAccount(ca.creditAccount, calls)
         : cm.creditFacade.multicall(ca.creditAccount, calls);
-    return { tx, calls, routerCloseResult };
+    return { tx, calls, routerCloseResult, creditFacade: cm.creditFacade };
   }
 
   /**
@@ -379,7 +381,7 @@ export class CreditAccountsService extends SDKConstruct {
       operation === "close"
         ? cm.creditFacade.closeCreditAccount(ca.creditAccount, calls)
         : cm.creditFacade.multicall(ca.creditAccount, calls);
-    return { tx, calls };
+    return { tx, calls, creditFacade: cm.creditFacade };
   }
 
   /**
@@ -421,7 +423,7 @@ export class CreditAccountsService extends SDKConstruct {
       to,
       calls,
     );
-    return { tx, calls };
+    return { tx, calls, creditFacade: cm.creditFacade };
   }
 
   public async updateQuotas(props: UpdateQuotasProps): Promise<CommonResult> {
@@ -445,10 +447,7 @@ export class CreditAccountsService extends SDKConstruct {
       ...this.#prepareUpdateQuotas(props.creditAccount.creditFacade, props),
     ]);
 
-    return {
-      tx,
-      calls,
-    };
+    return { tx, calls, creditFacade: cm.creditFacade };
   }
 
   public async addCollateral(props: AddCollateralProps): Promise<CommonResult> {
@@ -476,7 +475,7 @@ export class CreditAccountsService extends SDKConstruct {
     const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
     tx.value = ethAmount.toString(10);
 
-    return { tx, calls };
+    return { tx, calls, creditFacade: cm.creditFacade };
   }
 
   public async changeDebt({
@@ -514,7 +513,7 @@ export class CreditAccountsService extends SDKConstruct {
 
     const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
 
-    return { tx, calls };
+    return { tx, calls, creditFacade: cm.creditFacade };
   }
 
   public async withdrawCollateral(
@@ -547,7 +546,7 @@ export class CreditAccountsService extends SDKConstruct {
 
     const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
 
-    return { tx, calls };
+    return { tx, calls, creditFacade: cm.creditFacade };
   }
 
   public async executeSwap(props: ExecuteSwapProps): Promise<CommonResult> {
@@ -572,10 +571,12 @@ export class CreditAccountsService extends SDKConstruct {
 
     const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
 
-    return { tx, calls };
+    return { tx, calls, creditFacade: cm.creditFacade };
   }
 
-  public async claimFarmRewards(props: ClaimFarmRewardsProps) {
+  public async claimFarmRewards(
+    props: ClaimFarmRewardsProps,
+  ): Promise<CommonResult> {
     const { tokensToDisable, calls: claimCalls, creditAccount: ca } = props;
     if (claimCalls.length === 0) throw new Error("No path to execute");
 
@@ -599,7 +600,7 @@ export class CreditAccountsService extends SDKConstruct {
 
     const tx = cm.creditFacade.multicall(ca.creditAccount, calls);
 
-    return { tx, calls };
+    return { tx, calls, creditFacade: cm.creditFacade };
   }
 
   public async openCA(props: OpenCAProps): Promise<CommonResult> {
@@ -642,10 +643,7 @@ export class CreditAccountsService extends SDKConstruct {
     );
     tx.value = ethAmount.toString(10);
 
-    return {
-      calls,
-      tx,
-    };
+    return { calls, tx, creditFacade: cmFactory.creditFacade };
   }
 
   /**
