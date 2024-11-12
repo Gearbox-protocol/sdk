@@ -8,7 +8,6 @@ export * from "./core/creditSession";
 export * from "./core/endpoint";
 export * from "./core/eventOrTx";
 export * from "./core/gauge";
-export * from "./core/gaugeMath";
 export * from "./core/pool";
 export * from "./core/protocols";
 export * from "./core/rewardClaimer";
