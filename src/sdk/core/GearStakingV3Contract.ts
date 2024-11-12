@@ -1,7 +1,7 @@
 import type { Address, DecodeFunctionDataReturnType } from "viem";
 
 import { gearStakingV3Abi } from "../abi";
-import { PermitResult } from "../accounts";
+import type { PermitResult } from "../accounts";
 import { BaseContract, VotingContractStatus } from "../base";
 import { ADDRESS_0X0 } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
