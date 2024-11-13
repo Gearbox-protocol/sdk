@@ -4,6 +4,7 @@ import { decodeAbiParameters } from "viem";
 import { gaugeV3Abi } from "../abi";
 import type { PoolData, RateKeeperData } from "../base";
 import { BaseContract } from "../base";
+import { WAD } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { GaugeStateHuman } from "../types";
 import { AddressMap, percentFmt } from "../utils";
@@ -13,15 +14,15 @@ type abi = typeof gaugeV3Abi;
 export interface GaugeParams {
   minRate: number;
   maxRate: number;
-  totalVotesLpSide: number;
-  totalVotesCaSide: number;
+  totalVotesLpSide: bigint;
+  totalVotesCaSide: bigint;
   rate: number;
 }
 
 export class GaugeContract extends BaseContract<abi> {
   public readonly quotaParams: AddressMap<GaugeParams>;
   public readonly epochFrozen: boolean;
-  public readonly currentEpoch: bigint;
+  public readonly currentEpoch: number;
   public readonly rates: AddressMap<number>;
 
   constructor(sdk: GearboxSDK, pool: PoolData, gauge: RateKeeperData) {
@@ -35,17 +36,17 @@ export class GaugeContract extends BaseContract<abi> {
       decodeAbiParameters(
         [
           { name: "voter", type: "address" },
-          { name: "currentEpoch", type: "uint256" },
+          { name: "currentEpoch", type: "uint16" },
           { name: "epochFrozen", type: "bool" },
           {
             name: "quotaParams",
             type: "tuple[]",
             components: [
               { name: "token", type: "address" },
-              { name: "minRate", type: "uint256" },
-              { name: "maxRate", type: "uint256" },
-              { name: "totalVotesLpSide", type: "uint256" },
-              { name: "totalVotesCaSide", type: "uint256" },
+              { name: "minRate", type: "uint16" },
+              { name: "maxRate", type: "uint16" },
+              { name: "totalVotesLpSide", type: "uint96" },
+              { name: "totalVotesCaSide", type: "uint96" },
             ],
           },
         ],
@@ -57,10 +58,10 @@ export class GaugeContract extends BaseContract<abi> {
     this.quotaParams = new AddressMap();
     for (const g of gaugeParams) {
       this.quotaParams.upsert(g.token, {
-        minRate: Number(g.minRate),
-        maxRate: Number(g.maxRate),
-        totalVotesLpSide: Number(g.totalVotesLpSide),
-        totalVotesCaSide: Number(g.totalVotesCaSide),
+        minRate: g.minRate,
+        maxRate: g.maxRate,
+        totalVotesLpSide: g.totalVotesLpSide,
+        totalVotesCaSide: g.totalVotesCaSide,
         rate: this.rates.get(g.token) ?? 0,
       });
     }
@@ -103,8 +104,8 @@ export class GaugeContract extends BaseContract<abi> {
           [address]: {
             minRate: percentFmt(params.minRate, raw),
             maxRate: percentFmt(params.maxRate, raw),
-            totalVotesLpSide: params.totalVotesLpSide / 1e18,
-            totalVotesCaSide: params.totalVotesCaSide / 1e18,
+            totalVotesLpSide: params.totalVotesLpSide / WAD,
+            totalVotesCaSide: params.totalVotesCaSide / WAD,
             rate: percentFmt(params.rate, raw),
           },
         }),
