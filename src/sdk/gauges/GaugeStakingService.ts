@@ -12,7 +12,8 @@ export class GaugeStakingService extends SDKConstruct {
 
   constructor(sdk: GearboxSDK) {
     super(sdk);
-    this.#compressor = sdk.addressProvider.getLatestVersion(AP_DATA_COMPRESSOR);
+    // TODO: should get address from sdk.addressProvider.getLatestVersion(AP_DATA_COMPRESSOR)
+    this.#compressor = "0x104c4e209329524adb0febE8b6481346a6eB75C6";
   }
 
   /**
