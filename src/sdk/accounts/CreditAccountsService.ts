@@ -15,10 +15,10 @@ import {
 import type { GearboxSDK } from "../GearboxSDK";
 import type {
   CreditFactory,
-  type IPriceFeedContract,
-  type IPriceOracleContract,
-  type OnDemandPriceUpdate,
-  type UpdatePriceFeedsResult,
+  IPriceFeedContract,
+  IPriceOracleContract,
+  OnDemandPriceUpdate,
+  UpdatePriceFeedsResult,
 } from "../market";
 import { rawTxToMulticallPriceUpdate } from "../market";
 import {
