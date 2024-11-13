@@ -8,7 +8,6 @@ export class GaugeData {
   readonly pool: Address;
   readonly poolUnderlying: Address;
   readonly name: string;
-  readonly symbol: string;
 
   readonly currentEpoch: bigint;
   readonly epochFrozen: boolean;
@@ -22,7 +21,7 @@ export class GaugeData {
       totalVotesLpSide: bigint;
       totalVotesCaSide: bigint;
       rate: bigint;
-      quotaIncreaseFee: bigint;
+
       totalQuoted: bigint;
       limit: bigint;
       isActive: boolean;
@@ -36,7 +35,6 @@ export class GaugeData {
     this.pool = payload.pool.toLowerCase() as Address;
     this.poolUnderlying = payload.underlying.toLowerCase() as Address;
     this.name = payload.name;
-    this.symbol = payload.symbol;
 
     this.currentEpoch = BigInt(payload.currentEpoch);
     this.epochFrozen = payload.epochFrozen;
@@ -53,7 +51,6 @@ export class GaugeData {
           minRate: BigInt(q.minRate) * PERCENTAGE_DECIMALS,
           maxRate: BigInt(q.maxRate) * PERCENTAGE_DECIMALS,
 
-          quotaIncreaseFee: BigInt(q.quotaIncreaseFee),
           totalQuoted: q.totalQuoted,
           limit: q.limit,
 

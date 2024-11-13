@@ -14,7 +14,6 @@ export interface GaugeQuotaParams {
   totalVotesLpSide: bigint;
   totalVotesCaSide: bigint;
   rate: number;
-  quotaIncreaseFee: number;
   totalQuoted: bigint;
   limit: bigint;
   isActive: boolean;
@@ -25,7 +24,6 @@ export interface GaugeQuotaParams {
 export interface GaugeDataPayload {
   addr: Address;
   pool: Address;
-  symbol: string;
   name: string;
   underlying: Address;
   currentEpoch: number;
