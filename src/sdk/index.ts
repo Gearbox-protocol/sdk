@@ -3,6 +3,7 @@ export * from "./base";
 export * from "./chain";
 export * from "./constants";
 export * from "./core";
+export * from "./gauges";
 export * from "./GearboxSDK";
 export * from "./market";
 export * from "./router";
