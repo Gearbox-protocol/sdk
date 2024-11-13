@@ -5,7 +5,7 @@ import { dataCompressorV3Abi } from "../abi";
 import { SDKConstruct } from "../base";
 import { AP_DATA_COMPRESSOR } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
-import { GaugeStakingDataPayload } from "./utils";
+import type { GaugeStakingDataPayload } from "./utils";
 
 export class GaugeStakingService extends SDKConstruct {
   #compressor: Address;
