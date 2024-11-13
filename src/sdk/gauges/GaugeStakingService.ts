@@ -75,11 +75,17 @@ export class GaugeStakingService extends SDKConstruct {
           acc[v.addr] = {
             pool: v.pool,
             gauge: v.addr,
-            quotaParams: v.quotaParams.map(q => ({
-              token: q.token,
-              stakerVotesLpSide: q.stakerVotesLpSide,
-              stakerVotesCaSide: q.stakerVotesCaSide,
-            })),
+            quotaParams: v.quotaParams.reduce<
+              GaugeStakingDataPayload["voteParams"][Address]["quotaParams"]
+            >((acc, q) => {
+              acc[q.token] = {
+                token: q.token,
+                stakerVotesLpSide: q.stakerVotesLpSide,
+                stakerVotesCaSide: q.stakerVotesCaSide,
+              };
+
+              return acc;
+            }, {}),
           };
 
           return acc;

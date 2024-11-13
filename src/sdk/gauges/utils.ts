@@ -11,7 +11,7 @@ interface UserVote {
 interface GaugeVoteInfo {
   pool: Address;
   gauge: Address;
-  quotaParams: Array<UserVote>;
+  quotaParams: Record<Address, UserVote>;
 }
 
 export interface GaugeStakingDataPayload {
@@ -73,11 +73,19 @@ export class GaugeStakingData {
       acc[gaugeLc] = {
         gauge: gaugeLc,
         pool: v.pool.toLowerCase() as Address,
-        quotaParams: v.quotaParams.map(q => ({
-          token: q.token.toLowerCase() as Address,
-          stakerVotesLpSide: q.stakerVotesLpSide,
-          stakerVotesCaSide: q.stakerVotesCaSide,
-        })),
+        quotaParams: Object.values(v.quotaParams).reduce<
+          GaugeVoteInfo["quotaParams"]
+        >((acc, q) => {
+          const tokenLc = q.token.toLowerCase() as Address;
+
+          acc[tokenLc] = {
+            token: tokenLc,
+            stakerVotesLpSide: q.stakerVotesLpSide,
+            stakerVotesCaSide: q.stakerVotesCaSide,
+          };
+
+          return acc;
+        }, {}),
       };
       return acc;
     }, {});
