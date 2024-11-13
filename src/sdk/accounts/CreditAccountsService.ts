@@ -13,14 +13,14 @@ import {
   MIN_INT96,
 } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
-import {
+import type {
   CreditFactory,
-  type IPriceFeedContract,
-  type IPriceOracleContract,
-  type OnDemandPriceUpdate,
-  rawTxToMulticallPriceUpdate,
-  type UpdatePriceFeedsResult,
+  IPriceFeedContract,
+  IPriceOracleContract,
+  OnDemandPriceUpdate,
+  UpdatePriceFeedsResult,
 } from "../market";
+import { rawTxToMulticallPriceUpdate } from "../market";
 import {
   type Asset,
   assetsMap,
