@@ -128,4 +128,5 @@ export const isFarmToken = (t: unknown): t is AllLPTokens => {
 export * from "./curveAPY";
 export * from "./defiLamaAPY";
 export * from "./lidoAPY";
+export * from "./skyAPY";
 export * from "./yearnAPY";
