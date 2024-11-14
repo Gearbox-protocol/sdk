@@ -76,6 +76,8 @@ const NORMAL_TO_LAMA: Record<
     PT_sUSDe_26DEC2024: "992d00f3-d43f-44fe-8b62-987e8610c9a8",
     PT_ezETH_26DEC2024: "76953dd9-3132-49ad-ae88-b551c5b5c774",
     PT_eETH_26DEC2024: "7bafc0e5-3789-4920-944f-d734d3ef0cef",
+    PT_LBTC_27MAR2025: "b1b3b3b4-1b3b-4b3b-8b3b-1b3b3b3b3b3b",
+    PT_eBTC_26DEC2024: "e093fa52-1f6a-4256-9e3e-a58490468c0e",
   },
   Optimism: { rETH: "d4b3c522-6127-4b89-bedf-83641cdcd2eb" },
   Arbitrum: {
