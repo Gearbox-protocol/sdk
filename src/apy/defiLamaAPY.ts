@@ -72,6 +72,10 @@ const NORMAL_TO_LAMA: Record<
     stkcvxcrvUSDTWBTCWETH: "3be97c90-d4a8-42b3-a0d0-2906ae4e9d27",
     stkcvxcrvUSDUSDC: "755fcec6-f4fd-4150-9184-60f099206694",
     stkcvxcrvUSDUSDT: "a3ffd3fe-b21c-44eb-94d5-22c80057a600",
+
+    PT_sUSDe_26DEC2024: "992d00f3-d43f-44fe-8b62-987e8610c9a8",
+    PT_ezETH_26DEC2024: "76953dd9-3132-49ad-ae88-b551c5b5c774",
+    PT_eETH_26DEC2024: "7bafc0e5-3789-4920-944f-d734d3ef0cef",
   },
   Optimism: { rETH: "d4b3c522-6127-4b89-bedf-83641cdcd2eb" },
   Arbitrum: {
