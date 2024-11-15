@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@gearbox-protocol/bots-v3": "^1.5.1",
-    "@gearbox-protocol/sdk-gov": "^2.25.6",
+    "@gearbox-protocol/sdk-gov": "^2.26.0",
     "@wagmi/cli": "^2.1.13",
     "axios": "^1.2.6",
     "decimal.js-light": "^2.5.1",
@@ -49,7 +49,7 @@
     "@gearbox-protocol/periphery-v3": "^1.6.1",
     "@gearbox-protocol/prettier-config": "^1.4.1",
     "@gearbox-protocol/router": "^1.5.5",
-    "@gearbox-protocol/router-v3": "^1.36.1",
+    "@gearbox-protocol/router-v3": "^1.37.0",
     "@openzeppelin/contracts": "^4.9.3",
     "@redstone-finance/evm-connector": "^0.5.4",
     "@types/chai": "^4.3.3",

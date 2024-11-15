@@ -27,6 +27,7 @@ import {
   compositePriceFeedAbi,
   iPriceFeedAbi,
   iPriceOracleV3Abi,
+  pendleTwapptPriceFeedAbi,
   redstonePriceFeedAbi,
 } from "../types";
 import { ViemFailableMulticallRes } from "../utils/calls";
@@ -225,7 +226,8 @@ export class RedstoneApi {
   }: GetRedstoneFeedsProps) => {
     const allTokens = TypedObjectUtils.entries(currentTokenData);
 
-    const feeds = (await provider.multicall({
+    // STAGE 1: get direct price feeds and reserve price feeds
+    const st1_response = (await provider.multicall({
       allowFailure: true,
       multicallAddress: MULTICALL_ADDRESS,
       contracts: [
@@ -244,13 +246,16 @@ export class RedstoneApi {
       ],
     })) as ViemFailableMulticallRes<PriceFeedParams | Address>;
 
-    const mainFeedsEnd = allTokens.length;
-    const mainFeedsUnsafe = feeds.slice(0, mainFeedsEnd);
+    const st1_MainFeedsEnd = allTokens.length;
+    const st1_MainFeedsUnsafe = st1_response.slice(0, st1_MainFeedsEnd);
 
-    const reserveFeedsEnd = mainFeedsEnd + allTokens.length;
-    const reserveFeedsUnsafe = feeds.slice(mainFeedsEnd, reserveFeedsEnd);
+    const st1_ReserveFeedsEnd = st1_MainFeedsEnd + allTokens.length;
+    const st1_ReserveFeedsUnsafe = st1_response.slice(
+      st1_MainFeedsEnd,
+      st1_ReserveFeedsEnd,
+    );
 
-    const notTrustedMainPF = mainFeedsUnsafe.reduce<
+    const st1_NotTrustedMainPF = st1_MainFeedsUnsafe.reduce<
       Array<[SupportedToken, Address]>
     >((acc, p, index) => {
       const symbol = allTokens[index][0];
@@ -261,10 +266,10 @@ export class RedstoneApi {
       }
       return acc;
     }, []);
-    const notTrustedMainPFRecord =
-      TypedObjectUtils.fromEntries(notTrustedMainPF);
+    const st1_NotTrustedMainPFRecord =
+      TypedObjectUtils.fromEntries(st1_NotTrustedMainPF);
 
-    const reservePF = reserveFeedsUnsafe.reduce<
+    const st1_ReservePF = st1_ReserveFeedsUnsafe.reduce<
       Array<[SupportedToken, Address]>
     >((acc, p, index) => {
       const symbol = allTokens[index][0];
@@ -272,48 +277,112 @@ export class RedstoneApi {
       if (
         !p.error &&
         typeof p.result === "string" &&
-        notTrustedMainPFRecord[symbol]
+        st1_NotTrustedMainPFRecord[symbol]
       ) {
         acc.push([symbol, p.result]);
       }
       return acc;
     }, []);
 
-    const typeResponse = (await provider.multicall({
+    // STAGE 2: get price feeds and their types. If type is Pendle TWAP, get the underlying price feeds for the next stage
+    const st2_response = (await provider.multicall({
       allowFailure: true,
       multicallAddress: MULTICALL_ADDRESS,
       contracts: [
-        ...notTrustedMainPF.map(([, address]) => ({
+        ...st1_NotTrustedMainPF.map(([, address]) => ({
           address,
           abi: iPriceFeedAbi,
           functionName: "priceFeedType",
           args: [],
         })),
-        ...notTrustedMainPF.map(([, address]) => ({
+        ...st1_NotTrustedMainPF.map(([, address]) => ({
+          address,
+          abi: pendleTwapptPriceFeedAbi,
+          functionName: "priceFeed",
+          args: [],
+        })),
+
+        ...st1_ReservePF.map(([, address]) => ({
+          address,
+          abi: iPriceFeedAbi,
+          functionName: "priceFeedType",
+          args: [],
+        })),
+        ...st1_ReservePF.map(([, address]) => ({
+          address,
+          abi: pendleTwapptPriceFeedAbi,
+          functionName: "priceFeed",
+          args: [],
+        })),
+      ],
+    })) as ViemFailableMulticallRes<Address>;
+
+    const st2_MainFeedsTypeEnd = st1_NotTrustedMainPF.length;
+    const st2_MainFeedsTypeUnsafe = st2_response.slice(0, st2_MainFeedsTypeEnd);
+    const st2_MainFeedsEnd = st2_MainFeedsTypeEnd + st1_NotTrustedMainPF.length;
+    const st2_MainFeedsUnsafe = st2_response.slice(
+      st2_MainFeedsTypeEnd,
+      st2_MainFeedsEnd,
+    );
+
+    const st2_ReserveFeedsTypeEnd = st2_MainFeedsEnd + st1_ReservePF.length;
+    const st2_ReserveFeedsTypeUnsafe = st2_response.slice(
+      st2_MainFeedsEnd,
+      st2_ReserveFeedsTypeEnd,
+    );
+    const st2_ReserveFeedsEnd = st2_ReserveFeedsTypeEnd + st1_ReservePF.length;
+    const st2_ReserveFeedsUnsafe = st2_response.slice(
+      st2_ReserveFeedsTypeEnd,
+      st2_ReserveFeedsEnd,
+    );
+
+    const st2_NotTrustedMainPF = this.unwrapSecondStage(
+      st1_NotTrustedMainPF,
+      st2_MainFeedsTypeUnsafe,
+      st2_MainFeedsUnsafe,
+    );
+    const st2_ReservePF = this.unwrapSecondStage(
+      st1_ReservePF,
+      st2_ReserveFeedsTypeUnsafe,
+      st2_ReserveFeedsUnsafe,
+    );
+
+    // STAGE 3: get price feeds and their types. If types is composite, get the underlying price feeds
+    const st3_response = (await provider.multicall({
+      allowFailure: true,
+      multicallAddress: MULTICALL_ADDRESS,
+      contracts: [
+        ...st2_NotTrustedMainPF.map(([, address]) => ({
+          address,
+          abi: iPriceFeedAbi,
+          functionName: "priceFeedType",
+          args: [],
+        })),
+        ...st2_NotTrustedMainPF.map(([, address]) => ({
           address,
           abi: compositePriceFeedAbi,
           functionName: "priceFeed0",
           args: [],
         })),
-        ...notTrustedMainPF.map(([, address]) => ({
+        ...st2_NotTrustedMainPF.map(([, address]) => ({
           address,
           abi: compositePriceFeedAbi,
           functionName: "priceFeed1",
           args: [],
         })),
-        ...reservePF.map(([, address]) => ({
+        ...st2_ReservePF.map(([, address]) => ({
           address,
           abi: iPriceFeedAbi,
           functionName: "priceFeedType",
           args: [],
         })),
-        ...reservePF.map(([, address]) => ({
+        ...st2_ReservePF.map(([, address]) => ({
           address,
           abi: compositePriceFeedAbi,
           functionName: "priceFeed0",
           args: [],
         })),
-        ...reservePF.map(([, address]) => ({
+        ...st2_ReservePF.map(([, address]) => ({
           address,
           abi: compositePriceFeedAbi,
           functionName: "priceFeed1",
@@ -322,72 +391,78 @@ export class RedstoneApi {
       ],
     })) as ViemFailableMulticallRes<Address>;
 
-    const mainFeedsTypeEnd = notTrustedMainPF.length;
-    const mainFeedsTypeUnsafe = typeResponse.slice(0, mainFeedsTypeEnd);
-    const mainPriceFeed0End = mainFeedsTypeEnd + notTrustedMainPF.length;
-    const mainPriceFeed0Unsafe = typeResponse.slice(
-      mainFeedsTypeEnd,
-      mainPriceFeed0End,
+    const st3_MainFeedsTypeEnd = st2_NotTrustedMainPF.length;
+    const st3_MainFeedsTypeUnsafe = st3_response.slice(0, st3_MainFeedsTypeEnd);
+    const st3_MainPriceFeed0End =
+      st3_MainFeedsTypeEnd + st2_NotTrustedMainPF.length;
+    const st3_MainPriceFeed0Unsafe = st3_response.slice(
+      st3_MainFeedsTypeEnd,
+      st3_MainPriceFeed0End,
     );
-    const mainPriceFeed1End = mainPriceFeed0End + notTrustedMainPF.length;
-    const mainPriceFeed1Unsafe = typeResponse.slice(
-      mainPriceFeed0End,
-      mainPriceFeed1End,
-    );
-
-    const reserveFeedsTypeEnd = mainPriceFeed1End + reservePF.length;
-    const reserveFeedsTypeUnsafe = typeResponse.slice(
-      mainPriceFeed1End,
-      reserveFeedsTypeEnd,
-    );
-    const reservePriceFeed0End = reserveFeedsTypeEnd + reservePF.length;
-    const reservePriceFeed0Unsafe = typeResponse.slice(
-      reserveFeedsTypeEnd,
-      reservePriceFeed0End,
-    );
-    const reservePriceFeed1End = reservePriceFeed0End + reservePF.length;
-    const reservePriceFeed1Unsafe = typeResponse.slice(
-      reservePriceFeed0End,
-      reservePriceFeed1End,
+    const st3_MainPriceFeed1End =
+      st3_MainPriceFeed0End + st2_NotTrustedMainPF.length;
+    const st3_MainPriceFeed1Unsafe = st3_response.slice(
+      st3_MainPriceFeed0End,
+      st3_MainPriceFeed1End,
     );
 
-    const realNotTrustedMainPriceFeeds = this.getPriceFeedsOfInterest_Onchain(
-      notTrustedMainPF,
-      mainFeedsTypeUnsafe,
-      mainPriceFeed0Unsafe,
-      mainPriceFeed1Unsafe,
+    const st3_ReserveFeedsTypeEnd =
+      st3_MainPriceFeed1End + st2_ReservePF.length;
+    const st3_ReserveFeedsTypeUnsafe = st3_response.slice(
+      st3_MainPriceFeed1End,
+      st3_ReserveFeedsTypeEnd,
+    );
+    const st3_ReservePriceFeed0End =
+      st3_ReserveFeedsTypeEnd + st2_ReservePF.length;
+    const st3_ReservePriceFeed0Unsafe = st3_response.slice(
+      st3_ReserveFeedsTypeEnd,
+      st3_ReservePriceFeed0End,
+    );
+    const st3_ReservePriceFeed1End =
+      st3_ReservePriceFeed0End + st2_ReservePF.length;
+    const st3_ReservePriceFeed1Unsafe = st3_response.slice(
+      st3_ReservePriceFeed0End,
+      st3_ReservePriceFeed1End,
     );
 
-    const realReservePriceFeeds = this.getPriceFeedsOfInterest_Onchain(
-      reservePF,
-      reserveFeedsTypeUnsafe,
-      reservePriceFeed0Unsafe,
-      reservePriceFeed1Unsafe,
+    const st3_NotTrustedMainPF = this.unwrapThirdStage(
+      st2_NotTrustedMainPF,
+      st3_MainFeedsTypeUnsafe,
+      st3_MainPriceFeed0Unsafe,
+      st3_MainPriceFeed1Unsafe,
     );
 
-    const response = (await provider.multicall({
+    const st3_ReservePF = this.unwrapThirdStage(
+      st2_ReservePF,
+      st3_ReserveFeedsTypeUnsafe,
+      st3_ReservePriceFeed0Unsafe,
+      st3_ReservePriceFeed1Unsafe,
+    );
+
+    // STAGE 4: get price feed types and data feed ids for unwrapped price feeds
+    const st4_response = (await provider.multicall({
       allowFailure: true,
       multicallAddress: MULTICALL_ADDRESS,
       contracts: [
-        ...realNotTrustedMainPriceFeeds.map(([, address]) => ({
+        ...st3_NotTrustedMainPF.map(([, address]) => ({
           address,
           abi: iPriceFeedAbi,
           functionName: "priceFeedType",
           args: [],
         })),
-        ...realNotTrustedMainPriceFeeds.map(([, address]) => ({
+        ...st3_NotTrustedMainPF.map(([, address]) => ({
           address,
           abi: redstonePriceFeedAbi,
           functionName: "dataFeedId",
           args: [],
         })),
-        ...realReservePriceFeeds.map(([, address]) => ({
+        ...st3_ReservePF.map(([, address]) => ({
           address,
           abi: iPriceFeedAbi,
           functionName: "priceFeedType",
           args: [],
         })),
-        ...realReservePriceFeeds.map(([, address]) => ({
+        ...st3_ReservePF.map(([, address]) => ({
           address,
           abi: redstonePriceFeedAbi,
           functionName: "dataFeedId",
@@ -396,17 +471,26 @@ export class RedstoneApi {
       ],
     })) as ViemFailableMulticallRes<Address>;
 
-    const mainTypeEnd = realNotTrustedMainPriceFeeds.length;
-    const mainTypeType = response.slice(0, mainTypeEnd);
+    const st4_MainTypeEnd = st3_NotTrustedMainPF.length;
+    const st4_MainTypeType = st4_response.slice(0, st4_MainTypeEnd);
 
-    const mainFeedIdEnd = mainTypeEnd + realNotTrustedMainPriceFeeds.length;
-    const mainFeedId = response.slice(mainTypeEnd, mainFeedIdEnd);
+    const st4_MainFeedIdEnd = st4_MainTypeEnd + st3_NotTrustedMainPF.length;
+    const st4_MainFeedId = st4_response.slice(
+      st4_MainTypeEnd,
+      st4_MainFeedIdEnd,
+    );
 
-    const reserveTypeEnd = mainFeedIdEnd + realReservePriceFeeds.length;
-    const reserveType = response.slice(mainFeedIdEnd, reserveTypeEnd);
+    const st4_ReserveTypeEnd = st4_MainFeedIdEnd + st3_ReservePF.length;
+    const st4_ReserveType = st4_response.slice(
+      st4_MainFeedIdEnd,
+      st4_ReserveTypeEnd,
+    );
 
-    const reserveFeedIdEnd = reserveTypeEnd + realReservePriceFeeds.length;
-    const reserveFeedId = response.slice(reserveTypeEnd, reserveFeedIdEnd);
+    const st4_ReserveFeedIdEnd = st4_ReserveTypeEnd + st3_ReservePF.length;
+    const st4_ReserveFeedId = st4_response.slice(
+      st4_ReserveTypeEnd,
+      st4_ReserveFeedIdEnd,
+    );
 
     const getMain = (symbol: SupportedToken) =>
       getPriceFeedsByToken(symbol, network)?.Main;
@@ -414,18 +498,18 @@ export class RedstoneApi {
       getPriceFeedsByToken(symbol, network)?.Reserve;
 
     const mainPFData = this.getRedstonePF_Onchain(
-      realNotTrustedMainPriceFeeds,
-      mainTypeType,
-      mainFeedId,
+      st3_NotTrustedMainPF,
+      st4_MainTypeType,
+      st4_MainFeedId,
       getMain,
       currentTokenData,
       false,
       network,
     );
     const reservePFData = this.getRedstonePF_Onchain(
-      realReservePriceFeeds,
-      reserveType,
-      reserveFeedId,
+      st3_ReservePF,
+      st4_ReserveType,
+      st4_ReserveFeedId,
       getReserve,
       currentTokenData,
       true,
@@ -436,12 +520,41 @@ export class RedstoneApi {
       main: mainPFData,
       reserve: reservePFData,
       allReserve: TypedObjectUtils.fromEntries(
-        reservePF.map(([s, a]) => [currentTokenData[s], a]),
+        st3_ReservePF.map(([s, a]) => [currentTokenData[s], a]),
       ),
     };
   };
 
-  private static getPriceFeedsOfInterest_Onchain(
+  private static unwrapSecondStage(
+    priceFeeds: Array<[SupportedToken, Address]>,
+    feedsTypeResponse: SafeMulticallResponse,
+    priceFeedResponse: SafeMulticallResponse,
+  ) {
+    const result = priceFeeds.reduce<Array<[SupportedToken, Address]>>(
+      (acc, [symbol, baseAddress], index) => {
+        const { error: typeError, result: feedType } = feedsTypeResponse[index];
+        const { error: feedError, result: feed } = priceFeedResponse[index];
+
+        const isPendle =
+          !typeError &&
+          Number(feedType) === PriceFeedType.PENDLE_PT_TWAP_ORACLE;
+        const hasFeed = !feedError && typeof feed === "string";
+
+        if (isPendle && hasFeed) {
+          acc.push([symbol, feed]);
+        } else {
+          acc.push([symbol, baseAddress]);
+        }
+
+        return acc;
+      },
+      [],
+    );
+
+    return result;
+  }
+
+  private static unwrapThirdStage(
     priceFeeds: Array<[SupportedToken, Address]>,
     feedsTypeResponse: SafeMulticallResponse,
     priceFeed0Response: SafeMulticallResponse,
