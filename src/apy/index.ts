@@ -27,6 +27,12 @@ type ExtraFarmTokens = Extract<
   | "amphrETH"
   | "LBTC"
   | "Re7LRT"
+  | "PT_ezETH_26DEC2024"
+  | "PT_eETH_26DEC2024"
+  | "PT_sUSDe_26DEC2024"
+  | "PT_eBTC_26DEC2024"
+  | "PT_LBTC_27MAR2025"
+  | "eBTC"
 >;
 
 // tokens with apy among them
@@ -48,6 +54,11 @@ type ExtraTokensWithAPY = Extract<
   | "steakLRT"
   | "amphrETH"
   | "pufETH"
+  | "PT_ezETH_26DEC2024"
+  | "PT_eETH_26DEC2024"
+  | "PT_sUSDe_26DEC2024"
+  | "PT_eBTC_26DEC2024"
+  | "PT_LBTC_27MAR2025"
 >;
 
 // LRT & LST tokens among them
@@ -72,6 +83,12 @@ const EXTRA_FARM_TOKENS: Record<ExtraFarmTokens, true> = {
   amphrETH: true,
   LBTC: true,
   Re7LRT: true,
+  PT_ezETH_26DEC2024: true,
+  PT_eETH_26DEC2024: true,
+  PT_sUSDe_26DEC2024: true,
+  PT_eBTC_26DEC2024: true,
+  PT_LBTC_27MAR2025: true,
+  eBTC: true,
 };
 
 export const isExtraFarmToken = (t: unknown): t is ExtraFarmTokens => {
@@ -97,6 +114,12 @@ const EXTRA_TOKENS_WITH_APY: Record<ExtraTokensWithAPY, true> = {
   steakLRT: true,
   amphrETH: true,
   pufETH: true,
+
+  PT_ezETH_26DEC2024: true,
+  PT_eETH_26DEC2024: true,
+  PT_sUSDe_26DEC2024: true,
+  PT_eBTC_26DEC2024: true,
+  PT_LBTC_27MAR2025: true,
 };
 
 const isExtraTokenWithAPY = (t: unknown): t is ExtraTokensWithAPY => {
@@ -129,4 +152,5 @@ export const isFarmToken = (t: unknown): t is AllLPTokens => {
 export * from "./curveAPY";
 export * from "./defiLamaAPY";
 export * from "./lidoAPY";
+export * from "./skyAPY";
 export * from "./yearnAPY";

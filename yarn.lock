@@ -1484,10 +1484,10 @@
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/prettier-config/-/prettier-config-1.5.0.tgz#4df8e9fd2305fee6ab8c1417a02e31343836932a"
   integrity sha512-FUoprSsBdZyBjgxXCKL6mTkbeUJytaLzPJqIOoQpDmBRTX0seCc2o5I9PI9tySoRIlNnd/XXnKCXq1xHDEGbxw==
 
-"@gearbox-protocol/router-v3@^1.36.1":
-  version "1.36.1"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/router-v3/-/router-v3-1.36.1.tgz#3771e0762dae1a9c94b2ef15cefb7b7c2964eb22"
-  integrity sha512-FoNSTLujMvYWf5v/q00FS3PFQ7Cfm5kynNYtNtp6zsvu2KXVFA5Y6EklBrSJCyEfmq4GNX5nF0MmANj7mbE4Fw==
+"@gearbox-protocol/router-v3@^1.37.0":
+  version "1.37.0"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/router-v3/-/router-v3-1.37.0.tgz#4370f175a5b2a39c298c504cfac8175a3a516d5c"
+  integrity sha512-NCidOYQfZEMhLtzSCfoZ7Hj03hZu7gWXxFfFZ0QFAQ9oSC/m+kuHVjw/mQWV3sIM/EJC+QKM0r0mQgG0tAU1jg==
   dependencies:
     "@gearbox-protocol/bots-v3" "^1.5.1"
     "@gearbox-protocol/integration-types" "^1.4.0"
@@ -1516,10 +1516,10 @@
     yarn "^1.22.19"
     zod "^3.22.2"
 
-"@gearbox-protocol/sdk-gov@^2.25.2":
-  version "2.25.2"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/sdk-gov/-/sdk-gov-2.25.2.tgz#c3968826cc927eecccbf4ad8126ac27a5b496328"
-  integrity sha512-Pb7HJAU7Y5ZjGgTesqaVanXlStNCZLHDJcZUrG5UKRl/Hfs6b0kc6kkn6OneDtv1Tnv2HiZRas4PAnvPSaJVcQ==
+"@gearbox-protocol/sdk-gov@^2.26.0":
+  version "2.26.0"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/sdk-gov/-/sdk-gov-2.26.0.tgz#9275ca9ff72820f632b7b10acc1dbc4264b178ed"
+  integrity sha512-mLJRgtWlWmwrKsG4dRfFyomrOP4F87PYBmreIQtOrL6Q4ocLc6EOvGd8zA9lmhEqH90KwgadmUa+tv7uE8giSA==
   dependencies:
     ethers "6.12.1"
     humanize-duration-ts "^2.1.1"
