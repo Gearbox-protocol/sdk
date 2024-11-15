@@ -53,9 +53,7 @@ export async function getYearnAPY(
       const { netAPR } = apy || {};
       const netApy = netAPR || 0;
 
-      const r = Math.round(
-        netApy * Number(PERCENTAGE_FACTOR) * Number(PERCENTAGE_DECIMALS),
-      );
+      const r = numberToAPY(netApy);
       acc[address] = r;
 
       return acc;
@@ -65,4 +63,10 @@ export async function getYearnAPY(
   } catch (e) {
     return {};
   }
+}
+
+function numberToAPY(baseApy: number) {
+  return Math.round(
+    baseApy * Number(PERCENTAGE_FACTOR) * Number(PERCENTAGE_DECIMALS),
+  );
 }
