@@ -1,4 +1,5 @@
-import { MULTICALL_ADDRESS, PartialRecord } from "@gearbox-protocol/sdk-gov";
+import type { PartialRecord } from "@gearbox-protocol/sdk-gov";
+import { MULTICALL_ADDRESS } from "@gearbox-protocol/sdk-gov";
 import type { Address } from "viem";
 
 import { partialLiquidationBotV3Abi } from "../abi";
