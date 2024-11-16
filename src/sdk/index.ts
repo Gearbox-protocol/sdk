@@ -1,5 +1,6 @@
 export * from "./accounts";
 export * from "./base";
+export * from "./bots";
 export * from "./chain";
 export * from "./constants";
 export * from "./core";
