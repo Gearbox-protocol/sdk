@@ -78,24 +78,29 @@ const lpAPY: TokensAPYList = {
   [tokenDataByNetwork.Mainnet.STETH.toLowerCase()]: 38434,
 };
 
+const DAI_DECIMALS = 18;
+const WETH_DECIMALS = 18;
+const STETH_DECIMALS = 18;
+const USDC_DECIMALS = 6;
+
 const caWithoutLP: CATestInfo = {
   assets: [
     {
-      balance: toBN("54780", decimals.DAI),
+      balance: toBN("54780", DAI_DECIMALS),
       token: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
     },
     {
-      balance: toBN("3.5", decimals.WETH),
+      balance: toBN("3.5", WETH_DECIMALS),
       token: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
     },
   ],
-  totalValue: toBN("60860", decimals.DAI),
-  debt: toBN("54780", decimals.DAI),
+  totalValue: toBN("60860", DAI_DECIMALS),
+  debt: toBN("54780", DAI_DECIMALS),
   borrowRate: 7712,
   underlyingToken: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
   quotas: {
     [tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address]: {
-      balance: toBN("173811.830000", decimals.WETH),
+      balance: toBN("173811.830000", WETH_DECIMALS),
       token: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
     },
   },
@@ -110,23 +115,23 @@ const caWithoutLP: CATestInfo = {
 const caWithLP: CATestInfo = {
   assets: [
     {
-      balance: toBN("119.999999999999999997", decimals.STETH),
+      balance: toBN("119.999999999999999997", STETH_DECIMALS),
       token: tokenDataByNetwork.Mainnet.STETH.toLowerCase() as Address,
     },
     {
-      balance: toBN("3.5", decimals.WETH),
+      balance: toBN("3.5", WETH_DECIMALS),
       token: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
     },
   ],
-  totalValue: toBN("117.635897231615362429", decimals.WETH),
-  debt: toBN("90.000000000000000000", decimals.WETH),
+  totalValue: toBN("117.635897231615362429", WETH_DECIMALS),
+  debt: toBN("90.000000000000000000", WETH_DECIMALS),
   borrowRate: 5736,
   underlyingToken: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
   quotas: {
     [tokenDataByNetwork.Mainnet.STETH.toLowerCase() as Address]: {
       balance: toBN(
         String((1703.87588096 * 119.9999999999999) / 1738.1183),
-        decimals.WETH,
+        WETH_DECIMALS,
       ),
       token: tokenDataByNetwork.Mainnet.STETH.toLowerCase() as Address,
     },
@@ -343,11 +348,11 @@ describe("CreditAccount calcMaxLendingDebt test", () => {
       assets: [
         {
           token: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
-          balance: toBN("1000", decimals.DAI),
+          balance: toBN("1000", DAI_DECIMALS),
         },
         {
           token: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
-          balance: toBN("1", decimals.WETH),
+          balance: toBN("1", WETH_DECIMALS),
         },
       ],
       liquidationThresholds: {
@@ -362,18 +367,18 @@ describe("CreditAccount calcMaxLendingDebt test", () => {
       },
       tokensList: tokenDataList,
     });
-    expect(result).to.be.eq(toBN("850", decimals.USDC));
+    expect(result).to.be.eq(toBN("850", USDC_DECIMALS));
   });
   it("calcMaxLendingDebt for several collaterals with zero underlying price", () => {
     const result = CreditAccountData.calcMaxLendingDebt({
       assets: [
         {
           token: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
-          balance: toBN("1000", decimals.DAI),
+          balance: toBN("1000", DAI_DECIMALS),
         },
         {
           token: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
-          balance: toBN("1", decimals.WETH),
+          balance: toBN("1", WETH_DECIMALS),
         },
       ],
       liquidationThresholds: liquidationThresholds,
@@ -391,7 +396,7 @@ describe("CreditAccount calcMaxLendingDebt test", () => {
       assets: [
         {
           token: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
-          balance: toBN("1000", decimals.DAI),
+          balance: toBN("1000", DAI_DECIMALS),
         },
       ],
       liquidationThresholds,
@@ -402,18 +407,18 @@ describe("CreditAccount calcMaxLendingDebt test", () => {
       },
       tokensList: tokenDataList,
     });
-    expect(result).to.be.eq(toBN("930", decimals.USDC));
+    expect(result).to.be.eq(toBN("930", USDC_DECIMALS));
   });
   it("calcMaxLendingDebt for several collaterals", () => {
     const result = CreditAccountData.calcMaxLendingDebt({
       assets: [
         {
           token: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
-          balance: toBN("1000", decimals.DAI),
+          balance: toBN("1000", DAI_DECIMALS),
         },
         {
           token: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
-          balance: toBN("1", decimals.WETH),
+          balance: toBN("1", WETH_DECIMALS),
         },
       ],
       liquidationThresholds,
@@ -425,18 +430,18 @@ describe("CreditAccount calcMaxLendingDebt test", () => {
       },
       tokensList: tokenDataList,
     });
-    expect(result).to.be.eq(toBN("1780", decimals.USDC));
+    expect(result).to.be.eq(toBN("1780", USDC_DECIMALS));
   });
   it("calcMaxLendingDebt for several collaterals with target HF", () => {
     const result = CreditAccountData.calcMaxLendingDebt({
       assets: [
         {
           token: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
-          balance: toBN("1000", decimals.DAI),
+          balance: toBN("1000", DAI_DECIMALS),
         },
         {
           token: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
-          balance: toBN("1", decimals.WETH),
+          balance: toBN("1", WETH_DECIMALS),
         },
       ],
       liquidationThresholds,
@@ -449,7 +454,7 @@ describe("CreditAccount calcMaxLendingDebt test", () => {
       targetHF: 12500n,
       tokensList: tokenDataList,
     });
-    expect(result).to.be.eq(toBN("1424", decimals.USDC));
+    expect(result).to.be.eq(toBN("1424", USDC_DECIMALS));
   });
 });
 
@@ -466,21 +471,21 @@ interface CAHfTestInfo {
 const defaultCA: CAHfTestInfo = {
   assets: [
     {
-      balance: toBN("156552", decimals.DAI),
+      balance: toBN("156552", DAI_DECIMALS),
       token: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
     },
     {
-      balance: toBN("10", decimals.WETH),
+      balance: toBN("10", WETH_DECIMALS),
       token: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
     },
   ],
-  debt: toBN("156552", decimals.DAI),
+  debt: toBN("156552", DAI_DECIMALS),
   healthFactor: 10244,
   underlyingToken: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
-  underlyingDecimals: decimals.DAI,
+  underlyingDecimals: DAI_DECIMALS,
   quotas: {
     [tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address]: {
-      balance: toBN(String(1750 * 10), decimals.DAI),
+      balance: toBN(String(1750 * 10), DAI_DECIMALS),
       token: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
     },
   },
@@ -522,7 +527,7 @@ describe("CreditAccount calcHealthFactor test", () => {
   });
   it("health factor after add collateral is calculated  correctly", () => {
     const collateral: Asset = {
-      balance: toBN("10", decimals.WETH),
+      balance: toBN("10", WETH_DECIMALS),
       token: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
     };
 
@@ -601,7 +606,7 @@ describe("CreditAccount calcHealthFactor test", () => {
         defaultCA.debt,
         defaultCA.underlyingDecimals,
       ),
-      { price: wethPrice, decimals: decimals.WETH },
+      { price: wethPrice, decimals: WETH_DECIMALS },
     );
 
     const getAsset: Asset = {
