@@ -1,6 +1,5 @@
 import {
   decimals,
-  extractTokenData,
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS,
@@ -42,6 +41,7 @@ export interface CalcOverallAPYProps {
   debt: bigint | undefined;
   baseRateWithFee: number;
   underlyingToken: Address;
+  tokensList: Record<Address, TokenData>;
 }
 
 export interface CalcMaxLendingDebtProps {
@@ -50,6 +50,7 @@ export interface CalcMaxLendingDebtProps {
   prices: Record<Address, bigint>;
   liquidationThresholds: Record<Address, bigint>;
   underlyingToken: Address;
+  tokensList: Record<Address, TokenData>;
 
   targetHF?: bigint;
 }
@@ -63,6 +64,7 @@ export interface CalcHealthFactorProps {
   liquidationThresholds: Record<Address, bigint>;
   underlyingToken: Address;
   debt: bigint;
+  tokensList: Record<Address, TokenData>;
 }
 
 export interface CalcDefaultQuotaProps {
@@ -124,6 +126,7 @@ interface LiquidationPriceProps {
   underlyingToken: Address;
   targetToken: Address;
   assets: Record<Address, Asset>;
+  tokensList: Record<Address, TokenData>;
 }
 
 export interface TimeToLiquidationProps {
@@ -364,13 +367,13 @@ export class CreditAccountData {
     underlyingToken,
 
     prices,
+    tokensList,
 
     targetHF = PERCENTAGE_FACTOR,
   }: CalcMaxLendingDebtProps) {
     const assetsLTMoney = assets.reduce(
       (acc, { token: tokenAddress, balance: amount }) => {
-        const [, tokenDecimals] = extractTokenData(tokenAddress);
-
+        const tokenDecimals = tokensList[tokenAddress]?.decimals || 18;
         const lt = liquidationThresholds[tokenAddress] || 0n;
         const price = prices[tokenAddress] || 0n;
 
@@ -386,7 +389,7 @@ export class CreditAccountData {
     );
 
     const underlyingPrice = prices[underlyingToken] || 0n;
-    const [, underlyingDecimals = 18] = extractTokenData(underlyingToken);
+    const underlyingDecimals = tokensList[underlyingToken]?.decimals || 18;
 
     // HF = TWV / D => D = TWV / HF; D = amount * price
     // Debt_max = sum(LT_i * Asset_i * price_i) / (price_underlying * HF)
@@ -413,6 +416,7 @@ export class CreditAccountData {
     debt,
     baseRateWithFee,
     underlyingToken,
+    tokensList,
   }: CalcOverallAPYProps): bigint | undefined {
     if (
       !lpAPY ||
@@ -423,26 +427,23 @@ export class CreditAccountData {
     )
       return undefined;
 
-    const underlyingTokenAddressLC = underlyingToken.toLowerCase() as Address;
-    const underlyingTokenSymbol =
-      tokenSymbolByAddress[underlyingTokenAddressLC] || "";
+    const underlyingTokenSymbol = tokenSymbolByAddress[underlyingToken] || "";
     const underlyingTokenDecimals = decimals[underlyingTokenSymbol] || 18;
-    const underlyingPrice = prices[underlyingTokenAddressLC];
+    const underlyingPrice = prices[underlyingToken];
 
     const assetAPYMoney = caAssets.reduce(
       (acc, { token: tokenAddress, balance: amount }) => {
-        const tokenAddressLC = tokenAddress.toLowerCase() as Address;
-        const [symbol = "", tokenDecimals] = extractTokenData(tokenAddressLC);
-
+        const { symbol = "", decimals: tokenDecimals = 18 } =
+          tokensList[tokenAddress] || {};
         const apy = lpAPY[symbol as TokensWithAPY] || 0;
-        const price = prices[tokenAddressLC] || 0n;
+        const price = prices[tokenAddress] || 0n;
 
         const money = PriceUtils.calcTotalPrice(price, amount, tokenDecimals);
         const apyMoney = money * BigInt(apy);
 
         const { rate: quotaAPY = 0n, isActive = false } =
-          quotaRates?.[tokenAddressLC] || {};
-        const { balance: quotaBalance = 0n } = quotas[tokenAddressLC] || {};
+          quotaRates?.[tokenAddress] || {};
+        const { balance: quotaBalance = 0n } = quotas[tokenAddress] || {};
 
         const quotaAmount = isActive ? quotaBalance : 0n;
         const quotaMoney = PriceUtils.calcTotalPrice(
@@ -497,15 +498,16 @@ export class CreditAccountData {
     debt,
 
     prices,
+    tokensList,
   }: CalcHealthFactorProps): number {
     if (debt === 0n) return MAX_UINT16;
 
-    const [, underlyingDecimals] = extractTokenData(underlyingToken);
+    const underlyingDecimals = tokensList[underlyingToken]?.decimals || 18;
     const underlyingPrice = prices[underlyingToken] || 0n;
 
     const assetMoney = assets.reduce(
       (acc, { token: tokenAddress, balance: amount }) => {
-        const [, tokenDecimals] = extractTokenData(tokenAddress);
+        const tokenDecimals = tokensList[tokenAddress]?.decimals || 18;
 
         const lt = liquidationThresholds[tokenAddress] || 0n;
         const price = prices[tokenAddress] || 0n;
@@ -751,24 +753,23 @@ export class CreditAccountData {
     underlyingToken,
     targetToken,
     assets,
+    tokensList,
   }: LiquidationPriceProps) {
-    const underlyingTokenLC = underlyingToken.toLowerCase() as Address;
-    const [, underlyingDecimals = 18] = extractTokenData(underlyingTokenLC);
-    const { balance: underlyingBalance = 0n } = assets[underlyingTokenLC] || {};
+    const underlyingDecimals = tokensList[underlyingToken]?.decimals || 18;
+    const { balance: underlyingBalance = 0n } = assets[underlyingToken] || {};
 
     // effectiveDebt = Debt - underlyingBalance*LTunderlying
-    const ltUnderlying = liquidationThresholds[underlyingTokenLC] || 0n;
+    const ltUnderlying = liquidationThresholds[underlyingToken] || 0n;
     const effectiveDebt =
       ((debt - (underlyingBalance * ltUnderlying) / PERCENTAGE_FACTOR) * WAD) /
       10n ** BigInt(underlyingDecimals);
 
-    const targetTokenLC = targetToken.toLowerCase() as Address;
-    const [, targetDecimals = 18] = extractTokenData(targetTokenLC);
-    const { balance: targetBalance = 0n } = assets[targetTokenLC] || {};
+    const targetDecimals = tokensList[targetToken]?.decimals || 18;
+    const { balance: targetBalance = 0n } = assets[targetToken] || {};
     const effectiveTargetBalance =
       (targetBalance * WAD) / 10n ** BigInt(targetDecimals);
 
-    const lpLT = liquidationThresholds[targetTokenLC] || 0n;
+    const lpLT = liquidationThresholds[targetToken] || 0n;
 
     if (targetBalance <= 0n || lpLT <= 0n) return 0n;
 
