@@ -1,11 +1,9 @@
 import {
-  decimals,
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS,
   PRICE_DECIMALS_POW,
   SECONDS_PER_YEAR,
-  tokenSymbolByAddress,
   WAD,
   WAD_DECIMALS_POW,
 } from "@gearbox-protocol/sdk-gov";
@@ -429,8 +427,7 @@ export class CreditAccountData {
     )
       return undefined;
 
-    const underlyingTokenSymbol = tokenSymbolByAddress[underlyingToken] || "";
-    const underlyingTokenDecimals = decimals[underlyingTokenSymbol] || 18;
+    const underlyingTokenDecimals = tokensList[underlyingToken]?.decimals || 18;
     const underlyingPrice = prices[underlyingToken];
 
     const assetAPYMoney = caAssets.reduce(

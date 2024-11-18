@@ -4,7 +4,6 @@ import {
   NetworkType,
   SupportedToken,
   toBigInt,
-  tokenSymbolByAddress,
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
 import axios from "axios";
@@ -125,6 +124,7 @@ export interface GetLmRewardsInfoProps {
 export interface GetLmRewardsProps {
   baseRewardPoolsInfo: Record<string, FarmInfo>;
   currentTokenData: Record<SupportedToken, Address>;
+  tokensList: Record<Address, TokenData>;
   account: Address;
   provider: PublicClient;
 
@@ -399,6 +399,7 @@ export class GearboxRewardsApi {
   static async getLmRewardsV3({
     baseRewardPoolsInfo,
     currentTokenData,
+    tokensList,
     provider,
     account,
 
@@ -456,7 +457,7 @@ export class GearboxRewardsApi {
 
       Object.entries(v.reasons).forEach(([key, reason]) => {
         const poolToken = REWARD_KEYS_RECORD[key];
-        if (poolToken && tokenSymbolByAddress[rewardToken]) {
+        if (poolToken && tokensList[rewardToken]) {
           acc.push({
             pool: baseRewardPoolsInfo[poolToken].pool,
             poolToken,

@@ -9,6 +9,7 @@ import {
 import { Address, PublicClient } from "viem";
 
 import { MultiCall } from "../../pathfinder/core";
+import { TokenData } from "../../tokens/tokenData";
 import { CreditAccountData } from "../creditAccount";
 import { CreditManagerData } from "../creditManager";
 import { RewardConvex } from "./rewardConvex";
@@ -34,6 +35,7 @@ export class RewardClaimer {
     cm: CreditManagerData,
     network: NetworkType,
     provider: PublicClient,
+    tokensList: Record<Address, TokenData>,
   ): Promise<Array<Rewards>> {
     const tokens = await RewardClaimer.findRewardTokens(cm, provider);
 
@@ -45,6 +47,7 @@ export class RewardClaimer {
         provider,
         tokens.staking.adapters,
         tokens.staking.tokens,
+        tokensList,
       ),
     ]);
     return [...convex, ...staking];

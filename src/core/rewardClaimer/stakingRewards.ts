@@ -8,11 +8,11 @@ import {
   StakingRewardsParams,
   SupportedContract,
   SupportedToken,
-  tokenSymbolByAddress,
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
 import { Abi, Address, encodeFunctionData, PublicClient } from "viem";
 
+import { TokenData } from "../../tokens/tokenData";
 import { iBaseRewardPoolAbi, iStakingRewardsAdapterAbi } from "../../types";
 import { CreditAccountData } from "../creditAccount";
 import { CreditManagerData } from "../creditManager";
@@ -44,11 +44,13 @@ export class StakingRewards {
 
     adapters: Array<AdapterWithType>,
     rewardTokens: Array<Address | undefined>,
+    tokensList: Record<Address, TokenData>,
   ): Promise<Array<Rewards>> {
     const prepared = StakingRewards.prepareMultiCalls(
       ca.creditAccount,
       adapters,
       rewardTokens,
+      tokensList,
     );
 
     if (!prepared) return [];
@@ -120,6 +122,7 @@ export class StakingRewards {
     creditAccount: Address,
     adapters: Array<AdapterWithType>,
     rewardTokens: Array<Address | undefined>,
+    tokensList: Record<Address, TokenData>,
   ) {
     if (adapters.length === 0) return undefined;
 
@@ -136,7 +139,11 @@ export class StakingRewards {
         const currentCalls: CallsList[number] = [];
         const currentDistribution: DistributionList[number] = [];
 
-        if (rewardToken && rewardToken !== ADDRESS_0X0) {
+        if (
+          rewardToken &&
+          rewardToken !== ADDRESS_0X0 &&
+          tokensList[rewardToken]
+        ) {
           // since we generate 1 call above
           currentCalls.push({
             address: a.contractAddress,
@@ -147,7 +154,7 @@ export class StakingRewards {
           currentDistribution.push({
             protocol: currentContract.protocol,
             contract: a.contract,
-            token: tokenSymbolByAddress[rewardToken],
+            token: tokensList[rewardToken].symbol,
 
             contractAddress: a.contractAddress,
             adapter: a.adapter,
