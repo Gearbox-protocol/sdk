@@ -1,13 +1,18 @@
 import {
   decimals,
+  NOT_DEPLOYED,
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS_POW,
+  SupportedToken,
+  supportedTokens,
   tokenDataByNetwork,
+  TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
 import { Address } from "viem";
 
 import { TokensAPYList } from "../apy";
+import { TokenData } from "../tokens/tokenData";
 import { toBN } from "../utils/formatter";
 import { PriceUtils } from "../utils/price";
 import { Asset, AssetUtils } from "./assets";
@@ -18,6 +23,27 @@ import {
   CreditAccountData,
   MIN_INT96,
 } from "./creditAccount";
+
+const tokensFiltered = TypedObjectUtils.fromEntries(
+  TypedObjectUtils.entries(tokenDataByNetwork.Mainnet).filter(
+    ([_, address]) => !!address && address !== NOT_DEPLOYED,
+  ) as Array<[SupportedToken, Address]>,
+);
+
+const tokenDataList = TypedObjectUtils.fromEntries(
+  TypedObjectUtils.entries(tokensFiltered).map(([tokenSymbol, addr]) => {
+    const data = supportedTokens[tokenSymbol];
+
+    return [
+      addr,
+      new TokenData({
+        ...data,
+        addr,
+        decimals: decimals[tokenSymbol],
+      }),
+    ];
+  }),
+);
 
 interface CATestInfo {
   assets: Array<Asset>;
@@ -128,6 +154,7 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
 
       lpAPY,
       prices,
+      tokensList: tokenDataList,
     });
 
     expect(result).to.be.eq(-69484n);
@@ -146,6 +173,7 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
 
       lpAPY,
       prices,
+      tokensList: tokenDataList,
     });
 
     expect(result).to.be.eq(144919n);
@@ -164,6 +192,7 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
 
       lpAPY: undefined,
       prices,
+      tokensList: tokenDataList,
     });
 
     expect(result).to.be.eq(undefined);
@@ -182,6 +211,7 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
 
       lpAPY,
       prices,
+      tokensList: tokenDataList,
     });
 
     expect(result).to.be.eq(undefined);
@@ -200,6 +230,7 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
 
       lpAPY,
       prices,
+      tokensList: tokenDataList,
     });
 
     expect(result).to.be.eq(undefined);
@@ -218,6 +249,7 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
 
       lpAPY,
       prices,
+      tokensList: tokenDataList,
     });
 
     expect(result).to.be.eq(undefined);
@@ -236,6 +268,7 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
 
       lpAPY,
       prices,
+      tokensList: tokenDataList,
     });
 
     expect(result).to.be.eq(-18680n);
@@ -259,6 +292,7 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
 
       lpAPY,
       prices,
+      tokensList: tokenDataList,
     });
 
     expect(result).to.be.eq(144919n);
@@ -326,6 +360,7 @@ describe("CreditAccount calcMaxLendingDebt test", () => {
         [tokenDataByNetwork.Mainnet.USDC.toLowerCase() as Address]: 1n,
         [tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address]: 1000n,
       },
+      tokensList: tokenDataList,
     });
     expect(result).to.be.eq(toBN("850", decimals.USDC));
   });
@@ -347,6 +382,7 @@ describe("CreditAccount calcMaxLendingDebt test", () => {
         [tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address]: 1n,
         [tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address]: 1000n,
       },
+      tokensList: tokenDataList,
     });
     expect(result).to.be.eq(0n);
   });
@@ -364,6 +400,7 @@ describe("CreditAccount calcMaxLendingDebt test", () => {
         [tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address]: 1n,
         [tokenDataByNetwork.Mainnet.USDC.toLowerCase() as Address]: 1n,
       },
+      tokensList: tokenDataList,
     });
     expect(result).to.be.eq(toBN("930", decimals.USDC));
   });
@@ -386,6 +423,7 @@ describe("CreditAccount calcMaxLendingDebt test", () => {
         [tokenDataByNetwork.Mainnet.USDC.toLowerCase() as Address]: 1n,
         [tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address]: 1000n,
       },
+      tokensList: tokenDataList,
     });
     expect(result).to.be.eq(toBN("1780", decimals.USDC));
   });
@@ -409,6 +447,7 @@ describe("CreditAccount calcMaxLendingDebt test", () => {
         [tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address]: 1000n,
       },
       targetHF: 12500n,
+      tokensList: tokenDataList,
     });
     expect(result).to.be.eq(toBN("1424", decimals.USDC));
   });
@@ -462,6 +501,7 @@ describe("CreditAccount calcHealthFactor test", () => {
       liquidationThresholds,
       underlyingToken: defaultCA.underlyingToken,
       debt: defaultCA.debt,
+      tokensList: tokenDataList,
     });
 
     expect(result).to.be.eq(defaultCA.healthFactor);
@@ -475,6 +515,7 @@ describe("CreditAccount calcHealthFactor test", () => {
       liquidationThresholds: {},
       underlyingToken: "" as Address,
       debt: 0n,
+      tokensList: tokenDataList,
     });
 
     expect(result).to.be.eq(65535);
@@ -494,6 +535,7 @@ describe("CreditAccount calcHealthFactor test", () => {
       liquidationThresholds,
       underlyingToken: defaultCA.underlyingToken,
       debt: defaultCA.debt,
+      tokensList: tokenDataList,
     });
 
     expect(result).to.be.eq(11188);
@@ -516,6 +558,7 @@ describe("CreditAccount calcHealthFactor test", () => {
       liquidationThresholds,
       underlyingToken: defaultCA.underlyingToken,
       debt: defaultCA.debt - amountDecrease,
+      tokensList: tokenDataList,
     });
 
     expect(result).to.be.eq(10308);
@@ -538,6 +581,7 @@ describe("CreditAccount calcHealthFactor test", () => {
       liquidationThresholds,
       underlyingToken: defaultCA.underlyingToken,
       debt: defaultCA.debt + amountIncrease,
+      tokensList: tokenDataList,
     });
 
     expect(result).to.be.eq(10137);
@@ -576,6 +620,7 @@ describe("CreditAccount calcHealthFactor test", () => {
       liquidationThresholds,
       underlyingToken: defaultCA.underlyingToken,
       debt: defaultCA.debt,
+      tokensList: tokenDataList,
     });
 
     expect(result).to.be.eq(9444);
@@ -589,6 +634,7 @@ describe("CreditAccount calcHealthFactor test", () => {
       liquidationThresholds,
       underlyingToken: defaultCA.underlyingToken,
       debt: defaultCA.debt,
+      tokensList: tokenDataList,
     });
 
     expect(result).to.be.eq(defaultCA.healthFactor);
@@ -607,6 +653,7 @@ describe("CreditAccount calcHealthFactor test", () => {
       liquidationThresholds,
       underlyingToken: defaultCA.underlyingToken,
       debt: defaultCA.debt,
+      tokensList: tokenDataList,
     });
 
     expect(result).to.be.eq(9300);
@@ -624,6 +671,7 @@ describe("CreditAccount calcHealthFactor test", () => {
       liquidationThresholds,
       underlyingToken: defaultCA.underlyingToken,
       debt: defaultCA.debt,
+      tokensList: tokenDataList,
     });
 
     expect(result).to.be.eq(9300);

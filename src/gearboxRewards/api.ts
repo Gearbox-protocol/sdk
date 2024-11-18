@@ -1,6 +1,5 @@
 import {
   CHAINS,
-  extractTokenData,
   MULTICALL_ADDRESS,
   NetworkType,
   SupportedToken,
@@ -19,6 +18,7 @@ import {
 
 import { GearboxBackendApi } from "../core/endpoint";
 import { PoolData } from "../core/pool";
+import { TokenData } from "../tokens/tokenData";
 import {
   iAirdropDistributorAbi,
   iFarmingPoolAbi,
@@ -112,6 +112,7 @@ type ReportHandler = (e: unknown, description?: string) => void;
 export interface GetLmRewardsInfoProps {
   pools: Record<Address, PoolData>;
   currentTokenData: Record<SupportedToken, Address>;
+  tokensList: Record<Address, TokenData>;
   provider: PublicClient;
 
   multicallAddress: Address;
@@ -153,6 +154,7 @@ export class GearboxRewardsApi {
     currentTokenData,
     provider,
     multicallAddress,
+    tokensList,
 
     poolsWithExtraRewards = DEFAULT_POOLS_WITH_EXTRA_REWARDS,
     network,
@@ -260,7 +262,7 @@ export class GearboxRewardsApi {
     const rewardTokens = restMCResponse.slice(
       farmSupplyCallsEnd,
       rewardTokenCallsEnd,
-    ) as Array<string>;
+    ) as Array<Address>;
 
     const extraRewards = extra.reduce<Record<string, Array<FarmInfo>>>(
       (acc, r, index) => {
@@ -277,19 +279,23 @@ export class GearboxRewardsApi {
           const finished = toBigInt(d.endTimestamp || 0);
 
           if (blockTimestamp >= started && blockTimestamp <= finished) {
-            const rewardTokenLc = (d.rewardToken || "").toLowerCase();
-            const [rewardSymbol, decimals = 18] =
-              extractTokenData(rewardTokenLc);
-            const reward = toBN(d.amountDecimal, decimals);
+            const rewardTokenLc = (
+              d.rewardToken || ""
+            ).toLowerCase() as Address;
+            const rewardTokenData = tokensList[rewardTokenLc];
+            const reward = toBN(
+              d.amountDecimal,
+              rewardTokenData?.decimals || 18,
+            );
 
-            if (rewardSymbol && reward > 0) {
+            if (rewardTokenData && reward > 0) {
               infos.push({
                 pool: poolByStakedToken[currentTokenData[stakedSymbol]],
                 duration: toBigInt(d.endTimestamp - d.startTimestamp),
                 finished,
                 reward,
                 balance: 0n,
-                symbol: rewardSymbol,
+                symbol: rewardTokenData.symbol,
               });
             }
           }
@@ -313,16 +319,19 @@ export class GearboxRewardsApi {
     }>(
       (acc, address, i) => {
         const currentInfo = farmInfo[i];
-        const [symbol] = extractTokenData(rewardTokens[i] || "");
+        const poolBaseRewardTokenLc = (
+          rewardTokens[i] || ""
+        ).toLowerCase() as Address;
+        const tokenData = tokensList[poolBaseRewardTokenLc];
 
-        if (symbol) {
+        if (tokenData) {
           const baseReward: FarmInfo = {
             pool: poolByStakedToken[address],
             duration: BigInt(currentInfo.duration),
             finished: BigInt(currentInfo.finished),
             reward: currentInfo.reward,
             balance: currentInfo.balance,
-            symbol: symbol,
+            symbol: tokenData.symbol,
           };
 
           const extra = extraRewards[address] || [];
