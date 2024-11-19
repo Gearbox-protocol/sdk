@@ -35,7 +35,7 @@ const tokenDataList = TypedObjectUtils.fromEntries(
     const data = supportedTokens[tokenSymbol];
 
     return [
-      addr,
+      addr.toLowerCase() as Address,
       new TokenData({
         ...data,
         addr,
