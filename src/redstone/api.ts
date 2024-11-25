@@ -516,12 +516,21 @@ export class RedstoneApi {
       network,
     );
 
+    const allReserve = st3_ReservePF.reduce<Record<Address, Array<Address>>>(
+      (acc, [s, pf]) => {
+        const token = currentTokenData[s];
+
+        if (!acc[token]) acc[token] = [];
+        acc[token].push(pf);
+
+        return acc;
+      },
+      {},
+    );
     return {
       main: mainPFData,
       reserve: reservePFData,
-      allReserve: TypedObjectUtils.fromEntries(
-        st3_ReservePF.map(([s, a]) => [currentTokenData[s], a]),
-      ),
+      allReserve,
     };
   };
 
@@ -535,12 +544,13 @@ export class RedstoneApi {
         const { error: typeError, result: feedType } = feedsTypeResponse[index];
         const { error: feedError, result: feed } = priceFeedResponse[index];
 
-        const isPendle =
-          !typeError &&
-          Number(feedType) === PriceFeedType.PENDLE_PT_TWAP_ORACLE;
+        const isRedstone =
+          !typeError && Number(feedType) === PriceFeedType.REDSTONE_ORACLE;
         const hasFeed = !feedError && typeof feed === "string";
 
-        if (isPendle && hasFeed) {
+        if (isRedstone) {
+          acc.push([symbol, baseAddress]);
+        } else if (hasFeed) {
           acc.push([symbol, feed]);
         } else {
           acc.push([symbol, baseAddress]);
@@ -568,19 +578,20 @@ export class RedstoneApi {
 
         const isRedstone =
           !typeError && Number(feedType) === PriceFeedType.REDSTONE_ORACLE;
+        const hasFeed0 = !feed0Error && typeof feed0 === "string";
+        const hasFeed1 = !feed1Error && typeof feed1 === "string";
 
         if (isRedstone) {
           acc.push([symbol, baseAddress]);
-        }
-
-        const hasFeed0 = !feed0Error && typeof feed0 === "string";
-        if (hasFeed0) {
-          acc.push([symbol, feed0]);
-        }
-
-        const hasFeed1 = !feed1Error && typeof feed1 === "string";
-        if (hasFeed1) {
-          acc.push([symbol, feed1]);
+        } else if (hasFeed0 || hasFeed1) {
+          if (hasFeed0) {
+            acc.push([symbol, feed0]);
+          }
+          if (hasFeed1) {
+            acc.push([symbol, feed1]);
+          }
+        } else {
+          acc.push([symbol, baseAddress]);
         }
 
         return acc;
