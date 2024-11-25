@@ -13,8 +13,11 @@ import { Curve4AssetsAdapterContract } from "./Curve4AssetsAdapterContract";
 import { CurveV1AdapterStableNGContract } from "./CurveV1AdapterStableNGContract";
 import { CurveV1AdapterStETHContract } from "./CurveV1AdapterStETHContract";
 import { CurveV1StableNGAdapterContract } from "./CurveV1StableNGAdapterContract";
+import { DaiUsdsAdapterContract } from "./DaiUsdsAdapterContract";
 import { ERC4626AdapterContract } from "./ERC4626AdapterContract";
 import { MellowVaultAdapterContract } from "./MellowVaultAdapterContract";
+import { PendleRouterAdapterContract } from "./PendleRouterAdapterContract";
+import { StakingRewardsAdapterContract } from "./StakingRewardsAdapterContract";
 import type { AdapterContractType, IAdapterContract } from "./types";
 import { UniswapV2AdapterContract } from "./UniswapV2AdapterContract";
 import { UniswapV3AdapterContract } from "./UniswapV3AdapterContract";
@@ -64,6 +67,12 @@ export function createAdapter(
       return new YearnV2RouterAdapterContract(sdk, args);
     case "AD_MELLOW_LRT_VAULT":
       return new MellowVaultAdapterContract(sdk, args);
+    case "AD_PENDLE_ROUTER":
+      return new PendleRouterAdapterContract(sdk, args);
+    case "AD_DAI_USDS_EXCHANGE":
+      return new DaiUsdsAdapterContract(sdk, args);
+    case "AD_STAKING_REWARDS":
+      return new StakingRewardsAdapterContract(sdk, args);
     default:
       throw new Error(`adapter for ${adapterType} is not implemented`);
   }

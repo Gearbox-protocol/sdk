@@ -18748,3 +18748,1562 @@ export const iMellowVaultAdapterAbi = [
     ],
   },
 ] as const;
+
+export const iPendleRouterAdapterAbi = [
+  {
+    type: "function",
+    name: "_gearboxAdapterType",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint8",
+        internalType: "enum AdapterType",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "_gearboxAdapterVersion",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint16",
+        internalType: "uint16",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "addressProvider",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "creditManager",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getAllowedPairs",
+    inputs: [],
+    outputs: [
+      {
+        name: "pairs",
+        type: "tuple[]",
+        internalType: "struct PendlePairStatus[]",
+        components: [
+          {
+            name: "market",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "inputToken",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "pendleToken",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "status",
+            type: "uint8",
+            internalType: "enum PendleStatus",
+          },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "isPairAllowed",
+    inputs: [
+      {
+        name: "market",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "inputToken",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "pendleToken",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [
+      {
+        name: "status",
+        type: "uint8",
+        internalType: "enum PendleStatus",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "ptToMarket",
+    inputs: [
+      {
+        name: "pt",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [
+      {
+        name: "market",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "redeemDiffPyToToken",
+    inputs: [
+      {
+        name: "yt",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "leftoverPt",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "output",
+        type: "tuple",
+        internalType: "struct TokenDiffOutput",
+        components: [
+          {
+            name: "tokenOut",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "minRateRAY",
+            type: "uint256",
+            internalType: "uint256",
+          },
+        ],
+      },
+    ],
+    outputs: [
+      {
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokensToDisable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "redeemPyToToken",
+    inputs: [
+      {
+        name: "receiver",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "yt",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "netPyIn",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "output",
+        type: "tuple",
+        internalType: "struct TokenOutput",
+        components: [
+          {
+            name: "tokenOut",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "minTokenOut",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "tokenRedeemSy",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "pendleSwap",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "swapData",
+            type: "tuple",
+            internalType: "struct SwapData",
+            components: [
+              {
+                name: "swapType",
+                type: "uint8",
+                internalType: "enum SwapType",
+              },
+              {
+                name: "extRouter",
+                type: "address",
+                internalType: "address",
+              },
+              {
+                name: "extCalldata",
+                type: "bytes",
+                internalType: "bytes",
+              },
+              {
+                name: "needScale",
+                type: "bool",
+                internalType: "bool",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    outputs: [
+      {
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokensToDisable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setPairStatusBatch",
+    inputs: [
+      {
+        name: "pairs",
+        type: "tuple[]",
+        internalType: "struct PendlePairStatus[]",
+        components: [
+          {
+            name: "market",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "inputToken",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "pendleToken",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "status",
+            type: "uint8",
+            internalType: "enum PendleStatus",
+          },
+        ],
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "swapDiffPtForToken",
+    inputs: [
+      {
+        name: "market",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "leftoverPt",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "diffOutput",
+        type: "tuple",
+        internalType: "struct TokenDiffOutput",
+        components: [
+          {
+            name: "tokenOut",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "minRateRAY",
+            type: "uint256",
+            internalType: "uint256",
+          },
+        ],
+      },
+    ],
+    outputs: [
+      {
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokensToDisable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "swapDiffTokenForPt",
+    inputs: [
+      {
+        name: "market",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "minRateRAY",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "guessPtOut",
+        type: "tuple",
+        internalType: "struct ApproxParams",
+        components: [
+          {
+            name: "guessMin",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "guessMax",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "guessOffchain",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "maxIteration",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "eps",
+            type: "uint256",
+            internalType: "uint256",
+          },
+        ],
+      },
+      {
+        name: "diffInput",
+        type: "tuple",
+        internalType: "struct TokenDiffInput",
+        components: [
+          {
+            name: "tokenIn",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "leftoverTokenIn",
+            type: "uint256",
+            internalType: "uint256",
+          },
+        ],
+      },
+    ],
+    outputs: [
+      {
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokensToDisable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "swapExactPtForToken",
+    inputs: [
+      {
+        name: "receiver",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "market",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "exactPtIn",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "output",
+        type: "tuple",
+        internalType: "struct TokenOutput",
+        components: [
+          {
+            name: "tokenOut",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "minTokenOut",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "tokenRedeemSy",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "pendleSwap",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "swapData",
+            type: "tuple",
+            internalType: "struct SwapData",
+            components: [
+              {
+                name: "swapType",
+                type: "uint8",
+                internalType: "enum SwapType",
+              },
+              {
+                name: "extRouter",
+                type: "address",
+                internalType: "address",
+              },
+              {
+                name: "extCalldata",
+                type: "bytes",
+                internalType: "bytes",
+              },
+              {
+                name: "needScale",
+                type: "bool",
+                internalType: "bool",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        name: "limit",
+        type: "tuple",
+        internalType: "struct LimitOrderData",
+        components: [
+          {
+            name: "limitRouter",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "epsSkipMarket",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "normalFills",
+            type: "tuple[]",
+            internalType: "struct FillOrderParams[]",
+            components: [
+              {
+                name: "order",
+                type: "tuple",
+                internalType: "struct Order",
+                components: [
+                  {
+                    name: "salt",
+                    type: "uint256",
+                    internalType: "uint256",
+                  },
+                  {
+                    name: "expiry",
+                    type: "uint256",
+                    internalType: "uint256",
+                  },
+                  {
+                    name: "nonce",
+                    type: "uint256",
+                    internalType: "uint256",
+                  },
+                  {
+                    name: "orderType",
+                    type: "uint8",
+                    internalType: "enum OrderType",
+                  },
+                  {
+                    name: "token",
+                    type: "address",
+                    internalType: "address",
+                  },
+                  {
+                    name: "YT",
+                    type: "address",
+                    internalType: "address",
+                  },
+                  {
+                    name: "maker",
+                    type: "address",
+                    internalType: "address",
+                  },
+                  {
+                    name: "receiver",
+                    type: "address",
+                    internalType: "address",
+                  },
+                  {
+                    name: "makingAmount",
+                    type: "uint256",
+                    internalType: "uint256",
+                  },
+                  {
+                    name: "lnImpliedRate",
+                    type: "uint256",
+                    internalType: "uint256",
+                  },
+                  {
+                    name: "failSafeRate",
+                    type: "uint256",
+                    internalType: "uint256",
+                  },
+                  {
+                    name: "permit",
+                    type: "bytes",
+                    internalType: "bytes",
+                  },
+                ],
+              },
+              {
+                name: "signature",
+                type: "bytes",
+                internalType: "bytes",
+              },
+              {
+                name: "makingAmount",
+                type: "uint256",
+                internalType: "uint256",
+              },
+            ],
+          },
+          {
+            name: "flashFills",
+            type: "tuple[]",
+            internalType: "struct FillOrderParams[]",
+            components: [
+              {
+                name: "order",
+                type: "tuple",
+                internalType: "struct Order",
+                components: [
+                  {
+                    name: "salt",
+                    type: "uint256",
+                    internalType: "uint256",
+                  },
+                  {
+                    name: "expiry",
+                    type: "uint256",
+                    internalType: "uint256",
+                  },
+                  {
+                    name: "nonce",
+                    type: "uint256",
+                    internalType: "uint256",
+                  },
+                  {
+                    name: "orderType",
+                    type: "uint8",
+                    internalType: "enum OrderType",
+                  },
+                  {
+                    name: "token",
+                    type: "address",
+                    internalType: "address",
+                  },
+                  {
+                    name: "YT",
+                    type: "address",
+                    internalType: "address",
+                  },
+                  {
+                    name: "maker",
+                    type: "address",
+                    internalType: "address",
+                  },
+                  {
+                    name: "receiver",
+                    type: "address",
+                    internalType: "address",
+                  },
+                  {
+                    name: "makingAmount",
+                    type: "uint256",
+                    internalType: "uint256",
+                  },
+                  {
+                    name: "lnImpliedRate",
+                    type: "uint256",
+                    internalType: "uint256",
+                  },
+                  {
+                    name: "failSafeRate",
+                    type: "uint256",
+                    internalType: "uint256",
+                  },
+                  {
+                    name: "permit",
+                    type: "bytes",
+                    internalType: "bytes",
+                  },
+                ],
+              },
+              {
+                name: "signature",
+                type: "bytes",
+                internalType: "bytes",
+              },
+              {
+                name: "makingAmount",
+                type: "uint256",
+                internalType: "uint256",
+              },
+            ],
+          },
+          {
+            name: "optData",
+            type: "bytes",
+            internalType: "bytes",
+          },
+        ],
+      },
+    ],
+    outputs: [
+      {
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokensToDisable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "swapExactTokenForPt",
+    inputs: [
+      {
+        name: "receiver",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "market",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "minPtOut",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "guessPtOut",
+        type: "tuple",
+        internalType: "struct ApproxParams",
+        components: [
+          {
+            name: "guessMin",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "guessMax",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "guessOffchain",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "maxIteration",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "eps",
+            type: "uint256",
+            internalType: "uint256",
+          },
+        ],
+      },
+      {
+        name: "input",
+        type: "tuple",
+        internalType: "struct TokenInput",
+        components: [
+          {
+            name: "tokenIn",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "netTokenIn",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "tokenMintSy",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "pendleSwap",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "swapData",
+            type: "tuple",
+            internalType: "struct SwapData",
+            components: [
+              {
+                name: "swapType",
+                type: "uint8",
+                internalType: "enum SwapType",
+              },
+              {
+                name: "extRouter",
+                type: "address",
+                internalType: "address",
+              },
+              {
+                name: "extCalldata",
+                type: "bytes",
+                internalType: "bytes",
+              },
+              {
+                name: "needScale",
+                type: "bool",
+                internalType: "bool",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        name: "limit",
+        type: "tuple",
+        internalType: "struct LimitOrderData",
+        components: [
+          {
+            name: "limitRouter",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "epsSkipMarket",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "normalFills",
+            type: "tuple[]",
+            internalType: "struct FillOrderParams[]",
+            components: [
+              {
+                name: "order",
+                type: "tuple",
+                internalType: "struct Order",
+                components: [
+                  {
+                    name: "salt",
+                    type: "uint256",
+                    internalType: "uint256",
+                  },
+                  {
+                    name: "expiry",
+                    type: "uint256",
+                    internalType: "uint256",
+                  },
+                  {
+                    name: "nonce",
+                    type: "uint256",
+                    internalType: "uint256",
+                  },
+                  {
+                    name: "orderType",
+                    type: "uint8",
+                    internalType: "enum OrderType",
+                  },
+                  {
+                    name: "token",
+                    type: "address",
+                    internalType: "address",
+                  },
+                  {
+                    name: "YT",
+                    type: "address",
+                    internalType: "address",
+                  },
+                  {
+                    name: "maker",
+                    type: "address",
+                    internalType: "address",
+                  },
+                  {
+                    name: "receiver",
+                    type: "address",
+                    internalType: "address",
+                  },
+                  {
+                    name: "makingAmount",
+                    type: "uint256",
+                    internalType: "uint256",
+                  },
+                  {
+                    name: "lnImpliedRate",
+                    type: "uint256",
+                    internalType: "uint256",
+                  },
+                  {
+                    name: "failSafeRate",
+                    type: "uint256",
+                    internalType: "uint256",
+                  },
+                  {
+                    name: "permit",
+                    type: "bytes",
+                    internalType: "bytes",
+                  },
+                ],
+              },
+              {
+                name: "signature",
+                type: "bytes",
+                internalType: "bytes",
+              },
+              {
+                name: "makingAmount",
+                type: "uint256",
+                internalType: "uint256",
+              },
+            ],
+          },
+          {
+            name: "flashFills",
+            type: "tuple[]",
+            internalType: "struct FillOrderParams[]",
+            components: [
+              {
+                name: "order",
+                type: "tuple",
+                internalType: "struct Order",
+                components: [
+                  {
+                    name: "salt",
+                    type: "uint256",
+                    internalType: "uint256",
+                  },
+                  {
+                    name: "expiry",
+                    type: "uint256",
+                    internalType: "uint256",
+                  },
+                  {
+                    name: "nonce",
+                    type: "uint256",
+                    internalType: "uint256",
+                  },
+                  {
+                    name: "orderType",
+                    type: "uint8",
+                    internalType: "enum OrderType",
+                  },
+                  {
+                    name: "token",
+                    type: "address",
+                    internalType: "address",
+                  },
+                  {
+                    name: "YT",
+                    type: "address",
+                    internalType: "address",
+                  },
+                  {
+                    name: "maker",
+                    type: "address",
+                    internalType: "address",
+                  },
+                  {
+                    name: "receiver",
+                    type: "address",
+                    internalType: "address",
+                  },
+                  {
+                    name: "makingAmount",
+                    type: "uint256",
+                    internalType: "uint256",
+                  },
+                  {
+                    name: "lnImpliedRate",
+                    type: "uint256",
+                    internalType: "uint256",
+                  },
+                  {
+                    name: "failSafeRate",
+                    type: "uint256",
+                    internalType: "uint256",
+                  },
+                  {
+                    name: "permit",
+                    type: "bytes",
+                    internalType: "bytes",
+                  },
+                ],
+              },
+              {
+                name: "signature",
+                type: "bytes",
+                internalType: "bytes",
+              },
+              {
+                name: "makingAmount",
+                type: "uint256",
+                internalType: "uint256",
+              },
+            ],
+          },
+          {
+            name: "optData",
+            type: "bytes",
+            internalType: "bytes",
+          },
+        ],
+      },
+    ],
+    outputs: [
+      {
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokensToDisable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "targetContract",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "event",
+    name: "SetPairStatus",
+    inputs: [
+      {
+        name: "market",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "inputToken",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "pendleToken",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "allowed",
+        type: "uint8",
+        indexed: false,
+        internalType: "enum PendleStatus",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "error",
+    name: "PairNotAllowedException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "RedemptionNotAllowedException",
+    inputs: [],
+  },
+] as const;
+
+export const iDaiUsdsAdapterAbi = [
+  {
+    type: "function",
+    name: "_gearboxAdapterType",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint8",
+        internalType: "enum AdapterType",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "_gearboxAdapterVersion",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint16",
+        internalType: "uint16",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "addressProvider",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "creditManager",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "dai",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "daiMask",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "daiToUsds",
+    inputs: [
+      {
+        name: "usr",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "wad",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokensToDisable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "daiToUsdsDiff",
+    inputs: [
+      {
+        name: "leftoverAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokensToDisable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "targetContract",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "usds",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "usdsMask",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "usdsToDai",
+    inputs: [
+      {
+        name: "usr",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "wad",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokensToDisable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "usdsToDaiDiff",
+    inputs: [
+      {
+        name: "leftoverAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokensToDisable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+] as const;
+
+export const iStakingRewardsAdapterAbi = [
+  {
+    type: "function",
+    name: "_gearboxAdapterType",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint8",
+        internalType: "enum AdapterType",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "_gearboxAdapterVersion",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint16",
+        internalType: "uint16",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "addressProvider",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "creditManager",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getReward",
+    inputs: [],
+    outputs: [
+      {
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokensToDisable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "rewardsToken",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "rewardsTokenMask",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "stake",
+    inputs: [
+      {
+        name: "amount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokensToDisable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "stakeDiff",
+    inputs: [
+      {
+        name: "leftoverAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokensToDisable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "stakedPhantomToken",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "stakedPhantomTokenMask",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "stakingToken",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "stakingTokenMask",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "targetContract",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "withdraw",
+    inputs: [
+      {
+        name: "amount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokensToDisable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "withdrawDiff",
+    inputs: [
+      {
+        name: "leftoverAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "tokensToEnable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "tokensToDisable",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+] as const;

@@ -27,7 +27,10 @@ export type AdapterContractType =
   | "AD_ZIRCUIT_POOL"
   | "AD_SYMBIOTIC_DEFAULT_COLLATERAL"
   | "AD_MELLOW_LRT_VAULT"
-  | "AD_PENDLE_ROUTER";
+  | "AD_PENDLE_ROUTER"
+  | "AD_MELLOW_ERC4626_VAULT"
+  | "AD_DAI_USDS_EXCHANGE"
+  | "AD_STAKING_REWARDS";
 
 export interface IAdapterContract extends IBaseContract {
   targetContract: Address;
