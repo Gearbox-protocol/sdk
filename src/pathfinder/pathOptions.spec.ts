@@ -83,23 +83,34 @@ describe("PathOptionFactory test", () => {
       "Mainnet",
     );
 
-    const expected: PathOptionSerie = [
-      {
-        target: tokenDataByNetwork.Mainnet["3Crv"],
-        option: 0,
-        totalOptions: 3,
-      },
-      {
-        target: tokenDataByNetwork.Mainnet.FRAX3CRV,
-        option: 0,
-        totalOptions: 2,
-      },
+    const expected: Array<PathOptionSerie> = [
+      [
+        {
+          target: tokenDataByNetwork.Mainnet["3Crv"],
+          option: 0,
+          totalOptions: 3,
+        },
+        {
+          target: tokenDataByNetwork.Mainnet.FRAX3CRV,
+          option: 0,
+          totalOptions: 2,
+        },
+      ],
+      [
+        {
+          target: tokenDataByNetwork.Mainnet["3Crv"],
+          option: 2,
+          totalOptions: 3,
+        },
+        {
+          target: tokenDataByNetwork.Mainnet.FRAX3CRV,
+          option: 0,
+          totalOptions: 2,
+        },
+      ],
     ];
 
-    for (let i = 0; i < 3; i++) {
-      expected[0].option = i;
-      expect(expected).to.be.eql(result[i]);
-    }
+    expect(expected).to.be.eql(result);
   });
 
   it(" getCurvePools works correctly", () => {
