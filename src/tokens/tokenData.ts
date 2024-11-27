@@ -19,6 +19,8 @@ const ALIASES: PartialRecord<SupportedToken, string> = {
 
   PT_cornLBTC_26DEC2024: "p.c.LBTC(26.12.24)",
   PT_corn_eBTC_27MAR2025: "p.c.eBTC(27.03.25)",
+
+  PT_corn_pumpBTC_26DEC2024: "p.c.pumpBTC(26.12.24)",
 };
 
 export class TokenData {
