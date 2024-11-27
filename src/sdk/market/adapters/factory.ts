@@ -74,6 +74,8 @@ export function createAdapter(
     case "AD_STAKING_REWARDS":
       return new StakingRewardsAdapterContract(sdk, args);
     default:
-      throw new Error(`adapter for ${adapterType} is not implemented`);
+      throw new Error(
+        `adapter for ${adapterType} at ${args.baseParams.addr} is not implemented`,
+      );
   }
 }

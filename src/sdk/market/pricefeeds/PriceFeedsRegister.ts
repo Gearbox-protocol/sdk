@@ -1,11 +1,22 @@
-import type { Address, Hex } from "viem";
+import {
+  type Address,
+  getChainContractAddress,
+  type Hex,
+  multicall3Abi,
+} from "viem";
 
 import { iMarketCompressorAbi } from "../../abi";
-import { type PriceFeedTreeNode, SDKConstruct } from "../../base";
+import type { BaseParams, PriceFeedTreeNode } from "../../base";
+import { SDKConstruct } from "../../base";
 import { ADDRESS_0X0, AP_MARKET_COMPRESSOR } from "../../constants";
 import type { GearboxSDK } from "../../GearboxSDK";
 import type { ILogger, RawTx } from "../../types";
-import { AddressMap, bytes32ToString, childLogger } from "../../utils";
+import {
+  AddressMap,
+  bytes32ToString,
+  childLogger,
+  createRawTx,
+} from "../../utils";
 import type { IHooks } from "../../utils/internal";
 import { Hooks } from "../../utils/internal";
 import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed";
@@ -19,6 +30,7 @@ import { CurveStablePriceFeedContract } from "./CurveStablePriceFeed";
 import { CurveUSDPriceFeedContract } from "./CurveUSDPriceFeed";
 import { Erc4626PriceFeedContract } from "./Erc4626PriceFeed";
 import { MellowLRTPriceFeedContract } from "./MellowLRTPriceFeed";
+import { PendleTWAPPTPriceFeed } from "./PendleTWAPPTPriceFeed";
 import { RedstonePriceFeedContract } from "./RedstonePriceFeed";
 import { RedstoneUpdater } from "./RedstoneUpdater";
 import type {
@@ -74,6 +86,87 @@ export class PriceFeedRegister
     const updateables = priceFeeds
       ? priceFeeds.flatMap(pf => pf.updatableDependencies())
       : this.#feeds.values();
+    return this.#generatePriceFeedsUpdateTxs(updateables, logContext);
+  }
+
+  public mustGet(address: Address): IPriceFeedContract {
+    return this.#feeds.mustGet(address);
+  }
+
+  public getOrCreate(data: PriceFeedTreeNode): IPriceFeedContract {
+    const existing = this.#feeds.get(data.baseParams.addr);
+    // it's possible to have non-loaded price feed here first from MarketCompressor.getUpdatablePriceFeeds
+    // we ovewrite them using full tree nodes
+    if (existing?.loaded) {
+      return existing;
+    }
+    const feed = this.#create(data);
+    this.#feeds.upsert(data.baseParams.addr, feed);
+    return feed;
+  }
+
+  /**
+   * Set redstone historical timestamp
+   * @param timestampMs in milliseconds, or true to use timestamp from attach block
+   */
+  public setRedstoneHistoricalTimestamp(timestampMs: number | true): void {
+    const ts =
+      timestampMs === true ? Number(this.sdk.timestamp) * 1000 : timestampMs;
+    this.#redstoneUpdater.setHistoricalTimestamp(ts);
+  }
+
+  /**
+   * Loads PARTIAL information about all updatable price feeds from MarketCompressor
+   * This can later be used to load price feed updates
+   */
+  public async preloadUpdatablePriceFeeds(
+    curators?: Address[],
+    pools?: Address[],
+  ): Promise<void> {
+    const feedsData = await this.#loadUpdatablePriceFeeds(curators, pools);
+    for (const data of feedsData) {
+      const feed = this.#create({ baseParams: data });
+      this.#feeds.upsert(feed.address, feed);
+    }
+  }
+
+  /**
+   * Generates price update transaction via multicall3 without any market data knowledge
+   * @param curators
+   * @param pools
+   * @returns
+   */
+  public async getUpdatePriceFeedsTx(
+    curators?: Address[],
+    pools?: Address[],
+  ): Promise<RawTx> {
+    const feedsData = await this.#loadUpdatablePriceFeeds(curators, pools);
+    const feeds = feedsData.map(data => this.#create({ baseParams: data }));
+    const updates = await this.#generatePriceFeedsUpdateTxs(feeds);
+
+    return createRawTx(
+      getChainContractAddress({
+        chain: this.sdk.provider.chain,
+        contract: "multicall3",
+      }),
+      {
+        abi: multicall3Abi,
+        functionName: "aggregate3",
+        args: [
+          updates.txs.map(tx => ({
+            target: tx.to,
+            allowFailure: false,
+            callData: tx.callData,
+          })),
+        ],
+      },
+    );
+  }
+
+  async #generatePriceFeedsUpdateTxs(
+    updateables: IPriceFeedContract[],
+    logContext: Record<string, any> = {},
+  ): Promise<UpdatePriceFeedsResult> {
     const txs: RawTx[] = [];
     const redstonePFs: RedstonePriceFeedContract[] = [];
 
@@ -108,45 +201,15 @@ export class PriceFeedRegister
     return result;
   }
 
-  public mustGet(address: Address): IPriceFeedContract {
-    return this.#feeds.mustGet(address);
-  }
-
-  public getOrCreate(data: PriceFeedTreeNode): IPriceFeedContract {
-    const existing = this.#feeds.get(data.baseParams.addr);
-    // it's possible to have non-loaded price feed here first from MarketCompressor.getUpdatablePriceFeeds
-    // we ovewrite them using full tree nodes
-    if (existing?.loaded) {
-      return existing;
-    }
-    const feed = this.#create(data);
-    this.#feeds.upsert(data.baseParams.addr, feed);
-    return feed;
-  }
-
-  /**
-   * Set redstone historical timestamp
-   * @param timestampMs in milliseconds, or true to use timestamp from attach block
-   */
-  public setRedstoneHistoricalTimestamp(timestampMs: number | true): void {
-    const ts =
-      timestampMs === true ? Number(this.sdk.timestamp) * 1000 : timestampMs;
-    this.#redstoneUpdater.setHistoricalTimestamp(ts);
-  }
-
-  /**
-   * Loads PARTIAL information about all updatable price feeds from MarketCompressor
-   * This can later be used to load price feed updates
-   */
-  public async loadUpdatablePriceFeeds(
+  async #loadUpdatablePriceFeeds(
     curators?: Address[],
     pools?: Address[],
-  ): Promise<void> {
+  ): Promise<readonly BaseParams[]> {
     const marketCompressorAddress = this.sdk.addressProvider.getAddress(
       AP_MARKET_COMPRESSOR,
       3_10,
     );
-    const feedsData = await this.provider.publicClient.readContract({
+    const result = await this.provider.publicClient.readContract({
       address: marketCompressorAddress,
       abi: iMarketCompressorAbi,
       functionName: "getUpdatablePriceFeeds",
@@ -161,11 +224,8 @@ export class PriceFeedRegister
       // @ts-ignore
       gas: 500_000_000n,
     });
-    for (const data of feedsData) {
-      const feed = this.#create({ baseParams: data });
-      this.#feeds.upsert(feed.address, feed);
-    }
-    this.logger?.debug(`loaded ${feedsData.length} updatable price feeds`);
+    this.logger?.debug(`loaded ${result.length} updatable price feeds`);
+    return result;
   }
 
   #create(data: PartialPriceFeedTreeNode): IPriceFeedContract {
@@ -215,6 +275,9 @@ export class PriceFeedRegister
 
       case "PF_MELLOW_LRT_ORACLE":
         return new MellowLRTPriceFeedContract(this.sdk, data);
+
+      case "PF_PENDLE_PT_TWAP_ORACLE":
+        return new PendleTWAPPTPriceFeed(this.sdk, data);
 
       default:
         throw new Error(`Price feed type ${contractType} not supported, `);

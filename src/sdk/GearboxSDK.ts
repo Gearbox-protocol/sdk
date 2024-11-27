@@ -15,7 +15,7 @@ import {
   AP_GEAR_STAKING,
   AP_GEAR_TOKEN,
   AP_ROUTER,
-  TIMELOCK,
+  GEARBOX_RISK_CURATORS,
 } from "./constants";
 import {
   AddressProviderContractV3_1,
@@ -240,7 +240,7 @@ export class GearboxSDK {
 
     this.#marketRegister = new MarketRegister(this);
     await this.#marketRegister.loadMarkets(
-      riskCurators ?? [TIMELOCK[this.provider.networkType]],
+      riskCurators ?? GEARBOX_RISK_CURATORS[this.#provider.networkType],
       ignoreUpdateablePrices,
     );
 

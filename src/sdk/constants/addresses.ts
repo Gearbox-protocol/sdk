@@ -29,3 +29,10 @@ export const TIMELOCK: Record<NetworkType, Address> = {
   Optimism: "0x148DD932eCe1155c11006F5650c6Ff428f8D374A",
   Base: NOT_DEPLOYED,
 };
+
+export const GEARBOX_RISK_CURATORS: Record<NetworkType, Address[]> = {
+  Mainnet: [TIMELOCK.Mainnet],
+  Arbitrum: [TIMELOCK.Arbitrum],
+  Optimism: [TIMELOCK.Optimism],
+  Base: [TIMELOCK.Base],
+};

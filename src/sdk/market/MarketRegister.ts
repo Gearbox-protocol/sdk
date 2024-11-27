@@ -45,6 +45,10 @@ export class MarketRegister extends SDKConstruct {
     curators: Address[],
     ignoreUpdateablePrices?: boolean,
   ): Promise<void> {
+    if (!curators.length) {
+      this.#logger?.warn("no curators provided, skipping loadMarkets");
+      return;
+    }
     this.#curators = curators;
     await this.#loadMarkets(curators, [], ignoreUpdateablePrices);
   }
@@ -77,7 +81,7 @@ export class MarketRegister extends SDKConstruct {
     let txs: RawTx[] = [];
     if (!ignoreUpdateablePrices) {
       // to have correct prices we must first get all updatable price feeds
-      await this.sdk.priceFeeds.loadUpdatablePriceFeeds(curators, pools);
+      await this.sdk.priceFeeds.preloadUpdatablePriceFeeds(curators, pools);
       // the generate updates
       const updates = await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs();
       txs = updates.txs;

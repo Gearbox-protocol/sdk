@@ -20,7 +20,8 @@ export type PriceFeedContractType =
   | "PF_BALANCER_WEIGHTED_LP_ORACLE"
   | "PF_BOUNDED_ORACLE"
   | "PF_PYTH_ORACLE"
-  | "PF_REDSTONE_ORACLE";
+  | "PF_REDSTONE_ORACLE"
+  | "PF_PENDLE_PT_TWAP_ORACLE";
 
 export interface IPriceFeedContract extends IBaseContract {
   readonly hasLowerBoundCap: boolean;

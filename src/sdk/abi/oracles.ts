@@ -4374,3 +4374,265 @@ export const zeroPriceFeedAbi = [
     stateMutability: "view",
   },
 ] as const;
+
+export const pendleTWAPPTPriceFeedAbi = [
+  {
+    type: "constructor",
+    inputs: [
+      {
+        name: "_market",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "_priceFeed",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "_stalenessPeriod",
+        type: "uint32",
+        internalType: "uint32",
+      },
+      {
+        name: "_twapWindow",
+        type: "uint32",
+        internalType: "uint32",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "decimals",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint8",
+        internalType: "uint8",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "description",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "string",
+        internalType: "string",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "expiry",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "latestRoundData",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint80",
+        internalType: "uint80",
+      },
+      {
+        name: "",
+        type: "int256",
+        internalType: "int256",
+      },
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "",
+        type: "uint80",
+        internalType: "uint80",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "market",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "priceFeed",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "priceFeedType",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint8",
+        internalType: "enum PriceFeedType",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "skipCheck",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "skipPriceCheck",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "stalenessPeriod",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint32",
+        internalType: "uint32",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "sy",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "twapWindow",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint32",
+        internalType: "uint32",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "version",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "yt",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "error",
+    name: "AddressIsNotContractException",
+    inputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+  },
+  {
+    type: "error",
+    name: "IncorrectParameterException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "IncorrectPriceException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "IncorrectPriceFeedException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "StalePriceException",
+    inputs: [],
+  },
+] as const;

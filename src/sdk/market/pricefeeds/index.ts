@@ -9,6 +9,7 @@ export * from "./CurveStablePriceFeed";
 export * from "./CurveUSDPriceFeed";
 export * from "./Erc4626PriceFeed";
 export * from "./MellowLRTPriceFeed";
+export * from "./PendleTWAPPTPriceFeed";
 export * from "./PriceFeedRef";
 export * from "./PriceFeedsRegister";
 export * from "./RedstonePriceFeed";
