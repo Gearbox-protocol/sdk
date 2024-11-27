@@ -75,7 +75,6 @@ describe("PathOptionFactory test", () => {
       [tokenDataByNetwork.Mainnet["3Crv"]]: { balance: 200n },
       [tokenDataByNetwork.Mainnet.USDC]: { balance: 200n },
       [tokenDataByNetwork.Mainnet.FRAX3CRV]: { balance: 200n },
-      [tokenDataByNetwork.Mainnet["50OHM_50DAI"]]: { balance: 200n },
     };
 
     const result = PathOptionFactory.generatePathOptions(
@@ -84,28 +83,34 @@ describe("PathOptionFactory test", () => {
       "Mainnet",
     );
 
-    const expected: PathOptionSerie = [
-      {
-        target: tokenDataByNetwork.Mainnet["3Crv"],
-        option: 0,
-        totalOptions: 3,
-      },
-      {
-        target: tokenDataByNetwork.Mainnet.FRAX3CRV,
-        option: 0,
-        totalOptions: 2,
-      },
-      {
-        target: tokenDataByNetwork.Mainnet["50OHM_50DAI"],
-        option: 0,
-        totalOptions: 2,
-      },
+    const expected: Array<PathOptionSerie> = [
+      [
+        {
+          target: tokenDataByNetwork.Mainnet["3Crv"],
+          option: 0,
+          totalOptions: 3,
+        },
+        {
+          target: tokenDataByNetwork.Mainnet.FRAX3CRV,
+          option: 0,
+          totalOptions: 2,
+        },
+      ],
+      [
+        {
+          target: tokenDataByNetwork.Mainnet["3Crv"],
+          option: 2,
+          totalOptions: 3,
+        },
+        {
+          target: tokenDataByNetwork.Mainnet.FRAX3CRV,
+          option: 0,
+          totalOptions: 2,
+        },
+      ],
     ];
 
-    for (let i = 0; i < 3; i++) {
-      expected[0].option = i;
-      expect(expected).to.be.eql(result[i]);
-    }
+    expect(expected).to.be.eql(result);
   });
 
   it(" getCurvePools works correctly", () => {
