@@ -1516,10 +1516,10 @@
     yarn "^1.22.19"
     zod "^3.22.2"
 
-"@gearbox-protocol/sdk-gov@^2.30.0":
-  version "2.30.0"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/sdk-gov/-/sdk-gov-2.30.0.tgz#9a82585b2d8c70ba3f015b6e2fe018f4b335c857"
-  integrity sha512-y72nz8ZBO4U+wH2XeDA4xaeCEQNRZk86i7UlfIGgSt6rj+Y3AFyWarwH6UqxoVdQ2KAYFJxVxOihk72IQPe7rw==
+"@gearbox-protocol/sdk-gov@^2.30.2":
+  version "2.30.2"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/sdk-gov/-/sdk-gov-2.30.2.tgz#cf7de53856c0641b70e03003ca4ffd9aeb086abb"
+  integrity sha512-sEwZO1VdaxngLflF9PeEskcp+0KQRhV/wo0Qd5eZqDvIzNcKKvYWqv0MgHO+3Y4nravXXNY/9U6vwu75j+mVvw==
   dependencies:
     ethers "6.12.1"
     humanize-duration-ts "^2.1.1"
