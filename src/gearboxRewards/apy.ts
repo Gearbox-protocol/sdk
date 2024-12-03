@@ -65,7 +65,7 @@ interface GetPoolExtraLmAPYProps
 
 interface GetCAExtraAPYProps {
   assets: Array<Asset>;
-  supply: Record<Address, bigint>;
+  supply: Record<Address, bigint> | Record<Address, Asset>;
   rewardInfo: Record<Address, Array<FarmInfo>>;
   currentTimestamp: number;
 
@@ -231,7 +231,8 @@ export class GearboxRewardsApy {
         currentTimestamp,
         info: rewardInfo,
         supply: {
-          amount: safeSupply,
+          amount:
+            typeof safeSupply === "bigint" ? safeSupply : safeSupply.balance,
           decimals: tokenDecimals,
           price: tokenPrice,
         },
