@@ -9,6 +9,7 @@ import {
 } from "@gearbox-protocol/sdk-gov";
 import { Address } from "viem";
 
+import { Asset } from "../core/assets";
 import { PoolData } from "../core/pool";
 import { TokenData } from "../tokens/tokenData";
 import { PriceUtils } from "../utils/price";
@@ -63,7 +64,7 @@ interface GetPoolExtraLmAPYProps
 }
 
 interface GetCAExtraAPYProps {
-  token: Address;
+  assets: Array<Asset>;
   supply: Record<Address, bigint>;
   rewardInfo: Record<Address, Array<FarmInfo>>;
   currentTimestamp: number;
@@ -74,7 +75,8 @@ interface GetCAExtraAPYProps {
 }
 
 interface GetCASingleExtraAPYProps
-  extends Omit<GetCAExtraAPYProps, "rewardInfo"> {
+  extends Omit<GetCAExtraAPYProps, "rewardInfo" | "assets"> {
+  token: Address;
   rewardInfo: FarmInfo;
 }
 
@@ -180,19 +182,26 @@ export class GearboxRewardsApy {
 
   static getCAExtraAPY_V3({
     rewardInfo,
-    token,
+    assets,
     ...restProps
   }: GetCAExtraAPYProps): Array<ExtraRewardApy> {
-    const info = rewardInfo[token];
-    if (!info) return [];
+    const extra = assets.reduce((acc, asset) => {
+      const { token } = asset;
+      const info = rewardInfo[token];
+      if (!info) return acc;
 
-    const extra = info.map(inf =>
-      this.getCASingleExtraAPY_V3({
-        ...restProps,
-        token,
-        rewardInfo: inf,
-      }),
-    );
+      const extra = info.map(inf =>
+        this.getCASingleExtraAPY_V3({
+          ...restProps,
+          token,
+          rewardInfo: inf,
+        }),
+      );
+
+      acc.push(...extra);
+
+      return acc;
+    }, [] as Array<ExtraRewardApy>);
 
     return extra;
   }
