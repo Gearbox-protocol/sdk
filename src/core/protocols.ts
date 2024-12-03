@@ -156,6 +156,10 @@ const PROTOCOL_DATA: Record<ExtendedProtocols, ProtocolData> = {
     name: "Pump BTC",
     icon: "/protocols/pumpbtc.svg",
   },
+  Equalizer: {
+    name: "Equalizer",
+    icon: "/protocols/equalizer.svg",
+  },
 };
 
 export const isExtendedProtocol = (t: unknown): t is ExtendedProtocols =>
