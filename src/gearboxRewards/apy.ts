@@ -9,6 +9,7 @@ import {
 } from "@gearbox-protocol/sdk-gov";
 import { Address } from "viem";
 
+import { Asset } from "../core/assets";
 import { PoolData } from "../core/pool";
 import { TokenData } from "../tokens/tokenData";
 import { PriceUtils } from "../utils/price";
@@ -33,8 +34,9 @@ interface CalculateV3PoolLmAPYProps {
 const PERCENTAGE_FACTOR_1KK = PERCENTAGE_DECIMALS * PERCENTAGE_FACTOR;
 const ONE = PERCENTAGE_FACTOR_1KK * 10n;
 
-export interface PoolExtraRewardApy {
-  symbol: SupportedToken;
+export interface ExtraRewardApy {
+  token: Address;
+  rewardInfo: FarmInfo;
   apy: number;
 }
 
@@ -61,12 +63,29 @@ interface GetPoolExtraLmAPYProps
   rewardPoolsInfo: FarmInfo;
 }
 
+interface GetCAExtraAPYProps {
+  assets: Array<Asset>;
+  supply: Record<Address, bigint> | Record<Address, Asset>;
+  rewardInfo: Record<Address, Array<FarmInfo>>;
+  currentTimestamp: number;
+
+  prices: Record<Address, bigint>;
+  tokensList: Record<Address, TokenData>;
+  currentTokenData: Record<SupportedToken, Address>;
+}
+
+interface GetCASingleExtraAPYProps
+  extends Omit<GetCAExtraAPYProps, "rewardInfo" | "assets"> {
+  token: Address;
+  rewardInfo: FarmInfo;
+}
+
 export class GearboxRewardsApy {
   static getPoolExtraAPY_V3({
     rewardPoolsInfo,
     stakedDieselToken,
     ...restProps
-  }: GetPoolExtraAPY_V3Props): Array<PoolExtraRewardApy> {
+  }: GetPoolExtraAPY_V3Props): Array<ExtraRewardApy> {
     const { version } = restProps.pool;
     const isV3 = version >= 300 && version < 400;
     if (!isV3 || !stakedDieselToken) return [];
@@ -97,7 +116,7 @@ export class GearboxRewardsApy {
     currentTokenData,
 
     currentTimestamp,
-  }: GetPoolExtraLmAPYProps): PoolExtraRewardApy {
+  }: GetPoolExtraLmAPYProps): ExtraRewardApy {
     const { underlyingToken, dieselRateRay } = pool;
 
     const safeSupply = rewardPoolsSupply[stakedDieselToken] ?? 0n;
@@ -126,7 +145,7 @@ export class GearboxRewardsApy {
         },
       }) / Number(PERCENTAGE_FACTOR);
 
-    return { symbol: rewardPoolsInfo.symbol, apy: r };
+    return { token: stakedDieselToken, rewardInfo: rewardPoolsInfo, apy: r };
   }
 
   static calculateAPY_V3({
@@ -159,5 +178,70 @@ export class GearboxRewardsApy {
     const apyBn = (((rewardMoney * ONE) / supplyMoney) * durationRatio) / WAD;
 
     return Math.round(Number(apyBn) / 10);
+  }
+
+  static getCAExtraAPY_V3({
+    rewardInfo,
+    assets,
+    ...restProps
+  }: GetCAExtraAPYProps): Array<ExtraRewardApy> {
+    const extra = assets.reduce((acc, asset) => {
+      const { token } = asset;
+      const info = rewardInfo[token];
+      if (!info) return acc;
+
+      const extra = info.map(inf =>
+        this.getCASingleExtraAPY_V3({
+          ...restProps,
+          token,
+          rewardInfo: inf,
+        }),
+      );
+
+      acc.push(...extra);
+
+      return acc;
+    }, [] as Array<ExtraRewardApy>);
+
+    return extra;
+  }
+
+  private static getCASingleExtraAPY_V3({
+    token,
+    prices,
+    rewardInfo,
+    supply,
+
+    tokensList,
+    currentTokenData,
+
+    currentTimestamp,
+  }: GetCASingleExtraAPYProps): ExtraRewardApy {
+    const safeSupply = supply[token] ?? 0n;
+
+    const { decimals: tokenDecimals = 18 } = tokensList[token] || {};
+    const tokenPrice = prices[token] ?? 0n;
+
+    const rewardAddress = currentTokenData[rewardInfo.symbol];
+    const { decimals: rewardDecimals = 18 } = tokensList[rewardAddress] || {};
+    const rewardPrice = prices[rewardAddress] ?? 0n;
+
+    const r =
+      this.calculateAPY_V3({
+        currentTimestamp,
+        info: rewardInfo,
+        supply: {
+          amount:
+            typeof safeSupply === "bigint" ? safeSupply : safeSupply.balance,
+          decimals: tokenDecimals,
+          price: tokenPrice,
+        },
+        reward: {
+          price: rewardPrice,
+          decimals: rewardDecimals,
+        },
+      }) / Number(PERCENTAGE_FACTOR);
+
+    return { token: token, rewardInfo: rewardInfo, apy: r };
   }
 }

@@ -1,4 +1,5 @@
 import {
+  CHAINS,
   NetworkType,
   PartialRecord,
   PERCENTAGE_FACTOR,
@@ -36,8 +37,9 @@ interface GetBalanceAtResponse {
 export interface GetTotalTokensOnProtocolProps {
   currentTokenData: Record<SupportedToken, Address>;
   tokensList: Record<Address, TokenData>;
-  chainId: number;
   network: NetworkType;
+
+  extraTokens?: Array<SupportedToken>;
 }
 
 interface PoolPointsInfo {
@@ -101,32 +103,45 @@ const TOKENS = TypedObjectUtils.entries(POOL_POINTS).reduce<
   return acc;
 }, {} as Record<NetworkType, Array<SupportedToken>>);
 
+const CA_REWARDS: Record<NetworkType, Array<SupportedToken>> = {
+  Mainnet: [],
+  Arbitrum: [],
+  Optimism: ["ezETH"],
+  Base: [],
+};
+
 export class GearboxRewardsExtraApy {
   static async getTotalTokensOnProtocol({
     currentTokenData,
-    chainId,
     tokensList,
     network,
+
+    extraTokens = [],
   }: GetTotalTokensOnProtocolProps) {
-    const currTokens = TOKENS[network];
+    const poolTokens = TOKENS[network];
+    const caTokens = CA_REWARDS[network];
+
+    const list = [...new Set([...poolTokens, ...caTokens, ...extraTokens])];
 
     const res = await Promise.allSettled(
-      currTokens.map(s =>
-        this.getTokenTotal(currentTokenData[s], chainId, tokensList),
+      list.map(s =>
+        this.getTokenTotal(currentTokenData[s], network, tokensList),
       ),
     );
 
     return res.map((r, i): [SupportedToken, PromiseSettledResult<Asset>] => [
-      currTokens[i],
+      list[i],
       r,
     ]);
   }
 
   private static async getTokenTotal(
     token: Address,
-    chainId: number,
+    network: NetworkType,
     tokensList: Record<Address, TokenData>,
   ) {
+    const chainId = CHAINS[network];
+
     const url = GearboxBackendApi.getChartsUrl("getBalanceAt", chainId, {
       params: {
         asset: token,

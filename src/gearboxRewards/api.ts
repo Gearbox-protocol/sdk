@@ -164,10 +164,10 @@ export class GearboxRewardsApi {
       Record<Address, Address>
     >((acc, p) => {
       p.stakedDieselToken.forEach(t => {
-        acc[t] = p.address;
+        if (t) acc[t] = p.address;
       });
       p.stakedDieselToken_old.forEach(t => {
-        acc[t] = p.address;
+        if (t) acc[t] = p.address;
       });
 
       return acc;
