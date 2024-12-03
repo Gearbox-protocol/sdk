@@ -36,6 +36,7 @@ type ExtraFarmTokens = Extract<
   | "PT_corn_eBTC_27MAR2025"
   | "PT_corn_pumpBTC_26DEC2024"
   | "pumpBTC"
+  | "PT_sUSDe_27MAR2025"
 >;
 
 // tokens with apy among them
@@ -65,6 +66,7 @@ type ExtraTokensWithAPY = Extract<
   | "PT_cornLBTC_26DEC2024"
   | "PT_corn_eBTC_27MAR2025"
   | "PT_corn_pumpBTC_26DEC2024"
+  | "PT_sUSDe_27MAR2025"
 >;
 
 // LRT & LST tokens among them
@@ -99,6 +101,7 @@ const EXTRA_FARM_TOKENS: Record<ExtraFarmTokens, true> = {
   PT_corn_eBTC_27MAR2025: true,
   PT_corn_pumpBTC_26DEC2024: true,
   pumpBTC: true,
+  PT_sUSDe_27MAR2025: true,
 };
 
 export const isExtraFarmToken = (t: unknown): t is ExtraFarmTokens => {
@@ -135,6 +138,7 @@ const EXTRA_TOKENS_WITH_APY: Record<ExtraTokensWithAPY, true> = {
   PT_corn_eBTC_27MAR2025: true,
 
   PT_corn_pumpBTC_26DEC2024: true,
+  PT_sUSDe_27MAR2025: true,
 };
 
 const isExtraTokenWithAPY = (t: unknown): t is ExtraTokensWithAPY => {

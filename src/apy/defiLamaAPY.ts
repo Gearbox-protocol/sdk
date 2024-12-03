@@ -83,6 +83,8 @@ const NORMAL_TO_LAMA: Record<
     PT_corn_eBTC_27MAR2025: "eb7de368-b460-4638-bde1-50a129109b7b",
 
     PT_corn_pumpBTC_26DEC2024: "a23e2b97-ff92-4ebf-8c7d-171cad8431ad",
+
+    PT_sUSDe_27MAR2025: "6b28892f-0909-418d-b4bb-3106fff72449",
   },
   Optimism: { rETH: "d4b3c522-6127-4b89-bedf-83641cdcd2eb" },
   Arbitrum: {
