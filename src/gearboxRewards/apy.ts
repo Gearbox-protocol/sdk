@@ -1,4 +1,5 @@
 import {
+  PartialRecord,
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   RAY,
@@ -36,8 +37,10 @@ const ONE = PERCENTAGE_FACTOR_1KK * 10n;
 
 export interface ExtraRewardApy {
   token: Address;
-  rewardInfo: FarmInfo;
+  balance: bigint | null;
   apy: number;
+
+  rewardInfo: FarmInfo;
 }
 
 interface GetPoolExtraAPY_V3Props {
@@ -66,7 +69,7 @@ interface GetPoolExtraLmAPYProps
 interface GetCAExtraAPYProps {
   assets: Array<Asset>;
   supply: Record<Address, bigint> | Record<Address, Asset>;
-  rewardInfo: Record<Address, Array<FarmInfo>>;
+  rewardInfo: PartialRecord<SupportedToken, Array<FarmInfo>>;
   currentTimestamp: number;
 
   prices: Record<Address, bigint>;
@@ -76,7 +79,7 @@ interface GetCAExtraAPYProps {
 
 interface GetCASingleExtraAPYProps
   extends Omit<GetCAExtraAPYProps, "rewardInfo" | "assets"> {
-  token: Address;
+  asset: Asset;
   rewardInfo: FarmInfo;
 }
 
@@ -145,7 +148,12 @@ export class GearboxRewardsApy {
         },
       }) / Number(PERCENTAGE_FACTOR);
 
-    return { token: stakedDieselToken, rewardInfo: rewardPoolsInfo, apy: r };
+    return {
+      token: stakedDieselToken,
+      balance: null,
+      apy: r,
+      rewardInfo: rewardPoolsInfo,
+    };
   }
 
   static calculateAPY_V3({
@@ -187,13 +195,15 @@ export class GearboxRewardsApy {
   }: GetCAExtraAPYProps): Array<ExtraRewardApy> {
     const extra = assets.reduce((acc, asset) => {
       const { token } = asset;
-      const info = rewardInfo[token];
+      const { symbol } = restProps.tokensList[token] || {};
+      const info = rewardInfo[symbol || ""];
+
       if (!info) return acc;
 
       const extra = info.map(inf =>
         this.getCASingleExtraAPY_V3({
           ...restProps,
-          token,
+          asset,
           rewardInfo: inf,
         }),
       );
@@ -207,7 +217,7 @@ export class GearboxRewardsApy {
   }
 
   private static getCASingleExtraAPY_V3({
-    token,
+    asset,
     prices,
     rewardInfo,
     supply,
@@ -217,6 +227,8 @@ export class GearboxRewardsApy {
 
     currentTimestamp,
   }: GetCASingleExtraAPYProps): ExtraRewardApy {
+    const { token, balance } = asset;
+
     const safeSupply = supply[token] ?? 0n;
 
     const { decimals: tokenDecimals = 18 } = tokensList[token] || {};
@@ -242,6 +254,6 @@ export class GearboxRewardsApy {
         },
       }) / Number(PERCENTAGE_FACTOR);
 
-    return { token: token, rewardInfo: rewardInfo, apy: r };
+    return { token, balance, rewardInfo, apy: r };
   }
 }
