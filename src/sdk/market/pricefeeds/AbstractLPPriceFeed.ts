@@ -1,7 +1,8 @@
-import type { Abi, Address } from "viem";
+import type { Abi, Address, UnionOmit } from "viem";
 import { decodeAbiParameters, hexToBytes } from "viem";
 
 import type { GearboxSDK } from "../../GearboxSDK";
+import type { LPPriceFeedStateHuman } from "../../types/state-human";
 import {
   AbstractPriceFeedContract,
   type PriceFeedConstructorArgs,
@@ -54,5 +55,17 @@ export abstract class AbstractLPPriceFeedContract<
 
   static toLowerBound(value: bigint): bigint {
     return (value * LOWER_BOUND_FACTOR) / 100n;
+  }
+
+  public override stateHuman(
+    raw?: boolean,
+  ): UnionOmit<LPPriceFeedStateHuman, "stalenessPeriod"> {
+    return {
+      ...super.stateHuman(raw),
+      lpContract: this.lpContract,
+      lpToken: this.lpToken,
+      lowerBound: this.lowerBound,
+      upperBound: this.upperBound,
+    };
   }
 }

@@ -28,7 +28,9 @@ export interface CoreStateHuman {
 export type PriceFeedStateHuman =
   | BoundedOracleStateHuman
   | AssetPriceFeedStateHuman
-  | RedstonePriceFeedStateHuman;
+  | RedstonePriceFeedStateHuman
+  | LPPriceFeedStateHuman
+  | BalancerWeightedPriceFeedStateHuman;
 
 export interface BasePriceFeedStateHuman extends BaseContractStateHuman {
   stalenessPeriod: string;
@@ -44,6 +46,22 @@ export interface BoundedOracleStateHuman extends BasePriceFeedStateHuman {
 
 export interface AssetPriceFeedStateHuman extends BasePriceFeedStateHuman {
   contractType: PriceFeedContractType;
+}
+
+export interface LPPriceFeedStateHuman extends BasePriceFeedStateHuman {
+  contractType: PriceFeedContractType;
+  lpContract: Address;
+  lpToken: Address;
+  lowerBound: bigint;
+  upperBound: bigint;
+}
+
+export interface BalancerWeightedPriceFeedStateHuman
+  extends LPPriceFeedStateHuman {
+  contractType: "PF_BALANCER_WEIGHTED_LP_ORACLE";
+  vault: Address;
+  poolId: Address;
+  weights: [bigint, bigint, bigint, bigint, bigint, bigint, bigint, bigint];
 }
 
 export interface RedstonePriceFeedStateHuman extends BasePriceFeedStateHuman {

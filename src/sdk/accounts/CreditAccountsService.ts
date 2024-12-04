@@ -730,6 +730,7 @@ export class CreditAccountsService extends SDKConstruct {
     }
     return this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(priceFeeds);
   }
+
   public async getUpdateForAccount(
     creditManager: Address,
     creditAccount: CreditAccountDataSlice | undefined,
