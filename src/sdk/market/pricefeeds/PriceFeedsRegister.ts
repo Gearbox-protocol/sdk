@@ -89,6 +89,10 @@ export class PriceFeedRegister
     return this.#generatePriceFeedsUpdateTxs(updateables, logContext);
   }
 
+  public has(address: Address): boolean {
+    return this.#feeds.has(address);
+  }
+
   public mustGet(address: Address): IPriceFeedContract {
     return this.#feeds.mustGet(address);
   }
