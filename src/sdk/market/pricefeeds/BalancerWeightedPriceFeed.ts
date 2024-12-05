@@ -1,4 +1,4 @@
-import type { Address, UnionOmit } from "viem";
+import type { Address, Hex, UnionOmit } from "viem";
 import { decodeAbiParameters, hexToBytes } from "viem";
 
 import { bptWeightedPriceFeedAbi, iBalancerWeightedPoolAbi } from "../../abi";
@@ -11,7 +11,7 @@ type abi = typeof bptWeightedPriceFeedAbi;
 
 export class BalancerWeightedPriceFeedContract extends AbstractLPPriceFeedContract<abi> {
   public readonly vault: Address;
-  public readonly poolId: Address;
+  public readonly poolId: Hex;
   public readonly weights: readonly [
     bigint,
     bigint,
@@ -28,7 +28,7 @@ export class BalancerWeightedPriceFeedContract extends AbstractLPPriceFeedContra
       [
         { type: "bytes", name: "superParams" },
         { type: "address", name: "vault" },
-        { type: "address", name: "poolId" },
+        { type: "bytes32", name: "poolId" },
         { type: "uint256[8]", name: "weights" },
       ],
       hexToBytes(args.baseParams.serializedParams),
