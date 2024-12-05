@@ -36,8 +36,8 @@ export abstract class AbstractLPPriceFeedContract<
       hexToBytes(args.baseParams.serializedParams),
     );
 
-    this.lpContract = decoder[0];
-    this.lpToken = decoder[1];
+    this.lpToken = decoder[0];
+    this.lpContract = decoder[1];
     this.lowerBound = decoder[2];
     this.upperBound = decoder[3];
   }
