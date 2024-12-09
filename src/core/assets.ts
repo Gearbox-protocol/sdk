@@ -135,7 +135,7 @@ export class AssetUtils {
 
   /**
    * Sums the the second assets list into the first assets list
-   * Balances cant be negative; Creates new assets.
+   * Balances cant be negative; creates new assets.
    */
   static sumAssets<A extends Asset, B extends Asset>(
     a: Array<A>,
@@ -160,6 +160,26 @@ export class AssetUtils {
     }, aRecord);
 
     return Object.values(resRecord);
+  }
+
+  /**
+   * Sums the the second assets list into the first assets list
+   * Balances cant be negative; doesn't create new assets.
+   */
+  static addBalances<A extends Asset, B extends Asset>(
+    a: Array<A>,
+    b: Array<B>,
+  ): Array<A | B> {
+    const bRecord = AssetUtils.constructAssetRecord(b);
+
+    return a.map(asset => {
+      const bAsset = bRecord[asset.token];
+      const { balance: bAmount = 0n } = bAsset || {};
+
+      const amountSum =
+        BigIntMath.max(0n, asset.balance) + BigIntMath.max(0n, bAmount);
+      return { ...asset, balance: amountSum };
+    });
   }
 
   /**

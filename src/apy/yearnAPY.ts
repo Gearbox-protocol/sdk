@@ -1,7 +1,6 @@
 import {
   CHAINS,
   NetworkType,
-  PartialRecord,
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   SupportedToken,
@@ -25,12 +24,10 @@ type Response = Array<YearnAPYData>;
 const getUrl = (chainId: number) =>
   `https://ydaemon.yearn.finance/vaults/all?chainids=${chainId}&limit=2500`;
 
-export type YearnAPYResult = PartialRecord<Address, number>;
-
 export async function getYearnAPY(
   network: NetworkType,
   currentTokens: Record<SupportedToken, Address>,
-): Promise<YearnAPYResult> {
+): Promise<Record<Address, number>> {
   try {
     const chainId = CHAINS[network];
     const { data } = await axios.get<Response>(getUrl(chainId));
@@ -43,9 +40,9 @@ export async function getYearnAPY(
       {},
     );
 
-    const yearnAPY = TypedObjectUtils.entries(
-      currentTokens,
-    ).reduce<YearnAPYResult>((acc, [, address]) => {
+    const yearnAPY = TypedObjectUtils.entries(currentTokens).reduce<
+      Record<Address, number>
+    >((acc, [, address]) => {
       if (!dataByAddress[address]) return acc;
 
       const data = dataByAddress[address];

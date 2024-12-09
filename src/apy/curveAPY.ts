@@ -1,6 +1,5 @@
 import {
   NetworkType,
-  PartialRecord,
   PERCENTAGE_FACTOR,
   SupportedToken,
   TypedObjectUtils,
@@ -112,8 +111,6 @@ interface CurveAPY {
   gauge: Array<[Address, number]>;
 }
 
-export type CurveAPYResult = PartialRecord<Address, CurveAPY>;
-
 export async function getCurveAPY(
   network: NetworkType,
   currentTokens: Record<SupportedToken, Address>,
@@ -139,9 +136,9 @@ export async function getCurveAPY(
     return acc;
   }, {});
 
-  const curveAPY = TypedObjectUtils.entries(
-    currentTokens,
-  ).reduce<CurveAPYResult>((acc, [, address]) => {
+  const curveAPY = TypedObjectUtils.entries(currentTokens).reduce<
+    Record<Address, CurveAPY>
+  >((acc, [, address]) => {
     if (!poolDataByAddress[address]) return acc;
 
     const pool = poolDataByAddress[address];

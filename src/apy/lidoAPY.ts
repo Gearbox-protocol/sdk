@@ -1,8 +1,4 @@
-import {
-  PartialRecord,
-  PERCENTAGE_FACTOR,
-  SupportedToken,
-} from "@gearbox-protocol/sdk-gov";
+import { PERCENTAGE_FACTOR, SupportedToken } from "@gearbox-protocol/sdk-gov";
 import axios from "axios";
 import { Address } from "viem";
 
@@ -27,11 +23,9 @@ interface LidoApyResponse {
 
 const LIDO_URL = "https://eth-api.lido.fi/v1/protocol/steth/apr/sma";
 
-export type LidoAPYResult = PartialRecord<Address, number>;
-
 export async function getLidoAPY(
   currentTokens: Record<SupportedToken, Address>,
-): Promise<LidoAPYResult> {
+): Promise<Record<Address, number>> {
   const res = await axios.get<LidoApyResponse>(LIDO_URL);
   const { smaApr = 0 } = res?.data?.data || {};
 

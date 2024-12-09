@@ -432,9 +432,9 @@ export class CreditAccountData {
 
     const assetAPYMoney = caAssets.reduce(
       (acc, { token: tokenAddress, balance: amount }) => {
-        const tokenDecimals = tokensList[tokenAddress]?.decimals || 18;
-
         const apy = lpAPY[tokenAddress] || 0;
+
+        const tokenDecimals = tokensList[tokenAddress]?.decimals || 18;
         const price = prices[tokenAddress] || 0n;
 
         const money = PriceUtils.calcTotalPrice(price, amount, tokenDecimals);

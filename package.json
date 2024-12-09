@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@gearbox-protocol/bots-v3": "^1.5.1",
-    "@gearbox-protocol/sdk-gov": "^2.26.1",
+    "@gearbox-protocol/sdk-gov": "^2.32.0",
     "@wagmi/cli": "^2.1.13",
     "axios": "^1.2.6",
     "decimal.js-light": "^2.5.1",
@@ -41,6 +41,7 @@
     "@1inch/solidity-utils": "^2.2.27",
     "@commitlint/cli": "^17.6.3",
     "@commitlint/config-conventional": "^17.0.3",
+    "@gearbox-protocol/bots-v3": "^1.5.1",
     "@gearbox-protocol/core-v2": "1.19.0-base.17",
     "@gearbox-protocol/core-v3": "^1.50.0",
     "@gearbox-protocol/eslint-config": "^1.4.1",

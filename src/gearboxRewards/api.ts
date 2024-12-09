@@ -164,10 +164,10 @@ export class GearboxRewardsApi {
       Record<Address, Address>
     >((acc, p) => {
       p.stakedDieselToken.forEach(t => {
-        acc[t] = p.address;
+        if (t) acc[t] = p.address;
       });
       p.stakedDieselToken_old.forEach(t => {
-        acc[t] = p.address;
+        if (t) acc[t] = p.address;
       });
 
       return acc;
@@ -538,7 +538,7 @@ export class GearboxRewardsApi {
       account,
     );
 
-    const rewardFromMerkle = merkleData?.claims[account];
+    const rewardFromMerkle = merkleData?.claims[getAddress(account)];
     if (!rewardFromMerkle) throw new Error("No rewards found");
 
     const distributor = getContract({
@@ -631,7 +631,7 @@ export class GearboxRewardsApi {
     merkleData,
   }: GetAmountOnContractProps) {
     const { claims = {} } = merkleData || {};
-    const { amount } = claims[account] || {};
+    const { amount } = claims[getAddress(account)] || {};
 
     return BigInt(amount || 0);
   }

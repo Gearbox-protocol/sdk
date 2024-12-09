@@ -27,7 +27,7 @@ interface LamaResponse {
 export async function getDefiLamaAPY(
   networkType: NetworkType,
   currentTokens: Record<SupportedToken, Address>,
-): Promise<PartialRecord<TokensWithAPY, number>> {
+): Promise<Record<Address, number>> {
   const currentNormal = NORMAL_TO_LAMA[networkType];
   const idList = Object.values(currentNormal);
   if (idList.length === 0) return {};
@@ -43,16 +43,17 @@ export async function getDefiLamaAPY(
     {},
   );
 
-  const allAPY = Object.entries(currentNormal).reduce<
-    PartialRecord<Address, number>
-  >((acc, [symbol, pool]) => {
-    const { apy = 0 } = itemsRecord[pool] || {};
-    const token = currentTokens[symbol as SupportedToken];
+  const allAPY = Object.entries(currentNormal).reduce<Record<Address, number>>(
+    (acc, [symbol, pool]) => {
+      const { apy = 0 } = itemsRecord[pool] || {};
+      const token = currentTokens[symbol as SupportedToken];
 
-    acc[token] = Math.round(apy * Number(PERCENTAGE_FACTOR));
+      acc[token] = Math.round(apy * Number(PERCENTAGE_FACTOR));
 
-    return acc;
-  }, {});
+      return acc;
+    },
+    {},
+  );
 
   return allAPY;
 }
@@ -80,8 +81,15 @@ const NORMAL_TO_LAMA: Record<
     PT_sUSDe_26DEC2024: "992d00f3-d43f-44fe-8b62-987e8610c9a8",
     PT_ezETH_26DEC2024: "76953dd9-3132-49ad-ae88-b551c5b5c774",
     PT_eETH_26DEC2024: "7bafc0e5-3789-4920-944f-d734d3ef0cef",
-    PT_LBTC_27MAR2025: "b1b3b3b4-1b3b-4b3b-8b3b-1b3b3b3b3b3b",
+    PT_LBTC_27MAR2025: "05216992-5538-4c93-aecc-49398388464f",
     PT_eBTC_26DEC2024: "e093fa52-1f6a-4256-9e3e-a58490468c0e",
+
+    PT_cornLBTC_26DEC2024: "f7826423-8043-4799-b12a-83a68adc992d",
+    PT_corn_eBTC_27MAR2025: "eb7de368-b460-4638-bde1-50a129109b7b",
+
+    PT_corn_pumpBTC_26DEC2024: "a23e2b97-ff92-4ebf-8c7d-171cad8431ad",
+
+    PT_sUSDe_27MAR2025: "6b28892f-0909-418d-b4bb-3106fff72449",
   },
   Optimism: { rETH: "d4b3c522-6127-4b89-bedf-83641cdcd2eb" },
   Arbitrum: {

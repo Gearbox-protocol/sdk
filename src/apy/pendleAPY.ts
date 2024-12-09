@@ -6,28 +6,24 @@ import {
 import axios from "axios";
 import { Address } from "viem";
 
-type APYResponse = [
-  {
-    sky_savings_rate_apy: string;
-    sky_farm_apy: string;
-  },
-];
+interface APYResponse {
+  underlyingInterestApy: number;
+}
 
-const getAPYURL = () => "https://info-sky.blockanalitica.com/api/v1/overall/";
+const getAPYURL = () =>
+  "https://api-v2.pendle.finance/core/v2/1/markets/0xcdd26eb5eb2ce0f203a84553853667ae69ca29ce/data";
 
-export async function getSkyAPY(
+export async function getPendleAPY(
   currentTokens: Record<SupportedToken, Address>,
 ): Promise<Record<Address, number>> {
   try {
     const resp = await axios.get<APYResponse>(getAPYURL());
-    const apyInfo = resp?.data?.[0];
+    const apyInfo = resp?.data;
 
-    const savingsRate = apyInfo?.sky_savings_rate_apy || 0;
-    const farmRate = apyInfo?.sky_farm_apy || 0;
+    const rate = apyInfo?.underlyingInterestApy || 0;
 
     return {
-      [currentTokens.sUSDS]: numberToAPY(Number(savingsRate)),
-      [currentTokens.stkUSDS]: numberToAPY(Number(farmRate)),
+      [currentTokens.sUSDe]: numberToAPY(Number(rate)),
     };
   } catch (e) {
     return {};

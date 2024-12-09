@@ -16,7 +16,8 @@ export type ExtendedProtocols =
   | "Swell"
   | "Puffer"
   | "Mellow"
-  | "Lombard";
+  | "Lombard"
+  | "pumpBTC";
 
 const PROTOCOL_DATA: Record<ExtendedProtocols, ProtocolData> = {
   Uniswap: {
@@ -150,6 +151,14 @@ const PROTOCOL_DATA: Record<ExtendedProtocols, ProtocolData> = {
   Sky: {
     name: "Sky",
     icon: "/protocols/sky.svg",
+  },
+  pumpBTC: {
+    name: "Pump BTC",
+    icon: "/protocols/pumpbtc.svg",
+  },
+  Equalizer: {
+    name: "Equalizer",
+    icon: "/protocols/equalizer.svg",
   },
 };
 
