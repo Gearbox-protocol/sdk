@@ -207,13 +207,24 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
     const fromPrice = reserve
       ? this.reservePrices.mustGet(from)
       : this.mainPrices.mustGet(from);
-    const fromScale = 10n ** BigInt(this.sdk.tokensMeta.decimals(from));
-    const toPrice = reserve
-      ? this.reservePrices.mustGet(to)
-      : this.mainPrices.mustGet(to);
     const toScale = 10n ** BigInt(this.sdk.tokensMeta.decimals(to));
 
     return (amount * fromPrice * toScale) / (toPrice * fromScale);
+  }
+
+  /**
+   * Tries to convert amount of token to USD, using latest known prices
+   * @param from
+   * @param to
+   * @param amount
+   * @param reserve
+   */
+  public convertToUSD(from: Address, amount: bigint, reserve = false): bigint {
+    const price = reserve
+      ? this.reservePrices.mustGet(from)
+      : this.mainPrices.mustGet(from);
+    const scale = 10n ** BigInt(this.sdk.tokensMeta.decimals(from));
+    return (amount * price) / scale;
   }
 
   /**
