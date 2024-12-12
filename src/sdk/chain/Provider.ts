@@ -57,9 +57,10 @@ export class Provider {
   public readonly chainId: number;
   public readonly chain: Chain;
   public readonly networkType: NetworkType;
-  public readonly publicClient: PublicClient;
   public readonly addressLabels: IAddressLabeller;
-  public readonly transport: Transport;
+
+  #transport: Transport;
+  #publicClient: PublicClient;
 
   constructor(opts: NetworkOptions & TransportOptions & ConnectionOptions) {
     const { chainId, networkType } = opts;
@@ -71,12 +72,28 @@ export class Provider {
       ...chains[networkType],
       id: chainId,
     });
-    this.transport = createTransport(opts);
-    this.publicClient = createPublicClient({
+    this.#transport = createTransport(opts);
+    this.#publicClient = createPublicClient({
       chain: this.chain,
-      transport: this.transport,
+      transport: this.#transport,
     });
 
     this.addressLabels = new AddressLabeller();
+  }
+
+  public get transport(): Transport {
+    return this.#transport;
+  }
+
+  public set transport(transport: Transport) {
+    this.#transport = transport;
+    this.#publicClient = createPublicClient({
+      chain: this.chain,
+      transport: this.#transport,
+    });
+  }
+
+  public get publicClient(): PublicClient {
+    return this.#publicClient;
   }
 }
