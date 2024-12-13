@@ -207,6 +207,10 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
     const fromPrice = reserve
       ? this.reservePrices.mustGet(from)
       : this.mainPrices.mustGet(from);
+    const fromScale = 10n ** BigInt(this.sdk.tokensMeta.decimals(from));
+    const toPrice = reserve
+      ? this.reservePrices.mustGet(to)
+      : this.mainPrices.mustGet(to);
     const toScale = 10n ** BigInt(this.sdk.tokensMeta.decimals(to));
 
     return (amount * fromPrice * toScale) / (toPrice * fromScale);
