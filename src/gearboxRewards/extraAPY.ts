@@ -56,13 +56,6 @@ const POOL_POINTS: Record<
 > = {
   Mainnet: {
     [poolByNetwork.Mainnet.WETH_V3_TRADE]: {
-      // !& ezETH
-      // ezETH: {
-      //   amount: PERCENTAGE_FACTOR,
-      //   symbol: "ezETH",
-      //   duration: "hour",
-      //   name: "ezPoint",
-      // },
       rsETH: {
         amount: 7500n * 10000n,
         symbol: "rsETH",
@@ -77,6 +70,13 @@ const POOL_POINTS: Record<
         symbol: "LBTC",
         duration: "day",
         name: "Lombard LUX",
+        estimation: "absolute",
+      },
+      pumpBTC: {
+        amount: 172_800n * 10000n,
+        symbol: "pumpBTC",
+        duration: "day",
+        name: "Pump BTC",
         estimation: "absolute",
       },
     },
