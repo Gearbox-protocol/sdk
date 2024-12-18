@@ -10,9 +10,22 @@ import {
 } from "./abi";
 import type { AnvilClient } from "./createAnvilClient";
 
+type ZeroLTCMSlice = Pick<
+  CreditManagerState,
+  | "creditConfigurator"
+  | "feeInterest"
+  | "liquidationDiscount"
+  | "feeLiquidationExpired"
+  | "liquidationDiscountExpired"
+  | "feeLiquidation"
+  | "name"
+  | "underlying"
+  | "baseParams"
+>;
+
 export async function setLTZero(
   anvil: AnvilClient,
-  cm: CreditManagerState,
+  cm: ZeroLTCMSlice,
   logger?: ILogger,
 ): Promise<void> {
   const aclAddr = await anvil.readContract({
