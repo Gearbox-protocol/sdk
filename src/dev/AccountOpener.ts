@@ -10,8 +10,13 @@ import type {
   GearboxSDK,
   ILogger,
 } from "../sdk";
-import { childLogger, MAX_UINT256, sendRawTx } from "../sdk";
-import { iDegenNftv2Abi, ierc20Abi } from "../sdk/abi";
+import {
+  childLogger,
+  iDegenNftv2Abi,
+  ierc20Abi,
+  MAX_UINT256,
+  sendRawTx,
+} from "../sdk";
 import { type AnvilClient, createAnvilClient } from "./createAnvilClient";
 
 export interface AccountOpenerOptions {
