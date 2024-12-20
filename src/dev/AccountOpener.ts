@@ -5,6 +5,7 @@ import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 import type {
   Asset,
+  CreditAccountData,
   CreditAccountsService,
   CreditFactory,
   GearboxSDK,
@@ -51,6 +52,13 @@ export class AccountOpener {
       options.faucet ?? service.sdk.addressProvider.getAddress("FAUCET");
   }
 
+  public get borrower(): Address {
+    if (!this.#borrower) {
+      throw new Error("borrower can be used only after openCreditAccounts");
+    }
+    return this.#borrower.address;
+  }
+
   /**
    * Tries to open account with underlying only in each CM
    */
@@ -74,7 +82,7 @@ export class AccountOpener {
     collateral,
     leverage = 4,
     slippage = 50,
-  }: TargetAccount): Promise<void> {
+  }: TargetAccount): Promise<CreditAccountData[]> {
     const borrower = await this.#getBorrower();
     const cm = this.sdk.marketRegister.findCreditManager(creditManager);
     const symbol = this.sdk.tokensMeta.symbol(collateral);
@@ -137,6 +145,13 @@ export class AccountOpener {
     logger?.debug(
       `opened credit account in ${cm.name} with collateral ${symbol}`,
     );
+    return this.getOpenedAccounts();
+  }
+
+  public async getOpenedAccounts(): Promise<CreditAccountData[]> {
+    return await this.#service.getCreditAccounts({
+      owner: this.borrower,
+    });
   }
 
   /**
