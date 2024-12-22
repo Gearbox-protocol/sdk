@@ -95,7 +95,7 @@ export class RedstoneApi {
   ) => {
     const wrapper = new DataServiceWrapper({
       dataServiceId,
-      dataFeeds: [dataFeeds],
+      dataPackagesIds: [dataFeeds],
       uniqueSignersCount,
     });
     const dataPayload = await wrapper.prepareRedstonePayload(true);
@@ -199,7 +199,7 @@ export class RedstoneApi {
   ) => {
     const wrapper = new DataServiceWrapper({
       dataServiceId: dataServiceId,
-      dataFeeds: dataFeeds,
+      dataPackagesIds: dataFeeds,
       uniqueSignersCount: uniqueSignersCount,
     });
     const dataPayload = await wrapper.getDataPackagesForPayload();

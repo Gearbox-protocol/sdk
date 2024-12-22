@@ -51,7 +51,7 @@
     "@gearbox-protocol/router": "^1.5.5",
     "@gearbox-protocol/router-v3": "^1.37.0",
     "@openzeppelin/contracts": "^4.9.3",
-    "@redstone-finance/evm-connector": "^0.5.4",
+    "@redstone-finance/evm-connector": "^0.7.3",
     "@types/chai": "^4.3.3",
     "@types/deep-eql": "^4.0.0",
     "@types/jest": "^28.1.7",
