@@ -219,6 +219,9 @@ export class GearboxSDK {
       "attaching",
     );
     this.#addressProvider = await getAddressProvider(this, addressProvider);
+    this.logger?.debug(
+      `address provider version: ${this.#addressProvider.version}`,
+    );
     await this.#addressProvider.syncState(this.currentBlock);
 
     // Attaching bot list contract
