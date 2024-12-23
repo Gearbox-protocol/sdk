@@ -17,10 +17,11 @@ import {
   AP_ROUTER,
   GEARBOX_RISK_CURATORS,
 } from "./constants";
+import type { IAddressProviderContract } from "./core";
 import {
-  AddressProviderContractV3_1,
   BotListContract,
   GearStakingContract,
+  getAddressProvider,
 } from "./core";
 import { MarketRegister } from "./market/MarketRegister";
 import { PriceFeedRegister } from "./market/pricefeeds";
@@ -95,7 +96,7 @@ export class GearboxSDK {
   #gear?: Address;
 
   // Collection of core singleton contracts
-  #addressProvider?: AddressProviderContractV3_1;
+  #addressProvider?: IAddressProviderContract;
   #botListContract?: BotListContract;
   #gearStakingContract?: GearStakingContract;
 
@@ -217,10 +218,7 @@ export class GearboxSDK {
       },
       "attaching",
     );
-    this.#addressProvider = new AddressProviderContractV3_1(
-      this,
-      addressProvider,
-    );
+    this.#addressProvider = await getAddressProvider(this, addressProvider);
     await this.#addressProvider.syncState(this.currentBlock);
 
     // Attaching bot list contract
@@ -408,7 +406,7 @@ export class GearboxSDK {
     return this.#gear;
   }
 
-  public get addressProvider(): AddressProviderContractV3_1 {
+  public get addressProvider(): IAddressProviderContract {
     if (this.#addressProvider === undefined) {
       throw new Error("Gearbox SDK not attached");
     }

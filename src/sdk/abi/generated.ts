@@ -475,145 +475,119 @@ export const accountFactoryV3Abi = [
 ] as const;
 
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// AddressProviderV3
+// iAddressProviderV3
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export const addressProviderV3Abi = [
-  {
-    type: "constructor",
-    inputs: [{ name: "_acl", internalType: "address", type: "address" }],
-    stateMutability: "nonpayable",
-  },
+export const iAddressProviderV3Abi = [
   {
     type: "function",
-    inputs: [
-      { name: "", internalType: "bytes32", type: "bytes32" },
-      { name: "", internalType: "uint256", type: "uint256" },
-    ],
     name: "addresses",
-    outputs: [{ name: "", internalType: "address", type: "address" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    inputs: [],
-    name: "getACL",
-    outputs: [{ name: "", internalType: "address", type: "address" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    inputs: [],
-    name: "getAccountFactory",
-    outputs: [{ name: "", internalType: "address", type: "address" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
     inputs: [
-      { name: "key", internalType: "bytes32", type: "bytes32" },
-      { name: "_version", internalType: "uint256", type: "uint256" },
+      {
+        name: "key",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+      {
+        name: "_version",
+        type: "uint256",
+        internalType: "uint256",
+      },
     ],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "getAddressOrRevert",
-    outputs: [{ name: "result", internalType: "address", type: "address" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    inputs: [],
-    name: "getContractsRegister",
-    outputs: [{ name: "", internalType: "address", type: "address" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    inputs: [],
-    name: "getDataCompressor",
-    outputs: [{ name: "", internalType: "address", type: "address" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    inputs: [],
-    name: "getGearToken",
-    outputs: [{ name: "", internalType: "address", type: "address" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    inputs: [],
-    name: "getLeveragedActions",
-    outputs: [{ name: "", internalType: "address", type: "address" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    inputs: [],
-    name: "getPriceOracle",
-    outputs: [{ name: "", internalType: "address", type: "address" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    inputs: [],
-    name: "getTreasuryContract",
-    outputs: [{ name: "", internalType: "address", type: "address" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    inputs: [],
-    name: "getWETHGateway",
-    outputs: [{ name: "", internalType: "address", type: "address" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    inputs: [],
-    name: "getWethToken",
-    outputs: [{ name: "", internalType: "address", type: "address" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
     inputs: [
-      { name: "key", internalType: "bytes32", type: "bytes32" },
-      { name: "value", internalType: "address", type: "address" },
-      { name: "saveVersion", internalType: "bool", type: "bool" },
+      {
+        name: "key",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+      {
+        name: "_version",
+        type: "uint256",
+        internalType: "uint256",
+      },
     ],
+    outputs: [
+      {
+        name: "result",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "setAddress",
+    inputs: [
+      {
+        name: "key",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+      {
+        name: "value",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "saveVersion",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
     outputs: [],
     stateMutability: "nonpayable",
   },
   {
     type: "function",
-    inputs: [],
     name: "version",
-    outputs: [{ name: "", internalType: "uint256", type: "uint256" }],
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     stateMutability: "view",
   },
   {
     type: "event",
-    anonymous: false,
+    name: "SetAddress",
     inputs: [
-      { name: "key", internalType: "bytes32", type: "bytes32", indexed: true },
+      {
+        name: "key",
+        type: "bytes32",
+        indexed: true,
+        internalType: "bytes32",
+      },
       {
         name: "value",
-        internalType: "address",
         type: "address",
         indexed: true,
+        internalType: "address",
       },
       {
         name: "version",
-        internalType: "uint256",
         type: "uint256",
         indexed: true,
+        internalType: "uint256",
       },
     ],
-    name: "SetAddress",
+    anonymous: false,
   },
-  { type: "error", inputs: [], name: "AddressNotFoundException" },
-  { type: "error", inputs: [], name: "CallerNotConfiguratorException" },
 ] as const;
 
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -1,3 +1,3 @@
-export * from "./AddressProviderV3_1Contract";
+export * from "./address-provider";
 export * from "./BotListV3Contract";
 export * from "./GearStakingV3Contract";
