@@ -50,7 +50,7 @@
   "dependencies": {
     "@gearbox-protocol/sdk-gov": "^2.33.1",
     "@redstone-finance/evm-connector": "^0.7.3",
-    "abitype": "^1.0.7",
+    "abitype": "^1.0.8",
     "date-fns": "^4.1.0",
     "redstone-protocol": "^1.0.5",
     "viem": ">=2.21.0 <3.0.0"
@@ -63,7 +63,7 @@
     "eslint": "^8.57.1",
     "husky": "^9.1.7",
     "lint-staged": "^15.2.11",
-    "pino": "^9.5.0",
+    "pino": "^9.6.0",
     "pino-pretty": "^13.0.0",
     "prettier": "^3.4.2",
     "tsup": "^8.3.5",
