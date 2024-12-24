@@ -38,6 +38,10 @@ type GetCreditAccountsArgs = ContractFunctionArgs<
   "getCreditAccounts"
 >;
 
+export interface CreditAccountServiceOptions {
+  batchSize?: number;
+}
+
 interface ReadContractOptions {
   blockNumber?: bigint;
 }
@@ -151,12 +155,14 @@ export interface PermitResult {
 
 export class CreditAccountsService extends SDKConstruct {
   #compressor: Address;
+  #batchSize?: number;
 
-  constructor(sdk: GearboxSDK) {
+  constructor(sdk: GearboxSDK, options?: CreditAccountServiceOptions) {
     super(sdk);
     this.#compressor = sdk.addressProvider.getLatestVersion(
       AP_CREDIT_ACCOUNT_COMPRESSOR,
     );
+    this.#batchSize = options?.batchSize;
   }
 
   /**
@@ -254,7 +260,14 @@ export class CreditAccountsService extends SDKConstruct {
       let offset = 0n;
       do {
         const [accounts, newOffset] = await this.#getCreditAccounts(
-          [arg0, { ...caFilter, reverting }, offset],
+          this.#batchSize
+            ? [
+                arg0,
+                { ...caFilter, reverting },
+                offset,
+                BigInt(this.#batchSize), // limit
+              ]
+            : [arg0, { ...caFilter, reverting }, offset],
           priceUpdateTxs,
           options,
         );
