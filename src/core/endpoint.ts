@@ -98,6 +98,14 @@ export class GearboxBackendApi {
   };
 
   static getReferralUrl = () => REFERRAL_API;
+
+  static apyServerAllRewards = (chainId: number) =>
+    URLApi.getRelativeUrl(
+      "https://testnet.gearbox.foundation/apy-server/api/rewards/all",
+      {
+        params: { chain_id: chainId },
+      },
+    );
 }
 
 interface Options {
