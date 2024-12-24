@@ -151,7 +151,11 @@ export class MarketRegister extends SDKConstruct {
   }
 
   public get marketConfigurators(): MarketConfiguratorContract[] {
-    return this.markets.flatMap(market => market.configurator);
+    const result = new Set<MarketConfiguratorContract>();
+    for (const m of this.markets) {
+      result.add(m.configurator);
+    }
+    return Array.from(result);
   }
 
   public findCreditManager(creditManager: Address): CreditFactory {

@@ -27,10 +27,18 @@ export class MarketFactory extends SDKConstruct {
   constructor(sdk: GearboxSDK, marketData: MarketData) {
     super(sdk);
     this.state = marketData;
-    this.configurator = new MarketConfiguratorContract(
-      sdk,
+
+    let configurator = sdk.contracts.get(
       marketData.configurator,
-    );
+    ) as unknown as MarketConfiguratorContract;
+    if (!configurator) {
+      configurator = new MarketConfiguratorContract(
+        sdk,
+        marketData.configurator,
+      );
+    }
+    this.configurator = configurator;
+
     this.acl = marketData.acl;
 
     const allTokens = [
