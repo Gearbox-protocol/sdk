@@ -234,8 +234,8 @@ export class CreditAccountsService extends SDKConstruct {
     } = args ?? {};
     // either credit manager or all attached markets
     const arg0 = creditManager ?? {
-      configurators: [],
-      pools: this.pools,
+      configurators: this.marketConfigurators,
+      pools: [],
       underlying: ADDRESS_0X0,
     };
     const caFilter = {
@@ -1004,9 +1004,9 @@ export class CreditAccountsService extends SDKConstruct {
   }
 
   /**
-   * Returns addresses of pools of attached markets
+   * Returns addresses of market configurators
    */
-  private get pools(): Array<Address> {
-    return this.sdk.marketRegister.pools.map(p => p.pool.address);
+  private get marketConfigurators(): Array<Address> {
+    return this.sdk.marketRegister.marketConfigurators.map(mc => mc.address);
   }
 }
