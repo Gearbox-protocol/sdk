@@ -28,7 +28,7 @@
     "test": "npx mocha -r ts-node/register -r dotenv/config 'src/**/*.spec.ts'"
   },
   "dependencies": {
-    "@gearbox-protocol/sdk-gov": "^2.33.1",
+    "@gearbox-protocol/sdk-gov": "^2.33.2",
     "@wagmi/cli": "^2.1.13",
     "axios": "^1.2.6",
     "decimal.js-light": "^2.5.1",
