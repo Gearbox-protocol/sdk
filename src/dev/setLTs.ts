@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 import { parseEther } from "viem";
 
-import type { CreditManagerState, ILogger } from "../sdk";
+import type { ILogger } from "../sdk";
 import {
   iaclAbi,
   iaclTraitAbi,
@@ -10,6 +10,10 @@ import {
 } from "./abi";
 import type { AnvilClient } from "./createAnvilClient";
 
+export interface SetLTsCMSlice {
+  creditConfigurator: Address;
+  address: Address;
+}
 /**
  * Helper function to set liquidation thresholds on credit manager via anvil impersonation
  * @param sdk
@@ -18,7 +22,7 @@ import type { AnvilClient } from "./createAnvilClient";
  */
 export async function setLTs(
   anvil: AnvilClient,
-  cm: CreditManagerState,
+  cm: SetLTsCMSlice,
   newLTs: Record<Address, number>,
   logger?: ILogger,
 ): Promise<void> {
@@ -51,7 +55,7 @@ export async function setLTs(
         args: [t as Address, lt],
       });
       const newLT = await anvil.readContract({
-        address: cm.baseParams.addr,
+        address: cm.address,
         abi: iCreditManagerV3Abi,
         functionName: "liquidationThresholds",
         args: [t as Address],
