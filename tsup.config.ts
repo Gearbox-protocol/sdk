@@ -43,6 +43,11 @@ export default defineConfig(options => {
         let raw = await readFile("./dist/esm/dev/index.mjs", "utf-8");
         raw = raw.replace(`from '../sdk';`, `from '../sdk/index.mjs';`);
         await writeFile("./dist/esm/dev/index.mjs", raw, "utf-8");
+
+        raw = await readFile("./dist/esm/dev/index.d.mts", "utf-8");
+        raw = raw.replace(`from '../sdk';`, `from '../sdk/index.d.mts';`);
+        await writeFile("./dist/esm/dev/index.d.mts", raw, "utf-8");
+
         await writeFile(
           "./dist/esm/sdk/package.json",
           `{"type": "module","sideEffects":false}`,
