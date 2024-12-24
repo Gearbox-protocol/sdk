@@ -40,7 +40,8 @@ export default defineConfig(options => {
       outExtension: () => ({ js: ".mjs" }),
       outDir: "./dist/esm/",
       onSuccess: async () => {
-        // NB: below is used as alternative to `tsup` config `dts: true` option to avoid race condition with local package publish (at the cost of less concurrency)
+        // tsup with dts option is not working as expected: onSuccess is triggered and then dts is executed in parallel
+        // so we use spawnSync to run it in a separate process
         spawnSync("yarn", ["tsup", "--dts-only"], { stdio: "inherit" });
 
         let raw = await readFile("./dist/esm/dev/index.mjs", "utf-8");
