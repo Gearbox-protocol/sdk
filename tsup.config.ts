@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { readFile, writeFile } from "node:fs/promises";
 
 import type { Options } from "tsup";
@@ -7,7 +8,6 @@ export default defineConfig(options => {
   const commonOptions: Partial<Options> = {
     entry: ["src/sdk/index.ts", "src/dev/index.ts"],
     clean: true,
-    dts: true,
     splitting: false,
     treeshake: true,
     sourcemap: false,
@@ -40,6 +40,9 @@ export default defineConfig(options => {
       outExtension: () => ({ js: ".mjs" }),
       outDir: "./dist/esm/",
       onSuccess: async () => {
+        // NB: below is used as alternative to `tsup` config `dts: true` option to avoid race condition with local package publish (at the cost of less concurrency)
+        spawnSync("yarn", ["tsup", "--dts-only"], { stdio: "inherit" });
+
         let raw = await readFile("./dist/esm/dev/index.mjs", "utf-8");
         raw = raw.replace(`from '../sdk';`, `from '../sdk/index.mjs';`);
         await writeFile("./dist/esm/dev/index.mjs", raw, "utf-8");
