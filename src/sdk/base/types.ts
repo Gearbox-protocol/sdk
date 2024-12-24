@@ -26,7 +26,7 @@ export type CreditAccountData = Unarray<
 
 export type MarketData = Unarray<
   AbiParametersToPrimitiveTypes<
-    ExtractAbiFunction<typeof iMarketCompressorAbi, "getMarketData">["outputs"]
+    ExtractAbiFunction<typeof iMarketCompressorAbi, "getMarkets">["outputs"]
   >
 >;
 

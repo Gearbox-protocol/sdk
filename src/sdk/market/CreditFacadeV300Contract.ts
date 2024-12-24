@@ -44,7 +44,6 @@ export class CreditFacadeV300Contract extends BaseContract<abi> {
     const decimals = this.sdk.tokensMeta.decimals(this.underlying);
     return {
       ...super.stateHuman(raw),
-      maxQuotaMultiplier: Number(this.maxQuotaMultiplier),
       expirable: this.expirable,
       isDegenMode: this.degenNFT !== ADDRESS_0X0,
       degenNFT: this.labelAddress(this.degenNFT),

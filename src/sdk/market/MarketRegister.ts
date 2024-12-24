@@ -3,63 +3,43 @@ import type { Address } from "viem";
 import { iMarketCompressorAbi } from "../abi";
 import type { MarketData } from "../base";
 import { SDKConstruct } from "../base";
-import {
-  ADDRESS_0X0,
-  AP_MARKET_COMPRESSOR,
-  AP_MARKET_CONFIGURATOR,
-} from "../constants";
+import { ADDRESS_0X0, AP_MARKET_COMPRESSOR } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { ILogger, MarketStateHuman, RawTx, TVL } from "../types";
 import { AddressMap, childLogger } from "../utils";
 import { simulateMulticall } from "../utils/viem";
 import type { CreditFactory } from "./CreditFactory";
-import { MarketConfiguratorContract } from "./MarketConfiguratorContract";
+import type { MarketConfiguratorContract } from "./MarketConfiguratorContract";
 import { MarketFactory } from "./MarketFactory";
 import type { PoolFactory } from "./PoolFactory";
 import { rawTxToMulticallPriceUpdate } from "./pricefeeds";
 
 export class MarketRegister extends SDKConstruct {
   #logger?: ILogger;
-  #curators?: Address[];
   /**
    * Mapping pool.address -> MarketFactory
    */
   #markets = new AddressMap<MarketFactory>();
-  // TODO: MarketRegister can be this contract, but v3.0 does not have it
-  public readonly marketConfigurator?: MarketConfiguratorContract;
 
   constructor(sdk: GearboxSDK) {
     super(sdk);
     this.#logger = childLogger("MarketRegister", sdk.logger);
-    try {
-      const mkAddr = this.sdk.addressProvider.getLatestVersion(
-        AP_MARKET_CONFIGURATOR,
-      );
-      this.marketConfigurator = new MarketConfiguratorContract(sdk, mkAddr);
-    } catch (e) {
-      this.#logger?.warn(e);
-    }
   }
 
   public async loadMarkets(
-    curators: Address[],
+    marketConfigurators: Address[],
     ignoreUpdateablePrices?: boolean,
   ): Promise<void> {
-    if (!curators.length) {
-      this.#logger?.warn("no curators provided, skipping loadMarkets");
+    if (!marketConfigurators.length) {
+      this.#logger?.warn(
+        "no market configurators provided, skipping loadMarkets",
+      );
       return;
     }
-    this.#curators = curators;
-    await this.#loadMarkets(curators, [], ignoreUpdateablePrices);
+    await this.#loadMarkets(marketConfigurators, [], ignoreUpdateablePrices);
   }
 
   public async syncState(): Promise<void> {
-    if (this.marketConfigurator?.dirty) {
-      this.#logger?.debug(`need to reload all markets`);
-      await this.#loadMarkets(this.curators, []);
-      return;
-    }
-    // get addresses of dirty pools
     const pools = this.markets
       .filter(m => m.dirty)
       .map(m => m.poolFactory.pool.address);
@@ -70,7 +50,7 @@ export class MarketRegister extends SDKConstruct {
   }
 
   async #loadMarkets(
-    curators: Address[],
+    marketConfigurators: Address[],
     pools: Address[],
     ignoreUpdateablePrices?: boolean,
   ): Promise<void> {
@@ -81,7 +61,10 @@ export class MarketRegister extends SDKConstruct {
     let txs: RawTx[] = [];
     if (!ignoreUpdateablePrices) {
       // to have correct prices we must first get all updatable price feeds
-      await this.sdk.priceFeeds.preloadUpdatablePriceFeeds(curators, pools);
+      await this.sdk.priceFeeds.preloadUpdatablePriceFeeds(
+        marketConfigurators,
+        pools,
+      );
       // the generate updates
       const updates = await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs();
       txs = updates.txs;
@@ -96,7 +79,7 @@ export class MarketRegister extends SDKConstruct {
           functionName: "getMarkets",
           args: [
             {
-              curators,
+              configurators: marketConfigurators,
               pools,
               underlying: ADDRESS_0X0,
             },
@@ -159,11 +142,15 @@ export class MarketRegister extends SDKConstruct {
   }
 
   public get pools(): PoolFactory[] {
-    return this.markets.map(market => market!.poolFactory);
+    return this.markets.map(market => market.poolFactory);
   }
 
   public get creditManagers(): CreditFactory[] {
-    return this.markets.flatMap(market => market!.creditManagers);
+    return this.markets.flatMap(market => market.creditManagers);
+  }
+
+  public get marketConfigurators(): MarketConfiguratorContract[] {
+    return this.markets.flatMap(market => market.configurator);
   }
 
   public findCreditManager(creditManager: Address): CreditFactory {
@@ -220,12 +207,5 @@ export class MarketRegister extends SDKConstruct {
       },
       { tvl: 0n, tvlUSD: 0n },
     );
-  }
-
-  public get curators(): Address[] {
-    if (!this.#curators) {
-      throw new Error(`market register has no markets loaded`);
-    }
-    return this.#curators;
   }
 }

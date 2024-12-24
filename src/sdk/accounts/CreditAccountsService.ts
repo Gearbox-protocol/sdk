@@ -234,7 +234,7 @@ export class CreditAccountsService extends SDKConstruct {
     } = args ?? {};
     // either credit manager or all attached markets
     const arg0 = creditManager ?? {
-      curators: [],
+      configurators: [],
       pools: this.pools,
       underlying: ADDRESS_0X0,
     };

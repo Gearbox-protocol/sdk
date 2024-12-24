@@ -33,14 +33,13 @@ export class CreditFactory extends SDKConstruct {
     super(sdk);
     const { creditManagers, pool } = marketData;
     const creditManager = creditManagers[index];
-    const { name, collateralTokens, liquidationThresholds } =
-      creditManager.creditManager;
+    const { name, collateralTokens } = creditManager.creditManager;
 
     this.name = name;
     this.pool = pool.baseParams.addr;
     this.underlying = pool.underlying;
     this.collateralTokens = Object.fromEntries(
-      collateralTokens.map((t, i) => [t, liquidationThresholds[i]]),
+      collateralTokens.map(ct => [ct.token, ct.liquidationThreshold]),
     );
 
     if (creditManager.creditManager.baseParams.version < 310) {

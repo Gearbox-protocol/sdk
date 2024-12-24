@@ -75,7 +75,6 @@ export class PoolContract extends BaseContract<typeof abi> {
             },
           ]),
       ),
-      totalAssets: formatBNvalue(this.totalAssets, this.decimals, 2, raw),
       totalSupply: formatBNvalue(this.totalSupply, this.decimals, 2, raw),
       supplyRate: `${formatBNvalue(this.supplyRate, 25, 2, raw)}%`,
       baseInterestIndex: `${formatBNvalue(this.totalSupply, 25, 2, raw)}%`,

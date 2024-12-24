@@ -15,7 +15,6 @@ import {
   AP_GEAR_STAKING,
   AP_GEAR_TOKEN,
   AP_ROUTER,
-  GEARBOX_RISK_CURATORS,
 } from "./constants";
 import type { IAddressProviderContract } from "./core";
 import {
@@ -37,9 +36,9 @@ export interface SDKOptions {
    */
   addressProvider?: Address;
   /**
-   * Risk curators, defaults to gearbox own
+   * Market configurators
    */
-  riskCurators?: Address[];
+  marketConfigurators: Address[];
   /**
    * Attach and load state at this specific block number
    */
@@ -67,10 +66,10 @@ interface SDKContructorArgs {
 
 interface AttachOptionsInternal {
   addressProvider: Address;
-  riskCurators?: Address[];
   blockNumber?: bigint | number;
   redstoneHistoricTimestamp?: number | true;
   ignoreUpdateablePrices?: boolean;
+  marketConfigurators: Address[];
 }
 
 export interface SyncStateOptions {
@@ -139,10 +138,10 @@ export class GearboxSDK {
   ): Promise<GearboxSDK> {
     const {
       logger,
-      riskCurators,
       blockNumber,
       redstoneHistoricTimestamp,
       ignoreUpdateablePrices,
+      marketConfigurators,
     } = options;
     let { networkType, addressProvider, chainId } = options;
 
@@ -174,10 +173,10 @@ export class GearboxSDK {
       logger,
     }).#attach({
       addressProvider,
-      riskCurators,
       blockNumber,
       redstoneHistoricTimestamp,
       ignoreUpdateablePrices,
+      marketConfigurators,
     });
   }
 
@@ -192,8 +191,8 @@ export class GearboxSDK {
       addressProvider,
       blockNumber,
       redstoneHistoricTimestamp,
-      riskCurators,
       ignoreUpdateablePrices,
+      marketConfigurators,
     } = opts;
     const time = Date.now();
     const block = await this.provider.publicClient.getBlock(
@@ -241,7 +240,7 @@ export class GearboxSDK {
 
     this.#marketRegister = new MarketRegister(this);
     await this.#marketRegister.loadMarkets(
-      riskCurators ?? GEARBOX_RISK_CURATORS[this.#provider.networkType],
+      marketConfigurators,
       ignoreUpdateablePrices,
     );
 

@@ -77,7 +77,6 @@ export interface PriceOracleV3StateHuman extends BaseContractStateHuman {
 }
 
 export interface CreditFacadeStateHuman extends BaseContractStateHuman {
-  maxQuotaMultiplier: number;
   expirable: boolean;
   isDegenMode: boolean;
   degenNFT: string;
@@ -99,7 +98,6 @@ export interface CreditManagerStateHuman extends BaseContractStateHuman {
   pool: string;
   creditFacade: string;
   creditConfigurator: string;
-  priceOracle: string;
   maxEnabledTokens: number;
   collateralTokens: Record<string, string>;
   feeInterest: string;
@@ -136,7 +134,6 @@ export interface PoolStateHuman extends BaseContractStateHuman {
   totalBorrowed: string;
   totalDebtLimit: string;
   creditManagerDebtParams: Record<string, CreditManagerDebtParamsHuman>;
-  totalAssets: string;
   totalSupply: string;
   supplyRate: string;
   baseInterestIndex: string;

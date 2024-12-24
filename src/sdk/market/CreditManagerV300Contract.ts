@@ -31,8 +31,7 @@ export class CreditManagerV300Contract extends BaseContract<abi> {
   public readonly liquidationThresholds: AddressMap<number>;
 
   constructor(sdk: GearboxSDK, { creditManager, adapters }: CreditManagerData) {
-    const { baseParams, collateralTokens, liquidationThresholds, ...rest } =
-      creditManager;
+    const { baseParams, collateralTokens, ...rest } = creditManager;
     super(sdk, {
       ...baseParams,
       name: `CreditManagerV300(${creditManager.name})`,
@@ -40,7 +39,7 @@ export class CreditManagerV300Contract extends BaseContract<abi> {
     });
     Object.assign(this, rest);
     this.liquidationThresholds = new AddressMap(
-      collateralTokens.map((t, i) => [t, liquidationThresholds[i]]),
+      collateralTokens.map(ct => [ct.token, ct.liquidationThreshold]),
     );
 
     this.adapters = new AddressMap();
@@ -64,7 +63,6 @@ export class CreditManagerV300Contract extends BaseContract<abi> {
       pool: this.labelAddress(this.pool),
       creditFacade: this.labelAddress(this.creditFacade),
       creditConfigurator: this.labelAddress(this.creditConfigurator),
-      priceOracle: this.labelAddress(this.priceOracle),
       maxEnabledTokens: this.maxEnabledTokens,
       collateralTokens: Object.fromEntries(
         this.liquidationThresholds

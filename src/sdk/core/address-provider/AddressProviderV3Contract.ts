@@ -24,6 +24,7 @@ export class AddressProviderContractV3
       addr: address,
       name: "AddressProviderV3",
       abi,
+      version: 3_00,
     });
   }
 

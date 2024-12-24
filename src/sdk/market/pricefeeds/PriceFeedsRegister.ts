@@ -124,10 +124,13 @@ export class PriceFeedRegister
    * This can later be used to load price feed updates
    */
   public async preloadUpdatablePriceFeeds(
-    curators?: Address[],
+    marketConfigurators?: Address[],
     pools?: Address[],
   ): Promise<void> {
-    const feedsData = await this.#loadUpdatablePriceFeeds(curators, pools);
+    const feedsData = await this.#loadUpdatablePriceFeeds(
+      marketConfigurators,
+      pools,
+    );
     for (const data of feedsData) {
       const feed = this.#create({ baseParams: data });
       this.#feeds.upsert(feed.address, feed);
@@ -136,15 +139,18 @@ export class PriceFeedRegister
 
   /**
    * Generates price update transaction via multicall3 without any market data knowledge
-   * @param curators
+   * @param marketConfigurators
    * @param pools
    * @returns
    */
   public async getUpdatePriceFeedsTx(
-    curators?: Address[],
+    marketConfigurators?: Address[],
     pools?: Address[],
   ): Promise<RawTx> {
-    const feedsData = await this.#loadUpdatablePriceFeeds(curators, pools);
+    const feedsData = await this.#loadUpdatablePriceFeeds(
+      marketConfigurators,
+      pools,
+    );
     const feeds = feedsData.map(data => this.#create({ baseParams: data }));
     const updates = await this.#generatePriceFeedsUpdateTxs(feeds);
 
@@ -206,7 +212,7 @@ export class PriceFeedRegister
   }
 
   async #loadUpdatablePriceFeeds(
-    curators?: Address[],
+    marketConfigurators?: Address[],
     pools?: Address[],
   ): Promise<readonly BaseParams[]> {
     const marketCompressorAddress = this.sdk.addressProvider.getAddress(
@@ -219,7 +225,9 @@ export class PriceFeedRegister
       functionName: "getUpdatablePriceFeeds",
       args: [
         {
-          curators: curators ?? this.sdk.marketRegister.curators,
+          configurators:
+            marketConfigurators ??
+            this.sdk.marketRegister.marketConfigurators.map(mc => mc.address),
           pools: pools ?? [],
           underlying: ADDRESS_0X0,
         },

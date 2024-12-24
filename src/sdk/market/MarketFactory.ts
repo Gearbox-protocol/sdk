@@ -5,13 +5,14 @@ import { SDKConstruct } from "../base";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { MarketStateHuman } from "../types";
 import { CreditFactory } from "./CreditFactory";
+import { MarketConfiguratorContract } from "./MarketConfiguratorContract";
 import { PoolFactory } from "./PoolFactory";
 import { PriceOracleV300Contract } from "./PriceOracleV300Contract";
 import { PriceOracleV310Contract } from "./PriceOracleV310Contract";
 
 export class MarketFactory extends SDKConstruct {
   public readonly acl: Address;
-  public readonly riskCurator: Address;
+  public readonly configurator: MarketConfiguratorContract;
   public readonly poolFactory: PoolFactory;
   public readonly priceOracle:
     | PriceOracleV300Contract
@@ -26,10 +27,17 @@ export class MarketFactory extends SDKConstruct {
   constructor(sdk: GearboxSDK, marketData: MarketData) {
     super(sdk);
     this.state = marketData;
-    this.riskCurator = marketData.owner;
+    this.configurator = new MarketConfiguratorContract(
+      sdk,
+      marketData.configurator,
+    );
     this.acl = marketData.acl;
 
-    for (const t of marketData.tokens) {
+    const allTokens = [
+      ...marketData.tokens,
+      ...marketData.zappers.flatMap(z => [z.tokenIn, z.tokenOut]),
+    ];
+    for (const t of allTokens) {
       sdk.tokensMeta.upsert(t.addr, t);
       sdk.provider.addressLabels.set(t.addr as Address, t.symbol);
     }
@@ -58,6 +66,7 @@ export class MarketFactory extends SDKConstruct {
 
   override get dirty(): boolean {
     return (
+      this.configurator.dirty ||
       this.poolFactory.dirty ||
       this.priceOracle.dirty ||
       this.creditManagers.some(cm => cm.dirty)
@@ -80,8 +89,8 @@ export class MarketFactory extends SDKConstruct {
         address: z.baseParams.addr,
         contractType: z.baseParams.contractType,
         version: Number(z.baseParams.version),
-        tokenIn: this.labelAddress(z.tokenIn),
-        tokenOut: this.labelAddress(z.tokenOut),
+        tokenIn: this.labelAddress(z.tokenIn.addr),
+        tokenOut: this.labelAddress(z.tokenOut.addr),
       })),
     };
   }
