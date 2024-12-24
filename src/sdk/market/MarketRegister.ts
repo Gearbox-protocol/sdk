@@ -50,7 +50,7 @@ export class MarketRegister extends SDKConstruct {
   }
 
   async #loadMarkets(
-    marketConfigurators: Address[],
+    configurators: Address[],
     pools: Address[],
     ignoreUpdateablePrices?: boolean,
   ): Promise<void> {
@@ -62,13 +62,14 @@ export class MarketRegister extends SDKConstruct {
     if (!ignoreUpdateablePrices) {
       // to have correct prices we must first get all updatable price feeds
       await this.sdk.priceFeeds.preloadUpdatablePriceFeeds(
-        marketConfigurators,
+        configurators,
         pools,
       );
       // the generate updates
       const updates = await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs();
       txs = updates.txs;
     }
+    this.#logger?.debug({ configurators, pools }, "calling getMarkets");
     // ...and push them using multicall before getting answers
     const resp = await simulateMulticall(this.provider.publicClient, {
       contracts: [
@@ -79,7 +80,7 @@ export class MarketRegister extends SDKConstruct {
           functionName: "getMarkets",
           args: [
             {
-              configurators: marketConfigurators,
+              configurators,
               pools,
               underlying: ADDRESS_0X0,
             },

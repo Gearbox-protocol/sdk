@@ -219,15 +219,20 @@ export class PriceFeedRegister
       AP_MARKET_COMPRESSOR,
       3_10,
     );
+    const configurators =
+      marketConfigurators ??
+      this.sdk.marketRegister.marketConfigurators.map(mc => mc.address);
+    this.logger?.debug(
+      { configurators, pools },
+      "calling getUpdatablePriceFeeds",
+    );
     const result = await this.provider.publicClient.readContract({
       address: marketCompressorAddress,
       abi: iMarketCompressorAbi,
       functionName: "getUpdatablePriceFeeds",
       args: [
         {
-          configurators:
-            marketConfigurators ??
-            this.sdk.marketRegister.marketConfigurators.map(mc => mc.address),
+          configurators,
           pools: pools ?? [],
           underlying: ADDRESS_0X0,
         },
