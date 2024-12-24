@@ -164,7 +164,7 @@ export class GearboxSDK {
       networkType,
     });
     logger?.debug(
-      { networkType, chainId, addressProvider },
+      { networkType, chainId, addressProvider, marketConfigurators },
       "attaching gearbox sdk",
     );
 
