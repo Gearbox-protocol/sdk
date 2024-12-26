@@ -84,6 +84,7 @@ import {IStakingRewardsAdapter} from
 import {IMulticall3} from "@gearbox-protocol/router-v3/lib/forge-std/src/interfaces/IMulticall3.sol";
 import {IRouterV3} from "@gearbox-protocol/router-v3/contracts/interfaces/IRouterV3.sol";
 import {IRouter} from "@gearbox-protocol/router/contracts/interfaces/IRouter.sol";
+import {PendleSwapper} from "@gearbox-protocol/router-v3/contracts/workers/PendleSwapper.sol";
 
 import {IFarmingPool} from "@1inch/farming/contracts/interfaces/IFarmingPool.sol";
 
