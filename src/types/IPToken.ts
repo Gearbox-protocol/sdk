@@ -1,26 +1,19 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// IPendleYT
+// IPToken
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export const iPendleYtAbi = [
+export const ipTokenAbi = [
   {
     type: "function",
     inputs: [],
-    name: "doCacheIndexSameBlock",
-    outputs: [{ name: "", internalType: "bool", type: "bool" }],
+    name: "YT",
+    outputs: [{ name: "", internalType: "address", type: "address" }],
     stateMutability: "view",
   },
   {
     type: "function",
     inputs: [],
-    name: "pyIndexLastUpdatedBlock",
-    outputs: [{ name: "", internalType: "uint256", type: "uint256" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    inputs: [],
-    name: "pyIndexStored",
+    name: "expiry",
     outputs: [{ name: "", internalType: "uint256", type: "uint256" }],
     stateMutability: "view",
   },

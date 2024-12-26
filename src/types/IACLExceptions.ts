@@ -1,14 +1,17 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// IPendleSY
+// IACLExceptions
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export const iPendleSyAbi = [
+export const iaclExceptionsAbi = [
   {
-    type: "function",
-    inputs: [],
-    name: "exchangeRate",
-    outputs: [{ name: "", internalType: "uint256", type: "uint256" }],
-    stateMutability: "view",
+    type: "error",
+    inputs: [{ name: "addr", internalType: "address", type: "address" }],
+    name: "AddressNotPausableAdminException",
+  },
+  {
+    type: "error",
+    inputs: [{ name: "addr", internalType: "address", type: "address" }],
+    name: "AddressNotUnpausableAdminException",
   },
 ] as const
 

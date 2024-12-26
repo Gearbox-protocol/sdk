@@ -1,17 +1,20 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// IPendleMarket
+// IYToken
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export const iPendleMarketAbi = [
+export const iyTokenAbi = [
   {
     type: "function",
     inputs: [],
-    name: "readTokens",
-    outputs: [
-      { name: "sy", internalType: "address", type: "address" },
-      { name: "pt", internalType: "address", type: "address" },
-      { name: "yt", internalType: "address", type: "address" },
-    ],
+    name: "PT",
+    outputs: [{ name: "", internalType: "address", type: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [],
+    name: "expiry",
+    outputs: [{ name: "", internalType: "uint256", type: "uint256" }],
     stateMutability: "view",
   },
 ] as const

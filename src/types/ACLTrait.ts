@@ -1,18 +1,15 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// IPendleMarket
+// ACLTrait
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export const iPendleMarketAbi = [
+export const aclTraitAbi = [
   {
     type: "function",
     inputs: [],
-    name: "readTokens",
-    outputs: [
-      { name: "sy", internalType: "address", type: "address" },
-      { name: "pt", internalType: "address", type: "address" },
-      { name: "yt", internalType: "address", type: "address" },
-    ],
+    name: "acl",
+    outputs: [{ name: "", internalType: "address", type: "address" }],
     stateMutability: "view",
   },
+  { type: "error", inputs: [], name: "ZeroAddressException" },
 ] as const
 
