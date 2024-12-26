@@ -37,6 +37,13 @@ export const TIMELOCK: Record<NetworkType, Address> = {
   Base: NOT_DEPLOYED,
 };
 
+export const GEARBOX_MULTISIG: Record<NetworkType, Address> = {
+  Mainnet: "0xA7D5DDc1b8557914F158076b228AA91eF613f1D5",
+  Arbitrum: "0x57Fd8B1a9213624157786Fff4a7bc532Ce717773",
+  Optimism: "0x8bA8cd6D00919ceCc19D9B4A2c8669a524883C4c",
+  Base: NOT_DEPLOYED,
+};
+
 export const GEARBOX_RISK_CURATORS: Record<NetworkType, Address[]> = {
   Mainnet: [TIMELOCK.Mainnet],
   Arbitrum: [TIMELOCK.Arbitrum],
