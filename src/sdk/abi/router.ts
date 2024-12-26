@@ -21415,3 +21415,122 @@ export const yearnWithdrawerAbi = [
     name: "UnknownToken",
   },
 ] as const;
+
+export const iSwapperAbi = [
+  {
+    type: "function",
+    name: "getBestDirectPairSwap",
+    inputs: [
+      {
+        name: "swapTask",
+        type: "tuple",
+        internalType: "struct SwapTask",
+        components: [
+          {
+            name: "swapOperation",
+            type: "uint8",
+            internalType: "enum SwapOperation",
+          },
+          {
+            name: "creditAccount",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "tokenIn",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "tokenOut",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "connectors",
+            type: "address[]",
+            internalType: "address[]",
+          },
+          {
+            name: "amount",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "leftoverAmount",
+            type: "uint256",
+            internalType: "uint256",
+          },
+        ],
+      },
+      {
+        name: "adapter",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [
+      {
+        name: "quote",
+        type: "tuple",
+        internalType: "struct SwapQuote",
+        components: [
+          {
+            name: "multiCall",
+            type: "tuple",
+            internalType: "struct MultiCall",
+            components: [
+              {
+                name: "target",
+                type: "address",
+                internalType: "address",
+              },
+              {
+                name: "callData",
+                type: "bytes",
+                internalType: "bytes",
+              },
+            ],
+          },
+          {
+            name: "amount",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "found",
+            type: "bool",
+            internalType: "bool",
+          },
+        ],
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "getComponentId",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint8",
+        internalType: "uint8",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "version",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+] as const;

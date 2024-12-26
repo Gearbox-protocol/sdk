@@ -1,10 +1,11 @@
-import type { Address } from "viem";
+import { type Address, encodeFunctionData, getContract } from "viem";
 
-import { routerV3Abi } from "../abi";
+import { iCreditFacadeV3MulticallAbi, iSwapperAbi, routerV3Abi } from "../abi";
 import { BaseContract } from "../base";
 import type { CreditAccountData } from "../base/types";
+import { PERCENTAGE_FACTOR } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
-import { getConnectors } from "../sdk-gov-legacy";
+import { contractsByNetwork, getConnectors } from "../sdk-gov-legacy";
 import { AddressMap } from "../utils";
 import type { IHooks } from "../utils/internal";
 import { Hooks } from "../utils/internal";
@@ -94,6 +95,7 @@ export type RouterHooks = {
  */
 interface CreditManagerSlice {
   address: Address;
+  creditFacade: Address;
   collateralTokens: Array<Address>;
 }
 
@@ -107,6 +109,17 @@ export type CreditAccountDataSlice = Pick<
   | "debt"
   | "creditManager"
 >;
+
+const PT_IN = {
+  ["0xEe9085fC268F6727d5D4293dBABccF901ffDCC29".toLowerCase()]:
+    "PT_sUSDe_26DEC2024",
+  ["0xE00bd3Df25fb187d6ABBB620b3dfd19839947b81".toLowerCase()]:
+    "PT_sUSDe_27MAR20251",
+};
+
+const OUT = {
+  ["0x9D39A5DE30e57443BfF2A8307A4256c8797A3497".toLowerCase()]: "sUSDe",
+};
 
 export class RouterV3Contract
   extends BaseContract<abi>
@@ -195,34 +208,113 @@ export class RouterV3Contract
    * @param slippage
    * @returns
    */
-  public async findOneTokenPath({
-    creditAccount: ca,
-    creditManager: cm,
-    tokenIn,
-    tokenOut,
-    amount,
-    slippage,
-  }: FindOneTokenPathProps): Promise<RouterResult> {
-    const connectors = this.getAvailableConnectors(cm.collateralTokens);
+  async findOneTokenPath(props: FindOneTokenPathProps): Promise<RouterResult> {
+    const {
+      creditAccount,
+      creditManager,
+      tokenIn,
+      tokenOut,
+      amount,
+      slippage,
+    } = props;
 
-    const { result } = await this.contract.simulate.findOneTokenPath(
-      [
-        tokenIn,
-        amount,
-        tokenOut,
-        ca.creditAccount as Address,
-        connectors,
-        BigInt(slippage),
-      ],
-      {
-        gas: GAS_PER_BLOCK,
-      },
+    const connectors = this.getAvailableConnectors(
+      creditManager.collateralTokens,
     );
+
+    const isPTOverrideRedeem =
+      PT_IN[tokenIn.toLowerCase()] && OUT[tokenOut.toLowerCase()];
+
+    const { result } = await (isPTOverrideRedeem
+      ? this.overridePTRedeem(props)
+      : this.contract.simulate.findOneTokenPath(
+          [
+            tokenIn,
+            amount,
+            tokenOut,
+            creditAccount.creditAccount,
+            connectors,
+            BigInt(slippage),
+          ],
+          {
+            gas: GAS_PER_BLOCK,
+          },
+        ));
 
     return {
       amount: result.amount,
       minAmount: result.minAmount,
       calls: [...result.calls],
+    };
+  }
+
+  async overridePTRedeem({
+    creditAccount,
+    creditManager,
+    tokenIn,
+    tokenOut,
+    amount,
+    slippage,
+  }: FindOneTokenPathProps) {
+    const pendleSwapperAddress = await this.contract.read.componentAddressById([
+      37,
+    ]);
+    const cm = this.sdk.marketRegister.findCreditManager(creditManager.address);
+    const pendleRouter =
+      contractsByNetwork[this.sdk.provider.networkType].PENDLE_ROUTER;
+    const pendleAdapter = cm.creditManager.adapters.mustGet(pendleRouter);
+
+    const pendleSwapper = getContract({
+      address: pendleSwapperAddress,
+      abi: iSwapperAbi,
+      client: this.sdk.provider.publicClient,
+    });
+
+    const result = await pendleSwapper.simulate.getBestDirectPairSwap([
+      {
+        swapOperation: 1,
+        creditAccount: creditAccount.creditAccount,
+        tokenIn: tokenIn,
+        tokenOut: tokenOut,
+        connectors: [],
+        amount,
+        leftoverAmount: 0n,
+      },
+      pendleAdapter.address,
+    ]);
+
+    const minAmount =
+      (result.result.amount * (PERCENTAGE_FACTOR - BigInt(slippage))) /
+      PERCENTAGE_FACTOR;
+
+    const storeExpectedBalances = {
+      target: creditManager.creditFacade,
+      callData: encodeFunctionData({
+        abi: iCreditFacadeV3MulticallAbi,
+        functionName: "storeExpectedBalances",
+        args: [[{ token: tokenOut, amount: minAmount }]],
+      }),
+    };
+
+    const compareBalances = {
+      target: creditManager.creditFacade,
+      callData: encodeFunctionData({
+        abi: iCreditFacadeV3MulticallAbi,
+        functionName: "compareBalances",
+        args: [],
+      }),
+    };
+
+    return {
+      result: {
+        amount: result.result.amount,
+        minAmount,
+        calls: [
+          storeExpectedBalances,
+          result.result.multiCall,
+          compareBalances,
+        ],
+      },
     };
   }
 
