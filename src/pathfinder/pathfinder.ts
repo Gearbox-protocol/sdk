@@ -2,7 +2,7 @@ import {
   contractsByNetwork,
   getConnectors,
   NetworkType,
-  SLIPPAGE_DECIMALS,
+  PERCENTAGE_FACTOR,
 } from "@gearbox-protocol/sdk-gov";
 import {
   Address,
@@ -198,7 +198,9 @@ export class PathFinder {
       await this.pathFinder.read.componentAddressById([37]);
 
     const adapterAddress =
-      creditManager.adapters[contractsByNetwork[this.network].PENDLE_ROUTER];
+      creditManager.adapters[
+        contractsByNetwork[this.network].PENDLE_ROUTER.toLowerCase() as Address
+      ];
 
     const pendleSwapper = getContract({
       address: pendleSwapperAddress,
@@ -220,8 +222,8 @@ export class PathFinder {
     ]);
 
     const minAmount =
-      (result.result.amount * (SLIPPAGE_DECIMALS - BigInt(slippage))) /
-      SLIPPAGE_DECIMALS;
+      (result.result.amount * (PERCENTAGE_FACTOR - BigInt(slippage))) /
+      PERCENTAGE_FACTOR;
 
     const storeExpectedBalances = {
       target: creditManager.creditFacade,
