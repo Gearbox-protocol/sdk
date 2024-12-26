@@ -1,12 +1,10 @@
-import type { PartialRecord } from "@gearbox-protocol/sdk-gov";
-import { MULTICALL_ADDRESS } from "@gearbox-protocol/sdk-gov";
 import type { Address } from "viem";
 
 import { partialLiquidationBotV3Abi } from "../abi";
 import { SDKConstruct } from "../base";
 import type { BotBaseType, BotDataPayload, BotDetailedType } from "./utils";
 
-export type BotAddresses = PartialRecord<BotDetailedType, Address>;
+export type BotAddresses = Partial<Record<BotDetailedType, Address>>;
 
 export class BotsService extends SDKConstruct {
   /**
@@ -22,7 +20,6 @@ export class BotsService extends SDKConstruct {
     const BOT_INFO_LENGTH = 4;
     const infoResp = (await this.provider.publicClient.multicall({
       allowFailure: false,
-      multicallAddress: MULTICALL_ADDRESS,
       contracts: addressesList
         .map(([, address]) => [
           {

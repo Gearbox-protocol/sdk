@@ -1,10 +1,10 @@
-import { getConnectors } from "@gearbox-protocol/sdk-gov";
 import type { Address } from "viem";
 
 import { routerV3Abi } from "../abi";
 import { BaseContract } from "../base";
 import type { CreditAccountData } from "../base/types";
 import type { GearboxSDK } from "../GearboxSDK";
+import { getConnectors } from "../sdk-gov-legacy";
 import { AddressMap } from "../utils";
 import type { IHooks } from "../utils/internal";
 import { Hooks } from "../utils/internal";

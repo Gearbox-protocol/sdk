@@ -1,4 +1,3 @@
-import { ADDRESS_0X0, formatBN } from "@gearbox-protocol/sdk-gov";
 import type { Address, PrivateKeyAccount } from "viem";
 import { isAddress, parseEther } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
@@ -12,7 +11,9 @@ import type {
   ILogger,
 } from "../sdk";
 import {
+  ADDRESS_0X0,
   childLogger,
+  formatBN,
   iDegenNftv2Abi,
   ierc20Abi,
   MAX_UINT256,

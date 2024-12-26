@@ -48,7 +48,6 @@
     "typecheck:ci": "tsc --noEmit"
   },
   "dependencies": {
-    "@gearbox-protocol/sdk-gov": "^2.33.1",
     "@redstone-finance/evm-connector": "^0.7.3",
     "abitype": "^1.0.8",
     "date-fns": "^4.1.0",

@@ -1,3 +1,6 @@
+import type { Address } from "viem";
+
+import type { NetworkType } from "../chain";
 import type {
   AuraLPToken,
   AuraStakedToken,
@@ -5,9 +8,8 @@ import type {
   ConvexLPToken,
   CurveLPToken,
   CurveParams,
-  NetworkType,
   YearnLPToken,
-} from "@gearbox-protocol/sdk-gov";
+} from "../sdk-gov-legacy";
 import {
   auraTokens,
   balancerLpTokens,
@@ -19,9 +21,7 @@ import {
   isCurveLPToken,
   tokenDataByNetwork,
   yearnTokens,
-} from "@gearbox-protocol/sdk-gov";
-import type { Address } from "viem";
-
+} from "../sdk-gov-legacy";
 import type { Asset, PathOptionSerie } from "./types";
 
 export class PathOptionFactory {

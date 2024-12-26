@@ -1,9 +1,7 @@
-import { MULTICALL_ADDRESS } from "@gearbox-protocol/sdk-gov";
 import type { Address } from "viem";
 
 import { dataCompressorV3Abi } from "../abi";
 import { SDKConstruct } from "../base";
-import { AP_DATA_COMPRESSOR } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { GaugeStakingDataPayload } from "./utils";
 
@@ -27,7 +25,6 @@ export class GaugeStakingService extends SDKConstruct {
     const [gauges, availableBalance, totalBalance, withdrawableAmounts, epoch] =
       await this.provider.publicClient.multicall({
         allowFailure: false,
-        multicallAddress: MULTICALL_ADDRESS,
         contracts: [
           {
             address: this.#compressor,
