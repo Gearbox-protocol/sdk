@@ -51,7 +51,6 @@ import {IUniswapV2Adapter} from "@gearbox-protocol/integrations-v3/contracts/int
 import {IUniswapV3Adapter} from "@gearbox-protocol/integrations-v3/contracts/interfaces/uniswap/IUniswapV3Adapter.sol";
 import {IYVault} from "@gearbox-protocol/integrations-v3/contracts/integrations/yearn/IYVault.sol";
 import {IYearnV2Adapter} from "@gearbox-protocol/integrations-v3/contracts/interfaces/yearn/IYearnV2Adapter.sol";
-import {IPendleRouterAdapter} from "@gearbox-protocol/integrations-v3/contracts/adapters/pendle/PendleRouterAdapter.sol";
 
 import {IwstETHV1Adapter} from "@gearbox-protocol/integrations-v3/contracts/interfaces/lido/IwstETHV1Adapter.sol";
 import {IstETH} from "@gearbox-protocol/integrations-v3/contracts/integrations/lido/IstETH.sol";
