@@ -1117,7 +1117,7 @@
   dependencies:
     "@typechain/ethers-v5" "^10.2.1"
 
-"@gearbox-protocol/core-v3@^1.50.0":
+"@gearbox-protocol/core-v3@^1.51.0":
   version "1.51.0"
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/core-v3/-/core-v3-1.51.0.tgz#c7e61bbaa7187648834ac03ae34b3337c567d5a9"
   integrity sha512-DqY+3f/MWrtlIS+PlUMg0k4NdWPoVtjKmpyqAPO3GytZq4wqwTnJ3Xqni/IAyqxIPQBGIEvuiLeHkdVaQmpYyA==
@@ -1151,12 +1151,12 @@
     "@gearbox-protocol/sdk" "^1.22.0"
     axios "^1.1.3"
 
-"@gearbox-protocol/integrations-v3@^1.43.0":
+"@gearbox-protocol/integrations-v3@^1.44.0":
   version "1.44.0"
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/integrations-v3/-/integrations-v3-1.44.0.tgz#6156fd6cbc1a02db0e3cec91d957d8ed2a01b0e7"
   integrity sha512-/u+10d3qcG4GZGwJ0PhesbN4ZoVnnDt5RvF5OUmQsDZjeTpW43X6cbOyNCV+zstOEE+60D0AC50rFXE8ptuGXA==
 
-"@gearbox-protocol/oracles-v3@^1.11.1":
+"@gearbox-protocol/oracles-v3@^1.13.0":
   version "1.13.0"
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/oracles-v3/-/oracles-v3-1.13.0.tgz#b5176ca0c936832b0c0799d387d5fba49697ce08"
   integrity sha512-2y+/VI1IBoBq1yU/ROqdZ96ZVByi69NpyR814xo0gilmPNmqhmJI8Yq79PZMlwwfp6kmePECNEOMZLEbLd9Alg==
@@ -1177,7 +1177,7 @@
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/prettier-config/-/prettier-config-1.5.0.tgz#4df8e9fd2305fee6ab8c1417a02e31343836932a"
   integrity sha512-FUoprSsBdZyBjgxXCKL6mTkbeUJytaLzPJqIOoQpDmBRTX0seCc2o5I9PI9tySoRIlNnd/XXnKCXq1xHDEGbxw==
 
-"@gearbox-protocol/router-v3@^1.37.0":
+"@gearbox-protocol/router-v3@^1.41.0":
   version "1.41.0"
   resolved "https://registry.yarnpkg.com/@gearbox-protocol/router-v3/-/router-v3-1.41.0.tgz#e413a34a460af9a9157dae4e72e219508e218d3c"
   integrity sha512-nXTaapeY8SDwE8tGWkkzy0aMU+0UMSGuuo5ekNqtiQO1Zr08IEZ3mbExf/izi8o6cKGeRwX7jZJTO826mqg+DA==

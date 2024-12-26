@@ -1,6 +1,12 @@
-import { getConnectors, NetworkType } from "@gearbox-protocol/sdk-gov";
+import {
+  contractsByNetwork,
+  getConnectors,
+  NetworkType,
+  PERCENTAGE_FACTOR,
+} from "@gearbox-protocol/sdk-gov";
 import {
   Address,
+  encodeFunctionData,
   getContract,
   GetContractReturnType,
   PublicClient,
@@ -9,7 +15,11 @@ import {
 import { Asset } from "../core/assets";
 import { CreditAccountData } from "../core/creditAccount";
 import { CreditManagerData } from "../core/creditManager";
-import { iRouterV3Abi } from "../types";
+import {
+  iCreditFacadeV3MulticallAbi,
+  iRouterV3Abi,
+  pendleSwapperAbi,
+} from "../types";
 import {
   MultiCall,
   PathFinderCloseResult,
@@ -35,6 +45,7 @@ interface FindAllSwapsProps {
 
 interface FindOneTokenPathProps {
   creditAccount: CreditAccountData;
+  creditManager: CreditManagerData;
   tokenIn: Address;
   tokenOut: Address;
   amount: bigint;
@@ -63,10 +74,22 @@ interface Balance {
   balance: bigint;
 }
 
+const PT_IN = {
+  ["0xEe9085fC268F6727d5D4293dBABccF901ffDCC29".toLowerCase()]:
+    "PT_sUSDe_26DEC2024",
+  ["0xE00bd3Df25fb187d6ABBB620b3dfd19839947b81".toLowerCase()]:
+    "PT_sUSDe_27MAR20251",
+};
+
+const OUT = {
+  ["0x9D39A5DE30e57443BfF2A8307A4256c8797A3497".toLowerCase()]: "sUSDe",
+};
+
 export class PathFinder {
   pathFinder: GetContractReturnType<typeof iRouterV3Abi, PublicClient>;
   network: NetworkType;
 
+  protected readonly _client: PublicClient;
   protected readonly _connectors: Array<Address>;
 
   constructor(
@@ -82,6 +105,7 @@ export class PathFinder {
     this.network = network;
 
     this._connectors = getConnectors(network);
+    this._client = provider;
   }
 
   async findAllSwaps({
@@ -129,33 +153,106 @@ export class PathFinder {
     return Object.values(unique);
   }
 
-  async findOneTokenPath({
-    creditAccount,
-    tokenIn,
-    tokenOut,
-    amount,
-    slippage,
-  }: FindOneTokenPathProps): Promise<PathFinderResult> {
+  async findOneTokenPath(
+    props: FindOneTokenPathProps,
+  ): Promise<PathFinderResult> {
+    const { creditAccount, tokenIn, tokenOut, amount, slippage } = props;
+
     const connectors = this.getAvailableConnectors(creditAccount.balances);
 
-    const { result } = await this.pathFinder.simulate.findOneTokenPath(
-      [
-        tokenIn,
-        amount,
-        tokenOut,
-        creditAccount.addr,
-        connectors,
-        BigInt(slippage),
-      ],
-      {
-        gas: GAS_PER_BLOCK,
-      },
-    );
+    const isPTOverrideRedeem =
+      PT_IN[tokenIn.toLowerCase()] && OUT[tokenOut.toLowerCase()];
+
+    const { result } = await (isPTOverrideRedeem
+      ? this.overridePTRedeem(props)
+      : this.pathFinder.simulate.findOneTokenPath(
+          [
+            tokenIn,
+            amount,
+            tokenOut,
+            creditAccount.addr,
+            connectors,
+            BigInt(slippage),
+          ],
+          {
+            gas: GAS_PER_BLOCK,
+          },
+        ));
 
     return {
       amount: result.amount,
       minAmount: result.minAmount,
       calls: result.calls as Array<MultiCall>,
+    };
+  }
+
+  async overridePTRedeem({
+    creditAccount,
+    creditManager,
+    tokenIn,
+    tokenOut,
+    amount,
+    slippage,
+  }: FindOneTokenPathProps) {
+    const pendleSwapperAddress =
+      await this.pathFinder.read.componentAddressById([37]);
+
+    const adapterAddress =
+      creditManager.adapters[
+        contractsByNetwork[this.network].PENDLE_ROUTER.toLowerCase() as Address
+      ];
+
+    const pendleSwapper = getContract({
+      address: pendleSwapperAddress,
+      abi: pendleSwapperAbi,
+      client: this._client,
+    });
+
+    const result = await pendleSwapper.simulate.getBestDirectPairSwap([
+      {
+        swapOperation: 1,
+        creditAccount: creditAccount.addr,
+        tokenIn: tokenIn,
+        tokenOut: tokenOut,
+        connectors: [],
+        amount,
+        leftoverAmount: 0n,
+      },
+      adapterAddress,
+    ]);
+
+    const minAmount =
+      (result.result.amount * (PERCENTAGE_FACTOR - BigInt(slippage))) /
+      PERCENTAGE_FACTOR;
+
+    const storeExpectedBalances = {
+      target: creditManager.creditFacade,
+      callData: encodeFunctionData({
+        abi: iCreditFacadeV3MulticallAbi,
+        functionName: "storeExpectedBalances",
+        args: [[{ token: tokenOut, amount: minAmount }]],
+      }),
+    };
+
+    const compareBalances = {
+      target: creditManager.creditFacade,
+      callData: encodeFunctionData({
+        abi: iCreditFacadeV3MulticallAbi,
+        functionName: "compareBalances",
+        args: [],
+      }),
+    };
+
+    return {
+      result: {
+        amount: result.result.amount,
+        minAmount,
+        calls: [
+          storeExpectedBalances,
+          result.result.multiCall,
+          compareBalances,
+        ],
+      },
     };
   }
 
