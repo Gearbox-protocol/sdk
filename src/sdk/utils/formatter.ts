@@ -1,5 +1,13 @@
 import { formatDuration as fmtDuration, intervalToDuration } from "date-fns";
 
+export const toBigInt = (
+  v: string | number | bigint | { type: "BigNumber"; hex: string },
+): bigint => {
+  const value =
+    typeof v === "object" && v.type === "BigNumber" ? v.hex : v.toString();
+  return BigInt(value);
+};
+
 export const percentFmt = (v: number | bigint | string, raw = true): string =>
   `${(Number(v) / 100).toFixed(2)}%` + (raw ? ` [${v}]` : "");
 

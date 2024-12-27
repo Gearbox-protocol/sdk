@@ -6,3 +6,4 @@ export * from "./etherscan";
 export * from "./filterDust";
 export * from "./formatter";
 export * from "./json";
+export * from "./mappers";
