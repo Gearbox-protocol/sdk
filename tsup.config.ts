@@ -12,6 +12,7 @@ export default defineConfig(options => {
     treeshake: true,
     sourcemap: false,
     external: ["../sdk"],
+    noExternal: ["decimal.js-light"],
     ...options,
   };
 
