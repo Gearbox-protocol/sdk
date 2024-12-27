@@ -75,6 +75,9 @@
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
   },
+  "peerDependencies": {
+    "axios": "^1.0.0"
+  },
   "commitlint": {
     "extends": [
       "@commitlint/config-conventional"

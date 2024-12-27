@@ -11,8 +11,7 @@ export default defineConfig(options => {
     splitting: false,
     treeshake: true,
     sourcemap: false,
-    external: ["../sdk"],
-    noExternal: ["decimal.js-light"],
+    external: ["../sdk", "axios"],
     ...options,
   };
 
