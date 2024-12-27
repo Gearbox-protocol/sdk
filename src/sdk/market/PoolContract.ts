@@ -65,13 +65,17 @@ export class PoolContract extends BaseContract<typeof abi> {
       creditManagerDebtParams: Object.fromEntries(
         this.creditManagerDebtParams
           .values()
-          .map(({ creditManager, borrowed, limit }) => [
+          .map(({ creditManager, borrowed, limit, available }) => [
             this.labelAddress(creditManager),
             {
               borrowed: formatBNvalue(borrowed, this.decimals, 2, raw),
               limit: formatBNvalue(limit, this.decimals, 2, raw),
-              // TODO: availableToBorrow is gone from MarketCompressor
-              availableToBorrow: "",
+              availableToBorrow: formatBNvalue(
+                available,
+                this.decimals,
+                2,
+                raw,
+              ),
             },
           ]),
       ),
