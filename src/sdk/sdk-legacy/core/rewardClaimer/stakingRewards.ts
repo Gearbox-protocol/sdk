@@ -16,8 +16,8 @@ import type { PartialRecord } from "../../../utils";
 import { TypedObjectUtils } from "../../../utils";
 import type { TokenData } from "../../tokens/tokenData";
 import { iBaseRewardPoolAbi, iStakingRewardsAdapterAbi } from "../../types";
-import type { CreditAccountData } from "../creditAccount";
-import type { CreditManagerData } from "../creditManager";
+import type { CreditAccountData_Legacy } from "../creditAccount";
+import type { CreditManagerData_Legacy } from "../creditManager";
 import type { AdapterWithType, Rewards } from ".";
 
 type DistributionList = Array<Array<RewardDistribution>>;
@@ -41,7 +41,7 @@ export interface RewardDistribution {
 
 export class StakingRewards {
   static async findRewards(
-    ca: CreditAccountData,
+    ca: CreditAccountData_Legacy,
     provider: PublicClient,
 
     adapters: Array<AdapterWithType>,
@@ -77,7 +77,7 @@ export class StakingRewards {
     return results;
   }
 
-  static getRewardTokenCalls(cm: CreditManagerData) {
+  static getRewardTokenCalls(cm: CreditManagerData_Legacy) {
     const adapters = this.findAdapters(cm);
 
     const calls = adapters.reduce<CallsList>((acc, a) => {
@@ -96,7 +96,7 @@ export class StakingRewards {
     return { calls, adapters };
   }
 
-  private static findAdapters(cm: CreditManagerData) {
+  private static findAdapters(cm: CreditManagerData_Legacy) {
     const contractsRecord = TypedObjectUtils.entries(contractParams).reduce<
       Record<SupportedContract, StakingRewardsParams>
     >(

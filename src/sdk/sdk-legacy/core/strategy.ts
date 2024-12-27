@@ -3,7 +3,7 @@ import type { Address } from "viem";
 import type { NetworkType } from "../../chain";
 import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR } from "../../constants";
 import type { PartialRecord } from "../../utils";
-import type { CreditManagerData } from "./creditManager";
+import type { CreditManagerData_Legacy } from "./creditManager";
 
 export type ReleaseAt = undefined | number | PartialRecord<NetworkType, number>;
 
@@ -76,4 +76,7 @@ export class PositionUtils {
   }
 }
 
-type PartialCM = Pick<CreditManagerData, "liquidationThresholds" | "address">;
+type PartialCM = Pick<
+  CreditManagerData_Legacy,
+  "liquidationThresholds" | "address"
+>;

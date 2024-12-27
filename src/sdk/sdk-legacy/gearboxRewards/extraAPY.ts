@@ -3,19 +3,19 @@ import type { Address } from "viem";
 
 import { chains, type NetworkType } from "../../chain";
 import { PERCENTAGE_FACTOR } from "../../constants";
+import type { Asset } from "../../router";
 import type { SupportedToken } from "../../sdk-gov-legacy";
 import { type PartialRecord, TypedObjectUtils } from "../../utils";
 import { poolByNetwork } from "../contracts/contractsRegister";
-import type { Asset } from "../core/assets";
 import { GearboxBackendApi } from "../core/endpoint";
-import type { PoolData } from "../core/pool";
+import type { PoolData_Legacy } from "../core/pool";
 import type { TokenData } from "../tokens/tokenData";
 import { toBN } from "../utils/formatter";
 import { BigIntMath } from "../utils/math";
 
 export interface GetPointsByPoolProps {
   totalTokenBalances: Record<Address, Asset>;
-  pools: Array<PoolData>;
+  pools: Array<PoolData_Legacy>;
   currentTokenData: Record<SupportedToken, Address>;
   tokensList: Record<Address, TokenData>;
   network: NetworkType;
@@ -200,7 +200,7 @@ export class GearboxRewardsExtraApy {
 
   private static getPoolTokenPoints(
     tokenBalanceInPool: Asset | undefined,
-    pool: PoolData,
+    pool: PoolData_Legacy,
     tokensList: Record<Address, TokenData>,
     pointsInfo: PoolPointsInfo,
   ) {

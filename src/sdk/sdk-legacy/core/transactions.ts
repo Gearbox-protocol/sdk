@@ -1,9 +1,9 @@
 import type { Address } from "viem";
 
+import type { Asset } from "../../router";
 import { formatBN } from "../../utils";
 import type { TokenData } from "../tokens/tokenData";
 import { BigIntMath } from "../utils/math";
-import type { Asset } from "./assets";
 import type { EVMTxProps } from "./eventOrTx";
 import { EVMTx } from "./eventOrTx";
 

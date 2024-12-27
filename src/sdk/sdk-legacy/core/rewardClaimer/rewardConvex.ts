@@ -21,8 +21,8 @@ import {
 import type { PartialRecord } from "../../../utils";
 import { TypedObjectUtils } from "../../../utils";
 import { iBaseRewardPoolAbi, iConvexTokenAbi } from "../../types";
-import type { CreditAccountData } from "../creditAccount";
-import type { CreditManagerData } from "../creditManager";
+import type { CreditAccountData_Legacy } from "../creditAccount";
+import type { CreditManagerData_Legacy } from "../creditManager";
 import type { AdapterWithType, Rewards } from ".";
 import { getAURAMintAmount } from "./aura";
 import { AURA_BOOSTER_ABI } from "./auraAbi";
@@ -60,8 +60,8 @@ interface ParseProps {
 // convex[totalSupply, ...tokens] aura[totalSupply, multiplier, ...tokens]
 export class RewardConvex {
   static async findRewards(
-    ca: CreditAccountData,
-    cm: CreditManagerData,
+    ca: CreditAccountData_Legacy,
+    cm: CreditManagerData_Legacy,
     network: NetworkType,
     provider: PublicClient,
   ): Promise<Array<Rewards>> {
@@ -109,7 +109,7 @@ export class RewardConvex {
     return results;
   }
 
-  static findAdapters(cm: CreditManagerData) {
+  static findAdapters(cm: CreditManagerData_Legacy) {
     const convexPools = TypedObjectUtils.entries(contractParams).reduce<
       Record<SupportedContract, ContractParams>
     >(
@@ -138,7 +138,7 @@ export class RewardConvex {
 
   static prepareMultiCalls(
     creditAccount: Address,
-    cm: CreditManagerData,
+    cm: CreditManagerData_Legacy,
     network: NetworkType,
   ) {
     const tokens = tokenDataByNetwork[network];

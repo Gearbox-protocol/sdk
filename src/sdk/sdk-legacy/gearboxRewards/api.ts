@@ -8,7 +8,7 @@ import { MULTICALL_ADDRESS } from "../../constants";
 import type { SupportedToken } from "../../sdk-gov-legacy";
 import { toBigInt, TypedObjectUtils } from "../../utils";
 import { GearboxBackendApi } from "../core/endpoint";
-import type { PoolData } from "../core/pool";
+import type { PoolData_Legacy } from "../core/pool";
 import type { TokenData } from "../tokens/tokenData";
 import {
   iAirdropDistributorAbi,
@@ -101,7 +101,7 @@ const DEFAULT_POOLS_WITH_EXTRA_REWARDS: PoolsWithExtraRewardsList = {
 type ReportHandler = (e: unknown, description?: string) => void;
 
 export interface GetLmRewardsInfoProps {
-  pools: Record<Address, PoolData>;
+  pools: Record<Address, PoolData_Legacy>;
   currentTokenData: Record<SupportedToken, Address>;
   tokensList: Record<Address, TokenData>;
   provider: PublicClient;

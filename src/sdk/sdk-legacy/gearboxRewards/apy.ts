@@ -7,11 +7,11 @@ import {
   SECONDS_PER_YEAR,
   WAD,
 } from "../../constants";
+import type { Asset } from "../../router";
 import type { SupportedToken } from "../../sdk-gov-legacy";
 import type { PartialRecord } from "../../utils";
 import { toBigInt } from "../../utils";
-import type { Asset } from "../core/assets";
-import type { PoolData } from "../core/pool";
+import type { PoolData_Legacy } from "../core/pool";
 import type { TokenData } from "../tokens/tokenData";
 import { PriceUtils } from "../utils/price";
 import type { FarmInfo } from "./api";
@@ -45,7 +45,7 @@ export interface ExtraRewardApy {
 
 interface GetPoolExtraAPY_V3Props {
   stakedDieselToken: Address | undefined;
-  pool: PoolData;
+  pool: PoolData_Legacy;
   prices: Record<Address, bigint>;
 
   rewardPoolsInfo: Record<Address, Array<FarmInfo>>;

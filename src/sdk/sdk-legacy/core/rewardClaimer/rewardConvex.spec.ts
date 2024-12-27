@@ -12,7 +12,7 @@ import {
   tokenDataByNetwork,
 } from "../../../sdk-gov-legacy";
 import { iBaseRewardPoolAbi, iConvexTokenAbi } from "../../types";
-import type { CreditManagerData } from "../creditManager";
+import type { CreditManagerData_Legacy } from "../creditManager";
 import type { AdapterWithType, Rewards } from ".";
 import type { RewardDistribution } from "./rewardConvex";
 import { RewardConvex } from "./rewardConvex";
@@ -37,7 +37,7 @@ describe("RewardConvex test", () => {
           address: ADAPTER_CONVEX_FRAX3CRV_POOL,
         },
       },
-    } as unknown as CreditManagerData;
+    } as unknown as CreditManagerData_Legacy;
 
     const expectedResult: Array<AdapterWithType> = [
       {
@@ -65,7 +65,7 @@ describe("RewardConvex test", () => {
           address: ADAPTER_CONVEX_FRAX3CRV_POOL,
         },
       },
-    } as unknown as CreditManagerData;
+    } as unknown as CreditManagerData_Legacy;
 
     const calls: Array<
       Array<{

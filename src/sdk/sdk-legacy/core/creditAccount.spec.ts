@@ -2,10 +2,12 @@ import { describe, expect, it } from "@jest/globals";
 import type { Address } from "viem";
 
 import {
+  MIN_INT96,
   NOT_DEPLOYED,
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS_POW,
 } from "../../constants";
+import type { Asset } from "../../router";
 import type { SupportedToken } from "../../sdk-gov-legacy";
 import {
   decimals,
@@ -17,14 +19,13 @@ import type { TokensAPYList } from "../apy";
 import { TokenData } from "../tokens/tokenData";
 import { toBN } from "../utils/formatter";
 import { PriceUtils } from "../utils/price";
-import type { Asset } from "./assets";
 import { AssetUtils } from "./assets";
 import type {
   CalcHealthFactorProps,
   CalcOverallAPYProps,
   CalcQuotaUpdateProps,
 } from "./creditAccount";
-import { CreditAccountData, MIN_INT96 } from "./creditAccount";
+import { CreditAccountData_Legacy } from "./creditAccount";
 
 const tokensFiltered = TypedObjectUtils.fromEntries(
   TypedObjectUtils.entries(tokenDataByNetwork.Mainnet).filter(
@@ -146,9 +147,9 @@ const caWithLP: CATestInfo = {
   },
 };
 
-describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
+describe("CreditAccount CreditAccountData_Legacy.calcOverallAPY test", () => {
   it("overall APY calculation for caWithoutLP is correct", () => {
-    const result = CreditAccountData.calcOverallAPY({
+    const result = CreditAccountData_Legacy.calcOverallAPY({
       caAssets: caWithoutLP.assets,
       totalValue: caWithoutLP.totalValue,
       debt: caWithoutLP.debt,
@@ -167,7 +168,7 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
     expect(result).toEqual(-69484n);
   });
   it("overall APY calculation for caWithLP is correct", () => {
-    const result = CreditAccountData.calcOverallAPY({
+    const result = CreditAccountData_Legacy.calcOverallAPY({
       caAssets: caWithLP.assets,
       totalValue: caWithLP.totalValue,
       debt: caWithLP.debt,
@@ -186,7 +187,7 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
     expect(result).toEqual(144919n);
   });
   it("overall APY is undefined when !lpAPY", () => {
-    const result = CreditAccountData.calcOverallAPY({
+    const result = CreditAccountData_Legacy.calcOverallAPY({
       caAssets: caWithLP.assets,
       totalValue: caWithLP.totalValue,
       debt: caWithLP.debt,
@@ -205,7 +206,7 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
     expect(result).toEqual(undefined);
   });
   it("overall APY is undefined when !totalValue", () => {
-    const result = CreditAccountData.calcOverallAPY({
+    const result = CreditAccountData_Legacy.calcOverallAPY({
       caAssets: caWithLP.assets,
       totalValue: undefined,
       debt: caWithLP.debt,
@@ -224,7 +225,7 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
     expect(result).toEqual(undefined);
   });
   it("overall APY is undefined when !debt", () => {
-    const result = CreditAccountData.calcOverallAPY({
+    const result = CreditAccountData_Legacy.calcOverallAPY({
       caAssets: caWithLP.assets,
       totalValue: caWithLP.totalValue,
       debt: undefined,
@@ -243,7 +244,7 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
     expect(result).toEqual(undefined);
   });
   it("overall APY is undefined when totalValue lte 0", () => {
-    const result = CreditAccountData.calcOverallAPY({
+    const result = CreditAccountData_Legacy.calcOverallAPY({
       caAssets: caWithLP.assets,
       totalValue: 0n,
       debt: undefined,
@@ -262,7 +263,7 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
     expect(result).toEqual(undefined);
   });
   it("overall APY calculation for caWithLP with sufficient quota is correct", () => {
-    const result = CreditAccountData.calcOverallAPY({
+    const result = CreditAccountData_Legacy.calcOverallAPY({
       caAssets: caWithLP.assets,
       totalValue: caWithLP.totalValue,
       debt: caWithLP.debt,
@@ -281,7 +282,7 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
     expect(result).toEqual(-18680n);
   });
   it("overall APY calculation for caWithLP with insufficient quota is correct", () => {
-    const result = CreditAccountData.calcOverallAPY({
+    const result = CreditAccountData_Legacy.calcOverallAPY({
       caAssets: caWithLP.assets,
       totalValue: caWithLP.totalValue,
       debt: caWithLP.debt,
@@ -308,7 +309,7 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
 
 describe("CreditAccount calcMaxDebtIncrease test", () => {
   it("health max increase borrow is zero if hf < 1", () => {
-    const result = CreditAccountData.calcMaxDebtIncrease(
+    const result = CreditAccountData_Legacy.calcMaxDebtIncrease(
       9999,
       BigInt("156522834253690396032546"),
       9300,
@@ -316,7 +317,7 @@ describe("CreditAccount calcMaxDebtIncrease test", () => {
     expect(result.toString()).toEqual("0");
   });
   it("health max increase borrow is calculated correctly", () => {
-    const result = CreditAccountData.calcMaxDebtIncrease(
+    const result = CreditAccountData_Legacy.calcMaxDebtIncrease(
       10244,
       BigInt("156522834253690396032546"),
       9300,
@@ -327,7 +328,7 @@ describe("CreditAccount calcMaxDebtIncrease test", () => {
   it("health max increase borrow is calculated correctly (low hf, high debt)", () => {
     const loweHf = 10244;
 
-    const result = CreditAccountData.calcMaxDebtIncrease(
+    const result = CreditAccountData_Legacy.calcMaxDebtIncrease(
       loweHf,
       BigInt("54782991988791638611392"),
       9300,
@@ -346,7 +347,7 @@ const liquidationThresholds = {
 
 describe("CreditAccount calcMaxLendingDebt test", () => {
   it("calcMaxLendingDebt for several collaterals with zero lt", () => {
-    const result = CreditAccountData.calcMaxLendingDebt({
+    const result = CreditAccountData_Legacy.calcMaxLendingDebt({
       assets: [
         {
           token: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
@@ -372,7 +373,7 @@ describe("CreditAccount calcMaxLendingDebt test", () => {
     expect(result).toEqual(toBN("850", USDC_DECIMALS));
   });
   it("calcMaxLendingDebt for several collaterals with zero underlying price", () => {
-    const result = CreditAccountData.calcMaxLendingDebt({
+    const result = CreditAccountData_Legacy.calcMaxLendingDebt({
       assets: [
         {
           token: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
@@ -394,7 +395,7 @@ describe("CreditAccount calcMaxLendingDebt test", () => {
     expect(result).toEqual(0n);
   });
   it("calcMaxLendingDebt for simplest case", () => {
-    const result = CreditAccountData.calcMaxLendingDebt({
+    const result = CreditAccountData_Legacy.calcMaxLendingDebt({
       assets: [
         {
           token: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
@@ -412,7 +413,7 @@ describe("CreditAccount calcMaxLendingDebt test", () => {
     expect(result).toEqual(toBN("930", USDC_DECIMALS));
   });
   it("calcMaxLendingDebt for several collaterals", () => {
-    const result = CreditAccountData.calcMaxLendingDebt({
+    const result = CreditAccountData_Legacy.calcMaxLendingDebt({
       assets: [
         {
           token: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
@@ -435,7 +436,7 @@ describe("CreditAccount calcMaxLendingDebt test", () => {
     expect(result).toEqual(toBN("1780", USDC_DECIMALS));
   });
   it("calcMaxLendingDebt for several collaterals with target HF", () => {
-    const result = CreditAccountData.calcMaxLendingDebt({
+    const result = CreditAccountData_Legacy.calcMaxLendingDebt({
       assets: [
         {
           token: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
@@ -500,7 +501,7 @@ const defaultCA: CAHfTestInfo = {
 
 describe("CreditAccount calcHealthFactor test", () => {
   it("health factor is calculated correctly", () => {
-    const result = CreditAccountData.calcHealthFactor({
+    const result = CreditAccountData_Legacy.calcHealthFactor({
       quotas: {},
       quotasInfo: {},
       assets: defaultCA.assets,
@@ -514,7 +515,7 @@ describe("CreditAccount calcHealthFactor test", () => {
     expect(result).toEqual(defaultCA.healthFactor);
   });
   it("health factor calculation has no division by zero error", () => {
-    const result = CreditAccountData.calcHealthFactor({
+    const result = CreditAccountData_Legacy.calcHealthFactor({
       quotas: {},
       quotasInfo: {},
       assets: [],
@@ -534,7 +535,7 @@ describe("CreditAccount calcHealthFactor test", () => {
     };
 
     const afterAdd = AssetUtils.sumAssets(defaultCA.assets, [collateral]);
-    const result = CreditAccountData.calcHealthFactor({
+    const result = CreditAccountData_Legacy.calcHealthFactor({
       quotas: {},
       quotasInfo: {},
       assets: afterAdd,
@@ -557,7 +558,7 @@ describe("CreditAccount calcHealthFactor test", () => {
     const afterDecrease = AssetUtils.subAssets(defaultCA.assets, [
       debtDecrease,
     ]);
-    const result = CreditAccountData.calcHealthFactor({
+    const result = CreditAccountData_Legacy.calcHealthFactor({
       quotas: {},
       quotasInfo: {},
       assets: afterDecrease,
@@ -580,7 +581,7 @@ describe("CreditAccount calcHealthFactor test", () => {
     const afterIncrease = AssetUtils.sumAssets(defaultCA.assets, [
       debtIncrease,
     ]);
-    const result = CreditAccountData.calcHealthFactor({
+    const result = CreditAccountData_Legacy.calcHealthFactor({
       quotas: {},
       quotasInfo: {},
       assets: afterIncrease,
@@ -619,7 +620,7 @@ describe("CreditAccount calcHealthFactor test", () => {
     const afterSub = AssetUtils.subAssets(defaultCA.assets, [swapAsset]);
     const afterSwap = AssetUtils.sumAssets(afterSub, [getAsset]);
 
-    const result = CreditAccountData.calcHealthFactor({
+    const result = CreditAccountData_Legacy.calcHealthFactor({
       quotas: {},
       quotasInfo: {},
       assets: afterSwap,
@@ -633,7 +634,7 @@ describe("CreditAccount calcHealthFactor test", () => {
     expect(result).toEqual(9444);
   });
   it("health factor with sufficient quotas is calculated correctly", () => {
-    const result = CreditAccountData.calcHealthFactor({
+    const result = CreditAccountData_Legacy.calcHealthFactor({
       quotas: defaultCA.quotas,
       quotasInfo: defaultCA.quotasInfo,
       assets: defaultCA.assets,
@@ -647,7 +648,7 @@ describe("CreditAccount calcHealthFactor test", () => {
     expect(result).toEqual(defaultCA.healthFactor);
   });
   it("health factor with insufficient quotas is calculated correctly", () => {
-    const result = CreditAccountData.calcHealthFactor({
+    const result = CreditAccountData_Legacy.calcHealthFactor({
       quotas: {
         [tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address]: {
           balance: 0n,
@@ -666,7 +667,7 @@ describe("CreditAccount calcHealthFactor test", () => {
     expect(result).toEqual(9300);
   });
   it("health factor with disabled quota is calculated correctly", () => {
-    const result = CreditAccountData.calcHealthFactor({
+    const result = CreditAccountData_Legacy.calcHealthFactor({
       quotas: defaultCA.quotas,
       quotasInfo: {
         [tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address]: {
@@ -719,7 +720,7 @@ const HUGE_MAX_DEBT = 20n * PERCENTAGE_FACTOR;
 
 describe("CreditAccount calcQuotaUpdate test", () => {
   it("open account should buy quota", () => {
-    const result = CreditAccountData.calcQuotaUpdate({
+    const result = CreditAccountData_Legacy.calcQuotaUpdate({
       maxDebt: HUGE_MAX_DEBT,
       quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
@@ -773,7 +774,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     });
   });
   it("add collateral should buy quota", () => {
-    const result = CreditAccountData.calcQuotaUpdate({
+    const result = CreditAccountData_Legacy.calcQuotaUpdate({
       maxDebt: HUGE_MAX_DEBT,
       quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
@@ -817,7 +818,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     });
   });
   it("add collateral should add additional quota", () => {
-    const result = CreditAccountData.calcQuotaUpdate({
+    const result = CreditAccountData_Legacy.calcQuotaUpdate({
       maxDebt: HUGE_MAX_DEBT,
       quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
@@ -861,7 +862,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     });
   });
   it("add collateral shouldn't add additional quota", () => {
-    const result = CreditAccountData.calcQuotaUpdate({
+    const result = CreditAccountData_Legacy.calcQuotaUpdate({
       maxDebt: HUGE_MAX_DEBT,
       quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
@@ -900,7 +901,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     });
   });
   it("swap should buy quota", () => {
-    const result = CreditAccountData.calcQuotaUpdate({
+    const result = CreditAccountData_Legacy.calcQuotaUpdate({
       maxDebt: HUGE_MAX_DEBT,
       quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
@@ -954,7 +955,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     });
   });
   it("swap should buy additional quota", () => {
-    const result = CreditAccountData.calcQuotaUpdate({
+    const result = CreditAccountData_Legacy.calcQuotaUpdate({
       maxDebt: HUGE_MAX_DEBT,
       quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
@@ -1010,7 +1011,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     });
   });
   it("swap should buy additional quota with respect to debt", () => {
-    const result = CreditAccountData.calcQuotaUpdate({
+    const result = CreditAccountData_Legacy.calcQuotaUpdate({
       maxDebt: HUGE_MAX_DEBT,
       quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
@@ -1070,7 +1071,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     });
   });
   it("swap shouldn't buy additional quota", () => {
-    const result = CreditAccountData.calcQuotaUpdate({
+    const result = CreditAccountData_Legacy.calcQuotaUpdate({
       maxDebt: HUGE_MAX_DEBT,
       quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
@@ -1119,7 +1120,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     });
   });
   it("shouldn't change quota if disallowed", () => {
-    const result = CreditAccountData.calcQuotaUpdate({
+    const result = CreditAccountData_Legacy.calcQuotaUpdate({
       maxDebt: HUGE_MAX_DEBT,
       quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
@@ -1161,7 +1162,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     });
   });
   it("shouldn't change quota if it is disabled", () => {
-    const result = CreditAccountData.calcQuotaUpdate({
+    const result = CreditAccountData_Legacy.calcQuotaUpdate({
       maxDebt: HUGE_MAX_DEBT,
       quotaReserve: QUOTA_RESERVE,
       quotas: {
@@ -1220,7 +1221,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     });
   });
   it("swap shouldn't buy quota if no lt", () => {
-    const result = CreditAccountData.calcQuotaUpdate({
+    const result = CreditAccountData_Legacy.calcQuotaUpdate({
       maxDebt: HUGE_MAX_DEBT,
       quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
@@ -1274,7 +1275,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     });
   });
   it("swap should buy quota with respect to lt", () => {
-    const result = CreditAccountData.calcQuotaUpdate({
+    const result = CreditAccountData_Legacy.calcQuotaUpdate({
       maxDebt: HUGE_MAX_DEBT,
       quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
@@ -1334,7 +1335,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     });
   });
   it("swap shouldn't buy quota with respect to lt", () => {
-    const result = CreditAccountData.calcQuotaUpdate({
+    const result = CreditAccountData_Legacy.calcQuotaUpdate({
       maxDebt: HUGE_MAX_DEBT,
       quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
@@ -1389,7 +1390,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     });
   });
   it("swap should buy additional quota after limit was increased", () => {
-    const result = CreditAccountData.calcQuotaUpdate({
+    const result = CreditAccountData_Legacy.calcQuotaUpdate({
       maxDebt: 10n * PERCENTAGE_FACTOR,
       quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
@@ -1450,7 +1451,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     });
   });
   it("swap should buy additional quota with respect to debt limit", () => {
-    const result = CreditAccountData.calcQuotaUpdate({
+    const result = CreditAccountData_Legacy.calcQuotaUpdate({
       maxDebt: 9n * PERCENTAGE_FACTOR,
       quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
@@ -1511,7 +1512,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     });
   });
   it("swap shouldn't buy additional quota if debt limit more then current quota", () => {
-    const result = CreditAccountData.calcQuotaUpdate({
+    const result = CreditAccountData_Legacy.calcQuotaUpdate({
       maxDebt: 5n * PERCENTAGE_FACTOR,
       quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
@@ -1567,7 +1568,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     });
   });
   it("swap on old accounts should work correctly", () => {
-    const result = CreditAccountData.calcQuotaUpdate({
+    const result = CreditAccountData_Legacy.calcQuotaUpdate({
       maxDebt: HUGE_MAX_DEBT,
       quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
@@ -1629,7 +1630,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     });
   });
   it("swap on old accounts should work correctly and respect maxQuotaIncrease", () => {
-    const result = CreditAccountData.calcQuotaUpdate({
+    const result = CreditAccountData_Legacy.calcQuotaUpdate({
       maxDebt: 6n * PERCENTAGE_FACTOR,
       quotaReserve: QUOTA_RESERVE,
       quotas: cmQuotas,
@@ -1694,7 +1695,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
 
 describe("CreditAccount calcAvgQuotaBorrowRate test", () => {
   it("should calculate quota rate (same amounts, different rates)", () => {
-    const result = CreditAccountData.calcQuotaBorrowRate({
+    const result = CreditAccountData_Legacy.calcQuotaBorrowRate({
       quotas: {
         [tokenDataByNetwork.Mainnet.DAI]: {
           token: tokenDataByNetwork.Mainnet.DAI,
@@ -1728,7 +1729,7 @@ describe("CreditAccount calcAvgQuotaBorrowRate test", () => {
     expect(result).toEqual(300n);
   });
   it("should calculate quota rate (same rates, different amounts)", () => {
-    const result = CreditAccountData.calcQuotaBorrowRate({
+    const result = CreditAccountData_Legacy.calcQuotaBorrowRate({
       quotas: {
         [tokenDataByNetwork.Mainnet.DAI]: {
           token: tokenDataByNetwork.Mainnet.DAI,
@@ -1762,7 +1763,7 @@ describe("CreditAccount calcAvgQuotaBorrowRate test", () => {
     expect(result).toEqual(300n);
   });
   it("should calculate quota rate (disabled quota)", () => {
-    const result = CreditAccountData.calcQuotaBorrowRate({
+    const result = CreditAccountData_Legacy.calcQuotaBorrowRate({
       quotas: {
         [tokenDataByNetwork.Mainnet.DAI]: {
           token: tokenDataByNetwork.Mainnet.DAI,
@@ -1799,7 +1800,7 @@ describe("CreditAccount calcAvgQuotaBorrowRate test", () => {
 
 describe("CreditAccount calcQuotaBorrowRate test", () => {
   it("should calculate quota borrow rate", () => {
-    const result = CreditAccountData.calcQuotaBorrowRate({
+    const result = CreditAccountData_Legacy.calcQuotaBorrowRate({
       quotas: {
         [tokenDataByNetwork.Mainnet.DAI]: {
           token: tokenDataByNetwork.Mainnet.DAI,
@@ -1817,7 +1818,7 @@ describe("CreditAccount calcQuotaBorrowRate test", () => {
     expect(result).toEqual(50n);
   });
   it("should calculate quota borrow rate when no balance", () => {
-    const result = CreditAccountData.calcQuotaBorrowRate({
+    const result = CreditAccountData_Legacy.calcQuotaBorrowRate({
       quotas: {
         [tokenDataByNetwork.Mainnet.DAI]: {
           token: tokenDataByNetwork.Mainnet.DAI,
@@ -1838,7 +1839,7 @@ describe("CreditAccount calcQuotaBorrowRate test", () => {
 
 describe("CreditAccount calcRelativeBaseBorrowRate test", () => {
   it("should calculate relative borrow rate", () => {
-    const result = CreditAccountData.calcRelativeBaseBorrowRate({
+    const result = CreditAccountData_Legacy.calcRelativeBaseBorrowRate({
       debt: 200n,
       baseRateWithFee: 250,
       assetAmountInUnderlying: 200n,
@@ -1847,7 +1848,7 @@ describe("CreditAccount calcRelativeBaseBorrowRate test", () => {
     expect(result).toEqual(10000000n);
   });
   it("should calculate relative borrow rate if position asset === 0", () => {
-    const result = CreditAccountData.calcRelativeBaseBorrowRate({
+    const result = CreditAccountData_Legacy.calcRelativeBaseBorrowRate({
       debt: 200n,
       baseRateWithFee: 250,
       assetAmountInUnderlying: 1n,
@@ -1856,7 +1857,7 @@ describe("CreditAccount calcRelativeBaseBorrowRate test", () => {
     expect(result).toEqual(50000n);
   });
   it("should calculate relative borrow rate if position === 0", () => {
-    const result = CreditAccountData.calcRelativeBaseBorrowRate({
+    const result = CreditAccountData_Legacy.calcRelativeBaseBorrowRate({
       debt: 1n,
       baseRateWithFee: 250,
       assetAmountInUnderlying: 1n,
@@ -1868,7 +1869,7 @@ describe("CreditAccount calcRelativeBaseBorrowRate test", () => {
 
 describe("CreditAccount getTimeToLiquidation test", () => {
   it("should return 0 when HF < 1", () => {
-    const result = CreditAccountData.getTimeToLiquidation({
+    const result = CreditAccountData_Legacy.getTimeToLiquidation({
       healthFactor: 9000,
       totalBorrowRate_debt: 250n,
     });
@@ -1876,7 +1877,7 @@ describe("CreditAccount getTimeToLiquidation test", () => {
     expect(result).toEqual(null);
   });
   it("should return 0 when br_debt === 0", () => {
-    const result = CreditAccountData.getTimeToLiquidation({
+    const result = CreditAccountData_Legacy.getTimeToLiquidation({
       healthFactor: 9000,
       totalBorrowRate_debt: 0n,
     });
@@ -1884,7 +1885,7 @@ describe("CreditAccount getTimeToLiquidation test", () => {
     expect(result).toEqual(null);
   });
   it("should calculate time to liquidation correctly", () => {
-    const result = CreditAccountData.getTimeToLiquidation({
+    const result = CreditAccountData_Legacy.getTimeToLiquidation({
       healthFactor: 13750,
       totalBorrowRate_debt: 20n * 10000n,
     });
