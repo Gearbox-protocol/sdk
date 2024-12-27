@@ -1,6 +1,7 @@
 import type { Abi, Address, PublicClient } from "viem";
 import { encodeFunctionData } from "viem";
 
+import { iStakingRewardsAdapterAbi } from "../../../abi";
 import { ADDRESS_0X0, MULTICALL_ADDRESS } from "../../../constants";
 import type {
   StakingRewardsParams,
@@ -15,7 +16,7 @@ import {
 import type { PartialRecord } from "../../../utils";
 import { TypedObjectUtils } from "../../../utils";
 import type { TokenData } from "../../tokens/tokenData";
-import { iBaseRewardPoolAbi, iStakingRewardsAdapterAbi } from "../../types";
+import { iBaseRewardPoolAbi } from "../../types";
 import type { CreditAccountData_Legacy } from "../creditAccount";
 import type { CreditManagerData_Legacy } from "../creditManager";
 import type { AdapterWithType, Rewards } from ".";
