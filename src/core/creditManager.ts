@@ -11,7 +11,6 @@ import {
   CreditManagerDataPayload,
   QuotaInfo,
 } from "../payload/creditManager";
-import { LinearModel } from "../payload/pool";
 
 export type CreditManagerType = "universal" | "trade" | "farm" | "restaking";
 
@@ -49,11 +48,11 @@ export class CreditManagerData {
   readonly collateralTokens: Array<Address> = [];
   readonly supportedTokens: Record<Address, true> = {};
   readonly usableTokens: Record<Address, true> = {};
-  readonly adapters: Record<Address, Address> = {};
+  readonly adapters: Record<Address, CreditManagerDataPayload["adapters"][1]> =
+    {};
   readonly contractsByAdapter: Record<Address, Address> = {};
   readonly liquidationThresholds: Record<Address, bigint>;
   readonly quotas: Record<Address, QuotaInfo>;
-  readonly interestModel: LinearModel;
 
   constructor(payload: CreditManagerDataPayload) {
     this.address = payload.addr.toLowerCase() as Address;
@@ -96,17 +95,22 @@ export class CreditManagerData {
 
     payload.adapters.forEach(a => {
       const contractLc = a.targetContract.toLowerCase() as Address;
-      const adaptertLc = a.adapter.toLowerCase() as Address;
+      const adapterLc = a.address.toLowerCase() as Address;
 
-      this.adapters[contractLc] = adaptertLc;
-      this.contractsByAdapter[adaptertLc] = contractLc;
+      this.adapters[contractLc] = {
+        address: adapterLc,
+        contractType: a.contractType,
+        version: a.version,
+        name: a.name,
+        targetContract: contractLc,
+      };
+      this.contractsByAdapter[adapterLc] = contractLc;
     });
 
     this.liquidationThresholds = payload.liquidationThresholds.reduce<
       CreditManagerData["liquidationThresholds"]
-    >((acc, threshold, index) => {
-      const address = payload.collateralTokens[index];
-      if (address) acc[address.toLowerCase() as Address] = threshold;
+    >((acc, [token, threshold]) => {
+      acc[token.toLowerCase() as Address] = BigInt(threshold);
       return acc;
     }, {});
 
@@ -127,18 +131,6 @@ export class CreditManagerData {
       },
       {},
     );
-
-    this.interestModel = {
-      interestModel: payload.lirm.interestModel.toLowerCase() as Address,
-      U_1: BigInt(payload.lirm.U_1),
-      U_2: BigInt(payload.lirm.U_2),
-      R_base: BigInt(payload.lirm.R_base),
-      R_slope1: BigInt(payload.lirm.R_slope1),
-      R_slope2: BigInt(payload.lirm.R_slope2),
-      R_slope3: BigInt(payload.lirm.R_slope3),
-      version: Number(payload?.lirm?.version),
-      isBorrowingMoreU2Forbidden: payload?.lirm?.isBorrowingMoreU2Forbidden,
-    };
 
     payload.collateralTokens.forEach(t => {
       const tLc = t.toLowerCase() as Address;

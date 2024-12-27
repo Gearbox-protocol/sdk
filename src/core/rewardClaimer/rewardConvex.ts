@@ -123,7 +123,7 @@ export class RewardConvex {
       )
       .map(
         ([contract, adapter]): AdapterWithType => ({
-          adapter,
+          adapter: adapter.address,
           contractAddress: contract as Address,
           contract: contractsByAddress[contract.toLowerCase()],
         }),

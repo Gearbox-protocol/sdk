@@ -19,6 +19,17 @@ export interface QuotaInfo {
   isActive: boolean;
 }
 
+interface IBaseContract {
+  address: Address;
+  contractType: string;
+  version: number;
+  name: string;
+}
+
+interface IAdapterContract extends IBaseContract {
+  targetContract: Address;
+}
+
 export interface CreditManagerDataPayload {
   addr: Address;
   name: string;
@@ -40,9 +51,9 @@ export interface CreditManagerDataPayload {
 
   collateralTokens: readonly Address[];
 
-  adapters: readonly { targetContract: Address; adapter: Address }[];
+  adapters: Array<IAdapterContract>;
 
-  liquidationThresholds: readonly bigint[];
+  liquidationThresholds: Array<[token: Address, lt: number]>;
 
   maxEnabledTokensLength: number;
   feeInterest: number;
@@ -52,7 +63,6 @@ export interface CreditManagerDataPayload {
   liquidationDiscountExpired: number;
 
   quotas: PoolDataPayload["quotas"];
-  lirm: PoolDataPayload["lirm"];
 
   isBorrowingForbidden: boolean;
 }
