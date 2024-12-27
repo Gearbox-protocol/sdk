@@ -1,4 +1,4 @@
-import { expect } from "chai";
+import { describe, expect, it } from "@jest/globals";
 import type { Abi, Address } from "viem";
 import { encodeFunctionData } from "viem";
 
@@ -27,10 +27,15 @@ describe("RewardConvex test", () => {
   it("findAdapters find convex adapters correctly", () => {
     const cm = {
       adapters: {
-        [contractsByNetwork.Mainnet.CONVEX_3CRV_POOL]: ADAPTER_CONVEX_3CRV_POOL,
-        [contractsByNetwork.Mainnet.CURVE_FRAX_POOL]: ADAPTER_CURVE_FRAX_POOL,
-        [contractsByNetwork.Arbitrum.CONVEX_FRAX3CRV_POOL]:
-          ADAPTER_CONVEX_FRAX3CRV_POOL,
+        [contractsByNetwork.Mainnet.CONVEX_3CRV_POOL]: {
+          address: ADAPTER_CONVEX_3CRV_POOL,
+        },
+        [contractsByNetwork.Mainnet.CURVE_FRAX_POOL]: {
+          address: ADAPTER_CURVE_FRAX_POOL,
+        },
+        [contractsByNetwork.Arbitrum.CONVEX_FRAX3CRV_POOL]: {
+          address: ADAPTER_CONVEX_FRAX3CRV_POOL,
+        },
       },
     } as unknown as CreditManagerData;
 
@@ -44,16 +49,21 @@ describe("RewardConvex test", () => {
 
     const result = RewardConvex.findAdapters(cm);
 
-    expect(result).to.be.eql(expectedResult);
+    expect(result).toEqual(expectedResult);
   });
 
   it("prepareMultiCalls prepares multicall data correctly", () => {
     const cm = {
       adapters: {
-        [contractsByNetwork.Mainnet.CONVEX_3CRV_POOL]: ADAPTER_CONVEX_3CRV_POOL,
-        [contractsByNetwork.Mainnet.CURVE_FRAX_POOL]: ADAPTER_CURVE_FRAX_POOL,
-        [contractsByNetwork.Arbitrum.CONVEX_FRAX3CRV_POOL]:
-          ADAPTER_CONVEX_FRAX3CRV_POOL,
+        [contractsByNetwork.Mainnet.CONVEX_3CRV_POOL]: {
+          address: ADAPTER_CONVEX_3CRV_POOL,
+        },
+        [contractsByNetwork.Mainnet.CURVE_FRAX_POOL]: {
+          address: ADAPTER_CURVE_FRAX_POOL,
+        },
+        [contractsByNetwork.Arbitrum.CONVEX_FRAX3CRV_POOL]: {
+          address: ADAPTER_CONVEX_FRAX3CRV_POOL,
+        },
       },
     } as unknown as CreditManagerData;
 
@@ -99,8 +109,8 @@ describe("RewardConvex test", () => {
       "Mainnet",
     );
 
-    expect(result?.convexDistribution).to.be.eql([distribution]);
-    expect(result?.convexCalls).to.be.eql(calls);
+    expect(result?.convexDistribution).toEqual([distribution]);
+    expect(result?.convexCalls).toEqual(calls);
   });
 
   it("parseResults parse data correctly", () => {
@@ -149,6 +159,6 @@ describe("RewardConvex test", () => {
       },
     ];
 
-    expect(parsed).to.be.eql(expected);
+    expect(parsed).toEqual(expected);
   });
 });

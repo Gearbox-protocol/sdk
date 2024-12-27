@@ -1,16 +1,18 @@
-import { expect } from "chai";
+import { describe, expect, it } from "@jest/globals";
 import type { Address } from "viem";
 
-import type { SupportedToken } from "../../sdk-gov-legacy";
 import {
-  decimals,
   NOT_DEPLOYED,
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS_POW,
+} from "../../constants";
+import type { SupportedToken } from "../../sdk-gov-legacy";
+import {
+  decimals,
   supportedTokens,
   tokenDataByNetwork,
-  TypedObjectUtils,
 } from "../../sdk-gov-legacy";
+import { TypedObjectUtils } from "../../utils";
 import type { TokensAPYList } from "../apy";
 import { TokenData } from "../tokens/tokenData";
 import { toBN } from "../utils/formatter";
@@ -162,7 +164,7 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
       tokensList: tokenDataList,
     });
 
-    expect(result).to.be.eq(-69484n);
+    expect(result).toEqual(-69484n);
   });
   it("overall APY calculation for caWithLP is correct", () => {
     const result = CreditAccountData.calcOverallAPY({
@@ -181,7 +183,7 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
       tokensList: tokenDataList,
     });
 
-    expect(result).to.be.eq(144919n);
+    expect(result).toEqual(144919n);
   });
   it("overall APY is undefined when !lpAPY", () => {
     const result = CreditAccountData.calcOverallAPY({
@@ -200,7 +202,7 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
       tokensList: tokenDataList,
     });
 
-    expect(result).to.be.eq(undefined);
+    expect(result).toEqual(undefined);
   });
   it("overall APY is undefined when !totalValue", () => {
     const result = CreditAccountData.calcOverallAPY({
@@ -219,7 +221,7 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
       tokensList: tokenDataList,
     });
 
-    expect(result).to.be.eq(undefined);
+    expect(result).toEqual(undefined);
   });
   it("overall APY is undefined when !debt", () => {
     const result = CreditAccountData.calcOverallAPY({
@@ -238,7 +240,7 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
       tokensList: tokenDataList,
     });
 
-    expect(result).to.be.eq(undefined);
+    expect(result).toEqual(undefined);
   });
   it("overall APY is undefined when totalValue lte 0", () => {
     const result = CreditAccountData.calcOverallAPY({
@@ -257,7 +259,7 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
       tokensList: tokenDataList,
     });
 
-    expect(result).to.be.eq(undefined);
+    expect(result).toEqual(undefined);
   });
   it("overall APY calculation for caWithLP with sufficient quota is correct", () => {
     const result = CreditAccountData.calcOverallAPY({
@@ -276,7 +278,7 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
       tokensList: tokenDataList,
     });
 
-    expect(result).to.be.eq(-18680n);
+    expect(result).toEqual(-18680n);
   });
   it("overall APY calculation for caWithLP with insufficient quota is correct", () => {
     const result = CreditAccountData.calcOverallAPY({
@@ -300,7 +302,7 @@ describe("CreditAccount CreditAccountData.calcOverallAPY test", () => {
       tokensList: tokenDataList,
     });
 
-    expect(result).to.be.eq(144919n);
+    expect(result).toEqual(144919n);
   });
 });
 
@@ -311,7 +313,7 @@ describe("CreditAccount calcMaxDebtIncrease test", () => {
       BigInt("156522834253690396032546"),
       9300,
     );
-    expect(result.toString()).to.be.eq("0");
+    expect(result.toString()).toEqual("0");
   });
   it("health max increase borrow is calculated correctly", () => {
     const result = CreditAccountData.calcMaxDebtIncrease(
@@ -320,7 +322,7 @@ describe("CreditAccount calcMaxDebtIncrease test", () => {
       9300,
     );
 
-    expect(result.toString()).to.be.eq("54559387939857795188487");
+    expect(result.toString()).toEqual("54559387939857795188487");
   });
   it("health max increase borrow is calculated correctly (low hf, high debt)", () => {
     const loweHf = 10244;
@@ -331,7 +333,7 @@ describe("CreditAccount calcMaxDebtIncrease test", () => {
       9300,
     );
 
-    expect(result.toString()).to.be.eq("19095785778950228315970");
+    expect(result.toString()).toEqual("19095785778950228315970");
   });
 });
 
@@ -367,7 +369,7 @@ describe("CreditAccount calcMaxLendingDebt test", () => {
       },
       tokensList: tokenDataList,
     });
-    expect(result).to.be.eq(toBN("850", USDC_DECIMALS));
+    expect(result).toEqual(toBN("850", USDC_DECIMALS));
   });
   it("calcMaxLendingDebt for several collaterals with zero underlying price", () => {
     const result = CreditAccountData.calcMaxLendingDebt({
@@ -389,7 +391,7 @@ describe("CreditAccount calcMaxLendingDebt test", () => {
       },
       tokensList: tokenDataList,
     });
-    expect(result).to.be.eq(0n);
+    expect(result).toEqual(0n);
   });
   it("calcMaxLendingDebt for simplest case", () => {
     const result = CreditAccountData.calcMaxLendingDebt({
@@ -407,7 +409,7 @@ describe("CreditAccount calcMaxLendingDebt test", () => {
       },
       tokensList: tokenDataList,
     });
-    expect(result).to.be.eq(toBN("930", USDC_DECIMALS));
+    expect(result).toEqual(toBN("930", USDC_DECIMALS));
   });
   it("calcMaxLendingDebt for several collaterals", () => {
     const result = CreditAccountData.calcMaxLendingDebt({
@@ -430,7 +432,7 @@ describe("CreditAccount calcMaxLendingDebt test", () => {
       },
       tokensList: tokenDataList,
     });
-    expect(result).to.be.eq(toBN("1780", USDC_DECIMALS));
+    expect(result).toEqual(toBN("1780", USDC_DECIMALS));
   });
   it("calcMaxLendingDebt for several collaterals with target HF", () => {
     const result = CreditAccountData.calcMaxLendingDebt({
@@ -454,7 +456,7 @@ describe("CreditAccount calcMaxLendingDebt test", () => {
       targetHF: 12500n,
       tokensList: tokenDataList,
     });
-    expect(result).to.be.eq(toBN("1424", USDC_DECIMALS));
+    expect(result).toEqual(toBN("1424", USDC_DECIMALS));
   });
 });
 
@@ -509,7 +511,7 @@ describe("CreditAccount calcHealthFactor test", () => {
       tokensList: tokenDataList,
     });
 
-    expect(result).to.be.eq(defaultCA.healthFactor);
+    expect(result).toEqual(defaultCA.healthFactor);
   });
   it("health factor calculation has no division by zero error", () => {
     const result = CreditAccountData.calcHealthFactor({
@@ -523,7 +525,7 @@ describe("CreditAccount calcHealthFactor test", () => {
       tokensList: tokenDataList,
     });
 
-    expect(result).to.be.eq(65535);
+    expect(result).toEqual(65535);
   });
   it("health factor after add collateral is calculated  correctly", () => {
     const collateral: Asset = {
@@ -543,7 +545,7 @@ describe("CreditAccount calcHealthFactor test", () => {
       tokensList: tokenDataList,
     });
 
-    expect(result).to.be.eq(11188);
+    expect(result).toEqual(11188);
   });
   it("health factor after decrease debt is calculated  correctly", () => {
     const amountDecrease = toBN("10000", defaultCA.underlyingDecimals);
@@ -566,7 +568,7 @@ describe("CreditAccount calcHealthFactor test", () => {
       tokensList: tokenDataList,
     });
 
-    expect(result).to.be.eq(10308);
+    expect(result).toEqual(10308);
   });
   it("health factor after increase debt is calculated  correctly", () => {
     const amountIncrease = toBN("20000", defaultCA.underlyingDecimals);
@@ -589,7 +591,7 @@ describe("CreditAccount calcHealthFactor test", () => {
       tokensList: tokenDataList,
     });
 
-    expect(result).to.be.eq(10137);
+    expect(result).toEqual(10137);
   });
   it("health factor after swap is calculated  correctly", () => {
     const swapAsset: Asset = {
@@ -628,7 +630,7 @@ describe("CreditAccount calcHealthFactor test", () => {
       tokensList: tokenDataList,
     });
 
-    expect(result).to.be.eq(9444);
+    expect(result).toEqual(9444);
   });
   it("health factor with sufficient quotas is calculated correctly", () => {
     const result = CreditAccountData.calcHealthFactor({
@@ -642,7 +644,7 @@ describe("CreditAccount calcHealthFactor test", () => {
       tokensList: tokenDataList,
     });
 
-    expect(result).to.be.eq(defaultCA.healthFactor);
+    expect(result).toEqual(defaultCA.healthFactor);
   });
   it("health factor with insufficient quotas is calculated correctly", () => {
     const result = CreditAccountData.calcHealthFactor({
@@ -661,7 +663,7 @@ describe("CreditAccount calcHealthFactor test", () => {
       tokensList: tokenDataList,
     });
 
-    expect(result).to.be.eq(9300);
+    expect(result).toEqual(9300);
   });
   it("health factor with disabled quota is calculated correctly", () => {
     const result = CreditAccountData.calcHealthFactor({
@@ -679,7 +681,7 @@ describe("CreditAccount calcHealthFactor test", () => {
       tokensList: tokenDataList,
     });
 
-    expect(result).to.be.eq(9300);
+    expect(result).toEqual(9300);
   });
 });
 
@@ -744,7 +746,7 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       liquidationThresholds: DEFAULT_LT,
     });
 
-    expect(result.quotaIncrease).to.be.deep.eq([
+    expect(result.quotaIncrease).toEqual([
       {
         balance: 10n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
@@ -754,8 +756,8 @@ describe("CreditAccount calcQuotaUpdate test", () => {
         token: tokenDataByNetwork.Mainnet.WETH,
       },
     ]);
-    expect(result.quotaDecrease).to.be.deep.eq([]);
-    expect(result.desiredQuota).to.be.deep.eq({
+    expect(result.quotaDecrease).toEqual([]);
+    expect(result.desiredQuota).toEqual({
       [tokenDataByNetwork.Mainnet.DAI]: {
         balance: 10n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
@@ -792,14 +794,14 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       liquidationThresholds: DEFAULT_LT,
     });
 
-    expect(result.quotaIncrease).to.be.deep.eq([
+    expect(result.quotaIncrease).toEqual([
       {
         balance: 10n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.STETH,
       },
     ]);
-    expect(result.quotaDecrease).to.be.deep.eq([]);
-    expect(result.desiredQuota).to.be.deep.eq({
+    expect(result.quotaDecrease).toEqual([]);
+    expect(result.desiredQuota).toEqual({
       [tokenDataByNetwork.Mainnet.DAI]: {
         balance: 5n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
@@ -836,14 +838,14 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       liquidationThresholds: DEFAULT_LT,
     });
 
-    expect(result.quotaIncrease).to.be.deep.eq([
+    expect(result.quotaIncrease).toEqual([
       {
         balance: 5n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
       },
     ]);
-    expect(result.quotaDecrease).to.be.deep.eq([]);
-    expect(result.desiredQuota).to.be.deep.eq({
+    expect(result.quotaDecrease).toEqual([]);
+    expect(result.desiredQuota).toEqual({
       [tokenDataByNetwork.Mainnet.DAI]: {
         balance: 10n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
@@ -880,9 +882,9 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       liquidationThresholds: DEFAULT_LT,
     });
 
-    expect(result.quotaIncrease).to.be.deep.eq([]);
-    expect(result.quotaDecrease).to.be.deep.eq([]);
-    expect(result.desiredQuota).to.be.deep.eq({
+    expect(result.quotaIncrease).toEqual([]);
+    expect(result.quotaDecrease).toEqual([]);
+    expect(result.desiredQuota).toEqual({
       [tokenDataByNetwork.Mainnet.DAI]: {
         balance: 5n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
@@ -924,19 +926,19 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       liquidationThresholds: DEFAULT_LT,
     });
 
-    expect(result.quotaIncrease).to.be.deep.eq([
+    expect(result.quotaIncrease).toEqual([
       {
         balance: 10n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.STETH,
       },
     ]);
-    expect(result.quotaDecrease).to.be.deep.eq([
+    expect(result.quotaDecrease).toEqual([
       {
         balance: MIN_INT96,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
     ]);
-    expect(result.desiredQuota).to.be.deep.eq({
+    expect(result.desiredQuota).toEqual({
       [tokenDataByNetwork.Mainnet.DAI]: {
         balance: 5n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
@@ -980,19 +982,19 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       liquidationThresholds: DEFAULT_LT,
     });
 
-    expect(result.quotaIncrease).to.be.deep.eq([
+    expect(result.quotaIncrease).toEqual([
       {
         balance: 5n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
       },
     ]);
-    expect(result.quotaDecrease).to.be.deep.eq([
+    expect(result.quotaDecrease).toEqual([
       {
         balance: MIN_INT96,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
     ]);
-    expect(result.desiredQuota).to.be.deep.eq({
+    expect(result.desiredQuota).toEqual({
       [tokenDataByNetwork.Mainnet.DAI]: {
         balance: 10n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
@@ -1040,19 +1042,19 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       liquidationThresholds: DEFAULT_LT,
     });
 
-    expect(result.quotaIncrease).to.be.deep.eq([
+    expect(result.quotaIncrease).toEqual([
       {
         balance: 2n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
       },
     ]);
-    expect(result.quotaDecrease).to.be.deep.eq([
+    expect(result.quotaDecrease).toEqual([
       {
         balance: MIN_INT96,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
     ]);
-    expect(result.desiredQuota).to.be.deep.eq({
+    expect(result.desiredQuota).toEqual({
       [tokenDataByNetwork.Mainnet.DAI]: {
         balance: 7n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
@@ -1094,14 +1096,14 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       liquidationThresholds: DEFAULT_LT,
     });
 
-    expect(result.quotaIncrease).to.be.deep.eq([]);
-    expect(result.quotaDecrease).to.be.deep.eq([
+    expect(result.quotaIncrease).toEqual([]);
+    expect(result.quotaDecrease).toEqual([
       {
         balance: MIN_INT96,
         token: tokenDataByNetwork.Mainnet.DAI,
       },
     ]);
-    expect(result.desiredQuota).to.be.deep.eq({
+    expect(result.desiredQuota).toEqual({
       [tokenDataByNetwork.Mainnet.DAI]: {
         balance: 0n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
@@ -1141,9 +1143,9 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       liquidationThresholds: DEFAULT_LT,
     });
 
-    expect(result.quotaIncrease).to.be.deep.eq([]);
-    expect(result.quotaDecrease).to.be.deep.eq([]);
-    expect(result.desiredQuota).to.be.deep.eq({
+    expect(result.quotaIncrease).toEqual([]);
+    expect(result.quotaDecrease).toEqual([]);
+    expect(result.desiredQuota).toEqual({
       [tokenDataByNetwork.Mainnet.DAI]: {
         balance: 5n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
@@ -1200,9 +1202,9 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       liquidationThresholds: DEFAULT_LT,
     });
 
-    expect(result.quotaIncrease).to.be.deep.eq([]);
-    expect(result.quotaDecrease).to.be.deep.eq([]);
-    expect(result.desiredQuota).to.be.deep.eq({
+    expect(result.quotaIncrease).toEqual([]);
+    expect(result.quotaDecrease).toEqual([]);
+    expect(result.desiredQuota).toEqual({
       [tokenDataByNetwork.Mainnet.DAI]: {
         balance: 5n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
@@ -1249,14 +1251,14 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       liquidationThresholds: {},
     });
 
-    expect(result.quotaIncrease).to.be.deep.eq([]);
-    expect(result.quotaDecrease).to.be.deep.eq([
+    expect(result.quotaIncrease).toEqual([]);
+    expect(result.quotaDecrease).toEqual([
       {
         balance: MIN_INT96,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
     ]);
-    expect(result.desiredQuota).to.be.deep.eq({
+    expect(result.desiredQuota).toEqual({
       [tokenDataByNetwork.Mainnet.DAI]: {
         balance: 5n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
@@ -1304,19 +1306,19 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       },
     });
 
-    expect(result.quotaIncrease).to.be.deep.eq([
+    expect(result.quotaIncrease).toEqual([
       {
         balance: 5n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.STETH,
       },
     ]);
-    expect(result.quotaDecrease).to.be.deep.eq([
+    expect(result.quotaDecrease).toEqual([
       {
         balance: -5n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
     ]);
-    expect(result.desiredQuota).to.be.deep.eq({
+    expect(result.desiredQuota).toEqual({
       [tokenDataByNetwork.Mainnet.DAI]: {
         balance: 5n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
@@ -1364,14 +1366,14 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       },
     });
 
-    expect(result.quotaIncrease).to.be.deep.eq([]);
-    expect(result.quotaDecrease).to.be.deep.eq([
+    expect(result.quotaIncrease).toEqual([]);
+    expect(result.quotaDecrease).toEqual([
       {
         balance: -5n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
     ]);
-    expect(result.desiredQuota).to.be.deep.eq({
+    expect(result.desiredQuota).toEqual({
       [tokenDataByNetwork.Mainnet.DAI]: {
         balance: 5n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
@@ -1420,19 +1422,19 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       liquidationThresholds: DEFAULT_LT,
     });
 
-    expect(result.quotaIncrease).to.be.deep.eq([
+    expect(result.quotaIncrease).toEqual([
       {
         balance: 10n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
       },
     ]);
-    expect(result.quotaDecrease).to.be.deep.eq([
+    expect(result.quotaDecrease).toEqual([
       {
         balance: MIN_INT96,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
     ]);
-    expect(result.desiredQuota).to.be.deep.eq({
+    expect(result.desiredQuota).toEqual({
       [tokenDataByNetwork.Mainnet.DAI]: {
         balance: 20n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
@@ -1481,19 +1483,19 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       liquidationThresholds: DEFAULT_LT,
     });
 
-    expect(result.quotaIncrease).to.be.deep.eq([
+    expect(result.quotaIncrease).toEqual([
       {
         balance: 8n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
       },
     ]);
-    expect(result.quotaDecrease).to.be.deep.eq([
+    expect(result.quotaDecrease).toEqual([
       {
         balance: MIN_INT96,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
     ]);
-    expect(result.desiredQuota).to.be.deep.eq({
+    expect(result.desiredQuota).toEqual({
       [tokenDataByNetwork.Mainnet.DAI]: {
         balance: 18n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
@@ -1542,14 +1544,14 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       liquidationThresholds: DEFAULT_LT,
     });
 
-    expect(result.quotaIncrease).to.be.deep.eq([]);
-    expect(result.quotaDecrease).to.be.deep.eq([
+    expect(result.quotaIncrease).toEqual([]);
+    expect(result.quotaDecrease).toEqual([
       {
         balance: MIN_INT96,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
     ]);
-    expect(result.desiredQuota).to.be.deep.eq({
+    expect(result.desiredQuota).toEqual({
       [tokenDataByNetwork.Mainnet.DAI]: {
         balance: 10n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.DAI,
@@ -1599,19 +1601,19 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       liquidationThresholds: DEFAULT_LT,
     });
 
-    expect(result.quotaIncrease).to.be.deep.eq([
+    expect(result.quotaIncrease).toEqual([
       {
         balance: 10n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.STETH,
       },
     ]);
-    expect(result.quotaDecrease).to.be.deep.eq([
+    expect(result.quotaDecrease).toEqual([
       {
         balance: MIN_INT96,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
     ]);
-    expect(result.desiredQuota).to.be.deep.eq({
+    expect(result.desiredQuota).toEqual({
       [tokenDataByNetwork.Mainnet.DAI]: {
         balance: 5_2345n,
         token: tokenDataByNetwork.Mainnet.DAI,
@@ -1661,19 +1663,19 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       liquidationThresholds: DEFAULT_LT,
     });
 
-    expect(result.quotaIncrease).to.be.deep.eq([
+    expect(result.quotaIncrease).toEqual([
       {
         balance: 7n * PERCENTAGE_FACTOR,
         token: tokenDataByNetwork.Mainnet.STETH,
       },
     ]);
-    expect(result.quotaDecrease).to.be.deep.eq([
+    expect(result.quotaDecrease).toEqual([
       {
         balance: MIN_INT96,
         token: tokenDataByNetwork.Mainnet.WETH,
       },
     ]);
-    expect(result.desiredQuota).to.be.deep.eq({
+    expect(result.desiredQuota).toEqual({
       [tokenDataByNetwork.Mainnet.DAI]: {
         balance: 5_2345n,
         token: tokenDataByNetwork.Mainnet.DAI,
@@ -1723,7 +1725,7 @@ describe("CreditAccount calcAvgQuotaBorrowRate test", () => {
       },
     });
 
-    expect(result).to.be.eq(300n);
+    expect(result).toEqual(300n);
   });
   it("should calculate quota rate (same rates, different amounts)", () => {
     const result = CreditAccountData.calcQuotaBorrowRate({
@@ -1757,7 +1759,7 @@ describe("CreditAccount calcAvgQuotaBorrowRate test", () => {
       },
     });
 
-    expect(result).to.be.eq(300n);
+    expect(result).toEqual(300n);
   });
   it("should calculate quota rate (disabled quota)", () => {
     const result = CreditAccountData.calcQuotaBorrowRate({
@@ -1791,7 +1793,7 @@ describe("CreditAccount calcAvgQuotaBorrowRate test", () => {
       },
     });
 
-    expect(result).to.be.eq(200n);
+    expect(result).toEqual(200n);
   });
 });
 
@@ -1812,7 +1814,7 @@ describe("CreditAccount calcQuotaBorrowRate test", () => {
       },
     });
 
-    expect(result).to.be.eq(50n);
+    expect(result).toEqual(50n);
   });
   it("should calculate quota borrow rate when no balance", () => {
     const result = CreditAccountData.calcQuotaBorrowRate({
@@ -1830,7 +1832,7 @@ describe("CreditAccount calcQuotaBorrowRate test", () => {
       },
     });
 
-    expect(result).to.be.eq(5n);
+    expect(result).toEqual(5n);
   });
 });
 
@@ -1842,7 +1844,7 @@ describe("CreditAccount calcRelativeBaseBorrowRate test", () => {
       assetAmountInUnderlying: 200n,
     });
 
-    expect(result).to.be.eq(10000000n);
+    expect(result).toEqual(10000000n);
   });
   it("should calculate relative borrow rate if position asset === 0", () => {
     const result = CreditAccountData.calcRelativeBaseBorrowRate({
@@ -1851,7 +1853,7 @@ describe("CreditAccount calcRelativeBaseBorrowRate test", () => {
       assetAmountInUnderlying: 1n,
     });
 
-    expect(result).to.be.eq(50000n);
+    expect(result).toEqual(50000n);
   });
   it("should calculate relative borrow rate if position === 0", () => {
     const result = CreditAccountData.calcRelativeBaseBorrowRate({
@@ -1860,7 +1862,7 @@ describe("CreditAccount calcRelativeBaseBorrowRate test", () => {
       assetAmountInUnderlying: 1n,
     });
 
-    expect(result).to.be.eq(250n);
+    expect(result).toEqual(250n);
   });
 });
 
@@ -1871,7 +1873,7 @@ describe("CreditAccount getTimeToLiquidation test", () => {
       totalBorrowRate_debt: 250n,
     });
 
-    expect(result).to.be.eq(null);
+    expect(result).toEqual(null);
   });
   it("should return 0 when br_debt === 0", () => {
     const result = CreditAccountData.getTimeToLiquidation({
@@ -1879,7 +1881,7 @@ describe("CreditAccount getTimeToLiquidation test", () => {
       totalBorrowRate_debt: 0n,
     });
 
-    expect(result).to.be.eq(null);
+    expect(result).toEqual(null);
   });
   it("should calculate time to liquidation correctly", () => {
     const result = CreditAccountData.getTimeToLiquidation({
@@ -1888,6 +1890,6 @@ describe("CreditAccount getTimeToLiquidation test", () => {
     });
 
     // 59_130_000
-    expect(result).to.be.eq(59130000n * 1000n);
+    expect(result).toEqual(59130000n * 1000n);
   });
 });
