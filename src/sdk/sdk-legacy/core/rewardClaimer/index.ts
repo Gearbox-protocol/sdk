@@ -7,11 +7,11 @@ import type {
   SupportedContract,
   SupportedToken,
 } from "../../../sdk-gov-legacy";
+import type { MultiCall } from "../../../types";
 import type { PartialRecord } from "../../../utils";
-import type { MultiCall } from "../../pathfinder/core";
 import type { TokenData } from "../../tokens/tokenData";
-import type { CreditAccountData } from "../creditAccount";
-import type { CreditManagerData } from "../creditManager";
+import type { CreditAccountData_Legacy } from "../creditAccount";
+import type { CreditManagerData_Legacy } from "../creditManager";
 import { RewardConvex } from "./rewardConvex";
 import { StakingRewards } from "./stakingRewards";
 
@@ -31,8 +31,8 @@ export interface AdapterWithType {
 
 export class RewardClaimer {
   static async findRewards(
-    ca: CreditAccountData,
-    cm: CreditManagerData,
+    ca: CreditAccountData_Legacy,
+    cm: CreditManagerData_Legacy,
     network: NetworkType,
     provider: PublicClient,
     tokensList: Record<Address, TokenData>,
@@ -53,7 +53,10 @@ export class RewardClaimer {
     return [...convex, ...staking];
   }
 
-  static async findRewardTokens(cm: CreditManagerData, provider: PublicClient) {
+  static async findRewardTokens(
+    cm: CreditManagerData_Legacy,
+    provider: PublicClient,
+  ) {
     const { calls: stakingCalls, adapters: stakingAdapters } =
       StakingRewards.getRewardTokenCalls(cm);
 
