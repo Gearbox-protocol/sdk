@@ -1,6 +1,6 @@
-import { spawnSync } from "node:child_process";
 import { readFile, writeFile } from "node:fs/promises";
 
+import { sync as spawnSync } from "cross-spawn";
 import type { Options } from "tsup";
 import { defineConfig } from "tsup";
 
