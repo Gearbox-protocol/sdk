@@ -11,6 +11,8 @@ export default defineConfig(options => {
     splitting: false,
     treeshake: true,
     sourcemap: false,
+    // axios is externalized, because it has two different bundles for node (with native modules as dependencies)
+    // and browser. and we here make one bundle for both. so this responsibility is pushed further the build chain
     external: ["../sdk", "axios"],
     ...options,
   };
