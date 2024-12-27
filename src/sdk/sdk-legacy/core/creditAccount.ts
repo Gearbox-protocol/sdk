@@ -1,6 +1,7 @@
 import type { Address } from "viem";
 
 import {
+  MIN_INT96,
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS,
@@ -9,6 +10,7 @@ import {
   WAD,
   WAD_DECIMALS_POW,
 } from "../../constants";
+import type { Asset } from "../../router";
 import type { TokensAPYList } from "../apy";
 import type {
   CaTokenBalance,
@@ -19,11 +21,7 @@ import type { TokenData } from "../tokens/tokenData";
 import { rayToNumber } from "../utils/formatter";
 import { BigIntMath } from "../utils/math";
 import { PriceUtils } from "../utils/price";
-import type { Asset, AssetWithAmountInTarget } from "./assets";
-
-export const MIN_INT96 = -39614081257132168796771975168n;
-export const MAX_UINT256 =
-  115792089237316195423570985008687907853269984665640564039457584007913129639935n;
+import type { AssetWithAmountInTarget } from "./assets";
 
 export interface CalcOverallAPYProps {
   caAssets: Array<Asset>;
@@ -134,7 +132,7 @@ export interface TimeToLiquidationProps {
 
 const MAX_UINT16 = 65535;
 
-export class CreditAccountData {
+export class CreditAccountData_Legacy {
   readonly isSuccessful: boolean;
 
   readonly creditAccount: Address;
@@ -200,7 +198,7 @@ export class CreditAccountData {
     );
 
     this.activeBots = payload.activeBots.reduce<
-      CreditAccountData["activeBots"]
+      CreditAccountData_Legacy["activeBots"]
     >((acc, b) => {
       const botLc = b.toLowerCase() as Address;
       acc[botLc] = true;
@@ -480,7 +478,7 @@ export class CreditAccountData {
   }
 
   hash(): string {
-    return CreditAccountData.hash(this.creditManager, this.borrower);
+    return CreditAccountData_Legacy.hash(this.creditManager, this.borrower);
   }
 
   static hash(creditManager: Address, borrower: Address): string {

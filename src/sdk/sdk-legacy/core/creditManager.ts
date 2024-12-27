@@ -10,7 +10,7 @@ import type {
 
 export type CreditManagerType = "universal" | "trade" | "farm" | "restaking";
 
-export class CreditManagerData {
+export class CreditManagerData_Legacy {
   readonly address: Address;
   readonly type: CreditManagerType;
   readonly underlyingToken: Address;
@@ -53,10 +53,10 @@ export class CreditManagerData {
   constructor(payload: CreditManagerDataPayload) {
     this.address = payload.addr.toLowerCase() as Address;
     this.underlyingToken = payload.underlying.toLowerCase() as Address;
-    this.type = CreditManagerData.getType(payload.name || "");
+    this.type = CreditManagerData_Legacy.getType(payload.name || "");
     this.name = payload.name;
     this.pool = payload.pool.toLowerCase() as Address;
-    this.tier = CreditManagerData.getTier(payload.name);
+    this.tier = CreditManagerData_Legacy.getTier(payload.name);
     this.creditFacade = payload.creditFacade.toLowerCase() as Address;
     this.creditConfigurator =
       payload.creditConfigurator.toLowerCase() as Address;
@@ -104,13 +104,13 @@ export class CreditManagerData {
     });
 
     this.liquidationThresholds = payload.liquidationThresholds.reduce<
-      CreditManagerData["liquidationThresholds"]
+      CreditManagerData_Legacy["liquidationThresholds"]
     >((acc, [token, threshold]) => {
       acc[token.toLowerCase() as Address] = BigInt(threshold);
       return acc;
     }, {});
 
-    this.quotas = payload.quotas.reduce<CreditManagerData["quotas"]>(
+    this.quotas = payload.quotas.reduce<CreditManagerData_Legacy["quotas"]>(
       (acc, q) => {
         const addressLc = q.token.toLowerCase() as Address;
 
@@ -235,7 +235,7 @@ export class ChartsCreditManagerData {
     this.pool = (payload.poolAddress || "").toLowerCase() as Address;
     this.version = payload.version || 2;
     this.name = payload.name || "";
-    this.tier = CreditManagerData.getTier(payload.name || "");
+    this.tier = CreditManagerData_Legacy.getTier(payload.name || "");
 
     this.borrowRate = Number(
       (toBigInt(payload.borrowRate || 0) *

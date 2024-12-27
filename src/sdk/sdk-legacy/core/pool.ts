@@ -15,7 +15,7 @@ import { rayToNumber } from "../utils/formatter";
 
 export type PoolType = "universal" | "trade" | "farm";
 
-export class PoolData {
+export class PoolData_Legacy {
   readonly address: Address;
   readonly type: PoolType;
   readonly underlyingToken: Address;
@@ -76,7 +76,7 @@ export class PoolData {
 
   constructor(payload: PoolDataPayload, extra: PoolDataExtraPayload) {
     this.address = payload.addr.toLowerCase() as Address;
-    this.type = PoolData.getPoolType(payload.name || "");
+    this.type = PoolData_Legacy.getPoolType(payload.name || "");
     this.underlyingToken = payload.underlying.toLowerCase() as Address;
     this.dieselToken = payload.dieselToken.toLowerCase() as Address;
     this.stakedDieselToken = (extra.stakedDieselToken || []).map(
@@ -100,12 +100,15 @@ export class PoolData {
       this.expectedLiquidity + this.availableLiquidity;
     this.baseInterestIndex = payload.baseInterestIndex;
 
-    this.utilization = PoolData.calculateUtilization(expected, available);
+    this.utilization = PoolData_Legacy.calculateUtilization(
+      expected,
+      available,
+    );
 
     this.totalBorrowed = payload.totalBorrowed;
     this.totalDebtLimit = payload.totalDebtLimit;
 
-    this.quotas = payload.quotas.reduce<PoolData["quotas"]>((acc, q) => {
+    this.quotas = payload.quotas.reduce<PoolData_Legacy["quotas"]>((acc, q) => {
       const token = q.token.toLowerCase() as Address;
       acc[token] = {
         token,
@@ -119,20 +122,23 @@ export class PoolData {
       return acc;
     }, {});
 
-    this.zappers = payload.zappers.reduce<PoolData["zappers"]>((acc, z) => {
-      const tokenIn = z.tokenIn.toLowerCase() as Address;
-      const tokenOut = z.tokenOut.toLowerCase() as Address;
-      const zapper = z.zapper.toLowerCase() as Address;
-      const old = acc[tokenIn] || {};
+    this.zappers = payload.zappers.reduce<PoolData_Legacy["zappers"]>(
+      (acc, z) => {
+        const tokenIn = z.tokenIn.toLowerCase() as Address;
+        const tokenOut = z.tokenOut.toLowerCase() as Address;
+        const zapper = z.zapper.toLowerCase() as Address;
+        const old = acc[tokenIn] || {};
 
-      return {
-        ...acc,
-        [tokenIn]: {
-          ...old,
-          [tokenOut]: { tokenIn, tokenOut, zapper },
-        },
-      };
-    }, {});
+        return {
+          ...acc,
+          [tokenIn]: {
+            ...old,
+            [tokenOut]: { tokenIn, tokenOut, zapper },
+          },
+        };
+      },
+      {},
+    );
 
     this.totalAssets = payload.totalAssets;
     this.totalSupply = payload.totalSupply;
@@ -276,7 +282,7 @@ export class ChartsPoolData {
       payload.underlyingToken || ""
     ).toLowerCase() as Address;
     this.dieselToken = (payload.dieselToken || "").toLowerCase() as Address;
-    this.type = PoolData.getPoolType(payload.name || "");
+    this.type = PoolData_Legacy.getPoolType(payload.name || "");
     this.version = payload.version || 1;
     this.name = payload.name || "";
 
@@ -305,7 +311,10 @@ export class ChartsPoolData {
       (payload.availableLiquidity10kBasis || 0) * Number(PERCENTAGE_DECIMALS);
     this.availableLiquidityInUSD = payload.availableLiquidityInUSD || 0;
 
-    this.utilization = PoolData.calculateUtilization(expected, available);
+    this.utilization = PoolData_Legacy.calculateUtilization(
+      expected,
+      available,
+    );
 
     this.caLockedValue = payload.caLockedValue || 0;
     this.oldCALockedValue = payload.caLockedValueOld || 0;

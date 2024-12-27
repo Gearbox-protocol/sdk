@@ -1,14 +1,10 @@
 import type { Address } from "viem";
 
+import type { Asset } from "../../router";
 import type { TokenData } from "../tokens/tokenData";
 import { BigIntMath } from "../utils/math";
 import { PriceUtils } from "../utils/price";
-import { CreditAccountData } from "./creditAccount";
-
-export interface Asset {
-  token: Address;
-  balance: bigint;
-}
+import { CreditAccountData_Legacy } from "./creditAccount";
 
 export interface AssetWithView extends Asset {
   balanceView: string;
@@ -50,7 +46,7 @@ export class AssetUtils {
       return !alreadySelected;
     });
 
-    const sorted = CreditAccountData.sortBalances(
+    const sorted = CreditAccountData_Legacy.sortBalances(
       AssetUtils.getBalances(notSelected, balances),
       prices,
       tokensList,

@@ -9,7 +9,7 @@ export * from "./gauges";
 export * from "./GearboxSDK";
 export * from "./market";
 export * from "./router";
-export * as LegacySDK from "./sdk-legacy";
+export * from "./sdk-legacy";
 export * from "./types";
 export * from "./utils";
 export * from "./utils/viem";

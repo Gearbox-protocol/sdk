@@ -1,9 +1,6 @@
 import type { Address } from "viem";
 
-export interface MultiCall {
-  target: Address;
-  callData: Address;
-}
+import type { MultiCall } from "../../types";
 
 export interface PathFinderResult {
   amount: bigint;
