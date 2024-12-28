@@ -36,11 +36,12 @@ export class RewardClaimer {
     network: NetworkType,
     provider: PublicClient,
     tokensList: Record<Address, TokenData>,
+    currentTokenData: Record<SupportedToken, Address>,
   ): Promise<Array<Rewards>> {
     const tokens = await RewardClaimer.findRewardTokens(cm, provider);
 
     const [convex, staking] = await Promise.all([
-      RewardConvex.findRewards(ca, cm, network, provider),
+      RewardConvex.findRewards(ca, cm, currentTokenData, network, provider),
 
       StakingRewards.findRewards(
         ca,

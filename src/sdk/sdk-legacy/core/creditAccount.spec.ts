@@ -3,18 +3,10 @@ import type { Address } from "viem";
 
 import {
   MIN_INT96,
-  NOT_DEPLOYED,
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS_POW,
 } from "../../constants";
 import type { Asset } from "../../router";
-import type { SupportedToken } from "../../sdk-gov-legacy";
-import {
-  decimals,
-  supportedTokens,
-  tokenDataByNetwork,
-} from "../../sdk-gov-legacy";
-import { TypedObjectUtils } from "../../utils";
 import type { TokensAPYList } from "../apy";
 import { TokenData } from "../tokens/tokenData";
 import { toBN } from "../utils/formatter";
@@ -27,26 +19,37 @@ import type {
 } from "./creditAccount";
 import { CreditAccountData_Legacy } from "./creditAccount";
 
-const tokensFiltered = TypedObjectUtils.fromEntries(
-  TypedObjectUtils.entries(tokenDataByNetwork.Mainnet).filter(
-    ([_, address]) => !!address && address !== NOT_DEPLOYED,
-  ) as Array<[SupportedToken, Address]>,
-);
+const WETH =
+  "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2".toLowerCase() as Address;
+const DAI =
+  "0x6B175474E89094C44Da98b954EedeAC495271d0F".toLowerCase() as Address;
+const USDC =
+  "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48".toLowerCase() as Address;
+const STETH =
+  "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84".toLowerCase() as Address;
 
-const tokenDataList = TypedObjectUtils.fromEntries(
-  TypedObjectUtils.entries(tokensFiltered).map(([tokenSymbol, addr]) => {
-    const data = supportedTokens[tokenSymbol];
-
-    return [
-      addr.toLowerCase() as Address,
-      new TokenData({
-        ...data,
-        addr,
-        decimals: decimals[tokenSymbol],
-      }),
-    ];
+const tokenDataList: Record<Address, TokenData> = {
+  [WETH]: new TokenData({
+    addr: WETH,
+    decimals: 18,
+    symbol: "WETH",
   }),
-);
+  [DAI]: new TokenData({
+    addr: DAI,
+    decimals: 18,
+    symbol: "DAI",
+  }),
+  [USDC]: new TokenData({
+    addr: USDC,
+    decimals: 6,
+    symbol: "USDC",
+  }),
+  [STETH]: new TokenData({
+    addr: STETH,
+    decimals: 18,
+    symbol: "STETH",
+  }),
+};
 
 interface CATestInfo {
   assets: Array<Asset>;
@@ -59,26 +62,14 @@ interface CATestInfo {
 }
 
 const prices = {
-  [tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address]: toBN(
-    "1738.11830000",
-    PRICE_DECIMALS_POW,
-  ),
-  [tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address]: toBN(
-    "0.99941103",
-    PRICE_DECIMALS_POW,
-  ),
-  [tokenDataByNetwork.Mainnet.USDC.toLowerCase() as Address]: toBN(
-    "0.999",
-    PRICE_DECIMALS_POW,
-  ),
-  [tokenDataByNetwork.Mainnet.STETH.toLowerCase() as Address]: toBN(
-    "1703.87588096",
-    PRICE_DECIMALS_POW,
-  ),
+  [WETH]: toBN("1738.11830000", PRICE_DECIMALS_POW),
+  [DAI]: toBN("0.99941103", PRICE_DECIMALS_POW),
+  [USDC]: toBN("0.999", PRICE_DECIMALS_POW),
+  [STETH]: toBN("1703.87588096", PRICE_DECIMALS_POW),
 };
 
 const lpAPY: TokensAPYList = {
-  [tokenDataByNetwork.Mainnet.STETH.toLowerCase()]: 38434,
+  [STETH]: 38434,
 };
 
 const DAI_DECIMALS = 18;
@@ -90,25 +81,25 @@ const caWithoutLP: CATestInfo = {
   assets: [
     {
       balance: toBN("54780", DAI_DECIMALS),
-      token: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
+      token: DAI,
     },
     {
       balance: toBN("3.5", WETH_DECIMALS),
-      token: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
+      token: WETH,
     },
   ],
   totalValue: toBN("60860", DAI_DECIMALS),
   debt: toBN("54780", DAI_DECIMALS),
   borrowRate: 7712,
-  underlyingToken: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
+  underlyingToken: DAI,
   quotas: {
-    [tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address]: {
+    [WETH]: {
       balance: toBN("173811.830000", WETH_DECIMALS),
-      token: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
+      token: DAI,
     },
   },
   rates: {
-    [tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address]: {
+    [WETH]: {
       rate: 38434n,
       isActive: true,
     },
@@ -119,28 +110,28 @@ const caWithLP: CATestInfo = {
   assets: [
     {
       balance: toBN("119.999999999999999997", STETH_DECIMALS),
-      token: tokenDataByNetwork.Mainnet.STETH.toLowerCase() as Address,
+      token: STETH,
     },
     {
       balance: toBN("3.5", WETH_DECIMALS),
-      token: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
+      token: WETH,
     },
   ],
   totalValue: toBN("117.635897231615362429", WETH_DECIMALS),
   debt: toBN("90.000000000000000000", WETH_DECIMALS),
   borrowRate: 5736,
-  underlyingToken: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
+  underlyingToken: WETH,
   quotas: {
-    [tokenDataByNetwork.Mainnet.STETH.toLowerCase() as Address]: {
+    [STETH]: {
       balance: toBN(
         String((1703.87588096 * 119.9999999999999) / 1738.1183),
         WETH_DECIMALS,
       ),
-      token: tokenDataByNetwork.Mainnet.STETH.toLowerCase() as Address,
+      token: STETH,
     },
   },
   rates: {
-    [tokenDataByNetwork.Mainnet.STETH.toLowerCase() as Address]: {
+    [STETH]: {
       rate: 38434n,
       isActive: true,
     },
@@ -291,9 +282,9 @@ describe("CreditAccount CreditAccountData_Legacy.calcOverallAPY test", () => {
 
       quotaRates: caWithLP.rates,
       quotas: {
-        [tokenDataByNetwork.Mainnet.STETH.toLowerCase() as Address]: {
+        [STETH]: {
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.STETH.toLowerCase() as Address,
+          token: STETH,
         },
       },
       feeInterest: 0,
@@ -339,10 +330,10 @@ describe("CreditAccount calcMaxDebtIncrease test", () => {
 });
 
 const liquidationThresholds = {
-  [tokenDataByNetwork.Mainnet.USDC.toLowerCase() as Address]: 9800n,
-  [tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address]: 9300n,
-  [tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address]: 8500n,
-  [tokenDataByNetwork.Mainnet.STETH.toLowerCase() as Address]: 8000n,
+  [USDC]: 9800n,
+  [DAI]: 9300n,
+  [WETH]: 8500n,
+  [STETH]: 8000n,
 };
 
 describe("CreditAccount calcMaxLendingDebt test", () => {
@@ -350,23 +341,23 @@ describe("CreditAccount calcMaxLendingDebt test", () => {
     const result = CreditAccountData_Legacy.calcMaxLendingDebt({
       assets: [
         {
-          token: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
+          token: DAI,
           balance: toBN("1000", DAI_DECIMALS),
         },
         {
-          token: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
+          token: WETH,
           balance: toBN("1", WETH_DECIMALS),
         },
       ],
       liquidationThresholds: {
         ...liquidationThresholds,
-        [tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address]: 0n,
+        [DAI]: 0n,
       },
-      underlyingToken: tokenDataByNetwork.Mainnet.USDC.toLowerCase() as Address,
+      underlyingToken: USDC,
       prices: {
-        [tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address]: 1n,
-        [tokenDataByNetwork.Mainnet.USDC.toLowerCase() as Address]: 1n,
-        [tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address]: 1000n,
+        [DAI]: 1n,
+        [USDC]: 1n,
+        [WETH]: 1000n,
       },
       tokensList: tokenDataList,
     });
@@ -376,19 +367,19 @@ describe("CreditAccount calcMaxLendingDebt test", () => {
     const result = CreditAccountData_Legacy.calcMaxLendingDebt({
       assets: [
         {
-          token: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
+          token: DAI,
           balance: toBN("1000", DAI_DECIMALS),
         },
         {
-          token: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
+          token: WETH,
           balance: toBN("1", WETH_DECIMALS),
         },
       ],
       liquidationThresholds: liquidationThresholds,
-      underlyingToken: tokenDataByNetwork.Mainnet.USDC.toLowerCase() as Address,
+      underlyingToken: USDC,
       prices: {
-        [tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address]: 1n,
-        [tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address]: 1000n,
+        [DAI]: 1n,
+        [WETH]: 1000n,
       },
       tokensList: tokenDataList,
     });
@@ -398,15 +389,15 @@ describe("CreditAccount calcMaxLendingDebt test", () => {
     const result = CreditAccountData_Legacy.calcMaxLendingDebt({
       assets: [
         {
-          token: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
+          token: DAI,
           balance: toBN("1000", DAI_DECIMALS),
         },
       ],
       liquidationThresholds,
-      underlyingToken: tokenDataByNetwork.Mainnet.USDC.toLowerCase() as Address,
+      underlyingToken: USDC,
       prices: {
-        [tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address]: 1n,
-        [tokenDataByNetwork.Mainnet.USDC.toLowerCase() as Address]: 1n,
+        [DAI]: 1n,
+        [USDC]: 1n,
       },
       tokensList: tokenDataList,
     });
@@ -416,20 +407,20 @@ describe("CreditAccount calcMaxLendingDebt test", () => {
     const result = CreditAccountData_Legacy.calcMaxLendingDebt({
       assets: [
         {
-          token: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
+          token: DAI,
           balance: toBN("1000", DAI_DECIMALS),
         },
         {
-          token: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
+          token: WETH,
           balance: toBN("1", WETH_DECIMALS),
         },
       ],
       liquidationThresholds,
-      underlyingToken: tokenDataByNetwork.Mainnet.USDC.toLowerCase() as Address,
+      underlyingToken: USDC,
       prices: {
-        [tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address]: 1n,
-        [tokenDataByNetwork.Mainnet.USDC.toLowerCase() as Address]: 1n,
-        [tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address]: 1000n,
+        [DAI]: 1n,
+        [USDC]: 1n,
+        [WETH]: 1000n,
       },
       tokensList: tokenDataList,
     });
@@ -439,20 +430,20 @@ describe("CreditAccount calcMaxLendingDebt test", () => {
     const result = CreditAccountData_Legacy.calcMaxLendingDebt({
       assets: [
         {
-          token: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
+          token: DAI,
           balance: toBN("1000", DAI_DECIMALS),
         },
         {
-          token: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
+          token: WETH,
           balance: toBN("1", WETH_DECIMALS),
         },
       ],
       liquidationThresholds,
-      underlyingToken: tokenDataByNetwork.Mainnet.USDC.toLowerCase() as Address,
+      underlyingToken: USDC,
       prices: {
-        [tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address]: 1n,
-        [tokenDataByNetwork.Mainnet.USDC.toLowerCase() as Address]: 1n,
-        [tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address]: 1000n,
+        [DAI]: 1n,
+        [USDC]: 1n,
+        [WETH]: 1000n,
       },
       targetHF: 12500n,
       tokensList: tokenDataList,
@@ -475,25 +466,25 @@ const defaultCA: CAHfTestInfo = {
   assets: [
     {
       balance: toBN("156552", DAI_DECIMALS),
-      token: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
+      token: DAI,
     },
     {
       balance: toBN("10", WETH_DECIMALS),
-      token: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
+      token: WETH,
     },
   ],
   debt: toBN("156552", DAI_DECIMALS),
   healthFactor: 10244,
-  underlyingToken: tokenDataByNetwork.Mainnet.DAI.toLowerCase() as Address,
+  underlyingToken: DAI,
   underlyingDecimals: DAI_DECIMALS,
   quotas: {
-    [tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address]: {
+    [WETH]: {
       balance: toBN(String(1750 * 10), DAI_DECIMALS),
-      token: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
+      token: WETH,
     },
   },
   quotasInfo: {
-    [tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address]: {
+    [WETH]: {
       isActive: true,
     },
   },
@@ -531,7 +522,7 @@ describe("CreditAccount calcHealthFactor test", () => {
   it("health factor after add collateral is calculated  correctly", () => {
     const collateral: Asset = {
       balance: toBN("10", WETH_DECIMALS),
-      token: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
+      token: WETH,
     };
 
     const afterAdd = AssetUtils.sumAssets(defaultCA.assets, [collateral]);
@@ -600,8 +591,7 @@ describe("CreditAccount calcHealthFactor test", () => {
       token: defaultCA.underlyingToken as Address,
     };
     const underlyingPrice = prices[defaultCA.underlyingToken];
-    const wethPrice =
-      prices[tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address];
+    const wethPrice = prices[WETH];
 
     const getAmount = PriceUtils.convertByPrice(
       PriceUtils.calcTotalPrice(
@@ -614,7 +604,7 @@ describe("CreditAccount calcHealthFactor test", () => {
 
     const getAsset: Asset = {
       balance: getAmount,
-      token: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
+      token: WETH,
     };
 
     const afterSub = AssetUtils.subAssets(defaultCA.assets, [swapAsset]);
@@ -650,9 +640,9 @@ describe("CreditAccount calcHealthFactor test", () => {
   it("health factor with insufficient quotas is calculated correctly", () => {
     const result = CreditAccountData_Legacy.calcHealthFactor({
       quotas: {
-        [tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address]: {
+        [WETH]: {
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address,
+          token: WETH,
         },
       },
       quotasInfo: defaultCA.quotasInfo,
@@ -670,7 +660,7 @@ describe("CreditAccount calcHealthFactor test", () => {
     const result = CreditAccountData_Legacy.calcHealthFactor({
       quotas: defaultCA.quotas,
       quotasInfo: {
-        [tokenDataByNetwork.Mainnet.WETH.toLowerCase() as Address]: {
+        [WETH]: {
           isActive: false,
         },
       },
@@ -687,34 +677,34 @@ describe("CreditAccount calcHealthFactor test", () => {
 });
 
 const cmQuotas: CalcQuotaUpdateProps["quotas"] = {
-  [tokenDataByNetwork.Mainnet.DAI]: {
-    token: tokenDataByNetwork.Mainnet.DAI,
+  [DAI]: {
+    token: DAI,
     isActive: true,
   },
-  [tokenDataByNetwork.Mainnet.WETH]: {
-    token: tokenDataByNetwork.Mainnet.WETH,
+  [WETH]: {
+    token: WETH,
     isActive: true,
   },
-  [tokenDataByNetwork.Mainnet.STETH]: {
-    token: tokenDataByNetwork.Mainnet.STETH,
+  [STETH]: {
+    token: STETH,
     isActive: true,
   },
 };
 
 const caQuota: CalcQuotaUpdateProps["initialQuotas"] = {
-  [tokenDataByNetwork.Mainnet.DAI]: {
+  [DAI]: {
     quota: 5n * PERCENTAGE_FACTOR,
   },
-  [tokenDataByNetwork.Mainnet.WETH]: {
+  [WETH]: {
     quota: 10n * PERCENTAGE_FACTOR,
   },
 };
 
 const QUOTA_RESERVE = 100n;
 const DEFAULT_LT = {
-  [tokenDataByNetwork.Mainnet.DAI]: PERCENTAGE_FACTOR,
-  [tokenDataByNetwork.Mainnet.WETH]: PERCENTAGE_FACTOR,
-  [tokenDataByNetwork.Mainnet.STETH]: PERCENTAGE_FACTOR,
+  [DAI]: PERCENTAGE_FACTOR,
+  [WETH]: PERCENTAGE_FACTOR,
+  [STETH]: PERCENTAGE_FACTOR,
 };
 const HUGE_MAX_DEBT = 20n * PERCENTAGE_FACTOR;
 
@@ -726,21 +716,21 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       quotas: cmQuotas,
       initialQuotas: {},
       assetsAfterUpdate: {
-        [tokenDataByNetwork.Mainnet.DAI]: {
+        [DAI]: {
           amountInTarget: 10n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.DAI,
+          token: DAI,
         },
-        [tokenDataByNetwork.Mainnet.WETH]: {
+        [WETH]: {
           amountInTarget: 20n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.WETH,
+          token: WETH,
         },
       },
 
       allowedToObtain: {
-        [tokenDataByNetwork.Mainnet.DAI]: {},
-        [tokenDataByNetwork.Mainnet.WETH]: {},
+        [DAI]: {},
+        [WETH]: {},
       },
       allowedToSpend: {},
 
@@ -750,26 +740,26 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     expect(result.quotaIncrease).toEqual([
       {
         balance: 10n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.DAI,
+        token: DAI,
       },
       {
         balance: 20n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.WETH,
+        token: WETH,
       },
     ]);
     expect(result.quotaDecrease).toEqual([]);
     expect(result.desiredQuota).toEqual({
-      [tokenDataByNetwork.Mainnet.DAI]: {
+      [DAI]: {
         balance: 10n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.DAI,
+        token: DAI,
       },
-      [tokenDataByNetwork.Mainnet.WETH]: {
+      [WETH]: {
         balance: 20n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.WETH,
+        token: WETH,
       },
-      [tokenDataByNetwork.Mainnet.STETH]: {
+      [STETH]: {
         balance: 0n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.STETH,
+        token: STETH,
       },
     });
   });
@@ -780,15 +770,15 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       quotas: cmQuotas,
       initialQuotas: caQuota,
       assetsAfterUpdate: {
-        [tokenDataByNetwork.Mainnet.STETH]: {
+        [STETH]: {
           amountInTarget: 10n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.DAI,
+          token: DAI,
         },
       },
 
       allowedToObtain: {
-        [tokenDataByNetwork.Mainnet.STETH]: {},
+        [STETH]: {},
       },
       allowedToSpend: {},
 
@@ -798,22 +788,22 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     expect(result.quotaIncrease).toEqual([
       {
         balance: 10n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.STETH,
+        token: STETH,
       },
     ]);
     expect(result.quotaDecrease).toEqual([]);
     expect(result.desiredQuota).toEqual({
-      [tokenDataByNetwork.Mainnet.DAI]: {
+      [DAI]: {
         balance: 5n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.DAI,
+        token: DAI,
       },
-      [tokenDataByNetwork.Mainnet.WETH]: {
+      [WETH]: {
         balance: 10n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.WETH,
+        token: WETH,
       },
-      [tokenDataByNetwork.Mainnet.STETH]: {
+      [STETH]: {
         balance: 10n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.STETH,
+        token: STETH,
       },
     });
   });
@@ -824,15 +814,15 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       quotas: cmQuotas,
       initialQuotas: caQuota,
       assetsAfterUpdate: {
-        [tokenDataByNetwork.Mainnet.DAI]: {
+        [DAI]: {
           amountInTarget: 10n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.DAI,
+          token: DAI,
         },
       },
 
       allowedToObtain: {
-        [tokenDataByNetwork.Mainnet.DAI]: {},
+        [DAI]: {},
       },
       allowedToSpend: {},
 
@@ -842,22 +832,22 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     expect(result.quotaIncrease).toEqual([
       {
         balance: 5n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.DAI,
+        token: DAI,
       },
     ]);
     expect(result.quotaDecrease).toEqual([]);
     expect(result.desiredQuota).toEqual({
-      [tokenDataByNetwork.Mainnet.DAI]: {
+      [DAI]: {
         balance: 10n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.DAI,
+        token: DAI,
       },
-      [tokenDataByNetwork.Mainnet.WETH]: {
+      [WETH]: {
         balance: 10n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.WETH,
+        token: WETH,
       },
-      [tokenDataByNetwork.Mainnet.STETH]: {
+      [STETH]: {
         balance: 0n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.STETH,
+        token: STETH,
       },
     });
   });
@@ -868,15 +858,15 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       quotas: cmQuotas,
       initialQuotas: caQuota,
       assetsAfterUpdate: {
-        [tokenDataByNetwork.Mainnet.WETH]: {
+        [WETH]: {
           amountInTarget: 10n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.WETH,
+          token: WETH,
         },
       },
 
       allowedToObtain: {
-        [tokenDataByNetwork.Mainnet.WETH]: {},
+        [WETH]: {},
       },
       allowedToSpend: {},
 
@@ -886,17 +876,17 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     expect(result.quotaIncrease).toEqual([]);
     expect(result.quotaDecrease).toEqual([]);
     expect(result.desiredQuota).toEqual({
-      [tokenDataByNetwork.Mainnet.DAI]: {
+      [DAI]: {
         balance: 5n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.DAI,
+        token: DAI,
       },
-      [tokenDataByNetwork.Mainnet.WETH]: {
+      [WETH]: {
         balance: 10n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.WETH,
+        token: WETH,
       },
-      [tokenDataByNetwork.Mainnet.STETH]: {
+      [STETH]: {
         balance: 0n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.STETH,
+        token: STETH,
       },
     });
   });
@@ -907,22 +897,22 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       quotas: cmQuotas,
       initialQuotas: caQuota,
       assetsAfterUpdate: {
-        [tokenDataByNetwork.Mainnet.STETH]: {
+        [STETH]: {
           amountInTarget: 10n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.DAI,
+          token: DAI,
         },
-        [tokenDataByNetwork.Mainnet.WETH]: {
+        [WETH]: {
           amountInTarget: 0n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.DAI,
+          token: DAI,
         },
       },
 
       allowedToObtain: {
-        [tokenDataByNetwork.Mainnet.STETH]: {},
+        [STETH]: {},
       },
-      allowedToSpend: { [tokenDataByNetwork.Mainnet.WETH]: {} },
+      allowedToSpend: { [WETH]: {} },
 
       liquidationThresholds: DEFAULT_LT,
     });
@@ -930,27 +920,27 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     expect(result.quotaIncrease).toEqual([
       {
         balance: 10n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.STETH,
+        token: STETH,
       },
     ]);
     expect(result.quotaDecrease).toEqual([
       {
         balance: MIN_INT96,
-        token: tokenDataByNetwork.Mainnet.WETH,
+        token: WETH,
       },
     ]);
     expect(result.desiredQuota).toEqual({
-      [tokenDataByNetwork.Mainnet.DAI]: {
+      [DAI]: {
         balance: 5n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.DAI,
+        token: DAI,
       },
-      [tokenDataByNetwork.Mainnet.WETH]: {
+      [WETH]: {
         balance: 0n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.WETH,
+        token: WETH,
       },
-      [tokenDataByNetwork.Mainnet.STETH]: {
+      [STETH]: {
         balance: 10n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.STETH,
+        token: STETH,
       },
     });
   });
@@ -961,23 +951,23 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       quotas: cmQuotas,
       initialQuotas: caQuota,
       assetsAfterUpdate: {
-        [tokenDataByNetwork.Mainnet.DAI]: {
+        [DAI]: {
           amountInTarget: 10n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.DAI,
+          token: DAI,
         },
-        [tokenDataByNetwork.Mainnet.WETH]: {
+        [WETH]: {
           amountInTarget: 0n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.WETH,
+          token: WETH,
         },
       },
 
       allowedToObtain: {
-        [tokenDataByNetwork.Mainnet.DAI]: {},
+        [DAI]: {},
       },
       allowedToSpend: {
-        [tokenDataByNetwork.Mainnet.WETH]: {},
+        [WETH]: {},
       },
 
       liquidationThresholds: DEFAULT_LT,
@@ -986,27 +976,27 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     expect(result.quotaIncrease).toEqual([
       {
         balance: 5n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.DAI,
+        token: DAI,
       },
     ]);
     expect(result.quotaDecrease).toEqual([
       {
         balance: MIN_INT96,
-        token: tokenDataByNetwork.Mainnet.WETH,
+        token: WETH,
       },
     ]);
     expect(result.desiredQuota).toEqual({
-      [tokenDataByNetwork.Mainnet.DAI]: {
+      [DAI]: {
         balance: 10n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.DAI,
+        token: DAI,
       },
-      [tokenDataByNetwork.Mainnet.WETH]: {
+      [WETH]: {
         balance: 0n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.WETH,
+        token: WETH,
       },
-      [tokenDataByNetwork.Mainnet.STETH]: {
+      [STETH]: {
         balance: 0n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.STETH,
+        token: STETH,
       },
     });
   });
@@ -1021,23 +1011,23 @@ describe("CreditAccount calcQuotaUpdate test", () => {
         type: "recommendedQuota",
       },
       assetsAfterUpdate: {
-        [tokenDataByNetwork.Mainnet.DAI]: {
+        [DAI]: {
           amountInTarget: 10n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.DAI,
+          token: DAI,
         },
-        [tokenDataByNetwork.Mainnet.WETH]: {
+        [WETH]: {
           amountInTarget: 0n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.WETH,
+          token: WETH,
         },
       },
 
       allowedToObtain: {
-        [tokenDataByNetwork.Mainnet.DAI]: {},
+        [DAI]: {},
       },
       allowedToSpend: {
-        [tokenDataByNetwork.Mainnet.WETH]: {},
+        [WETH]: {},
       },
 
       liquidationThresholds: DEFAULT_LT,
@@ -1046,27 +1036,27 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     expect(result.quotaIncrease).toEqual([
       {
         balance: 2n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.DAI,
+        token: DAI,
       },
     ]);
     expect(result.quotaDecrease).toEqual([
       {
         balance: MIN_INT96,
-        token: tokenDataByNetwork.Mainnet.WETH,
+        token: WETH,
       },
     ]);
     expect(result.desiredQuota).toEqual({
-      [tokenDataByNetwork.Mainnet.DAI]: {
+      [DAI]: {
         balance: 7n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.DAI,
+        token: DAI,
       },
-      [tokenDataByNetwork.Mainnet.WETH]: {
+      [WETH]: {
         balance: 0n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.WETH,
+        token: WETH,
       },
-      [tokenDataByNetwork.Mainnet.STETH]: {
+      [STETH]: {
         balance: 0n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.STETH,
+        token: STETH,
       },
     });
   });
@@ -1077,22 +1067,22 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       quotas: cmQuotas,
       initialQuotas: caQuota,
       assetsAfterUpdate: {
-        [tokenDataByNetwork.Mainnet.WETH]: {
+        [WETH]: {
           amountInTarget: 10n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.WETH,
+          token: WETH,
         },
-        [tokenDataByNetwork.Mainnet.DAI]: {
+        [DAI]: {
           amountInTarget: 0n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.DAI,
+          token: DAI,
         },
       },
 
       allowedToObtain: {
-        [tokenDataByNetwork.Mainnet.WETH]: {},
+        [WETH]: {},
       },
-      allowedToSpend: { [tokenDataByNetwork.Mainnet.DAI]: {} },
+      allowedToSpend: { [DAI]: {} },
 
       liquidationThresholds: DEFAULT_LT,
     });
@@ -1101,21 +1091,21 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     expect(result.quotaDecrease).toEqual([
       {
         balance: MIN_INT96,
-        token: tokenDataByNetwork.Mainnet.DAI,
+        token: DAI,
       },
     ]);
     expect(result.desiredQuota).toEqual({
-      [tokenDataByNetwork.Mainnet.DAI]: {
+      [DAI]: {
         balance: 0n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.DAI,
+        token: DAI,
       },
-      [tokenDataByNetwork.Mainnet.WETH]: {
+      [WETH]: {
         balance: 10n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.WETH,
+        token: WETH,
       },
-      [tokenDataByNetwork.Mainnet.STETH]: {
+      [STETH]: {
         balance: 0n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.STETH,
+        token: STETH,
       },
     });
   });
@@ -1126,15 +1116,15 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       quotas: cmQuotas,
       initialQuotas: caQuota,
       assetsAfterUpdate: {
-        [tokenDataByNetwork.Mainnet.DAI]: {
+        [DAI]: {
           amountInTarget: 10n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.DAI,
+          token: DAI,
         },
-        [tokenDataByNetwork.Mainnet.WETH]: {
+        [WETH]: {
           amountInTarget: 0n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.WETH,
+          token: WETH,
         },
       },
 
@@ -1147,17 +1137,17 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     expect(result.quotaIncrease).toEqual([]);
     expect(result.quotaDecrease).toEqual([]);
     expect(result.desiredQuota).toEqual({
-      [tokenDataByNetwork.Mainnet.DAI]: {
+      [DAI]: {
         balance: 5n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.DAI,
+        token: DAI,
       },
-      [tokenDataByNetwork.Mainnet.WETH]: {
+      [WETH]: {
         balance: 10n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.WETH,
+        token: WETH,
       },
-      [tokenDataByNetwork.Mainnet.STETH]: {
+      [STETH]: {
         balance: 0n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.STETH,
+        token: STETH,
       },
     });
   });
@@ -1166,38 +1156,38 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       maxDebt: HUGE_MAX_DEBT,
       quotaReserve: QUOTA_RESERVE,
       quotas: {
-        [tokenDataByNetwork.Mainnet.DAI]: {
-          token: tokenDataByNetwork.Mainnet.DAI,
+        [DAI]: {
+          token: DAI,
           isActive: false,
         },
-        [tokenDataByNetwork.Mainnet.WETH]: {
-          token: tokenDataByNetwork.Mainnet.WETH,
+        [WETH]: {
+          token: WETH,
           isActive: false,
         },
-        [tokenDataByNetwork.Mainnet.STETH]: {
-          token: tokenDataByNetwork.Mainnet.STETH,
+        [STETH]: {
+          token: STETH,
           isActive: false,
         },
       },
       initialQuotas: caQuota,
       assetsAfterUpdate: {
-        [tokenDataByNetwork.Mainnet.DAI]: {
+        [DAI]: {
           amountInTarget: 10n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.DAI,
+          token: DAI,
         },
-        [tokenDataByNetwork.Mainnet.WETH]: {
+        [WETH]: {
           amountInTarget: 0n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.WETH,
+          token: WETH,
         },
       },
 
       allowedToObtain: {
-        [tokenDataByNetwork.Mainnet.DAI]: {},
+        [DAI]: {},
       },
       allowedToSpend: {
-        [tokenDataByNetwork.Mainnet.WETH]: {},
+        [WETH]: {},
       },
 
       liquidationThresholds: DEFAULT_LT,
@@ -1206,17 +1196,17 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     expect(result.quotaIncrease).toEqual([]);
     expect(result.quotaDecrease).toEqual([]);
     expect(result.desiredQuota).toEqual({
-      [tokenDataByNetwork.Mainnet.DAI]: {
+      [DAI]: {
         balance: 5n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.DAI,
+        token: DAI,
       },
-      [tokenDataByNetwork.Mainnet.WETH]: {
+      [WETH]: {
         balance: 10n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.WETH,
+        token: WETH,
       },
-      [tokenDataByNetwork.Mainnet.STETH]: {
+      [STETH]: {
         balance: 0n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.STETH,
+        token: STETH,
       },
     });
   });
@@ -1227,27 +1217,27 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       quotas: cmQuotas,
       initialQuotas: {
         ...caQuota,
-        [tokenDataByNetwork.Mainnet.STETH]: {
+        [STETH]: {
           quota: 5n * PERCENTAGE_FACTOR,
         },
       },
       assetsAfterUpdate: {
-        [tokenDataByNetwork.Mainnet.STETH]: {
+        [STETH]: {
           amountInTarget: 10n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.DAI,
+          token: DAI,
         },
-        [tokenDataByNetwork.Mainnet.WETH]: {
+        [WETH]: {
           amountInTarget: 5n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.DAI,
+          token: DAI,
         },
       },
 
       allowedToObtain: {
-        [tokenDataByNetwork.Mainnet.STETH]: {},
+        [STETH]: {},
       },
-      allowedToSpend: { [tokenDataByNetwork.Mainnet.WETH]: {} },
+      allowedToSpend: { [WETH]: {} },
 
       liquidationThresholds: {},
     });
@@ -1256,21 +1246,21 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     expect(result.quotaDecrease).toEqual([
       {
         balance: MIN_INT96,
-        token: tokenDataByNetwork.Mainnet.WETH,
+        token: WETH,
       },
     ]);
     expect(result.desiredQuota).toEqual({
-      [tokenDataByNetwork.Mainnet.DAI]: {
+      [DAI]: {
         balance: 5n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.DAI,
+        token: DAI,
       },
-      [tokenDataByNetwork.Mainnet.WETH]: {
+      [WETH]: {
         balance: 0n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.WETH,
+        token: WETH,
       },
-      [tokenDataByNetwork.Mainnet.STETH]: {
+      [STETH]: {
         balance: 5n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.STETH,
+        token: STETH,
       },
     });
   });
@@ -1281,56 +1271,56 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       quotas: cmQuotas,
       initialQuotas: {
         ...caQuota,
-        [tokenDataByNetwork.Mainnet.STETH]: { quota: 5n * PERCENTAGE_FACTOR },
+        [STETH]: { quota: 5n * PERCENTAGE_FACTOR },
       },
       assetsAfterUpdate: {
-        [tokenDataByNetwork.Mainnet.STETH]: {
+        [STETH]: {
           amountInTarget: 20n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.DAI,
+          token: DAI,
         },
-        [tokenDataByNetwork.Mainnet.WETH]: {
+        [WETH]: {
           amountInTarget: 5n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.DAI,
+          token: DAI,
         },
       },
 
       allowedToObtain: {
-        [tokenDataByNetwork.Mainnet.STETH]: {},
+        [STETH]: {},
       },
-      allowedToSpend: { [tokenDataByNetwork.Mainnet.WETH]: {} },
+      allowedToSpend: { [WETH]: {} },
 
       liquidationThresholds: {
         ...DEFAULT_LT,
-        [tokenDataByNetwork.Mainnet.STETH]: 5000n,
+        [STETH]: 5000n,
       },
     });
 
     expect(result.quotaIncrease).toEqual([
       {
         balance: 5n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.STETH,
+        token: STETH,
       },
     ]);
     expect(result.quotaDecrease).toEqual([
       {
         balance: -5n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.WETH,
+        token: WETH,
       },
     ]);
     expect(result.desiredQuota).toEqual({
-      [tokenDataByNetwork.Mainnet.DAI]: {
+      [DAI]: {
         balance: 5n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.DAI,
+        token: DAI,
       },
-      [tokenDataByNetwork.Mainnet.WETH]: {
+      [WETH]: {
         balance: 5n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.WETH,
+        token: WETH,
       },
-      [tokenDataByNetwork.Mainnet.STETH]: {
+      [STETH]: {
         balance: 10n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.STETH,
+        token: STETH,
       },
     });
   });
@@ -1341,29 +1331,29 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       quotas: cmQuotas,
       initialQuotas: {
         ...caQuota,
-        [tokenDataByNetwork.Mainnet.STETH]: { quota: 5n * PERCENTAGE_FACTOR },
+        [STETH]: { quota: 5n * PERCENTAGE_FACTOR },
       },
       assetsAfterUpdate: {
-        [tokenDataByNetwork.Mainnet.STETH]: {
+        [STETH]: {
           amountInTarget: 10n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.DAI,
+          token: DAI,
         },
-        [tokenDataByNetwork.Mainnet.WETH]: {
+        [WETH]: {
           amountInTarget: 5n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.DAI,
+          token: DAI,
         },
       },
 
       allowedToObtain: {
-        [tokenDataByNetwork.Mainnet.STETH]: {},
+        [STETH]: {},
       },
-      allowedToSpend: { [tokenDataByNetwork.Mainnet.WETH]: {} },
+      allowedToSpend: { [WETH]: {} },
 
       liquidationThresholds: {
         ...DEFAULT_LT,
-        [tokenDataByNetwork.Mainnet.STETH]: 5000n,
+        [STETH]: 5000n,
       },
     });
 
@@ -1371,21 +1361,21 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     expect(result.quotaDecrease).toEqual([
       {
         balance: -5n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.WETH,
+        token: WETH,
       },
     ]);
     expect(result.desiredQuota).toEqual({
-      [tokenDataByNetwork.Mainnet.DAI]: {
+      [DAI]: {
         balance: 5n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.DAI,
+        token: DAI,
       },
-      [tokenDataByNetwork.Mainnet.WETH]: {
+      [WETH]: {
         balance: 5n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.WETH,
+        token: WETH,
       },
-      [tokenDataByNetwork.Mainnet.STETH]: {
+      [STETH]: {
         balance: 5n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.STETH,
+        token: STETH,
       },
     });
   });
@@ -1396,28 +1386,28 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       quotas: cmQuotas,
       initialQuotas: {
         ...caQuota,
-        [tokenDataByNetwork.Mainnet.DAI]: {
+        [DAI]: {
           quota: 10n * PERCENTAGE_FACTOR,
         },
       },
       assetsAfterUpdate: {
-        [tokenDataByNetwork.Mainnet.DAI]: {
+        [DAI]: {
           amountInTarget: 20n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.DAI,
+          token: DAI,
         },
-        [tokenDataByNetwork.Mainnet.WETH]: {
+        [WETH]: {
           amountInTarget: 0n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.WETH,
+          token: WETH,
         },
       },
 
       allowedToObtain: {
-        [tokenDataByNetwork.Mainnet.DAI]: {},
+        [DAI]: {},
       },
       allowedToSpend: {
-        [tokenDataByNetwork.Mainnet.WETH]: {},
+        [WETH]: {},
       },
 
       liquidationThresholds: DEFAULT_LT,
@@ -1426,27 +1416,27 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     expect(result.quotaIncrease).toEqual([
       {
         balance: 10n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.DAI,
+        token: DAI,
       },
     ]);
     expect(result.quotaDecrease).toEqual([
       {
         balance: MIN_INT96,
-        token: tokenDataByNetwork.Mainnet.WETH,
+        token: WETH,
       },
     ]);
     expect(result.desiredQuota).toEqual({
-      [tokenDataByNetwork.Mainnet.DAI]: {
+      [DAI]: {
         balance: 20n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.DAI,
+        token: DAI,
       },
-      [tokenDataByNetwork.Mainnet.WETH]: {
+      [WETH]: {
         balance: 0n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.WETH,
+        token: WETH,
       },
-      [tokenDataByNetwork.Mainnet.STETH]: {
+      [STETH]: {
         balance: 0n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.STETH,
+        token: STETH,
       },
     });
   });
@@ -1457,28 +1447,28 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       quotas: cmQuotas,
       initialQuotas: {
         ...caQuota,
-        [tokenDataByNetwork.Mainnet.DAI]: {
+        [DAI]: {
           quota: 10n * PERCENTAGE_FACTOR,
         },
       },
       assetsAfterUpdate: {
-        [tokenDataByNetwork.Mainnet.DAI]: {
+        [DAI]: {
           amountInTarget: 20n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.DAI,
+          token: DAI,
         },
-        [tokenDataByNetwork.Mainnet.WETH]: {
+        [WETH]: {
           amountInTarget: 0n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.WETH,
+          token: WETH,
         },
       },
 
       allowedToObtain: {
-        [tokenDataByNetwork.Mainnet.DAI]: {},
+        [DAI]: {},
       },
       allowedToSpend: {
-        [tokenDataByNetwork.Mainnet.WETH]: {},
+        [WETH]: {},
       },
 
       liquidationThresholds: DEFAULT_LT,
@@ -1487,27 +1477,27 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     expect(result.quotaIncrease).toEqual([
       {
         balance: 8n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.DAI,
+        token: DAI,
       },
     ]);
     expect(result.quotaDecrease).toEqual([
       {
         balance: MIN_INT96,
-        token: tokenDataByNetwork.Mainnet.WETH,
+        token: WETH,
       },
     ]);
     expect(result.desiredQuota).toEqual({
-      [tokenDataByNetwork.Mainnet.DAI]: {
+      [DAI]: {
         balance: 18n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.DAI,
+        token: DAI,
       },
-      [tokenDataByNetwork.Mainnet.WETH]: {
+      [WETH]: {
         balance: 0n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.WETH,
+        token: WETH,
       },
-      [tokenDataByNetwork.Mainnet.STETH]: {
+      [STETH]: {
         balance: 0n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.STETH,
+        token: STETH,
       },
     });
   });
@@ -1518,28 +1508,28 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       quotas: cmQuotas,
       initialQuotas: {
         ...caQuota,
-        [tokenDataByNetwork.Mainnet.DAI]: {
+        [DAI]: {
           quota: 10n * PERCENTAGE_FACTOR,
         },
       },
       assetsAfterUpdate: {
-        [tokenDataByNetwork.Mainnet.DAI]: {
+        [DAI]: {
           amountInTarget: 20n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.DAI,
+          token: DAI,
         },
-        [tokenDataByNetwork.Mainnet.WETH]: {
+        [WETH]: {
           amountInTarget: 0n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.WETH,
+          token: WETH,
         },
       },
 
       allowedToObtain: {
-        [tokenDataByNetwork.Mainnet.DAI]: {},
+        [DAI]: {},
       },
       allowedToSpend: {
-        [tokenDataByNetwork.Mainnet.WETH]: {},
+        [WETH]: {},
       },
 
       liquidationThresholds: DEFAULT_LT,
@@ -1549,21 +1539,21 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     expect(result.quotaDecrease).toEqual([
       {
         balance: MIN_INT96,
-        token: tokenDataByNetwork.Mainnet.WETH,
+        token: WETH,
       },
     ]);
     expect(result.desiredQuota).toEqual({
-      [tokenDataByNetwork.Mainnet.DAI]: {
+      [DAI]: {
         balance: 10n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.DAI,
+        token: DAI,
       },
-      [tokenDataByNetwork.Mainnet.WETH]: {
+      [WETH]: {
         balance: 0n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.WETH,
+        token: WETH,
       },
-      [tokenDataByNetwork.Mainnet.STETH]: {
+      [STETH]: {
         balance: 0n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.STETH,
+        token: STETH,
       },
     });
   });
@@ -1574,30 +1564,30 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       quotas: cmQuotas,
       initialQuotas: {
         ...caQuota,
-        [tokenDataByNetwork.Mainnet.DAI]: {
+        [DAI]: {
           quota: 5_2345n,
         },
-        [tokenDataByNetwork.Mainnet.WETH]: {
+        [WETH]: {
           quota: 10_7458n * PERCENTAGE_FACTOR,
         },
       },
       assetsAfterUpdate: {
-        [tokenDataByNetwork.Mainnet.STETH]: {
+        [STETH]: {
           amountInTarget: 10_1345n,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.DAI,
+          token: DAI,
         },
-        [tokenDataByNetwork.Mainnet.WETH]: {
+        [WETH]: {
           amountInTarget: 0n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.DAI,
+          token: DAI,
         },
       },
 
       allowedToObtain: {
-        [tokenDataByNetwork.Mainnet.STETH]: {},
+        [STETH]: {},
       },
-      allowedToSpend: { [tokenDataByNetwork.Mainnet.WETH]: {} },
+      allowedToSpend: { [WETH]: {} },
 
       liquidationThresholds: DEFAULT_LT,
     });
@@ -1605,27 +1595,27 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     expect(result.quotaIncrease).toEqual([
       {
         balance: 10n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.STETH,
+        token: STETH,
       },
     ]);
     expect(result.quotaDecrease).toEqual([
       {
         balance: MIN_INT96,
-        token: tokenDataByNetwork.Mainnet.WETH,
+        token: WETH,
       },
     ]);
     expect(result.desiredQuota).toEqual({
-      [tokenDataByNetwork.Mainnet.DAI]: {
+      [DAI]: {
         balance: 5_2345n,
-        token: tokenDataByNetwork.Mainnet.DAI,
+        token: DAI,
       },
-      [tokenDataByNetwork.Mainnet.WETH]: {
+      [WETH]: {
         balance: 0n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.WETH,
+        token: WETH,
       },
-      [tokenDataByNetwork.Mainnet.STETH]: {
+      [STETH]: {
         balance: 10n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.STETH,
+        token: STETH,
       },
     });
   });
@@ -1636,30 +1626,30 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       quotas: cmQuotas,
       initialQuotas: {
         ...caQuota,
-        [tokenDataByNetwork.Mainnet.DAI]: {
+        [DAI]: {
           quota: 5_2345n,
         },
-        [tokenDataByNetwork.Mainnet.WETH]: {
+        [WETH]: {
           quota: 10_7458n * PERCENTAGE_FACTOR,
         },
       },
       assetsAfterUpdate: {
-        [tokenDataByNetwork.Mainnet.STETH]: {
+        [STETH]: {
           amountInTarget: 10_1345n,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.DAI,
+          token: DAI,
         },
-        [tokenDataByNetwork.Mainnet.WETH]: {
+        [WETH]: {
           amountInTarget: 0n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: tokenDataByNetwork.Mainnet.DAI,
+          token: DAI,
         },
       },
 
       allowedToObtain: {
-        [tokenDataByNetwork.Mainnet.STETH]: {},
+        [STETH]: {},
       },
-      allowedToSpend: { [tokenDataByNetwork.Mainnet.WETH]: {} },
+      allowedToSpend: { [WETH]: {} },
 
       liquidationThresholds: DEFAULT_LT,
     });
@@ -1667,27 +1657,27 @@ describe("CreditAccount calcQuotaUpdate test", () => {
     expect(result.quotaIncrease).toEqual([
       {
         balance: 7n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.STETH,
+        token: STETH,
       },
     ]);
     expect(result.quotaDecrease).toEqual([
       {
         balance: MIN_INT96,
-        token: tokenDataByNetwork.Mainnet.WETH,
+        token: WETH,
       },
     ]);
     expect(result.desiredQuota).toEqual({
-      [tokenDataByNetwork.Mainnet.DAI]: {
+      [DAI]: {
         balance: 5_2345n,
-        token: tokenDataByNetwork.Mainnet.DAI,
+        token: DAI,
       },
-      [tokenDataByNetwork.Mainnet.WETH]: {
+      [WETH]: {
         balance: 0n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.WETH,
+        token: WETH,
       },
-      [tokenDataByNetwork.Mainnet.STETH]: {
+      [STETH]: {
         balance: 7n * PERCENTAGE_FACTOR,
-        token: tokenDataByNetwork.Mainnet.STETH,
+        token: STETH,
       },
     });
   });
@@ -1697,29 +1687,29 @@ describe("CreditAccount calcAvgQuotaBorrowRate test", () => {
   it("should calculate quota rate (same amounts, different rates)", () => {
     const result = CreditAccountData_Legacy.calcQuotaBorrowRate({
       quotas: {
-        [tokenDataByNetwork.Mainnet.DAI]: {
-          token: tokenDataByNetwork.Mainnet.DAI,
+        [DAI]: {
+          token: DAI,
           balance: 10n,
         },
-        [tokenDataByNetwork.Mainnet.WETH]: {
-          token: tokenDataByNetwork.Mainnet.WETH,
+        [WETH]: {
+          token: WETH,
           balance: 10n,
         },
-        [tokenDataByNetwork.Mainnet.STETH]: {
-          token: tokenDataByNetwork.Mainnet.STETH,
+        [STETH]: {
+          token: STETH,
           balance: 10n,
         },
       },
       quotaRates: {
-        [tokenDataByNetwork.Mainnet.DAI]: {
+        [DAI]: {
           rate: 5n,
           isActive: true,
         },
-        [tokenDataByNetwork.Mainnet.WETH]: {
+        [WETH]: {
           rate: 10n,
           isActive: true,
         },
-        [tokenDataByNetwork.Mainnet.STETH]: {
+        [STETH]: {
           rate: 15n,
           isActive: true,
         },
@@ -1731,29 +1721,29 @@ describe("CreditAccount calcAvgQuotaBorrowRate test", () => {
   it("should calculate quota rate (same rates, different amounts)", () => {
     const result = CreditAccountData_Legacy.calcQuotaBorrowRate({
       quotas: {
-        [tokenDataByNetwork.Mainnet.DAI]: {
-          token: tokenDataByNetwork.Mainnet.DAI,
+        [DAI]: {
+          token: DAI,
           balance: 5n,
         },
-        [tokenDataByNetwork.Mainnet.WETH]: {
-          token: tokenDataByNetwork.Mainnet.WETH,
+        [WETH]: {
+          token: WETH,
           balance: 10n,
         },
-        [tokenDataByNetwork.Mainnet.STETH]: {
-          token: tokenDataByNetwork.Mainnet.STETH,
+        [STETH]: {
+          token: STETH,
           balance: 15n,
         },
       },
       quotaRates: {
-        [tokenDataByNetwork.Mainnet.DAI]: {
+        [DAI]: {
           rate: 10n,
           isActive: true,
         },
-        [tokenDataByNetwork.Mainnet.WETH]: {
+        [WETH]: {
           rate: 10n,
           isActive: true,
         },
-        [tokenDataByNetwork.Mainnet.STETH]: {
+        [STETH]: {
           rate: 10n,
           isActive: true,
         },
@@ -1765,29 +1755,29 @@ describe("CreditAccount calcAvgQuotaBorrowRate test", () => {
   it("should calculate quota rate (disabled quota)", () => {
     const result = CreditAccountData_Legacy.calcQuotaBorrowRate({
       quotas: {
-        [tokenDataByNetwork.Mainnet.DAI]: {
-          token: tokenDataByNetwork.Mainnet.DAI,
+        [DAI]: {
+          token: DAI,
           balance: 5n,
         },
-        [tokenDataByNetwork.Mainnet.WETH]: {
-          token: tokenDataByNetwork.Mainnet.WETH,
+        [WETH]: {
+          token: WETH,
           balance: 10n,
         },
-        [tokenDataByNetwork.Mainnet.STETH]: {
-          token: tokenDataByNetwork.Mainnet.STETH,
+        [STETH]: {
+          token: STETH,
           balance: 15n,
         },
       },
       quotaRates: {
-        [tokenDataByNetwork.Mainnet.DAI]: {
+        [DAI]: {
           rate: 10n,
           isActive: true,
         },
-        [tokenDataByNetwork.Mainnet.WETH]: {
+        [WETH]: {
           rate: 10n,
           isActive: false,
         },
-        [tokenDataByNetwork.Mainnet.STETH]: {
+        [STETH]: {
           rate: 10n,
           isActive: true,
         },
@@ -1802,13 +1792,13 @@ describe("CreditAccount calcQuotaBorrowRate test", () => {
   it("should calculate quota borrow rate", () => {
     const result = CreditAccountData_Legacy.calcQuotaBorrowRate({
       quotas: {
-        [tokenDataByNetwork.Mainnet.DAI]: {
-          token: tokenDataByNetwork.Mainnet.DAI,
+        [DAI]: {
+          token: DAI,
           balance: 10n,
         },
       },
       quotaRates: {
-        [tokenDataByNetwork.Mainnet.DAI]: {
+        [DAI]: {
           rate: 5n,
           isActive: true,
         },
@@ -1820,13 +1810,13 @@ describe("CreditAccount calcQuotaBorrowRate test", () => {
   it("should calculate quota borrow rate when no balance", () => {
     const result = CreditAccountData_Legacy.calcQuotaBorrowRate({
       quotas: {
-        [tokenDataByNetwork.Mainnet.DAI]: {
-          token: tokenDataByNetwork.Mainnet.DAI,
+        [DAI]: {
+          token: DAI,
           balance: 1n,
         },
       },
       quotaRates: {
-        [tokenDataByNetwork.Mainnet.DAI]: {
+        [DAI]: {
           rate: 5n,
           isActive: true,
         },
