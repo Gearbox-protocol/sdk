@@ -35,7 +35,6 @@ import type {
   MetaCurveLPTokenData,
 } from "./curveLP";
 import { curveTokens } from "./curveLP";
-import { decimals } from "./decimals";
 import type {
   ERC4626LPToken,
   ERC4626VaultOfCurveLPTokenData,
@@ -1788,37 +1787,8 @@ export const tokenSymbolByAddress = Object.entries(tokenDataByNetwork).reduce<
   {},
 );
 
-export const tickerSymbolByAddress: Record<Address, TickerToken> =
-  Object.fromEntries(
-    Object.values(tickerTokensByNetwork)
-      .map(en =>
-        Object.entries(en)
-          .map(([symbol, addresses]) =>
-            addresses.map(addr => [addr.toLowerCase() as Address, symbol]),
-          )
-          .flat(),
-      )
-      .flat(),
-  );
-
 export function getTokenSymbol(address: Address): SupportedToken | undefined {
   return tokenSymbolByAddress[address.toLowerCase()];
-}
-
-export function getTokenSymbolOrTicker(
-  address: Address,
-): SupportedToken | TickerToken | undefined {
-  return (
-    tokenSymbolByAddress[address.toLowerCase()] ||
-    tickerSymbolByAddress[address.toLowerCase() as Address]
-  );
-}
-
-export function getTokenSymbolOrETH(
-  address: Address,
-): SupportedToken | "ETH" | undefined {
-  if (address.toLowerCase() === ETH_ADDRESS.toLowerCase()) return "ETH";
-  return getTokenSymbol(address);
 }
 
 export const isSupportedToken = (t: unknown): t is SupportedToken =>
@@ -1826,23 +1796,3 @@ export const isSupportedToken = (t: unknown): t is SupportedToken =>
 
 export const isLPToken = (t: unknown): t is LPTokens =>
   typeof t === "string" && !!lpTokens[t as LPTokens];
-
-export function getDecimals(token: SupportedToken | string): number {
-  let dec = decimals[token as SupportedToken];
-  if (dec) return dec;
-
-  dec = decimals[tokenSymbolByAddress[token.toLowerCase()]];
-  if (!dec) {
-    throw new Error(`Decimals for ${token} not found`);
-  }
-  return dec;
-}
-
-export function extractTokenData(
-  tokenAddress: string,
-): [SupportedToken | undefined, number | undefined] {
-  const underlyingSymbol = tokenSymbolByAddress[tokenAddress.toLowerCase()];
-  const underlyingDecimals = decimals[underlyingSymbol || ""];
-
-  return [underlyingSymbol, underlyingDecimals];
-}

@@ -16,7 +16,6 @@ import {
   contractsByAddress,
   contractsByNetwork,
   Protocols,
-  tokenDataByNetwork,
 } from "../../../sdk-gov-legacy";
 import type { PartialRecord } from "../../../utils";
 import { TypedObjectUtils } from "../../../utils";
@@ -62,12 +61,14 @@ export class RewardConvex {
   static async findRewards(
     ca: CreditAccountData_Legacy,
     cm: CreditManagerData_Legacy,
+    currentTokenData: Record<SupportedToken, Address>,
     network: NetworkType,
     provider: PublicClient,
   ): Promise<Array<Rewards>> {
     const prepared = RewardConvex.prepareMultiCalls(
       ca.creditAccount,
       cm,
+      currentTokenData,
       network,
     );
 
@@ -139,9 +140,9 @@ export class RewardConvex {
   static prepareMultiCalls(
     creditAccount: Address,
     cm: CreditManagerData_Legacy,
+    currentTokenData: Record<SupportedToken, Address>,
     network: NetworkType,
   ) {
-    const tokens = tokenDataByNetwork[network];
     const contracts = contractsByNetwork[network];
 
     const adapters = this.findAdapters(cm);
@@ -179,7 +180,7 @@ export class RewardConvex {
                   address: contracts.AURA_BOOSTER,
                   abi: AURA_BOOSTER_ABI,
                   functionName: "getRewardMultipliers",
-                  args: [tokens[currentContract.stakedToken]],
+                  args: [currentTokenData[currentContract.stakedToken]],
                 },
               ]
             : []),
@@ -235,7 +236,7 @@ export class RewardConvex {
         convexCalls: [
           [
             {
-              address: tokens.CVX,
+              address: currentTokenData.CVX,
               abi: iConvexTokenAbi,
               functionName: "totalSupply",
               args: [],
@@ -245,7 +246,7 @@ export class RewardConvex {
         auraCalls: [
           [
             {
-              address: tokens.AURA,
+              address: currentTokenData.AURA,
               abi: iConvexTokenAbi,
               functionName: "totalSupply",
               args: [],
