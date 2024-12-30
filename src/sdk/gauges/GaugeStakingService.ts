@@ -2,16 +2,28 @@ import type { Address } from "viem";
 
 import { dataCompressorV3Abi } from "../abi";
 import { SDKConstruct } from "../base";
+import { chains as CHAINS } from "../chain";
 import type { GearboxSDK } from "../GearboxSDK";
+import { TESTNET_CHAINS } from "../sdk-legacy";
 import type { GaugeStakingDataPayload } from "./utils";
+
+// TODO: should get address from sdk; currently these addresses are datacompressor v3 adresses
+export const GAUGE_COMPRESSORS: Record<number, Address> = {
+  [CHAINS.Mainnet.id]: "0x104c4e209329524adb0febE8b6481346a6eB75C6",
+  [CHAINS.Arbitrum.id]: "0x88aa4FbF86392cBF6f6517790E288314DE03E181",
+  [CHAINS.Optimism.id]: "0x2697e6Ddbf572df3403B2451b954762Fd22002F6",
+
+  [TESTNET_CHAINS.Mainnet]: "0x104c4e209329524adb0febE8b6481346a6eB75C6",
+  [TESTNET_CHAINS.Arbitrum]: "0x88aa4FbF86392cBF6f6517790E288314DE03E181",
+  [TESTNET_CHAINS.Optimism]: "0x2697e6Ddbf572df3403B2451b954762Fd22002F6",
+};
 
 export class GaugeStakingService extends SDKConstruct {
   #compressor: Address;
 
   constructor(sdk: GearboxSDK) {
     super(sdk);
-    // TODO: should get address from sdk.addressProvider.getLatestVersion(AP_DATA_COMPRESSOR)
-    this.#compressor = "0x104c4e209329524adb0febE8b6481346a6eB75C6";
+    this.#compressor = GAUGE_COMPRESSORS[sdk.provider.chainId];
   }
 
   /**
