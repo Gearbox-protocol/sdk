@@ -1,15 +1,26 @@
-import type { Abi, Address } from "viem";
+import { type Abi, type Address, stringToHex } from "viem";
 
 import { BaseContract } from "../../base";
+import type { BaseContractOptions } from "../../base/BaseContract";
 import { NO_VERSION } from "../../constants";
+import type { GearboxSDK } from "../../GearboxSDK";
 import type { AddressProviderV3StateHuman } from "../../types";
+import type { AddressProviderState } from "./types";
 
 export default abstract class AbstractAddressProviderContract<
   abi extends Abi | readonly unknown[],
 > extends BaseContract<abi> {
   #addresses: Record<string, Record<number, Address>> = {};
-  #versions: Record<string, Set<number>> = {};
   #latest: Record<string, number> = {};
+
+  constructor(
+    sdk: GearboxSDK,
+    args: BaseContractOptions<abi>,
+    addresses: Record<string, Record<number, Address>> = {},
+  ) {
+    super(sdk, args);
+    this.#addresses = addresses;
+  }
 
   protected setInternalAddress(key: string, address: Address, version: number) {
     if (!this.#addresses[key]) {
@@ -20,12 +31,6 @@ export default abstract class AbstractAddressProviderContract<
     if (!this.#latest[key] || version > this.#latest[key]) {
       this.#latest[key] = version;
     }
-
-    if (!this.#versions[key]) {
-      this.#versions[key] = new Set();
-    }
-
-    this.#versions[key].add(version);
   }
 
   public getAddress(contract: string, version = NO_VERSION): Address {
@@ -51,6 +56,18 @@ export default abstract class AbstractAddressProviderContract<
     );
 
     return this.getAddress(contract, this.#latest[contract]);
+  }
+
+  public get state(): AddressProviderState {
+    return {
+      baseParams: {
+        addr: this.address,
+        version: BigInt(this.version),
+        contractType: stringToHex(this.contractType, { size: 32 }),
+        serializedParams: "0x0",
+      },
+      addresses: this.#addresses,
+    };
   }
 
   public override stateHuman(raw = true): AddressProviderV3StateHuman {

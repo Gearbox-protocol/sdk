@@ -19,13 +19,21 @@ export class AddressProviderContractV3
   extends AbstractAddressProviderContract<abi>
   implements IAddressProviderContract
 {
-  constructor(sdk: GearboxSDK, address: Address) {
-    super(sdk, {
-      addr: address,
-      name: "AddressProviderV3",
-      abi,
-      version: 3_00,
-    });
+  constructor(
+    sdk: GearboxSDK,
+    address: Address,
+    addresses: Record<string, Record<number, Address>> = {},
+  ) {
+    super(
+      sdk,
+      {
+        addr: address,
+        name: "AddressProviderV3",
+        abi,
+        version: 3_00,
+      },
+      addresses,
+    );
   }
 
   public parseFunctionParams(

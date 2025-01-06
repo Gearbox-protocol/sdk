@@ -21,9 +21,15 @@ export class MarketRegister extends SDKConstruct {
    */
   #markets = new AddressMap<MarketFactory>();
 
-  constructor(sdk: GearboxSDK) {
+  constructor(sdk: GearboxSDK, markets?: MarketData[]) {
     super(sdk);
     this.#logger = childLogger("MarketRegister", sdk.logger);
+    for (const data of markets ?? []) {
+      this.#markets.upsert(
+        data.pool.baseParams.addr,
+        new MarketFactory(this.sdk, data),
+      );
+    }
   }
 
   public async loadMarkets(

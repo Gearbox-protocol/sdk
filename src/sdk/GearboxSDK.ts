@@ -25,7 +25,12 @@ import {
 import { MarketRegister } from "./market/MarketRegister";
 import { PriceFeedRegister } from "./market/pricefeeds";
 import { RouterV3Contract } from "./router";
-import type { GearboxStateHuman, ILogger, MultiCall } from "./types";
+import type {
+  GearboxState,
+  GearboxStateHuman,
+  ILogger,
+  MultiCall,
+} from "./types";
 import { AddressMap, formatBN } from "./utils";
 import { Hooks } from "./utils/internal";
 import { detectNetwork } from "./utils/viem";
@@ -323,6 +328,14 @@ export class GearboxSDK {
         gearStakingV3: this.gearStakingContract.stateHuman(raw),
       },
       markets: this.marketRegister.stateHuman(raw),
+    };
+  }
+
+  public get state(): GearboxState {
+    return {
+      currentBlock: this.currentBlock,
+      addressProvider: this.addressProvider.state,
+      markets: this.marketRegister.state,
     };
   }
 
