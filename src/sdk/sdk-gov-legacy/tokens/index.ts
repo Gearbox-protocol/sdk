@@ -4,6 +4,7 @@ export * from "./balancer";
 export * from "./compound";
 export * from "./convex";
 export * from "./curveLP";
+export * from "./decimals";
 export * from "./erc4626";
 export * from "./gear";
 export * from "./normal";
