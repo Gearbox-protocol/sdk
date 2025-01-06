@@ -95,12 +95,13 @@ export class GearboxBackendApi {
   static getReferralUrl = () => REFERRAL_API;
 
   static apyServerAllRewards = (chainId: number) =>
-    URLApi.getRelativeUrl(
-      "https://testnet.gearbox.foundation/apy-server/api/rewards/all",
-      {
-        params: { chain_id: chainId },
-      },
-    );
+    URLApi.getRelativeUrl("https://apy-server.fly.dev/api/rewards/all", {
+      params: { chain_id: chainId },
+    });
+  static apyServerGearAPY = (chainId: number) =>
+    URLApi.getRelativeUrl("https://apy-server.fly.dev/api/rewards/gear-apy", {
+      params: { chain_id: chainId },
+    });
 }
 
 interface Options {
