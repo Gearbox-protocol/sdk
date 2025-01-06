@@ -1787,8 +1787,30 @@ export const tokenSymbolByAddress = Object.entries(tokenDataByNetwork).reduce<
   {},
 );
 
+export const tickerSymbolByAddress: Record<Address, TickerToken> =
+  Object.fromEntries(
+    Object.values(tickerTokensByNetwork)
+      .map(en =>
+        Object.entries(en)
+          .map(([symbol, addresses]) =>
+            addresses.map(addr => [addr.toLowerCase() as Address, symbol]),
+          )
+          .flat(),
+      )
+      .flat(),
+  );
+
 export function getTokenSymbol(address: Address): SupportedToken | undefined {
   return tokenSymbolByAddress[address.toLowerCase()];
+}
+
+export function getTokenSymbolOrTicker(
+  address: Address,
+): SupportedToken | TickerToken | undefined {
+  return (
+    tokenSymbolByAddress[address.toLowerCase()] ||
+    tickerSymbolByAddress[address.toLowerCase() as Address]
+  );
 }
 
 export const isSupportedToken = (t: unknown): t is SupportedToken =>
