@@ -230,7 +230,22 @@ export class AccountOpener {
 
   async #approve(token: Address, cm: CreditFactory): Promise<void> {
     const borrower = await this.#getBorrower();
+    const symbol = this.#service.sdk.tokensMeta.symbol(token);
     try {
+      if (symbol === "USDT") {
+        const hash = await this.#anvil.writeContract({
+          account: borrower,
+          address: token,
+          abi: ierc20Abi,
+          functionName: "approve",
+          args: [cm.creditManager.address, 0n],
+          chain: this.#anvil.chain,
+        });
+        await this.#anvil.waitForTransactionReceipt({
+          hash,
+        });
+      }
+
       const hash = await this.#anvil.writeContract({
         account: borrower,
         address: token,
@@ -245,16 +260,16 @@ export class AccountOpener {
 
       if (receipt.status === "reverted") {
         this.#logger?.error(
-          `failed to allowed credit manager ${cm.creditManager.name} to spend ${token}, tx reverted: ${hash}`,
+          `failed to allowed credit manager ${cm.creditManager.name} to spend ${symbol} (${token}), tx reverted: ${hash}`,
         );
       } else {
         this.#logger?.debug(
-          `allowed credit manager ${cm.creditManager.name} to spend ${token}, tx: ${hash}`,
+          `allowed credit manager ${cm.creditManager.name} to spend ${symbol} (${token}), tx: ${hash}`,
         );
       }
     } catch (e) {
       this.#logger?.error(
-        `failed to allowed credit manager ${cm.creditManager.name} to spend ${token}: ${e}`,
+        `failed to allowed credit manager ${cm.creditManager.name} to spend ${symbol} (${token}): ${e}`,
       );
     }
   }
