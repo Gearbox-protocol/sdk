@@ -66,6 +66,12 @@ export class AccountOpener {
    */
   public async openCreditAccounts(targets: TargetAccount[]): Promise<void> {
     const borrower = await this.#prepareBorrower(targets);
+
+    for (const c of targets) {
+      const cm = this.sdk.marketRegister.findCreditManager(c.creditManager);
+      await this.#approve(c.collateral, cm);
+    }
+
     for (const target of targets) {
       try {
         await this.#openAccount(target);
@@ -202,10 +208,6 @@ export class AccountOpener {
 
       if (isAddress(degenNFT) && degenNFT !== ADDRESS_0X0) {
         degenNFTS[degenNFT] = (degenNFTS[degenNFT] ?? 0) + 1;
-      }
-
-      for (const t of Object.keys(cm.collateralTokens)) {
-        await this.#approve(t as Address, cm);
       }
     }
     claimUSD = (claimUSD * 11n) / 10n; // 10% more to be safe
