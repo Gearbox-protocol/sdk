@@ -17,9 +17,9 @@ import {
   iDegenNftv2Abi,
   ierc20Abi,
   MAX_UINT256,
+  PERCENTAGE_FACTOR,
   sendRawTx,
 } from "../sdk";
-import { PERCENTAGE_FACTOR } from "../sdk/constants";
 import { type AnvilClient, createAnvilClient } from "./createAnvilClient";
 
 export interface AccountOpenerOptions {
