@@ -120,7 +120,7 @@ export interface ClaimFarmRewardsProps extends PrepareUpdateQuotasProps {
   creditAccount: CreditAccountDataSlice;
 }
 
-interface OpenCAProps extends PrepareUpdateQuotasProps {
+export interface OpenCAProps extends PrepareUpdateQuotasProps {
   ethAmount: bigint;
   collateral: Array<Asset>;
   debt: bigint;

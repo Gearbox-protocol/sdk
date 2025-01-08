@@ -64,33 +64,34 @@ export class AccountOpener {
   /**
    * Tries to open account with underlying only in each CM
    */
-  public async openCreditAccounts(targets: TargetAccount[]): Promise<void> {
-    const borrower = await this.#prepareBorrower(targets);
+  public async openCreditAccounts(
+    targets: TargetAccount[],
+  ): Promise<CreditAccountData[]> {
+    await this.#prepareBorrower(targets);
 
     for (const c of targets) {
       const cm = this.sdk.marketRegister.findCreditManager(c.creditManager);
       await this.#approve(c.collateral, cm);
     }
 
-    for (const target of targets) {
+    for (let i = 0; i < targets.length; i++) {
+      const target = targets[i];
       try {
-        await this.#openAccount(target);
+        await this.#openAccount(target, i + 1, targets.length);
       } catch (e) {
         this.#logger?.error(e);
       }
     }
-    const accounts = await this.#service.getCreditAccounts({
-      owner: borrower.address,
-    });
+    const accounts = await this.getOpenedAccounts();
     this.#logger?.info(`opened ${accounts.length} accounts`);
+    return accounts;
   }
 
-  async #openAccount({
-    creditManager,
-    collateral,
-    leverage = 4,
-    slippage = 50,
-  }: TargetAccount): Promise<CreditAccountData[]> {
+  async #openAccount(
+    { creditManager, collateral, leverage = 4, slippage = 50 }: TargetAccount,
+    index: number,
+    total: number,
+  ): Promise<void> {
     const borrower = await this.#getBorrower();
     const cm = this.sdk.marketRegister.findCreditManager(creditManager);
     const symbol = this.sdk.tokensMeta.symbol(collateral);
@@ -98,6 +99,7 @@ export class AccountOpener {
       creditManager: cm.name,
       collateral: symbol,
     });
+    logger?.debug(`opening account #${index}/${total}`);
     const { minDebt, underlying } = cm.creditFacade;
 
     const expectedBalances: Asset[] = [];
@@ -123,28 +125,26 @@ export class AccountOpener {
     });
     logger?.debug(strategy, "found open strategy");
     const debt = minDebt * BigInt(leverage - 1);
+    const collateralLT = BigInt(cm.collateralTokens[collateral]);
+    const inUnderlying = collateral.toLowerCase() === underlying.toLowerCase();
     const { tx, calls } = await this.#service.openCA({
       creditManager: cm.creditManager.address,
-      averageQuota: [
-        {
-          token: collateral,
-          balance: this.#calcQuota(
-            strategy.amount,
-            debt,
-            BigInt(cm.collateralTokens[collateral]),
-          ),
-        },
-      ],
-      minQuota: [
-        {
-          token: collateral,
-          balance: this.#calcQuota(
-            strategy.minAmount,
-            debt,
-            BigInt(cm.collateralTokens[collateral]),
-          ),
-        },
-      ],
+      averageQuota: inUnderlying
+        ? []
+        : [
+            {
+              token: collateral,
+              balance: this.#calcQuota(strategy.amount, debt, collateralLT),
+            },
+          ],
+      minQuota: inUnderlying
+        ? []
+        : [
+            {
+              token: collateral,
+              balance: this.#calcQuota(strategy.minAmount, debt, collateralLT),
+            },
+          ],
       collateral: [{ token: underlying, balance: minDebt }],
       debt,
       calls: strategy.calls,
@@ -169,10 +169,7 @@ export class AccountOpener {
     if (receipt.status === "reverted") {
       throw new Error(`open credit account tx ${hash} reverted`);
     }
-    logger?.debug(
-      `opened credit account in ${cm.name} with collateral ${symbol}`,
-    );
-    return this.getOpenedAccounts();
+    logger?.debug(`opened credit account ${index}/${total}`);
   }
 
   public async getOpenedAccounts(): Promise<CreditAccountData[]> {

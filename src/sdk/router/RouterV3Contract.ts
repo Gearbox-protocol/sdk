@@ -368,11 +368,12 @@ export class RouterV3Contract
     return {
       balances: {
         ...balancesAfter,
-        [target]: (expectedMap.get(target) ?? 0n) + result.amount,
+        [target.toLowerCase()]: (expectedMap.get(target) ?? 0n) + result.amount,
       },
       minBalances: {
         ...balancesAfter,
-        [target]: (expectedMap.get(target) ?? 0n) + result.minAmount,
+        [target.toLowerCase()]:
+          (expectedMap.get(target) ?? 0n) + result.minAmount,
       },
       amount: result.amount,
       minAmount: result.minAmount,
