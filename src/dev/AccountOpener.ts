@@ -12,6 +12,7 @@ import type {
 } from "../sdk";
 import {
   ADDRESS_0X0,
+  AddressMap,
   childLogger,
   formatBN,
   iDegenNftv2Abi,
@@ -69,9 +70,17 @@ export class AccountOpener {
   ): Promise<CreditAccountData[]> {
     await this.#prepareBorrower(targets);
 
+    const toApprove = new AddressMap<Set<Address>>();
     for (const c of targets) {
       const cm = this.sdk.marketRegister.findCreditManager(c.creditManager);
-      await this.#approve(c.collateral, cm);
+      const toApproveOnCM = toApprove.get(c.creditManager) ?? new Set();
+      toApproveOnCM.add(cm.underlying);
+    }
+    for (const [cmAddr, tokens] of toApprove.entries()) {
+      const cm = this.sdk.marketRegister.findCreditManager(cmAddr);
+      for (const token of tokens) {
+        await this.#approve(token, cm);
+      }
     }
 
     for (let i = 0; i < targets.length; i++) {
