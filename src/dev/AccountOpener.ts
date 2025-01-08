@@ -75,6 +75,7 @@ export class AccountOpener {
       const cm = this.sdk.marketRegister.findCreditManager(c.creditManager);
       const toApproveOnCM = toApprove.get(c.creditManager) ?? new Set();
       toApproveOnCM.add(cm.underlying);
+      toApprove.upsert(c.creditManager, toApproveOnCM);
     }
     for (const [cmAddr, tokens] of toApprove.entries()) {
       const cm = this.sdk.marketRegister.findCreditManager(cmAddr);
