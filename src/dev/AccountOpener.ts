@@ -19,6 +19,7 @@ import {
   MAX_UINT256,
   sendRawTx,
 } from "../sdk";
+import { PERCENTAGE_FACTOR } from "../sdk/constants";
 import { type AnvilClient, createAnvilClient } from "./createAnvilClient";
 
 export interface AccountOpenerOptions {
@@ -114,13 +115,32 @@ export class AccountOpener {
       slippage,
       target: collateral,
     });
-    logger?.debug("found open strategy");
+    logger?.debug(strategy, "found open strategy");
+    const debt = minDebt * BigInt(leverage - 1);
     const { tx, calls } = await this.#service.openCA({
       creditManager: cm.creditManager.address,
-      averageQuota: [],
-      minQuota: [],
+      averageQuota: [
+        {
+          token: collateral,
+          balance: this.#calcQuota(
+            strategy.amount,
+            debt,
+            BigInt(cm.collateralTokens[collateral]),
+          ),
+        },
+      ],
+      minQuota: [
+        {
+          token: collateral,
+          balance: this.#calcQuota(
+            strategy.minAmount,
+            debt,
+            BigInt(cm.collateralTokens[collateral]),
+          ),
+        },
+      ],
       collateral: [{ token: underlying, balance: minDebt }],
-      debt: minDebt * BigInt(leverage - 1),
+      debt,
       calls: strategy.calls,
       ethAmount: 0n,
       permits: {},
@@ -338,6 +358,15 @@ export class AccountOpener {
       this.#logger?.info(`created borrower ${this.#borrower.address}`);
     }
     return this.#borrower;
+  }
+
+  #calcQuota(amount: bigint, debt: bigint, lt: bigint): bigint {
+    let quota = (amount * lt) / PERCENTAGE_FACTOR;
+    quota = debt < quota ? debt : quota;
+
+    quota = (quota * (PERCENTAGE_FACTOR + 500n)) / PERCENTAGE_FACTOR;
+
+    return (quota / PERCENTAGE_FACTOR) * PERCENTAGE_FACTOR;
   }
 
   private get sdk(): GearboxSDK {
