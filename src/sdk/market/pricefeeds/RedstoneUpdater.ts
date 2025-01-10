@@ -81,7 +81,7 @@ export class RedstoneUpdater extends SDKConstruct {
           tx: priceFeed.createRawTx({
             functionName: "updatePrice",
             args: [data as Hex],
-            description: `updating price for ${dataFeedId} [${priceFeed.address}]`,
+            description: `updating price for ${dataFeedId} [${this.sdk.provider.addressLabels.get(priceFeed.address)}]`,
           }),
           timestamp,
         });

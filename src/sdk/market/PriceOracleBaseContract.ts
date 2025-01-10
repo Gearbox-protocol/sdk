@@ -151,11 +151,14 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
     const { txs } = updates;
 
     for (const tx of txs) {
-      const { to: priceFeed, callData } = tx;
+      const { to: priceFeed, callData, description } = tx;
       const [token, reserve] = this.findTokenForPriceFeed(priceFeed);
       // this situation happend when we have combined updates from multiple markrts,
       // but this particular feed is not added to this particular oracle
       if (!token) {
+        this.logger?.debug(
+          `skipping onDemandPriceUpdate ${description}): token not found for price feed ${priceFeed} in oracle ${this.address}`,
+        );
         continue;
       }
       const { args } = decodeFunctionData({
@@ -170,6 +173,9 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
         data,
       });
     }
+    this.logger?.debug(
+      `got ${result.length} onDemandPriceUpdates from ${txs.length} txs`,
+    );
     return result;
   }
 
