@@ -107,6 +107,10 @@ export class GearboxBackendApi {
     URLApi.getRelativeUrl("https://apy-server.fly.dev/api/rewards/gear-apy", {
       params: { chain_id: chainId },
     });
+  static apyServerAllPoolRewards = (chainId: number) =>
+    URLApi.getRelativeUrl("https://apy-server.fly.dev/api/rewards/pools/all", {
+      params: { chain_id: chainId },
+    });
 }
 
 interface Options {
