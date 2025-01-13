@@ -26,6 +26,13 @@ export const USDC: Record<NetworkType, Address> = {
   Base: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
 };
 
+export const USDT: Record<NetworkType, Address> = {
+  Mainnet: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+  Arbitrum: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+  Optimism: "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
+  Base: NOT_DEPLOYED,
+};
+
 export const WETH: Record<NetworkType, Address> = {
   Mainnet: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
   Arbitrum: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
