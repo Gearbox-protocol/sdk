@@ -146,6 +146,7 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
     // it would be much nicer to have intermediate format and get RawTx/OnDemandPriceUpdate/ViemMulticall from it (as it's done in liquidator)
     const result: OnDemandPriceUpdate[] = [];
     if (!updates) {
+      this.logger?.debug("empty updates list");
       return result;
     }
     const { txs } = updates;

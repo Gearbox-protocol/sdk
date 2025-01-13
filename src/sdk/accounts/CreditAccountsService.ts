@@ -27,7 +27,8 @@ import {
   type CreditAccountDataSlice,
   type RouterCloseResult,
 } from "../router";
-import type { MultiCall, RawTx } from "../types";
+import type { ILogger, MultiCall, RawTx } from "../types";
+import { childLogger } from "../utils";
 import { simulateMulticall } from "../utils/viem";
 
 type CompressorAbi = typeof iCreditAccountCompressorAbi;
@@ -156,6 +157,7 @@ export interface PermitResult {
 export class CreditAccountsService extends SDKConstruct {
   #compressor: Address;
   #batchSize?: number;
+  #logger?: ILogger;
 
   constructor(sdk: GearboxSDK, options?: CreditAccountServiceOptions) {
     super(sdk);
@@ -163,6 +165,7 @@ export class CreditAccountsService extends SDKConstruct {
       AP_CREDIT_ACCOUNT_COMPRESSOR,
     );
     this.#batchSize = options?.batchSize;
+    this.#logger = childLogger("CreditAccountsService", sdk.logger);
   }
 
   /**
@@ -805,6 +808,10 @@ export class CreditAccountsService extends SDKConstruct {
       const tokens = Array.from(tokensByPool.get(pool) ?? []);
       priceFeeds.push(...oracle.priceFeedsForTokens(tokens));
     }
+    this.#logger?.debug(
+      { account: creditAccount?.creditAccount, manager: cm.name },
+      `generating price feed updates for ${priceFeeds.length} price feeds`,
+    );
     return this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(
       priceFeeds,
       creditAccount ? { account: creditAccount.creditAccount } : undefined,
@@ -822,10 +829,15 @@ export class CreditAccountsService extends SDKConstruct {
     desiredQuotas: Array<Asset> | undefined,
   ): Promise<Array<OnDemandPriceUpdate>> {
     const market = this.sdk.marketRegister.findByCreditManager(creditManager);
+    const cm = this.sdk.marketRegister.findCreditManager(creditManager);
     const update = await this.getUpdateForAccount(
       creditManager,
       creditAccount,
       desiredQuotas,
+    );
+    this.#logger?.debug(
+      { account: creditAccount?.creditAccount, manager: cm.name },
+      `getting on demand price updates from ${update.txs.length} txs`,
     );
     return market.priceOracle.onDemandPriceUpdates(update);
   }
