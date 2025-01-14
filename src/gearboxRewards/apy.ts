@@ -1,5 +1,4 @@
 import {
-  PartialRecord,
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   RAY,
@@ -69,7 +68,7 @@ interface GetPoolExtraLmAPYProps
 interface GetCAExtraAPYProps {
   assets: Array<Asset>;
   supply: Record<Address, bigint> | Record<Address, Asset>;
-  rewardInfo: PartialRecord<SupportedToken, Array<FarmInfo>>;
+  rewardInfo: Record<Address, Array<FarmInfo>>;
   currentTimestamp: number;
 
   prices: Record<Address, bigint>;
@@ -195,10 +194,9 @@ export class GearboxRewardsApy {
   }: GetCAExtraAPYProps): Array<ExtraRewardApy> {
     const extra = assets.reduce((acc, asset) => {
       const { token } = asset;
-      const { symbol } = restProps.tokensList[token] || {};
-      const info = rewardInfo[symbol || ""];
+      const info = rewardInfo[token || ""];
 
-      if (!info) return acc;
+      if (!info || info.length === 0) return acc;
 
       const extra = info.map(inf =>
         this.getCASingleExtraAPY_V3({
