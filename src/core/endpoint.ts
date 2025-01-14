@@ -100,7 +100,7 @@ export class GearboxBackendApi {
   static getReferralUrl = () => REFERRAL_API;
 
   static apyServerAllRewards = (chainId: number) =>
-    URLApi.getRelativeUrl("https://apy-server.fly.dev/api/rewards/all", {
+    URLApi.getRelativeUrl("https://apy-server.fly.dev/api/rewards/tokens/all", {
       params: { chain_id: chainId },
     });
   static apyServerGearAPY = (chainId: number) =>
