@@ -1,24 +1,33 @@
 import axios from "axios";
 import type { Address } from "viem";
 
-import { chains, type NetworkType } from "../../chain";
+import type { NetworkType } from "../../chain";
+import { chains } from "../../chain";
 import { PERCENTAGE_FACTOR } from "../../constants";
 import type { Asset } from "../../router";
-import type { SupportedToken } from "../../sdk-gov-legacy";
-import { type PartialRecord, TypedObjectUtils } from "../../utils";
-import { poolByNetwork } from "../contracts/contractsRegister";
 import { GearboxBackendApi } from "../core/endpoint";
 import type { PoolData_Legacy } from "../core/pool";
 import type { TokenData } from "../tokens/tokenData";
 import { toBN } from "../utils/formatter";
 import { BigIntMath } from "../utils/math";
 
+export interface PoolPointsInfo {
+  pool: Address;
+  token: Address;
+  symbol: string;
+
+  amount: bigint;
+  duration: string;
+  name: string;
+  estimation: "absolute" | "relative";
+}
+
 export interface GetPointsByPoolProps {
+  poolRewards: Record<Address, Record<Address, PoolPointsInfo>>;
+
   totalTokenBalances: Record<Address, Asset>;
   pools: Array<PoolData_Legacy>;
-  currentTokenData: Record<SupportedToken, Address>;
   tokensList: Record<Address, TokenData>;
-  network: NetworkType;
 }
 
 interface WalletResult {
@@ -31,104 +40,26 @@ interface GetBalanceAtResponse {
 }
 
 export interface GetTotalTokensOnProtocolProps {
-  currentTokenData: Record<SupportedToken, Address>;
+  tokensToCheck: Array<Address>;
+
   tokensList: Record<Address, TokenData>;
   network: NetworkType;
-
-  extraTokens?: Array<SupportedToken>;
 }
-
-interface PoolPointsInfo {
-  amount: bigint;
-  symbol: SupportedToken;
-  duration: string;
-  name: string;
-  estimation: "absolute" | "relative";
-}
-
-const POOL_POINTS: Record<
-  NetworkType,
-  Record<Address, PartialRecord<SupportedToken, PoolPointsInfo>>
-> = {
-  Mainnet: {
-    [poolByNetwork.Mainnet.WETH_V3_TRADE]: {
-      rsETH: {
-        amount: 7500n * 10000n,
-        symbol: "rsETH",
-        duration: "hour",
-        name: "Kelp Mile",
-        estimation: "relative",
-      },
-    },
-    [poolByNetwork.Mainnet.WBTC_V3_TRADE]: {
-      LBTC: {
-        amount: 2000n * 10000n,
-        symbol: "LBTC",
-        duration: "day",
-        name: "Lombard LUX",
-        estimation: "absolute",
-      },
-      pumpBTC: {
-        amount: 172_800n * 10000n,
-        symbol: "pumpBTC",
-        duration: "day",
-        name: "Pump BTC",
-        estimation: "absolute",
-      },
-    },
-  },
-  Arbitrum: {},
-  Optimism: {},
-  Base: {},
-};
-
-const TOKENS = TypedObjectUtils.entries(POOL_POINTS).reduce<
-  Record<NetworkType, Array<SupportedToken>>
->(
-  (acc, [network, pools]) => {
-    const r = Object.values(pools).reduce<Array<SupportedToken>>(
-      (acc, tokens) => {
-        const l = Object.keys(tokens) as Array<SupportedToken>;
-        acc.push(...l);
-        return acc;
-      },
-      [],
-    );
-
-    acc[network] = r;
-
-    return acc;
-  },
-  {} as Record<NetworkType, Array<SupportedToken>>,
-);
-
-const CA_REWARDS: Record<NetworkType, Array<SupportedToken>> = {
-  Mainnet: [],
-  Arbitrum: [],
-  Optimism: ["ezETH"],
-  Base: [],
-};
 
 export class GearboxRewardsExtraApy {
   static async getTotalTokensOnProtocol({
-    currentTokenData,
+    tokensToCheck,
+
     tokensList,
     network,
-
-    extraTokens = [],
   }: GetTotalTokensOnProtocolProps) {
-    const poolTokens = TOKENS[network];
-    const caTokens = CA_REWARDS[network];
-
-    const list = [...new Set([...poolTokens, ...caTokens, ...extraTokens])];
+    const list = [...new Set(tokensToCheck)];
 
     const res = await Promise.allSettled(
-      list.map(s =>
-        this.getTokenTotal(currentTokenData[s], network, tokensList),
-      ),
+      list.map(t => this.getTokenTotal(t, network, tokensList)),
     );
 
-    return res.map((r, i): [SupportedToken, PromiseSettledResult<Asset>] => [
+    return res.map((r, i): [Address, PromiseSettledResult<Asset>] => [
       list[i],
       r,
     ]);
@@ -139,9 +70,9 @@ export class GearboxRewardsExtraApy {
     network: NetworkType,
     tokensList: Record<Address, TokenData>,
   ) {
-    const chain = chains[network];
+    const chainId = chains[network]?.id;
 
-    const url = GearboxBackendApi.getChartsUrl("getBalanceAt", chain.id, {
+    const url = GearboxBackendApi.getChartsUrl("getBalanceAt", chainId, {
       params: {
         asset: token,
       },
@@ -158,21 +89,19 @@ export class GearboxRewardsExtraApy {
   }
 
   static getPointsByPool({
+    poolRewards,
+
     totalTokenBalances,
     pools,
     tokensList,
-    currentTokenData,
-    network,
   }: GetPointsByPoolProps) {
     const r = pools.reduce<Record<Address, Array<Asset>>>((acc, p) => {
-      const poolPointsInfo = Object.values(
-        POOL_POINTS[network]?.[p.address] || [],
-      );
+      const pointsInfo = Object.values(poolRewards[p.address] || {});
 
-      const poolPointsList = poolPointsInfo.reduce<Array<Asset>>(
+      const poolPointsList = pointsInfo.reduce<Array<Asset>>(
         (acc, pointsInfo) => {
-          const tokenBalance =
-            totalTokenBalances[currentTokenData[pointsInfo.symbol] || ""];
+          const { address: tokenAddress } = tokensList[pointsInfo.token];
+          const tokenBalance = totalTokenBalances[tokenAddress || ""];
 
           const points = this.getPoolTokenPoints(
             tokenBalance,
@@ -226,11 +155,11 @@ export class GearboxRewardsExtraApy {
   }
 
   static getPoolPointsTip(
-    network: NetworkType,
+    poolRewards: Record<Address, Record<Address, PoolPointsInfo>>,
     pool: Address,
-    token: SupportedToken,
+    token: Address,
   ) {
-    const p = POOL_POINTS[network]?.[pool]?.[token];
+    const p = poolRewards[pool]?.[token];
     return p;
   }
 }
