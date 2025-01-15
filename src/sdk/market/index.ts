@@ -11,8 +11,8 @@ export * from "./LinearModelContract";
 export * from "./MarketRegister";
 export * from "./MarketSuite";
 export * from "./PoolContract";
-export * from "./PoolFactory";
 export * from "./PoolQuotaKeeperContract";
+export * from "./PoolSuite";
 export * from "./pricefeeds";
 export {
   IPriceOracleContract,

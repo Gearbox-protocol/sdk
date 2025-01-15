@@ -632,8 +632,8 @@ export class CreditAccountsService extends SDKConstruct {
       calls: openPathCalls,
     } = props;
 
-    const cmFactory = this.sdk.marketRegister.findCreditManager(creditManager);
-    const cm = cmFactory.creditManager;
+    const cmSuite = this.sdk.marketRegister.findCreditManager(creditManager);
+    const cm = cmSuite.creditManager;
 
     const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
       cm.address,
@@ -652,14 +652,10 @@ export class CreditAccountsService extends SDKConstruct {
         : []),
     ];
 
-    const tx = cmFactory.creditFacade.openCreditAccount(
-      to,
-      calls,
-      referralCode,
-    );
+    const tx = cmSuite.creditFacade.openCreditAccount(to, calls, referralCode);
     tx.value = ethAmount.toString(10);
 
-    return { calls, tx, creditFacade: cmFactory.creditFacade };
+    return { calls, tx, creditFacade: cmSuite.creditFacade };
   }
 
   /**
@@ -727,7 +723,7 @@ export class CreditAccountsService extends SDKConstruct {
       const market = this.sdk.marketRegister.findByCreditManager(
         acc.creditManager,
       );
-      const pool = market.poolFactory.pool.address;
+      const pool = market.pool.pool.address;
       oracleByPool.set(pool, market.priceOracle);
 
       for (const t of acc.tokens) {
@@ -740,9 +736,9 @@ export class CreditAccountsService extends SDKConstruct {
     }
     // priceFeeds can contain PriceFeeds from different markets
     const priceFeeds: Array<IPriceFeedContract> = [];
-    for (const [pool, priceFeedFactory] of oracleByPool.entries()) {
+    for (const [pool, oracle] of oracleByPool.entries()) {
       const tokens = Array.from(tokensByPool.get(pool) ?? []);
-      priceFeeds.push(...priceFeedFactory.priceFeedsForTokens(tokens));
+      priceFeeds.push(...oracle.priceFeedsForTokens(tokens));
     }
     return this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(priceFeeds);
   }
@@ -765,7 +761,7 @@ export class CreditAccountsService extends SDKConstruct {
     const market = this.sdk.marketRegister.findByCreditManager(creditManager);
     const cm =
       this.sdk.marketRegister.findCreditManager(creditManager).creditManager;
-    const pool = market.poolFactory.pool.address;
+    const pool = market.pool.pool.address;
 
     oracleByPool.set(pool, market.priceOracle);
 

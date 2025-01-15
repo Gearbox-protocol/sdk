@@ -7,7 +7,6 @@ import type {
   CreditAccountData,
   CreditAccountsService,
   CreditSuite,
-  GearboxSDK,
   ILogger,
 } from "../sdk";
 import {
@@ -19,6 +18,7 @@ import {
   ierc20Abi,
   MAX_UINT256,
   PERCENTAGE_FACTOR,
+  SDKConstruct,
   sendRawTx,
 } from "../sdk";
 import { type AnvilClient, createAnvilClient } from "./createAnvilClient";
@@ -34,7 +34,7 @@ export interface TargetAccount {
   slippage?: number;
 }
 
-export class AccountOpener {
+export class AccountOpener extends SDKConstruct {
   #service: CreditAccountsService;
   #anvil: AnvilClient;
   #logger?: ILogger;
@@ -45,6 +45,7 @@ export class AccountOpener {
     service: CreditAccountsService,
     options: AccountOpenerOptions = {},
   ) {
+    super(service.sdk);
     this.#service = service;
     this.#logger = childLogger("AccountOpener", service.sdk.logger);
     this.#anvil = createAnvilClient({
@@ -135,26 +136,23 @@ export class AccountOpener {
     });
     logger?.debug(strategy, "found open strategy");
     const debt = minDebt * BigInt(leverage - 1);
-    const collateralLT = BigInt(cm.collateralTokens[collateral]);
-    const inUnderlying = collateral.toLowerCase() === underlying.toLowerCase();
+    const averageQuota = this.#getCollateralQuota(
+      cm,
+      collateral,
+      strategy.amount,
+      debt,
+    );
+    const minQuota = this.#getCollateralQuota(
+      cm,
+      collateral,
+      strategy.minAmount,
+      debt,
+    );
+    logger?.debug({ averageQuota, minQuota }, "calculated quotas");
     const { tx, calls } = await this.#service.openCA({
       creditManager: cm.creditManager.address,
-      averageQuota: inUnderlying
-        ? []
-        : [
-            {
-              token: collateral,
-              balance: this.#calcQuota(strategy.amount, debt, collateralLT),
-            },
-          ],
-      minQuota: inUnderlying
-        ? []
-        : [
-            {
-              token: collateral,
-              balance: this.#calcQuota(strategy.minAmount, debt, collateralLT),
-            },
-          ],
+      averageQuota,
+      minQuota,
       collateral: [{ token: underlying, balance: minDebt }],
       debt,
       calls: strategy.calls,
@@ -369,6 +367,38 @@ export class AccountOpener {
     return this.#borrower;
   }
 
+  #getCollateralQuota(
+    cm: CreditSuite,
+    collateral: Address,
+    amount: bigint,
+    debt: bigint,
+  ): Asset[] {
+    const { underlying, collateralTokens } = cm;
+    const inUnderlying = collateral.toLowerCase() === underlying.toLowerCase();
+    if (inUnderlying) {
+      return [];
+    }
+    const collateralLT = BigInt(collateralTokens[collateral]);
+    const market = this.sdk.marketRegister.findByCreditManager(
+      cm.creditManager.address,
+    );
+    const quotaInfo = market.pool.pqk.quotas.mustGet(collateral);
+    const availableQuota = quotaInfo.limit - quotaInfo.totalQuoted;
+    if (availableQuota <= 0n) {
+      throw new Error(
+        `quota exceeded for asset ${this.labelAddress(collateral)} in ${cm.name}`,
+      );
+    }
+    const desiredQuota = this.#calcQuota(amount, debt, collateralLT);
+
+    return [
+      {
+        token: collateral,
+        balance: desiredQuota < availableQuota ? desiredQuota : availableQuota,
+      },
+    ];
+  }
+
   #calcQuota(amount: bigint, debt: bigint, lt: bigint): bigint {
     let quota = (amount * lt) / PERCENTAGE_FACTOR;
     quota = debt < quota ? debt : quota;
@@ -376,9 +406,5 @@ export class AccountOpener {
     quota = (quota * (PERCENTAGE_FACTOR + 500n)) / PERCENTAGE_FACTOR;
 
     return (quota / PERCENTAGE_FACTOR) * PERCENTAGE_FACTOR;
-  }
-
-  private get sdk(): GearboxSDK {
-    return this.#service.sdk;
   }
 }

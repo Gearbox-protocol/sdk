@@ -5,7 +5,7 @@ import type { RawTx } from "../../types";
 
 /**
  * Helper method to convert our RawTx into viem's multicall format
- * Involves decoding what was previously encoded, but it's better than adding another method to PriceFeedFactory
+ * Involves decoding what was previously encoded, but it's better than adding another method to PriceOracle
  * @param tx
  * @returns
  */

@@ -180,7 +180,7 @@ export interface LinearModelStateHuman extends BaseContractStateHuman {
   isBorrowingMoreU2Forbidden: boolean;
 }
 
-export interface PoolFactoryStateHuman {
+export interface PoolSuiteStateHuman {
   pool: PoolStateHuman;
   poolQuotaKeeper: PoolQuotaKeeperStateHuman;
   linearModel?: LinearModelStateHuman;
@@ -193,7 +193,7 @@ export interface ZapperStateHuman extends BaseContractStateHuman {
 }
 
 export interface MarketStateHuman {
-  pool: PoolFactoryStateHuman;
+  pool: PoolSuiteStateHuman;
   creditManagers: CreditSuiteStateHuman[];
   priceOracle: PriceOracleV3StateHuman;
   pausableAdmins: string[];

@@ -6,14 +6,14 @@ import type { GearboxSDK } from "../GearboxSDK";
 import type { MarketStateHuman } from "../types";
 import { CreditSuite } from "./CreditSuite";
 import { MarketConfiguratorContract } from "./MarketConfiguratorContract";
-import { PoolFactory } from "./PoolFactory";
+import { PoolSuite } from "./PoolSuite";
 import { PriceOracleV300Contract } from "./PriceOracleV300Contract";
 import { PriceOracleV310Contract } from "./PriceOracleV310Contract";
 
 export class MarketSuite extends SDKConstruct {
   public readonly acl: Address;
   public readonly configurator: MarketConfiguratorContract;
-  public readonly poolFactory: PoolFactory;
+  public readonly pool: PoolSuite;
   public readonly priceOracle:
     | PriceOracleV300Contract
     | PriceOracleV310Contract;
@@ -50,7 +50,7 @@ export class MarketSuite extends SDKConstruct {
       sdk.provider.addressLabels.set(t.addr as Address, t.symbol);
     }
 
-    this.poolFactory = new PoolFactory(sdk, marketData);
+    this.pool = new PoolSuite(sdk, marketData);
     this.zappers = marketData.zappers;
 
     for (let i = 0; i < marketData.creditManagers.length; i++) {
@@ -75,7 +75,7 @@ export class MarketSuite extends SDKConstruct {
   override get dirty(): boolean {
     return (
       this.configurator.dirty ||
-      this.poolFactory.dirty ||
+      this.pool.dirty ||
       this.priceOracle.dirty ||
       this.creditManagers.some(cm => cm.dirty)
     );
@@ -83,7 +83,7 @@ export class MarketSuite extends SDKConstruct {
 
   public stateHuman(raw = true): MarketStateHuman {
     return {
-      pool: this.poolFactory.stateHuman(raw),
+      pool: this.pool.stateHuman(raw),
       creditManagers: this.creditManagers.map(cm => cm.stateHuman(raw)),
       priceOracle: this.priceOracle.stateHuman(raw),
       pausableAdmins: this.state.pausableAdmins.map(a => this.labelAddress(a)),

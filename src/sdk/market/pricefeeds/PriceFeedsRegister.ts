@@ -52,7 +52,7 @@ export type PriceFeedRegisterHooks = {
 
 /**
  * PriceFeedRegister acts as a chain-level cache to avoid creating multiple contract instances.
- * It's reused by PriceFeedFactory belonging to different markets
+ * It's reused by PriceOracles belonging to different markets
  *
  **/
 export class PriceFeedRegister

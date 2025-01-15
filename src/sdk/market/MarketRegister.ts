@@ -11,7 +11,7 @@ import { simulateMulticall } from "../utils/viem";
 import type { CreditSuite } from "./CreditSuite";
 import type { MarketConfiguratorContract } from "./MarketConfiguratorContract";
 import { MarketSuite } from "./MarketSuite";
-import type { PoolFactory } from "./PoolFactory";
+import type { PoolSuite } from "./PoolSuite";
 import { rawTxToMulticallPriceUpdate } from "./pricefeeds";
 
 export class MarketRegister extends SDKConstruct {
@@ -48,7 +48,7 @@ export class MarketRegister extends SDKConstruct {
   public async syncState(): Promise<void> {
     const pools = this.markets
       .filter(m => m.dirty)
-      .map(m => m.poolFactory.pool.address);
+      .map(m => m.pool.pool.address);
     if (pools.length) {
       this.#logger?.debug(`need to reload ${pools.length} markets`);
       await this.#loadMarkets([], pools);
@@ -148,8 +148,8 @@ export class MarketRegister extends SDKConstruct {
     return this.markets.map(market => market.stateHuman(raw));
   }
 
-  public get pools(): PoolFactory[] {
-    return this.markets.map(market => market.poolFactory);
+  public get pools(): PoolSuite[] {
+    return this.markets.map(market => market.pool);
   }
 
   public get creditManagers(): CreditSuite[] {
