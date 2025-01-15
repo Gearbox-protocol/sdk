@@ -6,7 +6,7 @@ import type {
   Asset,
   CreditAccountData,
   CreditAccountsService,
-  CreditFactory,
+  CreditSuite,
   GearboxSDK,
   ILogger,
 } from "../sdk";
@@ -257,7 +257,7 @@ export class AccountOpener {
     return borrower;
   }
 
-  async #approve(token: Address, cm: CreditFactory): Promise<void> {
+  async #approve(token: Address, cm: CreditSuite): Promise<void> {
     const borrower = await this.#getBorrower();
     const symbol = this.#service.sdk.tokensMeta.symbol(token);
     try {

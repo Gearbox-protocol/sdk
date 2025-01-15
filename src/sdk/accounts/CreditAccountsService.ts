@@ -14,7 +14,7 @@ import {
 } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
 import type {
-  CreditFactory,
+  CreditSuite,
   IPriceFeedContract,
   IPriceOracleContract,
   OnDemandPriceUpdate,
@@ -62,7 +62,7 @@ export interface CloseCreditAccountResult extends CommonResult {
 export interface CommonResult {
   tx: RawTx;
   calls: Array<MultiCall>;
-  creditFacade: CreditFactory["creditFacade"];
+  creditFacade: CreditSuite["creditFacade"];
 }
 
 type CloseOptions = "close" | "zeroDebt";

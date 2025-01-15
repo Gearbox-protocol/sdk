@@ -3475,7 +3475,7 @@ export const iMarketConfiguratorV310Abi = [
   },
   {
     type: "function",
-    name: "creditFactory",
+    name: "CreditSuite",
     inputs: [],
     outputs: [
       {

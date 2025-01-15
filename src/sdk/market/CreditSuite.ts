@@ -2,7 +2,7 @@ import type { Address } from "viem";
 
 import { type MarketData, SDKConstruct } from "../base";
 import type { GearboxSDK } from "../GearboxSDK";
-import type { CreditFactoryStateHuman, TVL } from "../types";
+import type { CreditSuiteStateHuman, TVL } from "../types";
 import { CreditConfiguratorV300Contract } from "./CreditConfiguratorV300Contract";
 import { CreditConfiguratorV310Contract } from "./CreditConfiguratorV310Contract";
 import { CreditFacadeV300Contract } from "./CreditFacadeV300Contract";
@@ -10,7 +10,7 @@ import { CreditFacadeV310Contract } from "./CreditFacadeV310Contract";
 import { CreditManagerV300Contract } from "./CreditManagerV300Contract";
 import { CreditManagerV310Contract } from "./CreditManagerV310Contract";
 
-export class CreditFactory extends SDKConstruct {
+export class CreditSuite extends SDKConstruct {
   public readonly name: string;
   public readonly pool: Address;
   public readonly underlying: Address;
@@ -86,7 +86,7 @@ export class CreditFactory extends SDKConstruct {
     );
   }
 
-  public stateHuman(raw = true): CreditFactoryStateHuman {
+  public stateHuman(raw = true): CreditSuiteStateHuman {
     return {
       creditFacade: this.creditFacade.stateHuman(raw),
       creditManager: this.creditManager.stateHuman(raw),

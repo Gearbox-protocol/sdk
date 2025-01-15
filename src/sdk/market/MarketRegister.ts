@@ -8,18 +8,18 @@ import type { GearboxSDK } from "../GearboxSDK";
 import type { ILogger, MarketStateHuman, RawTx, TVL } from "../types";
 import { AddressMap, childLogger } from "../utils";
 import { simulateMulticall } from "../utils/viem";
-import type { CreditFactory } from "./CreditFactory";
+import type { CreditSuite } from "./CreditSuite";
 import type { MarketConfiguratorContract } from "./MarketConfiguratorContract";
-import { MarketFactory } from "./MarketFactory";
+import { MarketSuite } from "./MarketSuite";
 import type { PoolFactory } from "./PoolFactory";
 import { rawTxToMulticallPriceUpdate } from "./pricefeeds";
 
 export class MarketRegister extends SDKConstruct {
   #logger?: ILogger;
   /**
-   * Mapping pool.address -> MarketFactory
+   * Mapping pool.address -> MarketSuite
    */
-  #markets = new AddressMap<MarketFactory>();
+  #markets = new AddressMap<MarketSuite>();
 
   constructor(sdk: GearboxSDK, markets?: MarketData[]) {
     super(sdk);
@@ -27,7 +27,7 @@ export class MarketRegister extends SDKConstruct {
     for (const data of markets ?? []) {
       this.#markets.upsert(
         data.pool.baseParams.addr,
-        new MarketFactory(this.sdk, data),
+        new MarketSuite(this.sdk, data),
       );
     }
   }
@@ -103,7 +103,7 @@ export class MarketRegister extends SDKConstruct {
     for (const data of markets) {
       this.#markets.upsert(
         data.pool.baseParams.addr,
-        new MarketFactory(this.sdk, data),
+        new MarketSuite(this.sdk, data),
       );
     }
 
@@ -152,7 +152,7 @@ export class MarketRegister extends SDKConstruct {
     return this.markets.map(market => market.poolFactory);
   }
 
-  public get creditManagers(): CreditFactory[] {
+  public get creditManagers(): CreditSuite[] {
     return this.markets.flatMap(market => market.creditManagers);
   }
 
@@ -164,7 +164,7 @@ export class MarketRegister extends SDKConstruct {
     return Array.from(result);
   }
 
-  public findCreditManager(creditManager: Address): CreditFactory {
+  public findCreditManager(creditManager: Address): CreditSuite {
     const addr = creditManager.toLowerCase();
     for (const market of this.markets) {
       for (const cm of market.creditManagers) {
@@ -176,7 +176,7 @@ export class MarketRegister extends SDKConstruct {
     throw new Error(`cannot find credit manager ${creditManager}`);
   }
 
-  public findByCreditManager(creditManager: Address): MarketFactory {
+  public findByCreditManager(creditManager: Address): MarketSuite {
     const addr = creditManager.toLowerCase();
     const market = this.markets.find(m =>
       m.creditManagers.some(
@@ -189,7 +189,7 @@ export class MarketRegister extends SDKConstruct {
     return market;
   }
 
-  public findByPriceOracle(address: Address): MarketFactory {
+  public findByPriceOracle(address: Address): MarketSuite {
     const addr = address.toLowerCase();
     for (const market of this.markets) {
       if (market.priceOracle.address.toLowerCase() === addr) {
@@ -203,7 +203,7 @@ export class MarketRegister extends SDKConstruct {
     return this.#markets;
   }
 
-  public get markets(): MarketFactory[] {
+  public get markets(): MarketSuite[] {
     return this.#markets.values();
   }
 

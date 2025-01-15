@@ -112,7 +112,7 @@ export interface CreditManagerStateHuman extends BaseContractStateHuman {
 
 export type CreditConfiguratorStateHuman = BaseContractStateHuman;
 
-export interface CreditFactoryStateHuman {
+export interface CreditSuiteStateHuman {
   creditFacade: CreditFacadeStateHuman;
   creditManager: CreditManagerStateHuman;
   creditConfigurator: CreditConfiguratorStateHuman;
@@ -194,7 +194,7 @@ export interface ZapperStateHuman extends BaseContractStateHuman {
 
 export interface MarketStateHuman {
   pool: PoolFactoryStateHuman;
-  creditManagers: CreditFactoryStateHuman[];
+  creditManagers: CreditSuiteStateHuman[];
   priceOracle: PriceOracleV3StateHuman;
   pausableAdmins: string[];
   unpausableAdmins: string[];

@@ -4,20 +4,20 @@ import type { MarketData, ZapperData } from "../base";
 import { SDKConstruct } from "../base";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { MarketStateHuman } from "../types";
-import { CreditFactory } from "./CreditFactory";
+import { CreditSuite } from "./CreditSuite";
 import { MarketConfiguratorContract } from "./MarketConfiguratorContract";
 import { PoolFactory } from "./PoolFactory";
 import { PriceOracleV300Contract } from "./PriceOracleV300Contract";
 import { PriceOracleV310Contract } from "./PriceOracleV310Contract";
 
-export class MarketFactory extends SDKConstruct {
+export class MarketSuite extends SDKConstruct {
   public readonly acl: Address;
   public readonly configurator: MarketConfiguratorContract;
   public readonly poolFactory: PoolFactory;
   public readonly priceOracle:
     | PriceOracleV300Contract
     | PriceOracleV310Contract;
-  public readonly creditManagers: CreditFactory[] = [];
+  public readonly creditManagers: CreditSuite[] = [];
   /**
    * Original data received from compressor
    */
@@ -54,7 +54,7 @@ export class MarketFactory extends SDKConstruct {
     this.zappers = marketData.zappers;
 
     for (let i = 0; i < marketData.creditManagers.length; i++) {
-      this.creditManagers.push(new CreditFactory(sdk, marketData, i));
+      this.creditManagers.push(new CreditSuite(sdk, marketData, i));
     }
 
     if (marketData.priceOracleData.baseParams.version < 310) {
