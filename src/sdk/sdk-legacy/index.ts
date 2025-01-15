@@ -1,5 +1,4 @@
 export * from "./apy";
-export * from "./contracts/contractsRegister";
 export * from "./core/assets";
 export * from "./core/creditAccount";
 export * from "./core/creditManager";
