@@ -363,18 +363,12 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
       mainPriceFeeds: Object.fromEntries(
         this.mainPriceFeeds
           .entries()
-          .map(([token, v]) => [
-            this.labelAddress(token as Address),
-            v.stateHuman(raw),
-          ]),
+          .map(([token, v]) => [this.labelAddress(token), v.stateHuman(raw)]),
       ),
       reservePriceFeeds: Object.fromEntries(
         this.reservePriceFeeds
           .entries()
-          .map(([token, v]) => [
-            this.labelAddress(token as Address),
-            v.stateHuman(raw),
-          ]),
+          .map(([token, v]) => [this.labelAddress(token), v.stateHuman(raw)]),
       ),
     };
   }

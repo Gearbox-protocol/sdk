@@ -35,7 +35,7 @@ export class PoolQuotaKeeperContract extends BaseContract<abi> {
       quotas: this.quotas.entries().reduce(
         (acc, [address, params]) => ({
           ...acc,
-          [address]: {
+          [this.labelAddress(address)]: {
             rate: percentFmt(params.rate, raw),
             quotaIncreaseFee: percentFmt(params.quotaIncreaseFee, raw),
             totalQuoted: formatBNvalue(
