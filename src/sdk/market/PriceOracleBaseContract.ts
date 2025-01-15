@@ -321,12 +321,14 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
     usage: PriceFeedUsageType,
     token: Address,
   ): void {
-    this.sdk.provider.addressLabels.set(address, label => {
+    this.sdk.provider.addressLabels.set(address, oldLabel => {
       const symbol = this.sdk.tokensMeta.symbol(token);
       let pricefeedTag = `${symbol}.${usage}`;
 
-      if (label) {
-        pricefeedTag = `${label}, ${pricefeedTag}`;
+      if (oldLabel) {
+        const oldLabelParts = new Set(oldLabel.split(", "));
+        oldLabelParts.add(pricefeedTag);
+        pricefeedTag = Array.from(oldLabelParts).join(", ");
       }
       return pricefeedTag;
     });
