@@ -60,3 +60,15 @@ export const GEARBOX_RISK_CURATORS: Record<NetworkType, Address[]> = {
   Optimism: [TIMELOCK.Optimism],
   Base: [TIMELOCK.Base],
 };
+
+/**
+ * Depreciated pools
+ */
+export const DEPRECIATED_POOLS = {
+  Mainnet: {
+    USDT_V3_BROKEN: "0x1dc0f3359a254f876b37906cfc1000a35ce2d717".toLowerCase(),
+  },
+  Arbitrum: {},
+  Optimism: {},
+  Base: {},
+} as const;
