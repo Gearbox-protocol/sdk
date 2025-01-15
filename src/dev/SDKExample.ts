@@ -1,11 +1,26 @@
 import { readFile, writeFile } from "node:fs/promises";
 
 import type { Address } from "viem";
-import { createPublicClient, createWalletClient, http, isAddress } from "viem";
+import {
+  createPublicClient,
+  createWalletClient,
+  http,
+  isAddress,
+  stringToHex,
+} from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
-import type { ILogger } from "../sdk";
-import { GearboxSDK, json_stringify, sendRawTx } from "../sdk";
+import type { ILogger, NetworkType } from "../sdk";
+import {
+  ADDRESS_PROVIDER,
+  chains,
+  GearboxSDK,
+  iAddressProviderV3_1Abi,
+  iAddressProviderV3Abi,
+  json_stringify,
+  sendRawTx,
+} from "../sdk";
+import { createAnvilClient } from "./createAnvilClient";
 
 export interface SDKExampleOptions {
   addressProvider?: string;
@@ -52,6 +67,12 @@ export class SDKExample {
       ignoreUpdateablePrices: true,
       marketConfigurators: [marketConfigurator],
     });
+    await this.#safeMigrateFaucet(
+      anvilUrl,
+      this.#sdk.provider.networkType,
+      addressProvider,
+    );
+
     const puTx = await this.#sdk.priceFeeds.getUpdatePriceFeedsTx([
       marketConfigurator,
     ]);
@@ -108,6 +129,69 @@ export class SDKExample {
 
     this.#logger?.info(`using ${name} ${result}`);
     return result;
+  }
+
+  async #safeMigrateFaucet(
+    anvilURL: string,
+    network: NetworkType,
+    addressProvider: Address,
+  ): Promise<void> {
+    try {
+      await this.#migrateFaucet(anvilURL, network, addressProvider);
+      this.#logger?.info("faucet migrated successfully");
+    } catch (e) {
+      this.#logger?.error(`faucet migration failed: ${e}`);
+    }
+  }
+
+  /**
+   * Migrates faucet from address provider v3 to v3.1
+   * @param anvilURL
+   * @param network
+   * @param addressProvider
+   */
+  async #migrateFaucet(
+    anvilURL: string,
+    network: NetworkType,
+    addressProvider: Address,
+  ): Promise<void> {
+    const anvil = createAnvilClient({
+      chain: chains[network],
+      transport: http(anvilURL),
+    });
+
+    const [faucetAddr, owner] = await anvil.multicall({
+      contracts: [
+        {
+          abi: iAddressProviderV3Abi,
+          address: ADDRESS_PROVIDER[network],
+          functionName: "getAddressOrRevert",
+          args: [stringToHex("FAUCET", { size: 32 }), 0n],
+        },
+        {
+          abi: iAddressProviderV3_1Abi,
+          address: addressProvider,
+          functionName: "owner",
+          args: [],
+        },
+      ],
+      allowFailure: false,
+    });
+    this.#logger?.debug(`faucet address: ${faucetAddr}, owner: ${owner}`);
+    await anvil.impersonateAccount({ address: owner });
+    const hash = await anvil.writeContract({
+      chain: chains[network],
+      account: owner,
+      address: addressProvider,
+      abi: iAddressProviderV3_1Abi,
+      functionName: "setAddress",
+      args: [stringToHex("FAUCET", { size: 32 }), faucetAddr, true],
+    });
+    const receipt = await anvil.waitForTransactionReceipt({ hash });
+    await anvil.stopImpersonatingAccount({ address: owner });
+    if (receipt.status === "reverted") {
+      throw new Error("faucet migration reverted");
+    }
   }
 
   public get sdk(): GearboxSDK {
