@@ -6,6 +6,7 @@ import {
   createWalletClient,
   http,
   isAddress,
+  parseEther,
   stringToHex,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
@@ -164,6 +165,10 @@ export class SDKExample {
     });
     this.#logger?.debug(`faucet address: ${faucetAddr}, owner: ${owner}`);
     await anvil.impersonateAccount({ address: owner });
+    await anvil.setBalance({
+      address: owner,
+      value: parseEther("100"),
+    });
     const hash = await anvil.writeContract({
       chain: anvil.chain,
       account: owner,
