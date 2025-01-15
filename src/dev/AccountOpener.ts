@@ -177,7 +177,7 @@ export class AccountOpener extends SDKConstruct {
     if (receipt.status === "reverted") {
       throw new Error(`open credit account tx ${hash} reverted`);
     }
-    logger?.debug(`opened credit account ${index}/${total}`);
+    logger?.info(`opened credit account ${index}/${total}`);
   }
 
   public async getOpenedAccounts(): Promise<CreditAccountData[]> {

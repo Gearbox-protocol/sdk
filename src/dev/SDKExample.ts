@@ -10,10 +10,9 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
-import type { ILogger, NetworkType } from "../sdk";
+import type { ILogger } from "../sdk";
 import {
   ADDRESS_PROVIDER,
-  chains,
   GearboxSDK,
   iAddressProviderV3_1Abi,
   iAddressProviderV3Abi,
@@ -67,11 +66,7 @@ export class SDKExample {
       ignoreUpdateablePrices: true,
       marketConfigurators: [marketConfigurator],
     });
-    await this.#safeMigrateFaucet(
-      anvilUrl,
-      this.#sdk.provider.networkType,
-      addressProvider,
-    );
+    await this.#safeMigrateFaucet(addressProvider);
 
     const puTx = await this.#sdk.priceFeeds.getUpdatePriceFeedsTx([
       marketConfigurator,
@@ -131,13 +126,9 @@ export class SDKExample {
     return result;
   }
 
-  async #safeMigrateFaucet(
-    anvilURL: string,
-    network: NetworkType,
-    addressProvider: Address,
-  ): Promise<void> {
+  async #safeMigrateFaucet(addressProvider: Address): Promise<void> {
     try {
-      await this.#migrateFaucet(anvilURL, network, addressProvider);
+      await this.#migrateFaucet(addressProvider);
       this.#logger?.info("faucet migrated successfully");
     } catch (e) {
       this.#logger?.error(`faucet migration failed: ${e}`);
@@ -146,25 +137,19 @@ export class SDKExample {
 
   /**
    * Migrates faucet from address provider v3 to v3.1
-   * @param anvilURL
-   * @param network
-   * @param addressProvider
+   * @param addressProvider 3.1 address provider
    */
-  async #migrateFaucet(
-    anvilURL: string,
-    network: NetworkType,
-    addressProvider: Address,
-  ): Promise<void> {
+  async #migrateFaucet(addressProvider: Address): Promise<void> {
     const anvil = createAnvilClient({
-      chain: chains[network],
-      transport: http(anvilURL),
+      chain: this.sdk.provider.chain,
+      transport: this.sdk.provider.transport,
     });
 
     const [faucetAddr, owner] = await anvil.multicall({
       contracts: [
         {
           abi: iAddressProviderV3Abi,
-          address: ADDRESS_PROVIDER[network],
+          address: ADDRESS_PROVIDER[this.sdk.provider.networkType],
           functionName: "getAddressOrRevert",
           args: [stringToHex("FAUCET", { size: 32 }), 0n],
         },
@@ -180,7 +165,7 @@ export class SDKExample {
     this.#logger?.debug(`faucet address: ${faucetAddr}, owner: ${owner}`);
     await anvil.impersonateAccount({ address: owner });
     const hash = await anvil.writeContract({
-      chain: chains[network],
+      chain: anvil.chain,
       account: owner,
       address: addressProvider,
       abi: iAddressProviderV3_1Abi,
