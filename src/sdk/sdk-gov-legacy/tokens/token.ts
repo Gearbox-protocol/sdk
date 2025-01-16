@@ -35,6 +35,7 @@ import type {
   MetaCurveLPTokenData,
 } from "./curveLP";
 import { curveTokens } from "./curveLP";
+import { decimals } from "./decimals";
 import type {
   ERC4626LPToken,
   ERC4626VaultOfCurveLPTokenData,
@@ -172,6 +173,7 @@ export const tokenDataByNetwork: Record<
     USDT: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
     DOLA: "0x865377367054516e17014CcdED1e7d814EDC9ce4",
     WBTC: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+    tBTC: "0x18084fbA666a33d37592fA2633fD49a74DD93a88",
     WETH: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
     YFI: "0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e",
     GMX: NOT_DEPLOYED,
@@ -266,6 +268,7 @@ export const tokenDataByNetwork: Record<
     eBTCWBTC: "0x7704D01908afD31bf647d969c295BB45230cD2d6",
     pumpBTCWBTC: "0xEA659B615b48EC6e2D55cD82FCBE5F43d79aeea0",
     TriBTC: "0xabaf76590478F2fE0b396996f55F0b61101e9502",
+    "2BTC-f": "0xB7ECB2AA52AA64a717180E030241bC75Cd946726",
 
     // CONVEX LP TOKENS
     cvx3Crv: "0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C",
@@ -328,6 +331,7 @@ export const tokenDataByNetwork: Record<
     ezETH_WETH_BPT: "0x596192bB6e41802428Ac943D2f1476C1Af25CC0E",
     sUSDe_USDC_BPT: "0xb819feeF8F0fcDC268AfE14162983A69f6BF179E",
     trenSTETH: "0x4216d5900a6109bba48418b5e2AB6cc4e61Cf477",
+    DVstETH_wstETH_BPT: "0x632aafC2D3D2cA1764E702aa25c065c273Cd08eD",
     weETH_ezETH_rswETH: "0x848a5564158d84b8A8fb68ab5D004Fae11619A54",
     GHO_USDT_USDC: "0x8353157092ED8Be69a9DF8F95af097bbF33Cb2aF",
     rsETH_WETH: "0x58AAdFB1Afac0ad7fca1148f3cdE6aEDF5236B6D",
@@ -346,6 +350,7 @@ export const tokenDataByNetwork: Record<
     ezETH_wstETH: NOT_DEPLOYED,
     bpt_ethtri: NOT_DEPLOYED,
     pumpBTC_WBTC_BPT: "0x2238aB6c8c58473a5e81b86ec352322fB3f5Edd8",
+    eBTC_WBTC_BPT: "0xda17f3663C5D04C0B316cfA1A04Aa53eBBC8c12C",
 
     // AURA
     auraB_rETH_STABLE: "0x9497df26e5bD669Cb925eC68E730492b9300c482",
@@ -409,6 +414,9 @@ export const tokenDataByNetwork: Record<
 
     dDOLAV3: "0x31426271449F60d37Cc5C9AEf7bD12aF3BdC7A94",
 
+    dtBTCV3: "0x7354EC6E852108411e681D13E11185c3a2567981",
+    dwstETHV3: "0xCad5edc9360825C4Ec36660dC1a6E61c74696c7B",
+
     dUSDC_eV3: NOT_DEPLOYED,
     sdUSDC_eV3: NOT_DEPLOYED,
 
@@ -452,6 +460,7 @@ export const tokenDataByNetwork: Record<
     amphrETH: "0x5fD13359Ba15A84B76f7F87568309040176167cd",
     rstETH: "0x7a4EffD87C2f3C55CA251080b1343b605f327E3a",
     pzETH: "0x8c9532a60E0E7C6BbD2B2c1303F63aCE1c3E9811",
+    DVstETH: "0x5E362eb2c0706Bd1d134689eC75176018385430B",
   },
 
   ///
@@ -472,6 +481,7 @@ export const tokenDataByNetwork: Record<
     USDC: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
     USDC_e: "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
     WBTC: "0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f",
+    tBTC: NOT_DEPLOYED,
     WETH: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
     YFI: "0x82e3A8F066a6989666b031d916c43672085b1582",
     GMX: "0xfc5A1A6EB076a2C7aD06eD22C90d7E710E35ad0a",
@@ -596,6 +606,7 @@ export const tokenDataByNetwork: Record<
     eBTCWBTC: NOT_DEPLOYED,
     pumpBTCWBTC: NOT_DEPLOYED,
     TriBTC: NOT_DEPLOYED,
+    "2BTC-f": NOT_DEPLOYED,
 
     crvUSD: "0x498Bf2B1e120FeD3ad3D42EA2165E9b73f99C1e5",
 
@@ -634,6 +645,7 @@ export const tokenDataByNetwork: Record<
     ezETH_WETH_BPT: NOT_DEPLOYED,
     sUSDe_USDC_BPT: NOT_DEPLOYED,
     trenSTETH: NOT_DEPLOYED,
+    DVstETH_wstETH_BPT: NOT_DEPLOYED,
     weETH_ezETH_rswETH: NOT_DEPLOYED,
     GHO_USDT_USDC: NOT_DEPLOYED,
     rsETH_WETH: NOT_DEPLOYED,
@@ -648,6 +660,7 @@ export const tokenDataByNetwork: Record<
     ezETH_wstETH: "0xB61371Ab661B1ACec81C699854D2f911070C059E",
     bpt_ethtri: NOT_DEPLOYED,
     pumpBTC_WBTC_BPT: NOT_DEPLOYED,
+    eBTC_WBTC_BPT: NOT_DEPLOYED,
 
     // AURA
 
@@ -714,6 +727,9 @@ export const tokenDataByNetwork: Record<
 
     dDOLAV3: NOT_DEPLOYED,
 
+    dtBTCV3: NOT_DEPLOYED,
+    dwstETHV3: NOT_DEPLOYED,
+
     dUSDC_eV3: "0xa76c604145D7394DEc36C49Af494C144Ff327861",
     sdUSDC_eV3: "0x608F9e2E8933Ce6b39A8CddBc34a1e3E8D21cE75",
 
@@ -755,6 +771,7 @@ export const tokenDataByNetwork: Record<
     amphrETH: NOT_DEPLOYED,
     rstETH: NOT_DEPLOYED,
     pzETH: NOT_DEPLOYED,
+    DVstETH: NOT_DEPLOYED,
   },
   ///
   ///
@@ -774,6 +791,7 @@ export const tokenDataByNetwork: Record<
     USDC: "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
     USDC_e: "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
     WBTC: "0x68f180fcCe6836688e9084f035309E29Bf0A2095",
+    tBTC: NOT_DEPLOYED,
     WETH: "0x4200000000000000000000000000000000000006",
     YFI: "0x9046D36440290FfDE54FE0DD84Db8b1CfEE9107B",
     GMX: NOT_DEPLOYED,
@@ -864,6 +882,7 @@ export const tokenDataByNetwork: Record<
     eBTCWBTC: NOT_DEPLOYED,
     pumpBTCWBTC: NOT_DEPLOYED,
     TriBTC: NOT_DEPLOYED,
+    "2BTC-f": NOT_DEPLOYED,
 
     crvUSDUSDC: NOT_DEPLOYED,
     crvUSDUSDT: NOT_DEPLOYED,
@@ -939,6 +958,7 @@ export const tokenDataByNetwork: Record<
     ezETH_WETH_BPT: NOT_DEPLOYED,
     sUSDe_USDC_BPT: NOT_DEPLOYED,
     trenSTETH: NOT_DEPLOYED,
+    DVstETH_wstETH_BPT: NOT_DEPLOYED,
     weETH_ezETH_rswETH: NOT_DEPLOYED,
     "33AURA_33ARB_33BAL": NOT_DEPLOYED,
     ezETH_wstETH: NOT_DEPLOYED,
@@ -952,6 +972,7 @@ export const tokenDataByNetwork: Record<
     ECLP_wstETH_WETH: "0x7Ca75bdEa9dEde97F8B13C6641B768650CB83782",
     bpt_ethtri: "0x5F8893506Ddc4C271837187d14A9C87964a074Dc",
     pumpBTC_WBTC_BPT: NOT_DEPLOYED,
+    eBTC_WBTC_BPT: NOT_DEPLOYED,
 
     // AURA
     auraB_rETH_STABLE: NOT_DEPLOYED,
@@ -1016,6 +1037,9 @@ export const tokenDataByNetwork: Record<
     sdcrvUSDV3: NOT_DEPLOYED,
 
     dDOLAV3: NOT_DEPLOYED,
+    dwstETHV3: NOT_DEPLOYED,
+
+    dtBTCV3: NOT_DEPLOYED,
 
     dUSDC_eV3: "0x5520dAa93A187f4Ec67344e6D2C4FC9B080B6A35",
     sdUSDC_eV3: "0x73302b63Ad4a16C498f26dB89cb27F37a72E4E04",
@@ -1058,6 +1082,7 @@ export const tokenDataByNetwork: Record<
     amphrETH: NOT_DEPLOYED,
     rstETH: NOT_DEPLOYED,
     pzETH: NOT_DEPLOYED,
+    DVstETH: NOT_DEPLOYED,
   },
   //
   //
@@ -1082,6 +1107,7 @@ export const tokenDataByNetwork: Record<
     USDC: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
     USDC_e: NOT_DEPLOYED,
     WBTC: NOT_DEPLOYED,
+    tBTC: NOT_DEPLOYED,
     WETH: NOT_DEPLOYED,
     YFI: NOT_DEPLOYED,
     GMX: NOT_DEPLOYED,
@@ -1170,6 +1196,7 @@ export const tokenDataByNetwork: Record<
     eBTCWBTC: NOT_DEPLOYED,
     pumpBTCWBTC: NOT_DEPLOYED,
     TriBTC: NOT_DEPLOYED,
+    "2BTC-f": NOT_DEPLOYED,
 
     crvUSDUSDC: NOT_DEPLOYED,
     crvUSDUSDT: NOT_DEPLOYED,
@@ -1245,6 +1272,7 @@ export const tokenDataByNetwork: Record<
     ezETH_WETH_BPT: NOT_DEPLOYED,
     sUSDe_USDC_BPT: NOT_DEPLOYED,
     trenSTETH: NOT_DEPLOYED,
+    DVstETH_wstETH_BPT: NOT_DEPLOYED,
     weETH_ezETH_rswETH: NOT_DEPLOYED,
     rsETH_WETH: NOT_DEPLOYED,
     rsETH_wETH_Arb: NOT_DEPLOYED,
@@ -1257,6 +1285,7 @@ export const tokenDataByNetwork: Record<
     ECLP_wstETH_WETH: NOT_DEPLOYED,
     bpt_ethtri: NOT_DEPLOYED,
     pumpBTC_WBTC_BPT: NOT_DEPLOYED,
+    eBTC_WBTC_BPT: NOT_DEPLOYED,
 
     // AURA
     auraB_rETH_STABLE: NOT_DEPLOYED,
@@ -1319,6 +1348,9 @@ export const tokenDataByNetwork: Record<
     sdcrvUSDV3: NOT_DEPLOYED,
 
     dDOLAV3: NOT_DEPLOYED,
+    dwstETHV3: NOT_DEPLOYED,
+
+    dtBTCV3: NOT_DEPLOYED,
 
     dUSDC_eV3: NOT_DEPLOYED,
     sdUSDC_eV3: NOT_DEPLOYED,
@@ -1364,6 +1396,7 @@ export const tokenDataByNetwork: Record<
     amphrETH: NOT_DEPLOYED,
     rstETH: NOT_DEPLOYED,
     pzETH: NOT_DEPLOYED,
+    DVstETH: NOT_DEPLOYED,
   },
 };
 
@@ -1385,7 +1418,8 @@ export type TickerToken =
   | "eBTC"
   | "ETH"
   | "USDe"
-  | "BTC";
+  | "BTC"
+  | "PushUSDe";
 
 export interface TickerInfo {
   symbol: TickerToken;
@@ -1400,6 +1434,16 @@ export const tickerInfoTokensByNetwork: Record<
   Partial<Record<SupportedToken, Array<TickerInfo>>>
 > = {
   Mainnet: {
+    USDecrvUSD: [
+      {
+        symbol: "PushUSDe",
+        dataId: "USDe",
+        address: tokenDataByNetwork.Mainnet.USDecrvUSD,
+        priceFeed: "0xbC5FBcf58CeAEa19D523aBc76515b9AEFb5cfd58",
+        reserve: false,
+      },
+    ],
+
     weETH: [
       {
         symbol: "weETH/ETH",
@@ -1813,8 +1857,35 @@ export function getTokenSymbolOrTicker(
   );
 }
 
+export function getTokenSymbolOrETH(
+  address: Address,
+): SupportedToken | "ETH" | undefined {
+  if (address.toLowerCase() === ETH_ADDRESS.toLowerCase()) return "ETH";
+  return getTokenSymbol(address);
+}
+
 export const isSupportedToken = (t: unknown): t is SupportedToken =>
   typeof t === "string" && !!supportedTokens[t as SupportedToken];
 
 export const isLPToken = (t: unknown): t is LPTokens =>
   typeof t === "string" && !!lpTokens[t as LPTokens];
+
+export function getDecimals(token: SupportedToken | string): number {
+  let dec = decimals[token as SupportedToken];
+  if (dec) return dec;
+
+  dec = decimals[tokenSymbolByAddress[token.toLowerCase()]];
+  if (!dec) {
+    throw new Error(`Decimals for ${token} not found`);
+  }
+  return dec;
+}
+
+export function extractTokenData(
+  tokenAddress: string,
+): [SupportedToken | undefined, number | undefined] {
+  const underlyingSymbol = tokenSymbolByAddress[tokenAddress.toLowerCase()];
+  const underlyingDecimals = decimals[underlyingSymbol || ""];
+
+  return [underlyingSymbol, underlyingDecimals];
+}

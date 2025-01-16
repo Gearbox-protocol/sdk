@@ -1,4 +1,4 @@
-import { type SupportedToken, tokenSymbolByAddress } from "./token";
+import type { SupportedToken } from "./token";
 
 export const decimals: Record<SupportedToken, number> = {
   "1INCH": 18,
@@ -13,6 +13,7 @@ export const decimals: Record<SupportedToken, number> = {
   USDT: 6,
   DOLA: 18,
   WBTC: 8,
+  tBTC: 18,
   WETH: 18,
   YFI: 18,
   STETH: 18,
@@ -84,6 +85,7 @@ export const decimals: Record<SupportedToken, number> = {
   eBTCWBTC: 18,
   pumpBTCWBTC: 18,
   TriBTC: 18,
+  "2BTC-f": 18,
   crvUSD: 18,
   crvUSDUSDC: 18,
   crvUsUSDe: 18,
@@ -170,6 +172,9 @@ export const decimals: Record<SupportedToken, number> = {
 
   dDOLAV3: 18,
 
+  dtBTCV3: 18,
+  dwstETHV3: 18,
+
   dUSDC_eV3: 6,
   sdUSDC_eV3: 6,
 
@@ -192,6 +197,7 @@ export const decimals: Record<SupportedToken, number> = {
   rETH_WETH_BPT_deprecated: 18,
   rETH_wETH_BPT: 18,
   trenSTETH: 18,
+  DVstETH_wstETH_BPT: 18,
   ezETH_WETH_BPT: 18,
   weETH_ezETH_rswETH: 18,
   "33AURA_33ARB_33BAL": 18,
@@ -201,6 +207,7 @@ export const decimals: Record<SupportedToken, number> = {
   rsETH_wETH_Arb: 18,
   bpt_ethtri: 18,
   pumpBTC_WBTC_BPT: 18,
+  eBTC_WBTC_BPT: 18,
   sUSDe_USDC_BPT: 18,
 
   auraB_rETH_STABLE: 18,
@@ -229,6 +236,7 @@ export const decimals: Record<SupportedToken, number> = {
   amphrETH: 18,
   rstETH: 18,
   pzETH: 18,
+  DVstETH: 18,
 
   aDAI: 18,
   aUSDC: 6,
@@ -264,14 +272,3 @@ export const decimals: Record<SupportedToken, number> = {
   PT_corn_eBTC_27MAR2025: 8,
   PT_sUSDe_27MAR2025: 18,
 };
-
-export function getDecimals(token: SupportedToken | string): number {
-  let dec = decimals[token as SupportedToken];
-  if (dec) return dec;
-
-  dec = decimals[tokenSymbolByAddress[token.toLowerCase()]];
-  if (!dec) {
-    throw new Error(`Decimals for ${token} not found`);
-  }
-  return dec;
-}

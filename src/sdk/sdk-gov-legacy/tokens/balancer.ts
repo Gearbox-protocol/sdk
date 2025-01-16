@@ -17,8 +17,10 @@ export type BalancerLPToken =
   | "GHO_USDT_USDC"
   | "rsETH_WETH"
   | "trenSTETH"
+  | "DVstETH_wstETH_BPT"
   | "sUSDe_USDC_BPT"
   | "pumpBTC_WBTC_BPT"
+  | "eBTC_WBTC_BPT"
   // Optimism
   | "BPT_rETH_ETH"
   | "BPT_WSTETH_ETH"
@@ -142,6 +144,16 @@ export const balancerLpTokens: Record<BalancerLPToken, BalancerLpTokenData> = {
     poolId:
       "0x2238ab6c8c58473a5e81b86ec352322fb3f5edd80000000000000000000006de",
   },
+  eBTC_WBTC_BPT: {
+    name: "Balancer eBTC/wBTC",
+    symbol: "eBTC_WBTC_BPT",
+    type: {
+      AllNetworks: TokenType.BALANCER_LP_TOKEN,
+    },
+    underlying: ["eBTC", "WBTC"],
+    poolId:
+      "0xda17f3663c5d04c0b316cfa1a04aa53ebbc8c12c0000000000000000000006e7",
+  },
 
   trenSTETH: {
     name: "Balancer Total Rewards Enhanced stETH",
@@ -152,6 +164,17 @@ export const balancerLpTokens: Record<BalancerLPToken, BalancerLpTokenData> = {
     underlying: ["amphrETH", "rstETH", "wstETH", "Re7LRT", "steakLRT"],
     poolId:
       "0x4216d5900a6109bba48418b5e2ab6cc4e61cf4770000000000000000000006a1",
+  },
+
+  DVstETH_wstETH_BPT: {
+    name: "Balancer DVstETH/wstETH ",
+    symbol: "DVstETH_wstETH_BPT",
+    type: {
+      AllNetworks: TokenType.BALANCER_LP_TOKEN,
+    },
+    underlying: ["DVstETH", "wstETH"],
+    poolId:
+      "0x632aafc2d3d2ca1764e702aa25c065c273cd08ed0000000000000000000006d6",
   },
 
   weETH_ezETH_rswETH: {

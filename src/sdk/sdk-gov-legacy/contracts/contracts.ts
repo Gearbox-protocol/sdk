@@ -58,6 +58,7 @@ export type CurvePoolContract =
   | "CURVE_EBTC_WBTC_POOL"
   | "CURVE_PUMPBTC_WBTC_POOL"
   | "CURVE_TRIBTC_POOL"
+  | "CURVE_tBTC_WBTC_POOL"
   | "CURVE_2CRV_POOL_ARB"
   | "CURVE_TRICRYPTO_CRVUSD_POOL_ARB"
   | "CURVE_CRVUSD_USDC_POOL_ARB"
@@ -137,7 +138,8 @@ export type MellowVaultContract =
   | "MELLOW_RE7_LABS_VAULT"
   | "MELLOW_AMPHOR_VAULT"
   | "MELLOW_RESTAKING_VAULT"
-  | "MELLOW_RENZO_VAULT";
+  | "MELLOW_RENZO_VAULT"
+  | "MELLOW_DECENTALIZED_VALIDATOR_VAULT";
 
 export type StakingRewardsContract = "SKY_STAKING_REWARDS";
 
@@ -218,6 +220,7 @@ export const contractsByNetwork: Record<
     CURVE_EBTC_WBTC_POOL: tokenDataByNetwork.Mainnet.eBTCWBTC,
     CURVE_PUMPBTC_WBTC_POOL: tokenDataByNetwork.Mainnet.pumpBTCWBTC,
     CURVE_TRIBTC_POOL: tokenDataByNetwork.Mainnet.TriBTC,
+    CURVE_tBTC_WBTC_POOL: tokenDataByNetwork.Mainnet["2BTC-f"],
 
     CURVE_GEAR_POOL: "0x0E9B5B092caD6F1c5E6bc7f89Ffe1abb5c95F1C2",
 
@@ -330,6 +333,7 @@ export const contractsByNetwork: Record<
     MELLOW_AMPHOR_VAULT: tokenDataByNetwork.Mainnet.amphrETH,
     MELLOW_RESTAKING_VAULT: tokenDataByNetwork.Mainnet.rstETH,
     MELLOW_RENZO_VAULT: tokenDataByNetwork.Mainnet.pzETH,
+    MELLOW_DECENTALIZED_VALIDATOR_VAULT: tokenDataByNetwork.Mainnet.DVstETH,
 
     // SKY
     SKY_STAKING_REWARDS: "0x0650CAF159C5A49f711e8169D4336ECB9b950275",
@@ -388,6 +392,7 @@ export const contractsByNetwork: Record<
     CURVE_EBTC_WBTC_POOL: NOT_DEPLOYED,
     CURVE_PUMPBTC_WBTC_POOL: NOT_DEPLOYED,
     CURVE_TRIBTC_POOL: NOT_DEPLOYED,
+    CURVE_tBTC_WBTC_POOL: NOT_DEPLOYED,
 
     CURVE_GEAR_POOL: NOT_DEPLOYED,
 
@@ -500,6 +505,7 @@ export const contractsByNetwork: Record<
     MELLOW_AMPHOR_VAULT: tokenDataByNetwork.Arbitrum.amphrETH,
     MELLOW_RESTAKING_VAULT: tokenDataByNetwork.Arbitrum.rstETH,
     MELLOW_RENZO_VAULT: tokenDataByNetwork.Arbitrum.pzETH,
+    MELLOW_DECENTALIZED_VALIDATOR_VAULT: tokenDataByNetwork.Arbitrum.DVstETH,
 
     SKY_STAKING_REWARDS: NOT_DEPLOYED,
     DAI_USDS: NOT_DEPLOYED,
@@ -557,6 +563,7 @@ export const contractsByNetwork: Record<
     CURVE_EBTC_WBTC_POOL: NOT_DEPLOYED,
     CURVE_PUMPBTC_WBTC_POOL: NOT_DEPLOYED,
     CURVE_TRIBTC_POOL: NOT_DEPLOYED,
+    CURVE_tBTC_WBTC_POOL: NOT_DEPLOYED,
 
     CURVE_GEAR_POOL: NOT_DEPLOYED,
 
@@ -669,6 +676,7 @@ export const contractsByNetwork: Record<
     MELLOW_AMPHOR_VAULT: tokenDataByNetwork.Optimism.amphrETH,
     MELLOW_RESTAKING_VAULT: tokenDataByNetwork.Optimism.rstETH,
     MELLOW_RENZO_VAULT: tokenDataByNetwork.Optimism.pzETH,
+    MELLOW_DECENTALIZED_VALIDATOR_VAULT: tokenDataByNetwork.Optimism.DVstETH,
 
     SKY_STAKING_REWARDS: NOT_DEPLOYED,
     DAI_USDS: NOT_DEPLOYED,
@@ -725,6 +733,7 @@ export const contractsByNetwork: Record<
     CURVE_EBTC_WBTC_POOL: NOT_DEPLOYED,
     CURVE_PUMPBTC_WBTC_POOL: NOT_DEPLOYED,
     CURVE_TRIBTC_POOL: NOT_DEPLOYED,
+    CURVE_tBTC_WBTC_POOL: NOT_DEPLOYED,
 
     CURVE_GEAR_POOL: NOT_DEPLOYED,
 
@@ -835,6 +844,7 @@ export const contractsByNetwork: Record<
     MELLOW_AMPHOR_VAULT: tokenDataByNetwork.Base.amphrETH,
     MELLOW_RESTAKING_VAULT: tokenDataByNetwork.Base.rstETH,
     MELLOW_RENZO_VAULT: tokenDataByNetwork.Base.pzETH,
+    MELLOW_DECENTALIZED_VALIDATOR_VAULT: tokenDataByNetwork.Base.DVstETH,
 
     SKY_STAKING_REWARDS: NOT_DEPLOYED,
     DAI_USDS: NOT_DEPLOYED,
@@ -1500,6 +1510,14 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "TriBTC",
     tokens: ["eBTC", "LBTC", "WBTC"],
+  },
+  CURVE_tBTC_WBTC_POOL: {
+    name: "Curve tBTC/WBTC LP",
+    protocol: Protocols.Curve,
+    version: 20,
+    type: AdapterInterface.CURVE_V1_2ASSETS,
+    lpToken: "2BTC-f",
+    tokens: ["WBTC", "tBTC"],
   },
 
   CURVE_2CRV_POOL_ARB: {
@@ -2280,6 +2298,11 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
   },
   MELLOW_RENZO_VAULT: {
     name: "Mellow Renzo pzETH vault",
+    protocol: Protocols.Mellow,
+    type: AdapterInterface.MELLOW_LRT_VAULT,
+  },
+  MELLOW_DECENTALIZED_VALIDATOR_VAULT: {
+    name: "Mellow Decentralized Validator Token vault",
     protocol: Protocols.Mellow,
     type: AdapterInterface.MELLOW_LRT_VAULT,
   },

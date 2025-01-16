@@ -16,6 +16,7 @@ export type NormalToken =
   | "DAI"
   | "WETH"
   | "WBTC"
+  | "tBTC"
   | "YFI"
   | "WLD"
   | "OP"
@@ -64,6 +65,7 @@ export type NormalToken =
   | "amphrETH"
   | "rstETH"
   | "pzETH"
+  | "DVstETH"
   // Pendle
   | "PT_rsETH_26SEP2024"
   | "PT_sUSDe_26DEC2024"
@@ -169,6 +171,12 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     name: "WBTC",
 
     symbol: "WBTC",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  tBTC: {
+    name: "tBTC",
+
+    symbol: "tBTC",
     type: { AllNetworks: TokenType.NORMAL_TOKEN },
   },
 
@@ -429,6 +437,11 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
   pzETH: {
     name: "Renzo Mellow LST",
     symbol: "pzETH",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  DVstETH: {
+    name: "Decentralized Validator Token",
+    symbol: "DVstETH",
     type: { AllNetworks: TokenType.NORMAL_TOKEN },
   },
   PT_rsETH_26SEP2024: {
