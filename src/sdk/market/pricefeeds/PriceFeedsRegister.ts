@@ -104,7 +104,7 @@ export class PriceFeedRegister
     if (existing?.loaded) {
       return existing;
     }
-    const feed = this.#create(data);
+    const feed = this.create(data);
     this.#feeds.upsert(data.baseParams.addr, feed);
     return feed;
   }
@@ -132,7 +132,7 @@ export class PriceFeedRegister
       pools,
     );
     for (const data of feedsData) {
-      const feed = this.#create({ baseParams: data });
+      const feed = this.create({ baseParams: data });
       this.#feeds.upsert(feed.address, feed);
     }
   }
@@ -151,7 +151,7 @@ export class PriceFeedRegister
       marketConfigurators,
       pools,
     );
-    const feeds = feedsData.map(data => this.#create({ baseParams: data }));
+    const feeds = feedsData.map(data => this.create({ baseParams: data }));
     const updates = await this.#generatePriceFeedsUpdateTxs(feeds);
 
     return createRawTx(
@@ -245,7 +245,7 @@ export class PriceFeedRegister
     return result;
   }
 
-  #create(data: PartialPriceFeedTreeNode): IPriceFeedContract {
+  public create(data: PartialPriceFeedTreeNode): IPriceFeedContract {
     const contractType = bytes32ToString(
       data.baseParams.contractType as Hex,
     ) as PriceFeedContractType;

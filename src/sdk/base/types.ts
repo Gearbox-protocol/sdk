@@ -6,7 +6,7 @@ import type { Address, Hex } from "viem";
 
 import type { iCreditAccountCompressorAbi, iMarketCompressorAbi } from "../abi";
 
-type Unarray<A> = A extends readonly unknown[] ? Unarray<A[number]> : A;
+export type Unarray<A> = A extends readonly unknown[] ? Unarray<A[number]> : A;
 
 export interface BaseParams {
   addr: Address;
