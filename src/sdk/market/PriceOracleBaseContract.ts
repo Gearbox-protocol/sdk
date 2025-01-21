@@ -181,6 +181,17 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
   }
 
   /**
+   * Returns true if oracle's price feed tree contains given price feed
+   * @param priceFeed
+   * @returns
+   */
+  public usesPriceFeed(priceFeed: Address): boolean {
+    return this.#priceFeedTree.some(
+      node => node.baseParams.addr.toLowerCase() === priceFeed.toLowerCase(),
+    );
+  }
+
+  /**
    * Tries to convert amount of token into underlying of current market
    * @param token
    * @param amount
