@@ -31,7 +31,7 @@ export class PriceFeedStore extends SDKConstruct {
   constructor(sdk: GearboxSDK) {
     super(sdk);
     this.#store = this.sdk.addressProvider.getAddress("PRICE_FEED_STORE");
-    this.#compressor = this.sdk.addressProvider.getAddress(
+    this.#compressor = this.sdk.addressProvider.getLatestVersion(
       AP_PRICE_FEED_COMPRESSOR,
     );
     this.#logger = sdk.logger?.child?.({
@@ -71,8 +71,9 @@ export class PriceFeedStore extends SDKConstruct {
     });
     if (update) {
       const feeds = result.map(f => this.sdk.priceFeeds.create(f));
-      const { txs } =
-        await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(feeds);
+      const { txs } = await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(
+        feeds,
+      );
       const resp = await this.provider.publicClient.multicall({
         contracts: [
           ...txs.map(rawTxToMulticallPriceUpdate),
