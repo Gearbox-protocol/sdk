@@ -199,7 +199,7 @@ export class MarketRegister extends SDKConstruct {
     throw new Error(`cannot find market for price oracle ${address}`);
   }
 
-  public async findByPool(address: Address): Promise<MarketSuite> {
+  public findByPool(address: Address): MarketSuite {
     const addr = address.toLowerCase();
     for (const market of this.markets) {
       if (market.pool.pool.address.toLowerCase() === addr) {
