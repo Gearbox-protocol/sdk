@@ -1,4 +1,4 @@
-import { Decimal } from "decimal.js-light";
+import Decimal from "decimal.js-light";
 
 import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR } from "../../constants";
 import { toBigInt } from "../../utils";
