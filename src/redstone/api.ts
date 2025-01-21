@@ -527,10 +527,25 @@ export class RedstoneApi {
       },
       {},
     );
+
+    const allMain_Root = st1_MainFeedsUnsafe.reduce<Record<Address, Address>>(
+      (acc, p, index) => {
+        const token = allTokens[index][1];
+
+        if (!p.error && typeof p.result === "object" && p.result[4] === false) {
+          const [priceFeed] = p.result;
+          acc[token] = priceFeed;
+        }
+        return acc;
+      },
+      {},
+    );
+
     return {
       main: mainPFData,
       reserve: reservePFData,
       allReserve,
+      allMain_Root,
     };
   };
 
