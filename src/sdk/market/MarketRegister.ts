@@ -196,7 +196,17 @@ export class MarketRegister extends SDKConstruct {
         return market;
       }
     }
-    throw new Error(`cannot find price oracle ${address}`);
+    throw new Error(`cannot find market for price oracle ${address}`);
+  }
+
+  public async findByPool(address: Address): Promise<MarketSuite> {
+    const addr = address.toLowerCase();
+    for (const market of this.markets) {
+      if (market.pool.pool.address.toLowerCase() === addr) {
+        return market;
+      }
+    }
+    throw new Error(`cannot find market for pool ${address}`);
   }
 
   public get marketsMap() {
