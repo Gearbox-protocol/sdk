@@ -30,7 +30,8 @@ export type AdapterContractType =
   | "AD_PENDLE_ROUTER"
   | "AD_MELLOW_ERC4626_VAULT"
   | "AD_DAI_USDS_EXCHANGE"
-  | "AD_STAKING_REWARDS";
+  | "AD_STAKING_REWARDS"
+  | "AD_EQUALIZER_ROUTER";
 
 export interface IAdapterContract extends IBaseContract {
   targetContract: Address;

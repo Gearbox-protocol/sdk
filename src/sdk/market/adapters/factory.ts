@@ -15,6 +15,7 @@ import { CurveV1AdapterStETHContract } from "./CurveV1AdapterStETHContract";
 import { CurveV1StableNGAdapterContract } from "./CurveV1StableNGAdapterContract";
 import { DaiUsdsAdapterContract } from "./DaiUsdsAdapterContract";
 import { ERC4626AdapterContract } from "./ERC4626AdapterContract";
+import { MellowERC4626VaultAdapterContract } from "./MellowERC4626VaultAdapterContract";
 import { MellowVaultAdapterContract } from "./MellowVaultAdapterContract";
 import { PendleRouterAdapterContract } from "./PendleRouterAdapterContract";
 import { StakingRewardsAdapterContract } from "./StakingRewardsAdapterContract";
@@ -67,6 +68,8 @@ export function createAdapter(
       return new YearnV2RouterAdapterContract(sdk, args);
     case "AD_MELLOW_LRT_VAULT":
       return new MellowVaultAdapterContract(sdk, args);
+    case "AD_MELLOW_ERC4626_VAULT":
+      return new MellowERC4626VaultAdapterContract(sdk, args);
     case "AD_PENDLE_ROUTER":
       return new PendleRouterAdapterContract(sdk, args);
     case "AD_DAI_USDS_EXCHANGE":

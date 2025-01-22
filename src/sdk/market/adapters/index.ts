@@ -10,6 +10,7 @@ export * from "./CurveV1AdapterStETHContract";
 export * from "./DaiUsdsAdapterContract";
 export * from "./ERC4626AdapterContract";
 export * from "./factory";
+export * from "./MellowERC4626VaultAdapterContract";
 export * from "./MellowVaultAdapterContract";
 export * from "./PendleRouterAdapterContract";
 export * from "./StakingRewardsAdapterContract";

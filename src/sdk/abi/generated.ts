@@ -18723,6 +18723,143 @@ export const iMellowVaultAdapterAbi = [
   },
 ] as const;
 
+export const iErc4626AdapterAbi = [
+  {
+    type: "function",
+    name: "_gearboxAdapterType",
+    inputs: [],
+    outputs: [{ name: "", type: "uint8", internalType: "enum AdapterType" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "_gearboxAdapterVersion",
+    inputs: [],
+    outputs: [{ name: "", type: "uint16", internalType: "uint16" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "addressProvider",
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "asset",
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "assetMask",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "creditManager",
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "deposit",
+    inputs: [
+      { name: "assets", type: "uint256", internalType: "uint256" },
+      { name: "", type: "address", internalType: "address" },
+    ],
+    outputs: [
+      { name: "tokensToEnable", type: "uint256", internalType: "uint256" },
+      { name: "tokensToDisable", type: "uint256", internalType: "uint256" },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "depositDiff",
+    inputs: [
+      { name: "leftoverAmount", type: "uint256", internalType: "uint256" },
+    ],
+    outputs: [
+      { name: "tokensToEnable", type: "uint256", internalType: "uint256" },
+      { name: "tokensToDisable", type: "uint256", internalType: "uint256" },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "mint",
+    inputs: [
+      { name: "shares", type: "uint256", internalType: "uint256" },
+      { name: "", type: "address", internalType: "address" },
+    ],
+    outputs: [
+      { name: "tokensToEnable", type: "uint256", internalType: "uint256" },
+      { name: "tokensToDisable", type: "uint256", internalType: "uint256" },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "redeem",
+    inputs: [
+      { name: "shares", type: "uint256", internalType: "uint256" },
+      { name: "", type: "address", internalType: "address" },
+      { name: "", type: "address", internalType: "address" },
+    ],
+    outputs: [
+      { name: "tokensToEnable", type: "uint256", internalType: "uint256" },
+      { name: "tokensToDisable", type: "uint256", internalType: "uint256" },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "redeemDiff",
+    inputs: [
+      { name: "leftoverAmount", type: "uint256", internalType: "uint256" },
+    ],
+    outputs: [
+      { name: "tokensToEnable", type: "uint256", internalType: "uint256" },
+      { name: "tokensToDisable", type: "uint256", internalType: "uint256" },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "sharesMask",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "targetContract",
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "withdraw",
+    inputs: [
+      { name: "assets", type: "uint256", internalType: "uint256" },
+      { name: "", type: "address", internalType: "address" },
+      { name: "", type: "address", internalType: "address" },
+    ],
+    outputs: [
+      { name: "tokensToEnable", type: "uint256", internalType: "uint256" },
+      { name: "tokensToDisable", type: "uint256", internalType: "uint256" },
+    ],
+    stateMutability: "nonpayable",
+  },
+] as const;
+
 export const iPendleRouterAdapterAbi = [
   {
     type: "function",
