@@ -1,4 +1,4 @@
-import type { ERC4626VaultContract } from "../contracts/contracts";
+import type { ERC4626VaultContract } from "../contracts";
 import type { CurveLPToken } from "./curveLP";
 import type { NormalToken } from "./normal";
 import type { TokenBase } from "./token";

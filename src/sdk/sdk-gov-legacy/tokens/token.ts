@@ -428,6 +428,7 @@ export const tokenDataByNetwork: Record<
     sUSDe: "0x9D39A5DE30e57443BfF2A8307A4256c8797A3497",
     sUSDS: "0xa3931d71877C0E7a3148CB7Eb4463524FEc27fbD",
     scrvUSD: "0x0655977FEb2f289A4aB78af67BAB0d17aAb84367",
+    beraSTONE: "0x97Ad75064b20fb2B2447feD4fa953bF7F007a706",
 
     // AAVE
     aUSDC: "0xBcca60bB61934080951369a648Fb03DF4F96263C",
@@ -758,6 +759,7 @@ export const tokenDataByNetwork: Record<
     sUSDe: NOT_DEPLOYED,
     sUSDS: NOT_DEPLOYED,
     scrvUSD: NOT_DEPLOYED,
+    beraSTONE: NOT_DEPLOYED,
 
     // ZIRCUIT
     zpufETH: NOT_DEPLOYED,
@@ -1069,6 +1071,7 @@ export const tokenDataByNetwork: Record<
     sUSDe: NOT_DEPLOYED,
     sUSDS: NOT_DEPLOYED,
     scrvUSD: NOT_DEPLOYED,
+    beraSTONE: NOT_DEPLOYED,
 
     // ZIRCUIT
     zpufETH: NOT_DEPLOYED,
@@ -1380,6 +1383,7 @@ export const tokenDataByNetwork: Record<
     sUSDe: NOT_DEPLOYED,
     sUSDS: NOT_DEPLOYED,
     scrvUSD: NOT_DEPLOYED,
+    beraSTONE: NOT_DEPLOYED,
 
     GHO: NOT_DEPLOYED,
     GHOUSDe: NOT_DEPLOYED,
@@ -1410,6 +1414,7 @@ export type TickerToken =
   | "eBTC/BTC"
   | "solvBTC/BTC"
   | "pumpBTC/BTC"
+  | "beraSTONE/ETH"
   | "crvUSD"
   | "USDC"
   | "USDT"
@@ -1520,6 +1525,15 @@ export const tickerInfoTokensByNetwork: Record<
         dataId: "SolvBTC.BBN_FUNDAMENTAL",
         address: "0x02CFAc3a443ce91839b992329e24eA52B9DA1b94",
         priceFeed: "0xfb38dd28Dc9Fb027A3138609f8F5B3AF2ba3f93A",
+        reserve: false,
+      },
+    ],
+    beraSTONE: [
+      {
+        symbol: "beraSTONE/ETH",
+        dataId: "beraETH_FUNDAMENTAL",
+        address: "0x692072eE081c9Ded28d2CfD27513E578d895FD0d",
+        priceFeed: "0xf12b7879713FA998B39b3C7C9c2631E40a0b9dfB",
         reserve: false,
       },
     ],

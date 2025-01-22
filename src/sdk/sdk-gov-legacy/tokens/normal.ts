@@ -59,6 +59,7 @@ export type NormalToken =
   | "wstETH"
   | "USDS"
   | "SKY"
+  | "beraSTONE"
   // Mellow LRTs
   | "steakLRT"
   | "Re7LRT"
@@ -372,6 +373,11 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
   rsETH: {
     name: "Kelp Restaked ETH",
     symbol: "rsETH",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  beraSTONE: {
+    name: "Berachain STONE",
+    symbol: "beraSTONE",
     type: { AllNetworks: TokenType.NORMAL_TOKEN },
   },
   frxETH: {
