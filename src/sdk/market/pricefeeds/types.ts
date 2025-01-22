@@ -2,6 +2,7 @@ import type { UnionOmit } from "viem";
 
 import type { IBaseContract } from "../../base";
 import type { PriceFeedStateHuman, RawTx } from "../../types";
+import type { PriceFeedRef } from "./PriceFeedRef";
 
 export type PriceFeedUsageType = "Main" | "Reserve";
 
@@ -36,6 +37,8 @@ export interface IPriceFeedContract extends IBaseContract {
    * This flag idicates that all the price feed data (decimals, skip check, dependencies...) has been loaded from compressor
    */
   readonly loaded: boolean;
+
+  readonly underlyingPriceFeeds: readonly PriceFeedRef[];
 
   answer: (overrides?: { blockNumber?: bigint }) => Promise<bigint>;
   stateHuman: (
