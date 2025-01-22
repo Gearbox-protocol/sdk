@@ -1,6 +1,6 @@
 import { DataServiceWrapper } from "@redstone-finance/evm-connector";
-import type { SignedDataPackage } from "redstone-protocol";
-import { RedstonePayload } from "redstone-protocol";
+import type { SignedDataPackage } from "@redstone-finance/protocol";
+import { RedstonePayload } from "@redstone-finance/protocol";
 import type { Address, Hex } from "viem";
 import { encodeAbiParameters, toBytes } from "viem";
 
