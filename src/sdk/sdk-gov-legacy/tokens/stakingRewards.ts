@@ -39,10 +39,3 @@ export const isStakingRewardsPhantomToken = (
 ): t is StakingRewardsPhantomToken =>
   typeof t === "string" &&
   !!stakingRewardsTokens[t as StakingRewardsPhantomToken];
-
-export const zircuitStakedTokenByToken = Object.values(
-  stakingRewardsPhantomTokens,
-).reduce<Partial<Record<SupportedToken, SupportedToken>>>((acc, value) => {
-  acc[value.underlying] = value.symbol;
-  return acc;
-}, {});
