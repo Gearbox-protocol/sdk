@@ -4,7 +4,11 @@ import type {
 } from "abitype";
 import type { Address, Hex } from "viem";
 
-import type { iCreditAccountCompressorAbi, iMarketCompressorAbi } from "../abi";
+import type {
+  iCreditAccountCompressorAbi,
+  iMarketCompressorAbi,
+  iRewardCompressorAbi,
+} from "../abi";
 
 export type Unarray<A> = A extends readonly unknown[] ? Unarray<A[number]> : A;
 
@@ -21,6 +25,12 @@ export type CreditAccountData = Unarray<
       typeof iCreditAccountCompressorAbi,
       "getCreditAccountData"
     >["outputs"]
+  >
+>;
+
+export type RewardInfo = Unarray<
+  AbiParametersToPrimitiveTypes<
+    ExtractAbiFunction<typeof iRewardCompressorAbi, "getRewards">["outputs"]
   >
 >;
 
