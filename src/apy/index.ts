@@ -38,6 +38,7 @@ type ExtraFarmTokens = Extract<
   | "pumpBTC"
   | "PT_sUSDe_27MAR2025"
   | "DVstETH"
+  | "beraSTONE"
 >;
 
 // tokens with apy among them
@@ -105,6 +106,7 @@ const EXTRA_FARM_TOKENS: Record<ExtraFarmTokens, true> = {
   pumpBTC: true,
   PT_sUSDe_27MAR2025: true,
   DVstETH: true,
+  beraSTONE: true,
 };
 
 export const isExtraFarmToken = (t: unknown): t is ExtraFarmTokens => {
