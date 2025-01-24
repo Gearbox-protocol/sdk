@@ -17,7 +17,8 @@ export type ExtendedProtocols =
   | "Puffer"
   | "Mellow"
   | "Lombard"
-  | "pumpBTC";
+  | "pumpBTC"
+  | "Stakestone";
 
 const PROTOCOL_DATA: Record<ExtendedProtocols, ProtocolData> = {
   Uniswap: {
@@ -159,6 +160,10 @@ const PROTOCOL_DATA: Record<ExtendedProtocols, ProtocolData> = {
   Equalizer: {
     name: "Equalizer",
     icon: "/protocols/equalizer.svg",
+  },
+  Stakestone: {
+    name: "Stakestone",
+    icon: "/protocols/stakestone.svg",
   },
 };
 
