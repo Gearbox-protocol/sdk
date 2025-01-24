@@ -71,9 +71,8 @@ export class PriceFeedStore extends SDKConstruct {
     });
     if (update) {
       const feeds = result.map(f => this.sdk.priceFeeds.create(f));
-      const { txs } = await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(
-        feeds,
-      );
+      const { txs } =
+        await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(feeds);
       const resp = await this.provider.publicClient.multicall({
         contracts: [
           ...txs.map(rawTxToMulticallPriceUpdate),
