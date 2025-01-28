@@ -203,6 +203,7 @@ export const decimals: Record<SupportedToken, number> = {
   "33AURA_33ARB_33BAL": 18,
   ezETH_wstETH: 18,
   GHO_USDT_USDC: 18,
+  B_50WBTC_50WETH: 18,
   rsETH_WETH: 18,
   rsETH_wETH_Arb: 18,
   bpt_ethtri: 18,

@@ -35,4 +35,5 @@ export enum AdapterInterface {
   DAI_USDS_EXCHANGE,
   STAKING_REWARDS,
   EQUALIZER_ROUTER,
+  BALANCER_V3_ROUTER,
 }
