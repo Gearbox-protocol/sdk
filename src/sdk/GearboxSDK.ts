@@ -54,6 +54,10 @@ export interface SDKOptions {
    */
   redstoneHistoricTimestamp?: number | true;
   /**
+   * Override redstone gateways. Can be used to set caching proxies, to avoid rate limiting
+   */
+  redstoneGateways?: string[];
+  /**
    * Will skip updateable prices on attach and sync
    * Makes things faster when your service is not intereseted in prices
    */
@@ -73,6 +77,7 @@ interface AttachOptionsInternal {
   addressProvider: Address;
   blockNumber?: bigint | number;
   redstoneHistoricTimestamp?: number | true;
+  redstoneGateways?: string[];
   ignoreUpdateablePrices?: boolean;
   marketConfigurators: Address[];
 }
@@ -196,6 +201,7 @@ export class GearboxSDK {
       addressProvider,
       blockNumber,
       redstoneHistoricTimestamp,
+      redstoneGateways,
       ignoreUpdateablePrices,
       marketConfigurators,
     } = opts;
@@ -211,7 +217,13 @@ export class GearboxSDK {
     this.#timestamp = block.timestamp;
 
     if (redstoneHistoricTimestamp) {
-      this.priceFeeds.setRedstoneHistoricalTimestamp(redstoneHistoricTimestamp);
+      this.priceFeeds.redstoneUpdater.historicalTimestamp =
+        redstoneHistoricTimestamp === true
+          ? Number(block.timestamp) * 1000
+          : redstoneHistoricTimestamp;
+    }
+    if (redstoneGateways) {
+      this.priceFeeds.redstoneUpdater.gateways = redstoneGateways;
     }
 
     this.logger?.info(

@@ -62,12 +62,12 @@ export class PriceFeedRegister
   public readonly logger?: ILogger;
   readonly #hooks = new Hooks<PriceFeedRegisterHooks>();
   #feeds = new AddressMap<IPriceFeedContract>();
-  #redstoneUpdater: RedstoneUpdater;
+  public readonly redstoneUpdater: RedstoneUpdater;
 
   constructor(sdk: GearboxSDK) {
     super(sdk);
     this.logger = childLogger("PriceFeedRegister", sdk.logger);
-    this.#redstoneUpdater = new RedstoneUpdater(sdk);
+    this.redstoneUpdater = new RedstoneUpdater(sdk);
   }
 
   public addHook = this.#hooks.addHook.bind(this.#hooks);
@@ -107,16 +107,6 @@ export class PriceFeedRegister
     const feed = this.create(data);
     this.#feeds.upsert(data.baseParams.addr, feed);
     return feed;
-  }
-
-  /**
-   * Set redstone historical timestamp
-   * @param timestampMs in milliseconds, or true to use timestamp from attach block
-   */
-  public setRedstoneHistoricalTimestamp(timestampMs: number | true): void {
-    const ts =
-      timestampMs === true ? Number(this.sdk.timestamp) * 1000 : timestampMs;
-    this.#redstoneUpdater.setHistoricalTimestamp(ts);
   }
 
   /**
@@ -188,7 +178,7 @@ export class PriceFeedRegister
 
     let maxTimestamp = 0;
     if (redstonePFs.length > 0) {
-      const redstoneUpdates = await this.#redstoneUpdater.getUpdateTxs(
+      const redstoneUpdates = await this.redstoneUpdater.getUpdateTxs(
         redstonePFs,
         logContext,
       );

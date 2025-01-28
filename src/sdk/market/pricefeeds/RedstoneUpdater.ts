@@ -1,3 +1,4 @@
+/* eslint-disable accessor-pairs */
 import { DataServiceWrapper } from "@redstone-finance/evm-connector";
 import type { SignedDataPackage } from "@redstone-finance/protocol";
 import { RedstonePayload } from "@redstone-finance/protocol";
@@ -29,15 +30,26 @@ export class RedstoneUpdater extends SDKConstruct {
   #logger?: ILogger;
   #cache = new Map<string, TimestampedCalldata>();
   #historicalTimestampMs?: number;
+  #gateways?: string[];
 
   constructor(sdk: GearboxSDK) {
     super(sdk);
     this.#logger = childLogger("RedstoneUpdater", sdk.logger);
   }
 
-  public setHistoricalTimestamp(timestampMs: number): void {
+  /**
+   * Set redstone historical timestamp in milliseconds
+   */
+  public set historicalTimestamp(timestampMs: number) {
     // redstone timestamps are rounded to one minute
     this.#historicalTimestampMs = 60_000 * Math.floor(timestampMs / 60_000);
+  }
+
+  /**
+   * Set redstone gateways
+   */
+  public set gateways(gateways: string[]) {
+    this.#gateways = gateways;
   }
 
   public async getUpdateTxs(
@@ -179,6 +191,7 @@ export class RedstoneUpdater extends SDKConstruct {
       dataPackagesIds,
       uniqueSignersCount,
       historicalTimestamp: this.#historicalTimestampMs,
+      urls: this.#gateways,
     });
 
     const dataPayload = await wrapper.prepareRedstonePayload(true);
