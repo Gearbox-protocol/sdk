@@ -1575,12 +1575,12 @@ describe("CreditAccount calcQuotaUpdate test", () => {
         [STETH]: {
           amountInTarget: 10_1345n,
           balance: 0n,
-          token: DAI,
+          token: STETH,
         },
         [WETH]: {
           amountInTarget: 0n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: DAI,
+          token: WETH,
         },
       },
 
@@ -1637,12 +1637,12 @@ describe("CreditAccount calcQuotaUpdate test", () => {
         [STETH]: {
           amountInTarget: 10_1345n,
           balance: 0n,
-          token: DAI,
+          token: STETH,
         },
         [WETH]: {
           amountInTarget: 0n * PERCENTAGE_FACTOR,
           balance: 0n,
-          token: DAI,
+          token: WETH,
         },
       },
 
@@ -1677,6 +1677,82 @@ describe("CreditAccount calcQuotaUpdate test", () => {
       },
       [STETH]: {
         balance: 7n * PERCENTAGE_FACTOR,
+        token: STETH,
+      },
+    });
+  });
+  it("should buy quota correctly when all assets listed in both buy and spend", () => {
+    const result = CreditAccountData_Legacy.calcQuotaUpdate({
+      maxDebt: HUGE_MAX_DEBT,
+      quotaReserve: QUOTA_RESERVE,
+      quotas: cmQuotas,
+      initialQuotas: {
+        ...caQuota,
+        [DAI]: {
+          quota: 0n * PERCENTAGE_FACTOR,
+        },
+        [STETH]: {
+          quota: 15n * PERCENTAGE_FACTOR,
+        },
+      },
+      assetsAfterUpdate: {
+        [STETH]: {
+          amountInTarget: 0n * PERCENTAGE_FACTOR,
+          balance: 0n,
+          token: STETH,
+        },
+        [DAI]: {
+          amountInTarget: 10n * PERCENTAGE_FACTOR,
+          balance: 0n,
+          token: DAI,
+        },
+        [WETH]: {
+          amountInTarget: 5n * PERCENTAGE_FACTOR,
+          balance: 0n,
+          token: WETH,
+        },
+      },
+
+      allowedToObtain: {
+        [STETH]: {},
+        [DAI]: {},
+        [WETH]: {},
+      },
+      allowedToSpend: {
+        [STETH]: {},
+        [DAI]: {},
+        [WETH]: {},
+      },
+      liquidationThresholds: DEFAULT_LT,
+    });
+
+    expect(result.quotaIncrease).toEqual([
+      {
+        balance: 10n * PERCENTAGE_FACTOR,
+        token: DAI,
+      },
+    ]);
+    expect(result.quotaDecrease).toEqual([
+      {
+        balance: MIN_INT96,
+        token: STETH,
+      },
+      {
+        balance: -5n * PERCENTAGE_FACTOR,
+        token: WETH,
+      },
+    ]);
+    expect(result.desiredQuota).toEqual({
+      [DAI]: {
+        balance: 10n * PERCENTAGE_FACTOR,
+        token: DAI,
+      },
+      [WETH]: {
+        balance: 5n * PERCENTAGE_FACTOR,
+        token: WETH,
+      },
+      [STETH]: {
+        balance: 0n * PERCENTAGE_FACTOR,
         token: STETH,
       },
     });
