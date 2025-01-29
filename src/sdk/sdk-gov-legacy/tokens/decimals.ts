@@ -273,4 +273,5 @@ export const decimals: Record<SupportedToken, number> = {
   PT_LBTC_27MAR2025: 8,
   PT_corn_eBTC_27MAR2025: 8,
   PT_sUSDe_27MAR2025: 18,
+  PT_sUSDe_29MAY2025: 18,
 };
