@@ -594,7 +594,7 @@ export class CreditAccountData {
       Record<Address, Asset>
     >((acc, token) => {
       const ch = this.getSingleQuotaChange(token as Address, 0n, props);
-      if (ch) acc[ch.token] = ch;
+      if (ch && ch.balance < 0) acc[ch.token] = ch;
       return acc;
     }, {});
 
@@ -626,7 +626,7 @@ export class CreditAccountData {
         maxQuotaIncrease,
         props,
       );
-      if (ch) acc[ch.token] = ch;
+      if (ch && ch.balance > 0) acc[ch.token] = ch;
       return acc;
     }, {});
 
@@ -704,7 +704,7 @@ export class CreditAccountData {
     const quotaChange =
       unsafeQuotaChange > 0
         ? BigIntMath.min(maxQuotaIncrease, unsafeQuotaChange)
-        : initialQuota !== 0n &&
+        : unsafeQuotaChange < 0 &&
           BigIntMath.abs(unsafeQuotaChange) >= initialQuota
         ? MIN_INT96
         : unsafeQuotaChange;
