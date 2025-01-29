@@ -222,7 +222,7 @@ export class GearboxSDK {
           ? Number(block.timestamp) * 1000
           : redstoneHistoricTimestamp;
     }
-    if (redstoneGateways) {
+    if (redstoneGateways?.length) {
       this.priceFeeds.redstoneUpdater.gateways = redstoneGateways;
     }
 
