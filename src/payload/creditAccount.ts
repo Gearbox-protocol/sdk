@@ -5,7 +5,6 @@ export interface CaTokenBalance {
   balance: bigint;
   isForbidden: boolean;
   isEnabled: boolean;
-  isQuoted: boolean;
   quota: bigint;
   quotaRate: bigint;
 }
