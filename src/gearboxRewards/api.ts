@@ -100,9 +100,9 @@ export interface FarmInfo {
 type PoolsWithExtraRewardsList = Record<NetworkType, Array<SupportedToken>>;
 
 const DEFAULT_POOLS_WITH_EXTRA_REWARDS: PoolsWithExtraRewardsList = {
-  Mainnet: [],
+  Mainnet: ["dtBTCV3"],
   Arbitrum: [],
-  Optimism: ["sdWETHV3"],
+  Optimism: [],
   Base: [],
 };
 
