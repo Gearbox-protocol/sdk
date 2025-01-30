@@ -10,7 +10,8 @@ export type ERC4626LPToken =
   | "YieldETH"
   | "sUSDe"
   | "sUSDS"
-  | "scrvUSD";
+  | "scrvUSD"
+  | "tETH";
 
 export type ERC4626VaultTokenData = {
   symbol: ERC4626LPToken;
@@ -68,6 +69,13 @@ export const erc4626Tokens: Record<
     type: { AllNetworks: TokenType.ERC4626_VAULT_TOKEN },
     underlying: "crvUSD",
     vault: "SAVINGS_CRVUSD_VAULT",
+  },
+  tETH: {
+    name: "Treehouse ETH",
+    symbol: "tETH",
+    type: { AllNetworks: TokenType.ERC4626_VAULT_TOKEN },
+    underlying: "wstETH",
+    vault: "TREEHOUSE_ETH_VAULT",
   },
 };
 

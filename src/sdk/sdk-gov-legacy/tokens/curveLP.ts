@@ -44,6 +44,9 @@ export type CurveLPToken =
   | "crvUSDDOLA_f"
   | "crvUsUSDe"
   | "llamathena"
+  | "tETHwstETH"
+  | "tETHweETH"
+  | "pzETHstETH"
 
   /// Arbitrum
   | "2CRV"
@@ -437,6 +440,27 @@ export const curveTokens: Record<
     type: { AllNetworks: TokenType.CURVE_LP_TOKEN },
     pool: "CURVE_tBTC_WBTC_POOL",
     tokenOut: ["WBTC", "tBTC"],
+  },
+  tETHwstETH: {
+    name: "Curve tETH/wstETH LP",
+    symbol: "tETHwstETH",
+    type: { AllNetworks: TokenType.CURVE_LP_TOKEN },
+    pool: "CURVE_tETH_wstETH_POOL",
+    tokenOut: ["tETH", "wstETH"],
+  },
+  tETHweETH: {
+    name: "Curve tETH/weETH LP",
+    symbol: "tETHweETH",
+    type: { AllNetworks: TokenType.CURVE_LP_TOKEN },
+    pool: "CURVE_tETH_weETH_POOL",
+    tokenOut: ["tETH", "weETH"],
+  },
+  pzETHstETH: {
+    name: "Curve pzETH/wstETH LP",
+    symbol: "pzETHstETH",
+    type: { AllNetworks: TokenType.CURVE_LP_TOKEN },
+    pool: "CURVE_pzETH_stETH_POOL",
+    tokenOut: ["pzETH", "wstETH"],
   },
   ...curveMetaTokens,
 };

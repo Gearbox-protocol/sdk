@@ -68,7 +68,10 @@ export type CurvePoolContract =
   | "CURVE_3CRV_POOL_OP"
   | "CURVE_ETH_WSTETH_GATEWAY_OP"
   | "CURVE_CRVUSD_SUSDE_POOL"
-  | "CURVE_LLAMA_THENA_POOL";
+  | "CURVE_LLAMA_THENA_POOL"
+  | "CURVE_tETH_wstETH_POOL"
+  | "CURVE_tETH_weETH_POOL"
+  | "CURVE_pzETH_stETH_POOL";
 
 export type YearnVaultContract =
   | "YEARN_DAI_VAULT"
@@ -86,7 +89,8 @@ export type ERC4626VaultContract =
   | "YIELD_ETH_VAULT"
   | "STAKED_USDE_VAULT"
   | "STAKED_USDS_VAULT"
-  | "SAVINGS_CRVUSD_VAULT";
+  | "SAVINGS_CRVUSD_VAULT"
+  | "TREEHOUSE_ETH_VAULT";
 
 export type ConvexPoolContract =
   | "CONVEX_3CRV_POOL"
@@ -221,6 +225,9 @@ export const contractsByNetwork: Record<
     CURVE_PUMPBTC_WBTC_POOL: tokenDataByNetwork.Mainnet.pumpBTCWBTC,
     CURVE_TRIBTC_POOL: tokenDataByNetwork.Mainnet.TriBTC,
     CURVE_tBTC_WBTC_POOL: tokenDataByNetwork.Mainnet["2BTC-f"],
+    CURVE_tETH_wstETH_POOL: tokenDataByNetwork.Mainnet.tETHwstETH,
+    CURVE_tETH_weETH_POOL: tokenDataByNetwork.Mainnet.tETHweETH,
+    CURVE_pzETH_stETH_POOL: tokenDataByNetwork.Mainnet.pzETHstETH,
 
     CURVE_GEAR_POOL: "0x0E9B5B092caD6F1c5E6bc7f89Ffe1abb5c95F1C2",
 
@@ -258,6 +265,7 @@ export const contractsByNetwork: Record<
     STAKED_USDE_VAULT: tokenDataByNetwork.Mainnet.sUSDe,
     STAKED_USDS_VAULT: tokenDataByNetwork.Mainnet.sUSDS,
     SAVINGS_CRVUSD_VAULT: tokenDataByNetwork.Mainnet.scrvUSD,
+    TREEHOUSE_ETH_VAULT: tokenDataByNetwork.Mainnet.tETH,
 
     // CONVEX
     CONVEX_BOOSTER: "0xF403C135812408BFbE8713b5A23a04b3D48AAE31",
@@ -393,6 +401,9 @@ export const contractsByNetwork: Record<
     CURVE_PUMPBTC_WBTC_POOL: NOT_DEPLOYED,
     CURVE_TRIBTC_POOL: NOT_DEPLOYED,
     CURVE_tBTC_WBTC_POOL: NOT_DEPLOYED,
+    CURVE_tETH_wstETH_POOL: NOT_DEPLOYED,
+    CURVE_tETH_weETH_POOL: NOT_DEPLOYED,
+    CURVE_pzETH_stETH_POOL: NOT_DEPLOYED,
 
     CURVE_GEAR_POOL: NOT_DEPLOYED,
 
@@ -430,6 +441,7 @@ export const contractsByNetwork: Record<
     STAKED_USDE_VAULT: tokenDataByNetwork.Arbitrum.sUSDe,
     STAKED_USDS_VAULT: tokenDataByNetwork.Arbitrum.sUSDS,
     SAVINGS_CRVUSD_VAULT: tokenDataByNetwork.Arbitrum.scrvUSD,
+    TREEHOUSE_ETH_VAULT: tokenDataByNetwork.Arbitrum.tETH,
 
     // CONVEX
     CONVEX_BOOSTER: NOT_DEPLOYED,
@@ -564,6 +576,9 @@ export const contractsByNetwork: Record<
     CURVE_PUMPBTC_WBTC_POOL: NOT_DEPLOYED,
     CURVE_TRIBTC_POOL: NOT_DEPLOYED,
     CURVE_tBTC_WBTC_POOL: NOT_DEPLOYED,
+    CURVE_tETH_wstETH_POOL: NOT_DEPLOYED,
+    CURVE_tETH_weETH_POOL: NOT_DEPLOYED,
+    CURVE_pzETH_stETH_POOL: NOT_DEPLOYED,
 
     CURVE_GEAR_POOL: NOT_DEPLOYED,
 
@@ -600,6 +615,7 @@ export const contractsByNetwork: Record<
     STAKED_USDE_VAULT: tokenDataByNetwork.Optimism.sUSDe,
     STAKED_USDS_VAULT: tokenDataByNetwork.Optimism.sUSDS,
     SAVINGS_CRVUSD_VAULT: tokenDataByNetwork.Optimism.scrvUSD,
+    TREEHOUSE_ETH_VAULT: tokenDataByNetwork.Optimism.tETH,
 
     // CONVEX
     CONVEX_BOOSTER: NOT_DEPLOYED,
@@ -734,6 +750,9 @@ export const contractsByNetwork: Record<
     CURVE_PUMPBTC_WBTC_POOL: NOT_DEPLOYED,
     CURVE_TRIBTC_POOL: NOT_DEPLOYED,
     CURVE_tBTC_WBTC_POOL: NOT_DEPLOYED,
+    CURVE_tETH_wstETH_POOL: NOT_DEPLOYED,
+    CURVE_tETH_weETH_POOL: NOT_DEPLOYED,
+    CURVE_pzETH_stETH_POOL: NOT_DEPLOYED,
 
     CURVE_GEAR_POOL: NOT_DEPLOYED,
 
@@ -770,6 +789,7 @@ export const contractsByNetwork: Record<
     STAKED_USDE_VAULT: tokenDataByNetwork.Base.sUSDe,
     STAKED_USDS_VAULT: tokenDataByNetwork.Base.sUSDS,
     SAVINGS_CRVUSD_VAULT: tokenDataByNetwork.Base.scrvUSD,
+    TREEHOUSE_ETH_VAULT: tokenDataByNetwork.Base.tETH,
 
     // CONVEX
     CONVEX_BOOSTER: NOT_DEPLOYED,
@@ -1061,7 +1081,9 @@ export type ZircuitParams = {
 
 export type MellowVaultParams = {
   protocol: Protocols.Mellow;
-  type: AdapterInterface.MELLOW_LRT_VAULT;
+  type:
+    | AdapterInterface.MELLOW_LRT_VAULT
+    | AdapterInterface.MELLOW_ERC4626_VAULT;
 } & BaseContractParams;
 
 export type StakingRewardsParams = {
@@ -1519,6 +1541,30 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     lpToken: "2BTC-f",
     tokens: ["WBTC", "tBTC"],
   },
+  CURVE_tETH_wstETH_POOL: {
+    name: "Curve tETH/wstETH LP",
+    protocol: Protocols.Curve,
+    version: 20,
+    type: AdapterInterface.CURVE_V1_2ASSETS,
+    lpToken: "tETHwstETH",
+    tokens: ["tETH", "wstETH"],
+  },
+  CURVE_pzETH_stETH_POOL: {
+    name: "Curve pzETH/wstETH LP",
+    protocol: Protocols.Curve,
+    version: 20,
+    type: AdapterInterface.CURVE_V1_2ASSETS,
+    lpToken: "pzETHstETH",
+    tokens: ["pzETH", "wstETH"],
+  },
+  CURVE_tETH_weETH_POOL: {
+    name: "Curve tETH/weETH LP",
+    protocol: Protocols.Curve,
+    version: 20,
+    type: AdapterInterface.CURVE_V1_2ASSETS,
+    lpToken: "tETHweETH",
+    tokens: ["tETH", "weETH"],
+  },
 
   CURVE_2CRV_POOL_ARB: {
     name: "Curve USDC/USDT Pool (Arbitrum)",
@@ -1666,6 +1712,12 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     protocol: Protocols.Curve,
     type: AdapterInterface.ERC4626_VAULT,
     underlying: "crvUSD",
+  },
+  TREEHOUSE_ETH_VAULT: {
+    name: "Treehouse ETH Vault",
+    protocol: Protocols.Curve,
+    type: AdapterInterface.ERC4626_VAULT,
+    underlying: "wstETH",
   },
   CONVEX_BOOSTER: {
     name: "Convex BOOSTER",
@@ -2279,32 +2331,32 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
   MELLOW_STEAKHOUSE_VAULT: {
     name: "Mellow Steakhouse steakLRT vault",
     protocol: Protocols.Mellow,
-    type: AdapterInterface.MELLOW_LRT_VAULT,
+    type: AdapterInterface.MELLOW_ERC4626_VAULT,
   },
   MELLOW_RE7_LABS_VAULT: {
     name: "Mellow Re7 Labs Re7LRT vault",
     protocol: Protocols.Mellow,
-    type: AdapterInterface.MELLOW_LRT_VAULT,
+    type: AdapterInterface.MELLOW_ERC4626_VAULT,
   },
   MELLOW_AMPHOR_VAULT: {
     name: "Mellow Amphor amphrETH vault",
     protocol: Protocols.Mellow,
-    type: AdapterInterface.MELLOW_LRT_VAULT,
+    type: AdapterInterface.MELLOW_ERC4626_VAULT,
   },
   MELLOW_RESTAKING_VAULT: {
     name: "Mellow Restaking rstETH vault",
     protocol: Protocols.Mellow,
-    type: AdapterInterface.MELLOW_LRT_VAULT,
+    type: AdapterInterface.MELLOW_ERC4626_VAULT,
   },
   MELLOW_RENZO_VAULT: {
     name: "Mellow Renzo pzETH vault",
     protocol: Protocols.Mellow,
-    type: AdapterInterface.MELLOW_LRT_VAULT,
+    type: AdapterInterface.MELLOW_ERC4626_VAULT,
   },
   MELLOW_DECENTALIZED_VALIDATOR_VAULT: {
     name: "Mellow Decentralized Validator Token vault",
     protocol: Protocols.Mellow,
-    type: AdapterInterface.MELLOW_LRT_VAULT,
+    type: AdapterInterface.MELLOW_ERC4626_VAULT,
   },
   SKY_STAKING_REWARDS: {
     name: "Sky StakingRewards contract",
