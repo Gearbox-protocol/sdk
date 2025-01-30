@@ -169,6 +169,7 @@ export class CreditAccountData {
   readonly collateralTokens: Array<Address> = [];
   readonly allBalances: Record<Address, CaTokenBalance> = {};
   readonly forbiddenTokens: Record<Address, true> = {};
+  readonly quotedTokens: Record<Address, true> = {};
 
   constructor(payload: CreditAccountDataPayload) {
     this.isSuccessful = payload.isSuccessful;
@@ -215,6 +216,7 @@ export class CreditAccountData {
         balance: b.balance,
         isForbidden: b.isForbidden,
         isEnabled: b.isEnabled,
+        isQuoted: b.isQuoted,
         quota: b.quota,
         quotaRate: BigInt(b.quotaRate) * PERCENTAGE_DECIMALS,
       };
@@ -225,6 +227,9 @@ export class CreditAccountData {
       }
       if (b.isForbidden) {
         this.forbiddenTokens[token] = true;
+      }
+      if (b.isQuoted) {
+        this.quotedTokens[token] = true;
       }
 
       this.allBalances[token] = balance;
@@ -330,6 +335,10 @@ export class CreditAccountData {
 
   isForbidden(token: Address) {
     return !!this.forbiddenTokens[token];
+  }
+
+  isQuoted(token: Address) {
+    return !!this.quotedTokens[token];
   }
 
   isTokenEnabled(token: Address) {
