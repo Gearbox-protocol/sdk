@@ -6,6 +6,7 @@ export const SUPPORTED_CHAINS = [
   "Arbitrum",
   "Optimism",
   "Base",
+  // "Sonic",
 ] as const;
 
 export type NetworkType = (typeof SUPPORTED_CHAINS)[number];
@@ -15,13 +16,15 @@ export const chains: Record<NetworkType, Chain> = {
   Arbitrum: arbitrum,
   Optimism: optimism,
   Base: base,
+  // Sonic: sonic,
 };
 
 const CHAINS_BY_ID: Record<number, NetworkType> = {
   [mainnet.id]: "Mainnet",
   [arbitrum.id]: "Arbitrum",
   [optimism.id]: "Optimism",
-  // [base.id]: "Base",
+  [base.id]: "Base",
+  // [sonic.id]: "Sonic",
 };
 
 export const getNetworkType = (chainId: number): NetworkType => {
