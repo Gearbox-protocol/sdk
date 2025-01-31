@@ -39,6 +39,7 @@ import { decimals } from "./decimals";
 import type {
   ERC4626LPToken,
   ERC4626VaultOfCurveLPTokenData,
+  ERC4626VaultOfMellowLRTTokenData,
   ERC4626VaultTokenData,
 } from "./erc4626";
 import { erc4626Tokens } from "./erc4626";
@@ -117,6 +118,7 @@ export type LPTokenDataI =
   | CompoundV2PoolTokenData
   | ERC4626VaultTokenData
   | ERC4626VaultOfCurveLPTokenData
+  | ERC4626VaultOfMellowLRTTokenData
   | AuraLPTokenData
   | AuraStakedTokenData
   | ZircuitPhantomTokenData
@@ -218,6 +220,7 @@ export const tokenDataByNetwork: Record<
     pufETH: "0xD9A442856C234a39a81a089C06451EBAa4306a72",
     USDS: "0xdC035D45d973E3EC169d2276DDab16f1e407384F",
     SKY: "0x56072C95FAA701256059aa122697B133aDEd9279",
+    T: "0xcdf7028ceab81fa0c6971208e83fa7872994bee5",
 
     // CURVE LP TOKENS
     "3Crv": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
@@ -534,6 +537,7 @@ export const tokenDataByNetwork: Record<
     GHO: NOT_DEPLOYED,
     pufETH: NOT_DEPLOYED,
     USDS: NOT_DEPLOYED,
+    T: NOT_DEPLOYED,
 
     // REDSTONE
     SHIB: NOT_DEPLOYED,
@@ -853,6 +857,7 @@ export const tokenDataByNetwork: Record<
     pufETH: NOT_DEPLOYED,
     USDS: NOT_DEPLOYED,
     SKY: NOT_DEPLOYED,
+    T: NOT_DEPLOYED,
 
     // REDSTONE
     SHIB: NOT_DEPLOYED,
@@ -1174,6 +1179,7 @@ export const tokenDataByNetwork: Record<
     USDe: NOT_DEPLOYED,
     pufETH: NOT_DEPLOYED,
     USDS: NOT_DEPLOYED,
+    T: NOT_DEPLOYED,
 
     // REDSTONE
     SHIB: NOT_DEPLOYED,

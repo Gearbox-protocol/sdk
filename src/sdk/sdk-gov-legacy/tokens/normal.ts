@@ -60,13 +60,7 @@ export type NormalToken =
   | "USDS"
   | "SKY"
   | "beraSTONE"
-  // Mellow LRTs
-  | "steakLRT"
-  | "Re7LRT"
-  | "amphrETH"
-  | "rstETH"
-  | "pzETH"
-  | "DVstETH"
+  | "T"
   // Pendle
   | "PT_rsETH_26SEP2024"
   | "PT_sUSDe_26DEC2024"
@@ -421,36 +415,6 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     symbol: "wstETH",
     type: { AllNetworks: TokenType.NORMAL_TOKEN },
   },
-  steakLRT: {
-    name: "Steakhouse Mellow LRT",
-    symbol: "steakLRT",
-    type: { AllNetworks: TokenType.NORMAL_TOKEN },
-  },
-  Re7LRT: {
-    name: "Re7 Mellow LRT",
-    symbol: "Re7LRT",
-    type: { AllNetworks: TokenType.NORMAL_TOKEN },
-  },
-  amphrETH: {
-    name: "Mev Capital Mellow LRT",
-    symbol: "amphrETH",
-    type: { AllNetworks: TokenType.NORMAL_TOKEN },
-  },
-  rstETH: {
-    name: "P2P Mellow LRT",
-    symbol: "rstETH",
-    type: { AllNetworks: TokenType.NORMAL_TOKEN },
-  },
-  pzETH: {
-    name: "Renzo Mellow LST",
-    symbol: "pzETH",
-    type: { AllNetworks: TokenType.NORMAL_TOKEN },
-  },
-  DVstETH: {
-    name: "Decentralized Validator Token",
-    symbol: "DVstETH",
-    type: { AllNetworks: TokenType.NORMAL_TOKEN },
-  },
   PT_rsETH_26SEP2024: {
     name: "Pendle PT rsETH 26 Sep 2024 expiry",
     symbol: "PT_rsETH_26SEP2024",
@@ -464,6 +428,11 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
   SKY: {
     name: "SKY Governance token",
     symbol: "SKY",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  T: {
+    name: "Threshold Network Token",
+    symbol: "T",
     type: { AllNetworks: TokenType.NORMAL_TOKEN },
   },
   PT_sUSDe_26DEC2024: {

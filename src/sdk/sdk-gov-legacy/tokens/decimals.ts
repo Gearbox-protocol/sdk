@@ -268,6 +268,7 @@ export const decimals: Record<SupportedToken, number> = {
   rETH: 18,
   rETH_f: 18,
   stkUSDS: 18,
+  T: 18,
   PT_sUSDe_26DEC2024: 18,
   PT_eETH_26DEC2024: 18,
   PT_ezETH_26DEC2024: 18,
