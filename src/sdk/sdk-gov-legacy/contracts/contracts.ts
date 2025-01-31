@@ -1545,9 +1545,17 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     name: "Curve tETH/wstETH LP",
     protocol: Protocols.Curve,
     version: 20,
-    type: AdapterInterface.CURVE_V1_2ASSETS,
+    type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "tETHwstETH",
     tokens: ["tETH", "wstETH"],
+  },
+  CURVE_tETH_weETH_POOL: {
+    name: "Curve tETH/weETH LP",
+    protocol: Protocols.Curve,
+    version: 20,
+    type: AdapterInterface.CURVE_STABLE_NG,
+    lpToken: "tETHweETH",
+    tokens: ["tETH", "weETH"],
   },
   CURVE_pzETH_stETH_POOL: {
     name: "Curve pzETH/wstETH LP",
@@ -1556,14 +1564,6 @@ export const contractParams: Record<SupportedContract, ContractParams> = {
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "pzETHstETH",
     tokens: ["pzETH", "wstETH"],
-  },
-  CURVE_tETH_weETH_POOL: {
-    name: "Curve tETH/weETH LP",
-    protocol: Protocols.Curve,
-    version: 20,
-    type: AdapterInterface.CURVE_V1_2ASSETS,
-    lpToken: "tETHweETH",
-    tokens: ["tETH", "weETH"],
   },
 
   CURVE_2CRV_POOL_ARB: {

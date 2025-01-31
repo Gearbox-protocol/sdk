@@ -61,6 +61,14 @@ export type NormalToken =
   | "SKY"
   | "beraSTONE"
   | "T"
+  | "tETH"
+  // Mellow LRTs
+  | "steakLRT"
+  | "Re7LRT"
+  | "amphrETH"
+  | "rstETH"
+  | "pzETH"
+  | "DVstETH"
   // Pendle
   | "PT_rsETH_26SEP2024"
   | "PT_sUSDe_26DEC2024"
@@ -413,6 +421,43 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
   wstETH: {
     name: "Wrapped stETH",
     symbol: "wstETH",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  tETH: {
+    name: "Treehouse ETH",
+    symbol: "tETH",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+
+  // Mellow
+  steakLRT: {
+    name: "Steakhouse Mellow LRT",
+    symbol: "steakLRT",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  Re7LRT: {
+    name: "Re7 Mellow LRT",
+    symbol: "Re7LRT",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  amphrETH: {
+    name: "Mev Capital Mellow LRT",
+    symbol: "amphrETH",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  rstETH: {
+    name: "P2P Mellow LRT",
+    symbol: "rstETH",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  pzETH: {
+    name: "Renzo Mellow LST",
+    symbol: "pzETH",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  DVstETH: {
+    name: "Decentralized Validator Token",
+    symbol: "DVstETH",
     type: { AllNetworks: TokenType.NORMAL_TOKEN },
   },
   PT_rsETH_26SEP2024: {

@@ -1,4 +1,4 @@
-import type { ERC4626VaultContract, MellowVaultContract } from "../contracts";
+import type { ERC4626VaultContract } from "../contracts";
 import type { CurveLPToken } from "./curveLP";
 import type { NormalToken } from "./normal";
 import type { TokenBase } from "./token";
@@ -10,15 +10,7 @@ export type ERC4626LPToken =
   | "YieldETH"
   | "sUSDe"
   | "sUSDS"
-  | "scrvUSD"
-  | "tETH"
-  // Mellow LRTs
-  | "steakLRT"
-  | "Re7LRT"
-  | "amphrETH"
-  | "rstETH"
-  | "pzETH"
-  | "DVstETH";
+  | "scrvUSD";
 
 export type ERC4626VaultTokenData = {
   symbol: ERC4626LPToken;
@@ -34,18 +26,9 @@ export type ERC4626VaultOfCurveLPTokenData = {
   vault: ERC4626VaultContract;
 } & TokenBase;
 
-export type ERC4626VaultOfMellowLRTTokenData = {
-  symbol: ERC4626LPToken;
-  type: Partial<Record<TokenNetwork, TokenType.ERC4626_VAULT_TOKEN>>;
-  underlying: NormalToken;
-  vault: MellowVaultContract;
-} & TokenBase;
-
 export const erc4626Tokens: Record<
   ERC4626LPToken,
-  | ERC4626VaultTokenData
-  | ERC4626VaultOfCurveLPTokenData
-  | ERC4626VaultOfMellowLRTTokenData
+  ERC4626VaultTokenData | ERC4626VaultOfCurveLPTokenData
 > = {
   // YEARN TOKENS
   sDAI: {
@@ -85,57 +68,6 @@ export const erc4626Tokens: Record<
     type: { AllNetworks: TokenType.ERC4626_VAULT_TOKEN },
     underlying: "crvUSD",
     vault: "SAVINGS_CRVUSD_VAULT",
-  },
-  tETH: {
-    name: "Treehouse ETH",
-    symbol: "tETH",
-    type: { AllNetworks: TokenType.ERC4626_VAULT_TOKEN },
-    underlying: "wstETH",
-    vault: "TREEHOUSE_ETH_VAULT",
-  },
-
-  // Mellow
-  steakLRT: {
-    name: "Steakhouse Mellow LRT",
-    symbol: "steakLRT",
-    type: { AllNetworks: TokenType.ERC4626_VAULT_TOKEN },
-    underlying: "wstETH",
-    vault: "MELLOW_STEAKHOUSE_VAULT",
-  },
-  Re7LRT: {
-    name: "Re7 Mellow LRT",
-    symbol: "Re7LRT",
-    type: { AllNetworks: TokenType.ERC4626_VAULT_TOKEN },
-    underlying: "wstETH",
-    vault: "MELLOW_RE7_LABS_VAULT",
-  },
-  amphrETH: {
-    name: "Mev Capital Mellow LRT",
-    symbol: "amphrETH",
-    type: { AllNetworks: TokenType.ERC4626_VAULT_TOKEN },
-    underlying: "wstETH",
-    vault: "MELLOW_AMPHOR_VAULT",
-  },
-  rstETH: {
-    name: "P2P Mellow LRT",
-    symbol: "rstETH",
-    type: { AllNetworks: TokenType.ERC4626_VAULT_TOKEN },
-    underlying: "wstETH",
-    vault: "MELLOW_RESTAKING_VAULT",
-  },
-  pzETH: {
-    name: "Renzo Mellow LST",
-    symbol: "pzETH",
-    type: { AllNetworks: TokenType.ERC4626_VAULT_TOKEN },
-    underlying: "wstETH",
-    vault: "MELLOW_RENZO_VAULT",
-  },
-  DVstETH: {
-    name: "Decentralized Validator Token",
-    symbol: "DVstETH",
-    type: { AllNetworks: TokenType.ERC4626_VAULT_TOKEN },
-    underlying: "wstETH",
-    vault: "MELLOW_DECENTALIZED_VALIDATOR_VAULT",
   },
 };
 
