@@ -159,7 +159,6 @@ export interface PermitResult {
 
 export class CreditAccountsService extends SDKConstruct {
   #compressor: Address;
-  #rewardCompressor: Address;
   #batchSize?: number;
   #logger?: ILogger;
 
@@ -167,9 +166,6 @@ export class CreditAccountsService extends SDKConstruct {
     super(sdk);
     this.#compressor = sdk.addressProvider.getLatestVersion(
       AP_CREDIT_ACCOUNT_COMPRESSOR,
-    );
-    this.#rewardCompressor = sdk.addressProvider.getLatestVersion(
-      AP_REWARDS_COMPRESSOR,
     );
     this.#batchSize = options?.batchSize;
     this.#logger = childLogger("CreditAccountsService", sdk.logger);
@@ -293,7 +289,7 @@ export class CreditAccountsService extends SDKConstruct {
   async getRewards(account: Address): Promise<RewardInfo[]> {
     const rewards = await this.provider.publicClient.readContract({
       abi: iRewardCompressorAbi,
-      address: this.#rewardCompressor,
+      address: this.rewardCompressor,
       functionName: "getRewards",
       args: [account],
     });
@@ -1046,5 +1042,9 @@ export class CreditAccountsService extends SDKConstruct {
    */
   private get marketConfigurators(): Array<Address> {
     return this.sdk.marketRegister.marketConfigurators.map(mc => mc.address);
+  }
+
+  private get rewardCompressor(): Address {
+    return this.sdk.addressProvider.getLatestVersion(AP_REWARDS_COMPRESSOR);
   }
 }
