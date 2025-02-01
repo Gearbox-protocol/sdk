@@ -97,10 +97,12 @@ export interface FarmInfo {
   symbol: SupportedToken;
 }
 
-type PoolsWithExtraRewardsList = Record<NetworkType, Array<SupportedToken>>;
+type PoolsWithExtraRewardsList = Record<NetworkType, Array<Address>>;
 
 const DEFAULT_POOLS_WITH_EXTRA_REWARDS: PoolsWithExtraRewardsList = {
-  Mainnet: ["dtBTCV3"],
+  Mainnet: [
+    "0x7354EC6E852108411e681D13E11185c3a2567981", // dtBTCV3
+  ],
   Arbitrum: [],
   Optimism: [],
   Base: [],
@@ -160,7 +162,7 @@ export class GearboxRewardsApi {
     network,
     reportError,
   }: GetLmRewardsInfoProps) {
-    const poolByStakedToken = Object.values(pools).reduce<
+    const poolByStakedDiesel = Object.values(pools).reduce<
       Record<Address, Address>
     >((acc, p) => {
       p.stakedDieselToken.forEach(t => {
@@ -173,36 +175,48 @@ export class GearboxRewardsApi {
       return acc;
     }, {});
 
-    const poolTokens = TypedObjectUtils.keys(poolByStakedToken);
+    const poolByDiesel = Object.values(pools).reduce<Record<Address, Address>>(
+      (acc, p) => {
+        acc[p.dieselToken] = p.address;
+
+        return acc;
+      },
+      {},
+    );
+
+    const poolByItsToken = { ...poolByStakedDiesel, ...poolByDiesel };
+
+    const poolStakedTokens = TypedObjectUtils.keys(poolByStakedDiesel);
+    const allPoolTokens = TypedObjectUtils.keys(poolByItsToken);
 
     const chainId = CHAINS[network];
     const poolTokensWithExtraReward = (
       poolsWithExtraRewards[network] || []
-    ).filter(symbol => {
-      const addr = currentTokenData[symbol];
+    ).filter(p => {
+      const token = tokensList[p.toLowerCase() as Address];
 
-      if (!addr) {
-        console.error(`Pool staked token not found ${symbol}`);
+      if (!token) {
+        console.error(`Pool token not found ${p}`);
         return false;
       }
       return true;
     });
 
-    const farmInfoCalls = poolTokens.map(address => ({
+    const farmInfoCalls = poolStakedTokens.map(address => ({
       address,
       abi: iFarmingPoolAbi,
       functionName: "farmInfo",
       args: [],
     }));
 
-    const farmSupplyCalls = poolTokens.map(address => ({
+    const farmSupplyCalls = allPoolTokens.map(address => ({
       address,
       abi: iFarmingPoolAbi,
       functionName: "totalSupply",
       args: [],
     }));
 
-    const rewardTokenCalls = poolTokens.map(address => ({
+    const rewardTokenCalls = poolStakedTokens.map(address => ({
       address,
       abi: POOL_REWARDS_ABI,
       functionName: "rewardsToken",
@@ -227,14 +241,12 @@ export class GearboxRewardsApi {
         ],
       }),
 
-      ...poolTokensWithExtraReward.map(symbol => {
-        const addr = currentTokenData[symbol];
-
+      ...poolTokensWithExtraReward.map(t => {
         return axios.get<MerkleXYZRewardsCampaignsResponse>(
           MerkleXYZApi.getRewardsCampaignsUrl({
             params: {
               chainId,
-              mainParameter: getAddress(addr),
+              mainParameter: getAddress(t),
             },
           }),
         );
@@ -264,14 +276,38 @@ export class GearboxRewardsApi {
       rewardTokenCallsEnd,
     ) as Array<Address>;
 
+    const infoByPool = poolStakedTokens.reduce<Record<Address, FarmInfoOutput>>(
+      (acc, p, index) => {
+        const info = farmInfo[index];
+
+        if (info) acc[p] = info;
+
+        return acc;
+      },
+      {},
+    );
+
+    const rewardTokenPool = poolStakedTokens.reduce<Record<Address, Address>>(
+      (acc, p, index) => {
+        const token = rewardTokens[index];
+
+        if (token) {
+          acc[p] = token.toLowerCase() as Address;
+        }
+
+        return acc;
+      },
+      {},
+    );
+
     const extraRewards = extra.reduce<Record<string, Array<FarmInfo>>>(
       (acc, r, index) => {
-        const stakedSymbol = poolTokensWithExtraReward[index];
+        const p = poolTokensWithExtraReward[index].toLowerCase() as Address;
 
         const safeResp = this.extractFulfilled(
           r,
           reportError,
-          `merkleCampaign: ${stakedSymbol}`,
+          `merkleCampaign: ${p}`,
         );
 
         const l = safeResp?.data.reduce<Array<FarmInfo>>((infos, d) => {
@@ -290,7 +326,7 @@ export class GearboxRewardsApi {
 
             if (rewardTokenData && reward > 0) {
               infos.push({
-                pool: poolByStakedToken[currentTokenData[stakedSymbol]],
+                pool: poolByItsToken[p],
                 duration: toBigInt(d.endTimestamp - d.startTimestamp),
                 finished,
                 reward,
@@ -304,7 +340,7 @@ export class GearboxRewardsApi {
         }, []);
 
         if (l) {
-          acc[currentTokenData[stakedSymbol]] = l;
+          acc[p] = l;
         }
 
         return acc;
@@ -312,41 +348,40 @@ export class GearboxRewardsApi {
       {},
     );
 
-    const rewardPoolsInfo = poolTokens.reduce<{
+    const stakedTokenRewards = allPoolTokens.reduce<{
       base: Record<string, FarmInfo>;
       extra: Record<string, Array<FarmInfo>>;
       all: Record<string, Array<FarmInfo>>;
     }>(
-      (acc, address, i) => {
-        const currentInfo = farmInfo[i];
-        const poolBaseRewardTokenLc = (
-          rewardTokens[i] || ""
-        ).toLowerCase() as Address;
-        const tokenData = tokensList[poolBaseRewardTokenLc];
+      (acc, pool) => {
+        const info = infoByPool[pool];
+        const token = rewardTokenPool[pool];
+        const tokenData = tokensList[token];
 
-        if (tokenData) {
-          const baseReward: FarmInfo = {
-            pool: poolByStakedToken[address],
-            duration: BigInt(currentInfo.duration),
-            finished: BigInt(currentInfo.finished),
-            reward: currentInfo.reward,
-            balance: currentInfo.balance,
-            symbol: tokenData.symbol,
-          };
+        const baseReward: FarmInfo | undefined =
+          info && tokenData
+            ? {
+                pool: poolByItsToken[pool],
+                duration: BigInt(info.duration),
+                finished: BigInt(info.finished),
+                reward: info.reward,
+                balance: info.balance,
+                symbol: tokenData.symbol,
+              }
+            : undefined;
 
-          const extra = extraRewards[address] || [];
+        const extra = extraRewards[pool] || [];
 
-          acc.base[address] = baseReward;
-          acc.extra[address] = extra;
-          acc.all[address] = [baseReward, ...extra];
-        }
+        if (baseReward) acc.base[pool] = baseReward;
+        acc.extra[pool] = extra;
+        acc.all[pool] = [...(baseReward ? [baseReward] : []), ...extra];
 
         return acc;
       },
       { base: {}, extra: {}, all: {} },
     );
 
-    const rewardPoolsSupply = poolTokens.reduce<Record<string, bigint>>(
+    const rewardPoolsSupply = allPoolTokens.reduce<Record<string, bigint>>(
       (acc, address, i) => {
         acc[address] = farmSupply[i] || 0n;
 
@@ -355,10 +390,12 @@ export class GearboxRewardsApi {
       {},
     );
 
+    console.log(stakedTokenRewards.all);
+
     return {
-      rewardPoolsInfo: rewardPoolsInfo.all,
-      baseRewardPoolsInfo: rewardPoolsInfo.base,
-      extraRewardPoolsInfo: rewardPoolsInfo.extra,
+      rewardPoolsInfo: stakedTokenRewards.all,
+      baseRewardPoolsInfo: stakedTokenRewards.base,
+      extraRewardPoolsInfo: stakedTokenRewards.extra,
       rewardPoolsSupply,
     };
   }
