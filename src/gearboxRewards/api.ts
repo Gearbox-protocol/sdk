@@ -112,7 +112,6 @@ type ReportHandler = (e: unknown, description?: string) => void;
 
 export interface GetLmRewardsInfoProps {
   pools: Record<Address, PoolData>;
-  currentTokenData: Record<SupportedToken, Address>;
   tokensList: Record<Address, TokenData>;
   provider: PublicClient;
 
@@ -153,7 +152,6 @@ export interface ClaimLmRewardsV3Props {
 export class GearboxRewardsApi {
   static async getLmRewardsInfo({
     pools,
-    currentTokenData,
     provider,
     multicallAddress,
     tokensList,
@@ -389,8 +387,6 @@ export class GearboxRewardsApi {
       },
       {},
     );
-
-    console.log(stakedTokenRewards.all);
 
     return {
       rewardPoolsInfo: stakedTokenRewards.all,
