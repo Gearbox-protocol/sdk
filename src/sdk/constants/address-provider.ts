@@ -41,4 +41,5 @@ export const ADDRESS_PROVIDER: Record<NetworkType, Address> = {
   Arbitrum: "0x7d04eCdb892Ae074f03B5D0aBA03796F90F3F2af",
   Optimism: "0x3761ca4BFAcFCFFc1B8034e69F19116dD6756726",
   Base: NOT_DEPLOYED,
+  Sonic: NOT_DEPLOYED,
 };

@@ -8,6 +8,7 @@ export const TESTNET_CHAINS: Record<NetworkType, number> = {
   Optimism: 7879,
   Arbitrum: 7880,
   Base: 7881,
+  Sonic: 7882,
 };
 
 type ChartsPriceSource = "chainlink" | "spot";

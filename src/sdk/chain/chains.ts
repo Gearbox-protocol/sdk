@@ -1,12 +1,12 @@
 import type { Chain } from "viem";
-import { arbitrum, base, mainnet, optimism } from "viem/chains";
+import { arbitrum, base, mainnet, optimism, sonic } from "viem/chains";
 
 export const SUPPORTED_CHAINS = [
   "Mainnet",
   "Arbitrum",
   "Optimism",
   "Base",
-  // "Sonic",
+  "Sonic",
 ] as const;
 
 export type NetworkType = (typeof SUPPORTED_CHAINS)[number];
@@ -16,7 +16,7 @@ export const chains: Record<NetworkType, Chain> = {
   Arbitrum: arbitrum,
   Optimism: optimism,
   Base: base,
-  // Sonic: sonic,
+  Sonic: sonic,
 };
 
 const CHAINS_BY_ID: Record<number, NetworkType> = {
@@ -24,7 +24,7 @@ const CHAINS_BY_ID: Record<number, NetworkType> = {
   [arbitrum.id]: "Arbitrum",
   [optimism.id]: "Optimism",
   [base.id]: "Base",
-  // [sonic.id]: "Sonic",
+  [sonic.id]: "Sonic",
 };
 
 export const getNetworkType = (chainId: number): NetworkType => {
