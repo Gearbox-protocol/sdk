@@ -60,6 +60,9 @@ export type NormalToken =
   | "USDS"
   | "SKY"
   | "beraSTONE"
+  | "wS"
+  | "stS"
+  | "scUSD"
   | "T"
   | "tETH"
   // Mellow LRTs
@@ -383,6 +386,23 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     symbol: "beraSTONE",
     type: { AllNetworks: TokenType.NORMAL_TOKEN },
   },
+
+  wS: {
+    name: "Wrapped Sonic",
+    symbol: "wS",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  stS: {
+    name: "Beets Staked Sonic",
+    symbol: "stS",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  scUSD: {
+    name: "Sonic USD",
+    symbol: "scUSD",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+
   frxETH: {
     name: "Frax ETH",
     symbol: "frxETH",

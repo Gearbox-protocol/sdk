@@ -170,6 +170,15 @@ const PROTOCOL_DATA: Record<ExtendedProtocols, ProtocolData> = {
     name: "Treehouse",
     icon: "/protocols/treehouse.svg",
   },
+  // TODO:
+  Beets: {
+    name: "Beets",
+    icon: "",
+  },
+  Shadow: {
+    name: "Shadow",
+    icon: "",
+  },
 };
 
 export const isExtendedProtocol = (t: unknown): t is ExtendedProtocols =>

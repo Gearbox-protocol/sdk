@@ -24,6 +24,7 @@ export const USDC: Record<NetworkType, Address> = {
   Arbitrum: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
   Optimism: "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
   Base: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+  Sonic: "0x29219dd400f2Bf60E5a23d13Be72B486D4038894",
 };
 
 export const USDT: Record<NetworkType, Address> = {
@@ -31,6 +32,7 @@ export const USDT: Record<NetworkType, Address> = {
   Arbitrum: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
   Optimism: "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
   Base: NOT_DEPLOYED,
+  Sonic: NOT_DEPLOYED,
 };
 
 export const WETH: Record<NetworkType, Address> = {
@@ -38,6 +40,7 @@ export const WETH: Record<NetworkType, Address> = {
   Arbitrum: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
   Optimism: "0x4200000000000000000000000000000000000006",
   Base: NOT_DEPLOYED,
+  Sonic: NOT_DEPLOYED,
 };
 
 export const TIMELOCK: Record<NetworkType, Address> = {
@@ -45,6 +48,7 @@ export const TIMELOCK: Record<NetworkType, Address> = {
   Arbitrum: "0x148DD932eCe1155c11006F5650c6Ff428f8D374A",
   Optimism: "0x148DD932eCe1155c11006F5650c6Ff428f8D374A",
   Base: NOT_DEPLOYED,
+  Sonic: NOT_DEPLOYED,
 };
 
 export const GEARBOX_MULTISIG: Record<NetworkType, Address> = {
@@ -52,6 +56,7 @@ export const GEARBOX_MULTISIG: Record<NetworkType, Address> = {
   Arbitrum: "0x57Fd8B1a9213624157786Fff4a7bc532Ce717773",
   Optimism: "0x8bA8cd6D00919ceCc19D9B4A2c8669a524883C4c",
   Base: NOT_DEPLOYED,
+  Sonic: "0xacEB9dc6a81f1C9E2d8a86c3bFec3f6EF584139D",
 };
 
 export const GEARBOX_RISK_CURATORS: Record<NetworkType, Address[]> = {
@@ -59,6 +64,7 @@ export const GEARBOX_RISK_CURATORS: Record<NetworkType, Address[]> = {
   Arbitrum: [TIMELOCK.Arbitrum],
   Optimism: [TIMELOCK.Optimism],
   Base: [TIMELOCK.Base],
+  Sonic: [TIMELOCK.Sonic],
 };
 
 /**
@@ -71,4 +77,5 @@ export const DEPRECIATED_POOLS = {
   Arbitrum: {},
   Optimism: {},
   Base: {},
+  Sonic: {},
 } as const;
