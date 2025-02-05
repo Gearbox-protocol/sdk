@@ -8,7 +8,7 @@ import { encodeAbiParameters, toBytes } from "viem";
 import { SDKConstruct } from "../../base";
 import type { GearboxSDK } from "../../GearboxSDK";
 import type { ILogger, RawTx } from "../../types";
-import { childLogger } from "../../utils";
+import { childLogger, retry } from "../../utils";
 import type { RedstonePriceFeedContract } from "./RedstonePriceFeed";
 
 interface TimestampedCalldata {
@@ -194,7 +194,10 @@ export class RedstoneUpdater extends SDKConstruct {
       urls: this.#gateways,
     });
 
-    const dataPayload = await wrapper.prepareRedstonePayload(true);
+    const dataPayload = await retry(
+      () => wrapper.prepareRedstonePayload(true),
+      { attempts: 5, interval: this.#historicalTimestampMs ? 30_500 : 250 },
+    );
 
     const parsed = RedstonePayload.parse(toBytes(`0x${dataPayload}`));
     const packagesByDataFeedId = groupDataPackages(parsed.signedDataPackages);
