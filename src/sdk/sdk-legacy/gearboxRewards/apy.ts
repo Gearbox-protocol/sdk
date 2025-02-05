@@ -37,9 +37,10 @@ const ONE = PERCENTAGE_FACTOR_1KK * 10n;
 export interface ExtraRewardApy {
   token: Address;
   balance: bigint | null;
-  apy: number;
 
-  rewardInfo: FarmInfo;
+  apy: number;
+  rewardToken: Address;
+  rewardTokenSymbol: string;
 }
 
 interface GetPoolExtraAPY_V3Props {
@@ -150,8 +151,10 @@ export class GearboxRewardsApy {
     return {
       token: stakedDieselToken,
       balance: null,
+
       apy: r,
-      rewardInfo: rewardPoolsInfo,
+      rewardToken: rewardAddress,
+      rewardTokenSymbol: rewardPoolsInfo.symbol,
     };
   }
 
@@ -252,6 +255,13 @@ export class GearboxRewardsApy {
         },
       }) / Number(PERCENTAGE_FACTOR);
 
-    return { token, balance, rewardInfo, apy: r };
+    return {
+      token,
+      balance,
+
+      apy: r,
+      rewardToken: rewardAddress,
+      rewardTokenSymbol: rewardInfo.symbol,
+    };
   }
 }

@@ -1,3 +1,5 @@
+import type { Address } from "viem";
+
 import { URLApi } from "../core/endpoint";
 import type { BigNumberish } from "../utils/formatter";
 
@@ -27,13 +29,79 @@ export interface MerkleXYZUserRewards {
 
 export type MerkleXYZUserRewardsResponse = Record<string, MerkleXYZUserRewards>;
 
-interface CampaignsOptions {
-  params: {
+export interface MerklXYZV4Campaign {
+  chainId: number;
+  type: string;
+  identifier: Address;
+  name: string;
+  status: "LIVE" | "PAST";
+  action: "LEND" | "BORROW";
+  tvl: number;
+  apr: number;
+  dailyRewards: number;
+  tags: Array<string>;
+  id: string;
+  tokens: Array<{
+    id: string;
+    name: string;
     chainId: number;
-    mainParameter?: string;
-    rewardToken?: string;
+    address: Address;
+    decimals: number;
+    icon: string;
+    verified: boolean;
+    isTest: boolean;
+    price: number | null;
+    symbol: string;
+  }>;
+  chain: {
+    id: number;
+    name: string;
+    icon: string;
+  };
+  aprRecord: {
+    cumulated: number;
+    timestamp: string;
+    breakdowns: Array<{
+      id: number;
+      identifier: Address;
+      type: "CAMPAIGN";
+      value: number;
+      aprRecordId: string;
+    }>;
+  };
+  tvlRecord: {
+    id: string;
+    total: number;
+    timestamp: string;
+    breakdowns: [];
+  };
+  rewardsRecord: {
+    id: string;
+    total: number;
+    timestamp: string;
+    breakdowns: Array<{
+      token: {
+        id: string;
+        name: string;
+        chainId: number;
+        address: Address;
+        decimals: 18;
+        symbol: string;
+        displaySymbol: string;
+        icon: string;
+        verified: boolean;
+        isTest: boolean;
+        price: number;
+      };
+      amount: string;
+      id: number;
+      value: number;
+      campaignId: string;
+      dailyRewardsRecordid: string;
+    }>;
   };
 }
+export type MerkleXYZV4CampaignsResponse = Array<MerklXYZV4Campaign>;
 
 interface Campaign {
   amountDecimal: string;
@@ -54,9 +122,7 @@ export class MerkleXYZApi {
 
   static getUserRewardsUrl = (options: UserOptions) =>
     URLApi.getRelativeUrl([this.domain, "userRewards"].join("/"), options);
-  static getRewardsCampaignsUrl = (options: CampaignsOptions) =>
-    URLApi.getRelativeUrl(
-      [this.domain, "campaignsForMainParameter"].join("/"),
-      options,
-    );
+
+  static getGearboxCampaignsUrl = () =>
+    "https://api.merkl.xyz/v4/opportunities?name=gearbox";
 }
