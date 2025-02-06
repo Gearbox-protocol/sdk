@@ -25,6 +25,8 @@ import {
   MerkleXYZApi,
   MerkleXYZUserRewardsResponse,
   MerkleXYZV4CampaignsResponse,
+  MerkleXYZV4RewardCampaignResponse,
+  MerklXYZV4RewardCampaign,
 } from "./merklAPI";
 
 export interface GearboxExtraMerkleLmReward {
@@ -142,6 +144,37 @@ export class GearboxRewardsApi {
       c => c.status === "LIVE" && c.chainId === chainId,
     );
 
+    const aprIdsList = currentActiveCampaigns
+      .map(c =>
+        // apr token for campaigns with a single reward is obvious
+        c.aprRecord.breakdowns.length > 1
+          ? c.aprRecord.breakdowns.map(b => {
+              return {
+                campaignId: c.id,
+                aprId: b.identifier,
+              };
+            })
+          : [],
+      )
+      .flat(1);
+
+    const aprIdsResponse = await Promise.allSettled(
+      aprIdsList.map(id =>
+        axios.get<MerkleXYZV4RewardCampaignResponse>(
+          MerkleXYZApi.getGearboxRewardCampaignUrl(id.aprId),
+        ),
+      ),
+    );
+
+    const aprCampaignByAPRId = aprIdsResponse.reduce<
+      Record<Address, Array<MerklXYZV4RewardCampaign> | undefined>
+    >((acc, r, i) => {
+      const id = aprIdsList[i].aprId;
+      acc[id] = r.status === "fulfilled" ? r.value.data : undefined;
+
+      return acc;
+    }, {});
+
     const r = currentActiveCampaigns.reduce<
       Record<Address, Array<ExtraRewardApy>>
     >((acc, campaign) => {
@@ -149,12 +182,21 @@ export class GearboxRewardsApi {
         campaign.tokens[0]?.address || campaign.identifier
       ).toLowerCase() as Address;
 
-      const allRewards = campaign.rewardsRecord.breakdowns
+      const allRewards = campaign.aprRecord.breakdowns
         .map((r, i) => {
-          const tokenLc = r.token.address.toLowerCase() as Address;
-          const { symbol = r.token.symbol } = tokensList[tokenLc] || {};
+          const apy = r.value;
 
-          const apy = campaign.aprRecord.breakdowns[i]?.value || 0;
+          const { rewardToken } = aprCampaignByAPRId[r.identifier]?.[0] || {};
+          const tokenRewardsRecord =
+            campaign.rewardsRecord.breakdowns[i]?.token;
+
+          const { address = tokenRewardsRecord?.address || "" } =
+            rewardToken || {};
+
+          const tokenLc = address.toLowerCase() as Address;
+          const {
+            symbol = rewardToken?.symbol || tokenRewardsRecord?.symbol || "",
+          } = tokensList[tokenLc] || {};
 
           const apyObject: ExtraRewardApy = {
             token: rewardSource,

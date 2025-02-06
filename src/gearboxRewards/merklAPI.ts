@@ -29,6 +29,25 @@ export interface MerkleXYZUserRewards {
 
 export type MerkleXYZUserRewardsResponse = Record<string, MerkleXYZUserRewards>;
 
+interface MerkleXYZChain {
+  id: number;
+  name: string;
+  icon: string;
+}
+
+interface MerkleXYZToken {
+  id: string;
+  name: string;
+  chainId: number;
+  address: Address;
+  decimals: number;
+  icon: string;
+  verified: boolean;
+  isTest: boolean;
+  price: number | null;
+  symbol: string;
+}
+
 export interface MerklXYZV4Campaign {
   chainId: number;
   type: string;
@@ -41,23 +60,8 @@ export interface MerklXYZV4Campaign {
   dailyRewards: number;
   tags: Array<string>;
   id: string;
-  tokens: Array<{
-    id: string;
-    name: string;
-    chainId: number;
-    address: Address;
-    decimals: number;
-    icon: string;
-    verified: boolean;
-    isTest: boolean;
-    price: number | null;
-    symbol: string;
-  }>;
-  chain: {
-    id: number;
-    name: string;
-    icon: string;
-  };
+  tokens: Array<MerkleXYZToken>;
+  chain: MerkleXYZChain;
   aprRecord: {
     cumulated: number;
     timestamp: string;
@@ -80,19 +84,7 @@ export interface MerklXYZV4Campaign {
     total: number;
     timestamp: string;
     breakdowns: Array<{
-      token: {
-        id: string;
-        name: string;
-        chainId: number;
-        address: Address;
-        decimals: 18;
-        symbol: string;
-        displaySymbol: string;
-        icon: string;
-        verified: boolean;
-        isTest: boolean;
-        price: number;
-      };
+      token: MerkleXYZToken;
       amount: string;
       id: number;
       value: number;
@@ -103,17 +95,42 @@ export interface MerklXYZV4Campaign {
 }
 export type MerkleXYZV4CampaignsResponse = Array<MerklXYZV4Campaign>;
 
-interface Campaign {
-  amountDecimal: string;
-  campaignId: string;
-  campaignType: number;
-  endTimestamp: number;
-  rewardToken: string;
-  rewardTokenSymbol: string;
-  startTimestamp: number;
+export interface MerklXYZV4RewardCampaign {
+  id: string;
+  computeChainId: number;
+  distributionChainId: number;
+  campaignId: Address;
+  rewardTokenId: string;
+  amount: string;
+  opportunityId: string;
+  startTimestamp: string;
+  endTimestamp: string;
+  creatorAddress: Address;
+  params: {
+    url: string;
+    duration: number;
+    blacklist: Array<Address>;
+    whitelist: Array<Address>;
+    forwarders: Array<Address>;
+    targetToken: Address;
+    symbolRewardToken: string;
+    symbolTargetToken: string;
+    decimalsRewardToken: number;
+    decimalsTargetToken: number;
+  };
+  chain: MerkleXYZChain;
+  rewardToken: MerkleXYZToken;
+  distributionChain: MerkleXYZChain;
+  campaignStatus: {
+    campaignId: string;
+    computedUntil: string;
+    processingStarted: string;
+    status: "SUCCESS";
+    error: string;
+    details: string;
+  };
 }
-
-export type MerkleXYZRewardsCampaignsResponse = Array<Campaign>;
+export type MerkleXYZV4RewardCampaignResponse = Array<MerklXYZV4RewardCampaign>;
 
 // https://api.merkl.xyz/v3/campaignsForMainParameter?chainId=1&mainParameter=0xE2037090f896A858E3168B978668F22026AC52e7
 
@@ -125,4 +142,6 @@ export class MerkleXYZApi {
 
   static getGearboxCampaignsUrl = () =>
     "https://api.merkl.xyz/v4/opportunities?name=gearbox";
+  static getGearboxRewardCampaignUrl = (campaignId: Address) =>
+    `https://api.merkl.xyz/v4/campaigns?campaignId=${campaignId}`;
 }
