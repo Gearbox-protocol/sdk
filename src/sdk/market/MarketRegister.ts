@@ -109,7 +109,10 @@ export class MarketRegister extends SDKConstruct {
       const updates = await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs();
       txs = updates.txs;
     }
-    this.#logger?.debug({ configurators, pools }, "calling getMarkets");
+    this.#logger?.debug(
+      { configurators, pools },
+      `calling getMarkets with ${txs.length} price updates`,
+    );
     // ...and push them using multicall before getting answers
     const resp = await simulateMulticall(this.provider.publicClient, {
       contracts: [
