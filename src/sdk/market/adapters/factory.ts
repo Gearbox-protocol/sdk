@@ -34,47 +34,47 @@ export function createAdapter(
     args.baseParams.contractType as Hex,
   ) as AdapterContractType;
   switch (adapterType) {
-    case "AD_UNISWAP_V2_ROUTER":
+    case "ADAPTER::UNISWAP_V2_ROUTER":
       return new UniswapV2AdapterContract(sdk, args);
-    case "AD_UNISWAP_V3_ROUTER":
+    case "ADAPTER::UNISWAP_V3_ROUTER":
       return new UniswapV3AdapterContract(sdk, args);
-    case "AD_CURVE_V1_2ASSETS":
+    case "ADAPTER::CURVE_V1_2ASSETS":
       return new Curve2AssetsAdapterContract(sdk, args);
-    case "AD_CURVE_V1_3ASSETS":
+    case "ADAPTER::CURVE_V1_3ASSETS":
       return new Curve3AssetsAdapterContract(sdk, args);
-    case "AD_CURVE_V1_4ASSETS":
+    case "ADAPTER::CURVE_V1_4ASSETS":
       return new Curve4AssetsAdapterContract(sdk, args);
-    case "AD_CURVE_V1_STECRV_POOL":
+    case "ADAPTER::CURVE_V1_STECRV_POOL":
       return new CurveV1AdapterStETHContract(sdk, args);
-    case "AD_CURVE_V1_WRAPPER":
+    case "ADAPTER::CURVE_V1_WRAPPER":
       return new CurveV1AdapterStableNGContract(sdk, args);
-    case "AD_CONVEX_V1_BASE_REWARD_POOL":
+    case "ADAPTER::CVX_V1_BASE_REWARD_POOL":
       return new ConvexV1BaseRewardPoolAdapterContract(sdk, args);
-    case "AD_CONVEX_V1_BOOSTER":
+    case "ADAPTER::CVX_V1_BOOSTER":
       return new ConvexV1BoosterAdapterContract(sdk, args);
-    case "AD_CURVE_STABLE_NG":
+    case "ADAPTER::CURVE_STABLE_NG":
       return new CurveV1StableNGAdapterContract(sdk, args);
-    case "AD_LIDO_WSTETH_V1":
+    case "ADAPTER::LIDO_WSTETH_V1":
       return new WstETHV1AdapterContract(sdk, args);
-    case "AD_BALANCER_VAULT":
+    case "ADAPTER::BALANCER_VAULT":
       return new BalancerV2VaultAdapterContract(sdk, args);
-    case "AD_ERC4626_VAULT":
+    case "ADAPTER::ERC4626_VAULT":
       return new ERC4626AdapterContract(sdk, args);
-    case "AD_VELODROME_V2_ROUTER":
+    case "ADAPTER::VELODROME_V2_ROUTER":
       return new VelodromeV2RouterAdapterContract(sdk, args);
-    case "AD_CAMELOT_V3_ROUTER":
+    case "ADAPTER::CAMELOT_V3_ROUTER":
       return new CamelotV3AdapterContract(sdk, args);
-    case "AD_YEARN_V2":
+    case "ADAPTER::YEARN_V2":
       return new YearnV2RouterAdapterContract(sdk, args);
-    case "AD_MELLOW_LRT_VAULT":
+    case "ADAPTER::MELLOW_LRT_VAULT":
       return new MellowVaultAdapterContract(sdk, args);
-    case "AD_MELLOW_ERC4626_VAULT":
+    case "ADAPTER::MELLOW_ERC4626_VAULT":
       return new MellowERC4626VaultAdapterContract(sdk, args);
-    case "AD_PENDLE_ROUTER":
+    case "ADAPTER::PENDLE_ROUTER":
       return new PendleRouterAdapterContract(sdk, args);
-    case "AD_DAI_USDS_EXCHANGE":
+    case "ADAPTER::DAI_USDS_EXCHANGE":
       return new DaiUsdsAdapterContract(sdk, args);
-    case "AD_STAKING_REWARDS":
+    case "ADAPTER::STAKING_REWARDS":
       return new StakingRewardsAdapterContract(sdk, args);
     default:
       throw new Error(

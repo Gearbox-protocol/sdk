@@ -6,7 +6,7 @@ import type { PriceFeedRef } from "./PriceFeedRef";
 
 export type PriceFeedUsageType = "Main" | "Reserve";
 
-export type PriceFeedContractType =
+export type PriceFeedContractTypeLegacy =
   | "PF_CHAINLINK_ORACLE"
   | "PF_ZERO_ORACLE"
   | "PF_COMPOSITE_ORACLE"
@@ -23,6 +23,24 @@ export type PriceFeedContractType =
   | "PF_PYTH_ORACLE"
   | "PF_REDSTONE_ORACLE"
   | "PF_PENDLE_PT_TWAP_ORACLE";
+
+export type PriceFeedContractType =
+  | "PRICE_FEED::EXTERNAL"
+  | "PRICE_FEED::ZERO"
+  | "PRICE_FEED::COMPOSITE"
+  | "PRICE_FEED::BALANCER_STABLE"
+  | "PRICE_FEED::CURVE_STABLE"
+  | "PRICE_FEED::CURVE_CRYPTO"
+  | "PRICE_FEED::CURVE_USD"
+  | "PRICE_FEED::ERC4626"
+  | "PRICE_FEED::WSTETH"
+  | "PRICE_FEED::YEARN"
+  | "PRICE_FEED::MELLOW_LRT"
+  | "PRICE_FEED::BALANCER_WEIGHTED"
+  | "PRICE_FEED::BOUNDED"
+  | "PRICE_FEED::PYTH"
+  | "PRICE_FEED::REDSTONE"
+  | "PRICE_FEED::PENDLE_PT_TWAP";
 
 export interface IPriceFeedContract extends IBaseContract {
   readonly hasLowerBoundCap: boolean;
