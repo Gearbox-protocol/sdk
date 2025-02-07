@@ -55,7 +55,7 @@ export class RedstonePriceFeedContract extends AbstractPriceFeedContract<abi> {
   ): Omit<RedstonePriceFeedStateHuman, "stalenessPeriod"> {
     return {
       ...super.stateHuman(raw),
-      contractType: "PF_REDSTONE_ORACLE",
+      contractType: "PRICE_FEED::REDSTONE",
       dataId: this.dataId,
       signers: this.signers,
       signersThreshold: this.signersThreshold,

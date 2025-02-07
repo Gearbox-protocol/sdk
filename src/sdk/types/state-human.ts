@@ -40,7 +40,7 @@ export interface BasePriceFeedStateHuman extends BaseContractStateHuman {
 }
 
 export interface BoundedOracleStateHuman extends BasePriceFeedStateHuman {
-  contractType: "PF_BOUNDED_ORACLE";
+  contractType: "PRICE_FEED::BOUNDED";
   upperBound: bigint;
 }
 
@@ -58,14 +58,14 @@ export interface LPPriceFeedStateHuman extends BasePriceFeedStateHuman {
 
 export interface BalancerWeightedPriceFeedStateHuman
   extends LPPriceFeedStateHuman {
-  contractType: "PF_BALANCER_WEIGHTED_LP_ORACLE";
+  contractType: "PRICE_FEED::BALANCER_WEIGHTED";
   vault: Address;
   poolId: Address;
   weights: [bigint, bigint, bigint, bigint, bigint, bigint, bigint, bigint];
 }
 
 export interface RedstonePriceFeedStateHuman extends BasePriceFeedStateHuman {
-  contractType: "PF_REDSTONE_ORACLE";
+  contractType: "PRICE_FEED::REDSTONE";
   dataId: string;
   signers: Array<string>;
   signersThreshold: number;

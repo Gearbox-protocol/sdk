@@ -27,7 +27,7 @@ export class BoundedPriceFeedContract extends AbstractPriceFeedContract<abi> {
   ): Omit<BoundedOracleStateHuman, "stalenessPeriod"> {
     return {
       ...super.stateHuman(raw),
-      contractType: "PF_BOUNDED_ORACLE",
+      contractType: "PRICE_FEED::BOUNDED",
       upperBound: this.upperBound,
     };
   }

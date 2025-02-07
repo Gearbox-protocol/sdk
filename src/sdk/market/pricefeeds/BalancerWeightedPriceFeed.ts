@@ -61,7 +61,7 @@ export class BalancerWeightedPriceFeedContract extends AbstractLPPriceFeedContra
   ): UnionOmit<BalancerWeightedPriceFeedStateHuman, "stalenessPeriod"> {
     return {
       ...super.stateHuman(raw),
-      contractType: "PF_BALANCER_WEIGHTED_LP_ORACLE",
+      contractType: "PRICE_FEED::BALANCER_WEIGHTED",
       vault: this.vault,
       poolId: this.poolId,
       weights: [...this.weights],
