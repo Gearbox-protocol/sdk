@@ -199,7 +199,6 @@ export interface MarketStateHuman {
   pausableAdmins: string[];
   unpausableAdmins: string[];
   emergencyLiquidators: string[];
-  zappers: ZapperStateHuman[];
 }
 
 export interface GearboxStateHuman {
@@ -207,4 +206,5 @@ export interface GearboxStateHuman {
   timestamp: number;
   core: CoreStateHuman;
   markets: MarketStateHuman[];
+  zappers: ZapperStateHuman[];
 }

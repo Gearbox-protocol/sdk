@@ -339,7 +339,7 @@ export class GearboxSDK {
         botList: this.botListContract.stateHuman(raw),
         gearStakingV3: this.gearStakingContract.stateHuman(raw),
       },
-      markets: this.marketRegister.stateHuman(raw),
+      ...this.marketRegister.stateHuman(raw),
     };
   }
 

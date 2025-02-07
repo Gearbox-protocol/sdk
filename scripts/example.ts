@@ -13,7 +13,7 @@ async function example(): Promise<void> {
 
   await example.run({
     addressProvider: ADDRESS_PROVIDER,
-    marketConfigurator: MARKET_CONFIGURATOR,
+    marketConfigurators: [MARKET_CONFIGURATOR],
     outFile: "example-state.json",
   });
   logger.info("done");

@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-import type { MarketData, ZapperData } from "../base";
+import type { MarketData } from "../base";
 import { SDKConstruct } from "../base";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { MarketStateHuman } from "../types";
@@ -22,7 +22,6 @@ export class MarketSuite extends SDKConstruct {
    * Original data received from compressor
    */
   public readonly state: MarketData;
-  public readonly zappers: readonly ZapperData[] = [];
 
   constructor(sdk: GearboxSDK, marketData: MarketData) {
     super(sdk);
@@ -41,17 +40,12 @@ export class MarketSuite extends SDKConstruct {
 
     this.acl = marketData.acl;
 
-    const allTokens = [
-      ...marketData.tokens,
-      // ...marketData.zappers.flatMap(z => [z.tokenIn, z.tokenOut]),
-    ];
-    for (const t of allTokens) {
+    for (const t of marketData.tokens) {
       sdk.tokensMeta.upsert(t.addr, t);
       sdk.provider.addressLabels.set(t.addr as Address, t.symbol);
     }
 
     this.pool = new PoolSuite(sdk, marketData);
-    // this.zappers = marketData.zappers;
 
     for (let i = 0; i < marketData.creditManagers.length; i++) {
       this.creditManagers.push(new CreditSuite(sdk, marketData, i));
@@ -93,13 +87,6 @@ export class MarketSuite extends SDKConstruct {
       emergencyLiquidators: this.state.emergencyLiquidators.map(a =>
         this.labelAddress(a),
       ),
-      zappers: this.zappers.map(z => ({
-        address: z.baseParams.addr,
-        contractType: z.baseParams.contractType,
-        version: Number(z.baseParams.version),
-        tokenIn: this.labelAddress(z.tokenIn.addr),
-        tokenOut: this.labelAddress(z.tokenOut.addr),
-      })),
     };
   }
 }
