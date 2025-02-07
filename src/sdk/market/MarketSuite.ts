@@ -22,7 +22,7 @@ export class MarketSuite extends SDKConstruct {
    * Original data received from compressor
    */
   public readonly state: MarketData;
-  public readonly zappers: readonly ZapperData[];
+  public readonly zappers: readonly ZapperData[] = [];
 
   constructor(sdk: GearboxSDK, marketData: MarketData) {
     super(sdk);
@@ -43,7 +43,7 @@ export class MarketSuite extends SDKConstruct {
 
     const allTokens = [
       ...marketData.tokens,
-      ...marketData.zappers.flatMap(z => [z.tokenIn, z.tokenOut]),
+      // ...marketData.zappers.flatMap(z => [z.tokenIn, z.tokenOut]),
     ];
     for (const t of allTokens) {
       sdk.tokensMeta.upsert(t.addr, t);
@@ -51,7 +51,7 @@ export class MarketSuite extends SDKConstruct {
     }
 
     this.pool = new PoolSuite(sdk, marketData);
-    this.zappers = marketData.zappers;
+    // this.zappers = marketData.zappers;
 
     for (let i = 0; i < marketData.creditManagers.length; i++) {
       this.creditManagers.push(new CreditSuite(sdk, marketData, i));

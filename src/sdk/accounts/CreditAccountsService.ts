@@ -4,7 +4,7 @@ import { encodeFunctionData } from "viem";
 import {
   iCreditAccountCompressorAbi,
   iCreditFacadeV3MulticallAbi,
-  iRewardCompressorAbi,
+  iRewardsCompressorAbi,
 } from "../abi";
 import type { CreditAccountData, RewardInfo } from "../base";
 import { SDKConstruct } from "../base";
@@ -288,7 +288,7 @@ export class CreditAccountsService extends SDKConstruct {
 
   async getRewards(account: Address): Promise<RewardInfo[]> {
     const rewards = await this.provider.publicClient.readContract({
-      abi: iRewardCompressorAbi,
+      abi: iRewardsCompressorAbi,
       address: this.rewardCompressor,
       functionName: "getRewards",
       args: [account],
