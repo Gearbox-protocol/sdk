@@ -6,6 +6,7 @@ import type { Address, Hex } from "viem";
 
 import type {
   iCreditAccountCompressorAbi,
+  iGaugeCompressorAbi,
   iMarketCompressorAbi,
   iPeripheryCompressorAbi,
   iRewardsCompressorAbi,
@@ -19,6 +20,10 @@ export interface BaseParams {
   contractType: Hex;
   serializedParams: Hex;
 }
+
+export type MarketFilter = AbiParametersToPrimitiveTypes<
+  ExtractAbiFunction<typeof iMarketCompressorAbi, "getMarkets">["inputs"]
+>[0];
 
 export type CreditAccountData = Unarray<
   AbiParametersToPrimitiveTypes<
@@ -44,6 +49,12 @@ export type MarketData = Unarray<
 export type ZapperData = Unarray<
   AbiParametersToPrimitiveTypes<
     ExtractAbiFunction<typeof iPeripheryCompressorAbi, "getZappers">["outputs"]
+  >
+>;
+
+export type GaugeData = Unarray<
+  AbiParametersToPrimitiveTypes<
+    ExtractAbiFunction<typeof iGaugeCompressorAbi, "getGauge">["outputs"]
   >
 >;
 

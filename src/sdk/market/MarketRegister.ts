@@ -1,10 +1,15 @@
 import type { Address } from "viem";
 
-import { iMarketCompressorAbi, iPeripheryCompressorAbi } from "../abi";
-import type { MarketData, ZapperData } from "../base";
+import {
+  iGaugeCompressorAbi,
+  iMarketCompressorAbi,
+  iPeripheryCompressorAbi,
+} from "../abi";
+import type { GaugeData, MarketData, MarketFilter, ZapperData } from "../base";
 import { SDKConstruct } from "../base";
 import {
   ADDRESS_0X0,
+  AP_GAUGE_COMPRESSOR,
   AP_MARKET_COMPRESSOR,
   AP_PERIPHERY_COMPRESSOR,
 } from "../constants";
@@ -31,6 +36,8 @@ export class MarketRegister extends SDKConstruct {
    */
   #markets = new AddressMap<MarketSuite>();
   #zappers: ZapperData[] = [];
+
+  #marketFilter?: MarketFilter;
 
   constructor(sdk: GearboxSDK, markets?: MarketData[]) {
     super(sdk);
@@ -79,6 +86,36 @@ export class MarketRegister extends SDKConstruct {
     }
   }
 
+  public async getGauges(staker: Address): Promise<GaugeData[]> {
+    const gcAddr =
+      this.sdk.addressProvider.getLatestVersion(AP_GAUGE_COMPRESSOR);
+    if (!this.#marketFilter) {
+      throw new Error("market filter is not set");
+    }
+    const resp = await this.provider.publicClient.readContract({
+      abi: iGaugeCompressorAbi,
+      address: gcAddr,
+      functionName: "getGauges",
+      args: [this.#marketFilter, staker],
+    });
+    return [...resp];
+  }
+
+  public async getGauge(gauge: Address, staker: Address): Promise<GaugeData> {
+    const gcAddr =
+      this.sdk.addressProvider.getLatestVersion(AP_GAUGE_COMPRESSOR);
+    if (!this.#marketFilter) {
+      throw new Error("market filter is not set");
+    }
+    const resp = await this.provider.publicClient.readContract({
+      abi: iGaugeCompressorAbi,
+      address: gcAddr,
+      functionName: "getGauge",
+      args: [gauge, staker],
+    });
+    return resp;
+  }
+
   public async syncState(): Promise<void> {
     const pools = this.markets
       .filter(m => m.dirty)
@@ -94,6 +131,11 @@ export class MarketRegister extends SDKConstruct {
     pools: Address[],
     ignoreUpdateablePrices?: boolean,
   ): Promise<void> {
+    this.#marketFilter = {
+      configurators,
+      pools,
+      underlying: ADDRESS_0X0,
+    };
     const marketCompressorAddress = this.sdk.addressProvider.getAddress(
       AP_MARKET_COMPRESSOR,
       3_10,
@@ -121,13 +163,7 @@ export class MarketRegister extends SDKConstruct {
           abi: iMarketCompressorAbi,
           address: marketCompressorAddress,
           functionName: "getMarkets",
-          args: [
-            {
-              configurators,
-              pools,
-              underlying: ADDRESS_0X0,
-            },
-          ],
+          args: [this.#marketFilter],
         },
       ],
       allowFailure: false,
