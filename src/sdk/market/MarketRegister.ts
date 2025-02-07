@@ -74,11 +74,26 @@ export class MarketRegister extends SDKConstruct {
         abi: iPeripheryCompressorAbi,
         address: pcAddr,
         functionName: "getZappers",
-        args: [m.configurator, m.pool.pool.address],
+        args: [m.configurator.address, m.pool.pool.address],
       })),
-      allowFailure: false,
+      allowFailure: true,
     });
-    this.#zappers = resp.flat() as any as ZapperData[];
+
+    const zappers: ZapperData[] = [];
+    for (let i = 0; i < resp.length; i++) {
+      const { status, result, error } = resp[i];
+      const marketConfigurator = this.markets[i].configurator.address;
+      const pool = this.markets[i].pool.pool.address;
+      if (status === "success") {
+        zappers.push(...(result as any as ZapperData[]));
+      } else {
+        this.#logger?.error(
+          `failed to load zapper for market configurator ${this.labelAddress(marketConfigurator)} and pool ${this.labelAddress(pool)}: ${error}`,
+        );
+      }
+    }
+    this.#zappers = zappers;
+
     const zappersTokens = this.#zappers.flatMap(z => [z.tokenIn, z.tokenOut]);
     for (const t of zappersTokens) {
       this.sdk.tokensMeta.upsert(t.addr, t);

@@ -60,6 +60,11 @@ export class SDKExample {
       ignoreUpdateablePrices: true,
       marketConfigurators,
     });
+    try {
+      await this.#sdk.marketRegister.loadZappers();
+    } catch (e) {
+      this.#logger?.error(`failed to load zappers: ${e}`);
+    }
     await this.#safeMigrateFaucet(addressProvider);
 
     const puTx =
@@ -77,11 +82,6 @@ export class SDKExample {
     await publicClient.waitForTransactionReceipt({ hash });
 
     await this.#sdk.marketRegister.loadMarkets(marketConfigurators, true);
-    try {
-      await this.#sdk.marketRegister.loadZappers();
-    } catch (e) {
-      this.#logger?.error(`failed to load zappers: ${e}`);
-    }
 
     this.#logger?.info("attached sdk");
     if (outFile) {
