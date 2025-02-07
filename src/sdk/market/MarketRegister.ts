@@ -156,22 +156,33 @@ export class MarketRegister extends SDKConstruct {
       `calling getMarkets with ${txs.length} price updates`,
     );
     // ...and push them using multicall before getting answers
-    const resp = await simulateMulticall(this.provider.publicClient, {
-      contracts: [
-        ...txs.map(rawTxToMulticallPriceUpdate),
-        {
-          abi: iMarketCompressorAbi,
-          address: marketCompressorAddress,
-          functionName: "getMarkets",
-          args: [this.#marketFilter],
-        },
-      ],
-      allowFailure: false,
-      gas: 550_000_000n,
-      batchSize: 0, // we cannot have price updates and compressor request in different batches
-    });
-
-    const markets = resp.pop() as MarketData[];
+    let markets: readonly MarketData[] = [];
+    if (txs.length) {
+      const resp = await simulateMulticall(this.provider.publicClient, {
+        contracts: [
+          ...txs.map(rawTxToMulticallPriceUpdate),
+          {
+            abi: iMarketCompressorAbi,
+            address: marketCompressorAddress,
+            functionName: "getMarkets",
+            args: [this.#marketFilter],
+          },
+        ],
+        allowFailure: false,
+        gas: 550_000_000n,
+        batchSize: 0, // we cannot have price updates and compressor request in different batches
+      });
+      markets = resp.pop() as MarketData[];
+    } else {
+      markets = await this.provider.publicClient.readContract({
+        abi: iMarketCompressorAbi,
+        address: marketCompressorAddress,
+        functionName: "getMarkets",
+        args: [this.#marketFilter],
+        // @ts-ignore
+        gas: 550_000_000n,
+      });
+    }
 
     for (const data of markets) {
       this.#markets.upsert(
