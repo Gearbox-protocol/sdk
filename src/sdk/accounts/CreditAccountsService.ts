@@ -216,7 +216,7 @@ export class CreditAccountsService extends SDKConstruct {
         },
       ],
       allowFailure: false,
-      gas: 550_000_000n,
+      // gas: 550_000_000n,
       batchSize: 0, // we cannot have price updates and compressor request in different batches
       blockNumber,
     });
@@ -711,7 +711,7 @@ export class CreditAccountsService extends SDKConstruct {
           },
         ],
         allowFailure: false,
-        gas: 550_000_000n,
+        // gas: 550_000_000n,
         batchSize: 0, // we cannot have price updates and compressor request in different batches
         blockNumber,
       });

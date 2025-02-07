@@ -229,7 +229,7 @@ export class PriceFeedRegister
       ],
       // It's passed as ...rest in viem readContract action, but this might change
       // @ts-ignore
-      gas: 500_000_000n,
+      // gas: 500_000_000n,
     });
     this.logger?.debug(`loaded ${result.length} updatable price feeds`);
     return result;

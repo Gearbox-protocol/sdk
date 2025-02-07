@@ -169,7 +169,7 @@ export class MarketRegister extends SDKConstruct {
           },
         ],
         allowFailure: false,
-        gas: 550_000_000n,
+        // gas: 550_000_000n,
         batchSize: 0, // we cannot have price updates and compressor request in different batches
       });
       markets = resp.pop() as MarketData[];
@@ -179,8 +179,7 @@ export class MarketRegister extends SDKConstruct {
         address: marketCompressorAddress,
         functionName: "getMarkets",
         args: [this.#marketFilter],
-        // @ts-ignore
-        gas: 550_000_000n,
+        // gas: 550_000_000n,
       });
     }
 
@@ -213,7 +212,7 @@ export class MarketRegister extends SDKConstruct {
         ...multicalls.map(mc => mc.call),
       ],
       allowFailure: false,
-      gas: 550_000_000n,
+      // gas: 550_000_000n,
       batchSize: 0, // we cannot have price updates and compressor request in different batches
     });
     const oraclesStates = resp.slice(txs.length);
