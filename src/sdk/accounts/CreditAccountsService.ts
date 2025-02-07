@@ -4,13 +4,15 @@ import { encodeFunctionData } from "viem";
 import {
   iCreditAccountCompressorAbi,
   iCreditFacadeV3MulticallAbi,
+  iPeripheryCompressorAbi,
   iRewardsCompressorAbi,
 } from "../abi";
-import type { CreditAccountData, RewardInfo } from "../base";
+import type { BotData, CreditAccountData, RewardInfo } from "../base";
 import { SDKConstruct } from "../base";
 import {
   ADDRESS_0X0,
   AP_CREDIT_ACCOUNT_COMPRESSOR,
+  AP_PERIPHERY_COMPRESSOR,
   AP_REWARDS_COMPRESSOR,
   MAX_UINT256,
   MIN_INT96,
@@ -294,6 +296,19 @@ export class CreditAccountsService extends SDKConstruct {
       args: [account],
     });
     return [...rewards];
+  }
+
+  async getActiveBots(
+    marketConfigurator: Address,
+    account: Address,
+  ): Promise<BotData[]> {
+    const botsData = await this.provider.publicClient.readContract({
+      abi: iPeripheryCompressorAbi,
+      address: this.peripheryCompressor,
+      functionName: "getActiveBots",
+      args: [marketConfigurator, account],
+    });
+    return [...botsData];
   }
 
   /**
@@ -1046,5 +1061,9 @@ export class CreditAccountsService extends SDKConstruct {
 
   private get rewardCompressor(): Address {
     return this.sdk.addressProvider.getLatestVersion(AP_REWARDS_COMPRESSOR);
+  }
+
+  private get peripheryCompressor(): Address {
+    return this.sdk.addressProvider.getLatestVersion(AP_PERIPHERY_COMPRESSOR);
   }
 }
