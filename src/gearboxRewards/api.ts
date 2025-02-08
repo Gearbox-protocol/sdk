@@ -121,7 +121,7 @@ export interface GetExtraRewardsProps {
 }
 
 export interface GetLmRewardsProps {
-  pools: Array<PoolData>;
+  pools: Record<Address, PoolData>;
 
   baseRewardPoolsInfo: Record<string, FarmInfo>;
   currentTokenData: Record<SupportedToken, Address>;
