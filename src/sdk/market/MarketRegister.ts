@@ -29,13 +29,17 @@ import { MarketSuite } from "./MarketSuite";
 import type { PoolSuite } from "./PoolSuite";
 import { rawTxToMulticallPriceUpdate } from "./pricefeeds";
 
+export interface ZapperDataFull extends ZapperData {
+  pool: Address;
+}
+
 export class MarketRegister extends SDKConstruct {
   #logger?: ILogger;
   /**
    * Mapping pool.address -> MarketSuite
    */
   #markets = new AddressMap<MarketSuite>();
-  #zappers: ZapperData[] = [];
+  #zappers = new AddressMap<Array<ZapperDataFull>>();
 
   #marketFilter?: MarketFilter;
 
@@ -79,22 +83,28 @@ export class MarketRegister extends SDKConstruct {
       allowFailure: true,
     });
 
-    const zappers: ZapperData[] = [];
     for (let i = 0; i < resp.length; i++) {
       const { status, result, error } = resp[i];
       const marketConfigurator = this.markets[i].configurator.address;
       const pool = this.markets[i].pool.pool.address;
+
       if (status === "success") {
-        zappers.push(...(result as any as ZapperData[]));
+        const list = result as any as ZapperData[];
+
+        this.#zappers.upsert(
+          pool,
+          list.map(z => ({ ...z, pool })),
+        );
       } else {
         this.#logger?.error(
           `failed to load zapper for market configurator ${this.labelAddress(marketConfigurator)} and pool ${this.labelAddress(pool)}: ${error}`,
         );
       }
     }
-    this.#zappers = zappers;
 
-    const zappersTokens = this.#zappers.flatMap(z => [z.tokenIn, z.tokenOut]);
+    const zappersTokens = this.#zappers
+      .values()
+      .flatMap(l => l.flatMap(z => [z.tokenIn, z.tokenOut]));
     for (const t of zappersTokens) {
       this.sdk.tokensMeta.upsert(t.addr, t);
       this.sdk.provider.addressLabels.set(t.addr as Address, t.symbol);
@@ -248,13 +258,15 @@ export class MarketRegister extends SDKConstruct {
   } {
     return {
       markets: this.markets.map(market => market.stateHuman(raw)),
-      zappers: this.zappers.map(z => ({
-        address: z.baseParams.addr,
-        contractType: z.baseParams.contractType,
-        version: Number(z.baseParams.version),
-        tokenIn: this.labelAddress(z.tokenIn.addr),
-        tokenOut: this.labelAddress(z.tokenOut.addr),
-      })),
+      zappers: this.zappers.values().flatMap(l =>
+        l.flatMap(z => ({
+          address: z.baseParams.addr,
+          contractType: z.baseParams.contractType,
+          version: Number(z.baseParams.version),
+          tokenIn: this.labelAddress(z.tokenIn.addr),
+          tokenOut: this.labelAddress(z.tokenOut.addr),
+        })),
+      ),
     };
   }
 
@@ -323,7 +335,7 @@ export class MarketRegister extends SDKConstruct {
     return this.#markets;
   }
 
-  public get zappers(): ZapperData[] {
+  public get zappers() {
     return this.#zappers;
   }
 
