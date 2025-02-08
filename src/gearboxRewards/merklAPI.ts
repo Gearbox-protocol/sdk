@@ -33,7 +33,7 @@ export interface MerkleXYZUserRewardsV4 {
     }>;
   }>;
 }
-export type MerkleXYZUserRewardsV4Response = [MerkleXYZUserRewardsV4];
+export type MerkleXYZUserRewardsV4Response = Array<MerkleXYZUserRewardsV4>;
 
 interface MerkleXYZChain {
   id: number;
