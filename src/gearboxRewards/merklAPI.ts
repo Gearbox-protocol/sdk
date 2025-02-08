@@ -1,33 +1,39 @@
 import { Address } from "viem";
 
-import { URLApi } from "../core/endpoint";
 import { BigNumberish } from "../utils/formatter";
 
 interface UserOptions {
   params: {
     user: string;
     chainId: number;
-
-    mainParameter?: string;
-    rewardToken?: string;
   };
 }
 
-export interface MerkleXYZUserRewards {
-  accumulated: BigNumberish;
-  decimals: number;
-  reasons: Record<
-    string,
-    {
-      accumulated: BigNumberish;
-      unclaimed: BigNumberish;
-    }
-  >;
-  symbol: string;
-  unclaimed: BigNumberish;
+export interface MerkleXYZUserRewardsV4 {
+  chain: MerkleXYZChain;
+  rewards: Array<{
+    root: Address;
+    recipient: Address;
+    amount: BigNumberish;
+    claimed: BigNumberish;
+    pending: BigNumberish;
+    proofs: Array<Address>;
+    token: {
+      address: Address;
+      chainId: number;
+      symbol: string;
+      decimals: number;
+    };
+    breakdowns: Array<{
+      reason: string;
+      amount: BigNumberish;
+      claimed: BigNumberish;
+      pending: BigNumberish;
+      campaignId: Address;
+    }>;
+  }>;
 }
-
-export type MerkleXYZUserRewardsResponse = Record<string, MerkleXYZUserRewards>;
+export type MerkleXYZUserRewardsV4Response = [MerkleXYZUserRewardsV4];
 
 interface MerkleXYZChain {
   id: number;
@@ -135,10 +141,8 @@ export type MerkleXYZV4RewardCampaignResponse = Array<MerklXYZV4RewardCampaign>;
 // https://api.merkl.xyz/v3/campaignsForMainParameter?chainId=1&mainParameter=0xE2037090f896A858E3168B978668F22026AC52e7
 
 export class MerkleXYZApi {
-  static domain = "https://api.merkl.xyz/v3";
-
   static getUserRewardsUrl = (options: UserOptions) =>
-    URLApi.getRelativeUrl([this.domain, "userRewards"].join("/"), options);
+    `https://api.merkl.xyz/v4/users/${options.params.user}/rewards?chainId=${options.params.chainId}`;
 
   static getGearboxCampaignsUrl = () =>
     "https://api.merkl.xyz/v4/opportunities?name=gearbox";

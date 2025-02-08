@@ -23,7 +23,7 @@ import { BigIntMath } from "../utils/math";
 import { ExtraRewardApy } from "./apy";
 import {
   MerkleXYZApi,
-  MerkleXYZUserRewardsResponse,
+  MerkleXYZUserRewardsV4Response,
   MerkleXYZV4CampaignsResponse,
   MerkleXYZV4RewardCampaignResponse,
   MerklXYZV4RewardCampaign,
@@ -32,22 +32,34 @@ import {
 export interface GearboxExtraMerkleLmReward {
   pool: Address;
   poolToken: Address;
+
+  rewardTokenSymbol: string;
+  rewardTokenDecimals: number;
   rewardToken: Address;
   amount: bigint;
+
   type: "extraMerkle";
 }
 export interface GearboxStakedV3LmReward {
   pool: Address;
   poolToken: Address;
+
+  rewardTokenSymbol: string;
+  rewardTokenDecimals: number;
   rewardToken: Address;
   amount: bigint;
+
   type: "stakedV3";
 }
 export interface GearboxMerkleV2LmReward {
   pool?: undefined;
   poolToken?: undefined;
+
+  rewardTokenSymbol: string;
+  rewardTokenDecimals: number;
   rewardToken: Address;
   amount: bigint;
+
   type: "merkleV2";
 }
 
@@ -109,6 +121,8 @@ export interface GetExtraRewardsProps {
 }
 
 export interface GetLmRewardsProps {
+  pools: Array<PoolData>;
+
   baseRewardPoolsInfo: Record<string, FarmInfo>;
   currentTokenData: Record<SupportedToken, Address>;
   tokensList: Record<Address, TokenData>;
@@ -394,7 +408,10 @@ export class GearboxRewardsApi {
       {
         amount: availableToClaimV2,
         type: "merkleV2",
+
         rewardToken: currentTokenData.GEAR,
+        rewardTokenDecimals: 18,
+        rewardTokenSymbol: "GEAR",
       },
     ];
 
@@ -402,6 +419,8 @@ export class GearboxRewardsApi {
   }
 
   static async getLmRewardsV3({
+    pools,
+
     baseRewardPoolsInfo,
     currentTokenData,
     tokensList,
@@ -424,7 +443,7 @@ export class GearboxRewardsApi {
           args: [account],
         })),
       }),
-      axios.get<MerkleXYZUserRewardsResponse>(
+      axios.get<MerkleXYZUserRewardsV4Response>(
         MerkleXYZApi.getUserRewardsUrl({
           params: {
             chainId: CHAINS[network],
@@ -439,48 +458,77 @@ export class GearboxRewardsApi {
       reportError,
       "v3Rewards",
     ) || []) as Array<bigint>;
-    const merkleXYZLM = this.extractFulfilled(
+    const merkleXYZLm = this.extractFulfilled(
       merkleXYZLMResponse,
       reportError,
       "merkleRewards",
     )?.data;
 
-    const PREFIX = "ERC20";
-    const REWARD_KEYS_RECORD = poolTokens.reduce<Record<string, Address>>(
-      (acc, t) => {
-        const key = [PREFIX, getAddress(t)].join("_");
-        acc[key] = t;
-        return acc;
-      },
-      {},
-    );
-
-    const extraRewards = Object.entries(merkleXYZLM || {}).reduce<
-      Array<GearboxLmReward>
-    >((acc, [k, v]) => {
-      const rewardToken = k.toLowerCase() as Address;
-
-      Object.entries(v.reasons).forEach(([key, reason]) => {
-        const poolToken = REWARD_KEYS_RECORD[key];
-        if (poolToken && tokensList[rewardToken]) {
-          acc.push({
-            pool: baseRewardPoolsInfo[poolToken].pool,
-            poolToken,
-            rewardToken,
-            amount: toBigInt(reason.unclaimed || 0n),
-            type: "extraMerkle",
-          });
-        }
+    const poolByItsToken = Object.values(pools).reduce<
+      Record<Address, Address>
+    >((acc, p) => {
+      p.stakedDieselToken.forEach(t => {
+        if (t) acc[t] = p.address;
+      });
+      p.stakedDieselToken_old.forEach(t => {
+        if (t) acc[t] = p.address;
       });
 
+      acc[p.dieselToken] = p.address;
+
       return acc;
-    }, []);
+    }, {});
+
+    const extraRewards = (merkleXYZLm || []).reduce<Array<GearboxLmReward>>(
+      (acc, chainRewards) => {
+        chainRewards.rewards.forEach(reward => {
+          const rewardToken = reward.token.address.toLowerCase() as Address;
+
+          reward.breakdowns.forEach(reason => {
+            const poolToken = (
+              (reason.reason || "").split("_")[1] || ""
+            ).toLowerCase() as Address;
+
+            const pool = (
+              baseRewardPoolsInfo[poolToken]?.pool ||
+              poolToken ||
+              ""
+            ).toLowerCase() as Address;
+
+            if (poolByItsToken[poolToken] && poolByItsToken[pool]) {
+              const total = toBigInt(reason.amount || 0);
+              const claimed = toBigInt(reason.claimed || 0);
+
+              acc.push({
+                pool,
+                poolToken,
+                rewardToken,
+                rewardTokenSymbol: reward.token.symbol,
+                rewardTokenDecimals: reward.token.decimals || 18,
+                amount: BigIntMath.max(total - claimed, 0n),
+                type: "extraMerkle",
+              });
+            }
+          });
+        });
+
+        return acc;
+      },
+      [],
+    );
 
     const gearboxLmRewards = poolTokens.map((address, i): GearboxLmReward => {
+      const info = baseRewardPoolsInfo[address];
+      const rewardToken = currentTokenData[info.symbol];
+
       return {
-        pool: baseRewardPoolsInfo[address].pool,
+        pool: info.pool,
         poolToken: address,
-        rewardToken: currentTokenData[baseRewardPoolsInfo[address].symbol],
+
+        rewardToken,
+        rewardTokenDecimals: tokensList[rewardToken]?.decimals || 18,
+        rewardTokenSymbol: info.symbol,
+
         amount: gearboxLm[i] || 0n,
         type: "stakedV3",
       };
