@@ -33,6 +33,7 @@ export type PriceFeedStateHuman =
   | BalancerWeightedPriceFeedStateHuman;
 
 export interface BasePriceFeedStateHuman extends BaseContractStateHuman {
+  description?: string;
   stalenessPeriod: string;
   skipCheck: boolean;
   pricefeeds: PriceFeedStateHuman[];

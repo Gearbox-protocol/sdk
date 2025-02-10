@@ -34,15 +34,17 @@ export abstract class AbstractPriceFeedContract<
   #skipCheck?: boolean;
 
   public hasLowerBoundCap = false;
+  public readonly description?: string;
 
   constructor(sdk: GearboxSDK, args: PriceFeedConstructorArgs<abi>) {
     super(sdk, {
       abi: args.abi,
       addr: args.baseParams.addr,
-      name: args.name,
+      name: args.name + (args.description ? ` ${args.description}` : ""),
       contractType: args.baseParams.contractType,
       version: args.baseParams.version,
     });
+    this.description = args.description;
     this.#decimals = args.decimals;
     this.#updatable = args.updatable;
     this.#skipCheck = args.skipCheck;
@@ -100,6 +102,7 @@ export abstract class AbstractPriceFeedContract<
   ): UnionOmit<PriceFeedStateHuman, "stalenessPeriod"> {
     return {
       ...super.stateHuman(raw),
+      description: this.description,
       contractType: this.priceFeedType,
       skipCheck: this.skipCheck,
       pricefeeds: this.underlyingPriceFeeds.map(f => f.stateHuman(raw)),
