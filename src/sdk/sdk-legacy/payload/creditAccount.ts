@@ -1,5 +1,7 @@
 import type { Address } from "viem";
 
+import type { BotData } from "../../base";
+
 export interface CaTokenBalance {
   success: boolean;
   token: Address;
@@ -42,5 +44,5 @@ export interface CreditAccountDataPayload {
   }[];
   cfVersion: bigint;
   expirationDate: number;
-  activeBots: readonly Address[];
+  activeBots: BotData[];
 }

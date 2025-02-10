@@ -344,16 +344,25 @@ export class CreditAccountsService extends SDKConstruct {
   }
 
   async getActiveBots(
-    marketConfigurator: Address,
-    account: Address,
-  ): Promise<BotData[]> {
-    const botsData = await this.provider.publicClient.readContract({
-      abi: iPeripheryCompressorAbi,
-      address: this.peripheryCompressor,
-      functionName: "getActiveBots",
-      args: [marketConfigurator, account],
+    accountsToCheck: Array<{ creditAccount: Address; creditManager: Address }>,
+  ) {
+    const resp = await this.provider.publicClient.multicall({
+      contracts: accountsToCheck.map(o => {
+        const pool = this.sdk.marketRegister.findByCreditManager(
+          o.creditManager,
+        );
+
+        return {
+          abi: iPeripheryCompressorAbi,
+          address: this.peripheryCompressor,
+          functionName: "getActiveBots",
+          args: [pool.configurator.address, o.creditAccount],
+        } as const;
+      }),
+      allowFailure: true,
     });
-    return [...botsData];
+
+    return resp;
   }
 
   /**

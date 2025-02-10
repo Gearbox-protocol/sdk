@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 
+import type { BotData } from "../../base";
 import {
   MIN_INT96,
   PERCENTAGE_DECIMALS,
@@ -159,7 +160,7 @@ export class CreditAccountData_Legacy {
   readonly totalValueUSD: bigint;
   readonly twvUSD: bigint;
 
-  readonly activeBots: Record<Address, true>;
+  readonly activeBots: Record<Address, BotData>;
 
   readonly balances: Record<Address, bigint> = {};
   readonly collateralTokens: Array<Address> = [];
@@ -200,8 +201,15 @@ export class CreditAccountData_Legacy {
     this.activeBots = payload.activeBots.reduce<
       CreditAccountData_Legacy["activeBots"]
     >((acc, b) => {
-      const botLc = b.toLowerCase() as Address;
-      acc[botLc] = true;
+      const botLc = b.baseParams.addr.toLowerCase() as Address;
+      acc[botLc] = {
+        baseParams: {
+          ...b.baseParams,
+          addr: botLc,
+        },
+        permissions: b.permissions,
+        forbidden: b.forbidden,
+      };
       return acc;
     }, {});
 
