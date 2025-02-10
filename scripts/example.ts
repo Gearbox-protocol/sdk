@@ -8,8 +8,8 @@ async function example(): Promise<void> {
   });
   const example = new SDKExample(logger);
 
-  const MARKET_CONFIGURATOR = "0x2963ff0196a901ec3F56d7531e7C4Ce8F226462B";
-  const ADDRESS_PROVIDER = "0xD69BC314bdaa329EB18F36E4897D96A3A48C3eeF";
+  const MARKET_CONFIGURATOR = "0x240a60dc5e0b9013cb8cf39aa6f9ddd8f25e40d2";
+  const ADDRESS_PROVIDER = "0xf2ef708b652410233d7e1e63ae10a66a64449b88";
 
   await example.run({
     addressProvider: ADDRESS_PROVIDER,

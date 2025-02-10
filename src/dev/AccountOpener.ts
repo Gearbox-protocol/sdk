@@ -115,7 +115,7 @@ export class AccountOpener extends SDKConstruct {
 
     const expectedBalances: Asset[] = [];
     const leftoverBalances: Asset[] = [];
-    for (const t of Object.keys(cm.collateralTokens)) {
+    for (const t of cm.creditManager.collateralTokens) {
       const token = t as Address;
       expectedBalances.push({
         token,
@@ -373,12 +373,15 @@ export class AccountOpener extends SDKConstruct {
     amount: bigint,
     debt: bigint,
   ): Asset[] {
-    const { underlying, collateralTokens } = cm;
+    const {
+      underlying,
+      creditManager: { liquidationThresholds },
+    } = cm;
     const inUnderlying = collateral.toLowerCase() === underlying.toLowerCase();
     if (inUnderlying) {
       return [];
     }
-    const collateralLT = BigInt(collateralTokens[collateral]);
+    const collateralLT = BigInt(liquidationThresholds.mustGet(collateral));
     const market = this.sdk.marketRegister.findByCreditManager(
       cm.creditManager.address,
     );

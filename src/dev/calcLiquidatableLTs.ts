@@ -21,7 +21,7 @@ export async function calcLiquidatableLTs(
     .map(t => {
       const { token, balance } = t;
       const balanceU = market.priceOracle.convertToUnderlying(token, balance);
-      const lt = BigInt(cm.collateralTokens[token]);
+      const lt = BigInt(cm.creditManager.liquidationThresholds.mustGet(token));
       return {
         token,
         weightedBalance: (balanceU * lt) / PERCENTAGE_FACTOR,

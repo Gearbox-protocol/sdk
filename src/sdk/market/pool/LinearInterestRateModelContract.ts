@@ -1,15 +1,19 @@
 import { decodeAbiParameters } from "viem";
 
 import { linearInterestRateModelV3Abi } from "../../abi";
-import type { MarketData } from "../../base";
+import type { BaseState } from "../../base";
 import { BaseContract } from "../../base";
 import type { GearboxSDK } from "../../GearboxSDK";
-import type { LinearModelStateHuman } from "../../types";
+import type { LinearInterestRateModelStateHuman } from "../../types";
 import { percentFmt } from "../../utils";
+import type { IInterestRateModelContract } from "./types";
 
 type abi = typeof linearInterestRateModelV3Abi;
 
-export class LinearModelContract extends BaseContract<abi> {
+export class LinearInterestRateModelContract
+  extends BaseContract<abi>
+  implements IInterestRateModelContract
+{
   public readonly U1: number;
   public readonly U2: number;
   public readonly Rbase: number;
@@ -18,9 +22,9 @@ export class LinearModelContract extends BaseContract<abi> {
   public readonly Rslope3: number;
   public readonly isBorrowingMoreU2Forbidden: boolean;
 
-  constructor(sdk: GearboxSDK, { interestRateModel }: MarketData) {
+  constructor(sdk: GearboxSDK, params: BaseState) {
     super(sdk, {
-      ...interestRateModel.baseParams,
+      ...params.baseParams,
       name: "LinearInterestRateModel",
       abi: linearInterestRateModelV3Abi,
     });
@@ -43,7 +47,7 @@ export class LinearModelContract extends BaseContract<abi> {
         { type: "uint16", name: "Rslope3" },
         { type: "bool", name: "isBorrowingMoreU2Forbidden" },
       ],
-      interestRateModel.baseParams.serializedParams,
+      params.baseParams.serializedParams,
     );
 
     this.U1 = U1;
@@ -55,7 +59,7 @@ export class LinearModelContract extends BaseContract<abi> {
     this.isBorrowingMoreU2Forbidden = isBorrowingMoreU2Forbidden;
   }
 
-  public override stateHuman(raw?: boolean): LinearModelStateHuman {
+  public override stateHuman(raw?: boolean): LinearInterestRateModelStateHuman {
     return {
       ...super.stateHuman(raw),
       U1: percentFmt(this.U1, raw),

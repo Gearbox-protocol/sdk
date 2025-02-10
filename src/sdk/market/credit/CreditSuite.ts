@@ -3,68 +3,37 @@ import type { Address } from "viem";
 import { type MarketData, SDKConstruct } from "../../base";
 import type { GearboxSDK } from "../../GearboxSDK";
 import type { CreditSuiteStateHuman, TVL } from "../../types";
-import { CreditConfiguratorV300Contract } from "./CreditConfiguratorV300Contract";
-import { CreditConfiguratorV310Contract } from "./CreditConfiguratorV310Contract";
-import { CreditFacadeV300Contract } from "./CreditFacadeV300Contract";
-import { CreditFacadeV310Contract } from "./CreditFacadeV310Contract";
-import { CreditManagerV300Contract } from "./CreditManagerV300Contract";
-import { CreditManagerV310Contract } from "./CreditManagerV310Contract";
+import createCreditConfigurator from "./createCreditConfigurator";
+import createCreditFacade from "./createCreditFacade";
+import createCreditManager from "./createCreditManager";
+import type {
+  CreditFacadeContract,
+  ICreditConfiguratorContract,
+  ICreditManagerContract,
+} from "./types";
 
 export class CreditSuite extends SDKConstruct {
   public readonly name: string;
   public readonly pool: Address;
   public readonly underlying: Address;
-  /**
-   * Mappning Token Address => Liquidation Threshold
-   */
-  public readonly collateralTokens: Record<Address, number>;
 
-  public readonly creditManager:
-    | CreditManagerV300Contract
-    | CreditManagerV310Contract;
-  public readonly creditFacade:
-    | CreditFacadeV300Contract
-    | CreditFacadeV310Contract;
-  public readonly creditConfigurator:
-    | CreditConfiguratorV300Contract
-    | CreditConfiguratorV310Contract;
+  public readonly creditManager: ICreditManagerContract;
+  public readonly creditFacade: CreditFacadeContract;
+  public readonly creditConfigurator: ICreditConfiguratorContract;
 
   constructor(sdk: GearboxSDK, marketData: MarketData, index: number) {
     super(sdk);
     const { creditManagers, pool } = marketData;
     const creditManager = creditManagers[index];
-    const { name, collateralTokens } = creditManager.creditManager;
+    const { name } = creditManager.creditManager;
 
     this.name = name;
     this.pool = pool.baseParams.addr;
     this.underlying = pool.underlying;
-    this.collateralTokens = Object.fromEntries(
-      collateralTokens.map(ct => [ct.token, ct.liquidationThreshold]),
-    );
 
-    if (creditManager.creditManager.baseParams.version < 310) {
-      this.creditManager = new CreditManagerV300Contract(sdk, creditManager);
-    } else {
-      this.creditManager = new CreditManagerV310Contract(sdk, creditManager);
-    }
-
-    if (creditManager.creditFacade.baseParams.version < 310) {
-      this.creditFacade = new CreditFacadeV300Contract(sdk, creditManager);
-    } else {
-      this.creditFacade = new CreditFacadeV310Contract(sdk, creditManager);
-    }
-
-    if (creditManager.creditConfigurator.baseParams.version < 310) {
-      this.creditConfigurator = new CreditConfiguratorV300Contract(
-        sdk,
-        creditManager,
-      );
-    } else {
-      this.creditConfigurator = new CreditConfiguratorV310Contract(
-        sdk,
-        creditManager,
-      );
-    }
+    this.creditManager = createCreditManager(sdk, creditManager);
+    this.creditFacade = createCreditFacade(sdk, creditManager);
+    this.creditConfigurator = createCreditConfigurator(sdk, creditManager);
   }
 
   async tvl(): Promise<TVL> {

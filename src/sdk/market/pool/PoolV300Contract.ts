@@ -14,11 +14,11 @@ import { AddressMap, formatBN, formatBNvalue, percentFmt } from "../../utils";
 const abi = poolV3Abi;
 
 // Augmenting contract class with interface of compressor data object
-export interface PoolContract
+export interface PoolV300Contract
   extends Omit<PoolData, "baseParams" | "creditManagerDebtParams">,
     BaseContract<typeof abi> {}
 
-export class PoolContract extends BaseContract<typeof abi> {
+export class PoolV300Contract extends BaseContract<typeof abi> {
   public readonly creditManagerDebtParams: AddressMap<CreditManagerDebtParams>;
 
   constructor(sdk: GearboxSDK, data: PoolData) {

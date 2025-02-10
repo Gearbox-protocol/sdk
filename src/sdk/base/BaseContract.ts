@@ -39,6 +39,7 @@ export interface IBaseContract {
   contractType: string;
   version: number;
   name: string;
+  dirty: boolean;
 }
 
 export abstract class BaseContract<abi extends Abi | readonly unknown[]>

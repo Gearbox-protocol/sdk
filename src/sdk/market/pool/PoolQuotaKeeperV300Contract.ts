@@ -1,7 +1,12 @@
 import type { ContractEventName, Log } from "viem";
 
 import { poolQuotaKeeperV3Abi } from "../../abi";
-import type { PoolData, PoolQuotaKeeperData, QuotaState } from "../../base";
+import type {
+  IBaseContract,
+  PoolData,
+  PoolQuotaKeeperData,
+  QuotaState,
+} from "../../base";
 import { BaseContract } from "../../base";
 import type { GearboxSDK } from "../../GearboxSDK";
 import type { PoolQuotaKeeperStateHuman } from "../../types";
@@ -9,7 +14,10 @@ import { AddressMap, formatBNvalue, percentFmt } from "../../utils";
 
 type abi = typeof poolQuotaKeeperV3Abi;
 
-export class PoolQuotaKeeperContract extends BaseContract<abi> {
+export class PoolQuotaKeeperV300Contract
+  extends BaseContract<abi>
+  implements IBaseContract
+{
   public readonly decimals: number;
   public readonly quotas: AddressMap<QuotaState>;
 

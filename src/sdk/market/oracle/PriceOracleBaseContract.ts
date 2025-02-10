@@ -1,4 +1,4 @@
-import type { Abi, Address, Hex } from "viem";
+import type { Abi, Address } from "viem";
 import { decodeFunctionData } from "viem";
 
 import { iPriceFeedCompressorAbi, iUpdatablePriceFeedAbi } from "../../abi";
@@ -19,44 +19,11 @@ import type {
   UpdatePriceFeedsResult,
 } from "../pricefeeds";
 import { PriceFeedRef } from "../pricefeeds";
-
-export interface PriceFeedsForTokensOptions {
-  main?: boolean;
-  reserve?: boolean;
-}
-
-/**
- * Data to be passed to credit facade's multicall
- * Compatible with both v300 and v310 facades
- */
-export interface OnDemandPriceUpdate {
-  priceFeed: Address;
-  token: Address;
-  reserve: boolean;
-  data: Hex;
-}
-
-export interface IPriceOracleContract {
-  priceFeedsForTokens: (
-    tokens: Address[],
-    opts?: PriceFeedsForTokensOptions,
-  ) => IPriceFeedContract[];
-  updatePriceFeeds: () => Promise<UpdatePriceFeedsResult>;
-  onDemandPriceUpdates: (
-    updates?: UpdatePriceFeedsResult,
-  ) => OnDemandPriceUpdate[];
-  convertToUnderlying: (
-    token: Address,
-    amount: bigint,
-    reserve?: boolean,
-  ) => bigint;
-  convert: (
-    from: Address,
-    to: Address,
-    amount: bigint,
-    reserve?: boolean,
-  ) => bigint;
-}
+import type {
+  IPriceOracleContract,
+  OnDemandPriceUpdate,
+  PriceFeedsForTokensOptions,
+} from "./types";
 
 export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
   extends BaseContract<abi>

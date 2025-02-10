@@ -171,7 +171,8 @@ export interface GaugeStateHuman extends BaseContractStateHuman {
   quotaParams: Record<Address, GaugeParamsHuman>;
 }
 
-export interface LinearModelStateHuman extends BaseContractStateHuman {
+export interface LinearInterestRateModelStateHuman
+  extends BaseContractStateHuman {
   U1: string;
   U2: string;
   Rbase: string;
@@ -181,11 +182,15 @@ export interface LinearModelStateHuman extends BaseContractStateHuman {
   isBorrowingMoreU2Forbidden: boolean;
 }
 
+export type InterestRateModelStateHuman = LinearInterestRateModelStateHuman;
+
+export type RateKeeperStateHuman = GaugeStateHuman;
+
 export interface PoolSuiteStateHuman {
   pool: PoolStateHuman;
   poolQuotaKeeper: PoolQuotaKeeperStateHuman;
-  linearModel?: LinearModelStateHuman;
-  gauge: GaugeStateHuman;
+  interestRateModel?: InterestRateModelStateHuman;
+  rateKeeper: RateKeeperStateHuman;
 }
 
 export interface ZapperStateHuman extends BaseContractStateHuman {

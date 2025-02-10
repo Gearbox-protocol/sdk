@@ -8,6 +8,7 @@ import { WAD } from "../../constants";
 import type { GearboxSDK } from "../../GearboxSDK";
 import type { GaugeStateHuman } from "../../types";
 import { AddressMap, percentFmt } from "../../utils";
+import type { IRateKeeperContract } from "./types";
 
 type abi = typeof gaugeV3Abi;
 
@@ -19,7 +20,10 @@ export interface GaugeParams {
   rate: number;
 }
 
-export class GaugeContract extends BaseContract<abi> {
+export class GaugeContract
+  extends BaseContract<abi>
+  implements IRateKeeperContract
+{
   public readonly quotaParams: AddressMap<GaugeParams>;
   public readonly epochFrozen: boolean;
   public readonly epochLastUpdate: number;

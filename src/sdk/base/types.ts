@@ -21,6 +21,10 @@ export interface BaseParams {
   serializedParams: Hex;
 }
 
+export interface BaseState {
+  baseParams: BaseParams;
+}
+
 export type MarketFilter = AbiParametersToPrimitiveTypes<
   ExtractAbiFunction<typeof iMarketCompressorAbi, "getMarkets">["inputs"]
 >[0];

@@ -1,40 +1,52 @@
 import type { Address } from "viem";
 
-import { type MarketData, SDKConstruct } from "../../base";
+import type { MarketData } from "../../base";
+import { SDKConstruct } from "../../base";
 import type { GearboxSDK } from "../../GearboxSDK";
 import type { PoolSuiteStateHuman } from "../../types";
+import createInterestRateModel from "./createInterestRateModel";
+import createPool from "./createPool";
+import createPoolQuotaKeeper from "./createPoolQuotaKeeper";
+import createRateKeeper from "./createRateKeeper";
 import { GaugeContract } from "./GaugeContract";
-import { LinearModelContract } from "./LinearModelContract";
-import { PoolContract } from "./PoolContract";
-import { PoolQuotaKeeperContract } from "./PoolQuotaKeeperContract";
+import { LinearInterestRateModelContract } from "./LinearInterestRateModelContract";
+import type { PoolQuotaKeeperV300Contract } from "./PoolQuotaKeeperV300Contract";
+import type { PoolV300Contract } from "./PoolV300Contract";
+import type { IInterestRateModelContract, IRateKeeperContract } from "./types";
 
 export class PoolSuite extends SDKConstruct {
-  public readonly pool: PoolContract;
-  public readonly pqk: PoolQuotaKeeperContract;
-  public readonly gauge: GaugeContract;
-  public readonly linearModel: LinearModelContract;
+  public readonly pool: PoolV300Contract;
+  public readonly pqk: PoolQuotaKeeperV300Contract;
+  public readonly rateKeeper: IRateKeeperContract;
+  public readonly interestRateModel: IInterestRateModelContract;
 
   constructor(sdk: GearboxSDK, data: MarketData) {
     super(sdk);
-    this.pool = new PoolContract(sdk, data.pool);
-    this.pqk = new PoolQuotaKeeperContract(
+    this.pool = createPool(sdk, data.pool);
+    this.pqk = createPoolQuotaKeeper(sdk, data.pool, data.poolQuotaKeeper);
+    this.rateKeeper = createRateKeeper(sdk, data.pool, data.rateKeeper);
+    this.interestRateModel = createInterestRateModel(
       sdk,
-      data.pool,
-      data.poolQuotaKeeper,
+      data.interestRateModel,
     );
-    this.gauge = new GaugeContract(sdk, data.pool, data.rateKeeper);
-    const irModelAddr = data.interestRateModel.baseParams.addr;
+  }
 
-    if (sdk.interestRateModels.has(irModelAddr)) {
-      // TODO: provide interface when necessary
-      this.linearModel = sdk.interestRateModels.mustGet(
-        irModelAddr,
-      ) as any as LinearModelContract;
-    } else {
-      const linearModel = new LinearModelContract(sdk, data);
-      sdk.interestRateModels.insert(irModelAddr, linearModel as any);
-      this.linearModel = linearModel;
+  public get gauge(): GaugeContract {
+    if (this.rateKeeper instanceof GaugeContract) {
+      return this.rateKeeper;
     }
+    throw new Error(
+      "Rate keeper is not a gauge, but a " + this.rateKeeper.contractType,
+    );
+  }
+
+  public get linearModel(): LinearInterestRateModelContract {
+    if (this.interestRateModel instanceof LinearInterestRateModelContract) {
+      return this.interestRateModel;
+    }
+    throw new Error(
+      `Interest rate model is not a linear model, but a ${this.interestRateModel.contractType}`,
+    );
   }
 
   public get underlying(): Address {
@@ -46,7 +58,7 @@ export class PoolSuite extends SDKConstruct {
       this.pool.dirty ||
       this.gauge.dirty ||
       this.pqk.dirty ||
-      this.linearModel.dirty
+      this.interestRateModel.dirty
     );
   }
 
@@ -54,8 +66,8 @@ export class PoolSuite extends SDKConstruct {
     return {
       pool: this.pool.stateHuman(raw),
       poolQuotaKeeper: this.pqk.stateHuman(raw),
-      linearModel: this.linearModel.stateHuman(raw),
-      gauge: this.gauge.stateHuman(raw),
+      interestRateModel: this.interestRateModel.stateHuman(raw),
+      rateKeeper: this.rateKeeper.stateHuman(raw),
     };
   }
 }

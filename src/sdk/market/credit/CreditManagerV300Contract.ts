@@ -8,6 +8,7 @@ import type { CreditManagerStateHuman } from "../../types";
 import { AddressMap, fmtBinaryMask, percentFmt } from "../../utils";
 import type { IAdapterContract } from "../adapters";
 import { createAdapter } from "../adapters";
+import type { ICreditManagerContract } from "./types";
 
 type abi = typeof creditManagerV3Abi;
 const abi = creditManagerV3Abi;
@@ -20,7 +21,10 @@ export interface CreditManagerV300Contract
     >,
     BaseContract<abi> {}
 
-export class CreditManagerV300Contract extends BaseContract<abi> {
+export class CreditManagerV300Contract
+  extends BaseContract<abi>
+  implements ICreditManagerContract
+{
   /**
    * Mapping targetContract => adapter
    */

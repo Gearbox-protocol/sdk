@@ -5,3 +5,4 @@ export * from "./CreditFacadeV310Contract";
 export * from "./CreditManagerV300Contract";
 export * from "./CreditManagerV310Contract";
 export * from "./CreditSuite";
+export * from "./types";
