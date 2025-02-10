@@ -2,7 +2,6 @@ export * from "./abi";
 export * from "./accounts";
 export * from "./base";
 export * from "./bots";
-export * from "./caRewards";
 export * from "./chain";
 export * from "./constants";
 export * from "./core";

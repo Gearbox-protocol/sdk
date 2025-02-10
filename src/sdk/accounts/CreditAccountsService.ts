@@ -32,6 +32,7 @@ import {
   type CreditAccountDataSlice,
   type RouterCloseResult,
 } from "../router";
+import { iBaseRewardPoolAbi } from "../sdk-legacy";
 import type { ILogger, MultiCall, RawTx } from "../types";
 import { childLogger } from "../utils";
 import { simulateMulticall } from "../utils/viem";
@@ -157,6 +158,14 @@ export interface PermitResult {
 
   deadline: bigint;
   nonce: bigint;
+}
+
+export interface Rewards {
+  adapter: Address;
+  stakedPhantomToken: Address;
+  calls: Array<MultiCall>;
+
+  rewards: Array<Asset>;
 }
 
 export class CreditAccountsService extends SDKConstruct {
@@ -288,14 +297,50 @@ export class CreditAccountsService extends SDKConstruct {
     return allCAs.sort((a, b) => Number(a.healthFactor - b.healthFactor));
   }
 
-  async getRewards(account: Address): Promise<RewardInfo[]> {
+  async getRewards(creditAccount: Address): Promise<Array<Rewards>> {
     const rewards = await this.provider.publicClient.readContract({
       abi: iRewardsCompressorAbi,
       address: this.rewardCompressor,
       functionName: "getRewards",
-      args: [account],
+      args: [creditAccount],
     });
-    return [...rewards];
+
+    const r = rewards.reduce<Record<string, Rewards>>((acc, r) => {
+      const adapter = r.adapter.toLowerCase() as Address;
+      const stakedPhantomToken = r.adapter.toLowerCase() as Address;
+      const rewardToken = r.rewardToken.toLowerCase() as Address;
+
+      const key = [adapter, stakedPhantomToken].join("-");
+
+      if (!acc[key]) {
+        const callData = encodeFunctionData({
+          abi: iBaseRewardPoolAbi,
+          functionName: "getReward",
+          args: [],
+        });
+
+        acc[adapter] = {
+          adapter,
+          stakedPhantomToken,
+          calls: [
+            {
+              target: adapter,
+              callData,
+            },
+          ],
+          rewards: [],
+        };
+      }
+
+      acc[adapter].rewards.push({
+        token: rewardToken,
+        balance: r.amount,
+      });
+
+      return acc;
+    }, {});
+
+    return Object.values(r);
   }
 
   async getActiveBots(
