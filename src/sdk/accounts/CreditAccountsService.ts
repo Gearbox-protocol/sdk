@@ -307,7 +307,7 @@ export class CreditAccountsService extends SDKConstruct {
 
     const r = rewards.reduce<Record<string, Rewards>>((acc, r) => {
       const adapter = r.adapter.toLowerCase() as Address;
-      const stakedPhantomToken = r.adapter.toLowerCase() as Address;
+      const stakedPhantomToken = r.stakedPhantomToken.toLowerCase() as Address;
       const rewardToken = r.rewardToken.toLowerCase() as Address;
 
       const key = [adapter, stakedPhantomToken].join("-");
