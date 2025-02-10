@@ -1,6 +1,5 @@
 export * from "./IAirdropDistributor";
 export * from "./IBaseRewardPool";
-export * from "./IConvexToken";
 export * from "./IDataCompressorV3";
 export * from "./IDegenDistributor";
 export * from "./IERC20Permit";

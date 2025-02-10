@@ -7,7 +7,6 @@ export * from "./core/endpoint";
 export * from "./core/eventOrTx";
 export * from "./core/pool";
 export * from "./core/protocols";
-export * from "./core/rewardClaimer";
 export * from "./core/strategy";
 export * from "./core/transactions";
 export * from "./gearboxRewards";
