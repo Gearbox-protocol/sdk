@@ -103,7 +103,7 @@ export class GaugeContract extends BaseContract<abi> {
       quotaParams: this.quotaParams.entries().reduce(
         (acc, [address, params]) => ({
           ...acc,
-          [address]: {
+          [this.labelAddress(address)]: {
             minRate: percentFmt(params.minRate, raw),
             maxRate: percentFmt(params.maxRate, raw),
             totalVotesLpSide: params.totalVotesLpSide / WAD,
