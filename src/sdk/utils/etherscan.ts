@@ -33,6 +33,9 @@ export function etherscanUrl(
     case "Base":
       domain = "basescan.org";
       break;
+    case "Sonic":
+      domain = "sonicscan.org";
+      break;
   }
   const [key, value] = Object.entries(param)[0];
   return `https://${prefix}${domain}/${key}/${value}`;

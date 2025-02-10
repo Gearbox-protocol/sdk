@@ -60,6 +60,11 @@ export type NormalToken =
   | "USDS"
   | "SKY"
   | "beraSTONE"
+  | "wS"
+  | "stS"
+  | "scUSD"
+  | "T"
+  | "tETH"
   // Mellow LRTs
   | "steakLRT"
   | "Re7LRT"
@@ -381,6 +386,23 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     symbol: "beraSTONE",
     type: { AllNetworks: TokenType.NORMAL_TOKEN },
   },
+
+  wS: {
+    name: "Wrapped Sonic",
+    symbol: "wS",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  stS: {
+    name: "Beets Staked Sonic",
+    symbol: "stS",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  scUSD: {
+    name: "Sonic USD",
+    symbol: "scUSD",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+
   frxETH: {
     name: "Frax ETH",
     symbol: "frxETH",
@@ -421,6 +443,13 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     symbol: "wstETH",
     type: { AllNetworks: TokenType.NORMAL_TOKEN },
   },
+  tETH: {
+    name: "Treehouse ETH",
+    symbol: "tETH",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+
+  // Mellow
   steakLRT: {
     name: "Steakhouse Mellow LRT",
     symbol: "steakLRT",
@@ -464,6 +493,11 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
   SKY: {
     name: "SKY Governance token",
     symbol: "SKY",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  T: {
+    name: "Threshold Network Token",
+    symbol: "T",
     type: { AllNetworks: TokenType.NORMAL_TOKEN },
   },
   PT_sUSDe_26DEC2024: {

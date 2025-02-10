@@ -4,13 +4,15 @@ import { encodeFunctionData } from "viem";
 import {
   iCreditAccountCompressorAbi,
   iCreditFacadeV3MulticallAbi,
-  iRewardCompressorAbi,
+  iPeripheryCompressorAbi,
+  iRewardsCompressorAbi,
 } from "../abi";
-import type { CreditAccountData, RewardInfo } from "../base";
+import type { BotData, CreditAccountData, RewardInfo } from "../base";
 import { SDKConstruct } from "../base";
 import {
   ADDRESS_0X0,
   AP_CREDIT_ACCOUNT_COMPRESSOR,
+  AP_PERIPHERY_COMPRESSOR,
   AP_REWARDS_COMPRESSOR,
   MAX_UINT256,
   MIN_INT96,
@@ -159,7 +161,6 @@ export interface PermitResult {
 
 export class CreditAccountsService extends SDKConstruct {
   #compressor: Address;
-  #rewardCompressor: Address;
   #batchSize?: number;
   #logger?: ILogger;
 
@@ -167,9 +168,6 @@ export class CreditAccountsService extends SDKConstruct {
     super(sdk);
     this.#compressor = sdk.addressProvider.getLatestVersion(
       AP_CREDIT_ACCOUNT_COMPRESSOR,
-    );
-    this.#rewardCompressor = sdk.addressProvider.getLatestVersion(
-      AP_REWARDS_COMPRESSOR,
     );
     this.#batchSize = options?.batchSize;
     this.#logger = childLogger("CreditAccountsService", sdk.logger);
@@ -218,7 +216,7 @@ export class CreditAccountsService extends SDKConstruct {
         },
       ],
       allowFailure: false,
-      gas: 550_000_000n,
+      // gas: 550_000_000n,
       batchSize: 0, // we cannot have price updates and compressor request in different batches
       blockNumber,
     });
@@ -292,12 +290,25 @@ export class CreditAccountsService extends SDKConstruct {
 
   async getRewards(account: Address): Promise<RewardInfo[]> {
     const rewards = await this.provider.publicClient.readContract({
-      abi: iRewardCompressorAbi,
-      address: this.#rewardCompressor,
+      abi: iRewardsCompressorAbi,
+      address: this.rewardCompressor,
       functionName: "getRewards",
       args: [account],
     });
     return [...rewards];
+  }
+
+  async getActiveBots(
+    marketConfigurator: Address,
+    account: Address,
+  ): Promise<BotData[]> {
+    const botsData = await this.provider.publicClient.readContract({
+      abi: iPeripheryCompressorAbi,
+      address: this.peripheryCompressor,
+      functionName: "getActiveBots",
+      args: [marketConfigurator, account],
+    });
+    return [...botsData];
   }
 
   /**
@@ -700,7 +711,7 @@ export class CreditAccountsService extends SDKConstruct {
           },
         ],
         allowFailure: false,
-        gas: 550_000_000n,
+        // gas: 550_000_000n,
         batchSize: 0, // we cannot have price updates and compressor request in different batches
         blockNumber,
       });
@@ -1046,5 +1057,13 @@ export class CreditAccountsService extends SDKConstruct {
    */
   private get marketConfigurators(): Array<Address> {
     return this.sdk.marketRegister.marketConfigurators.map(mc => mc.address);
+  }
+
+  private get rewardCompressor(): Address {
+    return this.sdk.addressProvider.getLatestVersion(AP_REWARDS_COMPRESSOR);
+  }
+
+  private get peripheryCompressor(): Address {
+    return this.sdk.addressProvider.getLatestVersion(AP_PERIPHERY_COMPRESSOR);
   }
 }

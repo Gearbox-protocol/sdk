@@ -1,5 +1,7 @@
 import type { Address } from "viem";
 
+import type { ZapperDataFull } from "../../market";
+
 export interface PoolDataPayload {
   addr: Address;
   underlying: Address;
@@ -11,7 +13,6 @@ export interface PoolDataPayload {
   expectedLiquidity: bigint;
   totalBorrowed: bigint;
   totalDebtLimit: bigint;
-  totalAssets: bigint;
   totalSupply: bigint;
   supplyRate: bigint;
   baseInterestRate: bigint;
@@ -45,7 +46,7 @@ export interface PoolDataPayload {
     isActive: boolean;
   }[];
 
-  zappers: readonly PoolZapper[];
+  zappers: readonly ZapperDataFull[];
 }
 export interface PoolDataExtraPayload {
   stakedDieselToken: Array<Address>;
@@ -63,12 +64,6 @@ export interface LinearModel {
   R_slope2: bigint;
   R_slope3: bigint;
   isBorrowingMoreU2Forbidden: boolean;
-}
-
-export interface PoolZapper {
-  zapper: Address;
-  tokenIn: Address;
-  tokenOut: Address;
 }
 
 export interface ChartsPoolDataPayload {

@@ -25,8 +25,7 @@ import { createAnvilClient } from "./createAnvilClient";
 export interface SDKExampleOptions {
   addressProvider?: string;
   addressProviderJson?: string;
-  marketConfigurator?: string;
-  marketConfiguratorJson?: string;
+  marketConfigurators: Address[];
   anvilUrl?: string;
   outFile?: string;
 }
@@ -43,8 +42,7 @@ export class SDKExample {
     const {
       addressProvider: ap,
       addressProviderJson,
-      marketConfigurator: mc,
-      marketConfiguratorJson,
+      marketConfigurators,
       anvilUrl = "http://127.0.0.1:8545",
       outFile,
     } = opts;
@@ -53,11 +51,6 @@ export class SDKExample {
       ap,
       addressProviderJson,
     );
-    const marketConfigurator = await this.#readConfigAddress(
-      "marketConfigurator",
-      mc,
-      marketConfiguratorJson,
-    );
 
     this.#sdk = await GearboxSDK.attach({
       rpcURLs: [anvilUrl],
@@ -65,13 +58,17 @@ export class SDKExample {
       addressProvider,
       logger: this.#logger,
       ignoreUpdateablePrices: true,
-      marketConfigurators: [marketConfigurator],
+      marketConfigurators,
     });
+    try {
+      await this.#sdk.marketRegister.loadZappers();
+    } catch (e) {
+      this.#logger?.error(`failed to load zappers: ${e}`);
+    }
     await this.#safeMigrateFaucet(addressProvider);
 
-    const puTx = await this.#sdk.priceFeeds.getUpdatePriceFeedsTx([
-      marketConfigurator,
-    ]);
+    const puTx =
+      await this.#sdk.priceFeeds.getUpdatePriceFeedsTx(marketConfigurators);
     const updater = createWalletClient({
       account: privateKeyToAccount(
         "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", // well-known anvil private key
@@ -84,7 +81,7 @@ export class SDKExample {
     const hash = await sendRawTx(updater, { tx: puTx });
     await publicClient.waitForTransactionReceipt({ hash });
 
-    await this.#sdk.marketRegister.loadMarkets([marketConfigurator], true);
+    await this.#sdk.marketRegister.loadMarkets(marketConfigurators, true);
 
     this.#logger?.info("attached sdk");
     if (outFile) {

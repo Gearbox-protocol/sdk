@@ -6,8 +6,10 @@ import type { Address, Hex } from "viem";
 
 import type {
   iCreditAccountCompressorAbi,
+  iGaugeCompressorAbi,
   iMarketCompressorAbi,
-  iRewardCompressorAbi,
+  iPeripheryCompressorAbi,
+  iRewardsCompressorAbi,
 } from "../abi";
 
 export type Unarray<A> = A extends readonly unknown[] ? Unarray<A[number]> : A;
@@ -18,6 +20,10 @@ export interface BaseParams {
   contractType: Hex;
   serializedParams: Hex;
 }
+
+export type MarketFilter = AbiParametersToPrimitiveTypes<
+  ExtractAbiFunction<typeof iMarketCompressorAbi, "getMarkets">["inputs"]
+>[0];
 
 export type CreditAccountData = Unarray<
   AbiParametersToPrimitiveTypes<
@@ -30,7 +36,7 @@ export type CreditAccountData = Unarray<
 
 export type RewardInfo = Unarray<
   AbiParametersToPrimitiveTypes<
-    ExtractAbiFunction<typeof iRewardCompressorAbi, "getRewards">["outputs"]
+    ExtractAbiFunction<typeof iRewardsCompressorAbi, "getRewards">["outputs"]
   >
 >;
 
@@ -40,8 +46,29 @@ export type MarketData = Unarray<
   >
 >;
 
+export type ZapperData = Unarray<
+  AbiParametersToPrimitiveTypes<
+    ExtractAbiFunction<typeof iPeripheryCompressorAbi, "getZappers">["outputs"]
+  >
+>;
+
+export type GaugeData = Unarray<
+  AbiParametersToPrimitiveTypes<
+    ExtractAbiFunction<typeof iGaugeCompressorAbi, "getGauge">["outputs"]
+  >
+>;
+
+export type BotData = Unarray<
+  AbiParametersToPrimitiveTypes<
+    ExtractAbiFunction<
+      typeof iPeripheryCompressorAbi,
+      "getActiveBots"
+    >["outputs"]
+  >
+>;
+
 export type CreditManagerData = Unarray<MarketData["creditManagers"]>;
-export type ZapperData = Unarray<MarketData["zappers"]>;
+
 export type CreditManagerState = CreditManagerData["creditManager"];
 export type CreditFacadeState = CreditManagerData["creditFacade"];
 export type CreditConfiguratorState = CreditManagerData["creditConfigurator"];

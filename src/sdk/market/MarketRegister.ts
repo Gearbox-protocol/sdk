@@ -1,11 +1,26 @@
 import type { Address } from "viem";
 
-import { iMarketCompressorAbi } from "../abi";
-import type { MarketData } from "../base";
+import {
+  iGaugeCompressorAbi,
+  iMarketCompressorAbi,
+  iPeripheryCompressorAbi,
+} from "../abi";
+import type { GaugeData, MarketData, MarketFilter, ZapperData } from "../base";
 import { SDKConstruct } from "../base";
-import { ADDRESS_0X0, AP_MARKET_COMPRESSOR } from "../constants";
+import {
+  ADDRESS_0X0,
+  AP_GAUGE_COMPRESSOR,
+  AP_MARKET_COMPRESSOR,
+  AP_PERIPHERY_COMPRESSOR,
+} from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
-import type { ILogger, MarketStateHuman, RawTx, TVL } from "../types";
+import type {
+  ILogger,
+  MarketStateHuman,
+  RawTx,
+  TVL,
+  ZapperStateHuman,
+} from "../types";
 import { AddressMap, childLogger } from "../utils";
 import { simulateMulticall } from "../utils/viem";
 import type { CreditSuite } from "./CreditSuite";
@@ -14,12 +29,19 @@ import { MarketSuite } from "./MarketSuite";
 import type { PoolSuite } from "./PoolSuite";
 import { rawTxToMulticallPriceUpdate } from "./pricefeeds";
 
+export interface ZapperDataFull extends ZapperData {
+  pool: Address;
+}
+
 export class MarketRegister extends SDKConstruct {
   #logger?: ILogger;
   /**
    * Mapping pool.address -> MarketSuite
    */
   #markets = new AddressMap<MarketSuite>();
+  #zappers = new AddressMap<Array<ZapperDataFull>>();
+
+  #marketFilter?: MarketFilter;
 
   constructor(sdk: GearboxSDK, markets?: MarketData[]) {
     super(sdk);
@@ -45,6 +67,80 @@ export class MarketRegister extends SDKConstruct {
     await this.#loadMarkets(marketConfigurators, [], ignoreUpdateablePrices);
   }
 
+  public async loadZappers(): Promise<void> {
+    const pcAddr = this.sdk.addressProvider.getAddress(
+      AP_PERIPHERY_COMPRESSOR,
+      3_10,
+    );
+    this.#logger?.debug(`loading zappers with periphery compressor ${pcAddr}`);
+    const resp = await this.provider.publicClient.multicall({
+      contracts: this.markets.map(m => ({
+        abi: iPeripheryCompressorAbi,
+        address: pcAddr,
+        functionName: "getZappers",
+        args: [m.configurator.address, m.pool.pool.address],
+      })),
+      allowFailure: true,
+    });
+
+    for (let i = 0; i < resp.length; i++) {
+      const { status, result, error } = resp[i];
+      const marketConfigurator = this.markets[i].configurator.address;
+      const pool = this.markets[i].pool.pool.address;
+
+      if (status === "success") {
+        const list = result as any as ZapperData[];
+
+        this.#zappers.upsert(
+          pool,
+          list.map(z => ({ ...z, pool })),
+        );
+      } else {
+        this.#logger?.error(
+          `failed to load zapper for market configurator ${this.labelAddress(marketConfigurator)} and pool ${this.labelAddress(pool)}: ${error}`,
+        );
+      }
+    }
+
+    const zappersTokens = this.#zappers
+      .values()
+      .flatMap(l => l.flatMap(z => [z.tokenIn, z.tokenOut]));
+    for (const t of zappersTokens) {
+      this.sdk.tokensMeta.upsert(t.addr, t);
+      this.sdk.provider.addressLabels.set(t.addr as Address, t.symbol);
+    }
+  }
+
+  public async getGauges(staker: Address): Promise<GaugeData[]> {
+    const gcAddr =
+      this.sdk.addressProvider.getLatestVersion(AP_GAUGE_COMPRESSOR);
+    if (!this.#marketFilter) {
+      throw new Error("market filter is not set");
+    }
+    const resp = await this.provider.publicClient.readContract({
+      abi: iGaugeCompressorAbi,
+      address: gcAddr,
+      functionName: "getGauges",
+      args: [this.#marketFilter, staker],
+    });
+    return [...resp];
+  }
+
+  public async getGauge(gauge: Address, staker: Address): Promise<GaugeData> {
+    const gcAddr =
+      this.sdk.addressProvider.getLatestVersion(AP_GAUGE_COMPRESSOR);
+    if (!this.#marketFilter) {
+      throw new Error("market filter is not set");
+    }
+    const resp = await this.provider.publicClient.readContract({
+      abi: iGaugeCompressorAbi,
+      address: gcAddr,
+      functionName: "getGauge",
+      args: [gauge, staker],
+    });
+    return resp;
+  }
+
   public async syncState(): Promise<void> {
     const pools = this.markets
       .filter(m => m.dirty)
@@ -60,6 +156,11 @@ export class MarketRegister extends SDKConstruct {
     pools: Address[],
     ignoreUpdateablePrices?: boolean,
   ): Promise<void> {
+    this.#marketFilter = {
+      configurators,
+      pools,
+      underlying: ADDRESS_0X0,
+    };
     const marketCompressorAddress = this.sdk.addressProvider.getAddress(
       AP_MARKET_COMPRESSOR,
       3_10,
@@ -75,30 +176,37 @@ export class MarketRegister extends SDKConstruct {
       const updates = await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs();
       txs = updates.txs;
     }
-    this.#logger?.debug({ configurators, pools }, "calling getMarkets");
+    this.#logger?.debug(
+      { configurators, pools },
+      `calling getMarkets with ${txs.length} price updates`,
+    );
     // ...and push them using multicall before getting answers
-    const resp = await simulateMulticall(this.provider.publicClient, {
-      contracts: [
-        ...txs.map(rawTxToMulticallPriceUpdate),
-        {
-          abi: iMarketCompressorAbi,
-          address: marketCompressorAddress,
-          functionName: "getMarkets",
-          args: [
-            {
-              configurators,
-              pools,
-              underlying: ADDRESS_0X0,
-            },
-          ],
-        },
-      ],
-      allowFailure: false,
-      gas: 550_000_000n,
-      batchSize: 0, // we cannot have price updates and compressor request in different batches
-    });
-
-    const markets = resp.pop() as MarketData[];
+    let markets: readonly MarketData[] = [];
+    if (txs.length) {
+      const resp = await simulateMulticall(this.provider.publicClient, {
+        contracts: [
+          ...txs.map(rawTxToMulticallPriceUpdate),
+          {
+            abi: iMarketCompressorAbi,
+            address: marketCompressorAddress,
+            functionName: "getMarkets",
+            args: [this.#marketFilter],
+          },
+        ],
+        allowFailure: false,
+        // gas: 550_000_000n,
+        batchSize: 0, // we cannot have price updates and compressor request in different batches
+      });
+      markets = resp.pop() as MarketData[];
+    } else {
+      markets = await this.provider.publicClient.readContract({
+        abi: iMarketCompressorAbi,
+        address: marketCompressorAddress,
+        functionName: "getMarkets",
+        args: [this.#marketFilter],
+        // gas: 550_000_000n,
+      });
+    }
 
     for (const data of markets) {
       this.#markets.upsert(
@@ -129,7 +237,7 @@ export class MarketRegister extends SDKConstruct {
         ...multicalls.map(mc => mc.call),
       ],
       allowFailure: false,
-      gas: 550_000_000n,
+      // gas: 550_000_000n,
       batchSize: 0, // we cannot have price updates and compressor request in different batches
     });
     const oraclesStates = resp.slice(txs.length);
@@ -144,8 +252,22 @@ export class MarketRegister extends SDKConstruct {
     return this.markets.map(market => market.state);
   }
 
-  public stateHuman(raw = true): MarketStateHuman[] {
-    return this.markets.map(market => market.stateHuman(raw));
+  public stateHuman(raw = true): {
+    markets: MarketStateHuman[];
+    zappers: ZapperStateHuman[];
+  } {
+    return {
+      markets: this.markets.map(market => market.stateHuman(raw)),
+      zappers: this.zappers.values().flatMap(l =>
+        l.flatMap(z => ({
+          address: z.baseParams.addr,
+          contractType: z.baseParams.contractType,
+          version: Number(z.baseParams.version),
+          tokenIn: this.labelAddress(z.tokenIn.addr),
+          tokenOut: this.labelAddress(z.tokenOut.addr),
+        })),
+      ),
+    };
   }
 
   public get pools(): PoolSuite[] {
@@ -211,6 +333,10 @@ export class MarketRegister extends SDKConstruct {
 
   public get marketsMap() {
     return this.#markets;
+  }
+
+  public get zappers() {
+    return this.#zappers;
   }
 
   public get markets(): MarketSuite[] {

@@ -115,6 +115,8 @@ const PT_IN = {
     "PT_sUSDe_26DEC2024",
   ["0xE00bd3Df25fb187d6ABBB620b3dfd19839947b81".toLowerCase()]:
     "PT_sUSDe_27MAR20251",
+  ["0xE00bd3Df25fb187d6ABBB620b3dfd19839947b81".toLowerCase()]:
+    "PT_sUSDe_29MAY2025",
 };
 
 const OUT = {

@@ -87,6 +87,7 @@ export function createAnvilClient({
       mode: "anvil",
       transport,
       cacheTime: 0,
+      pollingInterval: 50,
     },
   )
     .extend(publicActions)

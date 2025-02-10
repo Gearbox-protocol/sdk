@@ -61,7 +61,6 @@ export class PoolData_Legacy {
     >
   >;
 
-  readonly totalAssets: bigint;
   readonly totalSupply: bigint;
 
   readonly supplyAPY7D: number | undefined;
@@ -124,9 +123,9 @@ export class PoolData_Legacy {
 
     this.zappers = payload.zappers.reduce<PoolData_Legacy["zappers"]>(
       (acc, z) => {
-        const tokenIn = z.tokenIn.toLowerCase() as Address;
-        const tokenOut = z.tokenOut.toLowerCase() as Address;
-        const zapper = z.zapper.toLowerCase() as Address;
+        const tokenIn = z.tokenIn.addr.toLowerCase() as Address;
+        const tokenOut = z.tokenOut.addr.toLowerCase() as Address;
+        const zapper = z.baseParams.addr.toLowerCase() as Address;
         const old = acc[tokenIn] || {};
 
         return {
@@ -140,7 +139,6 @@ export class PoolData_Legacy {
       {},
     );
 
-    this.totalAssets = payload.totalAssets;
     this.totalSupply = payload.totalSupply;
 
     this.depositAPY = rayToNumber(payload.supplyRate * PERCENTAGE_DECIMALS);
