@@ -16,6 +16,8 @@ export interface GaugeParams {
   maxRate: number;
   totalVotesLpSide: bigint;
   totalVotesCaSide: bigint;
+  stakerVotesLpSide: bigint;
+  stakerVotesCaSide: bigint;
   rate: number;
 }
 
@@ -47,6 +49,8 @@ export class GaugeContract extends BaseContract<abi> {
               { name: "maxRate", type: "uint16" },
               { name: "totalVotesLpSide", type: "uint96" },
               { name: "totalVotesCaSide", type: "uint96" },
+              { name: "stakerVotesLpSide", type: "uint96" },
+              { name: "stakerVotesCaSide", type: "uint96" },
             ],
           },
         ],
@@ -62,6 +66,8 @@ export class GaugeContract extends BaseContract<abi> {
         maxRate: g.maxRate,
         totalVotesLpSide: g.totalVotesLpSide,
         totalVotesCaSide: g.totalVotesCaSide,
+        stakerVotesLpSide: g.stakerVotesLpSide,
+        stakerVotesCaSide: g.stakerVotesCaSide,
         rate: this.rates.get(g.token) ?? 0,
       });
     }
