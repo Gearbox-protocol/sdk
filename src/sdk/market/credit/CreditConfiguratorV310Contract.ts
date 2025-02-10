@@ -5,12 +5,12 @@ import type {
   Log,
 } from "viem";
 
-import { iCreditConfiguratorV310Abi } from "../abi";
-import type { CreditManagerData } from "../base";
-import { BaseContract } from "../base";
-import { RAMP_DURATION_BY_NETWORK } from "../constants";
-import type { GearboxSDK } from "../GearboxSDK";
-import { formatDuration, percentFmt } from "../utils";
+import { iCreditConfiguratorV310Abi } from "../../abi";
+import type { CreditManagerData } from "../../base";
+import { BaseContract } from "../../base";
+import { RAMP_DURATION_BY_NETWORK } from "../../constants";
+import type { GearboxSDK } from "../../GearboxSDK";
+import { formatDuration, percentFmt } from "../../utils";
 import type { RampEvent } from "./CreditConfiguratorV300Contract";
 
 const abi = iCreditConfiguratorV310Abi;

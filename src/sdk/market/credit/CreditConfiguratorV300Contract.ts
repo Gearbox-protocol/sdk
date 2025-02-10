@@ -6,12 +6,12 @@ import type {
   Log,
 } from "viem";
 
-import { creditConfiguratorV3Abi } from "../abi";
-import type { CreditManagerData } from "../base";
-import { BaseContract } from "../base";
-import { RAMP_DURATION_BY_NETWORK } from "../constants";
-import type { GearboxSDK } from "../GearboxSDK";
-import { formatDuration, percentFmt } from "../utils";
+import { creditConfiguratorV3Abi } from "../../abi";
+import type { CreditManagerData } from "../../base";
+import { BaseContract } from "../../base";
+import { RAMP_DURATION_BY_NETWORK } from "../../constants";
+import type { GearboxSDK } from "../../GearboxSDK";
+import { formatDuration, percentFmt } from "../../utils";
 
 const abi = creditConfiguratorV3Abi;
 type abi = typeof creditConfiguratorV3Abi;

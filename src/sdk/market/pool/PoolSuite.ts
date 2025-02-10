@@ -1,8 +1,8 @@
 import type { Address } from "viem";
 
-import { type MarketData, SDKConstruct } from "../base";
-import type { GearboxSDK } from "../GearboxSDK";
-import type { PoolSuiteStateHuman } from "../types";
+import { type MarketData, SDKConstruct } from "../../base";
+import type { GearboxSDK } from "../../GearboxSDK";
+import type { PoolSuiteStateHuman } from "../../types";
 import { GaugeContract } from "./GaugeContract";
 import { LinearModelContract } from "./LinearModelContract";
 import { PoolContract } from "./PoolContract";

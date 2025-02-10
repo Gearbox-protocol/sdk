@@ -1,26 +1,26 @@
 import type { Address, ContractEventName, Log } from "viem";
 
-import { creditManagerV3Abi } from "../abi";
-import type { CreditManagerData, CreditManagerState } from "../base";
-import { BaseContract } from "../base";
-import type { GearboxSDK } from "../GearboxSDK";
-import type { CreditManagerStateHuman } from "../types";
-import { AddressMap, fmtBinaryMask, percentFmt } from "../utils";
-import type { IAdapterContract } from "./adapters";
-import { createAdapter } from "./adapters";
+import { iCreditManagerV310Abi } from "../../abi";
+import type { CreditManagerData, CreditManagerState } from "../../base";
+import { BaseContract } from "../../base";
+import type { GearboxSDK } from "../../GearboxSDK";
+import type { CreditManagerStateHuman } from "../../types";
+import { AddressMap, fmtBinaryMask, percentFmt } from "../../utils";
+import type { IAdapterContract } from "../adapters";
+import { createAdapter } from "../adapters";
 
-type abi = typeof creditManagerV3Abi;
-const abi = creditManagerV3Abi;
+const abi = iCreditManagerV310Abi;
+type abi = typeof iCreditManagerV310Abi;
 
 // Augmenting contract class with interface of compressor data object
-export interface CreditManagerV300Contract
+export interface CreditManagerV310Contract
   extends Omit<
       CreditManagerState,
       "baseParams" | "collateralTokens" | "liquidationThresholds"
     >,
     BaseContract<abi> {}
 
-export class CreditManagerV300Contract extends BaseContract<abi> {
+export class CreditManagerV310Contract extends BaseContract<abi> {
   /**
    * Mapping targetContract => adapter
    */
@@ -34,7 +34,7 @@ export class CreditManagerV300Contract extends BaseContract<abi> {
     const { baseParams, collateralTokens, ...rest } = creditManager;
     super(sdk, {
       ...baseParams,
-      name: `CreditManagerV300(${creditManager.name})`,
+      name: `CreditManagerV310(${creditManager.name})`,
       abi,
     });
     Object.assign(this, rest);

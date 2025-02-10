@@ -1,9 +1,9 @@
 import type { Address, ContractEventName, Log } from "viem";
 
-import { priceOracleV3Abi } from "../abi";
-import type { PriceOracleData } from "../base";
-import type { GearboxSDK } from "../GearboxSDK";
-import { tickerInfoTokensByNetwork } from "../sdk-gov-legacy";
+import { priceOracleV3Abi } from "../../abi";
+import type { PriceOracleData } from "../../base";
+import type { GearboxSDK } from "../../GearboxSDK";
+import { tickerInfoTokensByNetwork } from "../../sdk-gov-legacy";
 import { PriceOracleBaseContract } from "./PriceOracleBaseContract";
 
 type abi = typeof priceOracleV3Abi;

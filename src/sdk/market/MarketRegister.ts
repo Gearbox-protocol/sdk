@@ -23,10 +23,10 @@ import type {
 } from "../types";
 import { AddressMap, childLogger } from "../utils";
 import { simulateMulticall } from "../utils/viem";
-import type { CreditSuite } from "./CreditSuite";
+import type { CreditSuite } from "./credit";
 import type { MarketConfiguratorContract } from "./MarketConfiguratorContract";
 import { MarketSuite } from "./MarketSuite";
-import type { PoolSuite } from "./PoolSuite";
+import type { PoolSuite } from "./pool";
 import { rawTxToMulticallPriceUpdate } from "./pricefeeds";
 
 export interface ZapperDataFull extends ZapperData {

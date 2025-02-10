@@ -1,8 +1,8 @@
 import type { Address } from "viem";
 
-import { type MarketData, SDKConstruct } from "../base";
-import type { GearboxSDK } from "../GearboxSDK";
-import type { CreditSuiteStateHuman, TVL } from "../types";
+import { type MarketData, SDKConstruct } from "../../base";
+import type { GearboxSDK } from "../../GearboxSDK";
+import type { CreditSuiteStateHuman, TVL } from "../../types";
 import { CreditConfiguratorV300Contract } from "./CreditConfiguratorV300Contract";
 import { CreditConfiguratorV310Contract } from "./CreditConfiguratorV310Contract";
 import { CreditFacadeV300Contract } from "./CreditFacadeV300Contract";

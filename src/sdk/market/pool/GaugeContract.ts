@@ -1,13 +1,13 @@
 import type { ContractEventName, Log } from "viem";
 import { decodeAbiParameters } from "viem";
 
-import { gaugeV3Abi } from "../abi";
-import type { PoolData, RateKeeperData } from "../base";
-import { BaseContract } from "../base";
-import { WAD } from "../constants";
-import type { GearboxSDK } from "../GearboxSDK";
-import type { GaugeStateHuman } from "../types";
-import { AddressMap, percentFmt } from "../utils";
+import { gaugeV3Abi } from "../../abi";
+import type { PoolData, RateKeeperData } from "../../base";
+import { BaseContract } from "../../base";
+import { WAD } from "../../constants";
+import type { GearboxSDK } from "../../GearboxSDK";
+import type { GaugeStateHuman } from "../../types";
+import { AddressMap, percentFmt } from "../../utils";
 
 type abi = typeof gaugeV3Abi;
 

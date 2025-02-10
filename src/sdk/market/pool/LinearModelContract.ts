@@ -1,11 +1,11 @@
 import { decodeAbiParameters } from "viem";
 
-import { linearInterestRateModelV3Abi } from "../abi";
-import type { MarketData } from "../base";
-import { BaseContract } from "../base";
-import type { GearboxSDK } from "../GearboxSDK";
-import type { LinearModelStateHuman } from "../types";
-import { percentFmt } from "../utils";
+import { linearInterestRateModelV3Abi } from "../../abi";
+import type { MarketData } from "../../base";
+import { BaseContract } from "../../base";
+import type { GearboxSDK } from "../../GearboxSDK";
+import type { LinearModelStateHuman } from "../../types";
+import { percentFmt } from "../../utils";
 
 type abi = typeof linearInterestRateModelV3Abi;
 

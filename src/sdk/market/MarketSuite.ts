@@ -4,11 +4,10 @@ import type { MarketData } from "../base";
 import { SDKConstruct } from "../base";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { MarketStateHuman } from "../types";
-import { CreditSuite } from "./CreditSuite";
+import { CreditSuite } from "./credit";
 import { MarketConfiguratorContract } from "./MarketConfiguratorContract";
-import { PoolSuite } from "./PoolSuite";
-import { PriceOracleV300Contract } from "./PriceOracleV300Contract";
-import { PriceOracleV310Contract } from "./PriceOracleV310Contract";
+import { PriceOracleV300Contract, PriceOracleV310Contract } from "./oracle";
+import { PoolSuite } from "./pool";
 
 export class MarketSuite extends SDKConstruct {
   public readonly acl: Address;

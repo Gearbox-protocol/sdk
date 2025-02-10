@@ -1,24 +1,24 @@
 import type { Abi, Address, Hex } from "viem";
 import { decodeFunctionData } from "viem";
 
-import { iPriceFeedCompressorAbi, iUpdatablePriceFeedAbi } from "../abi";
+import { iPriceFeedCompressorAbi, iUpdatablePriceFeedAbi } from "../../abi";
 import type {
   PriceFeedMapEntry,
   PriceFeedTreeNode,
   PriceOracleData,
-} from "../base";
-import { BaseContract } from "../base";
-import type { BaseContractOptions } from "../base/BaseContract";
-import { AP_PRICE_FEED_COMPRESSOR } from "../constants";
-import type { GearboxSDK } from "../GearboxSDK";
-import type { PriceOracleV3StateHuman } from "../types";
-import { AddressMap } from "../utils";
+} from "../../base";
+import { BaseContract } from "../../base";
+import type { BaseContractOptions } from "../../base/BaseContract";
+import { AP_PRICE_FEED_COMPRESSOR } from "../../constants";
+import type { GearboxSDK } from "../../GearboxSDK";
+import type { PriceOracleV3StateHuman } from "../../types";
+import { AddressMap } from "../../utils";
 import type {
   IPriceFeedContract,
   PriceFeedUsageType,
   UpdatePriceFeedsResult,
-} from "./pricefeeds";
-import { PriceFeedRef } from "./pricefeeds";
+} from "../pricefeeds";
+import { PriceFeedRef } from "../pricefeeds";
 
 export interface PriceFeedsForTokensOptions {
   main?: boolean;
