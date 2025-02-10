@@ -165,7 +165,7 @@ export interface GaugeParamsHuman {
 }
 
 export interface GaugeStateHuman extends BaseContractStateHuman {
-  currentEpoch: number;
+  epochLastUpdate: number;
   epochFrozen: boolean;
   quotaParams: Record<Address, GaugeParamsHuman>;
 }

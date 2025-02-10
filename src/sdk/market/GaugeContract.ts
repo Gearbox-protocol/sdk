@@ -16,15 +16,13 @@ export interface GaugeParams {
   maxRate: number;
   totalVotesLpSide: bigint;
   totalVotesCaSide: bigint;
-  stakerVotesLpSide: bigint;
-  stakerVotesCaSide: bigint;
   rate: number;
 }
 
 export class GaugeContract extends BaseContract<abi> {
   public readonly quotaParams: AddressMap<GaugeParams>;
   public readonly epochFrozen: boolean;
-  public readonly currentEpoch: number;
+  public readonly epochLastUpdate: number;
   public readonly rates: AddressMap<number>;
 
   constructor(sdk: GearboxSDK, pool: PoolData, gauge: RateKeeperData) {
@@ -34,41 +32,39 @@ export class GaugeContract extends BaseContract<abi> {
       abi: gaugeV3Abi,
     });
 
-    const [_voter, currentEpoch, epochFrozen, gaugeParams] =
+    const [_voter, epochLastUpdate, epochFrozen, gaugeTokens, gaugeParams] =
       decodeAbiParameters(
         [
           { name: "voter", type: "address" },
-          { name: "currentEpoch", type: "uint16" },
+          { name: "epochLastUpdate", type: "uint16" },
           { name: "epochFrozen", type: "bool" },
+          { name: "tokens", type: "address[]" },
           {
             name: "quotaParams",
             type: "tuple[]",
             components: [
-              { name: "token", type: "address" },
               { name: "minRate", type: "uint16" },
               { name: "maxRate", type: "uint16" },
               { name: "totalVotesLpSide", type: "uint96" },
               { name: "totalVotesCaSide", type: "uint96" },
-              { name: "stakerVotesLpSide", type: "uint96" },
-              { name: "stakerVotesCaSide", type: "uint96" },
             ],
           },
         ],
         gauge.baseParams.serializedParams,
       );
     this.epochFrozen = epochFrozen;
-    this.currentEpoch = currentEpoch;
+    this.epochLastUpdate = epochLastUpdate;
     this.rates = new AddressMap(gauge.rates.map(r => [r.token, r.rate]));
     this.quotaParams = new AddressMap();
-    for (const g of gaugeParams) {
-      this.quotaParams.upsert(g.token, {
-        minRate: g.minRate,
-        maxRate: g.maxRate,
-        totalVotesLpSide: g.totalVotesLpSide,
-        totalVotesCaSide: g.totalVotesCaSide,
-        stakerVotesLpSide: g.stakerVotesLpSide,
-        stakerVotesCaSide: g.stakerVotesCaSide,
-        rate: this.rates.get(g.token) ?? 0,
+    for (let i = 0; i < gaugeParams.length; i++) {
+      const token = gaugeTokens[i];
+      const params = gaugeParams[i];
+      this.quotaParams.upsert(token, {
+        minRate: params.minRate,
+        maxRate: params.maxRate,
+        totalVotesLpSide: params.totalVotesLpSide,
+        totalVotesCaSide: params.totalVotesCaSide,
+        rate: this.rates.get(token) ?? 0,
       });
     }
   }
@@ -102,7 +98,7 @@ export class GaugeContract extends BaseContract<abi> {
   public override stateHuman(raw?: boolean): GaugeStateHuman {
     return {
       ...super.stateHuman(raw),
-      currentEpoch: Number(this.currentEpoch),
+      epochLastUpdate: Number(this.epochLastUpdate),
       epochFrozen: this.epochFrozen,
       quotaParams: this.quotaParams.entries().reduce(
         (acc, [address, params]) => ({
