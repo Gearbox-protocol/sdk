@@ -8,6 +8,8 @@ import type { GearboxSDK } from "../GearboxSDK";
 const abi = iMarketConfiguratorV310Abi;
 
 export class MarketConfiguratorContract extends BaseContract<typeof abi> {
+  #curatorName?: string;
+
   constructor(sdk: GearboxSDK, address: Address) {
     super(sdk, {
       abi,
@@ -15,6 +17,18 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
       contractType: AP_MARKET_CONFIGURATOR,
       version: 0,
     });
+  }
+
+  public async loadCuratorName(): Promise<void> {
+    this.#curatorName = await this.sdk.provider.publicClient.readContract({
+      address: this.address,
+      abi: this.abi,
+      functionName: "curatorName",
+    });
+    this.sdk.provider.addressLabels.set(
+      this.address,
+      "Market configurator " + this.#curatorName,
+    );
   }
 
   public override processLog(
@@ -33,7 +47,7 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
       // case "SetName":
       // case "SetPriceFeedFromStore":
       // case "SetReservePriceFeedFromStore":
-      case "RemoveMarket":
+      case "ShutdownMarket":
       case "CreateMarket":
         this.dirty = true;
         break;

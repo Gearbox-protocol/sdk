@@ -82,8 +82,15 @@ export class SDKExample {
     await publicClient.waitForTransactionReceipt({ hash });
 
     await this.#sdk.marketRegister.loadMarkets(marketConfigurators, true);
-
     this.#logger?.info("attached sdk");
+
+    await Promise.allSettled(
+      this.#sdk.marketRegister.marketConfigurators.map(m =>
+        m.loadCuratorName(),
+      ),
+    );
+    this.#logger?.info("loaded curator names");
+
     if (outFile) {
       try {
         await writeFile(
