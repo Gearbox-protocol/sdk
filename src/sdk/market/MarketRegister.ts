@@ -1,15 +1,10 @@
 import type { Address } from "viem";
 
-import {
-  iGaugeCompressorAbi,
-  iMarketCompressorAbi,
-  iPeripheryCompressorAbi,
-} from "../abi";
-import type { GaugeData, MarketData, MarketFilter, ZapperData } from "../base";
+import { iMarketCompressorAbi, iPeripheryCompressorAbi } from "../abi";
+import type { MarketData, MarketFilter, ZapperData } from "../base";
 import { SDKConstruct } from "../base";
 import {
   ADDRESS_0X0,
-  AP_GAUGE_COMPRESSOR,
   AP_MARKET_COMPRESSOR,
   AP_PERIPHERY_COMPRESSOR,
 } from "../constants";
@@ -111,34 +106,8 @@ export class MarketRegister extends SDKConstruct {
     }
   }
 
-  public async getGauges(staker: Address): Promise<GaugeData[]> {
-    const gcAddr =
-      this.sdk.addressProvider.getLatestVersion(AP_GAUGE_COMPRESSOR);
-    if (!this.#marketFilter) {
-      throw new Error("market filter is not set");
-    }
-    const resp = await this.provider.publicClient.readContract({
-      abi: iGaugeCompressorAbi,
-      address: gcAddr,
-      functionName: "getGauges",
-      args: [this.#marketFilter, staker],
-    });
-    return [...resp];
-  }
-
-  public async getGauge(gauge: Address, staker: Address): Promise<GaugeData> {
-    const gcAddr =
-      this.sdk.addressProvider.getLatestVersion(AP_GAUGE_COMPRESSOR);
-    if (!this.#marketFilter) {
-      throw new Error("market filter is not set");
-    }
-    const resp = await this.provider.publicClient.readContract({
-      abi: iGaugeCompressorAbi,
-      address: gcAddr,
-      functionName: "getGauge",
-      args: [gauge, staker],
-    });
-    return resp;
+  get marketFilter() {
+    return this.#marketFilter;
   }
 
   public async syncState(): Promise<void> {
