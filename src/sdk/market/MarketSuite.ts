@@ -67,6 +67,7 @@ export class MarketSuite extends SDKConstruct {
 
   public stateHuman(raw = true): MarketStateHuman {
     return {
+      configurator: this.labelAddress(this.configurator.address),
       pool: this.pool.stateHuman(raw),
       creditManagers: this.creditManagers.map(cm => cm.stateHuman(raw)),
       priceOracle: this.priceOracle.stateHuman(raw),

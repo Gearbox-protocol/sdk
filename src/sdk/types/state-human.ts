@@ -199,6 +199,7 @@ export interface ZapperStateHuman extends BaseContractStateHuman {
 }
 
 export interface MarketStateHuman {
+  configurator: string;
   pool: PoolSuiteStateHuman;
   creditManagers: CreditSuiteStateHuman[];
   priceOracle: PriceOracleV3StateHuman;
