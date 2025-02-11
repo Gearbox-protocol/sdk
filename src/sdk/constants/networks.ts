@@ -12,12 +12,11 @@ export const ADDRESS_PROVIDER_BLOCK: Record<NetworkType, bigint> = {
 };
 
 const BLOCK_DURATION_BY_NETWORK: Record<NetworkType, number> = {
-  Mainnet: 12.16,
+  Mainnet: 12.05,
   Arbitrum: 0.26,
-  Optimism: 1.64,
+  Optimism: 2,
   Base: 2.01,
-  // TODO:
-  Sonic: 1,
+  Sonic: 0.91,
 };
 
 const RAMP_TIME = 30 * 24 * 60 * 60 * 1.2;

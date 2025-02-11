@@ -18,11 +18,12 @@ const CHARTS_BACKEND_ADDRESSES: Record<number, string> = {
   [chains.Arbitrum.id]: "https://charts-server.fly.dev",
   [chains.Optimism.id]: "https://charts-server.fly.dev",
   [chains.Base.id]: "https://charts-server.fly.dev",
+  [chains.Sonic.id]: "https://charts-server.fly.dev",
 
   [TESTNET_CHAINS.Mainnet]: "https://testnet.gearbox.foundation",
   [TESTNET_CHAINS.Arbitrum]: "https://arbtest.gearbox.foundation",
   [TESTNET_CHAINS.Optimism]: "https://opttest.gearbox.foundation",
-  // !& Base
+  // !& Base & Sonic
 };
 
 const LAMA_URL = "https://charts-server.fly.dev/api/defillama?ids=";
@@ -33,10 +34,14 @@ const LEADERBOARD_APIS: Record<number, string> = {
   [chains.Mainnet.id]: "https://gpointbot.fly.dev",
   [chains.Optimism.id]: "https://gpointbot.fly.dev",
   [chains.Arbitrum.id]: "https://gpointbot.fly.dev",
+  [chains.Base.id]: "https://gpointbot.fly.dev",
+  [chains.Sonic.id]: "https://gpointbot.fly.dev",
 
   [TESTNET_CHAINS.Mainnet]: "https://testnet.gearbox.foundation/gpointbot",
   [TESTNET_CHAINS.Optimism]: "https://testnet.gearbox.foundation/gpointbot",
   [TESTNET_CHAINS.Arbitrum]: "https://testnet.gearbox.foundation/gpointbot",
+  [TESTNET_CHAINS.Base]: "https://testnet.gearbox.foundation/gpointbot",
+  [TESTNET_CHAINS.Sonic]: "https://testnet.gearbox.foundation/gpointbot",
 };
 
 const REFERRAL_API = "https://referral-gen.fly.dev/generate";
