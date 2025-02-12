@@ -6,13 +6,13 @@ import type {
 } from "viem";
 import { bytesToString, getAbiItem, parseEventLogs, toBytes } from "viem";
 
-import { iAddressProviderV3Abi } from "../../abi";
+import { iAddressProviderV300Abi } from "../../abi";
 import { ADDRESS_PROVIDER_BLOCK } from "../../constants";
 import type { GearboxSDK } from "../../GearboxSDK";
 import AbstractAddressProviderContract from "./AbstractAddressProviderContract";
 import type { IAddressProviderContract } from "./types";
 
-const abi = iAddressProviderV3Abi;
+const abi = iAddressProviderV300Abi;
 type abi = typeof abi;
 
 export class AddressProviderContractV3

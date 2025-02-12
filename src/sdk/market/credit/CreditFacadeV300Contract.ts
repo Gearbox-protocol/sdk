@@ -6,7 +6,11 @@ import type {
 } from "viem";
 import { encodeFunctionData } from "viem";
 
-import { creditFacadeV3Abi, iCreditFacadeV3MulticallAbi } from "../../abi";
+import {
+  iCreditFacadeV3MulticallAbi,
+  iCreditFacadeV300Abi,
+  iPausableAbi,
+} from "../../abi";
 import type { CreditFacadeState, CreditManagerData } from "../../base";
 import { BaseContract } from "../../base";
 import { ADDRESS_0X0 } from "../../constants";
@@ -15,7 +19,11 @@ import type { CreditFacadeStateHuman, MultiCall, RawTx } from "../../types";
 import { fmtBinaryMask, formatBNvalue } from "../../utils";
 import type { OnDemandPriceUpdate } from "../oracle";
 
-const abi = [...creditFacadeV3Abi, ...iCreditFacadeV3MulticallAbi];
+const abi = [
+  ...iCreditFacadeV300Abi,
+  ...iCreditFacadeV3MulticallAbi,
+  ...iPausableAbi,
+] as const;
 type abi = typeof abi;
 
 // Augmenting contract class with interface of compressor data object
@@ -84,7 +92,6 @@ export class CreditFacadeV300Contract extends BaseContract<abi> {
       case "FinishMultiCall":
       case "IncreaseDebt":
       case "LiquidateCreditAccount":
-      case "NewController":
       case "OpenCreditAccount":
       case "StartMultiCall":
       case "WithdrawCollateral":

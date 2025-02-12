@@ -1,7 +1,7 @@
 import type { ContractEventName, Log } from "viem";
 import { decodeAbiParameters } from "viem";
 
-import { gaugeV3Abi } from "../../abi";
+import { iGaugeV300Abi } from "../../abi";
 import type { PoolData, RateKeeperData } from "../../base";
 import { BaseContract } from "../../base";
 import { WAD } from "../../constants";
@@ -10,7 +10,8 @@ import type { GaugeStateHuman } from "../../types";
 import { AddressMap, percentFmt } from "../../utils";
 import type { IRateKeeperContract } from "./types";
 
-type abi = typeof gaugeV3Abi;
+const abi = iGaugeV300Abi;
+type abi = typeof abi;
 
 export interface GaugeParams {
   minRate: number;
@@ -33,7 +34,7 @@ export class GaugeContract
     super(sdk, {
       ...gauge.baseParams,
       name: `Gauge(${pool.name})`,
-      abi: gaugeV3Abi,
+      abi: iGaugeV300Abi,
     });
 
     const [_voter, epochLastUpdate, epochFrozen, gaugeTokens, gaugeParams] =
@@ -86,11 +87,8 @@ export class GaugeContract
   ): void {
     switch (log.eventName) {
       case "AddQuotaToken":
-      case "NewController":
-      case "Paused":
       case "SetFrozenEpoch":
       case "SetQuotaTokenParams":
-      case "Unpaused":
       case "Unvote":
       case "UpdateEpoch":
       case "Vote":

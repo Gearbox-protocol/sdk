@@ -1,6 +1,6 @@
 import type { Address, ContractEventName, Log } from "viem";
 
-import { creditManagerV3Abi } from "../../abi";
+import { iCreditManagerV300Abi } from "../../abi";
 import type { CreditManagerData, CreditManagerState } from "../../base";
 import { BaseContract } from "../../base";
 import type { GearboxSDK } from "../../GearboxSDK";
@@ -10,8 +10,8 @@ import type { IAdapterContract } from "../adapters";
 import { createAdapter } from "../adapters";
 import type { ICreditManagerContract } from "./types";
 
-type abi = typeof creditManagerV3Abi;
-const abi = creditManagerV3Abi;
+type abi = typeof iCreditManagerV300Abi;
+const abi = iCreditManagerV300Abi;
 
 // Augmenting contract class with interface of compressor data object
 export interface CreditManagerV300Contract

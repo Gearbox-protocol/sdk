@@ -6,7 +6,7 @@ import type {
   Log,
 } from "viem";
 
-import { creditConfiguratorV3Abi } from "../../abi";
+import { iCreditConfiguratorV300Abi, iPausableAbi } from "../../abi";
 import type { CreditManagerData } from "../../base";
 import { BaseContract } from "../../base";
 import { RAMP_DURATION_BY_NETWORK } from "../../constants";
@@ -14,8 +14,8 @@ import type { GearboxSDK } from "../../GearboxSDK";
 import { formatDuration, percentFmt } from "../../utils";
 import type { ICreditConfiguratorContract } from "./types";
 
-const abi = creditConfiguratorV3Abi;
-type abi = typeof creditConfiguratorV3Abi;
+const abi = [...iCreditConfiguratorV300Abi, ...iPausableAbi] as const;
+type abi = typeof abi;
 
 export type RampEvent = GetEventArgs<
   abi,
@@ -70,7 +70,6 @@ export class CreditConfiguratorV300Contract
       case "CreditConfiguratorUpgraded":
       case "ForbidAdapter":
       case "ForbidToken":
-      case "NewController":
       case "QuoteToken":
       case "RemoveEmergencyLiquidator":
       case "ResetCumulativeLoss":

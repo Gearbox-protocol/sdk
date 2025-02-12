@@ -4,21 +4,22 @@ import type {
   Log,
 } from "viem";
 
-import { poolV3Abi } from "../../abi";
+import { iPausableAbi, iPoolV300Abi } from "../../abi";
 import type { CreditManagerDebtParams, PoolData } from "../../base";
 import { BaseContract } from "../../base";
 import type { GearboxSDK } from "../../GearboxSDK";
 import type { PoolStateHuman } from "../../types";
 import { AddressMap, formatBN, formatBNvalue, percentFmt } from "../../utils";
 
-const abi = poolV3Abi;
+const abi = [...iPoolV300Abi, ...iPausableAbi] as const;
+type abi = typeof abi;
 
 // Augmenting contract class with interface of compressor data object
 export interface PoolV300Contract
   extends Omit<PoolData, "baseParams" | "creditManagerDebtParams">,
-    BaseContract<typeof abi> {}
+    BaseContract<abi> {}
 
-export class PoolV300Contract extends BaseContract<typeof abi> {
+export class PoolV300Contract extends BaseContract<abi> {
   public readonly creditManagerDebtParams: AddressMap<CreditManagerDebtParams>;
 
   constructor(sdk: GearboxSDK, data: PoolData) {
@@ -97,8 +98,8 @@ export class PoolV300Contract extends BaseContract<typeof abi> {
       false,
       undefined,
       undefined,
-      typeof abi,
-      ContractEventName<typeof abi>
+      abi,
+      ContractEventName<abi>
     >,
   ): void {
     switch (log.eventName) {
@@ -108,30 +109,27 @@ export class PoolV300Contract extends BaseContract<typeof abi> {
       case "Unpaused":
         this.isPaused = false;
         break;
-      // TODO: do we really mark all events?
-      case "SetCreditManagerDebtLimit":
-      case "Repay":
-      case "Borrow":
-      case "Deposit":
-      case "Withdraw":
-      case "SetTotalDebtLimit":
-      case "SetWithdrawFee":
       case "AddCreditManager":
       case "Approval":
-      case "EIP712DomainChanged":
+      case "Borrow":
+      case "Deposit":
       case "IncurUncoveredLoss":
-      case "NewController":
       case "Refer":
+      case "Repay":
+      case "SetCreditManagerDebtLimit":
       case "SetInterestRateModel":
       case "SetPoolQuotaKeeper":
+      case "SetTotalDebtLimit":
+      case "SetWithdrawFee":
       case "Transfer":
+      case "Withdraw":
         this.dirty = true;
         break;
     }
   }
 
   public parseFunctionParams(
-    params: DecodeFunctionDataReturnType<typeof abi>,
+    params: DecodeFunctionDataReturnType<abi>,
   ): Array<string> | undefined {
     switch (params.functionName) {
       case "deposit": {

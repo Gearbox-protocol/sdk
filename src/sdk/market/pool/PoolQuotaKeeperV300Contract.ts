@@ -1,6 +1,6 @@
 import type { ContractEventName, Log } from "viem";
 
-import { poolQuotaKeeperV3Abi } from "../../abi";
+import { iPoolQuotaKeeperV300Abi } from "../../abi";
 import type {
   IBaseContract,
   PoolData,
@@ -12,7 +12,7 @@ import type { GearboxSDK } from "../../GearboxSDK";
 import type { PoolQuotaKeeperStateHuman } from "../../types";
 import { AddressMap, formatBNvalue, percentFmt } from "../../utils";
 
-type abi = typeof poolQuotaKeeperV3Abi;
+type abi = typeof iPoolQuotaKeeperV300Abi;
 
 export class PoolQuotaKeeperV300Contract
   extends BaseContract<abi>
@@ -25,7 +25,7 @@ export class PoolQuotaKeeperV300Contract
     super(sdk, {
       ...pqk.baseParams,
       name: `PoolQuotaKeeper(${pool.name})`,
-      abi: poolQuotaKeeperV3Abi,
+      abi: iPoolQuotaKeeperV300Abi,
     });
 
     this.decimals = pool.decimals;
@@ -75,12 +75,9 @@ export class PoolQuotaKeeperV300Contract
     switch (log.eventName) {
       case "AddCreditManager":
       case "AddQuotaToken":
-      case "NewController":
-      case "Paused":
       case "SetGauge":
       case "SetQuotaIncreaseFee":
       case "SetTokenLimit":
-      case "Unpaused":
       case "UpdateQuota":
       case "UpdateTokenQuotaRate":
         this.dirty = true;

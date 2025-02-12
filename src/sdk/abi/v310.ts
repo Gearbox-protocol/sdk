@@ -1,4 +1,4 @@
-export const iAddressProviderV3_1Abi = [
+export const iAddressProviderV310Abi = [
   {
     type: "constructor",
     inputs: [],

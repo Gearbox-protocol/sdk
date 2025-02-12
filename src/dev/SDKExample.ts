@@ -15,8 +15,8 @@ import type { ILogger } from "../sdk";
 import {
   ADDRESS_PROVIDER,
   GearboxSDK,
-  iAddressProviderV3_1Abi,
-  iAddressProviderV3Abi,
+  iAddressProviderV300Abi,
+  iAddressProviderV310Abi,
   json_stringify,
   sendRawTx,
 } from "../sdk";
@@ -153,13 +153,13 @@ export class SDKExample {
     const [faucetAddr, owner] = await anvil.multicall({
       contracts: [
         {
-          abi: iAddressProviderV3Abi,
+          abi: iAddressProviderV300Abi,
           address: ADDRESS_PROVIDER[this.sdk.provider.networkType],
           functionName: "getAddressOrRevert",
           args: [stringToHex("FAUCET", { size: 32 }), 0n],
         },
         {
-          abi: iAddressProviderV3_1Abi,
+          abi: iAddressProviderV310Abi,
           address: addressProvider,
           functionName: "owner",
           args: [],
@@ -177,7 +177,7 @@ export class SDKExample {
       chain: anvil.chain,
       account: owner,
       address: addressProvider,
-      abi: iAddressProviderV3_1Abi,
+      abi: iAddressProviderV310Abi,
       functionName: "setAddress",
       args: [stringToHex("FAUCET", { size: 32 }), faucetAddr, true],
     });
