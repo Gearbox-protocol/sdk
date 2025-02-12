@@ -28,6 +28,7 @@ export class PoolData_Legacy {
   readonly gauge: Address;
   readonly name: string;
   readonly symbol: string;
+  readonly marketConfigurator: Address;
 
   // Information
   readonly expectedLiquidity: bigint;
@@ -90,6 +91,8 @@ export class PoolData_Legacy {
     this.gauge = payload.gauge.toLowerCase() as Address;
     this.name = payload.name;
     this.symbol = payload.symbol;
+    this.marketConfigurator =
+      payload.marketConfigurator.toLowerCase() as Address;
 
     const expected = payload.expectedLiquidity;
     const available = payload.availableLiquidity;

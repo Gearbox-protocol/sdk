@@ -49,6 +49,8 @@ export interface CreditManagerDataPayload {
   forbiddenTokenMask: bigint;
   isPaused: boolean;
 
+  marketConfigurator: Address;
+
   collateralTokens: readonly Address[];
 
   adapters: Array<IAdapterContract>;

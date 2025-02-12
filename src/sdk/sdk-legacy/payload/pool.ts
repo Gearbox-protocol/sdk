@@ -25,6 +25,8 @@ export interface PoolDataPayload {
   gauge: Address;
   isPaused: boolean;
 
+  marketConfigurator: Address;
+
   readonly lirm: {
     interestModel: Address;
     version: bigint;

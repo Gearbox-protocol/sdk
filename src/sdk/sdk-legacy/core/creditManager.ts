@@ -26,6 +26,7 @@ export class CreditManagerData_Legacy {
   readonly maxEnabledTokensLength: number;
   readonly name: string;
   readonly tier: number;
+  readonly marketConfigurator: Address;
 
   readonly baseBorrowRate: number;
 
@@ -67,6 +68,8 @@ export class CreditManagerData_Legacy {
     this.forbiddenTokenMask = payload.forbiddenTokenMask;
     this.maxEnabledTokensLength = Number(payload.maxEnabledTokensLength);
     this.isBorrowingForbidden = payload.isBorrowingForbidden;
+    this.marketConfigurator =
+      payload.marketConfigurator.toLowerCase() as Address;
 
     this.baseBorrowRate = Number(
       (payload.baseBorrowRate *
