@@ -4,21 +4,22 @@ import type {
   Log,
 } from "viem";
 
-import { iPoolV310Abi } from "../../abi";
+import { iPausableAbi, iPoolV310Abi } from "../../abi";
 import type { CreditManagerDebtParams, PoolData } from "../../base";
 import { BaseContract } from "../../base";
 import type { GearboxSDK } from "../../GearboxSDK";
 import type { PoolStateHuman } from "../../types";
 import { AddressMap, formatBN, formatBNvalue, percentFmt } from "../../utils";
 
-const abi = iPoolV310Abi;
+const abi = [...iPoolV310Abi, ...iPausableAbi] as const;
+type abi = typeof abi;
 
 // Augmenting contract class with interface of compressor data object
 export interface PoolV310Contract
   extends Omit<PoolData, "baseParams" | "creditManagerDebtParams">,
-    BaseContract<typeof abi> {}
+    BaseContract<abi> {}
 
-export class PoolV310Contract extends BaseContract<typeof abi> {
+export class PoolV310Contract extends BaseContract<abi> {
   public readonly creditManagerDebtParams: AddressMap<CreditManagerDebtParams>;
 
   constructor(sdk: GearboxSDK, data: PoolData) {
@@ -97,12 +98,17 @@ export class PoolV310Contract extends BaseContract<typeof abi> {
       false,
       undefined,
       undefined,
-      typeof abi,
-      ContractEventName<typeof abi>
+      abi,
+      ContractEventName<abi>
     >,
   ): void {
     switch (log.eventName) {
-      // TODO: pause and unpause events are gone
+      case "Paused":
+        this.isPaused = true;
+        break;
+      case "Unpaused":
+        this.isPaused = false;
+        break;
       case "AddCreditManager":
       case "Approval":
       case "Borrow":
@@ -123,7 +129,7 @@ export class PoolV310Contract extends BaseContract<typeof abi> {
   }
 
   public parseFunctionParams(
-    params: DecodeFunctionDataReturnType<typeof abi>,
+    params: DecodeFunctionDataReturnType<abi>,
   ): Array<string> | undefined {
     switch (params.functionName) {
       case "deposit": {
