@@ -71,7 +71,7 @@
     "tslog": "^3.3.3",
     "typechain": "^8.1.0",
     "typescript": "5.0.4",
-    "viem": "^2.4.0"
+    "viem": "^2.21.57"
   },
   "prettier": "@gearbox-protocol/prettier-config",
   "lint-staged": {
