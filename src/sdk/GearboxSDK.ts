@@ -15,6 +15,7 @@ import {
   AP_GEAR_STAKING,
   AP_GEAR_TOKEN,
   AP_ROUTER,
+  NO_VERSION,
 } from "./constants";
 import type { IAddressProviderContract } from "./core";
 import {
@@ -241,13 +242,18 @@ export class GearboxSDK {
     await this.#addressProvider.syncState(this.currentBlock);
 
     // Attaching bot list contract
-    const botListAddress = this.#addressProvider.getLatestVersion(AP_BOT_LIST);
+    const botListAddress = this.#addressProvider.getAddress(
+      AP_BOT_LIST,
+      NO_VERSION,
+    );
     this.#botListContract = new BotListContract(this, botListAddress);
 
     // Attaching gear staking contract
-    this.#gear = this.#addressProvider.getAddress(AP_GEAR_TOKEN);
-    const gearStakingAddress =
-      this.#addressProvider.getLatestVersion(AP_GEAR_STAKING);
+    this.#gear = this.#addressProvider.getAddress(AP_GEAR_TOKEN, NO_VERSION);
+    const gearStakingAddress = this.#addressProvider.getAddress(
+      AP_GEAR_STAKING,
+      NO_VERSION,
+    );
     this.#gearStakingContract = new GearStakingContract(
       this,
       gearStakingAddress,
