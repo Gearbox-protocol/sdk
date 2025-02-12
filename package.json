@@ -28,7 +28,7 @@
     "test": "npx mocha -r ts-node/register -r dotenv/config 'src/**/*.spec.ts'"
   },
   "dependencies": {
-    "@gearbox-protocol/sdk-gov": "v2.34.0-next.37",
+    "@gearbox-protocol/sdk-gov": "v2.34.0-next.47",
     "@wagmi/cli": "^2.1.13",
     "axios": "^1.2.6",
     "decimal.js-light": "^2.5.1",
@@ -71,7 +71,7 @@
     "tslog": "^3.3.3",
     "typechain": "^8.1.0",
     "typescript": "5.0.4",
-    "viem": "^2.4.0"
+    "viem": "^2.21.57"
   },
   "prettier": "@gearbox-protocol/prettier-config",
   "lint-staged": {
