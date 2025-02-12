@@ -10,13 +10,16 @@ import createPoolQuotaKeeper from "./createPoolQuotaKeeper";
 import createRateKeeper from "./createRateKeeper";
 import { GaugeContract } from "./GaugeContract";
 import { LinearInterestRateModelContract } from "./LinearInterestRateModelContract";
-import type { PoolQuotaKeeperV300Contract } from "./PoolQuotaKeeperV300Contract";
-import type { PoolV300Contract } from "./PoolV300Contract";
-import type { IInterestRateModelContract, IRateKeeperContract } from "./types";
+import type {
+  IInterestRateModelContract,
+  IRateKeeperContract,
+  PoolContract,
+  PoolQuotaKeeperContract,
+} from "./types";
 
 export class PoolSuite extends SDKConstruct {
-  public readonly pool: PoolV300Contract;
-  public readonly pqk: PoolQuotaKeeperV300Contract;
+  public readonly pool: PoolContract;
+  public readonly pqk: PoolQuotaKeeperContract;
   public readonly rateKeeper: IRateKeeperContract;
   public readonly interestRateModel: IInterestRateModelContract;
 

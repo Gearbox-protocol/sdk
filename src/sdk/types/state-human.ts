@@ -171,6 +171,13 @@ export interface GaugeStateHuman extends BaseContractStateHuman {
   quotaParams: Record<Address, GaugeParamsHuman>;
 }
 
+export interface TumblerStateHuman extends BaseContractStateHuman {
+  epochLength: string;
+  rates: Record<string, string>;
+}
+
+export type RateKeeperStateHuman = GaugeStateHuman | TumblerStateHuman;
+
 export interface LinearInterestRateModelStateHuman
   extends BaseContractStateHuman {
   U1: string;
@@ -183,8 +190,6 @@ export interface LinearInterestRateModelStateHuman
 }
 
 export type InterestRateModelStateHuman = LinearInterestRateModelStateHuman;
-
-export type RateKeeperStateHuman = GaugeStateHuman;
 
 export interface PoolSuiteStateHuman {
   pool: PoolStateHuman;

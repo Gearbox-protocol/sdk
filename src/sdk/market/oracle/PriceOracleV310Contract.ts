@@ -34,7 +34,6 @@ export class PriceOracleV310Contract extends PriceOracleBaseContract<abi> {
   ): void {
     switch (log.eventName) {
       case "AddUpdatablePriceFeed":
-      case "NewController":
       case "SetPriceFeed":
       case "SetReservePriceFeed":
         this.dirty = true;

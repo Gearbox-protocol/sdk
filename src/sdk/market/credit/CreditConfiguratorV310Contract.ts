@@ -48,24 +48,22 @@ export class CreditConfiguratorV310Contract
   ): void {
     switch (log.eventName) {
       case "AddCollateralToken":
-      case "AddEmergencyLiquidator":
       case "AllowAdapter":
       case "AllowToken":
       case "CreditConfiguratorUpgraded":
       case "ForbidAdapter":
       case "ForbidToken":
-      case "NewController":
-      case "RemoveEmergencyLiquidator":
       case "ScheduleTokenLiquidationThresholdRamp":
       case "SetBorrowingLimits":
       case "SetCreditFacade":
       case "SetExpirationDate":
-      case "SetLossLiquidator":
+      case "SetLossPolicy":
       case "SetMaxDebtPerBlockMultiplier":
       case "SetPriceOracle":
       case "SetTokenLiquidationThreshold":
       case "UpdateFees":
         this.dirty = true;
+        break;
     }
   }
 
