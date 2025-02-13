@@ -1,3 +1,6 @@
+import type { Address } from "viem";
+
+import type { NetworkType } from "../../chain";
 import { NOT_DEPLOYED } from "../../constants";
 import type { CurveLPToken, ERC4626LPToken, NormalToken } from "../tokens";
 import { AdapterInterface } from "./adapters";
@@ -170,7 +173,7 @@ interface BaseContractParams {
   name: string;
 }
 
-export type CurveParams = {
+type CurveParams = {
   protocol: Protocols.Curve;
   type:
     | AdapterInterface.CURVE_V1_2ASSETS
@@ -185,7 +188,20 @@ export type CurveParams = {
   wrapper?: CurvePoolContract;
 } & BaseContractParams;
 
-export const contractParams: Record<CurvePoolContract, CurveParams> = {
+export type CurveSteCRVPoolParams = {
+  protocol: Protocols.Curve;
+  type: AdapterInterface.CURVE_V1_STECRV_POOL;
+  version: number;
+
+  pool: Record<NetworkType, Address>;
+  tokens: ["WETH", "STETH"] | ["WETH", "wstETH"];
+  lpToken: "steCRV" | "wstETHCRV";
+} & BaseContractParams;
+
+export const contractParams: Record<
+  CurvePoolContract,
+  CurveParams | CurveSteCRVPoolParams
+> = {
   CURVE_3CRV_POOL: {
     name: "Curve 3Pool",
     protocol: Protocols.Curve,
