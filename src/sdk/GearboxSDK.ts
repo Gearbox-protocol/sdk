@@ -346,6 +346,7 @@ export class GearboxSDK {
         botList: this.botListContract.stateHuman(raw),
         gearStakingV3: this.gearStakingContract.stateHuman(raw),
       },
+      tokens: this.tokensMeta.values(),
       ...this.marketRegister.stateHuman(raw),
     };
   }

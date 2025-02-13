@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 
+import type { TokenMetaData } from "../base";
 import type { PriceFeedContractType } from "../market";
 
 export interface BaseContractStateHuman {
@@ -219,4 +220,5 @@ export interface GearboxStateHuman {
   core: CoreStateHuman;
   markets: MarketStateHuman[];
   zappers: ZapperStateHuman[];
+  tokens: TokenMetaData[];
 }
