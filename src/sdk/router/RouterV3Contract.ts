@@ -5,7 +5,7 @@ import { BaseContract } from "../base";
 import type { CreditAccountData } from "../base/types";
 import { PERCENTAGE_FACTOR } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
-import { contractsByNetwork, getConnectors } from "../sdk-gov-legacy";
+import { getConnectors } from "../sdk-gov-legacy";
 import { AddressMap } from "../utils";
 import type { IHooks } from "../utils/internal";
 import { Hooks } from "../utils/internal";
@@ -250,6 +250,7 @@ export class RouterV3Contract
     };
   }
 
+  // TODO: remove me when new router will be added
   async overridePTRedeem({
     creditAccount,
     creditManager,
@@ -262,8 +263,17 @@ export class RouterV3Contract
       37,
     ]);
     const cm = this.sdk.marketRegister.findCreditManager(creditManager.address);
+
+    const PENDLE_ROUTER_BY_NETWORK = {
+      Mainnet: "0x888888888889758F76e7103c6CbF23ABbF58F946",
+      Arbitrum: "0x0",
+      Optimism: "0x0",
+      Base: "0x0",
+      Sonic: "0x0",
+    } as const;
+
     const pendleRouter =
-      contractsByNetwork[this.sdk.provider.networkType].PENDLE_ROUTER;
+      PENDLE_ROUTER_BY_NETWORK[this.sdk.provider.networkType];
     const pendleAdapter = cm.creditManager.adapters.mustGet(pendleRouter);
 
     const pendleSwapper = getContract({
