@@ -7,7 +7,7 @@ import {
   iPeripheryCompressorAbi,
   iRewardsCompressorAbi,
 } from "../abi";
-import type { BotData, CreditAccountData, RewardInfo } from "../base";
+import type { CreditAccountData } from "../base";
 import { SDKConstruct } from "../base";
 import {
   ADDRESS_0X0,

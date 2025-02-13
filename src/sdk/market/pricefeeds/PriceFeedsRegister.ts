@@ -61,7 +61,7 @@ export class PriceFeedRegister
 {
   public readonly logger?: ILogger;
   readonly #hooks = new Hooks<PriceFeedRegisterHooks>();
-  #feeds = new AddressMap<IPriceFeedContract>();
+  #feeds = new AddressMap<IPriceFeedContract>(undefined, "priceFeeds");
   public readonly redstoneUpdater: RedstoneUpdater;
 
   constructor(sdk: GearboxSDK) {

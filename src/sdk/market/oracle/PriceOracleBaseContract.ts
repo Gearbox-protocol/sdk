@@ -36,19 +36,28 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
   /**
    * Mapping Token => [PriceFeed Address, stalenessPeriod]
    */
-  public readonly mainPriceFeeds = new AddressMap<PriceFeedRef>();
+  public readonly mainPriceFeeds = new AddressMap<PriceFeedRef>(
+    undefined,
+    "mainPriceFeeds",
+  );
   /**
    * Mapping Token => [PriceFeed Address, stalenessPeriod]
    */
-  public readonly reservePriceFeeds = new AddressMap<PriceFeedRef>();
+  public readonly reservePriceFeeds = new AddressMap<PriceFeedRef>(
+    undefined,
+    "reservePriceFeeds",
+  );
   /**
    * Mapping Token => Price in underlying
    */
-  public readonly mainPrices = new AddressMap<bigint>();
+  public readonly mainPrices = new AddressMap<bigint>(undefined, "mainPrices");
   /**
    * Mapping Token => Price in underlying
    */
-  public readonly reservePrices = new AddressMap<bigint>();
+  public readonly reservePrices = new AddressMap<bigint>(
+    undefined,
+    "reservePrices",
+  );
 
   #priceFeedTree: readonly PriceFeedTreeNode[] = [];
 

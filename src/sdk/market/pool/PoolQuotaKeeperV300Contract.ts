@@ -34,6 +34,7 @@ export class PoolQuotaKeeperV300Contract
       pqk.quotas.map(q => {
         return [q.token, q];
       }),
+      "quotas",
     );
   }
 

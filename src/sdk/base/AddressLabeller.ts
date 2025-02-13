@@ -8,7 +8,7 @@ import type { IAddressLabeller } from "./IAddressLabeller";
  * Helper class to be used during transition from v3 to v3.1
  */
 export class AddressLabeller implements IAddressLabeller {
-  #labels = new AddressMap<string>();
+  #labels = new AddressMap<string>(undefined, "addressLabeller");
 
   public set(
     address: Address,

@@ -4,8 +4,9 @@ import { getAddress } from "viem";
 export class AddressMap<T> {
   #map: Map<Address, T>;
   #frozen = false;
+  #name?: string;
 
-  constructor(entries?: Array<[string, T]>) {
+  constructor(entries?: Array<[string, T]>, name?: string) {
     this.#map = new Map<Address, T>();
     if (entries) {
       for (const [address, value] of entries) {
@@ -13,6 +14,7 @@ export class AddressMap<T> {
         this.#map.set(key, value);
       }
     }
+    this.#name = name;
   }
 
   /**
@@ -22,7 +24,7 @@ export class AddressMap<T> {
    */
   public upsert(address: string, value: T): void {
     if (this.#frozen) {
-      throw new Error(`AddressMap is frozen`);
+      throw new Error(`AddressMap ${this.#name} is frozen`);
     }
     const key = getAddress(address);
     this.#map.set(key, value);
@@ -35,11 +37,13 @@ export class AddressMap<T> {
    */
   public insert(address: string, value: T): void {
     if (this.#frozen) {
-      throw new Error(`AddressMap is frozen`);
+      throw new Error(`AddressMap ${this.#name} is frozen`);
     }
     const key = getAddress(address);
     if (this.#map.has(key)) {
-      throw new Error(`address ${address} already exists`);
+      throw new Error(
+        `address ${address} already exists in ${this.#name ?? "map"}`,
+      );
     }
     this.#map.set(key, value);
   }
@@ -72,7 +76,7 @@ export class AddressMap<T> {
   public mustGet(address: string): T {
     const v = this.get(address);
     if (!v) {
-      throw new Error(`address ${address} not found in map`);
+      throw new Error(`address ${address} not found in ${this.#name ?? "map"}`);
     }
     return v;
   }

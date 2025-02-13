@@ -33,8 +33,8 @@ export class MarketRegister extends SDKConstruct {
   /**
    * Mapping pool.address -> MarketSuite
    */
-  #markets = new AddressMap<MarketSuite>();
-  #zappers = new AddressMap<Array<ZapperDataFull>>();
+  #markets = new AddressMap<MarketSuite>(undefined, "markets");
+  #zappers = new AddressMap<Array<ZapperDataFull>>(undefined, "zappers");
 
   #marketFilter?: MarketFilter;
 

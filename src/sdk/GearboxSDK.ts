@@ -132,11 +132,14 @@ export class GearboxSDK {
   /**
    * All contracts known to sdk
    */
-  public readonly contracts = new AddressMap<BaseContract<any>>();
+  public readonly contracts = new AddressMap<BaseContract<any>>(
+    undefined,
+    "contracts",
+  );
   /**
    * Token metadata such as symbol and decimals
    */
-  public readonly tokensMeta = new TokensMeta();
+  public readonly tokensMeta = new TokensMeta(undefined, "tokensMeta");
 
   public addHook = this.#hooks.addHook.bind(this.#hooks);
   public removeHook = this.#hooks.removeHook.bind(this.#hooks);

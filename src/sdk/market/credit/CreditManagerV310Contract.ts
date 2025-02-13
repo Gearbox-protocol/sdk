@@ -44,9 +44,10 @@ export class CreditManagerV310Contract
     Object.assign(this, rest);
     this.liquidationThresholds = new AddressMap(
       collateralTokens.map(ct => [ct.token, ct.liquidationThreshold]),
+      "liquidationThresholds",
     );
 
-    this.adapters = new AddressMap();
+    this.adapters = new AddressMap(undefined, "adapters");
     for (const adapterData of adapters) {
       try {
         const adapter = createAdapter(this.sdk, adapterData);
