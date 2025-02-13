@@ -7,7 +7,6 @@ import type {
   BalancerLPToken,
   ConvexLPToken,
   CurveLPToken,
-  CurveParams,
   YearnLPToken,
 } from "../sdk-gov-legacy";
 import {
@@ -38,8 +37,7 @@ export class PathOptionFactory {
       return {
         target: tokenDataByNetwork[network][symbol],
         option: 0,
-        totalOptions: (contractParams[curveTokens[symbol].pool] as CurveParams)
-          .tokens.length,
+        totalOptions: contractParams[curveTokens[symbol].pool].tokens.length,
       };
     });
     const balancerInitPO: PathOptionSerie = balancerPools.map(symbol => {
