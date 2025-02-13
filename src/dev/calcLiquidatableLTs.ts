@@ -15,12 +15,25 @@ export async function calcLiquidatableLTs(
 ): Promise<Record<Address, number>> {
   const cm = sdk.marketRegister.findCreditManager(ca.creditManager);
   const market = sdk.marketRegister.findByCreditManager(ca.creditManager);
+  console.log({
+    liquidationThresholds: cm.creditManager.liquidationThresholds,
+  });
 
   // Sort account tokens by weighted value descending, but underlying token comes last
   const weightedBalances = ca.tokens
+    .filter(({ token, balance }) => {
+      const minBalance =
+        10n ** BigInt(Math.max(8, sdk.tokensMeta.decimals(token)) - 8);
+      return balance > minBalance;
+    })
     .map(t => {
       const { token, balance } = t;
       const balanceU = market.priceOracle.convertToUnderlying(token, balance);
+      console.log(
+        ">>>>>",
+        sdk.provider.addressLabels.get(token),
+        cm.creditManager.liquidationThresholds.get(token),
+      );
       const lt = BigInt(cm.creditManager.liquidationThresholds.mustGet(token));
       return {
         token,

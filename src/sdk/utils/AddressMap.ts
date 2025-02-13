@@ -74,11 +74,11 @@ export class AddressMap<T> {
    * @returns
    */
   public mustGet(address: string): T {
-    const v = this.get(address);
-    if (!v) {
+    const key = getAddress(address);
+    if (!this.#map.has(key)) {
       throw new Error(`address ${address} not found in ${this.#name ?? "map"}`);
     }
-    return v;
+    return this.#map.get(key)!;
   }
 
   public clear(): void {
