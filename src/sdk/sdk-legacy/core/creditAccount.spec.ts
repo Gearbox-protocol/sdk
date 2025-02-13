@@ -33,21 +33,25 @@ const tokenDataList: Record<Address, TokenData> = {
     addr: WETH,
     decimals: 18,
     symbol: "WETH",
+    name: "",
   }),
   [DAI]: new TokenData({
     addr: DAI,
     decimals: 18,
     symbol: "DAI",
+    name: "",
   }),
   [USDC]: new TokenData({
     addr: USDC,
     decimals: 6,
     symbol: "USDC",
+    name: "",
   }),
   [STETH]: new TokenData({
     addr: STETH,
     decimals: 18,
     symbol: "STETH",
+    name: "",
   }),
 };
 

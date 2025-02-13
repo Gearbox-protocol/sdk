@@ -29,20 +29,24 @@ const ALIASES: PartialRecord<SupportedToken, string> = {
 };
 
 export class TokenData {
+  readonly address: Address;
+
   readonly title: string;
   readonly symbol: SupportedToken;
-  readonly address: Address;
+  readonly name: string;
+
   readonly decimals: number;
   readonly icon: string;
 
   constructor(payload: TokenDataPayload) {
-    const symbol = payload.symbol;
-
-    this.title = ALIASES[symbol] || payload.title || symbol;
     this.address = payload.addr.toLowerCase() as Address;
-    this.symbol = symbol;
+
+    this.title = ALIASES[payload.symbol] || payload.title || payload.symbol;
+    this.symbol = payload.symbol;
+    this.name = payload.name;
+
     this.decimals = payload.decimals;
-    this.icon = `${GearboxBackendApi.getStaticTokenUrl()}${symbol.toLowerCase()}.svg`;
+    this.icon = `${GearboxBackendApi.getStaticTokenUrl()}${payload.symbol.toLowerCase()}.svg`;
   }
 
   compareBySymbol(b: TokenData): number {
