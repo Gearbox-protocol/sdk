@@ -308,26 +308,66 @@ export class AccountOpener extends SDKConstruct {
     await this.#claimFromFaucet(depositor, totalUSD);
 
     for (const [pool, amount] of deposits) {
-      const poolName = this.sdk.provider.addressLabels.get(pool.address);
-      const amnt =
-        this.sdk.tokensMeta.formatBN(pool.underlying, amount) +
-        " " +
-        this.sdk.tokensMeta.symbol(pool.underlying);
-      this.#logger?.debug(`depositing ${amnt} into pool ${poolName}`);
       try {
-        await this.#anvil.writeContract({
-          account: depositor,
-          chain: this.#anvil.chain,
-          address: pool.address,
-          abi: iPoolV300Abi,
-          functionName: "deposit",
-          args: [amount, depositor.address],
-        });
-        this.#logger?.debug(`deposited ${amnt} into ${poolName}`);
+        await this.#depositToPool(pool, depositor, amount);
       } catch (e) {
-        this.#logger?.warn(`failed to deposit ${amnt} into ${poolName}: ${e}`);
+        this.#logger?.warn(`failed to deposit into ${pool.name}: ${e}`);
       }
     }
+  }
+
+  async #depositToPool(
+    pool: PoolContract,
+    depositor: PrivateKeyAccount,
+    amount: bigint,
+  ): Promise<void> {
+    const { underlying, address } = pool;
+    const poolName = this.sdk.provider.addressLabels.get(address);
+    const amnt =
+      this.sdk.tokensMeta.formatBN(pool.underlying, amount) +
+      " " +
+      this.sdk.tokensMeta.symbol(pool.underlying);
+    this.#logger?.debug(`depositing ${amnt} into pool ${poolName}`);
+
+    const allowance = await this.#anvil.readContract({
+      address: underlying,
+      abi: ierc20Abi,
+      functionName: "balanceOf",
+      args: [depositor.address],
+    });
+    this.#logger?.debug(
+      `depositor balance in underlying: ${this.sdk.tokensMeta.formatBN(pool.underlying, allowance)}`,
+    );
+    let hash = await this.#anvil.writeContract({
+      account: depositor,
+      address: underlying,
+      abi: ierc20Abi,
+      functionName: "approve",
+      args: [address, allowance],
+      chain: this.#anvil.chain,
+    });
+    let receipt = await this.#anvil.waitForTransactionReceipt({ hash });
+    if (receipt.status === "reverted") {
+      throw new Error(
+        `tx ${hash} that approves underlying from depositor for pool ${poolName} reverted`,
+      );
+    }
+    this.#logger?.debug(
+      `depositor approved underlying for pool ${poolName}: ${hash}`,
+    );
+    hash = await this.#anvil.writeContract({
+      account: depositor,
+      address: address,
+      abi: iPoolV300Abi,
+      functionName: "deposit",
+      args: [amount, depositor.address],
+      chain: this.#anvil.chain,
+    });
+    receipt = await this.#anvil.waitForTransactionReceipt({ hash });
+    if (receipt.status === "reverted") {
+      throw new Error(`tx ${hash} that deposits to pool ${poolName} reverted`);
+    }
+    this.#logger?.debug(`deposited ${amnt} into ${poolName}`);
   }
 
   /**
