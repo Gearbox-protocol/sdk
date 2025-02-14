@@ -27,6 +27,7 @@ import { type AnvilClient, createAnvilClient } from "./createAnvilClient";
 
 export interface AccountOpenerOptions {
   faucet?: Address;
+  borrower?: PrivateKeyAccount;
 }
 
 export interface TargetAccount {
@@ -64,6 +65,7 @@ export class AccountOpener extends SDKConstruct {
     });
     this.#faucet =
       options.faucet ?? service.sdk.addressProvider.getAddress("FAUCET");
+    this.#borrower = options.borrower;
   }
 
   public get borrower(): Address {
