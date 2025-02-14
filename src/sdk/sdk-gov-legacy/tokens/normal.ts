@@ -72,6 +72,7 @@ export type NormalToken =
   | "rstETH"
   | "pzETH"
   | "DVstETH"
+  | "waEthLidowstETH"
   // Pendle
   | "PT_rsETH_26SEP2024"
   | "PT_sUSDe_26DEC2024"
@@ -85,6 +86,11 @@ export type NormalToken =
   | "PT_corn_eBTC_27MAR2025"
   | "PT_sUSDe_27MAR2025"
   | "PT_sUSDe_29MAY2025"
+  | "PT_beraSTONE_10APR2025"
+
+  // Balancer V3
+  | "rstETH_Lido_wstETH"
+  | "DVstETH_Prime_wstETH"
 
   // REDSTONE
   | "SHIB"
@@ -480,6 +486,11 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     symbol: "DVstETH",
     type: { AllNetworks: TokenType.NORMAL_TOKEN },
   },
+  waEthLidowstETH: {
+    name: "Wrapped Aave Ethereum Lido wstETH",
+    symbol: "waEthLidowstETH",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
   PT_rsETH_26SEP2024: {
     name: "Pendle PT rsETH 26 Sep 2024 expiry",
     symbol: "PT_rsETH_26SEP2024",
@@ -553,6 +564,22 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
   PT_sUSDe_29MAY2025: {
     name: "Pendle PT Ethena sUSDE 29 May 2025 expiry",
     symbol: "PT_sUSDe_29MAY2025",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  PT_beraSTONE_10APR2025: {
+    name: "Pendle PT Berachain STONE 10 April 2025 expiry",
+    symbol: "PT_beraSTONE_10APR2025",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+
+  rstETH_Lido_wstETH: {
+    name: "Balancer V3 rstETH-Lido wstETH",
+    symbol: "rstETH_Lido_wstETH",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  DVstETH_Prime_wstETH: {
+    name: "Balancer V3 DVstETH-Prime wstETH",
+    symbol: "DVstETH_Prime_wstETH",
     type: { AllNetworks: TokenType.NORMAL_TOKEN },
   },
 };

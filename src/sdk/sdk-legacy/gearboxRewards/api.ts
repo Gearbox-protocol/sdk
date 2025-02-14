@@ -141,13 +141,18 @@ export interface ClaimLmRewardsV3Props {
   signer: WalletClient;
 }
 
+const BROKEN_CAMPAIGNS: Record<string, boolean> = {
+  "11136065905617273958": true,
+};
+
 export class GearboxRewardsApi {
   static async getExtraRewards({ chainId, tokensList }: GetExtraRewardsProps) {
     const res = await axios.get<MerkleXYZV4CampaignsResponse>(
       MerkleXYZApi.getGearboxCampaignsUrl(),
     );
     const currentActiveCampaigns = res.data.filter(
-      c => c.status === "LIVE" && c.chainId === chainId,
+      c =>
+        c.status === "LIVE" && c.chainId === chainId && !BROKEN_CAMPAIGNS[c.id],
     );
 
     const aprIdsList = currentActiveCampaigns

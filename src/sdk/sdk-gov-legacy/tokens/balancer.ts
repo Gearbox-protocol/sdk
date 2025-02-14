@@ -17,7 +17,6 @@ export type BalancerLPToken =
   | "GHO_USDT_USDC"
   | "rsETH_WETH"
   | "trenSTETH"
-  | "DVstETH_wstETH_BPT"
   | "sUSDe_USDC_BPT"
   | "pumpBTC_WBTC_BPT"
   | "eBTC_WBTC_BPT"
@@ -171,17 +170,6 @@ export const balancerLpTokens: Record<BalancerLPToken, BalancerLpTokenData> = {
     underlying: ["amphrETH", "rstETH", "wstETH", "Re7LRT", "steakLRT"],
     poolId:
       "0x4216d5900a6109bba48418b5e2ab6cc4e61cf4770000000000000000000006a1",
-  },
-
-  DVstETH_wstETH_BPT: {
-    name: "Balancer DVstETH/wstETH ",
-    symbol: "DVstETH_wstETH_BPT",
-    type: {
-      AllNetworks: TokenType.BALANCER_LP_TOKEN,
-    },
-    underlying: ["DVstETH", "wstETH"],
-    poolId:
-      "0x632aafc2d3d2ca1764e702aa25c065c273cd08ed0000000000000000000006d6",
   },
 
   weETH_ezETH_rswETH: {
