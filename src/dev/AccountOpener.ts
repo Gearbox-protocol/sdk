@@ -1,5 +1,5 @@
 import type { Address, PrivateKeyAccount } from "viem";
-import { isAddress, parseEther } from "viem";
+import { isAddress, parseEther, parseEventLogs } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 import type {
@@ -14,6 +14,7 @@ import {
   AddressMap,
   childLogger,
   formatBN,
+  iCreditFacadeV300Abi,
   iDegenNftv2Abi,
   ierc20Abi,
   MAX_UINT256,
@@ -32,6 +33,13 @@ export interface TargetAccount {
   collateral: Address;
   leverage?: number;
   slippage?: number;
+}
+
+export interface OpenAccountResult {
+  input: TargetAccount;
+  error?: string;
+  txHash?: string;
+  account?: CreditAccountData;
 }
 
 export class AccountOpener extends SDKConstruct {
@@ -68,7 +76,7 @@ export class AccountOpener extends SDKConstruct {
    */
   public async openCreditAccounts(
     targets: TargetAccount[],
-  ): Promise<CreditAccountData[]> {
+  ): Promise<OpenAccountResult[]> {
     await this.#prepareBorrower(targets);
 
     const toApprove = new AddressMap<Set<Address>>();
@@ -85,24 +93,31 @@ export class AccountOpener extends SDKConstruct {
       }
     }
 
+    const results: OpenAccountResult[] = [];
+    let success = 0;
     for (let i = 0; i < targets.length; i++) {
       const target = targets[i];
       try {
-        await this.#openAccount(target, i + 1, targets.length);
+        const result = await this.#openAccount(target, i + 1, targets.length);
+        results.push(result);
+        success += result.account ? 1 : 0;
       } catch (e) {
-        this.#logger?.error(e);
+        results.push({
+          input: target,
+          error: `${e}`,
+        });
       }
     }
-    const accounts = await this.getOpenedAccounts();
-    this.#logger?.info(`opened ${accounts.length} accounts`);
-    return accounts;
+    this.#logger?.info(`opened ${success}/${targets.length} accounts`);
+    return results;
   }
 
   async #openAccount(
-    { creditManager, collateral, leverage = 4, slippage = 50 }: TargetAccount,
+    input: TargetAccount,
     index: number,
     total: number,
-  ): Promise<void> {
+  ): Promise<OpenAccountResult> {
+    const { creditManager, collateral, leverage = 4, slippage = 50 } = input;
     const borrower = await this.#getBorrower();
     const cm = this.sdk.marketRegister.findCreditManager(creditManager);
     const symbol = this.sdk.tokensMeta.symbol(collateral);
@@ -175,9 +190,37 @@ export class AccountOpener extends SDKConstruct {
     logger?.debug(`send transaction ${hash}`);
     const receipt = await this.#anvil.waitForTransactionReceipt({ hash });
     if (receipt.status === "reverted") {
-      throw new Error(`open credit account tx ${hash} reverted`);
+      return {
+        input,
+        error: `open credit account tx reverted`,
+        txHash: hash,
+      };
     }
     logger?.info(`opened credit account ${index}/${total}`);
+    const logs = parseEventLogs({
+      abi: iCreditFacadeV300Abi,
+      logs: receipt.logs,
+      eventName: "OpenCreditAccount",
+    });
+    logger?.info(`found ${logs.length} logs`);
+    let account: CreditAccountData | undefined;
+    if (logs.length > 0) {
+      try {
+        logger?.debug(
+          `getting credit account data for ${logs[0].args.creditAccount}`,
+        );
+        account = await this.#service.getCreditAccountData(
+          logs[0].args.creditAccount,
+        );
+      } catch (e) {
+        logger?.error(`failed to get credit account data: ${e}`);
+      }
+    }
+    return {
+      input,
+      txHash: hash,
+      account,
+    };
   }
 
   public async getOpenedAccounts(): Promise<CreditAccountData[]> {
