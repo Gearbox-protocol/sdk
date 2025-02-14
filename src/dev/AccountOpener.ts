@@ -8,6 +8,7 @@ import type {
   CreditAccountsService,
   CreditSuite,
   ILogger,
+  PoolContract,
   RawTx,
 } from "../sdk";
 import {
@@ -18,12 +19,15 @@ import {
   iCreditFacadeV300Abi,
   iDegenNftv2Abi,
   ierc20Abi,
+  iPoolV300Abi,
   MAX_UINT256,
   PERCENTAGE_FACTOR,
   SDKConstruct,
   sendRawTx,
 } from "../sdk";
 import { type AnvilClient, createAnvilClient } from "./createAnvilClient";
+
+const DEFAULT_LEVERAGE = 4;
 
 export interface AccountOpenerOptions {
   faucet?: Address;
@@ -80,7 +84,16 @@ export class AccountOpener extends SDKConstruct {
    */
   public async openCreditAccounts(
     targets: TargetAccount[],
+    depositIntoPools = true,
   ): Promise<OpenAccountResult[]> {
+    if (depositIntoPools) {
+      try {
+        await this.#depositIntoPools(targets);
+      } catch (e) {
+        this.#logger?.warn(`failed to deposit into pools: ${e}`);
+      }
+    }
+
     await this.#prepareBorrower(targets);
 
     const toApprove = new AddressMap<Set<Address>>();
@@ -121,7 +134,12 @@ export class AccountOpener extends SDKConstruct {
     index: number,
     total: number,
   ): Promise<OpenAccountResult> {
-    const { creditManager, collateral, leverage = 4, slippage = 50 } = input;
+    const {
+      creditManager,
+      collateral,
+      leverage = DEFAULT_LEVERAGE,
+      slippage = 50,
+    } = input;
     const borrower = await this.#getBorrower();
     const cm = this.sdk.marketRegister.findCreditManager(creditManager);
     const symbol = this.sdk.tokensMeta.symbol(collateral);
@@ -244,6 +262,74 @@ export class AccountOpener extends SDKConstruct {
     });
   }
 
+  async #depositIntoPools(
+    targets: TargetAccount[],
+    multiplier = 105_00n,
+  ): Promise<void> {
+    this.#logger?.debug("checking and topping up pools if necessary");
+
+    const minAvailableByPool: Record<Address, bigint> = {};
+    for (const { leverage = DEFAULT_LEVERAGE, creditManager } of targets) {
+      const cm = this.sdk.marketRegister.findCreditManager(creditManager);
+      const { minDebt } = cm.creditFacade;
+      minAvailableByPool[cm.pool] =
+        (minAvailableByPool[cm.pool] ?? 0n) +
+        (minDebt * BigInt(leverage - 1) * multiplier) / PERCENTAGE_FACTOR;
+    }
+
+    let totalUSD = 0n;
+    let deposits: [PoolContract, bigint][] = [];
+    for (const [p, minAvailable] of Object.entries(minAvailableByPool)) {
+      const market = this.sdk.marketRegister.findByPool(p as Address);
+      const pool = market.pool.pool;
+      let diff = minAvailable - pool.availableLiquidity;
+      diff = diff < 0n ? 0n : diff;
+      const [minS, availableS, diffS] = [
+        minAvailable,
+        pool.availableLiquidity,
+        diff,
+      ].map(v => this.sdk.tokensMeta.formatBN(pool.underlying, v));
+      this.#logger?.debug(
+        `Pool ${this.labelAddress(pool.address)} has ${availableS} liquidity, needs ${diffS} more for the minimum of ${minS} ${this.sdk.tokensMeta.symbol(pool.underlying)}`,
+      );
+      if (diff > 0n) {
+        deposits.push([pool, diff]);
+        totalUSD += market.priceOracle.convertToUSD(pool.underlying, diff);
+      }
+    }
+    totalUSD = (totalUSD * 105n) / 100n; // 5% more to be safe
+    this.#logger?.debug(
+      `total USD to claim from faucet: ${formatBN(totalUSD, 8)}`,
+    );
+
+    const depositor = await this.#createAccount();
+    this.#logger?.debug(`created depositor ${depositor.address}`);
+
+    await this.#claimFromFaucet(depositor, totalUSD);
+
+    for (const [pool, amount] of deposits) {
+      const poolName = this.sdk.provider.addressLabels.get(pool.address);
+      const amnt =
+        this.sdk.tokensMeta.formatBN(pool.underlying, amount) +
+        " " +
+        this.sdk.tokensMeta.symbol(pool.underlying);
+      this.#logger?.debug(`depositing ${amnt} into pool ${poolName}`);
+      try {
+        await this.#anvil.writeContract({
+          account: depositor,
+          chain: this.#anvil.chain,
+          address: pool.address,
+          abi: iPoolV300Abi,
+          functionName: "deposit",
+          args: [amount, depositor.address],
+        });
+        this.#logger?.debug(`deposited ${amnt} into ${poolName}`);
+      } catch (e) {
+        this.#logger?.warn(`failed to deposit ${amnt} into ${poolName}: ${e}`);
+      }
+    }
+  }
+
   /**
    * Creates borrower wallet,
    * Sets ETH balance,
@@ -275,9 +361,24 @@ export class AccountOpener extends SDKConstruct {
     }
     claimUSD = (claimUSD * 11n) / 10n; // 10% more to be safe
 
-    this.#logger?.debug(`claiming ${formatBN(claimUSD, 8)} USD from faucet`);
-    let hash = await this.#anvil.writeContract({
-      account: borrower,
+    await this.#claimFromFaucet(borrower, claimUSD);
+
+    for (const [degenNFT, amount] of Object.entries(degenNFTS)) {
+      await this.#mintDegenNft(degenNFT as Address, borrower.address, amount);
+    }
+    this.#logger?.debug("prepared borrower");
+    return borrower;
+  }
+
+  async #claimFromFaucet(
+    claimer: PrivateKeyAccount,
+    amountUSD: bigint,
+  ): Promise<void> {
+    const [usr, amnt] = [claimer.address, formatBN(amountUSD, 8)];
+
+    this.#logger?.debug(`account ${usr} claiming ${amnt} USD from faucet`);
+    const hash = await this.#anvil.writeContract({
+      account: claimer,
       address: this.#faucet,
       abi: [
         {
@@ -291,26 +392,20 @@ export class AccountOpener extends SDKConstruct {
         },
       ],
       functionName: "claim",
-      args: [claimUSD],
+      args: [amountUSD],
       chain: this.#anvil.chain,
     });
-    let receipt = await this.#anvil.waitForTransactionReceipt({
+    const receipt = await this.#anvil.waitForTransactionReceipt({
       hash,
     });
     if (receipt.status === "reverted") {
       throw new Error(
-        `borrower ${borrower.address} failed to claimed equivalent of ${formatBN(claimUSD, 8)} USD from faucet, tx: ${hash}`,
+        `account ${usr} failed to claimed equivalent of ${amnt} USD from faucet, tx: ${hash}`,
       );
     }
     this.#logger?.debug(
-      `borrower ${borrower.address} claimed equivalent of ${formatBN(claimUSD, 8)} USD from faucet, tx: ${hash}`,
+      `account ${usr} claimed equivalent of ${amnt} USD from faucet, tx: ${hash}`,
     );
-
-    for (const [degenNFT, amount] of Object.entries(degenNFTS)) {
-      await this.#mintDegenNft(degenNFT as Address, borrower.address, amount);
-    }
-    this.#logger?.debug("prepared borrower");
-    return borrower;
   }
 
   async #approve(token: Address, cm: CreditSuite): Promise<void> {
@@ -415,14 +510,19 @@ export class AccountOpener extends SDKConstruct {
 
   async #getBorrower(): Promise<PrivateKeyAccount> {
     if (!this.#borrower) {
-      this.#borrower = privateKeyToAccount(generatePrivateKey());
-      await this.#anvil.setBalance({
-        address: this.#borrower.address,
-        value: parseEther("100"),
-      });
+      this.#borrower = await this.#createAccount();
       this.#logger?.info(`created borrower ${this.#borrower.address}`);
     }
     return this.#borrower;
+  }
+
+  async #createAccount(): Promise<PrivateKeyAccount> {
+    const acc = privateKeyToAccount(generatePrivateKey());
+    await this.#anvil.setBalance({
+      address: acc.address,
+      value: parseEther("100"),
+    });
+    return acc;
   }
 
   #getCollateralQuota(
