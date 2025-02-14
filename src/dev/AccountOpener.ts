@@ -1,4 +1,4 @@
-import type { Address, PrivateKeyAccount } from "viem";
+import type { Address, Hash, PrivateKeyAccount } from "viem";
 import { isAddress, parseEther, parseEventLogs } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
@@ -8,6 +8,7 @@ import type {
   CreditAccountsService,
   CreditSuite,
   ILogger,
+  RawTx,
 } from "../sdk";
 import {
   ADDRESS_0X0,
@@ -39,6 +40,7 @@ export interface OpenAccountResult {
   input: TargetAccount;
   error?: string;
   txHash?: string;
+  rawTx?: RawTx;
   account?: CreditAccountData;
 }
 
@@ -183,17 +185,27 @@ export class AccountOpener extends SDKConstruct {
       );
     }
     logger?.debug("prepared open account transaction");
-    const hash = await sendRawTx(this.#anvil, {
-      tx,
-      account: borrower,
-    });
-    logger?.debug(`send transaction ${hash}`);
+    let hash: Hash;
+    try {
+      hash = await sendRawTx(this.#anvil, {
+        tx,
+        account: borrower,
+      });
+      logger?.debug(`send transaction ${hash}`);
+    } catch (e) {
+      return {
+        input,
+        error: `${e}`,
+        rawTx: tx,
+      };
+    }
     const receipt = await this.#anvil.waitForTransactionReceipt({ hash });
     if (receipt.status === "reverted") {
       return {
         input,
         error: `open credit account tx reverted`,
         txHash: hash,
+        rawTx: tx,
       };
     }
     logger?.info(`opened credit account ${index}/${total}`);
@@ -219,6 +231,7 @@ export class AccountOpener extends SDKConstruct {
     return {
       input,
       txHash: hash,
+      rawTx: tx,
       account,
     };
   }
