@@ -1940,7 +1940,7 @@ export const tickerInfoTokensByNetwork: Record<
       {
         symbol: "beraSTONE/ETH",
         dataId: "beraETH_FUNDAMENTAL",
-        address: "0x692072eE081c9Ded28d2CfD27513E578d895FD0d",
+        address: tokenDataByNetwork.Mainnet.beraSTONE,
         priceFeed: "0xf12b7879713FA998B39b3C7C9c2631E40a0b9dfB",
         reserve: false,
       },
