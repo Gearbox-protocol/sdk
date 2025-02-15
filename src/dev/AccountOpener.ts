@@ -32,6 +32,7 @@ const DEFAULT_LEVERAGE = 4;
 export interface AccountOpenerOptions {
   faucet?: Address;
   borrower?: PrivateKeyAccount;
+  poolDepositMultiplier?: bigint;
 }
 
 export interface TargetAccount {
@@ -55,6 +56,7 @@ export class AccountOpener extends SDKConstruct {
   #logger?: ILogger;
   #borrower?: PrivateKeyAccount;
   #faucet: Address;
+  #poolDepositMultiplier: bigint;
 
   constructor(
     service: CreditAccountsService,
@@ -70,6 +72,7 @@ export class AccountOpener extends SDKConstruct {
     this.#faucet =
       options.faucet ?? service.sdk.addressProvider.getAddress("FAUCET");
     this.#borrower = options.borrower;
+    this.#poolDepositMultiplier = options.poolDepositMultiplier ?? 110_00n;
   }
 
   public get borrower(): Address {
@@ -262,10 +265,7 @@ export class AccountOpener extends SDKConstruct {
     });
   }
 
-  async #depositIntoPools(
-    targets: TargetAccount[],
-    multiplier = 105_00n,
-  ): Promise<void> {
+  async #depositIntoPools(targets: TargetAccount[]): Promise<void> {
     this.#logger?.debug("checking and topping up pools if necessary");
 
     const minAvailableByPool: Record<Address, bigint> = {};
@@ -274,7 +274,8 @@ export class AccountOpener extends SDKConstruct {
       const { minDebt } = cm.creditFacade;
       minAvailableByPool[cm.pool] =
         (minAvailableByPool[cm.pool] ?? 0n) +
-        (minDebt * BigInt(leverage - 1) * multiplier) / PERCENTAGE_FACTOR;
+        (minDebt * BigInt(leverage - 1) * this.#poolDepositMultiplier) /
+          PERCENTAGE_FACTOR;
     }
 
     let totalUSD = 0n;
