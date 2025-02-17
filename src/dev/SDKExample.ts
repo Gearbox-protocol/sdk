@@ -1,15 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 
 import type { Address } from "viem";
-import {
-  createPublicClient,
-  createWalletClient,
-  http,
-  isAddress,
-  parseEther,
-  stringToHex,
-} from "viem";
-import { privateKeyToAccount } from "viem/accounts";
+import { isAddress, parseEther, stringToHex } from "viem";
 
 import type { ILogger } from "../sdk";
 import {
@@ -18,7 +10,6 @@ import {
   iAddressProviderV300Abi,
   iAddressProviderV310Abi,
   json_stringify,
-  sendRawTx,
 } from "../sdk";
 import { createAnvilClient } from "./createAnvilClient";
 
@@ -57,32 +48,16 @@ export class SDKExample {
       timeout: 480_000,
       addressProvider,
       logger: this.#logger,
-      ignoreUpdateablePrices: true,
+      ignoreUpdateablePrices: false,
       marketConfigurators,
     });
+    this.#logger?.info("attached sdk");
     try {
       await this.#sdk.marketRegister.loadZappers();
     } catch (e) {
       this.#logger?.error(`failed to load zappers: ${e}`);
     }
     await this.#safeMigrateFaucet(addressProvider);
-
-    const puTx =
-      await this.#sdk.priceFeeds.getUpdatePriceFeedsTx(marketConfigurators);
-    const updater = createWalletClient({
-      account: privateKeyToAccount(
-        "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", // well-known anvil private key
-      ),
-      transport: http(anvilUrl),
-    });
-    const publicClient = createPublicClient({
-      transport: http(anvilUrl),
-    });
-    const hash = await sendRawTx(updater, { tx: puTx });
-    await publicClient.waitForTransactionReceipt({ hash });
-
-    await this.#sdk.marketRegister.loadMarkets(marketConfigurators, true);
-    this.#logger?.info("attached sdk");
 
     await Promise.allSettled(
       this.#sdk.marketRegister.marketConfigurators.map(m =>
@@ -173,6 +148,7 @@ export class SDKExample {
       address: owner,
       value: parseEther("100"),
     });
+    await anvil.setBlockTimestampInterval({ interval: 0 });
     const hash = await anvil.writeContract({
       chain: anvil.chain,
       account: owner,
@@ -182,6 +158,7 @@ export class SDKExample {
       args: [stringToHex("FAUCET", { size: 32 }), faucetAddr, true],
     });
     const receipt = await anvil.waitForTransactionReceipt({ hash });
+    await anvil.removeBlockTimestampInterval();
     await anvil.stopImpersonatingAccount({ address: owner });
     if (receipt.status === "reverted") {
       throw new Error("faucet migration reverted");
