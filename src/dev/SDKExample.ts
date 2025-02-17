@@ -57,7 +57,6 @@ export class SDKExample {
     } catch (e) {
       this.#logger?.error(`failed to load zappers: ${e}`);
     }
-    await this.#safeMigrateFaucet(addressProvider);
 
     await Promise.allSettled(
       this.#sdk.marketRegister.marketConfigurators.map(m =>
@@ -76,6 +75,15 @@ export class SDKExample {
       } catch (e) {
         this.#logger?.error(`failed to write to ${outFile}: ${e}`);
       }
+    }
+  }
+
+  public async migrateFaucet(addressProvider: Address): Promise<void> {
+    try {
+      await this.#migrateFaucet(addressProvider);
+      this.#logger?.info("faucet migrated successfully");
+    } catch (e) {
+      this.#logger?.error(`faucet migration failed: ${e}`);
     }
   }
 
@@ -104,15 +112,6 @@ export class SDKExample {
 
     this.#logger?.info(`using ${name} ${result}`);
     return result;
-  }
-
-  async #safeMigrateFaucet(addressProvider: Address): Promise<void> {
-    try {
-      await this.#migrateFaucet(addressProvider);
-      this.#logger?.info("faucet migrated successfully");
-    } catch (e) {
-      this.#logger?.error(`faucet migration failed: ${e}`);
-    }
   }
 
   /**
@@ -148,7 +147,6 @@ export class SDKExample {
       address: owner,
       value: parseEther("100"),
     });
-    await anvil.setBlockTimestampInterval({ interval: 0 });
     const hash = await anvil.writeContract({
       chain: anvil.chain,
       account: owner,
@@ -158,7 +156,6 @@ export class SDKExample {
       args: [stringToHex("FAUCET", { size: 32 }), faucetAddr, true],
     });
     const receipt = await anvil.waitForTransactionReceipt({ hash });
-    await anvil.removeBlockTimestampInterval();
     await anvil.stopImpersonatingAccount({ address: owner });
     if (receipt.status === "reverted") {
       throw new Error("faucet migration reverted");
