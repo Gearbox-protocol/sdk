@@ -53,7 +53,6 @@ export interface PoolDataPayload {
 export interface PoolDataExtraPayload {
   stakedDieselToken: Array<Address>;
   stakedDieselToken_old: Array<Address>;
-  supplyAPY7D: number | undefined;
 }
 
 export interface LinearModel {
