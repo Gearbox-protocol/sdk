@@ -278,21 +278,30 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
       this.sdk.priceFeeds.getOrCreate(node);
     }
 
-    entries.forEach(node => {
-      const { token, priceFeed, reserve, stalenessPeriod } = node;
+    entries.forEach(entry => {
+      const { token, priceFeed, reserve, stalenessPeriod } = entry;
       const ref = new PriceFeedRef(this.sdk, priceFeed, stalenessPeriod);
-      const price = this.#priceFeedTree.find(
+      const node = this.#priceFeedTree.find(
         n => n.baseParams.addr === priceFeed,
-      )?.answer?.price;
+      );
+      const price = node?.answer?.price;
       if (reserve) {
         this.reservePriceFeeds.upsert(token, ref);
         if (price) {
           this.reservePrices.upsert(token, price);
+        } else {
+          this.logger?.warn(
+            `answer not found for reserve price feed ${this.labelAddress(priceFeed)}, success: ${node?.answer?.success}`,
+          );
         }
       } else {
         this.mainPriceFeeds.upsert(token, ref);
         if (price) {
           this.mainPrices.upsert(token, price);
+        } else {
+          this.logger?.warn(
+            `answer not found for main price feed ${this.labelAddress(priceFeed)}, success: ${node?.answer?.success}`,
+          );
         }
       }
       this.#labelPriceFeed(priceFeed, reserve ? "Reserve" : "Main", token);
