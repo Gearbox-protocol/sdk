@@ -4,11 +4,11 @@ import type { NetworkType } from "../chain";
  * Block number when address provider was deployed
  */
 export const ADDRESS_PROVIDER_BLOCK: Record<NetworkType, bigint> = {
-  Mainnet: 18433056n,
+  Mainnet: 18433056n, // AddressProvderV3 0x9ea7b04Da02a5373317D745c1571c84aaD03321D
   Arbitrum: 184650310n,
   Optimism: 118410666n,
   Base: 0n,
-  Sonic: 0n,
+  Sonic: 8515200n, // TODO: this is arbitrary block, to avoid staring from zero
 };
 
 const BLOCK_DURATION_BY_NETWORK: Record<NetworkType, number> = {
