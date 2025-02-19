@@ -10,6 +10,7 @@ export const TESTNET_CHAINS: Record<NetworkType, number> = {
   Optimism: 7879,
   Arbitrum: 7880,
   Base: 7881,
+  Sonic: 7882,
 };
 
 type ChartsPriceSource = "chainlink" | "spot";
@@ -20,11 +21,12 @@ const CHARTS_BACKEND_ADDRESSES: Record<number, string> = {
   [CHAINS.Optimism]: "https://charts-server.fly.dev",
   [CHAINS.Base]: "https://charts-server.fly.dev",
   [CHAINS.Local]: "https://charts-server.fly.dev",
+  [CHAINS.Sonic]: "https://charts-server.fly.dev",
 
   [TESTNET_CHAINS.Mainnet]: "https://testnet.gearbox.foundation",
   [TESTNET_CHAINS.Arbitrum]: "https://arbtest.gearbox.foundation",
   [TESTNET_CHAINS.Optimism]: "https://opttest.gearbox.foundation",
-  // !& Base
+  // !& Base & Sonic
 };
 
 const LAMA_URL = "https://charts-server.fly.dev/api/defillama?ids=";
@@ -35,11 +37,13 @@ const LEADERBOARD_APIS: Record<number, string> = {
   [CHAINS.Mainnet]: "https://gpointbot.fly.dev",
   [CHAINS.Optimism]: "https://gpointbot.fly.dev",
   [CHAINS.Arbitrum]: "https://gpointbot.fly.dev",
+  [CHAINS.Sonic]: "https://gpointbot.fly.dev",
 
   [CHAINS.Local]: "https://gpointbot.fly.dev",
   [TESTNET_CHAINS.Mainnet]: "https://testnet.gearbox.foundation/gpointbot",
   [TESTNET_CHAINS.Optimism]: "https://testnet.gearbox.foundation/gpointbot",
   [TESTNET_CHAINS.Arbitrum]: "https://testnet.gearbox.foundation/gpointbot",
+  // !& Base & Sonic
 };
 
 const REFERRAL_API = "https://referral-gen.fly.dev/generate";
