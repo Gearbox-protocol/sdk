@@ -4,7 +4,6 @@ import type { NetworkType } from "../../chain";
 import { NOT_DEPLOYED } from "../../constants";
 import type { CurveLPToken, ERC4626LPToken, NormalToken } from "../tokens";
 import { AdapterInterface } from "./adapters";
-import { Protocols } from "./protocols";
 
 type UniswapV2Contract =
   | "UNISWAP_V2_ROUTER"
@@ -174,7 +173,6 @@ interface BaseContractParams {
 }
 
 type CurveParams = {
-  protocol: Protocols.Curve;
   type:
     | AdapterInterface.CURVE_V1_2ASSETS
     | AdapterInterface.CURVE_V1_3ASSETS
@@ -189,7 +187,6 @@ type CurveParams = {
 } & BaseContractParams;
 
 export type CurveSteCRVPoolParams = {
-  protocol: Protocols.Curve;
   type: AdapterInterface.CURVE_V1_STECRV_POOL;
   version: number;
 
@@ -204,7 +201,7 @@ export const contractParams: Record<
 > = {
   CURVE_3CRV_POOL: {
     name: "Curve 3Pool",
-    protocol: Protocols.Curve,
+
     type: AdapterInterface.CURVE_V1_3ASSETS,
     version: 10,
     lpToken: "3Crv",
@@ -212,7 +209,7 @@ export const contractParams: Record<
   },
   CURVE_FRAX_USDC_POOL: {
     name: "Curve crvFRAX",
-    protocol: Protocols.Curve,
+
     type: AdapterInterface.CURVE_V1_2ASSETS,
     version: 10,
     lpToken: "crvFRAX",
@@ -220,7 +217,7 @@ export const contractParams: Record<
   },
   CURVE_STETH_GATEWAY: {
     name: "Curve stETH",
-    protocol: Protocols.Curve,
+
     type: AdapterInterface.CURVE_V1_STECRV_POOL,
     version: 10,
     pool: {
@@ -235,7 +232,7 @@ export const contractParams: Record<
   },
   CURVE_ETH_WSTETH_GATEWAY_OP: {
     name: "Curve wstETH Gateway (Optimism)",
-    protocol: Protocols.Curve,
+
     type: AdapterInterface.CURVE_V1_STECRV_POOL,
     version: 10,
     pool: {
@@ -250,7 +247,7 @@ export const contractParams: Record<
   },
   CURVE_FRAX_POOL: {
     name: "Curve FRAX",
-    protocol: Protocols.Curve,
+
     type: AdapterInterface.CURVE_V1_2ASSETS,
     version: 10,
     lpToken: "FRAX3CRV",
@@ -259,7 +256,7 @@ export const contractParams: Record<
   },
   CURVE_LUSD_POOL: {
     name: "Curve LUSD",
-    protocol: Protocols.Curve,
+
     type: AdapterInterface.CURVE_V1_2ASSETS,
     version: 10,
     lpToken: "LUSD3CRV",
@@ -268,7 +265,7 @@ export const contractParams: Record<
   },
   CURVE_SUSD_POOL: {
     name: "Curve SUSD",
-    protocol: Protocols.Curve,
+
     type: AdapterInterface.CURVE_V1_4ASSETS,
     version: 10,
     lpToken: "crvPlain3andSUSD",
@@ -277,7 +274,7 @@ export const contractParams: Record<
   },
   CURVE_SUSD_DEPOSIT: {
     name: "Curve SUSD",
-    protocol: Protocols.Curve,
+
     type: AdapterInterface.CURVE_V1_WRAPPER,
     version: 10,
     lpToken: "crvPlain3andSUSD",
@@ -285,7 +282,7 @@ export const contractParams: Record<
   },
   CURVE_GUSD_POOL: {
     name: "Curve GUSD",
-    protocol: Protocols.Curve,
+
     type: AdapterInterface.CURVE_V1_2ASSETS,
     version: 10,
     lpToken: "gusd3CRV",
@@ -295,7 +292,7 @@ export const contractParams: Record<
 
   CURVE_CRVETH_POOL: {
     name: "Curve CRVETH",
-    protocol: Protocols.Curve,
+
     type: AdapterInterface.CURVE_V1_2ASSETS,
     version: 20,
     lpToken: "crvCRVETH",
@@ -303,7 +300,7 @@ export const contractParams: Record<
   },
   CURVE_CVXETH_POOL: {
     name: "Curve CVXETH",
-    protocol: Protocols.Curve,
+
     type: AdapterInterface.CURVE_V1_2ASSETS,
     version: 20,
     lpToken: "crvCVXETH",
@@ -311,7 +308,7 @@ export const contractParams: Record<
   },
   CURVE_3CRYPTO_POOL: {
     name: "Curve 3Crypto",
-    protocol: Protocols.Curve,
+
     type: AdapterInterface.CURVE_V1_3ASSETS,
     version: 20,
     lpToken: "crvUSDTWBTCWETH",
@@ -319,7 +316,7 @@ export const contractParams: Record<
   },
   CURVE_LDOETH_POOL: {
     name: "Curve LDOETH",
-    protocol: Protocols.Curve,
+
     type: AdapterInterface.CURVE_V1_2ASSETS,
     version: 20,
     lpToken: "LDOETH",
@@ -328,7 +325,7 @@ export const contractParams: Record<
 
   CURVE_CRVUSD_USDC_POOL: {
     name: "Curve crvUSDUSDC",
-    protocol: Protocols.Curve,
+
     version: 10,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "crvUSDUSDC",
@@ -337,7 +334,7 @@ export const contractParams: Record<
 
   CURVE_CRVUSD_USDT_POOL: {
     name: "Curve crvUSDUSDT",
-    protocol: Protocols.Curve,
+
     version: 10,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "crvUSDUSDT",
@@ -345,7 +342,7 @@ export const contractParams: Record<
   },
   CURVE_CRVUSD_SUSDE_POOL: {
     name: "Curve crvUsUSDe",
-    protocol: Protocols.Curve,
+
     version: 10,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "crvUsUSDe",
@@ -353,7 +350,7 @@ export const contractParams: Record<
   },
   CURVE_LLAMA_THENA_POOL: {
     name: "Curve llamathena",
-    protocol: Protocols.Curve,
+
     version: 10,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "llamathena",
@@ -362,7 +359,7 @@ export const contractParams: Record<
 
   CURVE_CRVUSD_FRAX_POOL: {
     name: "Curve crvUSDFRAX",
-    protocol: Protocols.Curve,
+
     version: 10,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "crvUSDFRAX",
@@ -371,7 +368,7 @@ export const contractParams: Record<
 
   CURVE_TRI_CRV_POOL: {
     name: "Curve crvUSDUSDC",
-    protocol: Protocols.Curve,
+
     version: 20,
     type: AdapterInterface.CURVE_V1_3ASSETS,
     lpToken: "crvUSDETHCRV",
@@ -380,7 +377,7 @@ export const contractParams: Record<
 
   CURVE_RETH_ETH_POOL: {
     name: "Curve rETH",
-    protocol: Protocols.Curve,
+
     version: 20,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "rETH_f",
@@ -389,7 +386,7 @@ export const contractParams: Record<
 
   CURVE_DOLA_FRAXBP_POOL: {
     name: "Curve DOLAFRAXBP3CRV",
-    protocol: Protocols.Curve,
+
     version: 20,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "DOLAFRAXBP3CRV_f",
@@ -398,7 +395,7 @@ export const contractParams: Record<
 
   CURVE_DOLA_CRVUSD_POOL: {
     name: "Curve crvUSDDOLA",
-    protocol: Protocols.Curve,
+
     version: 20,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "crvUSDDOLA_f",
@@ -407,7 +404,7 @@ export const contractParams: Record<
 
   CURVE_USDE_USDC_POOL: {
     name: "Curve USDeUSDC",
-    protocol: Protocols.Curve,
+
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "USDeUSDC",
@@ -416,7 +413,7 @@ export const contractParams: Record<
 
   CURVE_FRAX_USDE_POOL: {
     name: "Curve FRAXUSDe",
-    protocol: Protocols.Curve,
+
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "FRAXUSDe",
@@ -425,7 +422,7 @@ export const contractParams: Record<
 
   CURVE_USDE_CRVUSD_POOL: {
     name: "Curve USDecrvUSD",
-    protocol: Protocols.Curve,
+
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "USDecrvUSD",
@@ -434,7 +431,7 @@ export const contractParams: Record<
 
   CURVE_USDE_DAI_POOL: {
     name: "Curve USDeDAI",
-    protocol: Protocols.Curve,
+
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "USDeDAI",
@@ -443,7 +440,7 @@ export const contractParams: Record<
 
   CURVE_SDAI_SUSDE_POOL: {
     name: "Curve MtEthena",
-    protocol: Protocols.Curve,
+
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "MtEthena",
@@ -452,7 +449,7 @@ export const contractParams: Record<
 
   CURVE_GHO_USDE_POOL: {
     name: "Curve GHOUSDe",
-    protocol: Protocols.Curve,
+
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "GHOUSDe",
@@ -461,7 +458,7 @@ export const contractParams: Record<
 
   CURVE_FRAX_SDAI_POOL: {
     name: "Curve FRAXsDAI",
-    protocol: Protocols.Curve,
+
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "FRAXsDAI",
@@ -469,7 +466,7 @@ export const contractParams: Record<
   },
   CURVE_DOLA_SUSDE_POOL: {
     name: "Curve DOLAsUSDe",
-    protocol: Protocols.Curve,
+
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "DOLAsUSDe",
@@ -478,7 +475,7 @@ export const contractParams: Record<
 
   CURVE_PUFETH_WSTETH_POOL: {
     name: "Curve pufETH/wstETH",
-    protocol: Protocols.Curve,
+
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "pufETHwstE",
@@ -487,7 +484,7 @@ export const contractParams: Record<
 
   CURVE_GHO_CRVUSD_POOL: {
     name: "Curve GHO/crvUSD Pool",
-    protocol: Protocols.Curve,
+
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "GHOcrvUSD",
@@ -496,7 +493,7 @@ export const contractParams: Record<
 
   CURVE_EZETH_ETH_POOL: {
     name: "Curve ezETH/WETH Pool",
-    protocol: Protocols.Curve,
+
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "ezETHWETH",
@@ -504,7 +501,7 @@ export const contractParams: Record<
   },
   CURVE_EZPZ_ETH_POOL: {
     name: "Curve ezpz ETH Pool",
-    protocol: Protocols.Curve,
+
     version: 20,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "ezpzETH",
@@ -512,7 +509,7 @@ export const contractParams: Record<
   },
   CURVE_LBTC_WBTC_POOL: {
     name: "Curve LBTC/WBTC Pool",
-    protocol: Protocols.Curve,
+
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "LBTCWBTC",
@@ -521,7 +518,7 @@ export const contractParams: Record<
 
   CURVE_EBTC_WBTC_POOL: {
     name: "Curve eBTC/WBTC LP",
-    protocol: Protocols.Curve,
+
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "eBTCWBTC",
@@ -529,7 +526,7 @@ export const contractParams: Record<
   },
   CURVE_PUMPBTC_WBTC_POOL: {
     name: "Curve pumpBTC/WBTC LP",
-    protocol: Protocols.Curve,
+
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "pumpBTCWBTC",
@@ -537,7 +534,7 @@ export const contractParams: Record<
   },
   CURVE_TRIBTC_POOL: {
     name: "Curve Tri BTC-Fi LP",
-    protocol: Protocols.Curve,
+
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "TriBTC",
@@ -545,7 +542,7 @@ export const contractParams: Record<
   },
   CURVE_tBTC_WBTC_POOL: {
     name: "Curve tBTC/WBTC LP",
-    protocol: Protocols.Curve,
+
     version: 20,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "2BTC-f",
@@ -553,7 +550,7 @@ export const contractParams: Record<
   },
   CURVE_tETH_wstETH_POOL: {
     name: "Curve tETH/wstETH LP",
-    protocol: Protocols.Curve,
+
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "tETHwstETH",
@@ -561,7 +558,7 @@ export const contractParams: Record<
   },
   CURVE_tETH_weETH_POOL: {
     name: "Curve tETH/weETH LP",
-    protocol: Protocols.Curve,
+
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "tETHweETH",
@@ -569,7 +566,7 @@ export const contractParams: Record<
   },
   CURVE_pzETH_stETH_POOL: {
     name: "Curve pzETH/wstETH LP",
-    protocol: Protocols.Curve,
+
     version: 20,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "pzETHstETH",
@@ -578,7 +575,7 @@ export const contractParams: Record<
 
   CURVE_2CRV_POOL_ARB: {
     name: "Curve USDC/USDT Pool (Arbitrum)",
-    protocol: Protocols.Curve,
+
     version: 20,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "2CRV",
@@ -587,7 +584,7 @@ export const contractParams: Record<
 
   CURVE_TRICRYPTO_CRVUSD_POOL_ARB: {
     name: "Curve Tricrypto-crvUSD Pool (Arbitrum)",
-    protocol: Protocols.Curve,
+
     version: 20,
     type: AdapterInterface.CURVE_V1_3ASSETS,
     lpToken: "3c-crvUSD",
@@ -596,7 +593,7 @@ export const contractParams: Record<
 
   CURVE_CRVUSD_USDC_POOL_ARB: {
     name: "Curve crvUSD/USDC Pool (Arbitrum)",
-    protocol: Protocols.Curve,
+
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "crvUSDC",
@@ -605,7 +602,7 @@ export const contractParams: Record<
 
   CURVE_CRVUSD_USDC_E_POOL_ARB: {
     name: "Curve crvUSD/USDC.e Pool (Arbitrum)",
-    protocol: Protocols.Curve,
+
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "crvUSDC_e",
@@ -614,7 +611,7 @@ export const contractParams: Record<
 
   CURVE_CRVUSD_USDT_POOL_ARB: {
     name: "Curve crvUSD/USDT Pool (Arbitrum)",
-    protocol: Protocols.Curve,
+
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "crvUSDT",
@@ -623,7 +620,7 @@ export const contractParams: Record<
 
   CURVE_USDE_USDC_POOL_ARB: {
     name: "Curve USDe/USDC Pool (Arbitrum)",
-    protocol: Protocols.Curve,
+
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "USDEUSDC",
@@ -632,7 +629,7 @@ export const contractParams: Record<
 
   CURVE_3CRV_POOL_OP: {
     name: "Curve 3CRV Pool (Optimism)",
-    protocol: Protocols.Curve,
+
     version: 20,
     type: AdapterInterface.CURVE_V1_3ASSETS,
     lpToken: "3CRV",
