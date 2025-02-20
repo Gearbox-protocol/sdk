@@ -1204,10 +1204,10 @@
     humanize-duration-ts "^2.1.1"
     zod "^3.23.8"
 
-"@gearbox-protocol/sdk-gov@v2.34.0-next.62":
-  version "2.34.0-next.62"
-  resolved "https://registry.yarnpkg.com/@gearbox-protocol/sdk-gov/-/sdk-gov-2.34.0-next.62.tgz#4c30b7c9d784c9212e5b47aa7cc864cc6ac8ba11"
-  integrity sha512-wh1tp6TccTR8X24Gt3KaX0xJDXh3CbJyVgzqvbphUfPJUpcnEVjhZMpWb07yy3tPtc38DSJhDhkgR7YsDjlgKA==
+"@gearbox-protocol/sdk-gov@v2.34.0-next.63":
+  version "2.34.0-next.63"
+  resolved "https://registry.yarnpkg.com/@gearbox-protocol/sdk-gov/-/sdk-gov-2.34.0-next.63.tgz#604e81af3f0e448a5132ed1e3a97cf2631dde511"
+  integrity sha512-EUHWlvKMRxOOuFSdSX/SgOfWLWJtipDtEzwyq5eJ66X/6bYpCdEjCJyPte7QkeATS1hcjGMF0V8pGZRlqMiJdw==
   dependencies:
     ethers "6.12.1"
     humanize-duration-ts "^2.1.1"
