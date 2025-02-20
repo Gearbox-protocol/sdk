@@ -179,6 +179,10 @@ const PROTOCOL_DATA: Record<ExtendedProtocols, ProtocolData> = {
     name: "Shadow",
     icon: "/protocols/shadow.svg",
   },
+  Lift: {
+    name: "Lift",
+    icon: "/protocols/lift.svg",
+  },
 };
 
 export const isExtendedProtocol = (t: unknown): t is ExtendedProtocols =>
