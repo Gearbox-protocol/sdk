@@ -43,6 +43,7 @@ type ExtraFarmTokens = Extract<
   | "tETH"
   | "PT_beraSTONE_10APR2025"
   | "stS"
+  | "csUSDL"
 >;
 
 // tokens with apy among them
@@ -78,6 +79,7 @@ type ExtraTokensWithAPY = Extract<
   | "tETH"
   | "PT_beraSTONE_10APR2025"
   | "stS"
+  | "csUSDL"
 >;
 
 // LRT & LST tokens among them
@@ -119,6 +121,7 @@ const EXTRA_FARM_TOKENS: Record<ExtraFarmTokens, true> = {
   tETH: true,
   PT_beraSTONE_10APR2025: true,
   stS: true,
+  csUSDL: true,
 };
 
 export const isExtraFarmToken = (t: unknown): t is ExtraFarmTokens => {
@@ -161,6 +164,7 @@ const EXTRA_TOKENS_WITH_APY: Record<ExtraTokensWithAPY, true> = {
   tETH: true,
   PT_beraSTONE_10APR2025: true,
   stS: true,
+  csUSDL: true,
 };
 
 const isExtraTokenWithAPY = (t: unknown): t is ExtraTokensWithAPY => {
