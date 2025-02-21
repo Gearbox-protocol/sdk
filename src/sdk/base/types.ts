@@ -62,12 +62,18 @@ export type GaugeData = Unarray<
   >
 >;
 
-export type BotData = Unarray<
+export type ConnectedBotData = Unarray<
   AbiParametersToPrimitiveTypes<
     ExtractAbiFunction<
       typeof iPeripheryCompressorAbi,
-      "getActiveBots"
+      "getConnectedBots"
     >["outputs"]
+  >
+>;
+
+export type BotData = Unarray<
+  AbiParametersToPrimitiveTypes<
+    ExtractAbiFunction<typeof iPeripheryCompressorAbi, "getBots">["outputs"]
   >
 >;
 

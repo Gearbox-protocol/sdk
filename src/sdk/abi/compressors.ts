@@ -3176,9 +3176,8 @@ export const iPeripheryCompressorAbi = [
     type: "function",
     inputs: [
       { name: "marketConfigurator", internalType: "address", type: "address" },
-      { name: "creditAccount", internalType: "address", type: "address" },
     ],
-    name: "getActiveBots",
+    name: "getBots",
     outputs: [
       {
         name: "",
@@ -3204,6 +3203,54 @@ export const iPeripheryCompressorAbi = [
               },
             ],
           },
+          {
+            name: "requiredPermissions",
+            internalType: "uint192",
+            type: "uint192",
+          },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [
+      { name: "marketConfigurator", internalType: "address", type: "address" },
+      { name: "creditAccount", internalType: "address", type: "address" },
+    ],
+    name: "getConnectedBots",
+    outputs: [
+      {
+        name: "",
+        internalType: "struct ConnectedBotState[]",
+        type: "tuple[]",
+        components: [
+          {
+            name: "baseParams",
+            internalType: "struct BaseParams",
+            type: "tuple",
+            components: [
+              { name: "addr", internalType: "address", type: "address" },
+              { name: "version", internalType: "uint256", type: "uint256" },
+              {
+                name: "contractType",
+                internalType: "bytes32",
+                type: "bytes32",
+              },
+              {
+                name: "serializedParams",
+                internalType: "bytes",
+                type: "bytes",
+              },
+            ],
+          },
+          {
+            name: "requiredPermissions",
+            internalType: "uint192",
+            type: "uint192",
+          },
+          { name: "creditAccount", internalType: "address", type: "address" },
           { name: "permissions", internalType: "uint192", type: "uint192" },
           { name: "forbidden", internalType: "bool", type: "bool" },
         ],

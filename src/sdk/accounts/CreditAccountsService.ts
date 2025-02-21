@@ -343,7 +343,7 @@ export class CreditAccountsService extends SDKConstruct {
     return Object.values(r);
   }
 
-  async getActiveBots(
+  async getConnectedBots(
     accountsToCheck: Array<{ creditAccount: Address; creditManager: Address }>,
   ) {
     const resp = await this.provider.publicClient.multicall({
@@ -355,7 +355,7 @@ export class CreditAccountsService extends SDKConstruct {
         return {
           abi: iPeripheryCompressorAbi,
           address: this.peripheryCompressor,
-          functionName: "getActiveBots",
+          functionName: "getConnectedBots",
           args: [pool.configurator.address, o.creditAccount],
         } as const;
       }),
