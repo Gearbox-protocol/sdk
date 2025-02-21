@@ -55,6 +55,7 @@ export const decimals: Record<SupportedToken, number> = {
   cbETH: 18,
   USDe: 18,
   PENDLE: 18,
+  MORPHO: 18,
   pufETH: 18,
   USDS: 18,
   PT_rsETH_26SEP2024: 18,
@@ -95,6 +96,7 @@ export const decimals: Record<SupportedToken, number> = {
   tETHwstETH: 18,
   tETHweETH: 18,
   pzETHstETH: 18,
+  USDLUSDC: 18,
   llamathena: 18,
   crvUSDUSDT: 18,
   crvUSDETHCRV: 18,
@@ -180,6 +182,8 @@ export const decimals: Record<SupportedToken, number> = {
 
   dtBTCV3: 18,
   dwstETHV3: 18,
+
+  dwSV3: 18,
 
   dUSDC_eV3: 6,
   sdUSDC_eV3: 6,
@@ -272,6 +276,9 @@ export const decimals: Record<SupportedToken, number> = {
   scrvUSD: 18,
   tETH: 18,
   T: 18,
+  USDL: 18,
+  wUSDL: 18,
+  csUSDL: 18,
   beraSTONE: 18,
   rETH: 18,
   rETH_f: 18,

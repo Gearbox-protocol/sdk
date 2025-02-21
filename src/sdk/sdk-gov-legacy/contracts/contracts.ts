@@ -59,7 +59,8 @@ export type CurvePoolContract =
   | "CURVE_LLAMA_THENA_POOL"
   | "CURVE_tETH_wstETH_POOL"
   | "CURVE_tETH_weETH_POOL"
-  | "CURVE_pzETH_stETH_POOL";
+  | "CURVE_pzETH_stETH_POOL"
+  | "CURVE_USDL_USDC_POOL";
 
 export type YearnVaultContract =
   | "YEARN_DAI_VAULT"
@@ -571,6 +572,14 @@ export const contractParams: Record<
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "pzETHstETH",
     tokens: ["pzETH", "wstETH"],
+  },
+
+  CURVE_USDL_USDC_POOL: {
+    name: "Curve pzETH/wstETH LP",
+    version: 20,
+    type: AdapterInterface.CURVE_STABLE_NG,
+    lpToken: "USDLUSDC",
+    tokens: ["USDL", "USDC"],
   },
 
   CURVE_2CRV_POOL_ARB: {

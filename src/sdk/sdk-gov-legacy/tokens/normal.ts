@@ -65,6 +65,11 @@ export type NormalToken =
   | "scUSD"
   | "T"
   | "tETH"
+  | "USDL"
+  | "wUSDL"
+  | "csUSDL"
+  | "MORPHO"
+
   // Mellow LRTs
   | "steakLRT"
   | "Re7LRT"
@@ -419,6 +424,11 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     symbol: "PENDLE",
     type: { AllNetworks: TokenType.NORMAL_TOKEN },
   },
+  MORPHO: {
+    name: "Morpho Token",
+    symbol: "MORPHO",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
   cbETH: {
     name: "Coinbase ETH",
     symbol: "cbETH",
@@ -452,6 +462,21 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
   tETH: {
     name: "Treehouse ETH",
     symbol: "tETH",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  USDL: {
+    name: "Lift Dollar",
+    symbol: "USDL",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  wUSDL: {
+    name: "Wrapped USDL",
+    symbol: "wUSDL",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  csUSDL: {
+    name: "Coinshift USDL",
+    symbol: "csUSDL",
     type: { AllNetworks: TokenType.NORMAL_TOKEN },
   },
 

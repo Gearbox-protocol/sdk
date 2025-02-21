@@ -223,6 +223,11 @@ export const tokenDataByNetwork: Record<
     scUSD: NOT_DEPLOYED,
     T: "0xCdF7028ceAB81fA0C6971208e83fa7872994beE5",
     tETH: "0xD11c452fc99cF405034ee446803b6F6c1F6d5ED8",
+    MORPHO: "0x58D97B57BB95320F9a05dC918Aef65434969c2B2",
+
+    USDL: "0xbdC7c08592Ee4aa51D06C27Ee23D5087D65aDbcD",
+    wUSDL: "0x7751E2F4b8ae93EF6B79d86419d42FE3295A4559",
+    csUSDL: "0xbEeFc011e94f43b8B7b455eBaB290C7Ab4E216f1",
 
     // CURVE LP TOKENS
     "3Crv": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
@@ -277,6 +282,7 @@ export const tokenDataByNetwork: Record<
     tETHwstETH: "0xA10d15538E09479186b4D3278BA5c979110dDdB1",
     tETHweETH: "0x394a1e1b934cb4F4a0dC17BDD592ec078741542F",
     pzETHstETH: "0xCec99Cff3632Cf1f16652cC5b1E80eB08bE25983",
+    USDLUSDC: "0xAb96AA0ee764924f49fbB372f3B4db9c2cB24Ea2",
 
     // CONVEX LP TOKENS
     cvx3Crv: "0x30D9410ED1D5DA1F6C8391af5338C93ab8d4035C",
@@ -434,10 +440,12 @@ export const tokenDataByNetwork: Record<
     dDOLAV3: "0x31426271449F60d37Cc5C9AEf7bD12aF3BdC7A94",
 
     dtBTCV3: "0x7354EC6E852108411e681D13E11185c3a2567981",
-    dwstETHV3: "0xff94993fa7ea27efc943645f95adb36c1b81244b",
+    dwstETHV3: "0xFF94993fA7EA27Efc943645F95Adb36C1b81244b",
 
     dUSDC_eV3: NOT_DEPLOYED,
     sdUSDC_eV3: NOT_DEPLOYED,
+
+    dwSV3: NOT_DEPLOYED,
 
     GEAR: "0xBa3335588D9403515223F109EdC4eB7269a9Ab5D",
 
@@ -552,6 +560,10 @@ export const tokenDataByNetwork: Record<
     USDS: NOT_DEPLOYED,
     T: NOT_DEPLOYED,
     tETH: NOT_DEPLOYED,
+    USDL: NOT_DEPLOYED,
+    wUSDL: NOT_DEPLOYED,
+    csUSDL: NOT_DEPLOYED,
+    MORPHO: NOT_DEPLOYED,
 
     // REDSTONE
     SHIB: NOT_DEPLOYED,
@@ -618,6 +630,7 @@ export const tokenDataByNetwork: Record<
     tETHwstETH: NOT_DEPLOYED,
     tETHweETH: NOT_DEPLOYED,
     pzETHstETH: NOT_DEPLOYED,
+    USDLUSDC: NOT_DEPLOYED,
 
     // CONVEX LP TOKENS
     cvx3Crv: NOT_DEPLOYED,
@@ -698,7 +711,6 @@ export const tokenDataByNetwork: Record<
     tETH_wstETH_BPT: NOT_DEPLOYED,
 
     // AURA
-
     auraB_rETH_STABLE: NOT_DEPLOYED,
     auraweETH_rETH: NOT_DEPLOYED,
     auraosETH_wETH_BPT: NOT_DEPLOYED,
@@ -773,6 +785,8 @@ export const tokenDataByNetwork: Record<
 
     dUSDC_eV3: "0xa76c604145D7394DEc36C49Af494C144Ff327861",
     sdUSDC_eV3: "0x608F9e2E8933Ce6b39A8CddBc34a1e3E8D21cE75",
+
+    dwSV3: NOT_DEPLOYED,
 
     GEAR: "0x2F26337576127efabEEc1f62BE79dB1bcA9148A4",
 
@@ -884,6 +898,10 @@ export const tokenDataByNetwork: Record<
     scUSD: NOT_DEPLOYED,
     T: NOT_DEPLOYED,
     tETH: NOT_DEPLOYED,
+    USDL: NOT_DEPLOYED,
+    wUSDL: NOT_DEPLOYED,
+    csUSDL: NOT_DEPLOYED,
+    MORPHO: NOT_DEPLOYED,
 
     // REDSTONE
     SHIB: NOT_DEPLOYED,
@@ -948,6 +966,7 @@ export const tokenDataByNetwork: Record<
     tETHwstETH: NOT_DEPLOYED,
     tETHweETH: NOT_DEPLOYED,
     pzETHstETH: NOT_DEPLOYED,
+    USDLUSDC: NOT_DEPLOYED,
 
     // CONVEX LP TOKENS
     cvx3Crv: NOT_DEPLOYED,
@@ -1104,6 +1123,8 @@ export const tokenDataByNetwork: Record<
     dUSDC_eV3: "0x5520dAa93A187f4Ec67344e6D2C4FC9B080B6A35",
     sdUSDC_eV3: "0x73302b63Ad4a16C498f26dB89cb27F37a72E4E04",
 
+    dwSV3: NOT_DEPLOYED,
+
     GEAR: "0x39E6C2E1757ae4354087266E2C3EA9aC4257C1eb",
 
     // AAVE
@@ -1152,11 +1173,6 @@ export const tokenDataByNetwork: Record<
   // BASE
   //
   //
-  ///
-  ///
-  /// OPTIMISM
-  ///
-  ///
   Base: {
     "1INCH": NOT_DEPLOYED,
     AAVE: NOT_DEPLOYED,
@@ -1218,6 +1234,10 @@ export const tokenDataByNetwork: Record<
     USDS: NOT_DEPLOYED,
     T: NOT_DEPLOYED,
     tETH: NOT_DEPLOYED,
+    USDL: NOT_DEPLOYED,
+    wUSDL: NOT_DEPLOYED,
+    csUSDL: NOT_DEPLOYED,
+    MORPHO: NOT_DEPLOYED,
 
     // REDSTONE
     SHIB: NOT_DEPLOYED,
@@ -1281,6 +1301,7 @@ export const tokenDataByNetwork: Record<
     tETHwstETH: NOT_DEPLOYED,
     tETHweETH: NOT_DEPLOYED,
     pzETHstETH: NOT_DEPLOYED,
+    USDLUSDC: NOT_DEPLOYED,
 
     // CONVEX LP TOKENS
     cvx3Crv: NOT_DEPLOYED,
@@ -1434,6 +1455,8 @@ export const tokenDataByNetwork: Record<
     dUSDC_eV3: NOT_DEPLOYED,
     sdUSDC_eV3: NOT_DEPLOYED,
 
+    dwSV3: NOT_DEPLOYED,
+
     GEAR: NOT_DEPLOYED,
 
     // AAVE
@@ -1494,11 +1517,11 @@ export const tokenDataByNetwork: Record<
     UNI: NOT_DEPLOYED,
     USDT: NOT_DEPLOYED,
     DOLA: NOT_DEPLOYED,
-    USDC: "0x29219dd400f2Bf60E5a23d13Be72B486D4038894",
-    USDC_e: NOT_DEPLOYED,
+    USDC: NOT_DEPLOYED,
+    USDC_e: "0x29219dd400f2Bf60E5a23d13Be72B486D4038894",
     WBTC: NOT_DEPLOYED,
     tBTC: NOT_DEPLOYED,
-    WETH: "0x309C92261178fA0CF748A855e90Ae73FDb79EBc7",
+    WETH: "0x50c42dEAcD8Fc9773493ED674b675bE577f2634b",
     YFI: NOT_DEPLOYED,
     GMX: NOT_DEPLOYED,
     ARB: NOT_DEPLOYED,
@@ -1512,6 +1535,10 @@ export const tokenDataByNetwork: Record<
     stS: "0xE5DA20F15420aD15DE0fa650600aFc998bbE3955",
     scUSD: "0xd3DCe716f3eF535C5Ff8d041c1A41C3bd89b97aE",
     T: NOT_DEPLOYED,
+    tETH: NOT_DEPLOYED,
+    USDL: NOT_DEPLOYED,
+    wUSDL: NOT_DEPLOYED,
+    csUSDL: NOT_DEPLOYED,
 
     /// UPDATE
     STETH: NOT_DEPLOYED,
@@ -1544,6 +1571,7 @@ export const tokenDataByNetwork: Record<
     USDe: NOT_DEPLOYED,
     pufETH: NOT_DEPLOYED,
     USDS: NOT_DEPLOYED,
+    MORPHO: NOT_DEPLOYED,
 
     // REDSTONE
     SHIB: NOT_DEPLOYED,
@@ -1594,6 +1622,7 @@ export const tokenDataByNetwork: Record<
     tETHwstETH: NOT_DEPLOYED,
     tETHweETH: NOT_DEPLOYED,
     pzETHstETH: NOT_DEPLOYED,
+    USDLUSDC: NOT_DEPLOYED,
 
     crvUSDUSDC: NOT_DEPLOYED,
     crvUSDUSDT: NOT_DEPLOYED,
@@ -1760,10 +1789,12 @@ export const tokenDataByNetwork: Record<
 
     dtBTCV3: NOT_DEPLOYED,
 
-    dUSDC_eV3: NOT_DEPLOYED,
+    dUSDC_eV3: "0x6F6bda069FB05baB5E83B22FbDb54CBdF33f78ee",
     sdUSDC_eV3: NOT_DEPLOYED,
 
-    GEAR: NOT_DEPLOYED,
+    dwSV3: "0xCf4d737C38ef2ac9C7bdb4DbbC954b1932EA4a40",
+
+    GEAR: "0x0fDbce271bea0d9819034cd09021e0bBE94be3Fd",
 
     // AAVE
     aUSDC: NOT_DEPLOYED,
@@ -1788,7 +1819,6 @@ export const tokenDataByNetwork: Record<
     sUSDe: NOT_DEPLOYED,
     sUSDS: NOT_DEPLOYED,
     scrvUSD: NOT_DEPLOYED,
-    tETH: NOT_DEPLOYED,
 
     beraSTONE: NOT_DEPLOYED,
 
@@ -1832,7 +1862,8 @@ export type TickerToken =
   | "ETH"
   | "USDe"
   | "BTC"
-  | "PushUSDe";
+  | "PushUSDe"
+  | "stS/S";
 
 export interface TickerInfo {
   symbol: TickerToken;
@@ -1939,9 +1970,9 @@ export const tickerInfoTokensByNetwork: Record<
     beraSTONE: [
       {
         symbol: "beraSTONE/ETH",
-        dataId: "beraETH_FUNDAMENTAL",
-        address: tokenDataByNetwork.Mainnet.beraSTONE,
-        priceFeed: "0xf12b7879713FA998B39b3C7C9c2631E40a0b9dfB",
+        dataId: "beraSTONE_FUNDAMENTAL",
+        address: "0x692072eE081c9Ded28d2CfD27513E578d895FD0d",
+        priceFeed: "0xD35f2Fe7cc74e143F3f526c6e2c399fE58e31Cf1",
         reserve: false,
       },
     ],
@@ -2060,6 +2091,7 @@ export const tickerInfoTokensByNetwork: Record<
         reserve: true,
       },
     ],
+
     stkUSDS: [
       {
         symbol: "DAI",
@@ -2174,10 +2206,10 @@ export const tickerInfoTokensByNetwork: Record<
     PT_beraSTONE_10APR2025: [
       {
         symbol: "beraSTONE/ETH",
-        dataId: "beraSTONE_FUNDAMENTAL",
-        address: tokenDataByNetwork.Mainnet.beraSTONE,
+        dataId: "beraETH_FUNDAMENTAL",
+        address: "0x692072eE081c9Ded28d2CfD27513E578d895FD0d",
         priceFeed: "0xf12b7879713FA998B39b3C7C9c2631E40a0b9dfB",
-        reserve: true,
+        reserve: false,
       },
     ],
     PT_eETH_26DEC2024: [
@@ -2231,7 +2263,17 @@ export const tickerInfoTokensByNetwork: Record<
     ],
   },
   Base: {},
-  Sonic: {},
+  Sonic: {
+    stS: [
+      {
+        symbol: "stS/S",
+        dataId: "stS_FUNDAMENTAL",
+        address: "0x56a5b6267d6b8de8ade88455b9342787e49e2f1a",
+        priceFeed: "0xd979d375b4D7d7539DE6D653DD40f0fFc8A2F83D",
+        reserve: false,
+      },
+    ],
+  },
 };
 
 export const tickerTokensByNetwork: Record<

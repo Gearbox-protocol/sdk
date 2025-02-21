@@ -48,7 +48,7 @@ export const TIMELOCK: Record<NetworkType, Address> = {
   Arbitrum: "0x148DD932eCe1155c11006F5650c6Ff428f8D374A",
   Optimism: "0x148DD932eCe1155c11006F5650c6Ff428f8D374A",
   Base: NOT_DEPLOYED,
-  Sonic: NOT_DEPLOYED,
+  Sonic: "0xAdbF876ce58CB65c99b18078353e1DCB16E69e84",
 };
 
 export const GEARBOX_MULTISIG: Record<NetworkType, Address> = {
