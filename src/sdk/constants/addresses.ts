@@ -48,7 +48,7 @@ export const TIMELOCK: Record<NetworkType, Address> = {
   Arbitrum: "0x148DD932eCe1155c11006F5650c6Ff428f8D374A",
   Optimism: "0x148DD932eCe1155c11006F5650c6Ff428f8D374A",
   Base: NOT_DEPLOYED,
-  Sonic: "0x3655fe44BfDD63BB29a31DA6ffe6a254427F0149",
+  Sonic: "0xAdbF876ce58CB65c99b18078353e1DCB16E69e84",
 };
 
 export const GEARBOX_MULTISIG: Record<NetworkType, Address> = {
@@ -56,7 +56,7 @@ export const GEARBOX_MULTISIG: Record<NetworkType, Address> = {
   Arbitrum: "0x57Fd8B1a9213624157786Fff4a7bc532Ce717773",
   Optimism: "0x8bA8cd6D00919ceCc19D9B4A2c8669a524883C4c",
   Base: NOT_DEPLOYED,
-  Sonic: "0xAF960f5F599E02Ff4A86cdA3640c5257D710e70a",
+  Sonic: "0xacEB9dc6a81f1C9E2d8a86c3bFec3f6EF584139D",
 };
 
 export const GEARBOX_RISK_CURATORS: Record<NetworkType, Address[]> = {
