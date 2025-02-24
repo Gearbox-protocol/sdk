@@ -19,7 +19,8 @@ export type ExtendedProtocols =
   | "Lombard"
   | "pumpBTC"
   | "Stakestone"
-  | "Treehouse";
+  | "Treehouse"
+  | "Coinshift";
 
 const PROTOCOL_DATA: Record<ExtendedProtocols, ProtocolData> = {
   Uniswap: {
@@ -169,6 +170,23 @@ const PROTOCOL_DATA: Record<ExtendedProtocols, ProtocolData> = {
   Treehouse: {
     name: "Treehouse",
     icon: "/protocols/treehouse.svg",
+  },
+
+  Beets: {
+    name: "Beets",
+    icon: "/protocols/beets.svg",
+  },
+  Shadow: {
+    name: "Shadow",
+    icon: "/protocols/shadow.svg",
+  },
+  Lift: {
+    name: "Lift",
+    icon: "/protocols/lift.svg",
+  },
+  Coinshift: {
+    name: "coinshift",
+    icon: "/protocols/coinshift.svg",
   },
 };
 

@@ -11,6 +11,7 @@ export const stEthPoolWrapper: Record<NetworkType, Address> = {
   Arbitrum: "0x3fe62a62C022A069952069b32C9d56718D30B7ec",
   Optimism: "" as Address,
   Base: "" as Address,
+  Sonic: "" as Address,
 };
 
 type MainnetCreditManagersV1 = "DAI_V1" | "USDC_V1" | "WETH_V1" | "WBTC_V1";
@@ -69,6 +70,8 @@ type CreditManagersListType = {
     : key extends "Optimism"
     ? Record<OptimismCreditManagers, Address>
     : key extends "Base"
+    ? Record<BaseCreditManagers, Address>
+    : key extends "Sonic"
     ? Record<BaseCreditManagers, Address>
     : never;
 };
@@ -168,6 +171,7 @@ export const creditManagerByNetwork: CreditManagersListType = {
       "0x6ed2150a2d4136b42adf2043d25f5834baa0f1a9".toLowerCase() as Address,
   },
   Base: {},
+  Sonic: {},
 };
 
 export type SupportedCreditManagers =
@@ -221,6 +225,8 @@ type PoolsListType = {
     ? Record<OptimismPools, Address>
     : key extends "Base"
     ? Record<BasePools, Address>
+    : key extends "Sonic"
+    ? Record<BasePools, Address>
     : never;
 };
 
@@ -272,6 +278,7 @@ export const poolByNetwork: PoolsListType = {
       "0x42db77b3103c71059f4b997d6441cfb299fd0d94".toLowerCase() as Address,
   },
   Base: {},
+  Sonic: {},
 };
 
 export type SupportedPools = MainnetPools | ArbitrumPools;
