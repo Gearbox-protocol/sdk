@@ -1,7 +1,13 @@
-import type { Address, ContractEventName, Log } from "viem";
+import {
+  type Address,
+  type ContractEventName,
+  type Log,
+  stringToHex,
+} from "viem";
 
 import { iMarketConfiguratorV310Abi } from "../abi";
 import { BaseContract } from "../base";
+import type { PeripheryContract } from "../constants";
 import { AP_MARKET_CONFIGURATOR } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
 
@@ -29,6 +35,21 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
       this.address,
       "Market configurator " + this.#curatorName,
     );
+  }
+
+  public async getPeripheryContract(
+    contract: PeripheryContract,
+  ): Promise<Address> {
+    const resp = await this.sdk.provider.publicClient.readContract({
+      address: this.address,
+      abi: this.abi,
+      functionName: "getPeripheryContracts",
+      args: [stringToHex(contract, { size: 32 })],
+    });
+    if (resp.length === 0) {
+      throw new Error(`periphery contract ${contract} not found`);
+    }
+    return resp[0];
   }
 
   public override processLog(
