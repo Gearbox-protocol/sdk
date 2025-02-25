@@ -1,4 +1,5 @@
 import { pino } from "pino";
+import type { Address } from "viem";
 
 import { SDKExample } from "../src/dev";
 
@@ -8,13 +9,17 @@ async function example(): Promise<void> {
   });
   const example = new SDKExample(logger);
 
-  const MARKET_CONFIGURATOR = "0x240a60dc5e0b9013cb8cf39aa6f9ddd8f25e40d2";
-  const ADDRESS_PROVIDER = "0xf2ef708b652410233d7e1e63ae10a66a64449b88";
+  const MARKET_CONFIGURATORS: Address[] = [
+    "0x372eb7d6f8fae884d9b9b5114f26897416a00c21",
+    "0xbba2ad00ecbd7d22cc6d2c61afa53e27d14f136e",
+  ];
+  const ADDRESS_PROVIDER = "0xf7711bf911b246ad90b6c6795c53eab3255ab56a";
 
   await example.run({
     addressProvider: ADDRESS_PROVIDER,
-    marketConfigurators: [MARKET_CONFIGURATOR],
+    marketConfigurators: MARKET_CONFIGURATORS,
     outFile: "example-state.json",
+    anvilUrl: "https://anvil.gearbox.foundation/rpc/Eth211",
   });
   logger.info("done");
 }

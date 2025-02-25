@@ -1,4 +1,4 @@
-import { type Abi, type Address, stringToHex } from "viem";
+import { type Abi, type Address, hexToString, isHex, stringToHex } from "viem";
 
 import { BaseContract } from "../../base";
 import type { BaseContractOptions } from "../../base/BaseContract";
@@ -23,14 +23,15 @@ export default abstract class AbstractAddressProviderContract<
   }
 
   protected setInternalAddress(key: string, address: Address, version: number) {
-    if (!this.#addresses[key]) {
-      this.#addresses[key] = {};
+    let k = isHex(key) ? hexToString(key, { size: 32 }) : key;
+    if (!this.#addresses[k]) {
+      this.#addresses[k] = {};
     }
-    this.#addresses[key][version] = address;
-
-    if (!this.#latest[key] || version > this.#latest[key]) {
-      this.#latest[key] = version;
+    this.#addresses[k][version] = address;
+    if (!this.#latest[k] || version > this.#latest[key]) {
+      this.#latest[k] = version;
     }
+    this.logger?.debug(`Set address for ${k}@${version} to ${address}`);
   }
 
   public getAddress(contract: string, version = NO_VERSION): Address {

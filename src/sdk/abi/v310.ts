@@ -163,6 +163,129 @@ export const iAddressProviderV310Abi = [
 ] as const;
 
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// IBotListV3
+/// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const iBotListV310Abi = [
+  {
+    type: "function",
+    inputs: [
+      { name: "creditAccount", internalType: "address", type: "address" },
+    ],
+    name: "activeBots",
+    outputs: [{ name: "", internalType: "address[]", type: "address[]" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [{ name: "bot", internalType: "address", type: "address" }],
+    name: "botForbiddenStatus",
+    outputs: [{ name: "", internalType: "bool", type: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [
+      { name: "bot", internalType: "address", type: "address" },
+      { name: "creditAccount", internalType: "address", type: "address" },
+    ],
+    name: "botPermissions",
+    outputs: [{ name: "", internalType: "uint192", type: "uint192" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [],
+    name: "contractType",
+    outputs: [{ name: "", internalType: "bytes32", type: "bytes32" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [
+      { name: "creditAccount", internalType: "address", type: "address" },
+    ],
+    name: "eraseAllBotPermissions",
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    inputs: [{ name: "bot", internalType: "address", type: "address" }],
+    name: "forbidBot",
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    inputs: [
+      { name: "bot", internalType: "address", type: "address" },
+      { name: "creditAccount", internalType: "address", type: "address" },
+    ],
+    name: "getBotStatus",
+    outputs: [
+      { name: "permissions", internalType: "uint192", type: "uint192" },
+      { name: "forbidden", internalType: "bool", type: "bool" },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [
+      { name: "bot", internalType: "address", type: "address" },
+      { name: "creditAccount", internalType: "address", type: "address" },
+      { name: "permissions", internalType: "uint192", type: "uint192" },
+    ],
+    name: "setBotPermissions",
+    outputs: [
+      { name: "activeBotsRemaining", internalType: "uint256", type: "uint256" },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    inputs: [],
+    name: "version",
+    outputs: [{ name: "", internalType: "uint256", type: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "event",
+    anonymous: false,
+    inputs: [
+      { name: "bot", internalType: "address", type: "address", indexed: true },
+    ],
+    name: "ForbidBot",
+  },
+  {
+    type: "event",
+    anonymous: false,
+    inputs: [
+      { name: "bot", internalType: "address", type: "address", indexed: true },
+      {
+        name: "creditManager",
+        internalType: "address",
+        type: "address",
+        indexed: true,
+      },
+      {
+        name: "creditAccount",
+        internalType: "address",
+        type: "address",
+        indexed: true,
+      },
+      {
+        name: "permissions",
+        internalType: "uint192",
+        type: "uint192",
+        indexed: false,
+      },
+    ],
+    name: "SetBotPermissions",
+  },
+] as const;
+
+/// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ICreditConfiguratorV3
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -5,20 +5,21 @@ import type {
   Log,
 } from "viem";
 
-import { botListV3Abi } from "../abi";
+import { iBotListV300Abi } from "../abi";
 import { BaseContract } from "../base";
 import { ADDRESS_PROVIDER_BLOCK, botPermissionsToString } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { BotListStateHuman } from "../types";
 
-type abi = typeof botListV3Abi;
+const abi = iBotListV300Abi;
+type abi = typeof abi;
 
 export class BotListContract extends BaseContract<abi> {
   #approvedCreditManagers?: Set<Address>;
   #currentBlock: bigint;
 
   constructor(sdk: GearboxSDK, address: Address) {
-    super(sdk, { addr: address, name: "BotListV3", abi: botListV3Abi });
+    super(sdk, { addr: address, name: "BotListV3", abi });
     this.#currentBlock = ADDRESS_PROVIDER_BLOCK[sdk.provider.networkType];
   }
 

@@ -8,7 +8,7 @@ export const ADDRESS_PROVIDER_BLOCK: Record<NetworkType, bigint> = {
   Arbitrum: 184650310n,
   Optimism: 118410666n,
   Base: 0n,
-  Sonic: 8515200n, // TODO: this is arbitrary block, to avoid staring from zero
+  Sonic: 9779380n,
 };
 
 const BLOCK_DURATION_BY_NETWORK: Record<NetworkType, number> = {
