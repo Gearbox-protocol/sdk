@@ -43,7 +43,8 @@ const LEADERBOARD_APIS: Record<number, string> = {
   [TESTNET_CHAINS.Mainnet]: "https://testnet.gearbox.foundation/gpointbot",
   [TESTNET_CHAINS.Optimism]: "https://testnet.gearbox.foundation/gpointbot",
   [TESTNET_CHAINS.Arbitrum]: "https://testnet.gearbox.foundation/gpointbot",
-  // !& Base & Sonic
+  [TESTNET_CHAINS.Base]: "https://testnet.gearbox.foundation/gpointbot",
+  [TESTNET_CHAINS.Sonic]: "https://testnet.gearbox.foundation/gpointbot",
 };
 
 const REFERRAL_API = "https://referral-gen.fly.dev/generate";

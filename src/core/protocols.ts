@@ -20,7 +20,8 @@ export type ExtendedProtocols =
   | "pumpBTC"
   | "Stakestone"
   | "Treehouse"
-  | "Coinshift";
+  | "Coinshift"
+  | "Rings";
 
 const PROTOCOL_DATA: Record<ExtendedProtocols, ProtocolData> = {
   Uniswap: {
@@ -187,6 +188,10 @@ const PROTOCOL_DATA: Record<ExtendedProtocols, ProtocolData> = {
   Coinshift: {
     name: "coinshift",
     icon: "/protocols/coinshift.svg",
+  },
+  Rings: {
+    name: "rings",
+    icon: "/protocols/rings.svg",
   },
 };
 
