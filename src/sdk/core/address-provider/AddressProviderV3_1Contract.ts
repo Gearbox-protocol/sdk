@@ -70,13 +70,9 @@ export class AddressProviderContractV3_1
           eventName: "SetAddress",
           logs: [log],
         })[0];
-        const { key, version } = args;
+        const { key, ver, value } = args;
 
-        this.setInternalAddress(
-          key,
-          log.args.value as Address,
-          Number(version),
-        );
+        this.setInternalAddress(key, value, Number(ver));
         break;
       }
       default:
@@ -86,11 +82,11 @@ export class AddressProviderContractV3_1
   }
 
   public async syncState(blockNumber?: bigint): Promise<void> {
-    const entries = await this.contract.read.getAllSavedContracts({
+    const entries = await this.contract.read.getAllEntries({
       blockNumber,
     });
-    for (const log of entries) {
-      this.setInternalAddress(log.key, log.value, Number(log.version));
+    for (const { key, ver, value } of entries) {
+      this.setInternalAddress(key, value, Number(ver));
     }
   }
 }

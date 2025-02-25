@@ -1,7 +1,7 @@
 import type { ContractEventName, Log } from "viem";
 import { decodeAbiParameters } from "viem";
 
-import { iTumblerV3Abi } from "../../abi";
+import { iTumblerV310Abi } from "../../abi";
 import type { PoolData, RateKeeperData } from "../../base";
 import { BaseContract } from "../../base";
 import type { GearboxSDK } from "../../GearboxSDK";
@@ -9,7 +9,8 @@ import type { TumblerStateHuman } from "../../types";
 import { AddressMap, formatDuration, percentFmt } from "../../utils";
 import type { IRateKeeperContract } from "./types";
 
-type abi = typeof iTumblerV3Abi;
+const abi = iTumblerV310Abi;
+type abi = typeof abi;
 
 export class TumblerContract
   extends BaseContract<abi>
@@ -22,7 +23,7 @@ export class TumblerContract
     super(sdk, {
       ...tumbler.baseParams,
       name: `Tumbler(${pool.name})`,
-      abi: iTumblerV3Abi,
+      abi,
     });
 
     const [epochLength, tokens_, rates_] = decodeAbiParameters(
