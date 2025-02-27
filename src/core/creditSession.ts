@@ -3,7 +3,6 @@ import {
   toBigInt,
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
-import moment from "moment";
 import { Address } from "viem";
 
 import {
@@ -61,9 +60,7 @@ export class CreditSession {
   readonly version: number;
 
   readonly since: number;
-  readonly sinceDate: string;
   readonly closedAt: number;
-  readonly closedAtDate: string;
 
   readonly initialAmount: bigint;
   readonly borrowedAmount: bigint;
@@ -129,12 +126,6 @@ export class CreditSession {
 
     this.since = payload.since || 0;
     this.closedAt = payload.closedAt || 0;
-    this.sinceDate = moment((payload.sinceTimestamp || 0) * 1000).format(
-      "Do MMM YYYY",
-    );
-    this.closedAtDate = moment((payload.closedAtTimestamp || 0) * 1000).format(
-      "Do MMM YYYY",
-    );
     this.sinceTimestamp = payload.sinceTimestamp || 0;
     this.closedAtTimestamp = payload.closedAtTimestamp || 0;
 
@@ -220,9 +211,7 @@ export class CreditSessionFiltered {
 
   readonly status: CreditSessionStatus;
   readonly since: number;
-  readonly sinceDate: string;
   readonly closedAt: number;
-  readonly closedAtDate: string;
 
   readonly sinceTimestamp: number;
   readonly closedAtTimestamp: number;
@@ -256,10 +245,6 @@ export class CreditSessionFiltered {
     this.status = CREDIT_SESSION_STATUS_BY_ID[payload.status || 0];
     this.since = payload.since || 0;
     this.closedAt = payload.closedAt || 0;
-    this.sinceDate = moment((payload.since || 0) * 1000).format("Do MMM YYYY");
-    this.closedAtDate = moment((payload.closedAt || 0) * 1000).format(
-      "Do MMM YYYY",
-    );
     this.sinceTimestamp = payload.sinceTimestamp || 0;
     this.closedAtTimestamp = payload.closedAtTimestamp || 0;
 

@@ -4,7 +4,6 @@ import {
   toBigInt,
 } from "@gearbox-protocol/sdk-gov";
 import { Decimal } from "decimal.js-light";
-import { unix } from "moment";
 
 export type BigNumberish = bigint | number | string;
 
@@ -62,8 +61,4 @@ export function formatPercentage(healthFactor: number, decimals = 2): string {
 
 export function formatLeverage(leverage: number, decimals = 2): string {
   return (leverage / Number(LEVERAGE_DECIMALS)).toFixed(decimals);
-}
-
-export function formatDateTime(timestamp: number): string {
-  return `${unix(timestamp).format("Do MMM YYYY HH:mm")} UTC`;
 }
