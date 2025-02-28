@@ -11,7 +11,7 @@ import {
   toBigInt,
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
-import { DataServiceWrapper } from "@redstone-finance/evm-connector/dist/src/wrappers/DataServiceWrapper";
+import { DataServiceWrapper } from "@redstone-finance/evm-connector";
 import { SignedDataPackage } from "@redstone-finance/protocol";
 import { RedstonePayload } from "redstone-protocol";
 import {
