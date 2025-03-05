@@ -3,6 +3,7 @@ import type { Hex } from "viem";
 import type { AdapterData } from "../../base";
 import type { GearboxSDK } from "../../GearboxSDK";
 import { bytes32ToString } from "../../utils";
+import { AbstractAdapterContract } from "./AbstractAdapter";
 import { BalancerV2VaultAdapterContract } from "./BalancerAdapterContract";
 import { CamelotV3AdapterContract } from "./CamelotV3AdapterContract";
 import { ConvexV1BaseRewardPoolAdapterContract } from "./ConvexV1BaseRewardPoolAdapterContract";
@@ -77,8 +78,9 @@ export function createAdapter(
     case "ADAPTER::STAKING_REWARDS":
       return new StakingRewardsAdapterContract(sdk, args);
     default:
-      throw new Error(
+      sdk.logger?.warn(
         `adapter for ${adapterType} at ${args.baseParams.addr} is not implemented`,
       );
+      return new AbstractAdapterContract(sdk, { ...args, abi: [] });
   }
 }
