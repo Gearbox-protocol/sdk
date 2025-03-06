@@ -70,7 +70,7 @@ export const GEARBOX_RISK_CURATORS: Record<NetworkType, Address[]> = {
 /**
  * Depreciated pools
  */
-export const DEPRECIATED_POOLS = {
+export const DEPRECIATED_POOLS: Record<NetworkType, Record<Address, string>> = {
   Mainnet: {
     ["0x1dc0f3359a254f876b37906cfc1000a35ce2d717".toLowerCase() as Address]:
       "USDT_V3_BROKEN",
@@ -79,4 +79,4 @@ export const DEPRECIATED_POOLS = {
   Optimism: {},
   Base: {},
   Sonic: {},
-} as const;
+};
