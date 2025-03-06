@@ -1,7 +1,18 @@
-import {
-  ilpPriceFeedExceptionsAbi,
-  iRedstonePriceFeedExceptionsAbi,
-} from "./oracles";
+export const iRedstonePriceFeedExceptionsAbi = [
+  { type: "error", inputs: [], name: "DataPackageTimestampIncorrect" },
+  { type: "error", inputs: [], name: "DuplicateSignersException" },
+  { type: "error", inputs: [], name: "IncorrectSignersThresholdException" },
+  { type: "error", inputs: [], name: "NotEnoughSignersException" },
+  { type: "error", inputs: [], name: "RedstonePayloadTimestampIncorrect" },
+] as const;
+
+export const ilpPriceFeedExceptionsAbi = [
+  { type: "error", inputs: [], name: "ExchangeRateOutOfBoundsException" },
+  { type: "error", inputs: [], name: "LowerBoundCantBeZeroException" },
+  { type: "error", inputs: [], name: "ReserveFeedMustNotBeSelfException" },
+  { type: "error", inputs: [], name: "UpdateBoundsBeforeCooldownException" },
+  { type: "error", inputs: [], name: "UpdateBoundsNotAllowedException" },
+] as const;
 
 export const iRouterV3ErrorsAbi = [
   {
@@ -182,4 +193,4 @@ export const errorAbis = [
   ...iRedstoneErrorsAbi,
   ...ilpPriceFeedExceptionsAbi,
   ...iRouterV3ErrorsAbi,
-];
+] as const;
