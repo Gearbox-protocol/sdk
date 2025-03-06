@@ -1,5 +1,5 @@
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// IAddressProvider
+// IAddressProviderV310
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const iAddressProviderV310Abi = [
@@ -163,7 +163,7 @@ export const iAddressProviderV310Abi = [
 ] as const;
 
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// IBotListV3
+// IBotListV310
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const iBotListV310Abi = [
@@ -286,7 +286,7 @@ export const iBotListV310Abi = [
 ] as const;
 
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// ICreditConfiguratorV3
+// ICreditConfiguratorV310
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const iCreditConfiguratorV310Abi = [
@@ -770,7 +770,135 @@ export const iCreditConfiguratorV310Abi = [
 ] as const;
 
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// ICreditFacadeV3
+// ICreditFacadeMulticallV310
+/// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const iCreditFacadeMulticallV310Abi = [
+  {
+    type: "function",
+    inputs: [
+      { name: "token", internalType: "address", type: "address" },
+      { name: "amount", internalType: "uint256", type: "uint256" },
+    ],
+    name: "addCollateral",
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    inputs: [
+      { name: "token", internalType: "address", type: "address" },
+      { name: "amount", internalType: "uint256", type: "uint256" },
+      { name: "deadline", internalType: "uint256", type: "uint256" },
+      { name: "v", internalType: "uint8", type: "uint8" },
+      { name: "r", internalType: "bytes32", type: "bytes32" },
+      { name: "s", internalType: "bytes32", type: "bytes32" },
+    ],
+    name: "addCollateralWithPermit",
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    inputs: [],
+    name: "compareBalances",
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    inputs: [{ name: "amount", internalType: "uint256", type: "uint256" }],
+    name: "decreaseDebt",
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    inputs: [{ name: "amount", internalType: "uint256", type: "uint256" }],
+    name: "increaseDebt",
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    inputs: [
+      {
+        name: "updates",
+        internalType: "struct PriceUpdate[]",
+        type: "tuple[]",
+        components: [
+          { name: "priceFeed", internalType: "address", type: "address" },
+          { name: "data", internalType: "bytes", type: "bytes" },
+        ],
+      },
+    ],
+    name: "onDemandPriceUpdates",
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    inputs: [
+      { name: "bot", internalType: "address", type: "address" },
+      { name: "permissions", internalType: "uint192", type: "uint192" },
+    ],
+    name: "setBotPermissions",
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    inputs: [
+      { name: "collateralHints", internalType: "uint256[]", type: "uint256[]" },
+      { name: "minHealthFactor", internalType: "uint16", type: "uint16" },
+    ],
+    name: "setFullCheckParams",
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    inputs: [
+      {
+        name: "balanceDeltas",
+        internalType: "struct BalanceDelta[]",
+        type: "tuple[]",
+        components: [
+          { name: "token", internalType: "address", type: "address" },
+          { name: "amount", internalType: "int256", type: "int256" },
+        ],
+      },
+    ],
+    name: "storeExpectedBalances",
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    inputs: [
+      { name: "token", internalType: "address", type: "address" },
+      { name: "quotaChange", internalType: "int96", type: "int96" },
+      { name: "minQuota", internalType: "uint96", type: "uint96" },
+    ],
+    name: "updateQuota",
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    inputs: [
+      { name: "token", internalType: "address", type: "address" },
+      { name: "amount", internalType: "uint256", type: "uint256" },
+      { name: "to", internalType: "address", type: "address" },
+    ],
+    name: "withdrawCollateral",
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+] as const;
+
+/// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ICreditFacadeV310
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const iCreditFacadeV310Abi = [
@@ -1327,135 +1455,7 @@ export const iCreditFacadeV310Abi = [
 ] as const;
 
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// ICreditFacadeV3Multicall
-/// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-export const iCreditFacadeV310MulticallAbi = [
-  {
-    type: "function",
-    inputs: [
-      { name: "token", internalType: "address", type: "address" },
-      { name: "amount", internalType: "uint256", type: "uint256" },
-    ],
-    name: "addCollateral",
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    inputs: [
-      { name: "token", internalType: "address", type: "address" },
-      { name: "amount", internalType: "uint256", type: "uint256" },
-      { name: "deadline", internalType: "uint256", type: "uint256" },
-      { name: "v", internalType: "uint8", type: "uint8" },
-      { name: "r", internalType: "bytes32", type: "bytes32" },
-      { name: "s", internalType: "bytes32", type: "bytes32" },
-    ],
-    name: "addCollateralWithPermit",
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    inputs: [],
-    name: "compareBalances",
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    inputs: [{ name: "amount", internalType: "uint256", type: "uint256" }],
-    name: "decreaseDebt",
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    inputs: [{ name: "amount", internalType: "uint256", type: "uint256" }],
-    name: "increaseDebt",
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    inputs: [
-      {
-        name: "updates",
-        internalType: "struct PriceUpdate[]",
-        type: "tuple[]",
-        components: [
-          { name: "priceFeed", internalType: "address", type: "address" },
-          { name: "data", internalType: "bytes", type: "bytes" },
-        ],
-      },
-    ],
-    name: "onDemandPriceUpdates",
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    inputs: [
-      { name: "bot", internalType: "address", type: "address" },
-      { name: "permissions", internalType: "uint192", type: "uint192" },
-    ],
-    name: "setBotPermissions",
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    inputs: [
-      { name: "collateralHints", internalType: "uint256[]", type: "uint256[]" },
-      { name: "minHealthFactor", internalType: "uint16", type: "uint16" },
-    ],
-    name: "setFullCheckParams",
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    inputs: [
-      {
-        name: "balanceDeltas",
-        internalType: "struct BalanceDelta[]",
-        type: "tuple[]",
-        components: [
-          { name: "token", internalType: "address", type: "address" },
-          { name: "amount", internalType: "int256", type: "int256" },
-        ],
-      },
-    ],
-    name: "storeExpectedBalances",
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    inputs: [
-      { name: "token", internalType: "address", type: "address" },
-      { name: "quotaChange", internalType: "int96", type: "int96" },
-      { name: "minQuota", internalType: "uint96", type: "uint96" },
-    ],
-    name: "updateQuota",
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    inputs: [
-      { name: "token", internalType: "address", type: "address" },
-      { name: "amount", internalType: "uint256", type: "uint256" },
-      { name: "to", internalType: "address", type: "address" },
-    ],
-    name: "withdrawCollateral",
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-] as const;
-
-/// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// ICreditManagerV3
+// ICreditManagerV310
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const iCreditManagerV310Abi = [
@@ -2080,7 +2080,7 @@ export const iCreditManagerV310Abi = [
 ] as const;
 
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// IGaugeV3
+// IGaugeV310
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const iGaugeV310Abi = [
@@ -2359,7 +2359,7 @@ export const iGaugeV310Abi = [
 ] as const;
 
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// ILossPolicy
+// ILossPolicyV310
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const iLossPolicyV310Abi = [
@@ -2464,7 +2464,7 @@ export const iLossPolicyV310Abi = [
 ] as const;
 
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// IMarketConfigurator
+// IMarketConfiguratorV310
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const iMarketConfiguratorV310Abi = [
@@ -3644,7 +3644,7 @@ export const iMarketConfiguratorV310Abi = [
 ] as const;
 
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// IPoolQuotaKeeperV3
+// IPoolQuotaKeeperV310
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const iPoolQuotaKeeperV310Abi = [
@@ -3988,7 +3988,7 @@ export const iPoolQuotaKeeperV310Abi = [
 ] as const;
 
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// IPoolV3
+// IPoolV310
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const iPoolV310Abi = [
@@ -4821,7 +4821,7 @@ export const iPoolV310Abi = [
 ] as const;
 
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// IPriceOracleV3
+// IPriceOracleV310
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const iPriceOracleV310Abi = [
@@ -5044,7 +5044,7 @@ export const iPriceOracleV310Abi = [
 ] as const;
 
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// ITumblerV3
+// ITumblerV310
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const iTumblerV310Abi = [

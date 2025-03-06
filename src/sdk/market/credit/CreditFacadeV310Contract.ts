@@ -7,8 +7,8 @@ import type {
 import { encodeFunctionData } from "viem";
 
 import {
+  iCreditFacadeMulticallV310Abi,
   iCreditFacadeV310Abi,
-  iCreditFacadeV310MulticallAbi,
   iPausableAbi,
 } from "../../abi";
 import type { CreditFacadeState, CreditManagerData } from "../../base";
@@ -21,7 +21,7 @@ import type { OnDemandPriceUpdate } from "../oracle";
 
 const abi = [
   ...iCreditFacadeV310Abi,
-  ...iCreditFacadeV310MulticallAbi,
+  ...iCreditFacadeMulticallV310Abi,
   ...iPausableAbi,
 ] as const;
 type abi = typeof abi;
@@ -107,7 +107,7 @@ export class CreditFacadeV310Contract extends BaseContract<abi> {
       {
         target: this.address,
         callData: encodeFunctionData({
-          abi: iCreditFacadeV310MulticallAbi,
+          abi: iCreditFacadeMulticallV310Abi,
           functionName: "onDemandPriceUpdates",
           args: [
             updates.map(u => ({
