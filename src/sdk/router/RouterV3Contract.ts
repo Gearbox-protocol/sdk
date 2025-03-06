@@ -1,7 +1,7 @@
 import { type Address, encodeFunctionData, getContract } from "viem";
 
+import { iRouterV300Abi, iSwapperV300Abi } from "../../abi/routerV300";
 import { iCreditFacadeV300MulticallAbi } from "../../abi/v300";
-import { iSwapperAbi, routerV3Abi } from "../abi";
 import { BaseContract } from "../base";
 import type { CreditAccountData } from "../base/types";
 import { PERCENTAGE_FACTOR } from "../constants";
@@ -34,7 +34,7 @@ const SWAP_OPERATIONS: Record<SwapOperation, number> = {
   EXACT_OUTPUT: 2,
 };
 
-type abi = typeof routerV3Abi;
+type abi = typeof iRouterV300Abi;
 
 interface FindAllSwapsProps {
   creditAccount: CreditAccountDataSlice;
@@ -135,7 +135,7 @@ export class RouterV3Contract
     super(sdk, {
       addr: address,
       name: "RouterV3",
-      abi: routerV3Abi,
+      abi: iRouterV300Abi,
     });
     this.#connectors = getConnectors(sdk.provider.networkType);
   }
@@ -279,7 +279,7 @@ export class RouterV3Contract
 
     const pendleSwapper = getContract({
       address: pendleSwapperAddress,
-      abi: iSwapperAbi,
+      abi: iSwapperV300Abi,
       client: this.sdk.provider.publicClient,
     });
 
