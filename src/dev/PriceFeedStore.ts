@@ -4,15 +4,15 @@ import type {
 } from "abitype";
 import type { Address } from "viem";
 
+import { iPriceFeedCompressorAbi } from "../abi/compressors";
+import { iPriceFeedStoreAbi } from "../abi/iPriceFeedStore";
 import type { GearboxSDK, ILogger, PriceFeedTreeNode, Unarray } from "../sdk";
 import {
   AddressMap,
   AP_PRICE_FEED_COMPRESSOR,
-  iPriceFeedCompressorAbi,
   rawTxToMulticallPriceUpdate,
   SDKConstruct,
 } from "../sdk";
-import { iPriceFeedStoreAbi } from "./abi";
 
 export type ConnectedPriceFeed = Unarray<
   AbiParametersToPrimitiveTypes<

@@ -5,15 +5,16 @@ import {
   stringToHex,
 } from "viem";
 
-import { iMarketConfiguratorV310Abi } from "../abi";
+import { iMarketConfiguratorV310Abi } from "../../abi/v310";
 import { BaseContract } from "../base";
 import type { PeripheryContract } from "../constants";
 import { AP_MARKET_CONFIGURATOR } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
 
 const abi = iMarketConfiguratorV310Abi;
+type abi = typeof abi;
 
-export class MarketConfiguratorContract extends BaseContract<typeof abi> {
+export class MarketConfiguratorContract extends BaseContract<abi> {
   #curatorName?: string;
 
   constructor(sdk: GearboxSDK, address: Address) {
@@ -59,8 +60,8 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
       false,
       undefined,
       undefined,
-      typeof abi,
-      ContractEventName<typeof abi>
+      abi,
+      ContractEventName<abi>
     >,
   ): void {
     switch (log.eventName) {

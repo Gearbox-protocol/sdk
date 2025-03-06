@@ -4,9 +4,17 @@ import { sync as spawnSync } from "cross-spawn";
 import type { Options } from "tsup";
 import { defineConfig } from "tsup";
 
+async function writeDummyPackage(subpath: string, type: "cjs" | "esm") {
+  const body =
+    type === "cjs"
+      ? `{"type": "commonjs"}`
+      : `{"type": "module","sideEffects":false}`;
+  await writeFile(`./dist/${type}/${subpath}/package.json`, body, "utf-8");
+}
+
 export default defineConfig(options => {
   const commonOptions: Partial<Options> = {
-    entry: ["src/sdk/index.ts", "src/dev/index.ts"],
+    entry: ["src/sdk/index.ts", "src/dev/index.ts", "src/abi/**/*.ts"],
     clean: true,
     splitting: false,
     treeshake: true,
@@ -24,15 +32,10 @@ export default defineConfig(options => {
       outDir: "./dist/cjs/",
       outExtension: () => ({ js: ".cjs" }),
       onSuccess: async () => {
-        await writeFile(
-          "./dist/cjs/sdk/package.json",
-          `{"type": "commonjs"}`,
-          "utf-8",
-        );
-        await writeFile(
-          "./dist/cjs/dev/package.json",
-          `{"type": "commonjs"}`,
-          "utf-8",
+        await Promise.all(
+          ["sdk", "dev", "abi"].map(subpath =>
+            writeDummyPackage(subpath, "cjs"),
+          ),
         );
       },
     },
@@ -54,15 +57,10 @@ export default defineConfig(options => {
         raw = raw.replace(`from '../sdk';`, `from '../sdk/index.d.mts';`);
         await writeFile("./dist/esm/dev/index.d.mts", raw, "utf-8");
 
-        await writeFile(
-          "./dist/esm/sdk/package.json",
-          `{"type": "module","sideEffects":false}`,
-          "utf-8",
-        );
-        await writeFile(
-          "./dist/esm/dev/package.json",
-          `{"type": "module","sideEffects":false}`,
-          "utf-8",
+        await Promise.all(
+          ["sdk", "dev", "abi"].map(subpath =>
+            writeDummyPackage(subpath, "esm"),
+          ),
         );
       },
     },

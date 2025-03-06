@@ -1,6 +1,6 @@
 import type { Address, ContractEventName, Log } from "viem";
 
-import { iCreditManagerV310Abi } from "../../abi";
+import { iCreditManagerV310Abi } from "../../../abi/v310";
 import type { CreditManagerData, CreditManagerState } from "../../base";
 import { BaseContract } from "../../base";
 import type { GearboxSDK } from "../../GearboxSDK";

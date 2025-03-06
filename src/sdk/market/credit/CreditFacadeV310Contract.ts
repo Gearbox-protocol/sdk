@@ -9,8 +9,8 @@ import { encodeFunctionData } from "viem";
 import {
   iCreditFacadeMulticallV310Abi,
   iCreditFacadeV310Abi,
-  iPausableAbi,
-} from "../../abi";
+} from "../../../abi/v310";
+import { iPausableAbi } from "../../abi";
 import type { CreditFacadeState, CreditManagerData } from "../../base";
 import { BaseContract } from "../../base";
 import { ADDRESS_0X0 } from "../../constants";

@@ -28,6 +28,16 @@
         "types": "./dist/cjs/dev/index.d.ts",
         "default": "./dist/cjs/dev/index.cjs"
       }
+    },
+    "./abi/*": {
+      "import": {
+        "types": "./dist/esm/abi/*.d.mts",
+        "default": "./dist/esm/abi/*.mjs"
+      },
+      "require": {
+        "types": "./dist/cjs/abi/*.d.ts",
+        "default": "./dist/cjs/abi/*.cjs"
+      }
     }
   },
   "files": [

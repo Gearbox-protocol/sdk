@@ -1,13 +1,12 @@
 import { parseEther } from "viem";
 
 import type { CreditManagerState, ILogger } from "../sdk";
-import { PERCENTAGE_FACTOR } from "../sdk";
 import {
-  iaclAbi,
-  iaclTraitAbi,
-  iCreditConfiguratorV3Abi,
-  iCreditManagerV3Abi,
-} from "./abi";
+  iCreditConfiguratorV300Abi,
+  iCreditManagerV300Abi,
+  PERCENTAGE_FACTOR,
+} from "../sdk";
+import { iaclTraitAbi, iOwnableAbi } from "./abi";
 import type { AnvilClient } from "./createAnvilClient";
 
 type ZeroLTCMSlice = Pick<
@@ -35,7 +34,7 @@ export async function setLTZero(
   });
   const configuratorAddr = await anvil.readContract({
     address: aclAddr,
-    abi: iaclAbi,
+    abi: iOwnableAbi,
     functionName: "owner",
   });
 
@@ -51,7 +50,7 @@ export async function setLTZero(
     chain: anvil.chain,
     address: cm.creditConfigurator,
     account: configuratorAddr,
-    abi: iCreditConfiguratorV3Abi,
+    abi: iCreditConfiguratorV300Abi,
     functionName: "setFees",
     args: [
       cm.feeInterest,
@@ -68,7 +67,7 @@ export async function setLTZero(
     chain: anvil.chain,
     address: cm.creditConfigurator,
     account: configuratorAddr,
-    abi: iCreditConfiguratorV3Abi,
+    abi: iCreditConfiguratorV300Abi,
     functionName: "setFees",
     args: [
       cm.feeInterest,
@@ -98,7 +97,7 @@ export async function setLTZero(
     chain: anvil.chain,
     address: cm.baseParams.addr,
     account: cm.creditConfigurator,
-    abi: iCreditManagerV3Abi,
+    abi: iCreditManagerV300Abi,
     functionName: "setCollateralTokenData",
     args: [cm.underlying, 1, 1, Number(2n ** 40n - 1n), 0],
   });
@@ -109,7 +108,7 @@ export async function setLTZero(
     chain: anvil.chain,
     address: cm.baseParams.addr,
     account: cm.creditConfigurator,
-    abi: iCreditManagerV3Abi,
+    abi: iCreditManagerV300Abi,
     functionName: "setCreditConfigurator",
     args: [cm.creditConfigurator],
   });

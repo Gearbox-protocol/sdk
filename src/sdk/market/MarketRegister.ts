@@ -1,6 +1,9 @@
 import type { Address } from "viem";
 
-import { iMarketCompressorAbi, iPeripheryCompressorAbi } from "../abi";
+import {
+  iMarketCompressorAbi,
+  iPeripheryCompressorAbi,
+} from "../../abi/compressors";
 import type { MarketData, MarketFilter, ZapperData } from "../base";
 import { SDKConstruct } from "../base";
 import {

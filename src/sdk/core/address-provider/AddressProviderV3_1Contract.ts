@@ -6,7 +6,7 @@ import type {
 } from "viem";
 import { bytesToString, parseEventLogs, toBytes } from "viem";
 
-import { iAddressProviderV310Abi } from "../../abi";
+import { iAddressProviderV310Abi } from "../../../abi/v310";
 import type { GearboxSDK } from "../../GearboxSDK";
 import AbstractAddressProviderContract from "./AbstractAddressProviderContract";
 import type { IAddressProviderContract } from "./types";

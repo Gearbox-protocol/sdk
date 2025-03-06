@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-import { dataCompressorV3Abi, iGaugeCompressorAbi } from "../abi";
+import { iGaugeCompressorAbi } from "../../abi/compressors";
 import { SDKConstruct } from "../base";
 import { AP_GAUGE_COMPRESSOR } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";

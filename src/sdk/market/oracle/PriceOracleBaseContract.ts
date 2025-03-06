@@ -1,7 +1,7 @@
 import type { Abi, Address } from "viem";
-import { decodeFunctionData } from "viem";
+import { decodeFunctionData, parseAbi } from "viem";
 
-import { iPriceFeedCompressorAbi, iUpdatablePriceFeedAbi } from "../../abi";
+import { iPriceFeedCompressorAbi } from "../../../abi/compressors";
 import type {
   PriceFeedMapEntry,
   PriceFeedTreeNode,
@@ -24,6 +24,10 @@ import type {
   OnDemandPriceUpdate,
   PriceFeedsForTokensOptions,
 } from "./types";
+
+const iUpdatablePriceFeedAbi = parseAbi([
+  "function updatePrice(bytes calldata data) external",
+]);
 
 export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
   extends BaseContract<abi>

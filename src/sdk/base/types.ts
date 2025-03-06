@@ -10,7 +10,7 @@ import type {
   iMarketCompressorAbi,
   iPeripheryCompressorAbi,
   iRewardsCompressorAbi,
-} from "../abi";
+} from "../../abi/compressors";
 
 export type Unarray<A> = A extends readonly unknown[] ? Unarray<A[number]> : A;
 

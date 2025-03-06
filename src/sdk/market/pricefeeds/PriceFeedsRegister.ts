@@ -5,7 +5,7 @@ import {
   multicall3Abi,
 } from "viem";
 
-import { iMarketCompressorAbi } from "../../abi";
+import { iMarketCompressorAbi } from "../../../abi/compressors";
 import type { BaseParams, PriceFeedTreeNode } from "../../base";
 import { SDKConstruct } from "../../base";
 import { ADDRESS_0X0, AP_MARKET_COMPRESSOR } from "../../constants";

@@ -1,6 +1,6 @@
 import type { ContractEventName, Log } from "viem";
 
-import { iPoolQuotaKeeperV310Abi } from "../../abi";
+import { iPoolQuotaKeeperV310Abi } from "../../../abi/v310";
 import type {
   IBaseContract,
   PoolData,
@@ -12,7 +12,8 @@ import type { GearboxSDK } from "../../GearboxSDK";
 import type { PoolQuotaKeeperStateHuman } from "../../types";
 import { AddressMap, formatBNvalue, percentFmt } from "../../utils";
 
-type abi = typeof iPoolQuotaKeeperV310Abi;
+const abi = iPoolQuotaKeeperV310Abi;
+type abi = typeof abi;
 
 export class PoolQuotaKeeperV310Contract
   extends BaseContract<abi>
@@ -25,7 +26,7 @@ export class PoolQuotaKeeperV310Contract
     super(sdk, {
       ...pqk.baseParams,
       name: `PoolQuotaKeeper(${pool.name})`,
-      abi: iPoolQuotaKeeperV310Abi,
+      abi,
     });
 
     this.decimals = pool.decimals;

@@ -5,7 +5,7 @@ import type {
   Log,
 } from "viem";
 
-import { iCreditConfiguratorV310Abi } from "../../abi";
+import { iCreditConfiguratorV310Abi } from "../../../abi/v310";
 import type { CreditManagerData } from "../../base";
 import { BaseContract } from "../../base";
 import { RAMP_DURATION_BY_NETWORK } from "../../constants";
