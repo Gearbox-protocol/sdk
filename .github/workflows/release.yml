@@ -6,6 +6,7 @@ on:
       - "master"
       - "next"
       - "v4"
+      - "v4-abi"
 
 env:
   HUSKY: 0
@@ -16,9 +17,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v3
+      - name: Use Latest Corepack
+        run: |
+          echo "Before: corepack version => $(corepack --version || echo 'not installed')"
+          npm install -g corepack@latest
+          echo "After : corepack version => $(corepack --version)"
+          corepack enable
+
+      - uses: actions/setup-node@v4
         with:
           cache: "yarn"
           node-version-file: ".nvmrc"
@@ -29,11 +37,11 @@ jobs:
       # No lint or prettier here since they were supposed to run on PR action
       - name: Build
         run: |
-          yarn install --frozen-lockfile
+          yarn install --immutable
           yarn build
 
       - name: Semantic Release
-        uses: cycjimmy/semantic-release-action@v3
+        uses: cycjimmy/semantic-release-action@v4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

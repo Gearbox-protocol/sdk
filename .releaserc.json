@@ -12,6 +12,11 @@
       "name": "v4",
       "channel": "vfour",
       "prerelease": "vfour"
+    },
+    {
+      "name": "v4-abi",
+      "channel": "vfourabi",
+      "prerelease": "vfourabi"
     }
   ],
   "plugins": [
