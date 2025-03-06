@@ -13,7 +13,8 @@ import type {
 } from "viem";
 import { decodeFunctionData, getContract, isHex } from "viem";
 
-import { errorAbis, iVersionAbi } from "../abi";
+import { iVersionAbi } from "../../abi/iVersion";
+import { errorAbis } from "../abi";
 import { ADDRESS_0X0 } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { BaseContractStateHuman, ILogger, RawTx } from "../types";

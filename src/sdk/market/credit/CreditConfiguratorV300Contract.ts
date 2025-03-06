@@ -6,7 +6,8 @@ import type {
   Log,
 } from "viem";
 
-import { iCreditConfiguratorV300Abi, iPausableAbi } from "../../abi";
+import { iPausableAbi } from "../../../abi/iPausable";
+import { iCreditConfiguratorV300Abi } from "../../../abi/v300";
 import type { CreditManagerData } from "../../base";
 import { BaseContract } from "../../base";
 import { RAMP_DURATION_BY_NETWORK } from "../../constants";

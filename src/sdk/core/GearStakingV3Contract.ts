@@ -1,13 +1,14 @@
 import type { Address, DecodeFunctionDataReturnType } from "viem";
 
-import { gearStakingV3Abi } from "../abi";
+import { iGearStakingV300Abi } from "../../abi/v300";
 import type { PermitResult } from "../accounts";
 import { BaseContract, VotingContractStatus } from "../base";
 import { ADDRESS_0X0 } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";
 import type { GearStakingV3StateHuman, RawTx } from "../types";
 
-type abi = typeof gearStakingV3Abi;
+const abi = iGearStakingV300Abi;
+type abi = typeof abi;
 
 export interface MultiVote {
   votingContract: Address;
@@ -18,7 +19,7 @@ export interface MultiVote {
 
 export class GearStakingContract extends BaseContract<abi> {
   constructor(sdk: GearboxSDK, address: Address) {
-    super(sdk, { addr: address, name: "GearStakingV3", abi: gearStakingV3Abi });
+    super(sdk, { addr: address, name: "GearStakingV3", abi });
   }
 
   parseFunctionParams(
@@ -48,6 +49,7 @@ export class GearStakingContract extends BaseContract<abi> {
       args: [amount, votes],
     });
   }
+
   public depositWithPermit(
     amount: bigint,
     votes: Array<MultiVote>,
@@ -58,18 +60,21 @@ export class GearStakingContract extends BaseContract<abi> {
       args: [amount, votes, permit.deadline, permit.v, permit.r, permit.s],
     });
   }
+
   public withdraw(amount: bigint, to: Address, votes: Array<MultiVote>): RawTx {
     return this.createRawTx({
       functionName: "withdraw",
       args: [amount, to, votes],
     });
   }
+
   public claimWithdrawals(to: Address): RawTx {
     return this.createRawTx({
       functionName: "claimWithdrawals",
       args: [to],
     });
   }
+
   public multivote(votes: Array<MultiVote>): RawTx {
     return this.createRawTx({
       functionName: "multivote",

@@ -2410,6 +2410,421 @@ export const iGaugeV300Abi = [
   },
 ] as const;
 
+export const iGearStakingV300Abi = [
+  {
+    type: "function",
+    name: "allowedVotingContract",
+    inputs: [{ name: "", type: "address", internalType: "address" }],
+    outputs: [
+      { name: "", type: "uint8", internalType: "enum VotingContractStatus" },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "availableBalance",
+    inputs: [{ name: "user", type: "address", internalType: "address" }],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "balanceOf",
+    inputs: [{ name: "user", type: "address", internalType: "address" }],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "claimWithdrawals",
+    inputs: [{ name: "to", type: "address", internalType: "address" }],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "deposit",
+    inputs: [
+      { name: "amount", type: "uint96", internalType: "uint96" },
+      {
+        name: "votes",
+        type: "tuple[]",
+        internalType: "struct MultiVote[]",
+        components: [
+          { name: "votingContract", type: "address", internalType: "address" },
+          { name: "voteAmount", type: "uint96", internalType: "uint96" },
+          { name: "isIncrease", type: "bool", internalType: "bool" },
+          { name: "extraData", type: "bytes", internalType: "bytes" },
+        ],
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "depositOnMigration",
+    inputs: [
+      { name: "amount", type: "uint96", internalType: "uint96" },
+      { name: "onBehalfOf", type: "address", internalType: "address" },
+      {
+        name: "votes",
+        type: "tuple[]",
+        internalType: "struct MultiVote[]",
+        components: [
+          { name: "votingContract", type: "address", internalType: "address" },
+          { name: "voteAmount", type: "uint96", internalType: "uint96" },
+          { name: "isIncrease", type: "bool", internalType: "bool" },
+          { name: "extraData", type: "bytes", internalType: "bytes" },
+        ],
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "depositWithPermit",
+    inputs: [
+      { name: "amount", type: "uint96", internalType: "uint96" },
+      {
+        name: "votes",
+        type: "tuple[]",
+        internalType: "struct MultiVote[]",
+        components: [
+          { name: "votingContract", type: "address", internalType: "address" },
+          { name: "voteAmount", type: "uint96", internalType: "uint96" },
+          { name: "isIncrease", type: "bool", internalType: "bool" },
+          { name: "extraData", type: "bytes", internalType: "bytes" },
+        ],
+      },
+      { name: "deadline", type: "uint256", internalType: "uint256" },
+      { name: "v", type: "uint8", internalType: "uint8" },
+      { name: "r", type: "bytes32", internalType: "bytes32" },
+      { name: "s", type: "bytes32", internalType: "bytes32" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "firstEpochTimestamp",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "gear",
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getCurrentEpoch",
+    inputs: [],
+    outputs: [{ name: "", type: "uint16", internalType: "uint16" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getWithdrawableAmounts",
+    inputs: [{ name: "user", type: "address", internalType: "address" }],
+    outputs: [
+      { name: "withdrawableNow", type: "uint256", internalType: "uint256" },
+      {
+        name: "withdrawableInEpochs",
+        type: "uint256[4]",
+        internalType: "uint256[4]",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "migrate",
+    inputs: [
+      { name: "amount", type: "uint96", internalType: "uint96" },
+      {
+        name: "votesBefore",
+        type: "tuple[]",
+        internalType: "struct MultiVote[]",
+        components: [
+          { name: "votingContract", type: "address", internalType: "address" },
+          { name: "voteAmount", type: "uint96", internalType: "uint96" },
+          { name: "isIncrease", type: "bool", internalType: "bool" },
+          { name: "extraData", type: "bytes", internalType: "bytes" },
+        ],
+      },
+      {
+        name: "votesAfter",
+        type: "tuple[]",
+        internalType: "struct MultiVote[]",
+        components: [
+          { name: "votingContract", type: "address", internalType: "address" },
+          { name: "voteAmount", type: "uint96", internalType: "uint96" },
+          { name: "isIncrease", type: "bool", internalType: "bool" },
+          { name: "extraData", type: "bytes", internalType: "bytes" },
+        ],
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "migrator",
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "multivote",
+    inputs: [
+      {
+        name: "votes",
+        type: "tuple[]",
+        internalType: "struct MultiVote[]",
+        components: [
+          { name: "votingContract", type: "address", internalType: "address" },
+          { name: "voteAmount", type: "uint96", internalType: "uint96" },
+          { name: "isIncrease", type: "bool", internalType: "bool" },
+          { name: "extraData", type: "bytes", internalType: "bytes" },
+        ],
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setMigrator",
+    inputs: [{ name: "newMigrator", type: "address", internalType: "address" }],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setSuccessor",
+    inputs: [
+      { name: "newSuccessor", type: "address", internalType: "address" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setVotingContractStatus",
+    inputs: [
+      { name: "votingContract", type: "address", internalType: "address" },
+      {
+        name: "status",
+        type: "uint8",
+        internalType: "enum VotingContractStatus",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "successor",
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "version",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "withdraw",
+    inputs: [
+      { name: "amount", type: "uint96", internalType: "uint96" },
+      { name: "to", type: "address", internalType: "address" },
+      {
+        name: "votes",
+        type: "tuple[]",
+        internalType: "struct MultiVote[]",
+        components: [
+          { name: "votingContract", type: "address", internalType: "address" },
+          { name: "voteAmount", type: "uint96", internalType: "uint96" },
+          { name: "isIncrease", type: "bool", internalType: "bool" },
+          { name: "extraData", type: "bytes", internalType: "bytes" },
+        ],
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "event",
+    name: "ClaimGearWithdrawal",
+    inputs: [
+      { name: "user", type: "address", indexed: true, internalType: "address" },
+      { name: "to", type: "address", indexed: false, internalType: "address" },
+      {
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "DepositGear",
+    inputs: [
+      { name: "user", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "MigrateGear",
+    inputs: [
+      { name: "user", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "successor",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "ScheduleGearWithdrawal",
+    inputs: [
+      { name: "user", type: "address", indexed: true, internalType: "address" },
+      {
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "SetMigrator",
+    inputs: [
+      {
+        name: "migrator",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "SetSuccessor",
+    inputs: [
+      {
+        name: "successor",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "SetVotingContractStatus",
+    inputs: [
+      {
+        name: "votingContract",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "status",
+        type: "uint8",
+        indexed: false,
+        internalType: "enum VotingContractStatus",
+      },
+    ],
+    anonymous: false,
+  },
+] as const;
+
+export const iLinearInterestRateModelV300Abi = [
+  {
+    type: "function",
+    name: "availableToBorrow",
+    inputs: [
+      { name: "expectedLiquidity", type: "uint256", internalType: "uint256" },
+      { name: "availableLiquidity", type: "uint256", internalType: "uint256" },
+    ],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "calcBorrowRate",
+    inputs: [
+      { name: "expectedLiquidity", type: "uint256", internalType: "uint256" },
+      { name: "availableLiquidity", type: "uint256", internalType: "uint256" },
+      { name: "checkOptimalBorrowing", type: "bool", internalType: "bool" },
+    ],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getModelParameters",
+    inputs: [],
+    outputs: [
+      { name: "U_1", type: "uint16", internalType: "uint16" },
+      { name: "U_2", type: "uint16", internalType: "uint16" },
+      { name: "R_base", type: "uint16", internalType: "uint16" },
+      { name: "R_slope1", type: "uint16", internalType: "uint16" },
+      { name: "R_slope2", type: "uint16", internalType: "uint16" },
+      { name: "R_slope3", type: "uint16", internalType: "uint16" },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "isBorrowingMoreU2Forbidden",
+    inputs: [],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "version",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+] as const;
+
 export const iPoolQuotaKeeperV300Abi = [
   {
     type: "function",

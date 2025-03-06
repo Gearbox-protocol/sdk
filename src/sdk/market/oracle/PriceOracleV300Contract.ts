@@ -1,12 +1,14 @@
 import type { Address, ContractEventName, Log } from "viem";
 
-import { priceOracleV3Abi } from "../../abi";
+import { iPausableAbi } from "../../../abi/iPausable";
+import { iPriceOracleV300Abi } from "../../../abi/v300";
 import type { PriceOracleData } from "../../base";
 import type { GearboxSDK } from "../../GearboxSDK";
 import { tickerInfoTokensByNetwork } from "../../sdk-gov-legacy";
 import { PriceOracleBaseContract } from "./PriceOracleBaseContract";
 
-type abi = typeof priceOracleV3Abi;
+const abi = [...iPriceOracleV300Abi, ...iPausableAbi];
+type abi = typeof abi;
 
 export class PriceOracleV300Contract extends PriceOracleBaseContract<abi> {
   constructor(sdk: GearboxSDK, data: PriceOracleData, underlying: Address) {
@@ -15,7 +17,7 @@ export class PriceOracleV300Contract extends PriceOracleBaseContract<abi> {
       {
         ...data.baseParams,
         name: "PriceOracleV3",
-        abi: priceOracleV3Abi,
+        abi,
       },
       data,
       underlying,
@@ -37,7 +39,6 @@ export class PriceOracleV300Contract extends PriceOracleBaseContract<abi> {
       case "Paused":
       case "Unpaused":
         break;
-      case "NewController":
       case "SetPriceFeed":
       case "SetReservePriceFeed":
       case "SetReservePriceFeedStatus":

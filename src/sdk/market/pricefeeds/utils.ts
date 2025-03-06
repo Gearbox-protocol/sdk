@@ -1,6 +1,6 @@
 import { decodeFunctionData } from "viem";
 
-import { iUpdatablePriceFeedAbi } from "../../abi";
+import { iUpdatablePriceFeedAbi } from "../../../abi/iUpdatablePriceFeed";
 import type { RawTx } from "../../types";
 
 /**

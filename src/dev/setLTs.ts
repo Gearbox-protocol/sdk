@@ -1,8 +1,9 @@
 import type { Address } from "viem";
 import { parseEther } from "viem";
 
+import { iCreditConfiguratorV300Abi } from "../abi/v300";
 import { iCreditManagerV310Abi } from "../abi/v310";
-import { iCreditConfiguratorV300Abi, type ILogger } from "../sdk";
+import type { ILogger } from "../sdk";
 import { iaclTraitAbi, iOwnableAbi } from "./abi";
 import type { AnvilClient } from "./createAnvilClient";
 

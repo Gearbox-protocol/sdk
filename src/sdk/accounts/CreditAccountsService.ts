@@ -6,7 +6,7 @@ import {
   iPeripheryCompressorAbi,
   iRewardsCompressorAbi,
 } from "../../abi/compressors";
-import { iCreditFacadeV300MulticallAbi } from "../abi";
+import { iCreditFacadeV300MulticallAbi } from "../../abi/v300";
 import type { CreditAccountData } from "../base";
 import { SDKConstruct } from "../base";
 import {

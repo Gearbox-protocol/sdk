@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-import { iVersionAbi } from "../../abi";
+import { iVersionAbi } from "../../../abi/iVersion";
 import type { GearboxSDK } from "../../GearboxSDK";
 import { AddressProviderContractV3_1 } from "./AddressProviderV3_1Contract";
 import { AddressProviderContractV3 } from "./AddressProviderV3Contract";

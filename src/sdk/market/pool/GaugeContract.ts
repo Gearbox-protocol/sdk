@@ -1,7 +1,7 @@
 import type { ContractEventName, Log } from "viem";
 import { decodeAbiParameters } from "viem";
 
-import { iGaugeV300Abi } from "../../abi";
+import { iGaugeV300Abi } from "../../../abi/v300";
 import type { PoolData, RateKeeperData } from "../../base";
 import { BaseContract } from "../../base";
 import { WAD } from "../../constants";

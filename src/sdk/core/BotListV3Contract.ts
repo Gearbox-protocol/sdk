@@ -5,7 +5,7 @@ import type {
   Log,
 } from "viem";
 
-import { iBotListV300Abi } from "../abi";
+import { iBotListV300Abi } from "../../abi/v300";
 import { BaseContract } from "../base";
 import { ADDRESS_PROVIDER_BLOCK, botPermissionsToString } from "../constants";
 import type { GearboxSDK } from "../GearboxSDK";

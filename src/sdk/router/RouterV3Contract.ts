@@ -1,6 +1,7 @@
 import { type Address, encodeFunctionData, getContract } from "viem";
 
-import { iCreditFacadeV3MulticallAbi, iSwapperAbi, routerV3Abi } from "../abi";
+import { iCreditFacadeV300MulticallAbi } from "../../abi/v300";
+import { iSwapperAbi, routerV3Abi } from "../abi";
 import { BaseContract } from "../base";
 import type { CreditAccountData } from "../base/types";
 import { PERCENTAGE_FACTOR } from "../constants";
@@ -302,7 +303,7 @@ export class RouterV3Contract
     const storeExpectedBalances = {
       target: creditManager.creditFacade,
       callData: encodeFunctionData({
-        abi: iCreditFacadeV3MulticallAbi,
+        abi: iCreditFacadeV300MulticallAbi,
         functionName: "storeExpectedBalances",
         args: [[{ token: tokenOut, amount: minAmount }]],
       }),
@@ -311,7 +312,7 @@ export class RouterV3Contract
     const compareBalances = {
       target: creditManager.creditFacade,
       callData: encodeFunctionData({
-        abi: iCreditFacadeV3MulticallAbi,
+        abi: iCreditFacadeV300MulticallAbi,
         functionName: "compareBalances",
         args: [],
       }),

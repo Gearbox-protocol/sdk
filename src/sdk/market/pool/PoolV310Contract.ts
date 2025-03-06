@@ -4,8 +4,8 @@ import type {
   Log,
 } from "viem";
 
+import { iPausableAbi } from "../../../abi/iPausable";
 import { iPoolV310Abi } from "../../../abi/v310";
-import { iPausableAbi } from "../../abi";
 import type { CreditManagerDebtParams, PoolData } from "../../base";
 import { BaseContract } from "../../base";
 import type { GearboxSDK } from "../../GearboxSDK";

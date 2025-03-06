@@ -7,3 +7,8 @@ export const iaclTraitAbi = parseAbi([
 export const iOwnableAbi = parseAbi([
   "function owner() external view returns (address)",
 ]);
+
+export const iDegenNftv2Abi = parseAbi([
+  "function minter() external view returns (address)",
+  "function mint(address to, uint256 amount) external",
+]);

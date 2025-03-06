@@ -1,11 +1,8 @@
 import { parseEther } from "viem";
 
+import { iCreditConfiguratorV300Abi, iCreditManagerV300Abi } from "../abi/v300";
 import type { CreditManagerState, ILogger } from "../sdk";
-import {
-  iCreditConfiguratorV300Abi,
-  iCreditManagerV300Abi,
-  PERCENTAGE_FACTOR,
-} from "../sdk";
+import { PERCENTAGE_FACTOR } from "../sdk";
 import { iaclTraitAbi, iOwnableAbi } from "./abi";
 import type { AnvilClient } from "./createAnvilClient";
 

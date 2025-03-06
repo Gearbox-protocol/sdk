@@ -1,6 +1,6 @@
 import type { Address, PublicClient } from "viem";
 
-import { ierc20MetadataAbi } from "../../abi";
+import { ierc20Abi } from "../../../abi/iERC20";
 import { type NetworkType, SUPPORTED_CHAINS } from "../../chain";
 import { USDC } from "../../constants";
 
@@ -15,7 +15,7 @@ export async function detectNetwork(
   for (const chain of SUPPORTED_CHAINS) {
     try {
       await client.readContract({
-        abi: ierc20MetadataAbi,
+        abi: ierc20Abi,
         address: WELL_KNOWN_TOKENS[chain],
         functionName: "symbol",
       });

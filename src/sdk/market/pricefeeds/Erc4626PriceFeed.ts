@@ -1,6 +1,7 @@
 import { erc4626Abi } from "viem";
 
-import { erc20Abi, erc4626PriceFeedAbi } from "../../abi";
+import { ierc20Abi } from "../../../abi/iERC20";
+import { erc4626PriceFeedAbi } from "../../abi";
 import type { GearboxSDK } from "../../GearboxSDK";
 import { AbstractLPPriceFeedContract } from "./AbstractLPPriceFeed";
 import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed";
@@ -18,7 +19,7 @@ export class Erc4626PriceFeedContract extends AbstractLPPriceFeedContract<abi> {
 
   public override async getValue(): Promise<bigint> {
     const decimals = await this.sdk.provider.publicClient.readContract({
-      abi: erc20Abi,
+      abi: ierc20Abi,
       address: this.lpContract,
       functionName: "decimals",
     });

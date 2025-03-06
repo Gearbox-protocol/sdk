@@ -6,11 +6,11 @@ import type {
 } from "viem";
 import { encodeFunctionData } from "viem";
 
+import { iPausableAbi } from "../../../abi/iPausable";
 import {
   iCreditFacadeMulticallV310Abi,
   iCreditFacadeV310Abi,
 } from "../../../abi/v310";
-import { iPausableAbi } from "../../abi";
 import type { CreditFacadeState, CreditManagerData } from "../../base";
 import { BaseContract } from "../../base";
 import { ADDRESS_0X0 } from "../../constants";

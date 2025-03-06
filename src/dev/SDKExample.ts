@@ -3,14 +3,10 @@ import { readFile, writeFile } from "node:fs/promises";
 import type { Address } from "viem";
 import { isAddress, parseEther, stringToHex } from "viem";
 
+import { iAddressProviderV300Abi } from "../abi/v300";
 import { iAddressProviderV310Abi } from "../abi/v310";
 import type { ILogger } from "../sdk";
-import {
-  ADDRESS_PROVIDER,
-  GearboxSDK,
-  iAddressProviderV300Abi,
-  json_stringify,
-} from "../sdk";
+import { ADDRESS_PROVIDER, GearboxSDK, json_stringify } from "../sdk";
 import { createAnvilClient } from "./createAnvilClient";
 
 export interface SDKExampleOptions {

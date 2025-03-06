@@ -1,6 +1,6 @@
 import { decodeAbiParameters } from "viem";
 
-import { linearInterestRateModelV3Abi } from "../../abi";
+import { iLinearInterestRateModelV300Abi } from "../../../abi/v300";
 import type { BaseState } from "../../base";
 import { BaseContract } from "../../base";
 import type { GearboxSDK } from "../../GearboxSDK";
@@ -8,7 +8,8 @@ import type { LinearInterestRateModelStateHuman } from "../../types";
 import { percentFmt } from "../../utils";
 import type { IInterestRateModelContract } from "./types";
 
-type abi = typeof linearInterestRateModelV3Abi;
+const abi = iLinearInterestRateModelV300Abi;
+type abi = typeof abi;
 
 export class LinearInterestRateModelContract
   extends BaseContract<abi>
@@ -26,7 +27,7 @@ export class LinearInterestRateModelContract
     super(sdk, {
       ...params.baseParams,
       name: "LinearInterestRateModel",
-      abi: linearInterestRateModelV3Abi,
+      abi,
     });
 
     const [
