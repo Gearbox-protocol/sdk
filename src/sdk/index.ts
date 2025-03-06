@@ -7,6 +7,7 @@ export * from "./core";
 export * from "./gauges";
 export * from "./GearboxSDK";
 export * from "./market";
+export * from "./plugins";
 export * from "./router";
 export * from "./sdk-gov-legacy";
 export * from "./sdk-legacy";

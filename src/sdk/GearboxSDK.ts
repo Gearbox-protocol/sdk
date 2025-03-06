@@ -25,6 +25,7 @@ import {
 } from "./core";
 import { MarketRegister } from "./market/MarketRegister";
 import { PriceFeedRegister } from "./market/pricefeeds";
+import type { IGearboxSDKPlugin } from "./plugins";
 import { RouterV3Contract } from "./router";
 import type {
   GearboxState,
@@ -64,6 +65,10 @@ export interface SDKOptions {
    */
   ignoreUpdateablePrices?: boolean;
   /**
+   * Plugins to extends SDK functionality
+   */
+  plugins?: IGearboxSDKPlugin[];
+  /**
    * Bring your own logger
    */
   logger?: ILogger;
@@ -72,6 +77,7 @@ export interface SDKOptions {
 interface SDKContructorArgs {
   provider: Provider;
   logger?: ILogger;
+  plugins?: IGearboxSDKPlugin[];
 }
 
 interface AttachOptionsInternal {
@@ -117,6 +123,7 @@ export class GearboxSDK {
   #router?: RouterV3Contract;
 
   public readonly logger?: ILogger;
+  public readonly plugins: ReadonlyArray<IGearboxSDKPlugin>;
 
   /**
    * Interest rate models can be reused across chain (and SDK operates on chain level)
@@ -152,6 +159,7 @@ export class GearboxSDK {
   ): Promise<GearboxSDK> {
     const {
       logger,
+      plugins,
       blockNumber,
       redstoneHistoricTimestamp,
       ignoreUpdateablePrices,
@@ -185,6 +193,7 @@ export class GearboxSDK {
     return new GearboxSDK({
       provider,
       logger,
+      plugins,
     }).#attach({
       addressProvider,
       blockNumber,
@@ -198,6 +207,7 @@ export class GearboxSDK {
     this.#provider = options.provider;
     this.logger = options.logger;
     this.priceFeeds = new PriceFeedRegister(this);
+    this.plugins = options.plugins ?? [];
   }
 
   async #attach(opts: AttachOptionsInternal): Promise<this> {

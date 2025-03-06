@@ -1,11 +1,11 @@
-import { curveV1AdapterStableNgAbi } from "../../abi";
-import type { GearboxSDK } from "../../GearboxSDK";
+import type { GearboxSDK } from "../sdk";
+import { iCamelotV3AdapterAbi } from "./abi";
 import type { AbstractAdapterContractOptions } from "./AbstractAdapter";
 import { AbstractAdapterContract } from "./AbstractAdapter";
 
-const abi = curveV1AdapterStableNgAbi;
+const abi = iCamelotV3AdapterAbi;
 
-export class CurveV1StableNGAdapterContract extends AbstractAdapterContract<
+export class CamelotV3AdapterContract extends AbstractAdapterContract<
   typeof abi
 > {
   constructor(

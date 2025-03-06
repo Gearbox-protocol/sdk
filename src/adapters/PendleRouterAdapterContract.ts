@@ -1,12 +1,12 @@
-import { iStakingRewardsAdapterAbi } from "../../abi";
-import type { GearboxSDK } from "../../GearboxSDK";
+import type { GearboxSDK } from "../sdk";
+import { iPendleRouterAdapterAbi } from "./abi";
 import type { AbstractAdapterContractOptions } from "./AbstractAdapter";
 import { AbstractAdapterContract } from "./AbstractAdapter";
 
-const abi = iStakingRewardsAdapterAbi;
+const abi = iPendleRouterAdapterAbi;
 type abi = typeof abi;
 
-export class StakingRewardsAdapterContract extends AbstractAdapterContract<
+export class PendleRouterAdapterContract extends AbstractAdapterContract<
   typeof abi
 > {
   constructor(

@@ -1,11 +1,11 @@
-import { uniswapV2AdapterAbi } from "../../abi";
-import type { GearboxSDK } from "../../GearboxSDK";
+import type { GearboxSDK } from "../sdk";
+import { iYearnV2AdapterAbi } from "./abi";
 import type { AbstractAdapterContractOptions } from "./AbstractAdapter";
 import { AbstractAdapterContract } from "./AbstractAdapter";
 
-const abi = uniswapV2AdapterAbi;
+const abi = iYearnV2AdapterAbi;
 
-export class UniswapV2AdapterContract extends AbstractAdapterContract<
+export class YearnV2RouterAdapterContract extends AbstractAdapterContract<
   typeof abi
 > {
   constructor(

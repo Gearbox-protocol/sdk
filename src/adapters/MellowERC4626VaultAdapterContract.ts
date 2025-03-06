@@ -1,11 +1,11 @@
-import { balancerV2VaultAdapterAbi } from "../../abi";
-import type { GearboxSDK } from "../../GearboxSDK";
+import type { GearboxSDK } from "../sdk";
+import { ierc4626AdapterAbi } from "./abi";
 import type { AbstractAdapterContractOptions } from "./AbstractAdapter";
 import { AbstractAdapterContract } from "./AbstractAdapter";
 
-const abi = balancerV2VaultAdapterAbi;
+const abi = ierc4626AdapterAbi;
 
-export class BalancerV2VaultAdapterContract extends AbstractAdapterContract<
+export class MellowERC4626VaultAdapterContract extends AbstractAdapterContract<
   typeof abi
 > {
   constructor(

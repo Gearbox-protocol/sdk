@@ -1,12 +1,12 @@
 import type { Address, DecodeFunctionDataReturnType } from "viem";
 
-import { uniswapV3AdapterAbi } from "../../abi";
-import type { GearboxSDK } from "../../GearboxSDK";
-import { formatBN } from "../../utils";
+import type { GearboxSDK } from "../sdk";
+import { formatBN } from "../sdk";
+import { iUniswapV3AdapterAbi } from "./abi";
 import type { AbstractAdapterContractOptions } from "./AbstractAdapter";
 import { AbstractAdapterContract } from "./AbstractAdapter";
 
-const abi = uniswapV3AdapterAbi;
+const abi = iUniswapV3AdapterAbi;
 
 export class UniswapV3AdapterContract extends AbstractAdapterContract<
   typeof abi

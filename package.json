@@ -29,6 +29,16 @@
         "default": "./dist/cjs/dev/index.cjs"
       }
     },
+    "./adapters": {
+      "import": {
+        "types": "./dist/esm/adapters/index.d.mts",
+        "default": "./dist/esm/adapters/index.mjs"
+      },
+      "require": {
+        "types": "./dist/cjs/adapters/index.d.ts",
+        "default": "./dist/cjs/adapters/index.cjs"
+      }
+    },
     "./abi/*": {
       "import": {
         "types": "./dist/esm/abi/*.d.mts",

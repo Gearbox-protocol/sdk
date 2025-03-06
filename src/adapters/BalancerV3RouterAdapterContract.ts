@@ -1,14 +1,12 @@
-import { iDaiUsdsAdapterAbi } from "../../abi";
-import type { GearboxSDK } from "../../GearboxSDK";
+import type { GearboxSDK } from "../sdk";
+import { iBalancerV3RouterAdapterAbi } from "./abi";
 import type { AbstractAdapterContractOptions } from "./AbstractAdapter";
 import { AbstractAdapterContract } from "./AbstractAdapter";
 
-const abi = iDaiUsdsAdapterAbi;
+const abi = iBalancerV3RouterAdapterAbi;
 type abi = typeof abi;
 
-export class DaiUsdsAdapterContract extends AbstractAdapterContract<
-  typeof abi
-> {
+export class BalancerV3RouterAdapterContract extends AbstractAdapterContract<abi> {
   constructor(
     sdk: GearboxSDK,
     args: Omit<AbstractAdapterContractOptions<abi>, "abi">,

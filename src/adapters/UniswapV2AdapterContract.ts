@@ -1,11 +1,11 @@
-import { camelotV3AdapterAbi } from "../../abi";
-import type { GearboxSDK } from "../../GearboxSDK";
+import type { GearboxSDK } from "../sdk";
+import { iUniswapV2AdapterAbi } from "./abi";
 import type { AbstractAdapterContractOptions } from "./AbstractAdapter";
 import { AbstractAdapterContract } from "./AbstractAdapter";
 
-const abi = camelotV3AdapterAbi;
+const abi = iUniswapV2AdapterAbi;
 
-export class CamelotV3AdapterContract extends AbstractAdapterContract<
+export class UniswapV2AdapterContract extends AbstractAdapterContract<
   typeof abi
 > {
   constructor(

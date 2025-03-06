@@ -1,8 +1,7 @@
 import type { Abi, Address } from "viem";
 
-import type { AdapterData } from "../../base";
-import { BaseContract } from "../../base";
-import type { GearboxSDK } from "../../GearboxSDK";
+import type { AdapterData, GearboxSDK } from "../sdk";
+import { BaseContract } from "../sdk";
 import type { AdapterContractType } from "./types";
 
 export interface AbstractAdapterContractOptions<

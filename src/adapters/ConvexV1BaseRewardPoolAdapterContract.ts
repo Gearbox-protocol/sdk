@@ -1,9 +1,9 @@
-import { convexV1BaseRewardPoolAdapterAbi } from "../../abi";
-import type { GearboxSDK } from "../../GearboxSDK";
+import type { GearboxSDK } from "../sdk";
+import { iConvexV1BaseRewardPoolAdapterAbi } from "./abi";
 import type { AbstractAdapterContractOptions } from "./AbstractAdapter";
 import { AbstractAdapterContract } from "./AbstractAdapter";
 
-const abi = convexV1BaseRewardPoolAdapterAbi;
+const abi = iConvexV1BaseRewardPoolAdapterAbi;
 
 export class ConvexV1BaseRewardPoolAdapterContract extends AbstractAdapterContract<
   typeof abi

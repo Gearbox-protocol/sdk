@@ -1,11 +1,11 @@
-import { velodromeV2RouterAdapterAbi } from "../../abi";
-import type { GearboxSDK } from "../../GearboxSDK";
+import type { GearboxSDK } from "../sdk";
+import { iCurveV1_3AssetsAdapterAbi } from "./abi";
 import type { AbstractAdapterContractOptions } from "./AbstractAdapter";
 import { AbstractAdapterContract } from "./AbstractAdapter";
 
-const abi = velodromeV2RouterAdapterAbi;
+const abi = iCurveV1_3AssetsAdapterAbi;
 
-export class VelodromeV2RouterAdapterContract extends AbstractAdapterContract<
+export class Curve3AssetsAdapterContract extends AbstractAdapterContract<
   typeof abi
 > {
   constructor(

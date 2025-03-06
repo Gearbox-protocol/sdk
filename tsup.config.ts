@@ -12,9 +12,22 @@ async function writeDummyPackage(subpath: string, type: "cjs" | "esm") {
   await writeFile(`./dist/${type}/${subpath}/package.json`, body, "utf-8");
 }
 
+async function fixRelativeImports(subpath: string) {
+  for (const ext of ["d.mts", "mjs"]) {
+    let raw = await readFile(`./dist/esm/${subpath}/index.${ext}`, "utf-8");
+    raw = raw.replace(`from '../sdk';`, `from '../sdk/index.${ext}';`);
+    await writeFile(`./dist/esm/${subpath}/index.${ext}`, raw, "utf-8");
+  }
+}
+
 export default defineConfig(options => {
   const commonOptions: Partial<Options> = {
-    entry: ["src/sdk/index.ts", "src/dev/index.ts", "src/abi/**/*.ts"],
+    entry: [
+      "src/sdk/index.ts",
+      "src/dev/index.ts",
+      "src/adapters/index.ts",
+      "src/abi/**/*.ts",
+    ],
     clean: true,
     splitting: false,
     treeshake: true,
@@ -33,7 +46,7 @@ export default defineConfig(options => {
       outExtension: () => ({ js: ".cjs" }),
       onSuccess: async () => {
         await Promise.all(
-          ["sdk", "dev", "abi"].map(subpath =>
+          ["sdk", "dev", "adapters", "abi"].map(subpath =>
             writeDummyPackage(subpath, "cjs"),
           ),
         );
@@ -49,16 +62,12 @@ export default defineConfig(options => {
         // so we use spawnSync to run it in a separate process
         spawnSync("yarn", ["tsup", "--dts-only"], { stdio: "inherit" });
 
-        let raw = await readFile("./dist/esm/dev/index.mjs", "utf-8");
-        raw = raw.replace(`from '../sdk';`, `from '../sdk/index.mjs';`);
-        await writeFile("./dist/esm/dev/index.mjs", raw, "utf-8");
-
-        raw = await readFile("./dist/esm/dev/index.d.mts", "utf-8");
-        raw = raw.replace(`from '../sdk';`, `from '../sdk/index.d.mts';`);
-        await writeFile("./dist/esm/dev/index.d.mts", raw, "utf-8");
+        for (const subpath of ["dev", "adapters"]) {
+          await fixRelativeImports(subpath);
+        }
 
         await Promise.all(
-          ["sdk", "dev", "abi"].map(subpath =>
+          ["sdk", "dev", "adapters", "abi"].map(subpath =>
             writeDummyPackage(subpath, "esm"),
           ),
         );
