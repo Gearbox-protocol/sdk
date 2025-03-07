@@ -1,17 +1,29 @@
-import { readFile, writeFile } from "node:fs/promises";
+import { glob, mkdir, readFile, rename, writeFile } from "node:fs/promises";
 
 import { sync as spawnSync } from "cross-spawn";
 import type { Options } from "tsup";
 import { defineConfig } from "tsup";
 
+/**
+ * Write package.json for subpath with CJS or ESM type
+ * @param subpath
+ * @param type
+ */
 async function writeDummyPackage(subpath: string, type: "cjs" | "esm") {
   const body =
     type === "cjs"
       ? `{"type": "commonjs"}`
       : `{"type": "module","sideEffects":false}`;
+  await mkdir(`./dist/${type}/${subpath}`, { recursive: true });
   await writeFile(`./dist/${type}/${subpath}/package.json`, body, "utf-8");
 }
 
+/**
+ * When building ESM modules from subpath that import core SDK, such as dev
+ * they'll have `import {...} from "../sdk"` line
+ * This method fixes it by replacing `../sdk` with `../sdk/index.mjs`
+ * @param subpath
+ */
 async function fixRelativeImports(subpath: string) {
   for (const ext of ["d.mts", "mjs"]) {
     let raw = await readFile(`./dist/esm/${subpath}/index.${ext}`, "utf-8");
@@ -20,15 +32,50 @@ async function fixRelativeImports(subpath: string) {
   }
 }
 
+/**
+ * Abis are built separately by tsc
+ * @param type
+ */
+async function buildAbi(type: "cjs" | "esm") {
+  const options =
+    type === "cjs"
+      ? ["--module", "commonjs", "--moduleResolution", "node"]
+      : [];
+  spawnSync(
+    "yarn",
+    [
+      "tsc",
+      "--project",
+      "tsconfig.abi.json",
+      "--outDir",
+      `./dist/${type}/abi`,
+      ...options,
+    ],
+    {
+      stdio: "inherit",
+    },
+  );
+  // rename extensions
+  const extensions =
+    type === "esm"
+      ? [
+          ["d.ts", "d.mts"],
+          ["js", "mjs"],
+        ]
+      : [["js", "cjs"]];
+  for (const [from, to] of extensions) {
+    const files = glob(`./dist/${type}/abi/*.${from}`);
+    for await (const file of files) {
+      const newFile = file.replace(new RegExp(`\\.${from}$`), `.${to}`);
+      await rename(file, newFile);
+    }
+  }
+}
+
 export default defineConfig(options => {
   const commonOptions: Partial<Options> = {
-    entry: [
-      "src/sdk/index.ts",
-      "src/dev/index.ts",
-      "src/adapters/index.ts",
-      "src/abi/**/*.ts",
-    ],
-    clean: true,
+    entry: ["src/sdk/index.ts", "src/dev/index.ts", "src/adapters/index.ts"],
+    clean: !options.watch, // cleaning in watch mode causes problems with turborepo
     splitting: false,
     treeshake: true,
     sourcemap: false,
@@ -50,6 +97,7 @@ export default defineConfig(options => {
             writeDummyPackage(subpath, "cjs"),
           ),
         );
+        await buildAbi("cjs");
       },
     },
     {
@@ -71,6 +119,8 @@ export default defineConfig(options => {
             writeDummyPackage(subpath, "esm"),
           ),
         );
+
+        await buildAbi("esm");
       },
     },
   ];

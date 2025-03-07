@@ -6,7 +6,6 @@
   "main": "./dist/cjs/sdk/index.cjs",
   "module": "./dist/esm/sdk/index.mjs",
   "types": "./dist/cjs/sdk/index.d.ts",
-  "typings": "./dist/cjs/sdk/index.d.ts",
   "sideEffects": false,
   "exports": {
     "./package.json": "./package.json",
