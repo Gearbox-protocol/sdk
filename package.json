@@ -6,10 +6,15 @@
   "main": "./dist/cjs/sdk/index.cjs",
   "module": "./dist/esm/sdk/index.mjs",
   "types": "./dist/cjs/sdk/index.d.ts",
+  "typings": "./dist/cjs/sdk/index.d.ts",
   "sideEffects": false,
   "exports": {
     "./package.json": "./package.json",
     ".": {
+      "default": {
+        "types": "./dist/cjs/sdk/index.d.ts",
+        "default": "./dist/cjs/sdk/index.cjs"
+      },
       "import": {
         "types": "./dist/esm/sdk/index.d.mts",
         "default": "./dist/esm/sdk/index.mjs"
@@ -20,6 +25,10 @@
       }
     },
     "./dev": {
+      "default": {
+        "types": "./dist/cjs/dev/index.d.ts",
+        "default": "./dist/cjs/dev/index.cjs"
+      },
       "import": {
         "types": "./dist/esm/dev/index.d.mts",
         "default": "./dist/esm/dev/index.mjs"
@@ -30,6 +39,10 @@
       }
     },
     "./adapters": {
+      "default": {
+        "types": "./dist/cjs/adapters/index.d.ts",
+        "default": "./dist/cjs/adapters/index.cjs"
+      },
       "import": {
         "types": "./dist/esm/adapters/index.d.mts",
         "default": "./dist/esm/adapters/index.mjs"
@@ -40,6 +53,10 @@
       }
     },
     "./abi/*": {
+      "default": {
+        "types": "./dist/cjs/abi/*.d.ts",
+        "default": "./dist/cjs/abi/*.cjs"
+      },
       "import": {
         "types": "./dist/esm/abi/*.d.mts",
         "default": "./dist/esm/abi/*.mjs"
@@ -51,8 +68,21 @@
     }
   },
   "files": [
-    "dist"
+    "*"
   ],
+  "typesVersions": {
+    "*": {
+      "dev": [
+        "./dist/cjs/dev/index.d.ts"
+      ],
+      "adapters": [
+        "./dist/cjs/adapters/index.d.ts"
+      ],
+      "abi/*": [
+        "./dist/cjs/abi/*.d.ts"
+      ]
+    }
+  },
   "scripts": {
     "clean": "rm -rf dist",
     "build": "tsup",
