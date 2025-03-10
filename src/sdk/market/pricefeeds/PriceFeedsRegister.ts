@@ -5,42 +5,42 @@ import {
   multicall3Abi,
 } from "viem";
 
-import { iMarketCompressorAbi } from "../../abi";
-import type { BaseParams, PriceFeedTreeNode } from "../../base";
-import { SDKConstruct } from "../../base";
-import { ADDRESS_0X0, AP_MARKET_COMPRESSOR } from "../../constants";
-import type { GearboxSDK } from "../../GearboxSDK";
-import type { ILogger, RawTx } from "../../types";
+import { iMarketCompressorAbi } from "../../../abi/compressors.js";
+import type { BaseParams, PriceFeedTreeNode } from "../../base/index.js";
+import { SDKConstruct } from "../../base/index.js";
+import { ADDRESS_0X0, AP_MARKET_COMPRESSOR } from "../../constants/index.js";
+import type { GearboxSDK } from "../../GearboxSDK.js";
+import type { ILogger, RawTx } from "../../types/index.js";
 import {
   AddressMap,
   bytes32ToString,
   childLogger,
   createRawTx,
-} from "../../utils";
-import type { IHooks } from "../../utils/internal";
-import { Hooks } from "../../utils/internal";
-import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed";
-import { BalancerStablePriceFeedContract } from "./BalancerStablePriceFeed";
-import { BalancerWeightedPriceFeedContract } from "./BalancerWeightedPriceFeed";
-import { BoundedPriceFeedContract } from "./BoundedPriceFeed";
-import { ChainlinkPriceFeedContract } from "./ChainlinkPriceFeed";
-import { CompositePriceFeedContract } from "./CompositePriceFeed";
-import { CurveCryptoPriceFeedContract } from "./CurveCryptoPriceFeed";
-import { CurveStablePriceFeedContract } from "./CurveStablePriceFeed";
-import { CurveUSDPriceFeedContract } from "./CurveUSDPriceFeed";
-import { Erc4626PriceFeedContract } from "./Erc4626PriceFeed";
-import { MellowLRTPriceFeedContract } from "./MellowLRTPriceFeed";
-import { PendleTWAPPTPriceFeed } from "./PendleTWAPPTPriceFeed";
-import { RedstonePriceFeedContract } from "./RedstonePriceFeed";
-import { RedstoneUpdater } from "./RedstoneUpdater";
+} from "../../utils/index.js";
+import type { IHooks } from "../../utils/internal/index.js";
+import { Hooks } from "../../utils/internal/index.js";
+import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed.js";
+import { BalancerStablePriceFeedContract } from "./BalancerStablePriceFeed.js";
+import { BalancerWeightedPriceFeedContract } from "./BalancerWeightedPriceFeed.js";
+import { BoundedPriceFeedContract } from "./BoundedPriceFeed.js";
+import { ChainlinkPriceFeedContract } from "./ChainlinkPriceFeed.js";
+import { CompositePriceFeedContract } from "./CompositePriceFeed.js";
+import { CurveCryptoPriceFeedContract } from "./CurveCryptoPriceFeed.js";
+import { CurveStablePriceFeedContract } from "./CurveStablePriceFeed.js";
+import { CurveUSDPriceFeedContract } from "./CurveUSDPriceFeed.js";
+import { Erc4626PriceFeedContract } from "./Erc4626PriceFeed.js";
+import { MellowLRTPriceFeedContract } from "./MellowLRTPriceFeed.js";
+import { PendleTWAPPTPriceFeed } from "./PendleTWAPPTPriceFeed.js";
+import { RedstonePriceFeedContract } from "./RedstonePriceFeed.js";
+import { RedstoneUpdater } from "./RedstoneUpdater.js";
 import type {
   IPriceFeedContract,
   PriceFeedContractType,
   UpdatePriceFeedsResult,
-} from "./types";
-import { WstETHPriceFeedContract } from "./WstETHPriceFeed";
-import { YearnPriceFeedContract } from "./YearnPriceFeed";
-import { ZeroPriceFeedContract } from "./ZeroPriceFeed";
+} from "./types.js";
+import { WstETHPriceFeedContract } from "./WstETHPriceFeed.js";
+import { YearnPriceFeedContract } from "./YearnPriceFeed.js";
+import { ZeroPriceFeedContract } from "./ZeroPriceFeed.js";
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PriceFeedRegisterHooks = {

@@ -1,8 +1,8 @@
 import type { Address } from "viem";
 
-import type { LPTokens, SupportedToken } from "../../sdk-gov-legacy";
-import { isLPToken } from "../../sdk-gov-legacy";
-import type { PartialRecord } from "../../utils";
+import type { LPTokens, SupportedToken } from "../../sdk-gov-legacy/index.js";
+import { isLPToken } from "../../sdk-gov-legacy/index.js";
+import type { PartialRecord } from "../../utils/index.js";
 
 // all extra tokens
 type ExtraFarmTokens = Extract<

@@ -1,8 +1,8 @@
-import type { CreditManagerData } from "../../base";
-import type { GearboxSDK } from "../../GearboxSDK";
-import { CreditManagerV300Contract } from "./CreditManagerV300Contract";
-import { CreditManagerV310Contract } from "./CreditManagerV310Contract";
-import type { ICreditManagerContract } from "./types";
+import type { CreditManagerData } from "../../base/index.js";
+import type { GearboxSDK } from "../../GearboxSDK.js";
+import { CreditManagerV300Contract } from "./CreditManagerV300Contract.js";
+import { CreditManagerV310Contract } from "./CreditManagerV310Contract.js";
+import type { ICreditManagerContract } from "./types.js";
 
 export default function createCreditManager(
   sdk: GearboxSDK,

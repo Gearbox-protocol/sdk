@@ -1,9 +1,9 @@
 import type { Address } from "viem";
 
-import type { NetworkType } from "../../chain";
-import { NOT_DEPLOYED } from "../../constants";
-import type { SupportedToken } from "./token";
-import { tokenDataByNetwork } from "./token";
+import type { NetworkType } from "../../chain/index.js";
+import { NOT_DEPLOYED } from "../../constants/index.js";
+import type { SupportedToken } from "./token.js";
+import { tokenDataByNetwork } from "./token.js";
 
 export const connectors: Record<NetworkType, Array<SupportedToken>> = {
   Mainnet: [

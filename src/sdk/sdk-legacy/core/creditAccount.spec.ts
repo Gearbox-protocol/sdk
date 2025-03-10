@@ -5,19 +5,19 @@ import {
   MIN_INT96,
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS_POW,
-} from "../../constants";
-import type { Asset } from "../../router";
-import type { TokensAPYList } from "../apy";
-import { TokenData } from "../tokens/tokenData";
-import { toBN } from "../utils/formatter";
-import { PriceUtils } from "../utils/price";
-import { AssetUtils } from "./assets";
+} from "../../constants/index.js";
+import type { Asset } from "../../router/index.js";
+import type { TokensAPYList } from "../apy/index.js";
+import { TokenData } from "../tokens/tokenData.js";
+import { toBN } from "../utils/formatter.js";
+import { PriceUtils } from "../utils/price.js";
+import { AssetUtils } from "./assets.js";
 import type {
   CalcHealthFactorProps,
   CalcOverallAPYProps,
   CalcQuotaUpdateProps,
-} from "./creditAccount";
-import { CreditAccountData_Legacy } from "./creditAccount";
+} from "./creditAccount.js";
+import { CreditAccountData_Legacy } from "./creditAccount.js";
 
 const WETH =
   "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2".toLowerCase() as Address;

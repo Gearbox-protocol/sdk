@@ -1,86 +1,34 @@
 import type { Hex } from "viem";
 
-import type { AdapterData } from "../../base";
-import type { GearboxSDK } from "../../GearboxSDK";
-import { bytes32ToString } from "../../utils";
-import { AbstractAdapterContract } from "./AbstractAdapter";
-import { BalancerV2VaultAdapterContract } from "./BalancerAdapterContract";
-import { CamelotV3AdapterContract } from "./CamelotV3AdapterContract";
-import { ConvexV1BaseRewardPoolAdapterContract } from "./ConvexV1BaseRewardPoolAdapterContract";
-import { ConvexV1BoosterAdapterContract } from "./ConvexV1BoosterAdapterContract";
-import { Curve2AssetsAdapterContract } from "./Curve2AssetsAdapterContract";
-import { Curve3AssetsAdapterContract } from "./Curve3AssetsAdapterContract";
-import { Curve4AssetsAdapterContract } from "./Curve4AssetsAdapterContract";
-import { CurveV1AdapterStableNGContract } from "./CurveV1AdapterStableNGContract";
-import { CurveV1AdapterStETHContract } from "./CurveV1AdapterStETHContract";
-import { CurveV1StableNGAdapterContract } from "./CurveV1StableNGAdapterContract";
-import { DaiUsdsAdapterContract } from "./DaiUsdsAdapterContract";
-import { ERC4626AdapterContract } from "./ERC4626AdapterContract";
-import { MellowERC4626VaultAdapterContract } from "./MellowERC4626VaultAdapterContract";
-import { MellowVaultAdapterContract } from "./MellowVaultAdapterContract";
-import { PendleRouterAdapterContract } from "./PendleRouterAdapterContract";
-import { StakingRewardsAdapterContract } from "./StakingRewardsAdapterContract";
-import type { AdapterContractType, IAdapterContract } from "./types";
-import { UniswapV2AdapterContract } from "./UniswapV2AdapterContract";
-import { UniswapV3AdapterContract } from "./UniswapV3AdapterContract";
-import { VelodromeV2RouterAdapterContract } from "./VelodromeV2AdapterContract";
-import { WstETHV1AdapterContract } from "./WstETHV1AdapterContract";
-import { YearnV2RouterAdapterContract } from "./YearnV2AdapterContract";
+import type { AdapterData } from "../../base/index.js";
+import type { GearboxSDK } from "../../GearboxSDK.js";
+import { bytes32ToString } from "../../utils/index.js";
+import { PlaceholderAdapterContract } from "./PlaceholderAdapterContracts.js";
+import type { IAdapterContract } from "./types.js";
 
 export function createAdapter(
   sdk: GearboxSDK,
   args: AdapterData,
 ): IAdapterContract {
-  const adapterType = bytes32ToString(
-    args.baseParams.contractType as Hex,
-  ) as AdapterContractType;
-  switch (adapterType) {
-    case "ADAPTER::UNISWAP_V2_ROUTER":
-      return new UniswapV2AdapterContract(sdk, args);
-    case "ADAPTER::UNISWAP_V3_ROUTER":
-      return new UniswapV3AdapterContract(sdk, args);
-    case "ADAPTER::CURVE_V1_2ASSETS":
-      return new Curve2AssetsAdapterContract(sdk, args);
-    case "ADAPTER::CURVE_V1_3ASSETS":
-      return new Curve3AssetsAdapterContract(sdk, args);
-    case "ADAPTER::CURVE_V1_4ASSETS":
-      return new Curve4AssetsAdapterContract(sdk, args);
-    case "ADAPTER::CURVE_V1_STECRV_POOL":
-      return new CurveV1AdapterStETHContract(sdk, args);
-    case "ADAPTER::CURVE_V1_WRAPPER":
-      return new CurveV1AdapterStableNGContract(sdk, args);
-    case "ADAPTER::CVX_V1_BASE_REWARD_POOL":
-      return new ConvexV1BaseRewardPoolAdapterContract(sdk, args);
-    case "ADAPTER::CVX_V1_BOOSTER":
-      return new ConvexV1BoosterAdapterContract(sdk, args);
-    case "ADAPTER::CURVE_STABLE_NG":
-      return new CurveV1StableNGAdapterContract(sdk, args);
-    case "ADAPTER::LIDO_WSTETH_V1":
-      return new WstETHV1AdapterContract(sdk, args);
-    case "ADAPTER::BALANCER_VAULT":
-      return new BalancerV2VaultAdapterContract(sdk, args);
-    case "ADAPTER::ERC4626_VAULT":
-      return new ERC4626AdapterContract(sdk, args);
-    case "ADAPTER::VELODROME_V2_ROUTER":
-      return new VelodromeV2RouterAdapterContract(sdk, args);
-    case "ADAPTER::CAMELOT_V3_ROUTER":
-      return new CamelotV3AdapterContract(sdk, args);
-    case "ADAPTER::YEARN_V2":
-      return new YearnV2RouterAdapterContract(sdk, args);
-    case "ADAPTER::MELLOW_LRT_VAULT":
-      return new MellowVaultAdapterContract(sdk, args);
-    case "ADAPTER::MELLOW_ERC4626_VAULT":
-      return new MellowERC4626VaultAdapterContract(sdk, args);
-    case "ADAPTER::PENDLE_ROUTER":
-      return new PendleRouterAdapterContract(sdk, args);
-    case "ADAPTER::DAI_USDS_EXCHANGE":
-      return new DaiUsdsAdapterContract(sdk, args);
-    case "ADAPTER::STAKING_REWARDS":
-      return new StakingRewardsAdapterContract(sdk, args);
-    default:
+  const adapterType = bytes32ToString(args.baseParams.contractType as Hex);
+  for (const plugin of sdk.plugins) {
+    try {
+      const adapter = plugin.createContract(sdk, args);
+      if (adapter) {
+        sdk.logger?.info(
+          ` ${adapterType} v${args.baseParams.version} created using plugin ${plugin.name}`,
+        );
+        return adapter as IAdapterContract;
+      }
+    } catch (e) {
       sdk.logger?.warn(
-        `adapter for ${adapterType} at ${args.baseParams.addr} is not implemented`,
+        `plugin ${plugin.name} error while trying to create ${adapterType} v${args.baseParams.version}: ${e}`,
       );
-      return new AbstractAdapterContract(sdk, { ...args, abi: [] });
+    }
   }
+
+  sdk.logger?.warn(
+    `no class found for ${adapterType} v${args.baseParams.version}, falling back to placeholder`,
+  );
+  return new PlaceholderAdapterContract(sdk, args);
 }

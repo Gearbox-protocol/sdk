@@ -1,7 +1,7 @@
-import type { StakingRewardsContract } from "../contracts";
-import type { SupportedToken, TokenBase } from "./token";
-import type { TokenNetwork } from "./tokenType";
-import { TokenType } from "./tokenType";
+import type { StakingRewardsContract } from "../contracts/index.js";
+import type { SupportedToken, TokenBase } from "./token.js";
+import type { TokenNetwork } from "./tokenType.js";
+import { TokenType } from "./tokenType.js";
 
 export type StakingRewardsPhantomToken = "stkUSDS";
 

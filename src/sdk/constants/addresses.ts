@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-import type { NetworkType } from "../chain";
+import type { NetworkType } from "../chain/index.js";
 
 export const MULTICALL_ADDRESS: Address =
   "0xcA11bde05977b3631167028862bE2a173976CA11";

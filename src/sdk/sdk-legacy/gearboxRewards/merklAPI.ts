@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-import type { BigNumberish } from "../utils/formatter";
+import type { BigNumberish } from "../utils/formatter.js";
 
 interface UserOptions {
   params: {

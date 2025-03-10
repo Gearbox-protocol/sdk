@@ -1,28 +1,31 @@
 import type { Address } from "viem";
 
-import { iMarketCompressorAbi, iPeripheryCompressorAbi } from "../abi";
-import type { MarketData, MarketFilter, ZapperData } from "../base";
-import { SDKConstruct } from "../base";
+import {
+  iMarketCompressorAbi,
+  iPeripheryCompressorAbi,
+} from "../../abi/compressors.js";
+import type { MarketData, MarketFilter, ZapperData } from "../base/index.js";
+import { SDKConstruct } from "../base/index.js";
 import {
   ADDRESS_0X0,
   AP_MARKET_COMPRESSOR,
   AP_PERIPHERY_COMPRESSOR,
-} from "../constants";
-import type { GearboxSDK } from "../GearboxSDK";
+} from "../constants/index.js";
+import type { GearboxSDK } from "../GearboxSDK.js";
 import type {
   ILogger,
   MarketStateHuman,
   RawTx,
   TVL,
   ZapperStateHuman,
-} from "../types";
-import { AddressMap, childLogger } from "../utils";
-import { simulateMulticall } from "../utils/viem";
-import type { CreditSuite } from "./credit";
-import type { MarketConfiguratorContract } from "./MarketConfiguratorContract";
-import { MarketSuite } from "./MarketSuite";
-import type { PoolSuite } from "./pool";
-import { rawTxToMulticallPriceUpdate } from "./pricefeeds";
+} from "../types/index.js";
+import { AddressMap, childLogger } from "../utils/index.js";
+import { simulateMulticall } from "../utils/viem/index.js";
+import type { CreditSuite } from "./credit/index.js";
+import type { MarketConfiguratorContract } from "./MarketConfiguratorContract.js";
+import { MarketSuite } from "./MarketSuite.js";
+import type { PoolSuite } from "./pool/index.js";
+import { rawTxToMulticallPriceUpdate } from "./pricefeeds/index.js";
 
 export interface ZapperDataFull extends ZapperData {
   pool: Address;

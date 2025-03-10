@@ -1,9 +1,9 @@
 import type { Address } from "viem";
 
-import type { SupportedToken } from "../../sdk-gov-legacy";
-import type { PartialRecord } from "../../utils";
-import { GearboxBackendApi } from "../core/endpoint";
-import type { TokenDataPayload } from "../payload/token";
+import type { SupportedToken } from "../../sdk-gov-legacy/index.js";
+import type { PartialRecord } from "../../utils/index.js";
+import { GearboxBackendApi } from "../core/endpoint.js";
+import type { TokenDataPayload } from "../payload/token.js";
 
 const ALIASES: PartialRecord<SupportedToken, string> = {
   USDC_e: "USDC.e",

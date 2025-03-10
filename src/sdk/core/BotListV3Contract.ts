@@ -5,11 +5,14 @@ import type {
   Log,
 } from "viem";
 
-import { iBotListV300Abi } from "../abi";
-import { BaseContract } from "../base";
-import { ADDRESS_PROVIDER_BLOCK, botPermissionsToString } from "../constants";
-import type { GearboxSDK } from "../GearboxSDK";
-import type { BotListStateHuman } from "../types";
+import { iBotListV300Abi } from "../../abi/v300.js";
+import { BaseContract } from "../base/index.js";
+import {
+  ADDRESS_PROVIDER_BLOCK,
+  botPermissionsToString,
+} from "../constants/index.js";
+import type { GearboxSDK } from "../GearboxSDK.js";
+import type { BotListStateHuman } from "../types/index.js";
 
 const abi = iBotListV300Abi;
 type abi = typeof abi;

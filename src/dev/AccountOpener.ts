@@ -2,6 +2,8 @@ import type { Address, Hash, PrivateKeyAccount } from "viem";
 import { isAddress, parseEther, parseEventLogs } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
+import { ierc20Abi } from "../abi/iERC20.js";
+import { iCreditFacadeV300Abi, iPoolV300Abi } from "../abi/v300.js";
 import type {
   Asset,
   CreditAccountData,
@@ -10,22 +12,19 @@ import type {
   ILogger,
   PoolContract,
   RawTx,
-} from "../sdk";
+} from "../sdk/index.js";
 import {
   ADDRESS_0X0,
   AddressMap,
   childLogger,
   formatBN,
-  iCreditFacadeV300Abi,
-  iDegenNftv2Abi,
-  ierc20Abi,
-  iPoolV300Abi,
   MAX_UINT256,
   PERCENTAGE_FACTOR,
   SDKConstruct,
   sendRawTx,
-} from "../sdk";
-import { type AnvilClient, createAnvilClient } from "./createAnvilClient";
+} from "../sdk/index.js";
+import { iDegenNftv2Abi } from "./abi.js";
+import { type AnvilClient, createAnvilClient } from "./createAnvilClient.js";
 
 const DEFAULT_LEVERAGE = 4;
 

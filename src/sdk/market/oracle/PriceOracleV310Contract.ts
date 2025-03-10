@@ -1,11 +1,12 @@
 import type { Address, ContractEventName, Log } from "viem";
 
-import { iPriceOracleV310Abi } from "../../abi";
-import type { PriceOracleData } from "../../base";
-import type { GearboxSDK } from "../../GearboxSDK";
-import { PriceOracleBaseContract } from "./PriceOracleBaseContract";
+import { iPriceOracleV310Abi } from "../../../abi/v310.js";
+import type { PriceOracleData } from "../../base/index.js";
+import type { GearboxSDK } from "../../GearboxSDK.js";
+import { PriceOracleBaseContract } from "./PriceOracleBaseContract.js";
 
-type abi = typeof iPriceOracleV310Abi;
+const abi = iPriceOracleV310Abi;
+type abi = typeof abi;
 
 export class PriceOracleV310Contract extends PriceOracleBaseContract<abi> {
   constructor(sdk: GearboxSDK, data: PriceOracleData, underlying: Address) {
@@ -14,7 +15,7 @@ export class PriceOracleV310Contract extends PriceOracleBaseContract<abi> {
       {
         ...data.baseParams,
         name: "PriceOracleV3",
-        abi: iPriceOracleV310Abi,
+        abi,
       },
       data,
       underlying,

@@ -1,10 +1,16 @@
-import type { Address } from "viem";
+import { type Address, parseAbi } from "viem";
 
-import { partialLiquidationBotV3Abi } from "../abi";
-import { SDKConstruct } from "../base";
-import type { BotBaseType, BotDataPayload, BotDetailedType } from "./utils";
+import { SDKConstruct } from "../base/index.js";
+import type { BotBaseType, BotDataPayload, BotDetailedType } from "./utils.js";
 
 export type BotAddresses = Partial<Record<BotDetailedType, Address>>;
+
+const iPartialLiquidationBotV3Abi = parseAbi([
+  "function minHealthFactor() external view returns (uint16)",
+  "function maxHealthFactor() external view returns (uint16)",
+  "function premiumScaleFactor() external view returns (uint16)",
+  "function feeScaleFactor() external view returns (uint16)",
+]);
 
 export class BotsService extends SDKConstruct {
   /**
@@ -24,25 +30,25 @@ export class BotsService extends SDKConstruct {
         .map(([, address]) => [
           {
             address,
-            abi: partialLiquidationBotV3Abi,
+            abi: iPartialLiquidationBotV3Abi,
             functionName: "minHealthFactor",
             args: [],
           },
           {
             address,
-            abi: partialLiquidationBotV3Abi,
+            abi: iPartialLiquidationBotV3Abi,
             functionName: "maxHealthFactor",
             args: [],
           },
           {
             address,
-            abi: partialLiquidationBotV3Abi,
+            abi: iPartialLiquidationBotV3Abi,
             functionName: "premiumScaleFactor",
             args: [],
           },
           {
             address,
-            abi: partialLiquidationBotV3Abi,
+            abi: iPartialLiquidationBotV3Abi,
             functionName: "feeScaleFactor",
             args: [],
           },

@@ -6,22 +6,26 @@ import type {
 } from "viem";
 import { encodeFunctionData } from "viem";
 
+import { iPausableAbi } from "../../../abi/iPausable.js";
 import {
-  iCreditFacadeV3MulticallAbi,
   iCreditFacadeV300Abi,
-  iPausableAbi,
-} from "../../abi";
-import type { CreditFacadeState, CreditManagerData } from "../../base";
-import { BaseContract } from "../../base";
-import { ADDRESS_0X0 } from "../../constants";
-import type { GearboxSDK } from "../../GearboxSDK";
-import type { CreditFacadeStateHuman, MultiCall, RawTx } from "../../types";
-import { fmtBinaryMask, formatBNvalue } from "../../utils";
-import type { OnDemandPriceUpdate } from "../oracle";
+  iCreditFacadeV300MulticallAbi,
+} from "../../../abi/v300.js";
+import type { CreditFacadeState, CreditManagerData } from "../../base/index.js";
+import { BaseContract } from "../../base/index.js";
+import { ADDRESS_0X0 } from "../../constants/index.js";
+import type { GearboxSDK } from "../../GearboxSDK.js";
+import type {
+  CreditFacadeStateHuman,
+  MultiCall,
+  RawTx,
+} from "../../types/index.js";
+import { fmtBinaryMask, formatBNvalue } from "../../utils/index.js";
+import type { OnDemandPriceUpdate } from "../oracle/index.js";
 
 const abi = [
   ...iCreditFacadeV300Abi,
-  ...iCreditFacadeV3MulticallAbi,
+  ...iCreditFacadeV300MulticallAbi,
   ...iPausableAbi,
 ] as const;
 type abi = typeof abi;
@@ -106,7 +110,7 @@ export class CreditFacadeV300Contract extends BaseContract<abi> {
     return updates.map(u => ({
       target: this.address,
       callData: encodeFunctionData({
-        abi: iCreditFacadeV3MulticallAbi,
+        abi: iCreditFacadeV300MulticallAbi,
         functionName: "onDemandPriceUpdate",
         args: [u.token, u.reserve, u.data],
       }),

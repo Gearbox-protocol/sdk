@@ -1,18 +1,19 @@
 import type { ContractEventName, Log } from "viem";
 
-import { iPoolQuotaKeeperV300Abi } from "../../abi";
+import { iPoolQuotaKeeperV300Abi } from "../../../abi/v300.js";
 import type {
   IBaseContract,
   PoolData,
   PoolQuotaKeeperData,
   QuotaState,
-} from "../../base";
-import { BaseContract } from "../../base";
-import type { GearboxSDK } from "../../GearboxSDK";
-import type { PoolQuotaKeeperStateHuman } from "../../types";
-import { AddressMap, formatBNvalue, percentFmt } from "../../utils";
+} from "../../base/index.js";
+import { BaseContract } from "../../base/index.js";
+import type { GearboxSDK } from "../../GearboxSDK.js";
+import type { PoolQuotaKeeperStateHuman } from "../../types/index.js";
+import { AddressMap, formatBNvalue, percentFmt } from "../../utils/index.js";
 
-type abi = typeof iPoolQuotaKeeperV300Abi;
+const abi = iPoolQuotaKeeperV300Abi;
+type abi = typeof abi;
 
 export class PoolQuotaKeeperV300Contract
   extends BaseContract<abi>
@@ -25,7 +26,7 @@ export class PoolQuotaKeeperV300Contract
     super(sdk, {
       ...pqk.baseParams,
       name: `PoolQuotaKeeper(${pool.name})`,
-      abi: iPoolQuotaKeeperV300Abi,
+      abi,
     });
 
     this.decimals = pool.decimals;

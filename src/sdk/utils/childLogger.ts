@@ -1,4 +1,4 @@
-import type { ILogger } from "../types";
+import type { ILogger } from "../types/index.js";
 
 export function childLogger(
   module: string,

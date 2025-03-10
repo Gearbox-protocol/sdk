@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-import type { MultiCall } from "../types";
+import type { MultiCall } from "../types/index.js";
 
 export type SwapOperation = "EXACT_INPUT" | "EXACT_INPUT_ALL" | "EXACT_OUTPUT";
 

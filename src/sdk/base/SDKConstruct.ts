@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 
-import type { Provider } from "../chain";
-import type { GearboxSDK } from "../GearboxSDK";
+import type { Provider } from "../chain/index.js";
+import type { GearboxSDK } from "../GearboxSDK.js";
 
 export class SDKConstruct {
   public readonly sdk: GearboxSDK;

@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 
-import type { NetworkType } from "../../chain";
-import { chains, isSupportedNetwork } from "../../chain";
+import type { NetworkType } from "../../chain/index.js";
+import { chains, isSupportedNetwork } from "../../chain/index.js";
 
 export const TESTNET_CHAINS: Record<NetworkType, number> = {
   Mainnet: 7878,

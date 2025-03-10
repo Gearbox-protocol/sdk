@@ -3,12 +3,12 @@ import { encodeFunctionData } from "viem";
 
 import {
   iCreditAccountCompressorAbi,
-  iCreditFacadeV3MulticallAbi,
   iPeripheryCompressorAbi,
   iRewardsCompressorAbi,
-} from "../abi";
-import type { CreditAccountData } from "../base";
-import { SDKConstruct } from "../base";
+} from "../../abi/compressors.js";
+import { iCreditFacadeV300MulticallAbi } from "../../abi/v300.js";
+import type { CreditAccountData } from "../base/index.js";
+import { SDKConstruct } from "../base/index.js";
 import {
   ADDRESS_0X0,
   AP_CREDIT_ACCOUNT_COMPRESSOR,
@@ -16,26 +16,26 @@ import {
   AP_REWARDS_COMPRESSOR,
   MAX_UINT256,
   MIN_INT96,
-} from "../constants";
-import type { GearboxSDK } from "../GearboxSDK";
+} from "../constants/index.js";
+import type { GearboxSDK } from "../GearboxSDK.js";
 import type {
   CreditSuite,
   IPriceFeedContract,
   IPriceOracleContract,
   OnDemandPriceUpdate,
   UpdatePriceFeedsResult,
-} from "../market";
-import { rawTxToMulticallPriceUpdate } from "../market";
+} from "../market/index.js";
+import { rawTxToMulticallPriceUpdate } from "../market/index.js";
 import {
   type Asset,
   assetsMap,
   type CreditAccountDataSlice,
   type RouterCloseResult,
-} from "../router";
-import { iBaseRewardPoolAbi } from "../sdk-legacy";
-import type { ILogger, MultiCall, RawTx } from "../types";
-import { childLogger } from "../utils";
-import { simulateMulticall } from "../utils/viem";
+} from "../router/index.js";
+import { iBaseRewardPoolAbi } from "../sdk-legacy/index.js";
+import type { ILogger, MultiCall, RawTx } from "../types/index.js";
+import { childLogger } from "../utils/index.js";
+import { simulateMulticall } from "../utils/viem/index.js";
 
 type CompressorAbi = typeof iCreditAccountCompressorAbi;
 
@@ -946,7 +946,7 @@ export class CreditAccountsService extends SDKConstruct {
         calls.push({
           target: ca.creditFacade,
           callData: encodeFunctionData({
-            abi: iCreditFacadeV3MulticallAbi,
+            abi: iCreditFacadeV300MulticallAbi,
             functionName: "updateQuota",
             args: [token, MIN_INT96, 0n],
           }),
@@ -969,7 +969,7 @@ export class CreditAccountsService extends SDKConstruct {
       return {
         target: creditFacade,
         callData: encodeFunctionData({
-          abi: iCreditFacadeV3MulticallAbi,
+          abi: iCreditFacadeV300MulticallAbi,
           functionName: "updateQuota",
           args: [q.token, q.balance, min],
         }),
@@ -985,7 +985,7 @@ export class CreditAccountsService extends SDKConstruct {
         {
           target: ca.creditFacade,
           callData: encodeFunctionData({
-            abi: iCreditFacadeV3MulticallAbi,
+            abi: iCreditFacadeV300MulticallAbi,
             functionName: "decreaseDebt",
             args: [MAX_UINT256],
           }),
@@ -1012,7 +1012,7 @@ export class CreditAccountsService extends SDKConstruct {
     return {
       target: creditFacade,
       callData: encodeFunctionData({
-        abi: iCreditFacadeV3MulticallAbi,
+        abi: iCreditFacadeV300MulticallAbi,
         functionName: "disableToken",
         args: [token],
       }),
@@ -1026,7 +1026,7 @@ export class CreditAccountsService extends SDKConstruct {
     return tokens.map(t => ({
       target: creditFacade,
       callData: encodeFunctionData({
-        abi: iCreditFacadeV3MulticallAbi,
+        abi: iCreditFacadeV300MulticallAbi,
         functionName: "enableToken",
         args: [t],
       }),
@@ -1042,7 +1042,7 @@ export class CreditAccountsService extends SDKConstruct {
     return {
       target: creditFacade,
       callData: encodeFunctionData({
-        abi: iCreditFacadeV3MulticallAbi,
+        abi: iCreditFacadeV300MulticallAbi,
         functionName: "withdrawCollateral",
         args: [token, amount, to],
       }),
@@ -1053,7 +1053,7 @@ export class CreditAccountsService extends SDKConstruct {
     return {
       target: creditFacade,
       callData: encodeFunctionData({
-        abi: iCreditFacadeV3MulticallAbi,
+        abi: iCreditFacadeV300MulticallAbi,
         functionName: "increaseDebt",
         args: [debt],
       }),
@@ -1067,7 +1067,7 @@ export class CreditAccountsService extends SDKConstruct {
     return {
       target: creditFacade,
       callData: encodeFunctionData({
-        abi: iCreditFacadeV3MulticallAbi,
+        abi: iCreditFacadeV300MulticallAbi,
         functionName: isDecrease ? "decreaseDebt" : "increaseDebt",
         args: [change],
       }),
@@ -1086,7 +1086,7 @@ export class CreditAccountsService extends SDKConstruct {
         return {
           target: creditFacade,
           callData: encodeFunctionData({
-            abi: iCreditFacadeV3MulticallAbi,
+            abi: iCreditFacadeV300MulticallAbi,
             functionName: "addCollateralWithPermit",
             args: [token, balance, p.deadline, p.v, p.r, p.s],
           }),
@@ -1096,7 +1096,7 @@ export class CreditAccountsService extends SDKConstruct {
       return {
         target: creditFacade,
         callData: encodeFunctionData({
-          abi: iCreditFacadeV3MulticallAbi,
+          abi: iCreditFacadeV300MulticallAbi,
           functionName: "addCollateral",
           args: [token, balance],
         }),

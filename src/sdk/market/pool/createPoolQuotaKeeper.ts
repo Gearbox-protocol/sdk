@@ -1,8 +1,8 @@
-import type { PoolData, PoolQuotaKeeperData } from "../../base";
-import type { GearboxSDK } from "../../GearboxSDK";
-import { PoolQuotaKeeperV300Contract } from "./PoolQuotaKeeperV300Contract";
-import { PoolQuotaKeeperV310Contract } from "./PoolQuotaKeeperV310Contract";
-import type { PoolQuotaKeeperContract } from "./types";
+import type { PoolData, PoolQuotaKeeperData } from "../../base/index.js";
+import type { GearboxSDK } from "../../GearboxSDK.js";
+import { PoolQuotaKeeperV300Contract } from "./PoolQuotaKeeperV300Contract.js";
+import { PoolQuotaKeeperV310Contract } from "./PoolQuotaKeeperV310Contract.js";
+import type { PoolQuotaKeeperContract } from "./types.js";
 
 export default function createPoolQuotaKeeper(
   sdk: GearboxSDK,

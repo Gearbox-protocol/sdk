@@ -1,15 +1,44 @@
-import { readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 
 import { sync as spawnSync } from "cross-spawn";
 import type { Options } from "tsup";
 import { defineConfig } from "tsup";
 
+/**
+ * Write package.json for subpath with CJS or ESM type
+ * @param subpath
+ * @param type
+ */
+async function writeDummyPackage(subpath: string, type: "cjs" | "esm") {
+  const body =
+    type === "cjs"
+      ? `{"type": "commonjs"}`
+      : `{"type": "module","sideEffects":false}`;
+  await mkdir(`./dist/${type}/${subpath}`, { recursive: true });
+  await writeFile(`./dist/${type}/${subpath}/package.json`, body, "utf-8");
+}
+
+/**
+ * When building ESM modules from subpath that import core SDK, such as dev
+ * they'll have `import {...} from "../sdk"` line
+ * This method fixes it by replacing `../sdk` with `../sdk/index.mjs`
+ * @param subpath
+ */
+async function fixRelativeImports(subpath: string) {
+  for (const ext of ["js"]) {
+    let raw = await readFile(`./dist/esm/${subpath}/index.${ext}`, "utf-8");
+    raw = raw.replace(`from '../sdk';`, `from '../sdk/index.${ext}';`);
+    await writeFile(`./dist/esm/${subpath}/index.${ext}`, raw, "utf-8");
+  }
+}
+
 export default defineConfig(options => {
   const commonOptions: Partial<Options> = {
-    entry: ["src/sdk/index.ts", "src/dev/index.ts"],
-    clean: true,
+    entry: ["src/**/*.ts"],
+    clean: !options.watch, // cleaning in watch mode causes problems with turborepo
+    bundle: false,
     splitting: false,
-    treeshake: true,
+    treeshake: false,
     sourcemap: false,
     // axios is externalized, because it has two different bundles for node (with native modules as dependencies)
     // and browser. and we here make one bundle for both. so this responsibility is pushed further the build chain
@@ -22,48 +51,43 @@ export default defineConfig(options => {
       ...commonOptions,
       format: "cjs",
       outDir: "./dist/cjs/",
-      outExtension: () => ({ js: ".cjs" }),
+      // outExtension: () => ({ js: ".cjs" }),
       onSuccess: async () => {
-        await writeFile(
-          "./dist/cjs/sdk/package.json",
-          `{"type": "commonjs"}`,
-          "utf-8",
-        );
-        await writeFile(
-          "./dist/cjs/dev/package.json",
-          `{"type": "commonjs"}`,
-          "utf-8",
+        await Promise.all(
+          ["sdk", "dev", "adapters", "abi"].map(subpath =>
+            writeDummyPackage(subpath, "cjs"),
+          ),
         );
       },
     },
     {
       ...commonOptions,
       format: ["esm"],
-      outExtension: () => ({ js: ".mjs" }),
+      outExtension: () => ({ js: ".js" }),
       outDir: "./dist/esm/",
       onSuccess: async () => {
-        // tsup with dts option is not working as expected: onSuccess is triggered and then dts is executed in parallel
-        // so we use spawnSync to run it in a separate process
-        spawnSync("yarn", ["tsup", "--dts-only"], { stdio: "inherit" });
+        // // tsup with dts option is not working as expected: onSuccess is triggered and then dts is executed in parallel
+        // // so we use spawnSync to run it in a separate process
+        // spawnSync("yarn", ["tsup", "--dts-only"], { stdio: "inherit" });
 
-        let raw = await readFile("./dist/esm/dev/index.mjs", "utf-8");
-        raw = raw.replace(`from '../sdk';`, `from '../sdk/index.mjs';`);
-        await writeFile("./dist/esm/dev/index.mjs", raw, "utf-8");
+        for (const subpath of ["dev", "adapters"]) {
+          await fixRelativeImports(subpath);
+        }
 
-        raw = await readFile("./dist/esm/dev/index.d.mts", "utf-8");
-        raw = raw.replace(`from '../sdk';`, `from '../sdk/index.d.mts';`);
-        await writeFile("./dist/esm/dev/index.d.mts", raw, "utf-8");
-
-        await writeFile(
-          "./dist/esm/sdk/package.json",
-          `{"type": "module","sideEffects":false}`,
-          "utf-8",
+        await Promise.all(
+          ["sdk", "dev", "adapters", "abi"].map(subpath =>
+            writeDummyPackage(subpath, "esm"),
+          ),
         );
-        await writeFile(
-          "./dist/esm/dev/package.json",
-          `{"type": "module","sideEffects":false}`,
-          "utf-8",
-        );
+
+        spawnSync("tsc", [
+          "--project",
+          "./tsconfig.build.json",
+          "--declarationDir",
+          "./dist/types",
+          "--emitDeclarationOnly",
+          "--declaration",
+        ]);
       },
     },
   ];

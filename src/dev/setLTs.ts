@@ -1,14 +1,11 @@
 import type { Address } from "viem";
 import { parseEther } from "viem";
 
-import type { ILogger } from "../sdk";
-import {
-  iaclAbi,
-  iaclTraitAbi,
-  iCreditConfiguratorV3Abi,
-  iCreditManagerV3Abi,
-} from "./abi";
-import type { AnvilClient } from "./createAnvilClient";
+import { iCreditConfiguratorV300Abi } from "../abi/v300.js";
+import { iCreditManagerV310Abi } from "../abi/v310.js";
+import type { ILogger } from "../sdk/index.js";
+import { iaclTraitAbi, iOwnableAbi } from "./abi.js";
+import type { AnvilClient } from "./createAnvilClient.js";
 
 export interface SetLTsCMSlice {
   creditConfigurator: Address;
@@ -33,7 +30,7 @@ export async function setLTs(
   });
   const configuratorAddr = await anvil.readContract({
     address: aclAddr,
-    abi: iaclAbi,
+    abi: iOwnableAbi,
     functionName: "owner",
   });
 
@@ -50,13 +47,13 @@ export async function setLTs(
         chain: anvil.chain,
         address: cm.creditConfigurator,
         account: configuratorAddr,
-        abi: iCreditConfiguratorV3Abi,
+        abi: iCreditConfiguratorV300Abi,
         functionName: "setLiquidationThreshold",
         args: [t as Address, lt],
       });
       const newLT = await anvil.readContract({
         address: cm.address,
-        abi: iCreditManagerV3Abi,
+        abi: iCreditManagerV310Abi,
         functionName: "liquidationThresholds",
         args: [t as Address],
       });

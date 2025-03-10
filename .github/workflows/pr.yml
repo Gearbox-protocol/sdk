@@ -13,8 +13,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+
+      - name: Use Latest Corepack
+        run: |
+          echo "Before: corepack version => $(corepack --version || echo 'not installed')"
+          npm install -g corepack@latest
+          echo "After : corepack version => $(corepack --version)"
+          corepack enable
+
+      - uses: actions/setup-node@v4
         with:
           cache: "yarn"
           node-version-file: ".nvmrc"
@@ -24,11 +32,8 @@ jobs:
 
       - name: Perform checks
         run: |
-          yarn install --frozen-lockfile
+          yarn install --immutable
           yarn typecheck:ci
           yarn lint:ci
           yarn prettier:ci
           yarn test
-        env:
-          MAINNET_TESTS_FORK: ${{ secrets.MAINNET_TESTS_FORK }}
-          ARBITRUM_TESTS_FORK: ${{ secrets.ARBITRUM_TESTS_FORK }}

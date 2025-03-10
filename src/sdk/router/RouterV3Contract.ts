@@ -1,15 +1,16 @@
 import { type Address, encodeFunctionData, getContract } from "viem";
 
-import { iCreditFacadeV3MulticallAbi, iSwapperAbi, routerV3Abi } from "../abi";
-import { BaseContract } from "../base";
-import type { CreditAccountData } from "../base/types";
-import { PERCENTAGE_FACTOR } from "../constants";
-import type { GearboxSDK } from "../GearboxSDK";
-import { getConnectors } from "../sdk-gov-legacy";
-import { AddressMap } from "../utils";
-import type { IHooks } from "../utils/internal";
-import { Hooks } from "../utils/internal";
-import { PathOptionFactory } from "./PathOptionFactory";
+import { iRouterV300Abi, iSwapperV300Abi } from "../../abi/routerV300.js";
+import { iCreditFacadeV300MulticallAbi } from "../../abi/v300.js";
+import { BaseContract } from "../base/index.js";
+import type { CreditAccountData } from "../base/types.js";
+import { PERCENTAGE_FACTOR } from "../constants/index.js";
+import type { GearboxSDK } from "../GearboxSDK.js";
+import { getConnectors } from "../sdk-gov-legacy/index.js";
+import { AddressMap } from "../utils/index.js";
+import type { IHooks } from "../utils/internal/index.js";
+import { Hooks } from "../utils/internal/index.js";
+import { PathOptionFactory } from "./PathOptionFactory.js";
 import type {
   Asset,
   OpenStrategyResult,
@@ -18,7 +19,7 @@ import type {
   RouterResult,
   SwapOperation,
   SwapTask,
-} from "./types";
+} from "./types.js";
 
 const MAX_GAS_PER_ROUTE = 200_000_000n;
 const GAS_PER_BLOCK = 400_000_000n;
@@ -33,7 +34,7 @@ const SWAP_OPERATIONS: Record<SwapOperation, number> = {
   EXACT_OUTPUT: 2,
 };
 
-type abi = typeof routerV3Abi;
+type abi = typeof iRouterV300Abi;
 
 interface FindAllSwapsProps {
   creditAccount: CreditAccountDataSlice;
@@ -134,7 +135,7 @@ export class RouterV3Contract
     super(sdk, {
       addr: address,
       name: "RouterV3",
-      abi: routerV3Abi,
+      abi: iRouterV300Abi,
     });
     this.#connectors = getConnectors(sdk.provider.networkType);
   }
@@ -278,7 +279,7 @@ export class RouterV3Contract
 
     const pendleSwapper = getContract({
       address: pendleSwapperAddress,
-      abi: iSwapperAbi,
+      abi: iSwapperV300Abi,
       client: this.sdk.provider.publicClient,
     });
 
@@ -302,7 +303,7 @@ export class RouterV3Contract
     const storeExpectedBalances = {
       target: creditManager.creditFacade,
       callData: encodeFunctionData({
-        abi: iCreditFacadeV3MulticallAbi,
+        abi: iCreditFacadeV300MulticallAbi,
         functionName: "storeExpectedBalances",
         args: [[{ token: tokenOut, amount: minAmount }]],
       }),
@@ -311,7 +312,7 @@ export class RouterV3Contract
     const compareBalances = {
       target: creditManager.creditFacade,
       callData: encodeFunctionData({
-        abi: iCreditFacadeV3MulticallAbi,
+        abi: iCreditFacadeV300MulticallAbi,
         functionName: "compareBalances",
         args: [],
       }),
