@@ -1,11 +1,11 @@
 import type { Address, ContractEventName, Log } from "viem";
 
-import { iPausableAbi } from "../../../abi/iPausable";
-import { iPriceOracleV300Abi } from "../../../abi/v300";
-import type { PriceOracleData } from "../../base";
-import type { GearboxSDK } from "../../GearboxSDK";
-import { tickerInfoTokensByNetwork } from "../../sdk-gov-legacy";
-import { PriceOracleBaseContract } from "./PriceOracleBaseContract";
+import { iPausableAbi } from "../../../abi/iPausable.js";
+import { iPriceOracleV300Abi } from "../../../abi/v300.js";
+import type { PriceOracleData } from "../../base/index.js";
+import type { GearboxSDK } from "../../GearboxSDK.js";
+import { tickerInfoTokensByNetwork } from "../../sdk-gov-legacy/index.js";
+import { PriceOracleBaseContract } from "./PriceOracleBaseContract.js";
 
 const abi = [...iPriceOracleV300Abi, ...iPausableAbi];
 type abi = typeof abi;

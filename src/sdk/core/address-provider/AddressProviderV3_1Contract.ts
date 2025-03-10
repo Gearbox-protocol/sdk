@@ -6,10 +6,10 @@ import type {
 } from "viem";
 import { bytesToString, parseEventLogs, toBytes } from "viem";
 
-import { iAddressProviderV310Abi } from "../../../abi/v310";
-import type { GearboxSDK } from "../../GearboxSDK";
-import AbstractAddressProviderContract from "./AbstractAddressProviderContract";
-import type { IAddressProviderContract } from "./types";
+import { iAddressProviderV310Abi } from "../../../abi/v310.js";
+import type { GearboxSDK } from "../../GearboxSDK.js";
+import AbstractAddressProviderContract from "./AbstractAddressProviderContract.js";
+import type { IAddressProviderContract } from "./types.js";
 
 const abi = iAddressProviderV310Abi;
 type abi = typeof abi;

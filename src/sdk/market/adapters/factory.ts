@@ -1,10 +1,10 @@
 import type { Hex } from "viem";
 
-import type { AdapterData } from "../../base";
-import type { GearboxSDK } from "../../GearboxSDK";
-import { bytes32ToString } from "../../utils";
-import { PlaceholderAdapterContract } from "./PlaceholderAdapterContracts";
-import type { IAdapterContract } from "./types";
+import type { AdapterData } from "../../base/index.js";
+import type { GearboxSDK } from "../../GearboxSDK.js";
+import { bytes32ToString } from "../../utils/index.js";
+import { PlaceholderAdapterContract } from "./PlaceholderAdapterContracts.js";
+import type { IAdapterContract } from "./types.js";
 
 export function createAdapter(
   sdk: GearboxSDK,

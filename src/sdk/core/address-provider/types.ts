@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 
-import type { BaseParams, IBaseContract } from "../../base";
-import type { AddressProviderV3StateHuman } from "../../types";
+import type { BaseParams, IBaseContract } from "../../base/index.js";
+import type { AddressProviderV3StateHuman } from "../../types/index.js";
 
 export interface AddressProviderState {
   baseParams: BaseParams;

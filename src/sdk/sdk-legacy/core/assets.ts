@@ -1,10 +1,10 @@
 import type { Address } from "viem";
 
-import type { Asset } from "../../router";
-import type { TokenData } from "../tokens/tokenData";
-import { BigIntMath } from "../utils/math";
-import { PriceUtils } from "../utils/price";
-import { CreditAccountData_Legacy } from "./creditAccount";
+import type { Asset } from "../../router/index.js";
+import type { TokenData } from "../tokens/tokenData.js";
+import { BigIntMath } from "../utils/math.js";
+import { PriceUtils } from "../utils/price.js";
+import { CreditAccountData_Legacy } from "./creditAccount.js";
 
 export interface AssetWithView extends Asset {
   balanceView: string;

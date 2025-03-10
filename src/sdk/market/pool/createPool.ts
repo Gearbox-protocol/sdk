@@ -1,8 +1,8 @@
-import type { PoolData } from "../../base";
-import type { GearboxSDK } from "../../GearboxSDK";
-import { PoolV300Contract } from "./PoolV300Contract";
-import { PoolV310Contract } from "./PoolV310Contract";
-import type { PoolContract } from "./types";
+import type { PoolData } from "../../base/index.js";
+import type { GearboxSDK } from "../../GearboxSDK.js";
+import { PoolV300Contract } from "./PoolV300Contract.js";
+import { PoolV310Contract } from "./PoolV310Contract.js";
+import type { PoolContract } from "./types.js";
 
 export default function createPool(
   sdk: GearboxSDK,

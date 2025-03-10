@@ -1,11 +1,11 @@
 import type { Address } from "viem";
 import { parseEther } from "viem";
 
-import { iCreditConfiguratorV300Abi } from "../abi/v300";
-import { iCreditManagerV310Abi } from "../abi/v310";
-import type { ILogger } from "../sdk";
-import { iaclTraitAbi, iOwnableAbi } from "./abi";
-import type { AnvilClient } from "./createAnvilClient";
+import { iCreditConfiguratorV300Abi } from "../abi/v300.js";
+import { iCreditManagerV310Abi } from "../abi/v310.js";
+import type { ILogger } from "../sdk/index.js";
+import { iaclTraitAbi, iOwnableAbi } from "./abi.js";
+import type { AnvilClient } from "./createAnvilClient.js";
 
 export interface SetLTsCMSlice {
   creditConfigurator: Address;

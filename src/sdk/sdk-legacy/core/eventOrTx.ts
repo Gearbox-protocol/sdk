@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 
-import type { TokenData } from "../tokens/tokenData";
-import type { TxSerialized } from "./transactions";
+import type { TokenData } from "../tokens/tokenData.js";
+import type { TxSerialized } from "./transactions.js";
 
 export interface Display {
   toString: (tokenData: Record<string, TokenData>) => string;

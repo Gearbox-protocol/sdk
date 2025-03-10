@@ -1,10 +1,10 @@
 import type { Address, DecodeFunctionDataReturnType } from "viem";
 
-import type { GearboxSDK } from "../sdk";
-import { formatBN } from "../sdk";
-import { iUniswapV3AdapterAbi } from "./abi";
-import type { AbstractAdapterContractOptions } from "./AbstractAdapter";
-import { AbstractAdapterContract } from "./AbstractAdapter";
+import type { GearboxSDK } from "../sdk/index.js";
+import { formatBN } from "../sdk/index.js";
+import { iUniswapV3AdapterAbi } from "./abi/index.js";
+import type { AbstractAdapterContractOptions } from "./AbstractAdapter.js";
+import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
 const abi = iUniswapV3AdapterAbi;
 

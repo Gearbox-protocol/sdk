@@ -13,19 +13,19 @@ import type {
 } from "viem";
 import { decodeFunctionData, getContract, isHex } from "viem";
 
-import { errorAbis } from "../../abi/errors";
-import { iVersionAbi } from "../../abi/iVersion";
-import { ADDRESS_0X0 } from "../constants";
-import type { GearboxSDK } from "../GearboxSDK";
-import type { BaseContractStateHuman, ILogger, RawTx } from "../types";
+import { errorAbis } from "../../abi/errors.js";
+import { iVersionAbi } from "../../abi/iVersion.js";
+import { ADDRESS_0X0 } from "../constants/index.js";
+import type { GearboxSDK } from "../GearboxSDK.js";
+import type { BaseContractStateHuman, ILogger, RawTx } from "../types/index.js";
 import {
   bytes32ToString,
   childLogger,
   createRawTx,
   json_stringify,
-} from "../utils";
-import type { IAddressLabeller } from "./IAddressLabeller";
-import { SDKConstruct } from "./SDKConstruct";
+} from "../utils/index.js";
+import type { IAddressLabeller } from "./IAddressLabeller.js";
+import { SDKConstruct } from "./SDKConstruct.js";
 
 export interface BaseContractOptions<abi extends Abi | readonly unknown[]> {
   abi: abi;

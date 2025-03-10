@@ -1,3 +1,3 @@
-export * from "./factory";
-export * from "./PlaceholderAdapterContracts";
-export * from "./types";
+export * from "./factory.js";
+export * from "./PlaceholderAdapterContracts.js";
+export * from "./types.js";

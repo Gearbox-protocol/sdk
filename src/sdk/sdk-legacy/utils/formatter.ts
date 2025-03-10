@@ -1,7 +1,7 @@
 import Decimal from "decimal.js-light";
 
-import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR } from "../../constants";
-import { toBigInt } from "../../utils";
+import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR } from "../../constants/index.js";
+import { toBigInt } from "../../utils/index.js";
 
 export type BigNumberish = bigint | number | string;
 

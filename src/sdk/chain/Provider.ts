@@ -1,10 +1,10 @@
 import type { Chain, PublicClient, Transport } from "viem";
 import { createPublicClient, defineChain, fallback, http } from "viem";
 
-import { AddressLabeller } from "../base/AddressLabeller";
-import type { IAddressLabeller } from "../base/IAddressLabeller";
-import type { NetworkType } from "./chains";
-import { chains } from "./chains";
+import { AddressLabeller } from "../base/AddressLabeller.js";
+import type { IAddressLabeller } from "../base/IAddressLabeller.js";
+import type { NetworkType } from "./chains.js";
+import { chains } from "./chains.js";
 
 export interface NetworkOptions {
   /**

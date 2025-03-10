@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 
-import type { CreditAccountData, GearboxSDK, ILogger } from "../sdk";
-import { PERCENTAGE_FACTOR, WAD } from "../sdk";
+import type { CreditAccountData, GearboxSDK, ILogger } from "../sdk/index.js";
+import { PERCENTAGE_FACTOR, WAD } from "../sdk/index.js";
 
 /**
  * Given credit accounts, calculates new liquidation thresholds that needs to be set to drop account health factor a bit to make it eligible for partial liquidation

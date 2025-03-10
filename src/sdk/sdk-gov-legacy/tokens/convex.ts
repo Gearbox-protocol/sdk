@@ -1,8 +1,11 @@
-import type { ConvexPoolContract, SupportedContract } from "../contracts";
-import type { CurveLPToken } from "./curveLP";
-import type { SupportedToken, TokenBase } from "./token";
-import type { TokenNetwork } from "./tokenType";
-import { TokenType } from "./tokenType";
+import type {
+  ConvexPoolContract,
+  SupportedContract,
+} from "../contracts/index.js";
+import type { CurveLPToken } from "./curveLP.js";
+import type { SupportedToken, TokenBase } from "./token.js";
+import type { TokenNetwork } from "./tokenType.js";
+import { TokenType } from "./tokenType.js";
 
 export type ConvexLPToken =
   | "cvx3Crv"

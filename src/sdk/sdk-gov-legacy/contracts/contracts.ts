@@ -1,9 +1,13 @@
 import type { Address } from "viem";
 
-import type { NetworkType } from "../../chain";
-import { NOT_DEPLOYED } from "../../constants";
-import type { CurveLPToken, ERC4626LPToken, NormalToken } from "../tokens";
-import { AdapterInterface } from "./adapters";
+import type { NetworkType } from "../../chain/index.js";
+import { NOT_DEPLOYED } from "../../constants/index.js";
+import type {
+  CurveLPToken,
+  ERC4626LPToken,
+  NormalToken,
+} from "../tokens/index.js";
+import { AdapterInterface } from "./adapters.js";
 
 type UniswapV2Contract =
   | "UNISWAP_V2_ROUTER"

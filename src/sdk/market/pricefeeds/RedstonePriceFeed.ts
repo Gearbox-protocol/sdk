@@ -1,11 +1,11 @@
 import type { Hex } from "viem";
 import { bytesToString, decodeAbiParameters, toBytes } from "viem";
 
-import { redstonePriceFeedAbi } from "../../abi";
-import type { GearboxSDK } from "../../GearboxSDK";
-import type { RedstonePriceFeedStateHuman } from "../../types";
-import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed";
-import { AbstractPriceFeedContract } from "./AbstractPriceFeed";
+import { redstonePriceFeedAbi } from "../../abi/index.js";
+import type { GearboxSDK } from "../../GearboxSDK.js";
+import type { RedstonePriceFeedStateHuman } from "../../types/index.js";
+import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed.js";
+import { AbstractPriceFeedContract } from "./AbstractPriceFeed.js";
 
 type abi = typeof redstonePriceFeedAbi;
 

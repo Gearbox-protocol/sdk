@@ -1,4 +1,4 @@
-import type { NetworkType } from "../../chain";
+import type { NetworkType } from "../../chain/index.js";
 
 export enum TokenType {
   NO_TOKEN,

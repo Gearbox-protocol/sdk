@@ -5,10 +5,10 @@ import {
   iCreditAccountCompressorAbi,
   iPeripheryCompressorAbi,
   iRewardsCompressorAbi,
-} from "../../abi/compressors";
-import { iCreditFacadeV300MulticallAbi } from "../../abi/v300";
-import type { CreditAccountData } from "../base";
-import { SDKConstruct } from "../base";
+} from "../../abi/compressors.js";
+import { iCreditFacadeV300MulticallAbi } from "../../abi/v300.js";
+import type { CreditAccountData } from "../base/index.js";
+import { SDKConstruct } from "../base/index.js";
 import {
   ADDRESS_0X0,
   AP_CREDIT_ACCOUNT_COMPRESSOR,
@@ -16,26 +16,26 @@ import {
   AP_REWARDS_COMPRESSOR,
   MAX_UINT256,
   MIN_INT96,
-} from "../constants";
-import type { GearboxSDK } from "../GearboxSDK";
+} from "../constants/index.js";
+import type { GearboxSDK } from "../GearboxSDK.js";
 import type {
   CreditSuite,
   IPriceFeedContract,
   IPriceOracleContract,
   OnDemandPriceUpdate,
   UpdatePriceFeedsResult,
-} from "../market";
-import { rawTxToMulticallPriceUpdate } from "../market";
+} from "../market/index.js";
+import { rawTxToMulticallPriceUpdate } from "../market/index.js";
 import {
   type Asset,
   assetsMap,
   type CreditAccountDataSlice,
   type RouterCloseResult,
-} from "../router";
-import { iBaseRewardPoolAbi } from "../sdk-legacy";
-import type { ILogger, MultiCall, RawTx } from "../types";
-import { childLogger } from "../utils";
-import { simulateMulticall } from "../utils/viem";
+} from "../router/index.js";
+import { iBaseRewardPoolAbi } from "../sdk-legacy/index.js";
+import type { ILogger, MultiCall, RawTx } from "../types/index.js";
+import { childLogger } from "../utils/index.js";
+import { simulateMulticall } from "../utils/viem/index.js";
 
 type CompressorAbi = typeof iCreditAccountCompressorAbi;
 

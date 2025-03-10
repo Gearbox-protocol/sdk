@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 
-import type { TokenMetaData } from "../base";
-import type { PriceFeedContractType } from "../market";
+import type { TokenMetaData } from "../base/index.js";
+import type { PriceFeedContractType } from "../market/index.js";
 
 export interface BaseContractStateHuman {
   address: string;

@@ -5,11 +5,11 @@ import {
   stringToHex,
 } from "viem";
 
-import { iMarketConfiguratorV310Abi } from "../../abi/v310";
-import { BaseContract } from "../base";
-import type { PeripheryContract } from "../constants";
-import { AP_MARKET_CONFIGURATOR } from "../constants";
-import type { GearboxSDK } from "../GearboxSDK";
+import { iMarketConfiguratorV310Abi } from "../../abi/v310.js";
+import { BaseContract } from "../base/index.js";
+import type { PeripheryContract } from "../constants/index.js";
+import { AP_MARKET_CONFIGURATOR } from "../constants/index.js";
+import type { GearboxSDK } from "../GearboxSDK.js";
 
 const abi = iMarketConfiguratorV310Abi;
 type abi = typeof abi;

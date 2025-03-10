@@ -1,8 +1,8 @@
 import type { Abi, Address } from "viem";
 
-import type { AdapterData, GearboxSDK } from "../sdk";
-import { BaseContract } from "../sdk";
-import type { AdapterContractType } from "./types";
+import type { AdapterData, GearboxSDK } from "../sdk/index.js";
+import { BaseContract } from "../sdk/index.js";
+import type { AdapterContractType } from "./types.js";
 
 export interface AbstractAdapterContractOptions<
   abi extends Abi | readonly unknown[],
