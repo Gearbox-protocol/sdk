@@ -3,51 +3,36 @@
   "version": "0.0.0-semantic-release",
   "description": "Gearbox SDK",
   "license": "MIT",
-  "main": "./dist/cjs/sdk/index.cjs",
-  "module": "./dist/esm/sdk/index.mjs",
+  "main": "./dist/cjs/sdk/index.js",
+  "module": "./dist/esm/sdk/index.js",
   "types": "./dist/cjs/sdk/index.d.ts",
   "sideEffects": false,
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "import": {
-        "types": "./dist/esm/sdk/index.d.mts",
-        "default": "./dist/esm/sdk/index.mjs"
-      },
-      "require": {
-        "types": "./dist/cjs/sdk/index.d.ts",
-        "default": "./dist/cjs/sdk/index.cjs"
-      }
+      "types": "./dist/types/sdk/index.d.ts",
+      "import": "./dist/esm/sdk/index.js",
+      "default": "./dist/cjs/sdk/index.js"
     },
     "./dev": {
-      "import": {
-        "types": "./dist/esm/dev/index.d.mts",
-        "default": "./dist/esm/dev/index.mjs"
-      },
-      "require": {
-        "types": "./dist/cjs/dev/index.d.ts",
-        "default": "./dist/cjs/dev/index.cjs"
-      }
+      "types": "./dist/types/dev/index.d.ts",
+      "import": "./dist/esm/dev/index.js",
+      "default": "./dist/cjs/dev/index.js"
     },
     "./adapters": {
-      "import": {
-        "types": "./dist/esm/adapters/index.d.mts",
-        "default": "./dist/esm/adapters/index.mjs"
-      },
-      "require": {
-        "types": "./dist/cjs/adapters/index.d.ts",
-        "default": "./dist/cjs/adapters/index.cjs"
-      }
+      "types": "./dist/types/adapters/index.d.ts",
+      "import": "./dist/esm/adapters/index.js",
+      "default": "./dist/cjs/adapters/index.js"
+    },
+    "./abi": {
+      "types": "./dist/types/abi/index.d.ts",
+      "import": "./dist/esm/abi/index.js",
+      "default": "./dist/cjs/abi/index.js"
     },
     "./abi/*": {
-      "import": {
-        "types": "./dist/esm/abi/*.d.mts",
-        "default": "./dist/esm/abi/*.mjs"
-      },
-      "require": {
-        "types": "./dist/cjs/abi/*.d.ts",
-        "default": "./dist/cjs/abi/*.cjs"
-      }
+      "types": "./dist/types/abi/*.d.ts",
+      "import": "./dist/esm/abi/*.js",
+      "default": "./dist/cjs/abi/*.js"
     }
   },
   "files": [
@@ -55,8 +40,10 @@
   ],
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "tsup",
-    "dev": "tsup --watch",
+    "build": "yarn clean && yarn build:cjs && yarn build:esm && yarn build:types",
+    "build:cjs": "tsc --project ./tsconfig.build.json --module commonjs --moduleResolution node --outDir ./dist/cjs && printf '{\"type\":\"commonjs\"}' > ./dist/cjs/package.json",
+    "build:esm": "tsc --project ./tsconfig.build.json --outDir ./dist/esm && printf '{\"type\": \"module\",\"sideEffects\":false}' > ./dist/esm/package.json",
+    "build:types": "tsc --project ./tsconfig.build.json --declarationDir ./dist/types --emitDeclarationOnly --declaration --declarationMap",
     "example": "tsx --env-file .env scripts/example.ts | pino-pretty",
     "accounts": "tsx --env-file .env scripts/accounts.ts | pino-pretty",
     "test": "yarn jest",
@@ -92,7 +79,6 @@
     "pino-pretty": "^13.0.0",
     "prettier": "^3.5.3",
     "ts-jest": "^29.2.6",
-    "tsup": "^8.4.0",
     "tsx": "^4.19.3",
     "typescript": "^5.8.2"
   },

@@ -7,7 +7,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "lib": ["ESNext"],
-    "declaration": true,
+    "declaration": false,
     "removeComments": false,
     "resolveJsonModule": true
   },
