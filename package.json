@@ -5,7 +5,8 @@
   "license": "MIT",
   "main": "./dist/cjs/sdk/index.js",
   "module": "./dist/esm/sdk/index.js",
-  "types": "./dist/cjs/sdk/index.d.ts",
+  "types": "./dist/types/sdk/index.d.ts",
+  "typings": "./dist/types/sdk/index.d.ts",
   "sideEffects": false,
   "exports": {
     "./package.json": "./package.json",
