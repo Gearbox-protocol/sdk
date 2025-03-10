@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-import type { MultiCall } from "../../types/index.js";
+import type { MultiCall } from "../../types";
 
 export interface PathFinderResult {
   amount: bigint;

@@ -1,8 +1,8 @@
 import type { Address } from "viem";
 
-import type { Asset } from "../router/index.js";
-import { AddressMap, formatBN } from "../utils/index.js";
-import type { TokenMetaData } from "./types.js";
+import type { Asset } from "../router";
+import { AddressMap, formatBN } from "../utils";
+import type { TokenMetaData } from "./types";
 
 export class TokensMeta extends AddressMap<TokenMetaData> {
   public symbol(token: Address): string {

@@ -6,11 +6,11 @@ import type {
 } from "viem";
 import { bytesToString, getAbiItem, parseEventLogs, toBytes } from "viem";
 
-import { iAddressProviderV300Abi } from "../../../abi/v300.js";
-import { ADDRESS_PROVIDER_BLOCK } from "../../constants/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
-import AbstractAddressProviderContract from "./AbstractAddressProviderContract.js";
-import type { IAddressProviderContract } from "./types.js";
+import { iAddressProviderV300Abi } from "../../../abi/v300";
+import { ADDRESS_PROVIDER_BLOCK } from "../../constants";
+import type { GearboxSDK } from "../../GearboxSDK";
+import AbstractAddressProviderContract from "./AbstractAddressProviderContract";
+import type { IAddressProviderContract } from "./types";
 
 const abi = iAddressProviderV300Abi;
 type abi = typeof abi;

@@ -1,8 +1,8 @@
-import type { CreditManagerData } from "../../base/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
-import { CreditFacadeV300Contract } from "./CreditFacadeV300Contract.js";
-import { CreditFacadeV310Contract } from "./CreditFacadeV310Contract.js";
-import type { CreditFacadeContract } from "./types.js";
+import type { CreditManagerData } from "../../base";
+import type { GearboxSDK } from "../../GearboxSDK";
+import { CreditFacadeV300Contract } from "./CreditFacadeV300Contract";
+import { CreditFacadeV310Contract } from "./CreditFacadeV310Contract";
+import type { CreditFacadeContract } from "./types";
 
 export default function createCreditFacade(
   sdk: GearboxSDK,

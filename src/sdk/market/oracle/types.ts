@@ -1,12 +1,9 @@
 import type { Address, Hex } from "viem";
 
-import type { IBaseContract } from "../../base/index.js";
-import type { PriceOracleV310Contract } from "../index.js";
-import type {
-  IPriceFeedContract,
-  UpdatePriceFeedsResult,
-} from "../pricefeeds/index.js";
-import type { PriceOracleV300Contract } from "./PriceOracleV300Contract.js";
+import type { IBaseContract } from "../../base";
+import type { PriceOracleV310Contract } from "..";
+import type { IPriceFeedContract, UpdatePriceFeedsResult } from "../pricefeeds";
+import type { PriceOracleV300Contract } from "./PriceOracleV300Contract";
 
 export type PriceOracleContract =
   | PriceOracleV300Contract

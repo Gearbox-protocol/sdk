@@ -2,17 +2,14 @@
   "compilerOptions": {
     "strict": true,
     "target": "ESNext",
-    "moduleResolution": "NodeNext",
-    "module": "NodeNext",
+    "module": "ESNext",
+    "moduleResolution": "Node",
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
-    "allowJs": false,
-    "checkJs": false,
-    "resolveJsonModule": true,
     "lib": ["ESNext"],
-    "declaration": false,
-    "removeComments": false
+    "declaration": true,
+    "removeComments": false,
+    "resolveJsonModule": true
   },
   "include": ["src", "scripts", "tsup.config.ts"],
   "exclude": ["dist", "node_modules"]

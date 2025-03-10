@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 
-import type { BigNumberish } from "../utils/formatter.js";
-import type { PoolDataPayload } from "./pool.js";
+import type { BigNumberish } from "../utils/formatter";
+import type { PoolDataPayload } from "./pool";
 
 export interface CreditManagerDebtParamsSDK {
   creditManager: Address;

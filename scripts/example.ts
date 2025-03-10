@@ -1,7 +1,7 @@
 import { pino } from "pino";
 import type { Address } from "viem";
 
-import { SDKExample } from "../src/dev/index.js";
+import { SDKExample } from "../src/dev";
 
 async function example(): Promise<void> {
   const logger = pino({

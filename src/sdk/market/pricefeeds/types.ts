@@ -1,8 +1,8 @@
 import type { UnionOmit } from "viem";
 
-import type { IBaseContract } from "../../base/index.js";
-import type { PriceFeedStateHuman, RawTx } from "../../types/index.js";
-import type { PriceFeedRef } from "./PriceFeedRef.js";
+import type { IBaseContract } from "../../base";
+import type { PriceFeedStateHuman, RawTx } from "../../types";
+import type { PriceFeedRef } from "./PriceFeedRef";
 
 export type PriceFeedUsageType = "Main" | "Reserve";
 

@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-import type { NetworkType } from "../chain/index.js";
+import type { NetworkType } from "../chain";
 import type {
   AuraLPToken,
   AuraStakedToken,
@@ -8,7 +8,7 @@ import type {
   ConvexLPToken,
   CurveLPToken,
   YearnLPToken,
-} from "../sdk-gov-legacy/index.js";
+} from "../sdk-gov-legacy";
 import {
   auraTokens,
   balancerLpTokens,
@@ -20,8 +20,8 @@ import {
   isCurveLPToken,
   tokenDataByNetwork,
   yearnTokens,
-} from "../sdk-gov-legacy/index.js";
-import type { Asset, PathOptionSerie } from "./types.js";
+} from "../sdk-gov-legacy";
+import type { Asset, PathOptionSerie } from "./types";
 
 export class PathOptionFactory {
   // TODO: get rid of token data from SDK

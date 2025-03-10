@@ -1,11 +1,11 @@
 import type { Address, DecodeFunctionDataReturnType } from "viem";
 
-import { iGearStakingV300Abi } from "../../abi/v300.js";
-import type { PermitResult } from "../accounts/index.js";
-import { BaseContract, VotingContractStatus } from "../base/index.js";
-import { ADDRESS_0X0 } from "../constants/index.js";
-import type { GearboxSDK } from "../GearboxSDK.js";
-import type { GearStakingV3StateHuman, RawTx } from "../types/index.js";
+import { iGearStakingV300Abi } from "../../abi/v300";
+import type { PermitResult } from "../accounts";
+import { BaseContract, VotingContractStatus } from "../base";
+import { ADDRESS_0X0 } from "../constants";
+import type { GearboxSDK } from "../GearboxSDK";
+import type { GearStakingV3StateHuman, RawTx } from "../types";
 
 const abi = iGearStakingV300Abi;
 type abi = typeof abi;

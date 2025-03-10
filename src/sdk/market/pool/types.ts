@@ -1,13 +1,13 @@
-import type { IBaseContract } from "../../base/index.js";
+import type { IBaseContract } from "../../base";
 import type {
   InterestRateModelStateHuman,
   RateKeeperStateHuman,
-} from "../../types/index.js";
-import type { AddressMap } from "../../utils/index.js";
-import type { PoolQuotaKeeperV300Contract } from "./PoolQuotaKeeperV300Contract.js";
-import type { PoolQuotaKeeperV310Contract } from "./PoolQuotaKeeperV310Contract.js";
-import type { PoolV300Contract } from "./PoolV300Contract.js";
-import type { PoolV310Contract } from "./PoolV310Contract.js";
+} from "../../types";
+import type { AddressMap } from "../../utils";
+import type { PoolQuotaKeeperV300Contract } from "./PoolQuotaKeeperV300Contract";
+import type { PoolQuotaKeeperV310Contract } from "./PoolQuotaKeeperV310Contract";
+import type { PoolV300Contract } from "./PoolV300Contract";
+import type { PoolV310Contract } from "./PoolV310Contract";
 
 export type RateKeeperType = `RATE_KEEPER::${string}`;
 export type InterestRateModelType = `IRM::${string}`;

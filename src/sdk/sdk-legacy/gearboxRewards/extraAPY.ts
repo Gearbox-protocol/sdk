@@ -1,15 +1,15 @@
 import axios from "axios";
 import type { Address } from "viem";
 
-import type { NetworkType } from "../../chain/index.js";
-import { chains } from "../../chain/index.js";
-import { PERCENTAGE_FACTOR } from "../../constants/index.js";
-import type { Asset } from "../../router/index.js";
-import { GearboxBackendApi } from "../core/endpoint.js";
-import type { PoolData_Legacy } from "../core/pool.js";
-import type { TokenData } from "../tokens/tokenData.js";
-import { toBN } from "../utils/formatter.js";
-import { BigIntMath } from "../utils/math.js";
+import type { NetworkType } from "../../chain";
+import { chains } from "../../chain";
+import { PERCENTAGE_FACTOR } from "../../constants";
+import type { Asset } from "../../router";
+import { GearboxBackendApi } from "../core/endpoint";
+import type { PoolData_Legacy } from "../core/pool";
+import type { TokenData } from "../tokens/tokenData";
+import { toBN } from "../utils/formatter";
+import { BigIntMath } from "../utils/math";
 
 export interface PoolPointsInfo {
   pool: Address;

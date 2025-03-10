@@ -1,10 +1,10 @@
 import { decodeAbiParameters } from "viem";
 
-import { boundedPriceFeedAbi } from "../../abi/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
-import type { BoundedOracleStateHuman } from "../../types/index.js";
-import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed.js";
-import { AbstractPriceFeedContract } from "./AbstractPriceFeed.js";
+import { boundedPriceFeedAbi } from "../../abi";
+import type { GearboxSDK } from "../../GearboxSDK";
+import type { BoundedOracleStateHuman } from "../../types";
+import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed";
+import { AbstractPriceFeedContract } from "./AbstractPriceFeed";
 
 type abi = typeof boundedPriceFeedAbi;
 

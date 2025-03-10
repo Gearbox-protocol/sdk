@@ -1,7 +1,7 @@
 import type { TransactionReceipt } from "viem";
 
-import type { CreditAccountData } from "../base/index.js";
-import type { NetworkType } from "../chain/index.js";
+import type { CreditAccountData } from "../base";
+import type { NetworkType } from "../chain";
 
 export type EtherscanURLParam =
   | { block: number }

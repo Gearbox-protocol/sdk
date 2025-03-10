@@ -1,4 +1,4 @@
-import type { NetworkType } from "../chain/index.js";
+import type { NetworkType } from "../chain";
 
 /**
  * Block number when address provider was deployed

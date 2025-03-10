@@ -1,17 +1,14 @@
 import type { Address, ContractEventName, Log } from "viem";
 
-import { iCreditManagerV310Abi } from "../../../abi/v310.js";
-import type {
-  CreditManagerData,
-  CreditManagerState,
-} from "../../base/index.js";
-import { BaseContract } from "../../base/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
-import type { CreditManagerStateHuman } from "../../types/index.js";
-import { AddressMap, fmtBinaryMask, percentFmt } from "../../utils/index.js";
-import type { IAdapterContract } from "../adapters/index.js";
-import { createAdapter } from "../adapters/index.js";
-import type { ICreditManagerContract } from "./types.js";
+import { iCreditManagerV310Abi } from "../../../abi/v310";
+import type { CreditManagerData, CreditManagerState } from "../../base";
+import { BaseContract } from "../../base";
+import type { GearboxSDK } from "../../GearboxSDK";
+import type { CreditManagerStateHuman } from "../../types";
+import { AddressMap, fmtBinaryMask, percentFmt } from "../../utils";
+import type { IAdapterContract } from "../adapters";
+import { createAdapter } from "../adapters";
+import type { ICreditManagerContract } from "./types";
 
 const abi = iCreditManagerV310Abi;
 type abi = typeof iCreditManagerV310Abi;

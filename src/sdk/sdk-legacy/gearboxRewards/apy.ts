@@ -6,14 +6,14 @@ import {
   RAY,
   SECONDS_PER_YEAR,
   WAD,
-} from "../../constants/index.js";
-import type { Asset } from "../../router/index.js";
-import type { SupportedToken } from "../../sdk-gov-legacy/index.js";
-import { toBigInt } from "../../utils/index.js";
-import type { PoolData_Legacy } from "../core/pool.js";
-import type { TokenData } from "../tokens/tokenData.js";
-import { PriceUtils } from "../utils/price.js";
-import type { FarmInfo } from "./api.js";
+} from "../../constants";
+import type { Asset } from "../../router";
+import type { SupportedToken } from "../../sdk-gov-legacy";
+import { toBigInt } from "../../utils";
+import type { PoolData_Legacy } from "../core/pool";
+import type { TokenData } from "../tokens/tokenData";
+import { PriceUtils } from "../utils/price";
+import type { FarmInfo } from "./api";
 
 interface CalculateV3PoolLmAPYProps {
   currentTimestamp: number;

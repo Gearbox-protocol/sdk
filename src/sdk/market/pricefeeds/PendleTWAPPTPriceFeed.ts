@@ -1,10 +1,10 @@
 import type { Address } from "viem";
 import { decodeAbiParameters } from "viem";
 
-import { pendleTWAPPTPriceFeedAbi } from "../../abi/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
-import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed.js";
-import { AbstractPriceFeedContract } from "./AbstractPriceFeed.js";
+import { pendleTWAPPTPriceFeedAbi } from "../../abi";
+import type { GearboxSDK } from "../../GearboxSDK";
+import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed";
+import { AbstractPriceFeedContract } from "./AbstractPriceFeed";
 
 const abi = pendleTWAPPTPriceFeedAbi;
 type abi = typeof abi;

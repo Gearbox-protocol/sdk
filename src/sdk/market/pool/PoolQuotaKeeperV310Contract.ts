@@ -1,16 +1,16 @@
 import type { ContractEventName, Log } from "viem";
 
-import { iPoolQuotaKeeperV310Abi } from "../../../abi/v310.js";
+import { iPoolQuotaKeeperV310Abi } from "../../../abi/v310";
 import type {
   IBaseContract,
   PoolData,
   PoolQuotaKeeperData,
   QuotaState,
-} from "../../base/index.js";
-import { BaseContract } from "../../base/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
-import type { PoolQuotaKeeperStateHuman } from "../../types/index.js";
-import { AddressMap, formatBNvalue, percentFmt } from "../../utils/index.js";
+} from "../../base";
+import { BaseContract } from "../../base";
+import type { GearboxSDK } from "../../GearboxSDK";
+import type { PoolQuotaKeeperStateHuman } from "../../types";
+import { AddressMap, formatBNvalue, percentFmt } from "../../utils";
 
 const abi = iPoolQuotaKeeperV310Abi;
 type abi = typeof abi;

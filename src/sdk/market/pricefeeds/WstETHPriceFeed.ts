@@ -1,7 +1,7 @@
-import { iwstEthAbi, wstEthPriceFeedAbi } from "../../abi/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
-import { AbstractLPPriceFeedContract } from "./AbstractLPPriceFeed.js";
-import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed.js";
+import { iwstEthAbi, wstEthPriceFeedAbi } from "../../abi";
+import type { GearboxSDK } from "../../GearboxSDK";
+import { AbstractLPPriceFeedContract } from "./AbstractLPPriceFeed";
+import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed";
 
 type abi = typeof wstEthPriceFeedAbi;
 

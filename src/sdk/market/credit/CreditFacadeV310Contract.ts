@@ -6,22 +6,18 @@ import type {
 } from "viem";
 import { encodeFunctionData } from "viem";
 
-import { iPausableAbi } from "../../../abi/iPausable.js";
+import { iPausableAbi } from "../../../abi/iPausable";
 import {
   iCreditFacadeMulticallV310Abi,
   iCreditFacadeV310Abi,
-} from "../../../abi/v310.js";
-import type { CreditFacadeState, CreditManagerData } from "../../base/index.js";
-import { BaseContract } from "../../base/index.js";
-import { ADDRESS_0X0 } from "../../constants/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
-import type {
-  CreditFacadeStateHuman,
-  MultiCall,
-  RawTx,
-} from "../../types/index.js";
-import { fmtBinaryMask, formatBNvalue } from "../../utils/index.js";
-import type { OnDemandPriceUpdate } from "../oracle/index.js";
+} from "../../../abi/v310";
+import type { CreditFacadeState, CreditManagerData } from "../../base";
+import { BaseContract } from "../../base";
+import { ADDRESS_0X0 } from "../../constants";
+import type { GearboxSDK } from "../../GearboxSDK";
+import type { CreditFacadeStateHuman, MultiCall, RawTx } from "../../types";
+import { fmtBinaryMask, formatBNvalue } from "../../utils";
+import type { OnDemandPriceUpdate } from "../oracle";
 
 const abi = [
   ...iCreditFacadeV310Abi,

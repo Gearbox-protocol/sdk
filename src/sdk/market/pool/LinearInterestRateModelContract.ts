@@ -1,12 +1,12 @@
 import { decodeAbiParameters } from "viem";
 
-import { iLinearInterestRateModelV300Abi } from "../../../abi/v300.js";
-import type { BaseState } from "../../base/index.js";
-import { BaseContract } from "../../base/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
-import type { LinearInterestRateModelStateHuman } from "../../types/index.js";
-import { percentFmt } from "../../utils/index.js";
-import type { IInterestRateModelContract } from "./types.js";
+import { iLinearInterestRateModelV300Abi } from "../../../abi/v300";
+import type { BaseState } from "../../base";
+import { BaseContract } from "../../base";
+import type { GearboxSDK } from "../../GearboxSDK";
+import type { LinearInterestRateModelStateHuman } from "../../types";
+import { percentFmt } from "../../utils";
+import type { IInterestRateModelContract } from "./types";
 
 const abi = iLinearInterestRateModelV300Abi;
 type abi = typeof abi;

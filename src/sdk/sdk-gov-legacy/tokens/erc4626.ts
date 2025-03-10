@@ -1,9 +1,9 @@
-import type { ERC4626VaultContract } from "../contracts/index.js";
-import type { CurveLPToken } from "./curveLP.js";
-import type { NormalToken } from "./normal.js";
-import type { TokenBase } from "./token.js";
-import type { TokenNetwork } from "./tokenType.js";
-import { TokenType } from "./tokenType.js";
+import type { ERC4626VaultContract } from "../contracts";
+import type { CurveLPToken } from "./curveLP";
+import type { NormalToken } from "./normal";
+import type { TokenBase } from "./token";
+import type { TokenNetwork } from "./tokenType";
+import { TokenType } from "./tokenType";
 
 export type ERC4626LPToken =
   | "sDAI"

@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-import type { SupportedToken } from "../../sdk-gov-legacy/index.js";
+import type { SupportedToken } from "../../sdk-gov-legacy";
 
 export interface TokenDataPayload {
   addr: Address;

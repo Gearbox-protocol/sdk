@@ -1,11 +1,11 @@
 import type { Address } from "viem";
 
-import type { Asset } from "../../router/index.js";
-import { formatBN } from "../../utils/index.js";
-import type { TokenData } from "../tokens/tokenData.js";
-import { BigIntMath } from "../utils/math.js";
-import type { EVMTxProps } from "./eventOrTx.js";
-import { EVMTx } from "./eventOrTx.js";
+import type { Asset } from "../../router";
+import { formatBN } from "../../utils";
+import type { TokenData } from "../tokens/tokenData";
+import { BigIntMath } from "../utils/math";
+import type { EVMTxProps } from "./eventOrTx";
+import { EVMTx } from "./eventOrTx";
 
 const GEAR_DECIMALS = 18;
 

@@ -9,19 +9,19 @@ import {
   SECONDS_PER_YEAR,
   WAD,
   WAD_DECIMALS_POW,
-} from "../../constants/index.js";
-import type { Asset } from "../../router/index.js";
-import type { TokensAPYList } from "../apy/index.js";
+} from "../../constants";
+import type { Asset } from "../../router";
+import type { TokensAPYList } from "../apy";
 import type {
   CaTokenBalance,
   CreditAccountDataPayload,
-} from "../payload/creditAccount.js";
-import type { QuotaInfo } from "../payload/creditManager.js";
-import type { TokenData } from "../tokens/tokenData.js";
-import { rayToNumber } from "../utils/formatter.js";
-import { BigIntMath } from "../utils/math.js";
-import { PriceUtils } from "../utils/price.js";
-import type { AssetWithAmountInTarget } from "./assets.js";
+} from "../payload/creditAccount";
+import type { QuotaInfo } from "../payload/creditManager";
+import type { TokenData } from "../tokens/tokenData";
+import { rayToNumber } from "../utils/formatter";
+import { BigIntMath } from "../utils/math";
+import { PriceUtils } from "../utils/price";
+import type { AssetWithAmountInTarget } from "./assets";
 
 export interface CalcOverallAPYProps {
   caAssets: Array<Asset>;

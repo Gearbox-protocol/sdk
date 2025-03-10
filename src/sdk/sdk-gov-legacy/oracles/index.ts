@@ -1,1 +1,1 @@
-export * from "./PriceFeedType.js";
+export * from "./PriceFeedType";

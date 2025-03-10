@@ -1,12 +1,12 @@
 import type { Abi, RequiredBy, UnionOmit } from "viem";
 
-import { ilpPriceFeedAbi } from "../../abi/index.js";
-import type { PriceFeedTreeNode } from "../../base/index.js";
-import { BaseContract } from "../../base/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
-import type { PriceFeedStateHuman } from "../../types/index.js";
-import { PriceFeedRef } from "./PriceFeedRef.js";
-import type { IPriceFeedContract, PriceFeedContractType } from "./types.js";
+import { ilpPriceFeedAbi } from "../../abi";
+import type { PriceFeedTreeNode } from "../../base";
+import { BaseContract } from "../../base";
+import type { GearboxSDK } from "../../GearboxSDK";
+import type { PriceFeedStateHuman } from "../../types";
+import { PriceFeedRef } from "./PriceFeedRef";
+import type { IPriceFeedContract, PriceFeedContractType } from "./types";
 
 export type PartialPriceFeedTreeNode = RequiredBy<
   Partial<PriceFeedTreeNode>,

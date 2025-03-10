@@ -1,13 +1,10 @@
 import { parseEther } from "viem";
 
-import {
-  iCreditConfiguratorV300Abi,
-  iCreditManagerV300Abi,
-} from "../abi/v300.js";
-import type { CreditManagerState, ILogger } from "../sdk/index.js";
-import { PERCENTAGE_FACTOR } from "../sdk/index.js";
-import { iaclTraitAbi, iOwnableAbi } from "./abi.js";
-import type { AnvilClient } from "./createAnvilClient.js";
+import { iCreditConfiguratorV300Abi, iCreditManagerV300Abi } from "../abi/v300";
+import type { CreditManagerState, ILogger } from "../sdk";
+import { PERCENTAGE_FACTOR } from "../sdk";
+import { iaclTraitAbi, iOwnableAbi } from "./abi";
+import type { AnvilClient } from "./createAnvilClient";
 
 type ZeroLTCMSlice = Pick<
   CreditManagerState,

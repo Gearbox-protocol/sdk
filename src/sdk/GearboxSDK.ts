@@ -1,14 +1,14 @@
 import type { Address, Hex } from "viem";
 import { createPublicClient, parseEventLogs } from "viem";
 
-import type { BaseContract } from "./base/index.js";
-import { TokensMeta } from "./base/index.js";
+import type { BaseContract } from "./base";
+import { TokensMeta } from "./base";
 import type {
   ConnectionOptions,
   NetworkOptions,
   TransportOptions,
-} from "./chain/index.js";
-import { createTransport, Provider } from "./chain/index.js";
+} from "./chain";
+import { createTransport, Provider } from "./chain";
 import {
   ADDRESS_PROVIDER,
   AP_BOT_LIST,
@@ -16,26 +16,26 @@ import {
   AP_GEAR_TOKEN,
   AP_ROUTER,
   NO_VERSION,
-} from "./constants/index.js";
-import type { IAddressProviderContract } from "./core/index.js";
+} from "./constants";
+import type { IAddressProviderContract } from "./core";
 import {
   BotListContract,
   GearStakingContract,
   getAddressProvider,
-} from "./core/index.js";
-import { MarketRegister } from "./market/MarketRegister.js";
-import { PriceFeedRegister } from "./market/pricefeeds/index.js";
-import type { IGearboxSDKPlugin } from "./plugins/index.js";
-import { RouterV3Contract } from "./router/index.js";
+} from "./core";
+import { MarketRegister } from "./market/MarketRegister";
+import { PriceFeedRegister } from "./market/pricefeeds";
+import type { IGearboxSDKPlugin } from "./plugins";
+import { RouterV3Contract } from "./router";
 import type {
   GearboxState,
   GearboxStateHuman,
   ILogger,
   MultiCall,
-} from "./types/index.js";
-import { AddressMap, formatBN } from "./utils/index.js";
-import { Hooks } from "./utils/internal/index.js";
-import { detectNetwork } from "./utils/viem/index.js";
+} from "./types";
+import { AddressMap, formatBN } from "./utils";
+import { Hooks } from "./utils/internal";
+import { detectNetwork } from "./utils/viem";
 
 export interface SDKOptions {
   /**

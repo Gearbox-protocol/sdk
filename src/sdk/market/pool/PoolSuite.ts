@@ -1,21 +1,21 @@
 import type { Address } from "viem";
 
-import type { MarketData } from "../../base/index.js";
-import { SDKConstruct } from "../../base/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
-import type { PoolSuiteStateHuman } from "../../types/index.js";
-import createInterestRateModel from "./createInterestRateModel.js";
-import createPool from "./createPool.js";
-import createPoolQuotaKeeper from "./createPoolQuotaKeeper.js";
-import createRateKeeper from "./createRateKeeper.js";
-import { GaugeContract } from "./GaugeContract.js";
-import { LinearInterestRateModelContract } from "./LinearInterestRateModelContract.js";
+import type { MarketData } from "../../base";
+import { SDKConstruct } from "../../base";
+import type { GearboxSDK } from "../../GearboxSDK";
+import type { PoolSuiteStateHuman } from "../../types";
+import createInterestRateModel from "./createInterestRateModel";
+import createPool from "./createPool";
+import createPoolQuotaKeeper from "./createPoolQuotaKeeper";
+import createRateKeeper from "./createRateKeeper";
+import { GaugeContract } from "./GaugeContract";
+import { LinearInterestRateModelContract } from "./LinearInterestRateModelContract";
 import type {
   IInterestRateModelContract,
   IRateKeeperContract,
   PoolContract,
   PoolQuotaKeeperContract,
-} from "./types.js";
+} from "./types";
 
 export class PoolSuite extends SDKConstruct {
   public readonly pool: PoolContract;

@@ -1,20 +1,17 @@
 import type { Address, PublicClient } from "viem";
 import { getContract } from "viem";
 
-import {
-  PERCENTAGE_DECIMALS,
-  PERCENTAGE_FACTOR,
-} from "../../constants/index.js";
-import { toBigInt } from "../../utils/index.js";
+import { PERCENTAGE_DECIMALS, PERCENTAGE_FACTOR } from "../../constants";
+import { toBigInt } from "../../utils";
 import type {
   ChartsPoolDataPayload,
   LinearModel,
   PoolDataExtraPayload,
   PoolDataPayload,
   UserPoolPayload,
-} from "../payload/pool.js";
-import { iInterestRateModelAbi } from "../types/index.js";
-import { rayToNumber } from "../utils/formatter.js";
+} from "../payload/pool";
+import { iInterestRateModelAbi } from "../types";
+import { rayToNumber } from "../utils/formatter";
 
 export type PoolType = "universal" | "trade" | "farm";
 

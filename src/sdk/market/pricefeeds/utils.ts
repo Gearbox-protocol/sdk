@@ -1,7 +1,7 @@
 import { decodeFunctionData } from "viem";
 
-import { iUpdatablePriceFeedAbi } from "../../../abi/iUpdatablePriceFeed.js";
-import type { RawTx } from "../../types/index.js";
+import { iUpdatablePriceFeedAbi } from "../../../abi/iUpdatablePriceFeed";
+import type { RawTx } from "../../types";
 
 /**
  * Helper method to convert our RawTx into viem's multicall format

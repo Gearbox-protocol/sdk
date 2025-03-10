@@ -2,24 +2,24 @@ import axios from "axios";
 import type { Address, PublicClient, WalletClient } from "viem";
 import { getAddress, getContract } from "viem";
 
-import type { NetworkType } from "../../chain/index.js";
-import { chains } from "../../chain/index.js";
-import { MULTICALL_ADDRESS } from "../../constants/index.js";
-import type { SupportedToken } from "../../sdk-gov-legacy/index.js";
-import { toBigInt, TypedObjectUtils } from "../../utils/index.js";
-import { GearboxBackendApi } from "../core/endpoint.js";
-import type { PoolData_Legacy } from "../core/pool.js";
-import type { TokenData } from "../tokens/tokenData.js";
-import { iAirdropDistributorAbi, iFarmingPoolAbi } from "../types/index.js";
-import { BigIntMath } from "../utils/math.js";
-import type { ExtraRewardApy } from "./apy.js";
+import type { NetworkType } from "../../chain";
+import { chains } from "../../chain";
+import { MULTICALL_ADDRESS } from "../../constants";
+import type { SupportedToken } from "../../sdk-gov-legacy";
+import { toBigInt, TypedObjectUtils } from "../../utils";
+import { GearboxBackendApi } from "../core/endpoint";
+import type { PoolData_Legacy } from "../core/pool";
+import type { TokenData } from "../tokens/tokenData";
+import { iAirdropDistributorAbi, iFarmingPoolAbi } from "../types";
+import { BigIntMath } from "../utils/math";
+import type { ExtraRewardApy } from "./apy";
 import type {
   MerkleXYZUserRewardsV4Response,
   MerkleXYZV4CampaignsResponse,
   MerkleXYZV4RewardCampaignResponse,
   MerklXYZV4RewardCampaign,
-} from "./merklAPI.js";
-import { MerkleXYZApi } from "./merklAPI.js";
+} from "./merklAPI";
+import { MerkleXYZApi } from "./merklAPI";
 
 export interface GearboxExtraMerkleLmReward {
   pool: Address;

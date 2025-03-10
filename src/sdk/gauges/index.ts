@@ -1,2 +1,2 @@
-export * from "./GaugeStakingService.js";
-export * from "./utils.js";
+export * from "./GaugeStakingService";
+export * from "./utils";

@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-import type { BigNumberish } from "../utils/formatter.js";
+import type { BigNumberish } from "../utils/formatter";
 
 export interface CreditSessionBalancePayload {
   BI: string;

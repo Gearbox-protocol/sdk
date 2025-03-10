@@ -1,5 +1,5 @@
-import type { BaseState, IBaseContract } from "../base/index.js";
-import type { GearboxSDK } from "../GearboxSDK.js";
+import type { BaseState, IBaseContract } from "../base";
+import type { GearboxSDK } from "../GearboxSDK";
 
 export interface IGearboxSDKPlugin {
   name: string;

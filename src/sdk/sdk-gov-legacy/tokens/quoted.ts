@@ -1,5 +1,5 @@
-import type { NetworkType } from "../../chain/index.js";
-import type { SupportedToken } from "./token.js";
+import type { NetworkType } from "../../chain";
+import type { SupportedToken } from "./token";
 
 export const nonQuoted: Record<NetworkType, Array<SupportedToken>> = {
   Mainnet: ["WETH", "DAI", "USDC", "FRAX"],

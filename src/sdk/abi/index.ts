@@ -1,1 +1,1 @@
-export * from "./oracles.js";
+export * from "./oracles";

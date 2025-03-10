@@ -1,13 +1,10 @@
 import type { Address } from "viem";
 
-import { iVersionAbi } from "../../../abi/iVersion.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
-import { AddressProviderContractV3_1 } from "./AddressProviderV3_1Contract.js";
-import { AddressProviderContractV3 } from "./AddressProviderV3Contract.js";
-import type {
-  AddressProviderState,
-  IAddressProviderContract,
-} from "./types.js";
+import { iVersionAbi } from "../../../abi/iVersion";
+import type { GearboxSDK } from "../../GearboxSDK";
+import { AddressProviderContractV3_1 } from "./AddressProviderV3_1Contract";
+import { AddressProviderContractV3 } from "./AddressProviderV3Contract";
+import type { AddressProviderState, IAddressProviderContract } from "./types";
 
 export interface GetAddressProviderOptions {
   version?: number;

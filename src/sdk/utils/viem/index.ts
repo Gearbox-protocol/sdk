@@ -1,3 +1,3 @@
-export * from "./detectNetwork.js";
-export * from "./sendRawTx.js";
-export * from "./simulateMulticall.js";
+export * from "./detectNetwork";
+export * from "./sendRawTx";
+export * from "./simulateMulticall";

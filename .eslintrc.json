@@ -1,8 +1,0 @@
-{
-  "root": true,
-  "extends": [
-    "@gearbox-protocol/eslint-config",
-    "plugin:require-extensions/recommended"
-  ],
-  "plugins": ["require-extensions"]
-}

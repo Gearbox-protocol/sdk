@@ -1,7 +1,7 @@
-import type { NormalToken } from "./normal.js";
-import type { TokenBase } from "./token.js";
-import type { TokenNetwork } from "./tokenType.js";
-import { TokenType } from "./tokenType.js";
+import type { NormalToken } from "./normal";
+import type { TokenBase } from "./token";
+import type { TokenNetwork } from "./tokenType";
+import { TokenType } from "./tokenType";
 
 export type AaveV2LPToken = "aDAI" | "aUSDC" | "aWETH" | "aUSDT";
 export type WrappedAaveV2LPToken = "waDAI" | "waUSDC" | "waWETH" | "waUSDT";

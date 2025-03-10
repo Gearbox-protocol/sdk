@@ -1,11 +1,11 @@
 import { type Abi, type Address, hexToString, isHex, stringToHex } from "viem";
 
-import type { BaseContractOptions } from "../../base/BaseContract.js";
-import { BaseContract } from "../../base/index.js";
-import { NO_VERSION } from "../../constants/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
-import type { AddressProviderV3StateHuman } from "../../types/index.js";
-import type { AddressProviderState } from "./types.js";
+import { BaseContract } from "../../base";
+import type { BaseContractOptions } from "../../base/BaseContract";
+import { NO_VERSION } from "../../constants";
+import type { GearboxSDK } from "../../GearboxSDK";
+import type { AddressProviderV3StateHuman } from "../../types";
+import type { AddressProviderState } from "./types";
 
 export default abstract class AbstractAddressProviderContract<
   abi extends Abi | readonly unknown[],

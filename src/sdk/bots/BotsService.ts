@@ -1,7 +1,7 @@
 import { type Address, parseAbi } from "viem";
 
-import { SDKConstruct } from "../base/index.js";
-import type { BotBaseType, BotDataPayload, BotDetailedType } from "./utils.js";
+import { SDKConstruct } from "../base";
+import type { BotBaseType, BotDataPayload, BotDetailedType } from "./utils";
 
 export type BotAddresses = Partial<Record<BotDetailedType, Address>>;
 

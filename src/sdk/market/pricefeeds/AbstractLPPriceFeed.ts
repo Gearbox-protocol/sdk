@@ -1,12 +1,12 @@
 import type { Abi, Address, UnionOmit } from "viem";
 import { decodeAbiParameters, hexToBytes } from "viem";
 
-import type { GearboxSDK } from "../../GearboxSDK.js";
-import type { LPPriceFeedStateHuman } from "../../types/state-human.js";
+import type { GearboxSDK } from "../../GearboxSDK";
+import type { LPPriceFeedStateHuman } from "../../types/state-human";
 import {
   AbstractPriceFeedContract,
   type PriceFeedConstructorArgs,
-} from "./AbstractPriceFeed.js";
+} from "./AbstractPriceFeed";
 
 const LOWER_BOUND_FACTOR = 99n;
 

@@ -1,6 +1,6 @@
-import type { GearboxSDK } from "../GearboxSDK.js";
-import type { BaseContractOptions } from "./BaseContract.js";
-import { BaseContract } from "./BaseContract.js";
+import type { GearboxSDK } from "../GearboxSDK";
+import type { BaseContractOptions } from "./BaseContract";
+import { BaseContract } from "./BaseContract";
 
 const abi = [] as unknown[];
 type abi = typeof abi;

@@ -1,11 +1,11 @@
-import type { BaseState } from "../../base/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
-import { bytes32ToString } from "../../utils/index.js";
-import { LinearInterestRateModelContract } from "./LinearInterestRateModelContract.js";
+import type { BaseState } from "../../base";
+import type { GearboxSDK } from "../../GearboxSDK";
+import { bytes32ToString } from "../../utils";
+import { LinearInterestRateModelContract } from "./LinearInterestRateModelContract";
 import type {
   IInterestRateModelContract,
   InterestRateModelType,
-} from "./types.js";
+} from "./types";
 
 export default function createInterestRateModel(
   sdk: GearboxSDK,

@@ -1,15 +1,15 @@
 import type { Address } from "viem";
 
-import { PERCENTAGE_DECIMALS } from "../../constants/index.js";
-import { toBigInt, TypedObjectUtils } from "../../utils/index.js";
+import { PERCENTAGE_DECIMALS } from "../../constants";
+import { toBigInt, TypedObjectUtils } from "../../utils";
 import type {
   CreditSessionFilteredPayload,
   CreditSessionPayload,
   CreditSessionsAggregatedStatsPayload,
   SecondaryStatus,
   UserCreditSessionsAggregatedStatsPayload,
-} from "../payload/creditSession.js";
-import type { AssetWithView } from "./assets.js";
+} from "../payload/creditSession";
+import type { AssetWithView } from "./assets";
 
 export interface CreditSessionAsset extends AssetWithView {
   ind: number;

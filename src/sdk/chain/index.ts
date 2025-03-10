@@ -1,3 +1,3 @@
-export * from "./chains.js";
-export * from "./detectChain.js";
-export * from "./Provider.js";
+export * from "./chains";
+export * from "./detectChain";
+export * from "./Provider";

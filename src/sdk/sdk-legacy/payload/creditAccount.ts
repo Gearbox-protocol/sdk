@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-import type { ConnectedBotData } from "../../base/index.js";
+import type { ConnectedBotData } from "../../base";
 
 export interface CaTokenBalance {
   success: boolean;

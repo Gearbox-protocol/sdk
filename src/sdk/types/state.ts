@@ -1,5 +1,5 @@
-import type { MarketData } from "../base/index.js";
-import type { AddressProviderState } from "../core/index.js";
+import type { MarketData } from "../base";
+import type { AddressProviderState } from "../core";
 
 export interface GearboxState {
   currentBlock: bigint;

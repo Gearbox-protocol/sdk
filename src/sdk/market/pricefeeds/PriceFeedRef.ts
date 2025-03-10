@@ -1,10 +1,10 @@
 import type { Address } from "viem";
 
-import { SDKConstruct } from "../../base/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
-import type { PriceFeedStateHuman } from "../../types/index.js";
-import { formatDuration } from "../../utils/index.js";
-import type { IPriceFeedContract } from "./types.js";
+import { SDKConstruct } from "../../base";
+import type { GearboxSDK } from "../../GearboxSDK";
+import type { PriceFeedStateHuman } from "../../types";
+import { formatDuration } from "../../utils";
+import type { IPriceFeedContract } from "./types";
 
 export class PriceFeedRef extends SDKConstruct {
   public readonly address: Address;

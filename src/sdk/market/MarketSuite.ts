@@ -1,14 +1,14 @@
 import type { Address } from "viem";
 
-import type { MarketData } from "../base/index.js";
-import { SDKConstruct } from "../base/index.js";
-import type { GearboxSDK } from "../GearboxSDK.js";
-import type { MarketStateHuman } from "../types/index.js";
-import { CreditSuite } from "./credit/index.js";
-import { MarketConfiguratorContract } from "./MarketConfiguratorContract.js";
-import type { PriceOracleContract } from "./oracle/index.js";
-import { createPriceOracle } from "./oracle/index.js";
-import { PoolSuite } from "./pool/index.js";
+import type { MarketData } from "../base";
+import { SDKConstruct } from "../base";
+import type { GearboxSDK } from "../GearboxSDK";
+import type { MarketStateHuman } from "../types";
+import { CreditSuite } from "./credit";
+import { MarketConfiguratorContract } from "./MarketConfiguratorContract";
+import type { PriceOracleContract } from "./oracle";
+import { createPriceOracle } from "./oracle";
+import { PoolSuite } from "./pool";
 
 export class MarketSuite extends SDKConstruct {
   public readonly acl: Address;

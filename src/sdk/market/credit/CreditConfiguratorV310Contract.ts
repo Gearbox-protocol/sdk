@@ -5,14 +5,14 @@ import type {
   Log,
 } from "viem";
 
-import { iCreditConfiguratorV310Abi } from "../../../abi/v310.js";
-import type { CreditManagerData } from "../../base/index.js";
-import { BaseContract } from "../../base/index.js";
-import { RAMP_DURATION_BY_NETWORK } from "../../constants/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
-import { formatDuration, percentFmt } from "../../utils/index.js";
-import type { RampEvent } from "./CreditConfiguratorV300Contract.js";
-import type { ICreditConfiguratorContract } from "./types.js";
+import { iCreditConfiguratorV310Abi } from "../../../abi/v310";
+import type { CreditManagerData } from "../../base";
+import { BaseContract } from "../../base";
+import { RAMP_DURATION_BY_NETWORK } from "../../constants";
+import type { GearboxSDK } from "../../GearboxSDK";
+import { formatDuration, percentFmt } from "../../utils";
+import type { RampEvent } from "./CreditConfiguratorV300Contract";
+import type { ICreditConfiguratorContract } from "./types";
 
 const abi = iCreditConfiguratorV310Abi;
 type abi = typeof abi;

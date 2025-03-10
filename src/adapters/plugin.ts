@@ -6,30 +6,30 @@ import type {
   GearboxSDK,
   IBaseContract,
   IGearboxSDKPlugin,
-} from "../sdk/index.js";
-import { bytes32ToString } from "../sdk/index.js";
-import { BalancerV2VaultAdapterContract } from "./BalancerV2VaultAdapterContract.js";
-import { BalancerV3RouterAdapterContract } from "./BalancerV3RouterAdapterContract.js";
-import { CamelotV3AdapterContract } from "./CamelotV3AdapterContract.js";
-import { ConvexV1BaseRewardPoolAdapterContract } from "./ConvexV1BaseRewardPoolAdapterContract.js";
-import { ConvexV1BoosterAdapterContract } from "./ConvexV1BoosterAdapterContract.js";
-import { Curve2AssetsAdapterContract } from "./Curve2AssetsAdapterContract.js";
-import { Curve3AssetsAdapterContract } from "./Curve3AssetsAdapterContract.js";
-import { Curve4AssetsAdapterContract } from "./Curve4AssetsAdapterContract.js";
-import { CurveV1AdapterStETHContract } from "./CurveV1AdapterStETHContract.js";
-import { CurveV1StableNGAdapterContract } from "./CurveV1StableNGAdapterContract.js";
-import { DaiUsdsAdapterContract } from "./DaiUsdsAdapterContract.js";
-import { ERC4626AdapterContract } from "./ERC4626AdapterContract.js";
-import { MellowERC4626VaultAdapterContract } from "./MellowERC4626VaultAdapterContract.js";
-import { MellowVaultAdapterContract } from "./MellowVaultAdapterContract.js";
-import { PendleRouterAdapterContract } from "./PendleRouterAdapterContract.js";
-import { StakingRewardsAdapterContract } from "./StakingRewardsAdapterContract.js";
-import type { AdapterContractType } from "./types.js";
-import { UniswapV2AdapterContract } from "./UniswapV2AdapterContract.js";
-import { UniswapV3AdapterContract } from "./UniswapV3AdapterContract.js";
-import { VelodromeV2RouterAdapterContract } from "./VelodromeV2AdapterContract.js";
-import { WstETHV1AdapterContract } from "./WstETHV1AdapterContract.js";
-import { YearnV2RouterAdapterContract } from "./YearnV2AdapterContract.js";
+} from "../sdk";
+import { bytes32ToString } from "../sdk";
+import { BalancerV2VaultAdapterContract } from "./BalancerV2VaultAdapterContract";
+import { BalancerV3RouterAdapterContract } from "./BalancerV3RouterAdapterContract";
+import { CamelotV3AdapterContract } from "./CamelotV3AdapterContract";
+import { ConvexV1BaseRewardPoolAdapterContract } from "./ConvexV1BaseRewardPoolAdapterContract";
+import { ConvexV1BoosterAdapterContract } from "./ConvexV1BoosterAdapterContract";
+import { Curve2AssetsAdapterContract } from "./Curve2AssetsAdapterContract";
+import { Curve3AssetsAdapterContract } from "./Curve3AssetsAdapterContract";
+import { Curve4AssetsAdapterContract } from "./Curve4AssetsAdapterContract";
+import { CurveV1AdapterStETHContract } from "./CurveV1AdapterStETHContract";
+import { CurveV1StableNGAdapterContract } from "./CurveV1StableNGAdapterContract";
+import { DaiUsdsAdapterContract } from "./DaiUsdsAdapterContract";
+import { ERC4626AdapterContract } from "./ERC4626AdapterContract";
+import { MellowERC4626VaultAdapterContract } from "./MellowERC4626VaultAdapterContract";
+import { MellowVaultAdapterContract } from "./MellowVaultAdapterContract";
+import { PendleRouterAdapterContract } from "./PendleRouterAdapterContract";
+import { StakingRewardsAdapterContract } from "./StakingRewardsAdapterContract";
+import type { AdapterContractType } from "./types";
+import { UniswapV2AdapterContract } from "./UniswapV2AdapterContract";
+import { UniswapV3AdapterContract } from "./UniswapV3AdapterContract";
+import { VelodromeV2RouterAdapterContract } from "./VelodromeV2AdapterContract";
+import { WstETHV1AdapterContract } from "./WstETHV1AdapterContract";
+import { YearnV2RouterAdapterContract } from "./YearnV2AdapterContract";
 
 export const GearboxAdaptersPlugin: IGearboxSDKPlugin = {
   name: "Adapters",

@@ -12,8 +12,8 @@ import {
 } from "viem";
 import { formatAbiItem } from "viem/utils";
 
-import type { RawTx } from "../types/index.js";
-import { json_stringify } from "./json.js";
+import type { RawTx } from "../types";
+import { json_stringify } from "./json";
 
 /**
  * @dev Creates a raw transaction data to be processed by the TxBatcher

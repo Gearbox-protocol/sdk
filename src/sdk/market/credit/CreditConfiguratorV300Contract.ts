@@ -6,14 +6,14 @@ import type {
   Log,
 } from "viem";
 
-import { iPausableAbi } from "../../../abi/iPausable.js";
-import { iCreditConfiguratorV300Abi } from "../../../abi/v300.js";
-import type { CreditManagerData } from "../../base/index.js";
-import { BaseContract } from "../../base/index.js";
-import { RAMP_DURATION_BY_NETWORK } from "../../constants/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
-import { formatDuration, percentFmt } from "../../utils/index.js";
-import type { ICreditConfiguratorContract } from "./types.js";
+import { iPausableAbi } from "../../../abi/iPausable";
+import { iCreditConfiguratorV300Abi } from "../../../abi/v300";
+import type { CreditManagerData } from "../../base";
+import { BaseContract } from "../../base";
+import { RAMP_DURATION_BY_NETWORK } from "../../constants";
+import type { GearboxSDK } from "../../GearboxSDK";
+import { formatDuration, percentFmt } from "../../utils";
+import type { ICreditConfiguratorContract } from "./types";
 
 const abi = [...iCreditConfiguratorV300Abi, ...iPausableAbi] as const;
 type abi = typeof abi;

@@ -1,9 +1,9 @@
-import type { PoolData, RateKeeperData } from "../../base/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
-import { bytes32ToString } from "../../utils/index.js";
-import { GaugeContract } from "./GaugeContract.js";
-import { TumblerContract } from "./TumblerContract.js";
-import type { IRateKeeperContract, RateKeeperType } from "./types.js";
+import type { PoolData, RateKeeperData } from "../../base";
+import type { GearboxSDK } from "../../GearboxSDK";
+import { bytes32ToString } from "../../utils";
+import { GaugeContract } from "./GaugeContract";
+import { TumblerContract } from "./TumblerContract";
+import type { IRateKeeperContract, RateKeeperType } from "./types";
 
 export default function createRateKeeper(
   sdk: GearboxSDK,

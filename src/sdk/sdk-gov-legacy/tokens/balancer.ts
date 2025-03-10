@@ -1,9 +1,9 @@
-import type { ERC4626LPToken } from "./erc4626.js";
-import type { NormalToken } from "./normal.js";
-import type { TokenBase } from "./token.js";
-import type { TokenNetwork } from "./tokenType.js";
-import { TokenType } from "./tokenType.js";
-import type { WrappedToken } from "./wrapped.js";
+import type { ERC4626LPToken } from "./erc4626";
+import type { NormalToken } from "./normal";
+import type { TokenBase } from "./token";
+import type { TokenNetwork } from "./tokenType";
+import { TokenType } from "./tokenType";
+import type { WrappedToken } from "./wrapped";
 
 export type BalancerLPToken =
   | "USDC_DAI_USDT"

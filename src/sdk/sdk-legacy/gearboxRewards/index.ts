@@ -1,3 +1,3 @@
-export * from "./api.js";
-export * from "./apy.js";
-export * from "./extraAPY.js";
+export * from "./api";
+export * from "./apy";
+export * from "./extraAPY";

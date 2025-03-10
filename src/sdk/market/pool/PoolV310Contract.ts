@@ -4,18 +4,13 @@ import type {
   Log,
 } from "viem";
 
-import { iPausableAbi } from "../../../abi/iPausable.js";
-import { iPoolV310Abi } from "../../../abi/v310.js";
-import type { CreditManagerDebtParams, PoolData } from "../../base/index.js";
-import { BaseContract } from "../../base/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
-import type { PoolStateHuman } from "../../types/index.js";
-import {
-  AddressMap,
-  formatBN,
-  formatBNvalue,
-  percentFmt,
-} from "../../utils/index.js";
+import { iPausableAbi } from "../../../abi/iPausable";
+import { iPoolV310Abi } from "../../../abi/v310";
+import type { CreditManagerDebtParams, PoolData } from "../../base";
+import { BaseContract } from "../../base";
+import type { GearboxSDK } from "../../GearboxSDK";
+import type { PoolStateHuman } from "../../types";
+import { AddressMap, formatBN, formatBNvalue, percentFmt } from "../../utils";
 
 const abi = [...iPoolV310Abi, ...iPausableAbi] as const;
 type abi = typeof abi;

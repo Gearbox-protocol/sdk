@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 
-import type { NetworkType } from "../chain/index.js";
-import { NOT_DEPLOYED } from "./addresses.js";
+import type { NetworkType } from "../chain";
+import { NOT_DEPLOYED } from "./addresses";
 
 export const NO_VERSION = 0;
 

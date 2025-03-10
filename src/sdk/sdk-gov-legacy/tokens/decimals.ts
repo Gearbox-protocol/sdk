@@ -1,4 +1,4 @@
-import type { SupportedToken } from "./token.js";
+import type { SupportedToken } from "./token";
 
 export const decimals: Record<SupportedToken, number> = {
   "1INCH": 18,

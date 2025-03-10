@@ -1,16 +1,16 @@
 import { type Address, encodeFunctionData, getContract } from "viem";
 
-import { iRouterV300Abi, iSwapperV300Abi } from "../../abi/routerV300.js";
-import { iCreditFacadeV300MulticallAbi } from "../../abi/v300.js";
-import { BaseContract } from "../base/index.js";
-import type { CreditAccountData } from "../base/types.js";
-import { PERCENTAGE_FACTOR } from "../constants/index.js";
-import type { GearboxSDK } from "../GearboxSDK.js";
-import { getConnectors } from "../sdk-gov-legacy/index.js";
-import { AddressMap } from "../utils/index.js";
-import type { IHooks } from "../utils/internal/index.js";
-import { Hooks } from "../utils/internal/index.js";
-import { PathOptionFactory } from "./PathOptionFactory.js";
+import { iRouterV300Abi, iSwapperV300Abi } from "../../abi/routerV300";
+import { iCreditFacadeV300MulticallAbi } from "../../abi/v300";
+import { BaseContract } from "../base";
+import type { CreditAccountData } from "../base/types";
+import { PERCENTAGE_FACTOR } from "../constants";
+import type { GearboxSDK } from "../GearboxSDK";
+import { getConnectors } from "../sdk-gov-legacy";
+import { AddressMap } from "../utils";
+import type { IHooks } from "../utils/internal";
+import { Hooks } from "../utils/internal";
+import { PathOptionFactory } from "./PathOptionFactory";
 import type {
   Asset,
   OpenStrategyResult,
@@ -19,7 +19,7 @@ import type {
   RouterResult,
   SwapOperation,
   SwapTask,
-} from "./types.js";
+} from "./types";
 
 const MAX_GAS_PER_ROUTE = 200_000_000n;
 const GAS_PER_BLOCK = 400_000_000n;

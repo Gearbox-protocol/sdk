@@ -1,4 +1,4 @@
-import { PRICE_DECIMALS, WAD } from "../../constants/index.js";
+import { PRICE_DECIMALS, WAD } from "../../constants";
 
 interface Target {
   price: bigint;

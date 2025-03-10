@@ -1,10 +1,10 @@
 import type { Address } from "abitype";
 
-import type { PriceOracleData } from "../../base/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
-import { PriceOracleV300Contract } from "./PriceOracleV300Contract.js";
-import { PriceOracleV310Contract } from "./PriceOracleV310Contract.js";
-import type { PriceOracleContract } from "./types.js";
+import type { PriceOracleData } from "../../base";
+import type { GearboxSDK } from "../../GearboxSDK";
+import { PriceOracleV300Contract } from "./PriceOracleV300Contract";
+import { PriceOracleV310Contract } from "./PriceOracleV310Contract";
+import type { PriceOracleContract } from "./types";
 
 export function createPriceOracle(
   sdk: GearboxSDK,

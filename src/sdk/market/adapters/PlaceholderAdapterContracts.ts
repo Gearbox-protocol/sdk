@@ -1,9 +1,9 @@
 import type { Address } from "viem";
 
-import type { AdapterData } from "../../base/index.js";
-import { PlaceholderContract } from "../../base/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
-import type { IAdapterContract } from "./types.js";
+import type { AdapterData } from "../../base";
+import { PlaceholderContract } from "../../base";
+import type { GearboxSDK } from "../../GearboxSDK";
+import type { IAdapterContract } from "./types";
 
 export class PlaceholderAdapterContract
   extends PlaceholderContract
