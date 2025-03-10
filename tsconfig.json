@@ -6,11 +6,20 @@
     "moduleResolution": "Node",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "lib": ["ESNext"],
+    "lib": [
+      "ESNext"
+    ],
     "declaration": true,
     "removeComments": false,
     "resolveJsonModule": true
   },
-  "include": ["src", "scripts", "tsup.config.ts"],
-  "exclude": ["dist", "node_modules"]
+  "include": [
+    "src",
+    "scripts",
+    "tsup.config.ts"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules"
+  ]
 }

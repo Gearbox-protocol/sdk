@@ -63,7 +63,7 @@ export default defineConfig(options => {
     {
       ...commonOptions,
       format: ["esm"],
-      // outExtension: () => ({ js: ".mjs" }),
+      outExtension: () => ({ js: ".js" }),
       outDir: "./dist/esm/",
       onSuccess: async () => {
         // // tsup with dts option is not working as expected: onSuccess is triggered and then dts is executed in parallel
