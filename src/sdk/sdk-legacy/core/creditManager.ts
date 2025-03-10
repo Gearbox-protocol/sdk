@@ -1,12 +1,16 @@
 import type { Address } from "viem";
 
-import { PERCENTAGE_DECIMALS, PERCENTAGE_FACTOR, RAY } from "../../constants";
-import { toBigInt } from "../../utils";
+import {
+  PERCENTAGE_DECIMALS,
+  PERCENTAGE_FACTOR,
+  RAY,
+} from "../../constants/index.js";
+import { toBigInt } from "../../utils/index.js";
 import type {
   ChartsCreditManagerPayload,
   CreditManagerDataPayload,
   QuotaInfo,
-} from "../payload/creditManager";
+} from "../payload/creditManager.js";
 
 export type CreditManagerType = "universal" | "trade" | "farm" | "restaking";
 

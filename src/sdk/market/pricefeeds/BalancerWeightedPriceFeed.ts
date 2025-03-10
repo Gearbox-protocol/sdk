@@ -1,11 +1,14 @@
 import type { Address, Hex, UnionOmit } from "viem";
 import { decodeAbiParameters, hexToBytes } from "viem";
 
-import { bptWeightedPriceFeedAbi, iBalancerWeightedPoolAbi } from "../../abi";
-import type { GearboxSDK } from "../../GearboxSDK";
-import type { BalancerWeightedPriceFeedStateHuman } from "../../types/state-human";
-import { AbstractLPPriceFeedContract } from "./AbstractLPPriceFeed";
-import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed";
+import {
+  bptWeightedPriceFeedAbi,
+  iBalancerWeightedPoolAbi,
+} from "../../abi/index.js";
+import type { GearboxSDK } from "../../GearboxSDK.js";
+import type { BalancerWeightedPriceFeedStateHuman } from "../../types/state-human.js";
+import { AbstractLPPriceFeedContract } from "./AbstractLPPriceFeed.js";
+import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed.js";
 
 type abi = typeof bptWeightedPriceFeedAbi;
 

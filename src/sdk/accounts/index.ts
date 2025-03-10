@@ -1,1 +1,1 @@
-export * from "./CreditAccountsService";
+export * from "./CreditAccountsService.js";

@@ -1,8 +1,8 @@
 import type { Chain, Transport } from "viem";
 import { createPublicClient, defineChain, http } from "viem";
 
-import { detectNetwork } from "../utils/viem";
-import { chains } from "./chains";
+import { detectNetwork } from "../utils/viem/index.js";
+import { chains } from "./chains.js";
 
 export async function detectChain(
   transportOrRPC: Transport | string,

@@ -1,6 +1,6 @@
-import type { TokenBase } from "./token";
-import type { TokenNetwork } from "./tokenType";
-import { TokenType } from "./tokenType";
+import type { TokenBase } from "./token.js";
+import type { TokenNetwork } from "./tokenType.js";
+import { TokenType } from "./tokenType.js";
 
 export type NormalToken =
   | "1INCH"

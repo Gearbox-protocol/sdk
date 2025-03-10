@@ -1,2 +1,2 @@
-export * from "./RouterV3Contract";
-export type * from "./types";
+export * from "./RouterV3Contract.js";
+export type * from "./types.js";

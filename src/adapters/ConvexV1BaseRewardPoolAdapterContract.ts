@@ -1,7 +1,7 @@
-import type { GearboxSDK } from "../sdk";
-import { iConvexV1BaseRewardPoolAdapterAbi } from "./abi";
-import type { AbstractAdapterContractOptions } from "./AbstractAdapter";
-import { AbstractAdapterContract } from "./AbstractAdapter";
+import type { GearboxSDK } from "../sdk/index.js";
+import { iConvexV1BaseRewardPoolAdapterAbi } from "./abi/index.js";
+import type { AbstractAdapterContractOptions } from "./AbstractAdapter.js";
+import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
 const abi = iConvexV1BaseRewardPoolAdapterAbi;
 

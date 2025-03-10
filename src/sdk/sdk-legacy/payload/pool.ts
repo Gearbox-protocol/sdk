@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-import type { ZapperDataFull } from "../../market";
+import type { ZapperDataFull } from "../../market/index.js";
 
 export interface PoolDataPayload {
   addr: Address;

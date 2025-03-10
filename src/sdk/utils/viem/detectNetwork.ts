@@ -1,8 +1,8 @@
 import type { Address, PublicClient } from "viem";
 
-import { ierc20Abi } from "../../../abi/iERC20";
-import { type NetworkType, SUPPORTED_CHAINS } from "../../chain";
-import { USDC } from "../../constants";
+import { ierc20Abi } from "../../../abi/iERC20.js";
+import { type NetworkType, SUPPORTED_CHAINS } from "../../chain/index.js";
+import { USDC } from "../../constants/index.js";
 
 const WELL_KNOWN_TOKENS: Record<NetworkType, Address> = {
   ...USDC,

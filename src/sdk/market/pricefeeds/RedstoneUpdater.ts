@@ -5,11 +5,11 @@ import { RedstonePayload } from "@redstone-finance/protocol";
 import type { Address, Hex } from "viem";
 import { encodeAbiParameters, toBytes } from "viem";
 
-import { SDKConstruct } from "../../base";
-import type { GearboxSDK } from "../../GearboxSDK";
-import type { ILogger, RawTx } from "../../types";
-import { childLogger, retry } from "../../utils";
-import type { RedstonePriceFeedContract } from "./RedstonePriceFeed";
+import { SDKConstruct } from "../../base/index.js";
+import type { GearboxSDK } from "../../GearboxSDK.js";
+import type { ILogger, RawTx } from "../../types/index.js";
+import { childLogger, retry } from "../../utils/index.js";
+import type { RedstonePriceFeedContract } from "./RedstonePriceFeed.js";
 
 interface TimestampedCalldata {
   dataFeedId: string;

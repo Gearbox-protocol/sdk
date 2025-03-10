@@ -25,7 +25,7 @@ async function writeDummyPackage(subpath: string, type: "cjs" | "esm") {
  * @param subpath
  */
 async function fixRelativeImports(subpath: string) {
-  for (const ext of ["mjs"]) {
+  for (const ext of ["js"]) {
     let raw = await readFile(`./dist/esm/${subpath}/index.${ext}`, "utf-8");
     raw = raw.replace(`from '../sdk';`, `from '../sdk/index.${ext}';`);
     await writeFile(`./dist/esm/${subpath}/index.${ext}`, raw, "utf-8");
@@ -51,7 +51,7 @@ export default defineConfig(options => {
       ...commonOptions,
       format: "cjs",
       outDir: "./dist/cjs/",
-      outExtension: () => ({ js: ".cjs" }),
+      // outExtension: () => ({ js: ".cjs" }),
       onSuccess: async () => {
         await Promise.all(
           ["sdk", "dev", "adapters", "abi"].map(subpath =>
@@ -63,7 +63,7 @@ export default defineConfig(options => {
     {
       ...commonOptions,
       format: ["esm"],
-      outExtension: () => ({ js: ".mjs" }),
+      // outExtension: () => ({ js: ".mjs" }),
       outDir: "./dist/esm/",
       onSuccess: async () => {
         // // tsup with dts option is not working as expected: onSuccess is triggered and then dts is executed in parallel

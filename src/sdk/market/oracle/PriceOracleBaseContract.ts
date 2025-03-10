@@ -1,30 +1,30 @@
 import type { Abi, Address } from "viem";
 import { decodeFunctionData } from "viem";
 
-import { iPriceFeedCompressorAbi } from "../../../abi/compressors";
-import { iUpdatablePriceFeedAbi } from "../../../abi/iUpdatablePriceFeed";
+import { iPriceFeedCompressorAbi } from "../../../abi/compressors.js";
+import { iUpdatablePriceFeedAbi } from "../../../abi/iUpdatablePriceFeed.js";
+import type { BaseContractOptions } from "../../base/BaseContract.js";
 import type {
   PriceFeedMapEntry,
   PriceFeedTreeNode,
   PriceOracleData,
-} from "../../base";
-import { BaseContract } from "../../base";
-import type { BaseContractOptions } from "../../base/BaseContract";
-import { AP_PRICE_FEED_COMPRESSOR } from "../../constants";
-import type { GearboxSDK } from "../../GearboxSDK";
-import type { PriceOracleV3StateHuman } from "../../types";
-import { AddressMap } from "../../utils";
+} from "../../base/index.js";
+import { BaseContract } from "../../base/index.js";
+import { AP_PRICE_FEED_COMPRESSOR } from "../../constants/index.js";
+import type { GearboxSDK } from "../../GearboxSDK.js";
+import type { PriceOracleV3StateHuman } from "../../types/index.js";
+import { AddressMap } from "../../utils/index.js";
 import type {
   IPriceFeedContract,
   PriceFeedUsageType,
   UpdatePriceFeedsResult,
-} from "../pricefeeds";
-import { PriceFeedRef } from "../pricefeeds";
+} from "../pricefeeds/index.js";
+import { PriceFeedRef } from "../pricefeeds/index.js";
 import type {
   IPriceOracleContract,
   OnDemandPriceUpdate,
   PriceFeedsForTokensOptions,
-} from "./types";
+} from "./types.js";
 
 export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
   extends BaseContract<abi>

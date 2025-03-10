@@ -1,7 +1,7 @@
-import type { GearboxSDK } from "../sdk";
-import { ierc4626AdapterAbi } from "./abi";
-import type { AbstractAdapterContractOptions } from "./AbstractAdapter";
-import { AbstractAdapterContract } from "./AbstractAdapter";
+import type { GearboxSDK } from "../sdk/index.js";
+import { ierc4626AdapterAbi } from "./abi/index.js";
+import type { AbstractAdapterContractOptions } from "./AbstractAdapter.js";
+import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
 const abi = ierc4626AdapterAbi;
 

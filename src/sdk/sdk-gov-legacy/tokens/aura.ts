@@ -1,8 +1,8 @@
-import type { AuraPoolContract } from "../contracts";
-import type { BalancerLPToken } from "./balancer";
-import type { TokenBase } from "./token";
-import type { TokenNetwork } from "./tokenType";
-import { TokenType } from "./tokenType";
+import type { AuraPoolContract } from "../contracts/index.js";
+import type { BalancerLPToken } from "./balancer.js";
+import type { TokenBase } from "./token.js";
+import type { TokenNetwork } from "./tokenType.js";
+import { TokenType } from "./tokenType.js";
 
 export type AuraLPToken =
   | "auraB_rETH_STABLE"

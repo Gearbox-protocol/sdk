@@ -1,16 +1,16 @@
 import type { Address } from "viem";
 
-import { type MarketData, SDKConstruct } from "../../base";
-import type { GearboxSDK } from "../../GearboxSDK";
-import type { CreditSuiteStateHuman, TVL } from "../../types";
-import createCreditConfigurator from "./createCreditConfigurator";
-import createCreditFacade from "./createCreditFacade";
-import createCreditManager from "./createCreditManager";
+import { type MarketData, SDKConstruct } from "../../base/index.js";
+import type { GearboxSDK } from "../../GearboxSDK.js";
+import type { CreditSuiteStateHuman, TVL } from "../../types/index.js";
+import createCreditConfigurator from "./createCreditConfigurator.js";
+import createCreditFacade from "./createCreditFacade.js";
+import createCreditManager from "./createCreditManager.js";
 import type {
   CreditFacadeContract,
   ICreditConfiguratorContract,
   ICreditManagerContract,
-} from "./types";
+} from "./types.js";
 
 export class CreditSuite extends SDKConstruct {
   public readonly name: string;

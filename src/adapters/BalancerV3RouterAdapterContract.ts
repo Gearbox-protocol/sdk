@@ -1,7 +1,7 @@
-import type { GearboxSDK } from "../sdk";
-import { iBalancerV3RouterAdapterAbi } from "./abi";
-import type { AbstractAdapterContractOptions } from "./AbstractAdapter";
-import { AbstractAdapterContract } from "./AbstractAdapter";
+import type { GearboxSDK } from "../sdk/index.js";
+import { iBalancerV3RouterAdapterAbi } from "./abi/index.js";
+import type { AbstractAdapterContractOptions } from "./AbstractAdapter.js";
+import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
 const abi = iBalancerV3RouterAdapterAbi;
 type abi = typeof abi;

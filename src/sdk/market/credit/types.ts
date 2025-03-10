@@ -1,14 +1,17 @@
 import type { Address } from "abitype";
 
-import type { CreditManagerState, IBaseContract } from "../../base";
+import type { CreditManagerState, IBaseContract } from "../../base/index.js";
 import type {
   CreditConfiguratorStateHuman,
   CreditManagerStateHuman,
-} from "../../types";
-import type { AddressMap } from "../../utils";
-import type { CreditFacadeV300Contract, CreditFacadeV310Contract } from "..";
-import type { IAdapterContract } from "../adapters";
-import type { RampEvent } from "./CreditConfiguratorV300Contract";
+} from "../../types/index.js";
+import type { AddressMap } from "../../utils/index.js";
+import type { IAdapterContract } from "../adapters/index.js";
+import type {
+  CreditFacadeV300Contract,
+  CreditFacadeV310Contract,
+} from "../index.js";
+import type { RampEvent } from "./CreditConfiguratorV300Contract.js";
 
 export interface ICreditConfiguratorContract extends IBaseContract {
   adapters: Address[];

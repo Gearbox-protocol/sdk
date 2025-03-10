@@ -1,25 +1,25 @@
 import type { Address } from "viem";
 
-import type { NetworkType } from "../../chain";
-import { NOT_DEPLOYED } from "../../constants";
+import type { NetworkType } from "../../chain/index.js";
+import { NOT_DEPLOYED } from "../../constants/index.js";
 import type {
   AaveV2LPToken,
   AaveV2PoolTokenData,
   WrappedAaveV2LPToken,
   WrappedAaveV2PoolTokenData,
-} from "./aave";
-import { aaveV2Tokens, wrappedAaveV2Tokens } from "./aave";
+} from "./aave.js";
+import { aaveV2Tokens, wrappedAaveV2Tokens } from "./aave.js";
 import type {
   AuraLPToken,
   AuraLPTokenData,
   AuraStakedToken,
   AuraStakedTokenData,
-} from "./aura";
-import { auraLpTokens, auraStakedTokens } from "./aura";
-import type { BalancerLPToken, BalancerLpTokenData } from "./balancer";
-import { balancerLpTokens } from "./balancer";
-import type { CompoundV2LPToken, CompoundV2PoolTokenData } from "./compound";
-import { compoundV2Tokens } from "./compound";
+} from "./aura.js";
+import { auraLpTokens, auraStakedTokens } from "./aura.js";
+import type { BalancerLPToken, BalancerLpTokenData } from "./balancer.js";
+import { balancerLpTokens } from "./balancer.js";
+import type { CompoundV2LPToken, CompoundV2PoolTokenData } from "./compound.js";
+import { compoundV2Tokens } from "./compound.js";
 import type {
   ConvexL2StakedToken,
   ConvexL2StakedTokenData,
@@ -27,21 +27,21 @@ import type {
   ConvexLPTokenData,
   ConvexPhantomTokenData,
   ConvexStakedPhantomToken,
-} from "./convex";
-import { convexTokens } from "./convex";
+} from "./convex.js";
+import { convexTokens } from "./convex.js";
 import type {
   CurveLPToken,
   CurveLPTokenData,
   MetaCurveLPTokenData,
-} from "./curveLP";
-import { curveTokens } from "./curveLP";
-import { decimals } from "./decimals";
+} from "./curveLP.js";
+import { curveTokens } from "./curveLP.js";
+import { decimals } from "./decimals.js";
 import type {
   ERC4626LPToken,
   ERC4626VaultOfCurveLPTokenData,
   ERC4626VaultTokenData,
-} from "./erc4626";
-import { erc4626Tokens } from "./erc4626";
+} from "./erc4626.js";
+import { erc4626Tokens } from "./erc4626.js";
 import type {
   DieselStakedTokenData,
   DieselStakedTokenTypes,
@@ -49,29 +49,29 @@ import type {
   DieselTokenTypes,
   GearboxToken,
   GearboxTokenData,
-} from "./gear";
-import { gearTokens } from "./gear";
-import type { NormalToken, NormalTokenData } from "./normal";
-import { normalTokens } from "./normal";
+} from "./gear.js";
+import { gearTokens } from "./gear.js";
+import type { NormalToken, NormalTokenData } from "./normal.js";
+import { normalTokens } from "./normal.js";
 import type {
   StakingRewardsPhantomToken,
   StakingRewardsPhantomTokenData,
-} from "./stakingRewards";
-import { stakingRewardsPhantomTokens } from "./stakingRewards";
-import type { WrappedToken, WrappedTokenData } from "./wrapped";
-import { wrappedTokens } from "./wrapped";
+} from "./stakingRewards.js";
+import { stakingRewardsPhantomTokens } from "./stakingRewards.js";
+import type { WrappedToken, WrappedTokenData } from "./wrapped.js";
+import { wrappedTokens } from "./wrapped.js";
 import type {
   YearnLPToken,
   YearnVaultOfCurveLPTokenData,
   YearnVaultOfMetaCurveLPTokenData,
   YearnVaultTokenData,
-} from "./yearn";
-import { yearnTokens } from "./yearn";
+} from "./yearn.js";
+import { yearnTokens } from "./yearn.js";
 import type {
   ZircuitPhantomTokenData,
   ZircuitStakedPhantomToken,
-} from "./zircuit";
-import { zircuitStakedPhantomTokens } from "./zircuit";
+} from "./zircuit.js";
+import { zircuitStakedPhantomTokens } from "./zircuit.js";
 
 export type LPTokens =
   | YearnLPToken

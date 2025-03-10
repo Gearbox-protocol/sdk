@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-import type { CreditAccountData } from "../base";
+import type { CreditAccountData } from "../base/index.js";
 
 /**
  * Helper function to filter out low-balance assets

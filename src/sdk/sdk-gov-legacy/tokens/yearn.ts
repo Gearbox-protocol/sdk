@@ -1,9 +1,9 @@
-import type { YearnVaultContract } from "../contracts";
-import type { CurveLPToken } from "./curveLP";
-import type { NormalToken } from "./normal";
-import type { TokenBase } from "./token";
-import type { TokenNetwork } from "./tokenType";
-import { TokenType } from "./tokenType";
+import type { YearnVaultContract } from "../contracts/index.js";
+import type { CurveLPToken } from "./curveLP.js";
+import type { NormalToken } from "./normal.js";
+import type { TokenBase } from "./token.js";
+import type { TokenNetwork } from "./tokenType.js";
+import { TokenType } from "./tokenType.js";
 
 export type YearnLPToken =
   | "yvDAI"

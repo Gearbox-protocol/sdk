@@ -8,7 +8,7 @@ import type {
 import { sendTransaction } from "viem/actions";
 import { getAction } from "viem/utils";
 
-import type { RawTx } from "../../types";
+import type { RawTx } from "../../types/index.js";
 
 export interface SendRawTxParameters {
   account?: Account;

@@ -1,10 +1,10 @@
 import type { Address } from "viem";
 
-import { iGaugeCompressorAbi } from "../../abi/compressors";
-import { SDKConstruct } from "../base";
-import { AP_GAUGE_COMPRESSOR } from "../constants";
-import type { GearboxSDK } from "../GearboxSDK";
-import type { GaugeStakingDataPayload } from "./utils";
+import { iGaugeCompressorAbi } from "../../abi/compressors.js";
+import { SDKConstruct } from "../base/index.js";
+import { AP_GAUGE_COMPRESSOR } from "../constants/index.js";
+import type { GearboxSDK } from "../GearboxSDK.js";
+import type { GaugeStakingDataPayload } from "./utils.js";
 
 export class GaugeStakingService extends SDKConstruct {
   #compressor: Address;
