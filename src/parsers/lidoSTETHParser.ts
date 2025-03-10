@@ -1,9 +1,10 @@
-import { SupportedToken, toBigInt } from "@gearbox-protocol/sdk-gov";
-import { Address } from "viem";
+import type { SupportedToken } from "@gearbox-protocol/sdk-gov";
+import { toBigInt } from "@gearbox-protocol/sdk-gov";
+import type { Address } from "viem";
 
 import { istEthAbi } from "../types";
 import { AbstractParser } from "./abstractParser";
-import { IParser } from "./iParser";
+import type { IParser } from "./iParser";
 
 export class LidoSTETHParser extends AbstractParser implements IParser {
   constructor(symbol: SupportedToken) {

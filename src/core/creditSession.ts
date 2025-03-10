@@ -3,16 +3,16 @@ import {
   toBigInt,
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
-import { Address } from "viem";
+import type { Address } from "viem";
 
-import {
+import type {
   CreditSessionFilteredPayload,
   CreditSessionPayload,
   CreditSessionsAggregatedStatsPayload,
   SecondaryStatus,
   UserCreditSessionsAggregatedStatsPayload,
 } from "../payload/creditSession";
-import { AssetWithView } from "./assets";
+import type { AssetWithView } from "./assets";
 
 export interface CreditSessionAsset extends AssetWithView {
   ind: number;

@@ -1,14 +1,14 @@
-import {
-  contractParams,
+import type {
   StakingRewardsParams,
   SupportedContract,
 } from "@gearbox-protocol/sdk-gov";
-import { Address } from "viem";
+import { contractParams } from "@gearbox-protocol/sdk-gov";
+import type { Address } from "viem";
 
 import { iStakingRewardsAdapterAbi } from "../types";
-import { BigNumberish } from "../utils/formatter";
+import type { BigNumberish } from "../utils/formatter";
 import { AbstractParser } from "./abstractParser";
-import { IParser } from "./iParser";
+import type { IParser } from "./iParser";
 
 export class StakingRewardsAdapterParser
   extends AbstractParser

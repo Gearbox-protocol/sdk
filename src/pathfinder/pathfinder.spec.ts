@@ -1,8 +1,9 @@
 import { tokenDataByNetwork } from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
-import { Address, createPublicClient, http } from "viem";
+import type { Address } from "viem";
+import { createPublicClient, http } from "viem";
 
-import { PathFinderResult } from "./core";
+import type { PathFinderResult } from "./core";
 import { PathFinder } from "./pathfinder";
 
 describe("PathFinder test", () => {

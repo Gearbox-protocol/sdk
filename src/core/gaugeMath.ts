@@ -1,7 +1,7 @@
-import { Address } from "viem";
+import type { Address } from "viem";
 
 import { BigIntMath } from "../utils/math";
-import { GaugeData } from "./gauge";
+import type { GaugeData } from "./gauge";
 
 export type BaseVoteType = "raise" | "lower";
 export type VoteType = BaseVoteType | "remove";

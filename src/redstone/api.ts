@@ -1,26 +1,27 @@
+import type {
+  NetworkType,
+  PriceFeedData,
+  SupportedToken,
+  TickerInfo,
+} from "@gearbox-protocol/sdk-gov";
 import {
   getPriceFeedsByToken,
   MULTICALL_ADDRESS,
-  NetworkType,
-  PriceFeedData,
   PriceFeedType,
   REDSTONE_SIGNERS,
-  SupportedToken,
-  TickerInfo,
   tickerInfoTokensByNetwork,
   toBigInt,
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
 import { DataServiceWrapper } from "@redstone-finance/evm-connector";
-import { SignedDataPackage } from "@redstone-finance/protocol";
+import type { SignedDataPackage } from "@redstone-finance/protocol";
 import { RedstonePayload } from "redstone-protocol";
+import type { Address, PublicClient } from "viem";
 import {
-  Address,
   bytesToString,
   encodeAbiParameters,
   hexToBytes,
   parseAbiParameters,
-  PublicClient,
 } from "viem";
 
 import {
@@ -30,7 +31,7 @@ import {
   pendleTwapptPriceFeedAbi,
   redstonePriceFeedAbi,
 } from "../types";
-import { ViemFailableMulticallRes } from "../utils/calls";
+import type { ViemFailableMulticallRes } from "../utils/calls";
 
 export const DEFAULT_DATA_SERVICE_ID = "redstone-primary-prod";
 export const REDSTONE_SIGNERS_THRESHOLD = REDSTONE_SIGNERS.signersThreshold;

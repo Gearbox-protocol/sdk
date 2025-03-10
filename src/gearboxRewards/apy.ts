@@ -1,19 +1,19 @@
+import type { SupportedToken } from "@gearbox-protocol/sdk-gov";
 import {
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   RAY,
   SECONDS_PER_YEAR,
-  SupportedToken,
   toBigInt,
   WAD,
 } from "@gearbox-protocol/sdk-gov";
-import { Address } from "viem";
+import type { Address } from "viem";
 
-import { Asset } from "../core/assets";
-import { PoolData } from "../core/pool";
-import { TokenData } from "../tokens/tokenData";
+import type { Asset } from "../core/assets";
+import type { PoolData } from "../core/pool";
+import type { TokenData } from "../tokens/tokenData";
 import { PriceUtils } from "../utils/price";
-import { FarmInfo } from "./api";
+import type { FarmInfo } from "./api";
 
 interface CalculateV3PoolLmAPYProps {
   currentTimestamp: number;

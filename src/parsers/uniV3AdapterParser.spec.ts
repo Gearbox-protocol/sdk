@@ -5,7 +5,8 @@ import {
   WAD,
 } from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
-import { Address, encodeFunctionData, encodePacked } from "viem";
+import type { Address } from "viem";
+import { encodeFunctionData, encodePacked } from "viem";
 
 import { iUniswapV3AdapterAbi } from "../types";
 import { UniswapV3AdapterParser } from "./uniV3AdapterParser";

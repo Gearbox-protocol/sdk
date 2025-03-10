@@ -1,10 +1,10 @@
+import type { NetworkType } from "@gearbox-protocol/sdk-gov";
 import {
   contractParams,
   contractsByAddress,
-  NetworkType,
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
-import { Address } from "viem";
+import type { Address } from "viem";
 
 export const stEthPoolWrapper: Record<NetworkType, Address> = {
   Mainnet: "0x5a97e3E43dCBFe620ccF7865739075f92E93F5E4",

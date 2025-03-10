@@ -1,14 +1,14 @@
-import {
-  contractParams,
+import type {
   ConvexPoolParams,
   SupportedContract,
 } from "@gearbox-protocol/sdk-gov";
-import { Address } from "viem";
+import { contractParams } from "@gearbox-protocol/sdk-gov";
+import type { Address } from "viem";
 
 import { iConvexV1BaseRewardPoolAdapterAbi } from "../types";
-import { BigNumberish } from "../utils/formatter";
+import type { BigNumberish } from "../utils/formatter";
 import { AbstractParser } from "./abstractParser";
-import { IParser } from "./iParser";
+import type { IParser } from "./iParser";
 
 export class ConvexBaseRewardPoolAdapterParser
   extends AbstractParser

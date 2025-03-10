@@ -1,9 +1,6 @@
-import {
-  CHAINS,
-  isSupportedNetwork,
-  NetworkType,
-} from "@gearbox-protocol/sdk-gov";
-import { Address } from "viem";
+import type { NetworkType } from "@gearbox-protocol/sdk-gov";
+import { CHAINS, isSupportedNetwork } from "@gearbox-protocol/sdk-gov";
+import type { Address } from "viem";
 
 export const TESTNET_CHAINS: Record<NetworkType, number> = {
   Mainnet: 7878,

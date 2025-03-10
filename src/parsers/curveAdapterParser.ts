@@ -1,20 +1,19 @@
-import {
-  contractParams,
+import type {
   CurveParams,
-  formatBN,
   SupportedContract,
   SupportedToken,
 } from "@gearbox-protocol/sdk-gov";
-import { Address } from "viem";
+import { contractParams, formatBN } from "@gearbox-protocol/sdk-gov";
+import type { Address } from "viem";
 
 import {
   iCurveV1_2AssetsAdapterAbi,
   iCurveV1_3AssetsAdapterAbi,
   iCurveV1_4AssetsAdapterAbi,
 } from "../types";
-import { BigNumberish } from "../utils/formatter";
+import type { BigNumberish } from "../utils/formatter";
 import { AbstractParser } from "./abstractParser";
-import { IParser } from "./iParser";
+import type { IParser } from "./iParser";
 
 export class CurveAdapterParser extends AbstractParser implements IParser {
   protected lpToken: SupportedToken;

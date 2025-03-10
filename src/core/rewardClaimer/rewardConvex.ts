@@ -1,26 +1,29 @@
-import {
-  AdapterInterface,
+import type {
   AuraPoolParams,
   ContractParams,
+  ConvexPoolParams,
+  NetworkType,
+  PartialRecord,
+  SupportedContract,
+  SupportedToken,
+} from "@gearbox-protocol/sdk-gov";
+import {
+  AdapterInterface,
   contractParams,
   contractsByAddress,
   contractsByNetwork,
-  ConvexPoolParams,
   MULTICALL_ADDRESS,
-  NetworkType,
-  PartialRecord,
   Protocols,
-  SupportedContract,
-  SupportedToken,
   tokenDataByNetwork,
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
-import { Abi, Address, encodeFunctionData, PublicClient } from "viem";
+import type { Abi, Address, PublicClient } from "viem";
+import { encodeFunctionData } from "viem";
 
 import { iBaseRewardPoolAbi, iConvexTokenAbi } from "../../types";
-import { CreditAccountData } from "../creditAccount";
-import { CreditManagerData } from "../creditManager";
-import { AdapterWithType, Rewards } from "../rewardClaimer";
+import type { CreditAccountData } from "../creditAccount";
+import type { CreditManagerData } from "../creditManager";
+import type { AdapterWithType, Rewards } from "../rewardClaimer";
 import { getAURAMintAmount } from "./aura";
 import { AURA_BOOSTER_ABI } from "./auraAbi";
 import { getCVXMintAmount } from "./convex";

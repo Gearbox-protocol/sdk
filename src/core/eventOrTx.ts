@@ -1,7 +1,7 @@
-import { Address } from "viem";
+import type { Address } from "viem";
 
-import { TokenData } from "../tokens/tokenData";
-import { PartialKeys } from "../utils/types";
+import type { TokenData } from "../tokens/tokenData";
+import type { PartialKeys } from "../utils/types";
 import type { TxSerialized } from "./transactions";
 
 export interface Display {

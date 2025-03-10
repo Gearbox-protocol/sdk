@@ -1,6 +1,6 @@
-import { Address } from "viem";
+import type { Address } from "viem";
 
-import { BigNumberish } from "../utils/formatter";
+import type { BigNumberish } from "../utils/formatter";
 
 export interface CreditSessionBalancePayload {
   BI: string;

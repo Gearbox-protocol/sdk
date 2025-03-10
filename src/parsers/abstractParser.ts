@@ -1,15 +1,15 @@
+import type { SupportedToken, TickerToken } from "@gearbox-protocol/sdk-gov";
 import {
   decimals,
   formatBN,
   getTokenSymbolOrTicker,
-  SupportedToken,
-  TickerToken,
   toBigInt,
   tokenSymbolByAddress,
 } from "@gearbox-protocol/sdk-gov";
-import { Abi, Address, decodeFunctionData } from "viem";
+import type { Abi, Address } from "viem";
+import { decodeFunctionData } from "viem";
 
-import { BigNumberish } from "../utils/formatter";
+import type { BigNumberish } from "../utils/formatter";
 
 export interface ParsedObject {
   address: Address;

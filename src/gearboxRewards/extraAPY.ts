@@ -1,15 +1,12 @@
-import {
-  CHAINS,
-  NetworkType,
-  PERCENTAGE_FACTOR,
-} from "@gearbox-protocol/sdk-gov";
+import type { NetworkType } from "@gearbox-protocol/sdk-gov";
+import { CHAINS, PERCENTAGE_FACTOR } from "@gearbox-protocol/sdk-gov";
 import axios from "axios";
-import { Address } from "viem";
+import type { Address } from "viem";
 
-import { Asset } from "../core/assets";
+import type { Asset } from "../core/assets";
 import { GearboxBackendApi } from "../core/endpoint";
-import { PoolData } from "../core/pool";
-import { TokenData } from "../tokens/tokenData";
+import type { PoolData } from "../core/pool";
+import type { TokenData } from "../tokens/tokenData";
 import { toBN } from "../utils/formatter";
 import { BigIntMath } from "../utils/math";
 

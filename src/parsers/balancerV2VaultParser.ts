@@ -1,9 +1,9 @@
-import { SupportedContract } from "@gearbox-protocol/sdk-gov";
-import { Address } from "viem";
+import type { SupportedContract } from "@gearbox-protocol/sdk-gov";
+import type { Address } from "viem";
 
 import { iBalancerV2VaultAdapterAbi } from "../types";
 import { AbstractParser } from "./abstractParser";
-import { IParser } from "./iParser";
+import type { IParser } from "./iParser";
 
 export class BalancerV2VaultParser extends AbstractParser implements IParser {
   constructor(contract: SupportedContract, isContract: boolean) {

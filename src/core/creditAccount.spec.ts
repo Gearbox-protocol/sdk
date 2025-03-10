@@ -1,28 +1,28 @@
+import type { SupportedToken } from "@gearbox-protocol/sdk-gov";
 import {
   decimals,
   NOT_DEPLOYED,
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS_POW,
-  SupportedToken,
   supportedTokens,
   tokenDataByNetwork,
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
-import { Address } from "viem";
+import type { Address } from "viem";
 
-import { TokensWithApyRecord } from "../apy";
+import type { TokensWithApyRecord } from "../apy";
 import { TokenData } from "../tokens/tokenData";
 import { toBN } from "../utils/formatter";
 import { PriceUtils } from "../utils/price";
-import { Asset, AssetUtils } from "./assets";
-import {
+import type { Asset } from "./assets";
+import { AssetUtils } from "./assets";
+import type {
   CalcHealthFactorProps,
   CalcOverallAPYProps,
   CalcQuotaUpdateProps,
-  CreditAccountData,
-  MIN_INT96,
 } from "./creditAccount";
+import { CreditAccountData, MIN_INT96 } from "./creditAccount";
 
 const tokensFiltered = TypedObjectUtils.fromEntries(
   TypedObjectUtils.entries(tokenDataByNetwork.Mainnet).filter(

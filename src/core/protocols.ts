@@ -1,4 +1,4 @@
-import { Protocols } from "@gearbox-protocol/sdk-gov";
+import type { Protocols } from "@gearbox-protocol/sdk-gov";
 
 interface ProtocolData {
   name: string;

@@ -1,28 +1,30 @@
-import {
+import type {
   BalancerLPToken,
-  balancerLpTokens,
-  contractParams,
   ConvexLPToken,
-  convexTokens,
   CurveLPToken,
   CurveParams,
+  NetworkType,
+  YearnLPToken,
+} from "@gearbox-protocol/sdk-gov";
+import {
+  balancerLpTokens,
+  contractParams,
+  convexTokens,
   curveTokens,
   isBalancerLPToken,
   isCurveLPToken,
-  NetworkType,
   tokenDataByNetwork,
   tokenSymbolByAddress,
-  YearnLPToken,
   yearnTokens,
 } from "@gearbox-protocol/sdk-gov";
-import {
+import type {
   AuraLPToken,
   AuraStakedToken,
-  auraTokens,
 } from "@gearbox-protocol/sdk-gov/lib/tokens/aura";
-import { Address } from "viem";
+import { auraTokens } from "@gearbox-protocol/sdk-gov/lib/tokens/aura";
+import type { Address } from "viem";
 
-import { CaTokenBalance } from "../payload/creditAccount";
+import type { CaTokenBalance } from "../payload/creditAccount";
 
 export interface PathOption {
   target: Address;

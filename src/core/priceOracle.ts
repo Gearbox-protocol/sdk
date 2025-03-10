@@ -1,6 +1,6 @@
 import { getDecimals, toBigInt } from "@gearbox-protocol/sdk-gov";
 
-import { BigNumberish } from "../utils/formatter";
+import type { BigNumberish } from "../utils/formatter";
 
 export interface PriceUpdate {
   token: string;

@@ -1,33 +1,27 @@
+import type { NetworkType, SupportedToken } from "@gearbox-protocol/sdk-gov";
 import {
   CHAINS,
   MULTICALL_ADDRESS,
-  NetworkType,
-  SupportedToken,
   toBigInt,
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
 import axios from "axios";
-import {
-  Address,
-  getAddress,
-  getContract,
-  PublicClient,
-  WalletClient,
-} from "viem";
+import type { Address, PublicClient, WalletClient } from "viem";
+import { getAddress, getContract } from "viem";
 
 import { GearboxBackendApi } from "../core/endpoint";
-import { PoolData } from "../core/pool";
-import { TokenData } from "../tokens/tokenData";
+import type { PoolData } from "../core/pool";
+import type { TokenData } from "../tokens/tokenData";
 import { iAirdropDistributorAbi, iFarmingPoolAbi } from "../types";
 import { BigIntMath } from "../utils/math";
-import { ExtraRewardApy } from "./apy";
-import {
-  MerkleXYZApi,
+import type { ExtraRewardApy } from "./apy";
+import type {
   MerkleXYZUserRewardsV4Response,
   MerkleXYZV4CampaignsResponse,
   MerkleXYZV4RewardCampaignResponse,
   MerklXYZV4RewardCampaign,
 } from "./merklAPI";
+import { MerkleXYZApi } from "./merklAPI";
 
 export interface GearboxExtraMerkleLmReward {
   pool: Address;

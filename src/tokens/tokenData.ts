@@ -1,8 +1,8 @@
-import { PartialRecord, SupportedToken } from "@gearbox-protocol/sdk-gov";
-import { Address } from "viem";
+import type { PartialRecord, SupportedToken } from "@gearbox-protocol/sdk-gov";
+import type { Address } from "viem";
 
 import { GearboxBackendApi } from "../core/endpoint";
-import { TokenDataPayload } from "../payload/token";
+import type { TokenDataPayload } from "../payload/token";
 
 const ALIASES: PartialRecord<SupportedToken, string> = {
   USDC_e: "USDC.e",

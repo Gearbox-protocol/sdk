@@ -1,7 +1,11 @@
 import { toBigInt } from "@gearbox-protocol/sdk-gov";
-import { Address } from "viem";
+import type { Address } from "viem";
 
-import { BotBaseType, BotDataPayload, BotDetailedType } from "../payload/bot";
+import type {
+  BotBaseType,
+  BotDataPayload,
+  BotDetailedType,
+} from "../payload/bot";
 
 export class BotData {
   readonly address: Address;

@@ -1,21 +1,23 @@
+import type {
+  ConvexPoolParams,
+  NetworkType,
+  SupportedContract,
+  SupportedToken,
+} from "@gearbox-protocol/sdk-gov";
 import {
   AdapterInterface,
   contractParams,
   contractsByAddress,
   contractsByNetwork,
-  ConvexPoolParams,
-  NetworkType,
-  SupportedContract,
-  SupportedToken,
   tokenDataByNetwork,
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
-import { Address } from "viem";
+import type { Address } from "viem";
 
-import { MultiCall } from "../pathfinder/core";
+import type { MultiCall } from "../pathfinder/core";
 import { AaveV2LendingPoolAdapterParser } from "./aaveV2LendingPoolAdapterParser";
 import { AaveV2WrappedATokenAdapterParser } from "./aaveV2WrappedATokenAdapterParser";
-import { AbstractParser } from "./abstractParser";
+import type { AbstractParser } from "./abstractParser";
 import { BalancerV2VaultParser } from "./balancerV2VaultParser";
 import { CompoundV2CTokenAdapterParser } from "./compoundV2CTokenAdapterParser";
 import { ConvexBaseRewardPoolAdapterParser } from "./convexBaseRewardPoolAdapterParser";
@@ -26,7 +28,7 @@ import { CreditManagerParser } from "./creditManagerParser";
 import { CurveAdapterParser } from "./curveAdapterParser";
 import { ERC20Parser } from "./ERC20Parser";
 import { ERC4626AdapterParser } from "./erc626AdapterParser";
-import { IParser } from "./iParser";
+import type { IParser } from "./iParser";
 import { LidoAdapterParser } from "./lidoAdapterParser";
 import { LidoSTETHParser } from "./lidoSTETHParser";
 import { PriceOracleParser } from "./priceOracleParser";

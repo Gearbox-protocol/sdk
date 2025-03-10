@@ -1,9 +1,9 @@
-import { SupportedContract } from "@gearbox-protocol/sdk-gov";
-import { Address } from "viem";
+import type { SupportedContract } from "@gearbox-protocol/sdk-gov";
+import type { Address } from "viem";
 
 import { ierc4626AdapterAbi } from "../types";
 import { AbstractParser } from "./abstractParser";
-import { IParser } from "./iParser";
+import type { IParser } from "./iParser";
 
 export class ERC4626AdapterParser extends AbstractParser implements IParser {
   constructor(contract: SupportedContract, isContract: boolean) {

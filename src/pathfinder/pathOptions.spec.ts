@@ -1,12 +1,10 @@
-import { CurveLPToken, tokenDataByNetwork } from "@gearbox-protocol/sdk-gov";
+import type { CurveLPToken } from "@gearbox-protocol/sdk-gov";
+import { tokenDataByNetwork } from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
-import { Address } from "viem";
+import type { Address } from "viem";
 
-import {
-  BalanceInterface,
-  PathOptionFactory,
-  PathOptionSerie,
-} from "./pathOptions";
+import type { BalanceInterface, PathOptionSerie } from "./pathOptions";
+import { PathOptionFactory } from "./pathOptions";
 
 describe("PathOptionFactory test", () => {
   it("next works correctly", () => {

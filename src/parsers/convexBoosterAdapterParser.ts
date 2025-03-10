@@ -1,14 +1,10 @@
-import {
-  Address,
-  convexLpTokenByPid,
-  convexPoolByPid,
-  SupportedContract,
-} from "@gearbox-protocol/sdk-gov";
+import type { Address, SupportedContract } from "@gearbox-protocol/sdk-gov";
+import { convexLpTokenByPid, convexPoolByPid } from "@gearbox-protocol/sdk-gov";
 
 import { iConvexV1BoosterAdapterAbi } from "../types";
-import { BigNumberish } from "../utils/formatter";
+import type { BigNumberish } from "../utils/formatter";
 import { AbstractParser } from "./abstractParser";
-import { IParser } from "./iParser";
+import type { IParser } from "./iParser";
 
 export class ConvexBoosterAdapterParser
   extends AbstractParser

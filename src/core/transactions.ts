@@ -1,17 +1,18 @@
+import type { SupportedContract } from "@gearbox-protocol/sdk-gov";
 import {
   contractParams,
   decimals as decimalList,
   extractTokenData,
   formatBN,
   LEVERAGE_DECIMALS,
-  SupportedContract,
 } from "@gearbox-protocol/sdk-gov";
-import { Address } from "viem";
+import type { Address } from "viem";
 
 import { getContractName } from "../contracts/contractsRegister";
 import { BigIntMath } from "../utils/math";
-import { Asset } from "./assets";
-import { EVMTx, EVMTxProps } from "./eventOrTx";
+import type { Asset } from "./assets";
+import type { EVMTxProps } from "./eventOrTx";
+import { EVMTx } from "./eventOrTx";
 
 interface CMEvent {
   readonly creditManager: Address;

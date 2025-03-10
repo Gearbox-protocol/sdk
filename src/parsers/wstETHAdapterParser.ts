@@ -1,9 +1,10 @@
-import { SupportedContract, toBigInt } from "@gearbox-protocol/sdk-gov";
-import { Address } from "viem";
+import type { SupportedContract } from "@gearbox-protocol/sdk-gov";
+import { toBigInt } from "@gearbox-protocol/sdk-gov";
+import type { Address } from "viem";
 
 import { iwstEthAbi, iwstEthv1AdapterAbi } from "../types";
 import { AbstractParser } from "./abstractParser";
-import { IParser } from "./iParser";
+import type { IParser } from "./iParser";
 
 export class WstETHAdapterParser extends AbstractParser implements IParser {
   constructor(contract: SupportedContract, isContract: boolean) {

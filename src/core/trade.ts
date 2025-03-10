@@ -6,11 +6,12 @@ import {
   tokenSymbolByAddress,
   WAD,
 } from "@gearbox-protocol/sdk-gov";
-import { Address } from "viem";
+import type { Address } from "viem";
 
 import { TxParser } from "../parsers/txParser";
-import { MultiCall, PathFinderResult, SwapOperation } from "../pathfinder/core";
-import { CreditManagerData } from "./creditManager";
+import type { MultiCall, PathFinderResult } from "../pathfinder/core";
+import { SwapOperation } from "../pathfinder/core";
+import type { CreditManagerData } from "./creditManager";
 
 interface Info {
   name: string;

@@ -1,9 +1,9 @@
-import {
-  isLPToken,
+import type {
   LPTokens,
   PartialRecord,
   SupportedToken,
 } from "@gearbox-protocol/sdk-gov";
+import { isLPToken } from "@gearbox-protocol/sdk-gov";
 
 // all extra tokens
 type ExtraFarmTokens = Extract<

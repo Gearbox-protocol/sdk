@@ -6,16 +6,17 @@ import {
   toBigInt,
   tokenSymbolByAddress,
 } from "@gearbox-protocol/sdk-gov";
-import { Address, encodeFunctionData } from "viem";
+import type { Address } from "viem";
+import { encodeFunctionData } from "viem";
 
 import { TxParser } from "../parsers/txParser";
-import { MultiCall } from "../pathfinder/core";
-import {
+import type { MultiCall } from "../pathfinder/core";
+import type {
   ChartsCreditManagerPayload,
   CreditManagerDataPayload,
   QuotaInfo,
 } from "../payload/creditManager";
-import { LinearModel } from "../payload/pool";
+import type { LinearModel } from "../payload/pool";
 import {
   iConvexV1BaseRewardPoolAdapterAbi,
   iCreditFacadeV3MulticallAbi,

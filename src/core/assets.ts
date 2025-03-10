@@ -1,6 +1,6 @@
-import { Address } from "viem";
+import type { Address } from "viem";
 
-import { TokenData } from "../tokens/tokenData";
+import type { TokenData } from "../tokens/tokenData";
 import { nonNegativeBn } from "../utils/math";
 import { PriceUtils } from "../utils/price";
 import { CreditAccountData } from "./creditAccount";

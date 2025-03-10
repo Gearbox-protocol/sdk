@@ -3,9 +3,9 @@ import {
   PERCENTAGE_FACTOR,
   toBigInt,
 } from "@gearbox-protocol/sdk-gov";
-import { Abi, Address, PublicClient } from "viem";
+import type { Abi, Address, PublicClient } from "viem";
 
-import { ParsedObject } from "../parsers/abstractParser";
+import type { ParsedObject } from "../parsers/abstractParser";
 import { BalancerV2VaultParser } from "../parsers/balancerV2VaultParser";
 import { CurveAdapterParser } from "../parsers/curveAdapterParser";
 import { LidoAdapterParser } from "../parsers/lidoAdapterParser";
@@ -14,7 +14,7 @@ import { UniswapV2AdapterParser } from "../parsers/uniV2AdapterParser";
 import { UniswapV3AdapterParser } from "../parsers/uniV3AdapterParser";
 import { iCurvePoolAbi } from "../types";
 import { splitPoolId } from "./balancerVault";
-import { MultiCall } from "./core";
+import type { MultiCall } from "./core";
 
 export interface FeeInfo {
   type: KnownFeeTypes;

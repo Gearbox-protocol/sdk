@@ -1,5 +1,5 @@
-import { SupportedToken } from "@gearbox-protocol/sdk-gov";
-import { Address } from "viem";
+import type { SupportedToken } from "@gearbox-protocol/sdk-gov";
+import type { Address } from "viem";
 
 export interface TokenDataPayload {
   title?: string;

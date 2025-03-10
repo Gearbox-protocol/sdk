@@ -1,22 +1,25 @@
+import type {
+  PartialRecord,
+  StakingRewardsParams,
+  SupportedContract,
+  SupportedToken,
+} from "@gearbox-protocol/sdk-gov";
 import {
   AdapterInterface,
   ADDRESS_0X0,
   contractParams,
   contractsByAddress,
   MULTICALL_ADDRESS,
-  PartialRecord,
-  StakingRewardsParams,
-  SupportedContract,
-  SupportedToken,
   tokenSymbolByAddress,
   TypedObjectUtils,
 } from "@gearbox-protocol/sdk-gov";
-import { Abi, Address, encodeFunctionData, PublicClient } from "viem";
+import type { Abi, Address, PublicClient } from "viem";
+import { encodeFunctionData } from "viem";
 
 import { iBaseRewardPoolAbi, iStakingRewardsAdapterAbi } from "../../types";
-import { CreditAccountData } from "../creditAccount";
-import { CreditManagerData } from "../creditManager";
-import { AdapterWithType, Rewards } from "../rewardClaimer";
+import type { CreditAccountData } from "../creditAccount";
+import type { CreditManagerData } from "../creditManager";
+import type { AdapterWithType, Rewards } from "../rewardClaimer";
 
 type DistributionList = Array<Array<RewardDistribution>>;
 type CallsList = Array<

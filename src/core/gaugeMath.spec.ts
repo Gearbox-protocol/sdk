@@ -1,12 +1,12 @@
 import { expect } from "chai";
 
-import {
+import type {
   BaseVote,
-  GaugeMath,
   GetGaugeApyProps,
   SingleVoteState,
   VoteProps,
 } from "./gaugeMath";
+import { GaugeMath } from "./gaugeMath";
 
 describe("GaugeMath vote() test", () => {
   it("with empty state and with no changes", () => {

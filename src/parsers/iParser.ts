@@ -1,6 +1,6 @@
-import { Address } from "viem";
+import type { Address } from "viem";
 
-import { ParsedObject } from "./abstractParser";
+import type { ParsedObject } from "./abstractParser";
 
 export interface IParser {
   parse: (calldata: Address) => string;

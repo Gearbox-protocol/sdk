@@ -1,9 +1,10 @@
-import { formatBN, SupportedContract } from "@gearbox-protocol/sdk-gov";
-import { Address } from "viem";
+import type { SupportedContract } from "@gearbox-protocol/sdk-gov";
+import { formatBN } from "@gearbox-protocol/sdk-gov";
+import type { Address } from "viem";
 
 import { iUniswapV3AdapterAbi } from "../types";
 import { AbstractParser } from "./abstractParser";
-import { IParser } from "./iParser";
+import type { IParser } from "./iParser";
 
 export class UniswapV3AdapterParser extends AbstractParser implements IParser {
   constructor(contract: SupportedContract, isContract: boolean) {

@@ -8,12 +8,14 @@ import {
   tokenDataByNetwork,
 } from "@gearbox-protocol/sdk-gov";
 import { expect } from "chai";
-import { Abi, Address, encodeFunctionData } from "viem";
+import type { Abi, Address } from "viem";
+import { encodeFunctionData } from "viem";
 
 import { iBaseRewardPoolAbi, iConvexTokenAbi } from "../../types";
-import { CreditManagerData } from "../creditManager";
-import { AdapterWithType, Rewards } from "../rewardClaimer";
-import { RewardConvex, RewardDistribution } from "./rewardConvex";
+import type { CreditManagerData } from "../creditManager";
+import type { AdapterWithType, Rewards } from "../rewardClaimer";
+import type { RewardDistribution } from "./rewardConvex";
+import { RewardConvex } from "./rewardConvex";
 
 const ADAPTER_CONVEX_3CRV_POOL = DUMB_ADDRESS;
 const ADAPTER_CURVE_FRAX_POOL = DUMB_ADDRESS2;

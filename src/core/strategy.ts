@@ -1,12 +1,11 @@
+import type { NetworkType, PartialRecord } from "@gearbox-protocol/sdk-gov";
 import {
   LEVERAGE_DECIMALS,
-  NetworkType,
-  PartialRecord,
   PERCENTAGE_FACTOR,
 } from "@gearbox-protocol/sdk-gov";
-import { Address } from "viem";
+import type { Address } from "viem";
 
-import { CreditManagerData } from "./creditManager";
+import type { CreditManagerData } from "./creditManager";
 
 export type ReleaseAt = undefined | number | PartialRecord<NetworkType, number>;
 

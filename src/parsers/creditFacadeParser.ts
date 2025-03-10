@@ -1,13 +1,13 @@
-import { SupportedToken } from "@gearbox-protocol/sdk-gov";
-import { Address } from "viem";
+import type { SupportedToken } from "@gearbox-protocol/sdk-gov";
+import type { Address } from "viem";
 
 import {
   iCreditFacadeV2ExtendedAbi,
   iCreditFacadeV3MulticallAbi,
 } from "../types";
-import { BigNumberish } from "../utils/formatter";
+import type { BigNumberish } from "../utils/formatter";
 import { AbstractParser } from "./abstractParser";
-import { IParser } from "./iParser";
+import type { IParser } from "./iParser";
 
 interface BalanceDeltaStructOutput {
   amount: bigint;

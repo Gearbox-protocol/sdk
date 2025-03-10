@@ -1,26 +1,21 @@
+import type { NetworkType } from "@gearbox-protocol/sdk-gov";
 import {
   contractsByNetwork,
   getConnectors,
-  NetworkType,
   PERCENTAGE_FACTOR,
 } from "@gearbox-protocol/sdk-gov";
-import {
-  Address,
-  encodeFunctionData,
-  getContract,
-  GetContractReturnType,
-  PublicClient,
-} from "viem";
+import type { Address, GetContractReturnType, PublicClient } from "viem";
+import { encodeFunctionData, getContract } from "viem";
 
-import { Asset } from "../core/assets";
-import { CreditAccountData } from "../core/creditAccount";
-import { CreditManagerData } from "../core/creditManager";
+import type { Asset } from "../core/assets";
+import type { CreditAccountData } from "../core/creditAccount";
+import type { CreditManagerData } from "../core/creditManager";
 import {
   iCreditFacadeV3MulticallAbi,
   iRouterV3Abi,
   pendleSwapperAbi,
 } from "../types";
-import {
+import type {
   MultiCall,
   PathFinderCloseResult,
   PathFinderOpenStrategyResult,

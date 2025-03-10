@@ -1,16 +1,16 @@
-import {
-  MULTICALL_ADDRESS,
+import type {
   NetworkType,
   PartialRecord,
   Protocols,
   SupportedContract,
   SupportedToken,
 } from "@gearbox-protocol/sdk-gov";
-import { Address, PublicClient } from "viem";
+import { MULTICALL_ADDRESS } from "@gearbox-protocol/sdk-gov";
+import type { Address, PublicClient } from "viem";
 
-import { MultiCall } from "../../pathfinder/core";
-import { CreditAccountData } from "../creditAccount";
-import { CreditManagerData } from "../creditManager";
+import type { MultiCall } from "../../pathfinder/core";
+import type { CreditAccountData } from "../creditAccount";
+import type { CreditManagerData } from "../creditManager";
 import { RewardConvex } from "./rewardConvex";
 import { StakingRewards } from "./stakingRewards";
 

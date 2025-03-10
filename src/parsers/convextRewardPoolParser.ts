@@ -1,9 +1,9 @@
-import { NormalToken } from "@gearbox-protocol/sdk-gov";
-import { Address } from "viem";
+import type { NormalToken } from "@gearbox-protocol/sdk-gov";
+import type { Address } from "viem";
 
 import { iBaseRewardPoolAbi } from "../types";
 import { AbstractParser } from "./abstractParser";
-import { IParser } from "./iParser";
+import type { IParser } from "./iParser";
 
 export class ConvexRewardPoolParser extends AbstractParser implements IParser {
   constructor(token: NormalToken) {

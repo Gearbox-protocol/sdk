@@ -1,8 +1,8 @@
-import { Address } from "viem";
+import type { Address } from "viem";
 
 import { iPriceOracleBaseAbi } from "../types";
 import { AbstractParser } from "./abstractParser";
-import { IParser } from "./iParser";
+import type { IParser } from "./iParser";
 
 export class PriceOracleParser extends AbstractParser implements IParser {
   constructor() {

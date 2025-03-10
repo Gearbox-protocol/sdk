@@ -9,19 +9,19 @@ import {
   WAD,
   WAD_DECIMALS_POW,
 } from "@gearbox-protocol/sdk-gov";
-import { Address } from "viem";
+import type { Address } from "viem";
 
-import { TokensWithAPY, TokensWithApyRecord } from "../apy";
-import {
+import type { TokensWithAPY, TokensWithApyRecord } from "../apy";
+import type {
   CaTokenBalance,
   CreditAccountDataPayload,
 } from "../payload/creditAccount";
-import { QuotaInfo } from "../payload/creditManager";
-import { TokenData } from "../tokens/tokenData";
+import type { QuotaInfo } from "../payload/creditManager";
+import type { TokenData } from "../tokens/tokenData";
 import { rayToNumber } from "../utils/formatter";
 import { BigIntMath } from "../utils/math";
 import { PriceUtils } from "../utils/price";
-import { Asset, AssetWithAmountInTarget } from "./assets";
+import type { Asset, AssetWithAmountInTarget } from "./assets";
 
 export const MIN_INT96 = -39614081257132168796771975168n;
 export const MAX_UINT256 =

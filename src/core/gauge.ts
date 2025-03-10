@@ -1,7 +1,10 @@
 import { PERCENTAGE_DECIMALS } from "@gearbox-protocol/sdk-gov";
-import { Address } from "viem";
+import type { Address } from "viem";
 
-import { GaugeDataPayload, GaugeStakingDataPayload } from "../payload/gauge";
+import type {
+  GaugeDataPayload,
+  GaugeStakingDataPayload,
+} from "../payload/gauge";
 
 export class GaugeData {
   readonly address: Address;

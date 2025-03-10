@@ -1,13 +1,6 @@
 import { MULTICALL_ADDRESS } from "@gearbox-protocol/sdk-gov";
-import {
-  Abi,
-  Address,
-  decodeFunctionResult,
-  encodeFunctionData,
-  Hex,
-  multicall3Abi,
-  PublicClient,
-} from "viem";
+import type { Abi, Address, Hex, PublicClient } from "viem";
+import { decodeFunctionResult, encodeFunctionData, multicall3Abi } from "viem";
 
 export interface MinimalTxInfo {
   hash: string;
