@@ -38,6 +38,7 @@ jobs:
       - name: Build
         run: |
           yarn install --immutable
+          yarn typecheck:ci
           yarn build
 
       - name: Semantic Release
