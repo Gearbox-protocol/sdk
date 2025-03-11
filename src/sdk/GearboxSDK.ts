@@ -25,7 +25,7 @@ import {
 import { MarketRegister } from "./market/MarketRegister.js";
 import { PriceFeedRegister } from "./market/pricefeeds/index.js";
 import type { IGearboxSDKPlugin } from "./plugins/index.js";
-import type { RouterV300Contract } from "./router/index.js";
+import type { IRouterContract } from "./router/index.js";
 import { createRouter } from "./router/index.js";
 import type {
   GearboxState,
@@ -125,7 +125,7 @@ export class GearboxSDK {
   #marketRegister?: MarketRegister;
 
   // Router contract
-  #router?: RouterV300Contract;
+  #router?: IRouterContract;
 
   public readonly logger?: ILogger;
   public readonly plugins: ReadonlyArray<IGearboxSDKPlugin>;
@@ -488,7 +488,7 @@ export class GearboxSDK {
     return this.#marketRegister;
   }
 
-  public get router(): RouterV300Contract {
+  public get router(): IRouterContract {
     if (this.#router === undefined) {
       throw new Error("Gearbox SDK not attached");
     }
