@@ -159,8 +159,10 @@ export class RouterV310Contract
       BigInt(slippage),
       tData,
     ]);
+    const underlyingBalance =
+      ca.tokens.find(t => t.token === ca.underlying)?.balance ?? 0n;
     return {
-      underlyingBalance: 0n, // TODO:?
+      underlyingBalance: underlyingBalance + result.minAmount,
       amount: result.amount,
       minAmount: result.minAmount,
       calls: [...result.calls],
