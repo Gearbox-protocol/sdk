@@ -425,7 +425,14 @@ export class CreditAccountsService extends SDKConstruct {
         slippage,
       }));
 
+    const priceUpdates = await this.getPriceUpdatesForFacade(
+      ca.creditManager,
+      ca,
+      undefined,
+    );
+
     const calls: Array<MultiCall> = [
+      ...priceUpdates,
       ...routerCloseResult.calls,
       ...this.#prepareDisableQuotas(ca),
       ...this.#prepareDecreaseDebt(ca),
@@ -464,7 +471,14 @@ export class CreditAccountsService extends SDKConstruct {
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
     const addCollateral = collateralAssets.filter(a => a.balance > 0);
 
+    const priceUpdates = await this.getPriceUpdatesForFacade(
+      ca.creditManager,
+      ca,
+      undefined,
+    );
+
     const calls: Array<MultiCall> = [
+      ...priceUpdates,
       ...this.#prepareAddCollateral(ca.creditFacade, addCollateral, permits),
       ...this.#prepareDisableQuotas(ca),
       ...this.#prepareDecreaseDebt(ca),
@@ -921,7 +935,10 @@ export class CreditAccountsService extends SDKConstruct {
   }
 
   /**
-   * Returns price updates in format that is accepted by various credit facade methods (multicall, close/liquidate, etc...)
+   * Returns price updates in format that is accepted by various credit facade methods (multicall, close/liquidate, etc...).
+   * If there are desiredQuotas and creditAccount update quotaBalance > 0 || (balance > 10n && isEnabled).
+   * If there is creditAccount update balance > 10n && isEnabled.
+   * If there is desiredQuotas update quotaBalance > 0.
    * @param acc
    * @returns
    */
