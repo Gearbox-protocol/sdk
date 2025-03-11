@@ -6,6 +6,7 @@ import {
   iPeripheryCompressorAbi,
   iRewardsCompressorAbi,
 } from "../../abi/compressors.js";
+import { iBaseRewardPoolAbi } from "../../abi/iBaseRewardPool.js";
 import { iCreditFacadeV300MulticallAbi } from "../../abi/v300.js";
 import type { CreditAccountData } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
@@ -32,7 +33,6 @@ import {
   type CreditAccountDataSlice,
   type RouterCloseResult,
 } from "../router/index.js";
-import { iBaseRewardPoolAbi } from "../sdk-legacy/index.js";
 import type { ILogger, MultiCall, RawTx } from "../types/index.js";
 import { childLogger } from "../utils/index.js";
 import { simulateMulticall } from "../utils/viem/index.js";
