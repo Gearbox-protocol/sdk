@@ -65,6 +65,10 @@ export interface SDKOptions {
    */
   ignoreUpdateablePrices?: boolean;
   /**
+   * Will throw an error if contract type is not supported, otherwise will try to use generic contract first, if possible
+   */
+  strictContractTypes?: boolean;
+  /**
    * Plugins to extends SDK functionality
    */
   plugins?: IGearboxSDKPlugin[];
@@ -78,6 +82,7 @@ interface SDKContructorArgs {
   provider: Provider;
   logger?: ILogger;
   plugins?: IGearboxSDKPlugin[];
+  strictContractTypes?: boolean;
 }
 
 interface AttachOptionsInternal {
@@ -136,6 +141,10 @@ export class GearboxSDK {
    * All price feeds known to sdk, without oracle-related data (stalenessPeriod, main/reserve, etc.)
    */
   public readonly priceFeeds: PriceFeedRegister;
+  /**
+   * Will throw an error if contract type is not supported, otherwise will try to use generic contract first, if possible
+   */
+  public readonly strictContractTypes: boolean;
   /**
    * All contracts known to sdk
    */
@@ -208,6 +217,7 @@ export class GearboxSDK {
     this.logger = options.logger;
     this.priceFeeds = new PriceFeedRegister(this);
     this.plugins = options.plugins ?? [];
+    this.strictContractTypes = options.strictContractTypes ?? false;
   }
 
   async #attach(opts: AttachOptionsInternal): Promise<this> {

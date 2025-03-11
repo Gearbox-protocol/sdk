@@ -38,6 +38,7 @@ export const GearboxAdaptersPlugin: IGearboxSDKPlugin = {
     const adapterType = bytes32ToString(
       args.baseParams.contractType as Hex,
     ) as AdapterContractType;
+
     switch (adapterType) {
       case "ADAPTER::UNISWAP_V2_ROUTER":
         return new UniswapV2AdapterContract(sdk, args);
@@ -83,8 +84,16 @@ export const GearboxAdaptersPlugin: IGearboxSDKPlugin = {
         return new DaiUsdsAdapterContract(sdk, args);
       case "ADAPTER::STAKING_REWARDS":
         return new StakingRewardsAdapterContract(sdk, args);
-      default:
+      default: {
+        const err = new Error(
+          `Adapter type ${adapterType} not supported for adapter at ${args.baseParams.addr}`,
+        );
+        if (sdk.strictContractTypes) {
+          throw err;
+        }
+        sdk.logger?.error(err);
         return undefined;
+      }
     }
   },
 };

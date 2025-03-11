@@ -46,6 +46,7 @@ export class SDKExample {
       logger: this.#logger,
       ignoreUpdateablePrices: false,
       marketConfigurators,
+      strictContractTypes: true,
     });
     this.#logger?.info("attached sdk");
     try {

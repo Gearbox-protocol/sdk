@@ -290,11 +290,16 @@ export class PriceFeedRegister
       case "PRICE_FEED::ZERO":
         return new ZeroPriceFeedContract(this.sdk, data);
 
-      default:
-        this.logger?.error(
+      default: {
+        const err = new Error(
           `Price feed type ${contractType} not supported for price feed at ${data.baseParams.addr}`,
         );
+        if (this.sdk.strictContractTypes) {
+          throw err;
+        }
+        this.logger?.error(err);
         return new ExternalPriceFeedContract(this.sdk, data);
+      }
     }
   }
 }
