@@ -5,11 +5,11 @@ import { AbstractPriceFeedContract } from "./AbstractPriceFeed.js";
 
 type abi = typeof chainlinkReadableAggregatorAbi;
 
-export class ChainlinkPriceFeedContract extends AbstractPriceFeedContract<abi> {
+export class ExternalPriceFeedContract extends AbstractPriceFeedContract<abi> {
   constructor(sdk: GearboxSDK, args: PartialPriceFeedTreeNode) {
     super(sdk, {
       ...args,
-      name: "ChainlinkPriceFeed",
+      name: "ExternalPriceFeed",
       abi: chainlinkReadableAggregatorAbi,
     });
   }

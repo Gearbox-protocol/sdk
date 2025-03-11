@@ -23,12 +23,12 @@ import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed.js";
 import { BalancerStablePriceFeedContract } from "./BalancerStablePriceFeed.js";
 import { BalancerWeightedPriceFeedContract } from "./BalancerWeightedPriceFeed.js";
 import { BoundedPriceFeedContract } from "./BoundedPriceFeed.js";
-import { ChainlinkPriceFeedContract } from "./ChainlinkPriceFeed.js";
 import { CompositePriceFeedContract } from "./CompositePriceFeed.js";
 import { CurveCryptoPriceFeedContract } from "./CurveCryptoPriceFeed.js";
 import { CurveStablePriceFeedContract } from "./CurveStablePriceFeed.js";
 import { CurveUSDPriceFeedContract } from "./CurveUSDPriceFeed.js";
 import { Erc4626PriceFeedContract } from "./Erc4626PriceFeed.js";
+import { ExternalPriceFeedContract } from "./ExternalPriceFeed.js";
 import { MellowLRTPriceFeedContract } from "./MellowLRTPriceFeed.js";
 import { PendleTWAPPTPriceFeed } from "./PendleTWAPPTPriceFeed.js";
 import { RedstonePriceFeedContract } from "./RedstonePriceFeed.js";
@@ -242,7 +242,7 @@ export class PriceFeedRegister
 
     switch (contractType) {
       case "PRICE_FEED::EXTERNAL":
-        return new ChainlinkPriceFeedContract(this.sdk, data);
+        return new ExternalPriceFeedContract(this.sdk, data);
 
       case "PRICE_FEED::YEARN":
         return new YearnPriceFeedContract(this.sdk, data);
@@ -287,7 +287,10 @@ export class PriceFeedRegister
         return new PendleTWAPPTPriceFeed(this.sdk, data);
 
       default:
-        throw new Error(`Price feed type ${contractType} not supported, `);
+        this.logger?.error(
+          `Price feed type ${contractType} not supported for price feed at ${data.baseParams.addr}`,
+        );
+        return new ExternalPriceFeedContract(this.sdk, data);
     }
   }
 }
