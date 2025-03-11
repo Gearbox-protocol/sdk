@@ -30,7 +30,7 @@ import { rawTxToMulticallPriceUpdate } from "../market/index.js";
 import {
   type Asset,
   assetsMap,
-  type CreditAccountDataSlice,
+  type RouterCASlice,
   type RouterCloseResult,
 } from "../router/index.js";
 import type { ILogger, MultiCall, RawTx } from "../types/index.js";
@@ -75,7 +75,7 @@ type CloseOptions = "close" | "zeroDebt";
 
 interface CloseCreditAccountProps {
   operation: CloseOptions;
-  creditAccount: CreditAccountDataSlice;
+  creditAccount: RouterCASlice;
   assetsToWithdraw: Array<Address>;
   to: Address;
   slippage?: bigint;
@@ -89,7 +89,7 @@ interface RepayCreditAccountProps extends RepayAndLiquidateCreditAccountProps {
 interface RepayAndLiquidateCreditAccountProps {
   collateralAssets: Array<Asset>;
   assetsToWithdraw: Array<Address>;
-  creditAccount: CreditAccountDataSlice;
+  creditAccount: RouterCASlice;
   to: Address;
   permits: Record<string, PermitResult>;
 }
@@ -100,31 +100,31 @@ interface PrepareUpdateQuotasProps {
 }
 
 interface UpdateQuotasProps extends PrepareUpdateQuotasProps {
-  creditAccount: CreditAccountDataSlice;
+  creditAccount: RouterCASlice;
 }
 
 interface AddCollateralProps extends PrepareUpdateQuotasProps {
   asset: Asset;
   ethAmount: bigint;
   permit: PermitResult | undefined;
-  creditAccount: CreditAccountDataSlice;
+  creditAccount: RouterCASlice;
 }
 
 interface WithdrawCollateralProps extends PrepareUpdateQuotasProps {
   assetsToWithdraw: Array<Asset>;
   to: Address;
-  creditAccount: CreditAccountDataSlice;
+  creditAccount: RouterCASlice;
 }
 
 interface ExecuteSwapProps extends PrepareUpdateQuotasProps {
   calls: Array<MultiCall>;
-  creditAccount: CreditAccountDataSlice;
+  creditAccount: RouterCASlice;
 }
 
 export interface ClaimFarmRewardsProps extends PrepareUpdateQuotasProps {
   tokensToDisable: Array<Asset>;
   calls: Array<MultiCall>;
-  creditAccount: CreditAccountDataSlice;
+  creditAccount: RouterCASlice;
 }
 
 export interface OpenCAProps extends PrepareUpdateQuotasProps {
@@ -142,7 +142,7 @@ export interface OpenCAProps extends PrepareUpdateQuotasProps {
 }
 
 interface ChangeDeptProps {
-  creditAccount: CreditAccountDataSlice;
+  creditAccount: RouterCASlice;
   amount: bigint;
 }
 
@@ -373,7 +373,7 @@ export class CreditAccountsService extends SDKConstruct {
    * @returns
    */
   public async fullyLiquidate(
-    account: CreditAccountDataSlice,
+    account: RouterCASlice,
     to: Address,
     slippage = 50n,
   ): Promise<CloseCreditAccountResult> {
@@ -809,7 +809,7 @@ export class CreditAccountsService extends SDKConstruct {
    * @returns
    */
   public async getUpdateForAccounts(
-    accounts: Array<CreditAccountDataSlice>,
+    accounts: Array<RouterCASlice>,
   ): Promise<UpdatePriceFeedsResult> {
     // for each market, using pool address as key, gather tokens to update and find PriceFeedFactories
     const tokensByPool = new Map<Address, Set<Address>>();
@@ -841,7 +841,7 @@ export class CreditAccountsService extends SDKConstruct {
 
   public async getUpdateForAccount(
     creditManager: Address,
-    creditAccount: CreditAccountDataSlice | undefined,
+    creditAccount: RouterCASlice | undefined,
     desiredQuotas: Array<Asset> | undefined,
   ): Promise<UpdatePriceFeedsResult> {
     // for each market, using pool address as key, gather tokens to update and find PriceFeedFactories
@@ -917,7 +917,7 @@ export class CreditAccountsService extends SDKConstruct {
    */
   public async getOnDemandPriceUpdates(
     creditManager: Address,
-    creditAccount: CreditAccountDataSlice | undefined,
+    creditAccount: RouterCASlice | undefined,
     desiredQuotas: Array<Asset> | undefined,
   ): Promise<Array<OnDemandPriceUpdate>> {
     const market = this.sdk.marketRegister.findByCreditManager(creditManager);
@@ -944,7 +944,7 @@ export class CreditAccountsService extends SDKConstruct {
    */
   public async getPriceUpdatesForFacade(
     creditManager: Address,
-    creditAccount: CreditAccountDataSlice | undefined,
+    creditAccount: RouterCASlice | undefined,
     desiredQuotas: Array<Asset> | undefined,
   ): Promise<Array<MultiCall>> {
     const cm = this.sdk.marketRegister.findCreditManager(creditManager);
@@ -956,7 +956,7 @@ export class CreditAccountsService extends SDKConstruct {
     return cm.creditFacade.encodeOnDemandPriceUpdates(updates);
   }
 
-  #prepareDisableQuotas(ca: CreditAccountDataSlice): Array<MultiCall> {
+  #prepareDisableQuotas(ca: RouterCASlice): Array<MultiCall> {
     const calls: Array<MultiCall> = [];
     for (const { token, quota } of ca.tokens) {
       if (quota > 0n) {
@@ -996,7 +996,7 @@ export class CreditAccountsService extends SDKConstruct {
     return calls;
   }
 
-  #prepareDecreaseDebt(ca: CreditAccountDataSlice): Array<MultiCall> {
+  #prepareDecreaseDebt(ca: RouterCASlice): Array<MultiCall> {
     if (ca.debt > 0n) {
       return [
         {
@@ -1012,7 +1012,7 @@ export class CreditAccountsService extends SDKConstruct {
     return [];
   }
 
-  #prepareDisableTokens(ca: CreditAccountDataSlice): Array<MultiCall> {
+  #prepareDisableTokens(ca: RouterCASlice): Array<MultiCall> {
     const calls: Array<MultiCall> = [];
     for (const t of ca.tokens) {
       if (

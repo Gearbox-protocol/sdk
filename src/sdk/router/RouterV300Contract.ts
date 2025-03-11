@@ -2,20 +2,25 @@ import { type Address, encodeFunctionData, getContract } from "viem";
 
 import { iRouterV300Abi, iSwapperV300Abi } from "../../abi/routerV300.js";
 import { iCreditFacadeV300MulticallAbi } from "../../abi/v300.js";
-import { BaseContract } from "../base/index.js";
-import type { CreditAccountData } from "../base/types.js";
 import { PERCENTAGE_FACTOR } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import { getConnectors } from "../sdk-gov-legacy/index.js";
-import { AddressMap } from "../utils/index.js";
-import type { IHooks } from "../utils/internal/index.js";
-import { Hooks } from "../utils/internal/index.js";
+import type { Leftovers } from "./AbstractRouterContract.js";
+import { AbstractRouterContract } from "./AbstractRouterContract.js";
+import { assetsMap, balancesMap, compareRouterResults } from "./helpers.js";
 import { PathOptionFactory } from "./PathOptionFactory.js";
 import type {
   Asset,
+  FindAllSwapsProps,
+  FindBestClosePathProps,
+  FindClosePathInput,
+  FindOneTokenPathProps,
+  FindOpenStrategyPathProps,
+  IRouterContract,
   OpenStrategyResult,
-  PathOptionSerie,
+  RouterCASlice,
   RouterCloseResult,
+  RouterCMSlice,
   RouterResult,
   SwapOperation,
   SwapTask,
@@ -36,86 +41,6 @@ const SWAP_OPERATIONS: Record<SwapOperation, number> = {
 
 type abi = typeof iRouterV300Abi;
 
-interface FindAllSwapsProps {
-  creditAccount: CreditAccountDataSlice;
-  creditManager: CreditManagerSlice;
-  swapOperation: SwapOperation;
-  tokenIn: Address;
-  tokenOut: Address;
-  amount: bigint;
-  leftoverAmount: bigint;
-  slippage: number | bigint;
-}
-
-interface FindOneTokenPathProps {
-  creditAccount: CreditAccountDataSlice;
-  creditManager: CreditManagerSlice;
-  tokenIn: Address;
-  tokenOut: Address;
-  amount: bigint;
-  slippage: number | bigint;
-}
-
-interface FindOpenStrategyPathProps {
-  creditManager: CreditManagerSlice;
-  expectedBalances: Array<Asset>;
-  leftoverBalances: Array<Asset>;
-  target: Address;
-  slippage: number | bigint;
-}
-
-interface FindBestClosePathProps {
-  creditAccount: CreditAccountDataSlice;
-  creditManager: CreditManagerSlice;
-  slippage: bigint | number;
-  balances?: ClosePathBalances;
-}
-
-export interface FindClosePathInput {
-  pathOptions: Array<PathOptionSerie>;
-  expected: Array<Asset>;
-  leftover: Array<Asset>;
-  connectors: Array<Address>;
-}
-
-export interface ClosePathBalances {
-  expectedBalances: Array<Asset>;
-  leftoverBalances: Array<Asset>;
-}
-
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type RouterHooks = {
-  /**
-   * Internal router event
-   */
-  foundPathOptions: [{ creditAccount: Address } & FindClosePathInput];
-};
-
-/**
- * Slice of credit manager data required for router operations
- */
-interface CreditManagerSlice {
-  address: Address;
-  creditFacade: Address;
-  collateralTokens: Array<Address>;
-}
-
-interface Leftovers {
-  expectedBalances: AddressMap<Asset>;
-  leftoverBalances: AddressMap<Asset>;
-}
-
-export type CreditAccountDataSlice = Pick<
-  CreditAccountData,
-  | "tokens"
-  | "enabledTokensMask"
-  | "underlying"
-  | "creditAccount"
-  | "creditFacade"
-  | "debt"
-  | "creditManager"
->;
-
 const PT_IN = {
   ["0xEe9085fC268F6727d5D4293dBABccF901ffDCC29".toLowerCase()]:
     "PT_sUSDe_26DEC2024",
@@ -130,11 +55,10 @@ const OUT = {
 };
 
 export class RouterV300Contract
-  extends BaseContract<abi>
-  implements IHooks<RouterHooks>
+  extends AbstractRouterContract<abi>
+  implements IRouterContract
 {
   readonly #connectors: Array<Address>;
-  readonly #hooks = new Hooks<RouterHooks>();
 
   constructor(sdk: GearboxSDK, address: Address) {
     super(sdk, {
@@ -144,9 +68,6 @@ export class RouterV300Contract
     });
     this.#connectors = getConnectors(sdk.provider.networkType);
   }
-
-  public addHook = this.#hooks.addHook.bind(this.#hooks);
-  public removeHook = this.#hooks.removeHook.bind(this.#hooks);
 
   /**
    * Finds all available swaps for NORMAL tokens
@@ -346,7 +267,7 @@ export class RouterV300Contract
             }
           : undefined,
       );
-    await this.#hooks.triggerHooks("foundPathOptions", {
+    await this.hooks.triggerHooks("foundPathOptions", {
       creditAccount: ca.creditAccount,
       pathOptions,
       expected,
@@ -406,12 +327,15 @@ export class RouterV300Contract
    * @returns
    */
   public getFindClosePathInput(
-    ca: CreditAccountDataSlice,
-    cm: CreditManagerSlice,
+    ca: RouterCASlice,
+    cm: RouterCMSlice,
     balances?: Leftovers,
   ): FindClosePathInput {
-    const b = balances || this.#getDefaultExpectedAndLeftover(ca);
-    const { leftoverBalances, expectedBalances } = b;
+    const { expectedBalances, leftoverBalances } = this.getExpectedAndLeftover(
+      ca,
+      cm,
+      balances,
+    );
 
     // TODO: PathOptionFactory deals with token data from SDK
     // it needs to accept market data
@@ -421,24 +345,13 @@ export class RouterV300Contract
       LOOPS_PER_TX,
     );
 
-    const expected: Array<Asset> = cm.collateralTokens.map(token => {
-      // When we pass expected balances explicitly, we need to mimic router behaviour by filtering out leftover tokens
-      // for example, we can have stETH balance of 2, because 1 transforms to 2 because of rebasing
-      // https://github.com/Gearbox-protocol/router-v3/blob/c230a3aa568bb432e50463cfddc877fec8940cf5/contracts/RouterV3.sol#L222
-      const actual = expectedBalances.get(token)?.balance || 0n;
-      return {
-        token,
-        balance: actual > 10n ? actual : 0n,
-      };
-    });
-
-    const leftover: Array<Asset> = cm.collateralTokens.map(token => ({
-      token: token,
-      balance: leftoverBalances.get(token)?.balance || 1n,
-    }));
-
     const connectors = this.getAvailableConnectors(cm.collateralTokens);
-    return { expected, leftover, connectors, pathOptions };
+    return {
+      expected: expectedBalances.values(),
+      leftover: leftoverBalances.values(),
+      connectors,
+      pathOptions,
+    };
   }
 
   public getAvailableConnectors(
@@ -447,25 +360,6 @@ export class RouterV300Contract
     return collateralTokens.filter(t =>
       this.#connectors.includes(t.toLowerCase() as Address),
     );
-  }
-
-  #getDefaultExpectedAndLeftover(ca: CreditAccountDataSlice): Leftovers {
-    const expectedBalances = new AddressMap<Asset>();
-    const leftoverBalances = new AddressMap<Asset>();
-    for (const { token: t, balance, mask } of ca.tokens) {
-      const token = t as Address;
-      const isEnabled = (mask & ca.enabledTokensMask) !== 0n;
-      expectedBalances.upsert(token, { token, balance });
-      const decimals = this.sdk.tokensMeta.decimals(token);
-      // filter out dust, we don't want to swap it
-      const minBalance = 10n ** BigInt(Math.max(8, decimals) - 8);
-      // also: gearbox liquidator does not need to swap disabled tokens. third-party liquidators might want to do it
-      if (balance < minBalance || !isEnabled) {
-        leftoverBalances.upsert(token, { token, balance });
-      }
-    }
-
-    return { expectedBalances, leftoverBalances };
   }
 
   // TODO: remove me when new router will be added
@@ -547,18 +441,4 @@ export class RouterV300Contract
       },
     };
   }
-}
-
-function compareRouterResults(a: RouterResult, b: RouterResult): RouterResult {
-  return a.amount > b.amount ? a : b;
-}
-
-export function balancesMap(assets: Array<Asset>): AddressMap<bigint> {
-  return new AddressMap(assets.map(({ token, balance }) => [token, balance]));
-}
-
-export function assetsMap<T extends Asset>(
-  assets: Array<T> | readonly T[],
-): AddressMap<T> {
-  return new AddressMap(assets.map(a => [a.token, a]));
 }
