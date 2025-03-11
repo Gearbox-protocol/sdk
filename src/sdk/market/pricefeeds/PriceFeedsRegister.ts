@@ -31,6 +31,7 @@ import { Erc4626PriceFeedContract } from "./Erc4626PriceFeed.js";
 import { ExternalPriceFeedContract } from "./ExternalPriceFeed.js";
 import { MellowLRTPriceFeedContract } from "./MellowLRTPriceFeed.js";
 import { PendleTWAPPTPriceFeed } from "./PendleTWAPPTPriceFeed.js";
+import { PythPriceFeed } from "./PythPriceFeed.js";
 import { RedstonePriceFeedContract } from "./RedstonePriceFeed.js";
 import { RedstoneUpdater } from "./RedstoneUpdater.js";
 import type {
@@ -241,17 +242,11 @@ export class PriceFeedRegister
     ) as PriceFeedContractType;
 
     switch (contractType) {
-      case "PRICE_FEED::EXTERNAL":
-        return new ExternalPriceFeedContract(this.sdk, data);
+      case "PRICE_FEED::BALANCER_STABLE":
+        return new BalancerStablePriceFeedContract(this.sdk, data);
 
-      case "PRICE_FEED::YEARN":
-        return new YearnPriceFeedContract(this.sdk, data);
-
-      case "PRICE_FEED::CURVE_STABLE":
-        return new CurveStablePriceFeedContract(this.sdk, data);
-
-      case "PRICE_FEED::WSTETH":
-        return new WstETHPriceFeedContract(this.sdk, data);
+      case "PRICE_FEED::BALANCER_WEIGHTED":
+        return new BalancerWeightedPriceFeedContract(this.sdk, data);
 
       case "PRICE_FEED::BOUNDED":
         return new BoundedPriceFeedContract(this.sdk, data);
@@ -259,32 +254,41 @@ export class PriceFeedRegister
       case "PRICE_FEED::COMPOSITE":
         return new CompositePriceFeedContract(this.sdk, data);
 
-      case "PRICE_FEED::BALANCER_STABLE":
-        return new BalancerStablePriceFeedContract(this.sdk, data);
-
-      case "PRICE_FEED::BALANCER_WEIGHTED":
-        return new BalancerWeightedPriceFeedContract(this.sdk, data);
-
       case "PRICE_FEED::CURVE_CRYPTO":
         return new CurveCryptoPriceFeedContract(this.sdk, data);
 
-      case "PRICE_FEED::REDSTONE":
-        return new RedstonePriceFeedContract(this.sdk, data);
-
-      case "PRICE_FEED::ERC4626":
-        return new Erc4626PriceFeedContract(this.sdk, data);
+      case "PRICE_FEED::CURVE_STABLE":
+        return new CurveStablePriceFeedContract(this.sdk, data);
 
       case "PRICE_FEED::CURVE_USD":
         return new CurveUSDPriceFeedContract(this.sdk, data);
 
-      case "PRICE_FEED::ZERO":
-        return new ZeroPriceFeedContract(this.sdk, data);
+      case "PRICE_FEED::ERC4626":
+        return new Erc4626PriceFeedContract(this.sdk, data);
+
+      case "PRICE_FEED::EXTERNAL":
+        return new ExternalPriceFeedContract(this.sdk, data);
 
       case "PRICE_FEED::MELLOW_LRT":
         return new MellowLRTPriceFeedContract(this.sdk, data);
 
       case "PRICE_FEED::PENDLE_PT_TWAP":
         return new PendleTWAPPTPriceFeed(this.sdk, data);
+
+      case "PRICE_FEED::PYTH":
+        return new PythPriceFeed(this.sdk, data);
+
+      case "PRICE_FEED::REDSTONE":
+        return new RedstonePriceFeedContract(this.sdk, data);
+
+      case "PRICE_FEED::WSTETH":
+        return new WstETHPriceFeedContract(this.sdk, data);
+
+      case "PRICE_FEED::YEARN":
+        return new YearnPriceFeedContract(this.sdk, data);
+
+      case "PRICE_FEED::ZERO":
+        return new ZeroPriceFeedContract(this.sdk, data);
 
       default:
         this.logger?.error(

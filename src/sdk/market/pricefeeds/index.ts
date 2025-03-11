@@ -12,6 +12,7 @@ export * from "./MellowLRTPriceFeed.js";
 export * from "./PendleTWAPPTPriceFeed.js";
 export * from "./PriceFeedRef.js";
 export * from "./PriceFeedsRegister.js";
+export * from "./PythPriceFeed.js";
 export * from "./RedstonePriceFeed.js";
 export * from "./types.js";
 export * from "./utils.js";
