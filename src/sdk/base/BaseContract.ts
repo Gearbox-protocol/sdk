@@ -140,10 +140,23 @@ export abstract class BaseContract<abi extends Abi | readonly unknown[]>
 
   /**
    * Converts contract calldata to some human-friendly string
+   * This is safe function which should not throw
    * @param calldata
    * @returns
    */
   public parseFunctionData(calldata: Hex): string {
+    try {
+      return this.mustParseFunctionData(calldata);
+    } catch (e) {
+      const selector = calldata.slice(0, 10);
+      this.logger?.warn(
+        `error parsing function with selector ${selector} in ${this.name} v${this.version} at ${this.address}: ${e}`,
+      );
+      return `unknown: ${this.labelAddress(this.address)}.${selector}`;
+    }
+  }
+
+  public mustParseFunctionData(calldata: Hex): string {
     const decoded = decodeFunctionData({
       abi: this.abi,
       data: calldata,

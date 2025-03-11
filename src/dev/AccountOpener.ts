@@ -305,7 +305,7 @@ export class AccountOpener extends SDKConstruct {
     const depositor = await this.#createAccount();
     this.#logger?.debug(`created depositor ${depositor.address}`);
 
-    await this.#claimFromFaucet(depositor, totalUSD);
+    await this.#claimFromFaucet(depositor, "depositor", totalUSD);
 
     for (const [pool, amount] of deposits) {
       try {
@@ -401,7 +401,7 @@ export class AccountOpener extends SDKConstruct {
     }
     claimUSD = (claimUSD * 11n) / 10n; // 10% more to be safe
 
-    await this.#claimFromFaucet(borrower, claimUSD);
+    await this.#claimFromFaucet(borrower, "borrower", claimUSD);
 
     for (const [degenNFT, amount] of Object.entries(degenNFTS)) {
       await this.#mintDegenNft(degenNFT as Address, borrower.address, amount);
@@ -412,11 +412,16 @@ export class AccountOpener extends SDKConstruct {
 
   async #claimFromFaucet(
     claimer: PrivateKeyAccount,
+    role: string,
     amountUSD: bigint,
   ): Promise<void> {
     const [usr, amnt] = [claimer.address, formatBN(amountUSD, 8)];
 
-    this.#logger?.debug(`account ${usr} claiming ${amnt} USD from faucet`);
+    this.#logger?.debug(`${role} ${usr} claiming ${amnt} USD from faucet`);
+    if (amountUSD === 0n) {
+      this.#logger?.debug("amount is 0, skipping claim");
+      return;
+    }
     const hash = await this.#anvil.writeContract({
       account: claimer,
       address: this.#faucet,
@@ -440,11 +445,11 @@ export class AccountOpener extends SDKConstruct {
     });
     if (receipt.status === "reverted") {
       throw new Error(
-        `account ${usr} failed to claimed equivalent of ${amnt} USD from faucet, tx: ${hash}`,
+        `${role} ${usr} failed to claimed equivalent of ${amnt} USD from faucet, tx: ${hash}`,
       );
     }
     this.#logger?.debug(
-      `account ${usr} claimed equivalent of ${amnt} USD from faucet, tx: ${hash}`,
+      `${role} ${usr} claimed equivalent of ${amnt} USD from faucet, tx: ${hash}`,
     );
   }
 
