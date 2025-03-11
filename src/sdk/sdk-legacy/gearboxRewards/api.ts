@@ -2,6 +2,8 @@ import axios from "axios";
 import type { Address, PublicClient, WalletClient } from "viem";
 import { getAddress, getContract } from "viem";
 
+import { iAirdropDistributorAbi } from "../../../abi/iAirdropDistributor.js";
+import { iFarmingPoolAbi } from "../../../abi/iFarmingPool.js";
 import type { NetworkType } from "../../chain/index.js";
 import { chains } from "../../chain/index.js";
 import { MULTICALL_ADDRESS } from "../../constants/index.js";
@@ -10,7 +12,6 @@ import { toBigInt, TypedObjectUtils } from "../../utils/index.js";
 import { GearboxBackendApi } from "../core/endpoint.js";
 import type { PoolData_Legacy } from "../core/pool.js";
 import type { TokenData } from "../tokens/tokenData.js";
-import { iAirdropDistributorAbi, iFarmingPoolAbi } from "../types/index.js";
 import { BigIntMath } from "../utils/math.js";
 import type { ExtraRewardApy } from "./apy.js";
 import type {

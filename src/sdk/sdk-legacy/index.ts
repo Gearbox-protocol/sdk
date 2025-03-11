@@ -17,5 +17,4 @@ export * from "./payload/graphPayload.js";
 export * from "./payload/pool.js";
 export * from "./payload/token.js";
 export * from "./tokens/tokenData.js";
-export * from "./types/index.js";
 export * from "./utils/index.js";

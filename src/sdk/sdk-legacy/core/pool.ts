@@ -1,6 +1,7 @@
 import type { Address, PublicClient } from "viem";
 import { getContract } from "viem";
 
+import { iInterestRateModelAbi } from "../../../abi/iInterestRateModel.js";
 import {
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
@@ -13,7 +14,6 @@ import type {
   PoolDataPayload,
   UserPoolPayload,
 } from "../payload/pool.js";
-import { iInterestRateModelAbi } from "../types/index.js";
 import { rayToNumber } from "../utils/formatter.js";
 
 export type PoolType = "universal" | "trade" | "farm";
