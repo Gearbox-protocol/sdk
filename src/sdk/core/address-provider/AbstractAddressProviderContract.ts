@@ -47,16 +47,16 @@ export default abstract class AbstractAddressProviderContract<
     return result;
   }
 
-  public getLatestVersion(contract: string): Address {
-    if (!this.#latest[contract]) {
+  public getLatestVersion(
+    contract: string,
+  ): [address: Address, version: number] {
+    const version = this.#latest[contract];
+    if (!version) {
       throw new Error(`Latest version for ${contract} not found`);
     }
+    this.logger?.debug(`Latest version found for ${contract} : ${version}`);
 
-    this.logger?.debug(
-      `Latest version found for ${contract} : ${this.#latest[contract]}`,
-    );
-
-    return this.getAddress(contract, this.#latest[contract]);
+    return [this.getAddress(contract, version), version];
   }
 
   public get state(): AddressProviderState {

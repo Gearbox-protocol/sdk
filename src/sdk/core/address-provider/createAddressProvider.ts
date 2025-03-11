@@ -9,15 +9,15 @@ import type {
   IAddressProviderContract,
 } from "./types.js";
 
-export interface GetAddressProviderOptions {
+export interface CreateAddressProviderOptions {
   version?: number;
   state?: AddressProviderState;
 }
 
-export async function getAddressProvider(
+export async function createAddressProvider(
   sdk: GearboxSDK,
   address: Address,
-  options?: GetAddressProviderOptions,
+  options?: CreateAddressProviderOptions,
 ): Promise<IAddressProviderContract> {
   const addr = options?.state?.baseParams.addr ?? address;
   let v = options?.state?.baseParams.version ?? options?.version;

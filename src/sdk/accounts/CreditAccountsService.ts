@@ -175,7 +175,7 @@ export class CreditAccountsService extends SDKConstruct {
 
   constructor(sdk: GearboxSDK, options?: CreditAccountServiceOptions) {
     super(sdk);
-    this.#compressor = sdk.addressProvider.getLatestVersion(
+    [this.#compressor] = sdk.addressProvider.getLatestVersion(
       AP_CREDIT_ACCOUNT_COMPRESSOR,
     );
     this.#batchSize = options?.batchSize;
@@ -1131,10 +1131,12 @@ export class CreditAccountsService extends SDKConstruct {
   }
 
   private get rewardCompressor(): Address {
-    return this.sdk.addressProvider.getLatestVersion(AP_REWARDS_COMPRESSOR);
+    return this.sdk.addressProvider.getLatestVersion(AP_REWARDS_COMPRESSOR)[0];
   }
 
   private get peripheryCompressor(): Address {
-    return this.sdk.addressProvider.getLatestVersion(AP_PERIPHERY_COMPRESSOR);
+    return this.sdk.addressProvider.getLatestVersion(
+      AP_PERIPHERY_COMPRESSOR,
+    )[0];
   }
 }

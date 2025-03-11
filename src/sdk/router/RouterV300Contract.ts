@@ -124,7 +124,7 @@ const OUT = {
   ["0x9D39A5DE30e57443BfF2A8307A4256c8797A3497".toLowerCase()]: "sUSDe",
 };
 
-export class RouterV3Contract
+export class RouterV300Contract
   extends BaseContract<abi>
   implements IHooks<RouterHooks>
 {
@@ -134,7 +134,7 @@ export class RouterV3Contract
   constructor(sdk: GearboxSDK, address: Address) {
     super(sdk, {
       addr: address,
-      name: "RouterV3",
+      name: "RouterV300",
       abi: iRouterV300Abi,
     });
     this.#connectors = getConnectors(sdk.provider.networkType);
@@ -482,7 +482,7 @@ export class RouterV3Contract
   public getFindClosePathInput(
     ca: CreditAccountDataSlice,
     cm: CreditManagerSlice,
-    balances?: ReturnType<RouterV3Contract["getDefaultExpectedAndLeftover"]>,
+    balances?: ReturnType<RouterV300Contract["getDefaultExpectedAndLeftover"]>,
   ): FindClosePathInput {
     const b = balances || this.getDefaultExpectedAndLeftover(ca);
     const { leftoverBalances, expectedBalances } = b;

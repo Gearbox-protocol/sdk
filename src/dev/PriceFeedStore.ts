@@ -36,7 +36,7 @@ export class PriceFeedStore extends SDKConstruct {
   constructor(sdk: GearboxSDK) {
     super(sdk);
     this.#store = this.sdk.addressProvider.getAddress("PRICE_FEED_STORE");
-    this.#compressor = this.sdk.addressProvider.getLatestVersion(
+    [this.#compressor] = this.sdk.addressProvider.getLatestVersion(
       AP_PRICE_FEED_COMPRESSOR,
     );
     this.#logger = sdk.logger?.child?.({

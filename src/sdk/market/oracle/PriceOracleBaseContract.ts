@@ -247,12 +247,13 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
         ),
       );
     }
+    const [address] = this.sdk.addressProvider.getLatestVersion(
+      AP_PRICE_FEED_COMPRESSOR,
+    );
     return {
       call: {
         abi: iPriceFeedCompressorAbi,
-        address: this.sdk.addressProvider.getLatestVersion(
-          AP_PRICE_FEED_COMPRESSOR,
-        ),
+        address,
         functionName: "getPriceFeeds",
         args,
       },

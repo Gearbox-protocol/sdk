@@ -14,19 +14,19 @@ import {
   AP_BOT_LIST,
   AP_GEAR_STAKING,
   AP_GEAR_TOKEN,
-  AP_ROUTER,
   NO_VERSION,
 } from "./constants/index.js";
 import type { IAddressProviderContract } from "./core/index.js";
 import {
   BotListContract,
+  createAddressProvider,
   GearStakingContract,
-  getAddressProvider,
 } from "./core/index.js";
 import { MarketRegister } from "./market/MarketRegister.js";
 import { PriceFeedRegister } from "./market/pricefeeds/index.js";
 import type { IGearboxSDKPlugin } from "./plugins/index.js";
-import { RouterV3Contract } from "./router/index.js";
+import type { RouterV300Contract } from "./router/index.js";
+import { createRouter } from "./router/index.js";
 import type {
   GearboxState,
   GearboxStateHuman,
@@ -125,7 +125,7 @@ export class GearboxSDK {
   #marketRegister?: MarketRegister;
 
   // Router contract
-  #router?: RouterV3Contract;
+  #router?: RouterV300Contract;
 
   public readonly logger?: ILogger;
   public readonly plugins: ReadonlyArray<IGearboxSDKPlugin>;
@@ -258,7 +258,7 @@ export class GearboxSDK {
       },
       "attaching",
     );
-    this.#addressProvider = await getAddressProvider(this, addressProvider);
+    this.#addressProvider = await createAddressProvider(this, addressProvider);
     this.logger?.debug(
       `address provider version: ${this.#addressProvider.version}`,
     );
@@ -289,8 +289,7 @@ export class GearboxSDK {
     );
 
     try {
-      const router = this.#addressProvider.getLatestVersion(AP_ROUTER);
-      this.#router = new RouterV3Contract(this, router);
+      this.#router = createRouter(this);
     } catch (e) {
       this.logger?.warn("Router not found", e);
     }
@@ -489,7 +488,7 @@ export class GearboxSDK {
     return this.#marketRegister;
   }
 
-  public get router(): RouterV3Contract {
+  public get router(): RouterV300Contract {
     if (this.#router === undefined) {
       throw new Error("Gearbox SDK not attached");
     }
