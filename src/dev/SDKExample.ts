@@ -1,7 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 
 import type { Address } from "viem";
-import { isAddress, parseEther, stringToHex } from "viem";
+import { formatEther, isAddress, parseEther, stringToHex } from "viem";
 
 import { iAddressProviderV300Abi } from "../abi/v300.js";
 import { iAddressProviderV310Abi } from "../abi/v310.js";
@@ -142,15 +142,27 @@ export class SDKExample {
     await anvil.impersonateAccount({ address: owner });
     await anvil.setBalance({
       address: owner,
-      value: parseEther("100"),
+      value: parseEther("1000"),
     });
+    const balance = await anvil.getBalance({ address: owner });
+    this.#logger?.debug(`owner balance: ${formatEther(balance)} ETH`);
+    const { request } = await anvil.simulateContract({
+      chain: anvil.chain,
+      account: owner,
+      address: addressProvider,
+      abi: iAddressProviderV310Abi,
+      functionName: "setAddress",
+      args: [stringToHex("FAUCET", { size: 32 }), faucetAddr, false],
+    });
+    this.#logger?.debug("estimated setAddress call");
     const hash = await anvil.writeContract({
       chain: anvil.chain,
       account: owner,
       address: addressProvider,
       abi: iAddressProviderV310Abi,
       functionName: "setAddress",
-      args: [stringToHex("FAUCET", { size: 32 }), faucetAddr, true],
+      args: [stringToHex("FAUCET", { size: 32 }), faucetAddr, false],
+      gas: request.gas ? (request.gas * 11n) / 10n : undefined,
     });
     const receipt = await anvil.waitForTransactionReceipt({ hash });
     await anvil.stopImpersonatingAccount({ address: owner });
