@@ -382,7 +382,8 @@ export class CreditAccountsService extends SDKConstruct {
 
   /**
    * Method to get all connected bots for credit account
-   * @param {Array<{ creditAccount: Address; creditManager: Address }>} accountsToCheck - list of credit accounts to check connected bots on
+   * @param {Array<{ creditAccount: Address; creditManager: Address }>} accountsToCheck - list of credit accounts 
+      and their credit managers to check connected bots on
    * @returns call result of getConnectedBots for each credit account
    */
   async getConnectedBots(
@@ -441,16 +442,16 @@ export class CreditAccountsService extends SDKConstruct {
 
   /**
    * Closes credit account or closes credit account and keeps it open with zero debt.
-      Ca is closed in the following order: price update -> close path to swap all tokens into underlying -> 
+     - Ca is closed in the following order: price update -> close path to swap all tokens into underlying -> 
        -> disable quotas of exiting tokens -> decrease debt -> disable exiting tokens tokens -> withdraw underlying tokenz
    * @param {CloseOptions} operation - {@link CloseOptions}: close or zeroDebt
-   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice}
+   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice} on which operation is performed
    * @param {Array<Address>} assetsToWithdraw - tokens to withdraw from credit account. 
       For credit account closing this is the underlying token, because during the closure, 
       all tokens on account are swapped into the underlying, 
       and only the underlying token will remain on the credit account
    * @param {Address} to - Wallet address to withdraw underlying to
-   * @param {number} slippage  - SLIPPAGE_DECIMALS = 100n 
+   * @param {number} slippage  - Slippage in PERCENTAGE_FORMAT (100% = 10_000) per operation
    * @default 50n
    * @param {RouterCloseResult | undefined} closePath - result of findBestClosePath method from router; if omited, calls marketRegister.findCreditManager {@link RouterCloseResult}
    * @returns All necessary data to execute the transaction (call, credit facade)
@@ -499,10 +500,10 @@ export class CreditAccountsService extends SDKConstruct {
 
   /**
    * Fully repays credit account or repays credit account and keeps it open with zero debt
-      Repays in the following order: price update -> add collateral to cover the debt -> 
+     - Repays in the following order: price update -> add collateral to cover the debt -> 
       -> disable quotas for all tokens -> decrease debt -> disable tokens all tokens -> withdraw all tokens
    * @param {CloseOptions} operation - {@link CloseOptions}: close or zeroDebt
-   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice}
+   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice} on which operation is performed on which operation is performed
    * @param {Array<Address>} collateralAssets - tokens to repay dept. 
       In the current implementation, this is the (debt+interest+fess) * buffer, 
       where buffer refers to amount of tokens which will exceed current debt 
@@ -562,9 +563,9 @@ export class CreditAccountsService extends SDKConstruct {
 
   /**
    * Fully repays liquidatable account
-      Repay and liquidate is executed in the following order: price update -> add collateral to cover the debt -> 
+     - Repay and liquidate is executed in the following order: price update -> add collateral to cover the debt -> 
       withdraw all tokens from credit account
-   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice}
+   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice} on which operation is performed
    * @param {Array<Address>} collateralAssets - tokens to repay dept. 
       In the current implementation, this is the (debt+interest+fess) * buffer, 
       where buffer refers to amount of tokens which will exceed current debt 
@@ -621,8 +622,8 @@ export class CreditAccountsService extends SDKConstruct {
 
   /**
    * Updates quota of credit account.
-      CA quota updated in the following order: price update -> update quotas
-   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice}
+     - CA quota updated in the following order: price update -> update quotas
+   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice} on which operation is performed
    * @param {Array<Asset>} averageQuota - average quota for desired tokens {@link Asset}
    * @param {Array<Asset>} minQuota - minimum quota for desired tokens {@link Asset}
    * @returns All necessary data to execute the transaction (call, credit facade)
@@ -662,8 +663,8 @@ export class CreditAccountsService extends SDKConstruct {
 
   /**
    * Adds a single collateral to credit account and updates quotas
-      Collateral is added in the following order: price update -> add collateral (with permit) -> update quotas
-   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice}
+     - Collateral is added in the following order: price update -> add collateral (with permit) -> update quotas
+   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice} on which operation is performed
    * @param {Array<Asset>} averageQuota - average quota for desired token {@link Asset}
    * @param {Array<Asset>} minQuota - minimum quota for desired token {@link Asset}
    * @param {Asset} asset - asset to add as collateral {@link Asset}
@@ -710,8 +711,8 @@ export class CreditAccountsService extends SDKConstruct {
 
   /**
    * Increases or decreases debt of credit account; debt decrease uses token ON CREDIT ACCOUNT
-      Debt is changed in the following order: price update -> (enables underlying if it was disabled) -> change debt
-   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice}
+     - Debt is changed in the following order: price update -> (enables underlying if it was disabled) -> change debt
+   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice} on which operation is performed
    * @param {bigint} amount - amount to change debt by; 
       0 - prohibited value; 
       negative value for debt decrease; 
@@ -759,8 +760,8 @@ export class CreditAccountsService extends SDKConstruct {
   /**
    * Withdraws a single collateral from credit account to wallet to and updates quotas; 
       technically can withdraw several tokens at once
-      Collateral is withdrawn in the following order: price update -> withdraw token -> update quotas for affected tokens
-   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice}
+     - Collateral is withdrawn in the following order: price update -> withdraw token -> update quotas for affected tokens
+   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice} on which operation is performed
    * @param {Array<Asset>} averageQuota - average quota for desired token {@link Asset}
    * @param {Array<Asset>} minQuota - minimum quota for desired token {@link Asset}
    * @param {Address} to - Wallet address to withdraw token to
@@ -818,8 +819,8 @@ export class CreditAccountsService extends SDKConstruct {
 
   /**
    * Executes swap specified by given calls, update quotas of affected tokens
-      Swap is executed in the following order: price update -> execute swap path -> update quotas
-   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice}
+     - Swap is executed in the following order: price update -> execute swap path -> update quotas
+   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice} on which operation is performed
    * @param {Array<Asset>} averageQuota - average quota for desired token {@link Asset}
    * @param {Array<Asset>} minQuota - minimum quota for desired token {@link Asset}
    * @param {Array<MultiCall>} calls - array of MultiCall from router methods getSingleSwap or getAllSwaps {@link MultiCall}
@@ -859,9 +860,9 @@ export class CreditAccountsService extends SDKConstruct {
 
   /**
    * Executes swap specified by given calls, update quotas of affected tokens
-      Claim rewards is executed in the following order: price update -> execute claim calls -> 
+     - Claim rewards is executed in the following order: price update -> execute claim calls -> 
       -> (optionally: disable reward tokens) -> (optionally: update quotas)
-   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice}
+   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice} on which operation is performed
    * @param {Array<Asset>} averageQuota - average quota for desired token; 
       in this case can be omitted since rewards tokens do not require quotas {@link Asset}
    * @param {Array<Asset>} minQuota - minimum quota for desired token;
@@ -906,13 +907,13 @@ export class CreditAccountsService extends SDKConstruct {
 
   /**
    * Executes swap specified by given calls, update quotas of affected tokens
-      Open credit account is executed in the following order: price update -> increase debt -> add collateral ->
+     - Open credit account is executed in the following order: price update -> increase debt -> add collateral ->
       -> update quotas -> (optionally: execute swap path for trading/strategy) -> 
       -> (optionally: withdraw debt for lending)
-    Basic open credit account: price update -> increase debt -> add collateral -> update quotas
-    Lending: price update -> increase debt -> add collateral -> update quotas -> withdraw debt
-    Strategy/trading: price update -> increase debt -> add collateral -> update quotas -> execute swap path
-    In strategy is possible situation when collateral is added, but not swapped; the only swapped value in this case will be debt
+    - Basic open credit account: price update -> increase debt -> add collateral -> update quotas
+    - Lending: price update -> increase debt -> add collateral -> update quotas -> withdraw debt
+    - Strategy/trading: price update -> increase debt -> add collateral -> update quotas -> execute swap path
+    - In strategy is possible situation when collateral is added, but not swapped; the only swapped value in this case will be debt
    * @param {bigint} ethAmount - native token amount to attach to tx
    * @param {Address} creditManager - address of credit manager to open credit account on
    * @param {Array<Asset>} collateral - array of collateral which can be just directly added or swapped using the path {@link Asset}

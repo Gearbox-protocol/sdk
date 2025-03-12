@@ -70,16 +70,17 @@ export class RouterV300Contract
   }
 
   /**
-   * Finds all available swaps for NORMAL tokens
-   * @param ca
-   * @param cm
-   * @param swapOperation
-   * @param tokenIn
-   * @param tokenOut
-   * @param amount
-   * @param leftoverAmount
-   * @param slippage
-   * @returns
+   * Finds all available swaps for given tokens; technically should be avoided to use, since doesn't have any advantage over findOneTokenPath.
+   * Deduplicates results by minAmount + strigified call path and returns only unique ones.
+   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice} on which operation is performed
+   * @param {RouterCMSlice} creditManager - minimal credit manager data {@link RouterCMSlice} on which operation is performed
+   * @param {SwapOperation} swapOperation - {@link SwapOperation} = "EXACT_INPUT" | "EXACT_INPUT_ALL" | "EXACT_OUTPUT"; however router stopped to support EXACT_OUTPUT
+   * @param {Address} tokenIn - address of input token
+   * @param {Address} tokenOut - address of output token
+   * @param {number | bigint} slippage  - Slippage in PERCENTAGE_FORMAT (100% = 10_000) per operation
+   * @param {bigint} amount - amount of token in to swap
+   * @param {bigint} leftoverAmount - amount that should be left on account after swap; technically equals to 0 in the most of the cases
+   * @returns Array of {@link RouterResult}
    */
   public async findAllSwaps({
     creditAccount: ca,
@@ -128,14 +129,16 @@ export class RouterV300Contract
   }
 
   /**
-   * Finds best path to swap all Normal tokens and tokens "on the way" to target one and vice versa
-   * @param creditAccount
-   * @param creditManager
-   * @param tokenIn
-   * @param tokenOut
-   * @param amount
-   * @param slippage
-   * @returns
+   * Find the best path to swap token A to token B.
+   *  - Connectors - list of tokens which can be used as a token to align path through, for ex. when swapping sUSDe it is good to check swaps through USDe.
+   *  - #overridePTRedeem - if token is PT token and PT token is already redeemable, we need to claim it manually, since old router can't do it. This can work in old app only because you cannot swap pt_sUSDe into sUSde before maturity and when it is matured, override takes place.
+   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice} on which operation is performed
+   * @param {RouterCMSlice} creditManager - minimal credit manager data {@link RouterCMSlice} on which operation is performed
+   * @param {Address} tokenIn - address of input token
+   * @param {Address} tokenOut - address of output token
+   * @param {number | bigint} slippage  - Slippage in PERCENTAGE_FORMAT (100% = 10_000) per operation
+   * @param {bigint} amount - amount of token in to swap
+   * @returns minAmount, avgAmount found and array of calls to execute swap
    */
   async findOneTokenPath(props: FindOneTokenPathProps): Promise<RouterResult> {
     const {
@@ -178,15 +181,22 @@ export class RouterV300Contract
   }
 
   /**
-   * @dev Finds the best path for opening Credit Account and converting all NORMAL tokens and LP token in the way to TARGET
-   * @param creditManager CreditManagerData which represents credit manager you want to use to open Credit Account
-   * @param expectedBalances Expected balances which would be on account accounting also debt. For example,
-   *    if you open an USDC Credit Account, borrow 50_000 USDC and provide 10 WETH and 10_USDC as collateral
-   *    from your own funds, expectedBalances should be: { "USDC": 60_000 * (10**6), "<address of WETH>": WAD.mul(10) }
-   * @param leftoverBalances Balances to keep on account after opening
-   * @param target Address of symbol of desired token
-   * @param slippage Slippage in PERCENTAGE_FORMAT (100% = 10_000) per operation
-   * @returns PathFinderOpenStrategyResult which
+   * @dev Finds the best path for opening Credit Account; converts all expectedBalances besides leftoverBalances into target token
+   * @param {RouterCMSlice} creditManager - minimal credit manager data {@link RouterCMSlice} on which operation is performed
+   * @param {Array<Asset>} expectedBalances - Collateral assets + debt asset, nominated in ther respective tokens.
+   * For example, if you open an USDC Credit Account, borrow 50_000 USDC and provide 10 WETH and 10_000 DAI as collateral
+   * from your own funds, expectedBalances should be: [{amount: 10*10**wethDecimals}, {amount: 10000*10**daiDecimals}, {amount: 10000*10**usdcDecimals}]
+   * @param leftoverBalances - balances to keep on account after opening.
+   * For example if don't want to swap WETH in the example above, leftoverBalances should be: [{amount: 10*10**wethDecimals}]
+   * @param target - Address of desired token to swap into
+   * @param slippage - Slippage in PERCENTAGE_FORMAT (100% = 10_000) per operation
+   * @returns Router return list of all balances (including 0 balances) after operation, but it doesn't include original balance
+   * - For example you had 5k sUSDS  and 5k DAI as collateral, debt is 20k DAI, router will return 25k sUDS and all other token allowed on CM will be 0n or 1n
+   * Since FE is interested in FULL balances structure, we override target balance in the following way:
+   * min = record[sUSDS] = 5k from collateral + 25k of minAmount; avg = record[sUSDS] = 5k from collateral + 25.5k of avgAmount
+   * - minAmount
+   * - avgAmount
+   * - array of calls to execute swap
    */
   public async findOpenStrategyPath({
     creditManager: cm,
@@ -243,12 +253,24 @@ export class RouterV300Contract
   /**
    * @dev Finds the path to swap / withdraw all assets from CreditAccount into underlying asset
    *   Can bu used for closing Credit Account and for liquidations as well.
-   * @param creditAccount CreditAccountStruct object used for close path computation
-   * @param creditManager CreditManagerSlice for corresponding credit manager
-   * @param slippage Slippage in PERCENTAGE_FORMAT (100% = 10_000) per operation
+   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice} on which operation is performed
+   * @param {RouterCMSlice} creditManager - minimal credit manager data {@link RouterCMSlice} on which operation is performed
+   * @param {number | bigint} slippage - Slippage in PERCENTAGE_FORMAT (100% = 10_000) per operation
+   * @param {ClosePathBalances | undefined} balances - Balances {@link ClosePathBalances} to close account with, if not provided, all assets will be swapped according to inner logic.
+   * Consists of:
+   * @param {Array<Asset>} expectedBalances - list of all credit account balances nominated in their respective tokens.
+   *     For example: [{amount: 10x10^wethDecimals}, {amount: 10000x10^daiDecimals}]
+   * @param {Array<Asset>} leftoverBalances - list of all credit account balances that shouldn't be swapped nominated in their respective tokens.
+   *     Used for credit account repaying; in this mode leftover assets list should include all assets besides underlying token.
+   *     For example considering account above is on DAI CM: [{amount: 10x10^wethDecimals}]
    * @return The best option in PathFinderCloseResult format, which
-   *          - underlyingBalance - total balance of underlying token
-   *          - calls - list of calls which should be done to swap & unwrap everything to underlying token
+   *  - underlyingBalance -  since this method swaps only tokens different from underlying,
+   *   we are more interested in TOTAL balance of underlying token after all swaps are done
+   *   for this reason we sum up underlying token that was on account before swap
+   *   with underlying token amount found during swap and call it underlyingBalance
+   *  - calls - list of calls which should be done to swap & unwrap everything to underlying token
+   *  - amount
+   *  - minAmount
    */
   public async findBestClosePath({
     creditAccount: ca,
@@ -354,6 +376,9 @@ export class RouterV300Contract
     };
   }
 
+  /**
+   * Connectors - list of tokens which can be used as a token to align path through, for ex. when swapping sUSDe it is good to check swaps through USDe.
+   */
   public getAvailableConnectors(
     collateralTokens: Array<Address>,
   ): Array<Address> {
@@ -362,7 +387,10 @@ export class RouterV300Contract
     );
   }
 
-  // TODO: remove me when new router will be added
+  /**
+   * if token is PT token and PT token is already redeemable, we need to claim it manually, since old router can't do it. 
+      This can work in old app only because you cannot swap pt_sUSDe into sUSde before maturity and when it is matured, override takes place.
+  */
   async #overridePTRedeem({
     creditAccount,
     creditManager,
