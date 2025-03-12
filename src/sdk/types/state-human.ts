@@ -199,11 +199,6 @@ export interface PoolSuiteStateHuman {
   rateKeeper: RateKeeperStateHuman;
 }
 
-export interface ZapperStateHuman extends BaseContractStateHuman {
-  tokenIn: string;
-  tokenOut: string;
-}
-
 export interface MarketStateHuman {
   configurator: string;
   pool: PoolSuiteStateHuman;
@@ -219,6 +214,6 @@ export interface GearboxStateHuman {
   timestamp: number;
   core: CoreStateHuman;
   markets: MarketStateHuman[];
-  zappers: ZapperStateHuman[];
+  plugins: Record<string, unknown>;
   tokens: TokenMetaData[];
 }

@@ -1,2 +1,2 @@
-export * from "./plugin.js";
+export * from "./GearboxAdaptersPlugin.js";
 export * from "./types.js";

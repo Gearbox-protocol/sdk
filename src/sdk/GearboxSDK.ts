@@ -24,7 +24,11 @@ import {
 } from "./core/index.js";
 import { MarketRegister } from "./market/MarketRegister.js";
 import { PriceFeedRegister } from "./market/pricefeeds/index.js";
-import type { IGearboxSDKPlugin } from "./plugins/index.js";
+import type {
+  IGearboxSDKPlugin,
+  PluginInstances,
+  PluginMap,
+} from "./plugins/index.js";
 import type { IRouterContract } from "./router/index.js";
 import { createRouter } from "./router/index.js";
 import type {
@@ -37,7 +41,9 @@ import { AddressMap, formatBN } from "./utils/index.js";
 import { Hooks } from "./utils/internal/index.js";
 import { detectNetwork } from "./utils/viem/index.js";
 
-export interface SDKOptions {
+const ERR_NOT_ATTACHED = new Error("Gearbox SDK not attached");
+
+export interface SDKOptions<Plugins extends PluginMap = {}> {
   /**
    * If not set, address provider address is determinted automatically from networkType
    */
@@ -71,18 +77,18 @@ export interface SDKOptions {
   /**
    * Plugins to extends SDK functionality
    */
-  plugins?: IGearboxSDKPlugin[];
+  plugins?: Plugins;
   /**
    * Bring your own logger
    */
   logger?: ILogger;
 }
 
-interface SDKContructorArgs {
+interface SDKContructorArgs<Plugins extends PluginMap = {}> {
   provider: Provider;
   logger?: ILogger;
-  plugins?: IGearboxSDKPlugin[];
   strictContractTypes?: boolean;
+  plugins?: Plugins;
 }
 
 interface AttachOptionsInternal {
@@ -101,13 +107,14 @@ export interface SyncStateOptions {
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SDKHooks = {
-  syncState: [];
+  syncState: [SyncStateOptions];
 };
 
-export class GearboxSDK {
+export class GearboxSDK<Plugins extends PluginMap = {}> {
   readonly #hooks = new Hooks<SDKHooks>();
   // Represents chain object
   readonly #provider: Provider;
+  readonly plugins: PluginInstances<Plugins>;
 
   // Block which was use for data query
   #currentBlock?: bigint;
@@ -128,7 +135,6 @@ export class GearboxSDK {
   #router?: IRouterContract;
 
   public readonly logger?: ILogger;
-  public readonly plugins: ReadonlyArray<IGearboxSDKPlugin>;
 
   /**
    * Interest rate models can be reused across chain (and SDK operates on chain level)
@@ -160,12 +166,12 @@ export class GearboxSDK {
   public addHook = this.#hooks.addHook.bind(this.#hooks);
   public removeHook = this.#hooks.removeHook.bind(this.#hooks);
 
-  public static async attach(
-    options: SDKOptions &
+  public static async attach<Plugins extends PluginMap>(
+    options: SDKOptions<Plugins> &
       Partial<NetworkOptions> &
       ConnectionOptions &
       TransportOptions,
-  ): Promise<GearboxSDK> {
+  ): Promise<GearboxSDK<Plugins>> {
     const {
       logger,
       plugins,
@@ -199,7 +205,7 @@ export class GearboxSDK {
       "attaching gearbox sdk",
     );
 
-    return new GearboxSDK({
+    return new GearboxSDK<Plugins>({
       provider,
       logger,
       plugins,
@@ -212,12 +218,18 @@ export class GearboxSDK {
     });
   }
 
-  private constructor(options: SDKContructorArgs) {
+  private constructor(options: SDKContructorArgs<Plugins>) {
     this.#provider = options.provider;
     this.logger = options.logger;
     this.priceFeeds = new PriceFeedRegister(this);
-    this.plugins = options.plugins ?? [];
     this.strictContractTypes = options.strictContractTypes ?? false;
+    const pluginsInstances: Record<string, IGearboxSDKPlugin> = {};
+    for (const [name, PluginConstructor] of Object.entries(
+      options.plugins ?? {},
+    )) {
+      pluginsInstances[name] = new PluginConstructor(this);
+    }
+    this.plugins = pluginsInstances as PluginInstances<Plugins>;
   }
 
   async #attach(opts: AttachOptionsInternal): Promise<this> {
@@ -294,6 +306,14 @@ export class GearboxSDK {
       this.logger?.warn("Router not found", e);
     }
 
+    for (const [name, plugin] of Object.entries(this.plugins)) {
+      if (plugin.attach) {
+        this.logger?.debug(`attaching plugin ${name}`);
+        await plugin.attach();
+        this.logger?.debug(`attached plugin ${name}`);
+      }
+    }
+
     this.logger?.info(`attach time: ${Date.now() - time} ms`);
 
     return this;
@@ -366,6 +386,12 @@ export class GearboxSDK {
         gearStakingV3: this.gearStakingContract.stateHuman(raw),
       },
       tokens: this.tokensMeta.values(),
+      plugins: Object.fromEntries(
+        Object.entries(this.plugins).map(([name, plugin]) => [
+          name,
+          plugin.stateHuman(raw),
+        ]),
+      ),
       ...this.marketRegister.stateHuman(raw),
     };
   }
@@ -391,7 +417,7 @@ export class GearboxSDK {
    */
   public async syncState(opts?: SyncStateOptions): Promise<void> {
     let { blockNumber, timestamp } = opts ?? {};
-    if (!blockNumber) {
+    if (!blockNumber || !timestamp) {
       const block = await this.provider.publicClient.getBlock({
         blockTag: "latest",
       });
@@ -427,10 +453,13 @@ export class GearboxSDK {
     // This will reload all or some markets
     await this.marketRegister.syncState();
     // TODO: do wee need to sync state on botlist and others?
+    //
+    // TODO: how to handle "singleton" contracts addresses, where contract instance is shared across multiple other contract instrances
+    // This behaviour should be reserved for contracts with 100% immutable state, such as InterestRateModel?
 
     this.#currentBlock = blockNumber;
     this.#timestamp = timestamp;
-    await this.#hooks.triggerHooks("syncState");
+    await this.#hooks.triggerHooks("syncState", { blockNumber, timestamp });
     this.#syncing = false;
     this.logger?.debug(`synced state to block ${blockNumber}`);
   }
@@ -441,56 +470,56 @@ export class GearboxSDK {
 
   public get currentBlock(): bigint {
     if (this.#currentBlock === undefined) {
-      throw new Error("Gearbox SDK not attached");
+      throw ERR_NOT_ATTACHED;
     }
     return this.#currentBlock;
   }
 
   public get timestamp(): bigint {
     if (this.#timestamp === undefined) {
-      throw new Error("Gearbox SDK not attached");
+      throw ERR_NOT_ATTACHED;
     }
     return this.#timestamp;
   }
 
   public get gear(): Address {
     if (this.#gear === undefined) {
-      throw new Error("Gearbox SDK not attached");
+      throw ERR_NOT_ATTACHED;
     }
     return this.#gear;
   }
 
   public get addressProvider(): IAddressProviderContract {
     if (this.#addressProvider === undefined) {
-      throw new Error("Gearbox SDK not attached");
+      throw ERR_NOT_ATTACHED;
     }
     return this.#addressProvider;
   }
 
   public get botListContract(): BotListContract {
     if (this.#botListContract === undefined) {
-      throw new Error("Gearbox SDK not attached");
+      throw ERR_NOT_ATTACHED;
     }
     return this.#botListContract;
   }
 
   public get gearStakingContract(): GearStakingContract {
     if (this.#gearStakingContract === undefined) {
-      throw new Error("Gearbox SDK not attached");
+      throw ERR_NOT_ATTACHED;
     }
     return this.#gearStakingContract;
   }
 
   public get marketRegister(): MarketRegister {
     if (this.#marketRegister === undefined) {
-      throw new Error("Gearbox SDK not attached");
+      throw ERR_NOT_ATTACHED;
     }
     return this.#marketRegister;
   }
 
   public get router(): IRouterContract {
     if (this.#router === undefined) {
-      throw new Error("Gearbox SDK not attached");
+      throw ERR_NOT_ATTACHED;
     }
     return this.#router;
   }

@@ -1,24 +1,11 @@
 import type { Address } from "viem";
 
-import {
-  iMarketCompressorAbi,
-  iPeripheryCompressorAbi,
-} from "../../abi/compressors.js";
-import type { MarketData, MarketFilter, ZapperData } from "../base/index.js";
+import { iMarketCompressorAbi } from "../../abi/compressors.js";
+import type { MarketData, MarketFilter } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
-import {
-  ADDRESS_0X0,
-  AP_MARKET_COMPRESSOR,
-  AP_PERIPHERY_COMPRESSOR,
-} from "../constants/index.js";
+import { ADDRESS_0X0, AP_MARKET_COMPRESSOR } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
-import type {
-  ILogger,
-  MarketStateHuman,
-  RawTx,
-  TVL,
-  ZapperStateHuman,
-} from "../types/index.js";
+import type { ILogger, MarketStateHuman, RawTx, TVL } from "../types/index.js";
 import { AddressMap, childLogger } from "../utils/index.js";
 import { simulateMulticall } from "../utils/viem/index.js";
 import type { CreditSuite } from "./credit/index.js";
@@ -27,17 +14,12 @@ import { MarketSuite } from "./MarketSuite.js";
 import type { PoolSuite } from "./pool/index.js";
 import { rawTxToMulticallPriceUpdate } from "./pricefeeds/index.js";
 
-export interface ZapperDataFull extends ZapperData {
-  pool: Address;
-}
-
 export class MarketRegister extends SDKConstruct {
   #logger?: ILogger;
   /**
    * Mapping pool.address -> MarketSuite
    */
   #markets = new AddressMap<MarketSuite>(undefined, "markets");
-  #zappers = new AddressMap<Array<ZapperDataFull>>(undefined, "zappers");
 
   #marketFilter?: MarketFilter;
 
@@ -63,50 +45,6 @@ export class MarketRegister extends SDKConstruct {
       return;
     }
     await this.#loadMarkets(marketConfigurators, [], ignoreUpdateablePrices);
-  }
-
-  public async loadZappers(): Promise<void> {
-    const pcAddr = this.sdk.addressProvider.getAddress(
-      AP_PERIPHERY_COMPRESSOR,
-      3_10,
-    );
-    this.#logger?.debug(`loading zappers with periphery compressor ${pcAddr}`);
-    const resp = await this.provider.publicClient.multicall({
-      contracts: this.markets.map(m => ({
-        abi: iPeripheryCompressorAbi,
-        address: pcAddr,
-        functionName: "getZappers",
-        args: [m.configurator.address, m.pool.pool.address],
-      })),
-      allowFailure: true,
-    });
-
-    for (let i = 0; i < resp.length; i++) {
-      const { status, result, error } = resp[i];
-      const marketConfigurator = this.markets[i].configurator.address;
-      const pool = this.markets[i].pool.pool.address;
-
-      if (status === "success") {
-        const list = result as any as ZapperData[];
-
-        this.#zappers.upsert(
-          pool,
-          list.map(z => ({ ...z, pool })),
-        );
-      } else {
-        this.#logger?.error(
-          `failed to load zapper for market configurator ${this.labelAddress(marketConfigurator)} and pool ${this.labelAddress(pool)}: ${error}`,
-        );
-      }
-    }
-
-    const zappersTokens = this.#zappers
-      .values()
-      .flatMap(l => l.flatMap(z => [z.tokenIn, z.tokenOut]));
-    for (const t of zappersTokens) {
-      this.sdk.tokensMeta.upsert(t.addr, t);
-      this.sdk.provider.addressLabels.set(t.addr as Address, t.symbol);
-    }
   }
 
   get marketFilter() {
@@ -226,19 +164,9 @@ export class MarketRegister extends SDKConstruct {
 
   public stateHuman(raw = true): {
     markets: MarketStateHuman[];
-    zappers: ZapperStateHuman[];
   } {
     return {
       markets: this.markets.map(market => market.stateHuman(raw)),
-      zappers: this.zappers.values().flatMap(l =>
-        l.flatMap(z => ({
-          address: z.baseParams.addr,
-          contractType: z.baseParams.contractType,
-          version: Number(z.baseParams.version),
-          tokenIn: this.labelAddress(z.tokenIn.addr),
-          tokenOut: this.labelAddress(z.tokenOut.addr),
-        })),
-      ),
     };
   }
 
@@ -305,10 +233,6 @@ export class MarketRegister extends SDKConstruct {
 
   public get marketsMap() {
     return this.#markets;
-  }
-
-  public get zappers() {
-    return this.#zappers;
   }
 
   public get markets(): MarketSuite[] {

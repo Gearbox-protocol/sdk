@@ -1,4 +1,5 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { readdirSync } from "node:fs";
+import { mkdir, writeFile } from "node:fs/promises";
 
 import { sync as spawnSync } from "cross-spawn";
 import type { Options } from "tsup";
@@ -18,21 +19,12 @@ async function writeDummyPackage(subpath: string, type: "cjs" | "esm") {
   await writeFile(`./dist/${type}/${subpath}/package.json`, body, "utf-8");
 }
 
-/**
- * When building ESM modules from subpath that import core SDK, such as dev
- * they'll have `import {...} from "../sdk"` line
- * This method fixes it by replacing `../sdk` with `../sdk/index.mjs`
- * @param subpath
- */
-async function fixRelativeImports(subpath: string) {
-  for (const ext of ["js"]) {
-    let raw = await readFile(`./dist/esm/${subpath}/index.${ext}`, "utf-8");
-    raw = raw.replace(`from '../sdk';`, `from '../sdk/index.${ext}';`);
-    await writeFile(`./dist/esm/${subpath}/index.${ext}`, raw, "utf-8");
-  }
-}
-
 export default defineConfig(options => {
+  const subpaths = readdirSync("./src", { withFileTypes: true })
+    .filter(d => d.isDirectory())
+    .map(d => d.name);
+  console.info("building subpaths", subpaths);
+
   const commonOptions: Partial<Options> = {
     entry: ["src/**/*.ts"],
     clean: !options.watch, // cleaning in watch mode causes problems with turborepo
@@ -54,9 +46,7 @@ export default defineConfig(options => {
       // outExtension: () => ({ js: ".cjs" }),
       onSuccess: async () => {
         await Promise.all(
-          ["sdk", "dev", "adapters", "abi"].map(subpath =>
-            writeDummyPackage(subpath, "cjs"),
-          ),
+          subpaths.map(subpath => writeDummyPackage(subpath, "cjs")),
         );
       },
     },
@@ -66,18 +56,8 @@ export default defineConfig(options => {
       outExtension: () => ({ js: ".js" }),
       outDir: "./dist/esm/",
       onSuccess: async () => {
-        // // tsup with dts option is not working as expected: onSuccess is triggered and then dts is executed in parallel
-        // // so we use spawnSync to run it in a separate process
-        // spawnSync("yarn", ["tsup", "--dts-only"], { stdio: "inherit" });
-
-        for (const subpath of ["dev", "adapters"]) {
-          await fixRelativeImports(subpath);
-        }
-
         await Promise.all(
-          ["sdk", "dev", "adapters", "abi"].map(subpath =>
-            writeDummyPackage(subpath, "esm"),
-          ),
+          subpaths.map(subpath => writeDummyPackage(subpath, "esm")),
         );
 
         spawnSync("tsc", [

@@ -1,27 +1,36 @@
 import { pino } from "pino";
 import type { Address } from "viem";
 
-import { SDKExample } from "../src/dev/index.js";
+import { GearboxAdaptersPlugin } from "../src/adapters/index.js";
+import { GearboxSDK } from "../src/sdk/index.js";
+import { GearboxZappersPlugin } from "../src/zappers/index.js";
 
 async function example(): Promise<void> {
   const logger = pino({
     level: process.env.LOG_LEVEL ?? "debug",
   });
-  const example = new SDKExample(logger);
 
   const MARKET_CONFIGURATORS: Address[] = [
-    "0x372eb7d6f8fae884d9b9b5114f26897416a00c21",
-    "0xbba2ad00ecbd7d22cc6d2c61afa53e27d14f136e",
+    "0x354fe9f450f60b8547f88be042e4a45b46128a06",
   ];
-  const ADDRESS_PROVIDER = "0xf7711bf911b246ad90b6c6795c53eab3255ab56a";
+  const ADDRESS_PROVIDER = "0xbab2014dd88223e168ba06911c06df638311a097";
 
-  await example.run({
+  const sdk = await GearboxSDK.attach({
+    rpcURLs: ["https://anvil.gearbox.foundation/rpc/PermissionlessMainnet"],
+    timeout: 480_000,
     addressProvider: ADDRESS_PROVIDER,
     marketConfigurators: MARKET_CONFIGURATORS,
-    outFile: "example-state.json",
-    anvilUrl: "https://anvil.gearbox.foundation/rpc/Eth211",
+    logger,
+    ignoreUpdateablePrices: false,
+    strictContractTypes: true,
+    plugins: {
+      adapters: GearboxAdaptersPlugin,
+      zappers: GearboxZappersPlugin,
+    },
   });
+
   logger.info("done");
+  logger.info(`loaded ${sdk.plugins.zappers.zappers.size} zappers`);
 }
 
 example().catch(e => {

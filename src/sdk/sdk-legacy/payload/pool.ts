@@ -1,6 +1,21 @@
+import type {
+  AbiParametersToPrimitiveTypes,
+  ExtractAbiFunction,
+} from "abitype";
 import type { Address } from "viem";
 
-import type { ZapperDataFull } from "../../market/index.js";
+import type { iPeripheryCompressorAbi } from "../../../abi/compressors.js";
+import type { Unarray } from "../../base/types.js";
+
+export type ZapperData = Unarray<
+  AbiParametersToPrimitiveTypes<
+    ExtractAbiFunction<typeof iPeripheryCompressorAbi, "getZappers">["outputs"]
+  >
+>;
+
+export interface ZapperDataFull extends ZapperData {
+  pool: Address;
+}
 
 export interface PoolDataPayload {
   addr: Address;

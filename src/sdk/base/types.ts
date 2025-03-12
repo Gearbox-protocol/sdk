@@ -50,12 +50,6 @@ export type MarketData = Unarray<
   >
 >;
 
-export type ZapperData = Unarray<
-  AbiParametersToPrimitiveTypes<
-    ExtractAbiFunction<typeof iPeripheryCompressorAbi, "getZappers">["outputs"]
-  >
->;
-
 export type GaugeData = Unarray<
   AbiParametersToPrimitiveTypes<
     ExtractAbiFunction<typeof iGaugeCompressorAbi, "getGauge">["outputs"]
