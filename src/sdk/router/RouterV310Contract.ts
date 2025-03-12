@@ -1,7 +1,8 @@
-import type { Address } from "viem";
+import { type Address, getAddress } from "viem";
 
 import { iGearboxRouterV310Abi } from "../../abi/routerV310.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
+import { BigIntMath } from "../sdk-legacy/index.js";
 import { AddressMap } from "../utils/AddressMap.js";
 import type { Leftovers } from "./AbstractRouterContract.js";
 import { AbstractRouterContract } from "./AbstractRouterContract.js";
@@ -40,20 +41,13 @@ export class RouterV310Contract
   constructor(sdk: GearboxSDK, address: Address) {
     super(sdk, {
       addr: address,
-      name: "RouterV300",
+      name: "RouterV310",
       abi,
     });
   }
 
   /**
-   * Finds best path to swap all Normal tokens and tokens "on the way" to target one and vice versa
-   * @param creditAccount
-   * @param creditManager
-   * @param tokenIn
-   * @param tokenOut
-   * @param amount
-   * @param slippage
-   * @returns
+   * Implements {@link IRouterContract.findOneTokenPath}
    */
   async findOneTokenPath(props: FindOneTokenPathProps): Promise<RouterResult> {
     const {
@@ -97,15 +91,7 @@ export class RouterV310Contract
   }
 
   /**
-   * @dev Finds the best path for opening Credit Account and converting all NORMAL tokens and LP token in the way to TARGET
-   * @param creditManager CreditManagerData which represents credit manager you want to use to open Credit Account
-   * @param expectedBalances Expected balances which would be on account accounting also debt. For example,
-   *    if you open an USDC Credit Account, borrow 50_000 USDC and provide 10 WETH and 10_USDC as collateral
-   *    from your own funds, expectedBalances should be: { "USDC": 60_000 * (10**6), "<address of WETH>": WAD.mul(10) }
-   * @param leftoverBalances Balances to keep on account after opening
-   * @param target Address of symbol of desired token
-   * @param slippage Slippage in PERCENTAGE_FORMAT (100% = 10_000) per operation
-   * @returns PathFinderOpenStrategyResult which
+   * Implements {@link IRouterContract.findOpenStrategyPath}
    */
   public async findOpenStrategyPath(
     props: FindOpenStrategyPathProps,
@@ -149,8 +135,18 @@ export class RouterV310Contract
       tData,
     ]);
     return {
-      balances: {}, // TODO:?
-      minBalances: {}, // TODO:?
+      balances: balancesAfterOpen(
+        target,
+        result.amount,
+        expectedMap,
+        leftoverMap,
+      ),
+      minBalances: balancesAfterOpen(
+        target,
+        result.minAmount,
+        expectedMap,
+        leftoverMap,
+      ),
       amount: result.amount,
       minAmount: result.minAmount,
       calls: [...result.calls],
@@ -158,14 +154,7 @@ export class RouterV310Contract
   }
 
   /**
-   * @dev Finds the path to swap / withdraw all assets from CreditAccount into underlying asset
-   *   Can bu used for closing Credit Account and for liquidations as well.
-   * @param creditAccount CreditAccountStruct object used for close path computation
-   * @param creditManager CreditManagerSlice for corresponding credit manager
-   * @param slippage Slippage in PERCENTAGE_FORMAT (100% = 10_000) per operation
-   * @return The best option in PathFinderCloseResult format, which
-   *          - underlyingBalance - total balance of underlying token
-   *          - calls - list of calls which should be done to swap & unwrap everything to underlying token
+   * Implements {@link IRouterContract.findBestClosePath}
    */
   public async findBestClosePath(
     props: FindBestClosePathProps,
@@ -266,14 +255,26 @@ export class RouterV310Contract
     }));
   }
 
+  /**
+   * Implements {@link IRouterContract.findAllSwaps}
+   * @deprecated v3.0 legacy method
+   */
   public findAllSwaps(props: FindAllSwapsProps): Promise<RouterResult[]> {
     throw ERR_NOT_IMPLEMENTED;
   }
 
+  /**
+   * Implements {@link IRouterContract.getAvailableConnectors}
+   * @deprecated v3.0 legacy method
+   */
   public getAvailableConnectors(collateralTokens: Address[]): Address[] {
     throw ERR_NOT_IMPLEMENTED;
   }
 
+  /**
+   * Implements {@link IRouterContract.getFindClosePathInput}
+   * @deprecated v3.0 legacy method
+   */
   public getFindClosePathInput(
     ca: RouterCASlice,
     cm: RouterCMSlice,
@@ -281,4 +282,35 @@ export class RouterV310Contract
   ): FindClosePathInput {
     throw ERR_NOT_IMPLEMENTED;
   }
+}
+
+/**
+ * Calculates balances after opening Credit Account
+ * @param target - target token (output of router)
+ * @param targetAmount - amount of target token (output of router)
+ * @param expected - expected balances (input of router)
+ * @param leftover - leftover balances (input of router)
+ * @returns balances after the action
+ */
+function balancesAfterOpen(
+  target: Address,
+  targetAmount: bigint,
+  expected: AddressMap<bigint>,
+  leftover: AddressMap<bigint>,
+): Record<Address, bigint> {
+  const result: Record<Address, bigint> = {};
+  const targetAddr = getAddress(target);
+  const tokens = new Set<Address>([
+    ...expected.keys(),
+    ...leftover.keys(),
+    targetAddr,
+  ]);
+  for (const t of tokens) {
+    if (t === targetAddr) {
+      result[t] = expected.get(t) ?? 0n + targetAmount;
+    } else {
+      result[t] = BigIntMath.min(expected.get(t) ?? 0n, leftover.get(t) ?? 0n);
+    }
+  }
+  return result;
 }
