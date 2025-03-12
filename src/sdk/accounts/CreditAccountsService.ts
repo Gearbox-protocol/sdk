@@ -297,6 +297,12 @@ export class CreditAccountsService extends SDKConstruct {
     return allCAs.sort((a, b) => Number(a.healthFactor - b.healthFactor));
   }
 
+  /**
+   * Method to get all claimable rewards for credit account (ex. stkUSDS SKY rewards)
+     Assosiates rewards by adapter + stakedPhantomToken
+   * @param {Address} creditAccount - address of credit account to get rewards for
+   * @returns {Array<Rewards>} list of {@link Rewards} that can be claimed
+   */
   async getRewards(creditAccount: Address): Promise<Array<Rewards>> {
     const rewards = await this.provider.publicClient.readContract({
       abi: iRewardsCompressorAbi,
@@ -310,6 +316,9 @@ export class CreditAccountsService extends SDKConstruct {
       const stakedPhantomToken = r.stakedPhantomToken.toLowerCase() as Address;
       const rewardToken = r.rewardToken.toLowerCase() as Address;
 
+      // it is possible that the same adapter can have multiple rewards
+      // but all of them will have the same stakedPhantomToken and call to claim
+      // can be changed in future (ex. adapter can have multiple stakedPhantomTokens)
       const key = [adapter, stakedPhantomToken].join("-");
 
       if (!acc[key]) {
@@ -319,7 +328,7 @@ export class CreditAccountsService extends SDKConstruct {
           args: [],
         });
 
-        acc[adapter] = {
+        acc[key] = {
           adapter,
           stakedPhantomToken,
           calls: [
@@ -332,7 +341,7 @@ export class CreditAccountsService extends SDKConstruct {
         };
       }
 
-      acc[adapter].rewards.push({
+      acc[key].rewards.push({
         token: rewardToken,
         balance: r.amount,
       });
@@ -343,6 +352,11 @@ export class CreditAccountsService extends SDKConstruct {
     return Object.values(r);
   }
 
+  /**
+   * Method to get all connected bots for credit account
+   * @param {Array<{ creditAccount: Address; creditManager: Address }>} accountsToCheck - list of credit accounts to check connected bots on
+   * @returns call result of getConnectedBots for each credit account
+   */
   async getConnectedBots(
     accountsToCheck: Array<{ creditAccount: Address; creditManager: Address }>,
   ) {
@@ -398,14 +412,20 @@ export class CreditAccountsService extends SDKConstruct {
   }
 
   /**
-   * Closes credit account or sets debt to zero (but keep account)
-   * @param operation
-   * @param creditAccount
-   * @param assetsToWithdraw Tokens to withdraw from credit account
-   * @param to Address to withdraw underlying to
-   * @param slippage
-   * @param closePath
-   * @returns
+   * Closes credit account or closes credit account and keeps it open with zero debt.
+      Ca is closed in the following order: price update -> close path to swap all tokens into underlying -> 
+       -> disable quotas of exiting tokens -> decrease debt -> disable exiting tokens tokens -> withdraw underlying tokenz
+   * @param {CloseOptions} operation - {@link CloseOptions}: close or zeroDebt
+   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice}
+   * @param {Array<Address>} assetsToWithdraw - tokens to withdraw from credit account. 
+      For credit account closing this is the underlying token, because during the closure, 
+      all tokens on account are swapped into the underlying, 
+      and only the underlying token will remain on the credit account
+   * @param {Address} to - Wallet address to withdraw underlying to
+   * @param {number} slippage  - SLIPPAGE_DECIMALS = 100n 
+   * @default 50n
+   * @param {RouterCloseResult | undefined} closePath - result of findBestClosePath method from router; if omited, calls marketRegister.findCreditManager {@link RouterCloseResult}
+   * @returns All necessary data to execute the transaction (call, credit facade, routerCloseResult)
    */
   async closeCreditAccount({
     operation,
@@ -450,15 +470,19 @@ export class CreditAccountsService extends SDKConstruct {
   }
 
   /**
-   * Repays credit account or sets debt to zero (but keep account)
-   * @param operation
-   * @param creditAccount
-   * @param assetsToWithdraw Tokens to withdraw from credit account
-   * @param collateralAssets Tokens to pay for
-   * @param to Address to withdraw underlying to
-   * @param slippage
-   * @param permits
-   * @returns
+   * Fully repays credit account or repays credit account and keeps it open with zero debt
+   * @param {CloseOptions} operation - {@link CloseOptions}: close or zeroDebt
+   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice}
+   * @param {Array<Address>} collateralAssets - tokens to repay dept. 
+      In the current implementation, this is the (debt+interest+fess) * buffer, 
+      where buffer refers to amount of tokens which will exceed current debt 
+      in order to cover possible debt increase over tx execution
+   * @param {Array<Address>} assetsToWithdraw - tokens to withdraw from credit account. 
+      Typically all non zero ca assets (including unclaimed rewards) 
+      plus underlying token (to withdraw any exceeding underlying token after repay)
+   * @param {Record<Address, PermitResult>} permits - permits of tokens to withdraw (in any permittable token is present) {@link PermitResult}
+   * @param {Address} to - Wallet address to withdraw underlying to
+   * @returns All necessary data to execute the transaction (call, credit facade)
    */
   async repayCreditAccount({
     operation,
@@ -497,13 +521,18 @@ export class CreditAccountsService extends SDKConstruct {
   }
 
   /**
-   * Repays liquidatable credit account
-   * @param creditAccount
-   * @param assetsToWithdraw Tokens to withdraw from credit account
-   * @param collateralAssets Tokens to pay for
-   * @param to Address to withdraw underlying to
-   * @param slippage
-   * @returns
+   * Fully repays liquidatable account
+   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice}
+   * @param {Array<Address>} collateralAssets - tokens to repay dept. 
+      In the current implementation, this is the (debt+interest+fess) * buffer, 
+      where buffer refers to amount of tokens which will exceed current debt 
+      in order to cover possible debt increase over tx execution
+   * @param {Array<Address>} assetsToWithdraw - tokens to withdraw from credit account. 
+      Typically all non zero ca assets (including unclaimed rewards) 
+      plus underlying token (to withdraw any exceeding underlying token after repay)
+   * @param {Record<Address, PermitResult>} permits - permits of tokens to withdraw (in any permittable token is present) {@link PermitResult}
+   * @param {Address} to - Wallet address to withdraw underlying to
+   * @returns All necessary data to execute the transaction (call, credit facade)
    */
   async repayAndLiquidateCreditAccount({
     collateralAssets,
@@ -538,8 +567,19 @@ export class CreditAccountsService extends SDKConstruct {
     return { tx, calls, creditFacade: cm.creditFacade };
   }
 
-  public async updateQuotas(props: UpdateQuotasProps): Promise<CommonResult> {
-    const { creditAccount } = props;
+  /**
+   * Updates quota of credit account.
+      CA quota updated in the following order: price update -> update quotas
+   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice}
+   * @param {Array<Asset>} averageQuota - average quota for desired tokens {@link Asset}
+   * @param {Array<Asset>} minQuota - minimum quota for desired tokens {@link Asset}
+   * @returns All necessary data to execute the transaction (call, credit facade)
+   */
+  public async updateQuotas({
+    minQuota,
+    averageQuota,
+    creditAccount,
+  }: UpdateQuotasProps): Promise<CommonResult> {
     const cm = this.sdk.marketRegister.findCreditManager(
       creditAccount.creditManager,
     );
@@ -551,19 +591,42 @@ export class CreditAccountsService extends SDKConstruct {
 
     const calls: Array<MultiCall> = [
       ...priceUpdates,
-      ...this.#prepareUpdateQuotas(props.creditAccount.creditFacade, props),
+      ...this.#prepareUpdateQuotas(creditAccount.creditFacade, {
+        minQuota,
+        averageQuota,
+      }),
     ];
 
     const tx = cm.creditFacade.multicall(creditAccount.creditAccount, [
       ...priceUpdates,
-      ...this.#prepareUpdateQuotas(props.creditAccount.creditFacade, props),
+      ...this.#prepareUpdateQuotas(creditAccount.creditFacade, {
+        minQuota,
+        averageQuota,
+      }),
     ]);
 
     return { tx, calls, creditFacade: cm.creditFacade };
   }
 
-  public async addCollateral(props: AddCollateralProps): Promise<CommonResult> {
-    const { creditAccount, asset, permit, ethAmount } = props;
+  /**
+   * Adds a single collateral to credit account and updates quotas
+      Collateral is added in the following order: price update -> add collateral (with permit) -> update quotas
+   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice}
+   * @param {Array<Asset>} averageQuota - average quota for desired token {@link Asset}
+   * @param {Array<Asset>} minQuota - minimum quota for desired token {@link Asset}
+   * @param {Asset} asset - asset to add as collateral {@link Asset}
+   * @param {PermitResult | undefined} permits - permits of collateral asset if it is permittable {@link PermitResult}
+   * @param {bigint} ethAmount - native token amount to attach to tx
+   * @returns All necessary data to execute the transaction (call, credit facade)
+   */
+  public async addCollateral({
+    creditAccount,
+    asset,
+    permit,
+    ethAmount,
+    minQuota,
+    averageQuota,
+  }: AddCollateralProps): Promise<CommonResult> {
     const cm = this.sdk.marketRegister.findCreditManager(
       creditAccount.creditManager,
     );
@@ -571,7 +634,7 @@ export class CreditAccountsService extends SDKConstruct {
     const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
       creditAccount.creditManager,
       creditAccount,
-      props.averageQuota,
+      averageQuota,
     );
 
     const calls: Array<MultiCall> = [
@@ -581,7 +644,10 @@ export class CreditAccountsService extends SDKConstruct {
         [asset],
         permit ? { [asset.token]: permit } : {},
       ),
-      ...this.#prepareUpdateQuotas(creditAccount.creditFacade, props),
+      ...this.#prepareUpdateQuotas(creditAccount.creditFacade, {
+        minQuota,
+        averageQuota,
+      }),
     ];
 
     const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
@@ -590,6 +656,16 @@ export class CreditAccountsService extends SDKConstruct {
     return { tx, calls, creditFacade: cm.creditFacade };
   }
 
+  /**
+   * Increases or decreases debt of credit account; debt decrease uses token ON CREDIT ACCOUNT
+      Debt is changed in the following order: price update -> (enables underlying if it was disabled) -> change debt
+   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice}
+   * @param {bigint} amount - amount to change debt by; 
+      0 - prohibited value; 
+      negative value for debt decrease; 
+      positive value for debt increase.
+   * @returns All necessary data to execute the transaction (call, credit facade)
+   */
   public async changeDebt({
     creditAccount,
     amount,
@@ -628,11 +704,24 @@ export class CreditAccountsService extends SDKConstruct {
     return { tx, calls, creditFacade: cm.creditFacade };
   }
 
-  public async withdrawCollateral(
-    props: WithdrawCollateralProps,
-  ): Promise<CommonResult> {
-    const { creditAccount, assetsToWithdraw, to } = props;
+  /**
+   * Withdraws a single collateral from credit account to wallet to and updates quotas; 
+      technically can withdraw several tokens at once
+   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice}
+   * @param {Array<Asset>} averageQuota - average quota for desired token {@link Asset}
+   * @param {Array<Asset>} minQuota - minimum quota for desired token {@link Asset}
+   * @param {Address} to - Wallet address to withdraw token to
+   * @param {Array<Asset>} assetsToWithdraw - permits for asset if it is permittable {@link PermitResult}
+   * @returns All necessary data to execute the transaction (call, credit facade)
+   */
+  public async withdrawCollateral({
+    creditAccount,
+    assetsToWithdraw,
+    to,
 
+    minQuota,
+    averageQuota,
+  }: WithdrawCollateralProps): Promise<CommonResult> {
     const cm = this.sdk.marketRegister.findCreditManager(
       creditAccount.creditManager,
     );
@@ -653,7 +742,10 @@ export class CreditAccountsService extends SDKConstruct {
           to,
         ),
       ),
-      ...this.#prepareUpdateQuotas(creditAccount.creditFacade, props),
+      ...this.#prepareUpdateQuotas(creditAccount.creditFacade, {
+        minQuota,
+        averageQuota,
+      }),
     ];
 
     const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
@@ -661,8 +753,21 @@ export class CreditAccountsService extends SDKConstruct {
     return { tx, calls, creditFacade: cm.creditFacade };
   }
 
-  public async executeSwap(props: ExecuteSwapProps): Promise<CommonResult> {
-    const { creditAccount, calls: swapCalls } = props;
+  /**
+   * Executes swap specified by given calls, update quotas of affected tokens
+      Swap is executed in the following order: price update -> execute swap path -> update quotas
+   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice}
+   * @param {Array<Asset>} averageQuota - average quota for desired token {@link Asset}
+   * @param {Array<Asset>} minQuota - minimum quota for desired token {@link Asset}
+   * @param {Array<MultiCall>} calls - array of MultiCall from router methods getSingleSwap or getAllSwaps {@link MultiCall}
+   * @returns All necessary data to execute the transaction (call, credit facade)
+   */
+  public async executeSwap({
+    creditAccount,
+    calls: swapCalls,
+    minQuota,
+    averageQuota,
+  }: ExecuteSwapProps): Promise<CommonResult> {
     if (swapCalls.length === 0) throw new Error("No path to execute");
 
     const cm = this.sdk.marketRegister.findCreditManager(
@@ -672,13 +777,16 @@ export class CreditAccountsService extends SDKConstruct {
     const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
       creditAccount.creditManager,
       creditAccount,
-      props.averageQuota,
+      averageQuota,
     );
 
     const calls: Array<MultiCall> = [
       ...priceUpdatesCalls,
       ...swapCalls,
-      ...this.#prepareUpdateQuotas(creditAccount.creditFacade, props),
+      ...this.#prepareUpdateQuotas(creditAccount.creditFacade, {
+        minQuota,
+        averageQuota,
+      }),
     ];
 
     const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
@@ -686,10 +794,28 @@ export class CreditAccountsService extends SDKConstruct {
     return { tx, calls, creditFacade: cm.creditFacade };
   }
 
-  public async claimFarmRewards(
-    props: ClaimFarmRewardsProps,
-  ): Promise<CommonResult> {
-    const { tokensToDisable, calls: claimCalls, creditAccount: ca } = props;
+  /**
+   * Executes swap specified by given calls, update quotas of affected tokens
+      Claim rewards is executed in the following order: price update -> execute claim calls -> 
+      -> (optionally: disable reward tokens) -> (optionally: update quotas)
+   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice}
+   * @param {Array<Asset>} averageQuota - average quota for desired token; 
+      in this case can be omitted since rewards tokens do not require quotas {@link Asset}
+   * @param {Array<Asset>} minQuota - minimum quota for desired token;
+      in this case can be omitted since rewards tokens do not require quotas {@link Asset}
+   * @param {Array<MultiCall>} calls - array of MultiCall from getRewards {@link MultiCall}
+   * @param {Array<Asset>} tokensToDisable - tokens to disable after rewards claiming;
+      sometimes is needed since old credit facade used to enable tokens on claim {@link Asset}
+   * @returns All necessary data to execute the transaction (call, credit facade)
+   */
+  public async claimFarmRewards({
+    tokensToDisable,
+    calls: claimCalls,
+    creditAccount: ca,
+
+    minQuota,
+    averageQuota,
+  }: ClaimFarmRewardsProps): Promise<CommonResult> {
     if (claimCalls.length === 0) throw new Error("No path to execute");
 
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
@@ -697,7 +823,7 @@ export class CreditAccountsService extends SDKConstruct {
     const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
       ca.creditManager,
       ca,
-      props.averageQuota,
+      averageQuota,
     );
 
     // TODO: probably needs a better way to handle reward tokens
@@ -707,7 +833,7 @@ export class CreditAccountsService extends SDKConstruct {
       ...tokensToDisable.map(a =>
         this.#prepareDisableToken(ca.creditFacade, a.token),
       ),
-      ...this.#prepareUpdateQuotas(ca.creditFacade, props),
+      ...this.#prepareUpdateQuotas(ca.creditFacade, { minQuota, averageQuota }),
     ];
 
     const tx = cm.creditFacade.multicall(ca.creditAccount, calls);
@@ -715,33 +841,61 @@ export class CreditAccountsService extends SDKConstruct {
     return { tx, calls, creditFacade: cm.creditFacade };
   }
 
-  public async openCA(props: OpenCAProps): Promise<CommonResult> {
-    const {
-      ethAmount,
-      creditManager,
-      collateral,
-      permits,
-      debt,
-      withdrawDebt,
-      referralCode,
-      to,
-      calls: openPathCalls,
-    } = props;
+  /**
+   * Executes swap specified by given calls, update quotas of affected tokens
+      Open credit account is executed in the following order: price update -> increase debt -> add collateral ->
+      -> update quotas -> (optionally: execute swap path for trading/strategy) -> 
+      -> (optionally: withdraw debt for lending)
+    Basic open credit account: price update -> increase debt -> add collateral -> update quotas
+    Lending: price update -> increase debt -> add collateral -> update quotas -> withdraw debt
+    Strategy/trading: price update -> increase debt -> add collateral -> update quotas -> execute swap path
+    In strategy is possible situation when collateral is added, but not swapped; the only swapped value in this case will be debt
+   * @param {bigint} ethAmount - native token amount to attach to tx
+   * @param {Address} creditManager - address of credit manager to open credit account on
+   * @param {Array<Asset>} collateral - array of collateral which can be just directly added or swapped using the path {@link Asset}
+   * @param {Record<Address, PermitResult>} permits - permits of collateral tokens (in any permittable token is present) {@link PermitResult}
+   * @param {bigint} debt - debt to open credit account with
+   * @param {boolean} withdrawDebt - flag to withdraw debt to wallet after opening credit account; 
+      used for borrowing functionality
+   * @param {bigint} referralCode - referral code to open credit account with
+   * @param {Address} to - wallet address to transfer credit account to\
+   * @param {Array<MultiCall>} calls - array of MultiCall from router methods findOpenStrategyPath {@link MultiCall}.
+      Used for trading and strategy functionality
+   * @param {Array<Asset>} averageQuota - average quota for tokens after open {@link Asset}
+   * @param {Array<Asset>} minQuota - minimum quota for tokens after open  {@link Asset}
+   * @returns All necessary data to execute the transaction (call, credit facade)
+   */
+  public async openCA({
+    ethAmount,
+    creditManager,
+    collateral,
+    permits,
+    debt,
+    withdrawDebt,
+    referralCode,
+    to,
+    calls: openPathCalls,
 
+    minQuota,
+    averageQuota,
+  }: OpenCAProps): Promise<CommonResult> {
     const cmSuite = this.sdk.marketRegister.findCreditManager(creditManager);
     const cm = cmSuite.creditManager;
 
     const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
       cm.address,
       undefined,
-      props.averageQuota,
+      averageQuota,
     );
 
     const calls = [
       ...priceUpdatesCalls,
       this.#prepareIncreaseDebt(cm.creditFacade, debt),
       ...this.#prepareAddCollateral(cm.creditFacade, collateral, permits),
-      ...this.#prepareUpdateQuotas(cm.creditFacade, props),
+      ...this.#prepareUpdateQuotas(cm.creditFacade, {
+        minQuota,
+        averageQuota,
+      }),
       ...openPathCalls,
       ...(withdrawDebt
         ? [this.#prepareWithdrawToken(cm.creditFacade, cm.underlying, debt, to)]
@@ -1015,11 +1169,9 @@ export class CreditAccountsService extends SDKConstruct {
   #prepareDisableTokens(ca: RouterCASlice): Array<MultiCall> {
     const calls: Array<MultiCall> = [];
     for (const t of ca.tokens) {
-      if (
-        t.token !== ca.underlying &&
-        (t.mask & ca.enabledTokensMask) !== 0n &&
-        t.quota === 0n
-      ) {
+      const isEnabled = (t.mask & ca.enabledTokensMask) !== 0n;
+
+      if (t.token !== ca.underlying && isEnabled && t.quota === 0n) {
         calls.push(this.#prepareDisableToken(ca.creditFacade, t.token));
       }
     }
