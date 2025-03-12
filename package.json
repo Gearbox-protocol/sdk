@@ -25,6 +25,11 @@
       "import": "./dist/esm/adapters/index.js",
       "default": "./dist/cjs/adapters/index.js"
     },
+    "./zappers": {
+      "types": "./dist/types/zappers/index.d.ts",
+      "import": "./dist/esm/zappers/index.js",
+      "default": "./dist/cjs/zappers/index.js"
+    },
     "./abi": {
       "types": "./dist/types/abi/index.d.ts",
       "import": "./dist/esm/abi/index.js",
