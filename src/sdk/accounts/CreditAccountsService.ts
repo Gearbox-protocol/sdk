@@ -88,7 +88,7 @@ interface RepayCreditAccountProps extends RepayAndLiquidateCreditAccountProps {
 
 interface RepayAndLiquidateCreditAccountProps {
   collateralAssets: Array<Asset>;
-  assetsToWithdraw: Array<Address>;
+  assetsToWithdraw: Array<Asset>;
   creditAccount: RouterCASlice;
   to: Address;
   permits: Record<string, PermitResult>;
@@ -425,7 +425,7 @@ export class CreditAccountsService extends SDKConstruct {
    * @param {number} slippage  - SLIPPAGE_DECIMALS = 100n 
    * @default 50n
    * @param {RouterCloseResult | undefined} closePath - result of findBestClosePath method from router; if omited, calls marketRegister.findCreditManager {@link RouterCloseResult}
-   * @returns All necessary data to execute the transaction (call, credit facade, routerCloseResult)
+   * @returns All necessary data to execute the transaction (call, credit facade)
    */
   async closeCreditAccount({
     operation,
@@ -471,13 +471,15 @@ export class CreditAccountsService extends SDKConstruct {
 
   /**
    * Fully repays credit account or repays credit account and keeps it open with zero debt
+      Repays in the following order: price update -> add collateral to cover the debt -> 
+      -> disable quotas for all tokens -> decrease debt -> disable tokens all tokens -> withdraw all tokens
    * @param {CloseOptions} operation - {@link CloseOptions}: close or zeroDebt
    * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice}
    * @param {Array<Address>} collateralAssets - tokens to repay dept. 
       In the current implementation, this is the (debt+interest+fess) * buffer, 
       where buffer refers to amount of tokens which will exceed current debt 
       in order to cover possible debt increase over tx execution
-   * @param {Array<Address>} assetsToWithdraw - tokens to withdraw from credit account. 
+   * @param {Array<Asset>} assetsToWithdraw - tokens to withdraw from credit account. 
       Typically all non zero ca assets (including unclaimed rewards) 
       plus underlying token (to withdraw any exceeding underlying token after repay)
    * @param {Record<Address, PermitResult>} permits - permits of tokens to withdraw (in any permittable token is present) {@link PermitResult}
@@ -522,6 +524,8 @@ export class CreditAccountsService extends SDKConstruct {
 
   /**
    * Fully repays liquidatable account
+      Repay and liquidate is executed in the following order: price update -> add collateral to cover the debt -> 
+      withdraw all tokens from credit account
    * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice}
    * @param {Array<Address>} collateralAssets - tokens to repay dept. 
       In the current implementation, this is the (debt+interest+fess) * buffer, 
@@ -707,6 +711,7 @@ export class CreditAccountsService extends SDKConstruct {
   /**
    * Withdraws a single collateral from credit account to wallet to and updates quotas; 
       technically can withdraw several tokens at once
+      Collateral is withdrawn in the following order: price update -> withdraw token -> update quotas for affected tokens
    * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice}
    * @param {Array<Asset>} averageQuota - average quota for desired token {@link Asset}
    * @param {Array<Asset>} minQuota - minimum quota for desired token {@link Asset}
