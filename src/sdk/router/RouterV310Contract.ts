@@ -2,10 +2,12 @@ import type { Address } from "viem";
 
 import { iGearboxRouterV310Abi } from "../../abi/routerV310.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
+import { AddressMap } from "../utils/AddressMap.js";
 import type { Leftovers } from "./AbstractRouterContract.js";
 import { AbstractRouterContract } from "./AbstractRouterContract.js";
 import { assetsMap, balancesMap } from "./helpers.js";
 import type {
+  Asset,
   FindAllSwapsProps,
   FindBestClosePathProps,
   FindClosePathInput,
@@ -54,13 +56,37 @@ export class RouterV310Contract
    * @returns
    */
   async findOneTokenPath(props: FindOneTokenPathProps): Promise<RouterResult> {
+    const {
+      creditAccount,
+      creditManager,
+      amount,
+      slippage,
+      tokenIn,
+      tokenOut,
+    } = props;
+    const numSplits = this.#numSplitsGetter(
+      creditManager,
+      creditAccount.tokens,
+    )(tokenIn);
+    this.logger?.debug(
+      {
+        creditAccount: creditAccount.creditAccount,
+        creditManager: this.labelAddress(creditManager.address),
+        tokenIn: this.labelAddress(tokenIn),
+        target: this.labelAddress(tokenOut),
+        amount,
+        slippage,
+        numSplits,
+      },
+      "calling routeOneToOne",
+    );
     const { result } = await this.contract.simulate.routeOneToOne([
-      props.creditAccount.creditAccount,
-      props.tokenIn,
-      props.amount,
-      props.tokenOut,
-      BigInt(props.slippage),
-      4n, // TODO:? how many 4n or 0n for underlying
+      creditAccount.creditAccount,
+      tokenIn,
+      amount,
+      tokenOut,
+      BigInt(slippage),
+      numSplits,
     ]);
 
     return {
@@ -96,13 +122,24 @@ export class RouterV310Contract
       balancesMap(leftoverBalances),
     ];
 
+    const getNumSplits = this.#numSplitsGetter(cm, expectedBalances);
+
     const tData = cm.collateralTokens.map(
       (token): TokenData => ({
         token,
         balance: expectedMap.get(token) ?? 0n,
         leftoverBalance: leftoverMap.get(token) ?? 0n,
-        numSplits: 4n, // TODO:? how many 4n or 0n for underlying
+        numSplits: getNumSplits(token),
       }),
+    );
+    this.logger?.debug(
+      {
+        creditManager: this.labelAddress(cm.address),
+        target: this.labelAddress(target),
+        slippage,
+        tData: this.#debugTokenData(tData),
+      },
+      "calling routeOpenManyToOne",
     );
 
     const { result } = await this.contract.simulate.routeOpenManyToOne([
@@ -144,15 +181,28 @@ export class RouterV310Contract
           }
         : undefined,
     );
+    const getNumSplits = this.#numSplitsGetter(cm, expectedBalances.values());
     const tData: TokenData[] = [];
     for (const token of cm.collateralTokens) {
       tData.push({
         token,
         balance: expectedBalances.get(token)?.balance || 0n,
         leftoverBalance: leftoverBalances.get(token)?.balance || 0n,
-        numSplits: 4n, // TODO:? how many 4n or 0n for underlying
+        numSplits: getNumSplits(token),
       });
     }
+
+    this.logger?.debug(
+      {
+        creditAccount: ca.creditAccount,
+        creditManager: this.labelAddress(cm.address),
+        target: this.labelAddress(ca.underlying),
+        slippage,
+        tData: this.#debugTokenData(tData),
+      },
+      "calling routeManyToOne",
+    );
+
     const { result } = await this.contract.simulate.routeManyToOne([
       cm.address,
       ca.underlying,
@@ -167,6 +217,53 @@ export class RouterV310Contract
       minAmount: result.minAmount,
       calls: [...result.calls],
     };
+  }
+
+  #numSplitsGetter(
+    creditManager: RouterCMSlice,
+    assets: Asset[] | readonly Asset[],
+  ): (token: Address) => bigint {
+    // General explanation of numSplits logic according to router author:
+    //
+    // numSplits does not depend on the specific action, rather it depends more on the value of tokens to be swapped.
+    // If this is the main collateral on the account, I recommend 4-5. For the rest 1.
+    // If sdk has token prices on hand when generating tokenData,
+    // you can make a more general rule - for example, 1 split for every $200-300k in token (but minimum 1).
+    // But it still depends on the liquidity of a particular token, actually, so it might be too complicated.
+    const { priceOracle } = this.sdk.marketRegister.findByCreditManager(
+      creditManager.address,
+    );
+
+    // Filter out dust, and sort by usd balance descending
+    const inUSD = assets
+      .filter(({ token, balance }) => {
+        const decimals = this.sdk.tokensMeta.decimals(token);
+        const minBalance = 10n ** BigInt(Math.max(8, decimals) - 8);
+        return balance >= minBalance;
+      })
+      .map(({ token, balance }) => {
+        return {
+          token,
+          balance: priceOracle.convertToUSD(token, balance),
+        };
+      })
+      .sort((a, b) => {
+        return b.balance > a.balance ? -1 : 1;
+      });
+
+    const map = new AddressMap<bigint>(
+      inUSD.map(({ token }, i) => [token, i === 0 ? 4n : 1n]),
+    );
+    return (token: Address) => map.get(token) ?? 1n;
+  }
+
+  #debugTokenData(tData: TokenData[]): Record<string, any>[] {
+    return tData.map(t => ({
+      token: this.labelAddress(t.token),
+      balance: this.sdk.tokensMeta.formatBN(t.token, t.balance),
+      leftoverBalance: this.sdk.tokensMeta.formatBN(t.token, t.leftoverBalance),
+      numSplits: t.numSplits,
+    }));
   }
 
   public findAllSwaps(props: FindAllSwapsProps): Promise<RouterResult[]> {

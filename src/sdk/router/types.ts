@@ -81,6 +81,9 @@ export interface FindAllSwapsProps {
   tokenOut: Address;
   amount: bigint;
   leftoverAmount: bigint;
+  /**
+   * Slippage in PERCENTAGE_FORMAT (100% = 10_000) per operation
+   */
   slippage: number | bigint;
 }
 
@@ -97,6 +100,9 @@ export interface FindOneTokenPathProps {
   tokenIn: Address;
   tokenOut: Address;
   amount: bigint;
+  /**
+   * Slippage in PERCENTAGE_FORMAT (100% = 10_000) per operation
+   */
   slippage: number | bigint;
 }
 
@@ -105,18 +111,32 @@ export interface FindOpenStrategyPathProps {
   expectedBalances: Array<Asset>;
   leftoverBalances: Array<Asset>;
   target: Address;
+  /**
+   * Slippage in PERCENTAGE_FORMAT (100% = 10_000) per operation
+   */
   slippage: number | bigint;
 }
 
 export interface FindBestClosePathProps {
   creditAccount: RouterCASlice;
   creditManager: RouterCMSlice;
+  /**
+   * Slippage in PERCENTAGE_FORMAT (100% = 10_000) per operation
+   */
   slippage: bigint | number;
   balances?: ClosePathBalances;
 }
 
 export interface ClosePathBalances {
+  /**
+   * Current balances or expected balances after some actions (add/withdraw collateral, for example),
+   * if these actions are before router calls
+   */
   expectedBalances: Array<Asset>;
+  /**
+   * Balances to keep on account after all actions.
+   * If the final balance is 0, we set 1 for gas optimization, except for forbidden tokens
+   */
   leftoverBalances: Array<Asset>;
 }
 
