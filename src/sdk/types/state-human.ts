@@ -73,9 +73,11 @@ export interface RedstonePriceFeedStateHuman extends BasePriceFeedStateHuman {
   signersThreshold: number;
 }
 
-export interface PriceOracleV3StateHuman extends BaseContractStateHuman {
+export interface PriceOracleStateHuman extends BaseContractStateHuman {
   mainPriceFeeds: Record<string, PriceFeedStateHuman>;
   reservePriceFeeds: Record<string, PriceFeedStateHuman>;
+  mainPrices: Record<string, string>;
+  reservePrices: Record<string, string>;
 }
 
 export interface CreditFacadeStateHuman extends BaseContractStateHuman {
@@ -203,7 +205,7 @@ export interface MarketStateHuman {
   configurator: string;
   pool: PoolSuiteStateHuman;
   creditManagers: CreditSuiteStateHuman[];
-  priceOracle: PriceOracleV3StateHuman;
+  priceOracle: PriceOracleStateHuman;
   pausableAdmins: string[];
   unpausableAdmins: string[];
   emergencyLiquidators: string[];

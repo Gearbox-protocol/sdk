@@ -12,8 +12,8 @@ import type {
 import { BaseContract } from "../../base/index.js";
 import { AP_PRICE_FEED_COMPRESSOR } from "../../constants/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
-import type { PriceOracleV3StateHuman } from "../../types/index.js";
-import { AddressMap } from "../../utils/index.js";
+import type { PriceOracleStateHuman } from "../../types/index.js";
+import { AddressMap, formatBN } from "../../utils/index.js";
 import type {
   IPriceFeedContract,
   PriceFeedUsageType,
@@ -355,7 +355,7 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
     return [undefined, false];
   }
 
-  public override stateHuman(raw = true): PriceOracleV3StateHuman {
+  public override stateHuman(raw = true): PriceOracleStateHuman {
     return {
       ...super.stateHuman(raw),
       mainPriceFeeds: Object.fromEntries(
@@ -367,6 +367,22 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
         this.reservePriceFeeds
           .entries()
           .map(([token, v]) => [this.labelAddress(token), v.stateHuman(raw)]),
+      ),
+      mainPrices: Object.fromEntries(
+        this.mainPrices
+          .entries()
+          .map(([token, price]) => [
+            this.labelAddress(token),
+            formatBN(price, 8),
+          ]),
+      ),
+      reservePrices: Object.fromEntries(
+        this.reservePrices
+          .entries()
+          .map(([token, price]) => [
+            this.labelAddress(token),
+            formatBN(price, 8),
+          ]),
       ),
     };
   }
