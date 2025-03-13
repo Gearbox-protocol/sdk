@@ -65,12 +65,42 @@ export class MarketConfiguratorContract extends BaseContract<abi> {
     >,
   ): void {
     switch (log.eventName) {
-      // case "DeployDegenNFT":
-      // case "SetName":
-      // case "SetPriceFeedFromStore":
-      // case "SetReservePriceFeedFromStore":
-      case "ShutdownMarket":
+      case "AddPeripheryContract":
+      case "AddToken":
+      case "AuthorizeFactory":
+      case "ConfigureCreditSuite":
+      case "ConfigureInterestRateModel":
+      case "ConfigureLossPolicy":
+      case "ConfigurePool":
+      case "ConfigurePriceOracle":
+      case "ConfigureRateKeeper":
+      case "CreateCreditSuite":
       case "CreateMarket":
+      case "EmergencyConfigureCreditSuite":
+      case "EmergencyConfigureInterestRateModel":
+      case "EmergencyConfigureLossPolicy":
+      case "EmergencyConfigurePool":
+      case "EmergencyConfigurePriceOracle":
+      case "EmergencyConfigureRateKeeper":
+      case "EmergencyRevokeRole":
+      case "ExecuteHook":
+      case "GrantRole":
+      case "RemovePeripheryContract":
+      case "RevokeRole":
+      case "SetEmergencyAdmin":
+      case "ShutdownCreditSuite":
+      case "ShutdownMarket":
+      case "UnauthorizeFactory":
+      case "UpdateInterestRateModel":
+      case "UpdateLossPolicy":
+      case "UpdatePriceOracle":
+      case "UpdateRateKeeper":
+      case "UpgradeCreditFactory":
+      case "UpgradeInterestRateModelFactory":
+      case "UpgradeLossPolicyFactory":
+      case "UpgradePoolFactory":
+      case "UpgradePriceOracleFactory":
+      case "UpgradeRateKeeperFactory":
         this.dirty = true;
         break;
     }
