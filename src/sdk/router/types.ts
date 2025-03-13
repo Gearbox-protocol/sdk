@@ -174,12 +174,12 @@ export interface FindOpenStrategyPathProps {
   /**
    * Collateral assets + debt asset, nominated in ther respective tokens.
    * For example, if you open an USDC Credit Account, borrow 50_000 USDC and provide 10 WETH and 10_000 DAI as collateral
-   * from your own funds, expectedBalances should be: [{amount: 10*10**wethDecimals}, {amount: 10000*10**daiDecimals}, {amount: 10000*10**usdcDecimals}]
+   * from your own funds, expectedBalances should be: [{amount: 10*10^wethDecimals}, {amount: 10000*10^daiDecimals}, {amount: 10000*10^usdcDecimals}]
    */
   expectedBalances: Array<Asset>;
   /**
    * Balances to keep on account after opening.
-   * For example if don't want to swap WETH in the example above, leftoverBalances should be: [{amount: 10*10**wethDecimals}]
+   * For example if don't want to swap WETH in the example above, leftoverBalances should be: [{amount: 10*10^wethDecimals}]
    */
   leftoverBalances: Array<Asset>;
   /**

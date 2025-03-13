@@ -286,6 +286,17 @@ export class RouterV310Contract
 
 /**
  * Calculates balances after opening Credit Account
+ * @example
+ * Expected balances: 1000 DAI, 1000 USDC, 1000 USDe, 10000 USDT (debt); leftover balances: 1000 USDC.
+ * We want to swap everything into USDe after opening.
+ *
+ * Then, the path will swap:
+ * 1000 DAI, 10000 USDT → 11000 USDe
+ *
+ * Now we need to build a balance list:
+ * The entire leftover balances (1000 USDC) + expected 1000 USDe + from path 11000 USDe,
+ * where instead of leftover we take min(expected[i], leftover[i]),
+ * so, if the leftover balance is greater than expected balance, expected will be chosen, and vice versa.
  * @param target - target token (output of router)
  * @param targetAmount - amount of target token (output of router)
  * @param expected - expected balances (input of router)
