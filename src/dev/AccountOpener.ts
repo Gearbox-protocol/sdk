@@ -297,7 +297,9 @@ export class AccountOpener extends SDKConstruct {
         totalUSD += market.priceOracle.convertToUSD(pool.underlying, diff);
       }
     }
-    totalUSD = (totalUSD * 105n) / 100n; // 5% more to be safe
+    // pool.available * linearModel.U2 can be borrowed
+    // U2 is currently at 90% in all pools
+    totalUSD = (totalUSD * PERCENTAGE_FACTOR) / 9000n;
     this.#logger?.debug(
       `total USD to claim from faucet: ${formatBN(totalUSD, 8)}`,
     );

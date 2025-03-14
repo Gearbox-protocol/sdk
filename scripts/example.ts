@@ -12,11 +12,12 @@ async function example(): Promise<void> {
 
   const MARKET_CONFIGURATORS: Address[] = [
     "0x354fe9f450f60b8547f88be042e4a45b46128a06",
+    "0xec0790b52fbc05c20037695c10f230a37f24dccd",
   ];
   const ADDRESS_PROVIDER = "0xbab2014dd88223e168ba06911c06df638311a097";
 
   const sdk = await GearboxSDK.attach({
-    rpcURLs: ["https://anvil.gearbox.foundation/rpc/PermissionlessMainnet"],
+    rpcURLs: ["https://anvil.gearbox.foundation/rpc/Eth211"],
     timeout: 480_000,
     addressProvider: ADDRESS_PROVIDER,
     marketConfigurators: MARKET_CONFIGURATORS,
