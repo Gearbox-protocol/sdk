@@ -277,11 +277,15 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     await this.#addressProvider.syncState(this.currentBlock);
 
     // Attaching bot list contract
-    const botListAddress = this.#addressProvider.getAddress(
-      AP_BOT_LIST,
-      NO_VERSION,
-    );
-    this.#botListContract = new BotListContract(this, botListAddress);
+    try {
+      const botListAddress = this.#addressProvider.getAddress(
+        AP_BOT_LIST,
+        NO_VERSION,
+      );
+      this.#botListContract = new BotListContract(this, botListAddress);
+    } catch (e) {
+      this.logger?.error(e);
+    }
 
     // Attaching gear staking contract
     this.#gear = this.#addressProvider.getAddress(AP_GEAR_TOKEN, NO_VERSION);
