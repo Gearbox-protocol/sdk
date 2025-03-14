@@ -45,3 +45,6 @@ export const ADDRESS_PROVIDER: Record<NetworkType, Address> = {
   Base: NOT_DEPLOYED,
   Sonic: "0x4b27b296273B72d7c7bfee1ACE93DC081467C41B",
 };
+
+export const ADDRESS_PROVIDER_V310 =
+  "0xBaB2014Dd88223E168bA06911c06df638311a097";

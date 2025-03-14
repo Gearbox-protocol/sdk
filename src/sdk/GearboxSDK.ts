@@ -10,7 +10,7 @@ import type {
 } from "./chain/index.js";
 import { createTransport, Provider } from "./chain/index.js";
 import {
-  ADDRESS_PROVIDER,
+  ADDRESS_PROVIDER_V310,
   AP_BOT_LIST,
   AP_GEAR_STAKING,
   AP_GEAR_TOKEN,
@@ -192,7 +192,7 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
       chainId = await attachClient.getChainId();
     }
     if (!addressProvider) {
-      addressProvider = ADDRESS_PROVIDER[networkType];
+      addressProvider = ADDRESS_PROVIDER_V310;
     }
 
     const provider = new Provider({
