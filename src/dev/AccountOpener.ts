@@ -299,7 +299,7 @@ export class AccountOpener extends SDKConstruct {
     }
     // pool.available * linearModel.U2 can be borrowed
     // U2 is currently at 90% in all pools
-    totalUSD = (totalUSD * PERCENTAGE_FACTOR) / 9000n;
+    totalUSD = (totalUSD * PERCENTAGE_FACTOR) / 8950n;
     this.#logger?.debug(
       `total USD to claim from faucet: ${formatBN(totalUSD, 8)}`,
     );
