@@ -47,7 +47,7 @@ export class PriceOracleV300Contract extends PriceOracleBaseContract<abi> {
     }
   }
 
-  protected override findTokenForPriceFeed(
+  public override findTokenForPriceFeed(
     priceFeed: Address,
   ): [token: Address | undefined, reserve: boolean] {
     const [token, reserve] = super.findTokenForPriceFeed(priceFeed);

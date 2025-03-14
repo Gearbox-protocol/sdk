@@ -339,7 +339,7 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
    * @param priceFeed
    * @returns
    */
-  protected findTokenForPriceFeed(
+  public findTokenForPriceFeed(
     priceFeed: Address,
   ): [token: Address | undefined, reserve: boolean] {
     for (const [token, pf] of this.mainPriceFeeds.entries()) {
