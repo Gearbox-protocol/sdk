@@ -28,7 +28,7 @@ export class RedstonePriceFeedContract extends AbstractPriceFeedContract<abi> {
         [
           { type: "address" }, //  [0]: pf.token(),
           { type: "bytes32" }, //  [1]: pf.dataFeedId(),
-          { type: "bytes32" }, //  [2]: pf.dataServiceId(),
+          { type: "string" }, //  [2]: pf.dataServiceId(),
           { type: "address" }, //  [3]: pf.signerAddress0(),
           { type: "address" }, //  [4]: pf.signerAddress1(),
           { type: "address" }, //  [5]: pf.signerAddress2(),
