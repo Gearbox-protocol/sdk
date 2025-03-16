@@ -26,30 +26,29 @@ export class RedstonePriceFeedContract extends AbstractPriceFeedContract<abi> {
       [
         { type: "address" }, //  [0]: pf.token(),
         { type: "bytes32" }, //  [1]: pf.dataFeedId(),
-        { type: "address" }, //  [2]: pf.signerAddress0(),
-        { type: "address" }, //  [3]: pf.signerAddress1(),
-        { type: "address" }, //  [4]: pf.signerAddress2(),
-        { type: "address" }, //  [5]: pf.signerAddress3(),
-        { type: "address" }, //  [6]: pf.signerAddress4(),
-        { type: "address" }, //  [7]: pf.signerAddress5()
-        { type: "address" }, //  [8]: pf.signerAddress6(),
-        { type: "address" }, //  [9]: pf.signerAddress7(),
-        { type: "address" }, // [10]: pf.signerAddress8(),
-        { type: "address" }, // [11]: pf.signerAddress9(),
-        { type: "uint8" }, //   [12]: pf.getUniqueSignersThreshold()
-        { type: "uint128" }, // [13]: pf.lastPrice(),
-        { type: "uint40" }, //  [14]: pf.lastPayloadTimestamp()
+        { type: "bytes32" }, //  [2]: pf.dataServiceId(),
+        { type: "address" }, //  [3]: pf.signerAddress0(),
+        { type: "address" }, //  [4]: pf.signerAddress1(),
+        { type: "address" }, //  [5]: pf.signerAddress2(),
+        { type: "address" }, //  [6]: pf.signerAddress3(),
+        { type: "address" }, //  [7]: pf.signerAddress4(),
+        { type: "address" }, //  [8]: pf.signerAddress5()
+        { type: "address" }, //  [9]: pf.signerAddress6(),
+        { type: "address" }, //  [10]: pf.signerAddress7(),
+        { type: "address" }, // [11]: pf.signerAddress8(),
+        { type: "address" }, // [12]: pf.signerAddress9(),
+        { type: "uint8" }, //   [13]: pf.getUniqueSignersThreshold()
+        { type: "uint128" }, // [14]: pf.lastPrice(),
+        { type: "uint40" }, //  [15]: pf.lastPayloadTimestamp()
       ],
       args.baseParams.serializedParams,
     );
 
     this.token = decoder[0];
     this.dataId = bytesToString(toBytes(decoder[1])).replaceAll("\x00", "");
-    this.signers = decoder.slice(2, 12) as Hex[];
-    this.signersThreshold = Number(decoder[12]);
-    this.dataServiceId = ["GMX", "BAL"].includes(this.dataId)
-      ? "redstone-arbitrum-prod"
-      : "redstone-primary-prod";
+    this.signers = decoder.slice(3, 13) as Hex[];
+    this.signersThreshold = Number(decoder[13]);
+    this.dataServiceId = decoder[2];
   }
 
   public override stateHuman(
