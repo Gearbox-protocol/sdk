@@ -1,4 +1,4 @@
-import type { Hex } from "viem";
+import type { Address, Hex } from "viem";
 import { bytesToString, decodeAbiParameters, toBytes } from "viem";
 
 import { redstonePriceFeedAbi } from "../../abi/index.js";
@@ -10,6 +10,7 @@ import { AbstractPriceFeedContract } from "./AbstractPriceFeed.js";
 type abi = typeof redstonePriceFeedAbi;
 
 export class RedstonePriceFeedContract extends AbstractPriceFeedContract<abi> {
+  public readonly token: Address;
   public readonly dataServiceId: string;
   public readonly dataId: string;
   public readonly signers: Hex[];
@@ -42,6 +43,7 @@ export class RedstonePriceFeedContract extends AbstractPriceFeedContract<abi> {
       args.baseParams.serializedParams,
     );
 
+    this.token = decoder[0];
     this.dataId = bytesToString(toBytes(decoder[1])).replaceAll("\x00", "");
     this.signers = decoder.slice(2, 11) as Hex[];
     this.signersThreshold = Number(decoder[12]);
