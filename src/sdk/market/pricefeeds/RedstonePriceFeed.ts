@@ -45,7 +45,7 @@ export class RedstonePriceFeedContract extends AbstractPriceFeedContract<abi> {
 
     this.token = decoder[0];
     this.dataId = bytesToString(toBytes(decoder[1])).replaceAll("\x00", "");
-    this.signers = decoder.slice(2, 11) as Hex[];
+    this.signers = decoder.slice(2, 12) as Hex[];
     this.signersThreshold = Number(decoder[12]);
     this.dataServiceId = ["GMX", "BAL"].includes(this.dataId)
       ? "redstone-arbitrum-prod"
