@@ -37,7 +37,7 @@ import type {
   ILogger,
   MultiCall,
 } from "./types/index.js";
-import { AddressMap, formatBN } from "./utils/index.js";
+import { AddressMap, formatBN, TypedObjectUtils } from "./utils/index.js";
 import { Hooks } from "./utils/internal/index.js";
 import { detectNetwork } from "./utils/viem/index.js";
 
@@ -310,7 +310,7 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
       this.logger?.warn("Router not found", e);
     }
 
-    for (const [name, plugin] of Object.entries(this.plugins)) {
+    for (const [name, plugin] of TypedObjectUtils.entries(this.plugins)) {
       if (plugin.attach) {
         this.logger?.debug(`attaching plugin ${name}`);
         await plugin.attach();
