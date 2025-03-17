@@ -15,6 +15,8 @@ export class RedstonePriceFeedContract extends AbstractPriceFeedContract<abi> {
   public readonly dataId: string;
   public readonly signers: Hex[];
   public readonly signersThreshold: number;
+  public readonly lastPrice: bigint;
+  public readonly lastPayloadTimestamp: number;
 
   constructor(sdk: GearboxSDK, args: PartialPriceFeedTreeNode) {
     super(sdk, {
@@ -24,62 +26,59 @@ export class RedstonePriceFeedContract extends AbstractPriceFeedContract<abi> {
     });
 
     if (args.baseParams.version === 310n) {
+      // https://github.com/Gearbox-protocol/oracles-v3/blob/fc8d3a0ab5bd7eb50ce3f6b87dde5cd3d887bafe/contracts/oracles/updatable/RedstonePriceFeed.sol#L161
+      // abi.encode(token, dataFeedId, dataServiceId, signers, _signersThreshold, lastPrice, lastPayloadTimestamp);
       const decoder = decodeAbiParameters(
         [
-          { type: "address" }, //  [0]: pf.token(),
-          { type: "bytes32" }, //  [1]: pf.dataFeedId(),
-          { type: "string" }, //  [2]: pf.dataServiceId(),
-          { type: "address" }, //  [3]: pf.signerAddress0(),
-          { type: "address" }, //  [4]: pf.signerAddress1(),
-          { type: "address" }, //  [5]: pf.signerAddress2(),
-          { type: "address" }, //  [6]: pf.signerAddress3(),
-          { type: "address" }, //  [7]: pf.signerAddress4(),
-          { type: "address" }, //  [8]: pf.signerAddress5()
-          { type: "address" }, //  [9]: pf.signerAddress6(),
-          { type: "address" }, //  [10]: pf.signerAddress7(),
-          { type: "address" }, // [11]: pf.signerAddress8(),
-          { type: "address" }, // [12]: pf.signerAddress9(),
-          { type: "uint8" }, //   [13]: pf.getUniqueSignersThreshold()
-          { type: "uint128" }, // [14]: pf.lastPrice(),
-          { type: "uint40" }, //  [15]: pf.lastPayloadTimestamp()
+          { type: "address", name: "token" },
+          { type: "bytes32", name: "dataFeedId" },
+          { type: "string", name: "dataServiceId" },
+          { type: "address[10]", name: "signers" },
+          { type: "uint8", name: "signersThreshold" },
+          { type: "uint128", name: "lastPrice" },
+          { type: "uint40", name: "lastPayloadTimestamp" },
         ],
         args.baseParams.serializedParams,
       );
 
       this.token = decoder[0];
       this.dataId = bytesToString(toBytes(decoder[1])).replaceAll("\x00", "");
-      this.signers = decoder.slice(3, 13) as Hex[];
-      this.signersThreshold = Number(decoder[13]);
       this.dataServiceId = decoder[2];
+      this.signers = [...decoder[3]];
+      this.signersThreshold = Number(decoder[4]);
+      this.lastPrice = decoder[5];
+      this.lastPayloadTimestamp = Number(decoder[6]);
     } else {
+      // https://github.com/Gearbox-protocol/periphery-v3/blob/8ae4c5f8835de9961c55403fcc810516cea3e29c/contracts/serializers/oracles/RedstonePriceFeedSerializer.sol#L26
+      //   return abi.encode(
+      //     pf.token(),
+      //     pf.dataFeedId(),
+      //     signers,
+      //     pf.getUniqueSignersThreshold(),
+      //     pf.lastPrice(),
+      //     pf.lastPayloadTimestamp()
+      // );
       const decoder = decodeAbiParameters(
         [
-          { type: "address" }, //  [0]: pf.token(),
-          { type: "bytes32" }, //  [1]: pf.dataFeedId(),
-          { type: "address" }, //  [2]: pf.signerAddress0(),
-          { type: "address" }, //  [3]: pf.signerAddress1(),
-          { type: "address" }, //  [4]: pf.signerAddress2(),
-          { type: "address" }, //  [5]: pf.signerAddress3(),
-          { type: "address" }, //  [6]: pf.signerAddress4(),
-          { type: "address" }, //  [7]: pf.signerAddress5()
-          { type: "address" }, //  [8]: pf.signerAddress6(),
-          { type: "address" }, //  [9]: pf.signerAddress7(),
-          { type: "address" }, // [10]: pf.signerAddress8(),
-          { type: "address" }, // [11]: pf.signerAddress9(),
-          { type: "uint8" }, //   [12]: pf.getUniqueSignersThreshold()
-          { type: "uint128" }, // [13]: pf.lastPrice(),
-          { type: "uint40" }, //  [14]: pf.lastPayloadTimestamp()
+          { type: "address" }, // pf.token(),
+          { type: "bytes32" }, // pf.dataFeedId(),
+          { type: "address[10]" }, // signers,
+          { type: "uint8" }, // pf.getUniqueSignersThreshold(),
+          { type: "uint128" }, //  pf.lastPrice(),
+          { type: "uint40" }, // pf.lastPayloadTimestamp()
         ],
         args.baseParams.serializedParams,
       );
 
       this.token = decoder[0];
       this.dataId = bytesToString(toBytes(decoder[1])).replaceAll("\x00", "");
-      this.signers = decoder.slice(2, 12) as Hex[];
-      this.signersThreshold = Number(decoder[12]);
+      this.signers = [...decoder[2]];
+      this.signersThreshold = Number(decoder[3]);
       this.dataServiceId = ["GMX", "BAL"].includes(this.dataId)
         ? "redstone-arbitrum-prod"
         : "redstone-primary-prod";
+      this.lastPrice = decoder[4];
+      this.lastPayloadTimestamp = Number(decoder[5]);
     }
   }
 
@@ -93,6 +92,8 @@ export class RedstonePriceFeedContract extends AbstractPriceFeedContract<abi> {
       signers: this.signers,
       signersThreshold: this.signersThreshold,
       skipCheck: true,
+      lastPrice: this.lastPrice.toString(),
+      lastPayloadTimestamp: this.lastPayloadTimestamp.toString(),
     };
   }
 }

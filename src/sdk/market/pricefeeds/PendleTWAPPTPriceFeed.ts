@@ -23,6 +23,10 @@ export class PendleTWAPPTPriceFeed extends AbstractPriceFeedContract<abi> {
       name: "PendleTWAPPTPriceFeed",
       abi,
     });
+    // https://github.com/Gearbox-protocol/periphery-v3/blob/8ae4c5f8835de9961c55403fcc810516cea3e29c/contracts/serializers/oracles/PendleTWAPPTPriceFeedSerializer.sol#L22
+    // return abi.encode(pf.market(), pf.sy(), pf.yt(), pf.expiry(), pf.twapWindow(), priceToSy);
+    // https://github.com/Gearbox-protocol/oracles-v3/blob/fc8d3a0ab5bd7eb50ce3f6b87dde5cd3d887bafe/contracts/oracles/pendle/PendleTWAPPTPriceFeed.sol#L79
+    // abi.encode(market, sy, yt, expiry, twapWindow, priceToSy);
     const decoded = decodeAbiParameters(
       [
         { type: "address", name: "market" },

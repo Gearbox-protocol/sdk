@@ -13,6 +13,10 @@ export class BoundedPriceFeedContract extends AbstractPriceFeedContract<abi> {
 
   constructor(sdk: GearboxSDK, args: PartialPriceFeedTreeNode) {
     super(sdk, { ...args, name: "BoundedPriceFeed", abi: boundedPriceFeedAbi });
+    // https://github.com/Gearbox-protocol/periphery-v3/blob/8ae4c5f8835de9961c55403fcc810516cea3e29c/contracts/serializers/oracles/BoundedPriceFeedSerializer.sol#L13
+    // abi.encode(pf.upperBound());
+    // https://github.com/Gearbox-protocol/oracles-v3/blob/fc8d3a0ab5bd7eb50ce3f6b87dde5cd3d887bafe/contracts/oracles/BoundedPriceFeed.sol#L59
+    // abi.encode(upperBound);
     const decoder = decodeAbiParameters(
       [
         { type: "int256" }, //  upperBound

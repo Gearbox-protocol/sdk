@@ -27,6 +27,10 @@ export class BalancerWeightedPriceFeedContract extends AbstractLPPriceFeedContra
   ];
 
   constructor(sdk: GearboxSDK, args: PartialPriceFeedTreeNode) {
+    // https://github.com/Gearbox-protocol/periphery-v3/blob/8ae4c5f8835de9961c55403fcc810516cea3e29c/contracts/serializers/oracles/BPTWeightedPriceFeedSerializer.sol#L24
+    // return abi.encode(super.serialize(priceFeed), pf.vault(), pf.poolId(), weights);
+    // https://github.com/Gearbox-protocol/oracles-v3/blob/fc8d3a0ab5bd7eb50ce3f6b87dde5cd3d887bafe/contracts/oracles/balancer/BPTWeightedPriceFeed.sol#L173C9-L173C70
+    // return abi.encode(super.serialize(), vault, poolId, weights);
     const decoded = decodeAbiParameters(
       [
         { type: "bytes", name: "superParams" },
