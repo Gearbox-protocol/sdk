@@ -2,6 +2,7 @@ import type { Address, Hex } from "viem";
 import { bytesToString, decodeAbiParameters, toBytes } from "viem";
 
 import { redstonePriceFeedAbi } from "../../abi/index.js";
+import { ADDRESS_0X0 } from "../../constants/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { RedstonePriceFeedStateHuman } from "../../types/index.js";
 import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed.js";
@@ -89,7 +90,7 @@ export class RedstonePriceFeedContract extends AbstractPriceFeedContract<abi> {
       ...super.stateHuman(raw),
       contractType: "PRICE_FEED::REDSTONE",
       dataId: this.dataId,
-      signers: this.signers,
+      signers: this.signers.filter(s => s !== ADDRESS_0X0),
       signersThreshold: this.signersThreshold,
       skipCheck: true,
       lastPrice: this.lastPrice.toString(),
