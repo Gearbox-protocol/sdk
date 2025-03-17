@@ -464,6 +464,15 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     this.#currentBlock = blockNumber;
     this.#timestamp = timestamp;
     await this.#hooks.triggerHooks("syncState", { blockNumber, timestamp });
+
+    for (const [name, plugin] of TypedObjectUtils.entries(this.plugins)) {
+      if (plugin.syncState) {
+        this.logger?.debug(`syncing plugin ${name}`);
+        await plugin.syncState({ blockNumber, timestamp });
+        this.logger?.debug(`syncing plugin ${name}`);
+      }
+    }
+
     this.#syncing = false;
     this.logger?.debug(`synced state to block ${blockNumber}`);
   }

@@ -1,5 +1,5 @@
 import type { BaseState, IBaseContract } from "../base/index.js";
-import type { GearboxSDK } from "../GearboxSDK.js";
+import type { GearboxSDK, SyncStateOptions } from "../GearboxSDK.js";
 
 export type IGearboxSDKPluginConstructor = new (
   sdk: GearboxSDK,
@@ -12,6 +12,12 @@ export interface IGearboxSDKPlugin {
    * @returns
    */
   attach?: () => Promise<void>;
+  /**
+   * Called after SDK state is already synced
+   * @param sdk
+   * @returns
+   */
+  syncState?: (opts: SyncStateOptions) => Promise<void>;
   /**
    * Can be called by SDK to create some auxiliary contracts, such as zappers and adapters
    * @param params
