@@ -21,25 +21,43 @@ export abstract class AbstractLPPriceFeedContract<
   constructor(sdk: GearboxSDK, args: PriceFeedConstructorArgs<abi>) {
     super(sdk, { ...args, decimals: 8 });
     this.hasLowerBoundCap = true;
-    const decoder = decodeAbiParameters(
-      [
-        { type: "address", name: "lpToken" },
-        { type: "address", name: "lpContract" },
-        { type: "uint256", name: "lowerBound" },
-        { type: "uint256", name: "upperBound" },
-        // { type: "bool", name: "updateBoundsAllowed" },
-        // { type: "uint40", name: "lastBoundsUpdate" },
-        { type: "int256", name: "aggregatePrice" },
-        { type: "uint256", name: "lPExchangeRate" },
-        { type: "uint256", name: "scale" },
-      ],
-      hexToBytes(args.baseParams.serializedParams),
-    );
 
-    this.lpToken = decoder[0];
-    this.lpContract = decoder[1];
-    this.lowerBound = decoder[2];
-    this.upperBound = decoder[3];
+    if (args.baseParams.version === 310n) {
+      const decoder = decodeAbiParameters(
+        [
+          { type: "address", name: "lpToken" },
+          { type: "address", name: "lpContract" },
+          { type: "uint256", name: "lowerBound" },
+          { type: "uint256", name: "upperBound" },
+        ],
+        hexToBytes(args.baseParams.serializedParams),
+      );
+
+      this.lpToken = decoder[0];
+      this.lpContract = decoder[1];
+      this.lowerBound = decoder[2];
+      this.upperBound = decoder[3];
+    } else {
+      const decoder = decodeAbiParameters(
+        [
+          { type: "address", name: "lpToken" },
+          { type: "address", name: "lpContract" },
+          { type: "uint256", name: "lowerBound" },
+          { type: "uint256", name: "upperBound" },
+          // { type: "bool", name: "updateBoundsAllowed" },
+          // { type: "uint40", name: "lastBoundsUpdate" },
+          { type: "int256", name: "aggregatePrice" },
+          { type: "uint256", name: "lPExchangeRate" },
+          { type: "uint256", name: "scale" },
+        ],
+        hexToBytes(args.baseParams.serializedParams),
+      );
+
+      this.lpToken = decoder[0];
+      this.lpContract = decoder[1];
+      this.lowerBound = decoder[2];
+      this.upperBound = decoder[3];
+    }
   }
 
   abstract getValue(): Promise<bigint>;
