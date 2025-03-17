@@ -24,11 +24,13 @@ import {
 } from "./core/index.js";
 import { MarketRegister } from "./market/MarketRegister.js";
 import { PriceFeedRegister } from "./market/pricefeeds/index.js";
-import type {
-  IGearboxSDKPlugin,
-  PluginInstances,
-  PluginMap,
+import {
+  defaultPlugins,
+  type IGearboxSDKPlugin,
+  type PluginInstances,
+  type PluginMap,
 } from "./plugins/index.js";
+import type { IGearboxSDKPluginConstructor } from "./plugins/types.js";
 import type { IRouterContract } from "./router/index.js";
 import { createRouter } from "./router/index.js";
 import type {
@@ -224,10 +226,12 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     this.priceFeeds = new PriceFeedRegister(this);
     this.strictContractTypes = options.strictContractTypes ?? false;
     const pluginsInstances: Record<string, IGearboxSDKPlugin> = {};
-    for (const [name, PluginConstructor] of Object.entries(
-      options.plugins ?? {},
-    )) {
-      pluginsInstances[name] = new PluginConstructor(this);
+    const pluginConstructros: Record<string, IGearboxSDKPluginConstructor> = {
+      ...defaultPlugins,
+      ...options.plugins,
+    };
+    for (const [name, Plugin] of TypedObjectUtils.entries(pluginConstructros)) {
+      pluginsInstances[name] = new Plugin(this);
     }
     this.plugins = pluginsInstances as PluginInstances<Plugins>;
   }
@@ -313,8 +317,12 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     for (const [name, plugin] of TypedObjectUtils.entries(this.plugins)) {
       if (plugin.attach) {
         this.logger?.debug(`attaching plugin ${name}`);
-        await plugin.attach();
-        this.logger?.debug(`attached plugin ${name}`);
+        try {
+          await plugin.attach();
+          this.logger?.debug(`attached plugin ${name}`);
+        } catch (e) {
+          this.logger?.error(e, `failed to attach plugin ${name}`);
+        }
       }
     }
 
@@ -391,9 +399,9 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
       },
       tokens: this.tokensMeta.values(),
       plugins: Object.fromEntries(
-        Object.entries(this.plugins).map(([name, plugin]) => [
+        TypedObjectUtils.entries(this.plugins).map(([name, plugin]) => [
           name,
-          plugin.stateHuman(raw),
+          plugin.stateHuman?.(raw) ?? {},
         ]),
       ),
       ...this.marketRegister.stateHuman(raw),
@@ -468,8 +476,12 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     for (const [name, plugin] of TypedObjectUtils.entries(this.plugins)) {
       if (plugin.syncState) {
         this.logger?.debug(`syncing plugin ${name}`);
-        await plugin.syncState({ blockNumber, timestamp });
-        this.logger?.debug(`syncing plugin ${name}`);
+        try {
+          await plugin.syncState();
+          this.logger?.debug(`syncing plugin ${name}`);
+        } catch (e) {
+          this.logger?.error(e, `failed to sync plugin ${name}`);
+        }
       }
     }
 

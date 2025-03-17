@@ -1,6 +1,6 @@
-import type { Address } from "viem";
+import type { Address, PublicClient } from "viem";
 
-import type { Provider } from "../chain/index.js";
+import type { NetworkType, Provider } from "../chain/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 
 export class SDKConstruct {
@@ -16,6 +16,14 @@ export class SDKConstruct {
 
   public get provider(): Provider {
     return this.sdk.provider;
+  }
+
+  public get network(): NetworkType {
+    return this.provider.networkType;
+  }
+
+  public get client(): PublicClient {
+    return this.provider.publicClient;
   }
 
   /**
