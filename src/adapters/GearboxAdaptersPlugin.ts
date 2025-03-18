@@ -15,9 +15,11 @@ import { ConvexV1BoosterAdapterContract } from "./ConvexV1BoosterAdapterContract
 import { Curve2AssetsAdapterContract } from "./Curve2AssetsAdapterContract.js";
 import { Curve3AssetsAdapterContract } from "./Curve3AssetsAdapterContract.js";
 import { Curve4AssetsAdapterContract } from "./Curve4AssetsAdapterContract.js";
+import { CurveV1AdapterDeposit } from "./CurveV1AdapterDeposit.js";
 import { CurveV1AdapterStETHContract } from "./CurveV1AdapterStETHContract.js";
 import { CurveV1StableNGAdapterContract } from "./CurveV1StableNGAdapterContract.js";
 import { DaiUsdsAdapterContract } from "./DaiUsdsAdapterContract.js";
+import { EqualizerRouterAdapterContract } from "./EqualizerRouterAdapterContract.js";
 import { ERC4626AdapterContract } from "./ERC4626AdapterContract.js";
 import { MellowERC4626VaultAdapterContract } from "./MellowERC4626VaultAdapterContract.js";
 import { MellowVaultAdapterContract } from "./MellowVaultAdapterContract.js";
@@ -43,10 +45,14 @@ export class GearboxAdaptersPlugin
     ) as AdapterContractType;
 
     switch (adapterType) {
-      case "ADAPTER::UNISWAP_V2_ROUTER":
-        return new UniswapV2AdapterContract(this.sdk, args);
-      case "ADAPTER::UNISWAP_V3_ROUTER":
-        return new UniswapV3AdapterContract(this.sdk, args);
+      case "ADAPTER::BALANCER_V3_ROUTER":
+        return new BalancerV3RouterAdapterContract(this.sdk, args);
+      case "ADAPTER::BALANCER_VAULT":
+        return new BalancerV2VaultAdapterContract(this.sdk, args);
+      case "ADAPTER::CAMELOT_V3_ROUTER":
+        return new CamelotV3AdapterContract(this.sdk, args);
+      case "ADAPTER::CURVE_STABLE_NG":
+        return new CurveV1StableNGAdapterContract(this.sdk, args);
       case "ADAPTER::CURVE_V1_2ASSETS":
         return new Curve2AssetsAdapterContract(this.sdk, args);
       case "ADAPTER::CURVE_V1_3ASSETS":
@@ -56,37 +62,35 @@ export class GearboxAdaptersPlugin
       case "ADAPTER::CURVE_V1_STECRV_POOL":
         return new CurveV1AdapterStETHContract(this.sdk, args);
       case "ADAPTER::CURVE_V1_WRAPPER":
-        return new CurveV1StableNGAdapterContract(this.sdk, args);
+        return new CurveV1AdapterDeposit(this.sdk, args);
       case "ADAPTER::CVX_V1_BASE_REWARD_POOL":
         return new ConvexV1BaseRewardPoolAdapterContract(this.sdk, args);
       case "ADAPTER::CVX_V1_BOOSTER":
         return new ConvexV1BoosterAdapterContract(this.sdk, args);
-      case "ADAPTER::CURVE_STABLE_NG":
-        return new CurveV1StableNGAdapterContract(this.sdk, args);
-      case "ADAPTER::LIDO_WSTETH_V1":
-        return new WstETHV1AdapterContract(this.sdk, args);
-      case "ADAPTER::BALANCER_VAULT":
-        return new BalancerV2VaultAdapterContract(this.sdk, args);
-      case "ADAPTER::BALANCER_V3_ROUTER":
-        return new BalancerV3RouterAdapterContract(this.sdk, args);
-      case "ADAPTER::ERC4626_VAULT":
-        return new ERC4626AdapterContract(this.sdk, args);
-      case "ADAPTER::VELODROME_V2_ROUTER":
-        return new VelodromeV2RouterAdapterContract(this.sdk, args);
-      case "ADAPTER::CAMELOT_V3_ROUTER":
-        return new CamelotV3AdapterContract(this.sdk, args);
-      case "ADAPTER::YEARN_V2":
-        return new YearnV2RouterAdapterContract(this.sdk, args);
-      case "ADAPTER::MELLOW_LRT_VAULT":
-        return new MellowVaultAdapterContract(this.sdk, args);
-      case "ADAPTER::MELLOW_ERC4626_VAULT":
-        return new MellowERC4626VaultAdapterContract(this.sdk, args);
-      case "ADAPTER::PENDLE_ROUTER":
-        return new PendleRouterAdapterContract(this.sdk, args);
       case "ADAPTER::DAI_USDS_EXCHANGE":
         return new DaiUsdsAdapterContract(this.sdk, args);
+      case "ADAPTER::EQUALIZER_ROUTER":
+        return new EqualizerRouterAdapterContract(this.sdk, args);
+      case "ADAPTER::ERC4626_VAULT":
+        return new ERC4626AdapterContract(this.sdk, args);
+      case "ADAPTER::LIDO_WSTETH_V1":
+        return new WstETHV1AdapterContract(this.sdk, args);
+      case "ADAPTER::MELLOW_ERC4626_VAULT":
+        return new MellowERC4626VaultAdapterContract(this.sdk, args);
+      case "ADAPTER::MELLOW_LRT_VAULT":
+        return new MellowVaultAdapterContract(this.sdk, args);
+      case "ADAPTER::PENDLE_ROUTER":
+        return new PendleRouterAdapterContract(this.sdk, args);
       case "ADAPTER::STAKING_REWARDS":
         return new StakingRewardsAdapterContract(this.sdk, args);
+      case "ADAPTER::UNISWAP_V2_ROUTER":
+        return new UniswapV2AdapterContract(this.sdk, args);
+      case "ADAPTER::UNISWAP_V3_ROUTER":
+        return new UniswapV3AdapterContract(this.sdk, args);
+      case "ADAPTER::VELODROME_V2_ROUTER":
+        return new VelodromeV2RouterAdapterContract(this.sdk, args);
+      case "ADAPTER::YEARN_V2":
+        return new YearnV2RouterAdapterContract(this.sdk, args);
       default: {
         const err = new Error(
           `Adapter type ${adapterType} not supported for adapter at ${args.baseParams.addr}`,
