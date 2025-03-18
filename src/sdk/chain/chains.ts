@@ -14,21 +14,37 @@ export const NetworkType = z.enum(SUPPORTED_NETWORKS);
 
 export type NetworkType = z.infer<typeof NetworkType>;
 
-export const chains: Record<NetworkType, Chain> = {
-  Mainnet: mainnet,
-  Arbitrum: arbitrum,
-  Optimism: optimism,
-  Base: base,
-  Sonic: defineChain({
-    ...sonic,
-    blockExplorers: {
-      default: {
-        name: "Sonic Explorer",
-        url: "https://sonicscan.org",
-        apiUrl: "https://api.sonicscan.org/api",
+function withPublicNode(chain: Chain, subdomain: string): Chain {
+  return defineChain({
+    ...chain,
+    rpcUrls: {
+      ...chain.rpcUrls,
+      publicnode: {
+        http: [`https://${subdomain}.publicnode.com`],
+        webSocket: [`wss://${subdomain}.publicnode.com`],
       },
     },
-  }),
+  });
+}
+
+export const chains: Record<NetworkType, Chain> = {
+  Mainnet: withPublicNode(mainnet, "ethereum-rpc"),
+  Arbitrum: withPublicNode(arbitrum, "arbitrum-one-rpc"),
+  Optimism: withPublicNode(optimism, "optimism-rpc"),
+  Base: withPublicNode(base, "base-rpc"),
+  Sonic: withPublicNode(
+    defineChain({
+      ...sonic,
+      blockExplorers: {
+        default: {
+          name: "Sonic Explorer",
+          url: "https://sonicscan.org",
+          apiUrl: "https://api.sonicscan.org/api",
+        },
+      },
+    }),
+    "sonic-rpc",
+  ),
 };
 
 const CHAINS_BY_ID: Record<number, NetworkType> = {
