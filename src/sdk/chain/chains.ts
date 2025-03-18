@@ -1,7 +1,8 @@
 import { type Chain, defineChain } from "viem";
 import { arbitrum, base, mainnet, optimism, sonic } from "viem/chains";
+import { z } from "zod";
 
-export const SUPPORTED_CHAINS = [
+export const SUPPORTED_NETWORKS = [
   "Mainnet",
   "Arbitrum",
   "Optimism",
@@ -9,7 +10,9 @@ export const SUPPORTED_CHAINS = [
   "Sonic",
 ] as const;
 
-export type NetworkType = (typeof SUPPORTED_CHAINS)[number];
+export const NetworkType = z.enum(SUPPORTED_NETWORKS);
+
+export type NetworkType = z.infer<typeof NetworkType>;
 
 export const chains: Record<NetworkType, Chain> = {
   Mainnet: mainnet,

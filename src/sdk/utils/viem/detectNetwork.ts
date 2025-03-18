@@ -1,7 +1,7 @@
 import type { Address, PublicClient } from "viem";
 
 import { ierc20Abi } from "../../../abi/iERC20.js";
-import { type NetworkType, SUPPORTED_CHAINS } from "../../chain/index.js";
+import { type NetworkType, SUPPORTED_NETWORKS } from "../../chain/index.js";
 import { USDC } from "../../constants/index.js";
 
 const WELL_KNOWN_TOKENS: Record<NetworkType, Address> = {
@@ -12,7 +12,7 @@ const WELL_KNOWN_TOKENS: Record<NetworkType, Address> = {
 export async function detectNetwork(
   client: PublicClient,
 ): Promise<NetworkType> {
-  for (const chain of SUPPORTED_CHAINS) {
+  for (const chain of SUPPORTED_NETWORKS) {
     try {
       await client.readContract({
         abi: ierc20Abi,
