@@ -481,7 +481,7 @@ export class CreditAccountsService extends SDKConstruct {
     );
 
     const calls: Array<MultiCall> = [
-      ...priceUpdates,
+      ...(operation === "close" ? [] : priceUpdates),
       ...routerCloseResult.calls,
       ...this.#prepareDisableQuotas(ca),
       ...this.#prepareDecreaseDebt(ca),
@@ -542,7 +542,7 @@ export class CreditAccountsService extends SDKConstruct {
       );
 
     const calls: Array<MultiCall> = [
-      ...priceUpdates,
+      ...(operation === "close" ? [] : priceUpdates),
       ...this.#prepareAddCollateral(ca.creditFacade, addCollateral, permits),
       ...this.#prepareDisableQuotas(ca),
       ...this.#prepareDecreaseDebt(ca),
