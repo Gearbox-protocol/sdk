@@ -9,10 +9,7 @@ import {
 import { AddressMap } from "../sdk/index.js";
 import type { ZapperData, ZapperDataFull, ZapperStateHuman } from "./types.js";
 
-export class GearboxZappersPlugin
-  extends SDKConstruct
-  implements IGearboxSDKPlugin
-{
+export class ZappersPlugin extends SDKConstruct implements IGearboxSDKPlugin {
   #zappers?: AddressMap<ZapperDataFull[]>;
 
   public async attach(): Promise<void> {

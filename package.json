@@ -20,6 +20,11 @@
       "import": "./dist/esm/adapters/index.js",
       "default": "./dist/cjs/adapters/index.js"
     },
+    "./bots": {
+      "types": "./dist/types/bots/index.d.ts",
+      "import": "./dist/esm/bots/index.js",
+      "default": "./dist/cjs/bots/index.js"
+    },
     "./dev": {
       "types": "./dist/types/dev/index.d.ts",
       "import": "./dist/esm/dev/index.js",

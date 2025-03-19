@@ -1,6 +1,5 @@
 export * from "./accounts/index.js";
 export * from "./base/index.js";
-export * from "./bots/index.js";
 export * from "./chain/index.js";
 export * from "./constants/index.js";
 export * from "./core/index.js";

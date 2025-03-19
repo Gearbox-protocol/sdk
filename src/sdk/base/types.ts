@@ -65,12 +65,6 @@ export type ConnectedBotData = Unarray<
   >
 >;
 
-export type BotData = Unarray<
-  AbiParametersToPrimitiveTypes<
-    ExtractAbiFunction<typeof iPeripheryCompressorAbi, "getBots">["outputs"]
-  >
->;
-
 export type CreditManagerData = Unarray<MarketData["creditManagers"]>;
 
 export type CreditManagerState = CreditManagerData["creditManager"];

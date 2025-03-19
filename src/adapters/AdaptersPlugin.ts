@@ -32,10 +32,7 @@ import { VelodromeV2RouterAdapterContract } from "./VelodromeV2AdapterContract.j
 import { WstETHV1AdapterContract } from "./WstETHV1AdapterContract.js";
 import { YearnV2RouterAdapterContract } from "./YearnV2AdapterContract.js";
 
-export class GearboxAdaptersPlugin
-  extends SDKConstruct
-  implements IGearboxSDKPlugin
-{
+export class AdaptersPlugin extends SDKConstruct implements IGearboxSDKPlugin {
   public readonly name = "Adapters";
 
   public createContract(data: BaseState): IBaseContract | undefined {

@@ -1,9 +1,8 @@
 import { pino } from "pino";
 import type { Address } from "viem";
 
-import { GearboxAdaptersPlugin } from "../src/adapters/index.js";
-import { GearboxSDK } from "../src/sdk/index.js";
-import { GearboxZappersPlugin } from "../src/zappers/index.js";
+import { BotsPlugin } from "../src/bots/BotsPlugin.js";
+import { GearboxSDK, json_stringify } from "../src/sdk/index.js";
 
 async function example(): Promise<void> {
   const logger = pino({
@@ -25,13 +24,15 @@ async function example(): Promise<void> {
     ignoreUpdateablePrices: false,
     strictContractTypes: true,
     plugins: {
-      adapters: GearboxAdaptersPlugin,
-      zappers: GearboxZappersPlugin,
+      // adapters: AdaptersPlugin,
+      // zappers: ZappersPlugin,
+      bots: BotsPlugin,
     },
   });
 
+  console.log(json_stringify(sdk.plugins.bots.stateHuman()));
+
   logger.info("done");
-  logger.info(`loaded ${sdk.plugins.zappers.zappers.size} zappers`);
 }
 
 example().catch(e => {

@@ -1,5 +1,6 @@
 export * from "./abi/index.js";
 export * from "./AbstractAdapter.js";
+export * from "./AdaptersPlugin.js";
 export * from "./BalancerV2VaultAdapterContract.js";
 export * from "./BalancerV3RouterAdapterContract.js";
 export * from "./CamelotV3AdapterContract.js";
@@ -14,7 +15,6 @@ export * from "./CurveV1StableNGAdapterContract.js";
 export * from "./DaiUsdsAdapterContract.js";
 export * from "./EqualizerRouterAdapterContract.js";
 export * from "./ERC4626AdapterContract.js";
-export * from "./GearboxAdaptersPlugin.js";
 export * from "./MellowERC4626VaultAdapterContract.js";
 export * from "./MellowVaultAdapterContract.js";
 export * from "./PendleRouterAdapterContract.js";
