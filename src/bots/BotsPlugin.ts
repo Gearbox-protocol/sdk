@@ -106,6 +106,9 @@ export class BotsPlugin extends SDKConstruct implements IGearboxSDKPlugin {
     this.#logger?.debug(`loaded ${botAddrsV300.length} v300 bots`);
     const params = await this.#getBotsV300Parameters(botAddrsV300);
 
+    // for v300 bots, there's no reliable way to get bot type from compressor
+    // so we're assuming that there're 4 v300 bots per market configurator
+    // and their types are determined by their minHealthFactors
     for (const [mc, botStates] of TypedObjectUtils.entries(botsByMcV300)) {
       this.#botsByMarket.upsert(
         mc,
