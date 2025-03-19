@@ -51,7 +51,7 @@ export default abstract class AbstractAddressProviderContract<
     contract: string,
   ): [address: Address, version: number] {
     const version = this.#latest[contract];
-    if (!version) {
+    if (version === undefined) {
       throw new Error(`Latest version for ${contract} not found`);
     }
     this.logger?.debug(`Latest version found for ${contract} : ${version}`);
