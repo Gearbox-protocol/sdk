@@ -95,7 +95,7 @@ export class BotsPlugin extends SDKConstruct implements IGearboxSDKPlugin {
         botsByMcV300[mc] = marketBots;
       } else {
         this.#logger?.warn(
-          `each market configurator should have 4 v3.00 bots, but ${mc} has ${marketBots.length}`,
+          `each market configurator should have 4 v300 bots, but ${mc} has ${marketBots.length}`,
         );
       }
     }
@@ -103,7 +103,7 @@ export class BotsPlugin extends SDKConstruct implements IGearboxSDKPlugin {
     const botAddrsV300 = Object.values(botsByMcV300).flatMap(b =>
       b.map(b => b.baseParams.addr),
     );
-    this.#logger?.debug(`loaded ${botAddrsV300.length} v3.00 bots`);
+    this.#logger?.debug(`loaded ${botAddrsV300.length} v300 bots`);
     const params = await this.#getBotsV300Parameters(botAddrsV300);
 
     for (const [mc, botStates] of TypedObjectUtils.entries(botsByMcV300)) {
