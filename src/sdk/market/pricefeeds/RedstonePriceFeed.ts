@@ -7,6 +7,7 @@ import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { RedstonePriceFeedStateHuman } from "../../types/index.js";
 import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed.js";
 import { AbstractPriceFeedContract } from "./AbstractPriceFeed.js";
+import type { IPriceFeedContract } from "./types.js";
 
 type abi = typeof redstonePriceFeedAbi;
 
@@ -97,4 +98,10 @@ export class RedstonePriceFeedContract extends AbstractPriceFeedContract<abi> {
       lastPayloadTimestamp: this.lastPayloadTimestamp.toString(),
     };
   }
+}
+
+export function isRedstone(
+  pf: IPriceFeedContract,
+): pf is RedstonePriceFeedContract {
+  return pf.contractType === "PRICE_FEED::REDSTONE";
 }

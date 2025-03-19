@@ -78,12 +78,15 @@ export class MarketRegister extends SDKConstruct {
     let txs: RawTx[] = [];
     if (!ignoreUpdateablePrices) {
       // to have correct prices we must first get all updatable price feeds
-      await this.sdk.priceFeeds.preloadUpdatablePriceFeeds(
-        configurators,
-        pools,
-      );
+      const updatables =
+        await this.sdk.priceFeeds.getPartialUpdatablePriceFeeds(
+          configurators,
+          pools,
+        );
+
       // the generate updates
-      const updates = await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs();
+      const updates =
+        await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(updatables);
       txs = updates.txs;
     }
     this.#logger?.debug(

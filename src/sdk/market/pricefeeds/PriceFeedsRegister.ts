@@ -6,7 +6,7 @@ import {
 } from "viem";
 
 import { iMarketCompressorAbi } from "../../../abi/compressors.js";
-import type { BaseParams, PriceFeedTreeNode } from "../../base/index.js";
+import type { PriceFeedTreeNode } from "../../base/index.js";
 import { SDKConstruct } from "../../base/index.js";
 import { ADDRESS_0X0, AP_MARKET_COMPRESSOR } from "../../constants/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
@@ -19,7 +19,10 @@ import {
 } from "../../utils/index.js";
 import type { IHooks } from "../../utils/internal/index.js";
 import { Hooks } from "../../utils/internal/index.js";
-import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed.js";
+import {
+  PartialPriceFeedInitError,
+  type PartialPriceFeedTreeNode,
+} from "./AbstractPriceFeed.js";
 import { BalancerStablePriceFeedContract } from "./BalancerStablePriceFeed.js";
 import { BalancerWeightedPriceFeedContract } from "./BalancerWeightedPriceFeed.js";
 import { BoundedPriceFeedContract } from "./BoundedPriceFeed.js";
@@ -32,7 +35,7 @@ import { ExternalPriceFeedContract } from "./ExternalPriceFeed.js";
 import { MellowLRTPriceFeedContract } from "./MellowLRTPriceFeed.js";
 import { PendleTWAPPTPriceFeed } from "./PendleTWAPPTPriceFeed.js";
 import { PythPriceFeed } from "./PythPriceFeed.js";
-import { RedstonePriceFeedContract } from "./RedstonePriceFeed.js";
+import { isRedstone, RedstonePriceFeedContract } from "./RedstonePriceFeed.js";
 import { RedstoneUpdater } from "./RedstoneUpdater.js";
 import type {
   IPriceFeedContract,
@@ -106,30 +109,53 @@ export class PriceFeedRegister
       return existing;
     }
     const feed = this.create(data);
+    if (!feed.loaded) {
+      throw new PartialPriceFeedInitError({ ...data, abi: [], name: "" });
+    }
     this.#feeds.upsert(data.baseParams.addr, feed);
     return feed;
   }
 
   /**
    * Loads PARTIAL information about all updatable price feeds from MarketCompressor
-   * This can later be used to load price feed updates
+   * This is not saved anywhere in PriceFeedRegister, and can later be used to load price feed updates
    */
-  public async preloadUpdatablePriceFeeds(
+  public async getPartialUpdatablePriceFeeds(
     marketConfigurators?: Address[],
     pools?: Address[],
-  ): Promise<void> {
-    const feedsData = await this.#loadUpdatablePriceFeeds(
-      marketConfigurators,
-      pools,
+  ): Promise<IPriceFeedContract[]> {
+    const marketCompressorAddress = this.sdk.addressProvider.getAddress(
+      AP_MARKET_COMPRESSOR,
+      3_10,
     );
-    for (const data of feedsData) {
-      const feed = this.create({ baseParams: data });
-      this.#feeds.upsert(feed.address, feed);
-    }
+    const configurators =
+      marketConfigurators ??
+      this.sdk.marketRegister.marketConfigurators.map(mc => mc.address);
+    this.logger?.debug(
+      { configurators, pools },
+      "calling getUpdatablePriceFeeds",
+    );
+    const result = await this.provider.publicClient.readContract({
+      address: marketCompressorAddress,
+      abi: iMarketCompressorAbi,
+      functionName: "getUpdatablePriceFeeds",
+      args: [
+        {
+          configurators,
+          pools: pools ?? [],
+          underlying: ADDRESS_0X0,
+        },
+      ],
+    });
+    this.logger?.debug(`loaded ${result.length} partial updatable price feeds`);
+    return result.map(baseParams => this.#createUpdatableProxy({ baseParams }));
   }
 
   /**
    * Generates price update transaction via multicall3 without any market data knowledge
+   *
+   * @deprecated TODO: seems that it's not used anywhere
+   *
    * @param marketConfigurators
    * @param pools
    * @returns
@@ -138,11 +164,10 @@ export class PriceFeedRegister
     marketConfigurators?: Address[],
     pools?: Address[],
   ): Promise<RawTx> {
-    const feedsData = await this.#loadUpdatablePriceFeeds(
+    const feeds = await this.getPartialUpdatablePriceFeeds(
       marketConfigurators,
       pools,
     );
-    const feeds = feedsData.map(data => this.create({ baseParams: data }));
     const updates = await this.#generatePriceFeedsUpdateTxs(feeds);
 
     return createRawTx(
@@ -172,7 +197,7 @@ export class PriceFeedRegister
     const redstonePFs: RedstonePriceFeedContract[] = [];
 
     for (const pf of updateables) {
-      if (pf instanceof RedstonePriceFeedContract) {
+      if (isRedstone(pf)) {
         redstonePFs.push(pf);
       }
     }
@@ -199,40 +224,6 @@ export class PriceFeedRegister
     if (txs.length) {
       await this.#hooks.triggerHooks("updatesGenerated", result);
     }
-    return result;
-  }
-
-  async #loadUpdatablePriceFeeds(
-    marketConfigurators?: Address[],
-    pools?: Address[],
-  ): Promise<readonly BaseParams[]> {
-    const marketCompressorAddress = this.sdk.addressProvider.getAddress(
-      AP_MARKET_COMPRESSOR,
-      3_10,
-    );
-    const configurators =
-      marketConfigurators ??
-      this.sdk.marketRegister.marketConfigurators.map(mc => mc.address);
-    this.logger?.debug(
-      { configurators, pools },
-      "calling getUpdatablePriceFeeds",
-    );
-    const result = await this.provider.publicClient.readContract({
-      address: marketCompressorAddress,
-      abi: iMarketCompressorAbi,
-      functionName: "getUpdatablePriceFeeds",
-      args: [
-        {
-          configurators,
-          pools: pools ?? [],
-          underlying: ADDRESS_0X0,
-        },
-      ],
-      // It's passed as ...rest in viem readContract action, but this might change
-      // @ts-ignore
-      // gas: 500_000_000n,
-    });
-    this.logger?.debug(`loaded ${result.length} updatable price feeds`);
     return result;
   }
 
@@ -301,5 +292,18 @@ export class PriceFeedRegister
         return new ExternalPriceFeedContract(this.sdk, data);
       }
     }
+  }
+
+  #createUpdatableProxy(data: PartialPriceFeedTreeNode): IPriceFeedContract {
+    return new Proxy(this.create(data), {
+      get(target, prop) {
+        // when using this proxy, we will already have all the updatable dependencies, as returned from contracts
+        // so this protects price feed instances from throwing errors due to being partially initialized
+        if (prop === "updatableDependencies") {
+          return () => [];
+        }
+        return target[prop as keyof IPriceFeedContract];
+      },
+    });
   }
 }

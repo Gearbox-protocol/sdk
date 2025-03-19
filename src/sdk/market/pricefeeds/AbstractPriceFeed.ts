@@ -19,6 +19,18 @@ export type PriceFeedConstructorArgs<abi extends Abi | readonly unknown[]> =
     name: string;
   };
 
+export class PartialPriceFeedInitError extends Error {
+  public readonly priceFeed: PriceFeedConstructorArgs<any>;
+
+  constructor(priceFeed: PriceFeedConstructorArgs<any>) {
+    super(
+      `price feed ${priceFeed.baseParams.addr} has been initialized with BaseParams only`,
+    );
+    this.name = "ErrPartialPriceFeed";
+    this.priceFeed = priceFeed;
+  }
+}
+
 export abstract class AbstractPriceFeedContract<
     const abi extends Abi | readonly unknown[],
   >
@@ -32,6 +44,7 @@ export abstract class AbstractPriceFeedContract<
   #decimals?: number;
   #underlyingPriceFeeds?: readonly PriceFeedRef[];
   #skipCheck?: boolean;
+  #args: PriceFeedConstructorArgs<abi>;
 
   public hasLowerBoundCap = false;
   public readonly description?: string;
@@ -44,6 +57,7 @@ export abstract class AbstractPriceFeedContract<
       contractType: args.baseParams.contractType,
       version: args.baseParams.version,
     });
+    this.#args = args;
     this.description = args.description;
     this.#decimals = args.decimals;
     this.#updatable = args.updatable;
@@ -67,28 +81,28 @@ export abstract class AbstractPriceFeedContract<
 
   public get decimals(): number {
     if (this.#decimals === undefined) {
-      throw new Error("price feed has been initialized with BaseParams only");
+      throw new PartialPriceFeedInitError(this as any);
     }
     return this.#decimals;
   }
 
   public get updatable(): boolean {
     if (this.#updatable === undefined) {
-      throw new Error("price feed has been initialized with BaseParams only");
+      throw new PartialPriceFeedInitError(this.#args);
     }
     return this.#updatable;
   }
 
   public get skipCheck(): boolean {
     if (this.#skipCheck === undefined) {
-      throw new Error("price feed has been initialized with BaseParams only");
+      throw new PartialPriceFeedInitError(this.#args);
     }
     return this.#skipCheck;
   }
 
   public get underlyingPriceFeeds(): readonly PriceFeedRef[] {
     if (!this.#underlyingPriceFeeds) {
-      throw new Error("price feed has been initialized with BaseParams only");
+      throw new PartialPriceFeedInitError(this.#args);
     }
     return this.#underlyingPriceFeeds;
   }
