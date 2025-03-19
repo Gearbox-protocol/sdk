@@ -135,6 +135,9 @@ export class BotsPlugin extends SDKConstruct implements IGearboxSDKPlugin {
   async #getBotsV300Parameters(
     addresses: Address[],
   ): Promise<Record<Address, BotParameters>> {
+    if (addresses.length === 0) {
+      return {};
+    }
     const BOT_INFO_LENGTH = 4;
     const resp = await this.provider.publicClient.multicall({
       allowFailure: false,
