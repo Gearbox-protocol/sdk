@@ -109,15 +109,22 @@ export class BotsPlugin extends SDKConstruct implements IGearboxSDKPlugin {
     for (const [mc, botStates] of TypedObjectUtils.entries(botsByMcV300)) {
       this.#botsByMarket.upsert(
         mc,
-        botStates.map(
-          (state, i) =>
-            new PartialLiquidationBotV300Contract(
-              this.sdk,
-              state,
-              params[state.baseParams.addr],
-              BOT_TYPES[i],
-            ),
-        ),
+        botStates
+          .map((state, i) => ({
+            state,
+            params: params[state.baseParams.addr],
+            type: BOT_TYPES[i],
+          }))
+          .sort((a, b) => a.params.minHealthFactor - b.params.minHealthFactor)
+          .map(
+            ({ state, params, type }) =>
+              new PartialLiquidationBotV300Contract(
+                this.sdk,
+                state,
+                params,
+                type,
+              ),
+          ),
       );
     }
   }
