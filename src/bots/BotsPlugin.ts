@@ -81,21 +81,21 @@ export class BotsPlugin extends SDKConstruct implements IGearboxSDKPlugin {
     for (let i = 0; i < mcs.length; i++) {
       const mc = mcs[i];
       const marketBotData = botsData[i];
-      const marketBots: BotState[] = [];
+      const marketBotsV300: BotState[] = [];
 
       for (const bot of marketBotData) {
         if (bot.baseParams.version === 300n) {
-          marketBots.push(bot);
+          marketBotsV300.push(bot);
         } else {
           this.#logger?.warn(new UnsupportedBotVersionError(bot));
           // create and push new bot of other version
         }
       }
-      if (marketBots.length === 4) {
-        botsByMcV300[mc] = marketBots;
-      } else {
+      if (marketBotsV300.length === 4) {
+        botsByMcV300[mc] = marketBotsV300;
+      } else if (marketBotsV300.length > 0) {
         this.#logger?.warn(
-          `each market configurator should have 4 v300 bots, but ${mc} has ${marketBots.length}`,
+          `each market configurator should have 4 v300 bots, but ${mc} has ${marketBotsV300.length}`,
         );
       }
     }
