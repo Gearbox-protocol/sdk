@@ -1,3 +1,5 @@
+import type { Address } from "abitype";
+
 import type { GearboxSDK } from "../sdk/index.js";
 import { BaseContract, formatPercentage } from "../sdk/index.js";
 import { iPartialLiquidationBotV300Abi } from "./abi/index.js";
@@ -19,18 +21,21 @@ export interface PartialLiquidationBotV300Contract
 export class PartialLiquidationBotV300Contract extends BaseContract<abi> {
   public readonly requiredPermissions: bigint;
   public readonly botType: BotType;
+  public readonly marketConfigurator: Address;
 
   constructor(
     sdk: GearboxSDK,
     args: BotState,
     params: BotParameters,
     type: BotType,
+    marketConfigurator: Address,
   ) {
     super(sdk, {
       abi,
       ...args.baseParams,
       name: `PartialLiquidationBotV300 (${type})`,
     });
+    this.marketConfigurator = marketConfigurator;
     this.requiredPermissions = args.requiredPermissions;
     Object.assign(this, params);
     this.botType = type;

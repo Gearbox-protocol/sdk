@@ -126,6 +126,7 @@ export class BotsPlugin extends SDKConstruct implements IGearboxSDKPlugin {
                 state,
                 params,
                 type,
+                mc,
               ),
           ),
       );

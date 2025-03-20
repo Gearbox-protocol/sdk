@@ -20,6 +20,7 @@ export interface CreditAccountDataPayload {
   borrower: Address;
   creditManager: Address;
   creditFacade: Address;
+  marketConfigurator: Address;
   underlying: Address;
   debt: bigint;
   accruedInterest: bigint;

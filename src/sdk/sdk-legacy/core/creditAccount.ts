@@ -150,6 +150,7 @@ export class CreditAccountData_Legacy {
   readonly borrower: Address;
   readonly creditManager: Address;
   readonly creditFacade: Address;
+  readonly marketConfigurator: Address;
   readonly underlying: Address;
   readonly expirationDate: number;
   readonly version: number;
@@ -185,6 +186,8 @@ export class CreditAccountData_Legacy {
     this.borrower = payload.borrower.toLowerCase() as Address;
     this.creditManager = payload.creditManager.toLowerCase() as Address;
     this.creditFacade = payload.creditFacade.toLowerCase() as Address;
+    this.marketConfigurator =
+      payload.marketConfigurator.toLowerCase() as Address;
     this.underlying = payload.underlying.toLowerCase() as Address;
     this.expirationDate = Number(payload.expirationDate);
     this.version = Number(payload.cfVersion);
