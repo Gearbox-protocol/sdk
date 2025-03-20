@@ -171,8 +171,6 @@ export class CreditAccountData_Legacy {
   readonly totalValueUSD: bigint;
   readonly twvUSD: bigint;
 
-  readonly activeBots: Record<Address, BotDataLegacy>;
-
   readonly balances: Record<Address, bigint> = {};
   readonly collateralTokens: Array<Address> = [];
   readonly tokens: Record<Address, CaTokenBalance> = {};
@@ -210,21 +208,6 @@ export class CreditAccountData_Legacy {
     this.baseBorrowRateWithoutFee = rayToNumber(
       payload.baseBorrowRate * PERCENTAGE_DECIMALS * PERCENTAGE_FACTOR,
     );
-
-    this.activeBots = payload.activeBots.reduce<
-      CreditAccountData_Legacy["activeBots"]
-    >((acc, b) => {
-      const botLc = b.baseParams.addr.toLowerCase() as Address;
-      acc[botLc] = {
-        baseParams: {
-          ...b.baseParams,
-          addr: botLc,
-        },
-        permissions: b.permissions,
-        forbidden: b.forbidden,
-      };
-      return acc;
-    }, {});
 
     payload.balances.forEach(b => {
       const token = b.token.toLowerCase() as Address;
