@@ -289,20 +289,24 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
       const price = node?.answer?.price;
       if (reserve) {
         this.reservePriceFeeds.upsert(token, ref);
-        if (price) {
+        if (price !== undefined) {
           this.reservePrices.upsert(token, price);
-        } else {
+        }
+        if (!price) {
           this.logger?.warn(
-            `answer not found for reserve price feed ${this.labelAddress(priceFeed)}, success: ${node?.answer?.success}`,
+            node ?? {},
+            `answer not found for reserve price feed ${this.labelAddress(priceFeed)}`,
           );
         }
       } else {
         this.mainPriceFeeds.upsert(token, ref);
-        if (price) {
+        if (price !== undefined) {
           this.mainPrices.upsert(token, price);
-        } else {
+        }
+        if (!price) {
           this.logger?.warn(
-            `answer not found for main price feed ${this.labelAddress(priceFeed)}, success: ${node?.answer?.success}`,
+            node ?? {},
+            `answer not found for main price feed ${this.labelAddress(priceFeed)}`,
           );
         }
       }
