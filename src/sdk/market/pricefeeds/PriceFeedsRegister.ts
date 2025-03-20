@@ -300,7 +300,7 @@ export class PriceFeedRegister
         // when using this proxy, we will already have all the updatable dependencies, as returned from contracts
         // so this protects price feed instances from throwing errors due to being partially initialized
         if (prop === "updatableDependencies") {
-          return () => [];
+          return () => [target];
         }
         return target[prop as keyof IPriceFeedContract];
       },
