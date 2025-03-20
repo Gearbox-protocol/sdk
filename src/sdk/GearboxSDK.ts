@@ -314,17 +314,26 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
       this.logger?.warn("Router not found", e);
     }
 
-    for (const [name, plugin] of TypedObjectUtils.entries(this.plugins)) {
-      if (plugin.attach) {
-        this.logger?.debug(`attaching plugin ${name}`);
-        try {
-          await plugin.attach();
-          this.logger?.debug(`attached plugin ${name}`);
-        } catch (e) {
-          this.logger?.error(e, `failed to attach plugin ${name}`);
+    const pluginsList = TypedObjectUtils.entries(this.plugins);
+    const pluginResponse = await Promise.allSettled(
+      pluginsList.map(([name, plugin]) => {
+        if (plugin.attach) {
+          this.logger?.debug(`attaching plugin ${name}`);
+          return plugin.attach();
         }
+        return undefined;
+      }),
+    );
+
+    pluginResponse.forEach((r, i) => {
+      const [name, plugin] = pluginsList[i];
+
+      if (plugin.attach && r.status === "fulfilled") {
+        this.logger?.debug(`attached plugin ${name}`);
+      } else if (plugin.attach && r.status === "rejected") {
+        this.logger?.error(r.reason, `failed to attach plugin ${name}`);
       }
-    }
+    });
 
     this.logger?.info(`attach time: ${Date.now() - time} ms`);
 
@@ -473,17 +482,26 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     this.#timestamp = timestamp;
     await this.#hooks.triggerHooks("syncState", { blockNumber, timestamp });
 
-    for (const [name, plugin] of TypedObjectUtils.entries(this.plugins)) {
-      if (plugin.syncState) {
-        this.logger?.debug(`syncing plugin ${name}`);
-        try {
-          await plugin.syncState();
+    const pluginsList = TypedObjectUtils.entries(this.plugins);
+    const pluginResponse = await Promise.allSettled(
+      pluginsList.map(([name, plugin]) => {
+        if (plugin.attach) {
           this.logger?.debug(`syncing plugin ${name}`);
-        } catch (e) {
-          this.logger?.error(e, `failed to sync plugin ${name}`);
+          return plugin.attach();
         }
+        return undefined;
+      }),
+    );
+
+    pluginResponse.forEach((r, i) => {
+      const [name, plugin] = pluginsList[i];
+
+      if (plugin.attach && r.status === "fulfilled") {
+        this.logger?.debug(`synced plugin ${name}`);
+      } else if (plugin.attach && r.status === "rejected") {
+        this.logger?.error(r.reason, `failed to sync plugin ${name}`);
       }
-    }
+    });
 
     this.#syncing = false;
     this.logger?.debug(`synced state to block ${blockNumber}`);
