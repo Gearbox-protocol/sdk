@@ -147,5 +147,6 @@ export async function isDeployedUsingPublicCreate2<
 ): Promise<boolean> {
   const address = getPublicCreate2Address(params);
   const code = await getCode(client, { address });
-  return code !== "0x";
+  // TODO possibly, check that code ends with bytecode
+  return !!code;
 }
