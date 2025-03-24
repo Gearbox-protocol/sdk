@@ -1,9 +1,4 @@
-import {
-  type Address,
-  getChainContractAddress,
-  type Hex,
-  multicall3Abi,
-} from "viem";
+import type { Address, Hex } from "viem";
 
 import { iMarketCompressorAbi } from "../../../abi/compressors.js";
 import type { PriceFeedTreeNode } from "../../base/index.js";
@@ -11,12 +6,7 @@ import { SDKConstruct } from "../../base/index.js";
 import { ADDRESS_0X0, AP_MARKET_COMPRESSOR } from "../../constants/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { ILogger, RawTx } from "../../types/index.js";
-import {
-  AddressMap,
-  bytes32ToString,
-  childLogger,
-  createRawTx,
-} from "../../utils/index.js";
+import { AddressMap, bytes32ToString, childLogger } from "../../utils/index.js";
 import type { IHooks } from "../../utils/internal/index.js";
 import { Hooks } from "../../utils/internal/index.js";
 import {
@@ -149,44 +139,6 @@ export class PriceFeedRegister
     });
     this.logger?.debug(`loaded ${result.length} partial updatable price feeds`);
     return result.map(baseParams => this.#createUpdatableProxy({ baseParams }));
-  }
-
-  /**
-   * Generates price update transaction via multicall3 without any market data knowledge
-   *
-   * @deprecated TODO: seems that it's not used anywhere
-   *
-   * @param marketConfigurators
-   * @param pools
-   * @returns
-   */
-  public async getUpdatePriceFeedsTx(
-    marketConfigurators?: Address[],
-    pools?: Address[],
-  ): Promise<RawTx> {
-    const feeds = await this.getPartialUpdatablePriceFeeds(
-      marketConfigurators,
-      pools,
-    );
-    const updates = await this.#generatePriceFeedsUpdateTxs(feeds);
-
-    return createRawTx(
-      getChainContractAddress({
-        chain: this.sdk.provider.chain,
-        contract: "multicall3",
-      }),
-      {
-        abi: multicall3Abi,
-        functionName: "aggregate3",
-        args: [
-          updates.txs.map(tx => ({
-            target: tx.to,
-            allowFailure: false,
-            callData: tx.callData,
-          })),
-        ],
-      },
-    );
   }
 
   async #generatePriceFeedsUpdateTxs(
