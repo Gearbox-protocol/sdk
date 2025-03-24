@@ -1840,6 +1840,11 @@ export const tokenDataByNetwork: Record<
     DVstETH: NOT_DEPLOYED,
     waEthLidowstETH: NOT_DEPLOYED,
   },
+  // New networks
+  MegaETH: {} as any,
+  Monad: {} as any,
+  Berachain: {} as any,
+  Avalanche: {} as any,
 };
 
 export type TickerToken =
@@ -2274,6 +2279,11 @@ export const tickerInfoTokensByNetwork: Record<
       },
     ],
   },
+  // New networks
+  MegaETH: {},
+  Monad: {},
+  Berachain: {},
+  Avalanche: {},
 };
 
 export const tickerTokensByNetwork: Record<

@@ -25,6 +25,11 @@ export const USDC: Record<NetworkType, Address> = {
   Optimism: "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
   Base: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
   Sonic: "0x29219dd400f2Bf60E5a23d13Be72B486D4038894",
+  // TODO: New networks
+  MegaETH: NOT_DEPLOYED,
+  Monad: NOT_DEPLOYED,
+  Berachain: NOT_DEPLOYED,
+  Avalanche: NOT_DEPLOYED,
 };
 
 export const USDT: Record<NetworkType, Address> = {
@@ -33,6 +38,11 @@ export const USDT: Record<NetworkType, Address> = {
   Optimism: "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
   Base: NOT_DEPLOYED,
   Sonic: NOT_DEPLOYED,
+  // TODO: New networks
+  MegaETH: NOT_DEPLOYED,
+  Monad: NOT_DEPLOYED,
+  Berachain: NOT_DEPLOYED,
+  Avalanche: NOT_DEPLOYED,
 };
 
 export const WETH: Record<NetworkType, Address> = {
@@ -41,6 +51,11 @@ export const WETH: Record<NetworkType, Address> = {
   Optimism: "0x4200000000000000000000000000000000000006",
   Base: NOT_DEPLOYED,
   Sonic: NOT_DEPLOYED,
+  // TODO: New networks
+  MegaETH: NOT_DEPLOYED,
+  Monad: NOT_DEPLOYED,
+  Berachain: NOT_DEPLOYED,
+  Avalanche: NOT_DEPLOYED,
 };
 
 export const TIMELOCK: Record<NetworkType, Address> = {
@@ -49,6 +64,11 @@ export const TIMELOCK: Record<NetworkType, Address> = {
   Optimism: "0x148DD932eCe1155c11006F5650c6Ff428f8D374A",
   Base: NOT_DEPLOYED,
   Sonic: "0xAdbF876ce58CB65c99b18078353e1DCB16E69e84",
+  // New networks
+  MegaETH: NOT_DEPLOYED,
+  Monad: NOT_DEPLOYED,
+  Berachain: NOT_DEPLOYED,
+  Avalanche: NOT_DEPLOYED,
 };
 
 export const GEARBOX_MULTISIG: Record<NetworkType, Address> = {
@@ -57,6 +77,11 @@ export const GEARBOX_MULTISIG: Record<NetworkType, Address> = {
   Optimism: "0x8bA8cd6D00919ceCc19D9B4A2c8669a524883C4c",
   Base: NOT_DEPLOYED,
   Sonic: "0xacEB9dc6a81f1C9E2d8a86c3bFec3f6EF584139D",
+  // New networks
+  MegaETH: NOT_DEPLOYED,
+  Monad: NOT_DEPLOYED,
+  Berachain: NOT_DEPLOYED,
+  Avalanche: NOT_DEPLOYED,
 };
 
 export const GEARBOX_RISK_CURATORS: Record<NetworkType, Address[]> = {
@@ -65,6 +90,11 @@ export const GEARBOX_RISK_CURATORS: Record<NetworkType, Address[]> = {
   Optimism: [TIMELOCK.Optimism],
   Base: [TIMELOCK.Base],
   Sonic: [TIMELOCK.Sonic],
+  // New networks
+  MegaETH: [],
+  Monad: [],
+  Berachain: [],
+  Avalanche: [],
 };
 
 /**
@@ -79,4 +109,9 @@ export const DEPRECIATED_POOLS: Record<NetworkType, Record<Address, string>> = {
   Optimism: {},
   Base: {},
   Sonic: {},
+  // New networks
+  MegaETH: {},
+  Monad: {},
+  Berachain: {},
+  Avalanche: {},
 };

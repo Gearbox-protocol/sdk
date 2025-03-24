@@ -7,4 +7,9 @@ export const nonQuoted: Record<NetworkType, Array<SupportedToken>> = {
   Optimism: ["WETH", "USDC", "OP"],
   Base: ["WETH", "USDC", "USDT"],
   Sonic: [],
+  // New networks
+  MegaETH: [],
+  Monad: [],
+  Berachain: [],
+  Avalanche: [],
 };

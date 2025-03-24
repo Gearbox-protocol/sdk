@@ -1068,6 +1068,10 @@ export const contractsByNetwork: Record<
     SKY_STAKING_REWARDS: NOT_DEPLOYED,
     DAI_USDS: NOT_DEPLOYED,
   },
+  Avalanche: {} as any,
+  MegaETH: {} as any,
+  Monad: {} as any,
+  Berachain: {} as any,
 };
 
 interface BaseContractParams {
@@ -1128,6 +1132,10 @@ export const contractParams: Record<
       Optimism: NOT_DEPLOYED,
       Base: NOT_DEPLOYED,
       Sonic: NOT_DEPLOYED,
+      MegaETH: NOT_DEPLOYED,
+      Monad: NOT_DEPLOYED,
+      Berachain: NOT_DEPLOYED,
+      Avalanche: NOT_DEPLOYED,
     },
     tokens: ["WETH", "STETH"],
     lpToken: "steCRV",
@@ -1143,6 +1151,10 @@ export const contractParams: Record<
       Optimism: "0xb90b9b1f91a01ea22a182cd84c1e22222e39b415",
       Base: NOT_DEPLOYED,
       Sonic: NOT_DEPLOYED,
+      MegaETH: NOT_DEPLOYED,
+      Monad: NOT_DEPLOYED,
+      Berachain: NOT_DEPLOYED,
+      Avalanche: NOT_DEPLOYED,
     },
     tokens: ["WETH", "wstETH"],
     lpToken: "wstETHCRV",

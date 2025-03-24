@@ -362,6 +362,11 @@ export class RouterV300Contract
       Optimism: "0x0",
       Base: "0x0",
       Sonic: "0x0",
+      // New networks
+      MegaETH: "0x0",
+      Monad: "0x0",
+      Berachain: "0x0",
+      Avalanche: "0x0",
     } as const;
 
     const pendleRouter =
