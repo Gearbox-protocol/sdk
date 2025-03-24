@@ -8,6 +8,7 @@ import { TypedObjectUtils } from "../utils/index.js";
 export interface GearboxChain extends Chain {
   network: NetworkType;
   defaultMarketConfigurators: Record<Address, string>;
+  testMarketConfigurators?: Record<Address, string>;
   isPublic: boolean;
 }
 
@@ -43,6 +44,9 @@ export const chains: Record<NetworkType, GearboxChain> = {
       network: "Mainnet",
       defaultMarketConfigurators: {
         "0x354fe9f450F60b8547f88BE042E4A45b46128a06": "Chaos Labs",
+      },
+      testMarketConfigurators: {
+        "0xEc0790B52fBC05c20037695c10f230a37f24DccD": "K3",
       },
       isPublic: true,
     },
