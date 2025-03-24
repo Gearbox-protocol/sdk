@@ -14,6 +14,7 @@ import {
   AP_BOT_LIST,
   AP_GEAR_STAKING,
   AP_GEAR_TOKEN,
+  getDefaultMarketConfigurators,
   NO_VERSION,
 } from "./constants/index.js";
 import type { IAddressProviderContract } from "./core/index.js";
@@ -53,7 +54,7 @@ export interface SDKOptions<Plugins extends PluginMap = {}> {
   /**
    * Market configurators
    */
-  marketConfigurators: Address[];
+  marketConfigurators?: Address[];
   /**
    * Attach and load state at this specific block number
    */
@@ -181,7 +182,7 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
       blockNumber,
       redstoneHistoricTimestamp,
       ignoreUpdateablePrices,
-      marketConfigurators,
+      marketConfigurators: mcs,
     } = options;
     let { networkType, addressProvider, chainId } = options;
 
@@ -197,6 +198,8 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     if (!addressProvider) {
       addressProvider = ADDRESS_PROVIDER_V310;
     }
+    const marketConfigurators =
+      mcs ?? getDefaultMarketConfigurators(networkType);
 
     const provider = new Provider({
       ...options,

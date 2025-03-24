@@ -14,6 +14,12 @@ export const NetworkType = z.enum(SUPPORTED_NETWORKS);
 
 export type NetworkType = z.infer<typeof NetworkType>;
 
+export const PUBLIC_NETWORKS: readonly NetworkType[] = SUPPORTED_NETWORKS;
+
+export function isPublicNetwork(network: NetworkType): boolean {
+  return PUBLIC_NETWORKS.includes(network);
+}
+
 function withPublicNode(chain: Chain, subdomain: string): Chain {
   return defineChain({
     ...chain,
@@ -46,6 +52,9 @@ export const chains: Record<NetworkType, Chain> = {
     "sonic-rpc",
   ),
 };
+
+// TODO: default market configurators
+// TODO: isPublic fields for chains
 
 const CHAINS_BY_ID: Record<number, NetworkType> = {
   [mainnet.id]: "Mainnet",
