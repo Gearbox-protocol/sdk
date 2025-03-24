@@ -1,5 +1,12 @@
 import { type Chain, defineChain } from "viem";
-import { arbitrum, base, mainnet, optimism, sonic } from "viem/chains";
+import {
+  arbitrum,
+  base,
+  mainnet,
+  megaethTestnet,
+  optimism,
+  sonic,
+} from "viem/chains";
 import { z } from "zod";
 
 export const SUPPORTED_NETWORKS = [
@@ -8,6 +15,7 @@ export const SUPPORTED_NETWORKS = [
   "Optimism",
   "Base",
   "Sonic",
+  "MegaETH",
 ] as const;
 
 export const NetworkType = z.enum(SUPPORTED_NETWORKS);
@@ -45,6 +53,8 @@ export const chains: Record<NetworkType, Chain> = {
     }),
     "sonic-rpc",
   ),
+  // TODO: currently no public node
+  MegaETH: megaethTestnet,
 };
 
 const CHAINS_BY_ID: Record<number, NetworkType> = {
@@ -53,6 +63,7 @@ const CHAINS_BY_ID: Record<number, NetworkType> = {
   [optimism.id]: "Optimism",
   [base.id]: "Base",
   [sonic.id]: "Sonic",
+  [megaethTestnet.id]: "MegaETH",
 };
 
 export function getChain(

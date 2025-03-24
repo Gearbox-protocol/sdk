@@ -2274,6 +2274,7 @@ export const tickerInfoTokensByNetwork: Record<
       },
     ],
   },
+  MegaETH: {},
 };
 
 export const tickerTokensByNetwork: Record<

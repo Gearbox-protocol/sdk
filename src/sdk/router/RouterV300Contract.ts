@@ -2,6 +2,7 @@ import { type Address, encodeFunctionData, getContract } from "viem";
 
 import { iRouterV300Abi, iSwapperV300Abi } from "../../abi/routerV300.js";
 import { iCreditFacadeV300MulticallAbi } from "../../abi/v300.js";
+import type { NetworkType } from "../chain/chains.js";
 import { PERCENTAGE_FACTOR } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import { getConnectors } from "../sdk-gov-legacy/index.js";
@@ -356,13 +357,14 @@ export class RouterV300Contract
     ]);
     const cm = this.sdk.marketRegister.findCreditManager(creditManager.address);
 
-    const PENDLE_ROUTER_BY_NETWORK = {
+    const PENDLE_ROUTER_BY_NETWORK: Record<NetworkType, Address> = {
       Mainnet: "0x888888888889758F76e7103c6CbF23ABbF58F946",
       Arbitrum: "0x0",
       Optimism: "0x0",
       Base: "0x0",
       Sonic: "0x0",
-    } as const;
+      MegaETH: "0x0",
+    };
 
     const pendleRouter =
       PENDLE_ROUTER_BY_NETWORK[this.sdk.provider.networkType];

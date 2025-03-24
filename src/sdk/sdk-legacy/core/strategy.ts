@@ -2,10 +2,9 @@ import type { Address } from "viem";
 
 import type { NetworkType } from "../../chain/index.js";
 import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR } from "../../constants/index.js";
-import type { PartialRecord } from "../../utils/index.js";
 import type { CreditManagerData_Legacy } from "./creditManager.js";
 
-export type ReleaseAt = undefined | number | PartialRecord<NetworkType, number>;
+export type ReleaseAt = undefined | number | Record<number, number>;
 
 interface CalculateMaxAPYProps {
   apy: number;
@@ -64,12 +63,12 @@ export class PositionUtils {
   static isStrategyReleased(
     releaseAt: ReleaseAt,
     currentTimestamp: number,
-    network: NetworkType,
+    chainId: number,
   ) {
     if (releaseAt === undefined) return true;
     if (typeof releaseAt === "number") return currentTimestamp > releaseAt;
 
-    const releaseAtNetwork = releaseAt[network];
+    const releaseAtNetwork = releaseAt[chainId];
     if (releaseAtNetwork === undefined) return true;
 
     return currentTimestamp > releaseAtNetwork;

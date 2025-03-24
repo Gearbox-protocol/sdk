@@ -2,6 +2,7 @@ import type { Address } from "viem";
 
 import type { NetworkType } from "../../chain/index.js";
 import { chains, isSupportedNetwork } from "../../chain/index.js";
+import { TypedObjectUtils } from "../../utils/mappers.js";
 
 export const TESTNET_CHAINS: Record<NetworkType, number> = {
   Mainnet: 7878,
@@ -9,7 +10,30 @@ export const TESTNET_CHAINS: Record<NetworkType, number> = {
   Arbitrum: 7880,
   Base: 7881,
   Sonic: 7882,
+  MegaETH: 7883,
 };
+
+const CHAINS_BY_ID: Record<number, NetworkType> =
+  TypedObjectUtils.swapKeyValue(TESTNET_CHAINS);
+
+const TESTNET_BY_MAINNET_ID: Record<number, number> = {
+  [chains.Mainnet.id]: TESTNET_CHAINS.Mainnet,
+  [chains.Optimism.id]: TESTNET_CHAINS.Optimism,
+  [chains.Arbitrum.id]: TESTNET_CHAINS.Arbitrum,
+  [chains.Base.id]: TESTNET_CHAINS.Base,
+  [chains.Sonic.id]: TESTNET_CHAINS.Sonic,
+  [chains.MegaETH.id]: TESTNET_CHAINS.MegaETH,
+};
+
+const MAINNET_BY_TESTNET_ID: Record<number, number> =
+  TypedObjectUtils.swapKeyValue(TESTNET_BY_MAINNET_ID);
+
+export const getMainnetByTestnet = (testnetId: number): number | undefined =>
+  MAINNET_BY_TESTNET_ID[testnetId];
+export const getTestNetworkType = (chainId: number): NetworkType | undefined =>
+  CHAINS_BY_ID[chainId];
+export const isTestNetwork = (chainId: number | undefined): chainId is number =>
+  chainId !== undefined && !!CHAINS_BY_ID[chainId];
 
 type ChartsPriceSource = "chainlink" | "spot";
 
@@ -19,11 +43,12 @@ const CHARTS_BACKEND_ADDRESSES: Record<number, string> = {
   [chains.Optimism.id]: "https://charts-server.fly.dev",
   [chains.Base.id]: "https://charts-server.fly.dev",
   [chains.Sonic.id]: "https://charts-server.fly.dev",
+  [chains.MegaETH.id]: "https://charts-server.fly.dev",
 
   [TESTNET_CHAINS.Mainnet]: "https://testnet.gearbox.foundation",
   [TESTNET_CHAINS.Arbitrum]: "https://arbtest.gearbox.foundation",
   [TESTNET_CHAINS.Optimism]: "https://opttest.gearbox.foundation",
-  // !& Base & Sonic
+  // !& Base & Sonic & MegaETH
 };
 
 const LAMA_URL = "https://charts-server.fly.dev/api/defillama?ids=";
@@ -36,12 +61,14 @@ const LEADERBOARD_APIS: Record<number, string> = {
   [chains.Arbitrum.id]: "https://gpointbot.fly.dev",
   [chains.Base.id]: "https://gpointbot.fly.dev",
   [chains.Sonic.id]: "https://gpointbot.fly.dev",
+  [chains.MegaETH.id]: "https://gpointbot.fly.dev",
 
   [TESTNET_CHAINS.Mainnet]: "https://testnet.gearbox.foundation/gpointbot",
   [TESTNET_CHAINS.Optimism]: "https://testnet.gearbox.foundation/gpointbot",
   [TESTNET_CHAINS.Arbitrum]: "https://testnet.gearbox.foundation/gpointbot",
   [TESTNET_CHAINS.Base]: "https://testnet.gearbox.foundation/gpointbot",
   [TESTNET_CHAINS.Sonic]: "https://testnet.gearbox.foundation/gpointbot",
+  [TESTNET_CHAINS.MegaETH]: "https://testnet.gearbox.foundation/gpointbot",
 };
 
 const REFERRAL_API = "https://referral-gen.fly.dev/generate";

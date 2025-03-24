@@ -1,11 +1,9 @@
 import axios from "axios";
 import type { Address } from "viem";
 
-import type { NetworkType } from "../../chain/index.js";
-import { chains } from "../../chain/index.js";
 import { PERCENTAGE_FACTOR } from "../../constants/index.js";
 import type { Asset } from "../../router/index.js";
-import { GearboxBackendApi } from "../core/endpoint.js";
+import { GearboxBackendApi, getMainnetByTestnet } from "../core/endpoint.js";
 import type { PoolData_Legacy } from "../core/pool.js";
 import type { TokenData } from "../tokens/tokenData.js";
 import { toBN } from "../utils/formatter.js";
@@ -43,7 +41,7 @@ export interface GetTotalTokensOnProtocolProps {
   tokensToCheck: Array<Address>;
 
   tokensList: Record<Address, TokenData>;
-  network: NetworkType;
+  chainId: number;
 }
 
 export class GearboxRewardsExtraApy {
@@ -51,12 +49,14 @@ export class GearboxRewardsExtraApy {
     tokensToCheck,
 
     tokensList,
-    network,
+    chainId: id,
   }: GetTotalTokensOnProtocolProps) {
+    const chainId = getMainnetByTestnet(id) || id;
+
     const list = [...new Set(tokensToCheck)];
 
     const res = await Promise.allSettled(
-      list.map(t => this.getTokenTotal(t, network, tokensList)),
+      list.map(t => this.getTokenTotal(t, chainId, tokensList)),
     );
 
     return res.map((r, i): [Address, PromiseSettledResult<Asset>] => [
@@ -67,11 +67,9 @@ export class GearboxRewardsExtraApy {
 
   private static async getTokenTotal(
     token: Address,
-    network: NetworkType,
+    chainId: number,
     tokensList: Record<Address, TokenData>,
   ) {
-    const chainId = chains[network]?.id;
-
     const url = GearboxBackendApi.getChartsUrl("getBalanceAt", chainId, {
       params: {
         asset: token,

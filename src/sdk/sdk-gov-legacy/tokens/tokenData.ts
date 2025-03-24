@@ -30,6 +30,7 @@ export const connectors: Record<NetworkType, Array<SupportedToken>> = {
   Optimism: ["WETH", "USDC", "USDT", "USDC_e", "wstETH"],
   Base: ["WETH", "USDC", "USDT"],
   Sonic: ["wS"],
+  MegaETH: [],
 };
 
 export function getConnectors(networkType: NetworkType): Address[] {
