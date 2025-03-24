@@ -26,6 +26,7 @@ import { MellowLRTPriceFeedContract } from "./MellowLRTPriceFeed.js";
 import { PendleTWAPPTPriceFeed } from "./PendleTWAPPTPriceFeed.js";
 import { PythPriceFeed } from "./PythPriceFeed.js";
 import { isRedstone, RedstonePriceFeedContract } from "./RedstonePriceFeed.js";
+import type { RedstoneUpdateTask } from "./RedstoneUpdater.js";
 import { RedstoneUpdater } from "./RedstoneUpdater.js";
 import type {
   IPriceFeedContract,
@@ -44,6 +45,11 @@ export type PriceFeedRegisterHooks = {
   updatesGenerated: [UpdatePriceFeedsResult];
 };
 
+export interface LatestUpdate {
+  timestamp: number;
+  redstone: Omit<RedstoneUpdateTask, "tx">[];
+}
+
 /**
  * PriceFeedRegister acts as a chain-level cache to avoid creating multiple contract instances.
  * It's reused by PriceOracles belonging to different markets
@@ -56,6 +62,7 @@ export class PriceFeedRegister
   public readonly logger?: ILogger;
   readonly #hooks = new Hooks<PriceFeedRegisterHooks>();
   #feeds = new AddressMap<IPriceFeedContract>(undefined, "priceFeeds");
+  #latestUpdate: LatestUpdate | undefined;
   public readonly redstoneUpdater: RedstoneUpdater;
 
   constructor(sdk: GearboxSDK) {
@@ -147,6 +154,10 @@ export class PriceFeedRegister
   ): Promise<UpdatePriceFeedsResult> {
     const txs: RawTx[] = [];
     const redstonePFs: RedstonePriceFeedContract[] = [];
+    const latestUpdate: LatestUpdate = {
+      redstone: [],
+      timestamp: Date.now(),
+    };
 
     for (const pf of updateables) {
       if (isRedstone(pf)) {
@@ -160,11 +171,12 @@ export class PriceFeedRegister
         redstonePFs,
         logContext,
       );
-      for (const { tx, timestamp } of redstoneUpdates) {
+      for (const { tx, timestamp, ...rest } of redstoneUpdates) {
         if (timestamp > maxTimestamp) {
           maxTimestamp = timestamp;
         }
         txs.push(tx);
+        latestUpdate.redstone.push({ ...rest, timestamp });
       }
     }
 
@@ -176,6 +188,7 @@ export class PriceFeedRegister
     if (txs.length) {
       await this.#hooks.triggerHooks("updatesGenerated", result);
     }
+    this.#latestUpdate = latestUpdate;
     return result;
   }
 
@@ -257,5 +270,12 @@ export class PriceFeedRegister
         return target[prop as keyof IPriceFeedContract];
       },
     });
+  }
+
+  /**
+   * Information update latest update of updatable price feeds, for diagnostic purposes
+   */
+  public get latestUpdate(): LatestUpdate | undefined {
+    return this.#latestUpdate;
   }
 }

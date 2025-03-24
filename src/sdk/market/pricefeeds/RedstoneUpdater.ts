@@ -15,12 +15,16 @@ interface TimestampedCalldata {
   dataFeedId: string;
   data: `0x${string}`;
   timestamp: number;
+  cached: boolean;
 }
 
-interface UpdatePFTask {
+export interface RedstoneUpdateTask {
+  dataFeedId: string;
+  dataServiceId: string;
   priceFeed: Address;
   tx: RawTx;
   timestamp: number;
+  cached: boolean;
 }
 
 /**
@@ -28,7 +32,7 @@ interface UpdatePFTask {
  */
 export class RedstoneUpdater extends SDKConstruct {
   #logger?: ILogger;
-  #cache = new Map<string, TimestampedCalldata>();
+  #cache = new Map<string, Omit<TimestampedCalldata, "cached">>();
   #historicalTimestampMs?: number;
   #gateways?: string[];
 
@@ -55,7 +59,7 @@ export class RedstoneUpdater extends SDKConstruct {
   public async getUpdateTxs(
     feeds: RedstonePriceFeedContract[],
     logContext: Record<string, any> = {},
-  ): Promise<UpdatePFTask[]> {
+  ): Promise<RedstoneUpdateTask[]> {
     this.#logger?.debug(
       logContext,
       `generating update transactions for ${feeds.length} redstone price feeds`,
@@ -73,7 +77,7 @@ export class RedstoneUpdater extends SDKConstruct {
       priceFeeds.set(feed.dataId, feed);
     }
 
-    const results: UpdatePFTask[] = [];
+    const results: RedstoneUpdateTask[] = [];
     for (const [key, group] of Object.entries(groupedFeeds)) {
       const [dataServiceId, signersStr] = key.split(":");
       const uniqueSignersCount = parseInt(signersStr, 10);
@@ -83,12 +87,14 @@ export class RedstoneUpdater extends SDKConstruct {
         uniqueSignersCount,
       );
 
-      for (const { dataFeedId, data, timestamp } of payloads) {
+      for (const { dataFeedId, data, timestamp, cached } of payloads) {
         const priceFeed = priceFeeds.get(dataFeedId);
         if (!priceFeed) {
           throw new Error(`cannot get price feed address for ${dataFeedId}`);
         }
         results.push({
+          dataFeedId,
+          dataServiceId,
           priceFeed: priceFeed.address.toLowerCase() as Address,
           tx: priceFeed.createRawTx({
             functionName: "updatePrice",
@@ -96,6 +102,7 @@ export class RedstoneUpdater extends SDKConstruct {
             description: `updating price for ${dataFeedId} [${this.sdk.provider.addressLabels.get(priceFeed.address)}]`,
           }),
           timestamp,
+          cached,
         });
       }
     }
@@ -133,7 +140,7 @@ export class RedstoneUpdater extends SDKConstruct {
       );
       const cached = this.#cache.get(key);
       if (this.#historicalTimestampMs && !!cached) {
-        fromCache.push(cached);
+        fromCache.push({ ...cached, cached: true });
       } else {
         uncached.push(dataFeedId);
       }
@@ -300,5 +307,6 @@ function getCalldataWithTimestamp(
       [BigInt(timestamp), `0x${payload}`],
     ),
     timestamp,
+    cached: false,
   };
 }
