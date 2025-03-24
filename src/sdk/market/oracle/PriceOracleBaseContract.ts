@@ -1,5 +1,5 @@
 import type { Abi, Address } from "viem";
-import { decodeFunctionData } from "viem";
+import { decodeFunctionData, stringToHex } from "viem";
 
 import { iPriceFeedCompressorAbi } from "../../../abi/compressors.js";
 import { iUpdatablePriceFeedAbi } from "../../../abi/iUpdatablePriceFeed.js";
@@ -25,6 +25,8 @@ import type {
   OnDemandPriceUpdate,
   PriceFeedsForTokensOptions,
 } from "./types.js";
+
+const ZERO_PRICE_FEED = stringToHex("PRICE_FEED::ZERO", { size: 32 });
 
 export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
   extends BaseContract<abi>
@@ -287,12 +289,13 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
         n => n.baseParams.addr === priceFeed,
       );
       const price = node?.answer?.price;
+      const priceFeedType = node?.baseParams.contractType;
       if (reserve) {
         this.reservePriceFeeds.upsert(token, ref);
         if (price !== undefined) {
           this.reservePrices.upsert(token, price);
         }
-        if (!price) {
+        if (!price && priceFeedType !== ZERO_PRICE_FEED) {
           this.logger?.warn(
             node ?? {},
             `answer not found for reserve price feed ${this.labelAddress(priceFeed)}`,
@@ -303,7 +306,7 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
         if (price !== undefined) {
           this.mainPrices.upsert(token, price);
         }
-        if (!price) {
+        if (!price && priceFeedType !== ZERO_PRICE_FEED) {
           this.logger?.warn(
             node ?? {},
             `answer not found for main price feed ${this.labelAddress(priceFeed)}`,
