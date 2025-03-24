@@ -105,6 +105,7 @@ interface AttachOptionsInternal {
 export interface SyncStateOptions {
   blockNumber: bigint;
   timestamp: bigint;
+  skipPriceUpdate?: boolean;
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -437,7 +438,7 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
    * @returns
    */
   public async syncState(opts?: SyncStateOptions): Promise<void> {
-    let { blockNumber, timestamp } = opts ?? {};
+    let { blockNumber, timestamp, skipPriceUpdate } = opts ?? {};
     if (!blockNumber || !timestamp) {
       const block = await this.provider.publicClient.getBlock({
         blockTag: "latest",
@@ -472,7 +473,7 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     }
 
     // This will reload all or some markets
-    await this.marketRegister.syncState();
+    await this.marketRegister.syncState(skipPriceUpdate);
     // TODO: do wee need to sync state on botlist and others?
     //
     // TODO: how to handle "singleton" contracts addresses, where contract instance is shared across multiple other contract instrances
