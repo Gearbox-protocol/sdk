@@ -1,6 +1,16 @@
 import type { Address, Chain } from "viem";
 import { defineChain } from "viem";
-import { arbitrum, base, mainnet, optimism, sonic } from "viem/chains";
+import {
+  arbitrum,
+  avalanche,
+  base,
+  berachain,
+  mainnet,
+  megaethTestnet,
+  monadTestnet,
+  optimism,
+  sonic,
+} from "viem/chains";
 import { z } from "zod";
 
 import { TypedObjectUtils } from "../utils/index.js";
@@ -18,6 +28,10 @@ export const SUPPORTED_NETWORKS = [
   "Optimism",
   "Base",
   "Sonic",
+  "MegaETH",
+  "Monad",
+  "Berachain",
+  "Avalanche",
 ] as const;
 
 export const NetworkType = z.enum(SUPPORTED_NETWORKS);
@@ -100,6 +114,45 @@ export const chains: Record<NetworkType, GearboxChain> = {
       },
     }),
     "sonic-rpc",
+  ),
+  MegaETH: defineChain({
+    ...megaethTestnet,
+    network: "MegaETH",
+    defaultMarketConfigurators: {},
+    isPublic: true,
+    // TODO: has no block explorer API
+  }),
+  Monad: defineChain({
+    ...monadTestnet,
+    network: "Monad",
+    defaultMarketConfigurators: {},
+    isPublic: true,
+    // TODO: has no block explorer API
+  }),
+  Berachain: withPublicNode(
+    {
+      ...berachain,
+      network: "Berachain",
+      defaultMarketConfigurators: {},
+      isPublic: true,
+      blockExplorers: {
+        default: {
+          name: "Berascan",
+          url: "https://berascan.com",
+          apiUrl: "https://api.berascan.com/api",
+        },
+      },
+    },
+    "berachain-rpc",
+  ),
+  Avalanche: withPublicNode(
+    {
+      ...avalanche,
+      network: "Avalanche",
+      defaultMarketConfigurators: {},
+      isPublic: true,
+    },
+    "avalanche-c-chain-rpc",
   ),
 };
 
