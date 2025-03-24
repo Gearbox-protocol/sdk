@@ -46,7 +46,7 @@ async function example(): Promise<void> {
     },
   });
 
-  console.log(json_stringify(sdk.plugins.bots.stateHuman()));
+  console.log(json_stringify(sdk.priceFeeds.latestUpdate));
 
   logger.info("done");
 }

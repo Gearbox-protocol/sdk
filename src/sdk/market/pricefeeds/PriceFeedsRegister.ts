@@ -156,7 +156,7 @@ export class PriceFeedRegister
     const redstonePFs: RedstonePriceFeedContract[] = [];
     const latestUpdate: LatestUpdate = {
       redstone: [],
-      timestamp: Date.now(),
+      timestamp: Math.floor(Date.now() / 1000),
     };
 
     for (const pf of updateables) {
