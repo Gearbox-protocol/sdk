@@ -34,8 +34,8 @@ async function example(): Promise<void> {
   const sdk = await GearboxSDK.attach({
     rpcURLs: [RPC],
     timeout: 480_000,
-    addressProvider: ADDRESS_PROVIDER,
-    marketConfigurators: [...confgurators],
+    // addressProvider: ADDRESS_PROVIDER,
+    // marketConfigurators: [...confgurators],
     logger,
     ignoreUpdateablePrices: false,
     strictContractTypes: true,

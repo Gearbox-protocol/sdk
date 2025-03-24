@@ -8,13 +8,12 @@ import type {
   NetworkOptions,
   TransportOptions,
 } from "./chain/index.js";
-import { createTransport, Provider } from "./chain/index.js";
+import { chains, createTransport, Provider } from "./chain/index.js";
 import {
   ADDRESS_PROVIDER_V310,
   AP_BOT_LIST,
   AP_GEAR_STAKING,
   AP_GEAR_TOKEN,
-  getDefaultMarketConfigurators,
   NO_VERSION,
 } from "./constants/index.js";
 import type { IAddressProviderContract } from "./core/index.js";
@@ -199,14 +198,15 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
       addressProvider = ADDRESS_PROVIDER_V310;
     }
     const marketConfigurators =
-      mcs ?? getDefaultMarketConfigurators(networkType);
+      mcs ??
+      TypedObjectUtils.keys(chains[networkType].defaultMarketConfigurators);
 
     const provider = new Provider({
       ...options,
       chainId,
       networkType,
     });
-    logger?.debug(
+    logger?.info(
       { networkType, chainId, addressProvider, marketConfigurators },
       "attaching gearbox sdk",
     );
@@ -270,13 +270,12 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
       this.priceFeeds.redstoneUpdater.gateways = redstoneGateways;
     }
 
-    this.logger?.info(
+    this.logger?.debug(
       {
-        addressProvider,
-        blockNumber: block.number,
+        number: block.number,
         timestamp: block.timestamp,
       },
-      "attaching",
+      "attach block",
     );
     this.#addressProvider = await createAddressProvider(this, addressProvider);
     this.logger?.debug(
