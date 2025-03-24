@@ -46,7 +46,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         "0x354fe9f450F60b8547f88BE042E4A45b46128a06": "Chaos Labs",
       },
       testMarketConfigurators: {
-        "0xEc0790B52fBC05c20037695c10f230a37f24DccD": "K3",
+        "0x4d427D418342d8CE89a7634c3a402851978B680A": "K3",
       },
       isPublic: true,
     },
