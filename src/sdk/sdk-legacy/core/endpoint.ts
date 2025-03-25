@@ -1,7 +1,8 @@
 import type { Address } from "viem";
 
 import type { NetworkType } from "../../chain/index.js";
-import { chains, isSupportedNetwork } from "../../chain/index.js";
+import { chains as CHAINS, isSupportedNetwork } from "../../chain/index.js";
+import { TypedObjectUtils } from "../../utils/mappers.js";
 
 export const TESTNET_CHAINS: Record<NetworkType, number> = {
   Mainnet: 7878,
@@ -16,37 +17,51 @@ export const TESTNET_CHAINS: Record<NetworkType, number> = {
   Avalanche: 7886,
 };
 
+const CHAINS_BY_ID: Record<number, NetworkType> =
+  TypedObjectUtils.swapKeyValue(TESTNET_CHAINS);
+
+const MAINNET_BY_TESTNET_ID = TypedObjectUtils.entries(TESTNET_CHAINS).reduce<
+  Record<number, number>
+>((acc, [n, testnetId]) => {
+  const primaryId = CHAINS[n]?.id;
+  acc[testnetId] = primaryId;
+
+  return acc;
+}, {});
+
+export const getMainnetByTestnet = (testnetId: number): number | undefined =>
+  MAINNET_BY_TESTNET_ID[testnetId];
+export const getTestNetworkType = (chainId: number): NetworkType | undefined =>
+  CHAINS_BY_ID[chainId];
+export const isTestNetwork = (chainId: number | undefined): chainId is number =>
+  chainId !== undefined && !!CHAINS_BY_ID[chainId];
+
 type ChartsPriceSource = "chainlink" | "spot";
 
 const CHARTS_BACKEND_ADDRESSES: Record<number, string> = {
-  [chains.Mainnet.id]: "https://charts-server.fly.dev",
-  [chains.Arbitrum.id]: "https://charts-server.fly.dev",
-  [chains.Optimism.id]: "https://charts-server.fly.dev",
-  [chains.Base.id]: "https://charts-server.fly.dev",
-  [chains.Sonic.id]: "https://charts-server.fly.dev",
+  ...Object.values(CHAINS).reduce<Record<number, string>>((acc, chain) => {
+    acc[chain.id] = "https://charts-server.fly.dev";
+    return acc;
+  }, {}),
 
   [TESTNET_CHAINS.Mainnet]: "https://testnet.gearbox.foundation",
   [TESTNET_CHAINS.Arbitrum]: "https://arbtest.gearbox.foundation",
   [TESTNET_CHAINS.Optimism]: "https://opttest.gearbox.foundation",
-  // !& Base & Sonic
+  // !& new chains
 };
-
-const LAMA_URL = "https://charts-server.fly.dev/api/defillama?ids=";
 
 const STATIC_TOKEN = "https://static.gearbox.fi/tokens/";
 
 const LEADERBOARD_APIS: Record<number, string> = {
-  [chains.Mainnet.id]: "https://gpointbot.fly.dev",
-  [chains.Optimism.id]: "https://gpointbot.fly.dev",
-  [chains.Arbitrum.id]: "https://gpointbot.fly.dev",
-  [chains.Base.id]: "https://gpointbot.fly.dev",
-  [chains.Sonic.id]: "https://gpointbot.fly.dev",
+  [CHAINS.Mainnet.id]: "https://gpointbot.fly.dev",
+  [CHAINS.Optimism.id]: "https://gpointbot.fly.dev",
+  [CHAINS.Arbitrum.id]: "https://gpointbot.fly.dev",
+  // !& new chains
 
   [TESTNET_CHAINS.Mainnet]: "https://testnet.gearbox.foundation/gpointbot",
   [TESTNET_CHAINS.Optimism]: "https://testnet.gearbox.foundation/gpointbot",
   [TESTNET_CHAINS.Arbitrum]: "https://testnet.gearbox.foundation/gpointbot",
-  [TESTNET_CHAINS.Base]: "https://testnet.gearbox.foundation/gpointbot",
-  [TESTNET_CHAINS.Sonic]: "https://testnet.gearbox.foundation/gpointbot",
+  // !& new chains
 };
 
 const REFERRAL_API = "https://referral-gen.fly.dev/generate";
@@ -74,10 +89,6 @@ export class GearboxBackendApi {
     );
 
     return [domain, "api", ...priceSourceArr, relativePath].join("/");
-  };
-
-  static getLlamaAPYUrl = (idList: Array<string>) => {
-    return `${LAMA_URL}${idList.join(",")}`;
   };
 
   static getStaticTokenUrl = () => STATIC_TOKEN;
