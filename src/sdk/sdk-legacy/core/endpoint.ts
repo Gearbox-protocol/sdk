@@ -29,6 +29,12 @@ const MAINNET_BY_TESTNET_ID = TypedObjectUtils.entries(TESTNET_CHAINS).reduce<
   return acc;
 }, {});
 
+const TESTNET_BY_MAINNET_ID = TypedObjectUtils.swapKeyValue(
+  MAINNET_BY_TESTNET_ID,
+);
+
+export const getTestnetByMainnet = (mainnetId: number): number | undefined =>
+  TESTNET_BY_MAINNET_ID[mainnetId];
 export const getMainnetByTestnet = (testnetId: number): number | undefined =>
   MAINNET_BY_TESTNET_ID[testnetId];
 export const getTestNetworkType = (chainId: number): NetworkType | undefined =>
