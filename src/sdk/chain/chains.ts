@@ -15,7 +15,7 @@ import { z } from "zod";
 
 import { TypedObjectUtils } from "../utils/index.js";
 
-type Curator = "Chaos Labs" | "K3";
+export type Curator = "Chaos Labs" | "K3";
 
 export interface GearboxChain extends Chain {
   network: NetworkType;
