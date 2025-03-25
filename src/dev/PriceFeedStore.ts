@@ -15,8 +15,8 @@ import type {
 import {
   AddressMap,
   AP_PRICE_FEED_COMPRESSOR,
-  rawTxToMulticallPriceUpdate,
   SDKConstruct,
+  simulateWithPriceUpdates,
 } from "../sdk/index.js";
 
 export type ConnectedPriceFeed = Unarray<
@@ -78,19 +78,21 @@ export class PriceFeedStore extends SDKConstruct {
       const feeds = result.map(f => this.sdk.priceFeeds.create(f));
       const { txs } =
         await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(feeds);
-      const resp = await this.provider.publicClient.multicall({
-        contracts: [
-          ...txs.map(rawTxToMulticallPriceUpdate),
-          {
-            address: this.#compressor,
-            abi: iPriceFeedCompressorAbi,
-            functionName: "loadPriceFeedTree",
-            args: [priceFeeds],
-          },
-        ],
-        allowFailure: false,
-      });
-      result = resp.pop() as PriceFeedTreeNode[];
+      const [resp] = await simulateWithPriceUpdates(
+        this.provider.publicClient,
+        {
+          priceUpdates: txs,
+          contracts: [
+            {
+              address: this.#compressor,
+              abi: iPriceFeedCompressorAbi,
+              functionName: "loadPriceFeedTree",
+              args: [priceFeeds],
+            },
+          ],
+        },
+      );
+      return resp as PriceFeedTreeNode[];
     }
     this.#logger?.debug(
       `loaded ${result.length} price feed nodes from compressor`,

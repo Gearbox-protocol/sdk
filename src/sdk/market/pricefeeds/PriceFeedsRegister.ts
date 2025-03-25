@@ -5,7 +5,7 @@ import type { PriceFeedTreeNode } from "../../base/index.js";
 import { SDKConstruct } from "../../base/index.js";
 import { ADDRESS_0X0, AP_MARKET_COMPRESSOR } from "../../constants/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
-import type { ILogger, RawTx } from "../../types/index.js";
+import type { ILogger, IPriceUpdateTx } from "../../types/index.js";
 import { AddressMap, bytes32ToString, childLogger } from "../../utils/index.js";
 import type { IHooks } from "../../utils/internal/index.js";
 import { Hooks } from "../../utils/internal/index.js";
@@ -47,7 +47,7 @@ export type PriceFeedRegisterHooks = {
 
 export interface LatestUpdate {
   timestamp: number;
-  redstone: Omit<RedstoneUpdateTask, "tx">[];
+  redstone: RedstoneUpdateTask[];
 }
 
 /**
@@ -87,7 +87,47 @@ export class PriceFeedRegister
     const updateables = priceFeeds
       ? priceFeeds.flatMap(pf => pf.updatableDependencies())
       : this.#feeds.values();
-    return this.#generatePriceFeedsUpdateTxs(updateables, logContext);
+
+    const txs: IPriceUpdateTx[] = [];
+    const redstonePFs: RedstonePriceFeedContract[] = [];
+    const latestUpdate: LatestUpdate = {
+      redstone: [],
+      timestamp: Math.floor(Date.now() / 1000),
+    };
+
+    for (const pf of updateables) {
+      if (isRedstone(pf)) {
+        redstonePFs.push(pf);
+      }
+    }
+
+    let maxTimestamp = 0;
+    if (redstonePFs.length > 0) {
+      const redstoneUpdates = await this.redstoneUpdater.getUpdateTxs(
+        redstonePFs,
+        logContext,
+      );
+      for (const tx of redstoneUpdates) {
+        const { data } = tx;
+        const { timestamp } = data;
+        if (timestamp > maxTimestamp) {
+          maxTimestamp = timestamp;
+        }
+        txs.push(tx);
+        latestUpdate.redstone.push(data);
+      }
+    }
+
+    const result: UpdatePriceFeedsResult = { txs, timestamp: maxTimestamp };
+    this.logger?.debug(
+      logContext,
+      `generated ${txs.length} price feed update transactions, timestamp: ${maxTimestamp}`,
+    );
+    if (txs.length) {
+      await this.#hooks.triggerHooks("updatesGenerated", result);
+    }
+    this.#latestUpdate = latestUpdate;
+    return result;
   }
 
   public has(address: Address): boolean {
@@ -146,50 +186,6 @@ export class PriceFeedRegister
     });
     this.logger?.debug(`loaded ${result.length} partial updatable price feeds`);
     return result.map(baseParams => this.#createUpdatableProxy({ baseParams }));
-  }
-
-  async #generatePriceFeedsUpdateTxs(
-    updateables: IPriceFeedContract[],
-    logContext: Record<string, any> = {},
-  ): Promise<UpdatePriceFeedsResult> {
-    const txs: RawTx[] = [];
-    const redstonePFs: RedstonePriceFeedContract[] = [];
-    const latestUpdate: LatestUpdate = {
-      redstone: [],
-      timestamp: Math.floor(Date.now() / 1000),
-    };
-
-    for (const pf of updateables) {
-      if (isRedstone(pf)) {
-        redstonePFs.push(pf);
-      }
-    }
-
-    let maxTimestamp = 0;
-    if (redstonePFs.length > 0) {
-      const redstoneUpdates = await this.redstoneUpdater.getUpdateTxs(
-        redstonePFs,
-        logContext,
-      );
-      for (const { tx, timestamp, ...rest } of redstoneUpdates) {
-        if (timestamp > maxTimestamp) {
-          maxTimestamp = timestamp;
-        }
-        txs.push(tx);
-        latestUpdate.redstone.push({ ...rest, timestamp });
-      }
-    }
-
-    const result: UpdatePriceFeedsResult = { txs, timestamp: maxTimestamp };
-    this.logger?.debug(
-      logContext,
-      `generated ${txs.length} price feed update transactions, timestamp: ${maxTimestamp}`,
-    );
-    if (txs.length) {
-      await this.#hooks.triggerHooks("updatesGenerated", result);
-    }
-    this.#latestUpdate = latestUpdate;
-    return result;
   }
 
   public create(data: PartialPriceFeedTreeNode): IPriceFeedContract {

@@ -7,7 +7,7 @@ import { encodeAbiParameters, toBytes } from "viem";
 
 import { SDKConstruct } from "../../base/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
-import type { ILogger, RawTx } from "../../types/index.js";
+import type { ILogger, IPriceUpdateTx, RawTx } from "../../types/index.js";
 import { childLogger, retry } from "../../utils/index.js";
 import type { RedstonePriceFeedContract } from "./RedstonePriceFeed.js";
 
@@ -22,9 +22,23 @@ export interface RedstoneUpdateTask {
   dataFeedId: string;
   dataServiceId: string;
   priceFeed: Address;
-  tx: RawTx;
   timestamp: number;
   cached: boolean;
+}
+
+export class RedstoneUpdateTx implements IPriceUpdateTx<RedstoneUpdateTask> {
+  public readonly raw: RawTx;
+  public readonly data: RedstoneUpdateTask;
+
+  constructor(raw: RawTx, data: RedstoneUpdateTask) {
+    this.raw = raw;
+    this.data = data;
+  }
+
+  get pretty(): string {
+    const cached = this.data.cached ? " (cached)" : "";
+    return `redstone feed ${this.data.dataFeedId} at ${this.data.priceFeed} with timestamp ${this.data.timestamp}${cached}`;
+  }
 }
 
 /**
@@ -59,7 +73,7 @@ export class RedstoneUpdater extends SDKConstruct {
   public async getUpdateTxs(
     feeds: RedstonePriceFeedContract[],
     logContext: Record<string, any> = {},
-  ): Promise<RedstoneUpdateTask[]> {
+  ): Promise<RedstoneUpdateTx[]> {
     this.#logger?.debug(
       logContext,
       `generating update transactions for ${feeds.length} redstone price feeds`,
@@ -77,7 +91,7 @@ export class RedstoneUpdater extends SDKConstruct {
       priceFeeds.set(feed.dataId, feed);
     }
 
-    const results: RedstoneUpdateTask[] = [];
+    const results: RedstoneUpdateTx[] = [];
     for (const [key, group] of Object.entries(groupedFeeds)) {
       const [dataServiceId, signersStr] = key.split(":");
       const uniqueSignersCount = parseInt(signersStr, 10);
@@ -92,18 +106,22 @@ export class RedstoneUpdater extends SDKConstruct {
         if (!priceFeed) {
           throw new Error(`cannot get price feed address for ${dataFeedId}`);
         }
-        results.push({
-          dataFeedId,
-          dataServiceId,
-          priceFeed: priceFeed.address.toLowerCase() as Address,
-          tx: priceFeed.createRawTx({
-            functionName: "updatePrice",
-            args: [data as Hex],
-            description: `updating price for ${dataFeedId} [${this.sdk.provider.addressLabels.get(priceFeed.address)}]`,
-          }),
-          timestamp,
-          cached,
-        });
+        results.push(
+          new RedstoneUpdateTx(
+            priceFeed.createRawTx({
+              functionName: "updatePrice",
+              args: [data as Hex],
+              description: `updating price for ${dataFeedId} [${this.sdk.provider.addressLabels.get(priceFeed.address)}]`,
+            }),
+            {
+              dataFeedId,
+              dataServiceId,
+              priceFeed: priceFeed.address.toLowerCase() as Address,
+              timestamp,
+              cached,
+            },
+          ),
+        );
       }
     }
     this.#logger?.debug(

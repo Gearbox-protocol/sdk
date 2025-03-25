@@ -131,7 +131,7 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
     const { txs } = updates;
 
     for (const tx of txs) {
-      const { to: priceFeed, callData, description } = tx;
+      const { to: priceFeed, callData, description } = tx.raw;
       const [token, reserve] = this.findTokenForPriceFeed(priceFeed);
       // this situation happend when we have combined updates from multiple markrts,
       // but this particular feed is not added to this particular oracle

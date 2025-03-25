@@ -5,14 +5,18 @@ import type { MarketData, MarketFilter } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
 import { ADDRESS_0X0, AP_MARKET_COMPRESSOR } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
-import type { ILogger, MarketStateHuman, RawTx, TVL } from "../types/index.js";
+import type {
+  ILogger,
+  IPriceUpdateTx,
+  MarketStateHuman,
+  TVL,
+} from "../types/index.js";
 import { AddressMap, childLogger } from "../utils/index.js";
-import { simulateMulticall } from "../utils/viem/index.js";
+import { simulateWithPriceUpdates } from "../utils/viem/index.js";
 import type { CreditSuite } from "./credit/index.js";
 import type { MarketConfiguratorContract } from "./MarketConfiguratorContract.js";
 import { MarketSuite } from "./MarketSuite.js";
 import type { PoolSuite } from "./pool/index.js";
-import { rawTxToMulticallPriceUpdate } from "./pricefeeds/index.js";
 
 export class MarketRegister extends SDKConstruct {
   #logger?: ILogger;
@@ -90,7 +94,7 @@ export class MarketRegister extends SDKConstruct {
       AP_MARKET_COMPRESSOR,
       3_10,
     );
-    let txs: RawTx[] = [];
+    let txs: IPriceUpdateTx[] = [];
     if (!ignoreUpdateablePrices) {
       // to have correct prices we must first get all updatable price feeds
       const updatables =
@@ -111,21 +115,21 @@ export class MarketRegister extends SDKConstruct {
     // ...and push them using multicall before getting answers
     let markets: readonly MarketData[] = [];
     if (txs.length) {
-      const resp = await simulateMulticall(this.provider.publicClient, {
-        contracts: [
-          ...txs.map(rawTxToMulticallPriceUpdate),
-          {
-            abi: iMarketCompressorAbi,
-            address: marketCompressorAddress,
-            functionName: "getMarkets",
-            args: [this.#marketFilter],
-          },
-        ],
-        allowFailure: false,
-        // gas: 550_000_000n,
-        batchSize: 0, // we cannot have price updates and compressor request in different batches
-      });
-      markets = resp.pop() as MarketData[];
+      const [resp] = await simulateWithPriceUpdates(
+        this.provider.publicClient,
+        {
+          priceUpdates: txs,
+          contracts: [
+            {
+              abi: iMarketCompressorAbi,
+              address: marketCompressorAddress,
+              functionName: "getMarkets",
+              args: [this.#marketFilter],
+            },
+          ],
+        },
+      );
+      markets = resp;
     } else {
       markets = await this.provider.publicClient.readContract({
         abi: iMarketCompressorAbi,
@@ -159,16 +163,13 @@ export class MarketRegister extends SDKConstruct {
       return;
     }
     const { txs } = await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs();
-    const resp = await simulateMulticall(this.provider.publicClient, {
-      contracts: [
-        ...txs.map(rawTxToMulticallPriceUpdate),
-        ...multicalls.map(mc => mc.call),
-      ],
-      allowFailure: false,
-      // gas: 550_000_000n,
-      batchSize: 0, // we cannot have price updates and compressor request in different batches
-    });
-    const oraclesStates = resp.slice(txs.length);
+    const oraclesStates = await simulateWithPriceUpdates(
+      this.provider.publicClient,
+      {
+        priceUpdates: txs,
+        contracts: multicalls.map(mc => mc.call),
+      },
+    );
     for (let i = 0; i < multicalls.length; i++) {
       const handler = multicalls[i].onResult;
       const result = oraclesStates[i] as any;

@@ -15,7 +15,6 @@ export * from "./PriceFeedsRegister.js";
 export * from "./PythPriceFeed.js";
 export * from "./RedstonePriceFeed.js";
 export * from "./types.js";
-export * from "./utils.js";
 export * from "./WstETHPriceFeed.js";
 export * from "./YearnPriceFeed.js";
 export * from "./ZeroPriceFeed.js";

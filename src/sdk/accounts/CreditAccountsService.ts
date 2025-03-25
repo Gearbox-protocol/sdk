@@ -31,7 +31,6 @@ import type {
   OnDemandPriceUpdate,
   UpdatePriceFeedsResult,
 } from "../market/index.js";
-import { rawTxToMulticallPriceUpdate } from "../market/index.js";
 import {
   type Asset,
   assetsMap,
@@ -61,9 +60,14 @@ import {
   tokenDataByNetwork,
   tokenSymbolByAddress,
 } from "../sdk-gov-legacy/index.js";
-import type { ILogger, MultiCall, RawTx } from "../types/index.js";
+import type {
+  ILogger,
+  IPriceUpdateTx,
+  MultiCall,
+  RawTx,
+} from "../types/index.js";
 import { childLogger } from "../utils/index.js";
-import { simulateMulticall } from "../utils/viem/index.js";
+import { simulateWithPriceUpdates } from "../utils/viem/index.js";
 
 type CompressorAbi = typeof iCreditAccountCompressorAbi;
 
@@ -238,13 +242,13 @@ export class CreditAccountsService extends SDKConstruct {
     if (raw.success) {
       return raw;
     }
-    const { txs: priceUpdateTxs, timestamp: _ } =
+    const { txs: priceUpdateTxs } =
       await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(undefined, {
         account,
       });
-    const resp = await simulateMulticall(this.provider.publicClient, {
+    const [cad] = await simulateWithPriceUpdates(this.provider.publicClient, {
+      priceUpdates: priceUpdateTxs,
       contracts: [
-        ...priceUpdateTxs.map(rawTxToMulticallPriceUpdate),
         {
           abi: iCreditAccountCompressorAbi,
           address: this.#compressor,
@@ -252,12 +256,8 @@ export class CreditAccountsService extends SDKConstruct {
           args: [account],
         },
       ],
-      allowFailure: false,
-      // gas: 550_000_000n,
-      batchSize: 0, // we cannot have price updates and compressor request in different batches
       blockNumber,
     });
-    const cad = resp.pop() as CreditAccountData;
     return cad;
   }
 
@@ -296,7 +296,7 @@ export class CreditAccountsService extends SDKConstruct {
       maxHealthFactor,
     };
 
-    const { txs: priceUpdateTxs, timestamp: _ } =
+    const { txs: priceUpdateTxs } =
       await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs();
 
     const allCAs: Array<CreditAccountData> = [];
@@ -981,31 +981,27 @@ export class CreditAccountsService extends SDKConstruct {
    */
   async #getCreditAccounts(
     args: GetCreditAccountsArgs,
-    priceUpdateTxs?: Array<RawTx>,
+    priceUpdateTxs?: IPriceUpdateTx[],
     options?: ReadContractOptions,
   ): Promise<[accounts: Array<CreditAccountData>, newOffset: bigint]> {
     const blockNumber = options?.blockNumber;
     if (priceUpdateTxs?.length) {
-      const resp = await simulateMulticall(this.provider.publicClient, {
-        contracts: [
-          ...priceUpdateTxs.map(rawTxToMulticallPriceUpdate),
-          {
-            abi: iCreditAccountCompressorAbi,
-            address: this.#compressor,
-            functionName: "getCreditAccounts",
-            args,
-          },
-        ],
-        allowFailure: false,
-        // gas: 550_000_000n,
-        batchSize: 0, // we cannot have price updates and compressor request in different batches
-        blockNumber,
-      });
-      const getCreditAccountsResp = resp.pop() as any as [
-        Array<CreditAccountData>,
-        bigint,
-      ];
-      return getCreditAccountsResp;
+      const [resp] = await simulateWithPriceUpdates(
+        this.provider.publicClient,
+        {
+          priceUpdates: priceUpdateTxs,
+          contracts: [
+            {
+              abi: iCreditAccountCompressorAbi,
+              address: this.#compressor,
+              functionName: "getCreditAccounts",
+              args,
+            },
+          ],
+          blockNumber,
+        },
+      );
+      return resp;
     }
 
     return this.provider.publicClient.readContract<

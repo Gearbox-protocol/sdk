@@ -16,6 +16,20 @@ export interface RawTx {
   description?: string;
 }
 
+/**
+ * Wrapper interface for RawTx with diagnostic data
+ */
+export interface IPriceUpdateTx<
+  Data extends { timestamp: number; priceFeed: Address } = {
+    priceFeed: Address;
+    timestamp: number;
+  },
+> {
+  raw: RawTx;
+  data: Data;
+  pretty: string;
+}
+
 export interface MultiCall {
   target: Address;
   callData: Hex;

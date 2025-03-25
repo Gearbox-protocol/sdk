@@ -194,3 +194,5 @@ export const errorAbis = [
   ...ilpPriceFeedExceptionsAbi,
   ...iRouterV3ErrorsAbi,
 ] as const;
+
+export type errorAbis = typeof errorAbis;

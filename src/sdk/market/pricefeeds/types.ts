@@ -1,7 +1,7 @@
 import type { UnionOmit } from "viem";
 
 import type { IBaseContract } from "../../base/index.js";
-import type { PriceFeedStateHuman, RawTx } from "../../types/index.js";
+import type { IPriceUpdateTx, PriceFeedStateHuman } from "../../types/index.js";
 import type { PriceFeedRef } from "./PriceFeedRef.js";
 
 export type PriceFeedUsageType = "Main" | "Reserve";
@@ -77,6 +77,6 @@ export interface ILPPriceFeedContract extends IPriceFeedContract {
 }
 
 export interface UpdatePriceFeedsResult {
-  txs: RawTx[];
+  txs: IPriceUpdateTx[];
   timestamp: number;
 }
