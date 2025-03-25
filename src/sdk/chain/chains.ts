@@ -73,7 +73,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       ...arbitrum,
       network: "Arbitrum",
       defaultMarketConfigurators: {
-        "0x354fe9f450F60b8547f88BE042E4A45b46128a06": "Chaos Labs",
+        "0x01023850b360b88de0d0f84015bbba1eba57fe7e": "Chaos Labs",
       },
       isPublic: true,
     },
