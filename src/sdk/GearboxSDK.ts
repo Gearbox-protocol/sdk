@@ -8,7 +8,12 @@ import type {
   NetworkOptions,
   TransportOptions,
 } from "./chain/index.js";
-import { chains, createTransport, Provider } from "./chain/index.js";
+import {
+  chains,
+  createTransport,
+  detectNetwork,
+  Provider,
+} from "./chain/index.js";
 import {
   ADDRESS_PROVIDER_V310,
   AP_BOT_LIST,
@@ -41,7 +46,6 @@ import type {
 } from "./types/index.js";
 import { AddressMap, formatBN, TypedObjectUtils } from "./utils/index.js";
 import { Hooks } from "./utils/internal/index.js";
-import { detectNetwork } from "./utils/viem/index.js";
 
 const ERR_NOT_ATTACHED = new Error("Gearbox SDK not attached");
 
