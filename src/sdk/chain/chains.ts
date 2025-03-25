@@ -22,6 +22,18 @@ export interface GearboxChain extends Chain {
   defaultMarketConfigurators: Record<Address, Curator>;
   testMarketConfigurators?: Record<Address, Curator>;
   isPublic: boolean;
+  /**
+   * Pair of address and ERC-20 symbol of a well-known token on the chain
+   * This can be used to uniquely identify the chain from arbitrary RPC endpoint
+   *
+   * It must be guaranteed that under that address no contract that returns the same symbol is deployed on any other network
+   *
+   * @see {detectNetwork}
+   */
+  wellKnownToken: {
+    address: Address;
+    symbol: string;
+  };
 }
 
 export const SUPPORTED_NETWORKS = [
@@ -65,6 +77,10 @@ export const chains: Record<NetworkType, GearboxChain> = {
         "0x4d427D418342d8CE89a7634c3a402851978B680A": "K3",
       },
       isPublic: true,
+      wellKnownToken: {
+        address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        symbol: "USDC",
+      },
     },
     "ethereum-rpc",
   ),
@@ -76,6 +92,10 @@ export const chains: Record<NetworkType, GearboxChain> = {
         "0x01023850b360b88de0d0f84015bbba1eba57fe7e": "Chaos Labs",
       },
       isPublic: true,
+      wellKnownToken: {
+        address: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+        symbol: "USDC",
+      },
     },
     "arbitrum-one-rpc",
   ),
@@ -87,6 +107,10 @@ export const chains: Record<NetworkType, GearboxChain> = {
         "0x2a15969CE5320868eb609680751cF8896DD92De5": "Chaos Labs",
       },
       isPublic: true,
+      wellKnownToken: {
+        address: "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
+        symbol: "USDC",
+      },
     },
     "optimism-rpc",
   ),
@@ -96,6 +120,10 @@ export const chains: Record<NetworkType, GearboxChain> = {
       network: "Base",
       defaultMarketConfigurators: {},
       isPublic: false,
+      wellKnownToken: {
+        address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        symbol: "USDC",
+      },
     },
     "base-rpc",
   ),
@@ -114,6 +142,10 @@ export const chains: Record<NetworkType, GearboxChain> = {
           apiUrl: "https://api.sonicscan.org/api",
         },
       },
+      wellKnownToken: {
+        address: "0x29219dd400f2Bf60E5a23d13Be72B486D4038894",
+        symbol: "USDC.e",
+      },
     }),
     "sonic-rpc",
   ),
@@ -123,12 +155,20 @@ export const chains: Record<NetworkType, GearboxChain> = {
     defaultMarketConfigurators: {},
     isPublic: false,
     // TODO: has no block explorer API
+    wellKnownToken: {
+      address: "0x4eB2Bd7beE16F38B1F4a0A5796Fffd028b6040e9",
+      symbol: "WETH",
+    },
   }),
   Monad: defineChain({
     ...monadTestnet,
     network: "Monad",
     defaultMarketConfigurators: {},
     isPublic: false,
+    wellKnownToken: {
+      address: "0xf817257fed379853cDe0fa4F97AB987181B1E5Ea",
+      symbol: "USDC",
+    },
     // TODO: has no block explorer API
   }),
   Berachain: withPublicNode(
@@ -144,6 +184,10 @@ export const chains: Record<NetworkType, GearboxChain> = {
           apiUrl: "https://api.berascan.com/api",
         },
       },
+      wellKnownToken: {
+        address: "0x549943e04f40284185054145c6e4e9568c1d3241",
+        symbol: "USDC.e",
+      },
     },
     "berachain-rpc",
   ),
@@ -153,6 +197,10 @@ export const chains: Record<NetworkType, GearboxChain> = {
       network: "Avalanche",
       defaultMarketConfigurators: {},
       isPublic: false,
+      wellKnownToken: {
+        address: "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
+        symbol: "USDC",
+      },
     },
     "avalanche-c-chain-rpc",
   ),

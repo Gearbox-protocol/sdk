@@ -1,9 +1,13 @@
 import type { Chain, Transport } from "viem";
 import { createPublicClient, defineChain, http } from "viem";
 
-import { detectNetwork } from "../utils/viem/index.js";
-import { chains } from "./chains.js";
+import { detectNetwork, getChain } from "../sdk/index.js";
 
+/**
+ * Helper to create chain with different chainId (for anvil forks)
+ * @param transportOrRPC
+ * @returns
+ */
 export async function detectChain(
   transportOrRPC: Transport | string,
 ): Promise<Chain> {
@@ -15,7 +19,7 @@ export async function detectChain(
     tempClient.getChainId(),
   ]);
   return defineChain({
-    ...chains[networkType],
+    ...getChain(networkType),
     id: chainId,
   });
 }

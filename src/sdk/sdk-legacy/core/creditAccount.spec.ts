@@ -1,5 +1,5 @@
-import { describe, expect, it } from "@jest/globals";
 import type { Address } from "viem";
+import { describe, expect, it } from "vitest";
 
 import {
   MIN_INT96,

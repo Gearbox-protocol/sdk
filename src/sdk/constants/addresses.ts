@@ -18,45 +18,52 @@ export const NOT_DEPLOYED = "0xNOT DEPLOYED";
 
 /**
  * Well-known USDC token address used to determine NetworkType on testnets with different chain ids
+ *
+ * @deprecated TODO: delete me
  */
-export const USDC: Record<NetworkType, Address> = {
-  Mainnet: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-  Arbitrum: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
-  Optimism: "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
-  Base: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-  Sonic: "0x29219dd400f2Bf60E5a23d13Be72B486D4038894",
-  // TODO: New networks
-  MegaETH: NOT_DEPLOYED,
-  Monad: NOT_DEPLOYED,
-  Berachain: NOT_DEPLOYED,
-  Avalanche: NOT_DEPLOYED,
-};
+// export const USDC: Record<NetworkType, Address> = {
+//   Mainnet: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+//   Arbitrum: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+//   Optimism: "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
+//   Base: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+//   Sonic: "0x29219dd400f2Bf60E5a23d13Be72B486D4038894",
+//   // TODO: New networks
+//   MegaETH: NOT_DEPLOYED,
+//   Monad: "0xf817257fed379853cDe0fa4F97AB987181B1E5Ea",
+//   Berachain: "0x549943e04f40284185054145c6e4e9568c1d3241",
+//   Avalanche: "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
+// };
 
-export const USDT: Record<NetworkType, Address> = {
-  Mainnet: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-  Arbitrum: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
-  Optimism: "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
-  Base: NOT_DEPLOYED,
-  Sonic: NOT_DEPLOYED,
-  // TODO: New networks
-  MegaETH: NOT_DEPLOYED,
-  Monad: NOT_DEPLOYED,
-  Berachain: NOT_DEPLOYED,
-  Avalanche: NOT_DEPLOYED,
-};
+/**
+ * @deprecated TODO: delete me
+ */
+// export const USDT: Record<NetworkType, Address> = {
+//   Mainnet: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+//   Arbitrum: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+//   Optimism: "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
+//   Base: NOT_DEPLOYED,
+//   Sonic: NOT_DEPLOYED,
+//   // TODO: New networks
+//   MegaETH: NOT_DEPLOYED,
+//   Monad: "0x88b8E2161DEDC77EF4ab7585569D2415a1C1055D",
+//   Berachain: NOT_DEPLOYED,
+//   Avalanche: "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7",
+// };
 
-export const WETH: Record<NetworkType, Address> = {
-  Mainnet: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-  Arbitrum: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
-  Optimism: "0x4200000000000000000000000000000000000006",
-  Base: NOT_DEPLOYED,
-  Sonic: NOT_DEPLOYED,
-  // TODO: New networks
-  MegaETH: NOT_DEPLOYED,
-  Monad: NOT_DEPLOYED,
-  Berachain: NOT_DEPLOYED,
-  Avalanche: NOT_DEPLOYED,
-};
+/**
+ * @deprecated TODO: delete me
+ */
+// export const WETH: Record<NetworkType, Address> = {
+//   Mainnet: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+//   Arbitrum: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
+//   Optimism: "0x4200000000000000000000000000000000000006",
+//   Base: "0x4200000000000000000000000000000000000006",
+//   Sonic: "0x50c42dEAcD8Fc9773493ED674b675bE577f2634b",
+//   MegaETH: "0x4eB2Bd7beE16F38B1F4a0A5796Fffd028b6040e9",
+//   Monad: "0xB5a30b0FDc5EA94A52fDc42e3E9760Cb8449Fb37",
+//   Berachain: "0x2f6f07cdcf3588944bf4c42ac74ff24bf56e7590",
+//   Avalanche: "0x49d5c2bdffac6ce2bfdb6640f4f80f226bc10bab",
+// };
 
 export const TIMELOCK: Record<NetworkType, Address> = {
   Mainnet: "0xa133C9A92Fb8dDB962Af1cbae58b2723A0bdf23b",
