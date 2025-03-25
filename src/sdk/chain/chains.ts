@@ -93,7 +93,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       ...base,
       network: "Base",
       defaultMarketConfigurators: {},
-      isPublic: true,
+      isPublic: false,
     },
     "base-rpc",
   ),
@@ -119,14 +119,14 @@ export const chains: Record<NetworkType, GearboxChain> = {
     ...megaethTestnet,
     network: "MegaETH",
     defaultMarketConfigurators: {},
-    isPublic: true,
+    isPublic: false,
     // TODO: has no block explorer API
   }),
   Monad: defineChain({
     ...monadTestnet,
     network: "Monad",
     defaultMarketConfigurators: {},
-    isPublic: true,
+    isPublic: false,
     // TODO: has no block explorer API
   }),
   Berachain: withPublicNode(
@@ -134,7 +134,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       ...berachain,
       network: "Berachain",
       defaultMarketConfigurators: {},
-      isPublic: true,
+      isPublic: false,
       blockExplorers: {
         default: {
           name: "Berascan",
@@ -150,7 +150,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       ...avalanche,
       network: "Avalanche",
       defaultMarketConfigurators: {},
-      isPublic: true,
+      isPublic: false,
     },
     "avalanche-c-chain-rpc",
   ),

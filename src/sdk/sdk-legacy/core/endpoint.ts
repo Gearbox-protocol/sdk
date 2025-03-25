@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 
 import type { NetworkType } from "../../chain/index.js";
-import { chains, isSupportedNetwork } from "../../chain/index.js";
+import { chains as CHAINS, isSupportedNetwork } from "../../chain/index.js";
 import { TypedObjectUtils } from "../../utils/mappers.js";
 
 export const TESTNET_CHAINS: Record<NetworkType, number> = {
@@ -23,7 +23,7 @@ const CHAINS_BY_ID: Record<number, NetworkType> =
 const MAINNET_BY_TESTNET_ID = TypedObjectUtils.entries(TESTNET_CHAINS).reduce<
   Record<number, number>
 >((acc, [n, testnetId]) => {
-  const primaryId = chains[n]?.id;
+  const primaryId = CHAINS[n]?.id;
   acc[testnetId] = primaryId;
 
   return acc;
@@ -39,15 +39,10 @@ export const isTestNetwork = (chainId: number | undefined): chainId is number =>
 type ChartsPriceSource = "chainlink" | "spot";
 
 const CHARTS_BACKEND_ADDRESSES: Record<number, string> = {
-  [chains.Mainnet.id]: "https://charts-server.fly.dev",
-  [chains.Arbitrum.id]: "https://charts-server.fly.dev",
-  [chains.Optimism.id]: "https://charts-server.fly.dev",
-  [chains.Base.id]: "https://charts-server.fly.dev",
-  [chains.Sonic.id]: "https://charts-server.fly.dev",
-  [chains.MegaETH.id]: "https://charts-server.fly.dev",
-  [chains.Monad.id]: "https://charts-server.fly.dev",
-  [chains.Berachain.id]: "https://charts-server.fly.dev",
-  [chains.Avalanche.id]: "https://charts-server.fly.dev",
+  ...Object.values(CHAINS).reduce<Record<number, string>>((acc, chain) => {
+    acc[chain.id] = "https://charts-server.fly.dev";
+    return acc;
+  }, {}),
 
   [TESTNET_CHAINS.Mainnet]: "https://testnet.gearbox.foundation",
   [TESTNET_CHAINS.Arbitrum]: "https://arbtest.gearbox.foundation",
@@ -58,9 +53,9 @@ const CHARTS_BACKEND_ADDRESSES: Record<number, string> = {
 const STATIC_TOKEN = "https://static.gearbox.fi/tokens/";
 
 const LEADERBOARD_APIS: Record<number, string> = {
-  [chains.Mainnet.id]: "https://gpointbot.fly.dev",
-  [chains.Optimism.id]: "https://gpointbot.fly.dev",
-  [chains.Arbitrum.id]: "https://gpointbot.fly.dev",
+  [CHAINS.Mainnet.id]: "https://gpointbot.fly.dev",
+  [CHAINS.Optimism.id]: "https://gpointbot.fly.dev",
+  [CHAINS.Arbitrum.id]: "https://gpointbot.fly.dev",
   // !& new chains
 
   [TESTNET_CHAINS.Mainnet]: "https://testnet.gearbox.foundation/gpointbot",
