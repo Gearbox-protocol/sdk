@@ -1,9 +1,4 @@
-import {
-  type Address,
-  getChainContractAddress,
-  type Hex,
-  multicall3Abi,
-} from "viem";
+import type { Address, Hex } from "viem";
 
 import { iMarketCompressorAbi } from "../../../abi/compressors.js";
 import type { PriceFeedTreeNode } from "../../base/index.js";
@@ -11,12 +6,7 @@ import { SDKConstruct } from "../../base/index.js";
 import { ADDRESS_0X0, AP_MARKET_COMPRESSOR } from "../../constants/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { ILogger, RawTx } from "../../types/index.js";
-import {
-  AddressMap,
-  bytes32ToString,
-  childLogger,
-  createRawTx,
-} from "../../utils/index.js";
+import { AddressMap, bytes32ToString, childLogger } from "../../utils/index.js";
 import type { IHooks } from "../../utils/internal/index.js";
 import { Hooks } from "../../utils/internal/index.js";
 import {
@@ -36,6 +26,7 @@ import { MellowLRTPriceFeedContract } from "./MellowLRTPriceFeed.js";
 import { PendleTWAPPTPriceFeed } from "./PendleTWAPPTPriceFeed.js";
 import { PythPriceFeed } from "./PythPriceFeed.js";
 import { isRedstone, RedstonePriceFeedContract } from "./RedstonePriceFeed.js";
+import type { RedstoneUpdateTask } from "./RedstoneUpdater.js";
 import { RedstoneUpdater } from "./RedstoneUpdater.js";
 import type {
   IPriceFeedContract,
@@ -54,6 +45,11 @@ export type PriceFeedRegisterHooks = {
   updatesGenerated: [UpdatePriceFeedsResult];
 };
 
+export interface LatestUpdate {
+  timestamp: number;
+  redstone: Omit<RedstoneUpdateTask, "tx">[];
+}
+
 /**
  * PriceFeedRegister acts as a chain-level cache to avoid creating multiple contract instances.
  * It's reused by PriceOracles belonging to different markets
@@ -66,6 +62,7 @@ export class PriceFeedRegister
   public readonly logger?: ILogger;
   readonly #hooks = new Hooks<PriceFeedRegisterHooks>();
   #feeds = new AddressMap<IPriceFeedContract>(undefined, "priceFeeds");
+  #latestUpdate: LatestUpdate | undefined;
   public readonly redstoneUpdater: RedstoneUpdater;
 
   constructor(sdk: GearboxSDK) {
@@ -151,50 +148,16 @@ export class PriceFeedRegister
     return result.map(baseParams => this.#createUpdatableProxy({ baseParams }));
   }
 
-  /**
-   * Generates price update transaction via multicall3 without any market data knowledge
-   *
-   * @deprecated TODO: seems that it's not used anywhere
-   *
-   * @param marketConfigurators
-   * @param pools
-   * @returns
-   */
-  public async getUpdatePriceFeedsTx(
-    marketConfigurators?: Address[],
-    pools?: Address[],
-  ): Promise<RawTx> {
-    const feeds = await this.getPartialUpdatablePriceFeeds(
-      marketConfigurators,
-      pools,
-    );
-    const updates = await this.#generatePriceFeedsUpdateTxs(feeds);
-
-    return createRawTx(
-      getChainContractAddress({
-        chain: this.sdk.provider.chain,
-        contract: "multicall3",
-      }),
-      {
-        abi: multicall3Abi,
-        functionName: "aggregate3",
-        args: [
-          updates.txs.map(tx => ({
-            target: tx.to,
-            allowFailure: false,
-            callData: tx.callData,
-          })),
-        ],
-      },
-    );
-  }
-
   async #generatePriceFeedsUpdateTxs(
     updateables: IPriceFeedContract[],
     logContext: Record<string, any> = {},
   ): Promise<UpdatePriceFeedsResult> {
     const txs: RawTx[] = [];
     const redstonePFs: RedstonePriceFeedContract[] = [];
+    const latestUpdate: LatestUpdate = {
+      redstone: [],
+      timestamp: Math.floor(Date.now() / 1000),
+    };
 
     for (const pf of updateables) {
       if (isRedstone(pf)) {
@@ -208,11 +171,12 @@ export class PriceFeedRegister
         redstonePFs,
         logContext,
       );
-      for (const { tx, timestamp } of redstoneUpdates) {
+      for (const { tx, timestamp, ...rest } of redstoneUpdates) {
         if (timestamp > maxTimestamp) {
           maxTimestamp = timestamp;
         }
         txs.push(tx);
+        latestUpdate.redstone.push({ ...rest, timestamp });
       }
     }
 
@@ -224,6 +188,7 @@ export class PriceFeedRegister
     if (txs.length) {
       await this.#hooks.triggerHooks("updatesGenerated", result);
     }
+    this.#latestUpdate = latestUpdate;
     return result;
   }
 
@@ -305,5 +270,12 @@ export class PriceFeedRegister
         return target[prop as keyof IPriceFeedContract];
       },
     });
+  }
+
+  /**
+   * Information update latest update of updatable price feeds, for diagnostic purposes
+   */
+  public get latestUpdate(): LatestUpdate | undefined {
+    return this.#latestUpdate;
   }
 }

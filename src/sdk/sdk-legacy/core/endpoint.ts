@@ -10,7 +10,11 @@ export const TESTNET_CHAINS: Record<NetworkType, number> = {
   Arbitrum: 7880,
   Base: 7881,
   Sonic: 7882,
+  // New networks
   MegaETH: 7883,
+  Monad: 7884,
+  Berachain: 7885,
+  Avalanche: 7886,
 };
 
 const CHAINS_BY_ID: Record<number, NetworkType> =

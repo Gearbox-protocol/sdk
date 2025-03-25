@@ -1,13 +1,26 @@
-import { type Chain, defineChain } from "viem";
+import type { Address, Chain } from "viem";
+import { defineChain } from "viem";
 import {
   arbitrum,
+  avalanche,
   base,
+  berachain,
   mainnet,
   megaethTestnet,
+  monadTestnet,
   optimism,
   sonic,
 } from "viem/chains";
 import { z } from "zod";
+
+import { TypedObjectUtils } from "../utils/index.js";
+
+export interface GearboxChain extends Chain {
+  network: NetworkType;
+  defaultMarketConfigurators: Record<Address, string>;
+  testMarketConfigurators?: Record<Address, string>;
+  isPublic: boolean;
+}
 
 export const SUPPORTED_NETWORKS = [
   "Mainnet",
@@ -16,13 +29,16 @@ export const SUPPORTED_NETWORKS = [
   "Base",
   "Sonic",
   "MegaETH",
+  "Monad",
+  "Berachain",
+  "Avalanche",
 ] as const;
 
 export const NetworkType = z.enum(SUPPORTED_NETWORKS);
 
 export type NetworkType = z.infer<typeof NetworkType>;
 
-function withPublicNode(chain: Chain, subdomain: string): Chain {
+function withPublicNode(chain: GearboxChain, subdomain: string): GearboxChain {
   return defineChain({
     ...chain,
     rpcUrls: {
@@ -35,14 +51,60 @@ function withPublicNode(chain: Chain, subdomain: string): Chain {
   });
 }
 
-export const chains: Record<NetworkType, Chain> = {
-  Mainnet: withPublicNode(mainnet, "ethereum-rpc"),
-  Arbitrum: withPublicNode(arbitrum, "arbitrum-one-rpc"),
-  Optimism: withPublicNode(optimism, "optimism-rpc"),
-  Base: withPublicNode(base, "base-rpc"),
+export const chains: Record<NetworkType, GearboxChain> = {
+  Mainnet: withPublicNode(
+    {
+      ...mainnet,
+      network: "Mainnet",
+      defaultMarketConfigurators: {
+        "0x354fe9f450F60b8547f88BE042E4A45b46128a06": "Chaos Labs",
+      },
+      testMarketConfigurators: {
+        "0x4d427D418342d8CE89a7634c3a402851978B680A": "K3",
+      },
+      isPublic: true,
+    },
+    "ethereum-rpc",
+  ),
+  Arbitrum: withPublicNode(
+    {
+      ...arbitrum,
+      network: "Arbitrum",
+      defaultMarketConfigurators: {
+        "0x354fe9f450F60b8547f88BE042E4A45b46128a06": "Chaos Labs",
+      },
+      isPublic: true,
+    },
+    "arbitrum-one-rpc",
+  ),
+  Optimism: withPublicNode(
+    {
+      ...optimism,
+      network: "Optimism",
+      defaultMarketConfigurators: {
+        "0x2a15969CE5320868eb609680751cF8896DD92De5": "Chaos Labs",
+      },
+      isPublic: true,
+    },
+    "optimism-rpc",
+  ),
+  Base: withPublicNode(
+    {
+      ...base,
+      network: "Base",
+      defaultMarketConfigurators: {},
+      isPublic: true,
+    },
+    "base-rpc",
+  ),
   Sonic: withPublicNode(
     defineChain({
       ...sonic,
+      network: "Sonic",
+      defaultMarketConfigurators: {
+        "0x8FFDd1F1433674516f83645a768E8900A2A5D076": "Chaos Labs",
+      },
+      isPublic: true,
       blockExplorers: {
         default: {
           name: "Sonic Explorer",
@@ -53,22 +115,50 @@ export const chains: Record<NetworkType, Chain> = {
     }),
     "sonic-rpc",
   ),
-  // TODO: currently no public node
-  MegaETH: megaethTestnet,
-};
-
-const CHAINS_BY_ID: Record<number, NetworkType> = {
-  [mainnet.id]: "Mainnet",
-  [arbitrum.id]: "Arbitrum",
-  [optimism.id]: "Optimism",
-  [base.id]: "Base",
-  [sonic.id]: "Sonic",
-  [megaethTestnet.id]: "MegaETH",
+  MegaETH: defineChain({
+    ...megaethTestnet,
+    network: "MegaETH",
+    defaultMarketConfigurators: {},
+    isPublic: true,
+    // TODO: has no block explorer API
+  }),
+  Monad: defineChain({
+    ...monadTestnet,
+    network: "Monad",
+    defaultMarketConfigurators: {},
+    isPublic: true,
+    // TODO: has no block explorer API
+  }),
+  Berachain: withPublicNode(
+    {
+      ...berachain,
+      network: "Berachain",
+      defaultMarketConfigurators: {},
+      isPublic: true,
+      blockExplorers: {
+        default: {
+          name: "Berascan",
+          url: "https://berascan.com",
+          apiUrl: "https://api.berascan.com/api",
+        },
+      },
+    },
+    "berachain-rpc",
+  ),
+  Avalanche: withPublicNode(
+    {
+      ...avalanche,
+      network: "Avalanche",
+      defaultMarketConfigurators: {},
+      isPublic: true,
+    },
+    "avalanche-c-chain-rpc",
+  ),
 };
 
 export function getChain(
   chainIdOrNetworkType: number | bigint | NetworkType,
-): Chain {
+): GearboxChain {
   const network =
     typeof chainIdOrNetworkType === "string"
       ? chainIdOrNetworkType
@@ -80,17 +170,29 @@ export function getChain(
   return chain;
 }
 
-export function getNetworkType(chainId: number): NetworkType {
-  const chainType = CHAINS_BY_ID[chainId];
-  if (chainType) {
-    return chainType;
+export function getNetworkType(chainId: number | bigint): NetworkType {
+  for (const [network, chain] of TypedObjectUtils.entries(chains)) {
+    if (chain.id === Number(chainId)) {
+      return network;
+    }
   }
 
-  throw new Error("Unsupported network");
+  throw new Error(`Unsupported network with chainId ${chainId}`);
 }
 
 export function isSupportedNetwork(
   chainId: number | undefined,
 ): chainId is number {
-  return chainId !== undefined && !!CHAINS_BY_ID[chainId];
+  return Object.values(chains).some(c => c.id === chainId);
+}
+
+export function isPublicNetwork(
+  networkOrChainId: NetworkType | number | bigint,
+): boolean {
+  return Object.values(chains).some(c => {
+    if (typeof networkOrChainId === "string") {
+      return c.network === networkOrChainId && c.isPublic;
+    }
+    return c.id === Number(networkOrChainId) && c.isPublic;
+  });
 }

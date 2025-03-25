@@ -51,13 +51,28 @@ export class MarketRegister extends SDKConstruct {
     return this.#marketFilter;
   }
 
-  public async syncState(): Promise<void> {
-    const pools = this.markets
-      .filter(m => m.dirty)
-      .map(m => m.pool.pool.address);
-    if (pools.length) {
-      this.#logger?.debug(`need to reload ${pools.length} markets`);
-      await this.#loadMarkets([], pools);
+  public async syncState(skipPriceUpdate?: boolean): Promise<void> {
+    const dirtyPools: Address[] = [];
+    const nonDirtyOracles: Address[] = [];
+
+    for (const m of this.markets) {
+      if (m.dirty) {
+        dirtyPools.push(m.pool.pool.address);
+      } else {
+        nonDirtyOracles.push(m.priceOracle.address);
+      }
+    }
+
+    if (dirtyPools.length) {
+      this.#logger?.debug(`need to reload ${dirtyPools.length} markets`);
+      // this will also update prices
+      await this.#loadMarkets([], dirtyPools);
+    } else if (!skipPriceUpdate && nonDirtyOracles.length) {
+      this.#logger?.debug(
+        `syncing prices on ${nonDirtyOracles.length} oracles`,
+      );
+      // no changes in sdk state, but still need to update prices
+      await this.updatePrices(nonDirtyOracles);
     }
   }
 

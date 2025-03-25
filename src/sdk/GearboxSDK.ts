@@ -8,7 +8,7 @@ import type {
   NetworkOptions,
   TransportOptions,
 } from "./chain/index.js";
-import { createTransport, Provider } from "./chain/index.js";
+import { chains, createTransport, Provider } from "./chain/index.js";
 import {
   ADDRESS_PROVIDER_V310,
   AP_BOT_LIST,
@@ -53,7 +53,7 @@ export interface SDKOptions<Plugins extends PluginMap = {}> {
   /**
    * Market configurators
    */
-  marketConfigurators: Address[];
+  marketConfigurators?: Address[];
   /**
    * Attach and load state at this specific block number
    */
@@ -105,6 +105,7 @@ interface AttachOptionsInternal {
 export interface SyncStateOptions {
   blockNumber: bigint;
   timestamp: bigint;
+  skipPriceUpdate?: boolean;
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -180,7 +181,7 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
       blockNumber,
       redstoneHistoricTimestamp,
       ignoreUpdateablePrices,
-      marketConfigurators,
+      marketConfigurators: mcs,
     } = options;
     let { networkType, addressProvider, chainId } = options;
 
@@ -196,13 +197,16 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     if (!addressProvider) {
       addressProvider = ADDRESS_PROVIDER_V310;
     }
+    const marketConfigurators =
+      mcs ??
+      TypedObjectUtils.keys(chains[networkType].defaultMarketConfigurators);
 
     const provider = new Provider({
       ...options,
       chainId,
       networkType,
     });
-    logger?.debug(
+    logger?.info(
       { networkType, chainId, addressProvider, marketConfigurators },
       "attaching gearbox sdk",
     );
@@ -266,13 +270,12 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
       this.priceFeeds.redstoneUpdater.gateways = redstoneGateways;
     }
 
-    this.logger?.info(
+    this.logger?.debug(
       {
-        addressProvider,
-        blockNumber: block.number,
+        number: block.number,
         timestamp: block.timestamp,
       },
-      "attaching",
+      "attach block",
     );
     this.#addressProvider = await createAddressProvider(this, addressProvider);
     this.logger?.debug(
@@ -437,7 +440,7 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
    * @returns
    */
   public async syncState(opts?: SyncStateOptions): Promise<void> {
-    let { blockNumber, timestamp } = opts ?? {};
+    let { blockNumber, timestamp, skipPriceUpdate } = opts ?? {};
     if (!blockNumber || !timestamp) {
       const block = await this.provider.publicClient.getBlock({
         blockTag: "latest",
@@ -472,7 +475,7 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     }
 
     // This will reload all or some markets
-    await this.marketRegister.syncState();
+    await this.marketRegister.syncState(skipPriceUpdate);
     // TODO: do wee need to sync state on botlist and others?
     //
     // TODO: how to handle "singleton" contracts addresses, where contract instance is shared across multiple other contract instrances

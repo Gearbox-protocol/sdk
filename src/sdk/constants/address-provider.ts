@@ -45,7 +45,11 @@ export const ADDRESS_PROVIDER: Record<NetworkType, Address> = {
   Optimism: "0x3761ca4BFAcFCFFc1B8034e69F19116dD6756726",
   Base: NOT_DEPLOYED,
   Sonic: "0x4b27b296273B72d7c7bfee1ACE93DC081467C41B",
+  // New networks
   MegaETH: NOT_DEPLOYED,
+  Monad: NOT_DEPLOYED,
+  Berachain: NOT_DEPLOYED,
+  Avalanche: NOT_DEPLOYED,
 };
 
 export const ADDRESS_PROVIDER_V310 =

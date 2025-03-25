@@ -28,8 +28,8 @@ export function createAdapter<Plugins extends PluginMap = {}>(
     }
   }
 
-  sdk.logger?.warn(
-    `no class found for ${adapterType} v${args.baseParams.version}, falling back to placeholder`,
-  );
+  // sdk.logger?.warn(
+  //   `no class found for ${adapterType} v${args.baseParams.version}, falling back to placeholder`,
+  // );
   return new PlaceholderAdapterContract(sdk, args);
 }
