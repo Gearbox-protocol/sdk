@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import type { Abi, Address } from "viem";
 import { decodeFunctionData, stringToHex } from "viem";
 
@@ -306,10 +306,7 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
           this.reservePrices.upsert(token, price);
         }
         if (!price && priceFeedType !== ZERO_PRICE_FEED) {
-          this.logger?.warn(
-            node ?? {},
-            `answer not found for reserve price feed ${this.labelAddress(priceFeed)}`,
-          );
+          this.#noAnswerWarn(priceFeed, node);
         }
         this.#reservePrices.upsert(token, node?.answer);
       } else {
@@ -318,10 +315,7 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
           this.mainPrices.upsert(token, price);
         }
         if (!price && priceFeedType !== ZERO_PRICE_FEED) {
-          this.logger?.warn(
-            node ?? {},
-            `answer not found for main price feed ${this.labelAddress(priceFeed)}`,
-          );
+          this.#noAnswerWarn(priceFeed, node);
         }
         this.#mainPrices.upsert(token, node?.answer);
       }
@@ -408,6 +402,31 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
 
   protected get priceFeedTree(): readonly PriceFeedTreeNode[] {
     return this.#priceFeedTree;
+  }
+
+  #noAnswerWarn(priceFeed: Address, node?: PriceFeedTreeNode): void {
+    let label = this.labelAddress(priceFeed);
+    if (!node) {
+      this.logger?.warn(`no node found for price feed ${label}`);
+      return;
+    }
+    const { answer, baseParams, description } = node;
+    const { success, updatedAt } = answer;
+    const { addr } = baseParams;
+    label = description ? `${description} at ${addr}` : label;
+    let upd = "";
+    if (updatedAt) {
+      const u = new Date(Number(updatedAt) * 1000);
+      upd = `${format(u, "PPppp")} (${formatDistanceToNow(u)})`;
+    }
+
+    if (success) {
+      upd = upd || "never";
+      this.logger?.warn(`zero answer for price feed ${label}, updated ${upd}`);
+    } else {
+      upd = upd ? `, updated ${upd}` : "";
+      this.logger?.warn(`failed to get answer for price feed ${label}${upd}`);
+    }
   }
 }
 
