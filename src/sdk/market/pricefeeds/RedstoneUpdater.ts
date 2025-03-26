@@ -26,6 +26,9 @@ export interface RedstoneUpdateTask {
   cached: boolean;
 }
 
+const MAX_DATA_TIMESTAMP_DELAY_SECONDS = 10n * 60n;
+const MAX_DATA_TIMESTAMP_AHEAD_SECONDS = 60n;
+
 export class RedstoneUpdateTx implements IPriceUpdateTx<RedstoneUpdateTask> {
   public readonly raw: RawTx;
   public readonly data: RedstoneUpdateTask;
@@ -35,9 +38,31 @@ export class RedstoneUpdateTx implements IPriceUpdateTx<RedstoneUpdateTask> {
     this.data = data;
   }
 
-  get pretty(): string {
+  public get pretty(): string {
     const cached = this.data.cached ? " (cached)" : "";
     return `redstone feed ${this.data.dataFeedId} at ${this.data.priceFeed} with timestamp ${this.data.timestamp}${cached}`;
+  }
+
+  public validateTimestamp(
+    blockTimestamp: bigint,
+  ): "valid" | "too old" | "in future" {
+    const { timestamp: expectedPayloadTimestamp } = this.data;
+
+    if (blockTimestamp < expectedPayloadTimestamp) {
+      if (
+        BigInt(expectedPayloadTimestamp) - blockTimestamp >
+        MAX_DATA_TIMESTAMP_AHEAD_SECONDS
+      ) {
+        return "in future";
+      }
+    } else if (
+      blockTimestamp - BigInt(expectedPayloadTimestamp) >
+      MAX_DATA_TIMESTAMP_DELAY_SECONDS
+    ) {
+      return "too old";
+    }
+
+    return "valid";
   }
 }
 

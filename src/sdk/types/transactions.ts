@@ -28,6 +28,7 @@ export interface IPriceUpdateTx<
   raw: RawTx;
   data: Data;
   pretty: string;
+  validateTimestamp: (timestamp: bigint) => "valid" | "too old" | "in future";
 }
 
 export interface MultiCall {

@@ -1,4 +1,4 @@
-import type { AbiStateMutability, Address, Narrow } from "abitype";
+import type { AbiStateMutability, Narrow } from "abitype";
 import type {
   Chain,
   Client,
@@ -10,15 +10,19 @@ import type {
 } from "viem";
 import {
   BaseError,
-  ContractFunctionExecutionError,
   ContractFunctionRevertedError,
   decodeFunctionData,
+  parseAbi,
 } from "viem";
 
+import type { MulticallResponse } from "../../../../node_modules/viem/types/multicall.js";
 import { errorAbis, iUpdatablePriceFeedAbi } from "../../../abi/index.js";
 import type { IPriceUpdateTx } from "../../types/index.js";
-import { hexEq } from "../hex.js";
 import { simulateMulticall } from "./simulateMulticall.js";
+
+const multicallTimestampAbi = parseAbi([
+  "function getCurrentBlockTimestamp() public view returns (uint256 timestamp)",
+]);
 
 const updatePriceFeedAbi = [...iUpdatablePriceFeedAbi, ...errorAbis] as const;
 type updatePriceFeedAbi = typeof updatePriceFeedAbi;
@@ -54,30 +58,54 @@ export async function simulateWithPriceUpdates<
   const { contracts: restContracts, priceUpdates, ...rest } = parameters;
 
   if (restContracts.length === 0) {
-    throw new SimulateWithPriceUpdatesError(
+    throw getSimulateWithPriceUpdatesError(
       new BaseError("no contracts calls provided"),
       priceUpdates,
       restContracts,
     );
   }
 
+  const multicallAddress =
+    rest.multicallAddress ?? client?.chain?.contracts?.multicall3?.address;
+  if (!multicallAddress) {
+    throw new Error(
+      "client chain not configured. multicallAddress is required.",
+    );
+  }
+
   try {
     const contracts = [
+      {
+        abi: multicallTimestampAbi,
+        address: multicallAddress,
+        functionName: "getCurrentBlockTimestamp",
+        args: [],
+      },
       ...priceUpdates.map(rawTxToMulticallPriceUpdate),
       ...restContracts,
-    ] as const;
-
+    ] as ContractFunctionParameters[];
     const resp = await simulateMulticall(client, {
       contracts,
       ...rest,
-      allowFailure: false,
+      allowFailure: true,
       batchSize: 0, // we cannot have price updates and compressor request in different batches
     });
-    const restResults = resp.slice(priceUpdates.length);
+    if (resp.some(r => r.status === "failure")) {
+      throw getSimulateWithPriceUpdatesError(
+        undefined,
+        priceUpdates,
+        restContracts,
+        resp as any,
+      );
+    }
+    const restResults = resp.slice(priceUpdates.length + 1).map(r => r.result);
     return restResults as unknown as SimulateWithPriceUpdatesReturnType<contracts>;
   } catch (e) {
-    throw new SimulateWithPriceUpdatesError(
-      e as BaseError,
+    if (e instanceof SimulateWithPriceUpdatesError) {
+      throw e;
+    }
+    throw getSimulateWithPriceUpdatesError(
+      e as Error,
       priceUpdates,
       restContracts,
     );
@@ -115,81 +143,111 @@ function rawTxToMulticallPriceUpdate({
   };
 }
 
-export type SimulateWithPriceUpdatesErrorType<
+export function getSimulateWithPriceUpdatesError<
   contracts extends readonly unknown[],
-> = SimulateWithPriceUpdatesError<contracts> & {
-  name: "SimulateWithPriceUpdatesError";
-};
+>(
+  cause: Error | undefined,
+  priceUpdates: IPriceUpdateTx[],
+  calls: MulticallContracts<Narrow<contracts>>,
+  results?: MulticallReturnType<Narrow<contracts>>,
+) {
+  // not results provided, error happened before multicall
+  if (!results) {
+    return new SimulateWithPriceUpdatesError(cause, {
+      priceUpdates: priceUpdates.map(p => p.pretty),
+      calls: calls.map((c: any) => `${c.address}.${c.functionName}`),
+    });
+  }
+  // try to get timestamp
+  const timestamp = results[0]?.result as bigint | undefined;
+  const priceUpdatesResults = results.slice(1, 1 + priceUpdates.length);
+  const callsResults = results.slice(1 + priceUpdates.length);
+  // const priceUpdatesFailed = priceUpdatesResults.some(r => r.status === "failure");
+  // const callsFailed = callsResults.some(r => r.status === "failure");
 
-export class SimulateWithPriceUpdatesError<
-  contracts extends readonly unknown[],
-> extends BaseError {
-  override cause: Error;
+  const prettyPriceUpdates = priceUpdates.map((p, i) => {
+    const result = priceUpdatesResults[i];
+    let tsValid = timestamp ? p.validateTimestamp(timestamp) : "";
+    tsValid = tsValid === "valid" ? "" : `[timestamp ${tsValid}]`;
+    return [extractCallError(result), p.pretty, tsValid]
+      .filter(Boolean)
+      .join(" ");
+  });
 
-  public readonly priceUpdates: IPriceUpdateTx[];
-  public readonly calls: MulticallContracts<Narrow<contracts>>;
+  const prettyCalls = callsResults.map((c, i) => {
+    const call = calls[i] as any;
+    return [extractCallError(c), `${call.address}.${call.functionName}`]
+      .filter(Boolean)
+      .join(" ");
+  });
+
+  return new SimulateWithPriceUpdatesError(cause, {
+    timestamp,
+    priceUpdates: prettyPriceUpdates,
+    calls: prettyCalls,
+  });
+}
+
+function extractCallError(result: MulticallResponse): string {
+  if (result.status === "success") {
+    return "";
+  }
+  const err = result.error;
+  const error =
+    err instanceof BaseError
+      ? err.walk(e => e instanceof ContractFunctionRevertedError)
+      : undefined;
+  if (error instanceof ContractFunctionRevertedError) {
+    return "[" + (error.data?.errorName ?? "reverted") + "]";
+  }
+  return err instanceof BaseError ? `[${err.name}]` : "[error]";
+}
+
+export type SimulateWithPriceUpdatesErrorType =
+  SimulateWithPriceUpdatesError & {
+    name: "SimulateWithPriceUpdatesError";
+  };
+
+export interface SimulateWithPriceUpdatesErrorParams {
+  timestamp?: bigint;
+  priceUpdates: string[];
+  calls: string[];
+}
+
+export class SimulateWithPriceUpdatesError extends BaseError {
+  override cause?: Error;
+  public readonly timestamp?: bigint;
 
   constructor(
-    cause: Error,
-    priceUpdates: IPriceUpdateTx[],
-    calls: MulticallContracts<Narrow<contracts>>,
+    cause: Error | undefined,
+    params: SimulateWithPriceUpdatesErrorParams,
   ) {
-    let failedPriceFeed: Address = "0x0";
-
+    const { calls, priceUpdates, timestamp } = params;
     const base = (cause instanceof BaseError ? cause : {}) as BaseError;
 
     let causeMeta: string[] = base.metaMessages
       ? [...base.metaMessages, " "]
       : [];
 
-    if (
-      base instanceof ContractFunctionExecutionError &&
-      base.functionName === "updatePrice"
-    ) {
-      failedPriceFeed = base.contractAddress ?? "0x0";
-      causeMeta = [
-        `simulate multicall with ${priceUpdates.length} price updates failed`,
-        " ",
-      ];
-      const updateRevert =
-        cause instanceof BaseError
-          ? (cause.walk(
-              err => err instanceof ContractFunctionRevertedError,
-            ) as ContractFunctionRevertedError)
-          : undefined;
-      if (updateRevert) {
-        causeMeta = [
-          `simulate multicall with ${priceUpdates.length} price updates failed: ${updateRevert.metaMessages?.[0]}`,
-          " ",
-        ];
-      }
-    }
-
-    const priceUpdatesMeta = [
-      "Price Updates:",
-      ...priceUpdates.map(
-        u =>
-          `${hexEq(u.data.priceFeed, failedPriceFeed) ? "[FAILED] " : ""}${u.pretty}`,
-      ),
-    ];
-
-    const callsMeta = [
-      "Calls:",
-      ...calls.map((c: any) => `${c.address}.${c.functionName}`),
-    ];
-
     super(
       `simulate multicall with ${priceUpdates.length} price updates failed`,
       {
         cause: base,
-        metaMessages: [...causeMeta, ...priceUpdatesMeta, ...callsMeta].filter(
-          Boolean,
-        ) as string[],
+        metaMessages: [
+          ...causeMeta,
+          ...(timestamp
+            ? [" ", "Block Timestamp: " + timestamp.toString(), " "]
+            : []),
+          "Price Updates:",
+          ...priceUpdates,
+          " ",
+          "Calls: ",
+          ...calls,
+        ].filter(Boolean) as string[],
         name: "SimulateWithPriceUpdatesError",
       },
     );
     this.cause = cause;
-    this.priceUpdates = priceUpdates;
-    this.calls = calls;
+    this.timestamp = timestamp;
   }
 }
