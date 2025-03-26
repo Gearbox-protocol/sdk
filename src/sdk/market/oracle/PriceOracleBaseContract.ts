@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import type { Abi, Address } from "viem";
 import { decodeFunctionData, stringToHex } from "viem";
 
@@ -10,6 +11,7 @@ import type {
   PriceOracleData,
 } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
+import type { PriceFeedAnswer } from "../../base/types.js";
 import { AP_PRICE_FEED_COMPRESSOR } from "../../constants/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { PriceOracleStateHuman } from "../../types/index.js";
@@ -55,12 +57,20 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
    */
   public readonly mainPrices = new AddressMap<bigint>(undefined, "mainPrices");
   /**
+   * Same, but with details
+   */
+  #mainPrices = new AddressMap<PriceFeedAnswer>();
+  /**
    * Mapping Token => Price in underlying
    */
   public readonly reservePrices = new AddressMap<bigint>(
     undefined,
     "reservePrices",
   );
+  /**
+   * Same, but with debug details
+   */
+  #reservePrices = new AddressMap<PriceFeedAnswer>();
 
   #priceFeedTree: readonly PriceFeedTreeNode[] = [];
 
@@ -301,6 +311,7 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
             `answer not found for reserve price feed ${this.labelAddress(priceFeed)}`,
           );
         }
+        this.#reservePrices.upsert(token, node?.answer);
       } else {
         this.mainPriceFeeds.upsert(token, ref);
         if (price !== undefined) {
@@ -312,6 +323,7 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
             `answer not found for main price feed ${this.labelAddress(priceFeed)}`,
           );
         }
+        this.#mainPrices.upsert(token, node?.answer);
       }
       this.#labelPriceFeed(priceFeed, reserve ? "Reserve" : "Main", token);
     });
@@ -376,19 +388,19 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
           .map(([token, v]) => [this.labelAddress(token), v.stateHuman(raw)]),
       ),
       mainPrices: Object.fromEntries(
-        this.mainPrices
+        this.#mainPrices
           .entries()
-          .map(([token, price]) => [
+          .map(([token, answer]) => [
             this.labelAddress(token),
-            formatBN(price, 8),
+            formatAnswer(answer, raw),
           ]),
       ),
       reservePrices: Object.fromEntries(
-        this.reservePrices
+        this.#reservePrices
           .entries()
-          .map(([token, price]) => [
+          .map(([token, answer]) => [
             this.labelAddress(token),
-            formatBN(price, 8),
+            formatAnswer(answer, raw),
           ]),
       ),
     };
@@ -397,4 +409,20 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
   protected get priceFeedTree(): readonly PriceFeedTreeNode[] {
     return this.#priceFeedTree;
   }
+}
+
+function formatAnswer(
+  { price, success, updatedAt }: PriceFeedAnswer,
+  raw = true,
+): string {
+  if (!success) {
+    return "failed";
+  }
+  let priceS = formatBN(price, 8);
+  let updated = format(new Date(Number(updatedAt) * 1000), "PPppp");
+  if (raw) {
+    priceS = `${priceS} (${price.toString(10)})`;
+    updated = `${updated} (${updatedAt.toString(10)})`;
+  }
+  return `${priceS} at ${updated}`;
 }

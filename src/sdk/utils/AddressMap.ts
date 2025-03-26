@@ -18,16 +18,20 @@ export class AddressMap<T> {
   }
 
   /**
-   * Adds or updates value
+   * Adds or updates value, undefined removes value
    * @param address
    * @param value
    */
-  public upsert(address: string, value: T): void {
+  public upsert(address: string, value: T | undefined): void {
     if (this.#frozen) {
       throw new Error(`AddressMap ${this.#name} is frozen`);
     }
     const key = getAddress(address);
-    this.#map.set(key, value);
+    if (value === undefined) {
+      this.#map.delete(key);
+    } else {
+      this.#map.set(key, value);
+    }
   }
 
   /**

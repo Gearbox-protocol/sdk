@@ -79,6 +79,7 @@ export type RateKeeperData = MarketData["rateKeeper"];
 export type PriceOracleData = MarketData["priceOracleData"];
 export type PriceFeedMapEntry = Unarray<PriceOracleData["priceFeedMapping"]>;
 export type PriceFeedTreeNode = Unarray<PriceOracleData["priceFeedStructure"]>;
+export type PriceFeedAnswer = PriceFeedTreeNode["answer"];
 export type CreditManagerDebtParams = Unarray<
   PoolData["creditManagerDebtParams"]
 >;
