@@ -6,7 +6,6 @@ import { iAirdropDistributorAbi } from "../../../abi/iAirdropDistributor.js";
 import { iFarmingPoolAbi } from "../../../abi/iFarmingPool.js";
 import type { NetworkType } from "../../chain/index.js";
 import { chains } from "../../chain/index.js";
-import { MULTICALL_ADDRESS } from "../../constants/index.js";
 import type { SupportedToken } from "../../sdk-gov-legacy/index.js";
 import { toBigInt, TypedObjectUtils } from "../../utils/index.js";
 import { GearboxBackendApi } from "../core/endpoint.js";
@@ -286,7 +285,6 @@ export class GearboxRewardsApi {
 
     const mc = await provider.multicall({
       allowFailure: false,
-      multicallAddress: MULTICALL_ADDRESS,
       contracts: [...farmInfoCalls, ...farmSupplyCalls, ...rewardTokenCalls],
     });
 
@@ -433,7 +431,6 @@ export class GearboxRewardsApi {
     const [gearboxLmResponse, merkleXYZLMResponse] = await Promise.allSettled([
       provider.multicall({
         allowFailure: false,
-        multicallAddress: MULTICALL_ADDRESS,
         contracts: poolTokens.map(address => ({
           address: address,
           abi: iFarmingPoolAbi,
