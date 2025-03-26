@@ -438,10 +438,14 @@ function formatAnswer(
     return "failed";
   }
   let priceS = formatBN(price, 8);
-  let updated = format(new Date(Number(updatedAt) * 1000), "PPppp");
+  let updated = updatedAt
+    ? format(new Date(Number(updatedAt) * 1000), "dd MMM yyyy HH:mm")
+    : "";
   if (raw) {
     priceS = `${priceS} (${price.toString(10)})`;
-    updated = `${updated} (${updatedAt.toString(10)})`;
+    updated = [updated, `(${updatedAt.toString(10)})`]
+      .filter(Boolean)
+      .join(" ");
   }
   return `${priceS} at ${updated}`;
 }
