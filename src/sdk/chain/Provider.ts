@@ -50,7 +50,7 @@ export function createTransport(
     return opts.transport;
   }
   const rpcs = opts.rpcURLs.map(url => http(url, { timeout, retryCount }));
-  return rpcs.length ? fallback(rpcs) : rpcs[0];
+  return rpcs.length > 1 ? fallback(rpcs) : rpcs[0];
 }
 
 export class Provider {
