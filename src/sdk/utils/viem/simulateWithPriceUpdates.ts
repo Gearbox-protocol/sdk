@@ -5,6 +5,7 @@ import type {
   ContractFunctionParameters,
   MulticallContracts,
   MulticallParameters,
+  MulticallResponse,
   MulticallReturnType,
   Transport,
 } from "viem";
@@ -15,7 +16,6 @@ import {
   parseAbi,
 } from "viem";
 
-import type { MulticallResponse } from "../../../../node_modules/viem/types/multicall.js";
 import { errorAbis, iUpdatablePriceFeedAbi } from "../../../abi/index.js";
 import type { IPriceUpdateTx } from "../../types/index.js";
 import { simulateMulticall } from "./simulateMulticall.js";
