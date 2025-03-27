@@ -23,11 +23,10 @@ const BLOCK_DURATION_BY_NETWORK: Record<NetworkType, number> = {
   Base: 2.01,
   Sonic: 0.91,
   // New networks
-  // TODO: determine value
-  MegaETH: 1,
-  Monad: 1,
-  Berachain: 1,
-  Avalanche: 1,
+  MegaETH: 0.01, // <10ms/block, on testnet
+  Monad: 1, // on testnet
+  Berachain: 1.9,
+  Avalanche: 1.7,
 };
 
 const RAMP_TIME = 30 * 24 * 60 * 60 * 1.2;
