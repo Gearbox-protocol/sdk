@@ -1,4 +1,4 @@
-import type { Address, ContractFunctionArgs } from "viem";
+import type { Address } from "viem";
 import { encodeFunctionData } from "viem";
 
 import {
@@ -25,18 +25,12 @@ import {
 } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import type {
-  CreditSuite,
   IPriceFeedContract,
   IPriceOracleContract,
   OnDemandPriceUpdate,
   UpdatePriceFeedsResult,
 } from "../market/index.js";
-import {
-  type Asset,
-  assetsMap,
-  type RouterCASlice,
-  type RouterCloseResult,
-} from "../router/index.js";
+import { type Asset, assetsMap, type RouterCASlice } from "../router/index.js";
 import type {
   AuraStakedToken,
   AuraStakedTokenData,
@@ -60,144 +54,33 @@ import {
   tokenDataByNetwork,
   tokenSymbolByAddress,
 } from "../sdk-gov-legacy/index.js";
-import type {
-  ILogger,
-  IPriceUpdateTx,
-  MultiCall,
-  RawTx,
-} from "../types/index.js";
+import type { ILogger, IPriceUpdateTx, MultiCall } from "../types/index.js";
 import { childLogger } from "../utils/index.js";
 import { simulateWithPriceUpdates } from "../utils/viem/index.js";
+import type {
+  AddCollateralProps,
+  ChangeDeptProps,
+  ClaimFarmRewardsProps,
+  CloseCreditAccountProps,
+  CloseCreditAccountResult,
+  CreditAccountFilter,
+  CreditAccountOperationResult,
+  ExecuteSwapProps,
+  GetCreditAccountsArgs,
+  OpenCAProps,
+  PermitResult,
+  PrepareUpdateQuotasProps,
+  RepayAndLiquidateCreditAccountProps,
+  RepayCreditAccountProps,
+  Rewards,
+  UpdateQuotasProps,
+  WithdrawCollateralProps,
+} from "./types.js";
 
 type CompressorAbi = typeof iCreditAccountCompressorAbi;
 
-type GetCreditAccountsArgs = ContractFunctionArgs<
-  typeof iCreditAccountCompressorAbi,
-  "pure" | "view",
-  "getCreditAccounts"
->;
-
 export interface CreditAccountServiceOptions {
   batchSize?: number;
-}
-
-interface ReadContractOptions {
-  blockNumber?: bigint;
-}
-
-export interface CreditAccountFilter {
-  creditManager?: Address;
-  owner?: Address;
-  includeZeroDebt?: boolean;
-  minHealthFactor?: number;
-  maxHealthFactor?: number;
-}
-
-export interface CloseCreditAccountResult extends CommonResult {
-  routerCloseResult: RouterCloseResult;
-}
-
-export interface CommonResult {
-  tx: RawTx;
-  calls: Array<MultiCall>;
-  creditFacade: CreditSuite["creditFacade"];
-}
-
-type CloseOptions = "close" | "zeroDebt";
-
-interface CloseCreditAccountProps {
-  operation: CloseOptions;
-  creditAccount: RouterCASlice;
-  assetsToWithdraw: Array<Address>;
-  to: Address;
-  slippage?: bigint;
-  closePath?: RouterCloseResult;
-}
-
-interface RepayCreditAccountProps extends RepayAndLiquidateCreditAccountProps {
-  operation: CloseOptions;
-}
-
-interface RepayAndLiquidateCreditAccountProps {
-  collateralAssets: Array<Asset>;
-  assetsToWithdraw: Array<Asset>;
-  creditAccount: RouterCASlice;
-  to: Address;
-  permits: Record<string, PermitResult>;
-}
-
-interface PrepareUpdateQuotasProps {
-  minQuota: Array<Asset>;
-  averageQuota: Array<Asset>;
-}
-
-interface UpdateQuotasProps extends PrepareUpdateQuotasProps {
-  creditAccount: RouterCASlice;
-}
-
-interface AddCollateralProps extends PrepareUpdateQuotasProps {
-  asset: Asset;
-  ethAmount: bigint;
-  permit: PermitResult | undefined;
-  creditAccount: RouterCASlice;
-}
-
-interface WithdrawCollateralProps extends PrepareUpdateQuotasProps {
-  assetsToWithdraw: Array<Asset>;
-  to: Address;
-  creditAccount: RouterCASlice;
-}
-
-interface ExecuteSwapProps extends PrepareUpdateQuotasProps {
-  calls: Array<MultiCall>;
-  creditAccount: RouterCASlice;
-}
-
-export interface ClaimFarmRewardsProps extends PrepareUpdateQuotasProps {
-  tokensToDisable: Array<Asset>;
-  calls: Array<MultiCall>;
-  creditAccount: RouterCASlice;
-}
-
-export interface OpenCAProps extends PrepareUpdateQuotasProps {
-  ethAmount: bigint;
-  collateral: Array<Asset>;
-  debt: bigint;
-  withdrawDebt?: boolean;
-  permits: Record<string, PermitResult>;
-  calls: Array<MultiCall>;
-
-  creditManager: Address;
-
-  to: Address;
-  referralCode: bigint;
-}
-
-interface ChangeDeptProps {
-  creditAccount: RouterCASlice;
-  amount: bigint;
-}
-
-export interface PermitResult {
-  r: Address;
-  s: Address;
-  v: number;
-
-  token: Address;
-  owner: Address;
-  spender: Address;
-  value: bigint;
-
-  deadline: bigint;
-  nonce: bigint;
-}
-
-export interface Rewards {
-  adapter: Address;
-  stakedPhantomToken: Address;
-  calls: Array<MultiCall>;
-
-  rewards: Array<Asset>;
 }
 
 export class CreditAccountsService extends SDKConstruct {
@@ -218,14 +101,13 @@ export class CreditAccountsService extends SDKConstruct {
    * Returns single credit account data, or undefined if it's not found
    * Performs all necessary price feed updates under the hood
    * @param account
-   * @param options
+   * @param blockNumber
    * @returns
    */
   public async getCreditAccountData(
     account: Address,
-    options?: ReadContractOptions,
+    blockNumber?: bigint,
   ): Promise<CreditAccountData | undefined> {
-    const blockNumber = options?.blockNumber;
     let raw: CreditAccountData;
     try {
       raw = await this.provider.publicClient.readContract({
@@ -269,12 +151,12 @@ export class CreditAccountsService extends SDKConstruct {
    * TODO: do we want to expose "reverting"?
    * TODO: do we want to expose MarketFilter in any way? If so, we need to check that the MarketFilter is compatibled with attached markets?
    * @param args
-   * @param options
+   * @param blockNumber
    * @returns returned credit accounts are sorted by health factor in ascending order
    */
   public async getCreditAccounts(
     args?: CreditAccountFilter,
-    options?: ReadContractOptions,
+    blockNumber?: bigint,
   ): Promise<Array<CreditAccountData>> {
     const {
       creditManager,
@@ -314,7 +196,7 @@ export class CreditAccountsService extends SDKConstruct {
               ]
             : [arg0, { ...caFilter, reverting }, offset],
           priceUpdateTxs,
-          options,
+          blockNumber,
         );
         allCAs.push(...accounts);
         offset = newOffset;
@@ -522,7 +404,7 @@ export class CreditAccountsService extends SDKConstruct {
     creditAccount: ca,
     permits,
     to,
-  }: RepayCreditAccountProps): Promise<CommonResult> {
+  }: RepayCreditAccountProps): Promise<CreditAccountOperationResult> {
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
     const addCollateral = collateralAssets.filter(a => a.balance > 0);
 
@@ -583,7 +465,7 @@ export class CreditAccountsService extends SDKConstruct {
     creditAccount: ca,
     permits,
     to,
-  }: RepayAndLiquidateCreditAccountProps): Promise<CommonResult> {
+  }: RepayAndLiquidateCreditAccountProps): Promise<CreditAccountOperationResult> {
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
 
     const priceUpdates = await this.getPriceUpdatesForFacade(
@@ -632,7 +514,7 @@ export class CreditAccountsService extends SDKConstruct {
     minQuota,
     averageQuota,
     creditAccount,
-  }: UpdateQuotasProps): Promise<CommonResult> {
+  }: UpdateQuotasProps): Promise<CreditAccountOperationResult> {
     const cm = this.sdk.marketRegister.findCreditManager(
       creditAccount.creditManager,
     );
@@ -679,7 +561,7 @@ export class CreditAccountsService extends SDKConstruct {
     ethAmount,
     minQuota,
     averageQuota,
-  }: AddCollateralProps): Promise<CommonResult> {
+  }: AddCollateralProps): Promise<CreditAccountOperationResult> {
     const cm = this.sdk.marketRegister.findCreditManager(
       creditAccount.creditManager,
     );
@@ -722,7 +604,7 @@ export class CreditAccountsService extends SDKConstruct {
   public async changeDebt({
     creditAccount,
     amount,
-  }: ChangeDeptProps): Promise<CommonResult> {
+  }: ChangeDeptProps): Promise<CreditAccountOperationResult> {
     if (amount === 0n) {
       throw new Error("debt increase or decrease must be non-zero");
     }
@@ -775,7 +657,7 @@ export class CreditAccountsService extends SDKConstruct {
 
     minQuota,
     averageQuota,
-  }: WithdrawCollateralProps): Promise<CommonResult> {
+  }: WithdrawCollateralProps): Promise<CreditAccountOperationResult> {
     const cm = this.sdk.marketRegister.findCreditManager(
       creditAccount.creditManager,
     );
@@ -831,7 +713,7 @@ export class CreditAccountsService extends SDKConstruct {
     calls: swapCalls,
     minQuota,
     averageQuota,
-  }: ExecuteSwapProps): Promise<CommonResult> {
+  }: ExecuteSwapProps): Promise<CreditAccountOperationResult> {
     if (swapCalls.length === 0) throw new Error("No path to execute");
 
     const cm = this.sdk.marketRegister.findCreditManager(
@@ -879,7 +761,7 @@ export class CreditAccountsService extends SDKConstruct {
 
     minQuota,
     averageQuota,
-  }: ClaimFarmRewardsProps): Promise<CommonResult> {
+  }: ClaimFarmRewardsProps): Promise<CreditAccountOperationResult> {
     if (claimCalls.length === 0) throw new Error("No path to execute");
 
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
@@ -942,7 +824,7 @@ export class CreditAccountsService extends SDKConstruct {
 
     minQuota,
     averageQuota,
-  }: OpenCAProps): Promise<CommonResult> {
+  }: OpenCAProps): Promise<CreditAccountOperationResult> {
     const cmSuite = this.sdk.marketRegister.findCreditManager(creditManager);
     const cm = cmSuite.creditManager;
 
@@ -976,15 +858,14 @@ export class CreditAccountsService extends SDKConstruct {
    * Internal wrapper for CreditAccountCompressor.getCreditAccounts + price updates wrapped into multicall
    * @param args
    * @param priceUpdateTxs
-   * @param options
+   * @param blockNumber
    * @returns
    */
   async #getCreditAccounts(
     args: GetCreditAccountsArgs,
     priceUpdateTxs?: IPriceUpdateTx[],
-    options?: ReadContractOptions,
+    blockNumber?: bigint,
   ): Promise<[accounts: Array<CreditAccountData>, newOffset: bigint]> {
-    const blockNumber = options?.blockNumber;
     if (priceUpdateTxs?.length) {
       const [resp] = await simulateWithPriceUpdates(
         this.provider.publicClient,
