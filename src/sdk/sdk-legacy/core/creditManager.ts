@@ -49,6 +49,7 @@ export class CreditManagerData_Legacy {
   readonly collateralTokens: Array<Address> = [];
   readonly supportedTokens: Record<Address, true> = {};
   readonly usableTokens: Record<Address, true> = {};
+  readonly forbiddenTokens: Record<Address, true> = {};
   readonly adapters: Record<Address, CreditManagerDataPayload["adapters"][1]> =
     {};
   readonly contractsByAdapter: Record<Address, Address> = {};
@@ -135,14 +136,19 @@ export class CreditManagerData_Legacy {
       {},
     );
 
-    payload.collateralTokens.forEach(t => {
+    payload.collateralTokens.forEach((t, index) => {
       const tLc = t.toLowerCase() as Address;
+
+      const mask = BigInt(1 << index);
+      const isForbidden = (mask & payload.forbiddenTokenMask) !== 0n;
 
       const zeroLt = this.liquidationThresholds[tLc] === 0n;
       const quotaNotActive = this.quotas[tLc]?.isActive === false;
 
-      const allowed = !zeroLt && !quotaNotActive;
+      const allowed = !zeroLt && !quotaNotActive && !isForbidden;
       if (allowed) this.usableTokens[tLc] = true;
+
+      if (isForbidden) this.forbiddenTokens[tLc] = true;
 
       this.collateralTokens.push(tLc);
       this.supportedTokens[tLc] = true;
@@ -151,6 +157,10 @@ export class CreditManagerData_Legacy {
 
   isQuoted(token: Address) {
     return !!this.quotas[token];
+  }
+
+  isForbidden(token: Address) {
+    return !!this.forbiddenTokens[token];
   }
 
   static getTier(name: string): number {
