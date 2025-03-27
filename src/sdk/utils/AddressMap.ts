@@ -112,4 +112,8 @@ export class AddressMap<T> {
   public freeze(): void {
     this.#frozen = true;
   }
+
+  protected get name(): string | undefined {
+    return this.#name;
+  }
 }

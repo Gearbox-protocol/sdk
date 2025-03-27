@@ -22,6 +22,7 @@ import type {
   UpdatePriceFeedsResult,
 } from "../pricefeeds/index.js";
 import { PriceFeedRef } from "../pricefeeds/index.js";
+import PriceFeedAnswerMap from "./PriceFeedAnswerMap.js";
 import type {
   IPriceOracleContract,
   OnDemandPriceUpdate,
@@ -53,24 +54,16 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
     "reservePriceFeeds",
   );
   /**
-   * Mapping Token => Price in underlying
+   * Mapping Token => Price in USD
    */
-  public readonly mainPrices = new AddressMap<bigint>(undefined, "mainPrices");
+  public readonly mainPrices = new PriceFeedAnswerMap(undefined, "mainPrices");
   /**
-   * Same, but with details
+   * Mapping Token => Price in USD
    */
-  #mainPrices = new AddressMap<PriceFeedAnswer>();
-  /**
-   * Mapping Token => Price in underlying
-   */
-  public readonly reservePrices = new AddressMap<bigint>(
+  public readonly reservePrices = new PriceFeedAnswerMap(
     undefined,
     "reservePrices",
   );
-  /**
-   * Same, but with debug details
-   */
-  #reservePrices = new AddressMap<PriceFeedAnswer>();
 
   #priceFeedTree: readonly PriceFeedTreeNode[] = [];
 
@@ -170,6 +163,26 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
   }
 
   /**
+   * Gets main price for given token
+   * Throws if token price feed is not found or answer is not successful
+   * @param token
+   * @returns
+   */
+  public mainPrice(token: Address): bigint {
+    return this.mainPrices.price(token);
+  }
+
+  /**
+   * Gets reserve price for given token
+   * Throws if token price feed is not found or answer is not successful
+   * @param token
+   * @returns
+   */
+  public reservePrice(token: Address): bigint {
+    return this.reservePrices.price(token);
+  }
+
+  /**
    * Returns true if oracle's price feed tree contains given price feed
    * @param priceFeed
    * @returns
@@ -211,13 +224,9 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
     if (from === to) {
       return amount;
     }
-    const fromPrice = reserve
-      ? this.reservePrices.mustGet(from)
-      : this.mainPrices.mustGet(from);
+    const fromPrice = reserve ? this.reservePrice(from) : this.mainPrice(from);
     const fromScale = 10n ** BigInt(this.sdk.tokensMeta.decimals(from));
-    const toPrice = reserve
-      ? this.reservePrices.mustGet(to)
-      : this.mainPrices.mustGet(to);
+    const toPrice = reserve ? this.reservePrice(to) : this.mainPrice(to);
     const toScale = 10n ** BigInt(this.sdk.tokensMeta.decimals(to));
 
     return (amount * fromPrice * toScale) / (toPrice * fromScale);
@@ -231,9 +240,7 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
    * @param reserve
    */
   public convertToUSD(from: Address, amount: bigint, reserve = false): bigint {
-    const price = reserve
-      ? this.reservePrices.mustGet(from)
-      : this.mainPrices.mustGet(from);
+    const price = reserve ? this.reservePrice(from) : this.mainPrice(from);
     const scale = 10n ** BigInt(this.sdk.tokensMeta.decimals(from));
     return (amount * price) / scale;
   }
@@ -302,22 +309,16 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
       const priceFeedType = node?.baseParams.contractType;
       if (reserve) {
         this.reservePriceFeeds.upsert(token, ref);
-        if (price !== undefined) {
-          this.reservePrices.upsert(token, price);
-        }
+        this.reservePrices.upsert(token, node?.answer);
         if (!price && priceFeedType !== ZERO_PRICE_FEED) {
           this.#noAnswerWarn(priceFeed, node);
         }
-        this.#reservePrices.upsert(token, node?.answer);
       } else {
         this.mainPriceFeeds.upsert(token, ref);
-        if (price !== undefined) {
-          this.mainPrices.upsert(token, price);
-        }
+        this.mainPrices.upsert(token, node?.answer);
         if (!price && priceFeedType !== ZERO_PRICE_FEED) {
           this.#noAnswerWarn(priceFeed, node);
         }
-        this.#mainPrices.upsert(token, node?.answer);
       }
       this.#labelPriceFeed(priceFeed, reserve ? "Reserve" : "Main", token);
     });
@@ -382,7 +383,7 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
           .map(([token, v]) => [this.labelAddress(token), v.stateHuman(raw)]),
       ),
       mainPrices: Object.fromEntries(
-        this.#mainPrices
+        this.mainPrices
           .entries()
           .map(([token, answer]) => [
             this.labelAddress(token),
@@ -390,7 +391,7 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
           ]),
       ),
       reservePrices: Object.fromEntries(
-        this.#reservePrices
+        this.reservePrices
           .entries()
           .map(([token, answer]) => [
             this.labelAddress(token),
