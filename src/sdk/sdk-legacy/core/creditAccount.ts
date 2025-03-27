@@ -406,6 +406,10 @@ export class CreditAccountData_Legacy {
     return max;
   }
 
+  // [
+  //  Sum(amount_i * price_i * apy_i - quota_i * quotaPrice * quotaRate_i * (1 + feeInterest)) -
+  //  debt * debtPrice * baseRateWithFee
+  // ] / (totalValue - debt) * debtPrice
   static calcOverallAPY({
     caAssets,
     lpAPY,
@@ -464,19 +468,20 @@ export class CreditAccountData_Legacy {
       0n,
     );
 
-    const assetAPYAmountInUnderlying = PriceUtils.convertByPrice(
-      assetAPYMoney,
-      {
-        price: underlyingPrice || PRICE_DECIMALS,
-        decimals: underlyingTokenDecimals,
-      },
+    const debtMoney = PriceUtils.calcTotalPrice(
+      underlyingPrice || 0n,
+      debt,
+      underlyingTokenDecimals,
+    );
+    const debtAPYMoney = debtMoney * BigInt(baseRateWithFee);
+
+    const yourAssetsMoney = PriceUtils.calcTotalPrice(
+      underlyingPrice || PRICE_DECIMALS,
+      totalValue - debt,
+      underlyingTokenDecimals,
     );
 
-    const debtAPY = debt * BigInt(baseRateWithFee);
-
-    const yourAssets = totalValue - debt;
-
-    const apyInPercent = (assetAPYAmountInUnderlying - debtAPY) / yourAssets;
+    const apyInPercent = (assetAPYMoney - debtAPYMoney) / yourAssetsMoney;
 
     return apyInPercent;
   }

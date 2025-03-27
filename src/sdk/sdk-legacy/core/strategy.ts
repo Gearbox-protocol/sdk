@@ -23,6 +23,10 @@ export class PositionUtils {
     return Number(maxLeverage - LEVERAGE_DECIMALS);
   }
 
+  // [apy - quotaRate * (1 + feeInterest)] +
+  // [
+  //  apy - baseRateWithFee - quotaRate * (1 + feeInterest)
+  // ] * (leverage - 1)
   static maxAPY({
     apy,
     leverage,

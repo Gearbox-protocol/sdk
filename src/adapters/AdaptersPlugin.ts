@@ -101,7 +101,7 @@ export class AdaptersPlugin extends SDKConstruct implements IGearboxSDKPlugin {
     }
   }
 
-  public stateHuman(raw?: boolean): {} {
+  public stateHuman(_?: boolean): {} {
     return {};
   }
 }

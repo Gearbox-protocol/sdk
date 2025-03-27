@@ -259,7 +259,7 @@ export class RouterV310Contract
    * Implements {@link IRouterContract.findAllSwaps}
    * @deprecated v3.0 legacy method
    */
-  public findAllSwaps(props: FindAllSwapsProps): Promise<RouterResult[]> {
+  public findAllSwaps(_: FindAllSwapsProps): Promise<RouterResult[]> {
     throw ERR_NOT_IMPLEMENTED;
   }
 
@@ -267,7 +267,7 @@ export class RouterV310Contract
    * Implements {@link IRouterContract.getAvailableConnectors}
    * @deprecated v3.0 legacy method
    */
-  public getAvailableConnectors(collateralTokens: Address[]): Address[] {
+  public getAvailableConnectors(_: Address[]): Address[] {
     throw ERR_NOT_IMPLEMENTED;
   }
 
@@ -276,9 +276,9 @@ export class RouterV310Contract
    * @deprecated v3.0 legacy method
    */
   public getFindClosePathInput(
-    ca: RouterCASlice,
-    cm: RouterCMSlice,
-    balances?: Leftovers,
+    _: RouterCASlice,
+    __: RouterCMSlice,
+    ___?: Leftovers,
   ): FindClosePathInput {
     throw ERR_NOT_IMPLEMENTED;
   }

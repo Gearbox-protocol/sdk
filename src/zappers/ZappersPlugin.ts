@@ -71,7 +71,7 @@ export class ZappersPlugin extends SDKConstruct implements IGearboxSDKPlugin {
     return this.#zappers;
   }
 
-  public stateHuman(raw?: boolean): ZapperStateHuman[] {
+  public stateHuman(_?: boolean): ZapperStateHuman[] {
     return this.zappers.values().flatMap(l =>
       l.flatMap(z => ({
         address: z.baseParams.addr,
