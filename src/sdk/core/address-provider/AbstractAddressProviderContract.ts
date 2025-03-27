@@ -54,8 +54,6 @@ export default abstract class AbstractAddressProviderContract<
     if (!version) {
       throw new Error(`Latest version for ${contract} not found`);
     }
-    this.logger?.debug(`Latest version found for ${contract} : ${version}`);
-
     return [this.getAddress(contract, version), version];
   }
 
