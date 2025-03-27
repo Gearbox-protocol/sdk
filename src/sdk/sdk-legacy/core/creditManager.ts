@@ -44,6 +44,9 @@ export class CreditManagerData_Legacy {
 
   readonly collateralTokens: Array<Address> = [];
   readonly supportedTokens: Record<Address, true> = {};
+  /**
+   * has LT !== 0 and Quota and not forbidden
+   */
   readonly usableTokens: Record<Address, true> = {};
   readonly forbiddenTokens: Record<Address, true> = {};
   readonly adapters: Record<Address, CreditManagerDataPayload["adapters"][1]> =
@@ -133,11 +136,10 @@ export class CreditManagerData_Legacy {
     payload.collateralTokens.forEach((t, index) => {
       const tLc = t.toLowerCase() as Address;
 
-      const mask = BigInt(1 << index);
-      const isForbidden = (mask & payload.forbiddenTokenMask) !== 0n;
-
       const zeroLt = this.liquidationThresholds[tLc] === 0n;
       const quotaNotActive = this.quotas[tLc]?.isActive === false;
+      const mask = BigInt(1 << index);
+      const isForbidden = (mask & payload.forbiddenTokenMask) !== 0n;
 
       const allowed = !zeroLt && !quotaNotActive && !isForbidden;
       if (allowed) this.usableTokens[tLc] = true;
