@@ -84,7 +84,7 @@ export class CreditConfiguratorV310Contract
     return logs.map(({ args }) => args);
   }
 
-  public parseFunctionParams(
+  protected parseFunctionParams(
     params: DecodeFunctionDataReturnType<abi>,
   ): Array<string> | undefined {
     switch (params.functionName) {

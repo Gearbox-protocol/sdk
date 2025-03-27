@@ -203,7 +203,7 @@ export abstract class BaseContract<abi extends Abi | readonly unknown[]>
     return decoded;
   }
 
-  public parseFunctionParams(
+  protected parseFunctionParams(
     _params: DecodeFunctionDataReturnType<abi>,
   ): Array<string> | undefined {
     return undefined;

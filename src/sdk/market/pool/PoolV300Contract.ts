@@ -134,7 +134,7 @@ export class PoolV300Contract extends BaseContract<abi> {
     }
   }
 
-  public parseFunctionParams(
+  protected parseFunctionParams(
     params: DecodeFunctionDataReturnType<abi>,
   ): Array<string> | undefined {
     switch (params.functionName) {

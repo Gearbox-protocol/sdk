@@ -35,7 +35,7 @@ export class AddressProviderContractV3_1
     );
   }
 
-  public parseFunctionParams(
+  protected parseFunctionParams(
     params: DecodeFunctionDataReturnType<abi>,
   ): Array<string> | undefined {
     switch (params.functionName) {

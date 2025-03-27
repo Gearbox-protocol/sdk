@@ -349,6 +349,7 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
 
   /**
    * Converts contract call into some human-friendly string
+   * This method is safe and should not throw
    * @param address
    * @param calldata
    * @returns
@@ -363,6 +364,7 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
 
   /**
    * Converts multicalls into some human-friendly strings
+   * This method is safe and should not throw
    * @param address
    * @param calldata
    * @returns

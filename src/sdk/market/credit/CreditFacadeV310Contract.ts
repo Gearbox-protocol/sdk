@@ -160,7 +160,7 @@ export class CreditFacadeV310Contract extends BaseContract<abi> {
     });
   }
 
-  public parseFunctionParams(
+  protected parseFunctionParams(
     params: DecodeFunctionDataReturnType<abi>,
   ): string[] | undefined {
     switch (params.functionName) {

@@ -26,7 +26,7 @@ export class BotListContract extends BaseContract<abi> {
     this.#currentBlock = ADDRESS_PROVIDER_BLOCK[sdk.provider.networkType];
   }
 
-  public parseFunctionParams(
+  protected parseFunctionParams(
     params: DecodeFunctionDataReturnType<abi>,
   ): Array<string> | undefined {
     switch (params.functionName) {

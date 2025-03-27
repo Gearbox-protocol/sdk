@@ -21,7 +21,7 @@ export class UniswapV3AdapterContract extends AbstractAdapterContract<
     });
   }
 
-  public parseFunctionParams(
+  protected parseFunctionParams(
     params: DecodeFunctionDataReturnType<typeof abi>,
   ): string[] | undefined {
     switch (params.functionName) {
