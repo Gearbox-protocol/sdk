@@ -12,11 +12,8 @@ import type {
   QuotaInfo,
 } from "../payload/creditManager.js";
 
-export type CreditManagerType = "universal" | "trade" | "farm" | "restaking";
-
 export class CreditManagerData_Legacy {
   readonly address: Address;
-  readonly type: CreditManagerType;
   readonly underlyingToken: Address;
   readonly pool: Address;
   readonly creditFacade: Address; // V2 only: address of creditFacade
@@ -29,7 +26,6 @@ export class CreditManagerData_Legacy {
   readonly isBorrowingForbidden: boolean;
   readonly maxEnabledTokensLength: number;
   readonly name: string;
-  readonly tier: number;
   readonly marketConfigurator: Address;
 
   readonly baseBorrowRate: number;
@@ -59,10 +55,8 @@ export class CreditManagerData_Legacy {
   constructor(payload: CreditManagerDataPayload) {
     this.address = payload.addr.toLowerCase() as Address;
     this.underlyingToken = payload.underlying.toLowerCase() as Address;
-    this.type = CreditManagerData_Legacy.getType(payload.name || "");
     this.name = payload.name;
     this.pool = payload.pool.toLowerCase() as Address;
-    this.tier = CreditManagerData_Legacy.getTier(payload.name);
     this.creditFacade = payload.creditFacade.toLowerCase() as Address;
     this.creditConfigurator =
       payload.creditConfigurator.toLowerCase() as Address;
@@ -162,30 +156,6 @@ export class CreditManagerData_Legacy {
   isForbidden(token: Address) {
     return !!this.forbiddenTokens[token];
   }
-
-  static getTier(name: string): number {
-    const DEFAULT_TIER = 99;
-    const l = name.split(" ") || [];
-
-    const index = l.findIndex(w => w.toLowerCase() === "tier");
-    if (index < 0) return DEFAULT_TIER;
-
-    const number = l[index + 1];
-
-    const n = Number(number || DEFAULT_TIER);
-    return Number.isNaN(n) ? DEFAULT_TIER : n;
-  }
-
-  static getType(name: string): CreditManagerType {
-    const [identity = ""] = name.split(" ") || [];
-    const lc = identity.toLowerCase();
-
-    if (lc === "farm") return "farm";
-    if (lc === "trade") return "trade";
-    if (lc === "restaking") return "restaking";
-
-    return "universal";
-  }
 }
 
 export class ChartsCreditManagerData {
@@ -196,7 +166,6 @@ export class ChartsCreditManagerData {
   readonly pool: Address;
   readonly version: number;
   readonly name: string;
-  readonly tier: number;
 
   readonly borrowRate: number;
   readonly borrowRateOld: number;
@@ -252,7 +221,6 @@ export class ChartsCreditManagerData {
     this.pool = (payload.poolAddress || "").toLowerCase() as Address;
     this.version = payload.version || 2;
     this.name = payload.name || "";
-    this.tier = CreditManagerData_Legacy.getTier(payload.name || "");
 
     this.borrowRate = Number(
       (toBigInt(payload.borrowRate || 0) *
