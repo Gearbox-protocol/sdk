@@ -6,15 +6,10 @@ import type {
   Client,
   ContractFunctionParameters,
   ContractFunctionReturnType,
-  DecodeFunctionResultErrorType,
-  EncodeFunctionDataErrorType,
-  GetChainContractAddressErrorType,
-  GetContractErrorReturnType,
   Hex,
   MulticallContracts,
-  MulticallResults,
+  MulticallReturnType,
   Narrow,
-  ReadContractErrorType,
   Transport,
 } from "viem";
 import {
@@ -27,20 +22,17 @@ import {
   multicall3Abi,
   RawContractError,
 } from "viem";
-import { simulateContract } from "viem/actions";
-import { getAction } from "viem/utils";
+import { call } from "viem/actions";
+import { getAction, parseAccount } from "viem/utils";
 
-export type MulticallParameters<
+export type SimulateMulticallParameters<
   contracts extends readonly unknown[] = readonly ContractFunctionParameters[],
   allowFailure extends boolean = true,
   options extends {
     optional?: boolean;
     properties?: Record<string, any>;
   } = {},
-> = Pick<
-  CallParameters,
-  "blockNumber" | "blockTag" | "stateOverride" | "gas" | "account"
-> & {
+> = Pick<CallParameters, "blockNumber" | "blockTag" | "gas" | "account"> & {
   allowFailure?: allowFailure | boolean | undefined;
   contracts: MulticallContracts<
     Narrow<contracts>,
@@ -49,25 +41,19 @@ export type MulticallParameters<
   multicallAddress?: Address | undefined;
 };
 
-export type MulticallReturnType<
+export interface SimulateMulticallReturnType<
   contracts extends readonly unknown[] = readonly ContractFunctionParameters[],
   allowFailure extends boolean = true,
   options extends {
     error?: Error;
   } = { error: Error },
-> = MulticallResults<
-  Narrow<contracts>,
-  allowFailure,
-  { mutability: AbiStateMutability } & options
->;
-
-export type MulticallErrorType =
-  | GetChainContractAddressErrorType
-  | ReadContractErrorType
-  | GetContractErrorReturnType<
-      EncodeFunctionDataErrorType | DecodeFunctionResultErrorType
-    >
-  | Error;
+> {
+  results: MulticallReturnType<contracts, allowFailure, options>;
+  /**
+   * Raw multicall request (as in viem's call action)
+   */
+  request: CallParameters;
+}
 
 /**
  * This is "multicall" action from viem, modified to use "simulateContract" instead of "readContract"
@@ -82,18 +68,18 @@ export async function simulateMulticall<
   allowFailure extends boolean = true,
 >(
   client: Client<Transport, chain>,
-  parameters: MulticallParameters<contracts, allowFailure>,
-): Promise<MulticallReturnType<contracts, allowFailure>> {
+  parameters: SimulateMulticallParameters<contracts, allowFailure>,
+): Promise<SimulateMulticallReturnType<contracts, allowFailure>> {
   const {
-    account,
+    account: account_,
     allowFailure = true,
     blockNumber,
     blockTag,
     gas,
     multicallAddress: multicallAddress_,
-    stateOverride,
   } = parameters;
   const contracts = parameters.contracts as ContractFunctionParameters[];
+  const account = account_ ? parseAccount(account_) : client.account;
 
   let multicallAddress = multicallAddress_;
   if (!multicallAddress) {
@@ -144,6 +130,21 @@ export async function simulateMulticall<
     }
   }
 
+  const calldata = encodeFunctionData({
+    abi: multicall3Abi,
+    args: [calls],
+    functionName: "aggregate3",
+  });
+  const request: CallParameters = {
+    batch: false,
+    data: calldata,
+    to: multicallAddress!,
+    blockNumber,
+    blockTag: blockTag as any, // does not infer well that either blockNumber or blockTag must be present
+    gas,
+    account,
+  };
+
   const results = [];
   let result: ContractFunctionReturnType<
     typeof multicall3Abi,
@@ -151,22 +152,14 @@ export async function simulateMulticall<
     "aggregate3"
   >;
   try {
-    const resp = await getAction(
-      client,
-      simulateContract,
-      "simulateContract",
-    )({
-      account,
+    const { data } = await getAction(client, call, "call")(request);
+
+    result = decodeFunctionResult({
       abi: multicall3Abi,
-      address: multicallAddress!,
       args: [calls],
-      blockNumber,
-      blockTag: blockTag as any, // does not infer well that either blockNumber or blockTag must be present
       functionName: "aggregate3",
-      stateOverride,
-      gas,
+      data: data || "0x",
     });
-    result = resp.result;
   } catch (e) {
     if (!allowFailure) {
       throw e;
@@ -178,7 +171,10 @@ export async function simulateMulticall<
         result: undefined,
       });
     }
-    return results as MulticallReturnType<contracts, allowFailure>;
+    return {
+      results: results as MulticallReturnType<contracts, allowFailure>,
+      request,
+    };
   }
 
   for (let j = 0; j < result.length; j++) {
@@ -221,5 +217,8 @@ export async function simulateMulticall<
 
   if (results.length !== contracts.length)
     throw new BaseError("multicall results mismatch");
-  return results as MulticallReturnType<contracts, allowFailure>;
+  return {
+    results: results as MulticallReturnType<contracts, allowFailure>,
+    request,
+  };
 }

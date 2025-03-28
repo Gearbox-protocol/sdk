@@ -1,5 +1,6 @@
 import type { AbiStateMutability, Narrow } from "abitype";
 import type {
+  CallParameters,
   Chain,
   Client,
   ContractFunctionParameters,
@@ -18,10 +19,12 @@ import {
 
 import { errorAbis, iUpdatablePriceFeedAbi } from "../../../abi/index.js";
 import type { IPriceUpdateTx } from "../../types/index.js";
+import { generateCastTraceCall } from "./cast.js";
 import { simulateMulticall } from "./simulateMulticall.js";
 
 const multicallTimestampAbi = parseAbi([
   "function getCurrentBlockTimestamp() public view returns (uint256 timestamp)",
+  "function getBlockNumber() public view returns (uint256 blockNumber)",
 ]);
 
 const updatePriceFeedAbi = [...iUpdatablePriceFeedAbi, ...errorAbis] as const;
@@ -82,6 +85,7 @@ export async function simulateWithPriceUpdates<
       "client chain not configured. multicallAddress is required.",
     );
   }
+  let request: CallParameters | undefined;
 
   try {
     const contracts = [
@@ -89,6 +93,12 @@ export async function simulateWithPriceUpdates<
         abi: multicallTimestampAbi,
         address: multicallAddress,
         functionName: "getCurrentBlockTimestamp",
+        args: [],
+      },
+      {
+        abi: multicallTimestampAbi,
+        address: multicallAddress,
+        functionName: "getBlockNumber",
         args: [],
       },
       ...priceUpdates.map(rawTxToMulticallPriceUpdate),
@@ -99,15 +109,17 @@ export async function simulateWithPriceUpdates<
       ...rest,
       allowFailure: true,
     });
+    const multicallResults = resp.results;
+    request = resp.request;
 
     let hasError = false;
     let mustThrow = false;
-    for (let i = 0; i < resp.length; i++) {
-      if (resp[i].status === "failure") {
+    for (let i = 0; i < multicallResults.length; i++) {
+      if (multicallResults[i].status === "failure") {
         hasError = true;
-        // it's ok to receive failure in first call (block number)
+        // it's ok to receive failure in first or second call (block timestamp and block number)
         // throw if call failed, or strictPrice failed.
-        if (i > priceUpdates.length || (i > 0 && strictPrices)) {
+        if (i > priceUpdates.length + 1 || (i > 1 && strictPrices)) {
           mustThrow = true;
         }
       }
@@ -119,7 +131,8 @@ export async function simulateWithPriceUpdates<
         undefined,
         priceUpdates,
         restContracts,
-        resp as any,
+        multicallResults as any,
+        request,
       );
       if (mustThrow) {
         throw err;
@@ -127,7 +140,9 @@ export async function simulateWithPriceUpdates<
       console.warn(err);
     }
 
-    const restResults = resp.slice(priceUpdates.length + 1).map(r => r.result);
+    const restResults = multicallResults
+      .slice(priceUpdates.length + 2)
+      .map(r => r.result);
     return restResults as unknown as SimulateWithPriceUpdatesReturnType<contracts>;
   } catch (e) {
     if (e instanceof SimulateWithPriceUpdatesError) {
@@ -137,6 +152,8 @@ export async function simulateWithPriceUpdates<
       e as Error,
       priceUpdates,
       restContracts,
+      undefined,
+      request,
     );
   }
 }
@@ -179,18 +196,21 @@ export function getSimulateWithPriceUpdatesError<
   priceUpdates: IPriceUpdateTx[],
   calls: MulticallContracts<Narrow<contracts>>,
   results?: MulticallReturnType<Narrow<contracts>>,
+  request?: CallParameters,
 ) {
   // not results provided, error happened before multicall
   if (!results) {
     return new SimulateWithPriceUpdatesError(cause, {
       priceUpdates: priceUpdates.map(p => p.pretty),
       calls: calls.map((c: any) => `${c.address}.${c.functionName}`),
+      request,
     });
   }
   // try to get timestamp
   const timestamp = results[0]?.result as bigint | undefined;
-  const priceUpdatesResults = results.slice(1, 1 + priceUpdates.length);
-  const callsResults = results.slice(1 + priceUpdates.length);
+  const blockNumber = results[1]?.result as bigint | undefined;
+  const priceUpdatesResults = results.slice(2, 2 + priceUpdates.length);
+  const callsResults = results.slice(2 + priceUpdates.length);
   // const priceUpdatesFailed = priceUpdatesResults.some(r => r.status === "failure");
   // const callsFailed = callsResults.some(r => r.status === "failure");
 
@@ -214,6 +234,10 @@ export function getSimulateWithPriceUpdatesError<
     timestamp,
     priceUpdates: prettyPriceUpdates,
     calls: prettyCalls,
+    request: {
+      ...request,
+      blockNumber: (blockNumber ?? request?.blockNumber) as any,
+    },
   });
 }
 
@@ -241,6 +265,7 @@ export interface SimulateWithPriceUpdatesErrorParams {
   timestamp?: bigint;
   priceUpdates: string[];
   calls: string[];
+  request?: CallParameters;
 }
 
 export class SimulateWithPriceUpdatesError extends BaseError {
@@ -251,7 +276,8 @@ export class SimulateWithPriceUpdatesError extends BaseError {
     cause: Error | undefined,
     params: SimulateWithPriceUpdatesErrorParams,
   ) {
-    const { calls, priceUpdates, timestamp } = params;
+    const { calls, priceUpdates, timestamp, request } = params;
+    const blockNumber = request?.blockNumber ?? 0n;
     const base = (cause instanceof BaseError ? cause : {}) as BaseError;
 
     let causeMeta: string[] = base.metaMessages
@@ -264,14 +290,15 @@ export class SimulateWithPriceUpdatesError extends BaseError {
         cause: base,
         metaMessages: [
           ...causeMeta,
-          ...(timestamp
-            ? [" ", "Block Timestamp: " + timestamp.toString(), " "]
-            : []),
+          `Block ${blockNumber} with timestamp: ${timestamp}`,
+          " ",
           "Price Updates:",
           ...priceUpdates,
           " ",
           "Calls: ",
           ...calls,
+          " ",
+          ...(request ? ["Raw request: ", generateCastTraceCall(request)] : []),
         ].filter(Boolean) as string[],
         name: "SimulateWithPriceUpdatesError",
       },
