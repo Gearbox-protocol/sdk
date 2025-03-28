@@ -42,7 +42,6 @@ export type MulticallParameters<
   "blockNumber" | "blockTag" | "stateOverride" | "gas" | "account"
 > & {
   allowFailure?: allowFailure | boolean | undefined;
-  batchSize?: number | undefined;
   contracts: MulticallContracts<
     Narrow<contracts>,
     { mutability: AbiStateMutability } & options
@@ -72,6 +71,7 @@ export type MulticallErrorType =
 
 /**
  * This is "multicall" action from viem, modified to use "simulateContract" instead of "readContract"
+ * Unlike viem's multicall there's no batching, since for simulation we assume that calls are dependent
  * @param client
  * @param parameters
  * @returns
@@ -87,7 +87,6 @@ export async function simulateMulticall<
   const {
     account,
     allowFailure = true,
-    batchSize: batchSize_,
     blockNumber,
     blockTag,
     gas,
@@ -95,12 +94,6 @@ export async function simulateMulticall<
     stateOverride,
   } = parameters;
   const contracts = parameters.contracts as ContractFunctionParameters[];
-
-  const batchSize =
-    batchSize_ ??
-    ((typeof client.batch?.multicall === "object" &&
-      client.batch.multicall.batchSize) ||
-      1_024);
 
   let multicallAddress = multicallAddress_;
   if (!multicallAddress) {
@@ -116,43 +109,22 @@ export async function simulateMulticall<
     });
   }
 
-  type Aggregate3Calls = {
+  interface Aggregate3Call {
     allowFailure: boolean;
     callData: Hex;
     target: Address;
-  }[];
+  }
 
-  const chunkedCalls: Aggregate3Calls[] = [[]];
-  let currentChunk = 0;
-  let currentChunkSize = 0;
+  const calls: Aggregate3Call[] = [];
   for (const contract of contracts) {
     const { abi, address, args, functionName } = contract;
     try {
       const callData = encodeFunctionData({ abi, args, functionName });
-
-      currentChunkSize += (callData.length - 2) / 2;
-      // Check to see if we need to create a new chunk.
-      if (
-        // Check if batching is enabled.
-        batchSize > 0 &&
-        // Check if the current size of the batch exceeds the size limit.
-        currentChunkSize > batchSize &&
-        // Check if the current chunk is not already empty.
-        chunkedCalls[currentChunk].length > 0
-      ) {
-        currentChunk++;
-        currentChunkSize = (callData.length - 2) / 2;
-        chunkedCalls[currentChunk] = [];
-      }
-
-      chunkedCalls[currentChunk] = [
-        ...chunkedCalls[currentChunk],
-        {
-          allowFailure: true,
-          callData,
-          target: address,
-        },
-      ];
+      calls.push({
+        allowFailure: true,
+        callData,
+        target: address,
+      });
     } catch (err) {
       const error = getContractError(err as BaseError, {
         abi,
@@ -161,98 +133,89 @@ export async function simulateMulticall<
         docsPath: "/docs/contract/multicall",
         functionName,
       });
-      if (!allowFailure) throw error;
-      chunkedCalls[currentChunk] = [
-        ...chunkedCalls[currentChunk],
-        {
-          allowFailure: true,
-          callData: "0x" as Hex,
-          target: address,
-        },
-      ];
+      if (!allowFailure) {
+        throw error;
+      }
+      calls.push({
+        allowFailure: true,
+        callData: "0x" as Hex,
+        target: address,
+      });
     }
   }
 
-  const aggregate3Results = await Promise.allSettled(
-    chunkedCalls.map(calls =>
-      getAction(
-        client,
-        simulateContract,
-        "simulateContract",
-      )({
-        account,
-        abi: multicall3Abi,
-        address: multicallAddress!,
-        args: [calls],
-        blockNumber,
-        blockTag: blockTag as any, // does not infer well that either blockNumber or blockTag must be present
-        functionName: "aggregate3",
-        stateOverride,
-        gas,
-      }),
-    ),
-  );
-
   const results = [];
-  for (let i = 0; i < aggregate3Results.length; i++) {
-    const result = aggregate3Results[i];
-
-    // If an error occurred in a `simulateContract` invocation (ie. network error),
-    // then append the failure reason to each contract result.
-    if (result.status === "rejected") {
-      if (!allowFailure) {
-        throw result.reason;
-      }
-      for (const _i of chunkedCalls[i]) {
-        results.push({
-          status: "failure",
-          error: result.reason,
-          result: undefined,
-        });
-      }
-      continue;
+  let result: ContractFunctionReturnType<
+    typeof multicall3Abi,
+    AbiStateMutability,
+    "aggregate3"
+  >;
+  try {
+    const resp = await getAction(
+      client,
+      simulateContract,
+      "simulateContract",
+    )({
+      account,
+      abi: multicall3Abi,
+      address: multicallAddress!,
+      args: [calls],
+      blockNumber,
+      blockTag: blockTag as any, // does not infer well that either blockNumber or blockTag must be present
+      functionName: "aggregate3",
+      stateOverride,
+      gas,
+    });
+    result = resp.result;
+  } catch (e) {
+    if (!allowFailure) {
+      throw e;
     }
+    for (const _ of contracts) {
+      results.push({
+        status: "failure",
+        error: e,
+        result: undefined,
+      });
+    }
+    return results as MulticallReturnType<contracts, allowFailure>;
+  }
 
-    // If the `simulateContract` call was successful, then decode the results.
-    const aggregate3Result = result.value.result as ContractFunctionReturnType<
-      typeof multicall3Abi,
-      AbiStateMutability,
-      "aggregate3"
-    >;
-    for (let j = 0; j < aggregate3Result.length; j++) {
-      // Extract the response from `readContract`
-      const { returnData, success } = aggregate3Result[j];
+  for (let j = 0; j < result.length; j++) {
+    // Extract the response from `readContract`
+    const { returnData, success } = result[j];
 
-      // Extract the request call data from the original call.
-      const { callData } = chunkedCalls[i][j];
+    // Extract the request call data from the original call.
+    const { callData } = calls[j];
 
-      // Extract the contract config for this call from the `contracts` argument
-      // for decoding.
-      const { abi, address, functionName, args } = contracts[
-        results.length
-      ] as ContractFunctionParameters;
+    // Extract the contract config for this call from the `contracts` argument
+    // for decoding.
+    const { abi, address, functionName, args } = contracts[
+      results.length
+    ] as ContractFunctionParameters;
 
-      try {
-        if (callData === "0x") throw new AbiDecodingZeroDataError();
-        if (!success) throw new RawContractError({ data: returnData });
-        const result = decodeFunctionResult({
-          abi,
-          args,
-          data: returnData,
-          functionName,
-        });
-        results.push(allowFailure ? { result, status: "success" } : result);
-      } catch (err) {
-        const error = getContractError(err as BaseError, {
-          abi,
-          address,
-          args,
-          docsPath: "/docs/contract/multicall",
-          functionName,
-        });
-        if (!allowFailure) throw error;
-        results.push({ error, result: undefined, status: "failure" });
+    try {
+      if (callData === "0x") throw new AbiDecodingZeroDataError();
+      if (!success) throw new RawContractError({ data: returnData });
+      const result = decodeFunctionResult({
+        abi,
+        args,
+        data: returnData,
+        functionName,
+      });
+      results.push(allowFailure ? { result, status: "success" } : result);
+    } catch (err) {
+      const error = getContractError(err as BaseError, {
+        abi,
+        address,
+        args,
+        docsPath: "/docs/contract/multicall",
+        functionName,
+      });
+      if (!allowFailure) {
+        throw error;
       }
+      results.push({ error, result: undefined, status: "failure" });
     }
   }
 

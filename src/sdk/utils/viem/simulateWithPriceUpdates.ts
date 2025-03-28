@@ -98,7 +98,6 @@ export async function simulateWithPriceUpdates<
       contracts,
       ...rest,
       allowFailure: true,
-      batchSize: 0, // we cannot have price updates and compressor request in different batches
     });
 
     let hasError = false;
