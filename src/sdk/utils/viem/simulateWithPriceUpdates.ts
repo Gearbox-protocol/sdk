@@ -271,6 +271,7 @@ export interface SimulateWithPriceUpdatesErrorParams {
 export class SimulateWithPriceUpdatesError extends BaseError {
   override cause?: Error;
   public readonly timestamp?: bigint;
+  readonly #request?: CallParameters;
 
   constructor(
     cause: Error | undefined,
@@ -297,13 +298,16 @@ export class SimulateWithPriceUpdatesError extends BaseError {
           " ",
           "Calls: ",
           ...calls,
-          " ",
-          ...(request ? ["Raw request: ", generateCastTraceCall(request)] : []),
         ].filter(Boolean) as string[],
         name: "SimulateWithPriceUpdatesError",
       },
     );
     this.cause = cause;
     this.timestamp = timestamp;
+    this.#request = request;
+  }
+
+  public getCastTraceCall(): string {
+    return this.#request ? generateCastTraceCall(this.#request) : "";
   }
 }
