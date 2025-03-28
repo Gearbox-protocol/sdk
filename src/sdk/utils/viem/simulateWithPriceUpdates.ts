@@ -101,19 +101,31 @@ export async function simulateWithPriceUpdates<
       batchSize: 0, // we cannot have price updates and compressor request in different batches
     });
 
+    let hasError = false;
+    let mustThrow = false;
     for (let i = 0; i < resp.length; i++) {
       if (resp[i].status === "failure") {
+        hasError = true;
         // it's ok to receive failure in first call (block number)
         // throw if call failed, or strictPrice failed.
         if (i > priceUpdates.length || (i > 0 && strictPrices)) {
-          throw getSimulateWithPriceUpdatesError(
-            undefined,
-            priceUpdates,
-            restContracts,
-            resp as any,
-          );
+          mustThrow = true;
         }
       }
+    }
+    // if price updates errors are allowed, we print warning to console
+    // this is what frontend prefers
+    if (hasError) {
+      const err = getSimulateWithPriceUpdatesError(
+        undefined,
+        priceUpdates,
+        restContracts,
+        resp as any,
+      );
+      if (mustThrow) {
+        throw err;
+      }
+      console.warn(err);
     }
 
     const restResults = resp.slice(priceUpdates.length + 1).map(r => r.result);
@@ -185,7 +197,7 @@ export function getSimulateWithPriceUpdatesError<
 
   const prettyPriceUpdates = priceUpdates.map((p, i) => {
     const result = priceUpdatesResults[i];
-    let tsValid = timestamp ? p.validateTimestamp(timestamp) : "";
+    let tsValid = timestamp ? p.validateTimestamp(timestamp) : "missing";
     tsValid = tsValid === "valid" ? "" : `[timestamp ${tsValid}]`;
     return [extractCallError(result), p.pretty, tsValid]
       .filter(Boolean)
