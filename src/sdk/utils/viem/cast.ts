@@ -5,7 +5,7 @@ export function generateCastTraceCall(params: CallParameters): string {
     params;
   const cmd = ["cast", "call", "--trace", "--rpc-url", "$RPC_URL"];
   if (blockNumber) {
-    cmd.push("--block-number", blockNumber.toString());
+    cmd.push("--block", blockNumber.toString());
   }
   if (gas) {
     cmd.push("--gas-limit", gas.toString());
