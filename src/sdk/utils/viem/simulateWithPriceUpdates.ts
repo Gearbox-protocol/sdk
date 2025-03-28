@@ -39,6 +39,11 @@ export type SimulateWithPriceUpdatesParameters<
     Narrow<contracts>,
     { mutability: AbiStateMutability }
   >;
+  /**
+   * If true, price updates are not allowed to fail
+   * Defaults to false
+   */
+  strictPrices?: boolean;
 };
 
 export type SimulateWithPriceUpdatesReturnType<
@@ -55,7 +60,12 @@ export async function simulateWithPriceUpdates<
   client: Client<Transport, chain>,
   parameters: SimulateWithPriceUpdatesParameters<contracts>,
 ): Promise<SimulateWithPriceUpdatesReturnType<contracts>> {
-  const { contracts: restContracts, priceUpdates, ...rest } = parameters;
+  const {
+    contracts: restContracts,
+    priceUpdates,
+    strictPrices = false,
+    ...rest
+  } = parameters;
 
   if (restContracts.length === 0) {
     throw getSimulateWithPriceUpdatesError(
@@ -90,14 +100,22 @@ export async function simulateWithPriceUpdates<
       allowFailure: true,
       batchSize: 0, // we cannot have price updates and compressor request in different batches
     });
-    if (resp.some(r => r.status === "failure")) {
-      throw getSimulateWithPriceUpdatesError(
-        undefined,
-        priceUpdates,
-        restContracts,
-        resp as any,
-      );
+
+    for (let i = 0; i < resp.length; i++) {
+      if (resp[i].status === "failure") {
+        // it's ok to receive failure in first call (block number)
+        // throw if call failed, or strictPrice failed.
+        if (i > priceUpdates.length || (i > 0 && strictPrices)) {
+          throw getSimulateWithPriceUpdatesError(
+            undefined,
+            priceUpdates,
+            restContracts,
+            resp as any,
+          );
+        }
+      }
     }
+
     const restResults = resp.slice(priceUpdates.length + 1).map(r => r.result);
     return restResults as unknown as SimulateWithPriceUpdatesReturnType<contracts>;
   } catch (e) {
