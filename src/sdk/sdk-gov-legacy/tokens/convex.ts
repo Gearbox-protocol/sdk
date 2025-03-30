@@ -24,7 +24,8 @@ export type ConvexLPToken =
   | "cvxcrvUSDFRAX"
   | "cvxcrvUSDETHCRV"
   | "cvxGHOcrvUSD"
-  | "cvxllamathena";
+  | "cvxllamathena"
+  | "cvxRLUSDUSDC";
 
 export type ConvexStakedPhantomToken =
   | "stkcvx3Crv"
@@ -43,7 +44,8 @@ export type ConvexStakedPhantomToken =
   | "stkcvxcrvUSDFRAX"
   | "stkcvxcrvUSDETHCRV"
   | "stkcvxGHOcrvUSD"
-  | "stkcvxllamathena";
+  | "stkcvxllamathena"
+  | "stkcvxRLUSDUSDC";
 
 export type ConvexL2StakedToken = "cvxcrvUSDT";
 
@@ -284,6 +286,18 @@ export const convexLpTokens: Record<ConvexLPToken, ConvexLPTokenData> = {
     underlying: "llamathena",
     stakedToken: "stkcvxllamathena",
   },
+
+  cvxRLUSDUSDC: {
+    name: "Convex cvxRLUSDUSDC",
+    symbol: "cvxRLUSDUSDC",
+    type: {
+      AllNetworks: TokenType.CONVEX_LP_TOKEN,
+    },
+    pool: "CONVEX_RLUSD_USDC_POOL",
+    pid: 443,
+    underlying: "RLUSDUSDC",
+    stakedToken: "stkcvxRLUSDUSDC",
+  },
 };
 
 export const convexStakedPhantomTokens: Record<
@@ -501,6 +515,18 @@ export const convexStakedPhantomTokens: Record<
     pid: 401,
     underlying: "llamathena",
     lpToken: "cvxllamathena",
+  },
+
+  stkcvxRLUSDUSDC: {
+    name: "Convex stkcvxRLUSDUSDC",
+    symbol: "stkcvxRLUSDUSDC",
+    type: {
+      AllNetworks: TokenType.CONVEX_STAKED_TOKEN,
+    },
+    pool: "CONVEX_RLUSD_USDC_POOL",
+    pid: 443,
+    underlying: "RLUSDUSDC",
+    lpToken: "cvxRLUSDUSDC",
   },
 };
 

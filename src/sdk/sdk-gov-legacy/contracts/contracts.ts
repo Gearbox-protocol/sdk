@@ -2,13 +2,20 @@ import type { Address } from "viem";
 
 import type { NetworkType } from "../../chain/index.js";
 import { NOT_DEPLOYED } from "../../constants/index.js";
-import {
-  type CurveLPToken,
-  type ERC4626LPToken,
-  type NormalToken,
-  tokenDataByNetwork,
+import type {
+  AaveV2LPToken,
+  AuraStakedToken,
+  ConvexStakedPhantomToken,
+  CurveLPToken,
+  ERC4626LPToken,
+  NormalToken,
+  StakingRewardsPhantomToken,
+  SupportedToken,
+  YearnLPToken,
 } from "../tokens/index.js";
+import { tokenDataByNetwork } from "../tokens/index.js";
 import { AdapterInterface } from "./adapters.js";
+import { Protocols } from "./protocols.js";
 
 type UniswapV2Contract =
   | "UNISWAP_V2_ROUTER"
@@ -65,7 +72,8 @@ export type CurvePoolContract =
   | "CURVE_tETH_wstETH_POOL"
   | "CURVE_tETH_weETH_POOL"
   | "CURVE_pzETH_stETH_POOL"
-  | "CURVE_USDL_USDC_POOL";
+  | "CURVE_USDL_USDC_POOL"
+  | "CURVE_RLUSD_USDC_POOL";
 
 export type YearnVaultContract =
   | "YEARN_DAI_VAULT"
@@ -106,7 +114,8 @@ export type ConvexPoolContract =
   | "CONVEX_TRI_CRV_POOL"
   | "CONVEX_GHO_CRVUSD_POOL"
   | "CONVEX_CRVUSD_USDT_POOL_ARB"
-  | "CONVEX_LLAMA_THENA_POOL";
+  | "CONVEX_LLAMA_THENA_POOL"
+  | "CONVEX_RLUSD_USDC_POOL";
 
 export type AuraPoolContract =
   | "AURA_B_RETH_STABLE_POOL"
@@ -119,13 +128,13 @@ export type AuraPoolContract =
   | "AURA_CBETH_RETH_WSTETH_POOL_ARB"
   | "AURA_RETH_WETH_POOL_ARB";
 
-type AaveV2TokenWrapperContract =
+export type AaveV2TokenWrapperContract =
   | "AAVE_V2_DAI_TOKEN_WRAPPER"
   | "AAVE_V2_USDC_TOKEN_WRAPPER"
   | "AAVE_V2_USDT_TOKEN_WRAPPER"
   | "AAVE_V2_WETH_TOKEN_WRAPPER";
 
-type CompoundV2PoolContract =
+export type CompoundV2PoolContract =
   | "COMPOUND_V2_DAI_POOL"
   | "COMPOUND_V2_USDC_POOL"
   | "COMPOUND_V2_USDT_POOL"
@@ -133,7 +142,7 @@ type CompoundV2PoolContract =
   | "COMPOUND_V2_LINK_POOL"
   | "FLUX_USDC_POOL";
 
-type MellowVaultContract =
+export type MellowVaultContract =
   | "MELLOW_STEAKHOUSE_VAULT"
   | "MELLOW_RE7_LABS_VAULT"
   | "MELLOW_AMPHOR_VAULT"
@@ -230,6 +239,7 @@ export const contractsByNetwork: Record<
     CURVE_tETH_weETH_POOL: tokenDataByNetwork.Mainnet.tETHweETH,
     CURVE_pzETH_stETH_POOL: tokenDataByNetwork.Mainnet.pzETHstETH,
     CURVE_USDL_USDC_POOL: tokenDataByNetwork.Mainnet.USDLUSDC,
+    CURVE_RLUSD_USDC_POOL: tokenDataByNetwork.Mainnet.RLUSDUSDC,
 
     CURVE_GEAR_POOL: "0x0E9B5B092caD6F1c5E6bc7f89Ffe1abb5c95F1C2",
 
@@ -290,6 +300,7 @@ export const contractsByNetwork: Record<
     CONVEX_TRI_CRV_POOL: "0xF956a46DbA1A0a567168db8655bc18E9050C7738",
     CONVEX_GHO_CRVUSD_POOL: "0x5eC758f79b96AE74e7F1Ba9583009aFB3fc8eACB",
     CONVEX_LLAMA_THENA_POOL: "0x11fD8801a051b296E337a3e1168839fb346D5940",
+    CONVEX_RLUSD_USDC_POOL: "0x5A71E7e04F8725fD42a216949E7099ebd08A42E3",
 
     CONVEX_BOOSTER_ARB: NOT_DEPLOYED,
     CONVEX_CRVUSD_USDT_POOL_ARB: tokenDataByNetwork.Mainnet.cvxcrvUSDT,
@@ -412,6 +423,7 @@ export const contractsByNetwork: Record<
     CURVE_tETH_weETH_POOL: NOT_DEPLOYED,
     CURVE_pzETH_stETH_POOL: NOT_DEPLOYED,
     CURVE_USDL_USDC_POOL: NOT_DEPLOYED,
+    CURVE_RLUSD_USDC_POOL: NOT_DEPLOYED,
 
     CURVE_GEAR_POOL: NOT_DEPLOYED,
 
@@ -472,6 +484,7 @@ export const contractsByNetwork: Record<
     CONVEX_TRI_CRV_POOL: NOT_DEPLOYED,
     CONVEX_GHO_CRVUSD_POOL: NOT_DEPLOYED,
     CONVEX_LLAMA_THENA_POOL: NOT_DEPLOYED,
+    CONVEX_RLUSD_USDC_POOL: NOT_DEPLOYED,
 
     CONVEX_BOOSTER_ARB: "0xF403C135812408BFbE8713b5A23a04b3D48AAE31",
     CONVEX_CRVUSD_USDT_POOL_ARB: tokenDataByNetwork.Arbitrum.cvxcrvUSDT,
@@ -593,6 +606,7 @@ export const contractsByNetwork: Record<
     CURVE_tETH_weETH_POOL: NOT_DEPLOYED,
     CURVE_pzETH_stETH_POOL: NOT_DEPLOYED,
     CURVE_USDL_USDC_POOL: NOT_DEPLOYED,
+    CURVE_RLUSD_USDC_POOL: NOT_DEPLOYED,
 
     CURVE_GEAR_POOL: NOT_DEPLOYED,
 
@@ -652,6 +666,7 @@ export const contractsByNetwork: Record<
     CONVEX_TRI_CRV_POOL: NOT_DEPLOYED,
     CONVEX_GHO_CRVUSD_POOL: NOT_DEPLOYED,
     CONVEX_LLAMA_THENA_POOL: NOT_DEPLOYED,
+    CONVEX_RLUSD_USDC_POOL: NOT_DEPLOYED,
 
     CONVEX_BOOSTER_ARB: NOT_DEPLOYED,
     CONVEX_CRVUSD_USDT_POOL_ARB: tokenDataByNetwork.Optimism.cvxcrvUSDT,
@@ -773,6 +788,7 @@ export const contractsByNetwork: Record<
     CURVE_tETH_weETH_POOL: NOT_DEPLOYED,
     CURVE_pzETH_stETH_POOL: NOT_DEPLOYED,
     CURVE_USDL_USDC_POOL: NOT_DEPLOYED,
+    CURVE_RLUSD_USDC_POOL: NOT_DEPLOYED,
 
     CURVE_GEAR_POOL: NOT_DEPLOYED,
 
@@ -832,6 +848,7 @@ export const contractsByNetwork: Record<
     CONVEX_TRI_CRV_POOL: NOT_DEPLOYED,
     CONVEX_GHO_CRVUSD_POOL: NOT_DEPLOYED,
     CONVEX_LLAMA_THENA_POOL: NOT_DEPLOYED,
+    CONVEX_RLUSD_USDC_POOL: NOT_DEPLOYED,
 
     CONVEX_BOOSTER_ARB: NOT_DEPLOYED,
     CONVEX_CRVUSD_USDT_POOL_ARB: tokenDataByNetwork.Base.cvxcrvUSDT,
@@ -953,6 +970,7 @@ export const contractsByNetwork: Record<
     CURVE_tETH_weETH_POOL: NOT_DEPLOYED,
     CURVE_pzETH_stETH_POOL: NOT_DEPLOYED,
     CURVE_USDL_USDC_POOL: NOT_DEPLOYED,
+    CURVE_RLUSD_USDC_POOL: NOT_DEPLOYED,
 
     CURVE_GEAR_POOL: NOT_DEPLOYED,
 
@@ -1012,6 +1030,7 @@ export const contractsByNetwork: Record<
     CONVEX_TRI_CRV_POOL: NOT_DEPLOYED,
     CONVEX_GHO_CRVUSD_POOL: NOT_DEPLOYED,
     CONVEX_LLAMA_THENA_POOL: NOT_DEPLOYED,
+    CONVEX_RLUSD_USDC_POOL: NOT_DEPLOYED,
 
     CONVEX_BOOSTER_ARB: NOT_DEPLOYED,
     CONVEX_CRVUSD_USDT_POOL_ARB: NOT_DEPLOYED,
@@ -1074,11 +1093,81 @@ export const contractsByNetwork: Record<
   Berachain: {} as any,
 };
 
+export const UNISWAP_V3_QUOTER: Address =
+  "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6";
+export const CAMELOT_V3_QUOTER: Address =
+  "0x0Fc73040b26E9bC8514fA028D998E73A254Fa76E";
+export const PANCAKESWAP_V3_QUOTER: Address =
+  "0xB048Bbc1Ee6b733FFfCFb9e9CeF7375518e25997";
+export const VELODROME_CL_QUOTER: Address =
+  "0x89D8218ed5fF1e46d8dcd33fb0bbeE3be1621466";
+
+export const SHADOW_QUOTER: Address =
+  "0x219b7ADebc0935a3eC889a148c6924D51A07535A";
+
+export const VELODROME_V2_DEFAULT_FACTORY: Address =
+  "0xF1046053aa5682b4F9a81b5481394DA16BE5FF5a";
+
+export const VELODROME_V2_CL_FACTORY: Address =
+  "0xCc0bDDB707055e04e497aB22a59c2aF4391cd12F";
+
+export const EQUALIZER_DEFAULT_FACTORY: Address =
+  "0xDDD9845Ba0D8f38d3045f804f67A1a8B9A528FcC";
+
+export const MELLOW_COLLECTOR: Address =
+  "0xce8f66b5347dcfedb3e63cb2c95e4aab9a85429e";
+
+export const PENDLE_ROUTER_STATIC_MAINNET =
+  "0x263833d47eA3fA4a30f269323aba6a107f9eB14C";
+export const PENDLE_ROUTER_STATIC_ARBITRUM =
+  "0xAdB09F65bd90d19e3148D9ccb693F3161C6DB3E8";
+export const PENDLE_ROUTER_STATIC_OPTIMISM =
+  "0x704478Dd72FD7F9B83d1F1e0fc18C14B54F034d0";
+
+export const BALANCER_V3_QUERIES = "0xDfC266d1581be6E5F20Fc7138A8d5B38A5E33f98";
+
 interface BaseContractParams {
   name: string;
 }
 
-type CurveParams = {
+export type UniswapV2Params = {
+  protocol: Protocols.Uniswap | Protocols.Sushiswap | Protocols.Fraxswap;
+  type: AdapterInterface.UNISWAP_V2_ROUTER;
+} & BaseContractParams;
+
+export type VelodromeV2Params = {
+  protocol: Protocols.Velodrome;
+  type: AdapterInterface.VELODROME_V2_ROUTER;
+} & BaseContractParams;
+
+export type EqualizerParams = {
+  protocol: Protocols.Equalizer;
+  type: AdapterInterface.EQUALIZER_ROUTER;
+} & BaseContractParams;
+
+export type PendleRouterParams = {
+  protocol: Protocols.Pendle;
+  type: AdapterInterface.PENDLE_ROUTER;
+} & BaseContractParams;
+
+export type UniswapV3Params = {
+  protocol:
+    | Protocols.Uniswap
+    | Protocols.Pancakeswap
+    | Protocols.Velodrome
+    | Protocols.Shadow;
+  type: AdapterInterface.UNISWAP_V3_ROUTER;
+  quoter: Address;
+} & BaseContractParams;
+
+export type CamelotV3Params = {
+  protocol: Protocols.Camelot;
+  type: AdapterInterface.CAMELOT_V3_ROUTER;
+  quoter: Address;
+} & BaseContractParams;
+
+export type CurveParams = {
+  protocol: Protocols.Curve;
   type:
     | AdapterInterface.CURVE_V1_2ASSETS
     | AdapterInterface.CURVE_V1_3ASSETS
@@ -1093,6 +1182,7 @@ type CurveParams = {
 } & BaseContractParams;
 
 export type CurveSteCRVPoolParams = {
+  protocol: Protocols.Curve;
   type: AdapterInterface.CURVE_V1_STECRV_POOL;
   version: number;
 
@@ -1101,13 +1191,258 @@ export type CurveSteCRVPoolParams = {
   lpToken: "steCRV" | "wstETHCRV";
 } & BaseContractParams;
 
-export const contractParams: Record<
-  CurvePoolContract,
-  CurveParams | CurveSteCRVPoolParams
-> = {
+export type CurveGEARPoolParams = {
+  protocol: Protocols.Curve;
+  type: AdapterInterface.CURVE_V1_2ASSETS;
+  version: number;
+
+  pool: Record<NetworkType, Address>;
+  tokens: ["GEAR", "WETH"];
+  lpToken: "GEAR";
+} & BaseContractParams;
+
+export type YearnParams = {
+  protocol: Protocols.Yearn;
+  type: AdapterInterface.YEARN_V2;
+  shareToken: YearnLPToken;
+} & BaseContractParams;
+
+export type ERC4626Params = {
+  protocol:
+    | Protocols.MakerDSR
+    | Protocols.Sommelier
+    | Protocols.Ethena
+    | Protocols.Sky
+    | Protocols.Curve
+    | Protocols.AaveV3
+    | Protocols.Lift;
+  type: AdapterInterface.ERC4626_VAULT;
+  underlying: NormalToken;
+} & BaseContractParams;
+
+export type ConvexParams = {
+  protocol: Protocols.Convex;
+  type: AdapterInterface.CONVEX_V1_BOOSTER;
+} & BaseContractParams;
+
+export type ConvexL2Params = {
+  protocol: Protocols.Convex;
+  type: AdapterInterface.CONVEX_L2_BOOSTER;
+} & BaseContractParams;
+
+export interface ConvexExtraPoolParams {
+  rewardToken: NormalToken;
+  poolAddress: Record<NetworkType, Address>;
+}
+
+export type ConvexPoolParams = {
+  protocol: Protocols.Convex;
+  type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL;
+  stakedToken: ConvexStakedPhantomToken;
+  extraRewards: Array<ConvexExtraPoolParams>;
+} & BaseContractParams;
+
+export type ConvexL2PoolParams = {
+  protocol: Protocols.Convex;
+  type: AdapterInterface.CONVEX_L2_REWARD_POOL;
+  rewards: Array<SupportedToken>;
+  extraRewards: Array<ConvexExtraPoolParams>;
+} & BaseContractParams;
+
+// AURA
+
+export type AuraPoolParams = {
+  protocol: Protocols.Aura;
+  type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL;
+  stakedToken: AuraStakedToken;
+  extraRewards: Array<AuraExtraPoolParams>;
+} & BaseContractParams;
+
+export type AuraParams = {
+  protocol: Protocols.Aura;
+  type: AdapterInterface.CONVEX_V1_BOOSTER;
+} & BaseContractParams;
+
+export interface AuraExtraPoolParams {
+  rewardToken: NormalToken;
+  poolAddress: Record<NetworkType, Address>;
+}
+
+export type LidoParams = {
+  protocol: Protocols.Lido;
+  type: AdapterInterface.LIDO_V1;
+  oracle: Record<NetworkType, Address>;
+  lpToken: "steCRV";
+} & BaseContractParams;
+
+export type LidoWsthETHParams = {
+  protocol: Protocols.Lido;
+  type: AdapterInterface.LIDO_WSTETH_V1;
+} & BaseContractParams;
+
+export type UniversalParams = {
+  protocol: Protocols.Gearbox;
+  type: AdapterInterface.UNIVERSAL;
+} & BaseContractParams;
+
+export type BalancerParams = {
+  protocol: Protocols.Balancer | Protocols.Beets;
+  type: AdapterInterface.BALANCER_VAULT;
+  queries: Record<NetworkType, Address>;
+} & BaseContractParams;
+
+export type BalancerV3Params = {
+  protocol: Protocols.Balancer;
+  type: AdapterInterface.BALANCER_V3_ROUTER;
+  queries: Record<NetworkType, Address>;
+} & BaseContractParams;
+
+export type AaveV2Params = {
+  protocol: Protocols.AaveV2;
+  type: AdapterInterface.AAVE_V2_LENDING_POOL;
+} & BaseContractParams;
+
+export type AaveV3Params = {
+  protocol: Protocols.AaveV3;
+  type: AdapterInterface.AAVE_V3_LENDING_POOL;
+} & BaseContractParams;
+
+export type WrapperAaveV2Params = {
+  protocol: Protocols.AaveV2;
+  type: AdapterInterface.AAVE_V2_WRAPPED_ATOKEN;
+  underlying: AaveV2LPToken;
+} & BaseContractParams;
+
+export type CompoundV2Params = {
+  protocol: Protocols.CompoundV2 | Protocols.Flux;
+  type:
+    | AdapterInterface.COMPOUND_V2_CERC20
+    | AdapterInterface.COMPOUND_V2_CETHER;
+  underlying: NormalToken;
+} & BaseContractParams;
+
+export type ZircuitParams = {
+  protocol: Protocols.Zircuit;
+  type: AdapterInterface.ZIRCUIT_POOL;
+} & BaseContractParams;
+
+export type MellowVaultParams = {
+  protocol: Protocols.Mellow;
+  type:
+    | AdapterInterface.MELLOW_LRT_VAULT
+    | AdapterInterface.MELLOW_ERC4626_VAULT;
+} & BaseContractParams;
+
+export type StakingRewardsParams = {
+  protocol: Protocols.Sky;
+  type: AdapterInterface.STAKING_REWARDS;
+  stakedToken: StakingRewardsPhantomToken;
+} & BaseContractParams;
+
+export type DaiUsdsParams = {
+  protocol: Protocols.Sky;
+  type: AdapterInterface.DAI_USDS_EXCHANGE;
+} & BaseContractParams;
+
+export type ContractParams =
+  | UniswapV2Params
+  | UniswapV3Params
+  | CamelotV3Params
+  | VelodromeV2Params
+  | EqualizerParams
+  | CurveParams
+  | CurveSteCRVPoolParams
+  | CurveGEARPoolParams
+  | YearnParams
+  | ConvexParams
+  | ConvexPoolParams
+  | ConvexL2Params
+  | ConvexL2PoolParams
+  | LidoParams
+  | LidoWsthETHParams
+  | UniversalParams
+  | BalancerParams
+  | BalancerV3Params
+  | AaveV2Params
+  | AaveV3Params
+  | WrapperAaveV2Params
+  | CompoundV2Params
+  | AuraParams
+  | AuraPoolParams
+  | ERC4626Params
+  | ZircuitParams
+  | MellowVaultParams
+  | PendleRouterParams
+  | StakingRewardsParams
+  | DaiUsdsParams;
+
+export const contractParams: Record<SupportedContract, ContractParams> = {
+  UNISWAP_V2_ROUTER: {
+    name: "Uniswap V2",
+    protocol: Protocols.Uniswap,
+    type: AdapterInterface.UNISWAP_V2_ROUTER,
+  },
+  UNISWAP_V3_ROUTER: {
+    name: "Uniswap V3",
+    protocol: Protocols.Uniswap,
+    quoter: UNISWAP_V3_QUOTER,
+    type: AdapterInterface.UNISWAP_V3_ROUTER,
+  },
+  PANCAKESWAP_V3_ROUTER: {
+    name: "Pancakeswap V3",
+    protocol: Protocols.Pancakeswap,
+    quoter: PANCAKESWAP_V3_QUOTER,
+    type: AdapterInterface.UNISWAP_V3_ROUTER,
+  },
+
+  SUSHISWAP_ROUTER: {
+    name: "Sushiswap",
+    protocol: Protocols.Sushiswap,
+    type: AdapterInterface.UNISWAP_V2_ROUTER,
+  },
+
+  FRAXSWAP_ROUTER: {
+    name: "Fraxswap",
+    protocol: Protocols.Fraxswap,
+    type: AdapterInterface.UNISWAP_V2_ROUTER,
+  },
+
+  VELODROME_V2_ROUTER: {
+    name: "Velodrome V2",
+    protocol: Protocols.Velodrome,
+    type: AdapterInterface.VELODROME_V2_ROUTER,
+  },
+  EQUALIZER_ROUTER: {
+    name: "Equalizer",
+    protocol: Protocols.Equalizer,
+    type: AdapterInterface.EQUALIZER_ROUTER,
+  },
+  VELODROME_CL_ROUTER: {
+    name: "Velodrome CL Router",
+    protocol: Protocols.Velodrome,
+    quoter: VELODROME_CL_QUOTER,
+    type: AdapterInterface.UNISWAP_V3_ROUTER,
+  },
+  SHADOW_ROUTER: {
+    name: "Shadow Router",
+    protocol: Protocols.Shadow,
+    quoter: SHADOW_QUOTER,
+    type: AdapterInterface.UNISWAP_V3_ROUTER,
+  },
+  CAMELOT_V3_ROUTER: {
+    name: "Camelot V3",
+    protocol: Protocols.Camelot,
+    type: AdapterInterface.CAMELOT_V3_ROUTER,
+    quoter: CAMELOT_V3_QUOTER,
+  },
+  PENDLE_ROUTER: {
+    name: "Pendle Router",
+    protocol: Protocols.Pendle,
+    type: AdapterInterface.PENDLE_ROUTER,
+  },
   CURVE_3CRV_POOL: {
     name: "Curve 3Pool",
-
+    protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_3ASSETS,
     version: 10,
     lpToken: "3Crv",
@@ -1115,7 +1450,7 @@ export const contractParams: Record<
   },
   CURVE_FRAX_USDC_POOL: {
     name: "Curve crvFRAX",
-
+    protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     version: 10,
     lpToken: "crvFRAX",
@@ -1123,7 +1458,7 @@ export const contractParams: Record<
   },
   CURVE_STETH_GATEWAY: {
     name: "Curve stETH",
-
+    protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_STECRV_POOL,
     version: 10,
     pool: {
@@ -1142,7 +1477,7 @@ export const contractParams: Record<
   },
   CURVE_ETH_WSTETH_GATEWAY_OP: {
     name: "Curve wstETH Gateway (Optimism)",
-
+    protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_STECRV_POOL,
     version: 10,
     pool: {
@@ -1159,9 +1494,28 @@ export const contractParams: Record<
     tokens: ["WETH", "wstETH"],
     lpToken: "wstETHCRV",
   },
+  CURVE_GEAR_POOL: {
+    name: "Curve GEAR",
+    protocol: Protocols.Curve,
+    type: AdapterInterface.CURVE_V1_2ASSETS,
+    version: 10,
+    pool: {
+      Mainnet: "0x0E9B5B092caD6F1c5E6bc7f89Ffe1abb5c95F1C2",
+      Arbitrum: NOT_DEPLOYED,
+      Optimism: NOT_DEPLOYED,
+      Base: NOT_DEPLOYED,
+      Sonic: NOT_DEPLOYED,
+      MegaETH: NOT_DEPLOYED,
+      Monad: NOT_DEPLOYED,
+      Berachain: NOT_DEPLOYED,
+      Avalanche: NOT_DEPLOYED,
+    },
+    tokens: ["GEAR", "WETH"],
+    lpToken: "GEAR",
+  },
   CURVE_FRAX_POOL: {
     name: "Curve FRAX",
-
+    protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     version: 10,
     lpToken: "FRAX3CRV",
@@ -1170,7 +1524,7 @@ export const contractParams: Record<
   },
   CURVE_LUSD_POOL: {
     name: "Curve LUSD",
-
+    protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     version: 10,
     lpToken: "LUSD3CRV",
@@ -1179,7 +1533,7 @@ export const contractParams: Record<
   },
   CURVE_SUSD_POOL: {
     name: "Curve SUSD",
-
+    protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_4ASSETS,
     version: 10,
     lpToken: "crvPlain3andSUSD",
@@ -1188,7 +1542,7 @@ export const contractParams: Record<
   },
   CURVE_SUSD_DEPOSIT: {
     name: "Curve SUSD",
-
+    protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_WRAPPER,
     version: 10,
     lpToken: "crvPlain3andSUSD",
@@ -1196,7 +1550,7 @@ export const contractParams: Record<
   },
   CURVE_GUSD_POOL: {
     name: "Curve GUSD",
-
+    protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     version: 10,
     lpToken: "gusd3CRV",
@@ -1206,7 +1560,7 @@ export const contractParams: Record<
 
   CURVE_CRVETH_POOL: {
     name: "Curve CRVETH",
-
+    protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     version: 20,
     lpToken: "crvCRVETH",
@@ -1214,7 +1568,7 @@ export const contractParams: Record<
   },
   CURVE_CVXETH_POOL: {
     name: "Curve CVXETH",
-
+    protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     version: 20,
     lpToken: "crvCVXETH",
@@ -1222,7 +1576,7 @@ export const contractParams: Record<
   },
   CURVE_3CRYPTO_POOL: {
     name: "Curve 3Crypto",
-
+    protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_3ASSETS,
     version: 20,
     lpToken: "crvUSDTWBTCWETH",
@@ -1230,7 +1584,7 @@ export const contractParams: Record<
   },
   CURVE_LDOETH_POOL: {
     name: "Curve LDOETH",
-
+    protocol: Protocols.Curve,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     version: 20,
     lpToken: "LDOETH",
@@ -1239,7 +1593,7 @@ export const contractParams: Record<
 
   CURVE_CRVUSD_USDC_POOL: {
     name: "Curve crvUSDUSDC",
-
+    protocol: Protocols.Curve,
     version: 10,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "crvUSDUSDC",
@@ -1248,7 +1602,7 @@ export const contractParams: Record<
 
   CURVE_CRVUSD_USDT_POOL: {
     name: "Curve crvUSDUSDT",
-
+    protocol: Protocols.Curve,
     version: 10,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "crvUSDUSDT",
@@ -1256,7 +1610,7 @@ export const contractParams: Record<
   },
   CURVE_CRVUSD_SUSDE_POOL: {
     name: "Curve crvUsUSDe",
-
+    protocol: Protocols.Curve,
     version: 10,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "crvUsUSDe",
@@ -1264,7 +1618,7 @@ export const contractParams: Record<
   },
   CURVE_LLAMA_THENA_POOL: {
     name: "Curve llamathena",
-
+    protocol: Protocols.Curve,
     version: 10,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "llamathena",
@@ -1273,7 +1627,7 @@ export const contractParams: Record<
 
   CURVE_CRVUSD_FRAX_POOL: {
     name: "Curve crvUSDFRAX",
-
+    protocol: Protocols.Curve,
     version: 10,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "crvUSDFRAX",
@@ -1282,7 +1636,7 @@ export const contractParams: Record<
 
   CURVE_TRI_CRV_POOL: {
     name: "Curve crvUSDUSDC",
-
+    protocol: Protocols.Curve,
     version: 20,
     type: AdapterInterface.CURVE_V1_3ASSETS,
     lpToken: "crvUSDETHCRV",
@@ -1291,7 +1645,7 @@ export const contractParams: Record<
 
   CURVE_RETH_ETH_POOL: {
     name: "Curve rETH",
-
+    protocol: Protocols.Curve,
     version: 20,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "rETH_f",
@@ -1300,7 +1654,7 @@ export const contractParams: Record<
 
   CURVE_DOLA_FRAXBP_POOL: {
     name: "Curve DOLAFRAXBP3CRV",
-
+    protocol: Protocols.Curve,
     version: 20,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "DOLAFRAXBP3CRV_f",
@@ -1309,7 +1663,7 @@ export const contractParams: Record<
 
   CURVE_DOLA_CRVUSD_POOL: {
     name: "Curve crvUSDDOLA",
-
+    protocol: Protocols.Curve,
     version: 20,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "crvUSDDOLA_f",
@@ -1318,7 +1672,7 @@ export const contractParams: Record<
 
   CURVE_USDE_USDC_POOL: {
     name: "Curve USDeUSDC",
-
+    protocol: Protocols.Curve,
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "USDeUSDC",
@@ -1327,7 +1681,7 @@ export const contractParams: Record<
 
   CURVE_FRAX_USDE_POOL: {
     name: "Curve FRAXUSDe",
-
+    protocol: Protocols.Curve,
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "FRAXUSDe",
@@ -1336,7 +1690,7 @@ export const contractParams: Record<
 
   CURVE_USDE_CRVUSD_POOL: {
     name: "Curve USDecrvUSD",
-
+    protocol: Protocols.Curve,
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "USDecrvUSD",
@@ -1345,7 +1699,7 @@ export const contractParams: Record<
 
   CURVE_USDE_DAI_POOL: {
     name: "Curve USDeDAI",
-
+    protocol: Protocols.Curve,
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "USDeDAI",
@@ -1354,7 +1708,7 @@ export const contractParams: Record<
 
   CURVE_SDAI_SUSDE_POOL: {
     name: "Curve MtEthena",
-
+    protocol: Protocols.Curve,
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "MtEthena",
@@ -1363,7 +1717,7 @@ export const contractParams: Record<
 
   CURVE_GHO_USDE_POOL: {
     name: "Curve GHOUSDe",
-
+    protocol: Protocols.Curve,
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "GHOUSDe",
@@ -1372,7 +1726,7 @@ export const contractParams: Record<
 
   CURVE_FRAX_SDAI_POOL: {
     name: "Curve FRAXsDAI",
-
+    protocol: Protocols.Curve,
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "FRAXsDAI",
@@ -1380,7 +1734,7 @@ export const contractParams: Record<
   },
   CURVE_DOLA_SUSDE_POOL: {
     name: "Curve DOLAsUSDe",
-
+    protocol: Protocols.Curve,
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "DOLAsUSDe",
@@ -1389,7 +1743,7 @@ export const contractParams: Record<
 
   CURVE_PUFETH_WSTETH_POOL: {
     name: "Curve pufETH/wstETH",
-
+    protocol: Protocols.Curve,
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "pufETHwstE",
@@ -1398,7 +1752,7 @@ export const contractParams: Record<
 
   CURVE_GHO_CRVUSD_POOL: {
     name: "Curve GHO/crvUSD Pool",
-
+    protocol: Protocols.Curve,
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "GHOcrvUSD",
@@ -1407,7 +1761,7 @@ export const contractParams: Record<
 
   CURVE_EZETH_ETH_POOL: {
     name: "Curve ezETH/WETH Pool",
-
+    protocol: Protocols.Curve,
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "ezETHWETH",
@@ -1415,7 +1769,7 @@ export const contractParams: Record<
   },
   CURVE_EZPZ_ETH_POOL: {
     name: "Curve ezpz ETH Pool",
-
+    protocol: Protocols.Curve,
     version: 20,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "ezpzETH",
@@ -1423,7 +1777,7 @@ export const contractParams: Record<
   },
   CURVE_LBTC_WBTC_POOL: {
     name: "Curve LBTC/WBTC Pool",
-
+    protocol: Protocols.Curve,
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "LBTCWBTC",
@@ -1432,7 +1786,7 @@ export const contractParams: Record<
 
   CURVE_EBTC_WBTC_POOL: {
     name: "Curve eBTC/WBTC LP",
-
+    protocol: Protocols.Curve,
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "eBTCWBTC",
@@ -1440,7 +1794,7 @@ export const contractParams: Record<
   },
   CURVE_PUMPBTC_WBTC_POOL: {
     name: "Curve pumpBTC/WBTC LP",
-
+    protocol: Protocols.Curve,
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "pumpBTCWBTC",
@@ -1448,7 +1802,7 @@ export const contractParams: Record<
   },
   CURVE_TRIBTC_POOL: {
     name: "Curve Tri BTC-Fi LP",
-
+    protocol: Protocols.Curve,
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "TriBTC",
@@ -1456,7 +1810,7 @@ export const contractParams: Record<
   },
   CURVE_tBTC_WBTC_POOL: {
     name: "Curve tBTC/WBTC LP",
-
+    protocol: Protocols.Curve,
     version: 20,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "2BTC-f",
@@ -1464,7 +1818,7 @@ export const contractParams: Record<
   },
   CURVE_tETH_wstETH_POOL: {
     name: "Curve tETH/wstETH LP",
-
+    protocol: Protocols.Curve,
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "tETHwstETH",
@@ -1472,7 +1826,7 @@ export const contractParams: Record<
   },
   CURVE_tETH_weETH_POOL: {
     name: "Curve tETH/weETH LP",
-
+    protocol: Protocols.Curve,
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "tETHweETH",
@@ -1480,24 +1834,32 @@ export const contractParams: Record<
   },
   CURVE_pzETH_stETH_POOL: {
     name: "Curve pzETH/wstETH LP",
-
+    protocol: Protocols.Curve,
     version: 20,
-    type: AdapterInterface.CURVE_V1_2ASSETS,
+    type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "pzETHstETH",
     tokens: ["pzETH", "wstETH"],
   },
-
   CURVE_USDL_USDC_POOL: {
     name: "Curve pzETH/wstETH LP",
+    protocol: Protocols.Curve,
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "USDLUSDC",
     tokens: ["USDL", "USDC"],
   },
+  CURVE_RLUSD_USDC_POOL: {
+    name: "Curve RLUSD/USDC LP",
+    protocol: Protocols.Curve,
+    version: 20,
+    type: AdapterInterface.CURVE_STABLE_NG,
+    lpToken: "RLUSDUSDC",
+    tokens: ["USDC", "RLUSD"],
+  },
 
   CURVE_2CRV_POOL_ARB: {
     name: "Curve USDC/USDT Pool (Arbitrum)",
-
+    protocol: Protocols.Curve,
     version: 20,
     type: AdapterInterface.CURVE_V1_2ASSETS,
     lpToken: "2CRV",
@@ -1506,7 +1868,7 @@ export const contractParams: Record<
 
   CURVE_TRICRYPTO_CRVUSD_POOL_ARB: {
     name: "Curve Tricrypto-crvUSD Pool (Arbitrum)",
-
+    protocol: Protocols.Curve,
     version: 20,
     type: AdapterInterface.CURVE_V1_3ASSETS,
     lpToken: "3c-crvUSD",
@@ -1515,7 +1877,7 @@ export const contractParams: Record<
 
   CURVE_CRVUSD_USDC_POOL_ARB: {
     name: "Curve crvUSD/USDC Pool (Arbitrum)",
-
+    protocol: Protocols.Curve,
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "crvUSDC",
@@ -1524,7 +1886,7 @@ export const contractParams: Record<
 
   CURVE_CRVUSD_USDC_E_POOL_ARB: {
     name: "Curve crvUSD/USDC.e Pool (Arbitrum)",
-
+    protocol: Protocols.Curve,
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "crvUSDC_e",
@@ -1533,7 +1895,7 @@ export const contractParams: Record<
 
   CURVE_CRVUSD_USDT_POOL_ARB: {
     name: "Curve crvUSD/USDT Pool (Arbitrum)",
-
+    protocol: Protocols.Curve,
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "crvUSDT",
@@ -1542,7 +1904,7 @@ export const contractParams: Record<
 
   CURVE_USDE_USDC_POOL_ARB: {
     name: "Curve USDe/USDC Pool (Arbitrum)",
-
+    protocol: Protocols.Curve,
     version: 20,
     type: AdapterInterface.CURVE_STABLE_NG,
     lpToken: "USDEUSDC",
@@ -1551,10 +1913,961 @@ export const contractParams: Record<
 
   CURVE_3CRV_POOL_OP: {
     name: "Curve 3CRV Pool (Optimism)",
-
+    protocol: Protocols.Curve,
     version: 20,
     type: AdapterInterface.CURVE_V1_3ASSETS,
     lpToken: "3CRV",
     tokens: ["DAI", "USDC_e", "USDT"],
+  },
+
+  YEARN_DAI_VAULT: {
+    name: "Yearn DAI",
+    protocol: Protocols.Yearn,
+    type: AdapterInterface.YEARN_V2,
+    shareToken: "yvDAI",
+  },
+  YEARN_USDC_VAULT: {
+    name: "Yearn USDC",
+    protocol: Protocols.Yearn,
+    type: AdapterInterface.YEARN_V2,
+    shareToken: "yvUSDC",
+  },
+  YEARN_USDC_E_VAULT: {
+    name: "Yearn USDC.e",
+    protocol: Protocols.Yearn,
+    type: AdapterInterface.YEARN_V2,
+    shareToken: "yvUSDC_e",
+  },
+  YEARN_WETH_VAULT: {
+    name: "Yearn WETH",
+    protocol: Protocols.Yearn,
+    type: AdapterInterface.YEARN_V2,
+    shareToken: "yvWETH",
+  },
+  YEARN_WBTC_VAULT: {
+    name: "Yearn WBTC",
+    protocol: Protocols.Yearn,
+    type: AdapterInterface.YEARN_V2,
+    shareToken: "yvWBTC",
+  },
+  YEARN_USDT_VAULT: {
+    name: "Yearn USDT",
+    protocol: Protocols.Yearn,
+    type: AdapterInterface.YEARN_V2,
+    shareToken: "yvUSDT",
+  },
+  YEARN_OP_VAULT: {
+    name: "Yearn OP",
+    protocol: Protocols.Yearn,
+    type: AdapterInterface.YEARN_V2,
+    shareToken: "yvOP",
+  },
+  YEARN_CURVE_FRAX_VAULT: {
+    name: "Yearn Curve FRAX",
+    protocol: Protocols.Yearn,
+    type: AdapterInterface.YEARN_V2,
+    shareToken: "yvCurve_FRAX",
+  },
+  YEARN_CURVE_STETH_VAULT: {
+    name: "Yearn Curve STETH",
+    protocol: Protocols.Yearn,
+    type: AdapterInterface.YEARN_V2,
+    shareToken: "yvCurve_stETH",
+  },
+  MAKER_DSR_VAULT: {
+    name: "Maker DSR ERC4626 Vault",
+    protocol: Protocols.MakerDSR,
+    type: AdapterInterface.ERC4626_VAULT,
+    underlying: "DAI",
+  },
+  YIELD_ETH_VAULT: {
+    name: "Sommelier YieldETH",
+    protocol: Protocols.Sommelier,
+    type: AdapterInterface.ERC4626_VAULT,
+    underlying: "WETH",
+  },
+  STAKED_USDE_VAULT: {
+    name: "Ethena Staked USDe Vault",
+    protocol: Protocols.Ethena,
+    type: AdapterInterface.ERC4626_VAULT,
+    underlying: "USDe",
+  },
+  STAKED_USDS_VAULT: {
+    name: "Sky Staked USDS Vault",
+    protocol: Protocols.Sky,
+    type: AdapterInterface.ERC4626_VAULT,
+    underlying: "USDS",
+  },
+
+  SAVINGS_CRVUSD_VAULT: {
+    name: "Savings crvUSD Vault",
+    protocol: Protocols.Curve,
+    type: AdapterInterface.ERC4626_VAULT,
+    underlying: "crvUSD",
+  },
+
+  AAVE_WSTETH_VAULT: {
+    name: "Wrapped Aave Ethereum Lido wstETH Vault",
+    protocol: Protocols.AaveV3,
+    type: AdapterInterface.ERC4626_VAULT,
+    underlying: "wstETH",
+  },
+
+  WRAPPED_USDL_VAULT: {
+    name: "Wrapped USDL Vault",
+    protocol: Protocols.Lift,
+    type: AdapterInterface.ERC4626_VAULT,
+    underlying: "USDL",
+  },
+  COINSHIFT_USDL_VAULT: {
+    name: "Coinshift USDL Vault",
+    protocol: Protocols.Lift,
+    type: AdapterInterface.ERC4626_VAULT,
+    underlying: "wUSDL",
+  },
+
+  CONVEX_BOOSTER: {
+    name: "Convex BOOSTER",
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BOOSTER,
+  },
+
+  CONVEX_3CRV_POOL: {
+    name: "Convex 3crv",
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "stkcvx3Crv",
+    extraRewards: [],
+  },
+  CONVEX_FRAX_USDC_POOL: {
+    name: "Convex FRAXUSDC",
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "stkcvxcrvFRAX",
+    extraRewards: [],
+  },
+  CONVEX_GUSD_POOL: {
+    name: "Convex GUSD",
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "stkcvxgusd3CRV",
+    extraRewards: [],
+  },
+  CONVEX_SUSD_POOL: {
+    name: "Convex SUSD",
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "stkcvxcrvPlain3andSUSD",
+    extraRewards: [
+      {
+        rewardToken: "SNX",
+        poolAddress: {
+          Mainnet: "0x81fCe3E10D12Da6c7266a1A169c4C96813435263",
+          Arbitrum: NOT_DEPLOYED, // CONVEX_SUSD_POOL_EXTRA_SNX
+          Optimism: NOT_DEPLOYED,
+          Base: NOT_DEPLOYED,
+          Sonic: NOT_DEPLOYED,
+          MegaETH: NOT_DEPLOYED,
+          Monad: NOT_DEPLOYED,
+          Berachain: NOT_DEPLOYED,
+          Avalanche: NOT_DEPLOYED,
+        },
+      },
+    ],
+  },
+  CONVEX_STECRV_POOL: {
+    name: "Convex STECRV",
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "stkcvxsteCRV",
+    extraRewards: [
+      {
+        rewardToken: "LDO",
+        poolAddress: {
+          Mainnet: "0x008aEa5036b819B4FEAEd10b2190FBb3954981E8",
+          Arbitrum: NOT_DEPLOYED, // CONVEX_STECRV_POOL_EXTRA_LDO
+          Optimism: NOT_DEPLOYED,
+          Base: NOT_DEPLOYED,
+          Sonic: NOT_DEPLOYED,
+          MegaETH: NOT_DEPLOYED,
+          Monad: NOT_DEPLOYED,
+          Berachain: NOT_DEPLOYED,
+          Avalanche: NOT_DEPLOYED,
+        },
+      },
+    ],
+  },
+  CONVEX_FRAX3CRV_POOL: {
+    name: "Convex FRAX3CRV",
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "stkcvxFRAX3CRV",
+    extraRewards: [
+      {
+        rewardToken: "FXS",
+        poolAddress: {
+          Mainnet: "0xcDEC6714eB482f28f4889A0c122868450CDBF0b0",
+          Arbitrum: NOT_DEPLOYED, // CONVEX_FRAX3CRV_POOL_EXTRA_FXS
+          Optimism: NOT_DEPLOYED,
+          Base: NOT_DEPLOYED,
+          Sonic: NOT_DEPLOYED,
+          MegaETH: NOT_DEPLOYED,
+          Monad: NOT_DEPLOYED,
+          Berachain: NOT_DEPLOYED,
+          Avalanche: NOT_DEPLOYED,
+        },
+      },
+    ],
+  },
+  CONVEX_LUSD3CRV_POOL: {
+    name: "Convex LUSD3CRV",
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "stkcvxLUSD3CRV",
+    extraRewards: [
+      {
+        rewardToken: "LQTY",
+        poolAddress: {
+          Mainnet: "0x55d59b791f06dc519B176791c4E037E8Cf2f6361",
+          Arbitrum: NOT_DEPLOYED, // CONVEX_LUSD3CRV_POOL_EXTRA_LQTY
+          Optimism: NOT_DEPLOYED,
+          Base: NOT_DEPLOYED,
+          Sonic: NOT_DEPLOYED,
+          MegaETH: NOT_DEPLOYED,
+          Monad: NOT_DEPLOYED,
+          Berachain: NOT_DEPLOYED,
+          Avalanche: NOT_DEPLOYED,
+        },
+      },
+    ],
+  },
+
+  CONVEX_CRVETH_POOL: {
+    name: "Convex crvCRVETH",
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "stkcvxcrvCRVETH",
+    extraRewards: [
+      {
+        rewardToken: "CVX",
+        poolAddress: {
+          Mainnet: "0xE1eCBB4181378E2346EAC90Eb5606c01Aa08f052",
+          Arbitrum: NOT_DEPLOYED,
+          Optimism: NOT_DEPLOYED,
+          Base: NOT_DEPLOYED,
+          Sonic: NOT_DEPLOYED,
+          MegaETH: NOT_DEPLOYED,
+          Monad: NOT_DEPLOYED,
+          Berachain: NOT_DEPLOYED,
+          Avalanche: NOT_DEPLOYED,
+        },
+      },
+    ],
+  },
+  CONVEX_CVXETH_POOL: {
+    name: "Convex crvCVXETH",
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "stkcvxcrvCVXETH",
+    extraRewards: [
+      {
+        rewardToken: "CVX",
+        poolAddress: {
+          Mainnet: "0x834B9147Fd23bF131644aBC6e557Daf99C5cDa15",
+          Arbitrum: NOT_DEPLOYED,
+          Optimism: NOT_DEPLOYED,
+          Base: NOT_DEPLOYED,
+          Sonic: NOT_DEPLOYED,
+          MegaETH: NOT_DEPLOYED,
+          Monad: NOT_DEPLOYED,
+          Berachain: NOT_DEPLOYED,
+          Avalanche: NOT_DEPLOYED,
+        },
+      },
+    ],
+  },
+  CONVEX_3CRYPTO_POOL: {
+    name: "Convex 3Crypto",
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "stkcvxcrvUSDTWBTCWETH",
+    extraRewards: [],
+  },
+  CONVEX_LDOETH_POOL: {
+    name: "Convex LDOETH",
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "stkcvxLDOETH",
+    extraRewards: [
+      {
+        rewardToken: "LDO",
+        poolAddress: {
+          Mainnet: "0x95e6092449a0f3946A5a0f308Ead4adcff244E2B",
+          Arbitrum: NOT_DEPLOYED,
+          Optimism: NOT_DEPLOYED,
+          Base: NOT_DEPLOYED,
+          Sonic: NOT_DEPLOYED,
+          MegaETH: NOT_DEPLOYED,
+          Monad: NOT_DEPLOYED,
+          Berachain: NOT_DEPLOYED,
+          Avalanche: NOT_DEPLOYED,
+        },
+      },
+    ],
+  },
+  CONVEX_CRVUSD_USDC_POOL: {
+    name: "Convex crvUSDUSDC",
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "stkcvxcrvUSDUSDC",
+    extraRewards: [
+      {
+        rewardToken: "CVX",
+        poolAddress: {
+          Mainnet: "0xac183F7cd62d5b04Fa40362EB67249A80339541A",
+          Arbitrum: NOT_DEPLOYED,
+          Optimism: NOT_DEPLOYED,
+          Base: NOT_DEPLOYED,
+          Sonic: NOT_DEPLOYED,
+          MegaETH: NOT_DEPLOYED,
+          Monad: NOT_DEPLOYED,
+          Berachain: NOT_DEPLOYED,
+          Avalanche: NOT_DEPLOYED,
+        },
+      },
+    ],
+  },
+  CONVEX_CRVUSD_USDT_POOL: {
+    name: "Convex crvUSDUSDT",
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "stkcvxcrvUSDUSDT",
+    extraRewards: [
+      {
+        rewardToken: "CVX",
+        poolAddress: {
+          Mainnet: "0xD490178B568b07c6DDbDfBBfaF9043772209Ec01",
+          Arbitrum: NOT_DEPLOYED,
+          Optimism: NOT_DEPLOYED,
+          Base: NOT_DEPLOYED,
+          Sonic: NOT_DEPLOYED,
+          MegaETH: NOT_DEPLOYED,
+          Monad: NOT_DEPLOYED,
+          Berachain: NOT_DEPLOYED,
+          Avalanche: NOT_DEPLOYED,
+        },
+      },
+    ],
+  },
+  CONVEX_CRVUSD_FRAX_POOL: {
+    name: "Convex crvUSDFRAX",
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "stkcvxcrvUSDFRAX",
+    extraRewards: [
+      {
+        rewardToken: "CVX",
+        poolAddress: {
+          Mainnet: "0x749cFfCb53e008841d7387ba37f9284BDeCEe0A9",
+          Arbitrum: NOT_DEPLOYED,
+          Optimism: NOT_DEPLOYED,
+          Base: NOT_DEPLOYED,
+          Sonic: NOT_DEPLOYED,
+          MegaETH: NOT_DEPLOYED,
+          Monad: NOT_DEPLOYED,
+          Berachain: NOT_DEPLOYED,
+          Avalanche: NOT_DEPLOYED,
+        },
+      },
+    ],
+  },
+  CONVEX_TRI_CRV_POOL: {
+    name: "Convex TRICRV",
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "stkcvxcrvUSDETHCRV",
+    extraRewards: [
+      {
+        rewardToken: "CVX",
+        poolAddress: {
+          Mainnet: "0x01eC96F1eEBF470E3fEAEEfB843fbC63424e668d",
+          Arbitrum: NOT_DEPLOYED,
+          Optimism: NOT_DEPLOYED,
+          Base: NOT_DEPLOYED,
+          Sonic: NOT_DEPLOYED,
+          MegaETH: NOT_DEPLOYED,
+          Monad: NOT_DEPLOYED,
+          Berachain: NOT_DEPLOYED,
+          Avalanche: NOT_DEPLOYED,
+        },
+      },
+    ],
+  },
+  CONVEX_GHO_CRVUSD_POOL: {
+    name: "Convex GHOcrvUSD",
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "stkcvxGHOcrvUSD",
+    extraRewards: [
+      {
+        rewardToken: "CVX",
+        poolAddress: {
+          Mainnet: "0xE7cC925739E41E2A03A53770F5E9Ed43afe13993",
+          Arbitrum: NOT_DEPLOYED,
+          Optimism: NOT_DEPLOYED,
+          Base: NOT_DEPLOYED,
+          Sonic: NOT_DEPLOYED,
+          MegaETH: NOT_DEPLOYED,
+          Monad: NOT_DEPLOYED,
+          Berachain: NOT_DEPLOYED,
+          Avalanche: NOT_DEPLOYED,
+        },
+      },
+    ],
+  },
+  CONVEX_LLAMA_THENA_POOL: {
+    name: "Convex todo",
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "stkcvxllamathena",
+    extraRewards: [
+      {
+        rewardToken: "CVX",
+        poolAddress: {
+          Mainnet: "0xc66844E5788b7d7D6DFFa5EC1Db62d898c59D6e7",
+          Arbitrum: NOT_DEPLOYED,
+          Optimism: NOT_DEPLOYED,
+          Base: NOT_DEPLOYED,
+          Sonic: NOT_DEPLOYED,
+          MegaETH: NOT_DEPLOYED,
+          Monad: NOT_DEPLOYED,
+          Berachain: NOT_DEPLOYED,
+          Avalanche: NOT_DEPLOYED,
+        },
+      },
+    ],
+  },
+  CONVEX_RLUSD_USDC_POOL: {
+    name: "Convex RLUSD/USDC",
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "stkcvxRLUSDUSDC",
+    extraRewards: [
+      {
+        rewardToken: "CVX",
+        poolAddress: {
+          Mainnet: "0x51218C37A6EB0dE2F3DBBE4d2977d2008E24fB31",
+          Arbitrum: NOT_DEPLOYED,
+          Optimism: NOT_DEPLOYED,
+          Base: NOT_DEPLOYED,
+          Sonic: NOT_DEPLOYED,
+          MegaETH: NOT_DEPLOYED,
+          Monad: NOT_DEPLOYED,
+          Berachain: NOT_DEPLOYED,
+          Avalanche: NOT_DEPLOYED,
+        },
+      },
+    ],
+  },
+
+  CONVEX_BOOSTER_ARB: {
+    name: "Convex Booster (Arbitrum)",
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_L2_BOOSTER,
+  },
+
+  CONVEX_CRVUSD_USDT_POOL_ARB: {
+    name: "Convex crvUSDT Pool",
+    protocol: Protocols.Convex,
+    type: AdapterInterface.CONVEX_L2_REWARD_POOL,
+    rewards: ["CRV", "CVX", "crvUSD", "ARB"],
+    extraRewards: [],
+  },
+
+  AURA_BOOSTER: {
+    name: "Aura BOOSTER",
+    protocol: Protocols.Aura,
+    type: AdapterInterface.CONVEX_V1_BOOSTER,
+  },
+
+  AURA_B_RETH_STABLE_POOL: {
+    name: "Balancer rETH Stable Pool Aura Deposit",
+    protocol: Protocols.Aura,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "auraB_rETH_STABLE_vault",
+    extraRewards: [
+      {
+        rewardToken: "AURA",
+        poolAddress: {
+          Mainnet: "0xf66a72886749c96b18526E8E124cC2e18b7c72D2",
+          Arbitrum: NOT_DEPLOYED,
+          Optimism: NOT_DEPLOYED,
+          Base: NOT_DEPLOYED,
+          Sonic: NOT_DEPLOYED,
+          MegaETH: NOT_DEPLOYED,
+          Monad: NOT_DEPLOYED,
+          Berachain: NOT_DEPLOYED,
+          Avalanche: NOT_DEPLOYED,
+        },
+      },
+    ],
+  },
+
+  AURA_WEETH_RETH_POOL: {
+    name: "Balancer weETH-rETH Stable Pool Aura Deposit",
+    protocol: Protocols.Aura,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "auraweETH_rETH_vault",
+    extraRewards: [
+      {
+        rewardToken: "AURA",
+        poolAddress: {
+          Mainnet: "0x25d22C5191C67D63AAB70a37FAe06e1c1E1a830F",
+          Arbitrum: NOT_DEPLOYED,
+          Optimism: NOT_DEPLOYED,
+          Base: NOT_DEPLOYED,
+          Sonic: NOT_DEPLOYED,
+          MegaETH: NOT_DEPLOYED,
+          Monad: NOT_DEPLOYED,
+          Berachain: NOT_DEPLOYED,
+          Avalanche: NOT_DEPLOYED,
+        },
+      },
+    ],
+  },
+
+  AURA_OSETH_WETH_POOL: {
+    name: "Balancer osETH-WETH Stable Pool Aura Deposit",
+    protocol: Protocols.Aura,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "auraosETH_wETH_BPT_vault",
+    extraRewards: [
+      {
+        rewardToken: "AURA",
+        poolAddress: {
+          Mainnet: "0x62e6D8dAe7089C8F2f2a5C328c710aa1788742fb",
+          Arbitrum: NOT_DEPLOYED,
+          Optimism: NOT_DEPLOYED,
+          Base: NOT_DEPLOYED,
+          Sonic: NOT_DEPLOYED,
+          MegaETH: NOT_DEPLOYED,
+          Monad: NOT_DEPLOYED,
+          Berachain: NOT_DEPLOYED,
+          Avalanche: NOT_DEPLOYED,
+        },
+      },
+      {
+        rewardToken: "SWISE",
+        poolAddress: {
+          Mainnet: "0xC5E75ccd4d40e2Fb280f008f8AFB5EF3415EFA72",
+          Arbitrum: NOT_DEPLOYED,
+          Optimism: NOT_DEPLOYED,
+          Base: NOT_DEPLOYED,
+          Sonic: NOT_DEPLOYED,
+          MegaETH: NOT_DEPLOYED,
+          Monad: NOT_DEPLOYED,
+          Berachain: NOT_DEPLOYED,
+          Avalanche: NOT_DEPLOYED,
+        },
+      },
+    ],
+  },
+
+  AURA_BPT_RETH_ETH_POOL: {
+    name: "BeethovenX rETH-ETH Pool Aura Deposit",
+    protocol: Protocols.Aura,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "auraBPT_rETH_ETH_vault",
+    extraRewards: [
+      {
+        rewardToken: "OP",
+        poolAddress: {
+          Mainnet: NOT_DEPLOYED,
+          Arbitrum: NOT_DEPLOYED,
+          Optimism: "0x0A22Ae9D9D149C14f6c15A235e715bB6C1Cfa739",
+          Base: NOT_DEPLOYED,
+          Sonic: NOT_DEPLOYED,
+          MegaETH: NOT_DEPLOYED,
+          Monad: NOT_DEPLOYED,
+          Berachain: NOT_DEPLOYED,
+          Avalanche: NOT_DEPLOYED,
+        },
+      },
+      {
+        rewardToken: "AURA",
+        poolAddress: {
+          Mainnet: NOT_DEPLOYED,
+          Arbitrum: NOT_DEPLOYED,
+          Optimism: "0x81673Cdd00c2839440f31575cCFa5B6ca4a87B2B",
+          Base: NOT_DEPLOYED,
+          Sonic: NOT_DEPLOYED,
+          MegaETH: NOT_DEPLOYED,
+          Monad: NOT_DEPLOYED,
+          Berachain: NOT_DEPLOYED,
+          Avalanche: NOT_DEPLOYED,
+        },
+      },
+    ],
+  },
+
+  AURA_BPT_WSTETH_ETH_POOL: {
+    name: "BeethovenX wstETH-ETH Pool Aura Deposit",
+    protocol: Protocols.Aura,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "auraBPT_WSTETH_ETH_vault",
+    extraRewards: [
+      {
+        rewardToken: "OP",
+        poolAddress: {
+          Mainnet: NOT_DEPLOYED,
+          Arbitrum: NOT_DEPLOYED,
+          Optimism: "0x903d716fe68e7e091eCC43AA93c0F8cfD7e7BC0a",
+          Base: NOT_DEPLOYED,
+          Sonic: NOT_DEPLOYED,
+          MegaETH: NOT_DEPLOYED,
+          Monad: NOT_DEPLOYED,
+          Berachain: NOT_DEPLOYED,
+          Avalanche: NOT_DEPLOYED,
+        },
+      },
+      {
+        rewardToken: "AURA",
+        poolAddress: {
+          Mainnet: NOT_DEPLOYED,
+          Arbitrum: NOT_DEPLOYED,
+          Optimism: "0xb0709c230C06BE6e2A84b2Ba877094EB9a4fA014",
+          Base: NOT_DEPLOYED,
+          Sonic: NOT_DEPLOYED,
+          MegaETH: NOT_DEPLOYED,
+          Monad: NOT_DEPLOYED,
+          Berachain: NOT_DEPLOYED,
+          Avalanche: NOT_DEPLOYED,
+        },
+      },
+    ],
+  },
+  AURA_WSTETH_WETH_POOL_ARB: {
+    name: "Balancer (Arbitrum) wstETH-WETH Aura Vault",
+    protocol: Protocols.Aura,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "aurawstETH_WETH_BPT_vault",
+    extraRewards: [
+      {
+        rewardToken: "AURA",
+        poolAddress: {
+          Mainnet: NOT_DEPLOYED,
+          Arbitrum: "0xC0353d05D3F2b6e14E36c5d3B4bF8d179890A001",
+          Optimism: NOT_DEPLOYED,
+          Base: NOT_DEPLOYED,
+          Sonic: NOT_DEPLOYED,
+          MegaETH: NOT_DEPLOYED,
+          Monad: NOT_DEPLOYED,
+          Berachain: NOT_DEPLOYED,
+          Avalanche: NOT_DEPLOYED,
+        },
+      },
+      {
+        rewardToken: "ARB",
+        poolAddress: {
+          Mainnet: NOT_DEPLOYED,
+          Arbitrum: "0x3a0beff39E243453960aD1198Fc3aAabdBDDe56C",
+          Optimism: NOT_DEPLOYED,
+          Base: NOT_DEPLOYED,
+          Sonic: NOT_DEPLOYED,
+          MegaETH: NOT_DEPLOYED,
+          Monad: NOT_DEPLOYED,
+          Berachain: NOT_DEPLOYED,
+          Avalanche: NOT_DEPLOYED,
+        },
+      },
+    ],
+  },
+  AURA_WSTETH_RETH_SFRXETH_POOL_ARB: {
+    name: "Balancer (Arbitrum) wstETH-rETH-sfrxETH Aura Vault",
+    protocol: Protocols.Aura,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "aurawstETH_rETH_sfrxETH_vault",
+    extraRewards: [
+      {
+        rewardToken: "AURA",
+        poolAddress: {
+          Mainnet: NOT_DEPLOYED,
+          Arbitrum: "0x5901ce1c3Bf6C97fC49ED0fF08A88a57ea6E4Ca4",
+          Optimism: NOT_DEPLOYED,
+          Base: NOT_DEPLOYED,
+          Sonic: NOT_DEPLOYED,
+          MegaETH: NOT_DEPLOYED,
+          Monad: NOT_DEPLOYED,
+          Berachain: NOT_DEPLOYED,
+          Avalanche: NOT_DEPLOYED,
+        },
+      },
+      {
+        rewardToken: "ARB",
+        poolAddress: {
+          Mainnet: NOT_DEPLOYED,
+          Arbitrum: "0x4601Ec46A285714e6F2A9466DA7f2BcB33646391",
+          Optimism: NOT_DEPLOYED,
+          Base: NOT_DEPLOYED,
+          Sonic: NOT_DEPLOYED,
+          MegaETH: NOT_DEPLOYED,
+          Monad: NOT_DEPLOYED,
+          Berachain: NOT_DEPLOYED,
+          Avalanche: NOT_DEPLOYED,
+        },
+      },
+    ],
+  },
+  AURA_CBETH_RETH_WSTETH_POOL_ARB: {
+    name: "Balancer (Arbitrum) wstETH-rETH-cbETH Aura Vault",
+    protocol: Protocols.Aura,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "auracbETH_rETH_wstETH_vault",
+    extraRewards: [
+      {
+        rewardToken: "ARB",
+        poolAddress: {
+          Mainnet: NOT_DEPLOYED,
+          Arbitrum: "0xf0dcb30811228bED2b87b2753fabAfe80A9D0fb9",
+          Optimism: NOT_DEPLOYED,
+          Base: NOT_DEPLOYED,
+          Sonic: NOT_DEPLOYED,
+          MegaETH: NOT_DEPLOYED,
+          Monad: NOT_DEPLOYED,
+          Berachain: NOT_DEPLOYED,
+          Avalanche: NOT_DEPLOYED,
+        },
+      },
+      {
+        rewardToken: "AURA",
+        poolAddress: {
+          Mainnet: NOT_DEPLOYED,
+          Arbitrum: "0xE42D389058D820177b83E2863FEb13733d6Dd5f2",
+          Optimism: NOT_DEPLOYED,
+          Base: NOT_DEPLOYED,
+          Sonic: NOT_DEPLOYED,
+          MegaETH: NOT_DEPLOYED,
+          Monad: NOT_DEPLOYED,
+          Berachain: NOT_DEPLOYED,
+          Avalanche: NOT_DEPLOYED,
+        },
+      },
+    ],
+  },
+  AURA_RETH_WETH_POOL_ARB: {
+    name: "Balancer (Arbitrum) rETH-WETH Aura Vault",
+    protocol: Protocols.Aura,
+    type: AdapterInterface.CONVEX_V1_BASE_REWARD_POOL,
+    stakedToken: "aurarETH_wETH_BPT_vault",
+    extraRewards: [
+      {
+        rewardToken: "AURA",
+        poolAddress: {
+          Mainnet: NOT_DEPLOYED,
+          Arbitrum: "0xeA270927C226454452DDF80e24a02087D0D7089F",
+          Optimism: NOT_DEPLOYED,
+          Base: NOT_DEPLOYED,
+          Sonic: NOT_DEPLOYED,
+          MegaETH: NOT_DEPLOYED,
+          Monad: NOT_DEPLOYED,
+          Berachain: NOT_DEPLOYED,
+          Avalanche: NOT_DEPLOYED,
+        },
+      },
+      {
+        rewardToken: "ARB",
+        poolAddress: {
+          Mainnet: NOT_DEPLOYED,
+          Arbitrum: "0xB05Dc0b460Ca3ed5174b33A7dA2104388764F62D",
+          Optimism: NOT_DEPLOYED,
+          Base: NOT_DEPLOYED,
+          Sonic: NOT_DEPLOYED,
+          MegaETH: NOT_DEPLOYED,
+          Monad: NOT_DEPLOYED,
+          Berachain: NOT_DEPLOYED,
+          Avalanche: NOT_DEPLOYED,
+        },
+      },
+    ],
+  },
+
+  LIDO_STETH_GATEWAY: {
+    name: "Lido STETH",
+    protocol: Protocols.Lido,
+    type: AdapterInterface.LIDO_V1,
+    oracle: {
+      Mainnet: "0x442af784A788A5bd6F42A01Ebe9F287a871243fb",
+      Arbitrum: NOT_DEPLOYED, // LIDO_ORACLE
+      Optimism: NOT_DEPLOYED,
+      Base: NOT_DEPLOYED,
+      Sonic: NOT_DEPLOYED,
+      MegaETH: NOT_DEPLOYED,
+      Monad: NOT_DEPLOYED,
+      Berachain: NOT_DEPLOYED,
+      Avalanche: NOT_DEPLOYED,
+    },
+    lpToken: "steCRV",
+  },
+
+  LIDO_WSTETH: {
+    name: "Lido wstETH",
+    protocol: Protocols.Lido,
+    type: AdapterInterface.LIDO_WSTETH_V1,
+  },
+
+  UNIVERSAL_ADAPTER: {
+    name: "Gearbox universal adapter",
+    protocol: Protocols.Gearbox,
+    type: AdapterInterface.UNIVERSAL,
+  },
+
+  BALANCER_VAULT: {
+    name: "Balancer Vault",
+    protocol: Protocols.Balancer,
+    type: AdapterInterface.BALANCER_VAULT,
+    queries: {
+      Mainnet: "0xE39B5e3B6D74016b2F6A9673D7d7493B6DF549d5",
+      Arbitrum: "0xE39B5e3B6D74016b2F6A9673D7d7493B6DF549d5",
+      Optimism: "0xE39B5e3B6D74016b2F6A9673D7d7493B6DF549d5",
+      Base: NOT_DEPLOYED,
+      Sonic: "0x4B29DB997Ec0efDFEF13bAeE2a2D7783bCf67f17",
+      MegaETH: NOT_DEPLOYED,
+      Monad: NOT_DEPLOYED,
+      Berachain: NOT_DEPLOYED,
+      Avalanche: NOT_DEPLOYED,
+    },
+  },
+  BALANCER_V3_ROUTER: {
+    name: "Balancer V3 Router",
+    protocol: Protocols.Balancer,
+    type: AdapterInterface.BALANCER_V3_ROUTER,
+    queries: {
+      Mainnet: BALANCER_V3_QUERIES,
+      Arbitrum: NOT_DEPLOYED,
+      Optimism: NOT_DEPLOYED,
+      Base: NOT_DEPLOYED,
+      Sonic: NOT_DEPLOYED,
+      MegaETH: NOT_DEPLOYED,
+      Monad: NOT_DEPLOYED,
+      Berachain: NOT_DEPLOYED,
+      Avalanche: NOT_DEPLOYED,
+    },
+  },
+  AAVE_V2_LENDING_POOL: {
+    name: "Aave V2 Lending Pool",
+    protocol: Protocols.AaveV2,
+    type: AdapterInterface.AAVE_V2_LENDING_POOL,
+  },
+  AAVE_V2_DAI_TOKEN_WRAPPER: {
+    name: "Aave V2 DAI Token Wrapper",
+    protocol: Protocols.AaveV2,
+    type: AdapterInterface.AAVE_V2_WRAPPED_ATOKEN,
+    underlying: "aDAI",
+  },
+  AAVE_V2_USDC_TOKEN_WRAPPER: {
+    name: "Aave V2 USDC Token Wrapper",
+    protocol: Protocols.AaveV2,
+    type: AdapterInterface.AAVE_V2_WRAPPED_ATOKEN,
+    underlying: "aUSDC",
+  },
+  AAVE_V2_USDT_TOKEN_WRAPPER: {
+    name: "Aave V2 USDT Token Wrapper",
+    protocol: Protocols.AaveV2,
+    type: AdapterInterface.AAVE_V2_WRAPPED_ATOKEN,
+    underlying: "aUSDT",
+  },
+  AAVE_V2_WETH_TOKEN_WRAPPER: {
+    name: "Aave V2 WETH Token Wrapper",
+    protocol: Protocols.AaveV2,
+    type: AdapterInterface.AAVE_V2_WRAPPED_ATOKEN,
+    underlying: "aWETH",
+  },
+  AAVE_V3_LENDING_POOL: {
+    name: "Aave V3 Lending Pool",
+    protocol: Protocols.AaveV3,
+    type: AdapterInterface.AAVE_V3_LENDING_POOL,
+  },
+  COMPOUND_V2_DAI_POOL: {
+    name: "Compound V2 DAI",
+    protocol: Protocols.CompoundV2,
+    type: AdapterInterface.COMPOUND_V2_CERC20,
+    underlying: "DAI",
+  },
+  COMPOUND_V2_USDC_POOL: {
+    name: "Compound V2 DAI",
+    protocol: Protocols.CompoundV2,
+    type: AdapterInterface.COMPOUND_V2_CERC20,
+    underlying: "USDT",
+  },
+  COMPOUND_V2_USDT_POOL: {
+    name: "Compound V2 DAI",
+    protocol: Protocols.CompoundV2,
+    type: AdapterInterface.COMPOUND_V2_CERC20,
+    underlying: "USDT",
+  },
+  COMPOUND_V2_LINK_POOL: {
+    name: "Compound V2 LINK",
+    protocol: Protocols.CompoundV2,
+    type: AdapterInterface.COMPOUND_V2_CERC20,
+    underlying: "LINK",
+  },
+  COMPOUND_V2_ETH_GATEWAY: {
+    name: "Compound V2 ETH",
+    protocol: Protocols.CompoundV2,
+    type: AdapterInterface.COMPOUND_V2_CETHER,
+    underlying: "WETH",
+  },
+  FLUX_USDC_POOL: {
+    name: "Flux USDC",
+    protocol: Protocols.Flux,
+    type: AdapterInterface.COMPOUND_V2_CERC20,
+    underlying: "USDC",
+  },
+  ZIRCUIT_POOL: {
+    name: "Zircuit staking pool",
+    protocol: Protocols.Zircuit,
+    type: AdapterInterface.ZIRCUIT_POOL,
+  },
+  MELLOW_STEAKHOUSE_VAULT: {
+    name: "Mellow Steakhouse steakLRT vault",
+    protocol: Protocols.Mellow,
+    type: AdapterInterface.MELLOW_ERC4626_VAULT,
+  },
+  MELLOW_RE7_LABS_VAULT: {
+    name: "Mellow Re7 Labs Re7LRT vault",
+    protocol: Protocols.Mellow,
+    type: AdapterInterface.MELLOW_ERC4626_VAULT,
+  },
+  MELLOW_AMPHOR_VAULT: {
+    name: "Mellow Amphor amphrETH vault",
+    protocol: Protocols.Mellow,
+    type: AdapterInterface.MELLOW_ERC4626_VAULT,
+  },
+  MELLOW_RESTAKING_VAULT: {
+    name: "Mellow Restaking rstETH vault",
+    protocol: Protocols.Mellow,
+    type: AdapterInterface.MELLOW_ERC4626_VAULT,
+  },
+  MELLOW_RENZO_VAULT: {
+    name: "Mellow Renzo pzETH vault",
+    protocol: Protocols.Mellow,
+    type: AdapterInterface.MELLOW_ERC4626_VAULT,
+  },
+  MELLOW_DECENTALIZED_VALIDATOR_VAULT: {
+    name: "Mellow Decentralized Validator Token vault",
+    protocol: Protocols.Mellow,
+    type: AdapterInterface.MELLOW_ERC4626_VAULT,
+  },
+
+  SKY_STAKING_REWARDS: {
+    name: "Sky StakingRewards contract",
+    protocol: Protocols.Sky,
+    type: AdapterInterface.STAKING_REWARDS,
+    stakedToken: "stkUSDS",
+  },
+  DAI_USDS: {
+    name: "DAI/USDS Exchange",
+    protocol: Protocols.Sky,
+    type: AdapterInterface.DAI_USDS_EXCHANGE,
   },
 };

@@ -48,6 +48,7 @@ export type CurveLPToken =
   | "tETHweETH"
   | "pzETHstETH"
   | "USDLUSDC"
+  | "RLUSDUSDC"
 
   /// Arbitrum
   | "2CRV"
@@ -469,6 +470,13 @@ export const curveTokens: Record<
     type: { AllNetworks: TokenType.CURVE_LP_TOKEN },
     pool: "CURVE_USDL_USDC_POOL",
     tokenOut: ["USDL", "USDC"],
+  },
+  RLUSDUSDC: {
+    name: "Curve RLUSD/USDC LP",
+    symbol: "RLUSDUSDC",
+    type: { AllNetworks: TokenType.CURVE_LP_TOKEN },
+    pool: "CURVE_RLUSD_USDC_POOL",
+    tokenOut: ["USDC", "RLUSD"],
   },
   ...curveMetaTokens,
 };

@@ -68,6 +68,7 @@ export type NormalToken =
   | "USDL"
   | "wUSDL"
   | "csUSDL"
+  | "RLUSD"
   | "MORPHO"
 
   // Mellow LRTs
@@ -477,6 +478,11 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
   csUSDL: {
     name: "Coinshift USDL",
     symbol: "csUSDL",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  RLUSD: {
+    name: "RLUSD",
+    symbol: "RLUSD",
     type: { AllNetworks: TokenType.NORMAL_TOKEN },
   },
 

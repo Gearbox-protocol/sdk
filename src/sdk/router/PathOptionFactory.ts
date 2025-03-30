@@ -34,10 +34,11 @@ export class PathOptionFactory {
     const balancerPools = PathOptionFactory.getBalancerPools(balances);
 
     const curveInitPO: PathOptionSerie = curvePools.map(symbol => {
+      const cp = contractParams[curveTokens[symbol].pool];
       return {
         target: tokenDataByNetwork[network][symbol],
         option: 0,
-        totalOptions: contractParams[curveTokens[symbol].pool].tokens.length,
+        totalOptions: "tokens" in cp ? cp.tokens.length : 0,
       };
     });
     const balancerInitPO: PathOptionSerie = balancerPools.map(symbol => {
