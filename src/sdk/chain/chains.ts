@@ -152,7 +152,9 @@ export const chains: Record<NetworkType, GearboxChain> = {
   MegaETH: defineChain({
     ...megaethTestnet,
     network: "MegaETH",
-    defaultMarketConfigurators: {},
+    defaultMarketConfigurators: {
+      "0x59Db4A2241BFe5Ba9023d47A012a6c7A039139A6": "Chaos Labs",
+    },
     isPublic: false,
     // TODO: has no block explorer API
     wellKnownToken: {
