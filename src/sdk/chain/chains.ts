@@ -161,6 +161,12 @@ export const chains: Record<NetworkType, GearboxChain> = {
       address: "0x4eB2Bd7beE16F38B1F4a0A5796Fffd028b6040e9",
       symbol: "WETH",
     },
+    contracts: {
+      multicall3: {
+        address: "0xB1F60733C7B76F8F4085af3d9f6e374C43E462f8",
+      },
+      ...megaethTestnet.contracts,
+    },
   }),
   Monad: defineChain({
     ...monadTestnet,

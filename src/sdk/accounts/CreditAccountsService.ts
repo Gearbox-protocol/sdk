@@ -532,13 +532,7 @@ export class CreditAccountsService extends SDKConstruct {
       }),
     ];
 
-    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, [
-      ...priceUpdates,
-      ...this.#prepareUpdateQuotas(creditAccount.creditFacade, {
-        minQuota,
-        averageQuota,
-      }),
-    ]);
+    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
 
     return { tx, calls, creditFacade: cm.creditFacade };
   }
@@ -838,14 +832,14 @@ export class CreditAccountsService extends SDKConstruct {
       ...priceUpdatesCalls,
       this.#prepareIncreaseDebt(cm.creditFacade, debt),
       ...this.#prepareAddCollateral(cm.creditFacade, collateral, permits),
-      ...this.#prepareUpdateQuotas(cm.creditFacade, {
-        minQuota,
-        averageQuota,
-      }),
       ...openPathCalls,
       ...(withdrawDebt
         ? [this.#prepareWithdrawToken(cm.creditFacade, cm.underlying, debt, to)]
         : []),
+      ...this.#prepareUpdateQuotas(cm.creditFacade, {
+        minQuota,
+        averageQuota,
+      }),
     ];
 
     const tx = cmSuite.creditFacade.openCreditAccount(to, calls, referralCode);
