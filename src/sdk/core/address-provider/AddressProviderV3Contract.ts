@@ -87,10 +87,14 @@ export class AddressProviderContractV3
   }
 
   public async syncState(blockNumber?: bigint): Promise<void> {
+    const fromBlock = ADDRESS_PROVIDER_BLOCK[this.sdk.provider.networkType];
+    this.logger?.debug(
+      `loading events from block ${fromBlock} to ${blockNumber}`,
+    );
     const events = await this.sdk.provider.publicClient.getLogs({
       address: this.address,
       event: getAbiItem({ abi: this.abi, name: "SetAddress" }),
-      fromBlock: ADDRESS_PROVIDER_BLOCK[this.sdk.provider.networkType],
+      fromBlock,
       toBlock: blockNumber,
       strict: true,
     });

@@ -110,7 +110,7 @@ export class MarketRegister extends SDKConstruct {
     }
     this.#logger?.debug(
       { configurators, pools },
-      `calling getMarkets with ${txs.length} price updates`,
+      `calling getMarkets with ${txs.length} price updates in block ${this.sdk.currentBlock}`,
     );
     // ...and push them using multicall before getting answers
     let markets: readonly MarketData[] = [];
@@ -127,6 +127,7 @@ export class MarketRegister extends SDKConstruct {
               args: [this.#marketFilter],
             },
           ],
+          blockNumber: this.sdk.currentBlock,
         },
       );
       markets = resp;
@@ -136,7 +137,7 @@ export class MarketRegister extends SDKConstruct {
         address: marketCompressorAddress,
         functionName: "getMarkets",
         args: [this.#marketFilter],
-        // gas: 550_000_000n,
+        blockNumber: this.sdk.currentBlock,
       });
     }
 
@@ -147,7 +148,9 @@ export class MarketRegister extends SDKConstruct {
       );
     }
 
-    this.#logger?.info(`loaded ${markets.length} markets`);
+    this.#logger?.info(
+      `loaded ${markets.length} markets in block ${this.sdk.currentBlock}`,
+    );
   }
 
   /**

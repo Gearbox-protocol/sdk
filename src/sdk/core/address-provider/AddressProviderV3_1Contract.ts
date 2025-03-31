@@ -85,6 +85,9 @@ export class AddressProviderContractV3_1
     const entries = await this.contract.read.getAllEntries({
       blockNumber,
     });
+    this.logger?.debug(
+      `loaded ${entries.length} events in block ${blockNumber}`,
+    );
     for (const { key, ver, value } of entries) {
       this.setInternalAddress(key, value, Number(ver));
     }

@@ -260,6 +260,11 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
       },
       `${re}attaching gearbox sdk`,
     );
+    if (!!blockNumber && !redstoneHistoricTimestamp) {
+      this.logger?.warn(
+        `${re}attaching to fixed block number, but redstoneHistoricTimestamp is not set. price updates might fail`,
+      );
+    }
     this.#attachConfig = opts;
     const time = Date.now();
     const block = await this.provider.publicClient.getBlock(
@@ -283,11 +288,7 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     }
 
     this.logger?.debug(
-      {
-        number: block.number,
-        timestamp: block.timestamp,
-      },
-      `${re}attach block`,
+      `${re}attach block number ${this.currentBlock} timestamp ${this.timestamp}`,
     );
     this.#addressProvider = await createAddressProvider(this, addressProvider);
     this.logger?.debug(
@@ -466,6 +467,11 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
    */
   public async syncState(opts?: SyncStateOptions): Promise<void> {
     let { blockNumber, timestamp, skipPriceUpdate } = opts ?? {};
+    if (this.#attachConfig?.redstoneHistoricTimestamp) {
+      throw new Error(
+        "syncState is not supported with redstoneHistoricTimestamp",
+      );
+    }
     if (!blockNumber || !timestamp) {
       const block = await this.provider.publicClient.getBlock({
         blockTag: "latest",
@@ -507,23 +513,23 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
       }
     }
 
-    // This will reload all or some markets
+    this.#currentBlock = blockNumber;
+    this.#timestamp = timestamp;
+
+    // This will reload all or some markets. Should already use sdk.currentBlock
     await this.marketRegister.syncState(skipPriceUpdate);
     // TODO: do wee need to sync state on botlist and others?
     //
     // TODO: how to handle "singleton" contracts addresses, where contract instance is shared across multiple other contract instrances
     // This behaviour should be reserved for contracts with 100% immutable state, such as InterestRateModel?
-
-    this.#currentBlock = blockNumber;
-    this.#timestamp = timestamp;
     await this.#hooks.triggerHooks("syncState", { blockNumber, timestamp });
 
     const pluginsList = TypedObjectUtils.entries(this.plugins);
     const pluginResponse = await Promise.allSettled(
       pluginsList.map(([name, plugin]) => {
-        if (plugin.attach) {
+        if (plugin.syncState) {
           this.logger?.debug(`syncing plugin ${name}`);
-          return plugin.attach();
+          return plugin.syncState();
         }
         return undefined;
       }),

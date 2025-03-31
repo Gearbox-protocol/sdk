@@ -119,9 +119,10 @@ export class PriceFeedRegister
     }
 
     const result: UpdatePriceFeedsResult = { txs, timestamp: maxTimestamp };
+    const tsDelta = BigInt(maxTimestamp) - this.sdk.timestamp;
     this.logger?.debug(
       logContext,
-      `generated ${txs.length} price feed update transactions, timestamp: ${maxTimestamp}`,
+      `generated ${txs.length} price feed update transactions, timestamp: ${maxTimestamp} (delta ${tsDelta})`,
     );
     if (txs.length) {
       await this.#hooks.triggerHooks("updatesGenerated", result);
@@ -170,7 +171,7 @@ export class PriceFeedRegister
       this.sdk.marketRegister.marketConfigurators.map(mc => mc.address);
     this.logger?.debug(
       { configurators, pools },
-      "calling getUpdatablePriceFeeds",
+      `calling getUpdatablePriceFeeds in block ${this.sdk.currentBlock}`,
     );
     const result = await this.provider.publicClient.readContract({
       address: marketCompressorAddress,
@@ -183,8 +184,11 @@ export class PriceFeedRegister
           underlying: ADDRESS_0X0,
         },
       ],
+      blockNumber: this.sdk.currentBlock,
     });
-    this.logger?.debug(`loaded ${result.length} partial updatable price feeds`);
+    this.logger?.debug(
+      `loaded ${result.length} partial updatable price feeds in block ${this.sdk.currentBlock}`,
+    );
     return result.map(baseParams => this.#createUpdatableProxy({ baseParams }));
   }
 
