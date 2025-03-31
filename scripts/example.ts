@@ -7,11 +7,8 @@ async function example(): Promise<void> {
     level: process.env.LOG_LEVEL ?? "debug",
   });
 
-  const RPC =
-    "https://eth-mainnet.g.alchemy.com/v2/Xwmj_keleIxuZYSbdQ4qsqQVvBRRFOYk";
-
   const sdk = await GearboxSDK.attach({
-    rpcURLs: [RPC],
+    rpcURLs: [process.env.RPC_URL!],
     timeout: 480_000,
     // redstoneHistoricTimestamp: true,
     // addressProvider: ADDRESS_PROVIDER,
@@ -27,7 +24,7 @@ async function example(): Promise<void> {
   });
 
   setInterval(async () => {
-    await sdk.syncState();
+    await sdk.reattach();
   }, 60_000);
 
   logger.info("done");
