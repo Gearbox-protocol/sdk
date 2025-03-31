@@ -177,6 +177,10 @@ export class MarketRegister extends SDKConstruct {
     }
   }
 
+  public override get watchAddresses(): Set<Address> {
+    return new Set(this.markets.flatMap(m => Array.from(m.watchAddresses)));
+  }
+
   public get state(): MarketData[] {
     return this.markets.map(market => market.state);
   }

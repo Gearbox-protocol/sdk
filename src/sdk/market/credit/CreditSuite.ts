@@ -55,6 +55,14 @@ export class CreditSuite extends SDKConstruct {
     );
   }
 
+  public override get watchAddresses(): Set<Address> {
+    return new Set([
+      this.creditConfigurator.address,
+      this.creditManager.address,
+      this.creditFacade.address,
+    ]);
+  }
+
   public stateHuman(raw = true): CreditSuiteStateHuman {
     return {
       creditFacade: this.creditFacade.stateHuman(raw),

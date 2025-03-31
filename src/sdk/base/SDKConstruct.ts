@@ -40,4 +40,11 @@ export class SDKConstruct {
   protected labelAddress(address: Address): string {
     return this.provider.addressLabels.get(address);
   }
+
+  /**
+   * Returns list of addresses that should be watched for events to sync state
+   */
+  public get watchAddresses(): Set<Address> {
+    return new Set();
+  }
 }

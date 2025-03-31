@@ -483,9 +483,17 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     this.#syncing = true;
     this.logger?.debug(`syncing state to block ${blockNumber}...`);
 
+    const watchAddresses = [
+      ...Array.from(this.marketRegister.watchAddresses),
+      this.addressProvider.address,
+    ];
+    this.logger?.debug(
+      `getting logs from ${watchAddresses.length} addresses in [${this.currentBlock}:${blockNumber}]`,
+    );
     const logs = await this.provider.publicClient.getLogs({
       fromBlock: this.currentBlock,
       toBlock: blockNumber,
+      address: watchAddresses,
     });
 
     for (const log of logs) {

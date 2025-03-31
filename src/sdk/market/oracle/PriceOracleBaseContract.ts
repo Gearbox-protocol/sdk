@@ -369,6 +369,10 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
     return [undefined, false];
   }
 
+  public override get watchAddresses(): Set<Address> {
+    return new Set([this.address]);
+  }
+
   public override stateHuman(raw = true): PriceOracleStateHuman {
     return {
       ...super.stateHuman(raw),

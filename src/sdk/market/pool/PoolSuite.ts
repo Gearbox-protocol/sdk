@@ -65,6 +65,15 @@ export class PoolSuite extends SDKConstruct {
     );
   }
 
+  public override get watchAddresses(): Set<Address> {
+    return new Set([
+      this.pool.address,
+      this.pqk.address,
+      this.rateKeeper.address,
+      this.interestRateModel.address,
+    ]);
+  }
+
   public stateHuman(raw = true): PoolSuiteStateHuman {
     return {
       pool: this.pool.stateHuman(raw),

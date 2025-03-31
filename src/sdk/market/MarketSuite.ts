@@ -65,6 +65,17 @@ export class MarketSuite extends SDKConstruct {
     );
   }
 
+  public override get watchAddresses(): Set<Address> {
+    // priceOracle + pool + quota keeper + rate keeper + IRM (just in case) + loss policy + all credit triplets
+    return new Set([
+      this.configurator.address,
+      this.state.lossPolicy.baseParams.addr,
+      ...this.creditManagers.flatMap(cm => Array.from(cm.watchAddresses)),
+      ...Array.from(this.priceOracle.watchAddresses),
+      ...Array.from(this.pool.watchAddresses),
+    ]);
+  }
+
   public stateHuman(raw = true): MarketStateHuman {
     return {
       configurator: this.labelAddress(this.configurator.address),
