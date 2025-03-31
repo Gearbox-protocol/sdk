@@ -134,6 +134,7 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
   #addressProvider?: IAddressProviderContract;
   #botListContract?: BotListContract;
   #gearStakingContract?: GearStakingContract;
+  #attachConfig?: AttachOptionsInternal;
 
   // Collection of markets
   #marketRegister?: MarketRegister;
@@ -210,10 +211,6 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
       chainId,
       networkType,
     });
-    logger?.info(
-      { networkType, chainId, addressProvider, marketConfigurators },
-      "attaching gearbox sdk",
-    );
 
     return new GearboxSDK<Plugins>({
       provider,
@@ -253,6 +250,17 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
       ignoreUpdateablePrices,
       marketConfigurators,
     } = opts;
+    const re = this.#attachConfig ? "re" : "";
+    this.logger?.info(
+      {
+        networkType: this.provider.networkType,
+        chainId: this.provider.chainId,
+        addressProvider,
+        marketConfigurators,
+      },
+      `${re}attaching gearbox sdk`,
+    );
+    this.#attachConfig = opts;
     const time = Date.now();
     const block = await this.provider.publicClient.getBlock(
       blockNumber
@@ -279,7 +287,7 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
         number: block.number,
         timestamp: block.timestamp,
       },
-      "attach block",
+      `${re}attach block`,
     );
     this.#addressProvider = await createAddressProvider(this, addressProvider);
     this.logger?.debug(
@@ -318,14 +326,14 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     try {
       this.#router = createRouter(this);
     } catch (e) {
-      this.logger?.warn("Router not found", e);
+      this.logger?.warn("router not found", e);
     }
 
     const pluginsList = TypedObjectUtils.entries(this.plugins);
     const pluginResponse = await Promise.allSettled(
       pluginsList.map(([name, plugin]) => {
         if (plugin.attach) {
-          this.logger?.debug(`attaching plugin ${name}`);
+          this.logger?.debug(`${re}attaching plugin ${name}`);
           return plugin.attach();
         }
         return undefined;
@@ -336,15 +344,26 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
       const [name, plugin] = pluginsList[i];
 
       if (plugin.attach && r.status === "fulfilled") {
-        this.logger?.debug(`attached plugin ${name}`);
+        this.logger?.debug(`${re}attached plugin ${name}`);
       } else if (plugin.attach && r.status === "rejected") {
-        this.logger?.error(r.reason, `failed to attach plugin ${name}`);
+        this.logger?.error(r.reason, `failed to ${re}attach plugin ${name}`);
       }
     });
 
-    this.logger?.info(`attach time: ${Date.now() - time} ms`);
+    this.logger?.info(`${re}attach time: ${Date.now() - time} ms`);
 
     return this;
+  }
+
+  /**
+   * Reattach SDK with the same config as before, without re-creating instance. Will load all state from scratch
+   * Be mindful of block number, for example
+   */
+  public async reattach(): Promise<void> {
+    if (!this.#attachConfig) {
+      throw new Error("SDK not attached");
+    }
+    await this.#attach(this.#attachConfig);
   }
 
   /**
