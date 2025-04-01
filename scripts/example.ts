@@ -1,6 +1,7 @@
 import { writeFile } from "node:fs/promises";
 
 import { pino } from "pino";
+import { megaethTestnet } from "viem/chains";
 
 import { GearboxSDK, json_stringify } from "../src/sdk/index.js";
 
@@ -12,14 +13,14 @@ async function example(): Promise<void> {
   // const RPC = process.env.RPC_URL!;
 
   const sdk = await GearboxSDK.attach({
-    rpcURLs: [RPC],
+    rpcURLs: [...megaethTestnet.rpcUrls.default.http],
     timeout: 480_000,
-    blockNumber: 22118452, // 21977000, // 22118452
-    redstoneHistoricTimestamp: true,
+    // blockNumber: 22118452, // 21977000, // 22118452
+    // redstoneHistoricTimestamp: true,
     // addressProvider: ADDRESS_PROVIDER,
-    marketConfigurators: ["0x354fe9f450f60b8547f88be042e4a45b46128a06"],
+    // marketConfigurators: [],
     logger,
-    ignoreUpdateablePrices: false,
+    // ignoreUpdateablePrices: true,
     strictContractTypes: true,
     plugins: {
       // adapters: AdaptersPlugin,
@@ -31,7 +32,7 @@ async function example(): Promise<void> {
   const prefix = RPC.includes("127.0.0.1") ? "anvil_" : "";
   await writeFile(
     `state_${prefix}${sdk.currentBlock}.json`,
-    json_stringify(sdk.state),
+    json_stringify(sdk.stateHuman()),
   );
 
   logger.info("done");
