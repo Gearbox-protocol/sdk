@@ -10,6 +10,7 @@ import createPoolQuotaKeeper from "./createPoolQuotaKeeper.js";
 import createRateKeeper from "./createRateKeeper.js";
 import { GaugeContract } from "./GaugeContract.js";
 import { LinearInterestRateModelContract } from "./LinearInterestRateModelContract.js";
+import { TumblerContract } from "./TumblerContract.js";
 import type {
   IInterestRateModelContract,
   IRateKeeperContract,
@@ -40,6 +41,15 @@ export class PoolSuite extends SDKConstruct {
     }
     throw new Error(
       "Rate keeper is not a gauge, but a " + this.rateKeeper.contractType,
+    );
+  }
+
+  public get tumbler(): TumblerContract {
+    if (this.rateKeeper instanceof TumblerContract) {
+      return this.rateKeeper;
+    }
+    throw new Error(
+      "Rate keeper is not a tumbler, but a " + this.rateKeeper.contractType,
     );
   }
 
