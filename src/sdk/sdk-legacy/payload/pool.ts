@@ -37,7 +37,7 @@ export interface PoolDataPayload {
   baseInterestIndexLU: bigint;
   version: bigint;
   poolQuotaKeeper: Address;
-  gauge: Address;
+  gauge: Address | undefined;
   isPaused: boolean;
 
   marketConfigurator: Address;

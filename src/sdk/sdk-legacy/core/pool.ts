@@ -28,7 +28,7 @@ export class PoolData_Legacy {
   readonly isPaused: boolean;
   readonly version: number;
   readonly poolQuotaKeeper: Address;
-  readonly gauge: Address;
+  readonly gauge: Address | undefined;
   readonly name: string;
   readonly symbol: string;
   readonly marketConfigurator: Address;
@@ -90,7 +90,7 @@ export class PoolData_Legacy {
     this.isPaused = payload.isPaused;
     this.version = Number(payload.version);
     this.poolQuotaKeeper = payload.poolQuotaKeeper.toLowerCase() as Address;
-    this.gauge = payload.gauge.toLowerCase() as Address;
+    this.gauge = payload.gauge?.toLowerCase() as Address;
     this.name = payload.name;
     this.symbol = payload.symbol;
     this.marketConfigurator =
