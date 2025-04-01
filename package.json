@@ -30,11 +30,6 @@
       "import": "./dist/esm/dev/index.js",
       "default": "./dist/cjs/dev/index.js"
     },
-    "./permissionless": {
-      "types": "./dist/types/permissionless/index.d.ts",
-      "import": "./dist/esm/permissionless/index.js",
-      "default": "./dist/cjs/permissionless/index.js"
-    },
     "./zappers": {
       "types": "./dist/types/zappers/index.d.ts",
       "import": "./dist/esm/zappers/index.js",
