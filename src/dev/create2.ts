@@ -6,12 +6,14 @@ import type {
   Client,
   ContractConstructorArgs,
   GetChainParameter,
+  Hash,
   Hex,
   SendTransactionParameters,
   SendTransactionReturnType,
   Transport,
   UnionEvaluate,
   UnionOmit,
+  WalletClient,
 } from "viem";
 import {
   concatHex,
@@ -20,6 +22,9 @@ import {
   stringToHex,
 } from "viem";
 import { getCode, sendTransaction } from "viem/actions";
+
+import type { GearboxSDK, ILogger } from "../sdk/index.js";
+import { SDKConstruct } from "../sdk/index.js";
 
 export const PUBLIC_CREATE2_FACTORY: Address =
   "0x4e59b44847b379578588920ca78fbf26c0b4956c";
@@ -54,6 +59,58 @@ export type Create2Parameters<
      */
     salt?: string;
   };
+
+export interface EnsureExistsUsingPublicCreate2ReturnType {
+  address: Address;
+  hash?: Hash;
+}
+
+export class Create2Deployer extends SDKConstruct {
+  #walletClient: WalletClient;
+  #logger?: ILogger;
+
+  constructor(sdk: GearboxSDK, walletClient: WalletClient) {
+    super(sdk);
+    this.#logger =
+      sdk.logger?.child?.({
+        name: "Create2Deployer",
+      }) ?? sdk.logger;
+    this.#walletClient = walletClient;
+  }
+
+  public async ensureExists(
+    parameters: Create2Parameters,
+  ): Promise<EnsureExistsUsingPublicCreate2ReturnType> {
+    const { abi, args, bytecode } = parameters;
+    const address = getPublicCreate2Address({ abi, bytecode, args });
+    this.#logger?.info(`will deploy contract at ${address}`);
+
+    const isDeployed = await isDeployedUsingPublicCreate2(this.client, {
+      abi,
+      bytecode,
+      args,
+    });
+    if (isDeployed) {
+      this.#logger?.info(`already deployed at ${address}`);
+      return { address };
+    }
+
+    const hash = await deployUsingPublicCreate2(this.#walletClient, parameters);
+    this.#logger?.debug(`waiting for contract to deploy, tx hash: ${hash}`);
+
+    const receipt = await this.client.waitForTransactionReceipt({
+      hash,
+      timeout: 120_000,
+    });
+    if (receipt.status !== "success") {
+      throw new Error(`contract deploy reverted, tx hash: ${hash}`);
+    }
+    this.#logger?.info(
+      `deployed in tx ${hash} in block ${receipt.blockNumber}`,
+    );
+    return { address, hash };
+  }
+}
 
 /**
  * Viem action that deploys a contract using the public CREATE2 factory
