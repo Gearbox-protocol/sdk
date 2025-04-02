@@ -85,18 +85,25 @@ export class Create2Deployer<
     this.#walletClient = walletClient;
   }
 
-  public async ensureExists(
-    parameters: Create2Parameters,
+  public async ensureExists<
+    abi extends Abi | readonly unknown[],
+    chainOverride extends Chain | undefined = Chain | undefined,
+  >(
+    parameters: Create2Parameters<abi, chain, account, chainOverride>,
   ): Promise<EnsureExistsUsingPublicCreate2ReturnType> {
     const { abi, args, bytecode } = parameters;
-    const address = getPublicCreate2Address({ abi, bytecode, args });
+    const address = getPublicCreate2Address({
+      abi,
+      bytecode,
+      args,
+    } as unknown as GetCreate2AddressParameters<abi>);
     this.#logger?.info(`will deploy contract at ${address}`);
 
     const isDeployed = await isDeployedUsingPublicCreate2(this.client, {
       abi,
       bytecode,
       args,
-    });
+    } as unknown as GetCreate2AddressParameters<abi>);
     if (isDeployed) {
       this.#logger?.info(`already deployed at ${address}`);
       return { address };
@@ -178,9 +185,9 @@ export type GetCreate2AddressParameters<
  * @param bytecode - The contract bytecode to deploy
  * @returns Address of the deployed contract
  */
-export function getPublicCreate2Address<
-  const abi extends Abi | readonly unknown[],
->(params: GetCreate2AddressParameters<abi>): Address {
+export function getPublicCreate2Address<abi extends Abi | readonly unknown[]>(
+  params: GetCreate2AddressParameters<abi>,
+): Address {
   const {
     abi,
     args,
