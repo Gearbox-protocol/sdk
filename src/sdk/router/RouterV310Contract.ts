@@ -1,9 +1,15 @@
-import { type Address, getAddress } from "viem";
+import {
+  type Address,
+  ContractFunctionExecutionError,
+  encodeFunctionData,
+  getAddress,
+} from "viem";
 
 import { iGearboxRouterV310Abi } from "../../abi/routerV310.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import { BigIntMath } from "../sdk-legacy/index.js";
 import { AddressMap } from "../utils/AddressMap.js";
+import { formatBN } from "../utils/formatter.js";
 import type { Leftovers } from "./AbstractRouterContract.js";
 import { AbstractRouterContract } from "./AbstractRouterContract.js";
 import { assetsMap, balancesMap } from "./helpers.js";
@@ -32,6 +38,7 @@ interface TokenData {
   balance: bigint;
   leftoverBalance: bigint;
   numSplits: bigint;
+  claimRewards: boolean;
 }
 
 export class RouterV310Contract
@@ -116,6 +123,7 @@ export class RouterV310Contract
         balance: expectedMap.get(token) ?? 0n,
         leftoverBalance: leftoverMap.get(token) ?? 0n,
         numSplits: getNumSplits(token),
+        claimRewards: false,
       }),
     );
     this.logger?.debug(
@@ -128,29 +136,43 @@ export class RouterV310Contract
       "calling routeOpenManyToOne",
     );
 
-    const { result } = await this.contract.simulate.routeOpenManyToOne([
-      cm.address,
-      target,
-      BigInt(slippage),
-      tData,
-    ]);
-    return {
-      balances: balancesAfterOpen(
+    try {
+      const { result } = await this.contract.simulate.routeOpenManyToOne([
+        cm.address,
         target,
-        result.amount,
-        expectedMap,
-        leftoverMap,
-      ),
-      minBalances: balancesAfterOpen(
-        target,
-        result.minAmount,
-        expectedMap,
-        leftoverMap,
-      ),
-      amount: result.amount,
-      minAmount: result.minAmount,
-      calls: [...result.calls],
-    };
+        BigInt(slippage),
+        tData,
+      ]);
+      return {
+        balances: balancesAfterOpen(
+          target,
+          result.amount,
+          expectedMap,
+          leftoverMap,
+        ),
+        minBalances: balancesAfterOpen(
+          target,
+          result.minAmount,
+          expectedMap,
+          leftoverMap,
+        ),
+        amount: result.amount,
+        minAmount: result.minAmount,
+        calls: [...result.calls],
+      };
+    } catch (e) {
+      if (e instanceof ContractFunctionExecutionError) {
+        const callData = encodeFunctionData({
+          abi: e.abi,
+          args: e.args,
+          functionName: e.functionName,
+        });
+        console.log(
+          `cast call --trace --rpc-url https://carrot.megaeth.com/rpc ${e.contractAddress} ${callData}`,
+        );
+      }
+      throw e;
+    }
   }
 
   /**
@@ -178,6 +200,7 @@ export class RouterV310Contract
         balance: expectedBalances.get(token)?.balance || 0n,
         leftoverBalance: leftoverBalances.get(token)?.balance || 0n,
         numSplits: getNumSplits(token),
+        claimRewards: false,
       });
     }
 
@@ -237,8 +260,16 @@ export class RouterV310Contract
         };
       })
       .sort((a, b) => {
-        return b.balance > a.balance ? -1 : 1;
+        return a.balance > b.balance ? -1 : 1;
       });
+
+    this.logger?.debug(
+      inUSD.map(v => ({
+        token: this.labelAddress(v.token),
+        balance: formatBN(v.balance, 8) + ` (${v.balance})`,
+      })),
+      "balances in usd",
+    );
 
     const map = new AddressMap<bigint>(
       inUSD.map(({ token }, i) => [token, i === 0 ? 4n : 1n]),
@@ -249,9 +280,13 @@ export class RouterV310Contract
   #debugTokenData(tData: TokenData[]): Record<string, any>[] {
     return tData.map(t => ({
       token: this.labelAddress(t.token),
-      balance: this.sdk.tokensMeta.formatBN(t.token, t.balance),
-      leftoverBalance: this.sdk.tokensMeta.formatBN(t.token, t.leftoverBalance),
+      balance:
+        this.sdk.tokensMeta.formatBN(t.token, t.balance) + ` (${t.balance})`,
+      leftoverBalance:
+        this.sdk.tokensMeta.formatBN(t.token, t.leftoverBalance) +
+        ` (${t.leftoverBalance})`,
       numSplits: t.numSplits,
+      claimRewards: t.claimRewards,
     }));
   }
 

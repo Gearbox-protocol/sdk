@@ -54,7 +54,7 @@ export class AccountOpener extends SDKConstruct {
   #anvil: AnvilClient;
   #logger?: ILogger;
   #borrower?: PrivateKeyAccount;
-  #faucet: Address;
+  #faucet?: Address;
   #poolDepositMultiplier: bigint;
 
   constructor(
@@ -68,8 +68,12 @@ export class AccountOpener extends SDKConstruct {
       chain: service.sdk.provider.chain,
       transport: service.sdk.provider.transport,
     });
-    this.#faucet =
-      options.faucet ?? service.sdk.addressProvider.getAddress("FAUCET");
+    try {
+      this.#faucet =
+        options.faucet ?? service.sdk.addressProvider.getAddress("FAUCET");
+    } catch (e) {
+      this.#logger?.warn("faucet not found, will not claim from faucet");
+    }
     this.#borrower = options.borrower;
     this.#poolDepositMultiplier = options.poolDepositMultiplier ?? 110_00n;
   }
@@ -87,6 +91,7 @@ export class AccountOpener extends SDKConstruct {
   public async openCreditAccounts(
     targets: TargetAccount[],
     depositIntoPools = true,
+    claimFromFaucet = true,
   ): Promise<OpenAccountResult[]> {
     if (depositIntoPools) {
       try {
@@ -96,7 +101,9 @@ export class AccountOpener extends SDKConstruct {
       }
     }
 
-    await this.#prepareBorrower(targets);
+    if (claimFromFaucet) {
+      await this.#prepareBorrower(targets);
+    }
 
     const toApprove = new AddressMap<Set<Address>>();
     for (const c of targets) {
@@ -136,6 +143,69 @@ export class AccountOpener extends SDKConstruct {
     index: number,
     total: number,
   ): Promise<OpenAccountResult> {
+    const { creditManager, collateral } = input;
+    const cm = this.sdk.marketRegister.findCreditManager(creditManager);
+    const symbol = this.sdk.tokensMeta.symbol(collateral);
+    const logger = this.#logger?.child?.({
+      creditManager: cm.name,
+      collateral: symbol,
+    });
+    logger?.debug(`opening account #${index}/${total}`);
+    const borrower = await this.#getBorrower();
+    const tx = await this.prepareOpen(input);
+
+    let hash: Hash;
+    try {
+      hash = await sendRawTx(this.#anvil, {
+        tx,
+        account: borrower,
+      });
+      logger?.debug(`send transaction ${hash}`);
+    } catch (e) {
+      return {
+        input,
+        error: `${e}`,
+        rawTx: tx,
+      };
+    }
+    const receipt = await this.#anvil.waitForTransactionReceipt({ hash });
+    if (receipt.status === "reverted") {
+      return {
+        input,
+        error: `open credit account tx reverted`,
+        txHash: hash,
+        rawTx: tx,
+      };
+    }
+    logger?.info(`opened credit account ${index}/${total}`);
+    const logs = parseEventLogs({
+      abi: iCreditFacadeV300Abi,
+      logs: receipt.logs,
+      eventName: "OpenCreditAccount",
+    });
+    logger?.info(`found ${logs.length} logs`);
+    let account: CreditAccountData | undefined;
+    if (logs.length > 0) {
+      try {
+        logger?.debug(
+          `getting credit account data for ${logs[0].args.creditAccount}`,
+        );
+        account = await this.#service.getCreditAccountData(
+          logs[0].args.creditAccount,
+        );
+      } catch (e) {
+        logger?.error(`failed to get credit account data: ${e}`);
+      }
+    }
+    return {
+      input,
+      txHash: hash,
+      rawTx: tx,
+      account,
+    };
+  }
+
+  public async prepareOpen(input: TargetAccount): Promise<RawTx> {
     const {
       creditManager,
       collateral,
@@ -149,7 +219,6 @@ export class AccountOpener extends SDKConstruct {
       creditManager: cm.name,
       collateral: symbol,
     });
-    logger?.debug(`opening account #${index}/${total}`);
     const { minDebt, underlying } = cm.creditFacade;
 
     const expectedBalances: Asset[] = [];
@@ -207,55 +276,7 @@ export class AccountOpener extends SDKConstruct {
       );
     }
     logger?.debug("prepared open account transaction");
-    let hash: Hash;
-    try {
-      hash = await sendRawTx(this.#anvil, {
-        tx,
-        account: borrower,
-      });
-      logger?.debug(`send transaction ${hash}`);
-    } catch (e) {
-      return {
-        input,
-        error: `${e}`,
-        rawTx: tx,
-      };
-    }
-    const receipt = await this.#anvil.waitForTransactionReceipt({ hash });
-    if (receipt.status === "reverted") {
-      return {
-        input,
-        error: `open credit account tx reverted`,
-        txHash: hash,
-        rawTx: tx,
-      };
-    }
-    logger?.info(`opened credit account ${index}/${total}`);
-    const logs = parseEventLogs({
-      abi: iCreditFacadeV300Abi,
-      logs: receipt.logs,
-      eventName: "OpenCreditAccount",
-    });
-    logger?.info(`found ${logs.length} logs`);
-    let account: CreditAccountData | undefined;
-    if (logs.length > 0) {
-      try {
-        logger?.debug(
-          `getting credit account data for ${logs[0].args.creditAccount}`,
-        );
-        account = await this.#service.getCreditAccountData(
-          logs[0].args.creditAccount,
-        );
-      } catch (e) {
-        logger?.error(`failed to get credit account data: ${e}`);
-      }
-    }
-    return {
-      input,
-      txHash: hash,
-      rawTx: tx,
-      account,
-    };
+    return tx;
   }
 
   public async getOpenedAccounts(): Promise<CreditAccountData[]> {
@@ -376,7 +397,6 @@ export class AccountOpener extends SDKConstruct {
    * Creates borrower wallet,
    * Sets ETH balance,
    * Gets tokens from faucet,
-   * Approves collateral tokens to credit manager,
    * Gets DEGEN_NFT,
    */
   async #prepareBorrower(targets: TargetAccount[]): Promise<PrivateKeyAccount> {
@@ -426,7 +446,7 @@ export class AccountOpener extends SDKConstruct {
     }
     const hash = await this.#anvil.writeContract({
       account: claimer,
-      address: this.#faucet,
+      address: this.faucet,
       abi: [
         {
           type: "function",
@@ -614,5 +634,12 @@ export class AccountOpener extends SDKConstruct {
     quota = (quota * (PERCENTAGE_FACTOR + 500n)) / PERCENTAGE_FACTOR;
 
     return (quota / PERCENTAGE_FACTOR) * PERCENTAGE_FACTOR;
+  }
+
+  public get faucet(): Address {
+    if (!this.#faucet) {
+      throw new Error("faucet not found");
+    }
+    return this.#faucet;
   }
 }
