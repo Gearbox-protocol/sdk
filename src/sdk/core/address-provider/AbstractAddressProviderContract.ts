@@ -63,6 +63,9 @@ export default abstract class AbstractAddressProviderContract<
     range: [number, number],
   ): [address: Address, version: number] | undefined {
     const allVersions = this.#addresses[contract];
+    if (!allVersions) {
+      return undefined;
+    }
     let version = 0;
     let address: Address | undefined;
     for (const [v, a] of TypedObjectUtils.entries(allVersions)) {
