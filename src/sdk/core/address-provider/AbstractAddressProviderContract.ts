@@ -5,6 +5,7 @@ import { BaseContract } from "../../base/index.js";
 import { NO_VERSION } from "../../constants/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { AddressProviderV3StateHuman } from "../../types/index.js";
+import { TypedObjectUtils } from "../../utils/mappers.js";
 import type { AddressProviderState } from "./types.js";
 
 export default abstract class AbstractAddressProviderContract<
@@ -55,6 +56,25 @@ export default abstract class AbstractAddressProviderContract<
       throw new Error(`Latest version for ${contract} not found`);
     }
     return [this.getAddress(contract, version), version];
+  }
+
+  public getLatestInRange(
+    contract: string,
+    range: [number, number],
+  ): [address: Address, version: number] | undefined {
+    const allVersions = this.#addresses[contract];
+    let version = 0;
+    let address: Address | undefined;
+    for (const [v, a] of TypedObjectUtils.entries(allVersions)) {
+      if (v >= range[0] && v <= range[1] && v >= version) {
+        version = v;
+        address = a;
+      }
+    }
+    if (!address) {
+      return undefined;
+    }
+    return [address, version];
   }
 
   public get state(): AddressProviderState {
