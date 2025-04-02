@@ -33,8 +33,8 @@ export const DEFAULT_CREATE2_SALT = "GEARBOX";
 
 export type Create2Parameters<
   abi extends Abi | readonly unknown[] = Abi,
-  chain extends Chain | undefined = Chain | undefined,
-  account extends Account | undefined = Account | undefined,
+  chain extends Chain = Chain,
+  account extends Account = Account,
   chainOverride extends Chain | undefined = Chain | undefined,
   ///
   allArgs = ContractConstructorArgs<abi>,
@@ -65,11 +65,18 @@ export interface EnsureExistsUsingPublicCreate2ReturnType {
   hash?: Hash;
 }
 
-export class Create2Deployer extends SDKConstruct {
-  #walletClient: WalletClient;
+export class Create2Deployer<
+  transport extends Transport = Transport,
+  chain extends Chain = Chain,
+  account extends Account = Account,
+> extends SDKConstruct {
+  #walletClient: WalletClient<transport, chain, account>;
   #logger?: ILogger;
 
-  constructor(sdk: GearboxSDK, walletClient: WalletClient) {
+  constructor(
+    sdk: GearboxSDK,
+    walletClient: WalletClient<transport, chain, account>,
+  ) {
     super(sdk);
     this.#logger =
       sdk.logger?.child?.({
@@ -117,8 +124,8 @@ export class Create2Deployer extends SDKConstruct {
  */
 export async function deployUsingPublicCreate2<
   const abi extends Abi | readonly unknown[],
-  chain extends Chain | undefined,
-  account extends Account | undefined,
+  chain extends Chain,
+  account extends Account,
   chainOverride extends Chain | undefined,
 >(
   walletClient: Client<Transport, chain, account>,
