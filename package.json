@@ -54,6 +54,7 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "example": "tsx --env-file .env scripts/example.ts | pino-pretty",
+    "mega": "tsx --env-file .env scripts/megaeth.ts | pino-pretty",
     "accounts": "tsx --env-file .env scripts/accounts.ts | pino-pretty",
     "test": "vitest",
     "prepare": "husky",
