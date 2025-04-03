@@ -353,7 +353,7 @@ function balancesAfterOpen(
   ]);
   for (const t of tokens) {
     if (t === targetAddr) {
-      result[t] = expected.get(t) ?? 0n + targetAmount;
+      result[t] = (expected.get(t) ?? 0n) + targetAmount;
     } else {
       result[t] = BigIntMath.min(expected.get(t) ?? 0n, leftover.get(t) ?? 0n);
     }

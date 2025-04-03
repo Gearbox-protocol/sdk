@@ -53,7 +53,7 @@ export interface OpenStrategyResult extends RouterResult {
    */
   balances: Record<Address, bigint>;
   /**
-   * Sam as balances, but for min balance in target token
+   * Same as balances, but for min balance in target token
    * @see RouterResult.minAmount
    */
   minBalances: Record<Address, bigint>;
