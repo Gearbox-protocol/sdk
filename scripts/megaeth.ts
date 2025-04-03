@@ -1,10 +1,16 @@
+import { writeFile } from "node:fs/promises";
+
 import { pino } from "pino";
 import type { Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { megaethTestnet } from "viem/chains";
 
 import { AccountOpener } from "../src/dev/AccountOpener.js";
-import { CreditAccountsService, GearboxSDK } from "../src/sdk/index.js";
+import {
+  CreditAccountsService,
+  GearboxSDK,
+  json_stringify,
+} from "../src/sdk/index.js";
 
 async function example(): Promise<void> {
   const logger = pino({
@@ -27,18 +33,36 @@ async function example(): Promise<void> {
       // bots: BotsPlugin,/
     },
   });
+  const now = Math.floor(Date.now() / 1000);
 
-  // await writeFile(`state_human.json`, json_stringify(sdk.stateHuman()));
+  await writeFile(
+    `tmp/state_human_${now}.json`,
+    json_stringify(sdk.stateHuman()),
+  );
+
   const cas = new CreditAccountsService(sdk);
   const opener = new AccountOpener(cas, {
     borrower: privateKeyToAccount(process.env.MEGAETH_PRIVATE_KEY! as Hex),
   });
   const tx = await opener.prepareOpen({
     creditManager: "0x6345cec9acEF5DbAD06F8c5341C053964BbBCd18",
-    collateral: "0xE9b6e75C243B6100ffcb1c66e8f78F96FeeA727F", // cUSD underlying
+    target: "0xE9b6e75C243B6100ffcb1c66e8f78F96FeeA727F", // cUSD underlying
     // collateral: "0x776401b9BC8aAe31A685731B7147D4445fD9FB19", // WETH
   });
-  console.log(tx);
+
+  const result = await opener.openCreditAccounts(
+    [
+      {
+        creditManager: "0x6345cec9acEF5DbAD06F8c5341C053964BbBCd18",
+        target: "0xE9b6e75C243B6100ffcb1c66e8f78F96FeeA727F", // cUSD underlying
+        // collateral: "0x776401b9BC8aAe31A685731B7147D4445fD9FB19", // WETH
+      },
+    ],
+    false,
+    false,
+  );
+
+  await writeFile(`tmp/result_${now}.json`, json_stringify(result));
 
   logger.info("done");
 }

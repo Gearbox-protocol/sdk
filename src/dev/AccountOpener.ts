@@ -36,7 +36,18 @@ export interface AccountOpenerOptions {
 
 export interface TargetAccount {
   creditManager: Address;
-  collateral: Address;
+  /**
+   * Everything will be swapped into this token in the end
+   */
+  target: Address;
+  /**
+   * This token will be provided as collateral, defaults to underlying token
+   * Expected to be found on borrower's address before opening the account
+   * Can be claimed from faucet
+   *
+   * TODO: not implemented
+   */
+  collateral?: Address;
   leverage?: number;
   slippage?: number;
 }
@@ -143,7 +154,7 @@ export class AccountOpener extends SDKConstruct {
     index: number,
     total: number,
   ): Promise<OpenAccountResult> {
-    const { creditManager, collateral } = input;
+    const { creditManager, target: collateral } = input;
     const cm = this.sdk.marketRegister.findCreditManager(creditManager);
     const symbol = this.sdk.tokensMeta.symbol(collateral);
     const logger = this.#logger?.child?.({
@@ -208,16 +219,16 @@ export class AccountOpener extends SDKConstruct {
   public async prepareOpen(input: TargetAccount): Promise<RawTx> {
     const {
       creditManager,
-      collateral,
+      target,
       leverage = DEFAULT_LEVERAGE,
       slippage = 50,
     } = input;
     const borrower = await this.#getBorrower();
     const cm = this.sdk.marketRegister.findCreditManager(creditManager);
-    const symbol = this.sdk.tokensMeta.symbol(collateral);
+    const symbol = this.sdk.tokensMeta.symbol(target);
     const logger = this.#logger?.child?.({
       creditManager: cm.name,
-      collateral: symbol,
+      target: symbol,
     });
     const { minDebt, underlying } = cm.creditFacade;
 
@@ -240,19 +251,19 @@ export class AccountOpener extends SDKConstruct {
       expectedBalances,
       leftoverBalances,
       slippage,
-      target: collateral,
+      target,
     });
     logger?.debug(strategy, "found open strategy");
     const debt = minDebt * BigInt(leverage - 1);
     const averageQuota = this.#getCollateralQuota(
       cm,
-      collateral,
+      target,
       strategy.amount,
       debt,
     );
     const minQuota = this.#getCollateralQuota(
       cm,
-      collateral,
+      target,
       strategy.minAmount,
       debt,
     );
@@ -476,6 +487,7 @@ export class AccountOpener extends SDKConstruct {
   }
 
   async #approve(token: Address, cm: CreditSuite): Promise<void> {
+    // TODO: check if collateral is already approved
     const borrower = await this.#getBorrower();
     const symbol = this.#service.sdk.tokensMeta.symbol(token);
     try {
