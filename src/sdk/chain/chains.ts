@@ -72,8 +72,6 @@ export const chains: Record<NetworkType, GearboxChain> = {
       network: "Mainnet",
       defaultMarketConfigurators: {
         "0x354fe9f450F60b8547f88BE042E4A45b46128a06": "Chaos Labs",
-      },
-      testMarketConfigurators: {
         "0x4d427D418342d8CE89a7634c3a402851978B680A": "K3",
       },
       isPublic: true,
