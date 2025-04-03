@@ -139,8 +139,12 @@ export const isLRT_LSTToken = (t: unknown): t is LRTAndLSTTokens => {
   return !!LRT_LST[t as LRTAndLSTTokens];
 };
 
-export type TokensWithAPY = LPTokens | ExtraTokensWithAPY;
-export type TokensAPYList = PartialRecord<Address, number>;
+interface Branding<T> {
+  _type: T;
+}
+export type Brand<T, A> = T & Branding<A>;
+
+export type TokensAPYList = Brand<Record<Address, number>, "apyList">;
 
 export type AllLPTokens = LPTokens | ExtraFarmTokens;
 
