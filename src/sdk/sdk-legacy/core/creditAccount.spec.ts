@@ -72,9 +72,9 @@ const prices = {
   [STETH]: toBN("1703.87588096", PRICE_DECIMALS_POW),
 };
 
-const lpAPY: TokensAPYList = {
+const lpAPY = {
   [STETH]: 38434,
-};
+} as unknown as TokensAPYList;
 
 const DAI_DECIMALS = 18;
 const WETH_DECIMALS = 18;
