@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import { encodeFunctionData } from "viem";
+import { encodeFunctionData, getAddress } from "viem";
 
 import {
   iCreditAccountCompressorAbi,
@@ -894,6 +894,8 @@ export class CreditAccountsService extends SDKConstruct {
 
   /**
    * Returns raw txs that are needed to update all price feeds so that all credit accounts (possibly from different markets) compute
+   *
+   * This can be used by batch liquidator
    * @param accounts
    * @returns
    */
@@ -933,9 +935,6 @@ export class CreditAccountsService extends SDKConstruct {
     creditAccount: RouterCASlice | undefined,
     desiredQuotas: Array<Asset> | undefined,
   ): Promise<UpdatePriceFeedsResult> {
-    // for each market, using pool address as key, gather tokens to update and find PriceFeedFactories
-    const tokensByPool = new Map<Address, Set<Address>>();
-    const oracleByPool = new Map<Address, IPriceOracleContract>();
     const quotaRecord = desiredQuotas
       ? assetsMap(desiredQuotas)
       : desiredQuotas;
@@ -946,15 +945,9 @@ export class CreditAccountsService extends SDKConstruct {
     const market = this.sdk.marketRegister.findByCreditManager(creditManager);
     const cm =
       this.sdk.marketRegister.findCreditManager(creditManager).creditManager;
-    const pool = market.pool.pool.address;
-
-    oracleByPool.set(pool, market.priceOracle);
-
-    const insertToken = (p: Address, t: Address) => {
-      const tokens = tokensByPool.get(p) ?? new Set<Address>();
-      tokens.add(t);
-      tokensByPool.set(pool, tokens);
-    };
+    // underlying token price should always be updated
+    // if it's not updatable, it'll be filtered out on following steps
+    const tokens = new Set<Address>([getAddress(cm.underlying)]);
 
     for (const t of cm.collateralTokens) {
       if (creditAccount && caBalancesRecord && quotaRecord) {
@@ -966,32 +959,36 @@ export class CreditAccountsService extends SDKConstruct {
         const quotaAsset = quotaRecord.get(t);
         const quotaBalance = quotaAsset?.balance || 0n;
 
-        if ((balance > 10n && isEnabled) || quotaBalance > 0)
-          insertToken(pool, t);
+        if ((balance > 10n && isEnabled) || quotaBalance > 0) {
+          tokens.add(getAddress(t));
+        }
       } else if (creditAccount && caBalancesRecord) {
         const balanceAsset = caBalancesRecord.get(t);
         const balance = balanceAsset?.balance || 0n;
         const mask = balanceAsset?.mask || 0n;
         const isEnabled = (mask & creditAccount.enabledTokensMask) !== 0n;
 
-        if (balance > 10n && isEnabled) insertToken(pool, t);
+        if (balance > 10n && isEnabled) {
+          tokens.add(getAddress(t));
+        }
       } else if (quotaRecord) {
         const quotaAsset = quotaRecord.get(t);
         const quotaBalance = quotaAsset?.balance || 0n;
 
-        if (quotaBalance > 0) insertToken(pool, t);
+        if (quotaBalance > 0) {
+          tokens.add(getAddress(t));
+        }
       }
     }
 
-    // priceFeeds can contain PriceFeeds from different markets
-    const priceFeeds: Array<IPriceFeedContract> = [];
-    for (const [pool, oracle] of oracleByPool.entries()) {
-      const tokens = Array.from(tokensByPool.get(pool) ?? []);
-      priceFeeds.push(...oracle.priceFeedsForTokens(tokens));
-    }
+    const priceFeeds: Array<IPriceFeedContract> =
+      market.priceOracle.priceFeedsForTokens(Array.from(tokens));
+    const tStr = Array.from(tokens)
+      .map(t => this.labelAddress(t))
+      .join(", ");
     this.#logger?.debug(
       { account: creditAccount?.creditAccount, manager: cm.name },
-      `generating price feed updates for ${priceFeeds.length} price feeds`,
+      `generating price feed updates for ${tStr} from ${priceFeeds.length} price feeds`,
     );
     return this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(
       priceFeeds,
