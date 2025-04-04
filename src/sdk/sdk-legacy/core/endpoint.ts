@@ -50,6 +50,7 @@ const CHARTS_BACKEND_ADDRESSES: Record<number, string> = {
     return acc;
   }, {}),
 
+  1337: "https://charts-server.fly.dev",
   [TESTNET_CHAINS.Mainnet]: "https://testnet.gearbox.foundation",
   [TESTNET_CHAINS.Arbitrum]: "https://arbtest.gearbox.foundation",
   [TESTNET_CHAINS.Optimism]: "https://opttest.gearbox.foundation",
