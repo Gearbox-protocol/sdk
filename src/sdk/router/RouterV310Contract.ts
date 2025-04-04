@@ -1,9 +1,4 @@
-import {
-  type Address,
-  ContractFunctionExecutionError,
-  encodeFunctionData,
-  getAddress,
-} from "viem";
+import { type Address, getAddress } from "viem";
 
 import { iGearboxRouterV310Abi } from "../../abi/routerV310.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
@@ -136,43 +131,29 @@ export class RouterV310Contract
       "calling routeOpenManyToOne",
     );
 
-    try {
-      const { result } = await this.contract.simulate.routeOpenManyToOne([
-        cm.address,
+    const { result } = await this.contract.simulate.routeOpenManyToOne([
+      cm.address,
+      target,
+      BigInt(slippage),
+      tData,
+    ]);
+    return {
+      balances: balancesAfterOpen(
         target,
-        BigInt(slippage),
-        tData,
-      ]);
-      return {
-        balances: balancesAfterOpen(
-          target,
-          result.amount,
-          expectedMap,
-          leftoverMap,
-        ),
-        minBalances: balancesAfterOpen(
-          target,
-          result.minAmount,
-          expectedMap,
-          leftoverMap,
-        ),
-        amount: result.amount,
-        minAmount: result.minAmount,
-        calls: [...result.calls],
-      };
-    } catch (e) {
-      if (e instanceof ContractFunctionExecutionError) {
-        const callData = encodeFunctionData({
-          abi: e.abi,
-          args: e.args,
-          functionName: e.functionName,
-        });
-        console.log(
-          `cast call --trace --rpc-url https://carrot.megaeth.com/rpc ${e.contractAddress} ${callData}`,
-        );
-      }
-      throw e;
-    }
+        result.amount,
+        expectedMap,
+        leftoverMap,
+      ),
+      minBalances: balancesAfterOpen(
+        target,
+        result.minAmount,
+        expectedMap,
+        leftoverMap,
+      ),
+      amount: result.amount,
+      minAmount: result.minAmount,
+      calls: [...result.calls],
+    };
   }
 
   /**

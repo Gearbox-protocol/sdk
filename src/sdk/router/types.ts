@@ -157,7 +157,7 @@ export interface FindOneTokenPathProps {
    */
   tokenOut: Address;
   /**
-   * Incominga mount of tokenIn to swap
+   * Incoming amount of tokenIn to swap
    */
   amount: bigint;
   /**
