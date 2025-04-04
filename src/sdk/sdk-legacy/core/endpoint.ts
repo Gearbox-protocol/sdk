@@ -44,13 +44,15 @@ export const isTestNetwork = (chainId: number | undefined): chainId is number =>
 
 type ChartsPriceSource = "chainlink" | "spot";
 
+const HARDHAT = 1337;
+
 const CHARTS_BACKEND_ADDRESSES: Record<number, string> = {
   ...Object.values(CHAINS).reduce<Record<number, string>>((acc, chain) => {
     acc[chain.id] = "https://charts-server.fly.dev";
     return acc;
   }, {}),
 
-  1337: "https://charts-server.fly.dev",
+  [HARDHAT]: "https://charts-server.fly.dev",
   [TESTNET_CHAINS.Mainnet]: "https://testnet.gearbox.foundation",
   [TESTNET_CHAINS.Arbitrum]: "https://arbtest.gearbox.foundation",
   [TESTNET_CHAINS.Optimism]: "https://opttest.gearbox.foundation",
@@ -63,6 +65,7 @@ const LEADERBOARD_APIS: Record<number, string> = {
   [CHAINS.Mainnet.id]: "https://gpointbot.fly.dev",
   [CHAINS.Optimism.id]: "https://gpointbot.fly.dev",
   [CHAINS.Arbitrum.id]: "https://gpointbot.fly.dev",
+  [HARDHAT]: "https://gpointbot.fly.dev",
   // !& new chains
 
   [TESTNET_CHAINS.Mainnet]: "https://testnet.gearbox.foundation/gpointbot",
@@ -83,7 +86,7 @@ export class GearboxBackendApi {
     const domain = CHARTS_BACKEND_ADDRESSES[chainId];
     const priceSourceArr = priceSource ? [priceSource] : [];
 
-    const isMain = isSupportedNetwork(chainId);
+    const isMain = isSupportedNetwork(chainId) || chainId === HARDHAT;
 
     const relativePath = URLApi.getRelativeUrl(
       url,
