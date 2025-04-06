@@ -69,7 +69,7 @@ export class PoolSuite extends SDKConstruct {
   override get dirty(): boolean {
     return (
       this.pool.dirty ||
-      this.gauge.dirty ||
+      this.rateKeeper.dirty ||
       this.pqk.dirty ||
       this.interestRateModel.dirty
     );
