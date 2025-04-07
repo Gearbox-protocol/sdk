@@ -199,14 +199,38 @@ export class RouterV310Contract
       "calling routeManyToOne",
     );
 
-    const { result } = await this.contract.simulate.routeManyToOne([
-      ca.creditAccount,
-      ca.underlying,
-      BigInt(slippage),
-      tData,
-    ]);
+    const targetToken = ca.underlying;
+
+    const filtered = tData.filter(b => {
+      return (
+        (b.balance > 10 && b.balance - b.leftoverBalance > 1) ||
+        !!b.claimRewards
+      );
+    });
+    // if swap task is empty or input token === target token - return hardcoded empty result
+    const skipSwap =
+      filtered.length === 0 ||
+      (filtered.length === 1 &&
+        filtered[0].token.toLowerCase() === targetToken.toLowerCase());
+
+    const { result } = await (skipSwap
+      ? {
+          result: {
+            amount: 0n,
+            minAmount: 0n,
+            calls: [],
+          },
+        }
+      : this.contract.simulate.routeManyToOne([
+          ca.creditAccount,
+          targetToken,
+          BigInt(slippage),
+          tData,
+        ]));
+
     const underlyingBalance =
       ca.tokens.find(t => t.token === ca.underlying)?.balance ?? 0n;
+
     return {
       underlyingBalance: underlyingBalance + result.minAmount,
       amount: result.amount,
