@@ -147,14 +147,18 @@ const BROKEN_CAMPAIGNS: Record<string, boolean> = {
 
 export class GearboxRewardsApi {
   static async getExtraRewards({ chainId, tokensList }: GetExtraRewardsProps) {
+    // get all campaigns
     const res = await axios.get<MerkleXYZV4CampaignsResponse>(
       MerkleXYZApi.getGearboxCampaignsUrl(),
     );
+    // filter out not active
     const currentActiveCampaigns = res.data.filter(
       c =>
         c.status === "LIVE" && c.chainId === chainId && !BROKEN_CAMPAIGNS[c.id],
     );
 
+    // we can't definitely connect an apr from aprRecord.breakdowns to a token if there are multiple rewards
+    // so we need to get all aprIds for campaigns with multiple rewards and then get the campaign by aprId
     const aprIdsList = currentActiveCampaigns
       .map(c =>
         // apr token for campaigns with a single reward is obvious
@@ -189,6 +193,7 @@ export class GearboxRewardsApi {
     const r = currentActiveCampaigns.reduce<
       Record<Address, Array<ExtraRewardApy>>
     >((acc, campaign) => {
+      // reward source can be either campaign.tokens[0]?.address for a single source, or campaign.identifier
       const rewardSource = (
         campaign.tokens[0]?.address || campaign.identifier
       ).toLowerCase() as Address;
@@ -197,14 +202,17 @@ export class GearboxRewardsApi {
         .map((r, i) => {
           const apy = r.value;
 
-          const { rewardToken } = aprCampaignByAPRId[r.identifier]?.[0] || {};
+          const aprCampaign = aprCampaignByAPRId[r.identifier]?.[0];
+          const { rewardToken } = aprCampaign || {};
           const tokenRewardsRecord =
             campaign.rewardsRecord.breakdowns[i]?.token;
 
+          // if aprCampaign is not defined use possibly wrong token from  breakdowns[i]?.token
           const { address = tokenRewardsRecord?.address || "" } =
             rewardToken || {};
 
           const tokenLc = address.toLowerCase() as Address;
+          // if token is unknown, use aprCampaign symbol, otherwise symbol from breakdowns[i]?.token
           const {
             symbol = rewardToken?.symbol || tokenRewardsRecord?.symbol || "",
           } = tokensList[tokenLc] || {};
@@ -216,6 +224,9 @@ export class GearboxRewardsApi {
             apy: apy,
             rewardToken: tokenLc,
             rewardTokenSymbol: symbol,
+            endTimestamp: aprCampaign?.endTimestamp
+              ? Number(aprCampaign.endTimestamp)
+              : undefined,
           };
 
           return apyObject;

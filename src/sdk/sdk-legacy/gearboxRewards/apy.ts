@@ -41,6 +41,8 @@ export interface ExtraRewardApy {
   apy: number;
   rewardToken: Address;
   rewardTokenSymbol: string;
+
+  endTimestamp?: number;
 }
 
 interface GetPoolExtraAPY_V3Props {

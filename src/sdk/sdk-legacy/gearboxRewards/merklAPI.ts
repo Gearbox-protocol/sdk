@@ -109,8 +109,8 @@ export interface MerklXYZV4RewardCampaign {
   rewardTokenId: string;
   amount: string;
   opportunityId: string;
-  startTimestamp: string;
-  endTimestamp: string;
+  startTimestamp: number;
+  endTimestamp: number;
   creatorAddress: Address;
   params: {
     url: string;
