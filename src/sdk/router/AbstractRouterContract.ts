@@ -74,6 +74,10 @@ export abstract class AbstractRouterContract<
       }
     }
 
-    return { expectedBalances, leftoverBalances };
+    return {
+      expectedBalances,
+      leftoverBalances,
+      tokensToClaim: new AddressMap<Asset>(),
+    };
   }
 }
