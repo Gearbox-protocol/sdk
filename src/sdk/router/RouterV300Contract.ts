@@ -243,6 +243,7 @@ export class RouterV300Contract
           ? {
               expectedBalances: assetsMap(balances.expectedBalances),
               leftoverBalances: assetsMap(balances.leftoverBalances),
+              tokensToClaim: assetsMap(balances.tokensToClaim || []),
             }
           : undefined,
       );

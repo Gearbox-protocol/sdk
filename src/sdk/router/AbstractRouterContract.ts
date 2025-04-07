@@ -14,6 +14,7 @@ import type {
 export interface Leftovers {
   expectedBalances: AddressMap<Asset>;
   leftoverBalances: AddressMap<Asset>;
+  tokensToClaim: AddressMap<Asset>;
 }
 
 export abstract class AbstractRouterContract<
@@ -33,7 +34,7 @@ export abstract class AbstractRouterContract<
     balances?: Leftovers,
   ): Leftovers {
     const b = balances || this.getDefaultExpectedAndLeftover(ca);
-    const { leftoverBalances, expectedBalances } = b;
+    const { leftoverBalances, expectedBalances, tokensToClaim } = b;
 
     const expected: AddressMap<Asset> = new AddressMap<Asset>();
     const leftover: AddressMap<Asset> = new AddressMap<Asset>();
@@ -50,7 +51,11 @@ export abstract class AbstractRouterContract<
       });
     }
 
-    return { expectedBalances: expected, leftoverBalances: leftover };
+    return {
+      expectedBalances: expected,
+      leftoverBalances: leftover,
+      tokensToClaim,
+    };
   }
 
   protected getDefaultExpectedAndLeftover(ca: RouterCASlice): Leftovers {

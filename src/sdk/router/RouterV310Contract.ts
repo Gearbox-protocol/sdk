@@ -163,16 +163,19 @@ export class RouterV310Contract
     props: FindBestClosePathProps,
   ): Promise<RouterCloseResult> {
     const { creditAccount: ca, creditManager: cm, slippage, balances } = props;
-    const { expectedBalances, leftoverBalances } = this.getExpectedAndLeftover(
-      ca,
-      cm,
-      balances
-        ? {
-            expectedBalances: assetsMap(balances.expectedBalances),
-            leftoverBalances: assetsMap(balances.leftoverBalances),
-          }
-        : undefined,
-    );
+    const { expectedBalances, leftoverBalances, tokensToClaim } =
+      this.getExpectedAndLeftover(
+        ca,
+        cm,
+        balances
+          ? {
+              expectedBalances: assetsMap(balances.expectedBalances),
+              leftoverBalances: assetsMap(balances.leftoverBalances),
+              tokensToClaim: assetsMap(balances.tokensToClaim || []),
+            }
+          : undefined,
+      );
+
     const getNumSplits = this.#numSplitsGetter(cm, expectedBalances.values());
     const tData: TokenData[] = [];
     for (const token of cm.collateralTokens) {
@@ -181,7 +184,7 @@ export class RouterV310Contract
         balance: expectedBalances.get(token)?.balance || 0n,
         leftoverBalance: leftoverBalances.get(token)?.balance || 0n,
         numSplits: getNumSplits(token),
-        claimRewards: false,
+        claimRewards: !!tokensToClaim.get(token),
       });
     }
 

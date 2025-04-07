@@ -224,6 +224,10 @@ export interface ClosePathBalances {
    * If the final balance is 0, we set 1 for gas optimization, except for forbidden tokens
    */
   leftoverBalances: Array<Asset>;
+  /**
+   * List of token rewards of which we want to claim and swap to underlying token during closing ca process
+   */
+  tokensToClaim?: Array<Asset>;
 }
 
 export interface IRouterContract extends IBaseContract {
