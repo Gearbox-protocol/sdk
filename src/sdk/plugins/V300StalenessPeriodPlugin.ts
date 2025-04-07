@@ -48,10 +48,16 @@ export class V300StalenessPeriodPlugin
     }
     const events = await this.client.getLogs({
       address: addresses,
-      event: getAbiItem({
-        abi: iPriceOracleV300Abi,
-        name: "SetReservePriceFeed",
-      }),
+      events: [
+        getAbiItem({
+          abi: iPriceOracleV300Abi,
+          name: "SetReservePriceFeed",
+        }),
+        getAbiItem({
+          abi: iPriceOracleV300Abi,
+          name: "SetPriceFeed",
+        }),
+      ],
       fromBlock,
       toBlock,
       strict: true,
@@ -67,9 +73,13 @@ export class V300StalenessPeriodPlugin
       const stalenessPeriod = e.args.stalenessPeriod;
 
       for (const o of oracles) {
-        const pf = o.reservePriceFeeds.get(token);
+        const map =
+          e.eventName === "SetReservePriceFeed"
+            ? o.reservePriceFeeds
+            : o.mainPriceFeeds;
+        const pf = map.get(token);
         if (hexEq(pf?.address, priceFeed) && hexEq(o.address, oracle)) {
-          o.reservePriceFeeds.upsert(
+          map.upsert(
             token,
             new PriceFeedRef(this.sdk, priceFeed, stalenessPeriod),
           );

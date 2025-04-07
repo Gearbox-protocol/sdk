@@ -2,7 +2,11 @@ import { writeFile } from "node:fs/promises";
 
 import { pino } from "pino";
 
-import { GearboxSDK, json_stringify } from "../src/sdk/index.js";
+import {
+  GearboxSDK,
+  json_stringify,
+  V300StalenessPeriodPlugin,
+} from "../src/sdk/index.js";
 
 async function example(): Promise<void> {
   const logger = pino({
@@ -26,13 +30,18 @@ async function example(): Promise<void> {
       // adapters: AdaptersPlugin,
       // zappers: ZappersPlugin,
       // bots: BotsPlugin,/
+      stalenessV300: V300StalenessPeriodPlugin,
     },
   });
 
   const prefix = RPC.includes("127.0.0.1") ? "anvil_" : "";
   await writeFile(
-    `state_${prefix}${sdk.currentBlock}.json`,
+    `tmp/state_human_${prefix}${sdk.currentBlock}.json`,
     json_stringify(sdk.stateHuman()),
+  );
+  await writeFile(
+    `tmp/state_${prefix}${sdk.currentBlock}.json`,
+    json_stringify(sdk.state),
   );
 
   logger.info("done");
