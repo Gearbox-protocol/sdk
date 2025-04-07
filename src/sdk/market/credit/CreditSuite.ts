@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-import type { CreditSuiteState, type MarketData } from "../../base/index.js";
+import type { CreditSuiteState, MarketData } from "../../base/index.js";
 import { SDKConstruct } from "../../base/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { CreditSuiteStateHuman, TVL } from "../../types/index.js";
