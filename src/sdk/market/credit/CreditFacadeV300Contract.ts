@@ -11,7 +11,7 @@ import {
   iCreditFacadeV300Abi,
   iCreditFacadeV300MulticallAbi,
 } from "../../../abi/v300.js";
-import type { CreditFacadeState, CreditManagerData } from "../../base/index.js";
+import type { CreditFacadeState, CreditSuiteState } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
 import { ADDRESS_0X0 } from "../../constants/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
@@ -40,7 +40,7 @@ export class CreditFacadeV300Contract extends BaseContract<abi> {
 
   constructor(
     sdk: GearboxSDK,
-    { creditFacade, creditManager }: CreditManagerData,
+    { creditFacade, creditManager }: CreditSuiteState,
   ) {
     const { baseParams, ...rest } = creditFacade;
     super(sdk, {

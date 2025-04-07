@@ -6,7 +6,7 @@ import type {
 
 import { iPausableAbi } from "../../../abi/iPausable.js";
 import { iPoolV310Abi } from "../../../abi/v310.js";
-import type { CreditManagerDebtParams, PoolData } from "../../base/index.js";
+import type { CreditManagerDebtParams, PoolState } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { PoolStateHuman } from "../../types/index.js";
@@ -22,13 +22,13 @@ type abi = typeof abi;
 
 // Augmenting contract class with interface of compressor data object
 export interface PoolV310Contract
-  extends Omit<PoolData, "baseParams" | "creditManagerDebtParams">,
+  extends Omit<PoolState, "baseParams" | "creditManagerDebtParams">,
     BaseContract<abi> {}
 
 export class PoolV310Contract extends BaseContract<abi> {
   public readonly creditManagerDebtParams: AddressMap<CreditManagerDebtParams>;
 
-  constructor(sdk: GearboxSDK, data: PoolData) {
+  constructor(sdk: GearboxSDK, data: PoolState) {
     const { baseParams, creditManagerDebtParams, ...rest } = data;
     super(sdk, {
       ...data.baseParams,

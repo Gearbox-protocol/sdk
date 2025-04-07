@@ -1,4 +1,4 @@
-import type { CreditManagerData } from "../../base/index.js";
+import type { CreditSuiteState } from "../../base/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import { CreditFacadeV300Contract } from "./CreditFacadeV300Contract.js";
 import { CreditFacadeV310Contract } from "./CreditFacadeV310Contract.js";
@@ -6,7 +6,7 @@ import type { CreditFacadeContract } from "./types.js";
 
 export default function createCreditFacade(
   sdk: GearboxSDK,
-  data: CreditManagerData,
+  data: CreditSuiteState,
 ): CreditFacadeContract {
   const v = data.creditFacade.baseParams.version;
   if (v >= 300 && v < 310) {

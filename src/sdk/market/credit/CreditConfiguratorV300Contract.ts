@@ -8,7 +8,7 @@ import type {
 
 import { iPausableAbi } from "../../../abi/iPausable.js";
 import { iCreditConfiguratorV300Abi } from "../../../abi/v300.js";
-import type { CreditManagerData } from "../../base/index.js";
+import type { CreditSuiteState } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
 import { RAMP_DURATION_BY_NETWORK } from "../../constants/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
@@ -37,7 +37,7 @@ export class CreditConfiguratorV300Contract
 
   constructor(
     sdk: GearboxSDK,
-    { creditConfigurator, creditManager }: CreditManagerData,
+    { creditConfigurator, creditManager }: CreditSuiteState,
   ) {
     super(sdk, {
       ...creditConfigurator.baseParams,

@@ -1,4 +1,4 @@
-import type { PoolData } from "../../base/index.js";
+import type { PoolState } from "../../base/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import { PoolV300Contract } from "./PoolV300Contract.js";
 import { PoolV310Contract } from "./PoolV310Contract.js";
@@ -6,7 +6,7 @@ import type { PoolContract } from "./types.js";
 
 export default function createPool(
   sdk: GearboxSDK,
-  data: PoolData,
+  data: PoolState,
 ): PoolContract {
   const v = data.baseParams.version;
   if (v >= 300n && v < 310n) {

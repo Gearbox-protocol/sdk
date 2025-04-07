@@ -65,23 +65,23 @@ export type ConnectedBotData = Unarray<
   >
 >;
 
-export type CreditManagerData = Unarray<MarketData["creditManagers"]>;
+export type CreditSuiteState = Unarray<MarketData["creditManagers"]>;
+export type CreditManagerState = CreditSuiteState["creditManager"];
+export type CreditFacadeState = CreditSuiteState["creditFacade"];
+export type CreditConfiguratorState = CreditSuiteState["creditConfigurator"];
+export type AdapterData = Unarray<CreditSuiteState["adapters"]>;
 
-export type CreditManagerState = CreditManagerData["creditManager"];
-export type CreditFacadeState = CreditManagerData["creditFacade"];
-export type CreditConfiguratorState = CreditManagerData["creditConfigurator"];
-export type AdapterData = Unarray<CreditManagerData["adapters"]>;
 export type TokenMetaData = Unarray<MarketData["tokens"]>;
-export type PoolData = MarketData["pool"];
-export type PoolQuotaKeeperData = MarketData["poolQuotaKeeper"];
-export type QuotaState = Unarray<PoolQuotaKeeperData["quotas"]>;
-export type RateKeeperData = MarketData["rateKeeper"];
+export type PoolState = MarketData["pool"];
+export type PoolQuotaKeeperState = MarketData["poolQuotaKeeper"];
+export type QuotaState = Unarray<PoolQuotaKeeperState["quotas"]>;
+export type RateKeeperState = MarketData["rateKeeper"];
 export type PriceOracleData = MarketData["priceOracleData"];
 export type PriceFeedMapEntry = Unarray<PriceOracleData["priceFeedMapping"]>;
 export type PriceFeedTreeNode = Unarray<PriceOracleData["priceFeedStructure"]>;
 export type PriceFeedAnswer = PriceFeedTreeNode["answer"];
 export type CreditManagerDebtParams = Unarray<
-  PoolData["creditManagerDebtParams"]
+  PoolState["creditManagerDebtParams"]
 >;
 
 export enum VotingContractStatus {

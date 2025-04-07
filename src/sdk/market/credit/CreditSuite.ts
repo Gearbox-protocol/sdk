@@ -1,6 +1,7 @@
 import type { Address } from "viem";
 
-import { type MarketData, SDKConstruct } from "../../base/index.js";
+import type { CreditSuiteState, type MarketData } from "../../base/index.js";
+import { SDKConstruct } from "../../base/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { CreditSuiteStateHuman, TVL } from "../../types/index.js";
 import createCreditConfigurator from "./createCreditConfigurator.js";
@@ -21,19 +22,21 @@ export class CreditSuite extends SDKConstruct {
   public readonly creditFacade: CreditFacadeContract;
   public readonly creditConfigurator: ICreditConfiguratorContract;
 
+  public readonly state: CreditSuiteState;
+
   constructor(sdk: GearboxSDK, marketData: MarketData, index: number) {
     super(sdk);
     const { creditManagers, pool } = marketData;
-    const creditManager = creditManagers[index];
-    const { name } = creditManager.creditManager;
+    this.state = creditManagers[index];
+    const { name } = this.state.creditManager;
 
     this.name = name;
     this.pool = pool.baseParams.addr;
     this.underlying = pool.underlying;
 
-    this.creditManager = createCreditManager(sdk, creditManager);
-    this.creditFacade = createCreditFacade(sdk, creditManager);
-    this.creditConfigurator = createCreditConfigurator(sdk, creditManager);
+    this.creditManager = createCreditManager(sdk, this.state);
+    this.creditFacade = createCreditFacade(sdk, this.state);
+    this.creditConfigurator = createCreditConfigurator(sdk, this.state);
   }
 
   async tvl(): Promise<TVL> {

@@ -2,7 +2,7 @@ import type { ContractEventName, Log } from "viem";
 import { decodeAbiParameters } from "viem";
 
 import { iGaugeV300Abi } from "../../../abi/v300.js";
-import type { PoolData, RateKeeperData } from "../../base/index.js";
+import type { PoolState, RateKeeperState } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
 import { WAD } from "../../constants/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
@@ -30,7 +30,7 @@ export class GaugeContract
   public readonly epochLastUpdate: number;
   public readonly rates: AddressMap<number>;
 
-  constructor(sdk: GearboxSDK, pool: PoolData, gauge: RateKeeperData) {
+  constructor(sdk: GearboxSDK, pool: PoolState, gauge: RateKeeperState) {
     super(sdk, {
       ...gauge.baseParams,
       name: `Gauge(${pool.name})`,

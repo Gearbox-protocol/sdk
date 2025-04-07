@@ -1,4 +1,4 @@
-import type { PoolData, PoolQuotaKeeperData } from "../../base/index.js";
+import type { PoolQuotaKeeperState, PoolState } from "../../base/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import { PoolQuotaKeeperV300Contract } from "./PoolQuotaKeeperV300Contract.js";
 import { PoolQuotaKeeperV310Contract } from "./PoolQuotaKeeperV310Contract.js";
@@ -6,8 +6,8 @@ import type { PoolQuotaKeeperContract } from "./types.js";
 
 export default function createPoolQuotaKeeper(
   sdk: GearboxSDK,
-  pool: PoolData,
-  pqk: PoolQuotaKeeperData,
+  pool: PoolState,
+  pqk: PoolQuotaKeeperState,
 ): PoolQuotaKeeperContract {
   const v = pqk.baseParams.version;
   if (v >= 300n && v < 310n) {

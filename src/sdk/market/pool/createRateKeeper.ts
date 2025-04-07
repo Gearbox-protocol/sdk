@@ -1,4 +1,4 @@
-import type { PoolData, RateKeeperData } from "../../base/index.js";
+import type { PoolState, RateKeeperState } from "../../base/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import { bytes32ToString } from "../../utils/index.js";
 import { GaugeContract } from "./GaugeContract.js";
@@ -7,8 +7,8 @@ import type { IRateKeeperContract, RateKeeperType } from "./types.js";
 
 export default function createRateKeeper(
   sdk: GearboxSDK,
-  pool: PoolData,
-  data: RateKeeperData,
+  pool: PoolState,
+  data: RateKeeperState,
 ): IRateKeeperContract {
   const rateKeeperType = bytes32ToString(
     data.baseParams.contractType,
