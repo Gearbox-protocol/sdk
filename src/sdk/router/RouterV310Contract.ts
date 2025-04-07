@@ -197,7 +197,7 @@ export class RouterV310Contract
     );
 
     const { result } = await this.contract.simulate.routeManyToOne([
-      cm.address,
+      ca.creditAccount,
       ca.underlying,
       BigInt(slippage),
       tData,
