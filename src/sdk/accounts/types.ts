@@ -90,6 +90,12 @@ export interface ClaimFarmRewardsProps extends PrepareUpdateQuotasProps {
   creditAccount: RouterCASlice;
 }
 
+export interface EnableTokensProps {
+  disabledTokens: Array<Address>;
+  enabledTokens: Array<Address>;
+  creditAccount: RouterCASlice;
+}
+
 export interface OpenCAProps extends PrepareUpdateQuotasProps {
   ethAmount: bigint;
   collateral: Array<Asset>;
