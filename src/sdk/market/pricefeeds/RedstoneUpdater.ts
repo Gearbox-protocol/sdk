@@ -2,13 +2,13 @@
 import { DataServiceWrapper } from "@redstone-finance/evm-connector";
 import type { SignedDataPackage } from "@redstone-finance/protocol";
 import { RedstonePayload } from "@redstone-finance/protocol";
-import type { Address, Hex } from "viem";
+import type { Address } from "viem";
 import { encodeAbiParameters, toBytes } from "viem";
 
 import { SDKConstruct } from "../../base/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { ILogger, IPriceUpdateTx, RawTx } from "../../types/index.js";
-import { childLogger, retry } from "../../utils/index.js";
+import { AddressMap, childLogger, retry } from "../../utils/index.js";
 import type { RedstonePriceFeedContract } from "./RedstonePriceFeed.js";
 
 interface TimestampedCalldata {
@@ -106,14 +106,19 @@ export class RedstoneUpdater extends SDKConstruct {
 
     // Group feeds by dataServiceId and uniqueSignersCount
     const groupedFeeds: Record<string, Set<string>> = {};
-    const priceFeeds = new Map<string, RedstonePriceFeedContract>();
+    // group price feeds by data id
+    const priceFeeds = new Map<string, AddressMap<RedstonePriceFeedContract>>();
     for (const feed of feeds) {
       const key = `${feed.dataServiceId}:${feed.signersThreshold}`;
       if (!groupedFeeds[key]) {
         groupedFeeds[key] = new Set();
       }
       groupedFeeds[key].add(feed.dataId);
-      priceFeeds.set(feed.dataId, feed);
+      const pfsForDataId =
+        priceFeeds.get(feed.dataId) ??
+        new AddressMap<RedstonePriceFeedContract>();
+      pfsForDataId.upsert(feed.address, feed);
+      priceFeeds.set(feed.dataId, pfsForDataId);
     }
 
     const results: RedstoneUpdateTx[] = [];
@@ -127,26 +132,28 @@ export class RedstoneUpdater extends SDKConstruct {
       );
 
       for (const { dataFeedId, data, timestamp, cached } of payloads) {
-        const priceFeed = priceFeeds.get(dataFeedId);
-        if (!priceFeed) {
-          throw new Error(`cannot get price feed address for ${dataFeedId}`);
+        const pfsForDataId = priceFeeds.get(dataFeedId);
+        if (!pfsForDataId) {
+          throw new Error(`cannot get price feed addresses for ${dataFeedId}`);
         }
-        results.push(
-          new RedstoneUpdateTx(
-            priceFeed.createRawTx({
-              functionName: "updatePrice",
-              args: [data as Hex],
-              description: `updating price for ${dataFeedId} [${this.sdk.provider.addressLabels.get(priceFeed.address)}]`,
-            }),
-            {
-              dataFeedId,
-              dataServiceId,
-              priceFeed: priceFeed.address.toLowerCase() as Address,
-              timestamp,
-              cached,
-            },
-          ),
-        );
+        for (const priceFeed of pfsForDataId.values()) {
+          results.push(
+            new RedstoneUpdateTx(
+              priceFeed.createRawTx({
+                functionName: "updatePrice",
+                args: [data],
+                description: `updating price for ${dataFeedId} [${this.labelAddress(priceFeed.address)}]`,
+              }),
+              {
+                dataFeedId,
+                dataServiceId,
+                priceFeed: priceFeed.address,
+                timestamp,
+                cached,
+              },
+            ),
+          );
+        }
       }
     }
     this.#logger?.debug(

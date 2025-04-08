@@ -11,7 +11,7 @@ import type {
   Hex,
   Log,
 } from "viem";
-import { decodeFunctionData, getContract, isHex } from "viem";
+import { decodeFunctionData, getAddress, getContract, isHex } from "viem";
 
 import { errorAbis } from "../../abi/errors.js";
 import { iVersionAbi } from "../../abi/iVersion.js";
@@ -63,7 +63,7 @@ export abstract class BaseContract<abi extends Abi | readonly unknown[]>
   constructor(sdk: GearboxSDK, args: BaseContractOptions<abi>) {
     super(sdk);
     this.abi = args.abi;
-    this.#address = args.addr;
+    this.#address = getAddress(args.addr);
 
     this.contract = getContract({
       address: this.address,
@@ -93,12 +93,7 @@ export abstract class BaseContract<abi extends Abi | readonly unknown[]>
     if (this.#address !== ADDRESS_0X0) {
       throw new Error(`Address can't be changed, currently: ${this.#address}`);
     }
-    this.#address = address;
-    this.addressLabels.set(address, this.#name);
-  }
-
-  public test_setAddress(address: Address) {
-    this.#address = address;
+    this.#address = getAddress(address);
     this.addressLabels.set(address, this.#name);
   }
 
