@@ -65,6 +65,7 @@ import type {
   CloseCreditAccountResult,
   CreditAccountFilter,
   CreditAccountOperationResult,
+  EnableTokensProps,
   ExecuteSwapProps,
   GetCreditAccountsArgs,
   OpenCAProps,
@@ -774,6 +775,39 @@ export class CreditAccountsService extends SDKConstruct {
         this.#prepareDisableToken(ca.creditFacade, a.token),
       ),
       ...this.#prepareUpdateQuotas(ca.creditFacade, { minQuota, averageQuota }),
+    ];
+
+    const tx = cm.creditFacade.multicall(ca.creditAccount, calls);
+
+    return { tx, calls, creditFacade: cm.creditFacade };
+  }
+
+  /**
+   * Executes enable/disable tokens specified by given tokens lists and token prices
+   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice} on which operation is performed
+   * @param {Array<Asset>} enabledTokens - list of tokens to enable {@link Asset};
+   * @param {Array<Asset>} disabledTokens - list of tokens to disable {@link Asset};
+   * @returns All necessary data to execute the transaction (call, credit facade)
+   */
+  public async enableTokens({
+    enabledTokens,
+    disabledTokens,
+    creditAccount: ca,
+  }: EnableTokensProps): Promise<CreditAccountOperationResult> {
+    const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
+
+    const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
+      ca.creditManager,
+      ca,
+      undefined,
+    );
+
+    const calls = [
+      ...priceUpdatesCalls,
+      ...disabledTokens.map(token =>
+        this.#prepareDisableToken(ca.creditFacade, token),
+      ),
+      ...this.#prepareEnableTokens(ca.creditFacade, enabledTokens),
     ];
 
     const tx = cm.creditFacade.multicall(ca.creditAccount, calls);

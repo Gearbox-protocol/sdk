@@ -33,7 +33,8 @@ export interface TxSerialized {
     | "TxRemoveBot"
     | "TxLiquidateAccount"
     | "TxStakeDiesel"
-    | "TxUnstakeDiesel";
+    | "TxUnstakeDiesel"
+    | "TxEnableTokens";
   content: string;
 }
 
@@ -92,7 +93,8 @@ export class TxSerializer {
           return new TxStakeDiesel(params);
         case "TxUnstakeDiesel":
           return new TxUnstakeDiesel(params);
-
+        case "TxEnableTokens":
+          return new TxEnableTokens(params);
         default:
           throw new Error(`Unknown transaction for parsing: ${e.type}`);
       }
@@ -859,6 +861,48 @@ export class TxRemoveBot extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxAddBot",
+      content: JSON.stringify(this),
+    };
+  }
+}
+
+interface EnableTokensProps extends EVMTxProps {
+  enabledTokens: Array<Address>;
+  disabledTokens: Array<Address>;
+  creditManagerName: string;
+
+  tokensList: Record<Address, TokenData>;
+}
+
+export class TxEnableTokens extends EVMTx {
+  readonly enabledTokens: Array<TokenData>;
+  readonly disabledTokens: Array<TokenData>;
+  readonly creditManagerName: string;
+
+  constructor(opts: EnableTokensProps) {
+    super(opts);
+    this.enabledTokens = opts.enabledTokens.map(a => opts.tokensList[a]);
+    this.disabledTokens = opts.disabledTokens.map(a => opts.tokensList[a]);
+    this.creditManagerName = opts.creditManagerName;
+  }
+
+  toString() {
+    const enabledSymbols = this.enabledTokens.map(t => t?.title);
+    const disabledSymbols = this.disabledTokens.map(t => t?.title);
+
+    const currentSentences = [
+      enabledSymbols.length > 0 ? `enabled: ${enabledSymbols.join(", ")}` : "",
+      disabledSymbols.length > 0
+        ? `disabled: ${disabledSymbols.join(", ")}`
+        : "",
+    ].filter(s => !!s);
+
+    return `Credit Account ${this.creditManagerName}: ${currentSentences.join("; ")}`;
+  }
+
+  serialize(): TxSerialized {
+    return {
+      type: "TxEnableTokens",
       content: JSON.stringify(this),
     };
   }
