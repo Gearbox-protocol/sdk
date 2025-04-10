@@ -22,11 +22,16 @@ export interface PoolPointsInfo {
   estimation: "absolute" | "relative";
 }
 
+type PartialPool = Pick<
+  PoolData_Legacy,
+  "expectedLiquidity" | "underlyingToken" | "address"
+>;
+
 export interface GetPointsByPoolProps {
   poolRewards: Record<Address, Record<Address, PoolPointsInfo>>;
 
   totalTokenBalances: Record<Address, Asset>;
-  pools: Array<PoolData_Legacy>;
+  pools: Array<PartialPool>;
   tokensList: Record<Address, TokenData>;
 }
 
@@ -129,7 +134,7 @@ export class GearboxRewardsExtraApy {
 
   private static getPoolTokenPoints(
     tokenBalanceInPool: Asset | undefined,
-    pool: PoolData_Legacy,
+    pool: PartialPool,
     tokensList: Record<Address, TokenData>,
     pointsInfo: PoolPointsInfo,
   ) {
