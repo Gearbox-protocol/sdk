@@ -194,9 +194,7 @@ export class GearboxRewardsApi {
       Record<Address, Array<ExtraRewardApy>>
     >((acc, campaign) => {
       // reward source can be either campaign.tokens[0]?.address for a single source, or campaign.identifier
-      const rewardSource = (
-        campaign.tokens[0]?.address || campaign.identifier
-      ).toLowerCase() as Address;
+      const rewardSource = campaign.identifier.toLowerCase() as Address;
 
       const allRewards = campaign.aprRecord.breakdowns
         .map((r, i) => {

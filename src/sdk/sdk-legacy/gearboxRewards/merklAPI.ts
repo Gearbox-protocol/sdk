@@ -89,6 +89,7 @@ export interface MerklXYZV4Campaign {
     id: string;
     total: number;
     timestamp: string;
+
     breakdowns: Array<{
       token: MerkleXYZToken;
       amount: string;
@@ -97,6 +98,20 @@ export interface MerklXYZV4Campaign {
       campaignId: string;
       dailyRewardsRecordid: string;
     }>;
+  };
+
+  depositUrl: string;
+  explorerAddress: Address;
+
+  lastCampaignCreatedAt: string;
+
+  protocol: {
+    description: string;
+    icon: string;
+    id: string;
+    name: string;
+    tags: Array<string>;
+    url: string;
   };
 }
 export type MerkleXYZV4CampaignsResponse = Array<MerklXYZV4Campaign>;
@@ -135,6 +150,16 @@ export interface MerklXYZV4RewardCampaign {
     error: string;
     details: string;
   };
+
+  createdAt: string;
+  creator: {
+    address: Address;
+    creatorId: null;
+    tags: Array<string>;
+  };
+  distributionType: string;
+  subType: number;
+  type: string;
 }
 export type MerkleXYZV4RewardCampaignResponse = Array<MerklXYZV4RewardCampaign>;
 
