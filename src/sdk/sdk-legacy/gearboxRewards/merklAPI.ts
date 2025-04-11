@@ -89,7 +89,6 @@ export interface MerklXYZV4Campaign {
     id: string;
     total: number;
     timestamp: string;
-
     breakdowns: Array<{
       token: MerkleXYZToken;
       amount: string;
