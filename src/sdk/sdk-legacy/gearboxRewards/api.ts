@@ -12,13 +12,7 @@ import { GearboxBackendApi } from "../core/endpoint.js";
 import type { PoolData_Legacy } from "../core/pool.js";
 import type { TokenData } from "../tokens/tokenData.js";
 import { BigIntMath } from "../utils/math.js";
-import type { ExtraRewardApy } from "./apy.js";
-import type {
-  MerkleXYZUserRewardsV4Response,
-  MerkleXYZV4CampaignsResponse,
-  MerkleXYZV4RewardCampaignResponse,
-  MerklXYZV4RewardCampaign,
-} from "./merklAPI.js";
+import type { MerkleXYZUserRewardsV4Response } from "./merklAPI.js";
 import { MerkleXYZApi } from "./merklAPI.js";
 
 export interface GearboxExtraMerkleLmReward {
@@ -107,11 +101,6 @@ export interface GetLmRewardsInfoProps {
   provider: PublicClient;
 }
 
-export interface GetExtraRewardsProps {
-  chainId: number;
-  tokensList: Record<Address, TokenData>;
-}
-
 export interface GetLmRewardsProps {
   pools: Record<Address, PoolData_Legacy>;
 
@@ -141,104 +130,7 @@ export interface ClaimLmRewardsV3Props {
   signer: WalletClient;
 }
 
-const BROKEN_CAMPAIGNS: Record<string, boolean> = {
-  "11136065905617273958": true,
-};
-
 export class GearboxRewardsApi {
-  static async getExtraRewards({ chainId, tokensList }: GetExtraRewardsProps) {
-    // get all campaigns
-    const res = await axios.get<MerkleXYZV4CampaignsResponse>(
-      MerkleXYZApi.getGearboxCampaignsUrl(),
-    );
-    // filter out not active
-    const currentActiveCampaigns = res.data.filter(
-      c =>
-        c.status === "LIVE" && c.chainId === chainId && !BROKEN_CAMPAIGNS[c.id],
-    );
-
-    // we can't definitely connect an apr from aprRecord.breakdowns to a token if there are multiple rewards
-    // so we need to get all aprIds for campaigns with multiple rewards and then get the campaign by aprId
-    const aprIdsList = currentActiveCampaigns
-      .map(c =>
-        // apr token for campaigns with a single reward is obvious
-        c.aprRecord.breakdowns.length > 1
-          ? c.aprRecord.breakdowns.map(b => {
-              return {
-                campaignId: c.id,
-                aprId: b.identifier,
-              };
-            })
-          : [],
-      )
-      .flat(1);
-
-    const aprIdsResponse = await Promise.allSettled(
-      aprIdsList.map(id =>
-        axios.get<MerkleXYZV4RewardCampaignResponse>(
-          MerkleXYZApi.getGearboxRewardCampaignUrl(id.aprId),
-        ),
-      ),
-    );
-
-    const aprCampaignByAPRId = aprIdsResponse.reduce<
-      Record<Address, Array<MerklXYZV4RewardCampaign> | undefined>
-    >((acc, r, i) => {
-      const id = aprIdsList[i].aprId;
-      acc[id] = r.status === "fulfilled" ? r.value.data : undefined;
-
-      return acc;
-    }, {});
-
-    const r = currentActiveCampaigns.reduce<
-      Record<Address, Array<ExtraRewardApy>>
-    >((acc, campaign) => {
-      // reward source can be either campaign.tokens[0]?.address for a single source, or campaign.identifier
-      const rewardSource = campaign.identifier.toLowerCase() as Address;
-
-      const allRewards = campaign.aprRecord.breakdowns
-        .map((r, i) => {
-          const apy = r.value;
-
-          const aprCampaign = aprCampaignByAPRId[r.identifier]?.[0];
-          const { rewardToken } = aprCampaign || {};
-          const tokenRewardsRecord =
-            campaign.rewardsRecord.breakdowns[i]?.token;
-
-          // if aprCampaign is not defined use possibly wrong token from  breakdowns[i]?.token
-          const { address = tokenRewardsRecord?.address || "" } =
-            rewardToken || {};
-
-          const tokenLc = address.toLowerCase() as Address;
-          // if token is unknown, use aprCampaign symbol, otherwise symbol from breakdowns[i]?.token
-          const {
-            symbol = rewardToken?.symbol || tokenRewardsRecord?.symbol || "",
-          } = tokensList[tokenLc] || {};
-
-          const apyObject: ExtraRewardApy = {
-            token: rewardSource,
-            balance: null,
-
-            apy: apy,
-            rewardToken: tokenLc,
-            rewardTokenSymbol: symbol,
-            endTimestamp: aprCampaign?.endTimestamp
-              ? Number(aprCampaign.endTimestamp)
-              : undefined,
-          };
-
-          return apyObject;
-        })
-        .filter(r => r.apy > 0);
-
-      acc[rewardSource] = [...(acc[rewardSource] || []), ...allRewards];
-
-      return acc;
-    }, {});
-
-    return r;
-  }
-
   static async getLmRewardsInfo({
     pools,
     provider,
