@@ -1,4 +1,0 @@
-@gearbox-protocol/=node_modules/@gearbox-protocol/
-@1inch/=node_modules/@1inch/
-@chainlink/=node_modules/@chainlink/
-@openzeppelin/=node_modules/@openzeppelin/
