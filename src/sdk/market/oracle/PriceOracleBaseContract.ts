@@ -1,5 +1,5 @@
 import { format, formatDistanceToNow } from "date-fns";
-import type { Abi, Address } from "viem";
+import type { Abi, Address, ContractFunctionReturnType } from "viem";
 import { decodeFunctionData, stringToHex } from "viem";
 
 import { iPriceFeedCompressorAbi } from "../../../abi/compressors.js";
@@ -75,8 +75,8 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
   ) {
     super(sdk, args);
     this.underlying = underlying;
-    const { priceFeedMapping, priceFeedStructure } = data;
-    this.#loadState(priceFeedMapping, priceFeedStructure);
+    const { priceFeedMap, priceFeedTree } = data;
+    this.#loadState(priceFeedMap, priceFeedTree);
   }
 
   /**
@@ -273,14 +273,18 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
       call: {
         abi: iPriceFeedCompressorAbi,
         address,
-        functionName: "getPriceFeeds",
+        functionName: "getPriceOracleState",
         args,
       },
-      onResult: ([entries, tree]: [
-        PriceFeedMapEntry[],
-        PriceFeedTreeNode[],
-      ]) => {
-        this.#loadState(entries, tree);
+      onResult: (
+        resp: ContractFunctionReturnType<
+          typeof iPriceFeedCompressorAbi,
+          "view",
+          "getPriceOracleState"
+        >,
+      ) => {
+        const { priceFeedMap, priceFeedTree } = resp;
+        this.#loadState(priceFeedMap, priceFeedTree);
       },
     };
   }

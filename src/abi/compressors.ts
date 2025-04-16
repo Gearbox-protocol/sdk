@@ -1,125 +1,4 @@
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// IAdapterCompressor
-/// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-export const iAdapterCompressorAbi = [
-  {
-    type: "function",
-    inputs: [],
-    name: "contractType",
-    outputs: [{ name: "", internalType: "bytes32", type: "bytes32" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    inputs: [
-      { name: "creditManager", internalType: "address", type: "address" },
-    ],
-    name: "getAdapters",
-    outputs: [
-      {
-        name: "result",
-        internalType: "struct AdapterState[]",
-        type: "tuple[]",
-        components: [
-          {
-            name: "baseParams",
-            internalType: "struct BaseParams",
-            type: "tuple",
-            components: [
-              { name: "addr", internalType: "address", type: "address" },
-              { name: "version", internalType: "uint256", type: "uint256" },
-              {
-                name: "contractType",
-                internalType: "bytes32",
-                type: "bytes32",
-              },
-              {
-                name: "serializedParams",
-                internalType: "bytes",
-                type: "bytes",
-              },
-            ],
-          },
-          { name: "targetContract", internalType: "address", type: "address" },
-        ],
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    inputs: [],
-    name: "version",
-    outputs: [{ name: "", internalType: "uint256", type: "uint256" }],
-    stateMutability: "view",
-  },
-] as const;
-
-/// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// IAuraL2Coordinator
-/// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-export const iAuraL2CoordinatorAbi = [
-  {
-    type: "function",
-    inputs: [],
-    name: "auraOFT",
-    outputs: [{ name: "", internalType: "address", type: "address" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    inputs: [],
-    name: "mintRate",
-    outputs: [{ name: "", internalType: "uint256", type: "uint256" }],
-    stateMutability: "view",
-  },
-] as const;
-
-/// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// IConvexToken
-/// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-export const iConvexTokenAbi = [
-  {
-    type: "function",
-    inputs: [],
-    name: "EMISSIONS_MAX_SUPPLY",
-    outputs: [{ name: "", internalType: "uint256", type: "uint256" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    inputs: [],
-    name: "maxSupply",
-    outputs: [{ name: "", internalType: "uint256", type: "uint256" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    inputs: [],
-    name: "reductionPerCliff",
-    outputs: [{ name: "", internalType: "uint256", type: "uint256" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    inputs: [],
-    name: "totalCliffs",
-    outputs: [{ name: "", internalType: "uint256", type: "uint256" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    inputs: [],
-    name: "totalSupply",
-    outputs: [{ name: "", internalType: "uint256", type: "uint256" }],
-    stateMutability: "view",
-  },
-] as const;
-
-/// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ICreditAccountCompressor
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -142,8 +21,8 @@ export const iCreditAccountCompressorAbi = [
         components: [
           { name: "owner", internalType: "address", type: "address" },
           { name: "includeZeroDebt", internalType: "bool", type: "bool" },
-          { name: "minHealthFactor", internalType: "uint16", type: "uint16" },
-          { name: "maxHealthFactor", internalType: "uint16", type: "uint16" },
+          { name: "minHealthFactor", internalType: "uint256", type: "uint256" },
+          { name: "maxHealthFactor", internalType: "uint256", type: "uint256" },
           { name: "reverting", internalType: "bool", type: "bool" },
         ],
       },
@@ -157,11 +36,16 @@ export const iCreditAccountCompressorAbi = [
     inputs: [
       {
         name: "cmFilter",
-        internalType: "struct MarketFilter",
+        internalType: "struct CreditManagerFilter",
         type: "tuple",
         components: [
           {
             name: "configurators",
+            internalType: "address[]",
+            type: "address[]",
+          },
+          {
+            name: "creditManagers",
             internalType: "address[]",
             type: "address[]",
           },
@@ -176,8 +60,8 @@ export const iCreditAccountCompressorAbi = [
         components: [
           { name: "owner", internalType: "address", type: "address" },
           { name: "includeZeroDebt", internalType: "bool", type: "bool" },
-          { name: "minHealthFactor", internalType: "uint16", type: "uint16" },
-          { name: "maxHealthFactor", internalType: "uint16", type: "uint16" },
+          { name: "minHealthFactor", internalType: "uint256", type: "uint256" },
+          { name: "maxHealthFactor", internalType: "uint256", type: "uint256" },
           { name: "reverting", internalType: "bool", type: "bool" },
         ],
       },
@@ -216,7 +100,7 @@ export const iCreditAccountCompressorAbi = [
           { name: "totalValueUSD", internalType: "uint256", type: "uint256" },
           { name: "twvUSD", internalType: "uint256", type: "uint256" },
           { name: "totalValue", internalType: "uint256", type: "uint256" },
-          { name: "healthFactor", internalType: "uint16", type: "uint16" },
+          { name: "healthFactor", internalType: "uint256", type: "uint256" },
           { name: "success", internalType: "bool", type: "bool" },
           {
             name: "tokens",
@@ -240,11 +124,16 @@ export const iCreditAccountCompressorAbi = [
     inputs: [
       {
         name: "cmFilter",
-        internalType: "struct MarketFilter",
+        internalType: "struct CreditManagerFilter",
         type: "tuple",
         components: [
           {
             name: "configurators",
+            internalType: "address[]",
+            type: "address[]",
+          },
+          {
+            name: "creditManagers",
             internalType: "address[]",
             type: "address[]",
           },
@@ -259,134 +148,8 @@ export const iCreditAccountCompressorAbi = [
         components: [
           { name: "owner", internalType: "address", type: "address" },
           { name: "includeZeroDebt", internalType: "bool", type: "bool" },
-          { name: "minHealthFactor", internalType: "uint16", type: "uint16" },
-          { name: "maxHealthFactor", internalType: "uint16", type: "uint16" },
-          { name: "reverting", internalType: "bool", type: "bool" },
-        ],
-      },
-      { name: "offset", internalType: "uint256", type: "uint256" },
-    ],
-    name: "getCreditAccounts",
-    outputs: [
-      {
-        name: "data",
-        internalType: "struct CreditAccountData[]",
-        type: "tuple[]",
-        components: [
-          { name: "creditAccount", internalType: "address", type: "address" },
-          { name: "creditManager", internalType: "address", type: "address" },
-          { name: "creditFacade", internalType: "address", type: "address" },
-          { name: "underlying", internalType: "address", type: "address" },
-          { name: "owner", internalType: "address", type: "address" },
-          { name: "expirationDate", internalType: "uint40", type: "uint40" },
-          {
-            name: "enabledTokensMask",
-            internalType: "uint256",
-            type: "uint256",
-          },
-          { name: "debt", internalType: "uint256", type: "uint256" },
-          { name: "accruedInterest", internalType: "uint256", type: "uint256" },
-          { name: "accruedFees", internalType: "uint256", type: "uint256" },
-          { name: "totalDebtUSD", internalType: "uint256", type: "uint256" },
-          { name: "totalValueUSD", internalType: "uint256", type: "uint256" },
-          { name: "twvUSD", internalType: "uint256", type: "uint256" },
-          { name: "totalValue", internalType: "uint256", type: "uint256" },
-          { name: "healthFactor", internalType: "uint16", type: "uint16" },
-          { name: "success", internalType: "bool", type: "bool" },
-          {
-            name: "tokens",
-            internalType: "struct TokenInfo[]",
-            type: "tuple[]",
-            components: [
-              { name: "token", internalType: "address", type: "address" },
-              { name: "mask", internalType: "uint256", type: "uint256" },
-              { name: "balance", internalType: "uint256", type: "uint256" },
-              { name: "quota", internalType: "uint256", type: "uint256" },
-              { name: "success", internalType: "bool", type: "bool" },
-            ],
-          },
-        ],
-      },
-      { name: "nextOffset", internalType: "uint256", type: "uint256" },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    inputs: [
-      { name: "creditManager", internalType: "address", type: "address" },
-      {
-        name: "caFilter",
-        internalType: "struct CreditAccountFilter",
-        type: "tuple",
-        components: [
-          { name: "owner", internalType: "address", type: "address" },
-          { name: "includeZeroDebt", internalType: "bool", type: "bool" },
-          { name: "minHealthFactor", internalType: "uint16", type: "uint16" },
-          { name: "maxHealthFactor", internalType: "uint16", type: "uint16" },
-          { name: "reverting", internalType: "bool", type: "bool" },
-        ],
-      },
-      { name: "offset", internalType: "uint256", type: "uint256" },
-    ],
-    name: "getCreditAccounts",
-    outputs: [
-      {
-        name: "data",
-        internalType: "struct CreditAccountData[]",
-        type: "tuple[]",
-        components: [
-          { name: "creditAccount", internalType: "address", type: "address" },
-          { name: "creditManager", internalType: "address", type: "address" },
-          { name: "creditFacade", internalType: "address", type: "address" },
-          { name: "underlying", internalType: "address", type: "address" },
-          { name: "owner", internalType: "address", type: "address" },
-          { name: "expirationDate", internalType: "uint40", type: "uint40" },
-          {
-            name: "enabledTokensMask",
-            internalType: "uint256",
-            type: "uint256",
-          },
-          { name: "debt", internalType: "uint256", type: "uint256" },
-          { name: "accruedInterest", internalType: "uint256", type: "uint256" },
-          { name: "accruedFees", internalType: "uint256", type: "uint256" },
-          { name: "totalDebtUSD", internalType: "uint256", type: "uint256" },
-          { name: "totalValueUSD", internalType: "uint256", type: "uint256" },
-          { name: "twvUSD", internalType: "uint256", type: "uint256" },
-          { name: "totalValue", internalType: "uint256", type: "uint256" },
-          { name: "healthFactor", internalType: "uint16", type: "uint16" },
-          { name: "success", internalType: "bool", type: "bool" },
-          {
-            name: "tokens",
-            internalType: "struct TokenInfo[]",
-            type: "tuple[]",
-            components: [
-              { name: "token", internalType: "address", type: "address" },
-              { name: "mask", internalType: "uint256", type: "uint256" },
-              { name: "balance", internalType: "uint256", type: "uint256" },
-              { name: "quota", internalType: "uint256", type: "uint256" },
-              { name: "success", internalType: "bool", type: "bool" },
-            ],
-          },
-        ],
-      },
-      { name: "nextOffset", internalType: "uint256", type: "uint256" },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    inputs: [
-      { name: "creditManager", internalType: "address", type: "address" },
-      {
-        name: "caFilter",
-        internalType: "struct CreditAccountFilter",
-        type: "tuple",
-        components: [
-          { name: "owner", internalType: "address", type: "address" },
-          { name: "includeZeroDebt", internalType: "bool", type: "bool" },
-          { name: "minHealthFactor", internalType: "uint16", type: "uint16" },
-          { name: "maxHealthFactor", internalType: "uint16", type: "uint16" },
+          { name: "minHealthFactor", internalType: "uint256", type: "uint256" },
+          { name: "maxHealthFactor", internalType: "uint256", type: "uint256" },
           { name: "reverting", internalType: "bool", type: "bool" },
         ],
       },
@@ -418,7 +181,7 @@ export const iCreditAccountCompressorAbi = [
           { name: "totalValueUSD", internalType: "uint256", type: "uint256" },
           { name: "twvUSD", internalType: "uint256", type: "uint256" },
           { name: "totalValue", internalType: "uint256", type: "uint256" },
-          { name: "healthFactor", internalType: "uint16", type: "uint16" },
+          { name: "healthFactor", internalType: "uint256", type: "uint256" },
           { name: "success", internalType: "bool", type: "bool" },
           {
             name: "tokens",
@@ -441,20 +204,7 @@ export const iCreditAccountCompressorAbi = [
   {
     type: "function",
     inputs: [
-      {
-        name: "cmFilter",
-        internalType: "struct MarketFilter",
-        type: "tuple",
-        components: [
-          {
-            name: "configurators",
-            internalType: "address[]",
-            type: "address[]",
-          },
-          { name: "pools", internalType: "address[]", type: "address[]" },
-          { name: "underlying", internalType: "address", type: "address" },
-        ],
-      },
+      { name: "creditManager", internalType: "address", type: "address" },
       {
         name: "caFilter",
         internalType: "struct CreditAccountFilter",
@@ -462,8 +212,71 @@ export const iCreditAccountCompressorAbi = [
         components: [
           { name: "owner", internalType: "address", type: "address" },
           { name: "includeZeroDebt", internalType: "bool", type: "bool" },
-          { name: "minHealthFactor", internalType: "uint16", type: "uint16" },
-          { name: "maxHealthFactor", internalType: "uint16", type: "uint16" },
+          { name: "minHealthFactor", internalType: "uint256", type: "uint256" },
+          { name: "maxHealthFactor", internalType: "uint256", type: "uint256" },
+          { name: "reverting", internalType: "bool", type: "bool" },
+        ],
+      },
+      { name: "offset", internalType: "uint256", type: "uint256" },
+    ],
+    name: "getCreditAccounts",
+    outputs: [
+      {
+        name: "data",
+        internalType: "struct CreditAccountData[]",
+        type: "tuple[]",
+        components: [
+          { name: "creditAccount", internalType: "address", type: "address" },
+          { name: "creditManager", internalType: "address", type: "address" },
+          { name: "creditFacade", internalType: "address", type: "address" },
+          { name: "underlying", internalType: "address", type: "address" },
+          { name: "owner", internalType: "address", type: "address" },
+          { name: "expirationDate", internalType: "uint40", type: "uint40" },
+          {
+            name: "enabledTokensMask",
+            internalType: "uint256",
+            type: "uint256",
+          },
+          { name: "debt", internalType: "uint256", type: "uint256" },
+          { name: "accruedInterest", internalType: "uint256", type: "uint256" },
+          { name: "accruedFees", internalType: "uint256", type: "uint256" },
+          { name: "totalDebtUSD", internalType: "uint256", type: "uint256" },
+          { name: "totalValueUSD", internalType: "uint256", type: "uint256" },
+          { name: "twvUSD", internalType: "uint256", type: "uint256" },
+          { name: "totalValue", internalType: "uint256", type: "uint256" },
+          { name: "healthFactor", internalType: "uint256", type: "uint256" },
+          { name: "success", internalType: "bool", type: "bool" },
+          {
+            name: "tokens",
+            internalType: "struct TokenInfo[]",
+            type: "tuple[]",
+            components: [
+              { name: "token", internalType: "address", type: "address" },
+              { name: "mask", internalType: "uint256", type: "uint256" },
+              { name: "balance", internalType: "uint256", type: "uint256" },
+              { name: "quota", internalType: "uint256", type: "uint256" },
+              { name: "success", internalType: "bool", type: "bool" },
+            ],
+          },
+        ],
+      },
+      { name: "nextOffset", internalType: "uint256", type: "uint256" },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [
+      { name: "creditManager", internalType: "address", type: "address" },
+      {
+        name: "caFilter",
+        internalType: "struct CreditAccountFilter",
+        type: "tuple",
+        components: [
+          { name: "owner", internalType: "address", type: "address" },
+          { name: "includeZeroDebt", internalType: "bool", type: "bool" },
+          { name: "minHealthFactor", internalType: "uint256", type: "uint256" },
+          { name: "maxHealthFactor", internalType: "uint256", type: "uint256" },
           { name: "reverting", internalType: "bool", type: "bool" },
         ],
       },
@@ -495,7 +308,88 @@ export const iCreditAccountCompressorAbi = [
           { name: "totalValueUSD", internalType: "uint256", type: "uint256" },
           { name: "twvUSD", internalType: "uint256", type: "uint256" },
           { name: "totalValue", internalType: "uint256", type: "uint256" },
-          { name: "healthFactor", internalType: "uint16", type: "uint16" },
+          { name: "healthFactor", internalType: "uint256", type: "uint256" },
+          { name: "success", internalType: "bool", type: "bool" },
+          {
+            name: "tokens",
+            internalType: "struct TokenInfo[]",
+            type: "tuple[]",
+            components: [
+              { name: "token", internalType: "address", type: "address" },
+              { name: "mask", internalType: "uint256", type: "uint256" },
+              { name: "balance", internalType: "uint256", type: "uint256" },
+              { name: "quota", internalType: "uint256", type: "uint256" },
+              { name: "success", internalType: "bool", type: "bool" },
+            ],
+          },
+        ],
+      },
+      { name: "nextOffset", internalType: "uint256", type: "uint256" },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [
+      {
+        name: "cmFilter",
+        internalType: "struct CreditManagerFilter",
+        type: "tuple",
+        components: [
+          {
+            name: "configurators",
+            internalType: "address[]",
+            type: "address[]",
+          },
+          {
+            name: "creditManagers",
+            internalType: "address[]",
+            type: "address[]",
+          },
+          { name: "pools", internalType: "address[]", type: "address[]" },
+          { name: "underlying", internalType: "address", type: "address" },
+        ],
+      },
+      {
+        name: "caFilter",
+        internalType: "struct CreditAccountFilter",
+        type: "tuple",
+        components: [
+          { name: "owner", internalType: "address", type: "address" },
+          { name: "includeZeroDebt", internalType: "bool", type: "bool" },
+          { name: "minHealthFactor", internalType: "uint256", type: "uint256" },
+          { name: "maxHealthFactor", internalType: "uint256", type: "uint256" },
+          { name: "reverting", internalType: "bool", type: "bool" },
+        ],
+      },
+      { name: "offset", internalType: "uint256", type: "uint256" },
+    ],
+    name: "getCreditAccounts",
+    outputs: [
+      {
+        name: "data",
+        internalType: "struct CreditAccountData[]",
+        type: "tuple[]",
+        components: [
+          { name: "creditAccount", internalType: "address", type: "address" },
+          { name: "creditManager", internalType: "address", type: "address" },
+          { name: "creditFacade", internalType: "address", type: "address" },
+          { name: "underlying", internalType: "address", type: "address" },
+          { name: "owner", internalType: "address", type: "address" },
+          { name: "expirationDate", internalType: "uint40", type: "uint40" },
+          {
+            name: "enabledTokensMask",
+            internalType: "uint256",
+            type: "uint256",
+          },
+          { name: "debt", internalType: "uint256", type: "uint256" },
+          { name: "accruedInterest", internalType: "uint256", type: "uint256" },
+          { name: "accruedFees", internalType: "uint256", type: "uint256" },
+          { name: "totalDebtUSD", internalType: "uint256", type: "uint256" },
+          { name: "totalValueUSD", internalType: "uint256", type: "uint256" },
+          { name: "twvUSD", internalType: "uint256", type: "uint256" },
+          { name: "totalValue", internalType: "uint256", type: "uint256" },
+          { name: "healthFactor", internalType: "uint256", type: "uint256" },
           { name: "success", internalType: "bool", type: "bool" },
           {
             name: "tokens",
@@ -539,6 +433,115 @@ export const iCreditSuiteCompressorAbi = [
   {
     type: "function",
     inputs: [
+      { name: "accountFactory", internalType: "address", type: "address" },
+    ],
+    name: "getAccountFactoryState",
+    outputs: [
+      {
+        name: "",
+        internalType: "struct BaseState",
+        type: "tuple",
+        components: [
+          {
+            name: "baseParams",
+            internalType: "struct BaseParams",
+            type: "tuple",
+            components: [
+              { name: "addr", internalType: "address", type: "address" },
+              { name: "version", internalType: "uint256", type: "uint256" },
+              {
+                name: "contractType",
+                internalType: "bytes32",
+                type: "bytes32",
+              },
+              {
+                name: "serializedParams",
+                internalType: "bytes",
+                type: "bytes",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [
+      { name: "creditManager", internalType: "address", type: "address" },
+    ],
+    name: "getAdapters",
+    outputs: [
+      {
+        name: "",
+        internalType: "struct AdapterState[]",
+        type: "tuple[]",
+        components: [
+          {
+            name: "baseParams",
+            internalType: "struct BaseParams",
+            type: "tuple",
+            components: [
+              { name: "addr", internalType: "address", type: "address" },
+              { name: "version", internalType: "uint256", type: "uint256" },
+              {
+                name: "contractType",
+                internalType: "bytes32",
+                type: "bytes32",
+              },
+              {
+                name: "serializedParams",
+                internalType: "bytes",
+                type: "bytes",
+              },
+            ],
+          },
+          { name: "targetContract", internalType: "address", type: "address" },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [
+      { name: "creditConfigurator", internalType: "address", type: "address" },
+    ],
+    name: "getCreditConfiguratorState",
+    outputs: [
+      {
+        name: "",
+        internalType: "struct BaseState",
+        type: "tuple",
+        components: [
+          {
+            name: "baseParams",
+            internalType: "struct BaseParams",
+            type: "tuple",
+            components: [
+              { name: "addr", internalType: "address", type: "address" },
+              { name: "version", internalType: "uint256", type: "uint256" },
+              {
+                name: "contractType",
+                internalType: "bytes32",
+                type: "bytes32",
+              },
+              {
+                name: "serializedParams",
+                internalType: "bytes",
+                type: "bytes",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [
       { name: "creditFacade", internalType: "address", type: "address" },
     ],
     name: "getCreditFacadeState",
@@ -567,7 +570,6 @@ export const iCreditSuiteCompressorAbi = [
               },
             ],
           },
-          { name: "creditManager", internalType: "address", type: "address" },
           { name: "degenNFT", internalType: "address", type: "address" },
           { name: "botList", internalType: "address", type: "address" },
           { name: "expirable", internalType: "bool", type: "bool" },
@@ -580,7 +582,7 @@ export const iCreditSuiteCompressorAbi = [
           { name: "minDebt", internalType: "uint256", type: "uint256" },
           { name: "maxDebt", internalType: "uint256", type: "uint256" },
           {
-            name: "forbiddenTokenMask",
+            name: "forbiddenTokensMask",
             internalType: "uint256",
             type: "uint256",
           },
@@ -703,11 +705,6 @@ export const iCreditSuiteCompressorAbi = [
                   },
                 ],
               },
-              {
-                name: "creditManager",
-                internalType: "address",
-                type: "address",
-              },
               { name: "degenNFT", internalType: "address", type: "address" },
               { name: "botList", internalType: "address", type: "address" },
               { name: "expirable", internalType: "bool", type: "bool" },
@@ -724,7 +721,7 @@ export const iCreditSuiteCompressorAbi = [
               { name: "minDebt", internalType: "uint256", type: "uint256" },
               { name: "maxDebt", internalType: "uint256", type: "uint256" },
               {
-                name: "forbiddenTokenMask",
+                name: "forbiddenTokensMask",
                 internalType: "uint256",
                 type: "uint256",
               },
@@ -841,6 +838,280 @@ export const iCreditSuiteCompressorAbi = [
             ],
           },
           {
+            name: "accountFactory",
+            internalType: "struct BaseState",
+            type: "tuple",
+            components: [
+              {
+                name: "baseParams",
+                internalType: "struct BaseParams",
+                type: "tuple",
+                components: [
+                  { name: "addr", internalType: "address", type: "address" },
+                  { name: "version", internalType: "uint256", type: "uint256" },
+                  {
+                    name: "contractType",
+                    internalType: "bytes32",
+                    type: "bytes32",
+                  },
+                  {
+                    name: "serializedParams",
+                    internalType: "bytes",
+                    type: "bytes",
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            name: "adapters",
+            internalType: "struct AdapterState[]",
+            type: "tuple[]",
+            components: [
+              {
+                name: "baseParams",
+                internalType: "struct BaseParams",
+                type: "tuple",
+                components: [
+                  { name: "addr", internalType: "address", type: "address" },
+                  { name: "version", internalType: "uint256", type: "uint256" },
+                  {
+                    name: "contractType",
+                    internalType: "bytes32",
+                    type: "bytes32",
+                  },
+                  {
+                    name: "serializedParams",
+                    internalType: "bytes",
+                    type: "bytes",
+                  },
+                ],
+              },
+              {
+                name: "targetContract",
+                internalType: "address",
+                type: "address",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [
+      {
+        name: "filter",
+        internalType: "struct CreditManagerFilter",
+        type: "tuple",
+        components: [
+          {
+            name: "configurators",
+            internalType: "address[]",
+            type: "address[]",
+          },
+          {
+            name: "creditManagers",
+            internalType: "address[]",
+            type: "address[]",
+          },
+          { name: "pools", internalType: "address[]", type: "address[]" },
+          { name: "underlying", internalType: "address", type: "address" },
+        ],
+      },
+    ],
+    name: "getCreditSuites",
+    outputs: [
+      {
+        name: "",
+        internalType: "struct CreditSuiteData[]",
+        type: "tuple[]",
+        components: [
+          {
+            name: "creditFacade",
+            internalType: "struct CreditFacadeState",
+            type: "tuple",
+            components: [
+              {
+                name: "baseParams",
+                internalType: "struct BaseParams",
+                type: "tuple",
+                components: [
+                  { name: "addr", internalType: "address", type: "address" },
+                  { name: "version", internalType: "uint256", type: "uint256" },
+                  {
+                    name: "contractType",
+                    internalType: "bytes32",
+                    type: "bytes32",
+                  },
+                  {
+                    name: "serializedParams",
+                    internalType: "bytes",
+                    type: "bytes",
+                  },
+                ],
+              },
+              { name: "degenNFT", internalType: "address", type: "address" },
+              { name: "botList", internalType: "address", type: "address" },
+              { name: "expirable", internalType: "bool", type: "bool" },
+              {
+                name: "expirationDate",
+                internalType: "uint40",
+                type: "uint40",
+              },
+              {
+                name: "maxDebtPerBlockMultiplier",
+                internalType: "uint8",
+                type: "uint8",
+              },
+              { name: "minDebt", internalType: "uint256", type: "uint256" },
+              { name: "maxDebt", internalType: "uint256", type: "uint256" },
+              {
+                name: "forbiddenTokensMask",
+                internalType: "uint256",
+                type: "uint256",
+              },
+              { name: "isPaused", internalType: "bool", type: "bool" },
+            ],
+          },
+          {
+            name: "creditManager",
+            internalType: "struct CreditManagerState",
+            type: "tuple",
+            components: [
+              {
+                name: "baseParams",
+                internalType: "struct BaseParams",
+                type: "tuple",
+                components: [
+                  { name: "addr", internalType: "address", type: "address" },
+                  { name: "version", internalType: "uint256", type: "uint256" },
+                  {
+                    name: "contractType",
+                    internalType: "bytes32",
+                    type: "bytes32",
+                  },
+                  {
+                    name: "serializedParams",
+                    internalType: "bytes",
+                    type: "bytes",
+                  },
+                ],
+              },
+              { name: "name", internalType: "string", type: "string" },
+              {
+                name: "accountFactory",
+                internalType: "address",
+                type: "address",
+              },
+              { name: "underlying", internalType: "address", type: "address" },
+              { name: "pool", internalType: "address", type: "address" },
+              {
+                name: "creditFacade",
+                internalType: "address",
+                type: "address",
+              },
+              {
+                name: "creditConfigurator",
+                internalType: "address",
+                type: "address",
+              },
+              {
+                name: "maxEnabledTokens",
+                internalType: "uint8",
+                type: "uint8",
+              },
+              {
+                name: "collateralTokens",
+                internalType: "struct CollateralToken[]",
+                type: "tuple[]",
+                components: [
+                  { name: "token", internalType: "address", type: "address" },
+                  {
+                    name: "liquidationThreshold",
+                    internalType: "uint16",
+                    type: "uint16",
+                  },
+                ],
+              },
+              { name: "feeInterest", internalType: "uint16", type: "uint16" },
+              {
+                name: "feeLiquidation",
+                internalType: "uint16",
+                type: "uint16",
+              },
+              {
+                name: "liquidationDiscount",
+                internalType: "uint16",
+                type: "uint16",
+              },
+              {
+                name: "feeLiquidationExpired",
+                internalType: "uint16",
+                type: "uint16",
+              },
+              {
+                name: "liquidationDiscountExpired",
+                internalType: "uint16",
+                type: "uint16",
+              },
+            ],
+          },
+          {
+            name: "creditConfigurator",
+            internalType: "struct BaseState",
+            type: "tuple",
+            components: [
+              {
+                name: "baseParams",
+                internalType: "struct BaseParams",
+                type: "tuple",
+                components: [
+                  { name: "addr", internalType: "address", type: "address" },
+                  { name: "version", internalType: "uint256", type: "uint256" },
+                  {
+                    name: "contractType",
+                    internalType: "bytes32",
+                    type: "bytes32",
+                  },
+                  {
+                    name: "serializedParams",
+                    internalType: "bytes",
+                    type: "bytes",
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            name: "accountFactory",
+            internalType: "struct BaseState",
+            type: "tuple",
+            components: [
+              {
+                name: "baseParams",
+                internalType: "struct BaseParams",
+                type: "tuple",
+                components: [
+                  { name: "addr", internalType: "address", type: "address" },
+                  { name: "version", internalType: "uint256", type: "uint256" },
+                  {
+                    name: "contractType",
+                    internalType: "bytes32",
+                    type: "bytes32",
+                  },
+                  {
+                    name: "serializedParams",
+                    internalType: "bytes",
+                    type: "bytes",
+                  },
+                ],
+              },
+            ],
+          },
+          {
             name: "adapters",
             internalType: "struct AdapterState[]",
             type: "tuple[]",
@@ -903,10 +1174,10 @@ export const iGaugeCompressorAbi = [
       { name: "gauge", internalType: "address", type: "address" },
       { name: "staker", internalType: "address", type: "address" },
     ],
-    name: "getGauge",
+    name: "getGaugeInfo",
     outputs: [
       {
-        name: "result",
+        name: "",
         internalType: "struct GaugeInfo",
         type: "tuple",
         components: [
@@ -976,7 +1247,7 @@ export const iGaugeCompressorAbi = [
     name: "getGauges",
     outputs: [
       {
-        name: "result",
+        name: "",
         internalType: "struct GaugeInfo[]",
         type: "tuple[]",
         components: [
@@ -1048,13 +1319,83 @@ export const iMarketCompressorAbi = [
   {
     type: "function",
     inputs: [
+      { name: "interestRateModel", internalType: "address", type: "address" },
+    ],
+    name: "getInterestRateModelState",
+    outputs: [
+      {
+        name: "",
+        internalType: "struct BaseState",
+        type: "tuple",
+        components: [
+          {
+            name: "baseParams",
+            internalType: "struct BaseParams",
+            type: "tuple",
+            components: [
+              { name: "addr", internalType: "address", type: "address" },
+              { name: "version", internalType: "uint256", type: "uint256" },
+              {
+                name: "contractType",
+                internalType: "bytes32",
+                type: "bytes32",
+              },
+              {
+                name: "serializedParams",
+                internalType: "bytes",
+                type: "bytes",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [{ name: "lossPolicy", internalType: "address", type: "address" }],
+    name: "getLossPolicyState",
+    outputs: [
+      {
+        name: "",
+        internalType: "struct BaseState",
+        type: "tuple",
+        components: [
+          {
+            name: "baseParams",
+            internalType: "struct BaseParams",
+            type: "tuple",
+            components: [
+              { name: "addr", internalType: "address", type: "address" },
+              { name: "version", internalType: "uint256", type: "uint256" },
+              {
+                name: "contractType",
+                internalType: "bytes32",
+                type: "bytes32",
+              },
+              {
+                name: "serializedParams",
+                internalType: "bytes",
+                type: "bytes",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [
       { name: "pool", internalType: "address", type: "address" },
       { name: "configurator", internalType: "address", type: "address" },
     ],
     name: "getMarketData",
     outputs: [
       {
-        name: "result",
+        name: "",
         internalType: "struct MarketData",
         type: "tuple",
         components: [
@@ -1093,11 +1434,7 @@ export const iMarketCompressorAbi = [
               { name: "name", internalType: "string", type: "string" },
               { name: "decimals", internalType: "uint8", type: "uint8" },
               { name: "totalSupply", internalType: "uint256", type: "uint256" },
-              {
-                name: "poolQuotaKeeper",
-                internalType: "address",
-                type: "address",
-              },
+              { name: "quotaKeeper", internalType: "address", type: "address" },
               {
                 name: "interestRateModel",
                 internalType: "address",
@@ -1189,8 +1526,8 @@ export const iMarketCompressorAbi = [
             ],
           },
           {
-            name: "poolQuotaKeeper",
-            internalType: "struct PoolQuotaKeeperState",
+            name: "quotaKeeper",
+            internalType: "struct QuotaKeeperState",
             type: "tuple",
             components: [
               {
@@ -1313,7 +1650,7 @@ export const iMarketCompressorAbi = [
             ],
           },
           {
-            name: "priceOracleData",
+            name: "priceOracle",
             internalType: "struct PriceOracleState",
             type: "tuple",
             components: [
@@ -1337,7 +1674,7 @@ export const iMarketCompressorAbi = [
                 ],
               },
               {
-                name: "priceFeedMapping",
+                name: "priceFeedMap",
                 internalType: "struct PriceFeedMapEntry[]",
                 type: "tuple[]",
                 components: [
@@ -1356,7 +1693,7 @@ export const iMarketCompressorAbi = [
                 ],
               },
               {
-                name: "priceFeedStructure",
+                name: "priceFeedTree",
                 internalType: "struct PriceFeedTreeNode[]",
                 type: "tuple[]",
                 components: [
@@ -1498,11 +1835,6 @@ export const iMarketCompressorAbi = [
                     ],
                   },
                   {
-                    name: "creditManager",
-                    internalType: "address",
-                    type: "address",
-                  },
-                  {
                     name: "degenNFT",
                     internalType: "address",
                     type: "address",
@@ -1522,7 +1854,7 @@ export const iMarketCompressorAbi = [
                   { name: "minDebt", internalType: "uint256", type: "uint256" },
                   { name: "maxDebt", internalType: "uint256", type: "uint256" },
                   {
-                    name: "forbiddenTokenMask",
+                    name: "forbiddenTokensMask",
                     internalType: "uint256",
                     type: "uint256",
                   },
@@ -1667,6 +1999,40 @@ export const iMarketCompressorAbi = [
                 ],
               },
               {
+                name: "accountFactory",
+                internalType: "struct BaseState",
+                type: "tuple",
+                components: [
+                  {
+                    name: "baseParams",
+                    internalType: "struct BaseParams",
+                    type: "tuple",
+                    components: [
+                      {
+                        name: "addr",
+                        internalType: "address",
+                        type: "address",
+                      },
+                      {
+                        name: "version",
+                        internalType: "uint256",
+                        type: "uint256",
+                      },
+                      {
+                        name: "contractType",
+                        internalType: "bytes32",
+                        type: "bytes32",
+                      },
+                      {
+                        name: "serializedParams",
+                        internalType: "bytes",
+                        type: "bytes",
+                      },
+                    ],
+                  },
+                ],
+              },
+              {
                 name: "adapters",
                 internalType: "struct AdapterState[]",
                 type: "tuple[]",
@@ -1734,7 +2100,7 @@ export const iMarketCompressorAbi = [
     name: "getMarketData",
     outputs: [
       {
-        name: "result",
+        name: "",
         internalType: "struct MarketData",
         type: "tuple",
         components: [
@@ -1773,11 +2139,7 @@ export const iMarketCompressorAbi = [
               { name: "name", internalType: "string", type: "string" },
               { name: "decimals", internalType: "uint8", type: "uint8" },
               { name: "totalSupply", internalType: "uint256", type: "uint256" },
-              {
-                name: "poolQuotaKeeper",
-                internalType: "address",
-                type: "address",
-              },
+              { name: "quotaKeeper", internalType: "address", type: "address" },
               {
                 name: "interestRateModel",
                 internalType: "address",
@@ -1869,8 +2231,8 @@ export const iMarketCompressorAbi = [
             ],
           },
           {
-            name: "poolQuotaKeeper",
-            internalType: "struct PoolQuotaKeeperState",
+            name: "quotaKeeper",
+            internalType: "struct QuotaKeeperState",
             type: "tuple",
             components: [
               {
@@ -1993,7 +2355,7 @@ export const iMarketCompressorAbi = [
             ],
           },
           {
-            name: "priceOracleData",
+            name: "priceOracle",
             internalType: "struct PriceOracleState",
             type: "tuple",
             components: [
@@ -2017,7 +2379,7 @@ export const iMarketCompressorAbi = [
                 ],
               },
               {
-                name: "priceFeedMapping",
+                name: "priceFeedMap",
                 internalType: "struct PriceFeedMapEntry[]",
                 type: "tuple[]",
                 components: [
@@ -2036,7 +2398,7 @@ export const iMarketCompressorAbi = [
                 ],
               },
               {
-                name: "priceFeedStructure",
+                name: "priceFeedTree",
                 internalType: "struct PriceFeedTreeNode[]",
                 type: "tuple[]",
                 components: [
@@ -2178,11 +2540,6 @@ export const iMarketCompressorAbi = [
                     ],
                   },
                   {
-                    name: "creditManager",
-                    internalType: "address",
-                    type: "address",
-                  },
-                  {
                     name: "degenNFT",
                     internalType: "address",
                     type: "address",
@@ -2202,7 +2559,7 @@ export const iMarketCompressorAbi = [
                   { name: "minDebt", internalType: "uint256", type: "uint256" },
                   { name: "maxDebt", internalType: "uint256", type: "uint256" },
                   {
-                    name: "forbiddenTokenMask",
+                    name: "forbiddenTokensMask",
                     internalType: "uint256",
                     type: "uint256",
                   },
@@ -2314,6 +2671,40 @@ export const iMarketCompressorAbi = [
               },
               {
                 name: "creditConfigurator",
+                internalType: "struct BaseState",
+                type: "tuple",
+                components: [
+                  {
+                    name: "baseParams",
+                    internalType: "struct BaseParams",
+                    type: "tuple",
+                    components: [
+                      {
+                        name: "addr",
+                        internalType: "address",
+                        type: "address",
+                      },
+                      {
+                        name: "version",
+                        internalType: "uint256",
+                        type: "uint256",
+                      },
+                      {
+                        name: "contractType",
+                        internalType: "bytes32",
+                        type: "bytes32",
+                      },
+                      {
+                        name: "serializedParams",
+                        internalType: "bytes",
+                        type: "bytes",
+                      },
+                    ],
+                  },
+                ],
+              },
+              {
+                name: "accountFactory",
                 internalType: "struct BaseState",
                 type: "tuple",
                 components: [
@@ -2429,7 +2820,7 @@ export const iMarketCompressorAbi = [
     name: "getMarkets",
     outputs: [
       {
-        name: "result",
+        name: "",
         internalType: "struct MarketData[]",
         type: "tuple[]",
         components: [
@@ -2468,11 +2859,7 @@ export const iMarketCompressorAbi = [
               { name: "name", internalType: "string", type: "string" },
               { name: "decimals", internalType: "uint8", type: "uint8" },
               { name: "totalSupply", internalType: "uint256", type: "uint256" },
-              {
-                name: "poolQuotaKeeper",
-                internalType: "address",
-                type: "address",
-              },
+              { name: "quotaKeeper", internalType: "address", type: "address" },
               {
                 name: "interestRateModel",
                 internalType: "address",
@@ -2564,8 +2951,8 @@ export const iMarketCompressorAbi = [
             ],
           },
           {
-            name: "poolQuotaKeeper",
-            internalType: "struct PoolQuotaKeeperState",
+            name: "quotaKeeper",
+            internalType: "struct QuotaKeeperState",
             type: "tuple",
             components: [
               {
@@ -2688,7 +3075,7 @@ export const iMarketCompressorAbi = [
             ],
           },
           {
-            name: "priceOracleData",
+            name: "priceOracle",
             internalType: "struct PriceOracleState",
             type: "tuple",
             components: [
@@ -2712,7 +3099,7 @@ export const iMarketCompressorAbi = [
                 ],
               },
               {
-                name: "priceFeedMapping",
+                name: "priceFeedMap",
                 internalType: "struct PriceFeedMapEntry[]",
                 type: "tuple[]",
                 components: [
@@ -2731,7 +3118,7 @@ export const iMarketCompressorAbi = [
                 ],
               },
               {
-                name: "priceFeedStructure",
+                name: "priceFeedTree",
                 internalType: "struct PriceFeedTreeNode[]",
                 type: "tuple[]",
                 components: [
@@ -2873,11 +3260,6 @@ export const iMarketCompressorAbi = [
                     ],
                   },
                   {
-                    name: "creditManager",
-                    internalType: "address",
-                    type: "address",
-                  },
-                  {
                     name: "degenNFT",
                     internalType: "address",
                     type: "address",
@@ -2897,7 +3279,7 @@ export const iMarketCompressorAbi = [
                   { name: "minDebt", internalType: "uint256", type: "uint256" },
                   { name: "maxDebt", internalType: "uint256", type: "uint256" },
                   {
-                    name: "forbiddenTokenMask",
+                    name: "forbiddenTokensMask",
                     internalType: "uint256",
                     type: "uint256",
                   },
@@ -3042,6 +3424,40 @@ export const iMarketCompressorAbi = [
                 ],
               },
               {
+                name: "accountFactory",
+                internalType: "struct BaseState",
+                type: "tuple",
+                components: [
+                  {
+                    name: "baseParams",
+                    internalType: "struct BaseParams",
+                    type: "tuple",
+                    components: [
+                      {
+                        name: "addr",
+                        internalType: "address",
+                        type: "address",
+                      },
+                      {
+                        name: "version",
+                        internalType: "uint256",
+                        type: "uint256",
+                      },
+                      {
+                        name: "contractType",
+                        internalType: "bytes32",
+                        type: "bytes32",
+                      },
+                      {
+                        name: "serializedParams",
+                        internalType: "bytes",
+                        type: "bytes",
+                      },
+                    ],
+                  },
+                ],
+              },
+              {
                 name: "adapters",
                 internalType: "struct AdapterState[]",
                 type: "tuple[]",
@@ -3105,33 +3521,216 @@ export const iMarketCompressorAbi = [
   },
   {
     type: "function",
-    inputs: [
+    inputs: [{ name: "pool", internalType: "address", type: "address" }],
+    name: "getPoolState",
+    outputs: [
       {
-        name: "filter",
-        internalType: "struct MarketFilter",
+        name: "",
+        internalType: "struct PoolState",
         type: "tuple",
         components: [
           {
-            name: "configurators",
-            internalType: "address[]",
-            type: "address[]",
+            name: "baseParams",
+            internalType: "struct BaseParams",
+            type: "tuple",
+            components: [
+              { name: "addr", internalType: "address", type: "address" },
+              { name: "version", internalType: "uint256", type: "uint256" },
+              {
+                name: "contractType",
+                internalType: "bytes32",
+                type: "bytes32",
+              },
+              {
+                name: "serializedParams",
+                internalType: "bytes",
+                type: "bytes",
+              },
+            ],
           },
-          { name: "pools", internalType: "address[]", type: "address[]" },
+          { name: "symbol", internalType: "string", type: "string" },
+          { name: "name", internalType: "string", type: "string" },
+          { name: "decimals", internalType: "uint8", type: "uint8" },
+          { name: "totalSupply", internalType: "uint256", type: "uint256" },
+          { name: "quotaKeeper", internalType: "address", type: "address" },
+          {
+            name: "interestRateModel",
+            internalType: "address",
+            type: "address",
+          },
           { name: "underlying", internalType: "address", type: "address" },
+          {
+            name: "availableLiquidity",
+            internalType: "uint256",
+            type: "uint256",
+          },
+          {
+            name: "expectedLiquidity",
+            internalType: "uint256",
+            type: "uint256",
+          },
+          {
+            name: "baseInterestIndex",
+            internalType: "uint256",
+            type: "uint256",
+          },
+          {
+            name: "baseInterestRate",
+            internalType: "uint256",
+            type: "uint256",
+          },
+          { name: "dieselRate", internalType: "uint256", type: "uint256" },
+          { name: "supplyRate", internalType: "uint256", type: "uint256" },
+          { name: "withdrawFee", internalType: "uint256", type: "uint256" },
+          { name: "totalBorrowed", internalType: "uint256", type: "uint256" },
+          { name: "totalDebtLimit", internalType: "uint256", type: "uint256" },
+          {
+            name: "creditManagerDebtParams",
+            internalType: "struct CreditManagerDebtParams[]",
+            type: "tuple[]",
+            components: [
+              {
+                name: "creditManager",
+                internalType: "address",
+                type: "address",
+              },
+              { name: "borrowed", internalType: "uint256", type: "uint256" },
+              { name: "limit", internalType: "uint256", type: "uint256" },
+              { name: "available", internalType: "uint256", type: "uint256" },
+            ],
+          },
+          {
+            name: "baseInterestIndexLU",
+            internalType: "uint256",
+            type: "uint256",
+          },
+          {
+            name: "expectedLiquidityLU",
+            internalType: "uint256",
+            type: "uint256",
+          },
+          { name: "quotaRevenue", internalType: "uint256", type: "uint256" },
+          {
+            name: "lastBaseInterestUpdate",
+            internalType: "uint40",
+            type: "uint40",
+          },
+          {
+            name: "lastQuotaRevenueUpdate",
+            internalType: "uint40",
+            type: "uint40",
+          },
+          { name: "isPaused", internalType: "bool", type: "bool" },
         ],
       },
     ],
-    name: "getUpdatablePriceFeeds",
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [{ name: "quotaKeeper", internalType: "address", type: "address" }],
+    name: "getQuotaKeeperState",
     outputs: [
       {
-        name: "updatablePriceFeeds",
-        internalType: "struct BaseParams[]",
-        type: "tuple[]",
+        name: "",
+        internalType: "struct QuotaKeeperState",
+        type: "tuple",
         components: [
-          { name: "addr", internalType: "address", type: "address" },
-          { name: "version", internalType: "uint256", type: "uint256" },
-          { name: "contractType", internalType: "bytes32", type: "bytes32" },
-          { name: "serializedParams", internalType: "bytes", type: "bytes" },
+          {
+            name: "baseParams",
+            internalType: "struct BaseParams",
+            type: "tuple",
+            components: [
+              { name: "addr", internalType: "address", type: "address" },
+              { name: "version", internalType: "uint256", type: "uint256" },
+              {
+                name: "contractType",
+                internalType: "bytes32",
+                type: "bytes32",
+              },
+              {
+                name: "serializedParams",
+                internalType: "bytes",
+                type: "bytes",
+              },
+            ],
+          },
+          { name: "rateKeeper", internalType: "address", type: "address" },
+          {
+            name: "quotas",
+            internalType: "struct QuotaTokenParams[]",
+            type: "tuple[]",
+            components: [
+              { name: "token", internalType: "address", type: "address" },
+              { name: "rate", internalType: "uint16", type: "uint16" },
+              {
+                name: "cumulativeIndexLU",
+                internalType: "uint192",
+                type: "uint192",
+              },
+              {
+                name: "quotaIncreaseFee",
+                internalType: "uint16",
+                type: "uint16",
+              },
+              { name: "totalQuoted", internalType: "uint96", type: "uint96" },
+              { name: "limit", internalType: "uint96", type: "uint96" },
+              { name: "isActive", internalType: "bool", type: "bool" },
+            ],
+          },
+          {
+            name: "creditManagers",
+            internalType: "address[]",
+            type: "address[]",
+          },
+          {
+            name: "lastQuotaRateUpdate",
+            internalType: "uint40",
+            type: "uint40",
+          },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [{ name: "rateKeeper", internalType: "address", type: "address" }],
+    name: "getRateKeeperState",
+    outputs: [
+      {
+        name: "",
+        internalType: "struct RateKeeperState",
+        type: "tuple",
+        components: [
+          {
+            name: "baseParams",
+            internalType: "struct BaseParams",
+            type: "tuple",
+            components: [
+              { name: "addr", internalType: "address", type: "address" },
+              { name: "version", internalType: "uint256", type: "uint256" },
+              {
+                name: "contractType",
+                internalType: "bytes32",
+                type: "bytes32",
+              },
+              {
+                name: "serializedParams",
+                internalType: "bytes",
+                type: "bytes",
+              },
+            ],
+          },
+          {
+            name: "rates",
+            internalType: "struct Rate[]",
+            type: "tuple[]",
+            components: [
+              { name: "token", internalType: "address", type: "address" },
+              { name: "rate", internalType: "uint16", type: "uint16" },
+            ],
+          },
         ],
       },
     ],
@@ -3141,20 +3740,6 @@ export const iMarketCompressorAbi = [
     type: "function",
     inputs: [],
     name: "version",
-    outputs: [{ name: "", internalType: "uint256", type: "uint256" }],
-    stateMutability: "view",
-  },
-] as const;
-
-/// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// IModifiedBooster
-/// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-export const iModifiedBoosterAbi = [
-  {
-    type: "function",
-    inputs: [{ name: "pool", internalType: "address", type: "address" }],
-    name: "getRewardMultipliers",
     outputs: [{ name: "", internalType: "uint256", type: "uint256" }],
     stateMutability: "view",
   },
@@ -3327,314 +3912,6 @@ export const iPeripheryCompressorAbi = [
 ] as const;
 
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// IPoolCompressor
-/// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-export const iPoolCompressorAbi = [
-  {
-    type: "function",
-    inputs: [],
-    name: "contractType",
-    outputs: [{ name: "", internalType: "bytes32", type: "bytes32" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    inputs: [
-      { name: "interestRateModel", internalType: "address", type: "address" },
-    ],
-    name: "getInterestRateModelState",
-    outputs: [
-      {
-        name: "",
-        internalType: "struct BaseState",
-        type: "tuple",
-        components: [
-          {
-            name: "baseParams",
-            internalType: "struct BaseParams",
-            type: "tuple",
-            components: [
-              { name: "addr", internalType: "address", type: "address" },
-              { name: "version", internalType: "uint256", type: "uint256" },
-              {
-                name: "contractType",
-                internalType: "bytes32",
-                type: "bytes32",
-              },
-              {
-                name: "serializedParams",
-                internalType: "bytes",
-                type: "bytes",
-              },
-            ],
-          },
-        ],
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    inputs: [{ name: "lossPolicy", internalType: "address", type: "address" }],
-    name: "getLossPolicyState",
-    outputs: [
-      {
-        name: "",
-        internalType: "struct BaseState",
-        type: "tuple",
-        components: [
-          {
-            name: "baseParams",
-            internalType: "struct BaseParams",
-            type: "tuple",
-            components: [
-              { name: "addr", internalType: "address", type: "address" },
-              { name: "version", internalType: "uint256", type: "uint256" },
-              {
-                name: "contractType",
-                internalType: "bytes32",
-                type: "bytes32",
-              },
-              {
-                name: "serializedParams",
-                internalType: "bytes",
-                type: "bytes",
-              },
-            ],
-          },
-        ],
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    inputs: [{ name: "quotaKeeper", internalType: "address", type: "address" }],
-    name: "getPoolQuotaKeeperState",
-    outputs: [
-      {
-        name: "",
-        internalType: "struct PoolQuotaKeeperState",
-        type: "tuple",
-        components: [
-          {
-            name: "baseParams",
-            internalType: "struct BaseParams",
-            type: "tuple",
-            components: [
-              { name: "addr", internalType: "address", type: "address" },
-              { name: "version", internalType: "uint256", type: "uint256" },
-              {
-                name: "contractType",
-                internalType: "bytes32",
-                type: "bytes32",
-              },
-              {
-                name: "serializedParams",
-                internalType: "bytes",
-                type: "bytes",
-              },
-            ],
-          },
-          { name: "rateKeeper", internalType: "address", type: "address" },
-          {
-            name: "quotas",
-            internalType: "struct QuotaTokenParams[]",
-            type: "tuple[]",
-            components: [
-              { name: "token", internalType: "address", type: "address" },
-              { name: "rate", internalType: "uint16", type: "uint16" },
-              {
-                name: "cumulativeIndexLU",
-                internalType: "uint192",
-                type: "uint192",
-              },
-              {
-                name: "quotaIncreaseFee",
-                internalType: "uint16",
-                type: "uint16",
-              },
-              { name: "totalQuoted", internalType: "uint96", type: "uint96" },
-              { name: "limit", internalType: "uint96", type: "uint96" },
-              { name: "isActive", internalType: "bool", type: "bool" },
-            ],
-          },
-          {
-            name: "creditManagers",
-            internalType: "address[]",
-            type: "address[]",
-          },
-          {
-            name: "lastQuotaRateUpdate",
-            internalType: "uint40",
-            type: "uint40",
-          },
-        ],
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    inputs: [{ name: "pool", internalType: "address", type: "address" }],
-    name: "getPoolState",
-    outputs: [
-      {
-        name: "",
-        internalType: "struct PoolState",
-        type: "tuple",
-        components: [
-          {
-            name: "baseParams",
-            internalType: "struct BaseParams",
-            type: "tuple",
-            components: [
-              { name: "addr", internalType: "address", type: "address" },
-              { name: "version", internalType: "uint256", type: "uint256" },
-              {
-                name: "contractType",
-                internalType: "bytes32",
-                type: "bytes32",
-              },
-              {
-                name: "serializedParams",
-                internalType: "bytes",
-                type: "bytes",
-              },
-            ],
-          },
-          { name: "symbol", internalType: "string", type: "string" },
-          { name: "name", internalType: "string", type: "string" },
-          { name: "decimals", internalType: "uint8", type: "uint8" },
-          { name: "totalSupply", internalType: "uint256", type: "uint256" },
-          { name: "poolQuotaKeeper", internalType: "address", type: "address" },
-          {
-            name: "interestRateModel",
-            internalType: "address",
-            type: "address",
-          },
-          { name: "underlying", internalType: "address", type: "address" },
-          {
-            name: "availableLiquidity",
-            internalType: "uint256",
-            type: "uint256",
-          },
-          {
-            name: "expectedLiquidity",
-            internalType: "uint256",
-            type: "uint256",
-          },
-          {
-            name: "baseInterestIndex",
-            internalType: "uint256",
-            type: "uint256",
-          },
-          {
-            name: "baseInterestRate",
-            internalType: "uint256",
-            type: "uint256",
-          },
-          { name: "dieselRate", internalType: "uint256", type: "uint256" },
-          { name: "supplyRate", internalType: "uint256", type: "uint256" },
-          { name: "withdrawFee", internalType: "uint256", type: "uint256" },
-          { name: "totalBorrowed", internalType: "uint256", type: "uint256" },
-          { name: "totalDebtLimit", internalType: "uint256", type: "uint256" },
-          {
-            name: "creditManagerDebtParams",
-            internalType: "struct CreditManagerDebtParams[]",
-            type: "tuple[]",
-            components: [
-              {
-                name: "creditManager",
-                internalType: "address",
-                type: "address",
-              },
-              { name: "borrowed", internalType: "uint256", type: "uint256" },
-              { name: "limit", internalType: "uint256", type: "uint256" },
-              { name: "available", internalType: "uint256", type: "uint256" },
-            ],
-          },
-          {
-            name: "baseInterestIndexLU",
-            internalType: "uint256",
-            type: "uint256",
-          },
-          {
-            name: "expectedLiquidityLU",
-            internalType: "uint256",
-            type: "uint256",
-          },
-          { name: "quotaRevenue", internalType: "uint256", type: "uint256" },
-          {
-            name: "lastBaseInterestUpdate",
-            internalType: "uint40",
-            type: "uint40",
-          },
-          {
-            name: "lastQuotaRevenueUpdate",
-            internalType: "uint40",
-            type: "uint40",
-          },
-          { name: "isPaused", internalType: "bool", type: "bool" },
-        ],
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    inputs: [{ name: "rateKeeper", internalType: "address", type: "address" }],
-    name: "getRateKeeperState",
-    outputs: [
-      {
-        name: "",
-        internalType: "struct RateKeeperState",
-        type: "tuple",
-        components: [
-          {
-            name: "baseParams",
-            internalType: "struct BaseParams",
-            type: "tuple",
-            components: [
-              { name: "addr", internalType: "address", type: "address" },
-              { name: "version", internalType: "uint256", type: "uint256" },
-              {
-                name: "contractType",
-                internalType: "bytes32",
-                type: "bytes32",
-              },
-              {
-                name: "serializedParams",
-                internalType: "bytes",
-                type: "bytes",
-              },
-            ],
-          },
-          {
-            name: "rates",
-            internalType: "struct Rate[]",
-            type: "tuple[]",
-            components: [
-              { name: "token", internalType: "address", type: "address" },
-              { name: "rate", internalType: "uint16", type: "uint16" },
-            ],
-          },
-        ],
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    inputs: [],
-    name: "version",
-    outputs: [{ name: "", internalType: "uint256", type: "uint256" }],
-    stateMutability: "view",
-  },
-] as const;
-
-/// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // IPriceFeedCompressor
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -3648,26 +3925,236 @@ export const iPriceFeedCompressorAbi = [
   },
   {
     type: "function",
+    inputs: [{ name: "priceOracle", internalType: "address", type: "address" }],
+    name: "getPriceOracleState",
+    outputs: [
+      {
+        name: "",
+        internalType: "struct PriceOracleState",
+        type: "tuple",
+        components: [
+          {
+            name: "baseParams",
+            internalType: "struct BaseParams",
+            type: "tuple",
+            components: [
+              { name: "addr", internalType: "address", type: "address" },
+              { name: "version", internalType: "uint256", type: "uint256" },
+              {
+                name: "contractType",
+                internalType: "bytes32",
+                type: "bytes32",
+              },
+              {
+                name: "serializedParams",
+                internalType: "bytes",
+                type: "bytes",
+              },
+            ],
+          },
+          {
+            name: "priceFeedMap",
+            internalType: "struct PriceFeedMapEntry[]",
+            type: "tuple[]",
+            components: [
+              { name: "token", internalType: "address", type: "address" },
+              { name: "reserve", internalType: "bool", type: "bool" },
+              { name: "priceFeed", internalType: "address", type: "address" },
+              {
+                name: "stalenessPeriod",
+                internalType: "uint32",
+                type: "uint32",
+              },
+            ],
+          },
+          {
+            name: "priceFeedTree",
+            internalType: "struct PriceFeedTreeNode[]",
+            type: "tuple[]",
+            components: [
+              {
+                name: "baseParams",
+                internalType: "struct BaseParams",
+                type: "tuple",
+                components: [
+                  { name: "addr", internalType: "address", type: "address" },
+                  { name: "version", internalType: "uint256", type: "uint256" },
+                  {
+                    name: "contractType",
+                    internalType: "bytes32",
+                    type: "bytes32",
+                  },
+                  {
+                    name: "serializedParams",
+                    internalType: "bytes",
+                    type: "bytes",
+                  },
+                ],
+              },
+              { name: "description", internalType: "string", type: "string" },
+              { name: "decimals", internalType: "uint8", type: "uint8" },
+              { name: "skipCheck", internalType: "bool", type: "bool" },
+              { name: "updatable", internalType: "bool", type: "bool" },
+              {
+                name: "underlyingFeeds",
+                internalType: "address[]",
+                type: "address[]",
+              },
+              {
+                name: "underlyingStalenessPeriods",
+                internalType: "uint32[]",
+                type: "uint32[]",
+              },
+              {
+                name: "answer",
+                internalType: "struct PriceFeedAnswer",
+                type: "tuple",
+                components: [
+                  { name: "price", internalType: "int256", type: "int256" },
+                  {
+                    name: "updatedAt",
+                    internalType: "uint256",
+                    type: "uint256",
+                  },
+                  { name: "success", internalType: "bool", type: "bool" },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     inputs: [
       { name: "priceOracle", internalType: "address", type: "address" },
       { name: "tokens", internalType: "address[]", type: "address[]" },
     ],
-    name: "getPriceFeeds",
+    name: "getPriceOracleState",
     outputs: [
       {
-        name: "priceFeedMap",
-        internalType: "struct PriceFeedMapEntry[]",
-        type: "tuple[]",
+        name: "",
+        internalType: "struct PriceOracleState",
+        type: "tuple",
         components: [
-          { name: "token", internalType: "address", type: "address" },
-          { name: "reserve", internalType: "bool", type: "bool" },
-          { name: "priceFeed", internalType: "address", type: "address" },
-          { name: "stalenessPeriod", internalType: "uint32", type: "uint32" },
+          {
+            name: "baseParams",
+            internalType: "struct BaseParams",
+            type: "tuple",
+            components: [
+              { name: "addr", internalType: "address", type: "address" },
+              { name: "version", internalType: "uint256", type: "uint256" },
+              {
+                name: "contractType",
+                internalType: "bytes32",
+                type: "bytes32",
+              },
+              {
+                name: "serializedParams",
+                internalType: "bytes",
+                type: "bytes",
+              },
+            ],
+          },
+          {
+            name: "priceFeedMap",
+            internalType: "struct PriceFeedMapEntry[]",
+            type: "tuple[]",
+            components: [
+              { name: "token", internalType: "address", type: "address" },
+              { name: "reserve", internalType: "bool", type: "bool" },
+              { name: "priceFeed", internalType: "address", type: "address" },
+              {
+                name: "stalenessPeriod",
+                internalType: "uint32",
+                type: "uint32",
+              },
+            ],
+          },
+          {
+            name: "priceFeedTree",
+            internalType: "struct PriceFeedTreeNode[]",
+            type: "tuple[]",
+            components: [
+              {
+                name: "baseParams",
+                internalType: "struct BaseParams",
+                type: "tuple",
+                components: [
+                  { name: "addr", internalType: "address", type: "address" },
+                  { name: "version", internalType: "uint256", type: "uint256" },
+                  {
+                    name: "contractType",
+                    internalType: "bytes32",
+                    type: "bytes32",
+                  },
+                  {
+                    name: "serializedParams",
+                    internalType: "bytes",
+                    type: "bytes",
+                  },
+                ],
+              },
+              { name: "description", internalType: "string", type: "string" },
+              { name: "decimals", internalType: "uint8", type: "uint8" },
+              { name: "skipCheck", internalType: "bool", type: "bool" },
+              { name: "updatable", internalType: "bool", type: "bool" },
+              {
+                name: "underlyingFeeds",
+                internalType: "address[]",
+                type: "address[]",
+              },
+              {
+                name: "underlyingStalenessPeriods",
+                internalType: "uint32[]",
+                type: "uint32[]",
+              },
+              {
+                name: "answer",
+                internalType: "struct PriceFeedAnswer",
+                type: "tuple",
+                components: [
+                  { name: "price", internalType: "int256", type: "int256" },
+                  {
+                    name: "updatedAt",
+                    internalType: "uint256",
+                    type: "uint256",
+                  },
+                  { name: "success", internalType: "bool", type: "bool" },
+                ],
+              },
+            ],
+          },
         ],
       },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [
       {
-        name: "priceFeedTree",
-        internalType: "struct PriceFeedTreeNode[]",
+        name: "filter",
+        internalType: "struct MarketFilter",
+        type: "tuple",
+        components: [
+          {
+            name: "configurators",
+            internalType: "address[]",
+            type: "address[]",
+          },
+          { name: "pools", internalType: "address[]", type: "address[]" },
+          { name: "underlying", internalType: "address", type: "address" },
+        ],
+      },
+    ],
+    name: "getPriceOracles",
+    outputs: [
+      {
+        name: "",
+        internalType: "struct PriceOracleState[]",
         type: "tuple[]",
         components: [
           {
@@ -3689,28 +4176,73 @@ export const iPriceFeedCompressorAbi = [
               },
             ],
           },
-          { name: "description", internalType: "string", type: "string" },
-          { name: "decimals", internalType: "uint8", type: "uint8" },
-          { name: "skipCheck", internalType: "bool", type: "bool" },
-          { name: "updatable", internalType: "bool", type: "bool" },
           {
-            name: "underlyingFeeds",
-            internalType: "address[]",
-            type: "address[]",
-          },
-          {
-            name: "underlyingStalenessPeriods",
-            internalType: "uint32[]",
-            type: "uint32[]",
-          },
-          {
-            name: "answer",
-            internalType: "struct PriceFeedAnswer",
-            type: "tuple",
+            name: "priceFeedMap",
+            internalType: "struct PriceFeedMapEntry[]",
+            type: "tuple[]",
             components: [
-              { name: "price", internalType: "int256", type: "int256" },
-              { name: "updatedAt", internalType: "uint256", type: "uint256" },
-              { name: "success", internalType: "bool", type: "bool" },
+              { name: "token", internalType: "address", type: "address" },
+              { name: "reserve", internalType: "bool", type: "bool" },
+              { name: "priceFeed", internalType: "address", type: "address" },
+              {
+                name: "stalenessPeriod",
+                internalType: "uint32",
+                type: "uint32",
+              },
+            ],
+          },
+          {
+            name: "priceFeedTree",
+            internalType: "struct PriceFeedTreeNode[]",
+            type: "tuple[]",
+            components: [
+              {
+                name: "baseParams",
+                internalType: "struct BaseParams",
+                type: "tuple",
+                components: [
+                  { name: "addr", internalType: "address", type: "address" },
+                  { name: "version", internalType: "uint256", type: "uint256" },
+                  {
+                    name: "contractType",
+                    internalType: "bytes32",
+                    type: "bytes32",
+                  },
+                  {
+                    name: "serializedParams",
+                    internalType: "bytes",
+                    type: "bytes",
+                  },
+                ],
+              },
+              { name: "description", internalType: "string", type: "string" },
+              { name: "decimals", internalType: "uint8", type: "uint8" },
+              { name: "skipCheck", internalType: "bool", type: "bool" },
+              { name: "updatable", internalType: "bool", type: "bool" },
+              {
+                name: "underlyingFeeds",
+                internalType: "address[]",
+                type: "address[]",
+              },
+              {
+                name: "underlyingStalenessPeriods",
+                internalType: "uint32[]",
+                type: "uint32[]",
+              },
+              {
+                name: "answer",
+                internalType: "struct PriceFeedAnswer",
+                type: "tuple",
+                components: [
+                  { name: "price", internalType: "int256", type: "int256" },
+                  {
+                    name: "updatedAt",
+                    internalType: "uint256",
+                    type: "uint256",
+                  },
+                  { name: "success", internalType: "bool", type: "bool" },
+                ],
+              },
             ],
           },
         ],
@@ -3720,22 +4252,81 @@ export const iPriceFeedCompressorAbi = [
   },
   {
     type: "function",
-    inputs: [{ name: "priceOracle", internalType: "address", type: "address" }],
-    name: "getPriceFeeds",
+    inputs: [
+      { name: "priceFeeds", internalType: "address[]", type: "address[]" },
+    ],
+    name: "getUpdatablePriceFeeds",
     outputs: [
       {
-        name: "priceFeedMap",
-        internalType: "struct PriceFeedMapEntry[]",
+        name: "",
+        internalType: "struct BaseParams[]",
         type: "tuple[]",
         components: [
-          { name: "token", internalType: "address", type: "address" },
-          { name: "reserve", internalType: "bool", type: "bool" },
-          { name: "priceFeed", internalType: "address", type: "address" },
-          { name: "stalenessPeriod", internalType: "uint32", type: "uint32" },
+          { name: "addr", internalType: "address", type: "address" },
+          { name: "version", internalType: "uint256", type: "uint256" },
+          { name: "contractType", internalType: "bytes32", type: "bytes32" },
+          { name: "serializedParams", internalType: "bytes", type: "bytes" },
         ],
       },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [
       {
-        name: "priceFeedTree",
+        name: "filter",
+        internalType: "struct MarketFilter",
+        type: "tuple",
+        components: [
+          {
+            name: "configurators",
+            internalType: "address[]",
+            type: "address[]",
+          },
+          { name: "pools", internalType: "address[]", type: "address[]" },
+          { name: "underlying", internalType: "address", type: "address" },
+        ],
+      },
+    ],
+    name: "getUpdatablePriceFeeds",
+    outputs: [
+      {
+        name: "",
+        internalType: "struct BaseParams[]",
+        type: "tuple[]",
+        components: [
+          { name: "addr", internalType: "address", type: "address" },
+          { name: "version", internalType: "uint256", type: "uint256" },
+          { name: "contractType", internalType: "bytes32", type: "bytes32" },
+          { name: "serializedParams", internalType: "bytes", type: "bytes" },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [
+      {
+        name: "filter",
+        internalType: "struct MarketFilter",
+        type: "tuple",
+        components: [
+          {
+            name: "configurators",
+            internalType: "address[]",
+            type: "address[]",
+          },
+          { name: "pools", internalType: "address[]", type: "address[]" },
+          { name: "underlying", internalType: "address", type: "address" },
+        ],
+      },
+    ],
+    name: "loadPriceFeedTree",
+    outputs: [
+      {
+        name: "",
         internalType: "struct PriceFeedTreeNode[]",
         type: "tuple[]",
         components: [
@@ -3795,7 +4386,7 @@ export const iPriceFeedCompressorAbi = [
     name: "loadPriceFeedTree",
     outputs: [
       {
-        name: "priceFeedTree",
+        name: "",
         internalType: "struct PriceFeedTreeNode[]",
         type: "tuple[]",
         components: [
@@ -3853,25 +4444,6 @@ export const iPriceFeedCompressorAbi = [
     name: "version",
     outputs: [{ name: "", internalType: "uint256", type: "uint256" }],
     stateMutability: "view",
-  },
-  {
-    type: "event",
-    anonymous: false,
-    inputs: [
-      {
-        name: "contractType",
-        internalType: "bytes32",
-        type: "bytes32",
-        indexed: true,
-      },
-      {
-        name: "serializer",
-        internalType: "address",
-        type: "address",
-        indexed: true,
-      },
-    ],
-    name: "SetSerializer",
   },
 ] as const;
 
@@ -3939,9 +4511,28 @@ export const iTokenCompressorAbi = [
     name: "getTokenInfo",
     outputs: [
       {
-        name: "result",
+        name: "",
         internalType: "struct TokenData",
         type: "tuple",
+        components: [
+          { name: "addr", internalType: "address", type: "address" },
+          { name: "symbol", internalType: "string", type: "string" },
+          { name: "name", internalType: "string", type: "string" },
+          { name: "decimals", internalType: "uint8", type: "uint8" },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [{ name: "tokens", internalType: "address[]", type: "address[]" }],
+    name: "getTokens",
+    outputs: [
+      {
+        name: "",
+        internalType: "struct TokenData[]",
+        type: "tuple[]",
         components: [
           { name: "addr", internalType: "address", type: "address" },
           { name: "symbol", internalType: "string", type: "string" },

@@ -95,9 +95,7 @@ export interface CreditFacadeStateHuman extends BaseContractStateHuman {
   botList: string;
   minDebt: string;
   maxDebt: string;
-  currentCumulativeLoss: string;
-  maxCumulativeLoss: string;
-  forbiddenTokenMask: string;
+  forbiddenTokensMask: string;
   isPaused: boolean;
 }
 

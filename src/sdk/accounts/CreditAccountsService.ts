@@ -162,8 +162,8 @@ export class CreditAccountsService extends SDKConstruct {
     const {
       creditManager,
       includeZeroDebt = false,
-      maxHealthFactor = 65_535, // TODO: this will change to bigint
-      minHealthFactor = 0,
+      maxHealthFactor = MAX_UINT256,
+      minHealthFactor = 0n,
       owner = ADDRESS_0X0,
     } = args ?? {};
     // either credit manager or all attached markets

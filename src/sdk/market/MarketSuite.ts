@@ -51,7 +51,7 @@ export class MarketSuite extends SDKConstruct {
 
     this.priceOracle = createPriceOracle(
       sdk,
-      marketData.priceOracleData,
+      marketData.priceOracle,
       marketData.pool.underlying,
     );
   }

@@ -1,9 +1,12 @@
 import type { Address, Hex } from "viem";
 
-import { iMarketCompressorAbi } from "../../../abi/compressors.js";
+import { iPriceFeedCompressorAbi } from "../../../abi/compressors.js";
 import type { PriceFeedTreeNode } from "../../base/index.js";
 import { SDKConstruct } from "../../base/index.js";
-import { ADDRESS_0X0, AP_MARKET_COMPRESSOR } from "../../constants/index.js";
+import {
+  ADDRESS_0X0,
+  AP_PRICE_FEED_COMPRESSOR,
+} from "../../constants/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { ILogger, IPriceUpdateTx } from "../../types/index.js";
 import { AddressMap, bytes32ToString, childLogger } from "../../utils/index.js";
@@ -162,8 +165,8 @@ export class PriceFeedRegister
     marketConfigurators?: Address[],
     pools?: Address[],
   ): Promise<IPriceFeedContract[]> {
-    const marketCompressorAddress = this.sdk.addressProvider.getAddress(
-      AP_MARKET_COMPRESSOR,
+    const priceFeedCompressorAddress = this.sdk.addressProvider.getAddress(
+      AP_PRICE_FEED_COMPRESSOR,
       3_10,
     );
     const configurators =
@@ -174,8 +177,8 @@ export class PriceFeedRegister
       `calling getUpdatablePriceFeeds in block ${this.sdk.currentBlock}`,
     );
     const result = await this.provider.publicClient.readContract({
-      address: marketCompressorAddress,
-      abi: iMarketCompressorAbi,
+      address: priceFeedCompressorAddress,
+      abi: iPriceFeedCompressorAbi,
       functionName: "getUpdatablePriceFeeds",
       args: [
         {

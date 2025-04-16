@@ -64,9 +64,7 @@ export class CreditFacadeV310Contract extends BaseContract<abi> {
       botList: this.labelAddress(this.botList),
       minDebt: formatBNvalue(this.minDebt, decimals),
       maxDebt: formatBNvalue(this.maxDebt, decimals),
-      currentCumulativeLoss: "0", // TODO
-      maxCumulativeLoss: "0", // TODO
-      forbiddenTokenMask: fmtBinaryMask(this.forbiddenTokenMask),
+      forbiddenTokensMask: fmtBinaryMask(this.forbiddenTokensMask),
       isPaused: this.isPaused,
     };
   }

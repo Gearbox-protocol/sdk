@@ -19,8 +19,8 @@ export interface CreditAccountFilter {
   creditManager?: Address;
   owner?: Address;
   includeZeroDebt?: boolean;
-  minHealthFactor?: number;
-  maxHealthFactor?: number;
+  minHealthFactor?: bigint;
+  maxHealthFactor?: bigint;
 }
 
 export interface CloseCreditAccountResult extends CreditAccountOperationResult {

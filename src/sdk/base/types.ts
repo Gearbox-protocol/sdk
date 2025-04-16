@@ -52,7 +52,7 @@ export type MarketData = Unarray<
 
 export type GaugeData = Unarray<
   AbiParametersToPrimitiveTypes<
-    ExtractAbiFunction<typeof iGaugeCompressorAbi, "getGauge">["outputs"]
+    ExtractAbiFunction<typeof iGaugeCompressorAbi, "getGaugeInfo">["outputs"]
   >
 >;
 
@@ -73,12 +73,12 @@ export type AdapterData = Unarray<CreditSuiteState["adapters"]>;
 
 export type TokenMetaData = Unarray<MarketData["tokens"]>;
 export type PoolState = MarketData["pool"];
-export type PoolQuotaKeeperState = MarketData["poolQuotaKeeper"];
-export type QuotaState = Unarray<PoolQuotaKeeperState["quotas"]>;
+export type QuotaKeeperState = MarketData["quotaKeeper"];
+export type QuotaState = Unarray<QuotaKeeperState["quotas"]>;
 export type RateKeeperState = MarketData["rateKeeper"];
-export type PriceOracleData = MarketData["priceOracleData"];
-export type PriceFeedMapEntry = Unarray<PriceOracleData["priceFeedMapping"]>;
-export type PriceFeedTreeNode = Unarray<PriceOracleData["priceFeedStructure"]>;
+export type PriceOracleData = MarketData["priceOracle"];
+export type PriceFeedMapEntry = Unarray<PriceOracleData["priceFeedMap"]>;
+export type PriceFeedTreeNode = Unarray<PriceOracleData["priceFeedTree"]>;
 export type PriceFeedAnswer = PriceFeedTreeNode["answer"];
 export type CreditManagerDebtParams = Unarray<
   PoolState["creditManagerDebtParams"]
