@@ -177,7 +177,7 @@ export class CreditAccountsService extends SDKConstruct {
       includeZeroDebt,
       minHealthFactor,
       maxHealthFactor,
-    };
+    } as const;
 
     const { txs: priceUpdateTxs } =
       await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs();
@@ -189,12 +189,12 @@ export class CreditAccountsService extends SDKConstruct {
       do {
         const [accounts, newOffset] = await this.#getCreditAccounts(
           this.#batchSize
-            ? [
+            ? ([
                 arg0,
                 { ...caFilter, reverting },
                 offset,
                 BigInt(this.#batchSize), // limit
-              ]
+              ] as any) // could not handle overloading
             : [arg0, { ...caFilter, reverting }, offset],
           priceUpdateTxs,
           blockNumber,
