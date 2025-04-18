@@ -209,6 +209,10 @@ export interface FindBestClosePathProps {
    * Balances {@link ClosePathBalances} to close account with, if not provided, all assets will be swapped according to inner logic.
    */
   balances?: ClosePathBalances;
+  /**
+   * TODO: legacy v3 option to pass to contract
+   */
+  force?: boolean;
 }
 
 export interface ClosePathBalances {
