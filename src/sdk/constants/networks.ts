@@ -14,6 +14,7 @@ export const ADDRESS_PROVIDER_BLOCK: Record<NetworkType, bigint> = {
   Monad: 9319691n, // arbitrary not deployed yet
   Berachain: 2788903n, // arbitrary not deployed yet
   Avalanche: 31594758n, // arbitrary not deployed yet
+  BNB: 48553569n, // arbitrary not deployed yet
 };
 
 const BLOCK_DURATION_BY_NETWORK: Record<NetworkType, number> = {
@@ -27,6 +28,7 @@ const BLOCK_DURATION_BY_NETWORK: Record<NetworkType, number> = {
   Monad: 1, // on testnet
   Berachain: 1.9,
   Avalanche: 1.7,
+  BNB: 3,
 };
 
 const RAMP_TIME = 30 * 24 * 60 * 60 * 1.2;
@@ -45,6 +47,7 @@ export const RAMP_DURATION_BY_NETWORK: Record<NetworkType, bigint> = {
   Avalanche: BigInt(
     Math.floor(RAMP_TIME / BLOCK_DURATION_BY_NETWORK.Avalanche),
   ),
+  BNB: BigInt(Math.floor(RAMP_TIME / BLOCK_DURATION_BY_NETWORK.BNB)),
 };
 
 const WEEK = 7 * 24 * 60 * 60;
@@ -59,4 +62,5 @@ export const BLOCKS_PER_WEEK_BY_NETWORK: Record<NetworkType, bigint> = {
   Monad: BigInt(Math.floor(WEEK / BLOCK_DURATION_BY_NETWORK.Monad)),
   Berachain: BigInt(Math.floor(WEEK / BLOCK_DURATION_BY_NETWORK.Berachain)),
   Avalanche: BigInt(Math.floor(WEEK / BLOCK_DURATION_BY_NETWORK.Avalanche)),
+  BNB: BigInt(Math.floor(WEEK / BLOCK_DURATION_BY_NETWORK.BNB)),
 };

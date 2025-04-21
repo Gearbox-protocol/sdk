@@ -369,6 +369,7 @@ export class RouterV300Contract
       Monad: "0x0",
       Berachain: "0x0",
       Avalanche: "0x0",
+      BNB: "0x0",
     } as const;
 
     const pendleRouter =

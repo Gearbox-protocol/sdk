@@ -1860,6 +1860,7 @@ export const tokenDataByNetwork: Record<
   Monad: {} as any,
   Berachain: {} as any,
   Avalanche: {} as any,
+  BNB: {} as any,
 };
 
 export type TickerToken =
@@ -2299,6 +2300,7 @@ export const tickerInfoTokensByNetwork: Record<
   Monad: {},
   Berachain: {},
   Avalanche: {},
+  BNB: {},
 };
 
 export const tickerTokensByNetwork: Record<
