@@ -9,6 +9,7 @@ import { bytesToString, getAbiItem, parseEventLogs, toBytes } from "viem";
 import { iAddressProviderV300Abi } from "../../../abi/v300.js";
 import { ADDRESS_PROVIDER_BLOCK } from "../../constants/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
+import { getLogsSafe } from "../../utils/viem/index.js";
 import AbstractAddressProviderContract from "./AbstractAddressProviderContract.js";
 import type { IAddressProviderContract } from "./types.js";
 
@@ -91,7 +92,7 @@ export class AddressProviderContractV3
     this.logger?.debug(
       `loading events from block ${fromBlock} to ${blockNumber}`,
     );
-    const events = await this.sdk.provider.publicClient.getLogs({
+    const events = await getLogsSafe(this.sdk.provider.publicClient, {
       address: this.address,
       event: getAbiItem({ abi: this.abi, name: "SetAddress" }),
       fromBlock,

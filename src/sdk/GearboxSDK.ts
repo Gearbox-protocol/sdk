@@ -46,6 +46,7 @@ import type {
 } from "./types/index.js";
 import { AddressMap, formatBN, TypedObjectUtils } from "./utils/index.js";
 import { Hooks } from "./utils/internal/index.js";
+import { getLogsSafe } from "./utils/viem/index.js";
 
 const ERR_NOT_ATTACHED = new Error("Gearbox SDK not attached");
 
@@ -496,7 +497,7 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     this.logger?.debug(
       `getting logs from ${watchAddresses.length} addresses in [${this.currentBlock}:${blockNumber}]`,
     );
-    const logs = await this.provider.publicClient.getLogs({
+    const logs = await getLogsSafe(this.provider.publicClient, {
       fromBlock: this.currentBlock,
       toBlock: blockNumber,
       address: watchAddresses,
