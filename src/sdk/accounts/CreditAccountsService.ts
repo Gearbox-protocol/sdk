@@ -79,6 +79,7 @@ import type {
   UpdateQuotasProps,
   WithdrawCollateralProps,
 } from "./types.js";
+import { stringifyGetCreditAccountsArgs } from "./utils.js";
 
 type CompressorAbi = typeof iCreditAccountCompressorAbi;
 
@@ -900,6 +901,10 @@ export class CreditAccountsService extends SDKConstruct {
     priceUpdateTxs?: IPriceUpdateTx[],
     blockNumber?: bigint,
   ): Promise<[accounts: Array<CreditAccountData>, newOffset: bigint]> {
+    this.#logger?.debug(
+      { args: stringifyGetCreditAccountsArgs(args) },
+      "getting credit accounts",
+    );
     if (priceUpdateTxs?.length) {
       const [resp] = await simulateWithPriceUpdates(
         this.provider.publicClient,
