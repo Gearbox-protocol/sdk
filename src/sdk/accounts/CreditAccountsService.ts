@@ -99,6 +99,9 @@ export class CreditAccountsService extends SDKConstruct {
     );
     this.#batchSize = options?.batchSize;
     this.#logger = childLogger("CreditAccountsService", sdk.logger);
+    this.#logger?.debug(
+      `credit account compressor address: ${this.#compressor}`,
+    );
   }
 
   /**
@@ -905,36 +908,43 @@ export class CreditAccountsService extends SDKConstruct {
       { args: stringifyGetCreditAccountsArgs(args) },
       "getting credit accounts",
     );
+    let resp: [CreditAccountData[], bigint];
     if (priceUpdateTxs?.length) {
-      const [resp] = await simulateWithPriceUpdates(
-        this.provider.publicClient,
-        {
-          priceUpdates: priceUpdateTxs,
-          contracts: [
-            {
-              abi: iCreditAccountCompressorAbi,
-              address: this.#compressor,
-              functionName: "getCreditAccounts",
-              args,
-            },
-          ],
-          blockNumber,
-        },
-      );
-      return resp;
+      [resp] = await simulateWithPriceUpdates(this.provider.publicClient, {
+        priceUpdates: priceUpdateTxs,
+        contracts: [
+          {
+            abi: iCreditAccountCompressorAbi,
+            address: this.#compressor,
+            functionName: "getCreditAccounts",
+            args,
+          },
+        ],
+        blockNumber,
+      });
+    } else {
+      resp = await this.provider.publicClient.readContract<
+        CompressorAbi,
+        "getCreditAccounts",
+        GetCreditAccountsArgs
+      >({
+        abi: iCreditAccountCompressorAbi,
+        address: this.#compressor,
+        functionName: "getCreditAccounts",
+        args,
+        blockNumber,
+      });
     }
 
-    return this.provider.publicClient.readContract<
-      CompressorAbi,
-      "getCreditAccounts",
-      GetCreditAccountsArgs
-    >({
-      abi: iCreditAccountCompressorAbi,
-      address: this.#compressor,
-      functionName: "getCreditAccounts",
-      args,
-      blockNumber,
-    });
+    this.#logger?.debug(
+      {
+        accounts: resp[0]?.length ?? 0,
+        nextOffset: Number(resp[1]),
+      },
+      "got credit accounts",
+    );
+
+    return resp;
   }
 
   /**
