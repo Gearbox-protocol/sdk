@@ -65,9 +65,11 @@ import type {
   CloseCreditAccountResult,
   CreditAccountFilter,
   CreditAccountOperationResult,
+  CreditManagerFilter,
   EnableTokensProps,
   ExecuteSwapProps,
   GetCreditAccountsArgs,
+  GetCreditAccountsOptions,
   OpenCAProps,
   PermitResult,
   PrepareUpdateQuotasProps,
@@ -151,12 +153,12 @@ export class CreditAccountsService extends SDKConstruct {
    * TODO: do we want to expose pagination?
    * TODO: do we want to expose "reverting"?
    * TODO: do we want to expose MarketFilter in any way? If so, we need to check that the MarketFilter is compatibled with attached markets?
-   * @param args
+   * @param options
    * @param blockNumber
    * @returns returned credit accounts are sorted by health factor in ascending order
    */
   public async getCreditAccounts(
-    args?: CreditAccountFilter,
+    options?: GetCreditAccountsOptions,
     blockNumber?: bigint,
   ): Promise<Array<CreditAccountData>> {
     const {
@@ -165,19 +167,23 @@ export class CreditAccountsService extends SDKConstruct {
       maxHealthFactor = MAX_UINT256,
       minHealthFactor = 0n,
       owner = ADDRESS_0X0,
-    } = args ?? {};
+    } = options ?? {};
     // either credit manager or all attached markets
-    const arg0 = creditManager ?? {
-      configurators: this.marketConfigurators,
-      pools: [],
-      underlying: ADDRESS_0X0,
-    };
-    const caFilter = {
+    const arg0 =
+      creditManager ??
+      ({
+        configurators: this.marketConfigurators,
+        creditManagers: [],
+        pools: [],
+        underlying: ADDRESS_0X0,
+      } as CreditManagerFilter);
+    const caFilter: CreditAccountFilter = {
       owner,
       includeZeroDebt,
       minHealthFactor,
       maxHealthFactor,
-    } as const;
+      reverting: false,
+    };
 
     const { txs: priceUpdateTxs } =
       await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs();
@@ -189,12 +195,12 @@ export class CreditAccountsService extends SDKConstruct {
       do {
         const [accounts, newOffset] = await this.#getCreditAccounts(
           this.#batchSize
-            ? ([
+            ? [
                 arg0,
                 { ...caFilter, reverting },
                 offset,
                 BigInt(this.#batchSize), // limit
-              ] as any) // could not handle overloading
+              ]
             : [arg0, { ...caFilter, reverting }, offset],
           priceUpdateTxs,
           blockNumber,
