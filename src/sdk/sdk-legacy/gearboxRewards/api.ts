@@ -385,6 +385,7 @@ export class GearboxRewardsApi {
           const poolToken = (
             (reason.reason || "")
               .split("_")
+              // eslint-disable-next-line max-nested-callbacks
               .find(part => part.startsWith("0x")) || ""
           ).toLowerCase() as Address;
 
