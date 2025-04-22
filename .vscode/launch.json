@@ -9,7 +9,7 @@
       "type": "node",
       "request": "launch",
       // Debug current file in VSCode
-      "program": "${workspaceFolder}/scripts/megaeth.ts",
+      "program": "${workspaceFolder}/scripts/example.ts",
       "envFile": "${workspaceFolder}/.env",
       /*
        * Path to tsx binary

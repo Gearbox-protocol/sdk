@@ -7,6 +7,7 @@ import type { GearboxSDK } from "../GearboxSDK.js";
 import { PriceFeedRef } from "../market/index.js";
 import type { ILogger } from "../types/logger.js";
 import { formatDuration, hexEq } from "../utils/index.js";
+import { getLogsSafe } from "../utils/viem/index.js";
 import type { IGearboxSDKPlugin } from "./types.js";
 
 /**
@@ -46,7 +47,7 @@ export class V300StalenessPeriodPlugin
     if (addresses.length === 0 || fromBlock > toBlock) {
       return;
     }
-    const events = await this.client.getLogs({
+    const events = await getLogsSafe(this.client, {
       address: addresses,
       events: [
         getAbiItem({
