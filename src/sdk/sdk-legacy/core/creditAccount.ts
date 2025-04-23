@@ -190,7 +190,9 @@ export class CreditAccountData_Legacy {
     this.expirationDate = Number(payload.expirationDate);
     this.version = Number(payload.cfVersion);
 
-    this.healthFactor = Number(payload.healthFactor || 0n);
+    this.healthFactor = Number(
+      ((payload.healthFactor || 0n) * PERCENTAGE_FACTOR) / WAD,
+    );
     this.enabledTokensMask = payload.enabledTokensMask;
     this.isDeleting = false;
 
