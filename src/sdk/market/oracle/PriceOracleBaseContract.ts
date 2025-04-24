@@ -246,6 +246,18 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
   }
 
   /**
+   * Tries to convert amount of USD to token, using latest known prices
+   * @param to
+   * @param amount
+   * @param reserve
+   */
+  public convertFromUSD(to: Address, amount: bigint, reserve = false): bigint {
+    const price = reserve ? this.reservePrice(to) : this.mainPrice(to);
+    const scale = 10n ** BigInt(this.sdk.tokensMeta.decimals(to));
+    return (amount * scale) / price;
+  }
+
+  /**
    * Loads new prices for this oracle from PriceFeedCompressor
    * Does not update price feeds, only updates prices
    */
