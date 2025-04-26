@@ -1,3 +1,4 @@
+import type { Address } from "viem";
 import { formatEther, parseEther, stringToHex } from "viem";
 
 import { iAddressProviderV300Abi } from "../abi/v300.js";
@@ -6,29 +7,45 @@ import type { GearboxSDK } from "../sdk/index.js";
 import { ADDRESS_PROVIDER } from "../sdk/index.js";
 import { createAnvilClient } from "./createAnvilClient.js";
 
-async function unsafeMigrateFaucet(sdk: GearboxSDK): Promise<void> {
+export async function unsafeMigrateFaucet(
+  sdk: GearboxSDK,
+  faucet?: Address,
+): Promise<void> {
   const anvil = createAnvilClient({
     chain: sdk.provider.chain,
     transport: sdk.provider.transport,
   });
 
-  const [faucetAddr, owner] = await anvil.multicall({
-    contracts: [
-      {
-        abi: iAddressProviderV300Abi,
-        address: ADDRESS_PROVIDER[sdk.provider.networkType],
-        functionName: "getAddressOrRevert",
-        args: [stringToHex("FAUCET", { size: 32 }), 0n],
-      },
-      {
-        abi: iAddressProviderV310Abi,
-        address: sdk.addressProvider.address,
-        functionName: "owner",
-        args: [],
-      },
-    ],
-    allowFailure: false,
-  });
+  let faucetAddr: Address;
+  let owner: Address;
+  if (faucet) {
+    faucetAddr = faucet;
+    owner = await anvil.readContract({
+      abi: iAddressProviderV310Abi,
+      address: sdk.addressProvider.address,
+      functionName: "owner",
+      args: [],
+    });
+  } else {
+    [faucetAddr, owner] = await anvil.multicall({
+      contracts: [
+        {
+          abi: iAddressProviderV300Abi,
+          address: ADDRESS_PROVIDER[sdk.provider.networkType],
+          functionName: "getAddressOrRevert",
+          args: [stringToHex("FAUCET", { size: 32 }), 0n],
+        },
+        {
+          abi: iAddressProviderV310Abi,
+          address: sdk.addressProvider.address,
+          functionName: "owner",
+          args: [],
+        },
+      ],
+      allowFailure: false,
+    });
+  }
+
   sdk.logger?.debug(`faucet address: ${faucetAddr}, owner: ${owner}`);
   await anvil.impersonateAccount({ address: owner });
   await anvil.setBalance({
@@ -63,12 +80,16 @@ async function unsafeMigrateFaucet(sdk: GearboxSDK): Promise<void> {
 }
 
 /**
- * Migrates faucet from address provider v3.0 [from constants in SDK] to v3.1 [from attached SDK]
- * @param
+ * Sets new faucet address on v3.1 address provider
+ * @param sdk
+ * @param faucet - new faucet address. If not provided, will try to get one from v3.0 address provider
  */
-export async function migrateFaucet(sdk: GearboxSDK): Promise<void> {
+export async function migrateFaucet(
+  sdk: GearboxSDK,
+  faucet?: Address,
+): Promise<void> {
   try {
-    await unsafeMigrateFaucet(sdk);
+    await unsafeMigrateFaucet(sdk, faucet);
     sdk.logger?.info("faucet migrated successfully");
   } catch (e) {
     sdk.logger?.error(`faucet migration failed: ${e}`);

@@ -5,6 +5,7 @@ import {
   avalanche,
   base,
   berachain,
+  bsc,
   mainnet,
   megaethTestnet,
   monadTestnet,
@@ -46,6 +47,7 @@ export const SUPPORTED_NETWORKS = [
   "Monad",
   "Berachain",
   "Avalanche",
+  "BNB",
 ] as const;
 
 export const NetworkType = z.enum(SUPPORTED_NETWORKS);
@@ -203,6 +205,21 @@ export const chains: Record<NetworkType, GearboxChain> = {
       },
     },
     "avalanche-c-chain-rpc",
+  ),
+  BNB: withPublicNode(
+    {
+      ...bsc,
+      network: "BNB",
+      defaultMarketConfigurators: {
+        "0xc94add35a09a239d0f5d1c04e793459dd19a0793": "Chaos Labs",
+      },
+      isPublic: false,
+      wellKnownToken: {
+        address: "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
+        symbol: "USDC",
+      },
+    },
+    "bsc-rpc",
   ),
 };
 

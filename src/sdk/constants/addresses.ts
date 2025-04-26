@@ -76,6 +76,7 @@ export const TIMELOCK: Record<NetworkType, Address> = {
   Monad: NOT_DEPLOYED,
   Berachain: NOT_DEPLOYED,
   Avalanche: NOT_DEPLOYED,
+  BNB: NOT_DEPLOYED,
 };
 
 export const GEARBOX_MULTISIG: Record<NetworkType, Address> = {
@@ -89,6 +90,7 @@ export const GEARBOX_MULTISIG: Record<NetworkType, Address> = {
   Monad: NOT_DEPLOYED,
   Berachain: NOT_DEPLOYED,
   Avalanche: NOT_DEPLOYED,
+  BNB: NOT_DEPLOYED,
 };
 
 export const GEARBOX_RISK_CURATORS: Record<NetworkType, Address[]> = {
@@ -102,6 +104,7 @@ export const GEARBOX_RISK_CURATORS: Record<NetworkType, Address[]> = {
   Monad: [],
   Berachain: [],
   Avalanche: [],
+  BNB: [],
 };
 
 /**
@@ -121,4 +124,5 @@ export const DEPRECIATED_POOLS: Record<NetworkType, Record<Address, string>> = {
   Monad: {},
   Berachain: {},
   Avalanche: {},
+  BNB: {},
 };

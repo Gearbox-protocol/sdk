@@ -306,18 +306,21 @@ export class CreditAccountsService extends SDKConstruct {
    * @param account
    * @param to Address to transfer underlying left after liquidation
    * @param slippage
+   * @param force TODO: legacy v3 option to remove
    * @returns
    */
   public async fullyLiquidate(
     account: RouterCASlice,
     to: Address,
     slippage = 50n,
+    force = false,
   ): Promise<CloseCreditAccountResult> {
     const cm = this.sdk.marketRegister.findCreditManager(account.creditManager);
     const routerCloseResult = await this.sdk.router.findBestClosePath({
       creditAccount: account,
       creditManager: cm.creditManager,
       slippage,
+      force,
     });
     const priceUpdates = await this.getPriceUpdatesForFacade(
       account.creditManager,

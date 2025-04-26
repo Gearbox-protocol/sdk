@@ -36,6 +36,7 @@ export const connectors: Record<NetworkType, Array<SupportedToken>> = {
   Monad: [],
   Berachain: [],
   Avalanche: [],
+  BNB: [],
 };
 
 export function getConnectors(networkType: NetworkType): Address[] {

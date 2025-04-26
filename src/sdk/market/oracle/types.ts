@@ -48,4 +48,6 @@ export interface IPriceOracleContract extends IBaseContract {
     amount: bigint,
     reserve?: boolean,
   ) => bigint;
+  convertToUSD: (from: Address, amount: bigint, reserve?: boolean) => bigint;
+  convertFromUSD: (to: Address, amount: bigint, reserve?: boolean) => bigint;
 }

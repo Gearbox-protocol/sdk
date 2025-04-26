@@ -48,6 +48,7 @@ export const ADDRESS_PROVIDER: Record<NetworkType, Address> = {
   Monad: NOT_DEPLOYED,
   Berachain: NOT_DEPLOYED,
   Avalanche: NOT_DEPLOYED,
+  BNB: NOT_DEPLOYED,
 };
 
 export const ADDRESS_PROVIDER_V310 =

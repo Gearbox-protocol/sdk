@@ -375,43 +375,46 @@ export class GearboxRewardsApi {
       return acc;
     }, {});
 
-    const extraRewards = (merkleXYZLm || []).reduce<Array<GearboxLmReward>>(
-      (acc, chainRewards) => {
-        chainRewards.rewards.forEach(reward => {
-          const rewardToken = reward.token.address.toLowerCase() as Address;
+    const extraRewards = (merkleXYZLm || []).reduce<
+      Record<string, GearboxLmReward>
+    >((acc, chainRewards) => {
+      chainRewards.rewards.forEach(reward => {
+        const rewardToken = reward.token.address.toLowerCase() as Address;
 
-          reward.breakdowns.forEach(reason => {
-            const poolToken = (
-              (reason.reason || "").split("_")[1] || ""
-            ).toLowerCase() as Address;
+        reward.breakdowns.forEach(reason => {
+          const poolToken = (
+            (reason.reason || "")
+              .split("_")
+              // eslint-disable-next-line max-nested-callbacks
+              .find(part => part.startsWith("0x")) || ""
+          ).toLowerCase() as Address;
 
-            const pool = (
-              baseRewardPoolsInfo[poolToken]?.pool ||
-              poolToken ||
-              ""
-            ).toLowerCase() as Address;
+          const pool = poolByItsToken[poolToken];
 
-            if (poolByItsToken[poolToken] && poolByItsToken[pool]) {
-              const total = toBigInt(reason.amount || 0);
-              const claimed = toBigInt(reason.claimed || 0);
+          const total = toBigInt(reason.amount || 0);
+          const claimed = toBigInt(reason.claimed || 0);
+          const claimable = BigIntMath.max(total - claimed, 0n);
 
-              acc.push({
-                pool,
-                poolToken,
-                rewardToken,
-                rewardTokenSymbol: reward.token.symbol,
-                rewardTokenDecimals: reward.token.decimals || 18,
-                amount: BigIntMath.max(total - claimed, 0n),
-                type: "extraMerkle",
-              });
-            }
-          });
+          const key = [pool, poolToken, rewardToken].join("_");
+
+          if (pool && claimable > 0n) {
+            const prevAmount = acc[key]?.amount || 0n;
+
+            acc[key] = {
+              pool,
+              poolToken,
+              rewardToken,
+              rewardTokenSymbol: reward.token.symbol,
+              rewardTokenDecimals: reward.token.decimals || 18,
+              amount: prevAmount + claimable,
+              type: "extraMerkle",
+            };
+          }
         });
+      });
 
-        return acc;
-      },
-      [],
-    );
+      return acc;
+    }, {});
 
     const gearboxLmRewards = poolTokens.map((address, i): GearboxLmReward => {
       const info = baseRewardPoolsInfo[address];
@@ -448,7 +451,7 @@ export class GearboxRewardsApi {
     );
 
     return {
-      rewards: [...nonZero, ...extraRewards, zero],
+      rewards: [...nonZero, ...Object.values(extraRewards), zero],
     };
   }
 
