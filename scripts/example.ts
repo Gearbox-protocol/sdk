@@ -35,12 +35,13 @@ async function example(): Promise<void> {
   });
 
   const prefix = RPC.includes("127.0.0.1") ? "anvil_" : "";
+  const net = sdk.provider.networkType;
   await writeFile(
-    `tmp/state_human_${prefix}${sdk.currentBlock}.json`,
+    `tmp/state_human_${net}_${prefix}${sdk.currentBlock}.json`,
     json_stringify(sdk.stateHuman()),
   );
   await writeFile(
-    `tmp/state_${prefix}${sdk.currentBlock}.json`,
+    `tmp/state_${net}_${prefix}${sdk.currentBlock}.json`,
     json_stringify(sdk.state),
   );
 

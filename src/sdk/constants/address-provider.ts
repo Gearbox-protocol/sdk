@@ -52,4 +52,4 @@ export const ADDRESS_PROVIDER: Record<NetworkType, Address> = {
 };
 
 export const ADDRESS_PROVIDER_V310 =
-  "0xBaB2014Dd88223E168bA06911c06df638311a097";
+  "0xF7f0a609BfAb9a0A98786951ef10e5FE26cC1E38";

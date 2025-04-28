@@ -129,8 +129,6 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
   #timestamp?: bigint;
   #syncing = false;
 
-  #gear?: Address;
-
   // Collection of core singleton contracts
   #addressProvider?: IAddressProviderContract;
   #botListContract?: BotListContract;
@@ -309,7 +307,6 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     }
 
     // Attaching gear staking contract
-    this.#gear = this.#addressProvider.getAddress(AP_GEAR_TOKEN, NO_VERSION);
     const gearStakingAddress = this.#addressProvider.getAddress(
       AP_GEAR_STAKING,
       NO_VERSION,
@@ -569,10 +566,7 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
   }
 
   public get gear(): Address {
-    if (this.#gear === undefined) {
-      throw ERR_NOT_ATTACHED;
-    }
-    return this.#gear;
+    return this.addressProvider.getAddress(AP_GEAR_TOKEN, NO_VERSION);
   }
 
   public get addressProvider(): IAddressProviderContract {
