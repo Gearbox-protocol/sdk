@@ -3,6 +3,7 @@ import type { Address } from "viem";
 import type { CreditSuiteState, MarketData } from "../../base/index.js";
 import { SDKConstruct } from "../../base/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
+import type { IRouterContract } from "../../router/index.js";
 import type { CreditSuiteStateHuman, TVL } from "../../types/index.js";
 import createCreditConfigurator from "./createCreditConfigurator.js";
 import createCreditFacade from "./createCreditFacade.js";
@@ -37,6 +38,10 @@ export class CreditSuite extends SDKConstruct {
     this.creditManager = createCreditManager(sdk, this.state);
     this.creditFacade = createCreditFacade(sdk, this.state);
     this.creditConfigurator = createCreditConfigurator(sdk, this.state);
+  }
+
+  public get router(): IRouterContract {
+    return this.sdk.routerFor(this);
   }
 
   async tvl(): Promise<TVL> {
