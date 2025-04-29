@@ -11,6 +11,7 @@ import {
   monadTestnet,
   optimism,
   sonic,
+  worldchain,
 } from "viem/chains";
 import { z } from "zod";
 
@@ -48,6 +49,7 @@ export const SUPPORTED_NETWORKS = [
   "Berachain",
   "Avalanche",
   "BNB",
+  "WorldChain",
 ] as const;
 
 export const NetworkType = z.enum(SUPPORTED_NETWORKS);
@@ -221,6 +223,17 @@ export const chains: Record<NetworkType, GearboxChain> = {
     },
     "bsc-rpc",
   ),
+  WorldChain: defineChain({
+    ...worldchain,
+    network: "WorldChain",
+    defaultMarketConfigurators: {},
+    isPublic: false,
+    wellKnownToken: {
+      address: "0x79a02482a880bce3f13e09da970dc34db4cd24d1",
+      symbol: "USDC",
+    },
+    // TODO: has no block explorer API
+  }),
 };
 
 export function getChain(
