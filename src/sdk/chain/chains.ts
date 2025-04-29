@@ -230,7 +230,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
     isPublic: false,
     wellKnownToken: {
       address: "0x79a02482a880bce3f13e09da970dc34db4cd24d1",
-      symbol: "USDC",
+      symbol: "USDC.e",
     },
     // TODO: has no block explorer API
   }),
