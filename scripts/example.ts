@@ -2,11 +2,14 @@ import { writeFile } from "node:fs/promises";
 
 import { pino } from "pino";
 
+import { AdaptersPlugin } from "../src/adapters/AdaptersPlugin.js";
+import { BotsPlugin } from "../src/bots/BotsPlugin.js";
 import {
   GearboxSDK,
   json_stringify,
   V300StalenessPeriodPlugin,
 } from "../src/sdk/index.js";
+import { ZappersPlugin } from "../src/zappers/ZappersPlugin.js";
 
 async function example(): Promise<void> {
   const logger = pino({
@@ -27,9 +30,9 @@ async function example(): Promise<void> {
     // ignoreUpdateablePrices: true,
     strictContractTypes: true,
     plugins: {
-      // adapters: AdaptersPlugin,
-      // zappers: ZappersPlugin,
-      // bots: BotsPlugin,/
+      adapters: AdaptersPlugin,
+      zappers: ZappersPlugin,
+      bots: BotsPlugin,
       stalenessV300: V300StalenessPeriodPlugin,
     },
   });

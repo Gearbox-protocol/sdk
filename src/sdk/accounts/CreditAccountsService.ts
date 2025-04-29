@@ -316,12 +316,14 @@ export class CreditAccountsService extends SDKConstruct {
     force = false,
   ): Promise<CloseCreditAccountResult> {
     const cm = this.sdk.marketRegister.findCreditManager(account.creditManager);
-    const routerCloseResult = await this.sdk.router.findBestClosePath({
-      creditAccount: account,
-      creditManager: cm.creditManager,
-      slippage,
-      force,
-    });
+    const routerCloseResult = await this.sdk
+      .routerFor(account)
+      .findBestClosePath({
+        creditAccount: account,
+        creditManager: cm.creditManager,
+        slippage,
+        force,
+      });
     const priceUpdates = await this.getPriceUpdatesForFacade(
       account.creditManager,
       account,
@@ -364,7 +366,7 @@ export class CreditAccountsService extends SDKConstruct {
 
     const routerCloseResult =
       closePath ||
-      (await this.sdk.router.findBestClosePath({
+      (await this.sdk.routerFor(ca).findBestClosePath({
         creditAccount: ca,
         creditManager: cm.creditManager,
         slippage,

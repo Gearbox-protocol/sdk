@@ -1,7 +1,7 @@
 import type { Address, Hex } from "viem";
 import { createPublicClient, parseEventLogs } from "viem";
 
-import type { BaseContract } from "./base/index.js";
+import type { BaseContract, BaseState, IBaseContract } from "./base/index.js";
 import { TokensMeta } from "./base/index.js";
 import type {
   ConnectionOptions,
@@ -19,6 +19,7 @@ import {
   AP_BOT_LIST,
   AP_GEAR_STAKING,
   AP_GEAR_TOKEN,
+  AP_ROUTER,
   NO_VERSION,
 } from "./constants/index.js";
 import type { IAddressProviderContract } from "./core/index.js";
@@ -36,15 +37,19 @@ import {
   type PluginMap,
 } from "./plugins/index.js";
 import type { IGearboxSDKPluginConstructor } from "./plugins/types.js";
-import type { IRouterContract } from "./router/index.js";
-import { createRouter } from "./router/index.js";
+import { createRouter, type IRouterContract } from "./router/index.js";
 import type {
   GearboxState,
   GearboxStateHuman,
   ILogger,
   MultiCall,
 } from "./types/index.js";
-import { AddressMap, formatBN, TypedObjectUtils } from "./utils/index.js";
+import {
+  AddressMap,
+  formatBN,
+  toAddress,
+  TypedObjectUtils,
+} from "./utils/index.js";
 import { Hooks } from "./utils/internal/index.js";
 import { getLogsSafe } from "./utils/viem/index.js";
 
@@ -138,8 +143,8 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
   // Collection of markets
   #marketRegister?: MarketRegister;
 
-  // Router contract
-  #router?: IRouterContract;
+  // Routers by address
+  #routers = new AddressMap<IRouterContract>();
 
   public readonly logger?: ILogger;
 
@@ -321,12 +326,6 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
       marketConfigurators,
       ignoreUpdateablePrices,
     );
-
-    try {
-      this.#router = createRouter(this);
-    } catch (e) {
-      this.logger?.warn("router not found", e);
-    }
 
     const pluginsList = TypedObjectUtils.entries(this.plugins);
     const pluginResponse = await Promise.allSettled(
@@ -597,10 +596,41 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     return this.#marketRegister;
   }
 
-  public get router(): IRouterContract {
-    if (this.#router === undefined) {
-      throw ERR_NOT_ATTACHED;
+  /**
+   * Returns router contract that will work for given credit manager or credit facade
+   * @param params
+   * @returns
+   */
+  public routerFor(
+    params:
+      | { creditManager: Address | BaseState | IBaseContract }
+      | { creditFacade: Address | BaseState | IBaseContract },
+  ): IRouterContract {
+    let facadeAddr: Address;
+    if ("creditFacade" in params) {
+      facadeAddr = toAddress(params.creditFacade);
+    } else {
+      const cm = this.marketRegister.findCreditManager(
+        toAddress(params.creditManager),
+      );
+      facadeAddr = cm.creditFacade.address;
     }
-    return this.#router;
+    const facadeV = this.contracts.mustGet(facadeAddr).version;
+    const routerRange: [number, number] =
+      facadeV >= 310 ? [310, 319] : [300, 309];
+    const routerEntry = this.addressProvider.getLatestInRange(
+      AP_ROUTER,
+      routerRange,
+    );
+    if (!routerEntry) {
+      throw new Error(
+        `router not found for facade v ${facadeV} at ${facadeAddr}`,
+      );
+    }
+    const [routerAddr, routerV] = routerEntry;
+    if (!this.#routers.has(routerAddr)) {
+      this.#routers.upsert(routerAddr, createRouter(this, routerAddr, routerV));
+    }
+    return this.#routers.mustGet(routerAddr);
   }
 }
