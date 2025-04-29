@@ -16,6 +16,7 @@ export const TESTNET_CHAINS: Record<NetworkType, number> = {
   Berachain: 7885,
   Avalanche: 7886,
   BNB: 7887,
+  WorldChain: 7889,
 };
 
 const CHAINS_BY_ID: Record<number, NetworkType> =

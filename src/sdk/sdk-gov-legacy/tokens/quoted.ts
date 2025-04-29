@@ -13,4 +13,5 @@ export const nonQuoted: Record<NetworkType, Array<SupportedToken>> = {
   Berachain: [],
   Avalanche: [],
   BNB: [],
+  WorldChain: [],
 };
