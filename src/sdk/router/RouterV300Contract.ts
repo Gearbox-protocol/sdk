@@ -70,11 +70,12 @@ export class RouterV300Contract
 {
   readonly #connectors: Array<Address>;
 
-  constructor(sdk: GearboxSDK, address: Address) {
+  constructor(sdk: GearboxSDK, address: Address, version: number) {
     super(sdk, {
       addr: address,
       name: "RouterV300",
       abi: iRouterV300Abi,
+      version,
     });
     this.#connectors = getConnectors(sdk.provider.networkType);
   }

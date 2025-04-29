@@ -11,10 +11,10 @@ export function createRouter(
   version: number,
 ): IRouterContract {
   if (version >= 300 && version < 310) {
-    return new RouterV300Contract(sdk, address);
+    return new RouterV300Contract(sdk, address, version);
   }
   if (version === 310) {
-    return new RouterV310Contract(sdk, address);
+    return new RouterV310Contract(sdk, address, version);
   }
   throw new Error(`Unsupported router version ${version}`);
 }
