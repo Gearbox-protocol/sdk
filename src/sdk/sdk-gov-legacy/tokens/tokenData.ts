@@ -37,6 +37,7 @@ export const connectors: Record<NetworkType, Array<SupportedToken>> = {
   Berachain: [],
   Avalanche: [],
   BNB: [],
+  WorldChain: [],
 };
 
 export function getConnectors(networkType: NetworkType): Address[] {
