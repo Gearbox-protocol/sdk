@@ -120,11 +120,11 @@ export async function setLTZero(
   });
   await anvil.stopImpersonatingAccount({ address: configuratorAddr });
 
-  /// Testing that LT is 1
-  // logger?.debug(`[${cm.name}] zero lt self-checking`);
-  // const cm2 = await dc300.read.getCreditManagerData([cm.addr]);
-  // if (cm2.liquidationThresholds.some(lt => lt > 1n)) {
-  //   throw new Error("LT is not 1");
-  // }
-  // logger?.info(`[${cm.name}] zero lt OK`);
+  const lt = await anvil.readContract({
+    address: cm.baseParams.addr,
+    abi: iCreditManagerV300Abi,
+    functionName: "liquidationThresholds",
+    args: [cm.underlying],
+  });
+  logger?.debug(`[${cm.name}] underlying lt: ${lt}`);
 }

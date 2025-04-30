@@ -1,5 +1,6 @@
-import type { Address } from "viem";
+import type { Address, ContractFunctionReturnType } from "viem";
 
+import type { iPriceFeedCompressorAbi } from "../../abi/compressors.js";
 import { iMarketCompressorAbi } from "../../abi/compressors.js";
 import type { MarketData, MarketFilter } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
@@ -175,7 +176,11 @@ export class MarketRegister extends SDKConstruct {
     );
     for (let i = 0; i < multicalls.length; i++) {
       const handler = multicalls[i].onResult;
-      const result = oraclesStates[i] as any;
+      const result = oraclesStates[i] as any as ContractFunctionReturnType<
+        typeof iPriceFeedCompressorAbi,
+        "view",
+        "getPriceOracleState"
+      >;
       handler(result);
     }
   }

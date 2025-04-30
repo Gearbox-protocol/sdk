@@ -65,9 +65,11 @@ import type {
   CloseCreditAccountResult,
   CreditAccountFilter,
   CreditAccountOperationResult,
+  CreditManagerFilter,
   EnableTokensProps,
   ExecuteSwapProps,
   GetCreditAccountsArgs,
+  GetCreditAccountsOptions,
   OpenCAProps,
   PermitResult,
   PrepareUpdateQuotasProps,
@@ -77,6 +79,7 @@ import type {
   UpdateQuotasProps,
   WithdrawCollateralProps,
 } from "./types.js";
+import { stringifyGetCreditAccountsArgs } from "./utils.js";
 
 type CompressorAbi = typeof iCreditAccountCompressorAbi;
 
@@ -96,6 +99,9 @@ export class CreditAccountsService extends SDKConstruct {
     );
     this.#batchSize = options?.batchSize;
     this.#logger = childLogger("CreditAccountsService", sdk.logger);
+    this.#logger?.debug(
+      `credit account compressor address: ${this.#compressor}`,
+    );
   }
 
   /**
@@ -151,32 +157,36 @@ export class CreditAccountsService extends SDKConstruct {
    * TODO: do we want to expose pagination?
    * TODO: do we want to expose "reverting"?
    * TODO: do we want to expose MarketFilter in any way? If so, we need to check that the MarketFilter is compatibled with attached markets?
-   * @param args
+   * @param options
    * @param blockNumber
    * @returns returned credit accounts are sorted by health factor in ascending order
    */
   public async getCreditAccounts(
-    args?: CreditAccountFilter,
+    options?: GetCreditAccountsOptions,
     blockNumber?: bigint,
   ): Promise<Array<CreditAccountData>> {
     const {
       creditManager,
       includeZeroDebt = false,
-      maxHealthFactor = 65_535, // TODO: this will change to bigint
-      minHealthFactor = 0,
+      maxHealthFactor = MAX_UINT256,
+      minHealthFactor = 0n,
       owner = ADDRESS_0X0,
-    } = args ?? {};
+    } = options ?? {};
     // either credit manager or all attached markets
-    const arg0 = creditManager ?? {
-      configurators: this.marketConfigurators,
-      pools: [],
-      underlying: ADDRESS_0X0,
-    };
-    const caFilter = {
+    const arg0 =
+      creditManager ??
+      ({
+        configurators: this.marketConfigurators,
+        creditManagers: [],
+        pools: [],
+        underlying: ADDRESS_0X0,
+      } as CreditManagerFilter);
+    const caFilter: CreditAccountFilter = {
       owner,
       includeZeroDebt,
       minHealthFactor,
       maxHealthFactor,
+      reverting: false,
     };
 
     const { txs: priceUpdateTxs } =
@@ -306,12 +316,14 @@ export class CreditAccountsService extends SDKConstruct {
     force = false,
   ): Promise<CloseCreditAccountResult> {
     const cm = this.sdk.marketRegister.findCreditManager(account.creditManager);
-    const routerCloseResult = await this.sdk.router.findBestClosePath({
-      creditAccount: account,
-      creditManager: cm.creditManager,
-      slippage,
-      force,
-    });
+    const routerCloseResult = await this.sdk
+      .routerFor(account)
+      .findBestClosePath({
+        creditAccount: account,
+        creditManager: cm.creditManager,
+        slippage,
+        force,
+      });
     const priceUpdates = await this.getPriceUpdatesForFacade(
       account.creditManager,
       account,
@@ -354,7 +366,7 @@ export class CreditAccountsService extends SDKConstruct {
 
     const routerCloseResult =
       closePath ||
-      (await this.sdk.router.findBestClosePath({
+      (await this.sdk.routerFor(ca).findBestClosePath({
         creditAccount: ca,
         creditManager: cm.creditManager,
         slippage,
@@ -897,36 +909,47 @@ export class CreditAccountsService extends SDKConstruct {
     priceUpdateTxs?: IPriceUpdateTx[],
     blockNumber?: bigint,
   ): Promise<[accounts: Array<CreditAccountData>, newOffset: bigint]> {
+    this.#logger?.debug(
+      { args: stringifyGetCreditAccountsArgs(args) },
+      "getting credit accounts",
+    );
+    let resp: [CreditAccountData[], bigint];
     if (priceUpdateTxs?.length) {
-      const [resp] = await simulateWithPriceUpdates(
-        this.provider.publicClient,
-        {
-          priceUpdates: priceUpdateTxs,
-          contracts: [
-            {
-              abi: iCreditAccountCompressorAbi,
-              address: this.#compressor,
-              functionName: "getCreditAccounts",
-              args,
-            },
-          ],
-          blockNumber,
-        },
-      );
-      return resp;
+      [resp] = await simulateWithPriceUpdates(this.provider.publicClient, {
+        priceUpdates: priceUpdateTxs,
+        contracts: [
+          {
+            abi: iCreditAccountCompressorAbi,
+            address: this.#compressor,
+            functionName: "getCreditAccounts",
+            args,
+          },
+        ],
+        blockNumber,
+      });
+    } else {
+      resp = await this.provider.publicClient.readContract<
+        CompressorAbi,
+        "getCreditAccounts",
+        GetCreditAccountsArgs
+      >({
+        abi: iCreditAccountCompressorAbi,
+        address: this.#compressor,
+        functionName: "getCreditAccounts",
+        args,
+        blockNumber,
+      });
     }
 
-    return this.provider.publicClient.readContract<
-      CompressorAbi,
-      "getCreditAccounts",
-      GetCreditAccountsArgs
-    >({
-      abi: iCreditAccountCompressorAbi,
-      address: this.#compressor,
-      functionName: "getCreditAccounts",
-      args,
-      blockNumber,
-    });
+    this.#logger?.debug(
+      {
+        accounts: resp[0]?.length ?? 0,
+        nextOffset: Number(resp[1]),
+      },
+      "got credit accounts",
+    );
+
+    return resp;
   }
 
   /**

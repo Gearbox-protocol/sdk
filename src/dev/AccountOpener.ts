@@ -246,7 +246,7 @@ export class AccountOpener extends SDKConstruct {
       });
     }
     logger?.debug("looking for open strategy");
-    const strategy = await this.sdk.router.findOpenStrategyPath({
+    const strategy = await this.sdk.routerFor(cm).findOpenStrategyPath({
       creditManager: cm.creditManager,
       expectedBalances,
       leftoverBalances,

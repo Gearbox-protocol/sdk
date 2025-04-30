@@ -16,11 +16,26 @@ export type GetCreditAccountsArgs = ContractFunctionArgs<
 >;
 
 export interface CreditAccountFilter {
+  owner: Address;
+  includeZeroDebt: boolean;
+  minHealthFactor: bigint;
+  maxHealthFactor: bigint;
+  reverting: boolean;
+}
+
+export interface CreditManagerFilter {
+  configurators: readonly Address[];
+  creditManagers: readonly Address[];
+  pools: readonly Address[];
+  underlying: Address;
+}
+
+export interface GetCreditAccountsOptions {
   creditManager?: Address;
   owner?: Address;
   includeZeroDebt?: boolean;
-  minHealthFactor?: number;
-  maxHealthFactor?: number;
+  minHealthFactor?: bigint;
+  maxHealthFactor?: bigint;
 }
 
 export interface CloseCreditAccountResult extends CreditAccountOperationResult {

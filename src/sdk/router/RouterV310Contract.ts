@@ -40,11 +40,12 @@ export class RouterV310Contract
   extends AbstractRouterContract<abi>
   implements IRouterContract
 {
-  constructor(sdk: GearboxSDK, address: Address) {
+  constructor(sdk: GearboxSDK, address: Address, version: number) {
     super(sdk, {
       addr: address,
       name: "RouterV310",
       abi,
+      version,
     });
   }
 

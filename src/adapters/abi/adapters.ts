@@ -293,6 +293,138 @@ export const iBalancerV2VaultAdapterAbi = [
 ] as const;
 
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// IBalancerV3RouterAdapter
+/// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const iBalancerV3RouterAdapterAbi = [
+  {
+    type: "function",
+    inputs: [],
+    name: "contractType",
+    outputs: [{ name: "", internalType: "bytes32", type: "bytes32" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [],
+    name: "creditManager",
+    outputs: [{ name: "", internalType: "address", type: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [],
+    name: "getAllowedPools",
+    outputs: [{ name: "pools", internalType: "address[]", type: "address[]" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [{ name: "pool", internalType: "address", type: "address" }],
+    name: "isPoolAllowed",
+    outputs: [{ name: "", internalType: "bool", type: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [],
+    name: "serialize",
+    outputs: [{ name: "serializedData", internalType: "bytes", type: "bytes" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [
+      { name: "pools", internalType: "address[]", type: "address[]" },
+      { name: "statuses", internalType: "bool[]", type: "bool[]" },
+    ],
+    name: "setPoolStatusBatch",
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    inputs: [
+      { name: "pool", internalType: "address", type: "address" },
+      { name: "tokenIn", internalType: "contract IERC20", type: "address" },
+      { name: "tokenOut", internalType: "contract IERC20", type: "address" },
+      { name: "leftoverAmount", internalType: "uint256", type: "uint256" },
+      { name: "rateMinRAY", internalType: "uint256", type: "uint256" },
+      { name: "deadline", internalType: "uint256", type: "uint256" },
+    ],
+    name: "swapSingleTokenDiffIn",
+    outputs: [{ name: "", internalType: "bool", type: "bool" }],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    inputs: [
+      { name: "pool", internalType: "address", type: "address" },
+      { name: "tokenIn", internalType: "contract IERC20", type: "address" },
+      { name: "tokenOut", internalType: "contract IERC20", type: "address" },
+      { name: "exactAmountIn", internalType: "uint256", type: "uint256" },
+      { name: "minAmountOut", internalType: "uint256", type: "uint256" },
+      { name: "deadline", internalType: "uint256", type: "uint256" },
+      { name: "wethIsEth", internalType: "bool", type: "bool" },
+      { name: "userData", internalType: "bytes", type: "bytes" },
+    ],
+    name: "swapSingleTokenExactIn",
+    outputs: [{ name: "", internalType: "bool", type: "bool" }],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    inputs: [],
+    name: "targetContract",
+    outputs: [{ name: "", internalType: "address", type: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [],
+    name: "version",
+    outputs: [{ name: "", internalType: "uint256", type: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "event",
+    anonymous: false,
+    inputs: [
+      { name: "pool", internalType: "address", type: "address", indexed: true },
+      { name: "allowed", internalType: "bool", type: "bool", indexed: false },
+    ],
+    name: "SetPoolStatus",
+  },
+  { type: "error", inputs: [], name: "InvalidLengthException" },
+  { type: "error", inputs: [], name: "InvalidPoolException" },
+] as const;
+
+/// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// IBalancerV3RouterAdapterEvents
+/// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const iBalancerV3RouterAdapterEventsAbi = [
+  {
+    type: "event",
+    anonymous: false,
+    inputs: [
+      { name: "pool", internalType: "address", type: "address", indexed: true },
+      { name: "allowed", internalType: "bool", type: "bool", indexed: false },
+    ],
+    name: "SetPoolStatus",
+  },
+] as const;
+
+/// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// IBalancerV3RouterAdapterExceptions
+/// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const iBalancerV3RouterAdapterExceptionsAbi = [
+  { type: "error", inputs: [], name: "InvalidLengthException" },
+  { type: "error", inputs: [], name: "InvalidPoolException" },
+] as const;
+
+/// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ICamelotV3Adapter
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

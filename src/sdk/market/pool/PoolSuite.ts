@@ -27,7 +27,7 @@ export class PoolSuite extends SDKConstruct {
   constructor(sdk: GearboxSDK, data: MarketData) {
     super(sdk);
     this.pool = createPool(sdk, data.pool);
-    this.pqk = createPoolQuotaKeeper(sdk, data.pool, data.poolQuotaKeeper);
+    this.pqk = createPoolQuotaKeeper(sdk, data.pool, data.quotaKeeper);
     this.rateKeeper = createRateKeeper(sdk, data.pool, data.rateKeeper);
     this.interestRateModel = createInterestRateModel(
       sdk,
