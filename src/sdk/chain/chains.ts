@@ -36,6 +36,10 @@ export interface GearboxChain extends Chain {
     address: Address;
     symbol: string;
   };
+  /**
+   * Alchemy subdomain to construct provider URL
+   */
+  alchemyDomain?: string;
 }
 
 export const SUPPORTED_NETWORKS = [
@@ -83,6 +87,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
         symbol: "USDC",
       },
+      alchemyDomain: "eth-mainnet",
     },
     "ethereum-rpc",
   ),
@@ -98,6 +103,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         address: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
         symbol: "USDC",
       },
+      alchemyDomain: "arb-mainnet",
     },
     "arbitrum-one-rpc",
   ),
@@ -113,6 +119,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         address: "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
         symbol: "USDC",
       },
+      alchemyDomain: "opt-mainnet",
     },
     "optimism-rpc",
   ),
@@ -126,6 +133,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
         symbol: "USDC",
       },
+      alchemyDomain: "base-mainnet",
     },
     "base-rpc",
   ),
@@ -148,6 +156,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         address: "0x29219dd400f2Bf60E5a23d13Be72B486D4038894",
         symbol: "USDC.e",
       },
+      alchemyDomain: "sonic-mainnet",
     }),
     "sonic-rpc",
   ),
@@ -174,6 +183,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       symbol: "USDC",
     },
     // TODO: has no block explorer API
+    alchemyDomain: "monad-testnet",
   }),
   Berachain: withPublicNode(
     {
@@ -192,6 +202,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         address: "0x549943e04f40284185054145c6e4e9568c1d3241",
         symbol: "USDC.e",
       },
+      alchemyDomain: "berachain-mainnet",
     },
     "berachain-rpc",
   ),
@@ -205,6 +216,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         address: "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
         symbol: "USDC",
       },
+      alchemyDomain: "avax-mainnet",
     },
     "avalanche-c-chain-rpc",
   ),
@@ -223,6 +235,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         address: "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
         symbol: "USDC",
       },
+      alchemyDomain: "bnb-mainnet",
     },
     "bsc-rpc",
   ),
@@ -235,6 +248,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       address: "0x79a02482a880bce3f13e09da970dc34db4cd24d1",
       symbol: "USDC.e",
     },
+    alchemyDomain: "worldchain-mainnet",
     // TODO: has no block explorer API
   }),
 };
