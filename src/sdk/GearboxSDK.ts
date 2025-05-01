@@ -564,8 +564,14 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     return this.#timestamp;
   }
 
-  public get gear(): Address {
-    return this.addressProvider.getAddress(AP_GEAR_TOKEN, NO_VERSION);
+  public get gear(): Address | undefined {
+    try {
+      const g = this.addressProvider.getAddress(AP_GEAR_TOKEN, NO_VERSION);
+      return g;
+    } catch (e) {
+      this.logger?.warn(e);
+      return undefined;
+    }
   }
 
   public get addressProvider(): IAddressProviderContract {
