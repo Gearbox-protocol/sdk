@@ -83,15 +83,22 @@ export async function unsafeMigrateFaucet(
  * Sets new faucet address on v3.1 address provider
  * @param sdk
  * @param faucet - new faucet address. If not provided, will try to get one from v3.0 address provider
+ * @returns faucet address as read from v3.1 address provider
  */
 export async function migrateFaucet(
   sdk: GearboxSDK,
   faucet?: Address,
-): Promise<void> {
+): Promise<Address> {
   try {
     await unsafeMigrateFaucet(sdk, faucet);
     sdk.logger?.info("faucet migrated successfully");
   } catch (e) {
     sdk.logger?.error(`faucet migration failed: ${e}`);
   }
+  return sdk.provider.publicClient.readContract({
+    abi: iAddressProviderV310Abi,
+    address: sdk.addressProvider.address,
+    functionName: "getAddressOrRevert",
+    args: [stringToHex("FAUCET", { size: 32 }), 0n],
+  });
 }
