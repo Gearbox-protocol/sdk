@@ -1,13 +1,32 @@
-import { fallback, http, type Transport, webSocket } from "viem";
+import type {
+  HttpTransportConfig,
+  Transport,
+  WebSocketTransportConfig,
+} from "viem";
+import { fallback, http, webSocket } from "viem";
 
-import { getChain, type NetworkType } from "../sdk/index.js";
+import type { NetworkType } from "../sdk/index.js";
+import { getChain } from "../sdk/index.js";
 
-export interface CreateTransportConfig {
+export interface CreateTransportURLOptions {
   rpcUrls: string[];
   alchemyKeys: string[];
-  protocol: "http" | "ws";
   network: NetworkType;
 }
+
+export type CreateHTTPTransportConfig = {
+  protocol: "http";
+} & HttpTransportConfig &
+  CreateTransportURLOptions;
+
+export type CreateWSTransportConfig = {
+  protocol: "ws";
+} & WebSocketTransportConfig &
+  CreateTransportURLOptions;
+
+export type CreateTransportConfig =
+  | CreateHTTPTransportConfig
+  | CreateWSTransportConfig;
 
 /**
  * Helper method to create viem Transport using API keys of well-known RPC providers and explicit fallback URLs
@@ -16,7 +35,7 @@ export interface CreateTransportConfig {
  * @returns
  */
 export function createTransport(config: CreateTransportConfig): Transport {
-  const { alchemyKeys, protocol, network } = config;
+  const { alchemyKeys, protocol, network, ...rest } = config;
   // filter out rpc urls that are of other protocol or already include one of alchemy keys
   const rpcUrls = config.rpcUrls.filter(url => {
     return (
@@ -30,7 +49,9 @@ export function createTransport(config: CreateTransportConfig): Transport {
     );
   }
   const transports = rpcUrls.map(url =>
-    protocol === "http" ? http(url) : webSocket(url),
+    protocol === "http"
+      ? http(url, rest as HttpTransportConfig)
+      : webSocket(url, rest as WebSocketTransportConfig),
   );
   if (transports.length === 0) {
     throw new Error("no fitting rpc urls found");
