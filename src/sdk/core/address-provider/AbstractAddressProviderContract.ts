@@ -29,7 +29,7 @@ export default abstract class AbstractAddressProviderContract<
       this.#addresses[k] = {};
     }
     this.#addresses[k][version] = address;
-    if (!this.#latest[k] || version > this.#latest[key]) {
+    if (!this.#latest[k] || version > this.#latest[k]) {
       this.#latest[k] = version;
     }
     this.logger?.debug(`Set address for ${k}@${version} to ${address}`);
@@ -68,7 +68,8 @@ export default abstract class AbstractAddressProviderContract<
     }
     let version = 0;
     let address: Address | undefined;
-    for (const [v, a] of TypedObjectUtils.entries(allVersions)) {
+    for (const [vStr, a] of TypedObjectUtils.entries(allVersions)) {
+      const v = Number(vStr);
       if (v >= range[0] && v <= range[1] && v >= version) {
         version = v;
         address = a;
