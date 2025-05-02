@@ -616,7 +616,7 @@ export class AccountOpener extends SDKConstruct {
   #getCollateralQuota(
     cm: CreditSuite,
     collateral: Address,
-    amount: bigint,
+    collateralAmount: bigint,
     debt: bigint,
     logger?: ILogger,
   ): Asset[] {
@@ -639,6 +639,10 @@ export class AccountOpener extends SDKConstruct {
         `quota exceeded for asset ${this.labelAddress(collateral)} in ${cm.name}`,
       );
     }
+    const oracle = this.sdk.marketRegister.findByCreditManager(
+      cm.creditManager.address,
+    ).priceOracle;
+    const amount = oracle.convert(collateral, underlying, collateralAmount);
     const desiredQuota = this.#calcQuota(amount, debt, collateralLT);
     logger?.debug(
       {
@@ -646,6 +650,10 @@ export class AccountOpener extends SDKConstruct {
         availableQuota: this.sdk.tokensMeta.formatBN(
           underlying,
           availableQuota,
+        ),
+        collateralAmount: this.sdk.tokensMeta.formatBN(
+          collateral,
+          collateralAmount,
         ),
         amount: this.sdk.tokensMeta.formatBN(underlying, amount),
         debt: this.sdk.tokensMeta.formatBN(underlying, debt),
