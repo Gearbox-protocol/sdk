@@ -256,12 +256,14 @@ export class AccountOpener extends SDKConstruct {
       target,
       strategy.amount,
       debt,
+      logger,
     );
     const minQuota = this.#getCollateralQuota(
       cm,
       target,
       strategy.minAmount,
       debt,
+      logger,
     );
     logger?.debug({ averageQuota, minQuota }, "calculated quotas");
     const { tx, calls } = await this.#service.openCA({
@@ -607,6 +609,7 @@ export class AccountOpener extends SDKConstruct {
     collateral: Address,
     amount: bigint,
     debt: bigint,
+    logger?: ILogger,
   ): Asset[] {
     const {
       underlying,
@@ -628,7 +631,19 @@ export class AccountOpener extends SDKConstruct {
       );
     }
     const desiredQuota = this.#calcQuota(amount, debt, collateralLT);
-
+    logger?.debug(
+      {
+        desiredQuota: this.sdk.tokensMeta.formatBN(underlying, desiredQuota),
+        availableQuota: this.sdk.tokensMeta.formatBN(
+          underlying,
+          availableQuota,
+        ),
+        amount: this.sdk.tokensMeta.formatBN(underlying, amount),
+        debt: this.sdk.tokensMeta.formatBN(underlying, debt),
+        lt: Number(collateralLT),
+      },
+      "calculated quota",
+    );
     return [
       {
         token: collateral,
