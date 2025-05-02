@@ -234,7 +234,10 @@ export class AccountOpener extends SDKConstruct {
       const token = t as Address;
       expectedBalances.push({
         token,
-        balance: token === underlying ? BigInt(leverage) * minDebt : 1n,
+        balance:
+          token === underlying
+            ? (BigInt(leverage) * minDebt) / PERCENTAGE_FACTOR
+            : 1n,
       });
       leftoverBalances.push({
         token,
