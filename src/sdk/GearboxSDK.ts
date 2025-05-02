@@ -136,15 +136,10 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
 
   // Collection of core singleton contracts
   #addressProvider?: IAddressProviderContract;
-  #botListContract?: BotListContract;
-  #gearStakingContract?: GearStakingContract;
   #attachConfig?: AttachOptionsInternal;
 
   // Collection of markets
   #marketRegister?: MarketRegister;
-
-  // Routers by address
-  #routers = new AddressMap<IRouterContract>();
 
   public readonly logger?: ILogger;
 
@@ -300,27 +295,6 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     );
     await this.#addressProvider.syncState(this.currentBlock);
 
-    // Attaching bot list contract
-    try {
-      const botListAddress = this.#addressProvider.getAddress(
-        AP_BOT_LIST,
-        NO_VERSION,
-      );
-      this.#botListContract = new BotListContract(this, botListAddress);
-    } catch (e) {
-      this.logger?.error(e);
-    }
-
-    // Attaching gear staking contract
-    const gearStakingAddress = this.#addressProvider.getAddress(
-      AP_GEAR_STAKING,
-      NO_VERSION,
-    );
-    this.#gearStakingContract = new GearStakingContract(
-      this,
-      gearStakingAddress,
-    );
-
     this.#marketRegister = new MarketRegister(this);
     await this.#marketRegister.loadMarkets(
       marketConfigurators,
@@ -429,8 +403,8 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
       timestamp: Number(this.timestamp),
       core: {
         addressProviderV3: this.addressProvider.stateHuman(raw),
-        botList: this.botListContract.stateHuman(raw),
-        gearStakingV3: this.gearStakingContract.stateHuman(raw),
+        botList: this.botListContract?.stateHuman(raw),
+        gearStakingV3: this.gearStakingContract?.stateHuman(raw),
       },
       tokens: this.tokensMeta.values(),
       plugins: Object.fromEntries(
@@ -581,18 +555,22 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     return this.#addressProvider;
   }
 
-  public get botListContract(): BotListContract {
-    if (this.#botListContract === undefined) {
-      throw ERR_NOT_ATTACHED;
+  public get botListContract(): BotListContract | undefined {
+    const addr = this.addressProvider.getAddress(AP_BOT_LIST, NO_VERSION);
+    if (!this.contracts.has(addr)) {
+      // this registers it in sdk.contracts as constructor's side-effect
+      return new BotListContract(this, addr);
     }
-    return this.#botListContract;
+    return this.contracts.get(addr) as unknown as BotListContract;
   }
 
-  public get gearStakingContract(): GearStakingContract {
-    if (this.#gearStakingContract === undefined) {
-      throw ERR_NOT_ATTACHED;
+  public get gearStakingContract(): GearStakingContract | undefined {
+    const addr = this.addressProvider.getAddress(AP_GEAR_STAKING, NO_VERSION);
+    if (!this.contracts.has(addr)) {
+      // this registers it in sdk.contracts as constructor's side-effect
+      return new GearStakingContract(this, addr);
     }
-    return this.#gearStakingContract;
+    return this.contracts.get(addr) as unknown as GearStakingContract;
   }
 
   public get marketRegister(): MarketRegister {
@@ -634,9 +612,10 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
       );
     }
     const [routerAddr, routerV] = routerEntry;
-    if (!this.#routers.has(routerAddr)) {
-      this.#routers.upsert(routerAddr, createRouter(this, routerAddr, routerV));
+    if (!this.contracts.has(routerAddr)) {
+      // router is added to this.contracts as constructor's side-effect
+      return createRouter(this, routerAddr, routerV);
     }
-    return this.#routers.mustGet(routerAddr);
+    return this.contracts.get(routerAddr) as unknown as IRouterContract;
   }
 }
