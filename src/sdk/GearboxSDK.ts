@@ -56,6 +56,11 @@ import { getLogsSafe } from "./utils/viem/index.js";
 
 const ERR_NOT_ATTACHED = new Error("Gearbox SDK not attached");
 
+/**
+ * State version, checked duryng hydration
+ */
+export const STATE_VERSION = 1;
+
 export interface SDKOptions<Plugins extends PluginMap = {}> {
   /**
    * If not set, address provider address is determinted automatically from networkType
@@ -345,7 +350,11 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
 
   #hydrate(options: HydrateOptions, state: GearboxState): this {
     const { logger: _logger, ...opts } = options;
-    // TODO: version mismatch
+    if (state.version !== STATE_VERSION) {
+      throw new Error(
+        `hydrated state version is ${state.version}, but expected ${STATE_VERSION}`,
+      );
+    }
 
     this.#currentBlock = state.currentBlock;
     this.#timestamp = state.timestamp;
@@ -478,6 +487,7 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
 
   public get state(): GearboxState {
     return {
+      version: STATE_VERSION,
       network: this.provider.networkType,
       chainId: this.provider.chainId,
       currentBlock: this.currentBlock,
