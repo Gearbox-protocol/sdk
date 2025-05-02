@@ -27,6 +27,7 @@ import {
   BotListContract,
   createAddressProvider,
   GearStakingContract,
+  hydrateAddressProvider,
 } from "./core/index.js";
 import { MarketRegister } from "./market/MarketRegister.js";
 import { PriceFeedRegister } from "./market/pricefeeds/index.js";
@@ -95,6 +96,15 @@ export interface SDKOptions<Plugins extends PluginMap = {}> {
    */
   logger?: ILogger;
 }
+
+export type HydrateOptions = Pick<
+  SDKOptions,
+  | "ignoreUpdateablePrices"
+  | "logger"
+  | "redstoneGateways"
+  | "redstoneHistoricTimestamp"
+  | "strictContractTypes"
+>;
 
 interface SDKContructorArgs<Plugins extends PluginMap = {}> {
   provider: Provider;
@@ -224,6 +234,21 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     });
   }
 
+  public static hydrate(
+    options: HydrateOptions & ConnectionOptions & TransportOptions,
+    state: GearboxState,
+  ): GearboxSDK {
+    const { logger, ...rest } = options;
+    const provider = new Provider({
+      ...rest,
+      chainId: state.chainId,
+      networkType: state.network,
+    });
+
+    // TODO: plugins
+    return new GearboxSDK({ provider, logger }).#hydrate(rest, state);
+  }
+
   private constructor(options: SDKContructorArgs<Plugins>) {
     this.#provider = options.provider;
     this.logger = options.logger;
@@ -245,7 +270,6 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
       addressProvider,
       blockNumber,
       redstoneHistoricTimestamp,
-      redstoneGateways,
       ignoreUpdateablePrices,
       marketConfigurators,
     } = opts;
@@ -276,15 +300,7 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     this.#currentBlock = block.number;
     this.#timestamp = block.timestamp;
 
-    if (redstoneHistoricTimestamp) {
-      this.priceFeeds.redstoneUpdater.historicalTimestamp =
-        redstoneHistoricTimestamp === true
-          ? Number(block.timestamp) * 1000
-          : redstoneHistoricTimestamp;
-    }
-    if (redstoneGateways?.length) {
-      this.priceFeeds.redstoneUpdater.gateways = redstoneGateways;
-    }
+    this.#confugureRedstone(opts);
 
     this.logger?.debug(
       `${re}attach block number ${this.currentBlock} timestamp ${this.timestamp}`,
@@ -327,13 +343,56 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     return this;
   }
 
+  #hydrate(options: HydrateOptions, state: GearboxState): this {
+    const { logger: _logger, ...opts } = options;
+    // TODO: version mismatch
+
+    this.#currentBlock = state.currentBlock;
+    this.#timestamp = state.timestamp;
+    this.#confugureRedstone(opts);
+
+    this.#addressProvider = hydrateAddressProvider(this, state.addressProvider);
+    this.logger?.debug(
+      `address provider version: ${this.#addressProvider.version}`,
+    );
+
+    this.#marketRegister = new MarketRegister(this);
+    this.#marketRegister.hydrate(state.markets);
+
+    this.#attachConfig = {
+      ...opts,
+      addressProvider: this.addressProvider.address,
+      marketConfigurators: this.marketRegister.marketConfigurators.map(
+        m => m.address,
+      ),
+      blockNumber: this.currentBlock,
+    };
+
+    return this;
+  }
+
+  #confugureRedstone(
+    opts: Pick<SDKOptions, "redstoneGateways" | "redstoneHistoricTimestamp">,
+  ) {
+    const { redstoneGateways, redstoneHistoricTimestamp } = opts;
+    if (redstoneHistoricTimestamp) {
+      this.priceFeeds.redstoneUpdater.historicalTimestamp =
+        redstoneHistoricTimestamp === true
+          ? Number(this.timestamp) * 1000
+          : redstoneHistoricTimestamp;
+    }
+    if (redstoneGateways?.length) {
+      this.priceFeeds.redstoneUpdater.gateways = redstoneGateways;
+    }
+  }
+
   /**
    * Reattach SDK with the same config as before, without re-creating instance. Will load all state from scratch
    * Be mindful of block number, for example
    */
   public async reattach(): Promise<void> {
     if (!this.#attachConfig) {
-      throw new Error("SDK not attached");
+      throw new Error("cannot reattach, attach config is not set");
     }
     await this.#attach(this.#attachConfig);
   }
@@ -419,7 +478,10 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
 
   public get state(): GearboxState {
     return {
+      network: this.provider.networkType,
+      chainId: this.provider.chainId,
       currentBlock: this.currentBlock,
+      timestamp: this.timestamp,
       addressProvider: this.addressProvider.state,
       markets: this.marketRegister.state,
     };

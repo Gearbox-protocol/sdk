@@ -4,34 +4,33 @@ import type {
   DecodeFunctionDataReturnType,
   Log,
 } from "viem";
-import { bytesToString, getAbiItem, parseEventLogs, toBytes } from "viem";
+import { bytesToString, parseEventLogs, toBytes } from "viem";
 
-import { iAddressProviderV300Abi } from "../../../abi/v300.js";
-import { ADDRESS_PROVIDER_BLOCK } from "../../constants/index.js";
+import { iAddressProviderV310Abi } from "../../../abi/v310.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
-import { getLogsSafe } from "../../utils/viem/index.js";
 import AbstractAddressProviderContract from "./AbstractAddressProviderContract.js";
 import type { IAddressProviderContract } from "./types.js";
 
-const abi = iAddressProviderV300Abi;
+const abi = iAddressProviderV310Abi;
 type abi = typeof abi;
 
-export class AddressProviderContractV3
+export class AddressProviderV310Contract
   extends AbstractAddressProviderContract<abi>
   implements IAddressProviderContract
 {
   constructor(
     sdk: GearboxSDK,
     address: Address,
+    version: number,
     addresses: Record<string, Record<number, Address>> = {},
   ) {
     super(
       sdk,
       {
         addr: address,
-        name: "AddressProviderV3",
+        name: "AddressProviderV310",
         abi,
-        version: 3_00,
+        version,
       },
       addresses,
     );
@@ -72,13 +71,9 @@ export class AddressProviderContractV3
           eventName: "SetAddress",
           logs: [log],
         })[0];
-        const { key, version } = args;
+        const { key, ver, value } = args;
 
-        this.setInternalAddress(
-          key,
-          log.args.value as Address,
-          Number(version),
-        );
+        this.setInternalAddress(key, value, Number(ver));
         break;
       }
       default:
@@ -88,23 +83,14 @@ export class AddressProviderContractV3
   }
 
   public async syncState(blockNumber?: bigint): Promise<void> {
-    const fromBlock = ADDRESS_PROVIDER_BLOCK[this.sdk.provider.networkType];
-    this.logger?.debug(
-      `loading events from block ${fromBlock} to ${blockNumber}`,
-    );
-    const events = await getLogsSafe(this.sdk.provider.publicClient, {
-      address: this.address,
-      event: getAbiItem({ abi: this.abi, name: "SetAddress" }),
-      fromBlock,
-      toBlock: blockNumber,
-      strict: true,
+    const entries = await this.contract.read.getAllEntries({
+      blockNumber,
     });
-    for (const event of events) {
-      this.setInternalAddress(
-        event.args.key,
-        event.args.value,
-        Number(event.args.version),
-      );
+    this.logger?.debug(
+      `loaded ${entries.length} events in block ${blockNumber}`,
+    );
+    for (const { key, ver, value } of entries) {
+      this.setInternalAddress(key, value, Number(ver));
     }
   }
 }

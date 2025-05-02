@@ -25,7 +25,13 @@ export class GaugeStakingService extends SDKConstruct {
     wallet: Address,
   ): Promise<GaugeStakingDataPayload> {
     const marketFilter = this.sdk.marketRegister.marketFilter;
-    if (!marketFilter) throw new Error("market filter is not set");
+    const gearStaking = this.sdk.gearStakingContract;
+    if (!marketFilter) {
+      throw new Error("market filter is not set");
+    }
+    if (!gearStaking) {
+      throw new Error("gear staking contract is not set");
+    }
 
     const [gauges, availableBalance, totalBalance, withdrawableAmounts, epoch] =
       await this.provider.publicClient.multicall({
@@ -38,26 +44,26 @@ export class GaugeStakingService extends SDKConstruct {
             args: [marketFilter, wallet],
           },
           {
-            address: this.sdk.gearStakingContract.address,
-            abi: this.sdk.gearStakingContract.abi,
+            address: gearStaking.address,
+            abi: gearStaking.abi,
             functionName: "availableBalance",
             args: [wallet],
           },
           {
-            address: this.sdk.gearStakingContract.address,
-            abi: this.sdk.gearStakingContract.abi,
+            address: gearStaking.address,
+            abi: gearStaking.abi,
             functionName: "balanceOf",
             args: [wallet],
           },
           {
-            address: this.sdk.gearStakingContract.address,
-            abi: this.sdk.gearStakingContract.abi,
+            address: gearStaking.address,
+            abi: gearStaking.abi,
             functionName: "getWithdrawableAmounts",
             args: [wallet],
           },
           {
-            address: this.sdk.gearStakingContract.address,
-            abi: this.sdk.gearStakingContract.abi,
+            address: gearStaking.address,
+            abi: gearStaking.abi,
             functionName: "getCurrentEpoch",
             args: [],
           },

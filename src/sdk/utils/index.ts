@@ -10,3 +10,4 @@ export * from "./json.js";
 export * from "./mappers.js";
 export * from "./retry.js";
 export * from "./toAddress.js";
+export * from "./version.js";

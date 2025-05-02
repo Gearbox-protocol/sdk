@@ -28,10 +28,14 @@ export class MarketRegister extends SDKConstruct {
 
   #marketFilter?: MarketFilter;
 
-  constructor(sdk: GearboxSDK, markets?: MarketData[]) {
+  constructor(sdk: GearboxSDK) {
     super(sdk);
     this.#logger = childLogger("MarketRegister", sdk.logger);
-    for (const data of markets ?? []) {
+  }
+
+  public hydrate(state: MarketData[]): void {
+    this.#markets.clear();
+    for (const data of state) {
       this.#markets.upsert(
         data.pool.baseParams.addr,
         new MarketSuite(this.sdk, data),
