@@ -26,8 +26,6 @@ import {
 import { iDegenNftv2Abi } from "./abi.js";
 import { type AnvilClient, createAnvilClient } from "./createAnvilClient.js";
 
-const DEFAULT_LEVERAGE = 4;
-
 export interface AccountOpenerOptions {
   faucet?: Address;
   borrower?: PrivateKeyAccount;
@@ -217,12 +215,8 @@ export class AccountOpener extends SDKConstruct {
   }
 
   public async prepareOpen(input: TargetAccount): Promise<RawTx> {
-    const {
-      creditManager,
-      target,
-      leverage = DEFAULT_LEVERAGE,
-      slippage = 50,
-    } = input;
+    const { creditManager, target, slippage = 50 } = input;
+
     const borrower = await this.#getBorrower();
     const cm = this.sdk.marketRegister.findCreditManager(creditManager);
     const symbol = this.sdk.tokensMeta.symbol(target);
@@ -230,6 +224,8 @@ export class AccountOpener extends SDKConstruct {
       creditManager: cm.name,
       target: symbol,
     });
+    const leverage = this.#getLeverage(input);
+    logger?.debug(`using leverage ${leverage}`);
     const { minDebt, underlying } = cm.creditFacade;
 
     const expectedBalances: Asset[] = [];
@@ -254,7 +250,7 @@ export class AccountOpener extends SDKConstruct {
       target,
     });
     logger?.debug(strategy, "found open strategy");
-    const debt = minDebt * BigInt(leverage - 1);
+    const debt = (minDebt * (leverage - PERCENTAGE_FACTOR)) / PERCENTAGE_FACTOR;
     const averageQuota = this.#getCollateralQuota(
       cm,
       target,
@@ -300,12 +296,14 @@ export class AccountOpener extends SDKConstruct {
     this.#logger?.debug("checking and topping up pools if necessary");
 
     const minAvailableByPool: Record<Address, bigint> = {};
-    for (const { leverage = DEFAULT_LEVERAGE, creditManager } of targets) {
-      const cm = this.sdk.marketRegister.findCreditManager(creditManager);
+    for (const t of targets) {
+      const leverage = this.#getLeverage(t);
+      const cm = this.sdk.marketRegister.findCreditManager(t.creditManager);
       const { minDebt } = cm.creditFacade;
       minAvailableByPool[cm.pool] =
         (minAvailableByPool[cm.pool] ?? 0n) +
-        (minDebt * BigInt(leverage - 1) * this.#poolDepositMultiplier) /
+        (((minDebt * (leverage - PERCENTAGE_FACTOR)) / PERCENTAGE_FACTOR) *
+          this.#poolDepositMultiplier) /
           PERCENTAGE_FACTOR;
     }
 
@@ -646,6 +644,21 @@ export class AccountOpener extends SDKConstruct {
     quota = (quota * (PERCENTAGE_FACTOR + 500n)) / PERCENTAGE_FACTOR;
 
     return (quota / PERCENTAGE_FACTOR) * PERCENTAGE_FACTOR;
+  }
+
+  /**
+   * Returns leverage in percentage factor format
+   * @param param0
+   * @returns
+   */
+  #getLeverage({ creditManager, target, leverage }: TargetAccount): bigint {
+    if (leverage) {
+      return BigInt(leverage) * PERCENTAGE_FACTOR;
+    }
+    const cm = this.sdk.marketRegister.findCreditManager(creditManager);
+    const lt = BigInt(cm.creditManager.liquidationThresholds.mustGet(target));
+    const d = 50n;
+    return PERCENTAGE_FACTOR * (1n + (lt - d) / (PERCENTAGE_FACTOR - lt));
   }
 
   public get faucet(): Address {
