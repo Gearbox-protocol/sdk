@@ -225,26 +225,32 @@ export class AccountOpener extends SDKConstruct {
       target: symbol,
     });
     const leverage = this.#getLeverage(input);
-    logger?.debug(`using leverage ${leverage}`);
     const { minDebt, underlying } = cm.creditFacade;
-
+    const expectedUnderlyingBalance = (minDebt * leverage) / PERCENTAGE_FACTOR;
     const expectedBalances: Asset[] = [];
     const leftoverBalances: Asset[] = [];
     for (const t of cm.creditManager.collateralTokens) {
       const token = t as Address;
       expectedBalances.push({
         token,
-        balance:
-          token === underlying
-            ? (BigInt(leverage) * minDebt) / PERCENTAGE_FACTOR
-            : 1n,
+        balance: token === underlying ? expectedUnderlyingBalance : 1n,
       });
       leftoverBalances.push({
         token,
         balance: 1n,
       });
     }
-    logger?.debug("looking for open strategy");
+    logger?.debug(
+      {
+        minDebt: this.sdk.tokensMeta.formatBN(underlying, minDebt),
+        leverage: leverage.toString(),
+        expectedUnderlyingBalance: this.sdk.tokensMeta.formatBN(
+          underlying,
+          expectedUnderlyingBalance,
+        ),
+      },
+      "looking for open strategy",
+    );
     const strategy = await this.sdk.routerFor(cm).findOpenStrategyPath({
       creditManager: cm.creditManager,
       expectedBalances,
