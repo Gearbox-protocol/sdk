@@ -4,7 +4,7 @@ import type { CreditSuiteState, MarketData } from "../../base/index.js";
 import { SDKConstruct } from "../../base/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { IRouterContract } from "../../router/index.js";
-import type { CreditSuiteStateHuman, TVL } from "../../types/index.js";
+import type { CreditSuiteStateHuman } from "../../types/index.js";
 import createCreditConfigurator from "./createCreditConfigurator.js";
 import createCreditFacade from "./createCreditFacade.js";
 import createCreditManager from "./createCreditManager.js";
@@ -42,16 +42,6 @@ export class CreditSuite extends SDKConstruct {
 
   public get router(): IRouterContract {
     return this.sdk.routerFor(this);
-  }
-
-  async tvl(): Promise<TVL> {
-    // const cas =
-    //   await this.service.peripheryFactory.dataCompressorV3Contract.getCreditsAccountByCreditManager(
-    //     this.creditManager.address,
-    //   );
-    const tvl = 0n; // cas.reduce((acc, ca) => acc + BigInt(ca.totalValue), 0n);
-    const tvlUSD = 0n; // cas.reduce((acc, ca) => acc + BigInt(ca.totalValueUSD), 0n);
-    return { tvl, tvlUSD };
   }
 
   override get dirty(): boolean {

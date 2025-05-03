@@ -10,7 +10,6 @@ import type {
   ILogger,
   IPriceUpdateTx,
   MarketStateHuman,
-  TVL,
 } from "../types/index.js";
 import { AddressMap, childLogger } from "../utils/index.js";
 import { simulateWithPriceUpdates } from "../utils/viem/index.js";
@@ -272,18 +271,5 @@ export class MarketRegister extends SDKConstruct {
 
   public get markets(): MarketSuite[] {
     return this.#markets.values();
-  }
-
-  public async tvl(): Promise<TVL> {
-    const creditManagers = this.creditManagers;
-    const tvls = await Promise.all(creditManagers.map(cm => cm.tvl()));
-    return tvls.reduce(
-      (acc, curr) => {
-        acc.tvl += curr.tvl;
-        acc.tvlUSD += curr.tvlUSD;
-        return acc;
-      },
-      { tvl: 0n, tvlUSD: 0n },
-    );
   }
 }

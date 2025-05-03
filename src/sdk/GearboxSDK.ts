@@ -45,12 +45,7 @@ import type {
   ILogger,
   MultiCall,
 } from "./types/index.js";
-import {
-  AddressMap,
-  formatBN,
-  toAddress,
-  TypedObjectUtils,
-} from "./utils/index.js";
+import { AddressMap, toAddress, TypedObjectUtils } from "./utils/index.js";
 import { Hooks } from "./utils/internal/index.js";
 import { getLogsSafe } from "./utils/viem/index.js";
 
@@ -495,12 +490,6 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
       addressProvider: this.addressProvider.state,
       markets: this.marketRegister.state,
     };
-  }
-
-  public async tvl(): Promise<void> {
-    const { tvl, tvlUSD } = await this.marketRegister.tvl();
-    this.logger?.info(tvl);
-    this.logger?.info(`Total TVL: ${formatBN(tvlUSD, 8)}`);
   }
 
   /**
