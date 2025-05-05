@@ -2,9 +2,14 @@ import type {
   AbiParametersToPrimitiveTypes,
   ExtractAbiFunction,
 } from "abitype";
+import type { Address } from "viem";
 
 import type { iPeripheryCompressorAbi } from "../abi/compressors.js";
-import type { BaseContractStateHuman, Unarray } from "../sdk/index.js";
+import type {
+  BaseContractStateHuman,
+  IPluginState,
+  Unarray,
+} from "../sdk/index.js";
 
 export type BotState = Unarray<
   AbiParametersToPrimitiveTypes<
@@ -13,6 +18,7 @@ export type BotState = Unarray<
 >;
 
 export interface BotParameters {
+  treasury: Address;
   minHealthFactor: number;
   maxHealthFactor: number;
   premiumScaleFactor: number;
@@ -28,8 +34,8 @@ export const BOT_TYPES = [
 
 export type BotType = (typeof BOT_TYPES)[number];
 
-export interface BotStateV300Human extends BaseContractStateHuman {
-  botType: BotType;
+export interface BotStateBaseHuman extends BaseContractStateHuman {
+  treasury: Address;
   minHealthFactor: string;
   maxHealthFactor: string;
   premiumScaleFactor: string;
@@ -37,6 +43,24 @@ export interface BotStateV300Human extends BaseContractStateHuman {
   requiredPermissions: string;
 }
 
+export interface BotStateV300Human extends BotStateBaseHuman {
+  botType: BotType;
+}
+
+export type BotStateV310Human = BotStateBaseHuman;
+
+export type BotStateHuman = BotStateV300Human | BotStateV310Human;
+
 export interface BotsPluginStateHuman {
-  bots: Record<string, BotStateV300Human[]>;
+  /**
+   * Mapping market configurator to bot states
+   */
+  bots: Record<string, BotStateHuman[]>;
+}
+
+export interface BotsPluginState extends IPluginState {
+  /**
+   * Mapping market configurator address to bot states
+   */
+  bots: Record<Address, BotState[]>;
 }

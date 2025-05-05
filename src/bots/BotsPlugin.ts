@@ -1,27 +1,23 @@
 import type { Address } from "viem";
 
 import { iPeripheryCompressorAbi } from "../abi/compressors.js";
-import type {
-  GearboxSDK,
-  IGearboxSDKPlugin,
-  ILogger,
-  IPluginState,
-} from "../sdk/index.js";
+import type { GearboxSDK, IGearboxSDKPlugin, ILogger } from "../sdk/index.js";
 import {
   AddressMap,
   AP_PERIPHERY_COMPRESSOR,
+  isV300,
+  isV310,
   SDKConstruct,
   TypedObjectUtils,
 } from "../sdk/index.js";
-import { iPartialLiquidationBotV300Abi } from "./abi/index.js";
-import type { PartialLiquidationBotV300State } from "./PartialLiquidationBotV300Contract.js";
 import { PartialLiquidationBotV300Contract } from "./PartialLiquidationBotV300Contract.js";
-import type { BotParameters, BotsPluginStateHuman, BotState } from "./types.js";
-import { BOT_TYPES } from "./types.js";
-
-export interface BotsPluginState extends IPluginState {
-  bots: Record<Address, PartialLiquidationBotV300State[]>;
-}
+import { PartialLiquidationBotV310Contract } from "./PartialLiquidationBotV310Contract.js";
+import {
+  BOT_TYPES,
+  type BotsPluginState,
+  type BotsPluginStateHuman,
+  type BotState,
+} from "./types.js";
 
 export class UnsupportedBotVersionError extends Error {
   public readonly state: BotState;
@@ -34,6 +30,10 @@ export class UnsupportedBotVersionError extends Error {
   }
 }
 
+export type PartialLiquidationBotContract =
+  | PartialLiquidationBotV300Contract
+  | PartialLiquidationBotV310Contract;
+
 export class BotsPlugin
   extends SDKConstruct
   implements IGearboxSDKPlugin<BotsPluginState>
@@ -41,7 +41,7 @@ export class BotsPlugin
   #logger?: ILogger;
   public readonly version = 1;
 
-  readonly #botsByMarket: AddressMap<PartialLiquidationBotV300Contract[]> =
+  readonly #botsByMarket: AddressMap<PartialLiquidationBotContract[]> =
     new AddressMap();
 
   constructor(sdk: GearboxSDK) {
@@ -59,11 +59,11 @@ export class BotsPlugin
 
   public botsByMarketConfigurator(
     mc: Address,
-  ): PartialLiquidationBotV300Contract[] {
+  ): PartialLiquidationBotContract[] {
     return this.#botsByMarket.get(mc) ?? [];
   }
 
-  public get allBots(): PartialLiquidationBotV300Contract[] {
+  public get allBots(): PartialLiquidationBotContract[] {
     return this.#botsByMarket.values().flat();
   }
 
@@ -90,128 +90,28 @@ export class BotsPlugin
       ),
       allowFailure: false,
     });
-    const botsByMcV300: Record<Address, BotState[]> = {};
-
     for (let i = 0; i < mcs.length; i++) {
       const mc = mcs[i];
       const marketBotData = botsData[i];
-      const marketBotsV300: BotState[] = [];
-
-      for (const bot of marketBotData) {
-        if (bot.baseParams.version === 300n) {
-          marketBotsV300.push(bot);
-        } else {
-          this.#logger?.warn(new UnsupportedBotVersionError(bot));
-          // create and push new bot of other version
-        }
-      }
-      if (marketBotsV300.length === 4) {
-        botsByMcV300[mc] = marketBotsV300;
-      } else if (marketBotsV300.length > 0) {
-        this.#logger?.warn(
-          `each market configurator should have 4 v300 bots, but ${mc} has ${marketBotsV300.length}`,
-        );
-      }
-    }
-
-    const botAddrsV300 = Object.values(botsByMcV300).flatMap(b =>
-      b.map(b => b.baseParams.addr),
-    );
-    this.#logger?.debug(`loaded ${botAddrsV300.length} v300 bots`);
-    const params = await this.#getBotsV300Parameters(botAddrsV300);
-
-    // for v300 bots, there's no reliable way to get bot type from compressor
-    // so we're assuming that there're 4 v300 bots per market configurator
-    // and their types are determined by their minHealthFactors
-    for (const [mc, botStates] of TypedObjectUtils.entries(botsByMcV300)) {
-      this.#botsByMarket.upsert(
-        mc,
-        botStates
-          .map((state, i) => ({
-            state,
-            params: params[state.baseParams.addr],
-            type: BOT_TYPES[i],
-          }))
-          .sort((a, b) => a.params.minHealthFactor - b.params.minHealthFactor)
-          .map(
-            ({ state, params, type }) =>
-              new PartialLiquidationBotV300Contract(
-                this.sdk,
-                state,
-                params,
-                type,
-                mc,
-              ),
-          ),
-      );
+      this.#loadStateMarketState(mc, marketBotData);
     }
   }
 
-  async #getBotsV300Parameters(
-    addresses: Address[],
-  ): Promise<Record<Address, BotParameters>> {
-    if (addresses.length === 0) {
-      return {};
+  #loadStateMarketState(mc: Address, state: readonly BotState[]): void {
+    // for v300, assume that each market configurator has exactly 4 bots
+    // sort them by minHealthFactor and assign type based on index
+    const bots = state
+      .map(state => this.#createBot(mc, state))
+      .sort((a, b) => a.minHealthFactor - b.minHealthFactor);
+    if (bots.length && isV300(Number(bots[0].version))) {
+      if (bots.length !== 4) {
+        throw new Error(`expected 4 bots v300 for market configurator ${mc}`);
+      }
+      for (let i = 0; i < bots.length; i++) {
+        (bots[i] as PartialLiquidationBotV300Contract).botType = BOT_TYPES[i];
+      }
     }
-    const BOT_INFO_LENGTH = 4;
-    const resp = await this.provider.publicClient.multicall({
-      allowFailure: false,
-      contracts: addresses
-        .map(
-          address =>
-            [
-              {
-                address,
-                abi: iPartialLiquidationBotV300Abi,
-                functionName: "minHealthFactor",
-                args: [],
-              },
-              {
-                address,
-                abi: iPartialLiquidationBotV300Abi,
-                functionName: "maxHealthFactor",
-                args: [],
-              },
-              {
-                address,
-                abi: iPartialLiquidationBotV300Abi,
-                functionName: "premiumScaleFactor",
-                args: [],
-              },
-              {
-                address,
-                abi: iPartialLiquidationBotV300Abi,
-                functionName: "feeScaleFactor",
-                args: [],
-              },
-            ] as const,
-        )
-        .flat(1),
-    });
-
-    return addresses.reduce<Record<Address, BotParameters>>(
-      (acc, address, index) => {
-        const from = index * BOT_INFO_LENGTH;
-        const to = (index + 1) * BOT_INFO_LENGTH;
-
-        const [
-          minHealthFactor,
-          maxHealthFactor,
-          premiumScaleFactor,
-          feeScaleFactor,
-        ] = resp.slice(from, to);
-
-        acc[address] = {
-          minHealthFactor,
-          maxHealthFactor,
-          premiumScaleFactor,
-          feeScaleFactor,
-        };
-
-        return acc;
-      },
-      {},
-    );
+    this.#botsByMarket.upsert(mc, bots);
   }
 
   public stateHuman(raw?: boolean): BotsPluginStateHuman {
@@ -241,20 +141,29 @@ export class BotsPlugin
   public hydrate(state: BotsPluginState): void {
     this.#botsByMarket.clear();
     for (const [mc, botStates] of TypedObjectUtils.entries(state.bots)) {
-      const bots: PartialLiquidationBotV300Contract[] = [];
-      for (const botState of botStates) {
-        const { marketConfigurator, params, type, ...rest } = botState;
-        bots.push(
-          new PartialLiquidationBotV300Contract(
-            this.sdk,
-            rest,
-            params,
-            type,
-            marketConfigurator,
-          ),
-        );
-      }
-      this.#botsByMarket.upsert(mc, bots);
+      this.#loadStateMarketState(mc, botStates);
+    }
+  }
+
+  #createBot(
+    marketConfigurator: Address,
+    data: BotState,
+  ): PartialLiquidationBotContract {
+    const v = Number(data.baseParams.version);
+    if (isV300(v)) {
+      return new PartialLiquidationBotV300Contract(
+        this.sdk,
+        data,
+        marketConfigurator,
+      );
+    } else if (isV310(v)) {
+      return new PartialLiquidationBotV310Contract(
+        this.sdk,
+        data,
+        marketConfigurator,
+      );
+    } else {
+      throw new Error(`unsupported bot version: ${v}`);
     }
   }
 }

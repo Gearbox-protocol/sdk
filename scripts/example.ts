@@ -42,7 +42,7 @@ async function example(): Promise<void> {
 
   kind = "hydrated";
   const state = await readFile(
-    "tmp/state_real_Mainnet_22418999.json",
+    "tmp/state_real_Mainnet_22419846.json",
     "utf-8",
   ).then(json_parse);
   const sdk = GearboxSDK.hydrate(
