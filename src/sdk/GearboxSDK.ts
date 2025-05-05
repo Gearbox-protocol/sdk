@@ -14,13 +14,17 @@ import {
   detectNetwork,
   Provider,
 } from "./chain/index.js";
+import type { VersionRange } from "./constants/index.js";
 import {
   ADDRESS_PROVIDER_V310,
   AP_BOT_LIST,
   AP_GEAR_STAKING,
   AP_GEAR_TOKEN,
   AP_ROUTER,
+  isV310,
   NO_VERSION,
+  VERSION_RANGE_300,
+  VERSION_RANGE_310,
 } from "./constants/index.js";
 import type { IAddressProviderContract } from "./core/index.js";
 import {
@@ -675,12 +679,10 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       facadeAddr = cm.creditFacade.address;
     }
     const facadeV = this.contracts.mustGet(facadeAddr).version;
-    const routerRange: [number, number] =
-      facadeV >= 310 ? [310, 319] : [300, 309];
-    const routerEntry = this.addressProvider.getLatestInRange(
-      AP_ROUTER,
-      routerRange,
-    );
+    const routerRange: VersionRange = isV310(facadeV)
+      ? VERSION_RANGE_310
+      : VERSION_RANGE_300;
+    const routerEntry = this.addressProvider.getLatest(AP_ROUTER, routerRange);
     if (!routerEntry) {
       throw new Error(
         `router not found for facade v ${facadeV} at ${facadeAddr}`,

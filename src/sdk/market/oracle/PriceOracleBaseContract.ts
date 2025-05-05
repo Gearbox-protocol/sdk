@@ -12,7 +12,10 @@ import type {
 } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
 import type { PriceFeedAnswer } from "../../base/types.js";
-import { AP_PRICE_FEED_COMPRESSOR } from "../../constants/index.js";
+import {
+  AP_PRICE_FEED_COMPRESSOR,
+  VERSION_RANGE_310,
+} from "../../constants/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { PriceOracleStateHuman } from "../../types/index.js";
 import { AddressMap, formatBN } from "../../utils/index.js";
@@ -278,8 +281,9 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
         ),
       );
     }
-    const [address] = this.sdk.addressProvider.getLatestVersion(
+    const [address] = this.sdk.addressProvider.mustGetLatest(
       AP_PRICE_FEED_COMPRESSOR,
+      VERSION_RANGE_310,
     );
     return {
       call: {

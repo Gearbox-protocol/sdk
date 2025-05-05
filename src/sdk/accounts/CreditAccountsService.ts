@@ -22,6 +22,7 @@ import {
   MAX_UINT256,
   MIN_INT96,
   NOT_DEPLOYED,
+  VERSION_RANGE_310,
 } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import type {
@@ -94,8 +95,9 @@ export class CreditAccountsService extends SDKConstruct {
 
   constructor(sdk: GearboxSDK, options?: CreditAccountServiceOptions) {
     super(sdk);
-    [this.#compressor] = sdk.addressProvider.getLatestVersion(
+    [this.#compressor] = sdk.addressProvider.mustGetLatest(
       AP_CREDIT_ACCOUNT_COMPRESSOR,
+      VERSION_RANGE_310,
     );
     this.#batchSize = options?.batchSize;
     this.#logger = childLogger("CreditAccountsService", sdk.logger);
@@ -1493,12 +1495,16 @@ export class CreditAccountsService extends SDKConstruct {
   }
 
   private get rewardCompressor(): Address {
-    return this.sdk.addressProvider.getLatestVersion(AP_REWARDS_COMPRESSOR)[0];
+    return this.sdk.addressProvider.mustGetLatest(
+      AP_REWARDS_COMPRESSOR,
+      VERSION_RANGE_310,
+    )[0];
   }
 
   private get peripheryCompressor(): Address {
-    return this.sdk.addressProvider.getLatestVersion(
+    return this.sdk.addressProvider.mustGetLatest(
       AP_PERIPHERY_COMPRESSOR,
+      VERSION_RANGE_310,
     )[0];
   }
 }

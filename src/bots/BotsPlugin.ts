@@ -9,6 +9,7 @@ import {
   isV310,
   SDKConstruct,
   TypedObjectUtils,
+  VERSION_RANGE_310,
 } from "../sdk/index.js";
 import { PartialLiquidationBotV300Contract } from "./PartialLiquidationBotV300Contract.js";
 import { PartialLiquidationBotV310Contract } from "./PartialLiquidationBotV310Contract.js";
@@ -69,9 +70,9 @@ export class BotsPlugin
 
   async #load(): Promise<void> {
     this.#botsByMarket.clear();
-    const pcAddr = this.sdk.addressProvider.getAddress(
+    const [pcAddr] = this.sdk.addressProvider.mustGetLatest(
       AP_PERIPHERY_COMPRESSOR,
-      3_10,
+      VERSION_RANGE_310,
     );
     this.#logger?.debug(`loading bots with periphery compressor ${pcAddr}`);
     const mcs = this.sdk.marketRegister.marketConfigurators.map(

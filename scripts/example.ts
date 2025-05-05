@@ -1,4 +1,4 @@
-import { readFile, writeFile } from "node:fs/promises";
+import { writeFile } from "node:fs/promises";
 
 import { pino } from "pino";
 
@@ -6,7 +6,6 @@ import { AdaptersPlugin } from "../src/adapters/AdaptersPlugin.js";
 import { BotsPlugin } from "../src/bots/BotsPlugin.js";
 import {
   GearboxSDK,
-  json_parse,
   json_stringify,
   V300StalenessPeriodPlugin,
 } from "../src/sdk/index.js";
@@ -22,44 +21,44 @@ async function example(): Promise<void> {
   let kind = "real";
   // const RPC= megaethTestnet.rpcUrls.default.http[0];
 
-  // const sdk = await GearboxSDK.attach({
-  //   rpcURLs: [RPC],
-  //   timeout: 480_000,
-  //   // blockNumber: 22118452, // 21977000, // 22118452
-  //   // redstoneHistoricTimestamp: true,
-  //   // addressProvider: ADDRESS_PROVIDER,
-  //   // marketConfigurators: [],
-  //   logger,
-  //   // ignoreUpdateablePrices: true,
-  //   strictContractTypes: true,
-  //   plugins: {
-  //     adapters: AdaptersPlugin,
-  //     zappers: ZappersPlugin,
-  //     bots: BotsPlugin,
-  //     stalenessV300: V300StalenessPeriodPlugin,
-  //   },
-  // });
-
-  kind = "hydrated";
-  const state = await readFile(
-    "tmp/state_real_Mainnet_22419846.json",
-    "utf-8",
-  ).then(json_parse);
-  const sdk = GearboxSDK.hydrate(
-    {
-      plugins: {
-        adapters: AdaptersPlugin,
-        zappers: ZappersPlugin,
-        bots: BotsPlugin,
-        stalenessV300: V300StalenessPeriodPlugin,
-      },
-      rpcURLs: [RPC],
-      timeout: 480_000,
-      logger,
-      strictContractTypes: true,
+  const sdk = await GearboxSDK.attach({
+    rpcURLs: [RPC],
+    timeout: 480_000,
+    // blockNumber: 22118452, // 21977000, // 22118452
+    // redstoneHistoricTimestamp: true,
+    // addressProvider: ADDRESS_PROVIDER,
+    // marketConfigurators: [],
+    logger,
+    // ignoreUpdateablePrices: true,
+    strictContractTypes: true,
+    plugins: {
+      adapters: AdaptersPlugin,
+      zappers: ZappersPlugin,
+      bots: BotsPlugin,
+      stalenessV300: V300StalenessPeriodPlugin,
     },
-    state,
-  );
+  });
+
+  // kind = "hydrated";
+  // const state = await readFile(
+  //   "tmp/state_real_Mainnet_22419846.json",
+  //   "utf-8",
+  // ).then(json_parse);
+  // const sdk = GearboxSDK.hydrate(
+  //   {
+  //     plugins: {
+  //       adapters: AdaptersPlugin,
+  //       zappers: ZappersPlugin,
+  //       bots: BotsPlugin,
+  //       stalenessV300: V300StalenessPeriodPlugin,
+  //     },
+  //     rpcURLs: [RPC],
+  //     timeout: 480_000,
+  //     logger,
+  //     strictContractTypes: true,
+  //   },
+  //   state,
+  // );
 
   const prefix = RPC.includes("127.0.0.1") ? "anvil_" : "";
   const net = sdk.provider.networkType;

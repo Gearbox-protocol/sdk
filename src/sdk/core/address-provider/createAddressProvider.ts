@@ -1,8 +1,8 @@
 import type { Address } from "viem";
 
 import { iVersionAbi } from "../../../abi/iVersion.js";
+import { isV300, isV310 } from "../../constants/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
-import { isV300, isV310 } from "../../utils/index.js";
 import { AddressProviderV300Contract } from "./AddressProviderV300Contract.js";
 import { AddressProviderV310Contract } from "./AddressProviderV310Contract.js";
 import type {

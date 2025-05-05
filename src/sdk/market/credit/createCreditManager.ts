@@ -1,4 +1,5 @@
 import type { CreditSuiteState } from "../../base/index.js";
+import { isV300, isV310 } from "../../constants/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import { CreditManagerV300Contract } from "./CreditManagerV300Contract.js";
 import { CreditManagerV310Contract } from "./CreditManagerV310Contract.js";
@@ -9,9 +10,9 @@ export default function createCreditManager(
   data: CreditSuiteState,
 ): ICreditManagerContract {
   const v = data.creditManager.baseParams.version;
-  if (v >= 300 && v < 310) {
+  if (isV300(v)) {
     return new CreditManagerV300Contract(sdk, data);
-  } else if (v === 310n) {
+  } else if (isV310(v)) {
     return new CreditManagerV310Contract(sdk, data);
   }
   throw new Error(`Unsupported credit manager version: ${v}`);

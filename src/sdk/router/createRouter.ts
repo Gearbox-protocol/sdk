@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 
+import { isV300, isV310 } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import { RouterV300Contract } from "./RouterV300Contract.js";
 import { RouterV310Contract } from "./RouterV310Contract.js";
@@ -10,10 +11,10 @@ export function createRouter(
   address: Address,
   version: number,
 ): IRouterContract {
-  if (version >= 300 && version < 310) {
+  if (isV300(version)) {
     return new RouterV300Contract(sdk, address, version);
   }
-  if (version === 310) {
+  if (isV310(version)) {
     return new RouterV310Contract(sdk, address, version);
   }
   throw new Error(`Unsupported router version ${version}`);

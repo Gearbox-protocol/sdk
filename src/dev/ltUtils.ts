@@ -6,7 +6,13 @@ import {
   iCreditManagerV300Abi,
 } from "../abi/v300.js";
 import type { CreditSuiteState, ILogger } from "../sdk/index.js";
-import { hexEq, PERCENTAGE_FACTOR, TypedObjectUtils } from "../sdk/index.js";
+import {
+  hexEq,
+  isV300,
+  isV310,
+  PERCENTAGE_FACTOR,
+  TypedObjectUtils,
+} from "../sdk/index.js";
 import { iaclTraitAbi, iOwnableAbi } from "./abi.js";
 import type { AnvilClient } from "./createAnvilClient.js";
 
@@ -45,9 +51,9 @@ export async function setLTZero(
   logger?: ILogger,
 ): Promise<void> {
   const v = Number(cm.creditConfigurator.baseParams.version);
-  if (v >= 300 && v < 310) {
+  if (isV300(v)) {
     await setLTZeroV300(anvil, cm, logger);
-  } else if (v >= 310 && v < 320) {
+  } else if (isV310(v)) {
     await setLTZeroV310(anvil, cm, logger);
   } else {
     throw new Error(

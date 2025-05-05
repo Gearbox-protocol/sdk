@@ -2,6 +2,7 @@ import { type Abi, type Address, hexToString, isHex, stringToHex } from "viem";
 
 import type { BaseContractOptions } from "../../base/BaseContract.js";
 import { BaseContract } from "../../base/index.js";
+import type { VersionRange } from "../../constants/index.js";
 import { NO_VERSION } from "../../constants/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { AddressProviderV3StateHuman } from "../../types/index.js";
@@ -12,7 +13,6 @@ export default abstract class AbstractAddressProviderContract<
   abi extends Abi | readonly unknown[],
 > extends BaseContract<abi> {
   #addresses: Record<string, Record<number, Address>> = {};
-  #latest: Record<string, number> = {};
 
   constructor(
     sdk: GearboxSDK,
@@ -29,9 +29,6 @@ export default abstract class AbstractAddressProviderContract<
       this.#addresses[k] = {};
     }
     this.#addresses[k][version] = address;
-    if (!this.#latest[k] || version > this.#latest[k]) {
-      this.#latest[k] = version;
-    }
     this.logger?.debug(`Set address for ${k}@${version} to ${address}`);
   }
 
@@ -48,19 +45,9 @@ export default abstract class AbstractAddressProviderContract<
     return result;
   }
 
-  public getLatestVersion(
+  public getLatest(
     contract: string,
-  ): [address: Address, version: number] {
-    const version = this.#latest[contract];
-    if (!version) {
-      throw new Error(`Latest version for ${contract} not found`);
-    }
-    return [this.getAddress(contract, version), version];
-  }
-
-  public getLatestInRange(
-    contract: string,
-    range: [number, number],
+    range: VersionRange,
   ): [address: Address, version: number] | undefined {
     const allVersions = this.#addresses[contract];
     if (!allVersions) {
@@ -79,6 +66,17 @@ export default abstract class AbstractAddressProviderContract<
       return undefined;
     }
     return [address, version];
+  }
+
+  public mustGetLatest(
+    contract: string,
+    range: VersionRange,
+  ): [address: Address, version: number] {
+    const result = this.getLatest(contract, range);
+    if (!result) {
+      throw new Error(`no address found for ${contract} in range ${range}`);
+    }
+    return result;
   }
 
   public get state(): AddressProviderState {

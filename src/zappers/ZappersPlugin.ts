@@ -6,6 +6,7 @@ import {
   AddressMap,
   AP_PERIPHERY_COMPRESSOR,
   SDKConstruct,
+  VERSION_RANGE_310,
 } from "../sdk/index.js";
 import type { ZapperDataFull, ZapperStateHuman } from "./types.js";
 
@@ -27,9 +28,9 @@ export class ZappersPlugin
 
   public async loadZappers(): Promise<void> {
     this.#zappers = new AddressMap<ZapperDataFull[]>(undefined, "zappers");
-    const pcAddr = this.sdk.addressProvider.getAddress(
+    const [pcAddr] = this.sdk.addressProvider.mustGetLatest(
       AP_PERIPHERY_COMPRESSOR,
-      3_10,
+      VERSION_RANGE_310,
     );
     this.sdk.logger?.debug(
       `loading zappers with periphery compressor ${pcAddr}`,

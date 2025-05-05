@@ -4,7 +4,11 @@ import type { iPriceFeedCompressorAbi } from "../../abi/compressors.js";
 import { iMarketCompressorAbi } from "../../abi/compressors.js";
 import type { MarketData, MarketFilter } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
-import { ADDRESS_0X0, AP_MARKET_COMPRESSOR } from "../constants/index.js";
+import {
+  ADDRESS_0X0,
+  AP_MARKET_COMPRESSOR,
+  VERSION_RANGE_310,
+} from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import type {
   ILogger,
@@ -94,9 +98,9 @@ export class MarketRegister extends SDKConstruct {
       pools,
       underlying: ADDRESS_0X0,
     };
-    const marketCompressorAddress = this.sdk.addressProvider.getAddress(
+    const [marketCompressorAddress] = this.sdk.addressProvider.mustGetLatest(
       AP_MARKET_COMPRESSOR,
-      3_10,
+      VERSION_RANGE_310,
     );
     let txs: IPriceUpdateTx[] = [];
     if (!ignoreUpdateablePrices) {
