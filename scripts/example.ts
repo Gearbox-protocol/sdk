@@ -36,6 +36,7 @@ async function example(): Promise<void> {
       stalenessV300: V300StalenessPeriodPlugin,
     },
   });
+
   // const state = await readFile("tmp/state_Mainnet_22418185.json", "utf-8").then(
   //   json_parse,
   // );

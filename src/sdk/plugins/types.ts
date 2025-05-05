@@ -1,11 +1,12 @@
 import type { BaseState, IBaseContract } from "../base/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 
-export type IGearboxSDKPluginConstructor<TState = undefined> = new (
-  sdk: GearboxSDK,
-) => IGearboxSDKPlugin<TState>;
+export type IGearboxSDKPluginConstructor<
+  TState,
+  TPlugin extends IGearboxSDKPlugin<TState>,
+> = new (sdk: GearboxSDK<any>) => TPlugin;
 
-export interface IGearboxSDKPlugin<TState = undefined> {
+export interface IGearboxSDKPlugin<TState> {
   /**
    * Called after SDK is attached
    * @param sdk
@@ -38,19 +39,27 @@ export interface IGearboxSDKPlugin<TState = undefined> {
   hydrate?: (state: TState) => void;
 }
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type PluginMap = {
-  [key: string]: IGearboxSDKPluginConstructor;
+/**
+ * Type that maps plugin constructor to its state type
+ */
+export type PluginState<T> =
+  T extends IGearboxSDKPlugin<infer TState> ? TState : never;
+
+/**
+ * Type that maps a record of plugin constructors to their corresponding instances
+ */
+export type PluginsMap = Record<string, IGearboxSDKPlugin<any>>;
+
+/**
+ * Type that maps a record of plugin constructors to their corresponding states
+ */
+export type PluginStatesMap<T extends PluginsMap> = {
+  [K in keyof T]: PluginState<T[K]>;
 };
 
-export type PluginInstances<T extends PluginMap> = {
-  [K in keyof T]: T[K] extends IGearboxSDKPluginConstructor
-    ? InstanceType<T[K]>
-    : never;
-};
-
-export type PluginStateMap<T extends PluginMap> = {
-  [K in keyof T]: T[K] extends IGearboxSDKPluginConstructor<infer U>
-    ? U
+// create type that creates a map of plugin constructors from PluginsMap
+export type PluginConstructorMap<T extends PluginsMap> = {
+  [K in keyof T]: T[K] extends IGearboxSDKPlugin<infer TState>
+    ? IGearboxSDKPluginConstructor<TState, T[K]>
     : never;
 };

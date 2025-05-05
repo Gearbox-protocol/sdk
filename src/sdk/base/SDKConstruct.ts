@@ -2,15 +2,16 @@ import type { Address, PublicClient } from "viem";
 
 import type { NetworkType, Provider } from "../chain/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
+import type { PluginsMap } from "../plugins/index.js";
 
-export class SDKConstruct {
-  public readonly sdk: GearboxSDK;
+export class SDKConstruct<const Plugins extends PluginsMap = {}> {
+  public readonly sdk: GearboxSDK<Plugins>;
   /**
    * Indicates that contract state needs to be updated
    */
   #dirty = false;
 
-  constructor(sdk: GearboxSDK) {
+  constructor(sdk: GearboxSDK<Plugins>) {
     this.sdk = sdk;
   }
 

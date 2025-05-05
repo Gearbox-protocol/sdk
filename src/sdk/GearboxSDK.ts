@@ -31,16 +31,11 @@ import {
 } from "./core/index.js";
 import { MarketRegister } from "./market/MarketRegister.js";
 import { PriceFeedRegister } from "./market/pricefeeds/index.js";
-import {
-  defaultPlugins,
-  type IGearboxSDKPlugin,
-  type PluginInstances,
-  type PluginMap,
-} from "./plugins/index.js";
 import type {
-  IGearboxSDKPluginConstructor,
-  PluginStateMap,
-} from "./plugins/types.js";
+  PluginConstructorMap,
+  PluginsMap,
+  PluginStatesMap,
+} from "./plugins/index.js";
 import { createRouter, type IRouterContract } from "./router/index.js";
 import type {
   GearboxState,
@@ -59,7 +54,7 @@ const ERR_NOT_ATTACHED = new Error("Gearbox SDK not attached");
  */
 export const STATE_VERSION = 1;
 
-export interface SDKOptions<Plugins extends PluginMap = {}> {
+export interface SDKOptions<Plugins extends PluginsMap> {
   /**
    * If not set, address provider address is determinted automatically from networkType
    */
@@ -93,23 +88,23 @@ export interface SDKOptions<Plugins extends PluginMap = {}> {
   /**
    * Plugins to extends SDK functionality
    */
-  plugins?: Plugins;
+  plugins?: PluginConstructorMap<Plugins>;
   /**
    * Bring your own logger
    */
   logger?: ILogger;
 }
 
-export type HydrateOptions<Plugins extends PluginMap = {}> = Omit<
+export type HydrateOptions<Plugins extends PluginsMap> = Omit<
   SDKOptions<Plugins>,
   "blockNumber" | "addressProvider" | "marketConfigurators"
 >;
 
-interface SDKContructorArgs<Plugins extends PluginMap = {}> {
+interface SDKContructorArgs<Plugins extends PluginsMap> {
   provider: Provider;
   logger?: ILogger;
   strictContractTypes?: boolean;
-  plugins?: Plugins;
+  plugins?: PluginConstructorMap<Plugins>;
 }
 
 interface AttachOptionsInternal {
@@ -132,11 +127,11 @@ export type SDKHooks = {
   syncState: [SyncStateOptions];
 };
 
-export class GearboxSDK<Plugins extends PluginMap = {}> {
+export class GearboxSDK<const Plugins extends PluginsMap = {}> {
   readonly #hooks = new Hooks<SDKHooks>();
   // Represents chain object
   readonly #provider: Provider;
-  readonly plugins: PluginInstances<Plugins>;
+  readonly plugins: Plugins;
 
   // Block which was use for data query
   #currentBlock?: bigint;
@@ -182,7 +177,7 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
   public addHook = this.#hooks.addHook.bind(this.#hooks);
   public removeHook = this.#hooks.removeHook.bind(this.#hooks);
 
-  public static async attach<Plugins extends PluginMap>(
+  public static async attach<const Plugins extends PluginsMap>(
     options: SDKOptions<Plugins> &
       Partial<NetworkOptions> &
       ConnectionOptions &
@@ -233,7 +228,7 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     });
   }
 
-  public static hydrate<Plugins extends PluginMap>(
+  public static hydrate<const Plugins extends PluginsMap>(
     options: HydrateOptions<Plugins> & ConnectionOptions & TransportOptions,
     state: GearboxState<Plugins>,
   ): GearboxSDK<Plugins> {
@@ -253,15 +248,13 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     this.logger = options.logger;
     this.priceFeeds = new PriceFeedRegister(this);
     this.strictContractTypes = options.strictContractTypes ?? false;
-    const pluginsInstances: Record<string, IGearboxSDKPlugin> = {};
-    const pluginConstructros: Record<string, IGearboxSDKPluginConstructor> = {
-      ...defaultPlugins,
-      ...options.plugins,
-    };
-    for (const [name, Plugin] of TypedObjectUtils.entries(pluginConstructros)) {
+    const pluginsInstances: Record<string, any> = {};
+    for (const [name, Plugin] of TypedObjectUtils.entries(
+      options.plugins ?? {},
+    )) {
       pluginsInstances[name] = new Plugin(this);
     }
-    this.plugins = pluginsInstances as PluginInstances<Plugins>;
+    this.plugins = pluginsInstances as Plugins;
   }
 
   async #attach(opts: AttachOptionsInternal): Promise<this> {
@@ -385,7 +378,10 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
   }
 
   #confugureRedstone(
-    opts: Pick<SDKOptions, "redstoneGateways" | "redstoneHistoricTimestamp">,
+    opts: Pick<
+      SDKOptions<Plugins>,
+      "redstoneGateways" | "redstoneHistoricTimestamp"
+    >,
   ) {
     const { redstoneGateways, redstoneHistoricTimestamp } = opts;
     if (redstoneHistoricTimestamp) {
@@ -503,7 +499,7 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
           name,
           plugin.state,
         ]),
-      ) as PluginStateMap<Plugins>,
+      ) as PluginStatesMap<Plugins>,
     };
   }
 
