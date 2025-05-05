@@ -9,9 +9,14 @@ import {
   TypedObjectUtils,
 } from "../sdk/index.js";
 import { iPartialLiquidationBotV300Abi } from "./abi/index.js";
+import type { PartialLiquidationBotV300State } from "./PartialLiquidationBotV300Contract.js";
 import { PartialLiquidationBotV300Contract } from "./PartialLiquidationBotV300Contract.js";
 import type { BotParameters, BotsPluginStateHuman, BotState } from "./types.js";
 import { BOT_TYPES } from "./types.js";
+
+export interface BotsPluginState {
+  bots: Record<Address, PartialLiquidationBotV300State[]>;
+}
 
 export class UnsupportedBotVersionError extends Error {
   public readonly state: BotState;
@@ -24,7 +29,10 @@ export class UnsupportedBotVersionError extends Error {
   }
 }
 
-export class BotsPlugin extends SDKConstruct implements IGearboxSDKPlugin {
+export class BotsPlugin
+  extends SDKConstruct
+  implements IGearboxSDKPlugin<BotsPluginState>
+{
   #logger?: ILogger;
 
   readonly #botsByMarket: AddressMap<PartialLiquidationBotV300Contract[]> =
@@ -211,5 +219,35 @@ export class BotsPlugin extends SDKConstruct implements IGearboxSDKPlugin {
           ]),
       ),
     };
+  }
+
+  public get state(): BotsPluginState {
+    return {
+      bots: TypedObjectUtils.fromEntries(
+        this.#botsByMarket
+          .entries()
+          .map(([mc, bots]) => [mc, bots.map(b => b.state)]),
+      ),
+    };
+  }
+
+  public hydrate(state: BotsPluginState): void {
+    this.#botsByMarket.clear();
+    for (const [mc, botStates] of TypedObjectUtils.entries(state.bots)) {
+      const bots: PartialLiquidationBotV300Contract[] = [];
+      for (const botState of botStates) {
+        const { marketConfigurator, params, type, ...rest } = botState;
+        bots.push(
+          new PartialLiquidationBotV300Contract(
+            this.sdk,
+            rest,
+            params,
+            type,
+            marketConfigurator,
+          ),
+        );
+      }
+      this.#botsByMarket.upsert(mc, bots);
+    }
   }
 }

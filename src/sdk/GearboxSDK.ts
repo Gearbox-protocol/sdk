@@ -37,7 +37,10 @@ import {
   type PluginInstances,
   type PluginMap,
 } from "./plugins/index.js";
-import type { IGearboxSDKPluginConstructor } from "./plugins/types.js";
+import type {
+  IGearboxSDKPluginConstructor,
+  PluginStateMap,
+} from "./plugins/types.js";
 import { createRouter, type IRouterContract } from "./router/index.js";
 import type {
   GearboxState,
@@ -97,13 +100,9 @@ export interface SDKOptions<Plugins extends PluginMap = {}> {
   logger?: ILogger;
 }
 
-export type HydrateOptions = Pick<
-  SDKOptions,
-  | "ignoreUpdateablePrices"
-  | "logger"
-  | "redstoneGateways"
-  | "redstoneHistoricTimestamp"
-  | "strictContractTypes"
+export type HydrateOptions<Plugins extends PluginMap = {}> = Omit<
+  SDKOptions<Plugins>,
+  "blockNumber" | "addressProvider" | "marketConfigurators"
 >;
 
 interface SDKContructorArgs<Plugins extends PluginMap = {}> {
@@ -234,11 +233,11 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     });
   }
 
-  public static hydrate(
-    options: HydrateOptions & ConnectionOptions & TransportOptions,
-    state: GearboxState,
-  ): GearboxSDK {
-    const { logger, ...rest } = options;
+  public static hydrate<Plugins extends PluginMap>(
+    options: HydrateOptions<Plugins> & ConnectionOptions & TransportOptions,
+    state: GearboxState<Plugins>,
+  ): GearboxSDK<Plugins> {
+    const { logger, plugins, ...rest } = options;
     const provider = new Provider({
       ...rest,
       chainId: state.chainId,
@@ -246,7 +245,7 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     });
 
     // TODO: plugins
-    return new GearboxSDK({ provider, logger }).#hydrate(rest, state);
+    return new GearboxSDK({ provider, plugins, logger }).#hydrate(rest, state);
   }
 
   private constructor(options: SDKContructorArgs<Plugins>) {
@@ -343,7 +342,10 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     return this;
   }
 
-  #hydrate(options: HydrateOptions, state: GearboxState): this {
+  #hydrate(
+    options: HydrateOptions<Plugins>,
+    state: GearboxState<Plugins>,
+  ): this {
     const { logger: _logger, ...opts } = options;
     if (state.version !== STATE_VERSION) {
       throw new Error(
@@ -371,6 +373,13 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
       ),
       blockNumber: this.currentBlock,
     };
+
+    for (const [name, plugin] of TypedObjectUtils.entries(this.plugins)) {
+      const pluginState = state.plugins[name];
+      if (plugin.hydrate && pluginState) {
+        plugin.hydrate(pluginState as any);
+      }
+    }
 
     return this;
   }
@@ -480,7 +489,7 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     };
   }
 
-  public get state(): GearboxState {
+  public get state(): GearboxState<Plugins> {
     return {
       version: STATE_VERSION,
       network: this.provider.networkType,
@@ -489,6 +498,12 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
       timestamp: this.timestamp,
       addressProvider: this.addressProvider.state,
       markets: this.marketRegister.state,
+      plugins: Object.fromEntries(
+        TypedObjectUtils.entries(this.plugins).map(([name, plugin]) => [
+          name,
+          plugin.state,
+        ]),
+      ) as PluginStateMap<Plugins>,
     };
   }
 

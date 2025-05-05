@@ -104,4 +104,12 @@ export class AdaptersPlugin extends SDKConstruct implements IGearboxSDKPlugin {
   public stateHuman(_?: boolean): {} {
     return {};
   }
+
+  public get state(): undefined {
+    return undefined;
+  }
+
+  public hydrate(_: undefined): void {
+    return;
+  }
 }

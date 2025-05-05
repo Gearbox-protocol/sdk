@@ -18,6 +18,12 @@ export interface PartialLiquidationBotV300Contract
   extends BotParameters,
     BaseContract<abi> {}
 
+export interface PartialLiquidationBotV300State extends BotState {
+  marketConfigurator: Address;
+  params: BotParameters;
+  type: BotType;
+}
+
 export class PartialLiquidationBotV300Contract extends BaseContract<abi> {
   public readonly requiredPermissions: bigint;
   public readonly botType: BotType;
@@ -50,6 +56,26 @@ export class PartialLiquidationBotV300Contract extends BaseContract<abi> {
       premiumScaleFactor: formatPercentage(this.premiumScaleFactor),
       feeScaleFactor: formatPercentage(this.feeScaleFactor),
       requiredPermissions: this.requiredPermissions.toString(10),
+    };
+  }
+
+  public get state(): PartialLiquidationBotV300State {
+    return {
+      baseParams: {
+        addr: this.address,
+        version: BigInt(this.version),
+        contractType: this.contractType as `0x${string}`,
+        serializedParams: `0x0`,
+      },
+      requiredPermissions: this.requiredPermissions,
+      params: {
+        minHealthFactor: this.minHealthFactor,
+        maxHealthFactor: this.maxHealthFactor,
+        premiumScaleFactor: this.premiumScaleFactor,
+        feeScaleFactor: this.feeScaleFactor,
+      },
+      type: this.botType,
+      marketConfigurator: this.marketConfigurator,
     };
   }
 }

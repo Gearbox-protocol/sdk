@@ -1,11 +1,11 @@
 import type { BaseState, IBaseContract } from "../base/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 
-export type IGearboxSDKPluginConstructor = new (
+export type IGearboxSDKPluginConstructor<TState = undefined> = new (
   sdk: GearboxSDK,
-) => IGearboxSDKPlugin;
+) => IGearboxSDKPlugin<TState>;
 
-export interface IGearboxSDKPlugin {
+export interface IGearboxSDKPlugin<TState = undefined> {
   /**
    * Called after SDK is attached
    * @param sdk
@@ -26,6 +26,16 @@ export interface IGearboxSDKPlugin {
    */
   createContract?: (params: BaseState) => IBaseContract | undefined;
   stateHuman?: (raw?: boolean) => unknown;
+  /**
+   * Plugin state, can be hydarted/dehydrated
+   */
+  state: TState;
+  /**
+   * Loads plugin state from dehydrated state
+   * @param state
+   * @returns
+   */
+  hydrate?: (state: TState) => void;
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -36,5 +46,11 @@ export type PluginMap = {
 export type PluginInstances<T extends PluginMap> = {
   [K in keyof T]: T[K] extends IGearboxSDKPluginConstructor
     ? InstanceType<T[K]>
+    : never;
+};
+
+export type PluginStateMap<T extends PluginMap> = {
+  [K in keyof T]: T[K] extends IGearboxSDKPluginConstructor<infer U>
+    ? U
     : never;
 };

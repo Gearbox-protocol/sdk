@@ -7,9 +7,16 @@ import {
   SDKConstruct,
 } from "../sdk/index.js";
 import { AddressMap } from "../sdk/index.js";
-import type { ZapperData, ZapperDataFull, ZapperStateHuman } from "./types.js";
+import type { ZapperDataFull, ZapperStateHuman } from "./types.js";
 
-export class ZappersPlugin extends SDKConstruct implements IGearboxSDKPlugin {
+export interface ZappersPluginState {
+  zappers: Record<Address, ZapperDataFull[]>;
+}
+
+export class ZappersPlugin
+  extends SDKConstruct
+  implements IGearboxSDKPlugin<ZappersPluginState>
+{
   #zappers?: AddressMap<ZapperDataFull[]>;
 
   public async attach(): Promise<void> {
@@ -27,12 +34,15 @@ export class ZappersPlugin extends SDKConstruct implements IGearboxSDKPlugin {
     );
     const markets = this.sdk.marketRegister.markets;
     const resp = await this.provider.publicClient.multicall({
-      contracts: markets.map(m => ({
-        abi: iPeripheryCompressorAbi,
-        address: pcAddr,
-        functionName: "getZappers",
-        args: [m.configurator.address, m.pool.pool.address],
-      })),
+      contracts: markets.map(
+        m =>
+          ({
+            abi: iPeripheryCompressorAbi,
+            address: pcAddr,
+            functionName: "getZappers",
+            args: [m.configurator.address, m.pool.pool.address],
+          }) as const,
+      ),
       allowFailure: true,
     });
 
@@ -42,11 +52,9 @@ export class ZappersPlugin extends SDKConstruct implements IGearboxSDKPlugin {
       const pool = markets[i].pool.pool.address;
 
       if (status === "success") {
-        const list = result as any as ZapperData[];
-
         this.#zappers.upsert(
           pool,
-          list.map(z => ({ ...z, pool })),
+          result.map(z => ({ ...z, pool })),
         );
       } else {
         this.sdk.logger?.error(
@@ -55,13 +63,7 @@ export class ZappersPlugin extends SDKConstruct implements IGearboxSDKPlugin {
       }
     }
 
-    const zappersTokens = this.#zappers
-      .values()
-      .flatMap(l => l.flatMap(z => [z.tokenIn, z.tokenOut]));
-    for (const t of zappersTokens) {
-      this.sdk.tokensMeta.upsert(t.addr, t);
-      this.sdk.provider.addressLabels.set(t.addr as Address, t.symbol);
-    }
+    this.#loadZapperTokens();
   }
 
   public get zappers(): AddressMap<ZapperDataFull[]> {
@@ -81,5 +83,26 @@ export class ZappersPlugin extends SDKConstruct implements IGearboxSDKPlugin {
         tokenOut: this.labelAddress(z.tokenOut.addr),
       })),
     );
+  }
+
+  public get state(): ZappersPluginState {
+    return {
+      zappers: this.zappers.asRecord(),
+    };
+  }
+
+  public hydrate(state: ZappersPluginState): void {
+    this.#zappers = new AddressMap(Object.entries(state.zappers), "zappers");
+    this.#loadZapperTokens();
+  }
+
+  #loadZapperTokens(): void {
+    const zappersTokens = this.zappers
+      .values()
+      .flatMap(l => l.flatMap(z => [z.tokenIn, z.tokenOut]));
+    for (const t of zappersTokens) {
+      this.sdk.tokensMeta.upsert(t.addr, t);
+      this.sdk.provider.addressLabels.set(t.addr as Address, t.symbol);
+    }
   }
 }

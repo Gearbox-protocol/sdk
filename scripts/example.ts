@@ -36,15 +36,33 @@ async function example(): Promise<void> {
       stalenessV300: V300StalenessPeriodPlugin,
     },
   });
+  // const state = await readFile("tmp/state_Mainnet_22418185.json", "utf-8").then(
+  //   json_parse,
+  // );
+  // const sdk = GearboxSDK.hydrate(
+  //   {
+  //     plugins: {
+  //       adapters: AdaptersPlugin,
+  //       zappers: ZappersPlugin,
+  //       bots: BotsPlugin,
+  //       stalenessV300: V300StalenessPeriodPlugin,
+  //     },
+  //     rpcURLs: [RPC],
+  //     timeout: 480_000,
+  //     logger,
+  //     strictContractTypes: true,
+  //   },
+  //   state,
+  // );
 
   const prefix = RPC.includes("127.0.0.1") ? "anvil_" : "";
   const net = sdk.provider.networkType;
   await writeFile(
-    `tmp/state_human_${net}_${prefix}${sdk.currentBlock}.json`,
+    `tmp/state_human_hydrated_${net}_${prefix}${sdk.currentBlock}.json`,
     json_stringify(sdk.stateHuman()),
   );
   await writeFile(
-    `tmp/state_${net}_${prefix}${sdk.currentBlock}.json`,
+    `tmp/state_hydrated_${net}_${prefix}${sdk.currentBlock}.json`,
     json_stringify(sdk.state),
   );
 
