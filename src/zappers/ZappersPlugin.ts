@@ -1,15 +1,15 @@
 import type { Address } from "viem";
 
 import { iPeripheryCompressorAbi } from "../abi/compressors.js";
+import type { IGearboxSDKPlugin, IPluginState } from "../sdk/index.js";
 import {
+  AddressMap,
   AP_PERIPHERY_COMPRESSOR,
-  type IGearboxSDKPlugin,
   SDKConstruct,
 } from "../sdk/index.js";
-import { AddressMap } from "../sdk/index.js";
 import type { ZapperDataFull, ZapperStateHuman } from "./types.js";
 
-export interface ZappersPluginState {
+export interface ZappersPluginState extends IPluginState {
   zappers: Record<Address, ZapperDataFull[]>;
 }
 
@@ -18,6 +18,8 @@ export class ZappersPlugin
   implements IGearboxSDKPlugin<ZappersPluginState>
 {
   #zappers?: AddressMap<ZapperDataFull[]>;
+
+  public readonly version = 1;
 
   public async attach(): Promise<void> {
     await this.loadZappers();
@@ -87,6 +89,7 @@ export class ZappersPlugin
 
   public get state(): ZappersPluginState {
     return {
+      version: this.version,
       zappers: this.zappers.asRecord(),
     };
   }

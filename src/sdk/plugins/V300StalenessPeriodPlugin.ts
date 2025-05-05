@@ -10,7 +10,7 @@ import { PriceFeedRef } from "../market/index.js";
 import type { ILogger } from "../types/logger.js";
 import { AddressMap, formatDuration, hexEq } from "../utils/index.js";
 import { getLogsSafe } from "../utils/viem/index.js";
-import type { IGearboxSDKPlugin } from "./types.js";
+import type { IGearboxSDKPlugin, IPluginState } from "./types.js";
 
 export interface StalenessEvent {
   oracle: Address;
@@ -20,7 +20,7 @@ export interface StalenessEvent {
   reserve: boolean;
 }
 
-export interface V300StalenessPeriodPluginState {
+export interface V300StalenessPeriodPluginState extends IPluginState {
   events: StalenessEvent[];
 }
 
@@ -36,6 +36,8 @@ export class V300StalenessPeriodPlugin
   #syncedTo: bigint;
   #logger?: ILogger;
   #events: StalenessEvent[] = [];
+
+  public readonly version = 1;
 
   constructor(sdk: GearboxSDK) {
     super(sdk);
@@ -110,6 +112,7 @@ export class V300StalenessPeriodPlugin
 
   public get state(): V300StalenessPeriodPluginState {
     return {
+      version: this.version,
       events: this.#events,
     };
   }

@@ -5,6 +5,7 @@ import type {
   BaseState,
   IBaseContract,
   IGearboxSDKPlugin,
+  IPluginState,
 } from "../sdk/index.js";
 import { bytes32ToString, SDKConstruct } from "../sdk/index.js";
 import { BalancerV2VaultAdapterContract } from "./BalancerV2VaultAdapterContract.js";
@@ -34,10 +35,10 @@ import { YearnV2RouterAdapterContract } from "./YearnV2AdapterContract.js";
 
 export class AdaptersPlugin
   extends SDKConstruct
-  implements IGearboxSDKPlugin<undefined>
+  implements IGearboxSDKPlugin<IPluginState>
 {
   public readonly name = "Adapters";
-
+  public readonly version = 1;
   public createContract(data: BaseState): IBaseContract | undefined {
     const args = data as AdapterData;
     const adapterType = bytes32ToString(
@@ -108,11 +109,11 @@ export class AdaptersPlugin
     return {};
   }
 
-  public get state(): undefined {
-    return undefined;
+  public get state(): IPluginState {
+    return {
+      version: this.version,
+    };
   }
 
-  public hydrate(_: undefined): void {
-    return;
-  }
+  public hydrate(_: IPluginState): void {}
 }

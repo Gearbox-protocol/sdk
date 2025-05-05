@@ -31,10 +31,11 @@ import {
 } from "./core/index.js";
 import { MarketRegister } from "./market/MarketRegister.js";
 import { PriceFeedRegister } from "./market/pricefeeds/index.js";
-import type {
-  PluginConstructorMap,
-  PluginsMap,
-  PluginStatesMap,
+import {
+  type PluginConstructorMap,
+  type PluginsMap,
+  type PluginStatesMap,
+  PluginStateVersionError,
 } from "./plugins/index.js";
 import { createRouter, type IRouterContract } from "./router/index.js";
 import type {
@@ -239,7 +240,6 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       networkType: state.network,
     });
 
-    // TODO: plugins
     return new GearboxSDK({ provider, plugins, logger }).#hydrate(rest, state);
   }
 
@@ -370,7 +370,10 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
     for (const [name, plugin] of TypedObjectUtils.entries(this.plugins)) {
       const pluginState = state.plugins[name];
       if (plugin.hydrate && pluginState) {
-        plugin.hydrate(pluginState as any);
+        if (pluginState.version !== plugin.version) {
+          throw new PluginStateVersionError(plugin, pluginState);
+        }
+        plugin.hydrate(pluginState);
       }
     }
 

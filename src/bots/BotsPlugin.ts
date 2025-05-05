@@ -1,7 +1,12 @@
 import type { Address } from "viem";
 
 import { iPeripheryCompressorAbi } from "../abi/compressors.js";
-import type { GearboxSDK, IGearboxSDKPlugin, ILogger } from "../sdk/index.js";
+import type {
+  GearboxSDK,
+  IGearboxSDKPlugin,
+  ILogger,
+  IPluginState,
+} from "../sdk/index.js";
 import {
   AddressMap,
   AP_PERIPHERY_COMPRESSOR,
@@ -14,7 +19,7 @@ import { PartialLiquidationBotV300Contract } from "./PartialLiquidationBotV300Co
 import type { BotParameters, BotsPluginStateHuman, BotState } from "./types.js";
 import { BOT_TYPES } from "./types.js";
 
-export interface BotsPluginState {
+export interface BotsPluginState extends IPluginState {
   bots: Record<Address, PartialLiquidationBotV300State[]>;
 }
 
@@ -34,6 +39,7 @@ export class BotsPlugin
   implements IGearboxSDKPlugin<BotsPluginState>
 {
   #logger?: ILogger;
+  public readonly version = 1;
 
   readonly #botsByMarket: AddressMap<PartialLiquidationBotV300Contract[]> =
     new AddressMap();
@@ -223,6 +229,7 @@ export class BotsPlugin
 
   public get state(): BotsPluginState {
     return {
+      version: this.version,
       bots: TypedObjectUtils.fromEntries(
         this.#botsByMarket
           .entries()
