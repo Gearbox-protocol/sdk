@@ -4,13 +4,16 @@ import type { iPriceFeedCompressorAbi } from "../../abi/compressors.js";
 import { iMarketCompressorAbi } from "../../abi/compressors.js";
 import type { MarketData, MarketFilter } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
-import { ADDRESS_0X0, AP_MARKET_COMPRESSOR } from "../constants/index.js";
+import {
+  ADDRESS_0X0,
+  AP_MARKET_COMPRESSOR,
+  VERSION_RANGE_310,
+} from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import type {
   ILogger,
   IPriceUpdateTx,
   MarketStateHuman,
-  TVL,
 } from "../types/index.js";
 import { AddressMap, childLogger } from "../utils/index.js";
 import { simulateWithPriceUpdates } from "../utils/viem/index.js";
@@ -28,10 +31,14 @@ export class MarketRegister extends SDKConstruct {
 
   #marketFilter?: MarketFilter;
 
-  constructor(sdk: GearboxSDK, markets?: MarketData[]) {
+  constructor(sdk: GearboxSDK) {
     super(sdk);
     this.#logger = childLogger("MarketRegister", sdk.logger);
-    for (const data of markets ?? []) {
+  }
+
+  public hydrate(state: MarketData[]): void {
+    this.#markets.clear();
+    for (const data of state) {
       this.#markets.upsert(
         data.pool.baseParams.addr,
         new MarketSuite(this.sdk, data),
@@ -91,9 +98,9 @@ export class MarketRegister extends SDKConstruct {
       pools,
       underlying: ADDRESS_0X0,
     };
-    const marketCompressorAddress = this.sdk.addressProvider.getAddress(
+    const [marketCompressorAddress] = this.sdk.addressProvider.mustGetLatest(
       AP_MARKET_COMPRESSOR,
-      3_10,
+      VERSION_RANGE_310,
     );
     let txs: IPriceUpdateTx[] = [];
     if (!ignoreUpdateablePrices) {
@@ -268,18 +275,5 @@ export class MarketRegister extends SDKConstruct {
 
   public get markets(): MarketSuite[] {
     return this.#markets.values();
-  }
-
-  public async tvl(): Promise<TVL> {
-    const creditManagers = this.creditManagers;
-    const tvls = await Promise.all(creditManagers.map(cm => cm.tvl()));
-    return tvls.reduce(
-      (acc, curr) => {
-        acc.tvl += curr.tvl;
-        acc.tvlUSD += curr.tvlUSD;
-        return acc;
-      },
-      { tvl: 0n, tvlUSD: 0n },
-    );
   }
 }

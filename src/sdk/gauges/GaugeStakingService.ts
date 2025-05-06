@@ -2,7 +2,7 @@ import type { Address } from "viem";
 
 import { iGaugeCompressorAbi } from "../../abi/compressors.js";
 import { SDKConstruct } from "../base/index.js";
-import { AP_GAUGE_COMPRESSOR } from "../constants/index.js";
+import { AP_GAUGE_COMPRESSOR, VERSION_RANGE_310 } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import type { GaugeStakingDataPayload } from "./utils.js";
 
@@ -12,8 +12,10 @@ export class GaugeStakingService extends SDKConstruct {
   constructor(sdk: GearboxSDK) {
     super(sdk);
 
-    [this.#compressor] =
-      this.sdk.addressProvider.getLatestVersion(AP_GAUGE_COMPRESSOR);
+    [this.#compressor] = this.sdk.addressProvider.mustGetLatest(
+      AP_GAUGE_COMPRESSOR,
+      VERSION_RANGE_310,
+    );
   }
 
   /**
@@ -25,7 +27,13 @@ export class GaugeStakingService extends SDKConstruct {
     wallet: Address,
   ): Promise<GaugeStakingDataPayload> {
     const marketFilter = this.sdk.marketRegister.marketFilter;
-    if (!marketFilter) throw new Error("market filter is not set");
+    const gearStaking = this.sdk.gearStakingContract;
+    if (!marketFilter) {
+      throw new Error("market filter is not set");
+    }
+    if (!gearStaking) {
+      throw new Error("gear staking contract is not set");
+    }
 
     const [gauges, availableBalance, totalBalance, withdrawableAmounts, epoch] =
       await this.provider.publicClient.multicall({
@@ -38,26 +46,26 @@ export class GaugeStakingService extends SDKConstruct {
             args: [marketFilter, wallet],
           },
           {
-            address: this.sdk.gearStakingContract.address,
-            abi: this.sdk.gearStakingContract.abi,
+            address: gearStaking.address,
+            abi: gearStaking.abi,
             functionName: "availableBalance",
             args: [wallet],
           },
           {
-            address: this.sdk.gearStakingContract.address,
-            abi: this.sdk.gearStakingContract.abi,
+            address: gearStaking.address,
+            abi: gearStaking.abi,
             functionName: "balanceOf",
             args: [wallet],
           },
           {
-            address: this.sdk.gearStakingContract.address,
-            abi: this.sdk.gearStakingContract.abi,
+            address: gearStaking.address,
+            abi: gearStaking.abi,
             functionName: "getWithdrawableAmounts",
             args: [wallet],
           },
           {
-            address: this.sdk.gearStakingContract.address,
-            abi: this.sdk.gearStakingContract.abi,
+            address: gearStaking.address,
+            abi: gearStaking.abi,
             functionName: "getCurrentEpoch",
             args: [],
           },

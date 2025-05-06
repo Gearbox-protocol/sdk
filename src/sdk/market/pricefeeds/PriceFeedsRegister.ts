@@ -6,6 +6,7 @@ import { SDKConstruct } from "../../base/index.js";
 import {
   ADDRESS_0X0,
   AP_PRICE_FEED_COMPRESSOR,
+  VERSION_RANGE_310,
 } from "../../constants/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { ILogger, IPriceUpdateTx } from "../../types/index.js";
@@ -165,9 +166,9 @@ export class PriceFeedRegister
     marketConfigurators?: Address[],
     pools?: Address[],
   ): Promise<IPriceFeedContract[]> {
-    const priceFeedCompressorAddress = this.sdk.addressProvider.getAddress(
+    const [priceFeedCompressorAddress] = this.sdk.addressProvider.mustGetLatest(
       AP_PRICE_FEED_COMPRESSOR,
-      3_10,
+      VERSION_RANGE_310,
     );
     const configurators =
       marketConfigurators ??

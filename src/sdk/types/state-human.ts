@@ -22,8 +22,8 @@ export type BotListStateHuman = BaseContractStateHuman;
 
 export interface CoreStateHuman {
   addressProviderV3: AddressProviderV3StateHuman;
-  botList: BotListStateHuman;
-  gearStakingV3: GearStakingV3StateHuman;
+  botList?: BotListStateHuman;
+  gearStakingV3?: GearStakingV3StateHuman;
 }
 
 export type PriceFeedStateHuman =

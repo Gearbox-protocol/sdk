@@ -14,29 +14,33 @@ import {
   detectNetwork,
   Provider,
 } from "./chain/index.js";
+import type { VersionRange } from "./constants/index.js";
 import {
   ADDRESS_PROVIDER_V310,
   AP_BOT_LIST,
   AP_GEAR_STAKING,
   AP_GEAR_TOKEN,
   AP_ROUTER,
+  isV310,
   NO_VERSION,
+  VERSION_RANGE_300,
+  VERSION_RANGE_310,
 } from "./constants/index.js";
 import type { IAddressProviderContract } from "./core/index.js";
 import {
   BotListContract,
   createAddressProvider,
   GearStakingContract,
+  hydrateAddressProvider,
 } from "./core/index.js";
 import { MarketRegister } from "./market/MarketRegister.js";
 import { PriceFeedRegister } from "./market/pricefeeds/index.js";
 import {
-  defaultPlugins,
-  type IGearboxSDKPlugin,
-  type PluginInstances,
-  type PluginMap,
+  type PluginConstructorMap,
+  type PluginsMap,
+  type PluginStatesMap,
+  PluginStateVersionError,
 } from "./plugins/index.js";
-import type { IGearboxSDKPluginConstructor } from "./plugins/types.js";
 import { createRouter, type IRouterContract } from "./router/index.js";
 import type {
   GearboxState,
@@ -44,18 +48,18 @@ import type {
   ILogger,
   MultiCall,
 } from "./types/index.js";
-import {
-  AddressMap,
-  formatBN,
-  toAddress,
-  TypedObjectUtils,
-} from "./utils/index.js";
+import { AddressMap, toAddress, TypedObjectUtils } from "./utils/index.js";
 import { Hooks } from "./utils/internal/index.js";
 import { getLogsSafe } from "./utils/viem/index.js";
 
 const ERR_NOT_ATTACHED = new Error("Gearbox SDK not attached");
 
-export interface SDKOptions<Plugins extends PluginMap = {}> {
+/**
+ * State version, checked duryng hydration
+ */
+export const STATE_VERSION = 1;
+
+export interface SDKOptions<Plugins extends PluginsMap> {
   /**
    * If not set, address provider address is determinted automatically from networkType
    */
@@ -89,18 +93,23 @@ export interface SDKOptions<Plugins extends PluginMap = {}> {
   /**
    * Plugins to extends SDK functionality
    */
-  plugins?: Plugins;
+  plugins?: PluginConstructorMap<Plugins>;
   /**
    * Bring your own logger
    */
   logger?: ILogger;
 }
 
-interface SDKContructorArgs<Plugins extends PluginMap = {}> {
+export type HydrateOptions<Plugins extends PluginsMap> = Omit<
+  SDKOptions<Plugins>,
+  "blockNumber" | "addressProvider" | "marketConfigurators"
+>;
+
+interface SDKContructorArgs<Plugins extends PluginsMap> {
   provider: Provider;
   logger?: ILogger;
   strictContractTypes?: boolean;
-  plugins?: Plugins;
+  plugins?: PluginConstructorMap<Plugins>;
 }
 
 interface AttachOptionsInternal {
@@ -123,11 +132,11 @@ export type SDKHooks = {
   syncState: [SyncStateOptions];
 };
 
-export class GearboxSDK<Plugins extends PluginMap = {}> {
+export class GearboxSDK<const Plugins extends PluginsMap = {}> {
   readonly #hooks = new Hooks<SDKHooks>();
   // Represents chain object
   readonly #provider: Provider;
-  readonly plugins: PluginInstances<Plugins>;
+  readonly plugins: Plugins;
 
   // Block which was use for data query
   #currentBlock?: bigint;
@@ -136,15 +145,10 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
 
   // Collection of core singleton contracts
   #addressProvider?: IAddressProviderContract;
-  #botListContract?: BotListContract;
-  #gearStakingContract?: GearStakingContract;
   #attachConfig?: AttachOptionsInternal;
 
   // Collection of markets
   #marketRegister?: MarketRegister;
-
-  // Routers by address
-  #routers = new AddressMap<IRouterContract>();
 
   public readonly logger?: ILogger;
 
@@ -178,7 +182,7 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
   public addHook = this.#hooks.addHook.bind(this.#hooks);
   public removeHook = this.#hooks.removeHook.bind(this.#hooks);
 
-  public static async attach<Plugins extends PluginMap>(
+  public static async attach<const Plugins extends PluginsMap>(
     options: SDKOptions<Plugins> &
       Partial<NetworkOptions> &
       ConnectionOptions &
@@ -229,20 +233,32 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     });
   }
 
+  public static hydrate<const Plugins extends PluginsMap>(
+    options: HydrateOptions<Plugins> & ConnectionOptions & TransportOptions,
+    state: GearboxState<Plugins>,
+  ): GearboxSDK<Plugins> {
+    const { logger, plugins, ...rest } = options;
+    const provider = new Provider({
+      ...rest,
+      chainId: state.chainId,
+      networkType: state.network,
+    });
+
+    return new GearboxSDK({ provider, plugins, logger }).#hydrate(rest, state);
+  }
+
   private constructor(options: SDKContructorArgs<Plugins>) {
     this.#provider = options.provider;
     this.logger = options.logger;
     this.priceFeeds = new PriceFeedRegister(this);
     this.strictContractTypes = options.strictContractTypes ?? false;
-    const pluginsInstances: Record<string, IGearboxSDKPlugin> = {};
-    const pluginConstructros: Record<string, IGearboxSDKPluginConstructor> = {
-      ...defaultPlugins,
-      ...options.plugins,
-    };
-    for (const [name, Plugin] of TypedObjectUtils.entries(pluginConstructros)) {
+    const pluginsInstances: Record<string, any> = {};
+    for (const [name, Plugin] of TypedObjectUtils.entries(
+      options.plugins ?? {},
+    )) {
       pluginsInstances[name] = new Plugin(this);
     }
-    this.plugins = pluginsInstances as PluginInstances<Plugins>;
+    this.plugins = pluginsInstances as Plugins;
   }
 
   async #attach(opts: AttachOptionsInternal): Promise<this> {
@@ -250,7 +266,6 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
       addressProvider,
       blockNumber,
       redstoneHistoricTimestamp,
-      redstoneGateways,
       ignoreUpdateablePrices,
       marketConfigurators,
     } = opts;
@@ -281,15 +296,7 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     this.#currentBlock = block.number;
     this.#timestamp = block.timestamp;
 
-    if (redstoneHistoricTimestamp) {
-      this.priceFeeds.redstoneUpdater.historicalTimestamp =
-        redstoneHistoricTimestamp === true
-          ? Number(block.timestamp) * 1000
-          : redstoneHistoricTimestamp;
-    }
-    if (redstoneGateways?.length) {
-      this.priceFeeds.redstoneUpdater.gateways = redstoneGateways;
-    }
+    this.#confugureRedstone(opts);
 
     this.logger?.debug(
       `${re}attach block number ${this.currentBlock} timestamp ${this.timestamp}`,
@@ -299,27 +306,6 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
       `address provider version: ${this.#addressProvider.version}`,
     );
     await this.#addressProvider.syncState(this.currentBlock);
-
-    // Attaching bot list contract
-    try {
-      const botListAddress = this.#addressProvider.getAddress(
-        AP_BOT_LIST,
-        NO_VERSION,
-      );
-      this.#botListContract = new BotListContract(this, botListAddress);
-    } catch (e) {
-      this.logger?.error(e);
-    }
-
-    // Attaching gear staking contract
-    const gearStakingAddress = this.#addressProvider.getAddress(
-      AP_GEAR_STAKING,
-      NO_VERSION,
-    );
-    this.#gearStakingContract = new GearStakingContract(
-      this,
-      gearStakingAddress,
-    );
 
     this.#marketRegister = new MarketRegister(this);
     await this.#marketRegister.loadMarkets(
@@ -353,13 +339,76 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     return this;
   }
 
+  #hydrate(
+    options: HydrateOptions<Plugins>,
+    state: GearboxState<Plugins>,
+  ): this {
+    const { logger: _logger, ...opts } = options;
+    if (state.version !== STATE_VERSION) {
+      throw new Error(
+        `hydrated state version is ${state.version}, but expected ${STATE_VERSION}`,
+      );
+    }
+
+    this.#currentBlock = state.currentBlock;
+    this.#timestamp = state.timestamp;
+    this.#confugureRedstone(opts);
+
+    this.#addressProvider = hydrateAddressProvider(this, state.addressProvider);
+    this.logger?.debug(
+      `address provider version: ${this.#addressProvider.version}`,
+    );
+
+    this.#marketRegister = new MarketRegister(this);
+    this.#marketRegister.hydrate(state.markets);
+
+    this.#attachConfig = {
+      ...opts,
+      addressProvider: this.addressProvider.address,
+      marketConfigurators: this.marketRegister.marketConfigurators.map(
+        m => m.address,
+      ),
+      blockNumber: this.currentBlock,
+    };
+
+    for (const [name, plugin] of TypedObjectUtils.entries(this.plugins)) {
+      const pluginState = state.plugins[name];
+      if (plugin.hydrate && pluginState) {
+        if (pluginState.version !== plugin.version) {
+          throw new PluginStateVersionError(plugin, pluginState);
+        }
+        plugin.hydrate(pluginState);
+      }
+    }
+
+    return this;
+  }
+
+  #confugureRedstone(
+    opts: Pick<
+      SDKOptions<Plugins>,
+      "redstoneGateways" | "redstoneHistoricTimestamp"
+    >,
+  ) {
+    const { redstoneGateways, redstoneHistoricTimestamp } = opts;
+    if (redstoneHistoricTimestamp) {
+      this.priceFeeds.redstoneUpdater.historicalTimestamp =
+        redstoneHistoricTimestamp === true
+          ? Number(this.timestamp) * 1000
+          : redstoneHistoricTimestamp;
+    }
+    if (redstoneGateways?.length) {
+      this.priceFeeds.redstoneUpdater.gateways = redstoneGateways;
+    }
+  }
+
   /**
    * Reattach SDK with the same config as before, without re-creating instance. Will load all state from scratch
    * Be mindful of block number, for example
    */
   public async reattach(): Promise<void> {
     if (!this.#attachConfig) {
-      throw new Error("SDK not attached");
+      throw new Error("cannot reattach, attach config is not set");
     }
     await this.#attach(this.#attachConfig);
   }
@@ -429,8 +478,8 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
       timestamp: Number(this.timestamp),
       core: {
         addressProviderV3: this.addressProvider.stateHuman(raw),
-        botList: this.botListContract.stateHuman(raw),
-        gearStakingV3: this.gearStakingContract.stateHuman(raw),
+        botList: this.botListContract?.stateHuman(raw),
+        gearStakingV3: this.gearStakingContract?.stateHuman(raw),
       },
       tokens: this.tokensMeta.values(),
       plugins: Object.fromEntries(
@@ -443,18 +492,22 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     };
   }
 
-  public get state(): GearboxState {
+  public get state(): GearboxState<Plugins> {
     return {
+      version: STATE_VERSION,
+      network: this.provider.networkType,
+      chainId: this.provider.chainId,
       currentBlock: this.currentBlock,
+      timestamp: this.timestamp,
       addressProvider: this.addressProvider.state,
       markets: this.marketRegister.state,
+      plugins: Object.fromEntries(
+        TypedObjectUtils.entries(this.plugins).map(([name, plugin]) => [
+          name,
+          plugin.state,
+        ]),
+      ) as PluginStatesMap<Plugins>,
     };
-  }
-
-  public async tvl(): Promise<void> {
-    const { tvl, tvlUSD } = await this.marketRegister.tvl();
-    this.logger?.info(tvl);
-    this.logger?.info(`Total TVL: ${formatBN(tvlUSD, 8)}`);
   }
 
   /**
@@ -581,18 +634,22 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
     return this.#addressProvider;
   }
 
-  public get botListContract(): BotListContract {
-    if (this.#botListContract === undefined) {
-      throw ERR_NOT_ATTACHED;
+  public get botListContract(): BotListContract | undefined {
+    const addr = this.addressProvider.getAddress(AP_BOT_LIST, NO_VERSION);
+    if (!this.contracts.has(addr)) {
+      // this registers it in sdk.contracts as constructor's side-effect
+      return new BotListContract(this, addr);
     }
-    return this.#botListContract;
+    return this.contracts.get(addr) as unknown as BotListContract;
   }
 
-  public get gearStakingContract(): GearStakingContract {
-    if (this.#gearStakingContract === undefined) {
-      throw ERR_NOT_ATTACHED;
+  public get gearStakingContract(): GearStakingContract | undefined {
+    const addr = this.addressProvider.getAddress(AP_GEAR_STAKING, NO_VERSION);
+    if (!this.contracts.has(addr)) {
+      // this registers it in sdk.contracts as constructor's side-effect
+      return new GearStakingContract(this, addr);
     }
-    return this.#gearStakingContract;
+    return this.contracts.get(addr) as unknown as GearStakingContract;
   }
 
   public get marketRegister(): MarketRegister {
@@ -622,21 +679,20 @@ export class GearboxSDK<Plugins extends PluginMap = {}> {
       facadeAddr = cm.creditFacade.address;
     }
     const facadeV = this.contracts.mustGet(facadeAddr).version;
-    const routerRange: [number, number] =
-      facadeV >= 310 ? [310, 319] : [300, 309];
-    const routerEntry = this.addressProvider.getLatestInRange(
-      AP_ROUTER,
-      routerRange,
-    );
+    const routerRange: VersionRange = isV310(facadeV)
+      ? VERSION_RANGE_310
+      : VERSION_RANGE_300;
+    const routerEntry = this.addressProvider.getLatest(AP_ROUTER, routerRange);
     if (!routerEntry) {
       throw new Error(
         `router not found for facade v ${facadeV} at ${facadeAddr}`,
       );
     }
     const [routerAddr, routerV] = routerEntry;
-    if (!this.#routers.has(routerAddr)) {
-      this.#routers.upsert(routerAddr, createRouter(this, routerAddr, routerV));
+    if (!this.contracts.has(routerAddr)) {
+      // router is added to this.contracts as constructor's side-effect
+      return createRouter(this, routerAddr, routerV);
     }
-    return this.#routers.mustGet(routerAddr);
+    return this.contracts.get(routerAddr) as unknown as IRouterContract;
   }
 }

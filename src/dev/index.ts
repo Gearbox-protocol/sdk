@@ -6,4 +6,3 @@ export * from "./createTransport.js";
 export * from "./detectChain.js";
 export * from "./ltUtils.js";
 export * from "./migrateFaucet.js";
-export * from "./PriceFeedStore.js";

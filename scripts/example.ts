@@ -11,12 +11,14 @@ import {
 } from "../src/sdk/index.js";
 import { ZappersPlugin } from "../src/zappers/ZappersPlugin.js";
 
+const logger = pino({
+  level: process.env.LOG_LEVEL ?? "debug",
+});
+
 async function example(): Promise<void> {
-  const logger = pino({
-    level: process.env.LOG_LEVEL ?? "debug",
-  });
   // const RPC = "http://127.0.0.1:8545";
   const RPC = process.env.RPC_URL!;
+  let kind = "real";
   // const RPC= megaethTestnet.rpcUrls.default.http[0];
 
   const sdk = await GearboxSDK.attach({
@@ -37,14 +39,35 @@ async function example(): Promise<void> {
     },
   });
 
+  // kind = "hydrated";
+  // const state = await readFile(
+  //   "tmp/state_real_Mainnet_22419846.json",
+  //   "utf-8",
+  // ).then(json_parse);
+  // const sdk = GearboxSDK.hydrate(
+  //   {
+  //     plugins: {
+  //       adapters: AdaptersPlugin,
+  //       zappers: ZappersPlugin,
+  //       bots: BotsPlugin,
+  //       stalenessV300: V300StalenessPeriodPlugin,
+  //     },
+  //     rpcURLs: [RPC],
+  //     timeout: 480_000,
+  //     logger,
+  //     strictContractTypes: true,
+  //   },
+  //   state,
+  // );
+
   const prefix = RPC.includes("127.0.0.1") ? "anvil_" : "";
   const net = sdk.provider.networkType;
   await writeFile(
-    `tmp/state_human_${net}_${prefix}${sdk.currentBlock}.json`,
+    `tmp/state_${kind}_human_${net}_${prefix}${sdk.currentBlock}.json`,
     json_stringify(sdk.stateHuman()),
   );
   await writeFile(
-    `tmp/state_${net}_${prefix}${sdk.currentBlock}.json`,
+    `tmp/state_${kind}_${net}_${prefix}${sdk.currentBlock}.json`,
     json_stringify(sdk.state),
   );
 
@@ -52,6 +75,6 @@ async function example(): Promise<void> {
 }
 
 example().catch(e => {
-  console.error(e);
+  logger.error(e);
   process.exit(1);
 });

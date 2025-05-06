@@ -2,12 +2,12 @@ import type { Hex } from "viem";
 
 import type { AdapterData } from "../../base/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
-import type { PluginMap } from "../../plugins/index.js";
+import type { PluginsMap } from "../../plugins/index.js";
 import { bytes32ToString } from "../../utils/index.js";
 import { PlaceholderAdapterContract } from "./PlaceholderAdapterContracts.js";
 import type { IAdapterContract } from "./types.js";
 
-export function createAdapter<Plugins extends PluginMap = {}>(
+export function createAdapter<const Plugins extends PluginsMap>(
   sdk: GearboxSDK<Plugins>,
   args: AdapterData,
 ): IAdapterContract {
