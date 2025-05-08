@@ -5,7 +5,6 @@ import type {
   Client,
   ContractFunctionParameters,
   MulticallContracts,
-  MulticallParameters,
   MulticallResponse,
   MulticallReturnType,
   Transport,
@@ -20,6 +19,7 @@ import {
 import { errorAbis, iUpdatablePriceFeedAbi } from "../../../abi/index.js";
 import type { IPriceUpdateTx } from "../../types/index.js";
 import { generateCastTraceCall } from "./cast.js";
+import type { SimulateMulticallParameters } from "./simulateMulticall.js";
 import { simulateMulticall } from "./simulateMulticall.js";
 
 const multicallTimestampAbi = parseAbi([
@@ -36,7 +36,7 @@ export type SimulateWithPriceUpdatesParameters<
     optional?: boolean;
     properties?: Record<string, any>;
   } = {},
-> = MulticallParameters<contracts, false, options> & {
+> = SimulateMulticallParameters<contracts, false, options> & {
   priceUpdates: IPriceUpdateTx[];
   contracts: MulticallContracts<
     Narrow<contracts>,
