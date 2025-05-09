@@ -2,7 +2,7 @@ import type { Address, Hex } from "viem";
 import { bytesToString, decodeAbiParameters, toBytes } from "viem";
 
 import { redstonePriceFeedAbi } from "../../abi/index.js";
-import { ADDRESS_0X0 } from "../../constants/index.js";
+import { ADDRESS_0X0, isV310 } from "../../constants/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { RedstonePriceFeedStateHuman } from "../../types/index.js";
 import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed.js";
@@ -27,7 +27,7 @@ export class RedstonePriceFeedContract extends AbstractPriceFeedContract<abi> {
       abi: redstonePriceFeedAbi,
     });
 
-    if (args.baseParams.version === 310n) {
+    if (isV310(args.baseParams.version)) {
       // https://github.com/Gearbox-protocol/oracles-v3/blob/fc8d3a0ab5bd7eb50ce3f6b87dde5cd3d887bafe/contracts/oracles/updatable/RedstonePriceFeed.sol#L161
       // abi.encode(token, dataFeedId, dataServiceId, signers, _signersThreshold, lastPrice, lastPayloadTimestamp);
       const decoder = decodeAbiParameters(

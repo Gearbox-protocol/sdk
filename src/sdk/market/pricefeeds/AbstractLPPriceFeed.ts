@@ -1,6 +1,7 @@
 import type { Abi, Address, UnionOmit } from "viem";
 import { decodeAbiParameters, hexToBytes } from "viem";
 
+import { isV310 } from "../../constants/versions.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { LPPriceFeedStateHuman } from "../../types/state-human.js";
 import {
@@ -26,7 +27,7 @@ export abstract class AbstractLPPriceFeedContract<
     super(sdk, { ...args, decimals: 8 });
     this.hasLowerBoundCap = true;
 
-    if (args.baseParams.version === 310n) {
+    if (isV310(args.baseParams.version)) {
       // https://github.com/Gearbox-protocol/oracles-v3/blob/fc8d3a0ab5bd7eb50ce3f6b87dde5cd3d887bafe/contracts/oracles/LPPriceFeed.sol#L69
       const decoder = decodeAbiParameters(
         [
