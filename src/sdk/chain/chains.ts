@@ -225,9 +225,6 @@ export const chains: Record<NetworkType, GearboxChain> = {
       ...bsc,
       network: "BNB",
       defaultMarketConfigurators: {
-        "0x5BCF14d8470e1a6110916371aacC8E1C947A7D9d": "Chaos Labs",
-      },
-      testMarketConfigurators: {
         "0x19037a281025b83fa37e3264b77af523ff87a3a4": "Chaos Labs",
       },
       isPublic: false,

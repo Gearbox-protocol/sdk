@@ -1,4 +1,5 @@
 import type { NetworkType } from "../chain/index.js";
+import { TypedObjectUtils } from "../utils/mappers.js";
 
 /**
  * Block number when address provider was deployed
@@ -34,39 +35,25 @@ const BLOCK_DURATION_BY_NETWORK: Record<NetworkType, number> = {
 };
 
 const RAMP_TIME = 30 * 24 * 60 * 60 * 1.2;
-export const RAMP_DURATION_BY_NETWORK: Record<NetworkType, bigint> = {
-  Mainnet: BigInt(Math.floor(RAMP_TIME / BLOCK_DURATION_BY_NETWORK.Mainnet)),
-  Arbitrum: BigInt(Math.floor(RAMP_TIME / BLOCK_DURATION_BY_NETWORK.Arbitrum)),
-  Optimism: BigInt(Math.floor(RAMP_TIME / BLOCK_DURATION_BY_NETWORK.Optimism)),
-  Base: BigInt(Math.floor(RAMP_TIME / BLOCK_DURATION_BY_NETWORK.Base)),
-  Sonic: BigInt(Math.floor(RAMP_TIME / BLOCK_DURATION_BY_NETWORK.Sonic)),
-  // New networks
-  MegaETH: BigInt(Math.floor(RAMP_TIME / BLOCK_DURATION_BY_NETWORK.MegaETH)),
-  Monad: BigInt(Math.floor(RAMP_TIME / BLOCK_DURATION_BY_NETWORK.Monad)),
-  Berachain: BigInt(
-    Math.floor(RAMP_TIME / BLOCK_DURATION_BY_NETWORK.Berachain),
-  ),
-  Avalanche: BigInt(
-    Math.floor(RAMP_TIME / BLOCK_DURATION_BY_NETWORK.Avalanche),
-  ),
-  BNB: BigInt(Math.floor(RAMP_TIME / BLOCK_DURATION_BY_NETWORK.BNB)),
-  WorldChain: BigInt(
-    Math.floor(RAMP_TIME / BLOCK_DURATION_BY_NETWORK.WorldChain),
-  ),
-};
+export const RAMP_DURATION_BY_NETWORK: Record<NetworkType, bigint> =
+  TypedObjectUtils.entries(BLOCK_DURATION_BY_NETWORK).reduce<
+    Record<NetworkType, bigint>
+  >(
+    (acc, [n, duration]) => {
+      acc[n] = BigInt(Math.floor(RAMP_TIME / duration));
+      return acc;
+    },
+    {} as Record<NetworkType, bigint>,
+  );
 
 const WEEK = 7 * 24 * 60 * 60;
-export const BLOCKS_PER_WEEK_BY_NETWORK: Record<NetworkType, bigint> = {
-  Mainnet: BigInt(Math.floor(WEEK / BLOCK_DURATION_BY_NETWORK.Mainnet)),
-  Arbitrum: BigInt(Math.floor(WEEK / BLOCK_DURATION_BY_NETWORK.Arbitrum)),
-  Optimism: BigInt(Math.floor(WEEK / BLOCK_DURATION_BY_NETWORK.Optimism)),
-  Base: BigInt(Math.floor(WEEK / BLOCK_DURATION_BY_NETWORK.Base)),
-  Sonic: BigInt(Math.floor(WEEK / BLOCK_DURATION_BY_NETWORK.Sonic)),
-  // New networks
-  MegaETH: BigInt(Math.floor(WEEK / BLOCK_DURATION_BY_NETWORK.MegaETH)),
-  Monad: BigInt(Math.floor(WEEK / BLOCK_DURATION_BY_NETWORK.Monad)),
-  Berachain: BigInt(Math.floor(WEEK / BLOCK_DURATION_BY_NETWORK.Berachain)),
-  Avalanche: BigInt(Math.floor(WEEK / BLOCK_DURATION_BY_NETWORK.Avalanche)),
-  BNB: BigInt(Math.floor(WEEK / BLOCK_DURATION_BY_NETWORK.BNB)),
-  WorldChain: BigInt(Math.floor(WEEK / BLOCK_DURATION_BY_NETWORK.WorldChain)),
-};
+export const BLOCKS_PER_WEEK_BY_NETWORK: Record<NetworkType, bigint> =
+  TypedObjectUtils.entries(BLOCK_DURATION_BY_NETWORK).reduce<
+    Record<NetworkType, bigint>
+  >(
+    (acc, [n, duration]) => {
+      acc[n] = BigInt(Math.floor(WEEK / duration));
+      return acc;
+    },
+    {} as Record<NetworkType, bigint>,
+  );
