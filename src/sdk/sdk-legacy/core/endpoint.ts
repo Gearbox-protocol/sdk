@@ -64,12 +64,12 @@ const CHARTS_BACKEND_ADDRESSES: Record<number, string> = {
 const STATIC_TOKEN = "https://static.gearbox.fi/tokens/";
 
 const LEADERBOARD_APIS: Record<number, string> = {
-  [CHAINS.Mainnet.id]: "https://gpointbot.fly.dev",
-  [CHAINS.Optimism.id]: "https://gpointbot.fly.dev",
-  [CHAINS.Arbitrum.id]: "https://gpointbot.fly.dev",
-  [HARDHAT]: "https://gpointbot.fly.dev",
-  // !& new chains
+  ...Object.values(CHAINS).reduce<Record<number, string>>((acc, chain) => {
+    acc[chain.id] = "https://gpointbot.fly.dev";
+    return acc;
+  }, {}),
 
+  [HARDHAT]: "https://gpointbot.fly.dev",
   [TESTNET_CHAINS.Mainnet]: "https://testnet.gearbox.foundation/gpointbot",
   [TESTNET_CHAINS.Optimism]: "https://testnet.gearbox.foundation/gpointbot",
   [TESTNET_CHAINS.Arbitrum]: "https://testnet.gearbox.foundation/gpointbot",
