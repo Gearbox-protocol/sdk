@@ -1,4 +1,4 @@
-import type { Address, ContractEventName, Log } from "viem";
+import type { ContractEventName, Log } from "viem";
 
 import { iPriceOracleV310Abi } from "../../../abi/v310.js";
 import type { PriceOracleData } from "../../base/index.js";
@@ -9,7 +9,7 @@ const abi = iPriceOracleV310Abi;
 type abi = typeof abi;
 
 export class PriceOracleV310Contract extends PriceOracleBaseContract<abi> {
-  constructor(sdk: GearboxSDK, data: PriceOracleData, underlying: Address) {
+  constructor(sdk: GearboxSDK, data: PriceOracleData) {
     super(
       sdk,
       {
@@ -18,7 +18,6 @@ export class PriceOracleV310Contract extends PriceOracleBaseContract<abi> {
         abi,
       },
       data,
-      underlying,
     );
   }
 

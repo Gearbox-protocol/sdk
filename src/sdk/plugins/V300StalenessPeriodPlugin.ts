@@ -3,9 +3,9 @@ import { getAbiItem, getAddress } from "viem";
 
 import { iPriceOracleV300Abi } from "../../abi/v300.js";
 import { SDKConstruct } from "../base/index.js";
-import { ADDRESS_PROVIDER_BLOCK } from "../constants/index.js";
+import { ADDRESS_PROVIDER_BLOCK, isV300 } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
-import type { PriceOracleContract } from "../market/index.js";
+import type { IPriceOracleContract } from "../market/index.js";
 import { PriceFeedRef } from "../market/index.js";
 import type { ILogger } from "../types/logger.js";
 import { AddressMap, formatDuration, hexEq } from "../utils/index.js";
@@ -25,8 +25,9 @@ export interface V300StalenessPeriodPluginState extends IPluginState {
 }
 
 /**
- * PriceFeedCompressor returns 0 as staleness period for reserve price feeds
- * This is because v3.0 oracle contract cannot return staleness period for reserve price feeds
+ * PriceFeedCompressor returns 0 as staleness period for price feeds in v3.0
+ * This is because v3.0 oracle contract cannot return staleness period for reserve price feeds.
+ * But compressor returns 0 both for main and reserve price feeds.
  * This plugin is a workaround to load staleness periods using oracle events
  */
 export class V300StalenessPeriodPlugin
@@ -47,14 +48,14 @@ export class V300StalenessPeriodPlugin
   }
 
   public async attach(): Promise<void> {
-    await this.#syncReservePriceFeeds();
+    await this.#syncPriceFeeds();
   }
 
   public async syncState(): Promise<void> {
-    await this.#syncReservePriceFeeds();
+    await this.#syncPriceFeeds();
   }
 
-  async #syncReservePriceFeeds(): Promise<void> {
+  async #syncPriceFeeds(): Promise<void> {
     const oracles = this.#getOraclesMap();
     const [fromBlock, toBlock] = [this.#syncedTo + 1n, this.sdk.currentBlock];
     if (oracles.size === 0 || fromBlock > toBlock) {
@@ -77,7 +78,7 @@ export class V300StalenessPeriodPlugin
       strict: true,
     });
     this.#logger?.info(
-      `loaded ${events.length} SetReservePriceFeed events in range [${fromBlock}; ${toBlock}]`,
+      `loaded ${events.length} price feed events in range [${fromBlock}; ${toBlock}]`,
     );
 
     for (const e of events) {
@@ -134,10 +135,10 @@ export class V300StalenessPeriodPlugin
     this.#syncedTo = this.sdk.currentBlock;
   }
 
-  #getOraclesMap(): AddressMap<PriceOracleContract> {
+  #getOraclesMap(): AddressMap<IPriceOracleContract> {
     return new AddressMap(
       this.sdk.marketRegister.markets
-        .filter(m => m.priceOracle.version === 300)
+        .filter(m => isV300(m.priceOracle.version))
         .map(m => [m.priceOracle.address, m.priceOracle]),
     );
   }

@@ -108,7 +108,6 @@ export abstract class BaseContract<abi extends Abi | readonly unknown[]>
     }
   }
 
-  // TODO: unused
   public stateHuman(_ = true): BaseContractStateHuman {
     return {
       address: this.sdk.provider.addressLabels.get(this.address),

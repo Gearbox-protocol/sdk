@@ -1,5 +1,10 @@
 import { format, formatDistanceToNow } from "date-fns";
-import type { Abi, Address, ContractFunctionReturnType } from "viem";
+import type {
+  Abi,
+  Address,
+  ContractFunctionArgs,
+  ContractFunctionReturnType,
+} from "viem";
 import { decodeFunctionData, stringToHex } from "viem";
 
 import { iPriceFeedCompressorAbi } from "../../../abi/compressors.js";
@@ -14,6 +19,7 @@ import { BaseContract } from "../../base/index.js";
 import type { PriceFeedAnswer } from "../../base/types.js";
 import {
   AP_PRICE_FEED_COMPRESSOR,
+  isV300,
   VERSION_RANGE_310,
 } from "../../constants/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
@@ -27,6 +33,7 @@ import type {
 import { PriceFeedRef } from "../pricefeeds/index.js";
 import PriceFeedAnswerMap from "./PriceFeedAnswerMap.js";
 import type {
+  DelegatedOracleMulticall,
   IPriceOracleContract,
   OnDemandPriceUpdate,
   PriceFeedsForTokensOptions,
@@ -34,14 +41,12 @@ import type {
 
 const ZERO_PRICE_FEED = stringToHex("PRICE_FEED::ZERO", { size: 32 });
 
-export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
+export abstract class PriceOracleBaseContract<
+    abi extends Abi | readonly unknown[],
+  >
   extends BaseContract<abi>
   implements IPriceOracleContract
 {
-  /**
-   * Underlying token of market to which this price oracle belongs
-   */
-  public readonly underlying: Address;
   /**
    * Mapping Token => [PriceFeed Address, stalenessPeriod]
    */
@@ -68,18 +73,19 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
     "reservePrices",
   );
 
-  #priceFeedTree: readonly PriceFeedTreeNode[] = [];
+  #priceFeedTree = new AddressMap<PriceFeedTreeNode>(
+    undefined,
+    "priceFeedTree",
+  );
 
   constructor(
     sdk: GearboxSDK,
     args: BaseContractOptions<abi>,
     data: PriceOracleData,
-    underlying: Address,
   ) {
     super(sdk, args);
-    this.underlying = underlying;
     const { priceFeedMap, priceFeedTree } = data;
-    this.#loadState(priceFeedMap, priceFeedTree);
+    this.#loadState(priceFeedMap, priceFeedTree, true);
   }
 
   /**
@@ -108,7 +114,7 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
    */
   public async updatePriceFeeds(): Promise<UpdatePriceFeedsResult> {
     const updatables: IPriceFeedContract[] = [];
-    for (const node of this.#priceFeedTree) {
+    for (const node of this.#priceFeedTree.values()) {
       if (node.updatable) {
         updatables.push(this.sdk.priceFeeds.mustGet(node.baseParams.addr));
       }
@@ -187,28 +193,12 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
 
   /**
    * Returns true if oracle's price feed tree contains given price feed
+   * This feed is not necessary connected to token, but can be a component of composite feed for some token
    * @param priceFeed
    * @returns
    */
   public usesPriceFeed(priceFeed: Address): boolean {
-    return this.#priceFeedTree.some(
-      node => node.baseParams.addr.toLowerCase() === priceFeed.toLowerCase(),
-    );
-  }
-
-  /**
-   * Tries to convert amount of token into underlying of current market
-   * @param token
-   * @param amount
-   * @param reserve
-   * @returns
-   */
-  public convertToUnderlying(
-    token: Address,
-    amount: bigint,
-    reserve = false,
-  ): bigint {
-    return this.convert(token, this.underlying, amount, reserve);
+    return this.#priceFeedTree.has(priceFeed);
   }
 
   /**
@@ -216,7 +206,7 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
    * @param from
    * @param to
    * @param amount
-   * @param reserve
+   * @param reserve use reserve price feed instead of main
    */
   public convert(
     from: Address,
@@ -238,9 +228,8 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
   /**
    * Tries to convert amount of token to USD, using latest known prices
    * @param from
-   * @param to
    * @param amount
-   * @param reserve
+   * @param reserve use reserve price feed instead of main
    */
   public convertToUSD(from: Address, amount: bigint, reserve = false): bigint {
     const price = reserve ? this.reservePrice(from) : this.mainPrice(from);
@@ -252,7 +241,7 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
    * Tries to convert amount of USD to token, using latest known prices
    * @param to
    * @param amount
-   * @param reserve
+   * @param reserve use reserve price feed instead of main
    */
   public convertFromUSD(to: Address, amount: bigint, reserve = false): bigint {
     const price = reserve ? this.reservePrice(to) : this.mainPrice(to);
@@ -262,25 +251,34 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
 
   /**
    * Loads new prices for this oracle from PriceFeedCompressor
-   * Does not update price feeds, only updates prices
+   * Will (re)create price feeds if needed
    */
   public async updatePrices(): Promise<void> {
     await this.sdk.marketRegister.updatePrices([this.address]);
   }
 
-  public syncStateMulticall() {
-    const args: any[] = [this.address];
-    if (this.version === 300) {
-      args.push(
+  /**
+   * Paired method to updatePrices, helps to update prices on all oracles in one multicall
+   */
+  public syncStateMulticall(): DelegatedOracleMulticall {
+    let args: ContractFunctionArgs<
+      typeof iPriceFeedCompressorAbi,
+      "view",
+      "getPriceOracleState"
+    > = [this.address];
+
+    if (isV300(this.version)) {
+      args = [
+        args[0],
         Array.from(
           new Set([
-            this.underlying,
             ...this.mainPriceFeeds.keys(),
             ...this.reservePriceFeeds.keys(),
           ]),
         ),
-      );
+      ];
     }
+
     const [address] = this.sdk.addressProvider.mustGetLatest(
       AP_PRICE_FEED_COMPRESSOR,
       VERSION_RANGE_310,
@@ -300,31 +298,49 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
         >,
       ) => {
         const { priceFeedMap, priceFeedTree } = resp;
-        this.#loadState(priceFeedMap, priceFeedTree);
+        // in this case we want reset = true, since we've passed all tokens as getPriceOracleState arg for v300
+        // or in case of v310 this list is not needed at all, and we're 100% getting full oracle state)
+        this.#loadState(priceFeedMap, priceFeedTree, true);
       },
     };
+  }
+
+  /**
+   * Helper function to handle situation when we have multiple different compressor data entries for same oracle
+   * This happens in v300
+   *
+   * @deprecated should be unnecessary after full v310 migration (oracles will be unique)
+   * @param data
+   * @returns
+   */
+  public merge(data: PriceOracleData): this {
+    const { priceFeedMap, priceFeedTree } = data;
+    this.#loadState(priceFeedMap, priceFeedTree, false);
+    return this;
   }
 
   #loadState(
     entries: readonly PriceFeedMapEntry[],
     tree: readonly PriceFeedTreeNode[],
+    reset: boolean,
   ): void {
-    this.#priceFeedTree = tree;
-    this.mainPriceFeeds.clear();
-    this.reservePriceFeeds.clear();
-    this.mainPrices.clear();
-    this.reservePrices.clear();
+    if (reset) {
+      this.#priceFeedTree.clear();
+      this.mainPriceFeeds.clear();
+      this.reservePriceFeeds.clear();
+      this.mainPrices.clear();
+      this.reservePrices.clear();
+    }
 
     for (const node of tree) {
+      this.#priceFeedTree.upsert(node.baseParams.addr, node);
       this.sdk.priceFeeds.getOrCreate(node);
     }
 
-    entries.forEach(entry => {
+    for (const entry of entries) {
       const { token, priceFeed, reserve, stalenessPeriod } = entry;
       const ref = new PriceFeedRef(this.sdk, priceFeed, stalenessPeriod);
-      const node = this.#priceFeedTree.find(
-        n => n.baseParams.addr === priceFeed,
-      );
+      const node = this.#priceFeedTree.get(priceFeed);
       const price = node?.answer?.price;
       const priceFeedType = node?.baseParams.contractType;
       if (reserve) {
@@ -341,7 +357,7 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
         }
       }
       this.#labelPriceFeed(priceFeed, reserve ? "Reserve" : "Main", token);
-    });
+    }
 
     this.logger?.debug(
       `Got ${this.mainPriceFeeds.size} main and ${this.reservePriceFeeds.size} reserve price feeds`,
@@ -370,6 +386,8 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
    * Helper method to find "attachment point" of price feed (makes sense for updatable price feeds only) -
    * returns token (in v3.0 can be ticker) and main/reserve flag
    *
+   * @deprecated Should be gone after v310 migration
+   *
    * @param priceFeed
    * @returns
    */
@@ -389,6 +407,9 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
     return [undefined, false];
   }
 
+  /**
+   * Returns list of addresses that should be watched for events to sync state
+   */
   public override get watchAddresses(): Set<Address> {
     return new Set([this.address]);
   }
@@ -423,10 +444,6 @@ export class PriceOracleBaseContract<abi extends Abi | readonly unknown[]>
           ]),
       ),
     };
-  }
-
-  protected get priceFeedTree(): readonly PriceFeedTreeNode[] {
-    return this.#priceFeedTree;
   }
 
   #noAnswerWarn(priceFeed: Address, node?: PriceFeedTreeNode): void {

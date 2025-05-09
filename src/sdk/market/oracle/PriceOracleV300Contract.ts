@@ -11,7 +11,7 @@ const abi = [...iPriceOracleV300Abi, ...iPausableAbi];
 type abi = typeof abi;
 
 export class PriceOracleV300Contract extends PriceOracleBaseContract<abi> {
-  constructor(sdk: GearboxSDK, data: PriceOracleData, underlying: Address) {
+  constructor(sdk: GearboxSDK, data: PriceOracleData) {
     super(
       sdk,
       {
@@ -20,7 +20,6 @@ export class PriceOracleV300Contract extends PriceOracleBaseContract<abi> {
         abi,
       },
       data,
-      underlying,
     );
   }
 

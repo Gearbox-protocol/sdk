@@ -6,15 +6,15 @@ import type { GearboxSDK } from "../GearboxSDK.js";
 import type { MarketStateHuman } from "../types/index.js";
 import { CreditSuite } from "./credit/index.js";
 import { MarketConfiguratorContract } from "./MarketConfiguratorContract.js";
-import type { PriceOracleContract } from "./oracle/index.js";
-import { createPriceOracle } from "./oracle/index.js";
+import type { IPriceOracleContract } from "./oracle/index.js";
+import { getOrCreatePriceOracle } from "./oracle/index.js";
 import { PoolSuite } from "./pool/index.js";
 
 export class MarketSuite extends SDKConstruct {
   public readonly acl: Address;
   public readonly configurator: MarketConfiguratorContract;
   public readonly pool: PoolSuite;
-  public readonly priceOracle: PriceOracleContract;
+  public readonly priceOracle: IPriceOracleContract;
   public readonly creditManagers: CreditSuite[] = [];
   /**
    * Original data received from compressor
@@ -49,11 +49,7 @@ export class MarketSuite extends SDKConstruct {
       this.creditManagers.push(new CreditSuite(sdk, marketData, i));
     }
 
-    this.priceOracle = createPriceOracle(
-      sdk,
-      marketData.priceOracle,
-      marketData.pool.underlying,
-    );
+    this.priceOracle = getOrCreatePriceOracle(sdk, marketData.priceOracle);
   }
 
   override get dirty(): boolean {
