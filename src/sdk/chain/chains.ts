@@ -227,7 +227,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       defaultMarketConfigurators: {
         "0x19037a281025b83fa37e3264b77af523ff87a3a4": "Chaos Labs",
       },
-      isPublic: false,
+      isPublic: true,
       wellKnownToken: {
         address: "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
         symbol: "USDC",
