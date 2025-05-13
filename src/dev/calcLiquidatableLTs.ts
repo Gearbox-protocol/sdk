@@ -25,7 +25,11 @@ export async function calcLiquidatableLTs(
     })
     .map(t => {
       const { token, balance } = t;
-      const balanceU = market.priceOracle.convertToUnderlying(token, balance);
+      const balanceU = market.priceOracle.convert(
+        token,
+        ca.underlying,
+        balance,
+      );
       const lt = BigInt(cm.creditManager.liquidationThresholds.mustGet(token));
       return {
         token,
