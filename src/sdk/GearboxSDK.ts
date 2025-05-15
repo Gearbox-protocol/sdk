@@ -35,6 +35,7 @@ import {
 } from "./core/index.js";
 import { MarketRegister } from "./market/MarketRegister.js";
 import { PriceFeedRegister } from "./market/pricefeeds/index.js";
+import type { RedstoneOptions } from "./market/pricefeeds/RedstoneUpdater.js";
 import {
   type PluginConstructorMap,
   type PluginsMap,
@@ -48,6 +49,7 @@ import type {
   ILogger,
   MultiCall,
 } from "./types/index.js";
+import type { PickSomeRequired } from "./utils/index.js";
 import { AddressMap, toAddress, TypedObjectUtils } from "./utils/index.js";
 import { Hooks } from "./utils/internal/index.js";
 import { getLogsSafe } from "./utils/viem/index.js";
@@ -73,15 +75,6 @@ export interface SDKOptions<Plugins extends PluginsMap> {
    */
   blockNumber?: bigint | number;
   /**
-   * Fixed redstone historic timestamp in ms
-   * Set to true to enable redstone historical mode using timestamp from attach block
-   */
-  redstoneHistoricTimestamp?: number | true;
-  /**
-   * Override redstone gateways. Can be used to set caching proxies, to avoid rate limiting
-   */
-  redstoneGateways?: string[];
-  /**
    * Will skip updateable prices on attach and sync
    * Makes things faster when your service is not intereseted in prices
    */
@@ -98,6 +91,10 @@ export interface SDKOptions<Plugins extends PluginsMap> {
    * Bring your own logger
    */
   logger?: ILogger;
+  /**
+   * Options related to redstone price feeds
+   */
+  redstone?: RedstoneOptions;
 }
 
 export type HydrateOptions<Plugins extends PluginsMap> = Omit<
@@ -105,21 +102,18 @@ export type HydrateOptions<Plugins extends PluginsMap> = Omit<
   "blockNumber" | "addressProvider" | "marketConfigurators"
 >;
 
-interface SDKContructorArgs<Plugins extends PluginsMap> {
+type SDKContructorArgs<Plugins extends PluginsMap> = Pick<
+  SDKOptions<Plugins>,
+  "logger" | "strictContractTypes" | "plugins"
+> & {
   provider: Provider;
-  logger?: ILogger;
-  strictContractTypes?: boolean;
-  plugins?: PluginConstructorMap<Plugins>;
-}
+};
 
-interface AttachOptionsInternal {
-  addressProvider: Address;
-  blockNumber?: bigint | number;
-  redstoneHistoricTimestamp?: number | true;
-  redstoneGateways?: string[];
-  ignoreUpdateablePrices?: boolean;
-  marketConfigurators: Address[];
-}
+type AttachOptionsInternal = PickSomeRequired<
+  SDKOptions<any>,
+  "addressProvider" | "marketConfigurators",
+  "blockNumber" | "ignoreUpdateablePrices" | "redstone"
+>;
 
 export interface SyncStateOptions {
   blockNumber: bigint;
@@ -149,6 +143,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
 
   // Collection of markets
   #marketRegister?: MarketRegister;
+  #priceFeeds?: PriceFeedRegister;
 
   public readonly logger?: ILogger;
 
@@ -159,10 +154,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
   public readonly interestRateModels = new AddressMap<
     BaseContract<readonly unknown[]>
   >();
-  /**
-   * All price feeds known to sdk, without oracle-related data (stalenessPeriod, main/reserve, etc.)
-   */
-  public readonly priceFeeds: PriceFeedRegister;
+
   /**
    * Will throw an error if contract type is not supported, otherwise will try to use generic contract first, if possible
    */
@@ -192,9 +184,10 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       logger,
       plugins,
       blockNumber,
-      redstoneHistoricTimestamp,
+      redstone,
       ignoreUpdateablePrices,
       marketConfigurators: mcs,
+      strictContractTypes,
     } = options;
     let { networkType, addressProvider, chainId } = options;
 
@@ -224,12 +217,13 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       provider,
       logger,
       plugins,
+      strictContractTypes,
     }).#attach({
       addressProvider,
       blockNumber,
-      redstoneHistoricTimestamp,
       ignoreUpdateablePrices,
       marketConfigurators,
+      redstone,
     });
   }
 
@@ -237,20 +231,24 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
     options: HydrateOptions<Plugins> & ConnectionOptions & TransportOptions,
     state: GearboxState<Plugins>,
   ): GearboxSDK<Plugins> {
-    const { logger, plugins, ...rest } = options;
+    const { logger, plugins, strictContractTypes, ...rest } = options;
     const provider = new Provider({
       ...rest,
       chainId: state.chainId,
       networkType: state.network,
     });
 
-    return new GearboxSDK({ provider, plugins, logger }).#hydrate(rest, state);
+    return new GearboxSDK({
+      provider,
+      plugins,
+      logger,
+      strictContractTypes,
+    }).#hydrate(rest, state);
   }
 
   private constructor(options: SDKContructorArgs<Plugins>) {
     this.#provider = options.provider;
     this.logger = options.logger;
-    this.priceFeeds = new PriceFeedRegister(this);
     this.strictContractTypes = options.strictContractTypes ?? false;
     const pluginsInstances: Record<string, any> = {};
     for (const [name, Plugin] of TypedObjectUtils.entries(
@@ -265,9 +263,9 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
     const {
       addressProvider,
       blockNumber,
-      redstoneHistoricTimestamp,
       ignoreUpdateablePrices,
       marketConfigurators,
+      redstone,
     } = opts;
     const re = this.#attachConfig ? "re" : "";
     this.logger?.info(
@@ -279,7 +277,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       },
       `${re}attaching gearbox sdk`,
     );
-    if (!!blockNumber && !redstoneHistoricTimestamp) {
+    if (!!blockNumber && !opts.redstone?.historicTimestamp) {
       this.logger?.warn(
         `${re}attaching to fixed block number, but redstoneHistoricTimestamp is not set. price updates might fail`,
       );
@@ -296,7 +294,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
     this.#currentBlock = block.number;
     this.#timestamp = block.timestamp;
 
-    this.#confugureRedstone(opts);
+    this.#priceFeeds = new PriceFeedRegister(this, { redstone });
 
     this.logger?.debug(
       `${re}attach block number ${this.currentBlock} timestamp ${this.timestamp}`,
@@ -343,7 +341,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
     options: HydrateOptions<Plugins>,
     state: GearboxState<Plugins>,
   ): this {
-    const { logger: _logger, ...opts } = options;
+    const { logger: _logger, redstone, ...opts } = options;
     if (state.version !== STATE_VERSION) {
       throw new Error(
         `hydrated state version is ${state.version}, but expected ${STATE_VERSION}`,
@@ -352,7 +350,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
 
     this.#currentBlock = state.currentBlock;
     this.#timestamp = state.timestamp;
-    this.#confugureRedstone(opts);
+    this.#priceFeeds = new PriceFeedRegister(this, { redstone });
 
     this.#addressProvider = hydrateAddressProvider(this, state.addressProvider);
     this.logger?.debug(
@@ -382,24 +380,6 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
     }
 
     return this;
-  }
-
-  #confugureRedstone(
-    opts: Pick<
-      SDKOptions<Plugins>,
-      "redstoneGateways" | "redstoneHistoricTimestamp"
-    >,
-  ) {
-    const { redstoneGateways, redstoneHistoricTimestamp } = opts;
-    if (redstoneHistoricTimestamp) {
-      this.priceFeeds.redstoneUpdater.historicalTimestamp =
-        redstoneHistoricTimestamp === true
-          ? Number(this.timestamp) * 1000
-          : redstoneHistoricTimestamp;
-    }
-    if (redstoneGateways?.length) {
-      this.priceFeeds.redstoneUpdater.gateways = redstoneGateways;
-    }
   }
 
   /**
@@ -517,7 +497,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
    */
   public async syncState(opts?: SyncStateOptions): Promise<void> {
     let { blockNumber, timestamp, skipPriceUpdate } = opts ?? {};
-    if (this.#attachConfig?.redstoneHistoricTimestamp) {
+    if (this.#attachConfig?.redstone?.historicTimestamp) {
       throw new Error(
         "syncState is not supported with redstoneHistoricTimestamp",
       );
@@ -615,6 +595,16 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       throw ERR_NOT_ATTACHED;
     }
     return this.#timestamp;
+  }
+
+  /**
+   * All price feeds known to sdk, without oracle-related data (stalenessPeriod, main/reserve, etc.)
+   */
+  public get priceFeeds(): PriceFeedRegister {
+    if (this.#priceFeeds === undefined) {
+      throw ERR_NOT_ATTACHED;
+    }
+    return this.#priceFeeds;
   }
 
   public get gear(): Address | undefined {

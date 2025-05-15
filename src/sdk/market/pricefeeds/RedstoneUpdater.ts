@@ -66,6 +66,22 @@ export class RedstoneUpdateTx implements IPriceUpdateTx<RedstoneUpdateTask> {
   }
 }
 
+export interface RedstoneOptions {
+  /**
+   * Fixed redstone historic timestamp in ms
+   * Set to true to enable redstone historical mode using timestamp from attach block
+   */
+  historicTimestamp?: number | true;
+  /**
+   * Override redstone gateways. Can be used to set caching proxies, to avoid rate limiting
+   */
+  gateways?: string[];
+  /**
+   * Ignore redstone SDK errors
+   */
+  ignoreErrors?: boolean;
+}
+
 /**
  * Class to update multiple redstone price feeds at once
  */
@@ -74,25 +90,19 @@ export class RedstoneUpdater extends SDKConstruct {
   #cache = new Map<string, Omit<TimestampedCalldata, "cached">>();
   #historicalTimestampMs?: number;
   #gateways?: string[];
+  #ignoreErrors?: boolean;
 
-  constructor(sdk: GearboxSDK) {
+  constructor(sdk: GearboxSDK, opts: RedstoneOptions = {}) {
     super(sdk);
     this.#logger = childLogger("RedstoneUpdater", sdk.logger);
-  }
+    this.#ignoreErrors = opts.ignoreErrors;
+    this.#gateways = opts.gateways?.length ? opts.gateways : undefined;
 
-  /**
-   * Set redstone historical timestamp in milliseconds
-   */
-  public set historicalTimestamp(timestampMs: number) {
-    // redstone timestamps are rounded to one minute
-    this.#historicalTimestampMs = 60_000 * Math.floor(timestampMs / 60_000);
-  }
-
-  /**
-   * Set redstone gateways
-   */
-  public set gateways(gateways: string[]) {
-    this.#gateways = gateways;
+    let ts = opts.historicTimestamp;
+    if (ts) {
+      ts = ts === true ? Number(this.sdk.timestamp) * 1000 : ts;
+      this.#historicalTimestampMs = 60_000 * Math.floor(ts / 60_000);
+    }
   }
 
   public async getUpdateTxs(
@@ -196,11 +206,20 @@ export class RedstoneUpdater extends SDKConstruct {
       }
     }
 
-    const [fromRedstoneResp] = await Promise.allSettled([
-      this.#fetchPayloads(dataServiceId, new Set(uncached), uniqueSignersCount),
-    ]);
-    const fromRedstone =
-      fromRedstoneResp.status === "fulfilled" ? fromRedstoneResp.value : [];
+    let fromRedstone: TimestampedCalldata[] = [];
+    try {
+      fromRedstone = await this.#fetchPayloads(
+        dataServiceId,
+        new Set(uncached),
+        uniqueSignersCount,
+      );
+    } catch (e) {
+      if (this.#ignoreErrors) {
+        this.#logger?.error(e);
+      } else {
+        throw e;
+      }
+    }
     // cache newly fetched responses
     if (this.#historicalTimestampMs) {
       for (const resp of fromRedstone) {
@@ -216,10 +235,6 @@ export class RedstoneUpdater extends SDKConstruct {
     this.#logger?.debug(
       `got ${fromRedstone.length} new redstone updates and ${fromCache.length} from cache`,
     );
-
-    if (fromRedstoneResp.status === "rejected") {
-      this.#logger?.error(fromRedstoneResp.reason);
-    }
 
     return [...fromCache, ...fromRedstone];
   }

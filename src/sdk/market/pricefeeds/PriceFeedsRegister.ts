@@ -30,7 +30,7 @@ import { MellowLRTPriceFeedContract } from "./MellowLRTPriceFeed.js";
 import { PendleTWAPPTPriceFeed } from "./PendleTWAPPTPriceFeed.js";
 import { PythPriceFeed } from "./PythPriceFeed.js";
 import { isRedstone, RedstonePriceFeedContract } from "./RedstonePriceFeed.js";
-import type { RedstoneUpdateTask } from "./RedstoneUpdater.js";
+import type { RedstoneOptions, RedstoneUpdateTask } from "./RedstoneUpdater.js";
 import { RedstoneUpdater } from "./RedstoneUpdater.js";
 import type {
   IPriceFeedContract,
@@ -48,6 +48,10 @@ export type PriceFeedRegisterHooks = {
    */
   updatesGenerated: [UpdatePriceFeedsResult];
 };
+
+export interface PriceFeedRegisterOptions {
+  redstone?: RedstoneOptions;
+}
 
 export interface LatestUpdate {
   timestamp: number;
@@ -69,10 +73,10 @@ export class PriceFeedRegister
   #latestUpdate: LatestUpdate | undefined;
   public readonly redstoneUpdater: RedstoneUpdater;
 
-  constructor(sdk: GearboxSDK) {
+  constructor(sdk: GearboxSDK, opts: PriceFeedRegisterOptions = {}) {
     super(sdk);
     this.logger = childLogger("PriceFeedRegister", sdk.logger);
-    this.redstoneUpdater = new RedstoneUpdater(sdk);
+    this.redstoneUpdater = new RedstoneUpdater(sdk, opts?.redstone);
   }
 
   public addHook = this.#hooks.addHook.bind(this.#hooks);
