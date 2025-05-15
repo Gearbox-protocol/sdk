@@ -4,6 +4,7 @@ import type { MarketData } from "../../base/index.js";
 import { SDKConstruct } from "../../base/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { PoolSuiteStateHuman } from "../../types/index.js";
+import type { MarketConfiguratorContract } from "../MarketConfiguratorContract.js";
 import createInterestRateModel from "./createInterestRateModel.js";
 import createPool from "./createPool.js";
 import createPoolQuotaKeeper from "./createPoolQuotaKeeper.js";
@@ -24,6 +25,8 @@ export class PoolSuite extends SDKConstruct {
   public readonly rateKeeper: IRateKeeperContract;
   public readonly interestRateModel: IInterestRateModelContract;
 
+  #marketConfigurator: Address;
+
   constructor(sdk: GearboxSDK, data: MarketData) {
     super(sdk);
     this.pool = createPool(sdk, data.pool);
@@ -33,6 +36,7 @@ export class PoolSuite extends SDKConstruct {
       sdk,
       data.interestRateModel,
     );
+    this.#marketConfigurator = data.configurator;
   }
 
   public get gauge(): GaugeContract {
@@ -60,6 +64,12 @@ export class PoolSuite extends SDKConstruct {
     throw new Error(
       `Interest rate model is not a linear model, but a ${this.interestRateModel.contractType}`,
     );
+  }
+
+  public get marketConfigurator(): MarketConfiguratorContract {
+    return this.sdk.contracts.mustGet(
+      this.#marketConfigurator,
+    ) as unknown as MarketConfiguratorContract;
   }
 
   public get underlying(): Address {

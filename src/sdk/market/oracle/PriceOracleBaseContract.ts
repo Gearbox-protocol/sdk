@@ -358,6 +358,7 @@ export abstract class PriceOracleBaseContract<
       }
       this.#labelPriceFeed(priceFeed, reserve ? "Reserve" : "Main", token);
     }
+    this.dirty = false;
   }
 
   #labelPriceFeed(

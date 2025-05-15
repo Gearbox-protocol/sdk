@@ -2,14 +2,7 @@ import { writeFile } from "node:fs/promises";
 
 import { pino } from "pino";
 
-import { AdaptersPlugin } from "../src/adapters/AdaptersPlugin.js";
-import { BotsPlugin } from "../src/bots/BotsPlugin.js";
-import {
-  GearboxSDK,
-  json_stringify,
-  V300StalenessPeriodPlugin,
-} from "../src/sdk/index.js";
-import { ZappersPlugin } from "../src/zappers/ZappersPlugin.js";
+import { GearboxSDK, json_stringify } from "../src/sdk/index.js";
 
 const logger = pino({
   level: process.env.LOG_LEVEL ?? "debug",
@@ -32,11 +25,14 @@ async function example(): Promise<void> {
     // ignoreUpdateablePrices: true,
     strictContractTypes: true,
     plugins: {
-      adapters: AdaptersPlugin,
-      zappers: ZappersPlugin,
-      bots: BotsPlugin,
-      stalenessV300: V300StalenessPeriodPlugin,
+      // adapters: AdaptersPlugin,
+      // zappers: ZappersPlugin,
+      // bots: BotsPlugin,
+      // stalenessV300: V300StalenessPeriodPlugin,
     },
+    // redstone: {
+    //   cacheTTL: 0,
+    // },
   });
 
   // kind = "hydrated";
@@ -70,6 +66,11 @@ async function example(): Promise<void> {
     `tmp/state_${kind}_${net}_${prefix}${sdk.currentBlock}.json`,
     json_stringify(sdk.state),
   );
+
+  sdk.provider.publicClient.watchBlocks({
+    onBlock: async block =>
+      sdk.syncState({ blockNumber: block.number, timestamp: block.timestamp }),
+  });
 
   logger.info("done");
 }

@@ -64,12 +64,12 @@ export class MarketRegister extends SDKConstruct {
   }
 
   public async syncState(skipPriceUpdate?: boolean): Promise<void> {
-    const dirtyPools: Address[] = [];
+    const dirtyPools: PoolSuite[] = [];
     const nonDirtyOracles: Address[] = [];
 
     for (const m of this.markets) {
       if (m.dirty) {
-        dirtyPools.push(m.pool.pool.address);
+        dirtyPools.push(m.pool);
       } else {
         nonDirtyOracles.push(m.priceOracle.address);
       }
@@ -78,7 +78,10 @@ export class MarketRegister extends SDKConstruct {
     if (dirtyPools.length) {
       this.#logger?.debug(`need to reload ${dirtyPools.length} markets`);
       // this will also update prices
-      await this.#loadMarkets([], dirtyPools);
+      await this.#loadMarkets(
+        Array.from(new Set(dirtyPools.map(p => p.marketConfigurator.address))),
+        dirtyPools.map(p => p.pool.address),
+      );
     } else if (!skipPriceUpdate && nonDirtyOracles.length) {
       this.#logger?.debug(
         `syncing prices on ${nonDirtyOracles.length} oracles`,

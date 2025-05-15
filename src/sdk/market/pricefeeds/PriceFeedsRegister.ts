@@ -167,16 +167,13 @@ export class PriceFeedRegister
    * This is not saved anywhere in PriceFeedRegister, and can later be used to load price feed updates
    */
   public async getPartialUpdatablePriceFeeds(
-    marketConfigurators?: Address[],
+    configurators: Address[],
     pools?: Address[],
   ): Promise<IPriceFeedContract[]> {
     const [priceFeedCompressorAddress] = this.sdk.addressProvider.mustGetLatest(
       AP_PRICE_FEED_COMPRESSOR,
       VERSION_RANGE_310,
     );
-    const configurators =
-      marketConfigurators ??
-      this.sdk.marketRegister.marketConfigurators.map(mc => mc.address);
     this.logger?.debug(
       { configurators, pools },
       `calling getUpdatablePriceFeeds in block ${this.sdk.currentBlock}`,
