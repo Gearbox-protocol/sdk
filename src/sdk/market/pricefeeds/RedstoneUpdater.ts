@@ -79,9 +79,13 @@ export interface RedstoneOptions {
    */
   cacheTTL?: number;
   /**
-   * Ignore redstone SDK errors
+   * When true, no error will be thrown when redstone is unable to fetch data for some feeds
    */
-  ignoreErrors?: boolean;
+  ignoreMissingFeeds?: boolean;
+  /**
+   * Enable redstone internal logging
+   */
+  enableLogging?: boolean;
 }
 
 /**
@@ -92,12 +96,14 @@ export class RedstoneUpdater extends SDKConstruct {
   #cache: RedstoneCache;
   #historicalTimestampMs?: number;
   #gateways?: string[];
-  #ignoreErrors?: boolean;
+  #ignoreMissingFeeds?: boolean;
+  #enableLogging?: boolean;
 
   constructor(sdk: GearboxSDK, opts: RedstoneOptions = {}) {
     super(sdk);
     this.#logger = childLogger("RedstoneUpdater", sdk.logger);
-    this.#ignoreErrors = opts.ignoreErrors;
+    this.#ignoreMissingFeeds = opts.ignoreMissingFeeds;
+    this.#enableLogging = opts.enableLogging;
     this.#gateways = opts.gateways?.length ? opts.gateways : undefined;
 
     let ts = opts.historicTimestamp;
@@ -106,7 +112,10 @@ export class RedstoneUpdater extends SDKConstruct {
       this.#historicalTimestampMs = 60_000 * Math.floor(ts / 60_000);
     }
     this.#cache = new RedstoneCache({
-      ttl: opts.cacheTTL ?? 210 * 1000, // currently staleness period is 240 seconds on all networks, add some buffer
+      // currently staleness period is 240 seconds on all networks, add some buffer
+      // this period of 4 minutes is selected based on time that is required for user to sign transaction with wallet
+      // so it's unlikely to decrease
+      ttl: opts.cacheTTL ?? 225 * 1000,
       historical: !!ts,
     });
   }
@@ -210,20 +219,11 @@ export class RedstoneUpdater extends SDKConstruct {
       }
     }
 
-    let fromRedstone: TimestampedCalldata[] = [];
-    try {
-      fromRedstone = await this.#fetchPayloads(
-        dataServiceId,
-        new Set(uncached),
-        uniqueSignersCount,
-      );
-    } catch (e) {
-      if (this.#ignoreErrors) {
-        this.#logger?.error(e);
-      } else {
-        throw e;
-      }
-    }
+    const fromRedstone: TimestampedCalldata[] = await this.#fetchPayloads(
+      dataServiceId,
+      new Set(uncached),
+      uniqueSignersCount,
+    );
     // cache newly fetched responses
     for (const resp of fromRedstone) {
       this.#cache.set(dataServiceId, resp.dataFeedId, uniqueSignersCount, resp);
@@ -264,6 +264,8 @@ export class RedstoneUpdater extends SDKConstruct {
       uniqueSignersCount,
       historicalTimestamp: this.#historicalTimestampMs,
       urls: this.#gateways,
+      ignoreMissingFeed: this.#ignoreMissingFeeds,
+      enableEnhancedLogs: this.#enableLogging,
     });
 
     const dataPayload = await retry(

@@ -6,6 +6,14 @@ import { GearboxSDK, json_stringify } from "../src/sdk/index.js";
 
 const logger = pino({
   level: process.env.LOG_LEVEL ?? "debug",
+  formatters: {
+    bindings: () => ({}),
+    level: label => {
+      return {
+        level: label,
+      };
+    },
+  },
 });
 
 async function example(): Promise<void> {
@@ -30,9 +38,9 @@ async function example(): Promise<void> {
       // bots: BotsPlugin,
       // stalenessV300: V300StalenessPeriodPlugin,
     },
-    // redstone: {
-    //   cacheTTL: 0,
-    // },
+    redstone: {
+      enableLogging: true,
+    },
   });
 
   // kind = "hydrated";
