@@ -9,14 +9,9 @@ import { SDKConstruct } from "../../base/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { ILogger, IPriceUpdateTx, RawTx } from "../../types/index.js";
 import { AddressMap, childLogger, retry } from "../../utils/index.js";
+import type { TimestampedCalldata } from "./RedstoneCache.js";
+import { RedstoneCache } from "./RedstoneCache.js";
 import type { RedstonePriceFeedContract } from "./RedstonePriceFeed.js";
-
-interface TimestampedCalldata {
-  dataFeedId: string;
-  data: `0x${string}`;
-  timestamp: number;
-  cached: boolean;
-}
 
 export interface RedstoneUpdateTask {
   dataFeedId: string;
@@ -77,6 +72,13 @@ export interface RedstoneOptions {
    */
   gateways?: string[];
   /**
+   * TTL for redstone cache in milliseconds
+   * If 0, disables caching
+   * If not set, uses some default value
+   * Cache is always enabled in historical mode
+   */
+  cacheTTL?: number;
+  /**
    * Ignore redstone SDK errors
    */
   ignoreErrors?: boolean;
@@ -87,7 +89,7 @@ export interface RedstoneOptions {
  */
 export class RedstoneUpdater extends SDKConstruct {
   #logger?: ILogger;
-  #cache = new Map<string, Omit<TimestampedCalldata, "cached">>();
+  #cache: RedstoneCache;
   #historicalTimestampMs?: number;
   #gateways?: string[];
   #ignoreErrors?: boolean;
@@ -103,6 +105,10 @@ export class RedstoneUpdater extends SDKConstruct {
       ts = ts === true ? Number(this.sdk.timestamp) * 1000 : ts;
       this.#historicalTimestampMs = 60_000 * Math.floor(ts / 60_000);
     }
+    this.#cache = new RedstoneCache({
+      ttl: opts.cacheTTL ?? 210 * 1000, // currently staleness period is 240 seconds on all networks, add some buffer
+      historical: !!ts,
+    });
   }
 
   public async getUpdateTxs(
@@ -192,14 +198,12 @@ export class RedstoneUpdater extends SDKConstruct {
     const fromCache: TimestampedCalldata[] = [];
     const uncached: string[] = [];
     for (const dataFeedId of dataFeedsIds) {
-      const key = cacheKey(
+      const cached = this.#cache.get(
         dataServiceId,
         dataFeedId,
         uniqueSignersCount,
-        this.#historicalTimestampMs,
       );
-      const cached = this.#cache.get(key);
-      if (this.#historicalTimestampMs && !!cached) {
+      if (cached) {
         fromCache.push({ ...cached, cached: true });
       } else {
         uncached.push(dataFeedId);
@@ -221,16 +225,8 @@ export class RedstoneUpdater extends SDKConstruct {
       }
     }
     // cache newly fetched responses
-    if (this.#historicalTimestampMs) {
-      for (const resp of fromRedstone) {
-        const key = cacheKey(
-          dataServiceId,
-          resp.dataFeedId,
-          uniqueSignersCount,
-          this.#historicalTimestampMs,
-        );
-        this.#cache.set(key, resp);
-      }
+    for (const resp of fromRedstone) {
+      this.#cache.set(dataServiceId, resp.dataFeedId, uniqueSignersCount, resp);
     }
     this.#logger?.debug(
       `got ${fromRedstone.length} new redstone updates and ${fromCache.length} from cache`,
@@ -295,15 +291,6 @@ export class RedstoneUpdater extends SDKConstruct {
       );
     });
   }
-}
-
-function cacheKey(
-  dataServiceId: string,
-  dataFeedId: string,
-  uniqueSignersCount: number,
-  historicalTimestamp = 0,
-): string {
-  return `${dataServiceId}:${dataFeedId}:${uniqueSignersCount}:${historicalTimestamp}`;
 }
 
 /**

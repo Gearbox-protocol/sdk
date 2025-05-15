@@ -358,10 +358,6 @@ export abstract class PriceOracleBaseContract<
       }
       this.#labelPriceFeed(priceFeed, reserve ? "Reserve" : "Main", token);
     }
-
-    this.logger?.debug(
-      `Got ${this.mainPriceFeeds.size} main and ${this.reservePriceFeeds.size} reserve price feeds`,
-    );
   }
 
   #labelPriceFeed(
