@@ -523,11 +523,12 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       ...Array.from(this.marketRegister.watchAddresses),
       this.addressProvider.address,
     ];
+    const fromBlock = this.currentBlock + 1n;
     this.logger?.debug(
-      `getting logs from ${watchAddresses.length} addresses in [${this.currentBlock}:${blockNumber}]`,
+      `getting logs from ${watchAddresses.length} addresses in [${fromBlock}:${blockNumber}]`,
     );
     const logs = await getLogsSafe(this.provider.publicClient, {
-      fromBlock: this.currentBlock,
+      fromBlock,
       toBlock: blockNumber,
       address: watchAddresses,
     });
