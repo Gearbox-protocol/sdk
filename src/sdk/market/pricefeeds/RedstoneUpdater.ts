@@ -196,11 +196,11 @@ export class RedstoneUpdater extends SDKConstruct {
       }
     }
 
-    const fromRedstone = await this.#fetchPayloads(
-      dataServiceId,
-      new Set(uncached),
-      uniqueSignersCount,
-    );
+    const [fromRedstoneResp] = await Promise.allSettled([
+      this.#fetchPayloads(dataServiceId, new Set(uncached), uniqueSignersCount),
+    ]);
+    const fromRedstone =
+      fromRedstoneResp.status === "fulfilled" ? fromRedstoneResp.value : [];
     // cache newly fetched responses
     if (this.#historicalTimestampMs) {
       for (const resp of fromRedstone) {
@@ -216,6 +216,10 @@ export class RedstoneUpdater extends SDKConstruct {
     this.#logger?.debug(
       `got ${fromRedstone.length} new redstone updates and ${fromCache.length} from cache`,
     );
+
+    if (fromRedstoneResp.status === "rejected") {
+      this.#logger?.error(fromRedstoneResp.reason);
+    }
 
     return [...fromCache, ...fromRedstone];
   }
