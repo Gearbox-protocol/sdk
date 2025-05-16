@@ -8,9 +8,23 @@ import { fallback, http, webSocket } from "viem";
 import type { NetworkType } from "../sdk/index.js";
 import { getChain } from "../sdk/index.js";
 
+export type RpcProvider = "alchemy" | "drpc";
+
+export interface ProviderConfig {
+  provider: RpcProvider;
+  keys: string[];
+}
+
 export interface CreateTransportURLOptions {
+  /**
+   * Explicitly provided RPC URLs, like anvil
+   * Have highest priority
+   */
   rpcUrls: string[];
-  alchemyKeys: string[];
+  /**
+   * Known providers, first has highest priority
+   */
+  rpcProviders?: ProviderConfig[];
   network: NetworkType;
 }
 
@@ -35,19 +49,23 @@ export type CreateTransportConfig =
  * @returns
  */
 export function createTransport(config: CreateTransportConfig): Transport {
-  const { alchemyKeys, protocol, network, ...rest } = config;
-  // filter out rpc urls that are of other protocol or already include one of alchemy keys
+  const { rpcProviders = [], protocol, network, ...rest } = config;
+
+  // filter out rpc urls that are of other protocol or already include one provider keys
+  const allKeys = rpcProviders.flatMap(provider => provider.keys) ?? [];
   const rpcUrls = config.rpcUrls.filter(url => {
-    return (
-      url.startsWith(protocol) && !alchemyKeys.some(key => url.includes(key))
-    );
+    return url.startsWith(protocol) && !allKeys.some(key => url.includes(key));
   });
-  const { alchemyDomain } = getChain(network);
-  if (alchemyDomain) {
-    rpcUrls.unshift(
-      ...alchemyKeys.map(key => getAlchemyUrl(alchemyDomain, key, protocol)),
-    );
+
+  for (const { provider, keys } of rpcProviders) {
+    for (const key of keys) {
+      const url = getProviderUrl(provider, network, key, protocol);
+      if (url) {
+        rpcUrls.push(url);
+      }
+    }
   }
+
   const transports = rpcUrls.map(url =>
     protocol === "http"
       ? http(url, rest as HttpTransportConfig)
@@ -59,20 +77,53 @@ export function createTransport(config: CreateTransportConfig): Transport {
   return transports.length > 1 ? fallback(transports) : transports[0];
 }
 
-export function getAlchemyUrl(
-  domain: string,
+export function getProviderUrl(
+  provider: RpcProvider,
+  network: NetworkType,
   apiKey: string,
   protocol: "http" | "ws",
-): string {
-  return protocol === "http"
-    ? getAlchemyHttpUrl(domain, apiKey)
-    : getAlchemyWsUrl(domain, apiKey);
+): string | undefined {
+  switch (provider) {
+    case "alchemy":
+      return getAlchemyUrl(network, apiKey, protocol);
+    case "drpc":
+      return getDrpcUrl(network, apiKey, protocol);
+  }
 }
 
-export function getAlchemyHttpUrl(domain: string, apiKey: string): string {
-  return `https://${domain}.g.alchemy.com/v2/${apiKey}`;
+export function getAlchemyUrl(
+  network: NetworkType,
+  apiKey: string,
+  protocol: "http" | "ws",
+): string | undefined {
+  const { alchemyDomain } = getChain(network);
+  if (!alchemyDomain) {
+    return undefined;
+  }
+  return `${protocol}s://${alchemyDomain}.g.alchemy.com/v2/${apiKey}`;
 }
 
-export function getAlchemyWsUrl(domain: string, apiKey: string): string {
-  return `wss://${domain}.g.alchemy.com/v2/${apiKey}`;
+const DRPC_NETS: Record<NetworkType, string> = {
+  Arbitrum: "arbitrum",
+  Base: "base",
+  BNB: "bsc",
+  Mainnet: "ethereum",
+  Optimism: "optimism",
+  Sonic: "sonic",
+  WorldChain: "worldchain",
+  Berachain: "berachain",
+  Avalanche: "avalanche",
+  Monad: "monad-testnet",
+  MegaETH: "",
+};
+
+export function getDrpcUrl(
+  network: NetworkType,
+  apiKey: string,
+  protocol: "http" | "ws",
+): string | undefined {
+  const net = DRPC_NETS[network];
+  return net
+    ? `${protocol}s://lb.drpc.org/ogws?network=${net}&dkey=${apiKey}`
+    : undefined;
 }
