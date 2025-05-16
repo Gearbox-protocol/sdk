@@ -35,6 +35,14 @@ export class AccountsCounterPlugin
     await this.#load();
   }
 
+  public get accounts(): AddressMap<bigint> {
+    return this.#accounts;
+  }
+
+  public forCreditManager(addr: Address): bigint {
+    return this.#accounts.mustGet(addr);
+  }
+
   async #load(): Promise<void> {
     const [compressor] = this.sdk.addressProvider.mustGetLatest(
       AP_CREDIT_ACCOUNT_COMPRESSOR,
