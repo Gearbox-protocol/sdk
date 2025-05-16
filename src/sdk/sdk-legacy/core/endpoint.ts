@@ -111,13 +111,13 @@ export class GearboxBackendApi {
     account: Address,
   ) => {
     const path = `${network}_${root.slice(2)}/${account.slice(2, 4)}`;
-    const url = `https://am.gearbox.finance/${path.toLowerCase()}.json`;
+    const url = `https://am.gearbox.fi/${path.toLowerCase()}.json`;
 
     return url;
   };
 
   static getNFTMerkleUrl = (network: NetworkType, root: Address) => {
-    const url = `https://dm.gearbox.finance/${network.toLowerCase()}_${root}.json`;
+    const url = `https://dm.gearbox.fi/${network.toLowerCase()}_${root}.json`;
 
     return url;
   };
