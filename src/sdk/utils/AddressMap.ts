@@ -116,4 +116,15 @@ export class AddressMap<T> {
   protected get name(): string | undefined {
     return this.#name;
   }
+
+  public static fromRecord<T>(record: Record<Address, T>): AddressMap<T> {
+    return new AddressMap(Object.entries(record));
+  }
+
+  public static fromMappedArray<T>(
+    array: T[],
+    mapFn: (item: T) => Address,
+  ): AddressMap<T> {
+    return new AddressMap(array.map(item => [mapFn(item), item]));
+  }
 }
