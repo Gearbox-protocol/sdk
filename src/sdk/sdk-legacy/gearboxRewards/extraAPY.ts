@@ -116,7 +116,7 @@ export class GearboxRewardsExtraApy {
           );
 
           if (points !== null) {
-            acc.push({ balance: points, token: tokenBalance.token });
+            acc.push({ balance: points, token: tokenAddress });
           }
 
           return acc;
@@ -138,9 +138,10 @@ export class GearboxRewardsExtraApy {
     tokensList: Record<Address, TokenData>,
     pointsInfo: PoolPointsInfo,
   ) {
-    if (!tokenBalanceInPool) return null;
+    if (!tokenBalanceInPool && pointsInfo.estimation === "relative")
+      return null;
     if (pool.expectedLiquidity <= 0) return 0n;
-    const { decimals = 18 } = tokensList[tokenBalanceInPool.token] || {};
+    const { decimals = 18 } = tokensList[pointsInfo.token] || {};
     const targetFactor = 10n ** BigInt(decimals);
 
     const { decimals: underlyingDecimals = 18 } =
@@ -153,7 +154,7 @@ export class GearboxRewardsExtraApy {
     const points =
       pointsInfo.estimation === "absolute"
         ? defaultPoints
-        : (tokenBalanceInPool.balance * defaultPoints) /
+        : ((tokenBalanceInPool?.balance || 0n) * defaultPoints) /
           ((pool.expectedLiquidity * targetFactor) / underlyingFactor);
 
     return BigIntMath.min(points, defaultPoints);

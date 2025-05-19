@@ -6,6 +6,7 @@ import type { Address } from "viem";
 
 import type { iPeripheryCompressorAbi } from "../../../abi/compressors.js";
 import type { Unarray } from "../../base/types.js";
+import type { NetworkType } from "../../chain/chains.js";
 
 export type ZapperData = Unarray<
   AbiParametersToPrimitiveTypes<
@@ -64,6 +65,9 @@ export interface PoolDataPayload {
   }[];
 
   zappers: readonly ZapperDataFull[];
+
+  chainId: number;
+  network: NetworkType;
 }
 export interface PoolDataExtraPayload {
   stakedDieselToken: Array<Address>;

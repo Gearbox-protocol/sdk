@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 
+import type { NetworkType } from "../../chain/chains.js";
 import {
   MIN_INT96,
   PERCENTAGE_DECIMALS,
@@ -145,6 +146,8 @@ export interface BotDataLegacy {
 
 export class CreditAccountData_Legacy {
   readonly isSuccessful: boolean;
+  readonly chainId: number;
+  readonly network: NetworkType;
 
   readonly creditAccount: Address;
   readonly borrower: Address;
@@ -157,7 +160,6 @@ export class CreditAccountData_Legacy {
 
   readonly enabledTokensMask: bigint;
   readonly healthFactor: number;
-  isDeleting: boolean;
 
   readonly baseBorrowRateWithoutFee: number;
 
@@ -180,6 +182,9 @@ export class CreditAccountData_Legacy {
   constructor(payload: CreditAccountDataPayload) {
     this.isSuccessful = payload.isSuccessful;
 
+    this.chainId = payload.chainId;
+    this.network = payload.network;
+
     this.creditAccount = payload.addr.toLowerCase() as Address;
     this.borrower = payload.borrower.toLowerCase() as Address;
     this.creditManager = payload.creditManager.toLowerCase() as Address;
@@ -194,7 +199,6 @@ export class CreditAccountData_Legacy {
       ((payload.healthFactor || 0n) * PERCENTAGE_FACTOR) / WAD,
     );
     this.enabledTokensMask = payload.enabledTokensMask;
-    this.isDeleting = false;
 
     this.borrowedAmount = payload.debt;
     this.accruedInterest = payload.accruedInterest || 0n;
@@ -238,10 +242,6 @@ export class CreditAccountData_Legacy {
 
       this.tokens[token] = balance;
     });
-  }
-
-  setDeleteInProgress(d: boolean) {
-    this.isDeleting = d;
   }
 
   static sortBalances(

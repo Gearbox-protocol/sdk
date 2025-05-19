@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 
+import type { NetworkType } from "../../chain/chains.js";
 import type { BigNumberish } from "../utils/formatter.js";
 import type { PoolDataPayload } from "./pool.js";
 
@@ -67,6 +68,9 @@ export interface CreditManagerDataPayload {
   quotas: PoolDataPayload["quotas"];
 
   isBorrowingForbidden: boolean;
+
+  chainId: number;
+  network: NetworkType;
 }
 
 export interface ChartsCreditManagerPayload {
