@@ -40,6 +40,9 @@ export class RouterV310Contract
   extends AbstractRouterContract<abi>
   implements IRouterContract
 {
+  #numSplits = new AddressMap<bigint>();
+  #defaultNumSplits = 4n;
+
   constructor(sdk: GearboxSDK, address: Address, version: number) {
     super(sdk, {
       addr: address,
@@ -240,6 +243,23 @@ export class RouterV310Contract
     };
   }
 
+  /**
+   * v310-specific method to set explicitly number of splits for a token
+   * @param token
+   * @param numSplits
+   */
+  public setNumSplits(token: Address, numSplits: bigint): void {
+    this.#numSplits.upsert(token, numSplits);
+  }
+
+  /**
+   * v310-specific method to set default number of splits for a token
+   * @param numSplits
+   */
+  public setDefaultNumSplits(numSplits: bigint): void {
+    this.#defaultNumSplits = numSplits;
+  }
+
   #numSplitsGetter(
     creditManager: RouterCMSlice,
     assets: Asset[] | readonly Asset[],
@@ -281,8 +301,15 @@ export class RouterV310Contract
     );
 
     const map = new AddressMap<bigint>(
-      inUSD.map(({ token }, i) => [token, i === 0 ? 4n : 1n]),
+      inUSD.map(({ token }, i) => [
+        token,
+        i === 0 ? this.#defaultNumSplits : 1n,
+      ]),
     );
+    // override with explicitly set numSplits
+    for (const [token, numSplits] of this.#numSplits.entries()) {
+      map.upsert(token, numSplits);
+    }
     return (token: Address) => map.get(token) ?? 1n;
   }
 

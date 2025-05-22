@@ -651,33 +651,35 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
   }
 
   /**
-   * Returns router contract that will work for given credit manager or credit facade
+   * Returns router contract that will work for given credit manager or credit facade, or simply version range
    * @param params
    * @returns
    */
   public routerFor(
     params:
       | { creditManager: Address | BaseState | IBaseContract }
-      | { creditFacade: Address | BaseState | IBaseContract },
+      | { creditFacade: Address | BaseState | IBaseContract }
+      | VersionRange,
   ): IRouterContract {
-    let facadeAddr: Address;
-    if ("creditFacade" in params) {
-      facadeAddr = toAddress(params.creditFacade);
+    let routerRange: VersionRange;
+    if (Array.isArray(params)) {
+      routerRange = params;
     } else {
-      const cm = this.marketRegister.findCreditManager(
-        toAddress(params.creditManager),
-      );
-      facadeAddr = cm.creditFacade.address;
+      let facadeAddr: Address;
+      if ("creditFacade" in params) {
+        facadeAddr = toAddress(params.creditFacade);
+      } else {
+        const cm = this.marketRegister.findCreditManager(
+          toAddress(params.creditManager),
+        );
+        facadeAddr = cm.creditFacade.address;
+      }
+      const facadeV = this.contracts.mustGet(facadeAddr).version;
+      routerRange = isV310(facadeV) ? VERSION_RANGE_310 : VERSION_RANGE_300;
     }
-    const facadeV = this.contracts.mustGet(facadeAddr).version;
-    const routerRange: VersionRange = isV310(facadeV)
-      ? VERSION_RANGE_310
-      : VERSION_RANGE_300;
     const routerEntry = this.addressProvider.getLatest(AP_ROUTER, routerRange);
     if (!routerEntry) {
-      throw new Error(
-        `router not found for facade v ${facadeV} at ${facadeAddr}`,
-      );
+      throw new Error(`router not found in version range ${routerRange}`);
     }
     const [routerAddr, routerV] = routerEntry;
     if (!this.contracts.has(routerAddr)) {
