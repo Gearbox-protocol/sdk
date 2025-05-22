@@ -34,7 +34,8 @@ export interface TxSerialized {
     | "TxLiquidateAccount"
     | "TxStakeDiesel"
     | "TxUnstakeDiesel"
-    | "TxEnableTokens";
+    | "TxEnableTokens"
+    | "TxFillOrder";
   content: string;
 }
 
@@ -95,6 +96,8 @@ export class TxSerializer {
           return new TxUnstakeDiesel(params);
         case "TxEnableTokens":
           return new TxEnableTokens(params);
+        case "TxFillOrder":
+          return new TxFillOrder(params);
         default:
           throw new Error(`Unknown transaction for parsing: ${e.type}`);
       }
@@ -903,6 +906,43 @@ export class TxEnableTokens extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxEnableTokens",
+      content: JSON.stringify(this),
+    };
+  }
+}
+
+interface TxFillOrderProps extends EVMTxProps {
+  amount: bigint;
+  token: Address;
+  network: string;
+
+  tokensList: Record<Address, TokenData>;
+}
+
+export class TxFillOrder extends EVMTx {
+  readonly amount: bigint;
+  readonly token: TokenData;
+  readonly network: string;
+
+  constructor(opts: TxFillOrderProps) {
+    super(opts);
+    this.amount = opts.amount;
+    this.token = opts.tokensList[opts.token];
+    this.network = opts.network;
+  }
+
+  toString() {
+    const { title, decimals = 18 } = this.token;
+
+    return `Order opened [${this.network}]: ${formatBN(
+      this.amount,
+      decimals,
+    )} ${title}`;
+  }
+
+  serialize(): TxSerialized {
+    return {
+      type: "TxFillOrder",
       content: JSON.stringify(this),
     };
   }
