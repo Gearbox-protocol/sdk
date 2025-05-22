@@ -251,76 +251,71 @@ export class CreditAccountData_Legacy {
   ): Array<[Address, bigint]> {
     return (Object.entries(balances) as Array<[Address, bigint]>).sort(
       ([addr1, amount1], [addr2, amount2]) => {
-        const addr1Lc = addr1.toLowerCase() as Address;
-        const addr2Lc = addr2.toLowerCase() as Address;
-
-        const token1 = tokens[addr1Lc];
-        const token2 = tokens[addr2Lc];
-
-        const price1 = prices[addr1Lc] || PRICE_DECIMALS;
-        const price2 = prices[addr2Lc] || PRICE_DECIMALS;
-
-        const totalPrice1 = PriceUtils.calcTotalPrice(
-          price1,
-          amount1,
-          token1?.decimals,
+        return this.assetComparator(
+          {
+            token: addr1,
+            balance: amount1,
+          },
+          {
+            token: addr2,
+            balance: amount2,
+          },
+          prices,
+          prices,
+          tokens,
+          tokens,
         );
-        const totalPrice2 = PriceUtils.calcTotalPrice(
-          price2,
-          amount2,
-          token2?.decimals,
-        );
-
-        if (totalPrice1 === totalPrice2) {
-          return amount1 === amount2
-            ? this.tokensAbcComparator(token1, token2)
-            : this.amountAbcComparator(amount1, amount2);
-        }
-
-        return this.amountAbcComparator(totalPrice1, totalPrice2);
       },
     );
   }
 
-  static sortAssets(
-    balances: Array<Asset>,
+  static sortAssets<T extends Asset>(
+    balances: Array<T>,
     prices: Record<Address, bigint>,
     tokens: Record<Address, TokenData>,
   ) {
-    return balances.sort(
-      (
-        { token: addr1, balance: amount1 },
-        { token: addr2, balance: amount2 },
-      ) => {
-        const addr1Lc = addr1.toLowerCase() as Address;
-        const addr2Lc = addr2.toLowerCase() as Address;
-
-        const token1 = tokens[addr1Lc];
-        const token2 = tokens[addr2Lc];
-
-        const price1 = prices[addr1Lc] || PRICE_DECIMALS;
-        const price2 = prices[addr2Lc] || PRICE_DECIMALS;
-
-        const totalPrice1 = PriceUtils.calcTotalPrice(
-          price1,
-          amount1,
-          token1?.decimals,
-        );
-        const totalPrice2 = PriceUtils.calcTotalPrice(
-          price2,
-          amount2,
-          token2?.decimals,
-        );
-
-        if (totalPrice1 === totalPrice2) {
-          return amount1 === amount2
-            ? this.tokensAbcComparator(token1, token2)
-            : this.amountAbcComparator(amount1, amount2);
-        }
-
-        return this.amountAbcComparator(totalPrice1, totalPrice2);
-      },
+    return balances.sort((t1, t2) =>
+      this.assetComparator(t1, t2, prices, prices, tokens, tokens),
     );
+  }
+
+  static assetComparator<T extends Asset>(
+    t1: T,
+    t2: T,
+
+    prices1: Record<Address, bigint> | undefined,
+    prices2: Record<Address, bigint> | undefined,
+
+    tokens1: Record<Address, TokenData> | undefined,
+    tokens2: Record<Address, TokenData> | undefined,
+  ) {
+    const addr1Lc = t1.token.toLowerCase() as Address;
+    const addr2Lc = t2.token.toLowerCase() as Address;
+
+    const token1 = tokens1?.[addr1Lc];
+    const token2 = tokens2?.[addr2Lc];
+
+    const price1 = prices1?.[addr1Lc] || PRICE_DECIMALS;
+    const price2 = prices2?.[addr2Lc] || PRICE_DECIMALS;
+
+    const totalPrice1 = PriceUtils.calcTotalPrice(
+      price1,
+      t1.balance,
+      token1?.decimals,
+    );
+    const totalPrice2 = PriceUtils.calcTotalPrice(
+      price2,
+      t2.balance,
+      token2?.decimals,
+    );
+
+    if (totalPrice1 === totalPrice2) {
+      return t1.balance === t2.balance
+        ? this.tokensAbcComparator(token1, token2)
+        : this.amountAbcComparator(t1.balance, t2.balance);
+    }
+
+    return this.amountAbcComparator(totalPrice1, totalPrice2);
   }
 
   static tokensAbcComparator(t1?: TokenData, t2?: TokenData) {
