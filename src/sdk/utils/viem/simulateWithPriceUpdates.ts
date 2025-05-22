@@ -229,6 +229,16 @@ export function getSimulateWithPriceUpdatesError<
       .filter(Boolean)
       .join(" ");
   });
+  if (results[0]?.status === "failure") {
+    prettyCalls.unshift(
+      `get timestamp failed: ${extractCallError(results[0])}`,
+    );
+  }
+  if (results[1]?.status === "failure") {
+    prettyCalls.unshift(
+      `get block number failed: ${extractCallError(results[1])}`,
+    );
+  }
 
   return new SimulateWithPriceUpdatesError(cause, {
     timestamp,
