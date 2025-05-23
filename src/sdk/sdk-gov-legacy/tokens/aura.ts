@@ -274,11 +274,5 @@ export const auraTokens: Record<
   ...auraStakedTokens,
 };
 
-export const isAuraToken = (t: unknown): t is AuraLPToken | AuraStakedToken =>
-  typeof t === "string" && !!auraTokens[t as AuraLPToken | AuraStakedToken];
-
-export const isAuraLPToken = (t: unknown): t is AuraLPToken =>
-  typeof t === "string" && !!auraLpTokens[t as AuraLPToken];
-
 export const isAuraStakedToken = (t: unknown): t is AuraStakedToken =>
   typeof t === "string" && !!auraStakedTokens[t as AuraStakedToken];

@@ -12,7 +12,9 @@ export type DieselSimpleTokenTypes =
   | "dDOLAV3"
   | "dtBTCV3"
   | "dwstETHV3"
-  | "dwSV3";
+  | "dwSV3"
+  | "dUSDTv310"
+  | "dWBNBv3";
 
 export type DieselTokenWithStkTypes =
   | "dUSDCV3"
@@ -122,6 +124,17 @@ const dieselSimpleTokens: Record<
   dwSV3: {
     name: "dwSV3",
     symbol: "dwSV3",
+    type: { AllNetworks: TokenType.DIESEL_LP_TOKEN },
+  },
+
+  dUSDTv310: {
+    name: "dUSDTv310",
+    symbol: "dUSDTv310",
+    type: { AllNetworks: TokenType.DIESEL_LP_TOKEN },
+  },
+  dWBNBv3: {
+    name: "dWBNBv3",
+    symbol: "dWBNBv3",
     type: { AllNetworks: TokenType.DIESEL_LP_TOKEN },
   },
 };
@@ -257,17 +270,3 @@ export const gearTokens: Record<
     type: { AllNetworks: TokenType.GEAR_TOKEN },
   },
 };
-
-export const isDieselToken = (t: unknown): t is DieselTokenTypes =>
-  typeof t === "string" && !!dieselTokens[t as DieselTokenTypes];
-
-export const isDieselSimpleToken = (t: unknown): t is DieselSimpleTokenTypes =>
-  typeof t === "string" && !!dieselSimpleTokens[t as DieselSimpleTokenTypes];
-
-export const isDieselWithStkToken = (
-  t: unknown,
-): t is DieselTokenWithStkTypes =>
-  typeof t === "string" && !!dieselWithStkTokens[t as DieselTokenWithStkTypes];
-
-export const isDieselStakedToken = (t: unknown): t is DieselStakedTokenTypes =>
-  typeof t === "string" && !!dieselStakedTokens[t as DieselStakedTokenTypes];
