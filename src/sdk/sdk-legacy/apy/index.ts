@@ -44,43 +44,7 @@ type ExtraFarmTokens = Extract<
   | "stS"
   | "csUSDL"
   | "scUSD"
->;
-
-// tokens with apy among them
-type ExtraTokensWithAPY = Extract<
-  ExtraFarmTokens,
-  | "STETH"
-  | "rETH"
-  | "osETH"
-  | "cbETH"
-  | "wstETH"
-  | "sfrxETH"
-  | "pzETH"
-  | "ezETH"
-  | "Re7LRT"
-  | "rsETH"
-  | "weETH"
-  | "rswETH"
-  | "rstETH"
-  | "steakLRT"
-  | "amphrETH"
-  | "pufETH"
-  | "PT_ezETH_26DEC2024"
-  | "PT_eETH_26DEC2024"
-  | "PT_sUSDe_26DEC2024"
-  | "PT_eBTC_26DEC2024"
-  | "PT_LBTC_27MAR2025"
-  | "PT_cornLBTC_26DEC2024"
-  | "PT_corn_eBTC_27MAR2025"
-  | "PT_corn_pumpBTC_26DEC2024"
-  | "PT_sUSDe_27MAR2025"
-  | "DVstETH"
-  | "PT_sUSDe_29MAY2025"
-  | "tETH"
-  | "PT_beraSTONE_10APR2025"
-  | "stS"
-  | "csUSDL"
-  | "scUSD"
+  | "ynBNBx"
 >;
 
 // LRT & LST tokens among them
@@ -124,6 +88,7 @@ const EXTRA_FARM_TOKENS: Record<ExtraFarmTokens, true> = {
   stS: true,
   csUSDL: true,
   scUSD: true,
+  ynBNBx: true,
 };
 
 export const isExtraFarmToken = (t: unknown): t is ExtraFarmTokens => {

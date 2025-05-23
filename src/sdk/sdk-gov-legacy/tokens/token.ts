@@ -95,7 +95,12 @@ export type SupportedToken =
   | LPTokens
   | DieselTokenTypes
   | DieselStakedTokenTypes
-  | GearboxToken;
+  | GearboxToken
+  | "ynBNBx"
+  | "WBNB"
+  | "BTCB"
+  | "dUSDTv310"
+  | "dWBNBv3";
 
 export interface TokenBase {
   name: string;
