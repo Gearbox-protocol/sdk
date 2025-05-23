@@ -30,15 +30,3 @@ export const zircuitTokens: Record<
 > = {
   ...zircuitStakedPhantomTokens,
 };
-
-export const isZircuitStakedPhantomToken = (
-  t: unknown,
-): t is ZircuitStakedPhantomToken =>
-  typeof t === "string" && !!zircuitTokens[t as ZircuitStakedPhantomToken];
-
-export const zircuitStakedTokenByToken = Object.values(
-  zircuitStakedPhantomTokens,
-).reduce<Partial<Record<SupportedToken, SupportedToken>>>((acc, value) => {
-  acc[value.underlying] = value.symbol;
-  return acc;
-}, {});

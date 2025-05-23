@@ -571,20 +571,3 @@ export const isConvexStakedPhantomToken = (
 ): t is ConvexStakedPhantomToken =>
   typeof t === "string" &&
   !!convexStakedPhantomTokens[t as ConvexStakedPhantomToken];
-
-export const isConvexL2StakedToken = (t: unknown): t is ConvexL2StakedToken =>
-  typeof t === "string" && !!convexL2StakedTokens[t as ConvexL2StakedToken];
-
-export const convexPoolByPid = Object.values(convexLpTokens).reduce<
-  Record<number, SupportedContract>
->((acc, value) => {
-  acc[value.pid] = value.pool;
-  return acc;
-}, {});
-
-export const convexLpTokenByPid = Object.entries(convexLpTokens).reduce<
-  Record<number, SupportedToken>
->((acc, [token, data]) => {
-  acc[data.pid] = token as SupportedToken;
-  return acc;
-}, {});

@@ -102,7 +102,9 @@ export type NormalToken =
   | "SHIB"
 
   // crvUSD
-  | "crvUSD";
+  | "crvUSD"
+  | "WBNB"
+  | "BTCB";
 
 export type NormalTokenData = {
   symbol: NormalToken;
@@ -611,6 +613,17 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
   DVstETH_Prime_wstETH: {
     name: "Balancer V3 DVstETH-Prime wstETH",
     symbol: "DVstETH_Prime_wstETH",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+
+  WBNB: {
+    name: "WBNB",
+    symbol: "WBNB",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  BTCB: {
+    name: "BTCB",
+    symbol: "BTCB",
     type: { AllNetworks: TokenType.NORMAL_TOKEN },
   },
 };

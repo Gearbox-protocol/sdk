@@ -10,20 +10,21 @@ export type ERC4626LPToken =
   | "YieldETH"
   | "sUSDe"
   | "sUSDS"
-  | "scrvUSD";
+  | "scrvUSD"
+  | "ynBNBx";
 
 export type ERC4626VaultTokenData = {
   symbol: ERC4626LPToken;
   type: Partial<Record<TokenNetwork, TokenType.ERC4626_VAULT_TOKEN>>;
   underlying: NormalToken;
-  vault: ERC4626VaultContract;
+  vault: ERC4626VaultContract | undefined;
 } & TokenBase;
 
 export type ERC4626VaultOfCurveLPTokenData = {
   symbol: ERC4626LPToken;
   type: Partial<Record<TokenNetwork, TokenType.ERC4626_VAULT_TOKEN>>;
   underlying: CurveLPToken;
-  vault: ERC4626VaultContract;
+  vault: ERC4626VaultContract | undefined;
 } & TokenBase;
 
 export const erc4626Tokens: Record<
@@ -69,7 +70,12 @@ export const erc4626Tokens: Record<
     underlying: "crvUSD",
     vault: "SAVINGS_CRVUSD_VAULT",
   },
-};
 
-export const isERC4626LPToken = (t: unknown): t is ERC4626LPToken =>
-  typeof t === "string" && !!erc4626Tokens[t as ERC4626LPToken];
+  ynBNBx: {
+    name: "Savings crvUSD",
+    symbol: "scrvUSD",
+    type: { AllNetworks: TokenType.ERC4626_VAULT_TOKEN },
+    underlying: "WBNB",
+    vault: undefined,
+  },
+};

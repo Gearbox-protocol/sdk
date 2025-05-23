@@ -23,11 +23,4 @@ export enum TokenType {
   STAKING_REWARDS_PHANTOM_TOKEN,
 }
 
-export enum PhantomTokenType {
-  NO_TOKEN,
-  CONVEX_PHANTOM_TOKEN,
-  ZIRCUIT_PHANTOM_TOKEN,
-  STAKING_REWARDS_PHANTOM_TOKEN,
-}
-
 export type TokenNetwork = NetworkType | "AllNetworks";

@@ -96,6 +96,3 @@ export const wrappedAaveV2Tokens: Record<
     underlying: "aWETH",
   },
 };
-
-export const isAaveV2LPToken = (t: unknown): t is AaveV2LPToken =>
-  typeof t === "string" && !!aaveV2Tokens[t as AaveV2LPToken];
