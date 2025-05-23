@@ -35,7 +35,6 @@ import type {
   MetaCurveLPTokenData,
 } from "./curveLP.js";
 import { curveTokens } from "./curveLP.js";
-import { decimals } from "./decimals.js";
 import type {
   ERC4626LPToken,
   ERC4626VaultOfCurveLPTokenData,
@@ -50,16 +49,13 @@ import type {
   GearboxToken,
   GearboxTokenData,
 } from "./gear.js";
-import { gearTokens } from "./gear.js";
 import type { NormalToken, NormalTokenData } from "./normal.js";
-import { normalTokens } from "./normal.js";
 import type {
   StakingRewardsPhantomToken,
   StakingRewardsPhantomTokenData,
 } from "./stakingRewards.js";
 import { stakingRewardsPhantomTokens } from "./stakingRewards.js";
 import type { WrappedToken, WrappedTokenData } from "./wrapped.js";
-import { wrappedTokens } from "./wrapped.js";
 import type {
   YearnLPToken,
   YearnVaultOfCurveLPTokenData,
@@ -95,12 +91,7 @@ export type SupportedToken =
   | LPTokens
   | DieselTokenTypes
   | DieselStakedTokenTypes
-  | GearboxToken
-  | "ynBNBx"
-  | "WBNB"
-  | "BTCB"
-  | "dUSDTv310"
-  | "dWBNBv3";
+  | GearboxToken;
 
 export interface TokenBase {
   name: string;
@@ -148,13 +139,6 @@ export const lpTokens: Record<LPTokens, LPTokenDataI> = {
   ...auraStakedTokens,
   ...zircuitStakedPhantomTokens,
   ...stakingRewardsPhantomTokens,
-};
-
-export const supportedTokens: Record<SupportedToken, TokenDataI> = {
-  ...normalTokens,
-  ...wrappedTokens,
-  ...lpTokens,
-  ...gearTokens,
 };
 
 export const ETH_ADDRESS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
@@ -500,6 +484,12 @@ export const tokenDataByNetwork: Record<
     pzETH: "0x8c9532a60E0E7C6BbD2B2c1303F63aCE1c3E9811",
     DVstETH: "0x5E362eb2c0706Bd1d134689eC75176018385430B",
     waEthLidowstETH: "0x775F661b0bD1739349b9A2A3EF60be277c5d2D29",
+
+    BTCB: NOT_DEPLOYED,
+    WBNB: NOT_DEPLOYED,
+    dUSDTv310: NOT_DEPLOYED,
+    dWBNBv3: NOT_DEPLOYED,
+    ynBNBx: NOT_DEPLOYED,
   },
 
   ///
@@ -840,6 +830,12 @@ export const tokenDataByNetwork: Record<
     pzETH: NOT_DEPLOYED,
     DVstETH: NOT_DEPLOYED,
     waEthLidowstETH: NOT_DEPLOYED,
+
+    BTCB: NOT_DEPLOYED,
+    WBNB: NOT_DEPLOYED,
+    dUSDTv310: NOT_DEPLOYED,
+    dWBNBv3: NOT_DEPLOYED,
+    ynBNBx: NOT_DEPLOYED,
   },
   ///
   ///
@@ -1179,6 +1175,12 @@ export const tokenDataByNetwork: Record<
     pzETH: NOT_DEPLOYED,
     DVstETH: NOT_DEPLOYED,
     waEthLidowstETH: NOT_DEPLOYED,
+
+    BTCB: NOT_DEPLOYED,
+    WBNB: NOT_DEPLOYED,
+    dUSDTv310: NOT_DEPLOYED,
+    dWBNBv3: NOT_DEPLOYED,
+    ynBNBx: NOT_DEPLOYED,
   },
   //
   //
@@ -1517,6 +1519,12 @@ export const tokenDataByNetwork: Record<
     pzETH: NOT_DEPLOYED,
     DVstETH: NOT_DEPLOYED,
     waEthLidowstETH: NOT_DEPLOYED,
+
+    BTCB: NOT_DEPLOYED,
+    WBNB: NOT_DEPLOYED,
+    dUSDTv310: NOT_DEPLOYED,
+    dWBNBv3: NOT_DEPLOYED,
+    ynBNBx: NOT_DEPLOYED,
   },
   //
   //
@@ -1859,13 +1867,27 @@ export const tokenDataByNetwork: Record<
     pzETH: NOT_DEPLOYED,
     DVstETH: NOT_DEPLOYED,
     waEthLidowstETH: NOT_DEPLOYED,
+
+    BTCB: NOT_DEPLOYED,
+    WBNB: NOT_DEPLOYED,
+    dUSDTv310: NOT_DEPLOYED,
+    dWBNBv3: NOT_DEPLOYED,
+    ynBNBx: NOT_DEPLOYED,
   },
   // New networks
   MegaETH: {} as any,
   Monad: {} as any,
   Berachain: {} as any,
   Avalanche: {} as any,
-  BNB: {} as any,
+  BNB: {
+    BTCB: "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c",
+    WETH: "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
+    USDT: "0x55d398326f99059ff775485246999027b3197955",
+    WBNB: "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c",
+    dUSDTv310: "0xe773eb1c9c26e79deb8e20be24629953ce20597d",
+    dWBNBv3: "0xef7d781825350d2bacb64ef7be927fd400dcdf4f",
+    ynBNBx: "0x32c830f5c34122c6afb8ae87aba541b7900a2c5f",
+  } as any,
   WorldChain: {} as any,
 };
 
