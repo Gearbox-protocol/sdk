@@ -270,9 +270,3 @@ export const gearTokens: Record<
     type: { AllNetworks: TokenType.GEAR_TOKEN },
   },
 };
-
-export const isDieselToken = (t: unknown): t is DieselTokenTypes =>
-  typeof t === "string" && !!dieselTokens[t as DieselTokenTypes];
-
-export const isDieselStakedToken = (t: unknown): t is DieselStakedTokenTypes =>
-  typeof t === "string" && !!dieselStakedTokens[t as DieselStakedTokenTypes];
