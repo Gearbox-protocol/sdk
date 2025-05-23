@@ -74,6 +74,3 @@ export const compoundV2Tokens: Record<
     underlying: "USDC",
   },
 };
-
-export const isCompoundV2LPToken = (t: unknown): t is CompoundV2LPToken =>
-  typeof t === "string" && !!compoundV2Tokens[t as CompoundV2LPToken];

@@ -70,6 +70,3 @@ export const erc4626Tokens: Record<
     vault: "SAVINGS_CRVUSD_VAULT",
   },
 };
-
-export const isERC4626LPToken = (t: unknown): t is ERC4626LPToken =>
-  typeof t === "string" && !!erc4626Tokens[t as ERC4626LPToken];

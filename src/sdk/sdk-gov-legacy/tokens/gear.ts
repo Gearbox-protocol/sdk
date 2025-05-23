@@ -261,13 +261,5 @@ export const gearTokens: Record<
 export const isDieselToken = (t: unknown): t is DieselTokenTypes =>
   typeof t === "string" && !!dieselTokens[t as DieselTokenTypes];
 
-export const isDieselSimpleToken = (t: unknown): t is DieselSimpleTokenTypes =>
-  typeof t === "string" && !!dieselSimpleTokens[t as DieselSimpleTokenTypes];
-
-export const isDieselWithStkToken = (
-  t: unknown,
-): t is DieselTokenWithStkTypes =>
-  typeof t === "string" && !!dieselWithStkTokens[t as DieselTokenWithStkTypes];
-
 export const isDieselStakedToken = (t: unknown): t is DieselStakedTokenTypes =>
   typeof t === "string" && !!dieselStakedTokens[t as DieselStakedTokenTypes];

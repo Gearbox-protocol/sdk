@@ -2310,30 +2310,6 @@ export const tickerInfoTokensByNetwork: Record<
   WorldChain: {},
 };
 
-export const tickerTokensByNetwork: Record<
-  NetworkType,
-  Partial<Record<TickerToken, Array<Address>>>
-> = Object.fromEntries(
-  Object.entries(tickerInfoTokensByNetwork).map(([network, data]) => {
-    if (Object.values(data).length === 0) return [network, {}];
-    const addrs: Partial<Record<TickerToken, Array<Address>>> = {};
-
-    Object.values(data).forEach(d =>
-      d.forEach(val => {
-        if (Object.keys(addrs).includes(val.symbol)) {
-          if (!addrs[val.symbol]?.includes(val.address)) {
-            addrs[val.symbol]?.push(val.address);
-          }
-        } else {
-          addrs[val.symbol] = [val.address];
-        }
-      }),
-    );
-
-    return [network, addrs];
-  }),
-) as Record<NetworkType, Partial<Record<TickerToken, Array<Address>>>>;
-
 export const tokenSymbolByAddress = Object.entries(tokenDataByNetwork).reduce<
   Record<string, SupportedToken>
 >(
@@ -2348,41 +2324,9 @@ export const tokenSymbolByAddress = Object.entries(tokenDataByNetwork).reduce<
   {},
 );
 
-export const tickerSymbolByAddress: Record<Address, TickerToken> =
-  Object.fromEntries(
-    Object.values(tickerTokensByNetwork)
-      .map(en =>
-        Object.entries(en)
-          .map(([symbol, addresses]) =>
-            addresses.map(addr => [addr.toLowerCase() as Address, symbol]),
-          )
-          .flat(),
-      )
-      .flat(),
-  );
-
 export function getTokenSymbol(address: Address): SupportedToken | undefined {
   return tokenSymbolByAddress[address.toLowerCase()];
 }
 
-export function getTokenSymbolOrTicker(
-  address: Address,
-): SupportedToken | TickerToken | undefined {
-  return (
-    tokenSymbolByAddress[address.toLowerCase()] ||
-    tickerSymbolByAddress[address.toLowerCase() as Address]
-  );
-}
 export const isLPToken = (t: unknown): t is LPTokens =>
   typeof t === "string" && !!lpTokens[t as LPTokens];
-
-export function getDecimals(token: SupportedToken | string): number {
-  let dec = decimals[token as SupportedToken];
-  if (dec) return dec;
-
-  dec = decimals[tokenSymbolByAddress[token.toLowerCase()]];
-  if (!dec) {
-    throw new Error(`Decimals for ${token} not found`);
-  }
-  return dec;
-}
