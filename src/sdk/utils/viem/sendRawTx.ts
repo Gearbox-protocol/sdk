@@ -12,7 +12,7 @@ import type { RawTx } from "../../types/index.js";
 
 export interface SendRawTxParameters {
   account?: Account;
-  tx: RawTx;
+  tx: Pick<RawTx, "to" | "callData" | "value">;
 }
 
 export async function sendRawTx<
