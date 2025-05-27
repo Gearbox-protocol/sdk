@@ -86,5 +86,14 @@ export async function getLogsPaginated<
       ),
     ),
   );
-  return responses.flat();
+
+  return responses.flat().sort((a, b) => {
+    if (a.blockNumber === b.blockNumber) {
+      return a.logIndex - b.logIndex;
+    } else if (a.blockNumber < b.blockNumber) {
+      return -1;
+    } else {
+      return 1;
+    }
+  });
 }
