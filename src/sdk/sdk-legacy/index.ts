@@ -9,7 +9,6 @@ export * from "./core/pool.js";
 export * from "./core/strategy.js";
 export * from "./core/transactions.js";
 export * from "./gearboxRewards/index.js";
-export * from "./pathfinder/index.js";
 export * from "./payload/creditAccount.js";
 export * from "./payload/creditManager.js";
 export * from "./payload/creditSession.js";

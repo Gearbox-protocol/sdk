@@ -41,19 +41,6 @@ interface MerkleXYZChain {
   icon: string;
 }
 
-interface MerkleXYZToken {
-  id: string;
-  name: string;
-  chainId: number;
-  address: Address;
-  decimals: number;
-  icon: string;
-  verified: boolean;
-  isTest: boolean;
-  price: number | null;
-  symbol: string;
-}
-
 // https://api.merkl.xyz/v3/campaignsForMainParameter?chainId=1&mainParameter=0xE2037090f896A858E3168B978668F22026AC52e7
 
 export class MerkleXYZApi {

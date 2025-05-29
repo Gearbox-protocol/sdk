@@ -152,7 +152,6 @@ export class GearboxRewardsApi {
     const poolByDiesel = Object.values(pools).reduce<Record<Address, Address>>(
       (acc, p) => {
         acc[p.dieselToken] = p.address;
-
         return acc;
       },
       {},
@@ -163,6 +162,7 @@ export class GearboxRewardsApi {
     const poolStakedTokens = TypedObjectUtils.keys(poolByStakedDiesel);
     const allPoolTokens = TypedObjectUtils.keys(poolByItsToken);
 
+    // for each staked diesel get farmInfo
     const farmInfoCalls = poolStakedTokens.map(address => ({
       address,
       abi: iFarmingPoolAbi,
@@ -170,6 +170,7 @@ export class GearboxRewardsApi {
       args: [],
     }));
 
+    // for each reward token get supply
     const farmSupplyCalls = allPoolTokens.map(address => ({
       address,
       abi: iFarmingPoolAbi,
@@ -177,6 +178,7 @@ export class GearboxRewardsApi {
       args: [],
     }));
 
+    // for each staked diesel get reward token
     const rewardTokenCalls = poolStakedTokens.map(address => ({
       address,
       abi: POOL_REWARDS_ABI,
@@ -234,10 +236,7 @@ export class GearboxRewardsApi {
       {},
     );
 
-    const stakedTokenRewards = allPoolTokens.reduce<{
-      base: Record<string, FarmInfo>;
-      all: Record<string, Array<FarmInfo>>;
-    }>(
+    const stakedTokenRewards = allPoolTokens.reduce<Record<string, FarmInfo>>(
       (acc, pool) => {
         const info = infoByPool[pool];
         const token = rewardTokenPool[pool];
@@ -255,12 +254,11 @@ export class GearboxRewardsApi {
               }
             : undefined;
 
-        if (baseReward) acc.base[pool] = baseReward;
-        acc.all[pool] = [...(baseReward ? [baseReward] : [])];
+        if (baseReward) acc[pool] = baseReward;
 
         return acc;
       },
-      { base: {}, all: {} },
+      {},
     );
 
     const rewardPoolsSupply = allPoolTokens.reduce<Record<string, bigint>>(
@@ -273,8 +271,7 @@ export class GearboxRewardsApi {
     );
 
     return {
-      rewardPoolsInfo: stakedTokenRewards.all,
-      baseRewardPoolsInfo: stakedTokenRewards.base,
+      baseRewardPoolsInfo: stakedTokenRewards,
       rewardPoolsSupply,
     };
   }
