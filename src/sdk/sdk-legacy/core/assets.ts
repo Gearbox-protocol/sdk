@@ -57,7 +57,7 @@ export class AssetUtils {
     return address;
   }
 
-  static getBalances(
+  private static getBalances(
     allowedTokens: Array<Address>,
     externalBalances: Record<Address, bigint>,
   ): Record<Address, bigint> {

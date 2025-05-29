@@ -2,6 +2,7 @@ import type { Address, PublicClient } from "viem";
 import { getContract } from "viem";
 
 import { iInterestRateModelAbi } from "../../../abi/iInterestRateModel.js";
+import type { NetworkType } from "../../chain/chains.js";
 import {
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
@@ -16,11 +17,10 @@ import type {
 } from "../payload/pool.js";
 import { rayToNumber } from "../utils/formatter.js";
 
-export type PoolType = "universal" | "trade" | "farm";
-
 export class PoolData_Legacy {
   readonly address: Address;
-  readonly type: PoolType;
+  readonly chainId: number;
+  readonly network: NetworkType;
   readonly underlyingToken: Address;
   readonly dieselToken: Address;
   readonly stakedDieselToken: Array<Address>;
@@ -78,7 +78,8 @@ export class PoolData_Legacy {
 
   constructor(payload: PoolDataPayload, extra: PoolDataExtraPayload) {
     this.address = payload.addr.toLowerCase() as Address;
-    this.type = PoolData_Legacy.getPoolType(payload.name || "");
+    this.chainId = payload.chainId;
+    this.network = payload.network;
     this.underlyingToken = payload.underlying.toLowerCase() as Address;
     this.dieselToken = payload.dieselToken.toLowerCase() as Address;
     this.stakedDieselToken = (extra.stakedDieselToken || []).map(
@@ -183,16 +184,6 @@ export class PoolData_Legacy {
     return model.read.calcBorrowRate([expectedLiquidity, availableLiquidity]);
   }
 
-  static getPoolType(name: string): PoolType {
-    const [identity = ""] = name.split(" ") || [];
-    const lc = identity.toLowerCase();
-
-    if (lc === "farm") return "farm";
-    if (lc === "trade") return "trade";
-
-    return "universal";
-  }
-
   static calculateUtilization(expected: bigint, available: bigint) {
     if (expected === 0n) return 0;
 
@@ -216,7 +207,6 @@ export class ChartsPoolData {
   readonly address: Address;
   readonly underlyingToken: Address;
   readonly dieselToken: Address;
-  readonly type: PoolType;
   readonly version: number;
   readonly name: string;
 
@@ -284,7 +274,6 @@ export class ChartsPoolData {
       payload.underlyingToken || ""
     ).toLowerCase() as Address;
     this.dieselToken = (payload.dieselToken || "").toLowerCase() as Address;
-    this.type = PoolData_Legacy.getPoolType(payload.name || "");
     this.version = payload.version || 1;
     this.name = payload.name || "";
 

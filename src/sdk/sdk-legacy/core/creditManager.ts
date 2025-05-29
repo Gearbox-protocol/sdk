@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 
+import type { NetworkType } from "../../chain/chains.js";
 import {
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
@@ -14,6 +15,8 @@ import type {
 
 export class CreditManagerData_Legacy {
   readonly address: Address;
+  readonly chainId: number;
+  readonly network: NetworkType;
   readonly underlyingToken: Address;
   readonly pool: Address;
   readonly creditFacade: Address; // V2 only: address of creditFacade
@@ -57,6 +60,8 @@ export class CreditManagerData_Legacy {
 
   constructor(payload: CreditManagerDataPayload) {
     this.address = payload.addr.toLowerCase() as Address;
+    this.chainId = payload.chainId;
+    this.network = payload.network;
     this.underlyingToken = payload.underlying.toLowerCase() as Address;
     this.name = payload.name;
     this.pool = payload.pool.toLowerCase() as Address;
