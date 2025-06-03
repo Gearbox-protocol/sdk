@@ -25,19 +25,20 @@ export function getOrCreatePriceOracle(
   const { version, addr } = data.baseParams;
   const existing = sdk.contracts.get(addr);
 
+  let result: IPriceOracleContract;
   if (existing) {
-    return tryExtendExistingOracle(existing, data);
+    result = tryExtendExistingOracle(existing, data);
+  } else if (isV300(version)) {
+    result = new PriceOracleV300Contract(sdk, data);
+  } else if (isV310(version)) {
+    result = new PriceOracleV310Contract(sdk, data);
+  } else {
+    throw new Error(`Unsupported oracle version ${version}`);
   }
-
-  if (isV300(version)) {
-    return new PriceOracleV300Contract(sdk, data);
-  }
-
-  if (isV310(version)) {
-    return new PriceOracleV310Contract(sdk, data);
-  }
-
-  throw new Error(`Unsupported oracle version ${version}`);
+  sdk.logger?.debug(
+    `oracle ${addr} v${version} was ${existing ? "extended" : "created"} with ${result.mainPriceFeeds.size} main and ${result.reservePriceFeeds.size} reserve price feeds`,
+  );
+  return result;
 }
 
 function tryExtendExistingOracle(

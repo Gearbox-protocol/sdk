@@ -50,9 +50,6 @@ export class MarketSuite extends SDKConstruct {
     }
 
     this.priceOracle = getOrCreatePriceOracle(sdk, marketData.priceOracle);
-    sdk.logger?.debug(
-      `oracle ${this.labelAddress(this.priceOracle.address)} has ${this.priceOracle.mainPriceFeeds.size} main and ${this.priceOracle.reservePriceFeeds.size} reserve price feeds`,
-    );
   }
 
   override get dirty(): boolean {
