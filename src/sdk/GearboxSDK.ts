@@ -347,6 +347,13 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
         `hydrated state version is ${state.version}, but expected ${STATE_VERSION}`,
       );
     }
+    const re = this.#attachConfig ? "re" : "";
+    this.logger?.info(
+      {
+        networkType: this.provider.networkType,
+      },
+      `${re}hydrating sdk state`,
+    );
 
     this.#currentBlock = state.currentBlock;
     this.#timestamp = state.timestamp;
@@ -378,6 +385,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
         plugin.hydrate(pluginState);
       }
     }
+    this.logger?.info(`${re}hydrated sdk state`);
 
     return this;
   }
