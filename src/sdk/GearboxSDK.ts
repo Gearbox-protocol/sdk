@@ -341,16 +341,23 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
     options: HydrateOptions<Plugins>,
     state: GearboxState<Plugins>,
   ): this {
-    const { logger: _logger, redstone, ...opts } = options;
+    const { logger: _logger, ...opts } = options;
     if (state.version !== STATE_VERSION) {
       throw new Error(
         `hydrated state version is ${state.version}, but expected ${STATE_VERSION}`,
       );
     }
+    const re = this.#attachConfig ? "re" : "";
+    this.logger?.info(
+      {
+        networkType: this.provider.networkType,
+      },
+      `${re}hydrating sdk state`,
+    );
 
     this.#currentBlock = state.currentBlock;
     this.#timestamp = state.timestamp;
-    this.#priceFeeds = new PriceFeedRegister(this, { redstone });
+    this.#priceFeeds = new PriceFeedRegister(this, { redstone: opts.redstone });
 
     this.#addressProvider = hydrateAddressProvider(this, state.addressProvider);
     this.logger?.debug(
@@ -378,6 +385,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
         plugin.hydrate(pluginState);
       }
     }
+    this.logger?.info(`${re}hydrated sdk state`);
 
     return this;
   }
@@ -391,6 +399,20 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       throw new Error("cannot reattach, attach config is not set");
     }
     await this.#attach(this.#attachConfig);
+  }
+
+  /**
+   * Rehydrate existing SDK from new state without re-creating instance
+   */
+  public rehydrate(state: GearboxState<Plugins>): void {
+    if (!this.#attachConfig) {
+      throw new Error("cannot rehydrate, attach config is not set");
+    }
+    const opts: HydrateOptions<Plugins> = {
+      ignoreUpdateablePrices: this.#attachConfig.ignoreUpdateablePrices,
+      redstone: this.#attachConfig.redstone,
+    };
+    this.#hydrate(opts, state);
   }
 
   /**

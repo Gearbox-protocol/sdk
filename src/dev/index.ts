@@ -1,5 +1,6 @@
 export * from "./AccountOpener.js";
 export * from "./AccountsCounterPlugin.js";
+export * from "./CachedStateSubscriber.js";
 export * from "./calcLiquidatableLTs.js";
 export * from "./create2.js";
 export * from "./createAnvilClient.js";
