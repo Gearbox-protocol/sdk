@@ -190,6 +190,8 @@ export class PriceFeedRegister
         },
       ],
       blockNumber: this.sdk.currentBlock,
+      // @ts-expect-error
+      gas: this.sdk.gasLimit,
     });
     this.logger?.debug(
       `loaded ${result.length} partial updatable price feeds in block ${this.sdk.currentBlock}`,

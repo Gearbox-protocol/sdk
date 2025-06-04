@@ -125,6 +125,8 @@ export class CreditAccountsService extends SDKConstruct {
         functionName: "getCreditAccountData",
         args: [account],
         blockNumber,
+        // @ts-expect-error
+        gas: this.sdk.gasLimit,
       });
     } catch (e) {
       // TODO: reverts if account is not found, how to handle other revert reasons?
@@ -148,6 +150,7 @@ export class CreditAccountsService extends SDKConstruct {
         },
       ],
       blockNumber,
+      gas: this.sdk.gasLimit,
     });
     return cad;
   }
@@ -928,6 +931,7 @@ export class CreditAccountsService extends SDKConstruct {
           },
         ],
         blockNumber,
+        gas: this.sdk.gasLimit,
       });
     } else {
       resp = await this.provider.publicClient.readContract<
@@ -940,6 +944,8 @@ export class CreditAccountsService extends SDKConstruct {
         functionName: "getCreditAccounts",
         args,
         blockNumber,
+        // @ts-expect-error
+        gas: this.sdk.gasLimit,
       });
     }
 

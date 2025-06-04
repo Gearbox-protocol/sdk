@@ -146,6 +146,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
   #priceFeeds?: PriceFeedRegister;
 
   public readonly logger?: ILogger;
+  public gasLimit: bigint | undefined = 550_000_000n;
 
   /**
    * Interest rate models can be reused across chain (and SDK operates on chain level)

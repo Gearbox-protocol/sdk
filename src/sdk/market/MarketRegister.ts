@@ -144,6 +144,7 @@ export class MarketRegister extends SDKConstruct {
             },
           ],
           blockNumber: this.sdk.currentBlock,
+          gas: this.sdk.gasLimit,
         },
       );
       markets = resp;
@@ -154,6 +155,8 @@ export class MarketRegister extends SDKConstruct {
         functionName: "getMarkets",
         args: [this.#marketFilter],
         blockNumber: this.sdk.currentBlock,
+        // @ts-expect-error
+        gas: this.sdk.gasLimit,
       });
     }
 
@@ -187,6 +190,7 @@ export class MarketRegister extends SDKConstruct {
       {
         priceUpdates: txs,
         contracts: multicalls.map(mc => mc.call),
+        gas: this.sdk.gasLimit,
       },
     );
     for (let i = 0; i < multicalls.length; i++) {
