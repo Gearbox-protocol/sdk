@@ -44,6 +44,11 @@ export class MarketRegister extends SDKConstruct {
         new MarketSuite(this.sdk, data),
       );
     }
+    this.#marketFilter = {
+      configurators: this.marketConfigurators.map(c => c.address),
+      pools: [],
+      underlying: ADDRESS_0X0,
+    };
   }
 
   public async loadMarkets(
