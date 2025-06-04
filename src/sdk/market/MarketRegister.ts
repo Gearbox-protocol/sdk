@@ -20,6 +20,7 @@ import { simulateWithPriceUpdates } from "../utils/viem/index.js";
 import type { CreditSuite } from "./credit/index.js";
 import type { MarketConfiguratorContract } from "./MarketConfiguratorContract.js";
 import { MarketSuite } from "./MarketSuite.js";
+import type { IPriceOracleContract } from "./oracle/index.js";
 import type { PoolSuite } from "./pool/index.js";
 
 export class MarketRegister extends SDKConstruct {
@@ -88,9 +89,6 @@ export class MarketRegister extends SDKConstruct {
         dirtyPools.map(p => p.pool.address),
       );
     } else if (!skipPriceUpdate && nonDirtyOracles.length) {
-      this.#logger?.debug(
-        `syncing prices on ${nonDirtyOracles.length} oracles`,
-      );
       // no changes in sdk state, but still need to update prices
       await this.updatePrices(nonDirtyOracles);
     }
@@ -177,13 +175,18 @@ export class MarketRegister extends SDKConstruct {
    * Supports v300 and v310 oracles
    */
   public async updatePrices(oracles?: Address[]): Promise<void> {
-    const multicalls = this.markets
-      .map(m => m.priceOracle)
-      .filter(o => !oracles || oracles.includes(o.address))
-      .map(o => o.syncStateMulticall());
+    const uniqOracles = new AddressMap<IPriceOracleContract>();
+    for (const m of this.markets) {
+      if (!oracles || oracles.includes(m.priceOracle.address)) {
+        uniqOracles.upsert(m.priceOracle.address, m.priceOracle);
+      }
+    }
+
+    const multicalls = uniqOracles.values().map(o => o.syncStateMulticall());
     if (!multicalls.length) {
       return;
     }
+    this.#logger?.debug(`syncing prices on ${multicalls.length} oracles`);
     const { txs } = await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs();
     const oraclesStates = await simulateWithPriceUpdates(
       this.provider.publicClient,
