@@ -12,6 +12,8 @@ export interface DegenDistributorsPluginState extends IPluginState {
   distributors: Record<Address, Address>;
 }
 
+const MAP_LABEL = "degenDistributors";
+
 export class DegenDistributorsPlugin
   extends SDKConstruct
   implements IGearboxSDKPlugin<DegenDistributorsPluginState>
@@ -52,23 +54,21 @@ export class DegenDistributorsPlugin
       return acc;
     }, {});
 
-    this.sdk.marketRegister.markets.forEach(market => {
-      const pool = market.pool.pool.address;
-      const cfgLC = market.configurator.address.toLowerCase() as Address;
-      const distr = distributorByConfigurator?.[cfgLC];
+    this.sdk.marketRegister.markets.forEach(m => {
+      const pool = m.pool.pool.address;
+      const cfg = m.configurator.address;
+      const cfgLC = cfg.toLowerCase() as Address;
+      const r = distributorByConfigurator?.[cfgLC];
 
       if (!this.#distributors) {
-        this.#distributors = new AddressMap<Address>(
-          undefined,
-          "degenDistributors",
-        );
+        this.#distributors = new AddressMap<Address>(undefined, MAP_LABEL);
       }
 
-      if (distr.status === "fulfilled") {
-        this.#distributors.upsert(pool, distr.value);
+      if (r.status === "fulfilled") {
+        this.#distributors.upsert(pool, r.value);
       } else {
         this.sdk.logger?.error(
-          `failed to load degen distributor for market configurator ${this.labelAddress(market.configurator.address)} and pool ${this.labelAddress(pool)}: ${distr.reason}`,
+          `failed to load degen distributor for market configurator ${this.labelAddress(cfg)} and pool ${this.labelAddress(pool)}: ${r.reason}`,
         );
       }
     });
@@ -78,7 +78,7 @@ export class DegenDistributorsPlugin
    * Returns a map of pool addresses to degen distributor addresses
    * @throws if degen distributor plugin is not attached
    */
-  public get distributors(): AddressMap<`0x${string}`> {
+  public get distributors(): AddressMap<Address> {
     if (!this.#distributors) {
       throw new Error("degen distributor plugin not attached");
     }
@@ -103,7 +103,7 @@ export class DegenDistributorsPlugin
   public hydrate(state: DegenDistributorsPluginState): void {
     this.#distributors = new AddressMap(
       Object.entries(state.distributors),
-      "zappers",
+      MAP_LABEL,
     );
   }
 }
