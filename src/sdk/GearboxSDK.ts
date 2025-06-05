@@ -124,6 +124,7 @@ export interface SyncStateOptions {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SDKHooks = {
   syncState: [SyncStateOptions];
+  rehydrate: [SyncStateOptions];
 };
 
 export class GearboxSDK<const Plugins extends PluginsMap = {}> {
@@ -404,7 +405,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
   /**
    * Rehydrate existing SDK from new state without re-creating instance
    */
-  public rehydrate(state: GearboxState<Plugins>): void {
+  public async rehydrate(state: GearboxState<Plugins>): Promise<void> {
     if (!this.#attachConfig) {
       throw new Error("cannot rehydrate, attach config is not set");
     }
@@ -413,6 +414,11 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       redstone: this.#attachConfig.redstone,
     };
     this.#hydrate(opts, state);
+
+    await this.#hooks.triggerHooks("rehydrate", {
+      blockNumber: state.currentBlock,
+      timestamp: state.timestamp,
+    });
   }
 
   /**
