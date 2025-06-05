@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 
 import { iCreditAccountCompressorAbi } from "../abi/compressors.js";
-import type { IGearboxSDKPlugin, IPluginState } from "../sdk/index.js";
+import type { IGearboxSDKPlugin } from "../sdk/index.js";
 import {
   ADDRESS_0X0,
   AddressMap,
@@ -12,7 +12,7 @@ import {
   VERSION_RANGE_310,
 } from "../sdk/index.js";
 
-export interface AccountsCounterPluginState extends IPluginState {
+export interface AccountsCounterPluginState {
   /**
    * Mapping of credit manager addresses to the number of accounts
    */
@@ -23,27 +23,37 @@ export class AccountsCounterPlugin
   extends SDKConstruct
   implements IGearboxSDKPlugin<AccountsCounterPluginState>
 {
-  readonly #accounts: AddressMap<bigint> = new AddressMap();
+  #accounts?: AddressMap<bigint>;
 
   public readonly version = 1;
 
   public async attach(): Promise<void> {
-    await this.#load();
+    await this.load();
   }
 
   public async syncState(): Promise<void> {
-    await this.#load();
+    await this.load();
   }
 
   public get accounts(): AddressMap<bigint> {
+    if (!this.#accounts) {
+      throw new Error("AccountsCounterPlugin is not loaded");
+    }
     return this.#accounts;
   }
 
-  public forCreditManager(addr: Address): bigint {
-    return this.#accounts.mustGet(addr);
+  public get loaded(): boolean {
+    return !!this.#accounts;
   }
 
-  async #load(): Promise<void> {
+  public forCreditManager(addr: Address): bigint {
+    return this.accounts.mustGet(addr);
+  }
+
+  public async load(force?: boolean): Promise<AccountsCounterPluginState> {
+    if (!force && this.loaded) {
+      return this.state;
+    }
     const [compressor] = this.sdk.addressProvider.mustGetLatest(
       AP_CREDIT_ACCOUNT_COMPRESSOR,
       VERSION_RANGE_310,
@@ -87,25 +97,25 @@ export class AccountsCounterPlugin
       ),
       allowFailure: false,
     });
-    this.#accounts.clear();
+    this.#accounts = new AddressMap();
     for (let i = 0; i < cms.length; i++) {
       const cm = cms[i];
       const [reverting, nonReverting] = [count[2 * i], count[2 * i + 1]];
       this.#accounts.upsert(cm.creditManager.address, reverting + nonReverting);
     }
+    return this.state;
   }
 
   public get state(): AccountsCounterPluginState {
     return {
-      version: this.version,
-      accounts: this.#accounts.asRecord(),
+      accounts: this.accounts.asRecord(),
     };
   }
 
   public hydrate(state: AccountsCounterPluginState): void {
-    this.#accounts.clear();
+    this.#accounts = new AddressMap();
     for (const [addr, count] of TypedObjectUtils.entries(state.accounts)) {
-      this.#accounts.upsert(addr, count);
+      this.accounts.upsert(addr, count);
     }
   }
 }

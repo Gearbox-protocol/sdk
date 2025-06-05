@@ -42,34 +42,31 @@ export class BotsPlugin
   #logger?: ILogger;
   public readonly version = 1;
 
-  readonly #botsByMarket: AddressMap<PartialLiquidationBotContract[]> =
-    new AddressMap();
+  #botsByMarket?: AddressMap<PartialLiquidationBotContract[]>;
 
   constructor(sdk: GearboxSDK) {
     super(sdk);
     this.#logger = sdk.logger?.child?.({ name: "BotsPlugin" }) ?? sdk.logger;
   }
 
-  public async attach(): Promise<void> {
-    await this.#load();
-  }
+  // public async attach(): Promise<void> {
+  //   await this.#load();
+  // }
 
   public async syncState(): Promise<void> {
-    await this.#load();
+    await this.load(false);
   }
 
-  public botsByMarketConfigurator(
-    mc: Address,
-  ): PartialLiquidationBotContract[] {
-    return this.#botsByMarket.get(mc) ?? [];
+  public get loaded(): boolean {
+    return !!this.#botsByMarket;
   }
 
-  public get allBots(): PartialLiquidationBotContract[] {
-    return this.#botsByMarket.values().flat();
-  }
+  public async load(force?: boolean): Promise<BotsPluginState> {
+    if (!force && this.loaded) {
+      return this.state;
+    }
 
-  async #load(): Promise<void> {
-    this.#botsByMarket.clear();
+    this.#botsByMarket = new AddressMap();
     const [pcAddr] = this.sdk.addressProvider.mustGetLatest(
       AP_PERIPHERY_COMPRESSOR,
       VERSION_RANGE_310,
@@ -96,6 +93,7 @@ export class BotsPlugin
       const marketBotData = botsData[i];
       this.#loadStateMarketState(mc, marketBotData);
     }
+    return this.state;
   }
 
   #loadStateMarketState(mc: Address, state: readonly BotState[]): void {
@@ -112,13 +110,13 @@ export class BotsPlugin
         (bots[i] as PartialLiquidationBotV300Contract).botType = BOT_TYPES[i];
       }
     }
-    this.#botsByMarket.upsert(mc, bots);
+    this.botsByMarket.upsert(mc, bots);
   }
 
   public stateHuman(raw?: boolean): BotsPluginStateHuman {
     return {
       bots: Object.fromEntries(
-        this.#botsByMarket
+        this.botsByMarket
           .entries()
           .map(([mc, bots]) => [
             this.labelAddress(mc),
@@ -128,11 +126,27 @@ export class BotsPlugin
     };
   }
 
+  public get botsByMarket(): AddressMap<PartialLiquidationBotContract[]> {
+    if (!this.#botsByMarket) {
+      throw new Error("bots plugin not loaded");
+    }
+    return this.#botsByMarket;
+  }
+
+  public botsByMarketConfigurator(
+    mc: Address,
+  ): PartialLiquidationBotContract[] {
+    return this.botsByMarket.get(mc) ?? [];
+  }
+
+  public get allBots(): PartialLiquidationBotContract[] {
+    return this.botsByMarket.values().flat();
+  }
+
   public get state(): BotsPluginState {
     return {
-      version: this.version,
       bots: TypedObjectUtils.fromEntries(
-        this.#botsByMarket
+        this.botsByMarket
           .entries()
           .map(([mc, bots]) => [mc, bots.map(b => b.state)]),
       ),
@@ -140,7 +154,7 @@ export class BotsPlugin
   }
 
   public hydrate(state: BotsPluginState): void {
-    this.#botsByMarket.clear();
+    this.#botsByMarket = new AddressMap();
     for (const [mc, botStates] of TypedObjectUtils.entries(state.bots)) {
       this.#loadStateMarketState(mc, botStates);
     }

@@ -1,14 +1,10 @@
 import type { Address } from "viem";
 
-import type {
-  IGearboxSDKPlugin,
-  IPluginState,
-  MarketSuite,
-} from "../sdk/index.js";
+import type { IGearboxSDKPlugin, MarketSuite } from "../sdk/index.js";
 import { AddressMap, SDKConstruct } from "../sdk/index.js";
 import type { DegenDistributorsStateHuman } from "./types.js";
 
-export interface DegenDistributorsPluginState extends IPluginState {
+export interface DegenDistributorsPluginState {
   distributors: Record<Address, Address>;
 }
 
@@ -22,11 +18,19 @@ export class DegenDistributorsPlugin
 
   public readonly version = 1;
 
-  public async attach(): Promise<void> {
-    await this.loadDegenDistributors();
+  // public async attach(): Promise<void> {
+  //   await this.loadDegenDistributors();
+  // }
+
+  public async syncState(): Promise<void> {
+    await this.load();
   }
 
-  public async loadDegenDistributors(): Promise<void> {
+  public async load(force?: boolean): Promise<DegenDistributorsPluginState> {
+    if (!force && this.loaded) {
+      return this.state;
+    }
+
     // Make list of market configurators with unique addresses
     const configurators = Object.values(
       this.sdk.marketRegister.markets.reduce<
@@ -72,6 +76,11 @@ export class DegenDistributorsPlugin
         );
       }
     });
+    return this.state;
+  }
+
+  public get loaded(): boolean {
+    return !!this.#distributors;
   }
 
   /**
@@ -95,7 +104,6 @@ export class DegenDistributorsPlugin
 
   public get state(): DegenDistributorsPluginState {
     return {
-      version: this.version,
       distributors: this.distributors.asRecord(),
     };
   }

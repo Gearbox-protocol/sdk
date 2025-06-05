@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 
 import { iMarketCompressorAbi } from "../abi/compressors.js";
-import type { IGearboxSDKPlugin, IPluginState } from "../sdk/index.js";
+import type { IGearboxSDKPlugin } from "../sdk/index.js";
 import {
   AddressMap,
   AP_MARKET_COMPRESSOR,
@@ -12,7 +12,7 @@ import {
 } from "../sdk/index.js";
 import type { Pool7DAgoState, Pools7DAgoStateHuman } from "./types.js";
 
-export interface Pools7DAgoPluginState extends IPluginState {
+export interface Pools7DAgoPluginState {
   pools7DAgo: Record<Address, Pool7DAgoState>;
 }
 
@@ -26,11 +26,18 @@ export class Pools7DAgoPlugin
 
   public readonly version = 1;
 
-  public async attach(): Promise<void> {
-    await this.loadPools7DAgo();
+  // public async attach(): Promise<void> {
+  //   await this.loadPools7DAgo();
+  // }
+  public async syncState(): Promise<void> {
+    await this.load();
   }
 
-  public async loadPools7DAgo(): Promise<void> {
+  public async load(force?: boolean): Promise<Pools7DAgoPluginState> {
+    if (!force && this.loaded) {
+      return this.state;
+    }
+
     // TODO: Implement better logic to find block 7 days ago
     const targetBlock =
       this.sdk.currentBlock -
@@ -79,6 +86,12 @@ export class Pools7DAgoPlugin
         );
       }
     });
+
+    return this.state;
+  }
+
+  public get loaded(): boolean {
+    return !!this.#pools7DAgo;
   }
 
   /**
@@ -102,7 +115,6 @@ export class Pools7DAgoPlugin
 
   public get state(): Pools7DAgoPluginState {
     return {
-      version: this.version,
       pools7DAgo: this.pools7DAgo.asRecord(),
     };
   }

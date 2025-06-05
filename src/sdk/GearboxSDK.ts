@@ -381,6 +381,12 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
     for (const [name, plugin] of TypedObjectUtils.entries(this.plugins)) {
       const pluginState = state.plugins[name];
       if (plugin.hydrate && pluginState) {
+        if (!pluginState.loaded) {
+          this.logger?.debug(
+            `skipping ${re}hydrating plugin ${name} state: not loaded`,
+          );
+          continue;
+        }
         if (pluginState.version !== plugin.version) {
           throw new PluginStateVersionError(plugin, pluginState);
         }
@@ -494,7 +500,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       plugins: Object.fromEntries(
         TypedObjectUtils.entries(this.plugins).map(([name, plugin]) => [
           name,
-          plugin.stateHuman?.(raw) ?? {},
+          plugin.loaded ? plugin.stateHuman?.(raw) : undefined,
         ]),
       ),
       ...this.marketRegister.stateHuman(raw),
@@ -513,7 +519,9 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       plugins: Object.fromEntries(
         TypedObjectUtils.entries(this.plugins).map(([name, plugin]) => [
           name,
-          plugin.state,
+          plugin.loaded
+            ? { version: plugin.version, loaded: true, ...plugin.state }
+            : { version: plugin.version, loaded: false },
         ]),
       ) as PluginStatesMap<Plugins>,
     };

@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 
 import { iPeripheryCompressorAbi } from "../abi/compressors.js";
-import type { IGearboxSDKPlugin, IPluginState } from "../sdk/index.js";
+import type { IGearboxSDKPlugin } from "../sdk/index.js";
 import {
   AddressMap,
   AP_PERIPHERY_COMPRESSOR,
@@ -10,7 +10,7 @@ import {
 } from "../sdk/index.js";
 import type { ZapperDataFull, ZapperStateHuman } from "./types.js";
 
-export interface ZappersPluginState extends IPluginState {
+export interface ZappersPluginState {
   zappers: Record<Address, ZapperDataFull[]>;
 }
 
@@ -22,11 +22,19 @@ export class ZappersPlugin
 
   public readonly version = 1;
 
-  public async attach(): Promise<void> {
-    await this.loadZappers();
+  // public async attach(): Promise<void> {
+  //   await this.load(true);
+  // }
+
+  public async syncState(): Promise<void> {
+    await this.load();
   }
 
-  public async loadZappers(): Promise<void> {
+  public async load(force?: boolean): Promise<ZappersPluginState> {
+    if (!force && this.loaded) {
+      return this.state;
+    }
+
     this.#zappers = new AddressMap<ZapperDataFull[]>(undefined, "zappers");
     const [pcAddr] = this.sdk.addressProvider.mustGetLatest(
       AP_PERIPHERY_COMPRESSOR,
@@ -67,6 +75,7 @@ export class ZappersPlugin
     }
 
     this.#loadZapperTokens();
+    return this.state;
   }
 
   public get zappers(): AddressMap<ZapperDataFull[]> {
@@ -74,6 +83,10 @@ export class ZappersPlugin
       throw new Error("zappers plugin not attached");
     }
     return this.#zappers;
+  }
+
+  public get loaded(): boolean {
+    return !!this.#zappers;
   }
 
   public stateHuman(_?: boolean): ZapperStateHuman[] {
@@ -90,7 +103,6 @@ export class ZappersPlugin
 
   public get state(): ZappersPluginState {
     return {
-      version: this.version,
       zappers: this.zappers.asRecord(),
     };
   }

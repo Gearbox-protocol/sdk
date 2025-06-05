@@ -5,11 +5,7 @@ import type {
 import type { Address } from "viem";
 
 import type { iPeripheryCompressorAbi } from "../abi/compressors.js";
-import type {
-  BaseContractStateHuman,
-  IPluginState,
-  Unarray,
-} from "../sdk/index.js";
+import type { BaseContractStateHuman, Unarray } from "../sdk/index.js";
 
 export type BotState = Unarray<
   AbiParametersToPrimitiveTypes<
@@ -58,7 +54,7 @@ export interface BotsPluginStateHuman {
   bots: Record<string, BotStateHuman[]>;
 }
 
-export interface BotsPluginState extends IPluginState {
+export interface BotsPluginState {
   /**
    * Mapping market configurator address to bot states
    */
