@@ -11,6 +11,7 @@ import type {
 } from "viem";
 import {
   BaseError,
+  CallExecutionError,
   ContractFunctionRevertedError,
   decodeFunctionData,
   parseAbi,
@@ -262,6 +263,10 @@ function extractCallError(result: MulticallResponse): string {
       : undefined;
   if (error instanceof ContractFunctionRevertedError) {
     return "[" + (error.data?.errorName ?? "reverted") + "]";
+  }
+  // this happens for out of gas errors
+  if (err instanceof CallExecutionError) {
+    return `[${err.name}: ${err.details}]`;
   }
   return err instanceof BaseError ? `[${err.name}]` : "[error]";
 }
