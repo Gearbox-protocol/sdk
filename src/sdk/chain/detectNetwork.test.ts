@@ -106,4 +106,4 @@ it("should correctly identify well-known tokens on their respective chains", asy
         .toBeUndefined();
     }
   }
-}, 15_000);
+}, 60_000);

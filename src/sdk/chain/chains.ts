@@ -6,6 +6,7 @@ import {
   base,
   berachain,
   bsc,
+  etherlink,
   mainnet,
   megaethTestnet,
   monadTestnet,
@@ -54,6 +55,7 @@ export const SUPPORTED_NETWORKS = [
   "Avalanche",
   "BNB",
   "WorldChain",
+  "Etherlink",
 ] as const;
 
 export const NetworkType = z.enum(SUPPORTED_NETWORKS);
@@ -246,6 +248,17 @@ export const chains: Record<NetworkType, GearboxChain> = {
       symbol: "USDC.e",
     },
     alchemyDomain: "worldchain-mainnet",
+    // TODO: has no block explorer API
+  }),
+  Etherlink: defineChain({
+    ...etherlink,
+    network: "Etherlink",
+    defaultMarketConfigurators: {},
+    isPublic: false,
+    wellKnownToken: {
+      address: "0x796Ea11Fa2dD751eD01b53C372fFDB4AAa8f00F9",
+      symbol: "USDC",
+    },
     // TODO: has no block explorer API
   }),
 };
