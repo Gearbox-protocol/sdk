@@ -115,6 +115,7 @@ const DRPC_NETS: Record<NetworkType, string> = {
   Avalanche: "avalanche",
   Monad: "monad-testnet",
   MegaETH: "",
+  Etherlink: "",
 };
 
 export function getDrpcUrl(

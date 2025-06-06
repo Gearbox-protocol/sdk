@@ -1889,6 +1889,7 @@ export const tokenDataByNetwork: Record<
     ynBNBx: "0x32c830f5c34122c6afb8ae87aba541b7900a2c5f",
   } as any,
   WorldChain: {} as any,
+  Etherlink: {} as any,
 };
 
 export type TickerToken =
@@ -2330,6 +2331,7 @@ export const tickerInfoTokensByNetwork: Record<
   Avalanche: {},
   BNB: {},
   WorldChain: {},
+  Etherlink: {},
 };
 
 export const tokenSymbolByAddress = Object.entries(tokenDataByNetwork).reduce<
