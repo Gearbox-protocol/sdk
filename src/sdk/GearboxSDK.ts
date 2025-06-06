@@ -85,7 +85,7 @@ export interface SDKOptions<Plugins extends PluginsMap> {
   /**
    * Plugins to extends SDK functionality
    */
-  plugins: Plugins;
+  plugins?: Plugins;
   /**
    * Bring your own logger
    */
@@ -251,7 +251,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
     this.#provider = options.provider;
     this.logger = options.logger;
     this.strictContractTypes = options.strictContractTypes ?? false;
-    this.plugins = options.plugins;
+    this.plugins = options.plugins ?? ({} as Plugins);
     for (const plugin of Object.values(this.plugins)) {
       plugin.sdk = this;
     }
