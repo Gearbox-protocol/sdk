@@ -17,9 +17,11 @@ export interface PoolPointsInfo {
   symbol: string;
 
   amount: bigint;
-  duration: string;
+  duration: string | undefined;
   name: string;
+  type: string;
   estimation: "absolute" | "relative";
+  condition: "deposit" | "cross-chain-deposit" | "holding";
 }
 
 type PartialPool = Pick<
@@ -158,14 +160,5 @@ export class GearboxRewardsExtraApy {
           ((pool.expectedLiquidity * targetFactor) / underlyingFactor);
 
     return BigIntMath.min(points, defaultPoints);
-  }
-
-  static getPoolPointsTip(
-    poolRewards: Record<Address, Record<Address, PoolPointsInfo>>,
-    pool: Address,
-    token: Address,
-  ) {
-    const p = poolRewards[pool]?.[token];
-    return p;
   }
 }
