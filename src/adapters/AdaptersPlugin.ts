@@ -6,7 +6,7 @@ import type {
   IBaseContract,
   IGearboxSDKPlugin,
 } from "../sdk/index.js";
-import { bytes32ToString, SDKConstruct } from "../sdk/index.js";
+import { BasePlugin, bytes32ToString } from "../sdk/index.js";
 import { BalancerV2VaultAdapterContract } from "./BalancerV2VaultAdapterContract.js";
 import { BalancerV3RouterAdapterContract } from "./BalancerV3RouterAdapterContract.js";
 import { CamelotV3AdapterContract } from "./CamelotV3AdapterContract.js";
@@ -33,7 +33,7 @@ import { WstETHV1AdapterContract } from "./WstETHV1AdapterContract.js";
 import { YearnV2RouterAdapterContract } from "./YearnV2AdapterContract.js";
 
 export class AdaptersPlugin
-  extends SDKConstruct
+  extends BasePlugin<{}>
   implements IGearboxSDKPlugin<{}>
 {
   public readonly name = "Adapters";
@@ -106,6 +106,10 @@ export class AdaptersPlugin
     }
   }
 
+  public async load(_force?: boolean): Promise<{}> {
+    return {};
+  }
+
   public stateHuman(_?: boolean): {} {
     return {};
   }
@@ -113,6 +117,4 @@ export class AdaptersPlugin
   public get state(): {} {
     return {};
   }
-
-  public hydrate(_: {}): void {}
 }

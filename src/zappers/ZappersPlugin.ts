@@ -5,7 +5,7 @@ import type { IGearboxSDKPlugin } from "../sdk/index.js";
 import {
   AddressMap,
   AP_PERIPHERY_COMPRESSOR,
-  SDKConstruct,
+  BasePlugin,
   VERSION_RANGE_310,
 } from "../sdk/index.js";
 import type { ZapperDataFull, ZapperStateHuman } from "./types.js";
@@ -15,20 +15,10 @@ export interface ZappersPluginState {
 }
 
 export class ZappersPlugin
-  extends SDKConstruct
+  extends BasePlugin<ZappersPluginState>
   implements IGearboxSDKPlugin<ZappersPluginState>
 {
   #zappers?: AddressMap<ZapperDataFull[]>;
-
-  public readonly version = 1;
-
-  // public async attach(): Promise<void> {
-  //   await this.load(true);
-  // }
-
-  public async syncState(): Promise<void> {
-    await this.load();
-  }
 
   public async load(force?: boolean): Promise<ZappersPluginState> {
     if (!force && this.loaded) {

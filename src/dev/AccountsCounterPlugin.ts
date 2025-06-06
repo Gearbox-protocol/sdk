@@ -6,8 +6,8 @@ import {
   ADDRESS_0X0,
   AddressMap,
   AP_CREDIT_ACCOUNT_COMPRESSOR,
+  BasePlugin,
   MAX_UINT256,
-  SDKConstruct,
   TypedObjectUtils,
   VERSION_RANGE_310,
 } from "../sdk/index.js";
@@ -20,19 +20,13 @@ export interface AccountsCounterPluginState {
 }
 
 export class AccountsCounterPlugin
-  extends SDKConstruct
+  extends BasePlugin<AccountsCounterPluginState>
   implements IGearboxSDKPlugin<AccountsCounterPluginState>
 {
   #accounts?: AddressMap<bigint>;
 
-  public readonly version = 1;
-
-  public async attach(): Promise<void> {
-    await this.load();
-  }
-
-  public async syncState(): Promise<void> {
-    await this.load();
+  constructor(loadOnAttach = true) {
+    super(loadOnAttach);
   }
 
   public get accounts(): AddressMap<bigint> {

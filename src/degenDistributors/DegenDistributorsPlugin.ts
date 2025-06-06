@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 
 import type { IGearboxSDKPlugin, MarketSuite } from "../sdk/index.js";
-import { AddressMap, SDKConstruct } from "../sdk/index.js";
+import { AddressMap, BasePlugin } from "../sdk/index.js";
 import type { DegenDistributorsStateHuman } from "./types.js";
 
 export interface DegenDistributorsPluginState {
@@ -11,20 +11,10 @@ export interface DegenDistributorsPluginState {
 const MAP_LABEL = "degenDistributors";
 
 export class DegenDistributorsPlugin
-  extends SDKConstruct
+  extends BasePlugin<DegenDistributorsPluginState>
   implements IGearboxSDKPlugin<DegenDistributorsPluginState>
 {
   #distributors?: AddressMap<Address>;
-
-  public readonly version = 1;
-
-  // public async attach(): Promise<void> {
-  //   await this.loadDegenDistributors();
-  // }
-
-  public async syncState(): Promise<void> {
-    await this.load();
-  }
 
   public async load(force?: boolean): Promise<DegenDistributorsPluginState> {
     if (!force && this.loaded) {

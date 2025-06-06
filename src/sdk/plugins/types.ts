@@ -14,6 +14,10 @@ export interface IGearboxSDKPlugin<
   TState extends Record<keyof TState, unknown> = {},
 > {
   /**
+   * Plugin's SDK. Is set by SDK itself in SDK constructor
+   */
+  sdk: GearboxSDK<any>;
+  /**
    * Plugin version, used to check if the plugin state is compatible with the plugin during hydration
    */
   version: number;
@@ -84,13 +88,4 @@ export type PluginsMap = Record<string, IGearboxSDKPlugin<any>>;
  */
 export type PluginStatesMap<T extends PluginsMap> = {
   [K in keyof T]: PluginState<T[K]>;
-};
-
-/**
- * Mapping that infers plugin constructor map from plugin instances map
- */
-export type PluginConstructorMap<T extends PluginsMap> = {
-  [K in keyof T]: T[K] extends IGearboxSDKPlugin<infer TState>
-    ? IGearboxSDKPluginConstructor<TState, T[K]>
-    : never;
 };

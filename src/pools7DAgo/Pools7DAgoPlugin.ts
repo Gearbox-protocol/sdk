@@ -5,9 +5,9 @@ import type { IGearboxSDKPlugin } from "../sdk/index.js";
 import {
   AddressMap,
   AP_MARKET_COMPRESSOR,
+  BasePlugin,
   BigIntMath,
   BLOCKS_PER_WEEK_BY_NETWORK,
-  SDKConstruct,
   VERSION_RANGE_310,
 } from "../sdk/index.js";
 import type { Pool7DAgoState, Pools7DAgoStateHuman } from "./types.js";
@@ -19,19 +19,10 @@ export interface Pools7DAgoPluginState {
 const MAP_LABEL = "pools7DAgo";
 
 export class Pools7DAgoPlugin
-  extends SDKConstruct
+  extends BasePlugin<Pools7DAgoPluginState>
   implements IGearboxSDKPlugin<Pools7DAgoPluginState>
 {
   #pools7DAgo?: AddressMap<Pool7DAgoState>;
-
-  public readonly version = 1;
-
-  // public async attach(): Promise<void> {
-  //   await this.loadPools7DAgo();
-  // }
-  public async syncState(): Promise<void> {
-    await this.load();
-  }
 
   public async load(force?: boolean): Promise<Pools7DAgoPluginState> {
     if (!force && this.loaded) {

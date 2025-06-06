@@ -1,13 +1,13 @@
 import type { Address } from "viem";
 
 import { iPeripheryCompressorAbi } from "../abi/compressors.js";
-import type { GearboxSDK, IGearboxSDKPlugin, ILogger } from "../sdk/index.js";
+import type { IGearboxSDKPlugin } from "../sdk/index.js";
 import {
   AddressMap,
   AP_PERIPHERY_COMPRESSOR,
+  BasePlugin,
   isV300,
   isV310,
-  SDKConstruct,
   TypedObjectUtils,
   VERSION_RANGE_310,
 } from "../sdk/index.js";
@@ -36,26 +36,10 @@ export type PartialLiquidationBotContract =
   | PartialLiquidationBotV310Contract;
 
 export class BotsPlugin
-  extends SDKConstruct
+  extends BasePlugin<BotsPluginState>
   implements IGearboxSDKPlugin<BotsPluginState>
 {
-  #logger?: ILogger;
-  public readonly version = 1;
-
   #botsByMarket?: AddressMap<PartialLiquidationBotContract[]>;
-
-  constructor(sdk: GearboxSDK) {
-    super(sdk);
-    this.#logger = sdk.logger?.child?.({ name: "BotsPlugin" }) ?? sdk.logger;
-  }
-
-  // public async attach(): Promise<void> {
-  //   await this.#load();
-  // }
-
-  public async syncState(): Promise<void> {
-    await this.load(false);
-  }
 
   public get loaded(): boolean {
     return !!this.#botsByMarket;
@@ -71,7 +55,7 @@ export class BotsPlugin
       AP_PERIPHERY_COMPRESSOR,
       VERSION_RANGE_310,
     );
-    this.#logger?.debug(`loading bots with periphery compressor ${pcAddr}`);
+    this.logger?.debug(`loading bots with periphery compressor ${pcAddr}`);
     const mcs = this.sdk.marketRegister.marketConfigurators.map(
       mc => mc.address,
     );
