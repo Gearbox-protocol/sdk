@@ -15,25 +15,15 @@
       "import": "./dist/esm/sdk/index.js",
       "default": "./dist/cjs/sdk/index.js"
     },
-    "./adapters": {
-      "types": "./dist/types/adapters/index.d.ts",
-      "import": "./dist/esm/adapters/index.js",
-      "default": "./dist/cjs/adapters/index.js"
-    },
-    "./bots": {
-      "types": "./dist/types/bots/index.d.ts",
-      "import": "./dist/esm/bots/index.js",
-      "default": "./dist/cjs/bots/index.js"
-    },
     "./dev": {
       "types": "./dist/types/dev/index.d.ts",
       "import": "./dist/esm/dev/index.js",
       "default": "./dist/cjs/dev/index.js"
     },
-    "./zappers": {
-      "types": "./dist/types/zappers/index.d.ts",
-      "import": "./dist/esm/zappers/index.js",
-      "default": "./dist/cjs/zappers/index.js"
+    "./plugins/*": {
+      "types": "./dist/types/plugins/*/index.d.ts",
+      "import": "./dist/esm/plugins/*/index.js",
+      "default": "./dist/cjs/plugins/*/index.js"
     },
     "./abi": {
       "types": "./dist/types/abi/index.d.ts",

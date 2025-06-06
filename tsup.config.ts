@@ -1,5 +1,6 @@
-import { readdirSync } from "node:fs";
+import { readdirSync, statSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
+import { join } from "node:path";
 
 import { sync as spawnSync } from "cross-spawn";
 import type { Options } from "tsup";
@@ -20,9 +21,7 @@ async function writeDummyPackage(subpath: string, type: "cjs" | "esm") {
 }
 
 export default defineConfig(options => {
-  const subpaths = readdirSync("./src", { withFileTypes: true })
-    .filter(d => d.isDirectory())
-    .map(d => d.name);
+  const subpaths = getSubpaths("./src");
   console.info("building subpaths", subpaths);
 
   const commonOptions: Partial<Options> = {
@@ -72,3 +71,28 @@ export default defineConfig(options => {
     },
   ];
 });
+
+function getSubpaths(dir: string): string[] {
+  const subdirectories: string[] = [];
+
+  function searchDirectory(currentDir: string, relPath = "") {
+    const entries = readdirSync(currentDir);
+
+    if (entries.includes("index.ts")) {
+      subdirectories.push(relPath);
+    } else {
+      for (const entry of entries) {
+        const fullPath = join(currentDir, entry);
+        const entryRelativePath = join(relPath, entry);
+        const stats = statSync(fullPath);
+
+        if (stats.isDirectory()) {
+          searchDirectory(fullPath, entryRelativePath);
+        }
+      }
+    }
+  }
+
+  searchDirectory(dir);
+  return subdirectories;
+}
