@@ -25,7 +25,6 @@ export class ZappersPlugin
       return this.state;
     }
 
-    this.#zappers = new AddressMap<ZapperDataFull[]>(undefined, "zappers");
     const [pcAddr] = this.sdk.addressProvider.mustGetLatest(
       AP_PERIPHERY_COMPRESSOR,
       VERSION_RANGE_310,
@@ -47,6 +46,7 @@ export class ZappersPlugin
       allowFailure: true,
     });
 
+    this.#zappers = new AddressMap<ZapperDataFull[]>(undefined, "zappers");
     for (let i = 0; i < resp.length; i++) {
       const { status, result, error } = resp[i];
       const marketConfigurator = markets[i].configurator.address;

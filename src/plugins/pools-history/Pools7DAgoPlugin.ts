@@ -62,11 +62,14 @@ export class Pools7DAgoPlugin
       const cfg = m.configurator.address;
       const pool = m.pool.pool.address;
 
-      if (!this.#pools7DAgo) {
-        this.#pools7DAgo = new AddressMap<Pool7DAgoState>(undefined, MAP_LABEL);
-      }
-
       if (r.status === "success") {
+        if (!this.#pools7DAgo) {
+          this.#pools7DAgo = new AddressMap<Pool7DAgoState>(
+            undefined,
+            MAP_LABEL,
+          );
+        }
+
         this.#pools7DAgo.upsert(m.pool.pool.address, {
           dieselRate: r.result.dieselRate,
           pool,

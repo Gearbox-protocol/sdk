@@ -50,7 +50,6 @@ export class BotsPlugin
       return this.state;
     }
 
-    this.#botsByMarket = new AddressMap();
     const [pcAddr] = this.sdk.addressProvider.mustGetLatest(
       AP_PERIPHERY_COMPRESSOR,
       VERSION_RANGE_310,
@@ -72,6 +71,8 @@ export class BotsPlugin
       ),
       allowFailure: false,
     });
+
+    this.#botsByMarket = new AddressMap();
     for (let i = 0; i < mcs.length; i++) {
       const mc = mcs[i];
       const marketBotData = botsData[i];

@@ -54,11 +54,11 @@ export class DegenDistributorsPlugin
       const cfgLC = cfg.toLowerCase() as Address;
       const r = distributorByConfigurator?.[cfgLC];
 
-      if (!this.#distributors) {
-        this.#distributors = new AddressMap<Address>(undefined, MAP_LABEL);
-      }
-
       if (r.status === "fulfilled") {
+        if (!this.#distributors) {
+          this.#distributors = new AddressMap<Address>(undefined, MAP_LABEL);
+        }
+
         this.#distributors.upsert(pool, r.value);
       } else {
         this.sdk.logger?.error(
