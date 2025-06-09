@@ -2,7 +2,6 @@ import type { Address } from "viem";
 import { getAbiItem, getAddress } from "viem";
 
 import { iPriceOracleV300Abi } from "../../abi/v300.js";
-import { SDKConstruct } from "../base/index.js";
 import { ADDRESS_PROVIDER_BLOCK, isV300 } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import type { IPriceOracleContract } from "../market/index.js";
@@ -10,7 +9,8 @@ import { PriceFeedRef } from "../market/index.js";
 import type { ILogger } from "../types/logger.js";
 import { AddressMap, formatDuration, hexEq } from "../utils/index.js";
 import { getLogsSafe } from "../utils/viem/index.js";
-import type { IGearboxSDKPlugin, IPluginState } from "./types.js";
+import { BasePlugin } from "./BasePlugin.js";
+import type { IGearboxSDKPlugin } from "./types.js";
 
 export interface StalenessEvent {
   oracle: Address;
@@ -20,7 +20,7 @@ export interface StalenessEvent {
   reserve: boolean;
 }
 
-export interface V300StalenessPeriodPluginState extends IPluginState {
+export interface V300StalenessPeriodPluginState {
   events: StalenessEvent[];
 }
 
@@ -31,35 +31,32 @@ export interface V300StalenessPeriodPluginState extends IPluginState {
  * This plugin is a workaround to load staleness periods using oracle events
  */
 export class V300StalenessPeriodPlugin
-  extends SDKConstruct
+  extends BasePlugin<V300StalenessPeriodPluginState>
   implements IGearboxSDKPlugin<V300StalenessPeriodPluginState>
 {
-  #syncedTo: bigint;
+  #syncedTo = 0n;
   #logger?: ILogger;
   #events: StalenessEvent[] = [];
 
-  public readonly version = 1;
-
-  constructor(sdk: GearboxSDK) {
-    super(sdk);
+  // eslint-disable-next-line accessor-pairs
+  public override set sdk(sdk: GearboxSDK<any>) {
+    super.sdk = sdk;
     this.#syncedTo = ADDRESS_PROVIDER_BLOCK[sdk.provider.networkType] - 1n;
-    this.#logger =
-      sdk.logger?.child?.({ name: "V300StalenessPeriodPlugin" }) ?? sdk.logger;
   }
 
-  public async attach(): Promise<void> {
-    await this.#syncPriceFeeds();
+  public get loaded(): boolean {
+    return !!this.#syncedTo;
   }
 
-  public async syncState(): Promise<void> {
-    await this.#syncPriceFeeds();
-  }
+  async load(force?: boolean): Promise<V300StalenessPeriodPluginState> {
+    if (!force && this.loaded) {
+      return this.state;
+    }
 
-  async #syncPriceFeeds(): Promise<void> {
     const oracles = this.#getOraclesMap();
     const [fromBlock, toBlock] = [this.#syncedTo + 1n, this.sdk.currentBlock];
     if (oracles.size === 0 || fromBlock > toBlock) {
-      return;
+      return this.state;
     }
     const events = await getLogsSafe(this.client, {
       address: oracles.keys(),
@@ -109,11 +106,11 @@ export class V300StalenessPeriodPlugin
     }
 
     this.#syncedTo = toBlock;
+    return this.state;
   }
 
   public get state(): V300StalenessPeriodPluginState {
     return {
-      version: this.version,
       events: this.#events,
     };
   }

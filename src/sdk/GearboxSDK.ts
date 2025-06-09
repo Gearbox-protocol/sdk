@@ -37,7 +37,6 @@ import { MarketRegister } from "./market/MarketRegister.js";
 import { PriceFeedRegister } from "./market/pricefeeds/index.js";
 import type { RedstoneOptions } from "./market/pricefeeds/RedstoneUpdater.js";
 import {
-  type PluginConstructorMap,
   type PluginsMap,
   type PluginStatesMap,
   PluginStateVersionError,
@@ -86,7 +85,7 @@ export interface SDKOptions<Plugins extends PluginsMap> {
   /**
    * Plugins to extends SDK functionality
    */
-  plugins?: PluginConstructorMap<Plugins>;
+  plugins?: Plugins;
   /**
    * Bring your own logger
    */
@@ -124,6 +123,7 @@ export interface SyncStateOptions {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SDKHooks = {
   syncState: [SyncStateOptions];
+  rehydrate: [SyncStateOptions];
 };
 
 export class GearboxSDK<const Plugins extends PluginsMap = {}> {
@@ -251,13 +251,10 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
     this.#provider = options.provider;
     this.logger = options.logger;
     this.strictContractTypes = options.strictContractTypes ?? false;
-    const pluginsInstances: Record<string, any> = {};
-    for (const [name, Plugin] of TypedObjectUtils.entries(
-      options.plugins ?? {},
-    )) {
-      pluginsInstances[name] = new Plugin(this);
+    this.plugins = options.plugins ?? ({} as Plugins);
+    for (const plugin of Object.values(this.plugins)) {
+      plugin.sdk = this;
     }
-    this.plugins = pluginsInstances as Plugins;
   }
 
   async #attach(opts: AttachOptionsInternal): Promise<this> {
@@ -339,7 +336,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
   }
 
   #hydrate(
-    options: HydrateOptions<Plugins>,
+    options: Omit<HydrateOptions<Plugins>, "plugins">,
     state: GearboxState<Plugins>,
   ): this {
     const { logger: _logger, ...opts } = options;
@@ -380,6 +377,12 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
     for (const [name, plugin] of TypedObjectUtils.entries(this.plugins)) {
       const pluginState = state.plugins[name];
       if (plugin.hydrate && pluginState) {
+        if (!pluginState.loaded) {
+          this.logger?.debug(
+            `skipping ${re}hydrating plugin ${name} state: not loaded`,
+          );
+          continue;
+        }
         if (pluginState.version !== plugin.version) {
           throw new PluginStateVersionError(plugin, pluginState);
         }
@@ -405,15 +408,20 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
   /**
    * Rehydrate existing SDK from new state without re-creating instance
    */
-  public rehydrate(state: GearboxState<Plugins>): void {
+  public async rehydrate(state: GearboxState<Plugins>): Promise<void> {
     if (!this.#attachConfig) {
       throw new Error("cannot rehydrate, attach config is not set");
     }
-    const opts: HydrateOptions<Plugins> = {
+    const opts: Omit<HydrateOptions<Plugins>, "plugins"> = {
       ignoreUpdateablePrices: this.#attachConfig.ignoreUpdateablePrices,
       redstone: this.#attachConfig.redstone,
     };
     this.#hydrate(opts, state);
+
+    await this.#hooks.triggerHooks("rehydrate", {
+      blockNumber: state.currentBlock,
+      timestamp: state.timestamp,
+    });
   }
 
   /**
@@ -488,7 +496,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       plugins: Object.fromEntries(
         TypedObjectUtils.entries(this.plugins).map(([name, plugin]) => [
           name,
-          plugin.stateHuman?.(raw) ?? {},
+          plugin.loaded ? plugin.stateHuman?.(raw) : undefined,
         ]),
       ),
       ...this.marketRegister.stateHuman(raw),
@@ -507,7 +515,9 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       plugins: Object.fromEntries(
         TypedObjectUtils.entries(this.plugins).map(([name, plugin]) => [
           name,
-          plugin.state,
+          plugin.loaded
+            ? { version: plugin.version, loaded: true, ...plugin.state }
+            : { version: plugin.version, loaded: false },
         ]),
       ) as PluginStatesMap<Plugins>,
     };
@@ -592,9 +602,9 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
     pluginResponse.forEach((r, i) => {
       const [name, plugin] = pluginsList[i];
 
-      if (plugin.attach && r.status === "fulfilled") {
+      if (plugin.syncState && r.status === "fulfilled") {
         this.logger?.debug(`synced plugin ${name}`);
-      } else if (plugin.attach && r.status === "rejected") {
+      } else if (plugin.syncState && r.status === "rejected") {
         this.logger?.error(r.reason, `failed to sync plugin ${name}`);
       }
     });

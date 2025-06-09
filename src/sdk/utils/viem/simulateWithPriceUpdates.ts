@@ -138,7 +138,7 @@ export async function simulateWithPriceUpdates<
       if (mustThrow) {
         throw err;
       }
-      console.warn(err);
+      // console.warn(err);
     }
 
     const restResults = multicallResults

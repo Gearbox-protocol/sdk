@@ -84,33 +84,31 @@ interface FarmInfoOutput {
   reward: bigint;
   balance: bigint;
 }
-export interface FarmInfo {
-  pool: Address;
-  finished: bigint;
-  duration: bigint;
-  reward: bigint;
-  balance: bigint;
-  symbol: SupportedToken;
-}
 
 type ReportHandler = (e: unknown, description?: string) => void;
 
-export interface GetLmRewardsInfoProps {
-  pools: Record<Address, PoolData_Legacy>;
-  tokensList: Record<Address, TokenData>;
+export interface GetLmRewardsV2Props {
+  account: Address;
   provider: PublicClient;
+  currentTokenData: Record<SupportedToken, Address>;
+  airdropDistributorAddress: Address;
+  network: NetworkType;
+
+  reportError?: ReportHandler;
 }
 
-export interface GetLmRewardsProps {
-  pools: Record<Address, PoolData_Legacy>;
-
-  baseRewardPoolsInfo: Record<string, FarmInfo>;
-  currentTokenData: Record<SupportedToken, Address>;
+export interface GetLmRewardsV3Props {
+  pools: Record<`0x${string}`, PoolData_Legacy>;
   tokensList: Record<Address, TokenData>;
   account: Address;
   provider: PublicClient;
 
-  airdropDistributorAddress: Address | undefined;
+  reportError?: ReportHandler;
+}
+
+export interface GetLmRewardsMerkleProps {
+  pools: Record<Address, PoolData_Legacy>;
+  account: Address;
   network: NetworkType;
   reportError?: ReportHandler;
 }
@@ -131,154 +129,6 @@ export interface ClaimLmRewardsV3Props {
 }
 
 export class GearboxRewardsApi {
-  static async getLmRewardsInfo({
-    pools,
-    provider,
-    tokensList,
-  }: GetLmRewardsInfoProps) {
-    const poolByStakedDiesel = Object.values(pools).reduce<
-      Record<Address, Address>
-    >((acc, p) => {
-      p.stakedDieselToken.forEach(t => {
-        if (t) acc[t] = p.address;
-      });
-      p.stakedDieselToken_old.forEach(t => {
-        if (t) acc[t] = p.address;
-      });
-
-      return acc;
-    }, {});
-
-    const poolByDiesel = Object.values(pools).reduce<Record<Address, Address>>(
-      (acc, p) => {
-        acc[p.dieselToken] = p.address;
-
-        return acc;
-      },
-      {},
-    );
-
-    const poolByItsToken = { ...poolByStakedDiesel, ...poolByDiesel };
-
-    const poolStakedTokens = TypedObjectUtils.keys(poolByStakedDiesel);
-    const allPoolTokens = TypedObjectUtils.keys(poolByItsToken);
-
-    const farmInfoCalls = poolStakedTokens.map(address => ({
-      address,
-      abi: iFarmingPoolAbi,
-      functionName: "farmInfo",
-      args: [],
-    }));
-
-    const farmSupplyCalls = allPoolTokens.map(address => ({
-      address,
-      abi: iFarmingPoolAbi,
-      functionName: "totalSupply",
-      args: [],
-    }));
-
-    const rewardTokenCalls = poolStakedTokens.map(address => ({
-      address,
-      abi: POOL_REWARDS_ABI,
-      functionName: "rewardsToken",
-      args: [],
-    }));
-
-    const mc = await provider.multicall({
-      allowFailure: false,
-      contracts: [...farmInfoCalls, ...farmSupplyCalls, ...rewardTokenCalls],
-    });
-
-    const mcResponse = mc;
-    const [...restMCResponse] = mcResponse;
-
-    const farmInfoCallsEnd = farmInfoCalls.length;
-    const farmInfo = restMCResponse.slice(
-      0,
-      farmInfoCallsEnd,
-    ) as Array<FarmInfoOutput>;
-
-    const farmSupplyCallsEnd = farmInfoCallsEnd + farmSupplyCalls.length;
-    const farmSupply = restMCResponse.slice(
-      farmInfoCallsEnd,
-      farmSupplyCallsEnd,
-    ) as Array<bigint>;
-
-    const rewardTokenCallsEnd = farmSupplyCallsEnd + rewardTokenCalls.length;
-    const rewardTokens = restMCResponse.slice(
-      farmSupplyCallsEnd,
-      rewardTokenCallsEnd,
-    ) as Array<Address>;
-
-    const infoByPool = poolStakedTokens.reduce<Record<Address, FarmInfoOutput>>(
-      (acc, p, index) => {
-        const info = farmInfo[index];
-
-        if (info) acc[p] = info;
-
-        return acc;
-      },
-      {},
-    );
-
-    const rewardTokenPool = poolStakedTokens.reduce<Record<Address, Address>>(
-      (acc, p, index) => {
-        const token = rewardTokens[index];
-
-        if (token) {
-          acc[p] = token.toLowerCase() as Address;
-        }
-
-        return acc;
-      },
-      {},
-    );
-
-    const stakedTokenRewards = allPoolTokens.reduce<{
-      base: Record<string, FarmInfo>;
-      all: Record<string, Array<FarmInfo>>;
-    }>(
-      (acc, pool) => {
-        const info = infoByPool[pool];
-        const token = rewardTokenPool[pool];
-        const tokenData = tokensList[token];
-
-        const baseReward: FarmInfo | undefined =
-          info && tokenData
-            ? {
-                pool: poolByItsToken[pool],
-                duration: BigInt(info.duration),
-                finished: BigInt(info.finished),
-                reward: info.reward,
-                balance: info.balance,
-                symbol: tokenData.symbol,
-              }
-            : undefined;
-
-        if (baseReward) acc.base[pool] = baseReward;
-        acc.all[pool] = [...(baseReward ? [baseReward] : [])];
-
-        return acc;
-      },
-      { base: {}, all: {} },
-    );
-
-    const rewardPoolsSupply = allPoolTokens.reduce<Record<string, bigint>>(
-      (acc, address, i) => {
-        acc[address] = farmSupply[i] || 0n;
-
-        return acc;
-      },
-      {},
-    );
-
-    return {
-      rewardPoolsInfo: stakedTokenRewards.all,
-      baseRewardPoolsInfo: stakedTokenRewards.base,
-      rewardPoolsSupply,
-    };
-  }
-
   static async getLmRewardsV2({
     provider,
     account,
@@ -286,13 +136,24 @@ export class GearboxRewardsApi {
 
     network,
     airdropDistributorAddress,
-  }: GetLmRewardsProps) {
-    if (!airdropDistributorAddress) return { rewards: [] };
+    reportError,
+  }: GetLmRewardsV2Props) {
+    if (!airdropDistributorAddress) return [];
 
-    const [claimedResp, merkleDataResp] = await Promise.all([
+    const [claimedRespUnsafe, merkleDataRespUnsafe] = await Promise.allSettled([
       this.getClaimed({ airdropDistributorAddress, provider, account }),
       this.getMerkle(provider, airdropDistributorAddress, network, account),
     ]);
+
+    const claimedResp =
+      this.extractFulfilled(claimedRespUnsafe, reportError, "getLmRewardsV2") ||
+      0n;
+
+    const merkleDataResp = this.extractFulfilled(
+      merkleDataRespUnsafe,
+      reportError,
+      "getLmRewardsV2",
+    );
 
     const amountOnContract = this.getAmountOnContract({
       account,
@@ -312,33 +173,131 @@ export class GearboxRewardsApi {
       },
     ];
 
-    return { rewards: rewards };
+    return rewards;
   }
 
   static async getLmRewardsV3({
     pools,
-
-    baseRewardPoolsInfo,
-    currentTokenData,
     tokensList,
     provider,
     account,
-
-    network,
     reportError,
-  }: GetLmRewardsProps) {
-    const poolTokens = Object.keys(baseRewardPoolsInfo) as Array<Address>;
+  }: GetLmRewardsV3Props) {
+    const poolByStakedDiesel = Object.values(pools).reduce<
+      Record<Address, Address>
+    >((acc, p) => {
+      p.stakedDieselToken.forEach(t => {
+        if (t) acc[t] = p.address;
+      });
+      p.stakedDieselToken_old.forEach(t => {
+        if (t) acc[t] = p.address;
+      });
 
-    const [gearboxLmResponse, merkleXYZLMResponse] = await Promise.allSettled([
+      return acc;
+    }, {});
+    const stakedDieselTokens = TypedObjectUtils.keys(poolByStakedDiesel);
+
+    // for each staked diesel get farmInfo
+    const farmInfoCalls = stakedDieselTokens.map(address => ({
+      address,
+      abi: iFarmingPoolAbi,
+      functionName: "farmInfo",
+      args: [],
+    }));
+
+    // for each staked diesel get reward token
+    const rewardTokenCalls = stakedDieselTokens.map(address => ({
+      address,
+      abi: POOL_REWARDS_ABI,
+      functionName: "rewardsToken",
+      args: [],
+    }));
+
+    // for each staked diesel get farmed amount
+    const farmedCalls = stakedDieselTokens.map(address => ({
+      address: address,
+      abi: iFarmingPoolAbi,
+      functionName: "farmed",
+      args: [account],
+    }));
+
+    const [response] = await Promise.allSettled([
       provider.multicall({
         allowFailure: false,
-        contracts: poolTokens.map(address => ({
-          address: address,
-          abi: iFarmingPoolAbi,
-          functionName: "farmed",
-          args: [account],
-        })),
+        contracts: [...farmInfoCalls, ...rewardTokenCalls, ...farmedCalls],
       }),
+    ]);
+
+    const safeResponse =
+      this.extractFulfilled(response, reportError, "v3Rewards") || [];
+
+    const farmInfoCallsEnd = farmInfoCalls.length;
+    const farmInfo = safeResponse.slice(
+      0,
+      farmInfoCallsEnd,
+    ) as Array<FarmInfoOutput>;
+
+    const rewardTokenCallsEnd = farmInfoCallsEnd + rewardTokenCalls.length;
+    const rewardTokens = safeResponse.slice(
+      farmInfoCallsEnd,
+      rewardTokenCallsEnd,
+    ) as Array<Address>;
+
+    const farmedCallsEnd = rewardTokenCallsEnd + farmedCalls.length;
+    const farmedList = safeResponse.slice(
+      rewardTokenCallsEnd,
+      farmedCallsEnd,
+    ) as Array<bigint>;
+
+    const gearboxLmRewards = stakedDieselTokens.map(
+      (address, i): GearboxLmReward | undefined => {
+        const pool = poolByStakedDiesel[address];
+        const info = farmInfo[i];
+        const rewardToken = rewardTokens[i]?.toLowerCase() as Address;
+        const farmed = farmedList[i];
+
+        if (!pool || !info || !rewardToken) return undefined;
+
+        return {
+          pool: pool,
+          poolToken: address,
+
+          rewardToken,
+          rewardTokenDecimals: tokensList[rewardToken]?.decimals || 18,
+          rewardTokenSymbol: tokensList[rewardToken]?.symbol || "unknown",
+
+          amount: farmed ?? 0n,
+          type: "stakedV3",
+        };
+      },
+    );
+
+    const { zero, nonZero } = gearboxLmRewards.reduce<{
+      nonZero: Array<GearboxLmReward>;
+      zero: Array<GearboxLmReward>;
+    }>(
+      (acc, r) => {
+        if (r && r.amount > 0n) {
+          acc.nonZero.push(r);
+        } else if (r) {
+          acc.zero.push(r);
+        }
+
+        return acc;
+      },
+      { nonZero: [], zero: [] },
+    );
+
+    return [...nonZero, zero];
+  }
+
+  static async getLmRewardsMerkle({
+    pools,
+    account,
+    network,
+    reportError,
+  }: GetLmRewardsMerkleProps) {
+    const [merkleXYZLMResponse] = await Promise.allSettled([
       axios.get<MerkleXYZUserRewardsV4Response>(
         MerkleXYZApi.getUserRewardsUrl({
           params: {
@@ -349,15 +308,10 @@ export class GearboxRewardsApi {
       ),
     ]);
 
-    const gearboxLm = (this.extractFulfilled(
-      gearboxLmResponse,
-      reportError,
-      "v3Rewards",
-    ) || []) as Array<bigint>;
     const merkleXYZLm = this.extractFulfilled(
       merkleXYZLMResponse,
       reportError,
-      "merkleRewards",
+      "merkleXYZLm",
     )?.data;
 
     const poolByItsToken = Object.values(pools).reduce<
@@ -416,43 +370,7 @@ export class GearboxRewardsApi {
       return acc;
     }, {});
 
-    const gearboxLmRewards = poolTokens.map((address, i): GearboxLmReward => {
-      const info = baseRewardPoolsInfo[address];
-      const rewardToken = currentTokenData[info.symbol];
-
-      return {
-        pool: info.pool,
-        poolToken: address,
-
-        rewardToken,
-        rewardTokenDecimals: tokensList[rewardToken]?.decimals || 18,
-        rewardTokenSymbol: info.symbol,
-
-        amount: gearboxLm[i] || 0n,
-        type: "stakedV3",
-      };
-    });
-
-    const { zero, nonZero } = gearboxLmRewards.reduce<{
-      nonZero: Array<GearboxLmReward>;
-      zero: Array<GearboxLmReward>;
-    }>(
-      (acc, r) => {
-        const amount = r.amount || 0n;
-        if (amount > 0n) {
-          acc.nonZero.push(r);
-        } else {
-          acc.zero.push(r);
-        }
-
-        return acc;
-      },
-      { nonZero: [], zero: [] },
-    );
-
-    return {
-      rewards: [...nonZero, ...Object.values(extraRewards), zero],
-    };
+    return Object.values(extraRewards);
   }
 
   private static extractFulfilled<T>(
@@ -582,8 +500,7 @@ export class GearboxRewardsApi {
     account,
     merkleData,
   }: GetAmountOnContractProps) {
-    const { claims = {} } = merkleData || {};
-    const { amount } = claims[getAddress(account)] || {};
+    const { amount } = merkleData?.claims?.[getAddress(account)] || {};
 
     return BigInt(amount || 0);
   }

@@ -13,7 +13,15 @@ import { toBigInt } from "../../utils/index.js";
 import type { PoolData_Legacy } from "../core/pool.js";
 import type { TokenData } from "../tokens/tokenData.js";
 import { PriceUtils } from "../utils/price.js";
-import type { FarmInfo } from "./api.js";
+
+export interface FarmInfo {
+  pool: Address;
+  finished: bigint;
+  duration: bigint;
+  reward: bigint;
+  balance: bigint;
+  symbol: SupportedToken;
+}
 
 interface CalculateV3PoolLmAPYProps {
   currentTimestamp: number;
@@ -50,7 +58,7 @@ interface GetPoolExtraAPY_V3Props {
   pool: PoolData_Legacy;
   prices: Record<Address, bigint>;
 
-  rewardPoolsInfo: Record<Address, Array<FarmInfo>>;
+  rewardPoolsInfo: Record<Address, Array<FarmInfo>> | Record<Address, FarmInfo>;
   rewardPoolsSupply: Record<Address, bigint>;
 
   tokensList: Record<Address, TokenData>;
@@ -98,7 +106,7 @@ export class GearboxRewardsApy {
     const info = rewardPoolsInfo[stakedDieselToken];
     if (!info) return [];
 
-    const extra = info.map(inf =>
+    const extra = (Array.isArray(info) ? info : [info]).map(inf =>
       this.getPoolSingleExtraLmAPY_V3({
         ...restProps,
         stakedDieselToken,
@@ -160,7 +168,7 @@ export class GearboxRewardsApy {
     };
   }
 
-  static calculateAPY_V3({
+  private static calculateAPY_V3({
     info,
     supply,
     reward,

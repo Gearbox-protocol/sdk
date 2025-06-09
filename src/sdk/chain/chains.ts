@@ -263,6 +263,13 @@ export const chains: Record<NetworkType, GearboxChain> = {
   }),
 };
 
+const networkByChainId = Object.values(chains).reduce<
+  Record<number, NetworkType>
+>((acc, chain) => {
+  acc[chain.id] = chain.network;
+  return acc;
+}, {});
+
 export function getChain(
   chainIdOrNetworkType: number | bigint | NetworkType,
 ): GearboxChain {
@@ -278,19 +285,16 @@ export function getChain(
 }
 
 export function getNetworkType(chainId: number | bigint): NetworkType {
-  for (const [network, chain] of TypedObjectUtils.entries(chains)) {
-    if (chain.id === Number(chainId)) {
-      return network;
-    }
-  }
-
-  throw new Error(`Unsupported network with chainId ${chainId}`);
+  const network = networkByChainId[Number(chainId)];
+  if (!network) throw new Error(`Unsupported network with chainId ${chainId}`);
+  return network;
 }
 
 export function isSupportedNetwork(
   chainId: number | undefined,
 ): chainId is number {
-  return Object.values(chains).some(c => c.id === chainId);
+  if (chainId === undefined) return false;
+  return !!networkByChainId[chainId];
 }
 
 export function isPublicNetwork(

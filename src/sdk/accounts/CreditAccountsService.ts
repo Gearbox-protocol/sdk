@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import { encodeFunctionData, getAddress } from "viem";
+import { encodeFunctionData, getAddress, parseAbi } from "viem";
 
 import {
   iCreditAccountCompressorAbi,
@@ -8,10 +8,6 @@ import {
 } from "../../abi/compressors.js";
 import { iBaseRewardPoolAbi } from "../../abi/iBaseRewardPool.js";
 import { iCreditFacadeV300MulticallAbi } from "../../abi/v300.js";
-import {
-  iConvexV1BaseRewardPoolAdapterAbi,
-  iStakingRewardsAdapterAbi,
-} from "../../adapters/abi/adapters.js";
 import type { CreditAccountData } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
 import {
@@ -1442,7 +1438,9 @@ export class CreditAccountsService extends SDKConstruct {
     return {
       target: address,
       callData: encodeFunctionData({
-        abi: iConvexV1BaseRewardPoolAdapterAbi,
+        abi: parseAbi([
+          "function withdrawAndUnwrap(uint256, bool claim) returns (uint256 tokensToEnable, uint256 tokensToDisable)",
+        ]),
         functionName: "withdrawAndUnwrap",
         args: [amount, claim],
       }),
@@ -1453,7 +1451,9 @@ export class CreditAccountsService extends SDKConstruct {
     return {
       target: address,
       callData: encodeFunctionData({
-        abi: iConvexV1BaseRewardPoolAdapterAbi,
+        abi: parseAbi([
+          "function withdrawDiffAndUnwrap(uint256 leftoverAmount, bool claim) returns (uint256 tokensToEnable, uint256 tokensToDisable)",
+        ]),
         functionName: "withdrawDiffAndUnwrap",
         args: [1n, claim],
       }),
@@ -1464,7 +1464,9 @@ export class CreditAccountsService extends SDKConstruct {
     return {
       target: address,
       callData: encodeFunctionData({
-        abi: iStakingRewardsAdapterAbi,
+        abi: parseAbi([
+          "function withdrawDiff(uint256 leftoverAmount) external returns (bool useSafePrices)",
+        ]),
         functionName: "withdrawDiff",
         args: [1n],
       }),
@@ -1475,7 +1477,9 @@ export class CreditAccountsService extends SDKConstruct {
     return {
       target: address,
       callData: encodeFunctionData({
-        abi: iStakingRewardsAdapterAbi,
+        abi: parseAbi([
+          "function withdraw(uint256 amount) external returns (bool useSafePrices)",
+        ]),
         functionName: "withdraw",
         args: [amount],
       }),
@@ -1486,7 +1490,9 @@ export class CreditAccountsService extends SDKConstruct {
     return {
       target: address,
       callData: encodeFunctionData({
-        abi: iStakingRewardsAdapterAbi,
+        abi: parseAbi([
+          "function getReward() external returns (bool useSafePrices)",
+        ]),
         functionName: "getReward",
         args: [],
       }),
