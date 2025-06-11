@@ -11,7 +11,8 @@ export type ERC4626LPToken =
   | "sUSDe"
   | "sUSDS"
   | "scrvUSD"
-  | "ynBNBx";
+  | "ynBNBx"
+  | "sUSDX";
 
 export type ERC4626VaultTokenData = {
   symbol: ERC4626LPToken;
@@ -72,10 +73,17 @@ export const erc4626Tokens: Record<
   },
 
   ynBNBx: {
-    name: "Savings crvUSD",
-    symbol: "scrvUSD",
+    name: "Staked WBNB",
+    symbol: "ynBNBx",
     type: { AllNetworks: TokenType.ERC4626_VAULT_TOKEN },
     underlying: "WBNB",
+    vault: undefined,
+  },
+  sUSDX: {
+    name: "Staked USDX",
+    symbol: "sUSDX",
+    type: { AllNetworks: TokenType.ERC4626_VAULT_TOKEN },
+    underlying: "USDX",
     vault: undefined,
   },
 };

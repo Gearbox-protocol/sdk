@@ -14,7 +14,8 @@ export type DieselSimpleTokenTypes =
   | "dwstETHV3"
   | "dwSV3"
   | "dUSDTv310"
-  | "dWBNBv3";
+  | "dWBNBv3"
+  | "dUSD1V3";
 
 export type DieselTokenWithStkTypes =
   | "dUSDCV3"
@@ -135,6 +136,11 @@ const dieselSimpleTokens: Record<
   dWBNBv3: {
     name: "dWBNBv3",
     symbol: "dWBNBv3",
+    type: { AllNetworks: TokenType.DIESEL_LP_TOKEN },
+  },
+  dUSD1V3: {
+    name: "dUSD1V3",
+    symbol: "dUSD1V3",
     type: { AllNetworks: TokenType.DIESEL_LP_TOKEN },
   },
 };
