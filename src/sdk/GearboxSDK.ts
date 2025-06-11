@@ -35,7 +35,10 @@ import {
 } from "./core/index.js";
 import { MarketRegister } from "./market/MarketRegister.js";
 import { PriceFeedRegister } from "./market/pricefeeds/index.js";
-import type { RedstoneOptions } from "./market/pricefeeds/RedstoneUpdater.js";
+import type {
+  PythOptions,
+  RedstoneOptions,
+} from "./market/pricefeeds/updates/index.js";
 import {
   type PluginsMap,
   type PluginStatesMap,
@@ -94,6 +97,10 @@ export interface SDKOptions<Plugins extends PluginsMap> {
    * Options related to redstone price feeds
    */
   redstone?: RedstoneOptions;
+  /**
+   * Options related to pyth price feeds
+   */
+  pyth?: PythOptions;
 }
 
 export type HydrateOptions<Plugins extends PluginsMap> = Omit<
@@ -111,7 +118,7 @@ type SDKContructorArgs<Plugins extends PluginsMap> = Pick<
 type AttachOptionsInternal = PickSomeRequired<
   SDKOptions<any>,
   "addressProvider" | "marketConfigurators",
-  "blockNumber" | "ignoreUpdateablePrices" | "redstone"
+  "blockNumber" | "ignoreUpdateablePrices" | "redstone" | "pyth"
 >;
 
 export interface SyncStateOptions {
@@ -186,6 +193,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       plugins,
       blockNumber,
       redstone,
+      pyth,
       ignoreUpdateablePrices,
       marketConfigurators: mcs,
       strictContractTypes,
@@ -225,6 +233,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       ignoreUpdateablePrices,
       marketConfigurators,
       redstone,
+      pyth,
     });
   }
 
@@ -264,6 +273,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       ignoreUpdateablePrices,
       marketConfigurators,
       redstone,
+      pyth,
     } = opts;
     const re = this.#attachConfig ? "re" : "";
     this.logger?.info(
@@ -278,7 +288,12 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
     );
     if (!!blockNumber && !opts.redstone?.historicTimestamp) {
       this.logger?.warn(
-        `${re}attaching to fixed block number, but redstoneHistoricTimestamp is not set. price updates might fail`,
+        `${re}attaching to fixed block number, but redstone historicTimestamp is not set. price updates might fail`,
+      );
+    }
+    if (!!blockNumber && !opts.pyth?.historicTimestamp) {
+      this.logger?.warn(
+        `${re}attaching to fixed block number, but pyth historicTimestamp is not set. price updates might fail`,
       );
     }
     this.#attachConfig = opts;
@@ -293,7 +308,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
     this.#currentBlock = block.number;
     this.#timestamp = block.timestamp;
 
-    this.#priceFeeds = new PriceFeedRegister(this, { redstone });
+    this.#priceFeeds = new PriceFeedRegister(this, { redstone, pyth });
 
     this.logger?.debug(
       `${re}attach block number ${this.currentBlock} timestamp ${this.timestamp}`,
@@ -356,7 +371,10 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
 
     this.#currentBlock = state.currentBlock;
     this.#timestamp = state.timestamp;
-    this.#priceFeeds = new PriceFeedRegister(this, { redstone: opts.redstone });
+    this.#priceFeeds = new PriceFeedRegister(this, {
+      redstone: opts.redstone,
+      pyth: opts.pyth,
+    });
 
     this.#addressProvider = hydrateAddressProvider(this, state.addressProvider);
     this.logger?.debug(
@@ -416,6 +434,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
     const opts: Omit<HydrateOptions<Plugins>, "plugins"> = {
       ignoreUpdateablePrices: this.#attachConfig.ignoreUpdateablePrices,
       redstone: this.#attachConfig.redstone,
+      pyth: this.#attachConfig.pyth,
     };
     this.#hydrate(opts, state);
 
@@ -531,9 +550,12 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
    */
   public async syncState(opts?: SyncStateOptions): Promise<void> {
     let { blockNumber, timestamp, skipPriceUpdate } = opts ?? {};
-    if (this.#attachConfig?.redstone?.historicTimestamp) {
+    if (
+      this.#attachConfig?.redstone?.historicTimestamp ||
+      this.#attachConfig?.pyth?.historicTimestamp
+    ) {
       throw new Error(
-        "syncState is not supported with redstoneHistoricTimestamp",
+        "syncState is not supported with redstone or pyth historicTimestamp",
       );
     }
     if (!blockNumber || !timestamp) {

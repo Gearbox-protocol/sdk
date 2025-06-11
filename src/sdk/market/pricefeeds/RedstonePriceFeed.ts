@@ -4,14 +4,17 @@ import { bytesToString, decodeAbiParameters, toBytes } from "viem";
 import { redstonePriceFeedAbi } from "../../abi/index.js";
 import { ADDRESS_0X0, isV310 } from "../../constants/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
-import type { RedstonePriceFeedStateHuman } from "../../types/index.js";
+import type { RawTx, RedstonePriceFeedStateHuman } from "../../types/index.js";
 import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed.js";
 import { AbstractPriceFeedContract } from "./AbstractPriceFeed.js";
-import type { IPriceFeedContract } from "./types.js";
+import type { IUpdatablePriceFeedContract } from "./types.js";
 
 type abi = typeof redstonePriceFeedAbi;
 
-export class RedstonePriceFeedContract extends AbstractPriceFeedContract<abi> {
+export class RedstonePriceFeedContract
+  extends AbstractPriceFeedContract<abi>
+  implements IUpdatablePriceFeedContract
+{
   public readonly token: Address;
   public readonly dataServiceId: string;
   public readonly dataId: string;
@@ -98,10 +101,12 @@ export class RedstonePriceFeedContract extends AbstractPriceFeedContract<abi> {
       lastPayloadTimestamp: this.lastPayloadTimestamp.toString(),
     };
   }
-}
 
-export function isRedstone(
-  pf: IPriceFeedContract,
-): pf is RedstonePriceFeedContract {
-  return pf.contractType === "PRICE_FEED::REDSTONE";
+  public createPriceUpdateTx(data: `0x${string}`): RawTx {
+    return this.createRawTx({
+      functionName: "updatePrice",
+      args: [data],
+      description: `updating redstone price for ${this.dataId} [${this.labelAddress(this.address)}]`,
+    });
+  }
 }

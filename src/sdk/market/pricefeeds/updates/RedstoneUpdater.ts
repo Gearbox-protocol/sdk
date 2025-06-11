@@ -2,63 +2,41 @@
 import { DataServiceWrapper } from "@redstone-finance/evm-connector";
 import type { SignedDataPackage } from "@redstone-finance/protocol";
 import { RedstonePayload } from "@redstone-finance/protocol";
-import type { Address } from "viem";
+import type { Address, Hex } from "viem";
 import { encodeAbiParameters, toBytes } from "viem";
 
-import { SDKConstruct } from "../../base/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
-import type { ILogger, IPriceUpdateTx, RawTx } from "../../types/index.js";
-import { AddressMap, childLogger, retry } from "../../utils/index.js";
-import type { TimestampedCalldata } from "./RedstoneCache.js";
-import { RedstoneCache } from "./RedstoneCache.js";
-import type { RedstonePriceFeedContract } from "./RedstonePriceFeed.js";
+import { SDKConstruct } from "../../../base/index.js";
+import type { GearboxSDK } from "../../../GearboxSDK.js";
+import type { ILogger } from "../../../types/index.js";
+import { AddressMap, childLogger, retry } from "../../../utils/index.js";
+import type {
+  IPriceFeedContract,
+  IUpdatablePriceFeedContract,
+} from "../types.js";
+import { PriceUpdatesCache } from "./PriceUpdatesCache.js";
+import { PriceUpdateTx } from "./PriceUpdateTx.js";
+import type {
+  IPriceUpdater,
+  IPriceUpdateTask,
+  TimestampedCalldata,
+} from "./types.js";
 
-export interface RedstoneUpdateTask {
-  dataFeedId: string;
-  dataServiceId: string;
-  priceFeed: Address;
-  timestamp: number;
-  cached: boolean;
+interface IRedstonePriceFeedContract extends IUpdatablePriceFeedContract {
+  readonly token: Address;
+  readonly dataServiceId: string;
+  readonly dataId: string;
+  readonly signers: Hex[];
+  readonly signersThreshold: number;
+  readonly lastPrice: bigint;
+  readonly lastPayloadTimestamp: number;
 }
 
-const MAX_DATA_TIMESTAMP_DELAY_SECONDS = 10n * 60n;
-const MAX_DATA_TIMESTAMP_AHEAD_SECONDS = 60n;
+interface RedstoneUpdateTask extends IPriceUpdateTask {
+  dataServiceId: string;
+}
 
-export class RedstoneUpdateTx implements IPriceUpdateTx<RedstoneUpdateTask> {
-  public readonly raw: RawTx;
-  public readonly data: RedstoneUpdateTask;
-
-  constructor(raw: RawTx, data: RedstoneUpdateTask) {
-    this.raw = raw;
-    this.data = data;
-  }
-
-  public get pretty(): string {
-    const cached = this.data.cached ? " (cached)" : "";
-    return `redstone feed ${this.data.dataFeedId} at ${this.data.priceFeed} with timestamp ${this.data.timestamp}${cached}`;
-  }
-
-  public validateTimestamp(
-    blockTimestamp: bigint,
-  ): "valid" | "too old" | "in future" {
-    const { timestamp: expectedPayloadTimestamp } = this.data;
-
-    if (blockTimestamp < expectedPayloadTimestamp) {
-      if (
-        BigInt(expectedPayloadTimestamp) - blockTimestamp >
-        MAX_DATA_TIMESTAMP_AHEAD_SECONDS
-      ) {
-        return "in future";
-      }
-    } else if (
-      blockTimestamp - BigInt(expectedPayloadTimestamp) >
-      MAX_DATA_TIMESTAMP_DELAY_SECONDS
-    ) {
-      return "too old";
-    }
-
-    return "valid";
-  }
+class RedstoneUpdateTx extends PriceUpdateTx<RedstoneUpdateTask> {
+  public readonly name = "redstone";
 }
 
 export interface RedstoneOptions {
@@ -91,9 +69,12 @@ export interface RedstoneOptions {
 /**
  * Class to update multiple redstone price feeds at once
  */
-export class RedstoneUpdater extends SDKConstruct {
+export class RedstoneUpdater
+  extends SDKConstruct
+  implements IPriceUpdater<RedstoneUpdateTask>
+{
   #logger?: ILogger;
-  #cache: RedstoneCache;
+  #cache: PriceUpdatesCache;
   #historicalTimestampMs?: number;
   #gateways?: string[];
   #ignoreMissingFeeds?: boolean;
@@ -111,7 +92,7 @@ export class RedstoneUpdater extends SDKConstruct {
       ts = ts === true ? Number(this.sdk.timestamp) * 1000 : ts;
       this.#historicalTimestampMs = 60_000 * Math.floor(ts / 60_000);
     }
-    this.#cache = new RedstoneCache({
+    this.#cache = new PriceUpdatesCache({
       // currently staleness period is 240 seconds on all networks, add some buffer
       // this period of 4 minutes is selected based on time that is required for user to sign transaction with wallet
       // so it's unlikely to decrease
@@ -121,7 +102,7 @@ export class RedstoneUpdater extends SDKConstruct {
   }
 
   public async getUpdateTxs(
-    feeds: RedstonePriceFeedContract[],
+    feeds: IPriceFeedContract[],
     logContext: Record<string, any> = {},
   ): Promise<RedstoneUpdateTx[]> {
     this.#logger?.debug(
@@ -132,8 +113,14 @@ export class RedstoneUpdater extends SDKConstruct {
     // Group feeds by dataServiceId and uniqueSignersCount
     const groupedFeeds: Record<string, Set<string>> = {};
     // group price feeds by data id
-    const priceFeeds = new Map<string, AddressMap<RedstonePriceFeedContract>>();
+    const priceFeeds = new Map<
+      string,
+      AddressMap<IRedstonePriceFeedContract>
+    >();
     for (const feed of feeds) {
+      if (!isRedstone(feed)) {
+        continue;
+      }
       const key = `${feed.dataServiceId}:${feed.signersThreshold}`;
       if (!groupedFeeds[key]) {
         groupedFeeds[key] = new Set();
@@ -141,7 +128,7 @@ export class RedstoneUpdater extends SDKConstruct {
       groupedFeeds[key].add(feed.dataId);
       const pfsForDataId =
         priceFeeds.get(feed.dataId) ??
-        new AddressMap<RedstonePriceFeedContract>();
+        new AddressMap<IRedstonePriceFeedContract>();
       pfsForDataId.upsert(feed.address, feed);
       priceFeeds.set(feed.dataId, pfsForDataId);
     }
@@ -163,20 +150,13 @@ export class RedstoneUpdater extends SDKConstruct {
         }
         for (const priceFeed of pfsForDataId.values()) {
           results.push(
-            new RedstoneUpdateTx(
-              priceFeed.createRawTx({
-                functionName: "updatePrice",
-                args: [data],
-                description: `updating price for ${dataFeedId} [${this.labelAddress(priceFeed.address)}]`,
-              }),
-              {
-                dataFeedId,
-                dataServiceId,
-                priceFeed: priceFeed.address,
-                timestamp,
-                cached,
-              },
-            ),
+            new RedstoneUpdateTx(priceFeed.createPriceUpdateTx(data), {
+              dataFeedId,
+              dataServiceId,
+              priceFeed: priceFeed.address,
+              timestamp,
+              cached,
+            }),
           );
         }
       }
@@ -226,7 +206,7 @@ export class RedstoneUpdater extends SDKConstruct {
     );
     // cache newly fetched responses
     for (const resp of fromRedstone) {
-      this.#cache.set(dataServiceId, resp.dataFeedId, uniqueSignersCount, resp);
+      this.#cache.set(resp, dataServiceId, resp.dataFeedId, uniqueSignersCount);
     }
     this.#logger?.debug(
       `got ${fromRedstone.length} new redstone updates and ${fromCache.length} from cache`,
@@ -367,4 +347,8 @@ function getCalldataWithTimestamp(
     timestamp,
     cached: false,
   };
+}
+
+function isRedstone(pf: IPriceFeedContract): pf is IRedstonePriceFeedContract {
+  return pf.contractType === "PRICE_FEED::REDSTONE";
 }

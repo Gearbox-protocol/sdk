@@ -29,14 +29,19 @@ import { ExternalPriceFeedContract } from "./ExternalPriceFeed.js";
 import { MellowLRTPriceFeedContract } from "./MellowLRTPriceFeed.js";
 import { PendleTWAPPTPriceFeed } from "./PendleTWAPPTPriceFeed.js";
 import { PythPriceFeed } from "./PythPriceFeed.js";
-import { isRedstone, RedstonePriceFeedContract } from "./RedstonePriceFeed.js";
-import type { RedstoneOptions, RedstoneUpdateTask } from "./RedstoneUpdater.js";
-import { RedstoneUpdater } from "./RedstoneUpdater.js";
+import { RedstonePriceFeedContract } from "./RedstonePriceFeed.js";
 import type {
   IPriceFeedContract,
   PriceFeedContractType,
   UpdatePriceFeedsResult,
 } from "./types.js";
+import type {
+  IPriceUpdater,
+  IPriceUpdateTask,
+  PythOptions,
+  RedstoneOptions,
+} from "./updates/index.js";
+import { PythUpdater, RedstoneUpdater } from "./updates/index.js";
 import { WstETHPriceFeedContract } from "./WstETHPriceFeed.js";
 import { YearnPriceFeedContract } from "./YearnPriceFeed.js";
 import { ZeroPriceFeedContract } from "./ZeroPriceFeed.js";
@@ -51,11 +56,12 @@ export type PriceFeedRegisterHooks = {
 
 export interface PriceFeedRegisterOptions {
   redstone?: RedstoneOptions;
+  pyth?: PythOptions;
 }
 
 export interface LatestUpdate {
   timestamp: number;
-  redstone: RedstoneUpdateTask[];
+  updates: IPriceUpdateTask[];
 }
 
 /**
@@ -71,12 +77,15 @@ export class PriceFeedRegister
   readonly #hooks = new Hooks<PriceFeedRegisterHooks>();
   #feeds = new AddressMap<IPriceFeedContract>(undefined, "priceFeeds");
   #latestUpdate: LatestUpdate | undefined;
-  public readonly redstoneUpdater: RedstoneUpdater;
+  public readonly updaters: IPriceUpdater[];
 
   constructor(sdk: GearboxSDK, opts: PriceFeedRegisterOptions = {}) {
     super(sdk);
     this.logger = childLogger("PriceFeedRegister", sdk.logger);
-    this.redstoneUpdater = new RedstoneUpdater(sdk, opts?.redstone);
+    this.updaters = [
+      new RedstoneUpdater(sdk, opts?.redstone),
+      new PythUpdater(sdk, opts?.pyth),
+    ];
   }
 
   public addHook = this.#hooks.addHook.bind(this.#hooks);
@@ -97,33 +106,26 @@ export class PriceFeedRegister
       : this.#feeds.values();
 
     const txs: IPriceUpdateTx[] = [];
-    const redstonePFs: RedstonePriceFeedContract[] = [];
     const latestUpdate: LatestUpdate = {
-      redstone: [],
+      updates: [],
       timestamp: Math.floor(Date.now() / 1000),
     };
 
-    for (const pf of updateables) {
-      if (isRedstone(pf)) {
-        redstonePFs.push(pf);
-      }
-    }
+    const updates = (
+      await Promise.all(
+        this.updaters.map(u => u.getUpdateTxs(updateables, logContext)),
+      )
+    ).flat();
 
     let maxTimestamp = 0;
-    if (redstonePFs.length > 0) {
-      const redstoneUpdates = await this.redstoneUpdater.getUpdateTxs(
-        redstonePFs,
-        logContext,
-      );
-      for (const tx of redstoneUpdates) {
-        const { data } = tx;
-        const { timestamp } = data;
-        if (timestamp > maxTimestamp) {
-          maxTimestamp = timestamp;
-        }
-        txs.push(tx);
-        latestUpdate.redstone.push(data);
+    for (const tx of updates) {
+      const { data } = tx;
+      const { timestamp } = data;
+      if (timestamp > maxTimestamp) {
+        maxTimestamp = timestamp;
       }
+      txs.push(tx);
+      latestUpdate.updates.push(data);
     }
 
     const result: UpdatePriceFeedsResult = { txs, timestamp: maxTimestamp };

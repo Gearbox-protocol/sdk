@@ -1,7 +1,11 @@
 import type { UnionOmit } from "viem";
 
 import type { IBaseContract } from "../../base/index.js";
-import type { IPriceUpdateTx, PriceFeedStateHuman } from "../../types/index.js";
+import type {
+  IPriceUpdateTx,
+  PriceFeedStateHuman,
+  RawTx,
+} from "../../types/index.js";
 import type { PriceFeedRef } from "./PriceFeedRef.js";
 
 export type PriceFeedUsageType = "Main" | "Reserve";
@@ -67,7 +71,11 @@ export interface IPriceFeedContract extends IBaseContract {
    * Returns all updatable depenedencies (uderlying price feeds) of this price feed, including price feed itself, if it's updatable
    * @returns
    */
-  updatableDependencies: () => IPriceFeedContract[];
+  updatableDependencies: () => IUpdatablePriceFeedContract[];
+}
+
+export interface IUpdatablePriceFeedContract extends IPriceFeedContract {
+  createPriceUpdateTx: (data: `0x${string}`) => RawTx;
 }
 
 export interface ILPPriceFeedContract extends IPriceFeedContract {

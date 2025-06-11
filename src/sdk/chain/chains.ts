@@ -16,8 +16,6 @@ import {
 } from "viem/chains";
 import { z } from "zod";
 
-import { TypedObjectUtils } from "../utils/index.js";
-
 export type Curator = "Chaos Labs" | "K3";
 
 export interface GearboxChain extends Chain {
@@ -156,7 +154,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       },
       wellKnownToken: {
         address: "0x29219dd400f2Bf60E5a23d13Be72B486D4038894",
-        symbol: "USDC.e",
+        symbol: "USDC",
       },
       alchemyDomain: "sonic-mainnet",
     }),
@@ -245,7 +243,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
     isPublic: false,
     wellKnownToken: {
       address: "0x79a02482a880bce3f13e09da970dc34db4cd24d1",
-      symbol: "USDC.e",
+      symbol: "USDC",
     },
     alchemyDomain: "worldchain-mainnet",
     // TODO: has no block explorer API
