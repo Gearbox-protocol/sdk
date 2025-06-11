@@ -104,7 +104,9 @@ export type NormalToken =
   // crvUSD
   | "crvUSD"
   | "WBNB"
-  | "BTCB";
+  | "BTCB"
+  | "USD1"
+  | "USDX";
 
 export type NormalTokenData = {
   symbol: NormalToken;
@@ -624,6 +626,16 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
   BTCB: {
     name: "BTCB",
     symbol: "BTCB",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  USD1: {
+    name: "USD1",
+    symbol: "USD1",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  USDX: {
+    name: "USDX",
+    symbol: "USDX",
     type: { AllNetworks: TokenType.NORMAL_TOKEN },
   },
 };

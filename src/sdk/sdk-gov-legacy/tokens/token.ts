@@ -490,6 +490,11 @@ export const tokenDataByNetwork: Record<
     dUSDTv310: NOT_DEPLOYED,
     dWBNBv3: NOT_DEPLOYED,
     ynBNBx: NOT_DEPLOYED,
+
+    USD1: NOT_DEPLOYED,
+    USDX: NOT_DEPLOYED,
+    dUSD1V3: NOT_DEPLOYED,
+    sUSDX: NOT_DEPLOYED,
   },
 
   ///
@@ -836,6 +841,11 @@ export const tokenDataByNetwork: Record<
     dUSDTv310: NOT_DEPLOYED,
     dWBNBv3: NOT_DEPLOYED,
     ynBNBx: NOT_DEPLOYED,
+
+    USD1: NOT_DEPLOYED,
+    USDX: NOT_DEPLOYED,
+    dUSD1V3: NOT_DEPLOYED,
+    sUSDX: NOT_DEPLOYED,
   },
   ///
   ///
@@ -1181,6 +1191,11 @@ export const tokenDataByNetwork: Record<
     dUSDTv310: NOT_DEPLOYED,
     dWBNBv3: NOT_DEPLOYED,
     ynBNBx: NOT_DEPLOYED,
+
+    USD1: NOT_DEPLOYED,
+    USDX: NOT_DEPLOYED,
+    dUSD1V3: NOT_DEPLOYED,
+    sUSDX: NOT_DEPLOYED,
   },
   //
   //
@@ -1525,6 +1540,11 @@ export const tokenDataByNetwork: Record<
     dUSDTv310: NOT_DEPLOYED,
     dWBNBv3: NOT_DEPLOYED,
     ynBNBx: NOT_DEPLOYED,
+
+    USD1: NOT_DEPLOYED,
+    USDX: NOT_DEPLOYED,
+    dUSD1V3: NOT_DEPLOYED,
+    sUSDX: NOT_DEPLOYED,
   },
   //
   //
@@ -1873,6 +1893,11 @@ export const tokenDataByNetwork: Record<
     dUSDTv310: NOT_DEPLOYED,
     dWBNBv3: NOT_DEPLOYED,
     ynBNBx: NOT_DEPLOYED,
+
+    USD1: NOT_DEPLOYED,
+    USDX: NOT_DEPLOYED,
+    dUSD1V3: NOT_DEPLOYED,
+    sUSDX: NOT_DEPLOYED,
   },
   // New networks
   MegaETH: {} as any,
@@ -1887,6 +1912,10 @@ export const tokenDataByNetwork: Record<
     dUSDTv310: "0xe773eb1c9c26e79deb8e20be24629953ce20597d",
     dWBNBv3: "0xef7d781825350d2bacb64ef7be927fd400dcdf4f",
     ynBNBx: "0x32c830f5c34122c6afb8ae87aba541b7900a2c5f",
+    USD1: "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+    USDX: "0xf3527ef8dE265eAa3716FB312c12847bFBA66Cef",
+    dUSD1V3: "0x1318B920704295E8c53F950cD429C3E40335b81D",
+    sUSDX: "0x7788A3538C5fc7F9c7C8A74EAC4c898fC8d87d92",
   } as any,
   WorldChain: {} as any,
   Etherlink: {} as any,
