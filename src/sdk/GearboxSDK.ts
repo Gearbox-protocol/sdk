@@ -272,6 +272,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
         chainId: this.provider.chainId,
         addressProvider,
         marketConfigurators,
+        blockNumber,
       },
       `${re}attaching gearbox sdk`,
     );
