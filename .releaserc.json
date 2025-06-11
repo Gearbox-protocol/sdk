@@ -9,14 +9,7 @@
       "prerelease": "next"
     },
     {
-      "name": "v4",
-      "channel": "vfour",
-      "prerelease": "vfour"
-    },
-    {
-      "name": "v4-abi",
-      "channel": "vfourabi",
-      "prerelease": "vfourabi"
+      "name": "'+([0-9])?(.{+([0-9]),x}).x'"
     }
   ],
   "plugins": [

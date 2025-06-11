@@ -5,6 +5,7 @@ on:
     branches:
       - "master"
       - "next"
+      - "*.x"
 
 env:
   HUSKY: 0
