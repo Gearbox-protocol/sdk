@@ -8,18 +8,14 @@ import type {
   WrappedAaveV2LPToken,
   WrappedAaveV2PoolTokenData,
 } from "./aave.js";
-import { aaveV2Tokens, wrappedAaveV2Tokens } from "./aave.js";
 import type {
   AuraLPToken,
   AuraLPTokenData,
   AuraStakedToken,
   AuraStakedTokenData,
 } from "./aura.js";
-import { auraLpTokens, auraStakedTokens } from "./aura.js";
 import type { BalancerLPToken, BalancerLpTokenData } from "./balancer.js";
-import { balancerLpTokens } from "./balancer.js";
 import type { CompoundV2LPToken, CompoundV2PoolTokenData } from "./compound.js";
-import { compoundV2Tokens } from "./compound.js";
 import type {
   ConvexL2StakedToken,
   ConvexL2StakedTokenData,
@@ -28,19 +24,16 @@ import type {
   ConvexPhantomTokenData,
   ConvexStakedPhantomToken,
 } from "./convex.js";
-import { convexTokens } from "./convex.js";
 import type {
   CurveLPToken,
   CurveLPTokenData,
   MetaCurveLPTokenData,
 } from "./curveLP.js";
-import { curveTokens } from "./curveLP.js";
 import type {
   ERC4626LPToken,
   ERC4626VaultOfCurveLPTokenData,
   ERC4626VaultTokenData,
 } from "./erc4626.js";
-import { erc4626Tokens } from "./erc4626.js";
 import type {
   DieselStakedTokenData,
   DieselStakedTokenTypes,
@@ -54,7 +47,6 @@ import type {
   StakingRewardsPhantomToken,
   StakingRewardsPhantomTokenData,
 } from "./stakingRewards.js";
-import { stakingRewardsPhantomTokens } from "./stakingRewards.js";
 import type { WrappedToken, WrappedTokenData } from "./wrapped.js";
 import type {
   YearnLPToken,
@@ -62,14 +54,12 @@ import type {
   YearnVaultOfMetaCurveLPTokenData,
   YearnVaultTokenData,
 } from "./yearn.js";
-import { yearnTokens } from "./yearn.js";
 import type {
   ZircuitPhantomTokenData,
   ZircuitStakedPhantomToken,
 } from "./zircuit.js";
-import { zircuitStakedPhantomTokens } from "./zircuit.js";
 
-export type LPTokens =
+type LPTokens =
   | YearnLPToken
   | CurveLPToken
   | ConvexLPToken
@@ -98,7 +88,7 @@ export interface TokenBase {
   symbol: string;
 }
 
-export type LPTokenDataI =
+type LPTokenDataI =
   | CurveLPTokenData
   | MetaCurveLPTokenData
   | YearnVaultTokenData
@@ -117,29 +107,6 @@ export type LPTokenDataI =
   | AuraStakedTokenData
   | ZircuitPhantomTokenData
   | StakingRewardsPhantomTokenData;
-
-export type TokenDataI =
-  | NormalTokenData
-  | WrappedTokenData
-  | LPTokenDataI
-  | DieselTokenData
-  | DieselStakedTokenData
-  | GearboxTokenData;
-
-export const lpTokens: Record<LPTokens, LPTokenDataI> = {
-  ...curveTokens,
-  ...convexTokens,
-  ...yearnTokens,
-  ...balancerLpTokens,
-  ...aaveV2Tokens,
-  ...wrappedAaveV2Tokens,
-  ...compoundV2Tokens,
-  ...erc4626Tokens,
-  ...auraLpTokens,
-  ...auraStakedTokens,
-  ...zircuitStakedPhantomTokens,
-  ...stakingRewardsPhantomTokens,
-};
 
 export const ETH_ADDRESS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 
@@ -2380,6 +2347,3 @@ export const tokenSymbolByAddress = Object.entries(tokenDataByNetwork).reduce<
 export function getTokenSymbol(address: Address): SupportedToken | undefined {
   return tokenSymbolByAddress[address.toLowerCase()];
 }
-
-export const isLPToken = (t: unknown): t is LPTokens =>
-  typeof t === "string" && !!lpTokens[t as LPTokens];
