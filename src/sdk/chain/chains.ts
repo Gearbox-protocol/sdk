@@ -18,7 +18,7 @@ import { z } from "zod";
 
 import { TypedObjectUtils } from "../utils/index.js";
 
-export type Curator = "Chaos Labs" | "K3";
+export type Curator = "Chaos Labs" | "K3" | "cp0x";
 
 export interface GearboxChain extends Chain {
   network: NetworkType;
@@ -83,6 +83,9 @@ export const chains: Record<NetworkType, GearboxChain> = {
       defaultMarketConfigurators: {
         "0x354fe9f450F60b8547f88BE042E4A45b46128a06": "Chaos Labs",
         "0x4d427D418342d8CE89a7634c3a402851978B680A": "K3",
+      },
+      testMarketConfigurators: {
+        "0xc168343c791d56dd1da4b4b8b0cc1c1ec1a16e6b": "cp0x",
       },
       isPublic: true,
       wellKnownToken: {
