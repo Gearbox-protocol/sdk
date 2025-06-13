@@ -106,7 +106,8 @@ export type NormalToken =
   | "WBNB"
   | "BTCB"
   | "USD1"
-  | "USDX";
+  | "USDX"
+  | "cp0xLRT";
 
 export type NormalTokenData = {
   symbol: NormalToken;
@@ -636,6 +637,12 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
   USDX: {
     name: "USDX",
     symbol: "USDX",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+
+  cp0xLRT: {
+    name: "cp0xLRT",
+    symbol: "cp0xLRT",
     type: { AllNetworks: TokenType.NORMAL_TOKEN },
   },
 };

@@ -45,6 +45,7 @@ type ExtraFarmTokens = Extract<
   | "csUSDL"
   | "scUSD"
   | "ynBNBx"
+  | "cp0xLRT"
 >;
 
 // LRT & LST tokens among them
@@ -69,6 +70,7 @@ const EXTRA_FARM_TOKENS: Record<ExtraFarmTokens, true> = {
   amphrETH: true,
   LBTC: true,
   Re7LRT: true,
+  cp0xLRT: true,
   PT_ezETH_26DEC2024: true,
   PT_eETH_26DEC2024: true,
   PT_sUSDe_26DEC2024: true,
