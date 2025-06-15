@@ -452,6 +452,8 @@ export const tokenDataByNetwork: Record<
     DVstETH: "0x5E362eb2c0706Bd1d134689eC75176018385430B",
     waEthLidowstETH: "0x775F661b0bD1739349b9A2A3EF60be277c5d2D29",
 
+    cp0xLRT: "0xB908c9FE885369643adB5FBA4407d52bD726c72d",
+
     BTCB: NOT_DEPLOYED,
     WBNB: NOT_DEPLOYED,
     dUSDTv310: NOT_DEPLOYED,
@@ -803,6 +805,8 @@ export const tokenDataByNetwork: Record<
     DVstETH: NOT_DEPLOYED,
     waEthLidowstETH: NOT_DEPLOYED,
 
+    cp0xLRT: NOT_DEPLOYED,
+
     BTCB: NOT_DEPLOYED,
     WBNB: NOT_DEPLOYED,
     dUSDTv310: NOT_DEPLOYED,
@@ -1153,6 +1157,8 @@ export const tokenDataByNetwork: Record<
     DVstETH: NOT_DEPLOYED,
     waEthLidowstETH: NOT_DEPLOYED,
 
+    cp0xLRT: NOT_DEPLOYED,
+
     BTCB: NOT_DEPLOYED,
     WBNB: NOT_DEPLOYED,
     dUSDTv310: NOT_DEPLOYED,
@@ -1501,6 +1507,8 @@ export const tokenDataByNetwork: Record<
     pzETH: NOT_DEPLOYED,
     DVstETH: NOT_DEPLOYED,
     waEthLidowstETH: NOT_DEPLOYED,
+
+    cp0xLRT: NOT_DEPLOYED,
 
     BTCB: NOT_DEPLOYED,
     WBNB: NOT_DEPLOYED,
@@ -1854,6 +1862,8 @@ export const tokenDataByNetwork: Record<
     pzETH: NOT_DEPLOYED,
     DVstETH: NOT_DEPLOYED,
     waEthLidowstETH: NOT_DEPLOYED,
+
+    cp0xLRT: NOT_DEPLOYED,
 
     BTCB: NOT_DEPLOYED,
     WBNB: NOT_DEPLOYED,
