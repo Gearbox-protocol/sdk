@@ -117,6 +117,3 @@ export const yearnTokens: Record<
     vault: "YEARN_CURVE_FRAX_VAULT",
   },
 };
-
-export const isYearnLPToken = (t: unknown): t is YearnLPToken =>
-  typeof t === "string" && !!yearnTokens[t as YearnLPToken];

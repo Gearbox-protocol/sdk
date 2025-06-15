@@ -12,7 +12,6 @@ import {
   WAD_DECIMALS_POW,
 } from "../../constants/index.js";
 import type { Asset } from "../../router/index.js";
-import type { TokensAPYList } from "../apy/index.js";
 import type {
   CaTokenBalance,
   CreditAccountDataPayload,
@@ -26,7 +25,7 @@ import type { AssetWithAmountInTarget } from "./assets.js";
 
 export interface CalcOverallAPYProps {
   caAssets: Array<Asset>;
-  lpAPY: TokensAPYList | undefined;
+  lpAPY: Record<Address, number> | undefined;
 
   quotas: Record<Address, Asset>;
   quotaRates: Record<Address, Pick<QuotaInfo, "isActive" | "rate">>;
