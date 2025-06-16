@@ -145,7 +145,15 @@ export class AccountOpener extends SDKConstruct {
         const result = await this.#openAccount(target, i + 1, targets.length);
         results.push(result);
         success += result.account ? 1 : 0;
+        if (result.error) {
+          this.#logger?.error(
+            `failed to open account #${i + 1}/${targets.length}: ${result.error}`,
+          );
+        }
       } catch (e) {
+        this.#logger?.error(
+          `failed to open account #${i + 1}/${targets.length}: ${e}`,
+        );
         results.push({
           input: target,
           error: e as Error,
