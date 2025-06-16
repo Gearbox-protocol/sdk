@@ -1,5 +1,5 @@
 import type { Address, Hash, PrivateKeyAccount } from "viem";
-import { isAddress, parseEther, parseEventLogs } from "viem";
+import { BaseError, isAddress, parseEther, parseEventLogs } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 import { ierc20Abi } from "../abi/iERC20.js";
@@ -25,6 +25,15 @@ import {
 } from "../sdk/index.js";
 import { iDegenNftv2Abi } from "./abi.js";
 import { type AnvilClient, createAnvilClient } from "./createAnvilClient.js";
+
+export class OpenTxRevertedError extends BaseError {
+  public readonly txHash: Hash;
+
+  constructor(txHash: Hash) {
+    super("open credit account tx reverted");
+    this.txHash = txHash;
+  }
+}
 
 export interface AccountOpenerOptions {
   faucet?: Address;
@@ -52,7 +61,7 @@ export interface TargetAccount {
 
 export interface OpenAccountResult {
   input: TargetAccount;
-  error?: string;
+  error?: Error;
   txHash?: string;
   rawTx?: RawTx;
   account?: CreditAccountData;
@@ -139,7 +148,7 @@ export class AccountOpener extends SDKConstruct {
       } catch (e) {
         results.push({
           input: target,
-          error: `${e}`,
+          error: e as Error,
         });
       }
     }
@@ -173,7 +182,7 @@ export class AccountOpener extends SDKConstruct {
     } catch (e) {
       return {
         input,
-        error: `${e}`,
+        error: e as Error,
         rawTx: tx,
       };
     }
@@ -181,7 +190,7 @@ export class AccountOpener extends SDKConstruct {
     if (receipt.status === "reverted") {
       return {
         input,
-        error: `open credit account tx reverted`,
+        error: new OpenTxRevertedError(hash),
         txHash: hash,
         rawTx: tx,
       };
