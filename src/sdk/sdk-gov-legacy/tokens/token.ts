@@ -453,6 +453,8 @@ export const tokenDataByNetwork: Record<
     waEthLidowstETH: "0x775F661b0bD1739349b9A2A3EF60be277c5d2D29",
 
     cp0xLRT: "0xB908c9FE885369643adB5FBA4407d52bD726c72d",
+    uptBTC: "0x8AcA0841993ef4C87244d519166e767f49362C21",
+    PT_uptBTC_14AUG2025: "0x7c853d6bfb49256af65af672dcc3f66c015e96e0",
 
     BTCB: NOT_DEPLOYED,
     WBNB: NOT_DEPLOYED,
@@ -806,6 +808,8 @@ export const tokenDataByNetwork: Record<
     waEthLidowstETH: NOT_DEPLOYED,
 
     cp0xLRT: NOT_DEPLOYED,
+    uptBTC: NOT_DEPLOYED,
+    PT_uptBTC_14AUG2025: NOT_DEPLOYED,
 
     BTCB: NOT_DEPLOYED,
     WBNB: NOT_DEPLOYED,
@@ -1158,6 +1162,8 @@ export const tokenDataByNetwork: Record<
     waEthLidowstETH: NOT_DEPLOYED,
 
     cp0xLRT: NOT_DEPLOYED,
+    uptBTC: NOT_DEPLOYED,
+    PT_uptBTC_14AUG2025: NOT_DEPLOYED,
 
     BTCB: NOT_DEPLOYED,
     WBNB: NOT_DEPLOYED,
@@ -1509,6 +1515,8 @@ export const tokenDataByNetwork: Record<
     waEthLidowstETH: NOT_DEPLOYED,
 
     cp0xLRT: NOT_DEPLOYED,
+    uptBTC: NOT_DEPLOYED,
+    PT_uptBTC_14AUG2025: NOT_DEPLOYED,
 
     BTCB: NOT_DEPLOYED,
     WBNB: NOT_DEPLOYED,
@@ -1864,6 +1872,8 @@ export const tokenDataByNetwork: Record<
     waEthLidowstETH: NOT_DEPLOYED,
 
     cp0xLRT: NOT_DEPLOYED,
+    uptBTC: NOT_DEPLOYED,
+    PT_uptBTC_14AUG2025: NOT_DEPLOYED,
 
     BTCB: NOT_DEPLOYED,
     WBNB: NOT_DEPLOYED,
