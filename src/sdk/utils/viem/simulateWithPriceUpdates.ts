@@ -264,7 +264,7 @@ function extractCallError(result: MulticallResponse): string {
   if (error instanceof ContractFunctionRevertedError) {
     return "[" + (error.data?.errorName ?? "reverted") + "]";
   }
-  // this happens for out of gas errors
+  // this happens for `out of gas` and `header not found` errors
   if (err instanceof CallExecutionError) {
     return `[${err.name}: ${err.details}]`;
   }
