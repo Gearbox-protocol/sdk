@@ -1,6 +1,11 @@
 /* eslint-disable accessor-pairs */
+import {
+  parseAccumulatorUpdateData,
+  parsePriceFeedMessage,
+  sliceAccumulatorUpdateData,
+} from "@pythnetwork/price-service-sdk";
 import type { Address, Hex } from "viem";
-import { decodeAbiParameters, encodeAbiParameters } from "viem";
+import { encodeAbiParameters, toHex } from "viem";
 
 import { SDKConstruct } from "../../../base/index.js";
 import type { GearboxSDK } from "../../../GearboxSDK.js";
@@ -204,8 +209,10 @@ export class PythUpdater
     this.#logger?.debug(
       `fetching pyth payloads for ${dataFeedsIds.size} price feeds: ${ids.join(", ")}${tsStr}`,
     );
-    const url = new URL(this.#api + (this.#historicalTimestamp ?? "latest"));
     // https://hermes.pyth.network/docs/#/rest/latest_price_updates
+    const url = new URL(this.#api + (this.#historicalTimestamp ?? "latest"));
+    // we're requesting non-parsed data for multiple feeds, and then splitting it manually
+    url.searchParams.append("parsed", "false");
     if (this.#ignoreMissingFeeds) {
       url.searchParams.append("ignore_invalid_price_ids", "true");
     }
@@ -235,19 +242,42 @@ function isPyth(pf: IPriceFeedContract): pf is IPythPriceFeedContract {
 }
 
 function respToCalldata(resp: PythPriceUpdatesResp): TimestampedCalldata[] {
-  const [datas] = decodeAbiParameters(
-    [{ type: "bytes[]" }],
-    `0x${resp.binary.data}`,
-  );
-  return resp.parsed.map((pf, i) => {
+  const updates = splitAccumulatorUpdates(resp.binary.data[0]);
+
+  return updates.map(({ data, dataFeedId, timestamp }) => {
     return {
-      dataFeedId: pf.id,
+      dataFeedId,
       data: encodeAbiParameters(
-        [{ type: "uint256" }, { type: "bytes" }],
-        [BigInt(pf.price.publish_time), datas[i]],
+        [{ type: "uint256" }, { type: "bytes[]" }],
+        [BigInt(timestamp), [data]],
       ),
-      timestamp: pf.price.publish_time,
+      timestamp,
       cached: false,
     };
   });
+}
+
+interface PythPriceFeedUpdate {
+  dataFeedId: Hex;
+  timestamp: number;
+  data: Hex;
+}
+
+function splitAccumulatorUpdates(binary: string): PythPriceFeedUpdate[] {
+  const data = Buffer.from(binary, "hex");
+
+  const parsed = parseAccumulatorUpdateData(data);
+  const results: PythPriceFeedUpdate[] = [];
+
+  for (let i = 0; i < parsed.updates.length; i++) {
+    const upd = parsed.updates[i].message;
+    const msg = parsePriceFeedMessage(upd);
+    results.push({
+      dataFeedId: toHex(msg.feedId),
+      timestamp: msg.publishTime.toNumber(),
+      data: toHex(sliceAccumulatorUpdateData(data, i, i + 1)),
+    });
+  }
+
+  return results;
 }

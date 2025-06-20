@@ -55,9 +55,12 @@
     "typecheck:ci": "tsc --noEmit"
   },
   "dependencies": {
+    "@pythnetwork/price-service-sdk": "^1.8.0",
     "@redstone-finance/evm-connector": "^0.7.5",
     "@redstone-finance/protocol": "^0.7.5",
+    "@types/bn.js": "^5.2.0",
     "abitype": "^1.0.8",
+    "bn.js": "^5.2.2",
     "date-fns": "^4.1.0",
     "decimal.js-light": "^2.5.1",
     "keyv": "^5.3.3",
