@@ -7,7 +7,6 @@ import {
   PRICE_DECIMALS_POW,
 } from "../../constants/index.js";
 import type { Asset } from "../../router/index.js";
-import type { TokensAPYList } from "../apy/index.js";
 import { TokenData } from "../tokens/tokenData.js";
 import { toBN } from "../utils/formatter.js";
 import { PriceUtils } from "../utils/price.js";
@@ -72,9 +71,9 @@ const prices = {
   [STETH]: toBN("1703.87588096", PRICE_DECIMALS_POW),
 };
 
-const lpAPY = {
+const lpAPY: Record<Address, number> = {
   [STETH]: 38434,
-} as unknown as TokensAPYList;
+};
 
 const DAI_DECIMALS = 18;
 const WETH_DECIMALS = 18;

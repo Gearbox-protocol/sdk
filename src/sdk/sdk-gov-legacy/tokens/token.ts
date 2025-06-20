@@ -8,18 +8,14 @@ import type {
   WrappedAaveV2LPToken,
   WrappedAaveV2PoolTokenData,
 } from "./aave.js";
-import { aaveV2Tokens, wrappedAaveV2Tokens } from "./aave.js";
 import type {
   AuraLPToken,
   AuraLPTokenData,
   AuraStakedToken,
   AuraStakedTokenData,
 } from "./aura.js";
-import { auraLpTokens, auraStakedTokens } from "./aura.js";
 import type { BalancerLPToken, BalancerLpTokenData } from "./balancer.js";
-import { balancerLpTokens } from "./balancer.js";
 import type { CompoundV2LPToken, CompoundV2PoolTokenData } from "./compound.js";
-import { compoundV2Tokens } from "./compound.js";
 import type {
   ConvexL2StakedToken,
   ConvexL2StakedTokenData,
@@ -28,48 +24,39 @@ import type {
   ConvexPhantomTokenData,
   ConvexStakedPhantomToken,
 } from "./convex.js";
-import { convexTokens } from "./convex.js";
 import type {
   CurveLPToken,
   CurveLPTokenData,
   MetaCurveLPTokenData,
 } from "./curveLP.js";
-import { curveTokens } from "./curveLP.js";
 import type {
   ERC4626LPToken,
   ERC4626VaultOfCurveLPTokenData,
   ERC4626VaultTokenData,
 } from "./erc4626.js";
-import { erc4626Tokens } from "./erc4626.js";
 import type {
-  DieselStakedTokenData,
   DieselStakedTokenTypes,
-  DieselTokenData,
   DieselTokenTypes,
   GearboxToken,
-  GearboxTokenData,
 } from "./gear.js";
-import type { NormalToken, NormalTokenData } from "./normal.js";
+import type { NormalToken } from "./normal.js";
 import type {
   StakingRewardsPhantomToken,
   StakingRewardsPhantomTokenData,
 } from "./stakingRewards.js";
-import { stakingRewardsPhantomTokens } from "./stakingRewards.js";
-import type { WrappedToken, WrappedTokenData } from "./wrapped.js";
+import type { WrappedToken } from "./wrapped.js";
 import type {
   YearnLPToken,
   YearnVaultOfCurveLPTokenData,
   YearnVaultOfMetaCurveLPTokenData,
   YearnVaultTokenData,
 } from "./yearn.js";
-import { yearnTokens } from "./yearn.js";
 import type {
   ZircuitPhantomTokenData,
   ZircuitStakedPhantomToken,
 } from "./zircuit.js";
-import { zircuitStakedPhantomTokens } from "./zircuit.js";
 
-export type LPTokens =
+type LPTokens =
   | YearnLPToken
   | CurveLPToken
   | ConvexLPToken
@@ -98,7 +85,7 @@ export interface TokenBase {
   symbol: string;
 }
 
-export type LPTokenDataI =
+type LPTokenDataI =
   | CurveLPTokenData
   | MetaCurveLPTokenData
   | YearnVaultTokenData
@@ -117,29 +104,6 @@ export type LPTokenDataI =
   | AuraStakedTokenData
   | ZircuitPhantomTokenData
   | StakingRewardsPhantomTokenData;
-
-export type TokenDataI =
-  | NormalTokenData
-  | WrappedTokenData
-  | LPTokenDataI
-  | DieselTokenData
-  | DieselStakedTokenData
-  | GearboxTokenData;
-
-export const lpTokens: Record<LPTokens, LPTokenDataI> = {
-  ...curveTokens,
-  ...convexTokens,
-  ...yearnTokens,
-  ...balancerLpTokens,
-  ...aaveV2Tokens,
-  ...wrappedAaveV2Tokens,
-  ...compoundV2Tokens,
-  ...erc4626Tokens,
-  ...auraLpTokens,
-  ...auraStakedTokens,
-  ...zircuitStakedPhantomTokens,
-  ...stakingRewardsPhantomTokens,
-};
 
 export const ETH_ADDRESS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 
@@ -484,6 +448,10 @@ export const tokenDataByNetwork: Record<
     pzETH: "0x8c9532a60E0E7C6BbD2B2c1303F63aCE1c3E9811",
     DVstETH: "0x5E362eb2c0706Bd1d134689eC75176018385430B",
     waEthLidowstETH: "0x775F661b0bD1739349b9A2A3EF60be277c5d2D29",
+
+    cp0xLRT: "0xB908c9FE885369643adB5FBA4407d52bD726c72d",
+    uptBTC: "0x8AcA0841993ef4C87244d519166e767f49362C21",
+    PT_uptBTC_14AUG2025: "0x7c853d6bfb49256af65af672dcc3f66c015e96e0",
 
     BTCB: NOT_DEPLOYED,
     WBNB: NOT_DEPLOYED,
@@ -836,6 +804,10 @@ export const tokenDataByNetwork: Record<
     DVstETH: NOT_DEPLOYED,
     waEthLidowstETH: NOT_DEPLOYED,
 
+    cp0xLRT: NOT_DEPLOYED,
+    uptBTC: NOT_DEPLOYED,
+    PT_uptBTC_14AUG2025: NOT_DEPLOYED,
+
     BTCB: NOT_DEPLOYED,
     WBNB: NOT_DEPLOYED,
     dUSDTv310: NOT_DEPLOYED,
@@ -1186,6 +1158,10 @@ export const tokenDataByNetwork: Record<
     DVstETH: NOT_DEPLOYED,
     waEthLidowstETH: NOT_DEPLOYED,
 
+    cp0xLRT: NOT_DEPLOYED,
+    uptBTC: NOT_DEPLOYED,
+    PT_uptBTC_14AUG2025: NOT_DEPLOYED,
+
     BTCB: NOT_DEPLOYED,
     WBNB: NOT_DEPLOYED,
     dUSDTv310: NOT_DEPLOYED,
@@ -1534,6 +1510,10 @@ export const tokenDataByNetwork: Record<
     pzETH: NOT_DEPLOYED,
     DVstETH: NOT_DEPLOYED,
     waEthLidowstETH: NOT_DEPLOYED,
+
+    cp0xLRT: NOT_DEPLOYED,
+    uptBTC: NOT_DEPLOYED,
+    PT_uptBTC_14AUG2025: NOT_DEPLOYED,
 
     BTCB: NOT_DEPLOYED,
     WBNB: NOT_DEPLOYED,
@@ -1887,6 +1867,10 @@ export const tokenDataByNetwork: Record<
     pzETH: NOT_DEPLOYED,
     DVstETH: NOT_DEPLOYED,
     waEthLidowstETH: NOT_DEPLOYED,
+
+    cp0xLRT: NOT_DEPLOYED,
+    uptBTC: NOT_DEPLOYED,
+    PT_uptBTC_14AUG2025: NOT_DEPLOYED,
 
     BTCB: NOT_DEPLOYED,
     WBNB: NOT_DEPLOYED,
@@ -2380,6 +2364,3 @@ export const tokenSymbolByAddress = Object.entries(tokenDataByNetwork).reduce<
 export function getTokenSymbol(address: Address): SupportedToken | undefined {
   return tokenSymbolByAddress[address.toLowerCase()];
 }
-
-export const isLPToken = (t: unknown): t is LPTokens =>
-  typeof t === "string" && !!lpTokens[t as LPTokens];

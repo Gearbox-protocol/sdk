@@ -5,7 +5,6 @@ import type {
   Chain,
   Client,
   ContractFunctionParameters,
-  ContractFunctionReturnType,
   Hex,
   MulticallContracts,
   MulticallReturnType,
@@ -61,6 +60,10 @@ export interface SimulateMulticallReturnType<
 /**
  * This is "multicall" action from viem, modified to use "simulateContract" instead of "readContract"
  * Unlike viem's multicall there's no batching, since for simulation we assume that calls are dependent
+ *
+ * Another difference is how network errors are threated
+ * In case of multicall-level error (network, out of gas, header not found, etc.) this method will throw even with allowFailure=true,
+ * while original multicall with allowFailure=true will return `failure` for all calls, and push error down to each call
  * @param client
  * @param parameters
  * @returns
@@ -151,36 +154,14 @@ export async function simulateMulticall<
   };
 
   const results = [];
-  let result: ContractFunctionReturnType<
-    typeof multicall3Abi,
-    AbiStateMutability,
-    "aggregate3"
-  >;
-  try {
-    const { data } = await getAction(client, call, "call")(request);
+  const { data } = await getAction(client, call, "call")(request);
 
-    result = decodeFunctionResult({
-      abi: multicall3Abi,
-      args: [calls],
-      functionName: "aggregate3",
-      data: data || "0x",
-    });
-  } catch (e) {
-    if (!allowFailure) {
-      throw e;
-    }
-    for (const _ of contracts) {
-      results.push({
-        status: "failure",
-        error: e,
-        result: undefined,
-      });
-    }
-    return {
-      results: results as MulticallReturnType<contracts, allowFailure>,
-      request,
-    };
-  }
+  const result = decodeFunctionResult({
+    abi: multicall3Abi,
+    args: [calls],
+    functionName: "aggregate3",
+    data: data || "0x",
+  });
 
   for (let j = 0; j < result.length; j++) {
     // Extract the response from `readContract`

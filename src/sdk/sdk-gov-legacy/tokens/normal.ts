@@ -106,7 +106,10 @@ export type NormalToken =
   | "WBNB"
   | "BTCB"
   | "USD1"
-  | "USDX";
+  | "USDX"
+  | "cp0xLRT"
+  | "uptBTC"
+  | "PT_uptBTC_14AUG2025";
 
 export type NormalTokenData = {
   symbol: NormalToken;
@@ -636,6 +639,23 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
   USDX: {
     name: "USDX",
     symbol: "USDX",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+
+  cp0xLRT: {
+    name: "cp0xLRT",
+    symbol: "cp0xLRT",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+
+  uptBTC: {
+    name: "uptBTC",
+    symbol: "uptBTC",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  PT_uptBTC_14AUG2025: {
+    name: "Pendle PT uptBTC 14 August 2025 expiry",
+    symbol: "PT_uptBTC_14AUG2025",
     type: { AllNetworks: TokenType.NORMAL_TOKEN },
   },
 };
