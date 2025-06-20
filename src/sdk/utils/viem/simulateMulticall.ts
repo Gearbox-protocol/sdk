@@ -32,7 +32,10 @@ export type SimulateMulticallParameters<
     optional?: boolean;
     properties?: Record<string, any>;
   } = {},
-> = Pick<CallParameters, "blockNumber" | "blockTag" | "gas" | "account"> & {
+> = Pick<
+  CallParameters,
+  "blockNumber" | "blockTag" | "gas" | "account" | "value"
+> & {
   allowFailure?: allowFailure | boolean | undefined;
   contracts: MulticallContracts<
     Narrow<contracts>,
@@ -76,6 +79,7 @@ export async function simulateMulticall<
     blockNumber,
     blockTag,
     gas,
+    value,
     multicallAddress: multicallAddress_,
   } = parameters;
   const contracts = parameters.contracts as ContractFunctionParameters[];
@@ -143,6 +147,7 @@ export async function simulateMulticall<
     blockTag: blockTag as any, // does not infer well that either blockNumber or blockTag must be present
     gas,
     account,
+    value,
   };
 
   const results = [];

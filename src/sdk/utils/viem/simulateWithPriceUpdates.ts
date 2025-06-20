@@ -322,7 +322,7 @@ export class SimulateWithPriceUpdatesError extends BaseError {
     this.#request = request;
   }
 
-  public getCastTraceCall(): string {
-    return this.#request ? generateCastTraceCall(this.#request) : "";
+  public getCastTraceCall(rpcUrl?: string): string {
+    return this.#request ? generateCastTraceCall(this.#request, rpcUrl) : "";
   }
 }
