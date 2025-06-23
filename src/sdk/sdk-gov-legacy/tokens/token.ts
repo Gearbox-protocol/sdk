@@ -35,19 +35,16 @@ import type {
   ERC4626VaultTokenData,
 } from "./erc4626.js";
 import type {
-  DieselStakedTokenData,
   DieselStakedTokenTypes,
-  DieselTokenData,
   DieselTokenTypes,
   GearboxToken,
-  GearboxTokenData,
 } from "./gear.js";
-import type { NormalToken, NormalTokenData } from "./normal.js";
+import type { NormalToken } from "./normal.js";
 import type {
   StakingRewardsPhantomToken,
   StakingRewardsPhantomTokenData,
 } from "./stakingRewards.js";
-import type { WrappedToken, WrappedTokenData } from "./wrapped.js";
+import type { WrappedToken } from "./wrapped.js";
 import type {
   YearnLPToken,
   YearnVaultOfCurveLPTokenData,

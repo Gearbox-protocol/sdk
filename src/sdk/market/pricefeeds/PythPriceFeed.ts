@@ -1,16 +1,22 @@
-import type { Address } from "viem";
+import type { Address, Hex } from "viem";
 import { decodeAbiParameters } from "viem";
 
+import { pythPriceFeedAbi } from "../../abi/oracles.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
+import type { RawTx } from "../../types/index.js";
 import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed.js";
 import { AbstractPriceFeedContract } from "./AbstractPriceFeed.js";
+import type { IUpdatablePriceFeedContract } from "./types.js";
 
-const abi = [] as const;
+const abi = pythPriceFeedAbi;
 type abi = typeof abi;
 
-export class PythPriceFeed extends AbstractPriceFeedContract<abi> {
+export class PythPriceFeed
+  extends AbstractPriceFeedContract<abi>
+  implements IUpdatablePriceFeedContract
+{
   public readonly token: Address;
-  public readonly priceFeedId: Address;
+  public readonly priceFeedId: Hex;
   public readonly pyth: Address;
   public readonly maxConfToPriceRatio?: bigint;
 
@@ -51,5 +57,13 @@ export class PythPriceFeed extends AbstractPriceFeedContract<abi> {
       this.priceFeedId = decoded[1];
       this.pyth = decoded[2];
     }
+  }
+
+  public createPriceUpdateTx(data: `0x${string}`): RawTx {
+    return this.createRawTx({
+      functionName: "updatePrice",
+      args: [data],
+      description: `updating pyth price for ${this.priceFeedId} [${this.labelAddress(this.address)}]`,
+    });
   }
 }

@@ -1,14 +1,6 @@
-export interface TimestampedCalldata {
-  dataFeedId: string;
-  data: `0x${string}`;
-  /**
-   * This timestamp is in seconds
-   */
-  timestamp: number;
-  cached: boolean;
-}
+import type { TimestampedCalldata } from "./types.js";
 
-export interface RedstoneCacheOptions {
+export interface PriceUpdatesCacheOptions {
   /**
    * Assume that in historical mode we only need to fetch once and then reuse from cache forever
    */
@@ -19,22 +11,20 @@ export interface RedstoneCacheOptions {
   ttl: number;
 }
 
-export class RedstoneCache {
+export class PriceUpdatesCache {
   #cache = new Map<string, Omit<TimestampedCalldata, "cached">>();
   #ttlMs: number;
   #historical: boolean;
 
-  constructor(opts: RedstoneCacheOptions) {
+  constructor(opts: PriceUpdatesCacheOptions) {
     this.#ttlMs = opts.ttl;
     this.#historical = opts.historical;
   }
 
   public get(
-    dataServiceId: string,
-    dataFeedId: string,
-    uniqueSignersCount: number,
+    ...path: Array<number | string>
   ): Omit<TimestampedCalldata, "cached"> | undefined {
-    const key = this.#cacheKey(dataServiceId, dataFeedId, uniqueSignersCount);
+    const key = this.#cacheKey(...path);
     const data = this.#cache.get(key);
     if (!data) {
       return undefined;
@@ -47,12 +37,10 @@ export class RedstoneCache {
   }
 
   public set(
-    dataServiceId: string,
-    dataFeedId: string,
-    uniqueSignersCount: number,
     value: Omit<TimestampedCalldata, "cached">,
+    ...path: Array<number | string>
   ): void {
-    const key = this.#cacheKey(dataServiceId, dataFeedId, uniqueSignersCount);
+    const key = this.#cacheKey(...path);
     this.#cache.set(key, value);
   }
 
@@ -63,11 +51,8 @@ export class RedstoneCache {
     return value.timestamp * 1000 + this.#ttlMs < Date.now();
   }
 
-  #cacheKey(
-    dataServiceId: string,
-    dataFeedId: string,
-    uniqueSignersCount: number,
-  ): string {
-    return `${dataServiceId}:${dataFeedId}:${uniqueSignersCount}`;
+  #cacheKey(...path: Array<number | string>): string {
+    // return `${dataServiceId}:${dataFeedId}:${uniqueSignersCount}`;
+    return path.join(":");
   }
 }

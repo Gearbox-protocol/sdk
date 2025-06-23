@@ -1,9 +1,15 @@
 import type { CallParameters } from "viem";
 
-export function generateCastTraceCall(params: CallParameters): string {
+export function generateCastTraceCall(
+  params: CallParameters,
+  rpcUrl?: string,
+): string {
   const { to, data, blockNumber, gas, gasPrice, maxPriorityFeePerGas, value } =
     params;
-  const cmd = ["cast", "call", "--trace", "--rpc-url", "$RPC_URL"];
+  const cmd = ["cast", "call", "--trace"];
+  if (rpcUrl) {
+    cmd.push("--rpc-url", rpcUrl);
+  }
   if (blockNumber) {
     cmd.push("--block", blockNumber.toString());
   }

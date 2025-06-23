@@ -1,6 +1,5 @@
 import type { Address } from "viem";
 
-import type { NetworkType } from "../../chain/index.js";
 import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR } from "../../constants/index.js";
 import type { CreditManagerData_Legacy } from "./creditManager.js";
 
