@@ -942,7 +942,7 @@ export class CreditAccountsService extends SDKConstruct {
    */
   public getOptimalHFForPartialLiquidation(ca: CreditAccountData): bigint {
     const borrowRate = this.getBorrowRate(ca);
-    return borrowRate < 100n ? borrowRate : 100n;
+    return PERCENTAGE_FACTOR + (borrowRate < 100n ? borrowRate : 100n);
   }
 
   /**
