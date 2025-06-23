@@ -57,20 +57,14 @@ export class Pools7DAgoPlugin
       blockNumber: BigIntMath.max(0n, targetBlock),
     });
 
+    this.#pools7DAgo = new AddressMap<Pool7DAgoState>(undefined, MAP_LABEL);
     resp.forEach((r, index) => {
       const m = markets[index];
       const cfg = m.configurator.address;
       const pool = m.pool.pool.address;
 
       if (r.status === "success") {
-        if (!this.#pools7DAgo) {
-          this.#pools7DAgo = new AddressMap<Pool7DAgoState>(
-            undefined,
-            MAP_LABEL,
-          );
-        }
-
-        this.#pools7DAgo.upsert(m.pool.pool.address, {
+        this.#pools7DAgo!.upsert(m.pool.pool.address, {
           dieselRate: r.result.dieselRate,
           pool,
         });

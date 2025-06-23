@@ -48,6 +48,7 @@ export class DegenDistributorsPlugin
       return acc;
     }, {});
 
+    this.#distributors = new AddressMap<Address>(undefined, MAP_LABEL);
     this.sdk.marketRegister.markets.forEach(m => {
       const pool = m.pool.pool.address;
       const cfg = m.configurator.address;
@@ -55,11 +56,7 @@ export class DegenDistributorsPlugin
       const r = distributorByConfigurator?.[cfgLC];
 
       if (r.status === "fulfilled") {
-        if (!this.#distributors) {
-          this.#distributors = new AddressMap<Address>(undefined, MAP_LABEL);
-        }
-
-        this.#distributors.upsert(pool, r.value);
+        this.#distributors!.upsert(pool, r.value);
       } else {
         this.sdk.logger?.error(
           `failed to load degen distributor for market configurator ${this.labelAddress(cfg)} and pool ${this.labelAddress(pool)}: ${r.reason}`,
