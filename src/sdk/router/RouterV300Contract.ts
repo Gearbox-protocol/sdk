@@ -5,7 +5,7 @@ import { iCreditFacadeV300MulticallAbi } from "../../abi/v300.js";
 import type { NetworkType } from "../chain/chains.js";
 import { PERCENTAGE_FACTOR } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
-import { getConnectors } from "../sdk-gov-legacy/index.js";
+import { getConnectors, tokenDataByNetwork } from "../sdk-gov-legacy/index.js";
 import type { Leftovers } from "./AbstractRouterContract.js";
 import { AbstractRouterContract } from "./AbstractRouterContract.js";
 import { assetsMap, balancesMap, compareRouterResults } from "./helpers.js";
@@ -256,6 +256,20 @@ export class RouterV300Contract
       connectors,
     });
 
+    // TODO: stkcvxRLUSDUSDC workaround
+    // van0k.eth:
+    // Full liquidations fail because there is no path for CRV to USDC
+    // To fix liquidations, while rewards paths are not implemented, you can pass force = true in findBestClosePath. Then it will leave tokens that it cannot swap on the account simply
+    const force = ca.tokens.some(
+      b =>
+        b.token.toLowerCase() ===
+          tokenDataByNetwork.Mainnet.stkcvxRLUSDUSDC.toLowerCase() &&
+        b.balance > 10n,
+    );
+    if (force) {
+      this.logger?.warn("applying stkcvxRLUSDUSDC workaround");
+    }
+
     let results: Array<RouterResult> = [];
     for (const po of pathOptions) {
       // TODO: maybe Promise.all?
@@ -268,7 +282,7 @@ export class RouterV300Contract
           BigInt(slippage),
           po,
           BigInt(LOOPS_PER_TX),
-          false,
+          force,
         ],
         {
           gas: GAS_PER_BLOCK,
