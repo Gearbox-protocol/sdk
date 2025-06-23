@@ -18,6 +18,8 @@ import {
   MAX_UINT256,
   MIN_INT96,
   NOT_DEPLOYED,
+  PERCENTAGE_FACTOR,
+  RAY,
   VERSION_RANGE_310,
 } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
@@ -52,7 +54,7 @@ import {
   tokenSymbolByAddress,
 } from "../sdk-gov-legacy/index.js";
 import type { ILogger, IPriceUpdateTx, MultiCall } from "../types/index.js";
-import { childLogger } from "../utils/index.js";
+import { AddressMap, childLogger } from "../utils/index.js";
 import { simulateWithPriceUpdates } from "../utils/viem/index.js";
 import type {
   AddCollateralProps,
@@ -896,6 +898,51 @@ export class CreditAccountsService extends SDKConstruct {
     tx.value = ethAmount.toString(10);
 
     return { calls, tx, creditFacade: cmSuite.creditFacade };
+  }
+
+  /**
+   * Returns borrow rate with 4 digits precision (10000 = 100%)
+   * @param ca
+   * @returns
+   */
+  public getBorrowRate(ca: CreditAccountData): bigint {
+    // R = Debt * baserate with fee / (total value or debt)
+    // Qr = sum(quota rate * quota amount) * (1+fee) / (total value or debt)
+    // Total = r+qr
+    const { creditManager } = this.sdk.marketRegister.findCreditManager(
+      ca.creditManager,
+    );
+    const { pool } = this.sdk.marketRegister.findByCreditManager(
+      ca.creditManager,
+    );
+    const { feeInterest } = creditManager;
+    const { baseInterestRate } = pool.pool;
+    const baseRateWithFee =
+      baseInterestRate * (BigInt(feeInterest) + PERCENTAGE_FACTOR);
+    const totalDebt = ca.debt + ca.accruedInterest + ca.accruedFees;
+    const r = (ca.debt * baseRateWithFee) / (totalDebt * RAY);
+
+    const caTokens = new AddressMap(ca.tokens.map(t => [t.token, t]));
+    let qr = 0n;
+
+    for (const t of creditManager.collateralTokens) {
+      const b = caTokens.get(t);
+      if (b) {
+        qr += b.quota * BigInt(pool.pqk.quotas.get(t)?.rate ?? 0);
+      }
+    }
+    qr = (qr * (BigInt(feeInterest) + PERCENTAGE_FACTOR)) / PERCENTAGE_FACTOR;
+    qr /= totalDebt;
+    return r + qr;
+  }
+
+  /**
+   * Returns optimal HF for partial liquidation with 4 digits precision (10000 = 100%)
+   * @param ca
+   */
+  public getOptimalHFForPartialLiquidation(ca: CreditAccountData): bigint {
+    const borrowRate = this.getBorrowRate(ca);
+    return borrowRate < 100n ? borrowRate : 100n;
   }
 
   /**
