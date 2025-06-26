@@ -1,8 +1,4 @@
-import {
-  parseAccumulatorUpdateData,
-  parsePriceFeedMessage,
-  sliceAccumulatorUpdateData,
-} from "@pythnetwork/price-service-sdk";
+import { Buffer } from "buffer";
 import type { Address, Hex } from "viem";
 import { encodeAbiParameters, toHex } from "viem";
 
@@ -16,6 +12,11 @@ import type {
 } from "../types.js";
 import { PriceUpdatesCache } from "./PriceUpdatesCache.js";
 import { PriceUpdateTx } from "./PriceUpdateTx.js";
+import {
+  parseAccumulatorUpdateData,
+  parsePriceFeedMessage,
+  sliceAccumulatorUpdateData,
+} from "./PythAccumulatorUpdateData.js";
 import type {
   IPriceUpdater,
   IPriceUpdateTask,
