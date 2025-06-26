@@ -64,7 +64,7 @@ export class Pools7DAgoPlugin
       const pool = m.pool.pool.address;
 
       if (r.status === "success") {
-        this.#pools7DAgo!.upsert(m.pool.pool.address, {
+        this.#pools7DAgo?.upsert(m.pool.pool.address, {
           dieselRate: r.result.dieselRate,
           pool,
         });

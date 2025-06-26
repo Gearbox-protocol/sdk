@@ -14,7 +14,7 @@ interface CalculateMaxAPYProps {
 
 export class PositionUtils {
   static maxLeverage(lpToken: Address, cms: Array<PartialCM>) {
-    const [maxThreshold] = this.maxLeverageThreshold(lpToken, cms);
+    const [maxThreshold] = PositionUtils.maxLeverageThreshold(lpToken, cms);
 
     const maxLeverage =
       (PERCENTAGE_FACTOR * LEVERAGE_DECIMALS) /

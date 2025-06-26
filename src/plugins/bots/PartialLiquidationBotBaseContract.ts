@@ -25,6 +25,7 @@ export interface PartialLiquidationBotBaseContract<
 > extends BotParameters,
     BaseContract<abi> {}
 
+// biome-ignore lint/suspicious/noUnsafeDeclarationMerging: -
 export abstract class PartialLiquidationBotBaseContract<
   abi extends Abi | readonly unknown[],
 > extends BaseContract<abi> {

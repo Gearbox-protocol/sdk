@@ -1,4 +1,3 @@
-/* eslint-disable accessor-pairs */
 import { DataServiceWrapper } from "@redstone-finance/evm-connector";
 import type { SignedDataPackage } from "@redstone-finance/protocol";
 import { RedstonePayload } from "@redstone-finance/protocol";

@@ -250,7 +250,7 @@ export class CreditAccountData_Legacy {
   ): Array<[Address, bigint]> {
     return (Object.entries(balances) as Array<[Address, bigint]>).sort(
       ([addr1, amount1], [addr2, amount2]) => {
-        return this.assetComparator(
+        return CreditAccountData_Legacy.assetComparator(
           {
             token: addr1,
             balance: amount1,
@@ -274,7 +274,14 @@ export class CreditAccountData_Legacy {
     tokens: Record<Address, TokenData>,
   ) {
     return balances.sort((t1, t2) =>
-      this.assetComparator(t1, t2, prices, prices, tokens, tokens),
+      CreditAccountData_Legacy.assetComparator(
+        t1,
+        t2,
+        prices,
+        prices,
+        tokens,
+        tokens,
+      ),
     );
   }
 
@@ -310,11 +317,14 @@ export class CreditAccountData_Legacy {
 
     if (totalPrice1 === totalPrice2) {
       return t1.balance === t2.balance
-        ? this.tokensAbcComparator(token1, token2)
-        : this.amountAbcComparator(t1.balance, t2.balance);
+        ? CreditAccountData_Legacy.tokensAbcComparator(token1, token2)
+        : CreditAccountData_Legacy.amountAbcComparator(t1.balance, t2.balance);
     }
 
-    return this.amountAbcComparator(totalPrice1, totalPrice2);
+    return CreditAccountData_Legacy.amountAbcComparator(
+      totalPrice1,
+      totalPrice2,
+    );
   }
 
   static tokensAbcComparator(t1?: TokenData, t2?: TokenData) {
@@ -575,7 +585,7 @@ export class CreditAccountData_Legacy {
       (recommendedBaseQuota * (PERCENTAGE_FACTOR + quotaReserve)) /
       PERCENTAGE_FACTOR;
 
-    return this.roundUpQuota(recommendedQuota);
+    return CreditAccountData_Legacy.roundUpQuota(recommendedQuota);
   }
 
   static calcDefaultQuota({ amount, lt, quotaReserve }: CalcDefaultQuotaProps) {
@@ -584,7 +594,7 @@ export class CreditAccountData_Legacy {
       (recommendedBaseQuota * (PERCENTAGE_FACTOR + quotaReserve)) /
       PERCENTAGE_FACTOR;
 
-    return this.roundUpQuota(recommendedQuota);
+    return CreditAccountData_Legacy.roundUpQuota(recommendedQuota);
   }
 
   static calcQuotaUpdate(
@@ -595,14 +605,18 @@ export class CreditAccountData_Legacy {
     const quotaDecrease = Object.keys(allowedToSpend).reduce<
       Record<Address, Asset>
     >((acc, token) => {
-      const ch = this.getSingleQuotaChange(token as Address, 0n, props);
+      const ch = CreditAccountData_Legacy.getSingleQuotaChange(
+        token as Address,
+        0n,
+        props,
+      );
       if (ch && ch.balance < 0) acc[ch.token] = ch;
       return acc;
     }, {});
 
-    const quotaCap = this.roundUpQuota(maxDebt * 2n);
+    const quotaCap = CreditAccountData_Legacy.roundUpQuota(maxDebt * 2n);
     const quotaBought = Object.values(initialQuotas).reduce(
-      (sum, q) => sum + this.roundUpQuota(q?.quota || 0n),
+      (sum, q) => sum + CreditAccountData_Legacy.roundUpQuota(q?.quota || 0n),
       0n,
     );
     const quotaReduced = Object.values(quotaDecrease).reduce((sum, q) => {
@@ -610,20 +624,22 @@ export class CreditAccountData_Legacy {
       const safeBalance =
         quotaBalance === MIN_INT96
           ? BigIntMath.neg(
-              this.roundUpQuota(initialQuotas[q.token]?.quota || 0n),
+              CreditAccountData_Legacy.roundUpQuota(
+                initialQuotas[q.token]?.quota || 0n,
+              ),
             )
           : quotaBalance;
 
       return sum + safeBalance;
     }, 0n);
-    const maxQuotaIncrease = this.roundUpQuota(
+    const maxQuotaIncrease = CreditAccountData_Legacy.roundUpQuota(
       BigIntMath.max(quotaCap - (quotaBought + quotaReduced), 0n),
     );
 
     const quotaIncrease = Object.keys(allowedToObtain).reduce<
       Record<Address, Asset>
     >((acc, token) => {
-      const ch = this.getSingleQuotaChange(
+      const ch = CreditAccountData_Legacy.getSingleQuotaChange(
         token as Address,
         maxQuotaIncrease,
         props,
@@ -684,25 +700,30 @@ export class CreditAccountData_Legacy {
     const assetAfter = props.assetsAfterUpdate[token];
     const { amountInTarget = 0n } = assetAfter || {};
     const lt = props.liquidationThresholds[token] || 0n;
-    const maxQuotaIncrease = this.roundUpQuota(unsafeMaxQuotaIncrease);
-    const initialQuota = this.roundUpQuota(unsafeInitialQuota);
+    const maxQuotaIncrease = CreditAccountData_Legacy.roundUpQuota(
+      unsafeMaxQuotaIncrease,
+    );
+    const initialQuota =
+      CreditAccountData_Legacy.roundUpQuota(unsafeInitialQuota);
 
     const defaultQuota =
       props.calcModification?.type === "recommendedQuota" &&
       props.calcModification.debt > 0
-        ? this.calcRecommendedQuota({
+        ? CreditAccountData_Legacy.calcRecommendedQuota({
             lt,
             quotaReserve: props.quotaReserve,
             amount: amountInTarget,
             debt: props.calcModification.debt,
           })
-        : this.calcDefaultQuota({
+        : CreditAccountData_Legacy.calcDefaultQuota({
             lt,
             quotaReserve: props.quotaReserve,
             amount: amountInTarget,
           });
 
-    const unsafeQuotaChange = this.roundUpQuota(defaultQuota - initialQuota);
+    const unsafeQuotaChange = CreditAccountData_Legacy.roundUpQuota(
+      defaultQuota - initialQuota,
+    );
     const quotaChange =
       unsafeQuotaChange > 0
         ? BigIntMath.min(maxQuotaIncrease, unsafeQuotaChange)

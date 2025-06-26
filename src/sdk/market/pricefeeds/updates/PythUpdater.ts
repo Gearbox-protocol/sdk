@@ -1,4 +1,3 @@
-/* eslint-disable accessor-pairs */
 import {
   parseAccumulatorUpdateData,
   parsePriceFeedMessage,
@@ -106,9 +105,9 @@ export class PythUpdater
     this.#ignoreMissingFeeds = opts.ignoreMissingFeeds;
     this.#api =
       opts.apiProxy ?? "https://hermes.pyth.network/v2/updates/price/";
-    this.#api = this.#api.endsWith("/") ? this.#api : this.#api + "/";
+    this.#api = this.#api.endsWith("/") ? this.#api : `${this.#api}/`;
 
-    let ts = opts.historicTimestamp;
+    const ts = opts.historicTimestamp;
     if (ts) {
       this.#historicalTimestamp = ts === true ? Number(this.sdk.timestamp) : ts;
     }

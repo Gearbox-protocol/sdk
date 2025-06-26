@@ -40,9 +40,9 @@ import type {
   RedstoneOptions,
 } from "./market/pricefeeds/updates/index.js";
 import {
-  type PluginsMap,
   type PluginStatesMap,
   PluginStateVersionError,
+  type PluginsMap,
 } from "./plugins/index.js";
 import { createRouter, type IRouterContract } from "./router/index.js";
 import type {
@@ -52,7 +52,7 @@ import type {
   MultiCall,
 } from "./types/index.js";
 import type { PickSomeRequired } from "./utils/index.js";
-import { AddressMap, toAddress, TypedObjectUtils } from "./utils/index.js";
+import { AddressMap, TypedObjectUtils, toAddress } from "./utils/index.js";
 import { Hooks } from "./utils/internal/index.js";
 import { getLogsSafe } from "./utils/viem/index.js";
 
@@ -127,7 +127,6 @@ export interface SyncStateOptions {
   skipPriceUpdate?: boolean;
 }
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SDKHooks = {
   syncState: [SyncStateOptions];
   rehydrate: [SyncStateOptions];

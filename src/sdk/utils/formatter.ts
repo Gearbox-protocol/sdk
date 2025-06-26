@@ -9,7 +9,7 @@ export const toBigInt = (
 };
 
 export const percentFmt = (v: number | bigint | string, raw = true): string =>
-  `${(Number(v) / 100).toFixed(2)}%` + (raw ? ` [${v}]` : "");
+  `${(Number(v) / 100).toFixed(2)}%${raw ? ` [${v}]` : ""}`;
 
 export function formatBNvalue(
   num: number | bigint | string | undefined,
@@ -17,7 +17,7 @@ export function formatBNvalue(
   precision?: number,
   raw = true,
 ): string {
-  return `${formatBN(num, decimals, precision)}` + (raw ? ` [ ${num} ]` : "");
+  return `${formatBN(num, decimals, precision)}${raw ? ` [ ${num} ]` : ""}`;
 }
 
 export function formatBN(
@@ -60,7 +60,7 @@ const limitPrecision = (n: bigint, p?: number) => {
 };
 
 const limitNum = (n: bigint, d = 18): bigint => {
-  let limited = n <= 2n ? 0n : n;
+  const limited = n <= 2n ? 0n : n;
   if (d <= 6) {
     return limited * 10n ** BigInt(6 - d);
   } else {
@@ -114,7 +114,7 @@ export function formatDuration(seconds: number, raw = true): string {
   const end = new Date(now + seconds * 1_000);
   const duration = intervalToDuration({ start, end });
 
-  return `${fmtDuration(duration)}` + (raw ? `[${seconds.toString()}]` : "");
+  return `${fmtDuration(duration)}${raw ? `[${seconds.toString()}]` : ""}`;
 }
 
 export function formatNumberToString_(value: bigint | number): string {

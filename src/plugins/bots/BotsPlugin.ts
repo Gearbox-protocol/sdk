@@ -15,9 +15,9 @@ import { PartialLiquidationBotV300Contract } from "./PartialLiquidationBotV300Co
 import { PartialLiquidationBotV310Contract } from "./PartialLiquidationBotV310Contract.js";
 import {
   BOT_TYPES,
+  type BotState,
   type BotsPluginState,
   type BotsPluginStateHuman,
-  type BotState,
 } from "./types.js";
 
 export class UnsupportedBotVersionError extends Error {

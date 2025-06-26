@@ -18,5 +18,4 @@
 /dist/
 /tmp/
 .env
-.eslint.local.json
 example-state.json

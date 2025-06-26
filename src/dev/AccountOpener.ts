@@ -89,7 +89,7 @@ export class AccountOpener extends SDKConstruct {
     try {
       this.#faucet =
         options.faucet ?? service.sdk.addressProvider.getAddress("FAUCET");
-    } catch (e) {
+    } catch (_e) {
       this.#logger?.warn("faucet not found, will not claim from faucet");
     }
     this.#borrower = options.borrower;
@@ -336,7 +336,7 @@ export class AccountOpener extends SDKConstruct {
     }
 
     let totalUSD = 0n;
-    let deposits: [PoolContract, bigint][] = [];
+    const deposits: [PoolContract, bigint][] = [];
     for (const [p, minAvailable] of Object.entries(minAvailableByPool)) {
       const market = this.sdk.marketRegister.findByPool(p as Address);
       const pool = market.pool.pool;
@@ -442,7 +442,7 @@ export class AccountOpener extends SDKConstruct {
     // each account will have minDebt in USD, see how much we need to claim from faucet
     let claimUSD = 0n;
     // collect all degen nfts
-    let degenNFTS: Record<Address, number> = {};
+    const degenNFTS: Record<Address, number> = {};
     for (const target of targets) {
       const cm = this.sdk.marketRegister.findCreditManager(
         target.creditManager,

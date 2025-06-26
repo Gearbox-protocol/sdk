@@ -298,7 +298,6 @@ export interface IRouterContract extends IBaseContract {
   ) => FindClosePathInput;
 }
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RouterHooks = {
   /**
    * Internal router event

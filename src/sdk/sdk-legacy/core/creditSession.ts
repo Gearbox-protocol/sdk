@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 
 import { PERCENTAGE_DECIMALS } from "../../constants/index.js";
-import { toBigInt, TypedObjectUtils } from "../../utils/index.js";
+import { TypedObjectUtils, toBigInt } from "../../utils/index.js";
 import type {
   CreditSessionFilteredPayload,
   CreditSessionPayload,

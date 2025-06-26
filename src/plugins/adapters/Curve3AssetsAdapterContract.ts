@@ -1,7 +1,7 @@
 import type { GearboxSDK } from "../../sdk/index.js";
-import { iCurveV1_3AssetsAdapterAbi } from "./abi/index.js";
 import type { AbstractAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
+import { iCurveV1_3AssetsAdapterAbi } from "./abi/index.js";
 
 const abi = iCurveV1_3AssetsAdapterAbi;
 

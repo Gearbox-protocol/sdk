@@ -63,7 +63,7 @@ export function createRawTx<
   if (inputs.length > 0 && args && args.length !== 0) {
     args.forEach((arg, i) => {
       const methodName = inputs[i].name as string;
-      let stringifiedArg = arg instanceof BigInt ? arg.toString() : arg;
+      const stringifiedArg = arg instanceof BigInt ? arg.toString() : arg;
       contractInputsValues[methodName] = Array.isArray(stringifiedArg)
         ? json_stringify(stringifiedArg)
         : stringifiedArg;

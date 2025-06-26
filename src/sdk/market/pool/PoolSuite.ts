@@ -44,7 +44,7 @@ export class PoolSuite extends SDKConstruct {
       return this.rateKeeper;
     }
     throw new Error(
-      "Rate keeper is not a gauge, but a " + this.rateKeeper.contractType,
+      `Rate keeper is not a gauge, but a ${this.rateKeeper.contractType}`,
     );
   }
 
@@ -53,7 +53,7 @@ export class PoolSuite extends SDKConstruct {
       return this.rateKeeper;
     }
     throw new Error(
-      "Rate keeper is not a tumbler, but a " + this.rateKeeper.contractType,
+      `Rate keeper is not a tumbler, but a ${this.rateKeeper.contractType}`,
     );
   }
 

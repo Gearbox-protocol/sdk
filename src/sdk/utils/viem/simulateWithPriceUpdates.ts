@@ -262,7 +262,7 @@ function extractCallError(result: MulticallResponse): string {
       ? err.walk(e => e instanceof ContractFunctionRevertedError)
       : undefined;
   if (error instanceof ContractFunctionRevertedError) {
-    return "[" + (error.data?.errorName ?? "reverted") + "]";
+    return `[${error.data?.errorName ?? "reverted"}]`;
   }
   // this happens for `out of gas` and `header not found` errors
   if (err instanceof CallExecutionError) {
@@ -296,7 +296,7 @@ export class SimulateWithPriceUpdatesError extends BaseError {
     const blockNumber = request?.blockNumber ?? 0n;
     const base = (cause instanceof BaseError ? cause : {}) as BaseError;
 
-    let causeMeta: string[] = base.metaMessages
+    const causeMeta: string[] = base.metaMessages
       ? [...base.metaMessages, " "]
       : [];
 

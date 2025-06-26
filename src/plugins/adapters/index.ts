@@ -1,6 +1,6 @@
-export * from "./abi/index.js";
 export * from "./AbstractAdapter.js";
 export * from "./AdaptersPlugin.js";
+export * from "./abi/index.js";
 export * from "./BalancerV2VaultAdapterContract.js";
 export * from "./BalancerV3RouterAdapterContract.js";
 export * from "./CamelotV3AdapterContract.js";

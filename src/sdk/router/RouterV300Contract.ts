@@ -270,7 +270,7 @@ export class RouterV300Contract
       this.logger?.warn("applying stkcvxRLUSDUSDC workaround");
     }
 
-    let results: Array<RouterResult> = [];
+    const results: Array<RouterResult> = [];
     for (const po of pathOptions) {
       // TODO: maybe Promise.all?
       const { result } = await this.contract.simulate.findBestClosePath(

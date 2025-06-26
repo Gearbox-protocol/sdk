@@ -45,7 +45,6 @@ export type AnvilRPCSchema = [
   },
 ];
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type AnvilActions = {
   anvilNodeInfo: () => Promise<AnvilNodeInfo>;
   isAnvil: () => Promise<boolean>;

@@ -126,7 +126,7 @@ export class CreditAccountsService extends SDKConstruct {
         // @ts-expect-error
         gas: this.sdk.gasLimit,
       });
-    } catch (e) {
+    } catch (_e) {
       // TODO: reverts if account is not found, how to handle other revert reasons?
       return undefined;
     }
@@ -1429,24 +1429,22 @@ export class CreditAccountsService extends SDKConstruct {
       return getWithdrawCall(cmAdapters[poolAddressLc], a);
     });
 
-    const skyStkCalls = sky
-      .map(a => {
-        const symbol = tokenSymbolByAddress[
-          a.token
-        ] as StakingRewardsPhantomToken;
-        const { pool } = stakingRewardsTokens[
-          symbol
-        ] as StakingRewardsPhantomTokenData;
-        const poolAddress = currentContractsData[pool];
+    const skyStkCalls = sky.flatMap(a => {
+      const symbol = tokenSymbolByAddress[
+        a.token
+      ] as StakingRewardsPhantomToken;
+      const { pool } = stakingRewardsTokens[
+        symbol
+      ] as StakingRewardsPhantomTokenData;
+      const poolAddress = currentContractsData[pool];
 
-        if (!poolAddress) {
-          throw new Error("Can't withdrawAllAndUnwrap_Convex (sky)");
-        }
-        const poolAddressLc = poolAddress.toLowerCase() as Address;
+      if (!poolAddress) {
+        throw new Error("Can't withdrawAllAndUnwrap_Convex (sky)");
+      }
+      const poolAddressLc = poolAddress.toLowerCase() as Address;
 
-        return getWithdrawCall_Rewards(cmAdapters[poolAddressLc], a);
-      })
-      .flat(1);
+      return getWithdrawCall_Rewards(cmAdapters[poolAddressLc], a);
+    });
 
     const unwrapCalls = [...convexStkCalls, ...auraStkCalls, ...skyStkCalls];
 

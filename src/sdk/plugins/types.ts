@@ -75,8 +75,9 @@ export interface IGearboxSDKPlugin<
 /**
  * Helper type that extracts the state type from a plugin instance
  */
-export type PluginState<T> =
-  T extends IGearboxSDKPlugin<infer TState> ? IPluginState<TState> : never;
+export type PluginState<T> = T extends IGearboxSDKPlugin<infer TState>
+  ? IPluginState<TState>
+  : never;
 
 /**
  * Mapping between plugin name and plugin instance

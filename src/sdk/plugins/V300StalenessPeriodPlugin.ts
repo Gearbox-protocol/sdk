@@ -38,7 +38,6 @@ export class V300StalenessPeriodPlugin
   #logger?: ILogger;
   #events: StalenessEvent[] = [];
 
-  // eslint-disable-next-line accessor-pairs
   public override set sdk(sdk: GearboxSDK<any>) {
     super.sdk = sdk;
     this.#syncedTo = ADDRESS_PROVIDER_BLOCK[sdk.provider.networkType] - 1n;

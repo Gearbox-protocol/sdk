@@ -46,7 +46,6 @@ import { WstETHPriceFeedContract } from "./WstETHPriceFeed.js";
 import { YearnPriceFeedContract } from "./YearnPriceFeed.js";
 import { ZeroPriceFeedContract } from "./ZeroPriceFeed.js";
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PriceFeedRegisterHooks = {
   /**
    * Emitted when transactions to update price feeds have been generated, but before they're used anywhere

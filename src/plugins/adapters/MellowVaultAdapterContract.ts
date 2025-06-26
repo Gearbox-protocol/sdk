@@ -1,7 +1,7 @@
 import type { GearboxSDK } from "../../sdk/index.js";
-import { iMellowVaultAdapterAbi } from "./abi/index.js";
 import type { AbstractAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
+import { iMellowVaultAdapterAbi } from "./abi/index.js";
 
 const abi = iMellowVaultAdapterAbi;
 

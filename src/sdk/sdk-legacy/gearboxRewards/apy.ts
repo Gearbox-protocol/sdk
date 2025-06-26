@@ -107,7 +107,7 @@ export class GearboxRewardsApy {
     if (!info) return [];
 
     const extra = (Array.isArray(info) ? info : [info]).map(inf =>
-      this.getPoolSingleExtraLmAPY_V3({
+      GearboxRewardsApy.getPoolSingleExtraLmAPY_V3({
         ...restProps,
         stakedDieselToken,
         rewardPoolsInfo: inf,
@@ -144,7 +144,7 @@ export class GearboxRewardsApy {
     const rewardPrice = prices[rewardAddress] ?? 0n;
 
     const r =
-      this.calculateAPY_V3({
+      GearboxRewardsApy.calculateAPY_V3({
         currentTimestamp,
         info: rewardPoolsInfo,
         supply: {
@@ -205,24 +205,27 @@ export class GearboxRewardsApy {
     assets,
     ...restProps
   }: GetCAExtraAPYProps): Array<ExtraRewardApy> {
-    const extra = assets.reduce((acc, asset) => {
-      const { token } = asset;
-      const info = rewardInfo[token || ""];
+    const extra = assets.reduce(
+      (acc, asset) => {
+        const { token } = asset;
+        const info = rewardInfo[token || ""];
 
-      if (!info || info.length === 0) return acc;
+        if (!info || info.length === 0) return acc;
 
-      const extra = info.map(inf =>
-        this.getCASingleExtraAPY_V3({
-          ...restProps,
-          asset,
-          rewardInfo: inf,
-        }),
-      );
+        const extra = info.map(inf =>
+          GearboxRewardsApy.getCASingleExtraAPY_V3({
+            ...restProps,
+            asset,
+            rewardInfo: inf,
+          }),
+        );
 
-      acc.push(...extra);
+        acc.push(...extra);
 
-      return acc;
-    }, [] as Array<ExtraRewardApy>);
+        return acc;
+      },
+      [] as Array<ExtraRewardApy>,
+    );
 
     return extra;
   }
@@ -250,7 +253,7 @@ export class GearboxRewardsApy {
     const rewardPrice = prices[rewardAddress] ?? 0n;
 
     const r =
-      this.calculateAPY_V3({
+      GearboxRewardsApy.calculateAPY_V3({
         currentTimestamp,
         info: rewardInfo,
         supply: {

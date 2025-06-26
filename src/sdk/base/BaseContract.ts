@@ -158,7 +158,7 @@ export abstract class BaseContract<abi extends Abi | readonly unknown[]>
 
     const abiItem = (this.abi as Array<AbiFunction>).find(
       abiItem =>
-        abiItem!.name === decoded.functionName && abiItem!.type === "function",
+        abiItem?.name === decoded.functionName && abiItem?.type === "function",
     );
 
     if (!abiItem) {
@@ -166,7 +166,7 @@ export abstract class BaseContract<abi extends Abi | readonly unknown[]>
     }
 
     let paramsHuman: Array<string>;
-    let humanParams = this.parseFunctionParams(decoded);
+    const humanParams = this.parseFunctionParams(decoded);
     if (humanParams) {
       paramsHuman = humanParams.map((value, i) => {
         return `${abiItem.inputs[i].name}: ${value}`;

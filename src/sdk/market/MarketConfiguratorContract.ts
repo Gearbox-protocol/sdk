@@ -34,7 +34,7 @@ export class MarketConfiguratorContract extends BaseContract<abi> {
     });
     this.sdk.provider.addressLabels.set(
       this.address,
-      "Market configurator " + this.#curatorName,
+      `Market configurator ${this.#curatorName}`,
     );
   }
 

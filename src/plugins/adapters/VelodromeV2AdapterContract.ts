@@ -1,7 +1,7 @@
 import type { GearboxSDK } from "../../sdk/index.js";
-import { iVelodromeV2RouterAdapterAbi } from "./abi/index.js";
 import type { AbstractAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
+import { iVelodromeV2RouterAdapterAbi } from "./abi/index.js";
 
 const abi = iVelodromeV2RouterAdapterAbi;
 

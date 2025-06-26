@@ -7,7 +7,7 @@ import { iFarmingPoolAbi } from "../../../abi/iFarmingPool.js";
 import type { NetworkType } from "../../chain/index.js";
 import { chains } from "../../chain/index.js";
 import type { SupportedToken } from "../../sdk-gov-legacy/index.js";
-import { toBigInt, TypedObjectUtils } from "../../utils/index.js";
+import { TypedObjectUtils, toBigInt } from "../../utils/index.js";
 import { GearboxBackendApi } from "../core/endpoint.js";
 import type { PoolData_Legacy } from "../core/pool.js";
 import type { TokenData } from "../tokens/tokenData.js";
@@ -141,21 +141,33 @@ export class GearboxRewardsApi {
     if (!airdropDistributorAddress) return [];
 
     const [claimedRespUnsafe, merkleDataRespUnsafe] = await Promise.allSettled([
-      this.getClaimed({ airdropDistributorAddress, provider, account }),
-      this.getMerkle(provider, airdropDistributorAddress, network, account),
+      GearboxRewardsApi.getClaimed({
+        airdropDistributorAddress,
+        provider,
+        account,
+      }),
+      GearboxRewardsApi.getMerkle(
+        provider,
+        airdropDistributorAddress,
+        network,
+        account,
+      ),
     ]);
 
     const claimedResp =
-      this.extractFulfilled(claimedRespUnsafe, reportError, "getLmRewardsV2") ||
-      0n;
+      GearboxRewardsApi.extractFulfilled(
+        claimedRespUnsafe,
+        reportError,
+        "getLmRewardsV2",
+      ) || 0n;
 
-    const merkleDataResp = this.extractFulfilled(
+    const merkleDataResp = GearboxRewardsApi.extractFulfilled(
       merkleDataRespUnsafe,
       reportError,
       "getLmRewardsV2",
     );
 
-    const amountOnContract = this.getAmountOnContract({
+    const amountOnContract = GearboxRewardsApi.getAmountOnContract({
       account,
       merkleData: merkleDataResp,
     });
@@ -229,7 +241,8 @@ export class GearboxRewardsApi {
     ]);
 
     const safeResponse =
-      this.extractFulfilled(response, reportError, "v3Rewards") || [];
+      GearboxRewardsApi.extractFulfilled(response, reportError, "v3Rewards") ||
+      [];
 
     const farmInfoCallsEnd = farmInfoCalls.length;
     const farmInfo = safeResponse.slice(
@@ -308,7 +321,7 @@ export class GearboxRewardsApi {
       ),
     ]);
 
-    const merkleXYZLm = this.extractFulfilled(
+    const merkleXYZLm = GearboxRewardsApi.extractFulfilled(
       merkleXYZLMResponse,
       reportError,
       "merkleXYZLm",
@@ -339,7 +352,6 @@ export class GearboxRewardsApi {
           const poolToken = (
             (reason.reason || "")
               .split("_")
-              // eslint-disable-next-line max-nested-callbacks
               .find(part => part.startsWith("0x")) || ""
           ).toLowerCase() as Address;
 
@@ -401,7 +413,7 @@ export class GearboxRewardsApi {
     if (!airdropDistributorAddress)
       throw new Error(`V2 rewards are not supported on chain: ${network}`);
 
-    const merkleData = await this.getMerkle(
+    const merkleData = await GearboxRewardsApi.getMerkle(
       provider,
       airdropDistributorAddress,
       network,

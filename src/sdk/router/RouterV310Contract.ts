@@ -295,7 +295,7 @@ export class RouterV310Contract
     this.logger?.debug(
       inUSD.map(v => ({
         token: this.labelAddress(v.token),
-        balance: formatBN(v.balance, 8) + ` (${v.balance})`,
+        balance: `${formatBN(v.balance, 8)} (${v.balance})`,
       })),
       "balances in usd",
     );
@@ -316,8 +316,7 @@ export class RouterV310Contract
   #debugTokenData(tData: TokenData[]): Record<string, any>[] {
     return tData.map(t => ({
       token: this.labelAddress(t.token),
-      balance:
-        this.sdk.tokensMeta.formatBN(t.token, t.balance) + ` (${t.balance})`,
+      balance: `${this.sdk.tokensMeta.formatBN(t.token, t.balance)} (${t.balance})`,
       leftoverBalance:
         this.sdk.tokensMeta.formatBN(t.token, t.leftoverBalance) +
         ` (${t.leftoverBalance})`,

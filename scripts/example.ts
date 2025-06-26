@@ -25,7 +25,7 @@ const logger = pino({
 async function example(): Promise<void> {
   // const RPC = "http://127.0.0.1:8545";
   const RPC = process.env.RPC_URL!;
-  let kind = "real";
+  const kind = "real";
   // const RPC= megaethTestnet.rpcUrls.default.http[0];
 
   const sdk = await GearboxSDK.attach({

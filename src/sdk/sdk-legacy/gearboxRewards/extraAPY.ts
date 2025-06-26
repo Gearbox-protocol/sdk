@@ -63,7 +63,9 @@ export class GearboxRewardsExtraApy {
     const list = [...new Set(tokensToCheck)];
 
     const res = await Promise.allSettled(
-      list.map(t => this.getTokenTotal(t, network, tokensList)),
+      list.map(t =>
+        GearboxRewardsExtraApy.getTokenTotal(t, network, tokensList),
+      ),
     );
 
     return res.map((r, i): [Address, PromiseSettledResult<Asset>] => [
@@ -110,7 +112,7 @@ export class GearboxRewardsExtraApy {
           const { address: tokenAddress } = tokensList[pointsInfo.token];
           const tokenBalance = totalTokenBalances[tokenAddress || ""];
 
-          const points = this.getPoolTokenPoints(
+          const points = GearboxRewardsExtraApy.getPoolTokenPoints(
             tokenBalance,
             p,
             tokensList,

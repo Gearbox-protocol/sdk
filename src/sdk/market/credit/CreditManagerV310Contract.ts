@@ -21,6 +21,7 @@ export interface CreditManagerV310Contract
     >,
     BaseContract<abi> {}
 
+// biome-ignore lint/suspicious/noUnsafeDeclarationMerging: -
 export class CreditManagerV310Contract
   extends BaseContract<abi>
   implements ICreditManagerContract

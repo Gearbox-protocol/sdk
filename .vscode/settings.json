@@ -1,16 +1,40 @@
 {
+  "[javascript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
   "[json]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[yaml]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "[solidity]": {
-    "editor.defaultFormatter": "JuanBlanco.solidity"
-  },
+  "biome.enabled": true,
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit"
+    "source.action.useSortedKeys.biome": "explicit",
+    "source.fixAll.biome": "explicit",
+    "source.fixAll.eslint": "never",
+    "source.organizeImports.biome": "explicit"
   },
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.defaultFormatter": "biomejs.biome",
   "editor.formatOnSave": true,
   "editor.tabSize": 2,
-  "eslint.validate": ["javascript", "typescript"],
-  "files.eol": "\n"
+  "eslint.enable": false,
+  "files.eol": "\n",
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/cache": true,
+    "**/lib": true,
+    "**/build": true,
+    "**/dist": true,
+    "**/forge-out": true
+  }
 }

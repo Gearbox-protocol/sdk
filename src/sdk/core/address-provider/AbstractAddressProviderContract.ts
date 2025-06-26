@@ -24,7 +24,7 @@ export default abstract class AbstractAddressProviderContract<
   }
 
   protected setInternalAddress(key: string, address: Address, version: number) {
-    let k = isHex(key) ? hexToString(key, { size: 32 }) : key;
+    const k = isHex(key) ? hexToString(key, { size: 32 }) : key;
     if (!this.#addresses[k]) {
       this.#addresses[k] = {};
     }

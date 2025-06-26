@@ -133,7 +133,7 @@ export class PathOptionFactory {
   }
 
   static next(path: PathOptionSerie): PathOptionSerie {
-    let newPath = [...path];
+    const newPath = [...path];
     for (let i = path.length - 1; i >= 0; i--) {
       const po = { ...newPath[i] };
       po.option++;
