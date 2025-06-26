@@ -1,4 +1,4 @@
-import type { Address, Hex } from "viem";
+import type { Address, BlockTag, Hex } from "viem";
 
 import { iPriceFeedCompressorAbi } from "../../../abi/compressors.js";
 import type { PriceFeedTreeNode } from "../../base/index.js";
@@ -139,6 +139,35 @@ export class PriceFeedRegister
     }
     this.#latestUpdate = latestUpdate;
     return result;
+  }
+
+  /**
+   * Similar to generatePriceFeedsUpdateTxs, but will generate necessary price update transactions for external price feeds
+   * This does not add feeds to this register, so they won't be implicitly included in future generatePriceFeedsUpdateTxs calls
+   * @param feeds
+   * @param block
+   * @returns
+   */
+  public async generateExternalPriceFeedsUpdateTxs(
+    feeds: Address[],
+    block?: { blockNumber: bigint } | { blockTag: BlockTag },
+  ): Promise<UpdatePriceFeedsResult> {
+    const [priceFeedCompressorAddress] = this.sdk.addressProvider.mustGetLatest(
+      AP_PRICE_FEED_COMPRESSOR,
+      VERSION_RANGE_310,
+    );
+    const blockParam = block ?? { blockNumber: this.sdk.currentBlock };
+    const result = await this.provider.publicClient.readContract({
+      address: priceFeedCompressorAddress,
+      abi: iPriceFeedCompressorAbi,
+      functionName: "loadPriceFeedTree",
+      args: [feeds],
+      ...blockParam,
+      // @ts-expect-error
+      gas: this.sdk.gasLimit,
+    });
+    const feedContracts = result.map(data => this.create(data));
+    return this.generatePriceFeedsUpdateTxs(feedContracts);
   }
 
   public has(address: Address): boolean {
