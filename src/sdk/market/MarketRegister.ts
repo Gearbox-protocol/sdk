@@ -18,7 +18,7 @@ import type {
 import { AddressMap, childLogger } from "../utils/index.js";
 import { simulateWithPriceUpdates } from "../utils/viem/index.js";
 import type { CreditSuite } from "./credit/index.js";
-import type { MarketConfiguratorContract } from "./MarketConfiguratorContract.js";
+import { MarketConfiguratorContract } from "./MarketConfiguratorContract.js";
 import { MarketSuite } from "./MarketSuite.js";
 import type { IPriceOracleContract } from "./oracle/index.js";
 import type { PoolSuite } from "./pool/index.js";
@@ -29,8 +29,11 @@ export class MarketRegister extends SDKConstruct {
    * Mapping pool.address -> MarketSuite
    */
   #markets = new AddressMap<MarketSuite>(undefined, "markets");
-
   #marketFilter?: MarketFilter;
+  #marketConfigurators = new AddressMap<MarketConfiguratorContract>(
+    undefined,
+    "marketConfigurators",
+  );
 
   constructor(sdk: GearboxSDK) {
     super(sdk);
@@ -45,11 +48,7 @@ export class MarketRegister extends SDKConstruct {
         new MarketSuite(this.sdk, data),
       );
     }
-    this.#marketFilter = {
-      configurators: this.marketConfigurators.map(c => c.address),
-      pools: [],
-      underlying: ADDRESS_0X0,
-    };
+    this.#setMarketFilter(this.marketConfigurators.map(c => c.address));
   }
 
   public async loadMarkets(
@@ -65,32 +64,57 @@ export class MarketRegister extends SDKConstruct {
     await this.#loadMarkets(marketConfigurators, [], ignoreUpdateablePrices);
   }
 
-  get marketFilter() {
+  #setMarketFilter(
+    configurators: readonly Address[],
+    pools: readonly Address[] = [],
+  ): void {
+    for (const c of configurators) {
+      // we're creating contract instances here, so they will already exist when loadMarkets is called
+      // this way we can later call syncState and detect that new markets were created, even in case when there we no markets before
+      // i.e. to handle the edge case of creation of first market with sdk already attached
+      this.#marketConfigurators.upsert(
+        c,
+        new MarketConfiguratorContract(this.sdk, c),
+      );
+    }
+    this.#marketFilter = {
+      configurators,
+      pools,
+      underlying: ADDRESS_0X0,
+    };
+  }
+
+  public get marketFilter(): MarketFilter {
+    if (!this.#marketFilter) {
+      throw new Error(
+        "market filter is not set, check if market register was properly attached or hydrated",
+      );
+    }
     return this.#marketFilter;
   }
 
   public async syncState(skipPriceUpdate?: boolean): Promise<void> {
-    const dirtyPools: PoolSuite[] = [];
-    const nonDirtyOracles: Address[] = [];
+    // marketCompressor does not have granularity
+    // if we have one market configurator with some dirty markets and another market configurator with new markets
+    // we cannot just reload dirty markets in first and load new ones in second
+    //
+    // so the policy is - if anything is dirty, reload everything. otherwise reload only prices
+    const dirty =
+      this.markets.some(m => m.dirty) ||
+      this.marketConfigurators.some(c => c.dirty);
 
-    for (const m of this.markets) {
-      if (m.dirty) {
-        dirtyPools.push(m.pool);
-      } else {
-        nonDirtyOracles.push(m.priceOracle.address);
-      }
-    }
-
-    if (dirtyPools.length) {
-      this.#logger?.debug(`need to reload ${dirtyPools.length} markets`);
+    if (dirty) {
+      this.#logger?.debug(
+        "some markets or market configurators are dirty, reloading everything",
+      );
       // this will also update prices
       await this.#loadMarkets(
-        Array.from(new Set(dirtyPools.map(p => p.marketConfigurator.address))),
-        dirtyPools.map(p => p.pool.address),
+        [...this.marketFilter.configurators],
+        [...this.marketFilter.pools],
       );
-    } else if (!skipPriceUpdate && nonDirtyOracles.length) {
+    } else if (!skipPriceUpdate) {
       // no changes in sdk state, but still need to update prices
-      await this.updatePrices(nonDirtyOracles);
+      await this.updatePrices();
     }
   }
 
@@ -99,11 +123,7 @@ export class MarketRegister extends SDKConstruct {
     pools: Address[],
     ignoreUpdateablePrices?: boolean,
   ): Promise<void> {
-    this.#marketFilter = {
-      configurators,
-      pools,
-      underlying: ADDRESS_0X0,
-    };
+    this.#setMarketFilter(configurators, pools);
     const [marketCompressorAddress] = this.sdk.addressProvider.mustGetLatest(
       AP_MARKET_COMPRESSOR,
       VERSION_RANGE_310,
@@ -138,7 +158,7 @@ export class MarketRegister extends SDKConstruct {
               abi: iMarketCompressorAbi,
               address: marketCompressorAddress,
               functionName: "getMarkets",
-              args: [this.#marketFilter],
+              args: [this.marketFilter],
             },
           ],
           blockNumber: this.sdk.currentBlock,
@@ -151,7 +171,7 @@ export class MarketRegister extends SDKConstruct {
         abi: iMarketCompressorAbi,
         address: marketCompressorAddress,
         functionName: "getMarkets",
-        args: [this.#marketFilter],
+        args: [this.marketFilter],
         blockNumber: this.sdk.currentBlock,
         // @ts-expect-error
         gas: this.sdk.gasLimit,
@@ -208,7 +228,11 @@ export class MarketRegister extends SDKConstruct {
   }
 
   public override get watchAddresses(): Set<Address> {
-    return new Set(this.markets.flatMap(m => Array.from(m.watchAddresses)));
+    return new Set([
+      ...this.markets.flatMap(m => Array.from(m.watchAddresses)),
+      // this is needed to handle edge case of market configurator without markets, to detect CreateMarket event
+      ...this.marketFilter.configurators,
+    ]);
   }
 
   public get state(): MarketData[] {
@@ -232,11 +256,7 @@ export class MarketRegister extends SDKConstruct {
   }
 
   public get marketConfigurators(): MarketConfiguratorContract[] {
-    const result = new Set<MarketConfiguratorContract>();
-    for (const m of this.markets) {
-      result.add(m.configurator);
-    }
-    return Array.from(result);
+    return this.#marketConfigurators.values();
   }
 
   public findCreditManager(creditManager: Address): CreditSuite {

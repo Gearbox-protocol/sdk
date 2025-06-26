@@ -25,16 +25,14 @@ export class MarketSuite extends SDKConstruct {
     super(sdk);
     this.state = marketData;
 
-    let configurator = sdk.contracts.get(
-      marketData.configurator,
-    ) as unknown as MarketConfiguratorContract;
-    if (!configurator) {
-      configurator = new MarketConfiguratorContract(
-        sdk,
-        marketData.configurator,
+    // must be already created in MarketRegister
+    const mc = sdk.contracts.mustGet(marketData.configurator);
+    if (!(mc instanceof MarketConfiguratorContract)) {
+      throw new Error(
+        `Market configurator ${marketData.configurator} is not a market configurator`,
       );
     }
-    this.configurator = configurator;
+    this.configurator = mc;
 
     this.acl = marketData.acl;
 
