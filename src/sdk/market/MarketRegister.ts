@@ -42,13 +42,14 @@ export class MarketRegister extends SDKConstruct {
 
   public hydrate(state: MarketData[]): void {
     this.#markets.clear();
+    const configurators = new Set<Address>(state.map(m => m.configurator));
+    this.#setMarketFilter([...configurators]);
     for (const data of state) {
       this.#markets.upsert(
         data.pool.baseParams.addr,
         new MarketSuite(this.sdk, data),
       );
     }
-    this.#setMarketFilter(this.marketConfigurators.map(c => c.address));
   }
 
   public async loadMarkets(
