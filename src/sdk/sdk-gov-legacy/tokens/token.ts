@@ -818,6 +818,10 @@ export const tokenDataByNetwork: Record<
     USDX: NOT_DEPLOYED,
     dUSD1V3: NOT_DEPLOYED,
     sUSDX: NOT_DEPLOYED,
+
+    WXTZ: NOT_DEPLOYED,
+    mBASIS: NOT_DEPLOYED,
+    mTBILL: NOT_DEPLOYED,
   },
   ///
   ///
@@ -1172,6 +1176,10 @@ export const tokenDataByNetwork: Record<
     USDX: NOT_DEPLOYED,
     dUSD1V3: NOT_DEPLOYED,
     sUSDX: NOT_DEPLOYED,
+
+    WXTZ: NOT_DEPLOYED,
+    mBASIS: NOT_DEPLOYED,
+    mTBILL: NOT_DEPLOYED,
   },
   //
   //
@@ -1525,6 +1533,10 @@ export const tokenDataByNetwork: Record<
     USDX: NOT_DEPLOYED,
     dUSD1V3: NOT_DEPLOYED,
     sUSDX: NOT_DEPLOYED,
+
+    WXTZ: NOT_DEPLOYED,
+    mBASIS: NOT_DEPLOYED,
+    mTBILL: NOT_DEPLOYED,
   },
   //
   //
@@ -1882,6 +1894,10 @@ export const tokenDataByNetwork: Record<
     USDX: NOT_DEPLOYED,
     dUSD1V3: NOT_DEPLOYED,
     sUSDX: NOT_DEPLOYED,
+
+    WXTZ: NOT_DEPLOYED,
+    mBASIS: NOT_DEPLOYED,
+    mTBILL: NOT_DEPLOYED,
   },
   // New networks
   MegaETH: {} as any,
@@ -1902,7 +1918,13 @@ export const tokenDataByNetwork: Record<
     sUSDX: "0x7788A3538C5fc7F9c7C8A74EAC4c898fC8d87d92",
   } as any,
   WorldChain: {} as any,
-  Etherlink: {} as any,
+  Etherlink: {
+    USDT: "0x2c03058c8afc06713be23e58d2febc8337dbfe6a",
+    WBTC: "0xbfc94cd2b1e55999cfc7347a9313e88702b83d0f",
+    WETH: "0xfc24f770f94edbca6d6f885e12d4317320bcb401",
+    WXTZ: "0xc9b53ab2679f573e480d01e0f49e2b5cfb7a3eab",
+    mTBILL: "0xdd629e5241cbc5919847783e6c96b2de4754e438",
+  } as any,
 };
 
 export type TickerToken =
