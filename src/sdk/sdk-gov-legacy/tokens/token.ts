@@ -463,6 +463,10 @@ export const tokenDataByNetwork: Record<
     USDX: NOT_DEPLOYED,
     dUSD1V3: NOT_DEPLOYED,
     sUSDX: NOT_DEPLOYED,
+
+    WXTZ: NOT_DEPLOYED,
+    mBASIS: NOT_DEPLOYED,
+    mTBILL: NOT_DEPLOYED,
   },
 
   ///
