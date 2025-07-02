@@ -109,7 +109,10 @@ export type NormalToken =
   | "USDX"
   | "cp0xLRT"
   | "uptBTC"
-  | "PT_uptBTC_14AUG2025";
+  | "PT_uptBTC_14AUG2025"
+  | "WXTZ"
+  | "mTBILL"
+  | "mBASIS";
 
 export type NormalTokenData = {
   symbol: NormalToken;
@@ -656,6 +659,22 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
   PT_uptBTC_14AUG2025: {
     name: "Pendle PT uptBTC 14 August 2025 expiry",
     symbol: "PT_uptBTC_14AUG2025",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+
+  WXTZ: {
+    name: "WXTZ",
+    symbol: "WXTZ",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  mBASIS: {
+    name: "mBASIS",
+    symbol: "mBASIS",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  mTBILL: {
+    name: "mTBILL",
+    symbol: "mTBILL",
     type: { AllNetworks: TokenType.NORMAL_TOKEN },
   },
 };

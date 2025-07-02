@@ -114,6 +114,7 @@ const DRPC_NETS: Record<NetworkType, string> = {
   Berachain: "berachain",
   Avalanche: "avalanche",
   Monad: "monad-testnet",
+  // TODO: no drpc
   MegaETH: "",
   Etherlink: "",
 };

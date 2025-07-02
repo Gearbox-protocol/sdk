@@ -84,7 +84,6 @@ export const chains: Record<NetworkType, GearboxChain> = {
         "0xc168343c791d56dd1da4b4b8b0cc1c1ec1a16e6b": "cp0x",
         "0x3b56538833fc02f4f0e75609390f26ded0c32e42": "Re7",
       },
-      testMarketConfigurators: {},
       isPublic: true,
       wellKnownToken: {
         address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
@@ -255,6 +254,9 @@ export const chains: Record<NetworkType, GearboxChain> = {
     ...etherlink,
     network: "Etherlink",
     defaultMarketConfigurators: {},
+    testMarketConfigurators: {
+      "0x8850dbdac3d249409ce7ae56c74481f8425df32d": "Re7",
+    },
     isPublic: false,
     wellKnownToken: {
       address: "0x796Ea11Fa2dD751eD01b53C372fFDB4AAa8f00F9",
