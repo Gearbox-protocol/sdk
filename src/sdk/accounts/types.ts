@@ -1,6 +1,8 @@
 import type { Address, ContractFunctionArgs } from "viem";
 
 import type { iCreditAccountCompressorAbi } from "../../abi/compressors.js";
+import type { BotType } from "../../plugins/bots/types.js";
+import type { SDKConstruct } from "../base/SDKConstruct.js";
 import type { CreditSuite } from "../market/index.js";
 import type {
   Asset,
@@ -8,6 +10,7 @@ import type {
   RouterCloseResult,
 } from "../router/index.js";
 import type { MultiCall, RawTx } from "../types/index.js";
+import type { AbstractCreditAccountService } from "./AbstractCreditAccountsService.js";
 
 export type GetCreditAccountsArgs = ContractFunctionArgs<
   typeof iCreditAccountCompressorAbi,
@@ -150,4 +153,48 @@ export interface Rewards {
   calls: Array<MultiCall>;
 
   rewards: Array<Asset>;
+}
+
+/**
+  It was planned that bots related to each other like
+  {
+    liquidationProtection: LiquidationBotType[]
+    someOtherBaseType: someOtherDetailedType[ ... ]
+  }
+
+  BotBaseType = "liquidationProtection" | someOtherBaseType
+  BotDetailedType = LiquidationBotType | someOtherDetailedType
+ * */
+export type BotBaseType = "LIQUIDATION_PROTECTION";
+export type LiquidationBotType = Exclude<BotType, "PARTIAL_LIQUIDATION_BOT">;
+
+export interface SetBotProps extends PrepareUpdateQuotasProps {
+  /**
+   * Address of a bot that is being updated
+   */
+  botAddress: Address;
+  /**
+   * Bot base type (see comments above)
+   */
+  botBaseType: BotBaseType;
+  /**
+   * Either stop or enable bot
+   */
+  stopBot: boolean;
+  /**
+   * Minimal credit account data {@link RouterCASlice} on which operation is performed
+   */
+  creditAccount: RouterCASlice;
+}
+
+export type CreditAccountsServiceInstance = ICreditAccountsService &
+  AbstractCreditAccountService;
+
+export interface ICreditAccountsService extends SDKConstruct {
+  /**
+   * V3.1 method, throws in V3. Connects/disables a bot and updates prices
+   * @param props - {@link SetBotProps}
+   * @return All necessary data to execute the transaction (call, credit facade)
+   */
+  setBot: (props: SetBotProps) => Promise<CreditAccountOperationResult>;
 }

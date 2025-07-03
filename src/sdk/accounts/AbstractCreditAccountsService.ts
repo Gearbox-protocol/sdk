@@ -86,7 +86,7 @@ export interface CreditAccountServiceOptions {
   batchSize?: number;
 }
 
-export class CreditAccountsService extends SDKConstruct {
+export abstract class AbstractCreditAccountService extends SDKConstruct {
   #compressor: Address;
   #batchSize?: number;
   #logger?: ILogger;
