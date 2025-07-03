@@ -76,7 +76,6 @@ import type {
   RepayCreditAccountProps,
   Rewards,
   UpdateQuotasProps,
-  WithdrawCollateralProps,
 } from "./types.js";
 import { stringifyGetCreditAccountsArgs } from "./utils.js";
 
@@ -388,7 +387,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       ...this.#prepareDecreaseDebt(ca),
       ...this.#prepareDisableTokens(ca),
       ...assetsToWithdraw.map(t =>
-        this.#prepareWithdrawToken(ca.creditFacade, t, MAX_UINT256, to),
+        this.prepareWithdrawToken(ca.creditFacade, t, MAX_UINT256, to),
       ),
     ];
 
@@ -435,7 +434,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
 
     // TODO: remove after transition to 3.1 since this action will be automated
     const { unwrapCalls, assetsToWithdraw } =
-      this.#prepareUnwrapAndWithdrawCallsV3(
+      this.prepareUnwrapAndWithdrawCallsV3(
         wrapped,
         true,
         true,
@@ -451,7 +450,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       ...this.#prepareDisableTokens(ca),
       // TODO: probably needs a better way to handle reward tokens
       ...assetsToWithdraw.map(t =>
-        this.#prepareWithdrawToken(ca.creditFacade, t.token, MAX_UINT256, to),
+        this.prepareWithdrawToken(ca.creditFacade, t.token, MAX_UINT256, to),
       ),
     ];
 
@@ -497,7 +496,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
 
     // TODO: remove after transition to 3.1 since this action will be automated
     const { unwrapCalls, assetsToWithdraw } =
-      this.#prepareUnwrapAndWithdrawCallsV3(
+      this.prepareUnwrapAndWithdrawCallsV3(
         wrapped,
         true,
         true,
@@ -509,7 +508,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       ...this.#prepareAddCollateral(ca.creditFacade, addCollateral, permits),
       ...unwrapCalls,
       ...assetsToWithdraw.map(t =>
-        this.#prepareWithdrawToken(ca.creditFacade, t.token, MAX_UINT256, to),
+        this.prepareWithdrawToken(ca.creditFacade, t.token, MAX_UINT256, to),
       ),
     ];
 
@@ -545,7 +544,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
 
     const calls: Array<MultiCall> = [
       ...priceUpdates,
-      ...this.#prepareUpdateQuotas(creditAccount.creditFacade, {
+      ...this.prepareUpdateQuotas(creditAccount.creditFacade, {
         minQuota,
         averageQuota,
       }),
@@ -592,7 +591,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
         [asset],
         permit ? { [asset.token]: permit } : {},
       ),
-      ...this.#prepareUpdateQuotas(creditAccount.creditFacade, {
+      ...this.prepareUpdateQuotas(creditAccount.creditFacade, {
         minQuota,
         averageQuota,
       }),
@@ -653,66 +652,6 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
-   * Withdraws a single collateral from credit account to wallet to and updates quotas; 
-      technically can withdraw several tokens at once
-     - Collateral is withdrawn in the following order: price update -> withdraw token -> update quotas for affected tokens
-   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice} on which operation is performed
-   * @param {Array<Asset>} averageQuota - average quota for desired token {@link Asset}
-   * @param {Array<Asset>} minQuota - minimum quota for desired token {@link Asset}
-   * @param {Address} to - Wallet address to withdraw token to
-   * @param {Array<Asset>} assetsToWithdraw - permits for asset if it is permittable {@link PermitResult}
-   * @returns All necessary data to execute the transaction (call, credit facade)
-   */
-  public async withdrawCollateral({
-    creditAccount,
-    assetsToWithdraw: wrapped,
-    to,
-
-    minQuota,
-    averageQuota,
-  }: WithdrawCollateralProps): Promise<CreditAccountOperationResult> {
-    const cm = this.sdk.marketRegister.findCreditManager(
-      creditAccount.creditManager,
-    );
-
-    const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
-      creditAccount.creditManager,
-      creditAccount,
-      undefined,
-    );
-
-    // TODO: remove after transition to 3.1 since this action will be automated
-    const { unwrapCalls, assetsToWithdraw } =
-      this.#prepareUnwrapAndWithdrawCallsV3(
-        wrapped,
-        false,
-        false,
-        creditAccount.creditManager,
-      );
-
-    const calls: Array<MultiCall> = [
-      ...priceUpdatesCalls,
-      ...unwrapCalls,
-      ...assetsToWithdraw.map(a =>
-        this.#prepareWithdrawToken(
-          creditAccount.creditFacade,
-          a.token,
-          a.balance,
-          to,
-        ),
-      ),
-      ...this.#prepareUpdateQuotas(creditAccount.creditFacade, {
-        minQuota,
-        averageQuota,
-      }),
-    ];
-
-    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
-
-    return { tx, calls, creditFacade: cm.creditFacade };
-  }
-
-  /**
    * Executes swap specified by given calls, update quotas of affected tokens
      - Swap is executed in the following order: price update -> execute swap path -> update quotas
    * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice} on which operation is performed
@@ -742,7 +681,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const calls: Array<MultiCall> = [
       ...priceUpdatesCalls,
       ...swapCalls,
-      ...this.#prepareUpdateQuotas(creditAccount.creditFacade, {
+      ...this.prepareUpdateQuotas(creditAccount.creditFacade, {
         minQuota,
         averageQuota,
       }),
@@ -792,7 +731,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       ...tokensToDisable.map(a =>
         this.#prepareDisableToken(ca.creditFacade, a.token),
       ),
-      ...this.#prepareUpdateQuotas(ca.creditFacade, { minQuota, averageQuota }),
+      ...this.prepareUpdateQuotas(ca.creditFacade, { minQuota, averageQuota }),
     ];
 
     const tx = cm.creditFacade.multicall(ca.creditAccount, calls);
@@ -886,9 +825,9 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       ...this.#prepareAddCollateral(cm.creditFacade, collateral, permits),
       ...openPathCalls,
       ...(withdrawDebt
-        ? [this.#prepareWithdrawToken(cm.creditFacade, cm.underlying, debt, to)]
+        ? [this.prepareWithdrawToken(cm.creditFacade, cm.underlying, debt, to)]
         : []),
-      ...this.#prepareUpdateQuotas(cm.creditFacade, {
+      ...this.prepareUpdateQuotas(cm.creditFacade, {
         minQuota,
         averageQuota,
       }),
@@ -1170,7 +1109,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     return calls;
   }
 
-  #prepareUpdateQuotas(
+  protected prepareUpdateQuotas(
     creditFacade: Address,
     { averageQuota, minQuota }: PrepareUpdateQuotasProps,
   ): Array<MultiCall> {
@@ -1245,7 +1184,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     }));
   }
 
-  #prepareWithdrawToken(
+  protected prepareWithdrawToken(
     creditFacade: Address,
     token: Address,
     amount: bigint,
@@ -1323,7 +1262,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
    * @param acc
    * @returns
    */
-  #prepareUnwrapAndWithdrawCallsV3(
+  protected prepareUnwrapAndWithdrawCallsV3(
     assets: Array<Asset>,
     claim: boolean,
     withdrawAll: boolean,

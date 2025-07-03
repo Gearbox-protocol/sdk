@@ -7,6 +7,7 @@ import type {
   CreditAccountOperationResult,
   ICreditAccountsService,
   SetBotProps,
+  WithdrawCollateralProps,
 } from "./types.js";
 
 export class CreditAccountServiceV310
@@ -43,6 +44,48 @@ export class CreditAccountServiceV310
     const calls = [...priceUpdatesCalls, addBotCall];
 
     const tx = cm.creditFacade.multicall(ca.creditAccount, calls);
+
+    return { tx, calls, creditFacade: cm.creditFacade };
+  }
+
+  /**
+   * Implements {@link ICreditAccountsService.withdrawCollateral}
+   */
+  public async withdrawCollateral({
+    creditAccount,
+    assetsToWithdraw,
+    to,
+
+    minQuota,
+    averageQuota,
+  }: WithdrawCollateralProps): Promise<CreditAccountOperationResult> {
+    const cm = this.sdk.marketRegister.findCreditManager(
+      creditAccount.creditManager,
+    );
+
+    const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
+      creditAccount.creditManager,
+      creditAccount,
+      undefined,
+    );
+
+    const calls: Array<MultiCall> = [
+      ...priceUpdatesCalls,
+      ...assetsToWithdraw.map(a =>
+        this.prepareWithdrawToken(
+          creditAccount.creditFacade,
+          a.token,
+          a.balance,
+          to,
+        ),
+      ),
+      ...this.prepareUpdateQuotas(creditAccount.creditFacade, {
+        minQuota,
+        averageQuota,
+      }),
+    ];
+
+    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
 
     return { tx, calls, creditFacade: cm.creditFacade };
   }

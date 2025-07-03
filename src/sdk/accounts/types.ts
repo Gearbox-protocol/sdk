@@ -76,8 +76,14 @@ export interface RepayAndLiquidateCreditAccountProps {
 }
 
 export interface PrepareUpdateQuotasProps {
-  minQuota: Array<Asset>;
+  /**
+   * average quota for desired token
+   */
   averageQuota: Array<Asset>;
+  /**
+   * minimum quota for desired token
+   */
+  minQuota: Array<Asset>;
 }
 
 export interface UpdateQuotasProps extends PrepareUpdateQuotasProps {
@@ -92,8 +98,17 @@ export interface AddCollateralProps extends PrepareUpdateQuotasProps {
 }
 
 export interface WithdrawCollateralProps extends PrepareUpdateQuotasProps {
+  /**
+   * list of assets which should be withdrawn
+   */
   assetsToWithdraw: Array<Asset>;
+  /**
+   * Wallet address to withdraw token to
+   */
   to: Address;
+  /**
+   * minimal credit account data on which operation is performed
+   */
   creditAccount: RouterCASlice;
 }
 
@@ -197,4 +212,15 @@ export interface ICreditAccountsService extends SDKConstruct {
    * @return All necessary data to execute the transaction (call, credit facade)
    */
   setBot: (props: SetBotProps) => Promise<CreditAccountOperationResult>;
+
+  /**
+   * Withdraws a single collateral from credit account to wallet to and updates quotas; 
+      technically can withdraw several tokens at once
+      - Collateral is withdrawn in the following order: price update -> withdraw token -> update quotas for affected tokens
+   * @param props - {@link WithdrawCollateralProps}
+   * @return All necessary data to execute the transaction (call, credit facade)
+   */
+  withdrawCollateral(
+    props: WithdrawCollateralProps,
+  ): Promise<CreditAccountOperationResult>;
 }
