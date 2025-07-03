@@ -36,6 +36,37 @@ export const iGearboxRouterV310Abi = [
   },
   {
     type: "function",
+    name: "processClaims",
+    inputs: [
+      { name: "creditAccount", type: "address", internalType: "address" },
+      {
+        name: "tData",
+        type: "tuple[]",
+        internalType: "struct TokenData[]",
+        components: [
+          { name: "token", type: "address", internalType: "address" },
+          { name: "balance", type: "uint256", internalType: "uint256" },
+          { name: "leftoverBalance", type: "uint256", internalType: "uint256" },
+          { name: "numSplits", type: "uint256", internalType: "uint256" },
+          { name: "claimRewards", type: "bool", internalType: "bool" },
+        ],
+      },
+    ],
+    outputs: [
+      {
+        name: "calls",
+        type: "tuple[]",
+        internalType: "struct MultiCall[]",
+        components: [
+          { name: "target", type: "address", internalType: "address" },
+          { name: "callData", type: "bytes", internalType: "bytes" },
+        ],
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "routeManyToOne",
     inputs: [
       { name: "creditAccount", type: "address", internalType: "address" },
