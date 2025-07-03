@@ -1,5 +1,5 @@
-import { BotPermissions } from "../constants";
-import type { BotBaseType } from "./types";
+import { BotPermissions } from "../constants/bot-permissions.js";
+import type { BotBaseType } from "./types.js";
 
 export const PERMISSION_BY_TYPE: Record<BotBaseType, bigint> = {
   LIQUIDATION_PROTECTION: BigInt(
