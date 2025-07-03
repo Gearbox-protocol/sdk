@@ -1,3 +1,3 @@
-export * from "./constatnts.js";
+export * from "./constants.js";
 export * from "./createCreditAccountService.js";
 export * from "./types.js";

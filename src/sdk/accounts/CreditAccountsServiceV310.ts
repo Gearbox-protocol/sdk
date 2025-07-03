@@ -2,7 +2,7 @@ import { encodeFunctionData } from "viem";
 import { iCreditFacadeMulticallV310Abi } from "../../abi/v310.js";
 import type { MultiCall } from "../types/index.js";
 import { AbstractCreditAccountService } from "./AbstractCreditAccountsService.js";
-import { PERMISSION_BY_TYPE } from "./constatnts.js";
+import { PERMISSION_BY_TYPE } from "./constants.js";
 import type {
   CreditAccountOperationResult,
   ICreditAccountsService,

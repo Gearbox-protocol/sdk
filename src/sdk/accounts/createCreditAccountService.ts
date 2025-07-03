@@ -6,7 +6,7 @@ import type { CreditAccountsServiceInstance } from "./types.js";
 
 /**
  * @sdk
- * @version version of desired credit facade; if no credit facade is considered (you only want to get ca list), either v300 or v310 is fine)
+ * @version version of desired credit facade; if no credit facade is considered (you only want to get ca list), either v300 or v310 is fine, because ca compressor has nothing to do with credit facade version
  * @returns
  */
 export function createCreditAccountService(
