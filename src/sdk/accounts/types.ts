@@ -141,8 +141,18 @@ export interface ExecuteSwapProps extends PrepareUpdateQuotasProps {
 }
 
 export interface ClaimFarmRewardsProps extends PrepareUpdateQuotasProps {
+  /**
+    * tokens to disable after rewards claiming;
+    sometimes is needed since old credit facade used to enable tokens on claim 
+  */
   tokensToDisable: Array<Asset>;
+  /**
+   * Legacy property - array of MultiCall from getRewards
+   */
   calls: Array<MultiCall>;
+  /**
+   * minimal credit account data on which operation is performed
+   */
   creditAccount: RouterCASlice;
 }
 
@@ -267,5 +277,16 @@ export interface ICreditAccountsService extends SDKConstruct {
    */
   repayAndLiquidateCreditAccount(
     props: RepayAndLiquidateCreditAccountProps,
+  ): Promise<CreditAccountOperationResult>;
+
+  /**
+   * Executes swap specified by given calls, update quotas of affected tokens
+     - Claim rewards is executed in the following order: price update -> execute claim calls -> 
+      -> (optionally: disable reward tokens) -> (optionally: update quotas)
+   * @param props - {@link ClaimFarmRewardsProps}
+   * @return All necessary data to execute the transaction (call, credit facade)
+   */
+  claimFarmRewards(
+    props: ClaimFarmRewardsProps,
   ): Promise<CreditAccountOperationResult>;
 }

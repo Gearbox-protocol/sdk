@@ -208,6 +208,12 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       args: [creditAccount],
     });
 
+    const callData = encodeFunctionData({
+      abi: iBaseRewardPoolAbi,
+      functionName: "getReward",
+      args: [],
+    });
+
     const r = rewards.reduce<Record<string, Rewards>>((acc, r) => {
       const adapter = r.adapter.toLowerCase() as Address;
       const stakedPhantomToken = r.stakedPhantomToken.toLowerCase() as Address;
@@ -219,12 +225,6 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       const key = [adapter, stakedPhantomToken].join("-");
 
       if (!acc[key]) {
-        const callData = encodeFunctionData({
-          abi: iBaseRewardPoolAbi,
-          functionName: "getReward",
-          args: [],
-        });
-
         acc[key] = {
           adapter,
           stakedPhantomToken,
@@ -545,53 +545,6 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
-   * Executes swap specified by given calls, update quotas of affected tokens
-     - Claim rewards is executed in the following order: price update -> execute claim calls -> 
-      -> (optionally: disable reward tokens) -> (optionally: update quotas)
-   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice} on which operation is performed
-   * @param {Array<Asset>} averageQuota - average quota for desired token; 
-      in this case can be omitted since rewards tokens do not require quotas {@link Asset}
-   * @param {Array<Asset>} minQuota - minimum quota for desired token;
-      in this case can be omitted since rewards tokens do not require quotas {@link Asset}
-   * @param {Array<MultiCall>} calls - array of MultiCall from getRewards {@link MultiCall}
-   * @param {Array<Asset>} tokensToDisable - tokens to disable after rewards claiming;
-      sometimes is needed since old credit facade used to enable tokens on claim {@link Asset}
-   * @returns All necessary data to execute the transaction (call, credit facade)
-   */
-  public async claimFarmRewards({
-    tokensToDisable,
-    calls: claimCalls,
-    creditAccount: ca,
-
-    minQuota,
-    averageQuota,
-  }: ClaimFarmRewardsProps): Promise<CreditAccountOperationResult> {
-    if (claimCalls.length === 0) throw new Error("No path to execute");
-
-    const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
-
-    const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
-      ca.creditManager,
-      ca,
-      averageQuota,
-    );
-
-    // TODO: probably needs a better way to handle reward tokens
-    const calls = [
-      ...priceUpdatesCalls,
-      ...claimCalls,
-      ...tokensToDisable.map(a =>
-        this.#prepareDisableToken(ca.creditFacade, a.token),
-      ),
-      ...this.prepareUpdateQuotas(ca.creditFacade, { minQuota, averageQuota }),
-    ];
-
-    const tx = cm.creditFacade.multicall(ca.creditAccount, calls);
-
-    return { tx, calls, creditFacade: cm.creditFacade };
-  }
-
-  /**
    * Executes enable/disable tokens specified by given tokens lists and token prices
    * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice} on which operation is performed
    * @param {Array<Asset>} enabledTokens - list of tokens to enable {@link Asset};
@@ -614,7 +567,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const calls = [
       ...priceUpdatesCalls,
       ...disabledTokens.map(token =>
-        this.#prepareDisableToken(ca.creditFacade, token),
+        this.prepareDisableToken(ca.creditFacade, token),
       ),
       ...this.#prepareEnableTokens(ca.creditFacade, enabledTokens),
     ];
@@ -1006,12 +959,15 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       const isEnabled = (t.mask & ca.enabledTokensMask) !== 0n;
 
       if (t.token !== ca.underlying && isEnabled && t.quota === 0n) {
-        calls.push(this.#prepareDisableToken(ca.creditFacade, t.token));
+        calls.push(this.prepareDisableToken(ca.creditFacade, t.token));
       }
     }
     return calls;
   }
-  #prepareDisableToken(creditFacade: Address, token: Address): MultiCall {
+  protected prepareDisableToken(
+    creditFacade: Address,
+    token: Address,
+  ): MultiCall {
     return {
       target: creditFacade,
       callData: encodeFunctionData({

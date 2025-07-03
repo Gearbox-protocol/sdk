@@ -27,6 +27,7 @@ import {
 import type { MultiCall } from "../types/transactions.js";
 import { AbstractCreditAccountService } from "./AbstractCreditAccountsService.js";
 import type {
+  ClaimFarmRewardsProps,
   CreditAccountOperationResult,
   ICreditAccountsService,
   RepayAndLiquidateCreditAccountProps,
@@ -188,6 +189,41 @@ export class CreditAccountServiceV300
       to,
       calls,
     );
+    return { tx, calls, creditFacade: cm.creditFacade };
+  }
+
+  /**
+   * Implements {@link ICreditAccountsService.claimFarmRewards}
+   */
+  async claimFarmRewards({
+    tokensToDisable,
+    calls: claimCalls,
+    creditAccount: ca,
+
+    minQuota,
+    averageQuota,
+  }: ClaimFarmRewardsProps): Promise<CreditAccountOperationResult> {
+    if (claimCalls.length === 0) throw new Error("No path to execute");
+
+    const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
+
+    const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
+      ca.creditManager,
+      ca,
+      averageQuota,
+    );
+
+    const calls = [
+      ...priceUpdatesCalls,
+      ...claimCalls,
+      ...tokensToDisable.map(a =>
+        this.prepareDisableToken(ca.creditFacade, a.token),
+      ),
+      ...this.prepareUpdateQuotas(ca.creditFacade, { minQuota, averageQuota }),
+    ];
+
+    const tx = cm.creditFacade.multicall(ca.creditAccount, calls);
+
     return { tx, calls, creditFacade: cm.creditFacade };
   }
 
