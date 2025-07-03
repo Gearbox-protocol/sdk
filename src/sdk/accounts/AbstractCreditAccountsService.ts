@@ -1133,9 +1133,9 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
 
   /**
    * Returns price updates in format that is accepted by various credit facade methods (multicall, close/liquidate, etc...).
-   * If there are desiredQuotas and creditAccount update quotaBalance > 0 || (balance > 10n && isEnabled).
-   * If there is creditAccount update balance > 10n && isEnabled.
-   * If there is desiredQuotas update quotaBalance > 0.
+   * - If there are desiredQuotas and creditAccount update quotaBalance > 0 || (balance > 10n && isEnabled). Is used when account has both: balances and quota buys.
+   * - If there is creditAccount update balance > 10n && isEnabled. Is used in credit account actions when quota is not being bought.
+   * - If there is desiredQuotas update quotaBalance > 0. Is used on credit account opening, when quota is bought for the first time.
    * @param acc
    * @returns
    */
