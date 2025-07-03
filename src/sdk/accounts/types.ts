@@ -168,7 +168,7 @@ export interface Rewards {
 export type BotBaseType = "LIQUIDATION_PROTECTION";
 export type LiquidationBotType = Exclude<BotType, "PARTIAL_LIQUIDATION_BOT">;
 
-export interface SetBotProps extends PrepareUpdateQuotasProps {
+export interface SetBotProps {
   /**
    * Address of a bot that is being updated
    */

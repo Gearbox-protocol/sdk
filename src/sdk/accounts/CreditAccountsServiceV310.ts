@@ -22,14 +22,13 @@ export class CreditAccountServiceV310
     stopBot,
 
     creditAccount: ca,
-    averageQuota,
   }: SetBotProps): Promise<CreditAccountOperationResult> {
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
 
     const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
       ca.creditManager,
       ca,
-      averageQuota,
+      undefined,
     );
 
     const addBotCall: MultiCall = {
