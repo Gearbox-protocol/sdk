@@ -64,14 +64,37 @@ export interface CloseCreditAccountProps {
 
 export interface RepayCreditAccountProps
   extends RepayAndLiquidateCreditAccountProps {
+  /**
+   * close or zeroDebt
+   */
   operation: CloseOptions;
 }
 
 export interface RepayAndLiquidateCreditAccountProps {
+  /**
+   * tokens to repay dept. 
+      In the current implementation, this is the (debt+interest+fess) * buffer, 
+      where buffer refers to amount of tokens which will exceed current debt 
+      in order to cover possible debt increase over tx execution
+   */
   collateralAssets: Array<Asset>;
+  /**
+   * tokens to withdraw from credit account. 
+      Typically all non zero ca assets (including unclaimed rewards) 
+      plus underlying token (to withdraw any exceeding underlying token after repay)
+   */
   assetsToWithdraw: Array<Asset>;
+  /**
+   * minimal credit account data on which operation is performed on which operation is performed
+   */
   creditAccount: RouterCASlice;
+  /**
+   * Wallet address to withdraw underlying to
+   */
   to: Address;
+  /**
+   * permits of tokens to withdraw (in any permittable token is present)
+   */
   permits: Record<string, PermitResult>;
 }
 
@@ -222,5 +245,27 @@ export interface ICreditAccountsService extends SDKConstruct {
    */
   withdrawCollateral(
     props: WithdrawCollateralProps,
+  ): Promise<CreditAccountOperationResult>;
+
+  /**
+   * Fully repays credit account or repays credit account and keeps it open with zero debt
+     - Repays in the following order: price update -> add collateral to cover the debt -> 
+      -> disable quotas for all tokens -> decrease debt -> disable tokens all tokens -> withdraw all tokens
+   * @param props - {@link RepayCreditAccountProps}
+   * @return All necessary data to execute the transaction (call, credit facade)
+   */
+  repayCreditAccount(
+    props: RepayCreditAccountProps,
+  ): Promise<CreditAccountOperationResult>;
+
+  /**
+   * Fully repays liquidatable account
+    - Repay and liquidate is executed in the following order: price update -> add collateral to cover the debt -> 
+      withdraw all tokens from credit account
+   * @param props - {@link RepayAndLiquidateCreditAccountProps}
+   * @return All necessary data to execute the transaction (call, credit facade)
+   */
+  repayAndLiquidateCreditAccount(
+    props: RepayAndLiquidateCreditAccountProps,
   ): Promise<CreditAccountOperationResult>;
 }
