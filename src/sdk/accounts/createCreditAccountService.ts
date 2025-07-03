@@ -5,7 +5,12 @@ import { CreditAccountServiceV300 } from "./CreditAccountsServiceV300.js";
 import { CreditAccountServiceV310 } from "./CreditAccountsServiceV310.js";
 import type { ICreditAccountsService } from "./types.js";
 
-export function createRouter(
+/**
+ * @sdk
+ * @version version of desired credit facade; if no credit facade is considered (you only want to get ca list), either v300 or v310 is fine)
+ * @returns
+ */
+export function createCreditAccountService(
   sdk: GearboxSDK,
   version: number,
 ): AbstractCreditAccountService & ICreditAccountsService {
