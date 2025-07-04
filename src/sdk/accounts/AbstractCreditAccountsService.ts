@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import { encodeFunctionData, getAddress, parseAbi } from "viem";
+import { encodeFunctionData, getAddress } from "viem";
 
 import {
   iCreditAccountCompressorAbi,
@@ -17,7 +17,6 @@ import {
   AP_REWARDS_COMPRESSOR,
   MAX_UINT256,
   MIN_INT96,
-  NOT_DEPLOYED,
   PERCENTAGE_FACTOR,
   RAY,
   VERSION_RANGE_310,
@@ -30,29 +29,6 @@ import type {
   UpdatePriceFeedsResult,
 } from "../market/index.js";
 import { type Asset, assetsMap, type RouterCASlice } from "../router/index.js";
-import type {
-  AuraStakedToken,
-  AuraStakedTokenData,
-  ConvexPhantomTokenData,
-  ConvexStakedPhantomToken,
-  StakingRewardsPhantomToken,
-  StakingRewardsPhantomTokenData,
-  SupportedContract,
-  SupportedToken,
-} from "../sdk-gov-legacy/index.js";
-import {
-  auraStakedTokens,
-  auraTokens,
-  contractsByNetwork,
-  convexStakedPhantomTokens,
-  convexTokens,
-  isAuraStakedToken,
-  isConvexStakedPhantomToken,
-  isStakingRewardsPhantomToken,
-  stakingRewardsTokens,
-  tokenDataByNetwork,
-  tokenSymbolByAddress,
-} from "../sdk-gov-legacy/index.js";
 import type { ILogger, IPriceUpdateTx, MultiCall } from "../types/index.js";
 import { AddressMap, childLogger } from "../utils/index.js";
 import { simulateWithPriceUpdates } from "../utils/viem/index.js";
@@ -72,11 +48,8 @@ import type {
   OpenCAProps,
   PermitResult,
   PrepareUpdateQuotasProps,
-  RepayAndLiquidateCreditAccountProps,
-  RepayCreditAccountProps,
   Rewards,
   UpdateQuotasProps,
-  WithdrawCollateralProps,
 } from "./types.js";
 import { stringifyGetCreditAccountsArgs } from "./utils.js";
 
@@ -86,7 +59,7 @@ export interface CreditAccountServiceOptions {
   batchSize?: number;
 }
 
-export class CreditAccountsService extends SDKConstruct {
+export abstract class AbstractCreditAccountService extends SDKConstruct {
   #compressor: Address;
   #batchSize?: number;
   #logger?: ILogger;
@@ -235,6 +208,12 @@ export class CreditAccountsService extends SDKConstruct {
       args: [creditAccount],
     });
 
+    const callData = encodeFunctionData({
+      abi: iBaseRewardPoolAbi,
+      functionName: "getReward",
+      args: [],
+    });
+
     const r = rewards.reduce<Record<string, Rewards>>((acc, r) => {
       const adapter = r.adapter.toLowerCase() as Address;
       const stakedPhantomToken = r.stakedPhantomToken.toLowerCase() as Address;
@@ -246,12 +225,6 @@ export class CreditAccountsService extends SDKConstruct {
       const key = [adapter, stakedPhantomToken].join("-");
 
       if (!acc[key]) {
-        const callData = encodeFunctionData({
-          abi: iBaseRewardPoolAbi,
-          functionName: "getReward",
-          args: [],
-        });
-
         acc[key] = {
           adapter,
           stakedPhantomToken,
@@ -384,11 +357,11 @@ export class CreditAccountsService extends SDKConstruct {
     const calls: Array<MultiCall> = [
       ...(operation === "close" ? [] : priceUpdates),
       ...routerCloseResult.calls,
-      ...this.#prepareDisableQuotas(ca),
-      ...this.#prepareDecreaseDebt(ca),
-      ...this.#prepareDisableTokens(ca),
+      ...this.prepareDisableQuotas(ca),
+      ...this.prepareDecreaseDebt(ca),
+      ...this.prepareDisableTokens(ca),
       ...assetsToWithdraw.map(t =>
-        this.#prepareWithdrawToken(ca.creditFacade, t, MAX_UINT256, to),
+        this.prepareWithdrawToken(ca.creditFacade, t, MAX_UINT256, to),
       ),
     ];
 
@@ -397,128 +370,6 @@ export class CreditAccountsService extends SDKConstruct {
         ? cm.creditFacade.closeCreditAccount(ca.creditAccount, calls)
         : cm.creditFacade.multicall(ca.creditAccount, calls);
     return { tx, calls, routerCloseResult, creditFacade: cm.creditFacade };
-  }
-
-  /**
-   * Fully repays credit account or repays credit account and keeps it open with zero debt
-     - Repays in the following order: price update -> add collateral to cover the debt -> 
-      -> disable quotas for all tokens -> decrease debt -> disable tokens all tokens -> withdraw all tokens
-   * @param {CloseOptions} operation - {@link CloseOptions}: close or zeroDebt
-   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice} on which operation is performed on which operation is performed
-   * @param {Array<Address>} collateralAssets - tokens to repay dept. 
-      In the current implementation, this is the (debt+interest+fess) * buffer, 
-      where buffer refers to amount of tokens which will exceed current debt 
-      in order to cover possible debt increase over tx execution
-   * @param {Array<Asset>} assetsToWithdraw - tokens to withdraw from credit account. 
-      Typically all non zero ca assets (including unclaimed rewards) 
-      plus underlying token (to withdraw any exceeding underlying token after repay)
-   * @param {Record<Address, PermitResult>} permits - permits of tokens to withdraw (in any permittable token is present) {@link PermitResult}
-   * @param {Address} to - Wallet address to withdraw underlying to
-   * @returns All necessary data to execute the transaction (call, credit facade)
-   */
-  async repayCreditAccount({
-    operation,
-    collateralAssets,
-    assetsToWithdraw: wrapped,
-    creditAccount: ca,
-    permits,
-    to,
-  }: RepayCreditAccountProps): Promise<CreditAccountOperationResult> {
-    const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
-    const addCollateral = collateralAssets.filter(a => a.balance > 0);
-
-    const priceUpdates = await this.getPriceUpdatesForFacade(
-      ca.creditManager,
-      ca,
-      undefined,
-    );
-
-    // TODO: remove after transition to 3.1 since this action will be automated
-    const { unwrapCalls, assetsToWithdraw } =
-      this.#prepareUnwrapAndWithdrawCallsV3(
-        wrapped,
-        true,
-        true,
-        ca.creditManager,
-      );
-
-    const calls: Array<MultiCall> = [
-      ...(operation === "close" ? [] : priceUpdates),
-      ...this.#prepareAddCollateral(ca.creditFacade, addCollateral, permits),
-      ...this.#prepareDisableQuotas(ca),
-      ...this.#prepareDecreaseDebt(ca),
-      ...unwrapCalls,
-      ...this.#prepareDisableTokens(ca),
-      // TODO: probably needs a better way to handle reward tokens
-      ...assetsToWithdraw.map(t =>
-        this.#prepareWithdrawToken(ca.creditFacade, t.token, MAX_UINT256, to),
-      ),
-    ];
-
-    const tx =
-      operation === "close"
-        ? cm.creditFacade.closeCreditAccount(ca.creditAccount, calls)
-        : cm.creditFacade.multicall(ca.creditAccount, calls);
-    return { tx, calls, creditFacade: cm.creditFacade };
-  }
-
-  /**
-   * Fully repays liquidatable account
-     - Repay and liquidate is executed in the following order: price update -> add collateral to cover the debt -> 
-      withdraw all tokens from credit account
-   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice} on which operation is performed
-   * @param {Array<Address>} collateralAssets - tokens to repay dept. 
-      In the current implementation, this is the (debt+interest+fess) * buffer, 
-      where buffer refers to amount of tokens which will exceed current debt 
-      in order to cover possible debt increase over tx execution
-   * @param {Array<Address>} assetsToWithdraw - tokens to withdraw from credit account. 
-      Typically all non zero ca assets (including unclaimed rewards) 
-      plus underlying token (to withdraw any exceeding underlying token after repay)
-   * @param {Record<Address, PermitResult>} permits - permits of tokens to withdraw (in any permittable token is present) {@link PermitResult}
-   * @param {Address} to - Wallet address to withdraw underlying to
-   * @returns All necessary data to execute the transaction (call, credit facade)
-   */
-  async repayAndLiquidateCreditAccount({
-    collateralAssets,
-    assetsToWithdraw: wrapped,
-    creditAccount: ca,
-    permits,
-    to,
-  }: RepayAndLiquidateCreditAccountProps): Promise<CreditAccountOperationResult> {
-    const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
-
-    const priceUpdates = await this.getPriceUpdatesForFacade(
-      ca.creditManager,
-      ca,
-      undefined,
-    );
-
-    const addCollateral = collateralAssets.filter(a => a.balance > 0);
-
-    // TODO: remove after transition to 3.1 since this action will be automated
-    const { unwrapCalls, assetsToWithdraw } =
-      this.#prepareUnwrapAndWithdrawCallsV3(
-        wrapped,
-        true,
-        true,
-        ca.creditManager,
-      );
-
-    const calls: Array<MultiCall> = [
-      ...priceUpdates,
-      ...this.#prepareAddCollateral(ca.creditFacade, addCollateral, permits),
-      ...unwrapCalls,
-      ...assetsToWithdraw.map(t =>
-        this.#prepareWithdrawToken(ca.creditFacade, t.token, MAX_UINT256, to),
-      ),
-    ];
-
-    const tx = cm.creditFacade.liquidateCreditAccount(
-      ca.creditAccount,
-      to,
-      calls,
-    );
-    return { tx, calls, creditFacade: cm.creditFacade };
   }
 
   /**
@@ -545,7 +396,7 @@ export class CreditAccountsService extends SDKConstruct {
 
     const calls: Array<MultiCall> = [
       ...priceUpdates,
-      ...this.#prepareUpdateQuotas(creditAccount.creditFacade, {
+      ...this.prepareUpdateQuotas(creditAccount.creditFacade, {
         minQuota,
         averageQuota,
       }),
@@ -587,12 +438,12 @@ export class CreditAccountsService extends SDKConstruct {
 
     const calls: Array<MultiCall> = [
       ...priceUpdatesCalls,
-      ...this.#prepareAddCollateral(
+      ...this.prepareAddCollateral(
         creditAccount.creditFacade,
         [asset],
         permit ? { [asset.token]: permit } : {},
       ),
-      ...this.#prepareUpdateQuotas(creditAccount.creditFacade, {
+      ...this.prepareUpdateQuotas(creditAccount.creditFacade, {
         minQuota,
         averageQuota,
       }),
@@ -653,66 +504,6 @@ export class CreditAccountsService extends SDKConstruct {
   }
 
   /**
-   * Withdraws a single collateral from credit account to wallet to and updates quotas; 
-      technically can withdraw several tokens at once
-     - Collateral is withdrawn in the following order: price update -> withdraw token -> update quotas for affected tokens
-   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice} on which operation is performed
-   * @param {Array<Asset>} averageQuota - average quota for desired token {@link Asset}
-   * @param {Array<Asset>} minQuota - minimum quota for desired token {@link Asset}
-   * @param {Address} to - Wallet address to withdraw token to
-   * @param {Array<Asset>} assetsToWithdraw - permits for asset if it is permittable {@link PermitResult}
-   * @returns All necessary data to execute the transaction (call, credit facade)
-   */
-  public async withdrawCollateral({
-    creditAccount,
-    assetsToWithdraw: wrapped,
-    to,
-
-    minQuota,
-    averageQuota,
-  }: WithdrawCollateralProps): Promise<CreditAccountOperationResult> {
-    const cm = this.sdk.marketRegister.findCreditManager(
-      creditAccount.creditManager,
-    );
-
-    const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
-      creditAccount.creditManager,
-      creditAccount,
-      undefined,
-    );
-
-    // TODO: remove after transition to 3.1 since this action will be automated
-    const { unwrapCalls, assetsToWithdraw } =
-      this.#prepareUnwrapAndWithdrawCallsV3(
-        wrapped,
-        false,
-        false,
-        creditAccount.creditManager,
-      );
-
-    const calls: Array<MultiCall> = [
-      ...priceUpdatesCalls,
-      ...unwrapCalls,
-      ...assetsToWithdraw.map(a =>
-        this.#prepareWithdrawToken(
-          creditAccount.creditFacade,
-          a.token,
-          a.balance,
-          to,
-        ),
-      ),
-      ...this.#prepareUpdateQuotas(creditAccount.creditFacade, {
-        minQuota,
-        averageQuota,
-      }),
-    ];
-
-    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
-
-    return { tx, calls, creditFacade: cm.creditFacade };
-  }
-
-  /**
    * Executes swap specified by given calls, update quotas of affected tokens
      - Swap is executed in the following order: price update -> execute swap path -> update quotas
    * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice} on which operation is performed
@@ -742,60 +533,13 @@ export class CreditAccountsService extends SDKConstruct {
     const calls: Array<MultiCall> = [
       ...priceUpdatesCalls,
       ...swapCalls,
-      ...this.#prepareUpdateQuotas(creditAccount.creditFacade, {
+      ...this.prepareUpdateQuotas(creditAccount.creditFacade, {
         minQuota,
         averageQuota,
       }),
     ];
 
     const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
-
-    return { tx, calls, creditFacade: cm.creditFacade };
-  }
-
-  /**
-   * Executes swap specified by given calls, update quotas of affected tokens
-     - Claim rewards is executed in the following order: price update -> execute claim calls -> 
-      -> (optionally: disable reward tokens) -> (optionally: update quotas)
-   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice} on which operation is performed
-   * @param {Array<Asset>} averageQuota - average quota for desired token; 
-      in this case can be omitted since rewards tokens do not require quotas {@link Asset}
-   * @param {Array<Asset>} minQuota - minimum quota for desired token;
-      in this case can be omitted since rewards tokens do not require quotas {@link Asset}
-   * @param {Array<MultiCall>} calls - array of MultiCall from getRewards {@link MultiCall}
-   * @param {Array<Asset>} tokensToDisable - tokens to disable after rewards claiming;
-      sometimes is needed since old credit facade used to enable tokens on claim {@link Asset}
-   * @returns All necessary data to execute the transaction (call, credit facade)
-   */
-  public async claimFarmRewards({
-    tokensToDisable,
-    calls: claimCalls,
-    creditAccount: ca,
-
-    minQuota,
-    averageQuota,
-  }: ClaimFarmRewardsProps): Promise<CreditAccountOperationResult> {
-    if (claimCalls.length === 0) throw new Error("No path to execute");
-
-    const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
-
-    const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
-      ca.creditManager,
-      ca,
-      averageQuota,
-    );
-
-    // TODO: probably needs a better way to handle reward tokens
-    const calls = [
-      ...priceUpdatesCalls,
-      ...claimCalls,
-      ...tokensToDisable.map(a =>
-        this.#prepareDisableToken(ca.creditFacade, a.token),
-      ),
-      ...this.#prepareUpdateQuotas(ca.creditFacade, { minQuota, averageQuota }),
-    ];
-
-    const tx = cm.creditFacade.multicall(ca.creditAccount, calls);
 
     return { tx, calls, creditFacade: cm.creditFacade };
   }
@@ -823,7 +567,7 @@ export class CreditAccountsService extends SDKConstruct {
     const calls = [
       ...priceUpdatesCalls,
       ...disabledTokens.map(token =>
-        this.#prepareDisableToken(ca.creditFacade, token),
+        this.prepareDisableToken(ca.creditFacade, token),
       ),
       ...this.#prepareEnableTokens(ca.creditFacade, enabledTokens),
     ];
@@ -883,12 +627,12 @@ export class CreditAccountsService extends SDKConstruct {
     const calls = [
       ...priceUpdatesCalls,
       this.#prepareIncreaseDebt(cm.creditFacade, debt),
-      ...this.#prepareAddCollateral(cm.creditFacade, collateral, permits),
+      ...this.prepareAddCollateral(cm.creditFacade, collateral, permits),
       ...openPathCalls,
       ...(withdrawDebt
-        ? [this.#prepareWithdrawToken(cm.creditFacade, cm.underlying, debt, to)]
+        ? [this.prepareWithdrawToken(cm.creditFacade, cm.underlying, debt, to)]
         : []),
-      ...this.#prepareUpdateQuotas(cm.creditFacade, {
+      ...this.prepareUpdateQuotas(cm.creditFacade, {
         minQuota,
         averageQuota,
       }),
@@ -1133,9 +877,9 @@ export class CreditAccountsService extends SDKConstruct {
 
   /**
    * Returns price updates in format that is accepted by various credit facade methods (multicall, close/liquidate, etc...).
-   * If there are desiredQuotas and creditAccount update quotaBalance > 0 || (balance > 10n && isEnabled).
-   * If there is creditAccount update balance > 10n && isEnabled.
-   * If there is desiredQuotas update quotaBalance > 0.
+   * - If there are desiredQuotas and creditAccount update quotaBalance > 0 || (balance > 10n && isEnabled). Is used when account has both: balances and quota buys.
+   * - If there is creditAccount update balance > 10n && isEnabled. Is used in credit account actions when quota is not being bought.
+   * - If there is desiredQuotas update quotaBalance > 0. Is used on credit account opening, when quota is bought for the first time.
    * @param acc
    * @returns
    */
@@ -1153,7 +897,7 @@ export class CreditAccountsService extends SDKConstruct {
     return cm.creditFacade.encodeOnDemandPriceUpdates(updates);
   }
 
-  #prepareDisableQuotas(ca: RouterCASlice): Array<MultiCall> {
+  protected prepareDisableQuotas(ca: RouterCASlice): Array<MultiCall> {
     const calls: Array<MultiCall> = [];
     for (const { token, quota } of ca.tokens) {
       if (quota > 0n) {
@@ -1170,7 +914,7 @@ export class CreditAccountsService extends SDKConstruct {
     return calls;
   }
 
-  #prepareUpdateQuotas(
+  protected prepareUpdateQuotas(
     creditFacade: Address,
     { averageQuota, minQuota }: PrepareUpdateQuotasProps,
   ): Array<MultiCall> {
@@ -1193,7 +937,7 @@ export class CreditAccountsService extends SDKConstruct {
     return calls;
   }
 
-  #prepareDecreaseDebt(ca: RouterCASlice): Array<MultiCall> {
+  protected prepareDecreaseDebt(ca: RouterCASlice): Array<MultiCall> {
     if (ca.debt > 0n) {
       return [
         {
@@ -1209,18 +953,21 @@ export class CreditAccountsService extends SDKConstruct {
     return [];
   }
 
-  #prepareDisableTokens(ca: RouterCASlice): Array<MultiCall> {
+  protected prepareDisableTokens(ca: RouterCASlice): Array<MultiCall> {
     const calls: Array<MultiCall> = [];
     for (const t of ca.tokens) {
       const isEnabled = (t.mask & ca.enabledTokensMask) !== 0n;
 
       if (t.token !== ca.underlying && isEnabled && t.quota === 0n) {
-        calls.push(this.#prepareDisableToken(ca.creditFacade, t.token));
+        calls.push(this.prepareDisableToken(ca.creditFacade, t.token));
       }
     }
     return calls;
   }
-  #prepareDisableToken(creditFacade: Address, token: Address): MultiCall {
+  protected prepareDisableToken(
+    creditFacade: Address,
+    token: Address,
+  ): MultiCall {
     return {
       target: creditFacade,
       callData: encodeFunctionData({
@@ -1245,7 +992,7 @@ export class CreditAccountsService extends SDKConstruct {
     }));
   }
 
-  #prepareWithdrawToken(
+  protected prepareWithdrawToken(
     creditFacade: Address,
     token: Address,
     amount: bigint,
@@ -1286,7 +1033,7 @@ export class CreditAccountsService extends SDKConstruct {
     };
   }
 
-  #prepareAddCollateral(
+  protected prepareAddCollateral(
     creditFacade: Address,
     assets: Array<Asset>,
     permits: Record<string, PermitResult>,
@@ -1316,232 +1063,6 @@ export class CreditAccountsService extends SDKConstruct {
     });
 
     return calls;
-  }
-
-  /**
-   * unwraps staked tokens and optionally claims associated rewards; Should be remove after transition to 3.1
-   * @param acc
-   * @returns
-   */
-  #prepareUnwrapAndWithdrawCallsV3(
-    assets: Array<Asset>,
-    claim: boolean,
-    withdrawAll: boolean,
-    creditManager: Address,
-  ) {
-    const network = this.sdk.provider.networkType;
-    const suite = this.sdk.marketRegister.findCreditManager(creditManager);
-
-    const cmAdapters = suite.creditManager.adapters
-      .values()
-      .reduce<Record<Address, Address>>((acc, a) => {
-        const contractLc = a.targetContract.toLowerCase() as Address;
-        const adapterLc = a.address.toLowerCase() as Address;
-
-        acc[contractLc] = adapterLc;
-
-        return acc;
-      }, {});
-
-    const currentContractsData = Object.entries(
-      contractsByNetwork[network],
-    ).reduce<Record<SupportedContract, Address>>(
-      (acc, [symbol, address]) => {
-        if (!!address && address !== NOT_DEPLOYED) {
-          acc[symbol as SupportedContract] = address.toLowerCase() as Address;
-        }
-        return acc;
-      },
-      {} as Record<SupportedContract, Address>,
-    );
-
-    const currentTokenData = Object.entries(tokenDataByNetwork[network]).reduce<
-      Record<SupportedToken, Address>
-    >(
-      (acc, [symbol, address]) => {
-        if (!!address && address !== NOT_DEPLOYED) {
-          acc[symbol as SupportedToken] = address.toLowerCase() as Address;
-        }
-        return acc;
-      },
-      {} as Record<SupportedToken, Address>,
-    );
-
-    const { aura, convex, sky } = assets.reduce<{
-      convex: Array<Asset>;
-      aura: Array<Asset>;
-      sky: Array<Asset>;
-    }>(
-      (acc, a) => {
-        const symbol = tokenSymbolByAddress[a.token];
-        if (isConvexStakedPhantomToken(symbol)) {
-          acc.convex.push(a);
-        } else if (isAuraStakedToken(symbol)) {
-          acc.aura.push(a);
-        } else if (isStakingRewardsPhantomToken(symbol)) {
-          acc.sky.push(a);
-        }
-        return acc;
-      },
-      { convex: [], aura: [], sky: [] },
-    );
-
-    const getWithdrawCall = (pool: Address, a: Asset) => {
-      return withdrawAll
-        ? this.#withdrawAllAndUnwrap_Convex(pool, claim)
-        : this.#withdrawAndUnwrap_Convex(pool, a.balance, claim);
-    };
-
-    const getWithdrawCall_Rewards = (pool: Address, a: Asset) => {
-      const calls = [
-        withdrawAll
-          ? this.#withdrawAll_Rewards(pool)
-          : this.#withdraw_Rewards(pool, a.balance),
-        ...(claim ? [this.#claim_Rewards(pool)] : []),
-      ];
-
-      return calls;
-    };
-
-    const convexStkCalls = convex.map(a => {
-      const symbol = tokenSymbolByAddress[a.token] as ConvexStakedPhantomToken;
-      const { pool } = convexTokens[symbol] as ConvexPhantomTokenData;
-      const poolAddress = currentContractsData[pool];
-
-      if (!poolAddress) {
-        throw new Error("Can't withdrawAllAndUnwrap_Convex (convex)");
-      }
-      const poolAddressLc = poolAddress.toLowerCase() as Address;
-
-      return getWithdrawCall(cmAdapters[poolAddressLc], a);
-    });
-
-    const auraStkCalls = aura.map(a => {
-      const symbol = tokenSymbolByAddress[a.token] as AuraStakedToken;
-      const { pool } = auraTokens[symbol] as AuraStakedTokenData;
-      const poolAddress = currentContractsData[pool];
-
-      if (!poolAddress) {
-        throw new Error("Can't withdrawAllAndUnwrap_Convex (aura)");
-      }
-      const poolAddressLc = poolAddress.toLowerCase() as Address;
-
-      return getWithdrawCall(cmAdapters[poolAddressLc], a);
-    });
-
-    const skyStkCalls = sky.flatMap(a => {
-      const symbol = tokenSymbolByAddress[
-        a.token
-      ] as StakingRewardsPhantomToken;
-      const { pool } = stakingRewardsTokens[
-        symbol
-      ] as StakingRewardsPhantomTokenData;
-      const poolAddress = currentContractsData[pool];
-
-      if (!poolAddress) {
-        throw new Error("Can't withdrawAllAndUnwrap_Convex (sky)");
-      }
-      const poolAddressLc = poolAddress.toLowerCase() as Address;
-
-      return getWithdrawCall_Rewards(cmAdapters[poolAddressLc], a);
-    });
-
-    const unwrapCalls = [...convexStkCalls, ...auraStkCalls, ...skyStkCalls];
-
-    const withdraw = assets.map(a => {
-      const symbol = tokenSymbolByAddress[a.token];
-      if (isConvexStakedPhantomToken(symbol)) {
-        return {
-          ...a,
-          token: currentTokenData[convexStakedPhantomTokens[symbol].underlying],
-        };
-      }
-      if (isAuraStakedToken(symbol)) {
-        return {
-          ...a,
-          token: currentTokenData[auraStakedTokens[symbol].underlying],
-        };
-      }
-      if (isStakingRewardsPhantomToken(symbol)) {
-        return {
-          ...a,
-          token: currentTokenData[stakingRewardsTokens[symbol].underlying],
-        };
-      }
-      return a;
-    });
-
-    return { unwrapCalls, assetsToWithdraw: withdraw };
-  }
-
-  // TODO: remove after transition to 3.1
-  #withdrawAndUnwrap_Convex(
-    address: Address,
-    amount: bigint,
-    claim: boolean,
-  ): MultiCall {
-    return {
-      target: address,
-      callData: encodeFunctionData({
-        abi: parseAbi([
-          "function withdrawAndUnwrap(uint256, bool claim) returns (uint256 tokensToEnable, uint256 tokensToDisable)",
-        ]),
-        functionName: "withdrawAndUnwrap",
-        args: [amount, claim],
-      }),
-    };
-  }
-  // TODO: remove after transition to 3.1
-  #withdrawAllAndUnwrap_Convex(address: Address, claim: boolean): MultiCall {
-    return {
-      target: address,
-      callData: encodeFunctionData({
-        abi: parseAbi([
-          "function withdrawDiffAndUnwrap(uint256 leftoverAmount, bool claim) returns (uint256 tokensToEnable, uint256 tokensToDisable)",
-        ]),
-        functionName: "withdrawDiffAndUnwrap",
-        args: [1n, claim],
-      }),
-    };
-  }
-  // TODO: remove after transition to 3.1
-  #withdrawAll_Rewards(address: Address): MultiCall {
-    return {
-      target: address,
-      callData: encodeFunctionData({
-        abi: parseAbi([
-          "function withdrawDiff(uint256 leftoverAmount) external returns (bool useSafePrices)",
-        ]),
-        functionName: "withdrawDiff",
-        args: [1n],
-      }),
-    };
-  }
-  // TODO: remove after transition to 3.1
-  #withdraw_Rewards(address: Address, amount: bigint): MultiCall {
-    return {
-      target: address,
-      callData: encodeFunctionData({
-        abi: parseAbi([
-          "function withdraw(uint256 amount) external returns (bool useSafePrices)",
-        ]),
-        functionName: "withdraw",
-        args: [amount],
-      }),
-    };
-  }
-  // TODO: remove after transition to 3.1
-  #claim_Rewards(address: Address): MultiCall {
-    return {
-      target: address,
-      callData: encodeFunctionData({
-        abi: parseAbi([
-          "function getReward() external returns (bool useSafePrices)",
-        ]),
-        functionName: "getReward",
-        args: [],
-      }),
-    };
   }
 
   /**

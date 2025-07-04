@@ -14,6 +14,7 @@ import type {
   Asset,
   FindAllSwapsProps,
   FindBestClosePathProps,
+  FindClaimAllRewardsProps,
   FindClosePathInput,
   FindOneTokenPathProps,
   FindOpenStrategyPathProps,
@@ -23,6 +24,7 @@ import type {
   RouterCloseResult,
   RouterCMSlice,
   RouterResult,
+  RouterRewardsResult,
   SwapOperation,
 } from "./types.js";
 
@@ -224,6 +226,17 @@ export class RouterV300Contract
       amount: result.amount,
       minAmount: result.minAmount,
       calls: [...result.calls],
+    };
+  }
+
+  /**
+   * Implements {@link IRouterContract.findClaimAllRewards}
+   */
+  public async findClaimAllRewards(
+    props: FindClaimAllRewardsProps,
+  ): Promise<RouterRewardsResult> {
+    return {
+      calls: props.calls,
     };
   }
 

@@ -1,4 +1,4 @@
-import { type Address, getAddress } from "viem";
+import { type Address, encodeFunctionData, getAddress } from "viem";
 
 import { iGearboxRouterV310Abi } from "../../abi/routerV310.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
@@ -12,6 +12,7 @@ import type {
   Asset,
   FindAllSwapsProps,
   FindBestClosePathProps,
+  FindClaimAllRewardsProps,
   FindClosePathInput,
   FindOneTokenPathProps,
   FindOpenStrategyPathProps,
@@ -21,6 +22,7 @@ import type {
   RouterCloseResult,
   RouterCMSlice,
   RouterResult,
+  RouterRewardsResult,
 } from "./types.js";
 
 const abi = iGearboxRouterV310Abi;
@@ -157,6 +159,34 @@ export class RouterV310Contract
       amount: result.amount,
       minAmount: result.minAmount,
       calls: [...result.calls],
+    };
+  }
+
+  /**
+   * Implements {@link IRouterContract.findClaimAllRewards}
+   */
+  public async findClaimAllRewards(
+    props: FindClaimAllRewardsProps,
+  ): Promise<RouterRewardsResult> {
+    const tData: Array<TokenData> = props.creditAccount.tokens.map(a => ({
+      balance: a.balance,
+      claimRewards: true,
+      leftoverBalance: a.balance,
+      numSplits: 0n,
+      token: a.token,
+    }));
+
+    return {
+      calls: [
+        {
+          target: this.address,
+          callData: encodeFunctionData({
+            abi: this.abi,
+            functionName: "processClaims",
+            args: [props.creditAccount.creditAccount, tData],
+          }),
+        },
+      ],
     };
   }
 
@@ -316,7 +346,9 @@ export class RouterV310Contract
   #debugTokenData(tData: TokenData[]): Record<string, any>[] {
     return tData.map(t => ({
       token: this.labelAddress(t.token),
-      balance: `${this.sdk.tokensMeta.formatBN(t.token, t.balance)} (${t.balance})`,
+      balance: `${this.sdk.tokensMeta.formatBN(t.token, t.balance)} (${
+        t.balance
+      })`,
       leftoverBalance:
         this.sdk.tokensMeta.formatBN(t.token, t.leftoverBalance) +
         ` (${t.leftoverBalance})`,
