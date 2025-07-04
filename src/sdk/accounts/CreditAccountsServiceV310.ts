@@ -106,7 +106,14 @@ export class CreditAccountServiceV310
     to,
   }: RepayCreditAccountProps): Promise<CreditAccountOperationResult> {
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
+
     const addCollateral = collateralAssets.filter(a => a.balance > 0);
+
+    const router = this.sdk.routerFor(ca);
+    const claimPath = await router.findClaimAllRewards({
+      calls: [],
+      creditAccount: ca,
+    });
 
     const priceUpdates = await this.getPriceUpdatesForFacade(
       ca.creditManager,
@@ -119,7 +126,7 @@ export class CreditAccountServiceV310
       ...this.prepareAddCollateral(ca.creditFacade, addCollateral, permits),
       ...this.prepareDisableQuotas(ca),
       ...this.prepareDecreaseDebt(ca),
-      // TODO: Add rewards claiming
+      ...claimPath.calls,
       ...this.prepareDisableTokens(ca),
       ...assetsToWithdraw.map(t =>
         this.prepareWithdrawToken(ca.creditFacade, t.token, MAX_UINT256, to),
@@ -145,6 +152,12 @@ export class CreditAccountServiceV310
   }: RepayAndLiquidateCreditAccountProps): Promise<CreditAccountOperationResult> {
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
 
+    const router = this.sdk.routerFor(ca);
+    const claimPath = await router.findClaimAllRewards({
+      calls: [],
+      creditAccount: ca,
+    });
+
     const priceUpdates = await this.getPriceUpdatesForFacade(
       ca.creditManager,
       ca,
@@ -156,7 +169,7 @@ export class CreditAccountServiceV310
     const calls: Array<MultiCall> = [
       ...priceUpdates,
       ...this.prepareAddCollateral(ca.creditFacade, addCollateral, permits),
-      // TODO: Add rewards claiming
+      ...claimPath.calls,
       ...assetsToWithdraw.map(t =>
         this.prepareWithdrawToken(ca.creditFacade, t.token, MAX_UINT256, to),
       ),
@@ -174,16 +187,20 @@ export class CreditAccountServiceV310
    * Implements {@link ICreditAccountsService.claimFarmRewards}
    */
   async claimFarmRewards({
-    tokensToDisable,
-    calls: claimCalls,
+    calls: legacyCalls,
     creditAccount: ca,
 
     minQuota,
     averageQuota,
   }: ClaimFarmRewardsProps): Promise<CreditAccountOperationResult> {
-    if (claimCalls.length === 0) throw new Error("No path to execute");
-
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
+
+    const router = this.sdk.routerFor(ca);
+    const claimPath = await router.findClaimAllRewards({
+      calls: legacyCalls,
+      creditAccount: ca,
+    });
+    if (claimPath.calls.length === 0) throw new Error("No path to execute");
 
     const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
       ca.creditManager,
@@ -193,10 +210,7 @@ export class CreditAccountServiceV310
 
     const calls = [
       ...priceUpdatesCalls,
-      // TODO: Add rewards claiming
-      ...tokensToDisable.map(a =>
-        this.prepareDisableToken(ca.creditFacade, a.token),
-      ),
+      ...claimPath.calls,
       ...this.prepareUpdateQuotas(ca.creditFacade, { minQuota, averageQuota }),
     ];
 

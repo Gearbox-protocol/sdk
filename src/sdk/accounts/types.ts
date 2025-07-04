@@ -142,7 +142,8 @@ export interface ExecuteSwapProps extends PrepareUpdateQuotasProps {
 
 export interface ClaimFarmRewardsProps extends PrepareUpdateQuotasProps {
   /**
-    * tokens to disable after rewards claiming;
+    * Legacy property, v3.1 only enables token when quota is bought and when quota is bought token cannot be disabled. 
+    * Tokens to disable after rewards claiming;
     sometimes is needed since old credit facade used to enable tokens on claim 
   */
   tokensToDisable: Array<Asset>;
@@ -261,6 +262,8 @@ export interface ICreditAccountsService extends SDKConstruct {
    * Fully repays credit account or repays credit account and keeps it open with zero debt
      - Repays in the following order: price update -> add collateral to cover the debt -> 
       -> disable quotas for all tokens -> decrease debt -> disable tokens all tokens -> withdraw all tokens
+    - V3.0 claims rewards for tokens which are specified in legacy SDK
+    - V3.1 claims rewards for all tokens IF router is also V3.1
    * @param props - {@link RepayCreditAccountProps}
    * @return All necessary data to execute the transaction (call, credit facade)
    */
@@ -272,6 +275,8 @@ export interface ICreditAccountsService extends SDKConstruct {
    * Fully repays liquidatable account
     - Repay and liquidate is executed in the following order: price update -> add collateral to cover the debt -> 
       withdraw all tokens from credit account
+    - V3.0 claims rewards for tokens which are specified in legacy SDK
+    - V3.1 claims rewards for all tokens IF router is also V3.1
    * @param props - {@link RepayAndLiquidateCreditAccountProps}
    * @return All necessary data to execute the transaction (call, credit facade)
    */
@@ -283,6 +288,8 @@ export interface ICreditAccountsService extends SDKConstruct {
    * Executes swap specified by given calls, update quotas of affected tokens
      - Claim rewards is executed in the following order: price update -> execute claim calls -> 
       -> (optionally: disable reward tokens) -> (optionally: update quotas)
+    - V3.0 claims rewards for tokens which are specified in legacy SDK
+    - V3.1 claims rewards for all tokens IF router is also V3.1 and falls back to legacy calls if router is not v3.0
    * @param props - {@link ClaimFarmRewardsProps}
    * @return All necessary data to execute the transaction (call, credit facade)
    */

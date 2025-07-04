@@ -35,6 +35,13 @@ export interface RouterResult {
   calls: Array<MultiCall>;
 }
 
+export interface RouterRewardsResult {
+  /**
+   * List of calls swap/unwrap/etc calls to adapters returned by router
+   */
+  calls: Array<MultiCall>;
+}
+
 /**
  * Router return list of all balances (including 0 balances) after operation, but it doesn't include original balance
  * - For example you had 5k sUSDS  and 5k DAI as collateral, debt is 20k DAI, router will return 25k sUDS and all other token allowed on CM will be 0n or 1n
@@ -192,6 +199,17 @@ export interface FindOpenStrategyPathProps {
   slippage: number | bigint;
 }
 
+export interface FindClaimAllRewardsProps {
+  /**
+   * Minimal credit account data on which operation is performed
+   */
+  creditAccount: RouterCASlice;
+  /**
+   * Legacy property - array of MultiCall from getRewards
+   */
+  calls: Array<MultiCall>;
+}
+
 export interface FindBestClosePathProps {
   /**
    * Minimal credit account data on which operation is performed
@@ -249,6 +267,16 @@ export interface IRouterContract extends IBaseContract {
   findOpenStrategyPath: (
     props: FindOpenStrategyPathProps,
   ) => Promise<OpenStrategyResult>;
+
+  /**
+   * In V3.1 - Constructs calls to claim all rewards for Credit Account. In V3.0 - returns input calls
+   * @param props - {@link FindClaimAllRewardsProps}
+   * @returns result - {@link RouterRewardsResult}
+   */
+  findClaimAllRewards: (
+    props: FindClaimAllRewardsProps,
+  ) => Promise<RouterRewardsResult>;
+
   /**
    * Finds the path to swap / withdraw all assets from CreditAccount into underlying asset
    * Can be used for closing Credit Account and for liquidations as well.
