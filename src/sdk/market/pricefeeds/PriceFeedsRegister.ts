@@ -165,7 +165,7 @@ export class PriceFeedRegister
       // @ts-expect-error
       gas: this.sdk.gasLimit,
     });
-    const feedContracts = result.map(data => this.create(data));
+    const feedContracts = result.map(data => this.#createUpdatableProxy(data));
     return this.generatePriceFeedsUpdateTxs(feedContracts);
   }
 
