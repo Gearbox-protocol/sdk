@@ -35,7 +35,6 @@ import { simulateWithPriceUpdates } from "../utils/viem/index.js";
 import type {
   AddCollateralProps,
   ChangeDeptProps,
-  ClaimFarmRewardsProps,
   CloseCreditAccountProps,
   CloseCreditAccountResult,
   CreditAccountFilter,
