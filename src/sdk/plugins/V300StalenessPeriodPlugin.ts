@@ -43,6 +43,10 @@ export class V300StalenessPeriodPlugin
     this.#syncedTo = ADDRESS_PROVIDER_BLOCK[sdk.provider.networkType] - 1n;
   }
 
+  public override get sdk(): GearboxSDK<any> {
+    return super.sdk;
+  }
+
   public get loaded(): boolean {
     return !!this.#syncedTo;
   }
