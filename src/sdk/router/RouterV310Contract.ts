@@ -169,24 +169,20 @@ export class RouterV310Contract
     props: FindClaimAllRewardsProps,
   ): Promise<RouterRewardsResult> {
     const tData: Array<TokenData> = props.creditAccount.tokens.map(a => ({
-      balance: a.balance,
+      balance: 0n,
       claimRewards: true,
-      leftoverBalance: a.balance,
-      numSplits: 0n,
+      leftoverBalance: 0n,
+      numSplits: 1n,
       token: a.token,
     }));
 
+    const { result } = await this.contract.simulate.processClaims([
+      props.creditAccount.creditAccount,
+      tData,
+    ]);
+
     return {
-      calls: [
-        {
-          target: this.address,
-          callData: encodeFunctionData({
-            abi: this.abi,
-            functionName: "processClaims",
-            args: [props.creditAccount.creditAccount, tData],
-          }),
-        },
-      ],
+      calls: [...result],
     };
   }
 
