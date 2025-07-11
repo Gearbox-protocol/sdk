@@ -5,7 +5,10 @@ import { iCreditFacadeV300MulticallAbi } from "../../abi/v300.js";
 import type { NetworkType } from "../chain/chains.js";
 import { PERCENTAGE_FACTOR } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
-import { getConnectors, tokenDataByNetwork } from "../sdk-gov-legacy/index.js";
+import {
+  getConnectors,
+  getTokenAddress_Legacy,
+} from "../sdk-gov-legacy/index.js";
 import type { Leftovers } from "./AbstractRouterContract.js";
 import { AbstractRouterContract } from "./AbstractRouterContract.js";
 import { assetsMap, balancesMap, compareRouterResults } from "./helpers.js";
@@ -276,7 +279,7 @@ export class RouterV300Contract
     const force = ca.tokens.some(
       b =>
         b.token.toLowerCase() ===
-          tokenDataByNetwork.Mainnet.stkcvxRLUSDUSDC.toLowerCase() &&
+          getTokenAddress_Legacy("Mainnet", "stkcvxRLUSDUSDC").toLowerCase() &&
         b.balance > 10n,
     );
     if (force) {

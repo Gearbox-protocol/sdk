@@ -3,7 +3,7 @@ import type { Address } from "viem";
 import type { NetworkType } from "../../chain/index.js";
 import { NOT_DEPLOYED } from "../../constants/index.js";
 import type { SupportedToken } from "./token.js";
-import { tokenDataByNetwork } from "./token.js";
+import { getTokenAddress_Legacy } from "./token.js";
 
 export const connectors: Record<NetworkType, Array<SupportedToken>> = {
   Mainnet: [
@@ -44,7 +44,7 @@ export const connectors: Record<NetworkType, Array<SupportedToken>> = {
 
 export function getConnectors(networkType: NetworkType): Address[] {
   return connectors[networkType].map(e => {
-    const result = tokenDataByNetwork[networkType][e];
+    const result = getTokenAddress_Legacy(networkType, e);
 
     if (!result || result === NOT_DEPLOYED) {
       throw new Error(`connector token ${e} not found`);
