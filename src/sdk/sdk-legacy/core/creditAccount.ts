@@ -273,7 +273,7 @@ export class CreditAccountData_Legacy {
     prices: Record<Address, bigint>,
     tokens: Record<Address, TokenData>,
   ) {
-    return balances.sort((t1, t2) =>
+    return [...balances].sort((t1, t2) =>
       CreditAccountData_Legacy.assetComparator(
         t1,
         t2,
