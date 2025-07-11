@@ -109,7 +109,7 @@ export const ETH_ADDRESS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 
 export const tokenDataByNetwork: Record<
   NetworkType,
-  Record<SupportedToken, Address>
+  Record<SupportedToken, Address | undefined>
 > = {
   //
   // MAINNET NETWORK
@@ -1971,7 +1971,7 @@ export const tickerInfoTokensByNetwork: Record<
       {
         symbol: "PushUSDe",
         dataId: "USDe",
-        address: tokenDataByNetwork.Mainnet.USDecrvUSD,
+        address: getTokenAddress_Legacy("Mainnet", "USDecrvUSD"),
         priceFeed: "0xbC5FBcf58CeAEa19D523aBc76515b9AEFb5cfd58",
         reserve: false,
       },
@@ -2069,14 +2069,14 @@ export const tickerInfoTokensByNetwork: Record<
       {
         symbol: "crvUSD",
         dataId: "crvUSD",
-        address: tokenDataByNetwork.Mainnet.crvUSD,
+        address: getTokenAddress_Legacy("Mainnet", "crvUSD"),
         priceFeed: "0x47c99d1A79444A91C89b33a808e1a7cb0336E428",
         reserve: true,
       },
       {
         symbol: "USDC",
         dataId: "USDC",
-        address: tokenDataByNetwork.Mainnet.USDC,
+        address: getTokenAddress_Legacy("Mainnet", "USDC"),
         priceFeed: "0xAFC5080CcE75B26B32A7dAbc032eB66f3b8822C3",
         reserve: true,
       },
@@ -2085,14 +2085,14 @@ export const tickerInfoTokensByNetwork: Record<
       {
         symbol: "crvUSD",
         dataId: "crvUSD",
-        address: tokenDataByNetwork.Mainnet.crvUSD,
+        address: getTokenAddress_Legacy("Mainnet", "crvUSD"),
         priceFeed: "0x47c99d1A79444A91C89b33a808e1a7cb0336E428",
         reserve: true,
       },
       {
         symbol: "USDT",
         dataId: "USDT",
-        address: tokenDataByNetwork.Mainnet.USDT,
+        address: getTokenAddress_Legacy("Mainnet", "USDT"),
         priceFeed: "0x3D690EF566a68BF3FFE4607D11d318e9BB259C3e",
         reserve: true,
       },
@@ -2101,14 +2101,14 @@ export const tickerInfoTokensByNetwork: Record<
       {
         symbol: "crvUSD",
         dataId: "crvUSD",
-        address: tokenDataByNetwork.Mainnet.crvUSD,
+        address: getTokenAddress_Legacy("Mainnet", "crvUSD"),
         priceFeed: "0x47c99d1A79444A91C89b33a808e1a7cb0336E428",
         reserve: true,
       },
       {
         symbol: "USDe",
         dataId: "USDe",
-        address: tokenDataByNetwork.Mainnet.USDe,
+        address: getTokenAddress_Legacy("Mainnet", "USDe"),
         priceFeed: "0x8A58F957B99E1ED6B3DF20F267a6d5a6dd8e3513",
         reserve: true,
       },
@@ -2117,14 +2117,14 @@ export const tickerInfoTokensByNetwork: Record<
       {
         symbol: "crvUSD",
         dataId: "crvUSD",
-        address: tokenDataByNetwork.Mainnet.crvUSD,
+        address: getTokenAddress_Legacy("Mainnet", "crvUSD"),
         priceFeed: "0x47c99d1A79444A91C89b33a808e1a7cb0336E428",
         reserve: true,
       },
       {
         symbol: "USDe",
         dataId: "USDe",
-        address: tokenDataByNetwork.Mainnet.USDe,
+        address: getTokenAddress_Legacy("Mainnet", "USDe"),
         priceFeed: "0x8A58F957B99E1ED6B3DF20F267a6d5a6dd8e3513",
         reserve: true,
       },
@@ -2133,14 +2133,14 @@ export const tickerInfoTokensByNetwork: Record<
       {
         symbol: "crvUSD",
         dataId: "crvUSD",
-        address: tokenDataByNetwork.Mainnet.crvUSD,
+        address: getTokenAddress_Legacy("Mainnet", "crvUSD"),
         priceFeed: "0x47c99d1A79444A91C89b33a808e1a7cb0336E428",
         reserve: true,
       },
       {
         symbol: "USDe",
         dataId: "USDe",
-        address: tokenDataByNetwork.Mainnet.USDe,
+        address: getTokenAddress_Legacy("Mainnet", "USDe"),
         priceFeed: "0x8A58F957B99E1ED6B3DF20F267a6d5a6dd8e3513",
         reserve: true,
       },
@@ -2149,14 +2149,14 @@ export const tickerInfoTokensByNetwork: Record<
       {
         symbol: "crvUSD",
         dataId: "crvUSD",
-        address: tokenDataByNetwork.Mainnet.crvUSD,
+        address: getTokenAddress_Legacy("Mainnet", "crvUSD"),
         priceFeed: "0x47c99d1A79444A91C89b33a808e1a7cb0336E428",
         reserve: true,
       },
       {
         symbol: "USDe",
         dataId: "USDe",
-        address: tokenDataByNetwork.Mainnet.USDe,
+        address: getTokenAddress_Legacy("Mainnet", "USDe"),
         priceFeed: "0x8A58F957B99E1ED6B3DF20F267a6d5a6dd8e3513",
         reserve: true,
       },
@@ -2165,7 +2165,7 @@ export const tickerInfoTokensByNetwork: Record<
       {
         symbol: "crvUSD",
         dataId: "crvUSD",
-        address: tokenDataByNetwork.Mainnet.crvUSD,
+        address: getTokenAddress_Legacy("Mainnet", "crvUSD"),
         priceFeed: "0x47c99d1A79444A91C89b33a808e1a7cb0336E428",
         reserve: true,
       },
@@ -2175,7 +2175,7 @@ export const tickerInfoTokensByNetwork: Record<
       {
         symbol: "DAI",
         dataId: "DAI",
-        address: tokenDataByNetwork.Mainnet.DAI,
+        address: getTokenAddress_Legacy("Mainnet", "DAI"),
         priceFeed: "0xa0b9387f0a74eCB9AC1a3BFE4Ada0E001ffE006b",
         reserve: true,
       },
@@ -2185,7 +2185,7 @@ export const tickerInfoTokensByNetwork: Record<
       {
         symbol: "DAI",
         dataId: "DAI",
-        address: tokenDataByNetwork.Mainnet.DAI,
+        address: getTokenAddress_Legacy("Mainnet", "DAI"),
         priceFeed: "0xa0b9387f0a74eCB9AC1a3BFE4Ada0E001ffE006b",
         reserve: true,
       },
@@ -2202,7 +2202,7 @@ export const tickerInfoTokensByNetwork: Record<
       {
         symbol: "LBTC",
         dataId: "LBTC",
-        address: tokenDataByNetwork.Mainnet.LBTC,
+        address: getTokenAddress_Legacy("Mainnet", "LBTC"),
         priceFeed: "0x2C8283B502E390D83a68AC7A07ecbB75133fbF78",
         reserve: true,
       },
@@ -2212,7 +2212,7 @@ export const tickerInfoTokensByNetwork: Record<
       {
         symbol: "BTC",
         dataId: "BTC",
-        address: tokenDataByNetwork.Mainnet.WBTC,
+        address: getTokenAddress_Legacy("Mainnet", "WBTC"),
         priceFeed: "0x744CB10cdf5eeaAE371df375c0367e83045F17DC",
 
         reserve: true,
@@ -2222,7 +2222,7 @@ export const tickerInfoTokensByNetwork: Record<
       {
         symbol: "BTC",
         dataId: "BTC",
-        address: tokenDataByNetwork.Mainnet.WBTC,
+        address: getTokenAddress_Legacy("Mainnet", "WBTC"),
         priceFeed: "0x744CB10cdf5eeaAE371df375c0367e83045F17DC",
         reserve: true,
       },
@@ -2231,7 +2231,7 @@ export const tickerInfoTokensByNetwork: Record<
       {
         symbol: "BTC",
         dataId: "BTC",
-        address: tokenDataByNetwork.Mainnet.WBTC,
+        address: getTokenAddress_Legacy("Mainnet", "WBTC"),
         priceFeed: "0x744CB10cdf5eeaAE371df375c0367e83045F17DC",
 
         reserve: true,
@@ -2241,7 +2241,7 @@ export const tickerInfoTokensByNetwork: Record<
       {
         symbol: "BTC",
         dataId: "BTC",
-        address: tokenDataByNetwork.Mainnet.WBTC,
+        address: getTokenAddress_Legacy("Mainnet", "WBTC"),
         priceFeed: "0x744CB10cdf5eeaAE371df375c0367e83045F17DC",
         reserve: true,
       },
@@ -2250,7 +2250,7 @@ export const tickerInfoTokensByNetwork: Record<
       {
         symbol: "BTC",
         dataId: "BTC",
-        address: tokenDataByNetwork.Mainnet.WBTC,
+        address: getTokenAddress_Legacy("Mainnet", "WBTC"),
         priceFeed: "0x744CB10cdf5eeaAE371df375c0367e83045F17DC",
         reserve: true,
       },
@@ -2259,7 +2259,7 @@ export const tickerInfoTokensByNetwork: Record<
       {
         symbol: "BTC",
         dataId: "BTC",
-        address: tokenDataByNetwork.Mainnet.WBTC,
+        address: getTokenAddress_Legacy("Mainnet", "WBTC"),
         priceFeed: "0x744CB10cdf5eeaAE371df375c0367e83045F17DC",
         reserve: true,
       },
@@ -2269,7 +2269,7 @@ export const tickerInfoTokensByNetwork: Record<
       {
         symbol: "USDe",
         dataId: "USDe",
-        address: tokenDataByNetwork.Mainnet.USDe,
+        address: getTokenAddress_Legacy("Mainnet", "USDe"),
         priceFeed: "0x8A58F957B99E1ED6B3DF20F267a6d5a6dd8e3513",
         reserve: true,
       },
@@ -2278,7 +2278,7 @@ export const tickerInfoTokensByNetwork: Record<
       {
         symbol: "USDe",
         dataId: "USDe",
-        address: tokenDataByNetwork.Mainnet.USDe,
+        address: getTokenAddress_Legacy("Mainnet", "USDe"),
         priceFeed: "0x8A58F957B99E1ED6B3DF20F267a6d5a6dd8e3513",
         reserve: true,
       },
@@ -2287,7 +2287,7 @@ export const tickerInfoTokensByNetwork: Record<
       {
         symbol: "USDe",
         dataId: "USDe",
-        address: tokenDataByNetwork.Mainnet.USDe,
+        address: getTokenAddress_Legacy("Mainnet", "USDe"),
         priceFeed: "0x8A58F957B99E1ED6B3DF20F267a6d5a6dd8e3513",
         reserve: true,
       },
@@ -2305,7 +2305,7 @@ export const tickerInfoTokensByNetwork: Record<
       {
         symbol: "ETH",
         dataId: "ETH",
-        address: tokenDataByNetwork.Mainnet.WETH,
+        address: getTokenAddress_Legacy("Mainnet", "WETH"),
         priceFeed: "0xB7552ef2A3Db35be75fe1C83BCB99edd2C8A9AAa",
         reserve: true,
       },
@@ -2314,7 +2314,7 @@ export const tickerInfoTokensByNetwork: Record<
       {
         symbol: "ETH",
         dataId: "ETH",
-        address: tokenDataByNetwork.Mainnet.WETH,
+        address: getTokenAddress_Legacy("Mainnet", "WETH"),
         priceFeed: "0xB7552ef2A3Db35be75fe1C83BCB99edd2C8A9AAa",
         reserve: true,
       },
@@ -2373,20 +2373,28 @@ export const tickerInfoTokensByNetwork: Record<
   Etherlink: {},
 };
 
-export const tokenSymbolByAddress = Object.entries(tokenDataByNetwork).reduce<
+const tokenSymbolByAddress = Object.entries(tokenDataByNetwork).reduce<
   Record<string, SupportedToken>
 >(
   (acc, [, tokens]) => ({
     ...acc,
     ...Object.fromEntries(
       Object.entries(tokens)
-        .map(([k, v]) => [v.toLowerCase(), k])
-        .filter(k => !!k) as Array<[string, SupportedToken]>,
+        .map(([k, v]) => [v?.toLowerCase(), k])
+        .filter(([k]) => !!k && k !== NOT_DEPLOYED) as Array<
+        [string, SupportedToken]
+      >,
     ),
   }),
   {},
 );
 
-export function getTokenSymbol(address: Address): SupportedToken | undefined {
+export function getTokenSymbol_Legacy(
+  address: Address,
+): SupportedToken | undefined {
   return tokenSymbolByAddress[address.toLowerCase()];
+}
+
+export function getTokenAddress_Legacy(n: NetworkType, t: SupportedToken) {
+  return tokenDataByNetwork[n][t] ?? NOT_DEPLOYED;
 }

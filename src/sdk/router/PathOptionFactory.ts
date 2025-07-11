@@ -15,10 +15,10 @@ import {
   contractParams,
   convexTokens,
   curveTokens,
-  getTokenSymbol,
+  getTokenAddress_Legacy,
+  getTokenSymbol_Legacy,
   isBalancerLPToken,
   isCurveLPToken,
-  tokenDataByNetwork,
   yearnTokens,
 } from "../sdk-gov-legacy/index.js";
 import type { Asset, PathOptionSerie } from "./types.js";
@@ -36,14 +36,14 @@ export class PathOptionFactory {
     const curveInitPO: PathOptionSerie = curvePools.map(symbol => {
       const cp = contractParams[curveTokens[symbol].pool];
       return {
-        target: tokenDataByNetwork[network][symbol],
+        target: getTokenAddress_Legacy(network, symbol),
         option: 0,
         totalOptions: "tokens" in cp ? cp.tokens.length : 0,
       };
     });
     const balancerInitPO: PathOptionSerie = balancerPools.map(symbol => {
       return {
-        target: tokenDataByNetwork[network][symbol],
+        target: getTokenAddress_Legacy(network, symbol),
         option: 0,
         totalOptions: balancerLpTokens[symbol].underlying.length,
       };
@@ -75,7 +75,7 @@ export class PathOptionFactory {
     const nonZeroBalances = balances.filter(b => b.balance > 1n);
 
     const curvePools = nonZeroBalances
-      .map(b => getTokenSymbol(b.token))
+      .map(b => getTokenSymbol_Legacy(b.token))
       .filter(symbol => isCurveLPToken(symbol)) as CurveLPToken[];
 
     const yearnCurveTokens = Object.entries(yearnTokens)
@@ -83,7 +83,7 @@ export class PathOptionFactory {
       .map(([token]) => token);
 
     const curvePoolsFromYearn = nonZeroBalances
-      .map(b => getTokenSymbol(b.token)!)
+      .map(b => getTokenSymbol_Legacy(b.token)!)
       .filter(symbol => yearnCurveTokens.includes(symbol))
       .map(
         symbol => yearnTokens[symbol as YearnLPToken].underlying,
@@ -94,7 +94,7 @@ export class PathOptionFactory {
       .map(([token]) => token);
 
     const curvePoolsFromConvex = nonZeroBalances
-      .map(b => getTokenSymbol(b.token)!)
+      .map(b => getTokenSymbol_Legacy(b.token)!)
       .filter(symbol => convexCurveTokens.includes(symbol))
       .map(symbol => convexTokens[symbol as ConvexLPToken].underlying);
 
@@ -112,7 +112,7 @@ export class PathOptionFactory {
     );
 
     const balancerPools = nonZeroBalances
-      .map(([token]) => getTokenSymbol(token as Address)!)
+      .map(([token]) => getTokenSymbol_Legacy(token as Address)!)
       .filter(symbol => isBalancerLPToken(symbol)) as BalancerLPToken[];
 
     const balancerAuraTokens = Object.entries(auraTokens)
@@ -120,7 +120,7 @@ export class PathOptionFactory {
       .map(([token]) => token);
 
     const balancerTokensFromAura = nonZeroBalances
-      .map(([token]) => getTokenSymbol(token as Address)!)
+      .map(([token]) => getTokenSymbol_Legacy(token as Address)!)
       .filter(symbol => balancerAuraTokens.includes(symbol))
       .map(
         symbol =>

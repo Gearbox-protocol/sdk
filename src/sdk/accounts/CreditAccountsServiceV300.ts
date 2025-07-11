@@ -13,6 +13,7 @@ import {
   contractsByNetwork,
   convexStakedPhantomTokens,
   convexTokens,
+  getTokenSymbol_Legacy,
   isAuraStakedToken,
   isConvexStakedPhantomToken,
   isStakingRewardsPhantomToken,
@@ -22,7 +23,6 @@ import {
   type SupportedToken,
   stakingRewardsTokens,
   tokenDataByNetwork,
-  tokenSymbolByAddress,
 } from "../sdk-gov-legacy/index.js";
 import type { MultiCall } from "../types/transactions.js";
 import { AbstractCreditAccountService } from "./AbstractCreditAccountsService.js";
@@ -282,7 +282,7 @@ export class CreditAccountServiceV300
       sky: Array<Asset>;
     }>(
       (acc, a) => {
-        const symbol = tokenSymbolByAddress[a.token];
+        const symbol = getTokenSymbol_Legacy(a.token);
         if (isConvexStakedPhantomToken(symbol)) {
           acc.convex.push(a);
         } else if (isAuraStakedToken(symbol)) {
@@ -313,9 +313,9 @@ export class CreditAccountServiceV300
     };
 
     const convexStkCalls = convex.map(a => {
-      const symbol = tokenSymbolByAddress[a.token] as ConvexStakedPhantomToken;
-      const { pool } = convexTokens[symbol] as ConvexPhantomTokenData;
-      const poolAddress = currentContractsData[pool];
+      const symbol = getTokenSymbol_Legacy(a.token) as ConvexStakedPhantomToken;
+      const info = convexTokens[symbol || ""] as ConvexPhantomTokenData;
+      const poolAddress = currentContractsData[info?.pool || ""];
 
       if (!poolAddress) {
         throw new Error("Can't withdrawAllAndUnwrap_Convex (convex)");
@@ -326,9 +326,9 @@ export class CreditAccountServiceV300
     });
 
     const auraStkCalls = aura.map(a => {
-      const symbol = tokenSymbolByAddress[a.token] as AuraStakedToken;
-      const { pool } = auraTokens[symbol] as AuraStakedTokenData;
-      const poolAddress = currentContractsData[pool];
+      const symbol = getTokenSymbol_Legacy(a.token) as AuraStakedToken;
+      const info = auraTokens[symbol || ""] as AuraStakedTokenData;
+      const poolAddress = currentContractsData[info?.pool || ""];
 
       if (!poolAddress) {
         throw new Error("Can't withdrawAllAndUnwrap_Convex (aura)");
@@ -339,13 +339,13 @@ export class CreditAccountServiceV300
     });
 
     const skyStkCalls = sky.flatMap(a => {
-      const symbol = tokenSymbolByAddress[
-        a.token
-      ] as StakingRewardsPhantomToken;
-      const { pool } = stakingRewardsTokens[
-        symbol
+      const symbol = getTokenSymbol_Legacy(
+        a.token,
+      ) as StakingRewardsPhantomToken;
+      const info = stakingRewardsTokens[
+        symbol || ""
       ] as StakingRewardsPhantomTokenData;
-      const poolAddress = currentContractsData[pool];
+      const poolAddress = currentContractsData[info?.pool || ""];
 
       if (!poolAddress) {
         throw new Error("Can't withdrawAllAndUnwrap_Convex (sky)");
@@ -358,7 +358,7 @@ export class CreditAccountServiceV300
     const unwrapCalls = [...convexStkCalls, ...auraStkCalls, ...skyStkCalls];
 
     const withdraw = assets.map(a => {
-      const symbol = tokenSymbolByAddress[a.token];
+      const symbol = getTokenSymbol_Legacy(a.token);
       if (isConvexStakedPhantomToken(symbol)) {
         return {
           ...a,
