@@ -93,6 +93,7 @@ export type NormalToken =
   | "PT_sUSDe_27MAR2025"
   | "PT_sUSDe_29MAY2025"
   | "PT_beraSTONE_10APR2025"
+  | "PT_sUSDX_1SEP2025"
 
   // Balancer V3
   | "rstETH_Lido_wstETH"
@@ -675,6 +676,11 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
   mTBILL: {
     name: "mTBILL",
     symbol: "mTBILL",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  PT_sUSDX_1SEP2025: {
+    name: "Pendle PT sUSDX 1 September 2025 expiry",
+    symbol: "PT_sUSDX_1SEP2025",
     type: { AllNetworks: TokenType.NORMAL_TOKEN },
   },
 };

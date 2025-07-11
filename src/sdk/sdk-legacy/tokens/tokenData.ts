@@ -30,6 +30,8 @@ const ALIASES: PartialRecord<SupportedToken, string> = {
   PT_beraSTONE_10APR2025: "p.beraSTONE(10.04.25)",
 
   PT_uptBTC_14AUG2025: "p.uptBTC(14.08.25)",
+
+  PT_sUSDX_1SEP2025: "p.sUSDX(1.09.25)",
 };
 
 export class TokenData {

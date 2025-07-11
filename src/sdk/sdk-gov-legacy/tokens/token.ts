@@ -467,6 +467,8 @@ export const tokenDataByNetwork: Record<
     WXTZ: NOT_DEPLOYED,
     mBASIS: NOT_DEPLOYED,
     mTBILL: NOT_DEPLOYED,
+
+    PT_sUSDX_1SEP2025: NOT_DEPLOYED,
   },
 
   ///
@@ -695,6 +697,7 @@ export const tokenDataByNetwork: Record<
     USDX: "0xf3527ef8dE265eAa3716FB312c12847bFBA66Cef",
     dUSD1V3: "0x1318B920704295E8c53F950cD429C3E40335b81D",
     sUSDX: "0x7788A3538C5fc7F9c7C8A74EAC4c898fC8d87d92",
+    PT_sUSDX_1SEP2025: "0xfA56005cdf111725A8e5395fc90Cd33135BcCAE8",
   } as any,
   WorldChain: {} as any,
   Etherlink: {
