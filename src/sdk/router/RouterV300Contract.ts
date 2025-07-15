@@ -403,6 +403,8 @@ export class RouterV300Contract
       BNB: "0x0",
       WorldChain: "0x0",
       Etherlink: "0x0",
+      Hemi: "0x0",
+      Lisk: "0x0",
     } as const;
 
     const pendleRouter =

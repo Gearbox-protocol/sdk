@@ -707,6 +707,8 @@ export const tokenDataByNetwork: Record<
     WXTZ: "0xc9b53ab2679f573e480d01e0f49e2b5cfb7a3eab",
     mTBILL: "0xdd629e5241cbc5919847783e6c96b2de4754e438",
   } as any,
+  Hemi: {} as any,
+  Lisk: {} as any,
 };
 
 export type TickerToken =
@@ -1149,6 +1151,8 @@ export const tickerInfoTokensByNetwork: Record<
   BNB: {},
   WorldChain: {},
   Etherlink: {},
+  Hemi: {},
+  Lisk: {},
 };
 
 const tokenSymbolByAddress = Object.entries(tokenDataByNetwork).reduce<

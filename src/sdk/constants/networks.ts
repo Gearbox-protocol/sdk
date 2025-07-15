@@ -18,6 +18,8 @@ export const ADDRESS_PROVIDER_BLOCK: Record<NetworkType, bigint> = {
   BNB: 48553569n, // arbitrary not deployed yet
   WorldChain: 22372908n, // arbitrary not deployed yet
   Etherlink: 16672969n, // arbitrary not deployed yet
+  Hemi: 2227553n, // arbitrary not deployed yet
+  Lisk: 18934260n, // arbitrary not deployed yet
 };
 
 const BLOCK_DURATION_BY_NETWORK: Record<NetworkType, number> = {
@@ -34,6 +36,8 @@ const BLOCK_DURATION_BY_NETWORK: Record<NetworkType, number> = {
   BNB: 3,
   WorldChain: 2,
   Etherlink: 1,
+  Hemi: 12,
+  Lisk: 2,
 };
 
 const RAMP_TIME = 30 * 24 * 60 * 60 * 1.2;

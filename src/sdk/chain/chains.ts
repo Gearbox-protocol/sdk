@@ -7,6 +7,8 @@ import {
   berachain,
   bsc,
   etherlink,
+  hemi,
+  lisk,
   mainnet,
   megaethTestnet,
   monadTestnet,
@@ -54,6 +56,8 @@ export const SUPPORTED_NETWORKS = [
   "BNB",
   "WorldChain",
   "Etherlink",
+  "Hemi",
+  "Lisk",
 ] as const;
 
 export const NetworkType = z.enum(SUPPORTED_NETWORKS);
@@ -266,6 +270,26 @@ export const chains: Record<NetworkType, GearboxChain> = {
       symbol: "USDC",
     },
     // TODO: has no block explorer API
+  }),
+  Hemi: defineChain({
+    ...hemi,
+    network: "Hemi",
+    defaultMarketConfigurators: {},
+    isPublic: false,
+    wellKnownToken: {
+      address: "0xad11a8BEb98bbf61dbb1aa0F6d6F2ECD87b35afA",
+      symbol: "USDC.e",
+    },
+  }),
+  Lisk: defineChain({
+    ...lisk,
+    network: "Lisk",
+    defaultMarketConfigurators: {},
+    isPublic: false,
+    wellKnownToken: {
+      address: "0xF242275d3a6527d877f2c927a82D9b057609cc71",
+      symbol: "USDC.e",
+    },
   }),
 };
 

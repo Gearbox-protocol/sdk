@@ -117,6 +117,8 @@ const DRPC_NETS: Record<NetworkType, string> = {
   // TODO: no drpc
   MegaETH: "",
   Etherlink: "",
+  Hemi: "hemi",
+  Lisk: "lisk",
 };
 
 export function getDrpcUrl(

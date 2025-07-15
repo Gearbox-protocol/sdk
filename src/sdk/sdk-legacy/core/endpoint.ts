@@ -18,6 +18,8 @@ export const TESTNET_CHAINS: Record<NetworkType, number> = {
   BNB: 7887,
   WorldChain: 7889,
   Etherlink: 7890,
+  Hemi: 7891,
+  Lisk: 7892,
 };
 
 const CHAINS_BY_ID: Record<number, NetworkType> =

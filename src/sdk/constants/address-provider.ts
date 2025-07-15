@@ -51,6 +51,8 @@ export const ADDRESS_PROVIDER: Record<NetworkType, Address> = {
   BNB: NOT_DEPLOYED,
   WorldChain: NOT_DEPLOYED,
   Etherlink: NOT_DEPLOYED,
+  Hemi: NOT_DEPLOYED,
+  Lisk: NOT_DEPLOYED,
 };
 
 export const ADDRESS_PROVIDER_V310 =
