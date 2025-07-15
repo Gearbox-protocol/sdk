@@ -3,6 +3,7 @@ import { TypedObjectUtils } from "../utils/mappers.js";
 
 /**
  * Block number when address provider was deployed
+ * @deprecated use chain.firstBlock instead
  */
 export const ADDRESS_PROVIDER_BLOCK: Record<NetworkType, bigint> = {
   Mainnet: 18433056n, // AddressProvderV3 0x9ea7b04Da02a5373317D745c1571c84aaD03321D

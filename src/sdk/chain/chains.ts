@@ -41,6 +41,10 @@ export interface GearboxChain extends Chain {
    * Alchemy subdomain to construct provider URL
    */
   alchemyDomain?: string;
+  /**
+   * Block number when Gearbox address provider was deployed
+   */
+  firstBlock?: bigint;
 }
 
 export const SUPPORTED_NETWORKS = [
@@ -94,6 +98,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         symbol: "USDC",
       },
       alchemyDomain: "eth-mainnet",
+      firstBlock: 18433056n, // AddressProvderV3 0x9ea7b04Da02a5373317D745c1571c84aaD03321D
     },
     "ethereum-rpc",
   ),
@@ -110,6 +115,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         symbol: "USDC",
       },
       alchemyDomain: "arb-mainnet",
+      firstBlock: 184650310n,
     },
     "arbitrum-one-rpc",
   ),
@@ -126,6 +132,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         symbol: "USDC",
       },
       alchemyDomain: "opt-mainnet",
+      firstBlock: 118410666n,
     },
     "optimism-rpc",
   ),
@@ -163,6 +170,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         symbol: "USDC",
       },
       alchemyDomain: "sonic-mainnet",
+      firstBlock: 9779380n,
     }),
     "sonic-rpc",
   ),
@@ -242,6 +250,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         symbol: "USDC",
       },
       alchemyDomain: "bnb-mainnet",
+      firstBlock: 48761804n,
     },
     "bsc-rpc",
   ),
@@ -269,6 +278,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       address: "0x796Ea11Fa2dD751eD01b53C372fFDB4AAa8f00F9",
       symbol: "USDC",
     },
+    firstBlock: 16672969n,
     // TODO: has no block explorer API
   }),
   Hemi: defineChain({
