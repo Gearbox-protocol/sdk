@@ -1,9 +1,9 @@
-import type { Chain, PublicClient, Transport } from "viem";
+import type { PublicClient, Transport } from "viem";
 import { createPublicClient, defineChain, fallback, http } from "viem";
 
 import { AddressLabeller } from "../base/AddressLabeller.js";
 import type { IAddressLabeller } from "../base/IAddressLabeller.js";
-import type { NetworkType } from "./chains.js";
+import type { GearboxChain, NetworkType } from "./chains.js";
 import { chains } from "./chains.js";
 
 export interface NetworkOptions {
@@ -55,7 +55,7 @@ export function createTransport(
 
 export class Provider {
   public readonly chainId: number;
-  public readonly chain: Chain;
+  public readonly chain: GearboxChain;
   public readonly networkType: NetworkType;
   public readonly addressLabels: IAddressLabeller;
 
@@ -71,7 +71,7 @@ export class Provider {
     this.chain = defineChain({
       ...chains[networkType],
       id: chainId,
-    });
+    }) as GearboxChain;
     this.#transport = createTransport(opts);
     this.#publicClient = createPublicClient({
       chain: this.chain,

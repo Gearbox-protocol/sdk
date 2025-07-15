@@ -2,7 +2,7 @@ import type { Address } from "viem";
 import { getAbiItem, getAddress } from "viem";
 
 import { iPriceOracleV300Abi } from "../../abi/v300.js";
-import { ADDRESS_PROVIDER_BLOCK, isV300 } from "../constants/index.js";
+import { isV300 } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import type { IPriceOracleContract } from "../market/index.js";
 import { PriceFeedRef } from "../market/index.js";
@@ -40,7 +40,7 @@ export class V300StalenessPeriodPlugin
 
   public override set sdk(sdk: GearboxSDK<any>) {
     super.sdk = sdk;
-    this.#syncedTo = ADDRESS_PROVIDER_BLOCK[sdk.provider.networkType] - 1n;
+    this.#syncedTo = (sdk.provider.chain.firstBlock ?? 1n) - 1n;
   }
 
   public override get sdk(): GearboxSDK<any> {

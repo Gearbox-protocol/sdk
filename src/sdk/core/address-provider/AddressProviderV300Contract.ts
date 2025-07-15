@@ -7,7 +7,6 @@ import type {
 import { bytesToString, getAbiItem, parseEventLogs, toBytes } from "viem";
 
 import { iAddressProviderV300Abi } from "../../../abi/v300.js";
-import { ADDRESS_PROVIDER_BLOCK } from "../../constants/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import { getLogsSafe } from "../../utils/viem/index.js";
 import AbstractAddressProviderContract from "./AbstractAddressProviderContract.js";
@@ -89,7 +88,7 @@ export class AddressProviderV300Contract
   }
 
   public async syncState(blockNumber?: bigint): Promise<void> {
-    const fromBlock = ADDRESS_PROVIDER_BLOCK[this.sdk.provider.networkType];
+    const fromBlock = this.sdk.provider.chain.firstBlock;
     this.logger?.debug(
       `loading events from block ${fromBlock} to ${blockNumber}`,
     );
