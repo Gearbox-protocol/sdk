@@ -16,7 +16,7 @@ import {
   sonic,
   worldchain,
 } from "viem/chains";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export type Curator = "Chaos Labs" | "K3" | "cp0x" | "Re7";
 
