@@ -1,6 +1,7 @@
 export * from "./AccountOpener.js";
 export * from "./CachedStateSubscriber.js";
 export * from "./calcLiquidatableLTs.js";
+export * from "./claimFromFaucet.js";
 export * from "./create2.js";
 export * from "./createAnvilClient.js";
 export * from "./createTransport.js";

@@ -24,6 +24,7 @@ import {
   sendRawTx,
 } from "../sdk/index.js";
 import { iDegenNftv2Abi } from "./abi.js";
+import { claimFromFaucet } from "./claimFromFaucet.js";
 import { type AnvilClient, createAnvilClient } from "./createAnvilClient.js";
 
 export class OpenTxRevertedError extends BaseError {
@@ -474,42 +475,14 @@ export class AccountOpener extends SDKConstruct {
     role: string,
     amountUSD: bigint,
   ): Promise<void> {
-    const [usr, amnt] = [claimer.address, formatBN(amountUSD, 8)];
-
-    this.#logger?.debug(`${role} ${usr} claiming ${amnt} USD from faucet`);
-    if (amountUSD === 0n) {
-      this.#logger?.debug("amount is 0, skipping claim");
-      return;
-    }
-    const hash = await this.#anvil.writeContract({
-      account: claimer,
-      address: this.faucet,
-      abi: [
-        {
-          type: "function",
-          inputs: [
-            { name: "amountUSD", internalType: "uint256", type: "uint256" },
-          ],
-          name: "claim",
-          outputs: [],
-          stateMutability: "nonpayable",
-        },
-      ],
-      functionName: "claim",
-      args: [amountUSD],
-      chain: this.#anvil.chain,
+    await claimFromFaucet({
+      anvil: this.#anvil,
+      faucet: this.faucet,
+      claimer,
+      role,
+      amountUSD,
+      logger: this.#logger,
     });
-    const receipt = await this.#anvil.waitForTransactionReceipt({
-      hash,
-    });
-    if (receipt.status === "reverted") {
-      throw new Error(
-        `${role} ${usr} failed to claimed equivalent of ${amnt} USD from faucet, tx: ${hash}`,
-      );
-    }
-    this.#logger?.debug(
-      `${role} ${usr} claimed equivalent of ${amnt} USD from faucet, tx: ${hash}`,
-    );
   }
 
   async #approve(token: Address, cm: CreditSuite): Promise<void> {
