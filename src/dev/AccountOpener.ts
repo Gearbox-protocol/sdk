@@ -7,8 +7,8 @@ import { iCreditFacadeV300Abi, iPoolV300Abi } from "../abi/v300.js";
 import type {
   Asset,
   CreditAccountData,
-  CreditAccountsServiceInstance,
   CreditSuite,
+  ICreditAccountsService,
   ILogger,
   PoolContract,
   RawTx,
@@ -69,7 +69,7 @@ export interface OpenAccountResult {
 }
 
 export class AccountOpener extends SDKConstruct {
-  #service: CreditAccountsServiceInstance;
+  #service: ICreditAccountsService;
   #anvil: AnvilClient;
   #logger?: ILogger;
   #borrower?: PrivateKeyAccount;
@@ -77,7 +77,7 @@ export class AccountOpener extends SDKConstruct {
   #poolDepositMultiplier: bigint;
 
   constructor(
-    service: CreditAccountsServiceInstance,
+    service: ICreditAccountsService,
     options: AccountOpenerOptions = {},
   ) {
     super(service.sdk);
