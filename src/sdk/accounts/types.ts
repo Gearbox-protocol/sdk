@@ -2,15 +2,19 @@ import type { Address, ContractFunctionArgs } from "viem";
 
 import type { iCreditAccountCompressorAbi } from "../../abi/compressors.js";
 import type { BotType } from "../../plugins/bots/types.js";
+import type { ConnectedBotData, CreditAccountData } from "../base/index.js";
 import type { SDKConstruct } from "../base/SDKConstruct.js";
-import type { CreditSuite } from "../market/index.js";
+import type {
+  CreditSuite,
+  OnDemandPriceUpdate,
+  UpdatePriceFeedsResult,
+} from "../market/index.js";
 import type {
   Asset,
   RouterCASlice,
   RouterCloseResult,
 } from "../router/index.js";
 import type { MultiCall, RawTx } from "../types/index.js";
-import type { AbstractCreditAccountService } from "./AbstractCreditAccountsService.js";
 
 export type GetCreditAccountsArgs = ContractFunctionArgs<
   typeof iCreditAccountCompressorAbi,
@@ -54,11 +58,32 @@ export interface CreditAccountOperationResult {
 export type CloseOptions = "close" | "zeroDebt";
 
 export interface CloseCreditAccountProps {
+  /**
+   * Close or zeroDebt
+   */
   operation: CloseOptions;
+  /**
+   * Minimal credit account data on which operation is performed
+   */
   creditAccount: RouterCASlice;
+  /**
+   * Tokens to withdraw from credit account.
+   * For credit account closing this is the underlying token, because during the closure,
+   * all tokens on account are swapped into the underlying,
+   * and only the underlying token will remain on the credit account
+   */
   assetsToWithdraw: Array<Address>;
+  /**
+   * Wallet address to withdraw underlying to
+   */
   to: Address;
+  /**
+   * Slippage in PERCENTAGE_FORMAT (100% = 10_000) per operation
+   */
   slippage?: bigint;
+  /**
+   * Result of findBestClosePath method from router; if omited, calls marketRegister.findCreditManager {@link RouterCloseResult}
+   */
   closePath?: RouterCloseResult;
 }
 
@@ -110,13 +135,28 @@ export interface PrepareUpdateQuotasProps {
 }
 
 export interface UpdateQuotasProps extends PrepareUpdateQuotasProps {
+  /**
+   * Minimal credit account data on which operation is performed
+   */
   creditAccount: RouterCASlice;
 }
 
 export interface AddCollateralProps extends PrepareUpdateQuotasProps {
+  /**
+   * Asset to add as collateral
+   */
   asset: Asset;
+  /**
+   * Native token amount to attach to tx
+   */
   ethAmount: bigint;
+  /**
+   * Permit of collateral asset if it is permittable
+   */
   permit: PermitResult | undefined;
+  /**
+   * Minimal credit account data on which operation is performed
+   */
   creditAccount: RouterCASlice;
 }
 
@@ -136,7 +176,13 @@ export interface WithdrawCollateralProps extends PrepareUpdateQuotasProps {
 }
 
 export interface ExecuteSwapProps extends PrepareUpdateQuotasProps {
+  /**
+   * Array of MultiCall from router methods getSingleSwap or getAllSwaps
+   */
   calls: Array<MultiCall>;
+  /**
+   * Minimal credit account data on which operation is performed
+   */
   creditAccount: RouterCASlice;
 }
 
@@ -158,27 +204,72 @@ export interface ClaimFarmRewardsProps extends PrepareUpdateQuotasProps {
 }
 
 export interface EnableTokensProps {
+  /**
+   * List of tokens to disable
+   */
   disabledTokens: Array<Address>;
+  /**
+   * List of tokens to enable
+   */
   enabledTokens: Array<Address>;
+  /**
+   * Minimal credit account data on which operation is performed
+   */
   creditAccount: RouterCASlice;
 }
 
 export interface OpenCAProps extends PrepareUpdateQuotasProps {
+  /**
+   * Native token amount to attach to tx
+   */
   ethAmount: bigint;
+  /**
+   * Array of collateral which can be just directly added or swapped using the path {@link Asset}
+   */
   collateral: Array<Asset>;
+  /**
+   * Debt to open credit account with
+   */
   debt: bigint;
+  /**
+   * Flag to withdraw debt to wallet after opening credit account;
+   * used for borrowing functionality
+   */
   withdrawDebt?: boolean;
+  /**
+   * Permits of collateral tokens (in any permittable token is present) {@link PermitResult}
+   */
   permits: Record<string, PermitResult>;
+  /**
+   * Array of MultiCall from router methods findOpenStrategyPath {@link MultiCall}.
+   * Used for trading and strategy functionality
+   */
   calls: Array<MultiCall>;
-
+  /**
+   * Address of credit manager to open credit account on
+   */
   creditManager: Address;
-
+  /**
+   * Wallet address to transfer credit account to
+   */
   to: Address;
+  /**
+   * Referral code to open credit account with
+   */
   referralCode: bigint;
 }
 
 export interface ChangeDeptProps {
+  /**
+   * Minimal credit account data on which operation is performed
+   */
   creditAccount: RouterCASlice;
+  /**
+   * Amount to change debt by
+   * 0 - prohibited value;
+   * negative value for debt decrease;
+   * positive value for debt increase.
+   */
   amount: bigint;
 }
 
@@ -236,10 +327,59 @@ export interface SetBotProps {
   creditAccount: RouterCASlice;
 }
 
-export type CreditAccountsServiceInstance = ICreditAccountsService &
-  AbstractCreditAccountService;
+export type GetConnectedBotsResult = Array<
+  | {
+      error?: undefined;
+      result: readonly ConnectedBotData[];
+      status: "success";
+    }
+  | {
+      error: Error;
+      result?: undefined;
+      status: "failure";
+    }
+>;
 
 export interface ICreditAccountsService extends SDKConstruct {
+  /**
+   * Returns single credit account data, or undefined if it's not found
+   * Performs all necessary price feed updates under the hood
+   * @param account
+   * @param blockNumber
+   * @returns
+   */
+  getCreditAccountData(
+    account: Address,
+    blockNumber?: bigint,
+  ): Promise<CreditAccountData | undefined>;
+  /**
+   * Methods to get all credit accounts with some optional filtering
+   * Performs all necessary price feed updates under the hood
+   *
+   * @param options
+   * @param blockNumber
+   * @returns returned credit accounts are sorted by health factor in ascending order
+   */
+  getCreditAccounts(
+    options?: GetCreditAccountsOptions,
+    blockNumber?: bigint,
+  ): Promise<Array<CreditAccountData>>;
+  /**
+   * Method to get all claimable rewards for credit account (ex. stkUSDS SKY rewards)
+   * Assosiates rewards by adapter + stakedPhantomToken
+   * @param {Address} creditAccount - address of credit account to get rewards for
+   * @returns {Array<Rewards>} list of {@link Rewards} that can be claimed
+   */
+  getRewards(creditAccount: Address): Promise<Array<Rewards>>;
+  /**
+   * Method to get all connected bots for credit account
+   * @param {Array<{ creditAccount: Address; creditManager: Address }>} accountsToCheck - list of credit accounts
+   * and their credit managers to check connected bots on
+   * @returns call result of getConnectedBots for each credit account
+   */
+  getConnectedBots(
+    accountsToCheck: Array<{ creditAccount: Address; creditManager: Address }>,
+  ): Promise<GetConnectedBotsResult>;
   /**
    * V3.1 method, throws in V3. Connects/disables a bot and updates prices
    * @param props - {@link SetBotProps}
@@ -248,9 +388,125 @@ export interface ICreditAccountsService extends SDKConstruct {
   setBot: (props: SetBotProps) => Promise<CreditAccountOperationResult>;
 
   /**
-   * Withdraws a single collateral from credit account to wallet to and updates quotas; 
-      technically can withdraw several tokens at once
-      - Collateral is withdrawn in the following order: price update -> withdraw token -> update quotas for affected tokens
+   * Generates transaction to liquidate credit account
+   * @param account
+   * @param to Address to transfer underlying left after liquidation
+   * @param slippage
+   * @param force TODO: legacy v3 option to remove
+   * @returns
+   */
+  fullyLiquidate(
+    account: RouterCASlice,
+    to: Address,
+    slippage?: bigint,
+    force?: boolean,
+  ): Promise<CloseCreditAccountResult>;
+
+  /**
+   * Closes credit account or closes credit account and keeps it open with zero debt.
+   * - Ca is closed in the following order: price update -> close path to swap all tokens into underlying ->
+   * -> disable quotas of exiting tokens -> decrease debt -> disable exiting tokens tokens -> withdraw underlying tokenz
+   * @param props - {@link CloseCreditAccountProps}
+   * @returns All necessary data to execute the transaction (call, credit facade)
+   */
+  closeCreditAccount(
+    props: CloseCreditAccountProps,
+  ): Promise<CloseCreditAccountResult>;
+
+  /**
+   * Updates quota of credit account.
+   * CA quota updated in the following order: price update -> update quotas
+   * @param props - {@link UpdateQuotasProps}
+   * @returns All necessary data to execute the transaction (call, credit facade)
+   */
+  updateQuotas(props: UpdateQuotasProps): Promise<CreditAccountOperationResult>;
+
+  /**
+   * Adds a single collateral to credit account and updates quotas
+   * Collateral is added in the following order: price update -> add collateral (with permit) -> update quotas
+   * @param props - {@link AddCollateralProps}
+   * @returns All necessary data to execute the transaction (call, credit facade)
+   */
+  addCollateral(
+    props: AddCollateralProps,
+  ): Promise<CreditAccountOperationResult>;
+
+  /**
+   * Increases or decreases debt of credit account; debt decrease uses token ON CREDIT ACCOUNT
+   * Debt is changed in the following order: price update -> (enables underlying if it was disabled) -> change debt
+   * @param props - {@link ChangeDeptProps}
+   * @returns All necessary data to execute the transaction (call, credit facade)
+   */
+  changeDebt(props: ChangeDeptProps): Promise<CreditAccountOperationResult>;
+
+  /**
+   * Executes swap specified by given calls, update quotas of affected tokens
+   * Swap is executed in the following order: price update -> execute swap path -> update quotas
+   * @param props - {@link ExecuteSwapProps}
+   * @returns All necessary data to execute the transaction (call, credit facade)
+   */
+  executeSwap(props: ExecuteSwapProps): Promise<CreditAccountOperationResult>;
+
+  /**
+   * Executes enable/disable tokens specified by given tokens lists and token prices
+   * @param props - {@link EnableTokensProps}
+   * @returns All necessary data to execute the transaction (call, credit facade)
+   */
+  enableTokens(props: EnableTokensProps): Promise<CreditAccountOperationResult>;
+
+  /**
+   * Executes swap specified by given calls, update quotas of affected tokens
+   * - Open credit account is executed in the following order: price update -> increase debt -> add collateral ->
+   *   -> update quotas -> (optionally: execute swap path for trading/strategy) ->
+   *   -> (optionally: withdraw debt for lending)
+   * - Basic open credit account: price update -> increase debt -> add collateral -> update quotas
+   * - Lending: price update -> increase debt -> add collateral -> update quotas -> withdraw debt
+   * - Strategy/trading: price update -> increase debt -> add collateral -> update quotas -> execute swap path
+   * - In strategy is possible situation when collateral is added, but not swapped; the only swapped value in this case will be debt
+   * @param props - {@link OpenCAProps}
+   * @returns All necessary data to execute the transaction (call, credit facade)
+   */
+  openCA(props: OpenCAProps): Promise<CreditAccountOperationResult>;
+
+  /**
+   * Returns borrow rate with 4 digits precision (10000 = 100%)
+   * @param ca
+   * @returns
+   */
+  getBorrowRate(ca: CreditAccountData): bigint;
+
+  /**
+   * Returns optimal HF for partial liquidation with 4 digits precision (10000 = 100%)
+   * @param ca
+   */
+  getOptimalHFForPartialLiquidation(ca: CreditAccountData): bigint;
+
+  /**
+   * Returns raw txs that are needed to update all price feeds so that all credit accounts (possibly from different markets) compute
+   *
+   * This can be used by batch liquidator
+   * @param accounts
+   * @returns
+   */
+  getUpdateForAccounts(
+    accounts: Array<RouterCASlice>,
+  ): Promise<UpdatePriceFeedsResult>;
+
+  /**
+   * Returns account price updates in a non-encoded format
+   * @param acc
+   * @returns
+   */
+  getOnDemandPriceUpdates(
+    creditManager: Address,
+    creditAccount: RouterCASlice | undefined,
+    desiredQuotas: Array<Asset> | undefined,
+  ): Promise<Array<OnDemandPriceUpdate>>;
+
+  /**
+   * Withdraws a single collateral from credit account to wallet to and updates quotas;
+   * technically can withdraw several tokens at once
+   *   - Collateral is withdrawn in the following order: price update -> withdraw token -> update quotas for affected tokens
    * @param props - {@link WithdrawCollateralProps}
    * @return All necessary data to execute the transaction (call, credit facade)
    */
@@ -260,10 +516,10 @@ export interface ICreditAccountsService extends SDKConstruct {
 
   /**
    * Fully repays credit account or repays credit account and keeps it open with zero debt
-     - Repays in the following order: price update -> add collateral to cover the debt -> 
-      -> disable quotas for all tokens -> decrease debt -> disable tokens all tokens -> withdraw all tokens
-    - V3.0 claims rewards for tokens which are specified in legacy SDK
-    - V3.1 claims rewards for all tokens IF router is also V3.1
+   * - Repays in the following order: price update -> add collateral to cover the debt ->
+   *   -> disable quotas for all tokens -> decrease debt -> disable tokens all tokens -> withdraw all tokens
+   * - V3.0 claims rewards for tokens which are specified in legacy SDK
+   * - V3.1 claims rewards for all tokens IF router is also V3.1
    * @param props - {@link RepayCreditAccountProps}
    * @return All necessary data to execute the transaction (call, credit facade)
    */
@@ -273,10 +529,10 @@ export interface ICreditAccountsService extends SDKConstruct {
 
   /**
    * Fully repays liquidatable account
-    - Repay and liquidate is executed in the following order: price update -> add collateral to cover the debt -> 
-      withdraw all tokens from credit account
-    - V3.0 claims rewards for tokens which are specified in legacy SDK
-    - V3.1 claims rewards for all tokens IF router is also V3.1
+   * - Repay and liquidate is executed in the following order: price update -> add collateral to cover the debt ->
+   *   withdraw all tokens from credit account
+   * - V3.0 claims rewards for tokens which are specified in legacy SDK
+   * - V3.1 claims rewards for all tokens IF router is also V3.1
    * @param props - {@link RepayAndLiquidateCreditAccountProps}
    * @return All necessary data to execute the transaction (call, credit facade)
    */
@@ -286,10 +542,10 @@ export interface ICreditAccountsService extends SDKConstruct {
 
   /**
    * Executes swap specified by given calls, update quotas of affected tokens
-     - Claim rewards is executed in the following order: price update -> execute claim calls -> 
-      -> (optionally: disable reward tokens) -> (optionally: update quotas)
-    - V3.0 claims rewards for tokens which are specified in legacy SDK
-    - V3.1 claims rewards for all tokens IF router is also V3.1 and falls back to legacy calls if router is not v3.0
+   *  - Claim rewards is executed in the following order: price update -> execute claim calls ->
+   *   -> (optionally: disable reward tokens) -> (optionally: update quotas)
+   * - V3.0 claims rewards for tokens which are specified in legacy SDK
+   * - V3.1 claims rewards for all tokens IF router is also V3.1 and falls back to legacy calls if router is not v3.0
    * @param props - {@link ClaimFarmRewardsProps}
    * @return All necessary data to execute the transaction (call, credit facade)
    */

@@ -3,7 +3,7 @@ import type { GearboxSDK } from "../GearboxSDK.js";
 import type { CreditAccountServiceOptions } from "./AbstractCreditAccountsService.js";
 import { CreditAccountServiceV300 } from "./CreditAccountsServiceV300.js";
 import { CreditAccountServiceV310 } from "./CreditAccountsServiceV310.js";
-import type { CreditAccountsServiceInstance } from "./types.js";
+import type { ICreditAccountsService } from "./types.js";
 
 /**
  * @sdk
@@ -14,7 +14,7 @@ export function createCreditAccountService(
   sdk: GearboxSDK,
   version: number,
   options?: CreditAccountServiceOptions,
-): CreditAccountsServiceInstance {
+): ICreditAccountsService {
   if (isV300(version)) {
     return new CreditAccountServiceV300(sdk, options);
   }

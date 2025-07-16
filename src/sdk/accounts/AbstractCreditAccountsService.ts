@@ -32,6 +32,7 @@ import { type Asset, assetsMap, type RouterCASlice } from "../router/index.js";
 import type { ILogger, IPriceUpdateTx, MultiCall } from "../types/index.js";
 import { AddressMap, childLogger } from "../utils/index.js";
 import { simulateWithPriceUpdates } from "../utils/viem/index.js";
+import type { GetConnectedBotsResult } from "./types";
 import type {
   AddCollateralProps,
   ChangeDeptProps,
@@ -129,9 +130,6 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
    * Methods to get all credit accounts with some optional filtering
    * Performs all necessary price feed updates under the hood
    *
-   * TODO: do we want to expose pagination?
-   * TODO: do we want to expose "reverting"?
-   * TODO: do we want to expose MarketFilter in any way? If so, we need to check that the MarketFilter is compatibled with attached markets?
    * @param options
    * @param blockNumber
    * @returns returned credit accounts are sorted by health factor in ascending order
@@ -199,7 +197,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
    * @param {Address} creditAccount - address of credit account to get rewards for
    * @returns {Array<Rewards>} list of {@link Rewards} that can be claimed
    */
-  async getRewards(creditAccount: Address): Promise<Array<Rewards>> {
+  public async getRewards(creditAccount: Address): Promise<Array<Rewards>> {
     const rewards = await this.provider.publicClient.readContract({
       abi: iRewardsCompressorAbi,
       address: this.rewardCompressor,
@@ -254,9 +252,9 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       and their credit managers to check connected bots on
    * @returns call result of getConnectedBots for each credit account
    */
-  async getConnectedBots(
+  public async getConnectedBots(
     accountsToCheck: Array<{ creditAccount: Address; creditManager: Address }>,
-  ) {
+  ): Promise<GetConnectedBotsResult> {
     const resp = await this.provider.publicClient.multicall({
       contracts: accountsToCheck.map(o => {
         const pool = this.sdk.marketRegister.findByCreditManager(
@@ -329,7 +327,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
    * @param {RouterCloseResult | undefined} closePath - result of findBestClosePath method from router; if omited, calls marketRegister.findCreditManager {@link RouterCloseResult}
    * @returns All necessary data to execute the transaction (call, credit facade)
    */
-  async closeCreditAccount({
+  public async closeCreditAccount({
     operation,
     assetsToWithdraw,
     creditAccount: ca,
@@ -784,7 +782,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     return this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(priceFeeds);
   }
 
-  public async getUpdateForAccount(
+  protected async getUpdateForAccount(
     creditManager: Address,
     creditAccount: RouterCASlice | undefined,
     desiredQuotas: Array<Asset> | undefined,
@@ -882,7 +880,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
    * @param acc
    * @returns
    */
-  public async getPriceUpdatesForFacade(
+  protected async getPriceUpdatesForFacade(
     creditManager: Address,
     creditAccount: RouterCASlice | undefined,
     desiredQuotas: Array<Asset> | undefined,
