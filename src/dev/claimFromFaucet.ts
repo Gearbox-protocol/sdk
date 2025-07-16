@@ -1,38 +1,55 @@
-import { type Address, type PrivateKeyAccount, parseAbi } from "viem";
+import {
+  type Address,
+  type PrivateKeyAccount,
+  type PublicClient,
+  parseAbi,
+  type WalletClient,
+} from "viem";
 import { readContract } from "viem/actions";
 import { formatBN, type ILogger } from "../sdk/index.js";
-import type { AnvilClient } from "./createAnvilClient.js";
 
 interface ClaimFromFaucetOptions {
-  anvil: AnvilClient;
+  publicClient: PublicClient;
+  wallet: WalletClient;
   faucet: Address;
   claimer: PrivateKeyAccount;
   role?: string;
-  amountUSD: bigint | ((minAmountUSD: bigint) => bigint);
+  amountUSD?: bigint | ((minAmountUSD: bigint) => bigint);
+  gasMultiplier?: bigint;
   logger?: ILogger;
 }
 
 const faucetAbi = parseAbi([
   "function minAmountUSD() external view returns (uint256)",
+  "function claim() external",
   "function claim(uint256 amountUSD) external",
 ]);
 
 export async function claimFromFaucet(
   opts: ClaimFromFaucetOptions,
 ): Promise<void> {
-  const { anvil, faucet, claimer, role, amountUSD, logger } = opts;
+  const {
+    publicClient,
+    wallet,
+    faucet,
+    claimer,
+    role,
+    amountUSD,
+    logger,
+    gasMultiplier = 10n,
+  } = opts;
 
-  let toClaimUSD: bigint;
-  if (typeof amountUSD === "function") {
-    toClaimUSD = await readContract(anvil, {
+  let toClaimUSD: bigint | undefined;
+  if (typeof amountUSD === "bigint") {
+    toClaimUSD = amountUSD;
+  } else if (typeof amountUSD === "function") {
+    toClaimUSD = await readContract(publicClient, {
       address: faucet,
       abi: faucetAbi,
       functionName: "minAmountUSD",
     });
     logger?.debug(`faucet min amount USD: ${toClaimUSD}`);
     toClaimUSD = amountUSD(toClaimUSD);
-  } else {
-    toClaimUSD = amountUSD;
   }
 
   if (toClaimUSD === 0n) {
@@ -42,29 +59,28 @@ export async function claimFromFaucet(
 
   const [usr, amnt] = [
     [role, claimer.address].filter(Boolean).join(" "),
-    formatBN(toClaimUSD, 8),
+    toClaimUSD ? formatBN(toClaimUSD, 8) : "default amount",
   ];
 
   logger?.debug(`${usr} claiming ${amnt} USD from faucet`);
-  const hash = await anvil.writeContract({
+
+  const gas = await publicClient.estimateContractGas({
     account: claimer,
     address: faucet,
-    abi: [
-      {
-        type: "function",
-        inputs: [
-          { name: "amountUSD", internalType: "uint256", type: "uint256" },
-        ],
-        name: "claim",
-        outputs: [],
-        stateMutability: "nonpayable",
-      },
-    ],
+    abi: faucetAbi,
     functionName: "claim",
-    args: [toClaimUSD],
-    chain: anvil.chain,
+    args: toClaimUSD ? [toClaimUSD] : [],
   });
-  const receipt = await anvil.waitForTransactionReceipt({
+  const hash = await wallet.writeContract({
+    account: claimer,
+    address: faucet,
+    abi: faucetAbi,
+    functionName: "claim",
+    args: toClaimUSD ? [toClaimUSD] : [],
+    chain: wallet.chain,
+    gas: gas * gasMultiplier,
+  });
+  const receipt = await publicClient.waitForTransactionReceipt({
     hash,
   });
   if (receipt.status === "reverted") {
