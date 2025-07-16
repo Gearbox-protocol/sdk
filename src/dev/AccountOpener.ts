@@ -476,7 +476,8 @@ export class AccountOpener extends SDKConstruct {
     amountUSD: bigint,
   ): Promise<void> {
     await claimFromFaucet({
-      anvil: this.#anvil,
+      publicClient: this.#anvil,
+      wallet: this.#anvil,
       faucet: this.faucet,
       claimer,
       role,
