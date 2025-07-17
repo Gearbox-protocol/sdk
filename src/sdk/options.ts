@@ -1,4 +1,3 @@
-import type { Address } from "viem";
 import { z } from "zod/v4";
 import {
   PythOptions,
@@ -20,7 +19,9 @@ export const SDKOptions = z.object({
   /**
    * Attach and load state at this specific block number
    */
-  blockNumber: z.coerce.bigint().optional(),
+  blockNumber: z
+    .union([z.bigint().nonnegative(), z.number().int().nonnegative()])
+    .optional(),
   /**
    * Will skip updateable prices on attach and sync
    * Makes things faster when your service is not intereseted in prices
