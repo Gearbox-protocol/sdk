@@ -35,10 +35,7 @@ import {
 } from "./core/index.js";
 import { MarketRegister } from "./market/MarketRegister.js";
 import { PriceFeedRegister } from "./market/pricefeeds/index.js";
-import type {
-  PythOptions,
-  RedstoneOptions,
-} from "./market/pricefeeds/updates/index.js";
+import type { SDKOptions } from "./options.js";
 import {
   type PluginStatesMap,
   PluginStateVersionError,
@@ -62,50 +59,6 @@ const ERR_NOT_ATTACHED = new Error("Gearbox SDK not attached");
  * State version, checked duryng hydration
  */
 export const STATE_VERSION = 1;
-
-export interface SDKOptions<Plugins extends PluginsMap> {
-  /**
-   * If not set, address provider address is determinted automatically from networkType
-   */
-  addressProvider?: Address;
-  /**
-   * Market configurators
-   */
-  marketConfigurators?: Address[];
-  /**
-   * Attach and load state at this specific block number
-   */
-  blockNumber?: bigint | number;
-  /**
-   * Will skip updateable prices on attach and sync
-   * Makes things faster when your service is not intereseted in prices
-   */
-  ignoreUpdateablePrices?: boolean;
-  /**
-   * Will skip loading markets for these pools on attach/hydrate/sync
-   */
-  ignoreMarkets?: Address[];
-  /**
-   * Will throw an error if contract type is not supported, otherwise will try to use generic contract first, if possible
-   */
-  strictContractTypes?: boolean;
-  /**
-   * Plugins to extends SDK functionality
-   */
-  plugins?: Plugins;
-  /**
-   * Bring your own logger
-   */
-  logger?: ILogger;
-  /**
-   * Options related to redstone price feeds
-   */
-  redstone?: RedstoneOptions;
-  /**
-   * Options related to pyth price feeds
-   */
-  pyth?: PythOptions;
-}
 
 export type HydrateOptions<Plugins extends PluginsMap> = Omit<
   SDKOptions<Plugins>,

@@ -1,7 +1,7 @@
 import { Buffer } from "buffer";
 import type { Address, Hex } from "viem";
 import { encodeAbiParameters, toHex } from "viem";
-
+import { z } from "zod/v4";
 import { SDKConstruct } from "../../../base/index.js";
 import type { GearboxSDK } from "../../../GearboxSDK.js";
 import type { ILogger } from "../../../types/index.js";
@@ -64,28 +64,32 @@ class PythUpdateTx extends PriceUpdateTx<PythUpdateTask> {
   public readonly name = "pyth";
 }
 
-export interface PythOptions {
+export const PythOptions = z.object({
   /**
    * Fixed pyth historic timestamp in seconds
    * Set to true to enable pyth historical mode using timestamp from attach block
    */
-  historicTimestamp?: number | true;
+  historicTimestamp: z
+    .union([z.number().nonnegative(), z.literal(true)])
+    .optional(),
   /**
    * Override Hermes API with this proxy. Can be used to set caching proxies, to avoid rate limiting
    */
-  apiProxy?: string;
+  apiProxy: z.url().optional(),
   /**
    * TTL for pyth cache in milliseconds
    * If 0, disables caching
    * If not set, uses some default value
    * Cache is always enabled in historical mode
    */
-  cacheTTL?: number;
+  cacheTTL: z.number().nonnegative().optional(),
   /**
    * When true, no error will be thrown when pyth is unable to fetch data for some feeds
    */
-  ignoreMissingFeeds?: boolean;
-}
+  ignoreMissingFeeds: z.boolean().optional(),
+});
+
+export type PythOptions = z.infer<typeof PythOptions>;
 
 /**
  * Class to update multiple pyth price feeds at once

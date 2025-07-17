@@ -6,6 +6,7 @@ export * from "./core/index.js";
 export * from "./GearboxSDK.js";
 export * from "./gauges/index.js";
 export * from "./market/index.js";
+export * from "./options.js";
 export * from "./plugins/index.js";
 export * from "./router/index.js";
 export * from "./sdk-gov-legacy/index.js";

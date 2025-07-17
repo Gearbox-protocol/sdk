@@ -3,7 +3,7 @@ import type { SignedDataPackage } from "@redstone-finance/protocol";
 import { RedstonePayload } from "@redstone-finance/protocol";
 import type { Address, Hex } from "viem";
 import { encodeAbiParameters, toBytes } from "viem";
-
+import { z } from "zod/v4";
 import { SDKConstruct } from "../../../base/index.js";
 import type { GearboxSDK } from "../../../GearboxSDK.js";
 import type { ILogger } from "../../../types/index.js";
@@ -38,33 +38,36 @@ class RedstoneUpdateTx extends PriceUpdateTx<RedstoneUpdateTask> {
   public readonly name = "redstone";
 }
 
-export interface RedstoneOptions {
+export const RedstoneOptions = z.object({
   /**
    * Fixed redstone historic timestamp in ms
    * Set to true to enable redstone historical mode using timestamp from attach block
    */
-  historicTimestamp?: number | true;
+  historicTimestamp: z
+    .union([z.number().nonnegative(), z.literal(true)])
+    .optional(),
   /**
    * Override redstone gateways. Can be used to set caching proxies, to avoid rate limiting
    */
-  gateways?: string[];
+  gateways: z.array(z.url()).optional(),
   /**
    * TTL for redstone cache in milliseconds
    * If 0, disables caching
    * If not set, uses some default value
    * Cache is always enabled in historical mode
    */
-  cacheTTL?: number;
+  cacheTTL: z.number().nonnegative().optional(),
   /**
    * When true, no error will be thrown when redstone is unable to fetch data for some feeds
    */
-  ignoreMissingFeeds?: boolean;
+  ignoreMissingFeeds: z.boolean().optional(),
   /**
    * Enable redstone internal logging
    */
-  enableLogging?: boolean;
-}
+  enableLogging: z.boolean().optional(),
+});
 
+export type RedstoneOptions = z.infer<typeof RedstoneOptions>;
 /**
  * Class to update multiple redstone price feeds at once
  */
