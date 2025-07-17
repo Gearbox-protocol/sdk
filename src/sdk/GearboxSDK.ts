@@ -82,6 +82,10 @@ export interface SDKOptions<Plugins extends PluginsMap> {
    */
   ignoreUpdateablePrices?: boolean;
   /**
+   * Will skip loading markets for these pools on attach/hydrate/sync
+   */
+  ignoreMarkets?: Address[];
+  /**
    * Will throw an error if contract type is not supported, otherwise will try to use generic contract first, if possible
    */
   strictContractTypes?: boolean;
@@ -118,7 +122,11 @@ type SDKContructorArgs<Plugins extends PluginsMap> = Pick<
 type AttachOptionsInternal = PickSomeRequired<
   SDKOptions<any>,
   "addressProvider" | "marketConfigurators",
-  "blockNumber" | "ignoreUpdateablePrices" | "redstone" | "pyth"
+  | "blockNumber"
+  | "ignoreUpdateablePrices"
+  | "redstone"
+  | "pyth"
+  | "ignoreMarkets"
 >;
 
 export interface SyncStateOptions {
@@ -194,6 +202,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       redstone,
       pyth,
       ignoreUpdateablePrices,
+      ignoreMarkets,
       marketConfigurators: mcs,
       strictContractTypes,
     } = options;
@@ -230,6 +239,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       addressProvider,
       blockNumber,
       ignoreUpdateablePrices,
+      ignoreMarkets,
       marketConfigurators,
       redstone,
       pyth,
@@ -270,6 +280,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       addressProvider,
       blockNumber,
       ignoreUpdateablePrices,
+      ignoreMarkets,
       marketConfigurators,
       redstone,
       pyth,
@@ -282,6 +293,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
         addressProvider,
         marketConfigurators,
         blockNumber,
+        ignoreMarkets,
       },
       `${re}attaching gearbox sdk`,
     );
@@ -318,7 +330,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
     );
     await this.#addressProvider.syncState(this.currentBlock);
 
-    this.#marketRegister = new MarketRegister(this);
+    this.#marketRegister = new MarketRegister(this, ignoreMarkets);
     await this.#marketRegister.loadMarkets(
       marketConfigurators,
       ignoreUpdateablePrices,
@@ -354,7 +366,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
     options: Omit<HydrateOptions<Plugins>, "plugins">,
     state: GearboxState<Plugins>,
   ): this {
-    const { logger: _logger, ...opts } = options;
+    const { logger: _logger, ignoreMarkets, ...opts } = options;
     if (state.version !== STATE_VERSION) {
       throw new Error(
         `hydrated state version is ${state.version}, but expected ${STATE_VERSION}`,
@@ -380,7 +392,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       `address provider version: ${this.#addressProvider.version}`,
     );
 
-    this.#marketRegister = new MarketRegister(this);
+    this.#marketRegister = new MarketRegister(this, ignoreMarkets);
     this.#marketRegister.hydrate(state.markets);
 
     this.#attachConfig = {

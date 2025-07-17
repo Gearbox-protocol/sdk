@@ -34,10 +34,14 @@ export class MarketRegister extends SDKConstruct {
     undefined,
     "marketConfigurators",
   );
+  #ignoreMarkets: Set<Address>;
 
-  constructor(sdk: GearboxSDK) {
+  constructor(sdk: GearboxSDK, ignoreMarkets: Address[] = []) {
     super(sdk);
     this.#logger = childLogger("MarketRegister", sdk.logger);
+    this.#ignoreMarkets = new Set(
+      ignoreMarkets.map(m => m.toLowerCase() as Address),
+    );
   }
 
   public hydrate(state: MarketData[]): void {
@@ -45,6 +49,13 @@ export class MarketRegister extends SDKConstruct {
     const configurators = new Set<Address>(state.map(m => m.configurator));
     this.#setMarketFilter([...configurators]);
     for (const data of state) {
+      const pool = data.pool.baseParams.addr;
+      if (this.#ignoreMarkets.has(pool.toLowerCase() as Address)) {
+        this.#logger?.debug(
+          `ignoring market of pool ${pool} (${data.pool.name})`,
+        );
+        continue;
+      }
       this.#markets.upsert(
         data.pool.baseParams.addr,
         new MarketSuite(this.sdk, data),
@@ -180,14 +191,18 @@ export class MarketRegister extends SDKConstruct {
     }
 
     for (const data of markets) {
-      this.#markets.upsert(
-        data.pool.baseParams.addr,
-        new MarketSuite(this.sdk, data),
-      );
+      const pool = data.pool.baseParams.addr;
+      if (this.#ignoreMarkets.has(pool.toLowerCase() as Address)) {
+        this.#logger?.debug(
+          `ignoring market of pool ${pool} (${data.pool.name})`,
+        );
+        continue;
+      }
+      this.#markets.upsert(pool, new MarketSuite(this.sdk, data));
     }
 
     this.#logger?.info(
-      `loaded ${markets.length} markets in block ${this.sdk.currentBlock}`,
+      `loaded ${this.#markets.size} markets in block ${this.sdk.currentBlock}`,
     );
   }
 
