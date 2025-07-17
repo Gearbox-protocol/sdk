@@ -290,6 +290,12 @@ export const chains: Record<NetworkType, GearboxChain> = {
       address: "0xad11a8BEb98bbf61dbb1aa0F6d6F2ECD87b35afA",
       symbol: "USDC.e",
     },
+    contracts: {
+      multicall3: {
+        address: "0xcA11bde05977b3631167028862bE2a173976CA11",
+        blockCreated: 484490,
+      },
+    },
   }),
   Lisk: defineChain({
     ...lisk,
