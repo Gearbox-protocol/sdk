@@ -228,6 +228,11 @@ export interface FindBestClosePathProps {
    */
   balances?: ClosePathBalances;
   /**
+   * List of assets to keep on account after closing.
+   * When balances are explicitly provided, keepAssets is ignored.
+   */
+  keepAssets?: Address[];
+  /**
    * TODO: legacy v3 option to pass to contract
    */
   force?: boolean;
@@ -317,12 +322,14 @@ export interface IRouterContract extends IBaseContract {
    * @param ca
    * @param cm
    * @param balances
+   * @param keepAssets
    * @returns
    */
   getFindClosePathInput: (
     ca: RouterCASlice,
     cm: RouterCMSlice,
     balances?: Leftovers,
+    keepAssets?: Address[],
   ) => FindClosePathInput;
 }
 

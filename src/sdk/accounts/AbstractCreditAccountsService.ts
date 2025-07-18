@@ -32,7 +32,7 @@ import { type Asset, assetsMap, type RouterCASlice } from "../router/index.js";
 import type { ILogger, IPriceUpdateTx, MultiCall } from "../types/index.js";
 import { AddressMap, childLogger } from "../utils/index.js";
 import { simulateWithPriceUpdates } from "../utils/viem/index.js";
-import type { GetConnectedBotsResult } from "./types";
+import type { FullyLiquidateProps, GetConnectedBotsResult } from "./types";
 import type {
   AddCollateralProps,
   ChangeDeptProps,
@@ -276,18 +276,13 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
 
   /**
    * Generates transaction to liquidate credit account
-   * @param account
-   * @param to Address to transfer underlying left after liquidation
-   * @param slippage
-   * @param force TODO: legacy v3 option to remove
+   * @param props - {@link FullyLiquidateProps}
    * @returns
    */
   public async fullyLiquidate(
-    account: RouterCASlice,
-    to: Address,
-    slippage = 50n,
-    force = false,
+    props: FullyLiquidateProps,
   ): Promise<CloseCreditAccountResult> {
+    const { account, to, slippage = 50n, force = false, keepAssets } = props;
     const cm = this.sdk.marketRegister.findCreditManager(account.creditManager);
     const routerCloseResult = await this.sdk
       .routerFor(account)
@@ -296,6 +291,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
         creditManager: cm.creditManager,
         slippage,
         force,
+        keepAssets,
       });
     const priceUpdates = await this.getPriceUpdatesForFacade(
       account.creditManager,

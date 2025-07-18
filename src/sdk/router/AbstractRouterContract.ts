@@ -32,8 +32,9 @@ export abstract class AbstractRouterContract<
     ca: RouterCASlice,
     cm: RouterCMSlice,
     balances?: Leftovers,
+    keepAssets?: Address[],
   ): Leftovers {
-    const b = balances || this.getDefaultExpectedAndLeftover(ca);
+    const b = balances || this.getDefaultExpectedAndLeftover(ca, keepAssets);
     const { leftoverBalances, expectedBalances, tokensToClaim } = b;
 
     const expected: AddressMap<Asset> = new AddressMap<Asset>();
@@ -58,9 +59,13 @@ export abstract class AbstractRouterContract<
     };
   }
 
-  protected getDefaultExpectedAndLeftover(ca: RouterCASlice): Leftovers {
+  protected getDefaultExpectedAndLeftover(
+    ca: RouterCASlice,
+    keepAssets?: Address[],
+  ): Leftovers {
     const expectedBalances = new AddressMap<Asset>();
     const leftoverBalances = new AddressMap<Asset>();
+    const keepAssetsSet = new Set(keepAssets?.map(a => a.toLowerCase()));
     for (const { token: t, balance, mask } of ca.tokens) {
       const token = t as Address;
       const isEnabled = (mask & ca.enabledTokensMask) !== 0n;
@@ -69,7 +74,11 @@ export abstract class AbstractRouterContract<
       // filter out dust, we don't want to swap it
       const minBalance = 10n ** BigInt(Math.max(8, decimals) - 8);
       // also: gearbox liquidator does not need to swap disabled tokens. third-party liquidators might want to do it
-      if (balance < minBalance || !isEnabled) {
+      if (
+        keepAssetsSet.has(token.toLowerCase()) ||
+        balance < minBalance ||
+        !isEnabled
+      ) {
         leftoverBalances.upsert(token, { token, balance });
       }
     }

@@ -273,6 +273,29 @@ export interface ChangeDeptProps {
   amount: bigint;
 }
 
+export interface FullyLiquidateProps {
+  /**
+   * Credit account to liquidate
+   */
+  account: RouterCASlice;
+  /**
+   * Address to transfer underlying left after liquidation
+   */
+  to: Address;
+  /**
+   * Slippage in PERCENTAGE_FORMAT (100% = 10_000) per operation
+   */
+  slippage?: bigint;
+  /**
+   * TODO: legacy v3 option to remove
+   */
+  force?: boolean;
+  /**
+   * List of assets to keep on account after liquidation
+   */
+  keepAssets?: Address[];
+}
+
 export interface PermitResult {
   r: Address;
   s: Address;
@@ -389,18 +412,10 @@ export interface ICreditAccountsService extends SDKConstruct {
 
   /**
    * Generates transaction to liquidate credit account
-   * @param account
-   * @param to Address to transfer underlying left after liquidation
-   * @param slippage
-   * @param force TODO: legacy v3 option to remove
+   * @param props - {@link FullyLiquidateProps}
    * @returns
    */
-  fullyLiquidate(
-    account: RouterCASlice,
-    to: Address,
-    slippage?: bigint,
-    force?: boolean,
-  ): Promise<CloseCreditAccountResult>;
+  fullyLiquidate(props: FullyLiquidateProps): Promise<CloseCreditAccountResult>;
 
   /**
    * Closes credit account or closes credit account and keeps it open with zero debt.

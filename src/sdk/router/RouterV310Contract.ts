@@ -192,7 +192,13 @@ export class RouterV310Contract
   public async findBestClosePath(
     props: FindBestClosePathProps,
   ): Promise<RouterCloseResult> {
-    const { creditAccount: ca, creditManager: cm, slippage, balances } = props;
+    const {
+      creditAccount: ca,
+      creditManager: cm,
+      slippage,
+      balances,
+      keepAssets,
+    } = props;
     const { expectedBalances, leftoverBalances, tokensToClaim } =
       this.getExpectedAndLeftover(
         ca,
@@ -204,6 +210,7 @@ export class RouterV310Contract
               tokensToClaim: assetsMap(balances.tokensToClaim || []),
             }
           : undefined,
+        keepAssets,
       );
 
     const getNumSplits = this.#numSplitsGetter(cm, expectedBalances.values());

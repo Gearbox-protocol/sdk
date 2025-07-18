@@ -337,11 +337,13 @@ export class RouterV300Contract
     ca: RouterCASlice,
     cm: RouterCMSlice,
     balances?: Leftovers,
+    keepAssets?: Address[],
   ): FindClosePathInput {
     const { expectedBalances, leftoverBalances } = this.getExpectedAndLeftover(
       ca,
       cm,
       balances,
+      keepAssets,
     );
 
     // TODO: PathOptionFactory deals with token data from SDK
