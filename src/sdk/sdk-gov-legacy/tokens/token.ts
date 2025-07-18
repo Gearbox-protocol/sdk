@@ -469,6 +469,10 @@ export const tokenDataByNetwork: Record<
     mTBILL: NOT_DEPLOYED,
 
     PT_sUSDX_1SEP2025: NOT_DEPLOYED,
+
+    lskETH: NOT_DEPLOYED,
+    hemiBTC: NOT_DEPLOYED,
+    bfBTC: NOT_DEPLOYED,
   },
 
   ///
