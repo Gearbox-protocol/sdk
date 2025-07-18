@@ -18,7 +18,7 @@ import {
 } from "viem/chains";
 import { z } from "zod/v4";
 
-export type Curator = "Chaos Labs" | "K3" | "cp0x" | "Re7";
+export type Curator = "Chaos Labs" | "K3" | "cp0x" | "Re7" | "Invariant";
 
 export interface GearboxChain extends Chain {
   network: NetworkType;
@@ -285,6 +285,9 @@ export const chains: Record<NetworkType, GearboxChain> = {
     ...hemi,
     network: "Hemi",
     defaultMarketConfigurators: {},
+    testMarketConfigurators: {
+      "0xc9961b8a0c763779690577f2c76962c086af2fe3": "Invariant",
+    },
     isPublic: false,
     wellKnownToken: {
       address: "0xad11a8BEb98bbf61dbb1aa0F6d6F2ECD87b35afA",
@@ -301,6 +304,9 @@ export const chains: Record<NetworkType, GearboxChain> = {
     ...lisk,
     network: "Lisk",
     defaultMarketConfigurators: {},
+    testMarketConfigurators: {
+      "0x25778dbf0e56b7feb8358c4aa2f6f9e19a1c145a": "Re7",
+    },
     isPublic: false,
     wellKnownToken: {
       address: "0xF242275d3a6527d877f2c927a82D9b057609cc71",

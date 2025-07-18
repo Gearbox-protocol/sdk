@@ -113,7 +113,10 @@ export type NormalToken =
   | "PT_uptBTC_14AUG2025"
   | "WXTZ"
   | "mTBILL"
-  | "mBASIS";
+  | "mBASIS"
+  | "lskETH"
+  | "hemiBTC"
+  | "bfBTC";
 
 export type NormalTokenData = {
   symbol: NormalToken;
@@ -681,6 +684,22 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
   PT_sUSDX_1SEP2025: {
     name: "Pendle PT sUSDX 1 September 2025 expiry",
     symbol: "PT_sUSDX_1SEP2025",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+
+  lskETH: {
+    name: "lskETH",
+    symbol: "lskETH",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  hemiBTC: {
+    name: "hemiBTC",
+    symbol: "hemiBTC",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  bfBTC: {
+    name: "bfBTC",
+    symbol: "bfBTC",
     type: { AllNetworks: TokenType.NORMAL_TOKEN },
   },
 };

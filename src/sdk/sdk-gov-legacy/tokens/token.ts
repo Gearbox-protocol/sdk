@@ -707,8 +707,14 @@ export const tokenDataByNetwork: Record<
     WXTZ: "0xc9b53ab2679f573e480d01e0f49e2b5cfb7a3eab",
     mTBILL: "0xdd629e5241cbc5919847783e6c96b2de4754e438",
   } as any,
-  Hemi: {} as any,
-  Lisk: {} as any,
+  Hemi: {
+    hemiBTC: "0xAA40c0c7644e0b2B224509571e10ad20d9C4ef28",
+    bfBTC: "0x623F2774d9f27B59bc6b954544487532CE79d9DF",
+  } as any,
+  Lisk: {
+    wstETH: "0x76D8de471F54aAA87784119c60Df1bbFc852C415",
+    lskETH: "0x1b10E2270780858923cdBbC9B5423e29fffD1A44",
+  } as any,
 };
 
 export type TickerToken =
