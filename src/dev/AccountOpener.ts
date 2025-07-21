@@ -46,6 +46,7 @@ export interface AccountOpenerOptions {
   faucet?: Address;
   borrower?: PrivateKeyAccount;
   poolDepositMultiplier?: bigint;
+  minDebtMultiplier?: bigint;
 }
 
 export interface TargetAccount {
@@ -85,6 +86,7 @@ export class AccountOpener extends SDKConstruct {
   #borrower?: PrivateKeyAccount;
   #faucet?: Address;
   #poolDepositMultiplier: bigint;
+  #minDebtMultiplier: bigint;
 
   constructor(
     service: ICreditAccountsService,
@@ -105,6 +107,7 @@ export class AccountOpener extends SDKConstruct {
     }
     this.#borrower = options.borrower;
     this.#poolDepositMultiplier = options.poolDepositMultiplier ?? 110_00n;
+    this.#minDebtMultiplier = options.minDebtMultiplier ?? 101_00n;
   }
 
   public get borrower(): Address {
@@ -259,7 +262,9 @@ export class AccountOpener extends SDKConstruct {
       target: symbol,
     });
     const leverage = this.#getLeverage(input);
-    const { minDebt, underlying } = cm.creditFacade;
+    const { underlying } = cm.creditFacade;
+    const minDebt =
+      (this.#minDebtMultiplier * cm.creditFacade.minDebt) / PERCENTAGE_FACTOR;
     const expectedUnderlyingBalance = (minDebt * leverage) / PERCENTAGE_FACTOR;
     const expectedBalances: Asset[] = [];
     const leftoverBalances: Asset[] = [];
@@ -344,7 +349,8 @@ export class AccountOpener extends SDKConstruct {
     for (const t of targets) {
       const leverage = this.#getLeverage(t);
       const cm = this.sdk.marketRegister.findCreditManager(t.creditManager);
-      const { minDebt } = cm.creditFacade;
+      const minDebt =
+        (this.#minDebtMultiplier * cm.creditFacade.minDebt) / PERCENTAGE_FACTOR;
       minAvailableByPool[cm.pool] =
         (minAvailableByPool[cm.pool] ?? 0n) +
         (((minDebt * (leverage - PERCENTAGE_FACTOR)) / PERCENTAGE_FACTOR) *
@@ -456,7 +462,7 @@ export class AccountOpener extends SDKConstruct {
   async #prepareBorrower(targets: TargetAccount[]): Promise<PrivateKeyAccount> {
     const borrower = await this.#getBorrower();
 
-    // each account will have minDebt in USD, see how much we need to claim from faucet
+    // each account will have minDebt*minDebtMultiplier in USD, see how much we need to claim from faucet
     let claimUSD = 0n;
     // collect all degen nfts
     const degenNFTS: Record<Address, number> = {};
@@ -467,7 +473,9 @@ export class AccountOpener extends SDKConstruct {
       const market = this.sdk.marketRegister.findByCreditManager(
         target.creditManager,
       );
-      const { minDebt, degenNFT } = cm.creditFacade;
+      const { degenNFT } = cm.creditFacade;
+      const minDebt =
+        (this.#minDebtMultiplier * cm.creditFacade.minDebt) / PERCENTAGE_FACTOR;
 
       claimUSD += market.priceOracle.convertToUSD(cm.underlying, minDebt);
 
