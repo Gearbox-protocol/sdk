@@ -1,7 +1,12 @@
 import type { Address, Hash, PrivateKeyAccount } from "viem";
-import { BaseError, isAddress, parseEther, parseEventLogs } from "viem";
+import {
+  BaseError,
+  erc20Abi,
+  isAddress,
+  parseEther,
+  parseEventLogs,
+} from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-
 import { ierc20Abi } from "../abi/iERC20.js";
 import { iCreditFacadeV300Abi, iPoolV300Abi } from "../abi/v300.js";
 import type {
@@ -16,6 +21,7 @@ import type {
 import {
   ADDRESS_0X0,
   AddressMap,
+  AddressSet,
   childLogger,
   formatBN,
   MAX_UINT256,
@@ -56,6 +62,10 @@ export interface TargetAccount {
    * TODO: not implemented
    */
   collateral?: Address;
+  /**
+   * These tokens will be transferred directly from faucet to credit account
+   */
+  directTransfer?: Address[];
   leverage?: number;
   slippage?: number;
 }
@@ -162,6 +172,12 @@ export class AccountOpener extends SDKConstruct {
       }
     }
     this.#logger?.info(`opened ${success}/${targets.length} accounts`);
+    try {
+      await this.#directlyDistributeTokens(results);
+      this.#logger?.info("distributed direct transfer tokens");
+    } catch (e) {
+      this.#logger?.error(`failed to distribute tokens: ${e}`);
+    }
     return results;
   }
 
@@ -602,6 +618,91 @@ export class AccountOpener extends SDKConstruct {
       value: parseEther("100"),
     });
     return acc;
+  }
+
+  /**
+   * Claims tokens from faucet, uniformly distributes them to accounts
+   * @param targets
+   * @returns
+   */
+  async #directlyDistributeTokens(targets: OpenAccountResult[]): Promise<void> {
+    const tokens = new AddressSet(
+      targets.flatMap(t => t.input.directTransfer ?? []),
+    );
+    if (tokens.size === 0) {
+      return;
+    }
+    const distributorKey = generatePrivateKey();
+    const distributor = privateKeyToAccount(distributorKey);
+    await this.#anvil.setBalance({
+      address: distributor.address,
+      value: parseEther("100"),
+    });
+    await claimFromFaucet({
+      publicClient: this.#anvil,
+      wallet: this.#anvil,
+      faucet: this.faucet,
+      amountUSD: minAmountUSD => minAmountUSD * BigInt(targets.length),
+      claimer: distributor,
+      role: "reward token distributor",
+      logger: this.#logger,
+    });
+
+    const actualBalances = await this.#anvil.multicall({
+      contracts: tokens.map(
+        token =>
+          ({
+            address: token,
+            abi: erc20Abi,
+            functionName: "balanceOf",
+            args: [distributor.address],
+          }) as const,
+      ),
+      allowFailure: false,
+    });
+    const tokensArr = tokens.asArray();
+    for (let i = 0; i < tokensArr.length; i++) {
+      const token = tokensArr[i];
+      const balance = actualBalances[i];
+      this.#logger?.debug(`${token} balance: ${balance}`);
+    }
+    for (const { account, input } of targets) {
+      if (!account) {
+        continue;
+      }
+      const directTransfer = new AddressSet(input.directTransfer);
+      for (let i = 0; i < tokensArr.length; i++) {
+        const token = tokensArr[i];
+        if (!directTransfer.has(token)) {
+          continue;
+        }
+        const balance = actualBalances[i] / BigInt(targets.length);
+        this.#logger?.debug(
+          `sending ${balance} ${token} to ${account.creditAccount}`,
+        );
+        const hash = await this.#anvil.writeContract({
+          account: distributor,
+          address: token,
+          abi: erc20Abi,
+          functionName: "transfer",
+          args: [account.creditAccount, balance],
+          chain: this.#anvil.chain,
+        });
+        const receipt = await this.#anvil.waitForTransactionReceipt({
+          hash,
+        });
+        if (receipt.status === "reverted") {
+          this.#logger?.error(
+            `failed to send ${token} to ${account.creditAccount}, tx ${hash} reverted`,
+          );
+        } else {
+          this.#logger?.debug(
+            `sent ${token} to ${account.creditAccount}, tx: ${hash}`,
+          );
+        }
+      }
+      // TODO: need to enable transferred tokens by upping quota
+    }
   }
 
   #getCollateralQuota(
