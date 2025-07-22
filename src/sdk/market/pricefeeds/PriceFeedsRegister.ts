@@ -21,6 +21,7 @@ import { BalancerStablePriceFeedContract } from "./BalancerStablePriceFeed.js";
 import { BalancerWeightedPriceFeedContract } from "./BalancerWeightedPriceFeed.js";
 import { BoundedPriceFeedContract } from "./BoundedPriceFeed.js";
 import { CompositePriceFeedContract } from "./CompositePriceFeed.js";
+import { ConstantPriceFeedContract } from "./ConstantPriceFeed.js";
 import { CurveCryptoPriceFeedContract } from "./CurveCryptoPriceFeed.js";
 import { CurveStablePriceFeedContract } from "./CurveStablePriceFeed.js";
 import { CurveUSDPriceFeedContract } from "./CurveUSDPriceFeed.js";
@@ -246,6 +247,9 @@ export class PriceFeedRegister
 
       case "PRICE_FEED::COMPOSITE":
         return new CompositePriceFeedContract(this.sdk, data);
+
+      case "PRICE_FEED::CONSTANT":
+        return new ConstantPriceFeedContract(this.sdk, data);
 
       case "PRICE_FEED::CURVE_CRYPTO":
         return new CurveCryptoPriceFeedContract(this.sdk, data);

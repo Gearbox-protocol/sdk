@@ -4752,3 +4752,77 @@ export const pythPriceFeedAbi = [
   { type: "error", name: "PriceTimestampTooFarAheadException", inputs: [] },
   { type: "error", name: "PriceTimestampTooFarBehindException", inputs: [] },
 ] as const;
+
+export const constantPriceFeedAbi = [
+  {
+    type: "constructor",
+    inputs: [
+      { name: "_price", type: "int256", internalType: "int256" },
+      { name: "_descriptionTicker", type: "string", internalType: "string" },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "contractType",
+    inputs: [],
+    outputs: [{ name: "", type: "bytes32", internalType: "bytes32" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "decimals",
+    inputs: [],
+    outputs: [{ name: "", type: "uint8", internalType: "uint8" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "description",
+    inputs: [],
+    outputs: [{ name: "", type: "string", internalType: "string" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "latestRoundData",
+    inputs: [],
+    outputs: [
+      { name: "", type: "uint80", internalType: "uint80" },
+      { name: "answer", type: "int256", internalType: "int256" },
+      { name: "", type: "uint256", internalType: "uint256" },
+      { name: "", type: "uint256", internalType: "uint256" },
+      { name: "", type: "uint80", internalType: "uint80" },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "price",
+    inputs: [],
+    outputs: [{ name: "", type: "int256", internalType: "int256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "serialize",
+    inputs: [],
+    outputs: [{ name: "", type: "bytes", internalType: "bytes" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "skipPriceCheck",
+    inputs: [],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "version",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  { type: "error", name: "IncorrectPriceException", inputs: [] },
+] as const;

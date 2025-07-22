@@ -46,6 +46,11 @@ export interface BoundedOracleStateHuman extends BasePriceFeedStateHuman {
   upperBound: bigint;
 }
 
+export interface ConstantOracleStateHuman extends BasePriceFeedStateHuman {
+  contractType: "PRICE_FEED::CONSTANT";
+  price: bigint;
+}
+
 export interface AssetPriceFeedStateHuman extends BasePriceFeedStateHuman {
   contractType: PriceFeedContractType;
 }
