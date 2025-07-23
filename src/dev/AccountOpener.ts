@@ -5,7 +5,6 @@ import {
   isAddress,
   parseEther,
   parseEventLogs,
-  parseUnits,
 } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { ierc20Abi } from "../abi/iERC20.js";
@@ -34,7 +33,7 @@ import { iDegenNftv2Abi } from "./abi.js";
 import { claimFromFaucet } from "./claimFromFaucet.js";
 import { type AnvilClient, createAnvilClient } from "./createAnvilClient.js";
 
-const DIRECT_TRANSFERS_QUOTA = parseEther("10000", "wei");
+const DIRECT_TRANSFERS_QUOTA = 10_000n;
 
 export class OpenTxRevertedError extends BaseError {
   public readonly txHash: Hash;
