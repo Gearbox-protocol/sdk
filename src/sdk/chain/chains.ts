@@ -303,11 +303,10 @@ export const chains: Record<NetworkType, GearboxChain> = {
   Lisk: defineChain({
     ...lisk,
     network: "Lisk",
-    defaultMarketConfigurators: {},
-    testMarketConfigurators: {
+    defaultMarketConfigurators: {
       "0x25778dbf0e56b7feb8358c4aa2f6f9e19a1c145a": "Re7",
     },
-    isPublic: false,
+    isPublic: true,
     wellKnownToken: {
       address: "0xF242275d3a6527d877f2c927a82D9b057609cc71",
       symbol: "USDC.e",
