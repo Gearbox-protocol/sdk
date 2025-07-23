@@ -116,7 +116,10 @@ export type NormalToken =
   | "mBASIS"
   | "lskETH"
   | "hemiBTC"
-  | "bfBTC";
+  | "bfBTC"
+  | "sUSDf"
+  | "PT_sUSDf_25SEP2025"
+  | "stkcvxUSDCUSDf";
 
 export type NormalTokenData = {
   symbol: NormalToken;
@@ -700,6 +703,22 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
   bfBTC: {
     name: "bfBTC",
     symbol: "bfBTC",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+
+  sUSDf: {
+    name: "sUSDf",
+    symbol: "sUSDf",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  PT_sUSDf_25SEP2025: {
+    name: "Pendle PT sUSDf 25 September 2025 expiry",
+    symbol: "PT_sUSDf_25SEP2025",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  stkcvxUSDCUSDf: {
+    name: "Convex stkcvxUSDCUSDf",
+    symbol: "stkcvxUSDCUSDf",
     type: { AllNetworks: TokenType.NORMAL_TOKEN },
   },
 };
