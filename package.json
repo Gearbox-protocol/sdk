@@ -63,12 +63,12 @@
     "zod": "^4.0.5"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.1.1",
+    "@biomejs/biome": "^2.1.2",
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
     "@gearbox-protocol/biome-config": "^1.0.0",
     "@types/cross-spawn": "^6.0.6",
-    "axios": "^1.10.0",
+    "axios": "^1.11.0",
     "cross-spawn": "^7.0.6",
     "husky": "^9.1.7",
     "lint-staged": "^16.1.2",

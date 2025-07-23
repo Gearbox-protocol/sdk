@@ -5,6 +5,7 @@ import {
   isAddress,
   parseEther,
   parseEventLogs,
+  parseUnits,
 } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { ierc20Abi } from "../abi/iERC20.js";
@@ -32,6 +33,8 @@ import {
 import { iDegenNftv2Abi } from "./abi.js";
 import { claimFromFaucet } from "./claimFromFaucet.js";
 import { type AnvilClient, createAnvilClient } from "./createAnvilClient.js";
+
+const DIRECT_TRANSFERS_QUOTA = parseEther("10000", "wei");
 
 export class OpenTxRevertedError extends BaseError {
   public readonly txHash: Hash;
@@ -252,7 +255,7 @@ export class AccountOpener extends SDKConstruct {
   }
 
   public async prepareOpen(input: TargetAccount): Promise<RawTx> {
-    const { creditManager, target, slippage = 50 } = input;
+    const { creditManager, target, slippage = 50, directTransfer = [] } = input;
 
     const borrower = await this.#getBorrower();
     const cm = this.sdk.marketRegister.findCreditManager(creditManager);
@@ -313,6 +316,10 @@ export class AccountOpener extends SDKConstruct {
       debt,
       logger,
     );
+    for (const token of directTransfer) {
+      averageQuota.push({ token, balance: DIRECT_TRANSFERS_QUOTA });
+      minQuota.push({ token, balance: DIRECT_TRANSFERS_QUOTA });
+    }
     logger?.debug({ averageQuota, minQuota }, "calculated quotas");
     const { tx, calls } = await this.#service.openCA({
       creditManager: cm.creditManager.address,
@@ -650,7 +657,6 @@ export class AccountOpener extends SDKConstruct {
       publicClient: this.#anvil,
       wallet: this.#anvil,
       faucet: this.faucet,
-      amountUSD: minAmountUSD => minAmountUSD * BigInt(targets.length),
       claimer: distributor,
       role: "reward token distributor",
       logger: this.#logger,
@@ -672,7 +678,9 @@ export class AccountOpener extends SDKConstruct {
     for (let i = 0; i < tokensArr.length; i++) {
       const token = tokensArr[i];
       const balance = actualBalances[i];
-      this.#logger?.debug(`${token} balance: ${balance}`);
+      this.#logger?.debug(
+        `${this.labelAddress(token)} balance: ${this.sdk.tokensMeta.formatBN(token, balance)}`,
+      );
     }
     for (const { account, input } of targets) {
       if (!account) {
@@ -709,7 +717,6 @@ export class AccountOpener extends SDKConstruct {
           );
         }
       }
-      // TODO: need to enable transferred tokens by upping quota
     }
   }
 
