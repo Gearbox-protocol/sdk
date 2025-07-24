@@ -119,7 +119,8 @@ export type NormalToken =
   | "bfBTC"
   | "sUSDf"
   | "PT_sUSDf_25SEP2025"
-  | "stkcvxUSDCUSDf";
+  | "stkcvxUSDCUSDf"
+  | "PT_USDf_29JAN2026";
 
 export type NormalTokenData = {
   symbol: NormalToken;
@@ -714,6 +715,11 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
   PT_sUSDf_25SEP2025: {
     name: "Pendle PT sUSDf 25 September 2025 expiry",
     symbol: "PT_sUSDf_25SEP2025",
+    type: { AllNetworks: TokenType.NORMAL_TOKEN },
+  },
+  PT_USDf_29JAN2026: {
+    name: "Pendle PT USDf 29 January 2026 expiry",
+    symbol: "PT_USDf_29JAN2026",
     type: { AllNetworks: TokenType.NORMAL_TOKEN },
   },
   stkcvxUSDCUSDf: {
