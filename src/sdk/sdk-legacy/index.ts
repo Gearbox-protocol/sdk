@@ -5,7 +5,6 @@ export * from "./core/creditSession.js";
 export * from "./core/endpoint.js";
 export * from "./core/eventOrTx.js";
 export * from "./core/pool.js";
-export * from "./core/strategy.js";
 export * from "./core/transactions.js";
 export * from "./gearboxRewards/index.js";
 export * from "./payload/creditAccount.js";
