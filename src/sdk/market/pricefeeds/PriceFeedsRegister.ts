@@ -142,7 +142,7 @@ export class PriceFeedRegister
   }
 
   /**
-   * Similar to generatePriceFeedsUpdateTxs, but will generate necessary price update transactions for external price feeds
+   * Similar to {@link generatePriceFeedsUpdateTxs}, but will generate necessary price update transactions for external price feeds
    * This does not add feeds to this register, so they won't be implicitly included in future generatePriceFeedsUpdateTxs calls
    * @param feeds
    * @param block
@@ -168,6 +168,26 @@ export class PriceFeedRegister
     });
     const feedContracts = result.map(data => this.#createUpdatableProxy(data));
     return this.generatePriceFeedsUpdateTxs(feedContracts);
+  }
+
+  /**
+   * Similar to {@link generateExternalPriceFeedsUpdateTxs}, but returns raw structures instead of transactions
+   * @param feeds
+   * @param block
+   * @returns
+   */
+  public async generateExternalPriceFeedsUpdates(
+    feeds: Address[],
+    block?: { blockNumber: bigint } | { blockTag: BlockTag },
+  ): Promise<Array<{ priceFeed: Address; data: Hex }>> {
+    const { txs } = await this.generateExternalPriceFeedsUpdateTxs(
+      feeds,
+      block,
+    );
+    return txs.map(tx => ({
+      priceFeed: tx.data.priceFeed,
+      data: tx.raw.callData,
+    }));
   }
 
   public has(address: Address): boolean {
