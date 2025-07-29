@@ -47,6 +47,7 @@ export class OpenTxRevertedError extends BaseError {
 export interface AccountOpenerOptions {
   faucet?: Address;
   borrower?: PrivateKeyAccount;
+  depositor?: PrivateKeyAccount;
   poolDepositMultiplier?: bigint;
   minDebtMultiplier?: bigint;
 }
@@ -103,6 +104,7 @@ export class AccountOpener extends SDKConstruct {
   #anvil: AnvilClient;
   #logger?: ILogger;
   #borrower?: PrivateKeyAccount;
+  #depositor?: PrivateKeyAccount;
   #faucet?: Address;
   #poolDepositMultiplier: bigint;
   #minDebtMultiplier: bigint;
@@ -125,6 +127,7 @@ export class AccountOpener extends SDKConstruct {
       this.#logger?.warn("faucet not found, will not claim from faucet");
     }
     this.#borrower = options.borrower;
+    this.#depositor = options.depositor;
     this.#poolDepositMultiplier = options.poolDepositMultiplier ?? 110_00n;
     this.#minDebtMultiplier = options.minDebtMultiplier ?? 101_00n;
   }
@@ -411,7 +414,7 @@ export class AccountOpener extends SDKConstruct {
       `total USD to claim from faucet: ${formatBN(totalUSD, 8)}`,
     );
 
-    const depositor = await this.#createAccount();
+    const depositor = this.#depositor ?? (await this.#createAccount());
     this.#logger?.debug(`created depositor ${depositor.address}`);
 
     await this.#claimFromFaucet(depositor, "depositor", totalUSD);
