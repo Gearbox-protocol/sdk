@@ -1,4 +1,4 @@
-import type { Address, Hash, PrivateKeyAccount } from "viem";
+import type { Address, Hash, Hex, PrivateKeyAccount } from "viem";
 import {
   BaseError,
   erc20Abi,
@@ -81,6 +81,23 @@ export interface OpenAccountResult {
   account?: CreditAccountData;
 }
 
+export type PoolDepositResult = {
+  pool: Address;
+  token: Address;
+  amount: bigint;
+} & (
+  | {
+      success: true;
+      txHash: Hex;
+    }
+  | { success: false; error: Error; txHash?: Hex }
+);
+
+export interface OpenAccountsResult {
+  deposits: PoolDepositResult[];
+  accounts: OpenAccountResult[];
+}
+
 export class AccountOpener extends SDKConstruct {
   #service: ICreditAccountsService;
   #anvil: AnvilClient;
@@ -126,10 +143,11 @@ export class AccountOpener extends SDKConstruct {
     targets: TargetAccount[],
     depositIntoPools = true,
     claimFromFaucet = true,
-  ): Promise<OpenAccountResult[]> {
+  ): Promise<OpenAccountsResult> {
+    let deposits: PoolDepositResult[] = [];
     if (depositIntoPools) {
       try {
-        await this.#depositIntoPools(targets);
+        deposits = await this.#depositIntoPools(targets);
       } catch (e) {
         this.#logger?.warn(`failed to deposit into pools: ${e}`);
       }
@@ -153,13 +171,13 @@ export class AccountOpener extends SDKConstruct {
       }
     }
 
-    const results: OpenAccountResult[] = [];
+    const accounts: OpenAccountResult[] = [];
     let success = 0;
     for (let i = 0; i < targets.length; i++) {
       const target = targets[i];
       try {
         const result = await this.#openAccount(target, i + 1, targets.length);
-        results.push(result);
+        accounts.push(result);
         success += result.account ? 1 : 0;
         if (result.error) {
           this.#logger?.error(
@@ -170,7 +188,7 @@ export class AccountOpener extends SDKConstruct {
         this.#logger?.error(
           `failed to open account #${i + 1}/${targets.length}: ${e}`,
         );
-        results.push({
+        accounts.push({
           input: target,
           error: e as Error,
         });
@@ -178,12 +196,12 @@ export class AccountOpener extends SDKConstruct {
     }
     this.#logger?.info(`opened ${success}/${targets.length} accounts`);
     try {
-      await this.#directlyDistributeTokens(results);
+      await this.#directlyDistributeTokens(accounts);
       this.#logger?.info("distributed direct transfer tokens");
     } catch (e) {
       this.#logger?.error(`failed to distribute tokens: ${e}`);
     }
-    return results;
+    return { deposits, accounts };
   }
 
   async #openAccount(
@@ -348,7 +366,9 @@ export class AccountOpener extends SDKConstruct {
     });
   }
 
-  async #depositIntoPools(targets: TargetAccount[]): Promise<void> {
+  async #depositIntoPools(
+    targets: TargetAccount[],
+  ): Promise<PoolDepositResult[]> {
     this.#logger?.debug("checking and topping up pools if necessary");
 
     const minAvailableByPool: Record<Address, bigint> = {};
@@ -396,67 +416,91 @@ export class AccountOpener extends SDKConstruct {
 
     await this.#claimFromFaucet(depositor, "depositor", totalUSD);
 
+    const results: PoolDepositResult[] = [];
     for (const [pool, amount] of deposits) {
-      try {
-        await this.#depositToPool(pool, depositor, amount);
-      } catch (e) {
-        this.#logger?.warn(`failed to deposit into ${pool.name}: ${e}`);
-      }
+      const result = await this.#depositToPool(pool, depositor, amount);
+      results.push(result);
     }
+    return results;
   }
 
   async #depositToPool(
     pool: PoolContract,
     depositor: PrivateKeyAccount,
     amount: bigint,
-  ): Promise<void> {
+  ): Promise<PoolDepositResult> {
     const { underlying, address } = pool;
     const poolName = this.sdk.provider.addressLabels.get(address);
-    const amnt =
-      this.sdk.tokensMeta.formatBN(pool.underlying, amount) +
-      " " +
-      this.sdk.tokensMeta.symbol(pool.underlying);
-    this.#logger?.debug(`depositing ${amnt} into pool ${poolName}`);
+    const poolData = {
+      pool: address,
+      token: underlying,
+      amount,
+    };
+    let txHash: Hex | undefined;
+    try {
+      const amnt =
+        this.sdk.tokensMeta.formatBN(pool.underlying, amount) +
+        " " +
+        this.sdk.tokensMeta.symbol(pool.underlying);
+      this.#logger?.debug(`depositing ${amnt} into pool ${poolName}`);
 
-    const allowance = await this.#anvil.readContract({
-      address: underlying,
-      abi: ierc20Abi,
-      functionName: "balanceOf",
-      args: [depositor.address],
-    });
-    this.#logger?.debug(
-      `depositor balance in underlying: ${this.sdk.tokensMeta.formatBN(pool.underlying, allowance)}`,
-    );
-    let hash = await this.#anvil.writeContract({
-      account: depositor,
-      address: underlying,
-      abi: ierc20Abi,
-      functionName: "approve",
-      args: [address, allowance],
-      chain: this.#anvil.chain,
-    });
-    let receipt = await this.#anvil.waitForTransactionReceipt({ hash });
-    if (receipt.status === "reverted") {
-      throw new Error(
-        `tx ${hash} that approves underlying from depositor for pool ${poolName} reverted`,
+      const allowance = await this.#anvil.readContract({
+        address: underlying,
+        abi: ierc20Abi,
+        functionName: "balanceOf",
+        args: [depositor.address],
+      });
+      this.#logger?.debug(
+        `depositor balance in underlying: ${this.sdk.tokensMeta.formatBN(pool.underlying, allowance)}`,
       );
+      txHash = await this.#anvil.writeContract({
+        account: depositor,
+        address: underlying,
+        abi: ierc20Abi,
+        functionName: "approve",
+        args: [address, allowance],
+        chain: this.#anvil.chain,
+      });
+      let receipt = await this.#anvil.waitForTransactionReceipt({
+        hash: txHash,
+      });
+      if (receipt.status === "reverted") {
+        throw new Error(
+          `tx ${txHash} that approves underlying from depositor for pool ${poolName} reverted`,
+        );
+      }
+      this.#logger?.debug(
+        `depositor approved underlying for pool ${poolName}: ${txHash}`,
+      );
+      txHash = await this.#anvil.writeContract({
+        account: depositor,
+        address: address,
+        abi: iPoolV300Abi,
+        functionName: "deposit",
+        args: [amount, depositor.address],
+        chain: this.#anvil.chain,
+      });
+      receipt = await this.#anvil.waitForTransactionReceipt({ hash: txHash });
+      if (receipt.status === "reverted") {
+        throw new Error(
+          `tx ${txHash} that deposits to pool ${poolName} reverted`,
+        );
+      }
+      this.#logger?.debug(`deposited ${amnt} into ${poolName}`);
+      return {
+        ...poolData,
+        txHash,
+        success: true,
+      };
+    } catch (e) {
+      this.#logger?.error(`failed to deposit to pool ${poolName}: ${e}`);
+      return {
+        ...poolData,
+        txHash,
+        success: false,
+        error: e as Error,
+      };
     }
-    this.#logger?.debug(
-      `depositor approved underlying for pool ${poolName}: ${hash}`,
-    );
-    hash = await this.#anvil.writeContract({
-      account: depositor,
-      address: address,
-      abi: iPoolV300Abi,
-      functionName: "deposit",
-      args: [amount, depositor.address],
-      chain: this.#anvil.chain,
-    });
-    receipt = await this.#anvil.waitForTransactionReceipt({ hash });
-    if (receipt.status === "reverted") {
-      throw new Error(`tx ${hash} that deposits to pool ${poolName} reverted`);
-    }
-    this.#logger?.debug(`deposited ${amnt} into ${poolName}`);
   }
 
   /**
