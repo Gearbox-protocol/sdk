@@ -1,6 +1,6 @@
 import {
+  type Account,
   type Address,
-  type PrivateKeyAccount,
   type PublicClient,
   parseAbi,
   type WalletClient,
@@ -12,7 +12,7 @@ interface ClaimFromFaucetOptions {
   publicClient: PublicClient;
   wallet: WalletClient;
   faucet: Address;
-  claimer: PrivateKeyAccount;
+  claimer: Account;
   role?: string;
   amountUSD?: bigint | ((minAmountUSD: bigint) => bigint);
   gasMultiplier?: bigint;
