@@ -24,57 +24,59 @@ const logger = pino({
 
 async function example(): Promise<void> {
   // const RPC = "http://127.0.0.1:8545";
-  const RPC = process.env.RPC_URL!;
-  let kind = "real";
+  // const RPC = process.env.RPC_URL!;
+  const RPC =
+    "https://lb.drpc.org/hemi/AkosxGtIZkpMuYcKqgc14xRxxTijaXwR8LDZEklbR4ac";
+  const kind = "real";
   // const RPC= megaethTestnet.rpcUrls.default.http[0];
 
-  // const sdk = await GearboxSDK.attach({
-  //   rpcURLs: [RPC],
-  //   timeout: 480_000,
-  //   // blockNumber: 22118452, // 21977000, // 22118452
-  //   // redstoneHistoricTimestamp: true,
-  //   // addressProvider: ADDRESS_PROVIDER,
-  //   // marketConfigurators: [],
-  //   logger,
-  //   // ignoreUpdateablePrices: true,
-  //   strictContractTypes: true,
-  //   plugins: {
-  //     adapters: new AdaptersPlugin(true),
-  //     zappers: new ZappersPlugin(true),
-  //     bots: new BotsPlugin(true),
-  //     degen: new DegenDistributorsPlugin(true),
-  //     pools7DAgo: new Pools7DAgoPlugin(true),
-  //     accountsCounter: new AccountsCounterPlugin(true),
-  //     // stalenessV300: V300StalenessPeriodPlugin,
-  //   },
-  //   redstone: {
-  //     enableLogging: true,
-  //   },
-  // });
-
-  kind = "hydrated";
-  const state = await readFile(
-    "tmp/state_real_Mainnet_22798015.json",
-    "utf-8",
-  ).then(json_parse);
-  const sdk = GearboxSDK.hydrate(
-    {
-      plugins: {
-        adapters: new AdaptersPlugin(false),
-        zappers: new ZappersPlugin(false),
-        bots: new BotsPlugin(false),
-        degen: new DegenDistributorsPlugin(false),
-        pools7DAgo: new Pools7DAgoPlugin(false),
-        accountsCounter: new AccountsCounterPlugin(false),
-        // stalenessV300: V300StalenessPeriodPlugin,
-      },
-      rpcURLs: [RPC],
-      timeout: 480_000,
-      logger,
-      strictContractTypes: true,
+  const sdk = await GearboxSDK.attach({
+    rpcURLs: [RPC],
+    timeout: 480_000,
+    // blockNumber: 22118452, // 21977000, // 22118452
+    // redstoneHistoricTimestamp: true,
+    // addressProvider: ADDRESS_PROVIDER,
+    // marketConfigurators: [],
+    logger,
+    // ignoreUpdateablePrices: true,
+    strictContractTypes: true,
+    plugins: {
+      adapters: new AdaptersPlugin(true),
+      zappers: new ZappersPlugin(true),
+      bots: new BotsPlugin(true),
+      degen: new DegenDistributorsPlugin(true),
+      pools7DAgo: new Pools7DAgoPlugin(true),
+      accountsCounter: new AccountsCounterPlugin(true),
+      // stalenessV300: V300StalenessPeriodPlugin,
     },
-    state,
-  );
+    redstone: {
+      enableLogging: true,
+    },
+  });
+
+  // kind = "hydrated";
+  // const state = await readFile(
+  //   "tmp/state_real_Mainnet_22798015.json",
+  //   "utf-8",
+  // ).then(json_parse);
+  // const sdk = GearboxSDK.hydrate(
+  //   {
+  //     plugins: {
+  //       adapters: new AdaptersPlugin(false),
+  //       zappers: new ZappersPlugin(false),
+  //       bots: new BotsPlugin(false),
+  //       degen: new DegenDistributorsPlugin(false),
+  //       pools7DAgo: new Pools7DAgoPlugin(false),
+  //       accountsCounter: new AccountsCounterPlugin(false),
+  //       // stalenessV300: V300StalenessPeriodPlugin,
+  //     },
+  //     rpcURLs: [RPC],
+  //     timeout: 480_000,
+  //     logger,
+  //     strictContractTypes: true,
+  //   },
+  //   state,
+  // );
 
   const prefix = RPC.includes("127.0.0.1") ? "anvil_" : "";
   const net = sdk.provider.networkType;

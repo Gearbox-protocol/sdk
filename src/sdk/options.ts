@@ -51,6 +51,11 @@ export const SDKOptions = z.object({
    * Options related to pyth price feeds
    */
   pyth: PythOptions.optional(),
+  /**
+   * Explicit gas limit for read eth_calls
+   * Null to disable explicitly setting gas limit, undefined to use default sdk value
+   */
+  gasLimit: z.bigint().nonnegative().nullable().optional(),
 });
 
 export type SDKOptions<Plugins extends PluginsMap> = Omit<

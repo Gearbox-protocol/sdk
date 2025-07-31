@@ -67,7 +67,7 @@ export type HydrateOptions<Plugins extends PluginsMap> = Omit<
 
 type SDKContructorArgs<Plugins extends PluginsMap> = Pick<
   SDKOptions<Plugins>,
-  "logger" | "strictContractTypes" | "plugins"
+  "logger" | "strictContractTypes" | "plugins" | "gasLimit"
 > & {
   provider: Provider;
 };
@@ -80,6 +80,7 @@ type AttachOptionsInternal = PickSomeRequired<
   | "redstone"
   | "pyth"
   | "ignoreMarkets"
+  | "gasLimit"
 >;
 
 export interface SyncStateOptions {
@@ -113,7 +114,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
   #priceFeeds?: PriceFeedRegister;
 
   public readonly logger?: ILogger;
-  public gasLimit: bigint | undefined = 550_000_000n;
+  public readonly gasLimit: bigint | undefined;
 
   /**
    * Interest rate models can be reused across chain (and SDK operates on chain level)
@@ -158,6 +159,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       ignoreMarkets,
       marketConfigurators: mcs,
       strictContractTypes,
+      gasLimit,
     } = options;
     let { networkType, addressProvider, chainId } = options;
 
@@ -188,6 +190,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       logger,
       plugins,
       strictContractTypes,
+      gasLimit,
     }).#attach({
       addressProvider,
       blockNumber,
@@ -203,7 +206,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
     options: HydrateOptions<Plugins> & ConnectionOptions & TransportOptions,
     state: GearboxState<Plugins>,
   ): GearboxSDK<Plugins> {
-    const { logger, plugins, strictContractTypes, ...rest } = options;
+    const { logger, plugins, strictContractTypes, gasLimit, ...rest } = options;
     const provider = new Provider({
       ...rest,
       chainId: state.chainId,
@@ -215,6 +218,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       plugins,
       logger,
       strictContractTypes,
+      gasLimit,
     }).#hydrate(rest, state);
   }
 
@@ -225,6 +229,10 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
     this.plugins = options.plugins ?? ({} as Plugins);
     for (const plugin of Object.values(this.plugins)) {
       plugin.sdk = this;
+    }
+    // null to disable explicitly setting gas limit, undefined to use default sdk value
+    if (options.gasLimit !== null) {
+      this.gasLimit = options.gasLimit || 550_000_000n;
     }
   }
 
