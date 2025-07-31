@@ -56,10 +56,14 @@ export class TokenData {
     this.name = payload.name;
 
     this.decimals = payload.decimals;
-    this.icon = `${GearboxBackendApi.getStaticTokenUrl()}${payload.symbol.toLowerCase()}.svg`;
+    this.icon = TokenData.getTokenIcon(payload.symbol);
   }
 
   compareBySymbol(b: TokenData): number {
     return this.symbol > b.symbol ? 1 : -1;
+  }
+
+  static getTokenIcon(symbol: string): string {
+    return `${GearboxBackendApi.getStaticTokenUrl()}${symbol.toLowerCase()}.svg`;
   }
 }
