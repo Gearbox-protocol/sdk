@@ -285,11 +285,10 @@ export const chains: Record<NetworkType, GearboxChain> = {
   Hemi: defineChain({
     ...hemi,
     network: "Hemi",
-    defaultMarketConfigurators: {},
-    testMarketConfigurators: {
+    defaultMarketConfigurators: {
       "0xc9961b8a0c763779690577f2c76962c086af2fe3": "Invariant Group",
     },
-    isPublic: false,
+    isPublic: true,
     wellKnownToken: {
       address: "0xad11a8BEb98bbf61dbb1aa0F6d6F2ECD87b35afA",
       symbol: "USDC.e",
