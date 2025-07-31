@@ -6,7 +6,6 @@ import { iAirdropDistributorAbi } from "../../../abi/iAirdropDistributor.js";
 import { iFarmingPoolAbi } from "../../../abi/iFarmingPool.js";
 import type { NetworkType } from "../../chain/index.js";
 import { chains } from "../../chain/index.js";
-import type { SupportedToken } from "../../sdk-gov-legacy/index.js";
 import { TypedObjectUtils, toBigInt } from "../../utils/index.js";
 import { GearboxBackendApi } from "../core/endpoint.js";
 import type { PoolData_Legacy } from "../core/pool.js";
@@ -90,7 +89,7 @@ type ReportHandler = (e: unknown, description?: string) => void;
 export interface GetLmRewardsV2Props {
   account: Address;
   provider: PublicClient;
-  currentTokenData: Record<SupportedToken, Address>;
+  gearTokenAddress: Address;
   airdropDistributorAddress: Address;
   network: NetworkType;
 
@@ -132,7 +131,7 @@ export class GearboxRewardsApi {
   static async getLmRewardsV2({
     provider,
     account,
-    currentTokenData,
+    gearTokenAddress,
 
     network,
     airdropDistributorAddress,
@@ -179,7 +178,7 @@ export class GearboxRewardsApi {
         amount: availableToClaimV2,
         type: "merkleV2",
 
-        rewardToken: currentTokenData.GEAR,
+        rewardToken: gearTokenAddress,
         rewardTokenDecimals: 18,
         rewardTokenSymbol: "GEAR",
       },
