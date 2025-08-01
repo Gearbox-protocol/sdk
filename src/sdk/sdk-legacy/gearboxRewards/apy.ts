@@ -8,7 +8,6 @@ import {
   WAD,
 } from "../../constants/index.js";
 import type { Asset } from "../../router/index.js";
-import type { SupportedToken } from "../../sdk-gov-legacy/index.js";
 import { toBigInt } from "../../utils/index.js";
 import type { PoolData_Legacy } from "../core/pool.js";
 import type { TokenData } from "../tokens/tokenData.js";
@@ -19,8 +18,10 @@ export interface FarmInfo {
   finished: bigint;
   duration: bigint;
   reward: bigint;
+
   balance: bigint;
-  symbol: SupportedToken;
+  symbol: string;
+  token: Address;
 }
 
 interface CalculateV3PoolLmAPYProps {
@@ -62,7 +63,6 @@ interface GetPoolExtraAPY_V3Props {
   rewardPoolsSupply: Record<Address, bigint>;
 
   tokensList: Record<Address, TokenData>;
-  currentTokenData: Record<SupportedToken, Address>;
 
   currentTimestamp: number;
 }
@@ -84,7 +84,6 @@ interface GetCAExtraAPYProps {
 
   prices: Record<Address, bigint>;
   tokensList: Record<Address, TokenData>;
-  currentTokenData: Record<SupportedToken, Address>;
 }
 
 interface GetCASingleExtraAPYProps
@@ -126,7 +125,6 @@ export class GearboxRewardsApy {
     rewardPoolsSupply,
 
     tokensList,
-    currentTokenData,
 
     currentTimestamp,
   }: GetPoolExtraLmAPYProps): ExtraRewardApy {
@@ -139,7 +137,7 @@ export class GearboxRewardsApy {
     const underlyingPrice = prices[underlyingToken] ?? 0n;
     const dieselPrice = (underlyingPrice * dieselRateRay) / RAY;
 
-    const rewardAddress = currentTokenData[rewardPoolsInfo.symbol];
+    const rewardAddress = rewardPoolsInfo?.token || "";
     const { decimals: rewardDecimals = 18 } = tokensList[rewardAddress] || {};
     const rewardPrice = prices[rewardAddress] ?? 0n;
 
@@ -237,7 +235,6 @@ export class GearboxRewardsApy {
     supply,
 
     tokensList,
-    currentTokenData,
 
     currentTimestamp,
   }: GetCASingleExtraAPYProps): ExtraRewardApy {
@@ -248,7 +245,7 @@ export class GearboxRewardsApy {
     const { decimals: tokenDecimals = 18 } = tokensList[token] || {};
     const tokenPrice = prices[token] ?? 0n;
 
-    const rewardAddress = currentTokenData[rewardInfo.symbol];
+    const rewardAddress = rewardInfo?.token || "";
     const { decimals: rewardDecimals = 18 } = tokensList[rewardAddress] || {};
     const rewardPrice = prices[rewardAddress] ?? 0n;
 
