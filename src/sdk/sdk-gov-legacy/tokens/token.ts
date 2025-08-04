@@ -2,59 +2,27 @@ import type { Address } from "viem";
 
 import type { NetworkType } from "../../chain/index.js";
 import { NOT_DEPLOYED } from "../../constants/index.js";
-import type {
-  AaveV2LPToken,
-  AaveV2PoolTokenData,
-  WrappedAaveV2LPToken,
-  WrappedAaveV2PoolTokenData,
-} from "./aave.js";
-import type {
-  AuraLPToken,
-  AuraLPTokenData,
-  AuraStakedToken,
-  AuraStakedTokenData,
-} from "./aura.js";
-import type { BalancerLPToken, BalancerLpTokenData } from "./balancer.js";
-import type { CompoundV2LPToken, CompoundV2PoolTokenData } from "./compound.js";
+import type { AaveV2LPToken, WrappedAaveV2LPToken } from "./aave.js";
+import type { AuraLPToken, AuraStakedToken } from "./aura.js";
+import type { BalancerLPToken } from "./balancer.js";
+import type { CompoundV2LPToken } from "./compound.js";
 import type {
   ConvexL2StakedToken,
-  ConvexL2StakedTokenData,
   ConvexLPToken,
-  ConvexLPTokenData,
-  ConvexPhantomTokenData,
   ConvexStakedPhantomToken,
 } from "./convex.js";
-import type {
-  CurveLPToken,
-  CurveLPTokenData,
-  MetaCurveLPTokenData,
-} from "./curveLP.js";
-import type {
-  ERC4626LPToken,
-  ERC4626VaultOfCurveLPTokenData,
-  ERC4626VaultTokenData,
-} from "./erc4626.js";
+import type { CurveLPToken } from "./curveLP.js";
+import type { ERC4626LPToken } from "./erc4626.js";
 import type {
   DieselStakedTokenTypes,
   DieselTokenTypes,
   GearboxToken,
 } from "./gear.js";
 import type { NormalToken } from "./normal.js";
-import type {
-  StakingRewardsPhantomToken,
-  StakingRewardsPhantomTokenData,
-} from "./stakingRewards.js";
+import type { StakingRewardsPhantomToken } from "./stakingRewards.js";
 import type { WrappedToken } from "./wrapped.js";
-import type {
-  YearnLPToken,
-  YearnVaultOfCurveLPTokenData,
-  YearnVaultOfMetaCurveLPTokenData,
-  YearnVaultTokenData,
-} from "./yearn.js";
-import type {
-  ZircuitPhantomTokenData,
-  ZircuitStakedPhantomToken,
-} from "./zircuit.js";
+import type { YearnLPToken } from "./yearn.js";
+import type { ZircuitStakedPhantomToken } from "./zircuit.js";
 
 type LPTokens =
   | YearnLPToken
@@ -84,28 +52,6 @@ export interface TokenBase {
   name: string;
   symbol: string;
 }
-
-type LPTokenDataI =
-  | CurveLPTokenData
-  | MetaCurveLPTokenData
-  | YearnVaultTokenData
-  | YearnVaultOfCurveLPTokenData
-  | YearnVaultOfMetaCurveLPTokenData
-  | ConvexLPTokenData
-  | ConvexPhantomTokenData
-  | ConvexL2StakedTokenData
-  | BalancerLpTokenData
-  | AaveV2PoolTokenData
-  | WrappedAaveV2PoolTokenData
-  | CompoundV2PoolTokenData
-  | ERC4626VaultTokenData
-  | ERC4626VaultOfCurveLPTokenData
-  | AuraLPTokenData
-  | AuraStakedTokenData
-  | ZircuitPhantomTokenData
-  | StakingRewardsPhantomTokenData;
-
-export const ETH_ADDRESS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 
 export const tokenDataByNetwork: Record<
   NetworkType,
