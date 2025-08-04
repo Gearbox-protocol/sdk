@@ -18,7 +18,7 @@ export interface TokenDataPayload {
 }
 
 // UPDATE ME
-const HUMAN_READABLE_SYMBOLS: PartialRecord<SupportedToken, string> = {
+const HUMAN_READABLE_SYMBOLS: PartialRecord<string, string> = {
   USDC_e: "USDC.e",
   dUSDC_eV3: "dUSDC.eV3",
   sdUSDC_eV3: "sdUSDC.eV3",
@@ -49,6 +49,8 @@ const HUMAN_READABLE_SYMBOLS: PartialRecord<SupportedToken, string> = {
   PT_sUSDf_25SEP2025: "p.sUSDf(1.09.25)",
 
   PT_USDf_29JAN2026: "p.USDf(29.01.26)",
+
+  ["PT-wstUSR-25SEP2025"]: "p.wstUSR(25.09.25)",
 };
 
 export class TokenData {
