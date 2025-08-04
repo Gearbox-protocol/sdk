@@ -12,7 +12,7 @@ export type StakingRewardsPhantomTokenData = {
   pool: StakingRewardsContract;
 } & TokenBase;
 
-export const stakingRewardsPhantomTokens: Record<
+const stakingRewardsPhantomTokens: Record<
   StakingRewardsPhantomToken,
   StakingRewardsPhantomTokenData
 > = {

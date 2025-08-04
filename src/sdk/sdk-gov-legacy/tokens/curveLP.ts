@@ -78,15 +78,13 @@ export type MetaCurveLPTokenData = {
   wrapper?: CurvePoolContract;
 } & TokenBase;
 
-export const Curve3CrvUnderlyingTokenIndex: Partial<
-  Record<SupportedToken, bigint>
-> = {
+const Curve3CrvUnderlyingTokenIndex: Partial<Record<SupportedToken, bigint>> = {
   DAI: 0n,
   USDC: 1n,
   USDT: 2n,
 };
 
-export const curveMetaTokens: Record<CurveMetaTokens, MetaCurveLPTokenData> = {
+const curveMetaTokens: Record<CurveMetaTokens, MetaCurveLPTokenData> = {
   //  META CURVE LP TOKENS
   FRAX3CRV: {
     name: "Curve FRAX3CRV-f",

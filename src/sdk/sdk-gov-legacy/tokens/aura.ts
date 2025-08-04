@@ -44,7 +44,7 @@ export type AuraStakedTokenData = {
   lpToken: AuraLPToken;
 } & BaseAuraToken;
 
-export const auraLpTokens: Record<AuraLPToken, AuraLPTokenData> = {
+const auraLpTokens: Record<AuraLPToken, AuraLPTokenData> = {
   auraB_rETH_STABLE: {
     name: "Balancer rETH Stable Pool Aura Deposit",
 
