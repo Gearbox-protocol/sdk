@@ -11,7 +11,7 @@ export type WrappedTokenData = {
   >;
 } & TokenBase;
 
-export const wrappedTokens: Record<WrappedToken, WrappedTokenData> = {
+const wrappedTokens: Record<WrappedToken, WrappedTokenData> = {
   sfrxETH: {
     name: "sfrxETH",
 

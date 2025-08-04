@@ -69,7 +69,7 @@ export type ConvexL2StakedTokenData = {
   type: Partial<Record<TokenNetwork, TokenType.CONVEX_L2_STAKED_TOKEN>>;
 } & BaseConvexToken;
 
-export const convexLpTokens: Record<ConvexLPToken, ConvexLPTokenData> = {
+const convexLpTokens: Record<ConvexLPToken, ConvexLPTokenData> = {
   cvx3Crv: {
     name: "Convex cvx3Crv",
 
@@ -527,7 +527,7 @@ export const convexStakedPhantomTokens: Record<
   },
 };
 
-export const convexL2StakedTokens: Record<
+const convexL2StakedTokens: Record<
   ConvexL2StakedToken,
   ConvexL2StakedTokenData
 > = {
