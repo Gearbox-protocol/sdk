@@ -3,9 +3,22 @@ import type { Address } from "viem";
 import type { SupportedToken } from "../../sdk-gov-legacy/index.js";
 import type { PartialRecord } from "../../utils/index.js";
 import { GearboxBackendApi } from "../core/endpoint.js";
-import type { TokenDataPayload } from "../payload/token.js";
 
-const ALIASES: PartialRecord<SupportedToken, string> = {
+export interface TokenDataPayload {
+  addr: Address;
+
+  // token real symbol
+  symbol: SupportedToken;
+  // token human-readable symbol
+  title?: string;
+  // token full name
+  name: string;
+
+  decimals: number;
+}
+
+// UPDATE ME
+const HUMAN_READABLE_SYMBOLS: PartialRecord<SupportedToken, string> = {
   USDC_e: "USDC.e",
   dUSDC_eV3: "dUSDC.eV3",
   sdUSDC_eV3: "sdUSDC.eV3",
@@ -51,16 +64,13 @@ export class TokenData {
   constructor(payload: TokenDataPayload) {
     this.address = payload.addr.toLowerCase() as Address;
 
-    this.title = ALIASES[payload.symbol] || payload.title || payload.symbol;
+    this.title =
+      payload.title || HUMAN_READABLE_SYMBOLS[payload.symbol] || payload.symbol;
     this.symbol = payload.symbol;
     this.name = payload.name;
 
     this.decimals = payload.decimals;
     this.icon = TokenData.getTokenIcon(payload.symbol);
-  }
-
-  compareBySymbol(b: TokenData): number {
-    return this.symbol > b.symbol ? 1 : -1;
   }
 
   static getTokenIcon(symbol: string): string {
