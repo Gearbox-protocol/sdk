@@ -367,3 +367,27 @@ export function isPublicNetwork(
     return c.id === Number(networkOrChainId) && c.isPublic;
   });
 }
+
+/**
+ * Tries to find curator name by market configurator address among all default and test market configurators
+ * @param marketConfigurator
+ * @param network
+ * @returns
+ */
+export function getCuratorName(
+  marketConfigurator: Address,
+  network?: NetworkType,
+): string | undefined {
+  const chainz = network ? [chains[network]] : Object.values(chains);
+  for (const c of chainz) {
+    for (const [a, curator] of Object.entries({
+      ...c.defaultMarketConfigurators,
+      ...c.testMarketConfigurators,
+    })) {
+      if (a.toLowerCase() === marketConfigurator.toLowerCase()) {
+        return curator;
+      }
+    }
+  }
+  return undefined;
+}
