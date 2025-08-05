@@ -24,33 +24,33 @@ const HUMAN_READABLE_SYMBOLS: PartialRecord<string, string> = {
   sdUSDC_eV3: "sdUSDC.eV3",
   sdWETHV3_OLD: "sdWETHV3 Old",
 
-  PT_rsETH_26SEP2024: "p.rsETH(26.09.24)",
-  PT_sUSDe_26DEC2024: "p.sUSDe(26.12.24)",
-  PT_eETH_26DEC2024: "p.eETH(26.12.24)",
-  PT_ezETH_26DEC2024: "p.ezETH(26.12.24)",
-  PT_eBTC_26DEC2024: "p.eBTC(26.12.24)",
-  PT_LBTC_27MAR2025: "p.LBTC(27.03.25)",
+  PT_rsETH_26SEP2024: "pt.rsETH(26.09.24)",
+  PT_sUSDe_26DEC2024: "pt.sUSDe(26.12.24)",
+  PT_eETH_26DEC2024: "pt.eETH(26.12.24)",
+  PT_ezETH_26DEC2024: "pt.ezETH(26.12.24)",
+  PT_eBTC_26DEC2024: "pt.eBTC(26.12.24)",
+  PT_LBTC_27MAR2025: "pt.LBTC(27.03.25)",
 
-  PT_cornLBTC_26DEC2024: "p.c.LBTC(26.12.24)",
-  PT_corn_eBTC_27MAR2025: "p.c.eBTC(27.03.25)",
+  PT_cornLBTC_26DEC2024: "pt.c.LBTC(26.12.24)",
+  PT_corn_eBTC_27MAR2025: "pt.c.eBTC(27.03.25)",
 
-  PT_corn_pumpBTC_26DEC2024: "p.c.pumpBTC(26.12.24)",
+  PT_corn_pumpBTC_26DEC2024: "pt.c.pumpBTC(26.12.24)",
 
-  PT_sUSDe_27MAR2025: "p.sUSDe(27.03.25)",
+  PT_sUSDe_27MAR2025: "pt.sUSDe(27.03.25)",
 
-  PT_sUSDe_29MAY2025: "p.sUSDe(29.05.25)",
+  PT_sUSDe_29MAY2025: "pt.sUSDe(29.05.25)",
 
-  PT_beraSTONE_10APR2025: "p.beraSTONE(10.04.25)",
+  PT_beraSTONE_10APR2025: "pt.beraSTONE(10.04.25)",
 
-  PT_uptBTC_14AUG2025: "p.uptBTC(14.08.25)",
+  PT_uptBTC_14AUG2025: "pt.uptBTC(14.08.25)",
 
-  PT_sUSDX_1SEP2025: "p.sUSDX(1.09.25)",
+  PT_sUSDX_1SEP2025: "pt.sUSDX(1.09.25)",
 
-  PT_sUSDf_25SEP2025: "p.sUSDf(1.09.25)",
+  PT_sUSDf_25SEP2025: "pt.sUSDf(1.09.25)",
 
-  PT_USDf_29JAN2026: "p.USDf(29.01.26)",
+  PT_USDf_29JAN2026: "pt.USDf(29.01.26)",
 
-  ["PT-wstUSR-25SEP2025"]: "p.wstUSR(25.09.25)",
+  ["PT-wstUSR-25SEP2025"]: "pt.wstUSR(25.09.25)",
 };
 
 export class TokenData {

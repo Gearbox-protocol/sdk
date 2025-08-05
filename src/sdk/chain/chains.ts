@@ -281,7 +281,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
     network: "Etherlink",
     defaultMarketConfigurators: {},
     testMarketConfigurators: {
-      "0x8850dbdac3d249409ce7ae56c74481f8425df32d": "Re7",
+      "0x577424f0e6f50db668cc1bc76babb87e36732291": "Re7",
     },
     isPublic: false,
     wellKnownToken: {
