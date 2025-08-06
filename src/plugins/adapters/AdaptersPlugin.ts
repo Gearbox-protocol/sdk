@@ -21,13 +21,22 @@ import { CurveV1StableNGAdapterContract } from "./CurveV1StableNGAdapterContract
 import { DaiUsdsAdapterContract } from "./DaiUsdsAdapterContract.js";
 import { EqualizerRouterAdapterContract } from "./EqualizerRouterAdapterContract.js";
 import { ERC4626AdapterContract } from "./ERC4626AdapterContract.js";
+import { FluidDexAdapterContract } from "./FluidDexAdapterContract.js";
+import { InfraredVaultAdapterContract } from "./InfraredVaultAdapterContract.js";
+import { KodiakIslandGatewayAdapterContract } from "./KodiakIslandGatewayAdapterContract.js";
+import { LidoV1AdapterContract } from "./LidoV1AdapterContract.js";
+import { MellowClaimerAdapterContract } from "./MellowClaimerAdapterContract.js";
+import { MellowDVVAdapterContract } from "./MellowDVVAdapterContract.js";
 import { MellowERC4626VaultAdapterContract } from "./MellowERC4626VaultAdapterContract.js";
 import { MellowVaultAdapterContract } from "./MellowVaultAdapterContract.js";
+import { MellowWrapperAdapterContract } from "./MellowWrapperAdapterContract.js";
 import { PendleRouterAdapterContract } from "./PendleRouterAdapterContract.js";
 import { StakingRewardsAdapterContract } from "./StakingRewardsAdapterContract.js";
+import { TraderJoeRouterAdapterContract } from "./TraderJoeRouterAdapterContract.js";
 import type { AdapterContractType } from "./types.js";
 import { UniswapV2AdapterContract } from "./UniswapV2AdapterContract.js";
 import { UniswapV3AdapterContract } from "./UniswapV3AdapterContract.js";
+import { UpshiftVaultAdapterContract } from "./UpshiftVaultAdapterContract.js";
 import { VelodromeV2RouterAdapterContract } from "./VelodromeV2AdapterContract.js";
 import { WstETHV1AdapterContract } from "./WstETHV1AdapterContract.js";
 import { YearnV2RouterAdapterContract } from "./YearnV2AdapterContract.js";
@@ -75,20 +84,38 @@ export class AdaptersPlugin
         return new EqualizerRouterAdapterContract(this.sdk, args);
       case "ADAPTER::ERC4626_VAULT":
         return new ERC4626AdapterContract(this.sdk, args);
+      case "ADAPTER::FLUID_DEX":
+        return new FluidDexAdapterContract(this.sdk, args);
+      case "ADAPTER::INFRARED_VAULT":
+        return new InfraredVaultAdapterContract(this.sdk, args);
+      case "ADAPTER::KODIAK_ISLAND_GATEWAY":
+        return new KodiakIslandGatewayAdapterContract(this.sdk, args);
+      case "ADAPTER::LIDO_V1":
+        return new LidoV1AdapterContract(this.sdk, args);
       case "ADAPTER::LIDO_WSTETH_V1":
         return new WstETHV1AdapterContract(this.sdk, args);
+      case "ADAPTER::MELLOW_CLAIMER":
+        return new MellowClaimerAdapterContract(this.sdk, args);
+      case "ADAPTER::MELLOW_DVV":
+        return new MellowDVVAdapterContract(this.sdk, args);
       case "ADAPTER::MELLOW_ERC4626_VAULT":
         return new MellowERC4626VaultAdapterContract(this.sdk, args);
       case "ADAPTER::MELLOW_LRT_VAULT":
         return new MellowVaultAdapterContract(this.sdk, args);
+      case "ADAPTER::MELLOW_WRAPPER":
+        return new MellowWrapperAdapterContract(this.sdk, args);
       case "ADAPTER::PENDLE_ROUTER":
         return new PendleRouterAdapterContract(this.sdk, args);
       case "ADAPTER::STAKING_REWARDS":
         return new StakingRewardsAdapterContract(this.sdk, args);
+      case "ADAPTER::TRADERJOE_ROUTER":
+        return new TraderJoeRouterAdapterContract(this.sdk, args);
       case "ADAPTER::UNISWAP_V2_ROUTER":
         return new UniswapV2AdapterContract(this.sdk, args);
       case "ADAPTER::UNISWAP_V3_ROUTER":
         return new UniswapV3AdapterContract(this.sdk, args);
+      case "ADAPTER::UPSHIFT_VAULT":
+        return new UpshiftVaultAdapterContract(this.sdk, args);
       case "ADAPTER::VELODROME_V2_ROUTER":
         return new VelodromeV2RouterAdapterContract(this.sdk, args);
       case "ADAPTER::YEARN_V2":

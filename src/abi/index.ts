@@ -6,6 +6,7 @@ export * from "./iPriceFeedStore.js";
 export * from "./iUpdatablePriceFeed.js";
 export * from "./iVersion.js";
 export * from "./iZapper.js";
+export * from "./mellow.js";
 export * from "./routerV300.js";
 export * from "./routerV310.js";
 export * from "./v300.js";
