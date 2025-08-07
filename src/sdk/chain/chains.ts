@@ -279,11 +279,10 @@ export const chains: Record<NetworkType, GearboxChain> = {
   Etherlink: defineChain({
     ...etherlink,
     network: "Etherlink",
-    defaultMarketConfigurators: {},
-    testMarketConfigurators: {
+    defaultMarketConfigurators: {
       "0x577424f0e6f50db668cc1bc76babb87e36732291": "Re7",
     },
-    isPublic: false,
+    isPublic: true,
     wellKnownToken: {
       address: "0x796Ea11Fa2dD751eD01b53C372fFDB4AAa8f00F9",
       symbol: "USDC",
