@@ -8,7 +8,7 @@ import { fallback, http, webSocket } from "viem";
 import type { NetworkType } from "../sdk/index.js";
 import { getChain } from "../sdk/index.js";
 
-export type RpcProvider = "alchemy" | "drpc";
+export type RpcProvider = "alchemy" | "drpc" | "custom";
 
 export interface ProviderConfig {
   provider: RpcProvider;
@@ -16,11 +16,6 @@ export interface ProviderConfig {
 }
 
 export interface CreateTransportURLOptions {
-  /**
-   * Explicitly provided RPC URLs, like anvil
-   * Have highest priority
-   */
-  rpcUrls: string[];
   /**
    * Known providers, first has highest priority
    */
@@ -51,22 +46,17 @@ export type CreateTransportConfig =
 export function createTransport(config: CreateTransportConfig): Transport {
   const { rpcProviders = [], protocol, network, ...rest } = config;
 
-  // filter out rpc urls that are of other protocol or already include one provider keys
-  const allKeys = rpcProviders.flatMap(provider => provider.keys) ?? [];
-  const rpcUrls = config.rpcUrls.filter(url => {
-    return url.startsWith(protocol) && !allKeys.some(key => url.includes(key));
-  });
-
+  const rpcUrls = new Set<string>();
   for (const { provider, keys } of rpcProviders) {
     for (const key of keys) {
       const url = getProviderUrl(provider, network, key, protocol);
       if (url) {
-        rpcUrls.push(url);
+        rpcUrls.add(url);
       }
     }
   }
 
-  const transports = rpcUrls.map(url =>
+  const transports = Array.from(rpcUrls).map(url =>
     protocol === "http"
       ? http(url, rest as HttpTransportConfig)
       : webSocket(url, rest as WebSocketTransportConfig),
@@ -88,6 +78,12 @@ export function getProviderUrl(
       return getAlchemyUrl(network, apiKey, protocol);
     case "drpc":
       return getDrpcUrl(network, apiKey, protocol);
+    case "custom": {
+      if (!apiKey.startsWith(protocol)) {
+        throw new Error(`Custom RPC URL must start with ${protocol}`);
+      }
+      return apiKey;
+    }
   }
 }
 
@@ -114,11 +110,11 @@ const DRPC_NETS: Record<NetworkType, string> = {
   Berachain: "berachain",
   Avalanche: "avalanche",
   Monad: "monad-testnet",
+  Hemi: "hemi",
+  Lisk: "lisk",
   // TODO: no drpc
   MegaETH: "",
   Etherlink: "",
-  Hemi: "hemi",
-  Lisk: "lisk",
 };
 
 export function getDrpcUrl(
