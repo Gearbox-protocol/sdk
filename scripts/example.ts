@@ -8,7 +8,7 @@ import { BotsPlugin } from "../src/plugins/bots/index.js";
 import { DegenDistributorsPlugin } from "../src/plugins/degen-distributors/index.js";
 import { Pools7DAgoPlugin } from "../src/plugins/pools-history/index.js";
 import { ZappersPlugin } from "../src/plugins/zappers/index.js";
-import { GearboxSDK, json_parse, json_stringify } from "../src/sdk/index.js";
+import { GearboxSDK, json_stringify } from "../src/sdk/index.js";
 
 const logger = pino({
   level: process.env.LOG_LEVEL ?? "debug",
@@ -24,9 +24,7 @@ const logger = pino({
 
 async function example(): Promise<void> {
   // const RPC = "http://127.0.0.1:8545";
-  // const RPC = process.env.RPC_URL!;
-  const RPC =
-    "https://lb.drpc.org/hemi/AkosxGtIZkpMuYcKqgc14xRxxTijaXwR8LDZEklbR4ac";
+  const RPC = process.env.RPC_URL!;
   const kind = "real";
   // const RPC= megaethTestnet.rpcUrls.default.http[0];
 
