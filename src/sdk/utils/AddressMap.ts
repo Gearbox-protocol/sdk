@@ -85,6 +85,15 @@ export class AddressMap<T> {
     return this.#map.get(key)!;
   }
 
+  /**
+   * Deletes address from map
+   * @param address
+   */
+  public delete(address: string): void {
+    const key = getAddress(address);
+    this.#map.delete(key);
+  }
+
   public clear(): void {
     this.#map.clear();
   }
