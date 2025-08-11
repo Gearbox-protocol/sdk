@@ -375,16 +375,22 @@ export class AccountOpener extends SDKConstruct {
     this.#logger?.debug("checking and topping up pools if necessary");
 
     const minAvailableByPool: Record<Address, bigint> = {};
-    for (const t of targets) {
+
+    for (let i = 0; i < targets.length; i++) {
+      const t = targets[i];
       const leverage = this.#getLeverage(t);
       const cm = this.sdk.marketRegister.findCreditManager(t.creditManager);
       const minDebt =
         (this.#minDebtMultiplier * cm.creditFacade.minDebt) / PERCENTAGE_FACTOR;
-      minAvailableByPool[cm.pool] =
-        (minAvailableByPool[cm.pool] ?? 0n) +
+      const amount =
         (((minDebt * (leverage - PERCENTAGE_FACTOR)) / PERCENTAGE_FACTOR) *
           this.#poolDepositMultiplier) /
-          PERCENTAGE_FACTOR;
+        PERCENTAGE_FACTOR;
+      minAvailableByPool[cm.pool] =
+        (minAvailableByPool[cm.pool] ?? 0n) + amount;
+      this.#logger?.debug(
+        `target #${i + 1} (${this.labelAddress(t.target)}) needs ${this.sdk.tokensMeta.formatBN(cm.underlying, amount)} ${this.sdk.tokensMeta.symbol(cm.underlying)} in pool (leverage: ${Number(leverage / PERCENTAGE_FACTOR)}%)`,
+      );
     }
 
     let totalUSD = 0n;
