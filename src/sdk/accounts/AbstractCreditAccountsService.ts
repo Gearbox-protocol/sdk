@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import { encodeFunctionData, getAddress } from "viem";
+import { encodeFunctionData, getAddress, getContract } from "viem";
 
 import {
   iCreditAccountCompressorAbi,
@@ -32,7 +32,11 @@ import { type Asset, assetsMap, type RouterCASlice } from "../router/index.js";
 import type { ILogger, IPriceUpdateTx, MultiCall } from "../types/index.js";
 import { AddressMap, childLogger } from "../utils/index.js";
 import { simulateWithPriceUpdates } from "../utils/viem/index.js";
-import type { FullyLiquidateProps, GetConnectedBotsResult } from "./types";
+import type {
+  FullyLiquidateProps,
+  GetConnectedBotsResult,
+  StartDelayedWithdrawalProps,
+} from "./types";
 import type {
   AddCollateralProps,
   ChangeDeptProps,
@@ -526,6 +530,101 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const calls: Array<MultiCall> = [
       ...priceUpdatesCalls,
       ...swapCalls,
+      ...this.prepareUpdateQuotas(creditAccount.creditFacade, {
+        minQuota,
+        averageQuota,
+      }),
+    ];
+
+    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
+
+    return { tx, calls, creditFacade: cm.creditFacade };
+  }
+
+  /**
+   * Start delayed withdrawal for given token
+     - Withdrawal is executed in the following order: price update -> execute withdraw calls -> update quotas
+   * @param props - {@link StartDelayedWithdrawalProps}
+   * @returns
+  */
+  public async startDelayedWithdrawal_Mellow({
+    creditAccount,
+    minQuota,
+    averageQuota,
+
+    instantWithdrawals,
+    delayedWithdrawals,
+    sourceAmount,
+    sourceToken,
+  }: StartDelayedWithdrawalProps): Promise<CreditAccountOperationResult> {
+    const cm = this.sdk.marketRegister.findCreditManager(
+      creditAccount.creditManager,
+    );
+
+    const balances = [...instantWithdrawals, ...delayedWithdrawals].filter(
+      a => a.balance > 0,
+    );
+    const storeExpectedBalances: MultiCall = {
+      target: cm.creditFacade.address,
+      callData: encodeFunctionData({
+        abi: iCreditFacadeV300MulticallAbi,
+        functionName: "storeExpectedBalances",
+        args: [balances.map(a => ({ token: a.token, amount: a.balance }))],
+      }),
+    };
+    const compareBalances: MultiCall = {
+      target: cm.creditFacade.address,
+      callData: encodeFunctionData({
+        abi: iCreditFacadeV300MulticallAbi,
+        functionName: "compareBalances",
+        args: [],
+      }),
+    };
+
+    const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
+      creditAccount.creditManager,
+      creditAccount,
+      averageQuota,
+    );
+
+    const mellowAdapter = cm.creditManager.adapters.mustGet(sourceToken);
+    const redeem: MultiCall = {
+      target: mellowAdapter.address,
+      callData: encodeFunctionData({
+        abi: ierc4626AdapterAbi,
+        functionName: "redeem",
+        args: [sourceAmount, ADDRESS_0X0, ADDRESS_0X0],
+      }),
+    };
+
+    const CLAIMER = "0x25024a3017B8da7161d8c5DCcF768F8678fB5802";
+    const mellowClaimerAdapter = cm.creditManager.adapters.mustGet(CLAIMER);
+
+    const multiAcceptContract = getContract({
+      address: mellowClaimerAdapter.address,
+      abi: iMellowClaimerAdapterAbi,
+      client: this.sdk.provider.publicClient,
+    });
+
+    const indices = await multiAcceptContract.read.getMultiVaultSubvaultIndices(
+      [sourceToken],
+    );
+
+    const multiaccept: MultiCall = {
+      target: mellowClaimerAdapter.address,
+      callData: encodeFunctionData({
+        abi: iMellowClaimerAdapterAbi,
+        functionName: "multiAccept",
+        args: [sourceToken, ...indices],
+      }),
+    };
+
+    const calls: Array<MultiCall> = [
+      ...priceUpdatesCalls,
+      storeExpectedBalances,
+      redeem,
+      multiaccept,
+      compareBalances,
       ...this.prepareUpdateQuotas(creditAccount.creditFacade, {
         minQuota,
         averageQuota,
@@ -1079,3 +1178,91 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     )[0];
   }
 }
+
+const iMellowClaimerAdapterAbi = [
+  {
+    type: "function",
+    name: "getMultiVaultSubvaultIndices",
+    inputs: [{ name: "multiVault", type: "address", internalType: "address" }],
+    outputs: [
+      {
+        name: "subvaultIndices",
+        type: "uint256[]",
+        internalType: "uint256[]",
+      },
+      {
+        name: "withdrawalIndices",
+        type: "uint256[][]",
+        internalType: "uint256[][]",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getUserSubvaultIndices",
+    inputs: [
+      { name: "multiVault", type: "address", internalType: "address" },
+      { name: "user", type: "address", internalType: "address" },
+    ],
+    outputs: [
+      {
+        name: "subvaultIndices",
+        type: "uint256[]",
+        internalType: "uint256[]",
+      },
+      {
+        name: "withdrawalIndices",
+        type: "uint256[][]",
+        internalType: "uint256[][]",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "multiAccept",
+    inputs: [
+      { name: "multiVault", type: "address", internalType: "address" },
+      {
+        name: "subvaultIndices",
+        type: "uint256[]",
+        internalType: "uint256[]",
+      },
+      { name: "indices", type: "uint256[][]", internalType: "uint256[][]" },
+    ],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "multiAcceptAndClaim",
+    inputs: [
+      { name: "multiVault", type: "address", internalType: "address" },
+      {
+        name: "subvaultIndices",
+        type: "uint256[]",
+        internalType: "uint256[]",
+      },
+      { name: "indices", type: "uint256[][]", internalType: "uint256[][]" },
+      { name: "", type: "address", internalType: "address" },
+      { name: "maxAssets", type: "uint256", internalType: "uint256" },
+    ],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "nonpayable",
+  },
+] as const;
+
+const ierc4626AdapterAbi = [
+  {
+    type: "function",
+    inputs: [
+      { name: "shares", internalType: "uint256", type: "uint256" },
+      { name: "", internalType: "address", type: "address" },
+      { name: "", internalType: "address", type: "address" },
+    ],
+    name: "redeem",
+    outputs: [{ name: "useSafePrices", internalType: "bool", type: "bool" }],
+    stateMutability: "nonpayable",
+  },
+] as const;

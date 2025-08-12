@@ -186,6 +186,29 @@ export interface ExecuteSwapProps extends PrepareUpdateQuotasProps {
   creditAccount: RouterCASlice;
 }
 
+export interface StartDelayedWithdrawalProps extends PrepareUpdateQuotasProps {
+  /**
+   * Amount of source token
+   */
+  sourceAmount: bigint;
+  /**
+   * Typically address of source token
+   */
+  sourceToken: Address;
+  /**
+   * Array of token which can be instantly withdrawn
+   */
+  instantWithdrawals: Array<Asset>;
+  /**
+   * Array of token which will be withdrawn with a delay
+   */
+  delayedWithdrawals: Array<Asset>;
+  /**
+   * Minimal credit account data on which operation is performed
+   */
+  creditAccount: RouterCASlice;
+}
+
 export interface ClaimFarmRewardsProps extends PrepareUpdateQuotasProps {
   /**
     * Legacy property, v3.1 only enables token when quota is bought and when quota is bought token cannot be disabled. 
@@ -461,6 +484,16 @@ export interface ICreditAccountsService extends SDKConstruct {
    * @returns All necessary data to execute the transaction (call, credit facade)
    */
   executeSwap(props: ExecuteSwapProps): Promise<CreditAccountOperationResult>;
+
+  /**
+   * Start delayed withdrawal for given token
+     - Withdrawal is executed in the following order: price update -> execute withdraw calls -> update quotas
+   * @param props - {@link StartDelayedWithdrawalProps}
+   * @returns All necessary data to execute the transaction (call, credit facade)
+   */
+  startDelayedWithdrawal_Mellow(
+    props: StartDelayedWithdrawalProps,
+  ): Promise<CreditAccountOperationResult>;
 
   /**
    * Executes enable/disable tokens specified by given tokens lists and token prices
