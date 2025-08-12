@@ -1,12 +1,6 @@
-import {
-  type Address,
-  type BlockTag,
-  decodeFunctionData,
-  type Hex,
-} from "viem";
+import type { Address, BlockTag, Hex } from "viem";
 
 import { iPriceFeedCompressorAbi } from "../../../abi/compressors.js";
-import { iUpdatablePriceFeedAbi } from "../../../abi/iUpdatablePriceFeed.js";
 import type { PriceFeedTreeNode } from "../../base/index.js";
 import { SDKConstruct } from "../../base/index.js";
 import {
@@ -33,6 +27,7 @@ import { CurveStablePriceFeedContract } from "./CurveStablePriceFeed.js";
 import { CurveUSDPriceFeedContract } from "./CurveUSDPriceFeed.js";
 import { Erc4626PriceFeedContract } from "./Erc4626PriceFeed.js";
 import { ExternalPriceFeedContract } from "./ExternalPriceFeed.js";
+import { getRawPriceUpdates } from "./getRawPriceUpdates.js";
 import { MellowLRTPriceFeedContract } from "./MellowLRTPriceFeed.js";
 import { PendleTWAPPTPriceFeed } from "./PendleTWAPPTPriceFeed.js";
 import { PythPriceFeed } from "./PythPriceFeed.js";
@@ -40,6 +35,7 @@ import { RedstonePriceFeedContract } from "./RedstonePriceFeed.js";
 import type {
   IPriceFeedContract,
   PriceFeedContractType,
+  PriceUpdateRaw,
   UpdatePriceFeedsResult,
 } from "./types.js";
 import type {
@@ -148,6 +144,23 @@ export class PriceFeedRegister
   }
 
   /**
+   * Similar to {@link generatePriceFeedsUpdateTxs}, but returns raw structures instead of transactions
+   * @param priceFeeds
+   * @param logContext
+   * @returns
+   */
+  public async generatePriceFeedsUpdates(
+    priceFeeds?: IPriceFeedContract[],
+    logContext: Record<string, any> = {},
+  ): Promise<PriceUpdateRaw[]> {
+    const updates = await this.generatePriceFeedsUpdateTxs(
+      priceFeeds,
+      logContext,
+    );
+    return getRawPriceUpdates(updates);
+  }
+
+  /**
    * Similar to {@link generatePriceFeedsUpdateTxs}, but will generate necessary price update transactions for external price feeds
    * This does not add feeds to this register, so they won't be implicitly included in future generatePriceFeedsUpdateTxs calls
    * @param feeds
@@ -185,22 +198,12 @@ export class PriceFeedRegister
   public async generateExternalPriceFeedsUpdates(
     feeds: Address[],
     block?: { blockNumber: bigint } | { blockTag: BlockTag },
-  ): Promise<Array<{ priceFeed: Address; data: Hex }>> {
-    const { txs } = await this.generateExternalPriceFeedsUpdateTxs(
+  ): Promise<PriceUpdateRaw[]> {
+    const updates = await this.generateExternalPriceFeedsUpdateTxs(
       feeds,
       block,
     );
-
-    return txs.map(tx => {
-      const data = decodeFunctionData({
-        abi: iUpdatablePriceFeedAbi,
-        data: tx.raw.callData,
-      });
-      return {
-        priceFeed: tx.raw.to,
-        data: data.args[0] as Hex,
-      };
-    });
+    return getRawPriceUpdates(updates);
   }
 
   public has(address: Address): boolean {
