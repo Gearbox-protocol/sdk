@@ -382,10 +382,12 @@ export class AccountOpener extends SDKConstruct {
       const cm = this.sdk.marketRegister.findCreditManager(t.creditManager);
       const minDebt =
         (this.#minDebtMultiplier * cm.creditFacade.minDebt) / PERCENTAGE_FACTOR;
-      const amount =
+      let amount =
         (((minDebt * (leverage - PERCENTAGE_FACTOR)) / PERCENTAGE_FACTOR) *
           this.#poolDepositMultiplier) /
         PERCENTAGE_FACTOR;
+      amount =
+        amount > cm.creditFacade.maxDebt ? cm.creditFacade.maxDebt : amount;
       minAvailableByPool[cm.pool] =
         (minAvailableByPool[cm.pool] ?? 0n) + amount;
       this.#logger?.debug(
@@ -849,7 +851,10 @@ export class AccountOpener extends SDKConstruct {
     const cm = this.sdk.marketRegister.findCreditManager(creditManager);
     const lt = BigInt(cm.creditManager.liquidationThresholds.mustGet(target));
     const d = 50n;
-    return PERCENTAGE_FACTOR * (1n + (lt - d) / (PERCENTAGE_FACTOR - lt));
+    const result =
+      PERCENTAGE_FACTOR * (1n + (lt - d) / (PERCENTAGE_FACTOR - lt));
+    // cap at 10x
+    return result > PERCENTAGE_FACTOR * 10n ? PERCENTAGE_FACTOR * 10n : result;
   }
 
   public get faucet(): Address {
