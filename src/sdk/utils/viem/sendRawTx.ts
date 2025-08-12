@@ -11,7 +11,7 @@ import { getAction } from "viem/utils";
 import type { RawTx } from "../../types/index.js";
 
 export type SendRawTxParameters<
-  chain extends Chain | undefined,
+  chain extends Chain,
   account extends Account | undefined,
   request extends SendTransactionRequest<chain, chainOverride>,
   chainOverride extends Chain | undefined = undefined,
@@ -23,7 +23,7 @@ export type SendRawTxParameters<
 };
 
 export async function sendRawTx<
-  chain extends Chain | undefined,
+  chain extends Chain,
   account extends Account | undefined,
   const request extends SendTransactionRequest<chain, chainOverride>,
   chainOverride extends Chain | undefined,
