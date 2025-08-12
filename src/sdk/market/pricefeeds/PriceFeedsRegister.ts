@@ -1,6 +1,12 @@
-import type { Address, BlockTag, Hex } from "viem";
+import {
+  type Address,
+  type BlockTag,
+  decodeFunctionData,
+  type Hex,
+} from "viem";
 
 import { iPriceFeedCompressorAbi } from "../../../abi/compressors.js";
+import { iUpdatablePriceFeedAbi } from "../../../abi/iUpdatablePriceFeed.js";
 import type { PriceFeedTreeNode } from "../../base/index.js";
 import { SDKConstruct } from "../../base/index.js";
 import {
@@ -184,10 +190,17 @@ export class PriceFeedRegister
       feeds,
       block,
     );
-    return txs.map(tx => ({
-      priceFeed: tx.data.priceFeed,
-      data: tx.raw.callData,
-    }));
+
+    return txs.map(tx => {
+      const data = decodeFunctionData({
+        abi: iUpdatablePriceFeedAbi,
+        data: tx.raw.callData,
+      });
+      return {
+        priceFeed: tx.raw.to,
+        data: data.args[0] as Hex,
+      };
+    });
   }
 
   public has(address: Address): boolean {
