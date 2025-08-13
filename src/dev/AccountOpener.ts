@@ -46,10 +46,10 @@ export class OpenTxRevertedError extends BaseError {
 
 export interface AccountOpenerOptions {
   faucet?: Address;
-  borrower?: PrivateKeyAccount;
-  depositor?: PrivateKeyAccount;
-  poolDepositMultiplier?: bigint;
-  minDebtMultiplier?: bigint;
+  borrowerKey?: Hex;
+  depositorKey?: Hex;
+  poolDepositMultiplier?: bigint | string | number;
+  minDebtMultiplier?: bigint | string | number;
 }
 
 export interface TargetAccount {
@@ -100,6 +100,9 @@ export interface OpenAccountsResult {
 }
 
 export class AccountOpener extends SDKConstruct {
+  public readonly borrowerKey: Hex;
+  public readonly depositorKey: Hex;
+
   #service: ICreditAccountsService;
   #anvil: AnvilClient;
   #logger?: ILogger;
@@ -111,9 +114,16 @@ export class AccountOpener extends SDKConstruct {
 
   constructor(
     service: ICreditAccountsService,
-    options: AccountOpenerOptions = {},
+    options_: AccountOpenerOptions = {},
   ) {
     super(service.sdk);
+    const {
+      borrowerKey,
+      depositorKey,
+      faucet,
+      poolDepositMultiplier = 3_00_00n,
+      minDebtMultiplier = 101_00n,
+    } = options_;
     this.#service = service;
     this.#logger = childLogger("AccountOpener", service.sdk.logger);
     this.#anvil = createAnvilClient({
@@ -121,22 +131,28 @@ export class AccountOpener extends SDKConstruct {
       transport: service.sdk.provider.transport,
     });
     try {
-      this.#faucet =
-        options.faucet ?? service.sdk.addressProvider.getAddress("FAUCET");
+      this.#faucet = faucet ?? service.sdk.addressProvider.getAddress("FAUCET");
     } catch (_e) {
       this.#logger?.warn("faucet not found, will not claim from faucet");
     }
-    this.#borrower = options.borrower;
-    this.#depositor = options.depositor;
-    this.#poolDepositMultiplier = options.poolDepositMultiplier ?? 110_00n;
-    this.#minDebtMultiplier = options.minDebtMultiplier ?? 101_00n;
+    this.borrowerKey = borrowerKey ?? generatePrivateKey();
+    this.depositorKey = depositorKey ?? generatePrivateKey();
+    this.#poolDepositMultiplier = BigInt(poolDepositMultiplier);
+    this.#minDebtMultiplier = BigInt(minDebtMultiplier);
   }
 
-  public get borrower(): Address {
+  public get borrower(): PrivateKeyAccount {
     if (!this.#borrower) {
       throw new Error("borrower can be used only after openCreditAccounts");
     }
-    return this.#borrower.address;
+    return this.#borrower;
+  }
+
+  public get depositor(): PrivateKeyAccount {
+    if (!this.#depositor) {
+      throw new Error("depositor can be used only after openCreditAccounts");
+    }
+    return this.#depositor;
   }
 
   /**
@@ -365,7 +381,7 @@ export class AccountOpener extends SDKConstruct {
 
   public async getOpenedAccounts(): Promise<CreditAccountData[]> {
     return await this.#service.getCreditAccounts({
-      owner: this.borrower,
+      owner: this.borrower.address,
     });
   }
 
@@ -422,8 +438,8 @@ export class AccountOpener extends SDKConstruct {
       `total USD to claim from faucet: ${formatBN(totalUSD, 8)}`,
     );
 
-    const depositor = this.#depositor ?? (await this.#createAccount());
-    this.#logger?.debug(`created depositor ${depositor.address}`);
+    const depositor = await this.#getDepositor();
+    this.#logger?.debug(`depositor: ${depositor.address}`);
 
     await this.#claimFromFaucet(depositor, "depositor", totalUSD);
 
@@ -674,14 +690,22 @@ export class AccountOpener extends SDKConstruct {
 
   async #getBorrower(): Promise<PrivateKeyAccount> {
     if (!this.#borrower) {
-      this.#borrower = await this.#createAccount();
+      this.#borrower = await this.#createAccount(this.borrowerKey);
       this.#logger?.info(`created borrower ${this.#borrower.address}`);
     }
-    return this.#borrower;
+    return this.borrower;
   }
 
-  async #createAccount(): Promise<PrivateKeyAccount> {
-    const acc = privateKeyToAccount(generatePrivateKey());
+  async #getDepositor(): Promise<PrivateKeyAccount> {
+    if (!this.#depositor) {
+      this.#depositor = await this.#createAccount(this.depositorKey);
+      this.#logger?.info(`created depositor ${this.#depositor.address}`);
+    }
+    return this.depositor;
+  }
+
+  async #createAccount(privateKey: Hex): Promise<PrivateKeyAccount> {
+    const acc = privateKeyToAccount(privateKey);
     await this.#anvil.setBalance({
       address: acc.address,
       value: parseEther("100"),

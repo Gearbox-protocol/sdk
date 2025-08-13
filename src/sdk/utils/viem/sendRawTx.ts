@@ -2,33 +2,42 @@ import type {
   Account,
   Chain,
   Client,
+  SendTransactionRequest,
   SendTransactionReturnType,
   Transport,
 } from "viem";
-import { sendTransaction } from "viem/actions";
+import { type SendTransactionParameters, sendTransaction } from "viem/actions";
 import { getAction } from "viem/utils";
-
 import type { RawTx } from "../../types/index.js";
 
-export interface SendRawTxParameters {
-  account?: Account;
+export type SendRawTxParameters<
+  chain extends Chain,
+  account extends Account | undefined,
+  request extends SendTransactionRequest<chain, chainOverride>,
+  chainOverride extends Chain | undefined = undefined,
+> = Omit<
+  SendTransactionParameters<chain, account, chainOverride, request>,
+  "data" | "to" | "value"
+> & {
   tx: Pick<RawTx, "to" | "callData" | "value">;
-}
+};
 
 export async function sendRawTx<
-  chain extends Chain | undefined = Chain | undefined,
+  chain extends Chain,
+  account extends Account | undefined,
+  const request extends SendTransactionRequest<chain, chainOverride>,
+  chainOverride extends Chain | undefined,
 >(
-  client: Client<Transport, chain, Account | undefined>,
-  params: SendRawTxParameters,
+  client: Client<Transport, chain, account>,
+  params: SendRawTxParameters<chain, account, request, chainOverride>,
 ): Promise<SendTransactionReturnType> {
-  const { account, tx } = params;
+  const { tx, ...rest } = params;
   return getAction(
     client,
     sendTransaction,
     "sendTransaction",
   )({
-    // @ts-expect-error
-    account,
+    ...(rest as any),
     data: tx.callData,
     to: tx.to,
     value: BigInt(tx.value),

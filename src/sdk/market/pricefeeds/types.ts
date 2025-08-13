@@ -1,4 +1,4 @@
-import type { UnionOmit } from "viem";
+import type { Address, Hex, UnionOmit } from "viem";
 
 import type { IBaseContract } from "../../base/index.js";
 import type {
@@ -88,4 +88,15 @@ export interface ILPPriceFeedContract extends IPriceFeedContract {
 export interface UpdatePriceFeedsResult {
   txs: IPriceUpdateTx[];
   timestamp: number;
+}
+
+export interface PriceUpdateRaw {
+  /**
+   * IUpdatablePriceFeed contract address
+   */
+  priceFeed: Address;
+  /**
+   * Data that can be passed to IUpdatablePriceFeed.updatePrice
+   */
+  data: Hex;
 }
