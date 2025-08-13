@@ -569,7 +569,9 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       callData: encodeFunctionData({
         abi: iCreditFacadeV300MulticallAbi,
         functionName: "storeExpectedBalances",
-        args: [balances.map(a => ({ token: a.token, amount: a.balance }))],
+        args: [
+          balances.map(a => ({ token: a.token, amount: a.balance - 10n })),
+        ],
       }),
     };
     const compareBalances: MultiCall = {
