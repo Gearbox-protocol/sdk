@@ -9,7 +9,6 @@ import {
   hexEq,
   VERSION_RANGE_310,
 } from "../../sdk/index.js";
-import { extraZappers } from "./extraZappers.js";
 import type { ZapperDataFull, ZapperStateHuman } from "./types.js";
 
 export interface ZappersPluginState {
@@ -21,6 +20,12 @@ export class ZappersPlugin
   implements IGearboxSDKPlugin<ZappersPluginState>
 {
   #zappers?: AddressMap<ZapperDataFull[]>;
+  #extraZappers: ZapperDataFull[];
+
+  constructor(extraZappers: ZapperDataFull[] = [], loadOnAttach = false) {
+    super(loadOnAttach);
+    this.#extraZappers = extraZappers;
+  }
 
   public async load(force?: boolean): Promise<ZappersPluginState> {
     if (!force && this.loaded) {
@@ -73,8 +78,7 @@ export class ZappersPlugin
   }
 
   #addExtraZappers(): void {
-    const zaps = extraZappers[this.sdk.provider.networkType] ?? [];
-    for (const z of zaps) {
+    for (const z of this.#extraZappers) {
       const existing = this.#zappers?.get(z.pool);
       if (existing) {
         const hasZapper = existing.some(zz =>

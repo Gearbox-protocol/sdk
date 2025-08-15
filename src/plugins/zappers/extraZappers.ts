@@ -2,7 +2,7 @@ import type { NetworkType } from "../../sdk";
 import type { ZapperDataFull } from "./types";
 
 /**
- * Temprary zappers
+ * Temporary zappers
  */
 export const extraZappers: Partial<Record<NetworkType, ZapperDataFull[]>> = {
   Mainnet: [
