@@ -35,7 +35,8 @@ export interface TxSerialized {
     | "TxStakeDiesel"
     | "TxUnstakeDiesel"
     | "TxEnableTokens"
-    | "TxFillOrder";
+    | "TxFillOrder"
+    | "TxStartDelayedWithdrawal";
   content: string;
 }
 
@@ -98,6 +99,8 @@ export class TxSerializer {
           return new TxEnableTokens(params);
         case "TxFillOrder":
           return new TxFillOrder(params);
+        case "TxStartDelayedWithdrawal":
+          return new TxStartDelayedWithdrawal(params);
         default:
           throw new Error(`Unknown transaction for parsing: ${e.type}`);
       }
@@ -529,12 +532,99 @@ export class TxClaimRewards extends EVMTx {
             })
             .join(", ");
 
-    return `Rewards claimed: ${rewardsString}`;
+    return `Claimed: ${rewardsString}`;
   }
 
   serialize(): TxSerialized {
     return {
       type: "TxClaimRewards",
+      content: JSON.stringify(this),
+    };
+  }
+}
+
+interface TxStartDelayedWithdrawalProps extends EVMTxProps {
+  instantWithdrawals: Array<Asset>;
+  delayedWithdrawals: Array<Asset>;
+
+  tokensList: Record<Address, TokenData>;
+}
+
+export class TxStartDelayedWithdrawal extends EVMTx {
+  readonly instantWithdrawals: Array<
+    Omit<Asset, "token"> & { token: TokenData }
+  >;
+  readonly delayedWithdrawals: Array<
+    Omit<Asset, "token"> & { token: TokenData }
+  >;
+
+  constructor(opts: TxStartDelayedWithdrawalProps) {
+    super(opts);
+
+    this.instantWithdrawals = opts.instantWithdrawals.map(
+      ({ token, balance }) => ({
+        token: opts.tokensList[token],
+        balance,
+      }),
+    );
+    this.delayedWithdrawals = opts.delayedWithdrawals.map(
+      ({ token, balance }) => ({
+        token: opts.tokensList[token],
+        balance,
+      }),
+    );
+  }
+
+  toString() {
+    const total =
+      this.instantWithdrawals.length + this.delayedWithdrawals.length;
+
+    const instantString =
+      total <= 2
+        ? this.instantWithdrawals
+            .map(({ token, balance }) => {
+              const { title, decimals = 18 } = token;
+              return `${formatBN(balance, decimals)} ${title}`;
+            })
+            .join(", ")
+        : this.instantWithdrawals
+            .map(({ token }) => {
+              const { title } = token;
+              return title;
+            })
+            .join(", ");
+
+    const delayedString =
+      total <= 2
+        ? this.delayedWithdrawals
+            .map(({ token, balance }) => {
+              const { title, decimals = 18 } = token;
+              return `${formatBN(balance, decimals)} ${title}`;
+            })
+            .join(", ")
+        : this.delayedWithdrawals
+            .map(({ token }) => {
+              const { title } = token;
+              return title;
+            })
+            .join(", ");
+
+    const instant =
+      this.instantWithdrawals.length > 0
+        ? `Tokens obtained: ${instantString}`
+        : undefined;
+
+    const delayed =
+      this.delayedWithdrawals.length > 0
+        ? `Tokens withdrawal started: ${delayedString}`
+        : undefined;
+
+    return [instant, delayed].filter(s => s).join("; ");
+  }
+
+  serialize(): TxSerialized {
+    return {
+      type: "TxStartDelayedWithdrawal",
       content: JSON.stringify(this),
     };
   }
@@ -900,7 +990,9 @@ export class TxEnableTokens extends EVMTx {
         : "",
     ].filter(s => !!s);
 
-    return `Credit Account ${this.creditManagerName}: ${currentSentences.join("; ")}`;
+    return `Credit Account ${this.creditManagerName}: ${currentSentences.join(
+      "; ",
+    )}`;
   }
 
   serialize(): TxSerialized {
