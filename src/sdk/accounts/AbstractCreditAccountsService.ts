@@ -33,6 +33,7 @@ import type { ILogger, IPriceUpdateTx, MultiCall } from "../types/index.js";
 import { AddressMap, childLogger } from "../utils/index.js";
 import { simulateWithPriceUpdates } from "../utils/viem/index.js";
 import type {
+  ClaimDelayedProps,
   FullyLiquidateProps,
   GetConnectedBotsResult,
   StartDelayedWithdrawalProps,
@@ -625,6 +626,89 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       ...priceUpdatesCalls,
       storeExpectedBalances,
       redeem,
+      multiaccept,
+      compareBalances,
+      ...this.prepareUpdateQuotas(creditAccount.creditFacade, {
+        minQuota,
+        averageQuota,
+      }),
+    ];
+
+    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
+
+    return { tx, calls, creditFacade: cm.creditFacade };
+  }
+
+  /**
+   * Claim tokens with delayed withdrawal
+     - Claim is executed in the following order: price update -> execute claim calls -> update quotas
+   * @param props - {@link ClaimDelayedProps}
+   * @returns
+  */
+  public async claimDelayed_Mellow({
+    creditAccount,
+    minQuota,
+    averageQuota,
+
+    sourceToken,
+    phantom,
+    target,
+  }: ClaimDelayedProps): Promise<CreditAccountOperationResult> {
+    const cm = this.sdk.marketRegister.findCreditManager(
+      creditAccount.creditManager,
+    );
+
+    const storeExpectedBalances: MultiCall = {
+      target: cm.creditFacade.address,
+      callData: encodeFunctionData({
+        abi: iCreditFacadeV300MulticallAbi,
+        functionName: "storeExpectedBalances",
+        args: [
+          [target].map(a => ({ token: a.token, amount: a.balance - 10n })),
+        ],
+      }),
+    };
+    const compareBalances: MultiCall = {
+      target: cm.creditFacade.address,
+      callData: encodeFunctionData({
+        abi: iCreditFacadeV300MulticallAbi,
+        functionName: "compareBalances",
+        args: [],
+      }),
+    };
+
+    const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
+      creditAccount.creditManager,
+      creditAccount,
+      averageQuota,
+    );
+
+    const CLAIMER = "0x25024a3017B8da7161d8c5DCcF768F8678fB5802";
+    const mellowClaimerAdapter = cm.creditManager.adapters.mustGet(CLAIMER);
+
+    const multiAcceptContract = getContract({
+      address: mellowClaimerAdapter.address,
+      abi: iMellowClaimerAdapterAbi,
+      client: this.sdk.provider.publicClient,
+    });
+
+    const indices = await multiAcceptContract.read.getUserSubvaultIndices([
+      sourceToken,
+      creditAccount.creditAccount,
+    ]);
+
+    const multiaccept: MultiCall = {
+      target: mellowClaimerAdapter.address,
+      callData: encodeFunctionData({
+        abi: iMellowClaimerAdapterAbi,
+        functionName: "multiAcceptAndClaim",
+        args: [sourceToken, ...indices, ADDRESS_0X0, phantom.balance],
+      }),
+    };
+
+    const calls: Array<MultiCall> = [
+      ...priceUpdatesCalls,
+      storeExpectedBalances,
       multiaccept,
       compareBalances,
       ...this.prepareUpdateQuotas(creditAccount.creditFacade, {

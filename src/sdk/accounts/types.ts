@@ -188,11 +188,11 @@ export interface ExecuteSwapProps extends PrepareUpdateQuotasProps {
 
 export interface StartDelayedWithdrawalProps extends PrepareUpdateQuotasProps {
   /**
-   * Amount of source token
+   * Amount of source token (ex. sp0xlrt)
    */
   sourceAmount: bigint;
   /**
-   * Typically address of source token
+   * Address of source token (ex. sp0xlrt)
    */
   sourceToken: Address;
   /**
@@ -203,6 +203,25 @@ export interface StartDelayedWithdrawalProps extends PrepareUpdateQuotasProps {
    * Array of token which will be withdrawn with a delay
    */
   delayedWithdrawals: Array<Asset>;
+  /**
+   * Minimal credit account data on which operation is performed
+   */
+  creditAccount: RouterCASlice;
+}
+
+export interface ClaimDelayedProps extends PrepareUpdateQuotasProps {
+  /**
+   * Address of source token (ex. sp0xlrt)
+   */
+  sourceToken: Address;
+  /**
+   * Amount of phantom token
+   */
+  phantom: Asset;
+  /**
+   * Amount of target token
+   */
+  target: Asset;
   /**
    * Minimal credit account data on which operation is performed
    */
@@ -493,6 +512,16 @@ export interface ICreditAccountsService extends SDKConstruct {
    */
   startDelayedWithdrawal_Mellow(
     props: StartDelayedWithdrawalProps,
+  ): Promise<CreditAccountOperationResult>;
+
+  /**
+   * Claim tokens with delayed withdrawal
+     - Claim is executed in the following order: price update -> execute claim calls -> update quotas
+   * @param props - {@link ClaimDelayedProps}
+   * @returns
+  */
+  claimDelayed_Mellow(
+    props: ClaimDelayedProps,
   ): Promise<CreditAccountOperationResult>;
 
   /**

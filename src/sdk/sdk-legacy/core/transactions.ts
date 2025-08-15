@@ -532,7 +532,7 @@ export class TxClaimRewards extends EVMTx {
             })
             .join(", ");
 
-    return `Rewards claimed: ${rewardsString}`;
+    return `Claimed: ${rewardsString}`;
   }
 
   serialize(): TxSerialized {
