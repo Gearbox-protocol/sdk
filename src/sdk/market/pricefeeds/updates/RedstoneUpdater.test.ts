@@ -6,6 +6,10 @@ import { RedstoneUpdater } from "./RedstoneUpdater.js";
 
 let sdk: GearboxSDK;
 beforeAll(async () => {
+  if (process.env.CI === "true") {
+    // this test requires anvil rpc
+    return;
+  }
   sdk = await GearboxSDK.attach({
     rpcURLs: [process.env.RPC_URL!],
     timeout: 480_000,
