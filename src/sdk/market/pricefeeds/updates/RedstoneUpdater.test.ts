@@ -6,6 +6,10 @@ import { RedstoneUpdater } from "./RedstoneUpdater.js";
 
 let sdk: GearboxSDK;
 beforeAll(async () => {
+  if (process.env.CI === "true") {
+    // this test requires anvil rpc
+    return;
+  }
   sdk = await GearboxSDK.attach({
     rpcURLs: [process.env.RPC_URL!],
     timeout: 480_000,
@@ -19,6 +23,10 @@ beforeAll(async () => {
 });
 
 it("should return an empty array when no updates are available", async () => {
+  if (process.env.CI === "true") {
+    // this test requires anvil rpc
+    return;
+  }
   const ezETHFeed = sdk.contracts.mustGet(
     "0xa7cB34Cd731486F61cfDb7ff5F6fC7B40537eD76",
   ) as unknown as IPriceFeedContract;
