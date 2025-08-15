@@ -6,8 +6,10 @@ import {
   AddressMap,
   AP_PERIPHERY_COMPRESSOR,
   BasePlugin,
+  hexEq,
   VERSION_RANGE_310,
 } from "../../sdk/index.js";
+import { extraZappers } from "./extraZappers.js";
 import type { ZapperDataFull, ZapperStateHuman } from "./types.js";
 
 export interface ZappersPluginState {
@@ -64,8 +66,27 @@ export class ZappersPlugin
       }
     }
 
+    this.#addExtraZappers();
+
     this.#loadZapperTokens();
     return this.state;
+  }
+
+  #addExtraZappers(): void {
+    const zaps = extraZappers[this.sdk.provider.networkType] ?? [];
+    for (const z of zaps) {
+      const existing = this.#zappers?.get(z.pool);
+      if (existing) {
+        const hasZapper = existing.some(zz =>
+          hexEq(zz.baseParams.addr, z.baseParams.addr),
+        );
+        if (!hasZapper) {
+          existing.push(z);
+        }
+      } else {
+        this.#zappers?.upsert(z.pool, [z]);
+      }
+    }
   }
 
   public get zappers(): AddressMap<ZapperDataFull[]> {
