@@ -17,6 +17,7 @@ import {
   worldchain,
 } from "viem/chains";
 import { z } from "zod/v4";
+import { TypedObjectUtils } from "../utils";
 
 export type Curator =
   | "Chaos Labs"
@@ -383,6 +384,27 @@ export function getCuratorName(
       if (a.toLowerCase() === marketConfigurator.toLowerCase()) {
         return curator;
       }
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Finds market configurator address by curator name
+ * @param curator
+ * @param network
+ * @returns
+ */
+export function findCuratorMarketConfigurator(
+  curator: Curator,
+  network: NetworkType,
+): Address | undefined {
+  const { defaultMarketConfigurators, testMarketConfigurators } =
+    chains[network];
+  const all = { ...defaultMarketConfigurators, ...testMarketConfigurators };
+  for (const [a, c] of TypedObjectUtils.entries(all)) {
+    if (c === curator) {
+      return a;
     }
   }
   return undefined;
