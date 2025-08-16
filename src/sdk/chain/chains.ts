@@ -17,7 +17,7 @@ import {
   worldchain,
 } from "viem/chains";
 import { z } from "zod/v4";
-import { TypedObjectUtils } from "../utils";
+import { TypedObjectUtils } from "../utils/index.js";
 
 export type Curator =
   | "Chaos Labs"
