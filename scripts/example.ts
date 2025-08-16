@@ -40,7 +40,7 @@ async function example(): Promise<void> {
     strictContractTypes: true,
     plugins: {
       adapters: new AdaptersPlugin(true),
-      zappers: new ZappersPlugin(true),
+      zappers: new ZappersPlugin([], true),
       bots: new BotsPlugin(true),
       degen: new DegenDistributorsPlugin(true),
       pools7DAgo: new Pools7DAgoPlugin(true),
