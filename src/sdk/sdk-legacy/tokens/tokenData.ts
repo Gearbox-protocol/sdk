@@ -51,6 +51,7 @@ const HUMAN_READABLE_SYMBOLS: PartialRecord<string, string> = {
   PT_USDf_29JAN2026: "pt.USDf(29.01.26)",
 
   ["PT-wstUSR-25SEP2025"]: "pt.wstUSR(25.09.25)",
+  ["PT-yUSD-27NOV2025"]: "pt.yUSD(27.11.25)",
 
   wdwstETH: "rstETH\u00A0→\u00A0wstETH",
 };
