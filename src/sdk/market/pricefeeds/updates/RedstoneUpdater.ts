@@ -165,7 +165,7 @@ export class RedstoneUpdater
     }
     this.#logger?.debug(
       logContext,
-      `generated ${results.length} update transactions for redstone price feeds`,
+      `generated ${results.length} update transactions for redstone price feeds: ${Array.from(priceFeeds.keys()).join(", ")}`,
     );
     return results;
   }

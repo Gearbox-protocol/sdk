@@ -154,7 +154,7 @@ export class PythUpdater
     });
     this.#logger?.debug(
       logContext,
-      `generated ${results.length} update transactions for pyth price feeds`,
+      `generated ${results.length} update transactions for pyth price feeds: ${Array.from(pythFeeds.keys()).join(", ")}`,
     );
     return results;
   }
