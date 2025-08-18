@@ -93,6 +93,9 @@ export class RedstoneUpdater
     if (ts) {
       ts = ts === true ? Number(this.sdk.timestamp) * 1000 : ts;
       this.#historicalTimestampMs = 60_000 * Math.floor(ts / 60_000);
+      this.#logger?.debug(
+        `using historical timestamp ${this.#historicalTimestampMs}`,
+      );
     }
     this.#cache = new PriceUpdatesCache({
       // currently staleness period is 240 seconds on all networks, add some buffer

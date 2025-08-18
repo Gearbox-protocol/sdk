@@ -115,6 +115,9 @@ export class PythUpdater
     const ts = opts.historicTimestamp;
     if (ts) {
       this.#historicalTimestamp = ts === true ? Number(this.sdk.timestamp) : ts;
+      this.#logger?.debug(
+        `using historical timestamp ${this.#historicalTimestamp}`,
+      );
     }
     this.#cache = new PriceUpdatesCache({
       // currently staleness period is 240 seconds on all networks, add some buffer
