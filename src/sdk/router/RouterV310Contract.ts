@@ -1,4 +1,4 @@
-import { type Address, encodeFunctionData, getAddress } from "viem";
+import { type Address, getAddress } from "viem";
 
 import { iGearboxRouterV310Abi } from "../../abi/routerV310.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
@@ -7,7 +7,7 @@ import { AddressMap } from "../utils/AddressMap.js";
 import { formatBN } from "../utils/formatter.js";
 import type { Leftovers } from "./AbstractRouterContract.js";
 import { AbstractRouterContract } from "./AbstractRouterContract.js";
-import { assetsMap, balancesMap } from "./helpers.js";
+import { assetsMap, balancesMap, limitLeftover } from "./helpers.js";
 import type {
   Asset,
   FindAllSwapsProps,
@@ -122,7 +122,7 @@ export class RouterV310Contract
       (token): TokenData => ({
         token,
         balance: expectedMap.get(token) ?? 0n,
-        leftoverBalance: leftoverMap.get(token) ?? 0n,
+        leftoverBalance: limitLeftover(leftoverMap.get(token), token) ?? 0n,
         numSplits: getNumSplits(token),
         claimRewards: false,
       }),
@@ -219,7 +219,8 @@ export class RouterV310Contract
       tData.push({
         token,
         balance: expectedBalances.get(token)?.balance || 0n,
-        leftoverBalance: leftoverBalances.get(token)?.balance || 0n,
+        leftoverBalance:
+          limitLeftover(leftoverBalances.get(token)?.balance, token) ?? 0n,
         numSplits: getNumSplits(token),
         claimRewards: !!tokensToClaim.get(token),
       });
@@ -425,7 +426,10 @@ function balancesAfterOpen(
     if (t === targetAddr) {
       result[t] = (expected.get(t) ?? 0n) + targetAmount;
     } else {
-      result[t] = BigIntMath.min(expected.get(t) ?? 0n, leftover.get(t) ?? 0n);
+      result[t] = BigIntMath.min(
+        expected.get(t) ?? 0n,
+        limitLeftover(leftover.get(t), t) ?? 0n,
+      );
     }
   }
   return result;

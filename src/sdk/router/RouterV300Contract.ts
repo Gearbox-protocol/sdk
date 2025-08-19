@@ -11,7 +11,12 @@ import {
 } from "../sdk-gov-legacy/index.js";
 import type { Leftovers } from "./AbstractRouterContract.js";
 import { AbstractRouterContract } from "./AbstractRouterContract.js";
-import { assetsMap, balancesMap, compareRouterResults } from "./helpers.js";
+import {
+  assetsMap,
+  balancesMap,
+  compareRouterResults,
+  limitLeftover,
+} from "./helpers.js";
 import { PathOptionFactory } from "./PathOptionFactory.js";
 import type {
   Asset,
@@ -107,7 +112,7 @@ export class RouterV300Contract
       tokenOut,
       connectors,
       amount,
-      leftoverAmount,
+      leftoverAmount: limitLeftover(leftoverAmount, tokenIn) ?? 0n,
     };
 
     const { result } = await this.contract.simulate.findAllSwaps(
@@ -198,7 +203,7 @@ export class RouterV300Contract
 
     const leftover: Array<Asset> = cm.collateralTokens.map(token => ({
       token,
-      balance: leftoverMap.get(token) ?? 0n,
+      balance: limitLeftover(leftoverMap.get(token), token) ?? 0n,
     }));
 
     const connectors = this.getAvailableConnectors(cm.collateralTokens);
@@ -252,18 +257,28 @@ export class RouterV300Contract
     slippage,
     balances,
   }: FindBestClosePathProps): Promise<RouterCloseResult> {
-    const { pathOptions, expected, leftover, connectors } =
-      this.getFindClosePathInput(
-        ca,
-        cm,
-        balances
-          ? {
-              expectedBalances: assetsMap(balances.expectedBalances),
-              leftoverBalances: assetsMap(balances.leftoverBalances),
-              tokensToClaim: assetsMap(balances.tokensToClaim || []),
-            }
-          : undefined,
-      );
+    const {
+      pathOptions,
+      expected,
+      leftover: leftoverUnsafe,
+      connectors,
+    } = this.getFindClosePathInput(
+      ca,
+      cm,
+      balances
+        ? {
+            expectedBalances: assetsMap(balances.expectedBalances),
+            leftoverBalances: assetsMap(balances.leftoverBalances),
+            tokensToClaim: assetsMap(balances.tokensToClaim || []),
+          }
+        : undefined,
+    );
+
+    const leftover: Array<Asset> = leftoverUnsafe.map(a => ({
+      ...a,
+      balance: limitLeftover(a.balance, a.token) ?? 0n,
+    }));
+
     await this.hooks.triggerHooks("foundPathOptions", {
       creditAccount: ca.creditAccount,
       pathOptions,
@@ -346,6 +361,11 @@ export class RouterV300Contract
       keepAssets,
     );
 
+    const leftover: Array<Asset> = leftoverBalances.values().map(a => ({
+      ...a,
+      balance: limitLeftover(a.balance, a.token) ?? 0n,
+    }));
+
     // TODO: PathOptionFactory deals with token data from SDK
     // it needs to accept market data
     const pathOptions = PathOptionFactory.generatePathOptions(
@@ -357,7 +377,7 @@ export class RouterV300Contract
     const connectors = this.getAvailableConnectors(cm.collateralTokens);
     return {
       expected: expectedBalances.values(),
-      leftover: leftoverBalances.values(),
+      leftover,
       connectors,
       pathOptions,
     };

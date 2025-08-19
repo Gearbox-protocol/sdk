@@ -4,6 +4,7 @@ import { BaseContract } from "../base/index.js";
 import { AddressMap } from "../utils/index.js";
 import type { IHooks } from "../utils/internal/index.js";
 import { Hooks } from "../utils/internal/index.js";
+import { limitLeftover } from "./helpers.js";
 import type {
   Asset,
   RouterCASlice,
@@ -48,7 +49,9 @@ export abstract class AbstractRouterContract<
       expected.upsert(token, { token, balance: actual > 10n ? actual : 0n });
       leftover.upsert(token, {
         token,
-        balance: leftoverBalances.get(token)?.balance || 1n,
+        balance:
+          limitLeftover(leftoverBalances.get(token)?.balance || 1n, token) ??
+          1n,
       });
     }
 
@@ -79,7 +82,10 @@ export abstract class AbstractRouterContract<
         balance < minBalance ||
         !isEnabled
       ) {
-        leftoverBalances.upsert(token, { token, balance });
+        leftoverBalances.upsert(token, {
+          token,
+          balance: limitLeftover(balance, token) ?? balance,
+        });
       }
     }
 
