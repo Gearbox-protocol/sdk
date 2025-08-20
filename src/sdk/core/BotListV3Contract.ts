@@ -51,7 +51,9 @@ export class BotListContract extends BaseContract<abi> {
       fromBlock: this.#currentBlock,
       toBlock,
     });
-    logs.forEach(e => this.processLog(e));
+    logs.forEach(e => {
+      this.processLog(e);
+    });
     this.#currentBlock = toBlock;
   }
 
