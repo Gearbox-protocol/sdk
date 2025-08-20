@@ -20,11 +20,11 @@ export class ZappersPlugin
   implements IGearboxSDKPlugin<ZappersPluginState>
 {
   #zappers?: AddressMap<ZapperDataFull[]>;
-  #extraZappers: ZapperDataFull[];
+  #extraZappers: AddressMap<ZapperDataFull[]>;
 
   constructor(extraZappers: ZapperDataFull[] = [], loadOnAttach = false) {
     super(loadOnAttach);
-    this.#extraZappers = extraZappers;
+    this.#extraZappers = this.#addExtraZappers(extraZappers);
   }
 
   public async load(force?: boolean): Promise<ZappersPluginState> {
@@ -66,20 +66,22 @@ export class ZappersPlugin
         );
       } else {
         this.sdk.logger?.error(
-          `failed to load zapper for market configurator ${this.labelAddress(marketConfigurator)} and pool ${this.labelAddress(pool)}: ${error}`,
+          `failed to load zapper for market configurator ${this.labelAddress(
+            marketConfigurator,
+          )} and pool ${this.labelAddress(pool)}: ${error}`,
         );
       }
     }
 
-    this.#addExtraZappers();
-
     this.#loadZapperTokens();
+
     return this.state;
   }
 
-  #addExtraZappers(): void {
-    for (const z of this.#extraZappers) {
-      const existing = this.#zappers?.get(z.pool);
+  #addExtraZappers(extraZappers: ZapperDataFull[]) {
+    const zappers: AddressMap<ZapperDataFull[]> = new AddressMap();
+    for (const z of extraZappers) {
+      const existing = zappers?.get(z.pool);
       if (existing) {
         const hasZapper = existing.some(zz =>
           hexEq(zz.baseParams.addr, z.baseParams.addr),
@@ -88,9 +90,18 @@ export class ZappersPlugin
           existing.push(z);
         }
       } else {
-        this.#zappers?.upsert(z.pool, [z]);
+        zappers?.upsert(z.pool, [z]);
       }
     }
+
+    return zappers;
+  }
+
+  public get extraZappers(): AddressMap<ZapperDataFull[]> {
+    if (!this.#extraZappers) {
+      throw new Error("zappers plugin not attached");
+    }
+    return this.#extraZappers;
   }
 
   public get zappers(): AddressMap<ZapperDataFull[]> {
@@ -131,7 +142,11 @@ export class ZappersPlugin
     const zappersTokens = this.zappers
       .values()
       .flatMap(l => l.flatMap(z => [z.tokenIn, z.tokenOut]));
-    for (const t of zappersTokens) {
+    const extraZappersTokens = this.extraZappers
+      .values()
+      .flatMap(l => l.flatMap(z => [z.tokenIn, z.tokenOut]));
+
+    for (const t of [...zappersTokens, ...extraZappersTokens]) {
       this.sdk.tokensMeta.upsert(t.addr, t);
       this.sdk.provider.addressLabels.set(t.addr as Address, t.symbol);
     }
