@@ -24,7 +24,7 @@ const THRESHOLD = 5n * 10n ** 17n;
 
 /**
  * According to van0k, leftover balance for 0x19ebd191f7a24ece672ba13a302212b5ef7f35cb
- * should always be rounded down to 0 if amount is less than 5e17
+ * should always be rounded up to 5e17 if amount is less than 5e17
  * Should NEVER be compared with "||" since function will lose it's effect
  */
 export function limitLeftover(
