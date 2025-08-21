@@ -53,7 +53,7 @@ const HUMAN_READABLE_SYMBOLS: PartialRecord<string, string> = {
   ["PT-wstUSR-25SEP2025"]: "pt.wstUSR(25.09.25)",
   ["PT-yUSD-27NOV2025"]: "pt.yUSD(27.11.25)",
 
-  wdwstETH: "rstETH\u00A0→\u00A0wstETH",
+  ["0xab7d50fc2486a1ac06516e2ece9dadc95ba8cd20"]: "cp0xLRT\u00A0→\u00A0wstETH",
 };
 
 export class TokenData {
@@ -67,10 +67,14 @@ export class TokenData {
   readonly icon: string;
 
   constructor(payload: TokenDataPayload) {
-    this.address = payload.addr.toLowerCase() as Address;
+    const address = payload.addr.toLowerCase() as Address;
+    this.address = address;
 
     this.title =
-      payload.title || HUMAN_READABLE_SYMBOLS[payload.symbol] || payload.symbol;
+      payload.title ||
+      HUMAN_READABLE_SYMBOLS[payload.symbol] ||
+      HUMAN_READABLE_SYMBOLS[address] ||
+      payload.symbol;
     this.symbol = payload.symbol;
     this.name = payload.name;
 
