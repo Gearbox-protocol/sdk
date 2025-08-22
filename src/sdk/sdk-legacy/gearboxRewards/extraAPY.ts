@@ -30,7 +30,7 @@ type PartialPool = Pick<
 >;
 
 export interface GetPointsByPoolProps {
-  poolRewards: Record<Address, Record<Address, PoolPointsInfo>>;
+  poolRewards: Record<Address, Array<PoolPointsInfo>>;
 
   totalTokenBalances: Record<Address, Asset>;
   pools: Array<PartialPool>;
@@ -51,6 +51,28 @@ export interface GetTotalTokensOnProtocolProps {
 
   tokensList: Record<Address, TokenData>;
   network: NetworkType;
+}
+
+export type PoolPointsBase = Record<
+  Address,
+  Array<{
+    key: string;
+    info: PoolPointsInfo;
+    points: bigint;
+  }>
+>;
+
+export function getKeyForPoolPointsInfo(i: PoolPointsInfo) {
+  return [
+    i.pool,
+    i.token,
+    i.symbol,
+    i.duration,
+    i.name,
+    i.type,
+    i.estimation,
+    i.condition,
+  ].join("-");
 }
 
 export class GearboxRewardsExtraApy {
@@ -104,10 +126,10 @@ export class GearboxRewardsExtraApy {
     pools,
     tokensList,
   }: GetPointsByPoolProps) {
-    const r = pools.reduce<Record<Address, Array<Asset>>>((acc, p) => {
-      const pointsInfo = Object.values(poolRewards[p.address] || {});
+    const r = pools.reduce<PoolPointsBase>((acc, p) => {
+      const pointsInfo = poolRewards[p.address] || [];
 
-      const poolPointsList = pointsInfo.reduce<Array<Asset>>(
+      const poolPointsList = pointsInfo.reduce<PoolPointsBase[Address]>(
         (acc, pointsInfo) => {
           const { address: tokenAddress } = tokensList[pointsInfo.token];
           const tokenBalance = totalTokenBalances[tokenAddress || ""];
@@ -120,7 +142,11 @@ export class GearboxRewardsExtraApy {
           );
 
           if (points !== null) {
-            acc.push({ balance: points, token: tokenAddress });
+            acc.push({
+              key: getKeyForPoolPointsInfo(pointsInfo),
+              info: pointsInfo,
+              points,
+            });
           }
 
           return acc;
@@ -142,24 +168,24 @@ export class GearboxRewardsExtraApy {
     tokensList: Record<Address, TokenData>,
     pointsInfo: PoolPointsInfo,
   ) {
-    if (!tokenBalanceInPool && pointsInfo.estimation === "relative")
-      return null;
     if (pool.expectedLiquidity <= 0) return 0n;
+    if (pointsInfo.estimation === "relative" && !tokenBalanceInPool)
+      return null;
+
     const { decimals = 18 } = tokensList[pointsInfo.token] || {};
     const targetFactor = 10n ** BigInt(decimals);
+
+    const defaultPoints =
+      (pointsInfo.amount * targetFactor) / PERCENTAGE_FACTOR;
+    if (pointsInfo.estimation === "absolute") return defaultPoints;
 
     const { decimals: underlyingDecimals = 18 } =
       tokensList[pool.underlyingToken] || {};
     const underlyingFactor = 10n ** BigInt(underlyingDecimals);
 
-    const defaultPoints =
-      (pointsInfo.amount * targetFactor) / PERCENTAGE_FACTOR;
-
     const points =
-      pointsInfo.estimation === "absolute"
-        ? defaultPoints
-        : ((tokenBalanceInPool?.balance || 0n) * defaultPoints) /
-          ((pool.expectedLiquidity * targetFactor) / underlyingFactor);
+      ((tokenBalanceInPool?.balance || 0n) * defaultPoints) /
+      ((pool.expectedLiquidity * targetFactor) / underlyingFactor);
 
     return BigIntMath.min(points, defaultPoints);
   }
