@@ -24,7 +24,7 @@ import {
 } from "../../constants/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { PriceOracleStateHuman } from "../../types/index.js";
-import { AddressMap, formatBN } from "../../utils/index.js";
+import { AddressMap, formatBN, hexEq } from "../../utils/index.js";
 import type {
   IPriceFeedContract,
   PriceFeedUsageType,
@@ -145,10 +145,13 @@ export abstract class PriceOracleBaseContract<
     for (const tx of txs) {
       const { to: priceFeed, callData, description } = tx.raw;
       const [token, reserve] = this.findTokenForPriceFeed(priceFeed);
-      // this situation happend when we have combined updates from multiple markrts,
+      // this situation happens when we have combined updates from multiple markets,
       // but this particular feed is not added to this particular oracle
       if (!token) {
+        const mains = this.mainPriceFeeds.values().map(v => v.address);
+        const reserves = this.reservePriceFeeds.values().map(v => v.address);
         this.logger?.debug(
+          { mainPriceFeeds: mains, reservePriceFeeds: reserves },
           `skipping onDemandPriceUpdate ${description}): token not found for price feed ${priceFeed} in oracle ${this.address}`,
         );
         continue;
@@ -392,12 +395,12 @@ export abstract class PriceOracleBaseContract<
     priceFeed: Address,
   ): [token: Address | undefined, reserve: boolean] {
     for (const [token, pf] of this.mainPriceFeeds.entries()) {
-      if (pf.address === priceFeed) {
+      if (hexEq(pf.address, priceFeed)) {
         return [token, false];
       }
     }
     for (const [token, pf] of this.reservePriceFeeds.entries()) {
-      if (pf.address === priceFeed) {
+      if (hexEq(pf.address, priceFeed)) {
         return [token, true];
       }
     }
