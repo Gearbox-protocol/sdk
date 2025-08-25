@@ -39,10 +39,6 @@ export type SimulateWithPriceUpdatesParameters<
   } = {},
 > = SimulateMulticallParameters<contracts, false, options> & {
   priceUpdates: IPriceUpdateTx[];
-  contracts: MulticallContracts<
-    Narrow<contracts>,
-    { mutability: AbiStateMutability }
-  >;
   /**
    * If true, price updates are not allowed to fail
    * Defaults to false
