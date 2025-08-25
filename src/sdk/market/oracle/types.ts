@@ -7,7 +7,7 @@ import type {
 
 import type { iPriceFeedCompressorAbi } from "../../../abi/compressors.js";
 import type { IBaseContract } from "../../base/index.js";
-import type { PriceOracleStateHuman } from "../../types/index.js";
+import type { MultiCall, PriceOracleStateHuman } from "../../types/index.js";
 import type { AddressMap } from "../../utils/index.js";
 import type {
   IPriceFeedContract,
@@ -19,17 +19,6 @@ import type PriceFeedAnswerMap from "./PriceFeedAnswerMap.js";
 export interface PriceFeedsForTokensOptions {
   main?: boolean;
   reserve?: boolean;
-}
-
-/**
- * Data to be passed to credit facade's multicall
- * Compatible with both v300 and v310 facades
- */
-export interface OnDemandPriceUpdate {
-  priceFeed: Address;
-  token: Address;
-  reserve: boolean;
-  data: Hex;
 }
 
 export interface IPriceOracleContract extends IBaseContract {
@@ -105,8 +94,9 @@ export interface IPriceOracleContract extends IBaseContract {
    * @returns
    */
   onDemandPriceUpdates: (
+    creditFacade: Address,
     updates?: UpdatePriceFeedsResult,
-  ) => OnDemandPriceUpdate[];
+  ) => MultiCall[];
   /**
    * Tries to convert amount of from one token to another, using latest known prices
    * @param from

@@ -1,10 +1,22 @@
-import type { Address, ContractEventName, Log } from "viem";
+import {
+  type Address,
+  type ContractEventName,
+  decodeFunctionData,
+  encodeFunctionData,
+  type Log,
+} from "viem";
 
 import { iPausableAbi } from "../../../abi/iPausable.js";
-import { iPriceOracleV300Abi } from "../../../abi/v300.js";
+import { iUpdatablePriceFeedAbi } from "../../../abi/iUpdatablePriceFeed.js";
+import {
+  iCreditFacadeV300MulticallAbi,
+  iPriceOracleV300Abi,
+} from "../../../abi/v300.js";
 import type { PriceOracleData } from "../../base/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import { tickerInfoTokensByNetwork } from "../../sdk-gov-legacy/index.js";
+import type { MultiCall } from "../../types/index.js";
+import type { UpdatePriceFeedsResult } from "../pricefeeds/index.js";
 import { PriceOracleBaseContract } from "./PriceOracleBaseContract.js";
 
 const abi = [...iPriceOracleV300Abi, ...iPausableAbi];
@@ -44,6 +56,66 @@ export class PriceOracleV300Contract extends PriceOracleBaseContract<abi> {
         this.dirty = true;
         break;
     }
+  }
+
+  /**
+   * Converts previously obtained price updates into CreditFacade multicall entries
+   * @param creditFacade
+   * @param updates
+   * @returns
+   */
+  public onDemandPriceUpdates(
+    creditFacade: Address,
+    updates?: UpdatePriceFeedsResult,
+  ): MultiCall[] {
+    // TODO: really here I'm doing lots of reverse processing:
+    // decoding RawTx into Redstone calldata
+    // and then finding token + reserve value for a price feed
+    // it would be much nicer to have intermediate format and get RawTx/OnDemandPriceUpdate/ViemMulticall from it (as it's done in liquidator)
+    const result: MultiCall[] = [];
+    if (!updates) {
+      this.logger?.debug("empty updates list");
+      return result;
+    }
+    const { txs } = updates;
+
+    for (const tx of txs) {
+      const { to: priceFeed, callData, description } = tx.raw;
+      const [token, reserve] = this.findTokenForPriceFeed(priceFeed);
+      // this situation happens when we have combined updates from multiple markets,
+      // but this particular feed is not added to this particular oracle
+      if (!token) {
+        const mains = this.mainPriceFeeds.values().map(v => v.address);
+        const reserves = this.reservePriceFeeds.values().map(v => v.address);
+        this.logger?.debug(
+          { mainPriceFeeds: mains, reservePriceFeeds: reserves },
+          `skipping onDemandPriceUpdate ${description}): token not found for price feed ${priceFeed} in oracle ${this.address}`,
+        );
+        continue;
+      }
+      const { args } = decodeFunctionData({
+        abi: iUpdatablePriceFeedAbi,
+        data: callData,
+      });
+      const data = args[0];
+      if (!data) {
+        throw new Error(
+          `failed to decode update price args for ${description}`,
+        );
+      }
+      result.push({
+        target: creditFacade,
+        callData: encodeFunctionData({
+          abi: iCreditFacadeV300MulticallAbi,
+          functionName: "onDemandPriceUpdate",
+          args: [token, reserve, data],
+        }),
+      });
+    }
+    this.logger?.debug(
+      `got ${result.length} onDemandPriceUpdates from ${txs.length} txs`,
+    );
+    return result;
   }
 
   public override findTokenForPriceFeed(

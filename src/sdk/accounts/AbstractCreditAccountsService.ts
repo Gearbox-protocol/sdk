@@ -25,7 +25,6 @@ import type { GearboxSDK } from "../GearboxSDK.js";
 import type {
   IPriceFeedContract,
   IPriceOracleContract,
-  OnDemandPriceUpdate,
   UpdatePriceFeedsResult,
 } from "../market/index.js";
 import { type Asset, assetsMap, type RouterCASlice } from "../router/index.js";
@@ -1030,30 +1029,6 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
-   * Returns account price updates in a non-encoded format
-   * @param acc
-   * @returns
-   */
-  public async getOnDemandPriceUpdates(
-    creditManager: Address,
-    creditAccount: RouterCASlice | undefined,
-    desiredQuotas: Array<Asset> | undefined,
-  ): Promise<Array<OnDemandPriceUpdate>> {
-    const market = this.sdk.marketRegister.findByCreditManager(creditManager);
-    const cm = this.sdk.marketRegister.findCreditManager(creditManager);
-    const update = await this.getUpdateForAccount(
-      creditManager,
-      creditAccount,
-      desiredQuotas,
-    );
-    this.#logger?.debug(
-      { account: creditAccount?.creditAccount, manager: cm.name },
-      `getting on demand price updates from ${update.txs.length} txs`,
-    );
-    return market.priceOracle.onDemandPriceUpdates(update);
-  }
-
-  /**
    * Returns price updates in format that is accepted by various credit facade methods (multicall, close/liquidate, etc...).
    * - If there are desiredQuotas and creditAccount update quotaBalance > 0 || (balance > 10n && isEnabled). Is used when account has both: balances and quota buys.
    * - If there is creditAccount update balance > 10n && isEnabled. Is used in credit account actions when quota is not being bought.
@@ -1066,13 +1041,21 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     creditAccount: RouterCASlice | undefined,
     desiredQuotas: Array<Asset> | undefined,
   ): Promise<Array<MultiCall>> {
+    const market = this.sdk.marketRegister.findByCreditManager(creditManager);
     const cm = this.sdk.marketRegister.findCreditManager(creditManager);
-    const updates = await this.getOnDemandPriceUpdates(
+    const update = await this.getUpdateForAccount(
       creditManager,
       creditAccount,
       desiredQuotas,
     );
-    return cm.creditFacade.encodeOnDemandPriceUpdates(updates);
+    this.#logger?.debug(
+      { account: creditAccount?.creditAccount, manager: cm.name },
+      `getting on demand price updates from ${update.txs.length} txs`,
+    );
+    return market.priceOracle.onDemandPriceUpdates(
+      cm.creditFacade.address,
+      update,
+    );
   }
 
   protected prepareDisableQuotas(ca: RouterCASlice): Array<MultiCall> {

@@ -4,7 +4,6 @@ import type {
   DecodeFunctionDataReturnType,
   Log,
 } from "viem";
-import { encodeFunctionData } from "viem";
 
 import { iPausableAbi } from "../../../abi/iPausable.js";
 import {
@@ -21,7 +20,6 @@ import type {
   RawTx,
 } from "../../types/index.js";
 import { fmtBinaryMask, formatBNvalue } from "../../utils/index.js";
-import type { OnDemandPriceUpdate } from "../oracle/index.js";
 
 const abi = [
   ...iCreditFacadeV310Abi,
@@ -100,26 +98,6 @@ export class CreditFacadeV310Contract extends BaseContract<abi> {
         this.dirty = true;
         break;
     }
-  }
-
-  public encodeOnDemandPriceUpdates(
-    updates: OnDemandPriceUpdate[],
-  ): MultiCall[] {
-    return [
-      {
-        target: this.address,
-        callData: encodeFunctionData({
-          abi: iCreditFacadeMulticallV310Abi,
-          functionName: "onDemandPriceUpdates",
-          args: [
-            updates.map(u => ({
-              priceFeed: u.priceFeed,
-              data: u.data,
-            })),
-          ],
-        }),
-      },
-    ];
   }
 
   public liquidateCreditAccount(

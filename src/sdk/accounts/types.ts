@@ -4,11 +4,7 @@ import type { iCreditAccountCompressorAbi } from "../../abi/compressors.js";
 import type { BotType } from "../../plugins/bots/types.js";
 import type { ConnectedBotData, CreditAccountData } from "../base/index.js";
 import type { SDKConstruct } from "../base/SDKConstruct.js";
-import type {
-  CreditSuite,
-  OnDemandPriceUpdate,
-  UpdatePriceFeedsResult,
-} from "../market/index.js";
+import type { CreditSuite, UpdatePriceFeedsResult } from "../market/index.js";
 import type {
   Asset,
   RouterCASlice,
@@ -568,17 +564,6 @@ export interface ICreditAccountsService extends SDKConstruct {
   getUpdateForAccounts(
     accounts: Array<RouterCASlice>,
   ): Promise<UpdatePriceFeedsResult>;
-
-  /**
-   * Returns account price updates in a non-encoded format
-   * @param acc
-   * @returns
-   */
-  getOnDemandPriceUpdates(
-    creditManager: Address,
-    creditAccount: RouterCASlice | undefined,
-    desiredQuotas: Array<Asset> | undefined,
-  ): Promise<Array<OnDemandPriceUpdate>>;
 
   /**
    * Withdraws a single collateral from credit account to wallet to and updates quotas;

@@ -1,13 +1,18 @@
 import { readFile, writeFile } from "node:fs/promises";
 
 import { pino } from "pino";
-
+import { AccountOpener } from "../src/dev/AccountOpener.js";
 import { AccountsCounterPlugin } from "../src/plugins/accounts-counter/index.js";
 import { BotsPlugin } from "../src/plugins/bots/index.js";
 import { DegenDistributorsPlugin } from "../src/plugins/degen-distributors/index.js";
 import { Pools7DAgoPlugin } from "../src/plugins/pools-history/index.js";
 import { ZappersPlugin } from "../src/plugins/zappers/index.js";
-import { GearboxSDK, json_stringify } from "../src/sdk/index.js";
+import { CreditAccountServiceV310 } from "../src/sdk/accounts/CreditAccountsServiceV310.js";
+import {
+  GearboxSDK,
+  type IPriceFeedContract,
+  json_stringify,
+} from "../src/sdk/index.js";
 
 const logger = pino({
   level: process.env.LOG_LEVEL ?? "debug",
@@ -33,22 +38,55 @@ async function example(): Promise<void> {
     // blockNumber: 22118452, // 21977000, // 22118452
     // redstoneHistoricTimestamp: true,
     // addressProvider: ADDRESS_PROVIDER,
-    // marketConfigurators: [],
+    marketConfigurators: ["0x7A133FBd01736Fd076158307c9476cC3877F1AF5"],
     logger,
     // ignoreUpdateablePrices: true,
     strictContractTypes: true,
     plugins: {
-      zappers: new ZappersPlugin([], true),
-      bots: new BotsPlugin(true),
-      degen: new DegenDistributorsPlugin(true),
-      pools7DAgo: new Pools7DAgoPlugin(true),
-      accountsCounter: new AccountsCounterPlugin(true),
+      // zappers: new ZappersPlugin([], true),
+      // bots: new BotsPlugin(true),
+      // degen: new DegenDistributorsPlugin(true),
+      // pools7DAgo: new Pools7DAgoPlugin(true),
+      // accountsCounter: new AccountsCounterPlugin(true),
       // stalenessV300: V300StalenessPeriodPlugin,
     },
     redstone: {
       enableLogging: true,
+      historicTimestamp: true,
+    },
+    pyth: {
+      historicTimestamp: true,
     },
   });
+  logger.flush();
+  logger.info("--------------------------------");
+  const cm = "0x8c118E8C20CEbbaa2467b735BBB8B13d614e6608";
+  const feed = sdk.contracts.mustGet(
+    "0x2Ca87FDbFD032000EA24A78389032130fb433e6a",
+  ) as any as IPriceFeedContract;
+  logger.debug(
+    { address: feed.address, priceFeedType: feed.priceFeedType },
+    "got feed",
+  );
+
+  const cas = new CreditAccountServiceV310(sdk);
+  const updates = await cas.getPriceUpdatesForFacade(cm, undefined, [
+    { token: "0x40fc1f58ab6efc06e008370a040e92b635dd4ce4", balance: 1000000n },
+  ]);
+  logger.debug({ updates }, "got updates");
+
+  // const opn = new AccountOpener(cas).openCreditAccounts(
+  //   [
+  //     {
+  //       creditManager: cm,
+  //       target: "0x40fc1f58ab6efc06e008370a040e92b635dd4ce4",
+  //       leverage: 5,
+  //     },
+  //   ],
+  //   false,
+  //   false,
+  // );
+  // logger.debug({ opn }, "opn");
 
   // kind = "hydrated";
   // const state = await readFile(

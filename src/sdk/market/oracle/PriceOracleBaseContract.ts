@@ -5,10 +5,9 @@ import type {
   ContractFunctionArgs,
   ContractFunctionReturnType,
 } from "viem";
-import { decodeFunctionData, stringToHex } from "viem";
+import { stringToHex } from "viem";
 
 import { iPriceFeedCompressorAbi } from "../../../abi/compressors.js";
-import { iUpdatablePriceFeedAbi } from "../../../abi/iUpdatablePriceFeed.js";
 import type { BaseContractOptions } from "../../base/BaseContract.js";
 import type {
   PriceFeedMapEntry,
@@ -23,7 +22,7 @@ import {
   VERSION_RANGE_310,
 } from "../../constants/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
-import type { PriceOracleStateHuman } from "../../types/index.js";
+import type { MultiCall, PriceOracleStateHuman } from "../../types/index.js";
 import { AddressMap, formatBN, hexEq } from "../../utils/index.js";
 import type {
   IPriceFeedContract,
@@ -35,7 +34,6 @@ import PriceFeedAnswerMap from "./PriceFeedAnswerMap.js";
 import type {
   DelegatedOracleMulticall,
   IPriceOracleContract,
-  OnDemandPriceUpdate,
   PriceFeedsForTokensOptions,
 } from "./types.js";
 
@@ -122,57 +120,10 @@ export abstract class PriceOracleBaseContract<
     return this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(updatables);
   }
 
-  /**
-   * Converts previously obtained price updates into CreditFacade multicall entries
-   * @param creditFacade
-   * @param updates
-   * @returns
-   */
-  public onDemandPriceUpdates(
+  public abstract onDemandPriceUpdates(
+    creditFacade: Address,
     updates?: UpdatePriceFeedsResult,
-  ): OnDemandPriceUpdate[] {
-    // TODO: really here I'm doing lots of reverse processing:
-    // decoding RawTx into Redstone calldata
-    // and then finding token + reserve value for a price feed
-    // it would be much nicer to have intermediate format and get RawTx/OnDemandPriceUpdate/ViemMulticall from it (as it's done in liquidator)
-    const result: OnDemandPriceUpdate[] = [];
-    if (!updates) {
-      this.logger?.debug("empty updates list");
-      return result;
-    }
-    const { txs } = updates;
-
-    for (const tx of txs) {
-      const { to: priceFeed, callData, description } = tx.raw;
-      const [token, reserve] = this.findTokenForPriceFeed(priceFeed);
-      // this situation happens when we have combined updates from multiple markets,
-      // but this particular feed is not added to this particular oracle
-      if (!token) {
-        const mains = this.mainPriceFeeds.values().map(v => v.address);
-        const reserves = this.reservePriceFeeds.values().map(v => v.address);
-        this.logger?.debug(
-          { mainPriceFeeds: mains, reservePriceFeeds: reserves },
-          `skipping onDemandPriceUpdate ${description}): token not found for price feed ${priceFeed} in oracle ${this.address}`,
-        );
-        continue;
-      }
-      const { args } = decodeFunctionData({
-        abi: iUpdatablePriceFeedAbi,
-        data: callData,
-      });
-      const data = args[0]!;
-      result.push({
-        priceFeed,
-        token,
-        reserve,
-        data,
-      });
-    }
-    this.logger?.debug(
-      `got ${result.length} onDemandPriceUpdates from ${txs.length} txs`,
-    );
-    return result;
-  }
+  ): MultiCall[];
 
   /**
    * Gets main price for given token
