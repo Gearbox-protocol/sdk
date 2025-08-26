@@ -1031,7 +1031,9 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
 
   /**
    * Returns account price updates that can be used in credit facade multicall or liquidator calls
-   * @param acc
+   * @param creditManager
+   * @param creditAccount
+   * @param desiredQuotas
    * @returns
    */
   public async getOnDemandPriceUpdates(
