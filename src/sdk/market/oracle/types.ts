@@ -2,7 +2,6 @@ import type {
   Address,
   ContractFunctionParameters,
   ContractFunctionReturnType,
-  Hex,
 } from "viem";
 
 import type { iPriceFeedCompressorAbi } from "../../../abi/compressors.js";
@@ -19,6 +18,17 @@ import type PriceFeedAnswerMap from "./PriceFeedAnswerMap.js";
 export interface PriceFeedsForTokensOptions {
   main?: boolean;
   reserve?: boolean;
+}
+
+/**
+ * Abstraction that represents on demand price updates acceptable by both credit facade multicall and
+ * as raw PriceUpdate in liquidator calls
+ * T is (priceFeed, data) for v310 and (token, reserve, data) for v300
+ * TODO: should be removed after v310 migration
+ */
+export interface OnDemandPriceUpdates<T = unknown> {
+  raw: T[];
+  multicall: MultiCall[];
 }
 
 export interface IPriceOracleContract extends IBaseContract {
@@ -96,7 +106,7 @@ export interface IPriceOracleContract extends IBaseContract {
   onDemandPriceUpdates: (
     creditFacade: Address,
     updates?: UpdatePriceFeedsResult,
-  ) => MultiCall[];
+  ) => OnDemandPriceUpdates;
   /**
    * Tries to convert amount of from one token to another, using latest known prices
    * @param from

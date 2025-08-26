@@ -25,6 +25,7 @@ import type { GearboxSDK } from "../GearboxSDK.js";
 import type {
   IPriceFeedContract,
   IPriceOracleContract,
+  OnDemandPriceUpdates,
   UpdatePriceFeedsResult,
 } from "../market/index.js";
 import { type Asset, assetsMap, type RouterCASlice } from "../router/index.js";
@@ -1029,18 +1030,15 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
-   * Returns price updates in format that is accepted by various credit facade methods (multicall, close/liquidate, etc...).
-   * - If there are desiredQuotas and creditAccount update quotaBalance > 0 || (balance > 10n && isEnabled). Is used when account has both: balances and quota buys.
-   * - If there is creditAccount update balance > 10n && isEnabled. Is used in credit account actions when quota is not being bought.
-   * - If there is desiredQuotas update quotaBalance > 0. Is used on credit account opening, when quota is bought for the first time.
+   * Returns account price updates that can be used in credit facade multicall or liquidator calls
    * @param acc
    * @returns
    */
-  protected async getPriceUpdatesForFacade(
+  public async getOnDemandPriceUpdates(
     creditManager: Address,
     creditAccount: RouterCASlice | undefined,
     desiredQuotas: Array<Asset> | undefined,
-  ): Promise<Array<MultiCall>> {
+  ): Promise<OnDemandPriceUpdates> {
     const market = this.sdk.marketRegister.findByCreditManager(creditManager);
     const cm = this.sdk.marketRegister.findCreditManager(creditManager);
     const update = await this.getUpdateForAccount(
@@ -1056,6 +1054,27 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       cm.creditFacade.address,
       update,
     );
+  }
+
+  /**
+   * Returns price updates in format that is accepted by various credit facade methods (multicall, close/liquidate, etc...).
+   * - If there are desiredQuotas and creditAccount update quotaBalance > 0 || (balance > 10n && isEnabled). Is used when account has both: balances and quota buys.
+   * - If there is creditAccount update balance > 10n && isEnabled. Is used in credit account actions when quota is not being bought.
+   * - If there is desiredQuotas update quotaBalance > 0. Is used on credit account opening, when quota is bought for the first time.
+   * @param acc
+   * @returns
+   */
+  protected async getPriceUpdatesForFacade(
+    creditManager: Address,
+    creditAccount: RouterCASlice | undefined,
+    desiredQuotas: Array<Asset> | undefined,
+  ): Promise<Array<MultiCall>> {
+    const updates = await this.getOnDemandPriceUpdates(
+      creditManager,
+      creditAccount,
+      desiredQuotas,
+    );
+    return updates.multicall;
   }
 
   protected prepareDisableQuotas(ca: RouterCASlice): Array<MultiCall> {

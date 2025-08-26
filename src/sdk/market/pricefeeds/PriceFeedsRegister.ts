@@ -35,7 +35,7 @@ import { RedstonePriceFeedContract } from "./RedstonePriceFeed.js";
 import type {
   IPriceFeedContract,
   PriceFeedContractType,
-  PriceUpdateRaw,
+  PriceUpdateV310,
   UpdatePriceFeedsResult,
 } from "./types.js";
 import type {
@@ -152,7 +152,7 @@ export class PriceFeedRegister
   public async generatePriceFeedsUpdates(
     priceFeeds?: IPriceFeedContract[],
     logContext: Record<string, any> = {},
-  ): Promise<PriceUpdateRaw[]> {
+  ): Promise<PriceUpdateV310[]> {
     const updates = await this.generatePriceFeedsUpdateTxs(
       priceFeeds,
       logContext,
@@ -198,7 +198,7 @@ export class PriceFeedRegister
   public async generateExternalPriceFeedsUpdates(
     feeds: Address[],
     block?: { blockNumber: bigint } | { blockTag: BlockTag },
-  ): Promise<PriceUpdateRaw[]> {
+  ): Promise<PriceUpdateV310[]> {
     const updates = await this.generateExternalPriceFeedsUpdateTxs(
       feeds,
       block,

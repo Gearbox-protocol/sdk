@@ -8,6 +8,9 @@ export abstract class PriceUpdateTx<
   T extends IPriceUpdateTask = IPriceUpdateTask,
 > implements IPriceUpdateTx<T>
 {
+  /**
+   * raw tx with encoded `priceFeed.updatePrice` call
+   */
   public readonly raw: RawTx;
   public readonly data: T;
   public abstract readonly name: string;

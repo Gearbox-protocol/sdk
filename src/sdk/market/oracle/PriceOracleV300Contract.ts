@@ -3,6 +3,7 @@ import {
   type ContractEventName,
   decodeFunctionData,
   encodeFunctionData,
+  Hex,
   type Log,
 } from "viem";
 
@@ -16,8 +17,12 @@ import type { PriceOracleData } from "../../base/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import { tickerInfoTokensByNetwork } from "../../sdk-gov-legacy/index.js";
 import type { MultiCall } from "../../types/index.js";
-import type { UpdatePriceFeedsResult } from "../pricefeeds/index.js";
+import type {
+  PriceUpdateV300,
+  UpdatePriceFeedsResult,
+} from "../pricefeeds/index.js";
 import { PriceOracleBaseContract } from "./PriceOracleBaseContract.js";
+import type { OnDemandPriceUpdates } from "./types";
 
 const abi = [...iPriceOracleV300Abi, ...iPausableAbi];
 type abi = typeof abi;
@@ -67,15 +72,16 @@ export class PriceOracleV300Contract extends PriceOracleBaseContract<abi> {
   public onDemandPriceUpdates(
     creditFacade: Address,
     updates?: UpdatePriceFeedsResult,
-  ): MultiCall[] {
+  ): OnDemandPriceUpdates<PriceUpdateV300> {
     // TODO: really here I'm doing lots of reverse processing:
     // decoding RawTx into Redstone calldata
     // and then finding token + reserve value for a price feed
     // it would be much nicer to have intermediate format and get RawTx/OnDemandPriceUpdate/ViemMulticall from it (as it's done in liquidator)
-    const result: MultiCall[] = [];
+    const multicall: MultiCall[] = [];
+    const raw: PriceUpdateV300[] = [];
     if (!updates) {
       this.logger?.debug("empty updates list");
-      return result;
+      return { multicall, raw };
     }
     const { txs } = updates;
 
@@ -103,7 +109,8 @@ export class PriceOracleV300Contract extends PriceOracleBaseContract<abi> {
           `failed to decode update price args for ${description}`,
         );
       }
-      result.push({
+      raw.push({ token, reserve, data });
+      multicall.push({
         target: creditFacade,
         callData: encodeFunctionData({
           abi: iCreditFacadeV300MulticallAbi,
@@ -113,9 +120,9 @@ export class PriceOracleV300Contract extends PriceOracleBaseContract<abi> {
       });
     }
     this.logger?.debug(
-      `got ${result.length} onDemandPriceUpdates from ${txs.length} txs`,
+      `got ${multicall.length} onDemandPriceUpdates from ${txs.length} txs`,
     );
-    return result;
+    return { multicall, raw };
   }
 
   public override findTokenForPriceFeed(

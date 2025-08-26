@@ -90,11 +90,20 @@ export interface UpdatePriceFeedsResult {
   timestamp: number;
 }
 
-export interface PriceUpdateRaw {
+export interface PriceUpdateV310 {
   /**
    * IUpdatablePriceFeed contract address
    */
   priceFeed: Address;
+  /**
+   * Data that can be passed to IUpdatablePriceFeed.updatePrice
+   */
+  data: Hex;
+}
+
+export interface PriceUpdateV300 {
+  token: Address;
+  reserve: boolean;
   /**
    * Data that can be passed to IUpdatablePriceFeed.updatePrice
    */

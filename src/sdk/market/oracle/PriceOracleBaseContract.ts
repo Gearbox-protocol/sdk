@@ -22,7 +22,7 @@ import {
   VERSION_RANGE_310,
 } from "../../constants/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
-import type { MultiCall, PriceOracleStateHuman } from "../../types/index.js";
+import type { PriceOracleStateHuman } from "../../types/index.js";
 import { AddressMap, formatBN, hexEq } from "../../utils/index.js";
 import type {
   IPriceFeedContract,
@@ -31,6 +31,7 @@ import type {
 } from "../pricefeeds/index.js";
 import { PriceFeedRef } from "../pricefeeds/index.js";
 import PriceFeedAnswerMap from "./PriceFeedAnswerMap.js";
+import type { OnDemandPriceUpdates } from "./types";
 import type {
   DelegatedOracleMulticall,
   IPriceOracleContract,
@@ -123,7 +124,7 @@ export abstract class PriceOracleBaseContract<
   public abstract onDemandPriceUpdates(
     creditFacade: Address,
     updates?: UpdatePriceFeedsResult,
-  ): MultiCall[];
+  ): OnDemandPriceUpdates;
 
   /**
    * Gets main price for given token
