@@ -146,6 +146,8 @@ export interface ChartsPoolDataPayload {
   uniqueLPsOld: number;
   uniqueLPs: number;
   uniqueLPs10kBasis: number;
+
+  market: Address;
 }
 
 export interface ChartsAggregatedStats {
@@ -205,6 +207,8 @@ export interface UserPoolPayload {
   depositAPY_RAY: string;
   lmAPY: number;
   lmRewardAll: Array<{ apy: number; token: Address }>;
+
+  market: Address;
 }
 
 export interface UserPoolAggregatedStatsPayload {

@@ -209,6 +209,7 @@ export class ChartsPoolData {
   readonly dieselToken: Address;
   readonly version: number;
   readonly name: string;
+  readonly marketConfigurator: Address;
 
   readonly addLiqCount: number;
   readonly addedLiquidity: number;
@@ -276,6 +277,7 @@ export class ChartsPoolData {
     this.dieselToken = (payload.dieselToken || "").toLowerCase() as Address;
     this.version = payload.version || 1;
     this.name = payload.name || "";
+    this.marketConfigurator = (payload.market || "").toLowerCase() as Address;
 
     this.earned7D = payload.earned7D || 0;
     this.earned7DInUSD = payload.earned7DInUSD || 0;
@@ -363,6 +365,7 @@ export class UserPoolData {
   readonly address: Address;
   readonly dieselToken: Address;
   readonly underlyingToken: Address;
+  readonly marketConfigurator: Address;
 
   readonly depositAPY: number;
   readonly depositAPYRay: bigint;
@@ -397,6 +400,7 @@ export class UserPoolData {
       payload.underlyingToken || ""
     ).toLowerCase() as Address;
     this.dieselToken = (payload.dieselToken || "").toLowerCase() as Address;
+    this.marketConfigurator = (payload.market || "").toLowerCase() as Address;
 
     this.depositAPY =
       rayToNumber(payload.depositAPY_RAY || 0) * Number(PERCENTAGE_DECIMALS);

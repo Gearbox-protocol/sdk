@@ -134,4 +134,6 @@ export interface ChartsCreditManagerPayload {
   liquidityThresholds: Record<Address, number>;
 
   totalDebtLimit: BigNumberish;
+
+  market: Address;
 }

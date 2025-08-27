@@ -173,6 +173,7 @@ export class ChartsCreditManagerData {
   readonly pool: Address;
   readonly version: number;
   readonly name: string;
+  readonly marketConfigurator: Address;
 
   readonly borrowRate: number;
   readonly borrowRateOld: number;
@@ -228,6 +229,7 @@ export class ChartsCreditManagerData {
     this.pool = (payload.poolAddress || "").toLowerCase() as Address;
     this.version = payload.version || 2;
     this.name = payload.name || "";
+    this.marketConfigurator = (payload.market || "").toLowerCase() as Address;
 
     this.borrowRate = Number(
       (toBigInt(payload.borrowRate || 0) *
