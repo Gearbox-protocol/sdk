@@ -12,6 +12,7 @@ import { PoolSuite } from "./pool/index.js";
 
 export class MarketSuite extends SDKConstruct {
   public readonly acl: Address;
+  public readonly treasury: Address;
   public readonly configurator: MarketConfiguratorContract;
   public readonly pool: PoolSuite;
   public readonly priceOracle: IPriceOracleContract;
@@ -35,6 +36,7 @@ export class MarketSuite extends SDKConstruct {
     this.configurator = mc;
 
     this.acl = marketData.acl;
+    this.treasury = marketData.treasury;
 
     for (const t of marketData.tokens) {
       sdk.tokensMeta.upsert(t.addr, t);
