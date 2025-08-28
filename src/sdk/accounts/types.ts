@@ -4,6 +4,7 @@ import type {
   GetAbiItemReturnType,
   GetContractReturnType,
   PublicClient,
+  WalletClient,
 } from "viem";
 
 import type { iCreditAccountCompressorAbi } from "../../abi/compressors.js";
@@ -249,6 +250,33 @@ export interface PreviewCreditAccountMigrationProps
    * Credit manager to migrate liquidity to
    */
   targetCreditManager: Address;
+}
+
+export interface MigrateCreditAccountProps extends PrepareUpdateQuotasProps {
+  /**
+   * accountMigratorBot Address
+   */
+  accountMigratorBot: Address;
+  /**
+   * Minimal credit account data on which operation is performed
+   */
+  creditAccount: RouterCASlice;
+  /**
+   * Credit manager to migrate liquidity to
+   */
+  targetCreditManager: Address;
+  /**
+   * signer instance
+   */
+  signer: WalletClient;
+  /**
+   * migration preview result
+   */
+  preview: PreviewMigrationResult;
+  /**
+   * wallet address
+   */
+  account: Address;
 }
 
 export type PreviewMigrationResult = Awaited<
@@ -554,6 +582,13 @@ export interface ICreditAccountsService extends SDKConstruct {
   previewCreditAccountMigration(
     props: PreviewCreditAccountMigrationProps,
   ): Promise<PreviewMigrationResult>;
+
+  /**
+   * Migrates credit account with a given preview result
+   * @param props - {@link MigrateCreditAccountProps}
+   * @returns
+   */
+  migrateCreditAccount(props: MigrateCreditAccountProps): Promise<Address>;
 
   /**
    * Claim tokens with delayed withdrawal
