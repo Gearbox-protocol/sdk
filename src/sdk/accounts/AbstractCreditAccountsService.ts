@@ -7,6 +7,7 @@ import {
   iRewardsCompressorAbi,
 } from "../../abi/compressors.js";
 import { iBaseRewardPoolAbi } from "../../abi/iBaseRewardPool.js";
+import { accountMigratorPreviewerV310Abi } from "../../abi/migration.js";
 import { iCreditFacadeV300MulticallAbi } from "../../abi/v300.js";
 import type { CreditAccountData } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
@@ -36,6 +37,8 @@ import type {
   ClaimDelayedProps,
   FullyLiquidateProps,
   GetConnectedBotsResult,
+  PreviewCreditAccountMigrationProps,
+  PreviewMigrationResult,
   StartDelayedWithdrawalProps,
 } from "./types";
 import type {
@@ -637,6 +640,43 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
 
     return { tx, calls, creditFacade: cm.creditFacade };
+  }
+
+  /**
+   * Preview delayed withdrawal for a given credit account
+   * @param props - {@link PreviewCreditAccountMigrationProps}
+   * @returns
+   */
+  public async previewCreditAccountMigration({
+    previewerAddress,
+    creditAccount,
+    targetCreditManager,
+    averageQuota,
+  }: PreviewCreditAccountMigrationProps): Promise<PreviewMigrationResult> {
+    const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
+      targetCreditManager,
+      creditAccount,
+      averageQuota,
+    );
+
+    const contract = getContract({
+      address: previewerAddress,
+      abi: accountMigratorPreviewerV310Abi,
+      client: {
+        public: this.sdk.provider.publicClient,
+      },
+    });
+
+    const { result } = await contract.simulate.previewMigration([
+      creditAccount.creditAccount,
+      targetCreditManager,
+      priceUpdatesCalls.map(mc => ({
+        priceFeed: mc.target,
+        data: mc.callData,
+      })),
+    ]);
+
+    return result;
   }
 
   /**

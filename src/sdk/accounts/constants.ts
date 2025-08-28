@@ -7,4 +7,9 @@ export const PERMISSION_BY_TYPE: Record<BotBaseType, bigint> = {
       BotPermissions.WITHDRAW_COLLATERAL |
       BotPermissions.DECREASE_DEBT,
   ),
+
+  // some:
+  //   BotPermissions.EXTERNAL_CALLS |
+  //   BotPermissions.UPDATE_QUOTA |
+  //   BotPermissions.DECREASE_DEBT,
 };

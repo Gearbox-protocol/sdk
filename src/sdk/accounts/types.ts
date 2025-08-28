@@ -1,6 +1,13 @@
-import type { Address, ContractFunctionArgs } from "viem";
+import type {
+  Address,
+  ContractFunctionArgs,
+  GetAbiItemReturnType,
+  GetContractReturnType,
+  PublicClient,
+} from "viem";
 
 import type { iCreditAccountCompressorAbi } from "../../abi/compressors.js";
+import type { accountMigratorPreviewerV310Abi } from "../../abi/migration.js";
 import type { BotType } from "../../plugins/bots/types.js";
 import type { ConnectedBotData, CreditAccountData } from "../base/index.js";
 import type { SDKConstruct } from "../base/SDKConstruct.js";
@@ -188,11 +195,11 @@ export interface ExecuteSwapProps extends PrepareUpdateQuotasProps {
 
 export interface StartDelayedWithdrawalProps extends PrepareUpdateQuotasProps {
   /**
-   * Amount of source token (ex. sp0xlrt)
+   * Amount of source token (ex. cp0xlrt)
    */
   sourceAmount: bigint;
   /**
-   * Address of source token (ex. sp0xlrt)
+   * Address of source token (ex. cp0xlrt)
    */
   sourceToken: Address;
   /**
@@ -227,6 +234,31 @@ export interface ClaimDelayedProps extends PrepareUpdateQuotasProps {
    */
   creditAccount: RouterCASlice;
 }
+
+export interface PreviewCreditAccountMigrationProps
+  extends PrepareUpdateQuotasProps {
+  /**
+   * accountMigratorPreviewer Address
+   */
+  previewerAddress: Address;
+  /**
+   * Minimal credit account data on which operation is performed
+   */
+  creditAccount: RouterCASlice;
+  /**
+   * Credit manager to migrate liquidity to
+   */
+  targetCreditManager: Address;
+}
+
+export type PreviewMigrationResult = Awaited<
+  ReturnType<
+    GetContractReturnType<
+      typeof accountMigratorPreviewerV310Abi,
+      PublicClient
+    >["simulate"]["previewMigration"]
+  >
+>["result"];
 
 export interface ClaimFarmRewardsProps extends PrepareUpdateQuotasProps {
   /**
@@ -513,6 +545,15 @@ export interface ICreditAccountsService extends SDKConstruct {
   startDelayedWithdrawal_Mellow(
     props: StartDelayedWithdrawalProps,
   ): Promise<CreditAccountOperationResult>;
+
+  /**
+   * Preview delayed withdrawal for a given credit account
+   * @param props - {@link PreviewCreditAccountMigrationProps}
+   * @returns - {@link PreviewMigrationResult}
+   */
+  previewCreditAccountMigration(
+    props: PreviewCreditAccountMigrationProps,
+  ): Promise<PreviewMigrationResult>;
 
   /**
    * Claim tokens with delayed withdrawal
