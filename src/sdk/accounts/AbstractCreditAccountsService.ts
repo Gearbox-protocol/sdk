@@ -28,7 +28,12 @@ import type {
   OnDemandPriceUpdates,
   UpdatePriceFeedsResult,
 } from "../market/index.js";
-import { type Asset, assetsMap, type RouterCASlice } from "../router/index.js";
+import {
+  type Asset,
+  assetsMap,
+  type CreditAccountTokensSlice,
+  type RouterCASlice,
+} from "../router/index.js";
 import type { ILogger, IPriceUpdateTx, MultiCall } from "../types/index.js";
 import { AddressMap, childLogger } from "../utils/index.js";
 import { simulateWithPriceUpdates } from "../utils/viem/index.js";
@@ -965,7 +970,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
 
   protected async getUpdateForAccount(
     creditManager: Address,
-    creditAccount: RouterCASlice | undefined,
+    creditAccount: CreditAccountTokensSlice | undefined,
     desiredQuotas: Array<Asset> | undefined,
   ): Promise<UpdatePriceFeedsResult> {
     const quotaRecord = desiredQuotas
@@ -1038,7 +1043,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
    */
   public async getOnDemandPriceUpdates(
     creditManager: Address,
-    creditAccount: RouterCASlice | undefined,
+    creditAccount: CreditAccountTokensSlice | undefined,
     desiredQuotas: Array<Asset> | undefined,
   ): Promise<OnDemandPriceUpdates> {
     const market = this.sdk.marketRegister.findByCreditManager(creditManager);
@@ -1068,7 +1073,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
    */
   protected async getPriceUpdatesForFacade(
     creditManager: Address,
-    creditAccount: RouterCASlice | undefined,
+    creditAccount: CreditAccountTokensSlice | undefined,
     desiredQuotas: Array<Asset> | undefined,
   ): Promise<Array<MultiCall>> {
     const updates = await this.getOnDemandPriceUpdates(

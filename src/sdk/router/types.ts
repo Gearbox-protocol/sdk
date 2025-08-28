@@ -104,6 +104,11 @@ export type RouterCASlice = Pick<
   | "creditManager"
 >;
 
+export type CreditAccountTokensSlice = Pick<
+  CreditAccountData,
+  "creditAccount" | "tokens" | "enabledTokensMask"
+>;
+
 export interface FindAllSwapsProps {
   /**
    * Minimal credit account data on which operation is performed
