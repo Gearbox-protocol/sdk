@@ -1,9 +1,10 @@
 import type { Address } from "viem";
-
+import { PreviewMigrationResult } from "../../accounts/types.js";
 import type { Asset } from "../../router/index.js";
 import { formatBN } from "../../utils/index.js";
 import type { TokenData } from "../tokens/tokenData.js";
 import { BigIntMath } from "../utils/math.js";
+import type { CreditManagerData_Legacy } from "./creditManager.js";
 import type { EVMTxProps } from "./eventOrTx.js";
 import { EVMTx } from "./eventOrTx.js";
 
@@ -36,7 +37,8 @@ export interface TxSerialized {
     | "TxUnstakeDiesel"
     | "TxEnableTokens"
     | "TxFillOrder"
-    | "TxStartDelayedWithdrawal";
+    | "TxStartDelayedWithdrawal"
+    | "TxMigrateCreditAccount";
   content: string;
 }
 
@@ -101,6 +103,8 @@ export class TxSerializer {
           return new TxFillOrder(params);
         case "TxStartDelayedWithdrawal":
           return new TxStartDelayedWithdrawal(params);
+        case "TxMigrateCreditAccount":
+          return new TxMigrateCreditAccount(params);
         default:
           throw new Error(`Unknown transaction for parsing: ${e.type}`);
       }
@@ -625,6 +629,34 @@ export class TxStartDelayedWithdrawal extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxStartDelayedWithdrawal",
+      content: JSON.stringify(this),
+    };
+  }
+}
+
+interface TxMigrateCreditAccountProps extends EVMTxProps {
+  targetCreditManager: CreditManagerData_Legacy;
+  curatorName: string;
+
+  tokensList: Record<Address, TokenData>;
+}
+
+export class TxMigrateCreditAccount extends EVMTx {
+  readonly targetCreditManager: string;
+
+  constructor(opts: TxMigrateCreditAccountProps) {
+    super(opts);
+
+    this.targetCreditManager = `${opts.targetCreditManager.name} (${opts.curatorName})`;
+  }
+
+  toString() {
+    return `Successfully migrated Credit Account to ${this.targetCreditManager}`;
+  }
+
+  serialize(): TxSerialized {
+    return {
+      type: "TxMigrateCreditAccount",
       content: JSON.stringify(this),
     };
   }
