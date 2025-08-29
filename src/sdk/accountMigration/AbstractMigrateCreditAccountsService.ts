@@ -10,6 +10,7 @@ import type { ICreditAccountsService } from "../accounts/types.js";
 import { SDKConstruct } from "../base/index.js";
 import { chains as CHAINS } from "../chain/chains.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
+import type { CreditAccountData_Legacy } from "../sdk-legacy/index.js";
 import type { ILogger } from "../types/index.js";
 import { childLogger } from "../utils/index.js";
 import type {
@@ -61,12 +62,12 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
     previewerAddress,
     creditAccount,
     targetCreditManager,
-    averageQuota,
+    expectedTargetQuota,
   }: PreviewCreditAccountMigrationProps): Promise<PreviewMigrationResult> {
     const priceUpdatesCalls = await this.#service.getPriceUpdatesForFacade(
       targetCreditManager,
-      creditAccount,
-      averageQuota,
+      undefined,
+      expectedTargetQuota,
     );
 
     const contract = getContract({
@@ -96,7 +97,6 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
    */
   public async migrateCreditAccount({
     accountMigratorBot,
-    creditAccount,
     targetCreditManager,
     signer,
     preview,
@@ -105,7 +105,7 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
   }: MigrateCreditAccountProps): Promise<Address> {
     const priceUpdatesCalls = await this.#service.getPriceUpdatesForFacade(
       targetCreditManager,
-      creditAccount,
+      undefined,
       averageQuota,
     );
 
@@ -138,5 +138,23 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
         chainId
       ][source] ?? source
     );
+  }
+
+  public static getTokensToMigrate(creditAccount: CreditAccountData_Legacy) {
+    const sourceTokensToMigrate = Object.values(creditAccount.tokens).filter(
+      t => creditAccount.isTokenEnabled(t.token) && t.balance > 1n,
+    );
+    const targetTokensToMigrate = sourceTokensToMigrate.map(
+      a =>
+        ({
+          ...a,
+          token: AbstractMigrateCreditAccountsService.getV310TargetTokenAddress(
+            a.token,
+            creditAccount.chainId,
+          ),
+        }) as typeof a,
+    );
+
+    return { sourceTokensToMigrate, targetTokensToMigrate };
   }
 }

@@ -8,17 +8,13 @@ import type {
 import type { accountMigratorPreviewerV310Abi } from "../../abi/migration.js";
 import type { PrepareUpdateQuotasProps } from "../accounts/types.js";
 import type { SDKConstruct } from "../base/SDKConstruct.js";
-import type { RouterCASlice } from "../router/index.js";
+import type { Asset, RouterCASlice } from "../router/index.js";
 
 export interface MigrateCreditAccountProps extends PrepareUpdateQuotasProps {
   /**
    * accountMigratorBot Address
    */
   accountMigratorBot: Address;
-  /**
-   * Minimal credit account data on which operation is performed
-   */
-  creditAccount: RouterCASlice;
   /**
    * Credit manager to migrate liquidity to
    */
@@ -37,8 +33,7 @@ export interface MigrateCreditAccountProps extends PrepareUpdateQuotasProps {
   account: Address;
 }
 
-export interface PreviewCreditAccountMigrationProps
-  extends PrepareUpdateQuotasProps {
+export interface PreviewCreditAccountMigrationProps {
   /**
    * accountMigratorPreviewer Address
    */
@@ -51,6 +46,10 @@ export interface PreviewCreditAccountMigrationProps
    * Credit manager to migrate liquidity to
    */
   targetCreditManager: Address;
+  /**
+   * Expected quota after migration
+   */
+  expectedTargetQuota: Array<Asset>;
 }
 
 export type PreviewMigrationResult = Awaited<
