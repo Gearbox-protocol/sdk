@@ -1,14 +1,12 @@
 import type {
   Address,
   ContractFunctionArgs,
-  GetAbiItemReturnType,
   GetContractReturnType,
   PublicClient,
   WalletClient,
 } from "viem";
 
 import type { iCreditAccountCompressorAbi } from "../../abi/compressors.js";
-import type { accountMigratorPreviewerV310Abi } from "../../abi/migration.js";
 import type { BotType } from "../../plugins/bots/types.js";
 import type { ConnectedBotData, CreditAccountData } from "../base/index.js";
 import type { SDKConstruct } from "../base/SDKConstruct.js";
@@ -19,6 +17,7 @@ import type {
 } from "../market/index.js";
 import type {
   Asset,
+  CreditAccountTokensSlice,
   RouterCASlice,
   RouterCloseResult,
 } from "../router/index.js";
@@ -235,58 +234,6 @@ export interface ClaimDelayedProps extends PrepareUpdateQuotasProps {
    */
   creditAccount: RouterCASlice;
 }
-
-export interface PreviewCreditAccountMigrationProps
-  extends PrepareUpdateQuotasProps {
-  /**
-   * accountMigratorPreviewer Address
-   */
-  previewerAddress: Address;
-  /**
-   * Minimal credit account data on which operation is performed
-   */
-  creditAccount: RouterCASlice;
-  /**
-   * Credit manager to migrate liquidity to
-   */
-  targetCreditManager: Address;
-}
-
-export interface MigrateCreditAccountProps extends PrepareUpdateQuotasProps {
-  /**
-   * accountMigratorBot Address
-   */
-  accountMigratorBot: Address;
-  /**
-   * Minimal credit account data on which operation is performed
-   */
-  creditAccount: RouterCASlice;
-  /**
-   * Credit manager to migrate liquidity to
-   */
-  targetCreditManager: Address;
-  /**
-   * signer instance
-   */
-  signer: WalletClient;
-  /**
-   * migration preview result
-   */
-  preview: PreviewMigrationResult;
-  /**
-   * wallet address
-   */
-  account: Address;
-}
-
-export type PreviewMigrationResult = Awaited<
-  ReturnType<
-    GetContractReturnType<
-      typeof accountMigratorPreviewerV310Abi,
-      PublicClient
-    >["simulate"]["previewMigration"]
-  >
->["result"];
 
 export interface ClaimFarmRewardsProps extends PrepareUpdateQuotasProps {
   /**
@@ -575,22 +522,6 @@ export interface ICreditAccountsService extends SDKConstruct {
   ): Promise<CreditAccountOperationResult>;
 
   /**
-   * Preview delayed withdrawal for a given credit account
-   * @param props - {@link PreviewCreditAccountMigrationProps}
-   * @returns - {@link PreviewMigrationResult}
-   */
-  previewCreditAccountMigration(
-    props: PreviewCreditAccountMigrationProps,
-  ): Promise<PreviewMigrationResult>;
-
-  /**
-   * Migrates credit account with a given preview result
-   * @param props - {@link MigrateCreditAccountProps}
-   * @returns
-   */
-  migrateCreditAccount(props: MigrateCreditAccountProps): Promise<Address>;
-
-  /**
    * Claim tokens with delayed withdrawal
      - Claim is executed in the following order: price update -> execute claim calls -> update quotas
    * @param props - {@link ClaimDelayedProps}
@@ -657,6 +588,19 @@ export interface ICreditAccountsService extends SDKConstruct {
     creditAccount: RouterCASlice | undefined,
     desiredQuotas: Array<Asset> | undefined,
   ): Promise<OnDemandPriceUpdates>;
+
+  /**
+   * Returns price updates in format that is accepted by various credit facade methods (multicall, close/liquidate, etc...).
+   * @param creditManager
+   * @param creditAccount
+   * @param desiredQuotas
+   * @returns
+   */
+  getPriceUpdatesForFacade(
+    creditManager: Address,
+    creditAccount: CreditAccountTokensSlice | undefined,
+    desiredQuotas: Array<Asset> | undefined,
+  ): Promise<Array<MultiCall>>;
 
   /**
    * Withdraws a single collateral from credit account to wallet to and updates quotas;

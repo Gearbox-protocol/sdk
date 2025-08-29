@@ -7,10 +7,6 @@ import {
   iRewardsCompressorAbi,
 } from "../../abi/compressors.js";
 import { iBaseRewardPoolAbi } from "../../abi/iBaseRewardPool.js";
-import {
-  accountMigratorBotV310Abi,
-  accountMigratorPreviewerV310Abi,
-} from "../../abi/migration.js";
 import { iCreditFacadeV300MulticallAbi } from "../../abi/v300.js";
 import type { CreditAccountData } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
@@ -45,9 +41,6 @@ import type {
   ClaimDelayedProps,
   FullyLiquidateProps,
   GetConnectedBotsResult,
-  MigrateCreditAccountProps,
-  PreviewCreditAccountMigrationProps,
-  PreviewMigrationResult,
   StartDelayedWithdrawalProps,
 } from "./types";
 import type {
@@ -652,83 +645,6 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
-   * Preview delayed withdrawal for a given credit account
-   * @param props - {@link PreviewCreditAccountMigrationProps}
-   * @returns
-   */
-  public async previewCreditAccountMigration({
-    previewerAddress,
-    creditAccount,
-    targetCreditManager,
-    averageQuota,
-  }: PreviewCreditAccountMigrationProps): Promise<PreviewMigrationResult> {
-    const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
-      targetCreditManager,
-      creditAccount,
-      averageQuota,
-    );
-
-    const contract = getContract({
-      address: previewerAddress,
-      abi: accountMigratorPreviewerV310Abi,
-      client: {
-        public: this.sdk.provider.publicClient,
-      },
-    });
-
-    const { result } = await contract.simulate.previewMigration([
-      creditAccount.creditAccount,
-      targetCreditManager,
-      priceUpdatesCalls.map(mc => ({
-        priceFeed: mc.target,
-        data: mc.callData,
-      })),
-    ]);
-
-    return result;
-  }
-
-  /**
-   * Migrates credit account with a given preview result
-   * @param props - {@link MigrateCreditAccountProps}
-   * @returns
-   */
-  public async migrateCreditAccount({
-    accountMigratorBot,
-    creditAccount,
-    targetCreditManager,
-    signer,
-    preview,
-    averageQuota,
-    account,
-  }: MigrateCreditAccountProps): Promise<Address> {
-    const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
-      targetCreditManager,
-      creditAccount,
-      averageQuota,
-    );
-
-    const contract = getContract({
-      address: accountMigratorBot,
-      abi: accountMigratorBotV310Abi,
-      client: signer,
-    });
-
-    const tx = await contract.write.migrateCreditAccount(
-      [
-        preview.migrationParams,
-        priceUpdatesCalls.map(mc => ({
-          priceFeed: mc.target,
-          data: mc.callData,
-        })),
-      ] as const,
-      { account: account, chain: signer.chain },
-    );
-
-    return tx;
-  }
-
-  /**
    * Claim tokens with delayed withdrawal
      - Claim is executed in the following order: price update -> execute claim calls -> update quotas
    * @param props - {@link ClaimDelayedProps}
@@ -1155,7 +1071,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
    * @param acc
    * @returns
    */
-  protected async getPriceUpdatesForFacade(
+  public async getPriceUpdatesForFacade(
     creditManager: Address,
     creditAccount: CreditAccountTokensSlice | undefined,
     desiredQuotas: Array<Asset> | undefined,

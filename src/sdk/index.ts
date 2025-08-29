@@ -1,3 +1,4 @@
+export * from "./accountMigration/index.js";
 export * from "./accounts/index.js";
 export * from "./base/index.js";
 export * from "./chain/index.js";
