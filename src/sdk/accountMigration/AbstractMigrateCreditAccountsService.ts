@@ -10,7 +10,11 @@ import type { ICreditAccountsService } from "../accounts/types.js";
 import { SDKConstruct } from "../base/index.js";
 import { chains as CHAINS } from "../chain/chains.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
-import type { CreditAccountData_Legacy } from "../sdk-legacy/index.js";
+import type { Asset } from "../router/types.js";
+import type {
+  CreditAccountData_Legacy,
+  CreditManagerData_Legacy,
+} from "../sdk-legacy/index.js";
 import type { ILogger } from "../types/index.js";
 import { childLogger } from "../utils/index.js";
 import type {
@@ -42,9 +46,9 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
     },
   };
 
-  static readonly accountMigratorBot =
+  private static readonly accountMigratorBot =
     "0xc19ddEbDEB7Ba119eB9F23d079dcEaBC1B25B41f".toLowerCase() as Address;
-  static readonly accountMigratorPreviewer =
+  private static readonly accountMigratorPreviewer =
     "0xe6d2A2477722Af204899cfd3257A43aDAE1Ea264".toLowerCase() as Address;
 
   constructor(sdk: GearboxSDK, version: number) {
@@ -144,6 +148,18 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
       ][source] ?? source
     );
   }
+  public static getAccountMigratorBot(chainId: number): Address | undefined {
+    return chainId === CHAINS.Mainnet.id
+      ? AbstractMigrateCreditAccountsService.accountMigratorBot
+      : undefined;
+  }
+  public static getAccountMigratorPreviewer(
+    chainId: number,
+  ): Address | undefined {
+    return chainId === CHAINS.Mainnet.id
+      ? AbstractMigrateCreditAccountsService.accountMigratorPreviewer
+      : undefined;
+  }
 
   public static getTokensToMigrate(creditAccount: CreditAccountData_Legacy) {
     const sourceTokensToMigrate = Object.values(creditAccount.tokens).filter(
@@ -158,5 +174,60 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
     }));
 
     return { sourceTokensToMigrate, targetTokensToMigrate };
+  }
+  public static checkSourceCreditManager(
+    sourceCreditManager: Address,
+    migrationBot: Address,
+    sdk: GearboxSDK,
+  ): boolean {
+    const cmData = sdk.marketRegister.findCreditManager(sourceCreditManager);
+
+    // sourceHasNoMigratorBotAdapter
+    const adapter = cmData.creditManager.adapters.values().find(a => {
+      return a.targetContract === migrationBot;
+    });
+
+    return !!adapter;
+  }
+  public static isSourceMigratableToTargetCM(
+    targetTokensToMigrate: Array<Asset>,
+    source: CreditAccountData_Legacy,
+    target: CreditManagerData_Legacy,
+    delayedPhantoms: Record<Address, object>,
+  ) {
+    const debt = source.borrowedAmountPlusInterestAndFees;
+    // newTargetDebtOutOfLimit
+    if (debt > target.maxDebt || debt < target.minDebt) return false;
+
+    // sourceUnderlyingIsNotCollateral
+    const sourceUnderlying = source.underlying;
+    if (!target.supportedTokens[sourceUnderlying]) return false;
+
+    // migrationCollateralDoesntExistInTarget
+    const collateralsCheckPassed = targetTokensToMigrate.every(a => {
+      const tokenToMigrate =
+        AbstractMigrateCreditAccountsService.getV310TargetTokenAddress(
+          a.token,
+          target.chainId,
+        );
+      // always allow underlying token as collateral
+      if (tokenToMigrate === target.underlyingToken) return true;
+
+      const zeroLt = target.liquidationThresholds[a.token] === 0n;
+      const quotaNotActive = target.quotas[a.token]?.isActive === false;
+      const supportedToken = !!target.supportedTokens[a.token];
+      const forbidden = !!target.forbiddenTokens[a.token];
+
+      const cmCheckPassed =
+        supportedToken &&
+        !zeroLt &&
+        !quotaNotActive &&
+        !forbidden &&
+        !delayedPhantoms[a.token];
+
+      return cmCheckPassed;
+    });
+
+    return collateralsCheckPassed;
   }
 }
