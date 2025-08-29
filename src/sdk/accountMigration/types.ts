@@ -10,7 +10,7 @@ import type { PrepareUpdateQuotasProps } from "../accounts/types.js";
 import type { SDKConstruct } from "../base/SDKConstruct.js";
 import type { Asset, RouterCASlice } from "../router/index.js";
 
-export interface MigrateCreditAccountProps extends PrepareUpdateQuotasProps {
+export interface MigrateCreditAccountProps {
   /**
    * accountMigratorBot Address
    */
@@ -31,6 +31,10 @@ export interface MigrateCreditAccountProps extends PrepareUpdateQuotasProps {
    * wallet address
    */
   account: Address;
+  /**
+   * Expected quota after migration
+   */
+  expectedTargetQuota: Array<Asset>;
 }
 
 export interface PreviewCreditAccountMigrationProps {

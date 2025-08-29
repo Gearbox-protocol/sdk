@@ -42,6 +42,11 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
     },
   };
 
+  static readonly accountMigratorBot =
+    "0xc19ddEbDEB7Ba119eB9F23d079dcEaBC1B25B41f".toLowerCase() as Address;
+  static readonly accountMigratorPreviewer =
+    "0xe6d2A2477722Af204899cfd3257A43aDAE1Ea264".toLowerCase() as Address;
+
   constructor(sdk: GearboxSDK, version: number) {
     super(sdk);
 
@@ -100,13 +105,13 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
     targetCreditManager,
     signer,
     preview,
-    averageQuota,
+    expectedTargetQuota,
     account,
   }: MigrateCreditAccountProps): Promise<Address> {
     const priceUpdatesCalls = await this.#service.getPriceUpdatesForFacade(
       targetCreditManager,
       undefined,
-      averageQuota,
+      expectedTargetQuota,
     );
 
     const contract = getContract({
@@ -144,16 +149,13 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
     const sourceTokensToMigrate = Object.values(creditAccount.tokens).filter(
       t => creditAccount.isTokenEnabled(t.token) && t.balance > 1n,
     );
-    const targetTokensToMigrate = sourceTokensToMigrate.map(
-      a =>
-        ({
-          ...a,
-          token: AbstractMigrateCreditAccountsService.getV310TargetTokenAddress(
-            a.token,
-            creditAccount.chainId,
-          ),
-        }) as typeof a,
-    );
+    const targetTokensToMigrate = sourceTokensToMigrate.map(a => ({
+      ...a,
+      token: AbstractMigrateCreditAccountsService.getV310TargetTokenAddress(
+        a.token,
+        creditAccount.chainId,
+      ),
+    }));
 
     return { sourceTokensToMigrate, targetTokensToMigrate };
   }
