@@ -1,4 +1,4 @@
-import { AbstractMigrateCreditAccountsService } from "./AbstractMigrateCreditAccountsService";
+import { AbstractMigrateCreditAccountsService } from "./AbstractMigrateCreditAccountsService.js";
 import type { IMigrateCreditAccountsService } from "./types.js";
 
 export class MigrateCreditAccountsServiceV300
