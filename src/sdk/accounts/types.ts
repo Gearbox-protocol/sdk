@@ -1,13 +1,8 @@
-import type {
-  Address,
-  ContractFunctionArgs,
-  GetContractReturnType,
-  PublicClient,
-  WalletClient,
-} from "viem";
+import type { Address, ContractFunctionArgs } from "viem";
 
 import type { iCreditAccountCompressorAbi } from "../../abi/compressors.js";
-import type { BotType } from "../../plugins/bots/types.js";
+import type { LiquidationBotType as LiquidationBotTypeSDK } from "../../plugins/bots/types.js";
+import type { MigrationBotType } from "../accountMigration/types.js";
 import type { ConnectedBotData, CreditAccountData } from "../base/index.js";
 import type { SDKConstruct } from "../base/SDKConstruct.js";
 import type {
@@ -377,8 +372,12 @@ export interface Rewards {
   BotBaseType = "liquidationProtection" | someOtherBaseType
   BotDetailedType = LiquidationBotType | someOtherDetailedType
  * */
-export type BotBaseType = "LIQUIDATION_PROTECTION";
-export type LiquidationBotType = Exclude<BotType, "PARTIAL_LIQUIDATION_BOT">;
+export type BotBaseType = "LIQUIDATION_PROTECTION" | "MIGRATION";
+export type LiquidationBotType = Exclude<
+  LiquidationBotTypeSDK,
+  "PARTIAL_LIQUIDATION_BOT"
+>;
+export type { MigrationBotType };
 
 export interface SetBotProps {
   /**
@@ -411,6 +410,26 @@ export type GetConnectedBotsResult = Array<
       status: "failure";
     }
 >;
+
+export type GetConnectedMigrationBotsResult =
+  | {
+      result: (
+        | {
+            error: Error;
+            result?: undefined;
+            status: "failure";
+          }
+        | {
+            error?: undefined;
+            result:
+              | readonly [bigint, boolean, boolean]
+              | readonly [bigint, boolean];
+            status: "success";
+          }
+      )[];
+      migrationBot: `0x${string}`;
+    }
+  | undefined;
 
 export interface ICreditAccountsService extends SDKConstruct {
   /**
@@ -451,7 +470,10 @@ export interface ICreditAccountsService extends SDKConstruct {
    */
   getConnectedBots(
     accountsToCheck: Array<{ creditAccount: Address; creditManager: Address }>,
-  ): Promise<GetConnectedBotsResult>;
+  ): Promise<{
+    legacy: GetConnectedBotsResult;
+    legacyMigration: GetConnectedMigrationBotsResult;
+  }>;
   /**
    * V3.1 method, throws in V3. Connects/disables a bot and updates prices
    * @param props - {@link SetBotProps}

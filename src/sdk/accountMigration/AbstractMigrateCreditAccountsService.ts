@@ -19,6 +19,7 @@ import type { ILogger } from "../types/index.js";
 import { childLogger } from "../utils/index.js";
 import type {
   MigrateCreditAccountProps,
+  MigrationBotState,
   PreviewCreditAccountMigrationProps,
   PreviewMigrationResult,
 } from "./types.js";
@@ -47,9 +48,9 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
   };
 
   private static readonly accountMigratorBot =
-    "0xc19ddEbDEB7Ba119eB9F23d079dcEaBC1B25B41f".toLowerCase() as Address;
+    "0x286Fe53994f5668D56538Aa10eaa3Ac36f878e9C".toLowerCase() as Address;
   private static readonly accountMigratorPreviewer =
-    "0xe6d2A2477722Af204899cfd3257A43aDAE1Ea264".toLowerCase() as Address;
+    "0x99B63E7030e6f066731CF4e166e87D1D18e98B45".toLowerCase() as Address;
 
   constructor(sdk: GearboxSDK, version: number) {
     super(sdk);
@@ -148,16 +149,33 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
       ][source] ?? source
     );
   }
-  public static getAccountMigratorBot(chainId: number): Address | undefined {
+  public static getMigrationBotAddress(chainId: number): Address | undefined {
     return chainId === CHAINS.Mainnet.id
       ? AbstractMigrateCreditAccountsService.accountMigratorBot
       : undefined;
   }
-  public static getAccountMigratorPreviewer(
+  public static getMigrationPreviewerAddress(
     chainId: number,
   ): Address | undefined {
     return chainId === CHAINS.Mainnet.id
       ? AbstractMigrateCreditAccountsService.accountMigratorPreviewer
+      : undefined;
+  }
+  public static getMigrationBotData(
+    chainId: number,
+  ): MigrationBotState | undefined {
+    const address =
+      AbstractMigrateCreditAccountsService.getMigrationBotAddress(chainId);
+    return address
+      ? {
+          baseParams: {
+            addr: address,
+            version: 310,
+          },
+          address: address,
+          version: 310,
+          botType: "MIGRATION_BOT",
+        }
       : undefined;
   }
 
@@ -213,6 +231,7 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
       // always allow underlying token as collateral
       if (tokenToMigrate === target.underlyingToken) return true;
 
+      // duplicates client logic
       const zeroLt = target.liquidationThresholds[a.token] === 0n;
       const quotaNotActive = target.quotas[a.token]?.isActive === false;
       const supportedToken = !!target.supportedTokens[a.token];

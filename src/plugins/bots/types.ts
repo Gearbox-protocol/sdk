@@ -21,14 +21,14 @@ export interface BotParameters {
   feeScaleFactor: number;
 }
 
-export const BOT_TYPES = [
+export const LIQUIDATION_BOT_TYPES = [
   "PARTIAL_LIQUIDATION_BOT",
   "DELEVERAGE_BOT_PEGGED",
   "DELEVERAGE_BOT_LV",
   "DELEVERAGE_BOT_HV",
 ] as const;
 
-export type BotType = (typeof BOT_TYPES)[number];
+export type LiquidationBotType = (typeof LIQUIDATION_BOT_TYPES)[number];
 
 export interface BotStateBaseHuman extends BaseContractStateHuman {
   treasury: Address;
@@ -40,7 +40,7 @@ export interface BotStateBaseHuman extends BaseContractStateHuman {
 }
 
 export interface BotStateV300Human extends BotStateBaseHuman {
-  botType: BotType;
+  botType: LiquidationBotType;
 }
 
 export type BotStateV310Human = BotStateBaseHuman;

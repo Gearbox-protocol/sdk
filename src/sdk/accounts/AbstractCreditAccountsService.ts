@@ -7,7 +7,12 @@ import {
   iRewardsCompressorAbi,
 } from "../../abi/compressors.js";
 import { iBaseRewardPoolAbi } from "../../abi/iBaseRewardPool.js";
-import { iCreditFacadeV300MulticallAbi } from "../../abi/v300.js";
+import {
+  iBotListV300Abi,
+  iCreditFacadeV300MulticallAbi,
+} from "../../abi/v300.js";
+import { iBotListV310Abi } from "../../abi/v310.js";
+import { AbstractMigrateCreditAccountsService } from "../accountMigration/AbstractMigrateCreditAccountsService.js";
 import type { CreditAccountData } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
 import {
@@ -15,6 +20,7 @@ import {
   AP_CREDIT_ACCOUNT_COMPRESSOR,
   AP_PERIPHERY_COMPRESSOR,
   AP_REWARDS_COMPRESSOR,
+  isV300,
   MAX_UINT256,
   MIN_INT96,
   PERCENTAGE_FACTOR,
@@ -41,6 +47,7 @@ import type {
   ClaimDelayedProps,
   FullyLiquidateProps,
   GetConnectedBotsResult,
+  GetConnectedMigrationBotsResult,
   StartDelayedWithdrawalProps,
 } from "./types";
 import type {
@@ -264,24 +271,63 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
    */
   public async getConnectedBots(
     accountsToCheck: Array<{ creditAccount: Address; creditManager: Address }>,
-  ): Promise<GetConnectedBotsResult> {
-    const resp = await this.provider.publicClient.multicall({
-      contracts: accountsToCheck.map(o => {
-        const pool = this.sdk.marketRegister.findByCreditManager(
-          o.creditManager,
-        );
+  ): Promise<{
+    legacy: GetConnectedBotsResult;
+    legacyMigration: GetConnectedMigrationBotsResult;
+  }> {
+    const [resp, migration] = await Promise.all([
+      this.provider.publicClient.multicall({
+        contracts: accountsToCheck.map(o => {
+          const pool = this.sdk.marketRegister.findByCreditManager(
+            o.creditManager,
+          );
 
-        return {
-          abi: iPeripheryCompressorAbi,
-          address: this.peripheryCompressor,
-          functionName: "getConnectedBots",
-          args: [pool.configurator.address, o.creditAccount],
-        } as const;
+          return {
+            abi: iPeripheryCompressorAbi,
+            address: this.peripheryCompressor,
+            functionName: "getConnectedBots",
+            args: [pool.configurator.address, o.creditAccount],
+          } as const;
+        }),
+        allowFailure: true,
       }),
-      allowFailure: true,
-    });
+      this.getActiveMigrationBots(accountsToCheck),
+    ]);
 
-    return resp;
+    return { legacy: resp, legacyMigration: migration };
+  }
+  private async getActiveMigrationBots(
+    accountsToCheck: Array<{ creditAccount: Address; creditManager: Address }>,
+  ) {
+    const migrationBot =
+      AbstractMigrateCreditAccountsService.getMigrationBotAddress(
+        this.sdk.provider.chainId,
+      );
+    if (migrationBot) {
+      const result = await this.provider.publicClient.multicall({
+        contracts: accountsToCheck.map(ca => {
+          const cm = this.sdk.marketRegister.findCreditManager(
+            ca.creditManager,
+          );
+
+          return {
+            abi: isV300(cm.creditFacade.version)
+              ? iBotListV300Abi
+              : iBotListV310Abi,
+            address: cm.creditFacade.botList,
+            functionName: "getBotStatus",
+            args: isV300(cm.creditFacade.version)
+              ? [migrationBot, ca.creditManager, ca.creditAccount]
+              : [migrationBot, ca.creditAccount],
+          } as const;
+        }),
+        allowFailure: true,
+      });
+
+      return { result, migrationBot };
+    }
+
+    return undefined;
   }
 
   /**
