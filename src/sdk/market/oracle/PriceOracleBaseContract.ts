@@ -27,6 +27,8 @@ import { AddressMap, formatBN, hexEq } from "../../utils/index.js";
 import type {
   IPriceFeedContract,
   PriceFeedUsageType,
+  PriceUpdateV300,
+  PriceUpdateV310,
   UpdatePriceFeedsResult,
 } from "../pricefeeds/index.js";
 import { PriceFeedRef } from "../pricefeeds/index.js";
@@ -124,7 +126,7 @@ export abstract class PriceOracleBaseContract<
   public abstract onDemandPriceUpdates(
     creditFacade: Address,
     updates?: UpdatePriceFeedsResult,
-  ): OnDemandPriceUpdates;
+  ): OnDemandPriceUpdates<PriceUpdateV310 | PriceUpdateV300>;
 
   /**
    * Gets main price for given token

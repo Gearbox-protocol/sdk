@@ -8,6 +8,8 @@ import type { SDKConstruct } from "../base/SDKConstruct.js";
 import type {
   CreditSuite,
   OnDemandPriceUpdates,
+  PriceUpdateV300,
+  PriceUpdateV310,
   UpdatePriceFeedsResult,
 } from "../market/index.js";
 import type {
@@ -612,7 +614,7 @@ export interface ICreditAccountsService extends SDKConstruct {
     creditManager: Address,
     creditAccount: RouterCASlice | undefined,
     desiredQuotas: Array<Asset> | undefined,
-  ): Promise<OnDemandPriceUpdates>;
+  ): Promise<OnDemandPriceUpdates<PriceUpdateV310 | PriceUpdateV300>>;
 
   /**
    * Returns price updates in format that is accepted by various credit facade methods (multicall, close/liquidate, etc...).

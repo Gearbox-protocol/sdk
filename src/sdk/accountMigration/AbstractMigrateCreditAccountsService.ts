@@ -9,7 +9,9 @@ import { createCreditAccountService } from "../accounts/createCreditAccountServi
 import type { ICreditAccountsService } from "../accounts/types.js";
 import { SDKConstruct } from "../base/index.js";
 import { chains as CHAINS } from "../chain/chains.js";
+import { isV310 } from "../constants/versions.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
+import type { PriceUpdateV310 } from "../market/index.js";
 import type { Asset } from "../router/types.js";
 import type {
   CreditAccountData_Legacy,
@@ -76,11 +78,23 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
     targetCreditManager,
     expectedTargetQuota,
   }: PreviewCreditAccountMigrationProps): Promise<PreviewMigrationResult> {
-    const priceUpdatesCalls = await this.#service.getPriceUpdatesForFacade(
+    const updatesPayload = await this.#service.getOnDemandPriceUpdates(
       targetCreditManager,
       undefined,
       expectedTargetQuota,
     );
+
+    const market =
+      this.sdk.marketRegister.findByCreditManager(targetCreditManager);
+    const updates =
+      updatesPayload.raw.length === 0
+        ? (updatesPayload.raw as Array<PriceUpdateV310>)
+        : "priceFeed" in updatesPayload.raw[0]
+          ? (updatesPayload.raw as Array<PriceUpdateV310>)
+          : undefined;
+
+    if (!isV310(market.priceOracle.version) || !updates)
+      throw new Error("Unsupported Price Feed");
 
     const contract = getContract({
       address: previewerAddress,
@@ -93,10 +107,7 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
     const { result } = await contract.simulate.previewMigration([
       creditAccount.creditAccount,
       targetCreditManager,
-      priceUpdatesCalls.map(mc => ({
-        priceFeed: mc.target,
-        data: mc.callData,
-      })),
+      updates,
     ]);
 
     return result;
