@@ -74,19 +74,23 @@ export interface AnvilClientConfig<
 > {
   transport: transport;
   chain?: chain;
+  cacheTime?: number;
+  pollingInterval?: number;
 }
 
 export function createAnvilClient({
   chain,
   transport,
+  cacheTime = 0,
+  pollingInterval = 50,
 }: AnvilClientConfig): AnvilClient {
   return createTestClient<"anvil", Transport, Chain, undefined, AnvilRPCSchema>(
     {
       chain,
       mode: "anvil",
       transport,
-      cacheTime: 0,
-      pollingInterval: 50,
+      cacheTime,
+      pollingInterval,
     },
   )
     .extend(publicActions)
