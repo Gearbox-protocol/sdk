@@ -427,7 +427,10 @@ export type GetConnectedMigrationBotsResult =
             status: "success";
           }
       )[];
-      migrationBot: `0x${string}`;
+      migrationBot: {
+        botAddress: Address;
+        previewerAddress: Address;
+      };
     }
   | undefined;
 

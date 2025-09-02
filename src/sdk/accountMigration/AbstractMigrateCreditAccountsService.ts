@@ -151,30 +151,34 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
       ][source] ?? source
     );
   }
-  public static getMigrationBotAddress(chainId: number): Address | undefined {
-    return chainId === CHAINS.Mainnet.id
-      ? AbstractMigrateCreditAccountsService.accountMigratorBot
+  public static getMigrationBotAddress(chainId: number) {
+    const botAddress =
+      chainId === CHAINS.Mainnet.id
+        ? AbstractMigrateCreditAccountsService.accountMigratorBot
+        : undefined;
+    const previewerAddress =
+      chainId === CHAINS.Mainnet.id
+        ? AbstractMigrateCreditAccountsService.accountMigratorPreviewer
+        : undefined;
+
+    return previewerAddress && botAddress
+      ? { botAddress, previewerAddress }
       : undefined;
   }
-  public static getMigrationPreviewerAddress(
-    chainId: number,
-  ): Address | undefined {
-    return chainId === CHAINS.Mainnet.id
-      ? AbstractMigrateCreditAccountsService.accountMigratorPreviewer
-      : undefined;
-  }
+
   public static getMigrationBotData(
     chainId: number,
   ): MigrationBotState | undefined {
-    const address =
-      AbstractMigrateCreditAccountsService.getMigrationBotAddress(chainId);
-    return address
+    const { botAddress } =
+      AbstractMigrateCreditAccountsService.getMigrationBotAddress(chainId) ||
+      {};
+    return botAddress
       ? {
           baseParams: {
-            addr: address,
+            addr: botAddress,
             version: 310,
           },
-          address: address,
+          address: botAddress,
           version: 310,
           botType: "MIGRATION_BOT",
         }

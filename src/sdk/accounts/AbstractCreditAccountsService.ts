@@ -317,8 +317,8 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
             address: cm.creditFacade.botList,
             functionName: "getBotStatus",
             args: isV300(cm.creditFacade.version)
-              ? [migrationBot, ca.creditManager, ca.creditAccount]
-              : [migrationBot, ca.creditAccount],
+              ? [migrationBot.botAddress, ca.creditManager, ca.creditAccount]
+              : [migrationBot.botAddress, ca.creditAccount],
           } as const;
         }),
         allowFailure: true,
