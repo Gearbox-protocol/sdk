@@ -48,9 +48,11 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
   };
 
   private static readonly accountMigratorBot =
-    "0x286Fe53994f5668D56538Aa10eaa3Ac36f878e9C".toLowerCase() as Address;
+    "0xc19ddEbDEB7Ba119eB9F23d079dcEaBC1B25B41f".toLowerCase() as Address;
+  // "0x286Fe53994f5668D56538Aa10eaa3Ac36f878e9C".toLowerCase() as Address;
   private static readonly accountMigratorPreviewer =
-    "0x99B63E7030e6f066731CF4e166e87D1D18e98B45".toLowerCase() as Address;
+    "0xe6d2A2477722Af204899cfd3257A43aDAE1Ea264".toLowerCase() as Address;
+  // "0x99B63E7030e6f066731CF4e166e87D1D18e98B45".toLowerCase() as Address;
 
   constructor(sdk: GearboxSDK, version: number) {
     super(sdk);
@@ -201,8 +203,9 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
     const cmData = sdk.marketRegister.findCreditManager(sourceCreditManager);
 
     // sourceHasNoMigratorBotAdapter
+    const botLc = migrationBot.toLowerCase();
     const adapter = cmData.creditManager.adapters.values().find(a => {
-      return a.targetContract === migrationBot;
+      return a.targetContract.toLowerCase() === botLc;
     });
 
     return !!adapter;
