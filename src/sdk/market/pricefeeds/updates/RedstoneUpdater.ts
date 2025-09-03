@@ -171,7 +171,9 @@ export class RedstoneUpdater
     }
     let tsRange = "";
     if (results.length) {
-      tsRange = `, timestamp range: ${minTimestamp} - ${maxTimestamp}`;
+      const minDelta = BigInt(maxTimestamp) - this.sdk.timestamp;
+      const maxDelta = BigInt(maxTimestamp) - this.sdk.timestamp;
+      tsRange = `, timestamps ${minTimestamp} (${minDelta}) - ${maxTimestamp} (${maxDelta})`;
     }
     this.#logger?.debug(
       logContext,
