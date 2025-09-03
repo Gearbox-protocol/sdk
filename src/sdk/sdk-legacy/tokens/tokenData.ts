@@ -46,7 +46,7 @@ const HUMAN_READABLE_SYMBOLS: PartialRecord<string, string> = {
 
   PT_sUSDX_1SEP2025: "pt.sUSDX(1.09.25)",
 
-  PT_sUSDf_25SEP2025: "pt.sUSDf(1.09.25)",
+  PT_sUSDf_25SEP2025: "pt.sUSDf(25.09.25)",
 
   PT_USDf_29JAN2026: "pt.USDf(29.01.26)",
 
