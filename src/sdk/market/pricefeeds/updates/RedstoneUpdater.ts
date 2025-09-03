@@ -171,9 +171,12 @@ export class RedstoneUpdater
     }
     let tsRange = "";
     if (results.length) {
-      const minDelta = BigInt(maxTimestamp) - this.sdk.timestamp;
-      const maxDelta = BigInt(maxTimestamp) - this.sdk.timestamp;
-      tsRange = `, timestamps ${minTimestamp} (${minDelta}) - ${maxTimestamp} (${maxDelta})`;
+      const minDelta = BigInt(minTimestamp) - this.sdk.timestamp;
+      tsRange = `, timestamps ${minTimestamp} (${minDelta})`;
+      if (minTimestamp !== maxTimestamp) {
+        const maxDelta = BigInt(maxTimestamp) - this.sdk.timestamp;
+        tsRange = `${tsRange} - ${maxTimestamp} (${maxDelta})`;
+      }
     }
     this.#logger?.debug(
       logContext,
