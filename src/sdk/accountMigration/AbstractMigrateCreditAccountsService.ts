@@ -50,11 +50,11 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
   };
 
   private static readonly accountMigratorBot =
-    "0xc19ddEbDEB7Ba119eB9F23d079dcEaBC1B25B41f".toLowerCase() as Address;
-  // "0x286Fe53994f5668D56538Aa10eaa3Ac36f878e9C".toLowerCase() as Address;
+    "0x286Fe53994f5668D56538Aa10eaa3Ac36f878e9C".toLowerCase() as Address;
+  // "0xc19ddEbDEB7Ba119eB9F23d079dcEaBC1B25B41f".toLowerCase() as Address;
   private static readonly accountMigratorPreviewer =
-    "0xe6d2A2477722Af204899cfd3257A43aDAE1Ea264".toLowerCase() as Address;
-  // "0x99B63E7030e6f066731CF4e166e87D1D18e98B45".toLowerCase() as Address;
+    "0x99B63E7030e6f066731CF4e166e87D1D18e98B45".toLowerCase() as Address;
+  // "0xe6d2A2477722Af204899cfd3257A43aDAE1Ea264".toLowerCase() as Address;
 
   constructor(sdk: GearboxSDK, version: number) {
     super(sdk);
@@ -78,23 +78,10 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
     targetCreditManager,
     expectedTargetQuota,
   }: PreviewCreditAccountMigrationProps): Promise<PreviewMigrationResult> {
-    const updatesPayload = await this.#service.getOnDemandPriceUpdates(
+    const updates = await this.getPriceUpdatesForMigration(
       targetCreditManager,
-      undefined,
       expectedTargetQuota,
     );
-
-    const market =
-      this.sdk.marketRegister.findByCreditManager(targetCreditManager);
-    const updates =
-      updatesPayload.raw.length === 0
-        ? (updatesPayload.raw as Array<PriceUpdateV310>)
-        : "priceFeed" in updatesPayload.raw[0]
-          ? (updatesPayload.raw as Array<PriceUpdateV310>)
-          : undefined;
-
-    if (!isV310(market.priceOracle.version) || !updates)
-      throw new Error("Unsupported Price Feed");
 
     const contract = getContract({
       address: previewerAddress,
@@ -126,9 +113,8 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
     expectedTargetQuota,
     account,
   }: MigrateCreditAccountProps): Promise<Address> {
-    const priceUpdatesCalls = await this.#service.getPriceUpdatesForFacade(
+    const updates = await this.getPriceUpdatesForMigration(
       targetCreditManager,
-      undefined,
       expectedTargetQuota,
     );
 
@@ -139,17 +125,36 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
     });
 
     const tx = await contract.write.migrateCreditAccount(
-      [
-        preview.migrationParams,
-        priceUpdatesCalls.map(mc => ({
-          priceFeed: mc.target,
-          data: mc.callData,
-        })),
-      ] as const,
+      [preview.migrationParams, updates],
       { account: account, chain: signer.chain },
     );
 
     return tx;
+  }
+
+  private async getPriceUpdatesForMigration(
+    targetCreditManager: Address,
+    expectedTargetQuota: Array<Asset>,
+  ) {
+    const updatesPayload = await this.#service.getOnDemandPriceUpdates(
+      targetCreditManager,
+      undefined,
+      expectedTargetQuota,
+    );
+
+    const market =
+      this.sdk.marketRegister.findByCreditManager(targetCreditManager);
+    const updates =
+      updatesPayload.raw.length === 0
+        ? (updatesPayload.raw as Array<PriceUpdateV310>)
+        : "priceFeed" in updatesPayload.raw[0]
+          ? (updatesPayload.raw as Array<PriceUpdateV310>)
+          : undefined;
+
+    if (!isV310(market.priceOracle.version) || !updates)
+      throw new Error("Unsupported Price Feed");
+
+    return updates;
   }
 
   public static getV310TargetTokenAddress(
@@ -200,15 +205,29 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
     const sourceTokensToMigrate = Object.values(creditAccount.tokens).filter(
       t => creditAccount.isTokenEnabled(t.token) && t.balance > 1n,
     );
-    const targetTokensToMigrate = sourceTokensToMigrate.map(a => ({
+    const targetTokensToMigrate =
+      AbstractMigrateCreditAccountsService.getTokensAfterMigration(
+        sourceTokensToMigrate,
+        creditAccount.chainId,
+      );
+
+    return { sourceTokensToMigrate, targetTokensToMigrate };
+  }
+  public static getTokensAfterMigration<T extends Asset>(
+    balances: Array<T> | Record<Address, T>,
+    chainId: number,
+  ): Array<T> {
+    const list = Array.isArray(balances) ? balances : Object.values(balances);
+
+    const res = list.map(a => ({
       ...a,
       token: AbstractMigrateCreditAccountsService.getV310TargetTokenAddress(
         a.token,
-        creditAccount.chainId,
+        chainId,
       ),
     }));
 
-    return { sourceTokensToMigrate, targetTokensToMigrate };
+    return res;
   }
   public static checkSourceCreditManager(
     sourceCreditManager: Address,
