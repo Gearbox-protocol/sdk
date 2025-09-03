@@ -142,22 +142,33 @@ export class PythUpdater
 
     const payloads = await this.#getPayloads(new Set(pythFeeds.keys()));
 
-    const results = payloads.map(p => {
+    let [minTimestamp, maxTimestamp] = [Number.POSITIVE_INFINITY, 0];
+    const results: PythUpdateTx[] = [];
+
+    for (const p of payloads) {
       const priceFeed = pythFeeds.get(p.dataFeedId);
       if (!priceFeed) {
         throw new Error(`cannot find price feed for ${p.dataFeedId}`);
       }
       const { dataFeedId, timestamp, cached, data } = p;
-      return new PythUpdateTx(priceFeed.createPriceUpdateTx(data), {
-        dataFeedId,
-        priceFeed: priceFeed.address,
-        timestamp,
-        cached,
-      });
-    });
+      minTimestamp = Math.min(minTimestamp, timestamp);
+      maxTimestamp = Math.max(maxTimestamp, timestamp);
+      results.push(
+        new PythUpdateTx(priceFeed.createPriceUpdateTx(data), {
+          dataFeedId,
+          priceFeed: priceFeed.address,
+          timestamp,
+          cached,
+        }),
+      );
+    }
+    let tsRange = "";
+    if (results.length) {
+      tsRange = `, timestamp range: ${minTimestamp} - ${maxTimestamp}`;
+    }
     this.#logger?.debug(
       logContext,
-      `generated ${results.length} update transactions for pyth price feeds: ${Array.from(pythFeeds.keys()).join(", ")}`,
+      `generated ${results.length} update transactions for pyth price feeds: ${Array.from(pythFeeds.keys()).join(", ")}${tsRange}`,
     );
     return results;
   }
