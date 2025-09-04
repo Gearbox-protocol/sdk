@@ -1,4 +1,4 @@
-import type { Address } from "viem";
+import type { Address, PublicClient } from "viem";
 import { encodeFunctionData, getAddress, getContract } from "viem";
 
 import {
@@ -659,7 +659,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const multiAcceptContract = getContract({
       address: mellowClaimerAdapter.address,
       abi: iMellowClaimerAdapterAbi,
-      client: this.sdk.provider.publicClient,
+      client: this.client,
     });
 
     const indices = await multiAcceptContract.read.getMultiVaultSubvaultIndices(
@@ -742,7 +742,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const multiAcceptContract = getContract({
       address: mellowClaimerAdapter.address,
       abi: iMellowClaimerAdapterAbi,
-      client: this.sdk.provider.publicClient,
+      client: this.client,
     });
 
     const indices = await multiAcceptContract.read.getUserSubvaultIndices([
@@ -1319,6 +1319,10 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       AP_PERIPHERY_COMPRESSOR,
       VERSION_RANGE_310,
     )[0];
+  }
+
+  public get client(): PublicClient {
+    return this.sdk.provider.publicClient;
   }
 }
 
