@@ -44,6 +44,10 @@ export type SimulateWithPriceUpdatesParameters<
    * Defaults to false
    */
   strictPrices?: boolean;
+  /**
+   * Always check block number from multicall
+   */
+  forceBlockNumberCheck?: boolean;
 };
 
 export type SimulateWithPriceUpdatesReturnType<
@@ -122,7 +126,12 @@ export async function simulateWithPriceUpdates<
       }
     }
     // check if we had multicall to particular block, but blocknumber from multicall is different
-    if (parameters.blockNumber) {
+    if (
+      parameters.blockNumber &&
+      // this does not work for default multicall3 contracts on some L2 chains, so check on Eth Mainnet only
+      // https://docs.arbitrum.io/build-decentralized-apps/arbitrum-vs-ethereum/block-numbers-and-time#case-study-the-multicall-contract
+      (client.chain?.id === 1 || parameters.forceBlockNumberCheck)
+    ) {
       const r = multicallResults[1];
       if (r.status === "success") {
         const fromMc = BigInt(r.result as bigint);
