@@ -1,4 +1,4 @@
-import type { Address, PublicClient } from "viem";
+import type { Address } from "viem";
 import { encodeFunctionData, getAddress, getContract } from "viem";
 
 import {
@@ -109,7 +109,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   ): Promise<CreditAccountData | undefined> {
     let raw: CreditAccountData;
     try {
-      raw = await this.provider.publicClient.readContract({
+      raw = await this.client.readContract({
         abi: iCreditAccountCompressorAbi,
         address: this.#compressor,
         functionName: "getCreditAccountData",
@@ -129,7 +129,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(undefined, {
         account,
       });
-    const [cad] = await simulateWithPriceUpdates(this.provider.publicClient, {
+    const [cad] = await simulateWithPriceUpdates(this.client, {
       priceUpdates: priceUpdateTxs,
       contracts: [
         {
@@ -217,7 +217,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
    * @returns {Array<Rewards>} list of {@link Rewards} that can be claimed
    */
   public async getRewards(creditAccount: Address): Promise<Array<Rewards>> {
-    const rewards = await this.provider.publicClient.readContract({
+    const rewards = await this.client.readContract({
       abi: iRewardsCompressorAbi,
       address: this.rewardCompressor,
       functionName: "getRewards",
@@ -278,7 +278,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     legacyMigration: GetConnectedMigrationBotsResult;
   }> {
     const [resp, migration] = await Promise.all([
-      this.provider.publicClient.multicall({
+      this.client.multicall({
         contracts: accountsToCheck.map(o => {
           const pool = this.sdk.marketRegister.findByCreditManager(
             o.creditManager,
@@ -306,7 +306,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
         this.sdk.provider.chainId,
       );
     if (migrationBot) {
-      const result = await this.provider.publicClient.multicall({
+      const result = await this.client.multicall({
         contracts: accountsToCheck.map(ca => {
           const cm = this.sdk.marketRegister.findCreditManager(
             ca.creditManager,
@@ -938,7 +938,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     );
     let resp: [CreditAccountData[], bigint];
     if (priceUpdateTxs?.length) {
-      [resp] = await simulateWithPriceUpdates(this.provider.publicClient, {
+      [resp] = await simulateWithPriceUpdates(this.client, {
         priceUpdates: priceUpdateTxs,
         contracts: [
           {
@@ -952,7 +952,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
         gas: this.sdk.gasLimit,
       });
     } else {
-      resp = await this.provider.publicClient.readContract<
+      resp = await this.client.readContract<
         CompressorAbi,
         "getCreditAccounts",
         GetCreditAccountsArgs
@@ -1319,10 +1319,6 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       AP_PERIPHERY_COMPRESSOR,
       VERSION_RANGE_310,
     )[0];
-  }
-
-  public get client(): PublicClient {
-    return this.sdk.provider.publicClient;
   }
 }
 
