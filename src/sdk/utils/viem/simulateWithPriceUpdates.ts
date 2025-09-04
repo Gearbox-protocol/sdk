@@ -121,6 +121,24 @@ export async function simulateWithPriceUpdates<
         }
       }
     }
+    // check if we had multicall to particular block, but blocknumber from multicall is different
+    if (parameters.blockNumber) {
+      const r = multicallResults[1];
+      if (r.status === "success") {
+        const fromMc = BigInt(r.result as bigint);
+        if (!!r.result && fromMc !== parameters.blockNumber) {
+          throw getSimulateWithPriceUpdatesError(
+            new BaseError(
+              `block number returned from multicall (${fromMc}) is different from the one provided (${parameters.blockNumber})`,
+            ),
+            priceUpdates,
+            restContracts,
+            multicallResults as any,
+            request,
+          );
+        }
+      }
+    }
     // if price updates errors are allowed, we print warning to console
     // this is what frontend prefers
     if (hasError) {
