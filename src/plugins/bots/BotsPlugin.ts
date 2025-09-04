@@ -14,10 +14,10 @@ import {
 import { PartialLiquidationBotV300Contract } from "./PartialLiquidationBotV300Contract.js";
 import { PartialLiquidationBotV310Contract } from "./PartialLiquidationBotV310Contract.js";
 import {
-  BOT_TYPES,
   type BotState,
   type BotsPluginState,
   type BotsPluginStateHuman,
+  LIQUIDATION_BOT_TYPES,
 } from "./types.js";
 
 export class UnsupportedBotVersionError extends Error {
@@ -92,7 +92,8 @@ export class BotsPlugin
         throw new Error(`expected 4 bots v300 for market configurator ${mc}`);
       }
       for (let i = 0; i < bots.length; i++) {
-        (bots[i] as PartialLiquidationBotV300Contract).botType = BOT_TYPES[i];
+        (bots[i] as PartialLiquidationBotV300Contract).botType =
+          LIQUIDATION_BOT_TYPES[i];
       }
     }
     this.botsByMarket.upsert(mc, bots);

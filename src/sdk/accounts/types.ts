@@ -1,16 +1,20 @@
 import type { Address, ContractFunctionArgs } from "viem";
 
 import type { iCreditAccountCompressorAbi } from "../../abi/compressors.js";
-import type { BotType } from "../../plugins/bots/types.js";
+import type { LiquidationBotType as LiquidationBotTypeSDK } from "../../plugins/bots/types.js";
+import type { MigrationBotType } from "../accountMigration/types.js";
 import type { ConnectedBotData, CreditAccountData } from "../base/index.js";
 import type { SDKConstruct } from "../base/SDKConstruct.js";
 import type {
   CreditSuite,
   OnDemandPriceUpdates,
+  PriceUpdateV300,
+  PriceUpdateV310,
   UpdatePriceFeedsResult,
 } from "../market/index.js";
 import type {
   Asset,
+  CreditAccountTokensSlice,
   RouterCASlice,
   RouterCloseResult,
 } from "../router/index.js";
@@ -188,11 +192,11 @@ export interface ExecuteSwapProps extends PrepareUpdateQuotasProps {
 
 export interface StartDelayedWithdrawalProps extends PrepareUpdateQuotasProps {
   /**
-   * Amount of source token (ex. sp0xlrt)
+   * Amount of source token (ex. cp0xlrt)
    */
   sourceAmount: bigint;
   /**
-   * Address of source token (ex. sp0xlrt)
+   * Address of source token (ex. cp0xlrt)
    */
   sourceToken: Address;
   /**
@@ -370,8 +374,12 @@ export interface Rewards {
   BotBaseType = "liquidationProtection" | someOtherBaseType
   BotDetailedType = LiquidationBotType | someOtherDetailedType
  * */
-export type BotBaseType = "LIQUIDATION_PROTECTION";
-export type LiquidationBotType = Exclude<BotType, "PARTIAL_LIQUIDATION_BOT">;
+export type BotBaseType = "LIQUIDATION_PROTECTION" | "MIGRATION";
+export type LiquidationBotType = Exclude<
+  LiquidationBotTypeSDK,
+  "PARTIAL_LIQUIDATION_BOT"
+>;
+export type { MigrationBotType };
 
 export interface SetBotProps {
   /**
@@ -404,6 +412,29 @@ export type GetConnectedBotsResult = Array<
       status: "failure";
     }
 >;
+
+export type GetConnectedMigrationBotsResult =
+  | {
+      result: (
+        | {
+            error: Error;
+            result?: undefined;
+            status: "failure";
+          }
+        | {
+            error?: undefined;
+            result:
+              | readonly [bigint, boolean, boolean]
+              | readonly [bigint, boolean];
+            status: "success";
+          }
+      )[];
+      migrationBot: {
+        botAddress: Address;
+        previewerAddress: Address;
+      };
+    }
+  | undefined;
 
 export interface ICreditAccountsService extends SDKConstruct {
   /**
@@ -444,7 +475,10 @@ export interface ICreditAccountsService extends SDKConstruct {
    */
   getConnectedBots(
     accountsToCheck: Array<{ creditAccount: Address; creditManager: Address }>,
-  ): Promise<GetConnectedBotsResult>;
+  ): Promise<{
+    legacy: GetConnectedBotsResult;
+    legacyMigration: GetConnectedMigrationBotsResult;
+  }>;
   /**
    * V3.1 method, throws in V3. Connects/disables a bot and updates prices
    * @param props - {@link SetBotProps}
@@ -580,7 +614,20 @@ export interface ICreditAccountsService extends SDKConstruct {
     creditManager: Address,
     creditAccount: RouterCASlice | undefined,
     desiredQuotas: Array<Asset> | undefined,
-  ): Promise<OnDemandPriceUpdates>;
+  ): Promise<OnDemandPriceUpdates<PriceUpdateV310 | PriceUpdateV300>>;
+
+  /**
+   * Returns price updates in format that is accepted by various credit facade methods (multicall, close/liquidate, etc...).
+   * @param creditManager
+   * @param creditAccount
+   * @param desiredQuotas
+   * @returns
+   */
+  getPriceUpdatesForFacade(
+    creditManager: Address,
+    creditAccount: CreditAccountTokensSlice | undefined,
+    desiredQuotas: Array<Asset> | undefined,
+  ): Promise<Array<MultiCall>>;
 
   /**
    * Withdraws a single collateral from credit account to wallet to and updates quotas;

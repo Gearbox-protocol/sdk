@@ -11,6 +11,8 @@ import type { AddressMap } from "../../utils/index.js";
 import type {
   IPriceFeedContract,
   PriceFeedRef,
+  PriceUpdateV300,
+  PriceUpdateV310,
   UpdatePriceFeedsResult,
 } from "../pricefeeds/index.js";
 import type PriceFeedAnswerMap from "./PriceFeedAnswerMap.js";
@@ -106,7 +108,7 @@ export interface IPriceOracleContract extends IBaseContract {
   onDemandPriceUpdates: (
     creditFacade: Address,
     updates?: UpdatePriceFeedsResult,
-  ) => OnDemandPriceUpdates;
+  ) => OnDemandPriceUpdates<PriceUpdateV310 | PriceUpdateV300>;
   /**
    * Tries to convert amount of from one token to another, using latest known prices
    * @param from
