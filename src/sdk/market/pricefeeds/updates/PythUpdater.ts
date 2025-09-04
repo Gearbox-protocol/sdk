@@ -142,22 +142,38 @@ export class PythUpdater
 
     const payloads = await this.#getPayloads(new Set(pythFeeds.keys()));
 
-    const results = payloads.map(p => {
+    let [minTimestamp, maxTimestamp] = [Number.POSITIVE_INFINITY, 0];
+    const results: PythUpdateTx[] = [];
+
+    for (const p of payloads) {
       const priceFeed = pythFeeds.get(p.dataFeedId);
       if (!priceFeed) {
         throw new Error(`cannot find price feed for ${p.dataFeedId}`);
       }
       const { dataFeedId, timestamp, cached, data } = p;
-      return new PythUpdateTx(priceFeed.createPriceUpdateTx(data), {
-        dataFeedId,
-        priceFeed: priceFeed.address,
-        timestamp,
-        cached,
-      });
-    });
+      minTimestamp = Math.min(minTimestamp, timestamp);
+      maxTimestamp = Math.max(maxTimestamp, timestamp);
+      results.push(
+        new PythUpdateTx(priceFeed.createPriceUpdateTx(data), {
+          dataFeedId,
+          priceFeed: priceFeed.address,
+          timestamp,
+          cached,
+        }),
+      );
+    }
+    let tsRange = "";
+    if (results.length) {
+      const minDelta = BigInt(minTimestamp) - this.sdk.timestamp;
+      tsRange = `, timestamps ${minTimestamp} (${minDelta})`;
+      if (minTimestamp !== maxTimestamp) {
+        const maxDelta = BigInt(maxTimestamp) - this.sdk.timestamp;
+        tsRange = `${tsRange} - ${maxTimestamp} (${maxDelta})`;
+      }
+    }
     this.#logger?.debug(
       logContext,
-      `generated ${results.length} update transactions for pyth price feeds: ${Array.from(pythFeeds.keys()).join(", ")}`,
+      `generated ${results.length} update transactions for pyth price feeds: ${Array.from(pythFeeds.keys()).join(", ")}${tsRange}`,
     );
     return results;
   }

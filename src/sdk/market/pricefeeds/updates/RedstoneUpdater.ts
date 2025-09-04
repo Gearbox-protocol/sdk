@@ -139,6 +139,7 @@ export class RedstoneUpdater
     }
 
     const results: RedstoneUpdateTx[] = [];
+    let [minTimestamp, maxTimestamp] = [Number.POSITIVE_INFINITY, 0];
     for (const [key, group] of Object.entries(groupedFeeds)) {
       const [dataServiceId, signersStr] = key.split(":");
       const uniqueSignersCount = parseInt(signersStr, 10);
@@ -154,6 +155,8 @@ export class RedstoneUpdater
           throw new Error(`cannot get price feed addresses for ${dataFeedId}`);
         }
         for (const priceFeed of pfsForDataId.values()) {
+          minTimestamp = Math.min(minTimestamp, timestamp);
+          maxTimestamp = Math.max(maxTimestamp, timestamp);
           results.push(
             new RedstoneUpdateTx(priceFeed.createPriceUpdateTx(data), {
               dataFeedId,
@@ -166,9 +169,18 @@ export class RedstoneUpdater
         }
       }
     }
+    let tsRange = "";
+    if (results.length) {
+      const minDelta = BigInt(minTimestamp) - this.sdk.timestamp;
+      tsRange = `, timestamps ${minTimestamp} (${minDelta})`;
+      if (minTimestamp !== maxTimestamp) {
+        const maxDelta = BigInt(maxTimestamp) - this.sdk.timestamp;
+        tsRange = `${tsRange} - ${maxTimestamp} (${maxDelta})`;
+      }
+    }
     this.#logger?.debug(
       logContext,
-      `generated ${results.length} update transactions for redstone price feeds: ${Array.from(priceFeeds.keys()).join(", ")}`,
+      `generated ${results.length} update transactions for redstone price feeds: ${Array.from(priceFeeds.keys()).join(", ")}${tsRange}`,
     );
     return results;
   }
