@@ -251,14 +251,34 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
     source: CreditAccountData_Legacy,
     target: CreditManagerData_Legacy,
     delayedPhantoms: Record<Address, object>,
+    sdk: GearboxSDK,
   ) {
-    const debt = source.borrowedAmountPlusInterestAndFees;
-    // newTargetDebtOutOfLimit
-    if (debt > target.maxDebt || debt < target.minDebt) return false;
-
     // sourceUnderlyingIsNotCollateral
     const sourceUnderlying = source.underlying;
-    if (!target.supportedTokens[sourceUnderlying]) return false;
+    if (!target.supportedTokens[sourceUnderlying]) {
+      return false;
+    }
+
+    const tryConvert = () => {
+      try {
+        const market = sdk.marketRegister.findByCreditManager(target.address);
+        return market.priceOracle.convert(
+          sourceUnderlying,
+          target.underlyingToken,
+          source.borrowedAmountPlusInterestAndFees,
+        );
+      } catch (e) {
+        return 0n;
+      }
+    };
+    const debt =
+      source.underlying !== target.underlyingToken
+        ? tryConvert()
+        : source.borrowedAmountPlusInterestAndFees;
+    // newTargetDebtOutOfLimit
+    if (debt === 0n || debt > target.maxDebt || debt < target.minDebt) {
+      return false;
+    }
 
     // migrationCollateralDoesntExistInTarget
     const collateralsCheckPassed = targetTokensToMigrate.every(a => {
