@@ -545,7 +545,10 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       return;
     }
     this.#syncing = true;
-    this.logger?.debug(`syncing state to block ${blockNumber}...`);
+    let delta = Math.floor(Date.now() / 1000) - Number(timestamp);
+    this.logger?.debug(
+      `syncing state to block ${blockNumber} (delta ${delta}s )...`,
+    );
 
     const watchAddresses = [
       ...Array.from(this.marketRegister.watchAddresses),
@@ -605,7 +608,10 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
     });
 
     this.#syncing = false;
-    this.logger?.debug(`synced state to block ${blockNumber}`);
+    delta = Math.floor(Date.now() / 1000) - Number(timestamp);
+    this.logger?.debug(
+      `synced state to block ${blockNumber} (delta ${delta}s)`,
+    );
   }
 
   public get provider(): Provider {
