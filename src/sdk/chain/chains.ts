@@ -375,10 +375,10 @@ export function isPublicNetwork(
 export function getCuratorName(
   marketConfigurator: Address,
   network?: NetworkType,
-): string | undefined {
+): Curator | undefined {
   const chainz = network ? [chains[network]] : Object.values(chains);
   for (const c of chainz) {
-    for (const [a, curator] of Object.entries({
+    for (const [a, curator] of TypedObjectUtils.entries({
       ...c.defaultMarketConfigurators,
       ...c.testMarketConfigurators,
     })) {
