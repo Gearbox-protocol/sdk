@@ -82,6 +82,9 @@
   "peerDependencies": {
     "axios": "^1.0.0"
   },
+  "resolutions": {
+    "viem": "2.23.15"
+  },
   "commitlint": {
     "extends": [
       "@commitlint/config-conventional"
