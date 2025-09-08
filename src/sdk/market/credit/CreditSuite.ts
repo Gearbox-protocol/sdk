@@ -22,6 +22,7 @@ export class CreditSuite extends SDKConstruct {
   public readonly creditManager: ICreditManagerContract;
   public readonly creditFacade: CreditFacadeContract;
   public readonly creditConfigurator: ICreditConfiguratorContract;
+  public readonly marketConfigurator: Address;
 
   public readonly state: CreditSuiteState;
 
@@ -38,6 +39,7 @@ export class CreditSuite extends SDKConstruct {
     this.creditManager = createCreditManager(sdk, this.state);
     this.creditFacade = createCreditFacade(sdk, this.state);
     this.creditConfigurator = createCreditConfigurator(sdk, this.state);
+    this.marketConfigurator = marketData.configurator;
   }
 
   public get router(): IRouterContract {
