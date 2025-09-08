@@ -46,20 +46,29 @@ export type CreateTransportConfig =
 export function createTransport(config: CreateTransportConfig): Transport {
   const { rpcProviders = [], protocol, network, ...rest } = config;
 
-  const rpcUrls = new Set<string>();
+  const rpcUrls = new Map<string, RpcProvider>();
   for (const { provider, keys } of rpcProviders) {
     for (const key of keys) {
       const url = getProviderUrl(provider, network, key, protocol);
       if (url) {
-        rpcUrls.add(url);
+        rpcUrls.set(url, provider);
       }
     }
   }
 
-  const transports = Array.from(rpcUrls).map(url =>
-    protocol === "http"
-      ? http(url, rest as HttpTransportConfig)
-      : webSocket(url, rest as WebSocketTransportConfig),
+  const transports = Array.from(rpcUrls.entries()).map(
+    ([url, provider], index) =>
+      protocol === "http"
+        ? http(url, {
+            ...(rest as HttpTransportConfig),
+            key: `${provider}-${index}`,
+            name: `${provider}-${index}`,
+          })
+        : webSocket(url, {
+            ...(rest as WebSocketTransportConfig),
+            key: `${provider}-${index}`,
+            name: `${provider}-${index}`,
+          }),
   );
   if (transports.length === 0) {
     throw new Error("no fitting rpc urls found");
