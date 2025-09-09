@@ -10,13 +10,15 @@ export type EthCallMethod = Extract<
   { Method: "eth_call" }
 >;
 
+export type EthCallRequest = EIP1193Parameters<[EthCallMethod]>;
+
 export interface DetectedCall {
-  request: EthCallMethod;
+  request: EthCallRequest;
   response?: EthCallMethod["ReturnType"];
   responseHeaders?: Record<string, string>;
 }
 
-export type CheckMulticallFn = (data: EthCallMethod) => boolean;
+export type CheckMulticallFn = (data: EthCallRequest) => boolean;
 
 /**
  * Helper to spy on eth_call requests and responses in viem transport
@@ -43,7 +45,7 @@ export class EthCallSpy {
       const data = (await request.json()) as EIP1193Parameters<PublicRpcSchema>;
       const blockNumber = this.#shouldStore(data);
       if (blockNumber) {
-        this.#storeCall(blockNumber, data as unknown as EthCallMethod);
+        this.#storeCall(blockNumber, data as unknown as EthCallRequest);
         this.#logger?.debug(
           `spy stored eth_call at block ${blockNumber}, total calls: ${this.#detectedCalls.length}`,
         );
@@ -76,14 +78,14 @@ export class EthCallSpy {
       data.method === "eth_call" &&
       typeof data.params[1] === "string" && // block number is present
       data.params[1]?.startsWith("0x") && // and it's a block number
-      this.#check(data as unknown as EthCallMethod)
+      this.#check(data)
     ) {
       return BigInt(data.params[1]); // return block number
     }
     return undefined;
   }
 
-  #storeCall(blockNumber: bigint, data: EthCallMethod): void {
+  #storeCall(blockNumber: bigint, data: EthCallRequest): void {
     if (blockNumber !== this.#detectedBlock) {
       this.#detectedBlock = blockNumber;
       this.#detectedCalls = [];
