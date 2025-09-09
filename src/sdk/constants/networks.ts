@@ -1,5 +1,5 @@
-import type { NetworkType } from "../chain/index.js";
-import { TypedObjectUtils } from "../utils/mappers.js";
+import { chains as CHAINS, type NetworkType } from "../chain/index.js";
+import { type PartialRecord, TypedObjectUtils } from "../utils/mappers.js";
 
 /**
  * Block number when address provider was deployed
@@ -23,29 +23,26 @@ export const ADDRESS_PROVIDER_BLOCK: Record<NetworkType, bigint> = {
   Lisk: 18934260n, // arbitrary not deployed yet
 };
 
-const BLOCK_DURATION_BY_NETWORK: Record<NetworkType, number> = {
-  Mainnet: 12.05,
-  Arbitrum: 0.26,
-  Optimism: 2,
-  Base: 2.01,
-  Sonic: 0.91,
-  // New networks
-  MegaETH: 0.01, // <10ms/block, on testnet
-  Monad: 1, // on testnet
-  Berachain: 1.9,
-  Avalanche: 1.7,
-  BNB: 3,
-  WorldChain: 2,
-  Etherlink: 1,
-  Hemi: 12,
-  Lisk: 2,
-};
+const BLOCK_DURATION_LOCAL: PartialRecord<NetworkType, number> = {};
+
+const BLOCK_DURATION = Object.values(CHAINS).reduce<
+  Record<NetworkType, number>
+>(
+  (acc, chain) => {
+    const blockTime =
+      chain.blockTime || BLOCK_DURATION_LOCAL[chain.network] || 0;
+    if (blockTime === 0)
+      console.error(`Block time for ${chain.name} is unknown`);
+
+    acc[chain.network] = blockTime / 1000;
+    return acc;
+  },
+  {} as Record<NetworkType, number>,
+);
 
 const RAMP_TIME = 30 * 24 * 60 * 60 * 1.2;
 export const RAMP_DURATION_BY_NETWORK: Record<NetworkType, bigint> =
-  TypedObjectUtils.entries(BLOCK_DURATION_BY_NETWORK).reduce<
-    Record<NetworkType, bigint>
-  >(
+  TypedObjectUtils.entries(BLOCK_DURATION).reduce<Record<NetworkType, bigint>>(
     (acc, [n, duration]) => {
       acc[n] = BigInt(Math.floor(RAMP_TIME / duration));
       return acc;
@@ -55,9 +52,7 @@ export const RAMP_DURATION_BY_NETWORK: Record<NetworkType, bigint> =
 
 const WEEK = 7 * 24 * 60 * 60;
 export const BLOCKS_PER_WEEK_BY_NETWORK: Record<NetworkType, bigint> =
-  TypedObjectUtils.entries(BLOCK_DURATION_BY_NETWORK).reduce<
-    Record<NetworkType, bigint>
-  >(
+  TypedObjectUtils.entries(BLOCK_DURATION).reduce<Record<NetworkType, bigint>>(
     (acc, [n, duration]) => {
       acc[n] = BigInt(Math.floor(WEEK / duration));
       return acc;
