@@ -3,6 +3,7 @@ import {
   BaseError,
   erc20Abi,
   isAddress,
+  parseAbi,
   parseEther,
   parseEventLogs,
 } from "viem";
@@ -29,7 +30,7 @@ import {
   SDKConstruct,
   sendRawTx,
 } from "../sdk/index.js";
-import { iDegenNftv2Abi } from "./abi.js";
+import { iDegenNftv2Abi, iOwnableAbi } from "./abi.js";
 import { claimFromFaucet } from "./claimFromFaucet.js";
 import { type AnvilClient, createAnvilClient } from "./createAnvilClient.js";
 
@@ -50,6 +51,7 @@ export interface AccountOpenerOptions {
   depositorKey?: Hex;
   poolDepositMultiplier?: bigint | string | number;
   minDebtMultiplier?: bigint | string | number;
+  allowMint?: boolean;
 }
 
 export interface TargetAccount {
@@ -111,6 +113,7 @@ export class AccountOpener extends SDKConstruct {
   #faucet?: Address;
   #poolDepositMultiplier: bigint;
   #minDebtMultiplier: bigint;
+  #allowMint: boolean;
 
   constructor(
     service: ICreditAccountsService,
@@ -123,8 +126,10 @@ export class AccountOpener extends SDKConstruct {
       faucet,
       poolDepositMultiplier = 3_00_00n,
       minDebtMultiplier = 101_00n,
+      allowMint = false,
     } = options_;
     this.#service = service;
+    this.#allowMint = allowMint;
     this.#logger = childLogger("AccountOpener", service.sdk.logger);
     this.#anvil = createAnvilClient({
       chain: service.sdk.provider.chain,
@@ -329,6 +334,30 @@ export class AccountOpener extends SDKConstruct {
       },
       "looking for open strategy",
     );
+
+    let borrowerBalance = await this.#anvil.readContract({
+      address: underlying,
+      abi: ierc20Abi,
+      functionName: "balanceOf",
+      args: [borrower.address],
+    });
+    if (borrowerBalance < minDebt) {
+      this.#logger?.warn(
+        `borrower balance in underlying: ${this.sdk.tokensMeta.formatBN(underlying, borrowerBalance)} is less than the minimum debt: ${this.sdk.tokensMeta.formatBN(underlying, minDebt)}`,
+      );
+      if (this.#allowMint) {
+        // it would be better to mint it once, since many accounts share underlying
+        borrowerBalance = await this.#tryMint(
+          underlying,
+          borrower,
+          minDebt - borrowerBalance,
+        );
+      }
+    }
+    this.#logger?.debug(
+      `borrower balance in underlying: ${this.sdk.tokensMeta.formatBN(underlying, borrowerBalance)} ${this.sdk.tokensMeta.symbol(underlying)}`,
+    );
+
     const strategy = await this.sdk.routerFor(cm).findOpenStrategyPath({
       creditManager: cm.creditManager,
       expectedBalances,
@@ -471,15 +500,29 @@ export class AccountOpener extends SDKConstruct {
         this.sdk.tokensMeta.symbol(pool.underlying);
       this.#logger?.debug(`depositing ${amnt} into pool ${poolName}`);
 
-      const allowance = await this.#anvil.readContract({
+      let allowance = await this.#anvil.readContract({
         address: underlying,
         abi: ierc20Abi,
         functionName: "balanceOf",
         args: [depositor.address],
       });
+      if (allowance < amount) {
+        this.#logger?.warn(
+          `depositor balance in underlying: ${this.sdk.tokensMeta.formatBN(pool.underlying, allowance)} is less than the amount to deposit: ${amnt}`,
+        );
+        if (this.#allowMint) {
+          allowance = await this.#tryMint(
+            underlying,
+            depositor,
+            amount - allowance,
+          );
+        }
+      }
+
       this.#logger?.debug(
         `depositor balance in underlying: ${this.sdk.tokensMeta.formatBN(pool.underlying, allowance)}`,
       );
+
       txHash = await this.#anvil.writeContract({
         account: depositor,
         address: underlying,
@@ -528,6 +571,93 @@ export class AccountOpener extends SDKConstruct {
         error: e as Error,
       };
     }
+  }
+
+  /**
+   * Tries to mint tokens, returns the balance after attempt (success or not)
+   * @param token
+   * @param dest
+   * @param amount
+   */
+  async #tryMint(
+    token: Address,
+    dest: PrivateKeyAccount,
+    amount: bigint,
+  ): Promise<bigint> {
+    const symbol = this.sdk.tokensMeta.symbol(token);
+    const amnt = this.sdk.tokensMeta.formatBN(token, amount);
+    try {
+      await this.#mint(token, dest, amount);
+    } catch (e) {
+      this.#logger?.warn(
+        `failed to mint ${amnt} ${symbol} to ${dest.address}: ${e}`,
+      );
+    }
+    return await this.#anvil.readContract({
+      address: token,
+      abi: ierc20Abi,
+      functionName: "balanceOf",
+      args: [dest.address],
+    });
+  }
+
+  async #mint(
+    token: Address,
+    dest: PrivateKeyAccount,
+    amount: bigint,
+  ): Promise<void> {
+    const symbol = this.sdk.tokensMeta.symbol(token);
+    const amnt = this.sdk.tokensMeta.formatBN(token, amount);
+    this.#logger?.warn(`minting ${amnt} ${symbol} to ${dest.address}`);
+    // const hash = await this.#anvil.writeContract({
+    // account: dest,
+    // address: token,
+    const owner = await this.#anvil.readContract({
+      address: token,
+      abi: iOwnableAbi,
+      functionName: "owner",
+    });
+    this.#logger?.warn(`owner of ${symbol}: ${owner}`);
+
+    await this.#anvil.impersonateAccount({ address: owner });
+    await this.#anvil.setBalance({
+      address: owner,
+      value: parseEther("100"),
+    });
+
+    let hash = await this.#anvil.writeContract({
+      account: owner,
+      address: token,
+      abi: parseAbi(["function mint(uint256 amount) external returns (bool)"]),
+      functionName: "mint",
+      args: [amount],
+      chain: this.#anvil.chain,
+    });
+    this.#logger?.debug(`mint ${amnt} ${symbol} to ${owner} in tx ${hash}`);
+    let receipt = await this.#anvil.waitForTransactionReceipt({ hash });
+    if (receipt.status === "reverted") {
+      throw new Error(
+        `failed to mint ${amnt} ${symbol} to ${owner} in tx ${hash}: reverted`,
+      );
+    }
+    hash = await this.#anvil.writeContract({
+      account: owner,
+      address: token,
+      abi: ierc20Abi,
+      functionName: "transfer",
+      args: [dest.address, amount],
+      chain: this.#anvil.chain,
+    });
+    this.#logger?.debug(
+      `transfer ${amnt} ${symbol} from ${owner} to ${dest.address} in tx ${hash}`,
+    );
+    receipt = await this.#anvil.waitForTransactionReceipt({ hash });
+    if (receipt.status === "reverted") {
+      throw new Error(
+        `failed to transfer ${amnt} ${symbol} from ${owner} to ${dest.address} in tx ${hash}: reverted`,
+      );
+    }
+    await this.#anvil.stopImpersonatingAccount({ address: owner });
   }
 
   /**
