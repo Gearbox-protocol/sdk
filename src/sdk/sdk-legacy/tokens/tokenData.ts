@@ -50,6 +50,9 @@ const HUMAN_READABLE_SYMBOLS: PartialRecord<string, string> = {
 
   PT_USDf_29JAN2026: "pt.USDf(29.01.26)",
 
+  stkcvxllamathena_v3_1: "stkcvxllamathena",
+  stkcvxRLUSDUSDC_v3_1: "stkcvxRLUSDUSDC",
+
   ["PT-wstUSR-25SEP2025"]: "pt.wstUSR(25.09.25)",
   ["PT-yUSD-27NOV2025"]: "pt.yUSD(27.11.25)",
   ["PT-pUSDe-16OCT2025"]: "pt.pUSDe(16.10.25)",
