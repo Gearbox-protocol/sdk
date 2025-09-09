@@ -132,7 +132,5 @@ export function getDrpcUrl(
   protocol: "http" | "ws",
 ): string | undefined {
   const net = DRPC_NETS[network];
-  return net
-    ? `${protocol}s://lb.drpc.org/ogws?network=${net}&dkey=${apiKey}`
-    : undefined;
+  return net ? `${protocol}s://lb.drpc.org/${net}/${apiKey}` : undefined;
 }
