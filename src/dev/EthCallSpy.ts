@@ -21,7 +21,7 @@ export type CheckMulticallFn = (data: EthCallMethod) => boolean;
 /**
  * Helper to spy on eth_call requests and responses in viem transport
  */
-export default class EthCallSpy {
+export class EthCallSpy {
   #logger?: ILogger;
 
   #detectedCalls: DetectedCall[] = [];
