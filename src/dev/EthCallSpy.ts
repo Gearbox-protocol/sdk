@@ -73,6 +73,10 @@ export class EthCallSpy {
     return this.#detectedCalls;
   }
 
+  public get detectedBlock(): bigint {
+    return this.#detectedBlock;
+  }
+
   #shouldStore(data: EIP1193Parameters<PublicRpcSchema>): bigint | undefined {
     if (
       data.method === "eth_call" &&
