@@ -51,6 +51,7 @@ export interface AccountOpenerOptions {
   depositorKey?: Hex;
   poolDepositMultiplier?: bigint | string | number;
   minDebtMultiplier?: bigint | string | number;
+  leverageDelta?: bigint | string | number;
   allowMint?: boolean;
 }
 
@@ -114,6 +115,7 @@ export class AccountOpener extends SDKConstruct {
   #poolDepositMultiplier: bigint;
   #minDebtMultiplier: bigint;
   #allowMint: boolean;
+  #leverageDelta: bigint;
 
   constructor(
     service: ICreditAccountsService,
@@ -126,6 +128,7 @@ export class AccountOpener extends SDKConstruct {
       faucet,
       poolDepositMultiplier = 3_00_00n,
       minDebtMultiplier = 101_00n,
+      leverageDelta = 500n,
       allowMint = false,
     } = options_;
     this.#service = service;
@@ -144,6 +147,7 @@ export class AccountOpener extends SDKConstruct {
     this.depositorKey = depositorKey ?? generatePrivateKey();
     this.#poolDepositMultiplier = BigInt(poolDepositMultiplier);
     this.#minDebtMultiplier = BigInt(minDebtMultiplier);
+    this.#leverageDelta = BigInt(leverageDelta);
   }
 
   public get borrower(): PrivateKeyAccount {
@@ -1004,11 +1008,14 @@ export class AccountOpener extends SDKConstruct {
     }
     const cm = this.sdk.marketRegister.findCreditManager(creditManager);
     const lt = BigInt(cm.creditManager.liquidationThresholds.mustGet(target));
-    const d = 50n;
-    const result =
-      PERCENTAGE_FACTOR * (1n + (lt - d) / (PERCENTAGE_FACTOR - lt));
+    const d = this.#leverageDelta;
+    let result = PERCENTAGE_FACTOR * (1n + (lt - d) / (PERCENTAGE_FACTOR - lt));
     // cap at 10x
-    return result > PERCENTAGE_FACTOR * 10n ? PERCENTAGE_FACTOR * 10n : result;
+    result =
+      result > PERCENTAGE_FACTOR * 10n ? PERCENTAGE_FACTOR * 10n : result;
+    // rounding to 0.1 precision
+    result = BigInt(Math.floor(Number(result) / 1000) * 1000);
+    return result;
   }
 
   public get faucet(): Address {
