@@ -99,7 +99,8 @@ export class ZappersPlugin
 
   public get extraZappers(): AddressMap<ZapperDataFull[]> {
     if (!this.#extraZappers) {
-      throw new Error("zappers plugin not attached");
+      console.error("extra zappers not attached");
+      return new AddressMap();
     }
     return this.#extraZappers;
   }

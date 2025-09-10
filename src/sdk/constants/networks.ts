@@ -43,14 +43,18 @@ const BLOCK_DURATION_LOCAL: PartialRecord<NetworkType, number> = {
   Lisk: 2000,
 };
 
+const DEFAULT_DURATION = 12_000;
+
 const BLOCK_DURATION = Object.values(CHAINS).reduce<
   Record<NetworkType, number>
 >(
   (acc, chain) => {
-    const blockTime =
-      chain.blockTime || BLOCK_DURATION_LOCAL[chain.network] || 0;
-    if (blockTime === 0)
+    if (!chain.blockTime || chain.blockTime === 0)
       console.error(`Block time for ${chain.name} is unknown`);
+    const blockTime =
+      chain.blockTime ||
+      BLOCK_DURATION_LOCAL[chain.network] ||
+      DEFAULT_DURATION;
 
     acc[chain.network] = blockTime / 1000;
     return acc;

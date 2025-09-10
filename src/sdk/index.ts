@@ -9,6 +9,7 @@ export * from "./gauges/index.js";
 export * from "./market/index.js";
 export * from "./options.js";
 export * from "./plugins/index.js";
+export * from "./poolMigration/index.js";
 export * from "./router/index.js";
 export * from "./sdk-gov-legacy/index.js";
 export * from "./sdk-legacy/index.js";
