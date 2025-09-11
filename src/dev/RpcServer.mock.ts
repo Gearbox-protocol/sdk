@@ -21,7 +21,11 @@ export class RpcServerMock {
   #server: Server;
   #port: number;
   #jsonRpcError?: Record<string, unknown>;
-  #brokenUntil = 0;
+  #brokenUntil = 0n; // block number
+
+  public static reset(): void {
+    RpcServerMock.blockNumber = 0n;
+  }
 
   constructor(port: number) {
     this.#port = port;
@@ -48,7 +52,7 @@ export class RpcServerMock {
   }
 
   private get jsonRpcError(): Record<string, unknown> | undefined {
-    if (Date.now() > this.#brokenUntil || !this.#jsonRpcError) {
+    if (RpcServerMock.blockNumber > this.#brokenUntil) {
       return undefined;
     }
     return this.#jsonRpcError;
@@ -74,22 +78,18 @@ export class RpcServerMock {
     return `http://127.0.0.1:${this.#port}`;
   }
 
-  // Break the server for a certain duration (0 = permanent)
+  /**
+   * Make the server return json rpc error for a certain number of blocks
+   * @param durationInBlocks
+   * @param error
+   * @returns
+   */
   public break(
-    duration: number,
+    durationInBlocks: bigint,
     error: Record<string, unknown> = InternalErrorResponse,
   ): bigint {
     this.#jsonRpcError = error;
-    this.#brokenUntil = Date.now() + duration;
+    this.#brokenUntil = RpcServerMock.blockNumber + durationInBlocks;
     return RpcServerMock.blockNumber;
-  }
-
-  // Reset server state
-  public async reset(andStop = false): Promise<void> {
-    this.#jsonRpcError = undefined;
-    this.#brokenUntil = 0;
-    if (andStop) {
-      await this.stop();
-    }
   }
 }
