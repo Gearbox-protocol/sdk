@@ -49,8 +49,6 @@ const BLOCK_DURATION = Object.values(CHAINS).reduce<
   Record<NetworkType, number>
 >(
   (acc, chain) => {
-    if (!chain.blockTime || chain.blockTime === 0)
-      console.error(`Block time for ${chain.name} is unknown`);
     const blockTime =
       chain.blockTime ||
       BLOCK_DURATION_LOCAL[chain.network] ||
