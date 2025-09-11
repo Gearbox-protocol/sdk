@@ -1,12 +1,15 @@
 import {
-  type Chain,
+  BaseError,
   type ClientConfig,
   type EIP1193RequestFn,
+  HttpRequestError,
   type HttpTransport,
   http,
+  RpcError,
   type Transport,
   type TransportConfig,
 } from "viem";
+import type { HttpRpcClientOptions } from "viem/utils";
 import type { ILogger, NetworkType } from "../sdk/index.js";
 import {
   getProviderUrl,
@@ -23,6 +26,16 @@ interface TransportEntry {
   cooldown: number;
 }
 
+type OnRequestFn = (
+  providerName: string,
+  ...args: Parameters<Required<HttpRpcClientOptions>["onRequest"]>
+) => ReturnType<Required<HttpRpcClientOptions>["onRequest"]>;
+
+type OnResponseFn = (
+  providerName: string,
+  ...args: Parameters<Required<HttpRpcClientOptions>["onResponse"]>
+) => ReturnType<Required<HttpRpcClientOptions>["onResponse"]>;
+
 export interface RevolverTransportConfig {
   network: NetworkType;
   providers: ProviderConfig[];
@@ -33,12 +46,55 @@ export interface RevolverTransportConfig {
   retryCount?: TransportConfig["retryCount"] | undefined;
   retryDelay?: TransportConfig["retryDelay"] | undefined;
   timeout?: TransportConfig["timeout"] | undefined;
+  /**
+   * Spying function that also returns provider name in additional to the request
+   */
+  onRequest?: OnRequestFn;
+  /**
+   * Spying function that also returns provider name in additional to the response
+   */
+  onResponse?: OnResponseFn;
+  /**
+   * Callback that is called when the transport is rotated
+   */
+  onRotateSuccess?: (
+    oldTransportName: string,
+    newTransportName: string,
+    reason?: BaseError,
+  ) => void | Promise<void>;
+  /**
+   * Callback that is called when the transport cannot be rotated
+   */
+  onRotateFailed?: (reason?: BaseError) => void | Promise<void>;
+  /**
+   * How long, in milliseconds, to wait before try this transport again
+   */
+  cooldown?: number | undefined;
 }
 
-class RevolverTransport implements ReturnType<Transport<"revolver">> {
+export class NoAvailableTransportsError extends BaseError {
+  constructor() {
+    super("no available transports");
+  }
+}
+
+export class RevolverTransport implements ReturnType<Transport<"revolver">> {
   #transports: TransportEntry[];
   #index = 0;
   #config: RevolverTransportConfig;
+
+  private overrides?: Parameters<Transport<"revolver">>[0];
+
+  public static create(config: RevolverTransportConfig): Transport<"revolver"> {
+    const transport = new RevolverTransport({
+      ...config,
+    });
+
+    return (...args: Parameters<Transport<"revolver">>) => {
+      transport.overrides = args[0];
+      return transport;
+    };
+  }
 
   constructor(config: RevolverTransportConfig) {
     this.#config = config;
@@ -63,20 +119,41 @@ class RevolverTransport implements ReturnType<Transport<"revolver">> {
           batch: false,
           key: `${provider}-${i}`,
           name: `${provider}-${i}`,
+          onFetchRequest: this.#config.onRequest
+            ? (...args) => this.#config.onRequest?.(`${provider}-${i}`, ...args)
+            : undefined,
+          onFetchResponse: this.#config.onResponse
+            ? (...args) =>
+                this.#config.onResponse?.(`${provider}-${i}`, ...args)
+            : undefined,
         }),
         cooldown: 0,
       }),
     );
 
     if (this.#transports.length === 0) {
-      throw new Error("no fitting rpc urls found");
+      throw new NoAvailableTransportsError();
     }
   }
 
   value?: Record<string, any> | undefined;
 
-  public request: EIP1193RequestFn = async ({ method, params }) => {
+  public request: EIP1193RequestFn = async r => {
     // send with current transport
+    do {
+      try {
+        const resp = await this.#transport({ ...this.overrides }).request(r);
+        return resp as any;
+      } catch (e) {
+        if (e instanceof RpcError || e instanceof HttpRequestError) {
+          await this.rotate(e);
+        } else {
+          throw e;
+        }
+      }
+    } while (this.#hasAvailableTransports);
+
+    throw new NoAvailableTransportsError();
   };
 
   public get config(): TransportConfig<"revolver"> {
@@ -92,40 +169,68 @@ class RevolverTransport implements ReturnType<Transport<"revolver">> {
     };
   }
 
+  public async rotate(reason?: BaseError): Promise<boolean> {
+    this.#logger?.debug(
+      {
+        reason,
+        current: this.currentTransportName,
+        index: this.#index,
+        total: this.#transports.length,
+      },
+      "rotating transport",
+    );
+    const oldTransportName = this.currentTransportName;
+
+    const now = Date.now();
+    this.#transports[this.#index].cooldown =
+      now + (this.#config.cooldown ?? 60_000);
+
+    for (let i = 0; i < this.#transports.length - 1; i++) {
+      this.#index = (this.#index + 1) % this.#transports.length;
+      if (this.#transports[this.#index].cooldown < now) {
+        this.#logger?.info(
+          {
+            current: this.currentTransportName,
+            index: this.#index,
+            total: this.#transports.length,
+          },
+          "switched to next transport",
+        );
+        await this.#config.onRotateSuccess?.(
+          oldTransportName,
+          this.currentTransportName,
+          reason,
+        );
+        return true;
+      } else {
+        this.#logger?.warn(
+          {
+            current: this.currentTransportName,
+            index: this.#index,
+            total: this.#transports.length,
+          },
+          "transport is still on cooldown",
+        );
+      }
+    }
+    await this.#config.onRotateFailed?.(reason);
+    return false;
+  }
+
+  public get currentTransportName(): string {
+    return this.#transport({}).config.name;
+  }
+
+  get #logger(): ILogger | undefined {
+    return this.#config.logger;
+  }
+
   get #transport(): HttpTransport {
     return this.#transports[this.#index].transport;
   }
 
-  #rotate() {
-    this.#transports[this.#index].cooldown = Date.now() + 60_000;
-    this.#index = (this.#index + 1) % this.#transports.length;
+  get #hasAvailableTransports(): boolean {
+    const now = Date.now();
+    return this.#transports.some(t => t.cooldown < now);
   }
-
-  public async selectProvider(): Promise<RpcProvider> {
-    this.#transport;
-  }
-
-  async #testProvider(index: number): Promise<number> {
-    try {
-      const from = Date.now();
-      // we want to use client and handle
-      await this.#transports[index]
-        .transport({})
-        .request({ method: "eth_chainId", params: [] });
-      const to = Date.now();
-      return to - from;
-    } catch {
-      return Number.POSITIVE_INFINITY;
-    }
-  }
-}
-
-export async function createRevolverTransport(config: RevolverTransportConfig) {
-  const transport = new RevolverTransport({
-    ...config,
-  });
-
-  return (..._args: Parameters<Transport<"revolver">>) => {
-    return transport;
-  };
 }
