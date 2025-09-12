@@ -106,14 +106,17 @@ export class PriceFeedRegister
     logContext: Record<string, any> = {},
   ): Promise<UpdatePriceFeedsResult> {
     let updateables = this.#feeds.values();
+    let filterRemark = "";
     if (priceFeeds) {
       if (Array.isArray(priceFeeds)) {
         updateables = priceFeeds.flatMap(pf => pf.updatableDependencies());
       } else if ("main" in priceFeeds && priceFeeds.main) {
+        filterRemark = " main";
         updateables = this.sdk.marketRegister.priceOracles
           .flatMap(o => o.mainPriceFeeds.values())
           .flatMap(pf => pf.priceFeed.updatableDependencies());
       } else if ("reserve" in priceFeeds && priceFeeds.reserve) {
+        filterRemark = " reserve";
         updateables = this.sdk.marketRegister.priceOracles
           .flatMap(o => o.reservePriceFeeds.values())
           .flatMap(pf => pf.priceFeed.updatableDependencies());
@@ -147,7 +150,7 @@ export class PriceFeedRegister
     const tsDelta = BigInt(maxTimestamp) - this.sdk.timestamp;
     this.logger?.debug(
       logContext,
-      `generated ${txs.length} price feed update transactions, timestamp: ${maxTimestamp} (delta ${tsDelta})`,
+      `generated ${txs.length}${filterRemark} price feed update transactions, timestamp: ${maxTimestamp} (delta ${tsDelta})`,
     );
     if (txs.length) {
       await this.#hooks.triggerHooks("updatesGenerated", result);
