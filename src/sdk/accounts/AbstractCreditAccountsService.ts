@@ -1081,9 +1081,10 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const tStr = Array.from(tokens)
       .map(t => this.labelAddress(t))
       .join(", ");
+    const remark = ignoreReservePrices ? " main" : "";
     this.#logger?.debug(
       { account: creditAccount?.creditAccount, manager: cm.name },
-      `generating price feed updates for ${tStr} from ${priceFeeds.length} price feeds`,
+      `generating price feed updates for ${tStr} from ${priceFeeds.length}${remark} price feeds`,
     );
     return this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(
       priceFeeds,
