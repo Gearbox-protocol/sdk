@@ -722,4 +722,13 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
     }
     return this.contracts.get(routerAddr) as unknown as IRouterContract;
   }
+
+  /**
+   * Helper to get human-friendly label for address
+   * @param address
+   * @returns
+   */
+  public labelAddress(address: Address): string {
+    return this.provider.addressLabels.get(address);
+  }
 }

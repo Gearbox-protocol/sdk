@@ -331,13 +331,4 @@ export class MarketRegister extends SDKConstruct {
   public get markets(): MarketSuite[] {
     return this.#markets.values();
   }
-
-  /**
-   * Helper to get human-friendly label for address
-   * @param address
-   * @returns
-   */
-  public labelAddress(address: Address): string {
-    return this.provider.addressLabels.get(address);
-  }
 }
