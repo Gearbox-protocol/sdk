@@ -64,11 +64,10 @@ export class CreditAccountServiceV300
       creditAccount.creditManager,
     );
 
-    const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
-      creditAccount.creditManager,
+    const priceUpdatesCalls = await this.getPriceUpdatesForFacade({
+      creditManager: creditAccount.creditManager,
       creditAccount,
-      undefined,
-    );
+    });
 
     const { unwrapCalls, assetsToWithdraw } =
       this.#prepareUnwrapAndWithdrawCallsV3(
@@ -114,11 +113,10 @@ export class CreditAccountServiceV300
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
     const addCollateral = collateralAssets.filter(a => a.balance > 0);
 
-    const priceUpdates = await this.getPriceUpdatesForFacade(
-      ca.creditManager,
-      ca,
-      undefined,
-    );
+    const priceUpdates = await this.getPriceUpdatesForFacade({
+      creditManager: ca.creditManager,
+      creditAccount: ca,
+    });
 
     const { unwrapCalls, assetsToWithdraw } =
       this.#prepareUnwrapAndWithdrawCallsV3(
@@ -159,11 +157,10 @@ export class CreditAccountServiceV300
   }: RepayAndLiquidateCreditAccountProps): Promise<CreditAccountOperationResult> {
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
 
-    const priceUpdates = await this.getPriceUpdatesForFacade(
-      ca.creditManager,
-      ca,
-      undefined,
-    );
+    const priceUpdates = await this.getPriceUpdatesForFacade({
+      creditManager: ca.creditManager,
+      creditAccount: ca,
+    });
 
     const addCollateral = collateralAssets.filter(a => a.balance > 0);
 
@@ -207,11 +204,10 @@ export class CreditAccountServiceV300
 
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
 
-    const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
-      ca.creditManager,
-      ca,
-      averageQuota,
-    );
+    const priceUpdatesCalls = await this.getPriceUpdatesForFacade({
+      creditManager: ca.creditManager,
+      creditAccount: ca,
+    });
 
     const calls = [
       ...priceUpdatesCalls,

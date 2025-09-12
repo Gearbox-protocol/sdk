@@ -139,11 +139,10 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
     targetCreditManager: Address,
     expectedTargetQuota: Array<Asset>,
   ) {
-    const updatesPayload = await this.#service.getOnDemandPriceUpdates(
-      targetCreditManager,
-      undefined,
-      expectedTargetQuota,
-    );
+    const updatesPayload = await this.#service.getOnDemandPriceUpdates({
+      creditManager: targetCreditManager,
+      desiredQuotas: expectedTargetQuota,
+    });
 
     const market =
       this.sdk.marketRegister.findByCreditManager(targetCreditManager);

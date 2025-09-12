@@ -30,11 +30,10 @@ export class CreditAccountServiceV310
   }: SetBotProps): Promise<CreditAccountOperationResult> {
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
 
-    const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
-      ca.creditManager,
-      ca,
-      undefined,
-    );
+    const priceUpdatesCalls = await this.getPriceUpdatesForFacade({
+      creditManager: ca.creditManager,
+      creditAccount: ca,
+    });
 
     const addBotCall: MultiCall = {
       target: ca.creditFacade,
@@ -67,11 +66,10 @@ export class CreditAccountServiceV310
       creditAccount.creditManager,
     );
 
-    const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
-      creditAccount.creditManager,
+    const priceUpdatesCalls = await this.getPriceUpdatesForFacade({
+      creditManager: creditAccount.creditManager,
       creditAccount,
-      undefined,
-    );
+    });
 
     const calls: Array<MultiCall> = [
       ...priceUpdatesCalls,
@@ -115,11 +113,10 @@ export class CreditAccountServiceV310
       creditAccount: ca,
     });
 
-    const priceUpdates = await this.getPriceUpdatesForFacade(
-      ca.creditManager,
-      ca,
-      undefined,
-    );
+    const priceUpdates = await this.getPriceUpdatesForFacade({
+      creditManager: ca.creditManager,
+      creditAccount: ca,
+    });
 
     const calls: Array<MultiCall> = [
       ...(operation === "close" ? [] : priceUpdates),
@@ -158,11 +155,10 @@ export class CreditAccountServiceV310
       creditAccount: ca,
     });
 
-    const priceUpdates = await this.getPriceUpdatesForFacade(
-      ca.creditManager,
-      ca,
-      undefined,
-    );
+    const priceUpdates = await this.getPriceUpdatesForFacade({
+      creditManager: ca.creditManager,
+      creditAccount: ca,
+    });
 
     const addCollateral = collateralAssets.filter(a => a.balance > 0);
 
@@ -202,11 +198,11 @@ export class CreditAccountServiceV310
     });
     if (claimPath.calls.length === 0) throw new Error("No path to execute");
 
-    const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
-      ca.creditManager,
-      ca,
-      averageQuota,
-    );
+    const priceUpdatesCalls = await this.getPriceUpdatesForFacade({
+      creditManager: ca.creditManager,
+      creditAccount: ca,
+      desiredQuotas: averageQuota,
+    });
 
     const calls = [
       ...priceUpdatesCalls,

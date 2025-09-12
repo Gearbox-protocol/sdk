@@ -53,6 +53,13 @@ export interface GetCreditAccountsOptions {
   ignoreReservePrices?: boolean;
 }
 
+export interface PriceUpdatesOptions {
+  creditManager: Address;
+  creditAccount?: CreditAccountTokensSlice;
+  desiredQuotas?: Asset[];
+  ignoreReservePrices?: boolean;
+}
+
 export interface CloseCreditAccountResult extends CreditAccountOperationResult {
   routerCloseResult: RouterCloseResult;
 }
@@ -344,6 +351,10 @@ export interface FullyLiquidateProps {
    * List of assets to keep on account after liquidation
    */
   keepAssets?: Address[];
+  /**
+   * If true, will ignore reserve prices
+   */
+  ignoreReservePrices?: boolean;
 }
 
 export interface PermitResult {
@@ -609,28 +620,20 @@ export interface ICreditAccountsService extends SDKConstruct {
 
   /**
    * Returns account price updates that can be used in credit facade multicall or liquidator calls
-   * @param creditManager
-   * @param creditAccount
-   * @param desiredQuotas
+   * @param options
    * @returns
    */
   getOnDemandPriceUpdates(
-    creditManager: Address,
-    creditAccount: RouterCASlice | undefined,
-    desiredQuotas: Array<Asset> | undefined,
+    options: PriceUpdatesOptions,
   ): Promise<OnDemandPriceUpdates<PriceUpdateV310 | PriceUpdateV300>>;
 
   /**
    * Returns price updates in format that is accepted by various credit facade methods (multicall, close/liquidate, etc...).
-   * @param creditManager
-   * @param creditAccount
-   * @param desiredQuotas
+   * @param options
    * @returns
    */
   getPriceUpdatesForFacade(
-    creditManager: Address,
-    creditAccount: CreditAccountTokensSlice | undefined,
-    desiredQuotas: Array<Asset> | undefined,
+    options: PriceUpdatesOptions,
   ): Promise<Array<MultiCall>>;
 
   /**

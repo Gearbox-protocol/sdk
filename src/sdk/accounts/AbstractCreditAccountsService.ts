@@ -50,6 +50,7 @@ import type {
   FullyLiquidateProps,
   GetConnectedBotsResult,
   GetConnectedMigrationBotsResult,
+  PriceUpdatesOptions,
   StartDelayedWithdrawalProps,
 } from "./types";
 import type {
@@ -125,11 +126,10 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     if (raw.success) {
       return raw;
     }
-    const { txs: priceUpdateTxs } = await this.getUpdateForAccount(
-      raw.creditManager,
-      raw,
-      undefined,
-    );
+    const { txs: priceUpdateTxs } = await this.getUpdateForAccount({
+      creditManager: raw.creditManager,
+      creditAccount: raw,
+    });
     const [cad] = await simulateWithPriceUpdates(this.client, {
       priceUpdates: priceUpdateTxs,
       contracts: [
@@ -344,7 +344,14 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   public async fullyLiquidate(
     props: FullyLiquidateProps,
   ): Promise<CloseCreditAccountResult> {
-    const { account, to, slippage = 50n, force = false, keepAssets } = props;
+    const {
+      account,
+      to,
+      slippage = 50n,
+      force = false,
+      keepAssets,
+      ignoreReservePrices,
+    } = props;
     const cm = this.sdk.marketRegister.findCreditManager(account.creditManager);
     const routerCloseResult = await this.sdk
       .routerFor(account)
@@ -355,11 +362,11 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
         force,
         keepAssets,
       });
-    const priceUpdates = await this.getPriceUpdatesForFacade(
-      account.creditManager,
-      account,
-      undefined,
-    );
+    const priceUpdates = await this.getPriceUpdatesForFacade({
+      creditManager: account.creditManager,
+      creditAccount: account,
+      ignoreReservePrices,
+    });
     const calls = [...priceUpdates, ...routerCloseResult.calls];
     const tx = cm.creditFacade.liquidateCreditAccount(
       account.creditAccount,
@@ -403,11 +410,10 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
         slippage,
       }));
 
-    const priceUpdates = await this.getPriceUpdatesForFacade(
-      ca.creditManager,
-      ca,
-      undefined,
-    );
+    const priceUpdates = await this.getPriceUpdatesForFacade({
+      creditManager: ca.creditManager,
+      creditAccount: ca,
+    });
 
     const calls: Array<MultiCall> = [
       ...(operation === "close" ? [] : priceUpdates),
@@ -443,11 +449,10 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const cm = this.sdk.marketRegister.findCreditManager(
       creditAccount.creditManager,
     );
-    const priceUpdates = await this.getPriceUpdatesForFacade(
-      creditAccount.creditManager,
+    const priceUpdates = await this.getPriceUpdatesForFacade({
+      creditManager: creditAccount.creditManager,
       creditAccount,
-      undefined,
-    );
+    });
 
     const calls: Array<MultiCall> = [
       ...priceUpdates,
@@ -485,11 +490,11 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       creditAccount.creditManager,
     );
 
-    const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
-      creditAccount.creditManager,
+    const priceUpdatesCalls = await this.getPriceUpdatesForFacade({
+      creditManager: creditAccount.creditManager,
       creditAccount,
-      averageQuota,
-    );
+      desiredQuotas: averageQuota,
+    });
 
     const calls: Array<MultiCall> = [
       ...priceUpdatesCalls,
@@ -534,11 +539,10 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       creditAccount.creditManager,
     );
 
-    const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
-      creditAccount.creditManager,
+    const priceUpdatesCalls = await this.getPriceUpdatesForFacade({
+      creditManager: creditAccount.creditManager,
       creditAccount,
-      undefined,
-    );
+    });
 
     const underlyingEnabled = (creditAccount.enabledTokensMask & 1n) === 1n;
     const shouldEnable = !isDecrease && !underlyingEnabled;
@@ -579,11 +583,11 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       creditAccount.creditManager,
     );
 
-    const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
-      creditAccount.creditManager,
+    const priceUpdatesCalls = await this.getPriceUpdatesForFacade({
+      creditManager: creditAccount.creditManager,
       creditAccount,
-      averageQuota,
-    );
+      desiredQuotas: averageQuota,
+    });
 
     const calls: Array<MultiCall> = [
       ...priceUpdatesCalls,
@@ -641,11 +645,11 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       }),
     };
 
-    const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
-      creditAccount.creditManager,
+    const priceUpdatesCalls = await this.getPriceUpdatesForFacade({
+      creditManager: creditAccount.creditManager,
       creditAccount,
-      averageQuota,
-    );
+      desiredQuotas: averageQuota,
+    });
 
     const mellowAdapter = cm.creditManager.adapters.mustGet(sourceToken);
     const redeem: MultiCall = {
@@ -734,11 +738,11 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       }),
     };
 
-    const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
-      creditAccount.creditManager,
+    const priceUpdatesCalls = await this.getPriceUpdatesForFacade({
+      creditManager: creditAccount.creditManager,
       creditAccount,
-      averageQuota,
-    );
+      desiredQuotas: averageQuota,
+    });
 
     const CLAIMER = "0x25024a3017B8da7161d8c5DCcF768F8678fB5802";
     const mellowClaimerAdapter = cm.creditManager.adapters.mustGet(CLAIMER);
@@ -793,11 +797,10 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }: EnableTokensProps): Promise<CreditAccountOperationResult> {
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
 
-    const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
-      ca.creditManager,
-      ca,
-      undefined,
-    );
+    const priceUpdatesCalls = await this.getPriceUpdatesForFacade({
+      creditManager: ca.creditManager,
+      creditAccount: ca,
+    });
 
     const calls = [
       ...priceUpdatesCalls,
@@ -853,11 +856,10 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const cmSuite = this.sdk.marketRegister.findCreditManager(creditManager);
     const cm = cmSuite.creditManager;
 
-    const priceUpdatesCalls = await this.getPriceUpdatesForFacade(
-      cm.address,
-      undefined,
-      averageQuota,
-    );
+    const priceUpdatesCalls = await this.getPriceUpdatesForFacade({
+      creditManager: cm.address,
+      desiredQuotas: averageQuota,
+    });
 
     const calls = [
       ...priceUpdatesCalls,
@@ -1021,10 +1023,10 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   protected async getUpdateForAccount(
-    creditManager: Address,
-    creditAccount: CreditAccountTokensSlice | undefined,
-    desiredQuotas: Array<Asset> | undefined,
+    options: PriceUpdatesOptions,
   ): Promise<UpdatePriceFeedsResult> {
+    const { creditManager, creditAccount, desiredQuotas, ignoreReservePrices } =
+      options;
     const quotaRecord = desiredQuotas
       ? assetsMap(desiredQuotas)
       : desiredQuotas;
@@ -1072,7 +1074,10 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     }
 
     const priceFeeds: Array<IPriceFeedContract> =
-      market.priceOracle.priceFeedsForTokens(Array.from(tokens));
+      market.priceOracle.priceFeedsForTokens(Array.from(tokens), {
+        main: true,
+        reserve: !ignoreReservePrices,
+      });
     const tStr = Array.from(tokens)
       .map(t => this.labelAddress(t))
       .join(", ");
@@ -1088,23 +1093,16 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
 
   /**
    * Returns account price updates that can be used in credit facade multicall or liquidator calls
-   * @param creditManager
-   * @param creditAccount
-   * @param desiredQuotas
+   * @param options
    * @returns
    */
   public async getOnDemandPriceUpdates(
-    creditManager: Address,
-    creditAccount: CreditAccountTokensSlice | undefined,
-    desiredQuotas: Array<Asset> | undefined,
+    options: PriceUpdatesOptions,
   ): Promise<OnDemandPriceUpdates<PriceUpdateV310 | PriceUpdateV300>> {
+    const { creditManager, creditAccount } = options;
     const market = this.sdk.marketRegister.findByCreditManager(creditManager);
     const cm = this.sdk.marketRegister.findCreditManager(creditManager);
-    const update = await this.getUpdateForAccount(
-      creditManager,
-      creditAccount,
-      desiredQuotas,
-    );
+    const update = await this.getUpdateForAccount(options);
     this.#logger?.debug(
       { account: creditAccount?.creditAccount, manager: cm.name },
       `getting on demand price updates from ${update.txs.length} txs`,
@@ -1124,15 +1122,9 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
    * @returns
    */
   public async getPriceUpdatesForFacade(
-    creditManager: Address,
-    creditAccount: CreditAccountTokensSlice | undefined,
-    desiredQuotas: Array<Asset> | undefined,
+    options: PriceUpdatesOptions,
   ): Promise<Array<MultiCall>> {
-    const updates = await this.getOnDemandPriceUpdates(
-      creditManager,
-      creditAccount,
-      desiredQuotas,
-    );
+    const updates = await this.getOnDemandPriceUpdates(options);
     return updates.multicall;
   }
 
