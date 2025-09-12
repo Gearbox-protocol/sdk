@@ -95,17 +95,30 @@ export class PriceFeedRegister
 
   /**
    * Returns RawTxs to update price feeds
-   * @param priceFeeds top-level price feeds, actual updatable price feeds will be derived. If not provided will use all price feeds that are attached
+   * @param priceFeeds Array oftop-level price feeds, actual updatable price feeds will be derived.
+   * Or filter criteria, that will gather all main or reserve price feeds from all oracles
+   * If not provided will use all price feeds that are attached
    * @param logContext extra information for logging
    * @returns
    */
   public async generatePriceFeedsUpdateTxs(
-    priceFeeds?: IPriceFeedContract[],
+    priceFeeds?: IPriceFeedContract[] | { main: true } | { reserve: true },
     logContext: Record<string, any> = {},
   ): Promise<UpdatePriceFeedsResult> {
-    const updateables = priceFeeds
-      ? priceFeeds.flatMap(pf => pf.updatableDependencies())
-      : this.#feeds.values();
+    let updateables = this.#feeds.values();
+    if (priceFeeds) {
+      if (Array.isArray(priceFeeds)) {
+        updateables = priceFeeds.flatMap(pf => pf.updatableDependencies());
+      } else if ("main" in priceFeeds && priceFeeds.main) {
+        updateables = this.sdk.marketRegister.priceOracles
+          .flatMap(o => o.mainPriceFeeds.values())
+          .flatMap(pf => pf.priceFeed.updatableDependencies());
+      } else if ("reserve" in priceFeeds && priceFeeds.reserve) {
+        updateables = this.sdk.marketRegister.priceOracles
+          .flatMap(o => o.reservePriceFeeds.values())
+          .flatMap(pf => pf.priceFeed.updatableDependencies());
+      }
+    }
 
     const txs: IPriceUpdateTx[] = [];
     const latestUpdate: LatestUpdate = {
@@ -150,7 +163,7 @@ export class PriceFeedRegister
    * @returns
    */
   public async generatePriceFeedsUpdates(
-    priceFeeds?: IPriceFeedContract[],
+    priceFeeds?: IPriceFeedContract[] | { main: true } | { reserve: true },
     logContext: Record<string, any> = {},
   ): Promise<PriceUpdateV310[]> {
     const updates = await this.generatePriceFeedsUpdateTxs(
@@ -231,7 +244,7 @@ export class PriceFeedRegister
 
   /**
    * Loads PARTIAL information about all updatable price feeds from MarketCompressor
-   * This is not saved anywhere in PriceFeedRegister, and can later be used to load price feed updates
+   * Discovered price feeds are not saved anywhere in PriceFeedRegister, and can later be used to load price feed updates
    */
   public async getPartialUpdatablePriceFeeds(
     configurators: Address[],

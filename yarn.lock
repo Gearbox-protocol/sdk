@@ -967,7 +967,7 @@ __metadata:
     "@types/bn.js": "npm:^5.2.0"
     "@types/cross-spawn": "npm:^6.0.6"
     abitype: "npm:^1.1.0"
-    axios: "npm:^1.11.0"
+    axios: "npm:^1.12.1"
     bn.js: "npm:^5.2.2"
     buffer: "npm:^6.0.3"
     cross-spawn: "npm:^7.0.6"
@@ -982,7 +982,7 @@ __metadata:
     typescript: "npm:^5.9.2"
     viem: "npm:>=2.23.15 <3.0.0"
     vitest: "npm:^3.2.4"
-    zod: "npm:^4.1.7"
+    zod: "npm:^4.1.8"
   peerDependencies:
     axios: ^1.0.0
   languageName: unknown
@@ -1681,14 +1681,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.11.0, axios@npm:^1.7.7":
-  version: 1.11.0
-  resolution: "axios@npm:1.11.0"
+"axios@npm:^1.12.1, axios@npm:^1.7.7":
+  version: 1.12.1
+  resolution: "axios@npm:1.12.1"
   dependencies:
     follow-redirects: "npm:^1.15.6"
     form-data: "npm:^4.0.4"
     proxy-from-env: "npm:^1.1.0"
-  checksum: 10c0/5de273d33d43058610e4d252f0963cc4f10714da0bfe872e8ef2cbc23c2c999acc300fd357b6bce0fc84a2ca9bd45740fa6bb28199ce2c1266c8b1a393f2b36e
+  checksum: 10c0/eda4dff56c02d13b950fd9487b678ac197ce5f21dfc98df73632df29e45d8dd24602a34e8d9b6e016d84a41ef7fd7fc4a7618060a72cc536b91cda1eaa9cd907
   languageName: node
   linkType: hard
 
@@ -1954,9 +1954,9 @@ __metadata:
   linkType: hard
 
 "commander@npm:^14.0.0":
-  version: 14.0.0
-  resolution: "commander@npm:14.0.0"
-  checksum: 10c0/73c4babfa558077868d84522b11ef56834165d472b9e86a634cd4c3ae7fc72d59af6377d8878e06bd570fe8f3161eced3cbe383c38f7093272bb65bd242b595b
+  version: 14.0.1
+  resolution: "commander@npm:14.0.1"
+  checksum: 10c0/64439c0651ddd01c1d0f48c8f08e97c18a0a1fa693879451f1203ad01132af2c2aa85da24cf0d8e098ab9e6dc385a756be670d2999a3c628ec745c3ec124587b
   languageName: node
   linkType: hard
 
@@ -4866,9 +4866,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^4.1.7":
-  version: 4.1.7
-  resolution: "zod@npm:4.1.7"
-  checksum: 10c0/df5510f3a96d87645c3bd98be7b095f1fab29295823a2fc693a4a34b307b5ece55f7ca4b083b8e90a8279d3926a6c5692a82e248399980e4870370087ad098cc
+"zod@npm:^4.1.8":
+  version: 4.1.8
+  resolution: "zod@npm:4.1.8"
+  checksum: 10c0/5eae39da09d7bd0564a30dfd2348811e4e2e7dd15955d8f3444f8e196f35e5422b1482eda234b722fafb0738f4a8b718adb042b860936bfdd2cc19cdbdac8a9a
   languageName: node
   linkType: hard

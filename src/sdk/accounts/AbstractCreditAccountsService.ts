@@ -125,10 +125,11 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     if (raw.success) {
       return raw;
     }
-    const { txs: priceUpdateTxs } =
-      await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(undefined, {
-        account,
-      });
+    const { txs: priceUpdateTxs } = await this.getUpdateForAccount(
+      raw.creditManager,
+      raw,
+      undefined,
+    );
     const [cad] = await simulateWithPriceUpdates(this.client, {
       priceUpdates: priceUpdateTxs,
       contracts: [
@@ -163,6 +164,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       maxHealthFactor = MAX_UINT256,
       minHealthFactor = 0n,
       owner = ADDRESS_0X0,
+      ignoreReservePrices = false,
     } = options ?? {};
     // either credit manager or all attached markets
     const arg0 =
@@ -182,7 +184,9 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     };
 
     const { txs: priceUpdateTxs } =
-      await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs();
+      await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(
+        ignoreReservePrices ? { main: true } : undefined,
+      );
 
     const allCAs: Array<CreditAccountData> = [];
     // reverting filter is exclusive, we need both options to get all accounts

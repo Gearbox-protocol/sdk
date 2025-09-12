@@ -267,6 +267,10 @@ export class MarketRegister extends SDKConstruct {
     return this.markets.map(market => market.pool);
   }
 
+  public get priceOracles(): IPriceOracleContract[] {
+    return this.markets.map(market => market.priceOracle);
+  }
+
   public get creditManagers(): CreditSuite[] {
     return this.markets.flatMap(market => market.creditManagers);
   }
@@ -326,5 +330,14 @@ export class MarketRegister extends SDKConstruct {
 
   public get markets(): MarketSuite[] {
     return this.#markets.values();
+  }
+
+  /**
+   * Helper to get human-friendly label for address
+   * @param address
+   * @returns
+   */
+  public labelAddress(address: Address): string {
+    return this.provider.addressLabels.get(address);
   }
 }

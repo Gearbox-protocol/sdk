@@ -60,7 +60,7 @@
     "date-fns": "^4.1.0",
     "decimal.js-light": "^2.5.1",
     "viem": ">=2.23.15 <3.0.0",
-    "zod": "^4.1.7"
+    "zod": "^4.1.8"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.4",
@@ -68,7 +68,7 @@
     "@commitlint/config-conventional": "^19.8.1",
     "@gearbox-protocol/biome-config": "^1.0.2",
     "@types/cross-spawn": "^6.0.6",
-    "axios": "^1.11.0",
+    "axios": "^1.12.1",
     "cross-spawn": "^7.0.6",
     "husky": "^9.1.7",
     "lint-staged": "^16.1.6",

@@ -47,6 +47,10 @@ export interface GetCreditAccountsOptions {
   includeZeroDebt?: boolean;
   minHealthFactor?: bigint;
   maxHealthFactor?: bigint;
+  /**
+   * If true, will filter out reserve price updates
+   */
+  ignoreReservePrices?: boolean;
 }
 
 export interface CloseCreditAccountResult extends CreditAccountOperationResult {
