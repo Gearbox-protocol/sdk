@@ -73,7 +73,13 @@ export interface TargetAccount {
    * These tokens will be transferred directly from faucet to credit account
    */
   directTransfer?: Address[];
+  /**
+   * Leverage, without percentage (e.g. "3" for 300%)
+   */
   leverage?: number;
+  /**
+   * Slippage with percentage (e.g. 100 = 1%)
+   */
   slippage?: number;
 }
 
