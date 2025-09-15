@@ -1,8 +1,11 @@
 import type {
   EIP1193Parameters,
+  Hex,
   HttpTransportConfig,
   PublicRpcSchema,
+  RequiredBy,
 } from "viem";
+import type { RpcResponse } from "viem/_types/types/rpc.js";
 import type { ILogger } from "../sdk/index.js";
 
 export type EthCallMethod = Extract<
@@ -14,7 +17,7 @@ export type EthCallRequest = EIP1193Parameters<[EthCallMethod]>;
 
 export interface DetectedCall {
   request: EthCallRequest;
-  response?: EthCallMethod["ReturnType"];
+  response?: RpcResponse<Hex>;
   responseHeaders?: Record<string, string>;
 }
 
@@ -23,10 +26,10 @@ export type CheckMulticallFn = (data: EthCallRequest) => boolean;
 /**
  * Helper to spy on eth_call requests and responses in viem transport
  */
-export class EthCallSpy {
+export class EthCallSpy<TCall extends DetectedCall = DetectedCall> {
   #logger?: ILogger;
 
-  #detectedCalls: DetectedCall[] = [];
+  #detectedCalls: TCall[] = [];
   #detectedBlock = 0n;
   #check: CheckMulticallFn;
   public enabled: boolean;
@@ -45,7 +48,7 @@ export class EthCallSpy {
       const data = (await request.json()) as EIP1193Parameters<PublicRpcSchema>;
       const blockNumber = this.#shouldStore(data);
       if (blockNumber) {
-        this.storeCall(blockNumber, data as unknown as EthCallRequest);
+        this.storeRequest(blockNumber, data as unknown as EthCallRequest);
         this.#logger?.debug(
           `spy stored eth_call at block ${blockNumber}, total calls: ${this.#detectedCalls.length}`,
         );
@@ -64,17 +67,34 @@ export class EthCallSpy {
         ({ request }) => "id" in request && request.id === id,
       );
       if (call) {
-        call.response = resp as unknown as EthCallMethod["ReturnType"];
+        call.response = resp as unknown as RpcResponse<Hex>;
         call.responseHeaders = Object.fromEntries(response.headers.entries());
+        await this.storeResponse(
+          call as RequiredBy<TCall, "response" | "responseHeaders">,
+        );
       }
     };
 
-  public get detectedCalls(): DetectedCall[] {
+  public get detectedCalls(): TCall[] {
     return this.#detectedCalls;
   }
 
   public get detectedBlock(): bigint {
     return this.#detectedBlock;
+  }
+
+  protected storeRequest(blockNumber: bigint, data: EthCallRequest): void {
+    if (blockNumber !== this.#detectedBlock) {
+      this.#detectedBlock = blockNumber;
+      this.#detectedCalls = [];
+    }
+    this.#detectedCalls.push({ request: data } as TCall);
+  }
+
+  protected storeResponse(
+    call: RequiredBy<TCall, "response" | "responseHeaders">,
+  ): void | Promise<void> {
+    return;
   }
 
   #shouldStore(data: EIP1193Parameters<PublicRpcSchema>): bigint | undefined {
@@ -87,13 +107,5 @@ export class EthCallSpy {
       return BigInt(data.params[1]); // return block number
     }
     return undefined;
-  }
-
-  protected storeCall(blockNumber: bigint, data: EthCallRequest): void {
-    if (blockNumber !== this.#detectedBlock) {
-      this.#detectedBlock = blockNumber;
-      this.#detectedCalls = [];
-    }
-    this.#detectedCalls.push({ request: data });
   }
 }
