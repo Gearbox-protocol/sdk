@@ -5,8 +5,8 @@ import type {
   PublicRpcSchema,
   RequiredBy,
 } from "viem";
-import type { RpcResponse } from "viem/_types/types/rpc.js";
 import type { ILogger } from "../sdk/index.js";
+import type { RpcResponse } from "./types.js";
 
 export type EthCallMethod = Extract<
   PublicRpcSchema[number],

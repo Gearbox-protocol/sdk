@@ -9,3 +9,4 @@ export * from "./detectChain.js";
 export * from "./EthCallSpy.js";
 export * from "./ltUtils.js";
 export * from "./migrateFaucet.js";
+export * from "./types.js";
