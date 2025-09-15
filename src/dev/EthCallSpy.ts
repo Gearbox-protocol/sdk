@@ -45,7 +45,7 @@ export class EthCallSpy {
       const data = (await request.json()) as EIP1193Parameters<PublicRpcSchema>;
       const blockNumber = this.#shouldStore(data);
       if (blockNumber) {
-        this.#storeCall(blockNumber, data as unknown as EthCallRequest);
+        this.storeCall(blockNumber, data as unknown as EthCallRequest);
         this.#logger?.debug(
           `spy stored eth_call at block ${blockNumber}, total calls: ${this.#detectedCalls.length}`,
         );
@@ -89,7 +89,7 @@ export class EthCallSpy {
     return undefined;
   }
 
-  #storeCall(blockNumber: bigint, data: EthCallRequest): void {
+  protected storeCall(blockNumber: bigint, data: EthCallRequest): void {
     if (blockNumber !== this.#detectedBlock) {
       this.#detectedBlock = blockNumber;
       this.#detectedCalls = [];
