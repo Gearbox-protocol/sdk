@@ -13,6 +13,7 @@ export type RpcProvider = "alchemy" | "drpc" | "custom";
 export interface ProviderConfig {
   provider: RpcProvider;
   keys: string[];
+  cooldown?: number;
 }
 
 export interface CreateTransportURLOptions {
@@ -36,45 +37,6 @@ export type CreateWSTransportConfig = {
 export type CreateTransportConfig =
   | CreateHTTPTransportConfig
   | CreateWSTransportConfig;
-
-/**
- * Helper method to create viem Transport using API keys of well-known RPC providers and explicit fallback URLs
- * Currently only supports Alchemy
- * @param config
- * @returns
- */
-export function createTransport(config: CreateTransportConfig): Transport {
-  const { rpcProviders = [], protocol, network, ...rest } = config;
-
-  const rpcUrls = new Map<string, RpcProvider>();
-  for (const { provider, keys } of rpcProviders) {
-    for (const key of keys) {
-      const url = getProviderUrl(provider, network, key, protocol);
-      if (url) {
-        rpcUrls.set(url, provider);
-      }
-    }
-  }
-
-  const transports = Array.from(rpcUrls.entries()).map(
-    ([url, provider], index) =>
-      protocol === "http"
-        ? http(url, {
-            ...(rest as HttpTransportConfig),
-            key: `${provider}-${index}`,
-            name: `${provider}-${index}`,
-          })
-        : webSocket(url, {
-            ...(rest as WebSocketTransportConfig),
-            key: `${provider}-${index}`,
-            name: `${provider}-${index}`,
-          }),
-  );
-  if (transports.length === 0) {
-    throw new Error("no fitting rpc urls found");
-  }
-  return transports.length > 1 ? fallback(transports) : transports[0];
-}
 
 export function getProviderUrl(
   provider: RpcProvider,
