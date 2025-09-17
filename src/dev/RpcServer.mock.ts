@@ -4,6 +4,7 @@ import {
   type Server,
   type ServerResponse,
 } from "node:http";
+import { setTimeout } from "node:timers/promises";
 
 export const InternalErrorResponse = {
   jsonrpc: "2.0",
@@ -22,6 +23,7 @@ export class RpcServerMock {
   #port: number;
   #jsonRpcError?: Record<string, unknown>;
   #brokenUntil = 0n; // block number
+  #randomDelay = false;
 
   public static reset(): void {
     RpcServerMock.blockNumber = 0n;
@@ -32,7 +34,10 @@ export class RpcServerMock {
     this.#server = createServer(this.#handleRequest.bind(this));
   }
 
-  #handleRequest(_req: IncomingMessage, res: ServerResponse) {
+  async #handleRequest(_req: IncomingMessage, res: ServerResponse) {
+    if (this.#randomDelay) {
+      await setTimeout(Math.random() * 300);
+    }
     if (this.jsonRpcError) {
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify(this.jsonRpcError));
@@ -56,6 +61,10 @@ export class RpcServerMock {
       return undefined;
     }
     return this.#jsonRpcError;
+  }
+
+  public enableRandomDelay() {
+    this.#randomDelay = true;
   }
 
   public start(): Promise<void> {

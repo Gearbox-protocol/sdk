@@ -4,12 +4,14 @@ import {
   HttpRequestError,
   type PublicClient,
   RpcError,
+  type Transport,
 } from "viem";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import {
   NoAvailableTransportsError,
   RevolverTransport,
   type RevolverTransportConfig,
+  type RevolverTransportValue,
 } from "./RevolverTransport";
 import { RpcServerMock } from "./RpcServer.mock";
 
@@ -31,7 +33,9 @@ afterEach(async () => {
   RpcServerMock.reset();
 });
 
-function createClient(opts?: Partial<RevolverTransportConfig>): PublicClient {
+function createClient(
+  opts?: Partial<RevolverTransportConfig>,
+): PublicClient<Transport<"revolver", RevolverTransportValue>> {
   return createPublicClient({
     pollingInterval: 10,
     transport: RevolverTransport.create({
@@ -187,6 +191,36 @@ it("should rotate over transport in cooldown", async () => {
     "custom-2",
     expect.any(RpcError),
   );
+});
+
+it("should not overrotate when hadling parallel requests", async () => {
+  s1.break(100n);
+  s1.enableRandomDelay();
+
+  const client = createClient({
+    providers: [
+      {
+        provider: "custom",
+        keys: [s1.url],
+      },
+      {
+        provider: "custom",
+        keys: [s2.url],
+      },
+    ],
+    cooldown: 60_000,
+  });
+  const resp = await Promise.all([
+    client.request({ method: "eth_blockNumber" }),
+    client.request({ method: "eth_blockNumber" }),
+    client.request({ method: "eth_blockNumber" }),
+    client.request({ method: "eth_blockNumber" }),
+    client.request({ method: "eth_blockNumber" }),
+    client.request({ method: "eth_blockNumber" }),
+  ]);
+
+  expect(resp.sort()).toEqual(["0x1", "0x2", "0x3", "0x4", "0x5", "0x6"]);
+  expect(client.transport.currentTransportName()).toBe("custom-1");
 });
 
 it("request should fail when all transports are broken", async () => {

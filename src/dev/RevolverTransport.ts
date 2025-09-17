@@ -191,17 +191,19 @@ export class RevolverTransport
     }
     do {
       try {
-        this.#requests.set(r, this.currentTransportName);
+        this.#requests.set(r, this.currentTransportName());
         const resp = await this.#transport({ ...this.overrides }).request(r);
         this.#requests.delete(r);
         return resp as any;
       } catch (e) {
         if (e instanceof RpcError || e instanceof HttpRequestError) {
           const reqTransport = this.#requests.get(r);
-          if (reqTransport === this.currentTransportName) {
+          if (reqTransport === this.currentTransportName()) {
             await this.rotate(e);
           } else {
-            this.#logger?.debug("request made with old transport, try again");
+            this.#logger?.debug(
+              `request made with old transport ${reqTransport}, trying again`,
+            );
           }
         } else {
           this.#requests.delete(r);
