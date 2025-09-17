@@ -98,7 +98,9 @@ export class RevolverTransport
   #index = 0;
   #config: RevolverTransportConfig;
 
-  private overrides?: Parameters<Transport<"revolver">>[0];
+  private overrides?: Parameters<
+    Transport<"revolver", RevolverTransportValue>
+  >[0];
 
   /**
    * Create a new RevolverTransport
@@ -108,12 +110,16 @@ export class RevolverTransport
    * @param config
    * @returns
    */
-  public static create(config: RevolverTransportConfig): Transport<"revolver"> {
+  public static create(
+    config: RevolverTransportConfig,
+  ): Transport<"revolver", RevolverTransportValue> {
     const transport = new RevolverTransport({
       ...config,
     });
 
-    return (...args: Parameters<Transport<"revolver">>) => {
+    return (
+      ...args: Parameters<Transport<"revolver", RevolverTransportValue>>
+    ) => {
       transport.overrides = args[0];
       return transport;
     };
