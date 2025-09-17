@@ -47,6 +47,10 @@ export interface RevolverTransportConfig {
   retryDelay?: TransportConfig["retryDelay"] | undefined;
   timeout?: TransportConfig["timeout"] | undefined;
   /**
+   * Allow batching of json-rpc requests
+   */
+  batch?: boolean | undefined;
+  /**
    * Spying function that also returns provider name in additional to the request
    */
   onRequest?: OnRequestFn;
@@ -149,7 +153,7 @@ export class RevolverTransport
           retryCount: config.retryCount,
           retryDelay: config.retryDelay,
           timeout: config.timeout,
-          batch: false,
+          batch: !!config.batch,
           key: `${provider}-${i}`,
           name: `${provider}-${i}`,
           onFetchRequest: this.#config.onRequest
