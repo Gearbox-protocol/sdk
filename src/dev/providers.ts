@@ -1,12 +1,6 @@
-import type {
-  HttpTransportConfig,
-  Transport,
-  WebSocketTransportConfig,
-} from "viem";
-import { fallback, http, webSocket } from "viem";
+import type { HttpTransportConfig, WebSocketTransportConfig } from "viem";
 
 import type { NetworkType } from "../sdk/index.js";
-import { getChain } from "../sdk/index.js";
 
 export type RpcProvider = "alchemy" | "drpc" | "custom";
 
@@ -63,14 +57,14 @@ export function getAlchemyUrl(
   apiKey: string,
   protocol: "http" | "ws",
 ): string | undefined {
-  const { alchemyDomain } = getChain(network);
+  const alchemyDomain = ALCHEMY_DOMAINS[network];
   if (!alchemyDomain) {
     return undefined;
   }
   return `${protocol}s://${alchemyDomain}.g.alchemy.com/v2/${apiKey}`;
 }
 
-const DRPC_NETS: Record<NetworkType, string> = {
+const DRPC_NETS: Record<NetworkType, string | null> = {
   Arbitrum: "arbitrum",
   Base: "base",
   BNB: "bsc",
@@ -83,9 +77,25 @@ const DRPC_NETS: Record<NetworkType, string> = {
   Monad: "monad-testnet",
   Hemi: "hemi",
   Lisk: "lisk",
-  // TODO: no drpc
-  MegaETH: "",
-  Etherlink: "",
+  MegaETH: null,
+  Etherlink: null,
+};
+
+const ALCHEMY_DOMAINS: Record<NetworkType, string | null> = {
+  Mainnet: "eth-mainnet",
+  Arbitrum: "arb-mainnet",
+  Optimism: "opt-mainnet",
+  Base: "base-mainnet",
+  Sonic: "sonic-mainnet",
+  Monad: "monad-testnet",
+  Berachain: "berachain-mainnet",
+  Avalanche: "avax-mainnet",
+  BNB: "bnb-mainnet",
+  WorldChain: "worldchain-mainnet",
+  MegaETH: null,
+  Etherlink: null,
+  Hemi: null,
+  Lisk: null,
 };
 
 export function getDrpcUrl(
