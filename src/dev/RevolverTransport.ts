@@ -105,6 +105,7 @@ export class RevolverTransport
   #index = 0;
   #config: RevolverTransportConfig;
   #rotating = false;
+  #requests = new WeakMap();
 
   private overrides?: Parameters<
     Transport<"revolver", RevolverTransportValue>
@@ -188,20 +189,28 @@ export class RevolverTransport
     if (this.#transports.length === 1) {
       return this.#transport({ ...this.overrides }).request(r);
     }
-    // send with current transport
     do {
       try {
+        this.#requests.set(r, this.currentTransportName);
         const resp = await this.#transport({ ...this.overrides }).request(r);
+        this.#requests.delete(r);
         return resp as any;
       } catch (e) {
         if (e instanceof RpcError || e instanceof HttpRequestError) {
-          await this.rotate(e);
+          const reqTransport = this.#requests.get(r);
+          if (reqTransport === this.currentTransportName) {
+            await this.rotate(e);
+          } else {
+            this.#logger?.debug("request made with old transport, try again");
+          }
         } else {
+          this.#requests.delete(r);
           throw e;
         }
       }
     } while (this.#hasAvailableTransports);
 
+    this.#requests.delete(r);
     throw new NoAvailableTransportsError();
   };
 
