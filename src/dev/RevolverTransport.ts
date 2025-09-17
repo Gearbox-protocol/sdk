@@ -93,9 +93,9 @@ export interface RevolverTransportValue {
    */
   rotate: (reason?: BaseError) => Promise<boolean>;
   /**
-   * The name of the current transport
+   * Returns the name of the current transport
    */
-  currentTransportName: string;
+  currentTransportName: () => string;
 }
 
 export class RevolverTransport
@@ -181,7 +181,7 @@ export class RevolverTransport
   public get value(): RevolverTransportValue {
     return {
       rotate: (reason?: BaseError) => this.rotate(reason),
-      currentTransportName: this.currentTransportName,
+      currentTransportName: () => this.currentTransportName(),
     };
   }
 
@@ -253,7 +253,7 @@ export class RevolverTransport
       },
       "rotating transport",
     );
-    const oldTransportName = this.currentTransportName;
+    const oldTransportName = this.currentTransportName();
 
     const now = Date.now();
     this.#transports[this.#index].cooldown =
@@ -273,7 +273,7 @@ export class RevolverTransport
         try {
           await this.#config.onRotateSuccess?.(
             oldTransportName,
-            this.currentTransportName,
+            this.currentTransportName(),
             reason,
           );
         } catch {}
@@ -297,7 +297,7 @@ export class RevolverTransport
     return false;
   }
 
-  public get currentTransportName(): string {
+  public currentTransportName(): string {
     return this.#transport({}).config.name;
   }
 
