@@ -69,7 +69,10 @@ export interface RevolverTransportConfig {
   /**
    * Callback that is called when the transport cannot be rotated
    */
-  onRotateFailed?: (reason?: BaseError) => void | Promise<void>;
+  onRotateFailed?: (
+    oldTransportName: string,
+    reason?: BaseError,
+  ) => void | Promise<void>;
   /**
    * How long, in milliseconds, to wait before try this transport again
    */
@@ -268,7 +271,7 @@ export class RevolverTransport
         );
       }
     }
-    await this.#config.onRotateFailed?.(reason);
+    await this.#config.onRotateFailed?.(oldTransportName, reason);
     return false;
   }
 
