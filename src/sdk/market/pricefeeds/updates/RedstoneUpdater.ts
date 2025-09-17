@@ -1,6 +1,10 @@
 import { DataServiceWrapper } from "@redstone-finance/evm-connector";
 import type { SignedDataPackage } from "@redstone-finance/protocol";
 import { RedstonePayload } from "@redstone-finance/protocol";
+import {
+  type DataServiceIds,
+  getSignersForDataServiceId,
+} from "@redstone-finance/sdk";
 import type { Address, Hex } from "viem";
 import { encodeAbiParameters, toBytes } from "viem";
 import { z } from "zod/v4";
@@ -259,6 +263,9 @@ export class RedstoneUpdater
       dataServiceId,
       dataPackagesIds,
       uniqueSignersCount,
+      authorizedSigners: getSignersForDataServiceId(
+        dataServiceId as DataServiceIds,
+      ),
       historicalTimestamp: this.#historicalTimestampMs,
       urls: this.#gateways,
       ignoreMissingFeed: this.#ignoreMissingFeeds,
