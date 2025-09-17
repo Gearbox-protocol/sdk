@@ -104,6 +104,7 @@ export class RevolverTransport
   #transports: TransportEntry[];
   #index = 0;
   #config: RevolverTransportConfig;
+  #rotating = false;
 
   private overrides?: Parameters<
     Transport<"revolver", RevolverTransportValue>
@@ -228,6 +229,12 @@ export class RevolverTransport
       return true;
     }
 
+    if (this.#rotating) {
+      this.#logger?.debug("already rotating, skipping");
+      return false;
+    }
+    this.#rotating = true;
+
     this.#logger?.debug(
       {
         reason,
@@ -254,11 +261,14 @@ export class RevolverTransport
           },
           "switched to next transport",
         );
-        await this.#config.onRotateSuccess?.(
-          oldTransportName,
-          this.currentTransportName,
-          reason,
-        );
+        try {
+          await this.#config.onRotateSuccess?.(
+            oldTransportName,
+            this.currentTransportName,
+            reason,
+          );
+        } catch {}
+        this.#rotating = false;
         return true;
       } else {
         this.#logger?.warn(
@@ -271,7 +281,10 @@ export class RevolverTransport
         );
       }
     }
-    await this.#config.onRotateFailed?.(oldTransportName, reason);
+    try {
+      await this.#config.onRotateFailed?.(oldTransportName, reason);
+    } catch {}
+    this.#rotating = false;
     return false;
   }
 
