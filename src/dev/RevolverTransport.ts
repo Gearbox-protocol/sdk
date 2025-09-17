@@ -26,6 +26,11 @@ interface TransportEntry {
   cooldown: number;
 }
 
+export interface ProviderStatus {
+  id: string;
+  status: "active" | "cooldown" | "standby";
+}
+
 type OnRequestFn = (
   providerName: string,
   ...args: Parameters<Required<HttpRpcClientOptions>["onRequest"]>
@@ -96,6 +101,10 @@ export interface RevolverTransportValue {
    * Returns the name of the current transport
    */
   currentTransportName: () => string;
+  /**
+   * Returns statuses of all providers
+   */
+  statuses: () => ProviderStatus[];
 }
 
 export class RevolverTransport
@@ -182,6 +191,7 @@ export class RevolverTransport
     return {
       rotate: (reason?: BaseError) => this.rotate(reason),
       currentTransportName: () => this.currentTransportName(),
+      statuses: () => this.statuses(),
     };
   }
 
@@ -301,6 +311,19 @@ export class RevolverTransport
 
   public currentTransportName(): string {
     return this.#transport({}).config.name;
+  }
+
+  public statuses(): ProviderStatus[] {
+    const now = Date.now();
+    return this.#transports.map((t, i) => ({
+      id: t.transport({}).config.name,
+      status:
+        t.cooldown < now
+          ? this.#index === i
+            ? "active"
+            : "standby"
+          : "cooldown",
+    }));
   }
 
   get #logger(): ILogger | undefined {
