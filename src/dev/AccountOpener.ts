@@ -83,11 +83,37 @@ export interface TargetAccount {
   slippage?: number;
 }
 
+interface OpenAccountPreview {
+  tx: RawTx;
+  /**
+   * Actual leverage, with percentage factor
+   */
+  leverage: bigint;
+  /**
+   * What user adds as collateral
+   */
+  collateral: Asset;
+  minQuota: Asset[];
+  averageQuota: Asset[];
+  slippage: number;
+}
+
+export interface OpenAccountHumanizedPreview {
+  creditManager: string;
+  target: string;
+  collateral: string;
+  leverage: number;
+  slippage: number;
+  minQuota: string[];
+  averageQuota: string[];
+}
+
 export interface OpenAccountResult {
   input: TargetAccount;
+  humanizedInput?: OpenAccountHumanizedPreview;
   error?: Error;
   txHash?: string;
-  rawTx?: RawTx;
+  rawTx?: Pick<RawTx, "to" | "callData" | "value">;
   account?: CreditAccountData;
 }
 
@@ -252,29 +278,40 @@ export class AccountOpener extends SDKConstruct {
     });
     logger?.debug(`opening account #${index}/${total}`);
     const borrower = await this.#getBorrower();
-    const tx = await this.prepareOpen(input);
+    const preview = await this.prepareOpen(input);
+    const humanizedInput = this.#humanizePreview(input, preview);
 
     let hash: Hash;
     try {
       hash = await sendRawTx(this.#anvil, {
-        tx,
+        tx: preview.tx,
         account: borrower,
       });
       logger?.debug(`send transaction ${hash}`);
     } catch (e) {
       return {
         input,
+        humanizedInput,
         error: e as Error,
-        rawTx: tx,
+        rawTx: {
+          to: preview.tx.to,
+          callData: preview.tx.callData,
+          value: preview.tx.value,
+        },
       };
     }
     const receipt = await this.#anvil.waitForTransactionReceipt({ hash });
     if (receipt.status === "reverted") {
       return {
         input,
+        humanizedInput,
         error: new OpenTxRevertedError(hash),
         txHash: hash,
-        rawTx: tx,
+        rawTx: {
+          to: preview.tx.to,
+          callData: preview.tx.callData,
+          value: preview.tx.value,
+        },
       };
     }
     logger?.info(`opened credit account ${index}/${total}`);
@@ -299,13 +336,18 @@ export class AccountOpener extends SDKConstruct {
     }
     return {
       input,
+      humanizedInput,
       txHash: hash,
-      rawTx: tx,
+      rawTx: {
+        to: preview.tx.to,
+        callData: preview.tx.callData,
+        value: preview.tx.value,
+      },
       account,
     };
   }
 
-  public async prepareOpen(input: TargetAccount): Promise<RawTx> {
+  public async prepareOpen(input: TargetAccount): Promise<OpenAccountPreview> {
     const { creditManager, target, slippage = 50, directTransfer = [] } = input;
 
     const borrower = await this.#getBorrower();
@@ -415,7 +457,14 @@ export class AccountOpener extends SDKConstruct {
       );
     }
     logger?.debug("prepared open account transaction");
-    return tx;
+    return {
+      tx,
+      leverage,
+      collateral: { token: underlying, balance: minDebt },
+      minQuota,
+      averageQuota,
+      slippage,
+    };
   }
 
   public async getOpenedAccounts(): Promise<CreditAccountData[]> {
@@ -1022,6 +1071,27 @@ export class AccountOpener extends SDKConstruct {
     // rounding to 0.1 precision
     result = BigInt(Math.floor(Number(result) / 1000) * 1000);
     return result;
+  }
+
+  #humanizePreview(
+    input: TargetAccount,
+    preview: OpenAccountPreview,
+  ): OpenAccountHumanizedPreview {
+    return {
+      creditManager: this.sdk.labelAddress(input.creditManager),
+      target: this.sdk.labelAddress(input.target),
+      leverage: Number(preview.leverage),
+      slippage: preview.slippage,
+      collateral: this.sdk.tokensMeta.formatBN(preview.collateral, {
+        symbol: true,
+      }),
+      minQuota: preview.minQuota
+        .filter(q => q.balance > 10n)
+        .map(q => this.sdk.tokensMeta.formatBN(q, { symbol: true })),
+      averageQuota: preview.averageQuota
+        .filter(q => q.balance > 10n)
+        .map(q => this.sdk.tokensMeta.formatBN(q, { symbol: true })),
+    };
   }
 
   public get faucet(): Address {
