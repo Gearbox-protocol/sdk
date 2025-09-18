@@ -4,6 +4,11 @@ import type { Asset } from "../router/index.js";
 import { AddressMap, formatBN } from "../utils/index.js";
 import type { TokenMetaData } from "./types.js";
 
+export interface FormatBNOptions {
+  precision?: number;
+  symbol?: boolean;
+}
+
 export class TokensMeta extends AddressMap<TokenMetaData> {
   public symbol(token: Address): string {
     return this.mustGet(token).symbol;
@@ -13,22 +18,27 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
     return this.mustGet(token).decimals;
   }
 
-  public formatBN(asset: Asset, precision?: number): string;
+  public formatBN(asset: Asset, options?: FormatBNOptions): string;
   public formatBN(
     token: Address,
     amount: number | bigint | string | undefined,
-    precision?: number,
+    options?: FormatBNOptions,
   ): string;
   public formatBN(
     arg0: Asset | Address,
-    arg1: number | bigint | string | undefined,
-    arg2?: number,
+    arg1: number | bigint | string | FormatBNOptions | undefined,
+    arg2?: FormatBNOptions,
   ): string {
     const token = typeof arg0 === "object" ? arg0.token : arg0;
-    const amount = typeof arg0 === "object" ? arg0.balance : arg1;
-    const precision =
-      typeof arg0 === "object" ? (arg1 as number | undefined) : arg2;
-    return formatBN(amount, this.decimals(token), precision);
+    const amount =
+      typeof arg0 === "object"
+        ? arg0.balance
+        : (arg1 as number | bigint | string | undefined);
+    const options =
+      typeof arg0 === "object" ? (arg1 as FormatBNOptions | undefined) : arg2;
+    const { precision, symbol } = options ?? {};
+    const asStr = formatBN(amount, this.decimals(token), precision);
+    return symbol ? `${asStr} ${this.symbol(token)}` : asStr;
   }
 
   public findBySymbol(symbol: string): TokenMetaData | undefined {
