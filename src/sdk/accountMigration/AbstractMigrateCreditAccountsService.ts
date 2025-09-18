@@ -267,7 +267,7 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
           target.underlyingToken,
           source.borrowedAmountPlusInterestAndFees,
         );
-      } catch (e) {
+      } catch {
         return 0n;
       }
     };

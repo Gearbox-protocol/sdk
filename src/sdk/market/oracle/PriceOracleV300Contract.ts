@@ -3,7 +3,6 @@ import {
   type ContractEventName,
   decodeFunctionData,
   encodeFunctionData,
-  Hex,
   type Log,
 } from "viem";
 

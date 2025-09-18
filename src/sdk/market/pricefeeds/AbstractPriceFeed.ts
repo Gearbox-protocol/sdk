@@ -69,13 +69,10 @@ export abstract class AbstractPriceFeedContract<
     this.#skipCheck = args.skipCheck;
 
     if (args.underlyingFeeds && args.underlyingStalenessPeriods) {
+      const underlyingStalenessPeriods = args.underlyingStalenessPeriods;
       this.#underlyingPriceFeeds = args.underlyingFeeds.map(
         (address, i) =>
-          new PriceFeedRef(
-            this.sdk,
-            address,
-            args.underlyingStalenessPeriods![i],
-          ),
+          new PriceFeedRef(this.sdk, address, underlyingStalenessPeriods[i]),
       );
     }
   }

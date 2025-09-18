@@ -92,7 +92,7 @@ export class EthCallSpy<TCall extends DetectedCall = DetectedCall> {
   }
 
   protected storeResponse(
-    call: RequiredBy<TCall, "response" | "responseHeaders">,
+    _call: RequiredBy<TCall, "response" | "responseHeaders">,
   ): void | Promise<void> {
     return;
   }

@@ -36,12 +36,7 @@ import type {
   PriceUpdateV310,
   UpdatePriceFeedsResult,
 } from "../market/index.js";
-import {
-  type Asset,
-  assetsMap,
-  type CreditAccountTokensSlice,
-  type RouterCASlice,
-} from "../router/index.js";
+import { type Asset, assetsMap, type RouterCASlice } from "../router/index.js";
 import type { ILogger, IPriceUpdateTx, MultiCall } from "../types/index.js";
 import { AddressMap, childLogger } from "../utils/index.js";
 import { simulateWithPriceUpdates } from "../utils/viem/index.js";

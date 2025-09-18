@@ -101,7 +101,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       },
       testMarketConfigurators: {
         "0x99df7330bf42d596af2e9d9836d4fc2077c574aa": "M11 Credit",
-        "0x1b265b97eb169fb6668e3258007c3b0242c7bdbe": "kpk"
+        "0x1b265b97eb169fb6668e3258007c3b0242c7bdbe": "kpk",
       },
       isPublic: true,
       wellKnownToken: {

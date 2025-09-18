@@ -1,7 +1,3 @@
-import type { TokenBase } from "./token.js";
-import type { TokenNetwork } from "./tokenType.js";
-import { TokenType } from "./tokenType.js";
-
 export type DieselSimpleTokenTypes =
   | "dDAI"
   | "dUSDC"

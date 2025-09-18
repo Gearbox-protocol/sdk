@@ -1,4 +1,4 @@
-import type { Address, Hex } from "viem";
+import type { Address } from "viem";
 
 import type { IPriceUpdateTx } from "../../../types/index.js";
 import type { IPriceFeedContract } from "../types.js";

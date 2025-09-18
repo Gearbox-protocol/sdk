@@ -1,4 +1,4 @@
-import type { AbiStateMutability, Narrow } from "abitype";
+import type { Narrow } from "abitype";
 import type {
   CallParameters,
   Chain,
