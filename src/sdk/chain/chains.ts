@@ -97,7 +97,10 @@ export const chains: Record<NetworkType, GearboxChain> = {
         "0x7a133fbd01736fd076158307c9476cc3877f1af5": "Invariant Group",
         "0x09d8305F49374AEA6A78aF6C996df2913e8f3b19": "Tulipa",
       },
-      testMarketConfigurators: {},
+      testMarketConfigurators: {
+        "0x99df7330bf42d596af2e9d9836d4fc2077c574aa": "M11 Credit",
+        "0x1b265b97eb169fb6668e3258007c3b0242c7bdbe": "kpk"
+      },
       isPublic: true,
       wellKnownToken: {
         address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
