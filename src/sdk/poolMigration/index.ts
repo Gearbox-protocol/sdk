@@ -15,30 +15,47 @@ export const POOL_DELAYED_MIGRATION_CONTRACTS: Partial<
   Record<NetworkType, PoolMigrationContract[]>
 > = {
   Mainnet: [
+    // USDC
     {
-      // TODO: fix address
-      address: "0xF044d86668DB274Ce56179fE24a7ed22dE1f7d46",
-      // "dUSDCV3" "Trade USDC v3"
+      address: "0x4174aEe40eC3f27A68252663547Bc60E0B1b58c1",
+      // "dUSDCV3" "Chaos"
       poolIn: "0xda00000035fef4082f78def6a8903bee419fbf8e",
       // "USDC" "invariant"
       poolOut: "0xc155444481854c60e7a29f4150373f479988f32d",
     },
     {
-      // TODO: fix address
-      address: "0x181b4aDB132Da85e9dB56D025EeB7E18dFd6Ddda",
-      // "dUSDCV3" "Trade USDC v3"
+      address: "0xD2F14195b00cDBB5A7ba63273086C7eBc685F16D",
+      // "dUSDCV3" "Chaos"
       poolIn: "0xda00000035fef4082f78def6a8903bee419fbf8e",
       // "USDC" "tulipa"
       poolOut: "0xf0795c47fa58d00f5f77f4d5c01f31ee891e21b4",
     },
 
+    // wstETH
     {
-      // TODO: fix address
-      address: "0x0A31e33E37e6cD720cE347e277b414E22816959c",
-      // "dWETHV3" "Trade WETH v3"
+      address: "0x0a5722f8D321B2e072d92FA78fEb0B2f84E600A3",
+      // "dwstETHV3" "Chaos"
+      poolIn: "0xff94993fa7ea27efc943645f95adb36c1b81244b",
+      // "dcp0xLRT" "cp0x"
+      poolOut: "0x72ccb97cbdc40f8fb7ffa42ed93ae74923547200",
+    },
+
+    // WETH
+    {
+      address: "0x4a981692330F40853dcEc441d6603f5BdfFCbEb2",
+      // "dWETHV3" "Chaos"
       poolIn: "0xda0002859b2d05f66a753d8241fcde8623f26f4f",
-      // "dWETHV3-cp0x" "Gearbox WETH v3"
+      // "dWETHV3-cp0x" "cp0x"
       poolOut: "0xf00b548f1b69cb5ee559d891e03a196fb5101d4a",
+    },
+
+    // tBTC
+    {
+      address: "0x88C7f9267F0a5690a182504D86c4161e41A8487A",
+      // "dtBTCV3" "Chaos"
+      poolIn: "0x7354ec6e852108411e681d13e11185c3a2567981",
+      // "Re7tBTC" "re7"
+      poolOut: "0xf791ecc5f2472637eac9dfe3f7894c0b32c32bdf",
     },
   ],
 };
