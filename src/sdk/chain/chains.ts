@@ -25,7 +25,9 @@ export type Curator =
   | "cp0x"
   | "Re7"
   | "Invariant Group"
-  | "Tulipa";
+  | "Tulipa"
+  | "M11 Credit"
+  | "kpk";
 
 export interface GearboxChain extends Chain {
   network: NetworkType;
