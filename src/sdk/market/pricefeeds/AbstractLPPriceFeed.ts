@@ -1,6 +1,6 @@
 import type { Abi, Address, UnionOmit } from "viem";
 import { decodeAbiParameters, hexToBytes } from "viem";
-
+import { ilpPriceFeedAbi } from "../../abi/index.js";
 import { isV310 } from "../../constants/versions.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { LPPriceFeedStateHuman } from "../../types/state-human.js";
@@ -8,12 +8,16 @@ import {
   AbstractPriceFeedContract,
   type PriceFeedConstructorArgs,
 } from "./AbstractPriceFeed.js";
+import type { ILPPriceFeedContract } from "./types.js";
 
 const LOWER_BOUND_FACTOR = 99n;
 
 export abstract class AbstractLPPriceFeedContract<
-  const abi extends Abi | readonly unknown[],
-> extends AbstractPriceFeedContract<abi> {
+    const abi extends Abi | readonly unknown[],
+  >
+  extends AbstractPriceFeedContract<abi>
+  implements ILPPriceFeedContract
+{
   public readonly lpContract: Address;
   public readonly lpToken: Address;
   public readonly lowerBound: bigint;
@@ -77,15 +81,23 @@ export abstract class AbstractLPPriceFeedContract<
     }
   }
 
-  abstract getValue(): Promise<bigint>;
+  public abstract getValue(): Promise<bigint>;
 
-  async getLowerBound(): Promise<bigint> {
+  public async getLowerBound(): Promise<bigint> {
     const value = await this.getValue();
     const lowerBound = AbstractLPPriceFeedContract.toLowerBound(value);
     this.logger?.debug(
       `Lowerbound for ${this.labelAddress(this.address)}: ${lowerBound}`,
     );
     return lowerBound;
+  }
+
+  public async currentLowerBound(): Promise<bigint> {
+    return await this.sdk.provider.publicClient.readContract({
+      abi: ilpPriceFeedAbi,
+      address: this.address,
+      functionName: "lowerBound",
+    });
   }
 
   static toLowerBound(value: bigint): bigint {

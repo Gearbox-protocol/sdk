@@ -63,7 +63,6 @@ export interface IPriceFeedContract extends IBaseContract {
 
   readonly underlyingPriceFeeds: readonly PriceFeedRef[];
 
-  answer: (overrides?: { blockNumber?: bigint }) => Promise<bigint>;
   stateHuman: (
     raw?: boolean,
   ) => UnionOmit<PriceFeedStateHuman, "stalenessPeriod">;

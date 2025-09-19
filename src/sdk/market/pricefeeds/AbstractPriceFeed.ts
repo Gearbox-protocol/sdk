@@ -125,25 +125,6 @@ export abstract class AbstractPriceFeedContract<
     };
   }
 
-  async currentLowerBound(): Promise<bigint> {
-    return await this.sdk.provider.publicClient.readContract({
-      abi: ilpPriceFeedAbi,
-      address: this.address,
-      functionName: "lowerBound",
-    });
-  }
-
-  async answer(overrides?: { blockNumber?: bigint }): Promise<bigint> {
-    const lastRoundData = await this.sdk.provider.publicClient.readContract({
-      abi: ilpPriceFeedAbi,
-      address: this.address,
-      functionName: "latestRoundData",
-      ...overrides,
-    });
-
-    return lastRoundData[1];
-  }
-
   public updatableDependencies(): IUpdatablePriceFeedContract[] {
     const underlying = this.underlyingPriceFeeds.flatMap(f =>
       f.priceFeed.updatableDependencies(),
