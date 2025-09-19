@@ -64,6 +64,7 @@ export interface IPriceFeedContract extends IBaseContract {
    * Latest answer for this price feed
    */
   readonly answer: PriceFeedAnswer;
+  readonly skipCheck: boolean;
 
   readonly underlyingPriceFeeds: readonly PriceFeedRef[];
 
