@@ -100,6 +100,13 @@ export class PriceFeedRegister
   public removeHook = this.#hooks.removeHook.bind(this.#hooks);
 
   /**
+   * Returns all price feeds known to sdk
+   */
+  public get feeds(): readonly IPriceFeedContract[] {
+    return this.#feeds.values();
+  }
+
+  /**
    * Returns RawTxs to update price feeds
    * @param priceFeeds Array oftop-level price feeds, actual updatable price feeds will be derived.
    * Or filter criteria, that will gather all main or reserve price feeds from all oracles
