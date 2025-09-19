@@ -163,9 +163,8 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
     } = options;
     let { networkType, addressProvider, chainId } = options;
 
-    const attachClient = createPublicClient({
-      transport: createTransport(options),
-    });
+    const transport = createTransport(options);
+    const attachClient = createPublicClient({ transport });
     if (!networkType) {
       networkType = await detectNetwork(attachClient);
     }
@@ -181,6 +180,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
 
     const provider = new Provider({
       ...options,
+      transport, // pass transport to avoid creating a new transport in provider
       chainId,
       networkType,
     });
