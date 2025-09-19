@@ -1,4 +1,4 @@
-import type { Address, BlockTag, Hex } from "viem";
+import { type Address, type BlockTag, type Hex, parseAbi } from "viem";
 
 import { iPriceFeedCompressorAbi } from "../../../abi/compressors.js";
 import type { PriceFeedTreeNode } from "../../base/index.js";
@@ -6,11 +6,17 @@ import { SDKConstruct } from "../../base/index.js";
 import {
   ADDRESS_0X0,
   AP_PRICE_FEED_COMPRESSOR,
+  AP_PRICE_FEED_STORE,
   VERSION_RANGE_310,
 } from "../../constants/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
-import type { ILogger, IPriceUpdateTx } from "../../types/index.js";
-import { AddressMap, bytes32ToString, childLogger } from "../../utils/index.js";
+import type { ILogger, IPriceUpdateTx, RawTx } from "../../types/index.js";
+import {
+  AddressMap,
+  bytes32ToString,
+  childLogger,
+  createRawTx,
+} from "../../utils/index.js";
 import type { IHooks } from "../../utils/internal/index.js";
 import { Hooks } from "../../utils/internal/index.js";
 import {
@@ -174,6 +180,28 @@ export class PriceFeedRegister
       logContext,
     );
     return getRawPriceUpdates(updates);
+  }
+
+  /**
+   * Similar to {@link generatePriceFeedsUpdates}, but returns raw transaction to PriceFeedStore.updatePrices
+   * @param priceFeeds
+   * @param logContext
+   * @returns
+   */
+  public async getPriceFeedStoreUpdateTx(
+    priceFeeds?: IPriceFeedContract[] | { main: true } | { reserve: true },
+    logContext: Record<string, any> = {},
+  ): Promise<RawTx> {
+    const pfs = this.sdk.addressProvider.getAddress(AP_PRICE_FEED_STORE);
+    const updates = await this.generatePriceFeedsUpdates(
+      priceFeeds,
+      logContext,
+    );
+    return createRawTx(pfs, {
+      abi: parseAbi(["function updatePrices((address,bytes)[])"]),
+      functionName: "updatePrices",
+      args: [updates.map(u => [u.priceFeed, u.data] as const)],
+    });
   }
 
   /**
