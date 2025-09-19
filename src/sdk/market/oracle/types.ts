@@ -34,7 +34,13 @@ export interface OnDemandPriceUpdates<T = unknown> {
 }
 
 export interface IPriceOracleContract extends IBaseContract {
+  /**
+   * Mapping Token => [PriceFeed Address, stalenessPeriod]
+   */
   mainPriceFeeds: AddressMap<PriceFeedRef>;
+  /**
+   * Mapping Token => Price in USD
+   */
   mainPrices: PriceFeedAnswerMap;
   /**
    * Gets main price for given token
@@ -44,7 +50,13 @@ export interface IPriceOracleContract extends IBaseContract {
    */
   mainPrice: (token: Address) => bigint;
 
+  /**
+   * Mapping Token => [PriceFeed Address, stalenessPeriod]
+   */
   reservePriceFeeds: AddressMap<PriceFeedRef>;
+  /**
+   * Mapping Token => Price in USD
+   */
   reservePrices: PriceFeedAnswerMap;
   /**
    * Gets reserve price for given token
