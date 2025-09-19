@@ -1,7 +1,6 @@
 import type { Abi, RequiredBy, UnionOmit } from "viem";
 
-import { ilpPriceFeedAbi } from "../../abi/index.js";
-import type { PriceFeedTreeNode } from "../../base/index.js";
+import type { PriceFeedAnswer, PriceFeedTreeNode } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { PriceFeedStateHuman } from "../../types/index.js";
@@ -49,6 +48,7 @@ export abstract class AbstractPriceFeedContract<
   #decimals?: number;
   #underlyingPriceFeeds?: readonly PriceFeedRef[];
   #skipCheck?: boolean;
+  #answer?: PriceFeedAnswer;
   #args: PriceFeedConstructorArgs<abi>;
 
   public hasLowerBoundCap = false;
@@ -67,6 +67,7 @@ export abstract class AbstractPriceFeedContract<
     this.#decimals = args.decimals;
     this.#updatable = args.updatable;
     this.#skipCheck = args.skipCheck;
+    this.#answer = args.answer;
 
     if (args.underlyingFeeds && args.underlyingStalenessPeriods) {
       const underlyingStalenessPeriods = args.underlyingStalenessPeriods;
@@ -107,6 +108,13 @@ export abstract class AbstractPriceFeedContract<
       throw new PartialPriceFeedInitError(this.#args);
     }
     return this.#underlyingPriceFeeds;
+  }
+
+  public get answer(): PriceFeedAnswer {
+    if (this.#answer === undefined) {
+      throw new PartialPriceFeedInitError(this.#args);
+    }
+    return this.#answer;
   }
 
   public get priceFeedType(): PriceFeedContractType {

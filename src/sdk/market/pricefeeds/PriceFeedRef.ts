@@ -6,6 +6,9 @@ import type { PriceFeedStateHuman } from "../../types/index.js";
 import { formatDuration } from "../../utils/index.js";
 import type { IPriceFeedContract } from "./types.js";
 
+/**
+ * PriceFeedRef is a connector between price feed and oracle, e.g. oracle's entry for price feed + staleness period
+ */
 export class PriceFeedRef extends SDKConstruct {
   public readonly address: Address;
   public readonly stalenessPeriod: number;

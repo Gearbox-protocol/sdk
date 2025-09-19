@@ -1,6 +1,6 @@
 import type { Address, Hex, UnionOmit } from "viem";
-
-import type { IBaseContract } from "../../base/index.js";
+import { readonly } from "zod";
+import type { IBaseContract, PriceFeedAnswer } from "../../base/index.js";
 import type {
   IPriceUpdateTx,
   PriceFeedStateHuman,
@@ -60,6 +60,10 @@ export interface IPriceFeedContract extends IBaseContract {
    * This flag idicates that all the price feed data (decimals, skip check, dependencies...) has been loaded from compressor
    */
   readonly loaded: boolean;
+  /**
+   * Latest answer for this price feed
+   */
+  readonly answer: PriceFeedAnswer;
 
   readonly underlyingPriceFeeds: readonly PriceFeedRef[];
 
