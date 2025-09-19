@@ -55,7 +55,7 @@
     "@redstone-finance/protocol": "^0.9.0",
     "@redstone-finance/sdk": "^0.9.0",
     "@types/bn.js": "^5.2.0",
-    "abitype": "^1.1.0",
+    "abitype": "^1.1.1",
     "bn.js": "^5.2.2",
     "buffer": "^6.0.3",
     "date-fns": "^4.1.0",
