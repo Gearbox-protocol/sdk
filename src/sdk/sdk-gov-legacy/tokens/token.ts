@@ -670,6 +670,7 @@ export const tokenDataByNetwork: Record<
     wstETH: "0x76D8de471F54aAA87784119c60Df1bbFc852C415",
     lskETH: "0x1b10E2270780858923cdBbC9B5423e29fffD1A44",
   } as any,
+  Plasma: {} as any,
 };
 
 export type TickerToken =
@@ -1114,6 +1115,7 @@ export const tickerInfoTokensByNetwork: Record<
   Etherlink: {},
   Hemi: {},
   Lisk: {},
+  Plasma: {},
 };
 
 const tokenSymbolByAddress = Object.entries(tokenDataByNetwork).reduce<

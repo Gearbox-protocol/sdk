@@ -79,6 +79,7 @@ const DRPC_NETS: Record<NetworkType, string | null> = {
   Lisk: "lisk",
   MegaETH: null,
   Etherlink: null,
+  Plasma: null,
 };
 
 const ALCHEMY_DOMAINS: Record<NetworkType, string | null> = {
@@ -96,6 +97,7 @@ const ALCHEMY_DOMAINS: Record<NetworkType, string | null> = {
   Etherlink: null,
   Hemi: null,
   Lisk: null,
+  Plasma: null,
 };
 
 export function getDrpcUrl(

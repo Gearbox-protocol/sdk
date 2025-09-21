@@ -42,6 +42,7 @@ export const connectors: Record<NetworkType, Array<SupportedToken>> = {
   Etherlink: [],
   Hemi: [],
   Lisk: [],
+  Plasma: [],
 };
 
 export function getConnectors(networkType: NetworkType): Address[] {

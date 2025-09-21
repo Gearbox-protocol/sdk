@@ -20,6 +20,7 @@ export const TESTNET_CHAINS: Record<NetworkType, number> = {
   Etherlink: 7890,
   Hemi: 7891,
   Lisk: 7892,
+  Plasma: 7893,
 };
 
 const CHAINS_BY_ID: Record<number, NetworkType> =

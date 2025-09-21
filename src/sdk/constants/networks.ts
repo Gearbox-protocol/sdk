@@ -21,6 +21,7 @@ export const ADDRESS_PROVIDER_BLOCK: Record<NetworkType, bigint> = {
   Etherlink: 16672969n, // arbitrary not deployed yet
   Hemi: 2227553n, // arbitrary not deployed yet
   Lisk: 18934260n, // arbitrary not deployed yet
+  Plasma: 670918n, // arbitrary not deployed yet
 };
 
 // local constants are preserved for compatibility with older viem versions
@@ -41,6 +42,7 @@ const BLOCK_DURATION_LOCAL: PartialRecord<NetworkType, number> = {
   Etherlink: 1000,
   Hemi: 12000,
   Lisk: 2000,
+  Plasma: 1000,
 };
 
 const DEFAULT_DURATION = 12_000;
