@@ -81,6 +81,7 @@ export const TIMELOCK: Record<NetworkType, Address> = {
   Etherlink: NOT_DEPLOYED,
   Hemi: NOT_DEPLOYED,
   Lisk: NOT_DEPLOYED,
+  Plasma: NOT_DEPLOYED,
 };
 
 export const GEARBOX_MULTISIG: Record<NetworkType, Address> = {
@@ -99,6 +100,7 @@ export const GEARBOX_MULTISIG: Record<NetworkType, Address> = {
   Etherlink: NOT_DEPLOYED,
   Hemi: NOT_DEPLOYED,
   Lisk: NOT_DEPLOYED,
+  Plasma: NOT_DEPLOYED,
 };
 
 export const GEARBOX_RISK_CURATORS: Record<NetworkType, Address[]> = {
@@ -117,6 +119,7 @@ export const GEARBOX_RISK_CURATORS: Record<NetworkType, Address[]> = {
   Etherlink: [],
   Hemi: [],
   Lisk: [],
+  Plasma: [],
 };
 
 /**
@@ -141,4 +144,5 @@ export const DEPRECIATED_POOLS: Record<NetworkType, Record<Address, string>> = {
   Etherlink: {},
   Hemi: {},
   Lisk: {},
+  Plasma: {},
 };

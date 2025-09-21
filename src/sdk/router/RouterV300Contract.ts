@@ -427,6 +427,7 @@ export class RouterV300Contract
       Etherlink: "0x0",
       Hemi: "0x0",
       Lisk: "0x0",
+      Plasma: "0x0",
     } as const;
 
     const pendleRouter =

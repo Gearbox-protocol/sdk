@@ -13,6 +13,7 @@ import {
   megaethTestnet,
   monadTestnet,
   optimism,
+  plasma,
   sonic,
   worldchain,
 } from "viem/chains";
@@ -67,6 +68,7 @@ export const SUPPORTED_NETWORKS = [
   "Etherlink",
   "Hemi",
   "Lisk",
+  "Plasma",
 ] as const;
 
 export const NetworkType = z.enum(SUPPORTED_NETWORKS);
@@ -309,6 +311,21 @@ export const chains: Record<NetworkType, GearboxChain> = {
     wellKnownToken: {
       address: "0xF242275d3a6527d877f2c927a82D9b057609cc71",
       symbol: "USDC.e",
+    },
+  }),
+  Plasma: defineChain({
+    ...plasma,
+    network: "Plasma",
+    defaultMarketConfigurators: {},
+    isPublic: true,
+    wellKnownToken: {
+      address: "0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb",
+      symbol: "USDT0",
+    },
+    contracts: {
+      multicall3: {
+        address: "0xcA11bde05977b3631167028862bE2a173976CA11",
+      },
     },
   }),
 };
