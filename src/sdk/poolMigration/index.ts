@@ -39,6 +39,13 @@ export const POOL_DELAYED_MIGRATION_CONTRACTS: Partial<
       // "dcp0xLRT" "cp0x"
       poolOut: "0x72ccb97cbdc40f8fb7ffa42ed93ae74923547200",
     },
+    {
+      address: "0xd56149C868d77DE51b7c8EF55C172F06E677EcA6",
+      // "dwstETHV3" "Chaos"
+      poolIn: "0xff94993fa7ea27efc943645f95adb36c1b81244b",
+      // "kpkwstETH" "kpk"
+      poolOut: "0xA9d17f6D3285208280a1Fd9B94479c62e0AABa64",
+    },
 
     // WETH
     {
@@ -47,6 +54,13 @@ export const POOL_DELAYED_MIGRATION_CONTRACTS: Partial<
       poolIn: "0xda0002859b2d05f66a753d8241fcde8623f26f4f",
       // "dWETHV3-cp0x" "cp0x"
       poolOut: "0xf00b548f1b69cb5ee559d891e03a196fb5101d4a",
+    },
+    {
+      address: "0x799655d4285c7ed0cd36555bfe711e2f3cbda6c9",
+      // "dWETHV3" "Chaos"
+      poolIn: "0xda0002859B2d05F66a753d8241fCDE8623f26F4f",
+      // "kpkWETH" "kpk"
+      poolOut: "0x9396DCbf78fc526bb003665337C5E73b699571EF",
     },
 
     // tBTC
