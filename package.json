@@ -47,7 +47,7 @@
     "test": "vitest",
     "prepare": "husky",
     "check": "biome check --write",
-    "check:ci": "biome check",
+    "check:ci": "biome check --diagnostic-level=error",
     "typecheck:ci": "tsc --noEmit"
   },
   "dependencies": {
