@@ -291,7 +291,7 @@ export abstract class PriceOracleBaseContract<
 
     for (const node of tree) {
       this.#priceFeedTree.upsert(node.baseParams.addr, node);
-      this.sdk.priceFeeds.getOrCreate(node);
+      this.sdk.priceFeeds.upsert(node);
     }
 
     for (const entry of entries) {

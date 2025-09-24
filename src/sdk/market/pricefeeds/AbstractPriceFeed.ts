@@ -117,6 +117,13 @@ export abstract class AbstractPriceFeedContract<
     return this.#answer;
   }
 
+  public updateAnswer(answer: PriceFeedAnswer): void {
+    if (this.#answer === undefined) {
+      throw new PartialPriceFeedInitError(this.#args);
+    }
+    this.#answer = answer;
+  }
+
   public get priceFeedType(): PriceFeedContractType {
     return this.contractType as PriceFeedContractType;
   }

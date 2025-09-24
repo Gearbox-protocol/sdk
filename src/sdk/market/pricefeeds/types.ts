@@ -1,5 +1,4 @@
 import type { Address, Hex, UnionOmit } from "viem";
-import { readonly } from "zod";
 import type { IBaseContract, PriceFeedAnswer } from "../../base/index.js";
 import type {
   IPriceUpdateTx,
@@ -67,6 +66,8 @@ export interface IPriceFeedContract extends IBaseContract {
   readonly skipCheck: boolean;
 
   readonly underlyingPriceFeeds: readonly PriceFeedRef[];
+
+  updateAnswer: (answer: PriceFeedAnswer) => void;
 
   stateHuman: (
     raw?: boolean,

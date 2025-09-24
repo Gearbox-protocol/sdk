@@ -265,11 +265,14 @@ export class PriceFeedRegister
     return this.#feeds.mustGet(address);
   }
 
-  public getOrCreate(data: PriceFeedTreeNode): IPriceFeedContract {
+  public upsert(data: PriceFeedTreeNode): IPriceFeedContract {
     const existing = this.#feeds.get(data.baseParams.addr);
     // it's possible to have non-loaded price feed here first from MarketCompressor.getUpdatablePriceFeeds
     // we ovewrite them using full tree nodes
     if (existing?.loaded) {
+      // assume that when new data(PriceFeedTreeNode) comes for existing price feed,
+      // only the answer is mutable and needs to be updated
+      existing.updateAnswer(data.answer);
       return existing;
     }
     const feed = this.create(data);
