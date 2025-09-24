@@ -18,7 +18,7 @@ export interface TokenDataPayload {
 }
 
 // UPDATE ME
-const HUMAN_READABLE_SYMBOLS: PartialRecord<string, string> = {
+const HUMAN_READABLE_TITLES: PartialRecord<string, string> = {
   USDC_e: "USDC.e",
   dUSDC_eV3: "dUSDC.eV3",
   sdUSDC_eV3: "sdUSDC.eV3",
@@ -58,6 +58,7 @@ const HUMAN_READABLE_SYMBOLS: PartialRecord<string, string> = {
   "PT-pUSDe-16OCT2025": "pt.pUSDe(16.10.25)",
 
   "0xab7d50fc2486a1ac06516e2ece9dadc95ba8cd20": "cp0xLRT\u00A0→\u00A0wstETH",
+  "0x6252467c2fefb61cb55180282943139baeea36c5": "cp0xLRT\u00A0→\u00A0wstETH",
 };
 
 export class TokenData {
@@ -76,8 +77,8 @@ export class TokenData {
 
     this.title =
       payload.title ||
-      HUMAN_READABLE_SYMBOLS[payload.symbol] ||
-      HUMAN_READABLE_SYMBOLS[address] ||
+      HUMAN_READABLE_TITLES[payload.symbol] ||
+      HUMAN_READABLE_TITLES[address] ||
       payload.symbol;
     this.symbol = payload.symbol;
     this.name = payload.name;
