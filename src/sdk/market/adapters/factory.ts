@@ -23,7 +23,7 @@ export function createAdapter<const Plugins extends PluginsMap>(
       }
     } catch (e) {
       sdk.logger?.warn(
-        `plugin ${name} error while trying to create ${adapterType} v${args.baseParams.version}: ${e}`,
+        `plugin ${name} error while trying to create ${adapterType} v${args.baseParams.version} at ${args.baseParams.addr}: ${e}`,
       );
     }
   }
