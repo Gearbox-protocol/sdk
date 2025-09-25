@@ -105,7 +105,7 @@ export class MarketRegister extends SDKConstruct {
     return this.#marketFilter;
   }
 
-  public async syncState(skipPriceUpdate?: boolean): Promise<void> {
+  public async syncState(ignoreUpdateablePrices?: boolean): Promise<void> {
     // marketCompressor does not have granularity
     // if we have one market configurator with some dirty markets and another market configurator with new markets
     // we cannot just reload dirty markets in first and load new ones in second
@@ -123,8 +123,9 @@ export class MarketRegister extends SDKConstruct {
       await this.#loadMarkets(
         [...this.marketFilter.configurators],
         [...this.marketFilter.pools],
+        ignoreUpdateablePrices,
       );
-    } else if (!skipPriceUpdate) {
+    } else if (!ignoreUpdateablePrices) {
       // no changes in sdk state, but still need to update prices
       await this.updatePrices();
     }

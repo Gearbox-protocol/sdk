@@ -86,7 +86,7 @@ type AttachOptionsInternal = PickSomeRequired<
 export interface SyncStateOptions {
   blockNumber: bigint;
   timestamp: bigint;
-  skipPriceUpdate?: boolean;
+  ignoreUpdateablePrices?: boolean;
 }
 
 export type SDKHooks = {
@@ -521,7 +521,11 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
    * @returns
    */
   public async syncState(opts?: SyncStateOptions): Promise<void> {
-    let { blockNumber, timestamp, skipPriceUpdate } = opts ?? {};
+    let {
+      blockNumber,
+      timestamp,
+      ignoreUpdateablePrices = this.#attachConfig?.ignoreUpdateablePrices,
+    } = opts ?? {};
     if (
       this.#attachConfig?.redstone?.historicTimestamp ||
       this.#attachConfig?.pyth?.historicTimestamp
@@ -584,7 +588,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       this.#timestamp = timestamp;
 
       // This will reload all or some markets. Should already use sdk.currentBlock
-      await this.marketRegister.syncState(skipPriceUpdate);
+      await this.marketRegister.syncState(ignoreUpdateablePrices);
       // TODO: do wee need to sync state on botlist and others?
       //
       // TODO: how to handle "singleton" contracts addresses, where contract instance is shared across multiple other contract instrances
