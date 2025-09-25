@@ -316,7 +316,9 @@ export const chains: Record<NetworkType, GearboxChain> = {
   Plasma: defineChain({
     ...plasma,
     network: "Plasma",
-    defaultMarketConfigurators: {},
+    defaultMarketConfigurators: {
+      "0x7a133fbd01736fd076158307c9476cc3877f1af5": "Invariant Group",
+    },
     isPublic: true,
     wellKnownToken: {
       address: "0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb",
