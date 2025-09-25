@@ -280,22 +280,38 @@ export class RedstoneUpdater
     const parsed = RedstonePayload.parse(toBytes(`0x${dataPayload}`));
     const packagesByDataFeedId = groupDataPackages(parsed.signedDataPackages);
 
-    return dataPackagesIds.map(dataFeedId => {
+    const result: TimestampedCalldata[] = [];
+
+    for (const dataFeedId of dataFeedsIds) {
       const signedDataPackages = packagesByDataFeedId[dataFeedId];
       if (!signedDataPackages) {
+        if (this.#ignoreMissingFeeds) {
+          this.#logger?.warn(`cannot find data packages for ${dataFeedId}`);
+          continue;
+        }
         throw new Error(`cannot find data packages for ${dataFeedId}`);
       }
       if (signedDataPackages.length !== uniqueSignersCount) {
+        if (this.#ignoreMissingFeeds) {
+          this.#logger?.warn(
+            `got ${signedDataPackages.length} data packages for ${dataFeedId}, but expected ${uniqueSignersCount}`,
+          );
+          continue;
+        }
         throw new Error(
           `got ${signedDataPackages.length} data packages for ${dataFeedId}, but expected ${uniqueSignersCount}`,
         );
       }
-      return getCalldataWithTimestamp(
-        dataFeedId,
-        signedDataPackages,
-        wrapper.getUnsignedMetadata(),
+      result.push(
+        getCalldataWithTimestamp(
+          dataFeedId,
+          signedDataPackages,
+          wrapper.getUnsignedMetadata(),
+        ),
       );
-    });
+    }
+
+    return result;
   }
 }
 
