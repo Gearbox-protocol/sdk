@@ -541,77 +541,94 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       return;
     }
     if (this.#syncing) {
-      this.logger?.warn(`cannot sync to ${blockNumber}, already syncing`);
+      this.logger?.warn(
+        `cannot sync to ${blockNumber}, already syncing at ${this.currentBlock}`,
+      );
       return;
     }
     this.#syncing = true;
-    let delta = Math.floor(Date.now() / 1000) - Number(timestamp);
-    this.logger?.debug(
-      `syncing state to block ${blockNumber} (delta ${delta}s )...`,
-    );
+    const prevBlock = this.currentBlock;
+    const prevTimestamp = this.timestamp;
+    try {
+      let delta = Math.floor(Date.now() / 1000) - Number(timestamp);
+      this.logger?.debug(
+        `syncing state to block ${blockNumber} (delta ${delta}s )...`,
+      );
 
-    const watchAddresses = [
-      ...Array.from(this.marketRegister.watchAddresses),
-      this.addressProvider.address,
-    ];
-    const fromBlock = this.currentBlock + 1n;
-    this.logger?.debug(
-      `getting logs from ${watchAddresses.length} addresses in [${fromBlock}:${blockNumber}]`,
-    );
-    const logs = await getLogsSafe(this.provider.publicClient, {
-      fromBlock,
-      toBlock: blockNumber,
-      address: watchAddresses,
-    });
+      const watchAddresses = [
+        ...Array.from(this.marketRegister.watchAddresses),
+        this.addressProvider.address,
+      ];
+      const fromBlock = this.currentBlock + 1n;
+      this.logger?.debug(
+        `getting logs from ${watchAddresses.length} addresses in [${fromBlock}:${blockNumber}]`,
+      );
+      const logs = await getLogsSafe(this.provider.publicClient, {
+        fromBlock,
+        toBlock: blockNumber,
+        address: watchAddresses,
+      });
 
-    for (const log of logs) {
-      const contract = this.contracts.get(log.address);
-      if (contract) {
-        const event = parseEventLogs({
-          abi: contract.abi,
-          logs: [log],
-        })[0];
-        contract.processLog(event);
-      }
-    }
-
-    this.#currentBlock = blockNumber;
-    this.#timestamp = timestamp;
-
-    // This will reload all or some markets. Should already use sdk.currentBlock
-    await this.marketRegister.syncState(skipPriceUpdate);
-    // TODO: do wee need to sync state on botlist and others?
-    //
-    // TODO: how to handle "singleton" contracts addresses, where contract instance is shared across multiple other contract instrances
-    // This behaviour should be reserved for contracts with 100% immutable state, such as InterestRateModel?
-    await this.#hooks.triggerHooks("syncState", { blockNumber, timestamp });
-
-    const pluginsList = TypedObjectUtils.entries(this.plugins);
-    const pluginResponse = await Promise.allSettled(
-      pluginsList.map(([name, plugin]) => {
-        if (plugin.syncState) {
-          this.logger?.debug(`syncing plugin ${name}`);
-          return plugin.syncState();
+      for (const log of logs) {
+        const contract = this.contracts.get(log.address);
+        if (contract) {
+          const event = parseEventLogs({
+            abi: contract.abi,
+            logs: [log],
+          })[0];
+          contract.processLog(event);
         }
-        return undefined;
-      }),
-    );
-
-    pluginResponse.forEach((r, i) => {
-      const [name, plugin] = pluginsList[i];
-
-      if (plugin.syncState && r.status === "fulfilled") {
-        this.logger?.debug(`synced plugin ${name}`);
-      } else if (plugin.syncState && r.status === "rejected") {
-        this.logger?.error(r.reason, `failed to sync plugin ${name}`);
       }
-    });
 
-    this.#syncing = false;
-    delta = Math.floor(Date.now() / 1000) - Number(timestamp);
-    this.logger?.debug(
-      `synced state to block ${blockNumber} (delta ${delta}s)`,
-    );
+      this.#currentBlock = blockNumber;
+      this.#timestamp = timestamp;
+
+      // This will reload all or some markets. Should already use sdk.currentBlock
+      await this.marketRegister.syncState(skipPriceUpdate);
+      // TODO: do wee need to sync state on botlist and others?
+      //
+      // TODO: how to handle "singleton" contracts addresses, where contract instance is shared across multiple other contract instrances
+      // This behaviour should be reserved for contracts with 100% immutable state, such as InterestRateModel?
+      await this.#hooks.triggerHooks("syncState", { blockNumber, timestamp });
+
+      const pluginsList = TypedObjectUtils.entries(this.plugins);
+      const pluginResponse = await Promise.allSettled(
+        pluginsList.map(([name, plugin]) => {
+          if (plugin.syncState) {
+            this.logger?.debug(`syncing plugin ${name}`);
+            return plugin.syncState();
+          }
+          return undefined;
+        }),
+      );
+
+      pluginResponse.forEach((r, i) => {
+        const [name, plugin] = pluginsList[i];
+
+        if (plugin.syncState && r.status === "fulfilled") {
+          this.logger?.debug(`synced plugin ${name}`);
+        } else if (plugin.syncState && r.status === "rejected") {
+          this.logger?.error(r.reason, `failed to sync plugin ${name}`);
+        }
+      });
+
+      delta = Math.floor(Date.now() / 1000) - Number(timestamp);
+      this.logger?.debug(
+        `synced state to block ${blockNumber} (delta ${delta}s)`,
+      );
+    } catch (e) {
+      // possible that this is non-atomic revert
+      // if logs fail, marketRegister is not synced, so this block number revert does nothing
+      // if marketRegister.syncState fails, we revert
+      // plugins are ignored and cannot cause this
+      this.logger?.error(
+        `sync state to block ${blockNumber} with ts ${timestamp} failed, reverting to old block ${prevBlock} with ts ${prevTimestamp}: ${e}`,
+      );
+      this.#currentBlock = prevBlock;
+      this.#timestamp = prevTimestamp;
+    } finally {
+      this.#syncing = false;
+    }
   }
 
   public get provider(): Provider {
