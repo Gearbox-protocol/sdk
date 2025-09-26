@@ -690,7 +690,7 @@ export class AccountOpener extends SDKConstruct {
     await this.#anvil.impersonateAccount({ address: owner });
     await this.#anvil.setBalance({
       address: owner,
-      value: parseEther("100"),
+      value: parseEther("1000000"),
     });
 
     try {
@@ -700,7 +700,7 @@ export class AccountOpener extends SDKConstruct {
         `failed to mint directly ${amnt} ${symbol} to ${dest.address}: ${e}`,
       );
       try {
-        this.#mintAndTransfer(owner, token, amount, dest.address);
+        await this.#mintAndTransfer(owner, token, amount, dest.address);
       } catch (e) {
         this.#logger?.warn(
           `failed to mint and transfer ${amnt} ${symbol} to ${dest.address}: ${e}`,
