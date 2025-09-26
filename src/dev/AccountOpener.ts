@@ -377,11 +377,14 @@ export class AccountOpener extends SDKConstruct {
     }
     logger?.debug(
       {
-        minDebt: this.sdk.tokensMeta.formatBN(underlying, minDebt),
+        minDebt: this.sdk.tokensMeta.formatBN(underlying, minDebt, {
+          symbol: true,
+        }),
         leverage: leverage.toString(),
         expectedUnderlyingBalance: this.sdk.tokensMeta.formatBN(
           underlying,
           expectedUnderlyingBalance,
+          { symbol: true },
         ),
       },
       "looking for open strategy",
@@ -395,7 +398,7 @@ export class AccountOpener extends SDKConstruct {
     });
     if (borrowerBalance < minDebt) {
       this.#logger?.warn(
-        `borrower balance in underlying: ${this.sdk.tokensMeta.formatBN(underlying, borrowerBalance)} is less than the minimum debt: ${this.sdk.tokensMeta.formatBN(underlying, minDebt)}`,
+        `borrower balance in underlying: ${this.sdk.tokensMeta.formatBN(underlying, borrowerBalance, { symbol: true })} is less than the minimum debt: ${this.sdk.tokensMeta.formatBN(underlying, minDebt, { symbol: true })}`,
       );
       if (this.#allowMint) {
         // it would be better to mint it once, since many accounts share underlying
@@ -407,7 +410,7 @@ export class AccountOpener extends SDKConstruct {
       }
     }
     this.#logger?.debug(
-      `borrower balance in underlying: ${this.sdk.tokensMeta.formatBN(underlying, borrowerBalance)} ${this.sdk.tokensMeta.symbol(underlying)}`,
+      `borrower balance in underlying: ${this.sdk.tokensMeta.formatBN(underlying, borrowerBalance, { symbol: true })}`,
     );
 
     const strategy = await this.sdk.routerFor(cm).findOpenStrategyPath({
@@ -495,7 +498,7 @@ export class AccountOpener extends SDKConstruct {
       minAvailableByPool[cm.pool] =
         (minAvailableByPool[cm.pool] ?? 0n) + amount;
       this.#logger?.debug(
-        `target #${i + 1} (${this.labelAddress(t.target)}) needs ${this.sdk.tokensMeta.formatBN(cm.underlying, amount)} ${this.sdk.tokensMeta.symbol(cm.underlying)} in pool (leverage: ${Number(leverage / PERCENTAGE_FACTOR)}%)`,
+        `target #${i + 1} (${this.labelAddress(t.target)}) needs ${this.sdk.tokensMeta.formatBN(cm.underlying, amount, { symbol: true })} in pool (leverage: ${Number(leverage / PERCENTAGE_FACTOR)}%)`,
       );
     }
 
@@ -510,9 +513,11 @@ export class AccountOpener extends SDKConstruct {
         minAvailable,
         pool.availableLiquidity,
         diff,
-      ].map(v => this.sdk.tokensMeta.formatBN(pool.underlying, v));
+      ].map(v =>
+        this.sdk.tokensMeta.formatBN(pool.underlying, v, { symbol: true }),
+      );
       this.#logger?.debug(
-        `Pool ${this.labelAddress(pool.address)} has ${availableS} liquidity, needs ${diffS} more for the minimum of ${minS} ${this.sdk.tokensMeta.symbol(pool.underlying)}`,
+        `Pool ${this.labelAddress(pool.address)} has ${availableS} liquidity, needs ${diffS} more for the minimum of ${minS}`,
       );
       if (diff > 0n) {
         deposits.push([pool, diff]);
@@ -529,7 +534,15 @@ export class AccountOpener extends SDKConstruct {
     const depositor = await this.#getDepositor();
     this.#logger?.debug(`depositor: ${depositor.address}`);
 
-    await this.#claimFromFaucet(depositor, "depositor", totalUSD);
+    try {
+      await this.#claimFromFaucet(depositor, "depositor", totalUSD);
+    } catch (e) {
+      if (this.#allowMint) {
+        this.#logger?.error(`depositor failed to claim from faucet: ${e}`);
+      } else {
+        throw e;
+      }
+    }
 
     const results: PoolDepositResult[] = [];
     for (const [pool, amount] of deposits) {
@@ -553,10 +566,9 @@ export class AccountOpener extends SDKConstruct {
     };
     let txHash: Hex | undefined;
     try {
-      const amnt =
-        this.sdk.tokensMeta.formatBN(pool.underlying, amount) +
-        " " +
-        this.sdk.tokensMeta.symbol(pool.underlying);
+      const amnt = this.sdk.tokensMeta.formatBN(pool.underlying, amount, {
+        symbol: true,
+      });
       this.#logger?.debug(`depositing ${amnt} into pool ${poolName}`);
 
       let allowance = await this.#anvil.readContract({
@@ -567,7 +579,7 @@ export class AccountOpener extends SDKConstruct {
       });
       if (allowance < amount) {
         this.#logger?.warn(
-          `depositor balance in underlying: ${this.sdk.tokensMeta.formatBN(pool.underlying, allowance)} is less than the amount to deposit: ${amnt}`,
+          `depositor balance in underlying: ${this.sdk.tokensMeta.formatBN(pool.underlying, allowance, { symbol: true })} is less than the amount to deposit: ${amnt}`,
         );
         if (this.#allowMint) {
           allowance = await this.#tryMint(
@@ -579,7 +591,7 @@ export class AccountOpener extends SDKConstruct {
       }
 
       this.#logger?.debug(
-        `depositor balance in underlying: ${this.sdk.tokensMeta.formatBN(pool.underlying, allowance)}`,
+        `depositor balance in underlying: ${this.sdk.tokensMeta.formatBN(pool.underlying, allowance, { symbol: true })}`,
       );
 
       txHash = await this.#anvil.writeContract({
@@ -643,14 +655,11 @@ export class AccountOpener extends SDKConstruct {
     dest: PrivateKeyAccount,
     amount: bigint,
   ): Promise<bigint> {
-    const symbol = this.sdk.tokensMeta.symbol(token);
-    const amnt = this.sdk.tokensMeta.formatBN(token, amount);
+    const amnt = this.sdk.tokensMeta.formatBN(token, amount, { symbol: true });
     try {
       await this.#mint(token, dest, amount);
     } catch (e) {
-      this.#logger?.warn(
-        `failed to mint ${amnt} ${symbol} to ${dest.address}: ${e}`,
-      );
+      this.#logger?.warn(`failed to mint ${amnt} to ${dest.address}: ${e}`);
     }
     return await this.#anvil.readContract({
       address: token,
@@ -684,6 +693,57 @@ export class AccountOpener extends SDKConstruct {
       value: parseEther("100"),
     });
 
+    try {
+      await this.#mintDirectly(owner, token, amount, dest.address);
+    } catch (e) {
+      this.#logger?.warn(
+        `failed to mint directly ${amnt} ${symbol} to ${dest.address}: ${e}`,
+      );
+      try {
+        this.#mintAndTransfer(owner, token, amount, dest.address);
+      } catch (e) {
+        this.#logger?.warn(
+          `failed to mint and transfer ${amnt} ${symbol} to ${dest.address}: ${e}`,
+        );
+      }
+    }
+
+    await this.#anvil.stopImpersonatingAccount({ address: owner });
+  }
+
+  async #mintDirectly(
+    owner: Address,
+    token: Address,
+    amount: bigint,
+    dest: Address,
+  ): Promise<void> {
+    const hash = await this.#anvil.writeContract({
+      account: owner,
+      address: token,
+      abi: parseAbi([
+        "function mint(address to, uint256 amount) returns (bool)",
+      ]),
+      functionName: "mint",
+      args: [dest, amount],
+      chain: this.#anvil.chain,
+    });
+    this.#logger?.debug(
+      `mint ${this.sdk.tokensMeta.formatBN(token, amount, { symbol: true })} to ${owner} in tx ${hash}`,
+    );
+    const receipt = await this.#anvil.waitForTransactionReceipt({ hash });
+    if (receipt.status === "reverted") {
+      throw new Error(
+        `failed to mint ${this.sdk.tokensMeta.formatBN(token, amount, { symbol: true })} to ${owner} in tx ${hash}: reverted`,
+      );
+    }
+  }
+
+  async #mintAndTransfer(
+    owner: Address,
+    token: Address,
+    amount: bigint,
+    dest: Address,
+  ): Promise<void> {
     let hash = await this.#anvil.writeContract({
       account: owner,
       address: token,
@@ -692,11 +752,13 @@ export class AccountOpener extends SDKConstruct {
       args: [amount],
       chain: this.#anvil.chain,
     });
-    this.#logger?.debug(`mint ${amnt} ${symbol} to ${owner} in tx ${hash}`);
+    this.#logger?.debug(
+      `mint ${this.sdk.tokensMeta.formatBN(token, amount, { symbol: true })} to ${owner} in tx ${hash}`,
+    );
     let receipt = await this.#anvil.waitForTransactionReceipt({ hash });
     if (receipt.status === "reverted") {
       throw new Error(
-        `failed to mint ${amnt} ${symbol} to ${owner} in tx ${hash}: reverted`,
+        `failed to mint ${this.sdk.tokensMeta.formatBN(token, amount, { symbol: true })} to ${owner} in tx ${hash}: reverted`,
       );
     }
     hash = await this.#anvil.writeContract({
@@ -704,19 +766,18 @@ export class AccountOpener extends SDKConstruct {
       address: token,
       abi: ierc20Abi,
       functionName: "transfer",
-      args: [dest.address, amount],
+      args: [dest, amount],
       chain: this.#anvil.chain,
     });
     this.#logger?.debug(
-      `transfer ${amnt} ${symbol} from ${owner} to ${dest.address} in tx ${hash}`,
+      `transfer ${this.sdk.tokensMeta.formatBN(token, amount, { symbol: true })}  from ${owner} to ${dest} in tx ${hash}`,
     );
     receipt = await this.#anvil.waitForTransactionReceipt({ hash });
     if (receipt.status === "reverted") {
       throw new Error(
-        `failed to transfer ${amnt} ${symbol} from ${owner} to ${dest.address} in tx ${hash}: reverted`,
+        `failed to transfer ${this.sdk.tokensMeta.formatBN(token, amount, { symbol: true })}  from ${owner} to ${dest} in tx ${hash}: reverted`,
       );
     }
-    await this.#anvil.stopImpersonatingAccount({ address: owner });
   }
 
   /**
@@ -1020,17 +1081,23 @@ export class AccountOpener extends SDKConstruct {
     const desiredQuota = this.#calcQuota(amount, debt, collateralLT);
     logger?.debug(
       {
-        desiredQuota: this.sdk.tokensMeta.formatBN(underlying, desiredQuota),
+        desiredQuota: this.sdk.tokensMeta.formatBN(underlying, desiredQuota, {
+          symbol: true,
+        }),
         availableQuota: this.sdk.tokensMeta.formatBN(
           underlying,
           availableQuota,
+          { symbol: true },
         ),
         collateralAmount: this.sdk.tokensMeta.formatBN(
           collateral,
           collateralAmount,
+          { symbol: true },
         ),
-        amount: this.sdk.tokensMeta.formatBN(underlying, amount),
-        debt: this.sdk.tokensMeta.formatBN(underlying, debt),
+        amount: this.sdk.tokensMeta.formatBN(underlying, amount, {
+          symbol: true,
+        }),
+        debt: this.sdk.tokensMeta.formatBN(underlying, debt, { symbol: true }),
         lt: Number(collateralLT),
       },
       "calculated quota",
