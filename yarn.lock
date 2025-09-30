@@ -938,6 +938,7 @@ __metadata:
     zod: "npm:^4.1.11"
   peerDependencies:
     axios: ^1.0.0
+    viem-deal: ^2.0.4
   languageName: unknown
   linkType: soft
 
