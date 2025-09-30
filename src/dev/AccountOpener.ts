@@ -3,7 +3,6 @@ import {
   BaseError,
   erc20Abi,
   isAddress,
-  parseAbi,
   parseEther,
   parseEventLogs,
 } from "viem";
@@ -30,9 +29,10 @@ import {
   SDKConstruct,
   sendRawTx,
 } from "../sdk/index.js";
-import { iDegenNftv2Abi, iOwnableAbi } from "./abi.js";
+import { iDegenNftv2Abi } from "./abi.js";
 import { claimFromFaucet } from "./claimFromFaucet.js";
 import { type AnvilClient, createAnvilClient } from "./createAnvilClient.js";
+import { createMinter } from "./mint/index.js";
 
 const DIRECT_TRANSFERS_QUOTA = 10_000n;
 
@@ -655,129 +655,8 @@ export class AccountOpener extends SDKConstruct {
     dest: PrivateKeyAccount,
     amount: bigint,
   ): Promise<bigint> {
-    const amnt = this.sdk.tokensMeta.formatBN(token, amount, { symbol: true });
-    try {
-      await this.#mint(token, dest, amount);
-    } catch (e) {
-      this.#logger?.warn(`failed to mint ${amnt} to ${dest.address}: ${e}`);
-    }
-    return await this.#anvil.readContract({
-      address: token,
-      abi: ierc20Abi,
-      functionName: "balanceOf",
-      args: [dest.address],
-    });
-  }
-
-  async #mint(
-    token: Address,
-    dest: PrivateKeyAccount,
-    amount: bigint,
-  ): Promise<void> {
-    const symbol = this.sdk.tokensMeta.symbol(token);
-    const amnt = this.sdk.tokensMeta.formatBN(token, amount);
-    this.#logger?.warn(`minting ${amnt} ${symbol} to ${dest.address}`);
-    // const hash = await this.#anvil.writeContract({
-    // account: dest,
-    // address: token,
-    const owner = await this.#anvil.readContract({
-      address: token,
-      abi: iOwnableAbi,
-      functionName: "owner",
-    });
-    this.#logger?.warn(`owner of ${symbol}: ${owner}`);
-
-    await this.#anvil.impersonateAccount({ address: owner });
-    await this.#anvil.setBalance({
-      address: owner,
-      value: parseEther("1000000"),
-    });
-
-    try {
-      await this.#mintDirectly(owner, token, amount, dest.address);
-    } catch (e) {
-      this.#logger?.warn(
-        `failed to mint directly ${amnt} ${symbol} to ${dest.address}: ${e}`,
-      );
-      try {
-        await this.#mintAndTransfer(owner, token, amount, dest.address);
-      } catch (e) {
-        this.#logger?.warn(
-          `failed to mint and transfer ${amnt} ${symbol} to ${dest.address}: ${e}`,
-        );
-      }
-    }
-
-    await this.#anvil.stopImpersonatingAccount({ address: owner });
-  }
-
-  async #mintDirectly(
-    owner: Address,
-    token: Address,
-    amount: bigint,
-    dest: Address,
-  ): Promise<void> {
-    const hash = await this.#anvil.writeContract({
-      account: owner,
-      address: token,
-      abi: parseAbi([
-        "function mint(address to, uint256 amount) returns (bool)",
-      ]),
-      functionName: "mint",
-      args: [dest, amount],
-      chain: this.#anvil.chain,
-    });
-    this.#logger?.debug(
-      `mint ${this.sdk.tokensMeta.formatBN(token, amount, { symbol: true })} to ${owner} in tx ${hash}`,
-    );
-    const receipt = await this.#anvil.waitForTransactionReceipt({ hash });
-    if (receipt.status === "reverted") {
-      throw new Error(
-        `failed to mint ${this.sdk.tokensMeta.formatBN(token, amount, { symbol: true })} to ${owner} in tx ${hash}: reverted`,
-      );
-    }
-  }
-
-  async #mintAndTransfer(
-    owner: Address,
-    token: Address,
-    amount: bigint,
-    dest: Address,
-  ): Promise<void> {
-    let hash = await this.#anvil.writeContract({
-      account: owner,
-      address: token,
-      abi: parseAbi(["function mint(uint256 amount) external returns (bool)"]),
-      functionName: "mint",
-      args: [amount],
-      chain: this.#anvil.chain,
-    });
-    this.#logger?.debug(
-      `mint ${this.sdk.tokensMeta.formatBN(token, amount, { symbol: true })} to ${owner} in tx ${hash}`,
-    );
-    let receipt = await this.#anvil.waitForTransactionReceipt({ hash });
-    if (receipt.status === "reverted") {
-      throw new Error(
-        `failed to mint ${this.sdk.tokensMeta.formatBN(token, amount, { symbol: true })} to ${owner} in tx ${hash}: reverted`,
-      );
-    }
-    hash = await this.#anvil.writeContract({
-      account: owner,
-      address: token,
-      abi: ierc20Abi,
-      functionName: "transfer",
-      args: [dest, amount],
-      chain: this.#anvil.chain,
-    });
-    this.#logger?.debug(
-      `transfer ${this.sdk.tokensMeta.formatBN(token, amount, { symbol: true })}  from ${owner} to ${dest} in tx ${hash}`,
-    );
-    receipt = await this.#anvil.waitForTransactionReceipt({ hash });
-    if (receipt.status === "reverted") {
-      throw new Error(
-        `failed to transfer ${this.sdk.tokensMeta.formatBN(token, amount, { symbol: true })}  from ${owner} to ${dest} in tx ${hash}: reverted`,
-      );
-    }
+    const minter = createMinter(this.sdk, this.#anvil, token);
+    return minter.tryMint(token, dest.address, amount);
   }
 
   /**

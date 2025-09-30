@@ -8,6 +8,7 @@ export * from "./detectChain.js";
 export * from "./EthCallSpy.js";
 export * from "./ltUtils.js";
 export * from "./migrateFaucet.js";
+export * from "./mint/index.js";
 export * from "./providers.js";
 export * from "./RevolverTransport.js";
 export * from "./types.js";
