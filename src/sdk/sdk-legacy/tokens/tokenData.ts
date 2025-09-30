@@ -58,8 +58,16 @@ const HUMAN_READABLE_TITLES: PartialRecord<string, string> = {
   "PT-yUSD-27NOV2025": "pt.yUSD(27.11.25)",
   "PT-pUSDe-16OCT2025": "pt.pUSDe(16.10.25)",
 
-  "0xab7d50fc2486a1ac06516e2ece9dadc95ba8cd20": "cp0xLRT\u00A0→\u00A0wstETH",
-  "0x6252467c2fefb61cb55180282943139baeea36c5": "cp0xLRT\u00A0→\u00A0wstETH",
+  ["0xab7d50fc2486a1ac06516e2ece9dadc95ba8cd20".toLowerCase() as Address]:
+    "cp0xLRT\u00A0→\u00A0wstETH",
+  ["0x6252467c2fefb61cb55180282943139baeea36c5".toLowerCase() as Address]:
+    "rstETH\u00A0→\u00A0wstETH",
+  ["0xd412ca00d177eba2843348f9c50dd17bfce32c40".toLowerCase() as Address]:
+    "pzETH\u00A0→\u00A0wstETH",
+  ["0x26c98674e623647f11909791593fa3b6e9406c67".toLowerCase() as Address]:
+    "steak7LRT\u00A0→\u00A0wstETH",
+  ["0x9fb930eacadad079683a4758424a53b9b3692775".toLowerCase() as Address]:
+    "Re7LRT\u00A0→\u00A0wstETH",
 };
 
 export class TokenData {
