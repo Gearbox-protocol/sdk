@@ -14,8 +14,8 @@ export function createMinter(
 ): IMinter {
   // Put recipies for other tokens here
   return new FallbackMinter(sdk, anvil, [
+    new DealMinter(sdk, anvil),
     new DirectMinter(sdk, anvil),
     new TransferMinter(sdk, anvil),
-    new DealMinter(sdk, anvil),
   ]);
 }
