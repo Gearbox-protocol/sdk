@@ -1,8 +1,8 @@
 import type { HttpTransportConfig, WebSocketTransportConfig } from "viem";
 
-import type { NetworkType } from "../sdk/index.js";
+import { chains, type NetworkType } from "../sdk/index.js";
 
-export type RpcProvider = "alchemy" | "drpc" | "ankr" | "custom";
+export type RpcProvider = "alchemy" | "drpc" | "ankr" | "thirdweb" | "custom";
 
 export interface ProviderConfig {
   provider: RpcProvider;
@@ -45,6 +45,8 @@ export function getProviderUrl(
       return getDrpcUrl(network, apiKey, protocol);
     case "ankr":
       return getAnkrUrl(network, apiKey, protocol);
+    case "thirdweb":
+      return getThirdWebUrl(network, apiKey, protocol);
     case "custom": {
       if (!apiKey.startsWith(protocol)) {
         throw new Error(`Custom RPC URL must start with ${protocol}`);
@@ -137,4 +139,34 @@ export function getAnkrUrl(
   const net = ANKR_DOMAINS[network];
   const sep = protocol === "ws" ? "/ws/" : "/";
   return net ? `${protocol}s://rpc.ankr.com/${net}${sep}${apiKey}` : undefined;
+}
+
+const THIRDWEB_DOMAINS: Record<NetworkType, string | null> = {
+  Arbitrum: chains.Arbitrum.id.toString(),
+  Avalanche: chains.Avalanche.id.toString(),
+  Base: chains.Base.id.toString(),
+  Berachain: chains.Berachain.id.toString(),
+  BNB: chains.BNB.id.toString(),
+  Etherlink: chains.Etherlink.id.toString(),
+  Hemi: chains.Hemi.id.toString(),
+  Lisk: chains.Lisk.id.toString(),
+  Mainnet: chains.Mainnet.id.toString(),
+  MegaETH: chains.MegaETH.id.toString(),
+  Monad: chains.Monad.id.toString(),
+  Optimism: chains.Optimism.id.toString(),
+  Plasma: chains.Plasma.id.toString(),
+  Sonic: chains.Sonic.id.toString(),
+  WorldChain: chains.WorldChain.id.toString(),
+};
+
+export function getThirdWebUrl(
+  network: NetworkType,
+  apiKey: string,
+  protocol: "http" | "ws",
+): string | undefined {
+  if (protocol === "ws") {
+    return undefined;
+  }
+  const net = THIRDWEB_DOMAINS[network];
+  return `https://${net}.rpc.thirdweb.com/${apiKey}`;
 }
