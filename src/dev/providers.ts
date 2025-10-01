@@ -2,7 +2,7 @@ import type { HttpTransportConfig, WebSocketTransportConfig } from "viem";
 
 import type { NetworkType } from "../sdk/index.js";
 
-export type RpcProvider = "alchemy" | "drpc" | "custom";
+export type RpcProvider = "alchemy" | "drpc" | "ankr" | "custom";
 
 export interface ProviderConfig {
   provider: RpcProvider;
@@ -43,6 +43,8 @@ export function getProviderUrl(
       return getAlchemyUrl(network, apiKey, protocol);
     case "drpc":
       return getDrpcUrl(network, apiKey, protocol);
+    case "ankr":
+      return getAnkrUrl(network, apiKey, protocol);
     case "custom": {
       if (!apiKey.startsWith(protocol)) {
         throw new Error(`Custom RPC URL must start with ${protocol}`);
@@ -107,4 +109,32 @@ export function getDrpcUrl(
 ): string | undefined {
   const net = DRPC_NETS[network];
   return net ? `${protocol}s://lb.drpc.org/${net}/${apiKey}` : undefined;
+}
+
+const ANKR_DOMAINS: Record<NetworkType, string | null> = {
+  Arbitrum: "arbitrum",
+  Avalanche: "avalanche",
+  Base: "base",
+  Berachain: null,
+  BNB: "bsc",
+  Etherlink: "etherlink_mainnet",
+  Hemi: null,
+  Lisk: null,
+  Mainnet: "eth",
+  MegaETH: null,
+  Monad: "monad_testnet",
+  Optimism: "optimism",
+  Plasma: null,
+  Sonic: "sonic_mainnet",
+  WorldChain: null,
+};
+
+export function getAnkrUrl(
+  network: NetworkType,
+  apiKey: string,
+  protocol: "http" | "ws",
+): string | undefined {
+  const net = ANKR_DOMAINS[network];
+  const sep = protocol === "ws" ? "/ws/" : "/";
+  return net ? `${protocol}s://rpc.ankr.com/${net}${sep}${apiKey}` : undefined;
 }
