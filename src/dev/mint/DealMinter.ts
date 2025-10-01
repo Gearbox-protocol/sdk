@@ -1,5 +1,4 @@
 import type { Address, TestClient } from "viem";
-import { deal } from "viem-deal";
 import type { GearboxSDK } from "../../sdk/index.js";
 import type { AnvilClient } from "../createAnvilClient.js";
 import AbstractMinter from "./AbstractMinter.js";
@@ -20,6 +19,9 @@ export class DealMinter extends AbstractMinter implements IMinter {
     balance += amount;
 
     this.logger?.debug(`set balance of ${dest} to ${this.fmt(token, balance)}`);
+
+    // Dynamic import of viem-deal to avoid affecting builds when not used
+    const { deal } = await import("viem-deal");
     await deal(this.anvil as unknown as TestClient, {
       erc20: token,
       account: dest,
