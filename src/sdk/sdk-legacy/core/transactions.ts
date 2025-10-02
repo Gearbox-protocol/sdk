@@ -131,7 +131,7 @@ export class TxAddLiquidity extends EVMTx {
     this.poolName = opts.poolName;
   }
 
-  toString() {
+  _toString() {
     const { title, decimals = 18 } = this.token;
 
     return `${this.poolName}: Deposit ${formatBN(
@@ -168,7 +168,7 @@ export class TxRemoveLiquidity extends EVMTx {
     this.poolName = opts.poolName;
   }
 
-  toString() {
+  _toString() {
     const { title, decimals = 18 } = this.token;
 
     return `${this.poolName}: Withdraw ${formatBN(
@@ -208,7 +208,7 @@ export class TxStakeDiesel extends EVMTx {
     this.poolName = opts.poolName;
   }
 
-  toString() {
+  _toString() {
     const { title: fromSymbol, decimals: fromDecimals = 18 } = this.tokenFrom;
     const { title: toSymbol } = this.tokenTo;
 
@@ -240,7 +240,7 @@ export class TxUnstakeDiesel extends EVMTx {
     this.poolName = opts.poolName;
   }
 
-  toString() {
+  _toString() {
     const { title: fromSymbol, decimals: fromDecimals = 18 } = this.tokenFrom;
     const { title: toSymbol } = this.tokenTo;
 
@@ -287,7 +287,7 @@ export class TXSwap extends EVMTx {
     this.creditManagerName = opts.creditManagerName;
   }
 
-  toString() {
+  _toString() {
     let toPart = "";
     if (this.tokenTo && this.amountTo) {
       const { title: toSymbol, decimals: toDecimals = 18 } = this.tokenTo;
@@ -330,7 +330,7 @@ export class TxAddCollateral extends EVMTx {
     this.creditManagerName = opts.creditManagerName;
   }
 
-  toString() {
+  _toString() {
     const { title: addedSymbol, decimals: addedDecimals = 18 } = this.token;
 
     return `Credit Account ${this.creditManagerName}: Added ${formatBN(
@@ -367,7 +367,7 @@ export class TxIncreaseBorrowAmount extends EVMTx {
     this.creditManagerName = opts.creditManagerName;
   }
 
-  toString() {
+  _toString() {
     const { title: tokenSymbol, decimals: tokenDecimals } = this.token;
 
     return `Credit Account ${
@@ -406,7 +406,7 @@ export class TxDecreaseBorrowAmount extends EVMTx {
     this.creditManagerName = opts.creditManagerName;
   }
 
-  toString() {
+  _toString() {
     const { title: tokenSymbol, decimals: tokenDecimals } = this.token;
 
     return `Credit Account ${
@@ -451,7 +451,7 @@ export class TxOpenMultitokenAccount extends EVMTx {
     this.withdrawDebt = opts.withdrawDebt;
   }
 
-  toString() {
+  _toString() {
     const assetSymbols = this.assets.reduce<Array<string>>((acc, asset) => {
       const { title: tokenSymbol } = asset;
       const skip =
@@ -489,7 +489,7 @@ export class TxOpenMultitokenAccount extends EVMTx {
 }
 
 export class TxClaimNFT extends EVMTx {
-  toString() {
+  _toString() {
     return `NFT claimed`;
   }
 
@@ -519,7 +519,7 @@ export class TxClaimRewards extends EVMTx {
     }));
   }
 
-  toString() {
+  _toString() {
     const rewardsString =
       this.rewards.length <= 2
         ? this.rewards
@@ -578,7 +578,7 @@ export class TxStartDelayedWithdrawal extends EVMTx {
     );
   }
 
-  toString() {
+  _toString() {
     const total =
       this.instantWithdrawals.length + this.delayedWithdrawals.length;
 
@@ -649,7 +649,7 @@ export class TxMigrateCreditAccount extends EVMTx {
     this.targetCreditManager = `${opts.targetCreditManager.name} (${opts.curatorName})`;
   }
 
-  toString() {
+  _toString() {
     return `Successfully migrated Credit Account to ${this.targetCreditManager}`;
   }
 
@@ -673,7 +673,7 @@ export class TxRepayAccount extends EVMTx {
     this.creditManagerName = opts.creditManagerName;
   }
 
-  toString() {
+  _toString() {
     return `Credit Account ${this.creditManagerName}: Repaying account`;
   }
 
@@ -697,7 +697,7 @@ export class TxLiquidateAccount extends EVMTx {
     this.creditManagerName = opts.creditManagerName;
   }
 
-  toString() {
+  _toString() {
     return `Credit Account ${this.creditManagerName}: Liquidated`;
   }
 
@@ -721,7 +721,7 @@ export class TxCloseAccount extends EVMTx {
     this.creditManagerName = opts.creditManagerName;
   }
 
-  toString() {
+  _toString() {
     return `Credit Account ${this.creditManagerName}: Closing account`;
   }
 
@@ -747,7 +747,7 @@ export class TxApprove extends EVMTx {
     this.token = opts.tokensList[opts.token];
   }
 
-  toString() {
+  _toString() {
     const { title: symbol } = this.token;
     return `Approve ${symbol}`;
   }
@@ -783,7 +783,7 @@ export class TxUpdateQuota extends EVMTx {
     this.underlyingToken = opts.tokensList[opts.underlyingToken];
   }
 
-  toString() {
+  _toString() {
     const { decimals: underlyingDecimals } = this.underlyingToken;
 
     const quota = this.updatedQuotas.map(({ token, balance }) => {
@@ -823,7 +823,7 @@ export class TxGaugeStake extends EVMTx {
     this.amount = opts.amount;
   }
 
-  toString() {
+  _toString() {
     const amountString = formatBN(BigIntMath.abs(this.amount), GEAR_DECIMALS);
 
     return `Gauge: staked ${amountString} GEAR`;
@@ -849,7 +849,7 @@ export class TxGaugeUnstake extends EVMTx {
     this.amount = opts.amount;
   }
 
-  toString() {
+  _toString() {
     const amountString = formatBN(BigIntMath.abs(this.amount), GEAR_DECIMALS);
 
     return `Gauge: unstaked ${amountString} GEAR`;
@@ -864,7 +864,7 @@ export class TxGaugeUnstake extends EVMTx {
 }
 
 export class TxGaugeClaim extends EVMTx {
-  toString() {
+  _toString() {
     return `Gauge: withdrawals claimed`;
   }
 
@@ -890,7 +890,7 @@ export class TxGaugeVote extends EVMTx {
     this.tokens = opts.tokens.map(t => opts.tokensList[t.token]);
   }
 
-  toString() {
+  _toString() {
     const votes = this.tokens.map(({ title }) => {
       return title;
     });
@@ -929,7 +929,7 @@ export class TxWithdrawCollateral extends EVMTx {
     this.creditManagerName = opts.creditManagerName;
   }
 
-  toString() {
+  _toString() {
     const { title: symbol, decimals } = this.token;
 
     return `Credit Account ${this.creditManagerName}: withdrawn ${formatBN(
@@ -958,7 +958,7 @@ export class TxAddBot extends EVMTx {
     this.creditManagerName = opts.creditManagerName;
   }
 
-  toString() {
+  _toString() {
     return `Credit Account ${this.creditManagerName}: bot enabled`;
   }
 
@@ -978,7 +978,7 @@ export class TxRemoveBot extends EVMTx {
     this.creditManagerName = opts.creditManagerName;
   }
 
-  toString() {
+  _toString() {
     return `Credit Account ${this.creditManagerName}: bot disabled`;
   }
 
@@ -1010,7 +1010,7 @@ export class TxEnableTokens extends EVMTx {
     this.creditManagerName = opts.creditManagerName;
   }
 
-  toString() {
+  _toString() {
     const enabledSymbols = this.enabledTokens.map(t => t?.title);
     const disabledSymbols = this.disabledTokens.map(t => t?.title);
 
@@ -1054,7 +1054,7 @@ export class TxFillOrder extends EVMTx {
     this.network = opts.network;
   }
 
-  toString() {
+  _toString() {
     const { title, decimals = 18 } = this.token;
 
     return `Order opened [${this.network}]: ${formatBN(
