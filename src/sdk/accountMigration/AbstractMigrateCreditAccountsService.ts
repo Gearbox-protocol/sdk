@@ -166,7 +166,7 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
     return (
       AbstractMigrateCreditAccountsService.V300_TO_V310_TOKENS_OVERRIDES[
         chainId
-      ][source] ?? source
+      ]?.[source] ?? source
     );
   }
   public static getMigrationBotAddress(chainId: number) {
