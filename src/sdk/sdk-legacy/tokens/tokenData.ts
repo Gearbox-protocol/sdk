@@ -58,6 +58,12 @@ const HUMAN_READABLE_TITLES: PartialRecord<string, string> = {
   "PT-yUSD-27NOV2025": "pt.yUSD(27.11.25)",
   "PT-pUSDe-16OCT2025": "pt.pUSDe(16.10.25)",
 
+  "PT-USDe-15JAN2026": "pt.USDe(15.01.26)",
+  "PT-sUSDe-15JAN2026": "pt.sUSDe(15.01.26)",
+  "PT-syrupUSDT-29JAN2026": "pt.syrupUSDT(29.01.26)",
+  "PT-USDai-19MAR2026": "pt.USDai(19.03.26)",
+  "PT-sUSDai-19MAR2026": "pt.sUSDai(19.03.26)",
+
   ["0xab7d50fc2486a1ac06516e2ece9dadc95ba8cd20".toLowerCase() as Address]:
     "cp0xLRT\u00A0→\u00A0wstETH",
   ["0x6252467c2fefb61cb55180282943139baeea36c5".toLowerCase() as Address]:
