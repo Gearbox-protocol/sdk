@@ -1,7 +1,11 @@
 import type { Address } from "viem";
 import { iWithdrawalCompressorV310Abi } from "../../abi/IWithdrawalCompressorV310.js";
 import type { IGearboxSDKPlugin } from "../../sdk/index.js";
-import { AddressMap, BasePlugin } from "../../sdk/index.js";
+import {
+  AddressMap,
+  BasePlugin,
+  getWithdrawalCompressorAddress,
+} from "../../sdk/index.js";
 import type {
   WithdrawableAsset,
   WithdrawableAssetStateHuman,
@@ -29,10 +33,9 @@ export class DelayedWithdrawalPlugin
     //   AP_PERIPHERY_COMPRESSOR,
     //   VERSION_RANGE_310,
     // );
-    const compressor =
-      this.sdk.provider.chainId === 1
-        ? "0x58f1eF2680f801C0552783420b60939922676337"
-        : undefined;
+    const compressor = getWithdrawalCompressorAddress(
+      this.sdk.provider.chainId,
+    );
 
     this.sdk.logger?.debug(
       `loading delayed withdrawal plugin with compressor ${compressor}`,

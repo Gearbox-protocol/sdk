@@ -1,6 +1,12 @@
-import type { Address, ContractFunctionArgs } from "viem";
+import type {
+  Address,
+  ContractFunctionArgs,
+  GetContractReturnType,
+  PublicClient,
+} from "viem";
 
 import type { iCreditAccountCompressorAbi } from "../../abi/compressors.js";
+import type { iWithdrawalCompressorV310Abi } from "../../abi/IWithdrawalCompressorV310.js";
 import type { LiquidationBotType as LiquidationBotTypeSDK } from "../../plugins/bots/types.js";
 import type { MigrationBotType } from "../accountMigration/types.js";
 import type { ConnectedBotData, CreditAccountData } from "../base/index.js";
@@ -200,6 +206,32 @@ export interface ExecuteSwapProps extends PrepareUpdateQuotasProps {
    */
   creditAccount: RouterCASlice;
 }
+
+export interface PreviewDelayedWithdrawalProps {
+  /**
+   * Amount of source token (ex. cp0xlrt)
+   */
+  amount: bigint;
+  /**
+   * Address of source token (ex. cp0xlrt)
+   */
+  token: Address;
+  /**
+   * Minimal credit account data on which operation is performed
+   */
+  creditAccount: Address;
+}
+
+type WithdrawalCompressorV310InstanceType = GetContractReturnType<
+  typeof iWithdrawalCompressorV310Abi,
+  PublicClient
+>;
+
+export type PreviewDelayedWithdrawalResult = Awaited<
+  ReturnType<
+    WithdrawalCompressorV310InstanceType["read"]["getWithdrawalRequestResult"]
+  >
+>;
 
 export interface StartDelayedWithdrawalProps extends PrepareUpdateQuotasProps {
   /**
@@ -563,6 +595,14 @@ export interface ICreditAccountsService extends SDKConstruct {
     props: StartDelayedWithdrawalProps,
   ): Promise<CreditAccountOperationResult>;
 
+  /**
+   * Preview delayed withdrawal for given token
+   * @param props - {@link PreviewDelayedWithdrawalProps}
+   * @returns
+   */
+  previewDelayedWithdrawal(
+    props: PreviewDelayedWithdrawalProps,
+  ): Promise<PreviewDelayedWithdrawalResult>;
   /**
    * Claim tokens with delayed withdrawal
      - Claim is executed in the following order: price update -> execute claim calls -> update quotas

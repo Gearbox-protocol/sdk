@@ -6,6 +6,7 @@ import {
   iPeripheryCompressorAbi,
   iRewardsCompressorAbi,
 } from "../../abi/compressors.js";
+import { iWithdrawalCompressorV310Abi } from "../../abi/IWithdrawalCompressorV310.js";
 import { iBaseRewardPoolAbi } from "../../abi/iBaseRewardPool.js";
 import {
   iBotListV300Abi,
@@ -45,6 +46,8 @@ import type {
   FullyLiquidateProps,
   GetConnectedBotsResult,
   GetConnectedMigrationBotsResult,
+  PreviewDelayedWithdrawalProps,
+  PreviewDelayedWithdrawalResult,
   PriceUpdatesOptions,
   StartDelayedWithdrawalProps,
 } from "./types";
@@ -71,6 +74,12 @@ type CompressorAbi = typeof iCreditAccountCompressorAbi;
 
 export interface CreditAccountServiceOptions {
   batchSize?: number;
+}
+
+export function getWithdrawalCompressorAddress(chainId: number) {
+  const compressor =
+    chainId === 1 ? "0x58f1eF2680f801C0552783420b60939922676337" : undefined;
+  return compressor;
 }
 
 export abstract class AbstractCreditAccountService extends SDKConstruct {
@@ -206,7 +215,9 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       } while (offset !== 0n);
     }
     this.#logger?.debug(
-      `loaded ${allCAs.length} credit accounts (${allCAs.length - revertingOffset} reverting)`,
+      `loaded ${allCAs.length} credit accounts (${
+        allCAs.length - revertingOffset
+      } reverting)`,
     );
 
     // sort by health factor ascending
@@ -600,6 +611,39 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
 
     return { tx, calls, creditFacade: cm.creditFacade };
+  }
+
+  /**
+   * Preview delayed withdrawal for given token
+   * @param props - {@link PreviewDelayedWithdrawalProps}
+   * @returns
+   */
+  public async previewDelayedWithdrawal({
+    creditAccount,
+    amount,
+    token,
+  }: PreviewDelayedWithdrawalProps): Promise<PreviewDelayedWithdrawalResult> {
+    const compressor = getWithdrawalCompressorAddress(
+      this.sdk.provider.chainId,
+    );
+    if (!compressor)
+      throw new Error(
+        `No compressor for current chain ${this.sdk.provider.networkType}`,
+      );
+
+    const contract = getContract({
+      address: compressor,
+      abi: iWithdrawalCompressorV310Abi,
+      client: this.client,
+    });
+
+    const resp = await contract.read.getWithdrawalRequestResult([
+      creditAccount,
+      token,
+      amount,
+    ]);
+
+    return resp;
   }
 
   /**
