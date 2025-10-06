@@ -66,7 +66,6 @@ import type {
   Rewards,
   UpdateQuotasProps,
 } from "./types.js";
-import { stringifyGetCreditAccountsArgs } from "./utils.js";
 
 type CompressorAbi = typeof iCreditAccountCompressorAbi;
 
@@ -184,9 +183,11 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       );
 
     const allCAs: Array<CreditAccountData> = [];
+    let revertingOffset = 0;
     // reverting filter is exclusive, we need both options to get all accounts
     for (const reverting of [false, true]) {
       let offset = 0n;
+      revertingOffset = allCAs.length;
       do {
         const [accounts, newOffset] = await this.#getCreditAccounts(
           this.#batchSize
@@ -204,6 +205,9 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
         offset = newOffset;
       } while (offset !== 0n);
     }
+    this.#logger?.debug(
+      `loaded ${allCAs.length} credit accounts (${allCAs.length - revertingOffset} reverting)`,
+    );
 
     // sort by health factor ascending
     return allCAs.sort((a, b) => Number(a.healthFactor - b.healthFactor));
@@ -933,10 +937,10 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     priceUpdateTxs?: IPriceUpdateTx[],
     blockNumber?: bigint,
   ): Promise<[accounts: Array<CreditAccountData>, newOffset: bigint]> {
-    this.#logger?.debug(
-      { args: stringifyGetCreditAccountsArgs(args) },
-      "getting credit accounts",
-    );
+    // this.#logger?.debug(
+    //   { args: stringifyGetCreditAccountsArgs(args) },
+    //   "getting credit accounts",
+    // );
     let resp: [CreditAccountData[], bigint];
     if (priceUpdateTxs?.length) {
       [resp] = await simulateWithPriceUpdates(this.client, {

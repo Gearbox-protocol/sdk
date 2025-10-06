@@ -131,7 +131,7 @@ export class GearboxRewardsExtraApy {
 
       const poolPointsList = pointsInfo.reduce<PoolPointsBase[Address]>(
         (acc, pointsInfo) => {
-          const { address: tokenAddress } = tokensList[pointsInfo.token];
+          const { address: tokenAddress } = tokensList[pointsInfo.token] || {};
           const tokenBalance = totalTokenBalances[tokenAddress || ""];
 
           const points = GearboxRewardsExtraApy.getPoolTokenPoints(
