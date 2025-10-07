@@ -652,30 +652,35 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
    * @param props - {@link StartDelayedWithdrawalProps}
    * @returns
   */
-  public async startDelayedWithdrawal_Mellow({
+  public async startDelayedWithdrawal({
     creditAccount,
     minQuota,
     averageQuota,
 
-    instantWithdrawals,
-    delayedWithdrawals,
-    sourceAmount,
-    sourceToken,
+    preview,
   }: StartDelayedWithdrawalProps): Promise<CreditAccountOperationResult> {
     const cm = this.sdk.marketRegister.findCreditManager(
       creditAccount.creditManager,
     );
 
-    const balances = [...instantWithdrawals, ...delayedWithdrawals].filter(
-      a => a.balance > 0,
-    );
+    const record = preview.outputs.reduce<Record<Address, bigint>>((acc, o) => {
+      const token = o.token.toLowerCase() as Address;
+      acc[token] = (acc[token] || 0n) + o.amount;
+
+      return acc;
+    }, {});
+    const balances = Object.entries(record);
+
     const storeExpectedBalances: MultiCall = {
       target: cm.creditFacade.address,
       callData: encodeFunctionData({
         abi: iCreditFacadeV300MulticallAbi,
         functionName: "storeExpectedBalances",
         args: [
-          balances.map(a => ({ token: a.token, amount: a.balance - 10n })),
+          balances.map(([token, amount]) => ({
+            token: token as Address,
+            amount: amount - 10n,
+          })),
         ],
       }),
     };
@@ -694,43 +699,10 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       desiredQuotas: averageQuota,
     });
 
-    const mellowAdapter = cm.creditManager.adapters.mustGet(sourceToken);
-    const redeem: MultiCall = {
-      target: mellowAdapter.address,
-      callData: encodeFunctionData({
-        abi: ierc4626AdapterAbi,
-        functionName: "redeem",
-        args: [sourceAmount, ADDRESS_0X0, ADDRESS_0X0],
-      }),
-    };
-
-    const CLAIMER = "0x25024a3017B8da7161d8c5DCcF768F8678fB5802";
-    const mellowClaimerAdapter = cm.creditManager.adapters.mustGet(CLAIMER);
-
-    const multiAcceptContract = getContract({
-      address: mellowClaimerAdapter.address,
-      abi: iMellowClaimerAdapterAbi,
-      client: this.client,
-    });
-
-    const indices = await multiAcceptContract.read.getMultiVaultSubvaultIndices(
-      [sourceToken],
-    );
-
-    const multiaccept: MultiCall = {
-      target: mellowClaimerAdapter.address,
-      callData: encodeFunctionData({
-        abi: iMellowClaimerAdapterAbi,
-        functionName: "multiAccept",
-        args: [sourceToken, ...indices],
-      }),
-    };
-
     const calls: Array<MultiCall> = [
       ...priceUpdatesCalls,
       storeExpectedBalances,
-      redeem,
-      multiaccept,
+      ...preview.requestCalls,
       compareBalances,
       ...this.prepareUpdateQuotas(creditAccount.creditFacade, {
         minQuota,
@@ -1432,20 +1404,6 @@ const iMellowClaimerAdapterAbi = [
       { name: "maxAssets", type: "uint256", internalType: "uint256" },
     ],
     outputs: [{ name: "", type: "bool", internalType: "bool" }],
-    stateMutability: "nonpayable",
-  },
-] as const;
-
-const ierc4626AdapterAbi = [
-  {
-    type: "function",
-    inputs: [
-      { name: "shares", internalType: "uint256", type: "uint256" },
-      { name: "", internalType: "address", type: "address" },
-      { name: "", internalType: "address", type: "address" },
-    ],
-    name: "redeem",
-    outputs: [{ name: "useSafePrices", internalType: "bool", type: "bool" }],
     stateMutability: "nonpayable",
   },
 ] as const;

@@ -235,21 +235,9 @@ export type PreviewDelayedWithdrawalResult = Awaited<
 
 export interface StartDelayedWithdrawalProps extends PrepareUpdateQuotasProps {
   /**
-   * Amount of source token (ex. cp0xlrt)
+   * Withdrawal preview
    */
-  sourceAmount: bigint;
-  /**
-   * Address of source token (ex. cp0xlrt)
-   */
-  sourceToken: Address;
-  /**
-   * Array of token which can be instantly withdrawn
-   */
-  instantWithdrawals: Array<Asset>;
-  /**
-   * Array of token which will be withdrawn with a delay
-   */
-  delayedWithdrawals: Array<Asset>;
+  preview: PreviewDelayedWithdrawalResult;
   /**
    * Minimal credit account data on which operation is performed
    */
@@ -591,7 +579,7 @@ export interface ICreditAccountsService extends SDKConstruct {
    * @param props - {@link StartDelayedWithdrawalProps}
    * @returns All necessary data to execute the transaction (call, credit facade)
    */
-  startDelayedWithdrawal_Mellow(
+  startDelayedWithdrawal(
     props: StartDelayedWithdrawalProps,
   ): Promise<CreditAccountOperationResult>;
 
