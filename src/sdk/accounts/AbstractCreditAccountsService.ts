@@ -761,18 +761,27 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
    * @param props - {@link ClaimDelayedProps}
    * @returns
   */
-  public async claimDelayed_Mellow({
+  public async claimDelayed({
     creditAccount,
     minQuota,
     averageQuota,
 
-    sourceToken,
-    phantom,
-    target,
+    claimableNow,
   }: ClaimDelayedProps): Promise<CreditAccountOperationResult> {
     const cm = this.sdk.marketRegister.findCreditManager(
       creditAccount.creditManager,
     );
+
+    const record = claimableNow.outputs.reduce<Record<Address, bigint>>(
+      (acc, o) => {
+        const token = o.token.toLowerCase() as Address;
+        acc[token] = (acc[token] || 0n) + o.amount;
+
+        return acc;
+      },
+      {},
+    );
+    const balances = Object.entries(record);
 
     const storeExpectedBalances: MultiCall = {
       target: cm.creditFacade.address,
@@ -780,7 +789,10 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
         abi: iCreditFacadeV300MulticallAbi,
         functionName: "storeExpectedBalances",
         args: [
-          [target].map(a => ({ token: a.token, amount: a.balance - 10n })),
+          balances.map(([token, amount]) => ({
+            token: token as Address,
+            amount: amount - 10n,
+          })),
         ],
       }),
     };
@@ -799,33 +811,10 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       desiredQuotas: averageQuota,
     });
 
-    const CLAIMER = "0x25024a3017B8da7161d8c5DCcF768F8678fB5802";
-    const mellowClaimerAdapter = cm.creditManager.adapters.mustGet(CLAIMER);
-
-    const multiAcceptContract = getContract({
-      address: mellowClaimerAdapter.address,
-      abi: iMellowClaimerAdapterAbi,
-      client: this.client,
-    });
-
-    const indices = await multiAcceptContract.read.getUserSubvaultIndices([
-      sourceToken,
-      creditAccount.creditAccount,
-    ]);
-
-    const multiaccept: MultiCall = {
-      target: mellowClaimerAdapter.address,
-      callData: encodeFunctionData({
-        abi: iMellowClaimerAdapterAbi,
-        functionName: "multiAcceptAndClaim",
-        args: [sourceToken, ...indices, ADDRESS_0X0, phantom.balance],
-      }),
-    };
-
     const calls: Array<MultiCall> = [
       ...priceUpdatesCalls,
       storeExpectedBalances,
-      multiaccept,
+      ...claimableNow.claimCalls,
       compareBalances,
       ...this.prepareUpdateQuotas(creditAccount.creditFacade, {
         minQuota,

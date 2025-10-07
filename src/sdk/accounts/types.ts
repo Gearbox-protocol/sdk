@@ -266,17 +266,9 @@ export interface StartDelayedWithdrawalProps extends PrepareUpdateQuotasProps {
 
 export interface ClaimDelayedProps extends PrepareUpdateQuotasProps {
   /**
-   * Address of source token (ex. sp0xlrt)
+   * assets claimable now from getPendingWithdrawals
    */
-  sourceToken: Address;
-  /**
-   * Amount of phantom token
-   */
-  phantom: Asset;
-  /**
-   * Amount of target token
-   */
-  target: Asset;
+  claimableNow: GetPendingWithdrawalsResult["claimableNow"][number];
   /**
    * Minimal credit account data on which operation is performed
    */
@@ -625,9 +617,7 @@ export interface ICreditAccountsService extends SDKConstruct {
    * @param props - {@link ClaimDelayedProps}
    * @returns
   */
-  claimDelayed_Mellow(
-    props: ClaimDelayedProps,
-  ): Promise<CreditAccountOperationResult>;
+  claimDelayed(props: ClaimDelayedProps): Promise<CreditAccountOperationResult>;
 
   /**
    * Executes enable/disable tokens specified by given tokens lists and token prices
