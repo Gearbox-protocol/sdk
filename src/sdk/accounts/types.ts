@@ -222,6 +222,13 @@ export interface PreviewDelayedWithdrawalProps {
   creditAccount: Address;
 }
 
+export interface GetPendingWithdrawalsProps {
+  /**
+   * Minimal credit account data on which operation is performed
+   */
+  creditAccount: Address;
+}
+
 type WithdrawalCompressorV310InstanceType = GetContractReturnType<
   typeof iWithdrawalCompressorV310Abi,
   PublicClient
@@ -232,6 +239,19 @@ export type PreviewDelayedWithdrawalResult = Awaited<
     WithdrawalCompressorV310InstanceType["read"]["getWithdrawalRequestResult"]
   >
 >;
+
+type PendingWithdrawalResult = Awaited<
+  ReturnType<
+    WithdrawalCompressorV310InstanceType["read"]["getCurrentWithdrawals"]
+  >
+>;
+export type PendingWithdrawal = PendingWithdrawalResult[1][number];
+export type ClaimableWithdrawal = PendingWithdrawalResult[0][number];
+
+export interface GetPendingWithdrawalsResult {
+  claimableNow: Array<ClaimableWithdrawal>;
+  pending: Array<PendingWithdrawal>;
+}
 
 export interface StartDelayedWithdrawalProps extends PrepareUpdateQuotasProps {
   /**
@@ -591,6 +611,14 @@ export interface ICreditAccountsService extends SDKConstruct {
   previewDelayedWithdrawal(
     props: PreviewDelayedWithdrawalProps,
   ): Promise<PreviewDelayedWithdrawalResult>;
+  /**
+   * Get claimable and pending withdrawals of an account
+   * @param props - {@link GetPendingWithdrawalsProps}
+   * @returns
+   */
+  getPendingWithdrawals(
+    props: GetPendingWithdrawalsProps,
+  ): Promise<GetPendingWithdrawalsResult>;
   /**
    * Claim tokens with delayed withdrawal
      - Claim is executed in the following order: price update -> execute claim calls -> update quotas

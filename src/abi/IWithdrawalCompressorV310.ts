@@ -24,6 +24,16 @@ export const iWithdrawalCompressorV310Abi = [
         components: [
           { name: "token", internalType: "address", type: "address" },
           {
+            name: "withdrawalPhantomToken",
+            internalType: "address",
+            type: "address",
+          },
+          {
+            name: "withdrawalTokenSpent",
+            internalType: "uint256",
+            type: "uint256",
+          },
+          {
             name: "outputs",
             internalType: "struct WithdrawalOutput[]",
             type: "tuple[]",
@@ -50,6 +60,11 @@ export const iWithdrawalCompressorV310Abi = [
         type: "tuple[]",
         components: [
           { name: "token", internalType: "address", type: "address" },
+          {
+            name: "withdrawalPhantomToken",
+            internalType: "address",
+            type: "address",
+          },
           {
             name: "expectedOutputs",
             internalType: "struct WithdrawalOutput[]",

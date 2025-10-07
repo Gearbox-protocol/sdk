@@ -46,6 +46,9 @@ import type {
   FullyLiquidateProps,
   GetConnectedBotsResult,
   GetConnectedMigrationBotsResult,
+  GetPendingWithdrawalsProps,
+  GetPendingWithdrawalsResult,
+  PendingWithdrawal,
   PreviewDelayedWithdrawalProps,
   PreviewDelayedWithdrawalResult,
   PriceUpdatesOptions,
@@ -78,7 +81,7 @@ export interface CreditAccountServiceOptions {
 
 export function getWithdrawalCompressorAddress(chainId: number) {
   const compressor =
-    chainId === 1 ? "0x58f1eF2680f801C0552783420b60939922676337" : undefined;
+    chainId === 1 ? "0xb97CE226464eFF7888475D8A84e4089AE2055eE6" : undefined;
   return compressor;
 }
 
@@ -644,6 +647,43 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     ]);
 
     return resp;
+  }
+
+  /**
+   * Get claimable and pending withdrawals of an account
+   * @param props - {@link GetPendingWithdrawalsProps}
+   * @returns
+   */
+  public async getPendingWithdrawals({
+    creditAccount,
+  }: GetPendingWithdrawalsProps): Promise<GetPendingWithdrawalsResult> {
+    const compressor = getWithdrawalCompressorAddress(
+      this.sdk.provider.chainId,
+    );
+    if (!compressor)
+      throw new Error(
+        `No compressor for current chain ${this.sdk.provider.networkType}`,
+      );
+
+    const contract = getContract({
+      address: compressor,
+      abi: iWithdrawalCompressorV310Abi,
+      client: this.client,
+    });
+
+    const resp = await contract.read.getCurrentWithdrawals([creditAccount]);
+
+    const claimableNow = resp?.[0] || [];
+    const pendingResult = [...(resp?.[1] || [])].sort((a, b) =>
+      a.claimableAt < b.claimableAt ? -1 : 1,
+    );
+
+    const respResult: GetPendingWithdrawalsResult = {
+      claimableNow: [...claimableNow],
+      pending: pendingResult,
+    };
+
+    return respResult;
   }
 
   /**
