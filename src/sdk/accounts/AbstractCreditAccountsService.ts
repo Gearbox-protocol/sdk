@@ -769,6 +769,8 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
 
     claimableNow,
   }: ClaimDelayedProps): Promise<CreditAccountOperationResult> {
+    const zeroDebt = creditAccount.debt === 0n;
+
     const cm = this.sdk.marketRegister.findCreditManager(
       creditAccount.creditManager,
     );
@@ -806,21 +808,27 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       }),
     };
 
-    const priceUpdatesCalls = await this.getPriceUpdatesForFacade({
-      creditManager: creditAccount.creditManager,
-      creditAccount,
-      desiredQuotas: averageQuota,
-    });
+    const priceUpdatesCalls = zeroDebt
+      ? []
+      : await this.getPriceUpdatesForFacade({
+          creditManager: creditAccount.creditManager,
+          creditAccount,
+          desiredQuotas: averageQuota,
+        });
+
+    const quotaCalls = zeroDebt
+      ? []
+      : this.prepareUpdateQuotas(creditAccount.creditFacade, {
+          minQuota,
+          averageQuota,
+        });
 
     const calls: Array<MultiCall> = [
       ...priceUpdatesCalls,
       storeExpectedBalances,
       ...claimableNow.claimCalls,
       compareBalances,
-      ...this.prepareUpdateQuotas(creditAccount.creditFacade, {
-        minQuota,
-        averageQuota,
-      }),
+      ...quotaCalls,
     ];
 
     const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
