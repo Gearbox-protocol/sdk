@@ -51,6 +51,7 @@
     "typecheck:ci": "tsc --noEmit"
   },
   "dependencies": {
+    "@gearbox-protocol/integrations-v3": "1.42.0-abi.5",
     "@redstone-finance/evm-connector": "^0.9.0",
     "@redstone-finance/protocol": "^0.9.0",
     "@redstone-finance/sdk": "^0.9.0",
