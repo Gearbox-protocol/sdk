@@ -38,6 +38,7 @@ import type {
   UpdatePriceFeedsResult,
 } from "../market/index.js";
 import { type Asset, assetsMap, type RouterCASlice } from "../router/index.js";
+import { BigIntMath } from "../sdk-legacy/index.js";
 import type { ILogger, IPriceUpdateTx, MultiCall } from "../types/index.js";
 import { AddressMap, childLogger } from "../utils/index.js";
 import { simulateWithPriceUpdates } from "../utils/viem/index.js";
@@ -709,7 +710,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
 
       return acc;
     }, {});
-    const balances = Object.entries(record);
+    const balances = Object.entries(record).filter(([, a]) => a > 10n);
 
     const storeExpectedBalances: MultiCall = {
       target: cm.creditFacade.address,
@@ -719,7 +720,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
         args: [
           balances.map(([token, amount]) => ({
             token: token as Address,
-            amount: amount - 10n,
+            amount: BigIntMath.max(0n, amount - 10n),
           })),
         ],
       }),
@@ -781,7 +782,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       },
       {},
     );
-    const balances = Object.entries(record);
+    const balances = Object.entries(record).filter(([, a]) => a > 10n);
 
     const storeExpectedBalances: MultiCall = {
       target: cm.creditFacade.address,
@@ -791,7 +792,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
         args: [
           balances.map(([token, amount]) => ({
             token: token as Address,
-            amount: amount - 10n,
+            amount: BigIntMath.max(0n, amount - 10n),
           })),
         ],
       }),
