@@ -749,7 +749,7 @@ export class TxApprove extends EVMTx {
 
   _toString() {
     const { title: symbol } = this.token;
-    return `Approve ${symbol}`;
+    return `Approved ${symbol}`;
   }
 
   serialize(): TxSerialized {
