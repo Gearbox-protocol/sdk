@@ -294,7 +294,6 @@ export class RevolverTransport
       {
         reason,
         current: this.currentTransportName,
-        index: this.#index,
         total: this.#transports.length,
       },
       "rotating transport",
@@ -311,7 +310,6 @@ export class RevolverTransport
         this.#logger?.info(
           {
             current: this.currentTransportName,
-            index: this.#index,
             total: this.#transports.length,
           },
           "switched to next transport",
@@ -329,7 +327,6 @@ export class RevolverTransport
         this.#logger?.warn(
           {
             current: this.currentTransportName,
-            index: this.#index,
             total: this.#transports.length,
           },
           "transport is still on cooldown",
