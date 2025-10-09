@@ -8,6 +8,7 @@ import {
   InvalidInputRpcError,
   InvalidParamsRpcError,
   InvalidRequestRpcError,
+  ResourceNotFoundRpcError,
   ResourceUnavailableRpcError,
   RpcError,
   type Transport,
@@ -15,7 +16,6 @@ import {
   withRetry,
 } from "viem";
 import type { HttpRpcClientOptions } from "viem/utils";
-import { ResourceNotFoundRpcError } from "../../node_modules/viem/errors/rpc";
 import type { ILogger, NetworkType } from "../sdk/index.js";
 import {
   getProviderUrl,

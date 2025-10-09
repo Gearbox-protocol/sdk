@@ -30,7 +30,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@biomejs/biome@npm:^2.2.4":
+"@biomejs/biome@npm:^2.2.5":
   version: 2.2.5
   resolution: "@biomejs/biome@npm:2.2.5"
   dependencies:
@@ -896,12 +896,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gearbox-protocol/biome-config@npm:^1.0.2":
-  version: 1.0.2
-  resolution: "@gearbox-protocol/biome-config@npm:1.0.2"
+"@gearbox-protocol/biome-config@npm:^1.0.4":
+  version: 1.0.4
+  resolution: "@gearbox-protocol/biome-config@npm:1.0.4"
   peerDependencies:
-    "@biomejs/biome": ^2.2.4
-  checksum: 10c0/3b5974ec700e3d10ed38dea1cf8450ca9f3d2a5c3505ba7610fdf864acd27f993ce7b14c91f044ccc2f6dfa6cfc89e634845af77e6379b9882502340a6dd771f
+    "@biomejs/biome": ^2.2.5
+  checksum: 10c0/92645ce2ed5391f7ce1f756bcc5ebc175d2dba43807415d040cd173c79a6de54efcd397e12f795c1cf1b137645fa924a17d807b5776ce2efe59a3988c750f108
   languageName: node
   linkType: hard
 
@@ -916,10 +916,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@gearbox-protocol/sdk@workspace:."
   dependencies:
-    "@biomejs/biome": "npm:^2.2.4"
+    "@biomejs/biome": "npm:^2.2.5"
     "@commitlint/cli": "npm:^20.1.0"
     "@commitlint/config-conventional": "npm:^20.0.0"
-    "@gearbox-protocol/biome-config": "npm:^1.0.2"
+    "@gearbox-protocol/biome-config": "npm:^1.0.4"
     "@gearbox-protocol/integrations-v3": "npm:1.42.0-abi.5"
     "@redstone-finance/evm-connector": "npm:^0.9.0"
     "@redstone-finance/protocol": "npm:^0.9.0"
@@ -943,7 +943,7 @@ __metadata:
     viem: "npm:>=2.23.15 <3.0.0"
     viem-deal: "npm:^2.0.4"
     vitest: "npm:^3.2.4"
-    zod: "npm:^4.1.11"
+    zod: "npm:^4.1.12"
   peerDependencies:
     axios: ^1.0.0
     viem-deal: ^2.0.4
@@ -1372,11 +1372,11 @@ __metadata:
   linkType: hard
 
 "@types/node@npm:*":
-  version: 24.6.2
-  resolution: "@types/node@npm:24.6.2"
+  version: 24.7.0
+  resolution: "@types/node@npm:24.7.0"
   dependencies:
-    undici-types: "npm:~7.13.0"
-  checksum: 10c0/d029757711be85ec468686f66cd8eca78f5996d7e2b1a5b818436e0299b19925b0fb4f7509a6b62750abdc72d66f5750ce22fb8b55559baca86df89a9c44722e
+    undici-types: "npm:~7.14.0"
+  checksum: 10c0/f036c78062cb3a0d5c6586bf2dac347ed3f4af121cef4ab92c85c44e32be1c50aab5ba96955842b7f8165f0e0f1c8066d1813ae259372df6c0fa9fadb1116a3e
   languageName: node
   linkType: hard
 
@@ -2571,11 +2571,11 @@ __metadata:
   linkType: hard
 
 "get-tsconfig@npm:^4.7.5":
-  version: 4.10.1
-  resolution: "get-tsconfig@npm:4.10.1"
+  version: 4.12.0
+  resolution: "get-tsconfig@npm:4.12.0"
   dependencies:
     resolve-pkg-maps: "npm:^1.0.0"
-  checksum: 10c0/7f8e3dabc6a49b747920a800fb88e1952fef871cdf51b79e98db48275a5de6cdaf499c55ee67df5fa6fe7ce65f0063e26de0f2e53049b408c585aa74d39ffa21
+  checksum: 10c0/3438106bd46bfc6595fce6117190f1ac0998de2e6916b40ec23b20c784b0b47e79ea2b920895b9ed26029b1f80b8867626fb24795d5f45abbdab716a4ba1ef92
   languageName: node
   linkType: hard
 
@@ -3911,18 +3911,18 @@ __metadata:
   linkType: hard
 
 "secure-json-parse@npm:^4.0.0":
-  version: 4.0.0
-  resolution: "secure-json-parse@npm:4.0.0"
-  checksum: 10c0/1a298cf00e1de91e833cee5eb406d6e77fb2f7eca9bef3902047d49e7f5d3e6c21b5de61ff73466c831e716430bfe87d732a6e645a7dabb5f1e8a8e4d3e15eb4
+  version: 4.1.0
+  resolution: "secure-json-parse@npm:4.1.0"
+  checksum: 10c0/52b3f8125ea974db1333a5b63e6a1df550c36c0d5f9a263911d6732812bd02e938b30be324dcbbb9da3ef9bf5a84849e0dd911f56544003d3c09e8eee12504de
   languageName: node
   linkType: hard
 
 "semver@npm:^7.3.5, semver@npm:^7.6.0":
-  version: 7.7.2
-  resolution: "semver@npm:7.7.2"
+  version: 7.7.3
+  resolution: "semver@npm:7.7.3"
   bin:
     semver: bin/semver.js
-  checksum: 10c0/aca305edfbf2383c22571cb7714f48cadc7ac95371b4b52362fb8eeffdfbc0de0669368b82b2b15978f8848f01d7114da65697e56cd8c37b0dab8c58e543f9ea
+  checksum: 10c0/4afe5c986567db82f44c8c6faef8fe9df2a9b1d98098fc1721f57c696c4c21cebd572f297fc21002f81889492345b8470473bc6f4aff5fb032a6ea59ea2bc45e
   languageName: node
   linkType: hard
 
@@ -3967,9 +3967,9 @@ __metadata:
   linkType: hard
 
 "slow-redact@npm:^0.3.0":
-  version: 0.3.0
-  resolution: "slow-redact@npm:0.3.0"
-  checksum: 10c0/bb2f77830f64fb01079849e0c6433c15e782b88cccb82d4b0d62ce216307cf514ea3f92e9b2c6ae1b1d613ac7743305d5f0324e94c9dc8e41908939456248f9a
+  version: 0.3.1
+  resolution: "slow-redact@npm:0.3.1"
+  checksum: 10c0/7f495a85108f554ea492b7fa1c8892b690a8172cb6d8cd77c56fef00a15d15f46b497a8eb61355a61cc06cbb34246088dc3372ed2ffb22e645c8c5dabc334563
   languageName: node
   linkType: hard
 
@@ -4383,10 +4383,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici-types@npm:~7.13.0":
-  version: 7.13.0
-  resolution: "undici-types@npm:7.13.0"
-  checksum: 10c0/44bbb0935425291351bfd8039571f017295b5d6dc5727045d0a4fea8c6ffe73a6703b48ce010f9cb539b9041a75b463f8cfe1e7309cab7486452505fb0d66151
+"undici-types@npm:~7.14.0":
+  version: 7.14.0
+  resolution: "undici-types@npm:7.14.0"
+  checksum: 10c0/e7f3214b45d788f03c51ceb33817be99c65dae203863aa9386b3ccc47201a245a7955fc721fb581da9c888b6ebad59fa3f53405214afec04c455a479908f0f14
   languageName: node
   linkType: hard
 
@@ -4425,8 +4425,8 @@ __metadata:
   linkType: hard
 
 "viem@npm:>=2.23.15 <3.0.0":
-  version: 2.37.12
-  resolution: "viem@npm:2.37.12"
+  version: 2.38.0
+  resolution: "viem@npm:2.38.0"
   dependencies:
     "@noble/curves": "npm:1.9.1"
     "@noble/hashes": "npm:1.8.0"
@@ -4441,7 +4441,7 @@ __metadata:
   peerDependenciesMeta:
     typescript:
       optional: true
-  checksum: 10c0/1fe73d428996e7d26a85895b9e656015d0679fe351c98c28a6ef9e42766e2b0800820edee8e80341c7906038c5556f6240a85f07e2233c9d04e79f39c5a48636
+  checksum: 10c0/65d13718f6dd8f2de282c147c13700b7c057d855c02641ff1268a57f57963437df1f5bb71fb93e6df547d5e0a880990a9bea497ab2cbc26e89d0bf3e65976f6d
   languageName: node
   linkType: hard
 
@@ -4759,9 +4759,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^4.1.11":
-  version: 4.1.11
-  resolution: "zod@npm:4.1.11"
-  checksum: 10c0/ce6a4c4acfbf51d7dd0f2669c82f207d62a1f00264eef608994b94eb99d86a74c99f59b0dd3e61ef82909ee136631378b709e0908f0a02a2d5c21d0c497de5db
+"zod@npm:^4.1.12":
+  version: 4.1.12
+  resolution: "zod@npm:4.1.12"
+  checksum: 10c0/b64c1feb19e99d77075261eaf613e0b2be4dfcd3551eff65ad8b4f2a079b61e379854d066f7d447491fcf193f45babd8095551a9d47973d30b46b6d8e2c46774
   languageName: node
   linkType: hard
