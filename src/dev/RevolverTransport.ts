@@ -85,8 +85,8 @@ export interface RevolverTransportConfig {
 }
 
 export class NoAvailableTransportsError extends BaseError {
-  constructor() {
-    super("no available transports");
+  constructor(cause?: Error) {
+    super("no available transports", { cause });
   }
 }
 
@@ -199,6 +199,7 @@ export class RevolverTransport
     if (this.#transports.length === 1) {
       return this.#transport({ ...this.overrides }).request(r);
     }
+    let error: Error | undefined;
     do {
       try {
         this.#requests.set(r, this.currentTransportName());
@@ -206,6 +207,7 @@ export class RevolverTransport
         this.#requests.delete(r);
         return resp as any;
       } catch (e) {
+        error = error ?? (e as Error);
         if (e instanceof RpcError || e instanceof HttpRequestError) {
           const reqTransport = this.#requests.get(r);
           if (reqTransport === this.currentTransportName()) {
@@ -223,7 +225,7 @@ export class RevolverTransport
     } while (this.#hasAvailableTransports);
 
     this.#requests.delete(r);
-    throw new NoAvailableTransportsError();
+    throw new NoAvailableTransportsError(error);
   };
 
   public get config(): TransportConfig<"revolver"> {
