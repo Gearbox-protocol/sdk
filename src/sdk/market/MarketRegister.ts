@@ -231,6 +231,7 @@ export class MarketRegister extends SDKConstruct {
         priceUpdates: txs,
         contracts: multicalls.map(mc => mc.call),
         gas: this.sdk.gasLimit,
+        blockNumber: this.sdk.currentBlock,
       },
     );
     for (let i = 0; i < multicalls.length; i++) {
