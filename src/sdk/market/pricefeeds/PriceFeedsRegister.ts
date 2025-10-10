@@ -158,6 +158,10 @@ export class PriceFeedRegister
       txs.push(tx);
       latestUpdate.updates.push(data);
     }
+    // sort txs by price feed address to make it deterministic
+    txs.sort((a, b) =>
+      a.raw.to.toLowerCase().localeCompare(b.raw.to.toLowerCase()),
+    );
 
     const result: UpdatePriceFeedsResult = { txs, timestamp: maxTimestamp };
     const tsDelta = BigInt(maxTimestamp) - this.sdk.timestamp;
