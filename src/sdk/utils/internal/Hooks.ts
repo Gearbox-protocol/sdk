@@ -45,7 +45,9 @@ export class Hooks<HookMap extends Record<string, any[]>>
       return;
     }
     for (const fn of this.#reg[hookName]) {
-      await fn(...args);
+      try {
+        await fn(...args);
+      } catch {}
     }
   }
 }
