@@ -271,6 +271,10 @@ export class RedstoneUpdater
       ignoreMissingFeed: this.#ignoreMissingFeeds,
       enableEnhancedLogs: this.#enableLogging,
     });
+    // set deterministic metadata timestamp, so requests sent by two services at the same block are identical
+    wrapper.setMetadataTimestamp(
+      this.#historicalTimestampMs ?? Number(this.sdk.timestamp) * 1000,
+    );
 
     const dataPayload = await retry(
       () => wrapper.prepareRedstonePayload(true),
