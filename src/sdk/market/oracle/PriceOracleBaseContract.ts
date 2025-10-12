@@ -215,6 +215,15 @@ export abstract class PriceOracleBaseContract<
   }
 
   /**
+   * All price feed tree nodes known to this oracle
+   */
+  public get priceFeeds(): IPriceFeedContract[] {
+    return this.#priceFeedTree
+      .values()
+      .map(node => this.sdk.priceFeeds.mustGet(node.baseParams.addr));
+  }
+
+  /**
    * Paired method to updatePrices, helps to update prices on all oracles in one multicall
    */
   public syncStateMulticall(): DelegatedOracleMulticall {

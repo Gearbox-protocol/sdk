@@ -35,6 +35,10 @@ export interface OnDemandPriceUpdates<T = unknown> {
 
 export interface IPriceOracleContract extends IBaseContract {
   /**
+   * All price feed tree nodes known to this oracle
+   */
+  priceFeeds: IPriceFeedContract[];
+  /**
    * Mapping Token => [PriceFeed Address, stalenessPeriod]
    */
   mainPriceFeeds: AddressMap<PriceFeedRef>;
