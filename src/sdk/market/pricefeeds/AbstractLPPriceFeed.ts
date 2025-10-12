@@ -120,3 +120,9 @@ export abstract class AbstractLPPriceFeedContract<
     };
   }
 }
+
+export function isLPPriceFeed(
+  priceFeed: unknown,
+): priceFeed is AbstractLPPriceFeedContract<any> {
+  return priceFeed instanceof AbstractLPPriceFeedContract;
+}
