@@ -40,7 +40,7 @@ export const POOL_DELAYED_MIGRATION_CONTRACTS: Partial<
       poolOut: "0x72ccb97cbdc40f8fb7ffa42ed93ae74923547200",
     },
     {
-      address: "0xd56149C868d77DE51b7c8EF55C172F06E677EcA6",
+      address: "0xaD524ec0B5CeBeF85b1e6eeb73951F4E38AABAD0",
       // "dwstETHV3" "Chaos"
       poolIn: "0xff94993fa7ea27efc943645f95adb36c1b81244b",
       // "kpkwstETH" "kpk"
@@ -56,7 +56,7 @@ export const POOL_DELAYED_MIGRATION_CONTRACTS: Partial<
       poolOut: "0xf00b548f1b69cb5ee559d891e03a196fb5101d4a",
     },
     {
-      address: "0x799655d4285c7ed0cd36555bfe711e2f3cbda6c9",
+      address: "0x2b3c30c49e811d7c8beb362af0348b4d96f0342d",
       // "dWETHV3" "Chaos"
       poolIn: "0xda0002859B2d05F66a753d8241fCDE8623f26F4f",
       // "kpkWETH" "kpk"
