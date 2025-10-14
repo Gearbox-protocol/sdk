@@ -17,14 +17,14 @@ export const POOL_DELAYED_MIGRATION_CONTRACTS: Partial<
   Mainnet: [
     // USDC
     {
-      address: "0x4174aEe40eC3f27A68252663547Bc60E0B1b58c1",
+      address: "0x2806DD2b4632e5a060ed4ba6C4293e5832eCEfc1",
       // "dUSDCV3" "Chaos"
       poolIn: "0xda00000035fef4082f78def6a8903bee419fbf8e",
       // "USDC" "invariant"
       poolOut: "0xc155444481854c60e7a29f4150373f479988f32d",
     },
     {
-      address: "0xD2F14195b00cDBB5A7ba63273086C7eBc685F16D",
+      address: "0x0867cebae903994f320ae10144362f4d74d7cdd5",
       // "dUSDCV3" "Chaos"
       poolIn: "0xda00000035fef4082f78def6a8903bee419fbf8e",
       // "USDC" "tulipa"
@@ -33,7 +33,7 @@ export const POOL_DELAYED_MIGRATION_CONTRACTS: Partial<
 
     // wstETH
     {
-      address: "0x0a5722f8D321B2e072d92FA78fEb0B2f84E600A3",
+      address: "0xa4b898cda040028cd20bd5250bbe89ac788e1a8c",
       // "dwstETHV3" "Chaos"
       poolIn: "0xff94993fa7ea27efc943645f95adb36c1b81244b",
       // "dcp0xLRT" "cp0x"
@@ -49,7 +49,7 @@ export const POOL_DELAYED_MIGRATION_CONTRACTS: Partial<
 
     // WETH
     {
-      address: "0x4a981692330F40853dcEc441d6603f5BdfFCbEb2",
+      address: "0x2e7A1639A3786F04448857Ee132Eddc8D40a73A6",
       // "dWETHV3" "Chaos"
       poolIn: "0xda0002859b2d05f66a753d8241fcde8623f26f4f",
       // "dWETHV3-cp0x" "cp0x"
@@ -65,7 +65,7 @@ export const POOL_DELAYED_MIGRATION_CONTRACTS: Partial<
 
     // tBTC
     {
-      address: "0x88C7f9267F0a5690a182504D86c4161e41A8487A",
+      address: "0x521f15f84d4d0e98c69046a461d0e97060b09079",
       // "dtBTCV3" "Chaos"
       poolIn: "0x7354ec6e852108411e681d13e11185c3a2567981",
       // "Re7tBTC" "re7"
