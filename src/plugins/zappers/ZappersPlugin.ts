@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import { peripheryCompressorAbi } from "../../abi/index.js";
+import { peripheryCompressorAbi } from "../../abi/compressors/peripheryCompressor.js";
 import type { IGearboxSDKPlugin } from "../../sdk/index.js";
 import {
   AddressMap,
