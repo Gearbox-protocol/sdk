@@ -5,9 +5,15 @@ import {
   HttpRequestError,
   type HttpTransport,
   http,
+  InvalidInputRpcError,
+  InvalidParamsRpcError,
+  InvalidRequestRpcError,
+  ResourceNotFoundRpcError,
+  ResourceUnavailableRpcError,
   RpcError,
   type Transport,
   type TransportConfig,
+  withRetry,
 } from "viem";
 import type { HttpRpcClientOptions } from "viem/utils";
 import type { ILogger, NetworkType } from "../sdk/index.js";
@@ -52,6 +58,18 @@ export interface RevolverTransportConfig {
   retryDelay?: TransportConfig["retryDelay"] | undefined;
   timeout?: TransportConfig["timeout"] | undefined;
   /**
+   * When single http transport should retry?
+   * Defaults to some less strict criteria, so it'll retry "blockNumber from the future" errors
+   *
+   * By viem's default, simple http transport retries LimitExceededRpcError.code, InternalRpcError.code and HTTP errors
+   * so for things like ResourceNotFoundRpcError (eth_call with block number from other rps, which is yet in the future for current rpc)
+   * it'll fail and not retry
+   * https://github.com/wevm/viem/blob/3bc5e6f3c4a317441063342dd9ec2aaa7eb56b01/src/utils/buildRequest.ts#L269
+   */
+  shouldRetry?:
+    | ((iter: { count: number; error: Error }) => Promise<boolean> | boolean)
+    | undefined;
+  /**
    * Allow batching of json-rpc requests
    */
   batch?: boolean | undefined;
@@ -85,8 +103,8 @@ export interface RevolverTransportConfig {
 }
 
 export class NoAvailableTransportsError extends BaseError {
-  constructor() {
-    super("no available transports");
+  constructor(cause?: Error) {
+    super("no available transports", { cause });
   }
 }
 
@@ -144,7 +162,10 @@ export class RevolverTransport
   }
 
   constructor(config: RevolverTransportConfig) {
-    this.#config = { ...config };
+    this.#config = {
+      ...config,
+      shouldRetry: config.shouldRetry ?? defaultShouldRetry,
+    };
 
     const rpcUrls = new Map<string, RpcProvider>();
     const cooldowns = new Map<string, number>();
@@ -199,13 +220,24 @@ export class RevolverTransport
     if (this.#transports.length === 1) {
       return this.#transport({ ...this.overrides }).request(r);
     }
+    let error: Error | undefined;
     do {
       try {
         this.#requests.set(r, this.currentTransportName());
-        const resp = await this.#transport({ ...this.overrides }).request(r);
+
+        // for explanation, see shouldRetry comment
+        const resp = await withRetry(
+          () => this.#transport({ ...this.overrides }).request(r),
+          {
+            delay: this.#config.retryDelay,
+            retryCount: this.#config.retryCount,
+            shouldRetry: this.#config.shouldRetry,
+          },
+        );
         this.#requests.delete(r);
         return resp as any;
       } catch (e) {
+        error = error ?? (e as Error);
         if (e instanceof RpcError || e instanceof HttpRequestError) {
           const reqTransport = this.#requests.get(r);
           if (reqTransport === this.currentTransportName()) {
@@ -223,7 +255,7 @@ export class RevolverTransport
     } while (this.#hasAvailableTransports);
 
     this.#requests.delete(r);
-    throw new NoAvailableTransportsError();
+    throw new NoAvailableTransportsError(error);
   };
 
   public get config(): TransportConfig<"revolver"> {
@@ -260,7 +292,6 @@ export class RevolverTransport
       {
         reason,
         current: this.currentTransportName,
-        index: this.#index,
         total: this.#transports.length,
       },
       "rotating transport",
@@ -277,7 +308,6 @@ export class RevolverTransport
         this.#logger?.info(
           {
             current: this.currentTransportName,
-            index: this.#index,
             total: this.#transports.length,
           },
           "switched to next transport",
@@ -295,7 +325,6 @@ export class RevolverTransport
         this.#logger?.warn(
           {
             current: this.currentTransportName,
-            index: this.#index,
             total: this.#transports.length,
           },
           "transport is still on cooldown",
@@ -339,3 +368,20 @@ export class RevolverTransport
     return this.#transports.some(t => t.cooldown < now);
   }
 }
+
+const retryCodes = new Set<number>([
+  InvalidRequestRpcError.code,
+  InvalidParamsRpcError.code,
+  InvalidInputRpcError.code,
+  ResourceNotFoundRpcError.code,
+  ResourceUnavailableRpcError.code,
+]);
+
+const defaultShouldRetry: RevolverTransportConfig["shouldRetry"] = ({
+  error,
+}) => {
+  if ("code" in error && typeof error.code === "number") {
+    return retryCodes.has(error.code);
+  }
+  return false;
+};

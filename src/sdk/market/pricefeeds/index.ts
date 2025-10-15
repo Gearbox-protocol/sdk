@@ -1,3 +1,4 @@
+export * from "./AbstractLPPriceFeed.js";
 export * from "./AbstractPriceFeed.js";
 export * from "./BalancerStablePriceFeed.js";
 export * from "./BalancerWeightedPriceFeed.js";
