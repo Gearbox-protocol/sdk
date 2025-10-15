@@ -7,7 +7,7 @@ import {
 import {
   iCreditFacadeMulticallV310Abi,
   iPriceOracleV310Abi,
-} from "../../../abi/v310.js";
+} from "../../../abi/310/generated.js";
 import type { PriceOracleData } from "../../base/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import {

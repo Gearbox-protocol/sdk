@@ -1,5 +1,5 @@
 import { encodeFunctionData } from "viem";
-import { iCreditFacadeMulticallV310Abi } from "../../abi/v310.js";
+import { iCreditFacadeMulticallV310Abi } from "../../abi/310/generated.js";
 import { MAX_UINT256 } from "../constants/math.js";
 import type { MultiCall } from "../types/index.js";
 import { AbstractCreditAccountService } from "./AbstractCreditAccountsService.js";

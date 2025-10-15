@@ -1,6 +1,5 @@
 import type { Address, ContractFunctionArgs } from "viem";
-
-import type { iCreditAccountCompressorAbi } from "../../abi/compressors.js";
+import type { creditAccountCompressorAbi } from "../../abi/index.js";
 import type { LiquidationBotType as LiquidationBotTypeSDK } from "../../plugins/bots/types.js";
 import type { MigrationBotType } from "../accountMigration/types.js";
 import type { ConnectedBotData, CreditAccountData } from "../base/index.js";
@@ -21,7 +20,7 @@ import type {
 import type { MultiCall, RawTx } from "../types/index.js";
 
 export type GetCreditAccountsArgs = ContractFunctionArgs<
-  typeof iCreditAccountCompressorAbi,
+  typeof creditAccountCompressorAbi,
   "pure" | "view",
   "getCreditAccounts"
 >;

@@ -1,0 +1,390 @@
+export const iPriceFeedStoreAbi = [
+  {
+    type: "function",
+    inputs: [
+      { name: "priceFeed", internalType: "address", type: "address" },
+      { name: "stalenessPeriod", internalType: "uint32", type: "uint32" },
+      { name: "name", internalType: "string", type: "string" },
+    ],
+    name: "addPriceFeed",
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    inputs: [],
+    name: "addressProvider",
+    outputs: [{ name: "", internalType: "address", type: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [
+      { name: "token", internalType: "address", type: "address" },
+      { name: "priceFeed", internalType: "address", type: "address" },
+    ],
+    name: "allowPriceFeed",
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    inputs: [],
+    name: "bytecodeRepository",
+    outputs: [{ name: "", internalType: "address", type: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [
+      {
+        name: "calls",
+        internalType: "struct Call[]",
+        type: "tuple[]",
+        components: [
+          { name: "target", internalType: "address", type: "address" },
+          { name: "callData", internalType: "bytes", type: "bytes" },
+        ],
+      },
+    ],
+    name: "configurePriceFeeds",
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    inputs: [],
+    name: "contractType",
+    outputs: [{ name: "", internalType: "bytes32", type: "bytes32" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [
+      { name: "token", internalType: "address", type: "address" },
+      { name: "priceFeed", internalType: "address", type: "address" },
+    ],
+    name: "forbidPriceFeed",
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    inputs: [
+      { name: "token", internalType: "address", type: "address" },
+      { name: "priceFeed", internalType: "address", type: "address" },
+    ],
+    name: "getAllowanceTimestamp",
+    outputs: [{ name: "", internalType: "uint256", type: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [],
+    name: "getKnownPriceFeeds",
+    outputs: [{ name: "", internalType: "address[]", type: "address[]" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [],
+    name: "getKnownTokens",
+    outputs: [{ name: "", internalType: "address[]", type: "address[]" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [{ name: "token", internalType: "address", type: "address" }],
+    name: "getPriceFeeds",
+    outputs: [{ name: "", internalType: "address[]", type: "address[]" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [{ name: "priceFeed", internalType: "address", type: "address" }],
+    name: "getStalenessPeriod",
+    outputs: [{ name: "", internalType: "uint32", type: "uint32" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [],
+    name: "getTokenPriceFeedsMap",
+    outputs: [
+      {
+        name: "connectedPriceFeeds",
+        internalType: "struct ConnectedPriceFeed[]",
+        type: "tuple[]",
+        components: [
+          { name: "token", internalType: "address", type: "address" },
+          { name: "priceFeeds", internalType: "address[]", type: "address[]" },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [],
+    name: "getUpdatablePriceFeeds",
+    outputs: [{ name: "", internalType: "address[]", type: "address[]" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [
+      { name: "token", internalType: "address", type: "address" },
+      { name: "priceFeed", internalType: "address", type: "address" },
+    ],
+    name: "isAllowedPriceFeed",
+    outputs: [{ name: "", internalType: "bool", type: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [{ name: "priceFeed", internalType: "address", type: "address" }],
+    name: "isKnownPriceFeed",
+    outputs: [{ name: "", internalType: "bool", type: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [{ name: "token", internalType: "address", type: "address" }],
+    name: "isKnownToken",
+    outputs: [{ name: "", internalType: "bool", type: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [],
+    name: "owner",
+    outputs: [{ name: "", internalType: "address", type: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [{ name: "priceFeed", internalType: "address", type: "address" }],
+    name: "priceFeedInfo",
+    outputs: [
+      {
+        name: "",
+        internalType: "struct PriceFeedInfo",
+        type: "tuple",
+        components: [
+          { name: "name", internalType: "string", type: "string" },
+          { name: "stalenessPeriod", internalType: "uint32", type: "uint32" },
+          { name: "priceFeedType", internalType: "bytes32", type: "bytes32" },
+          { name: "version", internalType: "uint256", type: "uint256" },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [{ name: "priceFeed", internalType: "address", type: "address" }],
+    name: "removePriceFeed",
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    inputs: [
+      { name: "priceFeed", internalType: "address", type: "address" },
+      { name: "stalenessPeriod", internalType: "uint32", type: "uint32" },
+    ],
+    name: "setStalenessPeriod",
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    inputs: [
+      {
+        name: "updates",
+        internalType: "struct PriceUpdate[]",
+        type: "tuple[]",
+        components: [
+          { name: "priceFeed", internalType: "address", type: "address" },
+          { name: "data", internalType: "bytes", type: "bytes" },
+        ],
+      },
+    ],
+    name: "updatePrices",
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    inputs: [],
+    name: "version",
+    outputs: [{ name: "", internalType: "uint256", type: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [],
+    name: "zeroPriceFeed",
+    outputs: [{ name: "", internalType: "address", type: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "event",
+    anonymous: false,
+    inputs: [
+      {
+        name: "priceFeed",
+        internalType: "address",
+        type: "address",
+        indexed: true,
+      },
+      {
+        name: "stalenessPeriod",
+        internalType: "uint32",
+        type: "uint32",
+        indexed: false,
+      },
+      { name: "name", internalType: "string", type: "string", indexed: false },
+    ],
+    name: "AddPriceFeed",
+  },
+  {
+    type: "event",
+    anonymous: false,
+    inputs: [
+      {
+        name: "priceFeed",
+        internalType: "address",
+        type: "address",
+        indexed: true,
+      },
+    ],
+    name: "AddUpdatablePriceFeed",
+  },
+  {
+    type: "event",
+    anonymous: false,
+    inputs: [
+      {
+        name: "token",
+        internalType: "address",
+        type: "address",
+        indexed: true,
+      },
+      {
+        name: "priceFeed",
+        internalType: "address",
+        type: "address",
+        indexed: true,
+      },
+    ],
+    name: "AllowPriceFeed",
+  },
+  {
+    type: "event",
+    anonymous: false,
+    inputs: [
+      {
+        name: "token",
+        internalType: "address",
+        type: "address",
+        indexed: true,
+      },
+      {
+        name: "priceFeed",
+        internalType: "address",
+        type: "address",
+        indexed: true,
+      },
+    ],
+    name: "ForbidPriceFeed",
+  },
+  {
+    type: "event",
+    anonymous: false,
+    inputs: [
+      {
+        name: "priceFeed",
+        internalType: "address",
+        type: "address",
+        indexed: true,
+      },
+    ],
+    name: "RemovePriceFeed",
+  },
+  {
+    type: "event",
+    anonymous: false,
+    inputs: [
+      {
+        name: "priceFeed",
+        internalType: "address",
+        type: "address",
+        indexed: true,
+      },
+      {
+        name: "stalenessPeriod",
+        internalType: "uint32",
+        type: "uint32",
+        indexed: false,
+      },
+    ],
+    name: "SetStalenessPeriod",
+  },
+  {
+    type: "error",
+    inputs: [{ name: "", internalType: "address", type: "address" }],
+    name: "AddressIsNotContractException",
+  },
+  {
+    type: "error",
+    inputs: [{ name: "caller", internalType: "address", type: "address" }],
+    name: "CallerIsNotOwnerException",
+  },
+  {
+    type: "error",
+    inputs: [{ name: "selector", internalType: "bytes4", type: "bytes4" }],
+    name: "ForbiddenConfigurationMethodException",
+  },
+  { type: "error", inputs: [], name: "IncorrectParameterException" },
+  { type: "error", inputs: [], name: "IncorrectPriceException" },
+  { type: "error", inputs: [], name: "IncorrectPriceFeedException" },
+  {
+    type: "error",
+    inputs: [{ name: "priceFeed", internalType: "address", type: "address" }],
+    name: "PriceFeedIsAlreadyAddedException",
+  },
+  {
+    type: "error",
+    inputs: [
+      { name: "token", internalType: "address", type: "address" },
+      { name: "priceFeed", internalType: "address", type: "address" },
+    ],
+    name: "PriceFeedIsAlreadyAllowedException",
+  },
+  {
+    type: "error",
+    inputs: [
+      { name: "token", internalType: "address", type: "address" },
+      { name: "priceFeed", internalType: "address", type: "address" },
+    ],
+    name: "PriceFeedIsNotAllowedException",
+  },
+  {
+    type: "error",
+    inputs: [{ name: "priceFeed", internalType: "address", type: "address" }],
+    name: "PriceFeedIsNotKnownException",
+  },
+  {
+    type: "error",
+    inputs: [{ name: "priceFeed", internalType: "address", type: "address" }],
+    name: "PriceFeedIsNotOwnedByStore",
+  },
+  {
+    type: "error",
+    inputs: [{ name: "priceFeed", internalType: "address", type: "address" }],
+    name: "PriceFeedIsNotUpdatableException",
+  },
+  { type: "error", inputs: [], name: "StalePriceException" },
+  { type: "error", inputs: [], name: "ZeroAddressException" },
+] as const;

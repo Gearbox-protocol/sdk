@@ -1,17 +1,16 @@
 import type { Address } from "viem";
 import { encodeFunctionData, getAddress, getContract } from "viem";
-
-import {
-  iCreditAccountCompressorAbi,
-  iPeripheryCompressorAbi,
-  iRewardsCompressorAbi,
-} from "../../abi/compressors.js";
+import { iBotListV310Abi } from "../../abi/310/generated.js";
 import { iBaseRewardPoolAbi } from "../../abi/iBaseRewardPool.js";
+import {
+  creditAccountCompressorAbi,
+  peripheryCompressorAbi,
+  rewardsCompressorAbi,
+} from "../../abi/index.js";
 import {
   iBotListV300Abi,
   iCreditFacadeV300MulticallAbi,
 } from "../../abi/v300.js";
-import { iBotListV310Abi } from "../../abi/v310.js";
 import { AbstractMigrateCreditAccountsService } from "../accountMigration/AbstractMigrateCreditAccountsService.js";
 import type { CreditAccountData } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
@@ -67,7 +66,7 @@ import type {
   UpdateQuotasProps,
 } from "./types.js";
 
-type CompressorAbi = typeof iCreditAccountCompressorAbi;
+type CompressorAbi = typeof creditAccountCompressorAbi;
 
 export interface CreditAccountServiceOptions {
   batchSize?: number;
@@ -105,7 +104,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     let raw: CreditAccountData;
     try {
       raw = await this.client.readContract({
-        abi: iCreditAccountCompressorAbi,
+        abi: creditAccountCompressorAbi,
         address: this.#compressor,
         functionName: "getCreditAccountData",
         args: [account],
@@ -128,7 +127,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       priceUpdates: priceUpdateTxs,
       contracts: [
         {
-          abi: iCreditAccountCompressorAbi,
+          abi: creditAccountCompressorAbi,
           address: this.#compressor,
           functionName: "getCreditAccountData",
           args: [account],
@@ -221,7 +220,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
    */
   public async getRewards(creditAccount: Address): Promise<Array<Rewards>> {
     const rewards = await this.client.readContract({
-      abi: iRewardsCompressorAbi,
+      abi: rewardsCompressorAbi,
       address: this.rewardCompressor,
       functionName: "getRewards",
       args: [creditAccount],
@@ -288,7 +287,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
           );
 
           return {
-            abi: iPeripheryCompressorAbi,
+            abi: peripheryCompressorAbi,
             address: this.peripheryCompressor,
             functionName: "getConnectedBots",
             args: [pool.configurator.address, o.creditAccount],
@@ -947,7 +946,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
         priceUpdates: priceUpdateTxs,
         contracts: [
           {
-            abi: iCreditAccountCompressorAbi,
+            abi: creditAccountCompressorAbi,
             address: this.#compressor,
             functionName: "getCreditAccounts",
             args,
@@ -962,7 +961,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
         "getCreditAccounts",
         GetCreditAccountsArgs
       >({
-        abi: iCreditAccountCompressorAbi,
+        abi: creditAccountCompressorAbi,
         address: this.#compressor,
         functionName: "getCreditAccounts",
         args,

@@ -1,6 +1,5 @@
 import type { Address } from "viem";
-
-import { iPeripheryCompressorAbi } from "../../abi/compressors.js";
+import { peripheryCompressorAbi } from "../../abi/index.js";
 import type { IGearboxSDKPlugin } from "../../sdk/index.js";
 import {
   AddressMap,
@@ -64,7 +63,7 @@ export class BotsPlugin
         mc =>
           ({
             address: pcAddr,
-            abi: iPeripheryCompressorAbi,
+            abi: peripheryCompressorAbi,
             functionName: "getBots",
             args: [mc],
           }) as const,

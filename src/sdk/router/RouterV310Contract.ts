@@ -1,6 +1,6 @@
 import { type Address, getAddress } from "viem";
 
-import { iGearboxRouterV310Abi } from "../../abi/routerV310.js";
+import { gearboxRouterAbi } from "../../abi/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import { BigIntMath } from "../sdk-legacy/index.js";
 import { AddressMap } from "../utils/AddressMap.js";
@@ -25,7 +25,7 @@ import type {
   RouterRewardsResult,
 } from "./types.js";
 
-const abi = iGearboxRouterV310Abi;
+const abi = gearboxRouterAbi;
 type abi = typeof abi;
 
 const ERR_NOT_IMPLEMENTED = new Error("Not implemented in router v3.1");

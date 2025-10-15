@@ -3,13 +3,12 @@ import type {
   ExtractAbiFunction,
 } from "abitype";
 import type { Address } from "viem";
-
-import type { iPeripheryCompressorAbi } from "../../abi/compressors.js";
+import type { peripheryCompressorAbi } from "../../abi/index.js";
 import type { BaseContractStateHuman, Unarray } from "../../sdk/index.js";
 
 export type ZapperData = Unarray<
   AbiParametersToPrimitiveTypes<
-    ExtractAbiFunction<typeof iPeripheryCompressorAbi, "getZappers">["outputs"]
+    ExtractAbiFunction<typeof peripheryCompressorAbi, "getZappers">["outputs"]
   >
 >;
 
