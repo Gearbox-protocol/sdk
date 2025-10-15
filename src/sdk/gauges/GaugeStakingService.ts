@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import { gaugeCompressorAbi } from "../../abi/index.js";
+import { gaugeCompressorAbi } from "../../abi/compressors/gaugeCompressor.js";
 import { SDKConstruct } from "../base/index.js";
 import { AP_GAUGE_COMPRESSOR, VERSION_RANGE_310 } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";

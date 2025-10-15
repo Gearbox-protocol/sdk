@@ -6,7 +6,7 @@ import type {
   ContractFunctionReturnType,
 } from "viem";
 import { stringToHex } from "viem";
-import { priceFeedCompressorAbi } from "../../../abi/index.js";
+import { priceFeedCompressorAbi } from "../../../abi/compressors/priceFeedCompressor.js";
 import type { BaseContractOptions } from "../../base/BaseContract.js";
 import type {
   PriceFeedMapEntry,

@@ -3,7 +3,7 @@ import type {
   ExtractAbiFunction,
 } from "abitype";
 import type { Address } from "viem";
-import type { peripheryCompressorAbi } from "../../../abi/index.js";
+import type { peripheryCompressorAbi } from "../../../abi/compressors/peripheryCompressor.js";
 import type { Unarray } from "../../base/types.js";
 import type { NetworkType } from "../../chain/chains.js";
 

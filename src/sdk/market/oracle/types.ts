@@ -3,7 +3,7 @@ import type {
   ContractFunctionParameters,
   ContractFunctionReturnType,
 } from "viem";
-import type { priceFeedCompressorAbi } from "../../../abi/index.js";
+import type { priceFeedCompressorAbi } from "../../../abi/compressors/priceFeedCompressor.js";
 import type { IBaseContract } from "../../base/index.js";
 import type { MultiCall, PriceOracleStateHuman } from "../../types/index.js";
 import type { AddressMap } from "../../utils/index.js";

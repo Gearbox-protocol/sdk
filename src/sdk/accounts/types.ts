@@ -1,5 +1,5 @@
 import type { Address, ContractFunctionArgs } from "viem";
-import type { creditAccountCompressorAbi } from "../../abi/index.js";
+import type { creditAccountCompressorAbi } from "../../abi/compressors/creditAccountCompressor.js";
 import type { LiquidationBotType as LiquidationBotTypeSDK } from "../../plugins/bots/types.js";
 import type { MigrationBotType } from "../accountMigration/types.js";
 import type { ConnectedBotData, CreditAccountData } from "../base/index.js";

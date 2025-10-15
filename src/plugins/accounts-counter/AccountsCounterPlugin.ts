@@ -1,6 +1,5 @@
 import type { Address } from "viem";
-
-import { creditAccountCompressorAbi } from "../../abi/index.js";
+import { creditAccountCompressorAbi } from "../../abi/compressors/creditAccountCompressor.js";
 import type { IGearboxSDKPlugin } from "../../sdk/index.js";
 import {
   ADDRESS_0X0,

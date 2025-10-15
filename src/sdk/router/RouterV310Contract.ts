@@ -1,6 +1,5 @@
 import { type Address, getAddress } from "viem";
-
-import { gearboxRouterAbi } from "../../abi/index.js";
+import { gearboxRouterAbi } from "../../abi/router/gearboxRouter.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import { BigIntMath } from "../sdk-legacy/index.js";
 import { AddressMap } from "../utils/AddressMap.js";

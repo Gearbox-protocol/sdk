@@ -1,6 +1,6 @@
 import type { Address, ContractFunctionReturnType } from "viem";
-import type { priceFeedCompressorAbi } from "../../abi/index.js";
-import { marketCompressorAbi } from "../../abi/index.js";
+import { marketCompressorAbi } from "../../abi/compressors/marketCompressor.js";
+import type { priceFeedCompressorAbi } from "../../abi/compressors/priceFeedCompressor.js";
 import type { MarketData, MarketFilter } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
 import {

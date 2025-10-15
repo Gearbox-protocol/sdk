@@ -3,13 +3,11 @@ import type {
   ExtractAbiFunction,
 } from "abitype";
 import type { Address, Hex } from "viem";
-import type {
-  creditAccountCompressorAbi,
-  gaugeCompressorAbi,
-  marketCompressorAbi,
-  peripheryCompressorAbi,
-  rewardsCompressorAbi,
-} from "../../abi/index.js";
+import type { creditAccountCompressorAbi } from "../../abi/compressors/creditAccountCompressor.js";
+import type { gaugeCompressorAbi } from "../../abi/compressors/gaugeCompressor.js";
+import type { marketCompressorAbi } from "../../abi/compressors/marketCompressor.js";
+import type { peripheryCompressorAbi } from "../../abi/compressors/peripheryCompressor.js";
+import type { rewardsCompressorAbi } from "../../abi/compressors/rewardsCompressor.js";
 
 export type Unarray<A> = A extends readonly unknown[] ? Unarray<A[number]> : A;
 

@@ -1,12 +1,10 @@
 import type { Address } from "viem";
 import { encodeFunctionData, getAddress, getContract } from "viem";
 import { iBotListV310Abi } from "../../abi/310/generated.js";
+import { creditAccountCompressorAbi } from "../../abi/compressors/creditAccountCompressor.js";
+import { peripheryCompressorAbi } from "../../abi/compressors/peripheryCompressor.js";
+import { rewardsCompressorAbi } from "../../abi/compressors/rewardsCompressor.js";
 import { iBaseRewardPoolAbi } from "../../abi/iBaseRewardPool.js";
-import {
-  creditAccountCompressorAbi,
-  peripheryCompressorAbi,
-  rewardsCompressorAbi,
-} from "../../abi/index.js";
 import {
   iBotListV300Abi,
   iCreditFacadeV300MulticallAbi,
