@@ -6,8 +6,7 @@ import type {
   ContractFunctionReturnType,
 } from "viem";
 import { stringToHex } from "viem";
-
-import { iPriceFeedCompressorAbi } from "../../../abi/compressors.js";
+import { priceFeedCompressorAbi } from "../../../abi/compressors/priceFeedCompressor.js";
 import type { BaseContractOptions } from "../../base/BaseContract.js";
 import type {
   PriceFeedMapEntry,
@@ -228,7 +227,7 @@ export abstract class PriceOracleBaseContract<
    */
   public syncStateMulticall(): DelegatedOracleMulticall {
     let args: ContractFunctionArgs<
-      typeof iPriceFeedCompressorAbi,
+      typeof priceFeedCompressorAbi,
       "view",
       "getPriceOracleState"
     > = [this.address];
@@ -251,14 +250,14 @@ export abstract class PriceOracleBaseContract<
     );
     return {
       call: {
-        abi: iPriceFeedCompressorAbi,
+        abi: priceFeedCompressorAbi,
         address,
         functionName: "getPriceOracleState",
         args,
       },
       onResult: (
         resp: ContractFunctionReturnType<
-          typeof iPriceFeedCompressorAbi,
+          typeof priceFeedCompressorAbi,
           "view",
           "getPriceOracleState"
         >,

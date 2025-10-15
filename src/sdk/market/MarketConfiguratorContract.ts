@@ -5,7 +5,7 @@ import {
   stringToHex,
 } from "viem";
 
-import { iMarketConfiguratorV310Abi } from "../../abi/v310.js";
+import { iMarketConfiguratorV310Abi } from "../../abi/310/generated.js";
 import { BaseContract } from "../base/index.js";
 import type { PeripheryContract } from "../constants/index.js";
 import { AP_MARKET_CONFIGURATOR } from "../constants/index.js";

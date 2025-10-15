@@ -5,11 +5,11 @@ import type {
   Log,
 } from "viem";
 
-import { iPausableAbi } from "../../../abi/iPausable.js";
 import {
   iCreditFacadeMulticallV310Abi,
   iCreditFacadeV310Abi,
-} from "../../../abi/v310.js";
+} from "../../../abi/310/generated.js";
+import { iPausableAbi } from "../../../abi/iPausable.js";
 import type { CreditFacadeState, CreditSuiteState } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
 import { ADDRESS_0X0 } from "../../constants/index.js";

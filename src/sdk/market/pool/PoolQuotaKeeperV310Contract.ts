@@ -1,6 +1,6 @@
 import type { ContractEventName, Log } from "viem";
 
-import { iPoolQuotaKeeperV310Abi } from "../../../abi/v310.js";
+import { iPoolQuotaKeeperV310Abi } from "../../../abi/310/generated.js";
 import type {
   IBaseContract,
   PoolState,

@@ -3,8 +3,7 @@ import type {
   ContractFunctionParameters,
   ContractFunctionReturnType,
 } from "viem";
-
-import type { iPriceFeedCompressorAbi } from "../../../abi/compressors.js";
+import type { priceFeedCompressorAbi } from "../../../abi/compressors/priceFeedCompressor.js";
 import type { IBaseContract } from "../../base/index.js";
 import type { MultiCall, PriceOracleStateHuman } from "../../types/index.js";
 import type { AddressMap } from "../../utils/index.js";
@@ -164,13 +163,13 @@ export interface IPriceOracleContract extends IBaseContract {
 
 export interface DelegatedOracleMulticall {
   call: ContractFunctionParameters<
-    typeof iPriceFeedCompressorAbi,
+    typeof priceFeedCompressorAbi,
     "view",
     "getPriceOracleState"
   >;
   onResult: (
     resp: ContractFunctionReturnType<
-      typeof iPriceFeedCompressorAbi,
+      typeof priceFeedCompressorAbi,
       "view",
       "getPriceOracleState"
     >,

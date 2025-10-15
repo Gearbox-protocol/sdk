@@ -1,6 +1,5 @@
 import type { Address } from "viem";
-
-import { iCreditAccountCompressorAbi } from "../../abi/compressors.js";
+import { creditAccountCompressorAbi } from "../../abi/compressors/creditAccountCompressor.js";
 import type { IGearboxSDKPlugin } from "../../sdk/index.js";
 import {
   ADDRESS_0X0,
@@ -58,7 +57,7 @@ export class AccountsCounterPlugin
         cm =>
           [
             {
-              abi: iCreditAccountCompressorAbi,
+              abi: creditAccountCompressorAbi,
               address: compressor,
               functionName: "countCreditAccounts",
               args: [
@@ -73,7 +72,7 @@ export class AccountsCounterPlugin
               ],
             },
             {
-              abi: iCreditAccountCompressorAbi,
+              abi: creditAccountCompressorAbi,
               address: compressor,
               functionName: "countCreditAccounts",
               args: [

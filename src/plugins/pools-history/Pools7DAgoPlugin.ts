@@ -1,6 +1,5 @@
 import type { Address } from "viem";
-
-import { iMarketCompressorAbi } from "../../abi/compressors.js";
+import { marketCompressorAbi } from "../../abi/compressors/marketCompressor.js";
 import type { IGearboxSDKPlugin } from "../../sdk/index.js";
 import {
   AddressMap,
@@ -49,7 +48,7 @@ export class Pools7DAgoPlugin
         m =>
           ({
             address: marketCompressorAddress,
-            abi: iMarketCompressorAbi,
+            abi: marketCompressorAbi,
             functionName: "getPoolState",
             args: [m.pool.pool.address],
           }) as const,

@@ -1,8 +1,7 @@
 import type { Address, PublicClient, Transport } from "viem";
 import { createPublicClient, fallback, getAddress, http } from "viem";
 import { expect, it } from "vitest";
-
-import { ierc20Abi } from "../../abi/index.js";
+import { ierc20Abi } from "../../abi/iERC20.js";
 import { hexEq } from "../utils/hex.js";
 import { TypedObjectUtils } from "../utils/mappers.js";
 import type { GearboxChain } from "./chains.js";

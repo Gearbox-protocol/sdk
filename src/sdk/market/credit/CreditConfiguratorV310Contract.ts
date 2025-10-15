@@ -5,7 +5,7 @@ import type {
   Log,
 } from "viem";
 
-import { iCreditConfiguratorV310Abi } from "../../../abi/v310.js";
+import { iCreditConfiguratorV310Abi } from "../../../abi/310/generated.js";
 import type { CreditSuiteState } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
 import { RAMP_DURATION_BY_NETWORK } from "../../constants/index.js";

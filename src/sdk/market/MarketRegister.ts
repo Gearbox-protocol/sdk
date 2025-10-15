@@ -1,7 +1,6 @@
 import type { Address, ContractFunctionReturnType } from "viem";
-
-import type { iPriceFeedCompressorAbi } from "../../abi/compressors.js";
-import { iMarketCompressorAbi } from "../../abi/compressors.js";
+import { marketCompressorAbi } from "../../abi/compressors/marketCompressor.js";
+import type { priceFeedCompressorAbi } from "../../abi/compressors/priceFeedCompressor.js";
 import type { MarketData, MarketFilter } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
 import {
@@ -168,7 +167,7 @@ export class MarketRegister extends SDKConstruct {
           priceUpdates: txs,
           contracts: [
             {
-              abi: iMarketCompressorAbi,
+              abi: marketCompressorAbi,
               address: marketCompressorAddress,
               functionName: "getMarkets",
               args: [this.marketFilter],
@@ -181,7 +180,7 @@ export class MarketRegister extends SDKConstruct {
       markets = resp;
     } else {
       markets = await this.provider.publicClient.readContract({
-        abi: iMarketCompressorAbi,
+        abi: marketCompressorAbi,
         address: marketCompressorAddress,
         functionName: "getMarkets",
         args: [this.marketFilter],
@@ -237,7 +236,7 @@ export class MarketRegister extends SDKConstruct {
     for (let i = 0; i < multicalls.length; i++) {
       const handler = multicalls[i].onResult;
       const result = oraclesStates[i] as any as ContractFunctionReturnType<
-        typeof iPriceFeedCompressorAbi,
+        typeof priceFeedCompressorAbi,
         "view",
         "getPriceOracleState"
       >;

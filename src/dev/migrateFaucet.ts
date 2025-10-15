@@ -1,8 +1,8 @@
 import type { Address } from "viem";
 import { formatEther, parseEther, stringToHex } from "viem";
 
+import { iAddressProviderV310Abi } from "../abi/310/generated.js";
 import { iAddressProviderV300Abi } from "../abi/v300.js";
-import { iAddressProviderV310Abi } from "../abi/v310.js";
 import type { GearboxSDK } from "../sdk/index.js";
 import { ADDRESS_PROVIDER } from "../sdk/index.js";
 import { createAnvilClient } from "./createAnvilClient.js";

@@ -1,6 +1,5 @@
 import type { PublicClient } from "viem";
-
-import { ierc20Abi } from "../../abi/index.js";
+import { ierc20Abi } from "../../abi/iERC20.js";
 import type { NetworkType } from "./chains.js";
 import { chains } from "./chains.js";
 

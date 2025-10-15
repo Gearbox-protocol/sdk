@@ -1,7 +1,7 @@
 import type { ContractEventName, Log } from "viem";
 import { decodeAbiParameters } from "viem";
 
-import { iTumblerV310Abi } from "../../../abi/v310.js";
+import { iTumblerV310Abi } from "../../../abi/310/generated.js";
 import type { PoolState, RateKeeperState } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";

@@ -1,6 +1,5 @@
 import type { Address } from "viem";
-
-import { iPeripheryCompressorAbi } from "../../abi/compressors.js";
+import { peripheryCompressorAbi } from "../../abi/compressors/peripheryCompressor.js";
 import type { IGearboxSDKPlugin } from "../../sdk/index.js";
 import {
   AddressMap,
@@ -44,7 +43,7 @@ export class ZappersPlugin
       contracts: markets.map(
         m =>
           ({
-            abi: iPeripheryCompressorAbi,
+            abi: peripheryCompressorAbi,
             address: pcAddr,
             functionName: "getZappers",
             args: [m.configurator.address, m.pool.pool.address],
