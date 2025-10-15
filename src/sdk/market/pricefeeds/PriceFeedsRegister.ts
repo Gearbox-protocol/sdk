@@ -1,5 +1,5 @@
 import { type Address, type BlockTag, type Hex, parseAbi } from "viem";
-import { priceFeedCompressorAbi } from "../../../abi/index.js";
+import { priceFeedCompressorAbi } from "../../../abi/compressors/priceFeedCompressor.js";
 import type { PriceFeedTreeNode } from "../../base/index.js";
 import { SDKConstruct } from "../../base/index.js";
 import {
