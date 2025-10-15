@@ -11,6 +11,7 @@ export interface PoolMigrationContract {
 /**
  * Temporary contracts
  */
+// TODO: HARDCODED
 export const POOL_DELAYED_MIGRATION_CONTRACTS: Partial<
   Record<NetworkType, PoolMigrationContract[]>
 > = {
