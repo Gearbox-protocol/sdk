@@ -1,6 +1,6 @@
+import { type Address, keccak256, toBytes } from "viem";
 import type { RawTx } from "../../../sdk/types/index.js";
-import { Address, keccak256, toBytes } from "viem";
-import { SafeBatch, SafeTx } from "../../bindings";
+import type { SafeBatch, SafeTx } from "../../bindings";
 
 export function convertRawTxToSafeMultisigTx(tx: RawTx): SafeTx {
   const { to, value, contractMethod, contractInputsValues } = tx;
@@ -14,12 +14,12 @@ export function convertRawTxToSafeMultisigTx(tx: RawTx): SafeTx {
         acc[key] =
           typeof value === "object"
             ? JSON.stringify(value, (_, v) =>
-                typeof v === "bigint" ? v.toString() : v
+                typeof v === "bigint" ? v.toString() : v,
               )
             : `${value}`;
         return acc;
       },
-      {} as Record<string, string>
+      {} as Record<string, string>,
     ),
   };
 }
@@ -30,7 +30,7 @@ function stringifyReplacer(_: string, value: unknown) {
 
 function serializeJSONObject(json: unknown): string {
   if (Array.isArray(json)) {
-    return `[${json.map((el) => serializeJSONObject(el)).join(",")}]`;
+    return `[${json.map(el => serializeJSONObject(el)).join(",")}]`;
   }
 
   if (typeof json === "object" && json !== null) {
@@ -49,7 +49,7 @@ function serializeJSONObject(json: unknown): string {
 }
 
 export function calculateChecksum(
-  multisigBatch: SafeBatch
+  multisigBatch: SafeBatch,
 ): string | undefined {
   const serialized = serializeJSONObject({
     ...multisigBatch,

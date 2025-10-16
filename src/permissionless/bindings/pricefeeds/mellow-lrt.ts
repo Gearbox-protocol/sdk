@@ -1,5 +1,5 @@
-import { Address, PublicClient } from "viem";
-import { InputValueParams, PriceFeedSetupParams } from "../../core";
+import type { Address, PublicClient } from "viem";
+import type { InputValueParams, PriceFeedSetupParams } from "../../core";
 
 export const mellowLrtPriceFeed: PriceFeedSetupParams = {
   contractType: "PRICE_FEED::MELLOW_LRT",
@@ -15,7 +15,7 @@ export const mellowLrtPriceFeed: PriceFeedSetupParams = {
         type: "lowerbound",
         getter: async (
           values: Record<string, InputValueParams>,
-          publicClient: PublicClient
+          publicClient: PublicClient,
         ) => {
           const { vault } = values;
 

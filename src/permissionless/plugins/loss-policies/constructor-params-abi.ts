@@ -1,4 +1,4 @@
-import { decodeAbiParameters, Hex } from "viem";
+import { decodeAbiParameters, type Hex } from "viem";
 
 // Define LossPolicyType locally since we're in the SDK package
 export type LossPolicyType = "ALIASED";
@@ -40,7 +40,7 @@ export const lossPolicyDeployParamsAbiMapping: Record<
  */
 export function getLossPolicyDeployParamsAbi(
   lossPolicyType: LossPolicyType,
-  version: number = 310
+  version: number = 310,
 ): readonly AbiParameter[] | null {
   const versionedMapping = lossPolicyDeployParamsAbiMapping[lossPolicyType];
   return versionedMapping?.[version.toString()] ?? null;
@@ -56,7 +56,7 @@ export function getLossPolicyDeployParamsAbi(
 export function parseLossPolicyDeployParams(
   lossPolicyPostfix: string,
   version: number,
-  data: Hex
+  data: Hex,
 ): Record<string, string> | null {
   const cleanLossPolicyPostfix = lossPolicyPostfix.replace(/\0/g, "").trim();
   if (!hasLossPolicyDeployParamsAbi(cleanLossPolicyPostfix)) return null;
@@ -75,7 +75,7 @@ export function parseLossPolicyDeployParams(
   } catch (error) {
     console.error(
       `Failed to parse loss policy deploy params for ${lossPolicyType}:`,
-      error
+      error,
     );
     return null;
   }
@@ -87,7 +87,7 @@ export function parseLossPolicyDeployParams(
  * @returns True if the loss policy type has an ABI defined
  */
 export function hasLossPolicyDeployParamsAbi(
-  lossPolicyType: string
+  lossPolicyType: string,
 ): lossPolicyType is LossPolicyType {
   return lossPolicyType in lossPolicyDeployParamsAbiMapping;
 }

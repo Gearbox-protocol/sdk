@@ -1,11 +1,11 @@
-import { json_stringify } from "../../sdk/utils/index.js";
 import {
-  Abi,
-  AbiFunction,
+  type Abi,
+  type AbiFunction,
+  type DecodeFunctionDataReturnType,
   decodeFunctionData,
-  DecodeFunctionDataReturnType,
-  Hex,
+  type Hex,
 } from "viem";
+import { json_stringify } from "../../sdk/utils/index.js";
 
 export interface DecodedFunctionCall<T extends Abi | readonly unknown[] = Abi> {
   functionName: string;
@@ -21,7 +21,7 @@ export interface DecodedFunctionCall<T extends Abi | readonly unknown[] = Abi> {
  */
 export function decodeFunctionWithNamedArgs<T extends Abi | readonly unknown[]>(
   abi: T,
-  calldata: Hex
+  calldata: Hex,
 ): DecodedFunctionCall<T> | null {
   try {
     const decoded = decodeFunctionData({
@@ -30,7 +30,7 @@ export function decodeFunctionWithNamedArgs<T extends Abi | readonly unknown[]>(
     });
 
     const abiItem = (abi as Array<AbiFunction>).find(
-      (item) => item?.name === decoded.functionName && item?.type === "function"
+      item => item?.name === decoded.functionName && item?.type === "function",
     );
 
     if (!abiItem) {

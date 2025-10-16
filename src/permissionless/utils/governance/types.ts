@@ -1,5 +1,5 @@
-import { Address } from "viem";
-import { SafeTx } from "../../bindings";
+import type { Address } from "viem";
+import type { SafeTx } from "../../bindings";
 
 export interface TimelockTxs {
   chainId: number;

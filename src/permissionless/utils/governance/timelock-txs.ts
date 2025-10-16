@@ -1,13 +1,13 @@
+import type { Address } from "viem";
 import { createRawTx } from "../../../sdk/utils/index.js";
-import { Address } from "viem";
 import { governorAbi } from "../../abi";
-import { SafeTx, TimelockTxParams } from "../../bindings";
+import type { SafeTx, TimelockTxParams } from "../../bindings";
 import { convertRawTxToSafeMultisigTx } from "./batch";
 
 export function convertQueueBatchToExecuteTx(queueBatch: SafeTx[]): SafeTx {
   const executionBatch = queueBatch
-    .filter((tx) => tx.contractMethod.name === "queueTransaction")
-    .map((tx) => ({
+    .filter(tx => tx.contractMethod.name === "queueTransaction")
+    .map(tx => ({
       ...tx.contractInputsValues,
       value: BigInt(tx.contractInputsValues.value),
       eta: BigInt(tx.contractInputsValues.eta),
@@ -18,6 +18,6 @@ export function convertQueueBatchToExecuteTx(queueBatch: SafeTx[]): SafeTx {
       functionName: "executeBatch",
       args: [executionBatch],
       abi: governorAbi,
-    })
+    }),
   );
 }

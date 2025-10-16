@@ -1,4 +1,10 @@
-import { Abi, Address, PublicClient, erc20Abi, parseAbi } from "viem";
+import {
+  type Abi,
+  type Address,
+  erc20Abi,
+  type PublicClient,
+  parseAbi,
+} from "viem";
 import { tokenCompressorAbi } from "../../abi";
 import { BaseContract } from "../base-contract";
 
@@ -24,13 +30,13 @@ export class TokenCompressorContract extends BaseContract<typeof abi> {
 
   // @dev workaround for mellow withdrawal phantom token symbol
   async getMellowWithdrawalPhantomTokenInfo(
-    tokens: Address[]
+    tokens: Address[],
   ): Promise<Record<Address, string>> {
     const abi = parseAbi([
       "function multiVault() public view returns (address)",
     ]);
 
-    const contracts = tokens.map((token) => ({
+    const contracts = tokens.map(token => ({
       address: token,
       abi: abi,
       functionName: "multiVault" as const,
@@ -54,7 +60,7 @@ export class TokenCompressorContract extends BaseContract<typeof abi> {
     }
 
     const resultsSymbols = await this.client.multicall({
-      contracts: multivaults.map((multiVault) => ({
+      contracts: multivaults.map(multiVault => ({
         address: multiVault,
         abi: erc20Abi,
         functionName: "symbol",
@@ -86,7 +92,7 @@ export class TokenCompressorContract extends BaseContract<typeof abi> {
   > {
     const mellowPTInfo = await this.getMellowWithdrawalPhantomTokenInfo(tokens);
     const results = await this.client.multicall({
-      contracts: tokens.map((token) => ({
+      contracts: tokens.map(token => ({
         address: this.address,
         abi: abi as Abi,
         functionName: "getTokenInfo",

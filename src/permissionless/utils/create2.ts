@@ -1,13 +1,13 @@
-import type { ContractMethod, RawTx } from "../../sdk/types/index.js";
 import { formatAbiItem } from "abitype";
 import {
-  Address,
+  type Address,
   getCreate2Address,
-  Hex,
-  PublicClient,
+  type Hex,
+  type PublicClient,
   stringToHex,
-  WalletClient,
+  type WalletClient,
 } from "viem";
+import type { ContractMethod, RawTx } from "../../sdk/types/index.js";
 
 export const PUBLIC_CREATE2_FACTORY =
   "0x4e59b44847b379578588920ca78fbf26c0b4956c" as const;
@@ -30,7 +30,7 @@ export function handleSalt(salt: string | Hex): Hex {
 export async function deployUsingPublicCreate2(
   sponsor: WalletClient,
   bytecode: Hex,
-  salt: string | Hex
+  salt: string | Hex,
 ): Promise<Hex> {
   // Prepare the call data by concatenating the salt and bytecode
   const callData = `${handleSalt(salt)}${bytecode.replace("0x", "")}`;
@@ -48,7 +48,7 @@ export async function deployUsingPublicCreate2(
 
 export async function getCreate2AddressPublicFactory(
   salt: string | Hex,
-  bytecode: Hex
+  bytecode: Hex,
 ): Promise<Address> {
   return getCreate2Address({
     from: PUBLIC_CREATE2_FACTORY,
@@ -59,7 +59,7 @@ export async function getCreate2AddressPublicFactory(
 
 export function createCreate2DeployRawTx(
   bytecode: Hex,
-  salt: string | Hex
+  salt: string | Hex,
 ): RawTx {
   const callData = `${handleSalt(salt)}${bytecode.replace("0x", "")}`;
 
@@ -93,7 +93,7 @@ export function createCreate2DeployRawTx(
 
 export function getCreate2DeploymentAddress(
   bytecode: Hex,
-  salt: string | Hex
+  salt: string | Hex,
 ): Address {
   return getCreate2Address({
     from: PUBLIC_CREATE2_FACTORY,
@@ -105,7 +105,7 @@ export function getCreate2DeploymentAddress(
 export async function checkCreate2Deployment(
   client: PublicClient,
   bytecode: Hex,
-  salt: string | Hex
+  salt: string | Hex,
 ): Promise<boolean> {
   const address = getCreate2DeploymentAddress(bytecode, salt);
   const code = await client.getCode({ address });
@@ -116,7 +116,7 @@ export async function checkCreate2Deployment(
 export async function checkCreate2DeploymentAddress(
   client: PublicClient,
   bytecode: Hex,
-  salt: string | Hex
+  salt: string | Hex,
 ): Promise<[boolean, Address]> {
   const address = getCreate2DeploymentAddress(bytecode, salt);
   const code = await client.getCode({ address });

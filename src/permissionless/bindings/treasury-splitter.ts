@@ -1,7 +1,7 @@
+import type { Address, DecodeFunctionDataReturnType, PublicClient } from "viem";
 import type { RawTx } from "../../sdk/types/index.js";
-import { Address, DecodeFunctionDataReturnType, PublicClient } from "viem";
 import { ITreasurySplitterAbi } from "../abi";
-import { ParsedCall } from "../core";
+import type { ParsedCall } from "../core";
 import { BaseContract } from "./base-contract";
 
 const abi = ITreasurySplitterAbi;
@@ -19,7 +19,7 @@ export class TreasurySplitterContract extends BaseContract<typeof abi> {
   }
 
   public parseFunctionParams(
-    params: DecodeFunctionDataReturnType<typeof abi>
+    params: DecodeFunctionDataReturnType<typeof abi>,
   ): ParsedCall | undefined {
     const { functionName, args } = params;
 

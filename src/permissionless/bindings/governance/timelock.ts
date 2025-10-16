@@ -1,7 +1,7 @@
-import { Address, Hex, PublicClient } from "viem";
+import type { Address, Hex, PublicClient } from "viem";
 import { iTimeLockAbi } from "../../abi";
 import { BaseContract } from "../base-contract";
-import { QueuedAndExecutedTransaction } from "./types";
+import type { QueuedAndExecutedTransaction } from "./types";
 
 export class TimeLockContract extends BaseContract<typeof iTimeLockAbi> {
   constructor(address: Address, client: PublicClient) {
@@ -24,7 +24,7 @@ export class TimeLockContract extends BaseContract<typeof iTimeLockAbi> {
 
   async getQueuedAndExecutedTransactions(
     fromBlock: bigint,
-    toBlock: bigint
+    toBlock: bigint,
   ): Promise<QueuedAndExecutedTransaction> {
     const [executedEvents, queuedEvents, cancelledEvents] = await Promise.all([
       this.getEvents("ExecuteTransaction", fromBlock, toBlock),
@@ -34,22 +34,22 @@ export class TimeLockContract extends BaseContract<typeof iTimeLockAbi> {
 
     const toBlockTimestamp = await this.client
       .getBlock({ blockNumber: toBlock })
-      .then((block) => block.timestamp);
+      .then(block => block.timestamp);
     const gracePeriod = await this.getGracePeriod();
 
     // Create a set of transaction hashes that have been executed or cancelled
     const processedTxHashes = new Set([
-      ...executedEvents.map((event) => event.args.txHash),
-      ...cancelledEvents.map((event) => event.args.txHash),
+      ...executedEvents.map(event => event.args.txHash),
+      ...cancelledEvents.map(event => event.args.txHash),
     ]);
 
     // Create a set of queued transaction hashes
     const queuedTxHashes = new Set(
-      queuedEvents.map((event) => event.args.txHash)
+      queuedEvents.map(event => event.args.txHash),
     );
 
     // Filter out queued events that have been processed
-    const remainingQueuedEvents = queuedEvents.filter((event) => {
+    const remainingQueuedEvents = queuedEvents.filter(event => {
       const cancelledOrExecuted = processedTxHashes.has(event.args.txHash);
       const expired = event.args.eta
         ? toBlockTimestamp > event.args.eta + gracePeriod
@@ -59,11 +59,11 @@ export class TimeLockContract extends BaseContract<typeof iTimeLockAbi> {
 
     // Find canceled events that don't have corresponding queued events
     const orphanedCanceledEvents = cancelledEvents.filter(
-      (event) => !queuedTxHashes.has(event.args.txHash)
+      event => !queuedTxHashes.has(event.args.txHash),
     );
 
     return {
-      executed: executedEvents.map((event) => ({
+      executed: executedEvents.map(event => ({
         txHash: event.args.txHash as Hex,
         txParams: {
           target: event.args.target as Address,
@@ -74,7 +74,7 @@ export class TimeLockContract extends BaseContract<typeof iTimeLockAbi> {
         },
         blockNumber: event.blockNumber,
       })),
-      queued: remainingQueuedEvents.map((event) => ({
+      queued: remainingQueuedEvents.map(event => ({
         txHash: event.args.txHash as Hex,
         txParams: {
           target: event.args.target as Address,
@@ -85,7 +85,7 @@ export class TimeLockContract extends BaseContract<typeof iTimeLockAbi> {
         },
         blockNumber: event.blockNumber,
       })),
-      canceled: orphanedCanceledEvents.map((event) => ({
+      canceled: orphanedCanceledEvents.map(event => ({
         txHash: event.args.txHash as Hex,
         txParams: {
           target: event.args.target as Address,

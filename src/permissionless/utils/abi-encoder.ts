@@ -1,5 +1,5 @@
-import { AbiParameter } from "abitype";
-import { Address, encodeAbiParameters, Hex } from "viem";
+import type { AbiParameter } from "abitype";
+import { type Address, encodeAbiParameters, type Hex } from "viem";
 
 export type ValueParams =
   | string
@@ -70,11 +70,11 @@ export function encodeFunctionParams(params: FunctionParams[]): Hex {
       case "int256[]":
       case "uint32[]":
         types.push({ type: type });
-        values.push((value as (string | number)[]).map((v) => BigInt(v)));
+        values.push((value as (string | number)[]).map(v => BigInt(v)));
         break;
       case "uint8[]":
         types.push({ type: type });
-        values.push((value as (string | number)[]).map((v) => Number(v)));
+        values.push((value as (string | number)[]).map(v => Number(v)));
         break;
       case "bool[]":
         types.push({ type: type });

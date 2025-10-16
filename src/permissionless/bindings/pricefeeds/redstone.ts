@@ -1,5 +1,5 @@
 import { toHex } from "viem";
-import { PriceFeedSetupParams } from "../../core";
+import type { PriceFeedSetupParams } from "../../core";
 
 export const redstonePriceFeed: PriceFeedSetupParams = {
   contractType: "PRICE_FEED::REDSTONE",
@@ -20,7 +20,7 @@ export const redstonePriceFeed: PriceFeedSetupParams = {
       label: "dataFeedId",
       type: {
         type: "bytes32",
-        formatValue: (value) => toHex(value, { size: 32 }),
+        formatValue: value => toHex(value, { size: 32 }),
       },
       displayOrder: 4,
     },

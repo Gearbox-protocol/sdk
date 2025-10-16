@@ -1,12 +1,16 @@
+import { type Address, decodeFunctionData, type Hex, hexToString } from "viem";
 import {
+  type AdapterType,
   adapterConstructorAbi,
-  AdapterType,
   parseAdapterAction,
   parseAdapterDeployParams,
 } from "../../../plugins/adapters/index.js";
-import { Address, decodeFunctionData, Hex, hexToString } from "viem";
 import { iCreditConfigureActionsAbi } from "../../abi";
-import { DeployParams, SetExpirationDateParams, SetFeesParams } from "../types";
+import type {
+  DeployParams,
+  SetExpirationDateParams,
+  SetFeesParams,
+} from "../types";
 import { AbstractFactory } from "./abstract-factory";
 
 const abi = iCreditConfigureActionsAbi;
@@ -134,17 +138,17 @@ export class CreditFactory extends AbstractFactory<typeof abi> {
   }
 
   decodeConfig(
-    calldata: Hex
+    calldata: Hex,
   ): { functionName: string; args: Record<string, string> } | null {
     function getMaxVerBelowN(
       adapterPostfix: string,
-      n: number
+      n: number,
     ): number | undefined {
       const keys = Object.keys(
-        adapterConstructorAbi[adapterPostfix as AdapterType]
+        adapterConstructorAbi[adapterPostfix as AdapterType],
       )
         .map(Number)
-        .filter((k) => k < n);
+        .filter(k => k < n);
 
       if (keys.length === 0) return undefined;
       return Math.max(...keys);
@@ -153,7 +157,7 @@ export class CreditFactory extends AbstractFactory<typeof abi> {
     function parseAdapterParams(
       adapterPostfix: string,
       version: number,
-      data: Hex
+      data: Hex,
     ) {
       if (version < 310) return null;
 
@@ -180,14 +184,14 @@ export class CreditFactory extends AbstractFactory<typeof abi> {
 
         const latest = Math.max(
           ...Object.keys(adapterConstructorAbi[adapterType as AdapterType]).map(
-            Number
-          )
+            Number,
+          ),
         );
 
         const constructorArgs = parseAdapterParams(
           adapterType as AdapterType,
           latest,
-          deployParams.constructorParams
+          deployParams.constructorParams,
         );
         if (!constructorArgs) {
           return super.decodeConfig(calldata);

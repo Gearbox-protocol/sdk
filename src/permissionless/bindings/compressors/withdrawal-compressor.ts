@@ -1,11 +1,11 @@
 import {
-  Address,
-  DecodeFunctionDataReturnType,
+  type Address,
+  type DecodeFunctionDataReturnType,
   hexToString,
-  PublicClient,
+  type PublicClient,
 } from "viem";
 import { withdrawalCompressorAbi } from "../../abi";
-import { ParsedCall } from "../../core";
+import type { ParsedCall } from "../../core";
 import { BaseContract } from "../base-contract";
 
 const abi = withdrawalCompressorAbi;
@@ -16,7 +16,7 @@ export class WithdrawalCompressorContract extends BaseContract<typeof abi> {
   }
 
   public parseFunctionParams(
-    params: DecodeFunctionDataReturnType<typeof abi>
+    params: DecodeFunctionDataReturnType<typeof abi>,
   ): ParsedCall | undefined {
     const { functionName, args } = params;
 

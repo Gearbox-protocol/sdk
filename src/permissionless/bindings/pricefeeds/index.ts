@@ -1,4 +1,4 @@
-import { PriceFeedSetupParams } from "../../core";
+import type { PriceFeedSetupParams } from "../../core";
 import { balancerStablePriceFeed } from "./balancer-stable";
 import { balancerWeightedPriceFeed } from "./balancer-weighted";
 import { boundedPriceFeed } from "./bounded";

@@ -1,5 +1,5 @@
 import { toHex } from "viem";
-import { PriceFeedSetupParams } from "../../core";
+import type { PriceFeedSetupParams } from "../../core";
 
 export const pythPriceFeed: PriceFeedSetupParams = {
   contractType: "PRICE_FEED::PYTH",
@@ -14,7 +14,7 @@ export const pythPriceFeed: PriceFeedSetupParams = {
       label: "priceFeedId",
       type: {
         type: "bytes32",
-        formatValue: (value) => {
+        formatValue: value => {
           if (value.startsWith("0x") && value.length === 66) {
             return value as `0x${string}`;
           }

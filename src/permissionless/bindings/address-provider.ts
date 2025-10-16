@@ -1,6 +1,6 @@
-import { Address, PublicClient, stringToHex } from "viem";
-import { BaseContract } from "./base-contract";
+import { type Address, type PublicClient, stringToHex } from "viem";
 import { addressProviderAbi } from "../abi";
+import { BaseContract } from "./base-contract";
 
 const abi = addressProviderAbi;
 

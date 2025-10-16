@@ -1,4 +1,4 @@
-import { PriceFeedSetupParams } from "../../core";
+import type { PriceFeedSetupParams } from "../../core";
 
 export const kodiakPriceFeed: PriceFeedSetupParams = {
   contractType: "PRICE_FEED::KODIAK_ISLAND",

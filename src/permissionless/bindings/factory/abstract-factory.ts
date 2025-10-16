@@ -1,4 +1,4 @@
-import {
+import type {
   Abi,
   ContractFunctionName,
   EncodeFunctionDataParameters,
@@ -15,11 +15,11 @@ export class AbstractFactory<const abi extends Abi | readonly unknown[]> {
   }
 
   createCallData<
-    functionName extends ContractFunctionName<abi> | undefined = undefined
+    functionName extends ContractFunctionName<abi> | undefined = undefined,
   >(
     parameters: Omit<EncodeFunctionDataParameters<abi, functionName>, "abi"> & {
       description?: string;
-    }
+    },
   ): Hex {
     const callData = createCallData<abi, functionName>(this.abi, parameters);
 
@@ -32,7 +32,7 @@ export class AbstractFactory<const abi extends Abi | readonly unknown[]> {
    * @returns Decoded function name and arguments, or null if decoding fails
    */
   decodeConfig(
-    calldata: Hex
+    calldata: Hex,
   ): { functionName: string; args: Record<string, string> } | null {
     const decoded = decodeFunctionWithNamedArgs(this.abi, calldata);
     if (!decoded) return null;

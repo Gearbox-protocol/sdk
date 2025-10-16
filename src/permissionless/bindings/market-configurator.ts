@@ -1,49 +1,44 @@
 // External libraries
-import { json_stringify } from "../../sdk/utils/index.js";
-import type { RawTx } from "../../sdk/types/index.js";
-
-// Permissionless SDK imports
-import { iMarketConfiguratorAbi } from "../abi";
-import {
-  creditFacadeParamsAbi,
-  creditManagerParamsAbi,
-} from "../abi";
-import { AddressProviderContract, BaseContract } from ".";
-
-import { convertPercent } from "../utils";
-
-import { handleSalt } from "../utils/create2";
-
-import {
-  parseIrmDeployParams,
-  parseLossPolicyDeployParams,
-  parseRateKeeperDeployParams,
-} from "../plugins";
 
 // Viem imports
 import {
+  type Address,
+  type DecodeFunctionDataReturnType,
   decodeAbiParameters,
   encodeAbiParameters,
   encodeFunctionData,
   erc20Abi,
   erc4626Abi,
-  Hex,
+  type Hex,
   hexToString,
   keccak256,
+  type PublicClient,
   parseAbi,
   stringToHex,
   toBytes,
-  type Address,
-  type DecodeFunctionDataReturnType,
-  type PublicClient,
 } from "viem";
-
+import type { RawTx } from "../../sdk/types/index.js";
+import { json_stringify } from "../../sdk/utils/index.js";
+// Permissionless SDK imports
+import {
+  creditFacadeParamsAbi,
+  creditManagerParamsAbi,
+  iMarketConfiguratorAbi,
+} from "../abi";
 // Local imports
-import { ParsedCall } from "../core/proposal";
+import type { ParsedCall } from "../core/proposal";
+import {
+  parseIrmDeployParams,
+  parseLossPolicyDeployParams,
+  parseRateKeeperDeployParams,
+} from "../plugins";
+import { convertPercent } from "../utils";
+import { handleSalt } from "../utils/create2";
+import { AddressProviderContract, BaseContract } from ".";
 import { CreditFactory } from "./factory/credit-factory";
 import { PoolFactory } from "./factory/pool-factory";
 import { PriceOracleFactory } from "./factory/price-oracle-factory";
-import {
+import type {
   AddAssetParams,
   AllowTokenParams,
   DeployParams,
@@ -154,14 +149,14 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
   setPriceFeed(pool: Address, params: SetPriceFeedParams): RawTx {
     return this.configurePriceOracle(
       pool,
-      this.priceOracleFactory.setPriceFeed(params)
+      this.priceOracleFactory.setPriceFeed(params),
     );
   }
 
   setReservePriceFeed(pool: Address, params: SetReservePriceFeedParams): RawTx {
     return this.configurePriceOracle(
       pool,
-      this.priceOracleFactory.setReservePriceFeed(params)
+      this.priceOracleFactory.setReservePriceFeed(params),
     );
   }
 
@@ -181,18 +176,18 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
     params: {
       token: Address;
       limit: bigint;
-    }
+    },
   ): RawTx {
     return this.configurePool(pool, this.poolFactory.setTokenLimit(params));
   }
 
   setTokenQuotaIncreaseFee(
     pool: Address,
-    params: SetTokenQuotaIncreaseFeeParams
+    params: SetTokenQuotaIncreaseFeeParams,
   ): RawTx {
     return this.configurePool(
       pool,
-      this.poolFactory.setTokenQuotaIncreaseFee(params)
+      this.poolFactory.setTokenQuotaIncreaseFee(params),
     );
   }
 
@@ -200,7 +195,7 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
     pool: Address,
     params: {
       limit: bigint;
-    }
+    },
   ): RawTx {
     return this.configurePool(pool, this.poolFactory.setTotalDebtLimit(params));
   }
@@ -210,11 +205,11 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
     args: {
       creditManager: Address;
       limit: bigint;
-    }
+    },
   ): RawTx {
     return this.configurePool(
       pool,
-      this.poolFactory.setCreditManagerDebtLimit(args)
+      this.poolFactory.setCreditManagerDebtLimit(args),
     );
   }
 
@@ -224,7 +219,7 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
     pool: Address,
     args: {
       deployParams: DeployParams;
-    }
+    },
   ): RawTx {
     return this.createRawTx({
       functionName: "updateInterestRateModel",
@@ -261,7 +256,7 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
         whitelistPolicy: Address;
         isExpired: boolean;
       };
-    }
+    },
   ): Promise<{ tx: RawTx; creditManager: Address }> {
     const addressProvider = await this.contract.read.addressProvider();
     const creditSuiteParams = encodeAbiParameters(
@@ -316,10 +311,10 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
           feeLiquidation: convertPercent(args.params.feeLiquidation),
           liquidationPremium: convertPercent(args.params.feeLiquidationPremium),
           feeLiquidationExpired: convertPercent(
-            args.params.feeLiquidationExpired
+            args.params.feeLiquidationExpired,
           ),
           liquidationPremiumExpired: convertPercent(
-            args.params.feeLiquidationPremiumExpired
+            args.params.feeLiquidationPremiumExpired,
           ),
           minDebt: args.params.minDebt,
           maxDebt: args.params.maxDebt,
@@ -329,11 +324,11 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
             salt: args.params.accountFactorySalt
               ? handleSalt(args.params.accountFactorySalt)
               : handleSalt(
-                  keccak256(toBytes(marketInfo.name + args.params.name))
+                  keccak256(toBytes(marketInfo.name + args.params.name)),
                 ),
             constructorParams: encodeAbiParameters(
               [{ type: "address" }],
-              [addressProvider]
+              [addressProvider],
             ),
           },
         },
@@ -342,7 +337,7 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
           isExpirable: args.params.isExpired,
           migrateBotList: false,
         },
-      ]
+      ],
     );
 
     const creditManagerAddress: Address =
@@ -379,11 +374,11 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
   configureAdapterFor(
     creditManager: Address,
     targetContract: Address,
-    data: `0x${string}`
+    data: `0x${string}`,
   ): RawTx {
     return this.configureCreditManager(
       creditManager,
-      this.creditFactory.configureAdapterFor(targetContract, data)
+      this.creditFactory.configureAdapterFor(targetContract, data),
     );
   }
 
@@ -392,18 +387,18 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
     args: {
       token: Address;
       liquidationThreshold: number;
-    }
+    },
   ): RawTx {
     return this.configureCreditManager(
       creditManager,
-      this.creditFactory.addCollateralToken(args)
+      this.creditFactory.addCollateralToken(args),
     );
   }
 
   setFees(params: SetFeesParams): RawTx {
     return this.configureCreditManager(
       params.creditManager,
-      this.creditFactory.setFees(params)
+      this.creditFactory.setFees(params),
     );
   }
 
@@ -414,53 +409,53 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
       liquidationThresholdFinal: number;
       rampStart: number;
       rampDuration: number;
-    }
+    },
   ): RawTx {
     return this.configureCreditManager(
       creditManager,
-      this.creditFactory.rampLiquidationThreshold(args)
+      this.creditFactory.rampLiquidationThreshold(args),
     );
   }
 
   forbidToken(params: ForbidTokenParams): RawTx {
     return this.configureCreditManager(
       params.creditManager,
-      this.creditFactory.forbidToken(params.token)
+      this.creditFactory.forbidToken(params.token),
     );
   }
 
   allowToken(params: AllowTokenParams): RawTx {
     return this.configureCreditManager(
       params.creditManager,
-      this.creditFactory.allowToken(params.token)
+      this.creditFactory.allowToken(params.token),
     );
   }
 
   setExpirationDate(params: SetExpirationDateParams): RawTx {
     return this.configureCreditManager(
       params.creditManager,
-      this.creditFactory.setExpirationDate(params)
+      this.creditFactory.setExpirationDate(params),
     );
   }
 
   pauseCreditManager(params: PauseCreditManagerParams): RawTx {
     return this.configureCreditManager(
       params.creditManager,
-      this.creditFactory.pause()
+      this.creditFactory.pause(),
     );
   }
 
   unpauseCreditManager(params: UnpauseCreditManagerParams): RawTx {
     return this.configureCreditManager(
       params.creditManager,
-      this.creditFactory.unpause()
+      this.creditFactory.unpause(),
     );
   }
 
   forbidAdapter(params: ForbidAdapterParams): RawTx {
     return this.configureCreditManager(
       params.creditManager,
-      this.creditFactory.forbidAdapter(params.target)
+      this.creditFactory.forbidAdapter(params.target),
     );
   }
 
@@ -472,7 +467,7 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
     pool: Address,
     args: {
       deployParams: DeployParams;
-    }
+    },
   ): Promise<RawTx> {
     return this.createRawTx({
       functionName: "updateRateKeeper",
@@ -598,7 +593,7 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
     try {
       const result = await this.client.multicall({
         allowFailure: true,
-        contracts: pausableAdmins.map((admin) => ({
+        contracts: pausableAdmins.map(admin => ({
           address: admin,
           abi: parseAbi(["function contractType() view returns (bytes32)"]),
           functionName: "contractType",
@@ -640,7 +635,7 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
 
   async syncSetEmergencyAdmin(
     fromBlock: bigint,
-    toBlock: bigint
+    toBlock: bigint,
   ): Promise<
     Array<{
       emergencyAdmin: Address;
@@ -650,15 +645,15 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
     const events = await this.getEvents(
       "SetEmergencyAdmin",
       fromBlock,
-      toBlock
+      toBlock,
     );
 
     return (events || [])
-      .map((event) => ({
+      .map(event => ({
         emergencyAdmin: event.args.newEmergencyAdmin as Address,
         atBlock: Number(event.blockNumber),
       }))
-      .filter((event) => event.emergencyAdmin !== undefined);
+      .filter(event => event.emergencyAdmin !== undefined);
   }
 
   async syncMarkets({
@@ -707,7 +702,7 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
   }
 
   public parseFunctionParams(
-    params: DecodeFunctionDataReturnType<typeof abi>
+    params: DecodeFunctionDataReturnType<typeof abi>,
   ): ParsedCall | undefined {
     const { functionName, args } = params;
 
@@ -730,31 +725,31 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
           DeployParams,
           DeployParams,
           DeployParams,
-          Address
+          Address,
         ];
         const irmParsedPostfix = hexToString(
-          interestRateModelParams.postfix
+          interestRateModelParams.postfix,
         ).replace(/\0/g, "");
         const irmParsedParams = parseIrmDeployParams(
           irmParsedPostfix,
           Number(minorVersion),
-          interestRateModelParams.constructorParams
+          interestRateModelParams.constructorParams,
         );
         const rateKeeperParsedPostfix = hexToString(
-          rateKeeperParams.postfix
+          rateKeeperParams.postfix,
         ).replace(/\0/g, "");
         const rateKeeperParsedParams = parseRateKeeperDeployParams(
           rateKeeperParsedPostfix,
           Number(minorVersion),
-          rateKeeperParams.constructorParams
+          rateKeeperParams.constructorParams,
         );
         const lossPolicyParsedPostfix = hexToString(
-          lossPolicyParams.postfix
+          lossPolicyParams.postfix,
         ).replace(/\0/g, "");
         const lossPolicyParsedParams = parseLossPolicyDeployParams(
           lossPolicyParsedPostfix,
           Number(minorVersion),
-          lossPolicyParams.constructorParams
+          lossPolicyParams.constructorParams,
         );
         return {
           chainId: 0,
@@ -790,11 +785,11 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
         const [minorVersion, pool, creditSuiteParams] = args as [
           bigint,
           Address,
-          Hex
+          Hex,
         ];
         const decoded = decodeAbiParameters(
           [creditManagerParamsAbi, creditFacadeParamsAbi],
-          creditSuiteParams
+          creditSuiteParams,
         );
         const accountFactoryParams = decoded[0].accountFactoryParams;
         return {
@@ -812,14 +807,14 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
               accountFactoryParams: {
                 postfix: hexToString(accountFactoryParams.postfix).replace(
                   /\0/g,
-                  ""
+                  "",
                 ),
                 salt: accountFactoryParams.salt,
                 // TODO: tmp solution, move AccountFactory decoding to plugins
                 constructorParams: {
                   addressProvider: decodeAbiParameters(
                     [{ type: "address" }],
-                    accountFactoryParams.constructorParams
+                    accountFactoryParams.constructorParams,
                   )[0],
                 },
               },

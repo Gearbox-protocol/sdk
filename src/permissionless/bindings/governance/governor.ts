@@ -1,25 +1,25 @@
-import { json_stringify } from "../../../sdk/utils/index.js";
-import type { RawTx } from "../../../sdk/types/index.js";
 import {
-  Address,
-  DecodeFunctionDataReturnType,
+  type Address,
+  type DecodeFunctionDataReturnType,
   encodeAbiParameters,
   formatEther,
-  Hash,
-  Hex,
+  type Hash,
+  type Hex,
   keccak256,
-  PublicClient,
+  type PublicClient,
   toBytes,
 } from "viem";
 import { formatAbiItem } from "viem/utils";
+import type { RawTx } from "../../../sdk/types/index.js";
+import { json_stringify } from "../../../sdk/utils/index.js";
 import { governorAbi } from "../../abi";
-import { ParsedCall } from "../../core";
+import type { ParsedCall } from "../../core";
 import { formatTimestamp } from "../../utils";
 import { BaseContract } from "../base-contract";
 import { MarketConfiguratorContract } from "../market-configurator";
 import { TreasurySplitterContract } from "../treasury-splitter";
 import { BatchesChainContract } from "./batches-chain";
-import { SafeTx, TimelockTxParams } from "./types";
+import type { SafeTx, TimelockTxParams } from "./types";
 
 const abi = governorAbi;
 
@@ -31,14 +31,14 @@ export class GovernorContract extends BaseContract<typeof abi> {
 
     this.batchesChainContract = new BatchesChainContract(
       "0x59b2fd348e4Ade84ffEfDaf5fcdDa7276c8C5041",
-      client
+      client,
     );
   }
 
   getTxHash(tx: RawTx): Hash {
     if (tx.contractMethod.name !== "queueTransaction") {
       throw new Error(
-        `Transaction is not a queueTransaction, method provided: ${tx.contractMethod.name}`
+        `Transaction is not a queueTransaction, method provided: ${tx.contractMethod.name}`,
       );
     }
 
@@ -53,8 +53,8 @@ export class GovernorContract extends BaseContract<typeof abi> {
           { type: "bytes", name: "data" },
           { type: "uint", name: "eta" },
         ],
-        [target, value, signature, data, eta]
-      )
+        [target, value, signature, data, eta],
+      ),
     );
   }
 
@@ -99,14 +99,14 @@ export class GovernorContract extends BaseContract<typeof abi> {
     const { txs, eta, prevHash } = args;
     const transactions = [] as RawTx[];
 
-    const queueTxs = txs.map((tx) => this.createQueueTx({ tx, eta }));
+    const queueTxs = txs.map(tx => this.createQueueTx({ tx, eta }));
 
     transactions.push(
       this.createRawTx({
         functionName: "startBatch",
         args: [BigInt(eta)],
         description: `StartBatch(${eta})`,
-      })
+      }),
     );
 
     if (prevHash !== undefined) {
@@ -114,7 +114,7 @@ export class GovernorContract extends BaseContract<typeof abi> {
         this.createQueueTx({
           tx: this.batchesChainContract.createBatchOrderingTx(prevHash),
           eta,
-        })
+        }),
       );
     }
 
@@ -126,7 +126,7 @@ export class GovernorContract extends BaseContract<typeof abi> {
     const { batches, eta } = args;
 
     const queueBatches: RawTx[][] = [];
-    let prevHash: Hash | undefined = undefined;
+    let prevHash: Hash | undefined;
 
     for (const txs of batches) {
       queueBatches.push(this.createGovernorBatch({ txs, eta, prevHash }));
@@ -139,8 +139,8 @@ export class GovernorContract extends BaseContract<typeof abi> {
 
   createExecuteBatchTx(args: { txs: SafeTx[] }): RawTx {
     const executionBatch = args.txs
-      .filter((tx) => tx.contractMethod.name === "queueTransaction")
-      .map((tx) => ({
+      .filter(tx => tx.contractMethod.name === "queueTransaction")
+      .map(tx => ({
         ...tx.contractInputsValues,
         value: BigInt(tx.contractInputsValues.value),
         eta: BigInt(tx.contractInputsValues.eta),
@@ -151,13 +151,13 @@ export class GovernorContract extends BaseContract<typeof abi> {
       args: [executionBatch],
       description: `ExecuteBatch(${executionBatch
         .map(
-          (tx) =>
+          tx =>
             `{
   target: ${tx.target},
   value: ${tx.value.toString()},
   signature: ${tx.signature},
   data: ${tx.data.length > 40 ? `${tx.data.slice(0, 40)}...` : tx.data},
-},`
+},`,
         )
         .join("\n")})`,
     });
@@ -176,7 +176,7 @@ export class GovernorContract extends BaseContract<typeof abi> {
           let parsedData: ParsedCall;
           const marketConfigurator = new MarketConfiguratorContract(
             target,
-            this.client
+            this.client,
           );
           parsedData = marketConfigurator.parseFunctionData(calldata);
 
@@ -186,7 +186,7 @@ export class GovernorContract extends BaseContract<typeof abi> {
 
           const treasurySplitter = new TreasurySplitterContract(
             target,
-            this.client
+            this.client,
           );
 
           parsedData = treasurySplitter.parseFunctionData(calldata);
@@ -202,7 +202,7 @@ export class GovernorContract extends BaseContract<typeof abi> {
   }
 
   public parseFunctionParams(
-    params: DecodeFunctionDataReturnType<typeof abi>
+    params: DecodeFunctionDataReturnType<typeof abi>,
   ): ParsedCall | undefined {
     const { functionName, args } = params;
 
@@ -236,7 +236,7 @@ export class GovernorContract extends BaseContract<typeof abi> {
             value: formatEther(value),
             signature,
             data: json_stringify(
-              this.decodeFunctionData(target, calldata)?.args ?? calldata
+              this.decodeFunctionData(target, calldata)?.args ?? calldata,
             ),
             eta: formatTimestamp(Number(eta)),
           },
@@ -252,7 +252,7 @@ export class GovernorContract extends BaseContract<typeof abi> {
           functionName,
           args: {
             txs: json_stringify(
-              txs.map((tx) => {
+              txs.map(tx => {
                 const { target, value, signature, data, eta } = tx;
                 const calldata = (keccak256(toBytes(signature)).slice(0, 10) +
                   data.slice(2)) as Hex;
@@ -262,11 +262,11 @@ export class GovernorContract extends BaseContract<typeof abi> {
                   value: formatEther(value),
                   signature,
                   data: json_stringify(
-                    this.decodeFunctionData(target, calldata)?.args ?? calldata
+                    this.decodeFunctionData(target, calldata)?.args ?? calldata,
                   ),
                   eta: formatTimestamp(Number(eta)),
                 };
-              })
+              }),
             ),
           },
         };

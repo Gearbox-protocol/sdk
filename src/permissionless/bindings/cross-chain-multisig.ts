@@ -1,29 +1,28 @@
 import {
-  Address,
-  DecodeFunctionDataReturnType,
-  Hex,
+  type Address,
+  type DecodeFunctionDataReturnType,
+  type Hex,
+  type PublicClient,
   parseAbi,
   parseEventLogs,
-  PublicClient,
   recoverTypedDataAddress,
-  WalletClient,
+  type WalletClient,
   zeroAddress,
 } from "viem";
+import type { RawTx } from "../../sdk/types/index.js";
+import { json_stringify } from "../../sdk/utils/index.js";
 import { crossChainMultisigAbi } from "../abi";
-import {
+import type {
   Batch,
   CrossChainCall,
   ParsedCall,
   RecoveryMessage,
   Signature,
 } from "../core/proposal";
-import { BaseContract } from "./base-contract";
-
-import { json_stringify } from "../../sdk/utils/index.js";
-import type { RawTx } from "../../sdk/types/index.js";
 import { Addresses } from "../deployment/addresses";
 import { normalizeSignature } from "../utils";
 import { CROSS_CHAIN_MULTISIG } from "../utils/literals";
+import { BaseContract } from "./base-contract";
 import { InstanceManagerContract } from "./instance-manager";
 import { MarketConfiguratorFactoryContract } from "./market-configurator-factory";
 
@@ -51,18 +50,18 @@ export class CrossChainMultisigContract extends BaseContract<typeof abi> {
 
   async getExecutedBatches(
     fromBlock: bigint,
-    toBlock: bigint
+    toBlock: bigint,
   ): Promise<Omit<Batch, "timestamp">[]> {
     const events = await this.getEvents("ExecuteBatch", fromBlock, toBlock);
 
     const batches: Omit<Batch, "timestamp">[] = await Promise.all(
-      events.map(async (event) => {
+      events.map(async event => {
         return this.getBatchData({
           proposalHash: event.args.batchHash! as Hex,
           blockNumber: Number(event.blockNumber),
           transactionHash: event.transactionHash,
         });
-      })
+      }),
     );
 
     return batches;
@@ -72,7 +71,7 @@ export class CrossChainMultisigContract extends BaseContract<typeof abi> {
     const hashes = await this.contract.read.getCurrentBatchHashes();
 
     return await Promise.all(
-      hashes.map(async (hash) => this.getBatchData({ proposalHash: hash }))
+      hashes.map(async hash => this.getBatchData({ proposalHash: hash })),
     );
   }
 
@@ -93,7 +92,7 @@ export class CrossChainMultisigContract extends BaseContract<typeof abi> {
         ...this.computeEIP712digest(
           proposal.name,
           proposalHash,
-          proposal.prevHash
+          proposal.prevHash,
         ),
         signature: sig as Hex,
       });
@@ -104,7 +103,7 @@ export class CrossChainMultisigContract extends BaseContract<typeof abi> {
       });
     }
 
-    const calls: CrossChainCall[] = proposal.calls.map((c) => ({
+    const calls: CrossChainCall[] = proposal.calls.map(c => ({
       chainId: Number(c.chainId),
       target: c.target,
       callData: c.callData,
@@ -117,7 +116,7 @@ export class CrossChainMultisigContract extends BaseContract<typeof abi> {
       transactionHash: transactionHash,
       blockNumber: blockNumber,
       hash: proposalHash,
-      parsedCalls: calls.map((c) => BaseContract.parseCall(c)),
+      parsedCalls: calls.map(c => BaseContract.parseCall(c)),
       signatures,
     };
   }
@@ -182,7 +181,7 @@ export class CrossChainMultisigContract extends BaseContract<typeof abi> {
   async signBatch(
     batchHash: Hex,
     signature: Hex,
-    sponsor: WalletClient
+    sponsor: WalletClient,
   ): Promise<Hex> {
     const normalizedSignature = normalizeSignature(signature);
     const hash = await this.contract.write.signBatch(
@@ -190,7 +189,7 @@ export class CrossChainMultisigContract extends BaseContract<typeof abi> {
       {
         account: sponsor.account!,
         chain: sponsor.chain,
-      }
+      },
     );
 
     // Wait for the transaction to be mined
@@ -202,8 +201,8 @@ export class CrossChainMultisigContract extends BaseContract<typeof abi> {
   }
 
   async enableRecovery(recovery: RecoveryMessage, sponsor: WalletClient) {
-    const signatures = recovery.signatures.map((s) =>
-      normalizeSignature(s.signature)
+    const signatures = recovery.signatures.map(s =>
+      normalizeSignature(s.signature),
     );
 
     return await this.contract.write.enableRecoveryMode(
@@ -217,7 +216,7 @@ export class CrossChainMultisigContract extends BaseContract<typeof abi> {
       {
         account: sponsor.account!,
         chain: sponsor.chain!,
-      }
+      },
     );
   }
 
@@ -237,7 +236,7 @@ export class CrossChainMultisigContract extends BaseContract<typeof abi> {
       case Addresses.INSTANCE_MANAGER.toLowerCase(): {
         const instanceManager = new InstanceManagerContract(
           target,
-          this.client
+          this.client,
         );
         return instanceManager.parseFunctionData(calldata);
       }
@@ -259,7 +258,7 @@ export class CrossChainMultisigContract extends BaseContract<typeof abi> {
   }
 
   parseFunctionParams(
-    params: DecodeFunctionDataReturnType<typeof abi>
+    params: DecodeFunctionDataReturnType<typeof abi>,
   ): ParsedCall | undefined {
     switch (params.functionName) {
       case "addSigner": {
@@ -289,7 +288,7 @@ export class CrossChainMultisigContract extends BaseContract<typeof abi> {
               ...this.decodeFunctionData(target, callData),
               chainId: Number(chainId),
               target,
-            }))
+            })),
           ),
           prevHash,
         });
@@ -301,7 +300,7 @@ export class CrossChainMultisigContract extends BaseContract<typeof abi> {
 
   async validateProposalSignature(
     proposalHash: Hex,
-    signature: Hex
+    signature: Hex,
   ): Promise<{ success: boolean; error?: string }> {
     const normalizedSignature = normalizeSignature(signature);
     const proposal = await this.getBatchData({ proposalHash });
@@ -317,14 +316,14 @@ export class CrossChainMultisigContract extends BaseContract<typeof abi> {
       proposal.name,
       proposalHash,
       proposal.prevHash,
-      normalizedSignature
+      normalizedSignature,
     );
 
     console.log("signer", signer);
 
     // Check if the signer is a valid signer
     const signers = await this.getSigners();
-    if (!signers.map((s) => s.toLowerCase()).includes(signer.toLowerCase())) {
+    if (!signers.map(s => s.toLowerCase()).includes(signer.toLowerCase())) {
       return { success: false, error: "Signer is not a valid signer" };
     }
 
@@ -342,7 +341,7 @@ export class CrossChainMultisigContract extends BaseContract<typeof abi> {
     proposalName: string,
     proposalHash: Hex,
     prevHash: Hex,
-    signature: Hex
+    signature: Hex,
   ) {
     return await recoverTypedDataAddress({
       ...this.computeEIP712digest(proposalName, proposalHash, prevHash),
@@ -361,7 +360,7 @@ export class CrossChainMultisigContract extends BaseContract<typeof abi> {
       }[];
       signatures: Hex[];
     },
-    sponsor: WalletClient
+    sponsor: WalletClient,
   ) {
     return await this.contract.write.executeBatch([signedProposal], {
       account: sponsor.account!,
@@ -404,7 +403,7 @@ export class CrossChainMultisigContract extends BaseContract<typeof abi> {
         callData: Hex;
       }[];
     },
-    sponsor: WalletClient
+    sponsor: WalletClient,
   ) {
     const prevHash = await this.getLastBatchHash();
 
@@ -413,7 +412,7 @@ export class CrossChainMultisigContract extends BaseContract<typeof abi> {
       {
         account: sponsor.account!,
         chain: sponsor.chain!,
-      }
+      },
     );
   }
 
@@ -438,7 +437,7 @@ export class CrossChainMultisigContract extends BaseContract<typeof abi> {
     const result = await this.getEvents(
       "SetConfirmationThreshold",
       0n,
-      latestBlock
+      latestBlock,
     );
 
     const event = result[0];
@@ -458,7 +457,7 @@ export class CrossChainMultisigContract extends BaseContract<typeof abi> {
         "event AddSigner(address indexed signer)",
       ]),
       logs: receipt.logs,
-    }).forEach((p) => {
+    }).forEach(p => {
       if (p.eventName === "AddSigner") {
         signers.push(p.args.signer);
       }

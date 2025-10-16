@@ -1,8 +1,8 @@
+import type { Address, PublicClient } from "viem";
 import { AP_PRICE_FEED_COMPRESSOR } from "../../../sdk/constants/index.js";
 import { GearboxSDK } from "../../../sdk/index.js";
-import { Address, PublicClient } from "viem";
 import { AddressProviderContract } from "../../bindings";
-import { ParsedCall } from "../../core";
+import type { ParsedCall } from "../../core";
 import { Addresses } from "../../deployment/addresses";
 import { deepJsonParse } from "../format";
 import { getUpdatablePriceFeeds } from "./get-updatable-feeds";
@@ -19,7 +19,7 @@ export function getCallTouchedPriceFeeds(parsedCall: ParsedCall): Address[] {
     }
 
     if (Array.isArray(obj)) {
-      obj.forEach((item) => searchForPriceFeeds(item));
+      obj.forEach(item => searchForPriceFeeds(item));
       return;
     }
 
@@ -42,9 +42,9 @@ export function getCallTouchedPriceFeeds(parsedCall: ParsedCall): Address[] {
 }
 
 export function getCallsTouchedPriceFeeds(
-  parsedCalls: ParsedCall[]
+  parsedCalls: ParsedCall[],
 ): Address[] {
-  return parsedCalls.flatMap((call) => getCallTouchedPriceFeeds(call));
+  return parsedCalls.flatMap(call => getCallTouchedPriceFeeds(call));
 }
 
 export async function getCallsTouchedUpdatablePriceFeeds({
@@ -56,12 +56,12 @@ export async function getCallsTouchedUpdatablePriceFeeds({
 }): Promise<Address[]> {
   const addressProvider = new AddressProviderContract(
     Addresses.ADDRESS_PROVIDER,
-    client
+    client,
   );
 
   const pfCompressor = await addressProvider.getAddressOrRevert(
     AP_PRICE_FEED_COMPRESSOR,
-    310n
+    310n,
   );
 
   const sdk = await GearboxSDK.attach({
@@ -69,8 +69,8 @@ export async function getCallsTouchedUpdatablePriceFeeds({
     marketConfigurators: [],
   });
 
-  const touchedFeeds = parsedCalls.flatMap((call) =>
-    getCallTouchedPriceFeeds(call)
+  const touchedFeeds = parsedCalls.flatMap(call =>
+    getCallTouchedPriceFeeds(call),
   );
 
   return (
@@ -80,5 +80,5 @@ export async function getCallsTouchedUpdatablePriceFeeds({
       pfCompressor,
       priceFeeds: touchedFeeds,
     })
-  ).map((feed) => feed.address);
+  ).map(feed => feed.address);
 }

@@ -1,13 +1,13 @@
-import { json_stringify } from "../../sdk/utils/index.js";
-import type { RawTx } from "../../sdk/types/index.js";
 import {
-  Address,
-  DecodeFunctionDataReturnType,
-  Hex,
+  type Address,
+  type DecodeFunctionDataReturnType,
+  type Hex,
   hexToString,
-  PublicClient,
+  type PublicClient,
   stringToHex,
 } from "viem";
+import type { RawTx } from "../../sdk/types/index.js";
+import { json_stringify } from "../../sdk/utils/index.js";
 import {
   camelotV3WorkerAbi,
   erc4626WorkerAbi,
@@ -16,7 +16,7 @@ import {
   pendleRouterWorkerAbi,
   uniswapV3WorkerAbi,
 } from "../abi";
-import { ParsedCall } from "../core/proposal";
+import type { ParsedCall } from "../core/proposal";
 import { Addresses } from "../deployment/addresses";
 import { BaseContract } from "./base-contract";
 import { WithdrawalCompressorContract } from "./compressors";
@@ -48,7 +48,7 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
             gearboxRouterAbi,
             target,
             this.client,
-            "GearboxRouter"
+            "GearboxRouter",
           );
           parsedData = router.parseFunctionData(calldata);
 
@@ -58,7 +58,7 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
 
           const routingManager = new RoutingManagerContract(
             target,
-            this.client
+            this.client,
           );
           parsedData = routingManager.parseFunctionData(calldata);
 
@@ -71,7 +71,7 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
             camelotV3WorkerAbi,
             target,
             this.client,
-            "CamelotV3Worker"
+            "CamelotV3Worker",
           );
           parsedData = camelotV3Worker.parseFunctionData(calldata);
 
@@ -83,7 +83,7 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
             erc4626WorkerAbi,
             target,
             this.client,
-            "ERC4626Worker"
+            "ERC4626Worker",
           );
           parsedData = erc4626Worker.parseFunctionData(calldata);
 
@@ -95,7 +95,7 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
             pendleRouterWorkerAbi,
             target,
             this.client,
-            "PendleRouterWorker"
+            "PendleRouterWorker",
           );
           parsedData = pendleRouterWorker.parseFunctionData(calldata);
 
@@ -107,7 +107,7 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
             uniswapV3WorkerAbi,
             target,
             this.client,
-            "UniswapV3Worker"
+            "UniswapV3Worker",
           );
           parsedData = uniswapV3Worker.parseFunctionData(calldata);
 
@@ -118,7 +118,7 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
           // COMPRESSORS
           const withdrawalCompressor = new WithdrawalCompressorContract(
             target,
-            this.client
+            this.client,
           );
           parsedData = withdrawalCompressor.parseFunctionData(calldata);
 
@@ -134,7 +134,7 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
 
   // TODO:
   parseFunctionParams(
-    params: DecodeFunctionDataReturnType<typeof abi>
+    params: DecodeFunctionDataReturnType<typeof abi>,
   ): ParsedCall | undefined {
     switch (params.functionName) {
       case "configureGlobal": {

@@ -1,4 +1,4 @@
-import { Transport, http, EIP1193RequestFn, Chain } from "viem";
+import { type Chain, type EIP1193RequestFn, http, type Transport } from "viem";
 
 export interface ArchiveTransportConfig {
   primaryRpcUrl: string;
@@ -103,12 +103,12 @@ export class ArchiveTransport {
               method,
               params,
               primaryClient,
-              archiveClient
+              archiveClient,
             );
           } catch (error) {
             this.log(
               "Archive transport error, falling back to primary RPC:",
-              error
+              error,
             );
             return await primaryClient.request({ method, params });
           }
@@ -128,7 +128,7 @@ export class ArchiveTransport {
     method: string,
     params: unknown,
     primaryClient: ReturnType<Transport>,
-    archiveClient: ReturnType<Transport>
+    archiveClient: ReturnType<Transport>,
   ): Promise<ReturnType<EIP1193RequestFn>> {
     // Get latest block number from primary RPC
     const latestBlockHex = (await primaryClient.request({
@@ -170,7 +170,7 @@ export class ArchiveTransport {
         toBlock,
         thresholdBlock,
         primaryClient,
-        archiveClient
+        archiveClient,
       );
     } else {
       // Edge case - fallback to primary RPC
@@ -191,12 +191,12 @@ export class ArchiveTransport {
     toBlock: number,
     thresholdBlock: number,
     primaryClient: ReturnType<Transport>,
-    archiveClient: ReturnType<Transport>
+    archiveClient: ReturnType<Transport>,
   ): Promise<ReturnType<EIP1193RequestFn>> {
     this.log(
       `Splitting request: historical [${fromBlock}-${
         thresholdBlock - 1
-      }] + recent [${thresholdBlock}-${toBlock}]`
+      }] + recent [${thresholdBlock}-${toBlock}]`,
     );
 
     // Create filters for each range
@@ -237,7 +237,7 @@ export class ArchiveTransport {
       });
 
       this.log(
-        `Merged ${historicalLogs.length} historical + ${recentLogs.length} recent = ${mergedLogs.length} total logs`
+        `Merged ${historicalLogs.length} historical + ${recentLogs.length} recent = ${mergedLogs.length} total logs`,
       );
 
       return mergedLogs as unknown as Awaited<
@@ -257,7 +257,7 @@ export class ArchiveTransport {
    */
   private parseBlockNumbers(
     filter: EthGetLogsFilter,
-    latestBlock: number
+    latestBlock: number,
   ): { fromBlock: number; toBlock: number } {
     let fromBlock: number | undefined;
     let toBlock: number | undefined;

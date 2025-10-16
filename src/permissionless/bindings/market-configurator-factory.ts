@@ -1,7 +1,7 @@
-import { Address, PublicClient } from "viem";
-import { BaseContract } from "./base-contract";
-import { iMarketConfiguratorFactoryAbi } from "../abi";
+import type { Address, PublicClient } from "viem";
 import type { RawTx } from "../../sdk/types/index.js";
+import { iMarketConfiguratorFactoryAbi } from "../abi";
+import { BaseContract } from "./base-contract";
 
 const abi = iMarketConfiguratorFactoryAbi;
 
@@ -39,7 +39,7 @@ export class MarketConfiguratorFactoryContract extends BaseContract<
 
   async syncMarketConfigurators(
     fromBlock: bigint,
-    toBlock: bigint
+    toBlock: bigint,
   ): Promise<{
     newMarketConfigurators: Array<{
       address: Address;
@@ -51,33 +51,29 @@ export class MarketConfiguratorFactoryContract extends BaseContract<
     const createEvents = await this.getEvents(
       "CreateMarketConfigurator",
       fromBlock,
-      toBlock
+      toBlock,
     );
 
     const shutdownEvents = await this.getEvents(
       "ShutdownMarketConfigurator",
       fromBlock,
-      toBlock
+      toBlock,
     );
 
     return {
       newMarketConfigurators: (createEvents || [])
-        .map((event) => ({
+        .map(event => ({
           address: event.args.marketConfigurator as Address,
           name: event.args.name!,
           atBlock: Number(event.blockNumber),
         }))
-        .filter(
-          (marketConfigurator) => marketConfigurator.address !== undefined
-        ),
+        .filter(marketConfigurator => marketConfigurator.address !== undefined),
       shutdownMarketConfigurators: (shutdownEvents || [])
-        .map((event) => ({
+        .map(event => ({
           address: event.args.marketConfigurator as Address,
           atBlock: Number(event.blockNumber),
         }))
-        .filter(
-          (marketConfigurator) => marketConfigurator.address !== undefined
-        ),
+        .filter(marketConfigurator => marketConfigurator.address !== undefined),
     };
   }
 }

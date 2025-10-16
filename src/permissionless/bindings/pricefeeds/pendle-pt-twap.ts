@@ -1,4 +1,4 @@
-import { PriceFeedSetupParams } from "../../core";
+import type { PriceFeedSetupParams } from "../../core";
 
 export const pendlePtTwapPriceFeed: PriceFeedSetupParams = {
   contractType: "PRICE_FEED::PENDLE_PT_TWAP",

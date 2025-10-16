@@ -1,5 +1,5 @@
-import { Address, parseAbi, PublicClient } from "viem";
-import { InputValueParams, PriceFeedSetupParams } from "../../core";
+import { type Address, type PublicClient, parseAbi } from "viem";
+import type { InputValueParams, PriceFeedSetupParams } from "../../core";
 
 export const curveCryptoPriceFeed: PriceFeedSetupParams = {
   contractType: "PRICE_FEED::CURVE_CRYPTO",
@@ -15,7 +15,7 @@ export const curveCryptoPriceFeed: PriceFeedSetupParams = {
         type: "lowerbound",
         getter: async (
           values: Record<string, InputValueParams>,
-          publicClient: PublicClient
+          publicClient: PublicClient,
         ) => {
           const { pool } = values;
 

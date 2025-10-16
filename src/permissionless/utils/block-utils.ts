@@ -1,4 +1,4 @@
-import { PublicClient } from "viem";
+import type { PublicClient } from "viem";
 
 /**
  * Finds the block number closest to a given timestamp using binary search
@@ -8,7 +8,7 @@ import { PublicClient } from "viem";
  */
 export async function getBlockNumberByTimestamp(
   client: PublicClient,
-  targetTimestamp: number
+  targetTimestamp: number,
 ): Promise<number> {
   // Get the latest block to use as upper bound
   const latestBlock = await client.getBlock({ blockTag: "latest" });

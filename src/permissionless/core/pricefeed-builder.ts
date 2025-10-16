@@ -1,4 +1,4 @@
-import { Address, Hex, PublicClient } from "viem";
+import type { Address, Hex, PublicClient } from "viem";
 
 export interface PriceFeedParams {
   address: Address;
@@ -26,7 +26,7 @@ export type PriceFeedParamType =
       type: "lowerbound";
       getter: (
         values: Record<string, InputValueParams>,
-        publicClient: PublicClient
+        publicClient: PublicClient,
       ) => Promise<bigint>;
     }
   | {

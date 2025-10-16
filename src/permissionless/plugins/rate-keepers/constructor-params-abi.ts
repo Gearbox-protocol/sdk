@@ -1,4 +1,4 @@
-import { decodeAbiParameters, Hex } from "viem";
+import { decodeAbiParameters, type Hex } from "viem";
 
 // Define RateKeeperType locally since we're in the SDK package
 export type RateKeeperType = "TUMBLER" | "GAUGE";
@@ -49,7 +49,7 @@ export const rateKeeperDeployParamsAbiMapping: Record<
  */
 export function getRateKeeperDeployParamsAbi(
   rateKeeperType: RateKeeperType,
-  version: number = 310
+  version: number = 310,
 ): readonly AbiParameter[] | null {
   const versionedMapping = rateKeeperDeployParamsAbiMapping[rateKeeperType];
   return versionedMapping?.[version.toString()] ?? null;
@@ -65,7 +65,7 @@ export function getRateKeeperDeployParamsAbi(
 export function parseRateKeeperDeployParams(
   rateKeeperPostfix: string,
   version: number,
-  data: Hex
+  data: Hex,
 ): Record<string, string> | null {
   const cleanRateKeeperPostfix = rateKeeperPostfix.replace(/\0/g, "").trim();
   if (!hasRateKeeperDeployParamsAbi(cleanRateKeeperPostfix)) return null;
@@ -84,7 +84,7 @@ export function parseRateKeeperDeployParams(
   } catch (error) {
     console.error(
       `Failed to parse rate keeper deploy params for ${rateKeeperType}:`,
-      error
+      error,
     );
     return null;
   }
@@ -96,7 +96,7 @@ export function parseRateKeeperDeployParams(
  * @returns True if the rate keeper type has an ABI defined
  */
 export function hasRateKeeperDeployParamsAbi(
-  rateKeeperType: string
+  rateKeeperType: string,
 ): rateKeeperType is RateKeeperType {
   return rateKeeperType in rateKeeperDeployParamsAbiMapping;
 }

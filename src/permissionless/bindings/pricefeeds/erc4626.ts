@@ -1,5 +1,5 @@
-import { Address, PublicClient, parseAbi } from "viem";
-import { InputValueParams, PriceFeedSetupParams } from "../../core";
+import { type Address, type PublicClient, parseAbi } from "viem";
+import type { InputValueParams, PriceFeedSetupParams } from "../../core";
 
 export const erc4626PriceFeed: PriceFeedSetupParams = {
   contractType: "PRICE_FEED::ERC4626",
@@ -15,7 +15,7 @@ export const erc4626PriceFeed: PriceFeedSetupParams = {
         type: "lowerbound",
         getter: async (
           values: Record<string, InputValueParams>,
-          publicClient: PublicClient
+          publicClient: PublicClient,
         ) => {
           const { vault } = values;
           const decimals = await publicClient.readContract({

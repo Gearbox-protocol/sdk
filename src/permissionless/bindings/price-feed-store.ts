@@ -1,27 +1,27 @@
-import { json_stringify } from "../../sdk/utils/index.js";
-import type { RawTx } from "../../sdk/types/index.js";
 import {
-  AbiParameter,
-  Address,
-  DecodeFunctionDataReturnType,
+  type AbiParameter,
+  type Address,
+  type DecodeFunctionDataReturnType,
   encodeAbiParameters,
   formatUnits,
-  Hex,
+  type Hex,
   hexToString,
-  PublicClient,
+  type PublicClient,
   recoverTypedDataAddress,
 } from "viem";
+import type { RawTx } from "../../sdk/types/index.js";
+import { json_stringify } from "../../sdk/utils/index.js";
 import { iPriceFeedStoreAbi } from "../abi";
-import { PRICE_FEED_STORE } from "../utils";
-import {
+import type {
   InputValueParams,
   ParsedCall,
   PriceFeed,
   PriceFeedParams,
 } from "../core";
+import { PRICE_FEED_STORE } from "../utils";
 import { BaseContract } from "./base-contract";
 import { priceFeedSetupParams } from "./pricefeeds";
-import { PriceUpdate } from "./types";
+import type { PriceUpdate } from "./types";
 
 const abi = iPriceFeedStoreAbi;
 
@@ -40,11 +40,11 @@ export class PriceFeedStoreContract extends BaseContract<typeof abi> {
 
   async getAllowedPriceFeeds(
     fromBlock: bigint,
-    toBlock: bigint
+    toBlock: bigint,
   ): Promise<Array<{ token: Address; priceFeed: Address }>> {
     const events = await this.getEvents("AllowPriceFeed", fromBlock, toBlock);
 
-    return events.map((e) => ({
+    return events.map(e => ({
       token: e.args.token! as Address,
       priceFeed: e.args.priceFeed! as Address,
     }));
@@ -59,7 +59,7 @@ export class PriceFeedStoreContract extends BaseContract<typeof abi> {
 
   async getAddPriceFeedEvents(
     fromBlock: bigint,
-    toBlock: bigint
+    toBlock: bigint,
   ): Promise<Array<{ priceFeed: Address; stalenessPeriod: number }>> {
     const events = await this.getEvents("AddPriceFeed", fromBlock, toBlock);
 
@@ -77,12 +77,12 @@ export class PriceFeedStoreContract extends BaseContract<typeof abi> {
 
   async getNewPriceFeeds(
     fromBlock: bigint,
-    toBlock: bigint
+    toBlock: bigint,
   ): Promise<Array<PriceFeed>> {
     const events = await this.getAddPriceFeedEvents(fromBlock, toBlock);
 
     const priceFeedInfo = await Promise.all(
-      events.map((event) => this.contract.read.priceFeedInfo([event.priceFeed]))
+      events.map(event => this.contract.read.priceFeedInfo([event.priceFeed])),
     );
 
     return priceFeedInfo.map((info, index) => ({
@@ -99,15 +99,15 @@ export class PriceFeedStoreContract extends BaseContract<typeof abi> {
 
   async getStalenessPeriodUpdates(
     fromBlock: bigint,
-    toBlock: bigint
+    toBlock: bigint,
   ): Promise<Array<{ priceFeed: Address; stalenessPeriod: number }>> {
     const events = await this.getEvents(
       "SetStalenessPeriod",
       fromBlock,
-      toBlock
+      toBlock,
     );
 
-    return events.map((e) => ({
+    return events.map(e => ({
       priceFeed: e.args.priceFeed! as Address,
       stalenessPeriod: Number(e.args.stalenessPeriod!),
     }));
@@ -130,7 +130,7 @@ export class PriceFeedStoreContract extends BaseContract<typeof abi> {
 
   async isAllowedPriceFeed(
     token: Address,
-    priceFeed: Address
+    priceFeed: Address,
   ): Promise<boolean> {
     const result = await this.contract.read.isAllowedPriceFeed([
       token,
@@ -143,7 +143,7 @@ export class PriceFeedStoreContract extends BaseContract<typeof abi> {
     priceFeed: Address,
     name: string,
     stalenessPeriod: number,
-    chainId?: number
+    chainId?: number,
   ) {
     return {
       domain: this.getEIP712Domain(chainId),
@@ -176,13 +176,13 @@ export class PriceFeedStoreContract extends BaseContract<typeof abi> {
     name: string,
     stalenessPeriod: number,
     signature: Hex,
-    chainId?: number
+    chainId?: number,
   ) {
     const digest = this.computeEIP712ExternalPriceFeedDigest(
       priceFeed,
       name,
       stalenessPeriod,
-      chainId
+      chainId,
     );
 
     // Recover signer from signature
@@ -210,7 +210,7 @@ export class PriceFeedStoreContract extends BaseContract<typeof abi> {
   async encodeConstructorParams(
     contractType: string,
     version: number,
-    data: Record<string, InputValueParams>
+    data: Record<string, InputValueParams>,
   ): Promise<Hex> {
     const types: AbiParameter[] = [];
     const values: (
@@ -227,7 +227,7 @@ export class PriceFeedStoreContract extends BaseContract<typeof abi> {
     let flattenedPeriods: bigint[] = [];
 
     const params = priceFeedSetupParams.find(
-      (p) => p.contractType === contractType && p.version === version
+      p => p.contractType === contractType && p.version === version,
     )?.constructorParams;
 
     if (!params) {
@@ -295,7 +295,7 @@ export class PriceFeedStoreContract extends BaseContract<typeof abi> {
           values.push(this.address);
           break;
         case "pricefeedParamsFixed":
-        case "pricefeedParamsVariable":
+        case "pricefeedParamsVariable": {
           const structType =
             param.type.type === "pricefeedParamsFixed"
               ? `tuple[${param.type.qty}]`
@@ -320,8 +320,8 @@ export class PriceFeedStoreContract extends BaseContract<typeof abi> {
                 priceFeedParams.address,
                 BigInt(priceFeedParams.stalenessPeriod),
               ];
-            }
-          ).filter((d) => !!d) as [Address, bigint][];
+            },
+          ).filter(d => !!d) as [Address, bigint][];
 
           types.push({
             type: structType,
@@ -330,7 +330,8 @@ export class PriceFeedStoreContract extends BaseContract<typeof abi> {
           values.push(structData);
 
           break;
-        case "addressArrayFixed":
+        }
+        case "addressArrayFixed": {
           const arrayData: Address[] = Array.from(
             {
               length: param.type.qty,
@@ -343,8 +344,8 @@ export class PriceFeedStoreContract extends BaseContract<typeof abi> {
                 throw new Error(`${key} not found`);
               }
               return address;
-            }
-          ).filter((d) => !!d) as Address[];
+            },
+          ).filter(d => !!d) as Address[];
 
           types.push({
             type: `address[${param.type.qty}]`,
@@ -352,11 +353,13 @@ export class PriceFeedStoreContract extends BaseContract<typeof abi> {
           values.push(arrayData);
 
           break;
-        case "lowerbound":
+        }
+        case "lowerbound": {
           const lowerbound = await param.type.getter(data, this.client);
           types.push({ type: "uint256" });
           values.push((lowerbound * 99n) / 100n);
           break;
+        }
       }
     }
 
@@ -373,7 +376,7 @@ export class PriceFeedStoreContract extends BaseContract<typeof abi> {
   addPriceFeedTx(
     priceFeed: Address,
     stalenessPeriod: number,
-    name: string
+    name: string,
   ): RawTx {
     return this.createRawTx({
       functionName: "addPriceFeed",
@@ -421,7 +424,7 @@ export class PriceFeedStoreContract extends BaseContract<typeof abi> {
       return [];
     }
 
-    const multicallCalls = priceFeeds.map((priceFeed) => ({
+    const multicallCalls = priceFeeds.map(priceFeed => ({
       address: this.address,
       abi: this.abi,
       functionName: "priceFeedInfo",
@@ -437,7 +440,7 @@ export class PriceFeedStoreContract extends BaseContract<typeof abi> {
     return results.map((result, index) => {
       if (result.status === "failure") {
         throw new Error(
-          `Failed to get price feed info for ${priceFeeds[index]}: ${result.error}`
+          `Failed to get price feed info for ${priceFeeds[index]}: ${result.error}`,
         );
       }
 
@@ -462,7 +465,7 @@ export class PriceFeedStoreContract extends BaseContract<typeof abi> {
   }
 
   parseFunctionParams(
-    params: DecodeFunctionDataReturnType<typeof abi>
+    params: DecodeFunctionDataReturnType<typeof abi>,
   ): ParsedCall | undefined {
     switch (params.functionName) {
       case "configurePriceFeeds": {
@@ -478,7 +481,7 @@ export class PriceFeedStoreContract extends BaseContract<typeof abi> {
               args: {
                 lowerBound: formatUnits(
                   BigInt("0x" + priceFeedCall.callData.slice(10)),
-                  18 // TODO: use decimals returned by getScale()
+                  18, // TODO: use decimals returned by getScale()
                 ), // uint256 formatted with 18 decimals
               },
             });

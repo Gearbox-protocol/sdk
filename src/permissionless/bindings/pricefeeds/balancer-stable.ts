@@ -1,5 +1,5 @@
-import { Address, PublicClient, parseAbi } from "viem";
-import { InputValueParams, PriceFeedSetupParams } from "../../core";
+import { type Address, type PublicClient, parseAbi } from "viem";
+import type { InputValueParams, PriceFeedSetupParams } from "../../core";
 
 export const balancerStablePriceFeed: PriceFeedSetupParams = {
   contractType: "PRICE_FEED::BALANCER_STABLE",
@@ -15,7 +15,7 @@ export const balancerStablePriceFeed: PriceFeedSetupParams = {
         type: "lowerbound",
         getter: async (
           values: Record<string, InputValueParams>,
-          publicClient: PublicClient
+          publicClient: PublicClient,
         ) => {
           const { balancerPool } = values;
 

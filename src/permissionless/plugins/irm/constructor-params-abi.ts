@@ -1,4 +1,4 @@
-import { decodeAbiParameters, Hex } from "viem";
+import { decodeAbiParameters, type Hex } from "viem";
 
 // Define InterestRateModelType locally since we're in the SDK package
 export type InterestRateModelType = "LINEAR";
@@ -45,7 +45,7 @@ export const irmDeployParamsAbiMapping: Record<
  */
 export function getIrmDeployParamsAbi(
   irmType: InterestRateModelType,
-  version: number = 310
+  version: number = 310,
 ): readonly AbiParameter[] | null {
   const versionedMapping = irmDeployParamsAbiMapping[irmType];
   return versionedMapping?.[version.toString()] ?? null;
@@ -61,7 +61,7 @@ export function getIrmDeployParamsAbi(
 export function parseIrmDeployParams(
   irmPostfix: string,
   version: number,
-  data: Hex
+  data: Hex,
 ): Record<string, string> | null {
   const cleanIrmPostfix = irmPostfix.replace(/\0/g, "").trim();
   if (!hasIrmDeployParamsAbi(cleanIrmPostfix)) return null;
@@ -89,7 +89,7 @@ export function parseIrmDeployParams(
  * @returns True if the IRM type has an ABI defined
  */
 export function hasIrmDeployParamsAbi(
-  irmType: string
+  irmType: string,
 ): irmType is InterestRateModelType {
   return irmType in irmDeployParamsAbiMapping;
 }

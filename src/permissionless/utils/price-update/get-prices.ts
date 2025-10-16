@@ -1,11 +1,17 @@
-import { GearboxSDK } from "../../../sdk/index.js";
 import {
-  simulateWithPriceUpdates,
-  simulateMulticall,
-  SimulateWithPriceUpdatesError,
-} from "../../../sdk/utils/viem/index.js";
+  Abi,
+  type Address,
+  multicall3Abi,
+  type PublicClient,
+  parseAbi,
+} from "viem";
+import { GearboxSDK } from "../../../sdk/index.js";
 import { createRawTx } from "../../../sdk/utils/index.js";
-import { Abi, Address, multicall3Abi, parseAbi, PublicClient } from "viem";
+import {
+  SimulateWithPriceUpdatesError,
+  simulateMulticall,
+  simulateWithPriceUpdates,
+} from "../../../sdk/utils/viem/index.js";
 import { getPriceUpdateTx } from "./get-price-update-tx";
 
 const latestRoundDataAbi = [
@@ -42,15 +48,14 @@ async function getPricesChunk({
   priceFeeds: Address[];
   sdk: GearboxSDK;
 }): Promise<Record<Address, bigint | null>> {
-  const updateCall = priceFeeds.map((priceFeed) =>
-    getLatestRoundDataCall(priceFeed)
+  const updateCall = priceFeeds.map(priceFeed =>
+    getLatestRoundDataCall(priceFeed),
   );
 
-  const updateTxs = await sdk.priceFeeds.generateExternalPriceFeedsUpdateTxs(
-    priceFeeds
-  );
+  const updateTxs =
+    await sdk.priceFeeds.generateExternalPriceFeedsUpdateTxs(priceFeeds);
 
-  const multicallCalls = updateTxs.txs.map((tx) => ({
+  const multicallCalls = updateTxs.txs.map(tx => ({
     target: tx.raw.to as `0x${string}`,
     allowFailure: true,
     callData: tx.raw.callData,
@@ -66,9 +71,9 @@ async function getPricesChunk({
     contracts: [
       {
         address: multicall3Address,
-        // @ts-ignore
+        // @ts-expect-error
         abi: multicall3Abi,
-        // @ts-ignore
+        // @ts-expect-error
         functionName: "aggregate3",
         args: [multicallCalls] as unknown as readonly [],
       },
@@ -77,7 +82,7 @@ async function getPricesChunk({
     allowFailure: true,
   });
 
-  const prices = multicallResult.results.slice(1).map((result) => {
+  const prices = multicallResult.results.slice(1).map(result => {
     if (result.status === "failure") {
       return null;
     }
@@ -88,7 +93,7 @@ async function getPricesChunk({
     (priceFeed, index): [Address, bigint | null] => [
       priceFeed,
       prices[index] ?? null,
-    ]
+    ],
   );
 
   return Object.fromEntries(priceEntries) as Record<Address, bigint | null>;
@@ -117,11 +122,11 @@ export async function getPrices({
   }
 
   const results = await Promise.all(
-    chunks.map((chunk) => getPricesChunk({ client, priceFeeds: chunk, sdk }))
+    chunks.map(chunk => getPricesChunk({ client, priceFeeds: chunk, sdk })),
   );
 
   return results.reduce(
     (acc, result) => ({ ...acc, ...result }),
-    {} as Record<Address, bigint>
+    {} as Record<Address, bigint>,
   );
 }

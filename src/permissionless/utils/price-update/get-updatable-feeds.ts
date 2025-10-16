@@ -1,13 +1,13 @@
+import { type Address, getContract, type PublicClient } from "viem";
 import {
-  IPriceFeedContract,
+  type GearboxSDK,
+  type IPriceFeedContract,
+  type PriceFeedTreeNode,
   PythPriceFeed,
-  PriceFeedTreeNode,
   RedstonePriceFeedContract,
-  GearboxSDK
 } from "../../../sdk/index.js";
-import { Address, getContract, PublicClient } from "viem";
-import { iPriceFeedCompressorAbi } from "../../abi";
 import { bytes32ToString } from "../../../sdk/utils/index.js";
+import { iPriceFeedCompressorAbi } from "../../abi";
 
 export async function getUpdatablePriceFeeds(args: {
   sdk: GearboxSDK;
@@ -21,13 +21,15 @@ export async function getUpdatablePriceFeeds(args: {
     abi: iPriceFeedCompressorAbi,
     client,
   });
-  const updatablePriceFeeds = ((
-    await priceFeedCompressor.read.loadPriceFeedTree([priceFeeds])
-  ) as PriceFeedTreeNode[])
+  const updatablePriceFeeds = (
+    (await priceFeedCompressor.read.loadPriceFeedTree([
+      priceFeeds,
+    ])) as PriceFeedTreeNode[]
+  )
     .filter((data: PriceFeedTreeNode) =>
       ["PRICE_FEED::PYTH", "PRICE_FEED::REDSTONE"].includes(
-        bytes32ToString(data.baseParams.contractType)
-      )
+        bytes32ToString(data.baseParams.contractType),
+      ),
     )
     .map((data: PriceFeedTreeNode) => {
       if (

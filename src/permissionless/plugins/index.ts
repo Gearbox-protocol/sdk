@@ -1,15 +1,15 @@
 // IRM
 export {
   getIrmDeployParamsAbi,
-  parseIrmDeployParams,
   type InterestRateModelType,
+  parseIrmDeployParams,
 } from "./irm/constructor-params-abi";
 
 // Loss Policies
 export {
   getLossPolicyDeployParamsAbi,
-  parseLossPolicyDeployParams,
   type LossPolicyType,
+  parseLossPolicyDeployParams,
 } from "./loss-policies/constructor-params-abi";
 
 // Rate Keepers

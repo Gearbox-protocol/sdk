@@ -1,15 +1,19 @@
-import { GearboxSDK, IPriceUpdateTx, RawTx } from "../../../sdk/index.js";
 import {
-  Address,
+  type Address,
   decodeFunctionData,
-  Hex,
+  type Hex,
   multicall3Abi,
+  type PublicClient,
   parseAbi,
-  PublicClient,
 } from "viem";
-import { PriceFeedStoreContract, PriceUpdate } from "../../bindings";
-import { Addresses } from "../../deployment/addresses";
+import {
+  GearboxSDK,
+  type IPriceUpdateTx,
+  type RawTx,
+} from "../../../sdk/index.js";
 import { createRawTx } from "../../../sdk/utils/index.js";
+import { PriceFeedStoreContract, type PriceUpdate } from "../../bindings";
+import { Addresses } from "../../deployment/addresses";
 
 export function getUpdateCalldata(tx: IPriceUpdateTx): PriceUpdate {
   const data = decodeFunctionData({
@@ -33,7 +37,7 @@ export async function getPriceUpdateTx({
 }): Promise<RawTx | undefined> {
   const pfStore = new PriceFeedStoreContract(
     Addresses.PRICE_FEED_STORE,
-    client
+    client,
   );
 
   const sdk = await GearboxSDK.attach({
@@ -41,12 +45,11 @@ export async function getPriceUpdateTx({
     marketConfigurators: [],
   });
 
-  const updateTxs = await sdk.priceFeeds.generateExternalPriceFeedsUpdateTxs(
-    priceFeeds
-  );
+  const updateTxs =
+    await sdk.priceFeeds.generateExternalPriceFeedsUpdateTxs(priceFeeds);
 
   if (useMulticall3) {
-    const multicallCalls = updateTxs.txs.map((tx) => ({
+    const multicallCalls = updateTxs.txs.map(tx => ({
       target: tx.raw.to as `0x${string}`,
       allowFailure: false,
       callData: tx.raw.callData,
@@ -70,7 +73,7 @@ export async function getPriceUpdateTx({
     return multicallTx;
   }
 
-  const priceUpdates = updateTxs.txs.map((tx) => getUpdateCalldata(tx));
+  const priceUpdates = updateTxs.txs.map(tx => getUpdateCalldata(tx));
   if (priceUpdates.length === 0) {
     return undefined;
   }

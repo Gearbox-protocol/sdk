@@ -1,5 +1,5 @@
+import type { Address, Hash, PublicClient } from "viem";
 import type { RawTx } from "../../../sdk/types/index.js";
-import { Address, Hash, PublicClient } from "viem";
 import { batchesChainAbi } from "../../abi";
 import { BaseContract } from "../base-contract";
 

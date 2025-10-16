@@ -1,21 +1,25 @@
-import type { RawTx } from "../../sdk/types/index.js";
 import {
-  Address,
-  DecodeFunctionDataReturnType,
+  type Address,
+  type DecodeFunctionDataReturnType,
+  type Hex,
   hashStruct,
-  Hex,
   hexToString,
-  Log,
+  type Log,
+  type PublicClient,
   parseEventLogs,
-  PublicClient,
   recoverTypedDataAddress,
   stringToHex,
-  WalletClient,
+  type WalletClient,
 } from "viem";
+import type { RawTx } from "../../sdk/types/index.js";
 import { iBytecodeRepositoryAbi } from "../abi";
-import { Auditor } from "../core/auditor";
-import { AuditEvent, Bytecode, DeploymentExtended } from "../core/bytecode";
-import { ParsedCall } from "../core/proposal";
+import type { Auditor } from "../core/auditor";
+import type {
+  AuditEvent,
+  Bytecode,
+  DeploymentExtended,
+} from "../core/bytecode";
+import type { ParsedCall } from "../core/proposal";
 import { normalizeSignature } from "../utils";
 import { BYTECODE_REPOSITORY } from "../utils/literals";
 import { BaseContract } from "./base-contract";
@@ -75,17 +79,17 @@ export class BytecodeRepositoryContract extends BaseContract<typeof abi> {
   async getUploadBytecodeEvents(
     fromBlock: bigint,
     toBlock: bigint,
-    chunkSize?: number
+    chunkSize?: number,
   ): Promise<Omit<Bytecode, "uploadedAt">[]> {
     const events = await this.getEvents(
       "UploadBytecode",
       fromBlock,
       toBlock,
       undefined,
-      chunkSize
+      chunkSize,
     );
 
-    return events.map((e) => ({
+    return events.map(e => ({
       bytecodeHash: e.args.bytecodeHash! as Hex,
       author: e.args.author! as Address,
       version: Number(e.args.version!),
@@ -100,7 +104,7 @@ export class BytecodeRepositoryContract extends BaseContract<typeof abi> {
 
   async getAddAuditorEvents(
     fromBlock: bigint,
-    toBlock: bigint
+    toBlock: bigint,
   ): Promise<Auditor[]> {
     const events = await this.getEvents("AddAuditor", fromBlock, toBlock);
 
@@ -121,7 +125,7 @@ export class BytecodeRepositoryContract extends BaseContract<typeof abi> {
 
   async getDeployContractEvents(
     fromBlock: bigint,
-    toBlock: bigint
+    toBlock: bigint,
   ): Promise<Omit<DeploymentExtended, "timestamp">[]> {
     const events = await this.getEvents("DeployContract", fromBlock, toBlock);
 
@@ -142,7 +146,7 @@ export class BytecodeRepositoryContract extends BaseContract<typeof abi> {
 
   async getAuditBytecodeEvents(
     fromBlock: bigint,
-    toBlock: bigint
+    toBlock: bigint,
   ): Promise<Omit<AuditEvent, "timestamp">[]> {
     try {
       const events = await this.getEvents("AuditBytecode", fromBlock, toBlock);
@@ -176,7 +180,7 @@ export class BytecodeRepositoryContract extends BaseContract<typeof abi> {
 
   async getAllowPublicContractEvents(
     fromBlock: bigint,
-    toBlock: bigint
+    toBlock: bigint,
   ): Promise<
     Array<{
       bytecodeHash: Hex;
@@ -194,23 +198,23 @@ export class BytecodeRepositoryContract extends BaseContract<typeof abi> {
 
     const publicDomains = await this.contract.read.getPublicDomains();
 
-    const publicDomainsString = publicDomains.map((domain) =>
-      hexToString(domain, { size: 32 })
+    const publicDomainsString = publicDomains.map(domain =>
+      hexToString(domain, { size: 32 }),
     );
 
     const events = await this.getAllowContractEvents(fromBlock, toBlock);
 
-    return events.filter((e) => {
+    return events.filter(e => {
       const contractTypeString = hexToString(e.contractType, { size: 32 });
       return publicDomainsString.includes(
-        this.extractDomain(contractTypeString)
+        this.extractDomain(contractTypeString),
       );
     });
   }
 
   async getAllowContractEvents(
     fromBlock: bigint,
-    toBlock: bigint
+    toBlock: bigint,
   ): Promise<
     Array<{
       bytecodeHash: Hex;
@@ -257,12 +261,12 @@ export class BytecodeRepositoryContract extends BaseContract<typeof abi> {
 
   async getUploadUpdates(
     fromBlock: bigint,
-    toBlock: bigint
+    toBlock: bigint,
   ): Promise<Omit<Bytecode, "uploadedAt">[]> {
     const events = await this.getUploadBytecodeEvents(fromBlock, toBlock);
 
     const initCodes = await Promise.all(
-      events.map((event) => this.getBytecodeByHash(event.bytecodeHash))
+      events.map(event => this.getBytecodeByHash(event.bytecodeHash)),
     );
 
     events.forEach((event, index) => {
@@ -274,7 +278,7 @@ export class BytecodeRepositoryContract extends BaseContract<typeof abi> {
   }
 
   parseFunctionParams(
-    params: DecodeFunctionDataReturnType<typeof abi>
+    params: DecodeFunctionDataReturnType<typeof abi>,
   ): ParsedCall | undefined {
     switch (params.functionName) {
       case "allowSystemContract": {
@@ -370,14 +374,14 @@ export class BytecodeRepositoryContract extends BaseContract<typeof abi> {
     auditor: Address,
     reportUrl: string,
     signature: Hex,
-    sponsor: WalletClient
+    sponsor: WalletClient,
   ) {
     return await this.contract.write.submitAuditReport(
       [bytecodeHash, { auditor, reportUrl, signature }],
       {
         account: sponsor.account!,
         chain: sponsor.chain,
-      }
+      },
     );
   }
 
@@ -385,7 +389,7 @@ export class BytecodeRepositoryContract extends BaseContract<typeof abi> {
     bytecodeHash: Hex,
     auditor: Address,
     reportUrl: string,
-    signature: Hex
+    signature: Hex,
   ) {
     const normalizedSignature = normalizeSignature(signature);
     return this.createRawTx({
@@ -401,12 +405,12 @@ export class BytecodeRepositoryContract extends BaseContract<typeof abi> {
     bytecodeHash: Hex,
     auditor: Address,
     reportUrl: string,
-    signature: Hex
+    signature: Hex,
   ): Promise<Address> {
     const digest = this.computeEIP712AuditorDigest(
       bytecodeHash,
       auditor,
-      reportUrl
+      reportUrl,
     );
 
     return await recoverTypedDataAddress({
@@ -421,7 +425,7 @@ export class BytecodeRepositoryContract extends BaseContract<typeof abi> {
     initCode: Hex,
     author: Address,
     source: string,
-    signature: Hex
+    signature: Hex,
   ): Promise<Address> {
     const digest = this.computeEIP712AuthorDigest({
       contractType: stringToHex(contractType, { size: 32 }),
@@ -457,7 +461,7 @@ export class BytecodeRepositoryContract extends BaseContract<typeof abi> {
   computeEIP712AuditorDigest(
     bytecodeHash: Hex,
     auditor: Address,
-    reportUrl: string
+    reportUrl: string,
   ) {
     return {
       domain: this.getEIP712Domain(),
@@ -556,13 +560,13 @@ export class BytecodeRepositoryContract extends BaseContract<typeof abi> {
   } {
     const events = parseEventLogs({
       logs: logs.filter(
-        (log) => log.address.toLowerCase() === this.address.toLowerCase()
+        log => log.address.toLowerCase() === this.address.toLowerCase(),
       ),
       abi: abi,
     });
 
     const deployEvents = events.filter(
-      (event) => event.eventName === "DeployContract"
+      event => event.eventName === "DeployContract",
     );
 
     if (deployEvents.length !== 1) {
@@ -588,7 +592,7 @@ export class BytecodeRepositoryContract extends BaseContract<typeof abi> {
   }
 
   async isAlreadyDeployedAddress(
-    args: ComputeAddressArgs
+    args: ComputeAddressArgs,
   ): Promise<[boolean, Address]> {
     const address = await this.computeAddress(args);
     const code = await this.client.getCode({ address });
@@ -609,10 +613,10 @@ export class BytecodeRepositoryContract extends BaseContract<typeof abi> {
       source: string;
       authorSignature: Hex;
     },
-    sponsor: WalletClient
+    sponsor: WalletClient,
   ) {
     const normalizedSignature = normalizeSignature(
-      uploadByteCode.authorSignature
+      uploadByteCode.authorSignature,
     );
     return await this.contract.write.uploadBytecode(
       [{ ...uploadByteCode, authorSignature: normalizedSignature }],
@@ -620,7 +624,7 @@ export class BytecodeRepositoryContract extends BaseContract<typeof abi> {
         account: sponsor.account!,
         chain: sponsor.chain!,
         // gas: 35_000_000n,
-      }
+      },
     );
   }
 

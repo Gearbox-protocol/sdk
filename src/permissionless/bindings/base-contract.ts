@@ -1,23 +1,23 @@
-import { createRawTx } from "../../sdk/utils/index.js";
-import type { RawTx } from "../../sdk/types/index.js";
 import {
-  Abi,
+  type Abi,
   AbiFunction,
-  Address,
-  Client,
-  ContractEventArgs,
-  ContractEventName,
-  ContractFunctionName,
+  type Address,
+  type Client,
+  type ContractEventArgs,
+  type ContractEventName,
+  type ContractFunctionName,
+  type DecodeFunctionDataReturnType,
   decodeFunctionData,
-  DecodeFunctionDataReturnType,
-  EncodeFunctionDataParameters,
+  type EncodeFunctionDataParameters,
+  type GetContractEventsReturnType,
+  type GetContractReturnType,
   getContract,
-  GetContractEventsReturnType,
-  GetContractReturnType,
-  Hex,
-  PublicClient,
+  type Hex,
+  type PublicClient,
 } from "viem";
-import { CrossChainCall, ParsedCall } from "../core/proposal";
+import type { RawTx } from "../../sdk/types/index.js";
+import { createRawTx } from "../../sdk/utils/index.js";
+import type { CrossChainCall, ParsedCall } from "../core/proposal";
 // import { createRawTx, EncodeFunctionDataParams } from "../core/raw-tx";
 import { decodeFunctionWithNamedArgs } from "../utils/abi-decoder";
 
@@ -82,7 +82,7 @@ export class BaseContract<const abi extends Abi | readonly unknown[]> {
 
     // Check if there's a specific parser for this function
     const specParsed = this.parseFunctionParams(
-      decodedWithNames.originalDecoded
+      decodedWithNames.originalDecoded,
     );
     if (specParsed) {
       return specParsed;
@@ -90,13 +90,13 @@ export class BaseContract<const abi extends Abi | readonly unknown[]> {
 
     return this.wrapParseCall(
       decodedWithNames.originalDecoded,
-      decodedWithNames.args
+      decodedWithNames.args,
     );
   }
 
   protected wrapParseCall(
     params: DecodeFunctionDataReturnType<abi>,
-    parsedParams: Record<string, string>
+    parsedParams: Record<string, string>,
   ): ParsedCall {
     return {
       chainId: 0,
@@ -108,17 +108,17 @@ export class BaseContract<const abi extends Abi | readonly unknown[]> {
   }
 
   parseFunctionParams(
-    params: DecodeFunctionDataReturnType<abi>
+    params: DecodeFunctionDataReturnType<abi>,
   ): ParsedCall | undefined {
     return undefined;
   }
 
   public createRawTx<
-    functionName extends ContractFunctionName<abi> | undefined = undefined
+    functionName extends ContractFunctionName<abi> | undefined = undefined,
   >(
     parameters: Omit<EncodeFunctionDataParameters<abi, functionName>, "abi"> & {
       description?: string;
-    }
+    },
   ): RawTx {
     const { description: argsDescription } = parameters;
 
@@ -128,7 +128,7 @@ export class BaseContract<const abi extends Abi | readonly unknown[]> {
         abi: this.abi,
         ...parameters,
       } as unknown as EncodeFunctionDataParameters<abi, functionName>,
-      argsDescription
+      argsDescription,
     );
 
     tx.description =
@@ -158,7 +158,7 @@ export class BaseContract<const abi extends Abi | readonly unknown[]> {
             : ContractEventName<abi>
         >
       | undefined,
-    chunkSize?: number
+    chunkSize?: number,
   ): Promise<
     GetContractEventsReturnType<abi, EventName, undefined, bigint, bigint>
   > {
@@ -175,7 +175,7 @@ export class BaseContract<const abi extends Abi | readonly unknown[]> {
             abi: this.abi,
             eventName,
             args,
-          })
+          }),
         );
       }
       const events = (await Promise.all(getEventPromises)).flat();
@@ -203,7 +203,7 @@ export class BaseContract<const abi extends Abi | readonly unknown[]> {
 
       if (
         e instanceof Error &&
-        blockRangeErrors.some((errorText) => e.message.includes(errorText))
+        blockRangeErrors.some(errorText => e.message.includes(errorText))
       ) {
         const middle = (fromBlock + toBlock) / 2n;
         const [firstHalfEvents, secondHalfEvents] = await Promise.all([

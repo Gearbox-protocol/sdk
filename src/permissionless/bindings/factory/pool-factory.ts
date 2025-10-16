@@ -1,9 +1,7 @@
-import { Hex } from "viem";
-import { Address } from "viem";
+import type { Address, Hex } from "viem";
 import { iPoolConfigureActionsAbi } from "../../abi";
-
+import type { SetTokenQuotaIncreaseFeeParams } from "../types";
 import { AbstractFactory } from "./abstract-factory";
-import { SetTokenQuotaIncreaseFeeParams } from "../types";
 
 const abi = iPoolConfigureActionsAbi;
 
