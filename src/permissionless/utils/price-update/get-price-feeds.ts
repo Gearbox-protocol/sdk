@@ -19,7 +19,9 @@ export function getCallTouchedPriceFeeds(parsedCall: ParsedCall): Address[] {
     }
 
     if (Array.isArray(obj)) {
-      obj.forEach(item => searchForPriceFeeds(item));
+      obj.forEach(item => {
+        searchForPriceFeeds(item);
+      });
       return;
     }
 
