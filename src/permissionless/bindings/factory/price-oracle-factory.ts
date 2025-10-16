@@ -1,0 +1,28 @@
+import { Hex } from "viem";
+import { iPriceOracleConfigureActionsAbi } from "../../abi";
+
+import { SetPriceFeedParams } from "../types";
+import { SetReservePriceFeedParams } from "../types";
+import { AbstractFactory } from "./abstract-factory";
+
+const abi = iPriceOracleConfigureActionsAbi;
+
+export class PriceOracleFactory extends AbstractFactory<typeof abi> {
+  constructor() {
+    super(abi);
+  }
+
+  setPriceFeed(params: SetPriceFeedParams): Hex {
+    return this.createCallData({
+      functionName: "setPriceFeed",
+      args: [params.token, params.priceFeed],
+    });
+  }
+
+  setReservePriceFeed(params: SetReservePriceFeedParams): Hex {
+    return this.createCallData({
+      functionName: "setReservePriceFeed",
+      args: [params.token, params.priceFeed],
+    });
+  }
+}
