@@ -34,6 +34,11 @@
       "types": "./dist/types/abi/*.d.ts",
       "import": "./dist/esm/abi/*.js",
       "default": "./dist/cjs/abi/*.js"
+    },
+    "./permissionless/*": {
+      "types": "./dist/types/permissionless/*.d.ts",
+      "import": "./dist/esm/permissionless/*.js",
+      "default": "./dist/cjs/permissionless/*.js"
     }
   },
   "files": [
