@@ -1,0 +1,26 @@
+import type { PriceFeedSetupParams } from "../../core";
+
+export const pendlePtTwapPriceFeed: PriceFeedSetupParams = {
+  contractType: "PRICE_FEED::PENDLE_PT_TWAP",
+  version: 310,
+  constructorParams: [
+    {
+      label: "market",
+      type: { type: "address" },
+    },
+    {
+      label: "underlyingPriceFeed",
+      type: { type: "pricefeedParamsFlattened" },
+    },
+    {
+      label: "twapWindow",
+      type: { type: "uint32" },
+    },
+    {
+      label: "priceToSY",
+      type: { type: "bool" },
+      defaultValue: false,
+    },
+  ],
+  stalenessPeriod: false,
+};
