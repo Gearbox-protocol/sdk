@@ -590,7 +590,11 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
 
       // This will reload all or some markets. Should already use sdk.currentBlock
       await this.marketRegister.syncState(ignoreUpdateablePrices);
-      await this.#hooks.triggerHooks("syncState", { blockNumber, timestamp });
+      await this.#hooks.triggerHooks("syncState", {
+        blockNumber,
+        timestamp,
+        ignoreUpdateablePrices,
+      });
 
       const pluginsList = TypedObjectUtils.entries(this.plugins);
       const pluginResponse = await Promise.allSettled(
