@@ -518,9 +518,9 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
   /**
    * Reloads markets states based on events from last processed block to new block (defaults to latest block)
    * @param opts
-   * @returns
+   * @returns true if successful, false if was skipped or failed
    */
-  public async syncState(opts?: SyncStateOptions): Promise<void> {
+  public async syncState(opts?: SyncStateOptions): Promise<boolean> {
     let {
       blockNumber,
       timestamp,
@@ -542,17 +542,18 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       timestamp = block.timestamp;
     }
     if (blockNumber <= this.currentBlock) {
-      return;
+      return false;
     }
     if (this.#syncing) {
       this.logger?.warn(
         `cannot sync to ${blockNumber}, already syncing at ${this.currentBlock}`,
       );
-      return;
+      return false;
     }
     this.#syncing = true;
     const prevBlock = this.currentBlock;
     const prevTimestamp = this.timestamp;
+    let success = false;
     try {
       let delta = Math.floor(Date.now() / 1000) - Number(timestamp);
       this.logger?.debug(
@@ -589,10 +590,6 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
 
       // This will reload all or some markets. Should already use sdk.currentBlock
       await this.marketRegister.syncState(ignoreUpdateablePrices);
-      // TODO: do wee need to sync state on botlist and others?
-      //
-      // TODO: how to handle "singleton" contracts addresses, where contract instance is shared across multiple other contract instrances
-      // This behaviour should be reserved for contracts with 100% immutable state, such as InterestRateModel?
       await this.#hooks.triggerHooks("syncState", { blockNumber, timestamp });
 
       const pluginsList = TypedObjectUtils.entries(this.plugins);
@@ -620,6 +617,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       this.logger?.debug(
         `synced state to block ${blockNumber} (delta ${delta}s)`,
       );
+      success = true;
     } catch (e) {
       // possible that this is non-atomic revert
       // if logs fail, marketRegister is not synced, so this block number revert does nothing
@@ -633,6 +631,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
     } finally {
       this.#syncing = false;
     }
+    return success;
   }
 
   public get provider(): Provider {
