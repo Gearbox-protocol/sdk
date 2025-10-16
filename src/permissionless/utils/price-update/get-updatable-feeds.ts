@@ -1,4 +1,5 @@
 import { type Address, getContract, type PublicClient } from "viem";
+import { priceFeedCompressorAbi } from "../../../abi/compressors/priceFeedCompressor.js";
 import {
   type GearboxSDK,
   type IPriceFeedContract,
@@ -7,7 +8,6 @@ import {
   RedstonePriceFeedContract,
 } from "../../../sdk/index.js";
 import { bytes32ToString } from "../../../sdk/utils/index.js";
-import { iPriceFeedCompressorAbi } from "../../abi";
 
 export async function getUpdatablePriceFeeds(args: {
   sdk: GearboxSDK;
@@ -18,7 +18,7 @@ export async function getUpdatablePriceFeeds(args: {
   const { sdk, client, pfCompressor, priceFeeds } = args;
   const priceFeedCompressor = getContract({
     address: pfCompressor,
-    abi: iPriceFeedCompressorAbi,
+    abi: priceFeedCompressorAbi,
     client,
   });
   const updatablePriceFeeds = (

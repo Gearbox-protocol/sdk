@@ -1,5 +1,5 @@
 import type { Address, Hex } from "viem";
-import { iPoolConfigureActionsAbi } from "../../abi";
+import { iPoolConfigureActionsAbi } from "../../../abi/310/configure/iPoolConfigureActions.js";
 import type { SetTokenQuotaIncreaseFeeParams } from "../types";
 import { AbstractFactory } from "./abstract-factory";
 

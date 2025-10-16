@@ -17,14 +17,14 @@ import {
   stringToHex,
   toBytes,
 } from "viem";
-import type { RawTx } from "../../sdk/types/index.js";
-import { json_stringify } from "../../sdk/utils/index.js";
-// Permissionless SDK imports
 import {
   creditFacadeParamsAbi,
   creditManagerParamsAbi,
-  iMarketConfiguratorAbi,
-} from "../abi";
+} from "../../abi/310/configure/creditSuiteParams.js";
+// Permissionless SDK imports
+import { iMarketConfiguratorV310Abi } from "../../abi/310/generated.js";
+import type { RawTx } from "../../sdk/types/index.js";
+import { json_stringify } from "../../sdk/utils/index.js";
 // Local imports
 import type { ParsedCall } from "../core/proposal";
 import {
@@ -54,7 +54,7 @@ import type {
   UnpauseCreditManagerParams,
 } from "./types";
 
-const abi = iMarketConfiguratorAbi;
+const abi = iMarketConfiguratorV310Abi;
 
 export class MarketConfiguratorContract extends BaseContract<typeof abi> {
   public readonly creditFactory: CreditFactory;

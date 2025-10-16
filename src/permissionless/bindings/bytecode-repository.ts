@@ -11,8 +11,8 @@ import {
   stringToHex,
   type WalletClient,
 } from "viem";
+import { iBytecodeRepositoryAbi } from "../../abi/310/iBytecodeRepository.js";
 import type { RawTx } from "../../sdk/types/index.js";
-import { iBytecodeRepositoryAbi } from "../abi";
 import type { Auditor } from "../core/auditor";
 import type {
   AuditEvent,

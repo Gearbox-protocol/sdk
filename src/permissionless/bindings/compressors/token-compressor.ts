@@ -5,7 +5,7 @@ import {
   type PublicClient,
   parseAbi,
 } from "viem";
-import { tokenCompressorAbi } from "../../abi";
+import { tokenCompressorAbi } from "../../../abi/compressors/tokenCompressor.js";
 import { BaseContract } from "../base-contract";
 
 const abi = tokenCompressorAbi;

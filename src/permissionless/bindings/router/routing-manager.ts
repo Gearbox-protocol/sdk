@@ -4,7 +4,7 @@ import {
   hexToString,
   type PublicClient,
 } from "viem";
-import { routingManagerAbi } from "../../abi";
+import { routingManagerAbi } from "../../../abi/router/routingManager.js";
 import type { ParsedCall } from "../../core";
 import { BaseContract } from "../base-contract";
 

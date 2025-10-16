@@ -1,8 +1,8 @@
 import { type Address, type PublicClient, stringToHex } from "viem";
-import { addressProviderAbi } from "../abi";
+import { iAddressProviderV310Abi } from "../../abi/310/generated.js";
 import { BaseContract } from "./base-contract";
 
-const abi = addressProviderAbi;
+const abi = iAddressProviderV310Abi;
 
 export class AddressProviderContract extends BaseContract<typeof abi> {
   constructor(address: Address, client: PublicClient) {

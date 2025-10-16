@@ -10,9 +10,9 @@ import {
   toBytes,
 } from "viem";
 import { formatAbiItem } from "viem/utils";
+import { governorAbi } from "../../../abi/governance/governor.js";
 import type { RawTx } from "../../../sdk/types/index.js";
 import { json_stringify } from "../../../sdk/utils/index.js";
-import { governorAbi } from "../../abi";
 import type { ParsedCall } from "../../core";
 import { formatTimestamp } from "../../utils";
 import { BaseContract } from "../base-contract";

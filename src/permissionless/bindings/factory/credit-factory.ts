@@ -1,11 +1,11 @@
 import { type Address, decodeFunctionData, type Hex, hexToString } from "viem";
+import { iCreditConfigureActionsAbi } from "../../../abi/310/configure/iCreditConfigureActions.js";
 import {
   type AdapterType,
   adapterConstructorAbi,
   parseAdapterAction,
   parseAdapterDeployParams,
 } from "../../../plugins/adapters/index.js";
-import { iCreditConfigureActionsAbi } from "../../abi";
 import type {
   DeployParams,
   SetExpirationDateParams,

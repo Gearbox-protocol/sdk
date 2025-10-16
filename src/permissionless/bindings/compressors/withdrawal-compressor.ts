@@ -4,7 +4,7 @@ import {
   hexToString,
   type PublicClient,
 } from "viem";
-import { withdrawalCompressorAbi } from "../../abi";
+import { withdrawalCompressorAbi } from "../../../abi/compressors/withdrawalCompressor.js";
 import type { ParsedCall } from "../../core";
 import { BaseContract } from "../base-contract";
 

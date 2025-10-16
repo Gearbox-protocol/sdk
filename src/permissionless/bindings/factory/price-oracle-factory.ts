@@ -1,5 +1,5 @@
 import type { Hex } from "viem";
-import { iPriceOracleConfigureActionsAbi } from "../../abi";
+import { iPriceOracleConfigureActionsAbi } from "../../../abi/310/configure/iPriceOracleConfigureActions.js";
 import type { SetPriceFeedParams, SetReservePriceFeedParams } from "../types";
 import { AbstractFactory } from "./abstract-factory";
 

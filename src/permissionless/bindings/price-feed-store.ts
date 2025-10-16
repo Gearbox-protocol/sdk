@@ -9,9 +9,9 @@ import {
   type PublicClient,
   recoverTypedDataAddress,
 } from "viem";
+import { iPriceFeedStoreAbi } from "../../abi/310/iPriceFeedStore.js";
 import type { RawTx } from "../../sdk/types/index.js";
 import { json_stringify } from "../../sdk/utils/index.js";
-import { iPriceFeedStoreAbi } from "../abi";
 import type {
   InputValueParams,
   ParsedCall,

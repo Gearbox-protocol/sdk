@@ -1,5 +1,5 @@
 import type { Address, Hex, PublicClient } from "viem";
-import { iTimeLockAbi } from "../../abi";
+import { iTimeLockAbi } from "../../../abi/governance/iTimeLock.js";
 import { BaseContract } from "../base-contract";
 import type { QueuedAndExecutedTransaction } from "./types";
 

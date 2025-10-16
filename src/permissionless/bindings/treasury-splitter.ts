@@ -1,6 +1,6 @@
 import type { Address, DecodeFunctionDataReturnType, PublicClient } from "viem";
+import { ITreasurySplitterAbi } from "../../abi/310/iTreasurySplitter.js";
 import type { RawTx } from "../../sdk/types/index.js";
-import { ITreasurySplitterAbi } from "../abi";
 import type { ParsedCall } from "../core";
 import { BaseContract } from "./base-contract";
 

@@ -6,16 +6,14 @@ import {
   type PublicClient,
   stringToHex,
 } from "viem";
+import { instanceManagerAbi } from "../../abi/310/instanceManager.js";
+import { camelotV3WorkerAbi } from "../../abi/router/camelotV3Worker.js";
+import { erc4626WorkerAbi } from "../../abi/router/erc4626Worker.js";
+import { gearboxRouterAbi } from "../../abi/router/gearboxRouter.js";
+import { pendleRouterWorkerAbi } from "../../abi/router/pendleRouterWorker.js";
+import { uniswapV3WorkerAbi } from "../../abi/router/uniswapV3Worker.js";
 import type { RawTx } from "../../sdk/types/index.js";
 import { json_stringify } from "../../sdk/utils/index.js";
-import {
-  camelotV3WorkerAbi,
-  erc4626WorkerAbi,
-  gearboxRouterAbi,
-  instanceManagerAbi,
-  pendleRouterWorkerAbi,
-  uniswapV3WorkerAbi,
-} from "../abi";
 import type { ParsedCall } from "../core/proposal";
 import { Addresses } from "../deployment/addresses";
 import { BaseContract } from "./base-contract";

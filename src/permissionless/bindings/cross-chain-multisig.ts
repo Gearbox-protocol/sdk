@@ -9,9 +9,9 @@ import {
   type WalletClient,
   zeroAddress,
 } from "viem";
+import { crossChainMultisigAbi } from "../../abi/310/crossChainMultisig.js";
 import type { RawTx } from "../../sdk/types/index.js";
 import { json_stringify } from "../../sdk/utils/index.js";
-import { crossChainMultisigAbi } from "../abi";
 import type {
   Batch,
   CrossChainCall,

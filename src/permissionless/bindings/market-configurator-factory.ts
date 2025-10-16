@@ -1,6 +1,6 @@
 import type { Address, PublicClient } from "viem";
+import { iMarketConfiguratorFactoryAbi } from "../../abi/310/iMarketConfiguratorFactory.js";
 import type { RawTx } from "../../sdk/types/index.js";
-import { iMarketConfiguratorFactoryAbi } from "../abi";
 import { BaseContract } from "./base-contract";
 
 const abi = iMarketConfiguratorFactoryAbi;
