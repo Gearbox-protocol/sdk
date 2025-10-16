@@ -1,7 +1,10 @@
 import type { Hex } from "viem";
 import { iPriceOracleConfigureActionsAbi } from "../../../abi/310/configure/iPriceOracleConfigureActions.js";
-import type { SetPriceFeedParams, SetReservePriceFeedParams } from "../types";
-import { AbstractFactory } from "./abstract-factory";
+import type {
+  SetPriceFeedParams,
+  SetReservePriceFeedParams,
+} from "../types.js";
+import { AbstractFactory } from "./abstract-factory.js";
 
 const abi = iPriceOracleConfigureActionsAbi;
 

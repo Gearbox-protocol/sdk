@@ -56,8 +56,8 @@ export function decodeFunctionWithNamedArgs<T extends Abi | readonly unknown[]>(
       // Handle object-like args (fallback)
       Object.entries(decoded.args || {}).forEach(([key, value]) => {
         // Try to find the actual parameter name if key is numeric
-        const index = parseInt(key);
-        if (!isNaN(index) && abiItem.inputs?.[index]?.name) {
+        const index = parseInt(key, 10);
+        if (!Number.isNaN(index) && abiItem.inputs?.[index]?.name) {
           namedArgs[abiItem.inputs[index].name] = String(value);
         } else {
           namedArgs[key] = String(value);

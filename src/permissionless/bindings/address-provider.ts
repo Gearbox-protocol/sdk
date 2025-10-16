@@ -1,6 +1,6 @@
 import { type Address, type PublicClient, stringToHex } from "viem";
 import { iAddressProviderV310Abi } from "../../abi/310/generated.js";
-import { BaseContract } from "./base-contract";
+import { BaseContract } from "./base-contract.js";
 
 const abi = iAddressProviderV310Abi;
 

@@ -32,10 +32,10 @@ import type {
 } from "../pricefeeds/index.js";
 import { PriceFeedRef } from "../pricefeeds/index.js";
 import PriceFeedAnswerMap from "./PriceFeedAnswerMap.js";
-import type { OnDemandPriceUpdates } from "./types";
 import type {
   DelegatedOracleMulticall,
   IPriceOracleContract,
+  OnDemandPriceUpdates,
   PriceFeedsForTokensOptions,
 } from "./types.js";
 

@@ -1,11 +1,11 @@
 import type { Address, PublicClient } from "viem";
 import { AP_PRICE_FEED_COMPRESSOR } from "../../../sdk/constants/index.js";
 import { GearboxSDK } from "../../../sdk/index.js";
-import { AddressProviderContract } from "../../bindings";
-import type { ParsedCall } from "../../core";
-import { Addresses } from "../../deployment/addresses";
-import { deepJsonParse } from "../format";
-import { getUpdatablePriceFeeds } from "./get-updatable-feeds";
+import { AddressProviderContract } from "../../bindings/index.js";
+import type { ParsedCall } from "../../core/index.js";
+import { Addresses } from "../../deployment/addresses.js";
+import { deepJsonParse } from "../format.js";
+import { getUpdatablePriceFeeds } from "./get-updatable-feeds.js";
 
 export function getCallTouchedPriceFeeds(parsedCall: ParsedCall): Address[] {
   const priceFeeds: Address[] = [];

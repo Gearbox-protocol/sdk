@@ -1,5 +1,5 @@
-import type { NetworkType } from "../../sdk";
-import type { ZapperDataFull } from "./types";
+import type { NetworkType } from "../../sdk/index.js";
+import type { ZapperDataFull } from "./types.js";
 
 /**
  * Temporary zappers

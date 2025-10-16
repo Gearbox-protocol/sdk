@@ -9,5 +9,17 @@
   "files": {
     "includes": ["**", "!node_modules", "!dist", "!tmp", "!.yarn"],
     "ignoreUnknown": true
+  },
+  "linter": {
+    "rules": {
+      "correctness": {
+        "useImportExtensions": {
+          "level": "error",
+          "options": {
+            "forceJsExtensions": true
+          }
+        }
+      }
+    }
   }
 }

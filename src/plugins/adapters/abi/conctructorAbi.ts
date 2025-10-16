@@ -1,4 +1,4 @@
-import { AdapterType, type VersionedAbi } from "../types";
+import { AdapterType, type VersionedAbi } from "../types.js";
 import {
   ADDRESS_REFERRAL_ADAPTER_ABI,
   BASIC_ADAPTER_ABI,
@@ -10,7 +10,7 @@ import {
   STAKED_TOKEN_ADAPTER_ABI,
   STAKING_REWARDS_ADAPTER_ABI,
   UINT_REFERRAL_ADAPTER_ABI,
-} from "./conctructorAbiPatterns";
+} from "./conctructorAbiPatterns.js";
 
 /**
  * Mapping from adapter type to ABI for decoding deploy params

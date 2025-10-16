@@ -1,13 +1,11 @@
 import {
   type Abi,
-  AbiFunction,
   type Address,
   type Client,
   type ContractEventArgs,
   type ContractEventName,
   type ContractFunctionName,
   type DecodeFunctionDataReturnType,
-  decodeFunctionData,
   type EncodeFunctionDataParameters,
   type GetContractEventsReturnType,
   type GetContractReturnType,
@@ -17,9 +15,9 @@ import {
 } from "viem";
 import type { RawTx } from "../../sdk/types/index.js";
 import { createRawTx } from "../../sdk/utils/index.js";
-import type { CrossChainCall, ParsedCall } from "../core/proposal";
+import type { CrossChainCall, ParsedCall } from "../core/proposal.js";
 // import { createRawTx, EncodeFunctionDataParams } from "../core/raw-tx";
-import { decodeFunctionWithNamedArgs } from "../utils/abi-decoder";
+import { decodeFunctionWithNamedArgs } from "../utils/abi-decoder.js";
 
 export class BaseContract<const abi extends Abi | readonly unknown[]> {
   public readonly abi: abi;
@@ -108,7 +106,7 @@ export class BaseContract<const abi extends Abi | readonly unknown[]> {
   }
 
   parseFunctionParams(
-    params: DecodeFunctionDataReturnType<abi>,
+    _params: DecodeFunctionDataReturnType<abi>,
   ): ParsedCall | undefined {
     return undefined;
   }

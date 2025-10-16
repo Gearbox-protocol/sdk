@@ -6,7 +6,7 @@ import {
   parseAbi,
 } from "viem";
 import { tokenCompressorAbi } from "../../../abi/compressors/tokenCompressor.js";
-import { BaseContract } from "../base-contract";
+import { BaseContract } from "../base-contract.js";
 
 const abi = tokenCompressorAbi;
 

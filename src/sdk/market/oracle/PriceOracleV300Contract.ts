@@ -21,7 +21,7 @@ import type {
   UpdatePriceFeedsResult,
 } from "../pricefeeds/index.js";
 import { PriceOracleBaseContract } from "./PriceOracleBaseContract.js";
-import type { OnDemandPriceUpdates } from "./types";
+import type { OnDemandPriceUpdates } from "./types.js";
 
 const abi = [...iPriceOracleV300Abi, ...iPausableAbi];
 type abi = typeof abi;

@@ -40,7 +40,7 @@ import {
   VelodromeV2RouterAdapterContract,
   WstETHV1AdapterContract,
   YearnV2RouterAdapterContract,
-} from "./contracts";
+} from "./contracts/index.js";
 import type { AdapterContractType } from "./types.js";
 
 export class AdaptersPlugin

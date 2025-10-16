@@ -13,16 +13,16 @@ import {
 } from "viem";
 import { iBytecodeRepositoryAbi } from "../../abi/310/iBytecodeRepository.js";
 import type { RawTx } from "../../sdk/types/index.js";
-import type { Auditor } from "../core/auditor";
+import type { Auditor } from "../core/auditor.js";
 import type {
   AuditEvent,
   Bytecode,
   DeploymentExtended,
-} from "../core/bytecode";
-import type { ParsedCall } from "../core/proposal";
-import { normalizeSignature } from "../utils";
-import { BYTECODE_REPOSITORY } from "../utils/literals";
-import { BaseContract } from "./base-contract";
+} from "../core/bytecode.js";
+import type { ParsedCall } from "../core/proposal.js";
+import { normalizeSignature } from "../utils/index.js";
+import { BYTECODE_REPOSITORY } from "../utils/literals.js";
+import { BaseContract } from "./base-contract.js";
 
 const abi = iBytecodeRepositoryAbi;
 

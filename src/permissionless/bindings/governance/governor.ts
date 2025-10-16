@@ -13,13 +13,13 @@ import { formatAbiItem } from "viem/utils";
 import { governorAbi } from "../../../abi/governance/governor.js";
 import type { RawTx } from "../../../sdk/types/index.js";
 import { json_stringify } from "../../../sdk/utils/index.js";
-import type { ParsedCall } from "../../core";
-import { formatTimestamp } from "../../utils";
-import { BaseContract } from "../base-contract";
-import { MarketConfiguratorContract } from "../market-configurator";
-import { TreasurySplitterContract } from "../treasury-splitter";
-import { BatchesChainContract } from "./batches-chain";
-import type { SafeTx, TimelockTxParams } from "./types";
+import type { ParsedCall } from "../../core/index.js";
+import { formatTimestamp } from "../../utils/index.js";
+import { BaseContract } from "../base-contract.js";
+import { MarketConfiguratorContract } from "../market-configurator.js";
+import { TreasurySplitterContract } from "../treasury-splitter.js";
+import { BatchesChainContract } from "./batches-chain.js";
+import type { SafeTx, TimelockTxParams } from "./types.js";
 
 const abi = governorAbi;
 
@@ -84,7 +84,7 @@ export class GovernorContract extends BaseContract<typeof abi> {
         tx.to,
         0n,
         signature,
-        ("0x" + tx.callData.slice(10)) as Hex,
+        `0x${tx.callData.slice(10)}` as Hex,
         BigInt(eta),
       ],
       description: `QueueTransaction(${tx.description})`,

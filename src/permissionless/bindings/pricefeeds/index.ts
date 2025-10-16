@@ -1,21 +1,21 @@
-import type { PriceFeedSetupParams } from "../../core";
-import { balancerStablePriceFeed } from "./balancer-stable";
-import { balancerWeightedPriceFeed } from "./balancer-weighted";
-import { boundedPriceFeed } from "./bounded";
-import { compositePriceFeed } from "./composite";
-import { constantPriceFeed } from "./constant";
-import { curveCryptoPriceFeed } from "./curve-crypto";
-import { curveStablePriceFeed } from "./curve-stable";
-import { curveTwapPriceFeed } from "./curve-twap";
-import { curveUsdPriceFeed } from "./curve-usd";
-import { erc4626PriceFeed } from "./erc4626";
-import { externalPriceFeed } from "./external";
-import { kodiakPriceFeed } from "./kodiak";
-import { mellowLrtPriceFeed } from "./mellow-lrt";
-import { pendlePtTwapPriceFeed } from "./pendle-pt-twap";
-import { pythPriceFeed } from "./pyth";
-import { redstonePriceFeed } from "./redstone";
-import { wstethPriceFeed } from "./wsteth";
+import type { PriceFeedSetupParams } from "../../core/index.js";
+import { balancerStablePriceFeed } from "./balancer-stable.js";
+import { balancerWeightedPriceFeed } from "./balancer-weighted.js";
+import { boundedPriceFeed } from "./bounded.js";
+import { compositePriceFeed } from "./composite.js";
+import { constantPriceFeed } from "./constant.js";
+import { curveCryptoPriceFeed } from "./curve-crypto.js";
+import { curveStablePriceFeed } from "./curve-stable.js";
+import { curveTwapPriceFeed } from "./curve-twap.js";
+import { curveUsdPriceFeed } from "./curve-usd.js";
+import { erc4626PriceFeed } from "./erc4626.js";
+import { externalPriceFeed } from "./external.js";
+import { kodiakPriceFeed } from "./kodiak.js";
+import { mellowLrtPriceFeed } from "./mellow-lrt.js";
+import { pendlePtTwapPriceFeed } from "./pendle-pt-twap.js";
+import { pythPriceFeed } from "./pyth.js";
+import { redstonePriceFeed } from "./redstone.js";
+import { wstethPriceFeed } from "./wsteth.js";
 
 export const priceFeedSetupParams: PriceFeedSetupParams[] = [
   externalPriceFeed,

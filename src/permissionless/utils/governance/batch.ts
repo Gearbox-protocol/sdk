@@ -1,6 +1,6 @@
 import { type Address, keccak256, toBytes } from "viem";
 import type { RawTx } from "../../../sdk/types/index.js";
-import type { SafeBatch, SafeTx } from "../../bindings";
+import type { SafeBatch, SafeTx } from "../../bindings/index.js";
 
 export function convertRawTxToSafeMultisigTx(tx: RawTx): SafeTx {
   const { to, value, contractMethod, contractInputsValues } = tx;

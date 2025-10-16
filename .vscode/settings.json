@@ -28,6 +28,8 @@
   "editor.formatOnSave": true,
   "editor.tabSize": 2,
   "eslint.enable": false,
+  "javascript.preferences.importModuleSpecifierEnding": "js",
+  "typescript.preferences.importModuleSpecifierEnding": "js",
   "files.eol": "\n",
   "search.exclude": {
     "**/node_modules": true,

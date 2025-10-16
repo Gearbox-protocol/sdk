@@ -1,4 +1,4 @@
-import type { PriceFeedSetupParams } from "../../core";
+import type { PriceFeedSetupParams } from "../../core/index.js";
 
 export const externalPriceFeed: PriceFeedSetupParams = {
   contractType: "PRICE_FEED::EXTERNAL",

@@ -5,8 +5,8 @@ import {
   type PublicClient,
 } from "viem";
 import { routingManagerAbi } from "../../../abi/router/routingManager.js";
-import type { ParsedCall } from "../../core";
-import { BaseContract } from "../base-contract";
+import type { ParsedCall } from "../../core/index.js";
+import { BaseContract } from "../base-contract.js";
 
 const abi = routingManagerAbi;
 

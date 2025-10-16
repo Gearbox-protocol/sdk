@@ -10,8 +10,8 @@ import type {
   DeployParams,
   SetExpirationDateParams,
   SetFeesParams,
-} from "../types";
-import { AbstractFactory } from "./abstract-factory";
+} from "../types.js";
+import { AbstractFactory } from "./abstract-factory.js";
 
 const abi = iCreditConfigureActionsAbi;
 

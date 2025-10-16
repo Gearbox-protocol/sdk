@@ -1,5 +1,8 @@
 import { type Address, type PublicClient, parseAbi } from "viem";
-import type { InputValueParams, PriceFeedSetupParams } from "../../core";
+import type {
+  InputValueParams,
+  PriceFeedSetupParams,
+} from "../../core/index.js";
 
 export const curveCryptoPriceFeed: PriceFeedSetupParams = {
   contractType: "PRICE_FEED::CURVE_CRYPTO",

@@ -12,8 +12,11 @@ import {
   type RawTx,
 } from "../../../sdk/index.js";
 import { createRawTx } from "../../../sdk/utils/index.js";
-import { PriceFeedStoreContract, type PriceUpdate } from "../../bindings";
-import { Addresses } from "../../deployment/addresses";
+import {
+  PriceFeedStoreContract,
+  type PriceUpdate,
+} from "../../bindings/index.js";
+import { Addresses } from "../../deployment/addresses.js";
 
 export function getUpdateCalldata(tx: IPriceUpdateTx): PriceUpdate {
   const data = decodeFunctionData({

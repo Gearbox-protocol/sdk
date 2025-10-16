@@ -1,5 +1,5 @@
 import { toHex } from "viem";
-import type { PriceFeedSetupParams } from "../../core";
+import type { PriceFeedSetupParams } from "../../core/index.js";
 
 export const redstonePriceFeed: PriceFeedSetupParams = {
   contractType: "PRICE_FEED::REDSTONE",

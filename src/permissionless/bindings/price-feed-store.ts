@@ -17,11 +17,11 @@ import type {
   ParsedCall,
   PriceFeed,
   PriceFeedParams,
-} from "../core";
-import { PRICE_FEED_STORE } from "../utils";
-import { BaseContract } from "./base-contract";
-import { priceFeedSetupParams } from "./pricefeeds";
-import type { PriceUpdate } from "./types";
+} from "../core/index.js";
+import { PRICE_FEED_STORE } from "../utils/index.js";
+import { BaseContract } from "./base-contract.js";
+import { priceFeedSetupParams } from "./pricefeeds/index.js";
+import type { PriceUpdate } from "./types.js";
 
 const abi = iPriceFeedStoreAbi;
 
@@ -480,7 +480,7 @@ export class PriceFeedStoreContract extends BaseContract<typeof abi> {
               functionName: "setLimiter",
               args: {
                 lowerBound: formatUnits(
-                  BigInt("0x" + priceFeedCall.callData.slice(10)),
+                  BigInt(`0x${priceFeedCall.callData.slice(10)}`),
                   18, // TODO: use decimals returned by getScale()
                 ), // uint256 formatted with 18 decimals
               },

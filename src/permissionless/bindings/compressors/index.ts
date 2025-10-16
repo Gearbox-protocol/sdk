@@ -1,2 +1,2 @@
-export * from "./token-compressor";
-export * from "./withdrawal-compressor";
+export * from "./token-compressor.js";
+export * from "./withdrawal-compressor.js";

@@ -26,18 +26,18 @@ import { iMarketConfiguratorV310Abi } from "../../abi/310/generated.js";
 import type { RawTx } from "../../sdk/types/index.js";
 import { json_stringify } from "../../sdk/utils/index.js";
 // Local imports
-import type { ParsedCall } from "../core/proposal";
+import type { ParsedCall } from "../core/proposal.js";
 import {
   parseIrmDeployParams,
   parseLossPolicyDeployParams,
   parseRateKeeperDeployParams,
-} from "../plugins";
-import { convertPercent } from "../utils";
-import { handleSalt } from "../utils/create2";
-import { AddressProviderContract, BaseContract } from ".";
-import { CreditFactory } from "./factory/credit-factory";
-import { PoolFactory } from "./factory/pool-factory";
-import { PriceOracleFactory } from "./factory/price-oracle-factory";
+} from "../plugins/index.js";
+import { handleSalt } from "../utils/create2.js";
+import { convertPercent } from "../utils/index.js";
+import { CreditFactory } from "./factory/credit-factory.js";
+import { PoolFactory } from "./factory/pool-factory.js";
+import { PriceOracleFactory } from "./factory/price-oracle-factory.js";
+import { AddressProviderContract, BaseContract } from "./index.js";
 import type {
   AddAssetParams,
   AllowTokenParams,
@@ -52,7 +52,7 @@ import type {
   SetReservePriceFeedParams,
   SetTokenQuotaIncreaseFeeParams,
   UnpauseCreditManagerParams,
-} from "./types";
+} from "./types.js";
 
 const abi = iMarketConfiguratorV310Abi;
 
@@ -665,7 +665,7 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
   }): Promise<Market[]> {
     const events = await this.getEvents("CreateMarket", fromBlock, toBlock);
 
-    const chainId = await this.client.getChainId();
+    const _chainId = await this.client.getChainId();
 
     const markets: Market[] = [];
     for (const event of events) {

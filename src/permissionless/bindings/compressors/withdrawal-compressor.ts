@@ -5,8 +5,8 @@ import {
   type PublicClient,
 } from "viem";
 import { withdrawalCompressorAbi } from "../../../abi/compressors/withdrawalCompressor.js";
-import type { ParsedCall } from "../../core";
-import { BaseContract } from "../base-contract";
+import type { ParsedCall } from "../../core/index.js";
+import { BaseContract } from "../base-contract.js";
 
 const abi = withdrawalCompressorAbi;
 

@@ -38,16 +38,9 @@ import type { ILogger, IPriceUpdateTx, MultiCall } from "../types/index.js";
 import { AddressMap, childLogger } from "../utils/index.js";
 import { simulateWithPriceUpdates } from "../utils/viem/index.js";
 import type {
-  ClaimDelayedProps,
-  FullyLiquidateProps,
-  GetConnectedBotsResult,
-  GetConnectedMigrationBotsResult,
-  PriceUpdatesOptions,
-  StartDelayedWithdrawalProps,
-} from "./types";
-import type {
   AddCollateralProps,
   ChangeDeptProps,
+  ClaimDelayedProps,
   CloseCreditAccountProps,
   CloseCreditAccountResult,
   CreditAccountFilter,
@@ -55,12 +48,17 @@ import type {
   CreditManagerFilter,
   EnableTokensProps,
   ExecuteSwapProps,
+  FullyLiquidateProps,
+  GetConnectedBotsResult,
+  GetConnectedMigrationBotsResult,
   GetCreditAccountsArgs,
   GetCreditAccountsOptions,
   OpenCAProps,
   PermitResult,
   PrepareUpdateQuotasProps,
+  PriceUpdatesOptions,
   Rewards,
+  StartDelayedWithdrawalProps,
   UpdateQuotasProps,
 } from "./types.js";
 

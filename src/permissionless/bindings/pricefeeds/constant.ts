@@ -1,4 +1,4 @@
-import type { PriceFeedSetupParams } from "../../core";
+import type { PriceFeedSetupParams } from "../../core/index.js";
 
 export const constantPriceFeed: PriceFeedSetupParams = {
   contractType: "PRICE_FEED::CONSTANT",

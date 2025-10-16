@@ -1,18 +1,6 @@
-import {
-  Abi,
-  type Address,
-  multicall3Abi,
-  type PublicClient,
-  parseAbi,
-} from "viem";
+import { type Address, multicall3Abi, type PublicClient } from "viem";
 import { GearboxSDK } from "../../../sdk/index.js";
-import { createRawTx } from "../../../sdk/utils/index.js";
-import {
-  SimulateWithPriceUpdatesError,
-  simulateMulticall,
-  simulateWithPriceUpdates,
-} from "../../../sdk/utils/viem/index.js";
-import { getPriceUpdateTx } from "./get-price-update-tx";
+import { simulateMulticall } from "../../../sdk/utils/viem/index.js";
 
 const latestRoundDataAbi = [
   {

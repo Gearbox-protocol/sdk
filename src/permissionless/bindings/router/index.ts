@@ -1,1 +1,1 @@
-export * from "./routing-manager";
+export * from "./routing-manager.js";

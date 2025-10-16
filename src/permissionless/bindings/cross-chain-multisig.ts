@@ -18,13 +18,13 @@ import type {
   ParsedCall,
   RecoveryMessage,
   Signature,
-} from "../core/proposal";
-import { Addresses } from "../deployment/addresses";
-import { normalizeSignature } from "../utils";
-import { CROSS_CHAIN_MULTISIG } from "../utils/literals";
-import { BaseContract } from "./base-contract";
-import { InstanceManagerContract } from "./instance-manager";
-import { MarketConfiguratorFactoryContract } from "./market-configurator-factory";
+} from "../core/proposal.js";
+import { Addresses } from "../deployment/addresses.js";
+import { normalizeSignature } from "../utils/index.js";
+import { CROSS_CHAIN_MULTISIG } from "../utils/literals.js";
+import { BaseContract } from "./base-contract.js";
+import { InstanceManagerContract } from "./instance-manager.js";
+import { MarketConfiguratorFactoryContract } from "./market-configurator-factory.js";
 
 const abi = crossChainMultisigAbi;
 

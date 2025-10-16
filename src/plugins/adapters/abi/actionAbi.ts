@@ -1,6 +1,6 @@
 import { type Hex, parseAbi, toFunctionSelector } from "viem";
 import type { PartialRecord } from "../../../sdk/index.js";
-import { AdapterType, type VersionedAbi } from "../types";
+import { AdapterType, type VersionedAbi } from "../types.js";
 
 /**
  * Mapping from adapter type to ABI for decoding deploy params

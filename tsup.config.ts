@@ -21,7 +21,7 @@ async function writeDummyPackage(subpath: string, type: "cjs" | "esm") {
 }
 
 export default defineConfig(options => {
-  const subpaths = getSubpaths("./src");
+  const subpaths = getSubpaths("./src", "abi");
   console.info("building subpaths", subpaths);
 
   const commonOptions: Partial<Options> = {
@@ -53,6 +53,7 @@ export default defineConfig(options => {
       ...commonOptions,
       format: ["esm"],
       outExtension: () => ({ js: ".js" }),
+
       outDir: "./dist/esm/",
       onSuccess: async () => {
         await Promise.all(
@@ -72,14 +73,14 @@ export default defineConfig(options => {
   ];
 });
 
-function getSubpaths(dir: string): string[] {
-  const subdirectories: string[] = [];
+function getSubpaths(dir: string, ...include: string[]): string[] {
+  const subdirectories = new Set([...include]);
 
   function searchDirectory(currentDir: string, relPath = "") {
     const entries = readdirSync(currentDir);
 
     if (entries.includes("index.ts")) {
-      subdirectories.push(relPath);
+      subdirectories.add(relPath);
     } else {
       for (const entry of entries) {
         const fullPath = join(currentDir, entry);
@@ -94,5 +95,5 @@ function getSubpaths(dir: string): string[] {
   }
 
   searchDirectory(dir);
-  return subdirectories;
+  return Array.from(subdirectories);
 }

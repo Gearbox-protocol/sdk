@@ -4,8 +4,8 @@ import type {
   EncodeFunctionDataParameters,
   Hex,
 } from "viem";
-import { createCallData } from "../../core/raw-tx";
-import { decodeFunctionWithNamedArgs } from "../../utils/abi-decoder";
+import { createCallData } from "../../core/raw-tx.js";
+import { decodeFunctionWithNamedArgs } from "../../utils/abi-decoder.js";
 
 export class AbstractFactory<const abi extends Abi | readonly unknown[]> {
   public readonly abi: abi;

@@ -1,5 +1,8 @@
 import type { Address, PublicClient } from "viem";
-import type { InputValueParams, PriceFeedSetupParams } from "../../core";
+import type {
+  InputValueParams,
+  PriceFeedSetupParams,
+} from "../../core/index.js";
 
 export const mellowLrtPriceFeed: PriceFeedSetupParams = {
   contractType: "PRICE_FEED::MELLOW_LRT",
