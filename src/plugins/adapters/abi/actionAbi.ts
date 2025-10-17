@@ -16,6 +16,7 @@ export const adapterActionSignatures: PartialRecord<
   },
   [AdapterType.BALANCER_V3_ROUTER]: {
     310: "function setPoolStatusBatch(address[],bool[])",
+    311: "function setPoolStatusBatch((address,uint8)[])",
   },
   [AdapterType.CAMELOT_V3_ROUTER]: {
     310: "function setPoolStatusBatch((address,address,bool)[])",
@@ -37,6 +38,7 @@ export const adapterActionSignatures: PartialRecord<
   },
   [AdapterType.PENDLE_ROUTER]: {
     310: "function setPairStatusBatch((address,address,address,uint8)[])",
+    311: "function setPairStatusBatch((address,address,address,uint8,uint8)[])",
   },
   [AdapterType.TRADERJOE_ROUTER]: {
     310: "function setPoolStatusBatch((address,address,uint256,uint8,bool)[])",

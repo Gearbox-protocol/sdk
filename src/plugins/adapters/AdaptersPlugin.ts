@@ -6,6 +6,7 @@ import type {
   IGearboxSDKPlugin,
 } from "../../sdk/index.js";
 import { BasePlugin, bytes32ToString } from "../../sdk/index.js";
+import { BalancerV3WrapperAdapterContract } from "./contracts/BalancerV3WrapperAdapterContract.js";
 import {
   BalancerV2VaultAdapterContract,
   BalancerV3RouterAdapterContract,
@@ -60,6 +61,8 @@ export class AdaptersPlugin
     switch (adapterType) {
       case "ADAPTER::BALANCER_V3_ROUTER":
         return new BalancerV3RouterAdapterContract(this.sdk, args);
+      case "ADAPTER::BALANCER_V3_WRAPPER":
+        return new BalancerV3WrapperAdapterContract(this.sdk, args);
       case "ADAPTER::BALANCER_VAULT":
         return new BalancerV2VaultAdapterContract(this.sdk, args);
       case "ADAPTER::CAMELOT_V3_ROUTER":
