@@ -24,6 +24,10 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
   },
   [AdapterType.BALANCER_V3_ROUTER]: {
     310: BASIC_ADAPTER_ABI,
+    311: BASIC_ADAPTER_ABI,
+  },
+  [AdapterType.BALANCER_V3_WRAPPER]: {
+    310: BASIC_ADAPTER_ABI,
   },
   [AdapterType.CAMELOT_V3_ROUTER]: {
     310: BASIC_ADAPTER_ABI,
@@ -48,6 +52,7 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
   },
   [AdapterType.PENDLE_ROUTER]: {
     310: BASIC_ADAPTER_ABI,
+    311: BASIC_ADAPTER_ABI,
   },
   [AdapterType.DAI_USDS_EXCHANGE]: {
     310: BASIC_ADAPTER_ABI,
