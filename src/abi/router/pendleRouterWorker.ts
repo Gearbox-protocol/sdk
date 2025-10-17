@@ -9,13 +9,6 @@ export const pendleRouterWorkerAbi = [
   },
   {
     type: "function",
-    name: "approxSlippage",
-    inputs: [],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
     name: "buildEdges",
     inputs: [
       {
@@ -411,15 +404,6 @@ export const pendleRouterWorkerAbi = [
     inputs: [],
     outputs: [{ name: "", type: "address", internalType: "address" }],
     stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "setApproxSlippage",
-    inputs: [
-      { name: "_approxSlippage", type: "uint256", internalType: "uint256" },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
   },
   {
     type: "function",
