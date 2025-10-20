@@ -7,6 +7,9 @@ import { Addresses } from "../../deployment/addresses.js";
 import { deepJsonParse } from "../format.js";
 import { getUpdatablePriceFeeds } from "./get-updatable-feeds.js";
 
+/**
+ * @deprecated This helper will be removed in the next releases.
+ */
 export function getCallTouchedPriceFeeds(parsedCall: ParsedCall): Address[] {
   const priceFeeds: Address[] = [];
 
@@ -43,12 +46,18 @@ export function getCallTouchedPriceFeeds(parsedCall: ParsedCall): Address[] {
   return priceFeeds;
 }
 
+/**
+ * @deprecated This helper will be removed in the next releases.
+ */
 export function getCallsTouchedPriceFeeds(
   parsedCalls: ParsedCall[],
 ): Address[] {
   return parsedCalls.flatMap(call => getCallTouchedPriceFeeds(call));
 }
 
+/**
+ * @deprecated This helper will be removed in the next releases.
+ */
 export async function getCallsTouchedUpdatablePriceFeeds({
   parsedCalls,
   client,
