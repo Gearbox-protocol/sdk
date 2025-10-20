@@ -8,6 +8,7 @@ export interface TimelockTxs {
   marketConfigurator: Address;
   createdAtBlock: number;
   queueBatches: SafeTx[][];
+  updatableFeeds?: Address[][];
 }
 
 export interface InstanceTxs {
@@ -15,4 +16,6 @@ export interface InstanceTxs {
   author: Address;
   instanceManager: Address;
   batches: SafeTx[][];
+  createdAtBlock?: number;
+  updatableFeeds?: Address[][];
 }
