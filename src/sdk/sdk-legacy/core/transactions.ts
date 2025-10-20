@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import type { Asset } from "../../router/index.js";
-import { formatBN } from "../../utils/index.js";
+import { formatBN, json_parse, json_stringify } from "../../utils/index.js";
 import type { TokenData } from "../tokens/tokenData.js";
 import { BigIntMath } from "../utils/math.js";
 import type { CreditManagerData_Legacy } from "./creditManager.js";
@@ -43,12 +43,12 @@ export interface TxSerialized {
 
 export class TxSerializer {
   static serialize(items: Array<EVMTx>): string {
-    return JSON.stringify(items.map(i => i.serialize()));
+    return json_stringify(items.map(i => i.serialize()));
   }
 
   static deserialize(data: string): Array<EVMTx> {
-    return (JSON.parse(data) as Array<TxSerialized>).map(e => {
-      const params = JSON.parse(e.content);
+    return (json_parse(data) as Array<TxSerialized>).map(e => {
+      const params = json_parse(e.content);
       switch (e.type) {
         case "TxAddLiquidity":
           return new TxAddLiquidity(params);
@@ -143,7 +143,7 @@ export class TxAddLiquidity extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxAddLiquidity",
-      content: JSON.stringify(this),
+      content: json_stringify(this),
     };
   }
 }
@@ -180,7 +180,7 @@ export class TxRemoveLiquidity extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxRemoveLiquidity",
-      content: JSON.stringify(this),
+      content: json_stringify(this),
     };
   }
 }
@@ -221,7 +221,7 @@ export class TxStakeDiesel extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxStakeDiesel",
-      content: JSON.stringify(this),
+      content: json_stringify(this),
     };
   }
 }
@@ -253,7 +253,7 @@ export class TxUnstakeDiesel extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxUnstakeDiesel",
-      content: JSON.stringify(this),
+      content: json_stringify(this),
     };
   }
 }
@@ -305,7 +305,7 @@ export class TXSwap extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxSwap",
-      content: JSON.stringify(this),
+      content: json_stringify(this),
     };
   }
 }
@@ -342,7 +342,7 @@ export class TxAddCollateral extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxAddCollateral",
-      content: JSON.stringify(this),
+      content: json_stringify(this),
     };
   }
 }
@@ -381,7 +381,7 @@ export class TxIncreaseBorrowAmount extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxIncreaseBorrowAmount",
-      content: JSON.stringify(this),
+      content: json_stringify(this),
     };
   }
 }
@@ -420,7 +420,7 @@ export class TxDecreaseBorrowAmount extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxIncreaseBorrowAmount",
-      content: JSON.stringify(this),
+      content: json_stringify(this),
     };
   }
 }
@@ -483,7 +483,7 @@ export class TxOpenMultitokenAccount extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxOpenMultitokenAccount",
-      content: JSON.stringify(this),
+      content: json_stringify(this),
     };
   }
 }
@@ -496,7 +496,7 @@ export class TxClaimNFT extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxClaimNFT",
-      content: JSON.stringify(this),
+      content: json_stringify(this),
     };
   }
 }
@@ -541,7 +541,7 @@ export class TxClaimRewards extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxClaimRewards",
-      content: JSON.stringify(this),
+      content: json_stringify(this),
     };
   }
 }
@@ -628,7 +628,7 @@ export class TxStartDelayedWithdrawal extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxStartDelayedWithdrawal",
-      content: JSON.stringify(this),
+      content: json_stringify(this),
     };
   }
 }
@@ -656,7 +656,7 @@ export class TxMigrateCreditAccount extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxMigrateCreditAccount",
-      content: JSON.stringify(this),
+      content: json_stringify(this),
     };
   }
 }
@@ -680,7 +680,7 @@ export class TxRepayAccount extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxRepayAccount",
-      content: JSON.stringify(this),
+      content: json_stringify(this),
     };
   }
 }
@@ -704,7 +704,7 @@ export class TxLiquidateAccount extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxLiquidateAccount",
-      content: JSON.stringify(this),
+      content: json_stringify(this),
     };
   }
 }
@@ -728,7 +728,7 @@ export class TxCloseAccount extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxCloseAccount",
-      content: JSON.stringify(this),
+      content: json_stringify(this),
     };
   }
 }
@@ -755,7 +755,7 @@ export class TxApprove extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxApprove",
-      content: JSON.stringify(this),
+      content: json_stringify(this),
     };
   }
 }
@@ -806,7 +806,7 @@ export class TxUpdateQuota extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxUpdateQuota",
-      content: JSON.stringify(this),
+      content: json_stringify(this),
     };
   }
 }
@@ -832,7 +832,7 @@ export class TxGaugeStake extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxGaugeStake",
-      content: JSON.stringify(this),
+      content: json_stringify(this),
     };
   }
 }
@@ -858,7 +858,7 @@ export class TxGaugeUnstake extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxGaugeUnstake",
-      content: JSON.stringify(this),
+      content: json_stringify(this),
     };
   }
 }
@@ -871,7 +871,7 @@ export class TxGaugeClaim extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxGaugeClaim",
-      content: JSON.stringify(this),
+      content: json_stringify(this),
     };
   }
 }
@@ -901,7 +901,7 @@ export class TxGaugeVote extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxGaugeVote",
-      content: JSON.stringify(this),
+      content: json_stringify(this),
     };
   }
 }
@@ -941,7 +941,7 @@ export class TxWithdrawCollateral extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxWithdrawCollateral",
-      content: JSON.stringify(this),
+      content: json_stringify(this),
     };
   }
 }
@@ -965,7 +965,7 @@ export class TxAddBot extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxAddBot",
-      content: JSON.stringify(this),
+      content: json_stringify(this),
     };
   }
 }
@@ -985,7 +985,7 @@ export class TxRemoveBot extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxAddBot",
-      content: JSON.stringify(this),
+      content: json_stringify(this),
     };
   }
 }
@@ -1029,7 +1029,7 @@ export class TxEnableTokens extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxEnableTokens",
-      content: JSON.stringify(this),
+      content: json_stringify(this),
     };
   }
 }
@@ -1066,7 +1066,7 @@ export class TxFillOrder extends EVMTx {
   serialize(): TxSerialized {
     return {
       type: "TxFillOrder",
-      content: JSON.stringify(this),
+      content: json_stringify(this),
     };
   }
 }
