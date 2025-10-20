@@ -8,30 +8,7 @@ export const extraZappers: Partial<Record<NetworkType, ZapperDataFull[]>> = {
   Mainnet: [
     {
       baseParams: {
-        addr: "0x2512bb303b66C541C32D764F65eCdB62875F0140",
-        version: 310n,
-        contractType:
-          "0x5a41505045523a3a455243343632360000000000000000000000000000000000",
-        serializedParams:
-          "0x000000000000000000000000da00000035fef4082f78def6a8903bee419fbf8e",
-      },
-      tokenIn: {
-        addr: "0xda00000035fef4082F78dEF6A8903bee419FbF8E",
-        symbol: "dUSDCV3",
-        name: "Trade USDC v3",
-        decimals: 6,
-      },
-      tokenOut: {
-        addr: "0xC155444481854c60e7a29f4150373f479988F32D",
-        symbol: "USDC",
-        name: "USDC",
-        decimals: 6,
-      },
-      pool: "0xC155444481854c60e7a29f4150373f479988F32D",
-    },
-    {
-      baseParams: {
-        addr: "0x18b33ee1cd4cb7912867d0b2cc8678a78f82136b",
+        addr: "0x85f540c9d5b3be85dbad54085aa18d49e23cd254",
         version: 310n,
         contractType:
           "0x5a41505045523a3a5354414b45445f4552433436323600000000000000000000",
@@ -45,63 +22,16 @@ export const extraZappers: Partial<Record<NetworkType, ZapperDataFull[]>> = {
         decimals: 18,
       },
       tokenOut: {
-        addr: "0xf00B548f1b69cB5EE559d891E03A196FB5101d4A",
-        symbol: "dWETHV3-cp0x",
-        name: "Gearbox WETH v3",
+        addr: "0x9396DCbf78fc526bb003665337C5E73b699571EF",
+        symbol: "kpkWETH",
+        name: "WETH Market",
         decimals: 18,
       },
-      pool: "0xf00B548f1b69cB5EE559d891E03A196FB5101d4A",
-    },
-
-    {
-      baseParams: {
-        addr: "0x17897d188bb49fea7bfac56e29b07036e16b3537",
-        version: 310n,
-        contractType:
-          "0x5a41505045523a3a5354414b45445f4552433436323600000000000000000000",
-        serializedParams:
-          "0x0000000000000000000000009ef444a6d7f4a5adcd68fd5329aa5240c90e14d2000000000000000000000000da00000035fef4082f78def6a8903bee419fbf8e",
-      },
-      tokenIn: {
-        addr: "0x9ef444a6d7F4A5adcd68FD5329aA5240C90E14d2",
-        symbol: "farmdUSDCV3",
-        name: "Farming of Trade USDC v3",
-        decimals: 6,
-      },
-      tokenOut: {
-        addr: "0xC155444481854c60e7a29f4150373f479988F32D",
-        symbol: "USDC",
-        name: "USDC",
-        decimals: 6,
-      },
-      pool: "0xC155444481854c60e7a29f4150373f479988F32D",
+      pool: "0x9396DCbf78fc526bb003665337C5E73b699571EF",
     },
     {
       baseParams: {
-        addr: "0x70383bac778f0285ddb5f35afbd631e5a4675c58",
-        version: 310n,
-        contractType:
-          "0x5a41505045523a3a5354414b45445f4552433436323600000000000000000000",
-        serializedParams:
-          "0x0000000000000000000000009ef444a6d7f4a5adcd68fd5329aa5240c90e14d2000000000000000000000000da00000035fef4082f78def6a8903bee419fbf8e",
-      },
-      tokenIn: {
-        addr: "0x9ef444a6d7F4A5adcd68FD5329aA5240C90E14d2",
-        symbol: "farmdUSDCV3",
-        name: "Farming of Trade USDC v3",
-        decimals: 6,
-      },
-      tokenOut: {
-        addr: "0xF0795C47fA58d00f5F77F4D5c01F31eE891E21B4",
-        symbol: "rUSDC",
-        name: "Resolv USDC",
-        decimals: 6,
-      },
-      pool: "0xF0795C47fA58d00f5F77F4D5c01F31eE891E21B4",
-    },
-    {
-      baseParams: {
-        addr: "0x2bC0231a1FC6a9b2E0C44AC1089F47a122a7a8c1",
+        addr: "0x5A5F69e134765Cb0169f280c2f2A7d8AdF8eFd29",
         version: 310n,
         contractType:
           "0x5a41505045523a3a455243343632360000000000000000000000000000000000",
@@ -115,35 +45,35 @@ export const extraZappers: Partial<Record<NetworkType, ZapperDataFull[]>> = {
         decimals: 18,
       },
       tokenOut: {
-        addr: "0xf00B548f1b69cB5EE559d891E03A196FB5101d4A",
-        symbol: "dWETHV3-cp0x",
-        name: "Gearbox WETH v3",
+        addr: "0x9396DCbf78fc526bb003665337C5E73b699571EF",
+        symbol: "kpkWETH",
+        name: "WETH Market",
         decimals: 18,
       },
-      pool: "0xf00B548f1b69cB5EE559d891E03A196FB5101d4A",
+      pool: "0x9396DCbf78fc526bb003665337C5E73b699571EF",
     },
     {
       baseParams: {
-        addr: "0x62af1fc6e54e66aba5322a3491b5ce1808a6fe89",
+        addr: "0xbff5E156779aDCE4C61ecc6bCc32cba89eD7dfa6",
         version: 310n,
         contractType:
           "0x5a41505045523a3a455243343632360000000000000000000000000000000000",
         serializedParams:
-          "0x000000000000000000000000da00000035fef4082f78def6a8903bee419fbf8e",
+          "0x000000000000000000000000ff94993fa7ea27efc943645f95adb36c1b81244b",
       },
       tokenIn: {
-        addr: "0xda00000035fef4082F78dEF6A8903bee419FbF8E",
-        symbol: "dUSDCV3",
-        name: "Trade USDC v3",
-        decimals: 6,
+        addr: "0xFF94993fA7EA27Efc943645F95Adb36C1b81244b",
+        symbol: "dWSTETHV3",
+        name: "wstETH v3",
+        decimals: 18,
       },
       tokenOut: {
-        addr: "0xF0795C47fA58d00f5F77F4D5c01F31eE891E21B4",
-        symbol: "rUSDC",
-        name: "Resolv USDC",
-        decimals: 6,
+        addr: "0xA9d17f6D3285208280a1Fd9B94479c62e0AABa64",
+        symbol: "kpkwstETH",
+        name: "wstETH v3",
+        decimals: 18,
       },
-      pool: "0xF0795C47fA58d00f5F77F4D5c01F31eE891E21B4",
+      pool: "0xA9d17f6D3285208280a1Fd9B94479c62e0AABa64",
     },
   ],
 };
