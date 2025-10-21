@@ -47,6 +47,7 @@ async function example(): Promise<void> {
     },
     redstone: {
       enableLogging: true,
+      ignoreMissingFeeds: true,
     },
   });
 

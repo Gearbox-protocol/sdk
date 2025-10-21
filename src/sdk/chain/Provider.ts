@@ -1,4 +1,4 @@
-import type { PublicClient, Transport } from "viem";
+import type { Chain, PublicClient, Transport } from "viem";
 import { createPublicClient, defineChain, fallback, http } from "viem";
 
 import { AddressLabeller } from "../base/AddressLabeller.js";
@@ -26,9 +26,15 @@ export type TransportOptions =
     }
   | {
       /**
-       * Alternatively, can pass entire viem transport
+       * Alternatively, can pass viem transport
        */
       transport: Transport;
+    }
+  | {
+      /**
+       * Alternatively, can pass entire viem client
+       */
+      client: PublicClient;
     };
 
 export interface ConnectionOptions {
@@ -42,15 +48,27 @@ export interface ConnectionOptions {
   retryCount?: number;
 }
 
-export function createTransport(
+export function createTransportClient(
   opts: TransportOptions & ConnectionOptions,
-): Transport {
+  chain?: Chain,
+): [Transport, PublicClient] {
   const { timeout = 120_000, retryCount } = opts;
-  if ("transport" in opts) {
-    return opts.transport;
+  let transport: Transport;
+  if ("client" in opts) {
+    transport = () => ({
+      config: opts.client.transport.config,
+      request: opts.client.transport.request,
+      value: opts.client.transport.value,
+    });
+    return [transport, opts.client];
   }
-  const rpcs = opts.rpcURLs.map(url => http(url, { timeout, retryCount }));
-  return rpcs.length > 1 ? fallback(rpcs) : rpcs[0];
+  if ("transport" in opts) {
+    transport = opts.transport;
+  } else {
+    const rpcs = opts.rpcURLs.map(url => http(url, { timeout, retryCount }));
+    transport = rpcs.length > 1 ? fallback(rpcs) : rpcs[0];
+  }
+  return [transport, createPublicClient({ transport, chain })];
 }
 
 export class Provider {
@@ -72,11 +90,10 @@ export class Provider {
       ...chains[networkType],
       id: chainId,
     }) as GearboxChain;
-    this.#transport = createTransport(opts);
-    this.#publicClient = createPublicClient({
-      chain: this.chain,
-      transport: this.#transport,
-    });
+    [this.#transport, this.#publicClient] = createTransportClient(
+      opts,
+      this.chain,
+    );
 
     this.addressLabels = new AddressLabeller();
   }

@@ -1,5 +1,5 @@
 import type { Address, Hex } from "viem";
-import { createPublicClient, parseEventLogs } from "viem";
+import { parseEventLogs } from "viem";
 
 import type { BaseContract, BaseState, IBaseContract } from "./base/index.js";
 import { TokensMeta } from "./base/index.js";
@@ -10,7 +10,7 @@ import type {
 } from "./chain/index.js";
 import {
   chains,
-  createTransport,
+  createTransportClient,
   detectNetwork,
   Provider,
 } from "./chain/index.js";
@@ -163,8 +163,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
     } = options;
     let { networkType, addressProvider, chainId } = options;
 
-    const transport = createTransport(options);
-    const attachClient = createPublicClient({ transport });
+    const [transport, attachClient] = createTransportClient(options);
     if (!networkType) {
       networkType = await detectNetwork(attachClient);
     }
