@@ -6,7 +6,7 @@ import type {
 
 export const mellowLrtPriceFeed: PriceFeedSetupParams = {
   contractType: "PRICE_FEED::MELLOW_LRT",
-  version: 310,
+  version: 311,
   constructorParams: [
     {
       label: "priceStore",

@@ -2,7 +2,7 @@ import type { PriceFeedSetupParams } from "../../core/index.js";
 
 export const kodiakPriceFeed: PriceFeedSetupParams = {
   contractType: "PRICE_FEED::KODIAK_ISLAND",
-  version: 310,
+  version: 311,
   constructorParams: [
     {
       label: "kodiakIsland",

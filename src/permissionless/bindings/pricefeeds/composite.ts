@@ -2,7 +2,7 @@ import type { PriceFeedSetupParams } from "../../core/index.js";
 
 export const compositePriceFeed: PriceFeedSetupParams = {
   contractType: "PRICE_FEED::COMPOSITE",
-  version: 310,
+  version: 311,
   constructorParams: [
     {
       label: "underlyingPriceFeed",

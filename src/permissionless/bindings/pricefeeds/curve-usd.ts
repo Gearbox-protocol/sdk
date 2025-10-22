@@ -2,7 +2,7 @@ import type { PriceFeedSetupParams } from "../../core/index.js";
 
 export const curveUsdPriceFeed: PriceFeedSetupParams = {
   contractType: "PRICE_FEED::CURVE_USD",
-  version: 310,
+  version: 311,
   constructorParams: [
     {
       label: "priceStore",

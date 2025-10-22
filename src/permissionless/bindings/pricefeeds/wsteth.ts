@@ -6,7 +6,7 @@ import type {
 
 export const wstethPriceFeed: PriceFeedSetupParams = {
   contractType: "PRICE_FEED::WSTETH",
-  version: 310,
+  version: 311,
   constructorParams: [
     {
       label: "priceStore",

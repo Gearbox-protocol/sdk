@@ -6,7 +6,7 @@ import type {
 
 export const balancerStablePriceFeed: PriceFeedSetupParams = {
   contractType: "PRICE_FEED::BALANCER_STABLE",
-  version: 310,
+  version: 311,
   constructorParams: [
     {
       label: "priceStore",
