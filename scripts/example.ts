@@ -2,12 +2,13 @@ import { writeFile } from "node:fs/promises";
 
 import { pino } from "pino";
 
-import { AccountsCounterPlugin } from "../src/plugins/accounts-counter/index.js";
+import { AccountsPlugin } from "../src/plugins/accounts/index.js";
 import { BotsPlugin } from "../src/plugins/bots/index.js";
 import { DegenDistributorsPlugin } from "../src/plugins/degen-distributors/index.js";
 import { Pools7DAgoPlugin } from "../src/plugins/pools-history/index.js";
 import { ZappersPlugin } from "../src/plugins/zappers/index.js";
 import { GearboxSDK, json_stringify } from "../src/sdk/index.js";
+import deriveMetrics from "./deriveMetrics.js";
 
 const logger = pino({
   level: process.env.LOG_LEVEL ?? "debug",
@@ -42,7 +43,7 @@ async function example(): Promise<void> {
       bots: new BotsPlugin(true),
       degen: new DegenDistributorsPlugin(true),
       pools7DAgo: new Pools7DAgoPlugin(true),
-      accountsCounter: new AccountsCounterPlugin(true),
+      accounts: new AccountsPlugin(),
       // stalenessV300: V300StalenessPeriodPlugin,
     },
     redstone: {
@@ -50,6 +51,9 @@ async function example(): Promise<void> {
       ignoreMissingFeeds: true,
     },
   });
+
+  const metrics = deriveMetrics(sdk);
+  console.log(metrics);
 
   // kind = "hydrated";
   // const state = await readFile(
