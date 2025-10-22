@@ -15,7 +15,7 @@ export class MellowLRTPriceFeedContract extends AbstractLPPriceFeedContract<abi>
   }
 
   public override async getValue(): Promise<bigint> {
-    const stack = await this.sdk.provider.publicClient.readContract({
+    const stack = await this.sdk.client.readContract({
       abi: iMellowVaultAbi,
       address: this.lpContract,
       functionName: "calculateStack",

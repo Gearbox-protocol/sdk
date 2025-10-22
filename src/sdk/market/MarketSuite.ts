@@ -40,7 +40,7 @@ export class MarketSuite extends SDKConstruct {
 
     for (const t of marketData.tokens) {
       sdk.tokensMeta.upsert(t.addr, t);
-      sdk.provider.addressLabels.set(t.addr as Address, t.symbol);
+      sdk.addressLabels.set(t.addr as Address, t.symbol);
     }
 
     this.pool = new PoolSuite(sdk, marketData);

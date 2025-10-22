@@ -14,7 +14,7 @@ export async function createAddressProvider(
   sdk: GearboxSDK,
   address: Address,
 ): Promise<IAddressProviderContract> {
-  const v = await sdk.provider.publicClient.readContract({
+  const v = await sdk.client.readContract({
     address,
     abi: iVersionAbi,
     functionName: "version",

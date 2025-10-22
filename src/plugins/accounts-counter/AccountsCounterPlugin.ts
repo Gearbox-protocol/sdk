@@ -52,7 +52,7 @@ export class AccountsCounterPlugin
       VERSION_RANGE_310,
     );
     const cms = this.sdk.marketRegister.creditManagers;
-    const count = await this.sdk.provider.publicClient.multicall({
+    const count = await this.sdk.client.multicall({
       contracts: cms.flatMap(
         cm =>
           [

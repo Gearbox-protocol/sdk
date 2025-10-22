@@ -56,7 +56,7 @@ export class BalancerWeightedPriceFeedContract extends AbstractLPPriceFeedContra
   }
 
   public override async getValue(): Promise<bigint> {
-    return await this.sdk.provider.publicClient.readContract({
+    return await this.sdk.client.readContract({
       abi: iBalancerWeightedPoolAbi,
       address: this.lpContract,
       functionName: "getRate",

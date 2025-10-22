@@ -331,7 +331,7 @@ export abstract class PriceOracleBaseContract<
     usage: PriceFeedUsageType,
     token: Address,
   ): void {
-    this.sdk.provider.addressLabels.set(address, oldLabel => {
+    this.sdk.addressLabels.set(address, oldLabel => {
       const symbol = this.sdk.tokensMeta.symbol(token);
       let pricefeedTag = `${symbol}.${usage}`;
 

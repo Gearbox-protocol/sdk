@@ -301,7 +301,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   ) {
     const migrationBot =
       AbstractMigrateCreditAccountsService.getMigrationBotAddress(
-        this.sdk.provider.chainId,
+        this.sdk.chainId,
       );
     if (migrationBot) {
       const result = await this.client.multicall({

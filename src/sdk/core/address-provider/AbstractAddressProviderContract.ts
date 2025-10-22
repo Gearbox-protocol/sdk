@@ -100,7 +100,7 @@ export default abstract class AbstractAddressProviderContract<
             return {
               key,
               version,
-              address: this.sdk.provider.addressLabels.get(address),
+              address: this.labelAddress(address),
             };
           });
         })

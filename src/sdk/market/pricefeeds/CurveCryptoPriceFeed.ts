@@ -15,7 +15,7 @@ export class CurveCryptoPriceFeedContract extends AbstractLPPriceFeedContract<ab
   }
 
   public override async getValue(): Promise<bigint> {
-    return await this.sdk.provider.publicClient.readContract({
+    return await this.sdk.client.readContract({
       abi: iCurvePoolAbi,
       address: this.lpContract,
       functionName: "get_virtual_price",

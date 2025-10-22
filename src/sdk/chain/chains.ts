@@ -348,7 +348,7 @@ export function getChain(
       : getNetworkType(Number(chainIdOrNetworkType));
   const chain = chains[network];
   if (!chain) {
-    throw new Error("Unsupported network");
+    throw new Error(`Unsupported network: ${network}`);
   }
   return chain;
 }

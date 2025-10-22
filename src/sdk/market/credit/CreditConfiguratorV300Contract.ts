@@ -92,11 +92,10 @@ export class CreditConfiguratorV300Contract
 
   public async checkRamps(): Promise<RampEvent[]> {
     let fromBlock =
-      this.sdk.currentBlock -
-      RAMP_DURATION_BY_NETWORK[this.sdk.provider.networkType];
+      this.sdk.currentBlock - RAMP_DURATION_BY_NETWORK[this.sdk.networkType];
     fromBlock = fromBlock < 0n ? 0n : fromBlock;
 
-    const logs = await this.provider.publicClient.getContractEvents({
+    const logs = await this.client.getContractEvents({
       address: this.address,
       abi: this.abi,
       fromBlock,

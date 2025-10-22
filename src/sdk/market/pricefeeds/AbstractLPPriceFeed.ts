@@ -93,7 +93,7 @@ export abstract class AbstractLPPriceFeedContract<
   }
 
   public async currentLowerBound(): Promise<bigint> {
-    return await this.sdk.provider.publicClient.readContract({
+    return await this.sdk.client.readContract({
       abi: ilpPriceFeedAbi,
       address: this.address,
       functionName: "lowerBound",
