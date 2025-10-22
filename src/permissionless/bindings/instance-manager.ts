@@ -158,7 +158,7 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
             ? {
                 target,
                 functionName: decoded.functionName,
-                args: json_stringify(decoded.args),
+                data: json_stringify(decoded.args),
               }
             : {
                 target,
