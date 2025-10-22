@@ -2,7 +2,7 @@ import type { PriceFeedSetupParams } from "../../core/index.js";
 
 export const boundedPriceFeed: PriceFeedSetupParams = {
   contractType: "PRICE_FEED::BOUNDED",
-  version: 310,
+  version: 311,
   constructorParams: [
     {
       label: "underlyingPriceFeed",

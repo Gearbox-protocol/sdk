@@ -6,7 +6,7 @@ import type {
 
 export const erc4626PriceFeed: PriceFeedSetupParams = {
   contractType: "PRICE_FEED::ERC4626",
-  version: 310,
+  version: 311,
   constructorParams: [
     {
       label: "priceStore",

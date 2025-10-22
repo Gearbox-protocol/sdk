@@ -6,7 +6,7 @@ import type {
 
 export const curveStablePriceFeed: PriceFeedSetupParams = {
   contractType: "PRICE_FEED::CURVE_STABLE",
-  version: 310,
+  version: 311,
   constructorParams: [
     {
       label: "priceStore",
