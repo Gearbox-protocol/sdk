@@ -230,7 +230,7 @@ export class PriceFeedRegister
       VERSION_RANGE_310,
     );
     const blockParam = block ?? { blockNumber: this.sdk.currentBlock };
-    const result = await this.provider.publicClient.readContract({
+    const result = await this.client.readContract({
       address: priceFeedCompressorAddress,
       abi: priceFeedCompressorAbi,
       functionName: "loadPriceFeedTree",
@@ -302,7 +302,7 @@ export class PriceFeedRegister
       { configurators, pools },
       `calling getUpdatablePriceFeeds in block ${this.sdk.currentBlock}`,
     );
-    const result = await this.provider.publicClient.readContract({
+    const result = await this.client.readContract({
       address: priceFeedCompressorAddress,
       abi: priceFeedCompressorAbi,
       functionName: "getUpdatablePriceFeeds",

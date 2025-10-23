@@ -24,7 +24,6 @@ import {
   createRawTx,
   json_stringify,
 } from "../utils/index.js";
-import type { IAddressLabeller } from "./IAddressLabeller.js";
 import { SDKConstruct } from "./SDKConstruct.js";
 
 export interface BaseContractOptions<abi extends Abi | readonly unknown[]> {
@@ -70,7 +69,7 @@ export abstract class BaseContract<abi extends Abi | readonly unknown[]>
       // add exceptions for better error decoding
       abi: [...this.abi, ...errorAbis],
       client: {
-        public: sdk.provider.publicClient,
+        public: sdk.client,
       },
     }) as any;
     this.version = Number(args.version || 0);
@@ -94,7 +93,7 @@ export abstract class BaseContract<abi extends Abi | readonly unknown[]>
       throw new Error(`Address can't be changed, currently: ${this.#address}`);
     }
     this.#address = getAddress(address);
-    this.addressLabels.set(address, this.#name);
+    this.sdk.addressLabels.set(address, this.#name);
   }
 
   public get name(): string {
@@ -104,13 +103,13 @@ export abstract class BaseContract<abi extends Abi | readonly unknown[]>
   public set name(name: string) {
     this.#name = name;
     if (this.#address !== ADDRESS_0X0) {
-      this.addressLabels.set(this.#address, name);
+      this.sdk.addressLabels.set(this.#address, name);
     }
   }
 
   public stateHuman(_ = true): BaseContractStateHuman {
     return {
-      address: this.sdk.provider.addressLabels.get(this.address),
+      address: this.sdk.labelAddress(this.address),
       version: this.version,
       contractType: this.contractType,
     };
@@ -173,7 +172,7 @@ export abstract class BaseContract<abi extends Abi | readonly unknown[]>
       });
     } else if (Array.isArray(decoded.args)) {
       paramsHuman = decoded.args.map((value, i) => {
-        return `${abiItem.inputs[i].name}: ${abiItem.inputs[i].type === "address" ? this.addressLabels.get(value) : abiItem.inputs[i].type.startsWith("tuple") ? json_stringify(value) : value}`;
+        return `${abiItem.inputs[i].name}: ${abiItem.inputs[i].type === "address" ? this.labelAddress(value) : abiItem.inputs[i].type.startsWith("tuple") ? json_stringify(value) : value}`;
       });
     } else {
       paramsHuman = Object.entries(decoded.args || {}).map(
@@ -205,7 +204,7 @@ export abstract class BaseContract<abi extends Abi | readonly unknown[]>
 
   public async getVersion(): Promise<number> {
     this.version = Number(
-      await this.sdk.provider.publicClient.readContract({
+      await this.sdk.client.readContract({
         abi: iVersionAbi,
         functionName: "version",
         address: this.address,
@@ -236,9 +235,5 @@ export abstract class BaseContract<abi extends Abi | readonly unknown[]>
     tx.description = argsDescription || this.parseFunctionData(tx.callData); // `${this.name}.${parameters.functionName}(${argsDescription || (args && args.length > 0) ? args!.join(", ") : ""})`;
 
     return tx;
-  }
-
-  protected get addressLabels(): IAddressLabeller {
-    return this.sdk.provider.addressLabels;
   }
 }

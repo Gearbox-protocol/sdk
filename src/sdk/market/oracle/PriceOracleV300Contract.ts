@@ -132,7 +132,7 @@ export class PriceOracleV300Contract extends PriceOracleBaseContract<abi> {
       return [token, reserve];
     }
     const tickers = Object.values(
-      tickerInfoTokensByNetwork[this.sdk.provider.networkType],
+      tickerInfoTokensByNetwork[this.sdk.networkType],
     ).flat();
     const ticker = tickers.find(
       t => t.priceFeed.toLowerCase() === priceFeed.toLowerCase(),

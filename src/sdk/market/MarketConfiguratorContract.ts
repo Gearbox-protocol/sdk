@@ -27,12 +27,12 @@ export class MarketConfiguratorContract extends BaseContract<abi> {
   }
 
   public async loadCuratorName(): Promise<void> {
-    this.#curatorName = await this.sdk.provider.publicClient.readContract({
+    this.#curatorName = await this.sdk.client.readContract({
       address: this.address,
       abi: this.abi,
       functionName: "curatorName",
     });
-    this.sdk.provider.addressLabels.set(
+    this.sdk.addressLabels.set(
       this.address,
       `Market configurator ${this.#curatorName}`,
     );
@@ -41,7 +41,7 @@ export class MarketConfiguratorContract extends BaseContract<abi> {
   public async getPeripheryContract(
     contract: PeripheryContract,
   ): Promise<Address> {
-    const resp = await this.sdk.provider.publicClient.readContract({
+    const resp = await this.sdk.client.readContract({
       address: this.address,
       abi: this.abi,
       functionName: "getPeripheryContracts",

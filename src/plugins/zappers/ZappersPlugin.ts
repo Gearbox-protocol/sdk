@@ -39,7 +39,7 @@ export class ZappersPlugin
       `loading zappers with periphery compressor ${pcAddr}`,
     );
     const markets = this.sdk.marketRegister.markets;
-    const resp = await this.provider.publicClient.multicall({
+    const resp = await this.client.multicall({
       contracts: markets.map(
         m =>
           ({
@@ -148,7 +148,7 @@ export class ZappersPlugin
 
     for (const t of [...zappersTokens, ...extraZappersTokens]) {
       this.sdk.tokensMeta.upsert(t.addr, t);
-      this.sdk.provider.addressLabels.set(t.addr as Address, t.symbol);
+      this.sdk.addressLabels.set(t.addr as Address, t.symbol);
     }
   }
 }

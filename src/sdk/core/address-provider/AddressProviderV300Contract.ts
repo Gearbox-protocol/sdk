@@ -88,11 +88,11 @@ export class AddressProviderV300Contract
   }
 
   public async syncState(blockNumber?: bigint): Promise<void> {
-    const fromBlock = this.sdk.provider.chain.firstBlock;
+    const fromBlock = this.sdk.chain.firstBlock;
     this.logger?.debug(
       `loading events from block ${fromBlock} to ${blockNumber}`,
     );
-    const events = await getLogsSafe(this.sdk.provider.publicClient, {
+    const events = await getLogsSafe(this.sdk.client, {
       address: this.address,
       event: getAbiItem({ abi: this.abi, name: "SetAddress" }),
       fromBlock,

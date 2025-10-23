@@ -18,13 +18,13 @@ export class Erc4626PriceFeedContract extends AbstractLPPriceFeedContract<abi> {
   }
 
   public override async getValue(): Promise<bigint> {
-    const decimals = await this.sdk.provider.publicClient.readContract({
+    const decimals = await this.sdk.client.readContract({
       abi: ierc20Abi,
       address: this.lpContract,
       functionName: "decimals",
     });
 
-    const price = await this.sdk.provider.publicClient.readContract({
+    const price = await this.sdk.client.readContract({
       abi: erc4626Abi,
       address: this.lpContract,
       functionName: "convertToAssets",

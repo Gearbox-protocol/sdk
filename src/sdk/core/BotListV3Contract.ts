@@ -20,7 +20,7 @@ export class BotListContract extends BaseContract<abi> {
 
   constructor(sdk: GearboxSDK, address: Address) {
     super(sdk, { addr: address, name: "BotListV3", abi });
-    this.#currentBlock = sdk.provider.chain.firstBlock ?? 0n;
+    this.#currentBlock = sdk.chain.firstBlock ?? 0n;
   }
 
   protected parseFunctionParams(
@@ -29,13 +29,13 @@ export class BotListContract extends BaseContract<abi> {
     switch (params.functionName) {
       case "setCreditManagerApprovedStatus": {
         const [creditManager, status] = params.args;
-        return [this.addressLabels.get(creditManager), `${status}`];
+        return [this.labelAddress(creditManager), `${status}`];
       }
       case "setBotSpecialPermissions": {
         const [bot, creditManager, permissions] = params.args;
         return [
-          this.addressLabels.get(bot),
-          this.addressLabels.get(creditManager),
+          this.labelAddress(bot),
+          this.labelAddress(creditManager),
           botPermissionsToString(permissions),
         ];
       }
@@ -45,7 +45,7 @@ export class BotListContract extends BaseContract<abi> {
   }
 
   public async syncState(toBlock: bigint): Promise<void> {
-    const logs = await this.provider.publicClient.getContractEvents({
+    const logs = await this.client.getContractEvents({
       address: this.address,
       abi: this.abi,
       fromBlock: this.#currentBlock,

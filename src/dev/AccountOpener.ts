@@ -31,7 +31,7 @@ import {
 } from "../sdk/index.js";
 import { iDegenNftv2Abi } from "./abi.js";
 import { claimFromFaucet } from "./claimFromFaucet.js";
-import { type AnvilClient, createAnvilClient } from "./createAnvilClient.js";
+import { type AnvilClient, extendAnvilClient } from "./createAnvilClient.js";
 import { createMinter } from "./mint/index.js";
 
 const DIRECT_TRANSFERS_QUOTA = 10_000n;
@@ -166,10 +166,7 @@ export class AccountOpener extends SDKConstruct {
     this.#service = service;
     this.#allowMint = allowMint;
     this.#logger = childLogger("AccountOpener", service.sdk.logger);
-    this.#anvil = createAnvilClient({
-      chain: service.sdk.provider.chain,
-      transport: service.sdk.provider.transport,
-    });
+    this.#anvil = extendAnvilClient(service.sdk.client);
     try {
       this.#faucet = faucet ?? service.sdk.addressProvider.getAddress("FAUCET");
     } catch (_e) {
@@ -558,7 +555,7 @@ export class AccountOpener extends SDKConstruct {
     amount: bigint,
   ): Promise<PoolDepositResult> {
     const { underlying, address } = pool;
-    const poolName = this.sdk.provider.addressLabels.get(address);
+    const poolName = this.sdk.labelAddress(address);
     const poolData = {
       pool: address,
       token: underlying,

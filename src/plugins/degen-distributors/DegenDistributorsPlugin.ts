@@ -33,7 +33,7 @@ export class DegenDistributorsPlugin
     );
 
     this.sdk.logger?.debug(
-      `loading degen distributors for ${this.sdk.provider.networkType}`,
+      `loading degen distributors for ${this.sdk.networkType}`,
     );
 
     const distributors = await Promise.allSettled(

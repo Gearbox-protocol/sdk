@@ -35,7 +35,7 @@ export class GaugeStakingService extends SDKConstruct {
     }
 
     const [gauges, availableBalance, totalBalance, withdrawableAmounts, epoch] =
-      await this.provider.publicClient.multicall({
+      await this.client.multicall({
         allowFailure: false,
         contracts: [
           {
