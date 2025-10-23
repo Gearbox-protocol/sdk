@@ -28,7 +28,9 @@ export type Curator =
   | "Invariant Group"
   | "Tulipa"
   | "M11 Credit"
-  | "kpk";
+  | "kpk"
+  | "Hyperithm"
+  | "Edge UltraYield";
 
 export interface GearboxChain extends Chain {
   network: NetworkType;
@@ -318,6 +320,8 @@ export const chains: Record<NetworkType, GearboxChain> = {
     network: "Plasma",
     defaultMarketConfigurators: {
       "0x7a133fbd01736fd076158307c9476cc3877f1af5": "Invariant Group",
+      "0x4bce62622be621ce036691de98afcab0e41a77a3": "Edge UltraYield",
+      "0xce1cf71a28837daaa7b92d00ca4ef2fd649c2a67": "Hyperithm",
     },
     isPublic: true,
     wellKnownToken: {
