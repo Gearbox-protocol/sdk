@@ -1,6 +1,7 @@
 export * from "./AbstractAdapter.js";
 export * from "./BalancerV2VaultAdapterContract.js";
 export * from "./BalancerV3RouterAdapterContract.js";
+export * from "./BalancerV3WrapperAdapterContract.js";
 export * from "./CamelotV3AdapterContract.js";
 export * from "./ConvexV1BaseRewardPoolAdapterContract.js";
 export * from "./ConvexV1BoosterAdapterContract.js";
@@ -23,6 +24,8 @@ export * from "./MellowDVVAdapterContract.js";
 export * from "./MellowERC4626VaultAdapterContract.js";
 export * from "./MellowVaultAdapterContract.js";
 export * from "./MellowWrapperAdapterContract.js";
+export * from "./MidasIssuanceVaultAdapterContract.js";
+export * from "./MidasRedemptionVaultAdapterContract.js";
 export * from "./PendleRouterAdapterContract.js";
 export * from "./StakingRewardsAdapterContract.js";
 export * from "./TraderJoeRouterAdapterContract.js";
