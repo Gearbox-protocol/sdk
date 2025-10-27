@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 
 import type { CreditAccountData, GearboxSDK, ILogger } from "../sdk/index.js";
-import { PERCENTAGE_FACTOR, WAD } from "../sdk/index.js";
+import { isDust, PERCENTAGE_FACTOR, WAD } from "../sdk/index.js";
 
 /**
  * Given credit accounts, calculates new liquidation thresholds that needs to be set to drop account health factor a bit to make it eligible for partial liquidation
@@ -19,9 +19,7 @@ export async function calcLiquidatableLTs(
   // Sort account tokens by weighted value descending, but underlying token comes last
   const weightedBalances = ca.tokens
     .filter(({ token, balance }) => {
-      const minBalance =
-        10n ** BigInt(Math.max(8, sdk.tokensMeta.decimals(token)) - 8);
-      return balance > minBalance;
+      return !isDust({ sdk, token, balance, creditManager: ca.creditManager });
     })
     .map(t => {
       const { token, balance } = t;
