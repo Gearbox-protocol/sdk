@@ -7,6 +7,7 @@ import {
   CURVE_V1_WRAPPER_ADAPTER_ABI,
   GATEWAY_ADAPTER_ABI,
   LP_ADAPTER_ABI,
+  REFERER_ID_ADAPTER_ABI,
   STAKED_TOKEN_ADAPTER_ABI,
   STAKING_REWARDS_ADAPTER_ABI,
   UINT_REFERRAL_ADAPTER_ABI,
@@ -48,6 +49,9 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
     310: BASIC_ADAPTER_ABI,
   },
   [AdapterType.LIDO_WSTETH_V1]: {
+    310: BASIC_ADAPTER_ABI,
+  },
+  [AdapterType.MIDAS_REDEMPTION_VAULT]: {
     310: BASIC_ADAPTER_ABI,
   },
   [AdapterType.PENDLE_ROUTER]: {
@@ -151,5 +155,9 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
     310: STAKED_TOKEN_ADAPTER_ABI,
     311: STAKING_REWARDS_ADAPTER_ABI,
     312: STAKING_REWARDS_ADAPTER_ABI,
+  },
+
+  [AdapterType.MIDAS_ISSUANCE_VAULT]: {
+    310: REFERER_ID_ADAPTER_ABI,
   },
 } as const;

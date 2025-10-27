@@ -6,10 +6,10 @@ import type {
   IGearboxSDKPlugin,
 } from "../../sdk/index.js";
 import { BasePlugin, bytes32ToString } from "../../sdk/index.js";
-import { BalancerV3WrapperAdapterContract } from "./contracts/BalancerV3WrapperAdapterContract.js";
 import {
   BalancerV2VaultAdapterContract,
   BalancerV3RouterAdapterContract,
+  BalancerV3WrapperAdapterContract,
   CamelotV3AdapterContract,
   ConvexV1BaseRewardPoolAdapterContract,
   ConvexV1BoosterAdapterContract,
@@ -32,6 +32,8 @@ import {
   MellowERC4626VaultAdapterContract,
   MellowVaultAdapterContract,
   MellowWrapperAdapterContract,
+  MidasIssuanceVaultAdapterContract,
+  MidasRedemptionVaultAdapterContract,
   PendleRouterAdapterContract,
   StakingRewardsAdapterContract,
   TraderJoeRouterAdapterContract,
@@ -111,6 +113,10 @@ export class AdaptersPlugin
         return new MellowVaultAdapterContract(this.sdk, args);
       case "ADAPTER::MELLOW_WRAPPER":
         return new MellowWrapperAdapterContract(this.sdk, args);
+      case "ADAPTER::MIDAS_ISSUANCE_VAULT":
+        return new MidasIssuanceVaultAdapterContract(this.sdk, args);
+      case "ADAPTER::MIDAS_REDEMPTION_VAULT":
+        return new MidasRedemptionVaultAdapterContract(this.sdk, args);
       case "ADAPTER::PENDLE_ROUTER":
         return new PendleRouterAdapterContract(this.sdk, args);
       case "ADAPTER::STAKING_REWARDS":
