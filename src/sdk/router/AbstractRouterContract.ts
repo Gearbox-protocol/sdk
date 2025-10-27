@@ -1,7 +1,7 @@
 import type { Abi, Address } from "viem";
 
 import { BaseContract } from "../base/index.js";
-import { AddressMap } from "../utils/index.js";
+import { AddressMap, isDust } from "../utils/index.js";
 import type { IHooks } from "../utils/internal/index.js";
 import { Hooks } from "../utils/internal/index.js";
 import { limitLeftover } from "./helpers.js";
@@ -73,14 +73,17 @@ export abstract class AbstractRouterContract<
       const token = t as Address;
       const isEnabled = (mask & ca.enabledTokensMask) !== 0n;
       expectedBalances.upsert(token, { token, balance });
-      const decimals = this.sdk.tokensMeta.decimals(token);
       // filter out dust, we don't want to swap it
-      const minBalance = 10n ** BigInt(Math.max(8, decimals) - 8);
       // also: gearbox liquidator does not need to swap disabled tokens. third-party liquidators might want to do it
       if (
         keepAssetsSet.has(token.toLowerCase()) ||
-        balance < minBalance ||
-        !isEnabled
+        !isEnabled ||
+        isDust({
+          sdk: this.sdk,
+          token,
+          balance,
+          creditManager: ca.creditManager,
+        })
       ) {
         leftoverBalances.upsert(token, {
           token,

@@ -7,6 +7,7 @@ export * from "./etherscan.js";
 export * from "./filterDust.js";
 export * from "./formatter.js";
 export * from "./hex.js";
+export * from "./isDust.js";
 export * from "./json.js";
 export * from "./mappers.js";
 export * from "./retry.js";
