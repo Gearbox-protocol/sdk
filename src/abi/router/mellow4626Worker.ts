@@ -221,6 +221,13 @@ export const mellow4626WorkerAbi = [
   },
   {
     type: "function",
+    name: "isWithdrawableVault",
+    inputs: [{ name: "", type: "address", internalType: "address" }],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "migrate",
     inputs: [],
     outputs: [],
@@ -394,6 +401,16 @@ export const mellow4626WorkerAbi = [
       { name: "", type: "address", internalType: "contract IGearboxRouter" },
     ],
     stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "setWithdrawableVault",
+    inputs: [
+      { name: "vault", type: "address", internalType: "address" },
+      { name: "status", type: "bool", internalType: "bool" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
