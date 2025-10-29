@@ -201,7 +201,9 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       } while (offset !== 0n);
     }
     this.#logger?.debug(
-      `loaded ${allCAs.length} credit accounts (${allCAs.length - revertingOffset} reverting)`,
+      `loaded ${allCAs.length} credit accounts (${
+        allCAs.length - revertingOffset
+      } reverting)`,
     );
 
     // sort by health factor ascending
@@ -408,6 +410,8 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       creditManager: ca.creditManager,
       creditAccount: ca,
     });
+
+    console.log("CLOSE", this.sdk.parseMultiCall(routerCloseResult.calls));
 
     const calls: Array<MultiCall> = [
       ...(operation === "close" ? [] : priceUpdates),
