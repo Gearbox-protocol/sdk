@@ -77,7 +77,7 @@ export interface CreditAccountServiceOptions {
 export function getWithdrawalCompressorAddress(chainId: number) {
   // TODO: HARDCODED
   const compressor =
-    chainId === 1 ? "0xb97CE226464eFF7888475D8A84e4089AE2055eE6" : undefined;
+    chainId === 1 ? "0xfB79b6713fe214B8748ED7b0db1f93E4f1aC9d29" : undefined;
   return compressor;
 }
 

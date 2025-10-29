@@ -33,16 +33,14 @@ export class DelayedWithdrawalPlugin
     //   AP_PERIPHERY_COMPRESSOR,
     //   VERSION_RANGE_310,
     // );
-    const compressor = getWithdrawalCompressorAddress(
-      this.sdk.provider.chainId,
-    );
+    const compressor = getWithdrawalCompressorAddress(this.sdk.chainId);
 
     this.sdk.logger?.debug(
       `loading delayed withdrawal plugin with compressor ${compressor}`,
     );
 
     const creditManagers = this.sdk.marketRegister.creditManagers;
-    const resp = await this.provider.publicClient.multicall({
+    const resp = await this.client.multicall({
       contracts: compressor
         ? creditManagers.map(
             cm =>
