@@ -109,14 +109,12 @@ export class CreditAccountServiceV310
     const addCollateral = collateralAssets.filter(a => a.balance > 0);
 
     const router = this.sdk.routerFor(ca);
-    // HERE
 
     const claimPath = await router.findClaimAllRewards({
       calls: [],
       tokensToClaim,
       creditAccount: ca,
     });
-    console.log("claimPath", this.sdk.parseMultiCall(claimPath.calls));
 
     const priceUpdates = await this.getPriceUpdatesForFacade({
       creditManager: ca.creditManager,
@@ -156,14 +154,11 @@ export class CreditAccountServiceV310
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
 
     const router = this.sdk.routerFor(ca);
-    // HERE
     const claimPath = await router.findClaimAllRewards({
       calls: [],
       tokensToClaim,
       creditAccount: ca,
     });
-
-    console.log("claimPath", this.sdk.parseMultiCall(claimPath.calls));
 
     const priceUpdates = await this.getPriceUpdatesForFacade({
       creditManager: ca.creditManager,

@@ -411,8 +411,6 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       creditAccount: ca,
     });
 
-    console.log("CLOSE", this.sdk.parseMultiCall(routerCloseResult.calls));
-
     const calls: Array<MultiCall> = [
       ...(operation === "close" ? [] : priceUpdates),
       ...routerCloseResult.calls,
