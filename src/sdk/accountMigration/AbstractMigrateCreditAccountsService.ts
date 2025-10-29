@@ -88,7 +88,7 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
       address: previewerAddress,
       abi: accountMigratorPreviewerV310Abi,
       client: {
-        public: this.sdk.provider.publicClient,
+        public: this.sdk.client,
       },
     });
 

@@ -25,15 +25,15 @@
       "import": "./dist/esm/plugins/*/index.js",
       "default": "./dist/cjs/plugins/*/index.js"
     },
-    "./abi": {
-      "types": "./dist/types/abi/index.d.ts",
-      "import": "./dist/esm/abi/index.js",
-      "default": "./dist/cjs/abi/index.js"
-    },
     "./abi/*": {
       "types": "./dist/types/abi/*.d.ts",
       "import": "./dist/esm/abi/*.js",
       "default": "./dist/cjs/abi/*.js"
+    },
+    "./permissionless": {
+      "types": "./dist/types/permissionless/index.d.ts",
+      "import": "./dist/esm/permissionless/index.js",
+      "default": "./dist/cjs/permissionless/index.js"
     }
   },
   "files": [
@@ -51,7 +51,7 @@
     "typecheck:ci": "tsc --noEmit"
   },
   "dependencies": {
-    "@gearbox-protocol/integrations-v3": "1.42.0-next.23",
+    "@gearbox-protocol/integrations-v3": "1.49.0",
     "@redstone-finance/evm-connector": "^0.9.0",
     "@redstone-finance/protocol": "^0.9.0",
     "@redstone-finance/sdk": "^0.9.0",
@@ -65,22 +65,22 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.2.5",
+    "@biomejs/biome": "^2.3.1",
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
-    "@gearbox-protocol/biome-config": "^1.0.4",
+    "@gearbox-protocol/biome-config": "^1.0.7",
     "@types/cross-spawn": "^6.0.6",
     "axios": "^1.12.2",
     "cross-spawn": "^7.0.6",
     "husky": "^9.1.7",
-    "lint-staged": "^16.2.3",
-    "pino": "^10.0.0",
-    "pino-pretty": "^13.1.1",
+    "lint-staged": "^16.2.6",
+    "pino": "^10.1.0",
+    "pino-pretty": "^13.1.2",
     "tsup": "^8.5.0",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "viem-deal": "^2.0.4",
-    "vitest": "^3.2.4"
+    "vitest": "^4.0.4"
   },
   "peerDependencies": {
     "axios": "^1.0.0",

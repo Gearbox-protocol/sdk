@@ -47,6 +47,7 @@ async function example(): Promise<void> {
     },
     redstone: {
       enableLogging: true,
+      ignoreMissingFeeds: true,
     },
   });
 
@@ -75,7 +76,7 @@ async function example(): Promise<void> {
   // );
 
   const prefix = RPC.includes("127.0.0.1") ? "anvil_" : "";
-  const net = sdk.provider.networkType;
+  const net = sdk.networkType;
   await writeFile(
     `tmp/state_${kind}_human_${net}_${prefix}${sdk.currentBlock}.json`,
     json_stringify(sdk.stateHuman()),

@@ -5,12 +5,12 @@ import {
   type Hex,
 } from "viem";
 import { json_stringify } from "../../../sdk/index.js";
-import { AdapterType } from "../types";
+import { AdapterType } from "../types.js";
 import {
   adapterActionAbi,
   adapterActionSelectors,
   adapterConstructorAbi,
-} from ".";
+} from "./index.js";
 
 /**
  * Converts a string to AdapterType if valid, otherwise returns null

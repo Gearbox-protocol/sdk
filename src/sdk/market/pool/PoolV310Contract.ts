@@ -4,8 +4,8 @@ import type {
   Log,
 } from "viem";
 
+import { iPoolV310Abi } from "../../../abi/310/generated.js";
 import { iPausableAbi } from "../../../abi/iPausable.js";
-import { iPoolV310Abi } from "../../../abi/v310.js";
 import type { CreditManagerDebtParams, PoolState } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";

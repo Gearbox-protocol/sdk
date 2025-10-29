@@ -1,10 +1,10 @@
 import { type Address, getAddress } from "viem";
-
-import { iGearboxRouterV310Abi } from "../../abi/routerV310.js";
+import { gearboxRouterAbi } from "../../abi/router/gearboxRouter.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import { BigIntMath } from "../sdk-legacy/index.js";
 import { AddressMap } from "../utils/AddressMap.js";
 import { formatBN } from "../utils/formatter.js";
+import { isDust } from "../utils/index.js";
 import type { Leftovers } from "./AbstractRouterContract.js";
 import { AbstractRouterContract } from "./AbstractRouterContract.js";
 import { assetsMap, balancesMap, limitLeftover } from "./helpers.js";
@@ -25,7 +25,7 @@ import type {
   RouterRewardsResult,
 } from "./types.js";
 
-const abi = iGearboxRouterV310Abi;
+const abi = gearboxRouterAbi;
 type abi = typeof abi;
 
 const ERR_NOT_IMPLEMENTED = new Error("Not implemented in router v3.1");
@@ -312,9 +312,12 @@ export class RouterV310Contract
     // Filter out dust, and sort by usd balance descending
     const inUSD = assets
       .filter(({ token, balance }) => {
-        const decimals = this.sdk.tokensMeta.decimals(token);
-        const minBalance = 10n ** BigInt(Math.max(8, decimals) - 8);
-        return balance >= minBalance;
+        return !isDust({
+          sdk: this.sdk,
+          token,
+          balance,
+          creditManager: creditManager.address,
+        });
       })
       .map(({ token, balance }) => {
         return {

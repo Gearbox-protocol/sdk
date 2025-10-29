@@ -34,6 +34,12 @@ export const UINT_REFERRAL_ADAPTER_ABI = [
   { type: "uint16", name: "referral" },
 ] as const;
 
+export const REFERER_ID_ADAPTER_ABI = [
+  { type: "address", name: "creditManager" },
+  { type: "address", name: "target" },
+  { type: "bytes32", name: "referrerId" },
+] as const;
+
 // Curve ABI patterns
 export const CURVE_V1_ADAPTER_310_ABI = [
   { type: "address", name: "creditManager" },

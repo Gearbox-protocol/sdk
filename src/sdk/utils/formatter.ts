@@ -68,7 +68,11 @@ const limitNum = (n: bigint, d = 18): bigint => {
   }
 };
 
-export function toHumanFormat(num: bigint, precision = 2): string {
+function toHumanFormat(num: bigint, precision = 2): string {
+  if (num >= BigInt(1e18)) {
+    return `${formatBn4dig(num / BigInt(1e12), precision)}T`;
+  }
+
   if (num >= BigInt(1e15)) {
     return `${formatBn4dig(num / BigInt(1e9), precision)}Bn`;
   }
@@ -84,7 +88,7 @@ export function toHumanFormat(num: bigint, precision = 2): string {
   return formatBn4dig(num, precision);
 }
 
-export function formatBn4dig(num: bigint, precision = 2): string {
+function formatBn4dig(num: bigint, precision = 2): string {
   if (precision > 6) {
     throw new Error("Precision is too high, try <= 6");
   }

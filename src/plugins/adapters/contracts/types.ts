@@ -12,6 +12,11 @@ export enum KodiakIslandStatus {
   EXIT_ONLY = 3,
 }
 
+export enum PendleTokenType {
+  PT = 0,
+  LP = 1,
+}
+
 export enum PendlePairStatus {
   NOT_ALLOWED = 0,
   ALLOWED = 1,
@@ -23,4 +28,12 @@ export enum TraderJoePoolVersion {
   V2 = 1,
   V2_1 = 2,
   V2_2 = 3,
+}
+
+export enum BalancerV3PoolStatus {
+  NOT_ALLOWED = 0,
+  ALLOWED = 1,
+  EXIT_AND_SWAP = 2,
+  SWAP_ONLY = 3,
+  EXIT_ONLY = 4,
 }

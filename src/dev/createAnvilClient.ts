@@ -10,7 +10,14 @@ import type {
   Transport,
   WalletClient,
 } from "viem";
-import { createTestClient, publicActions, toHex, walletActions } from "viem";
+import {
+  createPublicClient,
+  createTestClient,
+  publicActions,
+  testActions,
+  toHex,
+  walletActions,
+} from "viem";
 
 export interface AnvilNodeInfo {
   currentBlockNumber: string; // hexutil.Big is a big number in hex format
@@ -78,29 +85,31 @@ export interface AnvilClientConfig<
   pollingInterval?: number;
 }
 
+export function extendAnvilClient(client: PublicClient): AnvilClient {
+  return client
+    .extend(testActions({ mode: "anvil" }))
+    .extend(walletActions)
+    .extend(c => ({
+      anvilNodeInfo: () => anvilNodeInfo(c),
+      isAnvil: () => isAnvil(c),
+      evmMineDetailed: (timestamp: bigint | number) =>
+        evmMineDetailed(c, timestamp),
+    })) as any;
+}
+
 export function createAnvilClient({
   chain,
   transport,
   cacheTime = 0,
   pollingInterval = 50,
 }: AnvilClientConfig): AnvilClient {
-  return createTestClient<"anvil", Transport, Chain, undefined, AnvilRPCSchema>(
-    {
-      chain,
-      mode: "anvil",
-      transport,
-      cacheTime,
-      pollingInterval,
-    },
-  )
-    .extend(publicActions)
-    .extend(walletActions)
-    .extend(client => ({
-      anvilNodeInfo: () => anvilNodeInfo(client),
-      isAnvil: () => isAnvil(client),
-      evmMineDetailed: (timestamp: bigint | number) =>
-        evmMineDetailed(client, timestamp),
-    })) as any;
+  const client = createPublicClient({
+    chain,
+    transport,
+    cacheTime,
+    pollingInterval,
+  });
+  return extendAnvilClient(client);
 }
 
 /**

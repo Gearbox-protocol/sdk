@@ -1,19 +1,17 @@
 import type { Address, Hex } from "viem";
-import { createPublicClient, parseEventLogs } from "viem";
-
-import type { BaseContract, BaseState, IBaseContract } from "./base/index.js";
-import { TokensMeta } from "./base/index.js";
-import type {
-  ConnectionOptions,
-  NetworkOptions,
-  TransportOptions,
-} from "./chain/index.js";
 import {
-  chains,
-  createTransport,
-  detectNetwork,
-  Provider,
-} from "./chain/index.js";
+  createPublicClient,
+  defineChain,
+  fallback,
+  http,
+  type PublicClient,
+  parseEventLogs,
+  type Transport,
+} from "viem";
+import type { BaseContract, BaseState, IBaseContract } from "./base/index.js";
+import { AddressLabeller, TokensMeta } from "./base/index.js";
+import type { GearboxChain, NetworkType } from "./chain/chains.js";
+import { chains, detectNetwork, getChain } from "./chain/index.js";
 import type { VersionRange } from "./constants/index.js";
 import {
   ADDRESS_PROVIDER_V310,
@@ -60,6 +58,98 @@ const ERR_NOT_ATTACHED = new Error("Gearbox SDK not attached");
  */
 export const STATE_VERSION = 1;
 
+export interface NetworkOptions {
+  /**
+   * Chain Id needs to be set, because we sometimemes use forked testnets with different chain ids
+   */
+  chainId: number;
+  /**
+   * NetworkType needs to be set, because we sometimemes use forked testnets with different chain ids
+   */
+  networkType: NetworkType;
+}
+
+export type ClientOptions =
+  | {
+      /**
+       * RPC URL (and fallbacks) to use.
+       */
+      rpcURLs: string[];
+      /**
+       * RPC client timeout in milliseconds
+       */
+      timeout?: number;
+      /**
+       * Retry count for RPC
+       */
+      retryCount?: number;
+    }
+  | {
+      /**
+       * Alternatively, can pass viem transport
+       */
+      transport: Transport;
+    }
+  | {
+      /**
+       * Alternatively, can pass entire viem client
+       * If you bring your own client, it is responsible for defining networkType and chainId
+       */
+      client: PublicClient<Transport, GearboxChain>;
+    };
+
+/**
+ * Helper function to create viem client, will set GearboxChain if second argument is not empty
+ * @param opts
+ * @param network
+ * @returns
+ */
+function createClient(
+  opts: ClientOptions,
+  network?: NetworkOptions,
+): PublicClient<Transport, GearboxChain> {
+  let transport: Transport;
+  if ("client" in opts) {
+    return opts.client;
+  }
+  if ("transport" in opts) {
+    transport = opts.transport;
+  } else {
+    const rpcs = opts.rpcURLs.map(url =>
+      http(url, { timeout: opts.timeout, retryCount: opts.retryCount }),
+    );
+    transport = rpcs.length > 1 ? fallback(rpcs) : rpcs[0];
+  }
+  const chain = network
+    ? (defineChain({
+        ...getChain(network.networkType),
+        id: network.chainId,
+      }) as GearboxChain)
+    : undefined;
+  return createPublicClient({ transport, chain });
+}
+
+/**
+ * Helper function to attach sdk to client with automatic network and chain id detection
+ * @param options
+ * @param network
+ * @returns
+ */
+async function attachClient(
+  options: ClientOptions,
+  network: Partial<NetworkOptions>,
+): Promise<PublicClient<Transport, GearboxChain>> {
+  let { chainId, networkType } = network;
+  const attachClient = createClient(options);
+  if (!networkType) {
+    networkType = await detectNetwork(attachClient);
+  }
+  if (!chainId) {
+    chainId = await attachClient.getChainId();
+  }
+  return createClient(options, { networkType, chainId });
+}
+
 export type HydrateOptions<Plugins extends PluginsMap> = Omit<
   SDKOptions<Plugins>,
   "blockNumber" | "addressProvider" | "marketConfigurators"
@@ -68,9 +158,7 @@ export type HydrateOptions<Plugins extends PluginsMap> = Omit<
 type SDKContructorArgs<Plugins extends PluginsMap> = Pick<
   SDKOptions<Plugins>,
   "logger" | "strictContractTypes" | "plugins" | "gasLimit"
-> & {
-  provider: Provider;
-};
+> & { client: PublicClient<Transport, GearboxChain> };
 
 type AttachOptionsInternal = PickSomeRequired<
   SDKOptions<any>,
@@ -96,9 +184,9 @@ export type SDKHooks = {
 
 export class GearboxSDK<const Plugins extends PluginsMap = {}> {
   readonly #hooks = new Hooks<SDKHooks>();
-  // Represents chain object
-  readonly #provider: Provider;
   readonly plugins: Plugins;
+
+  #client: PublicClient<Transport, GearboxChain>;
 
   // Block which was use for data query
   #currentBlock?: bigint;
@@ -115,6 +203,8 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
 
   public readonly logger?: ILogger;
   public readonly gasLimit: bigint | undefined;
+
+  public readonly addressLabels = new AddressLabeller();
 
   /**
    * Interest rate models can be reused across chain (and SDK operates on chain level)
@@ -144,10 +234,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
   public removeHook = this.#hooks.removeHook.bind(this.#hooks);
 
   public static async attach<const Plugins extends PluginsMap>(
-    options: SDKOptions<Plugins> &
-      Partial<NetworkOptions> &
-      ConnectionOptions &
-      TransportOptions,
+    options: SDKOptions<Plugins> & ClientOptions & Partial<NetworkOptions>,
   ): Promise<GearboxSDK<Plugins>> {
     const {
       logger,
@@ -161,32 +248,17 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       strictContractTypes,
       gasLimit,
     } = options;
-    let { networkType, addressProvider, chainId } = options;
+    let { addressProvider } = options;
+    const client = await attachClient(options, options);
 
-    const transport = createTransport(options);
-    const attachClient = createPublicClient({ transport });
-    if (!networkType) {
-      networkType = await detectNetwork(attachClient);
-    }
-    if (!chainId) {
-      chainId = await attachClient.getChainId();
-    }
     if (!addressProvider) {
       addressProvider = ADDRESS_PROVIDER_V310;
     }
     const marketConfigurators =
-      mcs ??
-      TypedObjectUtils.keys(chains[networkType].defaultMarketConfigurators);
-
-    const provider = new Provider({
-      ...options,
-      transport, // pass transport to avoid creating a new transport in provider
-      chainId,
-      networkType,
-    });
+      mcs ?? TypedObjectUtils.keys(client.chain.defaultMarketConfigurators);
 
     return new GearboxSDK<Plugins>({
-      provider,
+      client,
       logger,
       plugins,
       strictContractTypes,
@@ -203,18 +275,17 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
   }
 
   public static hydrate<const Plugins extends PluginsMap>(
-    options: HydrateOptions<Plugins> & ConnectionOptions & TransportOptions,
+    options: HydrateOptions<Plugins> & ClientOptions,
     state: GearboxState<Plugins>,
   ): GearboxSDK<Plugins> {
     const { logger, plugins, strictContractTypes, gasLimit, ...rest } = options;
-    const provider = new Provider({
-      ...rest,
-      chainId: state.chainId,
+    const client = createClient(options, {
       networkType: state.network,
+      chainId: state.chainId,
     });
 
     return new GearboxSDK({
-      provider,
+      client,
       plugins,
       logger,
       strictContractTypes,
@@ -223,10 +294,12 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
   }
 
   private constructor(options: SDKContructorArgs<Plugins>) {
-    this.#provider = options.provider;
     this.logger = options.logger;
     this.strictContractTypes = options.strictContractTypes ?? false;
     this.plugins = options.plugins ?? ({} as Plugins);
+    // need to explicitly set chain id on testnets (e.g. 7878 = mainnet)
+    this.#client = options.client;
+
     for (const plugin of Object.values(this.plugins)) {
       plugin.sdk = this;
     }
@@ -249,8 +322,8 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
     const re = this.#attachConfig ? "re" : "";
     this.logger?.info(
       {
-        networkType: this.provider.networkType,
-        chainId: this.provider.chainId,
+        networkType: this.networkType,
+        chainId: this.chainId,
         addressProvider,
         marketConfigurators,
         blockNumber,
@@ -270,7 +343,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
     }
     this.#attachConfig = opts;
     const time = Date.now();
-    const block = await this.provider.publicClient.getBlock(
+    const block = await this.client.getBlock(
       blockNumber
         ? { blockNumber: BigInt(blockNumber) }
         : {
@@ -335,9 +408,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
     }
     const re = this.#attachConfig ? "re" : "";
     this.logger?.info(
-      {
-        networkType: this.provider.networkType,
-      },
+      { networkType: this.networkType },
       `${re}hydrating sdk state`,
     );
 
@@ -414,6 +485,31 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       blockNumber: state.currentBlock,
       timestamp: state.timestamp,
     });
+  }
+
+  public get client(): PublicClient<Transport, GearboxChain> {
+    return this.#client;
+  }
+
+  /**
+   * Replaces client inflight
+   * You're responsible for all inconsistencies between new and old client
+   * @param options
+   */
+  public replaceClient(options: ClientOptions, network?: NetworkOptions) {
+    this.#client = createClient(options, network);
+  }
+
+  public get networkType(): NetworkType {
+    return this.client.chain.network;
+  }
+
+  public get chain(): GearboxChain {
+    return this.client.chain;
+  }
+
+  public get chainId(): number {
+    return this.client.chain.id;
   }
 
   /**
@@ -498,8 +594,8 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
   public get state(): GearboxState<Plugins> {
     return {
       version: STATE_VERSION,
-      network: this.provider.networkType,
-      chainId: this.provider.chainId,
+      network: this.networkType,
+      chainId: this.chainId,
       currentBlock: this.currentBlock,
       timestamp: this.timestamp,
       addressProvider: this.addressProvider.state,
@@ -518,9 +614,9 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
   /**
    * Reloads markets states based on events from last processed block to new block (defaults to latest block)
    * @param opts
-   * @returns
+   * @returns true if successful, false if was skipped or failed
    */
-  public async syncState(opts?: SyncStateOptions): Promise<void> {
+  public async syncState(opts?: SyncStateOptions): Promise<boolean> {
     let {
       blockNumber,
       timestamp,
@@ -535,24 +631,25 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       );
     }
     if (!blockNumber || !timestamp) {
-      const block = await this.provider.publicClient.getBlock({
+      const block = await this.client.getBlock({
         blockTag: "latest",
       });
       blockNumber = block.number;
       timestamp = block.timestamp;
     }
     if (blockNumber <= this.currentBlock) {
-      return;
+      return false;
     }
     if (this.#syncing) {
       this.logger?.warn(
         `cannot sync to ${blockNumber}, already syncing at ${this.currentBlock}`,
       );
-      return;
+      return false;
     }
     this.#syncing = true;
     const prevBlock = this.currentBlock;
     const prevTimestamp = this.timestamp;
+    let success = false;
     try {
       let delta = Math.floor(Date.now() / 1000) - Number(timestamp);
       this.logger?.debug(
@@ -567,7 +664,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       this.logger?.debug(
         `getting logs from ${watchAddresses.length} addresses in [${fromBlock}:${blockNumber}]`,
       );
-      const logs = await getLogsSafe(this.provider.publicClient, {
+      const logs = await getLogsSafe(this.client, {
         fromBlock,
         toBlock: blockNumber,
         address: watchAddresses,
@@ -589,11 +686,11 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
 
       // This will reload all or some markets. Should already use sdk.currentBlock
       await this.marketRegister.syncState(ignoreUpdateablePrices);
-      // TODO: do wee need to sync state on botlist and others?
-      //
-      // TODO: how to handle "singleton" contracts addresses, where contract instance is shared across multiple other contract instrances
-      // This behaviour should be reserved for contracts with 100% immutable state, such as InterestRateModel?
-      await this.#hooks.triggerHooks("syncState", { blockNumber, timestamp });
+      await this.#hooks.triggerHooks("syncState", {
+        blockNumber,
+        timestamp,
+        ignoreUpdateablePrices,
+      });
 
       const pluginsList = TypedObjectUtils.entries(this.plugins);
       const pluginResponse = await Promise.allSettled(
@@ -620,6 +717,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       this.logger?.debug(
         `synced state to block ${blockNumber} (delta ${delta}s)`,
       );
+      success = true;
     } catch (e) {
       // possible that this is non-atomic revert
       // if logs fail, marketRegister is not synced, so this block number revert does nothing
@@ -633,10 +731,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
     } finally {
       this.#syncing = false;
     }
-  }
-
-  public get provider(): Provider {
-    return this.#provider;
+    return success;
   }
 
   public get currentBlock(): bigint {
@@ -750,6 +845,6 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
    * @returns
    */
   public labelAddress(address: Address): string {
-    return this.provider.addressLabels.get(address);
+    return this.addressLabels.get(address);
   }
 }

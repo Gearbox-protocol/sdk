@@ -87,7 +87,7 @@ export class RouterV300Contract
       abi: iRouterV300Abi,
       version,
     });
-    this.#connectors = getConnectors(sdk.provider.networkType);
+    this.#connectors = getConnectors(sdk.networkType);
   }
 
   /**
@@ -370,7 +370,7 @@ export class RouterV300Contract
     // it needs to accept market data
     const pathOptions = PathOptionFactory.generatePathOptions(
       ca.tokens,
-      this.provider.networkType,
+      this.networkType,
       LOOPS_PER_TX,
     );
 
@@ -430,14 +430,13 @@ export class RouterV300Contract
       Plasma: "0x0",
     } as const;
 
-    const pendleRouter =
-      PENDLE_ROUTER_BY_NETWORK[this.sdk.provider.networkType];
+    const pendleRouter = PENDLE_ROUTER_BY_NETWORK[this.sdk.networkType];
     const pendleAdapter = cm.creditManager.adapters.mustGet(pendleRouter);
 
     const pendleSwapper = getContract({
       address: pendleSwapperAddress,
       abi: iSwapperV300Abi,
-      client: this.sdk.provider.publicClient,
+      client: this.sdk.client,
     });
 
     const result = await pendleSwapper.simulate.getBestDirectPairSwap([

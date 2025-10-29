@@ -1,7 +1,6 @@
 import type { Address, ContractFunctionReturnType } from "viem";
-
-import type { iPriceFeedCompressorAbi } from "../../abi/compressors.js";
-import { iMarketCompressorAbi } from "../../abi/compressors.js";
+import { marketCompressorAbi } from "../../abi/compressors/marketCompressor.js";
+import type { priceFeedCompressorAbi } from "../../abi/compressors/priceFeedCompressor.js";
 import type { MarketData, MarketFilter } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
 import {
@@ -162,26 +161,23 @@ export class MarketRegister extends SDKConstruct {
     // ...and push them using multicall before getting answers
     let markets: readonly MarketData[] = [];
     if (txs.length) {
-      const [resp] = await simulateWithPriceUpdates(
-        this.provider.publicClient,
-        {
-          priceUpdates: txs,
-          contracts: [
-            {
-              abi: iMarketCompressorAbi,
-              address: marketCompressorAddress,
-              functionName: "getMarkets",
-              args: [this.marketFilter],
-            },
-          ],
-          blockNumber: this.sdk.currentBlock,
-          gas: this.sdk.gasLimit,
-        },
-      );
+      const [resp] = await simulateWithPriceUpdates(this.client, {
+        priceUpdates: txs,
+        contracts: [
+          {
+            abi: marketCompressorAbi,
+            address: marketCompressorAddress,
+            functionName: "getMarkets",
+            args: [this.marketFilter],
+          },
+        ],
+        blockNumber: this.sdk.currentBlock,
+        gas: this.sdk.gasLimit,
+      });
       markets = resp;
     } else {
-      markets = await this.provider.publicClient.readContract({
-        abi: iMarketCompressorAbi,
+      markets = await this.client.readContract({
+        abi: marketCompressorAbi,
         address: marketCompressorAddress,
         functionName: "getMarkets",
         args: [this.marketFilter],
@@ -225,19 +221,16 @@ export class MarketRegister extends SDKConstruct {
     }
     this.#logger?.debug(`syncing prices on ${multicalls.length} oracles`);
     const { txs } = await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs();
-    const oraclesStates = await simulateWithPriceUpdates(
-      this.provider.publicClient,
-      {
-        priceUpdates: txs,
-        contracts: multicalls.map(mc => mc.call),
-        gas: this.sdk.gasLimit,
-        blockNumber: this.sdk.currentBlock,
-      },
-    );
+    const oraclesStates = await simulateWithPriceUpdates(this.client, {
+      priceUpdates: txs,
+      contracts: multicalls.map(mc => mc.call),
+      gas: this.sdk.gasLimit,
+      blockNumber: this.sdk.currentBlock,
+    });
     for (let i = 0; i < multicalls.length; i++) {
       const handler = multicalls[i].onResult;
       const result = oraclesStates[i] as any as ContractFunctionReturnType<
-        typeof iPriceFeedCompressorAbi,
+        typeof priceFeedCompressorAbi,
         "view",
         "getPriceOracleState"
       >;

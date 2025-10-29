@@ -12,8 +12,8 @@ import {
   RevolverTransport,
   type RevolverTransportConfig,
   type RevolverTransportValue,
-} from "./RevolverTransport";
-import { RpcServerMock } from "./RpcServer.mock";
+} from "./RevolverTransport.js";
+import { RpcServerMock } from "./RpcServer.mock.js";
 
 let s1: RpcServerMock;
 let s2: RpcServerMock;

@@ -1,6 +1,6 @@
 import { type Hex, parseAbi, toFunctionSelector } from "viem";
 import type { PartialRecord } from "../../../sdk/index.js";
-import { AdapterType, type VersionedAbi } from "../types";
+import { AdapterType, type VersionedAbi } from "../types.js";
 
 /**
  * Mapping from adapter type to ABI for decoding deploy params
@@ -16,6 +16,7 @@ export const adapterActionSignatures: PartialRecord<
   },
   [AdapterType.BALANCER_V3_ROUTER]: {
     310: "function setPoolStatusBatch(address[],bool[])",
+    311: "function setPoolStatusBatch((address,uint8)[])",
   },
   [AdapterType.CAMELOT_V3_ROUTER]: {
     310: "function setPoolStatusBatch((address,address,bool)[])",
@@ -35,8 +36,15 @@ export const adapterActionSignatures: PartialRecord<
   [AdapterType.MELLOW_WRAPPER]: {
     310: "function setVaultStatusBatch((address,bool)[])",
   },
+  [AdapterType.MIDAS_ISSUANCE_VAULT]: {
+    310: "function setTokenAllowedStatusBatch(address[],bool[])",
+  },
+  [AdapterType.MIDAS_REDEMPTION_VAULT]: {
+    310: "function setTokenAllowedStatusBatch((address,address,bool)[])",
+  },
   [AdapterType.PENDLE_ROUTER]: {
     310: "function setPairStatusBatch((address,address,address,uint8)[])",
+    311: "function setPairStatusBatch((address,address,address,uint8,uint8)[])",
   },
   [AdapterType.TRADERJOE_ROUTER]: {
     310: "function setPoolStatusBatch((address,address,uint256,uint8,bool)[])",

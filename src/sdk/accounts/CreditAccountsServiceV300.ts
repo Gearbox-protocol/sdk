@@ -234,7 +234,7 @@ export class CreditAccountServiceV300
     withdrawAll: boolean,
     creditManager: Address,
   ) {
-    const network = this.sdk.provider.networkType;
+    const network = this.sdk.networkType;
     const suite = this.sdk.marketRegister.findCreditManager(creditManager);
 
     const cmAdapters = suite.creditManager.adapters

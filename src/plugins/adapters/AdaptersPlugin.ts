@@ -9,6 +9,7 @@ import { BasePlugin, bytes32ToString } from "../../sdk/index.js";
 import {
   BalancerV2VaultAdapterContract,
   BalancerV3RouterAdapterContract,
+  BalancerV3WrapperAdapterContract,
   CamelotV3AdapterContract,
   ConvexV1BaseRewardPoolAdapterContract,
   ConvexV1BoosterAdapterContract,
@@ -31,6 +32,8 @@ import {
   MellowERC4626VaultAdapterContract,
   MellowVaultAdapterContract,
   MellowWrapperAdapterContract,
+  MidasIssuanceVaultAdapterContract,
+  MidasRedemptionVaultAdapterContract,
   PendleRouterAdapterContract,
   StakingRewardsAdapterContract,
   TraderJoeRouterAdapterContract,
@@ -40,7 +43,7 @@ import {
   VelodromeV2RouterAdapterContract,
   WstETHV1AdapterContract,
   YearnV2RouterAdapterContract,
-} from "./contracts";
+} from "./contracts/index.js";
 import type { AdapterContractType } from "./types.js";
 
 export class AdaptersPlugin
@@ -60,6 +63,8 @@ export class AdaptersPlugin
     switch (adapterType) {
       case "ADAPTER::BALANCER_V3_ROUTER":
         return new BalancerV3RouterAdapterContract(this.sdk, args);
+      case "ADAPTER::BALANCER_V3_WRAPPER":
+        return new BalancerV3WrapperAdapterContract(this.sdk, args);
       case "ADAPTER::BALANCER_VAULT":
         return new BalancerV2VaultAdapterContract(this.sdk, args);
       case "ADAPTER::CAMELOT_V3_ROUTER":
@@ -108,6 +113,10 @@ export class AdaptersPlugin
         return new MellowVaultAdapterContract(this.sdk, args);
       case "ADAPTER::MELLOW_WRAPPER":
         return new MellowWrapperAdapterContract(this.sdk, args);
+      case "ADAPTER::MIDAS_ISSUANCE_VAULT":
+        return new MidasIssuanceVaultAdapterContract(this.sdk, args);
+      case "ADAPTER::MIDAS_REDEMPTION_VAULT":
+        return new MidasRedemptionVaultAdapterContract(this.sdk, args);
       case "ADAPTER::PENDLE_ROUTER":
         return new PendleRouterAdapterContract(this.sdk, args);
       case "ADAPTER::STAKING_REWARDS":

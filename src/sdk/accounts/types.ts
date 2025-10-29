@@ -4,8 +4,7 @@ import type {
   GetContractReturnType,
   PublicClient,
 } from "viem";
-
-import type { iCreditAccountCompressorAbi } from "../../abi/compressors.js";
+import type { creditAccountCompressorAbi } from "../../abi/compressors/creditAccountCompressor.js";
 import type { iWithdrawalCompressorV310Abi } from "../../abi/IWithdrawalCompressorV310.js";
 import type { LiquidationBotType as LiquidationBotTypeSDK } from "../../plugins/bots/types.js";
 import type { MigrationBotType } from "../accountMigration/types.js";
@@ -27,7 +26,7 @@ import type {
 import type { MultiCall, RawTx } from "../types/index.js";
 
 export type GetCreditAccountsArgs = ContractFunctionArgs<
-  typeof iCreditAccountCompressorAbi,
+  typeof creditAccountCompressorAbi,
   "pure" | "view",
   "getCreditAccounts"
 >;

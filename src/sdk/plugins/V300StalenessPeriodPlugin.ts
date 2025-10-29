@@ -40,7 +40,7 @@ export class V300StalenessPeriodPlugin
 
   public override set sdk(sdk: GearboxSDK<any>) {
     super.sdk = sdk;
-    this.#syncedTo = (sdk.provider.chain.firstBlock ?? 1n) - 1n;
+    this.#syncedTo = (sdk.chain.firstBlock ?? 1n) - 1n;
   }
 
   public override get sdk(): GearboxSDK<any> {

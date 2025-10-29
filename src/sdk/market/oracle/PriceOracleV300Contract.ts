@@ -21,7 +21,7 @@ import type {
   UpdatePriceFeedsResult,
 } from "../pricefeeds/index.js";
 import { PriceOracleBaseContract } from "./PriceOracleBaseContract.js";
-import type { OnDemandPriceUpdates } from "./types";
+import type { OnDemandPriceUpdates } from "./types.js";
 
 const abi = [...iPriceOracleV300Abi, ...iPausableAbi];
 type abi = typeof abi;
@@ -132,7 +132,7 @@ export class PriceOracleV300Contract extends PriceOracleBaseContract<abi> {
       return [token, reserve];
     }
     const tickers = Object.values(
-      tickerInfoTokensByNetwork[this.sdk.provider.networkType],
+      tickerInfoTokensByNetwork[this.sdk.networkType],
     ).flat();
     const ticker = tickers.find(
       t => t.priceFeed.toLowerCase() === priceFeed.toLowerCase(),

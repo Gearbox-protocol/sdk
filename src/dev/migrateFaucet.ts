@@ -1,20 +1,17 @@
 import type { Address } from "viem";
 import { formatEther, parseEther, stringToHex } from "viem";
 
+import { iAddressProviderV310Abi } from "../abi/310/generated.js";
 import { iAddressProviderV300Abi } from "../abi/v300.js";
-import { iAddressProviderV310Abi } from "../abi/v310.js";
 import type { GearboxSDK } from "../sdk/index.js";
 import { ADDRESS_PROVIDER } from "../sdk/index.js";
-import { createAnvilClient } from "./createAnvilClient.js";
+import { extendAnvilClient } from "./createAnvilClient.js";
 
 export async function unsafeMigrateFaucet(
   sdk: GearboxSDK,
   faucet?: Address,
 ): Promise<void> {
-  const anvil = createAnvilClient({
-    chain: sdk.provider.chain,
-    transport: sdk.provider.transport,
-  });
+  const anvil = extendAnvilClient(sdk.client);
 
   let faucetAddr: Address;
   let owner: Address;
@@ -31,7 +28,7 @@ export async function unsafeMigrateFaucet(
       contracts: [
         {
           abi: iAddressProviderV300Abi,
-          address: ADDRESS_PROVIDER[sdk.provider.networkType],
+          address: ADDRESS_PROVIDER[sdk.networkType],
           functionName: "getAddressOrRevert",
           args: [stringToHex("FAUCET", { size: 32 }), 0n],
         },
@@ -95,7 +92,7 @@ export async function migrateFaucet(
   } catch (e) {
     sdk.logger?.error(`faucet migration failed: ${e}`);
   }
-  return sdk.provider.publicClient.readContract({
+  return sdk.client.readContract({
     abi: iAddressProviderV310Abi,
     address: sdk.addressProvider.address,
     functionName: "getAddressOrRevert",

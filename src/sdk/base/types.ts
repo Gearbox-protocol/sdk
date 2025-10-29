@@ -3,14 +3,11 @@ import type {
   ExtractAbiFunction,
 } from "abitype";
 import type { Address, Hex } from "viem";
-
-import type {
-  iCreditAccountCompressorAbi,
-  iGaugeCompressorAbi,
-  iMarketCompressorAbi,
-  iPeripheryCompressorAbi,
-  iRewardsCompressorAbi,
-} from "../../abi/compressors.js";
+import type { creditAccountCompressorAbi } from "../../abi/compressors/creditAccountCompressor.js";
+import type { gaugeCompressorAbi } from "../../abi/compressors/gaugeCompressor.js";
+import type { marketCompressorAbi } from "../../abi/compressors/marketCompressor.js";
+import type { peripheryCompressorAbi } from "../../abi/compressors/peripheryCompressor.js";
+import type { rewardsCompressorAbi } from "../../abi/compressors/rewardsCompressor.js";
 
 export type Unarray<A> = A extends readonly unknown[] ? Unarray<A[number]> : A;
 
@@ -26,13 +23,13 @@ export interface BaseState {
 }
 
 export type MarketFilter = AbiParametersToPrimitiveTypes<
-  ExtractAbiFunction<typeof iMarketCompressorAbi, "getMarkets">["inputs"]
+  ExtractAbiFunction<typeof marketCompressorAbi, "getMarkets">["inputs"]
 >[0];
 
 export type CreditAccountData = Unarray<
   AbiParametersToPrimitiveTypes<
     ExtractAbiFunction<
-      typeof iCreditAccountCompressorAbi,
+      typeof creditAccountCompressorAbi,
       "getCreditAccountData"
     >["outputs"]
   >
@@ -40,26 +37,26 @@ export type CreditAccountData = Unarray<
 
 export type RewardInfo = Unarray<
   AbiParametersToPrimitiveTypes<
-    ExtractAbiFunction<typeof iRewardsCompressorAbi, "getRewards">["outputs"]
+    ExtractAbiFunction<typeof rewardsCompressorAbi, "getRewards">["outputs"]
   >
 >;
 
 export type MarketData = Unarray<
   AbiParametersToPrimitiveTypes<
-    ExtractAbiFunction<typeof iMarketCompressorAbi, "getMarkets">["outputs"]
+    ExtractAbiFunction<typeof marketCompressorAbi, "getMarkets">["outputs"]
   >
 >;
 
 export type GaugeData = Unarray<
   AbiParametersToPrimitiveTypes<
-    ExtractAbiFunction<typeof iGaugeCompressorAbi, "getGaugeInfo">["outputs"]
+    ExtractAbiFunction<typeof gaugeCompressorAbi, "getGaugeInfo">["outputs"]
   >
 >;
 
 export type ConnectedBotData = Unarray<
   AbiParametersToPrimitiveTypes<
     ExtractAbiFunction<
-      typeof iPeripheryCompressorAbi,
+      typeof peripheryCompressorAbi,
       "getConnectedBots"
     >["outputs"]
   >

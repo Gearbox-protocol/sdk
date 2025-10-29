@@ -15,7 +15,7 @@ export class WstETHPriceFeedContract extends AbstractLPPriceFeedContract<abi> {
   }
 
   public override async getValue(): Promise<bigint> {
-    return await this.sdk.provider.publicClient.readContract({
+    return await this.sdk.client.readContract({
       abi: iwstEthAbi,
       address: this.lpContract,
       functionName: "stEthPerToken",

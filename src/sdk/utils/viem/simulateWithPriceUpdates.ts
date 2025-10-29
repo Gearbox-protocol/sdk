@@ -16,8 +16,8 @@ import {
   decodeFunctionData,
   parseAbi,
 } from "viem";
-
-import { errorAbis, iUpdatablePriceFeedAbi } from "../../../abi/index.js";
+import { errorAbis } from "../../../abi/errors.js";
+import { iUpdatablePriceFeedAbi } from "../../../abi/iUpdatablePriceFeed.js";
 import type { IPriceUpdateTx } from "../../types/index.js";
 import { generateCastTraceCall } from "./cast.js";
 import type { SimulateMulticallParameters } from "./simulateMulticall.js";

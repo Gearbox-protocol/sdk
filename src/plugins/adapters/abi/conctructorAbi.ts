@@ -1,4 +1,4 @@
-import { AdapterType, type VersionedAbi } from "../types";
+import { AdapterType, type VersionedAbi } from "../types.js";
 import {
   ADDRESS_REFERRAL_ADAPTER_ABI,
   BASIC_ADAPTER_ABI,
@@ -7,10 +7,11 @@ import {
   CURVE_V1_WRAPPER_ADAPTER_ABI,
   GATEWAY_ADAPTER_ABI,
   LP_ADAPTER_ABI,
+  REFERER_ID_ADAPTER_ABI,
   STAKED_TOKEN_ADAPTER_ABI,
   STAKING_REWARDS_ADAPTER_ABI,
   UINT_REFERRAL_ADAPTER_ABI,
-} from "./conctructorAbiPatterns";
+} from "./conctructorAbiPatterns.js";
 
 /**
  * Mapping from adapter type to ABI for decoding deploy params
@@ -23,6 +24,10 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
     310: BASIC_ADAPTER_ABI,
   },
   [AdapterType.BALANCER_V3_ROUTER]: {
+    310: BASIC_ADAPTER_ABI,
+    311: BASIC_ADAPTER_ABI,
+  },
+  [AdapterType.BALANCER_V3_WRAPPER]: {
     310: BASIC_ADAPTER_ABI,
   },
   [AdapterType.CAMELOT_V3_ROUTER]: {
@@ -46,8 +51,12 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
   [AdapterType.LIDO_WSTETH_V1]: {
     310: BASIC_ADAPTER_ABI,
   },
+  [AdapterType.MIDAS_REDEMPTION_VAULT]: {
+    310: BASIC_ADAPTER_ABI,
+  },
   [AdapterType.PENDLE_ROUTER]: {
     310: BASIC_ADAPTER_ABI,
+    311: BASIC_ADAPTER_ABI,
   },
   [AdapterType.DAI_USDS_EXCHANGE]: {
     310: BASIC_ADAPTER_ABI,
@@ -146,5 +155,9 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
     310: STAKED_TOKEN_ADAPTER_ABI,
     311: STAKING_REWARDS_ADAPTER_ABI,
     312: STAKING_REWARDS_ADAPTER_ABI,
+  },
+
+  [AdapterType.MIDAS_ISSUANCE_VAULT]: {
+    310: REFERER_ID_ADAPTER_ABI,
   },
 } as const;

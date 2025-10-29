@@ -1,6 +1,5 @@
 import type { Address } from "viem";
-
-import { iGaugeCompressorAbi } from "../../abi/compressors.js";
+import { gaugeCompressorAbi } from "../../abi/compressors/gaugeCompressor.js";
 import { SDKConstruct } from "../base/index.js";
 import { AP_GAUGE_COMPRESSOR, VERSION_RANGE_310 } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
@@ -36,11 +35,11 @@ export class GaugeStakingService extends SDKConstruct {
     }
 
     const [gauges, availableBalance, totalBalance, withdrawableAmounts, epoch] =
-      await this.provider.publicClient.multicall({
+      await this.client.multicall({
         allowFailure: false,
         contracts: [
           {
-            abi: iGaugeCompressorAbi,
+            abi: gaugeCompressorAbi,
             address: this.#compressor,
             functionName: "getGauges",
             args: [marketFilter, wallet],

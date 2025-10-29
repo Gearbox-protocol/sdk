@@ -1,6 +1,6 @@
 import type { Address, PublicClient } from "viem";
 
-import type { NetworkType, Provider } from "../chain/index.js";
+import type { NetworkType } from "../chain/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import type { PluginsMap } from "../plugins/index.js";
 
@@ -15,16 +15,12 @@ export class SDKConstruct<const Plugins extends PluginsMap = {}> {
     this.sdk = sdk;
   }
 
-  public get provider(): Provider {
-    return this.sdk.provider;
-  }
-
-  public get network(): NetworkType {
-    return this.provider.networkType;
+  public get networkType(): NetworkType {
+    return this.sdk.networkType;
   }
 
   public get client(): PublicClient {
-    return this.provider.publicClient;
+    return this.sdk.client;
   }
 
   /**
@@ -39,7 +35,7 @@ export class SDKConstruct<const Plugins extends PluginsMap = {}> {
   }
 
   protected labelAddress(address: Address): string {
-    return this.provider.addressLabels.get(address);
+    return this.sdk.labelAddress(address);
   }
 
   /**

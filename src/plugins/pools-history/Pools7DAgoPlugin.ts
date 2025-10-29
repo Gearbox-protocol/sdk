@@ -1,6 +1,5 @@
 import type { Address } from "viem";
-
-import { iMarketCompressorAbi } from "../../abi/compressors.js";
+import { marketCompressorAbi } from "../../abi/compressors/marketCompressor.js";
 import type { IGearboxSDKPlugin } from "../../sdk/index.js";
 import {
   AddressMap,
@@ -31,8 +30,7 @@ export class Pools7DAgoPlugin
 
     // TODO: Implement better logic to find block 7 days ago
     const targetBlock =
-      this.sdk.currentBlock -
-      BLOCKS_PER_WEEK_BY_NETWORK[this.sdk.provider.networkType];
+      this.sdk.currentBlock - BLOCKS_PER_WEEK_BY_NETWORK[this.sdk.networkType];
     const [marketCompressorAddress] = this.sdk.addressProvider.mustGetLatest(
       AP_MARKET_COMPRESSOR,
       VERSION_RANGE_310,
@@ -43,13 +41,13 @@ export class Pools7DAgoPlugin
     );
 
     const markets = this.sdk.marketRegister.markets;
-    const resp = await this.provider.publicClient.multicall({
+    const resp = await this.client.multicall({
       allowFailure: true,
       contracts: markets.map(
         m =>
           ({
             address: marketCompressorAddress,
-            abi: iMarketCompressorAbi,
+            abi: marketCompressorAbi,
             functionName: "getPoolState",
             args: [m.pool.pool.address],
           }) as const,

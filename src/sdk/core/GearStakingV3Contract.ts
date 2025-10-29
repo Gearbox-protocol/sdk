@@ -28,7 +28,7 @@ export class GearStakingContract extends BaseContract<abi> {
     switch (params.functionName) {
       case "setVotingContractStatus": {
         const [address, status] = params.args;
-        return [this.addressLabels.get(address), VotingContractStatus[status]];
+        return [this.labelAddress(address), VotingContractStatus[status]];
       }
       default:
         return undefined;

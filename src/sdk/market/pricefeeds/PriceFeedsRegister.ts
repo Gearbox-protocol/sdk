@@ -1,6 +1,5 @@
 import { type Address, type BlockTag, type Hex, parseAbi } from "viem";
-
-import { iPriceFeedCompressorAbi } from "../../../abi/compressors.js";
+import { priceFeedCompressorAbi } from "../../../abi/compressors/priceFeedCompressor.js";
 import type { PriceFeedTreeNode } from "../../base/index.js";
 import { SDKConstruct } from "../../base/index.js";
 import {
@@ -231,9 +230,9 @@ export class PriceFeedRegister
       VERSION_RANGE_310,
     );
     const blockParam = block ?? { blockNumber: this.sdk.currentBlock };
-    const result = await this.provider.publicClient.readContract({
+    const result = await this.client.readContract({
       address: priceFeedCompressorAddress,
-      abi: iPriceFeedCompressorAbi,
+      abi: priceFeedCompressorAbi,
       functionName: "loadPriceFeedTree",
       args: [feeds],
       ...blockParam,
@@ -303,9 +302,9 @@ export class PriceFeedRegister
       { configurators, pools },
       `calling getUpdatablePriceFeeds in block ${this.sdk.currentBlock}`,
     );
-    const result = await this.provider.publicClient.readContract({
+    const result = await this.client.readContract({
       address: priceFeedCompressorAddress,
-      abi: iPriceFeedCompressorAbi,
+      abi: priceFeedCompressorAbi,
       functionName: "getUpdatablePriceFeeds",
       args: [
         {

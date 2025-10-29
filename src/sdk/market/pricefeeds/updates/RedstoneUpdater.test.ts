@@ -71,7 +71,7 @@ it("should return an empty array when no updates are available", async () => {
   });
 
   await expect(
-    sdk.provider.publicClient.call({
+    sdk.client.call({
       to: txs[0].raw.to,
       data: txs[0].raw.callData,
       blockNumber: sdk.currentBlock,

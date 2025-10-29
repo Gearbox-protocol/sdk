@@ -1,6 +1,6 @@
 import type { Address, PublicClient } from "viem";
 
-import type { NetworkType, Provider } from "../chain/index.js";
+import type { NetworkType } from "../chain/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import type { ILogger } from "../index.js";
 
@@ -46,19 +46,15 @@ export abstract class BasePlugin<
 
   abstract load(force?: boolean): Promise<TState>;
 
-  public get provider(): Provider {
-    return this.sdk.provider;
-  }
-
   public get network(): NetworkType {
-    return this.provider.networkType;
+    return this.sdk.networkType;
   }
 
   public get client(): PublicClient {
-    return this.provider.publicClient;
+    return this.sdk.client;
   }
 
   protected labelAddress(address: Address): string {
-    return this.provider.addressLabels.get(address);
+    return this.sdk.labelAddress(address);
   }
 }

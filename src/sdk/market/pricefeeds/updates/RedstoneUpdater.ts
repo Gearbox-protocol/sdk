@@ -147,7 +147,7 @@ export class RedstoneUpdater
     for (const [key, group] of Object.entries(groupedFeeds)) {
       const [dataServiceId, signersStr] = key.split(":");
       const uniqueSignersCount = parseInt(signersStr, 10);
-      const payloads = await this.#getPayloads(
+      const payloads = await this.#safeGetPayloads(
         dataServiceId,
         group,
         uniqueSignersCount,
@@ -187,6 +187,50 @@ export class RedstoneUpdater
       `generated ${results.length} update transactions for redstone price feeds: ${Array.from(priceFeeds.keys()).join(", ")}${tsRange}`,
     );
     return results;
+  }
+
+  /**
+   * Gets payloads, retries once if it has expired while inflight
+   * @param dataServiceId
+   * @param dataFeedsIds
+   * @param uniqueSignersCount
+   * @returns
+   */
+  async #safeGetPayloads(
+    dataServiceId: string,
+    dataFeedsIds: Set<string>,
+    uniqueSignersCount: number,
+  ): Promise<TimestampedCalldata[]> {
+    let result = await this.#getPayloads(
+      dataServiceId,
+      dataFeedsIds,
+      uniqueSignersCount,
+    );
+    if (this.#historicalTimestampMs) {
+      return result;
+    }
+    let expired = false;
+    for (const { timestamp, dataFeedId } of result) {
+      const delta = Number(this.sdk.timestamp) - timestamp;
+      // we check only recently expired short-lived feeds
+      // 240 seconds is minimal stalenessPeriod for redstone (defined by time required for user to sign transaction with wallet, unlikely to change)
+      // if a feed with stalenessPeriod of 12 hours expired by 10 minutes, it's very unlikely that a retry will succeed
+      // plus it'll be very difficult to drill-down and pass stalenessPeriods to this function
+      if (delta >= 240 && delta < 255) {
+        this.#logger?.warn(
+          `payload for ${dataFeedId} has expired by ${delta} seconds`,
+        );
+        expired = true;
+      }
+    }
+    if (expired) {
+      result = await this.#getPayloads(
+        dataServiceId,
+        dataFeedsIds,
+        uniqueSignersCount,
+      );
+    }
+    return result;
   }
 
   /**
