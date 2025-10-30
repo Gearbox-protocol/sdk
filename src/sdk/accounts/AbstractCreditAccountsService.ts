@@ -531,7 +531,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       throw new Error("debt increase or decrease must be non-zero");
     }
     const isDecrease = amount < 0n;
-    const change = isDecrease ? -amount : amount;
+    const change = BigIntMath.abs(amount);
 
     const cm = this.sdk.marketRegister.findCreditManager(
       creditAccount.creditManager,
@@ -542,18 +542,19 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       creditAccount,
     });
 
-    const addCollateralCalls = addCollateral
-      ? this.prepareAddCollateral(
-          creditAccount.creditFacade,
-          [
-            {
-              token: creditAccount.underlying,
-              balance: BigIntMath.abs(amount),
-            },
-          ],
-          {},
-        )
-      : [];
+    const addCollateralCalls =
+      addCollateral && isDecrease
+        ? this.prepareAddCollateral(
+            creditAccount.creditFacade,
+            [
+              {
+                token: creditAccount.underlying,
+                balance: change,
+              },
+            ],
+            {},
+          )
+        : [];
 
     const underlyingEnabled = (creditAccount.enabledTokensMask & 1n) === 1n;
     const shouldEnable = !isDecrease && !underlyingEnabled;
