@@ -25,6 +25,7 @@ import {
   VERSION_RANGE_310,
 } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
+import { BigIntMath } from "../index.js";
 import type {
   IPriceFeedContract,
   IPriceOracleContract,
@@ -524,6 +525,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   public async changeDebt({
     creditAccount,
     amount,
+    addCollateral,
   }: ChangeDeptProps): Promise<CreditAccountOperationResult> {
     if (amount === 0n) {
       throw new Error("debt increase or decrease must be non-zero");
@@ -540,11 +542,25 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       creditAccount,
     });
 
+    const addCollateralCalls = addCollateral
+      ? this.prepareAddCollateral(
+          creditAccount.creditFacade,
+          [
+            {
+              token: creditAccount.underlying,
+              balance: BigIntMath.abs(amount),
+            },
+          ],
+          {},
+        )
+      : [];
+
     const underlyingEnabled = (creditAccount.enabledTokensMask & 1n) === 1n;
     const shouldEnable = !isDecrease && !underlyingEnabled;
 
     const calls: Array<MultiCall> = [
       ...priceUpdatesCalls,
+      ...addCollateralCalls,
       ...(shouldEnable
         ? this.#prepareEnableTokens(creditAccount.creditFacade, [
             creditAccount.underlying,
