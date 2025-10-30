@@ -329,6 +329,10 @@ export interface ChangeDeptProps {
    * positive value for debt increase.
    */
   amount: bigint;
+  /**
+   * If true, will add collateral to the credit account
+   */
+  addCollateral: boolean;
 }
 
 export interface FullyLiquidateProps {
