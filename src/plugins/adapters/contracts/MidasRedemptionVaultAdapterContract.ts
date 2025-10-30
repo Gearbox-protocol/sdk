@@ -10,7 +10,7 @@ type abi = typeof abi;
 export class MidasRedemptionVaultAdapterContract extends AbstractAdapterContract<abi> {
   public readonly gateway: Address;
   public readonly mToken: Address;
-  public readonly allowedTokens: Address[];
+  public readonly allowedTokens: { token: Address; phantomToken: Address }[];
 
   constructor(
     sdk: GearboxSDK,
@@ -26,12 +26,16 @@ export class MidasRedemptionVaultAdapterContract extends AbstractAdapterContract
         { type: "address", name: "gateway" },
         { type: "address", name: "mToken" },
         { type: "address[]", name: "allowedTokens" },
+        { type: "address[]", name: "allowedPhantomTokens" },
       ],
       args.baseParams.serializedParams,
     );
 
     this.gateway = decoded[2];
     this.mToken = decoded[3];
-    this.allowedTokens = [...decoded[4]];
+    this.allowedTokens = decoded[4].map((token, index) => ({
+      token,
+      phantomToken: decoded[5][index],
+    }));
   }
 }
