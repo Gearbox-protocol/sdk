@@ -22,6 +22,7 @@ export interface BytecodeShort
 }
 
 export interface BytecodeExtended extends Bytecode {
+  verificationData?: unknown;
   deployments: Deployment[];
   audits: Audit[];
 }
