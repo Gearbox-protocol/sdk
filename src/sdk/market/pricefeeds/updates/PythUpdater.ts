@@ -256,7 +256,13 @@ export class PythUpdater
       },
       { attempts: 3, exponent: 2, interval: 200 },
     );
-    return respToCalldata(resp);
+    const result = respToCalldata(resp);
+    if (!this.#ignoreMissingFeeds && result.length !== dataFeedsIds.size) {
+      throw new Error(
+        `expected ${dataFeedsIds.size} price feeds, got ${result.length}`,
+      );
+    }
+    return result;
   }
 }
 
@@ -265,8 +271,12 @@ function isPyth(pf: IPriceFeedContract): pf is IPythPriceFeedContract {
 }
 
 function respToCalldata(resp: PythPriceUpdatesResp): TimestampedCalldata[] {
-  const updates = splitAccumulatorUpdates(resp.binary.data[0]);
+  // edge case when ignoreMissingFeeds is true and we requesting exactly one feed which fails
+  if (resp.binary.data.length === 0) {
+    return [];
+  }
 
+  const updates = splitAccumulatorUpdates(resp.binary.data[0]);
   return updates.map(({ data, dataFeedId, timestamp }) => {
     return {
       dataFeedId,
