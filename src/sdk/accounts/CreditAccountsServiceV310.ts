@@ -102,14 +102,17 @@ export class CreditAccountServiceV310
     creditAccount: ca,
     permits,
     to,
+    tokensToClaim,
   }: RepayCreditAccountProps): Promise<CreditAccountOperationResult> {
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
 
     const addCollateral = collateralAssets.filter(a => a.balance > 0);
 
     const router = this.sdk.routerFor(ca);
+
     const claimPath = await router.findClaimAllRewards({
       calls: [],
+      tokensToClaim,
       creditAccount: ca,
     });
 
@@ -146,12 +149,14 @@ export class CreditAccountServiceV310
     creditAccount: ca,
     permits,
     to,
+    tokensToClaim,
   }: RepayAndLiquidateCreditAccountProps): Promise<CreditAccountOperationResult> {
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
 
     const router = this.sdk.routerFor(ca);
     const claimPath = await router.findClaimAllRewards({
       calls: [],
+      tokensToClaim,
       creditAccount: ca,
     });
 
@@ -188,12 +193,14 @@ export class CreditAccountServiceV310
 
     minQuota,
     averageQuota,
+    tokensToClaim,
   }: ClaimFarmRewardsProps): Promise<CreditAccountOperationResult> {
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
 
     const router = this.sdk.routerFor(ca);
     const claimPath = await router.findClaimAllRewards({
       calls: legacyCalls,
+      tokensToClaim,
       creditAccount: ca,
     });
     if (claimPath.calls.length === 0) throw new Error("No path to execute");

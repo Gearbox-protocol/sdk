@@ -168,7 +168,7 @@ export class RouterV310Contract
   public async findClaimAllRewards(
     props: FindClaimAllRewardsProps,
   ): Promise<RouterRewardsResult> {
-    const tData: Array<TokenData> = props.creditAccount.tokens.map(a => ({
+    const tData: Array<TokenData> = props.tokensToClaim.map(a => ({
       balance: 0n,
       claimRewards: true,
       leftoverBalance: 0n,

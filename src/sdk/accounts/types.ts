@@ -141,6 +141,7 @@ export interface RepayAndLiquidateCreditAccountProps {
    * permits of tokens to withdraw (in any permittable token is present)
    */
   permits: Record<string, PermitResult>;
+  tokensToClaim: Asset[];
 }
 
 export interface PrepareUpdateQuotasProps {
@@ -289,6 +290,7 @@ export interface ClaimFarmRewardsProps extends PrepareUpdateQuotasProps {
    * minimal credit account data on which operation is performed
    */
   creditAccount: RouterCASlice;
+  tokensToClaim: Asset[];
 }
 
 export interface EnableTokensProps {
@@ -359,6 +361,10 @@ export interface ChangeDeptProps {
    * positive value for debt increase.
    */
   amount: bigint;
+  /**
+   * If true, will add collateral to the credit account
+   */
+  addCollateral: boolean;
 }
 
 export interface FullyLiquidateProps {

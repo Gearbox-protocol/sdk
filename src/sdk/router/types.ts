@@ -210,6 +210,10 @@ export interface FindClaimAllRewardsProps {
    */
   creditAccount: RouterCASlice;
   /**
+   * List of token rewards of which we want to claim and swap to underlying token during closing ca process
+   */
+  tokensToClaim: Array<Asset>;
+  /**
    * Legacy property - array of MultiCall from getRewards
    */
   calls: Array<MultiCall>;
