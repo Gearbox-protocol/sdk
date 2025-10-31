@@ -26,7 +26,6 @@ import {
   VERSION_RANGE_310,
 } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
-import { BigIntMath } from "../index.js";
 import type {
   IPriceFeedContract,
   IPriceOracleContract,
