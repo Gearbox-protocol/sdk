@@ -102,6 +102,9 @@ export async function getPrices({
     redstone: {
       ignoreMissingFeeds: true,
     },
+    pyth: {
+      ignoreMissingFeeds: true
+    }
   });
 
   const chunks: Address[][] = [];
