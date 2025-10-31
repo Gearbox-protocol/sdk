@@ -1,5 +1,11 @@
-import type { Address, ContractFunctionArgs } from "viem";
+import type {
+  Address,
+  ContractFunctionArgs,
+  GetContractReturnType,
+  PublicClient,
+} from "viem";
 import type { creditAccountCompressorAbi } from "../../abi/compressors/creditAccountCompressor.js";
+import type { iWithdrawalCompressorV310Abi } from "../../abi/IWithdrawalCompressorV310.js";
 import type { LiquidationBotType as LiquidationBotTypeSDK } from "../../plugins/bots/types.js";
 import type { MigrationBotType } from "../accountMigration/types.js";
 import type { ConnectedBotData, CreditAccountData } from "../base/index.js";
@@ -201,23 +207,57 @@ export interface ExecuteSwapProps extends PrepareUpdateQuotasProps {
   creditAccount: RouterCASlice;
 }
 
-export interface StartDelayedWithdrawalProps extends PrepareUpdateQuotasProps {
+export interface PreviewDelayedWithdrawalProps {
   /**
    * Amount of source token (ex. cp0xlrt)
    */
-  sourceAmount: bigint;
+  amount: bigint;
   /**
    * Address of source token (ex. cp0xlrt)
    */
-  sourceToken: Address;
+  token: Address;
   /**
-   * Array of token which can be instantly withdrawn
+   * Minimal credit account data on which operation is performed
    */
-  instantWithdrawals: Array<Asset>;
+  creditAccount: Address;
+}
+
+export interface GetPendingWithdrawalsProps {
   /**
-   * Array of token which will be withdrawn with a delay
+   * Minimal credit account data on which operation is performed
    */
-  delayedWithdrawals: Array<Asset>;
+  creditAccount: Address;
+}
+
+type WithdrawalCompressorV310InstanceType = GetContractReturnType<
+  typeof iWithdrawalCompressorV310Abi,
+  PublicClient
+>;
+
+export type PreviewDelayedWithdrawalResult = Awaited<
+  ReturnType<
+    WithdrawalCompressorV310InstanceType["read"]["getWithdrawalRequestResult"]
+  >
+>;
+
+type PendingWithdrawalResult = Awaited<
+  ReturnType<
+    WithdrawalCompressorV310InstanceType["read"]["getCurrentWithdrawals"]
+  >
+>;
+export type PendingWithdrawal = PendingWithdrawalResult[1][number];
+export type ClaimableWithdrawal = PendingWithdrawalResult[0][number];
+
+export interface GetPendingWithdrawalsResult {
+  claimableNow: Array<ClaimableWithdrawal>;
+  pending: Array<PendingWithdrawal>;
+}
+
+export interface StartDelayedWithdrawalProps extends PrepareUpdateQuotasProps {
+  /**
+   * Withdrawal preview
+   */
+  preview: PreviewDelayedWithdrawalResult;
   /**
    * Minimal credit account data on which operation is performed
    */
@@ -226,17 +266,9 @@ export interface StartDelayedWithdrawalProps extends PrepareUpdateQuotasProps {
 
 export interface ClaimDelayedProps extends PrepareUpdateQuotasProps {
   /**
-   * Address of source token (ex. sp0xlrt)
+   * assets claimable now from getPendingWithdrawals
    */
-  sourceToken: Address;
-  /**
-   * Amount of phantom token
-   */
-  phantom: Asset;
-  /**
-   * Amount of target token
-   */
-  target: Asset;
+  claimableNow: GetPendingWithdrawalsResult["claimableNow"][number];
   /**
    * Minimal credit account data on which operation is performed
    */
@@ -564,19 +596,33 @@ export interface ICreditAccountsService extends SDKConstruct {
    * @param props - {@link StartDelayedWithdrawalProps}
    * @returns All necessary data to execute the transaction (call, credit facade)
    */
-  startDelayedWithdrawal_Mellow(
+  startDelayedWithdrawal(
     props: StartDelayedWithdrawalProps,
   ): Promise<CreditAccountOperationResult>;
 
+  /**
+   * Preview delayed withdrawal for given token
+   * @param props - {@link PreviewDelayedWithdrawalProps}
+   * @returns
+   */
+  previewDelayedWithdrawal(
+    props: PreviewDelayedWithdrawalProps,
+  ): Promise<PreviewDelayedWithdrawalResult>;
+  /**
+   * Get claimable and pending withdrawals of an account
+   * @param props - {@link GetPendingWithdrawalsProps}
+   * @returns
+   */
+  getPendingWithdrawals(
+    props: GetPendingWithdrawalsProps,
+  ): Promise<GetPendingWithdrawalsResult>;
   /**
    * Claim tokens with delayed withdrawal
      - Claim is executed in the following order: price update -> execute claim calls -> update quotas
    * @param props - {@link ClaimDelayedProps}
    * @returns
   */
-  claimDelayed_Mellow(
-    props: ClaimDelayedProps,
-  ): Promise<CreditAccountOperationResult>;
+  claimDelayed(props: ClaimDelayedProps): Promise<CreditAccountOperationResult>;
 
   /**
    * Executes enable/disable tokens specified by given tokens lists and token prices

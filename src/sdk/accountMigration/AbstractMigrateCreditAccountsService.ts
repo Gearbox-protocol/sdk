@@ -31,7 +31,7 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
   #version: number;
   #service: ICreditAccountsService;
 
-  // TODO: any better way to handle this?
+  // TODO: HARDCODED
   private static readonly V300_TO_V310_TOKENS_OVERRIDES: Record<
     number,
     Record<Address, Address>
@@ -49,22 +49,20 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
     },
   };
 
+  // TODO: HARDCODED
   private static readonly accountMigratorBot =
     "0x286Fe53994f5668D56538Aa10eaa3Ac36f878e9C".toLowerCase() as Address;
-  // "0xc19ddEbDEB7Ba119eB9F23d079dcEaBC1B25B41f".toLowerCase() as Address;
 
+  // TODO: HARDCODED
   private static readonly accountMigratorPreviewer =
     "0x6523B8c9daB92eea7944a79b4Dbb598c7934DCca".toLowerCase() as Address;
-  // "0x5514de935f39AB0a137b4A1c984c872513C02f29".toLowerCase() as Address;
-  // "0xe6d2A2477722Af204899cfd3257A43aDAE1Ea264".toLowerCase() as Address;
-  // 0x99B63E7030e6f066731CF4e166e87D1D18e98B45.toLowerCase() as Address;
 
   constructor(sdk: GearboxSDK, version: number) {
     super(sdk);
 
     this.#version = version;
     this.#service = createCreditAccountService(this.sdk, version);
-    this.#logger = childLogger("CreditAccountsService", sdk.logger);
+    this.#logger = childLogger("MigrateCreditAccountsService", sdk.logger);
     this.#logger?.debug(
       `Created MigrateCreditAccountsService with version: ${this.#version}`,
     );
@@ -190,6 +188,8 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
     const { botAddress } =
       AbstractMigrateCreditAccountsService.getMigrationBotAddress(chainId) ||
       {};
+
+    // TODO: HARDCODED
     return botAddress
       ? {
           baseParams: {
@@ -250,7 +250,7 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
     targetTokensToMigrate: Array<Asset>,
     source: CreditAccountData_Legacy,
     target: CreditManagerData_Legacy,
-    delayedPhantoms: Record<Address, object>,
+    delayedPhantoms: Record<Address, boolean>,
     sdk: GearboxSDK,
   ) {
     // sourceUnderlyingIsNotCollateral
