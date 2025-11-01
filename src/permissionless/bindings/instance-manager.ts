@@ -10,6 +10,7 @@ import { instanceManagerAbi } from "../../abi/310/instanceManager.js";
 import { camelotV3WorkerAbi } from "../../abi/router/camelotV3Worker.js";
 import { erc4626WorkerAbi } from "../../abi/router/erc4626Worker.js";
 import { gearboxRouterAbi } from "../../abi/router/gearboxRouter.js";
+import { mellow4626WorkerAbi } from "../../abi/router/mellow4626Worker.js";
 import { pendleRouterWorkerAbi } from "../../abi/router/pendleRouterWorker.js";
 import { uniswapV3WorkerAbi } from "../../abi/router/uniswapV3Worker.js";
 import type { RawTx } from "../../sdk/types/index.js";
@@ -84,6 +85,18 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
             "ERC4626Worker",
           );
           parsedData = erc4626Worker.parseFunctionData(calldata);
+
+          if (!parsedData.functionName.startsWith("Unknown function")) {
+            return parsedData;
+          }
+
+          const mellow4626Worker = new BaseContract(
+            mellow4626WorkerAbi,
+            target,
+            this.client,
+            "Mellow4626Worker",
+          );
+          parsedData = mellow4626Worker.parseFunctionData(calldata);
 
           if (!parsedData.functionName.startsWith("Unknown function")) {
             return parsedData;
