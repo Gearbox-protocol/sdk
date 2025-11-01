@@ -30,7 +30,8 @@ export type Curator =
   | "M11 Credit"
   | "kpk"
   | "Hyperithm"
-  | "Edge UltraYield";
+  | "Edge UltraYield"
+  | "TelosC";
 
 export interface GearboxChain extends Chain {
   network: NetworkType;
@@ -322,6 +323,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       "0x7a133fbd01736fd076158307c9476cc3877f1af5": "Invariant Group",
       "0x4bce62622be621ce036691de98afcab0e41a77a3": "Edge UltraYield",
       "0xce1cf71a28837daaa7b92d00ca4ef2fd649c2a67": "Hyperithm",
+      "0x9655f82b585b11cee8a05576ed8efcf755cec04b": "TelosC",
     },
     isPublic: true,
     wellKnownToken: {
