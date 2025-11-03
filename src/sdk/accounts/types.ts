@@ -291,6 +291,7 @@ export interface ClaimFarmRewardsProps extends PrepareUpdateQuotasProps {
    */
   creditAccount: RouterCASlice;
   tokensToClaim: Asset[];
+  forceCalls?: boolean;
 }
 
 export interface EnableTokensProps {

@@ -217,6 +217,7 @@ export interface FindClaimAllRewardsProps {
    * Legacy property - array of MultiCall from getRewards
    */
   calls: Array<MultiCall>;
+  forceCalls?: boolean;
 }
 
 export interface FindBestClosePathProps {
