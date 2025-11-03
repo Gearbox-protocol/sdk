@@ -17,14 +17,15 @@ import {
 } from "viem";
 import type { HttpRpcClientOptions } from "viem/utils";
 import type { ILogger, NetworkType } from "../sdk/index.js";
-import {
-  getProviderUrl,
-  type ProviderConfig,
-  type RpcProvider,
-} from "./providers.js";
+
+export interface ProviderConfig {
+  name: string;
+  url: string;
+  cooldown?: number;
+}
 
 interface TransportEntry {
-  provider: RpcProvider;
+  provider: string;
   transport: HttpTransport;
   /**
    * Cannot make requests to this transport until this timestamp
@@ -167,39 +168,24 @@ export class RevolverTransport
       shouldRetry: config.shouldRetry ?? defaultShouldRetry,
     };
 
-    const rpcUrls = new Map<string, RpcProvider>();
-    const cooldowns = new Map<string, number>();
-    for (const { provider, keys, cooldown } of config.providers) {
-      for (const key of keys) {
-        const url = getProviderUrl(provider, config.network, key, "http");
-        if (url) {
-          rpcUrls.set(url, provider);
-          if (cooldown) {
-            cooldowns.set(url, cooldown);
-          }
-        }
-      }
-    }
-
-    this.#transports = Array.from(rpcUrls.entries()).map(
-      ([url, provider], i): TransportEntry => ({
-        provider,
+    this.#transports = config.providers.map(
+      ({ url, name, cooldown }): TransportEntry => ({
+        provider: name,
         transport: http(url, {
           retryCount: config.retryCount,
           retryDelay: config.retryDelay,
           timeout: config.timeout,
           batch: !!config.batch,
-          key: `${provider}-${i}`,
-          name: `${provider}-${i}`,
+          key: name,
+          name: name,
           onFetchRequest: this.#config.onRequest
-            ? (...args) => this.#config.onRequest?.(`${provider}-${i}`, ...args)
+            ? (...args) => this.#config.onRequest?.(name, ...args)
             : undefined,
           onFetchResponse: this.#config.onResponse
-            ? (...args) =>
-                this.#config.onResponse?.(`${provider}-${i}`, ...args)
+            ? (...args) => this.#config.onResponse?.(name, ...args)
             : undefined,
         }),
-        cooldown: cooldowns.get(url) ?? 0,
+        cooldown: cooldown ?? 0,
       }),
     );
 

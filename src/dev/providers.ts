@@ -1,39 +1,7 @@
-import type { HttpTransportConfig, WebSocketTransportConfig } from "viem";
-
 import { chains, type NetworkType } from "../sdk/index.js";
 
-export type RpcProvider = "alchemy" | "drpc" | "ankr" | "thirdweb" | "custom";
-
-export interface ProviderConfig {
-  provider: RpcProvider;
-  keys: string[];
-  cooldown?: number;
-}
-
-export interface CreateTransportURLOptions {
-  /**
-   * Known providers, first has highest priority
-   */
-  rpcProviders?: ProviderConfig[];
-  network: NetworkType;
-}
-
-export type CreateHTTPTransportConfig = {
-  protocol: "http";
-} & HttpTransportConfig &
-  CreateTransportURLOptions;
-
-export type CreateWSTransportConfig = {
-  protocol: "ws";
-} & WebSocketTransportConfig &
-  CreateTransportURLOptions;
-
-export type CreateTransportConfig =
-  | CreateHTTPTransportConfig
-  | CreateWSTransportConfig;
-
 export function getProviderUrl(
-  provider: RpcProvider,
+  provider: string,
   network: NetworkType,
   apiKey: string,
   protocol: "http" | "ws",
@@ -47,9 +15,11 @@ export function getProviderUrl(
       return getAnkrUrl(network, apiKey, protocol);
     case "thirdweb":
       return getThirdWebUrl(network, apiKey, protocol);
-    case "custom": {
+    default: {
       if (!apiKey.startsWith(protocol)) {
-        throw new Error(`Custom RPC URL must start with ${protocol}`);
+        throw new Error(
+          `generic provider's ${provider} key must start with ${protocol}`,
+        );
       }
       return apiKey;
     }

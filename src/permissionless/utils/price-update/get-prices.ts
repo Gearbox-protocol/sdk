@@ -103,8 +103,8 @@ export async function getPrices({
       ignoreMissingFeeds: true,
     },
     pyth: {
-      ignoreMissingFeeds: true
-    }
+      ignoreMissingFeeds: true,
+    },
   });
 
   const chunks: Address[][] = [];
