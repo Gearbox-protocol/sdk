@@ -48,6 +48,13 @@ type OnResponseFn = (
   ...args: Parameters<Required<HttpRpcClientOptions>["onResponse"]>
 ) => ReturnType<Required<HttpRpcClientOptions>["onResponse"]>;
 
+/**
+ * How to select the next transport
+ * - simple: selects next transport after current that is not in cooldown by checking all transports in cyclic order
+ * - ordered: will select first available transport that is not in cooldown
+ */
+export type SelectionStrategy = "simple" | "ordered";
+
 export interface RevolverTransportConfig {
   network: NetworkType;
   providers: ProviderConfig[];
@@ -101,6 +108,11 @@ export interface RevolverTransportConfig {
    * How long, in milliseconds, to wait before try this transport again
    */
   cooldown?: number | undefined;
+  /**
+   * How to select the next transport
+   * Defaults to "simple"
+   */
+  selectionStrategy?: SelectionStrategy;
 }
 
 export class NoAvailableTransportsError extends BaseError {
@@ -192,7 +204,11 @@ export class RevolverTransport
     }
     this.#isSingle = transports.length === 1;
 
-    this.#selector = new SimpleTransportSelector(transports, config.cooldown);
+    const selectionStrategy = config.selectionStrategy ?? "simple";
+    this.#selector =
+      selectionStrategy === "simple"
+        ? new SimpleTransportSelector(transports, config.cooldown)
+        : new OrderedTransportSelector(transports, config.cooldown);
   }
 
   public get value(): RevolverTransportValue {
@@ -391,6 +407,46 @@ class SimpleTransportSelector
       }
     }
 
+    return false;
+  }
+}
+
+class OrderedTransportSelector
+  extends AbstractTransportSelector
+  implements ITransportSelector
+{
+  /**
+   * Will select first transport that is not in cooldown
+   * @returns
+   */
+  public select(): HttpTransport {
+    this.#updateIndex(Date.now());
+    return this.transports[this.index].transport;
+  }
+
+  /**
+   * Will put current transport into cooldown and select first available transport that is not in cooldown
+   * @returns true if rotation was successful
+   */
+  public rotate(): boolean {
+    // nothing to rotate, always consider it successful
+    if (this.transports.length === 1) {
+      return true;
+    }
+
+    const now = Date.now();
+    this.transports[this.index].cooldown = now + this.cooldown;
+
+    return this.#updateIndex(now);
+  }
+
+  #updateIndex(now: number): boolean {
+    for (let i = 0; i < this.transports.length; i++) {
+      if (this.transports[i].cooldown < now) {
+        this.index = i;
+        return true;
+      }
+    }
     return false;
   }
 }
