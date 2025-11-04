@@ -168,12 +168,6 @@ export class RouterV310Contract
   public async findClaimAllRewards(
     props: FindClaimAllRewardsProps,
   ): Promise<RouterRewardsResult> {
-    if (props.calls.length > 0 && !!props.forceCalls) {
-      return {
-        calls: [...props.calls],
-      };
-    }
-
     const tData: Array<TokenData> = props.tokensToClaim.map(a => ({
       balance: 0n,
       claimRewards: true,
@@ -186,6 +180,12 @@ export class RouterV310Contract
       props.creditAccount.creditAccount,
       tData,
     ]);
+
+    if (props.calls.length > 0 && result.length === 0 && !!props.forceCalls) {
+      return {
+        calls: [...props.calls],
+      };
+    }
 
     return {
       calls: [...result],
