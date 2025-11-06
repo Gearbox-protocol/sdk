@@ -23,7 +23,7 @@ export function createLossPolicy(
 ): ILossPolicyContract {
   const existing = sdk.contracts.get(baseParams.addr);
   if (existing) {
-    return existing as ILossPolicyContract;
+    return existing as unknown as ILossPolicyContract;
   }
   const contractType = bytes32ToString(baseParams.contractType);
 

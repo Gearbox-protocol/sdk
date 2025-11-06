@@ -1,4 +1,4 @@
-import type { Address } from "viem";
+import type { Address, Hex } from "viem";
 import { encodeFunctionData, getAddress, getContract } from "viem";
 import { iBotListV310Abi } from "../../abi/310/generated.js";
 import { creditAccountCompressorAbi } from "../../abi/compressors/creditAccountCompressor.js";
@@ -51,6 +51,7 @@ import type {
   EnableTokensProps,
   ExecuteSwapProps,
   FullyLiquidateProps,
+  FullyLiquidateResult,
   GetConnectedBotsResult,
   GetConnectedMigrationBotsResult,
   GetCreditAccountsArgs,
@@ -352,7 +353,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
    */
   public async fullyLiquidate(
     props: FullyLiquidateProps,
-  ): Promise<CloseCreditAccountResult> {
+  ): Promise<FullyLiquidateResult> {
     const {
       account,
       to,
@@ -360,6 +361,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       force = false,
       keepAssets,
       ignoreReservePrices,
+      applyLossPolicy,
     } = props;
     const cm = this.sdk.marketRegister.findCreditManager(account.creditManager);
     const routerCloseResult = await this.sdk
@@ -377,12 +379,30 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       ignoreReservePrices,
     });
     const calls = [...priceUpdates, ...routerCloseResult.calls];
+
+    let lossPolicyData: Hex | undefined;
+    if (applyLossPolicy) {
+      const market = this.sdk.marketRegister.findByCreditManager(
+        account.creditManager,
+      );
+      lossPolicyData = await market.lossPolicy.getLiquidationData(
+        account.creditAccount,
+      );
+    }
+
     const tx = cm.creditFacade.liquidateCreditAccount(
       account.creditAccount,
       to,
       calls,
+      lossPolicyData,
     );
-    return { tx, calls, routerCloseResult, creditFacade: cm.creditFacade };
+    return {
+      tx,
+      calls,
+      routerCloseResult,
+      lossPolicyData,
+      creditFacade: cm.creditFacade,
+    };
   }
 
   /**

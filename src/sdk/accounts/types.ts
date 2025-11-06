@@ -2,6 +2,7 @@ import type {
   Address,
   ContractFunctionArgs,
   GetContractReturnType,
+  Hex,
   PublicClient,
 } from "viem";
 import type { creditAccountCompressorAbi } from "../../abi/compressors/creditAccountCompressor.js";
@@ -67,6 +68,10 @@ export interface PriceUpdatesOptions {
 
 export interface CloseCreditAccountResult extends CreditAccountOperationResult {
   routerCloseResult: RouterCloseResult;
+}
+
+export interface FullyLiquidateResult extends CloseCreditAccountResult {
+  lossPolicyData?: Hex;
 }
 
 export interface CreditAccountOperationResult {
@@ -393,6 +398,10 @@ export interface FullyLiquidateProps {
    * If true, will ignore reserve prices
    */
   ignoreReservePrices?: boolean;
+  /**
+   * If true, will try to apply loss policy
+   */
+  applyLossPolicy?: boolean;
 }
 
 export interface PermitResult {
