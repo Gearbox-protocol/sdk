@@ -215,6 +215,7 @@ export interface MarketStateHuman {
   pool: PoolSuiteStateHuman;
   creditManagers: CreditSuiteStateHuman[];
   priceOracle: PriceOracleStateHuman;
+  lossPolicy: BaseContractStateHuman;
   pausableAdmins: string[];
   unpausableAdmins: string[];
   emergencyLiquidators: string[];

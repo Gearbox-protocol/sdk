@@ -46,7 +46,9 @@ async function example(): Promise<void> {
       // stalenessV300: V300StalenessPeriodPlugin,
     },
     redstone: {
-      enableLogging: true,
+      ignoreMissingFeeds: true,
+    },
+    pyth: {
       ignoreMissingFeeds: true,
     },
   });
