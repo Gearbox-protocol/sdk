@@ -1,5 +1,6 @@
 import {
   BaseError,
+  CallExecutionError,
   type ClientConfig,
   type EIP1193RequestFn,
   HttpRequestError,
@@ -328,6 +329,12 @@ const retryCodes = new Set<number>([
 const defaultShouldRetry: RevolverTransportConfig["shouldRetry"] = ({
   error,
 }) => {
+  if (
+    error instanceof CallExecutionError &&
+    error.details === "header not found"
+  ) {
+    return true;
+  }
   if ("code" in error && typeof error.code === "number") {
     return retryCodes.has(error.code);
   }
