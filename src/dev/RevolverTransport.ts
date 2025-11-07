@@ -1,6 +1,5 @@
 import {
   BaseError,
-  CallExecutionError,
   type ClientConfig,
   type EIP1193RequestFn,
   HttpRequestError,
@@ -329,24 +328,19 @@ const retryCodes = new Set<number>([
 const defaultShouldRetry: RevolverTransportConfig["shouldRetry"] = ({
   error,
 }) => {
-  const callExError =
-    error instanceof BaseError &&
-    (error.walk(
-      e => e instanceof CallExecutionError && e.details === "header not found",
-    ) as BaseError);
+  if ("code" in error && typeof error.code === "number") {
+    return retryCodes.has(error.code);
+  }
+  const msg = error.message?.toLowerCase() ?? `${error}`.toLowerCase();
   if (
-    callExError &&
     [
       "unknown block",
       "header not found",
       "resource unavailable",
       "requested resource not available",
-    ].some(s => callExError.details.toLowerCase().includes(s))
+    ].some(s => msg.includes(s))
   ) {
     return true;
-  }
-  if ("code" in error && typeof error.code === "number") {
-    return retryCodes.has(error.code);
   }
   return false;
 };
