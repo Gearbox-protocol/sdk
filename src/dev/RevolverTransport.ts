@@ -329,9 +329,19 @@ const retryCodes = new Set<number>([
 const defaultShouldRetry: RevolverTransportConfig["shouldRetry"] = ({
   error,
 }) => {
+  const callExError =
+    error instanceof BaseError &&
+    (error.walk(
+      e => e instanceof CallExecutionError && e.details === "header not found",
+    ) as BaseError);
   if (
-    error instanceof CallExecutionError &&
-    error.details === "header not found"
+    callExError &&
+    [
+      "unknown block",
+      "header not found",
+      "resource unavailable",
+      "requested resource not available",
+    ].some(s => callExError.details.toLowerCase().includes(s))
   ) {
     return true;
   }
