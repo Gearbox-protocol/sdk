@@ -65,8 +65,21 @@ export class BytecodeRepositoryContract extends BaseContract<typeof abi> {
     ]);
   }
 
+  async getAllowedBytecodeHash(type_: string, version: number): Promise<Hex> {
+    return await this.contract.read.getAllowedBytecodeHash([
+      stringToHex(type_, { size: 32 }),
+      BigInt(version),
+    ]);
+  }
+
   async isPublicDomain(domain: string): Promise<boolean> {
     return await this.contract.read.isPublicDomain([
+      stringToHex(domain, { size: 32 }),
+    ]);
+  }
+
+  async isSystemDomain(domain: string): Promise<boolean> {
+    return await this.contract.read.isSystemDomain([
       stringToHex(domain, { size: 32 }),
     ]);
   }
