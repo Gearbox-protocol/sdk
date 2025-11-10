@@ -6,6 +6,7 @@ import type {
   IGearboxSDKPlugin,
 } from "../../sdk/index.js";
 import { BasePlugin, bytes32ToString } from "../../sdk/index.js";
+import { AccountMigratorAdapterContract } from "./contracts/AccountMigratorAdapterContract.js";
 import {
   BalancerV2VaultAdapterContract,
   BalancerV3RouterAdapterContract,
@@ -61,6 +62,8 @@ export class AdaptersPlugin
     ) as AdapterContractType;
 
     switch (adapterType) {
+      case "ADAPTER::ACCOUNT_MIGRATOR":
+        return new AccountMigratorAdapterContract(this.sdk, args);
       case "ADAPTER::BALANCER_V3_ROUTER":
         return new BalancerV3RouterAdapterContract(this.sdk, args);
       case "ADAPTER::BALANCER_V3_WRAPPER":
