@@ -20,6 +20,9 @@ import {
  */
 export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
   // DEX and protocol adapters - basic pattern [creditManager, target]
+  [AdapterType.ACCOUNT_MIGRATOR]: {
+    310: BASIC_ADAPTER_ABI,
+  },
   [AdapterType.BALANCER_VAULT]: {
     310: BASIC_ADAPTER_ABI,
   },

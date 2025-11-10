@@ -34,6 +34,7 @@ export type AdapterContractTypeLegacy =
   | "AD_ZIRCUIT_POOL";
 
 export type AdapterContractType =
+  | "ADAPTER::ACCOUNT_MIGRATOR"
   | "ADAPTER::BALANCER_V3_ROUTER"
   | "ADAPTER::BALANCER_V3_WRAPPER"
   | "ADAPTER::BALANCER_VAULT"
@@ -72,6 +73,7 @@ export type AdapterContractType =
   | "ADAPTER::YEARN_V2";
 
 export enum AdapterType {
+  ACCOUNT_MIGRATOR = "ACCOUNT_MIGRATOR",
   BALANCER_V3_ROUTER = "BALANCER_V3_ROUTER",
   BALANCER_V3_WRAPPER = "BALANCER_V3_WRAPPER",
   BALANCER_VAULT = "BALANCER_VAULT",
