@@ -183,13 +183,16 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
       case "configureTreasury": {
         const [target, data] = params.args;
 
-        let decoded: ParsedCall | undefined;
+        let decoded: ParsedCall | undefined = undefined;
         try {
           const treasurySplitter = new TreasurySplitterContract(
             target,
             this.client,
           );
-          decoded = treasurySplitter.parseFunctionData(data);
+          const parsedData = treasurySplitter.parseFunctionData(data);
+          if (!parsedData.functionName.startsWith("Unknown function")) {
+            decoded = parsedData;
+          }
         } catch {
           // If decoding fails, use default decoding
           decoded = undefined;
