@@ -194,6 +194,7 @@ export class CreditAccountServiceV310
     minQuota,
     averageQuota,
     tokensToClaim,
+    forceCalls,
   }: ClaimFarmRewardsProps): Promise<CreditAccountOperationResult> {
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
 
@@ -202,6 +203,7 @@ export class CreditAccountServiceV310
       calls: legacyCalls,
       tokensToClaim,
       creditAccount: ca,
+      forceCalls,
     });
     if (claimPath.calls.length === 0) throw new Error("No path to execute");
 

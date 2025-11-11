@@ -2,6 +2,7 @@ import type {
   Address,
   ContractEventName,
   DecodeFunctionDataReturnType,
+  Hex,
   Log,
 } from "viem";
 
@@ -104,10 +105,11 @@ export class CreditFacadeV310Contract extends BaseContract<abi> {
     ca: Address,
     to: Address,
     calls: MultiCall[],
+    lossPolicyData?: Hex,
   ): RawTx {
     return this.createRawTx({
       functionName: "liquidateCreditAccount",
-      args: [ca, to, calls],
+      args: lossPolicyData ? [ca, to, calls, lossPolicyData] : [ca, to, calls],
     });
   }
 

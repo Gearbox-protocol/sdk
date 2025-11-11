@@ -13,28 +13,6 @@ export interface Bytecode {
   blockNumber: number;
 }
 
-export interface BytecodeShort
-  extends Omit<
-    Bytecode,
-    "initCode" | "transactionHash" | "blockNumber" | "source" | "author"
-  > {
-  auditorNames: string[];
-}
-
-export interface BytecodeExtended extends Bytecode {
-  verificationData?: unknown;
-  deployments: Deployment[];
-  audits: Audit[];
-}
-
-export interface Audit {
-  report: string;
-  auditor: Address;
-  auditorName: string;
-  isAuditorRemoved: boolean;
-  timestamp: number;
-}
-
 export interface AuditEvent {
   reportUrl: string;
   auditor: Address;

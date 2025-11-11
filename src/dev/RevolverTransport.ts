@@ -17,14 +17,15 @@ import {
 } from "viem";
 import type { HttpRpcClientOptions } from "viem/utils";
 import type { ILogger, NetworkType } from "../sdk/index.js";
-import {
-  getProviderUrl,
-  type ProviderConfig,
-  type RpcProvider,
-} from "./providers.js";
+
+export interface ProviderConfig {
+  name: string;
+  url: string;
+  cooldown?: number;
+}
 
 interface TransportEntry {
-  provider: RpcProvider;
+  name: string;
   transport: HttpTransport;
   /**
    * Cannot make requests to this transport until this timestamp
@@ -46,6 +47,13 @@ type OnResponseFn = (
   providerName: string,
   ...args: Parameters<Required<HttpRpcClientOptions>["onResponse"]>
 ) => ReturnType<Required<HttpRpcClientOptions>["onResponse"]>;
+
+/**
+ * How to select the next transport
+ * - simple: selects next transport after current that is not in cooldown by checking all transports in cyclic order
+ * - ordered: will select first available transport that is not in cooldown
+ */
+export type SelectionStrategy = "simple" | "ordered";
 
 export interface RevolverTransportConfig {
   network: NetworkType;
@@ -100,6 +108,11 @@ export interface RevolverTransportConfig {
    * How long, in milliseconds, to wait before try this transport again
    */
   cooldown?: number | undefined;
+  /**
+   * How to select the next transport
+   * Defaults to "simple"
+   */
+  selectionStrategy?: SelectionStrategy;
 }
 
 export class NoAvailableTransportsError extends BaseError {
@@ -110,11 +123,10 @@ export class NoAvailableTransportsError extends BaseError {
 
 export interface RevolverTransportValue {
   /**
-   * Manually rotate the transport
+   * Manually try to rotate the transport
    * @param reason
-   * @returns true if rotation was successful
    */
-  rotate: (reason?: BaseError) => Promise<boolean>;
+  rotate: (reason?: BaseError) => Promise<void>;
   /**
    * Returns the name of the current transport
    */
@@ -128,11 +140,11 @@ export interface RevolverTransportValue {
 export class RevolverTransport
   implements ReturnType<Transport<"revolver", RevolverTransportValue>>
 {
-  #transports: TransportEntry[];
-  #index = 0;
   #config: RevolverTransportConfig;
-  #rotating = false;
   #requests = new WeakMap();
+  #selector: ITransportSelector;
+  #rotating = false;
+  #isSingle: boolean;
 
   private overrides?: Parameters<
     Transport<"revolver", RevolverTransportValue>
@@ -167,80 +179,77 @@ export class RevolverTransport
       shouldRetry: config.shouldRetry ?? defaultShouldRetry,
     };
 
-    const rpcUrls = new Map<string, RpcProvider>();
-    const cooldowns = new Map<string, number>();
-    for (const { provider, keys, cooldown } of config.providers) {
-      for (const key of keys) {
-        const url = getProviderUrl(provider, config.network, key, "http");
-        if (url) {
-          rpcUrls.set(url, provider);
-          if (cooldown) {
-            cooldowns.set(url, cooldown);
-          }
-        }
-      }
-    }
-
-    this.#transports = Array.from(rpcUrls.entries()).map(
-      ([url, provider], i): TransportEntry => ({
-        provider,
+    const transports = config.providers.map(
+      ({ url, name, cooldown }): TransportEntry => ({
+        name,
         transport: http(url, {
           retryCount: config.retryCount,
           retryDelay: config.retryDelay,
           timeout: config.timeout,
           batch: !!config.batch,
-          key: `${provider}-${i}`,
-          name: `${provider}-${i}`,
+          key: name,
+          name: name,
           onFetchRequest: this.#config.onRequest
-            ? (...args) => this.#config.onRequest?.(`${provider}-${i}`, ...args)
+            ? (...args) => this.#config.onRequest?.(name, ...args)
             : undefined,
           onFetchResponse: this.#config.onResponse
-            ? (...args) =>
-                this.#config.onResponse?.(`${provider}-${i}`, ...args)
+            ? (...args) => this.#config.onResponse?.(name, ...args)
             : undefined,
         }),
-        cooldown: cooldowns.get(url) ?? 0,
+        cooldown: cooldown ?? 0,
       }),
     );
-
-    if (this.#transports.length === 0) {
+    if (transports.length === 0) {
       throw new NoAvailableTransportsError();
     }
+    this.#isSingle = transports.length === 1;
+
+    const selectionStrategy = config.selectionStrategy ?? "simple";
+    this.#selector =
+      selectionStrategy === "simple"
+        ? new SimpleTransportSelector(transports, config.cooldown)
+        : new OrderedTransportSelector(transports, config.cooldown);
   }
 
   public get value(): RevolverTransportValue {
     return {
       rotate: (reason?: BaseError) => this.rotate(reason),
-      currentTransportName: () => this.currentTransportName(),
-      statuses: () => this.statuses(),
+      currentTransportName: () => this.#selector.transportName(),
+      statuses: () => this.#selector.statuses(),
     };
   }
 
   public request: EIP1193RequestFn = async r => {
-    if (this.#transports.length === 1) {
-      return this.#transport({ ...this.overrides }).request(r);
+    // this will make it return HTTPError instead of rotation error
+    if (this.#isSingle) {
+      return this.#selector
+        .select()({
+          ...this.overrides,
+        })
+        .request(r);
     }
+
     let error: Error | undefined;
     do {
       try {
-        this.#requests.set(r, this.currentTransportName());
+        this.#requests.set(r, this.#selector.transportName());
+        const transport = this.#selector.select()({
+          ...this.overrides,
+        });
 
         // for explanation, see shouldRetry comment
-        const resp = await withRetry(
-          () => this.#transport({ ...this.overrides }).request(r),
-          {
-            delay: this.#config.retryDelay,
-            retryCount: this.#config.retryCount,
-            shouldRetry: this.#config.shouldRetry,
-          },
-        );
+        const resp = await withRetry(() => transport.request(r), {
+          delay: this.#config.retryDelay,
+          retryCount: this.#config.retryCount,
+          shouldRetry: this.#config.shouldRetry,
+        });
         this.#requests.delete(r);
         return resp as any;
       } catch (e) {
         error = error ?? (e as Error);
         if (e instanceof RpcError || e instanceof HttpRequestError) {
           const reqTransport = this.#requests.get(r);
-          if (reqTransport === this.currentTransportName()) {
+          if (reqTransport === this.#selector.transportName()) {
             await this.rotate(e);
           } else {
             this.#logger?.debug(
@@ -252,7 +261,7 @@ export class RevolverTransport
           throw e;
         }
       }
-    } while (this.#hasAvailableTransports);
+    } while (this.#selector.canRotate());
 
     this.#requests.delete(r);
     throw new NoAvailableTransportsError(error);
@@ -276,96 +285,35 @@ export class RevolverTransport
    * @param reason
    * @returns true if rotation was successful
    */
-  public async rotate(reason?: BaseError): Promise<boolean> {
-    // nothing to rotate, always consider it successful
-    if (this.#transports.length === 1) {
-      return true;
-    }
-
+  public async rotate(reason?: BaseError): Promise<void> {
     if (this.#rotating) {
       this.#logger?.debug("already rotating, skipping");
-      return false;
+      return;
     }
     this.#rotating = true;
 
-    this.#logger?.debug(
-      {
-        reason,
-        current: this.currentTransportName,
-        total: this.#transports.length,
-      },
-      "rotating transport",
-    );
-    const oldTransportName = this.currentTransportName();
-
-    const now = Date.now();
-    this.#transports[this.#index].cooldown =
-      now + (this.#config.cooldown ?? 60_000);
-
-    for (let i = 0; i < this.#transports.length - 1; i++) {
-      this.#index = (this.#index + 1) % this.#transports.length;
-      if (this.#transports[this.#index].cooldown < now) {
-        this.#logger?.info(
-          {
-            current: this.currentTransportName,
-            total: this.#transports.length,
-          },
-          "switched to next transport",
-        );
+    const from = this.#selector.transportName();
+    const success = this.#selector.rotate();
+    const to = this.#selector.transportName();
+    if (success) {
+      if (from !== to) {
+        this.#logger?.debug({ from, to, reason }, "transport rotated");
         try {
-          await this.#config.onRotateSuccess?.(
-            oldTransportName,
-            this.currentTransportName(),
-            reason,
-          );
+          await this.#config.onRotateSuccess?.(from, to, reason);
         } catch {}
-        this.#rotating = false;
-        return true;
-      } else {
-        this.#logger?.warn(
-          {
-            current: this.currentTransportName,
-            total: this.#transports.length,
-          },
-          "transport is still on cooldown",
-        );
       }
+    } else {
+      this.#logger?.warn({ from, reason }, "transport rotation failed");
+      try {
+        await this.#config.onRotateFailed?.(from, reason);
+      } catch {}
     }
-    try {
-      await this.#config.onRotateFailed?.(oldTransportName, reason);
-    } catch {}
+
     this.#rotating = false;
-    return false;
-  }
-
-  public currentTransportName(): string {
-    return this.#transport({}).config.name;
-  }
-
-  public statuses(): ProviderStatus[] {
-    const now = Date.now();
-    return this.#transports.map((t, i) => ({
-      id: t.transport({}).config.name,
-      status:
-        t.cooldown < now
-          ? this.#index === i
-            ? "active"
-            : "standby"
-          : "cooldown",
-    }));
   }
 
   get #logger(): ILogger | undefined {
     return this.#config.logger;
-  }
-
-  get #transport(): HttpTransport {
-    return this.#transports[this.#index].transport;
-  }
-
-  get #hasAvailableTransports(): boolean {
-    const now = Date.now();
-    return this.#transports.some(t => t.cooldown < now);
   }
 }
 
@@ -383,5 +331,133 @@ const defaultShouldRetry: RevolverTransportConfig["shouldRetry"] = ({
   if ("code" in error && typeof error.code === "number") {
     return retryCodes.has(error.code);
   }
+  const msg = error.message?.toLowerCase() ?? `${error}`.toLowerCase();
+  if (
+    [
+      "unknown block",
+      "header not found",
+      "resource unavailable",
+      "requested resource not available",
+    ].some(s => msg.includes(s))
+  ) {
+    return true;
+  }
   return false;
 };
+
+interface ITransportSelector {
+  select: () => HttpTransport;
+  transportName: () => string;
+  canRotate: () => boolean;
+  rotate: () => boolean;
+  statuses: () => ProviderStatus[];
+}
+
+abstract class AbstractTransportSelector {
+  protected readonly transports: TransportEntry[];
+  protected readonly cooldown: number;
+  protected index = 0;
+
+  constructor(transports: TransportEntry[], cooldown = 60_000) {
+    this.transports = transports;
+    this.cooldown = cooldown;
+  }
+
+  public transportName(): string {
+    return this.transports[this.index].name;
+  }
+
+  public canRotate(): boolean {
+    const now = Date.now();
+    return this.transports.some(t => t.cooldown < now);
+  }
+
+  public statuses(): ProviderStatus[] {
+    const now = Date.now();
+    return this.transports.map((t, i) => ({
+      id: t.name,
+      status:
+        t.cooldown < now
+          ? this.index === i
+            ? "active"
+            : "standby"
+          : "cooldown",
+    }));
+  }
+}
+
+class SimpleTransportSelector
+  extends AbstractTransportSelector
+  implements ITransportSelector
+{
+  /**
+   * For simple selector, transport status is not re-evaluated on each request
+   * @returns
+   */
+  public select(): HttpTransport {
+    return this.transports[this.index].transport;
+  }
+
+  /**
+   * Simply selects next transport that is not in cooldown by checking all transports in cyclic order
+   * @returns true if rotation was successful
+   */
+  public rotate(): boolean {
+    // nothing to rotate, always consider it successful
+    if (this.transports.length === 1) {
+      return true;
+    }
+
+    const now = Date.now();
+    this.transports[this.index].cooldown = now + this.cooldown;
+
+    for (let i = 0; i < this.transports.length - 1; i++) {
+      this.index = (this.index + 1) % this.transports.length;
+      if (this.transports[this.index].cooldown < now) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+}
+
+class OrderedTransportSelector
+  extends AbstractTransportSelector
+  implements ITransportSelector
+{
+  /**
+   * Will select first transport that is not in cooldown
+   * @returns
+   */
+  public select(): HttpTransport {
+    this.#updateIndex(Date.now());
+    return this.transports[this.index].transport;
+  }
+
+  /**
+   * Will put current transport into cooldown and select first available transport that is not in cooldown
+   * @returns true if rotation was successful
+   */
+  public rotate(): boolean {
+    // nothing to rotate, always consider it successful
+    if (this.transports.length === 1) {
+      return true;
+    }
+
+    const now = Date.now();
+    this.transports[this.index].cooldown = now + this.cooldown;
+
+    return this.#updateIndex(now);
+  }
+
+  #updateIndex(now: number): boolean {
+    for (let i = 0; i < this.transports.length; i++) {
+      if (this.transports[i].cooldown < now) {
+        this.index = i;
+        return true;
+      }
+    }
+    return false;
+  }
+}

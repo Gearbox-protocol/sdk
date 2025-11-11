@@ -1,9 +1,10 @@
-import type { Address } from "viem";
+import type { Address, Hex } from "viem";
 import { encodeFunctionData, getAddress, getContract } from "viem";
 import { iBotListV310Abi } from "../../abi/310/generated.js";
 import { creditAccountCompressorAbi } from "../../abi/compressors/creditAccountCompressor.js";
 import { peripheryCompressorAbi } from "../../abi/compressors/peripheryCompressor.js";
 import { rewardsCompressorAbi } from "../../abi/compressors/rewardsCompressor.js";
+import { iWithdrawalCompressorV310Abi } from "../../abi/IWithdrawalCompressorV310.js";
 import { iBaseRewardPoolAbi } from "../../abi/iBaseRewardPool.js";
 import {
   iBotListV300Abi,
@@ -25,7 +26,6 @@ import {
   VERSION_RANGE_310,
 } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
-import { BigIntMath } from "../index.js";
 import type {
   IPriceFeedContract,
   IPriceOracleContract,
@@ -35,6 +35,7 @@ import type {
   UpdatePriceFeedsResult,
 } from "../market/index.js";
 import { type Asset, assetsMap, type RouterCASlice } from "../router/index.js";
+import { BigIntMath } from "../sdk-legacy/index.js";
 import type { ILogger, IPriceUpdateTx, MultiCall } from "../types/index.js";
 import { AddressMap, childLogger } from "../utils/index.js";
 import { simulateWithPriceUpdates } from "../utils/viem/index.js";
@@ -50,13 +51,18 @@ import type {
   EnableTokensProps,
   ExecuteSwapProps,
   FullyLiquidateProps,
+  FullyLiquidateResult,
   GetConnectedBotsResult,
   GetConnectedMigrationBotsResult,
   GetCreditAccountsArgs,
   GetCreditAccountsOptions,
+  GetPendingWithdrawalsProps,
+  GetPendingWithdrawalsResult,
   OpenCAProps,
   PermitResult,
   PrepareUpdateQuotasProps,
+  PreviewDelayedWithdrawalProps,
+  PreviewDelayedWithdrawalResult,
   PriceUpdatesOptions,
   Rewards,
   StartDelayedWithdrawalProps,
@@ -67,6 +73,13 @@ type CompressorAbi = typeof creditAccountCompressorAbi;
 
 export interface CreditAccountServiceOptions {
   batchSize?: number;
+}
+
+export function getWithdrawalCompressorAddress(chainId: number) {
+  // TODO: HARDCODED
+  const compressor =
+    chainId === 1 ? "0xfB79b6713fe214B8748ED7b0db1f93E4f1aC9d29" : undefined;
+  return compressor;
 }
 
 export abstract class AbstractCreditAccountService extends SDKConstruct {
@@ -340,7 +353,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
    */
   public async fullyLiquidate(
     props: FullyLiquidateProps,
-  ): Promise<CloseCreditAccountResult> {
+  ): Promise<FullyLiquidateResult> {
     const {
       account,
       to,
@@ -348,6 +361,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       force = false,
       keepAssets,
       ignoreReservePrices,
+      applyLossPolicy,
     } = props;
     const cm = this.sdk.marketRegister.findCreditManager(account.creditManager);
     const routerCloseResult = await this.sdk
@@ -365,12 +379,30 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       ignoreReservePrices,
     });
     const calls = [...priceUpdates, ...routerCloseResult.calls];
+
+    let lossPolicyData: Hex | undefined;
+    if (applyLossPolicy) {
+      const market = this.sdk.marketRegister.findByCreditManager(
+        account.creditManager,
+      );
+      lossPolicyData = await market.lossPolicy.getLiquidationData(
+        account.creditAccount,
+      );
+    }
+
     const tx = cm.creditFacade.liquidateCreditAccount(
       account.creditAccount,
       to,
       calls,
+      lossPolicyData,
     );
-    return { tx, calls, routerCloseResult, creditFacade: cm.creditFacade };
+    return {
+      tx,
+      calls,
+      routerCloseResult,
+      lossPolicyData,
+      creditFacade: cm.creditFacade,
+    };
   }
 
   /**
@@ -617,35 +649,106 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
+   * Preview delayed withdrawal for given token
+   * @param props - {@link PreviewDelayedWithdrawalProps}
+   * @returns
+   */
+  public async previewDelayedWithdrawal({
+    creditAccount,
+    amount,
+    token,
+  }: PreviewDelayedWithdrawalProps): Promise<PreviewDelayedWithdrawalResult> {
+    const compressor = getWithdrawalCompressorAddress(this.sdk.chainId);
+    if (!compressor)
+      throw new Error(
+        `No compressor for current chain ${this.sdk.networkType}`,
+      );
+
+    const contract = getContract({
+      address: compressor,
+      abi: iWithdrawalCompressorV310Abi,
+      client: this.client,
+    });
+
+    const resp = await contract.read.getWithdrawalRequestResult([
+      creditAccount,
+      token,
+      amount,
+    ]);
+
+    return resp;
+  }
+
+  /**
+   * Get claimable and pending withdrawals of an account
+   * @param props - {@link GetPendingWithdrawalsProps}
+   * @returns
+   */
+  public async getPendingWithdrawals({
+    creditAccount,
+  }: GetPendingWithdrawalsProps): Promise<GetPendingWithdrawalsResult> {
+    const compressor = getWithdrawalCompressorAddress(this.sdk.chainId);
+    if (!compressor)
+      throw new Error(
+        `No compressor for current chain ${this.sdk.networkType}`,
+      );
+
+    const contract = getContract({
+      address: compressor,
+      abi: iWithdrawalCompressorV310Abi,
+      client: this.client,
+    });
+
+    const resp = await contract.read.getCurrentWithdrawals([creditAccount]);
+
+    const claimableNow = resp?.[0] || [];
+    const pendingResult = [...(resp?.[1] || [])].sort((a, b) =>
+      a.claimableAt < b.claimableAt ? -1 : 1,
+    );
+
+    const respResult: GetPendingWithdrawalsResult = {
+      claimableNow: [...claimableNow],
+      pending: pendingResult,
+    };
+
+    return respResult;
+  }
+
+  /**
    * Start delayed withdrawal for given token
      - Withdrawal is executed in the following order: price update -> execute withdraw calls -> update quotas
    * @param props - {@link StartDelayedWithdrawalProps}
    * @returns
   */
-  public async startDelayedWithdrawal_Mellow({
+  public async startDelayedWithdrawal({
     creditAccount,
     minQuota,
     averageQuota,
 
-    instantWithdrawals,
-    delayedWithdrawals,
-    sourceAmount,
-    sourceToken,
+    preview,
   }: StartDelayedWithdrawalProps): Promise<CreditAccountOperationResult> {
     const cm = this.sdk.marketRegister.findCreditManager(
       creditAccount.creditManager,
     );
 
-    const balances = [...instantWithdrawals, ...delayedWithdrawals].filter(
-      a => a.balance > 0,
-    );
+    const record = preview.outputs.reduce<Record<Address, bigint>>((acc, o) => {
+      const token = o.token.toLowerCase() as Address;
+      acc[token] = (acc[token] || 0n) + o.amount;
+
+      return acc;
+    }, {});
+    const balances = Object.entries(record).filter(([, a]) => a > 10n);
+
     const storeExpectedBalances: MultiCall = {
       target: cm.creditFacade.address,
       callData: encodeFunctionData({
         abi: iCreditFacadeV300MulticallAbi,
         functionName: "storeExpectedBalances",
         args: [
-          balances.map(a => ({ token: a.token, amount: a.balance - 10n })),
+          balances.map(([token, amount]) => ({
+            token: token as Address,
+            amount: BigIntMath.max(0n, amount - 10n),
+          })),
         ],
       }),
     };
@@ -664,43 +767,10 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       desiredQuotas: averageQuota,
     });
 
-    const mellowAdapter = cm.creditManager.adapters.mustGet(sourceToken);
-    const redeem: MultiCall = {
-      target: mellowAdapter.address,
-      callData: encodeFunctionData({
-        abi: ierc4626AdapterAbi,
-        functionName: "redeem",
-        args: [sourceAmount, ADDRESS_0X0, ADDRESS_0X0],
-      }),
-    };
-
-    const CLAIMER = "0x25024a3017B8da7161d8c5DCcF768F8678fB5802";
-    const mellowClaimerAdapter = cm.creditManager.adapters.mustGet(CLAIMER);
-
-    const multiAcceptContract = getContract({
-      address: mellowClaimerAdapter.address,
-      abi: iMellowClaimerAdapterAbi,
-      client: this.client,
-    });
-
-    const indices = await multiAcceptContract.read.getMultiVaultSubvaultIndices(
-      [sourceToken],
-    );
-
-    const multiaccept: MultiCall = {
-      target: mellowClaimerAdapter.address,
-      callData: encodeFunctionData({
-        abi: iMellowClaimerAdapterAbi,
-        functionName: "multiAccept",
-        args: [sourceToken, ...indices],
-      }),
-    };
-
     const calls: Array<MultiCall> = [
       ...priceUpdatesCalls,
       storeExpectedBalances,
-      redeem,
-      multiaccept,
+      ...preview.requestCalls,
       compareBalances,
       ...this.prepareUpdateQuotas(creditAccount.creditFacade, {
         minQuota,
@@ -719,18 +789,29 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
    * @param props - {@link ClaimDelayedProps}
    * @returns
   */
-  public async claimDelayed_Mellow({
+  public async claimDelayed({
     creditAccount,
     minQuota,
     averageQuota,
 
-    sourceToken,
-    phantom,
-    target,
+    claimableNow,
   }: ClaimDelayedProps): Promise<CreditAccountOperationResult> {
+    const zeroDebt = creditAccount.debt === 0n;
+
     const cm = this.sdk.marketRegister.findCreditManager(
       creditAccount.creditManager,
     );
+
+    const record = claimableNow.outputs.reduce<Record<Address, bigint>>(
+      (acc, o) => {
+        const token = o.token.toLowerCase() as Address;
+        acc[token] = (acc[token] || 0n) + o.amount;
+
+        return acc;
+      },
+      {},
+    );
+    const balances = Object.entries(record).filter(([, a]) => a > 10n);
 
     const storeExpectedBalances: MultiCall = {
       target: cm.creditFacade.address,
@@ -738,7 +819,10 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
         abi: iCreditFacadeV300MulticallAbi,
         functionName: "storeExpectedBalances",
         args: [
-          [target].map(a => ({ token: a.token, amount: a.balance - 10n })),
+          balances.map(([token, amount]) => ({
+            token: token as Address,
+            amount: BigIntMath.max(0n, amount - 10n),
+          })),
         ],
       }),
     };
@@ -751,44 +835,27 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       }),
     };
 
-    const priceUpdatesCalls = await this.getPriceUpdatesForFacade({
-      creditManager: creditAccount.creditManager,
-      creditAccount,
-      desiredQuotas: averageQuota,
-    });
+    const priceUpdatesCalls = zeroDebt
+      ? []
+      : await this.getPriceUpdatesForFacade({
+          creditManager: creditAccount.creditManager,
+          creditAccount,
+          desiredQuotas: averageQuota,
+        });
 
-    const CLAIMER = "0x25024a3017B8da7161d8c5DCcF768F8678fB5802";
-    const mellowClaimerAdapter = cm.creditManager.adapters.mustGet(CLAIMER);
-
-    const multiAcceptContract = getContract({
-      address: mellowClaimerAdapter.address,
-      abi: iMellowClaimerAdapterAbi,
-      client: this.client,
-    });
-
-    const indices = await multiAcceptContract.read.getUserSubvaultIndices([
-      sourceToken,
-      creditAccount.creditAccount,
-    ]);
-
-    const multiaccept: MultiCall = {
-      target: mellowClaimerAdapter.address,
-      callData: encodeFunctionData({
-        abi: iMellowClaimerAdapterAbi,
-        functionName: "multiAcceptAndClaim",
-        args: [sourceToken, ...indices, ADDRESS_0X0, phantom.balance],
-      }),
-    };
+    const quotaCalls = zeroDebt
+      ? []
+      : this.prepareUpdateQuotas(creditAccount.creditFacade, {
+          minQuota,
+          averageQuota,
+        });
 
     const calls: Array<MultiCall> = [
       ...priceUpdatesCalls,
       storeExpectedBalances,
-      multiaccept,
+      ...claimableNow.claimCalls,
       compareBalances,
-      ...this.prepareUpdateQuotas(creditAccount.creditFacade, {
-        minQuota,
-        averageQuota,
-      }),
+      ...quotaCalls,
     ];
 
     const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
@@ -1402,20 +1469,6 @@ const iMellowClaimerAdapterAbi = [
       { name: "maxAssets", type: "uint256", internalType: "uint256" },
     ],
     outputs: [{ name: "", type: "bool", internalType: "bool" }],
-    stateMutability: "nonpayable",
-  },
-] as const;
-
-const ierc4626AdapterAbi = [
-  {
-    type: "function",
-    inputs: [
-      { name: "shares", internalType: "uint256", type: "uint256" },
-      { name: "", internalType: "address", type: "address" },
-      { name: "", internalType: "address", type: "address" },
-    ],
-    name: "redeem",
-    outputs: [{ name: "useSafePrices", internalType: "bool", type: "bool" }],
     stateMutability: "nonpayable",
   },
 ] as const;

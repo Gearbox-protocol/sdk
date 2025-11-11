@@ -42,16 +42,16 @@ function createClient(
       network: "Mainnet",
       providers: [
         {
-          provider: "custom",
-          keys: [s1.url],
+          name: "custom-0",
+          url: s1.url,
         },
         {
-          provider: "custom",
-          keys: [s2.url],
+          name: "custom-1",
+          url: s2.url,
         },
         {
-          provider: "custom",
-          keys: [s3.url],
+          name: "custom-2",
+          url: s3.url,
         },
       ],
       cooldown: 100,
@@ -158,17 +158,17 @@ it("should rotate over transport in cooldown", async () => {
     onRotateSuccess,
     providers: [
       {
-        provider: "custom",
-        keys: [s1.url],
+        name: "custom-0",
+        url: s1.url,
       },
       {
-        provider: "custom",
-        keys: [s2.url],
+        name: "custom-1",
+        url: s2.url,
         cooldown: Date.now() + 3600_000,
       },
       {
-        provider: "custom",
-        keys: [s3.url],
+        name: "custom-2",
+        url: s3.url,
       },
     ],
   });
@@ -200,12 +200,12 @@ it("should not overrotate when hadling parallel requests", async () => {
   const client = createClient({
     providers: [
       {
-        provider: "custom",
-        keys: [s1.url],
+        name: "custom-0",
+        url: s1.url,
       },
       {
-        provider: "custom",
-        keys: [s2.url],
+        name: "custom-1",
+        url: s2.url,
       },
     ],
     cooldown: 60_000,
@@ -268,8 +268,8 @@ it("should handle single transport scenario", async () => {
   const client = createClient({
     providers: [
       {
-        provider: "custom",
-        keys: [s1.url],
+        name: "custom-0",
+        url: s1.url,
       },
     ],
   });

@@ -65,12 +65,12 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.1",
+    "@biomejs/biome": "^2.3.4",
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
-    "@gearbox-protocol/biome-config": "^1.0.7",
+    "@gearbox-protocol/biome-config": "^1.0.10",
     "@types/cross-spawn": "^6.0.6",
-    "axios": "^1.12.2",
+    "axios": "^1.13.2",
     "cross-spawn": "^7.0.6",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.6",
@@ -80,7 +80,7 @@
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "viem-deal": "^2.0.4",
-    "vitest": "^4.0.4"
+    "vitest": "^4.0.7"
   },
   "peerDependencies": {
     "axios": "^1.0.0",

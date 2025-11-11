@@ -181,6 +181,12 @@ export class RouterV310Contract
       tData,
     ]);
 
+    if (props.calls.length > 0 && result.length === 0 && !!props.forceCalls) {
+      return {
+        calls: [...props.calls],
+      };
+    }
+
     return {
       calls: [...result],
     };
