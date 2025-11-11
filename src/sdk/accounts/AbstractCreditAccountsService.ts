@@ -1166,10 +1166,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       { account: creditAccount?.creditAccount, manager: cm.name },
       `generating price feed updates for ${tStr} from ${priceFeeds.length}${remark} price feeds`,
     );
-    return this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(
-      priceFeeds,
-      creditAccount ? { account: creditAccount.creditAccount } : undefined,
-    );
+    return this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(priceFeeds);
   }
 
   /**

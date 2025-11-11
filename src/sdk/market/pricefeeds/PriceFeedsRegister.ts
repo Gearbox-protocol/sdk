@@ -110,12 +110,10 @@ export class PriceFeedRegister
    * @param priceFeeds Array oftop-level price feeds, actual updatable price feeds will be derived.
    * Or filter criteria, that will gather all main or reserve price feeds from all oracles
    * If not provided will use all price feeds that are attached
-   * @param logContext extra information for logging
    * @returns
    */
   public async generatePriceFeedsUpdateTxs(
     priceFeeds?: IPriceFeedContract[] | { main: true } | { reserve: true },
-    logContext: Record<string, any> = {},
   ): Promise<UpdatePriceFeedsResult> {
     let updateables = this.#feeds.values();
     let filterRemark = "";
@@ -142,9 +140,7 @@ export class PriceFeedRegister
     };
 
     const updates = (
-      await Promise.all(
-        this.updaters.map(u => u.getUpdateTxs(updateables, logContext)),
-      )
+      await Promise.all(this.updaters.map(u => u.getUpdateTxs(updateables)))
     ).flat();
 
     let maxTimestamp = 0;
@@ -165,7 +161,6 @@ export class PriceFeedRegister
     const result: UpdatePriceFeedsResult = { txs, timestamp: maxTimestamp };
     const tsDelta = BigInt(maxTimestamp) - this.sdk.timestamp;
     this.logger?.debug(
-      logContext,
       `generated ${txs.length}${filterRemark} price feed update transactions, timestamp: ${maxTimestamp} (delta ${tsDelta})`,
     );
     if (txs.length) {
@@ -178,35 +173,25 @@ export class PriceFeedRegister
   /**
    * Similar to {@link generatePriceFeedsUpdateTxs}, but returns raw structures instead of transactions
    * @param priceFeeds
-   * @param logContext
    * @returns
    */
   public async generatePriceFeedsUpdates(
     priceFeeds?: IPriceFeedContract[] | { main: true } | { reserve: true },
-    logContext: Record<string, any> = {},
   ): Promise<PriceUpdateV310[]> {
-    const updates = await this.generatePriceFeedsUpdateTxs(
-      priceFeeds,
-      logContext,
-    );
+    const updates = await this.generatePriceFeedsUpdateTxs(priceFeeds);
     return getRawPriceUpdates(updates);
   }
 
   /**
    * Similar to {@link generatePriceFeedsUpdates}, but returns raw transaction to PriceFeedStore.updatePrices
    * @param priceFeeds
-   * @param logContext
    * @returns
    */
   public async getPriceFeedStoreUpdateTx(
     priceFeeds?: IPriceFeedContract[] | { main: true } | { reserve: true },
-    logContext: Record<string, any> = {},
   ): Promise<RawTx> {
     const pfs = this.sdk.addressProvider.getAddress(AP_PRICE_FEED_STORE);
-    const updates = await this.generatePriceFeedsUpdates(
-      priceFeeds,
-      logContext,
-    );
+    const updates = await this.generatePriceFeedsUpdates(priceFeeds);
     return createRawTx(pfs, {
       abi: parseAbi(["function updatePrices((address,bytes)[])"]),
       functionName: "updatePrices",
