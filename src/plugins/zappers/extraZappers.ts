@@ -75,5 +75,51 @@ export const extraZappers: Partial<Record<NetworkType, ZapperDataFull[]>> = {
       },
       pool: "0xA9d17f6D3285208280a1Fd9B94479c62e0AABa64",
     },
+    {
+      baseParams: {
+        addr: "0x62af1fc6e54e66aba5322a3491b5ce1808a6fe89",
+        version: 310n,
+        contractType:
+          "0x5a41505045523a3a455243343632360000000000000000000000000000000000",
+        serializedParams:
+          "0x000000000000000000000000da00000035fef4082f78def6a8903bee419fbf8e",
+      },
+      tokenIn: {
+        addr: "0xda00000035fef4082F78dEF6A8903bee419FbF8E",
+        symbol: "dUSDCV3",
+        name: "Trade USDC v3",
+        decimals: 6,
+      },
+      tokenOut: {
+        addr: "0xF0795C47fA58d00f5F77F4D5c01F31eE891E21B4",
+        symbol: "rUSDC",
+        name: "Tulipa USDC",
+        decimals: 6,
+      },
+      pool: "0xF0795C47fA58d00f5F77F4D5c01F31eE891E21B4",
+    },
+    {
+      baseParams: {
+        addr: "0x70383bac778f0285ddb5f35afbd631e5a4675c58",
+        version: 310n,
+        contractType:
+          "0x5a41505045523a3a5354414b45445f4552433436323600000000000000000000",
+        serializedParams:
+          "0x0000000000000000000000009ef444a6d7f4a5adcd68fd5329aa5240c90e14d2000000000000000000000000da00000035fef4082f78def6a8903bee419fbf8e",
+      },
+      tokenIn: {
+        addr: "0x9ef444a6d7F4A5adcd68FD5329aA5240C90E14d2",
+        symbol: "farmdUSDCV3",
+        name: "Farming of Trade USDC v3",
+        decimals: 6,
+      },
+      tokenOut: {
+        addr: "0xF0795C47fA58d00f5F77F4D5c01F31eE891E21B4",
+        symbol: "rUSDC",
+        name: "Tulipa USDC",
+        decimals: 6,
+      },
+      pool: "0xF0795C47fA58d00f5F77F4D5c01F31eE891E21B4",
+    },
   ],
 };
