@@ -20,6 +20,7 @@ import { BaseContract } from "./base-contract.js";
 import { WithdrawalCompressorContract } from "./compressors/index.js";
 import { PriceFeedStoreContract } from "./price-feed-store.js";
 import { RoutingManagerContract } from "./router/index.js";
+import { TreasurySplitterContract } from "./treasury-splitter.js";
 
 const abi = instanceManagerAbi;
 
@@ -166,6 +167,35 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
               },
         };
       }
+      case "configureTreasury": {
+        const [target, data] = params.args;
+
+        let decoded: ParsedCall | undefined;
+        try {
+          const treasurySplitter = new TreasurySplitterContract(target, this.client);
+          decoded = treasurySplitter.parseFunctionData(data);
+        } catch {
+          // If decoding fails, use default decoding
+          decoded = undefined;
+        }
+        
+        return {
+          chainId: 0,
+          target: this.address,
+          label: this.name,
+          functionName: params.functionName,
+          args: decoded
+            ? {
+                target,
+                functionName: decoded.functionName,
+                data: json_stringify(decoded.args),
+              }
+            : {
+                target,
+                data,
+              },
+        };
+      }
       case "activate": {
         const [instanceOwner, treasury, weth, gear] = params.args;
         return this.wrapParseCall(params, {
@@ -223,6 +253,16 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
       args: [rawTx.to, rawTx.callData],
       description: rawTx.description
         ? `InstanceManager.configureLocal(${rawTx.description})`
+        : undefined,
+    });
+  }
+
+  wrapConfigureTreasury(rawTx: RawTx): RawTx {
+    return this.createRawTx({
+      functionName: "configureTreasury",
+      args: [rawTx.to, rawTx.callData],
+      description: rawTx.description
+        ? `InstanceManager.configureTreasury(${rawTx.description})`
         : undefined,
     });
   }

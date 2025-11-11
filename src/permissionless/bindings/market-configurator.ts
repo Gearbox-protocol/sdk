@@ -629,6 +629,20 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
     });
   }
 
+  revokeRole(role: string, address: Address): RawTx {
+    return this.createRawTx({
+      functionName: "revokeRole",
+      args: [stringToHex(role, { size: 32 }), address],
+    });
+  }
+
+  setEmergencyAdmin(newEmergencyAdmin: Address): RawTx {
+    return this.createRawTx({
+      functionName: "setEmergencyAdmin",
+      args: [newEmergencyAdmin],
+    });
+  }
+
   //
   // SYNC
   //
