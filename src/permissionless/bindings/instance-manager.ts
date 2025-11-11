@@ -185,13 +185,16 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
 
         let decoded: ParsedCall | undefined;
         try {
-          const treasurySplitter = new TreasurySplitterContract(target, this.client);
+          const treasurySplitter = new TreasurySplitterContract(
+            target,
+            this.client,
+          );
           decoded = treasurySplitter.parseFunctionData(data);
         } catch {
           // If decoding fails, use default decoding
           decoded = undefined;
         }
-        
+
         return {
           chainId: 0,
           target: this.address,

@@ -1,9 +1,14 @@
-import type { Address, DecodeFunctionDataReturnType, Hex, PublicClient } from "viem";
+import type {
+  Address,
+  DecodeFunctionDataReturnType,
+  Hex,
+  PublicClient,
+} from "viem";
 import { ITreasurySplitterAbi } from "../../abi/310/iTreasurySplitter.js";
 import type { RawTx } from "../../sdk/types/index.js";
 import type { ParsedCall } from "../core/index.js";
-import { BaseContract } from "./base-contract.js";
 import { decodeFunctionWithNamedArgs } from "../utils/abi-decoder.js";
+import { BaseContract } from "./base-contract.js";
 
 const abi = ITreasurySplitterAbi;
 
@@ -35,7 +40,12 @@ export class TreasurySplitterContract extends BaseContract<typeof abi> {
     return this.wrapConfigure(rawTx);
   }
 
-  setTokenSplitTx(token: Address, receivers: Address[], proportions: number[], distributeBefore: boolean): RawTx {
+  setTokenSplitTx(
+    token: Address,
+    receivers: Address[],
+    proportions: number[],
+    distributeBefore: boolean,
+  ): RawTx {
     const rawTx = this.createRawTx({
       functionName: "setTokenSplit",
       args: [token, receivers, proportions, distributeBefore],
