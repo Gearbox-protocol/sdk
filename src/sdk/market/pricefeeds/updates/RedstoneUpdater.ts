@@ -112,10 +112,8 @@ export class RedstoneUpdater
 
   public async getUpdateTxs(
     feeds: IPriceFeedContract[],
-    logContext: Record<string, any> = {},
   ): Promise<RedstoneUpdateTx[]> {
     this.#logger?.debug(
-      logContext,
       `generating update transactions for ${feeds.length} redstone price feeds`,
     );
 
@@ -183,7 +181,6 @@ export class RedstoneUpdater
       }
     }
     this.#logger?.debug(
-      logContext,
       `generated ${results.length} update transactions for redstone price feeds: ${Array.from(priceFeeds.keys()).join(", ")}${tsRange}`,
     );
     return results;

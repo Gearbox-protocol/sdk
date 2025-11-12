@@ -31,6 +31,10 @@ export class AliasLossPolicyV310Contract
       args: [creditAccount],
       blockNumber,
     });
+    this.logger?.debug({ feeds: pfs }, "got required alias price feeds");
+    if (pfs.length === 0) {
+      return "0x";
+    }
     const updates = await this.sdk.priceFeeds.generateExternalPriceFeedsUpdates(
       [...pfs],
       blockNumber ? { blockNumber } : undefined,

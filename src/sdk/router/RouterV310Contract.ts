@@ -265,15 +265,14 @@ export class RouterV310Contract
             calls: [],
           },
         }
-      : this.contract.simulate.routeManyToOne([
-          ca.creditAccount,
-          targetToken,
-          BigInt(slippage),
-          tData,
-        ]));
+      : this.contract.simulate.routeManyToOne(
+          [ca.creditAccount, targetToken, BigInt(slippage), tData],
+          { gas: this.sdk.gasLimit },
+        ));
 
     const underlyingBalance =
       ca.tokens.find(t => t.token === ca.underlying)?.balance ?? 0n;
+    this.logger?.debug("routeManyToOne succeeded");
 
     return {
       underlyingBalance: underlyingBalance + result.minAmount,

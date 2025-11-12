@@ -130,10 +130,8 @@ export class PythUpdater
 
   public async getUpdateTxs(
     feeds: IPriceFeedContract[],
-    logContext: Record<string, any> = {},
   ): Promise<PythUpdateTx[]> {
     this.#logger?.debug(
-      logContext,
       `generating update transactions for ${feeds.length} pyth price feeds`,
     );
     const pythFeeds = new Map<string, IPythPriceFeedContract>(
@@ -172,7 +170,6 @@ export class PythUpdater
       }
     }
     this.#logger?.debug(
-      logContext,
       `generated ${results.length} update transactions for pyth price feeds: ${Array.from(pythFeeds.keys()).join(", ")}${tsRange}`,
     );
     return results;

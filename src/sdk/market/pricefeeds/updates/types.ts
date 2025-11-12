@@ -11,10 +11,7 @@ export interface IPriceUpdateTask {
 }
 
 export interface IPriceUpdater<T extends IPriceUpdateTask = IPriceUpdateTask> {
-  getUpdateTxs: (
-    feeds: IPriceFeedContract[],
-    logContext?: Record<string, any>,
-  ) => Promise<IPriceUpdateTx<T>[]>;
+  getUpdateTxs: (feeds: IPriceFeedContract[]) => Promise<IPriceUpdateTx<T>[]>;
 }
 
 export interface TimestampedCalldata {
