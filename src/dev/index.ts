@@ -10,4 +10,5 @@ export * from "./ltUtils.js";
 export * from "./migrateFaucet.js";
 export * from "./mint/index.js";
 export * from "./RevolverTransport.js";
+export * from "./replaceStorage.js";
 export * from "./types.js";

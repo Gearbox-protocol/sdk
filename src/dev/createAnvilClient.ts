@@ -10,14 +10,7 @@ import type {
   Transport,
   WalletClient,
 } from "viem";
-import {
-  createPublicClient,
-  createTestClient,
-  publicActions,
-  testActions,
-  toHex,
-  walletActions,
-} from "viem";
+import { createPublicClient, testActions, toHex, walletActions } from "viem";
 
 export interface AnvilNodeInfo {
   currentBlockNumber: string; // hexutil.Big is a big number in hex format
