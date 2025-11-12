@@ -210,12 +210,29 @@ export interface PoolSuiteStateHuman {
   rateKeeper: RateKeeperStateHuman;
 }
 
+export interface AliasLossPolicyStateHuman extends BaseContractStateHuman {
+  contractType: "LOSS_POLICY::ALIASED";
+  accessMode: string;
+  checksEnabled: boolean;
+  tokens: string[];
+  priceFeedParams: {
+    priceFeed: string;
+    stalenessPeriod: string;
+    skipCheck: boolean;
+    tokenDecimals: number;
+  }[];
+}
+
+export type LossPolicyStateHuman =
+  | AliasLossPolicyStateHuman
+  | BaseContractStateHuman;
+
 export interface MarketStateHuman {
   configurator: string;
   pool: PoolSuiteStateHuman;
   creditManagers: CreditSuiteStateHuman[];
   priceOracle: PriceOracleStateHuman;
-  lossPolicy: BaseContractStateHuman;
+  lossPolicy: LossPolicyStateHuman;
   pausableAdmins: string[];
   unpausableAdmins: string[];
   emergencyLiquidators: string[];
