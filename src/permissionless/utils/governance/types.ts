@@ -18,4 +18,5 @@ export interface InstanceTxs {
   batches: SafeTx[][];
   createdAtBlock?: number;
   updatableFeeds?: Address[][];
+  safeAddress?: Address; // Instance manager's owner address is used by default
 }
