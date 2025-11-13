@@ -7,11 +7,11 @@ export default class PriceFeedAnswerMap extends AddressMap<PriceFeedAnswer> {
   public price(token: Address): bigint {
     const answer = this.get(token);
     if (!answer) {
-      throw new Error(`no answer found`);
+      throw new Error(`no answer found for token ${token}`);
     }
     const { success, price } = answer;
     if (!success) {
-      throw new Error(`answer is not successful`);
+      throw new Error(`answer (${price}) is not successful for token ${token}`);
     }
     return price;
   }

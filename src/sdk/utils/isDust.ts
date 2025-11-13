@@ -29,7 +29,11 @@ export function isDust(opts: IsDustOptions): boolean {
   try {
     balanceUSD = priceOracle.convertToUSD(token, balance);
   } catch {
-    balanceUSD = priceOracle.convertToUSD(token, balance, true);
+    try {
+      balanceUSD = priceOracle.convertToUSD(token, balance, true);
+    } catch {
+      return false;
+    }
   }
   return balanceUSD < minBalanceUSD;
 }
