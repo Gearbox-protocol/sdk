@@ -388,6 +388,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       lossPolicyData = await market.lossPolicy.getLiquidationData(
         account.creditAccount,
       );
+      this.#logger?.debug({ lossPolicyData }, "loss policy data");
     }
 
     const tx = cm.creditFacade.liquidateCreditAccount(

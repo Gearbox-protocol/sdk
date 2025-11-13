@@ -70,13 +70,17 @@ export class AliasLossPolicyV310Contract
       args: [creditAccount],
       blockNumber,
     });
-    this.logger?.debug({ feeds: pfs }, "got required alias price feeds");
+    this.logger?.debug({ feeds: pfs }, "required alias price feeds");
     if (pfs.length === 0) {
       return "0x";
     }
     const updates = await this.sdk.priceFeeds.generateExternalPriceFeedsUpdates(
       [...pfs],
       blockNumber ? { blockNumber } : undefined,
+    );
+    this.logger?.debug(
+      { updates: updates.map(u => this.sdk.labelAddress(u.priceFeed)) },
+      "encoding alias price feeds updates",
     );
     return encodeAbiParameters(
       [
