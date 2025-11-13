@@ -1,6 +1,7 @@
 import { type Address, getAddress } from "viem";
 import { gearboxRouterAbi } from "../../abi/router/gearboxRouter.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
+import type { IPriceOracleContract } from "../market/index.js";
 import { BigIntMath } from "../sdk-legacy/index.js";
 import { AddressMap } from "../utils/AddressMap.js";
 import { formatBN } from "../utils/formatter.js";
@@ -327,7 +328,7 @@ export class RouterV310Contract
       .map(({ token, balance }) => {
         return {
           token,
-          balance: priceOracle.convertToUSD(token, balance),
+          balance: this.#convertToUSDForSort(priceOracle, token, balance),
         };
       })
       .sort((a, b) => {
@@ -353,6 +354,26 @@ export class RouterV310Contract
       map.upsert(token, numSplits);
     }
     return (token: Address) => map.get(token) ?? 1n;
+  }
+
+  /**
+   * Tries to get some value even when prices are broken, since it's only needed for sorting
+   * @param oracle
+   * @param token
+   * @param amount
+   * @returns
+   */
+  #convertToUSDForSort(
+    oracle: IPriceOracleContract,
+    token: Address,
+    amount: bigint,
+  ): bigint {
+    const scale = 10n ** BigInt(this.sdk.tokensMeta.get(token)?.decimals ?? 0);
+    const price =
+      oracle.mainPrices.get(token)?.price ||
+      oracle.reservePrices.get(token)?.price ||
+      scale;
+    return (amount * price) / scale;
   }
 
   #debugTokenData(tData: TokenData[]): Record<string, any>[] {
