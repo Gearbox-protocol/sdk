@@ -20,6 +20,9 @@ export interface IsDustOptions {
  */
 export function isDust(opts: IsDustOptions): boolean {
   const { sdk, token, balance, creditManager } = opts;
+  if (balance <= 1n) {
+    return true;
+  }
   const minBalanceUSD = (opts.minBalanceUSD ?? 10n) * 10n ** 8n;
   const { priceOracle } = sdk.marketRegister.findByCreditManager(creditManager);
   let balanceUSD = MAX_UINT256;
