@@ -14,7 +14,7 @@ export const ilpPriceFeedExceptionsAbi = [
   { type: "error", inputs: [], name: "UpdateBoundsNotAllowedException" },
 ] as const;
 
-export const iRouterV3ErrorsAbi = [
+export const iRouterErrorsV300Abi = [
   {
     type: "error",
     inputs: [
@@ -44,7 +44,37 @@ export const iRouterV3ErrorsAbi = [
   },
 ] as const;
 
-export const iExceptionsAbi = [
+export const iRouterErrorsV310Abi = [
+  {
+    type: "error",
+    name: "PathNotFoundException",
+    inputs: [
+      { name: "tokenIn", type: "address", internalType: "address" },
+      { name: "tokenOut", type: "address", internalType: "address" },
+    ],
+  },
+  {
+    type: "error",
+    name: "PathNotFoundExceptionTyped",
+    inputs: [
+      { name: "ttIn", type: "uint8", internalType: "uint8" },
+      { name: "tokenOut", type: "address", internalType: "address" },
+    ],
+  },
+  {
+    type: "error",
+    name: "PathToTargetNotFound",
+    inputs: [{ name: "tokenOut", type: "address", internalType: "address" }],
+  },
+  { type: "error", name: "UnsupportedAdapterType", inputs: [] },
+  {
+    type: "error",
+    name: "UnsupportedRouterComponent",
+    inputs: [{ name: "", type: "address", internalType: "address" }],
+  },
+] as const;
+
+export const iExceptionsV300Abi = [
   { type: "error", inputs: [], name: "ActiveCreditAccountNotSetException" },
   { type: "error", inputs: [], name: "ActiveCreditAccountOverridenException" },
   { type: "error", inputs: [], name: "AdapterIsNotRegisteredException" },
@@ -187,12 +217,173 @@ export const iRedstoneErrorsAbi = [
   },
 ] as const;
 
+export const iExceptionsV310Abi = [
+  { type: "error", name: "ActiveCreditAccountNotSetException", inputs: [] },
+  { type: "error", name: "ActiveCreditAccountOverridenException", inputs: [] },
+  { type: "error", name: "AdapterIsNotRegisteredException", inputs: [] },
+  {
+    type: "error",
+    name: "AddressIsNotContractException",
+    inputs: [{ name: "", type: "address", internalType: "address" }],
+  },
+  { type: "error", name: "AddressNotFoundException", inputs: [] },
+  { type: "error", name: "AllowanceFailedException", inputs: [] },
+  { type: "error", name: "AmountCantBeZeroException", inputs: [] },
+  {
+    type: "error",
+    name: "BalanceLessThanExpectedException",
+    inputs: [{ name: "token", type: "address", internalType: "address" }],
+  },
+  { type: "error", name: "BorrowAmountOutOfLimitsException", inputs: [] },
+  { type: "error", name: "BorrowedBlockLimitException", inputs: [] },
+  { type: "error", name: "BorrowingMoreThanU2ForbiddenException", inputs: [] },
+  { type: "error", name: "CallerNotAccountFactoryException", inputs: [] },
+  { type: "error", name: "CallerNotAdapterException", inputs: [] },
+  { type: "error", name: "CallerNotConfiguratorException", inputs: [] },
+  { type: "error", name: "CallerNotCreditAccountOwnerException", inputs: [] },
+  { type: "error", name: "CallerNotCreditFacadeException", inputs: [] },
+  { type: "error", name: "CallerNotCreditManagerException", inputs: [] },
+  { type: "error", name: "CallerNotExecutorException", inputs: [] },
+  { type: "error", name: "CallerNotGaugeException", inputs: [] },
+  { type: "error", name: "CallerNotMigratorException", inputs: [] },
+  { type: "error", name: "CallerNotPausableAdminException", inputs: [] },
+  { type: "error", name: "CallerNotPoolQuotaKeeperException", inputs: [] },
+  { type: "error", name: "CallerNotUnpausableAdminException", inputs: [] },
+  { type: "error", name: "CallerNotVetoAdminException", inputs: [] },
+  { type: "error", name: "CallerNotVoterException", inputs: [] },
+  { type: "error", name: "CloseAccountWithNonZeroDebtException", inputs: [] },
+  { type: "error", name: "CreditAccountDoesNotExistException", inputs: [] },
+  { type: "error", name: "CreditAccountIsInUseException", inputs: [] },
+  { type: "error", name: "CreditAccountNotLiquidatableException", inputs: [] },
+  {
+    type: "error",
+    name: "CreditAccountNotLiquidatableWithLossException",
+    inputs: [],
+  },
+  { type: "error", name: "CreditManagerCantBorrowException", inputs: [] },
+  { type: "error", name: "CustomHealthFactorTooLowException", inputs: [] },
+  { type: "error", name: "DebtToZeroWithActiveQuotasException", inputs: [] },
+  { type: "error", name: "DebtUpdatedTwiceInOneBlockException", inputs: [] },
+  { type: "error", name: "ExpectedBalancesAlreadySetException", inputs: [] },
+  { type: "error", name: "ExpectedBalancesNotSetException", inputs: [] },
+  { type: "error", name: "ForbiddenInWhitelistedModeException", inputs: [] },
+  {
+    type: "error",
+    name: "ForbiddenTokenBalanceIncreasedException",
+    inputs: [{ name: "token", type: "address", internalType: "address" }],
+  },
+  {
+    type: "error",
+    name: "ForbiddenTokenQuotaIncreasedException",
+    inputs: [{ name: "token", type: "address", internalType: "address" }],
+  },
+  {
+    type: "error",
+    name: "ForbiddenTokensException",
+    inputs: [
+      { name: "forbiddenTokensMask", type: "uint256", internalType: "uint256" },
+    ],
+  },
+  { type: "error", name: "IncompatibleContractException", inputs: [] },
+  { type: "error", name: "IncompatibleCreditManagerException", inputs: [] },
+  { type: "error", name: "IncompatibleGaugeException", inputs: [] },
+  { type: "error", name: "IncompatiblePoolQuotaKeeperException", inputs: [] },
+  { type: "error", name: "IncompatibleSuccessorException", inputs: [] },
+  {
+    type: "error",
+    name: "InconsistentExpiredLiquidationFeesException",
+    inputs: [],
+  },
+  { type: "error", name: "InconsistentLiquidationFeesException", inputs: [] },
+  { type: "error", name: "IncorrectAdaptersSetException", inputs: [] },
+  { type: "error", name: "IncorrectBotPermissionsException", inputs: [] },
+  { type: "error", name: "IncorrectExpirationDateException", inputs: [] },
+  { type: "error", name: "IncorrectLimitsException", inputs: [] },
+  { type: "error", name: "IncorrectLiquidationThresholdException", inputs: [] },
+  { type: "error", name: "IncorrectParameterException", inputs: [] },
+  { type: "error", name: "IncorrectPriceException", inputs: [] },
+  { type: "error", name: "IncorrectPriceFeedException", inputs: [] },
+  { type: "error", name: "IncorrectTokenContractException", inputs: [] },
+  { type: "error", name: "InsufficientBalanceException", inputs: [] },
+  { type: "error", name: "InsufficientRemainingFundsException", inputs: [] },
+  { type: "error", name: "InsufficientVotesException", inputs: [] },
+  { type: "error", name: "InvalidBotException", inputs: [] },
+  {
+    type: "error",
+    name: "InvalidCollateralHintException",
+    inputs: [{ name: "mask", type: "uint256", internalType: "uint256" }],
+  },
+  {
+    type: "error",
+    name: "MasterCreditAccountAlreadyDeployedException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "NoPermissionException",
+    inputs: [{ name: "permission", type: "uint256", internalType: "uint256" }],
+  },
+  { type: "error", name: "NotAllowedAfterExpirationException", inputs: [] },
+  { type: "error", name: "NotAllowedWhenNotExpirableException", inputs: [] },
+  {
+    type: "error",
+    name: "NotApprovedBotException",
+    inputs: [{ name: "bot", type: "address", internalType: "address" }],
+  },
+  { type: "error", name: "NotEnoughCollateralException", inputs: [] },
+  { type: "error", name: "NotImplementedException", inputs: [] },
+  { type: "error", name: "PriceFeedDoesNotExistException", inputs: [] },
+  { type: "error", name: "PriceFeedIsNotUpdatableException", inputs: [] },
+  { type: "error", name: "QuotaIsOutOfBoundsException", inputs: [] },
+  { type: "error", name: "RampDurationTooShortException", inputs: [] },
+  { type: "error", name: "ReceiveIsNotAllowedException", inputs: [] },
+  { type: "error", name: "RegisteredCreditManagerOnlyException", inputs: [] },
+  { type: "error", name: "RegisteredPoolOnlyException", inputs: [] },
+  {
+    type: "error",
+    name: "RemainingTokenBalanceIncreasedException",
+    inputs: [{ name: "token", type: "address", internalType: "address" }],
+  },
+  {
+    type: "error",
+    name: "SeizedLessThanRequiredException",
+    inputs: [
+      { name: "seizedAmount", type: "uint256", internalType: "uint256" },
+    ],
+  },
+  { type: "error", name: "StalePriceException", inputs: [] },
+  { type: "error", name: "TargetContractNotAllowedException", inputs: [] },
+  { type: "error", name: "TokenAlreadyAddedException", inputs: [] },
+  { type: "error", name: "TokenIsNotQuotedException", inputs: [] },
+  { type: "error", name: "TokenNotAllowedException", inputs: [] },
+  { type: "error", name: "TooManyActiveBotsException", inputs: [] },
+  { type: "error", name: "TooManyEnabledTokensException", inputs: [] },
+  { type: "error", name: "TooManyTokensException", inputs: [] },
+  { type: "error", name: "UnderlyingIsNotLiquidatableException", inputs: [] },
+  {
+    type: "error",
+    name: "UnexpectedPermissionsException",
+    inputs: [{ name: "permissions", type: "uint256", internalType: "uint256" }],
+  },
+  {
+    type: "error",
+    name: "UnknownMethodException",
+    inputs: [{ name: "selector", type: "bytes4", internalType: "bytes4" }],
+  },
+  { type: "error", name: "UpdateQuotaOnZeroDebtAccountException", inputs: [] },
+  { type: "error", name: "ValueOutOfRangeException", inputs: [] },
+  { type: "error", name: "VotingContractNotAllowedException", inputs: [] },
+  { type: "error", name: "ZeroAddressException", inputs: [] },
+] as const;
+
 export const errorAbis = [
-  ...iExceptionsAbi,
+  ...iExceptionsV300Abi,
+  ...iExceptionsV310Abi,
   ...iRedstonePriceFeedExceptionsAbi,
   ...iRedstoneErrorsAbi,
   ...ilpPriceFeedExceptionsAbi,
-  ...iRouterV3ErrorsAbi,
+  ...iRouterErrorsV300Abi,
+  ...iRouterErrorsV310Abi,
 ] as const;
 
 export type errorAbis = typeof errorAbis;

@@ -1,8 +1,4 @@
-/// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// IDegenDistributor
-/// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-export const iDegenDistributorAbi = [
+export const iDegenDistributorV300Abi = [
   {
     type: "function",
     inputs: [
@@ -20,6 +16,13 @@ export const iDegenDistributorAbi = [
     inputs: [{ name: "user", internalType: "address", type: "address" }],
     name: "claimed",
     outputs: [{ name: "", internalType: "uint256", type: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [],
+    name: "degenNFT",
+    outputs: [{ name: "", internalType: "address", type: "address" }],
     stateMutability: "view",
   },
   {
