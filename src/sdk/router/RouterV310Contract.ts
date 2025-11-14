@@ -169,9 +169,17 @@ export class RouterV310Contract
   public async findClaimAllRewards(
     props: FindClaimAllRewardsProps,
   ): Promise<RouterRewardsResult> {
-    const tData: Array<TokenData> = props.tokensToClaim.map(a => ({
+    const record = props.tokensToClaim.reduce<Record<Address, Asset>>(
+      (acc, a) => {
+        acc[a.token.toLowerCase() as Address] = a;
+        return acc;
+      },
+      {},
+    );
+
+    const tData: Array<TokenData> = props.creditAccount.tokens.map(a => ({
       balance: 0n,
-      claimRewards: true,
+      claimRewards: !!record[a.token.toLowerCase() as Address],
       leftoverBalance: 0n,
       numSplits: 1n,
       token: a.token,
