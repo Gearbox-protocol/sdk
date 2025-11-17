@@ -1,8 +1,10 @@
 import { type Chain, type EIP1193RequestFn, http, type Transport } from "viem";
 
 export interface ArchiveTransportConfig {
-  primaryRpcUrl: string;
-  archiveRpcUrl: string;
+  primaryTransport?: Transport;
+  archiveTransport?: Transport;
+  primaryRpcUrl?: string;
+  archiveRpcUrl?: string;
   blockThreshold: number; // N - blocks from latest to determine if we need archive
   retryCount?: number;
   retryDelay?: number;
@@ -24,7 +26,7 @@ interface LogEntry {
 }
 
 export class ArchiveTransport {
-  private config: Required<ArchiveTransportConfig>;
+  private config: Omit<Required<ArchiveTransportConfig>, "primaryTransport" | "archiveTransport" | "primaryRpcUrl" | "archiveRpcUrl">;
   private primaryTransport: Transport;
   private archiveTransport: Transport;
   private cachedTransport?: Transport;
@@ -38,14 +40,20 @@ export class ArchiveTransport {
       ...config,
     };
 
-    // Create underlying transports
-    this.primaryTransport = http(this.config.primaryRpcUrl, {
+    if (!config.primaryRpcUrl && !config.primaryTransport) {
+      throw new Error("primaryRpcUrl or primaryTransport are required");
+    }
+
+    if (!config.archiveRpcUrl && !config.archiveTransport) {
+      throw new Error("archiveRpcUrl or archiveTransport are required");
+    }
+
+    this.primaryTransport = config.primaryTransport ?? http(config.primaryRpcUrl!, {
       retryCount: this.config.retryCount,
       retryDelay: this.config.retryDelay,
       timeout: this.config.timeout,
     });
-
-    this.archiveTransport = http(this.config.archiveRpcUrl, {
+    this.archiveTransport = config.archiveTransport ?? http(config.archiveRpcUrl!, {
       retryCount: this.config.retryCount,
       retryDelay: this.config.retryDelay,
       timeout: this.config.timeout,
@@ -307,34 +315,10 @@ export class ArchiveTransport {
   /**
    * Get current configuration
    */
-  public getConfig(): Required<ArchiveTransportConfig> {
+  public getConfig(): ArchiveTransportConfig {
     return { ...this.config };
   }
 
-  /**
-   * Update configuration (will invalidate cached transport)
-   */
-  public updateConfig(updates: Partial<ArchiveTransportConfig>): void {
-    this.config = { ...this.config, ...updates };
-    this.cachedTransport = undefined; // Force recreate transport
-
-    // Recreate underlying transports if URLs changed
-    if (updates.primaryRpcUrl) {
-      this.primaryTransport = http(this.config.primaryRpcUrl, {
-        retryCount: this.config.retryCount,
-        retryDelay: this.config.retryDelay,
-        timeout: this.config.timeout,
-      });
-    }
-
-    if (updates.archiveRpcUrl) {
-      this.archiveTransport = http(this.config.archiveRpcUrl, {
-        retryCount: this.config.retryCount,
-        retryDelay: this.config.retryDelay,
-        timeout: this.config.timeout,
-      });
-    }
-  }
 
   /**
    * Enable or disable logging
