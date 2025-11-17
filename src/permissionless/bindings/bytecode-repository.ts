@@ -209,7 +209,13 @@ export class BytecodeRepositoryContract extends BaseContract<typeof abi> {
       return [];
     }
 
-    const publicDomains = await this.contract.read.getPublicDomains();
+    // @dev workaround for getting empty public domains on non-mainnet chains (faced issue with response decoding on Somnia)
+    let publicDomains: Hex[] = [];
+    try {
+      publicDomains = (await this.contract.read.getPublicDomains()) as Hex[];
+    } catch {
+      publicDomains = [];
+    }
 
     const publicDomainsString = publicDomains.map(domain =>
       hexToString(domain, { size: 32 }),
