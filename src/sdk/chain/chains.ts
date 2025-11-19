@@ -11,7 +11,6 @@ import {
   lisk,
   mainnet,
   megaethTestnet,
-  monadTestnet,
   optimism,
   plasma,
   sonic,
@@ -199,16 +198,42 @@ export const chains: Record<NetworkType, GearboxChain> = {
       symbol: "WETH",
     },
   }),
+  // NOTE: Monad chain configs should be updated once the public mainnet is available
   Monad: defineChain({
-    ...monadTestnet,
+    id: 143,
+    name: "Monad",
+    nativeCurrency: {
+      name: "Monad",
+      symbol: "MON",
+      decimals: 18,
+    },
+    rpcUrls: {
+      default: {
+        http: [
+          "https://permissionless-staging.gearbox.foundation/api/proxy/rpc/143",
+        ],
+      },
+    },
+    blockExplorers: {
+      default: {
+        name: "Monvision",
+        url: "https://mainnet-beta.monvision.io",
+      },
+    },
+    contracts: {
+      multicall3: {
+        address: "0xcA11bde05977b3631167028862bE2a173976CA11",
+        blockCreated: 9248132,
+      },
+    },
+    testnet: false,
     network: "Monad",
     defaultMarketConfigurators: {},
-    isPublic: false,
+    isPublic: true,
     wellKnownToken: {
-      address: "0xf817257fed379853cDe0fa4F97AB987181B1E5Ea",
-      symbol: "USDC",
+      address: "0xe7cd86e13AC4309349F30B3435a9d337750fC82D",
+      symbol: "USDT0",
     },
-    // TODO: has no block explorer API
   }),
   Berachain: withPublicNode(
     {
