@@ -51,7 +51,7 @@ export function chunkedLogsTransport({
   return opts => {
     const baseTransport = transport(opts);
 
-    return custom({
+    const customTransport = custom({
       async request({ method, params }) {
         // Intercept eth_getLogs calls
         if (method === "eth_getLogs") {
@@ -184,5 +184,11 @@ export function chunkedLogsTransport({
         return baseTransport.request({ method, params });
       },
     })(opts);
+
+    // Preserve the value property from base transport (e.g. url for http transports)
+    return {
+      ...customTransport,
+      value: baseTransport.value,
+    };
   };
 }
