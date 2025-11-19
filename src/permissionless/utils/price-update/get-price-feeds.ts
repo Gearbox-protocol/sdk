@@ -1,5 +1,6 @@
-import type { Address, PublicClient } from "viem";
+import type { Address, PublicClient, Transport } from "viem";
 import { AP_PRICE_FEED_COMPRESSOR } from "../../../sdk/constants/index.js";
+import type { GearboxChain } from "../../../sdk/chain/index.js";
 import { GearboxSDK } from "../../../sdk/index.js";
 import { AddressProviderContract } from "../../bindings/index.js";
 import type { ParsedCall } from "../../core/index.js";
@@ -61,9 +62,11 @@ export function getCallsTouchedPriceFeeds(
 export async function getCallsTouchedUpdatablePriceFeeds({
   parsedCalls,
   client,
+  gasLimit,
 }: {
   client: PublicClient;
   parsedCalls: ParsedCall[];
+  gasLimit?: bigint;
 }): Promise<Address[]> {
   const addressProvider = new AddressProviderContract(
     Addresses.ADDRESS_PROVIDER,
@@ -76,8 +79,9 @@ export async function getCallsTouchedUpdatablePriceFeeds({
   );
 
   const sdk = await GearboxSDK.attach({
-    rpcURLs: [client.transport.url!],
+    client: client as PublicClient<Transport, GearboxChain>,
     marketConfigurators: [],
+    gasLimit,
   });
 
   const touchedFeeds = parsedCalls.flatMap(call =>

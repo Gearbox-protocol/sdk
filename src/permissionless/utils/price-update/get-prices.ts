@@ -1,4 +1,10 @@
-import { type Address, multicall3Abi, type PublicClient } from "viem";
+import {
+  type Address,
+  multicall3Abi,
+  type PublicClient,
+  type Transport,
+} from "viem";
+import type { GearboxChain } from "../../../sdk/chain/index.js";
 import { GearboxSDK } from "../../../sdk/index.js";
 import { simulateMulticall } from "../../../sdk/utils/viem/index.js";
 
@@ -91,13 +97,20 @@ export async function getPrices({
   client,
   priceFeeds,
   chunkSize = 10,
+  gasLimit
 }: {
   client: PublicClient;
   priceFeeds: Address[];
   chunkSize?: number;
+  gasLimit?: bigint;
 }): Promise<Record<Address, bigint | null>> {
+  if (!client.chain) {
+    throw new Error("Chain not defined");
+  }
+  
   const sdk = await GearboxSDK.attach({
-    rpcURLs: [client.transport.url!],
+    client: client as PublicClient<Transport, GearboxChain>,
+    gasLimit,
     marketConfigurators: [],
     redstone: {
       ignoreMissingFeeds: true,

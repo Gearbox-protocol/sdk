@@ -5,7 +5,9 @@ import {
   multicall3Abi,
   type PublicClient,
   parseAbi,
+  Transport,
 } from "viem";
+import type { GearboxChain } from "../../../sdk/chain/index.js";
 import {
   GearboxSDK,
   type IPriceUpdateTx,
@@ -33,10 +35,12 @@ export async function getPriceUpdateTx({
   client,
   priceFeeds,
   useMulticall3 = false,
+  gasLimit,
 }: {
   client: PublicClient;
   priceFeeds: Address[];
   useMulticall3?: boolean;
+  gasLimit?: bigint;
 }): Promise<RawTx | undefined> {
   const pfStore = new PriceFeedStoreContract(
     Addresses.PRICE_FEED_STORE,
@@ -44,8 +48,9 @@ export async function getPriceUpdateTx({
   );
 
   const sdk = await GearboxSDK.attach({
-    rpcURLs: [client.transport.url!],
+    client: client as PublicClient<Transport, GearboxChain>,
     marketConfigurators: [],
+    gasLimit,
   });
 
   const updateTxs =
