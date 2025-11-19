@@ -13,7 +13,7 @@ export const ADDRESS_PROVIDER_BLOCK: Record<NetworkType, bigint> = {
   Sonic: 9779380n,
   // New networks
   MegaETH: 1677017n, // arbitrary not deployed yet
-  Monad: 9319691n, // arbitrary not deployed yet
+  Monad: 34650265n, // arbitrary not deployed yet
   Berachain: 2788903n, // arbitrary not deployed yet
   Avalanche: 31594758n, // arbitrary not deployed yet
   BNB: 48553569n, // arbitrary not deployed yet
@@ -34,7 +34,7 @@ const BLOCK_DURATION_LOCAL: PartialRecord<NetworkType, number> = {
   Sonic: 910,
   // New networks
   MegaETH: 10, // <10ms/block, on testnet
-  Monad: 1000, // on testnet
+  Monad: 400,
   Berachain: 1900,
   Avalanche: 1700,
   BNB: 3000,

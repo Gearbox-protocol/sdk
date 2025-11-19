@@ -26,7 +26,10 @@ interface LogEntry {
 }
 
 export class ArchiveTransport {
-  private config: Omit<Required<ArchiveTransportConfig>, "primaryTransport" | "archiveTransport" | "primaryRpcUrl" | "archiveRpcUrl">;
+  private config: Omit<
+    Required<ArchiveTransportConfig>,
+    "primaryTransport" | "archiveTransport" | "primaryRpcUrl" | "archiveRpcUrl"
+  >;
   private primaryTransport: Transport;
   private archiveTransport: Transport;
   private cachedTransport?: Transport;
@@ -48,16 +51,20 @@ export class ArchiveTransport {
       throw new Error("archiveRpcUrl or archiveTransport are required");
     }
 
-    this.primaryTransport = config.primaryTransport ?? http(config.primaryRpcUrl!, {
-      retryCount: this.config.retryCount,
-      retryDelay: this.config.retryDelay,
-      timeout: this.config.timeout,
-    });
-    this.archiveTransport = config.archiveTransport ?? http(config.archiveRpcUrl!, {
-      retryCount: this.config.retryCount,
-      retryDelay: this.config.retryDelay,
-      timeout: this.config.timeout,
-    });
+    this.primaryTransport =
+      config.primaryTransport ??
+      http(config.primaryRpcUrl!, {
+        retryCount: this.config.retryCount,
+        retryDelay: this.config.retryDelay,
+        timeout: this.config.timeout,
+      });
+    this.archiveTransport =
+      config.archiveTransport ??
+      http(config.archiveRpcUrl!, {
+        retryCount: this.config.retryCount,
+        retryDelay: this.config.retryDelay,
+        timeout: this.config.timeout,
+      });
   }
 
   /**
@@ -318,7 +325,6 @@ export class ArchiveTransport {
   public getConfig(): ArchiveTransportConfig {
     return { ...this.config };
   }
-
 
   /**
    * Enable or disable logging

@@ -183,7 +183,7 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
       case "configureTreasury": {
         const [target, data] = params.args;
 
-        let decoded: ParsedCall | undefined = undefined;
+        let decoded: ParsedCall | undefined;
         try {
           const treasurySplitter = new TreasurySplitterContract(
             target,
