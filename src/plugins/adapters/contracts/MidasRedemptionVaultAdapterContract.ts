@@ -1,10 +1,10 @@
+import { iMidasRedemptionVaultAdapterAbi } from "@gearbox-protocol/integrations-v3";
 import { type Address, decodeAbiParameters } from "viem";
 import type { GearboxSDK } from "../../../sdk/index.js";
 import type { AbstractAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
-// TODO:
-const abi = [] as const;
+const abi = iMidasRedemptionVaultAdapterAbi;
 type abi = typeof abi;
 
 export class MidasRedemptionVaultAdapterContract extends AbstractAdapterContract<abi> {

@@ -7,6 +7,8 @@ import type {
 } from "../../sdk/index.js";
 import { BasePlugin, bytes32ToString } from "../../sdk/index.js";
 import { AccountMigratorAdapterContract } from "./contracts/AccountMigratorAdapterContract.js";
+import { InfinifiGatewayAdapterContract } from "./contracts/InfinifiGatewayAdapterContract.js";
+import { InfinifiUnwindingGatewayAdapterContract } from "./contracts/InfinifiUnwindingGatewayAdapterContract.js";
 import {
   BalancerV2VaultAdapterContract,
   BalancerV3RouterAdapterContract,
@@ -45,6 +47,7 @@ import {
   WstETHV1AdapterContract,
   YearnV2RouterAdapterContract,
 } from "./contracts/index.js";
+import { UniswapV4AdapterContract } from "./contracts/UniswapV4AdapterContract.js";
 import type { AdapterContractType } from "./types.js";
 
 export class AdaptersPlugin
@@ -98,6 +101,10 @@ export class AdaptersPlugin
         return new ERC4626ReferralAdapterContract(this.sdk, args);
       case "ADAPTER::FLUID_DEX":
         return new FluidDexAdapterContract(this.sdk, args);
+      case "ADAPTER::INFINIFI_GATEWAY":
+        return new InfinifiGatewayAdapterContract(this.sdk, args);
+      case "ADAPTER::INFINIFI_UNWINDING":
+        return new InfinifiUnwindingGatewayAdapterContract(this.sdk, args);
       case "ADAPTER::INFRARED_VAULT":
         return new InfraredVaultAdapterContract(this.sdk, args);
       case "ADAPTER::KODIAK_ISLAND_GATEWAY":
@@ -130,6 +137,8 @@ export class AdaptersPlugin
         return new UniswapV2AdapterContract(this.sdk, args);
       case "ADAPTER::UNISWAP_V3_ROUTER":
         return new UniswapV3AdapterContract(this.sdk, args);
+      case "ADAPTER::UNISWAP_V4_GATEWAY":
+        return new UniswapV4AdapterContract(this.sdk, args);
       case "ADAPTER::UPSHIFT_VAULT":
         return new UpshiftVaultAdapterContract(this.sdk, args);
       case "ADAPTER::VELODROME_V2_ROUTER":

@@ -4,10 +4,10 @@ export const BASIC_ADAPTER_ABI = [
   { type: "address", name: "target" },
 ] as const;
 
-export const STAKED_TOKEN_ADAPTER_ABI = [
+export const PHANTOM_TOKEN_ADAPTER_ABI = [
   { type: "address", name: "creditManager" },
   { type: "address", name: "target" },
-  { type: "address", name: "stakedToken" },
+  { type: "address", name: "phantomToken" },
 ] as const;
 
 export const LP_ADAPTER_ABI = [

@@ -7,8 +7,8 @@ import {
   CURVE_V1_WRAPPER_ADAPTER_ABI,
   GATEWAY_ADAPTER_ABI,
   LP_ADAPTER_ABI,
+  PHANTOM_TOKEN_ADAPTER_ABI,
   REFERER_ID_ADAPTER_ABI,
-  STAKED_TOKEN_ADAPTER_ABI,
   STAKING_REWARDS_ADAPTER_ABI,
   UINT_REFERRAL_ADAPTER_ABI,
 } from "./conctructorAbiPatterns.js";
@@ -45,6 +45,9 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
   [AdapterType.FLUID_DEX]: {
     310: BASIC_ADAPTER_ABI,
   },
+  [AdapterType.INFINIFI_GATEWAY]: {
+    310: BASIC_ADAPTER_ABI,
+  },
   [AdapterType.KODIAK_ISLAND_GATEWAY]: {
     310: BASIC_ADAPTER_ABI,
   },
@@ -71,6 +74,9 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
     310: BASIC_ADAPTER_ABI,
   },
   [AdapterType.UNISWAP_V3_ROUTER]: {
+    310: BASIC_ADAPTER_ABI,
+  },
+  [AdapterType.UNISWAP_V4_GATEWAY]: {
     310: BASIC_ADAPTER_ABI,
   },
   [AdapterType.VELODROME_V2_ROUTER]: {
@@ -123,8 +129,8 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
   // Mellow adapters
   [AdapterType.MELLOW_ERC4626_VAULT]: {
     310: BASIC_ADAPTER_ABI,
-    311: STAKED_TOKEN_ADAPTER_ABI,
-    312: STAKED_TOKEN_ADAPTER_ABI,
+    311: PHANTOM_TOKEN_ADAPTER_ABI,
+    312: PHANTOM_TOKEN_ADAPTER_ABI,
   },
   [AdapterType.MELLOW_CLAIMER]: {
     310: BASIC_ADAPTER_ABI,
@@ -142,20 +148,23 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
   // Other adapters
   // address pattern [creditManager, target, address]
   [AdapterType.CVX_V1_BASE_REWARD_POOL]: {
-    310: STAKED_TOKEN_ADAPTER_ABI,
-    311: STAKED_TOKEN_ADAPTER_ABI,
+    310: PHANTOM_TOKEN_ADAPTER_ABI,
+    311: PHANTOM_TOKEN_ADAPTER_ABI,
   },
   [AdapterType.INFRARED_VAULT]: {
-    310: STAKED_TOKEN_ADAPTER_ABI,
-    311: STAKED_TOKEN_ADAPTER_ABI,
+    310: PHANTOM_TOKEN_ADAPTER_ABI,
+    311: PHANTOM_TOKEN_ADAPTER_ABI,
   },
   [AdapterType.UPSHIFT_VAULT]: {
-    310: STAKED_TOKEN_ADAPTER_ABI,
+    310: PHANTOM_TOKEN_ADAPTER_ABI,
+  },
+  [AdapterType.INFINIFI_UNWINDING]: {
+    310: PHANTOM_TOKEN_ADAPTER_ABI,
   },
 
   // other patterns
   [AdapterType.STAKING_REWARDS]: {
-    310: STAKED_TOKEN_ADAPTER_ABI,
+    310: PHANTOM_TOKEN_ADAPTER_ABI,
     311: STAKING_REWARDS_ADAPTER_ABI,
     312: STAKING_REWARDS_ADAPTER_ABI,
   },

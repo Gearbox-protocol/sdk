@@ -27,6 +27,12 @@ export const adapterActionSignatures: PartialRecord<
   [AdapterType.EQUALIZER_ROUTER]: {
     310: "function setPoolStatusBatch((address,address,bool,bool)[])",
   },
+  [AdapterType.INFINIFI_GATEWAY]: {
+    310: "function setLockedTokenBatchStatus((address,uint32,bool)[])",
+  },
+  [AdapterType.INFINIFI_UNWINDING]: {
+    310: "function setLockedTokenBatchStatus((address,uint32,bool)[])",
+  },
   [AdapterType.KODIAK_ISLAND_GATEWAY]: {
     310: "function setIslandStatusBatch((address,uint8)[])",
   },
@@ -54,6 +60,9 @@ export const adapterActionSignatures: PartialRecord<
   },
   [AdapterType.UNISWAP_V3_ROUTER]: {
     310: "function setPoolStatusBatch((address,address,uint24,bool)[])",
+  },
+  [AdapterType.UNISWAP_V4_GATEWAY]: {
+    310: "function setPoolKeyStatusBatch(((address,address,uint24,int24,address),bool)[])",
   },
   [AdapterType.VELODROME_V2_ROUTER]: {
     310: "function setPoolStatusBatch((address,address,bool,address,bool)[])",

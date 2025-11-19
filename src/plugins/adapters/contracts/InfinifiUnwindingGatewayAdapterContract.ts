@@ -1,14 +1,14 @@
-import { iBalancerV3WrapperAdapterAbi } from "@gearbox-protocol/integrations-v3";
+import { iInfinifiUnwindingGatewayAdapterAbi } from "@gearbox-protocol/integrations-v3";
 import { type Address, decodeAbiParameters } from "viem";
 import type { GearboxSDK } from "../../../sdk/index.js";
 import type { AbstractAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
-const abi = iBalancerV3WrapperAdapterAbi;
+const abi = iInfinifiUnwindingGatewayAdapterAbi;
 type abi = typeof abi;
 
-export class BalancerV3WrapperAdapterContract extends AbstractAdapterContract<abi> {
-  public readonly balancerPoolToken: Address;
+export class InfinifiUnwindingGatewayAdapterContract extends AbstractAdapterContract<abi> {
+  public readonly allowedLockedTokens: Address[];
 
   constructor(
     sdk: GearboxSDK,
@@ -21,11 +21,14 @@ export class BalancerV3WrapperAdapterContract extends AbstractAdapterContract<ab
       [
         { type: "address", name: "creditManager" },
         { type: "address", name: "targetContract" },
-        { type: "address", name: "balancerPoolToken" },
+        {
+          type: "address[]",
+          name: "allowedLockedTokens",
+        },
       ],
       args.baseParams.serializedParams,
     );
 
-    this.balancerPoolToken = decoded[2];
+    this.allowedLockedTokens = [...decoded[2]];
   }
 }
