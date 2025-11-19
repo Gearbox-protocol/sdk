@@ -226,7 +226,6 @@ export const chains: Record<NetworkType, GearboxChain> = {
         blockCreated: 9248132,
       },
     },
-    testnet: false,
     network: "Monad",
     defaultMarketConfigurators: {},
     isPublic: true,
