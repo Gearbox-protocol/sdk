@@ -103,6 +103,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         "0x7a133fbd01736fd076158307c9476cc3877f1af5": "Invariant Group",
         "0x09d8305F49374AEA6A78aF6C996df2913e8f3b19": "Tulipa",
         "0x1b265b97eb169fb6668e3258007c3b0242c7bdbe": "kpk",
+        "0x9dddd1b9ce0ac8aa0c80e4ec141600b9bf0101c3": "Edge UltraYield",
       },
       testMarketConfigurators: {
         "0x99df7330bf42d596af2e9d9836d4fc2077c574aa": "M11 Credit",
@@ -138,6 +139,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       network: "Optimism",
       defaultMarketConfigurators: {
         "0x2a15969CE5320868eb609680751cF8896DD92De5": "Chaos Labs",
+        "0x9dddd1b9ce0ac8aa0c80e4ec141600b9bf0101c3": "Edge UltraYield",
       },
       isPublic: true,
       wellKnownToken: {
