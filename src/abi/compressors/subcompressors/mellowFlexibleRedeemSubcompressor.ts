@@ -1,26 +1,4 @@
-export const withdrawalCompressorAbi = [
-  {
-    type: "constructor",
-    inputs: [
-      { name: "_owner", type: "address", internalType: "address" },
-      { name: "addressProvider_", type: "address", internalType: "address" },
-    ],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "addressProvider",
-    inputs: [],
-    outputs: [{ name: "", type: "address", internalType: "address" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "compressorTypeToCompressor",
-    inputs: [{ name: "", type: "bytes32", internalType: "bytes32" }],
-    outputs: [{ name: "", type: "address", internalType: "address" }],
-    stateMutability: "view",
-  },
+export const mellowFlexibleRedeemSubcompressorAbi = [
   {
     type: "function",
     name: "contractType",
@@ -33,6 +11,7 @@ export const withdrawalCompressorAbi = [
     name: "getCurrentWithdrawals",
     inputs: [
       { name: "creditAccount", type: "address", internalType: "address" },
+      { name: "token", type: "address", internalType: "address" },
     ],
     outputs: [
       {
@@ -103,7 +82,8 @@ export const withdrawalCompressorAbi = [
     type: "function",
     name: "getWithdrawableAssets",
     inputs: [
-      { name: "creditManager", type: "address", internalType: "address" },
+      { name: "", type: "address", internalType: "address" },
+      { name: "token", type: "address", internalType: "address" },
     ],
     outputs: [
       {
@@ -134,53 +114,12 @@ export const withdrawalCompressorAbi = [
     inputs: [
       { name: "creditAccount", type: "address", internalType: "address" },
       { name: "token", type: "address", internalType: "address" },
-      { name: "amount", type: "uint256", internalType: "uint256" },
-    ],
-    outputs: [
-      {
-        name: "withdrawal",
-        type: "tuple",
-        internalType: "struct RequestableWithdrawal",
-        components: [
-          { name: "token", type: "address", internalType: "address" },
-          { name: "amountIn", type: "uint256", internalType: "uint256" },
-          {
-            name: "outputs",
-            type: "tuple[]",
-            internalType: "struct WithdrawalOutput[]",
-            components: [
-              { name: "token", type: "address", internalType: "address" },
-              { name: "isDelayed", type: "bool", internalType: "bool" },
-              { name: "amount", type: "uint256", internalType: "uint256" },
-            ],
-          },
-          {
-            name: "requestCalls",
-            type: "tuple[]",
-            internalType: "struct MultiCall[]",
-            components: [
-              { name: "target", type: "address", internalType: "address" },
-              { name: "callData", type: "bytes", internalType: "bytes" },
-            ],
-          },
-          { name: "claimableAt", type: "uint256", internalType: "uint256" },
-        ],
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getWithdrawalRequestResult",
-    inputs: [
-      { name: "creditAccount", type: "address", internalType: "address" },
-      { name: "token", type: "address", internalType: "address" },
       { name: "withdrawalToken", type: "address", internalType: "address" },
       { name: "amount", type: "uint256", internalType: "uint256" },
     ],
     outputs: [
       {
-        name: "withdrawal",
+        name: "requestableWithdrawal",
         type: "tuple",
         internalType: "struct RequestableWithdrawal",
         components: [
@@ -210,46 +149,6 @@ export const withdrawalCompressorAbi = [
       },
     ],
     stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "owner",
-    inputs: [],
-    outputs: [{ name: "", type: "address", internalType: "address" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "renounceOwnership",
-    inputs: [],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "setSubcompressor",
-    inputs: [
-      { name: "subcompressor", type: "address", internalType: "address" },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "setWithdrawableTypeToCompressorType",
-    inputs: [
-      { name: "withdrawableType", type: "bytes32", internalType: "bytes32" },
-      { name: "compressorType", type: "bytes32", internalType: "bytes32" },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "transferOwnership",
-    inputs: [{ name: "newOwner", type: "address", internalType: "address" }],
-    outputs: [],
-    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -257,31 +156,5 @@ export const withdrawalCompressorAbi = [
     inputs: [],
     outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "withdrawableTypeToCompressorType",
-    inputs: [{ name: "", type: "bytes32", internalType: "bytes32" }],
-    outputs: [{ name: "", type: "bytes32", internalType: "bytes32" }],
-    stateMutability: "view",
-  },
-  {
-    type: "event",
-    name: "OwnershipTransferred",
-    inputs: [
-      {
-        name: "previousOwner",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-      {
-        name: "newOwner",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-    ],
-    anonymous: false,
   },
 ] as const;
