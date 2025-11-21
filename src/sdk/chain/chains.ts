@@ -231,7 +231,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
     },
     network: "Monad",
     defaultMarketConfigurators: {},
-    isPublic: true,
+    isPublic: false,
     wellKnownToken: {
       address: "0xe7cd86e13AC4309349F30B3435a9d337750fC82D",
       symbol: "USDT0",
