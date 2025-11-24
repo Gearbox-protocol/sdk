@@ -111,7 +111,7 @@ export class AdaptersPlugin
         return new InfinifiUnwindingGatewayAdapterContract(this.sdk, args);
       case "ADAPTER::INFRARED_VAULT":
         return new InfraredVaultAdapterContract(this.sdk, args);
-      case "ADAPTER::KELP_DEPOSIT_POOL":
+      case "ADAPTER::KELP_DEPOSIT_POOL_POOL":
         return new KelpLRTDepositPoolAdapterContract(this.sdk, args);
       case "ADAPTER::KELP_WITHDRAWAL":
         return new KelpLRTWithdrawalManagerAdapterContract(this.sdk, args);
@@ -131,9 +131,9 @@ export class AdaptersPlugin
         return new MellowVaultAdapterContract(this.sdk, args);
       case "ADAPTER::MELLOW_WRAPPER":
         return new MellowWrapperAdapterContract(this.sdk, args);
-      case "ADAPTER::MELLOW_DEPOSIT_QUEUE":
+      case "ADAPTER::MELLOW_DEPOSIT_QUEUE_QUEUE":
         return new MellowDepositQueueAdapterContract(this.sdk, args);
-      case "ADAPTER::MELLOW_REDEEM_QUEUE":
+      case "ADAPTER::MELLOW_REDEEM_QUEUE_QUEUE":
         return new MellowRedeemQueueAdapterContract(this.sdk, args);
       case "ADAPTER::MIDAS_ISSUANCE_VAULT":
         return new MidasIssuanceVaultAdapterContract(this.sdk, args);

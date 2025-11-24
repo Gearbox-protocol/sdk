@@ -33,7 +33,7 @@ export const adapterActionSignatures: PartialRecord<
   [AdapterType.INFINIFI_UNWINDING]: {
     310: "function setLockedTokenBatchStatus((address,uint32,bool)[])",
   },
-  [AdapterType.KELP_DEPOSIT]: {
+  [AdapterType.KELP_DEPOSIT_POOL]: {
     310: "function setAssetStatusBatch(address[],bool[])",
   },
   [AdapterType.KELP_WITHDRAWAL]: {
