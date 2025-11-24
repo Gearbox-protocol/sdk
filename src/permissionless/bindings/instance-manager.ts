@@ -13,6 +13,7 @@ import { gearboxRouterAbi } from "../../abi/router/gearboxRouter.js";
 import { mellow4626WorkerAbi } from "../../abi/router/mellow4626Worker.js";
 import { pendleRouterWorkerAbi } from "../../abi/router/pendleRouterWorker.js";
 import { uniswapV3WorkerAbi } from "../../abi/router/uniswapV3Worker.js";
+import { uniswapV4WorkerAbi } from "../../abi/router/uniswapV4Worker.js";
 import type { RawTx } from "../../sdk/types/index.js";
 import { json_stringify } from "../../sdk/utils/index.js";
 import type { ParsedCall } from "../core/proposal.js";
@@ -122,6 +123,18 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
             "UniswapV3Worker",
           );
           parsedData = uniswapV3Worker.parseFunctionData(calldata);
+
+          if (!parsedData.functionName.startsWith("Unknown function")) {
+            return parsedData;
+          }
+
+          const uniswapV4Worker = new BaseContract(
+            uniswapV4WorkerAbi,
+            target,
+            this.client,
+            "UniswapV4Worker",
+          );
+          parsedData = uniswapV4Worker.parseFunctionData(calldata);
 
           if (!parsedData.functionName.startsWith("Unknown function")) {
             return parsedData;
