@@ -234,7 +234,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       "0x16956912813ab9a38d95730b52a8cf53e860a7c5": "Tulipa",
       "0x7c6ee1bf9c1eb3ee55bdbdc1e8d0317aab718e0a": "Edge UltraYield",
     },
-    isPublic: false,
+    isPublic: true,
     wellKnownToken: {
       address: "0xe7cd86e13AC4309349F30B3435a9d337750fC82D",
       symbol: "USDT0",
