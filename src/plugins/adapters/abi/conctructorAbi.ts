@@ -7,7 +7,7 @@ import {
   CURVE_V1_WRAPPER_ADAPTER_ABI,
   GATEWAY_ADAPTER_ABI,
   LP_ADAPTER_ABI,
-  MELLOW_DEPOSIT_ADAPTER_ABI,
+  MELLOW_DEPOSIT_QUEUE_ADAPTER_ABI,
   PHANTOM_TOKEN_ADAPTER_ABI,
   REFERER_ID_ADAPTER_ABI,
   STAKING_REWARDS_ADAPTER_ABI,
@@ -146,16 +146,16 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
   [AdapterType.MELLOW_WRAPPER]: {
     310: ADDRESS_REFERRAL_ADAPTER_ABI,
   },
-  [AdapterType.MELLOW_DEPOSIT]: {
-    310: MELLOW_DEPOSIT_ADAPTER_ABI,
+  [AdapterType.MELLOW_DEPOSIT_QUEUE]: {
+    310: MELLOW_DEPOSIT_QUEUE_ADAPTER_ABI,
   },
-  [AdapterType.MELLOW_REDEEM]: {
+  [AdapterType.MELLOW_REDEEM_QUEUE]: {
     310: PHANTOM_TOKEN_ADAPTER_ABI,
   },
 
   // Kelp adapters
   // address pattern [creditManager, target, string]
-  [AdapterType.KELP_DEPOSIT]: {
+  [AdapterType.KELP_DEPOSIT_POOL]: {
     310: STRING_REFERRAL_ADAPTER_ABI,
   },
   [AdapterType.KELP_WITHDRAWAL]: {

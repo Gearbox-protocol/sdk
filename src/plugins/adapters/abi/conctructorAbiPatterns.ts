@@ -77,7 +77,7 @@ export const STAKING_REWARDS_ADAPTER_ABI = [
   { type: "uint16", name: "referral" },
 ] as const;
 
-export const MELLOW_DEPOSIT_ADAPTER_ABI = [
+export const MELLOW_DEPOSIT_QUEUE_ADAPTER_ABI = [
   { type: "address", name: "creditManager" },
   { type: "address", name: "target" },
   { type: "address", name: "referral" },
