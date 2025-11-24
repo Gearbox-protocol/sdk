@@ -34,6 +34,12 @@ export const UINT_REFERRAL_ADAPTER_ABI = [
   { type: "uint16", name: "referral" },
 ] as const;
 
+export const STRING_REFERRAL_ADAPTER_ABI = [
+  { type: "address", name: "creditManager" },
+  { type: "address", name: "target" },
+  { type: "string", name: "referral" },
+] as const;
+
 export const REFERER_ID_ADAPTER_ABI = [
   { type: "address", name: "creditManager" },
   { type: "address", name: "target" },
@@ -69,4 +75,11 @@ export const STAKING_REWARDS_ADAPTER_ABI = [
   { type: "address", name: "target" },
   { type: "address", name: "stakedPhantomToken" },
   { type: "uint16", name: "referral" },
+] as const;
+
+export const MELLOW_DEPOSIT_ADAPTER_ABI = [
+  { type: "address", name: "creditManager" },
+  { type: "address", name: "target" },
+  { type: "address", name: "referral" },
+  { type: "address", name: "phantomToken" },
 ] as const;

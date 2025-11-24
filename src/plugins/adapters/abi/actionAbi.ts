@@ -33,6 +33,12 @@ export const adapterActionSignatures: PartialRecord<
   [AdapterType.INFINIFI_UNWINDING]: {
     310: "function setLockedTokenBatchStatus((address,uint32,bool)[])",
   },
+  [AdapterType.KELP_DEPOSIT]: {
+    310: "function setAssetStatusBatch(address[],bool[])",
+  },
+  [AdapterType.KELP_WITHDRAWAL]: {
+    310: "function setTokensOutBatchStatus((address,address,bool)[])",
+  },
   [AdapterType.KODIAK_ISLAND_GATEWAY]: {
     310: "function setIslandStatusBatch((address,uint8)[])",
   },

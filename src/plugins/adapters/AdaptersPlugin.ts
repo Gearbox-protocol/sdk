@@ -28,11 +28,15 @@ import {
   ERC4626ReferralAdapterContract,
   FluidDexAdapterContract,
   InfraredVaultAdapterContract,
+  KelpLRTDepositPoolAdapterContract,
+  KelpLRTWithdrawalManagerAdapterContract,
   KodiakIslandGatewayAdapterContract,
   LidoV1AdapterContract,
   MellowClaimerAdapterContract,
+  MellowDepositQueueAdapterContract,
   MellowDVVAdapterContract,
   MellowERC4626VaultAdapterContract,
+  MellowRedeemQueueAdapterContract,
   MellowVaultAdapterContract,
   MellowWrapperAdapterContract,
   MidasIssuanceVaultAdapterContract,
@@ -107,6 +111,10 @@ export class AdaptersPlugin
         return new InfinifiUnwindingGatewayAdapterContract(this.sdk, args);
       case "ADAPTER::INFRARED_VAULT":
         return new InfraredVaultAdapterContract(this.sdk, args);
+      case "ADAPTER::KELP_DEPOSIT_POOL":
+        return new KelpLRTDepositPoolAdapterContract(this.sdk, args);
+      case "ADAPTER::KELP_WITHDRAWAL":
+        return new KelpLRTWithdrawalManagerAdapterContract(this.sdk, args);
       case "ADAPTER::KODIAK_ISLAND_GATEWAY":
         return new KodiakIslandGatewayAdapterContract(this.sdk, args);
       case "ADAPTER::LIDO_V1":
@@ -123,6 +131,10 @@ export class AdaptersPlugin
         return new MellowVaultAdapterContract(this.sdk, args);
       case "ADAPTER::MELLOW_WRAPPER":
         return new MellowWrapperAdapterContract(this.sdk, args);
+      case "ADAPTER::MELLOW_DEPOSIT_QUEUE":
+        return new MellowDepositQueueAdapterContract(this.sdk, args);
+      case "ADAPTER::MELLOW_REDEEM_QUEUE":
+        return new MellowRedeemQueueAdapterContract(this.sdk, args);
       case "ADAPTER::MIDAS_ISSUANCE_VAULT":
         return new MidasIssuanceVaultAdapterContract(this.sdk, args);
       case "ADAPTER::MIDAS_REDEMPTION_VAULT":
