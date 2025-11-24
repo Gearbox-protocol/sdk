@@ -11,6 +11,7 @@ import {
   lisk,
   mainnet,
   megaethTestnet,
+  monad,
   optimism,
   plasma,
   sonic,
@@ -203,31 +204,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
   }),
   // NOTE: Monad chain configs should be updated once the public mainnet is available
   Monad: defineChain({
-    id: 143,
-    name: "Monad",
-    nativeCurrency: {
-      name: "Monad",
-      symbol: "MON",
-      decimals: 18,
-    },
-    rpcUrls: {
-      default: {
-        http: ["https://rpc-mainnet.monadinfra.com"],
-      },
-    },
-    blockExplorers: {
-      default: {
-        name: "Monvision",
-        url: "https://mainnet-beta.monvision.io",
-      },
-    },
-    blockTime: 400,
-    contracts: {
-      multicall3: {
-        address: "0xcA11bde05977b3631167028862bE2a173976CA11",
-        blockCreated: 9248132,
-      },
-    },
+    ...monad,
     network: "Monad",
     defaultMarketConfigurators: {
       "0x16956912813ab9a38d95730b52a8cf53e860a7c5": "Tulipa",
