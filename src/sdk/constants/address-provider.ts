@@ -55,6 +55,7 @@ export const ADDRESS_PROVIDER: Record<NetworkType, Address> = {
   Hemi: NOT_DEPLOYED,
   Lisk: NOT_DEPLOYED,
   Plasma: NOT_DEPLOYED,
+  Somnia: NOT_DEPLOYED,
 };
 
 export const ADDRESS_PROVIDER_V310 =

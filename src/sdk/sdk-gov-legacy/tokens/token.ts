@@ -671,6 +671,7 @@ export const tokenDataByNetwork: Record<
     lskETH: "0x1b10E2270780858923cdBbC9B5423e29fffD1A44",
   } as any,
   Plasma: {} as any,
+  Somnia: {} as any,
 };
 
 export type TickerToken =
@@ -1116,6 +1117,7 @@ export const tickerInfoTokensByNetwork: Record<
   Hemi: {},
   Lisk: {},
   Plasma: {},
+  Somnia: {},
 };
 
 const tokenSymbolByAddress = Object.entries(tokenDataByNetwork).reduce<

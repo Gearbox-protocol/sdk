@@ -43,6 +43,7 @@ export const connectors: Record<NetworkType, Array<SupportedToken>> = {
   Hemi: [],
   Lisk: [],
   Plasma: [],
+  Somnia: [],
 };
 
 export function getConnectors(networkType: NetworkType): Address[] {

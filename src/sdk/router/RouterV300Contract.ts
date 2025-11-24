@@ -428,6 +428,7 @@ export class RouterV300Contract
       Hemi: "0x0",
       Lisk: "0x0",
       Plasma: "0x0",
+      Somnia: "0x0",
     } as const;
 
     const pendleRouter = PENDLE_ROUTER_BY_NETWORK[this.sdk.networkType];

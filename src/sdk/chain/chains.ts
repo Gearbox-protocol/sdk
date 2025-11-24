@@ -71,6 +71,7 @@ export const SUPPORTED_NETWORKS = [
   "Hemi",
   "Lisk",
   "Plasma",
+  "Somnia",
 ] as const;
 
 export const NetworkType = z.enum(SUPPORTED_NETWORKS);
@@ -211,9 +212,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
     },
     rpcUrls: {
       default: {
-        http: [
-          "https://permissionless-staging.gearbox.foundation/api/proxy/rpc/143",
-        ],
+        http: ["https://rpc-mainnet.monadinfra.com"],
       },
     },
     blockExplorers: {
@@ -364,6 +363,40 @@ export const chains: Record<NetworkType, GearboxChain> = {
       multicall3: {
         address: "0xcA11bde05977b3631167028862bE2a173976CA11",
       },
+    },
+  }),
+  Somnia: defineChain({
+    id: 5031,
+    name: "Somnia",
+    nativeCurrency: {
+      name: "Somnia",
+      symbol: "STT",
+      decimals: 18,
+    },
+    rpcUrls: {
+      default: {
+        http: ["https://api.infra.mainnet.somnia.network"],
+      },
+    },
+    blockExplorers: {
+      default: {
+        name: "Somnia Explorer",
+        url: "https://explorer.somnia.network",
+      },
+    },
+    contracts: {
+      multicall3: {
+        address: "0x5e44F178E8cF9B2F5409B6f18ce936aB817C5a11",
+        blockCreated: 38516341,
+      },
+    },
+    blockTime: 200,
+    network: "Somnia",
+    defaultMarketConfigurators: {},
+    isPublic: false,
+    wellKnownToken: {
+      address: "0x67B302E35Aef5EEE8c32D934F5856869EF428330",
+      symbol: "USDT",
     },
   }),
 };

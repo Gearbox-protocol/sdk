@@ -21,6 +21,7 @@ export const TESTNET_CHAINS: Record<NetworkType, number> = {
   Hemi: 7891,
   Lisk: 7892,
   Plasma: 7893,
+  Somnia: 7894,
 };
 
 const CHAINS_BY_ID: Record<number, NetworkType> =

@@ -22,6 +22,7 @@ export const ADDRESS_PROVIDER_BLOCK: Record<NetworkType, bigint> = {
   Hemi: 2227553n, // arbitrary not deployed yet
   Lisk: 18934260n, // arbitrary not deployed yet
   Plasma: 670918n, // arbitrary not deployed yet
+  Somnia: 147687418n,
 };
 
 // local constants are preserved for compatibility with older viem versions
@@ -43,6 +44,7 @@ const BLOCK_DURATION_LOCAL: PartialRecord<NetworkType, number> = {
   Hemi: 12000,
   Lisk: 2000,
   Plasma: 1000,
+  Somnia: 200,
 };
 
 const DEFAULT_DURATION = 12_000;
