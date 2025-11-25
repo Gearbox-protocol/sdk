@@ -84,6 +84,7 @@ function tryBisectBlockRange(
     "range is too large",
     "eth_getLogs is limited to",
     "eth_getLogs requests with up to",
+    "exceeded max allowed range",
   ];
 
   if (
