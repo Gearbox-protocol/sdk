@@ -205,6 +205,12 @@ export const chains: Record<NetworkType, GearboxChain> = {
   // NOTE: Monad chain configs should be updated once the public mainnet is available
   Monad: defineChain({
     ...monad,
+    blockExplorers: {
+      default: {
+        name: "Monadscan",
+        url: "https://monadscan.com/",
+      },
+    },
     network: "Monad",
     defaultMarketConfigurators: {
       "0x16956912813ab9a38d95730b52a8cf53e860a7c5": "Tulipa",
