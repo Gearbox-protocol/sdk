@@ -113,6 +113,9 @@ export class RedstoneUpdater
   public async getUpdateTxs(
     feeds: IPriceFeedContract[],
   ): Promise<RedstoneUpdateTx[]> {
+    if (feeds.length === 0) {
+      return [];
+    }
     this.#logger?.debug(
       `generating update transactions for ${feeds.length} redstone price feeds`,
     );

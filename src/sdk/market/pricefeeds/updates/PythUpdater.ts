@@ -131,6 +131,9 @@ export class PythUpdater
   public async getUpdateTxs(
     feeds: IPriceFeedContract[],
   ): Promise<PythUpdateTx[]> {
+    if (feeds.length === 0) {
+      return [];
+    }
     this.#logger?.debug(
       `generating update transactions for ${feeds.length} pyth price feeds`,
     );
