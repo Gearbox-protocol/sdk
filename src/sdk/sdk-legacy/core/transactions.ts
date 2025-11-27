@@ -432,6 +432,9 @@ interface TxOpenMultitokenAccountProps extends EVMTxProps {
   assets: Array<Address>;
   withdrawDebt: boolean;
 
+  targetToken: Address | undefined;
+  creditManager: Address;
+
   tokensList: Record<Address, TokenData>;
 }
 
@@ -442,6 +445,9 @@ export class TxOpenMultitokenAccount extends EVMTx {
   readonly assets: Array<TokenData>;
   readonly withdrawDebt: boolean;
 
+  readonly targetToken: Address | undefined;
+  readonly creditManager: Address;
+
   constructor(opts: TxOpenMultitokenAccountProps) {
     super(opts);
     this.borrowedAmount = opts.borrowedAmount;
@@ -449,6 +455,8 @@ export class TxOpenMultitokenAccount extends EVMTx {
     this.creditManagerName = opts.creditManagerName;
     this.assets = opts.assets.map(a => opts.tokensList[a]);
     this.withdrawDebt = opts.withdrawDebt;
+    this.targetToken = opts.targetToken;
+    this.creditManager = opts.creditManager;
   }
 
   _toString() {
