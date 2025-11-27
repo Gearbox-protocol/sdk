@@ -228,7 +228,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
   /**
    * Token metadata such as symbol and decimals
    */
-  public readonly tokensMeta = new TokensMeta(undefined, "tokensMeta");
+  public readonly tokensMeta: TokensMeta;
 
   public addHook = this.#hooks.addHook.bind(this.#hooks);
   public removeHook = this.#hooks.removeHook.bind(this.#hooks);
@@ -307,6 +307,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
     if (options.gasLimit !== null) {
       this.gasLimit = options.gasLimit || 550_000_000n;
     }
+    this.tokensMeta = new TokensMeta(this);
   }
 
   async #attach(opts: AttachOptionsInternal): Promise<this> {
