@@ -15,6 +15,8 @@ export interface TokenDataPayload {
   name: string;
 
   decimals: number;
+
+  isPhantom: boolean;
 }
 
 // UPDATE ME
@@ -90,6 +92,8 @@ export class TokenData {
   readonly decimals: number;
   readonly icon: string;
 
+  readonly isPhantom: boolean;
+
   constructor(payload: TokenDataPayload) {
     const address = payload.addr.toLowerCase() as Address;
     this.address = address;
@@ -104,6 +108,8 @@ export class TokenData {
 
     this.decimals = payload.decimals;
     this.icon = TokenData.getTokenIcon(payload.symbol);
+
+    this.isPhantom = payload.isPhantom ?? false;
   }
 
   static getTokenIcon(symbol: string): string {
