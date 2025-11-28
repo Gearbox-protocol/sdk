@@ -1,6 +1,6 @@
 import type { Address, PublicClient, Transport } from "viem";
-import { AP_PRICE_FEED_COMPRESSOR } from "../../../sdk/constants/index.js";
 import type { GearboxChain } from "../../../sdk/chain/index.js";
+import { AP_PRICE_FEED_COMPRESSOR } from "../../../sdk/constants/index.js";
 import { GearboxSDK } from "../../../sdk/index.js";
 import { AddressProviderContract } from "../../bindings/index.js";
 import type { ParsedCall } from "../../core/index.js";

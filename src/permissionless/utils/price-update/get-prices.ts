@@ -97,7 +97,7 @@ export async function getPrices({
   client,
   priceFeeds,
   chunkSize = 10,
-  gasLimit
+  gasLimit,
 }: {
   client: PublicClient;
   priceFeeds: Address[];
@@ -107,7 +107,7 @@ export async function getPrices({
   if (!client.chain) {
     throw new Error("Chain not defined");
   }
-  
+
   const sdk = await GearboxSDK.attach({
     client: client as PublicClient<Transport, GearboxChain>,
     gasLimit,

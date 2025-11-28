@@ -5,7 +5,7 @@ import {
   multicall3Abi,
   type PublicClient,
   parseAbi,
-  Transport,
+  type Transport,
 } from "viem";
 import type { GearboxChain } from "../../../sdk/chain/index.js";
 import {

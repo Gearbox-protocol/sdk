@@ -728,6 +728,3 @@ export const normalTokens: Record<NormalToken, NormalTokenData> = {
     type: { AllNetworks: TokenType.NORMAL_TOKEN },
   },
 };
-
-export const isNormalToken = (t: unknown): t is NormalToken =>
-  typeof t === "string" && !!normalTokens[t as NormalToken];
