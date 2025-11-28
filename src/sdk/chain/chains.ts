@@ -375,7 +375,9 @@ export const chains: Record<NetworkType, GearboxChain> = {
     },
     blockTime: 200,
     network: "Somnia",
-    defaultMarketConfigurators: {},
+    defaultMarketConfigurators: {
+      "0x1ca8b92aa7233a9f8f7ba031ac45c878141adff0": "Invariant Group",
+    },
     isPublic: false,
     wellKnownToken: {
       address: "0x67B302E35Aef5EEE8c32D934F5856869EF428330",
