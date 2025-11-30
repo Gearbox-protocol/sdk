@@ -22,6 +22,7 @@ export interface ProviderConfig {
   name: string;
   url: string;
   cooldown?: number;
+  httpClientOptions?: HttpRpcClientOptions | undefined;
 }
 
 interface TransportEntry {
@@ -180,9 +181,10 @@ export class RevolverTransport
     };
 
     const transports = config.providers.map(
-      ({ url, name, cooldown }): TransportEntry => ({
+      ({ url, name, cooldown, httpClientOptions }): TransportEntry => ({
         name,
         transport: http(url, {
+          ...httpClientOptions,
           retryCount: config.retryCount,
           retryDelay: config.retryDelay,
           timeout: config.timeout,

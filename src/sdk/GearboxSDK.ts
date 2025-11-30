@@ -8,10 +8,11 @@ import {
   parseEventLogs,
   type Transport,
 } from "viem";
+import type { HttpRpcClientOptions } from "viem/utils";
 import type { BaseContract, BaseState, IBaseContract } from "./base/index.js";
 import { AddressLabeller, TokensMeta } from "./base/index.js";
 import type { GearboxChain, NetworkType } from "./chain/chains.js";
-import { chains, detectNetwork, getChain } from "./chain/index.js";
+import { detectNetwork, getChain } from "./chain/index.js";
 import type { VersionRange } from "./constants/index.js";
 import {
   ADDRESS_PROVIDER_V310,
@@ -83,6 +84,7 @@ export type ClientOptions =
        * Retry count for RPC
        */
       retryCount?: number;
+      httpClientOptions?: HttpRpcClientOptions | undefined;
     }
   | {
       /**
@@ -116,7 +118,11 @@ function createClient(
     transport = opts.transport;
   } else {
     const rpcs = opts.rpcURLs.map(url =>
-      http(url, { timeout: opts.timeout, retryCount: opts.retryCount }),
+      http(url, {
+        ...opts.httpClientOptions,
+        timeout: opts.timeout,
+        retryCount: opts.retryCount,
+      }),
     );
     transport = rpcs.length > 1 ? fallback(rpcs) : rpcs[0];
   }
