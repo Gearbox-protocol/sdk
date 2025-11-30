@@ -184,7 +184,7 @@ export class RevolverTransport
       ({ url, name, cooldown, httpClientOptions }): TransportEntry => ({
         name,
         transport: http(url, {
-          ...opts.httpClientOptions,
+          ...httpClientOptions,
           retryCount: config.retryCount,
           retryDelay: config.retryDelay,
           timeout: config.timeout,
