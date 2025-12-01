@@ -353,7 +353,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
     name: "Somnia",
     nativeCurrency: {
       name: "Somnia",
-      symbol: "STT",
+      symbol: "SOMI",
       decimals: 18,
     },
     rpcUrls: {
