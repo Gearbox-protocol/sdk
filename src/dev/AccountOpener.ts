@@ -519,8 +519,8 @@ export class AccountOpener extends SDKConstruct {
       );
     }
 
-    let totalUSD = 0n;
     const deposits: [PoolContract, bigint][] = [];
+    const claims: AddressMap<bigint> = new AddressMap();
     for (const [p, minAvailable] of Object.entries(minAvailableByPool)) {
       const market = this.sdk.marketRegister.findByPool(p as Address);
       const pool = market.pool.pool;
@@ -538,21 +538,19 @@ export class AccountOpener extends SDKConstruct {
       );
       if (diff > 0n) {
         deposits.push([pool, diff]);
-        totalUSD += market.priceOracle.convertToUSD(pool.underlying, diff);
+        let claim = claims.get(pool.underlying) ?? 0n;
+        // pool.available * linearModel.U2 can be borrowed
+        // U2 is currently at 90% in all pools
+        claim += (diff * PERCENTAGE_FACTOR) / 8950n;
+        claims.upsert(pool.underlying, claim);
       }
     }
-    // pool.available * linearModel.U2 can be borrowed
-    // U2 is currently at 90% in all pools
-    totalUSD = (totalUSD * PERCENTAGE_FACTOR) / 8950n;
-    this.#logger?.debug(
-      `total USD to claim from faucet: ${formatBN(totalUSD, 8)}`,
-    );
 
     const depositor = await this.#getDepositor();
     this.#logger?.debug(`depositor: ${depositor.address}`);
 
     try {
-      await this.#claimFromFaucet(depositor, "depositor", totalUSD);
+      await this.#claimFromFaucet(depositor, "depositor", claims);
     } catch (e) {
       if (this.#allowMint) {
         this.#logger?.error(`depositor failed to claim from faucet: ${e}`);
@@ -686,9 +684,9 @@ export class AccountOpener extends SDKConstruct {
     const borrower = await this.#getBorrower();
 
     // each account will have minDebt*minDebtMultiplier in USD, see how much we need to claim from faucet
-    let claimUSD = 0n;
     // collect all degen nfts
     const degenNFTS: Record<Address, number> = {};
+    const claims: AddressMap<bigint> = new AddressMap();
     for (const target of targets) {
       const cm = this.sdk.marketRegister.findCreditManager(
         target.creditManager,
@@ -700,15 +698,16 @@ export class AccountOpener extends SDKConstruct {
       const minDebt =
         (this.#minDebtMultiplier * cm.creditFacade.minDebt) / PERCENTAGE_FACTOR;
 
-      claimUSD += market.priceOracle.convertToUSD(cm.underlying, minDebt);
+      const claim = claims.get(cm.underlying) ?? 0n;
+      // 10% more to be safe
+      claims.upsert(cm.underlying, claim + (minDebt * 11n) / 10n);
 
       if (isAddress(degenNFT) && degenNFT !== ADDRESS_0X0) {
         degenNFTS[degenNFT] = (degenNFTS[degenNFT] ?? 0) + 1;
       }
     }
-    claimUSD = (claimUSD * 11n) / 10n; // 10% more to be safe
 
-    await this.#claimFromFaucet(borrower, "borrower", claimUSD);
+    await this.#claimFromFaucet(borrower, "borrower", claims);
 
     for (const [degenNFT, amount] of Object.entries(degenNFTS)) {
       await this.#mintDegenNft(degenNFT as Address, borrower.address, amount);
@@ -720,15 +719,16 @@ export class AccountOpener extends SDKConstruct {
   async #claimFromFaucet(
     claimer: PrivateKeyAccount,
     role: string,
-    amountUSD: bigint,
+    claims: AddressMap<bigint>,
   ): Promise<void> {
     await claimFromFaucet({
+      sdk: this.sdk,
       publicClient: this.#anvil,
       wallet: this.#anvil,
       faucet: this.faucet,
       claimer,
       role,
-      amountUSD,
+      amount: claims.entries().map(([k, v]) => ({ token: k, amount: v })),
       logger: this.#logger,
     });
   }
@@ -878,6 +878,7 @@ export class AccountOpener extends SDKConstruct {
       value: parseEther("100"),
     });
     await claimFromFaucet({
+      sdk: this.sdk,
       publicClient: this.#anvil,
       wallet: this.#anvil,
       faucet: this.faucet,
