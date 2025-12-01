@@ -177,6 +177,18 @@ export class AccountOpener extends SDKConstruct {
     this.#poolDepositMultiplier = BigInt(poolDepositMultiplier);
     this.#minDebtMultiplier = BigInt(minDebtMultiplier);
     this.#leverageDelta = BigInt(leverageDelta);
+    this.#logger?.info(
+      {
+        borrower: privateKeyToAccount(this.borrowerKey).address,
+        depositor: privateKeyToAccount(this.depositorKey).address,
+        faucet: this.faucet,
+        poolDepositMultiplier: this.#poolDepositMultiplier.toString(),
+        minDebtMultiplier: this.#minDebtMultiplier.toString(),
+        leverageDelta: this.#leverageDelta.toString(),
+        allowMint: this.#allowMint,
+      },
+      "account opener options",
+    );
   }
 
   public get borrower(): PrivateKeyAccount {
@@ -201,6 +213,14 @@ export class AccountOpener extends SDKConstruct {
     depositIntoPools = true,
     claimFromFaucet = true,
   ): Promise<OpenAccountsResult> {
+    this.#logger?.info(
+      {
+        targets,
+        depositIntoPools,
+        claimFromFaucet,
+      },
+      "opening credit accounts",
+    );
     let deposits: PoolDepositResult[] = [];
     if (depositIntoPools) {
       try {
