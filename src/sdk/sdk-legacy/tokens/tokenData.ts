@@ -79,6 +79,8 @@ const HUMAN_READABLE_TITLES: PartialRecord<string, string> = {
   ["0x9fb930eacadad079683a4758424a53b9b3692775".toLowerCase() as Address]:
     "Re7LRT\u00A0→\u00A0wstETH",
 
+  STT: "SOMI",
+
   ETHPlus: "ETH+",
 };
 
