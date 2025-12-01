@@ -101,9 +101,9 @@ export class TokenData {
     this.address = address;
 
     this.title =
-      payload.title ||
       HUMAN_READABLE_TITLES[payload.symbol] ||
       HUMAN_READABLE_TITLES[address] ||
+      payload.title ||
       payload.symbol;
     this.symbol = payload.symbol;
     this.name = payload.name;
