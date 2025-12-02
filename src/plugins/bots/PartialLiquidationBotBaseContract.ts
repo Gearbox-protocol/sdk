@@ -4,6 +4,7 @@ import { decodeAbiParameters } from "viem";
 
 import type { GearboxSDK } from "../../sdk/index.js";
 import { BaseContract, formatPercentage } from "../../sdk/index.js";
+import deserializePartialLiquidationBotParams from "./deserializePartialLiquidationBotParams.js";
 import type { BotParameters, BotState, BotStateBaseHuman } from "./types.js";
 
 export interface PartialLiquidationBotBaseArgs<
@@ -37,27 +38,12 @@ export abstract class PartialLiquidationBotBaseContract<
     super(sdk, args);
     this.#serializedParams = args.serializedParams;
     // same for v300 and v310 bots
-    const [
-      treasury,
-      minHealthFactor,
-      maxHealthFactor,
-      premiumScaleFactor,
-      feeScaleFactor,
-    ] = decodeAbiParameters(
-      [
-        { name: "treasury", type: "address" },
-        { name: "minHealthFactor", type: "uint16" },
-        { name: "maxHealthFactor", type: "uint16" },
-        { name: "premiumScaleFactor", type: "uint16" },
-        { name: "feeScaleFactor", type: "uint16" },
-      ],
-      args.serializedParams,
-    );
-    this.treasury = treasury;
-    this.minHealthFactor = minHealthFactor;
-    this.maxHealthFactor = maxHealthFactor;
-    this.premiumScaleFactor = premiumScaleFactor;
-    this.feeScaleFactor = feeScaleFactor;
+    const bp = deserializePartialLiquidationBotParams(args);
+    this.treasury = bp.treasury;
+    this.minHealthFactor = bp.minHealthFactor;
+    this.maxHealthFactor = bp.maxHealthFactor;
+    this.premiumScaleFactor = bp.premiumScaleFactor;
+    this.feeScaleFactor = bp.feeScaleFactor;
 
     this.marketConfigurator = args.marketConfigurator;
     this.requiredPermissions = args.requiredPermissions;

@@ -10,6 +10,7 @@ import {
   TypedObjectUtils,
   VERSION_RANGE_310,
 } from "../../sdk/index.js";
+import deserializePartialLiquidationBotParams from "./deserializePartialLiquidationBotParams.js";
 import { PartialLiquidationBotV300Contract } from "./PartialLiquidationBotV300Contract.js";
 import { PartialLiquidationBotV310Contract } from "./PartialLiquidationBotV310Contract.js";
 import {
@@ -83,18 +84,17 @@ export class BotsPlugin
   #loadStateMarketState(mc: Address, state: readonly BotState[]): void {
     // for v300, assume that each market configurator has exactly 4 bots
     // sort them by minHealthFactor and assign type based on index
-    const bots = state
-      .map(state => this.#createBot(mc, state))
-      .sort((a, b) => a.minHealthFactor - b.minHealthFactor);
-    if (bots.length && isV300(Number(bots[0].version))) {
-      if (bots.length !== 4) {
+    const states = [...state].sort(
+      (a, b) =>
+        deserializePartialLiquidationBotParams(a.baseParams).minHealthFactor -
+        deserializePartialLiquidationBotParams(b.baseParams).minHealthFactor,
+    );
+    if (states.length && isV300(states[0].baseParams.version)) {
+      if (states.length !== 4) {
         throw new Error(`expected 4 bots v300 for market configurator ${mc}`);
       }
-      for (let i = 0; i < bots.length; i++) {
-        (bots[i] as PartialLiquidationBotV300Contract).botType =
-          LIQUIDATION_BOT_TYPES[i];
-      }
     }
+    const bots = states.map((s, i) => this.#createBot(mc, s, i));
     this.botsByMarket.upsert(mc, bots);
   }
 
@@ -148,13 +148,16 @@ export class BotsPlugin
   #createBot(
     marketConfigurator: Address,
     data: BotState,
+    index: number,
   ): PartialLiquidationBotContract {
     const v = Number(data.baseParams.version);
     if (isV300(v)) {
+      const botType = LIQUIDATION_BOT_TYPES[index];
       return new PartialLiquidationBotV300Contract(
         this.sdk,
         data,
         marketConfigurator,
+        botType,
       );
     } else if (isV310(v)) {
       return new PartialLiquidationBotV310Contract(

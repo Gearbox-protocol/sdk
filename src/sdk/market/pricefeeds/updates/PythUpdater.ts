@@ -4,8 +4,7 @@ import { encodeAbiParameters, toHex } from "viem";
 import { z } from "zod/v4";
 import { SDKConstruct } from "../../../base/index.js";
 import type { GearboxSDK } from "../../../GearboxSDK.js";
-import type { ILogger } from "../../../types/index.js";
-import { childLogger, retry } from "../../../utils/index.js";
+import { retry } from "../../../utils/index.js";
 import type {
   IPriceFeedContract,
   IUpdatablePriceFeedContract,
@@ -98,7 +97,6 @@ export class PythUpdater
   extends SDKConstruct
   implements IPriceUpdater<PythUpdateTask>
 {
-  #logger?: ILogger;
   #cache: PriceUpdatesCache;
   #historicalTimestamp?: number;
   #api: string;
@@ -106,7 +104,6 @@ export class PythUpdater
 
   constructor(sdk: GearboxSDK, opts: PythOptions = {}) {
     super(sdk);
-    this.#logger = childLogger("PythUpdater", sdk.logger);
     this.#ignoreMissingFeeds = opts.ignoreMissingFeeds;
     this.#api =
       opts.apiProxy ?? "https://hermes.pyth.network/v2/updates/price/";
@@ -115,7 +112,7 @@ export class PythUpdater
     const ts = opts.historicTimestamp;
     if (ts) {
       this.#historicalTimestamp = ts === true ? Number(this.sdk.timestamp) : ts;
-      this.#logger?.debug(
+      this.logger?.debug(
         `using historical timestamp ${this.#historicalTimestamp}`,
       );
     }
@@ -134,7 +131,7 @@ export class PythUpdater
     if (feeds.length === 0) {
       return [];
     }
-    this.#logger?.debug(
+    this.logger?.debug(
       `generating update transactions for ${feeds.length} pyth price feeds`,
     );
     const pythFeeds = new Map<string, IPythPriceFeedContract>(
@@ -172,7 +169,7 @@ export class PythUpdater
         tsRange = `${tsRange} - ${maxTimestamp} (${maxDelta})`;
       }
     }
-    this.#logger?.debug(
+    this.logger?.debug(
       `generated ${results.length} update transactions for pyth price feeds: ${Array.from(pythFeeds.keys()).join(", ")}${tsRange}`,
     );
     return results;
@@ -186,7 +183,7 @@ export class PythUpdater
   async #getPayloads(
     dataFeedsIds: Set<string>,
   ): Promise<TimestampedCalldata[]> {
-    this.#logger?.debug(
+    this.logger?.debug(
       `getting pyth payloads for ${dataFeedsIds.size} price feeds: ${Array.from(dataFeedsIds).join(", ")}`,
     );
     const fromCache: TimestampedCalldata[] = [];
@@ -207,7 +204,7 @@ export class PythUpdater
     for (const resp of fromPyth) {
       this.#cache.set(resp, resp.dataFeedId);
     }
-    this.#logger?.debug(
+    this.logger?.debug(
       `got ${fromPyth.length} new pyth updates and ${fromCache.length} from cache`,
     );
 
@@ -229,7 +226,7 @@ export class PythUpdater
     const tsStr = this.#historicalTimestamp
       ? ` with historical timestamp ${this.#historicalTimestamp}`
       : "";
-    this.#logger?.debug(
+    this.logger?.debug(
       `fetching pyth payloads for ${dataFeedsIds.size} price feeds: ${ids.join(", ")}${tsStr}`,
     );
     // https://hermes.pyth.network/docs/#/rest/latest_price_updates

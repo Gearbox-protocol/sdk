@@ -1,4 +1,4 @@
-import { json_parse } from "../../sdk/utils/index.js";
+import { json_parse } from "../../sdk/index.js";
 
 export function formatBytecodeSize(size: number) {
   return `${(size / 1024).toFixed(2)} KB`;

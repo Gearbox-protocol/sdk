@@ -36,8 +36,8 @@ import type {
 } from "../market/index.js";
 import { type Asset, assetsMap, type RouterCASlice } from "../router/index.js";
 import { BigIntMath } from "../sdk-legacy/index.js";
-import type { ILogger, IPriceUpdateTx, MultiCall } from "../types/index.js";
-import { AddressMap, childLogger } from "../utils/index.js";
+import type { IPriceUpdateTx, MultiCall } from "../types/index.js";
+import { AddressMap } from "../utils/index.js";
 import { simulateWithPriceUpdates } from "../utils/viem/index.js";
 import type {
   AddCollateralProps,
@@ -85,7 +85,6 @@ export function getWithdrawalCompressorAddress(chainId: number) {
 export abstract class AbstractCreditAccountService extends SDKConstruct {
   #compressor: Address;
   #batchSize?: number;
-  #logger?: ILogger;
 
   constructor(sdk: GearboxSDK, options?: CreditAccountServiceOptions) {
     super(sdk);
@@ -94,8 +93,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       VERSION_RANGE_310,
     );
     this.#batchSize = options?.batchSize;
-    this.#logger = childLogger("CreditAccountsService", sdk.logger);
-    this.#logger?.debug(
+    this.logger?.debug(
       `credit account compressor address: ${this.#compressor}`,
     );
   }
@@ -214,7 +212,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
         offset = newOffset;
       } while (offset !== 0n);
     }
-    this.#logger?.debug(
+    this.logger?.debug(
       `loaded ${allCAs.length} credit accounts (${
         allCAs.length - revertingOffset
       } reverting)`,
@@ -388,7 +386,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       lossPolicyData = await market.lossPolicy.getLiquidationData(
         account.creditAccount,
       );
-      this.#logger?.debug({ lossPolicyData }, "loss policy data");
+      this.logger?.debug({ lossPolicyData }, "loss policy data");
     }
 
     const tx = cm.creditFacade.liquidateCreditAccount(
@@ -1054,7 +1052,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       });
     }
 
-    this.#logger?.debug(
+    this.logger?.debug(
       {
         accounts: resp[0]?.length ?? 0,
         nextOffset: Number(resp[1]),
@@ -1163,7 +1161,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       .map(t => this.labelAddress(t))
       .join(", ");
     const remark = ignoreReservePrices ? " main" : "";
-    this.#logger?.debug(
+    this.logger?.debug(
       { account: creditAccount?.creditAccount, manager: cm.name },
       `generating price feed updates for ${tStr} from ${priceFeeds.length}${remark} price feeds`,
     );
@@ -1182,7 +1180,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const market = this.sdk.marketRegister.findByCreditManager(creditManager);
     const cm = this.sdk.marketRegister.findCreditManager(creditManager);
     const update = await this.getUpdateForAccount(options);
-    this.#logger?.debug(
+    this.logger?.debug(
       { account: creditAccount?.creditAccount, manager: cm.name },
       `getting on demand price updates from ${update.txs.length} txs`,
     );

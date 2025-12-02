@@ -1,13 +1,12 @@
-import type { Address, Hash, PublicClient } from "viem";
+import type { Address, Chain, Hash, PublicClient, Transport } from "viem";
 import { batchesChainAbi } from "../../../abi/governance/batchesChain.js";
-import type { RawTx } from "../../../sdk/types/index.js";
-import { BaseContract } from "../base-contract.js";
+import { BaseContract, type RawTx } from "../../../sdk/index.js";
 
 const abi = batchesChainAbi;
 
 export class BatchesChainContract extends BaseContract<typeof abi> {
-  constructor(address: Address, client: PublicClient) {
-    super(abi, address, client, "BatchesChain");
+  constructor(addr: Address, client: PublicClient<Transport, Chain>) {
+    super({ client }, { abi, addr, name: "BatchesChain" });
   }
 
   createBatchOrderingTx(prevHash: Hash): RawTx {

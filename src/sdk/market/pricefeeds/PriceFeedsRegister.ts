@@ -9,13 +9,8 @@ import {
   VERSION_RANGE_310,
 } from "../../constants/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
-import type { ILogger, IPriceUpdateTx, RawTx } from "../../types/index.js";
-import {
-  AddressMap,
-  bytes32ToString,
-  childLogger,
-  createRawTx,
-} from "../../utils/index.js";
+import type { IPriceUpdateTx, RawTx } from "../../types/index.js";
+import { AddressMap, bytes32ToString, createRawTx } from "../../utils/index.js";
 import type { IHooks } from "../../utils/internal/index.js";
 import { Hooks } from "../../utils/internal/index.js";
 import {
@@ -80,7 +75,6 @@ export class PriceFeedRegister
   extends SDKConstruct
   implements IHooks<PriceFeedRegisterHooks>
 {
-  public readonly logger?: ILogger;
   readonly #hooks = new Hooks<PriceFeedRegisterHooks>();
   #feeds = new AddressMap<IPriceFeedContract>(undefined, "priceFeeds");
   #latestUpdate: LatestUpdate | undefined;
@@ -88,7 +82,6 @@ export class PriceFeedRegister
 
   constructor(sdk: GearboxSDK, opts: PriceFeedRegisterOptions = {}) {
     super(sdk);
-    this.logger = childLogger("PriceFeedRegister", sdk.logger);
     this.updaters = [
       new RedstoneUpdater(sdk, opts?.redstone),
       new PythUpdater(sdk, opts?.pyth),

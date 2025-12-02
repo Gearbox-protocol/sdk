@@ -1,6 +1,7 @@
 import {
   type AbiParameter,
   type Address,
+  type Chain,
   type DecodeFunctionDataReturnType,
   encodeAbiParameters,
   formatUnits,
@@ -8,29 +9,29 @@ import {
   hexToString,
   type PublicClient,
   recoverTypedDataAddress,
+  type Transport,
 } from "viem";
 import { iPriceFeedStoreAbi } from "../../abi/310/iPriceFeedStore.js";
-import type { RawTx } from "../../sdk/types/index.js";
-import { json_stringify } from "../../sdk/utils/index.js";
+import type { RawTx } from "../../sdk/index.js";
+import {
+  BaseContract,
+  json_stringify,
+  type ParsedCallArgs,
+} from "../../sdk/index.js";
 import type {
   InputValueParams,
-  ParsedCall,
   PriceFeed,
   PriceFeedParams,
 } from "../core/index.js";
 import { PRICE_FEED_STORE } from "../utils/index.js";
-import { BaseContract } from "./base-contract.js";
 import { priceFeedSetupParams } from "./pricefeeds/index.js";
 import type { PriceUpdate } from "./types.js";
 
 const abi = iPriceFeedStoreAbi;
 
 export class PriceFeedStoreContract extends BaseContract<typeof abi> {
-  chainId: number;
-
-  constructor(address: Address, client: PublicClient, chainId: number = 1) {
-    super(abi, address, client, "PriceFeedStore");
-    this.chainId = chainId;
+  constructor(addr: Address, client: PublicClient<Transport, Chain>) {
+    super({ client }, { abi, addr, name: "PriceFeedStore" });
   }
 
   async getZeroPriceFeed(): Promise<Address> {
@@ -464,9 +465,9 @@ export class PriceFeedStoreContract extends BaseContract<typeof abi> {
     });
   }
 
-  parseFunctionParams(
+  protected override parseFunctionParams(
     params: DecodeFunctionDataReturnType<typeof abi>,
-  ): ParsedCall | undefined {
+  ): ParsedCallArgs {
     switch (params.functionName) {
       case "configurePriceFeeds": {
         const [priceFeedCalls] = params.args;
@@ -492,17 +493,11 @@ export class PriceFeedStoreContract extends BaseContract<typeof abi> {
             });
           }
         }
-        return {
-          chainId: 0,
-          target: this.address,
-          label: this.name,
-          functionName: params.functionName,
-          args: { calls: json_stringify(calls) },
-        };
+        return { calls: json_stringify(calls) };
       }
 
       default:
-        return undefined;
+        return super.parseFunctionParams(params);
     }
   }
 }

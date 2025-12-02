@@ -1,5 +1,5 @@
 import type { Abi, Address } from "viem";
-import type { AdapterData, GearboxSDK } from "../../../sdk/index.js";
+import type { AdapterData, ConstructOptions } from "../../../sdk/index.js";
 import { BaseContract } from "../../../sdk/index.js";
 import type { AdapterContractType } from "../types.js";
 
@@ -15,9 +15,12 @@ export class AbstractAdapterContract<
 > extends BaseContract<abi> {
   public readonly targetContract: Address;
 
-  constructor(sdk: GearboxSDK, args: AbstractAdapterContractOptions<abi>) {
+  constructor(
+    options: ConstructOptions,
+    args: AbstractAdapterContractOptions<abi>,
+  ) {
     const { baseParams, targetContract, ...rest } = args;
-    super(sdk, { ...rest, ...baseParams });
+    super(options, { ...rest, ...baseParams });
     this.targetContract = targetContract;
   }
 

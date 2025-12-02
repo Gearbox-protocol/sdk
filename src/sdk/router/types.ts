@@ -1,7 +1,5 @@
 import type { Address } from "viem";
-
-import type { IBaseContract } from "../base/BaseContract.js";
-import type { CreditAccountData } from "../base/types.js";
+import type { CreditAccountData, IBaseContract } from "../base/index.js";
 import type { MultiCall } from "../types/index.js";
 import type { Leftovers } from "./AbstractRouterContract.js";
 

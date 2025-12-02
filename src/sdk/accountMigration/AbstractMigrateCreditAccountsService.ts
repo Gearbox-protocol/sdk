@@ -17,8 +17,6 @@ import type {
   CreditAccountData_Legacy,
   CreditManagerData_Legacy,
 } from "../sdk-legacy/index.js";
-import type { ILogger } from "../types/index.js";
-import { childLogger } from "../utils/index.js";
 import type {
   MigrateCreditAccountProps,
   MigrationBotState,
@@ -27,7 +25,6 @@ import type {
 } from "./types.js";
 
 export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct {
-  #logger?: ILogger;
   #version: number;
   #service: ICreditAccountsService;
 
@@ -62,8 +59,7 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
 
     this.#version = version;
     this.#service = createCreditAccountService(this.sdk, version);
-    this.#logger = childLogger("MigrateCreditAccountsService", sdk.logger);
-    this.#logger?.debug(
+    this.logger?.debug(
       `Created MigrateCreditAccountsService with version: ${this.#version}`,
     );
   }

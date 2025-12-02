@@ -11,10 +11,13 @@ import {
   iCreditFacadeV310Abi,
 } from "../../../abi/310/generated.js";
 import { iPausableAbi } from "../../../abi/iPausable.js";
-import type { CreditFacadeState, CreditSuiteState } from "../../base/index.js";
+import type {
+  ConstructOptions,
+  CreditFacadeState,
+  CreditSuiteState,
+} from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
 import { ADDRESS_0X0 } from "../../constants/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
 import type {
   CreditFacadeStateHuman,
   MultiCall,
@@ -38,11 +41,11 @@ export class CreditFacadeV310Contract extends BaseContract<abi> {
   public readonly underlying: Address;
 
   constructor(
-    sdk: GearboxSDK,
+    options: ConstructOptions,
     { creditFacade, creditManager }: CreditSuiteState,
   ) {
     const { baseParams, ...rest } = creditFacade;
-    super(sdk, {
+    super(options, {
       ...baseParams,
       name: `CreditFacadeV310(${creditManager.name})`,
       abi,
@@ -52,7 +55,7 @@ export class CreditFacadeV310Contract extends BaseContract<abi> {
   }
 
   public override stateHuman(raw?: boolean): CreditFacadeStateHuman {
-    const decimals = this.sdk.tokensMeta.decimals(this.underlying);
+    const decimals = this.tokensMeta.decimals(this.underlying);
     return {
       ...super.stateHuman(raw),
       expirable: this.expirable,
@@ -138,15 +141,15 @@ export class CreditFacadeV310Contract extends BaseContract<abi> {
     });
   }
 
-  protected parseFunctionParams(
+  protected override stringifyFunctionParams(
     params: DecodeFunctionDataReturnType<abi>,
-  ): string[] | undefined {
+  ): string[] {
     switch (params.functionName) {
       case "openCreditAccount": {
         const [onBehalfOf, calls, referralCode] = params.args;
         return [
           this.labelAddress(onBehalfOf),
-          this.sdk.parseMultiCall([...calls]).join(","),
+          this.register.parseMultiCall([...calls]).join(","),
           `${referralCode}`,
         ];
       }
@@ -154,7 +157,7 @@ export class CreditFacadeV310Contract extends BaseContract<abi> {
         const [creditAccount, calls] = params.args;
         return [
           this.labelAddress(creditAccount),
-          this.sdk.parseMultiCall([...calls]).join(","),
+          this.register.parseMultiCall([...calls]).join(","),
         ];
       }
       case "liquidateCreditAccount": {
@@ -162,11 +165,11 @@ export class CreditFacadeV310Contract extends BaseContract<abi> {
         return [
           this.labelAddress(creditAccount),
           this.labelAddress(to),
-          this.sdk.parseMultiCall([...calls]).join(","),
+          this.register.parseMultiCall([...calls]).join(","),
         ];
       }
       default:
-        return undefined;
+        return super.stringifyFunctionParams(params);
     }
   }
 }

@@ -1,9 +1,11 @@
-import type { Address, PublicClient, Transport } from "viem";
-import type { GearboxChain } from "../../../sdk/chain/index.js";
-import { AP_PRICE_FEED_COMPRESSOR } from "../../../sdk/constants/index.js";
-import { GearboxSDK } from "../../../sdk/index.js";
+import type { Address, Chain, PublicClient, Transport } from "viem";
+import type { GearboxChain } from "../../../sdk/index.js";
+import {
+  AP_PRICE_FEED_COMPRESSOR,
+  GearboxSDK,
+  type ParsedCall,
+} from "../../../sdk/index.js";
 import { AddressProviderContract } from "../../bindings/index.js";
-import type { ParsedCall } from "../../core/index.js";
 import { Addresses } from "../../deployment/addresses.js";
 import { deepJsonParse } from "../format.js";
 import { getUpdatablePriceFeeds } from "./get-updatable-feeds.js";
@@ -64,7 +66,7 @@ export async function getCallsTouchedUpdatablePriceFeeds({
   client,
   gasLimit,
 }: {
-  client: PublicClient;
+  client: PublicClient<Transport, Chain>;
   parsedCalls: ParsedCall[];
   gasLimit?: bigint;
 }): Promise<Address[]> {
