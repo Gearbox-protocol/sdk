@@ -78,7 +78,7 @@ const HUMAN_READABLE_TITLES: PartialRecord<string, string> = {
     "steak7LRT\u00A0→\u00A0wstETH",
   ["0x9fb930eacadad079683a4758424a53b9b3692775".toLowerCase() as Address]:
     "Re7LRT\u00A0→\u00A0wstETH",
-  ["0xc824A08dB624942c5E5F330d56530cD1598859fD".toLowerCase() as Address]:
+  ["0xd7f1A4e3aba92a9D20987C752Bd4a6cc759D7738".toLowerCase() as Address]:
     "hgETH\u00A0→\u00A0rsETH",
 
   ETHPlus: "ETH+",
