@@ -716,6 +716,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       client: this.client,
     });
 
+    // TODO: return multiple configs
     const resp = await contract.read.getWithdrawalRequestResult([
       creditAccount,
       token,
@@ -745,6 +746,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       client: this.client,
     });
 
+    // TODO: return multiple configs
     const resp = await contract.read.getCurrentWithdrawals([creditAccount]);
 
     const claimableNow = resp?.[0] || [];
