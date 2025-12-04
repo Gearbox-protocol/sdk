@@ -7,7 +7,7 @@ import type {
 } from "viem";
 import { stringToHex } from "viem";
 import { priceFeedCompressorAbi } from "../../../abi/compressors/priceFeedCompressor.js";
-import type { BaseContractOptions } from "../../base/BaseContract.js";
+import type { BaseContractArgs } from "../../base/BaseContract.js";
 import type {
   PriceFeedMapEntry,
   PriceFeedTreeNode,
@@ -47,6 +47,7 @@ export abstract class PriceOracleBaseContract<
   extends BaseContract<abi>
   implements IPriceOracleContract
 {
+  public readonly sdk: GearboxSDK;
   /**
    * Mapping Token => [PriceFeed Address, stalenessPeriod]
    */
@@ -80,10 +81,11 @@ export abstract class PriceOracleBaseContract<
 
   constructor(
     sdk: GearboxSDK,
-    args: BaseContractOptions<abi>,
+    args: BaseContractArgs<abi>,
     data: PriceOracleData,
   ) {
     super(sdk, args);
+    this.sdk = sdk;
     const { priceFeedMap, priceFeedTree } = data;
     this.#loadState(priceFeedMap, priceFeedTree, true);
   }
@@ -106,20 +108,6 @@ export abstract class PriceOracleBaseContract<
         reserve ? this.reservePriceFeeds.get(t)?.priceFeed : undefined,
       ])
       .filter((f): f is IPriceFeedContract => !!f);
-  }
-
-  /**
-   * Generates updates for all updateable price feeds in this oracle (including dependencies)
-   * @returns
-   */
-  public async updatePriceFeeds(): Promise<UpdatePriceFeedsResult> {
-    const updatables: IPriceFeedContract[] = [];
-    for (const node of this.#priceFeedTree.values()) {
-      if (node.updatable) {
-        updatables.push(this.sdk.priceFeeds.mustGet(node.baseParams.addr));
-      }
-    }
-    return this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(updatables);
   }
 
   public abstract onDemandPriceUpdates(
@@ -174,9 +162,9 @@ export abstract class PriceOracleBaseContract<
       return amount;
     }
     const fromPrice = reserve ? this.reservePrice(from) : this.mainPrice(from);
-    const fromScale = 10n ** BigInt(this.sdk.tokensMeta.decimals(from));
+    const fromScale = 10n ** BigInt(this.tokensMeta.decimals(from));
     const toPrice = reserve ? this.reservePrice(to) : this.mainPrice(to);
-    const toScale = 10n ** BigInt(this.sdk.tokensMeta.decimals(to));
+    const toScale = 10n ** BigInt(this.tokensMeta.decimals(to));
 
     return (amount * fromPrice * toScale) / (toPrice * fromScale);
   }
@@ -189,7 +177,7 @@ export abstract class PriceOracleBaseContract<
    */
   public convertToUSD(from: Address, amount: bigint, reserve = false): bigint {
     const price = reserve ? this.reservePrice(from) : this.mainPrice(from);
-    const scale = 10n ** BigInt(this.sdk.tokensMeta.decimals(from));
+    const scale = 10n ** BigInt(this.tokensMeta.decimals(from));
     return (amount * price) / scale;
   }
 
@@ -201,16 +189,8 @@ export abstract class PriceOracleBaseContract<
    */
   public convertFromUSD(to: Address, amount: bigint, reserve = false): bigint {
     const price = reserve ? this.reservePrice(to) : this.mainPrice(to);
-    const scale = 10n ** BigInt(this.sdk.tokensMeta.decimals(to));
+    const scale = 10n ** BigInt(this.tokensMeta.decimals(to));
     return (amount * scale) / price;
-  }
-
-  /**
-   * Loads new prices for this oracle from PriceFeedCompressor
-   * Will (re)create price feeds if needed
-   */
-  public async updatePrices(): Promise<void> {
-    await this.sdk.marketRegister.updatePrices([this.address]);
   }
 
   /**
@@ -331,8 +311,8 @@ export abstract class PriceOracleBaseContract<
     usage: PriceFeedUsageType,
     token: Address,
   ): void {
-    this.sdk.addressLabels.set(address, oldLabel => {
-      const symbol = this.sdk.tokensMeta.symbol(token);
+    this.sdk.setAddressLabel(address, oldLabel => {
+      const symbol = this.tokensMeta.symbol(token);
       let pricefeedTag = `${symbol}.${usage}`;
 
       if (oldLabel) {

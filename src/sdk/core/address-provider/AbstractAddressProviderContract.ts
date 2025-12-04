@@ -1,10 +1,9 @@
 import { type Abi, type Address, hexToString, isHex, stringToHex } from "viem";
 
-import type { BaseContractOptions } from "../../base/BaseContract.js";
-import { BaseContract } from "../../base/index.js";
+import type { BaseContractArgs } from "../../base/BaseContract.js";
+import { BaseContract, type ConstructOptions } from "../../base/index.js";
 import type { VersionRange } from "../../constants/index.js";
 import { NO_VERSION } from "../../constants/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { AddressProviderV3StateHuman } from "../../types/index.js";
 import { TypedObjectUtils } from "../../utils/mappers.js";
 import type { AddressProviderState } from "./types.js";
@@ -15,11 +14,11 @@ export default abstract class AbstractAddressProviderContract<
   #addresses: Record<string, Record<number, Address>> = {};
 
   constructor(
-    sdk: GearboxSDK,
-    args: BaseContractOptions<abi>,
+    options: ConstructOptions,
+    args: BaseContractArgs<abi>,
     addresses: Record<string, Record<number, Address>> = {},
   ) {
-    super(sdk, args);
+    super(options, args);
     this.#addresses = addresses;
   }
 

@@ -1,6 +1,6 @@
 import { decodeAbiParameters } from "viem";
 import { constantPriceFeedAbi } from "../../abi/oracles.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
+import type { ConstructOptions } from "../../base/Construct.js";
 import type { ConstantOracleStateHuman } from "../../types/index.js";
 import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed.js";
 import { AbstractPriceFeedContract } from "./AbstractPriceFeed.js";
@@ -10,8 +10,8 @@ type abi = typeof constantPriceFeedAbi;
 export class ConstantPriceFeedContract extends AbstractPriceFeedContract<abi> {
   public readonly price: bigint;
 
-  constructor(sdk: GearboxSDK, args: PartialPriceFeedTreeNode) {
-    super(sdk, {
+  constructor(options: ConstructOptions, args: PartialPriceFeedTreeNode) {
+    super(options, {
       ...args,
       name: "ConstantPriceFeed",
       abi: constantPriceFeedAbi,

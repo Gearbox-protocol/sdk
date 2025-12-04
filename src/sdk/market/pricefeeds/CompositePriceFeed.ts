@@ -1,5 +1,5 @@
 import { compositePriceFeedAbi } from "../../abi/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
+import type { ConstructOptions } from "../../base/Construct.js";
 import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed.js";
 import { AbstractPriceFeedContract } from "./AbstractPriceFeed.js";
 import type { PriceFeedRef } from "./PriceFeedRef.js";
@@ -7,8 +7,8 @@ import type { PriceFeedRef } from "./PriceFeedRef.js";
 type abi = typeof compositePriceFeedAbi;
 
 export class CompositePriceFeedContract extends AbstractPriceFeedContract<abi> {
-  constructor(sdk: GearboxSDK, args: PartialPriceFeedTreeNode) {
-    super(sdk, {
+  constructor(options: ConstructOptions, args: PartialPriceFeedTreeNode) {
+    super(options, {
       ...args,
       name: "CompositePriceFeed",
       abi: compositePriceFeedAbi,

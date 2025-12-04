@@ -1,11 +1,11 @@
-import type { Address, Hex, PublicClient } from "viem";
+import type { Address, Chain, Hex, PublicClient, Transport } from "viem";
 import { iTimeLockAbi } from "../../../abi/governance/iTimeLock.js";
-import { BaseContract } from "../base-contract.js";
+import { BaseContract } from "../../../sdk/index.js";
 import type { QueuedAndExecutedTransaction } from "./types.js";
 
 export class TimeLockContract extends BaseContract<typeof iTimeLockAbi> {
-  constructor(address: Address, client: PublicClient) {
-    super(iTimeLockAbi, address, client, "TimeLock");
+  constructor(addr: Address, client: PublicClient<Transport, Chain>) {
+    super({ client }, { abi: iTimeLockAbi, addr, name: "TimeLock" });
   }
 
   async admin(): Promise<Address> {

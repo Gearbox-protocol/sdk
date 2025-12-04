@@ -1,5 +1,6 @@
 import {
   type Address,
+  type Chain,
   decodeFunctionData,
   type Hex,
   multicall3Abi,
@@ -7,13 +8,13 @@ import {
   parseAbi,
   type Transport,
 } from "viem";
-import type { GearboxChain } from "../../../sdk/chain/index.js";
+import type { GearboxChain } from "../../../sdk/index.js";
 import {
+  createRawTx,
   GearboxSDK,
   type IPriceUpdateTx,
   type RawTx,
 } from "../../../sdk/index.js";
-import { createRawTx } from "../../../sdk/utils/index.js";
 import {
   PriceFeedStoreContract,
   type PriceUpdate,
@@ -37,7 +38,7 @@ export async function getPriceUpdateTx({
   useMulticall3 = false,
   gasLimit,
 }: {
-  client: PublicClient;
+  client: PublicClient<Transport, Chain>;
   priceFeeds: Address[];
   useMulticall3?: boolean;
   gasLimit?: bigint;

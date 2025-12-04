@@ -1,15 +1,15 @@
-import type { Address, PublicClient } from "viem";
+import type { Address, Chain, PublicClient, Transport } from "viem";
 import { iMarketConfiguratorFactoryAbi } from "../../abi/310/iMarketConfiguratorFactory.js";
-import type { RawTx } from "../../sdk/types/index.js";
-import { BaseContract } from "./base-contract.js";
+import type { RawTx } from "../../sdk/index.js";
+import { BaseContract } from "../../sdk/index.js";
 
 const abi = iMarketConfiguratorFactoryAbi;
 
 export class MarketConfiguratorFactoryContract extends BaseContract<
   typeof abi
 > {
-  constructor(address: Address, client: PublicClient) {
-    super(abi, address, client, "MarketConfiguratorFactory");
+  constructor(addr: Address, client: PublicClient<Transport, Chain>) {
+    super({ client }, { abi, addr, name: "MarketConfiguratorFactory" });
   }
 
   createMarketConfiguratorTx(args: {
