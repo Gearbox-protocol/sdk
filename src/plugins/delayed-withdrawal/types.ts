@@ -13,6 +13,7 @@ export type WithdrawableAsset = Awaited<
   >
 >[number] & {
   creditManager: Address;
+  disabled: boolean;
   // token - source token (ex. rstETH)
   // withdrawalPhantomToken -> withdrawal phantom token (ex. wdwstETH)
   // wstETH -> target token (ex. wstETH)
