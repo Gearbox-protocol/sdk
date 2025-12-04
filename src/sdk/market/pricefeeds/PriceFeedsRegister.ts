@@ -372,7 +372,9 @@ export class PriceFeedRegister
   }
 
   #createUpdatableProxy(data: PartialPriceFeedTreeNode): IPriceFeedContract {
-    return new Proxy(this.create(data), {
+    // read, but do not write to feeds map
+    const contract = this.#feeds.get(data.baseParams.addr) ?? this.create(data);
+    return new Proxy(contract, {
       get(target, prop) {
         // when using this proxy, we will already have all the updatable dependencies, as returned from contracts
         // so this protects price feed instances from throwing errors due to being partially initialized
