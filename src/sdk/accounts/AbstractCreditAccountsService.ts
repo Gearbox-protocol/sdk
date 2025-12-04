@@ -78,7 +78,7 @@ export interface CreditAccountServiceOptions {
 export function getWithdrawalCompressorAddress(chainId: number) {
   // TODO: HARDCODED
   const compressor =
-    chainId === 1 ? "0xfB79b6713fe214B8748ED7b0db1f93E4f1aC9d29" : undefined;
+    chainId === 1 ? "0x36F3d0Bb73CBC2E94fE24dF0f26a689409cF9023" : undefined;
   return compressor;
 }
 
@@ -671,6 +671,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       client: this.client,
     });
 
+    // TODO: return multiple configs
     const resp = await contract.read.getWithdrawalRequestResult([
       creditAccount,
       token,
@@ -700,6 +701,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       client: this.client,
     });
 
+    // TODO: return multiple configs
     const resp = await contract.read.getCurrentWithdrawals([creditAccount]);
 
     const claimableNow = resp?.[0] || [];
