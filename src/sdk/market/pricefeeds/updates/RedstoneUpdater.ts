@@ -98,7 +98,7 @@ export class RedstoneUpdater
         `using historical timestamp ${this.#historicalTimestampMs}`,
       );
     }
-    this.#cache = new PriceUpdatesCache({
+    this.#cache = PriceUpdatesCache.get("redstone", {
       // currently staleness period is 240 seconds on all networks, add some buffer
       // this period of 4 minutes is selected based on time that is required for user to sign transaction with wallet
       // so it's unlikely to decrease
