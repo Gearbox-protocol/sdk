@@ -46,6 +46,14 @@ export class CreditSuite extends SDKConstruct {
     return this.sdk.routerFor(this);
   }
 
+  public get isExpired(): boolean {
+    return (
+      this.creditFacade.expirable &&
+      this.creditFacade.expirationDate > 0 &&
+      this.creditFacade.expirationDate < this.sdk.timestamp
+    );
+  }
+
   override get dirty(): boolean {
     // TODO: any other ways to get dirty, adapters maybe?
     return (
