@@ -80,6 +80,11 @@ export interface CreditAccountOperationResult {
   creditFacade: CreditSuite["creditFacade"];
 }
 
+export interface CreditManagerOperationResult {
+  calls: Array<MultiCall>;
+  creditFacade: CreditSuite["creditFacade"];
+}
+
 export type CloseOptions = "close" | "zeroDebt";
 
 export interface CloseCreditAccountProps {
@@ -443,6 +448,12 @@ export type LiquidationBotType = Exclude<
 >;
 export type { MigrationBotType };
 
+interface CMSlice {
+  creditManager: Address;
+  creditFacade: Address;
+  type: "creditManager";
+}
+
 export interface SetBotProps {
   /**
    * Address of a bot that is being updated
@@ -457,9 +468,11 @@ export interface SetBotProps {
    */
   stopBot: boolean;
   /**
-   * Minimal credit account data {@link RouterCASlice} on which operation is performed
+   * Minimal credit account data {@link RouterCASlice} on which operation is performed; if omitted, credit manager data is used
+   * Minimal credit manager data {@link CMSlice} on which operation is performed; used only if credit account is omitted
+   * At least one of credit account or credit manager must be provided
    */
-  creditAccount: RouterCASlice;
+  targetContract: (RouterCASlice & { type: "creditAccount" }) | CMSlice;
 }
 
 export type GetConnectedBotsResult = Array<
@@ -546,7 +559,9 @@ export interface ICreditAccountsService extends SDKConstruct {
    * @param props - {@link SetBotProps}
    * @return All necessary data to execute the transaction (call, credit facade)
    */
-  setBot: (props: SetBotProps) => Promise<CreditAccountOperationResult>;
+  setBot: (
+    props: SetBotProps,
+  ) => Promise<CreditAccountOperationResult | CreditManagerOperationResult>;
 
   /**
    * Generates transaction to liquidate credit account
