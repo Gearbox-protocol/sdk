@@ -174,6 +174,7 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
   },
   [AdapterType.UPSHIFT_VAULT]: {
     310: PHANTOM_TOKEN_ADAPTER_ABI,
+    311: PHANTOM_TOKEN_ADAPTER_ABI,
   },
   [AdapterType.INFINIFI_UNWINDING]: {
     310: PHANTOM_TOKEN_ADAPTER_ABI,

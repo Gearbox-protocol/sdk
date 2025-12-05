@@ -7,6 +7,7 @@ import { PERMISSION_BY_TYPE } from "./constants.js";
 import type {
   ClaimFarmRewardsProps,
   CreditAccountOperationResult,
+  CreditManagerOperationResult,
   ICreditAccountsService,
   RepayAndLiquidateCreditAccountProps,
   RepayCreditAccountProps,
@@ -26,17 +27,24 @@ export class CreditAccountServiceV310
     botBaseType,
     stopBot,
 
-    creditAccount: ca,
-  }: SetBotProps): Promise<CreditAccountOperationResult> {
-    const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
+    targetContract,
+  }: SetBotProps): Promise<
+    CreditAccountOperationResult | CreditManagerOperationResult
+  > {
+    const cm = this.sdk.marketRegister.findCreditManager(
+      targetContract.creditManager,
+    );
 
-    const priceUpdatesCalls = await this.getPriceUpdatesForFacade({
-      creditManager: ca.creditManager,
-      creditAccount: ca,
-    });
+    const priceUpdatesCalls =
+      targetContract.type === "creditAccount"
+        ? await this.getPriceUpdatesForFacade({
+            creditManager: targetContract.creditManager,
+            creditAccount: targetContract,
+          })
+        : [];
 
     const addBotCall: MultiCall = {
-      target: ca.creditFacade,
+      target: cm.creditFacade.address,
       callData: encodeFunctionData({
         abi: iCreditFacadeMulticallV310Abi,
         functionName: "setBotPermissions",
@@ -46,7 +54,10 @@ export class CreditAccountServiceV310
 
     const calls = [...priceUpdatesCalls, addBotCall];
 
-    const tx = cm.creditFacade.multicall(ca.creditAccount, calls);
+    const tx =
+      targetContract.type === "creditAccount"
+        ? cm.creditFacade.multicall(targetContract.creditAccount, calls)
+        : undefined;
 
     return { tx, calls, creditFacade: cm.creditFacade };
   }
