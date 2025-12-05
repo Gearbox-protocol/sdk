@@ -11,6 +11,7 @@ import { AbstractRouterContract } from "./AbstractRouterContract.js";
 import { assetsMap, balancesMap, limitLeftover } from "./helpers.js";
 import type {
   Asset,
+  ExpectedAndLeftoverOptions,
   FindAllSwapsProps,
   FindBestClosePathProps,
   FindClaimAllRewardsProps,
@@ -213,20 +214,20 @@ export class RouterV310Contract
       slippage,
       balances,
       keepAssets,
+      debtOnly,
     } = props;
     const { expectedBalances, leftoverBalances, tokensToClaim } =
-      this.getExpectedAndLeftover(
-        ca,
-        cm,
-        balances
+      this.getExpectedAndLeftover(ca, cm, {
+        balances: balances
           ? {
               expectedBalances: assetsMap(balances.expectedBalances),
               leftoverBalances: assetsMap(balances.leftoverBalances),
               tokensToClaim: assetsMap(balances.tokensToClaim || []),
             }
           : undefined,
-        keepAssets,
-      );
+        keepAssets: balances ? undefined : keepAssets,
+        debtOnly,
+      });
 
     const getNumSplits = this.#numSplitsGetter(cm, expectedBalances.values());
     const tData: TokenData[] = [];
@@ -421,7 +422,7 @@ export class RouterV310Contract
   public getFindClosePathInput(
     _: RouterCASlice,
     __: RouterCMSlice,
-    ___?: Leftovers,
+    ___?: ExpectedAndLeftoverOptions,
   ): FindClosePathInput {
     throw ERR_NOT_IMPLEMENTED;
   }

@@ -362,6 +362,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       keepAssets,
       ignoreReservePrices,
       applyLossPolicy,
+      debtOnly,
     } = props;
     const cm = this.sdk.marketRegister.findCreditManager(account.creditManager);
     const routerCloseResult = await this.sdk
@@ -372,6 +373,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
         slippage,
         force,
         keepAssets,
+        debtOnly,
       });
     const priceUpdates = await this.getPriceUpdatesForFacade({
       creditManager: account.creditManager,

@@ -407,6 +407,10 @@ export interface FullyLiquidateProps {
    * If true, will try to apply loss policy
    */
   applyLossPolicy?: boolean;
+  /**
+   * Debt only mode - will try to sell just enought of most valuable token to cover debt
+   */
+  debtOnly?: boolean;
 }
 
 export interface PermitResult {

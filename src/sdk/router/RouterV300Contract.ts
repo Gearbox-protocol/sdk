@@ -20,6 +20,7 @@ import {
 import { PathOptionFactory } from "./PathOptionFactory.js";
 import type {
   Asset,
+  ExpectedAndLeftoverOptions,
   FindAllSwapsProps,
   FindBestClosePathProps,
   FindClaimAllRewardsProps,
@@ -256,23 +257,23 @@ export class RouterV300Contract
     creditManager: cm,
     slippage,
     balances,
+    debtOnly,
   }: FindBestClosePathProps): Promise<RouterCloseResult> {
     const {
       pathOptions,
       expected,
       leftover: leftoverUnsafe,
       connectors,
-    } = this.getFindClosePathInput(
-      ca,
-      cm,
-      balances
+    } = this.getFindClosePathInput(ca, cm, {
+      balances: balances
         ? {
             expectedBalances: assetsMap(balances.expectedBalances),
             leftoverBalances: assetsMap(balances.leftoverBalances),
             tokensToClaim: assetsMap(balances.tokensToClaim || []),
           }
         : undefined,
-    );
+      debtOnly,
+    });
 
     const leftover: Array<Asset> = leftoverUnsafe.map(a => ({
       ...a,
@@ -351,14 +352,12 @@ export class RouterV300Contract
   public getFindClosePathInput(
     ca: RouterCASlice,
     cm: RouterCMSlice,
-    balances?: Leftovers,
-    keepAssets?: Address[],
+    options?: ExpectedAndLeftoverOptions,
   ): FindClosePathInput {
     const { expectedBalances, leftoverBalances } = this.getExpectedAndLeftover(
       ca,
       cm,
-      balances,
-      keepAssets,
+      options,
     );
 
     const leftover: Array<Asset> = leftoverBalances.values().map(a => ({

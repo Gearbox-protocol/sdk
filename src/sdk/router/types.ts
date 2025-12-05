@@ -101,6 +101,7 @@ export type RouterCASlice = Pick<
   | "creditAccount"
   | "creditFacade"
   | "debt"
+  | "totalDebtUSD"
   | "creditManager"
 >;
 
@@ -246,6 +247,10 @@ export interface FindBestClosePathProps {
    * TODO: legacy v3 option to pass to contract
    */
   force?: boolean;
+  /**
+   * Debt only mode - will try to sell just enought of most valuable token to cover debt
+   */
+  debtOnly?: boolean;
 }
 
 export interface ClosePathBalances {
@@ -265,6 +270,12 @@ export interface ClosePathBalances {
    * List of token rewards of which we want to claim and swap to underlying token during closing ca process
    */
   tokensToClaim?: Array<Asset>;
+}
+
+export interface ExpectedAndLeftoverOptions {
+  balances?: Leftovers;
+  keepAssets?: Address[];
+  debtOnly?: boolean;
 }
 
 export interface IRouterContract extends IBaseContract {
@@ -331,15 +342,13 @@ export interface IRouterContract extends IBaseContract {
    *
    * @param ca
    * @param cm
-   * @param balances
-   * @param keepAssets
+   * @param options
    * @returns
    */
   getFindClosePathInput: (
     ca: RouterCASlice,
     cm: RouterCMSlice,
-    balances?: Leftovers,
-    keepAssets?: Address[],
+    options?: ExpectedAndLeftoverOptions,
   ) => FindClosePathInput;
 }
 
