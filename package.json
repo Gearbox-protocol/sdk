@@ -48,7 +48,7 @@
     "prepare": "husky",
     "check": "biome check --write",
     "check:ci": "biome check --diagnostic-level=error",
-    "typecheck:ci": "tsc --noEmit"
+    "typecheck:ci": "tsc --noEmit --moduleResolution bundler --module preserve"
   },
   "dependencies": {
     "@gearbox-protocol/integrations-v3": "1.52.1",
@@ -61,7 +61,7 @@
     "buffer": "^6.0.3",
     "date-fns": "^4.1.0",
     "decimal.js-light": "^2.5.1",
-    "viem": "^2.41.2",
+    "viem": ">=2.23.15 <3.0.0",
     "zod": "^4.1.13"
   },
   "devDependencies": {
