@@ -52,7 +52,6 @@ async function example(): Promise<void> {
       ignoreMissingFeeds: true,
     },
   });
-
   // kind = "hydrated";
   // const state = await readFile(
   //   "tmp/state_real_Mainnet_22798015.json",

@@ -4,7 +4,12 @@ import { decodeAbiParameters } from "viem";
 
 import type { GearboxSDK } from "../../sdk/index.js";
 import { BaseContract, formatPercentage } from "../../sdk/index.js";
-import type { BotParameters, BotState, BotStateBaseHuman } from "./types.js";
+import {
+  BOT_PARAMS_ABI,
+  type BotParameters,
+  type BotState,
+  type BotStateBaseHuman,
+} from "./types.js";
 
 export interface PartialLiquidationBotBaseArgs<
   abi extends Abi | readonly unknown[],
@@ -43,16 +48,7 @@ export abstract class PartialLiquidationBotBaseContract<
       maxHealthFactor,
       premiumScaleFactor,
       feeScaleFactor,
-    ] = decodeAbiParameters(
-      [
-        { name: "treasury", type: "address" },
-        { name: "minHealthFactor", type: "uint16" },
-        { name: "maxHealthFactor", type: "uint16" },
-        { name: "premiumScaleFactor", type: "uint16" },
-        { name: "feeScaleFactor", type: "uint16" },
-      ],
-      args.serializedParams,
-    );
+    ] = decodeAbiParameters(BOT_PARAMS_ABI, args.serializedParams);
     this.treasury = treasury;
     this.minHealthFactor = minHealthFactor;
     this.maxHealthFactor = maxHealthFactor;

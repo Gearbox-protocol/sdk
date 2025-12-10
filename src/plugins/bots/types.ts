@@ -20,6 +20,14 @@ export interface BotParameters {
   feeScaleFactor: number;
 }
 
+export const BOT_PARAMS_ABI = [
+  { type: "address", name: "treasury" },
+  { type: "uint16", name: "minHealthFactor" },
+  { type: "uint16", name: "maxHealthFactor" },
+  { type: "uint16", name: "premiumScaleFactor" },
+  { type: "uint16", name: "feeScaleFactor" },
+] as const;
+
 export const LIQUIDATION_BOT_TYPES = [
   "PARTIAL_LIQUIDATION_BOT",
   "DELEVERAGE_BOT_PEGGED",

@@ -48,7 +48,7 @@
     "prepare": "husky",
     "check": "biome check --write",
     "check:ci": "biome check --diagnostic-level=error",
-    "typecheck:ci": "tsc --noEmit --moduleResolution bundler --module preserve"
+    "typecheck:ci": "tsc --noEmit"
   },
   "dependencies": {
     "@gearbox-protocol/integrations-v3": "1.52.1",
@@ -56,7 +56,7 @@
     "@redstone-finance/protocol": "^0.9.0",
     "@redstone-finance/sdk": "^0.9.0",
     "@types/bn.js": "^5.2.0",
-    "abitype": "^1.2.1",
+    "abitype": "^1.2.2",
     "bn.js": "^5.2.2",
     "buffer": "^6.0.3",
     "date-fns": "^4.1.0",
