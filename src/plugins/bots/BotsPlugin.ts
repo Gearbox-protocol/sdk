@@ -141,11 +141,11 @@ export class BotsPlugin
       if (b.status === "success") {
         expectedBots.upsert(b.result, { ...configs[i], treasury });
         this.logger?.debug(
-          `found bot [${minHealthFactor}, ${maxHealthFactor}] at ${b.result}`,
+          `expected bot [${minHealthFactor}, ${maxHealthFactor}] at ${b.result}`,
         );
       } else {
         this.logger?.error(
-          `failed to find bot [${minHealthFactor}, ${maxHealthFactor}]`,
+          `failed compute address for bot [${minHealthFactor}, ${maxHealthFactor}]`,
           b.error,
         );
       }
