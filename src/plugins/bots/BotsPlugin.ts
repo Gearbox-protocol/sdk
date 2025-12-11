@@ -1,24 +1,13 @@
-import {
-  type Address,
-  decodeAbiParameters,
-  encodeAbiParameters,
-  stringToHex,
-} from "viem";
+import { encodeAbiParameters, stringToHex } from "viem";
 import { iBytecodeRepositoryAbi } from "../../abi/310/iBytecodeRepository.js";
-import { peripheryCompressorAbi } from "../../abi/compressors/peripheryCompressor.js";
 import type { IGearboxSDKPlugin } from "../../sdk/index.js";
 import {
   AddressMap,
   AP_BYTECODE_REPOSITORY,
-  AP_PERIPHERY_COMPRESSOR,
   AP_TREASURY,
   BasePlugin,
   chains as CHAINS,
   hexEq,
-  isV300,
-  isV310,
-  TypedObjectUtils,
-  VERSION_RANGE_310,
 } from "../../sdk/index.js";
 import { iPartialLiquidationBotV310Abi } from "./abi/iPartialLiquidationBotV310.js";
 import {
@@ -27,88 +16,40 @@ import {
   PARTIAL_LIQUIDATION_BOT_DEPLOYER,
   PARTIAL_LIQUIDATION_BOT_SALT,
 } from "./config.js";
-import { PartialLiquidationBotV300Contract } from "./PartialLiquidationBotV300Contract.js";
 import { PartialLiquidationBotV310Contract } from "./PartialLiquidationBotV310Contract.js";
 import {
   BOT_PARAMS_ABI,
+  BOT_PARTIAL_LIQUIDATION,
   type BotParameters,
-  type BotState,
   type BotsPluginState,
   type BotsPluginStateHuman,
-  LIQUIDATION_BOT_TYPES,
   type MigrationBotState,
 } from "./types.js";
-
-export class UnsupportedBotVersionError extends Error {
-  public readonly state: BotState;
-
-  constructor(state: BotState) {
-    super(
-      `unsupported bot version ${state.baseParams.version} for bot at ${state.baseParams.addr}`,
-    );
-    this.state = state;
-  }
-}
-
-export type PartialLiquidationBotContract =
-  | PartialLiquidationBotV300Contract
-  | PartialLiquidationBotV310Contract;
 
 export class BotsPlugin
   extends BasePlugin<BotsPluginState>
   implements IGearboxSDKPlugin<BotsPluginState>
 {
-  #botsByMarket?: AddressMap<PartialLiquidationBotContract[]>;
+  #bots?: AddressMap<PartialLiquidationBotV310Contract>;
 
   public get loaded(): boolean {
-    return !!this.#botsByMarket;
+    return !!this.#bots;
+  }
+
+  public get bots(): PartialLiquidationBotV310Contract[] {
+    return this.#bots?.values() ?? [];
   }
 
   public async load(force?: boolean): Promise<BotsPluginState> {
     if (!force && this.loaded) {
       return this.state;
     }
-
-    const [pcAddr] = this.sdk.addressProvider.mustGetLatest(
-      AP_PERIPHERY_COMPRESSOR,
-      VERSION_RANGE_310,
-    );
-    this.logger?.debug(`loading bots with periphery compressor ${pcAddr}`);
-    const mcs = this.sdk.marketRegister.marketConfigurators.map(
-      mc => mc.address,
-    );
-
-    const botsData = await this.client.multicall({
-      contracts: mcs.map(
-        mc =>
-          ({
-            address: pcAddr,
-            abi: peripheryCompressorAbi,
-            functionName: "getBots",
-            args: [mc],
-          }) as const,
-      ),
-      allowFailure: false,
-    });
-
-    this.#botsByMarket = new AddressMap();
-    for (let i = 0; i < mcs.length; i++) {
-      const mc = mcs[i];
-      const marketBotData = botsData[i];
-      this.#loadStateMarketState(mc, marketBotData);
-    }
-    return this.state;
-  }
-
-  public async findDeployedPartialLiquidationBots(): Promise<
-    AddressMap<BotParameters>
-  > {
     const treasury = this.sdk.addressProvider.getAddress(AP_TREASURY);
     const bcr = this.sdk.addressProvider.getAddress(AP_BYTECODE_REPOSITORY);
     const configs = PARTIAL_LIQUIDATION_BOT_CONFIGS[this.sdk.networkType] ?? [];
-    const result = new AddressMap<BotParameters>();
+    this.#bots = new AddressMap<PartialLiquidationBotV310Contract>();
     if (!configs.length) {
-      return result;
+      return this.state;
     }
     const deployedBots = await this.client.multicall({
       contracts: configs.map(
@@ -118,7 +59,7 @@ export class BotsPlugin
             abi: iBytecodeRepositoryAbi,
             functionName: "computeAddress",
             args: [
-              stringToHex("BOT::PARTIAL_LIQUIDATION", { size: 32 }),
+              stringToHex(BOT_PARTIAL_LIQUIDATION, { size: 32 }),
               310,
               encodeAbiParameters(BOT_PARAMS_ABI, [
                 treasury,
@@ -170,116 +111,50 @@ export class BotsPlugin
       const serialized = serializedBots[i];
       const expected = expectedBots.mustGet(botAddrs[i]);
       if (serialized.status === "success") {
-        const [
-          treasury,
-          minHealthFactor,
-          maxHealthFactor,
-          premiumScaleFactor,
-          feeScaleFactor,
-        ] = decodeAbiParameters(BOT_PARAMS_ABI, serialized.result);
+        const bot = new PartialLiquidationBotV310Contract(this.sdk, {
+          addr: botAddrs[i],
+          version: BigInt(310),
+          contractType: BOT_PARTIAL_LIQUIDATION,
+          serializedParams: serialized.result,
+        });
         if (
           !hexEq(treasury, expected.treasury) ||
-          minHealthFactor !== expected.minHealthFactor ||
-          maxHealthFactor !== expected.maxHealthFactor ||
-          premiumScaleFactor !== expected.premiumScaleFactor ||
-          feeScaleFactor !== expected.feeScaleFactor
+          bot.minHealthFactor !== expected.minHealthFactor ||
+          bot.maxHealthFactor !== expected.maxHealthFactor ||
+          bot.premiumScaleFactor !== expected.premiumScaleFactor ||
+          bot.feeScaleFactor !== expected.feeScaleFactor
         ) {
           this.logger?.error(
             `serialized bot ${botAddrs[i]} does not match expected bot`,
             serialized.error,
           );
         } else {
-          result.upsert(botAddrs[i], expected);
+          this.#bots.upsert(botAddrs[i], bot);
         }
       }
     }
-    return result;
-  }
-
-  #loadStateMarketState(mc: Address, state: readonly BotState[]): void {
-    // for v300, assume that each market configurator has exactly 4 bots
-    // sort them by minHealthFactor and assign type based on index
-    const bots = state
-      .map(state => this.#createBot(mc, state))
-      .sort((a, b) => a.minHealthFactor - b.minHealthFactor);
-    if (bots.length && isV300(Number(bots[0].version))) {
-      if (bots.length !== 4) {
-        throw new Error(`expected 4 bots v300 for market configurator ${mc}`);
-      }
-      for (let i = 0; i < bots.length; i++) {
-        (bots[i] as PartialLiquidationBotV300Contract).botType =
-          LIQUIDATION_BOT_TYPES[i];
-      }
-    }
-    this.botsByMarket.upsert(mc, bots);
+    return this.state;
   }
 
   public stateHuman(raw?: boolean): BotsPluginStateHuman {
     return {
-      bots: Object.fromEntries(
-        this.botsByMarket
-          .entries()
-          .map(([mc, bots]) => [
-            this.labelAddress(mc),
-            bots.map(b => b.stateHuman(raw)),
-          ]),
-      ),
+      bots: this.#bots?.values().map(bot => bot.stateHuman(raw)) ?? [],
     };
-  }
-
-  public get botsByMarket(): AddressMap<PartialLiquidationBotContract[]> {
-    if (!this.#botsByMarket) {
-      throw new Error("bots plugin not loaded");
-    }
-    return this.#botsByMarket;
-  }
-
-  public botsByMarketConfigurator(
-    mc: Address,
-  ): PartialLiquidationBotContract[] {
-    return this.botsByMarket.get(mc) ?? [];
-  }
-
-  public get allBots(): PartialLiquidationBotContract[] {
-    return this.botsByMarket.values().flat();
   }
 
   public get state(): BotsPluginState {
     return {
-      bots: TypedObjectUtils.fromEntries(
-        this.botsByMarket
-          .entries()
-          .map(([mc, bots]) => [mc, bots.map(b => b.state)]),
-      ),
+      bots: this.#bots?.values().map(bot => bot.state) ?? [],
     };
   }
 
   public hydrate(state: BotsPluginState): void {
-    this.#botsByMarket = new AddressMap();
-    for (const [mc, botStates] of TypedObjectUtils.entries(state.bots)) {
-      this.#loadStateMarketState(mc, botStates);
-    }
-  }
-
-  #createBot(
-    marketConfigurator: Address,
-    data: BotState,
-  ): PartialLiquidationBotContract {
-    const v = Number(data.baseParams.version);
-    if (isV300(v)) {
-      return new PartialLiquidationBotV300Contract(
-        this.sdk,
-        data,
-        marketConfigurator,
+    this.#bots = new AddressMap();
+    for (const botState of state.bots) {
+      this.#bots.upsert(
+        botState.addr,
+        new PartialLiquidationBotV310Contract(this.sdk, botState),
       );
-    } else if (isV310(v)) {
-      return new PartialLiquidationBotV310Contract(
-        this.sdk,
-        data,
-        marketConfigurator,
-      );
-    } else {
-      throw new Error(`unsupported bot version: ${v}`);
     }
   }
 

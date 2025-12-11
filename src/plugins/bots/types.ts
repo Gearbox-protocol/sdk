@@ -1,16 +1,6 @@
-import type {
-  AbiParametersToPrimitiveTypes,
-  ExtractAbiFunction,
-} from "abitype";
 import type { Address } from "viem";
-import type { peripheryCompressorAbi } from "../../abi/compressors/peripheryCompressor.js";
-import type { BaseContractStateHuman, Unarray } from "../../sdk/index.js";
-
-export type BotState = Unarray<
-  AbiParametersToPrimitiveTypes<
-    ExtractAbiFunction<typeof peripheryCompressorAbi, "getBots">["outputs"]
-  >
->;
+import type { BaseContractStateHuman } from "../../sdk/index.js";
+import type { PartialLiquidationBotV310Params } from "./PartialLiquidationBotV310Contract.js";
 
 export interface BotParameters {
   treasury: Address;
@@ -20,6 +10,8 @@ export interface BotParameters {
   feeScaleFactor: number;
 }
 
+export const BOT_PARTIAL_LIQUIDATION = "BOT::PARTIAL_LIQUIDATION";
+
 export const BOT_PARAMS_ABI = [
   { type: "address", name: "treasury" },
   { type: "uint16", name: "minHealthFactor" },
@@ -28,44 +20,24 @@ export const BOT_PARAMS_ABI = [
   { type: "uint16", name: "feeScaleFactor" },
 ] as const;
 
-export const LIQUIDATION_BOT_TYPES = [
-  "PARTIAL_LIQUIDATION_BOT",
-  "DELEVERAGE_BOT_PEGGED",
-  "DELEVERAGE_BOT_LV",
-  "DELEVERAGE_BOT_HV",
-] as const;
-
-export type LiquidationBotType = (typeof LIQUIDATION_BOT_TYPES)[number];
-
-export interface BotStateBaseHuman extends BaseContractStateHuman {
+export interface BotStateV310Human extends BaseContractStateHuman {
   treasury: Address;
   minHealthFactor: string;
   maxHealthFactor: string;
   premiumScaleFactor: string;
   feeScaleFactor: string;
-  requiredPermissions: string;
 }
 
-export interface BotStateV300Human extends BotStateBaseHuman {
-  botType: LiquidationBotType;
-}
+export type BotStateHuman = BotStateV310Human;
 
-export type BotStateV310Human = BotStateBaseHuman;
-
-export type BotStateHuman = BotStateV300Human | BotStateV310Human;
+export type BotState = PartialLiquidationBotV310Params;
 
 export interface BotsPluginStateHuman {
-  /**
-   * Mapping market configurator to bot states
-   */
-  bots: Record<string, BotStateHuman[]>;
+  bots: BotStateHuman[];
 }
 
 export interface BotsPluginState {
-  /**
-   * Mapping market configurator address to bot states
-   */
-  bots: Record<Address, BotState[]>;
+  bots: BotState[];
 }
 
 export type BotBaseType = "LIQUIDATION_PROTECTION" | "MIGRATION";
