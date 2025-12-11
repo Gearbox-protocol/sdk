@@ -18,7 +18,7 @@ interface TokenClaim {
 }
 
 interface ClaimFromFaucetOptions {
-  sdk: GearboxSDK;
+  sdk?: GearboxSDK;
   publicClient: PublicClient;
   wallet: WalletClient;
   faucet: Address;
@@ -67,7 +67,10 @@ export async function claimFromFaucet(
     amnt = amount
       .map(v => {
         try {
-          return sdk.tokensMeta.formatBN(v.token, v.amount, { symbol: true });
+          return (
+            sdk?.tokensMeta.formatBN(v.token, v.amount, { symbol: true }) ??
+            `${v.amount} of ${v.token}`
+          );
         } catch {
           return `${v.amount} of ${v.token}`;
         }

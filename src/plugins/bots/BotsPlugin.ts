@@ -9,7 +9,6 @@ import { peripheryCompressorAbi } from "../../abi/compressors/peripheryCompresso
 import type { IGearboxSDKPlugin } from "../../sdk/index.js";
 import {
   AddressMap,
-  AddressSet,
   AP_BYTECODE_REPOSITORY,
   AP_PERIPHERY_COMPRESSOR,
   AP_TREASURY,
