@@ -14,6 +14,7 @@ import {
   AP_PERIPHERY_COMPRESSOR,
   AP_TREASURY,
   BasePlugin,
+  chains as CHAINS,
   hexEq,
   isV300,
   isV310,
@@ -22,6 +23,7 @@ import {
 } from "../../sdk/index.js";
 import { iPartialLiquidationBotV310Abi } from "./abi/iPartialLiquidationBotV310.js";
 import {
+  LEGACY_MIGRATION_BOT,
   PARTIAL_LIQUIDATION_BOT_CONFIGS,
   PARTIAL_LIQUIDATION_BOT_DEPLOYER,
   PARTIAL_LIQUIDATION_BOT_SALT,
@@ -35,6 +37,7 @@ import {
   type BotsPluginState,
   type BotsPluginStateHuman,
   LIQUIDATION_BOT_TYPES,
+  type MigrationBotState,
 } from "./types.js";
 
 export class UnsupportedBotVersionError extends Error {
@@ -279,5 +282,11 @@ export class BotsPlugin
     } else {
       throw new Error(`unsupported bot version: ${v}`);
     }
+  }
+
+  public static getMigrationBotData(
+    chainId: number,
+  ): MigrationBotState | undefined {
+    return chainId === CHAINS.Mainnet.id ? LEGACY_MIGRATION_BOT : undefined;
   }
 }

@@ -132,17 +132,6 @@ export interface TimeToLiquidationProps {
 
 const MAX_UINT16 = 65535;
 
-export interface BotDataLegacy {
-  baseParams: {
-    addr: Address;
-    version: bigint;
-    contractType: Address;
-    serializedParams: Address;
-  };
-  permissions: bigint;
-  forbidden: boolean;
-}
-
 export class CreditAccountData_Legacy {
   readonly isSuccessful: boolean;
   readonly chainId: number;

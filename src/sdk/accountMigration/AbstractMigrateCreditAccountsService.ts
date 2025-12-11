@@ -21,7 +21,6 @@ import type { ILogger } from "../types/index.js";
 import { childLogger } from "../utils/index.js";
 import type {
   MigrateCreditAccountProps,
-  MigrationBotState,
   PreviewCreditAccountMigrationProps,
   PreviewMigrationResult,
 } from "./types.js";
@@ -48,14 +47,6 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
         "0x00F7C0d39B05089e93858A82439EA17dE7160B5a".toLowerCase() as Address,
     },
   };
-
-  // TODO: HARDCODED
-  private static readonly accountMigratorBot =
-    "0x286Fe53994f5668D56538Aa10eaa3Ac36f878e9C".toLowerCase() as Address;
-
-  // TODO: HARDCODED
-  private static readonly accountMigratorPreviewer =
-    "0x6523B8c9daB92eea7944a79b4Dbb598c7934DCca".toLowerCase() as Address;
 
   constructor(sdk: GearboxSDK, version: number) {
     super(sdk);
@@ -166,41 +157,6 @@ export abstract class AbstractMigrateCreditAccountsService extends SDKConstruct 
         chainId
       ]?.[source] ?? source
     );
-  }
-  public static getMigrationBotAddress(chainId: number) {
-    const botAddress =
-      chainId === CHAINS.Mainnet.id
-        ? AbstractMigrateCreditAccountsService.accountMigratorBot
-        : undefined;
-    const previewerAddress =
-      chainId === CHAINS.Mainnet.id
-        ? AbstractMigrateCreditAccountsService.accountMigratorPreviewer
-        : undefined;
-
-    return previewerAddress && botAddress
-      ? { botAddress, previewerAddress }
-      : undefined;
-  }
-
-  public static getMigrationBotData(
-    chainId: number,
-  ): MigrationBotState | undefined {
-    const { botAddress } =
-      AbstractMigrateCreditAccountsService.getMigrationBotAddress(chainId) ||
-      {};
-
-    // TODO: HARDCODED
-    return botAddress
-      ? {
-          baseParams: {
-            addr: botAddress,
-            version: 310,
-          },
-          address: botAddress,
-          version: 310,
-          botType: "MIGRATION_BOT",
-        }
-      : undefined;
   }
 
   public static getTokensToMigrate(creditAccount: CreditAccountData_Legacy) {

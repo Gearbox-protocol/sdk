@@ -10,7 +10,6 @@ import {
   iBotListV300Abi,
   iCreditFacadeV300MulticallAbi,
 } from "../../abi/v300.js";
-import { AbstractMigrateCreditAccountsService } from "../accountMigration/AbstractMigrateCreditAccountsService.js";
 import type { CreditAccountData } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
 import {
@@ -287,6 +286,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
    */
   public async getConnectedBots(
     accountsToCheck: Array<{ creditAccount: Address; creditManager: Address }>,
+    legacyMigrationBot: Address | undefined,
   ): Promise<{
     legacy: GetConnectedBotsResult;
     legacyMigration: GetConnectedMigrationBotsResult;
@@ -307,19 +307,16 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
         }),
         allowFailure: true,
       }),
-      this.getActiveMigrationBots(accountsToCheck),
+      this.getActiveMigrationBots(accountsToCheck, legacyMigrationBot),
     ]);
 
     return { legacy: resp, legacyMigration: migration };
   }
   private async getActiveMigrationBots(
     accountsToCheck: Array<{ creditAccount: Address; creditManager: Address }>,
+    legacyMigrationBot: Address | undefined,
   ) {
-    const migrationBot =
-      AbstractMigrateCreditAccountsService.getMigrationBotAddress(
-        this.sdk.chainId,
-      );
-    if (migrationBot) {
+    if (legacyMigrationBot) {
       const result = await this.client.multicall({
         contracts: accountsToCheck.map(ca => {
           const cm = this.sdk.marketRegister.findCreditManager(
@@ -333,14 +330,14 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
             address: cm.creditFacade.botList,
             functionName: "getBotStatus",
             args: isV300(cm.creditFacade.version)
-              ? [migrationBot.botAddress, ca.creditManager, ca.creditAccount]
-              : [migrationBot.botAddress, ca.creditAccount],
+              ? [legacyMigrationBot, ca.creditManager, ca.creditAccount]
+              : [legacyMigrationBot, ca.creditAccount],
           } as const;
         }),
         allowFailure: true,
       });
 
-      return { result, migrationBot };
+      return { result, botAddress: legacyMigrationBot };
     }
 
     return undefined;
