@@ -3,7 +3,6 @@ import { iCreditFacadeMulticallV310Abi } from "../../abi/310/generated.js";
 import { MAX_UINT256 } from "../constants/math.js";
 import type { MultiCall } from "../types/index.js";
 import { AbstractCreditAccountService } from "./AbstractCreditAccountsService.js";
-import { PERMISSION_BY_TYPE } from "./constants.js";
 import type {
   ClaimFarmRewardsProps,
   CreditAccountOperationResult,
@@ -24,8 +23,7 @@ export class CreditAccountServiceV310
    */
   public async setBot({
     botAddress,
-    botBaseType,
-    stopBot,
+    permissions,
 
     targetContract,
   }: SetBotProps): Promise<
@@ -48,7 +46,7 @@ export class CreditAccountServiceV310
       callData: encodeFunctionData({
         abi: iCreditFacadeMulticallV310Abi,
         functionName: "setBotPermissions",
-        args: [botAddress, stopBot ? 0n : PERMISSION_BY_TYPE[botBaseType]],
+        args: [botAddress, permissions],
       }),
     };
 

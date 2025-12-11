@@ -7,8 +7,6 @@ import type {
 } from "viem";
 import type { creditAccountCompressorAbi } from "../../abi/compressors/creditAccountCompressor.js";
 import type { iWithdrawalCompressorV310Abi } from "../../abi/IWithdrawalCompressorV310.js";
-import type { LiquidationBotType as LiquidationBotTypeSDK } from "../../plugins/bots/types.js";
-import type { MigrationBotType } from "../accountMigration/types.js";
 import type { ConnectedBotData, CreditAccountData } from "../base/index.js";
 import type { SDKConstruct } from "../base/SDKConstruct.js";
 import type {
@@ -435,23 +433,6 @@ export interface Rewards {
   rewards: Array<Asset>;
 }
 
-/**
-  It was planned that bots related to each other like
-  {
-    liquidationProtection: LiquidationBotType[]
-    someOtherBaseType: someOtherDetailedType[ ... ]
-  }
-
-  BotBaseType = "liquidationProtection" | someOtherBaseType
-  BotDetailedType = LiquidationBotType | someOtherDetailedType
- * */
-export type BotBaseType = "LIQUIDATION_PROTECTION" | "MIGRATION";
-export type LiquidationBotType = Exclude<
-  LiquidationBotTypeSDK,
-  "PARTIAL_LIQUIDATION_BOT"
->;
-export type { MigrationBotType };
-
 interface CMSlice {
   creditManager: Address;
   creditFacade: Address;
@@ -464,13 +445,9 @@ export interface SetBotProps {
    */
   botAddress: Address;
   /**
-   * Bot base type (see comments above)
+   * Permissions to set for the bot
    */
-  botBaseType: BotBaseType;
-  /**
-   * Either stop or enable bot
-   */
-  stopBot: boolean;
+  permissions: bigint;
   /**
    * Minimal credit account data {@link RouterCASlice} on which operation is performed; if omitted, credit manager data is used
    * Minimal credit manager data {@link CMSlice} on which operation is performed; used only if credit account is omitted
@@ -508,10 +485,7 @@ export type GetConnectedMigrationBotsResult =
             status: "success";
           }
       )[];
-      migrationBot: {
-        botAddress: Address;
-        previewerAddress: Address;
-      };
+      botAddress: Address;
     }
   | undefined;
 
@@ -549,11 +523,13 @@ export interface ICreditAccountsService extends SDKConstruct {
   /**
    * Method to get all connected bots for credit account
    * @param {Array<{ creditAccount: Address; creditManager: Address }>} accountsToCheck - list of credit accounts
+   * @param {Address | undefined} legacyMigrationBot - address of the bot to check connected bots on
    * and their credit managers to check connected bots on
    * @returns call result of getConnectedBots for each credit account
    */
   getConnectedBots(
     accountsToCheck: Array<{ creditAccount: Address; creditManager: Address }>,
+    legacyMigrationBot: Address | undefined,
   ): Promise<{
     legacy: GetConnectedBotsResult;
     legacyMigration: GetConnectedMigrationBotsResult;

@@ -9,20 +9,6 @@ import type { accountMigratorPreviewerV310Abi } from "../../abi/migration.js";
 import type { SDKConstruct } from "../base/SDKConstruct.js";
 import type { Asset, RouterCASlice } from "../router/index.js";
 
-export type MigrationBotState = {
-  baseParams: {
-    addr: Address;
-    version: number;
-  };
-  address: Address;
-  version: number;
-  botType: MigrationBotType;
-};
-
-export const MIGRATION_BOT_TYPES = ["MIGRATION_BOT"] as const;
-
-export type MigrationBotType = (typeof MIGRATION_BOT_TYPES)[number];
-
 export interface MigrateCreditAccountProps {
   /**
    * accountMigratorBot Address
