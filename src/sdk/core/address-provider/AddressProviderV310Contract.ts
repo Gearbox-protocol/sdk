@@ -7,7 +7,7 @@ import type {
 import { bytesToString, parseEventLogs, toBytes } from "viem";
 
 import { iAddressProviderV310Abi } from "../../../abi/310/generated.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
+import type { ConstructOptions } from "../../base/Construct.js";
 import AbstractAddressProviderContract from "./AbstractAddressProviderContract.js";
 import type { IAddressProviderContract } from "./types.js";
 
@@ -19,13 +19,13 @@ export class AddressProviderV310Contract
   implements IAddressProviderContract
 {
   constructor(
-    sdk: GearboxSDK,
+    options: ConstructOptions,
     address: Address,
-    version: number,
+    version: number = 310,
     addresses: Record<string, Record<number, Address>> = {},
   ) {
     super(
-      sdk,
+      options,
       {
         addr: address,
         name: "AddressProviderV310",
@@ -36,9 +36,9 @@ export class AddressProviderV310Contract
     );
   }
 
-  protected parseFunctionParams(
+  protected override stringifyFunctionParams(
     params: DecodeFunctionDataReturnType<abi>,
-  ): Array<string> | undefined {
+  ): string[] {
     switch (params.functionName) {
       case "setAddress": {
         if (params.args.length !== 3) {
@@ -49,7 +49,7 @@ export class AddressProviderV310Contract
         return [bytesToString(toBytes(key)), value, `${saveVersion}`];
       }
       default:
-        return undefined;
+        return super.stringifyFunctionParams(params);
     }
   }
 

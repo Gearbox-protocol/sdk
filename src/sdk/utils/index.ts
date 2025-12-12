@@ -1,5 +1,6 @@
 export * from "./AddressMap.js";
 export * from "./AddressSet.js";
+export * from "./abi-decode.js";
 export * from "./bytes32ToString.js";
 export * from "./childLogger.js";
 export * from "./createRawTx.js";

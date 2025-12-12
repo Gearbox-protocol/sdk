@@ -7,7 +7,7 @@ import {
   stringToHex,
   type WalletClient,
 } from "viem";
-import type { ContractMethod, RawTx } from "../../sdk/types/index.js";
+import type { ContractMethod, RawTx } from "../../sdk/index.js";
 
 export const PUBLIC_CREATE2_FACTORY =
   "0x4e59b44847b379578588920ca78fbf26c0b4956c" as const;

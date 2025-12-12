@@ -1,15 +1,9 @@
 import { type Address, parseAbi } from "viem";
 import { ierc20Abi } from "../../abi/iERC20.js";
-import type { GearboxSDK } from "../../sdk/index.js";
-import type { AnvilClient } from "../createAnvilClient.js";
 import AbstractMinter from "./AbstractMinter.js";
 import type { IMinter } from "./types.js";
 
 export class TransferMinter extends AbstractMinter implements IMinter {
-  constructor(sdk: GearboxSDK, anvil: AnvilClient) {
-    super(sdk, anvil, "TransferMinter");
-  }
-
   public override async mint(
     token: Address,
     dest: Address,

@@ -1,12 +1,15 @@
-import { type Address, type PublicClient, stringToHex } from "viem";
-import { iAddressProviderV310Abi } from "../../abi/310/generated.js";
-import { BaseContract } from "./base-contract.js";
+import {
+  type Address,
+  type Chain,
+  type PublicClient,
+  stringToHex,
+  type Transport,
+} from "viem";
+import { AddressProviderV310Contract } from "../../sdk/index.js";
 
-const abi = iAddressProviderV310Abi;
-
-export class AddressProviderContract extends BaseContract<typeof abi> {
-  constructor(address: Address, client: PublicClient) {
-    super(abi, address, client, "AddressProvider");
+export class AddressProviderContract extends AddressProviderV310Contract {
+  constructor(addr: Address, client: PublicClient<Transport, Chain>) {
+    super({ client }, addr);
   }
 
   async getAddressOrRevert(key: string, version = 0n): Promise<Address> {

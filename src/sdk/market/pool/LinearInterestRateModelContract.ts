@@ -1,9 +1,8 @@
 import { decodeAbiParameters } from "viem";
 
 import { iLinearInterestRateModelV300Abi } from "../../../abi/v300.js";
-import type { BaseState } from "../../base/index.js";
+import type { BaseState, ConstructOptions } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { LinearInterestRateModelStateHuman } from "../../types/index.js";
 import { percentFmt } from "../../utils/index.js";
 import type { IInterestRateModelContract } from "./types.js";
@@ -23,8 +22,8 @@ export class LinearInterestRateModelContract
   public readonly Rslope3: number;
   public readonly isBorrowingMoreU2Forbidden: boolean;
 
-  constructor(sdk: GearboxSDK, params: BaseState) {
-    super(sdk, {
+  constructor(options: ConstructOptions, params: BaseState) {
+    super(options, {
       ...params.baseParams,
       name: "LinearInterestRateModel",
       abi,

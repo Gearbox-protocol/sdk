@@ -23,7 +23,7 @@ export function getOrCreatePriceOracle(
   data: PriceOracleData,
 ): IPriceOracleContract {
   const { version, addr } = data.baseParams;
-  const existing = sdk.contracts.get(addr);
+  const existing = sdk.getContract(addr);
 
   let result: IPriceOracleContract;
   if (existing) {

@@ -67,9 +67,9 @@ export class PoolSuite extends SDKConstruct {
   }
 
   public get marketConfigurator(): MarketConfiguratorContract {
-    return this.sdk.contracts.mustGet(
+    return this.register.mustGetContract<MarketConfiguratorContract>(
       this.#marketConfigurator,
-    ) as unknown as MarketConfiguratorContract;
+    );
   }
 
   public get underlying(): Address {

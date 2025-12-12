@@ -1,5 +1,4 @@
 export * from "./address-provider.js";
-export * from "./base-contract.js";
 export * from "./bytecode-repository.js";
 export * from "./compressors/index.js";
 export * from "./cross-chain-multisig.js";

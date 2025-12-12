@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/complexity/noStaticOnlyClass: <x> */
 import type { Address } from "viem";
 
 import type { NetworkType } from "../chain/index.js";

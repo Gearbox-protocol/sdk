@@ -2,8 +2,8 @@ import type { Address, Hex } from "viem";
 import { bytesToString, decodeAbiParameters, toBytes } from "viem";
 
 import { redstonePriceFeedAbi } from "../../abi/index.js";
+import type { ConstructOptions } from "../../base/Construct.js";
 import { ADDRESS_0X0, isV310 } from "../../constants/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { RawTx, RedstonePriceFeedStateHuman } from "../../types/index.js";
 import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed.js";
 import { AbstractPriceFeedContract } from "./AbstractPriceFeed.js";
@@ -23,10 +23,10 @@ export class RedstonePriceFeedContract
   public readonly lastPrice: bigint;
   public readonly lastPayloadTimestamp: number;
 
-  constructor(sdk: GearboxSDK, args: PartialPriceFeedTreeNode) {
-    super(sdk, {
+  constructor(options: ConstructOptions, args: PartialPriceFeedTreeNode) {
+    super(options, {
       ...args,
-      name: `RedstonePriceFeed`,
+      name: "RedstonePriceFeed",
       abi: redstonePriceFeedAbi,
     });
 

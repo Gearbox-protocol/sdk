@@ -1,6 +1,6 @@
 import { iBalancerV3RouterAdapterAbi } from "@gearbox-protocol/integrations-v3";
 import { type Address, decodeAbiParameters } from "viem";
-import type { GearboxSDK } from "../../../sdk/index.js";
+import type { ConstructOptions } from "../../../sdk/index.js";
 import type { AbstractAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 import type { BalancerV3PoolStatus } from "./types.js";
@@ -17,10 +17,10 @@ export class BalancerV3RouterAdapterContract extends AbstractAdapterContract<abi
       }[];
 
   constructor(
-    sdk: GearboxSDK,
+    options: ConstructOptions,
     args: Omit<AbstractAdapterContractOptions<abi>, "abi">,
   ) {
-    super(sdk, { ...args, abi });
+    super(options, { ...args, abi });
 
     const version = Number(args.baseParams.version);
     if (version === 310) {

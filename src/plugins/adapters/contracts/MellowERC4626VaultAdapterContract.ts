@@ -1,6 +1,6 @@
 import { iMellow4626VaultAdapterAbi } from "@gearbox-protocol/integrations-v3";
 import { type Address, decodeAbiParameters, zeroAddress } from "viem";
-import type { GearboxSDK } from "../../../sdk/index.js";
+import type { ConstructOptions } from "../../../sdk/index.js";
 import type { AbstractAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -13,10 +13,10 @@ export class MellowERC4626VaultAdapterContract extends AbstractAdapterContract<a
   public readonly stakedPhantomToken: Address;
 
   constructor(
-    sdk: GearboxSDK,
+    options: ConstructOptions,
     args: Omit<AbstractAdapterContractOptions<abi>, "abi">,
   ) {
-    super(sdk, { ...args, abi });
+    super(options, { ...args, abi });
 
     this.asset = zeroAddress;
     this.vault = zeroAddress;

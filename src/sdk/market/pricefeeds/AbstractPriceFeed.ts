@@ -1,8 +1,11 @@
 import type { Abi, RequiredBy, UnionOmit } from "viem";
 
-import type { PriceFeedAnswer, PriceFeedTreeNode } from "../../base/index.js";
+import type {
+  ConstructOptions,
+  PriceFeedAnswer,
+  PriceFeedTreeNode,
+} from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { PriceFeedStateHuman } from "../../types/index.js";
 import { isUpdatablePriceFeed } from "./isUpdatablePriceFeed.js";
 import { PriceFeedRef } from "./PriceFeedRef.js";
@@ -54,8 +57,8 @@ export abstract class AbstractPriceFeedContract<
   public hasLowerBoundCap = false;
   public readonly description?: string;
 
-  constructor(sdk: GearboxSDK, args: PriceFeedConstructorArgs<abi>) {
-    super(sdk, {
+  constructor(options: ConstructOptions, args: PriceFeedConstructorArgs<abi>) {
+    super(options, {
       abi: args.abi,
       addr: args.baseParams.addr,
       name: args.name + (args.description ? ` ${args.description}` : ""),
@@ -73,7 +76,7 @@ export abstract class AbstractPriceFeedContract<
       const underlyingStalenessPeriods = args.underlyingStalenessPeriods;
       this.#underlyingPriceFeeds = args.underlyingFeeds.map(
         (address, i) =>
-          new PriceFeedRef(this.sdk, address, underlyingStalenessPeriods[i]),
+          new PriceFeedRef(options, address, underlyingStalenessPeriods[i]),
       );
     }
   }

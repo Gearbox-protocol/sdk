@@ -4,7 +4,7 @@ import {
   type DecodeFunctionDataReturnType,
   decodeAbiParameters,
 } from "viem";
-import type { GearboxSDK } from "../../../sdk/index.js";
+import type { ConstructOptions } from "../../../sdk/index.js";
 import { formatBN } from "../../../sdk/index.js";
 import type { AbstractAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
@@ -20,10 +20,10 @@ export class UniswapV3AdapterContract extends AbstractAdapterContract<abi> {
   }[];
 
   constructor(
-    sdk: GearboxSDK,
+    options: ConstructOptions,
     args: Omit<AbstractAdapterContractOptions<abi>, "abi">,
   ) {
-    super(sdk, { ...args, abi });
+    super(options, { ...args, abi });
 
     // Decode parameters directly using ABI decoding
     const decoded = decodeAbiParameters(
@@ -50,18 +50,18 @@ export class UniswapV3AdapterContract extends AbstractAdapterContract<abi> {
     }));
   }
 
-  protected parseFunctionParams(
+  protected override stringifyFunctionParams(
     params: DecodeFunctionDataReturnType<abi>,
-  ): string[] | undefined {
+  ): string[] {
     switch (params.functionName) {
       case "exactInputSingle": {
         const [{ tokenIn, tokenOut, fee, amountIn, amountOutMinimum }] =
           params.args;
-        const tokenInSym = this.sdk.tokensMeta.symbol(tokenIn);
-        const tokenOutSym = this.sdk.tokensMeta.symbol(tokenOut);
+        const tokenInSym = this.tokensMeta.symbol(tokenIn);
+        const tokenOutSym = this.tokensMeta.symbol(tokenOut);
 
-        const amountInStr = this.sdk.tokensMeta.formatBN(tokenIn, amountIn);
-        const amountOutMinimumStr = this.sdk.tokensMeta.formatBN(
+        const amountInStr = this.tokensMeta.formatBN(tokenIn, amountIn);
+        const amountOutMinimumStr = this.tokensMeta.formatBN(
           tokenOut,
           amountOutMinimum,
         );
@@ -73,10 +73,10 @@ export class UniswapV3AdapterContract extends AbstractAdapterContract<abi> {
       case "exactDiffInputSingle": {
         const [{ tokenIn, tokenOut, fee, leftoverAmount, rateMinRAY }] =
           params.args;
-        const tokenInSym = this.sdk.tokensMeta.symbol(tokenIn);
-        const tokenOutSym = this.sdk.tokensMeta.symbol(tokenOut);
+        const tokenInSym = this.tokensMeta.symbol(tokenIn);
+        const tokenOutSym = this.tokensMeta.symbol(tokenOut);
 
-        const leftoverAmountStr = this.sdk.tokensMeta.formatBN(
+        const leftoverAmountStr = this.tokensMeta.formatBN(
           tokenIn,
           leftoverAmount,
         );
@@ -90,9 +90,9 @@ export class UniswapV3AdapterContract extends AbstractAdapterContract<abi> {
 
         const pathStr = this.trackInputPath(path);
         const token = `0x${path.replace("0x", "").slice(0, 40)}` as Address;
-        const amountInStr = this.sdk.tokensMeta.formatBN(token, amountIn);
+        const amountInStr = this.tokensMeta.formatBN(token, amountIn);
 
-        const amountOutMinimumStr = this.sdk.tokensMeta.formatBN(
+        const amountOutMinimumStr = this.tokensMeta.formatBN(
           `0x${path.slice(-40, path.length)}`,
           amountOutMinimum,
         );
@@ -104,7 +104,7 @@ export class UniswapV3AdapterContract extends AbstractAdapterContract<abi> {
       case "exactDiffInput": {
         const [{ leftoverAmount, rateMinRAY, path }] = params.args;
 
-        const leftoverAmountStr = this.sdk.tokensMeta.formatBN(
+        const leftoverAmountStr = this.tokensMeta.formatBN(
           `0x${path.replace("0x", "").slice(0, 40)}`,
           leftoverAmount,
         );
@@ -122,12 +122,12 @@ export class UniswapV3AdapterContract extends AbstractAdapterContract<abi> {
         const [{ amountInMaximum, amountOut, path }] = params.args;
 
         const pathStr = this.trackOutputPath(path);
-        const amountInMaximumStr = this.sdk.tokensMeta.formatBN(
+        const amountInMaximumStr = this.tokensMeta.formatBN(
           `0x${path.slice(-40, path.length)}`,
           amountInMaximum,
         );
 
-        const amountOutStr = this.sdk.tokensMeta.formatBN(
+        const amountOutStr = this.tokensMeta.formatBN(
           `0x${path.replace("0x", "").slice(0, 40)}`,
           amountOut,
         );
@@ -140,14 +140,14 @@ export class UniswapV3AdapterContract extends AbstractAdapterContract<abi> {
         const [{ tokenIn, tokenOut, fee, amountOut, amountInMaximum }] =
           params.args;
 
-        const tokenInSym = this.sdk.tokensMeta.symbol(tokenIn);
-        const tokenOutSym = this.sdk.tokensMeta.symbol(tokenOut);
+        const tokenInSym = this.tokensMeta.symbol(tokenIn);
+        const tokenOutSym = this.tokensMeta.symbol(tokenOut);
 
-        const amountInMaximumStr = this.sdk.tokensMeta.formatBN(
+        const amountInMaximumStr = this.tokensMeta.formatBN(
           tokenIn,
           amountInMaximum,
         );
-        const amountOutStr = this.sdk.tokensMeta.formatBN(tokenOut, amountOut);
+        const amountOutStr = this.tokensMeta.formatBN(tokenOut, amountOut);
 
         return [
           `(amountInMaximum: ${amountInMaximumStr}, amountOut: ${amountOutStr},  path: ${tokenInSym} ==(fee: ${fee})==> ${tokenOutSym})`,
@@ -155,7 +155,7 @@ export class UniswapV3AdapterContract extends AbstractAdapterContract<abi> {
       }
 
       default:
-        return undefined;
+        return super.stringifyFunctionParams(params);
     }
   }
 
@@ -167,7 +167,7 @@ export class UniswapV3AdapterContract extends AbstractAdapterContract<abi> {
         pointer,
         pointer + 40,
       )}`.toLowerCase() as Address;
-      result += this.sdk.tokensMeta.symbol(from) || from;
+      result += this.tokensMeta.symbol(from) || from;
       pointer += 40;
 
       if (pointer > path.length - 6) return result;
@@ -187,7 +187,7 @@ export class UniswapV3AdapterContract extends AbstractAdapterContract<abi> {
     while (pointer >= 40) {
       pointer -= 40;
       const from = `0x${path.slice(pointer, pointer + 40)}` as Address;
-      result += this.sdk.tokensMeta.symbol(from) || from;
+      result += this.tokensMeta.symbol(from) || from;
 
       if (pointer < 6) return result;
       pointer -= 6;

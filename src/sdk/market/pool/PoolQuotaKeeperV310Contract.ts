@@ -2,13 +2,13 @@ import type { ContractEventName, Log } from "viem";
 
 import { iPoolQuotaKeeperV310Abi } from "../../../abi/310/generated.js";
 import type {
+  ConstructOptions,
   IBaseContract,
   PoolState,
   QuotaKeeperState,
   QuotaState,
 } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { PoolQuotaKeeperStateHuman } from "../../types/index.js";
 import { AddressMap, formatBNvalue, percentFmt } from "../../utils/index.js";
 
@@ -22,8 +22,12 @@ export class PoolQuotaKeeperV310Contract
   public readonly decimals: number;
   public readonly quotas: AddressMap<QuotaState>;
 
-  constructor(sdk: GearboxSDK, pool: PoolState, pqk: QuotaKeeperState) {
-    super(sdk, {
+  constructor(
+    options: ConstructOptions,
+    pool: PoolState,
+    pqk: QuotaKeeperState,
+  ) {
+    super(options, {
       ...pqk.baseParams,
       name: `PoolQuotaKeeper(${pool.name})`,
       abi,

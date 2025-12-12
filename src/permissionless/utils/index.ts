@@ -1,4 +1,3 @@
-export * from "./abi-decoder.js";
 export * from "./abi-encoder.js";
 
 export * from "./block-utils.js";

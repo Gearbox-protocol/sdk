@@ -1,5 +1,4 @@
 import type {
-  Address,
   ContractEventName,
   DecodeFunctionDataReturnType,
   GetEventArgs,
@@ -32,7 +31,7 @@ export class CreditConfiguratorV300Contract
   extends BaseContract<abi>
   implements ICreditConfiguratorContract
 {
-  public readonly adapters: Address[] = [];
+  public readonly sdk: GearboxSDK;
   public isPaused = false;
 
   constructor(
@@ -44,6 +43,7 @@ export class CreditConfiguratorV300Contract
       name: `CreditConfigurator(${creditManager.name})`,
       abi,
     });
+    this.sdk = sdk;
   }
 
   public override processLog(
@@ -106,9 +106,9 @@ export class CreditConfiguratorV300Contract
     return logs.map(({ args }) => args);
   }
 
-  protected parseFunctionParams(
+  protected override stringifyFunctionParams(
     params: DecodeFunctionDataReturnType<abi>,
-  ): Array<string> | undefined {
+  ): string[] {
     switch (params.functionName) {
       case "addCollateralToken":
       case "setLiquidationThreshold": {
@@ -157,7 +157,7 @@ export class CreditConfiguratorV300Contract
       }
 
       default:
-        return undefined;
+        return super.stringifyFunctionParams(params);
     }
   }
 }

@@ -70,11 +70,6 @@ export interface IPriceOracleContract extends IBaseContract {
   reservePrice: (token: Address) => bigint;
 
   /**
-   * Loads new prices for this oracle from PriceFeedCompressor
-   * Will (re)create price feeds if needed
-   */
-  updatePrices: () => Promise<void>;
-  /**
    * Paired method to updatePrices, helps to update prices on all oracles in one multicall
    */
   syncStateMulticall: () => DelegatedOracleMulticall;
@@ -109,11 +104,6 @@ export interface IPriceOracleContract extends IBaseContract {
     tokens: Address[],
     opts?: PriceFeedsForTokensOptions,
   ) => IPriceFeedContract[];
-  /**
-   * Generates updates for all updateable price feeds in this oracle (including dependencies)
-   * @returns
-   */
-  updatePriceFeeds: () => Promise<UpdatePriceFeedsResult>;
   /**
    * Converts previously obtained price updates into CreditFacade multicall entries
    * @param creditFacade

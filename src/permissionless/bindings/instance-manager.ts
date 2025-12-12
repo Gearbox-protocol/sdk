@@ -1,10 +1,12 @@
 import {
   type Address,
+  type Chain,
   type DecodeFunctionDataReturnType,
   type Hex,
   hexToString,
   type PublicClient,
   stringToHex,
+  type Transport,
 } from "viem";
 import { instanceManagerAbi } from "../../abi/310/instanceManager.js";
 import { camelotV3WorkerAbi } from "../../abi/router/camelotV3Worker.js";
@@ -14,11 +16,14 @@ import { mellow4626WorkerAbi } from "../../abi/router/mellow4626Worker.js";
 import { pendleRouterWorkerAbi } from "../../abi/router/pendleRouterWorker.js";
 import { uniswapV3WorkerAbi } from "../../abi/router/uniswapV3Worker.js";
 import { uniswapV4WorkerAbi } from "../../abi/router/uniswapV4Worker.js";
-import type { RawTx } from "../../sdk/types/index.js";
-import { json_stringify } from "../../sdk/utils/index.js";
-import type { ParsedCall } from "../core/proposal.js";
+import type { RawTx } from "../../sdk/index.js";
+import {
+  BaseContract,
+  json_stringify,
+  type ParsedCall,
+  type ParsedCallArgs,
+} from "../../sdk/index.js";
 import { Addresses } from "../deployment/addresses.js";
-import { BaseContract } from "./base-contract.js";
 import { WithdrawalCompressorContract } from "./compressors/index.js";
 import { PriceFeedStoreContract } from "./price-feed-store.js";
 import { RoutingManagerContract } from "./router/index.js";
@@ -27,12 +32,12 @@ import { TreasurySplitterContract } from "./treasury-splitter.js";
 const abi = instanceManagerAbi;
 
 export class InstanceManagerContract extends BaseContract<typeof abi> {
-  constructor(address: Address, client: PublicClient) {
-    super(abi, address, client, "InstanceManager");
+  constructor(addr: Address, client: PublicClient<Transport, Chain>) {
+    super({ client }, { abi, addr, name: "InstanceManager" });
   }
 
   // TODO:
-  decodeFunctionData(target: Address, calldata: Hex): ParsedCall | undefined {
+  #decodeFunctionData(target: Address, calldata: Hex): ParsedCall | undefined {
     switch (target.toLowerCase()) {
       case this.address.toLowerCase(): {
         return this.parseFunctionData(calldata);
@@ -46,10 +51,8 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
           // ROUTER
           let parsedData: ParsedCall;
           const router = new BaseContract(
-            gearboxRouterAbi,
-            target,
-            this.client,
-            "GearboxRouter",
+            { client: this.client },
+            { abi: gearboxRouterAbi, addr: target, name: "GearboxRouter" },
           );
           parsedData = router.parseFunctionData(calldata);
 
@@ -69,10 +72,8 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
 
           // WORKERS
           const camelotV3Worker = new BaseContract(
-            camelotV3WorkerAbi,
-            target,
-            this.client,
-            "CamelotV3Worker",
+            { client: this.client },
+            { abi: camelotV3WorkerAbi, addr: target, name: "CamelotV3Worker" },
           );
           parsedData = camelotV3Worker.parseFunctionData(calldata);
 
@@ -81,10 +82,8 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
           }
 
           const erc4626Worker = new BaseContract(
-            erc4626WorkerAbi,
-            target,
-            this.client,
-            "ERC4626Worker",
+            { client: this.client },
+            { abi: erc4626WorkerAbi, addr: target, name: "ERC4626Worker" },
           );
           parsedData = erc4626Worker.parseFunctionData(calldata);
 
@@ -93,10 +92,12 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
           }
 
           const mellow4626Worker = new BaseContract(
-            mellow4626WorkerAbi,
-            target,
-            this.client,
-            "Mellow4626Worker",
+            { client: this.client },
+            {
+              abi: mellow4626WorkerAbi,
+              addr: target,
+              name: "Mellow4626Worker",
+            },
           );
           parsedData = mellow4626Worker.parseFunctionData(calldata);
 
@@ -105,10 +106,12 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
           }
 
           const pendleRouterWorker = new BaseContract(
-            pendleRouterWorkerAbi,
-            target,
-            this.client,
-            "PendleRouterWorker",
+            { client: this.client },
+            {
+              abi: pendleRouterWorkerAbi,
+              addr: target,
+              name: "PendleRouterWorker",
+            },
           );
           parsedData = pendleRouterWorker.parseFunctionData(calldata);
 
@@ -117,10 +120,8 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
           }
 
           const uniswapV3Worker = new BaseContract(
-            uniswapV3WorkerAbi,
-            target,
-            this.client,
-            "UniswapV3Worker",
+            { client: this.client },
+            { abi: uniswapV3WorkerAbi, addr: target, name: "UniswapV3Worker" },
           );
           parsedData = uniswapV3Worker.parseFunctionData(calldata);
 
@@ -129,10 +130,8 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
           }
 
           const uniswapV4Worker = new BaseContract(
-            uniswapV4WorkerAbi,
-            target,
-            this.client,
-            "UniswapV4Worker",
+            { client: this.client },
+            { abi: uniswapV4WorkerAbi, addr: target, name: "UniswapV4Worker" },
           );
           parsedData = uniswapV4Worker.parseFunctionData(calldata);
 
@@ -158,15 +157,15 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
   }
 
   // TODO:
-  parseFunctionParams(
+  protected override parseFunctionParams(
     params: DecodeFunctionDataReturnType<typeof abi>,
-  ): ParsedCall | undefined {
+  ): ParsedCallArgs {
     switch (params.functionName) {
       case "configureGlobal": {
         const [target, data] = params.args;
-        const nestedCall = BaseContract.parse(target, data);
+        const nestedCall = this.register.parseFunctionData(target, data);
         return {
-          ...nestedCall,
+          ...nestedCall.args,
           label: `${nestedCall.label} via instanceManager`,
           target: this.address,
         };
@@ -174,24 +173,18 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
       case "configureLocal": {
         const [target, data] = params.args;
 
-        const decoded = this.decodeFunctionData(target, data);
+        const decoded = this.#decodeFunctionData(target, data);
 
-        return {
-          chainId: 0,
-          target: this.address,
-          label: this.name,
-          functionName: params.functionName,
-          args: decoded
-            ? {
-                target,
-                functionName: decoded.functionName,
-                data: json_stringify(decoded.args),
-              }
-            : {
-                target,
-                data,
-              },
-        };
+        return decoded
+          ? {
+              target,
+              functionName: decoded.functionName,
+              data: json_stringify(decoded.args),
+            }
+          : {
+              target,
+              data,
+            };
       }
       case "configureTreasury": {
         const [target, data] = params.args;
@@ -211,51 +204,45 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
           decoded = undefined;
         }
 
-        return {
-          chainId: 0,
-          target: this.address,
-          label: this.name,
-          functionName: params.functionName,
-          args: decoded
-            ? {
-                target,
-                functionName: decoded.functionName,
-                data: json_stringify(decoded.args),
-              }
-            : {
-                target,
-                data,
-              },
-        };
+        return decoded
+          ? {
+              target,
+              functionName: decoded.functionName,
+              data: json_stringify(decoded.args),
+            }
+          : {
+              target,
+              data,
+            };
       }
       case "activate": {
         const [instanceOwner, treasury, weth, gear] = params.args;
-        return this.wrapParseCall(params, {
+        return {
           instanceOwner,
           treasury,
           weth,
           gear,
-        });
+        };
       }
       case "deploySystemContract": {
         const [contractType, version, saveVersion] = params.args;
-        return this.wrapParseCall(params, {
+        return {
           contractType: hexToString(contractType, { size: 32 }),
           version: version.toString(),
           saveVersion: saveVersion ? "true" : "false",
-        });
+        };
       }
       case "setGlobalAddress": {
         const [key, address, saveVersion] = params.args;
-        return this.wrapParseCall(params, {
+        return {
           key,
           address,
           saveVersion: saveVersion ? "true" : "false",
-        });
+        };
       }
 
       default:
-        return undefined;
+        return super.parseFunctionParams(params);
     }
   }
 

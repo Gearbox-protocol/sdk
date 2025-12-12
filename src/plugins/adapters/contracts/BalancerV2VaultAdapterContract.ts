@@ -1,6 +1,6 @@
 import { iBalancerV2VaultAdapterAbi } from "@gearbox-protocol/integrations-v3";
 import { decodeAbiParameters } from "viem";
-import type { GearboxSDK } from "../../../sdk/index.js";
+import type { ConstructOptions } from "../../../sdk/index.js";
 import type { AbstractAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 import type { BalancerV2PoolStatus } from "./types.js";
@@ -13,10 +13,10 @@ export class BalancerV2VaultAdapterContract extends AbstractAdapterContract<abi>
   public readonly poolStatuses: BalancerV2PoolStatus[];
 
   constructor(
-    sdk: GearboxSDK,
+    options: ConstructOptions,
     args: Omit<AbstractAdapterContractOptions<abi>, "abi">,
   ) {
-    super(sdk, { ...args, abi });
+    super(options, { ...args, abi });
 
     // Decode parameters directly using ABI decoding
     const decoded = decodeAbiParameters(

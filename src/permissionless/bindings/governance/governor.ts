@@ -1,5 +1,6 @@
 import {
   type Address,
+  type Chain,
   type DecodeFunctionDataReturnType,
   encodeAbiParameters,
   formatEther,
@@ -7,15 +8,14 @@ import {
   type Hex,
   keccak256,
   type PublicClient,
+  type Transport,
   toBytes,
 } from "viem";
 import { formatAbiItem } from "viem/utils";
 import { governorAbi } from "../../../abi/governance/governor.js";
-import type { RawTx } from "../../../sdk/types/index.js";
-import { json_stringify } from "../../../sdk/utils/index.js";
-import type { ParsedCall } from "../../core/index.js";
+import type { ParsedCall, ParsedCallArgs, RawTx } from "../../../sdk/index.js";
+import { BaseContract, json_stringify } from "../../../sdk/index.js";
 import { formatTimestamp } from "../../utils/index.js";
-import { BaseContract } from "../base-contract.js";
 import { MarketConfiguratorContract } from "../market-configurator.js";
 import { TreasurySplitterContract } from "../treasury-splitter.js";
 import { BatchesChainContract } from "./batches-chain.js";
@@ -26,8 +26,8 @@ const abi = governorAbi;
 export class GovernorContract extends BaseContract<typeof abi> {
   public readonly batchesChainContract: BatchesChainContract;
 
-  constructor(address: Address, client: PublicClient) {
-    super(abi, address, client, "Governor");
+  constructor(addr: Address, client: PublicClient<Transport, Chain>) {
+    super({ client }, { abi, addr, name: "Governor" });
 
     this.batchesChainContract = new BatchesChainContract(
       "0x59b2fd348e4Ade84ffEfDaf5fcdDa7276c8C5041",
@@ -163,7 +163,7 @@ export class GovernorContract extends BaseContract<typeof abi> {
     });
   }
 
-  decodeFunctionData(target: Address, calldata: Hex): ParsedCall | undefined {
+  #decodeFunctionData(target: Address, calldata: Hex): ParsedCall | undefined {
     switch (target.toLowerCase()) {
       case this.address.toLowerCase(): {
         return this.parseFunctionData(calldata);
@@ -201,9 +201,9 @@ export class GovernorContract extends BaseContract<typeof abi> {
     }
   }
 
-  public parseFunctionParams(
+  protected override parseFunctionParams(
     params: DecodeFunctionDataReturnType<typeof abi>,
-  ): ParsedCall | undefined {
+  ): ParsedCallArgs {
     const { functionName, args } = params;
 
     switch (functionName) {
@@ -211,13 +211,7 @@ export class GovernorContract extends BaseContract<typeof abi> {
         const [eta] = args;
 
         return {
-          chainId: 0,
-          target: this.address,
-          label: this.name,
-          functionName,
-          args: {
-            eta: formatTimestamp(Number(eta)),
-          },
+          eta: formatTimestamp(Number(eta)),
         };
       }
       case "queueTransaction": {
@@ -227,53 +221,41 @@ export class GovernorContract extends BaseContract<typeof abi> {
           data.slice(2)) as Hex;
 
         return {
-          chainId: 0,
-          target: this.address,
-          label: this.name,
-          functionName,
-          args: {
-            target,
-            value: formatEther(value),
-            signature,
-            data: json_stringify(
-              this.decodeFunctionData(target, calldata)?.args ?? calldata,
-            ),
-            eta: formatTimestamp(Number(eta)),
-          },
+          target,
+          value: formatEther(value),
+          signature,
+          data: json_stringify(
+            this.#decodeFunctionData(target, calldata)?.args ?? calldata,
+          ),
+          eta: formatTimestamp(Number(eta)),
         };
       }
       case "executeBatch": {
         const [txs] = args;
 
         return {
-          chainId: 0,
-          target: this.address,
-          label: this.name,
-          functionName,
-          args: {
-            txs: json_stringify(
-              txs.map(tx => {
-                const { target, value, signature, data, eta } = tx;
-                const calldata = (keccak256(toBytes(signature)).slice(0, 10) +
-                  data.slice(2)) as Hex;
+          txs: json_stringify(
+            txs.map(tx => {
+              const { target, value, signature, data, eta } = tx;
+              const calldata = (keccak256(toBytes(signature)).slice(0, 10) +
+                data.slice(2)) as Hex;
 
-                return {
-                  target,
-                  value: formatEther(value),
-                  signature,
-                  data: json_stringify(
-                    this.decodeFunctionData(target, calldata)?.args ?? calldata,
-                  ),
-                  eta: formatTimestamp(Number(eta)),
-                };
-              }),
-            ),
-          },
+              return {
+                target,
+                value: formatEther(value),
+                signature,
+                data: json_stringify(
+                  this.#decodeFunctionData(target, calldata)?.args ?? calldata,
+                ),
+                eta: formatTimestamp(Number(eta)),
+              };
+            }),
+          ),
         };
       }
 
       default:
-        return undefined;
+        return super.parseFunctionParams(params);
     }
   }
 }

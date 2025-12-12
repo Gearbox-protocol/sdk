@@ -9,12 +9,8 @@ import {
   VERSION_RANGE_310,
 } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
-import type {
-  ILogger,
-  IPriceUpdateTx,
-  MarketStateHuman,
-} from "../types/index.js";
-import { AddressMap, childLogger } from "../utils/index.js";
+import type { IPriceUpdateTx, MarketStateHuman } from "../types/index.js";
+import { AddressMap } from "../utils/index.js";
 import { simulateWithPriceUpdates } from "../utils/viem/index.js";
 import type { CreditSuite } from "./credit/index.js";
 import { MarketConfiguratorContract } from "./MarketConfiguratorContract.js";
@@ -23,7 +19,6 @@ import type { IPriceOracleContract } from "./oracle/index.js";
 import type { PoolSuite } from "./pool/index.js";
 
 export class MarketRegister extends SDKConstruct {
-  #logger?: ILogger;
   /**
    * Mapping pool.address -> MarketSuite
    */
@@ -37,7 +32,6 @@ export class MarketRegister extends SDKConstruct {
 
   constructor(sdk: GearboxSDK, ignoreMarkets: Address[] = []) {
     super(sdk);
-    this.#logger = childLogger("MarketRegister", sdk.logger);
     this.#ignoreMarkets = new Set(
       ignoreMarkets.map(m => m.toLowerCase() as Address),
     );
@@ -50,7 +44,7 @@ export class MarketRegister extends SDKConstruct {
     for (const data of state) {
       const pool = data.pool.baseParams.addr;
       if (this.#ignoreMarkets.has(pool.toLowerCase() as Address)) {
-        this.#logger?.debug(
+        this.logger?.debug(
           `ignoring market of pool ${pool} (${data.pool.name})`,
         );
         continue;
@@ -67,7 +61,7 @@ export class MarketRegister extends SDKConstruct {
     ignoreUpdateablePrices?: boolean,
   ): Promise<void> {
     if (!marketConfigurators.length) {
-      this.#logger?.warn(
+      this.logger?.warn(
         "no market configurators provided, skipping loadMarkets",
       );
       return;
@@ -115,7 +109,7 @@ export class MarketRegister extends SDKConstruct {
       this.marketConfigurators.some(c => c.dirty);
 
     if (dirty) {
-      this.#logger?.debug(
+      this.logger?.debug(
         "some markets or market configurators are dirty, reloading everything",
       );
       // this will also update prices
@@ -154,7 +148,7 @@ export class MarketRegister extends SDKConstruct {
         await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(updatables);
       txs = updates.txs;
     }
-    this.#logger?.debug(
+    this.logger?.debug(
       { configurators, pools },
       `calling getMarkets with ${txs.length} price updates in block ${this.sdk.currentBlock}`,
     );
@@ -190,7 +184,7 @@ export class MarketRegister extends SDKConstruct {
     for (const data of markets) {
       const pool = data.pool.baseParams.addr;
       if (this.#ignoreMarkets.has(pool.toLowerCase() as Address)) {
-        this.#logger?.debug(
+        this.logger?.debug(
           `ignoring market of pool ${pool} (${data.pool.name})`,
         );
         continue;
@@ -198,7 +192,7 @@ export class MarketRegister extends SDKConstruct {
       this.#markets.upsert(pool, new MarketSuite(this.sdk, data));
     }
 
-    this.#logger?.info(
+    this.logger?.info(
       `loaded ${this.#markets.size} markets in block ${this.sdk.currentBlock}`,
     );
   }
@@ -219,7 +213,7 @@ export class MarketRegister extends SDKConstruct {
     if (!multicalls.length) {
       return;
     }
-    this.#logger?.debug(`syncing prices on ${multicalls.length} oracles`);
+    this.logger?.debug(`syncing prices on ${multicalls.length} oracles`);
     const { txs } = await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs();
     const oraclesStates = await simulateWithPriceUpdates(this.client, {
       priceUpdates: txs,

@@ -1,10 +1,6 @@
 import { type Address, parseEther } from "viem";
 import { ierc20Abi } from "../../abi/iERC20.js";
-import {
-  type GearboxSDK,
-  type ILogger,
-  SDKConstruct,
-} from "../../sdk/index.js";
+import { type GearboxSDK, SDKConstruct } from "../../sdk/index.js";
 import { iOwnableAbi } from "../abi.js";
 import type { AnvilClient } from "../createAnvilClient.js";
 import type { IMinter } from "./types.js";
@@ -14,14 +10,12 @@ export default abstract class AbstractMinter
   implements IMinter
 {
   protected readonly anvil: AnvilClient;
-  protected readonly logger?: ILogger;
-  public readonly name: string;
+  public name: string;
 
-  constructor(sdk: GearboxSDK, anvil: AnvilClient, name = "Minter") {
+  constructor(sdk: GearboxSDK, anvil: AnvilClient) {
     super(sdk);
     this.anvil = anvil;
-    this.name = name;
-    this.logger = sdk.logger?.child?.({ name }) ?? sdk.logger;
+    this.name = this.constructor.name;
   }
 
   public async tryMint(

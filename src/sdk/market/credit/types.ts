@@ -14,7 +14,6 @@ import type {
 import type { RampEvent } from "./CreditConfiguratorV300Contract.js";
 
 export interface ICreditConfiguratorContract extends IBaseContract {
-  adapters: Address[];
   isPaused: boolean;
 
   checkRamps: () => Promise<RampEvent[]>;
@@ -23,7 +22,7 @@ export interface ICreditConfiguratorContract extends IBaseContract {
 
 export interface ICreditManagerContract
   extends IBaseContract,
-    Omit<CreditManagerState, "baseParams" | "collateralTokens"> {
+    Omit<CreditManagerState, "baseParams" | "collateralTokens" | "name"> {
   /**
    * Mapping targetContract => adapter
    */

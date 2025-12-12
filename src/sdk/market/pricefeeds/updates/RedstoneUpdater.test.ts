@@ -27,9 +27,9 @@ it("should return an empty array when no updates are available", async () => {
     // this test requires anvil rpc
     return;
   }
-  const ezETHFeed = sdk.contracts.mustGet(
+  const ezETHFeed = sdk.mustGetContract<IPriceFeedContract>(
     "0xa7cB34Cd731486F61cfDb7ff5F6fC7B40537eD76",
-  ) as unknown as IPriceFeedContract;
+  );
   const updated = new RedstoneUpdater(sdk, {
     historicTimestamp: true,
     ignoreMissingFeeds: true,

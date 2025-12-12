@@ -6,10 +6,10 @@ import {
 } from "viem";
 
 import { iMarketConfiguratorV310Abi } from "../../abi/310/generated.js";
+import type { ConstructOptions } from "../base/Construct.js";
 import { BaseContract } from "../base/index.js";
 import type { PeripheryContract } from "../constants/index.js";
 import { AP_MARKET_CONFIGURATOR } from "../constants/index.js";
-import type { GearboxSDK } from "../GearboxSDK.js";
 
 const abi = iMarketConfiguratorV310Abi;
 type abi = typeof abi;
@@ -17,8 +17,8 @@ type abi = typeof abi;
 export class MarketConfiguratorContract extends BaseContract<abi> {
   #curatorName?: string;
 
-  constructor(sdk: GearboxSDK, address: Address) {
-    super(sdk, {
+  constructor(options: ConstructOptions, address: Address) {
+    super(options, {
       abi,
       addr: address,
       contractType: AP_MARKET_CONFIGURATOR,
@@ -27,12 +27,12 @@ export class MarketConfiguratorContract extends BaseContract<abi> {
   }
 
   public async loadCuratorName(): Promise<void> {
-    this.#curatorName = await this.sdk.client.readContract({
+    this.#curatorName = await this.client.readContract({
       address: this.address,
       abi: this.abi,
       functionName: "curatorName",
     });
-    this.sdk.addressLabels.set(
+    this.register.setAddressLabel(
       this.address,
       `Market configurator ${this.#curatorName}`,
     );
@@ -41,7 +41,7 @@ export class MarketConfiguratorContract extends BaseContract<abi> {
   public async getPeripheryContract(
     contract: PeripheryContract,
   ): Promise<Address> {
-    const resp = await this.sdk.client.readContract({
+    const resp = await this.client.readContract({
       address: this.address,
       abi: this.abi,
       functionName: "getPeripheryContracts",

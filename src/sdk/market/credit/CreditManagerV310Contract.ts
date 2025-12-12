@@ -17,7 +17,7 @@ type abi = typeof iCreditManagerV310Abi;
 export interface CreditManagerV310Contract
   extends Omit<
       CreditManagerState,
-      "baseParams" | "collateralTokens" | "liquidationThresholds"
+      "baseParams" | "collateralTokens" | "liquidationThresholds" | "name"
     >,
     BaseContract<abi> {}
 
@@ -51,9 +51,12 @@ export class CreditManagerV310Contract
     this.adapters = new AddressMap(undefined, "adapters");
     for (const adapterData of adapters) {
       try {
-        const adapter = createAdapter(this.sdk, adapterData);
-        adapter.name = `${adapter.name}(${this.name})`;
+        const adapter = createAdapter(sdk, adapterData);
         this.adapters.upsert(adapter.targetContract, adapter);
+        this.register.setAddressLabel(
+          adapter.address,
+          `${adapter.name}(${this.name})`,
+        );
       } catch (e) {
         throw new Error(`cannot attach adapter: ${e}`, { cause: e });
       }

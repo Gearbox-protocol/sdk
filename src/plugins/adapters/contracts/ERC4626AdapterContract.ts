@@ -1,6 +1,6 @@
 import { ierc4626AdapterAbi } from "@gearbox-protocol/integrations-v3";
 import { type Address, decodeAbiParameters, zeroAddress } from "viem";
-import type { GearboxSDK } from "../../../sdk/index.js";
+import type { ConstructOptions } from "../../../sdk/index.js";
 import type { AbstractAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -12,10 +12,10 @@ export class ERC4626AdapterContract extends AbstractAdapterContract<abi> {
   public readonly asset: Address;
 
   constructor(
-    sdk: GearboxSDK,
+    options: ConstructOptions,
     args: Omit<AbstractAdapterContractOptions<abi>, "abi">,
   ) {
-    super(sdk, { ...args, abi });
+    super(options, { ...args, abi });
 
     const version = Number(args.baseParams.version);
     if (version <= 311) {

@@ -1,18 +1,20 @@
 import {
   type Abi,
   type Address,
+  type Chain,
   erc20Abi,
   type PublicClient,
   parseAbi,
+  type Transport,
 } from "viem";
 import { tokenCompressorAbi } from "../../../abi/compressors/tokenCompressor.js";
-import { BaseContract } from "../base-contract.js";
+import { BaseContract } from "../../../sdk/index.js";
 
 const abi = tokenCompressorAbi;
 
 export class TokenCompressorContract extends BaseContract<typeof abi> {
-  constructor(address: Address, client: PublicClient) {
-    super(abi, address, client, "TokenCompressor");
+  constructor(addr: Address, client: PublicClient<Transport, Chain>) {
+    super({ client }, { abi, addr, name: "TokenCompressor" });
   }
 
   async getTokenInfo(token: Address): Promise<{

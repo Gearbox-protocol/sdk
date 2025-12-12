@@ -1,4 +1,5 @@
 import type { Address, Hex } from "viem";
+import type { ParsedCall } from "../../sdk/index.js";
 
 export interface Signature {
   signer: Address;
@@ -9,14 +10,6 @@ export interface CrossChainCall {
   chainId: number;
   callData: Hex;
   target: Address;
-}
-
-export interface ParsedCall {
-  chainId: number;
-  target: Address;
-  label: string;
-  functionName: string;
-  args: Record<string, string>;
 }
 
 export interface Batch {

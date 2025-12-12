@@ -7,6 +7,7 @@ import type {
 
 import { iBotListV300Abi } from "../../abi/v300.js";
 import { BaseContract } from "../base/index.js";
+import type { GearboxChain } from "../chain/chains.js";
 import { botPermissionsToString } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import type { BotListStateHuman } from "../types/index.js";
@@ -20,12 +21,12 @@ export class BotListContract extends BaseContract<abi> {
 
   constructor(sdk: GearboxSDK, address: Address) {
     super(sdk, { addr: address, name: "BotListV3", abi });
-    this.#currentBlock = sdk.chain.firstBlock ?? 0n;
+    this.#currentBlock = (sdk.chain as GearboxChain).firstBlock ?? 0n;
   }
 
-  protected parseFunctionParams(
+  protected override stringifyFunctionParams(
     params: DecodeFunctionDataReturnType<abi>,
-  ): Array<string> | undefined {
+  ): string[] {
     switch (params.functionName) {
       case "setCreditManagerApprovedStatus": {
         const [creditManager, status] = params.args;
@@ -40,7 +41,7 @@ export class BotListContract extends BaseContract<abi> {
         ];
       }
       default:
-        return undefined;
+        return super.stringifyFunctionParams(params);
     }
   }
 

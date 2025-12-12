@@ -84,12 +84,6 @@ export interface IUpdatablePriceFeedContract extends IPriceFeedContract {
   createPriceUpdateTx: (data: `0x${string}`) => RawTx;
 }
 
-export interface ILPPriceFeedContract extends IPriceFeedContract {
-  getValue: () => Promise<bigint>;
-  getLowerBound: () => Promise<bigint>;
-  currentLowerBound: () => Promise<bigint>;
-}
-
 export interface UpdatePriceFeedsResult {
   txs: IPriceUpdateTx[];
   timestamp: number;

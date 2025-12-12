@@ -11,6 +11,10 @@ export function createRouter(
   address: Address,
   version: number,
 ): IRouterContract {
+  const contract = sdk.getContract<IRouterContract>(address);
+  if (contract) {
+    return contract;
+  }
   if (isV300(version)) {
     return new RouterV300Contract(sdk, address, version);
   }

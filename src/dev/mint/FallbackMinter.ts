@@ -8,7 +8,7 @@ export class FallbackMinter extends AbstractMinter implements IMinter {
   #minters: IMinter[];
 
   constructor(sdk: GearboxSDK, anvil: AnvilClient, minters: IMinter[]) {
-    super(sdk, anvil, "FallbackMinter");
+    super(sdk, anvil);
     this.#minters = minters;
   }
 

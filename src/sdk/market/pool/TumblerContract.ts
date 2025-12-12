@@ -2,9 +2,12 @@ import type { ContractEventName, Log } from "viem";
 import { decodeAbiParameters } from "viem";
 
 import { iTumblerV310Abi } from "../../../abi/310/generated.js";
-import type { PoolState, RateKeeperState } from "../../base/index.js";
+import type {
+  ConstructOptions,
+  PoolState,
+  RateKeeperState,
+} from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { TumblerStateHuman } from "../../types/index.js";
 import { AddressMap, formatDuration, percentFmt } from "../../utils/index.js";
 import type { IRateKeeperContract } from "./types.js";
@@ -19,8 +22,12 @@ export class TumblerContract
   public readonly epochLength: bigint;
   public readonly rates: AddressMap<number>;
 
-  constructor(sdk: GearboxSDK, pool: PoolState, tumbler: RateKeeperState) {
-    super(sdk, {
+  constructor(
+    options: ConstructOptions,
+    pool: PoolState,
+    tumbler: RateKeeperState,
+  ) {
+    super(options, {
       ...tumbler.baseParams,
       name: `Tumbler(${pool.name})`,
       abi,

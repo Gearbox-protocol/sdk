@@ -15,7 +15,6 @@ import type {
 } from "./types.js";
 
 export class CreditSuite extends SDKConstruct {
-  public readonly name: string;
   public readonly pool: Address;
   public readonly underlying: Address;
 
@@ -25,14 +24,14 @@ export class CreditSuite extends SDKConstruct {
   public readonly marketConfigurator: Address;
 
   public readonly state: CreditSuiteState;
+  public readonly name: string;
 
   constructor(sdk: GearboxSDK, marketData: MarketData, index: number) {
     super(sdk);
     const { creditManagers, pool } = marketData;
-    this.state = creditManagers[index];
-    const { name } = this.state.creditManager;
+    this.name = creditManagers[index].creditManager.name;
 
-    this.name = name;
+    this.state = creditManagers[index];
     this.pool = pool.baseParams.addr;
     this.underlying = pool.underlying;
 
