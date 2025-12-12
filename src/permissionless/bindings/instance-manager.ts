@@ -2,6 +2,7 @@ import {
   type Address,
   type Chain,
   type DecodeFunctionDataReturnType,
+  decodeFunctionData,
   type Hex,
   hexToString,
   type PublicClient,
@@ -156,20 +157,35 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
     }
   }
 
-  // TODO:
+  protected override mustParseFunctionData(calldata: Hex): ParsedCall {
+    const { functionName, args } = decodeFunctionData({
+      abi: this.abi,
+      data: calldata,
+    });
+    // Previously bindings contract returned entire ParsedCall in parseFunctionParams
+    // So configureGlobal returned flat call with label e.g. "PriceFeedStore via instanceManager"
+    // if we keep configureGlobal in parseFunctionParams, it'll return nedsted call
+    // interface is unabled to display nested calls nicely, so we have to make exception in mustParseFunctionData
+    if (functionName === "configureGlobal") {
+      const [target, data] = args;
+      const nestedCall = this.register.parseFunctionData(target, data);
+      const result = this.wrapParseCall(
+        nestedCall.functionName,
+        nestedCall.args,
+      );
+      return {
+        ...result,
+        label: `${this.register.labelAddress(target, true)} via ${result.label}`,
+      };
+    }
+
+    return super.mustParseFunctionData(calldata);
+  }
+
   protected override parseFunctionParams(
     params: DecodeFunctionDataReturnType<typeof abi>,
   ): ParsedCallArgs {
     switch (params.functionName) {
-      case "configureGlobal": {
-        const [target, data] = params.args;
-        const nestedCall = this.register.parseFunctionData(target, data);
-        return {
-          ...nestedCall.args,
-          label: `${nestedCall.label} via instanceManager`,
-          target: this.address,
-        };
-      }
       case "configureLocal": {
         const [target, data] = params.args;
 
