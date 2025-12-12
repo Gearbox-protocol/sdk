@@ -157,7 +157,7 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
     }
   }
 
-  protected override mustParseFunctionData(calldata: Hex): ParsedCall {
+  public override mustParseFunctionData(calldata: Hex): ParsedCall {
     const { functionName, args } = decodeFunctionData({
       abi: this.abi,
       data: calldata,
