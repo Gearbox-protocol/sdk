@@ -276,7 +276,7 @@ export class BaseContract<abi extends Abi | readonly unknown[]>
       chainId: this.chainId,
       target: this.address,
       contractType: this.contractType,
-      label: this.register.labelAddress(this.address, false),
+      label: this.register.labelAddress(this.address, true),
       functionName,
       args,
     };
