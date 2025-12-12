@@ -80,9 +80,9 @@ export class ChainContractsRegister {
     }
   }
 
-  public labelAddress(address: Address): string {
+  public labelAddress(address: Address, includeAddress = true): string {
     const label = this.labels.get(address);
-    return label ? `${address} [${label}]` : address;
+    return label ? (includeAddress ? `${address} [${label}]` : label) : address;
   }
 
   public get chain(): Chain {
