@@ -890,8 +890,9 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
         };
       }
 
+      case "revokeRole":
       case "grantRole": {
-        const [role, address] = args as [Hex, Address];
+        const [role, address] = args;
         return {
           address,
           role: hexToString(role, { size: 32 }),
