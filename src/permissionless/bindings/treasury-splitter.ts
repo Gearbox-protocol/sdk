@@ -99,25 +99,22 @@ export class TreasurySplitterContract extends BaseContract<typeof abi> {
 
     switch (functionName) {
       case "distribute": {
-        const [token] = args as [Address];
+        const [token] = args;
         return {
           token,
         };
       }
 
       case "configure": {
-        const [callData] = args as [Hex];
+        const [callData] = args;
         const decoded = decodeFunctionData({
           abi,
           data: callData,
         });
-        if (decoded) {
-          return {
-            functionName: decoded.functionName,
-            ...super.parseFunctionParams(params),
-          };
-        }
-        return super.parseFunctionParams(params);
+        return {
+          functionName: decoded.functionName,
+          ...super.parseFunctionParams(decoded),
+        };
       }
 
       default:
