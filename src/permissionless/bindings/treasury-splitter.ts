@@ -98,13 +98,6 @@ export class TreasurySplitterContract extends BaseContract<typeof abi> {
     const { functionName, args } = params;
 
     switch (functionName) {
-      case "distribute": {
-        const [token] = args;
-        return {
-          token,
-        };
-      }
-
       case "configure": {
         const [callData] = args;
         const decoded = decodeFunctionData({

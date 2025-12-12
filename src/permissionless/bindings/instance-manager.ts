@@ -189,39 +189,16 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
       case "configureTreasury": {
         const [target, data] = params.args;
 
-        let decoded: ParsedCall | undefined;
-        try {
-          const treasurySplitter = new TreasurySplitterContract(
-            target,
-            this.client,
-          );
-          const parsedData = treasurySplitter.parseFunctionData(data);
-          if (!parsedData.functionName.startsWith("Unknown function")) {
-            decoded = parsedData;
-          }
-        } catch {
-          // If decoding fails, use default decoding
-          decoded = undefined;
-        }
+        const treasurySplitter = new TreasurySplitterContract(
+          target,
+          this.client,
+        );
+        const decoded = treasurySplitter.mustParseFunctionData(data);
 
-        return decoded
-          ? {
-              target,
-              functionName: decoded.functionName,
-              data: json_stringify(decoded.args),
-            }
-          : {
-              target,
-              data,
-            };
-      }
-      case "activate": {
-        const [instanceOwner, treasury, weth, gear] = params.args;
         return {
-          instanceOwner,
-          treasury,
-          weth,
-          gear,
+          target,
+          functionName: decoded.functionName,
+          data: json_stringify(decoded.args),
         };
       }
       case "deploySystemContract": {
@@ -229,14 +206,6 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
         return {
           contractType: hexToString(contractType, { size: 32 }),
           version: version.toString(),
-          saveVersion: saveVersion ? "true" : "false",
-        };
-      }
-      case "setGlobalAddress": {
-        const [key, address, saveVersion] = params.args;
-        return {
-          key,
-          address,
           saveVersion: saveVersion ? "true" : "false",
         };
       }

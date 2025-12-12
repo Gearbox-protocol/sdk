@@ -26,12 +26,8 @@ export class WithdrawalCompressorContract extends BaseContract<typeof abi> {
         const [withdrawableType, compressorType] = args;
 
         return {
-          withdrawableType: hexToString(withdrawableType as `0x${string}`, {
-            size: 32,
-          }),
-          compressorType: hexToString(compressorType as `0x${string}`, {
-            size: 32,
-          }),
+          withdrawableType: hexToString(withdrawableType, { size: 32 }),
+          compressorType: hexToString(compressorType, { size: 32 }),
         };
       }
 

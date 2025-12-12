@@ -301,24 +301,6 @@ export class BytecodeRepositoryContract extends BaseContract<typeof abi> {
     params: DecodeFunctionDataReturnType<typeof abi>,
   ): ParsedCallArgs {
     switch (params.functionName) {
-      // TODO: simple array -> map can be removed, since this is what super.parseFunctionParams does
-      case "allowSystemContract": {
-        const [bytecodeHash] = params.args;
-        return {
-          bytecodeHash,
-        };
-      }
-
-      case "addAuditor": {
-        const [auditor, name] = params.args;
-        return { auditor, name };
-      }
-      case "removeAuditor": {
-        const [auditor] = params.args;
-        return {
-          auditor,
-        };
-      }
       case "addPublicDomain": {
         const [domain] = params.args;
         return {
@@ -329,12 +311,6 @@ export class BytecodeRepositoryContract extends BaseContract<typeof abi> {
         const [contractType] = params.args;
         return {
           contractType: hexToString(contractType, { size: 32 }),
-        };
-      }
-      case "forbidInitCode": {
-        const [bytecodeHash] = params.args;
-        return {
-          bytecodeHash,
         };
       }
       case "setTokenSpecificPostfix": {
@@ -353,15 +329,6 @@ export class BytecodeRepositoryContract extends BaseContract<typeof abi> {
           author: uploadData.author,
           source: uploadData.source,
           authorSignature: uploadData.authorSignature,
-        };
-      }
-      case "submitAuditReport": {
-        const [bytecodeHash, { auditor, reportUrl, signature }] = params.args;
-        return {
-          bytecodeHash,
-          auditor,
-          reportUrl,
-          signature,
         };
       }
       // TODO: add all functions here!

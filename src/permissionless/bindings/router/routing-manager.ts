@@ -26,10 +26,8 @@ export class RoutingManagerContract extends BaseContract<typeof abi> {
         const [adapterType, workerType] = args;
 
         return {
-          adapterType: hexToString(adapterType as `0x${string}`, {
-            size: 32,
-          }),
-          workerType: hexToString(workerType as `0x${string}`, { size: 32 }),
+          adapterType: hexToString(adapterType, { size: 32 }),
+          workerType: hexToString(workerType, { size: 32 }),
         };
       }
 

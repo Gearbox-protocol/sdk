@@ -268,24 +268,6 @@ export class CrossChainMultisigContract extends BaseContract<typeof abi> {
     params: DecodeFunctionDataReturnType<typeof abi>,
   ): ParsedCallArgs {
     switch (params.functionName) {
-      case "addSigner": {
-        const [signer] = params.args;
-        return {
-          signer,
-        };
-      }
-      case "removeSigner": {
-        const [signer] = params.args;
-        return {
-          signer,
-        };
-      }
-      case "setConfirmationThreshold": {
-        const [threshold] = params.args;
-        return {
-          threshold: threshold.toString(),
-        };
-      }
       case "submitBatch": {
         const [name, calls, prevHash] = params.args;
         return {
