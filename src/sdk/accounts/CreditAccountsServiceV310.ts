@@ -1,4 +1,4 @@
-import { encodeFunctionData } from "viem";
+import { encodeFunctionData, getContract } from "viem";
 import { iCreditFacadeMulticallV310Abi } from "../../abi/310/generated.js";
 import { MAX_UINT256 } from "../constants/math.js";
 import type { MultiCall } from "../types/index.js";
@@ -23,7 +23,7 @@ export class CreditAccountServiceV310
    */
   public async setBot({
     botAddress,
-    permissions,
+    permissions: defaultPermissions,
 
     targetContract,
   }: SetBotProps): Promise<
@@ -41,6 +41,24 @@ export class CreditAccountServiceV310
           })
         : [];
 
+    const permissions =
+      defaultPermissions !== null
+        ? defaultPermissions
+        : await getContract({
+            address: botAddress,
+            client: this.sdk.client,
+            abi: [
+              {
+                type: "function",
+                name: "requiredPermissions",
+                inputs: [],
+                outputs: [
+                  { name: "", type: "uint192", internalType: "uint192" },
+                ],
+                stateMutability: "view",
+              },
+            ],
+          }).read.requiredPermissions();
     const addBotCall: MultiCall = {
       target: cm.creditFacade.address,
       callData: encodeFunctionData({

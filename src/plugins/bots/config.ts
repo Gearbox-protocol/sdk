@@ -44,17 +44,14 @@ export const LEGACY_MIGRATION_BOT: MigrationBotState = {
   address: ACCOUNT_MIGRATOR_BOT,
   previewer: ACCOUNT_MIGRATOR_PREVIEWER,
   version: 310,
-  botType: "MIGRATION_BOT",
+  baseType: "LEGACY_MIGRATION",
 };
 
-export const PERMISSION_BY_TYPE: Record<BotBaseType, bigint> = {
-  LIQUIDATION_PROTECTION: BigInt(
-    BotPermissions.ADD_COLLATERAL |
-      BotPermissions.WITHDRAW_COLLATERAL |
-      BotPermissions.DECREASE_DEBT,
-  ),
-
-  MIGRATION: BigInt(
+export const PERMISSION_BY_TYPE: Record<
+  Extract<BotBaseType, "LEGACY_MIGRATION">,
+  bigint
+> = {
+  LEGACY_MIGRATION: BigInt(
     BotPermissions.EXTERNAL_CALLS |
       BotPermissions.UPDATE_QUOTA |
       BotPermissions.DECREASE_DEBT,

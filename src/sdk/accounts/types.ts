@@ -204,6 +204,11 @@ export interface WithdrawCollateralProps extends PrepareUpdateQuotasProps {
   creditAccount: RouterCASlice;
 }
 
+export type AccountToCheck = {
+  creditAccount: Address;
+  creditManager: Address;
+};
+
 export interface ExecuteSwapProps extends PrepareUpdateQuotasProps {
   /**
    * Array of MultiCall from router methods getSingleSwap or getAllSwaps
@@ -447,7 +452,7 @@ export interface SetBotProps {
   /**
    * Permissions to set for the bot
    */
-  permissions: bigint;
+  permissions: bigint | null;
   /**
    * Minimal credit account data {@link RouterCASlice} on which operation is performed; if omitted, credit manager data is used
    * Minimal credit manager data {@link CMSlice} on which operation is performed; used only if credit account is omitted
@@ -522,17 +527,21 @@ export interface ICreditAccountsService extends SDKConstruct {
   getRewards(creditAccount: Address): Promise<Array<Rewards>>;
   /**
    * Method to get all connected bots for credit account
-   * @param {Array<{ creditAccount: Address; creditManager: Address }>} accountsToCheck - list of credit accounts
+   * @param {Array<AccountToCheck>} accountsToCheck - list of credit accounts
    * @param {Address | undefined} legacyMigrationBot - address of the bot to check connected bots on
    * and their credit managers to check connected bots on
    * @returns call result of getConnectedBots for each credit account
    */
   getConnectedBots(
-    accountsToCheck: Array<{ creditAccount: Address; creditManager: Address }>,
+    accountsToCheck: Array<AccountToCheck>,
     legacyMigrationBot: Address | undefined,
+    additionalBots: Array<Address>,
   ): Promise<{
     legacy: GetConnectedBotsResult;
     legacyMigration: GetConnectedMigrationBotsResult;
+    additionalBots: Array<
+      Omit<NonNullable<GetConnectedMigrationBotsResult>, "botAddress">
+    >;
   }>;
   /**
    * V3.1 method, throws in V3. Connects/disables a bot and updates prices

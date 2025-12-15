@@ -40,15 +40,11 @@ export interface BotsPluginState {
   bots: BotState[];
 }
 
-export type BotBaseType = "LIQUIDATION_PROTECTION" | "MIGRATION";
-
-export const MIGRATION_BOT_TYPES = ["MIGRATION_BOT"] as const;
-export type MigrationBotType = (typeof MIGRATION_BOT_TYPES)[number];
+export type BotBaseType = "LIQUIDATION_PROTECTION" | "LEGACY_MIGRATION";
 
 export type MigrationBotState = {
   address: Address;
   version: 310;
-
   previewer: Address;
-  botType: MigrationBotType;
+  baseType: Extract<BotBaseType, "LEGACY_MIGRATION">;
 };
