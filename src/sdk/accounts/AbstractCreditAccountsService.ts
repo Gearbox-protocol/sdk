@@ -39,6 +39,7 @@ import type { ILogger, IPriceUpdateTx, MultiCall } from "../types/index.js";
 import { AddressMap, childLogger } from "../utils/index.js";
 import { simulateWithPriceUpdates } from "../utils/viem/index.js";
 import type {
+  AccountToCheck,
   AddCollateralProps,
   ChangeDeptProps,
   ClaimDelayedProps,
@@ -280,18 +281,22 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
 
   /**
    * Method to get all connected bots for credit account
-   * @param {Array<{ creditAccount: Address; creditManager: Address }>} accountsToCheck - list of credit accounts 
+   * @param {Array<AccountToCheck>} accountsToCheck - list of credit accounts 
       and their credit managers to check connected bots on
    * @returns call result of getConnectedBots for each credit account
    */
   public async getConnectedBots(
-    accountsToCheck: Array<{ creditAccount: Address; creditManager: Address }>,
+    accountsToCheck: Array<AccountToCheck>,
     legacyMigrationBot: Address | undefined,
+    additionalBots: Array<Address>,
   ): Promise<{
     legacy: GetConnectedBotsResult;
     legacyMigration: GetConnectedMigrationBotsResult;
+    additionalBots: Array<
+      Omit<NonNullable<GetConnectedMigrationBotsResult>, "botAddress">
+    >;
   }> {
-    const [resp, migration] = await Promise.all([
+    const [resp, migration, additional] = await Promise.all([
       this.client.multicall({
         contracts: accountsToCheck.map(o => {
           const pool = this.sdk.marketRegister.findByCreditManager(
@@ -308,15 +313,58 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
         allowFailure: true,
       }),
       this.getActiveMigrationBots(accountsToCheck, legacyMigrationBot),
+      this.getActiveBots(accountsToCheck, additionalBots),
     ]);
 
-    return { legacy: resp, legacyMigration: migration };
+    return {
+      legacy: resp,
+      additionalBots: additional,
+      legacyMigration: migration,
+    };
+  }
+  private async getActiveBots(
+    accountsToCheck: Array<AccountToCheck>,
+    bots: Array<Address>,
+  ) {
+    const result = await this.client.multicall({
+      contracts: accountsToCheck.flatMap(ca => {
+        const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
+
+        return bots.map(bot => {
+          return {
+            abi: isV300(cm.creditFacade.version)
+              ? iBotListV300Abi
+              : iBotListV310Abi,
+            address: cm.creditFacade.botList,
+            functionName: "getBotStatus",
+            args: isV300(cm.creditFacade.version)
+              ? [bot, ca.creditManager, ca.creditAccount]
+              : [bot, ca.creditAccount],
+          } as const;
+        });
+      }),
+      allowFailure: true,
+    });
+
+    const botsByCAIndex = accountsToCheck.reduce<
+      Array<Omit<NonNullable<GetConnectedMigrationBotsResult>, "botAddress">>
+    >((acc, _, index) => {
+      const r = result.slice(index * bots.length, (index + 1) * bots.length);
+
+      acc.push({
+        result: r,
+      });
+
+      return acc;
+    }, []);
+
+    return botsByCAIndex;
   }
   private async getActiveMigrationBots(
     accountsToCheck: Array<{ creditAccount: Address; creditManager: Address }>,
-    legacyMigrationBot: Address | undefined,
+    bot: Address | undefined,
   ) {
-    if (legacyMigrationBot) {
+    if (bot) {
       const result = await this.client.multicall({
         contracts: accountsToCheck.map(ca => {
           const cm = this.sdk.marketRegister.findCreditManager(
@@ -330,14 +378,14 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
             address: cm.creditFacade.botList,
             functionName: "getBotStatus",
             args: isV300(cm.creditFacade.version)
-              ? [legacyMigrationBot, ca.creditManager, ca.creditAccount]
-              : [legacyMigrationBot, ca.creditAccount],
+              ? [bot, ca.creditManager, ca.creditAccount]
+              : [bot, ca.creditAccount],
           } as const;
         }),
         allowFailure: true,
       });
 
-      return { result, botAddress: legacyMigrationBot };
+      return { result, botAddress: bot };
     }
 
     return undefined;
