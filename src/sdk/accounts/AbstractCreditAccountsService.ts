@@ -77,7 +77,7 @@ export interface CreditAccountServiceOptions {
 
 export function getWithdrawalCompressorAddress(_chainId: number) {
   // TODO: HARDCODED
-  return "0x36F3d0Bb73CBC2E94fE24dF0f26a689409cF9023";
+  return "0x36F3d0Bb73CBC2E94fE24dF0f26a689409cF9023" as const;
 }
 
 export abstract class AbstractCreditAccountService extends SDKConstruct {
