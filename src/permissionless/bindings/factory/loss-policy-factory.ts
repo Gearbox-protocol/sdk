@@ -1,14 +1,10 @@
 import type { Hex } from "viem";
 import { iLossPolicyV310Abi } from "../../../abi/310/generated.js";
+import { decodeFunctionWithNamedArgs } from "../../utils/abi-decoder.js";
+import { AccessMode } from "../types.js";
 import { AbstractFactory } from "./abstract-factory.js";
 
 const abi = iLossPolicyV310Abi;
-
-export enum AccessMode {
-  Permissionless = 0,
-  Permissioned = 1,
-  Forbidden = 2,
-}
 
 export class LossPolicyFactory extends AbstractFactory<typeof abi> {
   constructor() {
@@ -27,5 +23,28 @@ export class LossPolicyFactory extends AbstractFactory<typeof abi> {
       functionName: "setChecksEnabled",
       args: [args.enabled],
     });
+  }
+
+  decodeConfig(
+    calldata: Hex,
+  ): { functionName: string; args: Record<string, string> } | null {
+    const decoded = decodeFunctionWithNamedArgs(this.abi, calldata);
+    if (!decoded) return null;
+
+    if (decoded.functionName === "setAccessMode") {
+      const accessMode = Number(decoded.args[0]);
+
+      return {
+        functionName: decoded.functionName,
+        args: {
+          accessMode: AccessMode[accessMode] ?? accessMode.toString(),
+        },
+      };
+    }
+
+    return {
+      functionName: decoded.functionName,
+      args: decoded.args,
+    };
   }
 }
