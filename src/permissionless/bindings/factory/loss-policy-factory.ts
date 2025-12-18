@@ -32,12 +32,12 @@ export class LossPolicyFactory extends AbstractFactory<typeof abi> {
     if (!decoded) return null;
 
     if (decoded.functionName === "setAccessMode") {
-      const accessMode = Number(decoded.args[0]);
+      const accessMode = Number(decoded.args.mode);
 
       return {
         functionName: decoded.functionName,
         args: {
-          accessMode: AccessMode[accessMode] ?? accessMode.toString(),
+          mode: AccessMode[accessMode] ?? decoded.args.mode,
         },
       };
     }
