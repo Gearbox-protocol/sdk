@@ -35,6 +35,7 @@ import {
 import { handleSalt } from "../utils/create2.js";
 import { convertPercent } from "../utils/index.js";
 import { CreditFactory } from "./factory/credit-factory.js";
+import { LossPolicyFactory } from "./factory/loss-policy-factory.js";
 import { PoolFactory } from "./factory/pool-factory.js";
 import { PriceOracleFactory } from "./factory/price-oracle-factory.js";
 import { AddressProviderContract, BaseContract } from "./index.js";
@@ -60,12 +61,14 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
   public readonly creditFactory: CreditFactory;
   public readonly poolFactory: PoolFactory;
   public readonly priceOracleFactory: PriceOracleFactory;
+  public readonly lossPolicyFactory: LossPolicyFactory;
 
   constructor(address: Address, client: PublicClient) {
     super(abi, address, client, "MarketConfigurator");
     this.creditFactory = new CreditFactory();
     this.poolFactory = new PoolFactory();
     this.priceOracleFactory = new PriceOracleFactory();
+    this.lossPolicyFactory = new LossPolicyFactory();
   }
 
   async getAddressProvider(): Promise<AddressProviderContract> {
@@ -540,6 +543,8 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
     treasury: Address;
     pausableAdmins: Address[];
     unpausableAdmins: Address[];
+    lossLiquidators: Address[];
+    emergencyLiquidators: Address[];
   }> {
     const [admin, emergencyAdmin, treasury, acl] = await Promise.all([
       this.contract.read.admin(),
@@ -567,6 +572,22 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
           functionName: "getRoleHolders",
           args: [stringToHex("UNPAUSABLE_ADMIN", { size: 32 })],
         },
+        {
+          address: acl,
+          abi: parseAbi([
+            "function getRoleHolders(bytes32) view returns (address[])",
+          ]),
+          functionName: "getRoleHolders",
+          args: [stringToHex("LOSS_LIQUIDATOR", { size: 32 })],
+        },
+        {
+          address: acl,
+          abi: parseAbi([
+            "function getRoleHolders(bytes32) view returns (address[])",
+          ]),
+          functionName: "getRoleHolders",
+          args: [stringToHex("EMERGENCY_LIQUIDATOR", { size: 32 })],
+        },
       ],
     });
 
@@ -576,6 +597,8 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
       treasury,
       pausableAdmins: [...results[0]],
       unpausableAdmins: [...results[1]],
+      lossLiquidators: [...results[2]],
+      emergencyLiquidators: [...results[3]],
     };
   }
 
@@ -913,6 +936,32 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
           functionName,
           args: {
             creditManager,
+            calldata,
+          },
+        };
+      }
+      case "configureLossPolicy": {
+        const [pool, calldata] = args as [Address, Hex];
+        const decoded = this.lossPolicyFactory.decodeConfig(calldata);
+        if (decoded) {
+          return {
+            chainId: 0,
+            target: this.address,
+            label: this.name,
+            functionName,
+            args: {
+              pool,
+              data: json_stringify(decoded),
+            },
+          };
+        }
+        return {
+          chainId: 0,
+          target: this.address,
+          label: this.name,
+          functionName,
+          args: {
+            pool,
             calldata,
           },
         };
