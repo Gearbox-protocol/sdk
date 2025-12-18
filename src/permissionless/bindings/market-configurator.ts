@@ -543,6 +543,8 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
     treasury: Address;
     pausableAdmins: Address[];
     unpausableAdmins: Address[];
+    lossLiquidators: Address[];
+    emergencyLiquidators: Address[];
   }> {
     const [admin, emergencyAdmin, treasury, acl] = await Promise.all([
       this.contract.read.admin(),
@@ -570,6 +572,22 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
           functionName: "getRoleHolders",
           args: [stringToHex("UNPAUSABLE_ADMIN", { size: 32 })],
         },
+        {
+          address: acl,
+          abi: parseAbi([
+            "function getRoleHolders(bytes32) view returns (address[])",
+          ]),
+          functionName: "getRoleHolders",
+          args: [stringToHex("LOSS_LIQUIDATOR", { size: 32 })],
+        },
+        {
+          address: acl,
+          abi: parseAbi([
+            "function getRoleHolders(bytes32) view returns (address[])",
+          ]),
+          functionName: "getRoleHolders",
+          args: [stringToHex("EMERGENCY_LIQUIDATOR", { size: 32 })],
+        },
       ],
     });
 
@@ -579,6 +597,8 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
       treasury,
       pausableAdmins: [...results[0]],
       unpausableAdmins: [...results[1]],
+      lossLiquidators: [...results[2]],
+      emergencyLiquidators: [...results[3]],
     };
   }
 
