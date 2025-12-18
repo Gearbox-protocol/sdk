@@ -22,16 +22,16 @@ export class GearStakingContract extends BaseContract<abi> {
     super(sdk, { addr: address, name: "GearStakingV3", abi });
   }
 
-  parseFunctionParams(
+  protected override stringifyFunctionParams(
     params: DecodeFunctionDataReturnType<abi>,
-  ): Array<string> | undefined {
+  ): string[] {
     switch (params.functionName) {
       case "setVotingContractStatus": {
         const [address, status] = params.args;
         return [this.labelAddress(address), VotingContractStatus[status]];
       }
       default:
-        return undefined;
+        return super.stringifyFunctionParams(params);
     }
   }
 

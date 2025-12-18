@@ -22,9 +22,9 @@ export function createLossPolicy(
   sdk: GearboxSDK,
   { baseParams }: BaseState,
 ): ILossPolicyContract {
-  const existing = sdk.contracts.get(baseParams.addr);
+  const existing = sdk.getContract<ILossPolicyContract>(baseParams.addr);
   if (existing) {
-    return existing as unknown as ILossPolicyContract;
+    return existing;
   }
   const contractType = bytes32ToString(baseParams.contractType);
 

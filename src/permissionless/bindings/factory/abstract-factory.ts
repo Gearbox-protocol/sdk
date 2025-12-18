@@ -1,11 +1,12 @@
-import type {
-  Abi,
-  ContractFunctionName,
-  EncodeFunctionDataParameters,
-  Hex,
+import {
+  type Abi,
+  type ContractFunctionName,
+  decodeFunctionData,
+  type EncodeFunctionDataParameters,
+  type Hex,
 } from "viem";
+import { functionArgsToMap } from "../../../sdk/index.js";
 import { createCallData } from "../../core/raw-tx.js";
-import { decodeFunctionWithNamedArgs } from "../../utils/abi-decoder.js";
 
 export class AbstractFactory<const abi extends Abi | readonly unknown[]> {
   public readonly abi: abi;
@@ -34,11 +35,13 @@ export class AbstractFactory<const abi extends Abi | readonly unknown[]> {
   decodeConfig(
     calldata: Hex,
   ): { functionName: string; args: Record<string, string> } | null {
-    const decoded = decodeFunctionWithNamedArgs(this.abi, calldata);
-    if (!decoded) return null;
+    const decoded = decodeFunctionData({
+      abi: this.abi,
+      data: calldata,
+    });
     return {
       functionName: decoded.functionName,
-      args: decoded.args,
+      args: functionArgsToMap(this.abi, decoded.functionName, decoded.args),
     };
   }
 }

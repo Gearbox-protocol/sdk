@@ -1,23 +1,24 @@
 import {
   type Address,
+  type Chain,
   type DecodeFunctionDataReturnType,
   hexToString,
   type PublicClient,
+  type Transport,
 } from "viem";
 import { routingManagerAbi } from "../../../abi/router/routingManager.js";
-import type { ParsedCall } from "../../core/index.js";
-import { BaseContract } from "../base-contract.js";
+import { BaseContract, type ParsedCallArgs } from "../../../sdk/index.js";
 
 const abi = routingManagerAbi;
 
 export class RoutingManagerContract extends BaseContract<typeof abi> {
-  constructor(address: Address, client: PublicClient) {
-    super(abi, address, client, "RoutingManager");
+  constructor(addr: Address, client: PublicClient<Transport, Chain>) {
+    super({ client }, { abi, addr, name: "RoutingManager" });
   }
 
-  public parseFunctionParams(
+  protected override parseFunctionParams(
     params: DecodeFunctionDataReturnType<typeof abi>,
-  ): ParsedCall | undefined {
+  ): ParsedCallArgs {
     const { functionName, args } = params;
 
     switch (functionName) {
@@ -25,21 +26,13 @@ export class RoutingManagerContract extends BaseContract<typeof abi> {
         const [adapterType, workerType] = args;
 
         return {
-          chainId: 0,
-          target: this.address,
-          label: this.name,
-          functionName,
-          args: {
-            adapterType: hexToString(adapterType as `0x${string}`, {
-              size: 32,
-            }),
-            workerType: hexToString(workerType as `0x${string}`, { size: 32 }),
-          },
+          adapterType: hexToString(adapterType, { size: 32 }),
+          workerType: hexToString(workerType, { size: 32 }),
         };
       }
 
       default:
-        return undefined;
+        return super.parseFunctionParams(params);
     }
   }
 }

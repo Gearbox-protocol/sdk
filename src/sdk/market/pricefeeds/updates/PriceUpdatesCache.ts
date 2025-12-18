@@ -12,11 +12,33 @@ export interface PriceUpdatesCacheOptions {
 }
 
 export class PriceUpdatesCache {
+  static #caches = new Map<string, PriceUpdatesCache>();
+
+  /**
+   * Price update caches can be shared across networks
+   * @param id - unique key to identify the cache
+   * @param opts
+   * @returns
+   */
+  public static get(
+    id: string,
+    opts: PriceUpdatesCacheOptions,
+  ): PriceUpdatesCache {
+    const key = `${id}:${opts.historical ? "historical" : "latest"}:${opts.ttl}`;
+    const cache = PriceUpdatesCache.#caches.get(key);
+    if (cache) {
+      return cache;
+    }
+    const newCache = new PriceUpdatesCache(opts);
+    PriceUpdatesCache.#caches.set(key, newCache);
+    return newCache;
+  }
+
   #cache = new Map<string, Omit<TimestampedCalldata, "cached">>();
   #ttlMs: number;
   #historical: boolean;
 
-  constructor(opts: PriceUpdatesCacheOptions) {
+  private constructor(opts: PriceUpdatesCacheOptions) {
     this.#ttlMs = opts.ttl;
     this.#historical = opts.historical;
   }

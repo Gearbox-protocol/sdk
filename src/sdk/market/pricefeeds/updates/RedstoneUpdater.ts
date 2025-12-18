@@ -10,8 +10,7 @@ import { encodeAbiParameters, toBytes } from "viem";
 import { z } from "zod/v4";
 import { SDKConstruct } from "../../../base/index.js";
 import type { GearboxSDK } from "../../../GearboxSDK.js";
-import type { ILogger } from "../../../types/index.js";
-import { AddressMap, childLogger, retry } from "../../../utils/index.js";
+import { AddressMap, retry } from "../../../utils/index.js";
 import type {
   IPriceFeedContract,
   IUpdatablePriceFeedContract,
@@ -79,7 +78,6 @@ export class RedstoneUpdater
   extends SDKConstruct
   implements IPriceUpdater<RedstoneUpdateTask>
 {
-  #logger?: ILogger;
   #cache: PriceUpdatesCache;
   #historicalTimestampMs?: number;
   #gateways?: string[];
@@ -88,7 +86,6 @@ export class RedstoneUpdater
 
   constructor(sdk: GearboxSDK, opts: RedstoneOptions = {}) {
     super(sdk);
-    this.#logger = childLogger("RedstoneUpdater", sdk.logger);
     this.#ignoreMissingFeeds = opts.ignoreMissingFeeds;
     this.#enableLogging = opts.enableLogging;
     this.#gateways = opts.gateways?.length ? opts.gateways : undefined;
@@ -97,11 +94,11 @@ export class RedstoneUpdater
     if (ts) {
       ts = ts === true ? Number(this.sdk.timestamp) * 1000 : ts;
       this.#historicalTimestampMs = 60_000 * Math.floor(ts / 60_000);
-      this.#logger?.debug(
+      this.logger?.debug(
         `using historical timestamp ${this.#historicalTimestampMs}`,
       );
     }
-    this.#cache = new PriceUpdatesCache({
+    this.#cache = PriceUpdatesCache.get("redstone", {
       // currently staleness period is 240 seconds on all networks, add some buffer
       // this period of 4 minutes is selected based on time that is required for user to sign transaction with wallet
       // so it's unlikely to decrease
@@ -116,7 +113,7 @@ export class RedstoneUpdater
     if (feeds.length === 0) {
       return [];
     }
-    this.#logger?.debug(
+    this.logger?.debug(
       `generating update transactions for ${feeds.length} redstone price feeds`,
     );
 
@@ -183,7 +180,7 @@ export class RedstoneUpdater
         tsRange = `${tsRange} - ${maxTimestamp} (${maxDelta})`;
       }
     }
-    this.#logger?.debug(
+    this.logger?.debug(
       `generated ${results.length} update transactions for redstone price feeds: ${Array.from(priceFeeds.keys()).join(", ")}${tsRange}`,
     );
     return results;
@@ -217,7 +214,7 @@ export class RedstoneUpdater
       // if a feed with stalenessPeriod of 12 hours expired by 10 minutes, it's very unlikely that a retry will succeed
       // plus it'll be very difficult to drill-down and pass stalenessPeriods to this function
       if (delta >= 240 && delta < 255) {
-        this.#logger?.warn(
+        this.logger?.warn(
           `payload for ${dataFeedId} has expired by ${delta} seconds`,
         );
         expired = true;
@@ -246,7 +243,7 @@ export class RedstoneUpdater
     dataFeedsIds: Set<string>,
     uniqueSignersCount: number,
   ): Promise<TimestampedCalldata[]> {
-    this.#logger?.debug(
+    this.logger?.debug(
       `getting redstone payloads for ${dataFeedsIds.size} data feeds in ${dataServiceId} with ${uniqueSignersCount} signers: ${Array.from(dataFeedsIds).join(", ")}`,
     );
     const fromCache: TimestampedCalldata[] = [];
@@ -273,7 +270,7 @@ export class RedstoneUpdater
     for (const resp of fromRedstone) {
       this.#cache.set(resp, dataServiceId, resp.dataFeedId, uniqueSignersCount);
     }
-    this.#logger?.debug(
+    this.logger?.debug(
       `got ${fromRedstone.length} new redstone updates and ${fromCache.length} from cache`,
     );
 
@@ -300,7 +297,7 @@ export class RedstoneUpdater
     const tsStr = this.#historicalTimestampMs
       ? ` with historical timestamp ${this.#historicalTimestampMs}`
       : "";
-    this.#logger?.debug(
+    this.logger?.debug(
       `fetching redstone payloads for ${dataFeedsIds.size} data feeds in ${dataServiceId} with ${uniqueSignersCount} signers: ${dataPackagesIds.join(", ")}${tsStr}`,
     );
     const wrapper = new DataServiceWrapper({
@@ -334,14 +331,14 @@ export class RedstoneUpdater
       const signedDataPackages = packagesByDataFeedId[dataFeedId];
       if (!signedDataPackages) {
         if (this.#ignoreMissingFeeds) {
-          this.#logger?.warn(`cannot find data packages for ${dataFeedId}`);
+          this.logger?.warn(`cannot find data packages for ${dataFeedId}`);
           continue;
         }
         throw new Error(`cannot find data packages for ${dataFeedId}`);
       }
       if (signedDataPackages.length !== uniqueSignersCount) {
         if (this.#ignoreMissingFeeds) {
-          this.#logger?.warn(
+          this.logger?.warn(
             `got ${signedDataPackages.length} data packages for ${dataFeedId}, but expected ${uniqueSignersCount}`,
           );
           continue;

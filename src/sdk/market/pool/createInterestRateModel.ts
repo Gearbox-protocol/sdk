@@ -12,22 +12,18 @@ export default function createInterestRateModel(
   data: BaseState,
 ): IInterestRateModelContract {
   const { addr, contractType } = data.baseParams;
+  const existing = sdk.getContract<IInterestRateModelContract>(addr);
 
-  if (sdk.interestRateModels.has(addr)) {
-    return sdk.interestRateModels.mustGet(
-      addr,
-    ) as any as IInterestRateModelContract;
-  } else {
-    const modelType = bytes32ToString(contractType) as InterestRateModelType;
-    switch (modelType) {
-      case "IRM::LINEAR": {
-        const linearModel = new LinearInterestRateModelContract(sdk, data);
-        sdk.interestRateModels.insert(addr, linearModel as any);
-        return linearModel;
-      }
-      default: {
-        throw new Error(`Unknown interest rate model type: ${modelType}`);
-      }
+  if (existing) {
+    return existing;
+  }
+  const modelType = bytes32ToString(contractType) as InterestRateModelType;
+  switch (modelType) {
+    case "IRM::LINEAR": {
+      return new LinearInterestRateModelContract(sdk, data);
+    }
+    default: {
+      throw new Error(`Unknown interest rate model type: ${modelType}`);
     }
   }
 }

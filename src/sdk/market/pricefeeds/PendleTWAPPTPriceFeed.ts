@@ -2,7 +2,7 @@ import type { Address } from "viem";
 import { decodeAbiParameters } from "viem";
 
 import { pendleTWAPPTPriceFeedAbi } from "../../abi/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
+import type { ConstructOptions } from "../../base/Construct.js";
 import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed.js";
 import { AbstractPriceFeedContract } from "./AbstractPriceFeed.js";
 
@@ -17,8 +17,8 @@ export class PendleTWAPPTPriceFeed extends AbstractPriceFeedContract<abi> {
   public readonly twapWindow: number;
   public readonly priceToSy: boolean;
 
-  constructor(sdk: GearboxSDK, args: PartialPriceFeedTreeNode) {
-    super(sdk, {
+  constructor(options: ConstructOptions, args: PartialPriceFeedTreeNode) {
+    super(options, {
       ...args,
       name: "PendleTWAPPTPriceFeed",
       abi,

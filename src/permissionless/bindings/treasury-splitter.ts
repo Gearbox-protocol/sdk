@@ -1,20 +1,21 @@
-import type {
-  Address,
-  DecodeFunctionDataReturnType,
-  Hex,
-  PublicClient,
+import {
+  type Address,
+  type Chain,
+  type DecodeFunctionDataReturnType,
+  decodeFunctionData,
+  type Hex,
+  type PublicClient,
+  type Transport,
 } from "viem";
 import { ITreasurySplitterAbi } from "../../abi/310/iTreasurySplitter.js";
-import type { RawTx } from "../../sdk/types/index.js";
-import type { ParsedCall } from "../core/index.js";
-import { decodeFunctionWithNamedArgs } from "../utils/abi-decoder.js";
-import { BaseContract } from "./base-contract.js";
+import type { ParsedCallArgs, RawTx } from "../../sdk/index.js";
+import { BaseContract } from "../../sdk/index.js";
 
 const abi = ITreasurySplitterAbi;
 
 export class TreasurySplitterContract extends BaseContract<typeof abi> {
-  constructor(address: Address, client: PublicClient) {
-    super(abi, address, client, "TreasurySplitter");
+  constructor(addr: Address, client: PublicClient<Transport, Chain>) {
+    super({ client }, { abi, addr, name: "TreasurySplitter" });
   }
 
   async defaultSplit() {
@@ -91,45 +92,26 @@ export class TreasurySplitterContract extends BaseContract<typeof abi> {
     });
   }
 
-  public parseFunctionParams(
+  protected override parseFunctionParams(
     params: DecodeFunctionDataReturnType<typeof abi>,
-  ): ParsedCall | undefined {
+  ): ParsedCallArgs {
     const { functionName, args } = params;
 
     switch (functionName) {
-      case "distribute": {
-        const [token] = args as [Address];
+      case "configure": {
+        const [callData] = args;
+        const decoded = decodeFunctionData({
+          abi,
+          data: callData,
+        });
         return {
-          chainId: 0,
-          target: this.address,
-          label: this.name,
-          functionName,
-          args: {
-            token,
-          },
+          functionName: decoded.functionName,
+          ...super.parseFunctionParams(decoded),
         };
       }
 
-      case "configure": {
-        const [callData] = args as [Hex];
-        const decoded = decodeFunctionWithNamedArgs(abi, callData);
-        if (decoded) {
-          return {
-            chainId: 0,
-            target: this.address,
-            label: this.name,
-            functionName,
-            args: {
-              functionName: decoded.functionName,
-              ...decoded.args,
-            },
-          };
-        }
-        return undefined;
-      }
-
       default:
-        return undefined;
+        return super.parseFunctionParams(params);
     }
   }
 }

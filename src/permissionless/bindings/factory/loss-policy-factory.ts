@@ -1,6 +1,5 @@
-import type { Hex } from "viem";
+import { decodeFunctionData, type Hex } from "viem";
 import { iLossPolicyV310Abi } from "../../../abi/310/generated.js";
-import { decodeFunctionWithNamedArgs } from "../../utils/abi-decoder.js";
 import { AccessMode } from "../types.js";
 import { AbstractFactory } from "./abstract-factory.js";
 
@@ -28,23 +27,22 @@ export class LossPolicyFactory extends AbstractFactory<typeof abi> {
   decodeConfig(
     calldata: Hex,
   ): { functionName: string; args: Record<string, string> } | null {
-    const decoded = decodeFunctionWithNamedArgs(this.abi, calldata);
-    if (!decoded) return null;
+    const decoded = decodeFunctionData({
+      abi: this.abi,
+      data: calldata,
+    });
 
     if (decoded.functionName === "setAccessMode") {
-      const accessMode = Number(decoded.args.mode);
+      const [accessMode] = decoded.args;
 
       return {
         functionName: decoded.functionName,
         args: {
-          mode: AccessMode[accessMode] ?? decoded.args.mode,
+          mode: AccessMode[accessMode] ?? accessMode,
         },
       };
     }
 
-    return {
-      functionName: decoded.functionName,
-      args: decoded.args,
-    };
+    return super.decodeConfig(calldata);
   }
 }

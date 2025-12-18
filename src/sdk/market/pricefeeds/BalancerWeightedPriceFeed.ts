@@ -1,11 +1,8 @@
 import type { Address, Hex, UnionOmit } from "viem";
 import { decodeAbiParameters, hexToBytes } from "viem";
 
-import {
-  bptWeightedPriceFeedAbi,
-  iBalancerWeightedPoolAbi,
-} from "../../abi/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
+import { bptWeightedPriceFeedAbi } from "../../abi/index.js";
+import type { ConstructOptions } from "../../base/Construct.js";
 import type { BalancerWeightedPriceFeedStateHuman } from "../../types/state-human.js";
 import { AbstractLPPriceFeedContract } from "./AbstractLPPriceFeed.js";
 import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed.js";
@@ -26,7 +23,7 @@ export class BalancerWeightedPriceFeedContract extends AbstractLPPriceFeedContra
     bigint,
   ];
 
-  constructor(sdk: GearboxSDK, args: PartialPriceFeedTreeNode) {
+  constructor(options: ConstructOptions, args: PartialPriceFeedTreeNode) {
     // https://github.com/Gearbox-protocol/periphery-v3/blob/8ae4c5f8835de9961c55403fcc810516cea3e29c/contracts/serializers/oracles/BPTWeightedPriceFeedSerializer.sol#L24
     // return abi.encode(super.serialize(priceFeed), pf.vault(), pf.poolId(), weights);
     // https://github.com/Gearbox-protocol/oracles-v3/blob/fc8d3a0ab5bd7eb50ce3f6b87dde5cd3d887bafe/contracts/oracles/balancer/BPTWeightedPriceFeed.sol#L173C9-L173C70
@@ -41,7 +38,7 @@ export class BalancerWeightedPriceFeedContract extends AbstractLPPriceFeedContra
       hexToBytes(args.baseParams.serializedParams),
     );
 
-    super(sdk, {
+    super(options, {
       ...args,
       baseParams: {
         ...args.baseParams,
@@ -53,14 +50,6 @@ export class BalancerWeightedPriceFeedContract extends AbstractLPPriceFeedContra
     this.vault = decoded[1];
     this.poolId = decoded[2];
     this.weights = decoded[3];
-  }
-
-  public override async getValue(): Promise<bigint> {
-    return await this.sdk.client.readContract({
-      abi: iBalancerWeightedPoolAbi,
-      address: this.lpContract,
-      functionName: "getRate",
-    });
   }
 
   public override stateHuman(

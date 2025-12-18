@@ -148,7 +148,7 @@ export class ZappersPlugin
 
     for (const t of [...zappersTokens, ...extraZappersTokens]) {
       this.sdk.tokensMeta.upsert(t.addr, t);
-      this.sdk.addressLabels.set(t.addr as Address, t.symbol);
+      this.sdk.setAddressLabel(t.addr, t.symbol);
     }
   }
 }

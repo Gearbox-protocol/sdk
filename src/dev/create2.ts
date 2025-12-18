@@ -24,7 +24,7 @@ import {
 import { getCode, sendTransaction } from "viem/actions";
 
 import type { GearboxSDK, ILogger } from "../sdk/index.js";
-import { SDKConstruct } from "../sdk/index.js";
+import { Construct } from "../sdk/index.js";
 
 export const PUBLIC_CREATE2_FACTORY: Address =
   "0x4e59b44847b379578588920ca78fbf26c0b4956c";
@@ -69,7 +69,7 @@ export class Create2Deployer<
   transport extends Transport = Transport,
   chain extends Chain = Chain,
   account extends Account = Account,
-> extends SDKConstruct {
+> extends Construct {
   #walletClient: WalletClient<transport, chain, account>;
   #logger?: ILogger;
 

@@ -1,28 +1,33 @@
 import {
   type Address,
+  type Chain,
   type DecodeFunctionDataReturnType,
   type Hex,
   type PublicClient,
   parseAbi,
   parseEventLogs,
   recoverTypedDataAddress,
+  type Transport,
   type WalletClient,
   zeroAddress,
 } from "viem";
 import { crossChainMultisigAbi } from "../../abi/310/crossChainMultisig.js";
-import type { RawTx } from "../../sdk/types/index.js";
-import { json_stringify } from "../../sdk/utils/index.js";
+import type { RawTx } from "../../sdk/index.js";
+import {
+  BaseContract,
+  json_stringify,
+  type ParsedCall,
+  type ParsedCallArgs,
+} from "../../sdk/index.js";
 import type {
   Batch,
   CrossChainCall,
-  ParsedCall,
   RecoveryMessage,
   Signature,
 } from "../core/proposal.js";
 import { Addresses } from "../deployment/addresses.js";
 import { normalizeSignature } from "../utils/index.js";
 import { CROSS_CHAIN_MULTISIG } from "../utils/literals.js";
-import { BaseContract } from "./base-contract.js";
 import { InstanceManagerContract } from "./instance-manager.js";
 import { MarketConfiguratorFactoryContract } from "./market-configurator-factory.js";
 
@@ -44,8 +49,8 @@ export interface Proposal {
 }
 
 export class CrossChainMultisigContract extends BaseContract<typeof abi> {
-  constructor(address: Address, client: PublicClient) {
-    super(abi, address, client, "CrossChainMultisig");
+  constructor(addr: Address, client: PublicClient<Transport, Chain>) {
+    super({ client }, { abi, addr, name: "CrossChainMultisig" });
   }
 
   async getExecutedBatches(
@@ -116,7 +121,9 @@ export class CrossChainMultisigContract extends BaseContract<typeof abi> {
       transactionHash: transactionHash,
       blockNumber: blockNumber,
       hash: proposalHash,
-      parsedCalls: calls.map(c => BaseContract.parseCall(c)),
+      parsedCalls: calls.map(c =>
+        this.register.parseFunctionData(c.target, c.callData),
+      ),
       signatures,
     };
   }
@@ -228,7 +235,7 @@ export class CrossChainMultisigContract extends BaseContract<typeof abi> {
     return [...(await this.contract.read.getSigners())];
   }
 
-  decodeFunctionData(target: Address, calldata: Hex): ParsedCall | undefined {
+  #decodeFunctionData(target: Address, calldata: Hex): ParsedCall | undefined {
     switch (target.toLowerCase()) {
       case this.address.toLowerCase(): {
         return this.parseFunctionData(calldata);
@@ -257,44 +264,26 @@ export class CrossChainMultisigContract extends BaseContract<typeof abi> {
     }
   }
 
-  parseFunctionParams(
+  protected override parseFunctionParams(
     params: DecodeFunctionDataReturnType<typeof abi>,
-  ): ParsedCall | undefined {
+  ): ParsedCallArgs {
     switch (params.functionName) {
-      case "addSigner": {
-        const [signer] = params.args;
-        return this.wrapParseCall(params, {
-          signer,
-        });
-      }
-      case "removeSigner": {
-        const [signer] = params.args;
-        return this.wrapParseCall(params, {
-          signer,
-        });
-      }
-      case "setConfirmationThreshold": {
-        const [threshold] = params.args;
-        return this.wrapParseCall(params, {
-          threshold: threshold.toString(),
-        });
-      }
       case "submitBatch": {
         const [name, calls, prevHash] = params.args;
-        return this.wrapParseCall(params, {
+        return {
           name,
           calls: json_stringify(
             calls.map(({ chainId, target, callData }) => ({
-              ...this.decodeFunctionData(target, callData),
+              ...this.#decodeFunctionData(target, callData),
               chainId: Number(chainId),
               target,
             })),
           ),
           prevHash,
-        });
+        };
       }
       default:
-        return undefined;
+        return super.parseFunctionParams(params);
     }
   }
 

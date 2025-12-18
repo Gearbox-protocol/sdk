@@ -1,14 +1,8 @@
 import type { Address, TestClient } from "viem";
-import type { GearboxSDK } from "../../sdk/index.js";
-import type { AnvilClient } from "../createAnvilClient.js";
 import AbstractMinter from "./AbstractMinter.js";
 import type { IMinter } from "./types.js";
 
 export class DealMinter extends AbstractMinter implements IMinter {
-  constructor(sdk: GearboxSDK, anvil: AnvilClient) {
-    super(sdk, anvil, "DealMinter");
-  }
-
   public override async mint(
     token: Address,
     dest: Address,

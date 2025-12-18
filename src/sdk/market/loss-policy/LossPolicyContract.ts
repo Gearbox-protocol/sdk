@@ -1,7 +1,10 @@
 import type { Address, Hex } from "viem";
 import { iLossPolicyV310Abi } from "../../../abi/310/generated.js";
-import { BaseContract, type BaseParams } from "../../base/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
+import {
+  BaseContract,
+  type BaseParams,
+  type ConstructOptions,
+} from "../../base/index.js";
 import type { ILossPolicyContract } from "./types.js";
 
 const abi = iLossPolicyV310Abi;
@@ -11,8 +14,8 @@ export class LossPolicyContract
   extends BaseContract<abi>
   implements ILossPolicyContract
 {
-  constructor(sdk: GearboxSDK, params: BaseParams) {
-    super(sdk, {
+  constructor(options: ConstructOptions, params: BaseParams) {
+    super(options, {
       abi,
       addr: params.addr,
       contractType: params.contractType,

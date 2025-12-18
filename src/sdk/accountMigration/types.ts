@@ -6,7 +6,6 @@ import type {
 } from "viem";
 
 import type { accountMigratorPreviewerV310Abi } from "../../abi/migration.js";
-import type { SDKConstruct } from "../base/SDKConstruct.js";
 import type { Asset, RouterCASlice } from "../router/index.js";
 
 export interface MigrateCreditAccountProps {
@@ -64,7 +63,7 @@ export type PreviewMigrationResult = Awaited<
   >
 >["result"];
 
-export interface IMigrateCreditAccountsService extends SDKConstruct {
+export interface IMigrateCreditAccountsService {
   /**
    * Preview delayed withdrawal for a given credit account
    * @param props - {@link PreviewCreditAccountMigrationProps}
