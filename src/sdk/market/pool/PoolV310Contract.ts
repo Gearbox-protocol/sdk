@@ -6,9 +6,12 @@ import type {
 
 import { iPoolV310Abi } from "../../../abi/310/generated.js";
 import { iPausableAbi } from "../../../abi/iPausable.js";
-import type { CreditManagerDebtParams, PoolState } from "../../base/index.js";
+import type {
+  ConstructOptions,
+  CreditManagerDebtParams,
+  PoolState,
+} from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { PoolStateHuman } from "../../types/index.js";
 import {
   AddressMap,
@@ -22,15 +25,15 @@ type abi = typeof abi;
 
 // Augmenting contract class with interface of compressor data object
 export interface PoolV310Contract
-  extends Omit<PoolState, "baseParams" | "creditManagerDebtParams">,
+  extends Omit<PoolState, "baseParams" | "creditManagerDebtParams" | "name">,
     BaseContract<abi> {}
 
 export class PoolV310Contract extends BaseContract<abi> {
   public readonly creditManagerDebtParams: AddressMap<CreditManagerDebtParams>;
 
-  constructor(sdk: GearboxSDK, data: PoolState) {
+  constructor(options: ConstructOptions, data: PoolState) {
     const { baseParams, creditManagerDebtParams, ...rest } = data;
-    super(sdk, {
+    super(options, {
       ...data.baseParams,
       name: `PoolV3(${data.name})`,
       abi,
@@ -40,7 +43,7 @@ export class PoolV310Contract extends BaseContract<abi> {
       creditManagerDebtParams.map(p => [p.creditManager, p]),
     );
     // Put diesel token into tokens meta
-    sdk.tokensMeta.upsert(data.baseParams.addr, {
+    this.register.tokensMeta.upsert(data.baseParams.addr, {
       addr: data.baseParams.addr,
       decimals: data.decimals,
       name: data.name,
@@ -134,16 +137,16 @@ export class PoolV310Contract extends BaseContract<abi> {
     }
   }
 
-  protected parseFunctionParams(
+  protected override stringifyFunctionParams(
     params: DecodeFunctionDataReturnType<abi>,
-  ): Array<string> | undefined {
+  ): string[] {
     switch (params.functionName) {
       case "deposit": {
         const [amount, onBehalfOf] = params.args;
         return [formatBN(amount, this.decimals), this.labelAddress(onBehalfOf)];
       }
       default:
-        return undefined;
+        return super.stringifyFunctionParams(params);
     }
   }
 }

@@ -1,7 +1,8 @@
 import type { Abi, Address } from "viem";
 
-import { BaseContract } from "../base/index.js";
+import { BaseContract, type BaseContractArgs } from "../base/index.js";
 import { PERCENTAGE_FACTOR } from "../constants/math.js";
+import type { GearboxSDK } from "../GearboxSDK.js";
 import type { IPriceOracleContract } from "../market/index.js";
 import { AddressMap, AddressSet, formatBN, isDust } from "../utils/index.js";
 import type { IHooks } from "../utils/internal/index.js";
@@ -31,6 +32,12 @@ export abstract class AbstractRouterContract<
 
   public readonly addHook = this.hooks.addHook.bind(this.hooks);
   public readonly removeHook = this.hooks.removeHook.bind(this.hooks);
+  public readonly sdk: GearboxSDK;
+
+  constructor(sdk: GearboxSDK, args: BaseContractArgs<abi>) {
+    super(sdk, args);
+    this.sdk = sdk;
+  }
 
   protected getExpectedAndLeftover(
     ca: RouterCASlice,

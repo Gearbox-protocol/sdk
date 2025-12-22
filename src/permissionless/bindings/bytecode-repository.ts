@@ -1,5 +1,6 @@
 import {
   type Address,
+  type Chain,
   type DecodeFunctionDataReturnType,
   type Hex,
   hashStruct,
@@ -9,20 +10,20 @@ import {
   parseEventLogs,
   recoverTypedDataAddress,
   stringToHex,
+  type Transport,
   type WalletClient,
 } from "viem";
 import { iBytecodeRepositoryAbi } from "../../abi/310/iBytecodeRepository.js";
-import type { RawTx } from "../../sdk/types/index.js";
+import type { RawTx } from "../../sdk/index.js";
+import { BaseContract, type ParsedCallArgs } from "../../sdk/index.js";
 import type { Auditor } from "../core/auditor.js";
 import type {
   AuditEvent,
   Bytecode,
   DeploymentExtended,
 } from "../core/bytecode.js";
-import type { ParsedCall } from "../core/proposal.js";
 import { normalizeSignature } from "../utils/index.js";
 import { BYTECODE_REPOSITORY } from "../utils/literals.js";
-import { BaseContract } from "./base-contract.js";
 
 const abi = iBytecodeRepositoryAbi;
 
@@ -35,8 +36,8 @@ interface ComputeAddressArgs {
 }
 
 export class BytecodeRepositoryContract extends BaseContract<typeof abi> {
-  constructor(address: Address, client: PublicClient) {
-    super(abi, address, client, "BytecodeRepository");
+  constructor(addr: Address, client: PublicClient<Transport, Chain>) {
+    super({ client }, { abi, addr, name: "BytecodeRepository" });
   }
 
   async getBytecodeByHash(hash: `0x${string}`) {
@@ -296,74 +297,39 @@ export class BytecodeRepositoryContract extends BaseContract<typeof abi> {
     return events;
   }
 
-  parseFunctionParams(
+  protected override parseFunctionParams(
     params: DecodeFunctionDataReturnType<typeof abi>,
-  ): ParsedCall | undefined {
+  ): ParsedCallArgs {
     switch (params.functionName) {
-      case "allowSystemContract": {
-        const [bytecodeHash] = params.args;
-        return this.wrapParseCall(params, {
-          bytecodeHash,
-        });
-      }
-
-      case "addAuditor": {
-        const [auditor, name] = params.args;
-        return this.wrapParseCall(params, {
-          auditor,
-          name,
-        });
-      }
-      case "removeAuditor": {
-        const [auditor] = params.args;
-        return this.wrapParseCall(params, {
-          auditor,
-        });
-      }
       case "addPublicDomain": {
         const [domain] = params.args;
-        return this.wrapParseCall(params, {
+        return {
           domain: hexToString(domain, { size: 32 }),
-        });
+        };
       }
       case "removePublicContractType": {
         const [contractType] = params.args;
-        return this.wrapParseCall(params, {
+        return {
           contractType: hexToString(contractType, { size: 32 }),
-        });
-      }
-      case "forbidInitCode": {
-        const [bytecodeHash] = params.args;
-        return this.wrapParseCall(params, {
-          bytecodeHash,
-        });
+        };
       }
       case "setTokenSpecificPostfix": {
         const [token, postfix] = params.args;
-        return this.wrapParseCall(params, {
+        return {
           token,
           postfix: hexToString(postfix, { size: 32 }),
-        });
+        };
       }
       case "uploadBytecode": {
         const [uploadData] = params.args;
-        return this.wrapParseCall(params, {
+        return {
           contractType: hexToString(uploadData.contractType, { size: 32 }),
           version: uploadData.version.toString(),
           initCode: uploadData.initCode,
           author: uploadData.author,
           source: uploadData.source,
           authorSignature: uploadData.authorSignature,
-        });
-      }
-      case "submitAuditReport": {
-        const [bytecodeHash, { auditor, reportUrl, signature }] = params.args;
-        return this.wrapParseCall(params, {
-          bytecodeHash,
-          auditor,
-          reportUrl,
-          signature,
-        });
+        };
       }
       // TODO: add all functions here!
       // case "deployContract": {
@@ -384,7 +350,7 @@ export class BytecodeRepositoryContract extends BaseContract<typeof abi> {
       //   });
       // }
       default:
-        return undefined;
+        return super.parseFunctionParams(params);
     }
   }
 

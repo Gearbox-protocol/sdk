@@ -1,6 +1,5 @@
-import type { Address, Hex } from "viem";
+import type { Address, Chain, Hex, PublicClient, Transport } from "viem";
 import { iVersionAbi } from "../../abi/iVersion.js";
-import type { GearboxSDK } from "../GearboxSDK.js";
 import { bytes32ToString, type PhantomTokenContractType } from "../index.js";
 import type { Asset } from "../router/index.js";
 import { AddressMap, AddressSet, formatBN } from "../utils/index.js";
@@ -19,12 +18,12 @@ export interface TokenMetaDataExtended extends TokenMetaData {
 }
 
 export class TokensMeta extends AddressMap<TokenMetaDataExtended> {
-  #sdk: GearboxSDK;
+  #client: PublicClient<Transport, Chain>;
   #phantomTokensLoaded?: AddressSet;
 
-  constructor(sdk: GearboxSDK) {
+  constructor(client: PublicClient<Transport, Chain>) {
     super(undefined, "tokensMeta");
-    this.#sdk = sdk;
+    this.#client = client;
   }
 
   public symbol(token: Address): string {
@@ -103,7 +102,7 @@ export class TokensMeta extends AddressMap<TokenMetaDataExtended> {
   public async loadPhantomTokens(): Promise<void> {
     this.#phantomTokensLoaded = new AddressSet();
     const tokens = this.keys();
-    const resp = await this.#sdk.client.multicall({
+    const resp = await this.#client.multicall({
       contracts: tokens.map(
         t =>
           ({

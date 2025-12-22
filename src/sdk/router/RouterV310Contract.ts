@@ -377,7 +377,7 @@ export class RouterV310Contract
     token: Address,
     amount: bigint,
   ): bigint {
-    const scale = 10n ** BigInt(this.sdk.tokensMeta.get(token)?.decimals ?? 0);
+    const scale = 10n ** BigInt(this.tokensMeta.get(token)?.decimals ?? 0);
     const price =
       oracle.mainPrices.get(token)?.price ||
       oracle.reservePrices.get(token)?.price ||
@@ -388,11 +388,9 @@ export class RouterV310Contract
   #debugTokenData(tData: TokenData[]): Record<string, any>[] {
     return tData.map(t => ({
       token: this.labelAddress(t.token),
-      balance: `${this.sdk.tokensMeta.formatBN(t.token, t.balance)} (${
-        t.balance
-      })`,
+      balance: `${this.tokensMeta.formatBN(t.token, t.balance)} (${t.balance})`,
       leftoverBalance:
-        this.sdk.tokensMeta.formatBN(t.token, t.leftoverBalance) +
+        this.tokensMeta.formatBN(t.token, t.leftoverBalance) +
         ` (${t.leftoverBalance})`,
       numSplits: t.numSplits,
       claimRewards: t.claimRewards,

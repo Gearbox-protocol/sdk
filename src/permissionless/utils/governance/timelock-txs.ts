@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import { governorAbi } from "../../../abi/governance/governor.js";
-import { createRawTx } from "../../../sdk/utils/index.js";
+import { createRawTx } from "../../../sdk/index.js";
 import type { SafeTx, TimelockTxParams } from "../../bindings/index.js";
 import { convertRawTxToSafeMultisigTx } from "./batch.js";
 

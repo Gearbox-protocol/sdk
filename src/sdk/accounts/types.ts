@@ -7,8 +7,12 @@ import type {
 } from "viem";
 import type { creditAccountCompressorAbi } from "../../abi/compressors/creditAccountCompressor.js";
 import type { iWithdrawalCompressorV310Abi } from "../../abi/IWithdrawalCompressorV310.js";
-import type { ConnectedBotData, CreditAccountData } from "../base/index.js";
-import type { SDKConstruct } from "../base/SDKConstruct.js";
+import type {
+  ConnectedBotData,
+  Construct,
+  CreditAccountData,
+} from "../base/index.js";
+import type { GearboxSDK } from "../GearboxSDK.js";
 import type {
   CreditSuite,
   OnDemandPriceUpdates,
@@ -494,7 +498,8 @@ export type GetConnectedMigrationBotsResult =
     }
   | undefined;
 
-export interface ICreditAccountsService extends SDKConstruct {
+export interface ICreditAccountsService extends Construct {
+  sdk: GearboxSDK;
   /**
    * Returns single credit account data, or undefined if it's not found
    * Performs all necessary price feed updates under the hood

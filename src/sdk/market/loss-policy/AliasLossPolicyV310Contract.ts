@@ -30,6 +30,7 @@ export class AliasLossPolicyV310Contract
   public readonly checksEnabled: boolean;
   public readonly tokens: readonly Address[];
   public readonly priceFeedParams: readonly AliasedPriceFeedParams[];
+  public readonly sdk: GearboxSDK;
 
   constructor(sdk: GearboxSDK, params: BaseParams) {
     super(sdk, {
@@ -38,6 +39,7 @@ export class AliasLossPolicyV310Contract
       contractType: params.contractType,
       version: params.version,
     });
+    this.sdk = sdk;
     [this.accessMode, this.checksEnabled, this.tokens, this.priceFeedParams] =
       decodeAbiParameters(
         [
@@ -63,7 +65,7 @@ export class AliasLossPolicyV310Contract
     creditAccount: Address,
     blockNumber?: bigint,
   ): Promise<Hex | undefined> {
-    const pfs = await this.sdk.client.readContract({
+    const pfs = await this.client.readContract({
       address: this.address,
       abi: this.abi,
       functionName: "getRequiredAliasPriceFeeds",

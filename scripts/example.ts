@@ -3,6 +3,7 @@ import { writeFile } from "node:fs/promises";
 import { pino } from "pino";
 
 import { AccountsCounterPlugin } from "../src/plugins/accounts-counter/index.js";
+import { AdaptersPlugin } from "../src/plugins/adapters/AdaptersPlugin.js";
 import { BotsPlugin } from "../src/plugins/bots/index.js";
 import { DegenDistributorsPlugin } from "../src/plugins/degen-distributors/index.js";
 import { Pools7DAgoPlugin } from "../src/plugins/pools-history/index.js";
@@ -30,7 +31,7 @@ async function example(): Promise<void> {
   const sdk = await GearboxSDK.attach({
     rpcURLs: [RPC],
     timeout: 480_000,
-    // blockNumber: 22118452, // 21977000, // 22118452
+    blockNumber: 23928400,
     // redstoneHistoricTimestamp: true,
     // addressProvider: ADDRESS_PROVIDER,
     // marketConfigurators: [],
@@ -38,6 +39,7 @@ async function example(): Promise<void> {
     // ignoreUpdateablePrices: true,
     strictContractTypes: true,
     plugins: {
+      adapters: new AdaptersPlugin(true),
       zappers: new ZappersPlugin([], true),
       bots: new BotsPlugin(true),
       degen: new DegenDistributorsPlugin(true),
@@ -47,9 +49,11 @@ async function example(): Promise<void> {
     },
     redstone: {
       ignoreMissingFeeds: true,
+      historicTimestamp: true,
     },
     pyth: {
       ignoreMissingFeeds: true,
+      historicTimestamp: true,
     },
   });
   // kind = "hydrated";
@@ -79,11 +83,11 @@ async function example(): Promise<void> {
   const prefix = RPC.includes("127.0.0.1") ? "anvil_" : "";
   const net = sdk.networkType;
   await writeFile(
-    `tmp/state_${kind}_human_${net}_${prefix}${sdk.currentBlock}.json`,
+    `tmp/state_next_${kind}_human_${net}_${prefix}${sdk.currentBlock}.json`,
     json_stringify(sdk.stateHuman()),
   );
   await writeFile(
-    `tmp/state_${kind}_${net}_${prefix}${sdk.currentBlock}.json`,
+    `tmp/state_next_${kind}_${net}_${prefix}${sdk.currentBlock}.json`,
     json_stringify(sdk.state),
   );
 

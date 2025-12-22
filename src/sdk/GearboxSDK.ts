@@ -1,4 +1,4 @@
-import type { Address, Hex } from "viem";
+import type { Address } from "viem";
 import {
   createPublicClient,
   defineChain,
@@ -9,8 +9,8 @@ import {
   type Transport,
 } from "viem";
 import type { HttpRpcClientOptions } from "viem/utils";
-import type { BaseContract, BaseState, IBaseContract } from "./base/index.js";
-import { AddressLabeller, TokensMeta } from "./base/index.js";
+import type { BaseState, IBaseContract } from "./base/index.js";
+import { ChainContractsRegister } from "./base/index.js";
 import type { GearboxChain, NetworkType } from "./chain/chains.js";
 import { detectNetwork, getChain } from "./chain/index.js";
 import type { VersionRange } from "./constants/index.js";
@@ -41,14 +41,9 @@ import {
   type PluginsMap,
 } from "./plugins/index.js";
 import { createRouter, type IRouterContract } from "./router/index.js";
-import type {
-  GearboxState,
-  GearboxStateHuman,
-  ILogger,
-  MultiCall,
-} from "./types/index.js";
+import type { GearboxState, GearboxStateHuman } from "./types/index.js";
 import type { PickSomeRequired } from "./utils/index.js";
-import { AddressMap, TypedObjectUtils, toAddress } from "./utils/index.js";
+import { TypedObjectUtils, toAddress } from "./utils/index.js";
 import { Hooks } from "./utils/internal/index.js";
 import { getLogsSafe } from "./utils/viem/index.js";
 
@@ -188,11 +183,11 @@ export type SDKHooks = {
   rehydrate: [SyncStateOptions];
 };
 
-export class GearboxSDK<const Plugins extends PluginsMap = {}> {
+export class GearboxSDK<
+  const Plugins extends PluginsMap = {},
+> extends ChainContractsRegister {
   readonly #hooks = new Hooks<SDKHooks>();
   readonly plugins: Plugins;
-
-  #client: PublicClient<Transport, GearboxChain>;
 
   // Block which was use for data query
   #currentBlock?: bigint;
@@ -207,34 +202,12 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
   #marketRegister?: MarketRegister;
   #priceFeeds?: PriceFeedRegister;
 
-  public readonly logger?: ILogger;
   public readonly gasLimit: bigint | undefined;
-
-  public readonly addressLabels = new AddressLabeller();
-
-  /**
-   * Interest rate models can be reused across chain (and SDK operates on chain level)
-   * TODO: use whatever interface is necessary for InterestRateModels
-   */
-  public readonly interestRateModels = new AddressMap<
-    BaseContract<readonly unknown[]>
-  >();
 
   /**
    * Will throw an error if contract type is not supported, otherwise will try to use generic contract first, if possible
    */
   public readonly strictContractTypes: boolean;
-  /**
-   * All contracts known to sdk
-   */
-  public readonly contracts = new AddressMap<BaseContract<any>>(
-    undefined,
-    "contracts",
-  );
-  /**
-   * Token metadata such as symbol and decimals
-   */
-  public readonly tokensMeta: TokensMeta;
 
   public addHook = this.#hooks.addHook.bind(this.#hooks);
   public removeHook = this.#hooks.removeHook.bind(this.#hooks);
@@ -300,11 +273,9 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
   }
 
   private constructor(options: SDKContructorArgs<Plugins>) {
-    this.logger = options.logger;
+    super(options.client, options.logger);
     this.strictContractTypes = options.strictContractTypes ?? false;
     this.plugins = options.plugins ?? ({} as Plugins);
-    // need to explicitly set chain id on testnets (e.g. 7878 = mainnet)
-    this.#client = options.client;
 
     for (const plugin of Object.values(this.plugins)) {
       plugin.sdk = this;
@@ -313,7 +284,8 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
     if (options.gasLimit !== null) {
       this.gasLimit = options.gasLimit || 550_000_000n;
     }
-    this.tokensMeta = new TokensMeta(this);
+    // this is essentiag, we need sdk be present in static contracts register
+    Object.assign(this, ChainContractsRegister.for(this.client, this.logger));
   }
 
   async #attach(opts: AttachOptionsInternal): Promise<this> {
@@ -494,88 +466,8 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
     });
   }
 
-  public get client(): PublicClient<Transport, GearboxChain> {
-    return this.#client;
-  }
-
-  /**
-   * Replaces client inflight
-   * You're responsible for all inconsistencies between new and old client
-   * @param options
-   */
-  public replaceClient(options: ClientOptions, network?: NetworkOptions) {
-    this.#client = createClient(options, network);
-  }
-
   public get networkType(): NetworkType {
-    return this.client.chain.network;
-  }
-
-  public get chain(): GearboxChain {
-    return this.client.chain;
-  }
-
-  public get chainId(): number {
-    return this.client.chain.id;
-  }
-
-  /**
-   * Converts contract call into some human-friendly string
-   * This method is safe and should not throw
-   * @param address
-   * @param calldata
-   * @returns
-   */
-  public parseFunctionData(address: Address, calldata: Hex): string {
-    const contract = this.contracts.get(address);
-    // TODO: fallback to 4bytes directory
-    return contract
-      ? contract.parseFunctionData(calldata)
-      : `unknown: ${address}.${calldata.slice(0, 10)}`;
-  }
-
-  /**
-   * Converts multicalls into some human-friendly strings
-   * This method is safe and should not throw
-   * @param address
-   * @param calldata
-   * @returns
-   */
-  public parseMultiCall(calls: MultiCall[]): string[] {
-    return calls.map(call =>
-      this.parseFunctionData(call.target, call.callData),
-    );
-  }
-
-  /**
-   * Return args, function, type and address name from contract call
-   * @param address
-   * @param calldata
-   * @returns
-   */
-  public parseFunctionDataToObject(address: Address, calldata: Hex) {
-    const contract = this.contracts.get(address);
-    // TODO: fallback to 4bytes directory
-
-    return contract
-      ? {
-          ...contract.parseFunctionDataToObject(calldata),
-          address,
-          type: contract.contractType,
-        }
-      : null;
-  }
-
-  /**
-   * Converts multicalls into call info
-   * @param address
-   * @param calldata
-   * @returns
-   */
-  public parseMultiCallToObject(calls: MultiCall[]) {
-    return calls.map(call =>
-      this.parseFunctionDataToObject(call.target, call.callData),
-    );
+    return (this.client.chain as GearboxChain).network;
   }
 
   public stateHuman(raw = true): GearboxStateHuman {
@@ -678,7 +570,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       });
 
       for (const log of logs) {
-        const contract = this.contracts.get(log.address);
+        const contract = this.getContract(log.address);
         if (contract) {
           const event = parseEventLogs({
             abi: contract.abi,
@@ -784,20 +676,17 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
 
   public get botListContract(): BotListContract | undefined {
     const addr = this.addressProvider.getAddress(AP_BOT_LIST, NO_VERSION);
-    if (!this.contracts.has(addr)) {
-      // this registers it in sdk.contracts as constructor's side-effect
-      return new BotListContract(this, addr);
-    }
-    return this.contracts.get(addr) as unknown as BotListContract;
+    return (
+      this.getContract<BotListContract>(addr) ?? new BotListContract(this, addr)
+    );
   }
 
   public get gearStakingContract(): GearStakingContract | undefined {
     const addr = this.addressProvider.getAddress(AP_GEAR_STAKING, NO_VERSION);
-    if (!this.contracts.has(addr)) {
-      // this registers it in sdk.contracts as constructor's side-effect
-      return new GearStakingContract(this, addr);
-    }
-    return this.contracts.get(addr) as unknown as GearStakingContract;
+    return (
+      this.getContract<GearStakingContract>(addr) ??
+      new GearStakingContract(this, addr)
+    );
   }
 
   public get marketRegister(): MarketRegister {
@@ -831,7 +720,7 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
         );
         facadeAddr = cm.creditFacade.address;
       }
-      const facadeV = this.contracts.mustGet(facadeAddr).version;
+      const facadeV = this.mustGetContract(facadeAddr).version;
       routerRange = isV310(facadeV) ? VERSION_RANGE_310 : VERSION_RANGE_300;
     }
     const routerEntry = this.addressProvider.getLatest(AP_ROUTER, routerRange);
@@ -839,19 +728,6 @@ export class GearboxSDK<const Plugins extends PluginsMap = {}> {
       throw new Error(`router not found in version range ${routerRange}`);
     }
     const [routerAddr, routerV] = routerEntry;
-    if (!this.contracts.has(routerAddr)) {
-      // router is added to this.contracts as constructor's side-effect
-      return createRouter(this, routerAddr, routerV);
-    }
-    return this.contracts.get(routerAddr) as unknown as IRouterContract;
-  }
-
-  /**
-   * Helper to get human-friendly label for address
-   * @param address
-   * @returns
-   */
-  public labelAddress(address: Address): string {
-    return this.addressLabels.get(address);
+    return createRouter(this, routerAddr, routerV);
   }
 }

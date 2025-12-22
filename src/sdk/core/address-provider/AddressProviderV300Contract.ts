@@ -7,7 +7,8 @@ import type {
 import { bytesToString, getAbiItem, parseEventLogs, toBytes } from "viem";
 
 import { iAddressProviderV300Abi } from "../../../abi/v300.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
+import type { ConstructOptions } from "../../base/Construct.js";
+import type { GearboxChain } from "../../chain/index.js";
 import { getLogsSafe } from "../../utils/viem/index.js";
 import AbstractAddressProviderContract from "./AbstractAddressProviderContract.js";
 import type { IAddressProviderContract } from "./types.js";
@@ -20,13 +21,13 @@ export class AddressProviderV300Contract
   implements IAddressProviderContract
 {
   constructor(
-    sdk: GearboxSDK,
+    options: ConstructOptions,
     address: Address,
     version: number,
     addresses: Record<string, Record<number, Address>> = {},
   ) {
     super(
-      sdk,
+      options,
       {
         addr: address,
         name: "AddressProviderV300",
@@ -37,9 +38,9 @@ export class AddressProviderV300Contract
     );
   }
 
-  protected parseFunctionParams(
+  protected override stringifyFunctionParams(
     params: DecodeFunctionDataReturnType<abi>,
-  ): Array<string> | undefined {
+  ): string[] {
     switch (params.functionName) {
       case "setAddress": {
         if (params.args.length !== 3) {
@@ -50,7 +51,7 @@ export class AddressProviderV300Contract
         return [bytesToString(toBytes(key)), value, `${saveVersion}`];
       }
       default:
-        return undefined;
+        return super.stringifyFunctionParams(params);
     }
   }
 
@@ -88,11 +89,16 @@ export class AddressProviderV300Contract
   }
 
   public async syncState(blockNumber?: bigint): Promise<void> {
-    const fromBlock = this.sdk.chain.firstBlock;
+    if (!("firstBlock" in this.chain)) {
+      throw new Error(
+        `address provider v300 requires gearbox chain for ${this.chain.id} `,
+      );
+    }
+    const fromBlock = (this.chain as GearboxChain).firstBlock;
     this.logger?.debug(
       `loading events from block ${fromBlock} to ${blockNumber}`,
     );
-    const events = await getLogsSafe(this.sdk.client, {
+    const events = await getLogsSafe(this.client, {
       address: this.address,
       event: getAbiItem({ abi: this.abi, name: "SetAddress" }),
       fromBlock,

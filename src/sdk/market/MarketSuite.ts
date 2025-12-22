@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 
 import type { MarketData } from "../base/index.js";
-import { SDKConstruct } from "../base/index.js";
+import { Construct, SDKConstruct } from "../base/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import type { MarketStateHuman } from "../types/index.js";
 import { CreditSuite } from "./credit/index.js";
@@ -32,7 +32,7 @@ export class MarketSuite extends SDKConstruct {
     this.state = marketData;
 
     // must be already created in MarketRegister
-    const mc = sdk.contracts.mustGet(marketData.configurator);
+    const mc = sdk.mustGetContract(marketData.configurator);
     if (!(mc instanceof MarketConfiguratorContract)) {
       throw new Error(
         `Market configurator ${marketData.configurator} is not a market configurator`,
@@ -45,7 +45,7 @@ export class MarketSuite extends SDKConstruct {
 
     for (const t of marketData.tokens) {
       sdk.tokensMeta.upsert(t.addr, t);
-      sdk.addressLabels.set(t.addr as Address, t.symbol);
+      sdk.setAddressLabel(t.addr, t.symbol);
     }
 
     this.pool = new PoolSuite(sdk, marketData);

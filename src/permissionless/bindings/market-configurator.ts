@@ -1,8 +1,6 @@
-// External libraries
-
-// Viem imports
 import {
   type Address,
+  type Chain,
   type DecodeFunctionDataReturnType,
   decodeAbiParameters,
   encodeAbiParameters,
@@ -15,18 +13,16 @@ import {
   type PublicClient,
   parseAbi,
   stringToHex,
+  type Transport,
   toBytes,
 } from "viem";
 import {
   creditFacadeParamsAbi,
   creditManagerParamsAbi,
 } from "../../abi/310/configure/creditSuiteParams.js";
-// Permissionless SDK imports
 import { iMarketConfiguratorV310Abi } from "../../abi/310/generated.js";
-import type { RawTx } from "../../sdk/types/index.js";
-import { json_stringify } from "../../sdk/utils/index.js";
-// Local imports
-import type { ParsedCall } from "../core/proposal.js";
+import type { ParsedCallArgs, RawTx } from "../../sdk/index.js";
+import { BaseContract, json_stringify } from "../../sdk/index.js";
 import {
   parseIrmDeployParams,
   parseLossPolicyDeployParams,
@@ -35,9 +31,10 @@ import {
 import { handleSalt } from "../utils/create2.js";
 import { convertPercent } from "../utils/index.js";
 import { CreditFactory } from "./factory/credit-factory.js";
+import { LossPolicyFactory } from "./factory/loss-policy-factory.js";
 import { PoolFactory } from "./factory/pool-factory.js";
 import { PriceOracleFactory } from "./factory/price-oracle-factory.js";
-import { AddressProviderContract, BaseContract } from "./index.js";
+import { AddressProviderContract } from "./index.js";
 import type {
   AddAssetParams,
   AllowTokenParams,
@@ -60,12 +57,14 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
   public readonly creditFactory: CreditFactory;
   public readonly poolFactory: PoolFactory;
   public readonly priceOracleFactory: PriceOracleFactory;
+  public readonly lossPolicyFactory: LossPolicyFactory;
 
-  constructor(address: Address, client: PublicClient) {
-    super(abi, address, client, "MarketConfigurator");
+  constructor(addr: Address, client: PublicClient<Transport, Chain>) {
+    super({ client }, { abi, addr, name: "MarketConfigurator" });
     this.creditFactory = new CreditFactory();
     this.poolFactory = new PoolFactory();
     this.priceOracleFactory = new PriceOracleFactory();
+    this.lossPolicyFactory = new LossPolicyFactory();
   }
 
   async getAddressProvider(): Promise<AddressProviderContract> {
@@ -540,6 +539,8 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
     treasury: Address;
     pausableAdmins: Address[];
     unpausableAdmins: Address[];
+    lossLiquidators: Address[];
+    emergencyLiquidators: Address[];
   }> {
     const [admin, emergencyAdmin, treasury, acl] = await Promise.all([
       this.contract.read.admin(),
@@ -567,6 +568,22 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
           functionName: "getRoleHolders",
           args: [stringToHex("UNPAUSABLE_ADMIN", { size: 32 })],
         },
+        {
+          address: acl,
+          abi: parseAbi([
+            "function getRoleHolders(bytes32) view returns (address[])",
+          ]),
+          functionName: "getRoleHolders",
+          args: [stringToHex("LOSS_LIQUIDATOR", { size: 32 })],
+        },
+        {
+          address: acl,
+          abi: parseAbi([
+            "function getRoleHolders(bytes32) view returns (address[])",
+          ]),
+          functionName: "getRoleHolders",
+          args: [stringToHex("EMERGENCY_LIQUIDATOR", { size: 32 })],
+        },
       ],
     });
 
@@ -576,6 +593,8 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
       treasury,
       pausableAdmins: [...results[0]],
       unpausableAdmins: [...results[1]],
+      lossLiquidators: [...results[2]],
+      emergencyLiquidators: [...results[3]],
     };
   }
 
@@ -715,9 +734,9 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
     return markets;
   }
 
-  public parseFunctionParams(
+  protected override parseFunctionParams(
     params: DecodeFunctionDataReturnType<typeof abi>,
-  ): ParsedCall | undefined {
+  ): ParsedCallArgs {
     const { functionName, args } = params;
 
     switch (functionName) {
@@ -766,32 +785,26 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
           lossPolicyParams.constructorParams,
         );
         return {
-          chainId: 0,
-          target: this.address,
-          label: this.name,
-          functionName,
-          args: {
-            minorVersion: minorVersion.toString(),
-            underlying,
-            name,
-            symbol,
-            interestRateModelParams: json_stringify({
-              postfix: irmParsedPostfix,
-              salt: interestRateModelParams.salt,
-              constructorParams: irmParsedParams,
-            }),
-            rateKeeperParams: json_stringify({
-              postfix: rateKeeperParsedPostfix,
-              salt: rateKeeperParams.salt,
-              constructorParams: rateKeeperParsedParams,
-            }),
-            lossPolicyParams: json_stringify({
-              postfix: lossPolicyParsedPostfix,
-              salt: lossPolicyParams.salt,
-              constructorParams: lossPolicyParsedParams,
-            }),
-            underlyingPriceFeed,
-          },
+          minorVersion: minorVersion.toString(),
+          underlying,
+          name,
+          symbol,
+          interestRateModelParams: json_stringify({
+            postfix: irmParsedPostfix,
+            salt: interestRateModelParams.salt,
+            constructorParams: irmParsedParams,
+          }),
+          rateKeeperParams: json_stringify({
+            postfix: rateKeeperParsedPostfix,
+            salt: rateKeeperParams.salt,
+            constructorParams: rateKeeperParsedParams,
+          }),
+          lossPolicyParams: json_stringify({
+            postfix: lossPolicyParsedPostfix,
+            salt: lossPolicyParams.salt,
+            constructorParams: lossPolicyParsedParams,
+          }),
+          underlyingPriceFeed,
         };
       }
 
@@ -807,33 +820,27 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
         );
         const accountFactoryParams = decoded[0].accountFactoryParams;
         return {
-          chainId: 0,
-          target: this.address,
-          label: this.name,
-          functionName,
-          args: {
-            minorVersion: minorVersion.toString(),
-            pool,
-            creditSuiteParams: json_stringify({
-              ...decoded[0],
-              minDebt: decoded[0].minDebt.toString(),
-              maxDebt: decoded[0].maxDebt.toString(),
-              accountFactoryParams: {
-                postfix: hexToString(accountFactoryParams.postfix).replace(
-                  /\0/g,
-                  "",
-                ),
-                salt: accountFactoryParams.salt,
-                // TODO: tmp solution, move AccountFactory decoding to plugins
-                constructorParams: {
-                  addressProvider: decodeAbiParameters(
-                    [{ type: "address" }],
-                    accountFactoryParams.constructorParams,
-                  )[0],
-                },
+          minorVersion: minorVersion.toString(),
+          pool,
+          creditSuiteParams: json_stringify({
+            ...decoded[0],
+            minDebt: decoded[0].minDebt.toString(),
+            maxDebt: decoded[0].maxDebt.toString(),
+            accountFactoryParams: {
+              postfix: hexToString(accountFactoryParams.postfix).replace(
+                /\0/g,
+                "",
+              ),
+              salt: accountFactoryParams.salt,
+              // TODO: tmp solution, move AccountFactory decoding to plugins
+              constructorParams: {
+                addressProvider: decodeAbiParameters(
+                  [{ type: "address" }],
+                  accountFactoryParams.constructorParams,
+                )[0],
               },
-            }),
-          },
+            },
+          }),
         };
       }
 
@@ -842,25 +849,13 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
         const decoded = this.priceOracleFactory.decodeConfig(config);
         if (decoded) {
           return {
-            chainId: 0,
-            target: this.address,
-            label: this.name,
-            functionName,
-            args: {
-              pool,
-              data: json_stringify(decoded),
-            },
+            pool,
+            data: json_stringify(decoded),
           };
         }
         return {
-          chainId: 0,
-          target: this.address,
-          label: this.name,
-          functionName,
-          args: {
-            pool,
-            config,
-          },
+          pool,
+          config,
         };
       }
 
@@ -869,25 +864,13 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
         const decoded = this.poolFactory.decodeConfig(calldata);
         if (decoded) {
           return {
-            chainId: 0,
-            target: this.address,
-            label: this.name,
-            functionName,
-            args: {
-              pool,
-              data: json_stringify(decoded),
-            },
+            pool,
+            data: json_stringify(decoded),
           };
         }
         return {
-          chainId: 0,
-          target: this.address,
-          label: this.name,
-          functionName,
-          args: {
-            pool,
-            calldata,
-          },
+          pool,
+          calldata,
         };
       }
 
@@ -896,86 +879,59 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
         const decoded = this.creditFactory.decodeConfig(calldata);
         if (decoded) {
           return {
-            chainId: 0,
-            target: this.address,
-            label: this.name,
-            functionName,
-            args: {
-              creditManager,
-              data: json_stringify(decoded),
-            },
+            creditManager,
+            data: json_stringify(decoded),
           };
         }
         return {
-          chainId: 0,
-          target: this.address,
-          label: this.name,
-          functionName,
-          args: {
-            creditManager,
-            calldata,
-          },
+          creditManager,
+          calldata,
+        };
+      }
+      case "configureLossPolicy": {
+        const [pool, calldata] = args;
+        const decoded = this.lossPolicyFactory.decodeConfig(calldata);
+        return {
+          pool,
+          data: json_stringify(decoded),
         };
       }
 
       case "updateInterestRateModel": {
         const [pool, deployParams] = args as [Address, DeployParams];
         return {
-          chainId: 0,
-          target: this.address,
-          label: this.name,
-          functionName,
-          args: {
-            pool,
-            deployParams: json_stringify(deployParams),
-          },
+          pool,
+          deployParams: json_stringify(deployParams),
         };
       }
 
       case "updateRateKeeper": {
         const [pool, deployParams] = args as [Address, DeployParams];
         return {
-          chainId: 0,
-          target: this.address,
-          label: this.name,
-          functionName,
-          args: {
-            pool,
-            deployParams: json_stringify(deployParams),
-          },
+          pool,
+          deployParams: json_stringify(deployParams),
         };
       }
 
       case "updateLossPolicy": {
         const [pool, deployParams] = args as [Address, DeployParams];
         return {
-          chainId: 0,
-          target: this.address,
-          label: this.name,
-          functionName,
-          args: {
-            pool,
-            deployParams: json_stringify(deployParams),
-          },
+          pool,
+          deployParams: json_stringify(deployParams),
         };
       }
 
+      case "revokeRole":
       case "grantRole": {
-        const [role, address] = args as [Hex, Address];
+        const [role, address] = args;
         return {
-          chainId: 0,
-          target: this.address,
-          label: this.name,
-          functionName,
-          args: {
-            address,
-            role: hexToString(role, { size: 32 }),
-          },
+          address,
+          role: hexToString(role, { size: 32 }),
         };
       }
 
       default:
-        return undefined;
+        return super.parseFunctionParams(params);
     }
   }
 

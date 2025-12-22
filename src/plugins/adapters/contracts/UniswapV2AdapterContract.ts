@@ -4,7 +4,7 @@ import {
   type DecodeFunctionDataReturnType,
   decodeAbiParameters,
 } from "viem";
-import type { GearboxSDK } from "../../../sdk/index.js";
+import type { ConstructOptions } from "../../../sdk/index.js";
 import { formatBN } from "../../../sdk/index.js";
 import type { AbstractAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
@@ -19,10 +19,10 @@ export class UniswapV2AdapterContract extends AbstractAdapterContract<abi> {
   }[];
 
   constructor(
-    sdk: GearboxSDK,
+    options: ConstructOptions,
     args: Omit<AbstractAdapterContractOptions<abi>, "abi">,
   ) {
-    super(sdk, { ...args, abi });
+    super(options, { ...args, abi });
 
     // Decode parameters directly using ABI decoding
     const decoded = decodeAbiParameters(
@@ -47,14 +47,14 @@ export class UniswapV2AdapterContract extends AbstractAdapterContract<abi> {
     }));
   }
 
-  protected parseFunctionParams(
+  protected override stringifyFunctionParams(
     params: DecodeFunctionDataReturnType<abi>,
-  ): string[] | undefined {
+  ): string[] {
     switch (params.functionName) {
       case "swapDiffTokensForTokens": {
         const [leftoverAmount, rateMinRAY, path, _deadline] = params.args;
 
-        const leftoverAmountStr = this.sdk.tokensMeta.formatBN(
+        const leftoverAmountStr = this.tokensMeta.formatBN(
           path[0],
           leftoverAmount,
         );
@@ -70,7 +70,7 @@ export class UniswapV2AdapterContract extends AbstractAdapterContract<abi> {
       }
 
       default:
-        return undefined;
+        return super.stringifyFunctionParams(params);
     }
   }
 }
