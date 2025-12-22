@@ -12,4 +12,5 @@ export * from "./mint/index.js";
 export * from "./providers.js";
 export * from "./RevolverTransport.js";
 export * from "./replaceStorage.js";
+export * from "./transports.js";
 export * from "./types.js";

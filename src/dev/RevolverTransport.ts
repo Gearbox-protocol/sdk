@@ -1,6 +1,5 @@
 import {
   BaseError,
-  type ClientConfig,
   type EIP1193RequestFn,
   HttpRequestError,
   type HttpTransport,
@@ -16,14 +15,30 @@ import {
   withRetry,
 } from "viem";
 import type { HttpRpcClientOptions } from "viem/utils";
-import type { ILogger, NetworkType } from "../sdk/index.js";
+import { z } from "zod/v4";
+import { type ILogger, NetworkType } from "../sdk/index.js";
+import { httpTransportConfigSchema } from "./transports.js";
 
-export interface ProviderConfig {
-  name: string;
-  url: string;
-  cooldown?: number;
-  httpClientOptions?: HttpRpcClientOptions | undefined;
-}
+export const providerConfigSchema = z.object({
+  /**
+   * Provider name for display purposes
+   */
+  name: z.string(),
+  /**
+   * Provider URL
+   */
+  url: z.url(),
+  /**
+   * How long, in milliseconds, to wait before try this provider again
+   */
+  cooldown: z.number().optional(),
+  /**
+   * HTTP transport options to use for this provider
+   */
+  httpClientOptions: httpTransportConfigSchema.optional(),
+});
+
+export type ProviderConfig = z.infer<typeof providerConfigSchema>;
 
 interface TransportEntry {
   name: string;
@@ -49,23 +64,42 @@ type OnResponseFn = (
   ...args: Parameters<Required<HttpRpcClientOptions>["onResponse"]>
 ) => ReturnType<Required<HttpRpcClientOptions>["onResponse"]>;
 
+export const SelectionStrategy = z.enum(["simple", "ordered"]);
+
 /**
  * How to select the next transport
  * - simple: selects next transport after current that is not in cooldown by checking all transports in cyclic order
  * - ordered: will select first available transport that is not in cooldown
  */
-export type SelectionStrategy = "simple" | "ordered";
+export type SelectionStrategy = z.infer<typeof SelectionStrategy>;
 
-export interface RevolverTransportConfig {
-  network: NetworkType;
-  providers: ProviderConfig[];
+export const revolverTransportConfigSchema = z.object({
+  network: NetworkType,
+  /**
+   * Providers to use
+   */
+  providers: z.array(providerConfigSchema),
+  /**
+   * How to select the next transport
+   * Defaults to "simple"
+   */
+  selectionStrategy: SelectionStrategy.optional(),
+  /** The key of the transport. */
+  key: z.string().optional(),
+  /** The name of the transport. */
+  name: z.string().optional(),
+  /**
+   * Default HTTP options to use for all providers, can be overridden by provider config
+   */
+  defaultHTTPOptions: httpTransportConfigSchema.optional(),
+  /**
+   * Default cooldown, in milliseconds, to wait before try this transport again
+   */
+  defaultCooldown: z.number().optional(),
+});
+
+export type RevolverTransportConfig = {
   logger?: ILogger;
-  key?: TransportConfig["key"] | undefined;
-  name?: TransportConfig["name"] | undefined;
-  pollingInterval?: ClientConfig["pollingInterval"] | undefined;
-  retryCount?: TransportConfig["retryCount"] | undefined;
-  retryDelay?: TransportConfig["retryDelay"] | undefined;
-  timeout?: TransportConfig["timeout"] | undefined;
   /**
    * When single http transport should retry?
    * Defaults to some less strict criteria, so it'll retry "blockNumber from the future" errors
@@ -78,10 +112,6 @@ export interface RevolverTransportConfig {
   shouldRetry?:
     | ((iter: { count: number; error: Error }) => Promise<boolean> | boolean)
     | undefined;
-  /**
-   * Allow batching of json-rpc requests
-   */
-  batch?: boolean | undefined;
   /**
    * Spying function that also returns provider name in additional to the request
    */
@@ -105,16 +135,7 @@ export interface RevolverTransportConfig {
     oldTransportName: string,
     reason?: BaseError,
   ) => void | Promise<void>;
-  /**
-   * How long, in milliseconds, to wait before try this transport again
-   */
-  cooldown?: number | undefined;
-  /**
-   * How to select the next transport
-   * Defaults to "simple"
-   */
-  selectionStrategy?: SelectionStrategy;
-}
+} & z.infer<typeof revolverTransportConfigSchema>;
 
 export class NoAvailableTransportsError extends BaseError {
   constructor(cause?: Error) {
@@ -184,11 +205,8 @@ export class RevolverTransport
       ({ url, name, cooldown, httpClientOptions }): TransportEntry => ({
         name,
         transport: http(url, {
+          ...config.defaultHTTPOptions,
           ...httpClientOptions,
-          retryCount: config.retryCount,
-          retryDelay: config.retryDelay,
-          timeout: config.timeout,
-          batch: !!config.batch,
           key: name,
           name: name,
           onFetchRequest: this.#config.onRequest
@@ -209,8 +227,8 @@ export class RevolverTransport
     const selectionStrategy = config.selectionStrategy ?? "simple";
     this.#selector =
       selectionStrategy === "simple"
-        ? new SimpleTransportSelector(transports, config.cooldown)
-        : new OrderedTransportSelector(transports, config.cooldown);
+        ? new SimpleTransportSelector(transports, config.defaultCooldown)
+        : new OrderedTransportSelector(transports, config.defaultCooldown);
   }
 
   public get value(): RevolverTransportValue {
@@ -241,8 +259,8 @@ export class RevolverTransport
 
         // for explanation, see shouldRetry comment
         const resp = await withRetry(() => transport.request(r), {
-          delay: this.#config.retryDelay,
-          retryCount: this.#config.retryCount,
+          delay: this.#config.defaultHTTPOptions?.retryDelay,
+          retryCount: this.#config.defaultHTTPOptions?.retryCount,
           shouldRetry: this.#config.shouldRetry,
         });
         this.#requests.delete(r);
@@ -275,10 +293,10 @@ export class RevolverTransport
       name: "revolver",
       type: "revolver",
       request: this.request,
-      retryCount: this.#config.retryCount,
-      methods: undefined,
-      retryDelay: this.#config.retryDelay,
-      timeout: this.#config.timeout,
+      retryCount: this.#config.defaultHTTPOptions?.retryCount,
+      methods: this.#config.defaultHTTPOptions?.methods,
+      retryDelay: this.#config.defaultHTTPOptions?.retryDelay,
+      timeout: this.#config.defaultHTTPOptions?.timeout,
     };
   }
 

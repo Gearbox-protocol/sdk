@@ -54,8 +54,10 @@ function createClient(
           url: s3.url,
         },
       ],
-      cooldown: 100,
-      retryCount: 2,
+      defaultCooldown: 100,
+      defaultHTTPOptions: {
+        retryCount: 2,
+      },
       ...opts,
     }),
   });
@@ -208,7 +210,7 @@ it("should not overrotate when hadling parallel requests", async () => {
         url: s2.url,
       },
     ],
-    cooldown: 60_000,
+    defaultCooldown: 60_000,
   });
   const resp = await Promise.all([
     client.request({ method: "eth_blockNumber" }),
@@ -227,7 +229,7 @@ it("request should fail when all transports are broken", async () => {
   s1.stop();
   s2.stop();
   s3.stop();
-  const client = createClient({ cooldown: 60_000 });
+  const client = createClient({ defaultCooldown: 60_000 });
   await expect(client.getBlockNumber()).rejects.toThrow(
     NoAvailableTransportsError,
   );
@@ -239,7 +241,7 @@ it("subscription should fail when all transports are broken", async () => {
   s3.stop();
   const onError = vi.fn();
   const onBlockNumber = vi.fn();
-  const client = createClient({ cooldown: 60_000 });
+  const client = createClient({ defaultCooldown: 60_000 });
   unwatch = client.watchBlockNumber({
     onBlockNumber,
     onError,
