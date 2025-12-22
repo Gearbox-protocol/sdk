@@ -12,6 +12,7 @@ import {
 } from "../../abi/v300.js";
 import type { CreditAccountData } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
+import { chains } from "../chain/chains.js";
 import {
   ADDRESS_0X0,
   AP_CREDIT_ACCOUNT_COMPRESSOR,
@@ -75,9 +76,14 @@ export interface CreditAccountServiceOptions {
   batchSize?: number;
 }
 
-export function getWithdrawalCompressorAddress(_chainId: number) {
-  // TODO: HARDCODED
-  return "0x36F3d0Bb73CBC2E94fE24dF0f26a689409cF9023" as const;
+// TODO: HARDCODED
+const COMPRESSORS = {
+  [chains.Mainnet.id]: "0xfB79b6713fe214B8748ED7b0db1f93E4f1aC9d29",
+  [chains.Monad.id]: "0x36F3d0Bb73CBC2E94fE24dF0f26a689409cF9023",
+};
+
+export function getWithdrawalCompressorAddress(chainId: number) {
+  return COMPRESSORS[chainId];
 }
 
 export abstract class AbstractCreditAccountService extends SDKConstruct {
