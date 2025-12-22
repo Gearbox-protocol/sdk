@@ -12,6 +12,7 @@ import {
 } from "../../abi/v300.js";
 import type { CreditAccountData } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
+import { chains } from "../chain/chains.js";
 import {
   ADDRESS_0X0,
   AP_CREDIT_ACCOUNT_COMPRESSOR,
@@ -75,11 +76,14 @@ export interface CreditAccountServiceOptions {
   batchSize?: number;
 }
 
+// TODO: HARDCODED
+const COMPRESSORS: Record<number, Address> = {
+  [chains.Mainnet.id]: "0xfB79b6713fe214B8748ED7b0db1f93E4f1aC9d29",
+  [chains.Monad.id]: "0x36F3d0Bb73CBC2E94fE24dF0f26a689409cF9023",
+};
+
 export function getWithdrawalCompressorAddress(chainId: number) {
-  // TODO: HARDCODED
-  const compressor =
-    chainId === 1 ? "0xfB79b6713fe214B8748ED7b0db1f93E4f1aC9d29" : undefined;
-  return compressor;
+  return COMPRESSORS[chainId];
 }
 
 export abstract class AbstractCreditAccountService extends SDKConstruct {
@@ -716,6 +720,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       client: this.client,
     });
 
+    // TODO: return multiple configs
     const resp = await contract.read.getWithdrawalRequestResult([
       creditAccount,
       token,
@@ -745,6 +750,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       client: this.client,
     });
 
+    // TODO: return multiple configs
     const resp = await contract.read.getCurrentWithdrawals([creditAccount]);
 
     const claimableNow = resp?.[0] || [];
