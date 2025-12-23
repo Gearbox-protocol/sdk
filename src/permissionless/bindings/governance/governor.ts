@@ -14,8 +14,11 @@ import {
 import { formatAbiItem } from "viem/utils";
 import { governorAbi } from "../../../abi/governance/governor.js";
 import type { ParsedCall, ParsedCallArgs, RawTx } from "../../../sdk/index.js";
-import { BaseContract, json_stringify } from "../../../sdk/index.js";
-import { formatTimestamp } from "../../utils/index.js";
+import {
+  BaseContract,
+  formatTimestamp,
+  json_stringify,
+} from "../../../sdk/index.js";
 import { MarketConfiguratorContract } from "../market-configurator.js";
 import { TreasurySplitterContract } from "../treasury-splitter.js";
 import { BatchesChainContract } from "./batches-chain.js";

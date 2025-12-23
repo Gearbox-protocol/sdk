@@ -126,3 +126,10 @@ export function formatNumberToString_(value: bigint | number): string {
     .toLocaleString("en-US", { minimumIntegerDigits: 1, useGrouping: true })
     .replaceAll(",", "_");
 }
+
+export function formatTimestamp(timestamp: number) {
+  return new Date(timestamp * 1000).toLocaleString("en-GB", {
+    dateStyle: "short",
+    timeStyle: "short",
+  });
+}

@@ -95,7 +95,7 @@ export interface CreditFacadeStateHuman extends BaseContractStateHuman {
   expirable: boolean;
   isDegenMode: boolean;
   degenNFT: string;
-  expirationDate: number;
+  expirationDate: string;
   maxDebtPerBlockMultiplier: number;
   botList: string;
   minDebt: string;

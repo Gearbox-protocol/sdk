@@ -23,7 +23,11 @@ import type {
   MultiCall,
   RawTx,
 } from "../../types/index.js";
-import { fmtBinaryMask, formatBNvalue } from "../../utils/index.js";
+import {
+  fmtBinaryMask,
+  formatBNvalue,
+  formatTimestamp,
+} from "../../utils/index.js";
 
 const abi = [
   ...iCreditFacadeV300Abi,
@@ -61,7 +65,7 @@ export class CreditFacadeV300Contract extends BaseContract<abi> {
       expirable: this.expirable,
       isDegenMode: this.degenNFT !== ADDRESS_0X0,
       degenNFT: this.labelAddress(this.degenNFT),
-      expirationDate: this.expirationDate,
+      expirationDate: formatTimestamp(this.expirationDate),
       maxDebtPerBlockMultiplier: this.maxDebtPerBlockMultiplier,
       botList: this.labelAddress(this.botList),
       minDebt: formatBNvalue(this.minDebt, decimals),
