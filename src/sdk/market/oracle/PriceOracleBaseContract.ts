@@ -176,6 +176,9 @@ export abstract class PriceOracleBaseContract<
    * @param reserve use reserve price feed instead of main
    */
   public convertToUSD(from: Address, amount: bigint, reserve = false): bigint {
+    if (amount === 0n) {
+      return 0n;
+    }
     const price = reserve ? this.reservePrice(from) : this.mainPrice(from);
     const scale = 10n ** BigInt(this.tokensMeta.decimals(from));
     return (amount * price) / scale;
@@ -188,6 +191,9 @@ export abstract class PriceOracleBaseContract<
    * @param reserve use reserve price feed instead of main
    */
   public convertFromUSD(to: Address, amount: bigint, reserve = false): bigint {
+    if (amount === 0n) {
+      return 0n;
+    }
     const price = reserve ? this.reservePrice(to) : this.mainPrice(to);
     const scale = 10n ** BigInt(this.tokensMeta.decimals(to));
     return (amount * scale) / price;
