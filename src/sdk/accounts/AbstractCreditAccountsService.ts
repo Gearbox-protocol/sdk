@@ -70,6 +70,37 @@ import type {
   UpdateQuotasProps,
 } from "./types.js";
 
+type MulticallWithFailure<T> = (
+  | {
+      error?: undefined;
+      result: T;
+      status: "success";
+    }
+  | {
+      error: Error;
+      result?: undefined;
+      status: "failure";
+    }
+)[];
+
+type BotResponseCompressor = MulticallWithFailure<
+  readonly {
+    baseParams: {
+      addr: `0x${string}`;
+      version: bigint;
+      contractType: `0x${string}`;
+      serializedParams: `0x${string}`;
+    };
+    requiredPermissions: bigint;
+    creditAccount: `0x${string}`;
+    permissions: bigint;
+    forbidden: boolean;
+  }[]
+>;
+type BotsDirectResponse = MulticallWithFailure<
+  readonly [bigint, boolean, boolean] | readonly [bigint, boolean]
+>;
+
 type CompressorAbi = typeof creditAccountCompressorAbi;
 
 export interface CreditAccountServiceOptions {
@@ -298,9 +329,9 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       Omit<NonNullable<GetConnectedMigrationBotsResult>, "botAddress">
     >;
   }> {
-    const [resp, migration, additional] = await Promise.all([
-      this.client.multicall({
-        contracts: accountsToCheck.map(o => {
+    const allResp = await this.client.multicall({
+      contracts: [
+        ...accountsToCheck.map(o => {
           const pool = this.sdk.marketRegister.findByCreditManager(
             o.creditManager,
           );
@@ -312,41 +343,93 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
             args: [pool.configurator.address, o.creditAccount],
           } as const;
         }),
-        allowFailure: true,
-      }),
-      this.getActiveMigrationBots(accountsToCheck, legacyMigrationBot),
-      this.getActiveBots(accountsToCheck, additionalBots),
-    ]);
+        ...(legacyMigrationBot
+          ? accountsToCheck.map(ca => {
+              const cm = this.sdk.marketRegister.findCreditManager(
+                ca.creditManager,
+              );
 
-    return {
-      legacy: resp,
-      additionalBots: additional,
-      legacyMigration: migration,
-    };
-  }
-  private async getActiveBots(
-    accountsToCheck: Array<AccountToCheck>,
-    bots: Array<Address>,
-  ) {
-    const result = await this.client.multicall({
-      contracts: accountsToCheck.flatMap(ca => {
-        const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
+              return {
+                abi: isV300(cm.creditFacade.version)
+                  ? iBotListV300Abi
+                  : iBotListV310Abi,
+                address: cm.creditFacade.botList,
+                functionName: "getBotStatus",
+                args: isV300(cm.creditFacade.version)
+                  ? [legacyMigrationBot, ca.creditManager, ca.creditAccount]
+                  : [legacyMigrationBot, ca.creditAccount],
+              } as const;
+            })
+          : []),
+        ...accountsToCheck.flatMap(ca => {
+          const cm = this.sdk.marketRegister.findCreditManager(
+            ca.creditManager,
+          );
 
-        return bots.map(bot => {
-          return {
-            abi: isV300(cm.creditFacade.version)
-              ? iBotListV300Abi
-              : iBotListV310Abi,
-            address: cm.creditFacade.botList,
-            functionName: "getBotStatus",
-            args: isV300(cm.creditFacade.version)
-              ? [bot, ca.creditManager, ca.creditAccount]
-              : [bot, ca.creditAccount],
-          } as const;
-        });
-      }),
+          return additionalBots.map(bot => {
+            return {
+              abi: isV300(cm.creditFacade.version)
+                ? iBotListV300Abi
+                : iBotListV310Abi,
+              address: cm.creditFacade.botList,
+              functionName: "getBotStatus",
+              args: isV300(cm.creditFacade.version)
+                ? [bot, ca.creditManager, ca.creditAccount]
+                : [bot, ca.creditAccount],
+            } as const;
+          });
+        }),
+      ],
       allowFailure: true,
     });
+
+    const legacyStart = 0;
+    const legacyEnd = accountsToCheck.length;
+    const legacy: BotResponseCompressor = allResp.slice(
+      legacyStart,
+      legacyEnd,
+    ) as BotResponseCompressor;
+
+    const migrationStart = legacyEnd;
+    const migrationEnd = legacyMigrationBot
+      ? migrationStart + accountsToCheck.length
+      : migrationStart;
+    const migrationResp: BotsDirectResponse = allResp.slice(
+      migrationStart,
+      migrationEnd,
+    ) as BotsDirectResponse;
+
+    const additionalStart = migrationEnd;
+    const additionalResp: BotsDirectResponse = allResp.slice(
+      additionalStart,
+    ) as BotsDirectResponse;
+
+    return {
+      legacy,
+      additionalBots: this.getActiveBots(
+        accountsToCheck,
+        additionalBots,
+        additionalResp,
+      ),
+      legacyMigration: this.getActiveMigrationBots(
+        accountsToCheck,
+        legacyMigrationBot,
+        migrationResp,
+      ),
+    };
+  }
+  private getActiveBots(
+    accountsToCheck: Array<AccountToCheck>,
+    bots: Array<Address>,
+    result: BotsDirectResponse,
+  ) {
+    if (result.length !== bots.length * accountsToCheck.length) {
+      console.error(
+        "result length mismatch",
+        result.length,
+        bots.length * accountsToCheck.length,
+      );
+    }
 
     const botsByCAIndex = accountsToCheck.reduce<
       Array<Omit<NonNullable<GetConnectedMigrationBotsResult>, "botAddress">>
@@ -362,30 +445,19 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
 
     return botsByCAIndex;
   }
-  private async getActiveMigrationBots(
+  private getActiveMigrationBots(
     accountsToCheck: Array<{ creditAccount: Address; creditManager: Address }>,
     bot: Address | undefined,
+    result: BotsDirectResponse,
   ) {
     if (bot) {
-      const result = await this.client.multicall({
-        contracts: accountsToCheck.map(ca => {
-          const cm = this.sdk.marketRegister.findCreditManager(
-            ca.creditManager,
-          );
-
-          return {
-            abi: isV300(cm.creditFacade.version)
-              ? iBotListV300Abi
-              : iBotListV310Abi,
-            address: cm.creditFacade.botList,
-            functionName: "getBotStatus",
-            args: isV300(cm.creditFacade.version)
-              ? [bot, ca.creditManager, ca.creditAccount]
-              : [bot, ca.creditAccount],
-          } as const;
-        }),
-        allowFailure: true,
-      });
+      if (result.length !== accountsToCheck.length) {
+        console.error(
+          "result length mismatch for migration bots",
+          result.length,
+          accountsToCheck.length,
+        );
+      }
 
       return { result, botAddress: bot };
     }
