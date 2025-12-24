@@ -142,11 +142,15 @@ async function attachClient(
 ): Promise<PublicClient<Transport, GearboxChain>> {
   let { chainId, networkType } = network;
   const attachClient = createClient(options);
-  if (!networkType) {
+  if (networkType) {
+    if (!chainId) {
+      chainId = getChain(networkType).id;
+    }
+  } else {
     networkType = await detectNetwork(attachClient);
-  }
-  if (!chainId) {
-    chainId = await attachClient.getChainId();
+    if (!chainId) {
+      chainId = await attachClient.getChainId();
+    }
   }
   return createClient(options, { networkType, chainId });
 }
