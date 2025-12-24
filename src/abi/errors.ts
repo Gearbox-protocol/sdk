@@ -376,6 +376,13 @@ export const iExceptionsV310Abi = [
   { type: "error", name: "ZeroAddressException", inputs: [] },
 ] as const;
 
+export const iPartialLiquidationBotV310ErrorsAbi = [
+  { type: "error", name: "LiquidatedLessThanNeededException", inputs: [] },
+  { type: "error", name: "LiquidatedMoreThanNeededException", inputs: [] },
+  { type: "error", name: "SeizedLessThanRequiredException", inputs: [] },
+  { type: "error", name: "UnderlyingNotLiquidatableException", inputs: [] },
+] as const;
+
 export const errorAbis = [
   ...iExceptionsV300Abi,
   ...iExceptionsV310Abi,
@@ -384,6 +391,7 @@ export const errorAbis = [
   ...ilpPriceFeedExceptionsAbi,
   ...iRouterErrorsV300Abi,
   ...iRouterErrorsV310Abi,
+  ...iPartialLiquidationBotV310ErrorsAbi,
 ] as const;
 
 export type errorAbis = typeof errorAbis;
