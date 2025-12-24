@@ -50,6 +50,7 @@ export class ZappersPlugin
           }) as const,
       ),
       allowFailure: true,
+      batchSize: 0,
     });
 
     this.#zappers = new AddressMap<ZapperDataFull[]>(undefined, "zappers");
