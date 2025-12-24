@@ -76,7 +76,7 @@ export class DegenDistributorsPlugin
       if (r.status === "success" && r.result.length > 0) {
         this.#distributors?.upsert(pool, r.result[0]);
       } else {
-        this.sdk.logger?.error(
+        this.sdk.logger?.warn(
           `failed to load degen distributor for market configurator ${this.labelAddress(
             cfg,
           )} and pool ${this.labelAddress(pool)}: ${r.error}`,
