@@ -38,6 +38,25 @@ export class MarketConfiguratorContract extends BaseContract<abi> {
     );
   }
 
+  public static async getPeripheryContractBatch(
+    configurators: MarketConfiguratorContract[],
+    client: MarketConfiguratorContract["client"],
+    contract: PeripheryContract,
+  ) {
+    const resp = await client.multicall({
+      allowFailure: true,
+      contracts: configurators.map(
+        cfg =>
+          ({
+            address: cfg.address,
+            abi: cfg.abi,
+            functionName: "getPeripheryContracts",
+            args: [stringToHex(contract, { size: 32 })],
+          }) as const,
+      ),
+    });
+    return resp;
+  }
   public async getPeripheryContract(
     contract: PeripheryContract,
   ): Promise<Address> {

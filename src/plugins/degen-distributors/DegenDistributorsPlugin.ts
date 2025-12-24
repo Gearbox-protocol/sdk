@@ -2,6 +2,7 @@ import type { Address } from "viem";
 
 import type { IGearboxSDKPlugin, MarketSuite } from "../../sdk/index.js";
 import { AddressMap, BasePlugin } from "../../sdk/index.js";
+import { MarketConfiguratorContract } from "../../sdk/market/MarketConfiguratorContract.js";
 import type { DegenDistributorsStateHuman } from "./types.js";
 
 export interface DegenDistributorsPluginState {
@@ -36,15 +37,32 @@ export class DegenDistributorsPlugin
       `loading degen distributors for ${this.sdk.networkType}`,
     );
 
-    const distributors = await Promise.allSettled(
-      configurators.map(cfg => cfg.getPeripheryContract("DEGEN_DISTRIBUTOR")),
-    );
+    const distributors =
+      await MarketConfiguratorContract.getPeripheryContractBatch(
+        Object.values(configurators),
+        this.sdk.client,
+        "DEGEN_DISTRIBUTOR",
+      );
 
     const distributorByConfigurator = configurators.reduce<
-      Record<Address, PromiseSettledResult<Address>>
+      Record<
+        Address,
+        | {
+            error?: undefined;
+            result: readonly `0x${string}`[];
+            status: "success";
+          }
+        | {
+            error: Error;
+            result?: undefined;
+            status: "failure";
+          }
+      >
     >((acc, cfg, index) => {
       const cfgLC = cfg.address.toLowerCase() as Address;
-      acc[cfgLC] = distributors[index];
+      const distributor = distributors[index];
+
+      acc[cfgLC] = distributor;
       return acc;
     }, {});
 
@@ -55,11 +73,13 @@ export class DegenDistributorsPlugin
       const cfgLC = cfg.toLowerCase() as Address;
       const r = distributorByConfigurator?.[cfgLC];
 
-      if (r.status === "fulfilled") {
-        this.#distributors?.upsert(pool, r.value);
+      if (r.status === "success" && r.result.length > 0) {
+        this.#distributors?.upsert(pool, r.result[0]);
       } else {
         this.sdk.logger?.error(
-          `failed to load degen distributor for market configurator ${this.labelAddress(cfg)} and pool ${this.labelAddress(pool)}: ${r.reason}`,
+          `failed to load degen distributor for market configurator ${this.labelAddress(
+            cfg,
+          )} and pool ${this.labelAddress(pool)}: ${r.error}`,
         );
       }
     });
