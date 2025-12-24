@@ -75,6 +75,7 @@ export class BotsPlugin
       ),
       allowFailure: true,
       blockNumber: this.sdk.currentBlock,
+      batchSize: 0,
     });
 
     const expectedBots = new AddressMap<BotParameters>();
@@ -105,6 +106,7 @@ export class BotsPlugin
       ),
       allowFailure: true,
       blockNumber: this.sdk.currentBlock,
+      batchSize: 0,
     });
 
     for (let i = 0; i < botAddrs.length; i++) {

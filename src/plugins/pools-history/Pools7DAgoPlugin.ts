@@ -53,6 +53,7 @@ export class Pools7DAgoPlugin
           }) as const,
       ),
       blockNumber: BigIntMath.max(0n, targetBlock),
+      batchSize: 0,
     });
 
     this.#pools7DAgo = new AddressMap<Pool7DAgoState>(undefined, MAP_LABEL);

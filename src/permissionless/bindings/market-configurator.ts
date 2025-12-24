@@ -585,6 +585,7 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
           args: [stringToHex("EMERGENCY_LIQUIDATOR", { size: 32 })],
         },
       ],
+      batchSize: 0,
     });
 
     return {
@@ -617,6 +618,7 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
           abi: parseAbi(["function contractType() view returns (bytes32)"]),
           functionName: "contractType",
         })),
+        batchSize: 0,
       });
 
       const pause = result

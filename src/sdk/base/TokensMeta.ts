@@ -112,6 +112,7 @@ export class TokensMeta extends AddressMap<TokenMetaDataExtended> {
           }) as const,
       ),
       allowFailure: true,
+      batchSize: 0,
     });
     for (let i = 0; i < resp.length; i++) {
       if (resp[i].status === "success") {

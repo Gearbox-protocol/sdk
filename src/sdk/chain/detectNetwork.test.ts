@@ -27,6 +27,7 @@ async function fetchTokensMulticall(
         }) as const,
     ),
     allowFailure: true,
+    batchSize: 0,
   });
   const result: Record<Address, string | undefined> = {};
   for (let i = 0; i < resp.length; i++) {

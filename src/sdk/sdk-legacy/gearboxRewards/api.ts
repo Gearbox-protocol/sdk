@@ -236,6 +236,7 @@ export class GearboxRewardsApi {
       provider.multicall({
         allowFailure: false,
         contracts: [...farmInfoCalls, ...rewardTokenCalls, ...farmedCalls],
+        batchSize: 0,
       }),
     ]);
 

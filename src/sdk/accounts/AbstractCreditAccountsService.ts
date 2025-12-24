@@ -381,6 +381,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
         }),
       ],
       allowFailure: true,
+      batchSize: 0,
     });
 
     const legacyStart = 0;

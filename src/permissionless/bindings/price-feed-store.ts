@@ -435,6 +435,7 @@ export class PriceFeedStoreContract extends BaseContract<typeof abi> {
     // Execute multicall to get all price feed info at once
     const results = await this.client.multicall({
       contracts: multicallCalls,
+      batchSize: 0,
     });
 
     // Transform results into PriceFeed objects

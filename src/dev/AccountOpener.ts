@@ -898,6 +898,7 @@ export class AccountOpener extends SDKConstruct {
           }) as const,
       ),
       allowFailure: false,
+      batchSize: 0,
     });
     const tokensArr = tokens.asArray();
     for (let i = 0; i < tokensArr.length; i++) {

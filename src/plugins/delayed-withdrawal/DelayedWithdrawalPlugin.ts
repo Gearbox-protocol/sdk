@@ -53,6 +53,7 @@ export class DelayedWithdrawalPlugin
           )
         : [],
       allowFailure: true,
+      batchSize: 0,
     });
 
     this.#withdrawableAssets = new AddressMap(undefined, MAP_LABEL);

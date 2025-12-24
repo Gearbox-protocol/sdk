@@ -47,6 +47,7 @@ export class TokenCompressorContract extends BaseContract<typeof abi> {
 
     const results = await this.client.multicall({
       contracts: contracts,
+      batchSize: 0,
     });
 
     const multivaultToToken = new Map<Address, Address>();
@@ -69,6 +70,7 @@ export class TokenCompressorContract extends BaseContract<typeof abi> {
         args: [],
       })),
       allowFailure: true,
+      batchSize: 0,
     });
 
     const tokenToSymbol = new Map<Address, string>();
@@ -100,6 +102,7 @@ export class TokenCompressorContract extends BaseContract<typeof abi> {
         functionName: "getTokenInfo",
         args: [token],
       })),
+      batchSize: 0,
     });
 
     const tokenInfos = results.map((result, index) => {

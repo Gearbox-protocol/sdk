@@ -89,6 +89,7 @@ export class AccountsCounterPlugin
           ] as const,
       ),
       allowFailure: false,
+      batchSize: 0,
     });
     this.#accounts = new AddressMap();
     for (let i = 0; i < cms.length; i++) {

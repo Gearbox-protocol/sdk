@@ -222,6 +222,7 @@ async function logLTs(
         args: [],
       } as const,
     ]),
+    batchSize: 0,
   });
   for (let i = 0; i < tokens.length; i++) {
     const lt = resp[i * 2]?.result ?? "error";

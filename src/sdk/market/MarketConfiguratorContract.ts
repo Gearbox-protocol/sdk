@@ -54,6 +54,7 @@ export class MarketConfiguratorContract extends BaseContract<abi> {
             args: [stringToHex(contract, { size: 32 })],
           }) as const,
       ),
+      batchSize: 0,
     });
     return resp;
   }

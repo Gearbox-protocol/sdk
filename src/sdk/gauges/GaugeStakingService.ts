@@ -69,6 +69,7 @@ export class GaugeStakingService extends SDKConstruct {
             args: [],
           },
         ],
+        batchSize: 0,
       });
 
     return {
