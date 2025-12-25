@@ -9,7 +9,7 @@ import {
 } from "viem";
 import { ITreasurySplitterAbi } from "../../abi/310/iTreasurySplitter.js";
 import type { ParsedCallArgs, RawTx } from "../../sdk/index.js";
-import { BaseContract } from "../../sdk/index.js";
+import { BaseContract, json_stringify } from "../../sdk/index.js";
 
 const abi = ITreasurySplitterAbi;
 
@@ -106,7 +106,15 @@ export class TreasurySplitterContract extends BaseContract<typeof abi> {
         });
         return {
           functionName: decoded.functionName,
-          ...super.parseFunctionParams(decoded),
+          ...this.parseFunctionParams(decoded),
+        };
+      } case "setDefaultSplit": {
+        const [receivers, proportions] = args;
+        return {
+          receivers: json_stringify(receivers),
+          proportions: json_stringify(proportions.map((proportion) => `${proportion / 100}% [${proportion}]`))
+          
+          ,
         };
       }
 
