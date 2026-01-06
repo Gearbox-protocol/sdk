@@ -74,7 +74,6 @@ export const SelectionStrategy = z.enum(["simple", "ordered"]);
 export type SelectionStrategy = z.infer<typeof SelectionStrategy>;
 
 export const revolverTransportConfigSchema = z.object({
-  network: NetworkType,
   /**
    * Providers to use
    */

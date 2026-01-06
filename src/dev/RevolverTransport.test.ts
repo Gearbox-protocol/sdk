@@ -39,7 +39,6 @@ function createClient(
   return createPublicClient({
     pollingInterval: 10,
     transport: RevolverTransport.create({
-      network: "Mainnet",
       providers: [
         {
           name: "custom-0",
