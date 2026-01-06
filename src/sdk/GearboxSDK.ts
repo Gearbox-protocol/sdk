@@ -79,7 +79,7 @@ export type ClientOptions =
        * Retry count for RPC
        */
       retryCount?: number;
-      httpClientOptions?: HttpRpcClientOptions | undefined;
+      httpTransportOptions?: HttpRpcClientOptions | undefined;
     }
   | {
       /**
@@ -114,7 +114,7 @@ function createClient(
   } else {
     const rpcs = opts.rpcURLs.map(url =>
       http(url, {
-        ...opts.httpClientOptions,
+        ...opts.httpTransportOptions,
         timeout: opts.timeout,
         retryCount: opts.retryCount,
       }),

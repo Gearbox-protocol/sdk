@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 
-export const httpTransportConfigSchema = z.object({
+export const httpTransportOptionsSchema = z.object({
   /**
    * Whether to enable Batch JSON-RPC.
    * @link https://www.jsonrpc.org/specification#batch

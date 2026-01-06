@@ -17,7 +17,7 @@ import {
 import type { HttpRpcClientOptions } from "viem/utils";
 import { z } from "zod/v4";
 import { type ILogger, NetworkType } from "../sdk/index.js";
-import { httpTransportConfigSchema } from "./transports.js";
+import { httpTransportOptionsSchema } from "./transports.js";
 
 export const providerConfigSchema = z.object({
   /**
@@ -35,7 +35,7 @@ export const providerConfigSchema = z.object({
   /**
    * HTTP transport options to use for this provider
    */
-  httpClientOptions: httpTransportConfigSchema.optional(),
+  httpTransportOptions: httpTransportOptionsSchema.optional(),
 });
 
 export type ProviderConfig = z.infer<typeof providerConfigSchema>;
@@ -91,7 +91,7 @@ export const revolverTransportConfigSchema = z.object({
   /**
    * Default HTTP options to use for all providers, can be overridden by provider config
    */
-  defaultHTTPOptions: httpTransportConfigSchema.optional(),
+  defaultHTTPOptions: httpTransportOptionsSchema.optional(),
   /**
    * Default cooldown, in milliseconds, to wait before try this transport again
    */
@@ -202,11 +202,11 @@ export class RevolverTransport
     };
 
     const transports = config.providers.map(
-      ({ url, name, cooldown, httpClientOptions }): TransportEntry => ({
+      ({ url, name, cooldown, httpTransportOptions }): TransportEntry => ({
         name,
         transport: http(url, {
           ...config.defaultHTTPOptions,
-          ...httpClientOptions,
+          ...httpTransportOptions,
           key: name,
           name: name,
           onFetchRequest: this.#config.onRequest
