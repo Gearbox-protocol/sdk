@@ -1,3 +1,4 @@
+import { z } from "zod/v4";
 import { chains, getChain, type NetworkType } from "../sdk/index.js";
 
 export const SUPPORTED_RPC_PROVIDERS = [
@@ -7,7 +8,9 @@ export const SUPPORTED_RPC_PROVIDERS = [
   "ankr",
 ] as const;
 
-export type RpcProvider = (typeof SUPPORTED_RPC_PROVIDERS)[number];
+export const rpcProvidersSchema = z.enum(SUPPORTED_RPC_PROVIDERS);
+
+export type RpcProvider = z.infer<typeof rpcProvidersSchema>;
 
 export function getRpcProviderUrl(
   provider: RpcProvider,
