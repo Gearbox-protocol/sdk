@@ -109,7 +109,7 @@ export interface CreditAccountServiceOptions {
 
 // TODO: HARDCODED
 const COMPRESSORS: Record<number, Address> = {
-  [chains.Mainnet.id]: "0xfB79b6713fe214B8748ED7b0db1f93E4f1aC9d29",
+  [chains.Mainnet.id]: "0x36F3d0Bb73CBC2E94fE24dF0f26a689409cF9023",
   [chains.Monad.id]: "0x36F3d0Bb73CBC2E94fE24dF0f26a689409cF9023",
 };
 
