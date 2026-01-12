@@ -119,7 +119,7 @@ export class TokenCompressorContract extends BaseContract<typeof abi> {
       const postfix = multivaultSymbol ? `[${multivaultSymbol}]` : "";
       return {
         ...tokenInfo,
-        symbol: `${tokenInfo.symbol} ${postfix}`,
+        symbol: !postfix ? tokenInfo.symbol : `${tokenInfo.symbol} ${postfix}`,
       };
     });
 
