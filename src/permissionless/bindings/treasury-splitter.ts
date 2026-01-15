@@ -108,13 +108,16 @@ export class TreasurySplitterContract extends BaseContract<typeof abi> {
           functionName: decoded.functionName,
           ...this.parseFunctionParams(decoded),
         };
-      } case "setDefaultSplit": {
+      }
+      case "setDefaultSplit": {
         const [receivers, proportions] = args;
         return {
           receivers: json_stringify(receivers),
-          proportions: json_stringify(proportions.map((proportion) => `${proportion / 100}% [${proportion}]`))
-          
-          ,
+          proportions: json_stringify(
+            proportions.map(
+              proportion => `${proportion / 100}% [${proportion}]`,
+            ),
+          ),
         };
       }
 
