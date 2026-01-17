@@ -11,7 +11,10 @@ import type { ConstructOptions } from "../../base/Construct.js";
 import type { GearboxChain } from "../../chain/index.js";
 import { getLogsSafe } from "../../utils/viem/index.js";
 import AbstractAddressProviderContract from "./AbstractAddressProviderContract.js";
-import type { IAddressProviderContract } from "./types.js";
+import type {
+  AddressProviderAddresses,
+  IAddressProviderContract,
+} from "./types.js";
 
 const abi = iAddressProviderV300Abi;
 type abi = typeof abi;
@@ -24,7 +27,7 @@ export class AddressProviderV300Contract
     options: ConstructOptions,
     address: Address,
     version: number,
-    addresses: Record<string, Record<number, Address>> = {},
+    addresses?: AddressProviderAddresses,
   ) {
     super(
       options,

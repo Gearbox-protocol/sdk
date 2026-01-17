@@ -4,6 +4,22 @@ import type { BaseParams, IBaseContract } from "../../base/index.js";
 import type { VersionRange } from "../../constants/versions.js";
 import type { AddressProviderV3StateHuman } from "../../types/index.js";
 
+export interface AddressProviderAddresses {
+  /**
+   * Initialize address provider with these addresses
+   * Used in hydration
+   */
+  addresses?: Record<string, Record<number, Address>>;
+  /**
+   * Override addresses for this address provider
+   * These addresses will precede over addresses loaded from chain
+   *
+   * This is an escape hatch.
+   * We used it when we need to fix price feed compressor/market compressor urgently
+   */
+  overrides?: Record<string, Record<number, Address>>;
+}
+
 export interface AddressProviderState {
   baseParams: BaseParams;
   addresses: Record<string, Record<number, Address>>;

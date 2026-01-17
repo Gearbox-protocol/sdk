@@ -6,20 +6,34 @@ import type { VersionRange } from "../../constants/index.js";
 import { NO_VERSION } from "../../constants/index.js";
 import type { AddressProviderV3StateHuman } from "../../types/index.js";
 import { TypedObjectUtils } from "../../utils/mappers.js";
-import type { AddressProviderState } from "./types.js";
+import type {
+  AddressProviderAddresses,
+  AddressProviderState,
+} from "./types.js";
 
 export default abstract class AbstractAddressProviderContract<
   abi extends Abi | readonly unknown[],
 > extends BaseContract<abi> {
-  #addresses: Record<string, Record<number, Address>> = {};
+  readonly #addresses: Record<string, Record<number, Address>>;
+  readonly #overrides: Record<string, Record<number, Address>>;
 
   constructor(
     options: ConstructOptions,
     args: BaseContractArgs<abi>,
-    addresses: Record<string, Record<number, Address>> = {},
+    addresses?: AddressProviderAddresses,
   ) {
     super(options, args);
-    this.#addresses = addresses;
+    this.#addresses = addresses?.addresses ?? {};
+    this.#overrides = addresses?.overrides ?? {};
+
+    for (const [contract, vs] of TypedObjectUtils.entries(this.#overrides)) {
+      for (const [version, address] of TypedObjectUtils.entries(vs)) {
+        this.#addresses[contract] = {
+          ...this.#addresses[contract],
+          [version]: address,
+        };
+      }
+    }
   }
 
   protected setInternalAddress(key: string, address: Address, version: number) {
@@ -29,6 +43,14 @@ export default abstract class AbstractAddressProviderContract<
     }
     this.#addresses[k][version] = address;
     this.logger?.debug(`Set address for ${k}@${version} to ${address}`);
+
+    const overriden = this.#overrides[k]?.[version];
+    if (overriden) {
+      this.logger?.warn(
+        `address for ${k}@${version} was overriden, hardcode ${overriden} instead of ${address}`,
+      );
+      this.#addresses[k][version] = overriden;
+    }
   }
 
   public getAddress(contract: string, version = NO_VERSION): Address {

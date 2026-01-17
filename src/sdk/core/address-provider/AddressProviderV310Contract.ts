@@ -9,7 +9,10 @@ import { bytesToString, parseEventLogs, toBytes } from "viem";
 import { iAddressProviderV310Abi } from "../../../abi/310/generated.js";
 import type { ConstructOptions } from "../../base/Construct.js";
 import AbstractAddressProviderContract from "./AbstractAddressProviderContract.js";
-import type { IAddressProviderContract } from "./types.js";
+import type {
+  AddressProviderAddresses,
+  IAddressProviderContract,
+} from "./types.js";
 
 const abi = iAddressProviderV310Abi;
 type abi = typeof abi;
@@ -22,7 +25,7 @@ export class AddressProviderV310Contract
     options: ConstructOptions,
     address: Address,
     version: number = 310,
-    addresses: Record<string, Record<number, Address>> = {},
+    addresses?: AddressProviderAddresses,
   ) {
     super(
       options,
