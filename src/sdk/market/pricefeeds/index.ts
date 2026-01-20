@@ -19,11 +19,11 @@ export * from "./PythPriceFeed.js";
 export * from "./RedstonePriceFeed.js";
 export * from "./types.js";
 export {
-  FetchPythPayloadsOptions,
-  FetchRedstonePayloadsOptions,
+  type FetchPythPayloadsOptions,
+  type FetchRedstonePayloadsOptions,
   fetchPythPayloads,
   fetchRedstonePayloads,
-  TimestampedCalldata,
+  type TimestampedCalldata,
 } from "./updates/index.js";
 export * from "./WstETHPriceFeed.js";
 export * from "./YearnPriceFeed.js";
