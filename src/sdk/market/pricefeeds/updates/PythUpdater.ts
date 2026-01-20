@@ -1,54 +1,19 @@
-import { Buffer } from "buffer";
 import type { Address, Hex } from "viem";
-import { encodeAbiParameters, toHex } from "viem";
 import { z } from "zod/v4";
 import { SDKConstruct } from "../../../base/index.js";
 import type { GearboxSDK } from "../../../GearboxSDK.js";
-import { retry } from "../../../utils/index.js";
 import type {
   IPriceFeedContract,
   IUpdatablePriceFeedContract,
 } from "../types.js";
+import { fetchPythPayloads } from "./fetchPythPayloads.js";
 import { PriceUpdatesCache } from "./PriceUpdatesCache.js";
 import { PriceUpdateTx } from "./PriceUpdateTx.js";
-import {
-  parseAccumulatorUpdateData,
-  parsePriceFeedMessage,
-  sliceAccumulatorUpdateData,
-} from "./PythAccumulatorUpdateData.js";
 import type {
   IPriceUpdater,
   IPriceUpdateTask,
   TimestampedCalldata,
 } from "./types.js";
-
-interface PythPriceUpdatesResp {
-  binary: {
-    encoding: "hex";
-    data: string[];
-  };
-  parsed: PythPriceFeed[];
-}
-
-interface PythPriceFeed {
-  id: string;
-  price: PythPrice;
-  ema_price: PythPrice;
-  metadata: PythMetadata;
-}
-
-interface PythPrice {
-  price: string;
-  conf: string;
-  expo: number;
-  publish_time: number;
-}
-
-interface PythMetadata {
-  slot: number;
-  proof_available_time: number;
-  prev_publish_time: number;
-}
 
 interface IPythPriceFeedContract extends IUpdatablePriceFeedContract {
   readonly token: Address;
@@ -99,19 +64,20 @@ export class PythUpdater
 {
   #cache: PriceUpdatesCache;
   #historicalTimestamp?: number;
-  #api: string;
+  #apiProxy?: string;
   #ignoreMissingFeeds?: boolean;
 
   constructor(sdk: GearboxSDK, opts: PythOptions = {}) {
     super(sdk);
-    this.#ignoreMissingFeeds = opts.ignoreMissingFeeds;
-    this.#api =
-      opts.apiProxy ?? "https://hermes.pyth.network/v2/updates/price/";
-    this.#api = this.#api.endsWith("/") ? this.#api : `${this.#api}/`;
+    const { apiProxy, cacheTTL, ignoreMissingFeeds, historicTimestamp } = opts;
+    this.#ignoreMissingFeeds = ignoreMissingFeeds;
+    this.#apiProxy = apiProxy;
 
-    const ts = opts.historicTimestamp;
-    if (ts) {
-      this.#historicalTimestamp = ts === true ? Number(this.sdk.timestamp) : ts;
+    if (historicTimestamp) {
+      this.#historicalTimestamp =
+        historicTimestamp === true
+          ? Number(this.sdk.timestamp)
+          : historicTimestamp;
       this.logger?.debug(
         `using historical timestamp ${this.#historicalTimestamp}`,
       );
@@ -120,8 +86,8 @@ export class PythUpdater
       // currently staleness period is 240 seconds on all networks, add some buffer
       // this period of 4 minutes is selected based on time that is required for user to sign transaction with wallet
       // so it's unlikely to decrease
-      ttl: opts.cacheTTL ?? 225 * 1000,
-      historical: !!ts,
+      ttl: cacheTTL ?? 225 * 1000,
+      historical: !!historicTimestamp,
     });
   }
 
@@ -229,85 +195,16 @@ export class PythUpdater
     this.logger?.debug(
       `fetching pyth payloads for ${dataFeedsIds.size} price feeds: ${ids.join(", ")}${tsStr}`,
     );
-    // https://hermes.pyth.network/docs/#/rest/latest_price_updates
-    const url = new URL(this.#api + (this.#historicalTimestamp ?? "latest"));
-    // we're requesting non-parsed data for multiple feeds, and then splitting it manually
-    url.searchParams.append("parsed", "false");
-    if (this.#ignoreMissingFeeds) {
-      url.searchParams.append("ignore_invalid_price_ids", "true");
-    }
-    for (const id of dataFeedsIds) {
-      url.searchParams.append("ids[]", id);
-    }
-    const resp = await retry(
-      async () => {
-        const resp = await fetch(url.toString());
-        if (!resp.ok) {
-          const body = await resp.text();
-          throw new Error(
-            `failed to fetch pyth payloads: ${resp.statusText}: ${body}`,
-          );
-        }
-        const data = await resp.json();
-        return data as PythPriceUpdatesResp;
-      },
-      { attempts: 3, exponent: 2, interval: 200 },
-    );
-    const result = respToCalldata(resp);
-    if (!this.#ignoreMissingFeeds && result.length !== dataFeedsIds.size) {
-      throw new Error(
-        `expected ${dataFeedsIds.size} price feeds, got ${result.length}`,
-      );
-    }
-    return result;
+    return fetchPythPayloads({
+      dataFeedsIds,
+      historicalTimestampSeconds: this.#historicalTimestamp,
+      apiProxy: this.#apiProxy,
+      ignoreMissingFeeds: this.#ignoreMissingFeeds,
+      logger: this.logger,
+    });
   }
 }
 
 function isPyth(pf: IPriceFeedContract): pf is IPythPriceFeedContract {
   return pf.contractType === "PRICE_FEED::PYTH";
-}
-
-function respToCalldata(resp: PythPriceUpdatesResp): TimestampedCalldata[] {
-  // edge case when ignoreMissingFeeds is true and we requesting exactly one feed which fails
-  if (resp.binary.data.length === 0) {
-    return [];
-  }
-
-  const updates = splitAccumulatorUpdates(resp.binary.data[0]);
-  return updates.map(({ data, dataFeedId, timestamp }) => {
-    return {
-      dataFeedId,
-      data: encodeAbiParameters(
-        [{ type: "uint256" }, { type: "bytes[]" }],
-        [BigInt(timestamp), [data]],
-      ),
-      timestamp,
-      cached: false,
-    };
-  });
-}
-
-interface PythPriceFeedUpdate {
-  dataFeedId: Hex;
-  timestamp: number;
-  data: Hex;
-}
-
-function splitAccumulatorUpdates(binary: string): PythPriceFeedUpdate[] {
-  const data = Buffer.from(binary, "hex");
-
-  const parsed = parseAccumulatorUpdateData(data);
-  const results: PythPriceFeedUpdate[] = [];
-
-  for (let i = 0; i < parsed.updates.length; i++) {
-    const upd = parsed.updates[i].message;
-    const msg = parsePriceFeedMessage(upd);
-    results.push({
-      dataFeedId: toHex(msg.feedId),
-      timestamp: msg.publishTime.toNumber(),
-      data: toHex(sliceAccumulatorUpdateData(data, i, i + 1)),
-    });
-  }
-
-  return results;
 }
