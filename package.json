@@ -55,6 +55,7 @@
     "@redstone-finance/evm-connector": "^0.9.0",
     "@redstone-finance/protocol": "^0.9.0",
     "@redstone-finance/sdk": "^0.9.0",
+    "@redstone-finance/utils": "^0.9.0",
     "@types/bn.js": "^5.2.0",
     "abitype": "^1.2.3",
     "bn.js": "^5.2.2",

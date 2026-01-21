@@ -924,6 +924,7 @@ __metadata:
     "@redstone-finance/evm-connector": "npm:^0.9.0"
     "@redstone-finance/protocol": "npm:^0.9.0"
     "@redstone-finance/sdk": "npm:^0.9.0"
+    "@redstone-finance/utils": "npm:^0.9.0"
     "@types/bn.js": "npm:^5.2.0"
     "@types/cross-spawn": "npm:^6.0.6"
     abitype: "npm:^1.2.3"
@@ -1119,7 +1120,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@redstone-finance/utils@npm:0.9.0":
+"@redstone-finance/utils@npm:0.9.0, @redstone-finance/utils@npm:^0.9.0":
   version: 0.9.0
   resolution: "@redstone-finance/utils@npm:0.9.0"
   dependencies:
