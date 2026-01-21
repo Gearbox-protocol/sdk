@@ -33,4 +33,5 @@ export interface Deployment {
 
 export interface DeploymentExtended extends Deployment {
   bytecodeHash: Hex;
+  constructorParams?: Hex;
 }
