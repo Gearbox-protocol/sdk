@@ -111,7 +111,7 @@ export class AdaptersPlugin
         return new InfinifiUnwindingGatewayAdapterContract(this.sdk, args);
       case "ADAPTER::INFRARED_VAULT":
         return new InfraredVaultAdapterContract(this.sdk, args);
-      case "ADAPTER::KELP_DEPOSIT_POOL_POOL":
+      case "ADAPTER::KELP_DEPOSIT_POOL":
         return new KelpLRTDepositPoolAdapterContract(this.sdk, args);
       case "ADAPTER::KELP_WITHDRAWAL":
         return new KelpLRTWithdrawalManagerAdapterContract(this.sdk, args);
