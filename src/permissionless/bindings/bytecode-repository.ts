@@ -152,6 +152,7 @@ export class BytecodeRepositoryContract extends BaseContract<typeof abi> {
         txHash: e.transactionHash,
         blockNumber: Number(e.blockNumber),
         bytecodeHash: e.args.bytecodeHash! as Hex,
+        constructorParams: e.args.constructorParams,
       });
     }
 
