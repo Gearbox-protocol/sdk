@@ -7,10 +7,14 @@ import {
   type DataServiceIds,
   getSignersForDataServiceId,
 } from "@redstone-finance/sdk";
+import { MathUtils } from "@redstone-finance/utils";
 import { encodeAbiParameters, toBytes } from "viem";
 import type { ILogger } from "../../../types/logger.js";
 import { retry } from "../../../utils/index.js";
-import type { TimestampedCalldata } from "./types.js";
+import type {
+  TimestampedCalldata,
+  TimestampedCalldataWithPrice,
+} from "./types.js";
 
 export interface FetchRedstonePayloadsOptions {
   /**
@@ -53,11 +57,32 @@ export interface FetchRedstonePayloadsOptions {
    * Logger to use
    */
   logger?: ILogger;
+  /**
+   * When true, returns the price data for each feed.
+   */
+  returnPrices?: boolean;
 }
 
+/**
+ * Fetches redstone payloads with price data
+ */
+export async function fetchRedstonePayloads(
+  options: FetchRedstonePayloadsOptions & { returnPrices: true },
+): Promise<TimestampedCalldataWithPrice[]>;
+
+/**
+ * Fetches redstone payloads
+ */
+export async function fetchRedstonePayloads(
+  options: FetchRedstonePayloadsOptions & { returnPrices?: false },
+): Promise<TimestampedCalldata[]>;
+
+/**
+ * Fetches redstone payloads from Redstone API
+ */
 export async function fetchRedstonePayloads(
   options: FetchRedstonePayloadsOptions,
-): Promise<TimestampedCalldata[]> {
+): Promise<TimestampedCalldata[] | TimestampedCalldataWithPrice[]> {
   const {
     dataServiceId,
     dataFeedsIds,
@@ -67,6 +92,7 @@ export async function fetchRedstonePayloads(
     ignoreMissingFeeds,
     enableLogging,
     logger,
+    returnPrices,
   } = options;
   const metadataTimestampMs =
     historicalTimestampMs ?? options.metadataTimestampMs;
@@ -101,7 +127,7 @@ export async function fetchRedstonePayloads(
   const parsed = RedstonePayload.parse(toBytes(`0x${dataPayload}`));
   const packagesByDataFeedId = groupDataPackages(parsed.signedDataPackages);
 
-  const result: TimestampedCalldata[] = [];
+  const result: (TimestampedCalldata | TimestampedCalldataWithPrice)[] = [];
 
   for (const dataFeedId of dataFeedsIds) {
     const signedDataPackages = packagesByDataFeedId[dataFeedId];
@@ -128,6 +154,7 @@ export async function fetchRedstonePayloads(
         dataFeedId,
         signedDataPackages,
         wrapper.getUnsignedMetadata(),
+        returnPrices,
       ),
     );
   }
@@ -171,7 +198,8 @@ function getCalldataWithTimestamp(
   dataFeedId: string,
   packages: SignedDataPackage[],
   unsignedMetadata: string,
-): TimestampedCalldata {
+  returnPrices?: boolean,
+): TimestampedCalldataWithPrice | TimestampedCalldata {
   const originalPayload = RedstonePayload.prepare(packages, unsignedMetadata);
 
   // Calculating the number of bytes in the hex representation of payload
@@ -198,7 +226,7 @@ function getCalldataWithTimestamp(
     }
   }
 
-  return {
+  const base: TimestampedCalldata = {
     dataFeedId,
     data: encodeAbiParameters(
       [{ type: "uint256" }, { type: "bytes" }],
@@ -207,4 +235,18 @@ function getCalldataWithTimestamp(
     timestamp,
     cached: false,
   };
+
+  if (returnPrices) {
+    const prices: bigint[] = packages
+      .flatMap(p => p.dataPackage.dataPoints)
+      .map(dp => BigInt(`0x${Buffer.from(dp.value).toString("hex")}`));
+    const medianPrice = BigInt(MathUtils.getMedianOfBigNumbers(prices));
+
+    return {
+      ...base,
+      price: medianPrice,
+      decimals: 8,
+    } as TimestampedCalldataWithPrice;
+  }
+  return base;
 }

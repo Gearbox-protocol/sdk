@@ -7,7 +7,10 @@ import {
   parsePriceFeedMessage,
   sliceAccumulatorUpdateData,
 } from "./PythAccumulatorUpdateData.js";
-import type { TimestampedCalldata } from "./types.js";
+import type {
+  TimestampedCalldata,
+  TimestampedCalldataWithPrice,
+} from "./types.js";
 
 export interface FetchPythPayloadsOptions {
   /**
@@ -30,7 +33,31 @@ export interface FetchPythPayloadsOptions {
    * Logger to use
    */
   logger?: ILogger;
+  /**
+   * Custom fetch function to use instead of global fetch.
+   * Can be used to add custom headers, authentication, or use a different HTTP client.
+   */
+  customFetch?: typeof fetch;
+
+  /**
+   * When true, returns the price data for each feed.
+   */
+  returnPrices?: boolean;
 }
+
+/**
+ * Fetches pyth payloads from Hermes API with price data
+ */
+export async function fetchPythPayloads(
+  options: FetchPythPayloadsOptions & { returnPrices: true },
+): Promise<TimestampedCalldataWithPrice[]>;
+
+/**
+ * Fetches pyth payloads from Hermes API
+ */
+export async function fetchPythPayloads(
+  options: FetchPythPayloadsOptions & { returnPrices?: false },
+): Promise<TimestampedCalldata[]>;
 
 /**
  * Fetches pyth payloads from Hermes API
@@ -39,13 +66,15 @@ export interface FetchPythPayloadsOptions {
  */
 export async function fetchPythPayloads(
   options: FetchPythPayloadsOptions,
-): Promise<TimestampedCalldata[]> {
+): Promise<TimestampedCalldata[] | TimestampedCalldataWithPrice[]> {
   const {
     dataFeedsIds,
     ignoreMissingFeeds,
     historicalTimestampSeconds,
     logger,
     apiProxy,
+    customFetch = fetch,
+    returnPrices,
   } = options;
   const ids = Array.from(new Set(dataFeedsIds));
   if (ids.length === 0) {
@@ -65,7 +94,7 @@ export async function fetchPythPayloads(
   }
   const resp = await retry(
     async () => {
-      const resp = await fetch(url.toString());
+      const resp = await customFetch(url.toString());
       if (!resp.ok) {
         const body = await resp.text();
         throw new Error(
@@ -77,7 +106,7 @@ export async function fetchPythPayloads(
     },
     { attempts: 3, exponent: 2, interval: 200 },
   );
-  const result = respToCalldata(resp);
+  const result = respToCalldata(resp, returnPrices);
 
   if (result.length !== ids.length) {
     if (ignoreMissingFeeds) {
@@ -126,15 +155,31 @@ interface PythPriceFeedUpdate {
   data: Hex;
 }
 
-function respToCalldata(resp: PythPriceUpdatesResp): TimestampedCalldata[] {
+function respToCalldata(
+  resp: PythPriceUpdatesResp,
+  returnPrices?: boolean,
+): TimestampedCalldata[] | TimestampedCalldataWithPrice[] {
   // edge case when ignoreMissingFeeds is true and we requesting exactly one feed which fails
   if (resp.binary.data.length === 0) {
     return [];
   }
 
   const updates = splitAccumulatorUpdates(resp.binary.data[0]);
+
+  // Build a map of feedId -> price info for quick lookup
+  const priceMap = new Map<string, { price: bigint; decimals: number }>();
+  if (returnPrices && resp.parsed) {
+    for (const feed of resp.parsed) {
+      const feedId = feed.id.startsWith("0x") ? feed.id : `0x${feed.id}`;
+      priceMap.set(feedId.toLowerCase(), {
+        price: BigInt(feed.price.price),
+        decimals: Math.abs(feed.price.expo),
+      });
+    }
+  }
+
   return updates.map(({ data, dataFeedId, timestamp }) => {
-    return {
+    const base: TimestampedCalldata = {
       dataFeedId,
       data: encodeAbiParameters(
         [{ type: "uint256" }, { type: "bytes[]" }],
@@ -143,6 +188,20 @@ function respToCalldata(resp: PythPriceUpdatesResp): TimestampedCalldata[] {
       timestamp,
       cached: false,
     };
+
+    if (returnPrices) {
+      const priceInfo = priceMap.get(dataFeedId.toLowerCase());
+      if (!priceInfo) {
+        throw new Error(`Price info not found for feed ${dataFeedId}`);
+      }
+      return {
+        ...base,
+        price: priceInfo.price,
+        decimals: priceInfo.decimals,
+      } as TimestampedCalldataWithPrice;
+    }
+
+    return base;
   });
 }
 
