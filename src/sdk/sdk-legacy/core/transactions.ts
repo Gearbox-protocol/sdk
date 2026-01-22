@@ -260,10 +260,14 @@ export class TxUnstakeDiesel extends EVMTx {
 
 interface SwapProps extends EVMTxProps {
   operation: string;
+
   amountFrom: bigint;
-  amountTo?: bigint;
   tokenFrom: Address;
+
+  amountTo?: bigint;
   tokenTo?: Address;
+  to?: Array<Asset>;
+
   creditManagerName: string;
 
   tokensList: Record<Address, TokenData>;
@@ -271,28 +275,46 @@ interface SwapProps extends EVMTxProps {
 
 export class TXSwap extends EVMTx {
   readonly operation: string;
+
   readonly amountFrom: bigint;
-  readonly amountTo?: bigint;
   readonly tokenFrom: TokenData;
-  readonly tokenTo?: TokenData;
+
+  readonly to?: Array<{ balance: bigint; token: TokenData }>;
+
   readonly creditManagerName: string;
 
   constructor(opts: SwapProps) {
     super(opts);
     this.operation = opts.operation;
+
     this.amountFrom = opts.amountFrom;
-    this.amountTo = opts.amountTo;
     this.tokenFrom = opts.tokensList[opts.tokenFrom];
-    this.tokenTo = opts.tokenTo ? opts.tokensList[opts.tokenTo] : undefined;
+
+    const list = opts.to
+      ? opts.to
+      : opts.amountTo && opts.tokenTo
+        ? [{ balance: opts.amountTo, token: opts.tokenTo }]
+        : undefined;
+
+    this.to = list?.map(({ token, balance }) => ({
+      token: opts.tokensList[token],
+      balance,
+    }));
+
     this.creditManagerName = opts.creditManagerName;
   }
 
   _toString() {
     let toPart = "";
-    if (this.tokenTo && this.amountTo) {
-      const { title: toSymbol, decimals: toDecimals = 18 } = this.tokenTo;
+    if (this.to) {
+      const str = this.to
+        .map(({ token, balance }) => {
+          const { title: tokenSymbol, decimals: tokenDecimals = 18 } = token;
+          return `${formatBN(balance, tokenDecimals)} ${tokenSymbol}`;
+        })
+        .join(", ");
 
-      toPart = ` ⇒  ${formatBN(this.amountTo, toDecimals)} ${toSymbol}`;
+      toPart = ` ⇒  ${str}`;
     }
 
     const { title: fromSymbol, decimals: fromDecimals = 18 } = this.tokenFrom;
