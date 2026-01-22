@@ -9,8 +9,8 @@ import type {
   CreditManagerOperationResult,
   ICreditAccountsService,
   LlamathenaProportionalWithdrawProps,
-  PreviewUnwindLlamathenaProportionallyProps,
-  PreviewUnwindLlamathenaProportionallyResult,
+  PreviewWithdrawLlamathenaProportionallyProps,
+  PreviewWithdrawLlamathenaProportionallyResult,
   RepayAndLiquidateCreditAccountProps,
   RepayCreditAccountProps,
   SetBotProps,
@@ -254,12 +254,12 @@ export class CreditAccountServiceV310
     return { tx, calls, creditFacade: cm.creditFacade };
   }
 
-  async previewUnwindLlamathenaProportionally(
-    _: PreviewUnwindLlamathenaProportionallyProps,
-  ): Promise<PreviewUnwindLlamathenaProportionallyResult> {
+  async previewWithdrawLlamathenaProportionally(
+    _: PreviewWithdrawLlamathenaProportionallyProps,
+  ): Promise<PreviewWithdrawLlamathenaProportionallyResult> {
     throw new Error("Not implemented in v310");
   }
-  async unwindStkCvxLlamathenaProportionally(
+  async withdrawLlamathenaProportionally(
     _: LlamathenaProportionalWithdrawProps,
   ): Promise<CreditAccountOperationResult> {
     throw new Error("Not implemented in v310");

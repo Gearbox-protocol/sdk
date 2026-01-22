@@ -33,8 +33,8 @@ import type {
   CreditAccountOperationResult,
   ICreditAccountsService,
   LlamathenaProportionalWithdrawProps,
-  PreviewUnwindLlamathenaProportionallyProps,
-  PreviewUnwindLlamathenaProportionallyResult,
+  PreviewWithdrawLlamathenaProportionallyProps,
+  PreviewWithdrawLlamathenaProportionallyResult,
   RepayAndLiquidateCreditAccountProps,
   RepayCreditAccountProps,
   SetBotProps,
@@ -228,9 +228,9 @@ export class CreditAccountServiceV300
     return { tx, calls, creditFacade: cm.creditFacade };
   }
 
-  async previewUnwindLlamathenaProportionally({
+  async previewWithdrawLlamathenaProportionally({
     llamathena,
-  }: PreviewUnwindLlamathenaProportionallyProps): Promise<PreviewUnwindLlamathenaProportionallyResult> {
+  }: PreviewWithdrawLlamathenaProportionallyProps): Promise<PreviewWithdrawLlamathenaProportionallyResult> {
     const LLAMATHENA_CURVE_POOL: Address =
       "0xd29f8980852c2c76fc3f6e96a7aa06e0bedcc1b1".toLowerCase() as Address;
     const SCRVUSD: Address =
@@ -355,7 +355,7 @@ export class CreditAccountServiceV300
       ],
     };
   }
-  async unwindStkCvxLlamathenaProportionally({
+  async withdrawLlamathenaProportionally({
     preview,
     creditAccount: ca,
     minQuota,

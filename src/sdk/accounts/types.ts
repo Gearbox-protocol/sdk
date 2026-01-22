@@ -498,10 +498,10 @@ export type GetConnectedMigrationBotsResult =
     }
   | undefined;
 
-export interface PreviewUnwindLlamathenaProportionallyProps {
+export interface PreviewWithdrawLlamathenaProportionallyProps {
   llamathena: Asset;
 }
-export interface PreviewUnwindLlamathenaProportionallyResult {
+export interface PreviewWithdrawLlamathenaProportionallyResult {
   /**
    * Assets to get
    */
@@ -533,7 +533,7 @@ export interface LlamathenaProportionalWithdrawProps
   /**
    * Preview of the withdrawal
    */
-  preview: PreviewUnwindLlamathenaProportionallyResult;
+  preview: PreviewWithdrawLlamathenaProportionallyResult;
   /**
    * minimal credit account data on which operation is performed on which operation is performed
    */
@@ -798,10 +798,10 @@ export interface ICreditAccountsService extends Construct {
     props: ClaimFarmRewardsProps,
   ): Promise<CreditAccountOperationResult>;
 
-  previewUnwindLlamathenaProportionally(
-    props: PreviewUnwindLlamathenaProportionallyProps,
-  ): Promise<PreviewUnwindLlamathenaProportionallyResult>;
-  unwindStkCvxLlamathenaProportionally(
+  previewWithdrawLlamathenaProportionally(
+    props: PreviewWithdrawLlamathenaProportionallyProps,
+  ): Promise<PreviewWithdrawLlamathenaProportionallyResult>;
+  withdrawLlamathenaProportionally(
     props: LlamathenaProportionalWithdrawProps,
   ): Promise<CreditAccountOperationResult>;
 }
