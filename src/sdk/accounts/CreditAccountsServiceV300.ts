@@ -238,6 +238,29 @@ export class CreditAccountServiceV300
     const SUSDE: Address =
       "0x9D39A5DE30e57443BfF2A8307A4256c8797A3497".toLowerCase() as Address;
 
+    const llamathenaBalance = llamathena.balance;
+    if (llamathenaBalance === 0n)
+      return {
+        scrvusdDelta: 0n,
+        scrvusdAddress: SCRVUSD,
+
+        susdeDelta: 0n,
+        susdeAddress: SUSDE,
+
+        llamathena: [llamathena],
+
+        assets: [
+          {
+            token: SCRVUSD,
+            balance: 0n,
+          },
+          {
+            token: SUSDE,
+            balance: 0n,
+          },
+        ],
+      };
+
     const llamathenaAbi = [
       {
         type: "function",
@@ -246,8 +269,8 @@ export class CreditAccountServiceV300
         outputs: [
           {
             name: "",
-            internalType: "uint256[2]",
-            type: "uint256[2]",
+            internalType: "uint256[]",
+            type: "uint256[]",
           },
         ],
         stateMutability: "view",
@@ -283,6 +306,7 @@ export class CreditAccountServiceV300
         },
       ],
     });
+
     if (totalSupply === 0n)
       return {
         scrvusdDelta: 0n,
@@ -291,7 +315,7 @@ export class CreditAccountServiceV300
         susdeDelta: 0n,
         susdeAddress: SUSDE,
 
-        llamathena,
+        llamathena: [llamathena],
 
         assets: [
           {
@@ -305,9 +329,7 @@ export class CreditAccountServiceV300
         ],
       };
 
-    const [scrvusdBalance, susdeBalance] = poolBalances;
-
-    const llamathenaBalance = llamathena.balance;
+    const [scrvusdBalance = 0n, susdeBalance = 0n] = poolBalances;
 
     const scrvusdDelta = (scrvusdBalance * llamathenaBalance) / totalSupply;
     const susdeDelta = (susdeBalance * llamathenaBalance) / totalSupply;
@@ -319,7 +341,7 @@ export class CreditAccountServiceV300
       susdeDelta,
       susdeAddress: SUSDE,
 
-      llamathena,
+      llamathena: [llamathena],
 
       assets: [
         {
@@ -382,7 +404,7 @@ export class CreditAccountServiceV300
       callData: encodeFunctionData({
         abi: iBaseRewardPoolAbi,
         functionName: "withdrawAndUnwrap",
-        args: [preview.llamathena.balance, false],
+        args: [preview.llamathena[0].balance, false],
       }),
     };
 
@@ -391,7 +413,7 @@ export class CreditAccountServiceV300
       callData: encodeFunctionData({
         abi: iCurveV1_2AssetsAdapterAbi,
         functionName: "remove_liquidity",
-        args: [preview.llamathena.balance, [0n, 0n]],
+        args: [preview.llamathena[0].balance, [0n, 0n]],
       }),
     };
 

@@ -517,7 +517,7 @@ export interface PreviewUnwindLlamathenaProportionallyResult {
   /**
    * Llamathena asset
    */
-  llamathena: Asset;
+  llamathena: [Asset];
   /**
    * Amount of SCRVUSD to get
    */
