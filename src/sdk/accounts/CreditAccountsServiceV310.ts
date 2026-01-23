@@ -8,6 +8,9 @@ import type {
   CreditAccountOperationResult,
   CreditManagerOperationResult,
   ICreditAccountsService,
+  LlamathenaProportionalWithdrawProps,
+  PreviewWithdrawLlamathenaProportionallyProps,
+  PreviewWithdrawLlamathenaProportionallyResult,
   RepayAndLiquidateCreditAccountProps,
   RepayCreditAccountProps,
   SetBotProps,
@@ -249,5 +252,16 @@ export class CreditAccountServiceV310
     const tx = cm.creditFacade.multicall(ca.creditAccount, calls);
 
     return { tx, calls, creditFacade: cm.creditFacade };
+  }
+
+  async previewWithdrawLlamathenaProportionally(
+    _: PreviewWithdrawLlamathenaProportionallyProps,
+  ): Promise<PreviewWithdrawLlamathenaProportionallyResult> {
+    throw new Error("Not implemented in v310");
+  }
+  async withdrawLlamathenaProportionally(
+    _: LlamathenaProportionalWithdrawProps,
+  ): Promise<CreditAccountOperationResult> {
+    throw new Error("Not implemented in v310");
   }
 }

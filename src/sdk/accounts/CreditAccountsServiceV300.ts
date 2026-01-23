@@ -1,5 +1,7 @@
+import { iCurveV1_2AssetsAdapterAbi } from "@gearbox-protocol/integrations-v3";
 import { type Address, parseAbi } from "abitype";
 import { encodeFunctionData } from "viem";
+import { iBaseRewardPoolAbi } from "../../abi/iBaseRewardPool.js";
 import { NOT_DEPLOYED } from "../constants/addresses.js";
 import { MAX_UINT256 } from "../constants/math.js";
 import type { Asset } from "../router/types.js";
@@ -30,6 +32,9 @@ import type {
   ClaimFarmRewardsProps,
   CreditAccountOperationResult,
   ICreditAccountsService,
+  LlamathenaProportionalWithdrawProps,
+  PreviewWithdrawLlamathenaProportionallyProps,
+  PreviewWithdrawLlamathenaProportionallyResult,
   RepayAndLiquidateCreditAccountProps,
   RepayCreditAccountProps,
   SetBotProps,
@@ -216,6 +221,225 @@ export class CreditAccountServiceV300
         this.prepareDisableToken(ca.creditFacade, a.token),
       ),
       ...this.prepareUpdateQuotas(ca.creditFacade, { minQuota, averageQuota }),
+    ];
+
+    const tx = cm.creditFacade.multicall(ca.creditAccount, calls);
+
+    return { tx, calls, creditFacade: cm.creditFacade };
+  }
+
+  async previewWithdrawLlamathenaProportionally({
+    llamathena,
+  }: PreviewWithdrawLlamathenaProportionallyProps): Promise<PreviewWithdrawLlamathenaProportionallyResult> {
+    const LLAMATHENA_CURVE_POOL: Address =
+      "0xd29f8980852c2c76fc3f6e96a7aa06e0bedcc1b1".toLowerCase() as Address;
+    const SCRVUSD: Address =
+      "0x0655977FEb2f289A4aB78af67BAB0d17aAb84367".toLowerCase() as Address;
+    const SUSDE: Address =
+      "0x9D39A5DE30e57443BfF2A8307A4256c8797A3497".toLowerCase() as Address;
+
+    const llamathenaBalance = llamathena.balance;
+    if (llamathenaBalance === 0n)
+      return {
+        scrvusdDelta: 0n,
+        scrvusdAddress: SCRVUSD,
+
+        susdeDelta: 0n,
+        susdeAddress: SUSDE,
+
+        llamathena: [llamathena],
+
+        assets: [
+          {
+            token: SCRVUSD,
+            balance: 0n,
+          },
+          {
+            token: SUSDE,
+            balance: 0n,
+          },
+        ],
+      };
+
+    const llamathenaAbi = [
+      {
+        type: "function",
+        inputs: [],
+        name: "get_balances",
+        outputs: [
+          {
+            name: "",
+            internalType: "uint256[]",
+            type: "uint256[]",
+          },
+        ],
+        stateMutability: "view",
+      },
+      {
+        type: "function",
+        inputs: [],
+        name: "totalSupply",
+        outputs: [
+          {
+            name: "",
+            internalType: "uint256",
+            type: "uint256",
+          },
+        ],
+        stateMutability: "view",
+      },
+    ] as const;
+
+    const [poolBalances, totalSupply] = await this.client.multicall({
+      batchSize: 0,
+      allowFailure: false,
+      contracts: [
+        {
+          address: LLAMATHENA_CURVE_POOL,
+          abi: llamathenaAbi,
+          functionName: "get_balances",
+        },
+        {
+          address: LLAMATHENA_CURVE_POOL,
+          abi: llamathenaAbi,
+          functionName: "totalSupply",
+        },
+      ],
+    });
+
+    if (totalSupply === 0n)
+      return {
+        scrvusdDelta: 0n,
+        scrvusdAddress: SCRVUSD,
+
+        susdeDelta: 0n,
+        susdeAddress: SUSDE,
+
+        llamathena: [llamathena],
+
+        assets: [
+          {
+            token: SCRVUSD,
+            balance: 0n,
+          },
+          {
+            token: SUSDE,
+            balance: 0n,
+          },
+        ],
+      };
+
+    const [scrvusdBalance = 0n, susdeBalance = 0n] = poolBalances;
+
+    const scrvusdDelta = (scrvusdBalance * llamathenaBalance) / totalSupply;
+    const susdeDelta = (susdeBalance * llamathenaBalance) / totalSupply;
+
+    return {
+      scrvusdDelta,
+      scrvusdAddress: SCRVUSD,
+
+      susdeDelta,
+      susdeAddress: SUSDE,
+
+      llamathena: [llamathena],
+
+      assets: [
+        {
+          token: SCRVUSD,
+          balance: scrvusdDelta,
+        },
+        {
+          token: SUSDE,
+          balance: susdeDelta,
+        },
+      ],
+    };
+  }
+  async withdrawLlamathenaProportionally({
+    preview,
+    creditAccount: ca,
+    minQuota,
+    averageQuota,
+  }: LlamathenaProportionalWithdrawProps) {
+    const LLAMATHENA_BASE_REWARD_POOL: Address =
+      "0x11fd8801a051b296e337a3e1168839fb346d5940";
+    const LLAMATHENA_POOL: Address =
+      "0xd29f8980852c2c76fc3f6e96a7aa06e0bedcc1b1";
+
+    const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
+    const priceUpdatesCalls = await this.getPriceUpdatesForFacade({
+      creditManager: ca.creditManager,
+      creditAccount: ca,
+      desiredQuotas: averageQuota,
+    });
+
+    const baseRewardPoolAdapter = cm.creditManager.adapters.get(
+      LLAMATHENA_BASE_REWARD_POOL,
+    );
+    if (!baseRewardPoolAdapter) {
+      throw new Error("BaseRewardPool adapter for llamathena is missing");
+    }
+
+    const curvePoolAdapter = cm.creditManager.adapters.get(LLAMATHENA_POOL);
+    if (!curvePoolAdapter) {
+      throw new Error("Curve pool adapter for llamathena is missing");
+    }
+
+    const storeExpectedBalances: MultiCall = {
+      target: cm.creditFacade.address,
+      callData: encodeFunctionData({
+        abi: cm.creditFacade.abi,
+        functionName: "storeExpectedBalances",
+        args: [
+          [
+            { token: preview.scrvusdAddress, amount: preview.scrvusdDelta },
+            { token: preview.susdeAddress, amount: preview.susdeDelta },
+          ],
+        ],
+      }),
+    };
+
+    const withdrawAndUnwrapCall: MultiCall = {
+      target: baseRewardPoolAdapter.address,
+      callData: encodeFunctionData({
+        abi: iBaseRewardPoolAbi,
+        functionName: "withdrawAndUnwrap",
+        args: [preview.llamathena[0].balance, false],
+      }),
+    };
+
+    const removeLiquidityCall: MultiCall = {
+      target: curvePoolAdapter.address,
+      callData: encodeFunctionData({
+        abi: iCurveV1_2AssetsAdapterAbi,
+        functionName: "remove_liquidity",
+        args: [preview.llamathena[0].balance, [0n, 0n]],
+      }),
+    };
+
+    const compareBalances: MultiCall = {
+      target: cm.creditFacade.address,
+      callData: encodeFunctionData({
+        abi: cm.creditFacade.abi,
+        functionName: "compareBalances",
+        args: [],
+      }),
+    };
+
+    const swapCalls: Array<MultiCall> = [
+      storeExpectedBalances,
+      withdrawAndUnwrapCall,
+      removeLiquidityCall,
+      compareBalances,
+    ];
+
+    const calls: Array<MultiCall> = [
+      ...priceUpdatesCalls,
+      ...swapCalls,
+      ...this.prepareUpdateQuotas(ca.creditFacade, {
+        minQuota,
+        averageQuota,
+      }),
     ];
 
     const tx = cm.creditFacade.multicall(ca.creditAccount, calls);

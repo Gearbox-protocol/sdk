@@ -498,6 +498,48 @@ export type GetConnectedMigrationBotsResult =
     }
   | undefined;
 
+export interface PreviewWithdrawLlamathenaProportionallyProps {
+  llamathena: Asset;
+}
+export interface PreviewWithdrawLlamathenaProportionallyResult {
+  /**
+   * Assets to get
+   */
+  assets: Array<Asset>;
+  /**
+   * Address of SCRVUSD token
+   */
+  scrvusdAddress: Address;
+  /**
+   * Address of SUSDE token
+   */
+  susdeAddress: Address;
+  /**
+   * Llamathena asset
+   */
+  llamathena: [Asset];
+  /**
+   * Amount of SCRVUSD to get
+   */
+  scrvusdDelta: bigint;
+  /**
+   * Amount of SUSDE to get
+   */
+  susdeDelta: bigint;
+}
+
+export interface LlamathenaProportionalWithdrawProps
+  extends PrepareUpdateQuotasProps {
+  /**
+   * Preview of the withdrawal
+   */
+  preview: PreviewWithdrawLlamathenaProportionallyResult;
+  /**
+   * minimal credit account data on which operation is performed on which operation is performed
+   */
+  creditAccount: RouterCASlice;
+}
+
 export interface ICreditAccountsService extends Construct {
   sdk: GearboxSDK;
   /**
@@ -754,5 +796,12 @@ export interface ICreditAccountsService extends Construct {
    */
   claimFarmRewards(
     props: ClaimFarmRewardsProps,
+  ): Promise<CreditAccountOperationResult>;
+
+  previewWithdrawLlamathenaProportionally(
+    props: PreviewWithdrawLlamathenaProportionallyProps,
+  ): Promise<PreviewWithdrawLlamathenaProportionallyResult>;
+  withdrawLlamathenaProportionally(
+    props: LlamathenaProportionalWithdrawProps,
   ): Promise<CreditAccountOperationResult>;
 }
