@@ -23,3 +23,8 @@ export interface TimestampedCalldata {
   timestamp: number;
   cached: boolean;
 }
+
+export interface TimestampedCalldataWithPrice extends TimestampedCalldata {
+  price: bigint;
+  decimals: number;
+}

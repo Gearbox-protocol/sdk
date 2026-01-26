@@ -31,7 +31,7 @@ async function example(): Promise<void> {
   const sdk = await GearboxSDK.attach({
     rpcURLs: [RPC],
     timeout: 480_000,
-    blockNumber: 23928400,
+    // blockNumber: 23928400,
     // redstoneHistoricTimestamp: true,
     // addressProvider: ADDRESS_PROVIDER,
     // marketConfigurators: [],
