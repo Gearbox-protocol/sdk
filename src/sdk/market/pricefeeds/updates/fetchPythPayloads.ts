@@ -85,7 +85,7 @@ export async function fetchPythPayloads(
   // https://hermes.pyth.network/docs/#/rest/latest_price_updates
   const url = new URL(api + (historicalTimestampSeconds ?? "latest"));
   // we're requesting non-parsed data for multiple feeds, and then splitting it manually
-  url.searchParams.append("parsed", "false");
+  url.searchParams.append("parsed", returnPrices ? "true" : "false");
   if (ignoreMissingFeeds) {
     url.searchParams.append("ignore_invalid_price_ids", "true");
   }
