@@ -240,7 +240,7 @@ export interface MarketStateHuman {
 
 export interface GearboxStateHuman {
   block: number;
-  timestamp: number;
+  timestamp: string;
   core: CoreStateHuman;
   markets: MarketStateHuman[];
   plugins: Record<string, unknown>;

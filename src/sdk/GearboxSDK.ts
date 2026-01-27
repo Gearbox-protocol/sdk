@@ -43,7 +43,7 @@ import {
 import { createRouter, type IRouterContract } from "./router/index.js";
 import type { GearboxState, GearboxStateHuman } from "./types/index.js";
 import type { PickSomeRequired } from "./utils/index.js";
-import { TypedObjectUtils, toAddress } from "./utils/index.js";
+import { formatTimestamp, TypedObjectUtils, toAddress } from "./utils/index.js";
 import { Hooks } from "./utils/internal/index.js";
 import { getLogsSafe } from "./utils/viem/index.js";
 
@@ -477,7 +477,7 @@ export class GearboxSDK<
   public stateHuman(raw = true): GearboxStateHuman {
     return {
       block: Number(this.currentBlock),
-      timestamp: Number(this.timestamp),
+      timestamp: formatTimestamp(Number(this.timestamp), raw),
       core: {
         addressProviderV3: this.addressProvider.stateHuman(raw),
         botList: this.botListContract?.stateHuman(raw),

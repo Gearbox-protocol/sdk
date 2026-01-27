@@ -127,9 +127,10 @@ export function formatNumberToString_(value: bigint | number): string {
     .replaceAll(",", "_");
 }
 
-export function formatTimestamp(timestamp: number) {
-  return new Date(timestamp * 1000).toLocaleString("en-GB", {
+export function formatTimestamp(timestamp: number, raw = true): string {
+  const result = new Date(timestamp * 1000).toLocaleString("en-GB", {
     dateStyle: "short",
     timeStyle: "short",
   });
+  return raw ? `${result} [${timestamp}]` : result;
 }
