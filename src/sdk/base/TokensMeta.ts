@@ -26,6 +26,11 @@ export class TokensMeta extends AddressMap<TokenMetaDataExtended> {
     this.#client = client;
   }
 
+  public reset(): void {
+    this.clear();
+    this.#phantomTokensLoaded = undefined;
+  }
+
   public symbol(token: Address): string {
     return this.mustGet(token).symbol;
   }

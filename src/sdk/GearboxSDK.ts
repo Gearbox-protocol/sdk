@@ -288,8 +288,9 @@ export class GearboxSDK<
     if (options.gasLimit !== null) {
       this.gasLimit = options.gasLimit || 550_000_000n;
     }
-    // this is essentiag, we need sdk be present in static contracts register
+    // this is essential, we need sdk be present in static contracts register
     Object.assign(this, ChainContractsRegister.for(this.client, this.logger));
+    this.resetContracts();
   }
 
   async #attach(opts: AttachOptionsInternal): Promise<this> {

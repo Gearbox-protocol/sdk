@@ -46,6 +46,15 @@ export class ChainContractsRegister {
     this.logger = logger;
   }
 
+  public resetContracts(): void {
+    this.logger?.debug(
+      `resetting contacts register with ${this.contracts.size} contracts`,
+    );
+    this.labels.clear();
+    this.contracts.clear();
+    this.tokensMeta.reset();
+  }
+
   public getContract<T = unknown[]>(
     address: Address,
   ): ContractOrInterface<T> | undefined {
