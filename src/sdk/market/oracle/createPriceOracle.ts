@@ -13,6 +13,8 @@ import type { IPriceOracleContract } from "./types.js";
  *
  * So this method bridges multiple compressor data pieces and single oracle contract isntance
  *
+ * @deprecated This will be removed when v300 is deprecated
+ *
  * @param sdk
  * @param data
  * @param underlying
@@ -23,20 +25,24 @@ export function getOrCreatePriceOracle(
   data: PriceOracleData,
 ): IPriceOracleContract {
   const { version, addr } = data.baseParams;
-  const existing = sdk.getContract(addr);
 
   let result: IPriceOracleContract;
-  if (existing) {
-    result = tryExtendExistingOracle(existing, data);
-  } else if (isV300(version)) {
-    result = new PriceOracleV300Contract(sdk, data);
+  let action = "created";
+  if (isV300(version)) {
+    const existing = sdk.getContract(addr);
+    if (existing) {
+      result = tryExtendExistingOracle(existing, data);
+      action = "extended";
+    } else {
+      result = new PriceOracleV300Contract(sdk, data);
+    }
   } else if (isV310(version)) {
     result = new PriceOracleV310Contract(sdk, data);
   } else {
     throw new Error(`Unsupported oracle version ${version}`);
   }
   sdk.logger?.debug(
-    `oracle ${addr} v${version} was ${existing ? "extended" : "created"} with ${result.mainPriceFeeds.size} main and ${result.reservePriceFeeds.size} reserve price feeds`,
+    `oracle ${addr} v${version} was ${action} with ${result.mainPriceFeeds.size} main and ${result.reservePriceFeeds.size} reserve price feeds`,
   );
   return result;
 }
