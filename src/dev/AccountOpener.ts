@@ -258,12 +258,16 @@ export class AccountOpener extends SDKConstruct {
         success += result.account ? 1 : 0;
         if (result.error) {
           this.#logger?.error(
-            `failed to open account #${i + 1}/${targets.length}: ${result.error}`,
+            new Error(`failed to open account #${i + 1}/${targets.length}`, {
+              cause: result.error,
+            }),
           );
         }
       } catch (e) {
         this.#logger?.error(
-          `failed to open account #${i + 1}/${targets.length}: ${e}`,
+          new Error(`failed to open account #${i + 1}/${targets.length}`, {
+            cause: e,
+          }),
         );
         accounts.push({
           input: target,
