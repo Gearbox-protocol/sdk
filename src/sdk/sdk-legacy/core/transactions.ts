@@ -115,6 +115,7 @@ interface AddLiquidityProps extends EVMTxProps {
   amount: bigint;
   token: Address;
   poolName: string;
+  address: Address;
 
   tokensList: Record<Address, TokenData>;
 }
@@ -123,12 +124,14 @@ export class TxAddLiquidity extends EVMTx {
   readonly amount: bigint;
   readonly token: TokenData;
   readonly poolName: string;
+  readonly address: Address;
 
   constructor(opts: AddLiquidityProps) {
     super(opts);
     this.amount = opts.amount;
     this.token = opts.tokensList[opts.token];
     this.poolName = opts.poolName;
+    this.address = opts.address;
   }
 
   _toString() {
@@ -152,6 +155,7 @@ interface RemoveLiquidityProps extends EVMTxProps {
   amount: bigint;
   token: Address;
   poolName: string;
+  address: Address;
 
   tokensList: Record<Address, TokenData>;
 }
@@ -160,12 +164,14 @@ export class TxRemoveLiquidity extends EVMTx {
   readonly amount: bigint;
   readonly token: TokenData;
   readonly poolName: string;
+  readonly address: Address;
 
   constructor(opts: RemoveLiquidityProps) {
     super(opts);
     this.amount = opts.amount;
     this.token = opts.tokensList[opts.token];
     this.poolName = opts.poolName;
+    this.address = opts.address;
   }
 
   _toString() {
