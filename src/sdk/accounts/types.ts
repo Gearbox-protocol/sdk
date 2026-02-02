@@ -505,27 +505,11 @@ export interface PreviewWithdrawLlamathenaProportionallyResult {
   /**
    * Assets to get
    */
-  assets: Array<Asset>;
-  /**
-   * Address of SCRVUSD token
-   */
-  scrvusdAddress: Address;
-  /**
-   * Address of SUSDE token
-   */
-  susdeAddress: Address;
+  assets: [Asset];
   /**
    * Llamathena asset
    */
-  llamathena: [Asset];
-  /**
-   * Amount of SCRVUSD to get
-   */
-  scrvusdDelta: bigint;
-  /**
-   * Amount of SUSDE to get
-   */
-  susdeDelta: bigint;
+  stkLlamathena: [Asset];
 }
 
 export interface LlamathenaProportionalWithdrawProps
