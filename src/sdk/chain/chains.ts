@@ -10,7 +10,7 @@ import {
   hemi,
   lisk,
   mainnet,
-  megaethTestnet,
+  megaeth,
   monad,
   optimism,
   plasma,
@@ -18,7 +18,7 @@ import {
   worldchain,
 } from "viem/chains";
 import { z } from "zod/v4";
-import { TypedObjectUtils } from "../utils/index.js";
+import { TypedObjectUtils } from "../utils/mappers.js";
 
 export type Curator =
   | "Chaos Labs"
@@ -190,16 +190,13 @@ export const chains: Record<NetworkType, GearboxChain> = {
     "sonic-rpc",
   ),
   MegaETH: defineChain({
-    ...megaethTestnet,
+    ...megaeth,
     network: "MegaETH",
-    defaultMarketConfigurators: {
-      "0x59Db4A2241BFe5Ba9023d47A012a6c7A039139A6": "Chaos Labs",
-    },
+    defaultMarketConfigurators: {},
     isPublic: false,
-    // TODO: has no block explorer API
     wellKnownToken: {
-      address: "0x4eB2Bd7beE16F38B1F4a0A5796Fffd028b6040e9",
-      symbol: "WETH",
+      address: "0xFAfDdbb3FC7688494971a79cc65DCa3EF82079E7",
+      symbol: "USDm",
     },
   }),
   // NOTE: Monad chain configs should be updated once the public mainnet is available
@@ -339,8 +336,8 @@ export const chains: Record<NetworkType, GearboxChain> = {
     },
     isPublic: true,
     wellKnownToken: {
-      address: "0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb",
-      symbol: "USDT0",
+      address: "0x5d72a9d9a9510cd8cbdba12ac62593a58930a948",
+      symbol: "aPlaUSDT0",
     },
     contracts: {
       multicall3: {
