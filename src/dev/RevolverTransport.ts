@@ -2,7 +2,6 @@ import {
   BaseError,
   type EIP1193RequestFn,
   HttpRequestError,
-  type HttpTransport,
   http,
   InvalidInputRpcError,
   InvalidParamsRpcError,
@@ -17,7 +16,7 @@ import {
 import { mainnet } from "viem/chains";
 import type { HttpRpcClientOptions } from "viem/utils";
 import { z } from "zod/v4";
-import { type ILogger, NetworkType } from "../sdk/index.js";
+import type { ILogger } from "../sdk/index.js";
 import { httpTransportOptionsSchema } from "./transports.js";
 
 export const providerConfigSchema = z.object({
@@ -74,7 +73,10 @@ export const SelectionStrategy = z.enum(["simple", "ordered"]);
  */
 export type SelectionStrategy = z.infer<typeof SelectionStrategy>;
 
-const revolverTransportConfigBaseSchema = z.object({
+/**
+ * Schema without underlying transport configs
+ */
+export const revolverTransportConfigBaseSchema = z.object({
   /**
    * How to select the next transport
    * Defaults to "simple"
