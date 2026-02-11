@@ -72,6 +72,7 @@ export class CreditSuite extends SDKConstruct {
 
   public stateHuman(raw = true): CreditSuiteStateHuman {
     return {
+      isExpired: this.isExpired,
       creditFacade: this.creditFacade.stateHuman(raw),
       creditManager: this.creditManager.stateHuman(raw),
       creditConfigurator: this.creditConfigurator.stateHuman(raw),

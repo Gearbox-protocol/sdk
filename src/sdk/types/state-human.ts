@@ -126,6 +126,7 @@ export interface CreditManagerStateHuman extends BaseContractStateHuman {
 export type CreditConfiguratorStateHuman = BaseContractStateHuman;
 
 export interface CreditSuiteStateHuman {
+  isExpired: boolean;
   creditFacade: CreditFacadeStateHuman;
   creditManager: CreditManagerStateHuman;
   creditConfigurator: CreditConfiguratorStateHuman;
