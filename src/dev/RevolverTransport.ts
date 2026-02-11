@@ -14,6 +14,7 @@ import {
   type TransportConfig,
   withRetry,
 } from "viem";
+import { mainnet } from "viem/chains";
 import type { HttpRpcClientOptions } from "viem/utils";
 import { z } from "zod/v4";
 import { type ILogger, NetworkType } from "../sdk/index.js";
@@ -42,7 +43,7 @@ export type ProviderConfig = z.infer<typeof providerConfigSchema>;
 
 interface TransportEntry {
   name: string;
-  transport: HttpTransport;
+  transport: Transport;
   /**
    * Cannot make requests to this transport until this timestamp
    */
@@ -73,11 +74,7 @@ export const SelectionStrategy = z.enum(["simple", "ordered"]);
  */
 export type SelectionStrategy = z.infer<typeof SelectionStrategy>;
 
-export const revolverTransportConfigSchema = z.object({
-  /**
-   * Providers to use
-   */
-  providers: z.array(providerConfigSchema),
+const revolverTransportConfigBaseSchema = z.object({
   /**
    * How to select the next transport
    * Defaults to "simple"
@@ -96,6 +93,25 @@ export const revolverTransportConfigSchema = z.object({
    */
   defaultCooldown: z.number().optional(),
 });
+
+export const revolverTransportConfigSchema = z.union([
+  z.object({
+    /**
+     * Pass http provider configs to use
+     */
+    providers: z.array(providerConfigSchema),
+    ...revolverTransportConfigBaseSchema.shape,
+  }),
+  z.object({
+    /**
+     * Or pass transports directly
+     */
+    transports: z.array(
+      z.custom<Transport>((v): v is Transport => typeof v === "function"),
+    ),
+    ...revolverTransportConfigBaseSchema.shape,
+  }),
+]);
 
 export type RevolverTransportConfig = {
   logger?: ILogger;
@@ -200,24 +216,36 @@ export class RevolverTransport
       shouldRetry: config.shouldRetry ?? defaultShouldRetry,
     };
 
-    const transports = config.providers.map(
-      ({ url, name, cooldown, httpTransportOptions }): TransportEntry => ({
-        name,
-        transport: http(url, {
-          ...config.defaultHTTPOptions,
-          ...httpTransportOptions,
-          key: name,
-          name: name,
-          onFetchRequest: this.#config.onRequest
-            ? (...args) => this.#config.onRequest?.(name, ...args)
-            : undefined,
-          onFetchResponse: this.#config.onResponse
-            ? (...args) => this.#config.onResponse?.(name, ...args)
-            : undefined,
+    let transports: TransportEntry[];
+    if ("providers" in config) {
+      transports = config.providers.map(
+        ({ url, name, cooldown, httpTransportOptions }): TransportEntry => ({
+          name,
+          transport: http(url, {
+            ...config.defaultHTTPOptions,
+            ...httpTransportOptions,
+            key: name,
+            name: name,
+            onFetchRequest: this.#config.onRequest
+              ? (...args) => this.#config.onRequest?.(name, ...args)
+              : undefined,
+            onFetchResponse: this.#config.onResponse
+              ? (...args) => this.#config.onResponse?.(name, ...args)
+              : undefined,
+          }),
+          cooldown: cooldown ?? 0,
         }),
-        cooldown: cooldown ?? 0,
-      }),
-    );
+      );
+    } else {
+      transports = config.transports.map(
+        (t, i): TransportEntry => ({
+          name: t({ chain: mainnet }).config.name ?? `transport-${i}`,
+          transport: t,
+          cooldown: 0,
+        }),
+      );
+    }
+
     if (transports.length === 0) {
       throw new NoAvailableTransportsError();
     }
@@ -365,7 +393,7 @@ const defaultShouldRetry: RevolverTransportConfig["shouldRetry"] = ({
 };
 
 interface ITransportSelector {
-  select: () => HttpTransport;
+  select: () => Transport;
   transportName: () => string;
   canRotate: () => boolean;
   rotate: () => boolean;
@@ -413,7 +441,7 @@ class SimpleTransportSelector
    * For simple selector, transport status is not re-evaluated on each request
    * @returns
    */
-  public select(): HttpTransport {
+  public select(): Transport {
     return this.transports[this.index].transport;
   }
 
@@ -449,7 +477,7 @@ class OrderedTransportSelector
    * Will select first transport that is not in cooldown
    * @returns
    */
-  public select(): HttpTransport {
+  public select(): Transport {
     this.#updateIndex(Date.now());
     return this.transports[this.index].transport;
   }
