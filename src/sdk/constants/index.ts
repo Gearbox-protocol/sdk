@@ -4,5 +4,4 @@ export * from "./bot-permissions.js";
 export * from "./math.js";
 export * from "./networks.js";
 export * from "./periphery.js";
-export * from "./phantom-tokens.js";
 export * from "./versions.js";
