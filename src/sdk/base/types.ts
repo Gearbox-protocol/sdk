@@ -68,7 +68,6 @@ export type CreditFacadeState = CreditSuiteState["creditFacade"];
 export type CreditConfiguratorState = CreditSuiteState["creditConfigurator"];
 export type AdapterData = Unarray<CreditSuiteState["adapters"]>;
 
-export type TokenMetaData = Unarray<MarketData["tokens"]>;
 export type PoolState = MarketData["pool"];
 export type QuotaKeeperState = MarketData["quotaKeeper"];
 export type QuotaState = Unarray<QuotaKeeperState["quotas"]>;

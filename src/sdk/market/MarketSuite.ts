@@ -58,6 +58,10 @@ export class MarketSuite extends SDKConstruct {
     this.lossPolicy = createLossPolicy(sdk, marketData.lossPolicy);
   }
 
+  public get underlying(): Address {
+    return this.pool.underlying;
+  }
+
   override get dirty(): boolean {
     return (
       this.configurator.dirty ||
