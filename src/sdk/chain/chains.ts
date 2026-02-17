@@ -31,7 +31,8 @@ export type Curator =
   | "kpk"
   | "Hyperithm"
   | "Edge UltraYield"
-  | "TelosC";
+  | "TelosC"
+  | "Gami Labs";
 
 export interface GearboxChain extends Chain {
   network: NetworkType;
@@ -106,6 +107,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         "0x09d8305F49374AEA6A78aF6C996df2913e8f3b19": "Tulipa",
         "0x1b265b97eb169fb6668e3258007c3b0242c7bdbe": "kpk",
         "0x9dddd1b9ce0ac8aa0c80e4ec141600b9bf0101c3": "Edge UltraYield",
+        "0x601067eba24bb5b558a184fc082525637e96a42d": "Gami Labs",
       },
       testMarketConfigurators: {
         "0x99df7330bf42d596af2e9d9836d4fc2077c574aa": "M11 Credit",
