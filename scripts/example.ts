@@ -7,7 +7,6 @@ import { AdaptersPlugin } from "../src/plugins/adapters/AdaptersPlugin.js";
 import { BotsPlugin } from "../src/plugins/bots/index.js";
 import { DegenDistributorsPlugin } from "../src/plugins/degen-distributors/index.js";
 import { Pools7DAgoPlugin } from "../src/plugins/pools-history/index.js";
-import { ZappersPlugin } from "../src/plugins/zappers/index.js";
 import { GearboxSDK, json_stringify } from "../src/sdk/index.js";
 
 const logger = pino({
@@ -40,7 +39,6 @@ async function example(): Promise<void> {
     strictContractTypes: true,
     plugins: {
       adapters: new AdaptersPlugin(true),
-      zappers: new ZappersPlugin([], true),
       bots: new BotsPlugin(true),
       degen: new DegenDistributorsPlugin(true),
       pools7DAgo: new Pools7DAgoPlugin(true),

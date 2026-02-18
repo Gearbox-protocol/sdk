@@ -1,5 +1,5 @@
 import type { NetworkType } from "../../sdk/index.js";
-import type { ZapperDataFull } from "./types.js";
+import type { ZapperData } from "./types.js";
 
 /**
  * Temporary zappers
@@ -7,7 +7,7 @@ import type { ZapperDataFull } from "./types.js";
  * On paper we have periphery compressor, but we don't use it because we don't add zappers to market configurator as periphery contract and this is unnecessary action for risk curator
  * Zappers for KYC markets are always in compressor, though
  */
-export const extraZappers: Partial<Record<NetworkType, ZapperDataFull[]>> = {
+export const extraZappers: Partial<Record<NetworkType, ZapperData[]>> = {
   Mainnet: [
     {
       baseParams: {

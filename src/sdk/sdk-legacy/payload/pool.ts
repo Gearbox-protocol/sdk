@@ -7,13 +7,13 @@ import type { peripheryCompressorAbi } from "../../../abi/compressors/peripheryC
 import type { Unarray } from "../../base/types.js";
 import type { NetworkType } from "../../chain/chains.js";
 
-export type ZapperData = Unarray<
+type ZapperData = Unarray<
   AbiParametersToPrimitiveTypes<
     ExtractAbiFunction<typeof peripheryCompressorAbi, "getZappers">["outputs"]
   >
 >;
 
-export interface ZapperDataFull extends ZapperData {
+interface ZapperDataFull extends ZapperData {
   pool: Address;
 }
 
