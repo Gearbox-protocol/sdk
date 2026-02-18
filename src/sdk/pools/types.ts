@@ -3,11 +3,7 @@ import type {
   AbiParametersToPrimitiveTypes,
   ExtractAbiFunction,
 } from "abitype";
-import type { Address } from "viem";
-import type {
-  ContractFunctionArgs,
-  ContractFunctionName,
-} from "../../../node_modules/viem/types/contract.js";
+import type { Address, ContractFunctionArgs, ContractFunctionName } from "viem";
 import type { peripheryCompressorAbi } from "../../abi/compressors/peripheryCompressor.js";
 import type { Unarray } from "../base/index.js";
 import type { Asset } from "../router/index.js";
