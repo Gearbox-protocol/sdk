@@ -79,6 +79,24 @@ async function example(): Promise<void> {
   //   },
   //   state,
   // );
+  await sdk.tokensMeta.loadTokenData();
+  for (const item of sdk.tokensMeta.phantomTokens.values()) {
+    console.log("phantom token", item.symbol, item.addr);
+  }
+  for (const item of sdk.tokensMeta.kycUnderlyings.values()) {
+    console.log("kyc underlying", item.symbol, item.addr);
+  }
+  for (const m of sdk.marketRegister.markets) {
+    const meta = sdk.tokensMeta.mustGet(m.underlying);
+    if (sdk.tokensMeta.isKYCUnderlying(meta)) {
+      console.log(
+        "market with kyc underlying",
+        m.pool.pool.address,
+        meta.kycFactory,
+        meta.asset,
+      );
+    }
+  }
 
   const prefix = RPC.includes("127.0.0.1") ? "anvil_" : "";
   const net = sdk.networkType;

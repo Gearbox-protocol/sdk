@@ -1,25 +1,38 @@
-import type { Address, Chain, Hex, PublicClient, Transport } from "viem";
+import {
+  type Address,
+  type Chain,
+  decodeAbiParameters,
+  type Hex,
+  type MulticallResponse,
+  type PublicClient,
+  type Transport,
+} from "viem";
+import { iStateSerializerAbi } from "../../abi/iStateSerializer.js";
 import { iVersionAbi } from "../../abi/iVersion.js";
-import { bytes32ToString, type PhantomTokenContractType } from "../index.js";
+import {
+  bytes32ToString,
+  KYC_UNDERLYING_DEFAULT,
+  KYC_UNDERLYING_ON_DEMAND,
+  type PhantomTokenContractType,
+} from "../index.js";
 import type { Asset } from "../router/index.js";
-import { AddressMap, AddressSet, formatBN } from "../utils/index.js";
-import type { TokenMetaData } from "./types.js";
+import { AddressMap, formatBN } from "../utils/index.js";
+import type {
+  KYCDefaultTokenMeta,
+  KYCOnDemandTokenMeta,
+  KYCTokenMeta,
+  PhantomTokenMeta,
+  TokenMetaData,
+} from "./token-types.js";
 
 export interface FormatBNOptions {
   precision?: number;
   symbol?: boolean;
 }
 
-export interface TokenMetaDataExtended extends TokenMetaData {
-  /**
-   * Undefined if token is not a phantom token
-   */
-  phantomTokenType?: PhantomTokenContractType;
-}
-
-export class TokensMeta extends AddressMap<TokenMetaDataExtended> {
+export class TokensMeta extends AddressMap<TokenMetaData> {
   #client: PublicClient<Transport, Chain>;
-  #phantomTokensLoaded?: AddressSet;
+  #tokenDataLoaded: boolean = false;
 
   constructor(client: PublicClient<Transport, Chain>) {
     super(undefined, "tokensMeta");
@@ -28,7 +41,7 @@ export class TokensMeta extends AddressMap<TokenMetaDataExtended> {
 
   public reset(): void {
     this.clear();
-    this.#phantomTokensLoaded = undefined;
+    this.#tokenDataLoaded = false;
   }
 
   public symbol(token: Address): string {
@@ -39,31 +52,42 @@ export class TokensMeta extends AddressMap<TokenMetaDataExtended> {
     return this.mustGet(token).decimals;
   }
 
-  /**
-   * Returns the phantom token type for a given token, or undefined for normal tokens
-   * Throws if the phantom token data is not loaded
-   */
-  public phantomTokenType(
-    token: Address,
-  ): PhantomTokenContractType | undefined {
-    if (!this.#phantomTokensLoaded?.has(token)) {
-      throw new Error("phantom token data not loaded");
+  public isPhantomToken(t: TokenMetaData): t is PhantomTokenMeta {
+    if (!this.#tokenDataLoaded) {
+      throw new Error("extended token data not loaded");
     }
-    return this.mustGet(token).phantomTokenType;
+    return "contractType" in t && t.contractType.startsWith("PHANTOM_TOKEN::");
+  }
+
+  public isKYCUnderlying(t: TokenMetaData): t is KYCTokenMeta {
+    if (!this.#tokenDataLoaded) {
+      throw new Error("extended token data not loaded");
+    }
+    return "contractType" in t && t.contractType.startsWith("KYC_UNDERLYING::");
   }
 
   /**
    * Returns a map of all phantom tokens
    * Throws if the phantom token data is not loaded
    */
-  public get phantomTokens(): AddressMap<TokenMetaDataExtended> {
-    if (!this.#phantomTokensLoaded) {
-      throw new Error("phantom tokens not loaded");
+  public get phantomTokens(): AddressMap<PhantomTokenMeta> {
+    const result = new AddressMap<PhantomTokenMeta>();
+    for (const [token, meta] of this.entries()) {
+      if (this.isPhantomToken(meta)) {
+        result.upsert(token, meta);
+      }
     }
-    return new AddressMap<TokenMetaDataExtended>(
-      this.entries().filter(([_, v]) => !!v.phantomTokenType),
-      "phantomTokens",
-    );
+    return result;
+  }
+
+  public get kycUnderlyings(): AddressMap<KYCTokenMeta> {
+    const result = new AddressMap<KYCTokenMeta>();
+    for (const [token, meta] of this.entries()) {
+      if (this.isKYCUnderlying(meta)) {
+        result.upsert(token, meta);
+      }
+    }
+    return result;
   }
 
   public formatBN(asset: Asset, options?: FormatBNOptions): string;
@@ -102,32 +126,97 @@ export class TokensMeta extends AddressMap<TokenMetaDataExtended> {
   }
 
   /**
-   * Loads phantom token data for all known tokens from chain
+   * Loads token information about phantom token and KYC underlying tokens
    */
-  public async loadPhantomTokens(): Promise<void> {
-    this.#phantomTokensLoaded = new AddressSet();
+  public async loadTokenData(): Promise<void> {
     const tokens = this.keys();
     const resp = await this.#client.multicall({
-      contracts: tokens.map(
+      contracts: tokens.flatMap(
         t =>
-          ({
-            address: t,
-            abi: iVersionAbi,
-            functionName: "contractType",
-          }) as const,
+          [
+            {
+              address: t,
+              abi: iVersionAbi,
+              functionName: "contractType",
+            },
+            {
+              address: t,
+              abi: iStateSerializerAbi,
+              functionName: "serialize",
+            },
+          ] as const,
       ),
       allowFailure: true,
       batchSize: 0,
     });
-    for (let i = 0; i < resp.length; i++) {
-      if (resp[i].status === "success") {
-        const contractType = bytes32ToString(resp[i].result as Hex);
-        if (contractType.startsWith("PHANTOM_TOKEN::")) {
-          this.mustGet(tokens[i]).phantomTokenType =
-            contractType as PhantomTokenContractType;
+    for (let i = 0; i < tokens.length; i++) {
+      this.#overrideTokenMeta(tokens[i], resp[i], resp[i + 1]);
+    }
+    this.#tokenDataLoaded = true;
+  }
+
+  #overrideTokenMeta(
+    token: Address,
+    contractTypeResp: MulticallResponse<Hex>,
+    serializeResp: MulticallResponse<Hex>,
+  ): void {
+    const meta = this.mustGet(token);
+    if (contractTypeResp.status === "success") {
+      const contractType = bytes32ToString(contractTypeResp.result);
+      if (contractType.startsWith("KYC_UNDERLYING::")) {
+        if (serializeResp.status === "success") {
+          this.#overrideKYCUnderlying(meta, contractType, serializeResp.result);
+        } else {
+          throw new Error(
+            `token ${meta.symbol} (${token}) is ${contractType} but serialize failed: ${serializeResp.error}`,
+          );
         }
+      } else if (contractType.startsWith("PHANTOM_TOKEN::")) {
+        this.upsert(token, {
+          ...meta,
+          contractType: contractType as PhantomTokenContractType,
+        });
       }
-      this.#phantomTokensLoaded.add(tokens[i]);
+    }
+  }
+
+  #overrideKYCUnderlying(
+    meta: TokenMetaData,
+    contractType: string,
+    serialized: Hex,
+  ): void {
+    if (contractType === KYC_UNDERLYING_DEFAULT) {
+      const decoded = decodeAbiParameters(
+        [
+          { type: "address", name: "kycFactory" },
+          { type: "address", name: "asset" },
+        ],
+        serialized,
+      );
+      this.upsert(meta.addr, {
+        ...meta,
+        contractType,
+        kycFactory: decoded[0],
+        asset: decoded[1],
+      } as KYCDefaultTokenMeta);
+    } else if (contractType === KYC_UNDERLYING_ON_DEMAND) {
+      const decoded = decodeAbiParameters(
+        [
+          { type: "address", name: "kycFactory" },
+          { type: "address", name: "asset" },
+          { type: "address", name: "pool" },
+          { type: "address", name: "liquidityProvider" },
+        ],
+        serialized,
+      );
+      this.upsert(meta.addr, {
+        ...meta,
+        contractType,
+        kycFactory: decoded[0],
+        asset: decoded[1],
+        pool: decoded[2],
+        liquidityProvider: decoded[3],
+      } as KYCOnDemandTokenMeta);
     }
   }
 }
