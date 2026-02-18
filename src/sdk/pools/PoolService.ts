@@ -94,14 +94,14 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
       switch (underlying.contractType) {
         case KYC_UNDERLYING_DEFAULT:
-          return this.depositTokensIn(pool, false);
+          return this.#depositTokensIn(pool, false);
         case KYC_UNDERLYING_ON_DEMAND:
           return [underlying.asset];
       }
     }
 
     // classic pool, allow direct deposit of underlying and via zappers
-    return this.depositTokensIn(pool, true);
+    return this.#depositTokensIn(pool, true);
   }
 
   public getDepositTokensOut(pool: Address, tokenIn: Address): Address[] {
@@ -110,14 +110,14 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
       switch (underlying.contractType) {
         case KYC_UNDERLYING_DEFAULT:
-          return this.depositTokensOut(pool, tokenIn, false);
+          return this.#depositTokensOut(pool, tokenIn, false);
         case KYC_UNDERLYING_ON_DEMAND:
           return [];
       }
     }
 
     // classic pool, allow direct deposit of underlying and via zappers
-    return this.depositTokensOut(pool, tokenIn, true);
+    return this.#depositTokensOut(pool, tokenIn, true);
   }
 
   public getDepositMetadata(
@@ -130,7 +130,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
       switch (underlying.contractType) {
         case KYC_UNDERLYING_DEFAULT: {
-          return this.depositMetadata(pool, tokenIn, tokenOut, false);
+          return this.#depositMetadata(pool, tokenIn, tokenOut, false);
         }
         case KYC_UNDERLYING_ON_DEMAND:
           return {
@@ -141,7 +141,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
       }
     }
 
-    return this.depositMetadata(pool, tokenIn, tokenOut, true);
+    return this.#depositMetadata(pool, tokenIn, tokenOut, true);
   }
 
   public addLiquidity(props: AddLiquidityProps): PoolServiceCall | undefined {
@@ -243,10 +243,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     };
   }
 
-  protected depositTokensIn(
-    poolAddr: Address,
-    allowDirectDeposit: boolean,
-  ): Address[] {
+  #depositTokensIn(poolAddr: Address, allowDirectDeposit: boolean): Address[] {
     const { pool } = this.sdk.marketRegister.findByPool(poolAddr);
     const result: AddressSet = new AddressSet();
 
@@ -271,7 +268,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     return result.asArray();
   }
 
-  protected depositTokensOut(
+  #depositTokensOut(
     poolAddr: Address,
     tokenIn: Address,
     allowDirectDeposit: boolean,
@@ -301,7 +298,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     return result.asArray();
   }
 
-  protected depositMetadata(
+  #depositMetadata(
     poolAddr: Address,
     tokenIn: Address,
     tokenOut?: Address,
@@ -312,7 +309,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     }
     const { pool } = this.sdk.marketRegister.findByPool(poolAddr);
 
-    const zapper = this.getZapper(poolAddr, tokenIn, tokenOut);
+    const zapper = this.#getZapper(poolAddr, tokenIn, tokenOut);
     if (!zapper && !allowDirectDeposit) {
       throw new Error(
         `No zapper found for tokenIn ${this.labelAddress(tokenIn)} and tokenOut ${this.labelAddress(tokenOut)} on pool ${this.labelAddress(poolAddr)}`,
@@ -329,7 +326,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     };
   }
 
-  protected getZapper(
+  #getZapper(
     pool: Address,
     tokenIn: Address,
     tokenOut: Address,
@@ -341,12 +338,12 @@ export class PoolService extends SDKConstruct implements IPoolsService {
       );
   }
 
-  protected mustGetZapper(
+  #mustGetZapper(
     poolAddr: Address,
     tokenIn: Address,
     tokenOut: Address,
   ): ZapperData {
-    const result = this.getZapper(poolAddr, tokenIn, tokenOut);
+    const result = this.#getZapper(poolAddr, tokenIn, tokenOut);
     if (!result) {
       throw new Error(
         `No zapper found for tokenIn ${this.labelAddress(tokenIn)} and tokenOut ${this.labelAddress(tokenOut)} on pool ${this.labelAddress(poolAddr)}`,
