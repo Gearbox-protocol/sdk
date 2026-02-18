@@ -338,20 +338,6 @@ export class PoolService extends SDKConstruct implements IPoolsService {
       );
   }
 
-  #mustGetZapper(
-    poolAddr: Address,
-    tokenIn: Address,
-    tokenOut: Address,
-  ): ZapperData {
-    const result = this.#getZapper(poolAddr, tokenIn, tokenOut);
-    if (!result) {
-      throw new Error(
-        `No zapper found for tokenIn ${this.labelAddress(tokenIn)} and tokenOut ${this.labelAddress(tokenOut)} on pool ${this.labelAddress(poolAddr)}`,
-      );
-    }
-    return result;
-  }
-
   #addZapper(z: ZapperData): void {
     const existing = this.zappers.get(z.pool);
     if (existing) {
