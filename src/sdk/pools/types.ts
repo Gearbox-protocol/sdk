@@ -1,24 +1,8 @@
-import type {
-  Abi,
-  AbiParametersToPrimitiveTypes,
-  ExtractAbiFunction,
-} from "abitype";
+import type { Abi } from "abitype";
 import type { Address, ContractFunctionArgs, ContractFunctionName } from "viem";
-import type { peripheryCompressorAbi } from "../../abi/compressors/peripheryCompressor.js";
-import type { Unarray } from "../base/index.js";
+import type { ZapperData } from "../market/index.js";
 import type { Asset } from "../router/index.js";
 import type { PoolData_Legacy } from "../sdk-legacy/index.js";
-import type { AddressMap } from "../utils/index.js";
-
-type CompressorZapperData = Unarray<
-  AbiParametersToPrimitiveTypes<
-    ExtractAbiFunction<typeof peripheryCompressorAbi, "getZappers">["outputs"]
-  >
->;
-
-export interface ZapperData extends CompressorZapperData {
-  pool: Address;
-}
 
 interface PermitResult {
   r: Address;
@@ -90,14 +74,6 @@ export interface DepositMetadata {
 }
 
 export interface IPoolsService {
-  /**
-   * Mapping of pool address -> zappers for that pool
-   */
-  zappers: AddressMap<ZapperData[]>;
-  /**
-   * Load zappers for all pools using periphery compressor, adds hardcoded zappers
-   */
-  loadZappers(force?: boolean): Promise<void>;
   /**
    * Returns list of tokens that can be deposited to a pool
    * @param pool

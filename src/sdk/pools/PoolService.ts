@@ -1,5 +1,4 @@
 import type { Address } from "viem";
-import { peripheryCompressorAbi } from "../../abi/compressors/peripheryCompressor.js";
 import { ierc20Abi } from "../../abi/iERC20.js";
 import { ierc20ZapperDepositsAbi } from "../../abi/iERC20ZapperDeposits.js";
 import { iethZapperDepositsAbi } from "../../abi/iETHZapperDeposits.js";
@@ -11,84 +10,18 @@ import {
   SDKConstruct,
   type TokenMetaData,
 } from "../base/index.js";
-import {
-  AddressMap,
-  AddressSet,
-  AP_PERIPHERY_COMPRESSOR,
-  hexEq,
-  VERSION_RANGE_310,
-} from "../index.js";
-import { extraZappers } from "./extraZappers.js";
+import { AddressSet, hexEq } from "../index.js";
 import type {
   AddLiquidityProps,
   DepositMetadata,
   IPoolsService,
   PoolServiceCall,
   RemoveLiquidityProps,
-  ZapperData,
 } from "./types.js";
 
 const NATIVE_ADDRESS: Address = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 
 export class PoolService extends SDKConstruct implements IPoolsService {
-  #zappers?: AddressMap<ZapperData[]>;
-
-  public get zappers(): AddressMap<ZapperData[]> {
-    if (!this.#zappers) {
-      throw new Error("zappers not loaded, call loadZappers first");
-    }
-    return this.#zappers;
-  }
-
-  public async loadZappers(force?: boolean): Promise<void> {
-    if (!force && this.#zappers) {
-      return;
-    }
-
-    const [pcAddr] = this.sdk.addressProvider.mustGetLatest(
-      AP_PERIPHERY_COMPRESSOR,
-      VERSION_RANGE_310,
-    );
-    this.logger?.debug(`loading zappers with periphery compressor ${pcAddr}`);
-    const markets = this.sdk.marketRegister.markets;
-    const resp = await this.client.multicall({
-      contracts: markets.map(
-        m =>
-          ({
-            abi: peripheryCompressorAbi,
-            address: pcAddr,
-            functionName: "getZappers",
-            args: [m.configurator.address, m.pool.pool.address],
-          }) as const,
-      ),
-      allowFailure: true,
-      batchSize: 0,
-    });
-
-    this.#zappers = new AddressMap<ZapperData[]>(undefined, "zappers");
-    for (let i = 0; i < resp.length; i++) {
-      const { status, result, error } = resp[i];
-      const marketConfigurator = markets[i].configurator.address;
-      const pool = markets[i].pool.pool.address;
-
-      if (status === "success") {
-        for (const z of result) {
-          this.#addZapper({ ...z, pool });
-        }
-      } else {
-        this.sdk.logger?.error(
-          `failed to load zapper for market configurator ${this.labelAddress(
-            marketConfigurator,
-          )} and pool ${this.labelAddress(pool)}: ${error}`,
-        );
-      }
-    }
-
-    for (const z of extraZappers[this.networkType] ?? []) {
-      this.#addZapper(z);
-    }
-  }
-
   public getDepositTokensIn(pool: Address): Address[] {
     const underlying = this.#describeUnderlying(pool);
     if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
@@ -252,7 +185,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     }
 
     // find all zappers that produce pool.dieselToken (=== pool.address)
-    const zappers = this.zappers.get(poolAddr) ?? [];
+    const zappers = this.sdk.marketRegister.poolZappers(poolAddr);
     for (const z of zappers) {
       if (hexEq(z.tokenOut.addr, poolAddr)) {
         result.add(z.tokenIn.addr);
@@ -277,7 +210,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     const { pool } = this.sdk.marketRegister.findByPool(poolAddr);
 
     // find all zappers by tokenIn, get their tokenOuts
-    const zappers = this.zappers.get(poolAddr) ?? [];
+    const zappers = this.sdk.marketRegister.poolZappers(poolAddr);
     for (const z of zappers) {
       if (hexEq(z.tokenIn.addr, tokenIn)) {
         result.add(z.tokenOut.addr);
@@ -309,7 +242,11 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     }
     const { pool } = this.sdk.marketRegister.findByPool(poolAddr);
 
-    const zapper = this.#getZapper(poolAddr, tokenIn, tokenOut);
+    const zapper = this.sdk.marketRegister.getZapper(
+      poolAddr,
+      tokenIn,
+      tokenOut,
+    );
     if (!zapper && !allowDirectDeposit) {
       throw new Error(
         `No zapper found for tokenIn ${this.labelAddress(tokenIn)} and tokenOut ${this.labelAddress(tokenOut)} on pool ${this.labelAddress(poolAddr)}`,
@@ -324,37 +261,6 @@ export class PoolService extends SDKConstruct implements IPoolsService {
       // "none" | "eip2612" | "dai_like";
       permissible: !!zapper && tokenIn !== NATIVE_ADDRESS,
     };
-  }
-
-  #getZapper(
-    pool: Address,
-    tokenIn: Address,
-    tokenOut: Address,
-  ): ZapperData | undefined {
-    return this.zappers
-      .get(pool)
-      ?.find(
-        z => hexEq(z.tokenIn.addr, tokenIn) && hexEq(z.tokenOut.addr, tokenOut),
-      );
-  }
-
-  #addZapper(z: ZapperData): void {
-    const existing = this.zappers.get(z.pool);
-    if (existing) {
-      const hasZapper = existing.some(zz =>
-        hexEq(zz.baseParams.addr, z.baseParams.addr),
-      );
-      if (!hasZapper) {
-        existing.push(z);
-      }
-    } else {
-      this.zappers.upsert(z.pool, [z]);
-    }
-    const zappersTokens = [z.tokenIn, z.tokenOut];
-    for (const t of zappersTokens) {
-      this.sdk.tokensMeta.upsert(t.addr, t);
-      this.sdk.setAddressLabel(t.addr, t.symbol);
-    }
   }
 
   #describeUnderlying(pool: Address): TokenMetaData {

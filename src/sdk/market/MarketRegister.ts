@@ -2,7 +2,6 @@ import type { Address, ContractFunctionReturnType } from "viem";
 import { marketCompressorAbi } from "../../abi/compressors/marketCompressor.js";
 import type { priceFeedCompressorAbi } from "../../abi/compressors/priceFeedCompressor.js";
 import type { MarketData, MarketFilter } from "../base/index.js";
-import { SDKConstruct } from "../base/index.js";
 import {
   ADDRESS_0X0,
   AP_MARKET_COMPRESSOR,
@@ -17,8 +16,9 @@ import { MarketConfiguratorContract } from "./MarketConfiguratorContract.js";
 import { MarketSuite } from "./MarketSuite.js";
 import type { IPriceOracleContract } from "./oracle/index.js";
 import type { PoolSuite } from "./pool/index.js";
+import { ZapperRegister } from "./ZapperRegister.js";
 
-export class MarketRegister extends SDKConstruct {
+export class MarketRegister extends ZapperRegister {
   /**
    * Mapping pool.address -> MarketSuite
    */
