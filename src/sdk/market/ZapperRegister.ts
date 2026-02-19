@@ -73,6 +73,10 @@ export class ZapperRegister extends SDKConstruct {
   }
 
   #addZapper(z: ZapperData): void {
+    if (BROKEN_ZAPPERS.has(z.baseParams.addr)) {
+      return;
+    }
+
     const existing = this.zappers.get(z.pool);
     if (existing) {
       const hasZapper = existing.some(zz =>
@@ -114,6 +118,13 @@ export class ZapperRegister extends SDKConstruct {
       );
   }
 }
+/**
+ * Zappers that are broken and should be skipped
+ */
+const BROKEN_ZAPPERS: AddressMap<boolean> = new AddressMap(
+  [["0x90D66b03EC4D462e42e3c7741049FB46a4a03B69", true]],
+  "brokenZappers",
+);
 
 /**
  * Temporary zappers
