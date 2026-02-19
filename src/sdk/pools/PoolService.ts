@@ -10,7 +10,8 @@ import {
   SDKConstruct,
   type TokenMetaData,
 } from "../base/index.js";
-import { AddressMap, AddressSet, hexEq, type ZapperData } from "../index.js";
+import { AddressSet, hexEq, type ZapperData } from "../index.js";
+import { AddressMap } from "../utils/index.js";
 import type {
   AddLiquidityProps,
   DepositMetadata,
@@ -220,7 +221,10 @@ export class PoolService extends SDKConstruct implements IPoolsService {
       );
     }
 
-    return result.asArray();
+    // filter out v2 diesel tokens (can come from migration v2 -> v3 zappers)
+    const r = result.asArray().filter(t => !POOL_TOKENS_TO_MIGRATE.has(t));
+
+    return r;
   }
 
   #depositTokensOut(
@@ -255,9 +259,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
       );
     }
 
-    // filter out v2 diesel tokens (can come from migration v2 -> v3 zappers)
-    const r = result.asArray().filter(t => !POOL_TOKENS_TO_MIGRATE.has(t));
-
+    const r = result.asArray();
     return r;
   }
 
