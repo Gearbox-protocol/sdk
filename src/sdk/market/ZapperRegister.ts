@@ -52,7 +52,7 @@ export class ZapperRegister extends SDKConstruct {
 
       if (status === "success") {
         for (const z of result) {
-          this.#addZapper({ ...z, pool });
+          this.#addZapper({ ...z, pool, type: "base" });
         }
       } else {
         this.logger?.error(
@@ -63,8 +63,12 @@ export class ZapperRegister extends SDKConstruct {
       }
     }
 
-    for (const z of EXTRA_ZAPPERS[this.networkType] ?? []) {
-      this.#addZapper(z);
+    for (const z of KYC_ZAPPERS[this.networkType] ?? []) {
+      this.#addZapper({ ...z, type: "kyc" });
+    }
+
+    for (const z of MIGRATION_ZAPPERS[this.networkType] ?? []) {
+      this.#addZapper({ ...z, type: "migration" });
     }
   }
 
@@ -117,7 +121,9 @@ export class ZapperRegister extends SDKConstruct {
  * On paper we have periphery compressor, but we don't use it because we don't add zappers to market configurator as periphery contract and this is unnecessary action for risk curator
  * Zappers for KYC markets are always in compressor, though
  */
-const EXTRA_ZAPPERS: Partial<Record<NetworkType, ZapperData[]>> = {
+const MIGRATION_ZAPPERS: Partial<
+  Record<NetworkType, Omit<ZapperData, "type">[]>
+> = {
   Mainnet: [
     {
       baseParams: {
@@ -236,3 +242,9 @@ const EXTRA_ZAPPERS: Partial<Record<NetworkType, ZapperData[]>> = {
     },
   ],
 };
+/**
+ * Temporary zappers
+ * Zappers for KYC markets are always in compressor, though
+ */
+const KYC_ZAPPERS: Partial<Record<NetworkType, Omit<ZapperData, "type">[]>> =
+  {};
