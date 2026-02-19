@@ -125,6 +125,7 @@ export class ZapperRegister extends SDKConstruct {
 }
 /**
  * Zappers that are broken and should be skipped
+ * Zapper with this adress was deployed with broken contract and shouldn't be used
  */
 const BROKEN_ZAPPERS: AddressMap<boolean> = new AddressMap(
   [["0x90D66b03EC4D462e42e3c7741049FB46a4a03B69", true]],

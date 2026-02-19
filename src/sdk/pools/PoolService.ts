@@ -23,6 +23,10 @@ import type {
 
 const NATIVE_ADDRESS: Address = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 
+/**
+ * This map is used to filter out zappers with tokenIn === v2 diesel tokens
+ * such zappers are returned by compressor but useless for v3 pools on deposit step
+ */
 const POOL_TOKENS_TO_MIGRATE: AddressMap<string> = new AddressMap([
   // v2 diesels
   ["0x6CFaF95457d7688022FC53e7AbE052ef8DFBbdBA", "dDAI"],
@@ -254,9 +258,16 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     return this.#withdrawalMetadata("classic", pool, tokenIn, tokenOut, true);
   }
 
+  /**
+   * Filter out v2 diesel tokens (can come from migration v2 -> v3 zappers)
+   * Also omits "migration" zappers (v3 -> v3.1) since they are treated in a different way
+   */
   #getDepositZappers(poolAddr: Address) {
     const zappers = this.sdk.marketRegister.poolZappers(poolAddr);
-    return zappers.filter(z => z.type !== "migration");
+    return zappers.filter(
+      z =>
+        z.type !== "migration" && !POOL_TOKENS_TO_MIGRATE.has(z.tokenIn.addr),
+    );
   }
 
   #depositTokensIn(poolAddr: Address, allowDirectDeposit: boolean): Address[] {
@@ -270,11 +281,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     // find all zappers that produce pool.dieselToken (=== pool.address)
     const zappers = this.#getDepositZappers(poolAddr);
     for (const z of zappers) {
-      // filter out v2 diesel tokens (can come from migration v2 -> v3 zappers)
-      if (
-        hexEq(z.tokenOut.addr, poolAddr) &&
-        !POOL_TOKENS_TO_MIGRATE.has(z.tokenIn.addr)
-      ) {
+      if (hexEq(z.tokenOut.addr, poolAddr)) {
         result.add(z.tokenIn.addr);
       }
     }
@@ -303,10 +310,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     // fall zappers tokenOut (since withdrawing is allowed from any asset)
     const zappers = this.#getDepositZappers(poolAddr);
     for (const z of zappers) {
-      // filter out v2 diesel tokens (can come from migration v2 -> v3 zappers)
-      if (!POOL_TOKENS_TO_MIGRATE.has(z.tokenIn.addr)) {
-        result.add(z.tokenOut.addr);
-      }
+      result.add(z.tokenOut.addr);
     }
 
     if (result.size === 0) {
@@ -330,10 +334,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     const zappers = this.#getDepositZappers(poolAddr);
     for (const z of zappers) {
       // filter out v2 diesel tokens (can come from migration v2 -> v3 zappers)
-      if (
-        hexEq(z.tokenIn.addr, tokenIn) &&
-        !POOL_TOKENS_TO_MIGRATE.has(z.tokenIn.addr)
-      ) {
+      if (hexEq(z.tokenIn.addr, tokenIn)) {
         result.add(z.tokenOut.addr);
       }
     }
@@ -365,10 +366,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     // find all zappers by tokenIn, get their tokenOuts
     const zappers = this.#getDepositZappers(poolAddr);
     for (const z of zappers) {
-      if (
-        hexEq(z.tokenOut.addr, tokenIn) &&
-        !POOL_TOKENS_TO_MIGRATE.has(z.tokenIn.addr)
-      ) {
+      if (hexEq(z.tokenOut.addr, tokenIn)) {
         result.add(z.tokenIn.addr);
       }
     }
@@ -390,6 +388,10 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     return r;
   }
 
+  /**
+   * Filter out v2 diesel tokens (can come from migration v2 -> v3 zappers)
+   * Also omits "migration" zappers (v3 -> v3.1) since they are treated in a different way
+   */
   #getDepositZapper(
     poolAddr: Address,
     tokenIn: Address,
@@ -397,7 +399,10 @@ export class PoolService extends SDKConstruct implements IPoolsService {
   ): ZapperData | undefined {
     const zappers = this.sdk.marketRegister
       .getZapper(poolAddr, tokenIn, tokenOut)
-      ?.filter(z => z.type !== "migration");
+      ?.filter(
+        z =>
+          z.type !== "migration" && !POOL_TOKENS_TO_MIGRATE.has(z.tokenIn.addr),
+      );
     if (zappers && zappers.length > 1) {
       throw new Error(
         `Multiple zappers found for tokenIn ${this.labelAddress(
