@@ -16,7 +16,7 @@ import {
   type PhantomTokenContractType,
 } from "../index.js";
 import type { Asset } from "../router/index.js";
-import { AddressMap, formatBN } from "../utils/index.js";
+import { AddressMap, AddressSet, formatBN } from "../utils/index.js";
 import type {
   KYCDefaultTokenMeta,
   KYCOnDemandTokenMeta,
@@ -32,7 +32,7 @@ export interface FormatBNOptions {
 
 export class TokensMeta extends AddressMap<TokenMetaData> {
   #client: PublicClient<Transport, Chain>;
-  #tokenDataLoaded: boolean = false;
+  #tokenDataLoaded = new AddressSet();
 
   constructor(client: PublicClient<Transport, Chain>) {
     super(undefined, "tokensMeta");
@@ -41,7 +41,7 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
 
   public reset(): void {
     this.clear();
-    this.#tokenDataLoaded = false;
+    this.#tokenDataLoaded.clear();
   }
 
   public symbol(token: Address): string {
@@ -53,15 +53,19 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
   }
 
   public isPhantomToken(t: TokenMetaData): t is PhantomTokenMeta {
-    if (!this.#tokenDataLoaded) {
-      throw new Error("extended token data not loaded");
+    if (!this.#tokenDataLoaded.has(t.addr)) {
+      throw new Error(
+        `extended token data not loaded for ${t.symbol} (${t.addr})`,
+      );
     }
     return "contractType" in t && t.contractType.startsWith("PHANTOM_TOKEN::");
   }
 
   public isKYCUnderlying(t: TokenMetaData): t is KYCTokenMeta {
-    if (!this.#tokenDataLoaded) {
-      throw new Error("extended token data not loaded");
+    if (!this.#tokenDataLoaded.has(t.addr)) {
+      throw new Error(
+        `extended token data not loaded for ${t.symbol} (${t.addr})`,
+      );
     }
     return "contractType" in t && t.contractType.startsWith("KYC_UNDERLYING::");
   }
@@ -127,11 +131,18 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
 
   /**
    * Loads token information about phantom token and KYC underlying tokens
+   *
+   * @param tokens - tokens to load data for, defaults to all tokens
    */
-  public async loadTokenData(): Promise<void> {
-    const tokens = this.keys();
+  public async loadTokenData(...tokens: Address[]): Promise<void> {
+    const tokenz = new AddressSet(tokens.length > 0 ? tokens : this.keys());
+    const tokensToLoad = Array.from(tokenz.difference(this.#tokenDataLoaded));
+    if (tokensToLoad.length === 0) {
+      return;
+    }
+
     const resp = await this.#client.multicall({
-      contracts: tokens.flatMap(
+      contracts: tokensToLoad.flatMap(
         t =>
           [
             {
@@ -149,10 +160,10 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
       allowFailure: true,
       batchSize: 0,
     });
-    for (let i = 0; i < tokens.length; i++) {
-      this.#overrideTokenMeta(tokens[i], resp[i], resp[i + 1]);
+    for (let i = 0; i < tokensToLoad.length; i++) {
+      this.#overrideTokenMeta(tokensToLoad[i], resp[i], resp[i + 1]);
+      this.#tokenDataLoaded.add(tokensToLoad[i]);
     }
-    this.#tokenDataLoaded = true;
   }
 
   #overrideTokenMeta(
