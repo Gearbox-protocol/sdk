@@ -96,7 +96,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     }
 
     const { zapper } = meta;
-    if (zapper?.tokenIn.addr === NATIVE_ADDRESS) {
+    if (zapper?.tokenIn.addr?.toLowerCase() === NATIVE_ADDRESS.toLowerCase()) {
       return {
         target: zapper.baseParams.addr,
         abi: iethZapperDepositsAbi,
