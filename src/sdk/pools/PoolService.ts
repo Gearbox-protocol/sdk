@@ -18,6 +18,7 @@ import type {
   IPoolsService,
   PoolServiceCall,
   RemoveLiquidityProps,
+  WithdrawalMetadata,
 } from "./types.js";
 
 const NATIVE_ADDRESS: Address = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
@@ -47,7 +48,6 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     // classic pool, allow direct deposit of underlying and via zappers
     return this.#depositTokensIn(pool, true);
   }
-
   public getDepositTokensOut(pool: Address, tokenIn: Address): Address[] {
     const underlying = this.#describeUnderlying(pool);
 
@@ -177,7 +177,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
   }
 
   public removeLiquidity(props: RemoveLiquidityProps): PoolServiceCall {
-    const { pool, amount, account, zapper, permit } = props;
+    const { pool, amount, meta, wallet, permit } = props;
 
     const underlying = this.#describeUnderlying(pool);
     if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
@@ -192,15 +192,15 @@ export class PoolService extends SDKConstruct implements IPoolsService {
       }
     }
 
-    if (zapper) {
+    if (meta.zapper) {
       return permit
         ? {
-            target: zapper.zapper,
+            target: meta.zapper.baseParams.addr,
             abi: iZapperAbi,
             functionName: "redeemWithPermit",
             args: [
               amount,
-              account,
+              wallet,
               permit.deadline,
               permit.v,
               permit.r,
@@ -208,10 +208,10 @@ export class PoolService extends SDKConstruct implements IPoolsService {
             ],
           }
         : {
-            target: zapper.zapper,
+            target: meta.zapper.baseParams.addr,
             abi: iZapperAbi,
             functionName: "redeem",
-            args: [amount, account],
+            args: [amount, wallet],
           };
     }
 
@@ -219,8 +219,39 @@ export class PoolService extends SDKConstruct implements IPoolsService {
       target: pool,
       abi: iPoolV300Abi,
       functionName: "redeem",
-      args: [amount, account, account],
+      args: [amount, wallet, wallet],
     };
+  }
+
+  public getWithdrawalMetadata(
+    pool: Address,
+    tokenIn: Address,
+    tokenOut?: Address,
+  ): WithdrawalMetadata {
+    const underlying = this.#describeUnderlying(pool);
+
+    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
+      switch (underlying.contractType) {
+        case KYC_UNDERLYING_DEFAULT: {
+          return this.#withdrawalMetadata(
+            "kyc-default",
+            pool,
+            tokenIn,
+            tokenOut,
+            false,
+          );
+        }
+        case KYC_UNDERLYING_ON_DEMAND:
+          return {
+            zapper: undefined,
+            approveTarget: undefined,
+            permissible: false,
+            type: "kyc-on-demand",
+          };
+      }
+    }
+
+    return this.#withdrawalMetadata("classic", pool, tokenIn, tokenOut, true);
   }
 
   #getDepositZappers(poolAddr: Address) {
@@ -256,7 +287,6 @@ export class PoolService extends SDKConstruct implements IPoolsService {
 
     return result.asArray();
   }
-
   #withdrawalTokensIn(
     poolAddr: Address,
     allowDirectDeposit: boolean,
@@ -410,6 +440,38 @@ export class PoolService extends SDKConstruct implements IPoolsService {
       // TODO: instead of permissible, return permitType зависимости от tokenIn
       // "none" | "eip2612" | "dai_like";
       permissible: !!zapper && tokenIn !== NATIVE_ADDRESS,
+      type,
+    };
+  }
+  #withdrawalMetadata(
+    type: DepositMetadata["type"],
+    poolAddr: Address,
+    tokenIn: Address,
+    tokenOut?: Address,
+    allowDirectDeposit?: boolean,
+  ): WithdrawalMetadata {
+    if (!tokenOut) {
+      throw new Error("tokenOut is required for classic pool deposit");
+    }
+
+    const zapper = this.#getDepositZapper(poolAddr, tokenOut, tokenIn);
+    if (!zapper && !allowDirectDeposit) {
+      throw new Error(
+        `No zapper found for tokenIn ${this.labelAddress(
+          tokenOut,
+        )} and tokenOut ${this.labelAddress(
+          tokenIn,
+        )} on pool ${this.labelAddress(poolAddr)}`,
+      );
+    }
+
+    return {
+      zapper,
+      // zapper or pool itself
+      approveTarget: zapper?.baseParams.addr,
+      // TODO: instead of permissible, return permitType зависимости от tokenIn
+      // "none" | "eip2612" | "dai_like";
+      permissible: !!zapper,
       type,
     };
   }

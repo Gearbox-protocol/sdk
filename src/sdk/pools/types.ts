@@ -50,10 +50,10 @@ export interface AddLiquidityProps {
 export interface RemoveLiquidityProps {
   pool: Address;
   amount: bigint;
-  account: Address;
+  wallet: Address;
   permit: PermitResult | undefined;
 
-  zapper: PoolData_Legacy["zappers"][Address][Address];
+  meta: WithdrawalMetadata;
 }
 
 export interface DepositMetadata {
@@ -67,6 +67,27 @@ export interface DepositMetadata {
    *
    */
   approveTarget: Address;
+  /**
+   * If true, user can avoid approval step and deposit with permit
+   */
+  permissible: boolean;
+  /**
+   * Type of deposit
+   */
+  type: "kyc-on-demand" | "kyc-default" | "classic";
+}
+
+export interface WithdrawalMetadata {
+  /**
+   * Zapper that will perform the deposit, undefined in case of direct pool underlying deposit
+   */
+  zapper?: ZapperData;
+  /**
+   * Before deposit user will nedd to call approve method on token that he wants to deposit,
+   * this is the spender address that will be used to call approve method.
+   *
+   */
+  approveTarget?: Address;
   /**
    * If true, user can avoid approval step and deposit with permit
    */
