@@ -73,6 +73,7 @@ export class ZapperRegister extends SDKConstruct {
   }
 
   #addZapper(z: ZapperData): void {
+    // completely omit broken zappers
     if (BROKEN_ZAPPERS.has(z.baseParams.addr)) {
       return;
     }

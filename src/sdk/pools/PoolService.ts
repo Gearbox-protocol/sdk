@@ -10,7 +10,7 @@ import {
   SDKConstruct,
   type TokenMetaData,
 } from "../base/index.js";
-import { AddressSet, hexEq, type ZapperData } from "../index.js";
+import { AddressMap, AddressSet, hexEq, type ZapperData } from "../index.js";
 import type {
   AddLiquidityProps,
   DepositMetadata,
@@ -20,6 +20,16 @@ import type {
 } from "./types.js";
 
 const NATIVE_ADDRESS: Address = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
+
+const POOL_TOKENS_TO_MIGRATE: AddressMap<string> = new AddressMap([
+  // v2 diesels
+  ["0x6CFaF95457d7688022FC53e7AbE052ef8DFBbdBA", "dDAI"],
+  ["0xc411dB5f5Eb3f7d552F9B8454B2D74097ccdE6E3", "dUSDC"],
+  ["0xe753260F1955e8678DCeA8887759e07aa57E8c54", "dWBTC"],
+  ["0xF21fc650C1B34eb0FDE786D52d23dA99Db3D6278", "dWETH"],
+  ["0x2158034dB06f06dcB9A786D2F1F8c38781bA779d", "dwstETH"],
+  ["0x8A1112AFef7F4FC7c066a77AABBc01b3Fff31D47", "dFRAX"],
+]);
 
 export class PoolService extends SDKConstruct implements IPoolsService {
   public getDepositTokensIn(pool: Address): Address[] {
@@ -226,7 +236,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     for (const z of zappers) {
       if (hexEq(z.tokenIn.addr, tokenIn)) {
         if (!hexEq(z.tokenOut.addr, poolAddr)) {
-          console.log("z.tokenOut.addr", z.tokenOut.addr);
+          console.log("found", "z.tokenOut.addr", z.tokenOut.addr);
         }
         result.add(z.tokenOut.addr);
       }
@@ -245,7 +255,10 @@ export class PoolService extends SDKConstruct implements IPoolsService {
       );
     }
 
-    return result.asArray();
+    // filter out v2 diesel tokens (can come from migration v2 -> v3 zappers)
+    const r = result.asArray().filter(t => !POOL_TOKENS_TO_MIGRATE.has(t));
+
+    return r;
   }
 
   #getDepositZapper(
