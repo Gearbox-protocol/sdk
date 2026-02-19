@@ -106,16 +106,20 @@ export class ZapperRegister extends SDKConstruct {
     return this.zappers.get(pool) ?? [];
   }
 
+  /**
+   * Can return multiple zappers if there are multiple zappers for the same tokenIn and tokenOut
+   */
   public getZapper(
     pool: Address,
     tokenIn: Address,
     tokenOut: Address,
-  ): ZapperData | undefined {
-    return this.zappers
+  ): Array<ZapperData> | undefined {
+    const zappers = this.zappers
       .get(pool)
-      ?.find(
+      ?.filter(
         z => hexEq(z.tokenIn.addr, tokenIn) && hexEq(z.tokenOut.addr, tokenOut),
       );
+    return zappers;
   }
 }
 /**

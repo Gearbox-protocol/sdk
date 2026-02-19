@@ -224,13 +224,35 @@ export class PoolService extends SDKConstruct implements IPoolsService {
 
     if (result.size === 0) {
       throw new Error(
-        `No tokensOut found for tokenIn ${this.labelAddress(tokenIn)} on pool ${this.labelAddress(poolAddr)}`,
+        `No tokensOut found for tokenIn ${this.labelAddress(
+          tokenIn,
+        )} on pool ${this.labelAddress(poolAddr)}`,
       );
     }
 
     return result.asArray();
   }
 
+  #getDepositZapper(
+    poolAddr: Address,
+    tokenIn: Address,
+    tokenOut: Address,
+  ): ZapperData | undefined {
+    const zappers = this.sdk.marketRegister
+      .getZapper(poolAddr, tokenIn, tokenOut)
+      ?.filter(z => z.type !== "migration");
+    if (zappers && zappers.length > 1) {
+      throw new Error(
+        `Multiple zappers found for tokenIn ${this.labelAddress(
+          tokenIn,
+        )} and tokenOut ${this.labelAddress(
+          tokenOut,
+        )} on pool ${this.labelAddress(poolAddr)}`,
+      );
+    }
+
+    return zappers?.[0];
+  }
   #depositMetadata(
     poolAddr: Address,
     tokenIn: Address,
@@ -242,14 +264,14 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     }
     const { pool } = this.sdk.marketRegister.findByPool(poolAddr);
 
-    const zapper = this.sdk.marketRegister.getZapper(
-      poolAddr,
-      tokenIn,
-      tokenOut,
-    );
+    const zapper = this.#getDepositZapper(poolAddr, tokenIn, tokenOut);
     if (!zapper && !allowDirectDeposit) {
       throw new Error(
-        `No zapper found for tokenIn ${this.labelAddress(tokenIn)} and tokenOut ${this.labelAddress(tokenOut)} on pool ${this.labelAddress(poolAddr)}`,
+        `No zapper found for tokenIn ${this.labelAddress(
+          tokenIn,
+        )} and tokenOut ${this.labelAddress(
+          tokenOut,
+        )} on pool ${this.labelAddress(poolAddr)}`,
       );
     }
 
