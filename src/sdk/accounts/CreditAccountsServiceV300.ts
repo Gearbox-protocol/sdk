@@ -99,7 +99,7 @@ export class CreditAccountServiceV300
       }),
     ];
 
-    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
+    const tx = await this.multicallTx(cm, creditAccount.creditAccount, calls);
 
     return { tx, calls, creditFacade: cm.creditFacade };
   }
@@ -143,10 +143,12 @@ export class CreditAccountServiceV300
       ),
     ];
 
-    const tx =
-      operation === "close"
-        ? cm.creditFacade.closeCreditAccount(ca.creditAccount, calls)
-        : cm.creditFacade.multicall(ca.creditAccount, calls);
+    const tx = await this.closeCreditAccountTx(
+      cm,
+      ca.creditAccount,
+      calls,
+      operation,
+    );
     return { tx, calls, creditFacade: cm.creditFacade };
   }
 
@@ -223,7 +225,7 @@ export class CreditAccountServiceV300
       ...this.prepareUpdateQuotas(ca.creditFacade, { minQuota, averageQuota }),
     ];
 
-    const tx = cm.creditFacade.multicall(ca.creditAccount, calls);
+    const tx = await this.multicallTx(cm, ca.creditAccount, calls);
 
     return { tx, calls, creditFacade: cm.creditFacade };
   }
@@ -329,7 +331,7 @@ export class CreditAccountServiceV300
       }),
     ];
 
-    const tx = cm.creditFacade.multicall(ca.creditAccount, calls);
+    const tx = await this.multicallTx(cm, ca.creditAccount, calls);
 
     return { tx, calls, creditFacade: cm.creditFacade };
   }

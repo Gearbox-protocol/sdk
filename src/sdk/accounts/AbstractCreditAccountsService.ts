@@ -1,6 +1,7 @@
 import type { Address, Hex } from "viem";
 import { encodeFunctionData, getAddress, getContract } from "viem";
 import { iBotListV310Abi } from "../../abi/310/generated.js";
+import { iSecuritizeKYCFactoryAbi } from "../../abi/310/iSecuritizeKYCFactory.js";
 import { creditAccountCompressorAbi } from "../../abi/compressors/creditAccountCompressor.js";
 import { peripheryCompressorAbi } from "../../abi/compressors/peripheryCompressor.js";
 import { rewardsCompressorAbi } from "../../abi/compressors/rewardsCompressor.js";
@@ -11,7 +12,7 @@ import {
   iCreditFacadeV300MulticallAbi,
 } from "../../abi/v300.js";
 import type { CreditAccountData } from "../base/index.js";
-import { SDKConstruct } from "../base/index.js";
+import { BaseContract, SDKConstruct } from "../base/index.js";
 import { chains } from "../chain/chains.js";
 import {
   ADDRESS_0X0,
@@ -26,17 +27,19 @@ import {
   VERSION_RANGE_310,
 } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
-import type {
-  IPriceFeedContract,
-  IPriceOracleContract,
-  OnDemandPriceUpdates,
-  PriceUpdateV300,
-  PriceUpdateV310,
-  UpdatePriceFeedsResult,
+import {
+  type CreditSuite,
+  type IPriceFeedContract,
+  type IPriceOracleContract,
+  type OnDemandPriceUpdates,
+  type PriceUpdateV300,
+  type PriceUpdateV310,
+  SecuritizeKYCFactory,
+  type UpdatePriceFeedsResult,
 } from "../market/index.js";
 import { type Asset, assetsMap, type RouterCASlice } from "../router/index.js";
 import { BigIntMath } from "../sdk-legacy/index.js";
-import type { IPriceUpdateTx, MultiCall } from "../types/index.js";
+import type { IPriceUpdateTx, MultiCall, RawTx } from "../types/index.js";
 import { AddressMap } from "../utils/index.js";
 import { simulateWithPriceUpdates } from "../utils/viem/index.js";
 import type {
@@ -46,6 +49,7 @@ import type {
   ClaimDelayedProps,
   CloseCreditAccountProps,
   CloseCreditAccountResult,
+  CloseOptions,
   CreditAccountFilter,
   CreditAccountOperationResult,
   CreditManagerFilter,
@@ -578,10 +582,13 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       ),
     ];
 
-    const tx =
-      operation === "close"
-        ? cm.creditFacade.closeCreditAccount(ca.creditAccount, calls)
-        : cm.creditFacade.multicall(ca.creditAccount, calls);
+    const tx = await this.closeCreditAccountTx(
+      cm,
+      ca.creditAccount,
+      calls,
+      operation,
+    );
+
     return { tx, calls, routerCloseResult, creditFacade: cm.creditFacade };
   }
 
@@ -614,7 +621,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       }),
     ];
 
-    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
+    const tx = await this.multicallTx(cm, creditAccount.creditAccount, calls);
 
     return { tx, calls, creditFacade: cm.creditFacade };
   }
@@ -661,7 +668,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       }),
     ];
 
-    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
+    const tx = await this.multicallTx(cm, creditAccount.creditAccount, calls);
     tx.value = ethAmount.toString(10);
 
     return { tx, calls, creditFacade: cm.creditFacade };
@@ -725,7 +732,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       this.#prepareChangeDebt(creditAccount.creditFacade, change, isDecrease),
     ];
 
-    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
+    const tx = await this.multicallTx(cm, creditAccount.creditAccount, calls);
 
     return { tx, calls, creditFacade: cm.creditFacade };
   }
@@ -766,7 +773,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       }),
     ];
 
-    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
+    const tx = await this.multicallTx(cm, creditAccount.creditAccount, calls);
 
     return { tx, calls, creditFacade: cm.creditFacade };
   }
@@ -903,7 +910,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       }),
     ];
 
-    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
+    const tx = await this.multicallTx(cm, creditAccount.creditAccount, calls);
 
     return { tx, calls, creditFacade: cm.creditFacade };
   }
@@ -983,7 +990,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       ...quotaCalls,
     ];
 
-    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
+    const tx = await this.multicallTx(cm, creditAccount.creditAccount, calls);
 
     return { tx, calls, creditFacade: cm.creditFacade };
   }
@@ -1015,7 +1022,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       ...this.#prepareEnableTokens(ca.creditFacade, enabledTokens),
     ];
 
-    const tx = cm.creditFacade.multicall(ca.creditAccount, calls);
+    const tx = await this.multicallTx(cm, ca.creditAccount, calls);
 
     return { tx, calls, creditFacade: cm.creditFacade };
   }
@@ -1080,7 +1087,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       }),
     ];
 
-    const tx = cmSuite.creditFacade.openCreditAccount(to, calls, referralCode);
+    const tx = await this.openCreditAccountTx(cmSuite, to, calls, referralCode);
     tx.value = ethAmount.toString(10);
 
     return { calls, tx, creditFacade: cmSuite.creditFacade };
@@ -1519,78 +1526,88 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       VERSION_RANGE_310,
     )[0];
   }
-}
 
-const iMellowClaimerAdapterAbi = [
-  {
-    type: "function",
-    name: "getMultiVaultSubvaultIndices",
-    inputs: [{ name: "multiVault", type: "address", internalType: "address" }],
-    outputs: [
-      {
-        name: "subvaultIndices",
-        type: "uint256[]",
-        internalType: "uint256[]",
-      },
-      {
-        name: "withdrawalIndices",
-        type: "uint256[][]",
-        internalType: "uint256[][]",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getUserSubvaultIndices",
-    inputs: [
-      { name: "multiVault", type: "address", internalType: "address" },
-      { name: "user", type: "address", internalType: "address" },
-    ],
-    outputs: [
-      {
-        name: "subvaultIndices",
-        type: "uint256[]",
-        internalType: "uint256[]",
-      },
-      {
-        name: "withdrawalIndices",
-        type: "uint256[][]",
-        internalType: "uint256[][]",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "multiAccept",
-    inputs: [
-      { name: "multiVault", type: "address", internalType: "address" },
-      {
-        name: "subvaultIndices",
-        type: "uint256[]",
-        internalType: "uint256[]",
-      },
-      { name: "indices", type: "uint256[][]", internalType: "uint256[][]" },
-    ],
-    outputs: [{ name: "", type: "bool", internalType: "bool" }],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "multiAcceptAndClaim",
-    inputs: [
-      { name: "multiVault", type: "address", internalType: "address" },
-      {
-        name: "subvaultIndices",
-        type: "uint256[]",
-        internalType: "uint256[]",
-      },
-      { name: "indices", type: "uint256[][]", internalType: "uint256[][]" },
-      { name: "", type: "address", internalType: "address" },
-      { name: "maxAssets", type: "uint256", internalType: "uint256" },
-    ],
-    outputs: [{ name: "", type: "bool", internalType: "bool" }],
-    stateMutability: "nonpayable",
-  },
-] as const;
+  /**
+   * Wrapper that selects between credit facade and KYC factory
+   * @param suite
+   * @param to
+   * @param calls
+   * @param referralCode
+   * @returns
+   */
+  protected async openCreditAccountTx(
+    suite: CreditSuite,
+    to: Address,
+    calls: MultiCall[],
+    referralCode?: bigint,
+  ): Promise<RawTx> {
+    await this.sdk.tokensMeta.loadTokenData(suite.underlying);
+    const underlying = this.sdk.tokensMeta.mustGet(suite.underlying);
+
+    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
+      // TODO: get tokens to register
+      const tokensToRegister: Address[] = [];
+      const factory = new SecuritizeKYCFactory(this.sdk, underlying.kycFactory);
+      return factory.openCreditAccount(
+        suite.creditManager.address,
+        calls,
+        tokensToRegister,
+      );
+    }
+
+    return suite.creditFacade.openCreditAccount(to, calls, referralCode ?? 0n);
+  }
+
+  /**
+   * Wrapper that selects between credit facade and KYC factory
+   * @param suite
+   * @param creditAccount
+   * @param calls
+   * @returns
+   */
+  protected async multicallTx(
+    suite: CreditSuite,
+    creditAccount: Address,
+    calls: MultiCall[],
+  ): Promise<RawTx> {
+    await this.sdk.tokensMeta.loadTokenData(suite.underlying);
+    const underlying = this.sdk.tokensMeta.mustGet(suite.underlying);
+
+    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
+      // TODO: get tokens to register
+      const tokensToRegister: Address[] = [];
+      const factory = new SecuritizeKYCFactory(this.sdk, underlying.kycFactory);
+      return factory.multicall(creditAccount, calls, tokensToRegister);
+    }
+
+    return suite.creditFacade.multicall(creditAccount, calls);
+  }
+
+  /**
+   * Wrapper that selects between credit facade and KYC factory
+   * @param suite
+   * @param creditAccount
+   * @param calls
+   * @param operation
+   * @returns
+   */
+  protected async closeCreditAccountTx(
+    suite: CreditSuite,
+    creditAccount: Address,
+    calls: MultiCall[],
+    operation: CloseOptions,
+  ): Promise<RawTx> {
+    await this.sdk.tokensMeta.loadTokenData(suite.underlying);
+    const underlying = this.sdk.tokensMeta.mustGet(suite.underlying);
+
+    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
+      throw new Error(
+        "KYC underlying is not supported for close credit account",
+      );
+    }
+
+    return operation === "close"
+      ? suite.creditFacade.closeCreditAccount(creditAccount, calls)
+      : suite.creditFacade.multicall(creditAccount, calls);
+  }
+}

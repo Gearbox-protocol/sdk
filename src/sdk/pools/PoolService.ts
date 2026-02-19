@@ -111,7 +111,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     }
 
     const { zapper } = meta;
-    if (zapper?.tokenIn.addr?.toLowerCase() === NATIVE_ADDRESS.toLowerCase()) {
+    if (zapper && hexEq(zapper.tokenIn.addr, NATIVE_ADDRESS)) {
       return {
         target: zapper.baseParams.addr,
         abi: iethZapperDepositsAbi,
@@ -444,7 +444,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
       approveTarget: zapper?.baseParams.addr ?? pool.pool.address,
       // TODO: instead of permissible, return permitType зависимости от tokenIn
       // "none" | "eip2612" | "dai_like";
-      permissible: !!zapper && tokenIn !== NATIVE_ADDRESS,
+      permissible: !!zapper && !hexEq(tokenIn, NATIVE_ADDRESS),
       type,
     };
   }
