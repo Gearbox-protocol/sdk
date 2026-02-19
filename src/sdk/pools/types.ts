@@ -71,6 +71,10 @@ export interface DepositMetadata {
    * If true, user can avoid approval step and deposit with permit
    */
   permissible: boolean;
+  /**
+   * Type of deposit
+   */
+  type: "kyc-on-demand" | "kyc-default" | "classic";
 }
 
 export interface IPoolsService {

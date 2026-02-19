@@ -63,18 +63,25 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
       switch (underlying.contractType) {
         case KYC_UNDERLYING_DEFAULT: {
-          return this.#depositMetadata(pool, tokenIn, tokenOut, false);
+          return this.#depositMetadata(
+            "kyc-default",
+            pool,
+            tokenIn,
+            tokenOut,
+            false,
+          );
         }
         case KYC_UNDERLYING_ON_DEMAND:
           return {
             zapper: undefined,
             approveTarget: underlying.liquidityProvider,
             permissible: false,
+            type: "kyc-on-demand",
           };
       }
     }
 
-    return this.#depositMetadata(pool, tokenIn, tokenOut, true);
+    return this.#depositMetadata("classic", pool, tokenIn, tokenOut, true);
   }
 
   public addLiquidity(props: AddLiquidityProps): PoolServiceCall | undefined {
@@ -262,6 +269,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     return zappers?.[0];
   }
   #depositMetadata(
+    type: DepositMetadata["type"],
     poolAddr: Address,
     tokenIn: Address,
     tokenOut?: Address,
@@ -290,6 +298,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
       // TODO: instead of permissible, return permitType зависимости от tokenIn
       // "none" | "eip2612" | "dai_like";
       permissible: !!zapper && tokenIn !== NATIVE_ADDRESS,
+      type,
     };
   }
 
