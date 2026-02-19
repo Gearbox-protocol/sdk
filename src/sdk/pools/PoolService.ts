@@ -147,6 +147,35 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     }
   }
 
+  public getWithdrawalTokensIn(pool: Address): Address[] {
+    const underlying = this.#describeUnderlying(pool);
+    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
+      switch (underlying.contractType) {
+        case KYC_UNDERLYING_DEFAULT:
+          return this.#withdrawalTokensIn(pool, false);
+        case KYC_UNDERLYING_ON_DEMAND:
+          return [];
+      }
+    }
+
+    // classic pool, allow direct withdrawal of underlying and via zappers
+    return this.#withdrawalTokensIn(pool, true);
+  }
+  public getWithdrawalTokensOut(pool: Address, tokenIn: Address): Address[] {
+    const underlying = this.#describeUnderlying(pool);
+    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
+      switch (underlying.contractType) {
+        case KYC_UNDERLYING_DEFAULT:
+          return this.#withdrawalTokensOut(pool, tokenIn, false);
+        case KYC_UNDERLYING_ON_DEMAND:
+          return [underlying.asset];
+      }
+    }
+
+    // classic pool, allow direct deposit of underlying and via zappers
+    return this.#withdrawalTokensOut(pool, tokenIn, true);
+  }
+
   public removeLiquidity(props: RemoveLiquidityProps): PoolServiceCall {
     const { pool, amount, account, zapper, permit } = props;
 
@@ -210,7 +239,11 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     // find all zappers that produce pool.dieselToken (=== pool.address)
     const zappers = this.#getDepositZappers(poolAddr);
     for (const z of zappers) {
-      if (hexEq(z.tokenOut.addr, poolAddr)) {
+      // filter out v2 diesel tokens (can come from migration v2 -> v3 zappers)
+      if (
+        hexEq(z.tokenOut.addr, poolAddr) &&
+        !POOL_TOKENS_TO_MIGRATE.has(z.tokenIn.addr)
+      ) {
         result.add(z.tokenIn.addr);
       }
     }
@@ -221,10 +254,38 @@ export class PoolService extends SDKConstruct implements IPoolsService {
       );
     }
 
-    // filter out v2 diesel tokens (can come from migration v2 -> v3 zappers)
-    const r = result.asArray().filter(t => !POOL_TOKENS_TO_MIGRATE.has(t));
+    return result.asArray();
+  }
 
-    return r;
+  #withdrawalTokensIn(
+    poolAddr: Address,
+    allowDirectDeposit: boolean,
+  ): Address[] {
+    const { pool } = this.sdk.marketRegister.findByPool(poolAddr);
+
+    const result: AddressSet = new AddressSet();
+
+    // if direct withdrawal is allowed, add pool.address (aka dieselToken)
+    if (allowDirectDeposit && pool) {
+      result.add(poolAddr);
+    }
+
+    // fall zappers tokenOut (since withdrawing is allowed from any asset)
+    const zappers = this.#getDepositZappers(poolAddr);
+    for (const z of zappers) {
+      // filter out v2 diesel tokens (can come from migration v2 -> v3 zappers)
+      if (!POOL_TOKENS_TO_MIGRATE.has(z.tokenIn.addr)) {
+        result.add(z.tokenOut.addr);
+      }
+    }
+
+    if (result.size === 0) {
+      throw new Error(
+        `No tokensIn found for pool ${this.labelAddress(poolAddr)}`,
+      );
+    }
+
+    return result.asArray();
   }
 
   #depositTokensOut(
@@ -238,10 +299,11 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     // find all zappers by tokenIn, get their tokenOuts
     const zappers = this.#getDepositZappers(poolAddr);
     for (const z of zappers) {
-      if (hexEq(z.tokenIn.addr, tokenIn)) {
-        if (!hexEq(z.tokenOut.addr, poolAddr)) {
-          console.log("found", "z.tokenOut.addr", z.tokenOut.addr);
-        }
+      // filter out v2 diesel tokens (can come from migration v2 -> v3 zappers)
+      if (
+        hexEq(z.tokenIn.addr, tokenIn) &&
+        !POOL_TOKENS_TO_MIGRATE.has(z.tokenIn.addr)
+      ) {
         result.add(z.tokenOut.addr);
       }
     }
@@ -249,6 +311,41 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     // if direct deposit is allowed, add pool.address (aka dieselToken)
     if (allowDirectDeposit && hexEq(tokenIn, pool.underlying)) {
       result.add(poolAddr);
+    }
+
+    if (result.size === 0) {
+      throw new Error(
+        `No tokensOut found for tokenIn ${this.labelAddress(
+          tokenIn,
+        )} on pool ${this.labelAddress(poolAddr)}`,
+      );
+    }
+
+    const r = result.asArray();
+    return r;
+  }
+  #withdrawalTokensOut(
+    poolAddr: Address,
+    tokenIn: Address,
+    allowDirectDeposit: boolean,
+  ): Address[] {
+    const result = new AddressSet();
+    const { pool } = this.sdk.marketRegister.findByPool(poolAddr);
+
+    // find all zappers by tokenIn, get their tokenOuts
+    const zappers = this.#getDepositZappers(poolAddr);
+    for (const z of zappers) {
+      if (
+        hexEq(z.tokenOut.addr, tokenIn) &&
+        !POOL_TOKENS_TO_MIGRATE.has(z.tokenIn.addr)
+      ) {
+        result.add(z.tokenIn.addr);
+      }
+    }
+
+    // if direct deposit is allowed, add pool.address (aka dieselToken)
+    if (allowDirectDeposit && hexEq(tokenIn, poolAddr)) {
+      result.add(pool.underlying);
     }
 
     if (result.size === 0) {
