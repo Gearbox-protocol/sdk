@@ -10,7 +10,7 @@ import {
   SDKConstruct,
   type TokenMetaData,
 } from "../base/index.js";
-import { AddressSet, hexEq } from "../index.js";
+import { AddressSet, hexEq, type ZapperData } from "../index.js";
 import type {
   AddLiquidityProps,
   DepositMetadata,
@@ -176,6 +176,11 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     };
   }
 
+  #getDepositZappers(poolAddr: Address) {
+    const zappers = this.sdk.marketRegister.poolZappers(poolAddr);
+    return zappers.filter(z => z.type !== "migration");
+  }
+
   #depositTokensIn(poolAddr: Address, allowDirectDeposit: boolean): Address[] {
     const { pool } = this.sdk.marketRegister.findByPool(poolAddr);
     const result: AddressSet = new AddressSet();
@@ -185,7 +190,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     }
 
     // find all zappers that produce pool.dieselToken (=== pool.address)
-    const zappers = this.sdk.marketRegister.poolZappers(poolAddr);
+    const zappers = this.#getDepositZappers(poolAddr);
     for (const z of zappers) {
       if (hexEq(z.tokenOut.addr, poolAddr)) {
         result.add(z.tokenIn.addr);
@@ -210,9 +215,12 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     const { pool } = this.sdk.marketRegister.findByPool(poolAddr);
 
     // find all zappers by tokenIn, get their tokenOuts
-    const zappers = this.sdk.marketRegister.poolZappers(poolAddr);
+    const zappers = this.#getDepositZappers(poolAddr);
     for (const z of zappers) {
       if (hexEq(z.tokenIn.addr, tokenIn)) {
+        if (!hexEq(z.tokenOut.addr, poolAddr)) {
+          console.log("z.tokenOut.addr", z.tokenOut.addr);
+        }
         result.add(z.tokenOut.addr);
       }
     }
