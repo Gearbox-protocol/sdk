@@ -8,7 +8,7 @@ import {
 } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { ierc20Abi } from "../abi/iERC20.js";
-import { iCreditFacadeV300Abi, iPoolV300Abi } from "../abi/v300.js";
+import { iCreditFacadeV300Abi } from "../abi/v300.js";
 import type {
   Asset,
   CreditAccountData,
@@ -24,7 +24,6 @@ import {
   AddressMap,
   AddressSet,
   childLogger,
-  formatBN,
   MAX_UINT256,
   PERCENTAGE_FACTOR,
   PoolService,
@@ -624,6 +623,10 @@ export class AccountOpener extends SDKConstruct {
         address,
         underlying,
       );
+      this.#logger?.debug(
+        { tokensOut: tokensOut.map(t => this.labelAddress(t)) },
+        "deposit tokens out",
+      );
       if (tokensOut.length === 0) {
         throw new Error(`no tokens out found for pool ${poolName}`);
       }
@@ -635,8 +638,8 @@ export class AccountOpener extends SDKConstruct {
       );
       this.logger?.debug(
         {
-          underlying,
-          tokenOut,
+          underlying: this.labelAddress(underlying),
+          tokenOut: this.labelAddress(tokenOut),
           ...metadata,
         },
         "pool deposit metadata",
