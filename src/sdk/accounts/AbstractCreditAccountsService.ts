@@ -1057,7 +1057,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     collateral,
     permits,
     debt,
-    withdrawDebt,
+    withdrawToken,
     referralCode,
     to,
     calls: openPathCalls,
@@ -1067,6 +1067,12 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }: OpenCAProps): Promise<CreditAccountOperationResult> {
     const cmSuite = this.sdk.marketRegister.findCreditManager(creditManager);
     const cm = cmSuite.creditManager;
+    let tokenToWithdraw: Address | undefined;
+    if (withdrawToken === true) {
+      tokenToWithdraw = cm.underlying;
+    } else if (typeof withdrawToken === "string") {
+      tokenToWithdraw = withdrawToken;
+    }
 
     const priceUpdatesCalls = await this.getPriceUpdatesForFacade({
       creditManager: cm.address,
@@ -1077,9 +1083,16 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       ...priceUpdatesCalls,
       this.#prepareIncreaseDebt(cm.creditFacade, debt),
       ...this.prepareAddCollateral(cm.creditFacade, collateral, permits),
-      ...openPathCalls,
-      ...(withdrawDebt
-        ? [this.prepareWithdrawToken(cm.creditFacade, cm.underlying, debt, to)]
+      ...openPathCalls, // путь из underlying в withdrawal token
+      ...(tokenToWithdraw
+        ? [
+            this.prepareWithdrawToken(
+              cm.creditFacade,
+              tokenToWithdraw,
+              MAX_UINT256,
+              to,
+            ),
+          ]
         : []),
       ...this.prepareUpdateQuotas(cm.creditFacade, {
         minQuota,

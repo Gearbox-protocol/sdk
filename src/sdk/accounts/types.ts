@@ -342,8 +342,9 @@ export interface OpenCAProps extends PrepareUpdateQuotasProps {
   /**
    * Flag to withdraw debt to wallet after opening credit account;
    * used for borrowing functionality
+   * If true, will withdraw underlying token, otherwise will withdraw specified token
    */
-  withdrawDebt?: boolean;
+  withdrawToken?: boolean | Address;
   /**
    * Permits of collateral tokens (in any permittable token is present) {@link PermitResult}
    */
