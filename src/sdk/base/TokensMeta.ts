@@ -161,7 +161,7 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
       batchSize: 0,
     });
     for (let i = 0; i < tokensToLoad.length; i++) {
-      this.#overrideTokenMeta(tokensToLoad[i], resp[i], resp[i + 1]);
+      this.#overrideTokenMeta(tokensToLoad[i], resp[2 * i], resp[2 * i + 1]);
       this.#tokenDataLoaded.add(tokensToLoad[i]);
     }
   }
