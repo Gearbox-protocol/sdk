@@ -525,6 +525,16 @@ export interface LlamathenaProportionalWithdrawProps
   creditAccount: RouterCASlice;
 }
 
+/**
+ * Options to get approval address for collateral token
+ */
+export type GetApprovalAddressProps =
+  | { creditManager: Address; borrower: Address }
+  | {
+      creditManager: Address;
+      creditAccount: Address;
+    };
+
 export interface ICreditAccountsService extends Construct {
   sdk: GearboxSDK;
   /**
@@ -676,6 +686,14 @@ export interface ICreditAccountsService extends Construct {
    * @returns All necessary data to execute the transaction (call, credit facade)
    */
   enableTokens(props: EnableTokensProps): Promise<CreditAccountOperationResult>;
+
+  /**
+   * Returns address to which approval should be given on collateral token
+   * It's credit manager for classical markets and special wallet for KYC markets
+   * @param props - {@link GetApprovalAddressProps}
+   * @returns
+   */
+  getApprovalAddress(props: GetApprovalAddressProps): Promise<Address>;
 
   /**
    * Executes swap specified by given calls, update quotas of affected tokens

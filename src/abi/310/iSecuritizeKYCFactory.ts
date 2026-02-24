@@ -29,6 +29,13 @@ export const iSecuritizeKYCFactoryAbi = [
   },
   {
     type: "function",
+    name: "getDSTokens",
+    inputs: [],
+    outputs: [{ name: "", type: "address[]", internalType: "address[]" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "getInvestor",
     inputs: [
       { name: "creditAccount", type: "address", internalType: "address" },

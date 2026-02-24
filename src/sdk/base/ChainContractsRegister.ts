@@ -42,7 +42,7 @@ export class ChainContractsRegister {
 
   constructor(client: PublicClient<Transport, Chain>, logger?: ILogger) {
     this.client = client;
-    this.tokensMeta = new TokensMeta(client);
+    this.tokensMeta = new TokensMeta(client, logger);
     this.logger = logger;
   }
 

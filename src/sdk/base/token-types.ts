@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 import type { MarketData, Unarray } from "./types.js";
 
-export type SimpleTokenMeta = Unarray<MarketData["tokens"]>;
+type TokenData = Unarray<MarketData["tokens"]>;
 
 export const PHANTOM_TOKEN_CONTRACT_TYPES = [
   "PHANTOM_TOKEN::CONVEX",
@@ -23,6 +23,10 @@ export type KYCUnderlyingContractType =
 export type PhantomTokenContractType =
   (typeof PHANTOM_TOKEN_CONTRACT_TYPES)[number];
 
+export type SimpleTokenMeta = TokenData & {
+  isDSToken?: boolean;
+};
+
 export type PhantomTokenMeta = SimpleTokenMeta & {
   contractType: PhantomTokenContractType;
 };
@@ -41,6 +45,14 @@ export type KYCOnDemandTokenMeta = SimpleTokenMeta & {
   liquidityProvider: Address;
 };
 
+export type DSTokenMeta = Omit<SimpleTokenMeta, "isDSToken"> & {
+  isDSToken: true;
+};
+
 export type KYCTokenMeta = KYCDefaultTokenMeta | KYCOnDemandTokenMeta;
 
-export type TokenMetaData = SimpleTokenMeta | PhantomTokenMeta | KYCTokenMeta;
+export type TokenMetaData =
+  | SimpleTokenMeta
+  | PhantomTokenMeta
+  | KYCTokenMeta
+  | DSTokenMeta;

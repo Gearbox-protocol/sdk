@@ -57,6 +57,7 @@ import type {
   ExecuteSwapProps,
   FullyLiquidateProps,
   FullyLiquidateResult,
+  GetApprovalAddressProps,
   GetConnectedBotsResult,
   GetConnectedMigrationBotsResult,
   GetCreditAccountsArgs,
@@ -1028,6 +1029,29 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
+   * Returns address to which approval should be given on collateral token
+   * It's credit manager for classical markets and special wallet for KYC markets
+   * @param options - {@link GetApprovalAddressProps}
+   * @returns
+   **/
+  public async getApprovalAddress(
+    options: GetApprovalAddressProps,
+  ): Promise<Address> {
+    const { creditManager } = options;
+    const suite = this.sdk.marketRegister.findCreditManager(creditManager);
+    await this.sdk.tokensMeta.loadTokenData(suite.underlying);
+    const underlying = this.sdk.tokensMeta.mustGet(suite.underlying);
+    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
+      const factory = new SecuritizeKYCFactory(this.sdk, underlying.kycFactory);
+      if ("creditAccount" in options) {
+        return factory.getWallet(options.creditAccount);
+      }
+      return factory.precomputeWalletAddress(creditManager, options.borrower);
+    }
+    return suite.creditManager.address;
+  }
+
+  /**
    * Executes swap specified by given calls, update quotas of affected tokens
      - Open credit account is executed in the following order: price update -> increase debt -> add collateral ->
       -> update quotas -> (optionally: execute swap path for trading/strategy) -> 
@@ -1044,7 +1068,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
    * @param {boolean} withdrawDebt - flag to withdraw debt to wallet after opening credit account; 
       used for borrowing functionality
    * @param {bigint} referralCode - referral code to open credit account with
-   * @param {Address} to - wallet address to transfer credit account to\
+   * @param {Address} to - wallet address to transfer credit account to
    * @param {Array<MultiCall>} calls - array of MultiCall from router methods findOpenStrategyPath {@link MultiCall}.
       Used for trading and strategy functionality
    * @param {Array<Asset>} averageQuota - average quota for tokens after open {@link Asset}
@@ -1558,9 +1582,8 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const underlying = this.sdk.tokensMeta.mustGet(suite.underlying);
 
     if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
-      // TODO: get tokens to register
-      const tokensToRegister: Address[] = [];
       const factory = new SecuritizeKYCFactory(this.sdk, underlying.kycFactory);
+      const tokensToRegister = await factory.getDSTokens();
       return factory.openCreditAccount(
         suite.creditManager.address,
         calls,

@@ -2,27 +2,33 @@ import {
   type Address,
   type Chain,
   decodeAbiParameters,
+  erc20Abi,
   type Hex,
   type MulticallResponse,
   type PublicClient,
   type Transport,
 } from "viem";
+import { iSecuritizeKYCFactoryAbi } from "../../abi/310/iSecuritizeKYCFactory.js";
 import { iStateSerializerAbi } from "../../abi/iStateSerializer.js";
 import { iVersionAbi } from "../../abi/iVersion.js";
+import type { Asset } from "../router/index.js";
+import type { ILogger } from "../types/logger.js";
 import {
+  AddressMap,
+  AddressSet,
   bytes32ToString,
+  formatBN,
+} from "../utils/index.js";
+import {
+  type DSTokenMeta,
   KYC_UNDERLYING_DEFAULT,
   KYC_UNDERLYING_ON_DEMAND,
+  type KYCDefaultTokenMeta,
+  type KYCOnDemandTokenMeta,
+  type KYCTokenMeta,
   type PhantomTokenContractType,
-} from "../index.js";
-import type { Asset } from "../router/index.js";
-import { AddressMap, AddressSet, formatBN } from "../utils/index.js";
-import type {
-  KYCDefaultTokenMeta,
-  KYCOnDemandTokenMeta,
-  KYCTokenMeta,
-  PhantomTokenMeta,
-  TokenMetaData,
+  type PhantomTokenMeta,
+  type TokenMetaData,
 } from "./token-types.js";
 
 export interface FormatBNOptions {
@@ -33,10 +39,12 @@ export interface FormatBNOptions {
 export class TokensMeta extends AddressMap<TokenMetaData> {
   #client: PublicClient<Transport, Chain>;
   #tokenDataLoaded = new AddressSet();
+  #logger?: ILogger;
 
-  constructor(client: PublicClient<Transport, Chain>) {
+  constructor(client: PublicClient<Transport, Chain>, logger?: ILogger) {
     super(undefined, "tokensMeta");
     this.#client = client;
+    this.#logger = logger?.child?.({ name: "TokensMeta" }) ?? logger;
   }
 
   public reset(): void {
@@ -52,6 +60,11 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
     return this.mustGet(token).decimals;
   }
 
+  /**
+   * Returns true if the token is a phantom token, throws if the token data is not loaded
+   * @param t
+   * @returns
+   */
   public isPhantomToken(t: TokenMetaData): t is PhantomTokenMeta {
     if (!this.#tokenDataLoaded.has(t.addr)) {
       throw new Error(
@@ -61,6 +74,11 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
     return "contractType" in t && t.contractType.startsWith("PHANTOM_TOKEN::");
   }
 
+  /**
+   * Returns true if the token is a KYC underlying token, throws if the token data is not loaded
+   * @param t
+   * @returns
+   */
   public isKYCUnderlying(t: TokenMetaData): t is KYCTokenMeta {
     if (!this.#tokenDataLoaded.has(t.addr)) {
       throw new Error(
@@ -71,8 +89,22 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
   }
 
   /**
+   * Returns true if the token is a DSToken, throws if the token data is not loaded
+   * @param t
+   * @returns
+   */
+  public isDSToken(t: TokenMetaData): t is DSTokenMeta {
+    if (!this.#tokenDataLoaded.has(t.addr)) {
+      throw new Error(
+        `extended token data not loaded for ${t.symbol} (${t.addr})`,
+      );
+    }
+    return !!t.isDSToken;
+  }
+
+  /**
    * Returns a map of all phantom tokens
-   * Throws if the phantom token data is not loaded
+   * Throws if token data is not loaded
    */
   public get phantomTokens(): AddressMap<PhantomTokenMeta> {
     const result = new AddressMap<PhantomTokenMeta>();
@@ -84,10 +116,24 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
     return result;
   }
 
+  /**
+   * Returns a map of all KYC underlying tokens
+   * Throws if token data is not loaded
+   */
   public get kycUnderlyings(): AddressMap<KYCTokenMeta> {
     const result = new AddressMap<KYCTokenMeta>();
     for (const [token, meta] of this.entries()) {
       if (this.isKYCUnderlying(meta)) {
+        result.upsert(token, meta);
+      }
+    }
+    return result;
+  }
+
+  public get dsTokens(): AddressMap<DSTokenMeta> {
+    const result = new AddressMap<DSTokenMeta>();
+    for (const [token, meta] of this.entries()) {
+      if (this.isDSToken(meta)) {
         result.upsert(token, meta);
       }
     }
@@ -130,7 +176,7 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
   }
 
   /**
-   * Loads token information about phantom token and KYC underlying tokens
+   * Loads token information about phantom tokens, KYC underlying tokens and DSTokens
    *
    * @param tokens - tokens to load data for, defaults to all tokens
    */
@@ -160,17 +206,30 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
       allowFailure: true,
       batchSize: 0,
     });
+
+    this.#logger?.debug(`loaded ${resp.length} contract types`);
+
+    const kycFactories = new AddressSet();
     for (let i = 0; i < tokensToLoad.length; i++) {
-      this.#overrideTokenMeta(tokensToLoad[i], resp[2 * i], resp[2 * i + 1]);
+      const meta = this.#overrideTokenMeta(
+        tokensToLoad[i],
+        resp[2 * i],
+        resp[2 * i + 1],
+      );
       this.#tokenDataLoaded.add(tokensToLoad[i]);
+      if (this.isKYCUnderlying(meta)) {
+        kycFactories.add(meta.kycFactory);
+      }
     }
+    this.#logger?.debug(`found ${kycFactories.size} KYC factories`);
+    await this.#loadDSTokens(kycFactories);
   }
 
   #overrideTokenMeta(
     token: Address,
     contractTypeResp: MulticallResponse<Hex>,
     serializeResp: MulticallResponse<Hex>,
-  ): void {
+  ): TokenMetaData {
     const meta = this.mustGet(token);
     if (contractTypeResp.status === "success") {
       const contractType = bytes32ToString(contractTypeResp.result);
@@ -188,7 +247,9 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
           contractType: contractType as PhantomTokenContractType,
         });
       }
+      this.#logger?.debug(`token ${meta.symbol} is ${contractType}`);
     }
+    return this.mustGet(token);
   }
 
   #overrideKYCUnderlying(
@@ -228,6 +289,76 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
         pool: decoded[2],
         liquidityProvider: decoded[3],
       } as KYCOnDemandTokenMeta);
+    }
+  }
+
+  async #loadDSTokens(kycFactories: AddressSet): Promise<void> {
+    const resp = await this.#client.multicall({
+      contracts: kycFactories.map(address => ({
+        address,
+        abi: iSecuritizeKYCFactoryAbi,
+        functionName: "getDSTokens",
+      })),
+      allowFailure: false,
+      batchSize: 0,
+    });
+    const dsToken = new AddressSet(resp.flat() as Address[]);
+    // if token does not exist in tokensMeta, load symbol, name, decimals
+    const tokensToLoad = dsToken.difference(new Set(this.keys()));
+    this.#logger?.debug(
+      `found ${dsToken.size} DSTokens in KYC factories, need to load ${tokensToLoad.size} basic metadata`,
+    );
+    await this.#loadWithoutCompressor(tokensToLoad);
+    for (const token of dsToken) {
+      const meta = this.mustGet(token);
+      this.upsert(token, {
+        ...meta,
+        isDSToken: true,
+      });
+      this.#tokenDataLoaded.add(token);
+      this.#logger?.debug(`token ${meta.symbol} (${token}) is a DSToken`);
+    }
+  }
+
+  async #loadWithoutCompressor(tokens_: Set<Address>): Promise<void> {
+    if (tokens_.size === 0) {
+      return;
+    }
+    const tokens = Array.from(tokens_);
+    const resp = await this.#client.multicall({
+      contracts: tokens.flatMap(
+        t =>
+          [
+            {
+              address: t,
+              abi: erc20Abi,
+              functionName: "symbol",
+            },
+            {
+              address: t,
+              abi: erc20Abi,
+              functionName: "name",
+            },
+            {
+              address: t,
+              abi: erc20Abi,
+              functionName: "decimals",
+            },
+          ] as const,
+      ),
+      allowFailure: false,
+      batchSize: 0,
+    });
+    this.#logger?.debug(
+      `loaded ${resp.length} basic metadata without compressor`,
+    );
+    for (let i = 0; i < tokens.length; i++) {
+      this.upsert(tokens[i], {
+        addr: tokens[i],
+        symbol: resp[3 * i] as string,
+        name: resp[3 * i + 1] as string,
+        decimals: resp[3 * i + 2] as number,
+      });
     }
   }
 }

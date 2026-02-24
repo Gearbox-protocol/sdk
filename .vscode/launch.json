@@ -20,8 +20,8 @@
        * Open terminal when debugging starts (Optional)
        * Useful to see console.logs
        */
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen",
+      "console": "internalConsole",
+      "internalConsoleOptions": "openOnFirstSessionStart",
       // Files to exclude from debugger (e.g. call stack)
       "skipFiles": [
         // Node.js internal core modules

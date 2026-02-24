@@ -1,29 +1,8 @@
-import type {
-  Address,
-  ContractEventName,
-  DecodeFunctionDataReturnType,
-  Hex,
-  Log,
-} from "viem";
+import type { Address } from "viem";
 import { iSecuritizeKYCFactoryAbi } from "../../../abi/310/iSecuritizeKYCFactory.js";
-import type {
-  ConstructOptions,
-  CreditFacadeState,
-  CreditSuiteState,
-  KYCTokenMeta,
-} from "../../base/index.js";
+import type { ConstructOptions } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
-import { ADDRESS_0X0 } from "../../constants/index.js";
-import type {
-  CreditFacadeStateHuman,
-  MultiCall,
-  RawTx,
-} from "../../types/index.js";
-import {
-  fmtBinaryMask,
-  formatBNvalue,
-  formatTimestamp,
-} from "../../utils/index.js";
+import type { MultiCall, RawTx } from "../../types/index.js";
 
 const abi = iSecuritizeKYCFactoryAbi;
 type abi = typeof abi;
@@ -35,6 +14,25 @@ export class SecuritizeKYCFactory extends BaseContract<abi> {
       name: "SecuritizeKYCFactory",
       abi,
     });
+  }
+
+  public async precomputeWalletAddress(
+    creditManager: Address,
+    investor: Address,
+  ): Promise<Address> {
+    return this.contract.read.precomputeWalletAddress([
+      creditManager,
+      investor,
+    ]);
+  }
+
+  public async getWallet(creditAccount: Address): Promise<Address> {
+    return this.contract.read.getWallet([creditAccount]);
+  }
+
+  public async getDSTokens(): Promise<Address[]> {
+    const tokens = await this.contract.read.getDSTokens();
+    return [...tokens];
   }
 
   public multicall(
