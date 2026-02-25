@@ -1053,42 +1053,33 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
 
   /**
    * Executes swap specified by given calls, update quotas of affected tokens
-     - Open credit account is executed in the following order: price update -> increase debt -> add collateral ->
-      -> update quotas -> (optionally: execute swap path for trading/strategy) -> 
-      -> (optionally: withdraw debt for lending)
-    - Basic open credit account: price update -> increase debt -> add collateral -> update quotas
-    - Lending: price update -> increase debt -> add collateral -> update quotas -> withdraw debt
-    - Strategy/trading: price update -> increase debt -> add collateral -> update quotas -> execute swap path
-    - In strategy is possible situation when collateral is added, but not swapped; the only swapped value in this case will be debt
-   * @param {bigint} ethAmount - native token amount to attach to tx
-   * @param {Address} creditManager - address of credit manager to open credit account on
-   * @param {Array<Asset>} collateral - array of collateral which can be just directly added or swapped using the path {@link Asset}
-   * @param {Record<Address, PermitResult>} permits - permits of collateral tokens (in any permittable token is present) {@link PermitResult}
-   * @param {bigint} debt - debt to open credit account with
-   * @param {boolean} withdrawDebt - flag to withdraw debt to wallet after opening credit account; 
-      used for borrowing functionality
-   * @param {bigint} referralCode - referral code to open credit account with
-   * @param {Address} to - wallet address to transfer credit account to
-   * @param {Array<MultiCall>} calls - array of MultiCall from router methods findOpenStrategyPath {@link MultiCall}.
-      Used for trading and strategy functionality
-   * @param {Array<Asset>} averageQuota - average quota for tokens after open {@link Asset}
-   * @param {Array<Asset>} minQuota - minimum quota for tokens after open  {@link Asset}
+   * - Open credit account is executed in the following order: price update -> increase debt -> add collateral ->
+   *  -> update quotas -> (optionally: execute swap path for trading/strategy) ->
+   *  -> (optionally: withdraw debt for lending)
+   *- Basic open credit account: price update -> increase debt -> add collateral -> update quotas
+   *- Lending: price update -> increase debt -> add collateral -> update quotas -> withdraw debt
+   *- Strategy/trading: price update -> increase debt -> add collateral -> update quotas -> execute swap path
+   *- In strategy is possible situation when collateral is added, but not swapped; the only swapped value in this case will be debt
    * @returns All necessary data to execute the transaction (call, credit facade)
-   */
-  public async openCA({
-    ethAmount,
-    creditManager,
-    collateral,
-    permits,
-    debt,
-    withdrawToken,
-    referralCode,
-    to,
-    calls: openPathCalls,
+   **/
+  public async openCA(
+    props: OpenCAProps,
+  ): Promise<CreditAccountOperationResult> {
+    const {
+      ethAmount,
+      creditManager,
+      reopenCreditAccount,
+      collateral,
+      permits,
+      debt,
+      withdrawToken,
+      referralCode,
+      to,
+      calls: openPathCalls,
 
-    minQuota,
-    averageQuota,
-  }: OpenCAProps): Promise<CreditAccountOperationResult> {
+      minQuota,
+      averageQuota,
+    } = props;
     const cmSuite = this.sdk.marketRegister.findCreditManager(creditManager);
     const cm = cmSuite.creditManager;
     let tokenToWithdraw: Address | undefined;
@@ -1124,7 +1115,12 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       }),
     ];
 
-    const tx = await this.openCreditAccountTx(cmSuite, to, calls, referralCode);
+    let tx: RawTx;
+    if (reopenCreditAccount) {
+      tx = await this.multicallTx(cmSuite, reopenCreditAccount, calls);
+    } else {
+      tx = await this.openCreditAccountTx(cmSuite, to, calls, referralCode);
+    }
     tx.value = ethAmount.toString(10);
 
     return { calls, tx, creditFacade: cmSuite.creditFacade };

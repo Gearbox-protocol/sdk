@@ -359,6 +359,10 @@ export interface OpenCAProps extends PrepareUpdateQuotasProps {
    */
   creditManager: Address;
   /**
+   * Optional address of credit account to reopen
+   */
+  reopenCreditAccount?: Address;
+  /**
    * Wallet address to transfer credit account to
    */
   to: Address;
