@@ -355,8 +355,14 @@ export interface OpenCAProps extends PrepareUpdateQuotasProps {
    */
   calls: Array<MultiCall>;
   /**
+   * Slot for optional call to execute after main tx.
+   * For example: add bots
+   */
+  callsAfter?: Array<MultiCall>;
+  /**
    * Address of credit manager to open credit account on
    */
+
   creditManager: Address;
   /**
    * Optional address of credit account to reopen

@@ -1076,6 +1076,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       referralCode,
       to,
       calls: openPathCalls,
+      callsAfter,
 
       minQuota,
       averageQuota,
@@ -1113,6 +1114,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
         minQuota,
         averageQuota,
       }),
+      ...(callsAfter ?? []),
     ];
 
     let tx: RawTx;

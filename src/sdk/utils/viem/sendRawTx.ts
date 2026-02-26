@@ -6,7 +6,12 @@ import type {
   SendTransactionReturnType,
   Transport,
 } from "viem";
-import { type SendTransactionParameters, sendTransaction } from "viem/actions";
+import {
+  type EstimateGasParameters,
+  estimateGas,
+  type SendTransactionParameters,
+  sendTransaction,
+} from "viem/actions";
 import { getAction } from "viem/utils";
 import type { RawTx } from "../../types/index.js";
 
@@ -42,4 +47,32 @@ export async function sendRawTx<
     to: tx.to,
     value: BigInt(tx.value),
   }) as Promise<SendTransactionReturnType>;
+}
+
+export type EstimateRawTxGasParameters<chain extends Chain> = Omit<
+  EstimateGasParameters<chain>,
+  "data" | "to" | "value"
+> & {
+  tx: Pick<RawTx, "to" | "callData" | "value">;
+};
+
+export async function estimateRawTxGas<
+  chain extends Chain,
+  account extends Account | undefined,
+>(
+  client: Client<Transport, chain, account>,
+  params: EstimateRawTxGasParameters<chain>,
+): Promise<bigint> {
+  const { tx, ...rest } = params;
+  return getAction(
+    client,
+    estimateGas,
+    "estimateGas",
+  )({
+    ...(rest as any),
+    account: params.account,
+    data: tx.callData,
+    to: tx.to,
+    value: BigInt(tx.value),
+  });
 }
