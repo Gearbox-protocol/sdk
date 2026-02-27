@@ -17,6 +17,7 @@ export interface CaTokenBalance {
 export interface CreditAccountDataPayload {
   isSuccessful: boolean;
   addr: Address;
+  investor: Address;
   borrower: Address;
   creditManager: Address;
   creditFacade: Address;

@@ -1,7 +1,6 @@
 import type { Address, Hex } from "viem";
 import { encodeFunctionData, getAddress, getContract } from "viem";
 import { iBotListV310Abi } from "../../abi/310/generated.js";
-import { iSecuritizeKYCFactoryAbi } from "../../abi/310/iSecuritizeKYCFactory.js";
 import { creditAccountCompressorAbi } from "../../abi/compressors/creditAccountCompressor.js";
 import { peripheryCompressorAbi } from "../../abi/compressors/peripheryCompressor.js";
 import { rewardsCompressorAbi } from "../../abi/compressors/rewardsCompressor.js";
@@ -12,7 +11,7 @@ import {
   iCreditFacadeV300MulticallAbi,
 } from "../../abi/v300.js";
 import type { CreditAccountData } from "../base/index.js";
-import { BaseContract, SDKConstruct } from "../base/index.js";
+import { SDKConstruct } from "../base/index.js";
 import { chains } from "../chain/chains.js";
 import {
   ADDRESS_0X0,
@@ -51,6 +50,7 @@ import type {
   CloseCreditAccountProps,
   CloseCreditAccountResult,
   CloseOptions,
+  CreditAccountDataWithInvestor,
   CreditAccountFilter,
   CreditAccountOperationResult,
   CreditManagerFilter,
@@ -75,10 +75,6 @@ import type {
   StartDelayedWithdrawalProps,
   UpdateQuotasProps,
 } from "./types.js";
-
-type CreditAccountDataWithInvestor = CreditAccountData & {
-  investor: Address;
-};
 
 type MulticallWithFailure<T> = (
   | {

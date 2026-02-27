@@ -545,6 +545,10 @@ export type GetApprovalAddressProps =
       creditAccount: Address;
     };
 
+export type CreditAccountDataWithInvestor = CreditAccountData & {
+  investor: Address;
+};
+
 export interface ICreditAccountsService extends Construct {
   sdk: GearboxSDK;
   /**
@@ -557,7 +561,7 @@ export interface ICreditAccountsService extends Construct {
   getCreditAccountData(
     account: Address,
     blockNumber?: bigint,
-  ): Promise<CreditAccountData | undefined>;
+  ): Promise<CreditAccountDataWithInvestor | undefined>;
   /**
    * Methods to get all credit accounts with some optional filtering
    * Performs all necessary price feed updates under the hood
@@ -569,7 +573,7 @@ export interface ICreditAccountsService extends Construct {
   getCreditAccounts(
     options?: GetCreditAccountsOptions,
     blockNumber?: bigint,
-  ): Promise<Array<CreditAccountData>>;
+  ): Promise<Array<CreditAccountDataWithInvestor>>;
   /**
    * Method to get all claimable rewards for credit account (ex. stkUSDS SKY rewards)
    * Assosiates rewards by adapter + stakedPhantomToken

@@ -145,6 +145,7 @@ export class CreditAccountData_Legacy {
   readonly underlying: Address;
   readonly expirationDate: number;
   readonly version: number;
+  readonly investor: Address;
 
   readonly enabledTokensMask: bigint;
   readonly healthFactor: number;
@@ -182,7 +183,7 @@ export class CreditAccountData_Legacy {
     this.underlying = payload.underlying.toLowerCase() as Address;
     this.expirationDate = Number(payload.expirationDate);
     this.version = Number(payload.cfVersion);
-
+    this.investor = payload.investor.toLowerCase() as Address;
     this.healthFactor = Number(
       ((payload.healthFactor || 0n) * PERCENTAGE_FACTOR) / WAD,
     );
