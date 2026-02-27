@@ -31,6 +31,7 @@ import {
   type CreditSuite,
   type IPriceFeedContract,
   type IPriceOracleContract,
+  type MarketSuite,
   type OnDemandPriceUpdates,
   type PriceUpdateV300,
   type PriceUpdateV310,
@@ -74,6 +75,10 @@ import type {
   StartDelayedWithdrawalProps,
   UpdateQuotasProps,
 } from "./types.js";
+
+type CreditAccountDataWithInvestor = CreditAccountData & {
+  investor: Address;
+};
 
 type MulticallWithFailure<T> = (
   | {
@@ -148,7 +153,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   public async getCreditAccountData(
     account: Address,
     blockNumber?: bigint,
-  ): Promise<CreditAccountData | undefined> {
+  ): Promise<CreditAccountDataWithInvestor | undefined> {
     let raw: CreditAccountData;
     try {
       raw = await this.client.readContract({
@@ -164,13 +169,30 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       // TODO: reverts if account is not found, how to handle other revert reasons?
       return undefined;
     }
+    const factory = await this.getKYCFactory(raw.underlying);
+    const investor = await (factory
+      ? this.client.multicall({
+          contracts: [
+            {
+              abi: factory.abi,
+              address: factory.address,
+              functionName: "getInvestor",
+              args: [raw.creditAccount],
+            },
+          ],
+          allowFailure: true,
+          batchSize: 0,
+        })
+      : undefined);
+
     if (raw.success) {
-      return raw;
+      return { ...raw, investor: investor?.[0]?.result ?? raw.owner };
     }
     const { txs: priceUpdateTxs } = await this.getUpdateForAccount({
       creditManager: raw.creditManager,
       creditAccount: raw,
     });
+
     const [cad] = await simulateWithPriceUpdates(this.client, {
       priceUpdates: priceUpdateTxs,
       contracts: [
@@ -179,12 +201,108 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
           address: this.#compressor,
           functionName: "getCreditAccountData",
           args: [account],
-        },
+        } as const,
       ],
       blockNumber,
       gas: this.sdk.gasLimit,
     });
-    return cad;
+
+    return { ...cad, investor: investor?.[0]?.result ?? raw.owner };
+  }
+
+  public async getKYCFactory(underlyingAddress: Address) {
+    await this.sdk.tokensMeta.loadTokenData(underlyingAddress);
+    const underlying = this.sdk.tokensMeta.mustGet(underlyingAddress);
+    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
+      const factory = new SecuritizeKYCFactory(this.sdk, underlying.kycFactory);
+      return factory;
+    }
+    return undefined;
+  }
+  /**
+   * Returns all KYC credit account addresses for an investor across the given market suites.
+   * Resolves KYC factory per suite, then multicalls each factory's getCreditAccounts(investor).
+   * @param investor - Owner address to query
+   * @param suites - Market suites (KYC factories are resolved for each; undefined entries are skipped)
+   * @returns Flat array of credit account addresses from all KYC markets
+   */
+  public async getKYCCaOfInvestor(
+    investor: Address,
+    suites: Array<MarketSuite | undefined>,
+  ) {
+    if (suites.length === 0 || investor === ADDRESS_0X0) return [];
+
+    const factories = await Promise.all(
+      suites.map(suite =>
+        suite ? this.getKYCFactory(suite.underlying) : undefined,
+      ),
+    );
+    const safeFactories = factories.reduce<Array<SecuritizeKYCFactory>>(
+      (acc, v) => {
+        if (v) {
+          acc.push(v);
+        }
+        return acc;
+      },
+      [],
+    );
+
+    const allResp = await this.client.multicall({
+      contracts: [
+        ...safeFactories.map(factory => {
+          return {
+            abi: factory.abi,
+            address: factory.address,
+            functionName: "getCreditAccounts",
+            args: [investor],
+          } as const;
+        }),
+      ],
+      allowFailure: true,
+      batchSize: 0,
+    });
+
+    const caLists = safeFactories.reduce<Array<Address>>((acc, _, index) => {
+      const response = allResp[index];
+      acc.push(...(response.result || []));
+      return acc;
+    }, []);
+
+    return caLists;
+  }
+  /**
+   * Loads credit account data for the given addresses using simulateWithPriceUpdates.
+   * Applies the provided price update txs before reading, so returned data is consistent with up-to-date prices.
+   * @param accounts - Credit account addresses to load
+   * @param priceUpdateTxs - Price feed update txs to simulate before the read (e.g. from generatePriceFeedsUpdateTxs)
+   * @param blockNumber - Optional block number for the read
+   * @returns Array of CreditAccountData in the same order as accounts (throws if any getCreditAccountData call reverts)
+   */
+  public async loadSpecifiedAccounts(
+    accounts: Address[],
+    priceUpdateTxs: IPriceUpdateTx<{
+      priceFeed: `0x${string}`;
+      timestamp: number;
+    }>[],
+    blockNumber?: bigint,
+  ): Promise<Array<CreditAccountData>> {
+    if (accounts.length === 0) return [];
+
+    const list = await simulateWithPriceUpdates(this.client, {
+      priceUpdates: priceUpdateTxs,
+      contracts: accounts.map(
+        account =>
+          ({
+            abi: creditAccountCompressorAbi,
+            address: this.#compressor,
+            functionName: "getCreditAccountData",
+            args: [account],
+          }) as const,
+      ),
+      blockNumber,
+      gas: this.sdk.gasLimit,
+    });
+    return list;
   }
 
   /**
@@ -198,7 +316,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   public async getCreditAccounts(
     options?: GetCreditAccountsOptions,
     blockNumber?: bigint,
-  ): Promise<Array<CreditAccountData>> {
+  ): Promise<Array<CreditAccountDataWithInvestor>> {
     const {
       creditManager,
       includeZeroDebt = false,
@@ -229,7 +347,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
         ignoreReservePrices ? { main: true } : undefined,
       );
 
-    const allCAs: Array<CreditAccountData> = [];
+    const allCAs: Array<CreditAccountDataWithInvestor> = [];
     let revertingOffset = 0;
     // reverting filter is exclusive, we need both options to get all accounts
     for (const reverting of [false, true]) {
@@ -248,7 +366,11 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
           priceUpdateTxs,
           blockNumber,
         );
-        allCAs.push(...accounts);
+        allCAs.push(
+          ...accounts.map(
+            (ca): CreditAccountDataWithInvestor => ({ ...ca, investor: owner }),
+          ),
+        );
         offset = newOffset;
       } while (offset !== 0n);
     }
@@ -256,6 +378,25 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       `loaded ${allCAs.length} credit accounts (${
         allCAs.length - revertingOffset
       } reverting)`,
+    );
+
+    const suites = this.marketConfigurators.map(mc => {
+      const suite = this.sdk.marketRegister.markets.find(
+        m => m.configurator.address === mc,
+      );
+      return suite;
+    });
+    const kycCAAddresses = await this.getKYCCaOfInvestor(owner, suites);
+    const kycCAs = await this.loadSpecifiedAccounts(
+      kycCAAddresses,
+      priceUpdateTxs,
+      blockNumber,
+    );
+    allCAs.push(
+      ...kycCAs.map(ca => ({
+        ...ca,
+        investor: owner,
+      })),
     );
 
     // sort by health factor ascending
@@ -1039,10 +1180,9 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   ): Promise<Address> {
     const { creditManager } = options;
     const suite = this.sdk.marketRegister.findCreditManager(creditManager);
-    await this.sdk.tokensMeta.loadTokenData(suite.underlying);
-    const underlying = this.sdk.tokensMeta.mustGet(suite.underlying);
-    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
-      const factory = new SecuritizeKYCFactory(this.sdk, underlying.kycFactory);
+    const factory = await this.getKYCFactory(suite.underlying);
+
+    if (factory) {
       if ("creditAccount" in options) {
         return factory.getWallet(options.creditAccount);
       }
@@ -1576,11 +1716,9 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     calls: MultiCall[],
     referralCode?: bigint,
   ): Promise<RawTx> {
-    await this.sdk.tokensMeta.loadTokenData(suite.underlying);
-    const underlying = this.sdk.tokensMeta.mustGet(suite.underlying);
+    const factory = await this.getKYCFactory(suite.underlying);
 
-    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
-      const factory = new SecuritizeKYCFactory(this.sdk, underlying.kycFactory);
+    if (factory) {
       const tokensToRegister = await factory.getDSTokens();
       return factory.openCreditAccount(
         suite.creditManager.address,
@@ -1604,13 +1742,11 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     creditAccount: Address,
     calls: MultiCall[],
   ): Promise<RawTx> {
-    await this.sdk.tokensMeta.loadTokenData(suite.underlying);
-    const underlying = this.sdk.tokensMeta.mustGet(suite.underlying);
+    const factory = await this.getKYCFactory(suite.underlying);
 
-    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
+    if (factory) {
       // TODO: get tokens to register
       const tokensToRegister: Address[] = [];
-      const factory = new SecuritizeKYCFactory(this.sdk, underlying.kycFactory);
       return factory.multicall(creditAccount, calls, tokensToRegister);
     }
 
