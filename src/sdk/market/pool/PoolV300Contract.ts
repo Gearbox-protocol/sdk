@@ -19,6 +19,7 @@ import {
   formatBNvalue,
   percentFmt,
 } from "../../utils/index.js";
+import type { SecuritizeKYCFactory } from "./SecuritizeKYCFactory.js";
 
 const abi = [...iPoolV300Abi, ...iPausableAbi] as const;
 type abi = typeof abi;
@@ -49,6 +50,10 @@ export class PoolV300Contract extends BaseContract<abi> {
       name: data.name,
       symbol: data.symbol,
     });
+  }
+
+  public async getKYCFactory(): Promise<SecuritizeKYCFactory | undefined> {
+    return undefined;
   }
 
   public override stateHuman(raw = true): PoolStateHuman {
