@@ -1375,6 +1375,83 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
+   * Returns multicall entries to redeem (unwrap) KYC ERC-4626 vault shares into underlying for the given credit manager.
+   * Used when withdrawing debt from a KYC market: redeems adapter vault shares so the underlying can be withdrawn.
+   * Only applies when the credit manager's underlying is KYC-gated and has an ERC-4626 adapter configured.
+   * @param amount - Number of vault shares (adapter tokens) to redeem
+   * @param creditManager - Credit manager address
+   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not KYC or no adapter is configured
+   */
+  public async getKYCUnwrapCalls(
+    amount: bigint,
+    creditManager: Address,
+  ): Promise<Array<MultiCall> | undefined> {
+    const suite = this.sdk.marketRegister.findCreditManager(creditManager);
+    const meta = this.sdk.tokensMeta.mustGet(suite.underlying);
+    if (!this.sdk.tokensMeta.isKYCUnderlying(meta)) {
+      return undefined;
+    }
+
+    const adapter = suite.creditManager.adapters.get(meta.addr);
+    const adapterAddress = adapter?.address;
+
+    if (!adapterAddress) {
+      return undefined;
+    }
+
+    const mc: Array<MultiCall> = [
+      {
+        target: adapterAddress,
+        callData: encodeFunctionData({
+          abi: ierc4626AdapterAbi,
+          functionName: "redeem",
+          args: [amount, ADDRESS_0X0, ADDRESS_0X0],
+        }),
+      },
+    ];
+
+    return mc;
+  }
+  /**
+   * Returns multicall entries to deposit (wrap) underlying into KYC ERC-4626 vault shares for the given credit manager.
+   * Used when adding debt on a KYC market: deposits underlying into the adapter vault so shares are minted on the account.
+   * Only applies when the credit manager's underlying is KYC-gated and has an ERC-4626 adapter configured.
+   * @param amount - Amount of underlying assets to deposit into the vault (in underlying decimals)
+   * @param creditManager - Credit manager address
+   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not KYC or no adapter is configured
+   */
+  public async getKYCWrapCalls(
+    amount: bigint,
+    creditManager: Address,
+  ): Promise<Array<MultiCall> | undefined> {
+    const suite = this.sdk.marketRegister.findCreditManager(creditManager);
+    const meta = this.sdk.tokensMeta.mustGet(suite.underlying);
+    if (!this.sdk.tokensMeta.isKYCUnderlying(meta)) {
+      return undefined;
+    }
+
+    const adapter = suite.creditManager.adapters.get(meta.addr);
+    const adapterAddress = adapter?.address;
+
+    if (!adapterAddress) {
+      return undefined;
+    }
+
+    const mc: Array<MultiCall> = [
+      {
+        target: adapterAddress,
+        callData: encodeFunctionData({
+          abi: ierc4626AdapterAbi,
+          functionName: "deposit",
+          args: [amount, ADDRESS_0X0],
+        }),
+      },
+    ];
+
+    return mc;
+  }
+
+  /**
    * Returns raw txs that are needed to update all price feeds so that all credit accounts (possibly from different markets) compute
    *
    * This can be used by batch liquidator
@@ -1838,3 +1915,27 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     return caLists;
   }
 }
+
+const ierc4626AdapterAbi = [
+  {
+    inputs: [
+      { name: "assets", type: "uint256", internalType: "uint256" },
+      { name: "receiver", type: "address", internalType: "address" },
+    ],
+    name: "deposit",
+    outputs: [{ name: "useSafePrices", type: "bool", internalType: "bool" }],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "shares", type: "uint256", internalType: "uint256" },
+      { name: "receiver", type: "address", internalType: "address" },
+      { name: "owner", type: "address", internalType: "address" },
+    ],
+    name: "redeem",
+    outputs: [{ name: "useSafePrices", type: "bool", internalType: "bool" }],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+] as const;
