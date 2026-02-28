@@ -52,6 +52,23 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
     this.#tokenDataLoaded.clear();
   }
 
+  public override upsert(
+    address: string,
+    value: TokenMetaData | undefined,
+  ): void {
+    let v = value;
+    const existing = this.get(address);
+    // update existing value with new one
+    // is needed since some methods here augment existing values, to prevent losing this on market reload
+    if (existing && v) {
+      v = {
+        ...existing,
+        ...v,
+      };
+    }
+    super.upsert(address, v);
+  }
+
   public symbol(token: Address): string {
     return this.mustGet(token).symbol;
   }

@@ -18,7 +18,7 @@ export class AddressMap<T> {
   }
 
   /**
-   * Adds or updates value, undefined removes value
+   * Adds or overwrites value, undefined removes value
    * @param address
    * @param value
    */
