@@ -122,6 +122,10 @@ export interface CloseCreditAccountProps {
 export interface RepayCreditAccountProps
   extends RepayAndLiquidateCreditAccountProps {
   /**
+   * Swap calls for repay
+   */
+  calls?: Array<MultiCall>;
+  /**
    * close or zeroDebt
    */
   operation: CloseOptions;

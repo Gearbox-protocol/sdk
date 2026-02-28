@@ -133,6 +133,7 @@ export class CreditAccountServiceV310
     permits,
     to,
     tokensToClaim,
+    calls: swapCalls,
   }: RepayCreditAccountProps): Promise<CreditAccountOperationResult> {
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
 
@@ -154,6 +155,7 @@ export class CreditAccountServiceV310
     const calls: Array<MultiCall> = [
       ...(operation === "close" ? [] : priceUpdates),
       ...this.prepareAddCollateral(ca.creditFacade, addCollateral, permits),
+      ...(swapCalls ?? []),
       ...this.prepareDisableQuotas(ca),
       ...this.prepareDecreaseDebt(ca),
       ...claimPath.calls,
