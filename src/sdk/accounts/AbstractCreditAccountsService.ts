@@ -149,7 +149,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   public async getCreditAccountData(
     account: Address,
     blockNumber?: bigint,
-  ): Promise<CreditAccountDataWithInvestor | undefined> {
+  ): Promise<CreditAccountData | undefined> {
     let raw: CreditAccountData;
     try {
       raw = await this.client.readContract({
@@ -165,30 +165,13 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       // TODO: reverts if account is not found, how to handle other revert reasons?
       return undefined;
     }
-    const factory = await this.getKYCFactory(raw.underlying);
-    const investor = await (factory
-      ? this.client.multicall({
-          contracts: [
-            {
-              abi: factory.abi,
-              address: factory.address,
-              functionName: "getInvestor",
-              args: [raw.creditAccount],
-            },
-          ],
-          allowFailure: true,
-          batchSize: 0,
-        })
-      : undefined);
-
     if (raw.success) {
-      return { ...raw, investor: investor?.[0]?.result ?? raw.owner };
+      return raw;
     }
     const { txs: priceUpdateTxs } = await this.getUpdateForAccount({
       creditManager: raw.creditManager,
       creditAccount: raw,
     });
-
     const [cad] = await simulateWithPriceUpdates(this.client, {
       priceUpdates: priceUpdateTxs,
       contracts: [
@@ -197,75 +180,188 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
           address: this.#compressor,
           functionName: "getCreditAccountData",
           args: [account],
-        } as const,
+        },
       ],
       blockNumber,
       gas: this.sdk.gasLimit,
     });
-
-    return { ...cad, investor: investor?.[0]?.result ?? raw.owner };
+    return cad;
   }
 
-  public async getKYCFactory(underlyingAddress: Address) {
-    await this.sdk.tokensMeta.loadTokenData(underlyingAddress);
-    const underlying = this.sdk.tokensMeta.mustGet(underlyingAddress);
-    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
-      const factory = new SecuritizeKYCFactory(this.sdk, underlying.kycFactory);
-      return factory;
-    }
-    return undefined;
-  }
   /**
-   * Returns all KYC credit account addresses for an investor across the given market suites.
-   * Resolves KYC factory per suite, then multicalls each factory's getCreditAccounts(investor).
-   * @param investor - Owner address to query
-   * @param suites - Market suites (KYC factories are resolved for each; undefined entries are skipped)
-   * @returns Flat array of credit account addresses from all KYC markets
+   * Returns credit account data for a single account with the investor address resolved.
+   * Loads CA via getCreditAccountData; for KYC underlyings fetches the investor from the KYC factory's getInvestor(creditAccount), otherwise uses the account owner.
+   * @param account - Credit account address
+   * @param blockNumber - Optional block number for the read
+   * @returns CreditAccountDataWithInvestor (CA data + investor address), or undefined if the account is not found
    */
-  public async getKYCCaOfInvestor(
-    investor: Address,
-    suites: Array<MarketSuite | undefined>,
-  ) {
-    if (suites.length === 0 || investor === ADDRESS_0X0) return [];
+  public async getCreditAccountDataWithInvestor(
+    account: Address,
+    blockNumber?: bigint,
+  ): Promise<CreditAccountDataWithInvestor | undefined> {
+    const ca = await this.getCreditAccountData(account, blockNumber);
+    if (!ca) return ca;
 
-    const factories = await Promise.all(
-      suites.map(suite =>
-        suite ? this.getKYCFactory(suite.underlying) : undefined,
-      ),
-    );
-    const safeFactories = factories.reduce<Array<SecuritizeKYCFactory>>(
-      (acc, v) => {
-        if (v) {
-          acc.push(v);
-        }
-        return acc;
-      },
-      [],
-    );
+    const factory = await this.getKYCFactory(ca.underlying);
+    const investor = await (factory
+      ? this.client.multicall({
+          contracts: [
+            {
+              abi: factory.abi,
+              address: factory.address,
+              functionName: "getInvestor",
+              args: [ca.creditAccount],
+            },
+          ],
+          allowFailure: true,
+          batchSize: 0,
+        })
+      : undefined);
 
-    const allResp = await this.client.multicall({
-      contracts: [
-        ...safeFactories.map(factory => {
-          return {
-            abi: factory.abi,
-            address: factory.address,
-            functionName: "getCreditAccounts",
-            args: [investor],
-          } as const;
-        }),
-      ],
-      allowFailure: true,
-      batchSize: 0,
-    });
-
-    const caLists = safeFactories.reduce<Array<Address>>((acc, _, index) => {
-      const response = allResp[index];
-      acc.push(...(response.result || []));
-      return acc;
-    }, []);
-
-    return caLists;
+    return { ...ca, investor: investor?.[0]?.result ?? ca.owner };
   }
+
+  /**
+   * Methods to get all credit accounts with some optional filtering
+   * Performs all necessary price feed updates under the hood
+   *
+   * @param options
+   * @param blockNumber
+   * @returns returned credit accounts are sorted by health factor in ascending order
+   */
+  public async getCreditAccounts(
+    options?: GetCreditAccountsOptions,
+    blockNumber?: bigint,
+    priceUpdate?: UpdatePriceFeedsResult,
+  ): Promise<Array<CreditAccountData>> {
+    const {
+      creditManager,
+      includeZeroDebt = false,
+      maxHealthFactor = MAX_UINT256,
+      minHealthFactor = 0n,
+      owner = ADDRESS_0X0,
+      ignoreReservePrices = false,
+    } = options ?? {};
+    // either credit manager or all attached markets
+    const arg0 =
+      creditManager ??
+      ({
+        configurators: this.marketConfigurators,
+        creditManagers: [],
+        pools: [],
+        underlying: ADDRESS_0X0,
+      } as CreditManagerFilter);
+    const caFilter: CreditAccountFilter = {
+      owner,
+      includeZeroDebt,
+      minHealthFactor,
+      maxHealthFactor,
+      reverting: false,
+    };
+
+    const { txs: priceUpdateTxs } =
+      priceUpdate ??
+      (await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(
+        ignoreReservePrices ? { main: true } : undefined,
+      ));
+
+    const allCAs: Array<CreditAccountData> = [];
+    let revertingOffset = 0;
+    // reverting filter is exclusive, we need both options to get all accounts
+    for (const reverting of [false, true]) {
+      let offset = 0n;
+      revertingOffset = allCAs.length;
+      do {
+        const [accounts, newOffset] = await this.#getCreditAccounts(
+          this.#batchSize
+            ? [
+                arg0,
+                { ...caFilter, reverting },
+                offset,
+                BigInt(this.#batchSize), // limit
+              ]
+            : [arg0, { ...caFilter, reverting }, offset],
+          priceUpdateTxs,
+          blockNumber,
+        );
+        allCAs.push(...accounts);
+        offset = newOffset;
+      } while (offset !== 0n);
+    }
+    this.logger?.debug(
+      `loaded ${allCAs.length} credit accounts (${
+        allCAs.length - revertingOffset
+      } reverting)`,
+    );
+
+    // sort by health factor ascending
+    return allCAs.sort((a, b) => Number(a.healthFactor - b.healthFactor));
+  }
+
+  /**
+   * Returns all credit accounts matching the filter, with investor set on each item.
+   * Delegates to getCreditAccounts; when options.owner is set, also loads KYC credit accounts for that owner and merges them into the list. Result is sorted by health factor ascending.
+   * @param options - Filter options (owner, creditManager, health factor, etc.)
+   * @param blockNumber - Optional block number for the read
+   * @returns Array of credit accounts (with investor field), sorted by health factor ascending
+   */
+  public async getCreditAccountsWithInvestor(
+    options?: GetCreditAccountsOptions,
+    blockNumber?: bigint,
+  ): Promise<Array<CreditAccountDataWithInvestor>> {
+    const { owner, ignoreReservePrices = false } = options ?? {};
+
+    const priceUpdate = await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(
+      ignoreReservePrices ? { main: true } : undefined,
+    );
+    const { txs: priceUpdateTxs } = priceUpdate;
+
+    const [common, kyc] = await Promise.all([
+      this.getCreditAccounts(options, blockNumber),
+      owner
+        ? this.getKYCCreditAccountsOfOwner(owner, priceUpdateTxs, blockNumber)
+        : undefined,
+    ]);
+
+    const allCAs = common.map(
+      (ca): CreditAccountDataWithInvestor => ({
+        ...ca,
+        investor: owner || ca.owner,
+      }),
+    );
+    allCAs.push(...(kyc || []));
+
+    // sort by health factor ascending
+    return allCAs.sort((a, b) => Number(a.healthFactor - b.healthFactor));
+  }
+  protected async getKYCCreditAccountsOfOwner(
+    owner: Address,
+    priceUpdateTxs: IPriceUpdateTx<{
+      priceFeed: `0x${string}`;
+      timestamp: number;
+    }>[],
+    blockNumber?: bigint,
+  ): Promise<Array<CreditAccountDataWithInvestor>> {
+    // find all market suites which belong to marketConfigurators
+    const suites = this.marketConfigurators.map(mc => {
+      const suite = this.sdk.marketRegister.markets.find(
+        m => m.configurator.address === mc,
+      );
+      return suite;
+    });
+    const kycCAAddresses = await this.getKYCCaOfInvestor(owner, suites);
+    const kycCAs = await this.loadSpecifiedAccounts(
+      kycCAAddresses,
+      priceUpdateTxs,
+      blockNumber,
+    );
+
+    return kycCAs.map(ca => ({
+      ...ca,
+      investor: owner,
+    }));
+  }
+
   /**
    * Loads credit account data for the given addresses using simulateWithPriceUpdates.
    * Applies the provided price update txs before reading, so returned data is consistent with up-to-date prices.
@@ -299,104 +395,6 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       gas: this.sdk.gasLimit,
     });
     return list;
-  }
-
-  /**
-   * Methods to get all credit accounts with some optional filtering
-   * Performs all necessary price feed updates under the hood
-   *
-   * @param options
-   * @param blockNumber
-   * @returns returned credit accounts are sorted by health factor in ascending order
-   */
-  public async getCreditAccounts(
-    options?: GetCreditAccountsOptions,
-    blockNumber?: bigint,
-  ): Promise<Array<CreditAccountDataWithInvestor>> {
-    const {
-      creditManager,
-      includeZeroDebt = false,
-      maxHealthFactor = MAX_UINT256,
-      minHealthFactor = 0n,
-      owner = ADDRESS_0X0,
-      ignoreReservePrices = false,
-    } = options ?? {};
-    // either credit manager or all attached markets
-    const arg0 =
-      creditManager ??
-      ({
-        configurators: this.marketConfigurators,
-        creditManagers: [],
-        pools: [],
-        underlying: ADDRESS_0X0,
-      } as CreditManagerFilter);
-    const caFilter: CreditAccountFilter = {
-      owner,
-      includeZeroDebt,
-      minHealthFactor,
-      maxHealthFactor,
-      reverting: false,
-    };
-
-    const { txs: priceUpdateTxs } =
-      await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(
-        ignoreReservePrices ? { main: true } : undefined,
-      );
-
-    const allCAs: Array<CreditAccountDataWithInvestor> = [];
-    let revertingOffset = 0;
-    // reverting filter is exclusive, we need both options to get all accounts
-    for (const reverting of [false, true]) {
-      let offset = 0n;
-      revertingOffset = allCAs.length;
-      do {
-        const [accounts, newOffset] = await this.#getCreditAccounts(
-          this.#batchSize
-            ? [
-                arg0,
-                { ...caFilter, reverting },
-                offset,
-                BigInt(this.#batchSize), // limit
-              ]
-            : [arg0, { ...caFilter, reverting }, offset],
-          priceUpdateTxs,
-          blockNumber,
-        );
-        allCAs.push(
-          ...accounts.map(
-            (ca): CreditAccountDataWithInvestor => ({ ...ca, investor: owner }),
-          ),
-        );
-        offset = newOffset;
-      } while (offset !== 0n);
-    }
-    this.logger?.debug(
-      `loaded ${allCAs.length} credit accounts (${
-        allCAs.length - revertingOffset
-      } reverting)`,
-    );
-
-    const suites = this.marketConfigurators.map(mc => {
-      const suite = this.sdk.marketRegister.markets.find(
-        m => m.configurator.address === mc,
-      );
-      return suite;
-    });
-    const kycCAAddresses = await this.getKYCCaOfInvestor(owner, suites);
-    const kycCAs = await this.loadSpecifiedAccounts(
-      kycCAAddresses,
-      priceUpdateTxs,
-      blockNumber,
-    );
-    allCAs.push(
-      ...kycCAs.map(ca => ({
-        ...ca,
-        investor: owner,
-      })),
-    );
-
-    // sort by health factor ascending
-    return allCAs.sort((a, b) => Number(a.healthFactor - b.healthFactor));
   }
 
   /**
@@ -1775,5 +1773,72 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     return operation === "close"
       ? suite.creditFacade.closeCreditAccount(creditAccount, calls)
       : suite.creditFacade.multicall(creditAccount, calls);
+  }
+
+  /**
+   * Resolves the KYC factory for a pool underlying token, if the underlying is KYC-gated.
+   * Loads token metadata, checks isKYCUnderlying; if true returns a SecuritizeKYCFactory instance for the token's kycFactory address.
+   * @param underlyingAddress - Pool underlying token address
+   * @returns SecuritizeKYCFactory when the underlying is KYC, undefined otherwise
+   */
+  protected async getKYCFactory(underlyingAddress: Address) {
+    await this.sdk.tokensMeta.loadTokenData(underlyingAddress);
+    const underlying = this.sdk.tokensMeta.mustGet(underlyingAddress);
+    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
+      const factory = new SecuritizeKYCFactory(this.sdk, underlying.kycFactory);
+      return factory;
+    }
+    return undefined;
+  }
+  /**
+   * Returns all KYC credit account addresses for an investor across the given market suites.
+   * Resolves KYC factory per suite, then multicalls each factory's getCreditAccounts(investor).
+   * @param investor - Owner address to query
+   * @param suites - Market suites (KYC factories are resolved for each; undefined entries are skipped)
+   * @returns Flat array of credit account addresses from all KYC markets
+   */
+  protected async getKYCCaOfInvestor(
+    investor: Address,
+    suites: Array<MarketSuite | undefined>,
+  ) {
+    if (suites.length === 0 || investor === ADDRESS_0X0) return [];
+
+    const factories = await Promise.all(
+      suites.map(suite =>
+        suite ? this.getKYCFactory(suite.underlying) : undefined,
+      ),
+    );
+    const safeFactories = factories.reduce<Array<SecuritizeKYCFactory>>(
+      (acc, v) => {
+        if (v) {
+          acc.push(v);
+        }
+        return acc;
+      },
+      [],
+    );
+
+    const allResp = await this.client.multicall({
+      contracts: [
+        ...safeFactories.map(factory => {
+          return {
+            abi: factory.abi,
+            address: factory.address,
+            functionName: "getCreditAccounts",
+            args: [investor],
+          } as const;
+        }),
+      ],
+      allowFailure: true,
+      batchSize: 0,
+    });
+
+    const caLists = safeFactories.reduce<Array<Address>>((acc, _, index) => {
+      const response = allResp[index];
+      acc.push(...(response.result || []));
+      return acc;
+    }, []);
+
+    return caLists;
   }
 }

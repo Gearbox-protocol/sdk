@@ -26,7 +26,7 @@ import type {
   RouterCASlice,
   RouterCloseResult,
 } from "../router/index.js";
-import type { MultiCall, RawTx } from "../types/index.js";
+import type { IPriceUpdateTx, MultiCall, RawTx } from "../types/index.js";
 
 export type GetCreditAccountsArgs = ContractFunctionArgs<
   typeof creditAccountCompressorAbi,
@@ -565,19 +565,60 @@ export interface ICreditAccountsService extends Construct {
   getCreditAccountData(
     account: Address,
     blockNumber?: bigint,
+  ): Promise<CreditAccountData | undefined>;
+
+  /**
+   * Returns credit account data for a single account with the investor address resolved (from KYC factory when applicable).
+   * @param account - Credit account address
+   * @param blockNumber - Optional block number for the read
+   * @returns CreditAccountDataWithInvestor, or undefined if the account is not found
+   */
+  getCreditAccountDataWithInvestor(
+    account: Address,
+    blockNumber?: bigint,
   ): Promise<CreditAccountDataWithInvestor | undefined>;
+
   /**
    * Methods to get all credit accounts with some optional filtering
    * Performs all necessary price feed updates under the hood
    *
    * @param options
    * @param blockNumber
-   * @returns returned credit accounts are sorted by health factor in ascending order
+   * @param priceUpdate - Optional pre-computed price feed update (e.g. from generatePriceFeedsUpdateTxs)
+   * @returns Credit accounts sorted by health factor ascending
    */
   getCreditAccounts(
     options?: GetCreditAccountsOptions,
     blockNumber?: bigint,
+    priceUpdate?: UpdatePriceFeedsResult,
+  ): Promise<Array<CreditAccountData>>;
+
+  /**
+   * Returns all credit accounts matching the filter with investor set on each; when options.owner is set, includes KYC CAs for that owner.
+   * @param options - Filter options (owner, creditManager, health factor, etc.)
+   * @param blockNumber - Optional block number for the read
+   * @returns Credit accounts (with investor) sorted by health factor ascending
+   */
+  getCreditAccountsWithInvestor(
+    options?: GetCreditAccountsOptions,
+    blockNumber?: bigint,
   ): Promise<Array<CreditAccountDataWithInvestor>>;
+
+  /**
+   * Loads credit account data for the given addresses using simulateWithPriceUpdates (with price updates applied before the read).
+   * @param accounts - Credit account addresses to load
+   * @param priceUpdateTxs - Price feed update txs to simulate before the read (e.g. from generatePriceFeedsUpdateTxs)
+   * @param blockNumber - Optional block number for the read
+   * @returns Array of CreditAccountData in the same order as accounts
+   */
+  loadSpecifiedAccounts(
+    accounts: Address[],
+    priceUpdateTxs: IPriceUpdateTx<{
+      priceFeed: `0x${string}`;
+      timestamp: number;
+    }>[],
+    blockNumber?: bigint,
+  ): Promise<Array<CreditAccountData>>;
   /**
    * Method to get all claimable rewards for credit account (ex. stkUSDS SKY rewards)
    * Assosiates rewards by adapter + stakedPhantomToken
@@ -615,9 +656,9 @@ export interface ICreditAccountsService extends Construct {
   /**
    * Generates transaction to liquidate credit account
    * @param props - {@link FullyLiquidateProps}
-   * @returns
+   * @returns Transaction data and optional loss policy data
    */
-  fullyLiquidate(props: FullyLiquidateProps): Promise<CloseCreditAccountResult>;
+  fullyLiquidate(props: FullyLiquidateProps): Promise<FullyLiquidateResult>;
 
   /**
    * Closes credit account or closes credit account and keeps it open with zero debt.
