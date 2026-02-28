@@ -26,16 +26,16 @@ import {
   VERSION_RANGE_310,
 } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
-import {
-  type CreditSuite,
-  type IPriceFeedContract,
-  type IPriceOracleContract,
-  type MarketSuite,
-  type OnDemandPriceUpdates,
-  type PriceUpdateV300,
-  type PriceUpdateV310,
+import type {
+  CreditSuite,
+  IPriceFeedContract,
+  IPriceOracleContract,
+  MarketSuite,
+  OnDemandPriceUpdates,
+  PriceUpdateV300,
+  PriceUpdateV310,
   SecuritizeKYCFactory,
-  type UpdatePriceFeedsResult,
+  UpdatePriceFeedsResult,
 } from "../market/index.js";
 import { type Asset, assetsMap, type RouterCASlice } from "../router/index.js";
 import { BigIntMath } from "../sdk-legacy/index.js";
@@ -118,6 +118,8 @@ const COMPRESSORS: Record<number, Address> = {
   [chains.Mainnet.id]: "0x36F3d0Bb73CBC2E94fE24dF0f26a689409cF9023",
   [chains.Monad.id]: "0x36F3d0Bb73CBC2E94fE24dF0f26a689409cF9023",
 };
+
+const INVESTORS: AddressMap<Address> = new AddressMap([], "investors");
 
 export function getWithdrawalCompressorAddress(chainId: number) {
   return COMPRESSORS[chainId];
@@ -202,23 +204,29 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const ca = await this.getCreditAccountData(account, blockNumber);
     if (!ca) return ca;
 
-    const factory = await this.getKYCFactory(ca.underlying);
-    const investor = await (factory
-      ? this.client.multicall({
-          contracts: [
-            {
-              abi: factory.abi,
-              address: factory.address,
-              functionName: "getInvestor",
-              args: [ca.creditAccount],
-            },
-          ],
-          allowFailure: true,
-          batchSize: 0,
-        })
-      : undefined);
+    const marketSuite = this.sdk.marketRegister.findByCreditManager(
+      ca.creditManager,
+    );
+    const factory = await marketSuite.getKYCFactory();
 
-    return { ...ca, investor: investor?.[0]?.result ?? ca.owner };
+    const investor = factory
+      ? (
+          await this.client.multicall({
+            contracts: [
+              {
+                abi: factory.abi,
+                address: factory.address,
+                functionName: "getInvestor",
+                args: [ca.creditAccount],
+              },
+            ],
+            allowFailure: true,
+            batchSize: 0,
+          })
+        )?.[0]?.result
+      : undefined;
+
+    return { ...ca, investor: investor ?? ca.owner };
   }
 
   /**
@@ -1174,7 +1182,8 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   ): Promise<Address> {
     const { creditManager } = options;
     const suite = this.sdk.marketRegister.findCreditManager(creditManager);
-    const factory = await this.getKYCFactory(suite.underlying);
+    const marketSuite = this.sdk.marketRegister.findByPool(suite.pool);
+    const factory = await marketSuite.getKYCFactory();
 
     if (factory) {
       if ("creditAccount" in options) {
@@ -1710,7 +1719,8 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     calls: MultiCall[],
     referralCode?: bigint,
   ): Promise<RawTx> {
-    const factory = await this.getKYCFactory(suite.underlying);
+    const marketSuite = this.sdk.marketRegister.findByPool(suite.pool);
+    const factory = await marketSuite.getKYCFactory();
 
     if (factory) {
       const tokensToRegister = await factory.getDSTokens();
@@ -1736,7 +1746,10 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     creditAccount: Address,
     calls: MultiCall[],
   ): Promise<RawTx> {
-    const factory = await this.getKYCFactory(suite.underlying);
+    const marketSuite = this.sdk.marketRegister.findByCreditManager(
+      suite.creditManager.address,
+    );
+    const factory = await marketSuite.getKYCFactory();
 
     if (factory) {
       // TODO: get tokens to register
@@ -1776,21 +1789,6 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
-   * Resolves the KYC factory for a pool underlying token, if the underlying is KYC-gated.
-   * Loads token metadata, checks isKYCUnderlying; if true returns a SecuritizeKYCFactory instance for the token's kycFactory address.
-   * @param underlyingAddress - Pool underlying token address
-   * @returns SecuritizeKYCFactory when the underlying is KYC, undefined otherwise
-   */
-  protected async getKYCFactory(underlyingAddress: Address) {
-    await this.sdk.tokensMeta.loadTokenData(underlyingAddress);
-    const underlying = this.sdk.tokensMeta.mustGet(underlyingAddress);
-    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
-      const factory = new SecuritizeKYCFactory(this.sdk, underlying.kycFactory);
-      return factory;
-    }
-    return undefined;
-  }
-  /**
    * Returns all KYC credit account addresses for an investor across the given market suites.
    * Resolves KYC factory per suite, then multicalls each factory's getCreditAccounts(investor).
    * @param investor - Owner address to query
@@ -1804,9 +1802,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     if (suites.length === 0 || investor === ADDRESS_0X0) return [];
 
     const factories = await Promise.all(
-      suites.map(suite =>
-        suite ? this.getKYCFactory(suite.underlying) : undefined,
-      ),
+      suites.map(suite => (suite ? suite.getKYCFactory() : undefined)),
     );
     const safeFactories = factories.reduce<Array<SecuritizeKYCFactory>>(
       (acc, v) => {
