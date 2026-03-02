@@ -850,6 +850,19 @@ export interface ICreditAccountsService extends Construct {
   ): Promise<Array<MultiCall> | undefined>;
 
   /**
+   * Returns multicall entries to call depositDiff on the KYC ERC-4626 adapter for the given credit manager.
+   * Deposits the leftover underlying (e.g. after decreasing debt) into the vault so the account does not hold excess underlying.
+   * Only applies when the credit manager's underlying is KYC-gated and has an ERC-4626 adapter configured.
+   * @param amount - Leftover underlying amount to deposit into the vault (in underlying decimals)
+   * @param creditManager - Credit manager address
+   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not KYC or no adapter is configured
+   */
+  getDepositDiffCalls(
+    amount: bigint,
+    creditManager: Address,
+  ): Promise<Array<MultiCall> | undefined>;
+
+  /**
    * Withdraws a single collateral from credit account to wallet to and updates quotas;
    * technically can withdraw several tokens at once
    *   - Collateral is withdrawn in the following order: price update -> withdraw token -> update quotas for affected tokens

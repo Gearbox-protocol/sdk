@@ -1486,6 +1486,45 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
+   * Returns multicall entries to call depositDiff on the KYC ERC-4626 adapter for the given credit manager.
+   * Deposits the leftover underlying (e.g. after decreasing debt) into the vault so the account does not hold excess underlying.
+   * Only applies when the credit manager's underlying is KYC-gated and has an ERC-4626 adapter configured.
+   * @param amount - Leftover underlying amount to deposit into the vault (in underlying decimals)
+   * @param creditManager - Credit manager address
+   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not KYC or no adapter is configured
+   */
+  public async getDepositDiffCalls(
+    amount: bigint,
+    creditManager: Address,
+  ): Promise<Array<MultiCall> | undefined> {
+    const suite = this.sdk.marketRegister.findCreditManager(creditManager);
+    const meta = this.sdk.tokensMeta.mustGet(suite.underlying);
+    if (!this.sdk.tokensMeta.isKYCUnderlying(meta)) {
+      return undefined;
+    }
+
+    const adapter = suite.creditManager.adapters.get(meta.addr);
+    const adapterAddress = adapter?.address;
+
+    if (!adapterAddress) {
+      return undefined;
+    }
+
+    const mc: Array<MultiCall> = [
+      {
+        target: adapterAddress,
+        callData: encodeFunctionData({
+          abi: ierc4626AdapterAbi,
+          functionName: "depositDiff",
+          args: [amount],
+        }),
+      },
+    ];
+
+    return mc;
+  }
+
+  /**
    * Returns raw txs that are needed to update all price feeds so that all credit accounts (possibly from different markets) compute
    *
    * This can be used by batch liquidator

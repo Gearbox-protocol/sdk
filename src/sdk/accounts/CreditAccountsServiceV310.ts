@@ -203,12 +203,16 @@ export class CreditAccountServiceV310
       creditAccount: ca,
     });
 
+    const wrapCalls =
+      (await this.getDepositDiffCalls(1n, ca.creditManager)) ?? [];
+
     const addCollateral = collateralAssets.filter(a => a.balance > 0);
 
     const calls: Array<MultiCall> = [
       ...priceUpdates,
       ...this.prepareAddCollateral(ca.creditFacade, addCollateral, permits),
       ...claimPath.calls,
+      ...wrapCalls,
       ...assetsToWithdraw.map(t =>
         this.prepareWithdrawToken(ca.creditFacade, t.token, MAX_UINT256, to),
       ),
