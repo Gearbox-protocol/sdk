@@ -210,20 +210,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const factory = await marketSuite.getKYCFactory();
 
     const investor = factory
-      ? (
-          await this.client.multicall({
-            contracts: [
-              {
-                abi: factory.abi,
-                address: factory.address,
-                functionName: "getInvestor",
-                args: [ca.creditAccount],
-              },
-            ],
-            allowFailure: true,
-            batchSize: 0,
-          })
-        )?.[0]?.result
+      ? await factory.getInvestor(ca.creditAccount)
       : undefined;
 
     return { ...ca, investor: investor ?? ca.owner };
