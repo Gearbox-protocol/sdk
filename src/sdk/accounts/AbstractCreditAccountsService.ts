@@ -702,6 +702,14 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }: CloseCreditAccountProps): Promise<CloseCreditAccountResult> {
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
 
+    await this.sdk.tokensMeta.loadTokenData(cm.underlying);
+    const underlying = this.sdk.tokensMeta.mustGet(cm.underlying);
+    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
+      throw new Error(
+        "closeCreditAccount is not supported for KYC underlying credit accounts",
+      );
+    }
+
     const routerCloseResult =
       closePath ||
       (await this.sdk.routerFor(ca).findBestClosePath({
@@ -1890,18 +1898,27 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     calls: MultiCall[],
     operation: CloseOptions,
   ): Promise<RawTx> {
-    await this.sdk.tokensMeta.loadTokenData(suite.underlying);
-    const underlying = this.sdk.tokensMeta.mustGet(suite.underlying);
+    const marketSuite = this.sdk.marketRegister.findByCreditManager(
+      suite.creditManager.address,
+    );
+    const factory = await marketSuite.getKYCFactory();
 
-    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
-      throw new Error(
-        "KYC underlying is not supported for close credit account",
-      );
+    if (operation === "close") {
+      if (factory) {
+        throw new Error(
+          "CloseOptions=close is not supported for KYC underlying credit accounts",
+        );
+      }
+      return suite.creditFacade.closeCreditAccount(creditAccount, calls);
     }
 
-    return operation === "close"
-      ? suite.creditFacade.closeCreditAccount(creditAccount, calls)
-      : suite.creditFacade.multicall(creditAccount, calls);
+    if (factory) {
+      // TODO: get tokens to register
+      const tokensToRegister: Address[] = [];
+      return factory.multicall(creditAccount, calls, tokensToRegister);
+    }
+
+    return suite.creditFacade.multicall(creditAccount, calls);
   }
 
   /**
