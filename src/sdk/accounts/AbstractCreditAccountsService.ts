@@ -210,7 +210,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const factory = await marketSuite.getKYCFactory();
 
     const investor = factory
-      ? await factory.getInvestor(ca.creditAccount)
+      ? await factory.getInvestor(ca.creditAccount, true)
       : undefined;
 
     return { ...ca, investor: investor ?? ca.owner };
