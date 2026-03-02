@@ -133,13 +133,16 @@ export class CreditAccountServiceV310
     permits,
     to,
     tokensToClaim,
-    calls: swapCalls,
+    calls: wrapCalls = [],
   }: RepayCreditAccountProps): Promise<CreditAccountOperationResult> {
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
 
     const addCollateral = collateralAssets.filter(a => a.balance > 0);
 
     const router = this.sdk.routerFor(ca);
+
+    const unwrapCalls =
+      (await this.getRedeemDiffCalls(1n, ca.creditManager)) ?? [];
 
     const claimPath = await router.findClaimAllRewards({
       calls: [],
@@ -155,9 +158,10 @@ export class CreditAccountServiceV310
     const calls: Array<MultiCall> = [
       ...(operation === "close" ? [] : priceUpdates),
       ...this.prepareAddCollateral(ca.creditFacade, addCollateral, permits),
-      ...(swapCalls ?? []),
+      ...wrapCalls,
       ...this.prepareDisableQuotas(ca),
       ...this.prepareDecreaseDebt(ca),
+      ...unwrapCalls,
       ...claimPath.calls,
       ...this.prepareDisableTokens(ca),
       ...assetsToWithdraw.map(t =>
