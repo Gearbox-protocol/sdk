@@ -2000,4 +2000,24 @@ const ierc4626AdapterAbi = [
     stateMutability: "nonpayable",
     type: "function",
   },
+
+  {
+    inputs: [
+      {
+        name: "leftoverAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    name: "depositDiff",
+    outputs: [
+      {
+        name: "useSafePrices",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
 ] as const;
