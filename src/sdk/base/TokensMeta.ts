@@ -88,7 +88,7 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
         `extended token data not loaded for ${t.symbol} (${t.addr})`,
       );
     }
-    return "contractType" in t && t.contractType.startsWith("PHANTOM_TOKEN::");
+    return !!t.contractType?.startsWith("PHANTOM_TOKEN::");
   }
 
   /**
@@ -102,7 +102,7 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
         `extended token data not loaded for ${t.symbol} (${t.addr})`,
       );
     }
-    return "contractType" in t && t.contractType.startsWith("KYC_UNDERLYING::");
+    return !!t.contractType?.startsWith("KYC_UNDERLYING::");
   }
 
   /**
@@ -258,10 +258,10 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
             `token ${meta.symbol} (${token}) is ${contractType} but serialize failed: ${serializeResp.error}`,
           );
         }
-      } else if (contractType.startsWith("PHANTOM_TOKEN::")) {
+      } else {
         this.upsert(token, {
           ...meta,
-          contractType: contractType as PhantomTokenContractType,
+          contractType,
         });
       }
       this.#logger?.debug(`token ${meta.symbol} is ${contractType}`);

@@ -25,6 +25,7 @@ export type PhantomTokenContractType =
 
 export type SimpleTokenMeta = TokenData & {
   isDSToken?: boolean;
+  contractType?: string;
 };
 
 export type PhantomTokenMeta = SimpleTokenMeta & {
