@@ -26,7 +26,6 @@ import {
   type KYCDefaultTokenMeta,
   type KYCOnDemandTokenMeta,
   type KYCTokenMeta,
-  type PhantomTokenContractType,
   type PhantomTokenMeta,
   type TokenMetaData,
 } from "./token-types.js";
