@@ -1,8 +1,13 @@
 import type { Address, Chain, Hex, PublicClient, Transport } from "viem";
 import { iVersionAbi } from "../../abi/iVersion.js";
-import { bytes32ToString, type PhantomTokenContractType } from "../index.js";
+import type { PhantomTokenContractType } from "../constants/index.js";
 import type { Asset } from "../router/index.js";
-import { AddressMap, AddressSet, formatBN } from "../utils/index.js";
+import {
+  AddressMap,
+  AddressSet,
+  bytes32ToString,
+  formatBN,
+} from "../utils/index.js";
 import type { TokenMetaData } from "./types.js";
 
 export interface FormatBNOptions {

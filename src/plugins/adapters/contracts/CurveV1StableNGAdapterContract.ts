@@ -1,54 +1,125 @@
 import { iCurveV1StableNgAdapterAbi } from "@gearbox-protocol/integrations-v3";
 import { type Address, decodeAbiParameters } from "viem";
-import type { ConstructOptions } from "../../../sdk/index.js";
-import type { AbstractAdapterContractOptions } from "./AbstractAdapter.js";
+import {
+  type ConstructOptions,
+  MissingSerializedParamsError,
+  type ParsedCallV2,
+} from "../../../sdk/index.js";
+import {
+  iCurvePoolAbi,
+  iCurvePoolStableNGAbi,
+} from "../abi/targetContractAbi.js";
+import type {
+  LegacyAdapterOperation,
+  Transfers,
+} from "../legacyAdapterOperations.js";
+import { classifyCurveOperation } from "../transferHelpers.js";
+import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
 const abi = iCurveV1StableNgAdapterAbi;
 type abi = typeof abi;
 
-export class CurveV1StableNGAdapterContract extends AbstractAdapterContract<abi> {
-  public readonly token: Address;
-  public readonly lpToken: Address;
-  public readonly metapoolBase: Address;
-  public readonly nCoins: number;
-  public readonly use256: boolean;
-  public readonly tokens: [Address, Address, Address, Address];
-  public readonly underlyings: [Address, Address, Address, Address];
+const protocolAbi = [...iCurvePoolAbi, ...iCurvePoolStableNGAbi] as const;
+type protocolAbi = typeof protocolAbi;
 
-  constructor(
-    options: ConstructOptions,
-    args: Omit<AbstractAdapterContractOptions<abi>, "abi">,
-  ) {
-    super(options, { ...args, abi });
+export class CurveV1StableNGAdapterContract extends AbstractAdapterContract<
+  abi,
+  protocolAbi
+> {
+  #token?: Address;
+  #lpToken?: Address;
+  #metapoolBase?: Address;
+  #nCoins?: number;
+  #use256?: boolean;
+  #tokens?: [Address, Address, Address, Address];
+  #underlyings?: [Address, Address, Address, Address];
 
-    // Decode parameters directly using ABI decoding
-    const decoded = decodeAbiParameters(
-      [
-        { type: "address", name: "creditManager" },
-        { type: "address", name: "targetContract" },
-        { type: "address", name: "token" },
-        { type: "address", name: "lpToken" },
-        { type: "address", name: "metapoolBase" },
-        { type: "uint256", name: "nCoins" },
-        { type: "bool", name: "use256" },
-        { type: "address[4]", name: "tokens" },
-        { type: "address[4]", name: "underlyings" },
-      ],
-      args.baseParams.serializedParams,
+  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
+    super(options, { ...args, abi, protocolAbi });
+
+    if (args.baseParams.serializedParams) {
+      const decoded = decodeAbiParameters(
+        [
+          { type: "address", name: "creditManager" },
+          { type: "address", name: "targetContract" },
+          { type: "address", name: "token" },
+          { type: "address", name: "lpToken" },
+          { type: "address", name: "metapoolBase" },
+          { type: "uint256", name: "nCoins" },
+          { type: "bool", name: "use256" },
+          { type: "address[4]", name: "tokens" },
+          { type: "address[4]", name: "underlyings" },
+        ],
+        args.baseParams.serializedParams,
+      );
+
+      this.#token = decoded[2];
+      this.#lpToken = decoded[3];
+      this.#metapoolBase = decoded[4];
+      this.#nCoins = Number(decoded[5]);
+      this.#use256 = decoded[6];
+      this.#tokens = [
+        decoded[7][0],
+        decoded[7][1],
+        decoded[7][2],
+        decoded[7][3],
+      ];
+      this.#underlyings = [
+        decoded[8][0],
+        decoded[8][1],
+        decoded[8][2],
+        decoded[8][3],
+      ];
+    }
+  }
+
+  get token(): Address {
+    if (!this.#token) throw new MissingSerializedParamsError("token");
+    return this.#token;
+  }
+
+  get lpToken(): Address {
+    if (!this.#lpToken) throw new MissingSerializedParamsError("lpToken");
+    return this.#lpToken;
+  }
+
+  get metapoolBase(): Address {
+    if (!this.#metapoolBase)
+      throw new MissingSerializedParamsError("metapoolBase");
+    return this.#metapoolBase;
+  }
+
+  get nCoins(): number {
+    if (!this.#nCoins) throw new MissingSerializedParamsError("nCoins");
+    return this.#nCoins;
+  }
+
+  get use256(): boolean {
+    if (this.#use256 === undefined)
+      throw new MissingSerializedParamsError("use256");
+    return this.#use256;
+  }
+
+  get tokens(): [Address, Address, Address, Address] {
+    if (!this.#tokens) throw new MissingSerializedParamsError("tokens");
+    return this.#tokens;
+  }
+
+  get underlyings(): [Address, Address, Address, Address] {
+    if (!this.#underlyings)
+      throw new MissingSerializedParamsError("underlyings");
+    return this.#underlyings;
+  }
+
+  /** @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type.go#L132-L164 */
+  protected override classifyLegacyOperation(
+    parsed: ParsedCallV2,
+    transfers: Transfers,
+  ): LegacyAdapterOperation {
+    return (
+      classifyCurveOperation(parsed.functionName, transfers) ??
+      super.classifyLegacyOperation(parsed, transfers)
     );
-
-    this.token = decoded[2];
-    this.lpToken = decoded[3];
-    this.metapoolBase = decoded[4];
-    this.nCoins = Number(decoded[5]);
-    this.use256 = decoded[6];
-    this.tokens = [decoded[7][0], decoded[7][1], decoded[7][2], decoded[7][3]];
-    this.underlyings = [
-      decoded[8][0],
-      decoded[8][1],
-      decoded[8][2],
-      decoded[8][3],
-    ];
   }
 }

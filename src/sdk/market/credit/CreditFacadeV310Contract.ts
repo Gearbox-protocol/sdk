@@ -1,22 +1,10 @@
-import type {
-  Address,
-  ContractEventName,
-  DecodeFunctionDataReturnType,
-  Hex,
-  Log,
-} from "viem";
+import type { Address, ContractEventName, Hex, Log } from "viem";
 
-import {
-  iCreditFacadeMulticallV310Abi,
-  iCreditFacadeV310Abi,
-} from "../../../abi/310/generated.js";
-import { iPausableAbi } from "../../../abi/iPausable.js";
 import type {
   ConstructOptions,
   CreditFacadeState,
   CreditSuiteState,
 } from "../../base/index.js";
-import { BaseContract } from "../../base/index.js";
 import { ADDRESS_0X0 } from "../../constants/index.js";
 import type {
   CreditFacadeStateHuman,
@@ -28,20 +16,16 @@ import {
   formatBNvalue,
   formatTimestamp,
 } from "../../utils/index.js";
+import type { CreditFacadeV310Abi } from "./CreditFacadeV310BaseContract.js";
+import { CreditFacadeV310BaseContract } from "./CreditFacadeV310BaseContract.js";
 
-const abi = [
-  ...iCreditFacadeV310Abi,
-  ...iCreditFacadeMulticallV310Abi,
-  ...iPausableAbi,
-] as const;
-type abi = typeof abi;
+type abi = CreditFacadeV310Abi;
 
-// Augmenting contract class with interface of compressor data object
 export interface CreditFacadeV310Contract
   extends Omit<CreditFacadeState, "baseParams">,
-    BaseContract<abi> {}
+    CreditFacadeV310BaseContract {}
 
-export class CreditFacadeV310Contract extends BaseContract<abi> {
+export class CreditFacadeV310Contract extends CreditFacadeV310BaseContract {
   public readonly underlying: Address;
 
   constructor(
@@ -52,7 +36,6 @@ export class CreditFacadeV310Contract extends BaseContract<abi> {
     super(options, {
       ...baseParams,
       name: `CreditFacadeV310(${creditManager.name})`,
-      abi,
     });
     Object.assign(this, rest);
     this.underlying = creditManager.underlying;
@@ -143,37 +126,5 @@ export class CreditFacadeV310Contract extends BaseContract<abi> {
       functionName: "openCreditAccount",
       args: [to, calls, referralCode],
     });
-  }
-
-  protected override stringifyFunctionParams(
-    params: DecodeFunctionDataReturnType<abi>,
-  ): string[] {
-    switch (params.functionName) {
-      case "openCreditAccount": {
-        const [onBehalfOf, calls, referralCode] = params.args;
-        return [
-          this.labelAddress(onBehalfOf),
-          this.register.parseMultiCall([...calls]).join(","),
-          `${referralCode}`,
-        ];
-      }
-      case "closeCreditAccount": {
-        const [creditAccount, calls] = params.args;
-        return [
-          this.labelAddress(creditAccount),
-          this.register.parseMultiCall([...calls]).join(","),
-        ];
-      }
-      case "liquidateCreditAccount": {
-        const [creditAccount, to, calls] = params.args;
-        return [
-          this.labelAddress(creditAccount),
-          this.labelAddress(to),
-          this.register.parseMultiCall([...calls]).join(","),
-        ];
-      }
-      default:
-        return super.stringifyFunctionParams(params);
-    }
   }
 }

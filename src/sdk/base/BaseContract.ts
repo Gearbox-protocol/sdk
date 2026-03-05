@@ -31,10 +31,17 @@ import {
   bytes32ToString,
   createRawTx,
   functionArgsToMap,
+  functionArgsToRecord,
+  getFunctionSignature,
   json_stringify,
 } from "../utils/index.js";
 import { Construct, type ConstructOptions } from "./Construct.js";
-import type { IBaseContract, ParsedCall, ParsedCallArgs } from "./types.js";
+import type {
+  IBaseContract,
+  ParsedCall,
+  ParsedCallArgs,
+  ParsedCallV2,
+} from "./types.js";
 
 export interface BaseContractArgs<abi extends Abi | readonly unknown[]> {
   abi: abi;
@@ -279,6 +286,66 @@ export class BaseContract<abi extends Abi | readonly unknown[]>
       label: this.register.labelAddress(this.address, true),
       functionName,
       args,
+    };
+  }
+
+  /**
+   * Parses calldata into structured result with preserved original types.
+   * When strict is true, throws {@link ContractParseError} on unknown selectors;
+   * otherwise returns a fallback with the raw calldata.
+   */
+  public parseFunctionDataV2(calldata: Hex, strict?: boolean): ParsedCallV2 {
+    try {
+      const decoded = decodeFunctionData({
+        abi: this.abi,
+        data: calldata,
+      });
+      const functionName = getFunctionSignature(this.abi, calldata);
+      return this.wrapParseCallV2(
+        functionName,
+        this.parseFunctionParamsV2(decoded, strict),
+      );
+    } catch (e) {
+      if (strict) {
+        throw new ContractParseError(e as Error, {
+          address: this.address,
+          callData: calldata,
+          contractName: this.name,
+        });
+      }
+      this.logger?.warn(e);
+      const selector = calldata.slice(0, 10) as Hex;
+      const data = `0x${calldata.slice(10)}` as Hex;
+      return this.wrapParseCallV2(`unknown function ${selector}`, {
+        _data: data,
+      });
+    }
+  }
+
+  /**
+   * Converts viem-decoded function arguments to a record preserving original types.
+   * Override in subclasses to handle nesting (e.g., multicall inner calls).
+   * @param strict - propagated from parseFunctionDataV2 for recursive parsing
+   */
+  protected parseFunctionParamsV2(
+    params: DecodeFunctionDataReturnType<abi>,
+    _strict?: boolean,
+  ): Record<string, unknown> {
+    return functionArgsToRecord(this.abi, params.functionName, params.args);
+  }
+
+  protected wrapParseCallV2(
+    functionName: string,
+    rawArgs: Record<string, unknown>,
+  ): ParsedCallV2 {
+    return {
+      chainId: this.chainId,
+      target: this.address,
+      contractType: this.contractType,
+      label: this.register.labelAddress(this.address, true),
+      version: this.version,
+      functionName,
+      rawArgs,
     };
   }
 

@@ -20,6 +20,11 @@
       "import": "./dist/esm/dev/index.js",
       "default": "./dist/cjs/dev/index.js"
     },
+    "./history": {
+      "types": "./dist/types/history/index.d.ts",
+      "import": "./dist/esm/history/index.js",
+      "default": "./dist/cjs/history/index.js"
+    },
     "./plugins/*": {
       "types": "./dist/types/plugins/*/index.d.ts",
       "import": "./dist/esm/plugins/*/index.js",
@@ -51,7 +56,7 @@
     "typecheck:ci": "tsc --noEmit"
   },
   "dependencies": {
-    "@gearbox-protocol/integrations-v3": "1.52.2",
+    "@gearbox-protocol/integrations-v3": "1.54.2",
     "@redstone-finance/evm-connector": "^0.9.0",
     "@redstone-finance/protocol": "^0.9.0",
     "@redstone-finance/sdk": "^0.9.0",

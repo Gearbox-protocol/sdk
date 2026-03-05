@@ -1,0 +1,14 @@
+[
+  {
+    "blockNumber": 23398443,
+    "creditAccount": "0x45c364c22D918dA683cDF59EEA0501170EE2B3C7",
+    "multicall": [
+      {
+        "amount": 43137983800289497n,
+        "operation": "DecreaseBorrowedAmount",
+      },
+    ],
+    "operation": "MultiCall",
+    "txHash": "0x00112a2e446ed22c623e4c178c147b8a8fb5dec7a99244f34f2ce084ed64b716",
+  },
+]

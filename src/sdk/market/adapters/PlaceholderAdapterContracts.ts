@@ -1,18 +1,37 @@
 import type { Address } from "viem";
 
-import type { AdapterData } from "../../base/index.js";
-import { PlaceholderContract } from "../../base/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
+import type { ConstructOptions } from "../../base/index.js";
+import {
+  MissingSerializedParamsError,
+  PlaceholderContract,
+} from "../../base/index.js";
+import type { TypedVersionedAddress } from "../../index.js";
 import type { IAdapterContract } from "./types.js";
+
+export interface PlaceholderAdapterContractOptions {
+  baseParams: TypedVersionedAddress;
+  // TODO: v300 legacy/deprecated: serializedParams always contain targetContract and creditManager
+  targetContract?: Address;
+}
 
 export class PlaceholderAdapterContract
   extends PlaceholderContract
   implements IAdapterContract
 {
-  public readonly targetContract: Address;
+  readonly #targetContract?: Address;
 
-  constructor(sdk: GearboxSDK, args: AdapterData) {
-    super(sdk, args.baseParams);
-    this.targetContract = args.targetContract;
+  constructor(
+    options: ConstructOptions,
+    args: PlaceholderAdapterContractOptions,
+  ) {
+    super(options, args.baseParams);
+    this.#targetContract = args.targetContract;
+  }
+
+  get targetContract(): Address {
+    if (!this.#targetContract) {
+      throw new MissingSerializedParamsError("targetContract");
+    }
+    return this.#targetContract;
   }
 }
