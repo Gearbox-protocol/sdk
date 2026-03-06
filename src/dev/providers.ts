@@ -15,7 +15,7 @@ export type RpcProvider = z.infer<typeof rpcProvidersSchema>;
 export function getRpcProviderUrl(
   provider: RpcProvider,
   network: NetworkType,
-  apiKey: string,
+  apiKey?: string,
   protocol: "http" | "ws" = "http",
 ): string | undefined {
   switch (provider) {
@@ -34,9 +34,12 @@ export function getRpcProviderUrl(
 
 export function getAlchemyUrl(
   network: NetworkType,
-  apiKey: string,
+  apiKey?: string,
   protocol: "http" | "ws" = "http",
 ): string | undefined {
+  if (!apiKey) {
+    return undefined;
+  }
   const alchemyDomain = ALCHEMY_DOMAINS[network];
   if (!alchemyDomain) {
     return undefined;
@@ -84,9 +87,12 @@ const ALCHEMY_DOMAINS: Record<NetworkType, string | null> = {
 
 export function getDrpcUrl(
   network: NetworkType,
-  apiKey: string,
+  apiKey?: string,
   protocol: "http" | "ws" = "http",
 ): string | undefined {
+  if (!apiKey) {
+    return undefined;
+  }
   const net = DRPC_NETS[network];
   return net ? `${protocol}s://lb.drpc.live/${net}/${apiKey}` : undefined;
 }
@@ -112,9 +118,12 @@ const ANKR_DOMAINS: Record<NetworkType, string | null> = {
 
 export function getAnkrUrl(
   network: NetworkType,
-  apiKey: string,
+  apiKey?: string,
   protocol: "http" | "ws" = "http",
 ): string | undefined {
+  if (!apiKey) {
+    return undefined;
+  }
   const net = ANKR_DOMAINS[network];
   const sep = protocol === "ws" ? "/ws/" : "/";
   return net ? `${protocol}s://rpc.ankr.com/${net}${sep}${apiKey}` : undefined;
@@ -141,9 +150,12 @@ const THIRDWEB_DOMAINS: Record<NetworkType, string | null> = {
 
 export function getThirdWebUrl(
   network: NetworkType,
-  apiKey: string,
+  apiKey?: string,
   protocol: "http" | "ws" = "http",
 ): string | undefined {
+  if (!apiKey) {
+    return undefined;
+  }
   if (protocol === "ws") {
     return undefined;
   }
