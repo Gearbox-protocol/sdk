@@ -1,6 +1,10 @@
 import type { Address, Hex } from "viem";
 import { AbstractAdapterContract } from "../plugins/adapters/index.js";
-import type { ChainContractsRegister, ParsedCallV2 } from "../sdk/index.js";
+import type {
+  AddressMap,
+  ChainContractsRegister,
+  ParsedCallV2,
+} from "../sdk/index.js";
 import { classifyMulticallOperations } from "./classifyMulticallOperations.js";
 import { extractProtocolCalls } from "./extractProtocolCalls.js";
 import type { ExecuteResult, FacadeParsedCall } from "./internal-types.js";
@@ -18,7 +22,7 @@ export interface AssembleOperationsInput {
   txHash: Hex;
   blockNumber: number;
   liquidationRemainingFunds?: bigint;
-  phantomTokens?: Map<Address, Address>;
+  phantomTokens?: AddressMap<Address>;
   strict?: boolean;
 }
 
@@ -58,16 +62,16 @@ export function assembleOperations(
 
     const protocolCalldatas = extractProtocolCalls(fc.trace, sliced);
 
-    const multicall = classifyMulticallOperations(
-      fc.innerCalls,
-      sliced,
+    const multicall = classifyMulticallOperations({
+      innerCalls: fc.innerCalls,
+      executeResults: sliced,
       protocolCalldatas,
       register,
-      fc.creditAccount,
+      creditAccount: fc.creditAccount,
       underlying,
       strict,
       phantomTokens,
-    );
+    });
 
     switch (fc.operation) {
       case "OpenCreditAccount":

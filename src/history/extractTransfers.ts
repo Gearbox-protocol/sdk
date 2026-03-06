@@ -8,6 +8,7 @@ import {
 import { iCreditFacadeV310Abi } from "../abi/310/generated.js";
 import { ierc20Abi } from "../abi/iERC20.js";
 import type { TokenTransfer } from "../plugins/adapters/index.js";
+import { AddressMap } from "../sdk/index.js";
 import { UnexpectedFacadeEventOrderError } from "./errors.js";
 import type { ExecuteResult } from "./internal-types.js";
 import type { DirectTransferInfo } from "./types.js";
@@ -64,7 +65,7 @@ export interface ExtractTransfersResult {
   directTransfers: DirectTransferInfo[];
   liquidationRemainingFunds?: bigint;
   /** Maps phantom token address to its deposited (underlying) token address. */
-  phantomTokens: Map<Address, Address>;
+  phantomTokens: AddressMap<Address>;
 }
 
 export function extractTransfers(
@@ -78,7 +79,7 @@ export function extractTransfers(
   let currentEntries: TokenTransfer[] = [];
   const executeResults: ExecuteResult[] = [];
   const directTransfers: DirectTransferInfo[] = [];
-  const phantomTokens = new Map<Address, Address>();
+  const phantomTokens = new AddressMap<Address>();
   let liquidationRemainingFunds: bigint | undefined;
 
   for (const log of logs) {
@@ -106,7 +107,10 @@ export function extractTransfers(
             `phantom Execute has no transfer to credit account at logIndex ${facadeEvent.logIndex}`,
           );
         }
-        phantomTokens.set(facadeEvent.args.token, getAddress(rawDeposit.token));
+        phantomTokens.upsert(
+          facadeEvent.args.token,
+          getAddress(rawDeposit.token),
+        );
       }
       currentEntries = [];
       continue;

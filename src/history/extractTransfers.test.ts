@@ -19,6 +19,7 @@ import {
 import { describe, expect, it } from "vitest";
 import { iCreditFacadeV310Abi } from "../abi/310/generated.js";
 import { ierc20Abi } from "../abi/iERC20.js";
+import { AddressMap } from "../sdk/index.js";
 import { extractTransfers } from "./extractTransfers.js";
 
 const FIXTURES_DIR = path.resolve(__dirname, "__fixtures__");
@@ -184,7 +185,7 @@ describe("mocked events", () => {
           },
         ],
         directTransfers: [],
-        phantomTokens: new Map(),
+        phantomTokens: new AddressMap(),
       });
     });
 
@@ -215,7 +216,7 @@ describe("mocked events", () => {
           },
         ],
         directTransfers: [],
-        phantomTokens: new Map(),
+        phantomTokens: new AddressMap(),
       });
     });
 
@@ -238,7 +239,7 @@ describe("mocked events", () => {
           },
         ],
         directTransfers: [],
-        phantomTokens: new Map(),
+        phantomTokens: new AddressMap(),
       });
     });
 
@@ -269,7 +270,7 @@ describe("mocked events", () => {
           },
         ],
         directTransfers: [],
-        phantomTokens: new Map(),
+        phantomTokens: new AddressMap(),
       });
     });
 
@@ -278,7 +279,7 @@ describe("mocked events", () => {
       expect(extractTransfers(logs, CA1, POOL, FACADE)).toEqual({
         executeResults: [],
         directTransfers: [],
-        phantomTokens: new Map(),
+        phantomTokens: new AddressMap(),
       });
     });
 
@@ -301,7 +302,7 @@ describe("mocked events", () => {
           },
         ],
         directTransfers: [],
-        phantomTokens: new Map(),
+        phantomTokens: new AddressMap(),
       });
     });
   });
@@ -317,7 +318,7 @@ describe("mocked events", () => {
       expect(extractTransfers(logs, CA1, POOL, FACADE)).toEqual({
         executeResults: [{ transfers: [], targetContract: ADAPTER }],
         directTransfers: [{ token: TOKEN_A, from: SOMEONE, amount: 500n }],
-        phantomTokens: new Map(),
+        phantomTokens: new AddressMap(),
       });
     });
 
@@ -331,7 +332,7 @@ describe("mocked events", () => {
       expect(extractTransfers(logs, CA1, POOL, FACADE)).toEqual({
         executeResults: [{ transfers: [], targetContract: ADAPTER }],
         directTransfers: [{ token: TOKEN_A, from: SOMEONE, amount: 500n }],
-        phantomTokens: new Map(),
+        phantomTokens: new AddressMap(),
       });
     });
 
@@ -351,7 +352,7 @@ describe("mocked events", () => {
           { transfers: [], targetContract: ADAPTER },
         ],
         directTransfers: [{ token: TOKEN_A, from: SOMEONE, amount: 300n }],
-        phantomTokens: new Map(),
+        phantomTokens: new AddressMap(),
       });
     });
 
@@ -364,7 +365,7 @@ describe("mocked events", () => {
       expect(extractTransfers(logs, CA1, POOL, FACADE)).toEqual({
         executeResults: [],
         directTransfers: [],
-        phantomTokens: new Map(),
+        phantomTokens: new AddressMap(),
       });
     });
 
@@ -373,7 +374,7 @@ describe("mocked events", () => {
       expect(extractTransfers(logs, CA1, POOL, FACADE)).toEqual({
         executeResults: [],
         directTransfers: [],
-        phantomTokens: new Map(),
+        phantomTokens: new AddressMap(),
       });
     });
 
@@ -404,7 +405,7 @@ describe("mocked events", () => {
           },
         ],
         directTransfers: [],
-        phantomTokens: new Map(),
+        phantomTokens: new AddressMap(),
       });
     });
 
@@ -418,7 +419,7 @@ describe("mocked events", () => {
       expect(extractTransfers(logs, CA1, POOL, FACADE)).toEqual({
         executeResults: [{ transfers: [], targetContract: ADAPTER }],
         directTransfers: [],
-        phantomTokens: new Map(),
+        phantomTokens: new AddressMap(),
       });
     });
   });
@@ -435,7 +436,9 @@ describe("mocked events", () => {
       ]);
       const result = extractTransfers(logs, CA1, POOL, FACADE);
       expect(result.executeResults).toEqual([]);
-      expect(result.phantomTokens).toEqual(new Map([[PHANTOM, DEPOSITED]]));
+      expect(result.phantomTokens).toEqual(
+        new AddressMap([[PHANTOM, DEPOSITED]]),
+      );
     });
 
     it("phantom Execute does not affect surrounding adapter Executes", () => {
@@ -465,7 +468,9 @@ describe("mocked events", () => {
           targetContract: ADAPTER,
         },
       ]);
-      expect(result.phantomTokens).toEqual(new Map([[PHANTOM, DEPOSITED]]));
+      expect(result.phantomTokens).toEqual(
+        new AddressMap([[PHANTOM, DEPOSITED]]),
+      );
     });
 
     it("phantom withdrawal in partial liquidation pops Execute", () => {
@@ -479,7 +484,9 @@ describe("mocked events", () => {
       ]);
       const result = extractTransfers(logs, CA1, POOL, FACADE);
       expect(result.executeResults).toEqual([]);
-      expect(result.phantomTokens).toEqual(new Map([[PHANTOM, DEPOSITED]]));
+      expect(result.phantomTokens).toEqual(
+        new AddressMap([[PHANTOM, DEPOSITED]]),
+      );
     });
   });
 });
@@ -535,7 +542,7 @@ describe("real events", () => {
           },
         ],
         liquidationRemainingFunds: undefined,
-        phantomTokens: new Map(),
+        phantomTokens: new AddressMap(),
       },
       `
       {

@@ -15,6 +15,7 @@ import {
   WstETHV1AdapterContract,
 } from "../plugins/adapters/index.js";
 import {
+  AddressMap,
   ChainContractsRegister,
   CreditFacadeV310BaseContract,
   type ParsedCallV2,
@@ -130,14 +131,18 @@ describe("classifyCreditAccountOperation", () => {
         makeParsed(ADAPTER_WSTETH, "wrap"),
       ];
 
-      const result = classifyMulticallOperations(
+      const result = classifyMulticallOperations({
         innerCalls,
-        toExecuteResults([swapTransfers, curveTransfers, wrapTransfers]),
-        dummyProtocolCalldatas(3),
+        executeResults: toExecuteResults([
+          swapTransfers,
+          curveTransfers,
+          wrapTransfers,
+        ]),
+        protocolCalldatas: dummyProtocolCalldatas(3),
         register,
-        CA,
-        UNDERLYING,
-      );
+        creditAccount: CA,
+        underlying: UNDERLYING,
+      });
 
       expect(result).toMatchObject([
         {
@@ -172,14 +177,14 @@ describe("classifyCreditAccountOperation", () => {
         makeParsed(ADAPTER_CURVE, "exchange"),
       ];
 
-      const result = classifyMulticallOperations(
+      const result = classifyMulticallOperations({
         innerCalls,
-        toExecuteResults([swapTransfers, curveTransfers]),
-        dummyProtocolCalldatas(2),
+        executeResults: toExecuteResults([swapTransfers, curveTransfers]),
+        protocolCalldatas: dummyProtocolCalldatas(2),
         register,
-        CA,
-        UNDERLYING,
-      );
+        creditAccount: CA,
+        underlying: UNDERLYING,
+      });
 
       expect(result).toMatchObject([
         {
@@ -205,15 +210,15 @@ describe("classifyCreditAccountOperation", () => {
   describe("facade inner call classification", () => {
     it("classifies increaseDebt", () => {
       const register = setupRegister();
-      const [result] = classifyMulticallOperations(
-        [makeParsed(FACADE, "increaseDebt", { amount: 5000n })],
-        [],
-        [],
+      const [result] = classifyMulticallOperations({
+        innerCalls: [makeParsed(FACADE, "increaseDebt", { amount: 5000n })],
+        executeResults: [],
+        protocolCalldatas: [],
         register,
-        CA,
-        UNDERLYING,
-        true,
-      );
+        creditAccount: CA,
+        underlying: UNDERLYING,
+        strict: true,
+      });
       expect(result).toEqual({
         operation: "IncreaseBorrowedAmount",
         token: UNDERLYING,
@@ -223,15 +228,15 @@ describe("classifyCreditAccountOperation", () => {
 
     it("classifies decreaseDebt", () => {
       const register = setupRegister();
-      const [result] = classifyMulticallOperations(
-        [makeParsed(FACADE, "decreaseDebt", { amount: 3000n })],
-        [],
-        [],
+      const [result] = classifyMulticallOperations({
+        innerCalls: [makeParsed(FACADE, "decreaseDebt", { amount: 3000n })],
+        executeResults: [],
+        protocolCalldatas: [],
         register,
-        CA,
-        UNDERLYING,
-        true,
-      );
+        creditAccount: CA,
+        underlying: UNDERLYING,
+        strict: true,
+      });
       expect(result).toEqual({
         operation: "DecreaseBorrowedAmount",
         token: UNDERLYING,
@@ -241,20 +246,20 @@ describe("classifyCreditAccountOperation", () => {
 
     it("classifies addCollateral", () => {
       const register = setupRegister();
-      const [result] = classifyMulticallOperations(
-        [
+      const [result] = classifyMulticallOperations({
+        innerCalls: [
           makeParsed(FACADE, "addCollateral", {
             token: TOKEN_A,
             amount: 100n,
           }),
         ],
-        [],
-        [],
+        executeResults: [],
+        protocolCalldatas: [],
         register,
-        CA,
-        UNDERLYING,
-        true,
-      );
+        creditAccount: CA,
+        underlying: UNDERLYING,
+        strict: true,
+      });
       expect(result).toEqual({
         operation: "AddCollateral",
         token: TOKEN_A,
@@ -265,21 +270,21 @@ describe("classifyCreditAccountOperation", () => {
     it("classifies withdrawCollateral", () => {
       const register = setupRegister();
       const to = addr("0xCC");
-      const [result] = classifyMulticallOperations(
-        [
+      const [result] = classifyMulticallOperations({
+        innerCalls: [
           makeParsed(FACADE, "withdrawCollateral", {
             token: TOKEN_B,
             amount: 200n,
             to,
           }),
         ],
-        [],
-        [],
+        executeResults: [],
+        protocolCalldatas: [],
         register,
-        CA,
-        UNDERLYING,
-        true,
-      );
+        creditAccount: CA,
+        underlying: UNDERLYING,
+        strict: true,
+      });
       expect(result).toEqual({
         operation: "WithdrawCollateral",
         token: TOKEN_B,
@@ -290,20 +295,20 @@ describe("classifyCreditAccountOperation", () => {
 
     it("classifies updateQuota", () => {
       const register = setupRegister();
-      const [result] = classifyMulticallOperations(
-        [
+      const [result] = classifyMulticallOperations({
+        innerCalls: [
           makeParsed(FACADE, "updateQuota", {
             token: TOKEN_C,
             quotaChange: -400n,
           }),
         ],
-        [],
-        [],
+        executeResults: [],
+        protocolCalldatas: [],
         register,
-        CA,
-        UNDERLYING,
-        true,
-      );
+        creditAccount: CA,
+        underlying: UNDERLYING,
+        strict: true,
+      });
       expect(result).toEqual({
         operation: "UpdateQuota",
         token: TOKEN_C,
@@ -314,15 +319,15 @@ describe("classifyCreditAccountOperation", () => {
 
   it("no-op facade call is filtered out", () => {
     const register = setupRegister();
-    const result = classifyMulticallOperations(
-      [makeParsed(FACADE, "setBotPermissions")],
-      [],
-      [],
+    const result = classifyMulticallOperations({
+      innerCalls: [makeParsed(FACADE, "setBotPermissions")],
+      executeResults: [],
+      protocolCalldatas: [],
       register,
-      CA,
-      UNDERLYING,
-      true,
-    );
+      creditAccount: CA,
+      underlying: UNDERLYING,
+      strict: true,
+    });
     expect(result).toEqual([]);
   });
 
@@ -330,32 +335,32 @@ describe("classifyCreditAccountOperation", () => {
     it("throws TransferAlignmentError when too many transfers", () => {
       const register = setupRegister();
       expect(() =>
-        classifyMulticallOperations(
-          [makeParsed(FACADE, "increaseDebt", { amount: 100n })],
-          toExecuteResults([swapTransfers]),
-          dummyProtocolCalldatas(1),
+        classifyMulticallOperations({
+          innerCalls: [makeParsed(FACADE, "increaseDebt", { amount: 100n })],
+          executeResults: toExecuteResults([swapTransfers]),
+          protocolCalldatas: dummyProtocolCalldatas(1),
           register,
-          CA,
-          UNDERLYING,
-          true,
-        ),
+          creditAccount: CA,
+          underlying: UNDERLYING,
+          strict: true,
+        }),
       ).toThrow();
     });
 
     it("throws TransferAlignmentError when too few transfers", () => {
       const register = setupRegister();
       expect(() =>
-        classifyMulticallOperations(
-          [
+        classifyMulticallOperations({
+          innerCalls: [
             makeParsed(ADAPTER_UNI, "exactInputSingle"),
             makeParsed(ADAPTER_CURVE, "exchange"),
           ],
-          toExecuteResults([swapTransfers]),
-          dummyProtocolCalldatas(1),
+          executeResults: toExecuteResults([swapTransfers]),
+          protocolCalldatas: dummyProtocolCalldatas(1),
           register,
-          CA,
-          UNDERLYING,
-        ),
+          creditAccount: CA,
+          underlying: UNDERLYING,
+        }),
       ).toThrow();
     });
   });
@@ -363,14 +368,14 @@ describe("classifyCreditAccountOperation", () => {
   describe("unknown contract fallback", () => {
     it("falls back to Swap for address not in register", () => {
       const register = setupRegister();
-      const [result] = classifyMulticallOperations(
-        [makeParsed(UNKNOWN, "doSomething")],
-        toExecuteResults([swapTransfers]),
-        dummyProtocolCalldatas(1),
+      const [result] = classifyMulticallOperations({
+        innerCalls: [makeParsed(UNKNOWN, "doSomething")],
+        executeResults: toExecuteResults([swapTransfers]),
+        protocolCalldatas: dummyProtocolCalldatas(1),
         register,
-        CA,
-        UNDERLYING,
-      );
+        creditAccount: CA,
+        underlying: UNDERLYING,
+      });
       expect(result).toMatchObject({
         adapter: UNKNOWN,
         protocol: TARGET,
@@ -387,29 +392,30 @@ describe("classifyCreditAccountOperation", () => {
     it("consumes a transfer entry for unknown contract", () => {
       const register = setupRegister();
       expect(() =>
-        classifyMulticallOperations(
-          [makeParsed(UNKNOWN, "doSomething")],
-          [],
-          [],
+        classifyMulticallOperations({
+          innerCalls: [makeParsed(UNKNOWN, "doSomething")],
+          executeResults: [],
+          protocolCalldatas: [],
           register,
-          CA,
-          UNDERLYING,
-        ),
+          creditAccount: CA,
+          underlying: UNDERLYING,
+          strict: true,
+        }),
       ).toThrow();
     });
 
     it("throws UnknownAdapterError in strict mode", () => {
       const register = setupRegister();
       expect(() =>
-        classifyMulticallOperations(
-          [makeParsed(UNKNOWN, "doSomething")],
-          toExecuteResults([swapTransfers]),
-          dummyProtocolCalldatas(1),
+        classifyMulticallOperations({
+          innerCalls: [makeParsed(UNKNOWN, "doSomething")],
+          executeResults: toExecuteResults([swapTransfers]),
+          protocolCalldatas: dummyProtocolCalldatas(1),
           register,
-          CA,
-          UNDERLYING,
-          true,
-        ),
+          creditAccount: CA,
+          underlying: UNDERLYING,
+          strict: true,
+        }),
       ).toThrow();
     });
   });
@@ -417,14 +423,14 @@ describe("classifyCreditAccountOperation", () => {
   describe("empty transfers for adapter calls", () => {
     it("produces zero-valued operation when transfers are empty", () => {
       const register = setupRegister();
-      const [result] = classifyMulticallOperations(
-        [makeParsed(ADAPTER_UNI, "exactInputSingle")],
-        toExecuteResults([[]]),
-        dummyProtocolCalldatas(1),
+      const [result] = classifyMulticallOperations({
+        innerCalls: [makeParsed(ADAPTER_UNI, "exactInputSingle")],
+        executeResults: toExecuteResults([[]]),
+        protocolCalldatas: dummyProtocolCalldatas(1),
         register,
-        CA,
-        UNDERLYING,
-      );
+        creditAccount: CA,
+        underlying: UNDERLYING,
+      });
       expect(result).toMatchObject({
         adapter: ADAPTER_UNI,
         protocol: TARGET,
@@ -444,23 +450,23 @@ describe("classifyCreditAccountOperation", () => {
     it("resolves deposited token and sets phantomToken when phantom map provided", () => {
       const register = setupRegister();
       const to = addr("0xCC");
-      const phantomTokens = new Map([[PHANTOM, DEPOSITED]]);
-      const [result] = classifyMulticallOperations(
-        [
+      const phantomTokens = new AddressMap([[PHANTOM, DEPOSITED]]);
+      const [result] = classifyMulticallOperations({
+        innerCalls: [
           makeParsed(FACADE, "withdrawCollateral", {
             token: PHANTOM,
             amount: 200n,
             to,
           }),
         ],
-        [],
-        [],
+        executeResults: [],
+        protocolCalldatas: [],
         register,
-        CA,
-        UNDERLYING,
-        true,
+        creditAccount: CA,
+        underlying: UNDERLYING,
+        strict: true,
         phantomTokens,
-      );
+      });
       expect(result).toEqual({
         operation: "WithdrawCollateral",
         token: DEPOSITED,
@@ -473,23 +479,23 @@ describe("classifyCreditAccountOperation", () => {
     it("leaves token unchanged when token is not in phantom map", () => {
       const register = setupRegister();
       const to = addr("0xCC");
-      const phantomTokens = new Map([[PHANTOM, DEPOSITED]]);
-      const [result] = classifyMulticallOperations(
-        [
+      const phantomTokens = new AddressMap([[PHANTOM, DEPOSITED]]);
+      const [result] = classifyMulticallOperations({
+        innerCalls: [
           makeParsed(FACADE, "withdrawCollateral", {
             token: TOKEN_B,
             amount: 200n,
             to,
           }),
         ],
-        [],
-        [],
+        executeResults: [],
+        protocolCalldatas: [],
         register,
-        CA,
-        UNDERLYING,
-        true,
+        creditAccount: CA,
+        underlying: UNDERLYING,
+        strict: true,
         phantomTokens,
-      );
+      });
       expect(result).toEqual({
         operation: "WithdrawCollateral",
         token: TOKEN_B,
@@ -501,21 +507,21 @@ describe("classifyCreditAccountOperation", () => {
     it("leaves token unchanged when phantom map is not provided", () => {
       const register = setupRegister();
       const to = addr("0xCC");
-      const [result] = classifyMulticallOperations(
-        [
+      const [result] = classifyMulticallOperations({
+        innerCalls: [
           makeParsed(FACADE, "withdrawCollateral", {
             token: PHANTOM,
             amount: 200n,
             to,
           }),
         ],
-        [],
-        [],
+        executeResults: [],
+        protocolCalldatas: [],
         register,
-        CA,
-        UNDERLYING,
-        true,
-      );
+        creditAccount: CA,
+        underlying: UNDERLYING,
+        strict: true,
+      });
       expect(result).toEqual({
         operation: "WithdrawCollateral",
         token: PHANTOM,

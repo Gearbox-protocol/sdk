@@ -5,13 +5,28 @@ import {
   swapFromTransfers,
   toNetTransfers,
 } from "../plugins/adapters/index.js";
-import type { ChainContractsRegister, ParsedCallV2 } from "../sdk/index.js";
+import type {
+  AddressMap,
+  ChainContractsRegister,
+  ParsedCallV2,
+} from "../sdk/index.js";
 import { TransferAlignmentError, UnknownAdapterError } from "./errors.js";
 import type {
   InnerFacadeOperation,
   InnerOperation,
 } from "./inner-operations.js";
 import type { ExecuteResult } from "./internal-types.js";
+
+export interface ClassifyMulticallOperationsInput {
+  innerCalls: ParsedCallV2[];
+  executeResults: ExecuteResult[];
+  protocolCalldatas: Hex[];
+  register: ChainContractsRegister;
+  creditAccount: Address;
+  underlying: Address;
+  strict?: boolean;
+  phantomTokens?: AddressMap<Address>;
+}
 
 /**
  * Classifies each multicall inner call into a {@link InnerOperation}:
@@ -34,15 +49,18 @@ import type { ExecuteResult } from "./internal-types.js";
  *   is not in the register.
  */
 export function classifyMulticallOperations(
-  innerCalls: ParsedCallV2[],
-  executeResults: ExecuteResult[],
-  protocolCalldatas: Hex[],
-  register: ChainContractsRegister,
-  creditAccount: Address,
-  underlying: Address,
-  strict?: boolean,
-  phantomTokens?: Map<Address, Address>,
+  input: ClassifyMulticallOperationsInput,
 ): InnerOperation[] {
+  const {
+    innerCalls,
+    executeResults,
+    protocolCalldatas,
+    register,
+    creditAccount,
+    underlying,
+    strict,
+    phantomTokens,
+  } = input;
   let transferIdx = 0;
   const result: InnerOperation[] = [];
 
@@ -114,7 +132,7 @@ export function classifyMulticallOperations(
 function classifyFacadeInnerCall(
   call: ParsedCallV2,
   underlying: Address,
-  phantomTokens?: Map<Address, Address>,
+  phantomTokens?: AddressMap<Address>,
 ): InnerFacadeOperation | null {
   const { functionName: sig, rawArgs } = call;
   const functionName = sig.split("(")[0];
@@ -167,10 +185,10 @@ function classifyFacadeInnerCall(
 
 function findPhantomDepositedToken(
   calldataToken: Address,
-  phantomTokens?: Map<Address, Address>,
+  phantomTokens?: AddressMap<Address>,
 ): Address | undefined {
   if (!phantomTokens) return undefined;
-  for (const [phantom, deposited] of phantomTokens) {
+  for (const [phantom, deposited] of phantomTokens.entries()) {
     if (isAddressEqual(phantom, calldataToken)) return deposited;
   }
   return undefined;
