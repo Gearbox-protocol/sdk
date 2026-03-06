@@ -6,14 +6,26 @@
       {
         "amount": 56000000000000000000000n,
         "operation": "WithdrawCollateral",
-        "phantomToken": "0x87FA6c0296c986D1C901d72571282D57916B964a",
+        "phantomToken": {
+          "address": "0x87FA6c0296c986D1C901d72571282D57916B964a",
+          "decimals": 18,
+          "symbol": "stkcvxRLUSD/USDC",
+        },
         "to": "0xa765A629f11f538F6d67e3fDF799BaEd1506017d",
-        "token": "0xBd5D4c539B3773086632416A4EC8ceF57c945319",
+        "token": {
+          "address": "0xBd5D4c539B3773086632416A4EC8ceF57c945319",
+          "decimals": 18,
+          "symbol": "cvxRLUSD/USDC",
+        },
       },
       {
         "change": -53292120000n,
         "operation": "UpdateQuota",
-        "token": "0x87FA6c0296c986D1C901d72571282D57916B964a",
+        "token": {
+          "address": "0x87FA6c0296c986D1C901d72571282D57916B964a",
+          "decimals": 18,
+          "symbol": "stkcvxRLUSD/USDC",
+        },
       },
     ],
     "operation": "MultiCall",

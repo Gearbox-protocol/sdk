@@ -5,7 +5,7 @@ import { createPublicClient, custom } from "viem";
 import { mainnet } from "viem/chains";
 import { beforeAll, describe, expect, it } from "vitest";
 
-import { createAdapter } from "../plugins/adapters/index.js";
+import { createAdapter, type TokenInfo } from "../plugins/adapters/index.js";
 import { ContractRegister } from "./ContractRegister.js";
 import { parseCreditAccountTransaction } from "./parseCreditAccountTransaction.js";
 
@@ -34,6 +34,17 @@ function buildRegister(): ContractRegister {
   register.registerFactory((options, args) =>
     createAdapter(options, { baseParams: args }),
   );
+  const tokens: Array<TokenInfo & { name: string }> = JSON.parse(
+    readFileSync(path.join(FIXTURES_DIR, "tokens.json"), "utf-8"),
+  );
+  for (const t of tokens) {
+    register.register.tokensMeta.upsert(t.address, {
+      addr: t.address,
+      symbol: t.symbol,
+      decimals: t.decimals,
+      name: t.name,
+    });
+  }
 
   const contracts: ContractEntry[] = JSON.parse(
     readFileSync(CONTRACTS_PATH, "utf-8"),
@@ -67,6 +78,7 @@ async function testFixture(
     pool: inputJson.pool,
     creditFacade: inputJson.creditFacade,
     creditAccount: inputJson.creditAccount,
+    underlying: inputJson.underlying,
     register: register.register,
   });
 

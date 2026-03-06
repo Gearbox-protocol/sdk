@@ -39,6 +39,7 @@ export function classifyMulticallOperations(
   protocolCalldatas: Hex[],
   register: ChainContractsRegister,
   creditAccount: Address,
+  underlying: Address,
   strict?: boolean,
   phantomTokens?: Map<Address, Address>,
 ): InnerOperation[] {
@@ -68,7 +69,7 @@ export function classifyMulticallOperations(
     }
 
     if (contract !== undefined) {
-      const op = classifyFacadeInnerCall(call, phantomTokens);
+      const op = classifyFacadeInnerCall(call, underlying, phantomTokens);
       if (op) result.push(op);
       continue;
     }
@@ -112,6 +113,7 @@ export function classifyMulticallOperations(
 
 function classifyFacadeInnerCall(
   call: ParsedCallV2,
+  underlying: Address,
   phantomTokens?: Map<Address, Address>,
 ): InnerFacadeOperation | null {
   const { functionName: sig, rawArgs } = call;
@@ -120,11 +122,13 @@ function classifyFacadeInnerCall(
     case "increaseDebt":
       return {
         operation: "IncreaseBorrowedAmount",
+        token: underlying,
         amount: rawArgs.amount as bigint,
       };
     case "decreaseDebt":
       return {
         operation: "DecreaseBorrowedAmount",
+        token: underlying,
         amount: rawArgs.amount as bigint,
       };
     case "addCollateral":

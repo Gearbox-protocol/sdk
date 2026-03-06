@@ -1,6 +1,8 @@
 import type { Address, Log, TransactionReceipt } from "viem";
+import type { TokenInfo } from "../plugins/adapters/types.js";
 import type { ChainContractsRegister } from "../sdk/index.js";
 import { assembleOperations } from "./assembleOperations.js";
+import { enrichOperations } from "./enrichTokens.js";
 import { extractTransfers } from "./extractTransfers.js";
 import { findFacadeCalls } from "./findFacadeCalls.js";
 import type { CallTrace } from "./internal-types.js";
@@ -21,6 +23,10 @@ export interface ParseTransactionInput {
     "logs" | "transactionHash" | "blockNumber"
   >;
   pool: Address;
+  /**
+   * Underlying token of the pool.
+   */
+  underlying: Address;
   creditFacade: Address;
   creditAccount: Address;
   register: ChainContractsRegister;
@@ -32,17 +38,19 @@ export interface ParseTransactionInput {
 
 /**
  * Parses a single transaction into classified credit account operations.
- *
+ * Token address fields are enriched with metadata (symbol, decimals) from
+ * `register.tokensMeta`.
  */
 export function parseCreditAccountTransaction(
   input: ParseTransactionInput,
-): CreditAccountOperation[] {
+): CreditAccountOperation<TokenInfo>[] {
   const {
     trace,
     receipt,
     pool,
     creditFacade,
     creditAccount,
+    underlying,
     register,
     strict,
   } = input;
@@ -69,6 +77,7 @@ export function parseCreditAccountTransaction(
     facadeCalls,
     executeResults,
     register,
+    underlying,
     txHash,
     blockNumber,
     liquidationRemainingFunds,
@@ -84,5 +93,11 @@ export function parseCreditAccountTransaction(
     ...dt,
   }));
 
-  return [...facadeOps, ...directOps];
+  const rawOps: CreditAccountOperation[] = [...facadeOps, ...directOps];
+
+  const resolve = (addr: Address): TokenInfo => {
+    const meta = register.tokensMeta.mustGet(addr);
+    return { address: addr, symbol: meta.symbol, decimals: meta.decimals };
+  };
+  return enrichOperations(rawOps, resolve);
 }

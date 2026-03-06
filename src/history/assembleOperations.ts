@@ -14,6 +14,7 @@ export interface AssembleOperationsInput {
   facadeCalls: FacadeParsedCall[];
   executeResults: ExecuteResult[];
   register: ChainContractsRegister;
+  underlying: Address;
   txHash: Hex;
   blockNumber: number;
   liquidationRemainingFunds?: bigint;
@@ -36,6 +37,7 @@ export function assembleOperations(
     facadeCalls,
     executeResults,
     register,
+    underlying,
     txHash,
     blockNumber,
     liquidationRemainingFunds,
@@ -62,6 +64,7 @@ export function assembleOperations(
       protocolCalldatas,
       register,
       fc.creditAccount,
+      underlying,
       strict,
       phantomTokens,
     );
@@ -82,6 +85,7 @@ export function assembleOperations(
           operation: fc.operation,
           creditAccount: fc.creditAccount,
           to: fc.parsed.rawArgs.to as Address,
+          token: underlying,
           remainingFunds: liquidationRemainingFunds ?? 0n,
           multicall,
         };

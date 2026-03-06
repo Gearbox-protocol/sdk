@@ -1,3 +1,4 @@
+export type { TokenInfo } from "../plugins/adapters/types.js";
 export * from "./ContractRegister.js";
 export * from "./inner-operations.js";
 export { parseCreditAccountTransaction } from "./parseCreditAccountTransaction.js";

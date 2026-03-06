@@ -35,6 +35,7 @@ const TARGET = addr("0xDD");
 const TOKEN_A = addr("0x01");
 const TOKEN_B = addr("0x02");
 const TOKEN_C = addr("0x03");
+const UNDERLYING = addr("0x81");
 
 function toExecuteResults(
   transferArrays: TokenTransfer[][],
@@ -135,6 +136,7 @@ describe("classifyCreditAccountOperation", () => {
         dummyProtocolCalldatas(3),
         register,
         CA,
+        UNDERLYING,
       );
 
       expect(result).toMatchObject([
@@ -176,10 +178,15 @@ describe("classifyCreditAccountOperation", () => {
         dummyProtocolCalldatas(2),
         register,
         CA,
+        UNDERLYING,
       );
 
       expect(result).toMatchObject([
-        { operation: "IncreaseBorrowedAmount", amount: 1000n },
+        {
+          operation: "IncreaseBorrowedAmount",
+          token: UNDERLYING,
+          amount: 1000n,
+        },
         {
           adapter: ADAPTER_UNI,
           protocol: TARGET,
@@ -204,10 +211,12 @@ describe("classifyCreditAccountOperation", () => {
         [],
         register,
         CA,
+        UNDERLYING,
         true,
       );
       expect(result).toEqual({
         operation: "IncreaseBorrowedAmount",
+        token: UNDERLYING,
         amount: 5000n,
       });
     });
@@ -220,10 +229,12 @@ describe("classifyCreditAccountOperation", () => {
         [],
         register,
         CA,
+        UNDERLYING,
         true,
       );
       expect(result).toEqual({
         operation: "DecreaseBorrowedAmount",
+        token: UNDERLYING,
         amount: 3000n,
       });
     });
@@ -241,6 +252,7 @@ describe("classifyCreditAccountOperation", () => {
         [],
         register,
         CA,
+        UNDERLYING,
         true,
       );
       expect(result).toEqual({
@@ -265,6 +277,7 @@ describe("classifyCreditAccountOperation", () => {
         [],
         register,
         CA,
+        UNDERLYING,
         true,
       );
       expect(result).toEqual({
@@ -288,6 +301,7 @@ describe("classifyCreditAccountOperation", () => {
         [],
         register,
         CA,
+        UNDERLYING,
         true,
       );
       expect(result).toEqual({
@@ -306,6 +320,7 @@ describe("classifyCreditAccountOperation", () => {
       [],
       register,
       CA,
+      UNDERLYING,
       true,
     );
     expect(result).toEqual([]);
@@ -321,6 +336,7 @@ describe("classifyCreditAccountOperation", () => {
           dummyProtocolCalldatas(1),
           register,
           CA,
+          UNDERLYING,
           true,
         ),
       ).toThrow();
@@ -338,6 +354,7 @@ describe("classifyCreditAccountOperation", () => {
           dummyProtocolCalldatas(1),
           register,
           CA,
+          UNDERLYING,
         ),
       ).toThrow();
     });
@@ -352,6 +369,7 @@ describe("classifyCreditAccountOperation", () => {
         dummyProtocolCalldatas(1),
         register,
         CA,
+        UNDERLYING,
       );
       expect(result).toMatchObject({
         adapter: UNKNOWN,
@@ -375,6 +393,7 @@ describe("classifyCreditAccountOperation", () => {
           [],
           register,
           CA,
+          UNDERLYING,
         ),
       ).toThrow();
     });
@@ -388,6 +407,7 @@ describe("classifyCreditAccountOperation", () => {
           dummyProtocolCalldatas(1),
           register,
           CA,
+          UNDERLYING,
           true,
         ),
       ).toThrow();
@@ -403,6 +423,7 @@ describe("classifyCreditAccountOperation", () => {
         dummyProtocolCalldatas(1),
         register,
         CA,
+        UNDERLYING,
       );
       expect(result).toMatchObject({
         adapter: ADAPTER_UNI,
@@ -436,6 +457,7 @@ describe("classifyCreditAccountOperation", () => {
         [],
         register,
         CA,
+        UNDERLYING,
         true,
         phantomTokens,
       );
@@ -464,6 +486,7 @@ describe("classifyCreditAccountOperation", () => {
         [],
         register,
         CA,
+        UNDERLYING,
         true,
         phantomTokens,
       );
@@ -490,6 +513,7 @@ describe("classifyCreditAccountOperation", () => {
         [],
         register,
         CA,
+        UNDERLYING,
         true,
       );
       expect(result).toEqual({

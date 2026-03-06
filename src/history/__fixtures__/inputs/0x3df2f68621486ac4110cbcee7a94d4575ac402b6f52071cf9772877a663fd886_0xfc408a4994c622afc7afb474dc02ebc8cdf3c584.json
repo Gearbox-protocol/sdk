@@ -8601,6 +8601,7 @@
     "blockNumber": 24541784
   },
   "pool": "0x9396dcbf78fc526bb003665337c5e73b699571ef",
+  "underlying": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
   "creditFacade": "0x4da50da058ad6cc96bb63edff55b534d2a2cbe92",
   "creditAccount": "0xfc408a4994c622afc7afb474dc02ebc8cdf3c584"
 }

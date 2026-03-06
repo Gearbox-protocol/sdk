@@ -85,6 +85,7 @@
     "blockNumber": 24275651
   },
   "pool": "0xc155444481854c60e7a29f4150373f479988f32d",
+  "underlying": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
   "creditFacade": "0x627b02ff8357278b879d6a670e1efcbb202e93ce",
   "creditAccount": "0x91c6f58d5301e2308e6b30d6872de68f71234531"
 }

@@ -1,4 +1,5 @@
 import type { Address, Hex } from "viem";
+import type { TokenInfo } from "../plugins/adapters/types.js";
 import type { InnerOperation } from "./inner-operations.js";
 import type { CreditAccountOperation, OuterFacadeOperation } from "./types.js";
 
@@ -24,7 +25,7 @@ export interface LegacyMulticallOp {
   [key: string]: unknown;
 }
 
-function convertMulticallOp(op: InnerOperation): LegacyMulticallOp {
+function convertMulticallOp(op: InnerOperation<TokenInfo>): LegacyMulticallOp {
   if ("legacy" in op) {
     return { ...op.legacy };
   }
@@ -42,27 +43,29 @@ function convertMulticallOp(op: InnerOperation): LegacyMulticallOp {
     case "AddCollateral":
       return {
         operation: op.operation,
-        token: op.token,
+        token: op.token.address,
         amount: op.amount.toString(),
       };
     case "WithdrawCollateral":
       return {
         operation: op.operation,
-        token: op.token,
+        token: op.token.address,
         amount: op.amount.toString(),
         to: op.to,
-        ...(op.phantomToken ? { phantomToken: op.phantomToken } : {}),
+        ...(op.phantomToken ? { phantomToken: op.phantomToken.address } : {}),
       };
     case "UpdateQuota":
       return {
         operation: op.operation,
-        token: op.token,
+        token: op.token.address,
         change: op.change.toString(),
       };
   }
 }
 
-function convertFacadeOp(op: OuterFacadeOperation): LegacyApiOperation {
+function convertFacadeOp(
+  op: OuterFacadeOperation<TokenInfo>,
+): LegacyApiOperation {
   const base: LegacyApiOperation = {
     operation: op.operation,
     txHash: op.txHash,
@@ -96,7 +99,7 @@ function convertFacadeOp(op: OuterFacadeOperation): LegacyApiOperation {
     case "PartiallyLiquidateCreditAccount":
       return {
         ...base,
-        token: op.token,
+        token: op.token.address,
         repaidAmount: op.repaidAmount.toString(),
         minSeizedAmount: op.minSeizedAmount.toString(),
         to: op.to,
@@ -116,7 +119,7 @@ function convertFacadeOp(op: OuterFacadeOperation): LegacyApiOperation {
  * OpenCreditAccount.
  */
 export function toLegacyOperations(
-  ops: CreditAccountOperation[],
+  ops: CreditAccountOperation<TokenInfo>[],
 ): LegacyApiOperation[] {
   return ops.map(op => {
     if (op.operation === "DirectTokenTransfer") {
@@ -124,7 +127,7 @@ export function toLegacyOperations(
         operation: op.operation,
         txHash: op.txHash,
         blockNum: op.blockNumber,
-        token: op.token,
+        token: op.token.address,
         amount: op.amount.toString(),
         from: op.from,
         to: op.creditAccount as Address,

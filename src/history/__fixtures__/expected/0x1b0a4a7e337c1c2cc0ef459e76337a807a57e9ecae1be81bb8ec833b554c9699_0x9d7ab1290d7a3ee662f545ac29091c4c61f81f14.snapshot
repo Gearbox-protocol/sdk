@@ -6,7 +6,11 @@
       {
         "amount": 269272994973813956812599n,
         "operation": "AddCollateral",
-        "token": "0xBd5D4c539B3773086632416A4EC8ceF57c945319",
+        "token": {
+          "address": "0xBd5D4c539B3773086632416A4EC8ceF57c945319",
+          "decimals": 18,
+          "symbol": "cvxRLUSD/USDC",
+        },
       },
       {
         "adapter": "0x30d8ab4cd05792a2Eca88D592148Cd94E1186552",
@@ -35,7 +39,11 @@
             "amount": 269272994973813956812599n,
             "from": "0x9D7aB1290D7a3eE662F545AC29091C4C61f81f14",
             "to": "0x5A71E7e04F8725fD42a216949E7099ebd08A42E3",
-            "token": "0xbd5d4c539b3773086632416a4ec8cef57c945319",
+            "token": {
+              "address": "0xbd5d4c539b3773086632416a4ec8cef57c945319",
+              "decimals": 18,
+              "symbol": "cvxRLUSD/USDC",
+            },
           },
         ],
         "version": 311,
@@ -43,11 +51,20 @@
       {
         "amount": 239891558325n,
         "operation": "IncreaseBorrowedAmount",
+        "token": {
+          "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+          "decimals": 6,
+          "symbol": "USDC",
+        },
       },
       {
         "change": 256050450000n,
         "operation": "UpdateQuota",
-        "token": "0x87FA6c0296c986D1C901d72571282D57916B964a",
+        "token": {
+          "address": "0x87FA6c0296c986D1C901d72571282D57916B964a",
+          "decimals": 18,
+          "symbol": "stkcvxRLUSD/USDC",
+        },
       },
       {
         "adapter": "0xF5899f76dc29AAf889703aeB6717955caF8f5a8E",
@@ -80,13 +97,21 @@
             "amount": 239891558324n,
             "from": "0x9D7aB1290D7a3eE662F545AC29091C4C61f81f14",
             "to": "0x52Aa899454998Be5b000Ad077a46Bbe360F4e497",
-            "token": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+            "token": {
+              "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+              "decimals": 6,
+              "symbol": "USDC",
+            },
           },
           {
             "amount": 240180870653n,
             "from": "0x52Aa899454998Be5b000Ad077a46Bbe360F4e497",
             "to": "0x9D7aB1290D7a3eE662F545AC29091C4C61f81f14",
-            "token": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+            "token": {
+              "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+              "decimals": 6,
+              "symbol": "USDT",
+            },
           },
         ],
         "version": 310,
@@ -95,7 +120,11 @@
         "amount": 237770930843n,
         "operation": "WithdrawCollateral",
         "to": "0xbE5E2bAe43738f6B790eAD9568bD4fc2846289b8",
-        "token": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+        "token": {
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "decimals": 6,
+          "symbol": "USDT",
+        },
       },
     ],
     "onBehalfOf": "0x251bCCB83d9dbC592d5EDF29f1227C6C5D7E193A",
