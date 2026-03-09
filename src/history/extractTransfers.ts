@@ -132,7 +132,12 @@ export function extractTransfers(
       continue;
     }
 
-    currentEntries.push({ token, amount: value, from, to });
+    if (
+      isAddressEqual(from, creditAccount) ||
+      isAddressEqual(to, creditAccount)
+    ) {
+      currentEntries.push({ token, amount: value, from, to });
+    }
 
     if (isAddressEqual(to, creditAccount) && !isInRange(log.logIndex, ranges)) {
       directTransfers.push({ token, from, amount: value });

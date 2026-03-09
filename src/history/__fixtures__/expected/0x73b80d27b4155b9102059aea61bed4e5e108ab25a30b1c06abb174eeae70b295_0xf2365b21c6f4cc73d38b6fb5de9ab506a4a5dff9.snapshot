@@ -39,16 +39,6 @@
           },
           {
             "amount": 263348156415980435480n,
-            "from": "0x7a4EffD87C2f3C55CA251080b1343b605f327E3a",
-            "to": "0x0000000000000000000000000000000000000000",
-            "token": {
-              "address": "0xc329400492c6ff2438472d4651ad17389fcb843a",
-              "decimals": 18,
-              "symbol": "DC_wstETH",
-            },
-          },
-          {
-            "amount": 263348156415980435480n,
             "from": "0xC329400492c6ff2438472D4651Ad17389fCb843a",
             "to": "0xF2365b21c6f4cc73d38B6fb5DE9AB506A4a5dff9",
             "token": {
