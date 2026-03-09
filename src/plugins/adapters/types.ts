@@ -127,17 +127,11 @@ export enum AdapterType {
   YEARN_V2 = "YEARN_V2",
 }
 
-export interface TokenInfo {
-  address: Address;
-  symbol: string;
-  decimals: number;
-}
-
 /**
  * A single ERC-20 Transfer event captured between Execute boundaries.
  */
-export interface TokenTransfer<TToken = Address> {
-  token: TToken;
+export interface TokenTransfer {
+  token: Address;
   amount: bigint;
   from: Address;
   to: Address;
@@ -146,7 +140,7 @@ export interface TokenTransfer<TToken = Address> {
 /**
  * Parsed adapter operation to display in credit account transactions history
  */
-export interface AdapterOperation<TToken = Address> {
+export interface AdapterOperation {
   operation: "Execute";
   /**
    * Address of Gearbox Adapter contract
@@ -188,6 +182,6 @@ export interface AdapterOperation<TToken = Address> {
   /**
    * ERC20 transfer to and from credit account made during adapter call
    */
-  transfers: TokenTransfer<TToken>[];
+  transfers: TokenTransfer[];
   legacy: LegacyAdapterOperation;
 }

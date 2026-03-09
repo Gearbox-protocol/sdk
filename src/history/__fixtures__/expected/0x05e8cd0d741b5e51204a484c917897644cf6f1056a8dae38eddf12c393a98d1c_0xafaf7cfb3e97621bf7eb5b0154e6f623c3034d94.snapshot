@@ -6,11 +6,7 @@
     "operation": "PartiallyLiquidateCreditAccount",
     "repaidAmount": 84237665n,
     "to": "0xDb5358c2D5d5EA7F3123967212E34092C849b775",
-    "token": {
-      "address": "0x40fC1F58Ab6Efc06E008370a040e92b635dD4cE4",
-      "decimals": 18,
-      "symbol": "stkcvxfrxUSDUSDf",
-    },
+    "token": "0x40fC1F58Ab6Efc06E008370a040e92b635dD4cE4",
     "txHash": "0x05e8cd0d741b5e51204a484c917897644cf6f1056a8dae38eddf12c393a98d1c",
   },
 ]

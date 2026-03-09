@@ -5,9 +5,9 @@ import type { AdapterOperation } from "../plugins/adapters/index.js";
  * Increase debt (borrow more).
  * @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type_v3.go#L149-L154
  */
-export interface IncreaseDebtOp<TToken = Address> {
+export interface IncreaseDebtOp {
   operation: "IncreaseBorrowedAmount";
-  token: TToken;
+  token: Address;
   amount: bigint;
 }
 
@@ -15,18 +15,18 @@ export interface IncreaseDebtOp<TToken = Address> {
  * Decrease debt (repay).
  * @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type_v3.go#L155-L161
  */
-export interface DecreaseDebtOp<TToken = Address> {
+export interface DecreaseDebtOp {
   operation: "DecreaseBorrowedAmount";
-  token: TToken;
+  token: Address;
   amount: bigint;
 }
 
 /**
  * Add collateral to credit account.
  */
-export interface AddCollateralOp<TToken = Address> {
+export interface AddCollateralOp {
   operation: "AddCollateral";
-  token: TToken;
+  token: Address;
   amount: bigint;
 }
 
@@ -34,21 +34,21 @@ export interface AddCollateralOp<TToken = Address> {
  * Withdraw collateral from credit account.
  * @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type_v3.go#L162-L171
  */
-export interface WithdrawCollateralOp<TToken = Address> {
+export interface WithdrawCollateralOp {
   operation: "WithdrawCollateral";
-  token: TToken;
+  token: Address;
   amount: bigint;
   to: Address;
-  phantomToken?: TToken;
+  phantomToken?: Address;
 }
 
 /**
  * Update token quota on credit account.
  * @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type_v3.go#L172-L178
  */
-export interface UpdateQuotaOp<TToken = Address> {
+export interface UpdateQuotaOp {
   operation: "UpdateQuota";
-  token: TToken;
+  token: Address;
   change: bigint;
 }
 
@@ -56,16 +56,14 @@ export interface UpdateQuotaOp<TToken = Address> {
  * Union of facade inner-call operation types (non-adapter credit account operations).
  * Discriminated on the `operation` field.
  */
-export type InnerFacadeOperation<TToken = Address> =
-  | IncreaseDebtOp<TToken>
-  | DecreaseDebtOp<TToken>
-  | AddCollateralOp<TToken>
-  | WithdrawCollateralOp<TToken>
-  | UpdateQuotaOp<TToken>;
+export type InnerFacadeOperation =
+  | IncreaseDebtOp
+  | DecreaseDebtOp
+  | AddCollateralOp
+  | WithdrawCollateralOp
+  | UpdateQuotaOp;
 
 /**
  * All operations that can happen within a CreditFacade's multicall and that we're interested in.
  */
-export type InnerOperation<TToken = Address> =
-  | AdapterOperation<TToken>
-  | InnerFacadeOperation<TToken>;
+export type InnerOperation = AdapterOperation | InnerFacadeOperation;

@@ -6,8 +6,8 @@ import type { InnerOperation } from "./inner-operations.js";
  * An ERC-20 Transfer to the credit account that was not part of any
  * facade operation (multicall, liquidation, etc.).
  */
-export interface DirectTransferInfo<TToken = Address> {
-  token: TToken;
+export interface DirectTransferInfo {
+  token: Address;
   from: Address;
   amount: bigint;
 }
@@ -17,53 +17,47 @@ export interface OperationMetadata {
   blockNumber: number;
 }
 
-export interface MulticallOperation<TToken = Address>
-  extends OperationMetadata {
+export interface MulticallOperation extends OperationMetadata {
   operation: "MultiCall" | "BotMulticall";
   creditAccount: Address;
-  multicall: InnerOperation<TToken>[];
+  multicall: InnerOperation[];
 }
 
-export interface OpenCreditAccountOperation<TToken = Address>
-  extends OperationMetadata {
+export interface OpenCreditAccountOperation extends OperationMetadata {
   operation: "OpenCreditAccount";
   creditAccount: Address;
   onBehalfOf: Address;
   referralCode: bigint;
-  multicall: InnerOperation<TToken>[];
+  multicall: InnerOperation[];
 }
 
-export interface CloseCreditAccountOperation<TToken = Address>
-  extends OperationMetadata {
+export interface CloseCreditAccountOperation extends OperationMetadata {
   operation: "CloseCreditAccount";
   creditAccount: Address;
-  multicall: InnerOperation<TToken>[];
+  multicall: InnerOperation[];
 }
 
-export interface LiquidateCreditAccountOperation<TToken = Address>
-  extends OperationMetadata {
+export interface LiquidateCreditAccountOperation extends OperationMetadata {
   operation: "LiquidateCreditAccount";
   creditAccount: Address;
   to: Address;
-  token: TToken;
+  token: Address;
   remainingFunds: bigint;
-  multicall: InnerOperation<TToken>[];
+  multicall: InnerOperation[];
 }
 
-export interface PartialLiquidationOperation<TToken = Address>
-  extends OperationMetadata {
+export interface PartialLiquidationOperation extends OperationMetadata {
   operation: "PartiallyLiquidateCreditAccount";
   creditAccount: Address;
-  token: TToken;
+  token: Address;
   repaidAmount: bigint;
   minSeizedAmount: bigint;
   to: Address;
 }
 
-export interface DirectTokenTransferOperation<TToken = Address>
-  extends OperationMetadata {
+export interface DirectTokenTransferOperation extends OperationMetadata {
   operation: "DirectTokenTransfer";
-  token: TToken;
+  token: Address;
   from: Address;
   creditAccount: Address;
   amount: bigint;
@@ -73,17 +67,17 @@ export interface DirectTokenTransferOperation<TToken = Address>
  * Discriminated union of all facade-level operation types.
  * One per facade entry-point call within a transaction.
  */
-export type OuterFacadeOperation<TToken = Address> =
-  | MulticallOperation<TToken>
-  | OpenCreditAccountOperation<TToken>
-  | CloseCreditAccountOperation<TToken>
-  | LiquidateCreditAccountOperation<TToken>
-  | PartialLiquidationOperation<TToken>;
+export type OuterFacadeOperation =
+  | MulticallOperation
+  | OpenCreditAccountOperation
+  | CloseCreditAccountOperation
+  | LiquidateCreditAccountOperation
+  | PartialLiquidationOperation;
 
 /**
  * Discriminated union of all credit account operation types
  * (facade operations + direct token transfers).
  */
-export type CreditAccountOperation<TToken = Address> =
-  | OuterFacadeOperation<TToken>
-  | DirectTokenTransferOperation<TToken>;
+export type CreditAccountOperation =
+  | OuterFacadeOperation
+  | DirectTokenTransferOperation;

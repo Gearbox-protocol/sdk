@@ -6,11 +6,7 @@
       {
         "amount": 43137983800289497n,
         "operation": "DecreaseBorrowedAmount",
-        "token": {
-          "address": "0x18084fba666a33d37592fa2633fd49a74dd93a88",
-          "decimals": 18,
-          "symbol": "tBTC",
-        },
+        "token": "0x18084fba666a33d37592fa2633fd49a74dd93a88",
       },
     ],
     "operation": "MultiCall",
