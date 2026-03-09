@@ -1,24 +1,20 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import type { Address, Hex } from "viem";
 import { createPublicClient, custom } from "viem";
 import { mainnet } from "viem/chains";
 import { beforeAll, describe, expect, it } from "vitest";
 
-import { createAdapter, type TokenInfo } from "../plugins/adapters/index.js";
-import { ContractRegister } from "./ContractRegister.js";
+import type { ChainContractsRegister, TokenMetaData } from "../sdk/index.js";
 import { parseCreditAccountTransaction } from "./parseCreditAccountTransaction.js";
+import {
+  type Deployment,
+  populateContractsRegister,
+} from "./populateContractsRegister.js";
 
 const FIXTURES_DIR = path.resolve(__dirname, "__fixtures__");
 const INPUTS_DIR = path.join(FIXTURES_DIR, "inputs");
 const EXPECTED_DIR = path.join(FIXTURES_DIR, "expected");
 const CONTRACTS_PATH = path.join(FIXTURES_DIR, "contracts.json");
-
-interface ContractEntry {
-  address: Address;
-  contractType: Hex;
-  version: string;
-}
 
 const client = createPublicClient({
   chain: mainnet,
@@ -29,44 +25,24 @@ const client = createPublicClient({
   }),
 });
 
-function buildRegister(): ContractRegister {
-  const register = new ContractRegister(client);
-  register.registerFactory((options, args) =>
-    createAdapter(options, { baseParams: args }),
-  );
-  const tokens: Array<TokenInfo & { name: string }> = JSON.parse(
+function buildRegister(): ChainContractsRegister {
+  const tokens: Array<TokenMetaData> = JSON.parse(
     readFileSync(path.join(FIXTURES_DIR, "tokens.json"), "utf-8"),
   );
-  for (const t of tokens) {
-    register.register.tokensMeta.upsert(t.address, {
-      addr: t.address,
-      symbol: t.symbol,
-      decimals: t.decimals,
-      name: t.name,
-    });
-  }
-
-  const contracts: ContractEntry[] = JSON.parse(
+  const deployments: Deployment[] = JSON.parse(
     readFileSync(CONTRACTS_PATH, "utf-8"),
   );
-  for (const entry of contracts) {
-    try {
-      register.createContract({
-        addr: entry.address,
-        version: BigInt(entry.version),
-        contractType: entry.contractType,
-      });
-    } catch {
-      // unknown contract types are expected for non-adapter/non-facade contracts
-    }
-  }
-
-  return register;
+  return populateContractsRegister({
+    client,
+    tokens,
+    deployments,
+    strict: true,
+  });
 }
 
 async function testFixture(
   fixture: string,
-  register: ContractRegister,
+  register: ChainContractsRegister,
 ): Promise<void> {
   const inputJson = JSON.parse(
     readFileSync(path.join(INPUTS_DIR, fixture), "utf-8"),
@@ -79,7 +55,7 @@ async function testFixture(
     creditFacade: inputJson.creditFacade,
     creditAccount: inputJson.creditAccount,
     underlying: inputJson.underlying,
-    register: register.register,
+    register,
   });
 
   await expect(actual).toMatchFileSnapshot(
@@ -88,7 +64,7 @@ async function testFixture(
 }
 
 describe("parseCreditAccountTransaction integration", () => {
-  let register: ContractRegister;
+  let register: ChainContractsRegister;
 
   beforeAll(() => {
     register = buildRegister();

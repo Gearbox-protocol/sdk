@@ -1,9 +1,9 @@
-import type { Address, Hex } from "viem";
+import { type Address, type Hex, isHex } from "viem";
 
 import type {
   ConstructOptions,
   IBaseContract,
-  TypedVersionedAddress,
+  RelaxedBaseParams,
 } from "../../sdk/index.js";
 import { bytes32ToString } from "../../sdk/index.js";
 import { AccountMigratorAdapterContract } from "./contracts/AccountMigratorAdapterContract.js";
@@ -56,7 +56,7 @@ import { UniswapV4AdapterContract } from "./contracts/UniswapV4AdapterContract.j
 import type { AdapterContractType } from "./types.js";
 
 export interface AdapterFactoryArgs {
-  baseParams: TypedVersionedAddress;
+  baseParams: RelaxedBaseParams;
   // TODO: v300 legacy/deprecated: serializedParams always contain targetContract and creditManager
   targetContract?: Address;
 }
@@ -66,8 +66,9 @@ export function createAdapter(
   data: AdapterFactoryArgs,
   strict?: boolean,
 ): IBaseContract {
-  const adapterType = bytes32ToString(
-    data.baseParams.contractType as Hex,
+  const contractType = data.baseParams.contractType;
+  const adapterType = (
+    isHex(contractType) ? bytes32ToString(contractType) : contractType
   ) as AdapterContractType;
 
   switch (adapterType) {

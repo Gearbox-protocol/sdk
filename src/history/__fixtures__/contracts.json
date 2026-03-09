@@ -2,396 +2,396 @@
   {
     "address": "0x68be838f8c91bebf53f5193f60f04a1672e7d87b",
     "contractType": "ACCOUNT_FACTORY::DEFAULT",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0xa1227493f256927ebbc3ae4907acec62de2908b8",
     "contractType": "ACCOUNT_FACTORY::DEFAULT",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x29f0cbd0f8276bbf0e69662ee65c3ae82f86067b",
     "contractType": "ACCOUNT_FACTORY::DEFAULT",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x7ca161e73f428856a56ca29c9a471951fd81fb50",
     "contractType": "ACCOUNT_FACTORY::DEFAULT",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x8fcf098d8323a5ccb4a0682173eb010042a4a3f1",
     "contractType": "ACL",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0xd378723fb162c72c73c4d4e1cfe08605d0c29fc5",
     "contractType": "ACL",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x0214d10f4922c8407351c509150761e0bd487989",
     "contractType": "ADAPTER::BALANCER_V3_ROUTER",
-    "version": "311"
+    "version": 311
   },
   {
     "address": "0x37e2600b85d609c879363c9c682b08bc1805cd4c",
     "contractType": "ADAPTER::CURVE_STABLE_NG",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x224628b0dd055a50a47f27ed8f612692ee01cde4",
     "contractType": "ADAPTER::CURVE_STABLE_NG",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x51985bc15268aa61311c2d933301498e74707ce9",
     "contractType": "ADAPTER::CURVE_STABLE_NG",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x30d8ab4cd05792a2eca88d592148cd94e1186552",
     "contractType": "ADAPTER::CVX_V1_BASE_REWARD_POOL",
-    "version": "311"
+    "version": 311
   },
   {
     "address": "0xcd69a9688e363acb4b8fad5a7585d8abc3e4d0ef",
     "contractType": "ADAPTER::CVX_V1_BASE_REWARD_POOL",
-    "version": "311"
+    "version": 311
   },
   {
     "address": "0xdff02d2e77aee7bfc411b75e1953730c78052de6",
     "contractType": "ADAPTER::CVX_V1_BOOSTER",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0xb4adb364309ec7af0ec286d706b7cb6c3c46381d",
     "contractType": "ADAPTER::ERC4626_VAULT",
-    "version": "312"
+    "version": 312
   },
   {
     "address": "0xe1cd2e02126648d2271f301303864fd7f09d3c63",
     "contractType": "ADAPTER::FLUID_DEX",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0xf5899f76dc29aaf889703aeb6717955caf8f5a8e",
     "contractType": "ADAPTER::FLUID_DEX",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x87172bf72662f131637354e538891e947d87a667",
     "contractType": "ADAPTER::FLUID_DEX",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x9d4f4a3f9993f8ba96b98ea5dffb2fe429b4f7c3",
     "contractType": "ADAPTER::MELLOW_ERC4626_VAULT",
-    "version": "312"
+    "version": 312
   },
   {
     "address": "0x286fe53994f5668d56538aa10eaa3ac36f878e9c",
     "contractType": "BOT::ACCOUNT_MIGRATOR",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x50038538429aa7e46ea82b04ada8f4bba392e543",
     "contractType": "BOT::PARTIAL_LIQUIDATION",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x0bc03983da93021a374c964a22b73865220ce962",
     "contractType": "BOT_LIST",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x93a878c4dfc27973dfe455045a5c4ffa36602445",
     "contractType": "CONTRACTS_REGISTER",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0xda21f71a868ba224e2e56200b5f66787379449e2",
     "contractType": "CREDIT_CONFIGURATOR",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x627b02ff8357278b879d6a670e1efcbb202e93ce",
     "contractType": "CREDIT_FACADE",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x67bf2a7778edb535a167ff6c959e08d537888118",
     "contractType": "CREDIT_FACADE",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0xbd7ede56ffd0318b15c0eb16b8ae4926f0bd18bf",
     "contractType": "CREDIT_FACADE",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x30efb02202352290d1900bc76de0ab00a2a6dacb",
     "contractType": "CREDIT_FACADE",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x4da50da058ad6cc96bb63edff55b534d2a2cbe92",
     "contractType": "CREDIT_FACADE",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x815783e9965fa0cf11717c5fcd1d3c22af79f051",
     "contractType": "CREDIT_FACADE",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x1665ded8081d294f9ad24489a51c274ad7da7023",
     "contractType": "CREDIT_MANAGER",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x8c118e8c20cebbaa2467b735bbb8b13d614e6608",
     "contractType": "CREDIT_MANAGER",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0xbcd2ffac58189e57334bb63253acbf34d776de53",
     "contractType": "CREDIT_MANAGER",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0xf5edc34204e67e592bdcb84114571c9e4bd0bdf7",
     "contractType": "CREDIT_MANAGER",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0xfe83807dec8c6a4f4d93b7dbd6340771753e2cd8",
     "contractType": "CREDIT_MANAGER",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x1293a69e4ad4a93293a06b6303104be35bdd83af",
     "contractType": "CREDIT_MANAGER",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x8a57c21234ddc225499843f6a073dd374c952560",
     "contractType": "GATEWAY::BALANCER_V3",
-    "version": "311"
+    "version": 311
   },
   {
     "address": "0xbc8757fac497593e426744316e059d44f6a619f5",
     "contractType": "GATEWAY::FLUID_DEX_ETH",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x81d8dca49e9d3cc665a60a230886e3060c14842e",
     "contractType": "IRM::LINEAR",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x6bfea1818a566320ddfaf07904169f59f39a72a1",
     "contractType": "IRM::LINEAR",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x902e42b6227b26643c38bb83088144822bc7a329",
     "contractType": "IRM::LINEAR",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x87c4d68a2ccbd4dea39221ce294cfcd55e601ad6",
     "contractType": "IRM::LINEAR",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x12e6e5c6fe4b37576dd4052e03a97ee7b9c29e86",
     "contractType": "IRM::LINEAR",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x09d8305f49374aea6a78af6c996df2913e8f3b19",
     "contractType": "MARKET_CONFIGURATOR",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x7d60cfaf7c2cec210638a5e46e4000894830c034",
     "contractType": "MARKET_CONFIGURATOR_FACTORY",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x40fc1f58ab6efc06e008370a040e92b635dd4ce4",
     "contractType": "PHANTOM_TOKEN::CONVEX",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x87fa6c0296c986d1c901d72571282d57916b964a",
     "contractType": "PHANTOM_TOKEN::CONVEX",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0xa9d17f6d3285208280a1fd9b94479c62e0aaba64",
     "contractType": "POOL",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0xf791ecc5f2472637eac9dfe3f7894c0b32c32bdf",
     "contractType": "POOL",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0xc155444481854c60e7a29f4150373f479988f32d",
     "contractType": "POOL",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0xf0795c47fa58d00f5f77f4d5c01f31ee891e21b4",
     "contractType": "POOL",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x9396dcbf78fc526bb003665337c5e73b699571ef",
     "contractType": "POOL",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x38c33e35c5415d57f5c352c53450b00bc2446911",
     "contractType": "POOL_QUOTA_KEEPER",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x5007549cf8fa1d3ffe9fed44d4c7a43d427e2663",
     "contractType": "POOL_QUOTA_KEEPER",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x3c01a37bd7a01305d99ee37fec4fc0c4407d804b",
     "contractType": "POOL_QUOTA_KEEPER",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0xb120b674440a70e45ba819c2941f309791020699",
     "contractType": "POOL_QUOTA_KEEPER",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x9338d1d1a53a587eb0eb0d80de22a21c234fe4f7",
     "contractType": "POOL_QUOTA_KEEPER",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0xb8087b4cee6bd4ad1b5dead85dd27614d96c965a",
     "contractType": "PRICE_FEED::BOUNDED",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x7a3a586abd1de09cf9d58a32f41b3d107e50f006",
     "contractType": "PRICE_FEED::COMPOSITE",
-    "version": "311"
+    "version": 311
   },
   {
     "address": "0x51d302812ab6dbc1bd84d92c4edbc43eb5befbc0",
     "contractType": "PRICE_FEED::COMPOSITE",
-    "version": "311"
+    "version": 311
   },
   {
     "address": "0x8ca54f08d01a0d0bfa0362f2427cb68761811f2f",
     "contractType": "PRICE_FEED::COMPOSITE",
-    "version": "311"
+    "version": 311
   },
   {
     "address": "0x639a294a98844c778c7c7a0e5be5816e74f21556",
     "contractType": "PRICE_FEED::COMPOSITE",
-    "version": "311"
+    "version": 311
   },
   {
     "address": "0x067be59906cecc3d084e524b70c999a2af2fd78f",
     "contractType": "PRICE_FEED::CONSTANT",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x3f4e6eb1864259450ccd072fc89b9db874e56691",
     "contractType": "PRICE_FEED::CURVE_STABLE",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0xe5be3dfa1ca65b9536df745e4d96a7381ea1e8e0",
     "contractType": "PRICE_FEED::CURVE_STABLE",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x8c65f607a5d9d08df35ee5a6ea5e6ae8bc41880b",
     "contractType": "PRICE_FEED::CURVE_STABLE",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x367b68bc53d7164ca11fb4fc41d36da5b0ade076",
     "contractType": "PRICE_FEED::ERC4626",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x257707abb203ff243303634a800d7d58dd62b7ab",
     "contractType": "PRICE_FEED::ERC4626",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0xf9b51adf90bb15b6e5aca89fc272cab92d6b25a7",
     "contractType": "PRICE_FEED::ERC4626",
-    "version": "311"
+    "version": 311
   },
   {
     "address": "0xfe26523e2233215575f5a6143dc8ba25b749c75f",
     "contractType": "PRICE_FEED::ERC4626",
-    "version": "311"
+    "version": 311
   },
   {
     "address": "0xd997435585a5d75cdf6c3c84afc568f19398a68a",
     "contractType": "PRICE_FEED::ERC4626",
-    "version": "311"
+    "version": 311
   },
   {
     "address": "0x1de780e46a8bb022723c8ab694b819f988ec96d3",
     "contractType": "PRICE_FEED::ERC4626",
-    "version": "311"
+    "version": 311
   },
   {
     "address": "0x292311132d7d5339d5e73abf46025afae1f4897d",
     "contractType": "PRICE_FEED::PENDLE_PT_TWAP",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x587660d2d2ccba5efd0594ccfda03c5adc1a3dc9",
     "contractType": "PRICE_FEED::WSTETH",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x74a868ac479ee145029bb80827bb77f7b7c441cb",
     "contractType": "PRICE_FEED_STORE",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x3b337ba109ba44d0d7684728bf503bcaaf76ef5a",
     "contractType": "PRICE_ORACLE",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x826b89b2912ed504ff2af7d97b46f34ceae8294c",
     "contractType": "PRICE_ORACLE",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x9d58428642aeb84d6763e210f4bf79daff090323",
     "contractType": "PRICE_ORACLE",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x991a502872661fb74222395674a4e42135a331cb",
     "contractType": "PRICE_ORACLE",
-    "version": "310"
+    "version": 310
   },
   {
     "address": "0x6c10935f56ec2dcdd36b633d4cfeb1af02083380",
     "contractType": "PRICE_ORACLE",
-    "version": "310"
+    "version": 310
   }
 ]

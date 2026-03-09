@@ -18,11 +18,19 @@ export interface BaseParams {
   serializedParams: Hex;
 }
 
+export interface RelaxedBaseParams {
+  addr: Address;
+  version: number | bigint;
+  /**
+   * Hex or parsed hex32 string
+   */
+  contractType: string;
+  serializedParams?: Hex;
+}
+
 export interface BaseState {
   baseParams: BaseParams;
 }
-
-export type TypedVersionedAddress = PartialBy<BaseParams, "serializedParams">;
 
 export type MarketFilter = AbiParametersToPrimitiveTypes<
   ExtractAbiFunction<typeof marketCompressorAbi, "getMarkets">["inputs"]

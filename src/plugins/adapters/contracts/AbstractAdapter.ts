@@ -9,7 +9,7 @@ import {
 import type {
   ConstructOptions,
   ParsedCallV2,
-  TypedVersionedAddress,
+  RelaxedBaseParams,
 } from "../../../sdk/index.js";
 import {
   BaseContract,
@@ -29,7 +29,7 @@ import type {
 } from "../types.js";
 
 export interface ConcreteAdapterContractOptions {
-  baseParams: TypedVersionedAddress;
+  baseParams: RelaxedBaseParams;
   // TODO: v300 legacy/deprecated: serializedParams always contain targetContract and creditManager
   targetContract?: Address;
   name?: string;

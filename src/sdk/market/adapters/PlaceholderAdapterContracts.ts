@@ -5,11 +5,11 @@ import {
   MissingSerializedParamsError,
   PlaceholderContract,
 } from "../../base/index.js";
-import type { TypedVersionedAddress } from "../../index.js";
+import type { RelaxedBaseParams } from "../../index.js";
 import type { IAdapterContract } from "./types.js";
 
 export interface PlaceholderAdapterContractOptions {
-  baseParams: TypedVersionedAddress;
+  baseParams: RelaxedBaseParams;
   // TODO: v300 legacy/deprecated: serializedParams always contain targetContract and creditManager
   targetContract?: Address;
 }
