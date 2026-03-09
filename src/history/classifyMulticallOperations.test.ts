@@ -54,16 +54,6 @@ function dummyProtocolCalldatas(count: number): Hex[] {
   return Array.from({ length: count }, () => DUMMY_CALLDATA);
 }
 
-const client = createPublicClient({
-  chain: mainnet,
-  transport: custom({
-    request: () => {
-      throw new Error("not implemented");
-    },
-  }),
-});
-const options = { client };
-
 const adapterBase = {
   version: 310n,
   contractType: "0x" as `0x${string}`,
@@ -85,25 +75,46 @@ function makeParsed(
 }
 
 function setupRegister(): ChainContractsRegister {
-  const register = ChainContractsRegister.for(client);
+  const client = createPublicClient({
+    chain: mainnet,
+    transport: custom({
+      request: () => {
+        throw new Error("not implemented");
+      },
+    }),
+  });
+
+  const register = new ChainContractsRegister(client);
   register.resetContracts();
 
-  new UniswapV3AdapterContract(options, {
-    baseParams: { ...adapterBase, addr: ADAPTER_UNI },
-  });
+  new UniswapV3AdapterContract(
+    { register },
+    {
+      baseParams: { ...adapterBase, addr: ADAPTER_UNI },
+    },
+  );
 
-  new Curve2AssetsAdapterContract(options, {
-    baseParams: { ...adapterBase, addr: ADAPTER_CURVE },
-  });
+  new Curve2AssetsAdapterContract(
+    { register },
+    {
+      baseParams: { ...adapterBase, addr: ADAPTER_CURVE },
+    },
+  );
 
-  new WstETHV1AdapterContract(options, {
-    baseParams: { ...adapterBase, addr: ADAPTER_WSTETH },
-  });
+  new WstETHV1AdapterContract(
+    { register },
+    {
+      baseParams: { ...adapterBase, addr: ADAPTER_WSTETH },
+    },
+  );
 
-  new CreditFacadeV310BaseContract(options, {
-    addr: FACADE,
-    name: "CreditFacade",
-  });
+  new CreditFacadeV310BaseContract(
+    { register },
+    {
+      addr: FACADE,
+      name: "CreditFacade",
+    },
+  );
 
   return register;
 }

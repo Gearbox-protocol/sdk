@@ -41,7 +41,7 @@ export function populateContractsRegister(
   options: PopulateContractsRegisterOptions,
 ): ChainContractsRegister {
   const { client, deployments, tokens, logger, strict } = options;
-  const register = ChainContractsRegister.for(client, logger);
+  const register = new ChainContractsRegister(client, logger);
 
   for (const d of deployments) {
     let contractType: string;
@@ -56,13 +56,13 @@ export function populateContractsRegister(
     }
     if (contractType === "CREDIT_FACADE" && isV310(d.version)) {
       new CreditFacadeV310BaseContract(
-        { client: register.client, logger },
+        { register, logger },
         { addr: d.address, version: d.version, contractType },
       );
     } else if (contractType.startsWith("ADAPTER::")) {
       createAdapter(
         {
-          client: register.client,
+          register,
           logger,
         },
         {

@@ -92,11 +92,8 @@ export class BaseContract<abi extends Abi | readonly unknown[]>
   public readonly address: Address;
   public readonly name: string;
 
-  constructor(
-    { client, logger }: ConstructOptions,
-    args: BaseContractArgs<abi>,
-  ) {
-    super({ client, logger });
+  constructor(options: ConstructOptions, args: BaseContractArgs<abi>) {
+    super(options);
     this.abi = args.abi;
     this.address = getAddress(args.addr);
 
@@ -104,7 +101,7 @@ export class BaseContract<abi extends Abi | readonly unknown[]>
       address: this.address,
       // add exceptions for better error decoding
       abi: [...this.abi, ...errorAbis],
-      client,
+      client: this.client,
     }) as any;
     this.version = Number(args.version || 0);
     this.contractType = args.contractType ?? "";
