@@ -7,7 +7,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import type { ChainContractsRegister, TokenMetaData } from "../sdk/index.js";
 import { parseCreditAccountTransaction } from "./parseCreditAccountTransaction.js";
 import {
-  type Deployment,
+  type DeploymentLike,
   populateContractsRegister,
 } from "./populateContractsRegister.js";
 
@@ -29,7 +29,7 @@ function buildRegister(): ChainContractsRegister {
   const tokens: Array<TokenMetaData> = JSON.parse(
     readFileSync(path.join(FIXTURES_DIR, "tokens.json"), "utf-8"),
   );
-  const deployments: Deployment[] = JSON.parse(
+  const deployments: DeploymentLike[] = JSON.parse(
     readFileSync(CONTRACTS_PATH, "utf-8"),
   );
   return populateContractsRegister({

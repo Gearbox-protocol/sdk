@@ -16,7 +16,7 @@ import {
   TokensMeta,
 } from "../sdk/index.js";
 
-export type Deployment = {
+export type DeploymentLike = {
   address: Address;
   version: number;
 } & (
@@ -31,7 +31,7 @@ export type Deployment = {
 
 export interface PopulateContractsRegisterOptions {
   client: PublicClient<Transport, Chain>;
-  deployments: Deployment[];
+  deployments: DeploymentLike[];
   tokens: TokensMeta | Iterable<TokenMetaData>;
   logger?: ILogger;
   strict?: boolean;
