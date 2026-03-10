@@ -27,6 +27,7 @@ export interface ParseTransactionInput {
    * Underlying token of the pool.
    */
   underlying: Address;
+  creditManager: Address;
   creditFacade: Address;
   creditAccount: Address;
   register: ChainContractsRegister;
@@ -47,6 +48,7 @@ export function parseCreditAccountTransaction(
     receipt,
     pool,
     creditFacade,
+    creditManager,
     creditAccount,
     underlying,
     register,
@@ -73,6 +75,7 @@ export function parseCreditAccountTransaction(
   } = extractTransfers(logs, creditAccount, pool, creditFacade);
 
   const meta: FacadeOperationMetadata = {
+    creditManager,
     creditFacade,
     timestamp,
     blockNumber,

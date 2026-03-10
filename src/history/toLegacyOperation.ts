@@ -19,7 +19,6 @@ export interface LegacyMulticallOp {
 
 export interface LegacyVisitorParams {
   sessionId: string;
-  creditManager: Address;
 }
 
 function commonFields(
@@ -65,7 +64,7 @@ export function createLegacyVisitor(
         operation: op.operation,
         amount: op.amount.toString(),
         ...innerCommonFields(ctx, params),
-        protocol: params.creditManager,
+        protocol: ctx.creditManager,
       };
     },
     DecreaseBorrowedAmount(op, ctx) {
@@ -73,7 +72,7 @@ export function createLegacyVisitor(
         operation: op.operation,
         amount: op.amount.toString(),
         ...innerCommonFields(ctx, params),
-        protocol: params.creditManager,
+        protocol: ctx.creditManager,
       };
     },
     AddCollateral(op, ctx) {

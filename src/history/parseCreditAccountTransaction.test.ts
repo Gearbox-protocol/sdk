@@ -53,6 +53,7 @@ async function testFixture(
     receipt: inputJson.receipt,
     pool: inputJson.pool,
     creditFacade: inputJson.creditFacade,
+    creditManager: inputJson.creditManager,
     creditAccount: inputJson.creditAccount,
     underlying: inputJson.underlying,
     register,

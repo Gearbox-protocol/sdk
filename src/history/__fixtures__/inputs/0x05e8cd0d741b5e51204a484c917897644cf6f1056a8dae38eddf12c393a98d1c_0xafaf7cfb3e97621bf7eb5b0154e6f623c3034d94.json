@@ -4996,5 +4996,6 @@
   "pool": "0xc155444481854c60e7a29f4150373f479988f32d",
   "underlying": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
   "creditFacade": "0x67bf2a7778edb535a167ff6c959e08d537888118",
+  "creditManager": "0xbcd2ffac58189e57334bb63253acbf34d776de53",
   "creditAccount": "0xafaf7cfb3e97621bf7eb5b0154e6f623c3034d94"
 }

@@ -3,6 +3,7 @@
     "blockNumber": 24069485,
     "creditAccount": "0xF2365b21c6f4cc73d38B6fb5DE9AB506A4a5dff9",
     "creditFacade": "0xbd7ede56ffd0318b15c0eb16b8ae4926f0bd18bf",
+    "creditManager": "0xf5edc34204e67e592bdcb84114571c9e4bd0bdf7",
     "multicall": [
       {
         "adapter": "0x9d4f4a3F9993F8Ba96B98eA5dFfB2FE429b4f7C3",

@@ -19,6 +19,7 @@ export interface OperationMetadata {
 }
 
 export interface FacadeOperationMetadata extends OperationMetadata {
+  creditManager: Address;
   creditFacade: Address;
 }
 

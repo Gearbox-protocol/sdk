@@ -2501,5 +2501,6 @@
   "pool": "0xa9d17f6d3285208280a1fd9b94479c62e0aaba64",
   "underlying": "0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
   "creditFacade": "0xbd7ede56ffd0318b15c0eb16b8ae4926f0bd18bf",
+  "creditManager": "0xf5edc34204e67e592bdcb84114571c9e4bd0bdf7",
   "creditAccount": "0xf2365b21c6f4cc73d38b6fb5de9ab506a4a5dff9"
 }

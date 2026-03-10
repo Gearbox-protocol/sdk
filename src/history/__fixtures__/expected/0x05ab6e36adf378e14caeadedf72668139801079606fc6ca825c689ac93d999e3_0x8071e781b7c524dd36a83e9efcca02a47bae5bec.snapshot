@@ -3,6 +3,7 @@
     "blockNumber": 24482310,
     "creditAccount": "0x8071E781b7c524dd36A83E9efCCa02a47Bae5BEc",
     "creditFacade": "0x30efb02202352290d1900bc76de0ab00a2a6dacb",
+    "creditManager": "0x1665ded8081d294f9ad24489a51c274ad7da7023",
     "multicall": [
       {
         "amount": 56000000000000000000000n,
