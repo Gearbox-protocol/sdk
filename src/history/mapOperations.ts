@@ -11,6 +11,7 @@ import type {
   CloseCreditAccountOperation,
   CreditAccountOperation,
   DirectTokenTransferOperation,
+  FacadeOperationMetadata,
   LiquidateCreditAccountOperation,
   MulticallOperation,
   OpenCreditAccountOperation,
@@ -23,12 +24,21 @@ import type {
  *
  */
 export interface OperationVisitor<TInner, TOuter> {
-  Execute(op: AdapterOperation): TInner;
-  IncreaseBorrowedAmount(op: IncreaseDebtOp): TInner;
-  DecreaseBorrowedAmount(op: DecreaseDebtOp): TInner;
-  AddCollateral(op: AddCollateralOp): TInner;
-  WithdrawCollateral(op: WithdrawCollateralOp): TInner;
-  UpdateQuota(op: UpdateQuotaOp): TInner;
+  Execute(op: AdapterOperation, ctx: FacadeOperationMetadata): TInner;
+  IncreaseBorrowedAmount(
+    op: IncreaseDebtOp,
+    ctx: FacadeOperationMetadata,
+  ): TInner;
+  DecreaseBorrowedAmount(
+    op: DecreaseDebtOp,
+    ctx: FacadeOperationMetadata,
+  ): TInner;
+  AddCollateral(op: AddCollateralOp, ctx: FacadeOperationMetadata): TInner;
+  WithdrawCollateral(
+    op: WithdrawCollateralOp,
+    ctx: FacadeOperationMetadata,
+  ): TInner;
+  UpdateQuota(op: UpdateQuotaOp, ctx: FacadeOperationMetadata): TInner;
 
   DirectTokenTransfer(op: DirectTokenTransferOperation): TOuter;
   MultiCall(op: MulticallOperation, multicall: TInner[]): TOuter;
@@ -58,20 +68,21 @@ function mapInnerOperation<TInner>(
     | "WithdrawCollateral"
     | "UpdateQuota"
   >,
+  ctx: FacadeOperationMetadata,
 ): TInner {
   switch (op.operation) {
     case "Execute":
-      return visitor.Execute(op);
+      return visitor.Execute(op, ctx);
     case "IncreaseBorrowedAmount":
-      return visitor.IncreaseBorrowedAmount(op);
+      return visitor.IncreaseBorrowedAmount(op, ctx);
     case "DecreaseBorrowedAmount":
-      return visitor.DecreaseBorrowedAmount(op);
+      return visitor.DecreaseBorrowedAmount(op, ctx);
     case "AddCollateral":
-      return visitor.AddCollateral(op);
+      return visitor.AddCollateral(op, ctx);
     case "WithdrawCollateral":
-      return visitor.WithdrawCollateral(op);
+      return visitor.WithdrawCollateral(op, ctx);
     case "UpdateQuota":
-      return visitor.UpdateQuota(op);
+      return visitor.UpdateQuota(op, ctx);
   }
 }
 
@@ -87,25 +98,25 @@ function mapOuterOperation<TInner, TOuter>(
     case "MultiCall":
     case "BotMulticall": {
       const multicall = op.multicall.map(inner =>
-        mapInnerOperation(inner, visitor),
+        mapInnerOperation(inner, visitor, op),
       );
       return visitor.MultiCall(op, multicall);
     }
     case "OpenCreditAccount": {
       const multicall = op.multicall.map(inner =>
-        mapInnerOperation(inner, visitor),
+        mapInnerOperation(inner, visitor, op),
       );
       return visitor.OpenCreditAccount(op, multicall);
     }
     case "CloseCreditAccount": {
       const multicall = op.multicall.map(inner =>
-        mapInnerOperation(inner, visitor),
+        mapInnerOperation(inner, visitor, op),
       );
       return visitor.CloseCreditAccount(op, multicall);
     }
     case "LiquidateCreditAccount": {
       const multicall = op.multicall.map(inner =>
-        mapInnerOperation(inner, visitor),
+        mapInnerOperation(inner, visitor, op),
       );
       return visitor.LiquidateCreditAccount(op, multicall);
     }

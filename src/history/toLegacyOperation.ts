@@ -19,6 +19,7 @@ export interface LegacyMulticallOp {
 
 export interface LegacyVisitorParams {
   sessionId: string;
+  creditManager: Address;
 }
 
 function commonFields(
@@ -32,46 +33,73 @@ function commonFields(
   };
 }
 
+function innerCommonFields(
+  ctx: FacadeOperationMetadata,
+  params: LegacyVisitorParams,
+) {
+  return {
+    txHash: ctx.txHash,
+    blockNum: ctx.blockNumber,
+    timestamp: ctx.timestamp,
+    sessionId: params.sessionId,
+    protocol: ctx.creditFacade,
+  };
+}
+
 export function createLegacyVisitor(
   params: LegacyVisitorParams,
 ): OperationVisitor<LegacyMulticallOp, LegacyApiOperation> {
   return {
-    Execute(op) {
-      return { ...op.legacy };
+    Execute(op, ctx) {
+      return {
+        ...op.legacy,
+        txHash: ctx.txHash,
+        blockNum: ctx.blockNumber,
+        timestamp: ctx.timestamp,
+        sessionId: params.sessionId,
+        protocol: op.protocol,
+      };
     },
-    IncreaseBorrowedAmount(op) {
+    IncreaseBorrowedAmount(op, ctx) {
       return {
         operation: op.operation,
         amount: op.amount.toString(),
+        ...innerCommonFields(ctx, params),
+        protocol: params.creditManager,
       };
     },
-    DecreaseBorrowedAmount(op) {
+    DecreaseBorrowedAmount(op, ctx) {
       return {
         operation: op.operation,
         amount: op.amount.toString(),
+        ...innerCommonFields(ctx, params),
+        protocol: params.creditManager,
       };
     },
-    AddCollateral(op) {
+    AddCollateral(op, ctx) {
       return {
         operation: op.operation,
         token: op.token,
         amount: op.amount.toString(),
+        ...innerCommonFields(ctx, params),
       };
     },
-    WithdrawCollateral(op) {
+    WithdrawCollateral(op, ctx) {
       return {
         operation: op.operation,
         token: op.token,
         amount: op.amount.toString(),
         to: op.to,
         ...(op.phantomToken ? { phantomToken: op.phantomToken } : {}),
+        ...innerCommonFields(ctx, params),
       };
     },
-    UpdateQuota(op) {
+    UpdateQuota(op, ctx) {
       return {
         operation: op.operation,
         token: op.token,
         change: op.change.toString(),
+        ...innerCommonFields(ctx, params),
       };
     },
 
