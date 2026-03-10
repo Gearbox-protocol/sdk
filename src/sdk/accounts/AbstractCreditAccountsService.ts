@@ -827,6 +827,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     creditAccount,
     amount,
     collateral,
+    wrapAsset,
   }: ChangeDeptProps): Promise<CreditAccountOperationResult> {
     if (amount === 0n) {
       throw new Error("debt increase or decrease must be non-zero");
@@ -857,9 +858,9 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
           )
         : [];
     const unwrapCalls =
-      collateral && isDecrease
+      wrapAsset && isDecrease
         ? (await this.getKYCWrapCalls(
-            collateral[0].balance,
+            wrapAsset[0].balance,
             creditAccount.creditManager,
           )) || []
         : [];

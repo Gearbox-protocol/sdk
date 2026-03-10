@@ -398,6 +398,10 @@ export interface ChangeDeptProps {
    * Assets to add as collateral
    */
   collateral?: [Asset];
+  /**
+   * Assets to wrap
+   */
+  wrapAsset?: [Asset];
 }
 
 export interface FullyLiquidateProps {
