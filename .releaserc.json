@@ -9,11 +9,6 @@
       "prerelease": "next"
     },
     {
-      "name": "tx_parser",
-      "channel": "txparser",
-      "prerelease": "txparser"
-    },
-    {
       "name": "+([0-9])?(.{+([0-9]),x}).x"
     }
   ],
