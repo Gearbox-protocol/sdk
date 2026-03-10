@@ -2,9 +2,11 @@
   {
     "blockNumber": 24194021,
     "creditAccount": "0xafaf7CfB3E97621bf7eb5b0154E6F623C3034D94",
+    "creditFacade": "0x67bf2a7778edb535a167ff6c959e08d537888118",
     "minSeizedAmount": 0n,
     "operation": "PartiallyLiquidateCreditAccount",
     "repaidAmount": 84237665n,
+    "timestamp": 1767924323,
     "to": "0xDb5358c2D5d5EA7F3123967212E34092C849b775",
     "token": "0x40fC1F58Ab6Efc06E008370a040e92b635dD4cE4",
     "txHash": "0x05e8cd0d741b5e51204a484c917897644cf6f1056a8dae38eddf12c393a98d1c",

@@ -2,6 +2,7 @@
   {
     "blockNumber": 24303467,
     "creditAccount": "0x9D7aB1290D7a3eE662F545AC29091C4C61f81f14",
+    "creditFacade": "0x30efb02202352290d1900bc76de0ab00a2a6dacb",
     "multicall": [
       {
         "amount": 269272994973813956812599n,
@@ -102,6 +103,7 @@
     "onBehalfOf": "0x251bCCB83d9dbC592d5EDF29f1227C6C5D7E193A",
     "operation": "OpenCreditAccount",
     "referralCode": 0n,
+    "timestamp": 1769243399,
     "txHash": "0x1b0a4a7e337c1c2cc0ef459e76337a807a57e9ecae1be81bb8ec833b554c9699",
   },
 ]

@@ -15,15 +15,20 @@ export interface DirectTransferInfo {
 export interface OperationMetadata {
   txHash: Hex;
   blockNumber: number;
+  timestamp: number;
 }
 
-export interface MulticallOperation extends OperationMetadata {
+export interface FacadeOperationMetadata extends OperationMetadata {
+  creditFacade: Address;
+}
+
+export interface MulticallOperation extends FacadeOperationMetadata {
   operation: "MultiCall" | "BotMulticall";
   creditAccount: Address;
   multicall: InnerOperation[];
 }
 
-export interface OpenCreditAccountOperation extends OperationMetadata {
+export interface OpenCreditAccountOperation extends FacadeOperationMetadata {
   operation: "OpenCreditAccount";
   creditAccount: Address;
   onBehalfOf: Address;
@@ -31,13 +36,14 @@ export interface OpenCreditAccountOperation extends OperationMetadata {
   multicall: InnerOperation[];
 }
 
-export interface CloseCreditAccountOperation extends OperationMetadata {
+export interface CloseCreditAccountOperation extends FacadeOperationMetadata {
   operation: "CloseCreditAccount";
   creditAccount: Address;
   multicall: InnerOperation[];
 }
 
-export interface LiquidateCreditAccountOperation extends OperationMetadata {
+export interface LiquidateCreditAccountOperation
+  extends FacadeOperationMetadata {
   operation: "LiquidateCreditAccount";
   creditAccount: Address;
   to: Address;
@@ -46,7 +52,7 @@ export interface LiquidateCreditAccountOperation extends OperationMetadata {
   multicall: InnerOperation[];
 }
 
-export interface PartialLiquidationOperation extends OperationMetadata {
+export interface PartialLiquidationOperation extends FacadeOperationMetadata {
   operation: "PartiallyLiquidateCreditAccount";
   creditAccount: Address;
   token: Address;
@@ -57,6 +63,7 @@ export interface PartialLiquidationOperation extends OperationMetadata {
 
 export interface DirectTokenTransferOperation extends OperationMetadata {
   operation: "DirectTokenTransfer";
+  protocol: Address;
   token: Address;
   from: Address;
   creditAccount: Address;

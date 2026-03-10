@@ -7,6 +7,8 @@ import type { CallTrace } from "./internal-types.js";
 import type {
   CreditAccountOperation,
   DirectTokenTransferOperation,
+  FacadeOperationMetadata,
+  OuterFacadeOperation,
 } from "./types.js";
 
 type RawLog = Log<bigint | number, number, false>;
@@ -18,7 +20,7 @@ export interface ParseTransactionInput {
   trace: unknown;
   receipt: Pick<
     TransactionReceipt<bigint | number>,
-    "logs" | "transactionHash" | "blockNumber"
+    "logs" | "transactionHash" | "blockNumber" | "blockTimestamp"
   >;
   pool: Address;
   /**
@@ -53,6 +55,7 @@ export function parseCreditAccountTransaction(
   const logs = receipt.logs as unknown as RawLog[];
   const txHash = receipt.transactionHash;
   const blockNumber = Number(receipt.blockNumber);
+  const timestamp = Number(receipt.blockTimestamp ?? 0);
 
   const facadeCalls = findFacadeCalls(
     trace as CallTrace,
@@ -69,22 +72,28 @@ export function parseCreditAccountTransaction(
     phantomTokens,
   } = extractTransfers(logs, creditAccount, pool, creditFacade);
 
+  const meta: FacadeOperationMetadata = {
+    creditFacade,
+    timestamp,
+    blockNumber,
+    txHash,
+  };
   const facadeOps = assembleOperations({
     facadeCalls,
     executeResults,
     register,
     underlying,
-    txHash,
-    blockNumber,
     liquidationRemainingFunds,
     phantomTokens,
     strict,
-  });
+  }).map(o => ({ ...o, ...meta }) as OuterFacadeOperation);
 
   const directOps: DirectTokenTransferOperation[] = directTransfers.map(dt => ({
     operation: "DirectTokenTransfer" as const,
     txHash,
     blockNumber,
+    timestamp,
+    protocol: dt.token,
     creditAccount,
     ...dt,
   }));

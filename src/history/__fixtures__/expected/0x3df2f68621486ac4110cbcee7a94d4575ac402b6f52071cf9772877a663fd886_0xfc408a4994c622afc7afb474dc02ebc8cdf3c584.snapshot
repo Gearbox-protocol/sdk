@@ -2,6 +2,7 @@
   {
     "blockNumber": 24541784,
     "creditAccount": "0xfc408a4994c622AfC7aFb474Dc02Ebc8cDf3C584",
+    "creditFacade": "0x4da50da058ad6cc96bb63edff55b534d2a2cbe92",
     "multicall": [
       {
         "amount": 21539241112060593715n,
@@ -22,6 +23,7 @@
       },
     ],
     "operation": "BotMulticall",
+    "timestamp": 1772117219,
     "txHash": "0x3df2f68621486ac4110cbcee7a94d4575ac402b6f52071cf9772877a663fd886",
   },
   {
@@ -30,6 +32,8 @@
     "creditAccount": "0xfc408a4994c622afc7afb474dc02ebc8cdf3c584",
     "from": "0x339c0db4A0030c88b4A48aafE56CdBa23c8d4338",
     "operation": "DirectTokenTransfer",
+    "protocol": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "timestamp": 1772117219,
     "token": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
     "txHash": "0x3df2f68621486ac4110cbcee7a94d4575ac402b6f52071cf9772877a663fd886",
   },

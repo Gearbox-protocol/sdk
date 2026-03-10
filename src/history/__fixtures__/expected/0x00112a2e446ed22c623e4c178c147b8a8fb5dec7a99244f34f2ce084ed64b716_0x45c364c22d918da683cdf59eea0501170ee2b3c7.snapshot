@@ -2,6 +2,7 @@
   {
     "blockNumber": 23398443,
     "creditAccount": "0x45c364c22D918dA683cDF59EEA0501170EE2B3C7",
+    "creditFacade": "0x815783e9965fa0cf11717c5fcd1d3c22af79f051",
     "multicall": [
       {
         "amount": 43137983800289497n,
@@ -10,6 +11,7 @@
       },
     ],
     "operation": "MultiCall",
+    "timestamp": 1758300791,
     "txHash": "0x00112a2e446ed22c623e4c178c147b8a8fb5dec7a99244f34f2ce084ed64b716",
   },
 ]

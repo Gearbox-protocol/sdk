@@ -9,7 +9,7 @@ import { classifyMulticallOperations } from "./classifyMulticallOperations.js";
 import { extractProtocolCalls } from "./extractProtocolCalls.js";
 import type { ExecuteResult, FacadeParsedCall } from "./internal-types.js";
 import type {
-  OperationMetadata,
+  FacadeOperationMetadata,
   OuterFacadeOperation,
   PartialLiquidationOperation,
 } from "./types.js";
@@ -19,8 +19,6 @@ export interface AssembleOperationsInput {
   executeResults: ExecuteResult[];
   register: ChainContractsRegister;
   underlying: Address;
-  txHash: Hex;
-  blockNumber: number;
   liquidationRemainingFunds?: bigint;
   phantomTokens?: AddressMap<Address>;
   strict?: boolean;
@@ -36,24 +34,21 @@ export interface AssembleOperationsInput {
  */
 export function assembleOperations(
   input: AssembleOperationsInput,
-): OuterFacadeOperation[] {
+): Omit<OuterFacadeOperation, keyof FacadeOperationMetadata>[] {
   const {
     facadeCalls,
     executeResults,
     register,
     underlying,
-    txHash,
-    blockNumber,
     liquidationRemainingFunds,
     phantomTokens,
     strict,
   } = input;
   let offset = 0;
-  const meta: OperationMetadata = { txHash, blockNumber };
 
   return facadeCalls.map(fc => {
     if (fc.operation === "PartiallyLiquidateCreditAccount") {
-      return assemblePartialLiquidation(fc, meta);
+      return assemblePartialLiquidation(fc);
     }
 
     const count = countAdapterCalls(fc.innerCalls, register);
@@ -76,7 +71,6 @@ export function assembleOperations(
     switch (fc.operation) {
       case "OpenCreditAccount":
         return {
-          ...meta,
           operation: fc.operation,
           creditAccount: fc.creditAccount,
           onBehalfOf: fc.parsed.rawArgs.onBehalfOf as Address,
@@ -85,7 +79,6 @@ export function assembleOperations(
         };
       case "LiquidateCreditAccount":
         return {
-          ...meta,
           operation: fc.operation,
           creditAccount: fc.creditAccount,
           to: fc.parsed.rawArgs.to as Address,
@@ -95,7 +88,6 @@ export function assembleOperations(
         };
       default:
         return {
-          ...meta,
           operation: fc.operation,
           creditAccount: fc.creditAccount,
           multicall,
@@ -121,11 +113,9 @@ function countAdapterCalls(
 
 function assemblePartialLiquidation(
   fc: FacadeParsedCall,
-  meta: OperationMetadata,
-): PartialLiquidationOperation {
+): Omit<PartialLiquidationOperation, keyof FacadeOperationMetadata> {
   const { rawArgs } = fc.parsed;
   return {
-    ...meta,
     operation: "PartiallyLiquidateCreditAccount",
     creditAccount: fc.creditAccount,
     token: rawArgs.token as Address,

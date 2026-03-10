@@ -2495,7 +2495,8 @@
       }
     ],
     "transactionHash": "0x73b80d27b4155b9102059aea61bed4e5e108ab25a30b1c06abb174eeae70b295",
-    "blockNumber": 24069485
+    "blockNumber": 24069485,
+    "blockTimestamp": 1766422607
   },
   "pool": "0xa9d17f6d3285208280a1fd9b94479c62e0aaba64",
   "underlying": "0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
