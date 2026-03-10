@@ -904,10 +904,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gearbox-protocol/integrations-v3@npm:1.52.2":
-  version: 1.52.2
-  resolution: "@gearbox-protocol/integrations-v3@npm:1.52.2"
-  checksum: 10c0/b453b2bb30aeed85d6089bae12ae30fb4a46c0515c0be6e4d99f2d0b4d242eb215abf768419094aff25708a858439f30b3f21b6a848eccd52166be5200012f46
+"@gearbox-protocol/integrations-v3@npm:1.54.2":
+  version: 1.54.2
+  resolution: "@gearbox-protocol/integrations-v3@npm:1.54.2"
+  checksum: 10c0/5bc799f73dc47b4929d27007a164f00cba7c001c5828dccb86bf0e7ba39c0094efafd386f9f1ef0a0f85d7b80bbbfb58919aea8b61a8a047672b264dc98756ae
   languageName: node
   linkType: hard
 
@@ -919,7 +919,7 @@ __metadata:
     "@commitlint/cli": "npm:^20.4.1"
     "@commitlint/config-conventional": "npm:^20.4.1"
     "@gearbox-protocol/biome-config": "npm:^1.0.20"
-    "@gearbox-protocol/integrations-v3": "npm:1.52.2"
+    "@gearbox-protocol/integrations-v3": "npm:1.54.2"
     "@redstone-finance/evm-connector": "npm:^0.9.0"
     "@redstone-finance/protocol": "npm:^0.9.0"
     "@redstone-finance/sdk": "npm:^0.9.0"

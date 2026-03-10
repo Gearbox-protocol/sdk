@@ -1,0 +1,107 @@
+[
+  {
+    "blockNumber": 24303467,
+    "creditAccount": "0x9D7aB1290D7a3eE662F545AC29091C4C61f81f14",
+    "multicall": [
+      {
+        "amount": 269272994973813956812599n,
+        "operation": "AddCollateral",
+        "token": "0xBd5D4c539B3773086632416A4EC8ceF57c945319",
+      },
+      {
+        "adapter": "0x30d8ab4cd05792a2Eca88D592148Cd94E1186552",
+        "adapterArgs": {
+          "amount": 269272994973813956812599n,
+          "token": "0x87FA6c0296c986D1C901d72571282D57916B964a",
+        },
+        "adapterFunctionName": "depositPhantomToken(address,uint256)",
+        "adapterType": "ADAPTER::CVX_V1_BASE_REWARD_POOL",
+        "label": "ADAPTER::CVX_V1_BASE_REWARD_POOL",
+        "legacy": {
+          "operation": "ConvexStake",
+          "stakedToken": {
+            "amount": "269272994973813956812599",
+            "token": "0xbd5d4c539b3773086632416a4ec8cef57c945319",
+          },
+        },
+        "operation": "Execute",
+        "protocol": "0x5A71E7e04F8725fD42a216949E7099ebd08A42E3",
+        "protocolArgs": {
+          "_amount": 269272994973813956812599n,
+        },
+        "protocolFunctionName": "stake(uint256)",
+        "transfers": [
+          {
+            "amount": 269272994973813956812599n,
+            "from": "0x9D7aB1290D7a3eE662F545AC29091C4C61f81f14",
+            "to": "0x5A71E7e04F8725fD42a216949E7099ebd08A42E3",
+            "token": "0xbd5d4c539b3773086632416a4ec8cef57c945319",
+          },
+        ],
+        "version": 311,
+      },
+      {
+        "amount": 239891558325n,
+        "operation": "IncreaseBorrowedAmount",
+        "token": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+      },
+      {
+        "change": 256050450000n,
+        "operation": "UpdateQuota",
+        "token": "0x87FA6c0296c986D1C901d72571282D57916B964a",
+      },
+      {
+        "adapter": "0xF5899f76dc29AAf889703aeB6717955caF8f5a8E",
+        "adapterArgs": {
+          "leftoverAmount": 1n,
+          "rateMinRAY": 0n,
+          "swap0to1": true,
+        },
+        "adapterFunctionName": "swapInDiff(bool,uint256,uint256)",
+        "adapterType": "ADAPTER::FLUID_DEX",
+        "label": "ADAPTER::FLUID_DEX",
+        "legacy": {
+          "from": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+          "fromAmount": "239891558324",
+          "operation": "Swap",
+          "to": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+          "toAmount": "240180870653",
+        },
+        "operation": "Execute",
+        "protocol": "0x667701e51B4D1Ca244F17C78F7aB8744B4C99F9B",
+        "protocolArgs": {
+          "amountIn": 239891558324n,
+          "amountOutMin": 0n,
+          "swap0to1": true,
+          "to": "0x9D7aB1290D7a3eE662F545AC29091C4C61f81f14",
+        },
+        "protocolFunctionName": "swapIn(bool,uint256,uint256,address)",
+        "transfers": [
+          {
+            "amount": 239891558324n,
+            "from": "0x9D7aB1290D7a3eE662F545AC29091C4C61f81f14",
+            "to": "0x52Aa899454998Be5b000Ad077a46Bbe360F4e497",
+            "token": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+          },
+          {
+            "amount": 240180870653n,
+            "from": "0x52Aa899454998Be5b000Ad077a46Bbe360F4e497",
+            "to": "0x9D7aB1290D7a3eE662F545AC29091C4C61f81f14",
+            "token": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+          },
+        ],
+        "version": 310,
+      },
+      {
+        "amount": 237770930843n,
+        "operation": "WithdrawCollateral",
+        "to": "0xbE5E2bAe43738f6B790eAD9568bD4fc2846289b8",
+        "token": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+      },
+    ],
+    "onBehalfOf": "0x251bCCB83d9dbC592d5EDF29f1227C6C5D7E193A",
+    "operation": "OpenCreditAccount",
+    "referralCode": 0n,
+    "txHash": "0x1b0a4a7e337c1c2cc0ef459e76337a807a57e9ecae1be81bb8ec833b554c9699",
+  },
+]

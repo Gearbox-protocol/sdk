@@ -1,34 +1,52 @@
 import { iFluidDexAdapterAbi } from "@gearbox-protocol/integrations-v3";
 import { type Address, decodeAbiParameters } from "viem";
-import type { ConstructOptions } from "../../../sdk/index.js";
-import type { AbstractAdapterContractOptions } from "./AbstractAdapter.js";
+import {
+  type ConstructOptions,
+  MissingSerializedParamsError,
+} from "../../../sdk/index.js";
+import { iFluidDexAbi } from "../abi/targetContractAbi.js";
+import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
 const abi = iFluidDexAdapterAbi;
 type abi = typeof abi;
 
-export class FluidDexAdapterContract extends AbstractAdapterContract<abi> {
-  public readonly token0: Address;
-  public readonly token1: Address;
+const protocolAbi = iFluidDexAbi;
+type protocolAbi = typeof protocolAbi;
 
-  constructor(
-    options: ConstructOptions,
-    args: Omit<AbstractAdapterContractOptions<abi>, "abi">,
-  ) {
-    super(options, { ...args, abi });
+export class FluidDexAdapterContract extends AbstractAdapterContract<
+  abi,
+  protocolAbi
+> {
+  #token0?: Address;
+  #token1?: Address;
 
-    // Decode parameters directly using ABI decoding
-    const decoded = decodeAbiParameters(
-      [
-        { type: "address", name: "creditManager" },
-        { type: "address", name: "targetContract" },
-        { type: "address", name: "token0" },
-        { type: "address", name: "token1" },
-      ],
-      args.baseParams.serializedParams,
-    );
+  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
+    super(options, { ...args, abi, protocolAbi });
 
-    this.token0 = decoded[2];
-    this.token1 = decoded[3];
+    if (args.baseParams.serializedParams) {
+      const decoded = decodeAbiParameters(
+        [
+          { type: "address", name: "creditManager" },
+          { type: "address", name: "targetContract" },
+          { type: "address", name: "token0" },
+          { type: "address", name: "token1" },
+        ],
+        args.baseParams.serializedParams,
+      );
+
+      this.#token0 = decoded[2];
+      this.#token1 = decoded[3];
+    }
+  }
+
+  get token0(): Address {
+    if (!this.#token0) throw new MissingSerializedParamsError("token0");
+    return this.#token0;
+  }
+
+  get token1(): Address {
+    if (!this.#token1) throw new MissingSerializedParamsError("token1");
+    return this.#token1;
   }
 }

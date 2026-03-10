@@ -1,0 +1,52 @@
+[
+  {
+    "blockNumber": 24069485,
+    "creditAccount": "0xF2365b21c6f4cc73d38B6fb5DE9AB506A4a5dff9",
+    "multicall": [
+      {
+        "adapter": "0x9d4f4a3F9993F8Ba96B98eA5dFfB2FE429b4f7C3",
+        "adapterArgs": {
+          "leftoverAmount": 1n,
+        },
+        "adapterFunctionName": "redeemDiff(uint256)",
+        "adapterType": "ADAPTER::MELLOW_ERC4626_VAULT",
+        "label": "ADAPTER::MELLOW_ERC4626_VAULT",
+        "legacy": {
+          "from": "0x7a4effd87c2f3c55ca251080b1343b605f327e3a",
+          "fromAmount": "263348156389758489819",
+          "operation": "MakerRedeem",
+          "to": "0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+          "toAmount": "263348156415980435480",
+        },
+        "operation": "Execute",
+        "protocol": "0x7a4EffD87C2f3C55CA251080b1343b605f327E3a",
+        "protocolArgs": {
+          "owner": "0xF2365b21c6f4cc73d38B6fb5DE9AB506A4a5dff9",
+          "receiver": "0xF2365b21c6f4cc73d38B6fb5DE9AB506A4a5dff9",
+          "shares": 263348156389758489819n,
+        },
+        "protocolFunctionName": "redeem(uint256,address,address)",
+        "transfers": [
+          {
+            "amount": 263348156389758489819n,
+            "from": "0xF2365b21c6f4cc73d38B6fb5DE9AB506A4a5dff9",
+            "to": "0x0000000000000000000000000000000000000000",
+            "token": "0x7a4effd87c2f3c55ca251080b1343b605f327e3a",
+          },
+          {
+            "amount": 263348156415980435480n,
+            "from": "0xC329400492c6ff2438472D4651Ad17389fCb843a",
+            "to": "0xF2365b21c6f4cc73d38B6fb5DE9AB506A4a5dff9",
+            "token": "0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+          },
+        ],
+        "version": 312,
+      },
+    ],
+    "operation": "LiquidateCreditAccount",
+    "remainingFunds": 13696679834106590048n,
+    "to": "0x16040e932b5Ac7A3aB23b88a2f230B4185727b0d",
+    "token": "0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "txHash": "0x73b80d27b4155b9102059aea61bed4e5e108ab25a30b1c06abb174eeae70b295",
+  },
+]

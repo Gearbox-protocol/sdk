@@ -5,6 +5,7 @@ on:
     branches:
       - "master"
       - "next"
+      - "tx_parser"
       - "*.x"
 
 env:

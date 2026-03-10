@@ -1,4 +1,5 @@
-import type { AbiParameter } from "viem";
+import type { AbiParameter, Address } from "viem";
+import type { LegacyAdapterOperation } from "./legacyAdapterOperations.js";
 
 export type VersionedAbi = Record<number, readonly AbiParameter[]>;
 
@@ -124,4 +125,63 @@ export enum AdapterType {
   UPSHIFT_VAULT = "UPSHIFT_VAULT",
   VELODROME_V2_ROUTER = "VELODROME_V2_ROUTER",
   YEARN_V2 = "YEARN_V2",
+}
+
+/**
+ * A single ERC-20 Transfer event captured between Execute boundaries.
+ */
+export interface TokenTransfer {
+  token: Address;
+  amount: bigint;
+  from: Address;
+  to: Address;
+}
+
+/**
+ * Parsed adapter operation to display in credit account transactions history
+ */
+export interface AdapterOperation {
+  operation: "Execute";
+  /**
+   * Address of Gearbox Adapter contract
+   */
+  adapter: Address;
+  /**
+   * Address of protocol contract (targetContract of adapter contract)
+   */
+  protocol: Address;
+  /**
+   * Namespaced adapter type
+   * E.g. "ADAPTER::FLUID_DEX"
+   */
+  adapterType: string;
+  /**
+   * Adapter contract version
+   */
+  version: number;
+  /**
+   * Label of protocol contract (NOT adapter contract)
+   */
+  label?: string;
+  /**
+   * Function name of adapter contract
+   */
+  adapterFunctionName: string;
+  /**
+   * Arguments of adapter contract
+   */
+  adapterArgs: Record<string, unknown>;
+  /**
+   * Function name protocol called by adapter
+   */
+  protocolFunctionName: string;
+  /**
+   * Arguments of protocol called by adapter
+   */
+  protocolArgs: Record<string, unknown>;
+  /**
+   * ERC20 transfer to and from credit account made during adapter call
+   */
+  transfers: TokenTransfer[];
+  legacy: LegacyAdapterOperation;
 }

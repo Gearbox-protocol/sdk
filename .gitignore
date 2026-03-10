@@ -10,12 +10,12 @@
 .turbo
 
 /node_modules/
-/*.log
 /lib
 .DS_Store
 /forge-out/
 /cache/
 /dist/
 /tmp/
+*.log
 .env
 example-state.json

@@ -1,37 +1,63 @@
-import { iUpshiftVaultAdapterAbi } from "@gearbox-protocol/integrations-v3";
+import {
+  iUpshiftVaultAdapterAbi,
+  iUpshiftVaultGatewayAbi,
+} from "@gearbox-protocol/integrations-v3";
 import { type Address, decodeAbiParameters } from "viem";
-import type { ConstructOptions } from "../../../sdk/index.js";
-import type { AbstractAdapterContractOptions } from "./AbstractAdapter.js";
+import {
+  type ConstructOptions,
+  MissingSerializedParamsError,
+} from "../../../sdk/index.js";
+import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
 const abi = iUpshiftVaultAdapterAbi;
 type abi = typeof abi;
 
-export class UpshiftVaultAdapterContract extends AbstractAdapterContract<abi> {
-  public readonly vault: Address;
-  public readonly asset: Address;
-  public readonly stakedPhantomToken: Address;
+const protocolAbi = iUpshiftVaultGatewayAbi;
+type protocolAbi = typeof protocolAbi;
 
-  constructor(
-    options: ConstructOptions,
-    args: Omit<AbstractAdapterContractOptions<abi>, "abi">,
-  ) {
-    super(options, { ...args, abi });
+export class UpshiftVaultAdapterContract extends AbstractAdapterContract<
+  abi,
+  protocolAbi
+> {
+  #vault?: Address;
+  #asset?: Address;
+  #stakedPhantomToken?: Address;
 
-    // Decode parameters directly using ABI decoding
-    const decoded = decodeAbiParameters(
-      [
-        { type: "address", name: "creditManager" },
-        { type: "address", name: "targetContract" },
-        { type: "address", name: "vault" },
-        { type: "address", name: "asset" },
-        { type: "address", name: "stakedPhantomToken" },
-      ],
-      args.baseParams.serializedParams,
-    );
+  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
+    super(options, { ...args, abi, protocolAbi });
 
-    this.vault = decoded[2];
-    this.asset = decoded[3];
-    this.stakedPhantomToken = decoded[4];
+    if (args.baseParams.serializedParams) {
+      const decoded = decodeAbiParameters(
+        [
+          { type: "address", name: "creditManager" },
+          { type: "address", name: "targetContract" },
+          { type: "address", name: "vault" },
+          { type: "address", name: "asset" },
+          { type: "address", name: "stakedPhantomToken" },
+        ],
+        args.baseParams.serializedParams,
+      );
+
+      this.#vault = decoded[2];
+      this.#asset = decoded[3];
+      this.#stakedPhantomToken = decoded[4];
+    }
+  }
+
+  get vault(): Address {
+    if (!this.#vault) throw new MissingSerializedParamsError("vault");
+    return this.#vault;
+  }
+
+  get asset(): Address {
+    if (!this.#asset) throw new MissingSerializedParamsError("asset");
+    return this.#asset;
+  }
+
+  get stakedPhantomToken(): Address {
+    if (!this.#stakedPhantomToken)
+      throw new MissingSerializedParamsError("stakedPhantomToken");
+    return this.#stakedPhantomToken;
   }
 }

@@ -1,34 +1,72 @@
 import { mellowDvvAdapterAbi } from "@gearbox-protocol/integrations-v3";
 import { type Address, decodeAbiParameters } from "viem";
-import type { ConstructOptions } from "../../../sdk/index.js";
-import type { AbstractAdapterContractOptions } from "./AbstractAdapter.js";
+import {
+  type ConstructOptions,
+  MissingSerializedParamsError,
+  type ParsedCallV2,
+} from "../../../sdk/index.js";
+import { iERC4626Abi } from "../abi/targetContractAbi.js";
+import type {
+  LegacyAdapterOperation,
+  Transfers,
+} from "../legacyAdapterOperations.js";
+import { fnSigToName, swapFromTransfers } from "../transferHelpers.js";
+import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
 const abi = mellowDvvAdapterAbi;
 type abi = typeof abi;
 
-export class MellowDVVAdapterContract extends AbstractAdapterContract<abi> {
-  public readonly vault: Address;
-  public readonly asset: Address;
+const protocolAbi = iERC4626Abi;
+type protocolAbi = typeof protocolAbi;
 
-  constructor(
-    options: ConstructOptions,
-    args: Omit<AbstractAdapterContractOptions<abi>, "abi">,
-  ) {
-    super(options, { ...args, abi });
+export class MellowDVVAdapterContract extends AbstractAdapterContract<
+  abi,
+  protocolAbi
+> {
+  #vault?: Address;
+  #asset?: Address;
 
-    // Decode parameters directly using ABI decoding
-    const decoded = decodeAbiParameters(
-      [
-        { type: "address", name: "creditManager" },
-        { type: "address", name: "targetContract" },
-        { type: "address", name: "vault" },
-        { type: "address", name: "asset" },
-      ],
-      args.baseParams.serializedParams,
-    );
+  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
+    super(options, { ...args, abi, protocolAbi });
 
-    this.vault = decoded[2];
-    this.asset = decoded[3];
+    if (args.baseParams.serializedParams) {
+      const decoded = decodeAbiParameters(
+        [
+          { type: "address", name: "creditManager" },
+          { type: "address", name: "targetContract" },
+          { type: "address", name: "vault" },
+          { type: "address", name: "asset" },
+        ],
+        args.baseParams.serializedParams,
+      );
+
+      this.#vault = decoded[2];
+      this.#asset = decoded[3];
+    }
+  }
+
+  get vault(): Address {
+    if (!this.#vault) throw new MissingSerializedParamsError("vault");
+    return this.#vault;
+  }
+
+  get asset(): Address {
+    if (!this.#asset) throw new MissingSerializedParamsError("asset");
+    return this.#asset;
+  }
+
+  /**
+   * @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type_v3.go#L32-L38
+   */
+  protected override classifyLegacyOperation(
+    parsed: ParsedCallV2,
+    transfers: Transfers,
+  ): LegacyAdapterOperation {
+    const fn = fnSigToName(parsed.functionName);
+    if (fn === "redeem" || fn === "redeemDiff") {
+      return { operation: "MakerRedeem", ...swapFromTransfers(transfers) };
+    }
+    return super.classifyLegacyOperation(parsed, transfers);
   }
 }

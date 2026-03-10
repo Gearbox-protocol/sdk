@@ -2,7 +2,7 @@ import type {
   AbiParametersToPrimitiveTypes,
   ExtractAbiFunction,
 } from "abitype";
-import type { Address, Hex } from "viem";
+import type { Address, Hex, PartialBy } from "viem";
 import type { creditAccountCompressorAbi } from "../../abi/compressors/creditAccountCompressor.js";
 import type { gaugeCompressorAbi } from "../../abi/compressors/gaugeCompressor.js";
 import type { marketCompressorAbi } from "../../abi/compressors/marketCompressor.js";
@@ -16,6 +16,16 @@ export interface BaseParams {
   version: bigint;
   contractType: Hex;
   serializedParams: Hex;
+}
+
+export interface RelaxedBaseParams {
+  addr: Address;
+  version: number | bigint;
+  /**
+   * Hex or parsed hex32 string
+   */
+  contractType: string;
+  serializedParams?: Hex;
 }
 
 export interface BaseState {
@@ -99,6 +109,24 @@ export interface ParsedCall {
   args: ParsedCallArgs;
 }
 
+export interface ParsedCallV2 {
+  chainId: number;
+  target: Address;
+  contractType: string;
+  label?: string;
+  version: number;
+  /**
+   * Function signature produced by viem's `toFunctionSignature`, e.g.:
+   * - `"balanceOf(address)"`
+   * - `"multicall(address,(address,bytes)[])"`
+   * - `"swap(uint256,uint256,bool)"`
+   *
+   * For unknown selectors: `"unknown function 0x1a2b3c4d"`
+   */
+  functionName: string;
+  rawArgs: Record<string, unknown>;
+}
+
 export interface IBaseContract {
   /**
    * Contract address
@@ -143,4 +171,10 @@ export interface IBaseContract {
    * Same as {@link stringifyFunctionData}, but throws if error occurs
    **/
   mustStringifyFunctionData: (calldata: Hex) => string;
+
+  /**
+   * Parses calldata into structured result with preserved original types.
+   * When strict is true, throws on unknown selectors; otherwise returns a fallback.
+   **/
+  parseFunctionDataV2: (calldata: Hex, strict?: boolean) => ParsedCallV2;
 }
