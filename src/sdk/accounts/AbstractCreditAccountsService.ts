@@ -858,7 +858,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
         : [];
     const unwrapCalls =
       collateral && isDecrease
-        ? (await this.getKYCUnwrapCalls(
+        ? (await this.getKYCWrapCalls(
             collateral[0].balance,
             creditAccount.creditManager,
           )) || []
