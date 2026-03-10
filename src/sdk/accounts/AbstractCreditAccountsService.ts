@@ -826,7 +826,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   public async changeDebt({
     creditAccount,
     amount,
-    addCollateral,
+    collateral,
   }: ChangeDeptProps): Promise<CreditAccountOperationResult> {
     if (amount === 0n) {
       throw new Error("debt increase or decrease must be non-zero");
@@ -844,18 +844,36 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     });
 
     const addCollateralCalls =
-      addCollateral && isDecrease
+      collateral && isDecrease
         ? this.prepareAddCollateral(
             creditAccount.creditFacade,
             [
               {
-                token: creditAccount.underlying,
-                balance: change,
+                token: collateral[0].token,
+                balance: collateral[0].balance,
               },
             ],
             {},
           )
         : [];
+    const unwrapCalls =
+      collateral && isDecrease
+        ? (await this.getKYCUnwrapCalls(
+            collateral[0].balance,
+            creditAccount.creditManager,
+          )) || []
+        : [];
+
+    if (
+      addCollateralCalls.length > 0 &&
+      unwrapCalls.length === 0 &&
+      collateral &&
+      collateral?.[0].token !== creditAccount.underlying
+    ) {
+      throw new Error(
+        "Can't use collateral other than underlying for non KYC market",
+      );
+    }
 
     const underlyingEnabled = (creditAccount.enabledTokensMask & 1n) === 1n;
     const shouldEnable = !isDecrease && !underlyingEnabled;
@@ -863,6 +881,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const calls: Array<MultiCall> = [
       ...priceUpdatesCalls,
       ...addCollateralCalls,
+      ...unwrapCalls,
       ...(shouldEnable
         ? this.#prepareEnableTokens(creditAccount.creditFacade, [
             creditAccount.underlying,

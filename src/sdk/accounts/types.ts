@@ -395,9 +395,9 @@ export interface ChangeDeptProps {
    */
   amount: bigint;
   /**
-   * If true, will add collateral to the credit account
+   * Assets to add as collateral
    */
-  addCollateral: boolean;
+  collateral?: [Asset];
 }
 
 export interface FullyLiquidateProps {
