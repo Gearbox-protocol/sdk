@@ -6,10 +6,15 @@ import { childLogger } from "../utils/index.js";
 import { ChainContractsRegister } from "./ChainContractsRegister.js";
 import type { TokensMeta } from "./TokensMeta.js";
 
-export interface ConstructOptions {
-  client: PublicClient<Transport, Chain>;
-  logger?: ILogger;
-}
+export type ConstructOptions =
+  | {
+      client: PublicClient<Transport, Chain>;
+      logger?: ILogger;
+    }
+  | {
+      register: ChainContractsRegister;
+      logger?: ILogger;
+    };
 
 export class Construct {
   public readonly logger?: ILogger;
@@ -20,9 +25,17 @@ export class Construct {
    */
   #dirty = false;
 
-  constructor({ client, logger }: ConstructOptions) {
-    this.client = client;
-    this.register = ChainContractsRegister.for(client, logger);
+  constructor(options: ConstructOptions) {
+    const { logger } = options;
+    if ("client" in options) {
+      const { client } = options;
+      this.client = client;
+      this.register = ChainContractsRegister.for(client, logger);
+    } else {
+      const { register } = options;
+      this.register = register;
+      this.client = register.client;
+    }
     this.logger = childLogger(
       this.constructor.name,
       this.register.logger ?? logger,

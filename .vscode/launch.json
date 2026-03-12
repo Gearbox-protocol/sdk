@@ -29,6 +29,16 @@
         // Ignore all dependencies (optional)
         // "${workspaceFolder}/node_modules/**",
       ]
+    },
+    {
+      "name": "Debug Vitest - Current File",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
+      "args": ["run", "${relativeFile}", "--no-file-parallelism"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**", "${workspaceFolder}/node_modules/**"]
     }
   ]
 }

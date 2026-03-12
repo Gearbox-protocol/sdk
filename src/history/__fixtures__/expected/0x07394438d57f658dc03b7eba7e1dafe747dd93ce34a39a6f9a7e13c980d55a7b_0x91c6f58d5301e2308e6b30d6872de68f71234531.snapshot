@@ -1,0 +1,12 @@
+[
+  {
+    "blockNumber": 24275651,
+    "creditAccount": "0x91c6f58d5301E2308E6B30d6872De68f71234531",
+    "creditFacade": "0x627b02ff8357278b879d6a670e1efcbb202e93ce",
+    "creditManager": "0x8c118e8c20cebbaa2467b735bbb8b13d614e6608",
+    "multicall": [],
+    "operation": "CloseCreditAccount",
+    "timestamp": 1768908047,
+    "txHash": "0x07394438d57f658dc03b7eba7e1dafe747dd93ce34a39a6f9a7e13c980d55a7b",
+  },
+]

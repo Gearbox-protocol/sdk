@@ -1,41 +1,67 @@
-import { iMidasRedemptionVaultAdapterAbi } from "@gearbox-protocol/integrations-v3";
+import {
+  iMidasRedemptionVaultAdapterAbi,
+  iMidasRedemptionVaultGatewayAbi,
+} from "@gearbox-protocol/integrations-v3";
 import { type Address, decodeAbiParameters } from "viem";
-import type { ConstructOptions } from "../../../sdk/index.js";
-import type { AbstractAdapterContractOptions } from "./AbstractAdapter.js";
+import {
+  type ConstructOptions,
+  MissingSerializedParamsError,
+} from "../../../sdk/index.js";
+import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
 const abi = iMidasRedemptionVaultAdapterAbi;
 type abi = typeof abi;
 
-export class MidasRedemptionVaultAdapterContract extends AbstractAdapterContract<abi> {
-  public readonly gateway: Address;
-  public readonly mToken: Address;
-  public readonly allowedTokens: { token: Address; phantomToken: Address }[];
+const protocolAbi = iMidasRedemptionVaultGatewayAbi;
+type protocolAbi = typeof protocolAbi;
 
-  constructor(
-    options: ConstructOptions,
-    args: Omit<AbstractAdapterContractOptions<abi>, "abi">,
-  ) {
-    super(options, { ...args, abi });
+export class MidasRedemptionVaultAdapterContract extends AbstractAdapterContract<
+  abi,
+  protocolAbi
+> {
+  #gateway?: Address;
+  #mToken?: Address;
+  #allowedTokens?: { token: Address; phantomToken: Address }[];
 
-    // Decode parameters directly using ABI decoding
-    const decoded = decodeAbiParameters(
-      [
-        { type: "address", name: "creditManager" },
-        { type: "address", name: "targetContract" },
-        { type: "address", name: "gateway" },
-        { type: "address", name: "mToken" },
-        { type: "address[]", name: "allowedTokens" },
-        { type: "address[]", name: "allowedPhantomTokens" },
-      ],
-      args.baseParams.serializedParams,
-    );
+  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
+    super(options, { ...args, abi, protocolAbi });
 
-    this.gateway = decoded[2];
-    this.mToken = decoded[3];
-    this.allowedTokens = decoded[4].map((token, index) => ({
-      token,
-      phantomToken: decoded[5][index],
-    }));
+    if (args.baseParams.serializedParams) {
+      const decoded = decodeAbiParameters(
+        [
+          { type: "address", name: "creditManager" },
+          { type: "address", name: "targetContract" },
+          { type: "address", name: "gateway" },
+          { type: "address", name: "mToken" },
+          { type: "address[]", name: "allowedTokens" },
+          { type: "address[]", name: "allowedPhantomTokens" },
+        ],
+        args.baseParams.serializedParams,
+      );
+
+      this.#gateway = decoded[2];
+      this.#mToken = decoded[3];
+      this.#allowedTokens = decoded[4].map((token, index) => ({
+        token,
+        phantomToken: decoded[5][index],
+      }));
+    }
+  }
+
+  get gateway(): Address {
+    if (!this.#gateway) throw new MissingSerializedParamsError("gateway");
+    return this.#gateway;
+  }
+
+  get mToken(): Address {
+    if (!this.#mToken) throw new MissingSerializedParamsError("mToken");
+    return this.#mToken;
+  }
+
+  get allowedTokens(): { token: Address; phantomToken: Address }[] {
+    if (!this.#allowedTokens)
+      throw new MissingSerializedParamsError("allowedTokens");
+    return this.#allowedTokens;
   }
 }

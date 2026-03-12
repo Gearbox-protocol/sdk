@@ -1,0 +1,41 @@
+[
+  {
+    "blockNumber": 24541784,
+    "creditAccount": "0xfc408a4994c622AfC7aFb474Dc02Ebc8cDf3C584",
+    "creditFacade": "0x4da50da058ad6cc96bb63edff55b534d2a2cbe92",
+    "creditManager": "0x1293a69e4ad4a93293a06b6303104be35bdd83af",
+    "multicall": [
+      {
+        "amount": 21539241112060593715n,
+        "operation": "DecreaseBorrowedAmount",
+        "token": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+      },
+      {
+        "amount": 22023570609403099333n,
+        "operation": "WithdrawCollateral",
+        "to": "0x8b19227d490E888D36714ef3cECc80148BC37482",
+        "token": "0x1A711A5BC48B5c1352C1882fA65dC14B5B9E829D",
+      },
+      {
+        "amount": 217568092041016098n,
+        "operation": "WithdrawCollateral",
+        "to": "0x3E965117A51186e41c2BB58b729A1e518A715e5F",
+        "token": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+      },
+    ],
+    "operation": "BotMulticall",
+    "timestamp": 1772117219,
+    "txHash": "0x3df2f68621486ac4110cbcee7a94d4575ac402b6f52071cf9772877a663fd886",
+  },
+  {
+    "amount": 21756809204101609813n,
+    "blockNumber": 24541784,
+    "creditAccount": "0xfc408a4994c622afc7afb474dc02ebc8cdf3c584",
+    "from": "0x339c0db4A0030c88b4A48aafE56CdBa23c8d4338",
+    "operation": "DirectTokenTransfer",
+    "protocol": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "timestamp": 1772117219,
+    "token": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "txHash": "0x3df2f68621486ac4110cbcee7a94d4575ac402b6f52071cf9772877a663fd886",
+  },
+]

@@ -5,7 +5,7 @@ import type { ILogger } from "../types/logger.js";
 import { AddressMap } from "../utils/AddressMap.js";
 import type { BaseContract } from "./BaseContract.js";
 import { TokensMeta } from "./TokensMeta.js";
-import type { ParsedCall } from "./types.js";
+import type { ParsedCall, ParsedCallV2 } from "./types.js";
 
 export type ContractOrInterface<T> = T extends Abi | readonly unknown[]
   ? BaseContract<T>
@@ -149,6 +149,48 @@ export class ChainContractsRegister {
   public parseMultiCall(calls: MultiCall[]): ParsedCall[] {
     return calls.map(call =>
       this.parseFunctionData(call.target, call.callData),
+    );
+  }
+
+  /**
+   * Parses calldata for a contract at the given address, preserving original types.
+   * When strict is true, throws on unknown address or selector; otherwise returns a fallback.
+   */
+  public parseFunctionDataV2(
+    address: Address,
+    calldata: Hex,
+    strict?: boolean,
+  ): ParsedCallV2 {
+    const contract = this.contracts.get(address);
+    if (contract) {
+      return contract.parseFunctionDataV2(calldata, strict);
+    }
+    if (strict) {
+      throw new Error(`contract ${address} not found on chain ${this.chainId}`);
+    }
+    const selector = calldata.slice(0, 10) as Hex;
+    const data = `0x${calldata.slice(10)}` as Hex;
+    return {
+      chainId: this.chainId,
+      target: address,
+      contractType: "",
+      label: this.labelAddress(address, true),
+      version: 0,
+      functionName: `unknown function ${selector}`,
+      rawArgs: { _data: data },
+    };
+  }
+
+  /**
+   * Parses multicalls preserving original types.
+   * When strict is true, throws on unknown targets or selectors.
+   */
+  public parseMultiCallV2(
+    calls: MultiCall[],
+    strict?: boolean,
+  ): ParsedCallV2[] {
+    return calls.map(call =>
+      this.parseFunctionDataV2(call.target, call.callData, strict),
     );
   }
 }

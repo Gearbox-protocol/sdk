@@ -1,31 +1,43 @@
 import { iBalancerV3WrapperAdapterAbi } from "@gearbox-protocol/integrations-v3";
 import { type Address, decodeAbiParameters } from "viem";
 import type { ConstructOptions } from "../../../sdk/index.js";
-import type { AbstractAdapterContractOptions } from "./AbstractAdapter.js";
+import { MissingSerializedParamsError } from "../../../sdk/index.js";
+import { iBalancerV3WrapperAbi } from "../abi/targetContractAbi.js";
+import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
 const abi = iBalancerV3WrapperAdapterAbi;
 type abi = typeof abi;
 
-export class BalancerV3WrapperAdapterContract extends AbstractAdapterContract<abi> {
-  public readonly balancerPoolToken: Address;
+const protocolAbi = iBalancerV3WrapperAbi;
+type protocolAbi = typeof protocolAbi;
 
-  constructor(
-    options: ConstructOptions,
-    args: Omit<AbstractAdapterContractOptions<abi>, "abi">,
-  ) {
-    super(options, { ...args, abi });
+export class BalancerV3WrapperAdapterContract extends AbstractAdapterContract<
+  abi,
+  protocolAbi
+> {
+  #balancerPoolToken?: Address;
 
-    // Decode parameters directly using ABI decoding
-    const decoded = decodeAbiParameters(
-      [
-        { type: "address", name: "creditManager" },
-        { type: "address", name: "targetContract" },
-        { type: "address", name: "balancerPoolToken" },
-      ],
-      args.baseParams.serializedParams,
-    );
+  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
+    super(options, { ...args, abi, protocolAbi });
 
-    this.balancerPoolToken = decoded[2];
+    if (args.baseParams.serializedParams) {
+      const decoded = decodeAbiParameters(
+        [
+          { type: "address", name: "creditManager" },
+          { type: "address", name: "targetContract" },
+          { type: "address", name: "balancerPoolToken" },
+        ],
+        args.baseParams.serializedParams,
+      );
+
+      this.#balancerPoolToken = decoded[2];
+    }
+  }
+
+  get balancerPoolToken(): Address {
+    if (!this.#balancerPoolToken)
+      throw new MissingSerializedParamsError("balancerPoolToken");
+    return this.#balancerPoolToken;
   }
 }

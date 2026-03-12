@@ -1,0 +1,25 @@
+[
+  {
+    "blockNumber": 24482310,
+    "creditAccount": "0x8071E781b7c524dd36A83E9efCCa02a47Bae5BEc",
+    "creditFacade": "0x30efb02202352290d1900bc76de0ab00a2a6dacb",
+    "creditManager": "0x1665ded8081d294f9ad24489a51c274ad7da7023",
+    "multicall": [
+      {
+        "amount": 56000000000000000000000n,
+        "operation": "WithdrawCollateral",
+        "phantomToken": "0x87FA6c0296c986D1C901d72571282D57916B964a",
+        "to": "0xa765A629f11f538F6d67e3fDF799BaEd1506017d",
+        "token": "0xBd5D4c539B3773086632416A4EC8ceF57c945319",
+      },
+      {
+        "change": -53292120000n,
+        "operation": "UpdateQuota",
+        "token": "0x87FA6c0296c986D1C901d72571282D57916B964a",
+      },
+    ],
+    "operation": "MultiCall",
+    "timestamp": 1771400711,
+    "txHash": "0x05ab6e36adf378e14caeadedf72668139801079606fc6ca825c689ac93d999e3",
+  },
+]

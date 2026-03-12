@@ -5,13 +5,6 @@ export enum BalancerV2PoolStatus {
   WITHDRAWAL_ONLY = 3,
 }
 
-export enum KodiakIslandStatus {
-  NOT_ALLOWED = 0,
-  ALLOWED = 1,
-  SWAP_AND_EXIT_ONLY = 2,
-  EXIT_ONLY = 3,
-}
-
 export enum PendleTokenType {
   PT = 0,
   LP = 1,
