@@ -131,6 +131,7 @@ export function createLegacyVisitor(
         txHash: op.txHash,
         blockNum: op.blockNumber,
         ...commonFields(op, params),
+        multicall,
         // TODO: missing legacy fields:
         // userFunds: require prices to compute as
         // sum of AddCollateral/WithdrawCollateral amounts denominated in underlying token.
@@ -138,7 +139,9 @@ export function createLegacyVisitor(
         //
         // leverage: (userFunds + borrowAmount) / userFunds
         // where borrowAmount = sum of IncreaseDebt amounts in multicall (computable from data)
-        multicall,
+        userFunds: "0",
+        initialFunds: "0",
+        leverage: "0",
       };
     },
     CloseCreditAccount(op, multicall) {
@@ -147,9 +150,10 @@ export function createLegacyVisitor(
         txHash: op.txHash,
         blockNum: op.blockNumber,
         ...commonFields(op, params),
+        multicall,
         // TODO: missing legacy fields:
         // remainingFunds:
-        multicall,
+        remainingFunds: "0",
       };
     },
     LiquidateCreditAccount(op, multicall) {
