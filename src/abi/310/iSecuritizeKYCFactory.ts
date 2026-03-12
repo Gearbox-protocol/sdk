@@ -1,23 +1,9 @@
 export const iSecuritizeKYCFactoryAbi = [
   {
     type: "function",
-    name: "addRegistrar",
-    inputs: [{ name: "registrar", type: "address", internalType: "address" }],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
     name: "contractType",
     inputs: [],
     outputs: [{ name: "", type: "bytes32", internalType: "bytes32" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "degenNFT",
-    inputs: [],
-    outputs: [{ name: "", type: "address", internalType: "address" }],
     stateMutability: "view",
   },
   {
@@ -29,9 +15,9 @@ export const iSecuritizeKYCFactoryAbi = [
   },
   {
     type: "function",
-    name: "getDSTokens",
+    name: "getDegenNFT",
     inputs: [],
-    outputs: [{ name: "", type: "address[]", internalType: "address[]" }],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
     stateMutability: "view",
   },
   {
@@ -40,22 +26,6 @@ export const iSecuritizeKYCFactoryAbi = [
     inputs: [
       { name: "creditAccount", type: "address", internalType: "address" },
     ],
-    outputs: [{ name: "", type: "address", internalType: "address" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getRegisteredTokens",
-    inputs: [
-      { name: "creditAccount", type: "address", internalType: "address" },
-    ],
-    outputs: [{ name: "", type: "address[]", internalType: "address[]" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getRegistrar",
-    inputs: [{ name: "token", type: "address", internalType: "address" }],
     outputs: [{ name: "", type: "address", internalType: "address" }],
     stateMutability: "view",
   },
@@ -70,15 +40,6 @@ export const iSecuritizeKYCFactoryAbi = [
   },
   {
     type: "function",
-    name: "isActiveCreditAccount",
-    inputs: [
-      { name: "creditAccount", type: "address", internalType: "address" },
-    ],
-    outputs: [{ name: "", type: "bool", internalType: "bool" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
     name: "isCreditAccount",
     inputs: [
       { name: "creditAccount", type: "address", internalType: "address" },
@@ -89,15 +50,6 @@ export const iSecuritizeKYCFactoryAbi = [
   {
     type: "function",
     name: "isFrozen",
-    inputs: [
-      { name: "creditAccount", type: "address", internalType: "address" },
-    ],
-    outputs: [{ name: "", type: "bool", internalType: "bool" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "isInactiveCreditAccount",
     inputs: [
       { name: "creditAccount", type: "address", internalType: "address" },
     ],
@@ -161,6 +113,13 @@ export const iSecuritizeKYCFactoryAbi = [
       { name: "investor", type: "address", internalType: "address" },
     ],
     outputs: [{ name: "", type: "address", internalType: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "serialize",
+    inputs: [],
+    outputs: [{ name: "serializedData", type: "bytes", internalType: "bytes" }],
     stateMutability: "view",
   },
   {
@@ -255,30 +214,6 @@ export const iSecuritizeKYCFactoryAbi = [
     anonymous: false,
   },
   {
-    type: "event",
-    name: "SetRegistrar",
-    inputs: [
-      {
-        name: "token",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-      {
-        name: "registrar",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "error",
-    name: "CallerIsNotInstanceOwnerException",
-    inputs: [{ name: "caller", type: "address", internalType: "address" }],
-  },
-  {
     type: "error",
     name: "CallerIsNotInvestorException",
     inputs: [
@@ -307,22 +242,9 @@ export const iSecuritizeKYCFactoryAbi = [
   },
   {
     type: "error",
-    name: "RegistrarNotSetForTokenException",
-    inputs: [{ name: "token", type: "address", internalType: "address" }],
-  },
-  {
-    type: "error",
     name: "UnknownCreditAccountException",
     inputs: [
       { name: "creditAccount", type: "address", internalType: "address" },
-    ],
-  },
-  {
-    type: "error",
-    name: "WalletCallExecutionFailedException",
-    inputs: [
-      { name: "index", type: "uint256", internalType: "uint256" },
-      { name: "reason", type: "bytes", internalType: "bytes" },
     ],
   },
   { type: "error", name: "ZeroAddressException", inputs: [] },

@@ -1,0 +1,236 @@
+export const iSecuritizeDegenNFTAbi = [
+  {
+    type: "function",
+    name: "addRegistrar",
+    inputs: [{ name: "registrar", type: "address", internalType: "address" }],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "burn",
+    inputs: [
+      { name: "wallet", type: "address", internalType: "address" },
+      { name: "", type: "uint256", internalType: "uint256" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "contractType",
+    inputs: [],
+    outputs: [{ name: "", type: "bytes32", internalType: "bytes32" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getDSTokens",
+    inputs: [],
+    outputs: [{ name: "", type: "address[]", internalType: "address[]" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getFactory",
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getOperators",
+    inputs: [{ name: "token", type: "address", internalType: "address" }],
+    outputs: [{ name: "", type: "address[]", internalType: "address[]" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getRegisteredTokens",
+    inputs: [
+      { name: "creditAccount", type: "address", internalType: "address" },
+    ],
+    outputs: [{ name: "", type: "address[]", internalType: "address[]" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getRegistrar",
+    inputs: [{ name: "token", type: "address", internalType: "address" }],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "isDSToken",
+    inputs: [{ name: "token", type: "address", internalType: "address" }],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "isOperator",
+    inputs: [
+      { name: "token", type: "address", internalType: "address" },
+      { name: "operator", type: "address", internalType: "address" },
+    ],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "mint",
+    inputs: [{ name: "wallet", type: "address", internalType: "address" }],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "registerCreditAccount",
+    inputs: [
+      { name: "creditAccount", type: "address", internalType: "address" },
+      { name: "tokens", type: "address[]", internalType: "address[]" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "registerHelperAccount",
+    inputs: [
+      { name: "creditAccount", type: "address", internalType: "address" },
+      { name: "helperAccount", type: "address", internalType: "address" },
+      { name: "token", type: "address", internalType: "address" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "serialize",
+    inputs: [],
+    outputs: [{ name: "serializedData", type: "bytes", internalType: "bytes" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "setOperatorStatus",
+    inputs: [
+      { name: "token", type: "address", internalType: "address" },
+      { name: "operator", type: "address", internalType: "address" },
+      { name: "approved", type: "bool", internalType: "bool" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "version",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "event",
+    name: "Burn",
+    inputs: [
+      {
+        name: "wallet",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "Mint",
+    inputs: [
+      {
+        name: "wallet",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "SetOperatorStatus",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "operator",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      { name: "approved", type: "bool", indexed: false, internalType: "bool" },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "SetRegistrar",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "registrar",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "error",
+    name: "CallerIsNotCreditFacadeException",
+    inputs: [{ name: "caller", type: "address", internalType: "address" }],
+  },
+  {
+    type: "error",
+    name: "CallerIsNotFactoryException",
+    inputs: [{ name: "caller", type: "address", internalType: "address" }],
+  },
+  {
+    type: "error",
+    name: "CallerIsNotInstanceOwnerException",
+    inputs: [{ name: "caller", type: "address", internalType: "address" }],
+  },
+  {
+    type: "error",
+    name: "CallerIsNotOperatorException",
+    inputs: [
+      { name: "token", type: "address", internalType: "address" },
+      { name: "caller", type: "address", internalType: "address" },
+    ],
+  },
+  {
+    type: "error",
+    name: "RegistrarNotSetForTokenException",
+    inputs: [{ name: "token", type: "address", internalType: "address" }],
+  },
+  {
+    type: "error",
+    name: "UnknownTokenException",
+    inputs: [{ name: "token", type: "address", internalType: "address" }],
+  },
+  {
+    type: "error",
+    name: "UnknownWalletException",
+    inputs: [{ name: "wallet", type: "address", internalType: "address" }],
+  },
+] as const;

@@ -1,4 +1,5 @@
 import type { Address } from "viem";
+import { iSecuritizeDegenNFTAbi } from "../../../abi/310/iSecuritizeDegenNFT.js";
 import { iSecuritizeKYCFactoryAbi } from "../../../abi/310/iSecuritizeKYCFactory.js";
 import type { ConstructOptions } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
@@ -10,6 +11,7 @@ type abi = typeof abi;
 
 export class SecuritizeKYCFactory extends BaseContract<abi> {
   private investorCache: AddressMap<Address> | undefined;
+  #degenNFT?: Address;
 
   constructor(options: ConstructOptions, address: Address) {
     super(options, {
@@ -56,7 +58,12 @@ export class SecuritizeKYCFactory extends BaseContract<abi> {
   }
 
   public async getDSTokens(): Promise<Address[]> {
-    const tokens = await this.contract.read.getDSTokens();
+    const degenNFT = await this.getDegenNFT();
+    const tokens = await this.client.readContract({
+      address: degenNFT,
+      abi: iSecuritizeDegenNFTAbi,
+      functionName: "getDSTokens",
+    });
     return [...tokens];
   }
 
@@ -80,5 +87,12 @@ export class SecuritizeKYCFactory extends BaseContract<abi> {
       functionName: "openCreditAccount",
       args: [creditManager, calls, tokensToRegister],
     });
+  }
+
+  public async getDegenNFT(): Promise<Address> {
+    if (!this.#degenNFT) {
+      this.#degenNFT = await this.contract.read.getDegenNFT();
+    }
+    return this.#degenNFT;
   }
 }
