@@ -1,5 +1,5 @@
-import type { Address, Hex } from "viem";
-import { decodeAbiParameters } from "viem";
+import type { Address, ContractFunctionParameters, Hex } from "viem";
+import { decodeAbiParameters, parseAbi } from "viem";
 
 import { pythPriceFeedAbi } from "../../abi/oracles.js";
 import type { ConstructOptions } from "../../base/Construct.js";
@@ -10,6 +10,11 @@ import type { IUpdatablePriceFeedContract } from "./types.js";
 
 const abi = pythPriceFeedAbi;
 type abi = typeof abi;
+
+const iPythAbi = parseAbi([
+  "function getUpdateFee(bytes[] calldata updateData) external view returns (uint256 feeAmount)",
+]);
+type iPythAbi = typeof iPythAbi;
 
 export class PythPriceFeed
   extends AbstractPriceFeedContract<abi>
@@ -65,5 +70,25 @@ export class PythPriceFeed
       args: [data],
       description: `updating pyth price for ${this.priceFeedId} [${this.labelAddress(this.address)}]`,
     });
+  }
+
+  /**
+   * Returns contract function parameters for the getUpdateFee function on original Pyth contract
+   * @param calldata
+   * @returns
+   */
+  public getUpdateFeeParams(
+    calldata: Hex,
+  ): ContractFunctionParameters<iPythAbi, "view", "getUpdateFee"> {
+    const [, updateData] = decodeAbiParameters(
+      [{ type: "uint256" }, { type: "bytes[]" }],
+      calldata,
+    );
+    return {
+      address: this.pyth,
+      abi: iPythAbi,
+      functionName: "getUpdateFee",
+      args: [updateData],
+    };
   }
 }
