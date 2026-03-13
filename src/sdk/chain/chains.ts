@@ -24,7 +24,8 @@ export type Curator =
   | "cp0x"
   | "Re7"
   | "Invariant Group"
-  | "Tulipa";
+  | "Tulipa"
+  | "Hermes Test Curator";
 
 export interface GearboxChain extends Chain {
   network: NetworkType;
@@ -101,7 +102,9 @@ export const chains: Record<NetworkType, GearboxChain> = {
       },
       testMarketConfigurators: {
         "0x09d8305F49374AEA6A78aF6C996df2913e8f3b19": "Tulipa",
-      },
+      
+        "0x3000000000000000000000000000000000000031": "Hermes Test Curator",
+},
       isPublic: true,
       wellKnownToken: {
         address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
