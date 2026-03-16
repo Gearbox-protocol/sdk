@@ -8,6 +8,7 @@ import {
   type PublicClient,
   type Transport,
 } from "viem";
+import { iSecuritizeDegenNFTAbi } from "../../abi/310/iSecuritizeDegenNFT.js";
 import { iSecuritizeKYCFactoryAbi } from "../../abi/310/iSecuritizeKYCFactory.js";
 import { iStateSerializerAbi } from "../../abi/iStateSerializer.js";
 import { iVersionAbi } from "../../abi/iVersion.js";
@@ -309,16 +310,30 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
   }
 
   async #loadDSTokens(kycFactories: AddressSet): Promise<void> {
-    const resp = await this.#client.multicall({
-      contracts: kycFactories.map(address => ({
-        address,
-        abi: iSecuritizeKYCFactoryAbi,
-        functionName: "getDSTokens",
-      })),
+    const degenNFTs = await this.#client.multicall({
+      contracts: kycFactories.map(address => {
+        return {
+          address,
+          abi: iSecuritizeKYCFactoryAbi,
+          functionName: "getDegenNFT",
+        } as const;
+      }),
       allowFailure: false,
       batchSize: 0,
     });
-    const dsToken = new AddressSet(resp.flat() as Address[]);
+
+    const resp = await this.#client.multicall({
+      contracts: degenNFTs.map(address => {
+        return {
+          address,
+          abi: iSecuritizeDegenNFTAbi,
+          functionName: "getDSTokens",
+        } as const;
+      }),
+      allowFailure: false,
+      batchSize: 0,
+    });
+    const dsToken = new AddressSet(resp.flat());
     // if token does not exist in tokensMeta, load symbol, name, decimals
     const tokensToLoad = dsToken.difference(new Set(this.keys()));
     this.#logger?.debug(
