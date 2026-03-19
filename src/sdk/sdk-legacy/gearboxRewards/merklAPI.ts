@@ -1,5 +1,5 @@
+import axios from "axios";
 import type { Address } from "viem";
-
 import type { BigNumberish } from "../utils/formatter.js";
 
 interface UserOptions {
@@ -44,6 +44,19 @@ interface MerkleXYZChain {
 // https://api.merkl.xyz/v3/campaignsForMainParameter?chainId=1&mainParameter=0xE2037090f896A858E3168B978668F22026AC52e7
 
 export class MerkleXYZApi {
-  static getUserRewardsUrl = (options: UserOptions) =>
-    `https://api.merkl.xyz/v4/users/${options.params.user}/rewards?chainId=${options.params.chainId}`;
+  private constructor() {}
+
+  static defaultDomain = "https://api.merkl.xyz";
+  static angleDomain = "https://api-merkl.angle.money";
+
+  static fetchWithFallback = async <T>(getUrl: (domain: string) => string) => {
+    try {
+      return await axios.get<T>(getUrl(MerkleXYZApi.defaultDomain));
+    } catch {
+      return await axios.get<T>(getUrl(MerkleXYZApi.angleDomain));
+    }
+  };
+
+  static getUserRewardsUrl = (options: UserOptions) => (domain: string) =>
+    `${domain}/v4/users/${options.params.user}/rewards?chainId=${options.params.chainId}`;
 }

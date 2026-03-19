@@ -128,6 +128,8 @@ export interface ClaimLmRewardsV3Props {
 }
 
 export class GearboxRewardsApi {
+  private constructor() {}
+
   static async getLmRewardsV2({
     provider,
     account,
@@ -311,7 +313,7 @@ export class GearboxRewardsApi {
     reportError,
   }: GetLmRewardsMerkleProps) {
     const [merkleXYZLMResponse] = await Promise.allSettled([
-      axios.get<MerkleXYZUserRewardsV4Response>(
+      MerkleXYZApi.fetchWithFallback<MerkleXYZUserRewardsV4Response>(
         MerkleXYZApi.getUserRewardsUrl({
           params: {
             chainId: chains[network].id,
