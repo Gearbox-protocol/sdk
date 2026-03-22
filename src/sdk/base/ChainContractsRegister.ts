@@ -50,9 +50,9 @@ export class ChainContractsRegister {
     this.logger?.debug(
       `resetting contacts register with ${this.contracts.size} contracts`,
     );
-    this.labels.clear();
+    // this.labels.clear();
     this.contracts.clear();
-    this.tokensMeta.reset();
+    // this.tokensMeta.reset();
   }
 
   public getContract<T = unknown[]>(
