@@ -175,7 +175,7 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
       );
       return {
         ...result,
-        label: `${this.register.labelAddress(target, true)} via ${result.label}`,
+        label: `${this.labelAddress(target, true)} via ${result.label}`,
       };
     }
 

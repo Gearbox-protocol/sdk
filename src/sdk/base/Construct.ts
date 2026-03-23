@@ -80,8 +80,8 @@ export class Construct {
    * @param address
    * @returns
    */
-  protected labelAddress(address: Address): string {
-    return this.register.labelAddress(address);
+  protected labelAddress(address: Address, omitAddress?: boolean): string {
+    return this.register.labelAddress(address, omitAddress);
   }
 
   /**
