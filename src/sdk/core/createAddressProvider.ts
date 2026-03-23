@@ -1,17 +1,15 @@
 import type { Address } from "viem";
 
-import { iVersionAbi } from "../../../abi/iVersion.js";
-import type { NetworkType } from "../../chain/chains.js";
+import { iVersionAbi } from "../../abi/iVersion.js";
+import type { NetworkType } from "../chain/chains.js";
 import {
   ADDRESS_PROVIDER_V310,
   AP_MARKET_COMPRESSOR,
   AP_PRICE_FEED_COMPRESSOR,
-  isV300,
   isV310,
-} from "../../constants/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
-import { hexEq } from "../../utils/hex.js";
-import { AddressProviderV300Contract } from "./AddressProviderV300Contract.js";
+} from "../constants/index.js";
+import type { GearboxSDK } from "../GearboxSDK.js";
+import { hexEq } from "../utils/hex.js";
 import { AddressProviderV310Contract } from "./AddressProviderV310Contract.js";
 import type {
   AddressProviderAddresses,
@@ -22,6 +20,7 @@ import type {
 const OVERRIDE_ADDRESSES: Partial<
   Record<NetworkType, AddressProviderAddresses["overrides"]>
 > = {
+  // TODO: remove this
   // Override price feed compressor and market feed compressor
   // we urgently deployed fix and it has not been added to the address provider yet
   Mainnet: {
@@ -69,9 +68,6 @@ function newAddressProvider(
     addresses,
     overrides: OVERRIDE_ADDRESSES[sdk.networkType],
   };
-  if (isV300(version)) {
-    return new AddressProviderV300Contract(sdk, address, version, addrOptions);
-  }
   if (isV310(version)) {
     return new AddressProviderV310Contract(sdk, address, version, addrOptions);
   }

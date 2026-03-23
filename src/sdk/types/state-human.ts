@@ -61,10 +61,6 @@ export interface LPPriceFeedStateHuman extends BasePriceFeedStateHuman {
   lpToken: Address;
   lowerBound: bigint;
   upperBound: bigint;
-  // v3.0 optionals
-  exchangeRate?: string;
-  aggregatePrice?: string;
-  scale?: string;
 }
 
 export interface BalancerWeightedPriceFeedStateHuman

@@ -14,10 +14,6 @@ import type { GearboxSDK } from "../GearboxSDK.js";
 import type { PriceUpdateV310 } from "../market/index.js";
 import type { Asset } from "../router/types.js";
 import type {
-  CreditAccountData_Legacy,
-  CreditManagerData_Legacy,
-} from "../sdk-legacy/index.js";
-import type {
   MigrateCreditAccountProps,
   PreviewCreditAccountMigrationProps,
   PreviewMigrationResult,

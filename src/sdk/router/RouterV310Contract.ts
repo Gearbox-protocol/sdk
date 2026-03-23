@@ -2,25 +2,19 @@ import { type Address, getAddress } from "viem";
 import { gearboxRouterAbi } from "../../abi/router/gearboxRouter.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import type { IPriceOracleContract } from "../market/index.js";
-import { BigIntMath } from "../sdk-legacy/index.js";
 import { AddressMap } from "../utils/AddressMap.js";
 import { formatBN } from "../utils/formatter.js";
 import { isDust } from "../utils/index.js";
-import type { Leftovers } from "./AbstractRouterContract.js";
 import { AbstractRouterContract } from "./AbstractRouterContract.js";
 import { assetsMap, balancesMap, limitLeftover } from "./helpers.js";
 import type {
   Asset,
-  ExpectedAndLeftoverOptions,
-  FindAllSwapsProps,
   FindBestClosePathProps,
   FindClaimAllRewardsProps,
-  FindClosePathInput,
   FindOneTokenPathProps,
   FindOpenStrategyPathProps,
   IRouterContract,
   OpenStrategyResult,
-  RouterCASlice,
   RouterCloseResult,
   RouterCMSlice,
   RouterResult,
@@ -29,8 +23,6 @@ import type {
 
 const abi = gearboxRouterAbi;
 type abi = typeof abi;
-
-const ERR_NOT_IMPLEMENTED = new Error("Not implemented in router v3.1");
 
 interface TokenData {
   token: Address;
@@ -190,12 +182,6 @@ export class RouterV310Contract
       props.creditAccount.creditAccount,
       tData,
     ]);
-
-    if (props.calls.length > 0 && result.length === 0 && !!props.forceCalls) {
-      return {
-        calls: [...props.calls],
-      };
-    }
 
     return {
       calls: [...result],
@@ -396,34 +382,6 @@ export class RouterV310Contract
       claimRewards: t.claimRewards,
     }));
   }
-
-  /**
-   * Implements {@link IRouterContract.findAllSwaps}
-   * @deprecated v3.0 legacy method
-   */
-  public findAllSwaps(_: FindAllSwapsProps): Promise<RouterResult[]> {
-    throw ERR_NOT_IMPLEMENTED;
-  }
-
-  /**
-   * Implements {@link IRouterContract.getAvailableConnectors}
-   * @deprecated v3.0 legacy method
-   */
-  public getAvailableConnectors(_: Address[]): Address[] {
-    throw ERR_NOT_IMPLEMENTED;
-  }
-
-  /**
-   * Implements {@link IRouterContract.getFindClosePathInput}
-   * @deprecated v3.0 legacy method
-   */
-  public getFindClosePathInput(
-    _: RouterCASlice,
-    __: RouterCMSlice,
-    ___?: ExpectedAndLeftoverOptions,
-  ): FindClosePathInput {
-    throw ERR_NOT_IMPLEMENTED;
-  }
 }
 
 /**
@@ -462,10 +420,9 @@ function balancesAfterOpen(
     if (t === targetAddr) {
       result[t] = (expected.get(t) ?? 0n) + targetAmount;
     } else {
-      result[t] = BigIntMath.min(
-        expected.get(t) ?? 0n,
-        limitLeftover(leftover.get(t), t) ?? 0n,
-      );
+      const exp = expected.get(t) ?? 0n;
+      const left = limitLeftover(leftover.get(t), t) ?? 0n;
+      result[t] = exp < left ? exp : left;
     }
   }
   return result;

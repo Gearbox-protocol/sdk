@@ -45,7 +45,6 @@ async function example(): Promise<void> {
       degen: new DegenDistributorsPlugin(true),
       pools7DAgo: new Pools7DAgoPlugin(true),
       accountsCounter: new AccountsCounterPlugin(true),
-      // stalenessV300: V300StalenessPeriodPlugin,
     },
     redstone: {
       ignoreMissingFeeds: true,
@@ -70,7 +69,6 @@ async function example(): Promise<void> {
   //       degen: new DegenDistributorsPlugin(false),
   //       pools7DAgo: new Pools7DAgoPlugin(false),
   //       accountsCounter: new AccountsCounterPlugin(false),
-  //       // stalenessV300: V300StalenessPeriodPlugin,
   //     },
   //     rpcURLs: [RPC],
   //     timeout: 480_000,

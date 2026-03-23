@@ -1,9 +1,5 @@
 import { type Address, decodeAbiParameters, type Hex, stringToHex } from "viem";
-import {
-  BaseContract,
-  formatPercentage,
-  type GearboxSDK,
-} from "../../sdk/index.js";
+import { BaseContract, type GearboxSDK, percentFmt } from "../../sdk/index.js";
 import { iPartialLiquidationBotV310Abi } from "./abi/index.js";
 import { BOT_PARAMS_ABI, type BotStateV310Human } from "./types.js";
 
@@ -45,10 +41,10 @@ export class PartialLiquidationBotV310Contract extends BaseContract<abi> {
     return {
       ...super.stateHuman(raw),
       treasury: this.treasury,
-      minHealthFactor: formatPercentage(this.minHealthFactor),
-      maxHealthFactor: formatPercentage(this.maxHealthFactor),
-      premiumScaleFactor: formatPercentage(this.premiumScaleFactor),
-      feeScaleFactor: formatPercentage(this.feeScaleFactor),
+      minHealthFactor: percentFmt(this.minHealthFactor, raw),
+      maxHealthFactor: percentFmt(this.maxHealthFactor, raw),
+      premiumScaleFactor: percentFmt(this.premiumScaleFactor, raw),
+      feeScaleFactor: percentFmt(this.feeScaleFactor, raw),
     };
   }
 

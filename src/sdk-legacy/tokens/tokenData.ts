@@ -1,6 +1,5 @@
 import type { Address } from "viem";
 
-import type { SupportedToken } from "../../sdk-gov-legacy/index.js";
 import type { PartialRecord } from "../../utils/index.js";
 import { GearboxBackendApi } from "../core/endpoint.js";
 
@@ -8,7 +7,7 @@ export interface TokenDataPayload {
   addr: Address;
 
   // token real symbol
-  symbol: SupportedToken;
+  symbol: string;
   // token human-readable symbol
   title?: string;
   // token full name

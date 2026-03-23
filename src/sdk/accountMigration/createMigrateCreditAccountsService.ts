@@ -1,7 +1,6 @@
-import { isV300, isV310 } from "../constants/index.js";
+import { isV310 } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import type { AbstractMigrateCreditAccountsService } from "./AbstractMigrateCreditAccountsService.js";
-import { MigrateCreditAccountsServiceV300 } from "./MigrateCreditAccountsServiceV300.js";
 import { MigrateCreditAccountsServiceV310 } from "./MigrateCreditAccountsServiceV310.js";
 
 /**
@@ -13,9 +12,6 @@ export function createMigrateCreditAccountsService(
   sdk: GearboxSDK,
   version: number,
 ): AbstractMigrateCreditAccountsService {
-  if (isV300(version)) {
-    return new MigrateCreditAccountsServiceV300(sdk, version);
-  }
   if (isV310(version)) {
     return new MigrateCreditAccountsServiceV310(sdk, version);
   }

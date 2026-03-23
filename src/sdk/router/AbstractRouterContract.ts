@@ -5,15 +5,12 @@ import { PERCENTAGE_FACTOR } from "../constants/math.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import type { IPriceOracleContract } from "../market/index.js";
 import { AddressMap, AddressSet, formatBN, isDust } from "../utils/index.js";
-import type { IHooks } from "../utils/internal/index.js";
-import { Hooks } from "../utils/internal/index.js";
 import { limitLeftover } from "./helpers.js";
 import type {
   Asset,
   ExpectedAndLeftoverOptions,
   RouterCASlice,
   RouterCMSlice,
-  RouterHooks,
 } from "./types.js";
 
 export interface Leftovers {
@@ -23,15 +20,8 @@ export interface Leftovers {
 }
 
 export abstract class AbstractRouterContract<
-    abi extends Abi | readonly unknown[],
-  >
-  extends BaseContract<abi>
-  implements IHooks<RouterHooks>
-{
-  protected readonly hooks = new Hooks<RouterHooks>();
-
-  public readonly addHook = this.hooks.addHook.bind(this.hooks);
-  public readonly removeHook = this.hooks.removeHook.bind(this.hooks);
+  abi extends Abi | readonly unknown[],
+> extends BaseContract<abi> {
   public readonly sdk: GearboxSDK;
 
   constructor(sdk: GearboxSDK, args: BaseContractArgs<abi>) {

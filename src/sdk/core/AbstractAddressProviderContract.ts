@@ -1,11 +1,11 @@
 import { type Abi, type Address, hexToString, isHex, stringToHex } from "viem";
 
-import type { BaseContractArgs } from "../../base/BaseContract.js";
-import { BaseContract, type ConstructOptions } from "../../base/index.js";
-import type { VersionRange } from "../../constants/index.js";
-import { NO_VERSION } from "../../constants/index.js";
-import type { AddressProviderV3StateHuman } from "../../types/index.js";
-import { TypedObjectUtils } from "../../utils/mappers.js";
+import type { BaseContractArgs } from "../base/BaseContract.js";
+import { BaseContract, type ConstructOptions } from "../base/index.js";
+import type { VersionRange } from "../constants/index.js";
+import { NO_VERSION } from "../constants/index.js";
+import type { AddressProviderV3StateHuman } from "../types/index.js";
+import { TypedObjectUtils } from "../utils/mappers.js";
 import type {
   AddressProviderAddresses,
   AddressProviderState,

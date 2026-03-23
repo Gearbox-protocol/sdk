@@ -1,15 +1,14 @@
 import type { Address, Hex } from "viem";
 import { encodeFunctionData, getAddress, getContract } from "viem";
-import { iBotListV310Abi } from "../../abi/310/generated.js";
+import {
+  iBotListV310Abi,
+  iCreditFacadeMulticallV310Abi,
+} from "../../abi/310/generated.js";
 import { creditAccountCompressorAbi } from "../../abi/compressors/creditAccountCompressor.js";
 import { peripheryCompressorAbi } from "../../abi/compressors/peripheryCompressor.js";
 import { rewardsCompressorAbi } from "../../abi/compressors/rewardsCompressor.js";
 import { iWithdrawalCompressorV310Abi } from "../../abi/IWithdrawalCompressorV310.js";
 import { iBaseRewardPoolAbi } from "../../abi/iBaseRewardPool.js";
-import {
-  iBotListV300Abi,
-  iCreditFacadeV300MulticallAbi,
-} from "../../abi/v300.js";
 import type { CreditAccountData } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
 import { chains } from "../chain/chains.js";
@@ -18,7 +17,6 @@ import {
   AP_CREDIT_ACCOUNT_COMPRESSOR,
   AP_PERIPHERY_COMPRESSOR,
   AP_REWARDS_COMPRESSOR,
-  isV300,
   MAX_UINT256,
   MIN_INT96,
   PERCENTAGE_FACTOR,
@@ -30,12 +28,10 @@ import type {
   IPriceFeedContract,
   IPriceOracleContract,
   OnDemandPriceUpdates,
-  PriceUpdateV300,
   PriceUpdateV310,
   UpdatePriceFeedsResult,
 } from "../market/index.js";
 import { type Asset, assetsMap, type RouterCASlice } from "../router/index.js";
-import { BigIntMath } from "../sdk-legacy/index.js";
 import type { IPriceUpdateTx, MultiCall } from "../types/index.js";
 import { AddressMap } from "../utils/index.js";
 import { simulateWithPriceUpdates } from "../utils/viem/index.js";
@@ -49,7 +45,6 @@ import type {
   CreditAccountFilter,
   CreditAccountOperationResult,
   CreditManagerFilter,
-  EnableTokensProps,
   ExecuteSwapProps,
   FullyLiquidateProps,
   FullyLiquidateResult,
@@ -350,14 +345,10 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
               );
 
               return {
-                abi: isV300(cm.creditFacade.version)
-                  ? iBotListV300Abi
-                  : iBotListV310Abi,
+                abi: iBotListV310Abi,
                 address: cm.creditFacade.botList,
                 functionName: "getBotStatus",
-                args: isV300(cm.creditFacade.version)
-                  ? [legacyMigrationBot, ca.creditManager, ca.creditAccount]
-                  : [legacyMigrationBot, ca.creditAccount],
+                args: [legacyMigrationBot, ca.creditAccount],
               } as const;
             })
           : []),
@@ -368,14 +359,10 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
 
           return additionalBots.map(bot => {
             return {
-              abi: isV300(cm.creditFacade.version)
-                ? iBotListV300Abi
-                : iBotListV310Abi,
+              abi: iBotListV310Abi,
               address: cm.creditFacade.botList,
               functionName: "getBotStatus",
-              args: isV300(cm.creditFacade.version)
-                ? [bot, ca.creditManager, ca.creditAccount]
-                : [bot, ca.creditAccount],
+              args: [bot, ca.creditAccount],
             } as const;
           });
         }),
@@ -478,7 +465,6 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       account,
       to,
       slippage = 50n,
-      force = false,
       keepAssets,
       ignoreReservePrices,
       applyLossPolicy,
@@ -491,7 +477,6 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
         creditAccount: account,
         creditManager: cm.creditManager,
         slippage,
-        force,
         keepAssets,
         debtOnly,
       });
@@ -572,7 +557,6 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       ...routerCloseResult.calls,
       ...this.prepareDisableQuotas(ca),
       ...this.prepareDecreaseDebt(ca),
-      ...this.prepareDisableTokens(ca),
       ...assetsToWithdraw.map(t =>
         this.prepareWithdrawToken(ca.creditFacade, t, MAX_UINT256, to),
       ),
@@ -686,7 +670,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       throw new Error("debt increase or decrease must be non-zero");
     }
     const isDecrease = amount < 0n;
-    const change = BigIntMath.abs(amount);
+    const change = amount > 0n ? amount : -amount;
 
     const cm = this.sdk.marketRegister.findCreditManager(
       creditAccount.creditManager,
@@ -711,17 +695,9 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
           )
         : [];
 
-    const underlyingEnabled = (creditAccount.enabledTokensMask & 1n) === 1n;
-    const shouldEnable = !isDecrease && !underlyingEnabled;
-
     const calls: Array<MultiCall> = [
       ...priceUpdatesCalls,
       ...addCollateralCalls,
-      ...(shouldEnable
-        ? this.#prepareEnableTokens(creditAccount.creditFacade, [
-            creditAccount.underlying,
-          ])
-        : []),
       this.#prepareChangeDebt(creditAccount.creditFacade, change, isDecrease),
     ];
 
@@ -867,12 +843,12 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const storeExpectedBalances: MultiCall = {
       target: cm.creditFacade.address,
       callData: encodeFunctionData({
-        abi: iCreditFacadeV300MulticallAbi,
+        abi: iCreditFacadeMulticallV310Abi,
         functionName: "storeExpectedBalances",
         args: [
           balances.map(([token, amount]) => ({
             token: token as Address,
-            amount: BigIntMath.max(0n, amount - 10n),
+            amount: amount > 10n ? amount - 10n : 0n,
           })),
         ],
       }),
@@ -880,7 +856,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const compareBalances: MultiCall = {
       target: cm.creditFacade.address,
       callData: encodeFunctionData({
-        abi: iCreditFacadeV300MulticallAbi,
+        abi: iCreditFacadeMulticallV310Abi,
         functionName: "compareBalances",
         args: [],
       }),
@@ -941,12 +917,12 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const storeExpectedBalances: MultiCall = {
       target: cm.creditFacade.address,
       callData: encodeFunctionData({
-        abi: iCreditFacadeV300MulticallAbi,
+        abi: iCreditFacadeMulticallV310Abi,
         functionName: "storeExpectedBalances",
         args: [
           balances.map(([token, amount]) => ({
             token: token as Address,
-            amount: BigIntMath.max(0n, amount - 10n),
+            amount: amount > 10n ? amount - 10n : 0n,
           })),
         ],
       }),
@@ -954,7 +930,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const compareBalances: MultiCall = {
       target: cm.creditFacade.address,
       callData: encodeFunctionData({
-        abi: iCreditFacadeV300MulticallAbi,
+        abi: iCreditFacadeMulticallV310Abi,
         functionName: "compareBalances",
         args: [],
       }),
@@ -984,38 +960,6 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     ];
 
     const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
-
-    return { tx, calls, creditFacade: cm.creditFacade };
-  }
-
-  /**
-   * Executes enable/disable tokens specified by given tokens lists and token prices
-   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice} on which operation is performed
-   * @param {Array<Asset>} enabledTokens - list of tokens to enable {@link Asset};
-   * @param {Array<Asset>} disabledTokens - list of tokens to disable {@link Asset};
-   * @returns All necessary data to execute the transaction (call, credit facade)
-   */
-  public async enableTokens({
-    enabledTokens,
-    disabledTokens,
-    creditAccount: ca,
-  }: EnableTokensProps): Promise<CreditAccountOperationResult> {
-    const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
-
-    const priceUpdatesCalls = await this.getPriceUpdatesForFacade({
-      creditManager: ca.creditManager,
-      creditAccount: ca,
-    });
-
-    const calls = [
-      ...priceUpdatesCalls,
-      ...disabledTokens.map(token =>
-        this.prepareDisableToken(ca.creditFacade, token),
-      ),
-      ...this.#prepareEnableTokens(ca.creditFacade, enabledTokens),
-    ];
-
-    const tx = cm.creditFacade.multicall(ca.creditAccount, calls);
 
     return { tx, calls, creditFacade: cm.creditFacade };
   }
@@ -1301,7 +1245,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
    */
   public async getOnDemandPriceUpdates(
     options: PriceUpdatesOptions,
-  ): Promise<OnDemandPriceUpdates<PriceUpdateV310 | PriceUpdateV300>> {
+  ): Promise<OnDemandPriceUpdates<PriceUpdateV310>> {
     const { creditManager, creditAccount } = options;
     const market = this.sdk.marketRegister.findByCreditManager(creditManager);
     const cm = this.sdk.marketRegister.findCreditManager(creditManager);
@@ -1338,7 +1282,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
         calls.push({
           target: ca.creditFacade,
           callData: encodeFunctionData({
-            abi: iCreditFacadeV300MulticallAbi,
+            abi: iCreditFacadeMulticallV310Abi,
             functionName: "updateQuota",
             args: [token, MIN_INT96, 0n],
           }),
@@ -1361,7 +1305,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       return {
         target: creditFacade,
         callData: encodeFunctionData({
-          abi: iCreditFacadeV300MulticallAbi,
+          abi: iCreditFacadeMulticallV310Abi,
           functionName: "updateQuota",
           args: [q.token, q.balance, min],
         }),
@@ -1377,7 +1321,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
         {
           target: ca.creditFacade,
           callData: encodeFunctionData({
-            abi: iCreditFacadeV300MulticallAbi,
+            abi: iCreditFacadeMulticallV310Abi,
             functionName: "decreaseDebt",
             args: [MAX_UINT256],
           }),
@@ -1385,45 +1329,6 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       ];
     }
     return [];
-  }
-
-  protected prepareDisableTokens(ca: RouterCASlice): Array<MultiCall> {
-    const calls: Array<MultiCall> = [];
-    for (const t of ca.tokens) {
-      const isEnabled = (t.mask & ca.enabledTokensMask) !== 0n;
-
-      if (t.token !== ca.underlying && isEnabled && t.quota === 0n) {
-        calls.push(this.prepareDisableToken(ca.creditFacade, t.token));
-      }
-    }
-    return calls;
-  }
-  protected prepareDisableToken(
-    creditFacade: Address,
-    token: Address,
-  ): MultiCall {
-    return {
-      target: creditFacade,
-      callData: encodeFunctionData({
-        abi: iCreditFacadeV300MulticallAbi,
-        functionName: "disableToken",
-        args: [token],
-      }),
-    };
-  }
-
-  #prepareEnableTokens(
-    creditFacade: Address,
-    tokens: Array<Address>,
-  ): Array<MultiCall> {
-    return tokens.map(t => ({
-      target: creditFacade,
-      callData: encodeFunctionData({
-        abi: iCreditFacadeV300MulticallAbi,
-        functionName: "enableToken",
-        args: [t],
-      }),
-    }));
   }
 
   protected prepareWithdrawToken(
@@ -1435,7 +1340,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     return {
       target: creditFacade,
       callData: encodeFunctionData({
-        abi: iCreditFacadeV300MulticallAbi,
+        abi: iCreditFacadeMulticallV310Abi,
         functionName: "withdrawCollateral",
         args: [token, amount, to],
       }),
@@ -1446,7 +1351,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     return {
       target: creditFacade,
       callData: encodeFunctionData({
-        abi: iCreditFacadeV300MulticallAbi,
+        abi: iCreditFacadeMulticallV310Abi,
         functionName: "increaseDebt",
         args: [debt],
       }),
@@ -1460,7 +1365,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     return {
       target: creditFacade,
       callData: encodeFunctionData({
-        abi: iCreditFacadeV300MulticallAbi,
+        abi: iCreditFacadeMulticallV310Abi,
         functionName: isDecrease ? "decreaseDebt" : "increaseDebt",
         args: [change],
       }),
@@ -1479,7 +1384,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
         return {
           target: creditFacade,
           callData: encodeFunctionData({
-            abi: iCreditFacadeV300MulticallAbi,
+            abi: iCreditFacadeMulticallV310Abi,
             functionName: "addCollateralWithPermit",
             args: [token, balance, p.deadline, p.v, p.r, p.s],
           }),
@@ -1489,7 +1394,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       return {
         target: creditFacade,
         callData: encodeFunctionData({
-          abi: iCreditFacadeV300MulticallAbi,
+          abi: iCreditFacadeMulticallV310Abi,
           functionName: "addCollateral",
           args: [token, balance],
         }),

@@ -3,11 +3,13 @@ import type {
   AbiFunction,
   Address,
   Chain,
+  ContractEventArgs,
   ContractEventName,
   ContractFunctionName,
   DecodeFunctionDataReturnType,
   EncodeFunctionDataParameters,
   GetAbiItemParameters,
+  GetContractEventsReturnType,
   GetContractReturnType,
   Hex,
   Log,
@@ -16,9 +18,7 @@ import type {
 } from "viem";
 import {
   BaseError,
-  type ContractEventArgs,
   decodeFunctionData,
-  type GetContractEventsReturnType,
   getAbiItem,
   getAddress,
   getContract,

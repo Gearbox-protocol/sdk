@@ -6,18 +6,6 @@ import { LOSS_POLICY_ALIASED, LOSS_POLICY_DEFAULT } from "./constants.js";
 import { LossPolicyContract } from "./LossPolicyContract.js";
 import type { ILossPolicyContract } from "./types.js";
 
-/**
- * Used get or create oracle contract instances
- * In 3.0 we can have same oracle for different pools
- * But also due to how compressor works for v3.0, each maketpriceOracle data will have different tokens (for the same oracle)
- *
- * So this method bridges multiple compressor data pieces and single oracle contract isntance
- *
- * @param sdk
- * @param data
- * @param underlying
- * @returns
- */
 export function createLossPolicy(
   sdk: GearboxSDK,
   { baseParams }: BaseState,

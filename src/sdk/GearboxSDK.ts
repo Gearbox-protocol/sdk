@@ -16,22 +16,14 @@ import { detectNetwork, getChain } from "./chain/index.js";
 import type { VersionRange } from "./constants/index.js";
 import {
   ADDRESS_PROVIDER_V310,
-  AP_BOT_LIST,
-  AP_GEAR_STAKING,
   AP_GEAR_TOKEN,
   AP_ROUTER,
   isV310,
   NO_VERSION,
-  VERSION_RANGE_300,
   VERSION_RANGE_310,
 } from "./constants/index.js";
 import type { IAddressProviderContract } from "./core/index.js";
-import {
-  BotListContract,
-  createAddressProvider,
-  GearStakingContract,
-  hydrateAddressProvider,
-} from "./core/index.js";
+import { createAddressProvider, hydrateAddressProvider } from "./core/index.js";
 import { MarketRegister } from "./market/MarketRegister.js";
 import { PriceFeedRegister } from "./market/pricefeeds/index.js";
 import type { SDKOptions } from "./options.js";
@@ -481,8 +473,6 @@ export class GearboxSDK<
       timestamp: formatTimestamp(Number(this.timestamp), raw),
       core: {
         addressProviderV3: this.addressProvider.stateHuman(raw),
-        botList: this.botListContract?.stateHuman(raw),
-        gearStakingV3: this.gearStakingContract?.stateHuman(raw),
       },
       tokens: this.tokensMeta.values(),
       plugins: Object.fromEntries(
@@ -679,21 +669,6 @@ export class GearboxSDK<
     return this.#addressProvider;
   }
 
-  public get botListContract(): BotListContract | undefined {
-    const addr = this.addressProvider.getAddress(AP_BOT_LIST, NO_VERSION);
-    return (
-      this.getContract<BotListContract>(addr) ?? new BotListContract(this, addr)
-    );
-  }
-
-  public get gearStakingContract(): GearStakingContract | undefined {
-    const addr = this.addressProvider.getAddress(AP_GEAR_STAKING, NO_VERSION);
-    return (
-      this.getContract<GearStakingContract>(addr) ??
-      new GearStakingContract(this, addr)
-    );
-  }
-
   public get marketRegister(): MarketRegister {
     if (this.#marketRegister === undefined) {
       throw ERR_NOT_ATTACHED;
@@ -726,7 +701,11 @@ export class GearboxSDK<
         facadeAddr = cm.creditFacade.address;
       }
       const facadeV = this.mustGetContract(facadeAddr).version;
-      routerRange = isV310(facadeV) ? VERSION_RANGE_310 : VERSION_RANGE_300;
+      if (isV310(facadeV)) {
+        routerRange = VERSION_RANGE_310;
+      } else {
+        throw new Error(`Unsupported credit facade version ${facadeV}`);
+      }
     }
     const routerEntry = this.addressProvider.getLatest(AP_ROUTER, routerRange);
     if (!routerEntry) {

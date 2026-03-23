@@ -199,7 +199,6 @@ export class MarketRegister extends SDKConstruct {
 
   /**
    * Loads new prices and price feeds for given oracles from PriceFeedCompressor, defaults to all oracles
-   * Supports v300 and v310 oracles
    */
   public async updatePrices(oracles?: Address[]): Promise<void> {
     const uniqOracles = new AddressMap<IPriceOracleContract>();

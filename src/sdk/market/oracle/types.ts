@@ -10,7 +10,6 @@ import type { AddressMap } from "../../utils/index.js";
 import type {
   IPriceFeedContract,
   PriceFeedRef,
-  PriceUpdateV300,
   PriceUpdateV310,
   UpdatePriceFeedsResult,
 } from "../pricefeeds/index.js";
@@ -24,7 +23,7 @@ export interface PriceFeedsForTokensOptions {
 /**
  * Abstraction that represents on demand price updates acceptable by both credit facade multicall and
  * as raw PriceUpdate in liquidator calls
- * T is (priceFeed, data) for v310 and (token, reserve, data) for v300
+ * T is (priceFeed, data)
  * TODO: should be removed after v310 migration
  */
 export interface OnDemandPriceUpdates<T = unknown> {
@@ -81,18 +80,6 @@ export interface IPriceOracleContract extends IBaseContract {
    * @returns
    */
   usesPriceFeed: (priceFeed: Address) => boolean;
-  /**
-   * Helper method to find "attachment point" of price feed (makes sense for updatable price feeds only) -
-   * returns token (in v300 can be ticker) and main/reserve flag
-   *
-   * @deprecated Should be gone after v310 migration
-   *
-   * @param priceFeed
-   * @returns
-   */
-  findTokenForPriceFeed: (
-    priceFeed: Address,
-  ) => [token: Address | undefined, reserve: boolean];
 
   /**
    * Returns main and reserve price feeds for given tokens
@@ -113,7 +100,7 @@ export interface IPriceOracleContract extends IBaseContract {
   onDemandPriceUpdates: (
     creditFacade: Address,
     updates?: UpdatePriceFeedsResult,
-  ) => OnDemandPriceUpdates<PriceUpdateV310 | PriceUpdateV300>;
+  ) => OnDemandPriceUpdates<PriceUpdateV310>;
   /**
    * Tries to convert amount of from one token to another, using latest known prices
    * @param from

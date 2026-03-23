@@ -6,8 +6,8 @@ import type {
 } from "viem";
 import { bytesToString, parseEventLogs, toBytes } from "viem";
 
-import { iAddressProviderV310Abi } from "../../../abi/310/generated.js";
-import type { ConstructOptions } from "../../base/Construct.js";
+import { iAddressProviderV310Abi } from "../../abi/310/generated.js";
+import type { ConstructOptions } from "../base/Construct.js";
 import AbstractAddressProviderContract from "./AbstractAddressProviderContract.js";
 import type {
   AddressProviderAddresses,

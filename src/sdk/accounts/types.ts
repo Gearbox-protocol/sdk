@@ -16,7 +16,6 @@ import type { GearboxSDK } from "../GearboxSDK.js";
 import type {
   CreditSuite,
   OnDemandPriceUpdates,
-  PriceUpdateV300,
   PriceUpdateV310,
   UpdatePriceFeedsResult,
 } from "../market/index.js";
@@ -309,21 +308,6 @@ export interface ClaimFarmRewardsProps extends PrepareUpdateQuotasProps {
   creditAccount: RouterCASlice;
   tokensToClaim: Asset[];
   forceCalls?: boolean;
-}
-
-export interface EnableTokensProps {
-  /**
-   * List of tokens to disable
-   */
-  disabledTokens: Array<Address>;
-  /**
-   * List of tokens to enable
-   */
-  enabledTokens: Array<Address>;
-  /**
-   * Minimal credit account data on which operation is performed
-   */
-  creditAccount: RouterCASlice;
 }
 
 export interface OpenCAProps extends PrepareUpdateQuotasProps {
@@ -670,13 +654,6 @@ export interface ICreditAccountsService extends Construct {
   claimDelayed(props: ClaimDelayedProps): Promise<CreditAccountOperationResult>;
 
   /**
-   * Executes enable/disable tokens specified by given tokens lists and token prices
-   * @param props - {@link EnableTokensProps}
-   * @returns All necessary data to execute the transaction (call, credit facade)
-   */
-  enableTokens(props: EnableTokensProps): Promise<CreditAccountOperationResult>;
-
-  /**
    * Executes swap specified by given calls, update quotas of affected tokens
    * - Open credit account is executed in the following order: price update -> increase debt -> add collateral ->
    *   -> update quotas -> (optionally: execute swap path for trading/strategy) ->
@@ -721,7 +698,7 @@ export interface ICreditAccountsService extends Construct {
    */
   getOnDemandPriceUpdates(
     options: PriceUpdatesOptions,
-  ): Promise<OnDemandPriceUpdates<PriceUpdateV310 | PriceUpdateV300>>;
+  ): Promise<OnDemandPriceUpdates<PriceUpdateV310>>;
 
   /**
    * Returns price updates in format that is accepted by various credit facade methods (multicall, close/liquidate, etc...).

@@ -1,10 +1,15 @@
 import type { Address } from "viem";
+import type { iPoolV310Abi } from "../../abi/310/generated.js";
 import type { ierc20ZapperDepositsAbi } from "../../abi/iERC20ZapperDeposits.js";
 import type { iethZapperDepositsAbi } from "../../abi/iETHZapperDeposits.js";
 import type { iZapperAbi } from "../../abi/iZapper.js";
-import type { iPoolV300Abi } from "../../abi/v300.js";
-import type { PoolData_Legacy } from "../index.js";
 import type { Asset } from "../router/index.js";
+
+interface IZapper {
+  zapper: Address;
+  tokenIn: Address;
+  tokenOut: Address;
+}
 
 interface PermitResult {
   r: Address;
@@ -27,7 +32,7 @@ export interface AddLiquidityProps {
 
   migrate: boolean;
 
-  zapper: PoolData_Legacy["zappers"][Address][Address] | undefined;
+  zapper: IZapper | undefined;
   permit: PermitResult | undefined;
   nativeTokenAddress: Address;
 
@@ -55,7 +60,7 @@ export type AddLiquidityCall = [
     }
   | {
       target: Address;
-      abi: typeof iPoolV300Abi;
+      abi: typeof iPoolV310Abi;
       functionName: "depositWithReferral";
       args: [bigint, Address, bigint];
     },
@@ -67,7 +72,7 @@ export interface RemoveLiquidityProps {
   account: Address;
   permit: PermitResult | undefined;
 
-  zapper: PoolData_Legacy["zappers"][Address][Address];
+  zapper: IZapper;
 }
 export type RemoveLiquidityCall = [
   | {
@@ -84,7 +89,7 @@ export type RemoveLiquidityCall = [
     }
   | {
       target: Address;
-      abi: typeof iPoolV300Abi;
+      abi: typeof iPoolV310Abi;
       functionName: "redeem";
       args: [bigint, Address, Address];
     },

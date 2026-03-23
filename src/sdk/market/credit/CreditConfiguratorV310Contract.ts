@@ -1,6 +1,7 @@
 import type {
   ContractEventName,
   DecodeFunctionDataReturnType,
+  GetEventArgs,
   Log,
 } from "viem";
 
@@ -10,11 +11,20 @@ import { BaseContract } from "../../base/index.js";
 import { RAMP_DURATION_BY_NETWORK } from "../../constants/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import { formatDuration, percentFmt } from "../../utils/index.js";
-import type { RampEvent } from "./CreditConfiguratorV300Contract.js";
 import type { ICreditConfiguratorContract } from "./types.js";
 
 const abi = iCreditConfiguratorV310Abi;
 type abi = typeof abi;
+
+export type RampEvent = GetEventArgs<
+  abi,
+  "ScheduleTokenLiquidationThresholdRamp",
+  {
+    EnableUnion: false;
+    IndexedOnly: false;
+    Required: true;
+  }
+>;
 
 export class CreditConfiguratorV310Contract
   extends BaseContract<abi>

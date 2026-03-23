@@ -25,6 +25,11 @@
       "import": "./dist/esm/history/index.js",
       "default": "./dist/cjs/history/index.js"
     },
+    "./sdk-legacy": {
+      "types": "./dist/types/sdk-legacy/index.d.ts",
+      "import": "./dist/esm/sdk-legacy/index.js",
+      "default": "./dist/cjs/sdk-legacy/index.js"
+    },
     "./plugins/*": {
       "types": "./dist/types/plugins/*/index.d.ts",
       "import": "./dist/esm/plugins/*/index.js",

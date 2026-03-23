@@ -17,16 +17,14 @@ import { BaseContract } from "../../base/index.js";
 import type { PriceFeedAnswer } from "../../base/types.js";
 import {
   AP_PRICE_FEED_COMPRESSOR,
-  isV300,
   VERSION_RANGE_310,
 } from "../../constants/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { PriceOracleStateHuman } from "../../types/index.js";
-import { AddressMap, formatBN, hexEq } from "../../utils/index.js";
+import { AddressMap, formatBN } from "../../utils/index.js";
 import type {
   IPriceFeedContract,
   PriceFeedUsageType,
-  PriceUpdateV300,
   PriceUpdateV310,
   UpdatePriceFeedsResult,
 } from "../pricefeeds/index.js";
@@ -87,7 +85,7 @@ export abstract class PriceOracleBaseContract<
     super(sdk, args);
     this.sdk = sdk;
     const { priceFeedMap, priceFeedTree } = data;
-    this.#loadState(priceFeedMap, priceFeedTree, true);
+    this.#loadState(priceFeedMap, priceFeedTree);
   }
 
   /**
@@ -113,7 +111,7 @@ export abstract class PriceOracleBaseContract<
   public abstract onDemandPriceUpdates(
     creditFacade: Address,
     updates?: UpdatePriceFeedsResult,
-  ): OnDemandPriceUpdates<PriceUpdateV310 | PriceUpdateV300>;
+  ): OnDemandPriceUpdates<PriceUpdateV310>;
 
   /**
    * Gets main price for given token
@@ -212,23 +210,11 @@ export abstract class PriceOracleBaseContract<
    * Paired method to updatePrices, helps to update prices on all oracles in one multicall
    */
   public syncStateMulticall(): DelegatedOracleMulticall {
-    let args: ContractFunctionArgs<
+    const args: ContractFunctionArgs<
       typeof priceFeedCompressorAbi,
       "view",
       "getPriceOracleState"
     > = [this.address];
-
-    if (isV300(this.version)) {
-      args = [
-        args[0],
-        Array.from(
-          new Set([
-            ...this.mainPriceFeeds.keys(),
-            ...this.reservePriceFeeds.keys(),
-          ]),
-        ),
-      ];
-    }
 
     const [address] = this.sdk.addressProvider.mustGetLatest(
       AP_PRICE_FEED_COMPRESSOR,
@@ -249,39 +235,20 @@ export abstract class PriceOracleBaseContract<
         >,
       ) => {
         const { priceFeedMap, priceFeedTree } = resp;
-        // in this case we want reset = true, since we've passed all tokens as getPriceOracleState arg for v300
-        // or in case of v310 this list is not needed at all, and we're 100% getting full oracle state)
-        this.#loadState(priceFeedMap, priceFeedTree, true);
+        this.#loadState(priceFeedMap, priceFeedTree);
       },
     };
-  }
-
-  /**
-   * Helper function to handle situation when we have multiple different compressor data entries for same oracle
-   * This happens in v300
-   *
-   * @deprecated should be unnecessary after full v310 migration (oracles will be unique)
-   * @param data
-   * @returns
-   */
-  public merge(data: PriceOracleData): this {
-    const { priceFeedMap, priceFeedTree } = data;
-    this.#loadState(priceFeedMap, priceFeedTree, false);
-    return this;
   }
 
   #loadState(
     entries: readonly PriceFeedMapEntry[],
     tree: readonly PriceFeedTreeNode[],
-    reset: boolean,
   ): void {
-    if (reset) {
-      this.#priceFeedTree.clear();
-      this.mainPriceFeeds.clear();
-      this.reservePriceFeeds.clear();
-      this.mainPrices.clear();
-      this.reservePrices.clear();
-    }
+    this.#priceFeedTree.clear();
+    this.mainPriceFeeds.clear();
+    this.reservePriceFeeds.clear();
+    this.mainPrices.clear();
+    this.reservePrices.clear();
 
     for (const node of tree) {
       this.#priceFeedTree.upsert(node.baseParams.addr, node);
@@ -328,31 +295,6 @@ export abstract class PriceOracleBaseContract<
       }
       return pricefeedTag;
     });
-  }
-
-  /**
-   * Helper method to find "attachment point" of price feed (makes sense for updatable price feeds only) -
-   * returns token (in v3.0 can be ticker) and main/reserve flag
-   *
-   * @deprecated Should be gone after v310 migration
-   *
-   * @param priceFeed
-   * @returns
-   */
-  public findTokenForPriceFeed(
-    priceFeed: Address,
-  ): [token: Address | undefined, reserve: boolean] {
-    for (const [token, pf] of this.mainPriceFeeds.entries()) {
-      if (hexEq(pf.address, priceFeed)) {
-        return [token, false];
-      }
-    }
-    for (const [token, pf] of this.reservePriceFeeds.entries()) {
-      if (hexEq(pf.address, priceFeed)) {
-        return [token, true];
-      }
-    }
-    return [undefined, false];
   }
 
   /**

@@ -1,18 +1,11 @@
 import type { Address } from "viem";
 import { erc20Abi, parseEther } from "viem";
-
 import {
-  iCreditConfiguratorV300Abi,
-  iCreditManagerV300Abi,
-} from "../abi/v300.js";
+  iCreditConfiguratorV310Abi,
+  iCreditManagerV310Abi,
+} from "../abi/310/generated.js";
 import type { CreditSuiteState, ILogger } from "../sdk/index.js";
-import {
-  hexEq,
-  isV300,
-  isV310,
-  PERCENTAGE_FACTOR,
-  TypedObjectUtils,
-} from "../sdk/index.js";
+import { hexEq, isV310, TypedObjectUtils } from "../sdk/index.js";
 import { iaclTraitAbi, iOwnableAbi } from "./abi.js";
 import type { AnvilClient } from "./createAnvilClient.js";
 
@@ -34,7 +27,7 @@ export async function setLTs(
       chain: anvil.chain,
       address: cm.creditConfigurator.baseParams.addr,
       account: configuratorAddr,
-      abi: iCreditConfiguratorV300Abi,
+      abi: iCreditConfiguratorV310Abi,
       functionName: "setLiquidationThreshold",
       args: [t as Address, lt],
     });
@@ -51,114 +44,13 @@ export async function setLTZero(
   logger?: ILogger,
 ): Promise<void> {
   const v = Number(cm.creditConfigurator.baseParams.version);
-  if (isV300(v)) {
-    await setLTZeroV300(anvil, cm, logger);
-  } else if (isV310(v)) {
+  if (isV310(v)) {
     await setLTZeroV310(anvil, cm, logger);
   } else {
     throw new Error(
       `zero LT is not implemented for credit configurator version: ${v}`,
     );
   }
-}
-
-async function setLTZeroV300(
-  anvil: AnvilClient,
-  cm: CreditSuiteState,
-  logger?: ILogger,
-): Promise<void> {
-  const ccAddr = cm.creditConfigurator.baseParams.addr;
-  const cmAddr = cm.creditManager.baseParams.addr;
-  const {
-    name,
-    underlying,
-    feeInterest,
-    liquidationDiscount,
-    feeLiquidation,
-    feeLiquidationExpired,
-    liquidationDiscountExpired,
-  } = cm.creditManager;
-
-  const owner = await impresonateCCOwner(anvil, cm);
-
-  let hash = await anvil.writeContract({
-    chain: anvil.chain,
-    address: ccAddr,
-    account: owner,
-    abi: iCreditConfiguratorV300Abi,
-    functionName: "setFees",
-    args: [
-      feeInterest,
-      liquidationDiscount - 1,
-      Number(PERCENTAGE_FACTOR) - liquidationDiscount,
-      feeLiquidationExpired,
-      liquidationDiscountExpired,
-    ],
-  });
-  await anvil.waitForTransactionReceipt({ hash });
-
-  logger?.debug(`[${name}] setFees part 2`);
-  hash = await anvil.writeContract({
-    chain: anvil.chain,
-    address: ccAddr,
-    account: owner,
-    abi: iCreditConfiguratorV300Abi,
-    functionName: "setFees",
-    args: [
-      feeInterest,
-      feeLiquidation,
-      Number(PERCENTAGE_FACTOR) - liquidationDiscount,
-      feeLiquidationExpired,
-      liquidationDiscountExpired,
-    ],
-  });
-  await anvil.waitForTransactionReceipt({ hash });
-
-  logger?.debug(`[${name}] setFees done`);
-
-  await anvil.impersonateAccount({
-    address: ccAddr,
-  });
-  await anvil.setBalance({
-    address: ccAddr,
-    value: parseEther("100"),
-  });
-  logger?.debug(`[${name}] impresonating creditConfigurator ${ccAddr}`);
-
-  logger?.debug(`[${name}] setting liquidation threshold`);
-  hash = await anvil.writeContract({
-    chain: anvil.chain,
-    address: cmAddr,
-    account: ccAddr,
-    abi: iCreditManagerV300Abi,
-    functionName: "setCollateralTokenData",
-    args: [underlying, 1, 1, Number(2n ** 40n - 1n), 0],
-  });
-  await anvil.waitForTransactionReceipt({ hash });
-
-  logger?.debug(`[${name}] setting configurator ${ccAddr}`);
-  hash = await anvil.writeContract({
-    chain: anvil.chain,
-    address: cmAddr,
-    account: ccAddr,
-    abi: iCreditManagerV300Abi,
-    functionName: "setCreditConfigurator",
-    args: [ccAddr],
-  });
-  await anvil.waitForTransactionReceipt({ hash });
-
-  logger?.debug(`[${name}] done`);
-  await anvil.stopImpersonatingAccount({
-    address: ccAddr,
-  });
-  await anvil.stopImpersonatingAccount({ address: owner });
-
-  await logLTs(
-    anvil,
-    cm,
-    cm.creditManager.collateralTokens.map(c => c.token),
-    logger,
-  );
 }
 
 async function setLTZeroV310(
@@ -210,7 +102,7 @@ async function logLTs(
     allowFailure: true,
     contracts: tokens.flatMap(t => [
       {
-        abi: iCreditManagerV300Abi,
+        abi: iCreditManagerV310Abi,
         functionName: "liquidationThresholds",
         address: cm.creditManager.baseParams.addr,
         args: [t],

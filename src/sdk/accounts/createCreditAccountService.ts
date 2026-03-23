@@ -1,13 +1,12 @@
-import { isV300, isV310 } from "../constants/index.js";
+import { isV310 } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import type { CreditAccountServiceOptions } from "./AbstractCreditAccountsService.js";
-import { CreditAccountServiceV300 } from "./CreditAccountsServiceV300.js";
 import { CreditAccountServiceV310 } from "./CreditAccountsServiceV310.js";
 import type { ICreditAccountsService } from "./types.js";
 
 /**
  * @sdk
- * @version version of desired credit facade; if no credit facade is considered (you only want to get ca list), either v300 or v310 is fine, because ca compressor has nothing to do with credit facade version
+ * @version version of desired credit facade
  * @returns
  */
 export function createCreditAccountService(
@@ -15,9 +14,6 @@ export function createCreditAccountService(
   version: number,
   options?: CreditAccountServiceOptions,
 ): ICreditAccountsService {
-  if (isV300(version)) {
-    return new CreditAccountServiceV300(sdk, options);
-  }
   if (isV310(version)) {
     return new CreditAccountServiceV310(sdk, options);
   }
