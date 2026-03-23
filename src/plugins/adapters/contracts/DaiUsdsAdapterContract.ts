@@ -56,6 +56,14 @@ export class DaiUsdsAdapterContract extends AbstractAdapterContract<
     return this.#usds;
   }
 
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      dai: this.#dai ? this.labelAddress(this.#dai) : undefined,
+      usds: this.#usds ? this.labelAddress(this.#usds) : undefined,
+    };
+  }
+
   /** @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type_v3.go#L51-L68 */
   protected override classifyLegacyOperation(
     parsed: ParsedCallV2,

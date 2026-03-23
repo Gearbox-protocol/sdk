@@ -71,6 +71,14 @@ export class ERC4626AdapterContract extends AbstractAdapterContract<
     return this.#asset;
   }
 
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      vault: this.#vault ? this.labelAddress(this.#vault) : undefined,
+      asset: this.#asset ? this.labelAddress(this.#asset) : undefined,
+    };
+  }
+
   /**
    * Charts_server maps `redeem(uint256,address,address)` → MakerRedeem.
    * Diff variants (`redeemDiff`) should also map to MakerRedeem.

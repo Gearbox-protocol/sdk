@@ -7,7 +7,17 @@ import {
 import { iPendleRouterAbi } from "../abi/targetContractAbi.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
-import type { PendlePairStatus, PendleTokenType } from "./types.js";
+
+export enum PendleTokenType {
+  PT = 0,
+  LP = 1,
+}
+
+export enum PendlePairStatus {
+  NOT_ALLOWED = 0,
+  ALLOWED = 1,
+  EXIT_ONLY = 2,
+}
 
 const abi = iPendleRouterAdapterAbi;
 type abi = typeof abi;
@@ -15,24 +25,19 @@ type abi = typeof abi;
 const protocolAbi = iPendleRouterAbi;
 type protocolAbi = typeof protocolAbi;
 
+export interface PendlePair {
+  market: Address;
+  inputToken: Address;
+  pendleToken: Address;
+  pendleTokenType?: PendleTokenType;
+  status: PendlePairStatus;
+}
+
 export class PendleRouterAdapterContract extends AbstractAdapterContract<
   abi,
   protocolAbi
 > {
-  #allowedPairs?:
-    | {
-        market: Address;
-        inputToken: Address;
-        pendleToken: Address;
-        status: PendlePairStatus;
-      }[]
-    | {
-        market: Address;
-        inputToken: Address;
-        pendleToken: Address;
-        pendleTokenType: PendleTokenType;
-        status: PendlePairStatus;
-      }[];
+  #allowedPairs?: PendlePair[];
 
   constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
     super(options, { ...args, abi, protocolAbi });
@@ -95,22 +100,22 @@ export class PendleRouterAdapterContract extends AbstractAdapterContract<
     }
   }
 
-  get allowedPairs():
-    | {
-        market: Address;
-        inputToken: Address;
-        pendleToken: Address;
-        status: PendlePairStatus;
-      }[]
-    | {
-        market: Address;
-        inputToken: Address;
-        pendleToken: Address;
-        pendleTokenType: PendleTokenType;
-        status: PendlePairStatus;
-      }[] {
+  get allowedPairs(): PendlePair[] {
     if (!this.#allowedPairs)
       throw new MissingSerializedParamsError("allowedPairs");
     return this.#allowedPairs;
+  }
+
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      allowedPairs: this.#allowedPairs?.map(p => ({
+        market: this.labelAddress(p.market),
+        inputToken: this.labelAddress(p.inputToken),
+        pendleToken: this.labelAddress(p.pendleToken),
+        pendleTokenType: p.pendleTokenType,
+        status: p.status,
+      })),
+    };
   }
 }

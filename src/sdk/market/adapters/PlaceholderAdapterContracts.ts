@@ -10,8 +10,6 @@ import type { IAdapterContract } from "./types.js";
 
 export interface PlaceholderAdapterContractOptions {
   baseParams: RelaxedBaseParams;
-  // TODO: v300 legacy/deprecated: serializedParams always contain targetContract and creditManager
-  targetContract?: Address;
 }
 
 export class PlaceholderAdapterContract
@@ -25,7 +23,6 @@ export class PlaceholderAdapterContract
     args: PlaceholderAdapterContractOptions,
   ) {
     super(options, args.baseParams);
-    this.#targetContract = args.targetContract;
   }
 
   get targetContract(): Address {

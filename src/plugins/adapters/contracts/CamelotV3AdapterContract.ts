@@ -6,6 +6,11 @@ import { iCamelotV3RouterAbi } from "../abi/targetContractAbi.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
+export interface CamelotPool {
+  token0: Address;
+  token1: Address;
+}
+
 const abi = iCamelotV3AdapterAbi;
 type abi = typeof abi;
 
@@ -16,10 +21,7 @@ export class CamelotV3AdapterContract extends AbstractAdapterContract<
   abi,
   protocolAbi
 > {
-  #supportedPools?: {
-    token0: Address;
-    token1: Address;
-  }[];
+  #supportedPools?: CamelotPool[];
 
   constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
     super(options, { ...args, abi, protocolAbi });
@@ -48,12 +50,19 @@ export class CamelotV3AdapterContract extends AbstractAdapterContract<
     }
   }
 
-  get supportedPools(): {
-    token0: Address;
-    token1: Address;
-  }[] {
+  get supportedPools(): CamelotPool[] {
     if (!this.#supportedPools)
       throw new MissingSerializedParamsError("supportedPools");
     return this.#supportedPools;
+  }
+
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      supportedPools: this.#supportedPools?.map(p => ({
+        token0: this.labelAddress(p.token0),
+        token1: this.labelAddress(p.token1),
+      })),
+    };
   }
 }

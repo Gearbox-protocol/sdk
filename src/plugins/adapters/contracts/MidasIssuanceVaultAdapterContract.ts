@@ -59,4 +59,13 @@ export class MidasIssuanceVaultAdapterContract extends AbstractAdapterContract<
       throw new MissingSerializedParamsError("allowedTokens");
     return this.#allowedTokens;
   }
+
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      mToken: this.#mToken ? this.labelAddress(this.#mToken) : undefined,
+      referrerId: this.#referrerId,
+      allowedTokens: this.#allowedTokens?.map(t => this.labelAddress(t)),
+    };
+  }
 }

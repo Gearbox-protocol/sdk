@@ -64,4 +64,16 @@ export class MidasRedemptionVaultAdapterContract extends AbstractAdapterContract
       throw new MissingSerializedParamsError("allowedTokens");
     return this.#allowedTokens;
   }
+
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      gateway: this.#gateway ? this.labelAddress(this.#gateway) : undefined,
+      mToken: this.#mToken ? this.labelAddress(this.#mToken) : undefined,
+      allowedTokens: this.#allowedTokens?.map(t => ({
+        token: this.labelAddress(t.token),
+        phantomToken: this.labelAddress(t.phantomToken),
+      })),
+    };
+  }
 }

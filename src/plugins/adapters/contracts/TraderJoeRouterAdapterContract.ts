@@ -5,7 +5,20 @@ import { MissingSerializedParamsError } from "../../../sdk/index.js";
 import { iTraderJoeRouterAbi } from "../abi/targetContractAbi.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
-import type { TraderJoePoolVersion } from "./types.js";
+
+export enum TraderJoePoolVersion {
+  V1 = 0,
+  V2 = 1,
+  V2_1 = 2,
+  V2_2 = 3,
+}
+
+export interface TraderJoePool {
+  token0: Address;
+  token1: Address;
+  binStep: number;
+  poolVersion: TraderJoePoolVersion;
+}
 
 const abi = iTraderJoeRouterAdapterAbi;
 type abi = typeof abi;
@@ -17,12 +30,7 @@ export class TraderJoeRouterAdapterContract extends AbstractAdapterContract<
   abi,
   protocolAbi
 > {
-  #supportedPools?: {
-    token0: Address;
-    token1: Address;
-    binStep: number;
-    poolVersion: TraderJoePoolVersion;
-  }[];
+  #supportedPools?: TraderJoePool[];
 
   constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
     super(options, { ...args, abi, protocolAbi });
@@ -55,14 +63,21 @@ export class TraderJoeRouterAdapterContract extends AbstractAdapterContract<
     }
   }
 
-  get supportedPools(): {
-    token0: Address;
-    token1: Address;
-    binStep: number;
-    poolVersion: TraderJoePoolVersion;
-  }[] {
+  get supportedPools(): TraderJoePool[] {
     if (!this.#supportedPools)
       throw new MissingSerializedParamsError("supportedPools");
     return this.#supportedPools;
+  }
+
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      supportedPools: this.#supportedPools?.map(p => ({
+        token0: this.labelAddress(p.token0),
+        token1: this.labelAddress(p.token1),
+        binStep: p.binStep,
+        poolVersion: p.poolVersion,
+      })),
+    };
   }
 }

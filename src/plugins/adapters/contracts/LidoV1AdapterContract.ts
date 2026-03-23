@@ -64,6 +64,15 @@ export class LidoV1AdapterContract extends AbstractAdapterContract<
     return this.#treasury;
   }
 
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      stETH: this.#stETH ? this.labelAddress(this.#stETH) : undefined,
+      weth: this.#weth ? this.labelAddress(this.#weth) : undefined,
+      treasury: this.#treasury ? this.labelAddress(this.#treasury) : undefined,
+    };
+  }
+
   /** @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type.go#L277-L282 */
   protected override classifyLegacyOperation(
     _parsed: ParsedCallV2,

@@ -47,4 +47,13 @@ export class InfinifiUnwindingGatewayAdapterContract extends AbstractAdapterCont
       throw new MissingSerializedParamsError("allowedLockedTokens");
     return this.#allowedLockedTokens;
   }
+
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      allowedLockedTokens: this.#allowedLockedTokens?.map(t =>
+        this.labelAddress(t),
+      ),
+    };
+  }
 }

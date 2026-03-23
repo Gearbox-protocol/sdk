@@ -96,6 +96,20 @@ export class Curve2AssetsAdapterContract extends AbstractAdapterContract<
     return this.#underlyings;
   }
 
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      token: this.#token ? this.labelAddress(this.#token) : undefined,
+      lpToken: this.#lpToken ? this.labelAddress(this.#lpToken) : undefined,
+      metapoolBase: this.#metapoolBase
+        ? this.labelAddress(this.#metapoolBase)
+        : undefined,
+      use256: this.#use256,
+      tokens: this.#tokens?.map(t => this.labelAddress(t)),
+      underlyings: this.#underlyings?.map(t => this.labelAddress(t)),
+    };
+  }
+
   /** @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type.go#L132-L164 */
   protected override classifyLegacyOperation(
     parsed: ParsedCallV2,

@@ -66,6 +66,16 @@ export class UniswapV2AdapterContract extends AbstractAdapterContract<
     return this.#supportedPairs;
   }
 
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      supportedPairs: this.#supportedPairs?.map(p => ({
+        token0: this.labelAddress(p.token0),
+        token1: this.labelAddress(p.token1),
+      })),
+    };
+  }
+
   protected override stringifyFunctionParams(
     params: DecodeFunctionDataReturnType<abi>,
   ): string[] {

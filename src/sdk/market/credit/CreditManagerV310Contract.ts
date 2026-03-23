@@ -93,10 +93,7 @@ export class CreditManagerV310Contract
       contractsToAdapters: Object.fromEntries(
         this.adapters
           .entries()
-          .map(([k, v]) => [
-            this.labelAddress(k),
-            this.labelAddress(v.address),
-          ]),
+          .map(([k, v]) => [this.labelAddress(k), v.stateHuman(raw)]),
       ),
       creditAccounts: [], // TODO: ?
     };

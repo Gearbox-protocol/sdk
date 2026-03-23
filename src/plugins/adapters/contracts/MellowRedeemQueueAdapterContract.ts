@@ -3,27 +3,27 @@ import {
   type ConstructOptions,
   MissingSerializedParamsError,
   type ParsedCallV2,
-} from "../../../../sdk/index.js";
+} from "../../../sdk/index.js";
 import type {
   LegacyAdapterOperation,
   Transfers,
-} from "../../legacyAdapterOperations.js";
-import type { ConcreteAdapterContractOptions } from "../AbstractAdapter.js";
-import { AbstractAdapterContract } from "../AbstractAdapter.js";
+} from "../legacyAdapterOperations.js";
+import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
+import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
+// TODO: not yet mered into integrations-v3/main branch
 const abi = [] as const;
 type abi = typeof abi;
 
 const protocolAbi = [] as const;
 type protocolAbi = typeof protocolAbi;
 
-export class MellowDepositQueueAdapterContract extends AbstractAdapterContract<
+export class MellowRedeemQueueAdapterContract extends AbstractAdapterContract<
   abi,
   protocolAbi
 > {
-  #asset?: Address;
+  #vaultToken?: Address;
   #phantomToken?: Address;
-  #referral?: Address;
 
   constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
     super(options, { ...args, abi, protocolAbi });
@@ -33,22 +33,20 @@ export class MellowDepositQueueAdapterContract extends AbstractAdapterContract<
         [
           { type: "address", name: "creditManager" },
           { type: "address", name: "targetContract" },
-          { type: "address", name: "asset" },
+          { type: "address", name: "vaultToken" },
           { type: "address", name: "phantomToken" },
-          { type: "address", name: "referral" },
         ],
         args.baseParams.serializedParams,
       );
 
-      this.#asset = decoded[2];
+      this.#vaultToken = decoded[2];
       this.#phantomToken = decoded[3];
-      this.#referral = decoded[4];
     }
   }
 
-  get asset(): Address {
-    if (!this.#asset) throw new MissingSerializedParamsError("asset");
-    return this.#asset;
+  get vaultToken(): Address {
+    if (!this.#vaultToken) throw new MissingSerializedParamsError("vaultToken");
+    return this.#vaultToken;
   }
 
   get phantomToken(): Address {
@@ -57,9 +55,16 @@ export class MellowDepositQueueAdapterContract extends AbstractAdapterContract<
     return this.#phantomToken;
   }
 
-  get referral(): Address {
-    if (!this.#referral) throw new MissingSerializedParamsError("referral");
-    return this.#referral;
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      vaultToken: this.#vaultToken
+        ? this.labelAddress(this.#vaultToken)
+        : undefined,
+      phantomToken: this.#phantomToken
+        ? this.labelAddress(this.#phantomToken)
+        : undefined,
+    };
   }
 
   /** Legacy adapter not present in integrations-v3. */

@@ -69,4 +69,16 @@ export class InfinifiGatewayAdapterContract extends AbstractAdapterContract<
       throw new MissingSerializedParamsError("allowedLockedTokens");
     return this.#allowedLockedTokens;
   }
+
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      usdc: this.#usdc ? this.labelAddress(this.#usdc) : undefined,
+      iusd: this.#iusd ? this.labelAddress(this.#iusd) : undefined,
+      siusd: this.#siusd ? this.labelAddress(this.#siusd) : undefined,
+      allowedLockedTokens: this.#allowedLockedTokens?.map(t =>
+        this.labelAddress(t),
+      ),
+    };
+  }
 }

@@ -87,6 +87,22 @@ export class ConvexV1BaseRewardPoolAdapterContract extends AbstractAdapterContra
     return this.#extraRewards;
   }
 
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      curveLPtoken: this.#curveLPtoken
+        ? this.labelAddress(this.#curveLPtoken)
+        : undefined,
+      stakingToken: this.#stakingToken
+        ? this.labelAddress(this.#stakingToken)
+        : undefined,
+      stakedPhantomToken: this.#stakedPhantomToken
+        ? this.labelAddress(this.#stakedPhantomToken)
+        : undefined,
+      extraRewards: this.#extraRewards?.map(r => this.labelAddress(r)),
+    };
+  }
+
   /**
    * @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type.go#L200-L262
    * @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type_v3.go#L76-L83

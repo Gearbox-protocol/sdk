@@ -115,7 +115,7 @@ export interface CreditManagerStateHuman extends BaseContractStateHuman {
   feeLiquidationExpired: string;
   liquidationDiscountExpired: string;
   quotedTokensMask: string;
-  contractsToAdapters: Record<string, string>;
+  contractsToAdapters: Record<string, unknown>;
   creditAccounts: Array<Address>;
 }
 

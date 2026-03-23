@@ -49,4 +49,12 @@ export class FluidDexAdapterContract extends AbstractAdapterContract<
     if (!this.#token1) throw new MissingSerializedParamsError("token1");
     return this.#token1;
   }
+
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      token0: this.#token0 ? this.labelAddress(this.#token0) : undefined,
+      token1: this.#token1 ? this.labelAddress(this.#token1) : undefined,
+    };
+  }
 }

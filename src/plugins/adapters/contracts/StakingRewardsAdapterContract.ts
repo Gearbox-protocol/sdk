@@ -28,7 +28,7 @@ export class StakingRewardsAdapterContract extends AbstractAdapterContract<
 
     if (args.baseParams.serializedParams) {
       const version = Number(args.baseParams.version);
-      if (version === 310) {
+      if (version <= 311) {
         const decoded = decodeAbiParameters(
           [
             { type: "address", name: "creditManager" },
@@ -87,5 +87,21 @@ export class StakingRewardsAdapterContract extends AbstractAdapterContract<
     if (this.#referral === undefined)
       throw new MissingSerializedParamsError("referral");
     return this.#referral;
+  }
+
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      stakingToken: this.#stakingToken
+        ? this.labelAddress(this.#stakingToken)
+        : undefined,
+      rewardsToken: this.#rewardsToken
+        ? this.labelAddress(this.#rewardsToken)
+        : undefined,
+      stakedPhantomToken: this.#stakedPhantomToken
+        ? this.labelAddress(this.#stakedPhantomToken)
+        : undefined,
+      referral: this.#referral,
+    };
   }
 }

@@ -42,4 +42,13 @@ export class MellowClaimerAdapterContract extends AbstractAdapterContract<
       throw new MissingSerializedParamsError("allowedMultiVaults");
     return this.#allowedMultiVaults;
   }
+
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      allowedMultiVaults: this.#allowedMultiVaults?.map(v =>
+        this.labelAddress(v),
+      ),
+    };
+  }
 }

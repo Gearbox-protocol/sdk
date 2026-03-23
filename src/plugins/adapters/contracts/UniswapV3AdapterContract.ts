@@ -65,6 +65,17 @@ export class UniswapV3AdapterContract extends AbstractAdapterContract<
     return this.#supportedPools;
   }
 
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      supportedPools: this.#supportedPools?.map(p => ({
+        token0: this.labelAddress(p.token0),
+        token1: this.labelAddress(p.token1),
+        fee: p.fee,
+      })),
+    };
+  }
+
   protected override stringifyFunctionParams(
     params: DecodeFunctionDataReturnType<abi>,
   ): string[] {

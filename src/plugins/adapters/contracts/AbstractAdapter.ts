@@ -1,6 +1,7 @@
 import {
   type Abi,
   type Address,
+  decodeAbiParameters,
   decodeFunctionData,
   type Hex,
   type PartialBy,
@@ -23,6 +24,7 @@ import type {
 } from "../legacyAdapterOperations.js";
 import { swapFromTransfers, toNetTransfers } from "../transferHelpers.js";
 import type {
+  AdapterContractStateHuman,
   AdapterContractType,
   AdapterOperation,
   TokenTransfer,
@@ -30,9 +32,6 @@ import type {
 
 export interface ConcreteAdapterContractOptions {
   baseParams: RelaxedBaseParams;
-  // TODO: v300 legacy/deprecated: serializedParams always contain targetContract and creditManager
-  targetContract?: Address;
-  name?: string;
 }
 
 export interface AbstractAdapterContractOptions<
@@ -50,28 +49,57 @@ export class AbstractAdapterContract<
   const abi extends Abi | readonly unknown[],
   const protocolAbi extends Abi | readonly unknown[],
 > extends BaseContract<abi> {
-  #targetContract?: Address;
+  readonly #targetContract?: Address;
+  readonly #creditManager?: Address;
+
   public readonly protocolAbi: protocolAbi;
 
   constructor(
     options: ConstructOptions,
     args: AbstractAdapterContractOptions<abi, protocolAbi>,
   ) {
-    const { baseParams, targetContract, protocolAbi, ...rest } = args;
+    const { baseParams, protocolAbi, ...rest } = args;
     super(options, { ...rest, ...baseParams });
-    this.#targetContract = targetContract;
     this.protocolAbi = protocolAbi;
+
+    if (baseParams.serializedParams) {
+      const [cm, tc] = decodeAbiParameters(
+        [{ type: "address" }, { type: "address" }],
+        baseParams.serializedParams,
+      );
+      this.#creditManager = cm;
+      this.#targetContract = tc;
+    }
   }
 
-  get targetContract(): Address {
+  public get targetContract(): Address {
     if (this.#targetContract === undefined) {
       throw new MissingSerializedParamsError("targetContract");
     }
     return this.#targetContract;
   }
 
+  public get creditManager(): Address {
+    if (this.#creditManager === undefined) {
+      throw new MissingSerializedParamsError("creditManager");
+    }
+    return this.#creditManager;
+  }
+
   public get adapterType(): AdapterContractType {
     return this.contractType as AdapterContractType;
+  }
+
+  public override stateHuman(raw?: boolean): AdapterContractStateHuman {
+    return {
+      ...super.stateHuman(raw),
+      creditManager: this.#creditManager
+        ? this.labelAddress(this.#creditManager)
+        : undefined,
+      targetContract: this.#targetContract
+        ? this.labelAddress(this.#targetContract)
+        : undefined,
+    };
   }
 
   /**
