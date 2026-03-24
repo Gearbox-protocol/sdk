@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import { isSupportedNetwork, type NetworkType } from "../index.js";
+import { isSupportedNetwork, type NetworkType } from "../chain/chains.js";
 
 type ChartsPriceSource = "chainlink" | "spot";
 

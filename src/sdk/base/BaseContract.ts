@@ -111,9 +111,11 @@ export class BaseContract<abi extends Abi | readonly unknown[]>
     this.name =
       args.name || this.contractType || this.address || this.constructor.name;
 
-    // register contract by address: this is used for chain-wide call parsing
-    this.register.setContract(this.address, this);
-    this.register.setAddressLabel(this.address, this.name);
+    const register = this.safeGetRegister();
+    if (register) {
+      register.setContract(this.address, this);
+      register.setAddressLabel(this.address, this.name);
+    }
   }
 
   public stateHuman(_ = true): BaseContractStateHuman {

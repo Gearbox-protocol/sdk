@@ -1,4 +1,4 @@
-import type { Address } from "viem";
+import { type Address, decodeAbiParameters } from "viem";
 
 import type { ConstructOptions } from "../../base/index.js";
 import {
@@ -17,18 +17,35 @@ export class PlaceholderAdapterContract
   implements IAdapterContract
 {
   readonly #targetContract?: Address;
+  readonly #creditManager?: Address;
 
   constructor(
     options: ConstructOptions,
     args: PlaceholderAdapterContractOptions,
   ) {
     super(options, args.baseParams);
+
+    if (args.baseParams.serializedParams) {
+      const [cm, tc] = decodeAbiParameters(
+        [{ type: "address" }, { type: "address" }],
+        args.baseParams.serializedParams,
+      );
+      this.#creditManager = cm;
+      this.#targetContract = tc;
+    }
   }
 
-  get targetContract(): Address {
+  public get targetContract(): Address {
     if (!this.#targetContract) {
       throw new MissingSerializedParamsError("targetContract");
     }
     return this.#targetContract;
+  }
+
+  public get creditManager(): Address {
+    if (!this.#creditManager) {
+      throw new MissingSerializedParamsError("creditManager");
+    }
+    return this.#creditManager;
   }
 }

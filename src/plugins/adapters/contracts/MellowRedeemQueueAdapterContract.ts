@@ -66,14 +66,4 @@ export class MellowRedeemQueueAdapterContract extends AbstractAdapterContract<
         : undefined,
     };
   }
-
-  /** Legacy adapter not present in integrations-v3. */
-  protected override classifyLegacyOperation(
-    _parsed: ParsedCallV2,
-    _transfers: Transfers,
-  ): LegacyAdapterOperation {
-    throw new Error(
-      `classifyLegacyOperation is not supported for legacy adapter: ${this.contractType}`,
-    );
-  }
 }

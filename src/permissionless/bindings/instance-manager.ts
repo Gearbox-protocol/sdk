@@ -1,13 +1,10 @@
 import {
   type Address,
-  type Chain,
   type DecodeFunctionDataReturnType,
   decodeFunctionData,
   type Hex,
   hexToString,
-  type PublicClient,
   stringToHex,
-  type Transport,
 } from "viem";
 import { instanceManagerAbi } from "../../abi/310/instanceManager.js";
 import { camelotV3WorkerAbi } from "../../abi/router/camelotV3Worker.js";
@@ -20,6 +17,7 @@ import { uniswapV4WorkerAbi } from "../../abi/router/uniswapV4Worker.js";
 import type { RawTx } from "../../sdk/index.js";
 import {
   BaseContract,
+  type ChainContractsRegister,
   json_stringify,
   type ParsedCall,
   type ParsedCallArgs,
@@ -33,8 +31,8 @@ import { TreasurySplitterContract } from "./treasury-splitter.js";
 const abi = instanceManagerAbi;
 
 export class InstanceManagerContract extends BaseContract<typeof abi> {
-  constructor(addr: Address, client: PublicClient<Transport, Chain>) {
-    super({ client }, { abi, addr, name: "InstanceManager" });
+  constructor(addr: Address, register: ChainContractsRegister) {
+    super({ register }, { abi, addr, name: "InstanceManager" });
   }
 
   // TODO:

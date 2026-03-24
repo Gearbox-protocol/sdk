@@ -12,21 +12,6 @@ export type ContractOrInterface<T> = T extends Abi | readonly unknown[]
   : T;
 
 export class ChainContractsRegister {
-  static #chains = new Map<number, ChainContractsRegister>();
-
-  public static for(
-    client: PublicClient<Transport, Chain>,
-    logger?: ILogger,
-  ): ChainContractsRegister {
-    const chainId = client.chain.id;
-    let result = ChainContractsRegister.#chains.get(chainId);
-    if (!result) {
-      result = new ChainContractsRegister(client, logger);
-      ChainContractsRegister.#chains.set(chainId, result);
-    }
-    return result;
-  }
-
   private readonly contracts = new AddressMap<BaseContract<any>>(
     [],
     "contracts",
@@ -50,9 +35,9 @@ export class ChainContractsRegister {
     this.logger?.debug(
       `resetting contacts register with ${this.contracts.size} contracts`,
     );
-    // this.labels.clear();
+    this.labels.clear();
     this.contracts.clear();
-    // this.tokensMeta.reset();
+    this.tokensMeta.reset();
   }
 
   public getContract<T = unknown[]>(

@@ -1,6 +1,8 @@
 import type { Address } from "viem";
-import { type Asset, BigIntMath, PriceUtils } from "../index.js";
+import type { Asset } from "../router/types.js";
+import { BigIntMath } from "./bigintMath.js";
 import { CreditAccountDataUtils } from "./creditAccount.js";
+import { PriceUtils } from "./priceMath.js";
 
 interface TokenDataSlice {
   symbol: string;

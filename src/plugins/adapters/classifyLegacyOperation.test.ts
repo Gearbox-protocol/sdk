@@ -532,54 +532,14 @@ describe("DaiUsds adapter", () => {
 describe("Legacy adapters throw", () => {
   const legacyAdapters = [
     {
-      name: "BalancerV2VaultAdapterContract",
-      path: "./contracts/deprecated/BalancerV2VaultAdapterContract.js",
-      className: "BalancerV2VaultAdapterContract",
-    },
-    {
-      name: "YearnV2RouterAdapterContract",
-      path: "./contracts/deprecated/YearnV2AdapterContract.js",
-      className: "YearnV2RouterAdapterContract",
-    },
-    {
       name: "CurveV1AdapterDeposit",
       path: "./contracts/CurveV1AdapterDeposit.js",
       className: "CurveV1AdapterDeposit",
     },
     {
-      name: "MellowVaultAdapterContract",
-      path: "./contracts/deprecated/MellowVaultAdapterContract.js",
-      className: "MellowVaultAdapterContract",
-    },
-    {
       name: "AccountMigratorAdapterContract",
       path: "./contracts/AccountMigratorAdapterContract.js",
       className: "AccountMigratorAdapterContract",
-    },
-    {
-      name: "EqualizerRouterAdapterContract",
-      path: "./contracts/deprecated/EqualizerRouterAdapterContract.js",
-      className: "EqualizerRouterAdapterContract",
-    },
-    {
-      name: "InfraredVaultAdapterContract",
-      path: "./contracts/deprecated/InfraredVaultAdapterContract.js",
-      className: "InfraredVaultAdapterContract",
-    },
-    {
-      name: "KodiakIslandGatewayAdapterContract",
-      path: "./contracts/deprecated/KodiakIslandGatewayAdapterContract.js",
-      className: "KodiakIslandGatewayAdapterContract",
-    },
-    {
-      name: "MellowDepositQueueAdapterContract",
-      path: "./contracts/deprecated/MellowDepositQueueAdapterContract.js",
-      className: "MellowDepositQueueAdapterContract",
-    },
-    {
-      name: "MellowRedeemQueueAdapterContract",
-      path: "./contracts/deprecated/MellowRedeemQueueAdapterContract.js",
-      className: "MellowRedeemQueueAdapterContract",
     },
   ] as const;
 

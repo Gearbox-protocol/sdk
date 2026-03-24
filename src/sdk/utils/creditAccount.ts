@@ -1,17 +1,18 @@
 import type { Address } from "viem";
+
 import {
-  type Asset,
-  BigIntMath,
   MIN_INT96,
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS,
   PRICE_DECIMALS_POW,
-  PriceUtils,
   SECONDS_PER_YEAR,
   WAD,
   WAD_DECIMALS_POW,
-} from "../index.js";
+} from "../constants/index.js";
+import type { Asset } from "../router/types.js";
+import { BigIntMath } from "./bigintMath.js";
+import { PriceUtils } from "./priceMath.js";
 
 interface TokenDataSlice {
   symbol: string;

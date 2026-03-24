@@ -7,6 +7,7 @@ import { ChainContractsRegister } from "./ChainContractsRegister.js";
 import type { TokensMeta } from "./TokensMeta.js";
 
 export type ConstructOptions =
+  | ChainContractsRegister
   | {
       client: PublicClient<Transport, Chain>;
       logger?: ILogger;
@@ -19,27 +20,43 @@ export type ConstructOptions =
 export class Construct {
   public readonly logger?: ILogger;
   public readonly client: PublicClient<Transport, Chain>;
-  public readonly register: ChainContractsRegister;
+  readonly #register?: ChainContractsRegister;
   /**
    * Indicates that contract state needs to be updated
    */
   #dirty = false;
 
   constructor(options: ConstructOptions) {
-    const { logger } = options;
-    if ("client" in options) {
-      const { client } = options;
-      this.client = client;
-      this.register = ChainContractsRegister.for(client, logger);
+    if (options instanceof ChainContractsRegister) {
+      this.#register = options;
+      this.client = options.client;
+    } else if ("register" in options) {
+      this.#register = options.register;
+      this.client = options.register.client;
     } else {
-      const { register } = options;
-      this.register = register;
-      this.client = register.client;
+      this.client = options.client;
     }
     this.logger = childLogger(
       this.constructor.name,
-      this.register.logger ?? logger,
+      this.#register?.logger ?? options.logger,
     );
+  }
+
+  /**
+   * Throws if register was not provided in constructor options
+   * Ephemeral contracts that do not need to access other contracts may not need it
+   */
+  public get register(): ChainContractsRegister {
+    if (!this.#register) {
+      throw new Error(
+        "contracts register not available, it must be provided if contract needs to access other contracts",
+      );
+    }
+    return this.#register;
+  }
+
+  protected safeGetRegister(): ChainContractsRegister | undefined {
+    return this.#register;
   }
 
   public get chain(): Chain {
@@ -68,20 +85,12 @@ export class Construct {
     this.#dirty = value;
   }
 
-  /**
-   * Syntax sugar for rgister.tokensMeta
-   */
   protected get tokensMeta(): TokensMeta {
     return this.register.tokensMeta;
   }
 
-  /**
-   * Syntax suggar for getting contract labels
-   * @param address
-   * @returns
-   */
   protected labelAddress(address: Address, omitAddress?: boolean): string {
-    return this.register.labelAddress(address, omitAddress);
+    return this.#register?.labelAddress(address, omitAddress) ?? address;
   }
 
   /**

@@ -22,7 +22,7 @@ import {
 } from "../../../abi/310/generated.js";
 import { iPausableAbi } from "../../../abi/iPausable.js";
 import type { CreditSuiteState } from "../../base/index.js";
-import { BaseContract } from "../../base/index.js";
+import { BaseContract, ChainContractsRegister } from "../../base/index.js";
 import { ADDRESS_0X0 } from "../../constants/index.js";
 import { CreditFacadeV310Contract } from "./CreditFacadeV310Contract.js";
 
@@ -34,6 +34,7 @@ const client = createPublicClient({
     },
   }),
 });
+const register = new ChainContractsRegister(client);
 
 const FACADE_ADDR = getAddress("0xFACADE0000000000000000000000000000000310");
 const ADAPTER_ADDR = getAddress("0xADAD000000000000000000000000000000000001");
@@ -69,9 +70,7 @@ function encodeInnerCall<
 const FACADE_NAME = "CreditFacadeV310(TestCM)";
 
 function makeFacadeAndAdapter() {
-  const options = { client };
-
-  const facade = new CreditFacadeV310Contract(options, {
+  const facade = new CreditFacadeV310Contract({ register }, {
     creditFacade: {
       baseParams: {
         addr: FACADE_ADDR,
@@ -95,13 +94,16 @@ function makeFacadeAndAdapter() {
     },
   } as unknown as CreditSuiteState);
 
-  const adapter = new BaseContract(options, {
-    abi: adapterAbi,
-    addr: ADAPTER_ADDR,
-    name: "UniswapV3Adapter",
-    version: 310,
-    contractType: "AD_UNISWAP_V3",
-  });
+  const adapter = new BaseContract(
+    { register },
+    {
+      abi: adapterAbi,
+      addr: ADAPTER_ADDR,
+      name: "UniswapV3Adapter",
+      version: 310,
+      contractType: "AD_UNISWAP_V3",
+    },
+  );
 
   return { facade, adapter };
 }
