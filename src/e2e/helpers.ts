@@ -1,14 +1,22 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
-import { type Hex, http } from "viem";
+import {
+  type Chain,
+  createWalletClient,
+  type Hex,
+  http,
+  type Transport,
+  type WalletClient,
+} from "viem";
+import { type PrivateKeyAccount, privateKeyToAccount } from "viem/accounts";
 import { afterAll, beforeAll, beforeEach } from "vitest";
 import {
   type AnvilClient,
   createAnvilClient,
 } from "../dev/createAnvilClient.js";
-import { chains, type NetworkType } from "../sdk/index.js";
+import { chains, type GearboxSDK, type NetworkType } from "../sdk/index.js";
 import { type AnvilInstance, startAnvil, stopAnvil } from "./anvil.js";
-import { ANVIL_PORT } from "./constants.js";
+import { ANVIL_PORT, ANVIL_URL } from "./constants.js";
 import {
   ORACLE_PROXY_PORT,
   type OracleProxy,
@@ -92,5 +100,19 @@ export function useFixture(options: UseFixtureOptions): void {
     }
     await stopAnvil(anvil);
     await proxy.close();
+  });
+}
+
+export function getAnvilWallet(
+  sdk: GearboxSDK,
+): WalletClient<Transport, Chain, PrivateKeyAccount> {
+  // well-known private key for the first account in anvil
+  const account = privateKeyToAccount(
+    "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+  );
+  return createWalletClient({
+    chain: sdk.client.chain,
+    transport: http(ANVIL_URL),
+    account,
   });
 }
