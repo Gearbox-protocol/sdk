@@ -3,8 +3,26 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig(({ mode }) => ({
   test: {
-    include: ["src/**/*.test.ts"],
-    // mode defines what ".env.{mode}" file to choose if exists
-    env: loadEnv(mode, process.cwd(), ""),
+    projects: [
+      {
+        test: {
+          name: "unit",
+          include: ["src/**/*.test.ts"],
+          exclude: ["src/e2e/**/*.test.ts"],
+          env: loadEnv(mode, process.cwd(), ""),
+        },
+      },
+      {
+        test: {
+          name: "e2e",
+          include: ["src/e2e/**/*.test.ts"],
+          globalSetup: ["src/e2e/globalSetup.ts"],
+          testTimeout: 120_000,
+          hookTimeout: 120_000,
+          fileParallelism: false,
+          env: loadEnv("", process.cwd(), ""),
+        },
+      },
+    ],
   },
 }));

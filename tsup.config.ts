@@ -25,7 +25,12 @@ export default defineConfig(options => {
   console.info("building subpaths", subpaths);
 
   const commonOptions: Partial<Options> = {
-    entry: ["src/**/*.ts", "!src/**/*.test.ts", "!src/**/*.mock.ts"],
+    entry: [
+      "src/**/*.ts",
+      "!src/**/*.test.ts",
+      "!src/**/*.mock.ts",
+      "!src/e2e/**",
+    ],
     clean: !options.watch, // cleaning in watch mode causes problems with turborepo
     bundle: false,
     splitting: false,

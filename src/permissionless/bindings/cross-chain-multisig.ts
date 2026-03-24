@@ -241,7 +241,6 @@ export class CrossChainMultisigContract extends BaseContract<typeof abi> {
       case Addresses.INSTANCE_MANAGER.toLowerCase(): {
         const instanceManager = new InstanceManagerContract(
           target,
-          this.client,
           this.register,
         );
         return instanceManager.parseFunctionData(calldata);

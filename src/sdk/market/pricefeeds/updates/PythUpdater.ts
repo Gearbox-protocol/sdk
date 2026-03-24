@@ -82,7 +82,7 @@ export class PythUpdater
         `using historical timestamp ${this.#historicalTimestamp}`,
       );
     }
-    this.#cache = PriceUpdatesCache.get("pyth", {
+    this.#cache = new PriceUpdatesCache({
       // currently staleness period is 240 seconds on all networks, add some buffer
       // this period of 4 minutes is selected based on time that is required for user to sign transaction with wallet
       // so it's unlikely to decrease

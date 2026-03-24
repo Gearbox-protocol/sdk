@@ -1,7 +1,7 @@
 import { writeFile } from "node:fs/promises";
 
 import { pino } from "pino";
-
+import type { Address } from "viem";
 import { AccountsCounterPlugin } from "../src/plugins/accounts-counter/index.js";
 import { AdaptersPlugin } from "../src/plugins/adapters/AdaptersPlugin.js";
 import { BotsPlugin } from "../src/plugins/bots/index.js";
@@ -22,6 +22,10 @@ const logger = pino({
   },
 });
 
+const BLOCK = 24_728_000n;
+const MC_CP0X: Address = "0xc168343c791d56dd1da4b4b8b0cc1c1ec1a16e6b";
+const MC_INVARIANT: Address = "0x7a133fbd01736fd076158307c9476cc3877f1af5";
+
 async function example(): Promise<void> {
   // const RPC = "http://127.0.0.1:8545";
   const RPC = process.env.RPC_URL!;
@@ -31,21 +35,21 @@ async function example(): Promise<void> {
   const sdk = await GearboxSDK.attach({
     rpcURLs: [RPC],
     timeout: 480_000,
-    // blockNumber: 23928400,
+    blockNumber: BLOCK,
     // redstoneHistoricTimestamp: true,
     // addressProvider: ADDRESS_PROVIDER,
-    // marketConfigurators: [],
+    marketConfigurators: [MC_INVARIANT],
     logger,
     // ignoreUpdateablePrices: true,
     // strictContractTypes: true,
-    // plugins: {
-    //   adapters: new AdaptersPlugin(true),
-    //   zappers: new ZappersPlugin([], true),
-    //   bots: new BotsPlugin(true),
-    //   degen: new DegenDistributorsPlugin(true),
-    //   pools7DAgo: new Pools7DAgoPlugin(true),
-    //   accountsCounter: new AccountsCounterPlugin(true),
-    // },
+    plugins: {
+      adapters: new AdaptersPlugin(true),
+      zappers: new ZappersPlugin([], true),
+      bots: new BotsPlugin(true),
+      degen: new DegenDistributorsPlugin(true),
+      pools7DAgo: new Pools7DAgoPlugin(true),
+      accountsCounter: new AccountsCounterPlugin(true),
+    },
     redstone: {
       ignoreMissingFeeds: true,
       historicTimestamp: true,
