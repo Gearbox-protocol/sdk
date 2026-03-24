@@ -7,6 +7,7 @@ export * from "./bytes32ToString.js";
 export * from "./childLogger.js";
 export * from "./createRawTx.js";
 export * from "./creditAccount.js";
+export * from "./endpoints.js";
 export * from "./etherscan.js";
 export * from "./filterDust.js";
 export * from "./formatter.js";

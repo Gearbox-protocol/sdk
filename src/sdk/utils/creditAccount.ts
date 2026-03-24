@@ -112,8 +112,8 @@ export interface CalcQuotaUpdateProps {
     debt: bigint;
   };
 
-  allowedToSpend: Record<Address, {}>;
-  allowedToObtain: Record<Address, {}>;
+  allowedToSpend: Record<Address, object>;
+  allowedToObtain: Record<Address, object>;
 
   quotaReserve: bigint;
 }
@@ -153,6 +153,8 @@ export interface TimeToLiquidationProps {
 const MAX_UINT16 = 65535;
 
 export class CreditAccountDataUtils {
+  private constructor() {}
+
   static sortBalances(
     balances: Record<Address, bigint>,
     prices: Record<Address, bigint>,
