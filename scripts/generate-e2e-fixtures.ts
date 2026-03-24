@@ -5,7 +5,7 @@
  *   tsx --env-file .env scripts/generate-e2e-fixtures.ts
  *
  * Environment:
- *   E2E_RPC_URL - Archive node RPC URL (required)
+ *   RPC_URL - Archive node RPC URL (required)
  *
  * Edit NETWORK, BLOCK, CHAIN_ID, and MARKET_CONFIGURATORS below for your scenario.
  */
@@ -35,9 +35,9 @@ const NETWORK: NetworkType = "Mainnet";
 const BLOCK = 24_728_000n;
 // ─────────────────────────────────────────────────────────────────────────────
 
-const RPC_URL = process.env.E2E_RPC_URL ?? "";
+const RPC_URL = process.env.RPC_URL ?? "";
 if (!RPC_URL) {
-  console.error("E2E_RPC_URL environment variable is required");
+  console.error("RPC_URL environment variable is required");
   process.exit(1);
 }
 

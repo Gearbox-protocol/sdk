@@ -28,10 +28,10 @@ export { PYTH_API_PROXY, REDSTONE_GATEWAYS } from "./oracleProxy.js";
 const FIXTURES_DIR = resolve(import.meta.dirname, "fixtures");
 
 function requireRpcUrl(): string {
-  const url = process.env.E2E_RPC_URL;
+  const url = process.env.RPC_URL;
   if (!url) {
     throw new Error(
-      "E2E_RPC_URL environment variable is required for e2e tests.\n" +
+      "RPC_URL environment variable is required for e2e tests.\n" +
         "Anvil needs it to fetch the fork block header on startup.",
     );
   }
