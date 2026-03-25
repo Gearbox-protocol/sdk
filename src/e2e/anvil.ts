@@ -8,7 +8,6 @@ import {
 } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { gunzipSync } from "node:zlib";
 
 /**
  * Foundry uses human-readable names for well-known chains in its RPC cache path
@@ -182,11 +181,7 @@ export function startAnvil(options: StartAnvilOptions): Promise<AnvilInstance> {
   const cacheDest = anvilCachePath(chainId, forkBlockNumber);
   mkdirSync(join(cacheDest, ".."), { recursive: true });
 
-  if (cacheFilePath.endsWith(".gz")) {
-    writeFileSync(cacheDest, gunzipSync(readFileSync(cacheFilePath)));
-  } else {
-    writeFileSync(cacheDest, readFileSync(cacheFilePath));
-  }
+  writeFileSync(cacheDest, readFileSync(cacheFilePath));
 
   return spawnAnvil(
     [
@@ -194,14 +189,10 @@ export function startAnvil(options: StartAnvilOptions): Promise<AnvilInstance> {
       forkUrl,
       "--fork-block-number",
       String(forkBlockNumber),
-      "--fork-chain-id",
-      String(chainId),
-      "--chain-id",
-      String(chainId),
       "--port",
       String(port),
       "--timeout",
-      "5000",
+      "120000",
     ],
     port,
     30_000,
@@ -244,6 +235,9 @@ export function startAnvilFork(
  * Stops anvil and cleans up temp files.
  */
 export async function stopAnvil(instance: AnvilInstance): Promise<void> {
+  // Give anvil a moment to flush cache
+  // await new Promise(r => setTimeout(r, 1000));
+
   const proc = instance.process;
 
   await new Promise<void>(resolve => {

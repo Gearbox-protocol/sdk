@@ -1,0 +1,81 @@
+---
+description: Guidelines for writing and maintaining e2e tests for Gearbox SDK
+globs: src/e2e/**/*.ts,scripts/generate-e2e-fixtures.ts
+alwaysApply: false
+---
+
+# E2E Tests
+
+Tests run GearboxSDK against a local Anvil fork with pre-recorded oracle data. Fixtures are generated once, committed to git, and replayed in tests.
+
+## Architecture
+
+- **Anvil** starts from a fork RPC cache (`fixtures/{Net}-{block}-rpc-cache.json`), not a state dump. `RPC_URL` is still needed for Anvil's initial block header fetch.
+- **Oracle proxy** (`oracleProxy.ts`, port 8547) replaces MSW. Routes `/pyth` to Hermes, `/rs0` and `/rs1` to Redstone gateways. Record mode saves per-request JSON files; playback mode serves them.
+- **`useFixture()`** in `helpers.ts` manages the full lifecycle: starts proxy + Anvil in `beforeAll`, `evm_snapshot`/`evm_revert` per test, stops both in `afterAll`.
+
+MSW was replaced because it intercepts ALL HTTP traffic (including RPC to Anvil), caused OOM during fixture generation, and added overhead. The proxy only handles oracle traffic via SDK's built-in `apiProxy`/`gateways` options.
+
+## Writing Tests
+
+```typescript
+import { beforeAll, describe, expect, it } from "vitest";
+import { GearboxSDK } from "../../sdk/index.js";
+import { ANVIL_URL } from "../constants.js";
+import { PYTH_API_PROXY, REDSTONE_GATEWAYS, useFixture } from "../helpers.js";
+
+const BLOCK = 24_728_000n;
+
+describe("my scenario", () => {
+  let sdk: GearboxSDK;
+
+  useFixture({ network: "Mainnet", block: BLOCK });
+
+  beforeAll(async () => {
+    sdk = await GearboxSDK.attach({
+      rpcURLs: [ANVIL_URL],
+      timeout: 120_000,
+      blockNumber: BLOCK,
+      redstone: {
+        historicTimestamp: true,
+        ignoreMissingFeeds: true,
+        gateways: REDSTONE_GATEWAYS,
+      },
+      pyth: {
+        historicTimestamp: true,
+        ignoreMissingFeeds: true,
+        apiProxy: PYTH_API_PROXY,
+      },
+    });
+  });
+
+  it("should work", async () => {
+    expect(sdk.marketRegister.markets.length).toBeGreaterThan(0);
+  });
+});
+```
+
+## Rules
+
+- Always pass `gateways: REDSTONE_GATEWAYS` and `apiProxy: PYTH_API_PROXY`
+- Always use `historicTimestamp: true` -- makes oracle URLs deterministic per pinned block
+- Always pass `pollingInterval: 100` to `waitForTransactionReceipt` -- viem default is 4s
+- Use `marketConfigurators: [...]` to limit scope and speed up attach when possible
+- Combine assertions into fewer `it()` blocks -- e2e setup is slow
+- Put SDK attach in `beforeAll`, not `beforeEach`
+- Keep comments concise
+
+## Generating Fixtures
+
+Run `yarn generate:e2e` (needs `RPC_URL` in `.env`). Regenerate when pinning to a new block or adding new market configurators/oracle feeds.
+
+## Warming RPC Cache for Transaction-Heavy Tests
+
+Fixture generation only runs `GearboxSDK.attach()`. Tests that execute transactions (router, openCreditAccount) touch extra storage slots not in the cache, making Anvil fetch them live (slow).
+
+To warm the cache:
+1. Comment out `evm_revert` in `afterAll` of `helpers.ts`
+2. Run the slow test once
+3. Add a 5s sleep before `stopAnvil` so Anvil flushes cache to disk
+4. Copy `~/.foundry/cache/rpc/mainnet/{block}/storage.json` to `src/e2e/fixtures/`
+5. Revert temporary changes

@@ -1,5 +1,6 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
+import { setTimeout } from "node:timers/promises";
 import {
   type Chain,
   createWalletClient,
@@ -112,7 +113,8 @@ export function getAnvilWallet(
   );
   return createWalletClient({
     chain: sdk.client.chain,
-    transport: http(ANVIL_URL),
+    transport: http(ANVIL_URL, { timeout: 120_000 }),
     account,
+    pollingInterval: 100,
   });
 }
