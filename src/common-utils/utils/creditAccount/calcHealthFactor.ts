@@ -22,6 +22,17 @@ export interface CalcHealthFactorProps {
 
 const MAX_UINT16 = 65535;
 
+/**
+ * Computes account health factor in percentage-factor units.
+ *
+ * The function evaluates collateral value under liquidation thresholds,
+ * applies quota caps for quoted tokens, and compares the resulting
+ * liquidation-adjusted collateral against borrowed value.
+ *
+ * @param props Credit account balances, quotas, prices, thresholds, and debt context.
+ * @returns Health factor as a number in `PERCENTAGE_FACTOR` scale,
+ * or `65535` when debt is zero.
+ */
 export function calcHealthFactor({
   assets,
   quotas,

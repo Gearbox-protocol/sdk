@@ -48,12 +48,30 @@ interface CalcQuotaUpdateReturnType {
   quotaDecrease: Array<Asset>;
 }
 
+/**
+ * Rounds quota deltas to protocol precision step (`PERCENTAGE_FACTOR`).
+ *
+ * The `MIN_INT96` sentinel is preserved as-is because it encodes
+ * "reset quota" semantics and must not be transformed.
+ *
+ * @param quotaChange Raw quota delta.
+ * @returns Rounded quota delta, or untouched `MIN_INT96` sentinel.
+ */
 export function roundUpQuota(quotaChange: bigint) {
   return quotaChange !== MIN_INT96
     ? (quotaChange / PERCENTAGE_FACTOR) * PERCENTAGE_FACTOR
     : quotaChange;
 }
 
+/**
+ * Computes recommended quota for a token when debt-aware capping is enabled.
+ *
+ * Base quota is `min(debt, amount * LT)`, then reserve buffer is applied.
+ * Final value is rounded to protocol quota step.
+ *
+ * @param props Token amount in target units, debt, liquidation threshold, reserve.
+ * @returns Recommended rounded quota.
+ */
 export function calcRecommendedQuota({
   amount,
   debt,
@@ -72,6 +90,15 @@ export function calcRecommendedQuota({
   return roundUpQuota(recommendedQuota);
 }
 
+/**
+ * Computes default quota for a token without debt capping.
+ *
+ * Base quota is `amount * LT`, then reserve buffer is applied.
+ * Final value is rounded to protocol quota step.
+ *
+ * @param props Token amount in target units, liquidation threshold, reserve.
+ * @returns Default rounded quota.
+ */
 export function calcDefaultQuota({
   amount,
   lt,
@@ -85,6 +112,20 @@ export function calcDefaultQuota({
   return roundUpQuota(recommendedQuota);
 }
 
+/**
+ * Produces desired quota state and explicit increase/decrease actions.
+ *
+ * The function:
+ * - computes decreases for spendable tokens
+ * - computes increase capacity based on global quota cap
+ * - computes increases for obtainable tokens within remaining capacity
+ * - applies changes on top of initial quotas for active quota tokens
+ *
+ * `MIN_INT96` is treated as a full reset marker for a token quota.
+ *
+ * @param props Current quotas, initial quotas, permissions, and calculation context.
+ * @returns Desired quota map plus separate increase/decrease instruction lists.
+ */
 export function calcQuotaUpdate(
   props: CalcQuotaUpdateProps,
 ): CalcQuotaUpdateReturnType {
@@ -160,6 +201,19 @@ export function calcQuotaUpdate(
   };
 }
 
+/**
+ * Calculates a single-token quota change candidate.
+ *
+ * The helper computes desired quota (default or debt-aware), derives delta
+ * against initial quota, applies increase cap, and converts full-decrease
+ * cases into `MIN_INT96` sentinel when needed.
+ *
+ * @param token Token to evaluate.
+ * @param unsafeMaxQuotaIncrease Maximum currently available increase budget.
+ * @param props Shared quota-update context.
+ * @returns Asset-shaped quota delta for allowed and valid changes,
+ * or `undefined` when token is inactive or change is not permitted.
+ */
 function getSingleQuotaChange(
   token: Address,
   unsafeMaxQuotaIncrease: bigint,

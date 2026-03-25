@@ -10,8 +10,15 @@ export interface TimeToLiquidationProps {
 }
 
 /**
- * Calculates the time remaining until liquidation for a credit account.
- * @returns The time remaining until liquidation in milliseconds.
+ * Estimates time remaining until health factor reaches liquidation level.
+ *
+ * Assumes linear debt growth under current aggregate borrow-rate exposure
+ * and returns a millisecond duration until `healthFactor` decays to `1.0`
+ * (`PERCENTAGE_FACTOR` in internal scale).
+ *
+ * @param props Current health factor and `totalBorrowRate * debt` term.
+ * @returns Milliseconds to liquidation as `bigint`, or `null` when already at/under
+ * liquidation threshold or when borrow-rate exposure is zero.
  */
 export function getTimeToLiquidation({
   healthFactor,

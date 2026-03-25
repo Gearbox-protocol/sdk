@@ -20,6 +20,19 @@ export interface CalcMaxLendingDebtProps {
   targetHF?: bigint;
 }
 
+/**
+ * Calculates additional debt that can be borrowed while targeting
+ * a minimum health factor after the borrow.
+ *
+ * The derivation comes from the post-borrow HF equation and clamps
+ * negative results to zero.
+ *
+ * @param healthFactor Current health factor in percentage-factor units.
+ * @param debt Current debt amount.
+ * @param underlyingLT Liquidation threshold of underlying token.
+ * @param minHf Target minimum health factor (defaults to `PERCENTAGE_FACTOR`).
+ * @returns Maximum non-negative debt increase.
+ */
 export function calcMaxDebtIncrease(
   healthFactor: number,
   debt: bigint,
@@ -35,6 +48,15 @@ export function calcMaxDebtIncrease(
   return BigIntMath.max(0n, result);
 }
 
+/**
+ * Calculates maximum debt capacity for lending based on collateral mix.
+ *
+ * It computes liquidation-threshold-weighted collateral value and converts
+ * it into underlying-token debt units at the requested target health factor.
+ *
+ * @param props Asset balances, prices, thresholds, target HF, and token metadata.
+ * @returns Maximum borrowable debt amount in underlying token units.
+ */
 export function calcMaxLendingDebt({
   assets,
 

@@ -24,10 +24,26 @@ export interface CalcOverallAPYProps {
   tokensList: Record<Address, TokenDataSlice>;
 }
 
-// [
-//  Sum(amount_i * price_i * apy_i - quota_i * quotaPrice * quotaRate_i * (1 + feeInterest)) -
-//  debt * debtPrice * baseRateWithFee
-// ] / (totalValue - debt) * debtPrice
+/**
+ * Computes net portfolio APY for a credit account.
+ *
+ * The resulting value combines:
+ * - positive LP yield from supplied assets
+ * - negative quota borrowing cost (with interest fee)
+ * - negative base debt borrowing cost
+ * and normalizes by user-owned equity (`totalValue - debt`) in underlying value terms.
+ *
+ * ```
+ * [
+ * Sum(amount_i * price_i * apy_i - quota_i * quotaPrice * quotaRate_i * (1 + feeInterest)) -
+ *  debt * debtPrice * baseRateWithFee
+ * ] / (totalValue - debt) * debtPrice
+ * ```
+ *
+ * @param props Credit account assets, rates, prices, debt, and token metadata.
+ * @returns APY in percentage-factor scale as `bigint`, or `undefined`
+ * when required inputs are missing or invalid.
+ */
 export function calcOverallAPY({
   caAssets,
   lpAPY,

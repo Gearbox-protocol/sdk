@@ -4,6 +4,15 @@ export interface CalcRelativeBaseBorrowRateProps {
   assetAmountInUnderlying: bigint;
 }
 
+/**
+ * Computes base borrow-rate impact relative to asset amount.
+ *
+ * This helper is used as an intermediate weighted term:
+ * `debt * baseRateWithFee * assetAmountInUnderlying`.
+ *
+ * @param props Debt amount, base borrow rate (with fee), and normalized asset amount.
+ * @returns Relative borrow-rate contribution in bigint arithmetic.
+ */
 export function calcRelativeBaseBorrowRate({
   debt,
   baseRateWithFee,

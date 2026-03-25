@@ -13,6 +13,18 @@ interface LiquidationPriceProps {
   tokensList: Record<Address, TokenDataSlice>;
 }
 
+/**
+ * Calculates target token liquidation price for a credit account.
+ *
+ * The formula uses:
+ * - effective debt adjusted by underlying-token collateral contribution
+ * - target token effective balance
+ * - target token liquidation threshold
+ *
+ * @param props Debt context, assets, thresholds, and token metadata.
+ * @returns Target token price in `PRICE_DECIMALS` precision that corresponds
+ * to liquidation boundary; returns `0n` when target balance or LT is non-positive.
+ */
 export function liquidationPrice({
   liquidationThresholds,
 

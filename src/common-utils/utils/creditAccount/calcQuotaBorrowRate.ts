@@ -7,6 +7,16 @@ export interface CalcQuotaBorrowRateProps {
   quotaRates: Record<Address, QuotaInfoSlice>;
 }
 
+/**
+ * Aggregates weighted quota borrow rate exposure across active quotas.
+ *
+ * For each quota token, contribution is:
+ * `activeQuotaBalance * quotaRate`.
+ * Inactive quotas are ignored.
+ *
+ * @param props Quota balances and per-token quota rates.
+ * @returns Sum of `balance * rate` terms in percentage-factor scale.
+ */
 export function calcQuotaBorrowRate({
   quotas,
   quotaRates,
