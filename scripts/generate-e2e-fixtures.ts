@@ -22,7 +22,7 @@ import {
   REDSTONE_GATEWAYS,
   startOracleProxy,
 } from "../src/e2e/oracleProxy.js";
-import { AccountsCounterPlugin } from "../src/plugins/accounts-counter/index.js";
+import { AccountsPlugin } from "../src/plugins/accounts/AccountsPlugin.js";
 import { AdaptersPlugin } from "../src/plugins/adapters/AdaptersPlugin.js";
 import { BotsPlugin } from "../src/plugins/bots/index.js";
 import { DegenDistributorsPlugin } from "../src/plugins/degen-distributors/index.js";
@@ -32,7 +32,7 @@ import { chains, GearboxSDK, type NetworkType } from "../src/sdk/index.js";
 
 // ─── Configuration ──────────────────────────────────────────────────────────
 const NETWORK: NetworkType = "Mainnet";
-const BLOCK = 24_728_000n;
+const BLOCK = 24_736_900n;
 // ─────────────────────────────────────────────────────────────────────────────
 
 const RPC_URL = process.env.RPC_URL ?? "";
@@ -74,7 +74,6 @@ async function main() {
   const anvil = await startAnvilFork({
     forkUrl: RPC_URL,
     forkBlockNumber: BLOCK,
-    chainId,
     port: ANVIL_PORT,
   });
   console.log(`[anvil] Anvil listening on ${anvil.url}\n`);
@@ -104,7 +103,7 @@ async function main() {
         bots: new BotsPlugin(true),
         degen: new DegenDistributorsPlugin(true),
         pools7DAgo: new Pools7DAgoPlugin(true),
-        accountsCounter: new AccountsCounterPlugin(true),
+        accounts: new AccountsPlugin({ includeZeroDebt: true }, true),
       },
       logger: console,
       ...oracleOpts,
@@ -131,6 +130,7 @@ async function main() {
     }
   } finally {
     await proxy.close();
+    await new Promise(resolve => setTimeout(resolve, 5000));
     console.log("[anvil] Stopping anvil (flushing RPC cache to disk)...");
     await stopAnvil(anvil);
   }

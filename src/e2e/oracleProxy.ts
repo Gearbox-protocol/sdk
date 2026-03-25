@@ -178,12 +178,12 @@ export async function startOracleProxy(
   });
 
   const url = `http://127.0.0.1:${port}`;
-  console.log(`[proxy] Oracle proxy started in ${mode} mode on ${url}`);
-  if (mode === "playback" && recordings) {
-    console.log(
-      `[proxy] Loaded ${recordings.size} recordings from ${recordingsDir}`,
-    );
-  }
+  // console.log(`[proxy] Oracle proxy started in ${mode} mode on ${url}`);
+  // if (mode === "playback" && recordings) {
+  //   console.log(
+  //     `[proxy] Loaded ${recordings.size} recordings from ${recordingsDir}`,
+  //   );
+  // }
 
   return {
     url,

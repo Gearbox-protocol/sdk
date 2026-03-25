@@ -1,11 +1,5 @@
 import { type ChildProcess, spawn } from "node:child_process";
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
@@ -40,12 +34,10 @@ export interface AnvilInstance {
   process: ChildProcess;
   port: number;
   url: string;
-  /** Directory to clean up when stopping */
-  tempDir?: string;
 }
 
 export interface StartAnvilOptions {
-  /** Path to compressed (.gz) or uncompressed fork RPC cache fixture (storage.json) */
+  /** uncompressed fork RPC cache fixture (storage.json) */
   cacheFilePath: string;
   /** RPC URL for anvil to fetch uncached data (e.g. fork block header) */
   forkUrl: string;
@@ -57,7 +49,6 @@ export interface StartAnvilOptions {
 export interface StartAnvilForkOptions {
   forkUrl: string;
   forkBlockNumber: number | bigint;
-  chainId: number;
   port?: number;
   /** Anvil RPC request timeout in ms (default: 120000) */
   timeout?: number;
@@ -95,7 +86,6 @@ function spawnAnvil(
   args: string[],
   port: number,
   timeoutMs: number,
-  tempDir?: string,
 ): Promise<AnvilInstance> {
   return new Promise<AnvilInstance>((resolve, reject) => {
     const proc = spawn("anvil", args, { stdio: ["ignore", "pipe", "pipe"] });
@@ -123,7 +113,6 @@ function spawnAnvil(
           process: proc,
           port,
           url: `http://127.0.0.1:${port}`,
-          tempDir,
         });
       }
     });
@@ -205,13 +194,7 @@ export function startAnvil(options: StartAnvilOptions): Promise<AnvilInstance> {
 export function startAnvilFork(
   options: StartAnvilForkOptions,
 ): Promise<AnvilInstance> {
-  const {
-    forkUrl,
-    forkBlockNumber,
-    chainId,
-    port = 8546,
-    timeout = 120_000,
-  } = options;
+  const { forkUrl, forkBlockNumber, port = 8546, timeout = 480_000 } = options;
 
   return spawnAnvil(
     [
@@ -219,8 +202,6 @@ export function startAnvilFork(
       forkUrl,
       "--fork-block-number",
       String(forkBlockNumber),
-      "--chain-id",
-      String(chainId),
       "--port",
       String(port),
       "--timeout",
@@ -232,11 +213,12 @@ export function startAnvilFork(
 }
 
 /**
- * Stops anvil and cleans up temp files.
+ * Gracefully stops anvil
+ * @param instance
  */
 export async function stopAnvil(instance: AnvilInstance): Promise<void> {
   // Give anvil a moment to flush cache
-  // await new Promise(r => setTimeout(r, 1000));
+  // await new Promise(r => setTimeout(r, 120_000));
 
   const proc = instance.process;
 
@@ -256,8 +238,4 @@ export async function stopAnvil(instance: AnvilInstance): Promise<void> {
     });
     proc.kill("SIGTERM");
   });
-
-  if (instance.tempDir) {
-    rmSync(instance.tempDir, { recursive: true, force: true });
-  }
 }

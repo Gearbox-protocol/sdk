@@ -1,6 +1,5 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
-import { setTimeout } from "node:timers/promises";
 import {
   type Chain,
   createWalletClient,
