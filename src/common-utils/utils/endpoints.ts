@@ -7,6 +7,18 @@ const CHARTS_BACKEND_ADDRESS = "https://charts-server.fly.dev";
 
 const STATIC_TOKEN = "https://static.gearbox.finance/tokens/";
 
+/**
+ * Centralized endpoint builder for Gearbox backend resources.
+ *
+ * This utility exposes static helpers that compose canonical URLs for:
+ * - charts backend API routes
+ * - static token metadata
+ * - rewards and NFT merkle proof files
+ * - APY state cache snapshots
+ *
+ * The class is intentionally non-instantiable and is used as a pure
+ * namespace of URL-construction functions.
+ */
 export class GearboxBackendApi {
   private constructor() {}
 
@@ -21,7 +33,7 @@ export class GearboxBackendApi {
 
     const isMain = isSupportedNetwork(chainId);
 
-    const relativePath = URLApi.getRelativeUrl(
+    const relativePath = getRelativeUrl(
       url,
       isMain
         ? {
@@ -54,7 +66,7 @@ export class GearboxBackendApi {
   };
 
   static apyAllRewards = () =>
-    URLApi.getRelativeUrl(
+    getRelativeUrl(
       "https://state-cache.gearbox.foundation/apy-server/latest.json",
     );
 }
@@ -63,16 +75,12 @@ interface Options {
   params?: Record<string, string | number>;
 }
 
-export class URLApi {
-  private constructor() {}
+const getRelativeUrl = (url: string, options?: Options) => {
+  const { params = {} } = options || {};
 
-  static getRelativeUrl = (url: string, options?: Options) => {
-    const { params = {} } = options || {};
+  const paramsString = Object.entries(params)
+    .map<string>(([key, value]) => `${key}=${value}`)
+    .join("&");
 
-    const paramsString = Object.entries(params)
-      .map<string>(([key, value]) => `${key}=${value}`)
-      .join("&");
-
-    return [url, ...(paramsString ? [paramsString] : [])].join("?");
-  };
-}
+  return [url, ...(paramsString ? [paramsString] : [])].join("?");
+};
