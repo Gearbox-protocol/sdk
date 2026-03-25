@@ -39,6 +39,11 @@
       "types": "./dist/types/permissionless/index.d.ts",
       "import": "./dist/esm/permissionless/index.js",
       "default": "./dist/cjs/permissionless/index.js"
+    },
+    "./common-utils": {
+      "types": "./dist/types/common-utils/index.d.ts",
+      "import": "./dist/esm/common-utils/index.js",
+      "default": "./dist/cjs/common-utils/index.js"
     }
   },
   "files": [
