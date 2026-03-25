@@ -43,12 +43,10 @@ describe("price feed updates", () => {
       ignoreUpdateablePrices: true,
       redstone: {
         historicTimestamp: true,
-        ignoreMissingFeeds: true,
         gateways: REDSTONE_GATEWAYS,
       },
       pyth: {
         historicTimestamp: true,
-        ignoreMissingFeeds: true,
         apiProxy: PYTH_API_PROXY,
       },
     });

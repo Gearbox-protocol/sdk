@@ -42,11 +42,9 @@ async function example(): Promise<void> {
       accountsCounter: new AccountsPlugin({ includeZeroDebt: true }, true),
     },
     redstone: {
-      ignoreMissingFeeds: true,
       historicTimestamp: true,
     },
     pyth: {
-      ignoreMissingFeeds: true,
       historicTimestamp: true,
     },
   });

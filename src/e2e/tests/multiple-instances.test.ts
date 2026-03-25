@@ -22,12 +22,10 @@ describe("Multiple SDK instances can be attached", () => {
       ignoreUpdateablePrices: false,
       redstone: {
         historicTimestamp: true as const,
-        ignoreMissingFeeds: true,
         gateways: REDSTONE_GATEWAYS,
       },
       pyth: {
         historicTimestamp: true as const,
-        ignoreMissingFeeds: true,
         apiProxy: PYTH_API_PROXY,
       },
     };

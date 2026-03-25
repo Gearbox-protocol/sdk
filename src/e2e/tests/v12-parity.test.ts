@@ -31,12 +31,10 @@ describe("v12 parity tests", () => {
       },
       redstone: {
         historicTimestamp: true,
-        ignoreMissingFeeds: true,
         gateways: REDSTONE_GATEWAYS,
       },
       pyth: {
         historicTimestamp: true,
-        ignoreMissingFeeds: true,
         apiProxy: PYTH_API_PROXY,
       },
     });

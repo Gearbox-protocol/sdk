@@ -83,12 +83,10 @@ async function main() {
     const oracleOpts = {
       redstone: {
         historicTimestamp: true as const,
-        ignoreMissingFeeds: true,
         gateways: REDSTONE_GATEWAYS,
       },
       pyth: {
         historicTimestamp: true as const,
-        ignoreMissingFeeds: true,
         apiProxy: PYTH_API_PROXY,
       },
     };

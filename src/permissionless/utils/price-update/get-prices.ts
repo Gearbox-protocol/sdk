@@ -111,12 +111,8 @@ export async function getPrices({
     client: client as PublicClient<Transport, GearboxChain>,
     gasLimit,
     marketConfigurators: [],
-    redstone: {
-      ignoreMissingFeeds: true,
-    },
-    pyth: {
-      ignoreMissingFeeds: true,
-    },
+    redstone: {},
+    pyth: {},
   });
 
   const chunks: Address[][] = [];

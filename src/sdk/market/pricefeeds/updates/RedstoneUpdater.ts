@@ -54,9 +54,9 @@ export const RedstoneOptions = z.object({
    */
   cacheTTL: z.number().nonnegative().optional(),
   /**
-   * When true, no error will be thrown when redstone is unable to fetch data for some feeds
+   * When true, an error will be thrown when redstone is unable to fetch data for some feeds
    */
-  ignoreMissingFeeds: z.boolean().optional(),
+  failOnMissingFeeds: z.boolean().optional(),
   /**
    * Enable redstone internal logging
    */
@@ -74,12 +74,12 @@ export class RedstoneUpdater
   #cache: PriceUpdatesCache;
   #historicalTimestampMs?: number;
   #gateways?: string[];
-  #ignoreMissingFeeds?: boolean;
+  #failOnMissingFeeds?: boolean;
   #enableLogging?: boolean;
 
   constructor(sdk: GearboxSDK, opts: RedstoneOptions = {}) {
     super(sdk);
-    this.#ignoreMissingFeeds = opts.ignoreMissingFeeds;
+    this.#failOnMissingFeeds = opts.failOnMissingFeeds;
     this.#enableLogging = opts.enableLogging;
     this.#gateways = opts.gateways?.length ? opts.gateways : undefined;
 
@@ -299,7 +299,7 @@ export class RedstoneUpdater
       uniqueSignersCount,
       historicalTimestampMs: this.#historicalTimestampMs,
       gateways: this.#gateways,
-      ignoreMissingFeeds: this.#ignoreMissingFeeds,
+      failOnMissingFeeds: this.#failOnMissingFeeds,
       enableLogging: this.#enableLogging,
       logger: this.logger,
       metadataTimestampMs: Number(this.sdk.timestamp) * 1000,

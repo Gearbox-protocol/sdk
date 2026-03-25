@@ -41,12 +41,10 @@ describe("open credit account", () => {
       ignoreUpdateablePrices: false,
       redstone: {
         historicTimestamp: true,
-        ignoreMissingFeeds: true,
         gateways: REDSTONE_GATEWAYS,
       },
       pyth: {
         historicTimestamp: true,
-        ignoreMissingFeeds: true,
         apiProxy: PYTH_API_PROXY,
       },
     });
