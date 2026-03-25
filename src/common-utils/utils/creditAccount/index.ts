@@ -1,4 +1,5 @@
 export * from "./calcHealthFactor.js";
+export * from "./calcOverallAPY.js";
 export * from "./calcQuotaBorrowRate.js";
 export * from "./calcQuotaBorrowRate.js";
 export * from "./calcRelativeBaseBorrowRate.js";
