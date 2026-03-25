@@ -42,6 +42,7 @@ export class MarketConfiguratorContract extends BaseContract<abi> {
     configurators: MarketConfiguratorContract[],
     client: MarketConfiguratorContract["client"],
     contract: PeripheryContract,
+    blockNumber?: bigint,
   ) {
     const resp = await client.multicall({
       allowFailure: true,
@@ -55,6 +56,7 @@ export class MarketConfiguratorContract extends BaseContract<abi> {
           }) as const,
       ),
       batchSize: 0,
+      blockNumber,
     });
     return resp;
   }

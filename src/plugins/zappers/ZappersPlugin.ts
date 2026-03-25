@@ -51,6 +51,7 @@ export class ZappersPlugin
       ),
       allowFailure: true,
       batchSize: 0,
+      blockNumber: this.sdk.currentBlock,
     });
 
     this.#zappers = new AddressMap<ZapperDataFull[]>(undefined, "zappers");

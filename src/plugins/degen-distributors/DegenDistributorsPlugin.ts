@@ -42,6 +42,7 @@ export class DegenDistributorsPlugin
         Object.values(configurators),
         this.sdk.client,
         "DEGEN_DISTRIBUTOR",
+        this.sdk.currentBlock,
       );
 
     const distributorByConfigurator = configurators.reduce<
