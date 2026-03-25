@@ -1,8 +1,7 @@
 import { writeFile } from "node:fs/promises";
 
 import { pino } from "pino";
-
-import { AccountsCounterPlugin } from "../src/plugins/accounts-counter/index.js";
+import { AccountsPlugin } from "../src/plugins/accounts/index.js";
 import { AdaptersPlugin } from "../src/plugins/adapters/AdaptersPlugin.js";
 import { BotsPlugin } from "../src/plugins/bots/index.js";
 import { DegenDistributorsPlugin } from "../src/plugins/degen-distributors/index.js";
@@ -31,10 +30,7 @@ async function example(): Promise<void> {
   const sdk = await GearboxSDK.attach({
     rpcURLs: [RPC],
     timeout: 480_000,
-    // blockNumber: 23928400,
-    // redstoneHistoricTimestamp: true,
-    // addressProvider: ADDRESS_PROVIDER,
-    // marketConfigurators: [],
+    blockNumber: 24736900,
     logger,
     // ignoreUpdateablePrices: true,
     strictContractTypes: true,
@@ -44,7 +40,7 @@ async function example(): Promise<void> {
       bots: new BotsPlugin(true),
       degen: new DegenDistributorsPlugin(true),
       pools7DAgo: new Pools7DAgoPlugin(true),
-      accountsCounter: new AccountsCounterPlugin(true),
+      accounts: new AccountsPlugin({ includeZeroDebt: true }, true),
       // stalenessV300: V300StalenessPeriodPlugin,
     },
     redstone: {

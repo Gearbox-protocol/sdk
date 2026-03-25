@@ -76,7 +76,7 @@ export async function fetchPythPayloads(
     customFetch = fetch,
     returnPrices,
   } = options;
-  const ids = Array.from(new Set(dataFeedsIds));
+  const ids = Array.from(new Set(dataFeedsIds)).sort();
   if (ids.length === 0) {
     return [];
   }
@@ -89,7 +89,7 @@ export async function fetchPythPayloads(
   if (ignoreMissingFeeds) {
     url.searchParams.append("ignore_invalid_price_ids", "true");
   }
-  for (const id of dataFeedsIds) {
+  for (const id of ids) {
     url.searchParams.append("ids[]", id);
   }
   const resp = await retry(
