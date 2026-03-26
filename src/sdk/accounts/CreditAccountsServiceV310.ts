@@ -216,20 +216,19 @@ export class CreditAccountServiceV310
    * Implements {@link ICreditAccountsService.claimFarmRewards}
    */
   async claimFarmRewards({
-    calls: legacyCalls,
+    calls: externalCalls,
     creditAccount: ca,
 
     minQuota,
     averageQuota,
     tokensToClaim,
-    forceCalls,
   }: ClaimFarmRewardsProps): Promise<CreditAccountOperationResult> {
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
 
     const router = this.sdk.routerFor(ca);
     let claimPath: RouterRewardsResult;
-    if (forceCalls) {
-      claimPath = { calls: legacyCalls };
+    if (externalCalls) {
+      claimPath = { calls: externalCalls };
     } else {
       claimPath = await router.findClaimAllRewards({
         tokensToClaim,

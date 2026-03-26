@@ -298,15 +298,17 @@ export interface ClaimFarmRewardsProps extends PrepareUpdateQuotasProps {
   */
   tokensToDisable: Array<Asset>;
   /**
-   * Legacy property - array of MultiCall from getRewards
+   * External calls to execute instead of finding claim path
    */
-  calls: Array<MultiCall>;
+  calls: Array<MultiCall> | undefined;
   /**
    * minimal credit account data on which operation is performed
    */
   creditAccount: RouterCASlice;
+  /**
+   * List of token rewards of which we want to claim
+   */
   tokensToClaim: Asset[];
-  forceCalls?: boolean;
 }
 
 export interface OpenCAProps extends PrepareUpdateQuotasProps {
