@@ -6,8 +6,7 @@ import { AdaptersPlugin } from "../src/plugins/adapters/AdaptersPlugin.js";
 import { BotsPlugin } from "../src/plugins/bots/index.js";
 import { DegenDistributorsPlugin } from "../src/plugins/degen-distributors/index.js";
 import { Pools7DAgoPlugin } from "../src/plugins/pools-history/index.js";
-import { ZappersPlugin } from "../src/plugins/zappers/index.js";
-import { GearboxSDK, json_stringify } from "../src/sdk/index.js";
+import { chains, GearboxSDK, json_stringify } from "../src/sdk/index.js";
 
 const logger = pino({
   level: process.env.LOG_LEVEL ?? "debug",
@@ -23,7 +22,7 @@ const logger = pino({
 
 async function example(): Promise<void> {
   // const RPC = "http://127.0.0.1:8545";
-  const RPC = process.env.RPC_URL!;
+  const RPC = "https://anvil.gearbox.foundation/rpc/Securitize";
   const kind = "real";
   // const RPC= megaethTestnet.rpcUrls.default.http[0];
 
@@ -34,7 +33,6 @@ async function example(): Promise<void> {
     logger,
     plugins: {
       adapters: new AdaptersPlugin(true),
-      zappers: new ZappersPlugin([], true),
       bots: new BotsPlugin(true),
       degen: new DegenDistributorsPlugin(true),
       pools7DAgo: new Pools7DAgoPlugin(true),
@@ -71,6 +69,27 @@ async function example(): Promise<void> {
   //   },
   //   state,
   // );
+  await sdk.tokensMeta.loadTokenData();
+  for (const item of sdk.tokensMeta.phantomTokens.values()) {
+    console.log("phantom token", item.symbol, item.addr, item.name);
+  }
+  for (const item of sdk.tokensMeta.kycUnderlyings.values()) {
+    console.log("kyc underlying", item.symbol, item.addr, item.name);
+  }
+  for (const item of sdk.tokensMeta.dsTokens.values()) {
+    console.log("ds token", item.symbol, item.addr, item.name);
+  }
+  for (const m of sdk.marketRegister.markets) {
+    const meta = sdk.tokensMeta.mustGet(m.underlying);
+    if (sdk.tokensMeta.isKYCUnderlying(meta)) {
+      console.log(
+        "market with kyc underlying",
+        m.pool.pool.address,
+        meta.kycFactory,
+        meta.asset,
+      );
+    }
+  }
 
   const prefix = RPC.includes("127.0.0.1") ? "anvil_" : "";
   const net = sdk.networkType;

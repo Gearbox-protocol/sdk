@@ -13,6 +13,7 @@ import { MarketConfiguratorContract } from "./MarketConfiguratorContract.js";
 import type { IPriceOracleContract } from "./oracle/index.js";
 import { createPriceOracle } from "./oracle/index.js";
 import { PoolSuite } from "./pool/index.js";
+import type { SecuritizeKYCFactory } from "./pool/SecuritizeKYCFactory.js";
 
 export class MarketSuite extends SDKConstruct {
   public readonly acl: Address;
@@ -56,6 +57,14 @@ export class MarketSuite extends SDKConstruct {
 
     this.priceOracle = createPriceOracle(sdk, marketData.priceOracle);
     this.lossPolicy = createLossPolicy(sdk, marketData.lossPolicy);
+  }
+
+  public get underlying(): Address {
+    return this.pool.underlying;
+  }
+
+  public async getKYCFactory(): Promise<SecuritizeKYCFactory | undefined> {
+    return this.pool.getKYCFactory();
   }
 
   override get dirty(): boolean {

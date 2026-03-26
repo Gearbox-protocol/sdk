@@ -4,9 +4,11 @@ import {
   iBotListV310Abi,
   iCreditFacadeMulticallV310Abi,
 } from "../../abi/310/generated.js";
+
 import { creditAccountCompressorAbi } from "../../abi/compressors/creditAccountCompressor.js";
 import { peripheryCompressorAbi } from "../../abi/compressors/peripheryCompressor.js";
 import { rewardsCompressorAbi } from "../../abi/compressors/rewardsCompressor.js";
+
 import { iWithdrawalCompressorV310Abi } from "../../abi/IWithdrawalCompressorV310.js";
 import { iBaseRewardPoolAbi } from "../../abi/iBaseRewardPool.js";
 import type { CreditAccountData } from "../base/index.js";
@@ -25,13 +27,17 @@ import {
 } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import type {
+  CreditSuite,
   IPriceFeedContract,
   IPriceOracleContract,
+  MarketSuite,
   OnDemandPriceUpdates,
+  PriceUpdateV310,
+  SecuritizeKYCFactory,
   UpdatePriceFeedsResult,
 } from "../market/index.js";
 import { type Asset, assetsMap, type RouterCASlice } from "../router/index.js";
-import type { IPriceUpdateTx, MultiCall } from "../types/index.js";
+import type { IPriceUpdateTx, MultiCall, RawTx } from "../types/index.js";
 import { AddressMap } from "../utils/index.js";
 import { simulateWithPriceUpdates } from "../utils/viem/index.js";
 import type {
@@ -41,12 +47,15 @@ import type {
   ClaimDelayedProps,
   CloseCreditAccountProps,
   CloseCreditAccountResult,
+  CloseOptions,
+  CreditAccountDataWithInvestor,
   CreditAccountFilter,
   CreditAccountOperationResult,
   CreditManagerFilter,
   ExecuteSwapProps,
   FullyLiquidateProps,
   FullyLiquidateResult,
+  GetApprovalAddressProps,
   GetConnectedBotsResult,
   GetConnectedMigrationBotsResult,
   GetCreditAccountsArgs,
@@ -106,6 +115,8 @@ const COMPRESSORS: Record<number, Address> = {
   [chains.Mainnet.id]: "0x36F3d0Bb73CBC2E94fE24dF0f26a689409cF9023",
   [chains.Monad.id]: "0x36F3d0Bb73CBC2E94fE24dF0f26a689409cF9023",
 };
+
+const INVESTORS: AddressMap<Address> = new AddressMap([], "investors");
 
 export function getWithdrawalCompressorAddress(chainId: number) {
   return COMPRESSORS[chainId];
@@ -177,6 +188,32 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
+   * Returns credit account data for a single account with the investor address resolved.
+   * Loads CA via getCreditAccountData; for KYC underlyings fetches the investor from the KYC factory's getInvestor(creditAccount), otherwise uses the account owner.
+   * @param account - Credit account address
+   * @param blockNumber - Optional block number for the read
+   * @returns CreditAccountDataWithInvestor (CA data + investor address), or undefined if the account is not found
+   */
+  public async getCreditAccountDataWithInvestor(
+    account: Address,
+    blockNumber?: bigint,
+  ): Promise<CreditAccountDataWithInvestor | undefined> {
+    const ca = await this.getCreditAccountData(account, blockNumber);
+    if (!ca) return ca;
+
+    const marketSuite = this.sdk.marketRegister.findByCreditManager(
+      ca.creditManager,
+    );
+    const factory = await marketSuite.getKYCFactory();
+
+    const investor = factory
+      ? await factory.getInvestor(ca.creditAccount, true)
+      : undefined;
+
+    return { ...ca, investor: investor ?? ca.owner };
+  }
+
+  /**
    * Methods to get all credit accounts with some optional filtering
    * Performs all necessary price feed updates under the hood
    *
@@ -187,6 +224,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   public async getCreditAccounts(
     options?: GetCreditAccountsOptions,
     blockNumber?: bigint,
+    priceUpdate?: UpdatePriceFeedsResult,
   ): Promise<Array<CreditAccountData>> {
     const {
       creditManager,
@@ -214,9 +252,10 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     };
 
     const { txs: priceUpdateTxs } =
-      await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(
+      priceUpdate ??
+      (await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(
         ignoreReservePrices ? { main: true } : undefined,
-      );
+      ));
 
     const allCAs: Array<CreditAccountData> = [];
     let revertingOffset = 0;
@@ -249,6 +288,105 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
 
     // sort by health factor ascending
     return allCAs.sort((a, b) => Number(a.healthFactor - b.healthFactor));
+  }
+
+  /**
+   * Returns all credit accounts matching the filter, with investor set on each item.
+   * Delegates to getCreditAccounts; when options.owner is set, also loads KYC credit accounts for that owner and merges them into the list. Result is sorted by health factor ascending.
+   * @param options - Filter options (owner, creditManager, health factor, etc.)
+   * @param blockNumber - Optional block number for the read
+   * @returns Array of credit accounts (with investor field), sorted by health factor ascending
+   */
+  public async getCreditAccountsWithInvestor(
+    options?: GetCreditAccountsOptions,
+    blockNumber?: bigint,
+  ): Promise<Array<CreditAccountDataWithInvestor>> {
+    const { owner, ignoreReservePrices = false } = options ?? {};
+
+    const priceUpdate = await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(
+      ignoreReservePrices ? { main: true } : undefined,
+    );
+    const { txs: priceUpdateTxs } = priceUpdate;
+
+    const [common, kyc] = await Promise.all([
+      this.getCreditAccounts(options, blockNumber),
+      owner
+        ? this.getKYCCreditAccountsOfOwner(owner, priceUpdateTxs, blockNumber)
+        : undefined,
+    ]);
+
+    const allCAs = common.map(
+      (ca): CreditAccountDataWithInvestor => ({
+        ...ca,
+        investor: owner || ca.owner,
+      }),
+    );
+    allCAs.push(...(kyc || []));
+
+    // sort by health factor ascending
+    return allCAs.sort((a, b) => Number(a.healthFactor - b.healthFactor));
+  }
+  protected async getKYCCreditAccountsOfOwner(
+    owner: Address,
+    priceUpdateTxs: IPriceUpdateTx<{
+      priceFeed: `0x${string}`;
+      timestamp: number;
+    }>[],
+    blockNumber?: bigint,
+  ): Promise<Array<CreditAccountDataWithInvestor>> {
+    // find all market suites which belong to marketConfigurators
+    const suites = this.marketConfigurators.map(mc => {
+      const suite = this.sdk.marketRegister.markets.find(
+        m => m.configurator.address === mc,
+      );
+      return suite;
+    });
+    const kycCAAddresses = await this.getKYCCaOfInvestor(owner, suites);
+    const kycCAs = await this.loadSpecifiedAccounts(
+      kycCAAddresses,
+      priceUpdateTxs,
+      blockNumber,
+    );
+
+    return kycCAs.map(ca => ({
+      ...ca,
+      investor: owner,
+    }));
+  }
+
+  /**
+   * Loads credit account data for the given addresses using simulateWithPriceUpdates.
+   * Applies the provided price update txs before reading, so returned data is consistent with up-to-date prices.
+   * @param accounts - Credit account addresses to load
+   * @param priceUpdateTxs - Price feed update txs to simulate before the read (e.g. from generatePriceFeedsUpdateTxs)
+   * @param blockNumber - Optional block number for the read
+   * @returns Array of CreditAccountData in the same order as accounts (throws if any getCreditAccountData call reverts)
+   */
+  public async loadSpecifiedAccounts(
+    accounts: Address[],
+    priceUpdateTxs: IPriceUpdateTx<{
+      priceFeed: `0x${string}`;
+      timestamp: number;
+    }>[],
+    blockNumber?: bigint,
+  ): Promise<Array<CreditAccountData>> {
+    if (accounts.length === 0) return [];
+
+    const list = await simulateWithPriceUpdates(this.client, {
+      priceUpdates: priceUpdateTxs,
+      contracts: accounts.map(
+        account =>
+          ({
+            abi: creditAccountCompressorAbi,
+            address: this.#compressor,
+            functionName: "getCreditAccountData",
+            args: [account],
+          }) as const,
+      ),
+      blockNumber,
+      gas: this.sdk.gasLimit,
+    });
+    return list;
   }
 
   /**
@@ -538,6 +676,14 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }: CloseCreditAccountProps): Promise<CloseCreditAccountResult> {
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
 
+    await this.sdk.tokensMeta.loadTokenData(cm.underlying);
+    const underlying = this.sdk.tokensMeta.mustGet(cm.underlying);
+    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
+      throw new Error(
+        "closeCreditAccount is not supported for KYC underlying credit accounts",
+      );
+    }
+
     const routerCloseResult =
       closePath ||
       (await this.sdk.routerFor(ca).findBestClosePath({
@@ -561,10 +707,13 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       ),
     ];
 
-    const tx =
-      operation === "close"
-        ? cm.creditFacade.closeCreditAccount(ca.creditAccount, calls)
-        : cm.creditFacade.multicall(ca.creditAccount, calls);
+    const tx = await this.closeCreditAccountTx(
+      cm,
+      ca.creditAccount,
+      calls,
+      operation,
+    );
+
     return { tx, calls, routerCloseResult, creditFacade: cm.creditFacade };
   }
 
@@ -597,7 +746,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       }),
     ];
 
-    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
+    const tx = await this.multicallTx(cm, creditAccount.creditAccount, calls);
 
     return { tx, calls, creditFacade: cm.creditFacade };
   }
@@ -644,7 +793,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       }),
     ];
 
-    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
+    const tx = await this.multicallTx(cm, creditAccount.creditAccount, calls);
     tx.value = ethAmount.toString(10);
 
     return { tx, calls, creditFacade: cm.creditFacade };
@@ -663,7 +812,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   public async changeDebt({
     creditAccount,
     amount,
-    addCollateral,
+    collateral,
   }: ChangeDeptProps): Promise<CreditAccountOperationResult> {
     if (amount === 0n) {
       throw new Error("debt increase or decrease must be non-zero");
@@ -681,26 +830,45 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     });
 
     const addCollateralCalls =
-      addCollateral && isDecrease
+      collateral && isDecrease
         ? this.prepareAddCollateral(
             creditAccount.creditFacade,
             [
               {
-                token: creditAccount.underlying,
-                balance: change,
+                token: collateral[0].token,
+                balance: collateral[0].balance,
               },
             ],
             {},
           )
         : [];
+    const unwrapCalls =
+      collateral && isDecrease
+        ? (await this.getKYCUnwrapCalls(
+            collateral[0].balance,
+            creditAccount.creditManager,
+          )) || []
+        : [];
+
+    if (
+      addCollateralCalls.length > 0 &&
+      unwrapCalls.length === 0 &&
+      collateral &&
+      collateral?.[0].token !== creditAccount.underlying
+    ) {
+      throw new Error(
+        "Can't use collateral other than underlying for non KYC market",
+      );
+    }
 
     const calls: Array<MultiCall> = [
       ...priceUpdatesCalls,
       ...addCollateralCalls,
+      ...unwrapCalls,
       this.#prepareChangeDebt(creditAccount.creditFacade, change, isDecrease),
     ];
 
-    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
+    const tx = await this.multicallTx(cm, creditAccount.creditAccount, calls);
 
     return { tx, calls, creditFacade: cm.creditFacade };
   }
@@ -741,7 +909,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       }),
     ];
 
-    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
+    const tx = await this.multicallTx(cm, creditAccount.creditAccount, calls);
 
     return { tx, calls, creditFacade: cm.creditFacade };
   }
@@ -878,7 +1046,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       }),
     ];
 
-    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
+    const tx = await this.multicallTx(cm, creditAccount.creditAccount, calls);
 
     return { tx, calls, creditFacade: cm.creditFacade };
   }
@@ -958,51 +1126,72 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       ...quotaCalls,
     ];
 
-    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
+    const tx = await this.multicallTx(cm, creditAccount.creditAccount, calls);
 
     return { tx, calls, creditFacade: cm.creditFacade };
   }
 
   /**
-   * Executes swap specified by given calls, update quotas of affected tokens
-     - Open credit account is executed in the following order: price update -> increase debt -> add collateral ->
-      -> update quotas -> (optionally: execute swap path for trading/strategy) -> 
-      -> (optionally: withdraw debt for lending)
-    - Basic open credit account: price update -> increase debt -> add collateral -> update quotas
-    - Lending: price update -> increase debt -> add collateral -> update quotas -> withdraw debt
-    - Strategy/trading: price update -> increase debt -> add collateral -> update quotas -> execute swap path
-    - In strategy is possible situation when collateral is added, but not swapped; the only swapped value in this case will be debt
-   * @param {bigint} ethAmount - native token amount to attach to tx
-   * @param {Address} creditManager - address of credit manager to open credit account on
-   * @param {Array<Asset>} collateral - array of collateral which can be just directly added or swapped using the path {@link Asset}
-   * @param {Record<Address, PermitResult>} permits - permits of collateral tokens (in any permittable token is present) {@link PermitResult}
-   * @param {bigint} debt - debt to open credit account with
-   * @param {boolean} withdrawDebt - flag to withdraw debt to wallet after opening credit account; 
-      used for borrowing functionality
-   * @param {bigint} referralCode - referral code to open credit account with
-   * @param {Address} to - wallet address to transfer credit account to\
-   * @param {Array<MultiCall>} calls - array of MultiCall from router methods findOpenStrategyPath {@link MultiCall}.
-      Used for trading and strategy functionality
-   * @param {Array<Asset>} averageQuota - average quota for tokens after open {@link Asset}
-   * @param {Array<Asset>} minQuota - minimum quota for tokens after open  {@link Asset}
-   * @returns All necessary data to execute the transaction (call, credit facade)
-   */
-  public async openCA({
-    ethAmount,
-    creditManager,
-    collateral,
-    permits,
-    debt,
-    withdrawDebt,
-    referralCode,
-    to,
-    calls: openPathCalls,
+   * Returns address to which approval should be given on collateral token
+   * It's credit manager for classical markets and special wallet for KYC markets
+   * @param options - {@link GetApprovalAddressProps}
+   * @returns
+   **/
+  public async getApprovalAddress(
+    options: GetApprovalAddressProps,
+  ): Promise<Address> {
+    const { creditManager } = options;
+    const suite = this.sdk.marketRegister.findCreditManager(creditManager);
+    const marketSuite = this.sdk.marketRegister.findByPool(suite.pool);
+    const factory = await marketSuite.getKYCFactory();
 
-    minQuota,
-    averageQuota,
-  }: OpenCAProps): Promise<CreditAccountOperationResult> {
+    if (factory) {
+      if ("creditAccount" in options) {
+        return factory.getWallet(options.creditAccount);
+      }
+      return factory.precomputeWalletAddress(creditManager, options.borrower);
+    }
+    return suite.creditManager.address;
+  }
+
+  /**
+   * Executes swap specified by given calls, update quotas of affected tokens
+   * - Open credit account is executed in the following order: price update -> increase debt -> add collateral ->
+   *  -> update quotas -> (optionally: execute swap path for trading/strategy) ->
+   *  -> (optionally: withdraw debt for lending)
+   *- Basic open credit account: price update -> increase debt -> add collateral -> update quotas
+   *- Lending: price update -> increase debt -> add collateral -> update quotas -> withdraw debt
+   *- Strategy/trading: price update -> increase debt -> add collateral -> update quotas -> execute swap path
+   *- In strategy is possible situation when collateral is added, but not swapped; the only swapped value in this case will be debt
+   * @returns All necessary data to execute the transaction (call, credit facade)
+   **/
+  public async openCA(
+    props: OpenCAProps,
+  ): Promise<CreditAccountOperationResult> {
+    const {
+      ethAmount,
+      creditManager,
+      reopenCreditAccount,
+      collateral,
+      permits,
+      debt,
+      withdrawToken,
+      referralCode,
+      to,
+      calls: openPathCalls,
+      callsAfter,
+
+      minQuota,
+      averageQuota,
+    } = props;
     const cmSuite = this.sdk.marketRegister.findCreditManager(creditManager);
     const cm = cmSuite.creditManager;
+    let tokenToWithdraw: Address | undefined;
+    if (withdrawToken === true) {
+      tokenToWithdraw = cm.underlying;
+    } else if (typeof withdrawToken === "string") {
+      tokenToWithdraw = withdrawToken;
+    }
 
     const priceUpdatesCalls = await this.getPriceUpdatesForFacade({
       creditManager: cm.address,
@@ -1013,17 +1202,30 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       ...priceUpdatesCalls,
       this.#prepareIncreaseDebt(cm.creditFacade, debt),
       ...this.prepareAddCollateral(cm.creditFacade, collateral, permits),
-      ...openPathCalls,
-      ...(withdrawDebt
-        ? [this.prepareWithdrawToken(cm.creditFacade, cm.underlying, debt, to)]
+      ...openPathCalls, // путь из underlying в withdrawal token
+      ...(tokenToWithdraw
+        ? [
+            this.prepareWithdrawToken(
+              cm.creditFacade,
+              tokenToWithdraw,
+              MAX_UINT256,
+              to,
+            ),
+          ]
         : []),
       ...this.prepareUpdateQuotas(cm.creditFacade, {
         minQuota,
         averageQuota,
       }),
+      ...(callsAfter ?? []),
     ];
 
-    const tx = cmSuite.creditFacade.openCreditAccount(to, calls, referralCode);
+    let tx: RawTx;
+    if (reopenCreditAccount) {
+      tx = await this.multicallTx(cmSuite, reopenCreditAccount, calls);
+    } else {
+      tx = await this.openCreditAccountTx(cmSuite, to, calls, referralCode);
+    }
     tx.value = ethAmount.toString(10);
 
     return { calls, tx, creditFacade: cmSuite.creditFacade };
@@ -1130,6 +1332,161 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     );
 
     return resp;
+  }
+
+  /**
+   * Returns multicall entries to redeem (unwrap) KYC ERC-4626 vault shares into underlying for the given credit manager.
+   * Used when withdrawing debt from a KYC market: redeems adapter vault shares so the underlying can be withdrawn.
+   * Only applies when the credit manager's underlying is KYC-gated and has an ERC-4626 adapter configured.
+   * @param amount - Number of vault shares (adapter tokens) to redeem
+   * @param creditManager - Credit manager address
+   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not KYC or no adapter is configured
+   */
+  public async getKYCUnwrapCalls(
+    amount: bigint,
+    creditManager: Address,
+  ): Promise<Array<MultiCall> | undefined> {
+    const suite = this.sdk.marketRegister.findCreditManager(creditManager);
+    const meta = this.sdk.tokensMeta.mustGet(suite.underlying);
+    if (!this.sdk.tokensMeta.isKYCUnderlying(meta)) {
+      return undefined;
+    }
+
+    const adapter = suite.creditManager.adapters.get(meta.addr);
+    const adapterAddress = adapter?.address;
+
+    if (!adapterAddress) {
+      return undefined;
+    }
+
+    const mc: Array<MultiCall> = [
+      {
+        target: adapterAddress,
+        callData: encodeFunctionData({
+          abi: ierc4626AdapterAbi,
+          functionName: "redeem",
+          args: [amount, ADDRESS_0X0, ADDRESS_0X0],
+        }),
+      },
+    ];
+
+    return mc;
+  }
+  /**
+   * Returns multicall entries to deposit (wrap) underlying into KYC ERC-4626 vault shares for the given credit manager.
+   * Used when adding debt on a KYC market: deposits underlying into the adapter vault so shares are minted on the account.
+   * Only applies when the credit manager's underlying is KYC-gated and has an ERC-4626 adapter configured.
+   * @param amount - Amount of underlying assets to deposit into the vault (in underlying decimals)
+   * @param creditManager - Credit manager address
+   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not KYC or no adapter is configured
+   */
+  public async getKYCWrapCalls(
+    amount: bigint,
+    creditManager: Address,
+  ): Promise<Array<MultiCall> | undefined> {
+    const suite = this.sdk.marketRegister.findCreditManager(creditManager);
+    const meta = this.sdk.tokensMeta.mustGet(suite.underlying);
+    if (!this.sdk.tokensMeta.isKYCUnderlying(meta)) {
+      return undefined;
+    }
+
+    const adapter = suite.creditManager.adapters.get(meta.addr);
+    const adapterAddress = adapter?.address;
+
+    if (!adapterAddress) {
+      return undefined;
+    }
+
+    const mc: Array<MultiCall> = [
+      {
+        target: adapterAddress,
+        callData: encodeFunctionData({
+          abi: ierc4626AdapterAbi,
+          functionName: "deposit",
+          args: [amount, ADDRESS_0X0],
+        }),
+      },
+    ];
+
+    return mc;
+  }
+
+  /**
+   * Returns multicall entries to call redeemDiff on the KYC ERC-4626 adapter for the given credit manager.
+   * Redeems the leftover vault shares (e.g. after repaying debt) so the account does not hold excess KYC vault tokens.
+   * Only applies when the credit manager's underlying is KYC-gated and has an ERC-4626 adapter configured.
+   * @param amount - Leftover vault share amount to redeem (in adapter/vault decimals)
+   * @param creditManager - Credit manager address
+   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not KYC or no adapter is configured
+   */
+  public async getRedeemDiffCalls(
+    amount: bigint,
+    creditManager: Address,
+  ): Promise<Array<MultiCall> | undefined> {
+    const suite = this.sdk.marketRegister.findCreditManager(creditManager);
+    const meta = this.sdk.tokensMeta.mustGet(suite.underlying);
+    if (!this.sdk.tokensMeta.isKYCUnderlying(meta)) {
+      return undefined;
+    }
+
+    const adapter = suite.creditManager.adapters.get(meta.addr);
+    const adapterAddress = adapter?.address;
+
+    if (!adapterAddress) {
+      return undefined;
+    }
+
+    const mc: Array<MultiCall> = [
+      {
+        target: adapterAddress,
+        callData: encodeFunctionData({
+          abi: ierc4626AdapterAbi,
+          functionName: "redeemDiff",
+          args: [amount],
+        }),
+      },
+    ];
+
+    return mc;
+  }
+
+  /**
+   * Returns multicall entries to call depositDiff on the KYC ERC-4626 adapter for the given credit manager.
+   * Deposits the leftover underlying (e.g. after decreasing debt) into the vault so the account does not hold excess underlying.
+   * Only applies when the credit manager's underlying is KYC-gated and has an ERC-4626 adapter configured.
+   * @param amount - Leftover underlying amount to deposit into the vault (in underlying decimals)
+   * @param creditManager - Credit manager address
+   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not KYC or no adapter is configured
+   */
+  public async getDepositDiffCalls(
+    amount: bigint,
+    creditManager: Address,
+  ): Promise<Array<MultiCall> | undefined> {
+    const suite = this.sdk.marketRegister.findCreditManager(creditManager);
+    const meta = this.sdk.tokensMeta.mustGet(suite.underlying);
+    if (!this.sdk.tokensMeta.isKYCUnderlying(meta)) {
+      return undefined;
+    }
+
+    const adapter = suite.creditManager.adapters.get(meta.addr);
+    const adapterAddress = adapter?.address;
+
+    if (!adapterAddress) {
+      return undefined;
+    }
+
+    const mc: Array<MultiCall> = [
+      {
+        target: adapterAddress,
+        callData: encodeFunctionData({
+          abi: ierc4626AdapterAbi,
+          functionName: "depositDiff",
+          args: [amount],
+        }),
+      },
+    ];
+
+    return mc;
   }
 
   /**
@@ -1423,78 +1780,209 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       VERSION_RANGE_310,
     )[0];
   }
+
+  /**
+   * Wrapper that selects between credit facade and KYC factory
+   * @param suite
+   * @param to
+   * @param calls
+   * @param referralCode
+   * @returns
+   */
+  protected async openCreditAccountTx(
+    suite: CreditSuite,
+    to: Address,
+    calls: MultiCall[],
+    referralCode?: bigint,
+  ): Promise<RawTx> {
+    const marketSuite = this.sdk.marketRegister.findByPool(suite.pool);
+    const factory = await marketSuite.getKYCFactory();
+
+    if (factory) {
+      const tokensToRegister = await factory.getDSTokens();
+      return factory.openCreditAccount(
+        suite.creditManager.address,
+        calls,
+        tokensToRegister,
+      );
+    }
+
+    return suite.creditFacade.openCreditAccount(to, calls, referralCode ?? 0n);
+  }
+
+  /**
+   * Wrapper that selects between credit facade and KYC factory
+   * @param suite
+   * @param creditAccount
+   * @param calls
+   * @returns
+   */
+  protected async multicallTx(
+    suite: CreditSuite,
+    creditAccount: Address,
+    calls: MultiCall[],
+  ): Promise<RawTx> {
+    const marketSuite = this.sdk.marketRegister.findByCreditManager(
+      suite.creditManager.address,
+    );
+    const factory = await marketSuite.getKYCFactory();
+
+    if (factory) {
+      // TODO: get tokens to register
+      const tokensToRegister: Address[] = [];
+      return factory.multicall(creditAccount, calls, tokensToRegister);
+    }
+
+    return suite.creditFacade.multicall(creditAccount, calls);
+  }
+
+  /**
+   * Wrapper that selects between credit facade and KYC factory
+   * @param suite
+   * @param creditAccount
+   * @param calls
+   * @param operation
+   * @returns
+   */
+  protected async closeCreditAccountTx(
+    suite: CreditSuite,
+    creditAccount: Address,
+    calls: MultiCall[],
+    operation: CloseOptions,
+  ): Promise<RawTx> {
+    const marketSuite = this.sdk.marketRegister.findByCreditManager(
+      suite.creditManager.address,
+    );
+    const factory = await marketSuite.getKYCFactory();
+
+    if (operation === "close") {
+      if (factory) {
+        throw new Error(
+          "CloseOptions=close is not supported for KYC underlying credit accounts",
+        );
+      }
+      return suite.creditFacade.closeCreditAccount(creditAccount, calls);
+    }
+
+    if (factory) {
+      // TODO: get tokens to register
+      const tokensToRegister: Address[] = [];
+      return factory.multicall(creditAccount, calls, tokensToRegister);
+    }
+
+    return suite.creditFacade.multicall(creditAccount, calls);
+  }
+
+  /**
+   * Returns all KYC credit account addresses for an investor across the given market suites.
+   * Resolves KYC factory per suite, then multicalls each factory's getCreditAccounts(investor).
+   * @param investor - Owner address to query
+   * @param suites - Market suites (KYC factories are resolved for each; undefined entries are skipped)
+   * @returns Flat array of credit account addresses from all KYC markets
+   */
+  protected async getKYCCaOfInvestor(
+    investor: Address,
+    suites: Array<MarketSuite | undefined>,
+  ) {
+    if (suites.length === 0 || investor === ADDRESS_0X0) return [];
+
+    const factories = await Promise.all(
+      suites.map(suite => (suite ? suite.getKYCFactory() : undefined)),
+    );
+    const safeFactories = factories.reduce<Array<SecuritizeKYCFactory>>(
+      (acc, v) => {
+        if (v) {
+          acc.push(v);
+        }
+        return acc;
+      },
+      [],
+    );
+
+    const allResp = await this.client.multicall({
+      contracts: [
+        ...safeFactories.map(factory => {
+          return {
+            abi: factory.abi,
+            address: factory.address,
+            functionName: "getCreditAccounts",
+            args: [investor],
+          } as const;
+        }),
+      ],
+      allowFailure: true,
+      batchSize: 0,
+    });
+
+    const caLists = safeFactories.reduce<Array<Address>>((acc, _, index) => {
+      const response = allResp[index];
+      acc.push(...(response.result || []));
+      return acc;
+    }, []);
+
+    return caLists;
+  }
 }
 
-const iMellowClaimerAdapterAbi = [
+const ierc4626AdapterAbi = [
   {
+    inputs: [
+      { name: "assets", type: "uint256", internalType: "uint256" },
+      { name: "receiver", type: "address", internalType: "address" },
+    ],
+    name: "deposit",
+    outputs: [{ name: "useSafePrices", type: "bool", internalType: "bool" }],
+    stateMutability: "nonpayable",
     type: "function",
-    name: "getMultiVaultSubvaultIndices",
-    inputs: [{ name: "multiVault", type: "address", internalType: "address" }],
+  },
+  {
+    inputs: [
+      { name: "shares", type: "uint256", internalType: "uint256" },
+      { name: "receiver", type: "address", internalType: "address" },
+      { name: "owner", type: "address", internalType: "address" },
+    ],
+    name: "redeem",
+    outputs: [{ name: "useSafePrices", type: "bool", internalType: "bool" }],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        name: "leftoverAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    name: "redeemDiff",
     outputs: [
       {
-        name: "subvaultIndices",
-        type: "uint256[]",
-        internalType: "uint256[]",
-      },
-      {
-        name: "withdrawalIndices",
-        type: "uint256[][]",
-        internalType: "uint256[][]",
+        name: "useSafePrices",
+        type: "bool",
+        internalType: "bool",
       },
     ],
-    stateMutability: "view",
-  },
-  {
+    stateMutability: "nonpayable",
     type: "function",
-    name: "getUserSubvaultIndices",
+  },
+
+  {
     inputs: [
-      { name: "multiVault", type: "address", internalType: "address" },
-      { name: "user", type: "address", internalType: "address" },
+      {
+        name: "leftoverAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
     ],
+    name: "depositDiff",
     outputs: [
       {
-        name: "subvaultIndices",
-        type: "uint256[]",
-        internalType: "uint256[]",
-      },
-      {
-        name: "withdrawalIndices",
-        type: "uint256[][]",
-        internalType: "uint256[][]",
+        name: "useSafePrices",
+        type: "bool",
+        internalType: "bool",
       },
     ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "multiAccept",
-    inputs: [
-      { name: "multiVault", type: "address", internalType: "address" },
-      {
-        name: "subvaultIndices",
-        type: "uint256[]",
-        internalType: "uint256[]",
-      },
-      { name: "indices", type: "uint256[][]", internalType: "uint256[][]" },
-    ],
-    outputs: [{ name: "", type: "bool", internalType: "bool" }],
     stateMutability: "nonpayable",
-  },
-  {
     type: "function",
-    name: "multiAcceptAndClaim",
-    inputs: [
-      { name: "multiVault", type: "address", internalType: "address" },
-      {
-        name: "subvaultIndices",
-        type: "uint256[]",
-        internalType: "uint256[]",
-      },
-      { name: "indices", type: "uint256[][]", internalType: "uint256[][]" },
-      { name: "", type: "address", internalType: "address" },
-      { name: "maxAssets", type: "uint256", internalType: "uint256" },
-    ],
-    outputs: [{ name: "", type: "bool", internalType: "bool" }],
-    stateMutability: "nonpayable",
   },
 ] as const;

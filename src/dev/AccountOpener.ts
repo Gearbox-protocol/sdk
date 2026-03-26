@@ -7,7 +7,7 @@ import {
   parseEventLogs,
 } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { iCreditFacadeV310Abi, iPoolV310Abi } from "../abi/310/generated.js";
+import { iCreditFacadeV310Abi } from "../abi/310/generated.js";
 import { ierc20Abi } from "../abi/iERC20.js";
 import type {
   Asset,
@@ -15,6 +15,7 @@ import type {
   CreditSuite,
   ICreditAccountsService,
   ILogger,
+  IPoolsService,
   PoolContract,
   RawTx,
 } from "../sdk/index.js";
@@ -25,6 +26,7 @@ import {
   childLogger,
   MAX_UINT256,
   PERCENTAGE_FACTOR,
+  PoolService,
   SDKConstruct,
   sendRawTx,
 } from "../sdk/index.js";
@@ -147,6 +149,7 @@ export class AccountOpener extends SDKConstruct {
   #minDebtMultiplier: bigint;
   #allowMint: boolean;
   #leverageDelta: bigint;
+  #poolService: IPoolsService;
 
   constructor(
     service: ICreditAccountsService,
@@ -176,6 +179,7 @@ export class AccountOpener extends SDKConstruct {
     this.#poolDepositMultiplier = BigInt(poolDepositMultiplier);
     this.#minDebtMultiplier = BigInt(minDebtMultiplier);
     this.#leverageDelta = BigInt(leverageDelta);
+    this.#poolService = new PoolService(service.sdk);
     this.#logger?.info(
       {
         borrower: privateKeyToAccount(this.borrowerKey).address,
@@ -220,6 +224,10 @@ export class AccountOpener extends SDKConstruct {
       },
       "opening credit accounts",
     );
+    await Promise.all([
+      this.sdk.tokensMeta.loadTokenData(),
+      this.sdk.marketRegister.loadZappers(),
+    ]);
     let deposits: PoolDepositResult[] = [];
     if (depositIntoPools) {
       try {
@@ -611,10 +619,35 @@ export class AccountOpener extends SDKConstruct {
       this.#logger?.debug(
         `depositor balance in underlying: ${this.sdk.tokensMeta.formatBN(pool.underlying, allowance, { symbol: true })}`,
       );
+      const tokensOut = this.#poolService.getDepositTokensOut(
+        address,
+        underlying,
+      );
+      this.#logger?.debug(
+        { tokensOut: tokensOut.map(t => this.labelAddress(t)) },
+        "deposit tokens out",
+      );
+      if (tokensOut.length === 0) {
+        throw new Error(`no tokens out found for pool ${poolName}`);
+      }
+      const tokenOut = tokensOut[0];
+      const metadata = this.#poolService.getDepositMetadata(
+        address,
+        underlying,
+        tokenOut,
+      );
+      this.logger?.debug(
+        {
+          underlying: this.labelAddress(underlying),
+          tokenOut: this.labelAddress(tokenOut),
+          ...metadata,
+        },
+        "pool deposit metadata",
+      );
 
       txHash = await this.#anvil.writeContract({
         account: depositor,
-        address: underlying,
+        address: metadata.approveTarget,
         abi: ierc20Abi,
         functionName: "approve",
         args: [address, allowance],
@@ -631,12 +664,23 @@ export class AccountOpener extends SDKConstruct {
       this.#logger?.debug(
         `depositor approved underlying for pool ${poolName}: ${txHash}`,
       );
+
+      const depositCall = this.#poolService.addLiquidity({
+        collateral: { token: underlying, balance: amount },
+        pool: address,
+        wallet: depositor.address,
+        meta: metadata,
+      });
+      if (!depositCall) {
+        throw new Error(`no deposit call could be created for ${poolName}`);
+      }
+
       txHash = await this.#anvil.writeContract({
         account: depositor,
-        address: address,
-        abi: iPoolV310Abi,
-        functionName: "deposit",
-        args: [amount, depositor.address],
+        address: depositCall.target,
+        abi: depositCall.abi,
+        functionName: depositCall.functionName,
+        args: depositCall.args,
         chain: this.#anvil.chain,
       });
       receipt = await this.#anvil.waitForTransactionReceipt({ hash: txHash });

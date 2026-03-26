@@ -76,7 +76,7 @@ export class CreditAccountServiceV310
 
     const tx =
       targetContract.type === "creditAccount"
-        ? cm.creditFacade.multicall(targetContract.creditAccount, calls)
+        ? await this.multicallTx(cm, targetContract.creditAccount, calls)
         : undefined;
 
     return { tx, calls, creditFacade: cm.creditFacade };
@@ -118,7 +118,7 @@ export class CreditAccountServiceV310
       }),
     ];
 
-    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
+    const tx = await this.multicallTx(cm, creditAccount.creditAccount, calls);
 
     return { tx, calls, creditFacade: cm.creditFacade };
   }
@@ -134,12 +134,16 @@ export class CreditAccountServiceV310
     permits,
     to,
     tokensToClaim,
+    calls: wrapCalls = [],
   }: RepayCreditAccountProps): Promise<CreditAccountOperationResult> {
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
 
     const addCollateral = collateralAssets.filter(a => a.balance > 0);
 
     const router = this.sdk.routerFor(ca);
+
+    const unwrapCalls =
+      (await this.getRedeemDiffCalls(1n, ca.creditManager)) ?? [];
 
     const claimPath = await router.findClaimAllRewards({
       tokensToClaim,
@@ -154,18 +158,22 @@ export class CreditAccountServiceV310
     const calls: Array<MultiCall> = [
       ...(operation === "close" ? [] : priceUpdates),
       ...this.prepareAddCollateral(ca.creditFacade, addCollateral, permits),
+      ...wrapCalls,
       ...this.prepareDisableQuotas(ca),
       ...this.prepareDecreaseDebt(ca),
+      ...unwrapCalls,
       ...claimPath.calls,
       ...assetsToWithdraw.map(t =>
         this.prepareWithdrawToken(ca.creditFacade, t.token, MAX_UINT256, to),
       ),
     ];
 
-    const tx =
-      operation === "close"
-        ? cm.creditFacade.closeCreditAccount(ca.creditAccount, calls)
-        : cm.creditFacade.multicall(ca.creditAccount, calls);
+    const tx = await this.closeCreditAccountTx(
+      cm,
+      ca.creditAccount,
+      calls,
+      operation,
+    );
     return { tx, calls, creditFacade: cm.creditFacade };
   }
 
@@ -193,12 +201,16 @@ export class CreditAccountServiceV310
       creditAccount: ca,
     });
 
+    const wrapCalls =
+      (await this.getDepositDiffCalls(1n, ca.creditManager)) ?? [];
+
     const addCollateral = collateralAssets.filter(a => a.balance > 0);
 
     const calls: Array<MultiCall> = [
       ...priceUpdates,
       ...this.prepareAddCollateral(ca.creditFacade, addCollateral, permits),
       ...claimPath.calls,
+      ...wrapCalls,
       ...assetsToWithdraw.map(t =>
         this.prepareWithdrawToken(ca.creditFacade, t.token, MAX_UINT256, to),
       ),
@@ -249,7 +261,7 @@ export class CreditAccountServiceV310
       ...this.prepareUpdateQuotas(ca.creditFacade, { minQuota, averageQuota }),
     ];
 
-    const tx = cm.creditFacade.multicall(ca.creditAccount, calls);
+    const tx = await this.multicallTx(cm, ca.creditAccount, calls);
 
     return { tx, calls, creditFacade: cm.creditFacade };
   }
