@@ -12,7 +12,6 @@ import type { PriceOracleData } from "../../base/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import {
   getRawPriceUpdates,
-  type PriceUpdateV310,
   type UpdatePriceFeedsResult,
 } from "../pricefeeds/index.js";
 import { PriceOracleBaseContract } from "./PriceOracleBaseContract.js";
@@ -43,7 +42,7 @@ export class PriceOracleV310Contract extends PriceOracleBaseContract<abi> {
   public onDemandPriceUpdates(
     creditFacade: Address,
     updates?: UpdatePriceFeedsResult,
-  ): OnDemandPriceUpdates<PriceUpdateV310> {
+  ): OnDemandPriceUpdates {
     if (!updates) {
       this.logger?.debug("empty updates list");
       return { multicall: [], raw: [] };

@@ -28,7 +28,6 @@ import type {
   IPriceFeedContract,
   IPriceOracleContract,
   OnDemandPriceUpdates,
-  PriceUpdateV310,
   UpdatePriceFeedsResult,
 } from "../market/index.js";
 import { type Asset, assetsMap, type RouterCASlice } from "../router/index.js";
@@ -1245,7 +1244,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
    */
   public async getOnDemandPriceUpdates(
     options: PriceUpdatesOptions,
-  ): Promise<OnDemandPriceUpdates<PriceUpdateV310>> {
+  ): Promise<OnDemandPriceUpdates> {
     const { creditManager, creditAccount } = options;
     const market = this.sdk.marketRegister.findByCreditManager(creditManager);
     const cm = this.sdk.marketRegister.findCreditManager(creditManager);

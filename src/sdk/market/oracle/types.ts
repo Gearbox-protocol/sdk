@@ -21,13 +21,11 @@ export interface PriceFeedsForTokensOptions {
 }
 
 /**
- * Abstraction that represents on demand price updates acceptable by both credit facade multicall and
- * as raw PriceUpdate in liquidator calls
- * T is (priceFeed, data)
- * TODO: should be removed after v310 migration
+ * On demand price updates acceptable by both credit facade multicall and
+ * as raw PriceUpdate in liquidator calls.
  */
-export interface OnDemandPriceUpdates<T = unknown> {
-  raw: T[];
+export interface OnDemandPriceUpdates {
+  raw: PriceUpdateV310[];
   multicall: MultiCall[];
 }
 
@@ -100,7 +98,7 @@ export interface IPriceOracleContract extends IBaseContract {
   onDemandPriceUpdates: (
     creditFacade: Address,
     updates?: UpdatePriceFeedsResult,
-  ) => OnDemandPriceUpdates<PriceUpdateV310>;
+  ) => OnDemandPriceUpdates;
   /**
    * Tries to convert amount of from one token to another, using latest known prices
    * @param from

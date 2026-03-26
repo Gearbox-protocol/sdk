@@ -16,7 +16,6 @@ import type { GearboxSDK } from "../GearboxSDK.js";
 import type {
   CreditSuite,
   OnDemandPriceUpdates,
-  PriceUpdateV310,
   UpdatePriceFeedsResult,
 } from "../market/index.js";
 import type {
@@ -383,10 +382,6 @@ export interface FullyLiquidateProps {
    */
   slippage?: bigint;
   /**
-   * TODO: legacy v3 option to remove
-   */
-  force?: boolean;
-  /**
    * List of assets to keep on account after liquidation
    */
   keepAssets?: Address[];
@@ -559,7 +554,7 @@ export interface ICreditAccountsService extends Construct {
     >;
   }>;
   /**
-   * V3.1 method, throws in V3. Connects/disables a bot and updates prices
+   * Connects/disables a bot and updates prices
    * @param props - {@link SetBotProps}
    * @return All necessary data to execute the transaction (call, credit facade)
    */
@@ -698,7 +693,7 @@ export interface ICreditAccountsService extends Construct {
    */
   getOnDemandPriceUpdates(
     options: PriceUpdatesOptions,
-  ): Promise<OnDemandPriceUpdates<PriceUpdateV310>>;
+  ): Promise<OnDemandPriceUpdates>;
 
   /**
    * Returns price updates in format that is accepted by various credit facade methods (multicall, close/liquidate, etc...).
@@ -724,8 +719,6 @@ export interface ICreditAccountsService extends Construct {
    * Fully repays credit account or repays credit account and keeps it open with zero debt
    * - Repays in the following order: price update -> add collateral to cover the debt ->
    *   -> disable quotas for all tokens -> decrease debt -> disable tokens all tokens -> withdraw all tokens
-   * - V3.0 claims rewards for tokens which are specified in legacy SDK
-   * - V3.1 claims rewards for all tokens IF router is also V3.1
    * @param props - {@link RepayCreditAccountProps}
    * @return All necessary data to execute the transaction (call, credit facade)
    */
@@ -737,8 +730,6 @@ export interface ICreditAccountsService extends Construct {
    * Fully repays liquidatable account
    * - Repay and liquidate is executed in the following order: price update -> add collateral to cover the debt ->
    *   withdraw all tokens from credit account
-   * - V3.0 claims rewards for tokens which are specified in legacy SDK
-   * - V3.1 claims rewards for all tokens IF router is also V3.1
    * @param props - {@link RepayAndLiquidateCreditAccountProps}
    * @return All necessary data to execute the transaction (call, credit facade)
    */
@@ -747,11 +738,9 @@ export interface ICreditAccountsService extends Construct {
   ): Promise<CreditAccountOperationResult>;
 
   /**
-   * Executes swap specified by given calls, update quotas of affected tokens
+   * Claims farm rewards and optionally updates quotas
    *  - Claim rewards is executed in the following order: price update -> execute claim calls ->
-   *   -> (optionally: disable reward tokens) -> (optionally: update quotas)
-   * - V3.0 claims rewards for tokens which are specified in legacy SDK
-   * - V3.1 claims rewards for all tokens IF router is also V3.1 and falls back to legacy calls if router is not v3.0
+   *   -> (optionally: update quotas)
    * @param props - {@link ClaimFarmRewardsProps}
    * @return All necessary data to execute the transaction (call, credit facade)
    */

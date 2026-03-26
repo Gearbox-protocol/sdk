@@ -3,7 +3,6 @@
  */
 export type VersionRange = [number, number];
 
-export const VERSION_RANGE_300: VersionRange = [300, 309];
 export const VERSION_RANGE_310: VersionRange = [310, 319];
 
 export function isV310(version: number | bigint | string): boolean {
