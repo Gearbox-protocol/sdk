@@ -61,10 +61,6 @@ export interface LPPriceFeedStateHuman extends BasePriceFeedStateHuman {
   lpToken: Address;
   lowerBound: bigint;
   upperBound: bigint;
-  // v3.0 optionals
-  exchangeRate?: string;
-  aggregatePrice?: string;
-  scale?: string;
 }
 
 export interface BalancerWeightedPriceFeedStateHuman
@@ -119,7 +115,7 @@ export interface CreditManagerStateHuman extends BaseContractStateHuman {
   feeLiquidationExpired: string;
   liquidationDiscountExpired: string;
   quotedTokensMask: string;
-  contractsToAdapters: Record<string, string>;
+  contractsToAdapters: Record<string, unknown>;
   creditAccounts: Array<Address>;
 }
 

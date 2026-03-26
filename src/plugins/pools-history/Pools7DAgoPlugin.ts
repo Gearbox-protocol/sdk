@@ -5,7 +5,6 @@ import {
   AddressMap,
   AP_MARKET_COMPRESSOR,
   BasePlugin,
-  BigIntMath,
   BLOCKS_PER_WEEK_BY_NETWORK,
   VERSION_RANGE_310,
 } from "../../sdk/index.js";
@@ -52,7 +51,7 @@ export class Pools7DAgoPlugin
             args: [m.pool.pool.address],
           }) as const,
       ),
-      blockNumber: BigIntMath.max(0n, targetBlock),
+      blockNumber: targetBlock > 0n ? targetBlock : undefined,
       batchSize: 0,
     });
 

@@ -7,8 +7,8 @@ import {
   parseEventLogs,
 } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { iCreditFacadeV310Abi, iPoolV310Abi } from "../abi/310/generated.js";
 import { ierc20Abi } from "../abi/iERC20.js";
-import { iCreditFacadeV300Abi, iPoolV300Abi } from "../abi/v300.js";
 import type {
   Asset,
   CreditAccountData,
@@ -23,7 +23,6 @@ import {
   AddressMap,
   AddressSet,
   childLogger,
-  formatBN,
   MAX_UINT256,
   PERCENTAGE_FACTOR,
   SDKConstruct,
@@ -337,7 +336,7 @@ export class AccountOpener extends SDKConstruct {
     }
     logger?.info(`opened credit account ${index}/${total}`);
     const logs = parseEventLogs({
-      abi: iCreditFacadeV300Abi,
+      abi: iCreditFacadeV310Abi,
       logs: receipt.logs,
       eventName: "OpenCreditAccount",
     });
@@ -635,7 +634,7 @@ export class AccountOpener extends SDKConstruct {
       txHash = await this.#anvil.writeContract({
         account: depositor,
         address: address,
-        abi: iPoolV300Abi,
+        abi: iPoolV310Abi,
         functionName: "deposit",
         args: [amount, depositor.address],
         chain: this.#anvil.chain,

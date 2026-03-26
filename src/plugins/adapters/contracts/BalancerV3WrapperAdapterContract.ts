@@ -40,4 +40,13 @@ export class BalancerV3WrapperAdapterContract extends AbstractAdapterContract<
       throw new MissingSerializedParamsError("balancerPoolToken");
     return this.#balancerPoolToken;
   }
+
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      balancerPoolToken: this.#balancerPoolToken
+        ? this.labelAddress(this.#balancerPoolToken)
+        : undefined,
+    };
+  }
 }

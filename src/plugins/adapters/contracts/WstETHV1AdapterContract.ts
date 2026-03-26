@@ -48,6 +48,13 @@ export class WstETHV1AdapterContract extends AbstractAdapterContract<
     return this.#stETH;
   }
 
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      stETH: this.#stETH ? this.labelAddress(this.#stETH) : undefined,
+    };
+  }
+
   /** @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type.go#L264-L275 */
   protected override classifyLegacyOperation(
     parsed: ParsedCallV2,

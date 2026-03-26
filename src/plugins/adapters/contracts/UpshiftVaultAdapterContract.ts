@@ -60,4 +60,15 @@ export class UpshiftVaultAdapterContract extends AbstractAdapterContract<
       throw new MissingSerializedParamsError("stakedPhantomToken");
     return this.#stakedPhantomToken;
   }
+
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      vault: this.#vault ? this.labelAddress(this.#vault) : undefined,
+      asset: this.#asset ? this.labelAddress(this.#asset) : undefined,
+      stakedPhantomToken: this.#stakedPhantomToken
+        ? this.labelAddress(this.#stakedPhantomToken)
+        : undefined,
+    };
+  }
 }

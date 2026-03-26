@@ -14,6 +14,13 @@ import { fnSigToName, swapFromTransfers } from "../transferHelpers.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
+interface ConvexV1BoosterPool {
+  pid: number;
+  curveToken: Address;
+  convexToken: Address;
+  phantomToken: Address;
+}
+
 const abi = iConvexV1BoosterAdapterAbi;
 type abi = typeof abi;
 
@@ -24,12 +31,7 @@ export class ConvexV1BoosterAdapterContract extends AbstractAdapterContract<
   abi,
   protocolAbi
 > {
-  #supportedPools?: {
-    pid: number;
-    curveToken: Address;
-    convexToken: Address;
-    phantomToken: Address;
-  }[];
+  #supportedPools?: ConvexV1BoosterPool[];
 
   constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
     super(options, { ...args, abi, protocolAbi });
@@ -62,15 +64,22 @@ export class ConvexV1BoosterAdapterContract extends AbstractAdapterContract<
     }
   }
 
-  get supportedPools(): {
-    pid: number;
-    curveToken: Address;
-    convexToken: Address;
-    phantomToken: Address;
-  }[] {
+  get supportedPools(): ConvexV1BoosterPool[] {
     if (!this.#supportedPools)
       throw new MissingSerializedParamsError("supportedPools");
     return this.#supportedPools;
+  }
+
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      supportedPools: this.#supportedPools?.map(p => ({
+        pid: p.pid,
+        curveToken: this.labelAddress(p.curveToken),
+        convexToken: this.labelAddress(p.convexToken),
+        phantomToken: this.labelAddress(p.phantomToken),
+      })),
+    };
   }
 
   /**

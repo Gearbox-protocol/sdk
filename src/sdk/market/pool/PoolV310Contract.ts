@@ -43,7 +43,7 @@ export class PoolV310Contract extends BaseContract<abi> {
       creditManagerDebtParams.map(p => [p.creditManager, p]),
     );
     // Put diesel token into tokens meta
-    this.register.tokensMeta.upsert(data.baseParams.addr, {
+    this.tokensMeta.upsert(data.baseParams.addr, {
       addr: data.baseParams.addr,
       decimals: data.decimals,
       name: data.name,

@@ -1,5 +1,4 @@
 import type { Address } from "abitype";
-
 import type { CreditManagerState, IBaseContract } from "../../base/index.js";
 import type {
   CreditConfiguratorStateHuman,
@@ -7,11 +6,7 @@ import type {
 } from "../../types/index.js";
 import type { AddressMap } from "../../utils/index.js";
 import type { IAdapterContract } from "../adapters/index.js";
-import type {
-  CreditFacadeV300Contract,
-  CreditFacadeV310Contract,
-} from "../index.js";
-import type { RampEvent } from "./CreditConfiguratorV300Contract.js";
+import type { CreditFacadeV310Contract, RampEvent } from "../index.js";
 
 export interface ICreditConfiguratorContract extends IBaseContract {
   isPaused: boolean;
@@ -39,6 +34,4 @@ export interface ICreditManagerContract
   stateHuman: (raw?: boolean) => CreditManagerStateHuman;
 }
 
-export type CreditFacadeContract =
-  | CreditFacadeV300Contract
-  | CreditFacadeV310Contract;
+export type CreditFacadeContract = CreditFacadeV310Contract;

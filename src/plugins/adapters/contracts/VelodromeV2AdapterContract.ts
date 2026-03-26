@@ -64,4 +64,16 @@ export class VelodromeV2RouterAdapterContract extends AbstractAdapterContract<
       throw new MissingSerializedParamsError("supportedPools");
     return this.#supportedPools;
   }
+
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      supportedPools: this.#supportedPools?.map(p => ({
+        token0: this.labelAddress(p.token0),
+        token1: this.labelAddress(p.token1),
+        stable: p.stable,
+        factory: this.labelAddress(p.factory),
+      })),
+    };
+  }
 }

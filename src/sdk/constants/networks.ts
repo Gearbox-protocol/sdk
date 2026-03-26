@@ -1,30 +1,6 @@
 import { chains as CHAINS, type NetworkType } from "../chain/index.js";
 import { type PartialRecord, TypedObjectUtils } from "../utils/mappers.js";
 
-/**
- * Block number when address provider was deployed
- * @deprecated use chain.firstBlock instead
- */
-export const ADDRESS_PROVIDER_BLOCK: Record<NetworkType, bigint> = {
-  Mainnet: 18433056n, // AddressProvderV3 0x9ea7b04Da02a5373317D745c1571c84aaD03321D
-  Arbitrum: 184650310n,
-  Optimism: 118410666n,
-  Base: 0n,
-  Sonic: 9779380n,
-  // New networks
-  MegaETH: 1677017n, // arbitrary not deployed yet
-  Monad: 34650265n, // arbitrary not deployed yet
-  Berachain: 2788903n, // arbitrary not deployed yet
-  Avalanche: 31594758n, // arbitrary not deployed yet
-  BNB: 48553569n, // arbitrary not deployed yet
-  WorldChain: 22372908n, // arbitrary not deployed yet
-  Etherlink: 16672969n, // arbitrary not deployed yet
-  Hemi: 2227553n, // arbitrary not deployed yet
-  Lisk: 18934260n, // arbitrary not deployed yet
-  Plasma: 670918n, // arbitrary not deployed yet
-  Somnia: 147687418n,
-};
-
 // local constants are preserved for compatibility with older viem versions
 // values are in milliseconds
 const BLOCK_DURATION_LOCAL: PartialRecord<NetworkType, number> = {

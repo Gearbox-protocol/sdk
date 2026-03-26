@@ -9,24 +9,6 @@ import type { PriceFeedRef } from "./PriceFeedRef.js";
 
 export type PriceFeedUsageType = "Main" | "Reserve";
 
-export type PriceFeedContractTypeLegacy =
-  | "PF_BALANCER_STABLE_LP_ORACLE"
-  | "PF_BALANCER_WEIGHTED_LP_ORACLE"
-  | "PF_BOUNDED_ORACLE"
-  | "PF_CHAINLINK_ORACLE"
-  | "PF_COMPOSITE_ORACLE"
-  | "PF_CURVE_CRYPTO_LP_ORACLE"
-  | "PF_CURVE_STABLE_LP_ORACLE"
-  | "PF_CURVE_USD_ORACLE"
-  | "PF_ERC4626_ORACLE"
-  | "PF_MELLOW_LRT_ORACLE"
-  | "PF_PENDLE_PT_TWAP_ORACLE"
-  | "PF_PYTH_ORACLE"
-  | "PF_REDSTONE_ORACLE"
-  | "PF_WSTETH_ORACLE"
-  | "PF_YEARN_ORACLE"
-  | "PF_ZERO_ORACLE";
-
 export type PriceFeedContractType =
   | "PRICE_FEED::BALANCER_STABLE"
   | "PRICE_FEED::BALANCER_WEIGHTED"
@@ -94,15 +76,6 @@ export interface PriceUpdateV310 {
    * IUpdatablePriceFeed contract address
    */
   priceFeed: Address;
-  /**
-   * Data that can be passed to IUpdatablePriceFeed.updatePrice
-   */
-  data: Hex;
-}
-
-export interface PriceUpdateV300 {
-  token: Address;
-  reserve: boolean;
   /**
    * Data that can be passed to IUpdatablePriceFeed.updatePrice
    */

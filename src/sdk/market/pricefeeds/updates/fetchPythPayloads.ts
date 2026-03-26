@@ -18,9 +18,9 @@ export interface FetchPythPayloadsOptions {
    */
   dataFeedsIds: Iterable<string>;
   /**
-   * When true, will not throw an error if pyth is unable to fetch data for some feeds
+   * When true, will throw an error if pyth is unable to fetch data for some feeds
    */
-  ignoreMissingFeeds?: boolean;
+  failOnMissingFeeds?: boolean;
   /**
    * Historical timestamp in seconds
    */
@@ -69,7 +69,7 @@ export async function fetchPythPayloads(
 ): Promise<TimestampedCalldata[] | TimestampedCalldataWithPrice[]> {
   const {
     dataFeedsIds,
-    ignoreMissingFeeds,
+    failOnMissingFeeds,
     historicalTimestampSeconds,
     logger,
     apiProxy,
@@ -86,7 +86,7 @@ export async function fetchPythPayloads(
   const url = new URL(api + (historicalTimestampSeconds ?? "latest"));
   // we're requesting non-parsed data for multiple feeds, and then splitting it manually
   url.searchParams.append("parsed", returnPrices ? "true" : "false");
-  if (ignoreMissingFeeds) {
+  if (!failOnMissingFeeds) {
     url.searchParams.append("ignore_invalid_price_ids", "true");
   }
   for (const id of ids) {
@@ -109,12 +109,12 @@ export async function fetchPythPayloads(
   const result = respToCalldata(resp, returnPrices);
 
   if (result.length !== ids.length) {
-    if (ignoreMissingFeeds) {
-      logger?.warn(`expected ${ids.length} price feeds, got ${result.length}`);
-    } else {
+    if (failOnMissingFeeds) {
       throw new Error(
         `expected ${ids.length} price feeds, got ${result.length}`,
       );
+    } else {
+      logger?.warn(`expected ${ids.length} price feeds, got ${result.length}`);
     }
   }
 
@@ -159,7 +159,7 @@ function respToCalldata(
   resp: PythPriceUpdatesResp,
   returnPrices?: boolean,
 ): TimestampedCalldata[] | TimestampedCalldataWithPrice[] {
-  // edge case when ignoreMissingFeeds is true and we requesting exactly one feed which fails
+  // edge case when failOnMissingFeeds is false and we requesting exactly one feed which fails
   if (resp.binary.data.length === 0) {
     return [];
   }

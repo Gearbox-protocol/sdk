@@ -32,8 +32,6 @@ async function example(): Promise<void> {
     timeout: 480_000,
     blockNumber: 24736900,
     logger,
-    // ignoreUpdateablePrices: true,
-    strictContractTypes: true,
     plugins: {
       adapters: new AdaptersPlugin(true),
       zappers: new ZappersPlugin([], true),
@@ -44,14 +42,13 @@ async function example(): Promise<void> {
       // stalenessV300: V300StalenessPeriodPlugin,
     },
     redstone: {
-      ignoreMissingFeeds: true,
       historicTimestamp: true,
     },
     pyth: {
-      ignoreMissingFeeds: true,
       historicTimestamp: true,
     },
   });
+
   // kind = "hydrated";
   // const state = await readFile(
   //   "tmp/state_real_Mainnet_22798015.json",
@@ -66,7 +63,6 @@ async function example(): Promise<void> {
   //       degen: new DegenDistributorsPlugin(false),
   //       pools7DAgo: new Pools7DAgoPlugin(false),
   //       accountsCounter: new AccountsCounterPlugin(false),
-  //       // stalenessV300: V300StalenessPeriodPlugin,
   //     },
   //     rpcURLs: [RPC],
   //     timeout: 480_000,

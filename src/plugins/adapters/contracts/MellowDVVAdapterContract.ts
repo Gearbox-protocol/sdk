@@ -56,6 +56,14 @@ export class MellowDVVAdapterContract extends AbstractAdapterContract<
     return this.#asset;
   }
 
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      vault: this.#vault ? this.labelAddress(this.#vault) : undefined,
+      asset: this.#asset ? this.labelAddress(this.#asset) : undefined,
+    };
+  }
+
   /**
    * @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type_v3.go#L32-L38
    */

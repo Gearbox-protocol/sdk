@@ -1,3 +1,3 @@
-export * from "./address-provider/index.js";
-export * from "./BotListV3Contract.js";
-export * from "./GearStakingV3Contract.js";
+export * from "./AddressProviderV310Contract.js";
+export * from "./createAddressProvider.js";
+export * from "./types.js";

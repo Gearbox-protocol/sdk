@@ -83,8 +83,8 @@ export class PriceFeedRegister
   constructor(sdk: GearboxSDK, opts: PriceFeedRegisterOptions = {}) {
     super(sdk);
     this.updaters = [
-      new RedstoneUpdater(sdk, opts?.redstone),
       new PythUpdater(sdk, opts?.pyth),
+      new RedstoneUpdater(sdk, opts?.redstone),
     ];
   }
 
@@ -133,7 +133,9 @@ export class PriceFeedRegister
     };
 
     const updates = (
-      await Promise.all(this.updaters.map(u => u.getUpdateTxs(updateables)))
+      await Promise.all(
+        this.updaters.map(u => u.getUpdateTxs(updateables).catch(() => [])),
+      )
     ).flat();
 
     let maxTimestamp = 0;

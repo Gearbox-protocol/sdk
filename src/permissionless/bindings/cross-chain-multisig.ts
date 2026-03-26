@@ -1,13 +1,10 @@
 import {
   type Address,
-  type Chain,
   type DecodeFunctionDataReturnType,
   type Hex,
-  type PublicClient,
   parseAbi,
   parseEventLogs,
   recoverTypedDataAddress,
-  type Transport,
   type WalletClient,
   zeroAddress,
 } from "viem";
@@ -15,6 +12,7 @@ import { crossChainMultisigAbi } from "../../abi/310/crossChainMultisig.js";
 import type { RawTx } from "../../sdk/index.js";
 import {
   BaseContract,
+  type ChainContractsRegister,
   json_stringify,
   type ParsedCall,
   type ParsedCallArgs,
@@ -49,8 +47,8 @@ export interface Proposal {
 }
 
 export class CrossChainMultisigContract extends BaseContract<typeof abi> {
-  constructor(addr: Address, client: PublicClient<Transport, Chain>) {
-    super({ client }, { abi, addr, name: "CrossChainMultisig" });
+  constructor(addr: Address, register: ChainContractsRegister) {
+    super({ register }, { abi, addr, name: "CrossChainMultisig" });
   }
 
   async getExecutedBatches(
@@ -243,7 +241,7 @@ export class CrossChainMultisigContract extends BaseContract<typeof abi> {
       case Addresses.INSTANCE_MANAGER.toLowerCase(): {
         const instanceManager = new InstanceManagerContract(
           target,
-          this.client,
+          this.register,
         );
         return instanceManager.parseFunctionData(calldata);
       }

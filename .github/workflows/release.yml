@@ -5,6 +5,7 @@ on:
     branches:
       - "master"
       - "next"
+      - "beta"
       - "*.x"
 
 env:
@@ -16,7 +17,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+        with:
+          lfs: true
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: "v1.5.1"
 
       - name: Use Latest Corepack
         run: |
@@ -25,7 +33,7 @@ jobs:
           echo "After : corepack version => $(corepack --version)"
           corepack enable
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           cache: "yarn"
           node-version-file: ".nvmrc"
@@ -33,15 +41,17 @@ jobs:
       - name: Configure access to private npm packages
         run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
 
-      # No lint or prettier here since they were supposed to run on PR action
-      - name: Build
+      - name: Test and build
+        env:
+          RPC_URL: "https://eth-mainnet.g.alchemy.com/v2/${{ secrets.ALCHEMY_KEY_CI }}"
         run: |
           yarn install --immutable
           yarn typecheck:ci
+          yarn test:all
           yarn build
 
       - name: Semantic Release
-        uses: cycjimmy/semantic-release-action@v4
+        uses: cycjimmy/semantic-release-action@v6
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

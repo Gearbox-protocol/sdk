@@ -1,6 +1,7 @@
 import { encodeFunctionData, getContract } from "viem";
 import { iCreditFacadeMulticallV310Abi } from "../../abi/310/generated.js";
 import { MAX_UINT256 } from "../constants/math.js";
+import type { RouterRewardsResult } from "../router/types.js";
 import type { MultiCall } from "../types/index.js";
 import { AbstractCreditAccountService } from "./AbstractCreditAccountsService.js";
 import type {
@@ -141,7 +142,6 @@ export class CreditAccountServiceV310
     const router = this.sdk.routerFor(ca);
 
     const claimPath = await router.findClaimAllRewards({
-      calls: [],
       tokensToClaim,
       creditAccount: ca,
     });
@@ -157,7 +157,6 @@ export class CreditAccountServiceV310
       ...this.prepareDisableQuotas(ca),
       ...this.prepareDecreaseDebt(ca),
       ...claimPath.calls,
-      ...this.prepareDisableTokens(ca),
       ...assetsToWithdraw.map(t =>
         this.prepareWithdrawToken(ca.creditFacade, t.token, MAX_UINT256, to),
       ),
@@ -185,7 +184,6 @@ export class CreditAccountServiceV310
 
     const router = this.sdk.routerFor(ca);
     const claimPath = await router.findClaimAllRewards({
-      calls: [],
       tokensToClaim,
       creditAccount: ca,
     });
@@ -218,23 +216,25 @@ export class CreditAccountServiceV310
    * Implements {@link ICreditAccountsService.claimFarmRewards}
    */
   async claimFarmRewards({
-    calls: legacyCalls,
+    calls: externalCalls,
     creditAccount: ca,
 
     minQuota,
     averageQuota,
     tokensToClaim,
-    forceCalls,
   }: ClaimFarmRewardsProps): Promise<CreditAccountOperationResult> {
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
 
     const router = this.sdk.routerFor(ca);
-    const claimPath = await router.findClaimAllRewards({
-      calls: legacyCalls,
-      tokensToClaim,
-      creditAccount: ca,
-      forceCalls,
-    });
+    let claimPath: RouterRewardsResult;
+    if (externalCalls) {
+      claimPath = { calls: externalCalls };
+    } else {
+      claimPath = await router.findClaimAllRewards({
+        tokensToClaim,
+        creditAccount: ca,
+      });
+    }
     if (claimPath.calls.length === 0) throw new Error("No path to execute");
 
     const priceUpdatesCalls = await this.getPriceUpdatesForFacade({

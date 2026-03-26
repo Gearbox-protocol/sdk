@@ -48,9 +48,9 @@ export const PythOptions = z.object({
    */
   cacheTTL: z.number().nonnegative().optional(),
   /**
-   * When true, no error will be thrown when pyth is unable to fetch data for some feeds
+   * When true, an error will be thrown when pyth is unable to fetch data for some feeds
    */
-  ignoreMissingFeeds: z.boolean().optional(),
+  failOnMissingFeeds: z.boolean().optional(),
 });
 
 export type PythOptions = z.infer<typeof PythOptions>;
@@ -65,12 +65,12 @@ export class PythUpdater
   #cache: PriceUpdatesCache;
   #historicalTimestamp?: number;
   #apiProxy?: string;
-  #ignoreMissingFeeds?: boolean;
+  #failOnMissingFeeds?: boolean;
 
   constructor(sdk: GearboxSDK, opts: PythOptions = {}) {
     super(sdk);
-    const { apiProxy, cacheTTL, ignoreMissingFeeds, historicTimestamp } = opts;
-    this.#ignoreMissingFeeds = ignoreMissingFeeds;
+    const { apiProxy, cacheTTL, failOnMissingFeeds, historicTimestamp } = opts;
+    this.#failOnMissingFeeds = failOnMissingFeeds;
     this.#apiProxy = apiProxy;
 
     if (historicTimestamp) {
@@ -82,7 +82,7 @@ export class PythUpdater
         `using historical timestamp ${this.#historicalTimestamp}`,
       );
     }
-    this.#cache = PriceUpdatesCache.get("pyth", {
+    this.#cache = new PriceUpdatesCache({
       // currently staleness period is 240 seconds on all networks, add some buffer
       // this period of 4 minutes is selected based on time that is required for user to sign transaction with wallet
       // so it's unlikely to decrease
@@ -199,7 +199,7 @@ export class PythUpdater
       dataFeedsIds,
       historicalTimestampSeconds: this.#historicalTimestamp,
       apiProxy: this.#apiProxy,
-      ignoreMissingFeeds: this.#ignoreMissingFeeds,
+      failOnMissingFeeds: this.#failOnMissingFeeds,
       logger: this.logger,
     });
   }

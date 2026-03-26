@@ -8,7 +8,7 @@ export class SDKConstruct<
   public readonly sdk: GearboxSDK<Plugins>;
 
   constructor(sdk: GearboxSDK<Plugins>) {
-    super(sdk);
+    super({ register: sdk });
     this.sdk = sdk;
   }
 }

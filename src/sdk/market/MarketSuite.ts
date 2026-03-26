@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 
 import type { MarketData } from "../base/index.js";
-import { Construct, SDKConstruct } from "../base/index.js";
+import { SDKConstruct } from "../base/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import type { MarketStateHuman } from "../types/index.js";
 import { CreditSuite } from "./credit/index.js";
@@ -11,7 +11,7 @@ import {
 } from "./loss-policy/index.js";
 import { MarketConfiguratorContract } from "./MarketConfiguratorContract.js";
 import type { IPriceOracleContract } from "./oracle/index.js";
-import { getOrCreatePriceOracle } from "./oracle/index.js";
+import { createPriceOracle } from "./oracle/index.js";
 import { PoolSuite } from "./pool/index.js";
 
 export class MarketSuite extends SDKConstruct {
@@ -54,7 +54,7 @@ export class MarketSuite extends SDKConstruct {
       this.creditManagers.push(new CreditSuite(sdk, marketData, i));
     }
 
-    this.priceOracle = getOrCreatePriceOracle(sdk, marketData.priceOracle);
+    this.priceOracle = createPriceOracle(sdk, marketData.priceOracle);
     this.lossPolicy = createLossPolicy(sdk, marketData.lossPolicy);
   }
 

@@ -57,6 +57,14 @@ export class ERC4626ReferralAdapterContract extends AbstractAdapterContract<
     return this.#referral;
   }
 
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      asset: this.#asset ? this.labelAddress(this.#asset) : undefined,
+      referral: this.#referral,
+    };
+  }
+
   /**
    * @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type_v3.go#L32-L38
    */

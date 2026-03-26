@@ -1,0 +1,65 @@
+export const iLinearInterestRateModelV310Abi = [
+  {
+    type: "function",
+    name: "availableToBorrow",
+    inputs: [
+      { name: "expectedLiquidity", type: "uint256", internalType: "uint256" },
+      { name: "availableLiquidity", type: "uint256", internalType: "uint256" },
+    ],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "calcBorrowRate",
+    inputs: [
+      { name: "expectedLiquidity", type: "uint256", internalType: "uint256" },
+      { name: "availableLiquidity", type: "uint256", internalType: "uint256" },
+      { name: "checkOptimalBorrowing", type: "bool", internalType: "bool" },
+    ],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "contractType",
+    inputs: [],
+    outputs: [{ name: "", type: "bytes32", internalType: "bytes32" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getModelParameters",
+    inputs: [],
+    outputs: [
+      { name: "U_1", type: "uint16", internalType: "uint16" },
+      { name: "U_2", type: "uint16", internalType: "uint16" },
+      { name: "R_base", type: "uint16", internalType: "uint16" },
+      { name: "R_slope1", type: "uint16", internalType: "uint16" },
+      { name: "R_slope2", type: "uint16", internalType: "uint16" },
+      { name: "R_slope3", type: "uint16", internalType: "uint16" },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "isBorrowingMoreU2Forbidden",
+    inputs: [],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "serialize",
+    inputs: [],
+    outputs: [{ name: "serializedData", type: "bytes", internalType: "bytes" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "version",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+] as const;

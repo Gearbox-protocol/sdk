@@ -1,4 +1,4 @@
-import { type Address, type Hex, isHex } from "viem";
+import { isHex } from "viem";
 
 import type {
   ConstructOptions,
@@ -6,12 +6,9 @@ import type {
   RelaxedBaseParams,
 } from "../../sdk/index.js";
 import { bytes32ToString } from "../../sdk/index.js";
-import { AccountMigratorAdapterContract } from "./contracts/AccountMigratorAdapterContract.js";
-import { InfinifiGatewayAdapterContract } from "./contracts/InfinifiGatewayAdapterContract.js";
-import { InfinifiUnwindingGatewayAdapterContract } from "./contracts/InfinifiUnwindingGatewayAdapterContract.js";
 import {
   AbstractAdapterContract,
-  BalancerV2VaultAdapterContract,
+  AccountMigratorAdapterContract,
   BalancerV3RouterAdapterContract,
   BalancerV3WrapperAdapterContract,
   CamelotV3AdapterContract,
@@ -24,21 +21,19 @@ import {
   CurveV1AdapterStETHContract,
   CurveV1StableNGAdapterContract,
   DaiUsdsAdapterContract,
-  EqualizerRouterAdapterContract,
   ERC4626AdapterContract,
   ERC4626ReferralAdapterContract,
   FluidDexAdapterContract,
-  InfraredVaultAdapterContract,
+  InfinifiGatewayAdapterContract,
+  InfinifiUnwindingGatewayAdapterContract,
   KelpLRTDepositPoolAdapterContract,
   KelpLRTWithdrawalManagerAdapterContract,
-  KodiakIslandGatewayAdapterContract,
   LidoV1AdapterContract,
   MellowClaimerAdapterContract,
   MellowDepositQueueAdapterContract,
   MellowDVVAdapterContract,
   MellowERC4626VaultAdapterContract,
   MellowRedeemQueueAdapterContract,
-  MellowVaultAdapterContract,
   MellowWrapperAdapterContract,
   MidasIssuanceVaultAdapterContract,
   MidasRedemptionVaultAdapterContract,
@@ -50,15 +45,12 @@ import {
   UpshiftVaultAdapterContract,
   VelodromeV2RouterAdapterContract,
   WstETHV1AdapterContract,
-  YearnV2RouterAdapterContract,
 } from "./contracts/index.js";
 import { UniswapV4AdapterContract } from "./contracts/UniswapV4AdapterContract.js";
 import type { AdapterContractType } from "./types.js";
 
 export interface AdapterFactoryArgs {
   baseParams: RelaxedBaseParams;
-  // TODO: v300 legacy/deprecated: serializedParams always contain targetContract and creditManager
-  targetContract?: Address;
 }
 
 export function createAdapter(
@@ -78,8 +70,6 @@ export function createAdapter(
       return new BalancerV3RouterAdapterContract(options, data);
     case "ADAPTER::BALANCER_V3_WRAPPER":
       return new BalancerV3WrapperAdapterContract(options, data);
-    case "ADAPTER::BALANCER_VAULT":
-      return new BalancerV2VaultAdapterContract(options, data);
     case "ADAPTER::CAMELOT_V3_ROUTER":
       return new CamelotV3AdapterContract(options, data);
     case "ADAPTER::CURVE_STABLE_NG":
@@ -100,8 +90,6 @@ export function createAdapter(
       return new ConvexV1BoosterAdapterContract(options, data);
     case "ADAPTER::DAI_USDS_EXCHANGE":
       return new DaiUsdsAdapterContract(options, data);
-    case "ADAPTER::EQUALIZER_ROUTER":
-      return new EqualizerRouterAdapterContract(options, data);
     case "ADAPTER::ERC4626_VAULT":
       return new ERC4626AdapterContract(options, data);
     case "ADAPTER::ERC4626_VAULT_REFERRAL":
@@ -112,14 +100,10 @@ export function createAdapter(
       return new InfinifiGatewayAdapterContract(options, data);
     case "ADAPTER::INFINIFI_UNWINDING":
       return new InfinifiUnwindingGatewayAdapterContract(options, data);
-    case "ADAPTER::INFRARED_VAULT":
-      return new InfraredVaultAdapterContract(options, data);
     case "ADAPTER::KELP_DEPOSIT_POOL":
       return new KelpLRTDepositPoolAdapterContract(options, data);
     case "ADAPTER::KELP_WITHDRAWAL":
       return new KelpLRTWithdrawalManagerAdapterContract(options, data);
-    case "ADAPTER::KODIAK_ISLAND_GATEWAY":
-      return new KodiakIslandGatewayAdapterContract(options, data);
     case "ADAPTER::LIDO_V1":
       return new LidoV1AdapterContract(options, data);
     case "ADAPTER::LIDO_WSTETH_V1":
@@ -130,8 +114,6 @@ export function createAdapter(
       return new MellowDVVAdapterContract(options, data);
     case "ADAPTER::MELLOW_ERC4626_VAULT":
       return new MellowERC4626VaultAdapterContract(options, data);
-    case "ADAPTER::MELLOW_LRT_VAULT":
-      return new MellowVaultAdapterContract(options, data);
     case "ADAPTER::MELLOW_WRAPPER":
       return new MellowWrapperAdapterContract(options, data);
     case "ADAPTER::MELLOW_DEPOSIT_QUEUE_QUEUE":
@@ -158,8 +140,6 @@ export function createAdapter(
       return new UpshiftVaultAdapterContract(options, data);
     case "ADAPTER::VELODROME_V2_ROUTER":
       return new VelodromeV2RouterAdapterContract(options, data);
-    case "ADAPTER::YEARN_V2":
-      return new YearnV2RouterAdapterContract(options, data);
     default: {
       if (strict) {
         throw new Error(

@@ -1,38 +1,8 @@
 import type { AbiParameter, Address } from "viem";
+import type { BaseContractStateHuman } from "../../sdk/types/state-human.js";
 import type { LegacyAdapterOperation } from "./legacyAdapterOperations.js";
 
 export type VersionedAbi = Record<number, readonly AbiParameter[]>;
-
-export type AdapterContractTypeLegacy =
-  | "AD_AAVE_V3_LENDING_POOL"
-  | "AD_BALANCER_VAULT"
-  | "AD_CAMELOT_V3_ROUTER"
-  | "AD_CONVEX_L2_BOOSTER"
-  | "AD_CONVEX_L2_REWARD_POOL"
-  | "AD_CONVEX_V1_BASE_REWARD_POOL"
-  | "AD_CONVEX_V1_BOOSTER"
-  | "AD_CURVE_STABLE_NG"
-  | "AD_CURVE_V1_2ASSETS"
-  | "AD_CURVE_V1_3ASSETS"
-  | "AD_CURVE_V1_4ASSETS"
-  | "AD_CURVE_V1_EXCHANGE_ONLY"
-  | "AD_CURVE_V1_STECRV_POOL"
-  | "AD_CURVE_V1_WRAPPER"
-  | "AD_DAI_USDS_EXCHANGE"
-  | "AD_EQUALIZER_ROUTER"
-  | "AD_ERC4626_VAULT"
-  | "AD_LIDO_V1"
-  | "AD_LIDO_WSTETH_V1"
-  | "AD_MELLOW_ERC4626_VAULT"
-  | "AD_MELLOW_LRT_VAULT"
-  | "AD_PENDLE_ROUTER"
-  | "AD_STAKING_REWARDS"
-  | "AD_SYMBIOTIC_DEFAULT_COLLATERAL"
-  | "AD_UNISWAP_V2_ROUTER"
-  | "AD_UNISWAP_V3_ROUTER"
-  | "AD_VELODROME_V2_ROUTER"
-  | "AD_YEARN_V2"
-  | "AD_ZIRCUIT_POOL";
 
 export type AdapterContractType =
   | "ADAPTER::ACCOUNT_MIGRATOR"
@@ -125,6 +95,11 @@ export enum AdapterType {
   UPSHIFT_VAULT = "UPSHIFT_VAULT",
   VELODROME_V2_ROUTER = "VELODROME_V2_ROUTER",
   YEARN_V2 = "YEARN_V2",
+}
+
+export interface AdapterContractStateHuman extends BaseContractStateHuman {
+  creditManager?: string;
+  targetContract?: string;
 }
 
 /**

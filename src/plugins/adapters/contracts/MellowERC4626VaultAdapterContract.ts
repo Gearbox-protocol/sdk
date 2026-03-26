@@ -33,7 +33,7 @@ export class MellowERC4626VaultAdapterContract extends AbstractAdapterContract<
 
     if (args.baseParams.serializedParams) {
       const version = Number(args.baseParams.version);
-      if (version === 310) {
+      if (version <= 310) {
         const decoded = decodeAbiParameters(
           [
             { type: "address", name: "creditManager" },
@@ -58,6 +58,7 @@ export class MellowERC4626VaultAdapterContract extends AbstractAdapterContract<
         this.#asset = decoded[2];
         this.#stakedPhantomToken = decoded[3];
       } else {
+        // v312+: inherits ERC4626Adapter serialize = (creditManager, targetContract, vault, asset)
         const decoded = decodeAbiParameters(
           [
             { type: "address", name: "creditManager" },
@@ -88,6 +89,17 @@ export class MellowERC4626VaultAdapterContract extends AbstractAdapterContract<
     if (!this.#stakedPhantomToken)
       throw new MissingSerializedParamsError("stakedPhantomToken");
     return this.#stakedPhantomToken;
+  }
+
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      vault: this.#vault ? this.labelAddress(this.#vault) : undefined,
+      asset: this.#asset ? this.labelAddress(this.#asset) : undefined,
+      stakedPhantomToken: this.#stakedPhantomToken
+        ? this.labelAddress(this.#stakedPhantomToken)
+        : undefined,
+    };
   }
 
   /**

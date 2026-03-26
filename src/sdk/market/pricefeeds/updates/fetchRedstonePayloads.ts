@@ -50,9 +50,9 @@ export interface FetchRedstonePayloadsOptions {
    */
   enableLogging?: boolean;
   /**
-   * When true, will not throw an error if redstone is unable to fetch data for some feeds
+   * When true, will throw an error if redstone is unable to fetch data for some feeds
    */
-  ignoreMissingFeeds?: boolean;
+  failOnMissingFeeds?: boolean;
   /**
    * Logger to use
    */
@@ -89,7 +89,7 @@ export async function fetchRedstonePayloads(
     uniqueSignersCount,
     historicalTimestampMs,
     gateways,
-    ignoreMissingFeeds,
+    failOnMissingFeeds,
     enableLogging,
     logger,
     returnPrices,
@@ -111,7 +111,7 @@ export async function fetchRedstonePayloads(
     ),
     historicalTimestamp: historicalTimestampMs,
     urls: gateways,
-    ignoreMissingFeed: ignoreMissingFeeds,
+    ignoreMissingFeed: !failOnMissingFeeds,
     enableEnhancedLogs: enableLogging,
   });
   // set deterministic metadata timestamp, so requests sent by two services at the same block are identical
@@ -132,22 +132,22 @@ export async function fetchRedstonePayloads(
   for (const dataFeedId of dataFeedsIds) {
     const signedDataPackages = packagesByDataFeedId[dataFeedId];
     if (!signedDataPackages) {
-      if (ignoreMissingFeeds) {
-        logger?.warn(`cannot find data packages for ${dataFeedId}`);
-        continue;
+      if (failOnMissingFeeds) {
+        throw new Error(`cannot find data packages for ${dataFeedId}`);
       }
-      throw new Error(`cannot find data packages for ${dataFeedId}`);
+      logger?.warn(`cannot find data packages for ${dataFeedId}`);
+      continue;
     }
     if (signedDataPackages.length !== uniqueSignersCount) {
-      if (ignoreMissingFeeds) {
-        logger?.warn(
+      if (failOnMissingFeeds) {
+        throw new Error(
           `got ${signedDataPackages.length} data packages for ${dataFeedId}, but expected ${uniqueSignersCount}`,
         );
-        continue;
       }
-      throw new Error(
+      logger?.warn(
         `got ${signedDataPackages.length} data packages for ${dataFeedId}, but expected ${uniqueSignersCount}`,
       );
+      continue;
     }
     result.push(
       getCalldataWithTimestamp(

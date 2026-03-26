@@ -13,7 +13,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+        with:
+          lfs: true
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: "v1.5.1"
 
       - name: Use Latest Corepack
         run: |
@@ -22,7 +29,7 @@ jobs:
           echo "After : corepack version => $(corepack --version)"
           corepack enable
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           cache: "yarn"
           node-version-file: ".nvmrc"
@@ -37,4 +44,4 @@ jobs:
           yarn install --immutable
           yarn typecheck:ci
           yarn check:ci
-          yarn test
+          yarn test:all

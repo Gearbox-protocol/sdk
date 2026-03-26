@@ -14,7 +14,7 @@ export interface PathOption {
 export type PathOptionSerie = Array<PathOption>;
 
 /**
- * Result returned from router contract (both v3.0 and v3.1)
+ * Result returned from router contract
  */
 export interface RouterResult {
   /**
@@ -54,7 +54,6 @@ export interface OpenStrategyResult extends RouterResult {
    * Balances of opened credit account
    * Leftover balances stay the same
    * All expected balances are converted into target token, which amount is returned in router result
-   * This is returned from router contract v3.0, but is calculated here in js in router v3.1
    */
   balances: Record<Address, bigint>;
   /**
@@ -212,11 +211,6 @@ export interface FindClaimAllRewardsProps {
    * List of token rewards of which we want to claim and swap to underlying token during closing ca process
    */
   tokensToClaim: Array<Asset>;
-  /**
-   * Legacy property - array of MultiCall from getRewards
-   */
-  calls: Array<MultiCall>;
-  forceCalls?: boolean;
 }
 
 export interface FindBestClosePathProps {
@@ -241,10 +235,6 @@ export interface FindBestClosePathProps {
    * When balances are explicitly provided, keepAssets is ignored.
    */
   keepAssets?: Address[];
-  /**
-   * TODO: legacy v3 option to pass to contract
-   */
-  force?: boolean;
   /**
    * Debt only mode - will try to sell just enought of most valuable token to cover debt
    */
@@ -293,7 +283,7 @@ export interface IRouterContract extends IBaseContract {
   ) => Promise<OpenStrategyResult>;
 
   /**
-   * In V3.1 - Constructs calls to claim all rewards for Credit Account. In V3.0 - returns input calls
+   * Constructs calls to claim all rewards for Credit Account
    * @param props - {@link FindClaimAllRewardsProps}
    * @returns result - {@link RouterRewardsResult}
    */
@@ -310,50 +300,4 @@ export interface IRouterContract extends IBaseContract {
   findBestClosePath: (
     props: FindBestClosePathProps,
   ) => Promise<RouterCloseResult>;
-  /**
-   * Finds all available swaps for given tokens; technically should be avoided to use, since doesn't have any advantage over findOneTokenPath.
-   * Deduplicates results by minAmount + stringified call path and returns only unique ones.
-   *
-   * @deprecated v3.0 legacy method
-   *
-   * @param props - {@link FindAllSwapsProps}
-   * @returns array of {@link RouterResult}
-   */
-  findAllSwaps: (props: FindAllSwapsProps) => Promise<RouterResult[]>;
-  /**
-   * Returns list of tokens which can be used as a token to align path through,
-   * for ex. when swapping sUSDe it is good to check swaps through USDe.
-   *
-   * @deprecated V3.0 sdk-gov legacy method
-   *
-   * @param collateralTokens
-   * @returns
-   */
-  getAvailableConnectors: (collateralTokens: Address[]) => Address[];
-  /**
-   * Finds input to be used with findBestClosePath
-   * Used by batch liquidator.
-   *
-   * Params are same as in findBestClosePath, just different shape
-   *
-   * @deprecated V3.0 legacy method
-   *
-   * @param ca
-   * @param cm
-   * @param options
-   * @returns
-   */
-  getFindClosePathInput: (
-    ca: RouterCASlice,
-    cm: RouterCMSlice,
-    options?: ExpectedAndLeftoverOptions,
-  ) => FindClosePathInput;
 }
-
-export type RouterHooks = {
-  /**
-   * Internal router event
-   * @deprecated v3.0 legacy event
-   */
-  foundPathOptions: [{ creditAccount: Address } & FindClosePathInput];
-};

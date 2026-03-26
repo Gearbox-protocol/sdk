@@ -75,6 +75,19 @@ export class UniswapV4AdapterContract extends AbstractAdapterContract<
     return this.#supportedPoolKeys;
   }
 
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      supportedPoolKeys: this.#supportedPoolKeys?.map(p => ({
+        token0: this.labelAddress(p.token0),
+        token1: this.labelAddress(p.token1),
+        fee: p.fee,
+        tickSpacing: p.tickSpacing,
+        hooks: this.labelAddress(p.hooks),
+      })),
+    };
+  }
+
   /** @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type.go#L81-L91 */
   protected override classifyLegacyOperation(
     _parsed: ParsedCallV2,

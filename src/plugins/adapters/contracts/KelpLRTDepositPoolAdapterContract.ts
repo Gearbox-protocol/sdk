@@ -44,4 +44,11 @@ export class KelpLRTDepositPoolAdapterContract extends AbstractAdapterContract<
       throw new MissingSerializedParamsError("allowedAssets");
     return this.#allowedAssets;
   }
+
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      allowedAssets: this.#allowedAssets?.map(a => this.labelAddress(a)),
+    };
+  }
 }

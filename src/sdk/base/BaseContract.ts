@@ -3,11 +3,13 @@ import type {
   AbiFunction,
   Address,
   Chain,
+  ContractEventArgs,
   ContractEventName,
   ContractFunctionName,
   DecodeFunctionDataReturnType,
   EncodeFunctionDataParameters,
   GetAbiItemParameters,
+  GetContractEventsReturnType,
   GetContractReturnType,
   Hex,
   Log,
@@ -16,9 +18,7 @@ import type {
 } from "viem";
 import {
   BaseError,
-  type ContractEventArgs,
   decodeFunctionData,
-  type GetContractEventsReturnType,
   getAbiItem,
   getAddress,
   getContract,
@@ -111,9 +111,11 @@ export class BaseContract<abi extends Abi | readonly unknown[]>
     this.name =
       args.name || this.contractType || this.address || this.constructor.name;
 
-    // register contract by address: this is used for chain-wide call parsing
-    this.register.setContract(this.address, this);
-    this.register.setAddressLabel(this.address, this.name);
+    const register = this.safeGetRegister();
+    if (register) {
+      register.setContract(this.address, this);
+      register.setAddressLabel(this.address, this.name);
+    }
   }
 
   public stateHuman(_ = true): BaseContractStateHuman {
@@ -280,7 +282,7 @@ export class BaseContract<abi extends Abi | readonly unknown[]>
       chainId: this.chainId,
       target: this.address,
       contractType: this.contractType,
-      label: this.register.labelAddress(this.address, true),
+      label: this.labelAddress(this.address, true),
       functionName,
       args,
     };
@@ -339,7 +341,7 @@ export class BaseContract<abi extends Abi | readonly unknown[]>
       chainId: this.chainId,
       target: this.address,
       contractType: this.contractType,
-      label: this.register.labelAddress(this.address, true),
+      label: this.labelAddress(this.address, true),
       version: this.version,
       functionName,
       rawArgs,

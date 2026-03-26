@@ -54,4 +54,14 @@ export class KelpLRTWithdrawalManagerAdapterContract extends AbstractAdapterCont
       throw new MissingSerializedParamsError("allowedTokensOut");
     return this.#allowedTokensOut;
   }
+
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      allowedTokensOut: this.#allowedTokensOut?.map(t => ({
+        tokenOut: this.labelAddress(t.tokenOut),
+        phantomToken: this.labelAddress(t.phantomToken),
+      })),
+    };
+  }
 }

@@ -42,4 +42,11 @@ export class MellowWrapperAdapterContract extends AbstractAdapterContract<
       throw new MissingSerializedParamsError("allowedVaults");
     return this.#allowedVaults;
   }
+
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      allowedVaults: this.#allowedVaults?.map(v => this.labelAddress(v)),
+    };
+  }
 }

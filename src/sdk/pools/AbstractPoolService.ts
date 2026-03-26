@@ -1,7 +1,7 @@
+import { iPoolV310Abi } from "../../abi/310/generated.js";
 import { ierc20ZapperDepositsAbi } from "../../abi/iERC20ZapperDeposits.js";
 import { iethZapperDepositsAbi } from "../../abi/iETHZapperDeposits.js";
 import { iZapperAbi } from "../../abi/iZapper.js";
-import { iPoolV300Abi } from "../../abi/v300.js";
 import { SDKConstruct } from "../base/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import type {
@@ -73,7 +73,7 @@ export abstract class AbstractPoolService extends SDKConstruct {
       return [
         {
           target: pool,
-          abi: iPoolV300Abi,
+          abi: iPoolV310Abi,
           functionName: "depositWithReferral",
           args: [collateral.balance, account, referralCode],
         },
@@ -117,7 +117,7 @@ export abstract class AbstractPoolService extends SDKConstruct {
       return [
         {
           target: pool,
-          abi: iPoolV300Abi,
+          abi: iPoolV310Abi,
           functionName: "redeem",
           args: [amount, account, account],
         },

@@ -1,7 +1,6 @@
 import type { ContractEventName, Log } from "viem";
 import { decodeAbiParameters } from "viem";
-
-import { iGaugeV300Abi } from "../../../abi/v300.js";
+import { iGaugeV310Abi } from "../../../abi/310/generated.js";
 import type {
   ConstructOptions,
   PoolState,
@@ -13,7 +12,7 @@ import type { GaugeStateHuman } from "../../types/index.js";
 import { AddressMap, percentFmt } from "../../utils/index.js";
 import type { IRateKeeperContract } from "./types.js";
 
-const abi = iGaugeV300Abi;
+const abi = iGaugeV310Abi;
 type abi = typeof abi;
 
 export interface GaugeParams {
@@ -41,7 +40,7 @@ export class GaugeContract
     super(options, {
       ...gauge.baseParams,
       name: `Gauge(${pool.name})`,
-      abi: iGaugeV300Abi,
+      abi: iGaugeV310Abi,
     });
 
     const [_voter, epochLastUpdate, epochFrozen, gaugeTokens, gaugeParams] =

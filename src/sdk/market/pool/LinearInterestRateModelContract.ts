@@ -1,13 +1,12 @@
 import { decodeAbiParameters } from "viem";
-
-import { iLinearInterestRateModelV300Abi } from "../../../abi/v300.js";
+import { iLinearInterestRateModelV310Abi } from "../../../abi/310/iLinearInterestRateModelV310.js";
 import type { BaseState, ConstructOptions } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
 import type { LinearInterestRateModelStateHuman } from "../../types/index.js";
 import { percentFmt } from "../../utils/index.js";
 import type { IInterestRateModelContract } from "./types.js";
 
-const abi = iLinearInterestRateModelV300Abi;
+const abi = iLinearInterestRateModelV310Abi;
 type abi = typeof abi;
 
 export class LinearInterestRateModelContract

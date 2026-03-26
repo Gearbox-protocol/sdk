@@ -3,7 +3,8 @@ import { createPublicClient, custom, encodeFunctionData, parseAbi } from "viem";
 import { mainnet } from "viem/chains";
 import { describe, expect, it } from "vitest";
 
-const { BaseContract, ContractParseError } = await import("./BaseContract.js");
+import { BaseContract, ContractParseError } from "./BaseContract.js";
+import { ChainContractsRegister } from "./ChainContractsRegister.js";
 
 const client = createPublicClient({
   chain: mainnet,
@@ -14,6 +15,8 @@ const client = createPublicClient({
   }),
 });
 
+const register = new ChainContractsRegister(client);
+
 const CONTRACT_ADDR = "0xaAaAaAaaAaAaAaaAaAAAAAAAAaaaAaAaAaaAaaAa" as Address;
 const TOKEN_ADDR = "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB" as Address;
 
@@ -23,7 +26,7 @@ const abi = parseAbi([
 ]);
 
 const contract = new BaseContract(
-  { client },
+  { register },
   {
     abi,
     addr: CONTRACT_ADDR,

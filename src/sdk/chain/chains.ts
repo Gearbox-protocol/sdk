@@ -14,6 +14,7 @@ import {
   monad,
   optimism,
   plasma,
+  somnia,
   sonic,
   worldchain,
 } from "viem/chains";
@@ -99,8 +100,6 @@ export const chains: Record<NetworkType, GearboxChain> = {
       ...mainnet,
       network: "Mainnet",
       defaultMarketConfigurators: {
-        "0x354fe9f450F60b8547f88BE042E4A45b46128a06": "Chaos Labs",
-        "0x4d427D418342d8CE89a7634c3a402851978B680A": "K3",
         "0xc168343c791d56dd1da4b4b8b0cc1c1ec1a16e6b": "cp0x",
         "0x3b56538833fc02f4f0e75609390f26ded0c32e42": "Re7",
         "0x7a133fbd01736fd076158307c9476cc3877f1af5": "Invariant Group",
@@ -117,7 +116,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
         symbol: "USDC",
       },
-      firstBlock: 18433056n, // AddressProvderV3 0x9ea7b04Da02a5373317D745c1571c84aaD03321D
+      firstBlock: 22358644n,
     },
     "ethereum-rpc",
   ),
@@ -220,6 +219,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       address: "0xe7cd86e13AC4309349F30B3435a9d337750fC82D",
       symbol: "USDT0",
     },
+    firstBlock: 34650262n,
   }),
   Berachain: withPublicNode(
     {
@@ -294,8 +294,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       address: "0x796Ea11Fa2dD751eD01b53C372fFDB4AAa8f00F9",
       symbol: "USDC",
     },
-    firstBlock: 16672969n,
-    // TODO: has no block explorer API
+    firstBlock: 16672963n,
   }),
   Hemi: defineChain({
     ...hemi,
@@ -346,26 +345,10 @@ export const chains: Record<NetworkType, GearboxChain> = {
         address: "0xcA11bde05977b3631167028862bE2a173976CA11",
       },
     },
+    firstBlock: 670913n,
   }),
   Somnia: defineChain({
-    id: 5031,
-    name: "Somnia",
-    nativeCurrency: {
-      name: "Somnia",
-      symbol: "SOMI",
-      decimals: 18,
-    },
-    rpcUrls: {
-      default: {
-        http: ["https://api.infra.mainnet.somnia.network"],
-      },
-    },
-    blockExplorers: {
-      default: {
-        name: "Somnia Explorer",
-        url: "https://explorer.somnia.network",
-      },
-    },
+    ...somnia,
     contracts: {
       multicall3: {
         address: "0x5e44F178E8cF9B2F5409B6f18ce936aB817C5a11",
@@ -382,6 +365,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       address: "0x67B302E35Aef5EEE8c32D934F5856869EF428330",
       symbol: "USDT",
     },
+    firstBlock: 147687380n,
   }),
 };
 

@@ -8,6 +8,7 @@ import type { gaugeCompressorAbi } from "../../abi/compressors/gaugeCompressor.j
 import type { marketCompressorAbi } from "../../abi/compressors/marketCompressor.js";
 import type { peripheryCompressorAbi } from "../../abi/compressors/peripheryCompressor.js";
 import type { rewardsCompressorAbi } from "../../abi/compressors/rewardsCompressor.js";
+import { BaseContractStateHuman } from "../types/index.js";
 
 export type Unarray<A> = A extends readonly unknown[] ? Unarray<A[number]> : A;
 
@@ -149,6 +150,12 @@ export interface IBaseContract {
    * Indicates that contract state diverged from onchain state and needs to be updated
    */
   dirty: boolean;
+
+  /**
+   * Human-readable contract state
+   * @param raw
+   */
+  stateHuman(raw?: boolean): unknown;
 
   /**
    * Return parsed args and function name from calldata belonging to this contract
