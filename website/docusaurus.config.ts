@@ -75,7 +75,7 @@ const config: Config = {
         excludeProtected: true,
         excludeInternal: true,
         excludeReferences: true,
-        maxTypeConversionDepth: 5,
+        // maxTypeConversionDepth: 5,
         exclude: ["**/*.test.ts", "**/*.mock.ts"],
         excludeNotDocumented: true,
         excludeNotDocumentedKinds: [
