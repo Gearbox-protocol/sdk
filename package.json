@@ -58,6 +58,7 @@
     "test:unit": "vitest run --project unit",
     "test:e2e": "vitest run --project e2e",
     "test:all": "vitest run",
+    "test": "vitest run",
     "generate:e2e": "NODE_OPTIONS='--max-old-space-size=8192' tsx --env-file .env scripts/generate-e2e-fixtures.ts",
     "prepare": "husky",
     "check": "biome check --write",
@@ -80,12 +81,12 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.9",
+    "@biomejs/biome": "^2.4.10",
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",
-    "@gearbox-protocol/biome-config": "^1.0.24",
+    "@gearbox-protocol/biome-config": "^1.0.25",
     "@types/cross-spawn": "^6.0.6",
-    "axios": "^1.13.6",
+    "axios": "^1.14.0",
     "cross-spawn": "^7.0.6",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
@@ -95,7 +96,7 @@
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "viem-deal": "^2.0.4",
-    "vitest": "^4.1.1"
+    "vitest": "^4.1.2"
   },
   "peerDependencies": {
     "axios": "^1.0.0",

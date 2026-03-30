@@ -63,7 +63,7 @@ const DRPC_NETS: Record<NetworkType, string | null> = {
   MegaETH: "megaeth",
   Etherlink: null,
   Plasma: "plasma",
-  Somnia: "somnia",
+  Somnia: null,
 };
 
 const ALCHEMY_DOMAINS: Record<NetworkType, string | null> = {
