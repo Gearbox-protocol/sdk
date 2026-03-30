@@ -31,7 +31,7 @@ export type Curator =
   | "M11 Credit"
   | "kpk"
   | "Hyperithm"
-  | "Edge UltraYield"
+  | "UltraYield"
   | "TelosC"
   | "Gami Labs"
   | "Securitize";
@@ -106,7 +106,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         "0x7a133fbd01736fd076158307c9476cc3877f1af5": "Invariant Group",
         "0x09d8305F49374AEA6A78aF6C996df2913e8f3b19": "Tulipa",
         "0x1b265b97eb169fb6668e3258007c3b0242c7bdbe": "kpk",
-        "0x9dddd1b9ce0ac8aa0c80e4ec141600b9bf0101c3": "Edge UltraYield",
+        "0x9dddd1b9ce0ac8aa0c80e4ec141600b9bf0101c3": "UltraYield",
         "0x601067eba24bb5b558a184fc082525637e96a42d": "Gami Labs",
       },
       testMarketConfigurators: {
@@ -144,7 +144,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       network: "Optimism",
       defaultMarketConfigurators: {
         "0x2a15969CE5320868eb609680751cF8896DD92De5": "Chaos Labs",
-        "0x9dddd1b9ce0ac8aa0c80e4ec141600b9bf0101c3": "Edge UltraYield",
+        "0x9dddd1b9ce0ac8aa0c80e4ec141600b9bf0101c3": "UltraYield",
       },
       isPublic: true,
       wellKnownToken: {
@@ -214,7 +214,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
     network: "Monad",
     defaultMarketConfigurators: {
       "0x16956912813ab9a38d95730b52a8cf53e860a7c5": "Tulipa",
-      "0x7c6ee1bf9c1eb3ee55bdbdc1e8d0317aab718e0a": "Edge UltraYield",
+      "0x7c6ee1bf9c1eb3ee55bdbdc1e8d0317aab718e0a": "UltraYield",
     },
     isPublic: true,
     wellKnownToken: {
@@ -333,7 +333,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
     network: "Plasma",
     defaultMarketConfigurators: {
       "0x7a133fbd01736fd076158307c9476cc3877f1af5": "Invariant Group",
-      "0x4bce62622be621ce036691de98afcab0e41a77a3": "Edge UltraYield",
+      "0x4bce62622be621ce036691de98afcab0e41a77a3": "UltraYield",
       "0xce1cf71a28837daaa7b92d00ca4ef2fd649c2a67": "Hyperithm",
       "0x9655f82b585b11cee8a05576ed8efcf755cec04b": "TelosC",
     },
