@@ -1,0 +1,68 @@
+name: Deploy Docs
+
+on:
+  # push:
+  #   branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+env:
+  HUSKY: 0
+  CI: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Use Latest Corepack
+        run: |
+          npm install -g corepack@latest
+          corepack enable
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+          cache: "yarn"
+          cache-dependency-path: |
+            yarn.lock
+            website/yarn.lock
+
+      - name: Configure access to private npm packages
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
+
+      - name: Install SDK dependencies
+        run: yarn install --immutable
+
+      - name: Install website dependencies
+        working-directory: website
+        run: yarn install --immutable
+
+      - name: Build website
+        working-directory: website
+        env:
+          NODE_OPTIONS: "--max-old-space-size=8192"
+        run: yarn build
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: website/build
+
+  deploy:
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

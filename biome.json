@@ -7,7 +7,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!node_modules", "!dist", "!tmp", "!.yarn"],
+    "includes": ["**", "!node_modules", "!dist", "!tmp", "!website", "!.yarn"],
     "ignoreUnknown": true
   },
   "linter": {

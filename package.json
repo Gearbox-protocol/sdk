@@ -63,7 +63,9 @@
     "prepare": "husky",
     "check": "biome check --write",
     "check:ci": "biome check --diagnostic-level=error",
-    "typecheck:ci": "tsc --noEmit"
+    "typecheck:ci": "tsc --noEmit",
+    "docs": "cd website && NODE_OPTIONS='--max-old-space-size=8192' yarn build",
+    "docs:dev": "cd website && yarn start"
   },
   "dependencies": {
     "@gearbox-protocol/integrations-v3": "1.54.2",
