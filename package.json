@@ -64,8 +64,8 @@
     "check": "biome check --write",
     "check:ci": "biome check --diagnostic-level=error",
     "typecheck:ci": "tsc --noEmit",
-    "docs": "cd website && NODE_OPTIONS='--max-old-space-size=8192' yarn build",
-    "docs:dev": "cd website && yarn start"
+    "docs": "NODE_OPTIONS='--max-old-space-size=8192' pnpm --filter @gearbox-protocol/sdk-docs build",
+    "docs:dev": "pnpm --filter @gearbox-protocol/sdk-docs start"
   },
   "dependencies": {
     "@gearbox-protocol/integrations-v3": "1.54.2",
@@ -83,10 +83,10 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.10",
+    "@biomejs/biome": "^2.4.9",
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",
-    "@gearbox-protocol/biome-config": "^1.0.25",
+    "@gearbox-protocol/biome-config": "^1.0.24",
     "@types/cross-spawn": "^6.0.6",
     "axios": "^1.14.0",
     "cross-spawn": "^7.0.6",
@@ -114,5 +114,5 @@
       "biome check --no-errors-on-unmatched --write"
     ]
   },
-  "packageManager": "yarn@4.9.2"
+  "packageManager": "pnpm@10.33.0"
 }

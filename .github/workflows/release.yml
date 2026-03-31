@@ -26,29 +26,22 @@ jobs:
         with:
           version: "v1.5.1"
 
-      - name: Use Latest Corepack
-        run: |
-          echo "Before: corepack version => $(corepack --version || echo 'not installed')"
-          npm install -g corepack@latest
-          echo "After : corepack version => $(corepack --version)"
-          corepack enable
-
       - uses: actions/setup-node@v6
         with:
-          cache: "yarn"
           node-version-file: ".nvmrc"
 
-      - name: Configure access to private npm packages
-        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
+      - uses: pnpm/action-setup@v5
+        with:
+          cache: true
 
       - name: Test and build
         env:
           RPC_URL: "https://eth-mainnet.g.alchemy.com/v2/${{ secrets.ALCHEMY_KEY_CI }}"
         run: |
-          yarn install --immutable
-          yarn typecheck:ci
-          yarn test:all
-          yarn build
+          pnpm install --frozen-lockfile
+          pnpm typecheck:ci
+          pnpm test:all
+          pnpm build
 
       - name: Semantic Release
         uses: cycjimmy/semantic-release-action@v6

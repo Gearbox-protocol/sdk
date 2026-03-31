@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.4.10/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.4.9/schema.json",
   "extends": ["@gearbox-protocol/biome-config"],
   "vcs": {
     "enabled": true,
@@ -7,7 +7,14 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!node_modules", "!dist", "!tmp", "!website", "!.yarn"],
+    "includes": [
+      "**",
+      "!node_modules",
+      "!dist",
+      "!tmp",
+      "!website/build",
+      "!website/.docusaurus"
+    ],
     "ignoreUnknown": true
   },
   "linter": {

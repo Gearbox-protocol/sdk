@@ -1,0 +1,6 @@
+packages:
+  - "website"
+
+minimumReleaseAge: 1440
+minimumReleaseAgeExclude:
+  - "@gearbox-protocol/*"

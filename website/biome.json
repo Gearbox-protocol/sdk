@@ -1,0 +1,14 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.10/schema.json",
+  "extends": "//",
+  "files": {
+    "includes": ["**", "!node_modules", "!build", "!.docusaurus"]
+  },
+  "linter": {
+    "rules": {
+      "correctness": {
+        "useImportExtensions": "off"
+      }
+    }
+  }
+}

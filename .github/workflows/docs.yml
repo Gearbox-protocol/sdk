@@ -24,34 +24,21 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Use Latest Corepack
-        run: |
-          npm install -g corepack@latest
-          corepack enable
-
       - uses: actions/setup-node@v6
         with:
           node-version-file: ".nvmrc"
-          cache: "yarn"
-          cache-dependency-path: |
-            yarn.lock
-            website/yarn.lock
 
-      - name: Configure access to private npm packages
-        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
+      - uses: pnpm/action-setup@v5
+        with:
+          cache: true
 
-      - name: Install SDK dependencies
-        run: yarn install --immutable
-
-      - name: Install website dependencies
-        working-directory: website
-        run: yarn install --immutable
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Build website
-        working-directory: website
         env:
           NODE_OPTIONS: "--max-old-space-size=8192"
-        run: yarn build
+        run: pnpm run docs
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
