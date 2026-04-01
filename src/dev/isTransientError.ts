@@ -37,6 +37,10 @@ const TRANSIENT_PATTERNS: RegExp[] = [
   // requested resource is temporarily unavailable.
   // Matches both the RPC message and viem's shortMessage "Requested resource not available."
   /resource unavailable|requested resource not available/i,
+  // sometimes happens on DRPC: "GRPC Context cancellation"
+  /context cancel/i,
+  // DRPC error: Can't route your request to suitable provider, if you specified certain providers revise the list
+  /suitable provider/i,
 ];
 
 /**
