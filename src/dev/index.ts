@@ -9,6 +9,11 @@ export * from "./EthCallSpy.js";
 export * from "./isOutOfSyncError.js";
 export * from "./isRateLimitError.js";
 export * from "./isTransientError.js";
+export {
+  isRangeError,
+  LogSplitterTransportOptions as GetLogsTransportOptions,
+  logSplitterTransport,
+} from "./logSplitterTransport.js";
 export * from "./ltUtils.js";
 export * from "./migrateFaucet.js";
 export * from "./mint/index.js";
