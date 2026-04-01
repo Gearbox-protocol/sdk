@@ -15,8 +15,8 @@ const abi = [
 ] as const;
 type abi = typeof abi;
 
-export { abi as creditFacadeV310Abi };
 export type { abi as CreditFacadeV310Abi };
+export { abi as creditFacadeV310Abi };
 
 /**
  * SDK-less facade contract, only needs address

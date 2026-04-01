@@ -1,0 +1,15 @@
+
+# Yarn v4
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# Docs
+docs/api/
+build/
+node_modules/
+.docusaurus/
