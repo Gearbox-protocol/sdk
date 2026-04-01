@@ -11,7 +11,7 @@ export * from "./isRateLimitError.js";
 export * from "./isTransientError.js";
 export {
   isRangeError,
-  LogSplitterTransportOptions,
+  type LogSplitterTransportOptions,
   logSplitterTransport,
 } from "./logSplitterTransport.js";
 export * from "./ltUtils.js";
