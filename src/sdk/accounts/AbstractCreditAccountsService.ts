@@ -26,8 +26,7 @@ import {
 import type { GearboxSDK } from "../GearboxSDK.js";
 import type {
   IPriceFeedContract,
-  IPriceOracleContract,
-  OnDemandPriceUpdates,
+  PriceUpdateV310,
   UpdatePriceFeedsResult,
 } from "../market/index.js";
 import { type Asset, assetsMap, type RouterCASlice } from "../router/index.js";
@@ -1201,7 +1200,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
    */
   public async getOnDemandPriceUpdates(
     options: PriceUpdatesOptions,
-  ): Promise<OnDemandPriceUpdates> {
+  ): Promise<PriceUpdateV310[]> {
     const { creditManager, creditAccount } = options;
     const market = this.sdk.marketRegister.findByCreditManager(creditManager);
     const cm = this.sdk.marketRegister.findCreditManager(creditManager);
@@ -1213,7 +1212,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     return market.priceOracle.onDemandPriceUpdates(
       cm.creditFacade.address,
       update,
-    );
+    ).raw;
   }
   /**
    * Analyzes a multicall array and prepends necessary on-demand price feed updates.

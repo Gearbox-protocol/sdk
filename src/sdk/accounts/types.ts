@@ -13,11 +13,7 @@ import type {
   CreditAccountData,
 } from "../base/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
-import type {
-  CreditSuite,
-  OnDemandPriceUpdates,
-  UpdatePriceFeedsResult,
-} from "../market/index.js";
+import type { CreditSuite, PriceUpdateV310 } from "../market/index.js";
 import type {
   Asset,
   CreditAccountTokensSlice,
@@ -684,7 +680,7 @@ export interface ICreditAccountsService extends Construct {
    */
   getOnDemandPriceUpdates(
     options: PriceUpdatesOptions,
-  ): Promise<OnDemandPriceUpdates>;
+  ): Promise<PriceUpdateV310[]>;
 
   /**
    * Executes a multicall on a credit account, automatically prepending
