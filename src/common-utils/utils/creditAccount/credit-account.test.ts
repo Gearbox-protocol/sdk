@@ -7,18 +7,21 @@ import {
   PRICE_DECIMALS_POW,
   toBN,
 } from "../../../sdk/index.js";
-import { AssetUtils } from "../assetsMath.js";
-import { PriceUtils } from "../priceMath.js";
+import { AssetUtils } from "../assets-math.js";
+import { PriceUtils } from "../price-math.js";
 import {
   type CalcHealthFactorProps,
   calcHealthFactor,
-} from "./calcHealthFactor.js";
-import { type CalcOverallAPYProps, calcOverallAPY } from "./calcOverallAPY.js";
-import { calcQuotaBorrowRate } from "./calcQuotaBorrowRate.js";
-import { calcRelativeBaseBorrowRate } from "./calcRelativeBaseBorrowRate.js";
+} from "./calc-health-factor.js";
+import {
+  type CalcOverallAPYProps,
+  calcOverallAPY,
+} from "./calc-overall-apy.js";
+import { calcQuotaBorrowRate } from "./calc-quota-borrow-rate.js";
+import { calcRelativeBaseBorrowRate } from "./calc-relative-base-borrow-rate.js";
 import { calcMaxDebtIncrease, calcMaxLendingDebt } from "./debt.js";
-import { getTimeToLiquidation } from "./getTimeToLiquidation.js";
-import { type CalcQuotaUpdateProps, calcQuotaUpdate } from "./quotaUtils.js";
+import { getTimeToLiquidation } from "./get-time-to-liquidation.js";
+import { type CalcQuotaUpdateProps, calcQuotaUpdate } from "./quota-utils.js";
 
 interface TokenDataSlice {
   symbol: string;

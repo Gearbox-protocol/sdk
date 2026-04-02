@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import { type Asset, PRICE_DECIMALS } from "../../../sdk/index.js";
-import { PriceUtils } from "../priceMath.js";
+import { PriceUtils } from "../price-math.js";
 import type { TokenDataSlice } from "./types.js";
 
 /**
