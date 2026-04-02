@@ -62,7 +62,7 @@ export function getKeyForPoolPointsInfo(i: PoolPointsInfo<string>) {
   ].join("-");
 }
 
-export class GearboxRewardsExtraApy {
+export class PoolPointsAPI {
   private constructor() {}
 
   static async getTotalTokensOnProtocol({
@@ -74,9 +74,7 @@ export class GearboxRewardsExtraApy {
     const list = [...new Set(tokensToCheck)];
 
     const res = await Promise.allSettled(
-      list.map(t =>
-        GearboxRewardsExtraApy.getTokenTotal(t, network, tokensList),
-      ),
+      list.map(t => PoolPointsAPI.getTokenTotal(t, network, tokensList)),
     );
 
     return res.map((r, i): [Address, PromiseSettledResult<Asset>] => [
@@ -119,7 +117,7 @@ export class GearboxRewardsExtraApy {
           const { address: tokenAddress } = tokensList[pointsInfo.token] || {};
           const tokenBalance = totalTokenBalances[tokenAddress || ""];
 
-          const points = GearboxRewardsExtraApy.getPoolTokenPoints(
+          const points = PoolPointsAPI.getPoolTokenPoints(
             tokenBalance,
             p,
             tokensList,
