@@ -7,10 +7,22 @@ import type { BaseContract } from "./BaseContract.js";
 import { TokensMeta } from "./TokensMeta.js";
 import type { ParsedCall, ParsedCallV2 } from "./types.js";
 
+/**
+ * @internal
+ * Conditional type that resolves to `BaseContract<T>` when `T` is an ABI type,
+ * or returns `T` unchanged otherwise. Used by register lookup methods to
+ * provide strongly-typed contract references.
+ */
 export type ContractOrInterface<T> = T extends Abi | readonly unknown[]
   ? BaseContract<T>
   : T;
 
+/**
+ * Central registry of all known contracts on a single chain.
+ *
+ * Used to share information between contracts, enables instances of {@link BaseContract} to discover each other
+ * This is critical for parsing of calls that involve multiple contracts
+ */
 export class ChainContractsRegister {
   private readonly contracts = new AddressMap<BaseContract<any>>(
     [],
@@ -20,8 +32,8 @@ export class ChainContractsRegister {
 
   public readonly client: PublicClient<Transport, Chain>;
   /**
-   * Token metadata such as symbol and decimals
-   */
+   * Shared token metadata (symbol, decimals) for all tokens known on this chain.
+   **/
   public readonly tokensMeta: TokensMeta;
   public readonly logger?: ILogger;
 
@@ -31,6 +43,9 @@ export class ChainContractsRegister {
     this.logger = logger;
   }
 
+  /**
+   * Clears all registered contracts, address labels, and token metadata.
+   **/
   public resetContracts(): void {
     this.logger?.debug(
       `resetting contacts register with ${this.contracts.size} contracts`,
@@ -40,12 +55,22 @@ export class ChainContractsRegister {
     this.tokensMeta.reset();
   }
 
+  /**
+   * Looks up a contract by address.
+   * @param address - On-chain address.
+   * @returns The contract wrapper, or `undefined` if not registered.
+   */
   public getContract<T = unknown[]>(
     address: Address,
   ): ContractOrInterface<T> | undefined {
     return this.contracts.get(address) as ContractOrInterface<T> | undefined;
   }
 
+  /**
+   * Looks up a contract by address, throwing if not found.
+   * @param address - On-chain address.
+   * @throws If no contract is registered at this address.
+   */
   public mustGetContract<T = unknown[]>(
     address: Address,
   ): ContractOrInterface<T> {
@@ -56,10 +81,22 @@ export class ChainContractsRegister {
     return contract as ContractOrInterface<T>;
   }
 
+  /**
+   * Registers (or replaces) a contract at the given address.
+   * @param address - On-chain address.
+   * @param contract - Contract wrapper instance.
+   */
   public setContract(address: Address, contract: BaseContract<any>): void {
     this.contracts.upsert(address, contract);
   }
 
+  /**
+   * Assigns a human-readable label to an address for use in logging and
+   * parsed call output.
+   * @param address - On-chain address.
+   * @param label - Static label string, or a function that receives the
+   *   current label and returns a new one.
+   */
   public setAddressLabel(
     address: Address,
     label: string | ((oldLabel?: string) => string),
@@ -74,15 +111,27 @@ export class ChainContractsRegister {
     }
   }
 
+  /**
+   * Returns a display string for an address, incorporating its label if one exists.
+   * @param address - On-chain address.
+   * @param omitAddress - When `true`, returns only the label (no address prefix).
+   *   Falls back to the raw address when no label is set.
+   */
   public labelAddress(address: Address, omitAddress?: boolean): string {
     const label = this.labels.get(address);
     return label ? (omitAddress ? label : `${address} [${label}]`) : address;
   }
 
+  /**
+   * The viem {@link Chain} object for this register's connected client.
+   **/
   public get chain(): Chain {
     return this.client.chain;
   }
 
+  /**
+   * Numeric chain ID (e.g. `1` for Ethereum mainnet).
+   **/
   public get chainId(): number {
     return this.client.chain.id;
   }
