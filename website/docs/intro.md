@@ -22,6 +22,7 @@ The SDK is organized into several modules, each available as a separate entry po
 | **Permissionless** | `@gearbox-protocol/sdk/permissionless` | Permissionless deployment flows and bindings |
 | **Common Utils** | `@gearbox-protocol/sdk/common-utils` | Shared utilities used across modules |
 | **Plugins** | `@gearbox-protocol/sdk/plugins/*` | Optional add-ons: adapters, zappers, bots, and more |
+| **Rewards** | `@gearbox-protocol/sdk/rewards/*` | Rewards and APY |
 
 ## Quick Start
 

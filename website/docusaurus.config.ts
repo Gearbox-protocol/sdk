@@ -58,6 +58,7 @@ const config: Config = {
           // "../src/history/index.ts",
           "../src/permissionless/index.ts",
           "../src/common-utils/index.ts",
+          "../src/rewards/index.ts",
           // "../src/plugins/accounts/index.ts",
           // "../src/plugins/accounts-counter/index.ts",
           // "../src/plugins/adapters/index.ts",
