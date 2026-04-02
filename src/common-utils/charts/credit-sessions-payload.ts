@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import type { BigNumberish } from "./credit-manager.js";
+import type { BigNumberish } from "./credit-manager-payload.js";
 
 export interface CreditSessionBalancePayload {
   BI: string;

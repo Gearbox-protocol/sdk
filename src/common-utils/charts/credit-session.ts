@@ -4,7 +4,7 @@ import {
   TypedObjectUtils,
   toBigInt,
 } from "../../sdk/index.js";
-import type { AssetWithView } from "../utils/assetsMath.js";
+import type { AssetWithView } from "../utils/assets-math.js";
 import type {
   CreditSessionFilteredPayload,
   CreditSessionPayload,

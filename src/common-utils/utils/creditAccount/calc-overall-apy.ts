@@ -4,7 +4,7 @@ import {
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS,
 } from "../../../sdk/index.js";
-import { PriceUtils } from "../priceMath.js";
+import { PriceUtils } from "../price-math.js";
 import type { QuotaInfoSlice, TokenDataSlice } from "./types.js";
 
 export interface CalcOverallAPYProps {

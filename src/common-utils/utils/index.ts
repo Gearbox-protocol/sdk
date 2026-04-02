@@ -1,4 +1,4 @@
-export * from "./assetsMath.js";
-export * from "./bigintMath.js";
+export * from "./assets-math.js";
+export * from "./bigint-math.js";
 export * from "./creditAccount/index.js";
-export * from "./priceMath.js";
+export * from "./price-math.js";

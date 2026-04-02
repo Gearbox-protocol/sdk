@@ -4,7 +4,7 @@ import {
   MIN_INT96,
   PERCENTAGE_FACTOR,
 } from "../../../sdk/index.js";
-import { BigIntMath } from "../bigintMath.js";
+import { BigIntMath } from "../bigint-math.js";
 import type { AssetWithAmountInTarget, QuotaInfoTokenSlice } from "./types.js";
 
 export interface CalcDefaultQuotaProps {
