@@ -27,6 +27,7 @@ const BLOCK = 24_728_000n;
 const CREDIT_MANAGER: Address = "0x748a02cc6dd9090bd6bbcd1fd45790b50524ae87";
 const TARGET_TOKEN: Address = "0x1774A6b4aba3B999461a1682f6776cAc66dD1987"; // stkcvxpmcrvUSD
 const USDC: Address = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
+const PMUSD: Address = "0xC0c17dD08263C16f6b64E772fB9B723Bf1344DdF";
 
 describe("open credit account", () => {
   let sdk: GearboxSDK;
@@ -50,7 +51,7 @@ describe("open credit account", () => {
     });
   });
 
-  it("should open a credit account with USDC collateral targeting stkcvxpmcrvUSD", async () => {
+  it("should open, add collateral and close credit account", async () => {
     const wallet = getAnvilWallet(sdk);
     const borrower = wallet.account;
     const cm = sdk.marketRegister.findCreditManager(CREDIT_MANAGER);
@@ -125,6 +126,82 @@ describe("open credit account", () => {
           creditAccount: "0x48d0821Eeac443A9f26B36820ccb17953F67bC0e",
           onBehalfOf: borrower.address,
           referralCode: 0n,
+        },
+      },
+    ]);
+
+    // --- Add collateral (pmUSD) ---
+    const creditAccount = logs[0].args.creditAccount;
+    const caData = await service.getCreditAccountData(creditAccount);
+    if (!caData) {
+      throw new Error("credit account not found after open");
+    }
+
+    const pmUsdAmount = parseUnits("500", 18);
+    await anvil.deal({
+      erc20: PMUSD,
+      account: borrower.address,
+      amount: pmUsdAmount,
+    });
+
+    hash = await wallet.writeContract({
+      address: PMUSD,
+      abi: erc20Abi,
+      functionName: "approve",
+      args: [cm.creditManager.address, MAX_UINT256],
+    });
+    await sdk.client.waitForTransactionReceipt({ hash, pollingInterval: 100 });
+
+    const { tx: addCollateralTx } = await service.addCollateral({
+      creditAccount: caData,
+      asset: { token: PMUSD, balance: pmUsdAmount },
+      permit: undefined,
+      ethAmount: 0n,
+      averageQuota: [],
+      minQuota: [],
+    });
+    hash = await sendRawTx(wallet, { tx: addCollateralTx });
+    const addCollateralReceipt = await sdk.client.waitForTransactionReceipt({
+      hash,
+      pollingInterval: 100,
+    });
+    expect(addCollateralReceipt.status).toBe("success");
+
+    // --- Close credit account ---
+    const refreshedCaData = await service.getCreditAccountData(creditAccount);
+    if (!refreshedCaData)
+      throw new Error("credit account not found after addCollateral");
+
+    const closePath = await sdk.routerFor(cm).findBestClosePath({
+      creditAccount: refreshedCaData,
+      creditManager: cm.creditManager,
+      slippage: 50,
+    });
+
+    const { tx: closeTx } = await service.closeCreditAccount({
+      operation: "close",
+      creditAccount: refreshedCaData,
+      assetsToWithdraw: [cm.underlying],
+      to: borrower.address,
+      slippage: 50n,
+      closePath,
+    });
+    hash = await sendRawTx(wallet, { tx: closeTx, gas: 2_000_000n });
+    const closeReceipt = await sdk.client.waitForTransactionReceipt({
+      hash,
+      pollingInterval: 100,
+    });
+
+    const closeLogs = parseEventLogs({
+      abi: iCreditFacadeV310Abi,
+      logs: closeReceipt.logs,
+      eventName: "CloseCreditAccount",
+    });
+    expect(closeLogs).toMatchObject([
+      {
+        args: {
+          creditAccount: creditAccount,
+          borrower: borrower.address,
         },
       },
     ]);
