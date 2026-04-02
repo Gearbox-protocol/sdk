@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-interface GearAPY {
+export interface GearAPY {
   base: number;
   crv: number;
   gear: number;
@@ -55,14 +55,14 @@ export interface ExtraCollateralAPY extends Omit<Apy, "protocol"> {
   type: "relative" | "absolute";
 }
 
-interface PointsReward<T extends string> {
+export interface PointsReward<T extends string> {
   name: string;
   units: string;
   multiplier: bigint | "soon";
   type: T;
 }
 
-interface DebtReward<T extends string> extends PointsReward<T> {
+export interface DebtReward<T extends string> extends PointsReward<T> {
   cm: Address | "any";
 }
 
