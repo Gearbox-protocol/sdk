@@ -698,13 +698,34 @@ export interface ICreditAccountsService extends Construct {
   ): Promise<OnDemandPriceUpdates>;
 
   /**
-   * Returns price updates in format that is accepted by various credit facade methods (multicall, close/liquidate, etc...).
-   * @param options
-   * @returns
+   * Executes a multicall on a credit account, automatically prepending
+   * necessary on-demand price feed updates inferred from the calls array.
+   *
+   * @param creditAccount - Credit account to execute multicall on
+   * @param calls - Array of multicall operations (price updates will be inferred)
+   * @param options - Optional settings for price update generation
+   * @returns Raw transaction ready to be signed and sent
    */
-  getPriceUpdatesForFacade(
-    options: PriceUpdatesOptions,
-  ): Promise<Array<MultiCall>>;
+  multicall(
+    creditAccount: RouterCASlice,
+    calls: Array<MultiCall>,
+    options?: { ignoreReservePrices?: boolean },
+  ): Promise<RawTx>;
+
+  /**
+   * Executes a bot multicall on a credit account, automatically prepending
+   * necessary on-demand price feed updates inferred from the calls array.
+   *
+   * @param creditAccount - Credit account to execute bot multicall on
+   * @param calls - Array of multicall operations (price updates will be inferred)
+   * @param options - Optional settings for price update generation
+   * @returns Raw transaction ready to be signed and sent
+   */
+  botMulticall(
+    creditAccount: RouterCASlice,
+    calls: Array<MultiCall>,
+    options?: { ignoreReservePrices?: boolean },
+  ): Promise<RawTx>;
 
   /**
    * Withdraws a single collateral from credit account to wallet to and updates quotas;

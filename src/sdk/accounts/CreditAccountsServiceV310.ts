@@ -37,14 +37,6 @@ export class CreditAccountServiceV310
       targetContract.creditManager,
     );
 
-    const priceUpdatesCalls =
-      targetContract.type === "creditAccount"
-        ? await this.getPriceUpdatesForFacade({
-            creditManager: targetContract.creditManager,
-            creditAccount: targetContract,
-          })
-        : [];
-
     const permissions =
       defaultPermissions !== null
         ? defaultPermissions
@@ -72,7 +64,14 @@ export class CreditAccountServiceV310
       }),
     };
 
-    const calls = [...priceUpdatesCalls, addBotCall];
+    const calls =
+      targetContract.type === "creditAccount"
+        ? await this.prependPriceUpdates(
+            targetContract.creditManager,
+            [addBotCall],
+            targetContract,
+          )
+        : [addBotCall];
 
     const tx =
       targetContract.type === "creditAccount"
@@ -97,13 +96,7 @@ export class CreditAccountServiceV310
       creditAccount.creditManager,
     );
 
-    const priceUpdatesCalls = await this.getPriceUpdatesForFacade({
-      creditManager: creditAccount.creditManager,
-      creditAccount,
-    });
-
-    const calls: Array<MultiCall> = [
-      ...priceUpdatesCalls,
+    const operationCalls: Array<MultiCall> = [
       ...assetsToWithdraw.map(a =>
         this.prepareWithdrawToken(
           creditAccount.creditFacade,
@@ -117,6 +110,12 @@ export class CreditAccountServiceV310
         averageQuota,
       }),
     ];
+
+    const calls = await this.prependPriceUpdates(
+      creditAccount.creditManager,
+      operationCalls,
+      creditAccount,
+    );
 
     const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
 
@@ -146,13 +145,7 @@ export class CreditAccountServiceV310
       creditAccount: ca,
     });
 
-    const priceUpdates = await this.getPriceUpdatesForFacade({
-      creditManager: ca.creditManager,
-      creditAccount: ca,
-    });
-
-    const calls: Array<MultiCall> = [
-      ...(operation === "close" ? [] : priceUpdates),
+    const operationCalls: Array<MultiCall> = [
       ...this.prepareAddCollateral(ca.creditFacade, addCollateral, permits),
       ...this.prepareDisableQuotas(ca),
       ...this.prepareDecreaseDebt(ca),
@@ -161,6 +154,11 @@ export class CreditAccountServiceV310
         this.prepareWithdrawToken(ca.creditFacade, t.token, MAX_UINT256, to),
       ),
     ];
+
+    const calls =
+      operation === "close"
+        ? operationCalls
+        : await this.prependPriceUpdates(ca.creditManager, operationCalls, ca);
 
     const tx =
       operation === "close"
@@ -188,21 +186,21 @@ export class CreditAccountServiceV310
       creditAccount: ca,
     });
 
-    const priceUpdates = await this.getPriceUpdatesForFacade({
-      creditManager: ca.creditManager,
-      creditAccount: ca,
-    });
-
     const addCollateral = collateralAssets.filter(a => a.balance > 0);
 
-    const calls: Array<MultiCall> = [
-      ...priceUpdates,
+    const operationCalls: Array<MultiCall> = [
       ...this.prepareAddCollateral(ca.creditFacade, addCollateral, permits),
       ...claimPath.calls,
       ...assetsToWithdraw.map(t =>
         this.prepareWithdrawToken(ca.creditFacade, t.token, MAX_UINT256, to),
       ),
     ];
+
+    const calls = await this.prependPriceUpdates(
+      ca.creditManager,
+      operationCalls,
+      ca,
+    );
 
     const tx = cm.creditFacade.liquidateCreditAccount(
       ca.creditAccount,
@@ -237,17 +235,16 @@ export class CreditAccountServiceV310
     }
     if (claimPath.calls.length === 0) throw new Error("No path to execute");
 
-    const priceUpdatesCalls = await this.getPriceUpdatesForFacade({
-      creditManager: ca.creditManager,
-      creditAccount: ca,
-      desiredQuotas: averageQuota,
-    });
-
-    const calls = [
-      ...priceUpdatesCalls,
+    const operationCalls = [
       ...claimPath.calls,
       ...this.prepareUpdateQuotas(ca.creditFacade, { minQuota, averageQuota }),
     ];
+
+    const calls = await this.prependPriceUpdates(
+      ca.creditManager,
+      operationCalls,
+      ca,
+    );
 
     const tx = cm.creditFacade.multicall(ca.creditAccount, calls);
 

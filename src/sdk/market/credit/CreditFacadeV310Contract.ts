@@ -117,6 +117,13 @@ export class CreditFacadeV310Contract extends CreditFacadeV310BaseContract {
     });
   }
 
+  public botMulticall(ca: Address, calls: MultiCall[]): RawTx {
+    return this.createRawTx({
+      functionName: "botMulticall",
+      args: [ca, calls],
+    });
+  }
+
   public openCreditAccount(
     to: Address,
     calls: MultiCall[],
