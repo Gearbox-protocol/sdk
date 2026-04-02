@@ -678,17 +678,6 @@ export interface ICreditAccountsService extends Construct {
   getOptimalHFForPartialLiquidation(ca: CreditAccountData): bigint;
 
   /**
-   * Returns raw txs that are needed to update all price feeds so that all credit accounts (possibly from different markets) compute
-   *
-   * This can be used by batch liquidator
-   * @param accounts
-   * @returns
-   */
-  getUpdateForAccounts(
-    accounts: Array<RouterCASlice>,
-  ): Promise<UpdatePriceFeedsResult>;
-
-  /**
    * Returns account price updates that can be used in credit facade multicall or liquidator calls
    * @param options
    * @returns

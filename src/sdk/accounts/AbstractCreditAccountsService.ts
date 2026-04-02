@@ -1127,44 +1127,6 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     return resp;
   }
 
-  /**
-   * Returns raw txs that are needed to update all price feeds so that all credit accounts (possibly from different markets) compute
-   *
-   * This can be used by batch liquidator
-   * @param accounts
-   * @returns
-   */
-  public async getUpdateForAccounts(
-    accounts: Array<RouterCASlice>,
-  ): Promise<UpdatePriceFeedsResult> {
-    // for each market, using pool address as key, gather tokens to update and find PriceFeedFactories
-    const tokensByPool = new Map<Address, Set<Address>>();
-    const oracleByPool = new Map<Address, IPriceOracleContract>();
-
-    for (const acc of accounts) {
-      const market = this.sdk.marketRegister.findByCreditManager(
-        acc.creditManager,
-      );
-      const pool = market.pool.pool.address;
-      oracleByPool.set(pool, market.priceOracle);
-
-      for (const t of acc.tokens) {
-        if (t.balance > 10n) {
-          const tokens = tokensByPool.get(pool) ?? new Set<Address>();
-          tokens.add(t.token);
-          tokensByPool.set(pool, tokens);
-        }
-      }
-    }
-    // priceFeeds can contain PriceFeeds from different markets
-    const priceFeeds: Array<IPriceFeedContract> = [];
-    for (const [pool, oracle] of oracleByPool.entries()) {
-      const tokens = Array.from(tokensByPool.get(pool) ?? []);
-      priceFeeds.push(...oracle.priceFeedsForTokens(tokens));
-    }
-    return this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(priceFeeds);
-  }
-
   protected async getUpdateForAccount(
     options: PriceUpdatesOptions,
   ): Promise<UpdatePriceFeedsResult> {
