@@ -9,10 +9,13 @@ import {
   toBigInt,
   WAD,
 } from "../../sdk/index.js";
-import type { FarmInfo } from "../index.js";
 import type { PoolData, TokenData } from "./common.js";
 
-interface InnerFarmInfo extends FarmInfo {
+interface InnerFarmInfo {
+  symbol: string;
+  duration: bigint;
+  finished: bigint;
+  reward: bigint;
   token: Address;
 }
 
