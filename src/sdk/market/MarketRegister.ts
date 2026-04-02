@@ -18,10 +18,14 @@ import { MarketSuite } from "./MarketSuite.js";
 import type { IPriceOracleContract } from "./oracle/index.js";
 import type { PoolSuite } from "./pool/index.js";
 
+/**
+ * Central registry of all Gearbox markets on the current chain.
+ *
+ * A market groups a lending pool, a price oracle, and one or more credit
+ * managers into a single unit. The `MarketRegister` loads this data from the
+ * on-chain market compressor and exposes convenience lookup methods
+ **/
 export class MarketRegister extends SDKConstruct {
-  /**
-   * Mapping pool.address -> MarketSuite
-   */
   #markets = new AddressMap<MarketSuite>(undefined, "markets");
   #marketFilter?: MarketFilter;
   #marketConfigurators = new AddressMap<MarketConfiguratorContract>(
@@ -30,6 +34,10 @@ export class MarketRegister extends SDKConstruct {
   );
   #ignoreMarkets: Set<Address>;
 
+  /**
+   * @param sdk - Top-level SDK instance.
+   * @param ignoreMarkets - Pool addresses of markets to exclude from loading.
+   **/
   constructor(sdk: GearboxSDK, ignoreMarkets: Address[] = []) {
     super(sdk);
     this.#ignoreMarkets = new Set(
@@ -37,6 +45,11 @@ export class MarketRegister extends SDKConstruct {
     );
   }
 
+  /**
+   * Restores market state from a previously serialized snapshot,
+   * bypassing on-chain reads.
+   * @param state - Array of market data snapshots.
+   **/
   public hydrate(state: MarketData[]): void {
     this.#markets.clear();
     const configurators = new Set<Address>(state.map(m => m.configurator));
@@ -56,6 +69,13 @@ export class MarketRegister extends SDKConstruct {
     }
   }
 
+  /**
+   * Fetches all markets from the on-chain for the given market configurators.
+   *
+   * @param marketConfigurators - Addresses of market configurator contracts to query.
+   * @param ignoreUpdateablePrices - When `true`, skips generating off-chain
+   *   price updates before loading
+   **/
   public async loadMarkets(
     marketConfigurators: Address[],
     ignoreUpdateablePrices?: boolean,
@@ -89,6 +109,10 @@ export class MarketRegister extends SDKConstruct {
     };
   }
 
+  /**
+   * The active filter used to scope market compressor queries.
+   * @throws If the register has not been hydrated or attached yet.
+   **/
   public get marketFilter(): MarketFilter {
     if (!this.#marketFilter) {
       throw new Error(
@@ -98,6 +122,15 @@ export class MarketRegister extends SDKConstruct {
     return this.#marketFilter;
   }
 
+  /**
+   * Re-synchronizes market state with the chain. If during sdk synchronization
+   * we detected that some markets or market configurators were changed,
+   * we reload everything.
+   *
+   * Otherwise only prices are refreshed.
+   *
+   * @param ignoreUpdateablePrices - When `true`, skips off-chain price updates.
+   **/
   public async syncState(ignoreUpdateablePrices?: boolean): Promise<void> {
     // marketCompressor does not have granularity
     // if we have one market configurator with some dirty markets and another market configurator with new markets
@@ -239,10 +272,17 @@ export class MarketRegister extends SDKConstruct {
     ]);
   }
 
+  /**
+   * Serializable snapshot of all loaded markets, suitable for hydration.
+   **/
   public get state(): MarketData[] {
     return this.markets.map(market => market.state);
   }
 
+  /**
+   * Returns a human-readable snapshot of all markets.
+   * @param raw - When `true`, includes raw/unformatted values.
+   **/
   public stateHuman(raw = true): {
     markets: MarketStateHuman[];
   } {
@@ -251,22 +291,39 @@ export class MarketRegister extends SDKConstruct {
     };
   }
 
+  /**
+   * All pool suites across loaded markets.
+   **/
   public get pools(): PoolSuite[] {
     return this.markets.map(market => market.pool);
   }
 
+  /**
+   * All price oracles across loaded markets.
+   **/
   public get priceOracles(): IPriceOracleContract[] {
     return this.markets.map(market => market.priceOracle);
   }
 
+  /**
+   * All credit manager suites across loaded markets.
+   **/
   public get creditManagers(): CreditSuite[] {
     return this.markets.flatMap(market => market.creditManagers);
   }
 
+  /**
+   * All known market configurator contracts.
+   **/
   public get marketConfigurators(): MarketConfiguratorContract[] {
     return this.#marketConfigurators.values();
   }
 
+  /**
+   * Finds a credit manager suite by its on-chain address.
+   * @param creditManager - Credit manager contract address.
+   * @throws If no loaded market contains the given credit manager.
+   **/
   public findCreditManager(creditManager: Address): CreditSuite {
     const addr = creditManager.toLowerCase();
     for (const market of this.markets) {
@@ -279,6 +336,11 @@ export class MarketRegister extends SDKConstruct {
     throw new Error(`cannot find credit manager ${creditManager}`);
   }
 
+  /**
+   * Finds the market that contains the given credit manager.
+   * @param creditManager - Credit manager contract address.
+   * @throws If no loaded market contains the given credit manager.
+   **/
   public findByCreditManager(creditManager: Address): MarketSuite {
     const addr = creditManager.toLowerCase();
     const market = this.markets.find(m =>
@@ -292,6 +354,11 @@ export class MarketRegister extends SDKConstruct {
     return market;
   }
 
+  /**
+   * Finds the market that uses the given price oracle.
+   * @param address - Price oracle contract address.
+   * @throws If no loaded market uses the given oracle.
+   **/
   public findByPriceOracle(address: Address): MarketSuite {
     const addr = address.toLowerCase();
     for (const market of this.markets) {
@@ -302,6 +369,11 @@ export class MarketRegister extends SDKConstruct {
     throw new Error(`cannot find market for price oracle ${address}`);
   }
 
+  /**
+   * Finds the market associated with the given pool.
+   * @param address - Pool contract address.
+   * @throws If no loaded market uses the given pool.
+   **/
   public findByPool(address: Address): MarketSuite {
     const addr = address.toLowerCase();
     for (const market of this.markets) {
@@ -312,10 +384,16 @@ export class MarketRegister extends SDKConstruct {
     throw new Error(`cannot find market for pool ${address}`);
   }
 
-  public get marketsMap() {
+  /**
+   * Underlying address map of pool address to market suite
+   **/
+  public get marketsMap(): AddressMap<MarketSuite> {
     return this.#markets;
   }
 
+  /**
+   * All loaded market suites.
+   **/
   public get markets(): MarketSuite[] {
     return this.#markets.values();
   }

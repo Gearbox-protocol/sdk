@@ -38,6 +38,15 @@ import type {
 
 const ZERO_PRICE_FEED = stringToHex("PRICE_FEED::ZERO", { size: 32 });
 
+/**
+ * Base implementation of the Gearbox price oracle.
+ *
+ * Manages dual main/reserve price feed mappings and price answers for
+ * every collateral token in a market. Provides token-to-USD and
+ * token-to-token conversion using the latest known prices.
+ *
+ * @typeParam abi - The concrete oracle contract's ABI type.
+ **/
 export abstract class PriceOracleBaseContract<
     abi extends Abi | readonly unknown[],
   >
@@ -46,26 +55,26 @@ export abstract class PriceOracleBaseContract<
 {
   public readonly sdk: GearboxSDK;
   /**
-   * Mapping Token => [PriceFeed Address, stalenessPeriod]
-   */
+   * {@inheritDoc IPriceOracleContract.mainPriceFeeds}
+   **/
   public readonly mainPriceFeeds = new AddressMap<PriceFeedRef>(
     undefined,
     "mainPriceFeeds",
   );
   /**
-   * Mapping Token => [PriceFeed Address, stalenessPeriod]
-   */
+   * {@inheritDoc IPriceOracleContract.reservePriceFeeds}
+   **/
   public readonly reservePriceFeeds = new AddressMap<PriceFeedRef>(
     undefined,
     "reservePriceFeeds",
   );
   /**
-   * Mapping Token => Price in USD
-   */
+   * {@inheritDoc IPriceOracleContract.mainPrices}
+   **/
   public readonly mainPrices = new PriceFeedAnswerMap(undefined, "mainPrices");
   /**
-   * Mapping Token => Price in USD
-   */
+   * {@inheritDoc IPriceOracleContract.reservePrices}
+   **/
   public readonly reservePrices = new PriceFeedAnswerMap(
     undefined,
     "reservePrices",
@@ -88,11 +97,8 @@ export abstract class PriceOracleBaseContract<
   }
 
   /**
-   * Returns main and reserve price feeds for given tokens
-   * @param tokens
-   * @param opts Option to include main/reserve feeds only, defaults to both
-   * @returns
-   */
+   * {@inheritDoc IPriceOracleContract.priceFeedsForTokens}
+   **/
   public priceFeedsForTokens(
     tokens: Address[],
     opts?: PriceFeedsForTokensOptions,
@@ -113,42 +119,29 @@ export abstract class PriceOracleBaseContract<
   ): OnDemandPriceUpdates;
 
   /**
-   * Gets main price for given token
-   * Throws if token price feed is not found or answer is not successful
-   * @param token
-   * @returns
-   */
+   * {@inheritDoc IPriceOracleContract.mainPrice}
+   **/
   public mainPrice(token: Address): bigint {
     return this.mainPrices.price(token);
   }
 
   /**
-   * Gets reserve price for given token
-   * Throws if token price feed is not found or answer is not successful
-   * @param token
-   * @returns
-   */
+   * {@inheritDoc IPriceOracleContract.reservePrice}
+   **/
   public reservePrice(token: Address): bigint {
     return this.reservePrices.price(token);
   }
 
   /**
-   * Returns true if oracle's price feed tree contains given price feed
-   * This feed is not necessary connected to token, but can be a component of composite feed for some token
-   * @param priceFeed
-   * @returns
-   */
+   * {@inheritDoc IPriceOracleContract.usesPriceFeed}
+   **/
   public usesPriceFeed(priceFeed: Address): boolean {
     return this.#priceFeedTree.has(priceFeed);
   }
 
   /**
-   * Tries to convert amount of from one token to another, using latest known prices
-   * @param from
-   * @param to
-   * @param amount
-   * @param reserve use reserve price feed instead of main
-   */
+   * {@inheritDoc IPriceOracleContract.convert}
+   **/
   public convert(
     from: Address,
     to: Address,
@@ -167,11 +160,8 @@ export abstract class PriceOracleBaseContract<
   }
 
   /**
-   * Tries to convert amount of token to USD, using latest known prices
-   * @param from
-   * @param amount
-   * @param reserve use reserve price feed instead of main
-   */
+   * {@inheritDoc IPriceOracleContract.convertToUSD}
+   **/
   public convertToUSD(from: Address, amount: bigint, reserve = false): bigint {
     if (amount === 0n) {
       return 0n;
@@ -182,11 +172,8 @@ export abstract class PriceOracleBaseContract<
   }
 
   /**
-   * Tries to convert amount of USD to token, using latest known prices
-   * @param to
-   * @param amount
-   * @param reserve use reserve price feed instead of main
-   */
+   * {@inheritDoc IPriceOracleContract.convertFromUSD}
+   **/
   public convertFromUSD(to: Address, amount: bigint, reserve = false): bigint {
     if (amount === 0n) {
       return 0n;
@@ -197,8 +184,8 @@ export abstract class PriceOracleBaseContract<
   }
 
   /**
-   * All price feed tree nodes known to this oracle
-   */
+   * {@inheritDoc IPriceOracleContract.priceFeeds}
+   **/
   public get priceFeeds(): IPriceFeedContract[] {
     return this.#priceFeedTree
       .values()
@@ -206,8 +193,8 @@ export abstract class PriceOracleBaseContract<
   }
 
   /**
-   * Paired method to updatePrices, helps to update prices on all oracles in one multicall
-   */
+   * {@inheritDoc IPriceOracleContract.syncStateMulticall}
+   **/
   public syncStateMulticall(): DelegatedOracleMulticall {
     const args: ContractFunctionArgs<
       typeof priceFeedCompressorAbi,
@@ -297,12 +284,15 @@ export abstract class PriceOracleBaseContract<
   }
 
   /**
-   * Returns list of addresses that should be watched for events to sync state
-   */
+   * {@inheritDoc IPriceOracleContract.watchAddresses}
+   **/
   public override get watchAddresses(): Set<Address> {
     return new Set([this.address]);
   }
 
+  /**
+   * {@inheritDoc IPriceOracleContract.stateHuman}
+   **/
   public override stateHuman(raw = true): PriceOracleStateHuman {
     return {
       ...super.stateHuman(raw),
