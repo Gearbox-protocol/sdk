@@ -124,14 +124,8 @@ export function getWithdrawalCompressorAddress(chainId: number) {
 }
 
 /**
- * Service for querying and operating on Gearbox credit accounts.
- *
- * Provides methods to fetch account data, build transactions for common operations
- * (open, close, liquidate, swap, manage collateral/debt/quotas), and generate
- * the price feed updates required by the credit facade.
- *
- * @see {@link ICreditAccountsService}
- **/
+ * @internal
+ */
 export abstract class AbstractCreditAccountService extends SDKConstruct {
   #compressor: Address;
   #batchSize?: number;

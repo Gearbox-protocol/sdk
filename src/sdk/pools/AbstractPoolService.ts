@@ -12,6 +12,7 @@ import type {
 } from "./types.js";
 
 /**
+ * @internal
  * Base implementation of {@link IPoolsService}.
  *
  * Used to generate data for write operations on LP side (deposit to/withdraw from pool)

@@ -12,6 +12,9 @@ export interface PlaceholderAdapterContractOptions {
   baseParams: RelaxedBaseParams;
 }
 
+/**
+ * @internal
+ */
 export class PlaceholderAdapterContract
   extends PlaceholderContract
   implements IAdapterContract
