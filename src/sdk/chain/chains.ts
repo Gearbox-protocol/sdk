@@ -21,6 +21,10 @@ import {
 import { z } from "zod/v4";
 import { TypedObjectUtils } from "../utils/mappers.js";
 
+/**
+ * Known curator names that manage Gearbox markets.
+ *
+ **/
 export type Curator =
   | "Chaos Labs"
   | "K3"
@@ -35,29 +39,48 @@ export type Curator =
   | "TelosC"
   | "Gami Labs";
 
+/**
+ * Extended viem {@link Chain} with Gearbox-specific metadata.
+ *
+ * Every supported network is represented by a `GearboxChain` instance in
+ * the {@link chains} record.
+ **/
 export interface GearboxChain extends Chain {
+  /**
+   * Gearbox network type label (e.g. `"Mainnet"`, `"Arbitrum"`).
+   **/
   network: NetworkType;
+  /**
+   * Market configurator addresses operated by known curators on this chain.
+   **/
   defaultMarketConfigurators: Record<Address, Curator>;
+  /**
+   * Market configurators used in test/staging environments.
+   **/
   testMarketConfigurators?: Record<Address, Curator>;
+  /**
+   * Whether this chain is production-ready
+   **/
   isPublic: boolean;
   /**
-   * Pair of address and ERC-20 symbol of a well-known token on the chain
-   * This can be used to uniquely identify the chain from arbitrary RPC endpoint
+   * A well-known ERC-20 token that uniquely identifies this chain.
    *
-   * It must be guaranteed that under that address no contract that returns the same symbol is deployed on any other network
-   *
-   * @see {detectNetwork}
-   */
+   * Used by {@link detectNetwork} to determine which chain an arbitrary
+   * RPC endpoint is connected to.
+   **/
   wellKnownToken: {
     address: Address;
     symbol: string;
   };
   /**
-   * Block number when Gearbox address provider was deployed
-   */
+   * Block number when the Gearbox address provider was deployed.
+   **/
   firstBlock?: bigint;
 }
 
+/**
+ * Tuple of all network labels the SDK can work with.
+ **/
 export const SUPPORTED_NETWORKS = [
   "Mainnet",
   "Arbitrum",
@@ -77,8 +100,14 @@ export const SUPPORTED_NETWORKS = [
   "Somnia",
 ] as const;
 
+/**
+ * Zod schema for validating/parsing network type strings.
+ **/
 export const NetworkType = z.enum(SUPPORTED_NETWORKS);
 
+/**
+ * All supported Gearbox network labels
+ **/
 export type NetworkType = z.infer<typeof NetworkType>;
 
 function withPublicNode(chain: GearboxChain, subdomain: string): GearboxChain {
@@ -94,6 +123,9 @@ function withPublicNode(chain: GearboxChain, subdomain: string): GearboxChain {
   });
 }
 
+/**
+ * Pre-configured {@link GearboxChain} instances for every supported network.
+ **/
 export const chains: Record<NetworkType, GearboxChain> = {
   Mainnet: withPublicNode(
     {
@@ -376,6 +408,12 @@ const networkByChainId = Object.values(chains).reduce<
   return acc;
 }, {});
 
+/**
+ * Returns the {@link GearboxChain} for a given chain ID or network type label.
+ *
+ * @param chainIdOrNetworkType - Numeric chain ID, bigint chain ID, or a {@link NetworkType} string.
+ * @throws If the chain ID / network type is not supported.
+ **/
 export function getChain(
   chainIdOrNetworkType: number | bigint | NetworkType,
 ): GearboxChain {
@@ -390,12 +428,23 @@ export function getChain(
   return chain;
 }
 
+/**
+ * Resolves a numeric chain ID to its {@link NetworkType} label.
+ *
+ * @param chainId - Numeric or bigint chain ID.
+ * @throws If the chain ID does not correspond to a supported network.
+ **/
 export function getNetworkType(chainId: number | bigint): NetworkType {
   const network = networkByChainId[Number(chainId)];
   if (!network) throw new Error(`Unsupported network with chainId ${chainId}`);
   return network;
 }
 
+/**
+ * Type guard that checks whether a chain ID belongs to a supported Gearbox network.
+ *
+ * @param chainId - Numeric chain ID, or `undefined`.
+ **/
 export function isSupportedNetwork(
   chainId: number | undefined,
 ): chainId is number {
@@ -403,6 +452,11 @@ export function isSupportedNetwork(
   return !!networkByChainId[chainId];
 }
 
+/**
+ * Returns `true` if the given network or chain ID has a publicly deployed Gearbox instance.
+ *
+ * @param networkOrChainId - {@link NetworkType} string or numeric chain ID.
+ **/
 export function isPublicNetwork(
   networkOrChainId: NetworkType | number | bigint,
 ): boolean {
@@ -415,11 +469,15 @@ export function isPublicNetwork(
 }
 
 /**
- * Tries to find curator name by market configurator address among all default and test market configurators
- * @param marketConfigurator
- * @param network
- * @returns
- */
+ * Looks up the {@link Curator} name for a market configurator address.
+ *
+ * Searches default and test market configurators across all chains, or
+ * a single network if provided.
+ *
+ * @param marketConfigurator - On-chain market configurator address.
+ * @param network - Optional network to restrict the search to.
+ * @returns The curator name, or `undefined` if not found.
+ **/
 export function getCuratorName(
   marketConfigurator: Address,
   network?: NetworkType,
@@ -439,11 +497,13 @@ export function getCuratorName(
 }
 
 /**
- * Finds market configurator address by curator name
- * @param curator
- * @param network
- * @returns
- */
+ * Finds the market configurator address for a given curator on a network.
+ *
+ * @param curator - Curator name to search for.
+ * @param network - Network to search in.
+ * @returns The market configurator address, or `undefined` if the curator
+ *   has no configurator on this network.
+ **/
 export function findCuratorMarketConfigurator(
   curator: Curator,
   network: NetworkType,

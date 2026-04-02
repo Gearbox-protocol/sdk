@@ -1,17 +1,15 @@
 import type { Address } from "viem";
 import type { CreditAccountData, IBaseContract } from "../base/index.js";
 import type { MultiCall } from "../types/index.js";
-import type { Leftovers } from "./AbstractRouterContract.js";
 
+/**
+ * Type of swap the router should perform.
+ *
+ * - `"EXACT_INPUT"` — swap an exact amount of the input token.
+ * - `"EXACT_INPUT_ALL"` — swap the entire balance of the input token.
+ * - `"EXACT_OUTPUT"` — swap to receive an exact amount of the output token (no longer supported by the router).
+ **/
 export type SwapOperation = "EXACT_INPUT" | "EXACT_INPUT_ALL" | "EXACT_OUTPUT";
-
-export interface PathOption {
-  target: Address;
-  option: number;
-  totalOptions: number;
-}
-
-export type PathOptionSerie = Array<PathOption>;
 
 /**
  * Result returned from router contract
@@ -73,8 +71,18 @@ export interface RouterCloseResult extends RouterResult {
   underlyingBalance: bigint;
 }
 
+/**
+ * A token address paired with a balance, used throughout the router to
+ * represent holdings, collateral inputs, and leftover targets.
+ **/
 export interface Asset {
+  /**
+   * ERC-20 token address.
+   **/
   token: Address;
+  /**
+   * Token amount in the token's native decimals.
+   **/
   balance: bigint;
 }
 
@@ -88,8 +96,8 @@ export interface RouterCMSlice {
 }
 
 /**
- * Slice of credit account data required for router operations
- */
+ * Minimal slice of credit-account data required by router operations.
+ **/
 export type RouterCASlice = Pick<
   CreditAccountData,
   | "tokens"
@@ -102,52 +110,14 @@ export type RouterCASlice = Pick<
   | "creditManager"
 >;
 
+/**
+ * Lightweight slice of credit-account data containing only token
+ * balances and the enabled-tokens bitmask.
+ **/
 export type CreditAccountTokensSlice = Pick<
   CreditAccountData,
   "creditAccount" | "tokens" | "enabledTokensMask"
 >;
-
-export interface FindAllSwapsProps {
-  /**
-   * Minimal credit account data on which operation is performed
-   */
-  creditAccount: RouterCASlice;
-  /**
-   * Minimal credit manager data on which operation is performed
-   */
-  creditManager: RouterCMSlice;
-  /**
-   * {@link SwapOperation} = "EXACT_INPUT" | "EXACT_INPUT_ALL" | "EXACT_OUTPUT"; however router stopped to support EXACT_OUTPUT
-   */
-  swapOperation: SwapOperation;
-  /**
-   * Address of input token
-   */
-  tokenIn: Address;
-  /**
-   * Address of target token
-   */
-  tokenOut: Address;
-  /**
-   * Incoming amount of tokenIn to swap
-   */
-  amount: bigint;
-  /**
-   * Amount that should be left on account after swap; technically equals to 0 in the most of the cases
-   */
-  leftoverAmount: bigint;
-  /**
-   * Slippage in PERCENTAGE_FORMAT (100% = 10_000) per operation
-   */
-  slippage: number | bigint;
-}
-
-export interface FindClosePathInput {
-  pathOptions: Array<PathOptionSerie>;
-  expected: Array<Asset>;
-  leftover: Array<Asset>;
-  connectors: Array<Address>;
-}
 
 export interface FindOneTokenPathProps {
   /**
@@ -163,7 +133,7 @@ export interface FindOneTokenPathProps {
    */
   tokenIn: Address;
   /**
-   * Adddress of target token
+   * Address of target token
    */
   tokenOut: Address;
   /**
@@ -236,7 +206,7 @@ export interface FindBestClosePathProps {
    */
   keepAssets?: Address[];
   /**
-   * Debt only mode - will try to sell just enought of most valuable token to cover debt
+   * Debt only mode - will try to sell just enough of most valuable token to cover debt
    */
   debtOnly?: boolean;
 }
@@ -260,43 +230,51 @@ export interface ClosePathBalances {
   tokensToClaim?: Array<Asset>;
 }
 
-export interface ExpectedAndLeftoverOptions {
-  balances?: Leftovers;
-  keepAssets?: Address[];
-  debtOnly?: boolean;
-}
-
+/**
+ * On-chain router contract that finds optimal multi-hop swap paths
+ * for credit-account operations: single-token swaps, open-strategy
+ * collateral conversion, reward claiming, and full account closure.
+ **/
 export interface IRouterContract extends IBaseContract {
   /**
-   * Find the best path to swap token A to token B (target token).
+   * Find the best path to swap one token into another.
+   *
    * @param props - {@link FindOneTokenPathProps}
-   * @return result - {@link RouterResult}
-   */
+   * @returns The optimal swap result including amount, slippage-adjusted
+   *   minimum, and the multi-call sequence to execute.
+   **/
   findOneTokenPath: (props: FindOneTokenPathProps) => Promise<RouterResult>;
+
   /**
-   * Finds the best path for opening Credit Account; converts all expectedBalances besides leftoverBalances into target token
+   * Find the best path for opening a credit account by converting all
+   * collateral (except leftovers) into a single target token.
+   *
    * @param props - {@link FindOpenStrategyPathProps}
-   * @returns result - {@link OpenStrategyResult}
-   */
+   * @returns Swap result with projected post-open balances.
+   **/
   findOpenStrategyPath: (
     props: FindOpenStrategyPathProps,
   ) => Promise<OpenStrategyResult>;
 
   /**
-   * Constructs calls to claim all rewards for Credit Account
+   * Construct calls to claim all pending rewards on a credit account
+   * and swap them to the underlying token.
+   *
    * @param props - {@link FindClaimAllRewardsProps}
-   * @returns result - {@link RouterRewardsResult}
-   */
+   * @returns Multi-call sequence for claiming and swapping rewards.
+   **/
   findClaimAllRewards: (
     props: FindClaimAllRewardsProps,
   ) => Promise<RouterRewardsResult>;
 
   /**
-   * Finds the path to swap / withdraw all assets from CreditAccount into underlying asset
-   * Can be used for closing Credit Account and for liquidations as well.
+   * Find the best path to swap all credit-account assets into the
+   * underlying token. Used for account closure and liquidation.
+   *
    * @param props - {@link FindBestClosePathProps}
-   * @return result - {@link RouterCloseResult}
-   */
+   * @returns Swap result including the total underlying balance
+   *   after all swaps.
+   **/
   findBestClosePath: (
     props: FindBestClosePathProps,
   ) => Promise<RouterCloseResult>;

@@ -4,7 +4,7 @@ import type { Config } from "@docusaurus/types";
 const config: Config = {
   title: "Gearbox SDK",
   tagline: "Core types and utilities for Gearbox Protocol",
-  favicon: "img/favicon.ico",
+  favicon: "img/favicon.svg",
 
   url: "https://gearbox-protocol.github.io",
   baseUrl: "/sdk/",
@@ -55,18 +55,18 @@ const config: Config = {
         entryPoints: [
           "../src/sdk/index.ts",
           "../src/dev/index.ts",
-          // "../src/history/index.ts",
+          "../src/history/index.ts",
           "../src/permissionless/index.ts",
           "../src/common-utils/index.ts",
           "../src/rewards/index.ts",
-          // "../src/plugins/accounts/index.ts",
-          // "../src/plugins/accounts-counter/index.ts",
-          // "../src/plugins/adapters/index.ts",
-          // "../src/plugins/bots/index.ts",
-          // "../src/plugins/degen-distributors/index.ts",
-          // "../src/plugins/delayed-withdrawal/index.ts",
-          // "../src/plugins/pools-history/index.ts",
-          // "../src/plugins/zappers/index.ts",
+          "../src/plugins/accounts/index.ts",
+          "../src/plugins/accounts-counter/index.ts",
+          "../src/plugins/adapters/index.ts",
+          "../src/plugins/bots/index.ts",
+          "../src/plugins/degen-distributors/index.ts",
+          "../src/plugins/delayed-withdrawal/index.ts",
+          "../src/plugins/pools-history/index.ts",
+          "../src/plugins/zappers/index.ts",
         ],
         entryPointStrategy: "resolve",
         tsconfig: "../tsconfig.build.json",
@@ -103,13 +103,38 @@ const config: Config = {
         ],
         sort: ["source-order"],
         skipErrorChecking: true,
+        expandObjects: true,
+        expandParameters: true,
+        parametersFormat: "table",
+        interfacePropertiesFormat: "table",
+        classPropertiesFormat: "table",
+        typeAliasPropertiesFormat: "table",
+        propertyMembersFormat: "table",
+        typeDeclarationFormat: "table",
+        tableColumnSettings: {
+          hideDefaults: false,
+          hideInherited: true,
+          hideModifiers: true,
+          hideOverrides: true,
+          hideSources: true,
+          hideValues: true,
+          leftAlignHeaders: false,
+        },
       },
     ],
   ],
 
   themeConfig: {
+    colorMode: {
+      defaultMode: "dark",
+      respectPrefersColorScheme: true,
+    },
     navbar: {
       title: "Gearbox SDK",
+      logo: {
+        alt: "Gearbox Protocol",
+        src: "https://static.gearbox.finance/logo/logo_monochrome_white.png",
+      },
       items: [
         {
           type: "docSidebar",
@@ -134,6 +159,10 @@ const config: Config = {
               label: "Getting Started",
               to: "/",
             },
+            {
+              label: "API Reference",
+              to: "/api",
+            },
           ],
         },
         {
@@ -147,6 +176,31 @@ const config: Config = {
               label: "Twitter",
               href: "https://twitter.com/GearboxProtocol",
             },
+            {
+              label: "Telegram",
+              href: "https://t.me/GearboxProtocol",
+            },
+          ],
+        },
+        {
+          title: "Gearbox",
+          items: [
+            {
+              label: "Website",
+              href: "https://gearbox.fi",
+            },
+            {
+              label: "App",
+              href: "https://app.gearbox.fi",
+            },
+            {
+              label: "Documentation",
+              href: "https://docs.gearbox.fi",
+            },
+            {
+              label: "Audits",
+              href: "https://docs.gearbox.finance/risk-and-security/audits-bug-bounty",
+            },
           ],
         },
         {
@@ -155,6 +209,10 @@ const config: Config = {
             {
               label: "GitHub",
               href: "https://github.com/gearbox-protocol/sdk",
+            },
+            {
+              label: "Legal Info",
+              href: "https://gearbox.fi/terms",
             },
           ],
         },

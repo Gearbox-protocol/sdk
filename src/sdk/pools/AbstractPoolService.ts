@@ -11,6 +11,12 @@ import type {
   RemoveLiquidityProps,
 } from "./types.js";
 
+/**
+ * @internal
+ * Base implementation of {@link IPoolsService}.
+ *
+ * Used to generate data for write operations on LP side (deposit to/withdraw from pool)
+ **/
 export abstract class AbstractPoolService extends SDKConstruct {
   #version: number;
 
@@ -21,6 +27,9 @@ export abstract class AbstractPoolService extends SDKConstruct {
     this.logger?.debug(`Created PoolService with version: ${this.#version}`);
   }
 
+  /**
+   * {@inheritDoc IPoolsService.addLiquidity}
+   **/
   public addLiquidity({
     collateral,
     pool,
@@ -81,6 +90,9 @@ export abstract class AbstractPoolService extends SDKConstruct {
     }
   }
 
+  /**
+   * {@inheritDoc IPoolsService.removeLiquidity}
+   **/
   public removeLiquidity({
     pool,
     amount,

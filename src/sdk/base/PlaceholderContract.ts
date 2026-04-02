@@ -5,6 +5,9 @@ import type { ConstructOptions } from "./index.js";
 const abi = [] as unknown[];
 type abi = typeof abi;
 
+/**
+ * @internal
+ */
 export class PlaceholderContract extends BaseContract<abi> {
   constructor(
     options: ConstructOptions,

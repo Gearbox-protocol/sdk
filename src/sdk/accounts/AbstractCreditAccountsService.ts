@@ -97,7 +97,14 @@ type BotsDirectResponse = MulticallWithFailure<
 
 type CompressorAbi = typeof creditAccountCompressorAbi;
 
+/**
+ * Options for configuring the credit account service.
+ **/
 export interface CreditAccountServiceOptions {
+  /**
+   * Maximum number of credit accounts to fetch per compressor call.
+   * When set, accounts are loaded in batches of this size until all are fetched.
+   **/
   batchSize?: number;
 }
 
@@ -107,10 +114,18 @@ const COMPRESSORS: Record<number, Address> = {
   [chains.Monad.id]: "0x36F3d0Bb73CBC2E94fE24dF0f26a689409cF9023",
 };
 
+/**
+ * Returns the withdrawal compressor contract address for the given chain, or `undefined` if none is configured.
+ * @param chainId - Numeric chain ID.
+ * @returns Withdrawal compressor address, or `undefined`.
+ **/
 export function getWithdrawalCompressorAddress(chainId: number) {
   return COMPRESSORS[chainId];
 }
 
+/**
+ * @internal
+ */
 export abstract class AbstractCreditAccountService extends SDKConstruct {
   #compressor: Address;
   #batchSize?: number;
@@ -128,12 +143,8 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
-   * Returns single credit account data, or undefined if it's not found
-   * Performs all necessary price feed updates under the hood
-   * @param account
-   * @param blockNumber
-   * @returns
-   */
+   * {@inheritDoc ICreditAccountsService.getCreditAccountData}
+   **/
   public async getCreditAccountData(
     account: Address,
     blockNumber?: bigint,
@@ -177,13 +188,8 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
-   * Methods to get all credit accounts with some optional filtering
-   * Performs all necessary price feed updates under the hood
-   *
-   * @param options
-   * @param blockNumber
-   * @returns returned credit accounts are sorted by health factor in ascending order
-   */
+   * {@inheritDoc ICreditAccountsService.getCreditAccounts}
+   **/
   public async getCreditAccounts(
     options?: GetCreditAccountsOptions,
     blockNumber?: bigint,
@@ -252,11 +258,8 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
-   * Method to get all claimable rewards for credit account (ex. stkUSDS SKY rewards)
-     Assosiates rewards by adapter + stakedPhantomToken
-   * @param {Address} creditAccount - address of credit account to get rewards for
-   * @returns {Array<Rewards>} list of {@link Rewards} that can be claimed
-   */
+   * {@inheritDoc ICreditAccountsService.getRewards}
+   **/
   public async getRewards(creditAccount: Address): Promise<Array<Rewards>> {
     const rewards = await this.client.readContract({
       abi: rewardsCompressorAbi,
@@ -307,11 +310,8 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
-   * Method to get all connected bots for credit account
-   * @param {Array<AccountToCheck>} accountsToCheck - list of credit accounts 
-      and their credit managers to check connected bots on
-   * @returns call result of getConnectedBots for each credit account
-   */
+   * {@inheritDoc ICreditAccountsService.getConnectedBots}
+   **/
   public async getConnectedBots(
     accountsToCheck: Array<AccountToCheck>,
     legacyMigrationBot: Address | undefined,
@@ -453,10 +453,8 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
-   * Generates transaction to liquidate credit account
-   * @param props - {@link FullyLiquidateProps}
-   * @returns
-   */
+   * {@inheritDoc ICreditAccountsService.fullyLiquidate}
+   **/
   public async fullyLiquidate(
     props: FullyLiquidateProps,
   ): Promise<FullyLiquidateResult> {
@@ -513,21 +511,8 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
-   * Closes credit account or closes credit account and keeps it open with zero debt.
-     - Ca is closed in the following order: price update -> close path to swap all tokens into underlying -> 
-       -> disable quotas of exiting tokens -> decrease debt -> disable exiting tokens tokens -> withdraw underlying tokenz
-   * @param {CloseOptions} operation - {@link CloseOptions}: close or zeroDebt
-   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice} on which operation is performed
-   * @param {Array<Address>} assetsToWithdraw - tokens to withdraw from credit account. 
-      For credit account closing this is the underlying token, because during the closure, 
-      all tokens on account are swapped into the underlying, 
-      and only the underlying token will remain on the credit account
-   * @param {Address} to - Wallet address to withdraw underlying to
-   * @param {number} slippage  - Slippage in PERCENTAGE_FORMAT (100% = 10_000) per operation
-   * @default 50n
-   * @param {RouterCloseResult | undefined} closePath - result of findBestClosePath method from router; if omited, calls marketRegister.findCreditManager {@link RouterCloseResult}
-   * @returns All necessary data to execute the transaction (call, credit facade)
-   */
+   * {@inheritDoc ICreditAccountsService.closeCreditAccount}
+   **/
   public async closeCreditAccount({
     operation,
     assetsToWithdraw,
@@ -569,13 +554,8 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
-   * Updates quota of credit account.
-     - CA quota updated in the following order: price update -> update quotas
-   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice} on which operation is performed
-   * @param {Array<Asset>} averageQuota - average quota for desired tokens {@link Asset}
-   * @param {Array<Asset>} minQuota - minimum quota for desired tokens {@link Asset}
-   * @returns All necessary data to execute the transaction (call, credit facade)
-   */
+   * {@inheritDoc ICreditAccountsService.updateQuotas}
+   **/
   public async updateQuotas({
     minQuota,
     averageQuota,
@@ -603,16 +583,8 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
-   * Adds a single collateral to credit account and updates quotas
-     - Collateral is added in the following order: price update -> add collateral (with permit) -> update quotas
-   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice} on which operation is performed
-   * @param {Array<Asset>} averageQuota - average quota for desired token {@link Asset}
-   * @param {Array<Asset>} minQuota - minimum quota for desired token {@link Asset}
-   * @param {Asset} asset - asset to add as collateral {@link Asset}
-   * @param {PermitResult | undefined} permits - permits of collateral asset if it is permittable {@link PermitResult}
-   * @param {bigint} ethAmount - native token amount to attach to tx
-   * @returns All necessary data to execute the transaction (call, credit facade)
-   */
+   * {@inheritDoc ICreditAccountsService.addCollateral}
+   **/
   public async addCollateral({
     creditAccount,
     asset,
@@ -651,15 +623,8 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
-   * Increases or decreases debt of credit account; debt decrease uses token ON CREDIT ACCOUNT
-     - Debt is changed in the following order: price update -> (enables underlying if it was disabled) -> change debt
-   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice} on which operation is performed
-   * @param {bigint} amount - amount to change debt by; 
-      0 - prohibited value; 
-      negative value for debt decrease; 
-      positive value for debt increase.
-   * @returns All necessary data to execute the transaction (call, credit facade)
-   */
+   * {@inheritDoc ICreditAccountsService.changeDebt}
+   **/
   public async changeDebt({
     creditAccount,
     amount,
@@ -706,14 +671,8 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
-   * Executes swap specified by given calls, update quotas of affected tokens
-     - Swap is executed in the following order: price update -> execute swap path -> update quotas
-   * @param {RouterCASlice} creditAccount - minimal credit account data {@link RouterCASlice} on which operation is performed
-   * @param {Array<Asset>} averageQuota - average quota for desired token {@link Asset}
-   * @param {Array<Asset>} minQuota - minimum quota for desired token {@link Asset}
-   * @param {Array<MultiCall>} calls - array of MultiCall from router methods getSingleSwap or getAllSwaps {@link MultiCall}
-   * @returns All necessary data to execute the transaction (call, credit facade)
-   */
+   * {@inheritDoc ICreditAccountsService.executeSwap}
+   **/
   public async executeSwap({
     creditAccount,
     calls: swapCalls,
@@ -747,10 +706,8 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
-   * Preview delayed withdrawal for given token
-   * @param props - {@link PreviewDelayedWithdrawalProps}
-   * @returns
-   */
+   * {@inheritDoc ICreditAccountsService.previewDelayedWithdrawal}
+   **/
   public async previewDelayedWithdrawal({
     creditAccount,
     amount,
@@ -779,10 +736,8 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
-   * Get claimable and pending withdrawals of an account
-   * @param props - {@link GetPendingWithdrawalsProps}
-   * @returns
-   */
+   * {@inheritDoc ICreditAccountsService.getPendingWithdrawals}
+   **/
   public async getPendingWithdrawals({
     creditAccount,
   }: GetPendingWithdrawalsProps): Promise<GetPendingWithdrawalsResult> {
@@ -815,11 +770,8 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
-   * Start delayed withdrawal for given token
-     - Withdrawal is executed in the following order: price update -> execute withdraw calls -> update quotas
-   * @param props - {@link StartDelayedWithdrawalProps}
-   * @returns
-  */
+   * {@inheritDoc ICreditAccountsService.startDelayedWithdrawal}
+   **/
   public async startDelayedWithdrawal({
     creditAccount,
     minQuota,
@@ -884,11 +836,8 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
-   * Claim tokens with delayed withdrawal
-     - Claim is executed in the following order: price update -> execute claim calls -> update quotas
-   * @param props - {@link ClaimDelayedProps}
-   * @returns
-  */
+   * {@inheritDoc ICreditAccountsService.claimDelayed}
+   **/
   public async claimDelayed({
     creditAccount,
     minQuota,
@@ -964,29 +913,8 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
-   * Executes swap specified by given calls, update quotas of affected tokens
-     - Open credit account is executed in the following order: price update -> increase debt -> add collateral ->
-      -> update quotas -> (optionally: execute swap path for trading/strategy) -> 
-      -> (optionally: withdraw debt for lending)
-    - Basic open credit account: price update -> increase debt -> add collateral -> update quotas
-    - Lending: price update -> increase debt -> add collateral -> update quotas -> withdraw debt
-    - Strategy/trading: price update -> increase debt -> add collateral -> update quotas -> execute swap path
-    - In strategy is possible situation when collateral is added, but not swapped; the only swapped value in this case will be debt
-   * @param {bigint} ethAmount - native token amount to attach to tx
-   * @param {Address} creditManager - address of credit manager to open credit account on
-   * @param {Array<Asset>} collateral - array of collateral which can be just directly added or swapped using the path {@link Asset}
-   * @param {Record<Address, PermitResult>} permits - permits of collateral tokens (in any permittable token is present) {@link PermitResult}
-   * @param {bigint} debt - debt to open credit account with
-   * @param {boolean} withdrawDebt - flag to withdraw debt to wallet after opening credit account; 
-      used for borrowing functionality
-   * @param {bigint} referralCode - referral code to open credit account with
-   * @param {Address} to - wallet address to transfer credit account to\
-   * @param {Array<MultiCall>} calls - array of MultiCall from router methods findOpenStrategyPath {@link MultiCall}.
-      Used for trading and strategy functionality
-   * @param {Array<Asset>} averageQuota - average quota for tokens after open {@link Asset}
-   * @param {Array<Asset>} minQuota - minimum quota for tokens after open  {@link Asset}
-   * @returns All necessary data to execute the transaction (call, credit facade)
-   */
+   * {@inheritDoc ICreditAccountsService.openCA}
+   **/
   public async openCA({
     ethAmount,
     creditManager,
@@ -1030,10 +958,8 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
-   * Returns borrow rate with 4 digits precision (10000 = 100%)
-   * @param ca
-   * @returns
-   */
+   * {@inheritDoc ICreditAccountsService.getBorrowRate}
+   **/
   public getBorrowRate(ca: CreditAccountData): bigint {
     // R = Debt * baserate with fee / (total value or debt)
     // Qr = sum(quota rate * quota amount) * (1+fee) / (total value or debt)
@@ -1066,9 +992,8 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
-   * Returns optimal HF for partial liquidation with 4 digits precision (10000 = 100%)
-   * @param ca
-   */
+   * {@inheritDoc ICreditAccountsService.getOptimalHFForPartialLiquidation}
+   **/
   public getOptimalHFForPartialLiquidation(ca: CreditAccountData): bigint {
     const borrowRate = this.getBorrowRate(ca);
     return PERCENTAGE_FACTOR + (borrowRate < 100n ? borrowRate : 100n);
@@ -1133,12 +1058,8 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
-   * Returns raw txs that are needed to update all price feeds so that all credit accounts (possibly from different markets) compute
-   *
-   * This can be used by batch liquidator
-   * @param accounts
-   * @returns
-   */
+   * {@inheritDoc ICreditAccountsService.getUpdateForAccounts}
+   **/
   public async getUpdateForAccounts(
     accounts: Array<RouterCASlice>,
   ): Promise<UpdatePriceFeedsResult> {
@@ -1238,10 +1159,8 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
-   * Returns account price updates that can be used in credit facade multicall or liquidator calls
-   * @param options
-   * @returns
-   */
+   * {@inheritDoc ICreditAccountsService.getOnDemandPriceUpdates}
+   **/
   public async getOnDemandPriceUpdates(
     options: PriceUpdatesOptions,
   ): Promise<OnDemandPriceUpdates> {
@@ -1260,13 +1179,8 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
-   * Returns price updates in format that is accepted by various credit facade methods (multicall, close/liquidate, etc...).
-   * - If there are desiredQuotas and creditAccount update quotaBalance > 0 || (balance > 10n && isEnabled). Is used when account has both: balances and quota buys.
-   * - If there is creditAccount update balance > 10n && isEnabled. Is used in credit account actions when quota is not being bought.
-   * - If there is desiredQuotas update quotaBalance > 0. Is used on credit account opening, when quota is bought for the first time.
-   * @param acc
-   * @returns
-   */
+   * {@inheritDoc ICreditAccountsService.getPriceUpdatesForFacade}
+   **/
   public async getPriceUpdatesForFacade(
     options: PriceUpdatesOptions,
   ): Promise<Array<MultiCall>> {

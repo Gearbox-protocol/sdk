@@ -32,6 +32,13 @@ interface TokenData {
   claimRewards: boolean;
 }
 
+/**
+ * V3.10 implementation of the {@link IRouterContract} interface.
+ *
+ * Uses the on-chain Gearbox router to find optimal multi-hop swap
+ * paths, splitting large positions across multiple routes to reduce
+ * price impact.
+ **/
 export class RouterV310Contract
   extends AbstractRouterContract<abi>
   implements IRouterContract
@@ -49,8 +56,8 @@ export class RouterV310Contract
   }
 
   /**
-   * Implements {@link IRouterContract.findOneTokenPath}
-   */
+   * {@inheritDoc IRouterContract.findOneTokenPath}
+   **/
   async findOneTokenPath(props: FindOneTokenPathProps): Promise<RouterResult> {
     const {
       creditAccount,
@@ -93,8 +100,8 @@ export class RouterV310Contract
   }
 
   /**
-   * Implements {@link IRouterContract.findOpenStrategyPath}
-   */
+   * {@inheritDoc IRouterContract.findOpenStrategyPath}
+   **/
   public async findOpenStrategyPath(
     props: FindOpenStrategyPathProps,
   ): Promise<OpenStrategyResult> {
@@ -157,8 +164,8 @@ export class RouterV310Contract
   }
 
   /**
-   * Implements {@link IRouterContract.findClaimAllRewards}
-   */
+   * {@inheritDoc IRouterContract.findClaimAllRewards}
+   **/
   public async findClaimAllRewards(
     props: FindClaimAllRewardsProps,
   ): Promise<RouterRewardsResult> {
@@ -189,8 +196,8 @@ export class RouterV310Contract
   }
 
   /**
-   * Implements {@link IRouterContract.findBestClosePath}
-   */
+   * {@inheritDoc IRouterContract.findBestClosePath}
+   **/
   public async findBestClosePath(
     props: FindBestClosePathProps,
   ): Promise<RouterCloseResult> {
@@ -279,18 +286,23 @@ export class RouterV310Contract
   }
 
   /**
-   * v310-specific method to set explicitly number of splits for a token
-   * @param token
-   * @param numSplits
-   */
+   * Override the number of route splits used when swapping a specific token.
+   *
+   * @param token - Token address to configure.
+   * @param numSplits - Number of parallel route splits.
+   * @internal
+   **/
   public setNumSplits(token: Address, numSplits: bigint): void {
     this.#numSplits.upsert(token, numSplits);
   }
 
   /**
-   * v310-specific method to set default number of splits for a token
-   * @param numSplits
-   */
+   * Set the default number of route splits applied to the highest-value
+   * token in each swap.
+   *
+   * @param numSplits - Default number of parallel route splits.
+   * @internal
+   **/
   public setDefaultNumSplits(numSplits: bigint): void {
     this.#defaultNumSplits = numSplits;
   }

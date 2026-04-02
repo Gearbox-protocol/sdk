@@ -11,6 +11,14 @@ import type {
   AddressProviderState,
 } from "./types.js";
 
+/**
+ * Base implementation of the Gearbox address provider contract.
+ *
+ * Maintains an in-memory registry of `(contractName, version) → address`
+ * mappings for all global (chain-wide) Gearbox contracts.
+ *
+ * @typeParam abi - The contract's ABI type.
+ **/
 export default abstract class AbstractAddressProviderContract<
   abi extends Abi | readonly unknown[],
 > extends BaseContract<abi> {
@@ -53,6 +61,9 @@ export default abstract class AbstractAddressProviderContract<
     }
   }
 
+  /**
+   * {@inheritDoc IAddressProviderContract.getAddress}
+   **/
   public getAddress(contract: string, version = NO_VERSION): Address {
     if (!this.#addresses[contract]) {
       throw new Error(`Address ${contract}, version: ${version} not found`);
@@ -66,6 +77,9 @@ export default abstract class AbstractAddressProviderContract<
     return result;
   }
 
+  /**
+   * {@inheritDoc IAddressProviderContract.getLatest}
+   **/
   public getLatest(
     contract: string,
     range: VersionRange,
@@ -89,6 +103,9 @@ export default abstract class AbstractAddressProviderContract<
     return [address, version];
   }
 
+  /**
+   * {@inheritDoc IAddressProviderContract.mustGetLatest}
+   **/
   public mustGetLatest(
     contract: string,
     range: VersionRange,
@@ -100,6 +117,9 @@ export default abstract class AbstractAddressProviderContract<
     return result;
   }
 
+  /**
+   * {@inheritDoc IAddressProviderContract.state}
+   **/
   public get state(): AddressProviderState {
     return {
       baseParams: {
@@ -112,6 +132,9 @@ export default abstract class AbstractAddressProviderContract<
     };
   }
 
+  /**
+   * {@inheritDoc IAddressProviderContract.stateHuman}
+   **/
   public override stateHuman(raw = true): AddressProviderV3StateHuman {
     return {
       ...super.stateHuman(raw),

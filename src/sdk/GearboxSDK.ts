@@ -42,57 +42,95 @@ import { getLogsSafe } from "./utils/viem/index.js";
 const ERR_NOT_ATTACHED = new Error("Gearbox SDK not attached");
 
 /**
- * State version, checked duryng hydration
- */
+ * Serialised state format version, checked during hydration to detect
+ * incompatible snapshots.
+ **/
 export const STATE_VERSION = 1;
 
+/**
+ * Explicit network identity, required when working with forked testnets
+ * whose chain IDs differ from the canonical mainnet/testnet values.
+ **/
 export interface NetworkOptions {
   /**
-   * Chain Id needs to be set, because we sometimemes use forked testnets with different chain ids
-   */
+   * EVM chain ID.
+   * Must be set explicitly for forked testnets whose chain ID differs
+   * from the canonical network.
+   **/
   chainId: number;
   /**
-   * NetworkType needs to be set, because we sometimemes use forked testnets with different chain ids
-   */
+   * Gearbox network type (e.g. `"Mainnet"`, `"Arbitrum"`).
+   * Must be set explicitly for forked testnets whose chain ID differs
+   * from the canonical network.
+   **/
   networkType: NetworkType;
 }
 
+/**
+ * Connection options for the underlying JSON-RPC provider.
+ *
+ * Supply **one** of the three variants:
+ * - `rpcURLs` — the SDK creates a viem transport internally (with optional
+ *    fallback when multiple URLs are given).
+ * - `transport` — bring your own viem `Transport`.
+ * - `client` — bring your own fully-configured viem `PublicClient`.
+ *    When using this variant, the client is responsible for carrying the
+ *    correct `networkType` and `chainId`.
+ *
+ * ### Network detection
+ *
+ * For the `rpcURLs` and `transport` variants, `networkType` and `chainId` are
+ * resolved as follows (see {@link NetworkOptions}):
+ * - If `networkType` is provided, it is used directly; `chainId` defaults to
+ *   the canonical chain ID for that network when omitted.
+ * - If `networkType` is **not** provided, it is detected automatically using {@link detectNetwork}.
+ *   When `chainId` is also omitted it is fetched via `eth_chainId`.
+ *
+ **/
 export type ClientOptions =
   | {
       /**
-       * RPC URL (and fallbacks) to use.
-       */
+       * One or more JSON-RPC endpoint URLs.
+       * When more than one URL is provided, a viem `fallback` transport is created.
+       **/
       rpcURLs: string[];
       /**
-       * RPC client timeout in milliseconds
-       */
+       * Per-request timeout in milliseconds.
+       **/
       timeout?: number;
       /**
-       * Retry count for RPC
-       */
+       * Number of automatic retries per RPC call.
+       **/
       retryCount?: number;
+      /**
+       * Low-level options forwarded to the viem HTTP transport.
+       **/
       httpTransportOptions?: HttpRpcClientOptions | undefined;
     }
   | {
       /**
-       * Alternatively, can pass viem transport
-       */
+       * Pre-built viem transport.
+       **/
       transport: Transport;
     }
   | {
       /**
-       * Alternatively, can pass entire viem client
-       * If you bring your own client, it is responsible for defining networkType and chainId
-       */
+       * Pre-built viem public client.
+       * Must already carry a {@link GearboxChain} definition with `networkType`
+       * and `chainId`.
+       **/
       client: PublicClient<Transport, GearboxChain>;
     };
 
 /**
- * Helper function to create viem client, will set GearboxChain if second argument is not empty
- * @param opts
- * @param network
- * @returns
- */
+ * @internal
+ * Creates a viem `PublicClient` from the given connection options.
+ *
+ * @param opts - Connection variant (RPC URLs, transport, or existing client).
+ * @param network - When provided, the resulting client is pinned to this
+ *   network identity.
+ * @returns A viem public client bound to a {@link GearboxChain}.
+ **/
 function createClient(
   opts: ClientOptions,
   network?: NetworkOptions,
@@ -123,11 +161,15 @@ function createClient(
 }
 
 /**
- * Helper function to attach sdk to client with automatic network and chain id detection
- * @param options
- * @param network
- * @returns
- */
+ * @internal
+ * Creates a client and auto-detects network type and chain ID when they are
+ * not explicitly provided.
+ * See {@link detectNetwork} for more details.
+ *
+ * @param options - Connection variant.
+ * @param network - Partial network identity; missing fields are detected from the RPC.
+ * @returns A viem public client with full network identity.
+ **/
 async function attachClient(
   options: ClientOptions,
   network: Partial<NetworkOptions>,
@@ -147,6 +189,15 @@ async function attachClient(
   return createClient(options, { networkType, chainId });
 }
 
+/**
+ * Options accepted by {@link GearboxSDK.hydrate}.
+ *
+ * Same as {@link SDKOptions} but without fields that are already captured
+ * inside the serialised {@link GearboxState} (`blockNumber`,
+ * `addressProvider`, `marketConfigurators`).
+ *
+ * @typeParam Plugins - Map of plugin names to plugin instances.
+ **/
 export type HydrateOptions<Plugins extends PluginsMap> = Omit<
   SDKOptions<Plugins>,
   "blockNumber" | "addressProvider" | "marketConfigurators"
@@ -168,46 +219,114 @@ type AttachOptionsInternal = PickSomeRequired<
   | "gasLimit"
 >;
 
+/**
+ * Options for {@link GearboxSDK.syncState}, controlling which block to
+ * sync to and whether updatable price feeds should be refreshed.
+ **/
 export interface SyncStateOptions {
+  /**
+   * Target block number to sync to.
+   **/
   blockNumber: bigint;
+  /**
+   * Block timestamp corresponding to `blockNumber`.
+   **/
   timestamp: bigint;
+  /**
+   * When `true`, skip refreshing updatable price feeds during this sync.
+   **/
   ignoreUpdateablePrices?: boolean;
 }
 
+/**
+ * Hook event map for the SDK lifecycle.
+ *
+ * Register listeners via {@link GearboxSDK.addHook} and remove them
+ * with {@link GearboxSDK.removeHook}.
+ *
+ * - `syncState` — fired after {@link GearboxSDK.syncState} completes.
+ * - `rehydrate` — fired after {@link GearboxSDK.rehydrate} completes.
+ **/
 export type SDKHooks = {
   syncState: [SyncStateOptions];
   rehydrate: [SyncStateOptions];
 };
 
+/**
+ * Main entry point for the Gearbox SDK.
+ *
+ * `GearboxSDK` aggregates on-chain state for the Gearbox protocol — markets,
+ * credit managers, pools, price oracles, and price feeds — into a single
+ * queryable object that can be kept up-to-date via {@link syncState} or
+ * serialised/restored via {@link state}/{@link hydrate}.
+ *
+ * It represents on-chain state using instances of js classes that provide convenient methods
+ * to read state and prepare transactions to interact with the protocol.
+ *
+ * Create an instance with the static {@link GearboxSDK.attach | attach}
+ * (reads live chain data) or {@link GearboxSDK.hydrate | hydrate}
+ * (restores from a saved snapshot) factory methods.
+ *
+ * @typeParam Plugins - Map of plugin names to plugin instances that extend
+ *   the SDK with additional domain-specific functionality.
+ **/
 export class GearboxSDK<
   const Plugins extends PluginsMap = {},
 > extends ChainContractsRegister {
   readonly #hooks = new Hooks<SDKHooks>();
+
+  /**
+   * Registered plugin instances, keyed by plugin name.
+   **/
   readonly plugins: Plugins;
 
-  // Block which was use for data query
   #currentBlock?: bigint;
   #timestamp?: bigint;
   #syncing = false;
 
-  // Collection of core singleton contracts
   #addressProvider?: IAddressProviderContract;
   #attachConfig?: AttachOptionsInternal;
 
-  // Collection of markets
   #marketRegister?: MarketRegister;
   #priceFeeds?: PriceFeedRegister;
 
+  /**
+   * Gas limit applied to read-only `eth_call` requests.
+   * `undefined` means that gas limit will not be set on read-only calls,
+   * leaving it to rpc provider to decide.
+   **/
   public readonly gasLimit: bigint | undefined;
 
   /**
-   * Will throw an error if contract type is not supported, otherwise will try to use generic contract first, if possible
-   */
+   * When `true`, the SDK throws on unrecognised contract types instead of
+   * falling back to a generic contract wrapper.
+   **/
   public readonly strictContractTypes: boolean;
 
+  /**
+   * Registers a callback for an SDK lifecycle event.
+   *
+   * @see {@link SDKHooks} for available event names.
+   **/
   public addHook = this.#hooks.addHook.bind(this.#hooks);
+
+  /**
+   * Removes a previously registered lifecycle callback.
+   *
+   * @see {@link SDKHooks} for available event names.
+   **/
   public removeHook = this.#hooks.removeHook.bind(this.#hooks);
 
+  /**
+   * Creates and initialises a new SDK instance by reading live on-chain state.
+   *
+   * This is the primary way to bootstrap the SDK.  The method connects to the
+   * chain, discovers the address provider and all configured markets, and
+   * attaches any supplied plugins.
+   *
+   * @param options - Combined SDK, client, and (optional) network options.
+   * @returns A fully initialised SDK instance.
+   **/
   public static async attach<const Plugins extends PluginsMap>(
     options: SDKOptions<Plugins> & ClientOptions & Partial<NetworkOptions>,
   ): Promise<GearboxSDK<Plugins>> {
@@ -249,6 +368,19 @@ export class GearboxSDK<
     });
   }
 
+  /**
+   * Creates a new SDK instance from a previously serialised {@link GearboxState}
+   * snapshot, without making any on-chain calls.
+   *
+   * Use this for fast startup when a recent state snapshot is available
+   * (e.g. loaded from a file or received from a backend service).
+   *
+   * @param options - SDK and client options (block number and address provider
+   *   are taken from the snapshot).
+   * @param state - Serialised state obtained from {@link GearboxSDK.state}.
+   * @returns A fully initialised SDK instance.
+   * @throws If the snapshot's {@link STATE_VERSION} does not match.
+   **/
   public static hydrate<const Plugins extends PluginsMap>(
     options: HydrateOptions<Plugins> & ClientOptions,
     state: GearboxState<Plugins>,
@@ -430,9 +562,15 @@ export class GearboxSDK<
   }
 
   /**
-   * Reattach SDK with the same config as before, without re-creating instance. Will load all state from scratch
-   * Be mindful of block number, for example
-   */
+   * Re-attaches the SDK using the same configuration, discarding all cached
+   * state and re-reading everything from the chain.
+   *
+   * Useful when the SDK needs a full refresh (e.g. after a protocol upgrade).
+   * Note that if the original `blockNumber` was pinned, the same block is
+   * re-used — call {@link syncState} instead if you want to advance.
+   *
+   * @throws If the SDK has not been attached yet.
+   **/
   public async reattach(): Promise<void> {
     if (!this.#attachConfig) {
       throw new Error("cannot reattach, attach config is not set");
@@ -441,8 +579,15 @@ export class GearboxSDK<
   }
 
   /**
-   * Rehydrate existing SDK from new state without re-creating instance
-   */
+   * Replaces the SDK's in-memory state with a new serialised snapshot
+   * without re-creating the instance.
+   *
+   * After hydration the `rehydrate` hook is triggered so that listeners
+   * can react to the state change.
+   *
+   * @param state - Serialised state obtained from {@link GearboxSDK.state}.
+   * @throws If the SDK has not been attached or hydrated yet.
+   **/
   public async rehydrate(state: GearboxState<Plugins>): Promise<void> {
     if (!this.#attachConfig) {
       throw new Error("cannot rehydrate, attach config is not set");
@@ -460,10 +605,21 @@ export class GearboxSDK<
     });
   }
 
+  /**
+   * Gearbox network type the SDK is connected to (e.g. `"Mainnet"`, `"Arbitrum"`).
+   **/
   public get networkType(): NetworkType {
     return (this.client.chain as GearboxChain).network;
   }
 
+  /**
+   * Returns a human-readable snapshot of the entire SDK state, suitable
+   * for logging or diagnostic inspection.
+   *
+   * @param raw - When `true`, include raw numeric values alongside
+   *   formatted ones.
+   * @default true
+   **/
   public stateHuman(raw = true): GearboxStateHuman {
     return {
       block: Number(this.currentBlock),
@@ -482,6 +638,13 @@ export class GearboxSDK<
     };
   }
 
+  /**
+   * Serialisable snapshot of the current SDK state.
+   *
+   * The returned object can be persisted (e.g. written to a file) and later
+   * passed to {@link GearboxSDK.hydrate} for instant restoration without
+   * on-chain reads.
+   **/
   public get state(): GearboxState<Plugins> {
     return {
       version: STATE_VERSION,
@@ -503,10 +666,20 @@ export class GearboxSDK<
   }
 
   /**
-   * Reloads markets states based on events from last processed block to new block (defaults to latest block)
-   * @param opts
-   * @returns true if successful, false if was skipped or failed
-   */
+   * Incrementally updates the SDK state by replaying on-chain events from the
+   * last processed block up to the target block (defaults to `latest`).
+   *
+   * Use the to periodically update sdk state on cron, or subscribe to new blocks
+   * using viem's `watchBlocks`
+   *
+   * On failure the SDK reverts to the previous block/timestamp so that
+   * subsequent calls can retry.
+   *
+   * @param opts - Target block and sync behaviour. When omitted the latest
+   *   block is fetched automatically.
+   * @returns `true` if the sync completed successfully, `false` if it was
+   *   skipped or failed.
+   **/
   public async syncState(opts?: SyncStateOptions): Promise<boolean> {
     let {
       blockNumber,
@@ -625,6 +798,11 @@ export class GearboxSDK<
     return success;
   }
 
+  /**
+   * Block number that the SDK state corresponds to.
+   *
+   * @throws If the SDK has not been attached or hydrated yet.
+   **/
   public get currentBlock(): bigint {
     if (this.#currentBlock === undefined) {
       throw ERR_NOT_ATTACHED;
@@ -632,6 +810,11 @@ export class GearboxSDK<
     return this.#currentBlock;
   }
 
+  /**
+   * Block timestamp (Unix epoch seconds) corresponding to {@link currentBlock}.
+   *
+   * @throws If the SDK has not been attached or hydrated yet.
+   **/
   public get timestamp(): bigint {
     if (this.#timestamp === undefined) {
       throw ERR_NOT_ATTACHED;
@@ -640,8 +823,13 @@ export class GearboxSDK<
   }
 
   /**
-   * All price feeds known to sdk, without oracle-related data (stalenessPeriod, main/reserve, etc.)
-   */
+   * Global registry of all price feeds known to the SDK (on all markets).
+   *
+   * Unlike per-oracle price feed references, this register does not carry
+   * oracle-specific metadata (staleness period, main/reserve designation, etc.).
+   *
+   * @throws If the SDK has not been attached or hydrated yet.
+   **/
   public get priceFeeds(): PriceFeedRegister {
     if (this.#priceFeeds === undefined) {
       throw ERR_NOT_ATTACHED;
@@ -649,6 +837,10 @@ export class GearboxSDK<
     return this.#priceFeeds;
   }
 
+  /**
+   * Address of the GEAR governance token on this chain, or `undefined`
+   * if the address provider does not list it.
+   **/
   public get gear(): Address | undefined {
     try {
       const g = this.addressProvider.getAddress(AP_GEAR_TOKEN, NO_VERSION);
@@ -659,6 +851,12 @@ export class GearboxSDK<
     }
   }
 
+  /**
+   * The chain's address provider contract, the central directory for all
+   * protocol-wide Gearbox protocol addresses.
+   *
+   * @throws If the SDK has not been attached or hydrated yet.
+   **/
   public get addressProvider(): IAddressProviderContract {
     if (this.#addressProvider === undefined) {
       throw ERR_NOT_ATTACHED;
@@ -666,6 +864,11 @@ export class GearboxSDK<
     return this.#addressProvider;
   }
 
+  /**
+   * Registry of all loaded markets (pools, credit managers, oracles, etc.).
+   *
+   * @throws If the SDK has not been attached or hydrated yet.
+   **/
   public get marketRegister(): MarketRegister {
     if (this.#marketRegister === undefined) {
       throw ERR_NOT_ATTACHED;
@@ -674,10 +877,15 @@ export class GearboxSDK<
   }
 
   /**
-   * Returns router contract that will work for given credit manager or credit facade, or simply version range
-   * @param params
-   * @returns
-   */
+   * Resolves the appropriate router contract for a given credit manager,
+   * credit facade, or explicit version range.
+   *
+   * @param params - Identifies the context: a credit manager address/state,
+   *   a credit facade address/state, or a {@link VersionRange}.
+   * @returns The matching router contract instance.
+   * @throws If the credit facade version is unsupported or no router is
+   *   registered for the resolved version range.
+   **/
   public routerFor(
     params:
       | { creditManager: Address | BaseState | IBaseContract }
