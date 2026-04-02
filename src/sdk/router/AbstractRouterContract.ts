@@ -6,12 +6,13 @@ import type { GearboxSDK } from "../GearboxSDK.js";
 import type { IPriceOracleContract } from "../market/index.js";
 import { AddressMap, AddressSet, formatBN, isDust } from "../utils/index.js";
 import { limitLeftover } from "./helpers.js";
-import type {
-  Asset,
-  ExpectedAndLeftoverOptions,
-  RouterCASlice,
-  RouterCMSlice,
-} from "./types.js";
+import type { Asset, RouterCASlice, RouterCMSlice } from "./types.js";
+
+export interface ExpectedAndLeftoverOptions {
+  balances?: Leftovers;
+  keepAssets?: Address[];
+  debtOnly?: boolean;
+}
 
 export interface Leftovers {
   expectedBalances: AddressMap<Asset>;
@@ -19,9 +20,23 @@ export interface Leftovers {
   tokensToClaim: AddressMap<Asset>;
 }
 
+/**
+ * @internal
+ * Base class for router contract wrappers.
+ *
+ * Provides helpers that classify credit-account token balances into
+ * "expected" (to be swapped) and "leftover" (to be kept) categories,
+ * which concrete router implementations use when building optimised
+ * multi-call swap paths.
+ *
+ * @typeParam abi - ABI type of the underlying router contract.
+ **/
 export abstract class AbstractRouterContract<
   abi extends Abi | readonly unknown[],
 > extends BaseContract<abi> {
+  /**
+   * Reference to the parent SDK instance.
+   **/
   public readonly sdk: GearboxSDK;
 
   constructor(sdk: GearboxSDK, args: BaseContractArgs<abi>) {
@@ -115,7 +130,7 @@ export abstract class AbstractRouterContract<
   }
 
   /**
-   * Tries to sell just enought of most valuable token to cover debt
+   * Tries to sell just enough of the most valuable token to cover debt.
    * @param ca
    * @param keepAssets
    * @returns

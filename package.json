@@ -70,7 +70,8 @@
     "check:ci": "biome check --diagnostic-level=error",
     "typecheck:ci": "tsc --noEmit",
     "docs": "NODE_OPTIONS='--max-old-space-size=8192' pnpm --filter @gearbox-protocol/sdk-docs build",
-    "docs:dev": "pnpm --filter @gearbox-protocol/sdk-docs start"
+    "docs:dev": "pnpm --filter @gearbox-protocol/sdk-docs start",
+    "docs:serve": "pnpm --filter @gearbox-protocol/sdk-docs serve"
   },
   "dependencies": {
     "@gearbox-protocol/integrations-v3": "1.54.2",

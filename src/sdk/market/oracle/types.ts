@@ -15,8 +15,20 @@ import type {
 } from "../pricefeeds/index.js";
 import type PriceFeedAnswerMap from "./PriceFeedAnswerMap.js";
 
+/**
+ * Filter controlling which feed types to include when querying
+ * price feeds for a set of tokens. Both default to `true`.
+ **/
 export interface PriceFeedsForTokensOptions {
+  /**
+   * Include main (primary) price feeds.
+   * @default true
+   **/
   main?: boolean;
+  /**
+   * Include reserve (fallback) price feeds.
+   * @default true
+   **/
   reserve?: boolean;
 }
 
@@ -29,83 +41,86 @@ export interface OnDemandPriceUpdates {
   multicall: MultiCall[];
 }
 
+/**
+ * Public interface for a Gearbox price oracle contract.
+ *
+ * Each Gearbox market has one price oracle that aggregates USD-denominated
+ * price feeds for every collateral token.
+ **/
 export interface IPriceOracleContract extends IBaseContract {
   /**
-   * All price feed tree nodes known to this oracle
-   */
+   * All price feed contract instances known to this oracle
+   **/
   priceFeeds: IPriceFeedContract[];
   /**
-   * Mapping Token => [PriceFeed Address, stalenessPeriod]
-   */
+   * Main price feed references, keyed by token address.
+   **/
   mainPriceFeeds: AddressMap<PriceFeedRef>;
   /**
-   * Mapping Token => Price in USD
-   */
+   * Latest main prices in USD (8 decimals), keyed by token address.
+   **/
   mainPrices: PriceFeedAnswerMap;
   /**
-   * Gets main price for given token
-   * Throws if token price feed is not found or answer is not successful
-   * @param token
-   * @returns
-   */
+   * Returns the main USD price for a token.
+   * @param token - Token address.
+   * @throws If the token has no main feed or the answer failed.
+   **/
   mainPrice: (token: Address) => bigint;
 
   /**
-   * Mapping Token => [PriceFeed Address, stalenessPeriod]
-   */
+   * Reserve price feed references, keyed by token address.
+   **/
   reservePriceFeeds: AddressMap<PriceFeedRef>;
   /**
-   * Mapping Token => Price in USD
-   */
+   * Latest reserve prices in USD (8 decimals), keyed by token address.
+   **/
   reservePrices: PriceFeedAnswerMap;
   /**
-   * Gets reserve price for given token
-   * Throws if token price feed is not found or answer is not successful
-   * @param token
-   * @returns
-   */
+   * Returns the reserve USD price for a token.
+   * @param token - Token address.
+   * @throws If the token has no reserve feed or the answer failed.
+   **/
   reservePrice: (token: Address) => bigint;
 
   /**
-   * Paired method to updatePrices, helps to update prices on all oracles in one multicall
-   */
+   * @internal
+   **/
   syncStateMulticall: () => DelegatedOracleMulticall;
 
   /**
-   * Returns true if oracle's price feed tree contains given price feed
-   * This feed is not necessary connected to token, but can be a component of composite feed for some token
-   * @param priceFeed
-   * @returns
-   */
+   * Checks whether the given price feed address appears anywhere in this
+   * oracle's feed tree (including as a dependency of a composite feed,
+   * not just directly assigned to a token).
+   * @param priceFeed - Price feed address to look up.
+   **/
   usesPriceFeed: (priceFeed: Address) => boolean;
 
   /**
-   * Returns main and reserve price feeds for given tokens
-   * @param tokens
-   * @param opts Option to include main/reserve feeds only, defaults to both
-   * @returns
-   */
+   * Collects the main and/or reserve price feeds assigned to the given tokens.
+   * @param tokens - Token addresses to query.
+   * @param opts - Filter to include only main or only reserve feeds.
+   **/
   priceFeedsForTokens: (
     tokens: Address[],
     opts?: PriceFeedsForTokensOptions,
   ) => IPriceFeedContract[];
   /**
-   * Converts previously obtained price updates into CreditFacade multicall entries
-   * @param creditFacade
-   * @param updates
-   * @returns
-   */
+   * Converts previously obtained price updates into CreditFacade
+   * multicall entries and raw `PriceUpdateV310` structures.
+   * @param creditFacade - Address of the credit facade that will receive the multicall.
+   * @param updates - Price update result to convert. When omitted, uses latest cached updates.
+   **/
   onDemandPriceUpdates: (
     creditFacade: Address,
     updates?: UpdatePriceFeedsResult,
   ) => OnDemandPriceUpdates;
   /**
-   * Tries to convert amount of from one token to another, using latest known prices
-   * @param from
-   * @param to
-   * @param amount
-   * @param reserve use reserve price feed instead of main
-   */
+   * Converts an amount from one token to another using latest known prices.
+   * @param from - Source token address.
+   * @param to - Destination token address.
+   * @param amount - Amount in source-token decimals.
+   * @param reserve - Use reserve feeds instead of main.
+   **/
   convert: (
     from: Address,
     to: Address,
@@ -113,29 +128,33 @@ export interface IPriceOracleContract extends IBaseContract {
     reserve?: boolean,
   ) => bigint;
   /**
-   * Tries to convert amount of token to USD, using latest known prices
-   * @param from
-   * @param amount
-   * @param reserve use reserve price feed instead of main
-   */
+   * Converts a token amount to its USD value using latest known prices.
+   * @param from - Token address.
+   * @param amount - Amount in token decimals.
+   * @param reserve - Use reserve feeds instead of main.
+   **/
   convertToUSD: (from: Address, amount: bigint, reserve?: boolean) => bigint;
   /**
-   * Tries to convert amount of USD to token, using latest known prices
-   * @param to
-   * @param amount
-   * @param reserve use reserve price feed instead of main
-   */
+   * Converts a USD amount to a token amount using latest known prices.
+   * @param to - Token address.
+   * @param amount - Amount in USD (8 decimals).
+   * @param reserve - Use reserve feeds instead of main.
+   **/
   convertFromUSD: (to: Address, amount: bigint, reserve?: boolean) => bigint;
   /**
-   * Returns list of addresses that should be watched for events to sync state
-   */
+   * @internal
+   **/
   watchAddresses: Set<Address>;
   /**
-   * Returns human readable state of the oracle
-   */
+   * Returns a human-readable snapshot of the oracle state.
+   * @param raw - When `true`, includes raw/unformatted values.
+   **/
   stateHuman: (raw?: boolean) => PriceOracleStateHuman;
 }
 
+/**
+ * @internal
+ **/
 export interface DelegatedOracleMulticall {
   call: ContractFunctionParameters<
     typeof priceFeedCompressorAbi,

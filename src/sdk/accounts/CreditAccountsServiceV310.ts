@@ -18,12 +18,21 @@ import type {
   WithdrawCollateralProps,
 } from "./types.js";
 
+/**
+ * Service for querying and operating on Gearbox credit accounts.
+ *
+ * Provides methods to fetch account data, build transactions for common operations
+ * (open, close, liquidate, swap, manage collateral/debt/quotas), and generate
+ * the price feed updates required by the credit facade.
+ *
+ * @see {@link ICreditAccountsService}
+ **/
 export class CreditAccountServiceV310
   extends AbstractCreditAccountService
   implements ICreditAccountsService
 {
   /**
-   * Implements {@link ICreditAccountsService.setBot}
+   * {@inheritDoc ICreditAccountsService.setBot}
    */
   public async setBot({
     botAddress,
@@ -82,7 +91,7 @@ export class CreditAccountServiceV310
   }
 
   /**
-   * Implements {@link ICreditAccountsService.withdrawCollateral}
+   * {@inheritDoc ICreditAccountsService.withdrawCollateral}
    */
   public async withdrawCollateral({
     creditAccount,
@@ -123,7 +132,7 @@ export class CreditAccountServiceV310
   }
 
   /**
-   * Implements {@link ICreditAccountsService.repayCreditAccount}
+   * {@inheritDoc ICreditAccountsService.repayCreditAccount}
    */
   async repayCreditAccount({
     operation,
@@ -168,7 +177,7 @@ export class CreditAccountServiceV310
   }
 
   /**
-   * Implements {@link ICreditAccountsService.repayAndLiquidateCreditAccount}
+   * {@inheritDoc ICreditAccountsService.repayAndLiquidateCreditAccount}
    */
   async repayAndLiquidateCreditAccount({
     collateralAssets,
@@ -211,7 +220,7 @@ export class CreditAccountServiceV310
   }
 
   /**
-   * Implements {@link ICreditAccountsService.claimFarmRewards}
+   * {@inheritDoc ICreditAccountsService.claimFarmRewards}
    */
   async claimFarmRewards({
     calls: externalCalls,

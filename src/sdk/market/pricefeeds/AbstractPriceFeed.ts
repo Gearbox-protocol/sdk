@@ -38,6 +38,9 @@ export class PartialPriceFeedInitError extends Error {
   }
 }
 
+/**
+ * @internal
+ */
 export abstract class AbstractPriceFeedContract<
     const abi extends Abi | readonly unknown[],
   >

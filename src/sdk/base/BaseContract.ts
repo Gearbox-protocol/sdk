@@ -43,20 +43,55 @@ import type {
   ParsedCallV2,
 } from "./types.js";
 
+/**
+ * Arguments for constructing a {@link BaseContract}.
+ **/
 export interface BaseContractArgs<abi extends Abi | readonly unknown[]> {
+  /**
+   * Contract ABI used for encoding/decoding.
+   **/
   abi: abi;
+  /**
+   *  On-chain address of the contract.
+   **/
   addr: Address;
+  /**
+   * Optional display name for the contract.
+   **/
   name?: string;
+  /**
+   * Contract version
+   * @default 0
+   **/
   version?: number | bigint;
+  /**
+   * Gearbox contract type identifier (hex bytes32 or parsed string).
+   **/
   contractType?: string;
 }
 
+/**
+ * Options supplied to the {@link ContractParseError} constructor.
+ **/
 export interface ContractParseErrorOptions {
+  /**
+   * Address of the contract where parsing failed.
+   **/
   address: Address;
+  /**
+   * Raw calldata that could not be decoded.
+   **/
   callData: Hex;
+  /**
+   * Optional display name for the contract.
+   **/
   contractName?: string;
 }
 
+/**
+ * Error thrown when calldata cannot be decoded against a contract's ABI.
+ * Captures the target address and raw calldata for diagnostics.
+ */
 export class ContractParseError extends BaseError {
   public readonly address: Address;
   public readonly callData: Hex;
@@ -77,19 +112,44 @@ export class ContractParseError extends BaseError {
   }
 }
 
+/**
+ * Wrapper around a single on-chain contract, providing calldata decoding,
+ * event fetching, and human-readable state output.
+ *
+ * @typeParam abi - Narrowed ABI type for this contract.
+ **/
 export class BaseContract<abi extends Abi | readonly unknown[]>
   extends Construct
   implements IBaseContract
 {
+  /**
+   * Viem contract instance for direct read calls
+   **/
   public readonly contract: GetContractReturnType<
     abi,
     PublicClient<Transport, Chain>,
     Address
   >;
+  /**
+   * Contract ABI
+   **/
   public readonly abi: abi;
+  /**
+   * Gearbox contract type identifier (e.g. `"CREDIT_MANAGER"`), or empty string if unknown.
+   **/
   public readonly contractType: string;
+  /**
+   * Contract version number.
+   * @default 0
+   **/
   public readonly version: number;
+  /**
+   * On-chain address of the contract.
+   **/
   public readonly address: Address;
+  /**
+   * Display name for the contract.
+   **/
   public readonly name: string;
 
   constructor(options: ConstructOptions, args: BaseContractArgs<abi>) {
@@ -118,6 +178,7 @@ export class BaseContract<abi extends Abi | readonly unknown[]>
     }
   }
 
+  /** {@inheritDoc IBaseContract.stateHuman} */
   public stateHuman(_ = true): BaseContractStateHuman {
     return {
       address: this.labelAddress(this.address),
@@ -127,9 +188,10 @@ export class BaseContract<abi extends Abi | readonly unknown[]>
   }
 
   /**
-   * Updates (or not) contract's internal state from event
-   * @param _log
-   */
+   * Applies an on-chain event to update this contract's local state.
+   *
+   * @param _log - Decoded event log emitted by this contract.
+   **/
   public processLog(
     _log: Log<
       bigint,
@@ -220,9 +282,8 @@ export class BaseContract<abi extends Abi | readonly unknown[]>
   }
 
   /**
-   * Same as {@link stingifyFunctionData}, but throws if error occurs
-   * @param calldata
-   * @returns
+   * Same as {@link stringifyFunctionData}, but throws if error occurs.
+   * @param calldata - Raw ABI-encoded calldata.
    */
   public mustStringifyFunctionData(calldata: Hex): string {
     const decoded = decodeFunctionData({

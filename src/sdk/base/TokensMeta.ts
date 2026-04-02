@@ -10,18 +10,38 @@ import {
 } from "../utils/index.js";
 import type { TokenMetaData } from "./types.js";
 
+/**
+ * Options for {@link TokensMeta.formatBN}.
+ **/
 export interface FormatBNOptions {
+  /**
+   * Number of decimal places in the formatted output.
+   **/
   precision?: number;
+  /**
+   * When `true`, appends the token symbol to the formatted string.
+   **/
   symbol?: boolean;
 }
 
+/**
+ * Token metadata enriched with some attributes specific to certain classes of tokens
+ **/
 export interface TokenMetaDataExtended extends TokenMetaData {
   /**
-   * Undefined if token is not a phantom token
-   */
+   * Classification of the phantom token, or `undefined` for normal tokens.
+   **/
   phantomTokenType?: PhantomTokenContractType;
 }
 
+/**
+ * Registry of token metadata (symbol, decimals, phantom type) keyed by address.
+ *
+ * Extends {@link AddressMap} with convenience accessors for formatting token
+ * amounts and looking up tokens by symbol.
+ *
+ * Provides methods to lazy-load information about certain classes of tokens (e.g. phantom tokens)
+ */
 export class TokensMeta extends AddressMap<TokenMetaDataExtended> {
   #client: PublicClient<Transport, Chain>;
   #phantomTokensLoaded?: AddressSet;
@@ -31,15 +51,28 @@ export class TokensMeta extends AddressMap<TokenMetaDataExtended> {
     this.#client = client;
   }
 
+  /**
+   * Clears all token metadata
+   **/
   public reset(): void {
     this.clear();
     this.#phantomTokensLoaded = undefined;
   }
 
+  /**
+   * Returns the symbol string for a token.
+   * @param token - Token address.
+   * @throws If the token is not in the registry.
+   */
   public symbol(token: Address): string {
     return this.mustGet(token).symbol;
   }
 
+  /**
+   * Returns the decimal count for a token.
+   * @param token - Token address.
+   * @throws If the token is not in the registry.
+   */
   public decimals(token: Address): number {
     return this.mustGet(token).decimals;
   }
@@ -71,7 +104,21 @@ export class TokensMeta extends AddressMap<TokenMetaDataExtended> {
     );
   }
 
+  /**
+   * Formats a raw token amount into a human-readable decimal string,
+   * dividing by `10^decimals` for the token.
+   *
+   * Accepts either an {@link Asset} object or a separate `(token, amount)` pair.
+   *
+   * @param asset - Asset object containing `token` address and `balance`.
+   * @param options - Formatting options.
+   */
   public formatBN(asset: Asset, options?: FormatBNOptions): string;
+  /**
+   * @param token - Token address.
+   * @param amount - Raw amount (in smallest unit).
+   * @param options - Formatting options.
+   */
   public formatBN(
     token: Address,
     amount: number | bigint | string | undefined,
@@ -94,10 +141,20 @@ export class TokensMeta extends AddressMap<TokenMetaDataExtended> {
     return symbol ? `${asStr} ${this.symbol(token)}` : asStr;
   }
 
+  /**
+   * Finds a token by its symbol (e.g. `"USDC"`).
+   * @param symbol - Case-sensitive ticker symbol.
+   * @returns The matching metadata, or `undefined` if no token has this symbol.
+   */
   public findBySymbol(symbol: string): TokenMetaData | undefined {
     return this.values().find(v => v.symbol === symbol);
   }
 
+  /**
+   * Finds a token by its symbol, throwing if not found.
+   * @param symbol - Case-sensitive ticker symbol.
+   * @throws If no token matches the symbol.
+   */
   public mustFindBySymbol(symbol: string): TokenMetaData {
     const meta = this.findBySymbol(symbol);
     if (!meta) {

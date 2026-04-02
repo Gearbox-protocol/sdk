@@ -1,8 +1,3 @@
-import type { Address } from "viem";
-
-import type { NetworkType } from "../chain/index.js";
-import { NOT_DEPLOYED } from "./addresses.js";
-
 export const NO_VERSION = 0;
 
 export const AP_ACCOUNT_FACTORY = "ACCOUNT_FACTORY";
@@ -38,25 +33,9 @@ export const AP_WETH_TOKEN = "WETH_TOKEN";
 export const AP_ZAPPER_REGISTER = "ZAPPER_REGISTER";
 export const AP_ZERO_PRICE_FEED = "ZERO_PRICE_FEED";
 
-export const ADDRESS_PROVIDER: Record<NetworkType, Address> = {
-  Mainnet: "0x9ea7b04Da02a5373317D745c1571c84aaD03321D",
-  Arbitrum: "0x7d04eCdb892Ae074f03B5D0aBA03796F90F3F2af",
-  Optimism: "0x3761ca4BFAcFCFFc1B8034e69F19116dD6756726",
-  Base: NOT_DEPLOYED,
-  Sonic: "0x4b27b296273B72d7c7bfee1ACE93DC081467C41B",
-  // New networks
-  MegaETH: NOT_DEPLOYED,
-  Monad: NOT_DEPLOYED,
-  Berachain: NOT_DEPLOYED,
-  Avalanche: NOT_DEPLOYED,
-  BNB: NOT_DEPLOYED,
-  WorldChain: NOT_DEPLOYED,
-  Etherlink: NOT_DEPLOYED,
-  Hemi: NOT_DEPLOYED,
-  Lisk: NOT_DEPLOYED,
-  Plasma: NOT_DEPLOYED,
-  Somnia: NOT_DEPLOYED,
-};
-
+/**
+ * Default address provider address for v3.1.0
+ * Is determenistic and does not depend on the network type
+ */
 export const ADDRESS_PROVIDER_V310 =
   "0xF7f0a609BfAb9a0A98786951ef10e5FE26cC1E38";

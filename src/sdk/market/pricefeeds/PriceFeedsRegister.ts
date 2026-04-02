@@ -56,39 +56,73 @@ export type PriceFeedRegisterHooks = {
   updatesGenerated: [UpdatePriceFeedsResult];
 };
 
+/**
+ * Configuration for external price-update providers supported by the register.
+ **/
 export interface PriceFeedRegisterOptions {
+  /**
+   * Redstone price-update provider options.
+   **/
   redstone?: RedstoneOptions;
+  /**
+   * Pyth price-update provider options.
+   **/
   pyth?: PythOptions;
 }
 
+/**
+ * @internal
+ * Diagnostic snapshot of the most recent price-update round.
+ **/
 export interface LatestUpdate {
+  /**
+   * Unix timestamp (seconds) of the most recent update.
+   **/
   timestamp: number;
+  /**
+   * Individual update tasks that were executed.
+   **/
   updates: IPriceUpdateTask[];
 }
 
 /**
- * PriceFeedRegister acts as a chain-level cache to avoid creating multiple contract instances.
- * It's reused by PriceOracles belonging to different markets
+ * Chain-level cache of price feed contract instances.
  *
+ * All {@link IPriceOracleContract}s across different markets share a single
+ * `PriceFeedRegister`, avoiding duplicate contract wrappers for the same
+ * on-chain feed. The register also orchestrates off-chain price updates
+ * (Pyth, Redstone, etc.).
  **/
 export class PriceFeedRegister
   extends SDKConstruct
   implements IHooks<PriceFeedRegisterHooks>
 {
   readonly #hooks = new Hooks<PriceFeedRegisterHooks>();
+  readonly #updaters: IPriceUpdater[];
   #feeds = new AddressMap<IPriceFeedContract>(undefined, "priceFeeds");
   #latestUpdate: LatestUpdate | undefined;
-  public readonly updaters: IPriceUpdater[];
 
   constructor(sdk: GearboxSDK, opts: PriceFeedRegisterOptions = {}) {
     super(sdk);
-    this.updaters = [
+    this.#updaters = [
       new PythUpdater(sdk, opts?.pyth),
       new RedstoneUpdater(sdk, opts?.redstone),
     ];
   }
 
+  /**
+   * @internal
+   * Registers a callback for price-feed register lifecycle events.
+   * @param event - Event name.
+   * @param handler - Callback to invoke.
+   **/
   public addHook = this.#hooks.addHook.bind(this.#hooks);
+  /**
+   * @internal
+   * Removes a previously registered hook.
+   * @param event - Event name.
+   * @param handler - Callback to remove.
+   **/
   public removeHook = this.#hooks.removeHook.bind(this.#hooks);
 
   /**
@@ -99,12 +133,13 @@ export class PriceFeedRegister
   }
 
   /**
-   * Returns RawTxs to update price feeds
-   * @param priceFeeds Array oftop-level price feeds, actual updatable price feeds will be derived.
-   * Or filter criteria, that will gather all main or reserve price feeds from all oracles
-   * If not provided will use all price feeds that are attached
-   * @returns
-   */
+   * Generates transactions to push fresh off-chain prices to updatable feeds.
+   *
+   * @param priceFeeds - Top-level price feeds whose updatable dependencies
+   *   will be resolved, or a filter (`{ main: true }` / `{ reserve: true }`)
+   *   to gather feeds from all oracles. When omitted, all registered feeds
+   *   are used.
+   **/
   public async generatePriceFeedsUpdateTxs(
     priceFeeds?: IPriceFeedContract[] | { main: true } | { reserve: true },
   ): Promise<UpdatePriceFeedsResult> {
@@ -134,7 +169,7 @@ export class PriceFeedRegister
 
     const updates = (
       await Promise.all(
-        this.updaters.map(u => u.getUpdateTxs(updateables).catch(() => [])),
+        this.#updaters.map(u => u.getUpdateTxs(updateables).catch(() => [])),
       )
     ).flat();
 
@@ -195,7 +230,7 @@ export class PriceFeedRegister
   }
 
   /**
-   * Similar to {@link generatePriceFeedsUpdateTxs}, but will generate necessary price update transactions for external price feeds
+   * Similar to {@link generatePriceFeedsUpdateTxs}, but will generate necessary price update transactions for external price feeds (not known to sdk)
    * This does not add feeds to this register, so they won't be implicitly included in future generatePriceFeedsUpdateTxs calls
    * @param feeds
    * @param block
@@ -240,14 +275,34 @@ export class PriceFeedRegister
     return getRawPriceUpdates(updates);
   }
 
+  /**
+   * Checks whether a price feed is already registered at the given address.
+   * @param address - On-chain address to look up.
+   **/
   public has(address: Address): boolean {
     return this.#feeds.has(address);
   }
 
+  /**
+   * Returns the cached price feed contract at the given address.
+   * @param address - On-chain address to look up.
+   * @throws If no feed is registered at that address.
+   **/
   public mustGet(address: Address): IPriceFeedContract {
     return this.#feeds.mustGet(address);
   }
 
+  /**
+   * Inserts or updates a price feed from a full tree node.
+   *
+   * If a fully loaded feed already exists at the same address, only the
+   * answer is refreshed. Otherwise a new contract wrapper is created and
+   * cached.
+   *
+   * @param data - Full price feed tree node from the compressor.
+   * @returns The cached (or newly created) feed instance.
+   * @throws If the created feed is only partially initialized.
+   **/
   public upsert(data: PriceFeedTreeNode): IPriceFeedContract {
     const existing = this.#feeds.get(data.baseParams.addr);
     // it's possible to have non-loaded price feed here first from MarketCompressor.getUpdatablePriceFeeds
@@ -303,6 +358,14 @@ export class PriceFeedRegister
     return result.map(baseParams => this.#createUpdatableProxy({ baseParams }));
   }
 
+  /**
+   * Instantiates the appropriate price feed contract wrapper based on
+   * the `contractType` discriminator in the node's base params.
+   *
+   * @param data - Partial or full price feed tree node.
+   * @returns A new (uncached) feed contract instance.
+   * @throws If the contract type is unsupported and strict mode is enabled.
+   **/
   public create(data: PartialPriceFeedTreeNode): IPriceFeedContract {
     const contractType = bytes32ToString(
       data.baseParams.contractType as Hex,
@@ -389,8 +452,10 @@ export class PriceFeedRegister
   }
 
   /**
-   * Information update latest update of updatable price feeds, for diagnostic purposes
-   */
+   * @internal
+   * Diagnostic snapshot of the most recent price-update round, or
+   * `undefined` if no updates have been generated yet.
+   **/
   public get latestUpdate(): LatestUpdate | undefined {
     return this.#latestUpdate;
   }

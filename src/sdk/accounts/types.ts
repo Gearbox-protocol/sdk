@@ -22,65 +22,180 @@ import type {
 } from "../router/index.js";
 import type { MultiCall, RawTx } from "../types/index.js";
 
+/**
+ * @internal
+ * Arguments tuple for the credit account compressor's `getCreditAccounts` view method.
+ **/
 export type GetCreditAccountsArgs = ContractFunctionArgs<
   typeof creditAccountCompressorAbi,
   "pure" | "view",
   "getCreditAccounts"
 >;
 
+/**
+ * @internal
+ * Filtering criteria applied to individual credit accounts when querying the compressor.
+ **/
 export interface CreditAccountFilter {
+  /**
+   * Filter by account owner address.
+   **/
   owner: Address;
+  /**
+   * Whether to include accounts with zero outstanding debt.
+   **/
   includeZeroDebt: boolean;
+  /**
+   * Minimum health factor threshold (inclusive).
+   * 18 digits precision (10^18 = 1)
+   **/
   minHealthFactor: bigint;
+  /**
+   * Maximum health factor threshold (inclusive).
+   * 18 digits precision (10^18 = 1)
+   **/
   maxHealthFactor: bigint;
+  /**
+   * Whether to return only accounts whose health computation reverts.
+   **/
   reverting: boolean;
 }
 
+/**
+ * @internal
+ * Filtering criteria to select which credit managers to query.
+ **/
 export interface CreditManagerFilter {
+  /**
+   * Only include credit managers owned by these market configurators.
+   **/
   configurators: readonly Address[];
+  /**
+   * Only include these specific credit manager addresses.
+   **/
   creditManagers: readonly Address[];
+  /**
+   * Only include credit managers linked to these pool addresses.
+   **/
   pools: readonly Address[];
+  /**
+   * Only include credit managers with this underlying token.
+   **/
   underlying: Address;
 }
 
+/**
+ * Options for fetching credit accounts, allowing filtering by credit manager, owner, and health factor range.
+ **/
 export interface GetCreditAccountsOptions {
+  /**
+   * If set, only return accounts from this credit manager; otherwise query all attached markets.
+   **/
   creditManager?: Address;
+  /**
+   * If set, only return accounts owned by this address.
+   **/
   owner?: Address;
+  /**
+   * Whether to include accounts with zero outstanding debt.
+   * @default false
+   **/
   includeZeroDebt?: boolean;
+  /**
+   * Minimum health factor threshold (inclusive).
+   * 18 digits precision (10^18 = 1)
+   * @default 0n
+   **/
   minHealthFactor?: bigint;
+  /**
+   * Maximum health factor threshold (inclusive).
+   * 18 digits precision (10^18 = 1)
+   * @default MAX_UINT256
+   **/
   maxHealthFactor?: bigint;
   /**
-   * If true, will filter out reserve price updates
-   */
+   * If true, exclude reserve price feed updates from the query.
+   **/
   ignoreReservePrices?: boolean;
 }
 
+/**
+ * Options for generating on-demand price feed updates scoped to a specific credit manager.
+ **/
 export interface PriceUpdatesOptions {
+  /**
+   * Credit manager whose collateral tokens determine which price feeds to update.
+   **/
   creditManager: Address;
+  /**
+   * Credit account token balances; when provided, only tokens with non-dust enabled balances are updated.
+   **/
   creditAccount?: CreditAccountTokensSlice;
+  /**
+   * Tokens for which quota is being bought; their price feeds are updated even if the account has no balance yet.
+   **/
   desiredQuotas?: Asset[];
+  /**
+   * If true, exclude reserve price feed updates.
+   **/
   ignoreReservePrices?: boolean;
 }
 
+/**
+ * Result of closing or liquidating a credit account, including the router's optimal close path.
+ **/
 export interface CloseCreditAccountResult extends CreditAccountOperationResult {
+  /**
+   * Router result describing the swap path used to convert account tokens into the underlying.
+   **/
   routerCloseResult: RouterCloseResult;
 }
 
+/**
+ * Result of a full liquidation, extending the close result with optional loss policy data.
+ **/
 export interface FullyLiquidateResult extends CloseCreditAccountResult {
+  /**
+   * Encoded loss policy data submitted with the liquidation, if a loss policy was applied.
+   **/
   lossPolicyData?: Hex;
 }
 
+/**
+ * Result of a credit account operation, containing everything needed to execute the transaction.
+ **/
 export interface CreditAccountOperationResult {
+  /**
+   * Raw transaction data ready to be signed and submitted.
+   **/
   tx: RawTx;
+  /**
+   * Ordered multicall entries that make up the operation.
+   **/
   calls: Array<MultiCall>;
+  /**
+   * Credit facade contract used for the operation.
+   **/
   creditFacade: CreditSuite["creditFacade"];
 }
 
+/**
+ * Lightweight operation result without a raw transaction, containing only multicall data.
+ **/
 export interface CreditManagerOperationResult {
+  /**
+   * Ordered multicall entries that make up the operation.
+   **/
   calls: Array<MultiCall>;
+  /**
+   * Credit facade contract used for the operation.
+   **/
   creditFacade: CreditSuite["creditFacade"];
 }
 
+/**
+ * Close operation type: `"close"` fully closes the account, `"zeroDebt"` repays all debt but keeps the account open.
+ **/
 export type CloseOptions = "close" | "zeroDebt";
 
 export interface CloseCreditAccountProps {
@@ -123,10 +238,10 @@ export interface RepayCreditAccountProps
 
 export interface RepayAndLiquidateCreditAccountProps {
   /**
-   * tokens to repay dept. 
-      In the current implementation, this is the (debt+interest+fess) * buffer, 
-      where buffer refers to amount of tokens which will exceed current debt 
-      in order to cover possible debt increase over tx execution
+   * Tokens to repay debt.
+   * In the current implementation, this is the (debt+interest+fees) * buffer,
+   * where buffer refers to amount of tokens which will exceed current debt
+   * in order to cover possible debt increase over tx execution.
    */
   collateralAssets: Array<Asset>;
   /**
@@ -136,7 +251,7 @@ export interface RepayAndLiquidateCreditAccountProps {
    */
   assetsToWithdraw: Array<Asset>;
   /**
-   * minimal credit account data on which operation is performed on which operation is performed
+   * Minimal credit account data on which operation is performed.
    */
   creditAccount: RouterCASlice;
   /**
@@ -144,7 +259,7 @@ export interface RepayAndLiquidateCreditAccountProps {
    */
   to: Address;
   /**
-   * permits of tokens to withdraw (in any permittable token is present)
+   * Permits of tokens to withdraw (if any permittable token is present).
    */
   permits: Record<string, PermitResult>;
   tokensToClaim: Asset[];
@@ -202,8 +317,17 @@ export interface WithdrawCollateralProps extends PrepareUpdateQuotasProps {
   creditAccount: RouterCASlice;
 }
 
+/**
+ * Credit account and credit manager address pair, used for batch queries such as connected bot lookups.
+ **/
 export type AccountToCheck = {
+  /**
+   * Address of the credit account.
+   **/
   creditAccount: Address;
+  /**
+   * Address of the credit manager that manages this account.
+   **/
   creditManager: Address;
 };
 
@@ -245,6 +369,9 @@ type WithdrawalCompressorV310InstanceType = GetContractReturnType<
   PublicClient
 >;
 
+/**
+ * Result of previewing a delayed withdrawal request, as returned by the withdrawal compressor.
+ **/
 export type PreviewDelayedWithdrawalResult = Awaited<
   ReturnType<
     WithdrawalCompressorV310InstanceType["read"]["getWithdrawalRequestResult"]
@@ -256,11 +383,26 @@ type PendingWithdrawalResult = Awaited<
     WithdrawalCompressorV310InstanceType["read"]["getCurrentWithdrawals"]
   >
 >;
+/**
+ * A single pending delayed withdrawal that is not yet claimable.
+ **/
 export type PendingWithdrawal = PendingWithdrawalResult[1][number];
+/**
+ * A single delayed withdrawal that is ready to be claimed.
+ **/
 export type ClaimableWithdrawal = PendingWithdrawalResult[0][number];
 
+/**
+ * Aggregated delayed withdrawal status, split into immediately claimable and still-pending entries.
+ **/
 export interface GetPendingWithdrawalsResult {
+  /**
+   * Withdrawals that have matured and can be claimed now.
+   **/
   claimableNow: Array<ClaimableWithdrawal>;
+  /**
+   * Withdrawals that are still in their delay period.
+   **/
   pending: Array<PendingWithdrawal>;
 }
 
@@ -392,30 +534,75 @@ export interface FullyLiquidateProps {
    */
   applyLossPolicy?: boolean;
   /**
-   * Debt only mode - will try to sell just enought of most valuable token to cover debt
+   * Debt only mode — will try to sell just enough of the most valuable token to cover debt.
    */
   debtOnly?: boolean;
 }
 
+/**
+ * EIP-2612 permit signature data for a token, enabling gasless approval for credit account operations.
+ **/
 export interface PermitResult {
+  /**
+   * ECDSA signature `r` component.
+   **/
   r: Address;
+  /**
+   * ECDSA signature `s` component.
+   **/
   s: Address;
+  /**
+   * ECDSA signature `v` component.
+   **/
   v: number;
 
+  /**
+   * Token address the permit is for.
+   **/
   token: Address;
+  /**
+   * Address of the token holder granting the permit.
+   **/
   owner: Address;
+  /**
+   * Address authorized to spend the tokens.
+   **/
   spender: Address;
+  /**
+   * Amount of tokens approved.
+   **/
   value: bigint;
 
+  /**
+   * Timestamp after which the permit expires.
+   **/
   deadline: bigint;
+  /**
+   * Owner's current permit nonce.
+   **/
   nonce: bigint;
 }
 
+/**
+ * Claimable reward tokens associated with a single staking adapter and phantom token pair.
+ **/
 export interface Rewards {
+  /**
+   * Address of the reward pool adapter on the credit account.
+   **/
   adapter: Address;
+  /**
+   * Address of the staked phantom token representing the staking position.
+   **/
   stakedPhantomToken: Address;
+  /**
+   * Multicall entries to claim these rewards.
+   **/
   calls: Array<MultiCall>;
 
+  /**
+   * List of reward token amounts claimable from this adapter.
+   **/
   rewards: Array<Asset>;
 }
 
@@ -442,6 +629,9 @@ export interface SetBotProps {
   targetContract: (RouterCASlice & { type: "creditAccount" }) | CMSlice;
 }
 
+/**
+ * Multicall result of querying connected bots across multiple credit accounts.
+ **/
 export type GetConnectedBotsResult = Array<
   | {
       error?: undefined;
@@ -455,6 +645,9 @@ export type GetConnectedBotsResult = Array<
     }
 >;
 
+/**
+ * Result of querying a migration bot's status across credit accounts, or `undefined` if no migration bot was provided.
+ **/
 export type GetConnectedMigrationBotsResult =
   | {
       result: (
@@ -475,17 +668,26 @@ export type GetConnectedMigrationBotsResult =
     }
   | undefined;
 
+/**
+ * Input for previewing a proportional Llamathena withdrawal.
+ **/
 export interface PreviewWithdrawLlamathenaProportionallyProps {
+  /**
+   * Llamathena token and amount to withdraw.
+   **/
   llamathena: Asset;
 }
+/**
+ * Result of a proportional Llamathena withdrawal preview.
+ **/
 export interface PreviewWithdrawLlamathenaProportionallyResult {
   /**
-   * Assets to get
-   */
+   * Underlying assets received from the withdrawal.
+   **/
   assets: [Asset];
   /**
-   * Llamathena asset
-   */
+   * Staked Llamathena token consumed.
+   **/
   stkLlamathena: [Asset];
 }
 
@@ -496,7 +698,7 @@ export interface LlamathenaProportionalWithdrawProps
    */
   preview: PreviewWithdrawLlamathenaProportionallyResult;
   /**
-   * minimal credit account data on which operation is performed on which operation is performed
+   * Minimal credit account data on which operation is performed.
    */
   creditAccount: RouterCASlice;
 }
@@ -527,8 +729,8 @@ export interface ICreditAccountsService extends Construct {
     blockNumber?: bigint,
   ): Promise<Array<CreditAccountData>>;
   /**
-   * Method to get all claimable rewards for credit account (ex. stkUSDS SKY rewards)
-   * Assosiates rewards by adapter + stakedPhantomToken
+   * Method to get all claimable rewards for credit account (ex. stkUSDS SKY rewards).
+   * Associates rewards by adapter + stakedPhantomToken.
    * @param {Address} creditAccount - address of credit account to get rewards for
    * @returns {Array<Rewards>} list of {@link Rewards} that can be claimed
    */
@@ -570,7 +772,7 @@ export interface ICreditAccountsService extends Construct {
   /**
    * Closes credit account or closes credit account and keeps it open with zero debt.
    * - Ca is closed in the following order: price update -> close path to swap all tokens into underlying ->
-   * -> disable quotas of exiting tokens -> decrease debt -> disable exiting tokens tokens -> withdraw underlying tokenz
+   * -> disable quotas of exiting tokens -> decrease debt -> disable exiting tokens -> withdraw underlying tokens
    * @param props - {@link CloseCreditAccountProps}
    * @returns All necessary data to execute the transaction (call, credit facade)
    */

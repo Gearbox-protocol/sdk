@@ -7,6 +7,9 @@ import {
   type PriceFeedConstructorArgs,
 } from "./AbstractPriceFeed.js";
 
+/**
+ * @internal
+ */
 export abstract class AbstractLPPriceFeedContract<
   const abi extends Abi | readonly unknown[],
 > extends AbstractPriceFeedContract<abi> {
