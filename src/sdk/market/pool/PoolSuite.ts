@@ -11,6 +11,7 @@ import createPoolQuotaKeeper from "./createPoolQuotaKeeper.js";
 import createRateKeeper from "./createRateKeeper.js";
 import { GaugeContract } from "./GaugeContract.js";
 import { LinearInterestRateModelContract } from "./LinearInterestRateModelContract.js";
+import type { SecuritizeKYCFactory } from "./SecuritizeKYCFactory.js";
 import { TumblerContract } from "./TumblerContract.js";
 import type {
   IInterestRateModelContract,
@@ -74,6 +75,10 @@ export class PoolSuite extends SDKConstruct {
 
   public get underlying(): Address {
     return this.pool.underlying;
+  }
+
+  public async getKYCFactory(): Promise<SecuritizeKYCFactory | undefined> {
+    return this.pool.getKYCFactory();
   }
 
   override get dirty(): boolean {

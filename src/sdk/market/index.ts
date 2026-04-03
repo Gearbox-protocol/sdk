@@ -5,3 +5,4 @@ export * from "./MarketSuite.js";
 export * from "./oracle/index.js";
 export * from "./pool/index.js";
 export * from "./pricefeeds/index.js";
+export * from "./types.js";

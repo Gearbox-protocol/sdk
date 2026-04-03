@@ -145,13 +145,6 @@ export type CreditConfiguratorState = CreditSuiteState["creditConfigurator"];
  **/
 export type AdapterData = Unarray<CreditSuiteState["adapters"]>;
 
-/**
- * On-chain metadata for a single token (symbol, decimals, address).
- **/
-export type TokenMetaData = Unarray<MarketData["tokens"]>;
-/**
- * On-chain state of a lending pool.
- **/
 export type PoolState = MarketData["pool"];
 /**
  * On-chain state of a quota keeper.
