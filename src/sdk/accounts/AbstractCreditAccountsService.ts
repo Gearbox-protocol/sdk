@@ -31,7 +31,7 @@ import type {
   UpdatePriceFeedsResult,
 } from "../market/index.js";
 import { type Asset, assetsMap, type RouterCASlice } from "../router/index.js";
-import type { IPriceUpdateTx, MultiCall } from "../types/index.js";
+import type { IPriceUpdateTx, MultiCall, RawTx } from "../types/index.js";
 import { AddressMap } from "../utils/index.js";
 import { simulateWithPriceUpdates } from "../utils/viem/index.js";
 import type {
@@ -915,22 +915,33 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   /**
    * {@inheritDoc ICreditAccountsService.openCA}
    **/
-  public async openCA({
-    ethAmount,
-    creditManager,
-    collateral,
-    permits,
-    debt,
-    withdrawDebt,
-    referralCode,
-    to,
-    calls: openPathCalls,
+  public async openCA(
+    props: OpenCAProps,
+  ): Promise<CreditAccountOperationResult> {
+    const {
+      ethAmount,
+      creditManager,
+      reopenCreditAccount,
+      collateral,
+      permits,
+      debt,
+      withdrawToken,
+      referralCode,
+      to,
+      calls: openPathCalls,
+      callsAfter,
 
-    minQuota,
-    averageQuota,
-  }: OpenCAProps): Promise<CreditAccountOperationResult> {
+      minQuota,
+      averageQuota,
+    } = props;
     const cmSuite = this.sdk.marketRegister.findCreditManager(creditManager);
     const cm = cmSuite.creditManager;
+    let tokenToWithdraw: Address | undefined;
+    if (withdrawToken === true) {
+      tokenToWithdraw = cm.underlying;
+    } else if (typeof withdrawToken === "string") {
+      tokenToWithdraw = withdrawToken;
+    }
 
     const priceUpdatesCalls = await this.getPriceUpdatesForFacade({
       creditManager: cm.address,
@@ -942,16 +953,29 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       this.#prepareIncreaseDebt(cm.creditFacade, debt),
       ...this.prepareAddCollateral(cm.creditFacade, collateral, permits),
       ...openPathCalls,
-      ...(withdrawDebt
-        ? [this.prepareWithdrawToken(cm.creditFacade, cm.underlying, debt, to)]
+      ...(tokenToWithdraw
+        ? [
+            this.prepareWithdrawToken(
+              cm.creditFacade,
+              tokenToWithdraw,
+              MAX_UINT256,
+              to,
+            ),
+          ]
         : []),
       ...this.prepareUpdateQuotas(cm.creditFacade, {
         minQuota,
         averageQuota,
       }),
+      ...(callsAfter ?? []),
     ];
 
-    const tx = cmSuite.creditFacade.openCreditAccount(to, calls, referralCode);
+    let tx: RawTx;
+    if (reopenCreditAccount) {
+      tx = await cmSuite.creditFacade.multicall(reopenCreditAccount, calls);
+    } else {
+      tx = cmSuite.creditFacade.openCreditAccount(to, calls, referralCode);
+    }
     tx.value = ethAmount.toString(10);
 
     return { calls, tx, creditFacade: cmSuite.creditFacade };
