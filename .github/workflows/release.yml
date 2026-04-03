@@ -5,7 +5,7 @@ on:
     branches:
       - "master"
       - "next"
-      - "beta"
+      - "kyc"
       - "*.x"
 
 env:
