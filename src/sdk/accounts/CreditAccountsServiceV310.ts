@@ -9,9 +9,6 @@ import type {
   CreditAccountOperationResult,
   CreditManagerOperationResult,
   ICreditAccountsService,
-  LlamathenaProportionalWithdrawProps,
-  PreviewWithdrawLlamathenaProportionallyProps,
-  PreviewWithdrawLlamathenaProportionallyResult,
   RepayAndLiquidateCreditAccountProps,
   RepayCreditAccountProps,
   SetBotProps,
@@ -84,7 +81,7 @@ export class CreditAccountServiceV310
 
     const tx =
       targetContract.type === "creditAccount"
-        ? cm.creditFacade.multicall(targetContract.creditAccount, calls)
+        ? await this.multicallTx(cm, targetContract.creditAccount, calls)
         : undefined;
 
     return { tx, calls, creditFacade: cm.creditFacade };
@@ -125,8 +122,7 @@ export class CreditAccountServiceV310
       operationCalls,
       creditAccount,
     );
-
-    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
+    const tx = await this.multicallTx(cm, creditAccount.creditAccount, calls);
 
     return { tx, calls, creditFacade: cm.creditFacade };
   }
@@ -168,11 +164,13 @@ export class CreditAccountServiceV310
       operation === "close"
         ? operationCalls
         : await this.prependPriceUpdates(ca.creditManager, operationCalls, ca);
+    const tx = await this.closeCreditAccountTx(
+      cm,
+      ca.creditAccount,
+      calls,
+      operation,
+    );
 
-    const tx =
-      operation === "close"
-        ? cm.creditFacade.closeCreditAccount(ca.creditAccount, calls)
-        : cm.creditFacade.multicall(ca.creditAccount, calls);
     return { tx, calls, creditFacade: cm.creditFacade };
   }
 
@@ -254,20 +252,8 @@ export class CreditAccountServiceV310
       operationCalls,
       ca,
     );
-
-    const tx = cm.creditFacade.multicall(ca.creditAccount, calls);
+    const tx = await this.multicallTx(cm, ca.creditAccount, calls);
 
     return { tx, calls, creditFacade: cm.creditFacade };
-  }
-
-  async previewWithdrawLlamathenaProportionally(
-    _: PreviewWithdrawLlamathenaProportionallyProps,
-  ): Promise<PreviewWithdrawLlamathenaProportionallyResult> {
-    throw new Error("Not implemented in v310");
-  }
-  async withdrawLlamathenaProportionally(
-    _: LlamathenaProportionalWithdrawProps,
-  ): Promise<CreditAccountOperationResult> {
-    throw new Error("Not implemented in v310");
   }
 }
