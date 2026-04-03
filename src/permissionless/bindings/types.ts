@@ -74,11 +74,6 @@ export interface Market {
   isDeployed: boolean;
 }
 
-export interface PriceUpdate {
-  priceFeed: Address;
-  data: Hex;
-}
-
 export enum AccessMode {
   Permissionless = 0,
   Permissioned = 1,

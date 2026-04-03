@@ -8,29 +8,19 @@ import {
   parseAbi,
   type Transport,
 } from "viem";
-import type { GearboxChain } from "../../../sdk/index.js";
+import type {
+  GearboxChain,
+  IPriceUpdateTx,
+  PriceUpdate,
+  RawTx,
+} from "../../../sdk/index.js";
 import {
   createRawTx,
   GearboxSDK,
-  type IPriceUpdateTx,
-  type RawTx,
+  getRawPriceUpdates,
 } from "../../../sdk/index.js";
-import {
-  PriceFeedStoreContract,
-  type PriceUpdate,
-} from "../../bindings/index.js";
+import { PriceFeedStoreContract } from "../../bindings/index.js";
 import { Addresses } from "../../deployment/addresses.js";
-
-export function getUpdateCalldata(tx: IPriceUpdateTx): PriceUpdate {
-  const data = decodeFunctionData({
-    abi: parseAbi(["function updatePrice(bytes calldata data) external"]),
-    data: tx.raw.callData,
-  });
-  return {
-    priceFeed: tx.raw.to,
-    data: data.args[0] as Hex,
-  };
-}
 
 export async function getPriceUpdateTx({
   client,
@@ -82,7 +72,7 @@ export async function getPriceUpdateTx({
     return multicallTx;
   }
 
-  const priceUpdates = updateTxs.txs.map(tx => getUpdateCalldata(tx));
+  const priceUpdates = getRawPriceUpdates(updateTxs);
   if (priceUpdates.length === 0) {
     return undefined;
   }

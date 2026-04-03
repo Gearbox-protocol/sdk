@@ -6,7 +6,7 @@ import {
   toFunctionSelector,
 } from "viem";
 import { iCreditFacadeMulticallV310Abi } from "../../abi/310/generated.js";
-import type { PriceUpdateV310 } from "../market/pricefeeds/types.js";
+import type { PriceUpdate } from "../market/pricefeeds/types.js";
 import type { MultiCall } from "../types/index.js";
 import { AddressMap } from "../utils/AddressMap.js";
 import { AddressSet } from "../utils/AddressSet.js";
@@ -37,10 +37,10 @@ const UPDATE_QUOTA_SELECTOR = toFunctionSelector(
  *          `remainingCalls` (everything else, preserving order)
  */
 export function extractPriceUpdates(calls: MultiCall[]): {
-  priceUpdates: PriceUpdateV310[];
+  priceUpdates: PriceUpdate[];
   remainingCalls: MultiCall[];
 } {
-  const priceUpdates: PriceUpdateV310[] = [];
+  const priceUpdates: PriceUpdate[] = [];
   const remainingCalls: MultiCall[] = [];
 
   for (const call of calls) {
@@ -49,7 +49,7 @@ export function extractPriceUpdates(calls: MultiCall[]): {
         abi: iCreditFacadeMulticallV310Abi,
         data: call.callData,
       });
-      const updates = decoded.args[0] as PriceUpdateV310[];
+      const updates = decoded.args[0] as PriceUpdate[];
       priceUpdates.push(...updates);
     } else {
       remainingCalls.push(call);
@@ -100,10 +100,10 @@ export function extractQuotaTokens(calls: MultiCall[]): AddressSet {
  * @returns Merged array with no duplicate `priceFeed` addresses
  */
 export function mergePriceUpdates(
-  existing: PriceUpdateV310[],
-  generated: PriceUpdateV310[],
-): PriceUpdateV310[] {
-  const seen = new AddressMap<PriceUpdateV310>();
+  existing: PriceUpdate[],
+  generated: PriceUpdate[],
+): PriceUpdate[] {
+  const seen = new AddressMap<PriceUpdate>();
 
   for (const u of [...generated, ...existing]) {
     seen.upsert(u.priceFeed, u);

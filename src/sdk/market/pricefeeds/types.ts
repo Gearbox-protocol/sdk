@@ -130,7 +130,11 @@ export interface UpdatePriceFeedsResult {
   timestamp: number;
 }
 
-export interface PriceUpdateV310 {
+/**
+ * Pair: updatable price feed address and
+ * data can be passed to IUpdatablePriceFeed.updatePrice
+ */
+export interface PriceUpdate {
   /**
    * IUpdatablePriceFeed contract address
    */

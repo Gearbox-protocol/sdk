@@ -13,10 +13,9 @@ import type {
   CreditAccountData,
 } from "../base/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
-import type { CreditSuite, PriceUpdateV310 } from "../market/index.js";
+import type { CreditSuite, PriceUpdate } from "../market/index.js";
 import type {
   Asset,
-  CreditAccountTokensSlice,
   RouterCASlice,
   RouterCloseResult,
 } from "../router/index.js";
@@ -120,26 +119,13 @@ export interface GetCreditAccountsOptions {
 }
 
 /**
- * Options for generating on-demand price feed updates scoped to a specific credit manager.
+ * Lightweight slice of credit-account data containing only token
+ * balances and the enabled-tokens bitmask.
  **/
-export interface PriceUpdatesOptions {
-  /**
-   * Credit manager whose collateral tokens determine which price feeds to update.
-   **/
-  creditManager: Address;
-  /**
-   * Credit account token balances; when provided, only tokens with non-dust enabled balances are updated.
-   **/
-  creditAccount?: CreditAccountTokensSlice;
-  /**
-   * Tokens for which quota is being bought; their price feeds are updated even if the account has no balance yet.
-   **/
-  desiredQuotas?: Asset[];
-  /**
-   * If true, exclude reserve price feed updates.
-   **/
-  ignoreReservePrices?: boolean;
-}
+export type CreditAccountTokensSlice = Pick<
+  CreditAccountData,
+  "creditManager" | "creditAccount" | "tokens" | "enabledTokensMask"
+>;
 
 /**
  * Result of closing or liquidating a credit account, including the router's optimal close path.
@@ -877,12 +863,14 @@ export interface ICreditAccountsService extends Construct {
 
   /**
    * Returns account price updates that can be used in credit facade multicall or liquidator calls
-   * @param options
-   * @returns
+   * @param account - Credit account to get price updates for
+   * @param ignoreReservePrices - If true, exclude reserve price feed updates
+   * @returns Array of price updates
    */
   getOnDemandPriceUpdates(
-    options: PriceUpdatesOptions,
-  ): Promise<PriceUpdateV310[]>;
+    account: CreditAccountTokensSlice,
+    ignoreReservePrices?: boolean,
+  ): Promise<PriceUpdate[]>;
 
   /**
    * Executes a multicall on a credit account, automatically prepending

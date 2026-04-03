@@ -1,5 +1,5 @@
 import type { Address, Hex } from "viem";
-import { encodeFunctionData, getAddress, getContract } from "viem";
+import { encodeFunctionData, getContract } from "viem";
 import {
   iBotListV310Abi,
   iCreditFacadeMulticallV310Abi,
@@ -24,10 +24,11 @@ import {
   VERSION_RANGE_310,
 } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
-import type {
-  IPriceFeedContract,
-  PriceUpdateV310,
-  UpdatePriceFeedsResult,
+import {
+  getRawPriceUpdates,
+  type IPriceFeedContract,
+  type PriceUpdate,
+  type UpdatePriceFeedsResult,
 } from "../market/index.js";
 import { type Asset, assetsMap, type RouterCASlice } from "../router/index.js";
 import type { IPriceUpdateTx, MultiCall, RawTx } from "../types/index.js";
@@ -47,6 +48,7 @@ import type {
   CloseCreditAccountResult,
   CreditAccountFilter,
   CreditAccountOperationResult,
+  CreditAccountTokensSlice,
   CreditManagerFilter,
   ExecuteSwapProps,
   FullyLiquidateProps,
@@ -62,7 +64,6 @@ import type {
   PrepareUpdateQuotasProps,
   PreviewDelayedWithdrawalProps,
   PreviewDelayedWithdrawalResult,
-  PriceUpdatesOptions,
   Rewards,
   StartDelayedWithdrawalProps,
   UpdateQuotasProps,
@@ -171,10 +172,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     if (raw.success) {
       return raw;
     }
-    const { txs: priceUpdateTxs } = await this.getUpdateForAccount({
-      creditManager: raw.creditManager,
-      creditAccount: raw,
-    });
+    const { txs: priceUpdateTxs } = await this.getUpdateForAccount(raw);
     const [cad] = await simulateWithPriceUpdates(this.client, {
       priceUpdates: priceUpdateTxs,
       contracts: [
@@ -1051,91 +1049,21 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     return resp;
   }
 
-  protected async getUpdateForAccount(
-    options: PriceUpdatesOptions,
-  ): Promise<UpdatePriceFeedsResult> {
-    const { creditManager, creditAccount, desiredQuotas, ignoreReservePrices } =
-      options;
-    const quotaRecord = desiredQuotas
-      ? assetsMap(desiredQuotas)
-      : desiredQuotas;
-    const caBalancesRecord = creditAccount
-      ? assetsMap(creditAccount.tokens)
-      : creditAccount;
-
-    const market = this.sdk.marketRegister.findByCreditManager(creditManager);
-    const cm =
-      this.sdk.marketRegister.findCreditManager(creditManager).creditManager;
-    // underlying token price should always be updated
-    // if it's not updatable, it'll be filtered out on following steps
-    const tokens = new Set<Address>([getAddress(cm.underlying)]);
-
-    for (const t of cm.collateralTokens) {
-      if (creditAccount && caBalancesRecord && quotaRecord) {
-        const balanceAsset = caBalancesRecord.get(t);
-        const balance = balanceAsset?.balance || 0n;
-        const mask = balanceAsset?.mask || 0n;
-        const isEnabled = (mask & creditAccount.enabledTokensMask) !== 0n;
-
-        const quotaAsset = quotaRecord.get(t);
-        const quotaBalance = quotaAsset?.balance || 0n;
-
-        if ((balance > 10n && isEnabled) || quotaBalance > 0) {
-          tokens.add(getAddress(t));
-        }
-      } else if (creditAccount && caBalancesRecord) {
-        const balanceAsset = caBalancesRecord.get(t);
-        const balance = balanceAsset?.balance || 0n;
-        const mask = balanceAsset?.mask || 0n;
-        const isEnabled = (mask & creditAccount.enabledTokensMask) !== 0n;
-
-        if (balance > 10n && isEnabled) {
-          tokens.add(getAddress(t));
-        }
-      } else if (quotaRecord) {
-        const quotaAsset = quotaRecord.get(t);
-        const quotaBalance = quotaAsset?.balance || 0n;
-
-        if (quotaBalance > 0) {
-          tokens.add(getAddress(t));
-        }
-      }
-    }
-
-    const priceFeeds: Array<IPriceFeedContract> =
-      market.priceOracle.priceFeedsForTokens(Array.from(tokens), {
-        main: true,
-        reserve: !ignoreReservePrices,
-      });
-    const tStr = Array.from(tokens)
-      .map(t => this.labelAddress(t))
-      .join(", ");
-    const remark = ignoreReservePrices ? " main" : "";
-    this.logger?.debug(
-      { account: creditAccount?.creditAccount, manager: cm.name },
-      `generating price feed updates for ${tStr} from ${priceFeeds.length}${remark} price feeds`,
-    );
-    return this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(priceFeeds);
-  }
-
   /**
    * {@inheritDoc ICreditAccountsService.getOnDemandPriceUpdates}
    **/
   public async getOnDemandPriceUpdates(
-    options: PriceUpdatesOptions,
-  ): Promise<PriceUpdateV310[]> {
-    const { creditManager, creditAccount } = options;
-    const market = this.sdk.marketRegister.findByCreditManager(creditManager);
+    account: CreditAccountTokensSlice,
+    ignoreReservePrices?: boolean,
+  ): Promise<PriceUpdate[]> {
+    const { creditManager, creditAccount } = account;
     const cm = this.sdk.marketRegister.findCreditManager(creditManager);
-    const update = await this.getUpdateForAccount(options);
+    const update = await this.getUpdateForAccount(account, ignoreReservePrices);
     this.logger?.debug(
-      { account: creditAccount?.creditAccount, manager: cm.name },
+      { account: creditAccount, manager: cm.name },
       `getting on demand price updates from ${update.txs.length} txs`,
     );
-    return market.priceOracle.onDemandPriceUpdates(
-      cm.creditFacade.address,
-      update,
-    ).raw;
+    return getRawPriceUpdates(update);
   }
   /**
    * Analyzes a multicall array and prepends necessary on-demand price feed updates.
@@ -1210,6 +1138,40 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       },
       ...remainingCalls,
     ];
+  }
+
+  protected async getUpdateForAccount(
+    account: CreditAccountTokensSlice,
+    ignoreReservePrices?: boolean,
+  ): Promise<UpdatePriceFeedsResult> {
+    const { creditManager, creditAccount, enabledTokensMask } = account;
+    const market = this.sdk.marketRegister.findByCreditManager(creditManager);
+    const cm =
+      this.sdk.marketRegister.findCreditManager(creditManager).creditManager;
+
+    // underlying - always included
+    const tokens = new AddressSet([cm.underlying]);
+
+    // enabled tokens with non-zero balance
+    for (const t of account.tokens) {
+      const isEnabled = (t.mask & enabledTokensMask) !== 0n;
+      if (t.balance > 10n && isEnabled) {
+        tokens.add(t.token);
+      }
+    }
+
+    const priceFeeds: Array<IPriceFeedContract> =
+      market.priceOracle.priceFeedsForTokens(Array.from(tokens), {
+        main: true,
+        reserve: !ignoreReservePrices,
+      });
+    const tStr = tokens.map(t => this.labelAddress(t)).join(", ");
+    const remark = ignoreReservePrices ? " main" : "";
+    this.logger?.debug(
+      { account: creditAccount, manager: cm.name },
+      `generating price feed updates for ${tStr} from ${priceFeeds.length}${remark} price feeds`,
+    );
+    return this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(priceFeeds);
   }
 
   /**

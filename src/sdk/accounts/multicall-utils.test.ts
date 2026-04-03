@@ -2,7 +2,7 @@ import type { Address } from "viem";
 import { encodeFunctionData, getAddress } from "viem";
 import { assert, describe, expect, it } from "vitest";
 import { iCreditFacadeMulticallV310Abi } from "../../abi/310/generated.js";
-import type { PriceUpdateV310 } from "../market/index.js";
+import type { PriceUpdate } from "../market/index.js";
 import type { MultiCall } from "../types/index.js";
 import {
   extractPriceUpdates,
@@ -18,7 +18,7 @@ const FEED_B: Address = "0x45B21851Ec20366C5965787C2Feb99FF3FEf7900";
 const FEED_C: Address = "0x6578a7C543712a655812595Ddf4A00E931f5D4aF";
 
 function makeOnDemandPriceUpdatesCall(
-  updates: PriceUpdateV310[],
+  updates: PriceUpdate[],
   target: Address = FACADE,
 ): MultiCall {
   return {
@@ -70,7 +70,7 @@ describe("extractExistingPriceUpdates", () => {
   });
 
   it("extracts price updates from calls", () => {
-    const updates: PriceUpdateV310[] = [
+    const updates: PriceUpdate[] = [
       { priceFeed: FEED_A, data: "0xaa" },
       { priceFeed: FEED_B, data: "0xbb" },
     ];
@@ -171,20 +171,18 @@ describe("mergePriceUpdates", () => {
   });
 
   it("returns existing when generated is empty", () => {
-    const existing: PriceUpdateV310[] = [{ priceFeed: FEED_A, data: "0xaa" }];
+    const existing: PriceUpdate[] = [{ priceFeed: FEED_A, data: "0xaa" }];
     expect(mergePriceUpdates(existing, [])).toEqual(existing);
   });
 
   it("returns generated when existing is empty", () => {
-    const generated: PriceUpdateV310[] = [{ priceFeed: FEED_A, data: "0xaa" }];
+    const generated: PriceUpdate[] = [{ priceFeed: FEED_A, data: "0xaa" }];
     expect(mergePriceUpdates([], generated)).toEqual(generated);
   });
 
   it("deduplicates by priceFeed, existing takes priority", () => {
-    const existing: PriceUpdateV310[] = [
-      { priceFeed: FEED_A, data: "0xexisting" },
-    ];
-    const generated: PriceUpdateV310[] = [
+    const existing: PriceUpdate[] = [{ priceFeed: FEED_A, data: "0xexisting" }];
+    const generated: PriceUpdate[] = [
       { priceFeed: FEED_A, data: "0xgenerated" },
       { priceFeed: FEED_B, data: "0xbb" },
     ];
@@ -203,10 +201,10 @@ describe("mergePriceUpdates", () => {
   });
 
   it("deduplicates case-insensitively", () => {
-    const existing: PriceUpdateV310[] = [
+    const existing: PriceUpdate[] = [
       { priceFeed: FEED_A.toLowerCase() as Address, data: "0xexisting" },
     ];
-    const generated: PriceUpdateV310[] = [
+    const generated: PriceUpdate[] = [
       { priceFeed: getAddress(FEED_A), data: "0xgenerated" },
     ];
 
@@ -217,8 +215,8 @@ describe("mergePriceUpdates", () => {
   });
 
   it("preserves all entries when no overlap", () => {
-    const existing: PriceUpdateV310[] = [{ priceFeed: FEED_A, data: "0xaa" }];
-    const generated: PriceUpdateV310[] = [
+    const existing: PriceUpdate[] = [{ priceFeed: FEED_A, data: "0xaa" }];
+    const generated: PriceUpdate[] = [
       { priceFeed: FEED_B, data: "0xbb" },
       { priceFeed: FEED_C, data: "0xcc" },
     ];

@@ -12,7 +12,7 @@ import {
   type Transport,
 } from "viem";
 import { iPriceFeedStoreAbi } from "../../abi/310/iPriceFeedStore.js";
-import type { RawTx } from "../../sdk/index.js";
+import type { PriceUpdate, RawTx } from "../../sdk/index.js";
 import {
   BaseContract,
   json_stringify,
@@ -25,7 +25,6 @@ import type {
 } from "../core/index.js";
 import { PRICE_FEED_STORE } from "../utils/index.js";
 import { priceFeedSetupParams } from "./pricefeeds/index.js";
-import type { PriceUpdate } from "./types.js";
 
 const abi = iPriceFeedStoreAbi;
 
