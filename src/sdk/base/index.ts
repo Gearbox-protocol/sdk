@@ -5,4 +5,5 @@ export * from "./errors.js";
 export * from "./PlaceholderContract.js";
 export * from "./SDKConstruct.js";
 export * from "./TokensMeta.js";
+export * from "./token-types.js";
 export * from "./types.js";
