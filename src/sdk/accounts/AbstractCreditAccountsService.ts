@@ -1,5 +1,5 @@
 import type { Address, Hex } from "viem";
-import { encodeFunctionData, getAddress, getContract } from "viem";
+import { encodeFunctionData, getContract } from "viem";
 import {
   iBotListV310Abi,
   iCreditFacadeMulticallV310Abi,
@@ -24,16 +24,21 @@ import {
   VERSION_RANGE_310,
 } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
-import type {
-  IPriceFeedContract,
-  IPriceOracleContract,
-  OnDemandPriceUpdates,
-  UpdatePriceFeedsResult,
+import {
+  getRawPriceUpdates,
+  type IPriceFeedContract,
+  type PriceUpdate,
+  type UpdatePriceFeedsResult,
 } from "../market/index.js";
 import { type Asset, assetsMap, type RouterCASlice } from "../router/index.js";
 import type { IPriceUpdateTx, MultiCall, RawTx } from "../types/index.js";
-import { AddressMap } from "../utils/index.js";
+import { AddressMap, AddressSet } from "../utils/index.js";
 import { simulateWithPriceUpdates } from "../utils/viem/index.js";
+import {
+  extractPriceUpdates,
+  extractQuotaTokens,
+  mergePriceUpdates,
+} from "./multicall-utils.js";
 import type {
   AccountToCheck,
   AddCollateralProps,
@@ -43,6 +48,7 @@ import type {
   CloseCreditAccountResult,
   CreditAccountFilter,
   CreditAccountOperationResult,
+  CreditAccountTokensSlice,
   CreditManagerFilter,
   ExecuteSwapProps,
   FullyLiquidateProps,
@@ -58,7 +64,6 @@ import type {
   PrepareUpdateQuotasProps,
   PreviewDelayedWithdrawalProps,
   PreviewDelayedWithdrawalResult,
-  PriceUpdatesOptions,
   Rewards,
   StartDelayedWithdrawalProps,
   UpdateQuotasProps,
@@ -167,10 +172,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     if (raw.success) {
       return raw;
     }
-    const { txs: priceUpdateTxs } = await this.getUpdateForAccount({
-      creditManager: raw.creditManager,
-      creditAccount: raw,
-    });
+    const { txs: priceUpdateTxs } = await this.getUpdateForAccount(raw);
     const [cad] = await simulateWithPriceUpdates(this.client, {
       priceUpdates: priceUpdateTxs,
       contracts: [
@@ -477,12 +479,12 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
         keepAssets,
         debtOnly,
       });
-    const priceUpdates = await this.getPriceUpdatesForFacade({
-      creditManager: account.creditManager,
-      creditAccount: account,
-      ignoreReservePrices,
-    });
-    const calls = [...priceUpdates, ...routerCloseResult.calls];
+    const calls = await this.prependPriceUpdates(
+      account.creditManager,
+      routerCloseResult.calls,
+      account,
+      { ignoreReservePrices },
+    );
 
     let lossPolicyData: Hex | undefined;
     if (applyLossPolicy) {
@@ -531,13 +533,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
         slippage,
       }));
 
-    const priceUpdates = await this.getPriceUpdatesForFacade({
-      creditManager: ca.creditManager,
-      creditAccount: ca,
-    });
-
-    const calls: Array<MultiCall> = [
-      ...(operation === "close" ? [] : priceUpdates),
+    const operationCalls: Array<MultiCall> = [
       ...routerCloseResult.calls,
       ...this.prepareDisableQuotas(ca),
       ...this.prepareDecreaseDebt(ca),
@@ -545,6 +541,11 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
         this.prepareWithdrawToken(ca.creditFacade, t, MAX_UINT256, to),
       ),
     ];
+
+    const calls =
+      operation === "close"
+        ? operationCalls
+        : await this.prependPriceUpdates(ca.creditManager, operationCalls, ca);
 
     const tx =
       operation === "close"
@@ -564,18 +565,17 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const cm = this.sdk.marketRegister.findCreditManager(
       creditAccount.creditManager,
     );
-    const priceUpdates = await this.getPriceUpdatesForFacade({
-      creditManager: creditAccount.creditManager,
-      creditAccount,
-    });
 
-    const calls: Array<MultiCall> = [
-      ...priceUpdates,
-      ...this.prepareUpdateQuotas(creditAccount.creditFacade, {
-        minQuota,
-        averageQuota,
-      }),
-    ];
+    const operationCalls = this.prepareUpdateQuotas(
+      creditAccount.creditFacade,
+      { minQuota, averageQuota },
+    );
+
+    const calls = await this.prependPriceUpdates(
+      creditAccount.creditManager,
+      operationCalls,
+      creditAccount,
+    );
 
     const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
 
@@ -597,14 +597,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       creditAccount.creditManager,
     );
 
-    const priceUpdatesCalls = await this.getPriceUpdatesForFacade({
-      creditManager: creditAccount.creditManager,
-      creditAccount,
-      desiredQuotas: averageQuota,
-    });
-
-    const calls: Array<MultiCall> = [
-      ...priceUpdatesCalls,
+    const operationCalls: Array<MultiCall> = [
       ...this.prepareAddCollateral(
         creditAccount.creditFacade,
         [asset],
@@ -615,6 +608,12 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
         averageQuota,
       }),
     ];
+
+    const calls = await this.prependPriceUpdates(
+      creditAccount.creditManager,
+      operationCalls,
+      creditAccount,
+    );
 
     const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
     tx.value = ethAmount.toString(10);
@@ -640,11 +639,6 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       creditAccount.creditManager,
     );
 
-    const priceUpdatesCalls = await this.getPriceUpdatesForFacade({
-      creditManager: creditAccount.creditManager,
-      creditAccount,
-    });
-
     const addCollateralCalls =
       addCollateral && isDecrease
         ? this.prepareAddCollateral(
@@ -659,11 +653,16 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
           )
         : [];
 
-    const calls: Array<MultiCall> = [
-      ...priceUpdatesCalls,
+    const operationCalls: Array<MultiCall> = [
       ...addCollateralCalls,
       this.#prepareChangeDebt(creditAccount.creditFacade, change, isDecrease),
     ];
+
+    const calls = await this.prependPriceUpdates(
+      creditAccount.creditManager,
+      operationCalls,
+      creditAccount,
+    );
 
     const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
 
@@ -685,20 +684,19 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       creditAccount.creditManager,
     );
 
-    const priceUpdatesCalls = await this.getPriceUpdatesForFacade({
-      creditManager: creditAccount.creditManager,
-      creditAccount,
-      desiredQuotas: averageQuota,
-    });
-
-    const calls: Array<MultiCall> = [
-      ...priceUpdatesCalls,
+    const operationCalls: Array<MultiCall> = [
       ...swapCalls,
       ...this.prepareUpdateQuotas(creditAccount.creditFacade, {
         minQuota,
         averageQuota,
       }),
     ];
+
+    const calls = await this.prependPriceUpdates(
+      creditAccount.creditManager,
+      operationCalls,
+      creditAccount,
+    );
 
     const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
 
@@ -813,14 +811,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       }),
     };
 
-    const priceUpdatesCalls = await this.getPriceUpdatesForFacade({
-      creditManager: creditAccount.creditManager,
-      creditAccount,
-      desiredQuotas: averageQuota,
-    });
-
-    const calls: Array<MultiCall> = [
-      ...priceUpdatesCalls,
+    const operationCalls: Array<MultiCall> = [
       storeExpectedBalances,
       ...preview.requestCalls,
       compareBalances,
@@ -829,6 +820,12 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
         averageQuota,
       }),
     ];
+
+    const calls = await this.prependPriceUpdates(
+      creditAccount.creditManager,
+      operationCalls,
+      creditAccount,
+    );
 
     const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
 
@@ -884,14 +881,6 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       }),
     };
 
-    const priceUpdatesCalls = zeroDebt
-      ? []
-      : await this.getPriceUpdatesForFacade({
-          creditManager: creditAccount.creditManager,
-          creditAccount,
-          desiredQuotas: averageQuota,
-        });
-
     const quotaCalls = zeroDebt
       ? []
       : this.prepareUpdateQuotas(creditAccount.creditFacade, {
@@ -899,13 +888,20 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
           averageQuota,
         });
 
-    const calls: Array<MultiCall> = [
-      ...priceUpdatesCalls,
+    const operationCalls: Array<MultiCall> = [
       storeExpectedBalances,
       ...claimableNow.claimCalls,
       compareBalances,
       ...quotaCalls,
     ];
+
+    const calls = zeroDebt
+      ? operationCalls
+      : await this.prependPriceUpdates(
+          creditAccount.creditManager,
+          operationCalls,
+          creditAccount,
+        );
 
     const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
 
@@ -943,13 +939,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       tokenToWithdraw = withdrawToken;
     }
 
-    const priceUpdatesCalls = await this.getPriceUpdatesForFacade({
-      creditManager: cm.address,
-      desiredQuotas: averageQuota,
-    });
-
-    const calls = [
-      ...priceUpdatesCalls,
+    const operationCalls = [
       this.#prepareIncreaseDebt(cm.creditFacade, debt),
       ...this.prepareAddCollateral(cm.creditFacade, collateral, permits),
       ...openPathCalls,
@@ -970,6 +960,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       ...(callsAfter ?? []),
     ];
 
+    const calls = await this.prependPriceUpdates(cm.address, operationCalls);
     let tx: RawTx;
     if (reopenCreditAccount) {
       tx = await cmSuite.creditFacade.multicall(reopenCreditAccount, calls);
@@ -1082,87 +1073,113 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
-   * {@inheritDoc ICreditAccountsService.getUpdateForAccounts}
+   * {@inheritDoc ICreditAccountsService.getOnDemandPriceUpdates}
    **/
-  public async getUpdateForAccounts(
-    accounts: Array<RouterCASlice>,
-  ): Promise<UpdatePriceFeedsResult> {
-    // for each market, using pool address as key, gather tokens to update and find PriceFeedFactories
-    const tokensByPool = new Map<Address, Set<Address>>();
-    const oracleByPool = new Map<Address, IPriceOracleContract>();
-
-    for (const acc of accounts) {
-      const market = this.sdk.marketRegister.findByCreditManager(
-        acc.creditManager,
-      );
-      const pool = market.pool.pool.address;
-      oracleByPool.set(pool, market.priceOracle);
-
-      for (const t of acc.tokens) {
-        if (t.balance > 10n) {
-          const tokens = tokensByPool.get(pool) ?? new Set<Address>();
-          tokens.add(t.token);
-          tokensByPool.set(pool, tokens);
-        }
-      }
-    }
-    // priceFeeds can contain PriceFeeds from different markets
-    const priceFeeds: Array<IPriceFeedContract> = [];
-    for (const [pool, oracle] of oracleByPool.entries()) {
-      const tokens = Array.from(tokensByPool.get(pool) ?? []);
-      priceFeeds.push(...oracle.priceFeedsForTokens(tokens));
-    }
-    return this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(priceFeeds);
+  public async getOnDemandPriceUpdates(
+    account: CreditAccountTokensSlice,
+    ignoreReservePrices?: boolean,
+  ): Promise<PriceUpdate[]> {
+    const { creditManager, creditAccount } = account;
+    const cm = this.sdk.marketRegister.findCreditManager(creditManager);
+    const update = await this.getUpdateForAccount(account, ignoreReservePrices);
+    this.logger?.debug(
+      { account: creditAccount, manager: cm.name },
+      `getting on demand price updates from ${update.txs.length} txs`,
+    );
+    return getRawPriceUpdates(update);
   }
-
-  protected async getUpdateForAccount(
-    options: PriceUpdatesOptions,
-  ): Promise<UpdatePriceFeedsResult> {
-    const { creditManager, creditAccount, desiredQuotas, ignoreReservePrices } =
-      options;
-    const quotaRecord = desiredQuotas
-      ? assetsMap(desiredQuotas)
-      : desiredQuotas;
-    const caBalancesRecord = creditAccount
-      ? assetsMap(creditAccount.tokens)
-      : creditAccount;
-
+  /**
+   * Analyzes a multicall array and prepends necessary on-demand price feed updates.
+   *
+   * Deduplicates existing `onDemandPriceUpdates` calls
+   *
+   * @param creditManager - Address of the credit manager
+   * @param calls - The multicall array to prepend price updates to
+   * @param ca - Credit account slice, undefined when opening a new account
+   * @param options - Optional settings for price update generation
+   * @returns A new array with a single consolidated price update call prepended,
+   *          followed by the non-price-update calls in their original order
+   */
+  protected async prependPriceUpdates(
+    creditManager: Address,
+    calls: MultiCall[],
+    ca?: RouterCASlice,
+    options?: { ignoreReservePrices?: boolean },
+  ): Promise<MultiCall[]> {
     const market = this.sdk.marketRegister.findByCreditManager(creditManager);
     const cm =
       this.sdk.marketRegister.findCreditManager(creditManager).creditManager;
-    // underlying token price should always be updated
-    // if it's not updatable, it'll be filtered out on following steps
-    const tokens = new Set<Address>([getAddress(cm.underlying)]);
 
-    for (const t of cm.collateralTokens) {
-      if (creditAccount && caBalancesRecord && quotaRecord) {
-        const balanceAsset = caBalancesRecord.get(t);
-        const balance = balanceAsset?.balance || 0n;
-        const mask = balanceAsset?.mask || 0n;
-        const isEnabled = (mask & creditAccount.enabledTokensMask) !== 0n;
+    const { priceUpdates: existingUpdates, remainingCalls } =
+      extractPriceUpdates(calls);
+    // Token to update
+    const tokens = new AddressSet([
+      cm.underlying, // underlying - always included
+      ...extractQuotaTokens(calls), // tokens from `updateQuota` calls
+    ]);
 
-        const quotaAsset = quotaRecord.get(t);
-        const quotaBalance = quotaAsset?.balance || 0n;
-
-        if ((balance > 10n && isEnabled) || quotaBalance > 0) {
-          tokens.add(getAddress(t));
+    // enabled tokens with non-zero balance
+    if (ca) {
+      for (const t of ca.tokens) {
+        const isEnabled = (t.mask & ca.enabledTokensMask) !== 0n;
+        if (t.balance > 10n && isEnabled) {
+          tokens.add(t.token);
         }
-      } else if (creditAccount && caBalancesRecord) {
-        const balanceAsset = caBalancesRecord.get(t);
-        const balance = balanceAsset?.balance || 0n;
-        const mask = balanceAsset?.mask || 0n;
-        const isEnabled = (mask & creditAccount.enabledTokensMask) !== 0n;
+      }
+    }
 
-        if (balance > 10n && isEnabled) {
-          tokens.add(getAddress(t));
-        }
-      } else if (quotaRecord) {
-        const quotaAsset = quotaRecord.get(t);
-        const quotaBalance = quotaAsset?.balance || 0n;
+    const ignoreReservePrices = options?.ignoreReservePrices;
+    const priceFeeds: IPriceFeedContract[] =
+      market.priceOracle.priceFeedsForTokens(Array.from(tokens), {
+        main: true,
+        reserve: !ignoreReservePrices,
+      });
 
-        if (quotaBalance > 0) {
-          tokens.add(getAddress(t));
-        }
+    const tStr = tokens.map(t => this.labelAddress(t)).join(", ");
+    const remark = ignoreReservePrices ? " main" : "";
+    this.logger?.debug(
+      { account: ca?.creditAccount, manager: cm.name },
+      `prependPriceUpdates for ${tStr} from ${priceFeeds.length}${remark} price feeds`,
+    );
+
+    const generatedUpdates =
+      await this.sdk.priceFeeds.generatePriceFeedsUpdates(priceFeeds);
+
+    const merged = mergePriceUpdates(existingUpdates, generatedUpdates);
+    if (merged.length === 0) {
+      return remainingCalls;
+    }
+
+    return [
+      {
+        target: cm.creditFacade,
+        callData: encodeFunctionData({
+          abi: iCreditFacadeMulticallV310Abi,
+          functionName: "onDemandPriceUpdates",
+          args: [merged],
+        }),
+      },
+      ...remainingCalls,
+    ];
+  }
+
+  protected async getUpdateForAccount(
+    account: CreditAccountTokensSlice,
+    ignoreReservePrices?: boolean,
+  ): Promise<UpdatePriceFeedsResult> {
+    const { creditManager, creditAccount, enabledTokensMask } = account;
+    const market = this.sdk.marketRegister.findByCreditManager(creditManager);
+    const cm =
+      this.sdk.marketRegister.findCreditManager(creditManager).creditManager;
+
+    // underlying - always included
+    const tokens = new AddressSet([cm.underlying]);
+
+    // enabled tokens with non-zero balance
+    for (const t of account.tokens) {
+      const isEnabled = (t.mask & enabledTokensMask) !== 0n;
+      if (t.balance > 10n && isEnabled) {
+        tokens.add(t.token);
       }
     }
 
@@ -1171,45 +1188,71 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
         main: true,
         reserve: !ignoreReservePrices,
       });
-    const tStr = Array.from(tokens)
-      .map(t => this.labelAddress(t))
-      .join(", ");
+    const tStr = tokens.map(t => this.labelAddress(t)).join(", ");
     const remark = ignoreReservePrices ? " main" : "";
     this.logger?.debug(
-      { account: creditAccount?.creditAccount, manager: cm.name },
+      { account: creditAccount, manager: cm.name },
       `generating price feed updates for ${tStr} from ${priceFeeds.length}${remark} price feeds`,
     );
     return this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(priceFeeds);
   }
 
   /**
-   * {@inheritDoc ICreditAccountsService.getOnDemandPriceUpdates}
-   **/
-  public async getOnDemandPriceUpdates(
-    options: PriceUpdatesOptions,
-  ): Promise<OnDemandPriceUpdates> {
-    const { creditManager, creditAccount } = options;
-    const market = this.sdk.marketRegister.findByCreditManager(creditManager);
-    const cm = this.sdk.marketRegister.findCreditManager(creditManager);
-    const update = await this.getUpdateForAccount(options);
-    this.logger?.debug(
-      { account: creditAccount?.creditAccount, manager: cm.name },
-      `getting on demand price updates from ${update.txs.length} txs`,
+   * Executes a multicall on a credit account, automatically prepending
+   * necessary on-demand price feed updates.
+   *
+   * @param creditAccount - Credit account to execute multicall on
+   * @param calls - Array of multicall operations (price updates will be inferred)
+   * @param options - Optional settings for price update generation
+   * @returns Raw transaction ready to be signed and sent
+   */
+  public async multicall(
+    creditAccount: RouterCASlice,
+    calls: MultiCall[],
+    options?: { ignoreReservePrices?: boolean },
+  ): Promise<RawTx> {
+    const cm = this.sdk.marketRegister.findCreditManager(
+      creditAccount.creditManager,
     );
-    return market.priceOracle.onDemandPriceUpdates(
-      cm.creditFacade.address,
-      update,
+    const callsWithPrices = await this.prependPriceUpdates(
+      creditAccount.creditManager,
+      calls,
+      creditAccount,
+      options,
+    );
+    return cm.creditFacade.multicall(
+      creditAccount.creditAccount,
+      callsWithPrices,
     );
   }
 
   /**
-   * {@inheritDoc ICreditAccountsService.getPriceUpdatesForFacade}
-   **/
-  public async getPriceUpdatesForFacade(
-    options: PriceUpdatesOptions,
-  ): Promise<Array<MultiCall>> {
-    const updates = await this.getOnDemandPriceUpdates(options);
-    return updates.multicall;
+   * Executes a bot multicall on a credit account, automatically prepending
+   * necessary on-demand price feed updates.
+   *
+   * @param creditAccount - Credit account to execute bot multicall on
+   * @param calls - Array of multicall operations (price updates will be inferred)
+   * @param options - Optional settings for price update generation
+   * @returns Raw transaction ready to be signed and sent
+   */
+  public async botMulticall(
+    creditAccount: RouterCASlice,
+    calls: MultiCall[],
+    options?: { ignoreReservePrices?: boolean },
+  ): Promise<RawTx> {
+    const cm = this.sdk.marketRegister.findCreditManager(
+      creditAccount.creditManager,
+    );
+    const callsWithPrices = await this.prependPriceUpdates(
+      creditAccount.creditManager,
+      calls,
+      creditAccount,
+      options,
+    );
+    return cm.creditFacade.botMulticall(
+      creditAccount.creditAccount,
+      callsWithPrices,
+    );
   }
 
   protected prepareDisableQuotas(ca: RouterCASlice): Array<MultiCall> {
@@ -1362,77 +1405,3 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     )[0];
   }
 }
-
-const iMellowClaimerAdapterAbi = [
-  {
-    type: "function",
-    name: "getMultiVaultSubvaultIndices",
-    inputs: [{ name: "multiVault", type: "address", internalType: "address" }],
-    outputs: [
-      {
-        name: "subvaultIndices",
-        type: "uint256[]",
-        internalType: "uint256[]",
-      },
-      {
-        name: "withdrawalIndices",
-        type: "uint256[][]",
-        internalType: "uint256[][]",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getUserSubvaultIndices",
-    inputs: [
-      { name: "multiVault", type: "address", internalType: "address" },
-      { name: "user", type: "address", internalType: "address" },
-    ],
-    outputs: [
-      {
-        name: "subvaultIndices",
-        type: "uint256[]",
-        internalType: "uint256[]",
-      },
-      {
-        name: "withdrawalIndices",
-        type: "uint256[][]",
-        internalType: "uint256[][]",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "multiAccept",
-    inputs: [
-      { name: "multiVault", type: "address", internalType: "address" },
-      {
-        name: "subvaultIndices",
-        type: "uint256[]",
-        internalType: "uint256[]",
-      },
-      { name: "indices", type: "uint256[][]", internalType: "uint256[][]" },
-    ],
-    outputs: [{ name: "", type: "bool", internalType: "bool" }],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "multiAcceptAndClaim",
-    inputs: [
-      { name: "multiVault", type: "address", internalType: "address" },
-      {
-        name: "subvaultIndices",
-        type: "uint256[]",
-        internalType: "uint256[]",
-      },
-      { name: "indices", type: "uint256[][]", internalType: "uint256[][]" },
-      { name: "", type: "address", internalType: "address" },
-      { name: "maxAssets", type: "uint256", internalType: "uint256" },
-    ],
-    outputs: [{ name: "", type: "bool", internalType: "bool" }],
-    stateMutability: "nonpayable",
-  },
-] as const;

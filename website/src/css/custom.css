@@ -9,9 +9,10 @@
   --ifm-color-primary-lighter: #ed3baa;
   --ifm-color-primary-lightest: #f470c3;
   --ifm-code-font-size: 95%;
-  --ifm-font-family-base: "Rubik", -apple-system, BlinkMacSystemFont, "Segoe UI",
-    "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
-    "Helvetica Neue", sans-serif;
+  --ifm-font-family-base:
+    "Rubik", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
 }
 
 [data-theme="dark"] {

@@ -1,10 +1,10 @@
 import { decodeFunctionData, type Hex } from "viem";
 import { iUpdatablePriceFeedAbi } from "../../../abi/iUpdatablePriceFeed.js";
-import type { PriceUpdateV310, UpdatePriceFeedsResult } from "./types.js";
+import type { PriceUpdate, UpdatePriceFeedsResult } from "./types.js";
 
 export function getRawPriceUpdates(
   updates: UpdatePriceFeedsResult,
-): PriceUpdateV310[] {
+): PriceUpdate[] {
   return updates.txs.map(tx => {
     const data = decodeFunctionData({
       abi: iUpdatablePriceFeedAbi,

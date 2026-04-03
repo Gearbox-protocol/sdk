@@ -110,15 +110,6 @@ export type RouterCASlice = Pick<
   | "creditManager"
 >;
 
-/**
- * Lightweight slice of credit-account data containing only token
- * balances and the enabled-tokens bitmask.
- **/
-export type CreditAccountTokensSlice = Pick<
-  CreditAccountData,
-  "creditAccount" | "tokens" | "enabledTokensMask"
->;
-
 export interface FindOneTokenPathProps {
   /**
    * Minimal credit account data on which operation is performed

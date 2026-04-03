@@ -13,14 +13,9 @@ import type {
   CreditAccountData,
 } from "../base/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
-import type {
-  CreditSuite,
-  OnDemandPriceUpdates,
-  UpdatePriceFeedsResult,
-} from "../market/index.js";
+import type { CreditSuite, PriceUpdate } from "../market/index.js";
 import type {
   Asset,
-  CreditAccountTokensSlice,
   RouterCASlice,
   RouterCloseResult,
 } from "../router/index.js";
@@ -124,26 +119,13 @@ export interface GetCreditAccountsOptions {
 }
 
 /**
- * Options for generating on-demand price feed updates scoped to a specific credit manager.
+ * Lightweight slice of credit-account data containing only token
+ * balances and the enabled-tokens bitmask.
  **/
-export interface PriceUpdatesOptions {
-  /**
-   * Credit manager whose collateral tokens determine which price feeds to update.
-   **/
-  creditManager: Address;
-  /**
-   * Credit account token balances; when provided, only tokens with non-dust enabled balances are updated.
-   **/
-  creditAccount?: CreditAccountTokensSlice;
-  /**
-   * Tokens for which quota is being bought; their price feeds are updated even if the account has no balance yet.
-   **/
-  desiredQuotas?: Asset[];
-  /**
-   * If true, exclude reserve price feed updates.
-   **/
-  ignoreReservePrices?: boolean;
-}
+export type CreditAccountTokensSlice = Pick<
+  CreditAccountData,
+  "creditManager" | "creditAccount" | "tokens" | "enabledTokensMask"
+>;
 
 /**
  * Result of closing or liquidating a credit account, including the router's optimal close path.
@@ -891,33 +873,45 @@ export interface ICreditAccountsService extends Construct {
   getOptimalHFForPartialLiquidation(ca: CreditAccountData): bigint;
 
   /**
-   * Returns raw txs that are needed to update all price feeds so that all credit accounts (possibly from different markets) compute
-   *
-   * This can be used by batch liquidator
-   * @param accounts
-   * @returns
-   */
-  getUpdateForAccounts(
-    accounts: Array<RouterCASlice>,
-  ): Promise<UpdatePriceFeedsResult>;
-
-  /**
    * Returns account price updates that can be used in credit facade multicall or liquidator calls
-   * @param options
-   * @returns
+   * @param account - Credit account to get price updates for
+   * @param ignoreReservePrices - If true, exclude reserve price feed updates
+   * @returns Array of price updates
    */
   getOnDemandPriceUpdates(
-    options: PriceUpdatesOptions,
-  ): Promise<OnDemandPriceUpdates>;
+    account: CreditAccountTokensSlice,
+    ignoreReservePrices?: boolean,
+  ): Promise<PriceUpdate[]>;
 
   /**
-   * Returns price updates in format that is accepted by various credit facade methods (multicall, close/liquidate, etc...).
-   * @param options
-   * @returns
+   * Executes a multicall on a credit account, automatically prepending
+   * necessary on-demand price feed updates inferred from the calls array.
+   *
+   * @param creditAccount - Credit account to execute multicall on
+   * @param calls - Array of multicall operations (price updates will be inferred)
+   * @param options - Optional settings for price update generation
+   * @returns Raw transaction ready to be signed and sent
    */
-  getPriceUpdatesForFacade(
-    options: PriceUpdatesOptions,
-  ): Promise<Array<MultiCall>>;
+  multicall(
+    creditAccount: RouterCASlice,
+    calls: Array<MultiCall>,
+    options?: { ignoreReservePrices?: boolean },
+  ): Promise<RawTx>;
+
+  /**
+   * Executes a bot multicall on a credit account, automatically prepending
+   * necessary on-demand price feed updates inferred from the calls array.
+   *
+   * @param creditAccount - Credit account to execute bot multicall on
+   * @param calls - Array of multicall operations (price updates will be inferred)
+   * @param options - Optional settings for price update generation
+   * @returns Raw transaction ready to be signed and sent
+   */
+  botMulticall(
+    creditAccount: RouterCASlice,
+    calls: Array<MultiCall>,
+    options?: { ignoreReservePrices?: boolean },
+  ): Promise<RawTx>;
 
   /**
    * Withdraws a single collateral from credit account to wallet to and updates quotas;

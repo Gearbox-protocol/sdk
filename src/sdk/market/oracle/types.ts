@@ -10,7 +10,7 @@ import type { AddressMap } from "../../utils/index.js";
 import type {
   IPriceFeedContract,
   PriceFeedRef,
-  PriceUpdateV310,
+  PriceUpdate,
   UpdatePriceFeedsResult,
 } from "../pricefeeds/index.js";
 import type PriceFeedAnswerMap from "./PriceFeedAnswerMap.js";
@@ -37,7 +37,7 @@ export interface PriceFeedsForTokensOptions {
  * as raw PriceUpdate in liquidator calls.
  */
 export interface OnDemandPriceUpdates {
-  raw: PriceUpdateV310[];
+  raw: PriceUpdate[];
   multicall: MultiCall[];
 }
 
