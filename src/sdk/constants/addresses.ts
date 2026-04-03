@@ -13,3 +13,9 @@ export const ADDRESS_0X0: Address =
  * Dummy address to satisfy `0x${string}` typecheck, but fail on `isAddress` check
  */
 export const NOT_DEPLOYED = "0xNOT DEPLOYED";
+
+/**
+ * Constant used in router to represent native token address
+ */
+export const NATIVE_ADDRESS: Address =
+  "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
