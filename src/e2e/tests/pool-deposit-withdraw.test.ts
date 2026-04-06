@@ -16,6 +16,7 @@ import {
   MAX_UINT256,
   PoolService,
   type PoolServiceCall,
+  type ZapperData,
 } from "../../sdk/index.js";
 import { ANVIL_URL } from "../constants.js";
 import {
@@ -34,7 +35,6 @@ const USDC: Address = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
 // Zapper deposit/withdraw: kpkWETH pool with dWETHV3 -> kpkWETH migration zapper
 const KPK_WETH_POOL: Address = "0x9396DCbf78fc526bb003665337C5E73b699571EF";
 const D_WETH_V3: Address = "0xda0002859B2d05F66a753d8241fCDE8623f26F4f";
-const ZAPPER: Address = "0x5A5F69e134765Cb0169f280c2f2A7d8AdF8eFd29";
 
 async function getBalances(
   client: PublicClient,
@@ -208,7 +208,8 @@ describe("pool deposit and withdraw", () => {
     });
   });
 
-  // TODO: only found migration zappers, cannot withdraw using them
+  // TODO: currently there's no zappers except for migration zappers, which are not returned by sdk
+  // best approximation of zapper flow that we can do with hardcoded migration zapper:
   it("should deposit via zapper and withdraw directly from pool", async () => {
     const wallet = getAnvilWallet(sdk);
     const account = wallet.account.address;
@@ -223,11 +224,31 @@ describe("pool deposit and withdraw", () => {
       pollingInterval: 100,
     }).extend(dealActions);
 
-    const zappers = sdk.marketRegister.poolZappers(KPK_WETH_POOL);
-    const zapper = zappers.find(z => hexEq(z.baseParams.addr, ZAPPER));
-    if (!zapper) {
-      throw new Error(`Zapper ${ZAPPER} not found for pool ${KPK_WETH_POOL}`);
-    }
+    // hardcoded migration zapper, not returned by sdk.marketRegister.loadZappers
+    const zapper: ZapperData = {
+      pool: KPK_WETH_POOL,
+      tokenIn: {
+        addr: "0xda0002859B2d05F66a753d8241fCDE8623f26F4f",
+        symbol: "dWETHV3",
+        name: "Trade WETH v3",
+        decimals: 18,
+      },
+      tokenOut: {
+        addr: "0x9396DCbf78fc526bb003665337C5E73b699571EF",
+        symbol: "kpkWETH",
+        name: "WETH Market",
+        decimals: 18,
+      },
+      type: "migration",
+      baseParams: {
+        addr: "0x5A5F69e134765Cb0169f280c2f2A7d8AdF8eFd29",
+        version: 310n,
+        contractType:
+          "0x5a41505045523a3a455243343632360000000000000000000000000000000000",
+        serializedParams:
+          "0x000000000000000000000000da0002859b2d05f66a753d8241fcde8623f26f4f",
+      },
+    };
 
     const depositAmount = parseUnits("1", 18);
     await anvil.deal({
@@ -241,7 +262,7 @@ describe("pool deposit and withdraw", () => {
       address: D_WETH_V3,
       abi: erc20Abi,
       functionName: "approve",
-      args: [ZAPPER, MAX_UINT256],
+      args: [zapper.baseParams.addr, MAX_UINT256],
     });
     await sdk.client.waitForTransactionReceipt({ hash, pollingInterval: 100 });
 
@@ -257,7 +278,7 @@ describe("pool deposit and withdraw", () => {
       wallet: account,
       meta: {
         zapper,
-        approveTarget: ZAPPER,
+        approveTarget: zapper.baseParams.addr,
         permissible: true,
         type: "classic",
       },
