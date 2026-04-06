@@ -24,6 +24,7 @@ import {
   VERSION_RANGE_310,
 } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
+import type { CreditSuite } from "../market/index.js";
 import {
   getRawPriceUpdates,
   type IPriceFeedContract,
@@ -46,6 +47,7 @@ import type {
   ClaimDelayedProps,
   CloseCreditAccountProps,
   CloseCreditAccountResult,
+  CloseOptions,
   CreditAccountFilter,
   CreditAccountOperationResult,
   CreditAccountTokensSlice,
@@ -395,19 +397,20 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
 
     return {
       legacy,
-      additionalBots: this.getActiveBots(
+      additionalBots: this.#getActiveBots(
         accountsToCheck,
         additionalBots,
         additionalResp,
       ),
-      legacyMigration: this.getActiveMigrationBots(
+      legacyMigration: this.#getActiveMigrationBots(
         accountsToCheck,
         legacyMigrationBot,
         migrationResp,
       ),
     };
   }
-  private getActiveBots(
+
+  #getActiveBots(
     accountsToCheck: Array<AccountToCheck>,
     bots: Array<Address>,
     result: BotsDirectResponse,
@@ -434,7 +437,8 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
 
     return botsByCAIndex;
   }
-  private getActiveMigrationBots(
+
+  #getActiveMigrationBots(
     accountsToCheck: Array<{ creditAccount: Address; creditManager: Address }>,
     bot: Address | undefined,
     result: BotsDirectResponse,
@@ -546,11 +550,13 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       operation === "close"
         ? operationCalls
         : await this.prependPriceUpdates(ca.creditManager, operationCalls, ca);
+    const tx = await this.closeCreditAccountTx(
+      cm,
+      ca.creditAccount,
+      calls,
+      operation,
+    );
 
-    const tx =
-      operation === "close"
-        ? cm.creditFacade.closeCreditAccount(ca.creditAccount, calls)
-        : cm.creditFacade.multicall(ca.creditAccount, calls);
     return { tx, calls, routerCloseResult, creditFacade: cm.creditFacade };
   }
 
@@ -577,7 +583,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       creditAccount,
     );
 
-    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
+    const tx = await this.multicallTx(cm, creditAccount.creditAccount, calls);
 
     return { tx, calls, creditFacade: cm.creditFacade };
   }
@@ -615,7 +621,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       creditAccount,
     );
 
-    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
+    const tx = await this.multicallTx(cm, creditAccount.creditAccount, calls);
     tx.value = ethAmount.toString(10);
 
     return { tx, calls, creditFacade: cm.creditFacade };
@@ -627,7 +633,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   public async changeDebt({
     creditAccount,
     amount,
-    addCollateral,
+    collateral,
   }: ChangeDeptProps): Promise<CreditAccountOperationResult> {
     if (amount === 0n) {
       throw new Error("debt increase or decrease must be non-zero");
@@ -640,13 +646,13 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     );
 
     const addCollateralCalls =
-      addCollateral && isDecrease
+      collateral && isDecrease
         ? this.prepareAddCollateral(
             creditAccount.creditFacade,
             [
               {
-                token: creditAccount.underlying,
-                balance: change,
+                token: collateral[0].token,
+                balance: collateral[0].balance,
               },
             ],
             {},
@@ -663,8 +669,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       operationCalls,
       creditAccount,
     );
-
-    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
+    const tx = await this.multicallTx(cm, creditAccount.creditAccount, calls);
 
     return { tx, calls, creditFacade: cm.creditFacade };
   }
@@ -697,8 +702,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       operationCalls,
       creditAccount,
     );
-
-    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
+    const tx = await this.multicallTx(cm, creditAccount.creditAccount, calls);
 
     return { tx, calls, creditFacade: cm.creditFacade };
   }
@@ -826,8 +830,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       operationCalls,
       creditAccount,
     );
-
-    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
+    const tx = await this.multicallTx(cm, creditAccount.creditAccount, calls);
 
     return { tx, calls, creditFacade: cm.creditFacade };
   }
@@ -903,7 +906,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
           creditAccount,
         );
 
-    const tx = cm.creditFacade.multicall(creditAccount.creditAccount, calls);
+    const tx = await this.multicallTx(cm, creditAccount.creditAccount, calls);
 
     return { tx, calls, creditFacade: cm.creditFacade };
   }
@@ -942,7 +945,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const operationCalls = [
       this.#prepareIncreaseDebt(cm.creditFacade, debt),
       ...this.prepareAddCollateral(cm.creditFacade, collateral, permits),
-      ...openPathCalls,
+      ...openPathCalls, // path from underlying to withdrawal token
       ...(tokenToWithdraw
         ? [
             this.prepareWithdrawToken(
@@ -963,9 +966,9 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const calls = await this.prependPriceUpdates(cm.address, operationCalls);
     let tx: RawTx;
     if (reopenCreditAccount) {
-      tx = await cmSuite.creditFacade.multicall(reopenCreditAccount, calls);
+      tx = await this.multicallTx(cmSuite, reopenCreditAccount, calls);
     } else {
-      tx = cmSuite.creditFacade.openCreditAccount(to, calls, referralCode);
+      tx = await this.openCreditAccountTx(cmSuite, to, calls, referralCode);
     }
     tx.value = ethAmount.toString(10);
 
@@ -1198,13 +1201,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
-   * Executes a multicall on a credit account, automatically prepending
-   * necessary on-demand price feed updates.
-   *
-   * @param creditAccount - Credit account to execute multicall on
-   * @param calls - Array of multicall operations (price updates will be inferred)
-   * @param options - Optional settings for price update generation
-   * @returns Raw transaction ready to be signed and sent
+   * {@inheritDoc ICreditAccountsService.multicall}
    */
   public async multicall(
     creditAccount: RouterCASlice,
@@ -1227,13 +1224,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
-   * Executes a bot multicall on a credit account, automatically prepending
-   * necessary on-demand price feed updates.
-   *
-   * @param creditAccount - Credit account to execute bot multicall on
-   * @param calls - Array of multicall operations (price updates will be inferred)
-   * @param options - Optional settings for price update generation
-   * @returns Raw transaction ready to be signed and sent
+   * {@inheritDoc ICreditAccountsService.botMulticall}
    */
   public async botMulticall(
     creditAccount: RouterCASlice,
@@ -1337,6 +1328,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       }),
     };
   }
+
   #prepareChangeDebt(
     creditFacade: Address,
     change: bigint,
@@ -1403,5 +1395,62 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       AP_PERIPHERY_COMPRESSOR,
       VERSION_RANGE_310,
     )[0];
+  }
+
+  /**
+   * Wrapper that selects between credit facade and KYC factory
+   * @param suite
+   * @param to
+   * @param calls
+   * @param referralCode
+   * @returns
+   */
+  protected async openCreditAccountTx(
+    suite: CreditSuite,
+    to: Address,
+    calls: MultiCall[],
+    referralCode?: bigint,
+  ): Promise<RawTx> {
+    // TODO: select between credit facade and KYC factory here
+    return suite.creditFacade.openCreditAccount(to, calls, referralCode ?? 0n);
+  }
+
+  /**
+   * Wrapper that selects between credit facade and KYC factory
+   * @param suite
+   * @param creditAccount
+   * @param calls
+   * @returns
+   */
+  protected async multicallTx(
+    suite: CreditSuite,
+    creditAccount: Address,
+    calls: MultiCall[],
+  ): Promise<RawTx> {
+    // TODO: select between credit facade and KYC factory here
+    return suite.creditFacade.multicall(creditAccount, calls);
+  }
+
+  /**
+   * Wrapper that selects between credit facade and KYC factory
+   * @param suite
+   * @param creditAccount
+   * @param calls
+   * @param operation
+   * @returns
+   */
+  protected async closeCreditAccountTx(
+    suite: CreditSuite,
+    creditAccount: Address,
+    calls: MultiCall[],
+    operation: CloseOptions,
+  ): Promise<RawTx> {
+    // TODO: select between credit facade and KYC factory here
+
+    if (operation === "close") {
+      return suite.creditFacade.closeCreditAccount(creditAccount, calls);
+    }
+
+    return suite.creditFacade.multicall(creditAccount, calls);
   }
 }

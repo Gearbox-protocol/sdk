@@ -4,7 +4,6 @@ import { AdaptersPlugin } from "../../plugins/adapters/AdaptersPlugin.js";
 import { BotsPlugin } from "../../plugins/bots/index.js";
 import { DegenDistributorsPlugin } from "../../plugins/degen-distributors/index.js";
 import { Pools7DAgoPlugin } from "../../plugins/pools-history/index.js";
-import { ZappersPlugin } from "../../plugins/zappers/index.js";
 import { GearboxSDK, json_stringify } from "../../sdk/index.js";
 import { ANVIL_URL } from "../constants.js";
 import { PYTH_API_PROXY, REDSTONE_GATEWAYS, useFixture } from "../helpers.js";
@@ -23,7 +22,6 @@ describe("v12 parity tests", () => {
       blockNumber: BLOCK,
       plugins: {
         adapters: new AdaptersPlugin(true),
-        zappers: new ZappersPlugin([], true),
         bots: new BotsPlugin(true),
         degen: new DegenDistributorsPlugin(true),
         pools7DAgo: new Pools7DAgoPlugin(true),

@@ -500,9 +500,9 @@ export interface ChangeDeptProps {
    */
   amount: bigint;
   /**
-   * If true, will add collateral to the credit account
+   * Assets to add as collateral
    */
-  addCollateral: boolean;
+  collateral?: [Asset];
 }
 
 export interface FullyLiquidateProps {
@@ -664,41 +664,6 @@ export type GetConnectedMigrationBotsResult =
       botAddress: Address;
     }
   | undefined;
-
-/**
- * Input for previewing a proportional Llamathena withdrawal.
- **/
-export interface PreviewWithdrawLlamathenaProportionallyProps {
-  /**
-   * Llamathena token and amount to withdraw.
-   **/
-  llamathena: Asset;
-}
-/**
- * Result of a proportional Llamathena withdrawal preview.
- **/
-export interface PreviewWithdrawLlamathenaProportionallyResult {
-  /**
-   * Underlying assets received from the withdrawal.
-   **/
-  assets: [Asset];
-  /**
-   * Staked Llamathena token consumed.
-   **/
-  stkLlamathena: [Asset];
-}
-
-export interface LlamathenaProportionalWithdrawProps
-  extends PrepareUpdateQuotasProps {
-  /**
-   * Preview of the withdrawal
-   */
-  preview: PreviewWithdrawLlamathenaProportionallyResult;
-  /**
-   * Minimal credit account data on which operation is performed.
-   */
-  creditAccount: RouterCASlice;
-}
 
 export interface ICreditAccountsService extends Construct {
   sdk: GearboxSDK;
@@ -885,7 +850,7 @@ export interface ICreditAccountsService extends Construct {
 
   /**
    * Executes a multicall on a credit account, automatically prepending
-   * necessary on-demand price feed updates inferred from the calls array.
+   * necessary on-demand price feed updates.
    *
    * @param creditAccount - Credit account to execute multicall on
    * @param calls - Array of multicall operations (price updates will be inferred)
@@ -900,7 +865,7 @@ export interface ICreditAccountsService extends Construct {
 
   /**
    * Executes a bot multicall on a credit account, automatically prepending
-   * necessary on-demand price feed updates inferred from the calls array.
+   * necessary on-demand price feed updates.
    *
    * @param creditAccount - Credit account to execute bot multicall on
    * @param calls - Array of multicall operations (price updates will be inferred)
@@ -955,12 +920,5 @@ export interface ICreditAccountsService extends Construct {
    */
   claimFarmRewards(
     props: ClaimFarmRewardsProps,
-  ): Promise<CreditAccountOperationResult>;
-
-  previewWithdrawLlamathenaProportionally(
-    props: PreviewWithdrawLlamathenaProportionallyProps,
-  ): Promise<PreviewWithdrawLlamathenaProportionallyResult>;
-  withdrawLlamathenaProportionally(
-    props: LlamathenaProportionalWithdrawProps,
   ): Promise<CreditAccountOperationResult>;
 }

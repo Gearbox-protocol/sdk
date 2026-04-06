@@ -1,14 +1,23 @@
-import type { Address, Chain, Hex, PublicClient, Transport } from "viem";
+import {
+  type Address,
+  type Chain,
+  erc20Abi,
+  type Hex,
+  type MulticallResponse,
+  type PublicClient,
+  type Transport,
+} from "viem";
+import { iStateSerializerAbi } from "../../abi/iStateSerializer.js";
 import { iVersionAbi } from "../../abi/iVersion.js";
-import type { PhantomTokenContractType } from "../constants/index.js";
 import type { Asset } from "../router/index.js";
+import type { ILogger } from "../types/logger.js";
 import {
   AddressMap,
   AddressSet,
   bytes32ToString,
   formatBN,
 } from "../utils/index.js";
-import type { TokenMetaData } from "./types.js";
+import type { PhantomTokenMeta, TokenMetaData } from "./token-types.js";
 
 /**
  * Options for {@link TokensMeta.formatBN}.
@@ -25,16 +34,6 @@ export interface FormatBNOptions {
 }
 
 /**
- * Token metadata enriched with some attributes specific to certain classes of tokens
- **/
-export interface TokenMetaDataExtended extends TokenMetaData {
-  /**
-   * Classification of the phantom token, or `undefined` for normal tokens.
-   **/
-  phantomTokenType?: PhantomTokenContractType;
-}
-
-/**
  * Registry of token metadata (symbol, decimals, phantom type) keyed by address.
  *
  * Extends {@link AddressMap} with convenience accessors for formatting token
@@ -42,13 +41,15 @@ export interface TokenMetaDataExtended extends TokenMetaData {
  *
  * Provides methods to lazy-load information about certain classes of tokens (e.g. phantom tokens)
  */
-export class TokensMeta extends AddressMap<TokenMetaDataExtended> {
+export class TokensMeta extends AddressMap<TokenMetaData> {
   #client: PublicClient<Transport, Chain>;
-  #phantomTokensLoaded?: AddressSet;
+  #tokenDataLoaded = new AddressSet();
+  #logger?: ILogger;
 
-  constructor(client: PublicClient<Transport, Chain>) {
+  constructor(client: PublicClient<Transport, Chain>, logger?: ILogger) {
     super(undefined, "tokensMeta");
     this.#client = client;
+    this.#logger = logger?.child?.({ name: "TokensMeta" }) ?? logger;
   }
 
   /**
@@ -56,7 +57,24 @@ export class TokensMeta extends AddressMap<TokenMetaDataExtended> {
    **/
   public reset(): void {
     this.clear();
-    this.#phantomTokensLoaded = undefined;
+    this.#tokenDataLoaded.clear();
+  }
+
+  public override upsert(
+    address: string,
+    value: TokenMetaData | undefined,
+  ): void {
+    let v = value;
+    const existing = this.get(address);
+    // update existing value with new one
+    // is needed since some methods here augment existing values, to prevent losing this on market reload
+    if (existing && v) {
+      v = {
+        ...existing,
+        ...v,
+      };
+    }
+    super.upsert(address, v);
   }
 
   /**
@@ -78,30 +96,31 @@ export class TokensMeta extends AddressMap<TokenMetaDataExtended> {
   }
 
   /**
-   * Returns the phantom token type for a given token, or undefined for normal tokens
-   * Throws if the phantom token data is not loaded
+   * Returns true if the token is a phantom token, throws if the token data is not loaded
+   * @param t
+   * @returns
    */
-  public phantomTokenType(
-    token: Address,
-  ): PhantomTokenContractType | undefined {
-    if (!this.#phantomTokensLoaded?.has(token)) {
-      throw new Error("phantom token data not loaded");
+  public isPhantomToken(t: TokenMetaData): t is PhantomTokenMeta {
+    if (!this.#tokenDataLoaded.has(t.addr)) {
+      throw new Error(
+        `extended token data not loaded for ${t.symbol} (${t.addr})`,
+      );
     }
-    return this.mustGet(token).phantomTokenType;
+    return !!t.contractType?.startsWith("PHANTOM_TOKEN::");
   }
 
   /**
    * Returns a map of all phantom tokens
-   * Throws if the phantom token data is not loaded
+   * Throws if token data is not loaded
    */
-  public get phantomTokens(): AddressMap<TokenMetaDataExtended> {
-    if (!this.#phantomTokensLoaded) {
-      throw new Error("phantom tokens not loaded");
+  public get phantomTokens(): AddressMap<PhantomTokenMeta> {
+    const result = new AddressMap<PhantomTokenMeta>();
+    for (const [token, meta] of this.entries()) {
+      if (this.isPhantomToken(meta)) {
+        result.upsert(token, meta);
+      }
     }
-    return new AddressMap<TokenMetaDataExtended>(
-      this.entries().filter(([_, v]) => !!v.phantomTokenType),
-      "phantomTokens",
-    );
+    return result;
   }
 
   /**
@@ -164,32 +183,102 @@ export class TokensMeta extends AddressMap<TokenMetaDataExtended> {
   }
 
   /**
-   * Loads phantom token data for all known tokens from chain
+   * Loads token information about phantom tokens
+   * Other special tokens may be loaded here in the future
+   *
+   * @param tokens - tokens to load data for, defaults to all tokens
    */
-  public async loadPhantomTokens(): Promise<void> {
-    this.#phantomTokensLoaded = new AddressSet();
-    const tokens = this.keys();
+  public async loadTokenData(...tokens: Address[]): Promise<void> {
+    const tokenz = new AddressSet(tokens.length > 0 ? tokens : this.keys());
+    const tokensToLoad = Array.from(tokenz.difference(this.#tokenDataLoaded));
+    if (tokensToLoad.length === 0) {
+      return;
+    }
+
     const resp = await this.#client.multicall({
-      contracts: tokens.map(
+      contracts: tokensToLoad.flatMap(
         t =>
-          ({
-            address: t,
-            abi: iVersionAbi,
-            functionName: "contractType",
-          }) as const,
+          [
+            {
+              address: t,
+              abi: iVersionAbi,
+              functionName: "contractType",
+            },
+            {
+              address: t,
+              abi: iStateSerializerAbi,
+              functionName: "serialize",
+            },
+          ] as const,
       ),
       allowFailure: true,
       batchSize: 0,
     });
-    for (let i = 0; i < resp.length; i++) {
-      if (resp[i].status === "success") {
-        const contractType = bytes32ToString(resp[i].result as Hex);
-        if (contractType.startsWith("PHANTOM_TOKEN::")) {
-          this.mustGet(tokens[i]).phantomTokenType =
-            contractType as PhantomTokenContractType;
-        }
-      }
-      this.#phantomTokensLoaded.add(tokens[i]);
+
+    this.#logger?.debug(`loaded ${resp.length} contract types`);
+
+    for (let i = 0; i < tokensToLoad.length; i++) {
+      this.#overrideTokenMeta(tokensToLoad[i], resp[2 * i], resp[2 * i + 1]);
+      this.#tokenDataLoaded.add(tokensToLoad[i]);
+    }
+  }
+
+  #overrideTokenMeta(
+    token: Address,
+    contractTypeResp: MulticallResponse<Hex>,
+    _serializeResp: MulticallResponse<Hex>,
+  ): TokenMetaData {
+    const meta = this.mustGet(token);
+    if (contractTypeResp.status === "success") {
+      const contractType = bytes32ToString(contractTypeResp.result);
+      this.upsert(token, {
+        ...meta,
+        contractType,
+      });
+      this.#logger?.debug(`token ${meta.symbol} is ${contractType}`);
+    }
+    return this.mustGet(token);
+  }
+
+  async #loadWithoutCompressor(tokens_: AddressSet): Promise<void> {
+    if (tokens_.size === 0) {
+      return;
+    }
+    const tokens = Array.from(tokens_);
+    const resp = await this.#client.multicall({
+      contracts: tokens.flatMap(
+        t =>
+          [
+            {
+              address: t,
+              abi: erc20Abi,
+              functionName: "symbol",
+            },
+            {
+              address: t,
+              abi: erc20Abi,
+              functionName: "name",
+            },
+            {
+              address: t,
+              abi: erc20Abi,
+              functionName: "decimals",
+            },
+          ] as const,
+      ),
+      allowFailure: false,
+      batchSize: 0,
+    });
+    this.#logger?.debug(
+      `loaded ${resp.length} basic metadata without compressor`,
+    );
+    for (let i = 0; i < tokens.length; i++) {
+      this.upsert(tokens[i], {
+        addr: tokens[i],
+        symbol: resp[3 * i] as string,
+        name: resp[3 * i + 1] as string,
+        decimals: resp[3 * i + 2] as number,
+      });
     }
   }
 }

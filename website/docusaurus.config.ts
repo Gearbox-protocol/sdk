@@ -66,7 +66,6 @@ const config: Config = {
           "../src/plugins/degen-distributors/index.ts",
           "../src/plugins/delayed-withdrawal/index.ts",
           "../src/plugins/pools-history/index.ts",
-          "../src/plugins/zappers/index.ts",
         ],
         entryPointStrategy: "resolve",
         tsconfig: "../tsconfig.build.json",
