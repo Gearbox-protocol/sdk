@@ -19,7 +19,7 @@ import type {
   RouterCASlice,
   RouterCloseResult,
 } from "../router/index.js";
-import type { MultiCall, RawTx } from "../types/index.js";
+import type { IPriceUpdateTx, MultiCall, RawTx } from "../types/index.js";
 
 /**
  * @internal
@@ -216,6 +216,10 @@ export interface CloseCreditAccountProps {
 
 export interface RepayCreditAccountProps
   extends RepayAndLiquidateCreditAccountProps {
+  /**
+   * Swap calls for repay
+   */
+  calls?: Array<MultiCall>;
   /**
    * close or zeroDebt
    */
@@ -503,6 +507,10 @@ export interface ChangeDeptProps {
    * Assets to add as collateral
    */
   collateral?: [Asset];
+  /**
+   * Assets to wrap
+   */
+  wrapAsset?: [Asset];
 }
 
 export interface FullyLiquidateProps {
@@ -665,6 +673,20 @@ export type GetConnectedMigrationBotsResult =
     }
   | undefined;
 
+/**
+ * Options to get approval address for collateral token
+ */
+export type GetApprovalAddressProps =
+  | { creditManager: Address; borrower: Address }
+  | {
+      creditManager: Address;
+      creditAccount: Address;
+    };
+
+export type CreditAccountDataWithInvestor = CreditAccountData & {
+  investor: Address;
+};
+
 export interface ICreditAccountsService extends Construct {
   sdk: GearboxSDK;
   /**
@@ -678,16 +700,56 @@ export interface ICreditAccountsService extends Construct {
     account: Address,
     blockNumber?: bigint,
   ): Promise<CreditAccountData | undefined>;
+
+  /**
+   * Returns credit account data for a single account with the investor address resolved (from KYC factory when applicable).
+   * @param account - Credit account address
+   * @param blockNumber - Optional block number for the read
+   * @returns CreditAccountDataWithInvestor, or undefined if the account is not found
+   */
+  getCreditAccountDataWithInvestor(
+    account: Address,
+    blockNumber?: bigint,
+  ): Promise<CreditAccountDataWithInvestor | undefined>;
+
   /**
    * Methods to get all credit accounts with some optional filtering
    * Performs all necessary price feed updates under the hood
    *
    * @param options
    * @param blockNumber
-   * @returns returned credit accounts are sorted by health factor in ascending order
+   * @param priceUpdate - Optional pre-computed price feed update (e.g. from generatePriceFeedsUpdateTxs)
+   * @returns Credit accounts sorted by health factor ascending
    */
   getCreditAccounts(
     options?: GetCreditAccountsOptions,
+    blockNumber?: bigint,
+  ): Promise<Array<CreditAccountData>>;
+
+  /**
+   * Returns all credit accounts matching the filter with investor set on each; when options.owner is set, includes KYC CAs for that owner.
+   * @param options - Filter options (owner, creditManager, health factor, etc.)
+   * @param blockNumber - Optional block number for the read
+   * @returns Credit accounts (with investor) sorted by health factor ascending
+   */
+  getCreditAccountsWithInvestor(
+    options?: GetCreditAccountsOptions,
+    blockNumber?: bigint,
+  ): Promise<Array<CreditAccountDataWithInvestor>>;
+
+  /**
+   * Loads credit account data for the given addresses using simulateWithPriceUpdates (with price updates applied before the read).
+   * @param accounts - Credit account addresses to load
+   * @param priceUpdateTxs - Price feed update txs to simulate before the read (e.g. from generatePriceFeedsUpdateTxs)
+   * @param blockNumber - Optional block number for the read
+   * @returns Array of CreditAccountData in the same order as accounts
+   */
+  loadSpecifiedAccounts(
+    accounts: Address[],
+    priceUpdateTxs: IPriceUpdateTx<{
+      priceFeed: `0x${string}`;
+      timestamp: number;
+    }>[],
     blockNumber?: bigint,
   ): Promise<Array<CreditAccountData>>;
   /**
@@ -727,9 +789,9 @@ export interface ICreditAccountsService extends Construct {
   /**
    * Generates transaction to liquidate credit account
    * @param props - {@link FullyLiquidateProps}
-   * @returns
+   * @returns Transaction data and optional loss policy data
    */
-  fullyLiquidate(props: FullyLiquidateProps): Promise<CloseCreditAccountResult>;
+  fullyLiquidate(props: FullyLiquidateProps): Promise<FullyLiquidateResult>;
 
   /**
    * Closes credit account or closes credit account and keeps it open with zero debt.
@@ -811,6 +873,14 @@ export interface ICreditAccountsService extends Construct {
   claimDelayed(props: ClaimDelayedProps): Promise<CreditAccountOperationResult>;
 
   /**
+   * Returns address to which approval should be given on collateral token
+   * It's credit manager for classical markets and special wallet for KYC markets
+   * @param props - {@link GetApprovalAddressProps}
+   * @returns
+   */
+  getApprovalAddress(props: GetApprovalAddressProps): Promise<Address>;
+
+  /**
    * Executes swap specified by given calls, update quotas of affected tokens
    * - Open credit account is executed in the following order: price update -> increase debt -> add collateral ->
    *   -> update quotas -> (optionally: execute swap path for trading/strategy) ->
@@ -877,6 +947,58 @@ export interface ICreditAccountsService extends Construct {
     calls: Array<MultiCall>,
     options?: { ignoreReservePrices?: boolean },
   ): Promise<RawTx>;
+
+  /**
+   * Returns multicall entries to redeem (unwrap) KYC ERC-4626 vault shares into underlying for the given credit manager.
+   * Used when withdrawing debt from a KYC market: redeems adapter vault shares so the underlying can be withdrawn.
+   * Only applies when the credit manager's underlying is KYC-gated and has an ERC-4626 adapter configured.
+   * @param amount - Number of vault shares (adapter tokens) to redeem
+   * @param creditManager - Credit manager address
+   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not KYC or no adapter is configured
+   */
+  getKYCUnwrapCalls(
+    amount: bigint,
+    creditManager: Address,
+  ): Promise<Array<MultiCall> | undefined>;
+
+  /**
+   * Returns multicall entries to deposit (wrap) underlying into KYC ERC-4626 vault shares for the given credit manager.
+   * Used when adding debt on a KYC market: deposits underlying into the adapter vault so shares are minted on the account.
+   * Only applies when the credit manager's underlying is KYC-gated and has an ERC-4626 adapter configured.
+   * @param amount - Amount of underlying assets to deposit into the vault (in underlying decimals)
+   * @param creditManager - Credit manager address
+   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not KYC or no adapter is configured
+   */
+  getKYCWrapCalls(
+    amount: bigint,
+    creditManager: Address,
+  ): Promise<Array<MultiCall> | undefined>;
+
+  /**
+   * Returns multicall entries to call redeemDiff on the KYC ERC-4626 adapter for the given credit manager.
+   * Redeems the leftover vault shares (e.g. after repaying debt) so the account does not hold excess KYC vault tokens.
+   * Only applies when the credit manager's underlying is KYC-gated and has an ERC-4626 adapter configured.
+   * @param amount - Leftover vault share amount to redeem (in adapter/vault decimals)
+   * @param creditManager - Credit manager address
+   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not KYC or no adapter is configured
+   */
+  getRedeemDiffCalls(
+    amount: bigint,
+    creditManager: Address,
+  ): Promise<Array<MultiCall> | undefined>;
+
+  /**
+   * Returns multicall entries to call depositDiff on the KYC ERC-4626 adapter for the given credit manager.
+   * Deposits the leftover underlying (e.g. after decreasing debt) into the vault so the account does not hold excess underlying.
+   * Only applies when the credit manager's underlying is KYC-gated and has an ERC-4626 adapter configured.
+   * @param amount - Leftover underlying amount to deposit into the vault (in underlying decimals)
+   * @param creditManager - Credit manager address
+   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not KYC or no adapter is configured
+   */
+  getDepositDiffCalls(
+    amount: bigint,
+    creditManager: Address,
+  ): Promise<Array<MultiCall> | undefined>;
 
   /**
    * Withdraws a single collateral from credit account to wallet to and updates quotas;

@@ -37,7 +37,8 @@ export type Curator =
   | "Hyperithm"
   | "UltraYield"
   | "TelosC"
-  | "Gami Labs";
+  | "Gami Labs"
+  | "Securitize";
 
 /**
  * Extended viem {@link Chain} with Gearbox-specific metadata.
@@ -142,6 +143,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       },
       testMarketConfigurators: {
         "0x99df7330bf42d596af2e9d9836d4fc2077c574aa": "M11 Credit",
+        "0xE0527dE5908B3fc2e054B7eEE0DeF6c9965AbF24": "Securitize",
       },
       isPublic: true,
       wellKnownToken: {

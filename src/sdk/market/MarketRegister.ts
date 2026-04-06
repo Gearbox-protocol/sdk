@@ -26,6 +26,9 @@ import { ZapperRegister } from "./ZapperRegister.js";
  * on-chain market compressor and exposes convenience lookup methods
  **/
 export class MarketRegister extends ZapperRegister {
+  /**
+   * Mapping pool.address -> MarketSuite
+   */
   #markets = new AddressMap<MarketSuite>(undefined, "markets");
   #marketFilter?: MarketFilter;
   #marketConfigurators = new AddressMap<MarketConfiguratorContract>(
