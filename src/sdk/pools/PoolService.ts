@@ -7,7 +7,6 @@ import { SDKConstruct, type TokenMetaData } from "../base/index.js";
 import { NATIVE_ADDRESS } from "../constants/index.js";
 import type { ZapperData } from "../market/index.js";
 import { AddressSet, hexEq } from "../utils/index.js";
-import { POOL_TOKENS_TO_MIGRATE } from "./constants.js";
 import type {
   AddLiquidityProps,
   DepositMetadata,
@@ -163,10 +162,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
    */
   #getDepositZappers(poolAddr: Address) {
     const zappers = this.sdk.marketRegister.poolZappers(poolAddr);
-    return zappers.filter(
-      z =>
-        z.type !== "migration" && !POOL_TOKENS_TO_MIGRATE.has(z.tokenIn.addr),
-    );
+    return zappers.filter(z => z.type !== "migration");
   }
 
   #depositTokensIn(poolAddr: Address, allowDirectDeposit: boolean): Address[] {
@@ -234,7 +230,6 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     const zappers = this.#getDepositZappers(poolAddr);
     for (const z of zappers) {
       // TODO: do we still need this after v3.0 deprecation?
-      // filter out v2 diesel tokens (can come from migration v2 -> v3 zappers)
       if (hexEq(z.tokenIn.addr, tokenIn)) {
         result.add(z.tokenOut.addr);
       }
@@ -302,10 +297,8 @@ export class PoolService extends SDKConstruct implements IPoolsService {
   ): ZapperData | undefined {
     const zappers = this.sdk.marketRegister
       .getZapper(poolAddr, tokenIn, tokenOut)
-      ?.filter(
-        z =>
-          z.type !== "migration" && !POOL_TOKENS_TO_MIGRATE.has(z.tokenIn.addr),
-      );
+      ?.filter(z => z.type !== "migration");
+
     if (zappers && zappers.length > 1) {
       throw new Error(
         `Multiple zappers found for tokenIn ${this.labelAddress(
