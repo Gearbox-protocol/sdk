@@ -21,7 +21,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
    * @inheritdoc IPoolsService.getDepositTokensIn
    */
   public getDepositTokensIn(pool: Address): Address[] {
-    // classic pool, allow direct deposit of underlying and via zappers
+    // Classic pool flow: allow direct underlying deposits and zapper-based deposits.
     return this.#depositTokensIn(pool, true);
   }
 
@@ -29,7 +29,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
    * @inheritdoc IPoolsService.getDepositTokensOut
    */
   public getDepositTokensOut(pool: Address, tokenIn: Address): Address[] {
-    // classic pool, allow direct deposit of underlying and via zappers
+    // Classic pool flow: allow direct underlying deposits and zapper-based deposits.
     return this.#depositTokensOut(pool, tokenIn, true);
   }
 
@@ -95,7 +95,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
    * @inheritdoc IPoolsService.getWithdrawalTokensIn
    */
   public getWithdrawalTokensIn(pool: Address): Address[] {
-    // classic pool, allow direct withdrawal of underlying and via zappers
+    // Classic pool flow: allow direct diesel-token redemption and zapper-based redemption.
     return this.#withdrawalTokensIn(pool, true);
   }
 
@@ -103,7 +103,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
    * @inheritdoc IPoolsService.getWithdrawalTokensOut
    */
   public getWithdrawalTokensOut(pool: Address, tokenIn: Address): Address[] {
-    // classic pool, allow direct deposit of underlying and via zappers
+    // Classic pool flow: allow direct diesel-token redemption and zapper-based redemption.
     return this.#withdrawalTokensOut(pool, tokenIn, true);
   }
 
@@ -156,15 +156,20 @@ export class PoolService extends SDKConstruct implements IPoolsService {
   }
 
   /**
-   * TODO: do we still need this after v3.0 deprecation?
-   * Filter out v2 diesel tokens (can come from migration v2 -> v3 zappers)
-   * Also omits "migration" zappers (v3 -> v3.1) since they are treated in a different way
+   * Returns non-migration zappers available for the pool.
    */
   #getDepositZappers(poolAddr: Address) {
     const zappers = this.sdk.marketRegister.poolZappers(poolAddr);
     return zappers.filter(z => z.type !== "migration");
   }
 
+  /**
+   * Returns all supported deposit input tokens for a pool.
+   *
+   * Includes:
+   * - zapper `tokenIn` where zapper output is pool diesel token
+   * - pool underlying token when direct deposit is enabled
+   */
   #depositTokensIn(poolAddr: Address, allowDirectDeposit: boolean): Address[] {
     const { pool } = this.sdk.marketRegister.findByPool(poolAddr);
     const result: AddressSet = new AddressSet();
@@ -173,7 +178,6 @@ export class PoolService extends SDKConstruct implements IPoolsService {
       result.add(pool.underlying);
     }
 
-    // find all zappers that produce pool.dieselToken (=== pool.address)
     const zappers = this.#getDepositZappers(poolAddr);
     for (const z of zappers) {
       if (hexEq(z.tokenOut.addr, poolAddr)) {
@@ -190,6 +194,13 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     return result.asArray();
   }
 
+  /**
+   * Returns all supported withdrawal input tokens for a pool.
+   *
+   * Includes:
+   * - pool diesel token when direct withdrawal is enabled
+   * - all zapper that can be redeemed from the pool
+   */
   #withdrawalTokensIn(
     poolAddr: Address,
     allowDirectDeposit: boolean,
@@ -198,12 +209,12 @@ export class PoolService extends SDKConstruct implements IPoolsService {
 
     const result: AddressSet = new AddressSet();
 
-    // if direct withdrawal is allowed, add pool.address (aka dieselToken)
+    // Direct withdrawal uses pool token (diesel token) as input.
     if (allowDirectDeposit && pool) {
       result.add(poolAddr);
     }
 
-    // find all zappers tokenOut (since withdrawing is allowed from any asset)
+    // Any zapper output token can be used as a withdrawal input route.
     const zappers = this.#getDepositZappers(poolAddr);
     for (const z of zappers) {
       result.add(z.tokenOut.addr);
@@ -218,6 +229,13 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     return result.asArray();
   }
 
+  /**
+   * Returns possible deposit outputs for a given input token.
+   *
+   * Includes:
+   * - zapper `tokenOut` for `z.tokenIn` matching `tokenIn`
+   * - pool diesel token for direct underlying deposit when enabled
+   */
   #depositTokensOut(
     poolAddr: Address,
     tokenIn: Address,
@@ -226,16 +244,15 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     const result = new AddressSet();
     const { pool } = this.sdk.marketRegister.findByPool(poolAddr);
 
-    // find all zappers by tokenIn, get their tokenOuts
+    // Collect zapper outputs for the provided input token.
     const zappers = this.#getDepositZappers(poolAddr);
     for (const z of zappers) {
-      // TODO: do we still need this after v3.0 deprecation?
       if (hexEq(z.tokenIn.addr, tokenIn)) {
         result.add(z.tokenOut.addr);
       }
     }
 
-    // if direct deposit is allowed, add pool.address (aka dieselToken)
+    // Direct deposit mints pool token (diesel token).
     if (allowDirectDeposit && hexEq(tokenIn, pool.underlying)) {
       result.add(poolAddr);
     }
@@ -252,6 +269,13 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     return r;
   }
 
+  /**
+   * Returns possible withdrawal outputs for a given input token.
+   *
+   * Includes:
+   * - zapper `tokenIn` where zapper `z.tokenOut` matches requested `tokenIn`
+   * - pool underlying token for direct diesel-token redemption when enabled
+   */
   #withdrawalTokensOut(
     poolAddr: Address,
     tokenIn: Address,
@@ -260,7 +284,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     const result = new AddressSet();
     const { pool } = this.sdk.marketRegister.findByPool(poolAddr);
 
-    // find all zappers by tokenIn, get their tokenOuts
+    // Find reverse zapper route: requested output must match zapper output.
     const zappers = this.#getDepositZappers(poolAddr);
     for (const z of zappers) {
       if (hexEq(z.tokenOut.addr, tokenIn)) {
@@ -268,7 +292,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
       }
     }
 
-    // if direct deposit is allowed, add pool.address (aka dieselToken)
+    // Direct withdrawal from diesel token returns the underlying token.
     if (allowDirectDeposit && hexEq(tokenIn, poolAddr)) {
       result.add(pool.underlying);
     }
@@ -286,9 +310,9 @@ export class PoolService extends SDKConstruct implements IPoolsService {
   }
 
   /**
-   * TODO: do we still need this after v3.0 deprecation?
-   * Filter out v2 diesel tokens (can come from migration v2 -> v3 zappers)
-   * Also omits "migration" zappers (v3 -> v3.1) since they are treated in a different way
+   * Returns a single non-migration zapper route for the given token pair.
+   *
+   * Throws when multiple matching zappers exist to keep call construction deterministic.
    */
   #getDepositZapper(
     poolAddr: Address,
@@ -312,6 +336,11 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     return zappers?.[0];
   }
 
+  /**
+   * Builds metadata required to execute a deposit operation.
+   *
+   * Includes selected zapper route (if any), approve target, and permit support flag.
+   */
   #depositMetadata(
     type: DepositMetadata["type"],
     poolAddr: Address,
@@ -337,7 +366,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
 
     return {
       zapper,
-      // zapper or pool itself
+      // Approval target is zapper when routed, otherwise the pool contract.
       approveTarget: zapper?.baseParams.addr ?? pool.pool.address,
       // TODO: instead of permissible, return permitType depending on tokenIn
       // "none" | "eip2612" | "dai_like";
@@ -346,6 +375,11 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     };
   }
 
+  /**
+   * Builds metadata required to execute a withdrawal operation.
+   *
+   * Includes selected zapper route (if any), approve target, and permit support flag.
+   */
   #withdrawalMetadata(
     type: DepositMetadata["type"],
     poolAddr: Address,
@@ -370,7 +404,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
 
     return {
       zapper,
-      // zapper or pool itself
+      // Approval target exists only for zapper-based withdrawals.
       approveTarget: zapper?.baseParams.addr,
       // TODO: instead of permissible, return permitType depending on tokenIn
       // "none" | "eip2612" | "dai_like";
