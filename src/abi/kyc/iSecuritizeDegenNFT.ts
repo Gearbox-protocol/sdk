@@ -18,6 +18,32 @@ export const iSecuritizeDegenNFTAbi = [
   },
   {
     type: "function",
+    name: "cacheRegisterSignatures",
+    inputs: [
+      { name: "investor", type: "address", internalType: "address" },
+      {
+        name: "signatures",
+        type: "tuple[]",
+        internalType: "struct ISecuritizeDegenNFT.RegisterMessage[]",
+        components: [
+          { name: "token", type: "address", internalType: "address" },
+          {
+            name: "signature",
+            type: "tuple",
+            internalType: "struct ISecuritizeDegenNFT.Signature",
+            components: [
+              { name: "deadline", type: "uint256", internalType: "uint256" },
+              { name: "signature", type: "bytes", internalType: "bytes" },
+            ],
+          },
+        ],
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "contractType",
     inputs: [],
     outputs: [{ name: "", type: "bytes32", internalType: "bytes32" }],
@@ -25,9 +51,47 @@ export const iSecuritizeDegenNFTAbi = [
   },
   {
     type: "function",
+    name: "getCachedSignature",
+    inputs: [
+      { name: "investor", type: "address", internalType: "address" },
+      { name: "token", type: "address", internalType: "address" },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "tuple",
+        internalType: "struct ISecuritizeDegenNFT.Signature",
+        components: [
+          { name: "deadline", type: "uint256", internalType: "uint256" },
+          { name: "signature", type: "bytes", internalType: "bytes" },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "getDSTokens",
     inputs: [],
     outputs: [{ name: "", type: "address[]", internalType: "address[]" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getDSTokensData",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "tuple[]",
+        internalType: "struct ISecuritizeDegenNFT.DSTokenData[]",
+        components: [
+          { name: "token", type: "address", internalType: "address" },
+          { name: "registrar", type: "address", internalType: "address" },
+          { name: "operators", type: "address[]", internalType: "address[]" },
+        ],
+      },
+    ],
     stateMutability: "view",
   },
   {
@@ -41,15 +105,6 @@ export const iSecuritizeDegenNFTAbi = [
     type: "function",
     name: "getOperators",
     inputs: [{ name: "token", type: "address", internalType: "address" }],
-    outputs: [{ name: "", type: "address[]", internalType: "address[]" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getRegisteredTokens",
-    inputs: [
-      { name: "creditAccount", type: "address", internalType: "address" },
-    ],
     outputs: [{ name: "", type: "address[]", internalType: "address[]" }],
     stateMutability: "view",
   },
@@ -216,6 +271,14 @@ export const iSecuritizeDegenNFTAbi = [
     inputs: [
       { name: "token", type: "address", internalType: "address" },
       { name: "caller", type: "address", internalType: "address" },
+    ],
+  },
+  {
+    type: "error",
+    name: "CreditAccountNotRegisteredException",
+    inputs: [
+      { name: "creditAccount", type: "address", internalType: "address" },
+      { name: "token", type: "address", internalType: "address" },
     ],
   },
   {

@@ -31,6 +31,13 @@ export const iSecuritizeKYCFactoryAbi = [
   },
   {
     type: "function",
+    name: "getTokens",
+    inputs: [],
+    outputs: [{ name: "", type: "address[]", internalType: "address[]" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "getWallet",
     inputs: [
       { name: "creditAccount", type: "address", internalType: "address" },
@@ -75,6 +82,23 @@ export const iSecuritizeKYCFactoryAbi = [
         type: "address[]",
         internalType: "address[]",
       },
+      {
+        name: "signaturesToCache",
+        type: "tuple[]",
+        internalType: "struct ISecuritizeDegenNFT.RegisterMessage[]",
+        components: [
+          { name: "token", type: "address", internalType: "address" },
+          {
+            name: "signature",
+            type: "tuple",
+            internalType: "struct ISecuritizeDegenNFT.Signature",
+            components: [
+              { name: "deadline", type: "uint256", internalType: "uint256" },
+              { name: "signature", type: "bytes", internalType: "bytes" },
+            ],
+          },
+        ],
+      },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -97,6 +121,23 @@ export const iSecuritizeKYCFactoryAbi = [
         name: "tokensToRegister",
         type: "address[]",
         internalType: "address[]",
+      },
+      {
+        name: "signaturesToCache",
+        type: "tuple[]",
+        internalType: "struct ISecuritizeDegenNFT.RegisterMessage[]",
+        components: [
+          { name: "token", type: "address", internalType: "address" },
+          {
+            name: "signature",
+            type: "tuple",
+            internalType: "struct ISecuritizeDegenNFT.Signature",
+            components: [
+              { name: "deadline", type: "uint256", internalType: "uint256" },
+              { name: "signature", type: "bytes", internalType: "bytes" },
+            ],
+          },
+        ],
       },
     ],
     outputs: [

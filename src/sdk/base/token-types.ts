@@ -20,31 +20,55 @@ export type KYCUnderlyingContractType =
   | typeof KYC_UNDERLYING_DEFAULT
   | typeof KYC_UNDERLYING_ON_DEMAND;
 
+export const KYC_ON_DEMAND_LP_MONOPOLIZED = "ON_DEMAND_LP::MONOPOLIZED";
+export type KYCOnDemandLpContractType = typeof KYC_ON_DEMAND_LP_MONOPOLIZED;
+
 export type PhantomTokenContractType =
   (typeof PHANTOM_TOKEN_CONTRACT_TYPES)[number];
 
-export type SimpleTokenMeta = TokenData & {
+export interface SimpleTokenMeta extends TokenData {
   isDSToken?: boolean;
   contractType?: string;
-};
+}
 
 export type PhantomTokenMeta = SimpleTokenMeta & {
   contractType: PhantomTokenContractType;
 };
 
-export type KYCDefaultTokenMeta = SimpleTokenMeta & {
+export interface KYCDefaultTokenMeta extends SimpleTokenMeta {
   contractType: typeof KYC_UNDERLYING_DEFAULT;
   kycFactory: Address;
   asset: Address;
-};
+}
 
-export type KYCOnDemandTokenMeta = SimpleTokenMeta & {
+export interface LPMonopolizedPoolMeta {
+  pool: Address;
+  wrappedUnderlying: Address;
+  unwrappedUnderlying: Address;
+  depositAllowance: bigint;
+  claimableAmount: bigint;
+}
+
+export interface KYCOnDemandLPMonopolizedMeta {
+  addr: Address;
+  version: bigint;
+  contractType: typeof KYC_ON_DEMAND_LP_MONOPOLIZED;
+  marketConfigurator: Address;
+  depositor: Address;
+  pools: LPMonopolizedPoolMeta[];
+}
+
+export type KYCOnDemandLPMeta = KYCOnDemandLPMonopolizedMeta;
+
+export interface KYCOnDemandTokenMeta extends SimpleTokenMeta {
   contractType: typeof KYC_UNDERLYING_ON_DEMAND;
   kycFactory: Address;
   asset: Address;
   pool: Address;
-  liquidityProvider: Address;
-};
+  marketConfigurator: Address;
+  allowedDepositors: Address[];
+  liquidityProvider: KYCOnDemandLPMeta;
+}
 
 export type DSTokenMeta = Omit<SimpleTokenMeta, "isDSToken"> & {
   isDSToken: true;

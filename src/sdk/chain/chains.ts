@@ -56,6 +56,10 @@ export interface GearboxChain extends Chain {
    **/
   defaultMarketConfigurators: Record<Address, Curator>;
   /**
+   * Known KYC factory addresses on this chain
+   */
+  kycFactories?: Address[];
+  /**
    * Market configurators used in test/staging environments.
    **/
   testMarketConfigurators?: Record<Address, Curator>;
