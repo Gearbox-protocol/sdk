@@ -52,22 +52,13 @@ export class MarketRegister extends ZapperRegister {
    * @param state - Array of market data snapshots.
    **/
   public hydrate(state: MarketData[]): void {
-    this.#markets.clear();
     const configurators = new Set<Address>(state.map(m => m.configurator));
     this.#setMarketFilter([...configurators]);
-    for (const data of state) {
-      const pool = data.pool.baseParams.addr;
-      if (this.#ignoreMarkets.has(pool)) {
-        this.logger?.debug(
-          `ignoring market of pool ${pool} (${data.pool.name})`,
-        );
-        continue;
-      }
-      this.#markets.upsert(pool, new MarketSuite(this.sdk, data));
-    }
+    this.#setMarkets(state);
   }
 
   /**
+   * @internal
    * Fetches all markets from the on-chain for the given market configurators.
    *
    * @param marketConfigurators - Addresses of market configurator contracts to query.
@@ -151,7 +142,7 @@ export class MarketRegister extends ZapperRegister {
       );
     } else if (!ignoreUpdateablePrices) {
       // no changes in sdk state, but still need to update prices
-      await this.updatePrices();
+      await this.#updatePrices();
     }
   }
 
@@ -212,16 +203,7 @@ export class MarketRegister extends ZapperRegister {
       });
     }
 
-    for (const data of markets) {
-      const pool = data.pool.baseParams.addr;
-      if (this.#ignoreMarkets.has(pool)) {
-        this.logger?.debug(
-          `ignoring market of pool ${pool} (${data.pool.name})`,
-        );
-        continue;
-      }
-      this.#markets.upsert(pool, new MarketSuite(this.sdk, data));
-    }
+    this.#setMarkets(markets);
 
     this.logger?.info(
       `loaded ${this.#markets.size} markets in block ${this.sdk.currentBlock}`,
@@ -231,7 +213,7 @@ export class MarketRegister extends ZapperRegister {
   /**
    * Loads new prices and price feeds for given oracles from PriceFeedCompressor, defaults to all oracles
    */
-  public async updatePrices(oracles?: Address[]): Promise<void> {
+  async #updatePrices(oracles?: Address[]): Promise<void> {
     const uniqOracles = new AddressMap<IPriceOracleContract>();
     for (const m of this.markets) {
       if (!oracles || oracles.includes(m.priceOracle.address)) {
@@ -394,5 +376,19 @@ export class MarketRegister extends ZapperRegister {
    **/
   public get markets(): MarketSuite[] {
     return this.#markets.values();
+  }
+
+  #setMarkets(markets: readonly MarketData[]): void {
+    this.#markets.clear();
+    for (const data of markets) {
+      const pool = data.pool.baseParams.addr;
+      if (this.#ignoreMarkets.has(pool)) {
+        this.logger?.debug(
+          `ignoring market of pool ${pool} (${data.pool.name})`,
+        );
+        continue;
+      }
+      this.#markets.upsert(pool, new MarketSuite(this.sdk, data));
+    }
   }
 }
