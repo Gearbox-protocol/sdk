@@ -9,7 +9,7 @@ import {
 } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import type { IPriceUpdateTx, MarketStateHuman } from "../types/index.js";
-import { AddressMap } from "../utils/index.js";
+import { AddressMap, AddressSet } from "../utils/index.js";
 import { simulateWithPriceUpdates } from "../utils/viem/index.js";
 import type { CreditSuite } from "./credit/index.js";
 import { MarketConfiguratorContract } from "./MarketConfiguratorContract.js";
@@ -35,7 +35,7 @@ export class MarketRegister extends ZapperRegister {
     undefined,
     "marketConfigurators",
   );
-  #ignoreMarkets: Set<Address>;
+  #ignoreMarkets: AddressSet;
 
   /**
    * @param sdk - Top-level SDK instance.
@@ -43,9 +43,7 @@ export class MarketRegister extends ZapperRegister {
    **/
   constructor(sdk: GearboxSDK, ignoreMarkets: Address[] = []) {
     super(sdk);
-    this.#ignoreMarkets = new Set(
-      ignoreMarkets.map(m => m.toLowerCase() as Address),
-    );
+    this.#ignoreMarkets = new AddressSet(ignoreMarkets);
   }
 
   /**
@@ -59,16 +57,13 @@ export class MarketRegister extends ZapperRegister {
     this.#setMarketFilter([...configurators]);
     for (const data of state) {
       const pool = data.pool.baseParams.addr;
-      if (this.#ignoreMarkets.has(pool.toLowerCase() as Address)) {
+      if (this.#ignoreMarkets.has(pool)) {
         this.logger?.debug(
           `ignoring market of pool ${pool} (${data.pool.name})`,
         );
         continue;
       }
-      this.#markets.upsert(
-        data.pool.baseParams.addr,
-        new MarketSuite(this.sdk, data),
-      );
+      this.#markets.upsert(pool, new MarketSuite(this.sdk, data));
     }
   }
 
@@ -219,7 +214,7 @@ export class MarketRegister extends ZapperRegister {
 
     for (const data of markets) {
       const pool = data.pool.baseParams.addr;
-      if (this.#ignoreMarkets.has(pool.toLowerCase() as Address)) {
+      if (this.#ignoreMarkets.has(pool)) {
         this.logger?.debug(
           `ignoring market of pool ${pool} (${data.pool.name})`,
         );
