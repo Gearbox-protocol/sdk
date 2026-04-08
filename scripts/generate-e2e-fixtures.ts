@@ -26,7 +26,7 @@ import { AccountsPlugin } from "../src/plugins/accounts/AccountsPlugin.js";
 import { AdaptersPlugin } from "../src/plugins/adapters/AdaptersPlugin.js";
 import { BotsPlugin } from "../src/plugins/bots/index.js";
 import { DegenDistributorsPlugin } from "../src/plugins/degen-distributors/index.js";
-import { Pools7DAgoPlugin } from "../src/plugins/pools-history/index.js";
+import { ApyPlugin } from "../src/plugins/pools-history/index.js";
 import { chains, GearboxSDK, type NetworkType } from "../src/sdk/index.js";
 
 // ─── Configuration ──────────────────────────────────────────────────────────
@@ -98,7 +98,7 @@ async function main() {
         adapters: new AdaptersPlugin(true),
         bots: new BotsPlugin(true),
         degen: new DegenDistributorsPlugin(true),
-        pools7DAgo: new Pools7DAgoPlugin(true),
+        apy: new ApyPlugin(true),
         accounts: new AccountsPlugin({ includeZeroDebt: true }, true),
       },
       logger: console,
