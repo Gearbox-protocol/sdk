@@ -12,6 +12,7 @@ import type {
 } from "./pool-apy-types.js";
 
 const SCALE = 1_000_000n;
+// TODO: check if this is correct, maybe we should use 52n?
 const WEEKS_PER_YEAR = 54n;
 
 // ---------------------------------------------------------------------------
