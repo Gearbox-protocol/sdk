@@ -8,7 +8,7 @@ import type {
   PoolExtraApy,
   PoolPointsInfo,
 } from "../../rewards/apy/index.js";
-import type { BaseContractStateHuman, NetworkType } from "../../sdk/index.js";
+import type { BaseContractStateHuman } from "../../sdk/index.js";
 
 export interface Pool7DAgoState {
   pool: Address;
@@ -49,7 +49,7 @@ export interface NetworkApyData {
 export type GearStats = Omit<GearAPYDetails, "lastUpdated">;
 
 export interface ApySnapshotState {
-  byNetwork: Partial<Record<NetworkType, NetworkApyData>>;
+  apy: NetworkApyData;
   gearStats: GearStats | null;
   timestamp: string;
 }

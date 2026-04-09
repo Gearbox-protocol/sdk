@@ -10,20 +10,27 @@ import type {
   PoolPointsInfo,
   TokenOutputDetails,
 } from "../../rewards/apy/index.js";
-import type { NetworkType } from "../../sdk/index.js";
-import { chains, PERCENTAGE_FACTOR } from "../../sdk/index.js";
-import type {
-  ApySnapshotState,
-  FarmRewardInfo,
-  GearStats,
-  NetworkApyData,
-} from "./types.js";
+import { PERCENTAGE_FACTOR } from "../../sdk/index.js";
+import type { FarmRewardInfo, GearStats, NetworkApyData } from "./types.js";
 
 function numberToAPY(baseApy: number): number {
   return Math.round(baseApy * Number(PERCENTAGE_FACTOR));
 }
 
-function parseNetworkApy(
+export function parseGearStats(
+  output: Output<string, string>,
+): GearStats | null {
+  const d = output.gearApy?.status === "ok" ? output.gearApy.data : undefined;
+  if (!d) return null;
+  return {
+    base: numberToAPY(d.base ?? 0),
+    crv: numberToAPY(d.crv ?? 0),
+    gear: numberToAPY(d.gear ?? 0),
+    gearPrice: d.gearPrice ?? 0,
+  };
+}
+
+export function parseNetworkApy(
   apyResp: DataResult<TokenOutputDetails<string>[]> | undefined,
   poolResp: DataResult<PoolOutputDetails<string>[]> | undefined,
 ): NetworkApyData | undefined {
@@ -191,39 +198,5 @@ function parseNetworkApy(
         : undefined,
     poolExtraAPYList:
       Object.keys(poolExtraAPYList).length > 0 ? poolExtraAPYList : undefined,
-  };
-}
-
-export function parseApyOutput(
-  output: Output<string, string>,
-): ApySnapshotState {
-  const byNetwork: Partial<Record<NetworkType, NetworkApyData>> = {};
-
-  for (const [network, chain] of Object.entries(chains)) {
-    const chainData = output.chains[chain.id];
-    if (!chainData) continue;
-
-    const parsed = parseNetworkApy(chainData.tokens, chainData.pools);
-    if (parsed) {
-      byNetwork[network as NetworkType] = parsed;
-    }
-  }
-
-  const gearApyData =
-    output.gearApy?.status === "ok" ? output.gearApy.data : undefined;
-
-  const gearStats: GearStats | null = gearApyData
-    ? {
-        base: numberToAPY(gearApyData.base ?? 0),
-        crv: numberToAPY(gearApyData.crv ?? 0),
-        gear: numberToAPY(gearApyData.gear ?? 0),
-        gearPrice: gearApyData.gearPrice ?? 0,
-      }
-    : null;
-
-  return {
-    byNetwork,
-    gearStats,
-    timestamp: output.timestamp,
   };
 }

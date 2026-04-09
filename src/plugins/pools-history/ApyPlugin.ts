@@ -1,7 +1,6 @@
 import type { Address } from "viem";
 
 import { marketCompressorAbi } from "../../abi/compressors/marketCompressor.js";
-import type { Output } from "../../rewards/apy/index.js";
 import type { IGearboxSDKPlugin, ILogger } from "../../sdk/index.js";
 import {
   AddressMap,
@@ -10,7 +9,8 @@ import {
   BLOCKS_PER_WEEK_BY_NETWORK,
   VERSION_RANGE_310,
 } from "../../sdk/index.js";
-import { parseApyOutput } from "./apy-parser.js";
+import { ApyOutputCache } from "./apy-cache.js";
+import { parseGearStats, parseNetworkApy } from "./apy-parser.js";
 import { APY_STATE_CACHE_URL, DEFAULT_APY_INTERVAL_MS } from "./constants.js";
 import type {
   ApySnapshotState,
@@ -25,6 +25,8 @@ export interface ApyPluginState {
 
 export interface ApyPluginConstructorOptions {
   apyUrl?: string;
+  /** TTL for the shared HTTP cache in milliseconds (default: same as timer interval) */
+  cacheTtlMs?: number;
   timer?: PluginTimerOptions;
 }
 
@@ -56,11 +58,10 @@ export class ApyPlugin
 {
   #timerInterval?: ReturnType<typeof setInterval>;
   #apyUrl: string;
+  #cacheTtlMs: number;
 
   #pools7DAgo?: AddressMap<Pool7DAgoState>;
   #apySnapshot?: ApySnapshotState;
-
-  #apyEtag?: string;
 
   /**
    * Default timer options
@@ -82,12 +83,8 @@ export class ApyPlugin
     super(loadOnAttach);
     this.startTimerOnAttach = startTimerOnAttach;
     this.#apyUrl = options?.apyUrl ?? APY_STATE_CACHE_URL;
+    this.#cacheTtlMs = options?.cacheTtlMs ?? DEFAULT_APY_INTERVAL_MS;
 
-    /** Default timer options:
-     * - refreshPools7DAgoOnTick: false
-     * - intervalMs: 10 minutes
-     * - onChange: no-op
-     */
     this.#defaultTimerOptions = options?.timer ?? {
       refreshPools7DAgoOnTick: false,
       intervalMs: DEFAULT_APY_INTERVAL_MS,
@@ -121,7 +118,6 @@ export class ApyPlugin
       VERSION_RANGE_310,
     );
 
-    this.#logger?.debug(`loading apy snapshot from ${this.#apyUrl}`);
     this.#logger?.debug(
       `loading pools 7d ago with market compressor ${marketCompressorAddress}`,
     );
@@ -256,7 +252,6 @@ export class ApyPlugin
   }
 
   public stateHuman(_?: boolean): Pools7DAgoStateHuman[] {
-    // TODO: add apy snapshot
     return this.pools7DAgo.values().flatMap(p => ({
       address: p.pool,
       version: this.version,
@@ -285,28 +280,30 @@ export class ApyPlugin
 
   async #fetchApy(): Promise<ApySnapshotState | undefined> {
     try {
-      const head = await fetch(this.#apyUrl, { method: "HEAD" });
-      const etag = head.headers.get("ETag");
-      if (etag && etag === this.#apyEtag) {
-        this.#logger?.debug("apy state-cache: ETag unchanged, skipping");
-        return this.#apySnapshot;
-      }
-
-      const response = await fetch(this.#apyUrl);
-      if (!response.ok) {
-        throw new Error(
-          `apy state-cache fetch failed: ${response.status} ${response.statusText}`,
-        );
-      }
-
-      const output = (await response.json()) as Output<string, string>;
-      const snapshot = parseApyOutput(output);
-      this.#apyEtag = etag ?? undefined;
-
-      this.#logger?.debug(
-        `apy state-cache updated (timestamp: ${snapshot.timestamp})`,
+      const cache = ApyOutputCache.get(
+        this.#apyUrl,
+        this.#cacheTtlMs,
+        this.#logger,
       );
-      return snapshot;
+      const output = await cache.fetch();
+      if (!output) return undefined;
+
+      const chainData = output.chains[this.sdk.chainId];
+      if (!chainData) {
+        this.#logger?.debug(
+          `apy state-cache: no data for chainId ${this.sdk.chainId}`,
+        );
+        return undefined;
+      }
+
+      const apy = parseNetworkApy(chainData.tokens, chainData.pools);
+      if (!apy) return undefined;
+
+      return {
+        apy,
+        gearStats: parseGearStats(output),
+        timestamp: output.timestamp,
+      };
     } catch (e) {
       this.#logger?.error(e, "failed to fetch apy state-cache");
       return undefined;
