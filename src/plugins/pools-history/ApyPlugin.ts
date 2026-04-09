@@ -23,11 +23,35 @@ export interface ApyPluginState {
   apySnapshot: ApySnapshotState;
 }
 
+export interface ApyPluginConstructorOptions {
+  apyUrl?: string;
+  /**
+   * When the periodic timer runs, also refresh on-chain pool state at block ~7 days ago.
+   * Defaults to `false`: only the APY snapshot from state-cache is refreshed on timer ticks
+   * (initial load and `syncState` still fetch both).
+   */
+  refreshPools7DAgoOnTimer?: boolean;
+}
+
+export interface ApyPluginLoadOptions {
+  /**
+   * When `false` and the plugin is already loaded, skips the multicall that loads
+   * pool diesel rates at the ~7d-ago block; only the APY snapshot is refreshed.
+   * Ignored on the first load (both datasets are always fetched initially).
+   */
+  loadPools7DAgo?: boolean;
+}
+
 export interface PluginTimerOptions {
   /** Polling interval in milliseconds (default: 10 minutes) */
   intervalMs?: number;
   /** Callback fired after each successful refresh */
   onChange?: () => void;
+  /**
+   * Overrides {@link ApyPluginConstructorOptions.refreshPools7DAgoOnTimer} for this timer only.
+   * When `true`, each tick also refreshes 7d-ago pool state on-chain.
+   */
+  refreshPools7DAgoOnTick?: boolean;
 }
 
 const MAP_LABEL = "pools7DAgo";
@@ -45,6 +69,12 @@ export class ApyPlugin
   #apyEtag?: string;
 
   /**
+   * Default for timer ticks: whether to also refresh 7d-ago pool state on-chain.
+   * @see ApyPluginConstructorOptions.refreshPools7DAgoOnTimer
+   */
+  readonly #refreshPools7DAgoOnTimer: boolean;
+
+  /**
    * When `true`, the timer is started eagerly during the `attach` phase
    * rather than waiting for an explicit `load` call.
    **/
@@ -53,11 +83,12 @@ export class ApyPlugin
   constructor(
     loadOnAttach = false,
     startTimerOnAttach = false,
-    options?: { apyUrl?: string },
+    options?: ApyPluginConstructorOptions,
   ) {
     super(loadOnAttach);
     this.startTimerOnAttach = startTimerOnAttach;
     this.#apyUrl = options?.apyUrl ?? APY_STATE_CACHE_URL;
+    this.#refreshPools7DAgoOnTimer = options?.refreshPools7DAgoOnTimer ?? false;
   }
 
   public async attach(): Promise<void> {
@@ -71,7 +102,10 @@ export class ApyPlugin
   // Load — single entry point for all data (on-chain + state-cache)
   // ---------------------------------------------------------------------------
 
-  public async load(force?: boolean): Promise<ApyPluginState> {
+  public async load(
+    force?: boolean,
+    loadOptions?: ApyPluginLoadOptions,
+  ): Promise<ApyPluginState> {
     if (!force && this.loaded) {
       return this.state;
     }
@@ -89,42 +123,48 @@ export class ApyPlugin
     );
 
     const markets = this.sdk.marketRegister.markets;
+    const shouldLoadPools7DAgo =
+      !this.#pools7DAgo || !!loadOptions?.loadPools7DAgo;
 
     const [multicallResp, apySnapshot] = await Promise.all([
-      this.client.multicall({
-        allowFailure: true,
-        contracts: markets.map(
-          m =>
-            ({
-              address: marketCompressorAddress,
-              abi: marketCompressorAbi,
-              functionName: "getPoolState",
-              args: [m.pool.pool.address],
-            }) as const,
-        ),
-        blockNumber: targetBlock > 0n ? targetBlock : undefined,
-        batchSize: 0,
-      }),
+      shouldLoadPools7DAgo
+        ? this.client.multicall({
+            allowFailure: true,
+            contracts: markets.map(
+              m =>
+                ({
+                  address: marketCompressorAddress,
+                  abi: marketCompressorAbi,
+                  functionName: "getPoolState",
+                  args: [m.pool.pool.address],
+                }) as const,
+            ),
+            blockNumber: targetBlock > 0n ? targetBlock : undefined,
+            batchSize: 0,
+          })
+        : null,
       this.#fetchApy(),
     ]);
 
-    this.#pools7DAgo = new AddressMap<Pool7DAgoState>(undefined, MAP_LABEL);
-    multicallResp.forEach((r, index) => {
-      const m = markets[index];
-      const cfg = m.configurator.address;
-      const pool = m.pool.pool.address;
+    if (multicallResp !== null) {
+      this.#pools7DAgo = new AddressMap<Pool7DAgoState>(undefined, MAP_LABEL);
+      multicallResp.forEach((r, index) => {
+        const m = markets[index];
+        const cfg = m.configurator.address;
+        const pool = m.pool.pool.address;
 
-      if (r.status === "success") {
-        this.#pools7DAgo?.upsert(m.pool.pool.address, {
-          dieselRate: r.result.dieselRate,
-          pool,
-        });
-      } else {
-        this.#logger?.error(
-          `failed to load pools 7d ago for market configurator ${this.labelAddress(cfg)} and pool ${this.labelAddress(pool)}: ${r.error}`,
-        );
-      }
-    });
+        if (r.status === "success") {
+          this.#pools7DAgo?.upsert(m.pool.pool.address, {
+            dieselRate: r.result.dieselRate,
+            pool,
+          });
+        } else {
+          this.#logger?.error(
+            `failed to load pools 7d ago for market configurator ${this.labelAddress(cfg)} and pool ${this.labelAddress(pool)}: ${r.error}`,
+          );
+        }
+      });
+    }
 
     if (apySnapshot) {
       this.#apySnapshot = apySnapshot;
@@ -181,7 +221,10 @@ export class ApyPlugin
 
     this.#timerInterval = setInterval(async () => {
       try {
-        await this.load(true);
+        await this.load(true, {
+          loadPools7DAgo:
+            opts?.refreshPools7DAgoOnTick ?? this.#refreshPools7DAgoOnTimer,
+        });
         opts?.onChange?.();
       } catch (e) {
         this.#logger?.error(e, "periodic refresh failed");
