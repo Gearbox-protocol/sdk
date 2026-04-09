@@ -31,7 +31,10 @@ import { chains, GearboxSDK, type NetworkType } from "../src/sdk/index.js";
 
 // ─── Configuration ──────────────────────────────────────────────────────────
 const NETWORK: NetworkType = "Mainnet";
-const BLOCK = 24_736_900n;
+const BLOCK = process.env.E2E_BLOCK
+  ? BigInt(process.env.E2E_BLOCK)
+  : 24_736_900n;
+const SINGLE_MC = process.env.E2E_MC as Address | undefined;
 // ─────────────────────────────────────────────────────────────────────────────
 
 const RPC_URL = process.env.RPC_URL ?? "";
@@ -90,28 +93,33 @@ async function main() {
       },
     };
 
+    const mcOpts = SINGLE_MC ? { marketConfigurators: [SINGLE_MC] } : {};
+
     await GearboxSDK.attach({
       rpcURLs: [anvil.url],
       timeout: 480_000,
       blockNumber: BLOCK,
-      plugins: {
-        adapters: new AdaptersPlugin(true),
-        bots: new BotsPlugin(true),
-        degen: new DegenDistributorsPlugin(true),
-        apy: new ApyPlugin(true),
-        accounts: new AccountsPlugin({ includeZeroDebt: true }, true),
-      },
+      ...(!SINGLE_MC && {
+        plugins: {
+          adapters: new AdaptersPlugin(true),
+          bots: new BotsPlugin(true),
+          degen: new DegenDistributorsPlugin(true),
+          apy: new ApyPlugin(true),
+          accounts: new AccountsPlugin({ includeZeroDebt: true }, true),
+        },
+      }),
       logger: console,
       ...oracleOpts,
+      ...mcOpts,
     });
 
     // Re-attach per individual market configurator so that oracle proxy
     // records Pyth URLs with per-MC feed subsets (tests attach one MC at a time)
-    const allMCs = Object.keys(
-      chains[NETWORK].defaultMarketConfigurators,
-    ) as Address[];
+    const allMCs = SINGLE_MC
+      ? [SINGLE_MC]
+      : (Object.keys(chains[NETWORK].defaultMarketConfigurators) as Address[]);
     for (const mc of allMCs) {
-      const curator = chains[NETWORK].defaultMarketConfigurators[mc];
+      const curator = chains[NETWORK].defaultMarketConfigurators[mc] ?? mc;
       console.log(
         `[sdk] Recording per-MC oracle fixtures for ${curator} (${mc})...`,
       );
