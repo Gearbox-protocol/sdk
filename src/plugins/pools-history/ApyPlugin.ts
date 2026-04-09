@@ -1,17 +1,31 @@
 import type { Address } from "viem";
 
 import { marketCompressorAbi } from "../../abi/compressors/marketCompressor.js";
+import type { TokenData } from "../../rewards/rewards/common.js";
+import { PoolPointsAPI } from "../../rewards/rewards/extra-apy.js";
 import type { IGearboxSDKPlugin, ILogger } from "../../sdk/index.js";
 import {
   AddressMap,
   AP_MARKET_COMPRESSOR,
   BasePlugin,
   BLOCKS_PER_WEEK_BY_NETWORK,
+  PERCENTAGE_DECIMALS,
   VERSION_RANGE_310,
 } from "../../sdk/index.js";
+import type { Asset } from "../../sdk/router/types.js";
+import { rayToNumber } from "../../sdk/utils/formatter.js";
+import { hexEq } from "../../sdk/utils/hex.js";
 import { ApyOutputCache } from "./apy-cache.js";
 import { parseGearStats, parseNetworkApy } from "./apy-parser.js";
 import { APY_STATE_CACHE_URL, DEFAULT_APY_INTERVAL_MS } from "./constants.js";
+import type { GetPoolsAPYResult } from "./pool-apy-types.js";
+import {
+  calculatePoolFullAPY,
+  calculatePoolFullAPY7DAgo,
+  calculatePoolPoints,
+  calculateSupplyApy7d,
+  getPoolExtraAPY,
+} from "./pool-apy-utils.js";
 import type {
   ApySnapshotState,
   Pool7DAgoState,
@@ -203,6 +217,101 @@ export class ApyPlugin
   }
 
   // ---------------------------------------------------------------------------
+  // Aggregated APY / points
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Computes per-pool APY (current + 7d-ago) and points for all markets.
+   *
+   * @throws if plugin is not loaded
+   */
+  public getPoolsAPY(): GetPoolsAPYResult {
+    if (!this.loaded) {
+      throw new Error("apy plugin not loaded");
+    }
+
+    const markets = this.sdk.marketRegister.markets;
+    const { apy } = this.apySnapshot;
+
+    const tokensList = this.#buildTokensList();
+
+    const partialPools = markets.map(m => ({
+      address: m.pool.pool.address,
+      expectedLiquidity: m.pool.pool.expectedLiquidity,
+      underlyingToken: m.pool.pool.underlying,
+    }));
+
+    // TODO: totalTokenBalances is currently empty — relative points estimation
+    // will return null for "relative" type rewards.
+    // Fetching supply data from the backend (charts-server or equivalent)
+    // is not required at this stage but must be implemented when relative
+    // points accuracy becomes necessary.
+    const totalTokenBalances: Record<Address, Asset> = {};
+
+    const poolPointsBase =
+      apy.poolRewardsList && Object.keys(apy.poolRewardsList).length > 0
+        ? PoolPointsAPI.getPointsByPool({
+            poolRewards: apy.poolRewardsList,
+            totalTokenBalances,
+            pools: partialPools,
+            tokensList,
+          })
+        : {};
+
+    const data: GetPoolsAPYResult["data"] = {};
+    const data7DAgo: GetPoolsAPYResult["data7DAgo"] = {};
+    const points: GetPoolsAPYResult["points"] = {};
+
+    for (const market of markets) {
+      const pool = market.pool.pool;
+      const poolAddr = pool.address;
+
+      const depositAPY =
+        rayToNumber(pool.supplyRate) * Number(PERCENTAGE_DECIMALS);
+
+      const underlyingAPY = apy.apyList?.[pool.underlying] ?? 0;
+
+      const lookupAddresses = this.#getExtraAPYLookupAddresses(poolAddr);
+      const extraAPY = getPoolExtraAPY(lookupAddresses, apy.poolExtraAPYList);
+
+      const currentExternalList = apy.poolExternalAPYList?.[poolAddr];
+
+      const poolAPY = calculatePoolFullAPY({
+        poolAddress: poolAddr,
+        depositAPY,
+        underlyingAPY,
+        extraAPY,
+        currentExternalList,
+      });
+      data[poolAddr] = poolAPY;
+
+      const pool7DAgo = this.#pools7DAgo?.get(poolAddr);
+      const supplyAPY7DAgo = pool7DAgo
+        ? calculateSupplyApy7d(
+            pool.dieselRate,
+            pool.supplyRate,
+            pool7DAgo.dieselRate,
+          )
+        : undefined;
+
+      data7DAgo[poolAddr] = calculatePoolFullAPY7DAgo({
+        supplyAPY7DAgo,
+        depositAPY,
+        poolAPY,
+      });
+
+      const poolTokenMeta = this.sdk.tokensMeta.get(pool.underlying);
+      points[poolAddr] = calculatePoolPoints({
+        poolTokenSymbol: poolTokenMeta?.symbol,
+        points: poolPointsBase[poolAddr],
+        tokensList,
+      });
+    }
+
+    return { data, data7DAgo, points };
+  }
+
+  // ---------------------------------------------------------------------------
   // Periodic full refresh
   // ---------------------------------------------------------------------------
 
@@ -315,6 +424,42 @@ export class ApyPlugin
       this.#logger?.error(e, "failed to fetch apy state-cache");
       return undefined;
     }
+  }
+
+  /**
+   * Collects addresses to look up in poolExtraAPYList for a given pool.
+   * Includes pool address (= diesel token) + any staked diesel token
+   * outputs discovered from zappers.
+   */
+  #getExtraAPYLookupAddresses(poolAddr: Address): Address[] {
+    const addresses: Address[] = [poolAddr];
+    try {
+      const zappers = this.sdk.marketRegister.poolZappers(poolAddr);
+      for (const z of zappers) {
+        if (!hexEq(z.tokenOut.addr, poolAddr)) {
+          addresses.push(z.tokenOut.addr);
+        }
+      }
+    } catch {
+      // zappers not loaded — fall back to pool address only
+    }
+    return addresses;
+  }
+
+  /**
+   * Converts sdk.tokensMeta into the Record<Address, TokenData> shape
+   * expected by PoolPointsAPI and calculatePoolPoints.
+   */
+  #buildTokensList(): Record<Address, TokenData> {
+    const result: Record<Address, TokenData> = {};
+    for (const [addr, meta] of this.sdk.tokensMeta.entries()) {
+      result[addr] = {
+        address: addr,
+        symbol: meta.symbol,
+        decimals: meta.decimals,
+      };
+    }
+    return result;
   }
 
   get #logger(): ILogger | undefined {
