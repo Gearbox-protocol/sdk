@@ -16,7 +16,7 @@ import {
   formatBNvalue,
   percentFmt,
 } from "../../utils/index.js";
-import type { SecuritizeKYCFactory } from "../kyc/index.js";
+import type { IKYCFactory, OpenAccountRequirements } from "../kyc/types.js";
 
 const abi = [...iPoolV310Abi, ...iPausableAbi] as const;
 type abi = typeof abi;
@@ -51,10 +51,14 @@ export class PoolV310Contract extends BaseContract<abi> {
     });
   }
 
-  public get kycFactory(): SecuritizeKYCFactory | undefined {
+  public get kycFactory():
+    | IKYCFactory<unknown, OpenAccountRequirements>
+    | undefined {
     const meta = this.#sdk.tokensMeta.mustGet(this.underlying);
     if (this.#sdk.tokensMeta.isKYCUnderlying(meta)) {
-      return this.#sdk.mustGetContract<SecuritizeKYCFactory>(meta.kycFactory);
+      return this.#sdk.mustGetContract<
+        IKYCFactory<unknown, OpenAccountRequirements>
+      >(meta.kycFactory);
     }
     return undefined;
   }

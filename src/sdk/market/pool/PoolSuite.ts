@@ -4,7 +4,7 @@ import type { MarketData } from "../../base/index.js";
 import { SDKConstruct } from "../../base/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { PoolSuiteStateHuman } from "../../types/index.js";
-import type { SecuritizeKYCFactory } from "../kyc/SecuritizeKYCFactory.js";
+import type { IKYCFactory, OpenAccountRequirements } from "../kyc/types.js";
 import type { MarketConfiguratorContract } from "../MarketConfiguratorContract.js";
 import createInterestRateModel from "./createInterestRateModel.js";
 import createPool from "./createPool.js";
@@ -77,7 +77,9 @@ export class PoolSuite extends SDKConstruct {
     return this.pool.underlying;
   }
 
-  public get kycFactory(): SecuritizeKYCFactory | undefined {
+  public get kycFactory():
+    | IKYCFactory<unknown, OpenAccountRequirements>
+    | undefined {
     return this.pool.kycFactory;
   }
 

@@ -1,24 +1,34 @@
 import { type Address, decodeAbiParameters } from "viem";
-import { iSecuritizeKYCFactoryAbi } from "../../../abi/kyc/iSecuritizeKYCFactory.js";
-import type { ConstructOptions } from "../../base/index.js";
-import { BaseContract } from "../../base/index.js";
-import type { MultiCall, RawTx } from "../../types/index.js";
-import { AddressMap } from "../../utils/AddressMap.js";
+import { iSecuritizeKYCFactoryAbi } from "../../../../abi/kyc/iSecuritizeKYCFactory.js";
+import type { ConstructOptions } from "../../../base/index.js";
+import { BaseContract } from "../../../base/index.js";
+import type { GearboxSDK } from "../../../GearboxSDK.js";
+import type { MultiCall, RawTx } from "../../../types/index.js";
+import { AddressMap } from "../../../utils/AddressMap.js";
+import { AddressSet } from "../../../utils/AddressSet.js";
+import type {
+  DStokenData,
+  IKYCFactory,
+  KYCCompressorInvestorData,
+  KYCFactoryData,
+} from "../types.js";
+import { KYC_FACTORY_SECURITIZE } from "./constants.js";
 import type {
   SecuritizeInvestorData,
   SecuritizeKYCFactoryStateHuman,
+  SecuritizeOpenAccountRequirements,
   SecuritizeRegisterMessage,
-} from "./securitize-types.js";
-import type {
-  DStokenData,
-  KYCCompressorInvestorData,
-  KYCFactoryData,
 } from "./types.js";
 
 const abi = iSecuritizeKYCFactoryAbi;
 type abi = typeof abi;
 
-export class SecuritizeKYCFactory extends BaseContract<abi> {
+export class SecuritizeKYCFactory
+  extends BaseContract<abi>
+  implements
+    IKYCFactory<SecuritizeInvestorData, SecuritizeOpenAccountRequirements>
+{
+  readonly #sdk: GearboxSDK;
   /**
    * Mapping credit account -> investor address
    */
@@ -27,12 +37,13 @@ export class SecuritizeKYCFactory extends BaseContract<abi> {
   public readonly owner: Address;
   public readonly dsTokens: DStokenData[];
 
-  constructor(options: ConstructOptions, data: KYCFactoryData) {
-    super(options, {
+  constructor(sdk: GearboxSDK, data: KYCFactoryData) {
+    super(sdk, {
       ...data.baseParams,
       name: "SecuritizeKYCFactory",
       abi,
     });
+    this.#sdk = sdk;
     const decoded = decodeAbiParameters(
       [
         { name: "owner", type: "address" },
@@ -62,11 +73,13 @@ export class SecuritizeKYCFactory extends BaseContract<abi> {
     }));
   }
 
+  /**
+   * {@inheritDoc IKYCFactory.decodeInvestorData}
+   */
   public decodeInvestorData(
     data: KYCCompressorInvestorData,
   ): SecuritizeInvestorData {
     const { creditAccounts, extraDetails } = data;
-
     const [registeredTokens, cachedSignatures, registerVaultMessages] =
       decodeAbiParameters(
         [
@@ -103,9 +116,7 @@ export class SecuritizeKYCFactory extends BaseContract<abi> {
   }
 
   /**
-   * Returns the investor address for a credit account.
-   * @param creditAccount - Credit account address
-   * @param fromCache - If true, use and update an in-memory cache (creditAccount -> investor). On cache miss, loads from contract and stores the result for future calls.
+   * {@inheritDoc IKYCFactory.getInvestor}
    */
   public async getInvestor(
     creditAccount: Address,
@@ -121,6 +132,9 @@ export class SecuritizeKYCFactory extends BaseContract<abi> {
     return investor;
   }
 
+  /**
+   * {@inheritDoc IKYCFactory.precomputeWalletAddress}
+   */
   public async precomputeWalletAddress(
     creditManager: Address,
     investor: Address,
@@ -131,10 +145,16 @@ export class SecuritizeKYCFactory extends BaseContract<abi> {
     ]);
   }
 
+  /**
+   * {@inheritDoc IKYCFactory.getWallet}
+   */
   public async getWallet(creditAccount: Address): Promise<Address> {
     return this.contract.read.getWallet([creditAccount]);
   }
 
+  /**
+   * {@inheritDoc IKYCFactory.multicall}
+   */
   public multicall(
     creditAccount: Address,
     calls: MultiCall[],
@@ -147,6 +167,44 @@ export class SecuritizeKYCFactory extends BaseContract<abi> {
     });
   }
 
+  /**
+   * {@inheritDoc IKYCFactory.getOpenAccountRequirements}
+   */
+  public async getOpenAccountRequirements(
+    investor: Address,
+  ): Promise<SecuritizeOpenAccountRequirements | undefined> {
+    const [investorData] = await this.#sdk.kyc.getInvestorData(investor, [
+      this.address,
+    ]);
+    const dsTokens = new AddressSet(this.dsTokens.map(t => t.address));
+    // TODO: this will come from strategy
+    const desiredTokens = dsTokens;
+
+    const registredTokens = new AddressSet(investorData.registeredTokens);
+    const signedTokens = new AddressSet(
+      investorData.cachedSignatures.map(s => s.token),
+    );
+    const unsignedTokens = desiredTokens.difference(signedTokens);
+
+    const tokensToRegister = desiredTokens.difference(registredTokens);
+    const requiredSignatures = investorData.registerVaultMessages.filter(m =>
+      unsignedTokens.has(m.token),
+    );
+
+    if (tokensToRegister.size === 0 && requiredSignatures.length === 0) {
+      return undefined;
+    }
+
+    return {
+      type: KYC_FACTORY_SECURITIZE,
+      tokensToRegister: Array.from(tokensToRegister),
+      requiredSignatures: requiredSignatures,
+    };
+  }
+
+  /**
+   * {@inheritDoc IKYCFactory.openCreditAccount}
+   */
   public openCreditAccount(
     creditManager: Address,
     calls: MultiCall[],

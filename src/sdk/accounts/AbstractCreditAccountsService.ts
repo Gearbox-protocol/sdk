@@ -33,6 +33,8 @@ import {
   type PriceUpdate,
   type UpdatePriceFeedsResult,
 } from "../market/index.js";
+import type { OpenAccountRequirements } from "../market/kyc/index.js";
+import type { SecuritizeKYCFactory } from "../market/kyc/securitize/index.js";
 import { type Asset, assetsMap, type RouterCASlice } from "../router/index.js";
 import type { IPriceUpdateTx, MultiCall, RawTx } from "../types/index.js";
 import { AddressMap, AddressSet, hexEq } from "../utils/index.js";
@@ -1113,6 +1115,23 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
+   * {@inheritDoc ICreditAccountsService.getOpenAccountRequirements}
+   */
+  public async getOpenAccountRequirements(
+    borrower: Address,
+    props: OpenCAProps,
+  ): Promise<OpenAccountRequirements | undefined> {
+    const { creditManager } = props;
+    const { kycFactory } =
+      this.sdk.marketRegister.findByCreditManager(creditManager);
+    if (!kycFactory) {
+      return undefined;
+    }
+    // TODO: pass strategy; for example, for securitize, we need to pass the tokens to register
+    return kycFactory.getOpenAccountRequirements(borrower);
+  }
+
+  /**
    * {@inheritDoc ICreditAccountsService.openCA}
    **/
   public async openCA(
@@ -1772,14 +1791,16 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const factory = marketSuite.kycFactory;
 
     if (factory) {
-      // users should be able to choose this
-      // probably passed via strategy
-      const tokensToRegister = factory.dsTokens.map(t => t.address);
+      // TODO: this should be passed via strategy
+      const tokensToRegister = (factory as SecuritizeKYCFactory).dsTokens.map(
+        t => t.address,
+      );
       // check compressor for cached signatures
       return factory.openCreditAccount(
         suite.creditManager.address,
         calls,
         tokensToRegister,
+        [],
       );
     }
 

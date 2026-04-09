@@ -14,6 +14,7 @@ import type {
 } from "../base/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import type { CreditSuite, PriceUpdate } from "../market/index.js";
+import type { OpenAccountRequirements } from "../market/kyc/index.js";
 import type {
   Asset,
   RouterCASlice,
@@ -853,6 +854,17 @@ export interface ICreditAccountsService extends Construct {
    * @returns
    */
   getApprovalAddress(props: GetApprovalAddressProps): Promise<Address>;
+
+  /**
+   * Returns open account requirements for a borrower
+   * @param borrower - Borrower address
+   * @param props - {@link OpenCAProps}
+   * @returns Open account requirements or undefined if the user can open a credit account without any further actions
+   */
+  getOpenAccountRequirements(
+    borrower: Address,
+    props: OpenCAProps,
+  ): Promise<OpenAccountRequirements | undefined>;
 
   /**
    * Executes swap specified by given calls, update quotas of affected tokens

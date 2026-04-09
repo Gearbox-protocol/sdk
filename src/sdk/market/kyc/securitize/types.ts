@@ -1,5 +1,7 @@
 import type { Address, Hex } from "viem";
-import type { BaseContractStateHuman } from "../../types/index.js";
+import type { BaseContractStateHuman } from "../../../types/index.js";
+import type { OpenAccountRequirements } from "../types.js";
+import type { KYC_FACTORY_SECURITIZE } from "./constants.js";
 
 export interface SecuritizeRegisterMessage {
   token: Address;
@@ -51,4 +53,18 @@ export interface SecuritizeKYCFactoryStateHuman extends BaseContractStateHuman {
     registrar: string;
     operators: string[];
   }[];
+}
+
+export interface SecuritizeOpenAccountRequirements
+  extends OpenAccountRequirements {
+  type: typeof KYC_FACTORY_SECURITIZE;
+  /**
+   * User must visit securitize website to register these tokens
+   */
+  tokensToRegister: Address[];
+  /**
+   * User must sign these messages to gearbox and provide EIP-712 signatures
+   * as {@link SecuritizeRegisterMessage} to gearbox
+   */
+  requiredSignatures: SecuritizeRegisterVaultMessage[];
 }

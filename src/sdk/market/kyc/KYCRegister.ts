@@ -15,7 +15,10 @@ import {
 import { AP_KYC_COMPRESSOR, VERSION_RANGE_310 } from "../../constants/index.js";
 import { AddressMap, bytes32ToString } from "../../utils/index.js";
 import type { DelegatedMulticall } from "../../utils/viem/index.js";
-import { SecuritizeKYCFactory } from "./SecuritizeKYCFactory.js";
+import {
+  KYC_FACTORY_SECURITIZE,
+  SecuritizeKYCFactory,
+} from "./securitize/index.js";
 import type {
   InvestorData,
   KYCCompressorResponse,
@@ -62,12 +65,25 @@ export class KYCRegister extends SDKConstruct {
     ];
   }
 
-  public async getInvestorData(investor: Address): Promise<InvestorData[]> {
+  /**
+   * Returns the investor data for a given investor and optional list of factories.
+   * If no factories are provided, all factories will be used.
+   * @param investor
+   * @param factories_
+   * @returns
+   */
+  public async getInvestorData(
+    investor: Address,
+    factories_?: Address[],
+  ): Promise<InvestorData[]> {
     const [kycCompressorAddress] = this.sdk.addressProvider.mustGetLatest(
       AP_KYC_COMPRESSOR,
       VERSION_RANGE_310,
     );
-    const factories = this.#factories.values();
+    let factories = this.#factories.values();
+    if (factories_?.length) {
+      factories = factories_.map(f => this.#factories.mustGet(f));
+    }
     const resp = await this.client.readContract({
       abi: iKYCCompressorAbi,
       address: kycCompressorAddress,
@@ -255,7 +271,7 @@ export class KYCRegister extends SDKConstruct {
   #loadKYCFactoryData(data: KYCFactoryData): void {
     const contractType = bytes32ToString(data.baseParams.contractType);
     switch (contractType) {
-      case "KYC_FACTORY::SECURITIZE":
+      case KYC_FACTORY_SECURITIZE:
         this.#factories.upsert(
           data.baseParams.addr,
           new SecuritizeKYCFactory(this.sdk, data),
