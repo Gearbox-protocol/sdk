@@ -13,10 +13,19 @@ import type {
   SecuritizeRegisterMessage,
 } from "./securitize/types.js";
 
+/**
+ * Discriminated union of all known KYC factory contract type strings.
+ **/
 export const KYC_FACTORY_TYPES = [KYC_FACTORY_SECURITIZE] as const;
 
+/**
+ * String literal union of known KYC factory types.
+ **/
 export type KYCFactoryType = (typeof KYC_FACTORY_TYPES)[number];
 
+/**
+ * Raw return type of `KYCCompressor.getKYCMarketsData`.
+ **/
 export type KYCCompressorResponse = AbiParametersToPrimitiveTypes<
   ExtractAbiFunction<typeof iKYCCompressorAbi, "getKYCMarketsData">["outputs"]
 >;
@@ -28,15 +37,22 @@ export type KYCUnderlyingData = Unarray<KYCCompressorResponse[0]>;
 
 /**
  * On-chain state of a KYC factory.
- */
+ **/
 export type KYCFactoryData = Unarray<KYCCompressorResponse[1]>;
 
-export type KYCCOmpressorCall = ContractFunctionParameters<
+/**
+ * Typed contract call parameters for `KYCCompressor.getKYCMarketsData`.
+ **/
+export type KYCCompressorCall = ContractFunctionParameters<
   typeof iKYCCompressorAbi,
   "view",
   "getKYCMarketsData"
 >;
 
+/**
+ * Single element of the `KYCCompressor.getKYCInvestorData` return array.
+ * Contains per-factory credit accounts and factory-specific extra details.
+ **/
 export type KYCCompressorInvestorData = Unarray<
   AbiParametersToPrimitiveTypes<
     ExtractAbiFunction<
@@ -46,25 +62,52 @@ export type KYCCompressorInvestorData = Unarray<
   >[0]
 >;
 
+/**
+ * Full KYC compressor response, used as the persisted/hydrated state.
+ **/
 export type KYCState = KYCCompressorResponse;
 
+/**
+ * Decoded DSToken data from the SecuritizeDegenNFT contract.
+ * Mirrors `ISecuritizeDegenNFT.DSTokenData`.
+ **/
 export interface DStokenData {
+  /** DSToken address. */
   address: Address;
+  /** Securitize VaultRegistrar for this token. */
   registrar: Address;
+  /** Addresses authorised to register vaults for this token. */
   operators: Address[];
 }
 
+/**
+ * Investor data decoded from the KYC compressor.
+ **/
 export type InvestorData = SecuritizeInvestorData;
 
+/**
+ * Human-readable KYC factory state.
+ **/
 export type KYCFactoryStateHuman = SecuritizeKYCFactoryStateHuman;
 
+/**
+ * Human-readable snapshot of the full KYC registry state.
+ **/
 export interface KYCStateHuman {
+  /** State of each loaded KYC factory. */
   factories: KYCFactoryStateHuman[];
 }
 
+/**
+ * Base type returned by {@link IKYCFactory.getOpenAccountRequirements} when an
+ * investor needs to perform additional steps before opening a credit account.
+ * Each KYC factory implementation extends this with factory-specific fields
+ * (e.g. tokens to register, signatures to provide).
+ *
+ **/
 export interface OpenAccountRequirements {
   /**
-   * KYC factory type
+   * Discriminant identifying which KYC factory produced these requirements.
    */
   type: KYCFactoryType;
 }

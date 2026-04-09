@@ -24,7 +24,7 @@ import {
 } from "./constants/index.js";
 import type { IAddressProviderContract } from "./core/index.js";
 import { createAddressProvider, hydrateAddressProvider } from "./core/index.js";
-import { KYCRegister } from "./market/kyc/index.js";
+import { KYCRegistry } from "./market/kyc/index.js";
 import { MarketRegister } from "./market/MarketRegister.js";
 import { PriceFeedRegister } from "./market/pricefeeds/index.js";
 import type { SDKOptions } from "./options.js";
@@ -298,7 +298,7 @@ export class GearboxSDK<
   #attachConfig?: AttachOptionsInternal;
 
   #marketRegister?: MarketRegister;
-  #kyc?: KYCRegister;
+  #kyc?: KYCRegistry;
   #priceFeeds?: PriceFeedRegister;
 
   /**
@@ -487,7 +487,7 @@ export class GearboxSDK<
     await this.#addressProvider.syncState(this.currentBlock);
 
     this.#marketRegister = new MarketRegister(this, ignoreMarkets);
-    this.#kyc = new KYCRegister(this);
+    this.#kyc = new KYCRegistry(this);
 
     if (!marketConfigurators.length) {
       this.logger?.warn(
@@ -578,7 +578,7 @@ export class GearboxSDK<
     this.#marketRegister = new MarketRegister(this, ignoreMarkets);
     this.#marketRegister.hydrate(state.markets);
 
-    this.#kyc = new KYCRegister(this);
+    this.#kyc = new KYCRegistry(this);
     this.#kyc.setState(state.kyc);
 
     this.#attachConfig = {
@@ -933,7 +933,7 @@ export class GearboxSDK<
    *
    * @throws If the SDK has not been attached or hydrated yet.
    **/
-  public get kyc(): KYCRegister {
+  public get kyc(): KYCRegistry {
     if (this.#kyc === undefined) {
       throw ERR_NOT_ATTACHED;
     }

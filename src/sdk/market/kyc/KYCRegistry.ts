@@ -28,7 +28,14 @@ import type {
   KYCUnderlyingData,
 } from "./types.js";
 
-export class KYCRegister extends SDKConstruct {
+/**
+ * Registry of KYC underlying tokens and KYC factory contracts.
+ *
+ * Populated from the on-chain {@link https://github.com/Gearbox-protocol/periphery-v3 KYCCompressor}
+ * during SDK attach/hydrate. Provides methods to query investor-level data and
+ * to resolve KYC factory instances by address.
+ **/
+export class KYCRegistry extends SDKConstruct {
   #state?: KYCState;
   #factories = new AddressMap<SecuritizeKYCFactory>();
 
@@ -40,7 +47,6 @@ export class KYCRegister extends SDKConstruct {
    *
    * @param configurators - Market configurators to query.
    * @param kycFactories - KYC factory contracts to query.
-   * @returns
    */
   public getLoadMulticalls(
     configurators: Address[],
@@ -66,11 +72,14 @@ export class KYCRegister extends SDKConstruct {
   }
 
   /**
-   * Returns the investor data for a given investor and optional list of factories.
-   * If no factories are provided, all factories will be used.
-   * @param investor
-   * @param factories_
-   * @returns
+   * Fetches decoded investor data from the on-chain KYC compressor.
+   *
+   * Each factory produces its own investor data (e.g. registered tokens,
+   * cached signatures, EIP-712 messages to sign).
+   *
+   * @param investor - Investor EOA address.
+   * @param factories_ - Optional subset of factory addresses to query.
+   *   When omitted, all loaded factories are used.
    */
   public async getInvestorData(
     investor: Address,
@@ -100,20 +109,32 @@ export class KYCRegister extends SDKConstruct {
     return result;
   }
 
+  /** All loaded KYC factory instances. */
   public get factories(): SecuritizeKYCFactory[] {
     return this.#factories.values();
   }
 
+  /** Raw KYC compressor response, or `undefined` before attach/hydrate. */
   public get state(): KYCState | undefined {
     return this.#state;
   }
 
+  /**
+   * Returns a human-readable snapshot of the KYC state.
+   */
   public stateHuman(raw?: boolean): KYCStateHuman {
     return {
       factories: this.factories.map(f => f.stateHuman(raw)),
     };
   }
 
+  /**
+   * @internal
+   *
+   * Replaces the internal state with a new KYC compressor response.
+   * Rebuilds token metadata for KYC underlyings and re-instantiates factory
+   * wrappers.
+   */
   public setState(resp?: KYCCompressorResponse): void {
     this.#state = resp;
     for (const u of resp?.[0] ?? []) {
