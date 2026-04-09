@@ -19,7 +19,7 @@ import type {
   RouterCASlice,
   RouterCloseResult,
 } from "../router/index.js";
-import type { IPriceUpdateTx, MultiCall, RawTx } from "../types/index.js";
+import type { MultiCall, RawTx } from "../types/index.js";
 
 /**
  * @internal
@@ -683,42 +683,27 @@ export type GetApprovalAddressProps =
       creditAccount: Address;
     };
 
-export type CreditAccountDataWithInvestor = CreditAccountData & {
-  investor: Address;
-};
-
 export interface ICreditAccountsService extends Construct {
   sdk: GearboxSDK;
   /**
-   * Returns single credit account data, or undefined if it's not found
-   * Performs all necessary price feed updates under the hood
-   * @param account
-   * @param blockNumber
-   * @returns
+   * Returns single credit account data with investor resolved, or undefined
+   * if the account is not found.
+   * Performs all necessary price feed updates under the hood.
+   * @param account - Credit account address
+   * @param blockNumber - Optional block number for the read
+   * @returns Credit account data with investor, or undefined
    */
   getCreditAccountData(
     account: Address,
     blockNumber?: bigint,
-  ): Promise<CreditAccountData | undefined>;
+  ): Promise<CreditAccountData<true> | undefined>;
 
   /**
-   * Returns credit account data for a single account with the investor address resolved (from KYC factory when applicable).
-   * @param account - Credit account address
-   * @param blockNumber - Optional block number for the read
-   * @returns CreditAccountDataWithInvestor, or undefined if the account is not found
-   */
-  getCreditAccountDataWithInvestor(
-    account: Address,
-    blockNumber?: bigint,
-  ): Promise<CreditAccountDataWithInvestor | undefined>;
-
-  /**
-   * Methods to get all credit accounts with some optional filtering
-   * Performs all necessary price feed updates under the hood
+   * Returns all credit accounts with optional filtering.
+   * Performs all necessary price feed updates under the hood.
    *
-   * @param options
-   * @param blockNumber
-   * @param priceUpdate - Optional pre-computed price feed update (e.g. from generatePriceFeedsUpdateTxs)
+   * @param options - Filter options
+   * @param blockNumber - Optional block number for the read
    * @returns Credit accounts sorted by health factor ascending
    */
   getCreditAccounts(
@@ -727,31 +712,20 @@ export interface ICreditAccountsService extends Construct {
   ): Promise<Array<CreditAccountData>>;
 
   /**
-   * Returns all credit accounts matching the filter with investor set on each; when options.owner is set, includes KYC CAs for that owner.
-   * @param options - Filter options (owner, creditManager, health factor, etc.)
+   * Returns all credit accounts for a borrower,
+   * both normal and KYC accounts with investor resolved on each.
+   *
+   * @param borrower - Actual owner of credit account
+   * @param options - Filter options (creditManager, health factor, etc.)
    * @param blockNumber - Optional block number for the read
    * @returns Credit accounts (with investor) sorted by health factor ascending
    */
-  getCreditAccountsWithInvestor(
+  getBorrowerCreditAccounts(
+    borrower: Address,
     options?: GetCreditAccountsOptions,
     blockNumber?: bigint,
-  ): Promise<Array<CreditAccountDataWithInvestor>>;
+  ): Promise<Array<CreditAccountData<true>>>;
 
-  /**
-   * Loads credit account data for the given addresses using simulateWithPriceUpdates (with price updates applied before the read).
-   * @param accounts - Credit account addresses to load
-   * @param priceUpdateTxs - Price feed update txs to simulate before the read (e.g. from generatePriceFeedsUpdateTxs)
-   * @param blockNumber - Optional block number for the read
-   * @returns Array of CreditAccountData in the same order as accounts
-   */
-  loadSpecifiedAccounts(
-    accounts: Address[],
-    priceUpdateTxs: IPriceUpdateTx<{
-      priceFeed: `0x${string}`;
-      timestamp: number;
-    }>[],
-    blockNumber?: bigint,
-  ): Promise<Array<CreditAccountData>>;
   /**
    * Method to get all claimable rewards for credit account (ex. stkUSDS SKY rewards).
    * Associates rewards by adapter + stakedPhantomToken.

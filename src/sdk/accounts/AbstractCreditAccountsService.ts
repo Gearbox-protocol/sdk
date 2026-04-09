@@ -10,6 +10,7 @@ import { peripheryCompressorAbi } from "../../abi/compressors/peripheryCompresso
 import { rewardsCompressorAbi } from "../../abi/compressors/rewardsCompressor.js";
 import { iWithdrawalCompressorV310Abi } from "../../abi/IWithdrawalCompressorV310.js";
 import { iBaseRewardPoolAbi } from "../../abi/iBaseRewardPool.js";
+import { iKYCFactoryAbi } from "../../abi/kyc/iKYCFactory.js";
 import type { CreditAccountData } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
 import { chains } from "../chain/chains.js";
@@ -25,9 +26,7 @@ import {
   VERSION_RANGE_310,
 } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
-
-import type { CreditSuite, MarketSuite } from "../market/index.js";
-
+import type { CreditSuite } from "../market/index.js";
 import {
   getRawPriceUpdates,
   type IPriceFeedContract,
@@ -36,7 +35,7 @@ import {
 } from "../market/index.js";
 import { type Asset, assetsMap, type RouterCASlice } from "../router/index.js";
 import type { IPriceUpdateTx, MultiCall, RawTx } from "../types/index.js";
-import { AddressMap, AddressSet } from "../utils/index.js";
+import { AddressMap, AddressSet, hexEq } from "../utils/index.js";
 import { simulateWithPriceUpdates } from "../utils/viem/index.js";
 import {
   extractPriceUpdates,
@@ -51,7 +50,6 @@ import type {
   CloseCreditAccountProps,
   CloseCreditAccountResult,
   CloseOptions,
-  CreditAccountDataWithInvestor,
   CreditAccountFilter,
   CreditAccountOperationResult,
   CreditAccountTokensSlice,
@@ -160,7 +158,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   public async getCreditAccountData(
     account: Address,
     blockNumber?: bigint,
-  ): Promise<CreditAccountData | undefined> {
+  ): Promise<CreditAccountData<true> | undefined> {
     let raw: CreditAccountData;
     try {
       raw = await this.client.readContract({
@@ -176,50 +174,44 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       // TODO: reverts if account is not found, how to handle other revert reasons?
       return undefined;
     }
-    if (raw.success) {
-      return raw;
-    }
-    const { txs: priceUpdateTxs } = await this.getUpdateForAccount(raw);
-    const [cad] = await simulateWithPriceUpdates(this.client, {
-      priceUpdates: priceUpdateTxs,
-      contracts: [
-        {
-          abi: creditAccountCompressorAbi,
-          address: this.#compressor,
-          functionName: "getCreditAccountData",
-          args: [account],
-        },
-      ],
-      blockNumber,
-      gas: this.sdk.gasLimit,
-    });
-    return cad;
-  }
-
-  /**
-   * Returns credit account data for a single account with the investor address resolved.
-   * Loads CA via getCreditAccountData; for KYC underlyings fetches the investor from the KYC factory's getInvestor(creditAccount), otherwise uses the account owner.
-   * @param account - Credit account address
-   * @param blockNumber - Optional block number for the read
-   * @returns CreditAccountDataWithInvestor (CA data + investor address), or undefined if the account is not found
-   */
-  public async getCreditAccountDataWithInvestor(
-    account: Address,
-    blockNumber?: bigint,
-  ): Promise<CreditAccountDataWithInvestor | undefined> {
-    const ca = await this.getCreditAccountData(account, blockNumber);
-    if (!ca) return ca;
-
     const marketSuite = this.sdk.marketRegister.findByCreditManager(
-      ca.creditManager,
+      raw.creditManager,
     );
     const factory = marketSuite.kycFactory;
 
-    const investor = factory
-      ? await factory.getInvestor(ca.creditAccount, true)
-      : undefined;
+    let ca: CreditAccountData;
+    let investor: Address | undefined;
+    if (raw.success) {
+      ca = raw;
+      investor = await factory?.getInvestor(raw.creditAccount, false);
+    } else {
+      const { txs: priceUpdateTxs } = await this.getUpdateForAccount(raw);
+      [ca, investor] = (await simulateWithPriceUpdates(this.client, {
+        priceUpdates: priceUpdateTxs,
+        contracts: [
+          {
+            abi: creditAccountCompressorAbi,
+            address: this.#compressor,
+            functionName: "getCreditAccountData",
+            args: [account],
+          },
+          ...(factory
+            ? [
+                {
+                  abi: iKYCFactoryAbi,
+                  address: factory.address,
+                  functionName: "getInvestor",
+                  args: [raw.creditAccount],
+                },
+              ]
+            : []),
+        ] as any,
+        blockNumber,
+        gas: this.sdk.gasLimit,
+      })) as [CreditAccountData, Address | undefined];
+    }
 
-    return { ...ca, investor: investor ?? ca.owner };
+    return { ...ca, investor };
   }
 
   /**
@@ -293,102 +285,131 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
-   * Returns all credit accounts matching the filter, with investor set on each item.
-   * Delegates to getCreditAccounts; when options.owner is set, also loads KYC credit accounts for that owner and merges them into the list. Result is sorted by health factor ascending.
-   * @param options - Filter options (owner, creditManager, health factor, etc.)
-   * @param blockNumber - Optional block number for the read
-   * @returns Array of credit accounts (with investor field), sorted by health factor ascending
-   */
-  public async getCreditAccountsWithInvestor(
+   * {@inheritDoc ICreditAccountsService.getBorrowerCreditAccounts}
+   **/
+  public async getBorrowerCreditAccounts(
+    borrower: Address,
     options?: GetCreditAccountsOptions,
     blockNumber?: bigint,
-  ): Promise<Array<CreditAccountDataWithInvestor>> {
-    const { owner, ignoreReservePrices = false } = options ?? {};
+  ): Promise<Array<CreditAccountData<true>>> {
+    const {
+      creditManager,
+      includeZeroDebt = false,
+      maxHealthFactor = MAX_UINT256,
+      minHealthFactor = 0n,
+      ignoreReservePrices = false,
+    } = options ?? {};
 
-    const priceUpdate = await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(
-      ignoreReservePrices ? { main: true } : undefined,
-    );
-    const { txs: priceUpdateTxs } = priceUpdate;
-
-    const [common, kyc] = await Promise.all([
-      this.getCreditAccounts(options, blockNumber),
-      owner
-        ? this.getKYCCreditAccountsOfOwner(owner, priceUpdateTxs, blockNumber)
-        : undefined,
-    ]);
-
-    const allCAs = common.map(
-      (ca): CreditAccountDataWithInvestor => ({
-        ...ca,
-        investor: owner || ca.owner,
-      }),
-    );
-    allCAs.push(...(kyc || []));
-
-    // sort by health factor ascending
-    return allCAs.sort((a, b) => Number(a.healthFactor - b.healthFactor));
-  }
-  protected async getKYCCreditAccountsOfOwner(
-    owner: Address,
-    priceUpdateTxs: IPriceUpdateTx<{
-      priceFeed: `0x${string}`;
-      timestamp: number;
-    }>[],
-    blockNumber?: bigint,
-  ): Promise<Array<CreditAccountDataWithInvestor>> {
-    // find all market suites which belong to marketConfigurators
-    const suites = this.marketConfigurators.map(mc => {
-      const suite = this.sdk.marketRegister.markets.find(
-        m => m.configurator.address === mc,
+    const { txs: priceUpdateTxs } =
+      await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(
+        ignoreReservePrices ? { main: true } : undefined,
       );
-      return suite;
-    });
-    const kycCAAddresses = await this.getKYCCaOfInvestor(owner, suites);
-    const kycCAs = await this.loadSpecifiedAccounts(
-      kycCAAddresses,
-      priceUpdateTxs,
-      blockNumber,
+
+    // 1. Discover KYC credit accounts for this borrower across all factories
+    const investorDataList = await this.sdk.kyc.getInvestorData(borrower);
+    const kycAccountAddresses: Address[] = investorDataList.flatMap(d =>
+      d.creditAccounts.map(ca => ca.creditAccount),
     );
 
-    return kycCAs.map(ca => ({
-      ...ca,
-      investor: owner,
-    }));
-  }
+    // 2. Build a single multicall:
+    //    - getCreditAccountData for each KYC account
+    //    - getCreditAccounts(borrower, reverting=false)
+    //    - getCreditAccounts(borrower, reverting=true)
+    const cmFilter: CreditManagerFilter = creditManager
+      ? {
+          configurators: [],
+          creditManagers: [creditManager],
+          pools: [],
+          underlying: ADDRESS_0X0,
+        }
+      : {
+          configurators: this.marketConfigurators,
+          creditManagers: [],
+          pools: [],
+          underlying: ADDRESS_0X0,
+        };
 
-  /**
-   * Loads credit account data for the given addresses using simulateWithPriceUpdates.
-   * Applies the provided price update txs before reading, so returned data is consistent with up-to-date prices.
-   * @param accounts - Credit account addresses to load
-   * @param priceUpdateTxs - Price feed update txs to simulate before the read (e.g. from generatePriceFeedsUpdateTxs)
-   * @param blockNumber - Optional block number for the read
-   * @returns Array of CreditAccountData in the same order as accounts (throws if any getCreditAccountData call reverts)
-   */
-  public async loadSpecifiedAccounts(
-    accounts: Address[],
-    priceUpdateTxs: IPriceUpdateTx<{
-      priceFeed: `0x${string}`;
-      timestamp: number;
-    }>[],
-    blockNumber?: bigint,
-  ): Promise<Array<CreditAccountData>> {
-    if (accounts.length === 0) return [];
+    const permissiveFilter: CreditAccountFilter = {
+      owner: borrower,
+      includeZeroDebt: true,
+      minHealthFactor: 0n,
+      maxHealthFactor: MAX_UINT256,
+      reverting: false,
+    };
 
-    const list = await simulateWithPriceUpdates(this.client, {
+    const kycContracts = kycAccountAddresses.map(
+      account =>
+        ({
+          abi: creditAccountCompressorAbi,
+          address: this.#compressor,
+          functionName: "getCreditAccountData" as const,
+          args: [account],
+        }) as const,
+    );
+
+    const getCreditAccountsContracts = [false, true].map(
+      reverting =>
+        ({
+          abi: creditAccountCompressorAbi,
+          address: this.#compressor,
+          functionName: "getCreditAccounts" as const,
+          args: [cmFilter, { ...permissiveFilter, reverting }, 0n],
+        }) as const,
+    );
+
+    const allContracts = [...kycContracts, ...getCreditAccountsContracts];
+
+    const results = await simulateWithPriceUpdates(this.client, {
       priceUpdates: priceUpdateTxs,
-      contracts: accounts.map(
-        account =>
-          ({
-            abi: creditAccountCompressorAbi,
-            address: this.#compressor,
-            functionName: "getCreditAccountData",
-            args: [account],
-          }) as const,
-      ),
+      contracts: allContracts,
       blockNumber,
       gas: this.sdk.gasLimit,
     });
-    return list;
+
+    // 3. Split results back
+    const kycResults = results.slice(
+      0,
+      kycAccountAddresses.length,
+    ) as Array<CreditAccountData>;
+    const normalResults = results.slice(kycAccountAddresses.length) as Array<
+      [CreditAccountData[], bigint]
+    >;
+
+    // 4. Assemble with investor
+    const seen = new AddressSet();
+    const allCAs: Array<CreditAccountData<true>> = [];
+
+    for (const ca of kycResults) {
+      if (!seen.has(ca.creditAccount)) {
+        seen.add(ca.creditAccount);
+        allCAs.push({ ...ca, investor: borrower });
+      }
+    }
+
+    for (const [accounts] of normalResults) {
+      for (const ca of accounts) {
+        if (!seen.has(ca.creditAccount)) {
+          seen.add(ca.creditAccount);
+          allCAs.push({ ...ca, investor: undefined });
+        }
+      }
+    }
+
+    // 5. Apply remaining TS-side filters
+    const filtered = allCAs.filter(ca => {
+      if (!includeZeroDebt && ca.debt === 0n) return false;
+      if (ca.healthFactor < minHealthFactor) return false;
+      if (ca.healthFactor > maxHealthFactor) return false;
+      if (creditManager && !hexEq(ca.creditManager, creditManager))
+        return false;
+      return true;
+    });
+
+    this.logger?.debug(
+      `loaded ${allCAs.length} borrower credit accounts (${kycResults.length} KYC, ${filtered.length} after filter)`,
+    );
+
+    return filtered.sort((a, b) => Number(a.healthFactor - b.healthFactor));
   }
 
   /**
@@ -1823,55 +1844,5 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     }
 
     return suite.creditFacade.multicall(creditAccount, calls);
-  }
-
-  /**
-   * Returns all KYC credit account addresses for an investor across the given market suites.
-   * Resolves KYC factory per suite, then multicalls each factory's getCreditAccounts(investor).
-   * @param investor - Owner address to query
-   * @param suites - Market suites (KYC factories are resolved for each; undefined entries are skipped)
-   * @returns Flat array of credit account addresses from all KYC markets
-   */
-  protected async getKYCCaOfInvestor(
-    investor: Address,
-    suites: Array<MarketSuite | undefined>,
-  ) {
-    if (suites.length === 0 || investor === ADDRESS_0X0) return [];
-
-    const factories = await Promise.all(
-      suites.map(suite => (suite ? suite.getKYCFactory() : undefined)),
-    );
-    const safeFactories = factories.reduce<Array<SecuritizeKYCFactory>>(
-      (acc, v) => {
-        if (v) {
-          acc.push(v);
-        }
-        return acc;
-      },
-      [],
-    );
-
-    const allResp = await this.client.multicall({
-      contracts: [
-        ...safeFactories.map(factory => {
-          return {
-            abi: factory.abi,
-            address: factory.address,
-            functionName: "getCreditAccounts",
-            args: [investor],
-          } as const;
-        }),
-      ],
-      allowFailure: true,
-      batchSize: 0,
-    });
-
-    const caLists = safeFactories.reduce<Array<Address>>((acc, _, index) => {
-      const response = allResp[index];
-      acc.push(...(response.result || []));
-      return acc;
-    }, []);
-
-    return caLists;
   }
 }

@@ -74,9 +74,11 @@ export type MarketFilter = AbiParametersToPrimitiveTypes<
 >[0];
 
 /**
- * Full on-chain snapshot of a single credit account.
+ * Viem-inferred credit account data, kept as the source-of-truth anchor for
+ * the hand-written {@link CreditAccountData} interface below.
+ * @internal
  **/
-export type CreditAccountData = Unarray<
+type RawCreditAccountData = Unarray<
   AbiParametersToPrimitiveTypes<
     ExtractAbiFunction<
       typeof creditAccountCompressorAbi,
@@ -84,6 +86,154 @@ export type CreditAccountData = Unarray<
     >["outputs"]
   >
 >;
+
+/**
+ * Viem-inferred token info element.
+ * @internal
+ **/
+type RawTokenInfo = RawCreditAccountData["tokens"][number];
+
+/**
+ * Info on credit account's assets
+ **/
+export interface TokenInfo {
+  /**
+   * Token address.
+   **/
+  token: Address;
+  /**
+   * Token mask in the credit manager.
+   **/
+  mask: bigint;
+  /**
+   * Account's balance of token.
+   **/
+  balance: bigint;
+  /**
+   * Account's quota of token.
+   **/
+  quota: bigint;
+  /**
+   * Whether balance call was successful.
+   **/
+  success: boolean;
+}
+
+/**
+ * Compile-time assertion: `U` must be assignable to `T`.
+ * @internal
+ **/
+type AssertAssignable<T, U extends T> = U;
+
+// Compile-time check: TokenInfo stays in sync with the ABI-inferred type.
+// If the compressor ABI changes, this line will produce a type error.
+type _AssertTokenInfo = AssertAssignable<TokenInfo, RawTokenInfo>;
+
+/**
+ * On-chain state of a credit account.
+ *
+ * @remarks
+ * Fields from `totalDebtUSD` through `healthFactor` are not filled when
+ * `success` is `false`.
+ *
+ **/
+export interface CreditAccountDataPayload {
+  /**
+   * Credit account address.
+   **/
+  creditAccount: Address;
+  /**
+   * Credit manager account is opened in.
+   **/
+  creditManager: Address;
+  /**
+   * Facade connected to account's credit manager.
+   **/
+  creditFacade: Address;
+  /**
+   * Credit manager's underlying token.
+   **/
+  underlying: Address;
+  /**
+   * Credit account's owner (contract address for KYC accounts, EOA for
+   * normal accounts).
+   **/
+  owner: Address;
+  /**
+   * Expiration timestamp, in case facade is expirable.
+   **/
+  expirationDate: number;
+  /**
+   * Bitmask of tokens enabled on credit account as collateral.
+   **/
+  enabledTokensMask: bigint;
+  /**
+   * Credit account's debt principal in underlying.
+   **/
+  debt: bigint;
+  /**
+   * Base and quota interest accrued on the credit account.
+   **/
+  accruedInterest: bigint;
+  /**
+   * Fees accrued on the credit account.
+   **/
+  accruedFees: bigint;
+  /**
+   * Account's total debt in USD.
+   **/
+  totalDebtUSD: bigint;
+  /**
+   * Account's total value in USD.
+   **/
+  totalValueUSD: bigint;
+  /**
+   * Account's threshold-weighted value in USD.
+   **/
+  twvUSD: bigint;
+  /**
+   * Account's total value in underlying.
+   **/
+  totalValue: bigint;
+  /**
+   * Account's health factor, i.e. ratio of `twvUSD` to `totalDebtUSD`,
+   * with 18 decimals precision.
+   **/
+  healthFactor: bigint;
+  /**
+   * Whether collateral calculation was successful.
+   **/
+  success: boolean;
+  /**
+   * Info on credit account's enabled tokens and tokens with non-zero balance.
+   **/
+  tokens: readonly TokenInfo[];
+}
+
+// Compile-time check: CreditAccountDataPayload stays in sync with the
+// ABI-inferred type.  A type error here means the compressor ABI changed.
+type _AssertCreditAccountData = AssertAssignable<
+  CreditAccountDataPayload,
+  RawCreditAccountData
+>;
+
+/**
+ * Full on-chain snapshot of a single credit account.
+ *
+ * @typeParam WithInvestor - When `true`, the result includes an `investor`
+ *   field (`Address | undefined`).  Defaults to `false` (no investor field).
+ **/
+export type CreditAccountData<WithInvestor extends boolean = false> =
+  WithInvestor extends true
+    ? CreditAccountDataPayload & {
+        /**
+         * Investor EOA address (the real person behind the account).
+         * - KYC accounts: resolved from KYC factory, always defined.
+         * - Normal accounts: `undefined` (owner IS the investor).
+         **/
+        investor: Address | undefined;
+      }
+    : CreditAccountDataPayload;
 
 /**
  * Reward distribution details for a single reward token.
