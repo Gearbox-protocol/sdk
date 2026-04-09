@@ -105,7 +105,8 @@
     "typescript": "^5.9.3",
     "viem-deal": "^2.0.4",
     "vite": "^8.0.3",
-    "vitest": "^4.1.2"
+    "vitest": "^4.1.2",
+    "yaml": "^2.8.3"
   },
   "peerDependencies": {
     "axios": "^1.0.0",

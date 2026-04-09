@@ -85,7 +85,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
         case KYC_UNDERLYING_ON_DEMAND:
           return {
             zapper: undefined,
-            approveTarget: underlying.liquidityProvider,
+            approveTarget: underlying.liquidityProvider.addr,
             permissible: false,
             type: "kyc-on-demand",
           };

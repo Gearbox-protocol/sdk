@@ -26,11 +26,7 @@ import {
 } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 
-import type {
-  CreditSuite,
-  MarketSuite,
-  SecuritizeKYCFactory,
-} from "../market/index.js";
+import type { CreditSuite, MarketSuite } from "../market/index.js";
 
 import {
   getRawPriceUpdates,
@@ -217,7 +213,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const marketSuite = this.sdk.marketRegister.findByCreditManager(
       ca.creditManager,
     );
-    const factory = await marketSuite.getKYCFactory();
+    const factory = marketSuite.kycFactory;
 
     const investor = factory
       ? await factory.getInvestor(ca.creditAccount, true)
@@ -1084,7 +1080,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const { creditManager } = options;
     const suite = this.sdk.marketRegister.findCreditManager(creditManager);
     const marketSuite = this.sdk.marketRegister.findByPool(suite.pool);
-    const factory = await marketSuite.getKYCFactory();
+    const factory = marketSuite.kycFactory;
 
     if (factory) {
       if ("creditAccount" in options) {
@@ -1752,10 +1748,13 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     referralCode?: bigint,
   ): Promise<RawTx> {
     const marketSuite = this.sdk.marketRegister.findByPool(suite.pool);
-    const factory = await marketSuite.getKYCFactory();
+    const factory = marketSuite.kycFactory;
 
     if (factory) {
-      const tokensToRegister = await factory.getDSTokens();
+      // users should be able to choose this
+      // probably passed via strategy
+      const tokensToRegister = factory.dsTokens.map(t => t.address);
+      // check compressor for cached signatures
       return factory.openCreditAccount(
         suite.creditManager.address,
         calls,
@@ -1781,12 +1780,10 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const marketSuite = this.sdk.marketRegister.findByCreditManager(
       suite.creditManager.address,
     );
-    const factory = await marketSuite.getKYCFactory();
+    const factory = marketSuite.kycFactory;
 
     if (factory) {
-      // TODO: get tokens to register
-      const tokensToRegister: Address[] = [];
-      return factory.multicall(creditAccount, calls, tokensToRegister);
+      return factory.multicall(creditAccount, calls, [], []);
     }
 
     return suite.creditFacade.multicall(creditAccount, calls);
@@ -1809,7 +1806,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const marketSuite = this.sdk.marketRegister.findByCreditManager(
       suite.creditManager.address,
     );
-    const factory = await marketSuite.getKYCFactory();
+    const factory = marketSuite.kycFactory;
 
     if (operation === "close") {
       if (factory) {
@@ -1821,9 +1818,8 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     }
 
     if (factory) {
-      // TODO: get tokens to register
-      const tokensToRegister: Address[] = [];
-      return factory.multicall(creditAccount, calls, tokensToRegister);
+      // full repay, no need to pass register tokens and signatures
+      return factory.multicall(creditAccount, calls, [], []);
     }
 
     return suite.creditFacade.multicall(creditAccount, calls);

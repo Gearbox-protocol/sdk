@@ -4,6 +4,7 @@ import type { MarketData } from "../../base/index.js";
 import { SDKConstruct } from "../../base/index.js";
 import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { PoolSuiteStateHuman } from "../../types/index.js";
+import type { SecuritizeKYCFactory } from "../kyc/SecuritizeKYCFactory.js";
 import type { MarketConfiguratorContract } from "../MarketConfiguratorContract.js";
 import createInterestRateModel from "./createInterestRateModel.js";
 import createPool from "./createPool.js";
@@ -11,7 +12,6 @@ import createPoolQuotaKeeper from "./createPoolQuotaKeeper.js";
 import createRateKeeper from "./createRateKeeper.js";
 import { GaugeContract } from "./GaugeContract.js";
 import { LinearInterestRateModelContract } from "./LinearInterestRateModelContract.js";
-import type { SecuritizeKYCFactory } from "./SecuritizeKYCFactory.js";
 import { TumblerContract } from "./TumblerContract.js";
 import type {
   IInterestRateModelContract,
@@ -77,8 +77,8 @@ export class PoolSuite extends SDKConstruct {
     return this.pool.underlying;
   }
 
-  public async getKYCFactory(): Promise<SecuritizeKYCFactory | undefined> {
-    return this.pool.getKYCFactory();
+  public get kycFactory(): SecuritizeKYCFactory | undefined {
+    return this.pool.kycFactory;
   }
 
   override get dirty(): boolean {

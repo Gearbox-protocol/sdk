@@ -27,7 +27,6 @@ export type PhantomTokenContractType =
   (typeof PHANTOM_TOKEN_CONTRACT_TYPES)[number];
 
 export interface SimpleTokenMeta extends TokenData {
-  isDSToken?: boolean;
   contractType?: string;
 }
 
@@ -54,6 +53,10 @@ export interface KYCOnDemandLPMonopolizedMeta {
   version: bigint;
   contractType: typeof KYC_ON_DEMAND_LP_MONOPOLIZED;
   marketConfigurator: Address;
+  /**
+   * Only this user can deposit into the pool and withdraw
+   * Other users should not see it at all
+   */
   depositor: Address;
   pools: LPMonopolizedPoolMeta[];
 }
@@ -70,14 +73,6 @@ export interface KYCOnDemandTokenMeta extends SimpleTokenMeta {
   liquidityProvider: KYCOnDemandLPMeta;
 }
 
-export type DSTokenMeta = Omit<SimpleTokenMeta, "isDSToken"> & {
-  isDSToken: true;
-};
-
 export type KYCTokenMeta = KYCDefaultTokenMeta | KYCOnDemandTokenMeta;
 
-export type TokenMetaData =
-  | SimpleTokenMeta
-  | PhantomTokenMeta
-  | KYCTokenMeta
-  | DSTokenMeta;
+export type TokenMetaData = SimpleTokenMeta | PhantomTokenMeta | KYCTokenMeta;

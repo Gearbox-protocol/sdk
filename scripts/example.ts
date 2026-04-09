@@ -1,6 +1,7 @@
 import { writeFile } from "node:fs/promises";
 
 import { pino } from "pino";
+import { stringify as yamlStringify } from "yaml";
 import { AccountsPlugin } from "../src/plugins/accounts/index.js";
 import { AdaptersPlugin } from "../src/plugins/adapters/AdaptersPlugin.js";
 import { BotsPlugin } from "../src/plugins/bots/index.js";
@@ -29,7 +30,9 @@ async function example(): Promise<void> {
   const sdk = await GearboxSDK.attach({
     rpcURLs: [RPC],
     timeout: 480_000,
-    blockNumber: 24736900,
+    // blockNumber: 24736900,
+    marketConfigurators: ["0x610627d8d01a413bdd9b0a0b60070da7dd1e54ad"],
+    kycFactories: ["0x9bccaf938f7de8cfee02ed5e177f3df873087f5c"],
     logger,
     plugins: {
       adapters: new AdaptersPlugin(true),
@@ -47,37 +50,12 @@ async function example(): Promise<void> {
     },
   });
 
-  // kind = "hydrated";
-  // const state = await readFile(
-  //   "tmp/state_real_Mainnet_22798015.json",
-  //   "utf-8",
-  // ).then(json_parse);
-  // const sdk = GearboxSDK.hydrate(
-  //   {
-  //     plugins: {
-  //       adapters: new AdaptersPlugin(false),
-  //       zappers: new ZappersPlugin(false),
-  //       bots: new BotsPlugin(false),
-  //       degen: new DegenDistributorsPlugin(false),
-  //       pools7DAgo: new Pools7DAgoPlugin(false),
-  //       accountsCounter: new AccountsCounterPlugin(false),
-  //     },
-  //     rpcURLs: [RPC],
-  //     timeout: 480_000,
-  //     logger,
-  //     strictContractTypes: true,
-  //   },
-  //   state,
-  // );
   await sdk.tokensMeta.loadTokenData();
   for (const item of sdk.tokensMeta.phantomTokens.values()) {
     console.log("phantom token", item.symbol, item.addr, item.name);
   }
   for (const item of sdk.tokensMeta.kycUnderlyings.values()) {
     console.log("kyc underlying", item.symbol, item.addr, item.name);
-  }
-  for (const item of sdk.tokensMeta.dsTokens.values()) {
-    console.log("ds token", item.symbol, item.addr, item.name);
   }
   for (const m of sdk.marketRegister.markets) {
     const meta = sdk.tokensMeta.mustGet(m.underlying);
@@ -94,32 +72,13 @@ async function example(): Promise<void> {
   const prefix = RPC.includes("127.0.0.1") ? "anvil_" : "";
   const net = sdk.networkType;
   await writeFile(
-    `tmp/state_next_${kind}_human_${net}_${prefix}${sdk.currentBlock}.json`,
-    json_stringify(sdk.stateHuman()),
+    `tmp/state_next_${kind}_human_${net}_${prefix}${sdk.currentBlock}.yaml`,
+    yamlStringify(sdk.stateHuman()),
   );
   await writeFile(
     `tmp/state_next_${kind}_${net}_${prefix}${sdk.currentBlock}.json`,
     json_stringify(sdk.state),
   );
-
-  // sdk.provider.publicClient.watchBlocks({
-  //   onBlock: async block => {
-  //     await sdk.syncState({
-  //       blockNumber: block.number,
-  //       timestamp: block.timestamp,
-  //     });
-  //     // const prefix = RPC.includes("127.0.0.1") ? "anvil_" : "";
-  //     // const net = sdk.provider.networkType;
-  //     // await writeFile(
-  //     //   `tmp/state_${kind}_human_${net}_${prefix}${sdk.currentBlock}.json`,
-  //     //   json_stringify(sdk.stateHuman()),
-  //     // );
-  //     // await writeFile(
-  //     //   `tmp/state_${kind}_${net}_${prefix}${sdk.currentBlock}.json`,
-  //     //   json_stringify(sdk.state),
-  //     // );
-  //   },
-  // });
 
   logger.info("done");
 }

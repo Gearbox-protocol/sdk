@@ -9,51 +9,103 @@ import {
   type KYCOnDemandLPMeta,
   type KYCOnDemandLPMonopolizedMeta,
   type KYCOnDemandTokenMeta,
+  SDKConstruct,
   type TokenMetaData,
 } from "../../base/index.js";
-import { SDKConstruct } from "../../base/SDKConstruct.js";
 import { AP_KYC_COMPRESSOR, VERSION_RANGE_310 } from "../../constants/index.js";
-import { bytes32ToString } from "../../utils/bytes32ToString.js";
+import { AddressMap, bytes32ToString } from "../../utils/index.js";
+import type { DelegatedMulticall } from "../../utils/viem/index.js";
+import { SecuritizeKYCFactory } from "./SecuritizeKYCFactory.js";
 import type {
-  KYCCOmpressorCall,
+  InvestorData,
   KYCCompressorResponse,
   KYCFactoryData,
+  KYCState,
+  KYCStateHuman,
   KYCUnderlyingData,
 } from "./types.js";
 
 export class KYCRegister extends SDKConstruct {
-  #kycUnderlyingData: KYCUnderlyingData[] = [];
-  #kycFactoryData: KYCFactoryData[] = [];
+  #state?: KYCState;
+  #factories = new AddressMap<SecuritizeKYCFactory>();
 
-  public getCompressorCall(
+  /**
+   * @internal
+   *
+   * Returns delegated multicalls for loading all KYC underlying tokens from the on-chain KYC compressor.
+   * Used by the SDK to compose batched RPC calls.
+   *
+   * @param configurators - Market configurators to query.
+   * @param kycFactories - KYC factory contracts to query.
+   * @returns
+   */
+  public getLoadMulticalls(
     configurators: Address[],
     kycFactories: Address[] = [],
-  ): KYCCOmpressorCall[] {
+  ): DelegatedMulticall[] {
+    if (!kycFactories.length) return [];
     const [kycCompressorAddress] = this.sdk.addressProvider.mustGetLatest(
       AP_KYC_COMPRESSOR,
       VERSION_RANGE_310,
     );
-    return kycFactories.length
-      ? [
-          {
-            abi: iKYCCompressorAbi,
-            address: kycCompressorAddress,
-            functionName: "getKYCMarketsData",
-            args: [configurators, kycFactories ?? []],
-          },
-        ]
-      : [];
+    return [
+      {
+        call: {
+          abi: iKYCCompressorAbi,
+          address: kycCompressorAddress,
+          functionName: "getKYCMarketsData",
+          args: [configurators, kycFactories],
+        },
+        onResult: (resp: unknown) =>
+          this.setState(resp as KYCCompressorResponse),
+      },
+    ];
+  }
+
+  public async getInvestorData(investor: Address): Promise<InvestorData[]> {
+    const [kycCompressorAddress] = this.sdk.addressProvider.mustGetLatest(
+      AP_KYC_COMPRESSOR,
+      VERSION_RANGE_310,
+    );
+    const factories = this.#factories.values();
+    const resp = await this.client.readContract({
+      abi: iKYCCompressorAbi,
+      address: kycCompressorAddress,
+      functionName: "getKYCInvestorData",
+      args: [investor, factories.map(f => f.address)],
+    });
+    const result: InvestorData[] = [];
+    for (let i = 0; i < factories.length; i++) {
+      const factory = factories[i];
+      const factoryData = resp[i];
+      const investorData = factory.decodeInvestorData(factoryData);
+      result.push(investorData);
+    }
+    return result;
+  }
+
+  public get factories(): SecuritizeKYCFactory[] {
+    return this.#factories.values();
+  }
+
+  public get state(): KYCState | undefined {
+    return this.#state;
+  }
+
+  public stateHuman(raw?: boolean): KYCStateHuman {
+    return {
+      factories: this.factories.map(f => f.stateHuman(raw)),
+    };
   }
 
   public setState(resp?: KYCCompressorResponse): void {
-    if (resp) {
-      this.#kycUnderlyingData = [...resp[0]];
-      this.#kycFactoryData = [...resp[1]];
-    }
-    for (const u of this.#kycUnderlyingData) {
+    this.#state = resp;
+    for (const u of resp?.[0] ?? []) {
       this.#loadUnderlyingTokenData(u);
     }
-    for (const f of this.#kycFactoryData) {
+    this.#factories.clear();
+    for (const f of resp?.[1] ?? []) {
+      this.#loadKYCFactoryData(f);
     }
   }
 
@@ -139,23 +191,28 @@ export class KYCRegister extends SDKConstruct {
   }
 
   #getOnDemandLPMeta(extraDetails: Hex): KYCOnDemandLPMeta {
-    const decoded = decodeAbiParameters(
-      // const [lpAddr, version, lpContractTypeHex, lpSerialized] = decodeAbiParameters(
+    const [decoded] = decodeAbiParameters(
       [
-        { name: "addr", type: "address" },
-        { name: "version", type: "uint256" },
-        { name: "contractType", type: "bytes32" },
-        { name: "serializedParams", type: "bytes" },
+        {
+          name: "baseParams",
+          type: "tuple",
+          components: [
+            { name: "addr", type: "address" },
+            { name: "version", type: "uint256" },
+            { name: "contractType", type: "bytes32" },
+            { name: "serializedParams", type: "bytes" },
+          ],
+        },
       ],
       extraDetails,
     );
-    const contractType = bytes32ToString(decoded[2]);
+    const contractType = bytes32ToString(decoded.contractType);
     switch (contractType) {
       case KYC_ON_DEMAND_LP_MONOPOLIZED:
         return this.#getOnDemandLPMonopolizedMeta(
-          decoded[0],
-          decoded[1],
-          decoded[3],
+          decoded.addr,
+          decoded.version,
+          decoded.serializedParams,
         );
       default:
         throw new Error(`Unknown on-demand LP contract type: ${contractType}`);
@@ -193,5 +250,21 @@ export class KYCRegister extends SDKConstruct {
       depositor,
       pools: [...pools],
     };
+  }
+
+  #loadKYCFactoryData(data: KYCFactoryData): void {
+    const contractType = bytes32ToString(data.baseParams.contractType);
+    switch (contractType) {
+      case "KYC_FACTORY::SECURITIZE":
+        this.#factories.upsert(
+          data.baseParams.addr,
+          new SecuritizeKYCFactory(this.sdk, data),
+        );
+        break;
+      default:
+        throw new Error(
+          `Unknown KYC factory type: ${contractType} for ${data.baseParams.addr}`,
+        );
+    }
   }
 }

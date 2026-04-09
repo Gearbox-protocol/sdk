@@ -16,7 +16,7 @@ import {
   formatBNvalue,
   percentFmt,
 } from "../../utils/index.js";
-import { SecuritizeKYCFactory } from "./SecuritizeKYCFactory.js";
+import type { SecuritizeKYCFactory } from "../kyc/index.js";
 
 const abi = [...iPoolV310Abi, ...iPausableAbi] as const;
 type abi = typeof abi;
@@ -29,7 +29,6 @@ export interface PoolV310Contract
 export class PoolV310Contract extends BaseContract<abi> {
   public readonly creditManagerDebtParams: AddressMap<CreditManagerDebtParams>;
   #sdk: GearboxSDK;
-  #kycFactory?: SecuritizeKYCFactory;
 
   constructor(sdk: GearboxSDK, data: PoolState) {
     const { baseParams, creditManagerDebtParams, ...rest } = data;
@@ -52,17 +51,12 @@ export class PoolV310Contract extends BaseContract<abi> {
     });
   }
 
-  public async getKYCFactory(): Promise<SecuritizeKYCFactory | undefined> {
-    if (this.#kycFactory) {
-      return this.#kycFactory;
+  public get kycFactory(): SecuritizeKYCFactory | undefined {
+    const meta = this.#sdk.tokensMeta.mustGet(this.underlying);
+    if (this.#sdk.tokensMeta.isKYCUnderlying(meta)) {
+      return this.#sdk.mustGetContract<SecuritizeKYCFactory>(meta.kycFactory);
     }
-    await this.#sdk.tokensMeta.loadTokenData(this.underlying);
-    const u = this.#sdk.tokensMeta.mustGet(this.underlying);
-    if (this.#sdk.tokensMeta.isKYCUnderlying(u)) {
-      this.#kycFactory = new SecuritizeKYCFactory(this.#sdk, u.kycFactory);
-    }
-
-    return this.#kycFactory;
+    return undefined;
   }
 
   public override stateHuman(raw = true): PoolStateHuman {

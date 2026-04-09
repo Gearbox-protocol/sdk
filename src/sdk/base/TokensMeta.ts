@@ -1,15 +1,11 @@
-import {
-  type Address,
-  type Chain,
-  decodeAbiParameters,
-  erc20Abi,
-  type Hex,
-  type MulticallResponse,
-  type PublicClient,
-  type Transport,
+import type {
+  Address,
+  Chain,
+  Hex,
+  MulticallResponse,
+  PublicClient,
+  Transport,
 } from "viem";
-import { iSecuritizeDegenNFTAbi } from "../../abi/310/iSecuritizeDegenNFT.js";
-import { iSecuritizeKYCFactoryAbi } from "../../abi/310/iSecuritizeKYCFactory.js";
 import { iStateSerializerAbi } from "../../abi/iStateSerializer.js";
 import { iVersionAbi } from "../../abi/iVersion.js";
 import type { Asset } from "../router/index.js";
@@ -20,15 +16,10 @@ import {
   bytes32ToString,
   formatBN,
 } from "../utils/index.js";
-import {
-  type DSTokenMeta,
-  KYC_UNDERLYING_DEFAULT,
-  KYC_UNDERLYING_ON_DEMAND,
-  type KYCDefaultTokenMeta,
-  type KYCOnDemandTokenMeta,
-  type KYCTokenMeta,
-  type PhantomTokenMeta,
-  type TokenMetaData,
+import type {
+  KYCTokenMeta,
+  PhantomTokenMeta,
+  TokenMetaData,
 } from "./token-types.js";
 
 /**
@@ -127,26 +118,7 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
    * @returns
    */
   public isKYCUnderlying(t: TokenMetaData): t is KYCTokenMeta {
-    if (!this.#tokenDataLoaded.has(t.addr)) {
-      throw new Error(
-        `extended token data not loaded for ${t.symbol} (${t.addr})`,
-      );
-    }
     return !!t.contractType?.startsWith("KYC_UNDERLYING::");
-  }
-
-  /**
-   * Returns true if the token is a DSToken, throws if the token data is not loaded
-   * @param t
-   * @returns
-   */
-  public isDSToken(t: TokenMetaData): t is DSTokenMeta {
-    if (!this.#tokenDataLoaded.has(t.addr)) {
-      throw new Error(
-        `extended token data not loaded for ${t.symbol} (${t.addr})`,
-      );
-    }
-    return !!t.isDSToken;
   }
 
   /**
@@ -171,16 +143,6 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
     const result = new AddressMap<KYCTokenMeta>();
     for (const [token, meta] of this.entries()) {
       if (this.isKYCUnderlying(meta)) {
-        result.upsert(token, meta);
-      }
-    }
-    return result;
-  }
-
-  public get dsTokens(): AddressMap<DSTokenMeta> {
-    const result = new AddressMap<DSTokenMeta>();
-    for (const [token, meta] of this.entries()) {
-      if (this.isDSToken(meta)) {
         result.upsert(token, meta);
       }
     }
@@ -247,7 +209,8 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
   }
 
   /**
-   * Loads token information about phantom tokens, KYC underlying tokens and DSTokens
+   * Loads token information about phantom tokens
+   * In future other custom tokens types that do not have compressors might be handled here
    *
    * @param tokens - tokens to load data for, defaults to all tokens
    */
@@ -293,157 +256,22 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
       }
     }
     this.#logger?.debug(`found ${kycFactories.size} KYC factories`);
-    await this.#loadDSTokens(kycFactories);
   }
 
   #overrideTokenMeta(
     token: Address,
     contractTypeResp: MulticallResponse<Hex>,
-    serializeResp: MulticallResponse<Hex>,
+    _serializeResp: MulticallResponse<Hex>,
   ): TokenMetaData {
     const meta = this.mustGet(token);
     if (contractTypeResp.status === "success") {
       const contractType = bytes32ToString(contractTypeResp.result);
-      if (contractType.startsWith("KYC_UNDERLYING::")) {
-        if (serializeResp.status === "success") {
-          this.#overrideKYCUnderlying(meta, contractType, serializeResp.result);
-        } else {
-          throw new Error(
-            `token ${meta.symbol} (${token}) is ${contractType} but serialize failed: ${serializeResp.error}`,
-          );
-        }
-      } else {
-        this.upsert(token, {
-          ...meta,
-          contractType,
-        });
-      }
+      this.upsert(token, {
+        ...meta,
+        contractType,
+      });
       this.#logger?.debug(`token ${meta.symbol} is ${contractType}`);
     }
     return this.mustGet(token);
-  }
-
-  #overrideKYCUnderlying(
-    meta: TokenMetaData,
-    contractType: string,
-    serialized: Hex,
-  ): void {
-    if (contractType === KYC_UNDERLYING_DEFAULT) {
-      const decoded = decodeAbiParameters(
-        [
-          { type: "address", name: "kycFactory" },
-          { type: "address", name: "asset" },
-        ],
-        serialized,
-      );
-      this.upsert(meta.addr, {
-        ...meta,
-        contractType,
-        kycFactory: decoded[0],
-        asset: decoded[1],
-      } as KYCDefaultTokenMeta);
-    } else if (contractType === KYC_UNDERLYING_ON_DEMAND) {
-      const decoded = decodeAbiParameters(
-        [
-          { type: "address", name: "kycFactory" },
-          { type: "address", name: "asset" },
-          { type: "address", name: "pool" },
-          { type: "address", name: "liquidityProvider" },
-        ],
-        serialized,
-      );
-      this.upsert(meta.addr, {
-        ...meta,
-        contractType,
-        kycFactory: decoded[0],
-        asset: decoded[1],
-        pool: decoded[2],
-        liquidityProvider: decoded[3],
-      } as KYCOnDemandTokenMeta);
-    }
-  }
-
-  async #loadDSTokens(kycFactories: AddressSet): Promise<void> {
-    const degenNFTs = await this.#client.multicall({
-      contracts: kycFactories.map(address => {
-        return {
-          address,
-          abi: iSecuritizeKYCFactoryAbi,
-          functionName: "getDegenNFT",
-        } as const;
-      }),
-      allowFailure: false,
-      batchSize: 0,
-    });
-
-    const resp = await this.#client.multicall({
-      contracts: degenNFTs.map(address => {
-        return {
-          address,
-          abi: iSecuritizeDegenNFTAbi,
-          functionName: "getDSTokens",
-        } as const;
-      }),
-      allowFailure: false,
-      batchSize: 0,
-    });
-    const dsToken = new AddressSet(resp.flat());
-    // if token does not exist in tokensMeta, load symbol, name, decimals
-    const tokensToLoad = dsToken.difference(new Set(this.keys()));
-    this.#logger?.debug(
-      `found ${dsToken.size} DSTokens in KYC factories, need to load ${tokensToLoad.size} basic metadata`,
-    );
-    await this.#loadWithoutCompressor(tokensToLoad);
-    for (const token of dsToken) {
-      const meta = this.mustGet(token);
-      this.upsert(token, {
-        ...meta,
-        isDSToken: true,
-      });
-      this.#tokenDataLoaded.add(token);
-      this.#logger?.debug(`token ${meta.symbol} (${token}) is a DSToken`);
-    }
-  }
-
-  async #loadWithoutCompressor(tokens_: Set<Address>): Promise<void> {
-    if (tokens_.size === 0) {
-      return;
-    }
-    const tokens = Array.from(tokens_);
-    const resp = await this.#client.multicall({
-      contracts: tokens.flatMap(
-        t =>
-          [
-            {
-              address: t,
-              abi: erc20Abi,
-              functionName: "symbol",
-            },
-            {
-              address: t,
-              abi: erc20Abi,
-              functionName: "name",
-            },
-            {
-              address: t,
-              abi: erc20Abi,
-              functionName: "decimals",
-            },
-          ] as const,
-      ),
-      allowFailure: false,
-      batchSize: 0,
-    });
-    this.#logger?.debug(
-      `loaded ${resp.length} basic metadata without compressor`,
-    );
-    for (let i = 0; i < tokens.length; i++) {
-      this.upsert(tokens[i], {
-        addr: tokens[i],
-        symbol: resp[3 * i] as string,
-        name: resp[3 * i + 1] as string,
-        decimals: resp[3 * i + 2] as number,
-      });
-    }
   }
 }

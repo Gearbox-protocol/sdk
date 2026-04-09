@@ -5,6 +5,7 @@ import { SDKConstruct } from "../base/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import type { MarketStateHuman } from "../types/index.js";
 import { CreditSuite } from "./credit/index.js";
+import type { SecuritizeKYCFactory } from "./kyc/index.js";
 import {
   createLossPolicy,
   type ILossPolicyContract,
@@ -13,7 +14,6 @@ import { MarketConfiguratorContract } from "./MarketConfiguratorContract.js";
 import type { IPriceOracleContract } from "./oracle/index.js";
 import { createPriceOracle } from "./oracle/index.js";
 import { PoolSuite } from "./pool/index.js";
-import type { SecuritizeKYCFactory } from "./pool/SecuritizeKYCFactory.js";
 
 export class MarketSuite extends SDKConstruct {
   public readonly acl: Address;
@@ -63,8 +63,8 @@ export class MarketSuite extends SDKConstruct {
     return this.pool.underlying;
   }
 
-  public async getKYCFactory(): Promise<SecuritizeKYCFactory | undefined> {
-    return this.pool.getKYCFactory();
+  public get kycFactory(): SecuritizeKYCFactory | undefined {
+    return this.pool.kycFactory;
   }
 
   override get dirty(): boolean {

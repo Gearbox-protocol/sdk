@@ -1,6 +1,5 @@
-import type { Address, ContractFunctionReturnType } from "viem";
+import type { Address } from "viem";
 import { marketCompressorAbi } from "../../abi/compressors/marketCompressor.js";
-import type { priceFeedCompressorAbi } from "../../abi/compressors/priceFeedCompressor.js";
 import type { MarketData, MarketFilter } from "../base/index.js";
 import {
   ADDRESS_0X0,
@@ -10,7 +9,10 @@ import {
 import type { GearboxSDK } from "../GearboxSDK.js";
 import type { IPriceUpdateTx, MarketStateHuman } from "../types/index.js";
 import { AddressMap, AddressSet } from "../utils/index.js";
-import { simulateWithPriceUpdates } from "../utils/viem/index.js";
+import {
+  type DelegatedMulticall,
+  executeDelegatedMulticalls,
+} from "../utils/viem/index.js";
 import type { CreditSuite } from "./credit/index.js";
 import { MarketConfiguratorContract } from "./MarketConfiguratorContract.js";
 import { MarketSuite } from "./MarketSuite.js";
@@ -59,33 +61,37 @@ export class MarketRegister extends ZapperRegister {
 
   /**
    * @internal
-   * Fetches all markets from the on-chain for the given market configurators.
+   * Returns delegated multicalls for loading all markets from the on-chain
+   * market compressor. Used by the SDK to compose batched RPC calls.
    *
-   * @param marketConfigurators - Addresses of market configurator contracts to query.
-   * @param ignoreUpdateablePrices - When `true`, skips generating off-chain
-   *   price updates before loading
+   * @param configurators - Addresses of market configurator contracts to query.
    **/
-  public async loadMarkets(
-    marketConfigurators: Address[],
-    ignoreUpdateablePrices?: boolean,
-  ): Promise<void> {
-    if (!marketConfigurators.length) {
-      this.logger?.warn(
-        "no market configurators provided, skipping loadMarkets",
-      );
-      return;
-    }
-    await this.#loadMarkets(marketConfigurators, [], ignoreUpdateablePrices);
+  public getLoadMulticalls(configurators: Address[]): DelegatedMulticall[] {
+    this.#setMarketFilter(configurators);
+    const [marketCompressorAddress] = this.sdk.addressProvider.mustGetLatest(
+      AP_MARKET_COMPRESSOR,
+      VERSION_RANGE_310,
+    );
+    return [
+      {
+        call: {
+          abi: marketCompressorAbi,
+          address: marketCompressorAddress,
+          functionName: "getMarkets",
+          args: [this.marketFilter],
+        },
+        onResult: (resp: unknown) => {
+          this.#setMarkets(resp as MarketData[]);
+          this.logger?.info(
+            `loaded ${this.#markets.size} markets in block ${this.sdk.currentBlock}`,
+          );
+        },
+      },
+    ];
   }
 
-  #setMarketFilter(
-    configurators: readonly Address[],
-    pools: readonly Address[] = [],
-  ): void {
+  #setMarketFilter(configurators: readonly Address[]): void {
     for (const c of configurators) {
-      // we're creating contract instances here, so they will already exist when loadMarkets is called
-      // this way we can later call syncState and detect that new markets were created, even in case when there we no markets before
-      // i.e. to handle the edge case of creation of first market with sdk already attached
       this.#marketConfigurators.upsert(
         c,
         new MarketConfiguratorContract(this.sdk, c),
@@ -93,7 +99,7 @@ export class MarketRegister extends ZapperRegister {
     }
     this.#marketFilter = {
       configurators,
-      pools,
+      pools: [],
       underlying: ADDRESS_0X0,
     };
   }
@@ -130,118 +136,50 @@ export class MarketRegister extends ZapperRegister {
       this.markets.some(m => m.dirty) ||
       this.marketConfigurators.some(c => c.dirty);
 
+    let multicalls: DelegatedMulticall[];
+    let txs: IPriceUpdateTx[] = [];
+
     if (dirty) {
       this.logger?.debug(
         "some markets or market configurators are dirty, reloading everything",
       );
-      // this will also update prices
-      await this.#loadMarkets(
-        [...this.marketFilter.configurators],
-        [...this.marketFilter.pools],
-        ignoreUpdateablePrices,
-      );
+      multicalls = this.getLoadMulticalls([...this.marketFilter.configurators]);
+      if (!ignoreUpdateablePrices) {
+        const updatables =
+          await this.sdk.priceFeeds.getPartialUpdatablePriceFeeds([
+            ...this.marketFilter.configurators,
+          ]);
+        const updates =
+          await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(updatables);
+        txs = updates.txs;
+      }
     } else if (!ignoreUpdateablePrices) {
-      // no changes in sdk state, but still need to update prices
-      await this.#updatePrices();
-    }
-  }
-
-  async #loadMarkets(
-    configurators: Address[],
-    pools: Address[],
-    ignoreUpdateablePrices?: boolean,
-  ): Promise<void> {
-    this.#setMarketFilter(configurators, pools);
-    const [marketCompressorAddress] = this.sdk.addressProvider.mustGetLatest(
-      AP_MARKET_COMPRESSOR,
-      VERSION_RANGE_310,
-    );
-    let txs: IPriceUpdateTx[] = [];
-    if (!ignoreUpdateablePrices) {
-      // to have correct prices we must first get all updatable price feeds
-      const updatables =
-        await this.sdk.priceFeeds.getPartialUpdatablePriceFeeds(
-          configurators,
-          pools,
-        );
-
-      // the generate updates
-      const updates =
-        await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(updatables);
+      multicalls = this.#getOracleSyncMulticalls();
+      if (!multicalls.length) {
+        return;
+      }
+      this.logger?.debug(`syncing prices on ${multicalls.length} oracles`);
+      const updates = await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs();
       txs = updates.txs;
-    }
-    this.logger?.debug(
-      { configurators, pools },
-      `calling getMarkets with ${txs.length} price updates in block ${this.sdk.currentBlock}`,
-    );
-    // ...and push them using multicall before getting answers
-    let markets: readonly MarketData[] = [];
-    if (txs.length) {
-      const [resp] = await simulateWithPriceUpdates(this.client, {
-        priceUpdates: txs,
-        contracts: [
-          {
-            abi: marketCompressorAbi,
-            address: marketCompressorAddress,
-            functionName: "getMarkets",
-            args: [this.marketFilter],
-          },
-        ],
-        blockNumber: this.sdk.currentBlock,
-        gas: this.sdk.gasLimit,
-      });
-      markets = resp;
     } else {
-      markets = await this.client.readContract({
-        abi: marketCompressorAbi,
-        address: marketCompressorAddress,
-        functionName: "getMarkets",
-        args: [this.marketFilter],
-        blockNumber: this.sdk.currentBlock,
-        // @ts-expect-error
-        gas: this.sdk.gasLimit,
-      });
+      return;
     }
 
-    this.#setMarkets(markets);
-
-    this.logger?.info(
-      `loaded ${this.#markets.size} markets in block ${this.sdk.currentBlock}`,
-    );
+    await executeDelegatedMulticalls(this.client, multicalls, {
+      priceUpdates: txs,
+      blockNumber: this.sdk.currentBlock,
+      gas: this.sdk.gasLimit,
+    });
   }
 
-  /**
-   * Loads new prices and price feeds for given oracles from PriceFeedCompressor, defaults to all oracles
-   */
-  async #updatePrices(oracles?: Address[]): Promise<void> {
+  #getOracleSyncMulticalls(oracles?: Address[]): DelegatedMulticall[] {
     const uniqOracles = new AddressMap<IPriceOracleContract>();
     for (const m of this.markets) {
       if (!oracles || oracles.includes(m.priceOracle.address)) {
         uniqOracles.upsert(m.priceOracle.address, m.priceOracle);
       }
     }
-
-    const multicalls = uniqOracles.values().map(o => o.syncStateMulticall());
-    if (!multicalls.length) {
-      return;
-    }
-    this.logger?.debug(`syncing prices on ${multicalls.length} oracles`);
-    const { txs } = await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs();
-    const oraclesStates = await simulateWithPriceUpdates(this.client, {
-      priceUpdates: txs,
-      contracts: multicalls.map(mc => mc.call),
-      gas: this.sdk.gasLimit,
-      blockNumber: this.sdk.currentBlock,
-    });
-    for (let i = 0; i < multicalls.length; i++) {
-      const handler = multicalls[i].onResult;
-      const result = oraclesStates[i] as any as ContractFunctionReturnType<
-        typeof priceFeedCompressorAbi,
-        "view",
-        "getPriceOracleState"
-      >;
-      handler(result);
-    }
+    return uniqOracles.values().map(o => o.syncStateMulticall());
   }
 
   public override get watchAddresses(): Set<Address> {
