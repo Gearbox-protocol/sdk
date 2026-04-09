@@ -25,12 +25,7 @@ export interface ApyPluginState {
 
 export interface ApyPluginConstructorOptions {
   apyUrl?: string;
-  /**
-   * When the periodic timer runs, also refresh on-chain pool state at block ~7 days ago.
-   * Defaults to `false`: only the APY snapshot from state-cache is refreshed on timer ticks
-   * (initial load and `syncState` still fetch both).
-   */
-  refreshPools7DAgoOnTimer?: boolean;
+  timer?: PluginTimerOptions;
 }
 
 export interface ApyPluginLoadOptions {
@@ -48,7 +43,6 @@ export interface PluginTimerOptions {
   /** Callback fired after each successful refresh */
   onChange?: () => void;
   /**
-   * Overrides {@link ApyPluginConstructorOptions.refreshPools7DAgoOnTimer} for this timer only.
    * When `true`, each tick also refreshes 7d-ago pool state on-chain.
    */
   refreshPools7DAgoOnTick?: boolean;
@@ -69,10 +63,10 @@ export class ApyPlugin
   #apyEtag?: string;
 
   /**
-   * Default for timer ticks: whether to also refresh 7d-ago pool state on-chain.
-   * @see ApyPluginConstructorOptions.refreshPools7DAgoOnTimer
+   * Default timer options
+   * @see PluginTimerOptions
    */
-  readonly #refreshPools7DAgoOnTimer: boolean;
+  readonly #defaultTimerOptions: PluginTimerOptions;
 
   /**
    * When `true`, the timer is started eagerly during the `attach` phase
@@ -88,7 +82,17 @@ export class ApyPlugin
     super(loadOnAttach);
     this.startTimerOnAttach = startTimerOnAttach;
     this.#apyUrl = options?.apyUrl ?? APY_STATE_CACHE_URL;
-    this.#refreshPools7DAgoOnTimer = options?.refreshPools7DAgoOnTimer ?? false;
+
+    /** Default timer options:
+     * - refreshPools7DAgoOnTick: false
+     * - intervalMs: 10 minutes
+     * - onChange: no-op
+     */
+    this.#defaultTimerOptions = options?.timer ?? {
+      refreshPools7DAgoOnTick: false,
+      intervalMs: DEFAULT_APY_INTERVAL_MS,
+      onChange: () => {},
+    };
   }
 
   public async attach(): Promise<void> {
@@ -216,16 +220,17 @@ export class ApyPlugin
       return () => this.stopTimer();
     }
 
-    const intervalMs = opts?.intervalMs ?? DEFAULT_APY_INTERVAL_MS;
+    const intervalMs = opts?.intervalMs ?? this.#defaultTimerOptions.intervalMs;
     this.#logger?.debug(`starting plugin timer (interval: ${intervalMs}ms)`);
 
     this.#timerInterval = setInterval(async () => {
       try {
         await this.load(true, {
           loadPools7DAgo:
-            opts?.refreshPools7DAgoOnTick ?? this.#refreshPools7DAgoOnTimer,
+            opts?.refreshPools7DAgoOnTick ??
+            this.#defaultTimerOptions.refreshPools7DAgoOnTick,
         });
-        opts?.onChange?.();
+        opts?.onChange?.() ?? this.#defaultTimerOptions.onChange?.();
       } catch (e) {
         this.#logger?.error(e, "periodic refresh failed");
       }
