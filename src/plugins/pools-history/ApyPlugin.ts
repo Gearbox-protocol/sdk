@@ -51,6 +51,7 @@ export interface PluginTimerOptions {
 }
 
 const MAP_LABEL = "pools7DAgo";
+const PLUGIN_KEY = "ApyPlugin";
 
 export class ApyPlugin
   extends BasePlugin<ApyPluginState>
@@ -221,12 +222,18 @@ export class ApyPlugin
 
     this.#timerInterval = setInterval(async () => {
       try {
+        const prevTimestamp = this.#apySnapshot?.timestamp;
+
         await this.load(true, {
           loadPools7DAgo:
             opts?.refreshPools7DAgoOnTick ??
             this.#defaultTimerOptions.refreshPools7DAgoOnTick,
         });
-        opts?.onChange?.() ?? this.#defaultTimerOptions.onChange?.();
+
+        if (this.#apySnapshot?.timestamp !== prevTimestamp) {
+          opts?.onChange?.() ?? this.#defaultTimerOptions.onChange?.();
+          await this.sdk.triggerPluginUpdate(PLUGIN_KEY);
+        }
       } catch (e) {
         this.#logger?.error(e, "periodic refresh failed");
       }
