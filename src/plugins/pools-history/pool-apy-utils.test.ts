@@ -1,14 +1,98 @@
 import type { Address } from "abitype";
 import { describe, expect, it } from "vitest";
-import type { ExternalApy, PoolExtraApy } from "../../rewards/index.js";
-import { PERCENTAGE_FACTOR } from "../../sdk/index.js";
+import type {
+  ExternalApy,
+  PoolExtraApy,
+  PoolPointsInfo,
+} from "../../rewards/index.js";
+import { RAY } from "../../sdk/constants/index.js";
+import type { TokensMeta } from "../../sdk/index.js";
 import type { PoolFullAPY } from "./pool-apy-types.js";
 import {
   calculatePoolFullAPY,
   calculatePoolFullAPY7DAgo,
+  calculatePoolPoints,
+  calculateSupplyApy7d,
+  getPoolExtraAPY,
 } from "./pool-apy-utils.js";
 
-describe("PoolUtils", () => {
+/** Expected outputs for fixed inputs in `calculateSupplyApy7d` tests (pre-verified). */
+const EXPECTED_SUPPLY_APY7D_FROM_CURRENT_RATE = 300;
+const EXPECTED_SUPPLY_APY7D_FROM_DIESEL_CHANGE = 5400;
+
+/** Raw underlying APY from snapshot (`/ PERCENTAGE_FACTOR` → display APY). */
+const UNDERLYING_APY_RAW_HALF_PF = 5000;
+const TOKEN_YIELD_FROM_UNDERLYING = 0.5;
+
+function mockTokensMeta(
+  decimalsByToken: Partial<Record<string, number>>,
+): TokensMeta {
+  return {
+    get(addr: string) {
+      const d = decimalsByToken[addr.toLowerCase()];
+      return d !== undefined ? { decimals: d } : {};
+    },
+  } as unknown as TokensMeta;
+}
+
+describe("pool-apy-utils", () => {
+  describe("getPoolExtraAPY", () => {
+    const extra = (token: Address, apy: number): PoolExtraApy => ({
+      token,
+      lastUpdated: "0",
+      rewardToken: "0x2",
+      rewardTokenSymbol: "R",
+      apy,
+    });
+
+    it("returns empty array when poolExtraAPYList is undefined", () => {
+      expect(getPoolExtraAPY(["0xpool"], undefined)).toEqual([]);
+    });
+
+    it("returns empty array when no lookup address matches", () => {
+      const list: Record<Address, PoolExtraApy[]> = {
+        ["0xother"]: [extra("0x1", 1)],
+      };
+      expect(getPoolExtraAPY(["0xpool"], list)).toEqual([]);
+    });
+
+    it("collects extras in lookup order and matches keys case-insensitively", () => {
+      const pool: Address = "0xpool";
+      const staked: Address = "0xstaked";
+      const list: Record<Address, PoolExtraApy[]> = {
+        [pool.toLowerCase() as Address]: [extra("0xa", 1)],
+        [staked.toLowerCase() as Address]: [extra("0xb", 2)],
+      };
+      expect(getPoolExtraAPY(["0xPOOL", "0xSTAKED"], list)).toEqual([
+        extra("0xa", 1),
+        extra("0xb", 2),
+      ]);
+    });
+  });
+
+  describe("calculateSupplyApy7d", () => {
+    it("uses current supply rate when 7d diesel rate is higher than current", () => {
+      const currentDiesel = 100n;
+      const diesel7d = 200n;
+      const supplyRate = 3n * RAY;
+      const result = calculateSupplyApy7d(currentDiesel, supplyRate, diesel7d);
+      expect(result).toBe(EXPECTED_SUPPLY_APY7D_FROM_CURRENT_RATE);
+    });
+
+    it("annualizes from diesel rate change when 7d rate is not higher than current", () => {
+      const currentDieselRate = 200n;
+      const dieselRate7DAgo = 100n;
+      const currentSupplyRate = 0n;
+      expect(
+        calculateSupplyApy7d(
+          currentDieselRate,
+          currentSupplyRate,
+          dieselRate7DAgo,
+        ),
+      ).toBe(EXPECTED_SUPPLY_APY7D_FROM_DIESEL_CHANGE);
+    });
+  });
+
   describe("calculatePoolFullAPY", () => {
     const depositAPY = 4; // percent-ish integer
 
@@ -32,16 +116,16 @@ describe("PoolUtils", () => {
     it("includes tokenYield when underlyingAPY is positive", () => {
       const result = calculatePoolFullAPY({
         depositAPY,
-        underlyingAPY: Number(PERCENTAGE_FACTOR / 2n), // 0.5
+        underlyingAPY: UNDERLYING_APY_RAW_HALF_PF,
         extraAPY: [],
         currentExternalList: [],
       });
 
       expect(result).toEqual({
-        totalAPY: depositAPY + 0.5,
+        totalAPY: depositAPY + TOKEN_YIELD_FROM_UNDERLYING,
         baseAPY: [
           { type: "supplyAPY", apy: depositAPY },
-          { type: "tokenYield", apy: 0.5 },
+          { type: "tokenYield", apy: TOKEN_YIELD_FROM_UNDERLYING },
         ],
         extraAPY: [],
         extraAPYTotal: 0,
@@ -238,6 +322,87 @@ describe("PoolUtils", () => {
         externalAPY: undefined,
         loading7DAgo: true,
       });
+    });
+  });
+
+  describe("calculatePoolPoints", () => {
+    const rewardToken: Address = "0xtoken";
+    const poolAddr: Address = "0xpool";
+
+    it("returns undefined when points is undefined", () => {
+      expect(
+        calculatePoolPoints({
+          poolTokenSymbol: "SYM",
+          points: undefined,
+          tokensList: mockTokensMeta({}),
+        }),
+      ).toBeUndefined();
+    });
+
+    it("returns empty array when points list is empty", () => {
+      expect(
+        calculatePoolPoints({
+          poolTokenSymbol: "SYM",
+          points: [],
+          tokensList: mockTokensMeta({}),
+        }),
+      ).toEqual([]);
+    });
+
+    it("formats tips with decimals, duration, and pool token symbol", () => {
+      const info: PoolPointsInfo<string> = {
+        pool: poolAddr,
+        token: rewardToken,
+        symbol: "P",
+        amount: 0n,
+        duration: "week",
+        name: "Bonus",
+        type: "test",
+        estimation: "absolute",
+        condition: "deposit",
+      };
+      const points = [{ key: "k1", points: 1_500_000n, info }];
+      const tokensList = mockTokensMeta({ [rewardToken]: 6 });
+      const result = calculatePoolPoints({
+        poolTokenSymbol: "dUSDC Vault",
+        points,
+        tokensList,
+      });
+      const formattedAmount = "1.50";
+      expect(result).toEqual([
+        {
+          reward: info,
+          name: "Bonus",
+          amount: formattedAmount,
+          tokenTitle: "dUSDC Vault",
+          fullTip: `${formattedAmount} Bonus per week per dUSDC Vault`,
+        },
+      ]);
+    });
+
+    it("uses default name Points and omits duration segments when missing", () => {
+      const info = {
+        pool: poolAddr,
+        token: rewardToken,
+        symbol: "P",
+        amount: 0n,
+        duration: undefined,
+        name: undefined,
+        type: "t",
+        estimation: "relative" as const,
+        condition: "holding" as const,
+      } as unknown as PoolPointsInfo<string>;
+      const points = [{ key: "k1", points: 10n ** 18n, info }];
+      const result = calculatePoolPoints({
+        poolTokenSymbol: undefined,
+        points,
+        tokensList: mockTokensMeta({}),
+      });
+      const formattedAmount = "1.00";
+      expect(result?.[0]?.name).toBe("Points");
+      expect(result?.[0]?.amount).toBe(formattedAmount);
+      expect(result?.[0]?.tokenTitle).toBeUndefined();
+      expect(result?.[0]?.fullTip).toBe(`${formattedAmount} Points`);
     });
   });
 });
