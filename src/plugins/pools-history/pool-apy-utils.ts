@@ -2,6 +2,7 @@ import type { Address } from "viem";
 import type { ExternalApy, PoolExtraApy } from "../../rewards/apy/index.js";
 import type { PoolPointsBase } from "../../rewards/rewards/extra-apy.js";
 import { PERCENTAGE_FACTOR, RAY } from "../../sdk/constants/index.js";
+import type { TokensMeta } from "../../sdk/index.js";
 import { formatBN, rayToNumber } from "../../sdk/utils/formatter.js";
 import type {
   PoolBaseAPY,
@@ -34,7 +35,7 @@ export function getPoolExtraAPY(
 
   const result: PoolExtraApy[] = [];
   for (const addr of lookupAddresses) {
-    const extra = poolExtraAPYList[addr];
+    const extra = poolExtraAPYList[addr.toLowerCase() as Address];
     if (extra) {
       result.push(...extra);
     }
@@ -72,7 +73,6 @@ export function calculateSupplyApy7d(
 // ---------------------------------------------------------------------------
 
 interface CalculatePoolFullAPYProps {
-  poolAddress: Address;
   depositAPY: number;
   underlyingAPY: number;
   extraAPY: PoolExtraApy[] | undefined;
@@ -89,7 +89,6 @@ interface CalculatePoolFullAPYProps {
  *  so it is divided by `PERCENTAGE_FACTOR` here.
  */
 export function calculatePoolFullAPY({
-  poolAddress,
   depositAPY,
   underlyingAPY,
   extraAPY,
@@ -114,11 +113,7 @@ export function calculatePoolFullAPY({
 
   const total = baseAPYTotal + extraAPYTotal;
 
-  const externalAPY = resolveExternalAPY(
-    poolAddress,
-    currentExternalList,
-    total,
-  );
+  const externalAPY = resolveExternalAPY(currentExternalList, total);
 
   return {
     totalAPY: total,
@@ -130,7 +125,6 @@ export function calculatePoolFullAPY({
 }
 
 function resolveExternalAPY(
-  _poolAddress: Address,
   list: ExternalApy[] | undefined,
   baseTotal: number,
 ): PoolExternalAPY | undefined {
@@ -195,7 +189,7 @@ export function calculatePoolFullAPY7DAgo({
 interface CalculatePoolPointsProps {
   poolTokenSymbol: string | undefined;
   points: PoolPointsBase[Address] | undefined;
-  tokensList: Record<Address, { decimals: number }>;
+  tokensList: TokensMeta;
 }
 
 /**
@@ -208,7 +202,7 @@ export function calculatePoolPoints({
   tokensList,
 }: CalculatePoolPointsProps): PoolPointsWithTips[] | undefined {
   return points?.map(({ info, points: pts }): PoolPointsWithTips => {
-    const { decimals = 18 } = tokensList[info.token] ?? {};
+    const { decimals = 18 } = tokensList.get(info.token) || {};
     const amount = formatBN(pts, decimals);
 
     const { name = "Points", duration } = info ?? {};

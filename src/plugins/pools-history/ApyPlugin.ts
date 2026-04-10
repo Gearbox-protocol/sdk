@@ -1,7 +1,6 @@
 import type { Address } from "viem";
 
 import { marketCompressorAbi } from "../../abi/compressors/marketCompressor.js";
-import type { TokenData } from "../../rewards/rewards/common.js";
 import { PoolPointsAPI } from "../../rewards/rewards/extra-apy.js";
 import type { IGearboxSDKPlugin, ILogger } from "../../sdk/index.js";
 import {
@@ -233,14 +232,6 @@ export class ApyPlugin
     const markets = this.sdk.marketRegister.markets;
     const { apy } = this.apySnapshot;
 
-    const tokensList = this.#buildTokensList();
-
-    const partialPools = markets.map(m => ({
-      address: m.pool.pool.address,
-      expectedLiquidity: m.pool.pool.expectedLiquidity,
-      underlyingToken: m.pool.pool.underlying,
-    }));
-
     // TODO: totalTokenBalances is currently empty — relative points estimation
     // will return null for "relative" type rewards.
     // Fetching supply data from the backend (charts-server or equivalent)
@@ -253,8 +244,8 @@ export class ApyPlugin
         ? PoolPointsAPI.getPointsByPool({
             poolRewards: apy.poolRewardsList,
             totalTokenBalances,
-            pools: partialPools,
-            tokensList,
+            pools: markets,
+            tokensList: this.sdk.tokensMeta,
           })
         : {};
 
@@ -264,7 +255,7 @@ export class ApyPlugin
 
     for (const market of markets) {
       const pool = market.pool.pool;
-      const poolAddr = pool.address;
+      const poolAddr = pool.address.toLowerCase() as Address;
 
       const depositAPY =
         rayToNumber(pool.supplyRate) * Number(PERCENTAGE_DECIMALS);
@@ -277,7 +268,6 @@ export class ApyPlugin
       const currentExternalList = apy.poolExternalAPYList?.[poolAddr];
 
       const poolAPY = calculatePoolFullAPY({
-        poolAddress: poolAddr,
         depositAPY,
         underlyingAPY,
         extraAPY,
@@ -304,7 +294,7 @@ export class ApyPlugin
       points[poolAddr] = calculatePoolPoints({
         poolTokenSymbol: poolTokenMeta?.symbol,
         points: poolPointsBase[poolAddr],
-        tokensList,
+        tokensList: this.sdk.tokensMeta,
       });
     }
 
@@ -444,22 +434,6 @@ export class ApyPlugin
       // zappers not loaded — fall back to pool address only
     }
     return addresses;
-  }
-
-  /**
-   * Converts sdk.tokensMeta into the Record<Address, TokenData> shape
-   * expected by PoolPointsAPI and calculatePoolPoints.
-   */
-  #buildTokensList(): Record<Address, TokenData> {
-    const result: Record<Address, TokenData> = {};
-    for (const [addr, meta] of this.sdk.tokensMeta.entries()) {
-      result[addr] = {
-        address: addr,
-        symbol: meta.symbol,
-        decimals: meta.decimals,
-      };
-    }
-    return result;
   }
 
   get #logger(): ILogger | undefined {

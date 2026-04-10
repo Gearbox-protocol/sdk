@@ -4,24 +4,21 @@ import { BigIntMath } from "../../common-utils/index.js";
 import {
   type Asset,
   chains,
+  type MarketSuite,
   type NetworkType,
   PERCENTAGE_FACTOR,
+  type TokensMeta,
   toBN,
 } from "../../sdk/index.js";
 import type { PoolPointsInfo } from "../index.js";
-import type { PoolData, TokenData } from "./common.js";
-
-type PartialPool = Pick<
-  PoolData,
-  "expectedLiquidity" | "underlyingToken" | "address"
->;
+import type { TokenData } from "./common.js";
 
 export interface GetPointsByPoolProps {
   poolRewards: Record<Address, Array<PoolPointsInfo<string>>>;
 
   totalTokenBalances: Record<Address, Asset>;
-  pools: Array<PartialPool>;
-  tokensList: Record<Address, TokenData>;
+  pools: MarketSuite[];
+  tokensList: TokensMeta;
 }
 
 interface WalletResult {
@@ -110,12 +107,16 @@ export class PoolPointsAPI {
     tokensList,
   }: GetPointsByPoolProps) {
     const r = pools.reduce<PoolPointsBase>((acc, p) => {
-      const pointsInfo = poolRewards[p.address] || [];
+      const poolAddress = p.pool.pool.address.toLowerCase() as Address;
+      const pointsInfo = poolRewards[poolAddress] || [];
 
       const poolPointsList = pointsInfo.reduce<PoolPointsBase[Address]>(
         (acc, pointsInfo) => {
-          const { address: tokenAddress } = tokensList[pointsInfo.token] || {};
-          const tokenBalance = totalTokenBalances[tokenAddress || ""];
+          const { addr: tokenAddress } = tokensList.get(pointsInfo.token) || {};
+          const tokenAddressLower = (
+            tokenAddress || ""
+          ).toLowerCase() as Address;
+          const tokenBalance = totalTokenBalances[tokenAddressLower];
 
           const points = PoolPointsAPI.getPoolTokenPoints(
             tokenBalance,
@@ -137,7 +138,7 @@ export class PoolPointsAPI {
         [],
       );
 
-      acc[p.address] = poolPointsList;
+      acc[poolAddress] = poolPointsList;
 
       return acc;
     }, {});
@@ -147,15 +148,15 @@ export class PoolPointsAPI {
 
   private static getPoolTokenPoints(
     tokenBalanceInPool: Asset | undefined,
-    pool: PartialPool,
-    tokensList: Record<Address, TokenData>,
+    pool: MarketSuite,
+    tokensList: TokensMeta,
     pointsInfo: PoolPointsInfo<string>,
   ) {
-    if (pool.expectedLiquidity <= 0) return 0n;
+    if (pool.pool.pool.expectedLiquidity <= 0) return 0n;
     if (pointsInfo.estimation === "relative" && !tokenBalanceInPool)
       return null;
 
-    const { decimals = 18 } = tokensList[pointsInfo.token] || {};
+    const { decimals = 18 } = tokensList.get(pointsInfo.token) || {};
     const targetFactor = 10n ** BigInt(decimals);
 
     const defaultPoints =
@@ -163,12 +164,12 @@ export class PoolPointsAPI {
     if (pointsInfo.estimation === "absolute") return defaultPoints;
 
     const { decimals: underlyingDecimals = 18 } =
-      tokensList[pool.underlyingToken] || {};
+      tokensList.get(pool.pool.pool.underlying) || {};
     const underlyingFactor = 10n ** BigInt(underlyingDecimals);
 
     const points =
       ((tokenBalanceInPool?.balance || 0n) * defaultPoints) /
-      ((pool.expectedLiquidity * targetFactor) / underlyingFactor);
+      ((pool.pool.pool.expectedLiquidity * targetFactor) / underlyingFactor);
 
     return BigIntMath.min(points, defaultPoints);
   }
