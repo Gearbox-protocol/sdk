@@ -1,23 +1,21 @@
 import { type Address, decodeAbiParameters } from "viem";
 import { iSecuritizeKYCFactoryAbi } from "../../../../abi/kyc/iSecuritizeKYCFactory.js";
-import type { ConstructOptions } from "../../../base/index.js";
 import { BaseContract } from "../../../base/index.js";
 import type { GearboxSDK } from "../../../GearboxSDK.js";
 import type { MultiCall, RawTx } from "../../../types/index.js";
-import { AddressMap } from "../../../utils/AddressMap.js";
-import { AddressSet } from "../../../utils/AddressSet.js";
+import { AddressMap, AddressSet } from "../../../utils/index.js";
 import type {
-  DStokenData,
   IKYCFactory,
   KYCCompressorInvestorData,
   KYCFactoryData,
 } from "../types.js";
 import { KYC_FACTORY_SECURITIZE } from "./constants.js";
 import type {
+  DStokenData,
   SecuritizeInvestorData,
   SecuritizeKYCFactoryStateHuman,
+  SecuritizeMulticallParams,
   SecuritizeOpenAccountRequirements,
-  SecuritizeRegisterMessage,
 } from "./types.js";
 
 const abi = iSecuritizeKYCFactoryAbi;
@@ -25,17 +23,14 @@ type abi = typeof abi;
 
 export class SecuritizeKYCFactory
   extends BaseContract<abi>
-  implements
-    IKYCFactory<SecuritizeInvestorData, SecuritizeOpenAccountRequirements>
+  implements IKYCFactory<typeof KYC_FACTORY_SECURITIZE>
 {
   readonly #sdk: GearboxSDK;
-  /**
-   * Mapping credit account -> investor address
-   */
   #investorCache = new AddressMap<Address>();
   public readonly degenNFT: Address;
   public readonly owner: Address;
   public readonly dsTokens: DStokenData[];
+  public readonly contractType = KYC_FACTORY_SECURITIZE;
 
   constructor(sdk: GearboxSDK, data: KYCFactoryData) {
     super(sdk, {
@@ -133,16 +128,20 @@ export class SecuritizeKYCFactory
   }
 
   /**
-   * {@inheritDoc IKYCFactory.precomputeWalletAddress}
+   * {@inheritDoc IKYCFactory.getApprovalAddress}
    */
-  public async precomputeWalletAddress(
-    creditManager: Address,
-    investor: Address,
+  public async getApprovalAddress(
+    options:
+      | { creditManager: Address; borrower: Address }
+      | { creditManager: Address; creditAccount: Address },
   ): Promise<Address> {
-    return this.contract.read.precomputeWalletAddress([
-      creditManager,
-      investor,
-    ]);
+    if ("creditAccount" in options) {
+      return this.getWallet(options.creditAccount);
+    }
+    return this.#precomputeWalletAddress(
+      options.creditManager,
+      options.borrower,
+    );
   }
 
   /**
@@ -158,9 +157,9 @@ export class SecuritizeKYCFactory
   public multicall(
     creditAccount: Address,
     calls: MultiCall[],
-    tokensToRegister: Address[],
-    signaturesToCache: SecuritizeRegisterMessage[],
+    options?: SecuritizeMulticallParams,
   ): RawTx {
+    const { tokensToRegister = [], signaturesToCache = [] } = options ?? {};
     return this.createRawTx({
       functionName: "multicall",
       args: [creditAccount, calls, tokensToRegister, signaturesToCache],
@@ -208,9 +207,9 @@ export class SecuritizeKYCFactory
   public openCreditAccount(
     creditManager: Address,
     calls: MultiCall[],
-    tokensToRegister: Address[],
-    signaturesToCache: SecuritizeRegisterMessage[],
+    options?: SecuritizeMulticallParams,
   ): RawTx {
+    const { tokensToRegister = [], signaturesToCache = [] } = options ?? {};
     return this.createRawTx({
       functionName: "openCreditAccount",
       args: [creditManager, calls, tokensToRegister, signaturesToCache],
@@ -228,6 +227,23 @@ export class SecuritizeKYCFactory
         operators: t.operators.map(o => this.labelAddress(o)),
       })),
     };
+  }
+
+  /**
+   * Precomputes the wallet address that will own a new credit account
+   * for the given investor in the given credit manager.
+   *
+   * @param creditManager - credit manager address
+   * @param investor - investor address
+   **/
+  async #precomputeWalletAddress(
+    creditManager: Address,
+    investor: Address,
+  ): Promise<Address> {
+    return this.contract.read.precomputeWalletAddress([
+      creditManager,
+      investor,
+    ]);
   }
 }
 

@@ -33,8 +33,12 @@ import {
   type PriceUpdate,
   type UpdatePriceFeedsResult,
 } from "../market/index.js";
-import type { OpenAccountRequirements } from "../market/kyc/index.js";
-import type { SecuritizeKYCFactory } from "../market/kyc/securitize/index.js";
+import {
+  isKYCFactory,
+  KYC_FACTORY_SECURITIZE,
+  type OpenAccountRequirements,
+  type SecuritizeKYCFactory,
+} from "../market/kyc/index.js";
 import { type Asset, assetsMap, type RouterCASlice } from "../router/index.js";
 import type { IPriceUpdateTx, MultiCall, RawTx } from "../types/index.js";
 import { AddressMap, AddressSet, hexEq } from "../utils/index.js";
@@ -1092,10 +1096,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
-   * Returns address to which approval should be given on collateral token
-   * It's credit manager for classical markets and special wallet for KYC markets
-   * @param options - {@link GetApprovalAddressProps}
-   * @returns
+   * {@inheritDoc ICreditAccountsService.getApprovalAddress}
    **/
   public async getApprovalAddress(
     options: GetApprovalAddressProps,
@@ -1106,10 +1107,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const factory = marketSuite.kycFactory;
 
     if (factory) {
-      if ("creditAccount" in options) {
-        return factory.getWallet(options.creditAccount);
-      }
-      return factory.precomputeWalletAddress(creditManager, options.borrower);
+      return factory.getApprovalAddress(options);
     }
     return suite.creditManager.address;
   }
@@ -1790,18 +1788,15 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const marketSuite = this.sdk.marketRegister.findByPool(suite.pool);
     const factory = marketSuite.kycFactory;
 
-    if (factory) {
+    if (factory && isKYCFactory(factory, KYC_FACTORY_SECURITIZE)) {
       // TODO: this should be passed via strategy
       const tokensToRegister = (factory as SecuritizeKYCFactory).dsTokens.map(
         t => t.address,
       );
-      // check compressor for cached signatures
-      return factory.openCreditAccount(
-        suite.creditManager.address,
-        calls,
+      return factory.openCreditAccount(suite.creditManager.address, calls, {
         tokensToRegister,
-        [],
-      );
+        signaturesToCache: [],
+      });
     }
 
     return suite.creditFacade.openCreditAccount(to, calls, referralCode ?? 0n);
@@ -1825,7 +1820,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const factory = marketSuite.kycFactory;
 
     if (factory) {
-      return factory.multicall(creditAccount, calls, [], []);
+      return factory.multicall(creditAccount, calls);
     }
 
     return suite.creditFacade.multicall(creditAccount, calls);
@@ -1860,8 +1855,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     }
 
     if (factory) {
-      // full repay, no need to pass register tokens and signatures
-      return factory.multicall(creditAccount, calls, [], []);
+      return factory.multicall(creditAccount, calls);
     }
 
     return suite.creditFacade.multicall(creditAccount, calls);

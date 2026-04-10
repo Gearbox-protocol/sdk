@@ -1,7 +1,18 @@
 import type { Address, Hex } from "viem";
 import type { BaseContractStateHuman } from "../../../types/index.js";
-import type { OpenAccountRequirements } from "../types.js";
 import type { KYC_FACTORY_SECURITIZE } from "./constants.js";
+
+/**
+ * On-chain data about Securitize DSTokens
+ **/
+export interface DStokenData {
+  /** DSToken address. */
+  address: Address;
+  /** Securitize VaultRegistrar for this token. */
+  registrar: Address;
+  /** Addresses authorised to register vaults for this token. */
+  operators: Address[];
+}
 
 /**
  * Cached registration signature for a single DSToken, stored in the
@@ -100,8 +111,18 @@ export interface SecuritizeKYCFactoryStateHuman extends BaseContractStateHuman {
   }[];
 }
 
-export interface SecuritizeOpenAccountRequirements
-  extends OpenAccountRequirements {
+/**
+ * Factory-specific parameters for {@link SecuritizeKYCFactory.multicall}
+ * and {@link SecuritizeKYCFactory.openCreditAccount}.
+ **/
+export interface SecuritizeMulticallParams {
+  /** DSToken addresses to register for this operation. */
+  tokensToRegister: Address[];
+  /** Cached EIP-712 registration signatures to store on-chain. */
+  signaturesToCache: SecuritizeRegisterMessage[];
+}
+
+export interface SecuritizeOpenAccountRequirements {
   type: typeof KYC_FACTORY_SECURITIZE;
   /**
    * User must visit securitize website to register these tokens
