@@ -8,6 +8,7 @@ import type { gaugeCompressorAbi } from "../../abi/compressors/gaugeCompressor.j
 import type { marketCompressorAbi } from "../../abi/compressors/marketCompressor.js";
 import type { peripheryCompressorAbi } from "../../abi/compressors/peripheryCompressor.js";
 import type { rewardsCompressorAbi } from "../../abi/compressors/rewardsCompressor.js";
+import type { NetworkType } from "../chain/index.js";
 
 /**
  * Recursively unwraps array types to their element type.
@@ -295,6 +296,17 @@ export interface IBaseContract {
    * labeling methods for user-facing output.
    */
   readonly name: string;
+
+  /**
+   * Chain ID of the contract.
+   **/
+  readonly chainId: number;
+
+  /**
+   * Network type of the contract.
+   **/
+  readonly networkType: NetworkType;
+
   /**
    * @internal
    * `true` when the local state has diverged from on-chain and needs a sync.
