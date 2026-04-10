@@ -82,11 +82,11 @@ interface CalculatePoolFullAPYProps {
 /**
  * Aggregates all APY components for a single pool.
  *
- * Reproduces the logic of `PoolUtils.calculatePoolFullAPY` from client-v3.
- *
  * `depositAPY` and returned values are in "percentage" units (5 ≈ 5 %).
  * `underlyingAPY` comes from `apyList` (scaled by `PERCENTAGE_FACTOR`),
  *  so it is divided by `PERCENTAGE_FACTOR` here.
+ *
+ * External APY: first entry in `currentExternalList`, enriched with `totalValue`.
  */
 export function calculatePoolFullAPY({
   depositAPY,
@@ -141,9 +141,20 @@ function resolveExternalAPY(
 // ---------------------------------------------------------------------------
 
 interface CalculatePoolFullAPY7DAgoProps {
-  supplyAPY7DAgo: number | undefined;
   depositAPY: number;
-  poolAPY: PoolFullAPY | undefined;
+  /**
+   * Annualized supply APY from the ~7d diesel snapshot, in the same units as
+   * `depositAPY`.
+   *
+   * - `undefined` — 7d snapshot not loaded yet (`loading7DAgo: true`); supply
+   *   row uses `depositAPY`.
+   * - `null` — snapshot loaded but no numeric 7d supply; supply row uses
+   *   `depositAPY` (`||` semantics, same as client `pool7DAgo` with missing
+   *   `supplyAPY7DAgo`).
+   * - `number` — explicit 7d supply; `0` falls back to `depositAPY` via `||`.
+   */
+  supplyAPY7DAgo?: number | null;
+  poolAPY?: PoolFullAPY | null;
 }
 
 /**
@@ -165,7 +176,7 @@ export function calculatePoolFullAPY7DAgo({
   } = poolAPY ?? {};
 
   const base: PoolBaseAPY[] = [
-    { apy: supplyAPY7DAgo ?? depositAPY, type: "supplyAPY" },
+    { apy: supplyAPY7DAgo || depositAPY, type: "supplyAPY" },
     ...baseAPY.filter(r => r.type !== "supplyAPY"),
   ];
 

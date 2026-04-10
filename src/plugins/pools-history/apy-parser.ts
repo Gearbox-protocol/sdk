@@ -13,7 +13,7 @@ import type {
 import { PERCENTAGE_FACTOR } from "../../sdk/index.js";
 import type { FarmRewardInfo, GearStats, NetworkApyData } from "./types.js";
 
-function numberToAPY(baseApy: number): number {
+export function numberToAPY(baseApy: number): number {
   return Math.round(baseApy * Number(PERCENTAGE_FACTOR));
 }
 
