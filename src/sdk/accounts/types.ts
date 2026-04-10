@@ -863,7 +863,7 @@ export interface ICreditAccountsService extends Construct {
    */
   getOpenAccountRequirements(
     borrower: Address,
-    props: OpenCAProps,
+    props: Pick<OpenCAProps, "creditManager">,
   ): Promise<OpenAccountRequirements | undefined>;
 
   /**

@@ -1119,7 +1119,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
    */
   public async getOpenAccountRequirements(
     borrower: Address,
-    props: OpenCAProps,
+    props: Pick<OpenCAProps, "creditManager">,
   ): Promise<OpenAccountRequirements | undefined> {
     const { creditManager } = props;
     const { kycFactory } =
