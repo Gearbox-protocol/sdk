@@ -69,7 +69,7 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
   [AdapterType.DAI_USDS_EXCHANGE]: {
     310: BASIC_ADAPTER_ABI,
   },
-  [AdapterType.TRADERJOE_ROUTER]: {
+  [AdapterType.TRADER_JOE_ROUTER]: {
     310: BASIC_ADAPTER_ABI,
   },
   [AdapterType.UNISWAP_V2_ROUTER]: {
