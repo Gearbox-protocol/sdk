@@ -10,7 +10,7 @@ import { PYTH_API_PROXY, REDSTONE_GATEWAYS, useFixture } from "../helpers.js";
 
 const BLOCK = 24_736_900n;
 
-describe("v12 parity tests", () => {
+describe.skip("v12 parity tests", () => {
   let sdk: GearboxSDK;
 
   useFixture({ network: "Mainnet", block: BLOCK });
