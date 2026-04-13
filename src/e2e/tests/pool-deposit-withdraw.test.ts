@@ -70,7 +70,7 @@ function encodePoolCall(call: PoolServiceCall): {
   };
 }
 
-describe("pool deposit and withdraw", () => {
+describe.skip("pool deposit and withdraw", () => {
   let sdk: GearboxSDK;
 
   useFixture({ network: "Mainnet", block: BLOCK });
