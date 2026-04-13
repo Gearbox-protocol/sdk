@@ -14,6 +14,11 @@
       "prerelease": "kyc"
     },
     {
+      "name": "apy-plugin",
+      "channel": "apy-plugin",
+      "prerelease": "apy-plugin"
+    },
+    {
       "name": "+([0-9])?(.{+([0-9]),x}).x"
     }
   ],
