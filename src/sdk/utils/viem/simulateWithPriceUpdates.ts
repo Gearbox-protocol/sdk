@@ -14,8 +14,12 @@ import {
   CallExecutionError,
   ContractFunctionRevertedError,
   decodeFunctionData,
+  decodeFunctionResult,
+  encodeFunctionData,
   parseAbi,
 } from "viem";
+import { call } from "viem/actions";
+import { getAction, parseAccount } from "viem/utils";
 import { errorAbis } from "../../../abi/errors.js";
 import { iUpdatablePriceFeedAbi } from "../../../abi/iUpdatablePriceFeed.js";
 import type { IPriceUpdateTx } from "../../types/index.js";
@@ -86,6 +90,43 @@ export async function simulateWithPriceUpdates<
       "client chain not configured. multicallAddress is required.",
     );
   }
+  // pass through single call
+  if (priceUpdates.length === 0 && restContracts.length === 1) {
+    const contract = restContracts[0] as ContractFunctionParameters;
+    const { abi, address, args, functionName } = contract;
+    const callData = encodeFunctionData({ abi, args, functionName });
+    const request: CallParameters = {
+      batch: false,
+      data: callData,
+      to: address,
+      blockNumber: rest.blockNumber,
+      blockTag: rest.blockTag as any,
+      gas: rest.gas,
+      account: rest.account ? parseAccount(rest.account) : client.account,
+      value: rest.value,
+    };
+    try {
+      const { data } = await getAction(client, call, "call")(request);
+      const result = decodeFunctionResult({
+        abi,
+        args,
+        data: data || "0x",
+        functionName,
+      });
+      return [
+        result,
+      ] as unknown as SimulateWithPriceUpdatesReturnType<contracts>;
+    } catch (e) {
+      throw getSimulateWithPriceUpdatesError(
+        e as Error,
+        priceUpdates,
+        restContracts,
+        undefined,
+        request,
+      );
+    }
+  }
+
   let request: CallParameters | undefined;
 
   try {
