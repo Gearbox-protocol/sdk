@@ -128,7 +128,7 @@ export function createAdapter(
       return new PendleRouterAdapterContract(options, data);
     case "ADAPTER::STAKING_REWARDS":
       return new StakingRewardsAdapterContract(options, data);
-    case "ADAPTER::TRADERJOE_ROUTER":
+    case "ADAPTER::TRADER_JOE_ROUTER":
       return new TraderJoeRouterAdapterContract(options, data);
     case "ADAPTER::UNISWAP_V2_ROUTER":
       return new UniswapV2AdapterContract(options, data);

@@ -58,7 +58,7 @@ export const adapterActionSignatures: PartialRecord<
     310: "function setPairStatusBatch((address,address,address,uint8)[])",
     311: "function setPairStatusBatch((address,address,address,uint8,uint8)[])",
   },
-  [AdapterType.TRADERJOE_ROUTER]: {
+  [AdapterType.TRADER_JOE_ROUTER]: {
     310: "function setPoolStatusBatch((address,address,uint256,uint8,bool)[])",
   },
   [AdapterType.UNISWAP_V2_ROUTER]: {
