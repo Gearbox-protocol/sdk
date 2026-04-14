@@ -2,7 +2,7 @@ import type { Address } from "viem";
 import type { ExternalApy, PoolExtraApy } from "../../rewards/apy/index.js";
 import type { PoolPointsBase } from "../../rewards/rewards/extra-apy.js";
 import { PERCENTAGE_FACTOR, RAY } from "../../sdk/constants/index.js";
-import type { TokensMeta } from "../../sdk/index.js";
+import type { AddressMap, TokensMeta } from "../../sdk/index.js";
 import { formatBN, rayToNumber } from "../../sdk/utils/formatter.js";
 import type {
   PoolBaseAPY,
@@ -200,7 +200,7 @@ export function calculatePoolFullAPY7DAgo({
 interface CalculatePoolPointsProps {
   poolTokenSymbol: string | undefined;
   points: PoolPointsBase[Address] | undefined;
-  tokensList: TokensMeta;
+  tokensList: AddressMap<{ decimals: number }>;
 }
 
 /**

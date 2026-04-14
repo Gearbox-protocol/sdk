@@ -4,6 +4,7 @@ import type {
   PoolExtraApy,
   PoolPointsInfo,
 } from "../../rewards/apy/index.js";
+import type { PoolPointsBase } from "../../rewards/index.js";
 
 // ---------------------------------------------------------------------------
 // Base building blocks
@@ -61,5 +62,6 @@ type AllPoolsPoints = Record<Address, PoolPointsWithTips[] | undefined>;
 export interface GetPoolsAPYResult {
   data: AllPoolsAPY;
   data7DAgo: AllPoolsAPY7DAgo;
+  pointsBase: PoolPointsBase;
   points: AllPoolsPoints;
 }

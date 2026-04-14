@@ -254,7 +254,7 @@ export class ApyPlugin
       });
     }
 
-    return { data, data7DAgo, points };
+    return { data, data7DAgo, pointsBase: poolPointsBase, points };
   }
 
   // ---------------------------------------------------------------------------
