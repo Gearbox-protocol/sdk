@@ -62,7 +62,7 @@ export const SDKOptions = z.object({
   /**
    * Explicit gas limit for read-only `eth_call` requests.
    * `null` disables the gas limit entirely; `undefined` uses the SDK default.
-   * Default gas limit is 550_000_000 (550M).
+   * Default to value from {@link GearboxChain.gasLimit}
    **/
   gasLimit: z.bigint().nonnegative().nullable().optional(),
 });

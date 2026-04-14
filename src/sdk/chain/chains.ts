@@ -76,6 +76,10 @@ export interface GearboxChain extends Chain {
    * Block number when the Gearbox address provider was deployed.
    **/
   firstBlock?: bigint;
+  /**
+   * Default read-only calls gas limit for this chain.
+   */
+  gasLimit: bigint;
 }
 
 /**
@@ -149,6 +153,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         symbol: "USDC",
       },
       firstBlock: 22358644n,
+      gasLimit: 550_000_000n,
     },
     "ethereum-rpc",
   ),
@@ -165,6 +170,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         symbol: "USDC",
       },
       firstBlock: 184650310n,
+      gasLimit: 550_000_000n,
     },
     "arbitrum-one-rpc",
   ),
@@ -182,6 +188,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         symbol: "USDC",
       },
       firstBlock: 118410666n,
+      gasLimit: 550_000_000n,
     },
     "optimism-rpc",
   ),
@@ -195,6 +202,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
         symbol: "USDC",
       },
+      gasLimit: 550_000_000n,
     },
     "base-rpc",
   ),
@@ -217,7 +225,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         address: "0x29219dd400f2Bf60E5a23d13Be72B486D4038894",
         symbol: "USDC",
       },
-
+      gasLimit: 550_000_000n,
       firstBlock: 9779380n,
     }),
     "sonic-rpc",
@@ -231,6 +239,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       address: "0xFAfDdbb3FC7688494971a79cc65DCa3EF82079E7",
       symbol: "USDm",
     },
+    gasLimit: 550_000_000n,
   }),
   // NOTE: Monad chain configs should be updated once the public mainnet is available
   Monad: defineChain({
@@ -252,6 +261,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       symbol: "USDT0",
     },
     firstBlock: 34650262n,
+    gasLimit: 200_000_000n,
   }),
   Berachain: withPublicNode(
     {
@@ -270,6 +280,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         address: "0x549943e04f40284185054145c6e4e9568c1d3241",
         symbol: "USDC.e",
       },
+      gasLimit: 550_000_000n,
     },
     "berachain-rpc",
   ),
@@ -283,6 +294,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         address: "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
         symbol: "USDC",
       },
+      gasLimit: 550_000_000n,
     },
     "avalanche-c-chain-rpc",
   ),
@@ -301,6 +313,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         symbol: "USDC",
       },
       firstBlock: 48761804n,
+      gasLimit: 550_000_000n,
     },
     "bsc-rpc",
   ),
@@ -314,6 +327,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       symbol: "USDC",
     },
     // TODO: has no block explorer API
+    gasLimit: 550_000_000n,
   }),
   Etherlink: defineChain({
     ...etherlink,
@@ -327,6 +341,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       symbol: "USDC",
     },
     firstBlock: 16672963n,
+    gasLimit: 550_000_000n,
   }),
   Hemi: defineChain({
     ...hemi,
@@ -345,6 +360,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         blockCreated: 484490,
       },
     },
+    gasLimit: 550_000_000n,
   }),
   Lisk: defineChain({
     ...lisk,
@@ -357,6 +373,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       address: "0xF242275d3a6527d877f2c927a82D9b057609cc71",
       symbol: "USDC.e",
     },
+    gasLimit: 550_000_000n,
   }),
   Plasma: defineChain({
     ...plasma,
@@ -378,6 +395,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       },
     },
     firstBlock: 670913n,
+    gasLimit: 550_000_000n,
   }),
   Somnia: defineChain({
     ...somnia,
@@ -398,6 +416,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       symbol: "USDT",
     },
     firstBlock: 147687380n,
+    gasLimit: 550_000_000n,
   }),
 };
 
