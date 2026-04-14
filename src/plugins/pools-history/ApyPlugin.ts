@@ -38,8 +38,9 @@ export interface ApyPluginState {
 
 export interface ApyPluginConstructorOptions {
   apyUrl?: string;
-  /** TTL for the shared HTTP cache in milliseconds (default: 10 minutes, see `DEFAULT_APY_INTERVAL_MS`) */
+  /** TTL for the shared HTTP cache in milliseconds (default: same as timer interval) */
   cacheTtlMs?: number;
+  timer?: PluginTimerOptions;
 }
 
 export interface ApyPluginLoadOptions {
@@ -51,22 +52,65 @@ export interface ApyPluginLoadOptions {
   loadPools7DAgo?: boolean;
 }
 
+export interface PluginTimerOptions {
+  /** Polling interval in milliseconds (default: 10 minutes) */
+  intervalMs?: number;
+  /** Callback fired after each successful refresh */
+  onChange?: () => void;
+  /**
+   * When `true`, each tick also refreshes 7d-ago pool state on-chain.
+   */
+  refreshPools7DAgoOnTick?: boolean;
+}
+
 const MAP_LABEL = "pools7DAgo";
+const PLUGIN_KEY = "ApyPlugin";
 
 export class ApyPlugin
   extends BasePlugin<ApyPluginState>
   implements IGearboxSDKPlugin<ApyPluginState>
 {
+  #timerInterval?: ReturnType<typeof setInterval>;
   #apyUrl: string;
   #cacheTtlMs: number;
 
   #pools7DAgo?: AddressMap<Pool7DAgoState>;
   #apySnapshot?: ApySnapshotState;
 
-  constructor(loadOnAttach = false, options?: ApyPluginConstructorOptions) {
+  /**
+   * Default timer options
+   * @see PluginTimerOptions
+   */
+  readonly #defaultTimerOptions: PluginTimerOptions;
+
+  /**
+   * When `true`, the timer is started eagerly during the `attach` phase
+   * rather than waiting for an explicit `load` call.
+   **/
+  public readonly startTimerOnAttach: boolean;
+
+  constructor(
+    loadOnAttach = false,
+    startTimerOnAttach = false,
+    options?: ApyPluginConstructorOptions,
+  ) {
     super(loadOnAttach);
+    this.startTimerOnAttach = startTimerOnAttach;
     this.#apyUrl = options?.apyUrl ?? APY_STATE_CACHE_URL;
     this.#cacheTtlMs = options?.cacheTtlMs ?? DEFAULT_APY_INTERVAL_MS;
+
+    this.#defaultTimerOptions = options?.timer ?? {
+      refreshPools7DAgoOnTick: false,
+      intervalMs: DEFAULT_APY_INTERVAL_MS,
+      onChange: () => {},
+    };
+  }
+
+  public async attach(): Promise<void> {
+    await super.attach();
+    if (this.startTimerOnAttach) {
+      this.startTimer();
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -260,11 +304,59 @@ export class ApyPlugin
   }
 
   // ---------------------------------------------------------------------------
+  // Periodic full refresh
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Starts a periodic timer that performs a full plugin state refresh.
+   * Only one timer can be active; calling again is a no-op.
+   * @returns Cleanup function that stops the timer.
+   */
+  public startTimer(opts?: PluginTimerOptions): () => void {
+    if (this.#timerInterval) {
+      this.#logger?.debug("plugin timer already running");
+      return () => this.stopTimer();
+    }
+
+    const intervalMs = opts?.intervalMs ?? this.#defaultTimerOptions.intervalMs;
+    this.#logger?.debug(`starting plugin timer (interval: ${intervalMs}ms)`);
+
+    this.#timerInterval = setInterval(async () => {
+      try {
+        const prevTimestamp = this.#apySnapshot?.timestamp;
+
+        await this.load(true, {
+          loadPools7DAgo:
+            opts?.refreshPools7DAgoOnTick ??
+            this.#defaultTimerOptions.refreshPools7DAgoOnTick,
+        });
+
+        if (this.#apySnapshot?.timestamp !== prevTimestamp) {
+          opts?.onChange?.() ?? this.#defaultTimerOptions.onChange?.();
+          await this.sdk.triggerPluginUpdate(PLUGIN_KEY);
+        }
+      } catch (e) {
+        this.#logger?.error(e, "periodic refresh failed");
+      }
+    }, intervalMs);
+
+    return () => this.stopTimer();
+  }
+
+  public stopTimer(): void {
+    if (this.#timerInterval) {
+      clearInterval(this.#timerInterval);
+      this.#timerInterval = undefined;
+      this.#logger?.debug("plugin timer stopped");
+    }
+  }
+
+  // ---------------------------------------------------------------------------
   // Plugin lifecycle
   // ---------------------------------------------------------------------------
 
   public override async syncState(): Promise<void> {
-    await this.load();
+    await this.load(true);
   }
 
   public stateHuman(_?: boolean): Pools7DAgoStateHuman[] {

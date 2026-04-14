@@ -239,6 +239,14 @@ export interface SyncStateOptions {
 }
 
 /**
+ * Payload carried by the `pluginUpdate` hook.
+ **/
+export interface PluginUpdateInfo {
+  /** Identifier of the plugin that triggered the update (e.g. `"pools7DAgo"`). */
+  plugin: string;
+}
+
+/**
  * Hook event map for the SDK lifecycle.
  *
  * Register listeners via {@link GearboxSDK.addHook} and remove them
@@ -246,10 +254,13 @@ export interface SyncStateOptions {
  *
  * - `syncState` — fired after {@link GearboxSDK.syncState} completes.
  * - `rehydrate` — fired after {@link GearboxSDK.rehydrate} completes.
+ * - `pluginUpdate` — fired by a plugin when its internal state changes
+ *   outside of the normal `syncState`/`rehydrate` cycle (e.g. timer tick).
  **/
 export type SDKHooks = {
   syncState: [SyncStateOptions];
   rehydrate: [SyncStateOptions];
+  pluginUpdate: [PluginUpdateInfo];
 };
 
 /**
@@ -316,6 +327,18 @@ export class GearboxSDK<
    * @see {@link SDKHooks} for available event names.
    **/
   public removeHook = this.#hooks.removeHook.bind(this.#hooks);
+
+  /**
+   * Triggers the `pluginUpdate` hook.
+   *
+   * Intended to be called by plugins when they update their internal state
+   * outside of the normal `syncState`/`rehydrate` cycle (e.g. via an
+   * internal timer).  Frontend listeners registered with
+   * `sdk.addHook("pluginUpdate", …)` will be notified.
+   **/
+  public async triggerPluginUpdate(plugin: string): Promise<void> {
+    await this.#hooks.triggerHooks("pluginUpdate", { plugin });
+  }
 
   /**
    * Creates and initialises a new SDK instance by reading live on-chain state.
