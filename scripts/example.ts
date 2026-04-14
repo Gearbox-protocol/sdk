@@ -1,5 +1,4 @@
 import { writeFile } from "node:fs/promises";
-
 import { pino } from "pino";
 import YAML from "yaml";
 import { getAlchemyUrl } from "../src/dev/providers.js";
@@ -7,7 +6,6 @@ import { AccountsPlugin } from "../src/plugins/accounts/index.js";
 import { AdaptersPlugin } from "../src/plugins/adapters/AdaptersPlugin.js";
 import { BotsPlugin } from "../src/plugins/bots/index.js";
 import { DegenDistributorsPlugin } from "../src/plugins/degen-distributors/index.js";
-import { Pools7DAgoPlugin } from "../src/plugins/pools-history/index.js";
 import { json_stringify, MultichainSDK } from "../src/sdk/index.js";
 
 const logger = pino({
@@ -40,7 +38,6 @@ async function example(): Promise<void> {
       adapters: () => new AdaptersPlugin(true),
       bots: () => new BotsPlugin(true),
       degen: () => new DegenDistributorsPlugin(true),
-      pools7DAgo: () => new Pools7DAgoPlugin(true),
       accounts: () => new AccountsPlugin({ includeZeroDebt: true }, true),
     },
     logger,

@@ -2,11 +2,21 @@ import type { Address } from "viem";
 import { getAddress } from "viem";
 import { BigIntMath } from "../../common-utils/index.js";
 import { chains, type NetworkType, toBigInt } from "../../sdk/index.js";
-import type { PoolData } from "./common.js";
 import {
   MerkleXYZApi,
   type MerkleXYZUserRewardsV4Response,
 } from "./merkl-api.js";
+
+export interface PoolData {
+  address: Address;
+  version: number;
+  underlyingToken: Address;
+  dieselRateRay: bigint;
+  dieselToken: Address;
+  stakedDieselToken: Address[];
+  stakedDieselToken_old: Address[];
+  expectedLiquidity: bigint;
+}
 
 export interface GearboxExtraMerkleLmReward {
   pool: Address;
