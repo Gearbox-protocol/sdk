@@ -3,7 +3,6 @@ import { AccountsPlugin } from "../../plugins/accounts/AccountsPlugin.js";
 import { AdaptersPlugin } from "../../plugins/adapters/AdaptersPlugin.js";
 import { BotsPlugin } from "../../plugins/bots/index.js";
 import { DegenDistributorsPlugin } from "../../plugins/degen-distributors/index.js";
-import { ApyPlugin } from "../../plugins/pools-history/index.js";
 import { GearboxSDK, json_stringify } from "../../sdk/index.js";
 import { ANVIL_URL } from "../constants.js";
 import { PYTH_API_PROXY, REDSTONE_GATEWAYS, useFixture } from "../helpers.js";
@@ -24,7 +23,6 @@ describe("v12 parity tests", () => {
         adapters: new AdaptersPlugin(true),
         bots: new BotsPlugin(true),
         degen: new DegenDistributorsPlugin(true),
-        apy: new ApyPlugin(true),
         accounts: new AccountsPlugin({ includeZeroDebt: true }, true),
       },
       redstone: {
