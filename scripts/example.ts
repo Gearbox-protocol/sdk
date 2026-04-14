@@ -1,11 +1,10 @@
 import { writeFile } from "node:fs/promises";
-
 import { pino } from "pino";
 import { AccountsPlugin } from "../src/plugins/accounts/index.js";
 import { AdaptersPlugin } from "../src/plugins/adapters/AdaptersPlugin.js";
+import { ApyPlugin } from "../src/plugins/apy/index.js";
 import { BotsPlugin } from "../src/plugins/bots/index.js";
 import { DegenDistributorsPlugin } from "../src/plugins/degen-distributors/index.js";
-import { Pools7DAgoPlugin } from "../src/plugins/pools-history/index.js";
 import { GearboxSDK, json_stringify } from "../src/sdk/index.js";
 
 const logger = pino({
@@ -35,7 +34,7 @@ async function example(): Promise<void> {
       adapters: new AdaptersPlugin(true),
       bots: new BotsPlugin(true),
       degen: new DegenDistributorsPlugin(true),
-      pools7DAgo: new Pools7DAgoPlugin(true),
+      apy: new ApyPlugin(true),
       accounts: new AccountsPlugin({ includeZeroDebt: true }, true),
       // stalenessV300: V300StalenessPeriodPlugin,
     },
@@ -59,7 +58,7 @@ async function example(): Promise<void> {
   //       zappers: new ZappersPlugin(false),
   //       bots: new BotsPlugin(false),
   //       degen: new DegenDistributorsPlugin(false),
-  //       pools7DAgo: new Pools7DAgoPlugin(false),
+  //       apy: new ApyPlugin(false),
   //       accountsCounter: new AccountsCounterPlugin(false),
   //     },
   //     rpcURLs: [RPC],
