@@ -6,7 +6,6 @@ on:
       - "master"
       - "next"
       - "kyc"
-      - "apy-plugin"
       - "*.x"
 
 env:
