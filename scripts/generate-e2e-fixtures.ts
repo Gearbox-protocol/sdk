@@ -24,9 +24,9 @@ import {
 } from "../src/e2e/oracleProxy.js";
 import { AccountsPlugin } from "../src/plugins/accounts/AccountsPlugin.js";
 import { AdaptersPlugin } from "../src/plugins/adapters/AdaptersPlugin.js";
+import { ApyPlugin } from "../src/plugins/apy/index.js";
 import { BotsPlugin } from "../src/plugins/bots/index.js";
 import { DegenDistributorsPlugin } from "../src/plugins/degen-distributors/index.js";
-import { ApyPlugin } from "../src/plugins/pools-history/index.js";
 import { chains, GearboxSDK, type NetworkType } from "../src/sdk/index.js";
 
 // ─── Configuration ──────────────────────────────────────────────────────────

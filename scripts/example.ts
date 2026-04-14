@@ -2,9 +2,9 @@ import { writeFile } from "node:fs/promises";
 import { pino } from "pino";
 import { AccountsPlugin } from "../src/plugins/accounts/index.js";
 import { AdaptersPlugin } from "../src/plugins/adapters/AdaptersPlugin.js";
+import { ApyPlugin } from "../src/plugins/apy/index.js";
 import { BotsPlugin } from "../src/plugins/bots/index.js";
 import { DegenDistributorsPlugin } from "../src/plugins/degen-distributors/index.js";
-import { ApyPlugin } from "../src/plugins/pools-history/index.js";
 import { GearboxSDK, json_stringify } from "../src/sdk/index.js";
 
 const logger = pino({
