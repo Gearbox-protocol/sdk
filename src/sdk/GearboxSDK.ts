@@ -410,7 +410,7 @@ export class GearboxSDK<
     }
     // null to disable explicitly setting gas limit, undefined to use default sdk value
     if (options.gasLimit !== null) {
-      this.gasLimit = options.gasLimit || 550_000_000n;
+      this.gasLimit = options.gasLimit || getChain(this.networkType).gasLimit;
     }
   }
 
