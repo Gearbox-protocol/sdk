@@ -1,7 +1,7 @@
 import type { Address, Hex } from "viem";
 import { z } from "zod/v4";
 import { SDKConstruct } from "../../../base/index.js";
-import type { GearboxSDK } from "../../../GearboxSDK.js";
+import type { OnchainSDK } from "../../../OnchainSDK.js";
 import { AddressMap } from "../../../utils/index.js";
 import type {
   IPriceFeedContract,
@@ -63,7 +63,10 @@ export const RedstoneOptions = z.object({
   enableLogging: z.boolean().optional(),
 });
 
-export type RedstoneOptions = z.infer<typeof RedstoneOptions>;
+export type RedstoneOptions = z.infer<typeof RedstoneOptions> & {
+  /** Shared cache injected by {@link MultichainSDK} to avoid redundant fetches. */
+  cache?: PriceUpdatesCache;
+};
 /**
  * Class to update multiple redstone price feeds at once
  */
@@ -77,7 +80,7 @@ export class RedstoneUpdater
   #failOnMissingFeeds?: boolean;
   #enableLogging?: boolean;
 
-  constructor(sdk: GearboxSDK, opts: RedstoneOptions = {}) {
+  constructor(sdk: OnchainSDK, opts: RedstoneOptions = {}) {
     super(sdk);
     this.#failOnMissingFeeds = opts.failOnMissingFeeds;
     this.#enableLogging = opts.enableLogging;
@@ -91,13 +94,12 @@ export class RedstoneUpdater
         `using historical timestamp ${this.#historicalTimestampMs}`,
       );
     }
-    this.#cache = new PriceUpdatesCache({
-      // currently staleness period is 240 seconds on all networks, add some buffer
-      // this period of 4 minutes is selected based on time that is required for user to sign transaction with wallet
-      // so it's unlikely to decrease
-      ttl: opts.cacheTTL ?? 225 * 1000,
-      historical: !!ts,
-    });
+    this.#cache =
+      opts.cache ??
+      new PriceUpdatesCache({
+        ttl: opts.cacheTTL ?? 225 * 1000,
+        historical: !!ts,
+      });
   }
 
   public async getUpdateTxs(
@@ -177,6 +179,10 @@ export class RedstoneUpdater
       `generated ${results.length} update transactions for redstone price feeds: ${Array.from(priceFeeds.keys()).join(", ")}${tsRange}`,
     );
     return results;
+  }
+
+  public get historical(): boolean {
+    return !!this.#historicalTimestampMs;
   }
 
   /**

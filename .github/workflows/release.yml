@@ -36,6 +36,7 @@ jobs:
 
       - name: Test and build
         env:
+          ALCHEMY_KEY: ${{ secrets.ALCHEMY_KEY_CI }}
           RPC_URL: "https://eth-mainnet.g.alchemy.com/v2/${{ secrets.ALCHEMY_KEY_CI }}"
         run: |
           pnpm install --frozen-lockfile

@@ -1,11 +1,11 @@
 import type { CreditSuiteState } from "../../base/index.js";
 import { isV310 } from "../../constants/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
+import type { OnchainSDK } from "../../OnchainSDK.js";
 import { CreditFacadeV310Contract } from "./CreditFacadeV310Contract.js";
 import type { CreditFacadeContract } from "./types.js";
 
 export default function createCreditFacade(
-  sdk: GearboxSDK,
+  sdk: OnchainSDK,
   data: CreditSuiteState,
 ): CreditFacadeContract {
   const v = data.creditFacade.baseParams.version;

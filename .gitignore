@@ -10,3 +10,4 @@ node_modules/
 *.log
 .env
 example-state.json
+/.cursor/plans/

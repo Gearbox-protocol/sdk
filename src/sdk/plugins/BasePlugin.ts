@@ -1,11 +1,12 @@
 import type { Address, PublicClient } from "viem";
 
 import type { NetworkType } from "../chain/index.js";
-import type { GearboxSDK } from "../GearboxSDK.js";
+import { SdkAlreadyAttachedError, SdkNotAttachedError } from "../core/index.js";
 import type { ILogger } from "../index.js";
+import type { OnchainSDK } from "../OnchainSDK.js";
 
 /**
- * Convenience base class for {@link IGearboxSDKPlugin} implementations.
+ * Convenience base class for {@link IOnchainSDKPlugin} implementations.
  *
  * Handles the SDK attachment lifecycle, logger setup, and provides
  * common accessors (`network`, `client`). Subclasses only need to
@@ -16,7 +17,7 @@ import type { ILogger } from "../index.js";
 export abstract class BasePlugin<
   TState extends Record<keyof TState, unknown> = {},
 > {
-  #sdk?: GearboxSDK<any>;
+  #sdk?: OnchainSDK<any>;
 
   protected logger?: ILogger;
 
@@ -40,16 +41,22 @@ export abstract class BasePlugin<
    * Reference to the parent SDK instance.
    * @throws Error if the SDK has not been attached yet.
    **/
-  public get sdk(): GearboxSDK<any> {
+  public get sdk(): OnchainSDK<any> {
     if (!this.#sdk) {
-      throw new Error("SDK is not attached");
+      throw new SdkNotAttachedError();
     }
     return this.#sdk;
   }
 
-  public set sdk(sdk: GearboxSDK<any>) {
+  /**
+   * @internal
+   * Set the SDK instance. Called by the SDK constructor.
+   * @param sdk - The SDK instance.
+   * @throws Error if the SDK is already attached.
+   */
+  public set sdk(sdk: OnchainSDK<any>) {
     if (this.#sdk) {
-      throw new Error("SDK is already attached");
+      throw new SdkAlreadyAttachedError();
     }
     this.#sdk = sdk;
     this.logger =
@@ -57,7 +64,7 @@ export abstract class BasePlugin<
   }
 
   /**
-   * {@inheritDoc IGearboxSDKPlugin.attach}
+   * {@inheritDoc IOnchainSDKPlugin.attach}
    **/
   public async attach(): Promise<void> {
     if (this.loadOnAttach) {
@@ -66,7 +73,7 @@ export abstract class BasePlugin<
   }
 
   /**
-   * {@inheritDoc IGearboxSDKPlugin.syncState}
+   * {@inheritDoc IOnchainSDKPlugin.syncState}
    **/
   public async syncState(): Promise<void> {
     await this.load(false);

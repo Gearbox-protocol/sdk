@@ -14,7 +14,7 @@ import {
   type AnvilClient,
   createAnvilClient,
 } from "../dev/createAnvilClient.js";
-import { chains, type GearboxSDK, type NetworkType } from "../sdk/index.js";
+import { chains, type NetworkType, type OnchainSDK } from "../sdk/index.js";
 import { type AnvilInstance, startAnvil, stopAnvil } from "./anvil.js";
 import { ANVIL_PORT, ANVIL_URL } from "./constants.js";
 import {
@@ -104,7 +104,7 @@ export function useFixture(options: UseFixtureOptions): void {
 }
 
 export function getAnvilWallet(
-  sdk: GearboxSDK,
+  sdk: OnchainSDK,
 ): WalletClient<Transport, Chain, PrivateKeyAccount> {
   // well-known private key for the first account in anvil
   const account = privateKeyToAccount(

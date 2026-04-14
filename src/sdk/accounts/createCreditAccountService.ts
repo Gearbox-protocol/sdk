@@ -1,5 +1,5 @@
 import { isV310 } from "../constants/index.js";
-import type { GearboxSDK } from "../GearboxSDK.js";
+import type { OnchainSDK } from "../OnchainSDK.js";
 import type { CreditAccountServiceOptions } from "./AbstractCreditAccountsService.js";
 import { CreditAccountServiceV310 } from "./CreditAccountsServiceV310.js";
 import type { ICreditAccountsService } from "./types.js";
@@ -10,7 +10,7 @@ import type { ICreditAccountsService } from "./types.js";
  * @returns
  */
 export function createCreditAccountService(
-  sdk: GearboxSDK,
+  sdk: OnchainSDK,
   version: number,
   options?: CreditAccountServiceOptions,
 ): ICreditAccountsService {

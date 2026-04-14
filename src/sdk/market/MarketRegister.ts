@@ -7,7 +7,7 @@ import {
   AP_MARKET_COMPRESSOR,
   VERSION_RANGE_310,
 } from "../constants/index.js";
-import type { GearboxSDK } from "../GearboxSDK.js";
+import type { OnchainSDK } from "../OnchainSDK.js";
 import type { IPriceUpdateTx, MarketStateHuman } from "../types/index.js";
 import { AddressMap } from "../utils/index.js";
 import { simulateWithPriceUpdates } from "../utils/viem/index.js";
@@ -38,7 +38,7 @@ export class MarketRegister extends ZapperRegister {
    * @param sdk - Top-level SDK instance.
    * @param ignoreMarkets - Pool addresses of markets to exclude from loading.
    **/
-  constructor(sdk: GearboxSDK, ignoreMarkets: Address[] = []) {
+  constructor(sdk: OnchainSDK, ignoreMarkets: Address[] = []) {
     super(sdk);
     this.#ignoreMarkets = new Set(
       ignoreMarkets.map(m => m.toLowerCase() as Address),

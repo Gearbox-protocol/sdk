@@ -4,29 +4,33 @@ import { AdaptersPlugin } from "../../plugins/adapters/AdaptersPlugin.js";
 import { BotsPlugin } from "../../plugins/bots/index.js";
 import { DegenDistributorsPlugin } from "../../plugins/degen-distributors/index.js";
 import { Pools7DAgoPlugin } from "../../plugins/pools-history/index.js";
-import { GearboxSDK, json_stringify } from "../../sdk/index.js";
+import { json_stringify, OnchainSDK } from "../../sdk/index.js";
 import { ANVIL_URL } from "../constants.js";
 import { PYTH_API_PROXY, REDSTONE_GATEWAYS, useFixture } from "../helpers.js";
 
 const BLOCK = 24_736_900n;
 
 describe("v12 parity tests", () => {
-  let sdk: GearboxSDK;
+  let sdk: OnchainSDK;
 
   useFixture({ network: "Mainnet", block: BLOCK });
 
   beforeAll(async () => {
-    sdk = await GearboxSDK.attach({
-      rpcURLs: [ANVIL_URL],
-      timeout: 120_000,
-      blockNumber: BLOCK,
-      plugins: {
-        adapters: new AdaptersPlugin(true),
-        bots: new BotsPlugin(true),
-        degen: new DegenDistributorsPlugin(true),
-        pools7DAgo: new Pools7DAgoPlugin(true),
-        accounts: new AccountsPlugin({ includeZeroDebt: true }, true),
+    sdk = new OnchainSDK(
+      "Mainnet",
+      { rpcURLs: [ANVIL_URL], timeout: 120_000 },
+      {
+        plugins: {
+          adapters: new AdaptersPlugin(true),
+          bots: new BotsPlugin(true),
+          degen: new DegenDistributorsPlugin(true),
+          pools7DAgo: new Pools7DAgoPlugin(true),
+          accounts: new AccountsPlugin({ includeZeroDebt: true }, true),
+        },
       },
+    );
+    await sdk.attach({
+      blockNumber: BLOCK,
       redstone: {
         historicTimestamp: true,
         gateways: REDSTONE_GATEWAYS,

@@ -5,7 +5,7 @@ import {
   type Transport,
 } from "viem";
 import type { GearboxChain } from "../../../sdk/index.js";
-import { GearboxSDK, simulateMulticall } from "../../../sdk/index.js";
+import { OnchainSDK, simulateMulticall } from "../../../sdk/index.js";
 
 const latestRoundDataAbi = [
   {
@@ -39,7 +39,7 @@ async function getPricesChunk({
 }: {
   client: PublicClient;
   priceFeeds: Address[];
-  sdk: GearboxSDK;
+  sdk: OnchainSDK;
 }): Promise<Record<Address, bigint | null>> {
   const updateCall = priceFeeds.map(priceFeed =>
     getLatestRoundDataCall(priceFeed),
@@ -107,12 +107,18 @@ export async function getPrices({
     throw new Error("Chain not defined");
   }
 
-  const sdk = await GearboxSDK.attach({
-    client: client as PublicClient<Transport, GearboxChain>,
-    gasLimit,
+  const gearboxClient = client as PublicClient<Transport, GearboxChain>;
+  const chain = gearboxClient.chain;
+  if (!chain) {
+    throw new Error("Chain not defined on client");
+  }
+  const sdk = new OnchainSDK(
+    chain.network,
+    { client: gearboxClient },
+    { gasLimit },
+  );
+  await sdk.attach({
     marketConfigurators: [],
-    redstone: {},
-    pyth: {},
   });
 
   const chunks: Address[][] = [];

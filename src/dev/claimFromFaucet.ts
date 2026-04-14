@@ -10,7 +10,7 @@ import {
   type WalletClient,
 } from "viem";
 import { readContract } from "viem/actions";
-import { formatBN, type GearboxSDK, type ILogger } from "../sdk/index.js";
+import { formatBN, type ILogger, type OnchainSDK } from "../sdk/index.js";
 
 interface TokenClaim {
   token: Address;
@@ -18,7 +18,7 @@ interface TokenClaim {
 }
 
 interface ClaimFromFaucetOptions {
-  sdk?: GearboxSDK;
+  sdk?: OnchainSDK;
   publicClient: PublicClient;
   wallet: WalletClient;
   faucet: Address;

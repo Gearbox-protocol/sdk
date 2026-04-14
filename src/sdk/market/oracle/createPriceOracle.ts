@@ -1,11 +1,11 @@
 import type { PriceOracleData } from "../../base/index.js";
 import { isV310 } from "../../constants/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
+import type { OnchainSDK } from "../../OnchainSDK.js";
 import { PriceOracleV310Contract } from "./PriceOracleV310Contract.js";
 import type { IPriceOracleContract } from "./types.js";
 
 export function createPriceOracle(
-  sdk: GearboxSDK,
+  sdk: OnchainSDK,
   data: PriceOracleData,
 ): IPriceOracleContract {
   const { version } = data.baseParams;

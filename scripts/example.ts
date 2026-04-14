@@ -1,12 +1,14 @@
 import { writeFile } from "node:fs/promises";
 
 import { pino } from "pino";
+import YAML from "yaml";
+import { getAlchemyUrl } from "../src/dev/providers.js";
 import { AccountsPlugin } from "../src/plugins/accounts/index.js";
 import { AdaptersPlugin } from "../src/plugins/adapters/AdaptersPlugin.js";
 import { BotsPlugin } from "../src/plugins/bots/index.js";
 import { DegenDistributorsPlugin } from "../src/plugins/degen-distributors/index.js";
 import { Pools7DAgoPlugin } from "../src/plugins/pools-history/index.js";
-import { GearboxSDK, json_stringify } from "../src/sdk/index.js";
+import { json_stringify, MultichainSDK } from "../src/sdk/index.js";
 
 const logger = pino({
   level: process.env.LOG_LEVEL ?? "debug",
@@ -21,84 +23,46 @@ const logger = pino({
 });
 
 async function example(): Promise<void> {
-  // const RPC = "http://127.0.0.1:8545";
-  const RPC = process.env.RPC_URL!;
-  const kind = "real";
-  // const RPC= megaethTestnet.rpcUrls.default.http[0];
+  const ALCHEMY_KEY = process.env.ALCHEMY_KEY!;
 
-  const sdk = await GearboxSDK.attach({
-    rpcURLs: [RPC],
-    timeout: 480_000,
-    blockNumber: 24736900,
-    logger,
+  const sdk = new MultichainSDK({
+    chains: {
+      Mainnet: {
+        rpcURLs: [getAlchemyUrl("Mainnet", ALCHEMY_KEY)!],
+        timeout: 480_000,
+      },
+      Plasma: {
+        rpcURLs: [getAlchemyUrl("Plasma", ALCHEMY_KEY)!],
+        timeout: 480_000,
+      },
+    },
     plugins: {
-      adapters: new AdaptersPlugin(true),
-      bots: new BotsPlugin(true),
-      degen: new DegenDistributorsPlugin(true),
-      pools7DAgo: new Pools7DAgoPlugin(true),
-      accounts: new AccountsPlugin({ includeZeroDebt: true }, true),
-      // stalenessV300: V300StalenessPeriodPlugin,
+      adapters: () => new AdaptersPlugin(true),
+      bots: () => new BotsPlugin(true),
+      degen: () => new DegenDistributorsPlugin(true),
+      pools7DAgo: () => new Pools7DAgoPlugin(true),
+      accounts: () => new AccountsPlugin({ includeZeroDebt: true }, true),
     },
-    redstone: {
-      historicTimestamp: true,
-    },
-    pyth: {
-      historicTimestamp: true,
-    },
+    logger,
   });
+  await sdk.attach();
 
-  // kind = "hydrated";
-  // const state = await readFile(
-  //   "tmp/state_real_Mainnet_22798015.json",
-  //   "utf-8",
-  // ).then(json_parse);
-  // const sdk = GearboxSDK.hydrate(
-  //   {
-  //     plugins: {
-  //       adapters: new AdaptersPlugin(false),
-  //       zappers: new ZappersPlugin(false),
-  //       bots: new BotsPlugin(false),
-  //       degen: new DegenDistributorsPlugin(false),
-  //       pools7DAgo: new Pools7DAgoPlugin(false),
-  //       accountsCounter: new AccountsCounterPlugin(false),
-  //     },
-  //     rpcURLs: [RPC],
-  //     timeout: 480_000,
-  //     logger,
-  //     strictContractTypes: true,
-  //   },
-  //   state,
-  // );
-
-  const prefix = RPC.includes("127.0.0.1") ? "anvil_" : "";
-  const net = sdk.networkType;
   await writeFile(
-    `tmp/state_next_${kind}_human_${net}_${prefix}${sdk.currentBlock}.json`,
-    json_stringify(sdk.stateHuman()),
+    `tmp/state_multichain_human.yaml`,
+    YAML.stringify(sdk.stateHuman()),
   );
-  await writeFile(
-    `tmp/state_next_${kind}_${net}_${prefix}${sdk.currentBlock}.json`,
-    json_stringify(sdk.state),
-  );
+  await writeFile(`tmp/state_multichain.json`, json_stringify(sdk.state));
 
-  // sdk.provider.publicClient.watchBlocks({
-  //   onBlock: async block => {
-  //     await sdk.syncState({
-  //       blockNumber: block.number,
-  //       timestamp: block.timestamp,
-  //     });
-  //     // const prefix = RPC.includes("127.0.0.1") ? "anvil_" : "";
-  //     // const net = sdk.provider.networkType;
-  //     // await writeFile(
-  //     //   `tmp/state_${kind}_human_${net}_${prefix}${sdk.currentBlock}.json`,
-  //     //   json_stringify(sdk.stateHuman()),
-  //     // );
-  //     // await writeFile(
-  //     //   `tmp/state_${kind}_${net}_${prefix}${sdk.currentBlock}.json`,
-  //     //   json_stringify(sdk.state),
-  //     // );
-  //   },
-  // });
+  for (const [network, chainSdk] of sdk.chains) {
+    await writeFile(
+      `tmp/state_${network}_human_${chainSdk.currentBlock}.yaml`,
+      YAML.stringify(chainSdk.stateHuman()),
+    );
+    await writeFile(
+      `tmp/state_${network}_${chainSdk.currentBlock}.json`,
+      json_stringify(chainSdk.state),
+    );
+  }
 
   logger.info("done");
 }

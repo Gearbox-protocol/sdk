@@ -2,7 +2,7 @@ import { type Address, isAddressEqual } from "viem";
 import { beforeAll, describe, expect, it } from "vitest";
 import { iPriceFeedAbi } from "../../abi/iPriceFeed.js";
 import {
-  GearboxSDK,
+  OnchainSDK,
   sendRawTx,
   type UpdatePriceFeedsResult,
 } from "../../sdk/index.js";
@@ -19,7 +19,7 @@ const MC_EDGE: Address = "0x9dDdd1B9cE0ac8aA0C80E4EC141600b9BF0101C3";
 const REDSTONE_FEED: Address = "0x8d6C311590e930E77c2B915d25c5269314fFCCee";
 const PYTH_FEED: Address = "0x288D8D49A116480C252F1627671aa431858C31Bf";
 
-async function latestAnswer(sdk: GearboxSDK, address: Address) {
+async function latestAnswer(sdk: OnchainSDK, address: Address) {
   const result = await sdk.client.readContract({
     address,
     abi: iPriceFeedAbi,
@@ -29,15 +29,17 @@ async function latestAnswer(sdk: GearboxSDK, address: Address) {
 }
 
 describe("price feed updates", () => {
-  let sdk: GearboxSDK;
+  let sdk: OnchainSDK;
   let txs: UpdatePriceFeedsResult;
 
   useFixture({ network: "Mainnet", block: BLOCK });
 
   beforeAll(async () => {
-    sdk = await GearboxSDK.attach({
+    sdk = new OnchainSDK("Mainnet", {
       rpcURLs: [ANVIL_URL],
       timeout: 120_000,
+    });
+    await sdk.attach({
       blockNumber: BLOCK,
       marketConfigurators: [MC_EDGE],
       ignoreUpdateablePrices: true,

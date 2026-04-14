@@ -12,6 +12,10 @@ export interface IPriceUpdateTask {
 
 export interface IPriceUpdater<T extends IPriceUpdateTask = IPriceUpdateTask> {
   getUpdateTxs: (feeds: IPriceFeedContract[]) => Promise<IPriceUpdateTx<T>[]>;
+  /**
+   * Returns true if the updater is in historical mode
+   */
+  historical: boolean;
 }
 
 export interface TimestampedCalldata {

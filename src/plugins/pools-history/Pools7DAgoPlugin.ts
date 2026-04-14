@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import { marketCompressorAbi } from "../../abi/compressors/marketCompressor.js";
-import type { IGearboxSDKPlugin } from "../../sdk/index.js";
+import type { IOnchainSDKPlugin } from "../../sdk/index.js";
 import {
   AddressMap,
   AP_MARKET_COMPRESSOR,
@@ -18,7 +18,7 @@ const MAP_LABEL = "pools7DAgo";
 
 export class Pools7DAgoPlugin
   extends BasePlugin<Pools7DAgoPluginState>
-  implements IGearboxSDKPlugin<Pools7DAgoPluginState>
+  implements IOnchainSDKPlugin<Pools7DAgoPluginState>
 {
   #pools7DAgo?: AddressMap<Pool7DAgoState>;
 

@@ -1,23 +1,15 @@
 import {
   type Address,
   type Chain,
-  decodeFunctionData,
-  type Hex,
   multicall3Abi,
   type PublicClient,
-  parseAbi,
   type Transport,
 } from "viem";
-import type {
-  GearboxChain,
-  IPriceUpdateTx,
-  PriceUpdate,
-  RawTx,
-} from "../../../sdk/index.js";
+import type { GearboxChain, RawTx } from "../../../sdk/index.js";
 import {
   createRawTx,
-  GearboxSDK,
   getRawPriceUpdates,
+  OnchainSDK,
 } from "../../../sdk/index.js";
 import { PriceFeedStoreContract } from "../../bindings/index.js";
 import { Addresses } from "../../deployment/addresses.js";
@@ -38,11 +30,17 @@ export async function getPriceUpdateTx({
     client,
   );
 
-  const sdk = await GearboxSDK.attach({
-    client: client as PublicClient<Transport, GearboxChain>,
-    marketConfigurators: [],
-    gasLimit,
-  });
+  const gearboxClient = client as PublicClient<Transport, GearboxChain>;
+  const chain = gearboxClient.chain;
+  if (!chain) {
+    throw new Error("Chain not defined on client");
+  }
+  const sdk = new OnchainSDK(
+    chain.network,
+    { client: gearboxClient },
+    { gasLimit },
+  );
+  await sdk.attach({ marketConfigurators: [] });
 
   const updateTxs =
     await sdk.priceFeeds.generateExternalPriceFeedsUpdateTxs(priceFeeds);

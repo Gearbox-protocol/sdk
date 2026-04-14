@@ -11,8 +11,8 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { iCreditFacadeV310Abi } from "../../abi/310/generated.js";
 import {
   createCreditAccountService,
-  GearboxSDK,
   MAX_UINT256,
+  OnchainSDK,
   sendRawTx,
 } from "../../sdk/index.js";
 import { ANVIL_URL } from "../constants.js";
@@ -30,14 +30,16 @@ const USDC: Address = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
 const PMUSD: Address = "0xC0c17dD08263C16f6b64E772fB9B723Bf1344DdF";
 
 describe("open credit account", () => {
-  let sdk: GearboxSDK;
+  let sdk: OnchainSDK;
 
   useFixture({ network: "Mainnet", block: BLOCK });
 
   beforeAll(async () => {
-    sdk = await GearboxSDK.attach({
+    sdk = new OnchainSDK("Mainnet", {
       rpcURLs: [ANVIL_URL],
       timeout: 120_000,
+    });
+    await sdk.attach({
       blockNumber: BLOCK,
       ignoreUpdateablePrices: false,
       redstone: {

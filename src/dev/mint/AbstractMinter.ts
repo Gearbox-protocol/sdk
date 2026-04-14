@@ -1,6 +1,6 @@
 import { type Address, parseEther } from "viem";
 import { ierc20Abi } from "../../abi/iERC20.js";
-import { type GearboxSDK, SDKConstruct } from "../../sdk/index.js";
+import { type OnchainSDK, SDKConstruct } from "../../sdk/index.js";
 import { iOwnableAbi } from "../abi.js";
 import type { AnvilClient } from "../createAnvilClient.js";
 import type { IMinter } from "./types.js";
@@ -12,7 +12,7 @@ export default abstract class AbstractMinter
   protected readonly anvil: AnvilClient;
   public name: string;
 
-  constructor(sdk: GearboxSDK, anvil: AnvilClient) {
+  constructor(sdk: OnchainSDK, anvil: AnvilClient) {
     super(sdk);
     this.anvil = anvil;
     this.name = this.constructor.name;

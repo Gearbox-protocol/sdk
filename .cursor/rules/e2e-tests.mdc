@@ -6,7 +6,7 @@ alwaysApply: false
 
 # E2E Tests
 
-Tests run GearboxSDK against a local Anvil fork with pre-recorded oracle data. Fixtures are generated once, committed to git, and replayed in tests.
+Tests run OnchainSDK against a local Anvil fork with pre-recorded oracle data. Fixtures are generated once, committed to git, and replayed in tests.
 
 ## Architecture
 
@@ -20,21 +20,23 @@ MSW was replaced because it intercepts ALL HTTP traffic (including RPC to Anvil)
 
 ```typescript
 import { beforeAll, describe, expect, it } from "vitest";
-import { GearboxSDK } from "../../sdk/index.js";
+import { OnchainSDK } from "../../sdk/index.js";
 import { ANVIL_URL } from "../constants.js";
 import { PYTH_API_PROXY, REDSTONE_GATEWAYS, useFixture } from "../helpers.js";
 
 const BLOCK = 24_728_000n;
 
 describe("my scenario", () => {
-  let sdk: GearboxSDK;
+  let sdk: OnchainSDK;
 
   useFixture({ network: "Mainnet", block: BLOCK });
 
   beforeAll(async () => {
-    sdk = await GearboxSDK.attach({
+    sdk = new OnchainSDK("Mainnet", {
       rpcURLs: [ANVIL_URL],
       timeout: 120_000,
+    });
+    await sdk.attach({
       blockNumber: BLOCK,
       redstone: {
         historicTimestamp: true,
@@ -69,7 +71,7 @@ Run `yarn generate:e2e` (needs `RPC_URL` in `.env`). Regenerate when pinning to 
 
 ## Warming RPC Cache for Transaction-Heavy Tests
 
-Fixture generation only runs `GearboxSDK.attach()`. Tests that execute transactions (router, openCreditAccount) touch extra storage slots not in the cache, making Anvil fetch them live (slow).
+Fixture generation only runs `OnchainSDK.attach()`. Tests that execute transactions (router, openCreditAccount) touch extra storage slots not in the cache, making Anvil fetch them live (slow).
 
 To warm the cache:
 1. Comment out `evm_revert` in `afterAll` of `helpers.ts`

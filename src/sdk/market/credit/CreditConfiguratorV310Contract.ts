@@ -9,7 +9,7 @@ import { iCreditConfiguratorV310Abi } from "../../../abi/310/generated.js";
 import type { CreditSuiteState } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
 import { RAMP_DURATION_BY_NETWORK } from "../../constants/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
+import type { OnchainSDK } from "../../OnchainSDK.js";
 import { formatDuration, percentFmt } from "../../utils/index.js";
 import type { ICreditConfiguratorContract } from "./types.js";
 
@@ -30,11 +30,11 @@ export class CreditConfiguratorV310Contract
   extends BaseContract<abi>
   implements ICreditConfiguratorContract
 {
-  public readonly sdk: GearboxSDK;
+  public readonly sdk: OnchainSDK;
   public isPaused = false;
 
   constructor(
-    sdk: GearboxSDK,
+    sdk: OnchainSDK,
     { creditConfigurator, creditManager }: CreditSuiteState,
   ) {
     super(sdk, {

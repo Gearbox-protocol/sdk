@@ -1,9 +1,9 @@
 import type { Address } from "viem";
 import { MAX_UINT256 } from "../constants/index.js";
-import type { GearboxSDK } from "../GearboxSDK.js";
+import type { OnchainSDK } from "../OnchainSDK.js";
 
 export interface IsDustOptions {
-  sdk: GearboxSDK;
+  sdk: OnchainSDK;
   token: Address;
   balance: bigint;
   creditManager: Address;

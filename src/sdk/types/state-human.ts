@@ -236,10 +236,21 @@ export interface MarketStateHuman {
 }
 
 export interface GearboxStateHuman {
+  network: string;
   block: number;
   timestamp: string;
   core: CoreStateHuman;
   markets: MarketStateHuman[];
   plugins: Record<string, unknown>;
   tokens: TokenMetaData[];
+}
+
+/**
+ * Human-readable state for all chains managed by {@link MultichainSDK}.
+ **/
+export interface MultichainStateHuman {
+  /** State format version. */
+  version: number;
+  /** Per-chain human-readable state. */
+  chains: GearboxStateHuman[];
 }

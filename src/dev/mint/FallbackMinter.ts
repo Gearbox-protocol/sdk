@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import type { GearboxSDK } from "../../sdk/index.js";
+import type { OnchainSDK } from "../../sdk/index.js";
 import type { AnvilClient } from "../createAnvilClient.js";
 import AbstractMinter from "./AbstractMinter.js";
 import type { IMinter } from "./types.js";
@@ -7,7 +7,7 @@ import type { IMinter } from "./types.js";
 export class FallbackMinter extends AbstractMinter implements IMinter {
   #minters: IMinter[];
 
-  constructor(sdk: GearboxSDK, anvil: AnvilClient, minters: IMinter[]) {
+  constructor(sdk: OnchainSDK, anvil: AnvilClient, minters: IMinter[]) {
     super(sdk, anvil);
     this.#minters = minters;
   }

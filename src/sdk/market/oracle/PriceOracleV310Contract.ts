@@ -9,7 +9,7 @@ import {
   iPriceOracleV310Abi,
 } from "../../../abi/310/generated.js";
 import type { PriceOracleData } from "../../base/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
+import type { OnchainSDK } from "../../OnchainSDK.js";
 import {
   getRawPriceUpdates,
   type UpdatePriceFeedsResult,
@@ -21,7 +21,7 @@ const abi = iPriceOracleV310Abi;
 type abi = typeof abi;
 
 export class PriceOracleV310Contract extends PriceOracleBaseContract<abi> {
-  constructor(sdk: GearboxSDK, data: PriceOracleData) {
+  constructor(sdk: OnchainSDK, data: PriceOracleData) {
     super(
       sdk,
       {

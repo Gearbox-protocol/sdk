@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import { beforeAll, describe, expect, it } from "vitest";
-import { GearboxSDK } from "../../sdk/index.js";
+import { OnchainSDK } from "../../sdk/index.js";
 import { ANVIL_URL } from "../constants.js";
 import { PYTH_API_PROXY, REDSTONE_GATEWAYS, useFixture } from "../helpers.js";
 
@@ -9,15 +9,17 @@ const MC_CP0X: Address = "0xc168343c791d56dd1da4b4b8b0cc1c1ec1a16e6b";
 const MC_INVARIANT: Address = "0x7a133fbd01736fd076158307c9476cc3877f1af5";
 
 describe("Multiple SDK instances can be attached", () => {
-  let sdk1: GearboxSDK;
-  let sdk2: GearboxSDK;
+  let sdk1: OnchainSDK;
+  let sdk2: OnchainSDK;
 
   useFixture({ network: "Mainnet", block: BLOCK });
 
   beforeAll(async () => {
-    const commonOpts = {
+    const commonClientOpts = {
       rpcURLs: [ANVIL_URL],
       timeout: 120_000,
+    };
+    const commonAttachOpts = {
       blockNumber: BLOCK,
       ignoreUpdateablePrices: false,
       redstone: {
@@ -30,12 +32,14 @@ describe("Multiple SDK instances can be attached", () => {
       },
     };
 
-    sdk1 = await GearboxSDK.attach({
-      ...commonOpts,
+    sdk1 = new OnchainSDK("Mainnet", commonClientOpts);
+    await sdk1.attach({
+      ...commonAttachOpts,
       marketConfigurators: [MC_CP0X],
     });
-    sdk2 = await GearboxSDK.attach({
-      ...commonOpts,
+    sdk2 = new OnchainSDK("Mainnet", commonClientOpts);
+    await sdk2.attach({
+      ...commonAttachOpts,
       marketConfigurators: [MC_INVARIANT],
     });
   });

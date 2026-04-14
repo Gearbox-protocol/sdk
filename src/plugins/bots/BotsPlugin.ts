@@ -1,6 +1,6 @@
 import { encodeAbiParameters, stringToHex } from "viem";
 import { iBytecodeRepositoryAbi } from "../../abi/310/iBytecodeRepository.js";
-import type { IGearboxSDKPlugin } from "../../sdk/index.js";
+import type { IOnchainSDKPlugin } from "../../sdk/index.js";
 import {
   AddressMap,
   AP_BYTECODE_REPOSITORY,
@@ -28,7 +28,7 @@ import {
 
 export class BotsPlugin
   extends BasePlugin<BotsPluginState>
-  implements IGearboxSDKPlugin<BotsPluginState>
+  implements IOnchainSDKPlugin<BotsPluginState>
 {
   #bots?: AddressMap<PartialLiquidationBotV310Contract>;
 

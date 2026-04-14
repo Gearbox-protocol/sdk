@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import type { GearboxSDK } from "../../sdk/index.js";
+import type { OnchainSDK } from "../../sdk/index.js";
 import type { AnvilClient } from "../createAnvilClient.js";
 import { DealMinter } from "./DealMinter.js";
 import { DirectMinter } from "./DirectMinter.js";
@@ -8,7 +8,7 @@ import { TransferMinter } from "./TransferMinter.js";
 import type { IMinter } from "./types.js";
 
 export function createMinter(
-  sdk: GearboxSDK,
+  sdk: OnchainSDK,
   anvil: AnvilClient,
   _token: Address,
 ): IMinter {

@@ -8,7 +8,7 @@ import {
   AP_PRICE_FEED_COMPRESSOR,
   isV310,
 } from "../constants/index.js";
-import type { GearboxSDK } from "../GearboxSDK.js";
+import type { OnchainSDK } from "../OnchainSDK.js";
 import { hexEq } from "../utils/hex.js";
 import { AddressProviderV310Contract } from "./AddressProviderV310Contract.js";
 import type {
@@ -34,7 +34,7 @@ const OVERRIDE_ADDRESSES: Partial<
 };
 
 export async function createAddressProvider(
-  sdk: GearboxSDK,
+  sdk: OnchainSDK,
   address: Address,
 ): Promise<IAddressProviderContract> {
   let v: bigint;
@@ -51,7 +51,7 @@ export async function createAddressProvider(
 }
 
 export function hydrateAddressProvider(
-  sdk: GearboxSDK,
+  sdk: OnchainSDK,
   state: AddressProviderState,
 ): IAddressProviderContract {
   const { addr, version } = state.baseParams;
@@ -59,7 +59,7 @@ export function hydrateAddressProvider(
 }
 
 function newAddressProvider(
-  sdk: GearboxSDK,
+  sdk: OnchainSDK,
   address: Address,
   version: number,
   addresses?: Record<string, Record<number, Address>>,

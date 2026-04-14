@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-import type { IGearboxSDKPlugin, MarketSuite } from "../../sdk/index.js";
+import type { IOnchainSDKPlugin, MarketSuite } from "../../sdk/index.js";
 import { AddressMap, BasePlugin } from "../../sdk/index.js";
 import { MarketConfiguratorContract } from "../../sdk/market/MarketConfiguratorContract.js";
 import type { DegenDistributorsStateHuman } from "./types.js";
@@ -13,7 +13,7 @@ const MAP_LABEL = "degenDistributors";
 
 export class DegenDistributorsPlugin
   extends BasePlugin<DegenDistributorsPluginState>
-  implements IGearboxSDKPlugin<DegenDistributorsPluginState>
+  implements IOnchainSDKPlugin<DegenDistributorsPluginState>
 {
   #distributors?: AddressMap<Address>;
 

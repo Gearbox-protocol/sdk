@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import { iWithdrawalCompressorV310Abi } from "../../abi/IWithdrawalCompressorV310.js";
-import type { IGearboxSDKPlugin } from "../../sdk/index.js";
+import type { IOnchainSDKPlugin } from "../../sdk/index.js";
 import {
   AddressMap,
   BasePlugin,
@@ -19,7 +19,7 @@ const MAP_LABEL = "delayedWithdrawal";
 
 export class DelayedWithdrawalPlugin
   extends BasePlugin<DelayedWithdrawalPluginState>
-  implements IGearboxSDKPlugin<DelayedWithdrawalPluginState>
+  implements IOnchainSDKPlugin<DelayedWithdrawalPluginState>
 {
   #withdrawableAssets?: AddressMap<Array<WithdrawableAsset>>;
 

@@ -12,8 +12,8 @@ import type {
   Construct,
   CreditAccountData,
 } from "../base/index.js";
-import type { GearboxSDK } from "../GearboxSDK.js";
 import type { CreditSuite, PriceUpdate } from "../market/index.js";
+import type { OnchainSDK } from "../OnchainSDK.js";
 import type {
   Asset,
   RouterCASlice,
@@ -666,7 +666,7 @@ export type GetConnectedMigrationBotsResult =
   | undefined;
 
 export interface ICreditAccountsService extends Construct {
-  sdk: GearboxSDK;
+  sdk: OnchainSDK;
   /**
    * Returns single credit account data, or undefined if it's not found
    * Performs all necessary price feed updates under the hood
