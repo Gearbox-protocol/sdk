@@ -212,11 +212,13 @@ export class ApyPlugin
     for (const market of markets) {
       const pool = market.pool.pool;
       const poolAddr = pool.address.toLowerCase() as Address;
+      const underlyingLc = pool.underlying.toLowerCase() as Address;
 
       const depositAPY =
         rayToNumber(pool.supplyRate) * Number(PERCENTAGE_DECIMALS);
 
-      const underlyingAPY = apy.apyList?.[pool.underlying] ?? 0;
+      const underlyingAPY =
+        apy.apyList?.[underlyingLc] ?? apy.apyList?.[pool.underlying] ?? 0;
 
       const lookupAddresses = this.#getExtraAPYLookupAddresses(poolAddr);
       const extraAPY = getPoolExtraAPY(lookupAddresses, apy.poolExtraAPYList);
