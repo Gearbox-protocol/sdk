@@ -36,6 +36,7 @@ export function getPoolExtraAPY(
   const result: PoolExtraApy[] = [];
   for (const addr of lookupAddresses) {
     const extra = poolExtraAPYList[addr.toLowerCase() as Address];
+
     if (extra) {
       result.push(...extra);
     }
