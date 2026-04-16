@@ -1,5 +1,4 @@
 import { formatDuration as fmtDuration, intervalToDuration } from "date-fns";
-import Decimal from "decimal.js-light";
 import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR } from "../constants/index.js";
 
 export const toBigInt = (
@@ -143,22 +142,24 @@ export function rayToNumber(num: BigNumberish): number {
   return Number(toBigInt(num) / 10n ** 21n) / 1000000;
 }
 
-export function toSignificant(
-  num: bigint,
-  decimals: number,
-  precision = 6,
-): string {
-  if (num === 1n) return "0";
-  const divider = new Decimal(10).toPower(decimals);
-  const number = new Decimal(num.toString()).div(divider);
-  return number.toSignificantDigits(precision, 4).toString();
-}
-
 export function toBN(num: string, decimals: number): bigint {
   if (num === "") return 0n;
-  const multiplier = new Decimal(10).toPower(decimals);
-  const number = new Decimal(num).mul(multiplier);
-  return BigInt(number.toFixed(0));
+  const negative = num.startsWith("-");
+  const abs = negative ? num.slice(1) : num;
+  const [intPart = "0", fracPart = ""] = abs.split(".");
+
+  let frac = fracPart;
+  let roundUp = false;
+  if (frac.length > decimals) {
+    roundUp = frac.charCodeAt(decimals) >= 53; // '5'
+    frac = frac.slice(0, decimals);
+  } else {
+    frac = frac.padEnd(decimals, "0");
+  }
+
+  let result = BigInt(intPart + frac);
+  if (roundUp) result += 1n;
+  return negative ? -result : result;
 }
 
 export function shortAddress(address?: string): string {
