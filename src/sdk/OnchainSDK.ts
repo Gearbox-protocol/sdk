@@ -45,7 +45,6 @@ import type {
   ILogger,
 } from "./types/index.js";
 import { formatTimestamp, TypedObjectUtils, toAddress } from "./utils/index.js";
-import { Hooks } from "./utils/internal/index.js";
 import { getLogsSafe } from "./utils/viem/index.js";
 
 /**

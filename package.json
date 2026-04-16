@@ -86,10 +86,10 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.11",
+    "@biomejs/biome": "^2.4.12",
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",
-    "@gearbox-protocol/biome-config": "^1.0.26",
+    "@gearbox-protocol/biome-config": "^1.0.27",
     "@types/cross-spawn": "^6.0.6",
     "axios": "^1.15.0",
     "cross-spawn": "^7.0.6",
