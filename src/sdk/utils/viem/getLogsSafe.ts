@@ -1,4 +1,4 @@
-import type { AbiEvent } from "abitype";
+import type { AbiEvent } from "viem";
 import {
   type BlockNumber,
   type Chain,

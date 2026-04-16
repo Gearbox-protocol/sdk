@@ -1,4 +1,4 @@
-import type { Abi } from "abitype";
+import type { Abi } from "viem";
 import {
   type Address,
   type ContractFunctionArgs,

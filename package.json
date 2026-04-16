@@ -83,7 +83,6 @@
     "buffer": "^6.0.3",
     "date-fns": "^4.1.0",
     "viem": ">=2.23.15 <3.0.0",
-    "yaml": "^2.8.3",
     "zod": "^4.3.6"
   },
   "devDependencies": {
@@ -103,7 +102,8 @@
     "typescript": "^6.0.2",
     "viem-deal": "^2.0.4",
     "vite": "^8.0.8",
-    "vitest": "^4.1.4"
+    "vitest": "^4.1.4",
+    "yaml": "^2.8.3"
   },
   "peerDependencies": {
     "axios": "^1.0.0",

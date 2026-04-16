@@ -1,5 +1,5 @@
-import type { AbiEvent } from "abitype";
 import type {
+  AbiEvent,
   BlockNumber,
   Chain,
   Client,

@@ -1,4 +1,4 @@
-import type { Address } from "abitype";
+import type { Address } from "viem";
 
 import type { BaseState, IBaseContract } from "../base/index.js";
 

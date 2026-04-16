@@ -1,6 +1,6 @@
-import type { AbiStateMutability } from "abitype";
 import type {
   Abi,
+  AbiStateMutability,
   ContractFunctionArgs,
   ContractFunctionName,
   DecodeFunctionDataReturnType,

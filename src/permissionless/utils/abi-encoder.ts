@@ -1,4 +1,4 @@
-import type { AbiParameter } from "abitype";
+import type { AbiParameter } from "viem";
 import { type Address, encodeAbiParameters, type Hex } from "viem";
 
 export type ValueParams =
