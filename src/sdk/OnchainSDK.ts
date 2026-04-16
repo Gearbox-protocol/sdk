@@ -457,9 +457,18 @@ export class OnchainSDK<
     this.#attached = true;
   }
 
-  /** Gearbox network type the SDK is connected to (e.g. `"Mainnet"`, `"Arbitrum"`). */
+  /**
+   * Gearbox network type the SDK is connected to (e.g. `"Mainnet"`, `"Arbitrum"`).
+   **/
   public get networkType(): NetworkType {
     return (this.client.chain as GearboxChain).network;
+  }
+
+  /**
+   * Whether the SDK has been initialised via {@link attach} or {@link hydrate}.
+   **/
+  public get attached(): boolean {
+    return this.#attached;
   }
 
   /**

@@ -129,6 +129,30 @@ describe("hydrate()", () => {
     }
   });
 
+  it("skips missing chains when allowMissingChains is set", () => {
+    const hydrateSpy = vi
+      .spyOn(OnchainSDK.prototype, "hydrate")
+      .mockImplementation(() => {});
+
+    try {
+      const sdk = makeSdk();
+      const state: MultichainState = {
+        version: STATE_VERSION,
+        chains: [{ network: "Mainnet" } as MultichainState["chains"][number]],
+      };
+
+      expect(() =>
+        sdk.hydrate(state, { allowMissingChains: true }),
+      ).not.toThrow();
+      expect(hydrateSpy).toHaveBeenCalledTimes(1);
+      expect(hydrateSpy.mock.calls[0][0]).toMatchObject({
+        network: "Mainnet",
+      });
+    } finally {
+      hydrateSpy.mockRestore();
+    }
+  });
+
   it("silently ignores extra chains in state", () => {
     const hydrateSpy = vi
       .spyOn(OnchainSDK.prototype, "hydrate")

@@ -97,6 +97,14 @@ export interface MultichainHydrateOptions {
    * Options for Pyth price-feed updates (shared cache across chains).
    **/
   pyth?: PythOptions;
+  /**
+   * When `true`, chains missing from the serialised state are silently skipped
+   * instead of throwing {@link SdkMissingChainStateError}.
+   *
+   * Useful when a deprecated chain is no longer included in cached state snapshots
+   * but users still need it in legacy mode to exit existing positions.
+   **/
+  allowMissingChains?: boolean;
 }
 
 /**
@@ -196,7 +204,8 @@ export class MultichainSDK<const Plugins extends PluginsMap = {}> {
    * @param state - Multichain serialised state.
    * @param options - Shared and per-chain hydrate options.
    * @throws {@link SdkStateVersionMismatchError} if version doesn't match.
-   * @throws {@link SdkMissingChainStateError} if a configured chain has no state.
+   * @throws {@link SdkMissingChainStateError} if a configured chain has no
+   *   state and `allowMissingChains` is not set.
    */
   public hydrate(
     state: MultichainState<Plugins>,
@@ -224,6 +233,9 @@ export class MultichainSDK<const Plugins extends PluginsMap = {}> {
     for (const [network, sdk] of this.#chains) {
       const chainState = stateByNetwork.get(network);
       if (!chainState) {
+        if (options?.allowMissingChains) {
+          continue;
+        }
         throw new SdkMissingChainStateError(network);
       }
       const perChainOpts = options?.perChain?.[network] ?? {};
