@@ -126,9 +126,11 @@ export class MultichainSDK<const Plugins extends PluginsMap = {}> {
   readonly #chains: Map<NetworkType, OnchainSDK<Plugins>>;
   #redstoneCache?: PriceUpdatesCache;
   #pythCache?: PriceUpdatesCache;
+  #logger?: ILogger;
 
   constructor(options: MultichainSDKOptions<Plugins>) {
     this.#chains = new Map();
+    this.#logger = options.logger;
 
     for (const [network, chainConfig] of Object.entries(options.chains)) {
       const { gasLimit, ...clientOptions } = chainConfig;
@@ -196,6 +198,7 @@ export class MultichainSDK<const Plugins extends PluginsMap = {}> {
         });
       }),
     );
+    this.#logger?.info("Attached all chains");
   }
 
   /**
@@ -253,6 +256,7 @@ export class MultichainSDK<const Plugins extends PluginsMap = {}> {
         },
       });
     }
+    this.#logger?.info("Hydrated all chains");
   }
 
   /**
@@ -316,6 +320,7 @@ export class MultichainSDK<const Plugins extends PluginsMap = {}> {
     if (Object.keys(errors).length > 0) {
       throw new SdkSyncFailedError(errors);
     }
+    this.#logger?.info("Synced state for all chains");
   }
 
   /**
