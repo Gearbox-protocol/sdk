@@ -82,6 +82,8 @@ const RANGE_ERROR_PATTERNS: RegExp[] = [
   /eth_getLogs requests with up to/i,
   /range is too large/i,
   /exceeded max allowed range/i,
+  // Encountered on DRPC: "query exceeds max results 20000, retry with the range …"
+  /exceeds max results/i,
 ];
 
 /**
@@ -108,6 +110,12 @@ const ALCHEMY_RANGE_RE =
   /this block range should work: \[(0x[0-9a-fA-F]+),\s*(0x[0-9a-fA-F]+)\]/;
 
 /**
+ * Matches the DRPC-specific suggested range:
+ * `"query exceeds max results 20000, retry with the range 19515507-19515513"`.
+ */
+const DRPC_RANGE_RE = /retry with the range (\d+)-(\d+)/;
+
+/**
  * @internal
  * Attempts to extract a concrete page-size hint from an error thrown by an
  * RPC provider. Two strategies are tried:
@@ -115,7 +123,9 @@ const ALCHEMY_RANGE_RE =
  * 1. **Alchemy JSON details** — parses the `details` field of a
  *    {@link HttpRequestError} for a suggested `[fromHex, toHex]` range and
  *    computes the span as `toHex - fromHex + 1`.
- * 2. **Generic N-blocks pattern** — matches `/<number> block(s)/i` in the
+ * 2. **DRPC decimal range** — matches `retry with the range <from>-<to>` and
+ *    computes the span as `to - from + 1`.
+ * 3. **Generic N-blocks pattern** — matches `/<number> block(s)/i` in the
  *    error message.
  *
  * @param error - Any thrown value.
@@ -126,6 +136,14 @@ export function parsePageSizeHint(error: unknown): number | null {
   if (alchemy != null) return alchemy;
 
   const msg = errorMessage(error);
+
+  const drpc = msg.match(DRPC_RANGE_RE);
+  if (drpc) {
+    const from = Number(drpc[1]);
+    const to = Number(drpc[2]);
+    return to - from + 1;
+  }
+
   const m = msg.match(GENERIC_BLOCKS_RE);
   return m ? Number(m[1]) : null;
 }

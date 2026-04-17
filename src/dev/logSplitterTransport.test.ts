@@ -18,6 +18,8 @@ import {
 
 const RANGE_ERR = "query exceeds max block range";
 const hintErr = (n: number) => `cannot request logs over more than ${n} blocks`;
+const drpcHintErr = (from: number, to: number) =>
+  `query exceeds max results 20000, retry with the range ${from}-${to}`;
 
 type RangeStr = `${number}-${number}`;
 type BlockNum = number;
@@ -90,6 +92,7 @@ describe("isRangeError", () => {
     "range is too large",
     "exceeded max allowed range",
     "response size is too large",
+    "query exceeds max results 20000, retry with the range 19515507-19515513",
   ];
 
   const negative = [
@@ -133,6 +136,13 @@ describe("parsePageSizeHint", () => {
           '{"code":-32600,"message":"You can make eth_getLogs requests with up to a 10000 block range. Based on your parameters, this block range should work: [0x100, 0x1ff]"}',
       }),
       expected: 256,
+    },
+    {
+      name: "DRPC suggested range",
+      error: new Error(
+        "query exceeds max results 20000, retry with the range 19515507-19515513",
+      ),
+      expected: 7,
     },
     {
       name: "no hint in range error",
@@ -210,6 +220,19 @@ describe("fetchLogsWithPagination", () => {
         [30, 59],
         [60, 89],
         [90, 99],
+      ],
+    },
+    {
+      name: "DRPC range hint",
+      from: 100,
+      to: 119,
+      fails: { "100-119": drpcHintErr(100, 104) },
+      calls: [
+        [100, 119],
+        [100, 104],
+        [105, 109],
+        [110, 114],
+        [115, 119],
       ],
     },
     {
