@@ -155,8 +155,18 @@ export type RevolverTransportConfig = {
 } & z.infer<typeof revolverTransportConfigSchema>;
 
 export class NoAvailableTransportsError extends BaseError {
-  constructor(cause?: Error) {
-    super("no available transports", { cause });
+  statuses: ProviderStatus[];
+
+  constructor(statuses: ProviderStatus[], cause?: Error) {
+    super("No available transports", {
+      cause,
+      metaMessages:
+        statuses.length > 0
+          ? statuses.map(s => `- ${s.id}: ${s.status}`)
+          : ["No transports configured"],
+      name: "NoAvailableTransportsError",
+    });
+    this.statuses = statuses;
   }
 }
 
@@ -249,7 +259,7 @@ export class RevolverTransport
     }
 
     if (transports.length === 0) {
-      throw new NoAvailableTransportsError();
+      throw new NoAvailableTransportsError([]);
     }
     this.#isSingle = transports.length === 1;
 
@@ -313,7 +323,7 @@ export class RevolverTransport
     } while (this.#selector.canRotate());
 
     this.#requests.delete(r);
-    throw new NoAvailableTransportsError(error);
+    throw new NoAvailableTransportsError(this.#selector.statuses(), error);
   };
 
   public get config(): TransportConfig<"revolver"> {
