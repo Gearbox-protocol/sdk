@@ -10,8 +10,8 @@ import type { MultiCall, RawTx } from "../../types/index.js";
 import type {
   SecuritizeInvestorData,
   SecuritizeKYCFactoryStateHuman,
-  SecuritizeMulticallParams,
   SecuritizeOpenAccountRequirements,
+  SecuritizeOperationParams,
 } from "./securitize/index.js";
 import { KYC_FACTORY_SECURITIZE } from "./securitize/index.js";
 
@@ -30,29 +30,35 @@ export type KYCFactoryType = (typeof KYC_FACTORY_TYPES)[number];
  *
  * Type-level registry mapping each {@link KYCFactoryType} to its associated
  * data types. Adding a new KYC factory requires a single new entry here;
- * all derived types ({@link InvestorData}, {@link AnyOpenAccountRequirements},
- * etc.) update automatically.
+ * all derived types update automatically.
  **/
 interface KYCFactoryTypeMap {
   [KYC_FACTORY_SECURITIZE]: {
     investorData: SecuritizeInvestorData;
     openAccountRequirements: SecuritizeOpenAccountRequirements;
     stateHuman: SecuritizeKYCFactoryStateHuman;
-    multicallParams: SecuritizeMulticallParams;
+    operationParams: SecuritizeOperationParams;
   };
 }
 
-/** Extracts the investor data type for a specific factory type `T`. */
-type KYCInvestorDataFor<T extends KYCFactoryType> =
+/**
+ * Investor data decoded from the KYC compressor, defaults to union of all factory types
+ **/
+export type KYCInvestorData<T extends KYCFactoryType = KYCFactoryType> =
   KYCFactoryTypeMap[T]["investorData"];
 
-/** Extracts the open-account requirements type for a specific factory type `T`. */
-type KYCOpenAccountReqFor<T extends KYCFactoryType> =
-  KYCFactoryTypeMap[T]["openAccountRequirements"];
+/**
+ * Open-account requirements for a KYC factory, defaults to union of all factory types
+ **/
+export type KYCOpenAccountRequirements<
+  T extends KYCFactoryType = KYCFactoryType,
+> = KYCFactoryTypeMap[T]["openAccountRequirements"];
 
-/** Extracts the multicall/openCreditAccount extra params type for a specific factory type `T`. */
-type KYCMulticallParamsFor<T extends KYCFactoryType> =
-  KYCFactoryTypeMap[T]["multicallParams"];
+/**
+ * Open credit account/Multicall extra params type for a KYC factory, defaults to union of all factory types
+ **/
+export type KYCOperationParams<T extends KYCFactoryType = KYCFactoryType> =
+  KYCFactoryTypeMap[T]["operationParams"];
 
 /**
  * Raw return type of `KYCCompressor.getKYCMarketsData`.
@@ -99,11 +105,6 @@ export type KYCCompressorInvestorData = Unarray<
 export type KYCState = KYCCompressorResponse;
 
 /**
- * Investor data decoded from the KYC compressor, union of all factory types.
- **/
-export type InvestorData = KYCFactoryTypeMap[KYCFactoryType]["investorData"];
-
-/**
  * Human-readable KYC factory state, union of all factory types.
  **/
 export type KYCFactoryStateHuman =
@@ -116,12 +117,6 @@ export interface KYCStateHuman {
   /** State of each loaded KYC factory. */
   factories: KYCFactoryStateHuman[];
 }
-
-/**
- * Open-account requirements for any KYC factory (union of all factory types).
- **/
-export type OpenAccountRequirements =
-  KYCFactoryTypeMap[KYCFactoryType]["openAccountRequirements"];
 
 /**
  * Shared interface for all KYC factory contracts.
@@ -145,7 +140,7 @@ export interface IKYCFactory<T extends KYCFactoryType = KYCFactoryType>
    *
    * @param data - raw KYCCompressor InvestorData
    **/
-  decodeInvestorData(data: KYCCompressorInvestorData): KYCInvestorDataFor<T>;
+  decodeInvestorData(data: KYCCompressorInvestorData): KYCInvestorData<T>;
   /**
    * Returns the investor address for a credit account.
    * @param creditAccount - credit account address
@@ -178,14 +173,13 @@ export interface IKYCFactory<T extends KYCFactoryType = KYCFactoryType>
    *
    * @param creditAccount - credit account address
    * @param calls - calls to perform
-   * @param options - optional factory-specific parameters (e.g. tokens to
-   *   register, signatures to cache). When omitted the implementation
-   *   uses sensible defaults (typically empty arrays).
+   * @param options - factory-specific parameters (e.g. tokens to
+   *   register, signatures to cache).
    **/
   multicall(
     creditAccount: Address,
     calls: MultiCall[],
-    options?: KYCMulticallParamsFor<T>,
+    options: KYCOperationParams<T>,
   ): RawTx;
   /**
    * Checks if the user can open a credit account with this factory.
@@ -197,21 +191,20 @@ export interface IKYCFactory<T extends KYCFactoryType = KYCFactoryType>
   getOpenAccountRequirements(
     investor: Address,
     props: GetOpenAccountRequirementsProps,
-  ): Promise<KYCOpenAccountReqFor<T> | undefined>;
+  ): Promise<KYCOpenAccountRequirements<T> | undefined>;
   /**
    * Creates a raw transaction to open a credit account.
    * Similar to {@link CreditFacadeV310Contract.openCreditAccount}.
    *
    * @param creditManager - credit manager address
    * @param calls - initial calls to perform
-   * @param options - optional factory-specific parameters (e.g. tokens to
-   *   register, signatures to cache). When omitted the implementation
-   *   uses sensible defaults (typically empty arrays).
+   * @param options - factory-specific parameters (e.g. tokens to
+   *   register, signatures to cache).
    **/
   openCreditAccount(
     creditManager: Address,
     calls: MultiCall[],
-    options?: KYCMulticallParamsFor<T>,
+    options: KYCOperationParams<T>,
   ): RawTx;
 }
 

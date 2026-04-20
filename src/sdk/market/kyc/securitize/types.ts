@@ -115,7 +115,8 @@ export interface SecuritizeKYCFactoryStateHuman extends BaseContractStateHuman {
  * Factory-specific parameters for {@link SecuritizeKYCFactory.multicall}
  * and {@link SecuritizeKYCFactory.openCreditAccount}.
  **/
-export interface SecuritizeMulticallParams {
+export interface SecuritizeOperationParams {
+  type: typeof KYC_FACTORY_SECURITIZE;
   /** DSToken addresses to register for this operation. */
   tokensToRegister: Address[];
   /** Cached EIP-712 registration signatures to store on-chain. */

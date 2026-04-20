@@ -15,8 +15,8 @@ import type {
   DStokenData,
   SecuritizeInvestorData,
   SecuritizeKYCFactoryStateHuman,
-  SecuritizeMulticallParams,
   SecuritizeOpenAccountRequirements,
+  SecuritizeOperationParams,
 } from "./types.js";
 
 const abi = iSecuritizeKYCFactoryAbi;
@@ -158,9 +158,9 @@ export class SecuritizeKYCFactory
   public multicall(
     creditAccount: Address,
     calls: MultiCall[],
-    options?: SecuritizeMulticallParams,
+    options: SecuritizeOperationParams,
   ): RawTx {
-    const { tokensToRegister = [], signaturesToCache = [] } = options ?? {};
+    const { tokensToRegister, signaturesToCache } = options;
     return this.createRawTx({
       functionName: "multicall",
       args: [creditAccount, calls, tokensToRegister, signaturesToCache],
@@ -207,9 +207,9 @@ export class SecuritizeKYCFactory
   public openCreditAccount(
     creditManager: Address,
     calls: MultiCall[],
-    options?: SecuritizeMulticallParams,
+    options: SecuritizeOperationParams,
   ): RawTx {
-    const { tokensToRegister = [], signaturesToCache = [] } = options ?? {};
+    const { tokensToRegister, signaturesToCache } = options;
     return this.createRawTx({
       functionName: "openCreditAccount",
       args: [creditManager, calls, tokensToRegister, signaturesToCache],

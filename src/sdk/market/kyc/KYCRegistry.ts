@@ -20,9 +20,9 @@ import {
   SecuritizeKYCFactory,
 } from "./securitize/index.js";
 import type {
-  InvestorData,
   KYCCompressorResponse,
   KYCFactoryData,
+  KYCInvestorData,
   KYCState,
   KYCStateHuman,
   KYCUnderlyingData,
@@ -84,7 +84,7 @@ export class KYCRegistry extends SDKConstruct {
   public async getInvestorData(
     investor: Address,
     factories_?: Address[],
-  ): Promise<InvestorData[]> {
+  ): Promise<KYCInvestorData[]> {
     const [kycCompressorAddress] = this.sdk.addressProvider.mustGetLatest(
       AP_KYC_COMPRESSOR,
       VERSION_RANGE_310,
@@ -99,7 +99,7 @@ export class KYCRegistry extends SDKConstruct {
       functionName: "getKYCInvestorData",
       args: [investor, factories.map(f => f.address)],
     });
-    const result: InvestorData[] = [];
+    const result: KYCInvestorData[] = [];
     for (let i = 0; i < factories.length; i++) {
       const factory = factories[i];
       const factoryData = resp[i];

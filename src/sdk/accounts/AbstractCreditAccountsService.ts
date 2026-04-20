@@ -26,7 +26,7 @@ import {
   VERSION_RANGE_310,
 } from "../constants/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
-import type { CreditSuite } from "../market/index.js";
+import type { CreditSuite, KYCOperationParams } from "../market/index.js";
 import {
   getRawPriceUpdates,
   type IPriceFeedContract,
@@ -36,7 +36,7 @@ import {
 import {
   isKYCFactory,
   KYC_FACTORY_SECURITIZE,
-  type OpenAccountRequirements,
+  type KYCOpenAccountRequirements,
   type SecuritizeKYCFactory,
 } from "../market/kyc/index.js";
 import { type Asset, assetsMap, type RouterCASlice } from "../router/index.js";
@@ -1120,7 +1120,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     borrower: Address,
     creditManager: Address,
     props: GetOpenAccountRequirementsProps,
-  ): Promise<OpenAccountRequirements | undefined> {
+  ): Promise<KYCOpenAccountRequirements | undefined> {
     const { kycFactory } =
       this.sdk.marketRegister.findByCreditManager(creditManager);
     if (!kycFactory) {
@@ -1777,6 +1777,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
    * @param to
    * @param calls
    * @param referralCode
+   * @param kycOptions
    * @returns
    */
   protected async openCreditAccountTx(
@@ -1784,19 +1785,20 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     to: Address,
     calls: MultiCall[],
     referralCode?: bigint,
+    kycOptions?: KYCOperationParams,
   ): Promise<RawTx> {
     const marketSuite = this.sdk.marketRegister.findByPool(suite.pool);
     const factory = marketSuite.kycFactory;
 
-    if (factory && isKYCFactory(factory, KYC_FACTORY_SECURITIZE)) {
-      // TODO: this should be passed via strategy
-      const tokensToRegister = (factory as SecuritizeKYCFactory).dsTokens.map(
-        t => t.address,
+    if (factory) {
+      if (!kycOptions) {
+        throw new Error("KYC options are required for KYC factories");
+      }
+      return factory.openCreditAccount(
+        suite.creditManager.address,
+        calls,
+        kycOptions,
       );
-      return factory.openCreditAccount(suite.creditManager.address, calls, {
-        tokensToRegister,
-        signaturesToCache: [],
-      });
     }
 
     return suite.creditFacade.openCreditAccount(to, calls, referralCode ?? 0n);
@@ -1807,12 +1809,14 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
    * @param suite
    * @param creditAccount
    * @param calls
+   * @param options
    * @returns
    */
   protected async multicallTx(
     suite: CreditSuite,
     creditAccount: Address,
     calls: MultiCall[],
+    kycOptions?: KYCOperationParams,
   ): Promise<RawTx> {
     const marketSuite = this.sdk.marketRegister.findByCreditManager(
       suite.creditManager.address,
@@ -1820,7 +1824,10 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const factory = marketSuite.kycFactory;
 
     if (factory) {
-      return factory.multicall(creditAccount, calls);
+      if (!kycOptions) {
+        throw new Error("KYC options are required for KYC factories");
+      }
+      return factory.multicall(creditAccount, calls, kycOptions);
     }
 
     return suite.creditFacade.multicall(creditAccount, calls);
@@ -1832,6 +1839,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
    * @param creditAccount
    * @param calls
    * @param operation
+   * @param kycOptions
    * @returns
    */
   protected async closeCreditAccountTx(
@@ -1839,6 +1847,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     creditAccount: Address,
     calls: MultiCall[],
     operation: CloseOptions,
+    kycOptions?: KYCOperationParams,
   ): Promise<RawTx> {
     const marketSuite = this.sdk.marketRegister.findByCreditManager(
       suite.creditManager.address,
@@ -1855,7 +1864,10 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     }
 
     if (factory) {
-      return factory.multicall(creditAccount, calls);
+      if (!kycOptions) {
+        throw new Error("KYC options are required for KYC factories");
+      }
+      return factory.multicall(creditAccount, calls, kycOptions);
     }
 
     return suite.creditFacade.multicall(creditAccount, calls);
