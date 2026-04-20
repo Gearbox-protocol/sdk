@@ -243,19 +243,10 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
 
     this.#logger?.debug(`loaded ${resp.length} contract types`);
 
-    const kycFactories = new AddressSet();
     for (let i = 0; i < tokensToLoad.length; i++) {
-      const meta = this.#overrideTokenMeta(
-        tokensToLoad[i],
-        resp[2 * i],
-        resp[2 * i + 1],
-      );
+      this.#overrideTokenMeta(tokensToLoad[i], resp[2 * i], resp[2 * i + 1]);
       this.#tokenDataLoaded.add(tokensToLoad[i]);
-      if (this.isKYCUnderlying(meta)) {
-        kycFactories.add(meta.kycFactory);
-      }
     }
-    this.#logger?.debug(`found ${kycFactories.size} KYC factories`);
   }
 
   #overrideTokenMeta(
