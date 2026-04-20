@@ -1,6 +1,62 @@
 export const iDSRegistryServiceAbi = [
   {
     type: "function",
+    name: "ACCREDITED",
+    inputs: [],
+    outputs: [{ name: "", type: "uint8", internalType: "uint8" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "APPROVED",
+    inputs: [],
+    outputs: [{ name: "", type: "uint8", internalType: "uint8" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "KYC_APPROVED",
+    inputs: [],
+    outputs: [{ name: "", type: "uint8", internalType: "uint8" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "NONE",
+    inputs: [],
+    outputs: [{ name: "", type: "uint8", internalType: "uint8" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "PENDING",
+    inputs: [],
+    outputs: [{ name: "", type: "uint8", internalType: "uint8" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "PROFESSIONAL",
+    inputs: [],
+    outputs: [{ name: "", type: "uint8", internalType: "uint8" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "QUALIFIED",
+    inputs: [],
+    outputs: [{ name: "", type: "uint8", internalType: "uint8" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "REJECTED",
+    inputs: [],
+    outputs: [{ name: "", type: "uint8", internalType: "uint8" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "addWallet",
     inputs: [
       { name: "wallet", type: "address", internalType: "address" },
@@ -36,6 +92,29 @@ export const iDSRegistryServiceAbi = [
     inputs: [
       { name: "investorId", type: "string", internalType: "string" },
       { name: "collisionHash", type: "string", internalType: "string" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setAttribute",
+    inputs: [
+      { name: "investorId", type: "string", internalType: "string" },
+      { name: "attributeId", type: "uint8", internalType: "uint8" },
+      { name: "value", type: "uint256", internalType: "uint256" },
+      { name: "expiry", type: "uint256", internalType: "uint256" },
+      { name: "proof", type: "string", internalType: "string" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setCountry",
+    inputs: [
+      { name: "investorId", type: "string", internalType: "string" },
+      { name: "country", type: "string", internalType: "string" },
     ],
     outputs: [],
     stateMutability: "nonpayable",
