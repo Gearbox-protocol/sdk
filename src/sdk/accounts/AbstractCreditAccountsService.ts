@@ -1150,6 +1150,8 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
 
       minQuota,
       averageQuota,
+
+      kycOptions,
     } = props;
     const cmSuite = this.sdk.marketRegister.findCreditManager(creditManager);
     const cm = cmSuite.creditManager;
@@ -1186,7 +1188,13 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     if (reopenCreditAccount) {
       tx = await this.multicallTx(cmSuite, reopenCreditAccount, calls);
     } else {
-      tx = await this.openCreditAccountTx(cmSuite, to, calls, referralCode);
+      tx = await this.openCreditAccountTx(
+        cmSuite,
+        to,
+        calls,
+        referralCode,
+        kycOptions,
+      );
     }
     tx.value = ethAmount.toString(10);
 
@@ -1791,9 +1799,6 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const factory = marketSuite.kycFactory;
 
     if (factory) {
-      if (!kycOptions) {
-        throw new Error("KYC options are required for KYC factories");
-      }
       return factory.openCreditAccount(
         suite.creditManager.address,
         calls,
@@ -1809,7 +1814,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
    * @param suite
    * @param creditAccount
    * @param calls
-   * @param options
+   * @param kycOptions
    * @returns
    */
   protected async multicallTx(
@@ -1824,9 +1829,6 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     const factory = marketSuite.kycFactory;
 
     if (factory) {
-      if (!kycOptions) {
-        throw new Error("KYC options are required for KYC factories");
-      }
       return factory.multicall(creditAccount, calls, kycOptions);
     }
 
@@ -1864,9 +1866,6 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     }
 
     if (factory) {
-      if (!kycOptions) {
-        throw new Error("KYC options are required for KYC factories");
-      }
       return factory.multicall(creditAccount, calls, kycOptions);
     }
 

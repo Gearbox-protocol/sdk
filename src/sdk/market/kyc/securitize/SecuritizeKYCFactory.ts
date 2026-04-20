@@ -158,9 +158,14 @@ export class SecuritizeKYCFactory
   public multicall(
     creditAccount: Address,
     calls: MultiCall[],
-    options: SecuritizeOperationParams,
+    options?: SecuritizeOperationParams,
   ): RawTx {
-    const { tokensToRegister, signaturesToCache } = options;
+    // In practice, tokensToRegister and signaturesToCache are not used
+    // They might be necessary in one of the following cases:
+    // 1. credit manager has multiple DS tokens
+    // 2. signature deadline expires
+    // 3. signature is revoked by the user
+    const { tokensToRegister = [], signaturesToCache = [] } = options ?? {};
     return this.createRawTx({
       functionName: "multicall",
       args: [creditAccount, calls, tokensToRegister, signaturesToCache],
@@ -207,9 +212,9 @@ export class SecuritizeKYCFactory
   public openCreditAccount(
     creditManager: Address,
     calls: MultiCall[],
-    options: SecuritizeOperationParams,
+    options?: SecuritizeOperationParams,
   ): RawTx {
-    const { tokensToRegister, signaturesToCache } = options;
+    const { tokensToRegister = [], signaturesToCache = [] } = options ?? {};
     return this.createRawTx({
       functionName: "openCreditAccount",
       args: [creditManager, calls, tokensToRegister, signaturesToCache],

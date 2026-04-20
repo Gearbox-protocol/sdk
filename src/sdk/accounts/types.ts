@@ -13,7 +13,11 @@ import type {
   CreditAccountData,
 } from "../base/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
-import type { CreditSuite, PriceUpdate } from "../market/index.js";
+import type {
+  CreditSuite,
+  KYCOperationParams,
+  PriceUpdate,
+} from "../market/index.js";
 import type { KYCOpenAccountRequirements } from "../market/kyc/index.js";
 import type {
   Asset,
@@ -490,6 +494,15 @@ export interface OpenCAProps extends PrepareUpdateQuotasProps {
    * Referral code to open credit account with
    */
   referralCode: bigint;
+  /**
+   * KYC options to open credit account with, required for KYC factories
+   * First we ask for getOpenAccountRequirements,
+   * then perform necessary actions (e.g. for Securitize, convert requiredSignatures to signaturesToCache)
+   * to produce KYCOperationParams
+   * If getOpenAccountRequirements returned undefined, we need to pass undefined here too;
+   * It means that no KYC actions are required (e.g. when we open second credit account)
+   */
+  kycOptions?: KYCOperationParams;
 }
 
 export interface ChangeDeptProps {

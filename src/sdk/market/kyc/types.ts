@@ -174,12 +174,12 @@ export interface IKYCFactory<T extends KYCFactoryType = KYCFactoryType>
    * @param creditAccount - credit account address
    * @param calls - calls to perform
    * @param options - factory-specific parameters (e.g. tokens to
-   *   register, signatures to cache).
+   *   register, signatures to cache). Undefined value means that no KYC actions are required
    **/
   multicall(
     creditAccount: Address,
     calls: MultiCall[],
-    options: KYCOperationParams<T>,
+    options?: KYCOperationParams<T>,
   ): RawTx;
   /**
    * Checks if the user can open a credit account with this factory.
@@ -200,11 +200,12 @@ export interface IKYCFactory<T extends KYCFactoryType = KYCFactoryType>
    * @param calls - initial calls to perform
    * @param options - factory-specific parameters (e.g. tokens to
    *   register, signatures to cache).
+   * Undefined value means that no KYC actions are required (e.g. when we open second credit account)
    **/
   openCreditAccount(
     creditManager: Address,
     calls: MultiCall[],
-    options: KYCOperationParams<T>,
+    options?: KYCOperationParams<T>,
   ): RawTx;
 }
 
