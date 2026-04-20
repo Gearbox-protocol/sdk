@@ -4,6 +4,7 @@ import type {
 } from "abitype";
 import type { Address, ContractFunctionParameters } from "viem";
 import type { iKYCCompressorAbi } from "../../../abi/kyc/iKYCCompressor.js";
+import type { GetOpenAccountRequirementsProps } from "../../accounts/types.js";
 import type { IBaseContract, Unarray } from "../../base/index.js";
 import type { MultiCall, RawTx } from "../../types/index.js";
 import type {
@@ -189,11 +190,13 @@ export interface IKYCFactory<T extends KYCFactoryType = KYCFactoryType>
   /**
    * Checks if the user can open a credit account with this factory.
    * @param investor - investor address
+   * @param props - {@link GetOpenAccountRequirementsProps}
    * @returns open account requirements for the investor, or `undefined` if the
    *   user can open a credit account without any further actions
    **/
   getOpenAccountRequirements(
     investor: Address,
+    props: GetOpenAccountRequirementsProps,
   ): Promise<KYCOpenAccountReqFor<T> | undefined>;
   /**
    * Creates a raw transaction to open a credit account.

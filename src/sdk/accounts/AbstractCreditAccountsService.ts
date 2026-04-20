@@ -68,6 +68,7 @@ import type {
   GetConnectedMigrationBotsResult,
   GetCreditAccountsArgs,
   GetCreditAccountsOptions,
+  GetOpenAccountRequirementsProps,
   GetPendingWithdrawalsProps,
   GetPendingWithdrawalsResult,
   OpenCAProps,
@@ -1117,16 +1118,15 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
    */
   public async getOpenAccountRequirements(
     borrower: Address,
-    props: Pick<OpenCAProps, "creditManager">,
+    creditManager: Address,
+    props: GetOpenAccountRequirementsProps,
   ): Promise<OpenAccountRequirements | undefined> {
-    const { creditManager } = props;
     const { kycFactory } =
       this.sdk.marketRegister.findByCreditManager(creditManager);
     if (!kycFactory) {
       return undefined;
     }
-    // TODO: pass strategy; for example, for securitize, we need to pass the tokens to register
-    return kycFactory.getOpenAccountRequirements(borrower);
+    return kycFactory.getOpenAccountRequirements(borrower, props);
   }
 
   /**

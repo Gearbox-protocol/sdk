@@ -612,6 +612,17 @@ export interface Rewards {
   rewards: Array<Asset>;
 }
 
+/**
+ * Options to get open account requirements
+ * Compatible with StrategyConfigPayload
+ */
+export interface GetOpenAccountRequirementsProps {
+  /**
+   * Token address of the strategy
+   */
+  tokenOutAddress: Address;
+}
+
 interface CMSlice {
   creditManager: Address;
   creditFacade: Address;
@@ -858,12 +869,14 @@ export interface ICreditAccountsService extends Construct {
   /**
    * Returns open account requirements for a borrower
    * @param borrower - Borrower address
-   * @param props - {@link OpenCAProps}
+   * @param creditManager - Credit manager address
+   * @param props - {@link GetOpenAccountRequirementsProps} you can pass StrategyConfigPayload here
    * @returns Open account requirements or undefined if the user can open a credit account without any further actions
    */
   getOpenAccountRequirements(
     borrower: Address,
-    props: Pick<OpenCAProps, "creditManager">,
+    creditManager: Address,
+    props: GetOpenAccountRequirementsProps,
   ): Promise<OpenAccountRequirements | undefined>;
 
   /**

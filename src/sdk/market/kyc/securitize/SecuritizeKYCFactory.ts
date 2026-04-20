@@ -1,5 +1,6 @@
 import { type Address, decodeAbiParameters } from "viem";
 import { iSecuritizeKYCFactoryAbi } from "../../../../abi/kyc/iSecuritizeKYCFactory.js";
+import type { GetOpenAccountRequirementsProps } from "../../../accounts/types.js";
 import { BaseContract } from "../../../base/index.js";
 import type { GearboxSDK } from "../../../GearboxSDK.js";
 import type { MultiCall, RawTx } from "../../../types/index.js";
@@ -171,13 +172,12 @@ export class SecuritizeKYCFactory
    */
   public async getOpenAccountRequirements(
     investor: Address,
+    props: GetOpenAccountRequirementsProps,
   ): Promise<SecuritizeOpenAccountRequirements | undefined> {
     const [investorData] = await this.#sdk.kyc.getInvestorData(investor, [
       this.address,
     ]);
-    const dsTokens = new AddressSet(this.dsTokens.map(t => t.address));
-    // TODO: this will come from strategy
-    const desiredTokens = dsTokens;
+    const desiredTokens = new AddressSet([props.tokenOutAddress]);
 
     const registredTokens = new AddressSet(investorData.registeredTokens);
     const signedTokens = new AddressSet(
