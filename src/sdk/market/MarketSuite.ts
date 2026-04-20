@@ -5,6 +5,7 @@ import { SDKConstruct } from "../base/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import type { MarketStateHuman } from "../types/index.js";
 import { CreditSuite } from "./credit/index.js";
+import type { IKYCFactory } from "./kyc/types.js";
 import {
   createLossPolicy,
   type ILossPolicyContract,
@@ -60,6 +61,10 @@ export class MarketSuite extends SDKConstruct {
 
   public get underlying(): Address {
     return this.pool.underlying;
+  }
+
+  public get kycFactory(): IKYCFactory | undefined {
+    return this.pool.kycFactory;
   }
 
   override get dirty(): boolean {

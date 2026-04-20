@@ -1,5 +1,6 @@
 import { writeFile } from "node:fs/promises";
 import { pino } from "pino";
+import { stringify as yamlStringify } from "yaml";
 import { AccountsPlugin } from "../src/plugins/accounts/index.js";
 import { AdaptersPlugin } from "../src/plugins/adapters/AdaptersPlugin.js";
 import { ApyPlugin } from "../src/plugins/apy/index.js";
@@ -21,14 +22,16 @@ const logger = pino({
 
 async function example(): Promise<void> {
   // const RPC = "http://127.0.0.1:8545";
-  const RPC = process.env.RPC_URL!;
+  const RPC = "https://anvil.gearbox.foundation/rpc/Securitize";
   const kind = "real";
   // const RPC= megaethTestnet.rpcUrls.default.http[0];
 
   const sdk = await GearboxSDK.attach({
     rpcURLs: [RPC],
     timeout: 480_000,
-    blockNumber: 24736900,
+    // blockNumber: 24736900,
+    marketConfigurators: ["0x610627d8d01a413bdd9b0a0b60070da7dd1e54ad"],
+    kycFactories: ["0x9bccaf938f7de8cfee02ed5e177f3df873087f5c"],
     logger,
     plugins: {
       adapters: new AdaptersPlugin(true),
@@ -68,36 +71,35 @@ async function example(): Promise<void> {
   //   },
   //   state,
   // );
+  await sdk.tokensMeta.loadTokenData();
+  for (const item of sdk.tokensMeta.phantomTokens.values()) {
+    console.log("phantom token", item.symbol, item.addr, item.name);
+  }
+  for (const item of sdk.tokensMeta.kycUnderlyings.values()) {
+    console.log("kyc underlying", item.symbol, item.addr, item.name);
+  }
+  for (const m of sdk.marketRegister.markets) {
+    const meta = sdk.tokensMeta.mustGet(m.underlying);
+    if (sdk.tokensMeta.isKYCUnderlying(meta)) {
+      console.log(
+        "market with kyc underlying",
+        m.pool.pool.address,
+        meta.kycFactory,
+        meta.asset,
+      );
+    }
+  }
 
   const prefix = RPC.includes("127.0.0.1") ? "anvil_" : "";
   const net = sdk.networkType;
   await writeFile(
-    `tmp/state_next_${kind}_human_${net}_${prefix}${sdk.currentBlock}.json`,
-    json_stringify(sdk.stateHuman()),
+    `tmp/state_next_${kind}_human_${net}_${prefix}${sdk.currentBlock}.yaml`,
+    yamlStringify(sdk.stateHuman()),
   );
   await writeFile(
     `tmp/state_next_${kind}_${net}_${prefix}${sdk.currentBlock}.json`,
     json_stringify(sdk.state),
   );
-
-  // sdk.provider.publicClient.watchBlocks({
-  //   onBlock: async block => {
-  //     await sdk.syncState({
-  //       blockNumber: block.number,
-  //       timestamp: block.timestamp,
-  //     });
-  //     // const prefix = RPC.includes("127.0.0.1") ? "anvil_" : "";
-  //     // const net = sdk.provider.networkType;
-  //     // await writeFile(
-  //     //   `tmp/state_${kind}_human_${net}_${prefix}${sdk.currentBlock}.json`,
-  //     //   json_stringify(sdk.stateHuman()),
-  //     // );
-  //     // await writeFile(
-  //     //   `tmp/state_${kind}_${net}_${prefix}${sdk.currentBlock}.json`,
-  //     //   json_stringify(sdk.state),
-  //     // );
-  //   },
-  // });
 
   logger.info("done");
 }

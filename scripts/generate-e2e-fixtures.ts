@@ -35,6 +35,10 @@ const BLOCK = process.env.E2E_BLOCK
   ? BigInt(process.env.E2E_BLOCK)
   : 24_736_900n;
 const SINGLE_MC = process.env.E2E_MC as Address | undefined;
+const KYC_FACTORIES = process.env.E2E_KYC
+  ? (process.env.E2E_KYC.split(",") as Address[])
+  : undefined;
+const IGNORE_UPDATABLE_PRICES = !!process.env.E2E_NO_ORACLES;
 // ─────────────────────────────────────────────────────────────────────────────
 
 const RPC_URL = process.env.RPC_URL ?? "";
@@ -94,6 +98,7 @@ async function main() {
     };
 
     const mcOpts = SINGLE_MC ? { marketConfigurators: [SINGLE_MC] } : {};
+    const kycOpts = KYC_FACTORIES ? { kycFactories: KYC_FACTORIES } : {};
 
     await GearboxSDK.attach({
       rpcURLs: [anvil.url],
@@ -108,9 +113,11 @@ async function main() {
           accounts: new AccountsPlugin({ includeZeroDebt: true }, true),
         },
       }),
+      ...(IGNORE_UPDATABLE_PRICES && { ignoreUpdateablePrices: true }),
       logger: console,
       ...oracleOpts,
       ...mcOpts,
+      ...kycOpts,
     });
 
     // Re-attach per individual market configurator so that oracle proxy
@@ -128,8 +135,10 @@ async function main() {
         timeout: 480_000,
         blockNumber: BLOCK,
         marketConfigurators: [mc],
+        ...(IGNORE_UPDATABLE_PRICES && { ignoreUpdateablePrices: true }),
         logger: console,
         ...oracleOpts,
+        ...kycOpts,
       });
     }
   } finally {

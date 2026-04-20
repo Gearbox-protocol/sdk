@@ -1,3 +1,4 @@
+import { ierc4626AdapterAbi } from "@gearbox-protocol/integrations-v3";
 import type { Address, Hex } from "viem";
 import { encodeFunctionData, getContract } from "viem";
 import {
@@ -9,6 +10,7 @@ import { peripheryCompressorAbi } from "../../abi/compressors/peripheryCompresso
 import { rewardsCompressorAbi } from "../../abi/compressors/rewardsCompressor.js";
 import { iWithdrawalCompressorV310Abi } from "../../abi/IWithdrawalCompressorV310.js";
 import { iBaseRewardPoolAbi } from "../../abi/iBaseRewardPool.js";
+import { iKYCFactoryAbi } from "../../abi/kyc/iKYCFactory.js";
 import type { CreditAccountData } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
 import { chains } from "../chain/chains.js";
@@ -31,9 +33,15 @@ import {
   type PriceUpdate,
   type UpdatePriceFeedsResult,
 } from "../market/index.js";
+import {
+  isKYCFactory,
+  KYC_FACTORY_SECURITIZE,
+  type OpenAccountRequirements,
+  type SecuritizeKYCFactory,
+} from "../market/kyc/index.js";
 import { type Asset, assetsMap, type RouterCASlice } from "../router/index.js";
 import type { IPriceUpdateTx, MultiCall, RawTx } from "../types/index.js";
-import { AddressMap, AddressSet } from "../utils/index.js";
+import { AddressMap, AddressSet, hexEq } from "../utils/index.js";
 import { simulateWithPriceUpdates } from "../utils/viem/index.js";
 import {
   extractPriceUpdates,
@@ -55,6 +63,7 @@ import type {
   ExecuteSwapProps,
   FullyLiquidateProps,
   FullyLiquidateResult,
+  GetApprovalAddressProps,
   GetConnectedBotsResult,
   GetConnectedMigrationBotsResult,
   GetCreditAccountsArgs,
@@ -155,7 +164,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   public async getCreditAccountData(
     account: Address,
     blockNumber?: bigint,
-  ): Promise<CreditAccountData | undefined> {
+  ): Promise<CreditAccountData<true> | undefined> {
     let raw: CreditAccountData;
     try {
       raw = await this.client.readContract({
@@ -171,24 +180,44 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
       // TODO: reverts if account is not found, how to handle other revert reasons?
       return undefined;
     }
+    const marketSuite = this.sdk.marketRegister.findByCreditManager(
+      raw.creditManager,
+    );
+    const factory = marketSuite.kycFactory;
+
+    let ca: CreditAccountData;
+    let investor: Address | undefined;
     if (raw.success) {
-      return raw;
+      ca = raw;
+      investor = await factory?.getInvestor(raw.creditAccount, false);
+    } else {
+      const { txs: priceUpdateTxs } = await this.getUpdateForAccount(raw);
+      [ca, investor] = (await simulateWithPriceUpdates(this.client, {
+        priceUpdates: priceUpdateTxs,
+        contracts: [
+          {
+            abi: creditAccountCompressorAbi,
+            address: this.#compressor,
+            functionName: "getCreditAccountData",
+            args: [account],
+          },
+          ...(factory
+            ? [
+                {
+                  abi: iKYCFactoryAbi,
+                  address: factory.address,
+                  functionName: "getInvestor",
+                  args: [raw.creditAccount],
+                },
+              ]
+            : []),
+        ] as any,
+        blockNumber,
+        gas: this.sdk.gasLimit,
+      })) as [CreditAccountData, Address | undefined];
     }
-    const { txs: priceUpdateTxs } = await this.getUpdateForAccount(raw);
-    const [cad] = await simulateWithPriceUpdates(this.client, {
-      priceUpdates: priceUpdateTxs,
-      contracts: [
-        {
-          abi: creditAccountCompressorAbi,
-          address: this.#compressor,
-          functionName: "getCreditAccountData",
-          args: [account],
-        },
-      ],
-      blockNumber,
-      gas: this.sdk.gasLimit,
-    });
-    return cad;
+
+    return { ...ca, investor };
   }
 
   /**
@@ -259,6 +288,134 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
 
     // sort by health factor ascending
     return allCAs.sort((a, b) => Number(a.healthFactor - b.healthFactor));
+  }
+
+  /**
+   * {@inheritDoc ICreditAccountsService.getBorrowerCreditAccounts}
+   **/
+  public async getBorrowerCreditAccounts(
+    borrower: Address,
+    options?: GetCreditAccountsOptions,
+    blockNumber?: bigint,
+  ): Promise<Array<CreditAccountData<true>>> {
+    const {
+      creditManager,
+      includeZeroDebt = false,
+      maxHealthFactor = MAX_UINT256,
+      minHealthFactor = 0n,
+      ignoreReservePrices = false,
+    } = options ?? {};
+
+    const { txs: priceUpdateTxs } =
+      await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(
+        ignoreReservePrices ? { main: true } : undefined,
+      );
+
+    // 1. Discover KYC credit accounts for this borrower across all factories
+    const investorDataList = await this.sdk.kyc.getInvestorData(borrower);
+    const kycAccountAddresses: Address[] = investorDataList.flatMap(d =>
+      d.creditAccounts.map(ca => ca.creditAccount),
+    );
+
+    // 2. Build a single multicall:
+    //    - getCreditAccountData for each KYC account
+    //    - getCreditAccounts(borrower, reverting=false)
+    //    - getCreditAccounts(borrower, reverting=true)
+    const cmFilter: CreditManagerFilter = creditManager
+      ? {
+          configurators: [],
+          creditManagers: [creditManager],
+          pools: [],
+          underlying: ADDRESS_0X0,
+        }
+      : {
+          configurators: this.marketConfigurators,
+          creditManagers: [],
+          pools: [],
+          underlying: ADDRESS_0X0,
+        };
+
+    const permissiveFilter: CreditAccountFilter = {
+      owner: borrower,
+      includeZeroDebt: true,
+      minHealthFactor: 0n,
+      maxHealthFactor: MAX_UINT256,
+      reverting: false,
+    };
+
+    const kycContracts = kycAccountAddresses.map(
+      account =>
+        ({
+          abi: creditAccountCompressorAbi,
+          address: this.#compressor,
+          functionName: "getCreditAccountData" as const,
+          args: [account],
+        }) as const,
+    );
+
+    const getCreditAccountsContracts = [false, true].map(
+      reverting =>
+        ({
+          abi: creditAccountCompressorAbi,
+          address: this.#compressor,
+          functionName: "getCreditAccounts" as const,
+          args: [cmFilter, { ...permissiveFilter, reverting }, 0n],
+        }) as const,
+    );
+
+    const allContracts = [...kycContracts, ...getCreditAccountsContracts];
+
+    const results = await simulateWithPriceUpdates(this.client, {
+      priceUpdates: priceUpdateTxs,
+      contracts: allContracts,
+      blockNumber,
+      gas: this.sdk.gasLimit,
+    });
+
+    // 3. Split results back
+    const kycResults = results.slice(
+      0,
+      kycAccountAddresses.length,
+    ) as Array<CreditAccountData>;
+    const normalResults = results.slice(kycAccountAddresses.length) as Array<
+      [CreditAccountData[], bigint]
+    >;
+
+    // 4. Assemble with investor
+    const seen = new AddressSet();
+    const allCAs: Array<CreditAccountData<true>> = [];
+
+    for (const ca of kycResults) {
+      if (!seen.has(ca.creditAccount)) {
+        seen.add(ca.creditAccount);
+        allCAs.push({ ...ca, investor: borrower });
+      }
+    }
+
+    for (const [accounts] of normalResults) {
+      for (const ca of accounts) {
+        if (!seen.has(ca.creditAccount)) {
+          seen.add(ca.creditAccount);
+          allCAs.push({ ...ca, investor: undefined });
+        }
+      }
+    }
+
+    // 5. Apply remaining TS-side filters
+    const filtered = allCAs.filter(ca => {
+      if (!includeZeroDebt && ca.debt === 0n) return false;
+      if (ca.healthFactor < minHealthFactor) return false;
+      if (ca.healthFactor > maxHealthFactor) return false;
+      if (creditManager && !hexEq(ca.creditManager, creditManager))
+        return false;
+      return true;
+    });
+
+    this.logger?.debug(
+      `loaded ${allCAs.length} borrower credit accounts (${kycResults.length} KYC, ${filtered.length} after filter)`,
+    );
+
+    return filtered.sort((a, b) => Number(a.healthFactor - b.healthFactor));
   }
 
   /**
@@ -529,6 +686,14 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }: CloseCreditAccountProps): Promise<CloseCreditAccountResult> {
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
 
+    await this.sdk.tokensMeta.loadTokenData(cm.underlying);
+    const underlying = this.sdk.tokensMeta.mustGet(cm.underlying);
+    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
+      throw new Error(
+        "closeCreditAccount is not supported for KYC underlying credit accounts",
+      );
+    }
+
     const routerCloseResult =
       closePath ||
       (await this.sdk.routerFor(ca).findBestClosePath({
@@ -658,9 +823,28 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
             {},
           )
         : [];
+    const unwrapCalls =
+      collateral && isDecrease
+        ? (await this.getKYCUnwrapCalls(
+            collateral[0].balance,
+            creditAccount.creditManager,
+          )) || []
+        : [];
+
+    if (
+      addCollateralCalls.length > 0 &&
+      unwrapCalls.length === 0 &&
+      collateral &&
+      collateral?.[0].token !== creditAccount.underlying
+    ) {
+      throw new Error(
+        "Can't use collateral other than underlying for non KYC market",
+      );
+    }
 
     const operationCalls: Array<MultiCall> = [
       ...addCollateralCalls,
+      ...unwrapCalls,
       this.#prepareChangeDebt(creditAccount.creditFacade, change, isDecrease),
     ];
 
@@ -912,6 +1096,40 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
+   * {@inheritDoc ICreditAccountsService.getApprovalAddress}
+   **/
+  public async getApprovalAddress(
+    options: GetApprovalAddressProps,
+  ): Promise<Address> {
+    const { creditManager } = options;
+    const suite = this.sdk.marketRegister.findCreditManager(creditManager);
+    const marketSuite = this.sdk.marketRegister.findByPool(suite.pool);
+    const factory = marketSuite.kycFactory;
+
+    if (factory) {
+      return factory.getApprovalAddress(options);
+    }
+    return suite.creditManager.address;
+  }
+
+  /**
+   * {@inheritDoc ICreditAccountsService.getOpenAccountRequirements}
+   */
+  public async getOpenAccountRequirements(
+    borrower: Address,
+    props: Pick<OpenCAProps, "creditManager">,
+  ): Promise<OpenAccountRequirements | undefined> {
+    const { creditManager } = props;
+    const { kycFactory } =
+      this.sdk.marketRegister.findByCreditManager(creditManager);
+    if (!kycFactory) {
+      return undefined;
+    }
+    // TODO: pass strategy; for example, for securitize, we need to pass the tokens to register
+    return kycFactory.getOpenAccountRequirements(borrower);
+  }
+
+  /**
    * {@inheritDoc ICreditAccountsService.openCA}
    **/
   public async openCA(
@@ -1076,6 +1294,162 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   }
 
   /**
+   * Returns multicall entries to redeem (unwrap) KYC ERC-4626 vault shares into underlying for the given credit manager.
+   * Used when withdrawing debt from a KYC market: redeems adapter vault shares so the underlying can be withdrawn.
+   * Only applies when the credit manager's underlying is KYC-gated and has an ERC-4626 adapter configured.
+   * @param amount - Number of vault shares (adapter tokens) to redeem
+   * @param creditManager - Credit manager address
+   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not KYC or no adapter is configured
+   */
+  public async getKYCUnwrapCalls(
+    amount: bigint,
+    creditManager: Address,
+  ): Promise<Array<MultiCall> | undefined> {
+    const suite = this.sdk.marketRegister.findCreditManager(creditManager);
+    const meta = this.sdk.tokensMeta.mustGet(suite.underlying);
+    if (!this.sdk.tokensMeta.isKYCUnderlying(meta)) {
+      return undefined;
+    }
+
+    const adapter = suite.creditManager.adapters.get(meta.addr);
+    const adapterAddress = adapter?.address;
+
+    if (!adapterAddress) {
+      return undefined;
+    }
+
+    const mc: Array<MultiCall> = [
+      {
+        target: adapterAddress,
+        callData: encodeFunctionData({
+          abi: ierc4626AdapterAbi,
+          functionName: "redeem",
+          args: [amount, ADDRESS_0X0, ADDRESS_0X0],
+        }),
+      },
+    ];
+
+    return mc;
+  }
+  /**
+   * Returns multicall entries to deposit (wrap) underlying into KYC ERC-4626 vault shares for the given credit manager.
+   * Used when adding debt on a KYC market: deposits underlying into the adapter vault so shares are minted on the account.
+   * Only applies when the credit manager's underlying is KYC-gated and has an ERC-4626 adapter configured.
+   * @param amount - Amount of underlying assets to deposit into the vault (in underlying decimals)
+   * @param creditManager - Credit manager address
+   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not KYC or no adapter is configured
+   */
+  public async getKYCWrapCalls(
+    amount: bigint,
+    creditManager: Address,
+  ): Promise<Array<MultiCall> | undefined> {
+    const suite = this.sdk.marketRegister.findCreditManager(creditManager);
+    const meta = this.sdk.tokensMeta.mustGet(suite.underlying);
+    if (!this.sdk.tokensMeta.isKYCUnderlying(meta)) {
+      return undefined;
+    }
+
+    const adapter = suite.creditManager.adapters.get(meta.addr);
+    const adapterAddress = adapter?.address;
+
+    if (!adapterAddress) {
+      return undefined;
+    }
+
+    const mc: Array<MultiCall> = [
+      {
+        target: adapterAddress,
+        callData: encodeFunctionData({
+          abi: ierc4626AdapterAbi,
+          functionName: "deposit",
+          args: [amount, ADDRESS_0X0],
+        }),
+      },
+    ];
+
+    return mc;
+  }
+
+  /**
+   * Returns multicall entries to call redeemDiff on the KYC ERC-4626 adapter for the given credit manager.
+   * Redeems the leftover vault shares (e.g. after repaying debt) so the account does not hold excess KYC vault tokens.
+   * Only applies when the credit manager's underlying is KYC-gated and has an ERC-4626 adapter configured.
+   * @param amount - Leftover vault share amount to redeem (in adapter/vault decimals)
+   * @param creditManager - Credit manager address
+   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not KYC or no adapter is configured
+   */
+  public async getRedeemDiffCalls(
+    amount: bigint,
+    creditManager: Address,
+  ): Promise<Array<MultiCall> | undefined> {
+    const suite = this.sdk.marketRegister.findCreditManager(creditManager);
+    const meta = this.sdk.tokensMeta.mustGet(suite.underlying);
+    if (!this.sdk.tokensMeta.isKYCUnderlying(meta)) {
+      return undefined;
+    }
+
+    const adapter = suite.creditManager.adapters.get(meta.addr);
+    const adapterAddress = adapter?.address;
+
+    if (!adapterAddress) {
+      return undefined;
+    }
+
+    const mc: Array<MultiCall> = [
+      {
+        target: adapterAddress,
+        callData: encodeFunctionData({
+          abi: ierc4626AdapterAbi,
+          functionName: "redeemDiff",
+          args: [amount],
+        }),
+      },
+    ];
+
+    return mc;
+  }
+
+  /**
+   * Returns multicall entries to call depositDiff on the KYC ERC-4626 adapter for the given credit manager.
+   * Deposits the leftover underlying (e.g. after decreasing debt) into the vault so the account does not hold excess underlying.
+   * Only applies when the credit manager's underlying is KYC-gated and has an ERC-4626 adapter configured.
+   * @param amount - Leftover underlying amount to deposit into the vault (in underlying decimals)
+   * @param creditManager - Credit manager address
+   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not KYC or no adapter is configured
+   */
+  public async getDepositDiffCalls(
+    amount: bigint,
+    creditManager: Address,
+  ): Promise<Array<MultiCall> | undefined> {
+    const suite = this.sdk.marketRegister.findCreditManager(creditManager);
+    const meta = this.sdk.tokensMeta.mustGet(suite.underlying);
+    if (!this.sdk.tokensMeta.isKYCUnderlying(meta)) {
+      return undefined;
+    }
+
+    const adapter = suite.creditManager.adapters.get(meta.addr);
+    const adapterAddress = adapter?.address;
+
+    if (!adapterAddress) {
+      return undefined;
+    }
+
+    const mc: Array<MultiCall> = [
+      {
+        target: adapterAddress,
+        callData: encodeFunctionData({
+          abi: ierc4626AdapterAbi,
+          functionName: "depositDiff",
+          args: [amount],
+        }),
+      },
+    ];
+
+    return mc;
+  }
+
+  /**
+   * Returns raw txs that are needed to update all price feeds so that all credit accounts (possibly from different markets) compute
    * {@inheritDoc ICreditAccountsService.getOnDemandPriceUpdates}
    **/
   public async getOnDemandPriceUpdates(
@@ -1411,7 +1785,20 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     calls: MultiCall[],
     referralCode?: bigint,
   ): Promise<RawTx> {
-    // TODO: select between credit facade and KYC factory here
+    const marketSuite = this.sdk.marketRegister.findByPool(suite.pool);
+    const factory = marketSuite.kycFactory;
+
+    if (factory && isKYCFactory(factory, KYC_FACTORY_SECURITIZE)) {
+      // TODO: this should be passed via strategy
+      const tokensToRegister = (factory as SecuritizeKYCFactory).dsTokens.map(
+        t => t.address,
+      );
+      return factory.openCreditAccount(suite.creditManager.address, calls, {
+        tokensToRegister,
+        signaturesToCache: [],
+      });
+    }
+
     return suite.creditFacade.openCreditAccount(to, calls, referralCode ?? 0n);
   }
 
@@ -1427,7 +1814,15 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     creditAccount: Address,
     calls: MultiCall[],
   ): Promise<RawTx> {
-    // TODO: select between credit facade and KYC factory here
+    const marketSuite = this.sdk.marketRegister.findByCreditManager(
+      suite.creditManager.address,
+    );
+    const factory = marketSuite.kycFactory;
+
+    if (factory) {
+      return factory.multicall(creditAccount, calls);
+    }
+
     return suite.creditFacade.multicall(creditAccount, calls);
   }
 
@@ -1445,10 +1840,22 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
     calls: MultiCall[],
     operation: CloseOptions,
   ): Promise<RawTx> {
-    // TODO: select between credit facade and KYC factory here
+    const marketSuite = this.sdk.marketRegister.findByCreditManager(
+      suite.creditManager.address,
+    );
+    const factory = marketSuite.kycFactory;
 
     if (operation === "close") {
+      if (factory) {
+        throw new Error(
+          "CloseOptions=close is not supported for KYC underlying credit accounts",
+        );
+      }
       return suite.creditFacade.closeCreditAccount(creditAccount, calls);
+    }
+
+    if (factory) {
+      return factory.multicall(creditAccount, calls);
     }
 
     return suite.creditFacade.multicall(creditAccount, calls);

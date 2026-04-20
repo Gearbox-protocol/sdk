@@ -73,8 +73,7 @@ export interface RemoveLiquidityProps {
   meta: WithdrawalMetadata;
 }
 
-// export type MarketType = "kyc-on-demand" | "kyc-default" | "classic";
-export type MarketType = "classic";
+export type MarketType = "kyc-on-demand" | "kyc-default" | "classic";
 
 export interface DepositMetadata {
   /**

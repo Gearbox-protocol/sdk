@@ -1,12 +1,8 @@
-import type {
-  Address,
-  ContractFunctionParameters,
-  ContractFunctionReturnType,
-} from "viem";
-import type { priceFeedCompressorAbi } from "../../../abi/compressors/priceFeedCompressor.js";
+import type { Address } from "viem";
 import type { IBaseContract } from "../../base/index.js";
 import type { MultiCall, PriceOracleStateHuman } from "../../types/index.js";
 import type { AddressMap } from "../../utils/index.js";
+import type { DelegatedMulticall } from "../../utils/viem/index.js";
 import type {
   IPriceFeedContract,
   PriceFeedRef,
@@ -85,7 +81,7 @@ export interface IPriceOracleContract extends IBaseContract {
   /**
    * @internal
    **/
-  syncStateMulticall: () => DelegatedOracleMulticall;
+  syncStateMulticall: () => DelegatedMulticall;
 
   /**
    * Checks whether the given price feed address appears anywhere in this
@@ -150,22 +146,4 @@ export interface IPriceOracleContract extends IBaseContract {
    * @param raw - When `true`, includes raw/unformatted values.
    **/
   stateHuman: (raw?: boolean) => PriceOracleStateHuman;
-}
-
-/**
- * @internal
- **/
-export interface DelegatedOracleMulticall {
-  call: ContractFunctionParameters<
-    typeof priceFeedCompressorAbi,
-    "view",
-    "getPriceOracleState"
-  >;
-  onResult: (
-    resp: ContractFunctionReturnType<
-      typeof priceFeedCompressorAbi,
-      "view",
-      "getPriceOracleState"
-    >,
-  ) => void;
 }

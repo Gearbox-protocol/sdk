@@ -24,6 +24,7 @@ import {
 } from "./constants/index.js";
 import type { IAddressProviderContract } from "./core/index.js";
 import { createAddressProvider, hydrateAddressProvider } from "./core/index.js";
+import { KYCRegistry } from "./market/kyc/index.js";
 import { MarketRegister } from "./market/MarketRegister.js";
 import { PriceFeedRegister } from "./market/pricefeeds/index.js";
 import type { SDKOptions } from "./options.js";
@@ -33,11 +34,19 @@ import {
   type PluginsMap,
 } from "./plugins/index.js";
 import { createRouter, type IRouterContract } from "./router/index.js";
-import type { GearboxState, GearboxStateHuman } from "./types/index.js";
+import type {
+  GearboxState,
+  GearboxStateHuman,
+  IPriceUpdateTx,
+} from "./types/index.js";
 import type { PickSomeRequired } from "./utils/index.js";
 import { formatTimestamp, TypedObjectUtils, toAddress } from "./utils/index.js";
 import { Hooks } from "./utils/internal/index.js";
-import { getLogsSafe } from "./utils/viem/index.js";
+import {
+  type DelegatedMulticall,
+  executeDelegatedMulticalls,
+  getLogsSafe,
+} from "./utils/viem/index.js";
 
 const ERR_NOT_ATTACHED = new Error("Gearbox SDK not attached");
 
@@ -216,6 +225,7 @@ type AttachOptionsInternal = PickSomeRequired<
   | "redstone"
   | "pyth"
   | "ignoreMarkets"
+  | "kycFactories"
   | "gasLimit"
 >;
 
@@ -288,6 +298,7 @@ export class GearboxSDK<
   #attachConfig?: AttachOptionsInternal;
 
   #marketRegister?: MarketRegister;
+  #kyc?: KYCRegistry;
   #priceFeeds?: PriceFeedRegister;
 
   /**
@@ -339,6 +350,7 @@ export class GearboxSDK<
       ignoreUpdateablePrices,
       ignoreMarkets,
       marketConfigurators: mcs,
+      kycFactories: kfs,
       strictContractTypes,
       gasLimit,
     } = options;
@@ -350,6 +362,8 @@ export class GearboxSDK<
     }
     const marketConfigurators =
       mcs ?? TypedObjectUtils.keys(client.chain.defaultMarketConfigurators);
+
+    const kycFactories = kfs ?? client.chain.kycFactories;
 
     return new GearboxSDK<Plugins>({
       client,
@@ -363,6 +377,7 @@ export class GearboxSDK<
       ignoreUpdateablePrices,
       ignoreMarkets,
       marketConfigurators,
+      kycFactories,
       redstone,
       pyth,
     });
@@ -421,6 +436,7 @@ export class GearboxSDK<
       ignoreUpdateablePrices,
       ignoreMarkets,
       marketConfigurators,
+      kycFactories,
       redstone,
       pyth,
     } = opts;
@@ -431,6 +447,7 @@ export class GearboxSDK<
         chainId: this.chainId,
         addressProvider,
         marketConfigurators,
+        kycFactories,
         blockNumber,
         ignoreMarkets,
       },
@@ -470,10 +487,39 @@ export class GearboxSDK<
     await this.#addressProvider.syncState(this.currentBlock);
 
     this.#marketRegister = new MarketRegister(this, ignoreMarkets);
-    await this.#marketRegister.loadMarkets(
-      marketConfigurators,
-      ignoreUpdateablePrices,
-    );
+    this.#kyc = new KYCRegistry(this);
+
+    if (!marketConfigurators.length) {
+      this.logger?.warn(
+        "no market configurators provided, skipping market loading",
+      );
+    } else {
+      const delegated: DelegatedMulticall[] = [
+        ...this.#marketRegister.getLoadMulticalls(marketConfigurators),
+        ...this.#kyc.getLoadMulticalls(marketConfigurators, kycFactories),
+      ];
+
+      let txs: IPriceUpdateTx[] = [];
+      if (!ignoreUpdateablePrices) {
+        const updatables =
+          await this.#priceFeeds.getPartialUpdatablePriceFeeds(
+            marketConfigurators,
+          );
+        const updates =
+          await this.#priceFeeds.generatePriceFeedsUpdateTxs(updatables);
+        txs = updates.txs;
+      }
+      this.logger?.debug(
+        { configurators: marketConfigurators },
+        `calling getMarkets with ${txs.length} price updates in block ${this.currentBlock}`,
+      );
+
+      await executeDelegatedMulticalls(this.client, delegated, {
+        priceUpdates: txs,
+        blockNumber: this.currentBlock,
+        gas: this.gasLimit,
+      });
+    }
 
     const pluginsList = TypedObjectUtils.entries(this.plugins);
     const pluginResponse = await Promise.allSettled(
@@ -532,12 +578,16 @@ export class GearboxSDK<
     this.#marketRegister = new MarketRegister(this, ignoreMarkets);
     this.#marketRegister.hydrate(state.markets);
 
+    this.#kyc = new KYCRegistry(this);
+    this.#kyc.setState(state.kyc);
+
     this.#attachConfig = {
       ...opts,
       addressProvider: this.addressProvider.address,
       marketConfigurators: this.marketRegister.marketConfigurators.map(
         m => m.address,
       ),
+      kycFactories: this.kyc.factories.map(f => f.address),
       blockNumber: this.currentBlock,
     };
 
@@ -628,6 +678,7 @@ export class GearboxSDK<
         addressProviderV3: this.addressProvider.stateHuman(raw),
       },
       tokens: this.tokensMeta.values(),
+      kyc: this.kyc.stateHuman(raw),
       plugins: Object.fromEntries(
         TypedObjectUtils.entries(this.plugins).map(([name, plugin]) => [
           name,
@@ -654,6 +705,7 @@ export class GearboxSDK<
       timestamp: this.timestamp,
       addressProvider: this.addressProvider.state,
       markets: this.marketRegister.state,
+      kyc: this.kyc.state,
       plugins: Object.fromEntries(
         TypedObjectUtils.entries(this.plugins).map(([name, plugin]) => [
           name,
@@ -874,6 +926,18 @@ export class GearboxSDK<
       throw ERR_NOT_ATTACHED;
     }
     return this.#marketRegister;
+  }
+
+  /**
+   * KYC register for KYC-wrapped underlying tokens and factories.
+   *
+   * @throws If the SDK has not been attached or hydrated yet.
+   **/
+  public get kyc(): KYCRegistry {
+    if (this.#kyc === undefined) {
+      throw ERR_NOT_ATTACHED;
+    }
+    return this.#kyc;
   }
 
   /**

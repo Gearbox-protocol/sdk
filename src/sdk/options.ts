@@ -23,6 +23,12 @@ export const SDKOptions = z.object({
    **/
   marketConfigurators: z.array(ZodAddress()).optional(),
   /**
+   * Addresses of KYC factory contracts to load.
+   * If not set, all default KYC factories for the chain are loaded
+   * (from {@link GearboxChain.kycFactories})
+   **/
+  kycFactories: z.array(ZodAddress()).optional(),
+  /**
    * Pin SDK to a specific block number during attach.
    * When set, all on-chain reads use this block instead of `latest`.
    **/

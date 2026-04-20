@@ -6,12 +6,9 @@ import type {
 
 import { iPoolV310Abi } from "../../../abi/310/generated.js";
 import { iPausableAbi } from "../../../abi/iPausable.js";
-import type {
-  ConstructOptions,
-  CreditManagerDebtParams,
-  PoolState,
-} from "../../base/index.js";
+import type { CreditManagerDebtParams, PoolState } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
+import type { GearboxSDK } from "../../GearboxSDK.js";
 import type { PoolStateHuman } from "../../types/index.js";
 import {
   AddressMap,
@@ -19,6 +16,7 @@ import {
   formatBNvalue,
   percentFmt,
 } from "../../utils/index.js";
+import type { IKYCFactory } from "../kyc/types.js";
 
 const abi = [...iPoolV310Abi, ...iPausableAbi] as const;
 type abi = typeof abi;
@@ -30,14 +28,16 @@ export interface PoolV310Contract
 
 export class PoolV310Contract extends BaseContract<abi> {
   public readonly creditManagerDebtParams: AddressMap<CreditManagerDebtParams>;
+  #sdk: GearboxSDK;
 
-  constructor(options: ConstructOptions, data: PoolState) {
+  constructor(sdk: GearboxSDK, data: PoolState) {
     const { baseParams, creditManagerDebtParams, ...rest } = data;
-    super(options, {
+    super(sdk, {
       ...data.baseParams,
       name: `PoolV3(${data.name})`,
       abi,
     });
+    this.#sdk = sdk;
     Object.assign(this, rest);
     this.creditManagerDebtParams = new AddressMap(
       creditManagerDebtParams.map(p => [p.creditManager, p]),
@@ -49,6 +49,14 @@ export class PoolV310Contract extends BaseContract<abi> {
       name: data.name,
       symbol: data.symbol,
     });
+  }
+
+  public get kycFactory(): IKYCFactory | undefined {
+    const meta = this.#sdk.tokensMeta.mustGet(this.underlying);
+    if (this.#sdk.tokensMeta.isKYCUnderlying(meta)) {
+      return this.#sdk.mustGetContract<IKYCFactory>(meta.kycFactory);
+    }
+    return undefined;
   }
 
   public override stateHuman(raw = true): PoolStateHuman {
