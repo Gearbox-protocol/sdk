@@ -1,8 +1,11 @@
-# SDK Migration Guide: GearboxSDK → OnchainSDK / MultichainSDK
+# SDK Migration Guide
 
-## Summary of Changes
+Migration notes between consecutive major versions of `@gearbox-protocol/sdk`.
+New sections are appended below as future majors ship.
 
-### Added
+## v13 → v14
+
+### Summary of changes
 
 - **`OnchainSDK`** — renamed from `GearboxSDK`, single-chain entry point
 - **Instantiation is now two steps**: `new OnchainSDK(network, clientOptions, options)` then `await sdk.attach()` or `sdk.hydrate(state)`
@@ -14,20 +17,15 @@
 
 ---
 
-## Migration Guide (Single-Chain)
 
-### 1. Installation
-
-No package change — same `@gearbox-protocol/sdk` package, new major version.
-
-### 2. Imports
+### Imports
 
 ```diff
 - import { GearboxSDK } from "@gearbox-protocol/sdk";
 + import { OnchainSDK } from "@gearbox-protocol/sdk";
 ```
 
-### 3. Creating and attaching the SDK
+### Creating and attaching the SDK
 
 **Before:**
 
@@ -67,7 +65,7 @@ Key differences:
 - `blockNumber`, `addressProvider`, `marketConfigurators` move to `attach()`
 - Constructor is sync; `attach()` is async
 
-### 4. Hydrating from saved state
+### Hydrating from saved state
 
 **Before:**
 
@@ -89,14 +87,14 @@ const sdk = new OnchainSDK(
 sdk.hydrate(savedState, { redstone, pyth }); // synchronous
 ```
 
-### 5. Removed methods
+### Removed methods
 
 | Old | Replacement |
 |---|---|
 | `sdk.reattach(...)`  | Create a new `OnchainSDK` instance |
 | `sdk.rehydrate(...)` | Create a new `OnchainSDK` instance |
 
-### 6. Removed hooks
+### Removed hooks
 
 Instead of `sdk.addHook('syncState', handler)` await sync and run your code:
 
@@ -122,15 +120,12 @@ const unwatch = watchBlocksAsync(client, {
 });
 ```
 
-### 7. Everything else stays the same
 
-These APIs are unchanged on the instance:
+### Automated migration
 
-- `sdk.state` / `sdk.stateHuman(raw)`
-- `sdk.syncState(opts)`
-- `sdk.currentBlock` / `sdk.timestamp`
-- `sdk.addressProvider` / `sdk.marketRegister` / `sdk.priceFeeds`
-- `sdk.routerFor(params)`
-- `sdk.gear`
-- `sdk.plugins`
+An agent skill ships with this repo at
+[`skills/gearbox-sdk-v13-to-v14`](skills/gearbox-sdk-v13-to-v14/SKILL.md). 
 
+```bash
+npx skills add Gearbox-protocol/sdk --skill gearbox-sdk-v13-to-v14
+```
