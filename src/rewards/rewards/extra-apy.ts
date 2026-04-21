@@ -87,7 +87,7 @@ export class PoolPointsAPI {
   ) {
     const chainId = chains[network]?.id;
 
-    const url = `https://charts-server.fly.dev/api/getBalanceAt?asset=${token}&chainId=${chainId}`;
+    const url = `https://api.gearbox.foundation/v1/getBalanceAt?asset=${token}&chainId=${chainId}`;
 
     const result = await axios.get<GetBalanceAtResponse>(url);
     const balance = result.data.result.reduce(
