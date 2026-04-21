@@ -31,7 +31,7 @@ async function example(): Promise<void> {
     timeout: 480_000,
     // blockNumber: 24736900,
     marketConfigurators: ["0x610627d8d01a413bdd9b0a0b60070da7dd1e54ad"],
-    kycFactories: ["0x9bccaf938f7de8cfee02ed5e177f3df873087f5c"],
+    kycFactories: ["0x867b5b0cd9999959f696cef4ecf7777a39516d27"],
     logger,
     plugins: {
       adapters: new AdaptersPlugin(true),

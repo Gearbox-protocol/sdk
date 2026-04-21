@@ -94,6 +94,7 @@ export class SecuritizeKYCFactory
         extraDetails,
       );
     return {
+      type: KYC_FACTORY_SECURITIZE,
       factory: this.address,
       cachedSignatures: [...cachedSignatures],
       registerVaultMessages: [...registerVaultMessages],
@@ -182,27 +183,26 @@ export class SecuritizeKYCFactory
     const [investorData] = await this.#sdk.kyc.getInvestorData(investor, [
       this.address,
     ]);
-    const desiredTokens = new AddressSet([props.tokenOutAddress]);
+    // desired tokens, coming from strategy configuration
+    const tokensToRegister = new AddressSet([props.tokenOutAddress]);
 
     const registredTokens = new AddressSet(investorData.registeredTokens);
     const signedTokens = new AddressSet(
       investorData.cachedSignatures.map(s => s.token),
     );
-    const unsignedTokens = desiredTokens.difference(signedTokens);
+    const unsignedTokens = tokensToRegister.difference(signedTokens);
 
-    const tokensToRegister = desiredTokens.difference(registredTokens);
+    const securitizeTokensToRegister =
+      tokensToRegister.difference(registredTokens);
     const requiredSignatures = investorData.registerVaultMessages.filter(m =>
       unsignedTokens.has(m.token),
     );
 
-    if (tokensToRegister.size === 0 && requiredSignatures.length === 0) {
-      return undefined;
-    }
-
     return {
       type: KYC_FACTORY_SECURITIZE,
+      securitizeTokensToRegister: Array.from(securitizeTokensToRegister),
       tokensToRegister: Array.from(tokensToRegister),
-      requiredSignatures: requiredSignatures,
+      requiredSignatures,
     };
   }
 

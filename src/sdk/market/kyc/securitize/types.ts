@@ -83,6 +83,7 @@ export interface SecuritizeCreditAccountData {
  * extra details for a Securitize factory.
  **/
 export interface SecuritizeInvestorData {
+  type: typeof KYC_FACTORY_SECURITIZE;
   /** Securitize KYC factory address that produced this data. */
   factory: Address;
   /** Credit accounts owned by the investor through this factory. */
@@ -127,6 +128,13 @@ export interface SecuritizeOpenAccountRequirements {
   type: typeof KYC_FACTORY_SECURITIZE;
   /**
    * User must visit securitize website to register these tokens
+   * May be empty if user already registered all required tokens
+   */
+  securitizeTokensToRegister: Address[];
+  /**
+   * Desired tokens to register for this operation, must be always present on open credit account
+   * Come from strategy configuration
+   * Passed to openCreditAccount contract call on securitize factory
    */
   tokensToRegister: Address[];
   /**

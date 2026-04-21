@@ -43,12 +43,14 @@ interface KYCFactoryTypeMap {
 
 /**
  * Investor data decoded from the KYC compressor, defaults to union of all factory types
+ * Can be discriminated by type
  **/
 export type KYCInvestorData<T extends KYCFactoryType = KYCFactoryType> =
   KYCFactoryTypeMap[T]["investorData"];
 
 /**
  * Open-account requirements for a KYC factory, defaults to union of all factory types
+ * Can be discriminated by type
  **/
 export type KYCOpenAccountRequirements<
   T extends KYCFactoryType = KYCFactoryType,
@@ -56,6 +58,7 @@ export type KYCOpenAccountRequirements<
 
 /**
  * Open credit account/Multicall extra params type for a KYC factory, defaults to union of all factory types
+ * Can be discriminated by type
  **/
 export type KYCOperationParams<T extends KYCFactoryType = KYCFactoryType> =
   KYCFactoryTypeMap[T]["operationParams"];
