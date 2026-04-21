@@ -45,7 +45,6 @@ import type {
   ILogger,
 } from "./types/index.js";
 import { formatTimestamp, TypedObjectUtils, toAddress } from "./utils/index.js";
-import { getLogsSafe } from "./utils/viem/index.js";
 
 /**
  * Serialised state format version, checked during hydration to detect
@@ -561,7 +560,7 @@ export class OnchainSDK<
       this.logger?.debug(
         `getting logs from ${watchAddresses.length} addresses in [${fromBlock}:${blockNumber}]`,
       );
-      const logs = await getLogsSafe(this.client, {
+      const logs = await this.client.getLogs({
         fromBlock,
         toBlock: blockNumber,
         address: watchAddresses,
