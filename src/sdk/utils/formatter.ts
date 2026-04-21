@@ -1,5 +1,4 @@
 import { formatDuration as fmtDuration, intervalToDuration } from "date-fns";
-import Decimal from "decimal.js-light";
 import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR } from "../constants/index.js";
 
 export const toBigInt = (
@@ -143,22 +142,24 @@ export function rayToNumber(num: BigNumberish): number {
   return Number(toBigInt(num) / 10n ** 21n) / 1000000;
 }
 
-export function toSignificant(
-  num: bigint,
-  decimals: number,
-  precision = 6,
-): string {
-  if (num === 1n) return "0";
-  const divider = new Decimal(10).toPower(decimals);
-  const number = new Decimal(num.toString()).div(divider);
-  return number.toSignificantDigits(precision, 4).toString();
-}
-
 export function toBN(num: string, decimals: number): bigint {
   if (num === "") return 0n;
-  const multiplier = new Decimal(10).toPower(decimals);
-  const number = new Decimal(num).mul(multiplier);
-  return BigInt(number.toFixed(0));
+  const negative = num.startsWith("-");
+  const abs = negative ? num.slice(1) : num;
+  const [intPart = "0", fracPart = ""] = abs.split(".");
+
+  let frac = fracPart;
+  let roundUp = false;
+  if (frac.length > decimals) {
+    roundUp = frac.charCodeAt(decimals) >= 53; // '5'
+    frac = frac.slice(0, decimals);
+  } else {
+    frac = frac.padEnd(decimals, "0");
+  }
+
+  let result = BigInt(intPart + frac);
+  if (roundUp) result += 1n;
+  return negative ? -result : result;
 }
 
 export function shortAddress(address?: string): string {
@@ -177,4 +178,127 @@ export function formatPercentage(healthFactor: number, decimals = 2): string {
 
 export function formatLeverage(leverage: number, decimals = 2): string {
   return (leverage / Number(LEVERAGE_DECIMALS)).toFixed(decimals);
+}
+
+function formatDecimalJsLikeToString(
+  digits: string,
+  base10exp: number,
+): string {
+  // digits is a non-empty string of decimal digits without leading/trailing zeros (unless "0").
+  const len = digits.length;
+  const isExp = base10exp <= -7 || base10exp >= 21;
+
+  if (isExp) {
+    let coeff = digits;
+    if (len > 1) {
+      coeff = `${digits[0]}.${digits.slice(1)}`;
+    }
+    const exp = base10exp;
+    const expStr = exp < 0 ? `e${exp}` : `e+${exp}`;
+    return `${coeff}${expStr}`;
+  }
+
+  if (base10exp < 0) {
+    return `0.${"0".repeat(-base10exp - 1)}${digits}`;
+  }
+
+  if (base10exp >= len) {
+    return `${digits}${"0".repeat(base10exp + 1 - len)}`;
+  }
+
+  const k = base10exp + 1;
+  if (k === len) return digits;
+  return `${digits.slice(0, k)}.${digits.slice(k)}`;
+}
+
+function roundToSignificantDigitsHalfUp(
+  digits: string,
+  base10exp: number,
+  precision: number,
+): { digits: string; base10exp: number } {
+  if (precision < 1) {
+    throw new Error(`Invalid precision: ${precision}`);
+  }
+
+  if (digits === "0") return { digits: "0", base10exp: 0 };
+
+  // Normalize coefficient by trimming trailing zeros (decimal.js-light doesn't keep them).
+  // The base-10 exponent belongs to the value, so it stays unchanged.
+  let norm = digits;
+  while (norm.length > 1 && norm.endsWith("0")) {
+    norm = norm.slice(0, -1);
+  }
+  digits = norm;
+
+  if (digits.length <= precision) {
+    // No rounding needed; keep exponent as-is.
+    return { digits, base10exp };
+  }
+
+  const cut = digits.slice(0, precision).split("");
+  const next = digits.charCodeAt(precision) - 48; // 0..9
+
+  if (next >= 5) {
+    let i = cut.length - 1;
+    while (i >= 0) {
+      const cur = cut[i];
+      if (cur === undefined) {
+        throw new Error("roundToSignificantDigitsHalfUp: invalid state");
+      }
+      const d = cur.charCodeAt(0) - 48;
+      if (d !== 9) {
+        cut[i] = String.fromCharCode(48 + d + 1);
+        break;
+      }
+      cut[i] = "0";
+      i -= 1;
+    }
+    if (i < 0) {
+      // overflow: 999.. -> 1000..
+      cut.unshift("1");
+      base10exp += 1;
+    }
+  }
+
+  let rounded = cut.join("");
+
+  // decimal.js-light internal representation does not preserve trailing zeros in the coefficient,
+  // but the base-10 exponent is a property of the value itself, so it must not change here.
+  let tz = 0;
+  for (let i = rounded.length - 1; i >= 0 && rounded[i] === "0"; i -= 1) {
+    tz += 1;
+  }
+  if (tz > 0) {
+    rounded = rounded.slice(0, -tz);
+  }
+  if (rounded === "") {
+    return { digits: "0", base10exp: 0 };
+  }
+
+  return { digits: rounded, base10exp };
+}
+
+export function toSignificant(
+  num: bigint,
+  decimals: number,
+  precision = 6,
+): string {
+  // Preserve existing quirky behavior.
+  if (num === 1n) return "0";
+  if (num === 0n) return "0";
+
+  const negative = num < 0n;
+  const abs = negative ? -num : num;
+  const rawDigits = abs.toString();
+
+  // base10 exponent of abs * 10^-decimals
+  const base10exp = rawDigits.length - decimals - 1;
+
+  const rounded = roundToSignificantDigitsHalfUp(
+    rawDigits,
+    base10exp,
+    precision,
+  );
+  const body = formatDecimalJsLikeToString(rounded.digits, rounded.base10exp);
+  return negative ? `-${body}` : body;
 }

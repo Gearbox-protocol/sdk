@@ -1,13 +1,13 @@
 import type { BaseState } from "../../base/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
 import { bytes32ToString } from "../../index.js";
+import type { OnchainSDK } from "../../OnchainSDK.js";
 import { AliasLossPolicyV310Contract } from "./AliasLossPolicyV310Contract.js";
 import { LOSS_POLICY_ALIASED, LOSS_POLICY_DEFAULT } from "./constants.js";
 import { LossPolicyContract } from "./LossPolicyContract.js";
 import type { ILossPolicyContract } from "./types.js";
 
 export function createLossPolicy(
-  sdk: GearboxSDK,
+  sdk: OnchainSDK,
   { baseParams }: BaseState,
 ): ILossPolicyContract {
   const existing = sdk.getContract<ILossPolicyContract>(baseParams.addr);

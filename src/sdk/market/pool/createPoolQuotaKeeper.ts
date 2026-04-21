@@ -1,11 +1,11 @@
 import type { PoolState, QuotaKeeperState } from "../../base/index.js";
 import { isV310 } from "../../constants/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
+import type { OnchainSDK } from "../../OnchainSDK.js";
 import { PoolQuotaKeeperV310Contract } from "./PoolQuotaKeeperV310Contract.js";
 import type { PoolQuotaKeeperContract } from "./types.js";
 
 export default function createPoolQuotaKeeper(
-  sdk: GearboxSDK,
+  sdk: OnchainSDK,
   pool: PoolState,
   pqk: QuotaKeeperState,
 ): PoolQuotaKeeperContract {

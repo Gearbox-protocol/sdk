@@ -216,7 +216,7 @@ function splitAccumulatorUpdates(binary: string): PythPriceFeedUpdate[] {
     const msg = parsePriceFeedMessage(upd);
     results.push({
       dataFeedId: toHex(msg.feedId),
-      timestamp: msg.publishTime.toNumber(),
+      timestamp: Number(msg.publishTime),
       data: toHex(sliceAccumulatorUpdateData(data, i, i + 1)),
     });
   }

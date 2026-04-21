@@ -2,7 +2,7 @@ import type { Address } from "viem";
 
 import { marketCompressorAbi } from "../../abi/compressors/marketCompressor.js";
 import { PoolPointsAPI } from "../../rewards/rewards/extra-apy.js";
-import type { IGearboxSDKPlugin, ILogger } from "../../sdk/index.js";
+import type { ILogger, IOnchainSDKPlugin } from "../../sdk/index.js";
 import {
   AddressMap,
   AP_MARKET_COMPRESSOR,
@@ -55,7 +55,7 @@ const MAP_LABEL = "pools7DAgo";
 
 export class ApyPlugin
   extends BasePlugin<ApyPluginState>
-  implements IGearboxSDKPlugin<ApyPluginState>
+  implements IOnchainSDKPlugin<ApyPluginState>
 {
   #apyUrl: string;
   #cacheTtlMs: number;

@@ -2,7 +2,7 @@ import type { Address, Chain, PublicClient, Transport } from "viem";
 import type { GearboxChain } from "../../../sdk/index.js";
 import {
   AP_PRICE_FEED_COMPRESSOR,
-  GearboxSDK,
+  OnchainSDK,
   type ParsedCall,
 } from "../../../sdk/index.js";
 import { AddressProviderContract } from "../../bindings/index.js";
@@ -80,11 +80,17 @@ export async function getCallsTouchedUpdatablePriceFeeds({
     310n,
   );
 
-  const sdk = await GearboxSDK.attach({
-    client: client as PublicClient<Transport, GearboxChain>,
-    marketConfigurators: [],
-    gasLimit,
-  });
+  const gearboxClient = client as PublicClient<Transport, GearboxChain>;
+  const chain = gearboxClient.chain;
+  if (!chain) {
+    throw new Error("Chain not defined on client");
+  }
+  const sdk = new OnchainSDK(
+    chain.network,
+    { client: gearboxClient },
+    { gasLimit },
+  );
+  await sdk.attach({ marketConfigurators: [] });
 
   const touchedFeeds = parsedCalls.flatMap(call =>
     getCallTouchedPriceFeeds(call),

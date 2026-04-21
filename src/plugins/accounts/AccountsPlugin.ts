@@ -3,7 +3,7 @@ import type { Address } from "viem";
 import type {
   CreditAccountData,
   GetCreditAccountsOptions,
-  IGearboxSDKPlugin,
+  IOnchainSDKPlugin,
 } from "../../sdk/index.js";
 import {
   AddressMap,
@@ -20,7 +20,7 @@ export interface AccountsPluginState {
 
 export class AccountsPlugin
   extends BasePlugin<AccountsPluginState>
-  implements IGearboxSDKPlugin<AccountsPluginState>
+  implements IOnchainSDKPlugin<AccountsPluginState>
 {
   #accounts?: CreditAccountData[];
   #byCreditManager?: AddressMap<CreditAccountData[]>;

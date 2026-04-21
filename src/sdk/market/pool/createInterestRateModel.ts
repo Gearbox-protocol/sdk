@@ -1,5 +1,5 @@
 import type { BaseState } from "../../base/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
+import type { OnchainSDK } from "../../OnchainSDK.js";
 import { bytes32ToString } from "../../utils/index.js";
 import { LinearInterestRateModelContract } from "./LinearInterestRateModelContract.js";
 import type {
@@ -8,7 +8,7 @@ import type {
 } from "./types.js";
 
 export default function createInterestRateModel(
-  sdk: GearboxSDK,
+  sdk: OnchainSDK,
   data: BaseState,
 ): IInterestRateModelContract {
   const { addr, contractType } = data.baseParams;

@@ -24,10 +24,9 @@ import {
 } from "../src/e2e/oracleProxy.js";
 import { AccountsPlugin } from "../src/plugins/accounts/AccountsPlugin.js";
 import { AdaptersPlugin } from "../src/plugins/adapters/AdaptersPlugin.js";
-import { ApyPlugin } from "../src/plugins/apy/index.js";
 import { BotsPlugin } from "../src/plugins/bots/index.js";
 import { DegenDistributorsPlugin } from "../src/plugins/degen-distributors/index.js";
-import { chains, GearboxSDK, type NetworkType } from "../src/sdk/index.js";
+import { chains, type NetworkType, OnchainSDK } from "../src/sdk/index.js";
 
 // ─── Configuration ──────────────────────────────────────────────────────────
 const NETWORK: NetworkType = "Mainnet";
@@ -95,20 +94,23 @@ async function main() {
 
     const mcOpts = SINGLE_MC ? { marketConfigurators: [SINGLE_MC] } : {};
 
-    await GearboxSDK.attach({
-      rpcURLs: [anvil.url],
-      timeout: 480_000,
+    const sdk = new OnchainSDK(
+      NETWORK,
+      { rpcURLs: [anvil.url], timeout: 480_000 },
+      {
+        logger: console,
+        ...(!SINGLE_MC && {
+          plugins: {
+            adapters: new AdaptersPlugin(true),
+            bots: new BotsPlugin(true),
+            degen: new DegenDistributorsPlugin(true),
+            accounts: new AccountsPlugin({ includeZeroDebt: true }, true),
+          },
+        }),
+      },
+    );
+    await sdk.attach({
       blockNumber: BLOCK,
-      ...(!SINGLE_MC && {
-        plugins: {
-          adapters: new AdaptersPlugin(true),
-          bots: new BotsPlugin(true),
-          degen: new DegenDistributorsPlugin(true),
-          apy: new ApyPlugin(true),
-          accounts: new AccountsPlugin({ includeZeroDebt: true }, true),
-        },
-      }),
-      logger: console,
       ...oracleOpts,
       ...mcOpts,
     });
@@ -123,12 +125,14 @@ async function main() {
       console.log(
         `[sdk] Recording per-MC oracle fixtures for ${curator} (${mc})...`,
       );
-      await GearboxSDK.attach({
-        rpcURLs: [anvil.url],
-        timeout: 480_000,
+      const mcSdk = new OnchainSDK(
+        NETWORK,
+        { rpcURLs: [anvil.url], timeout: 480_000 },
+        { logger: console },
+      );
+      await mcSdk.attach({
         blockNumber: BLOCK,
         marketConfigurators: [mc],
-        logger: console,
         ...oracleOpts,
       });
     }

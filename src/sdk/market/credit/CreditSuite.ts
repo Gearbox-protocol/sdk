@@ -2,7 +2,7 @@ import type { Address } from "viem";
 
 import type { CreditSuiteState, MarketData } from "../../base/index.js";
 import { SDKConstruct } from "../../base/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
+import type { OnchainSDK } from "../../OnchainSDK.js";
 import type { IRouterContract } from "../../router/index.js";
 import type { CreditSuiteStateHuman } from "../../types/index.js";
 import createCreditConfigurator from "./createCreditConfigurator.js";
@@ -26,7 +26,7 @@ export class CreditSuite extends SDKConstruct {
   public readonly state: CreditSuiteState;
   public readonly name: string;
 
-  constructor(sdk: GearboxSDK, marketData: MarketData, index: number) {
+  constructor(sdk: OnchainSDK, marketData: MarketData, index: number) {
     super(sdk);
     const { creditManagers, pool } = marketData;
     this.name = creditManagers[index].creditManager.name;

@@ -2,8 +2,8 @@ import type { Abi, Address } from "viem";
 
 import { BaseContract, type BaseContractArgs } from "../base/index.js";
 import { PERCENTAGE_FACTOR } from "../constants/math.js";
-import type { GearboxSDK } from "../GearboxSDK.js";
 import type { IPriceOracleContract } from "../market/index.js";
+import type { OnchainSDK } from "../OnchainSDK.js";
 import { AddressMap, AddressSet, formatBN, isDust } from "../utils/index.js";
 import { limitLeftover } from "./helpers.js";
 import type { Asset, RouterCASlice, RouterCMSlice } from "./types.js";
@@ -37,9 +37,9 @@ export abstract class AbstractRouterContract<
   /**
    * Reference to the parent SDK instance.
    **/
-  public readonly sdk: GearboxSDK;
+  public readonly sdk: OnchainSDK;
 
-  constructor(sdk: GearboxSDK, args: BaseContractArgs<abi>) {
+  constructor(sdk: OnchainSDK, args: BaseContractArgs<abi>) {
     super(sdk, args);
     this.sdk = sdk;
   }

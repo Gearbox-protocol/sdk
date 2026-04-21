@@ -6,7 +6,7 @@ import {
 } from "viem";
 import { iAliasedLossPolicyV310Abi } from "../../../abi/310/generated.js";
 import { BaseContract, type BaseParams } from "../../base/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
+import type { OnchainSDK } from "../../OnchainSDK.js";
 import type { AliasLossPolicyStateHuman } from "../../types/state-human.js";
 import { formatDuration } from "../../utils/index.js";
 import { LOSS_POLICY_ACCESS_MODES, LOSS_POLICY_ALIASED } from "./constants.js";
@@ -30,9 +30,9 @@ export class AliasLossPolicyV310Contract
   public readonly checksEnabled: boolean;
   public readonly tokens: readonly Address[];
   public readonly priceFeedParams: readonly AliasedPriceFeedParams[];
-  public readonly sdk: GearboxSDK;
+  public readonly sdk: OnchainSDK;
 
-  constructor(sdk: GearboxSDK, params: BaseParams) {
+  constructor(sdk: OnchainSDK, params: BaseParams) {
     super(sdk, {
       abi,
       addr: params.addr,

@@ -3,7 +3,7 @@ import type { Address, ContractEventName, Log } from "viem";
 import { iCreditManagerV310Abi } from "../../../abi/310/generated.js";
 import type { CreditManagerState, CreditSuiteState } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
+import type { OnchainSDK } from "../../OnchainSDK.js";
 import type { CreditManagerStateHuman } from "../../types/index.js";
 import { AddressMap, fmtBinaryMask, percentFmt } from "../../utils/index.js";
 import type { IAdapterContract } from "../adapters/index.js";
@@ -35,7 +35,7 @@ export class CreditManagerV310Contract
    */
   public readonly liquidationThresholds: AddressMap<number>;
 
-  constructor(sdk: GearboxSDK, { creditManager, adapters }: CreditSuiteState) {
+  constructor(sdk: OnchainSDK, { creditManager, adapters }: CreditSuiteState) {
     const { baseParams, collateralTokens, ...rest } = creditManager;
     super(sdk, {
       ...baseParams,

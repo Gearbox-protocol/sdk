@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 
 import type { CreditAccountData } from "../base/index.js";
-import type { GearboxSDK } from "../GearboxSDK.js";
+import type { OnchainSDK } from "../OnchainSDK.js";
 import { isDust } from "./isDust.js";
 
 /**
@@ -22,7 +22,7 @@ export function filterDust(
 }
 
 export interface FilterDustUSDOptions {
-  sdk: GearboxSDK;
+  sdk: OnchainSDK;
   account: CreditAccountData;
   /**
    * Dust threshold in USD, without decimals

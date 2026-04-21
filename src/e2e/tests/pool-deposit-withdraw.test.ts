@@ -11,9 +11,9 @@ import {
 import { dealActions } from "viem-deal";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
-  GearboxSDK,
   hexEq,
   MAX_UINT256,
+  OnchainSDK,
   PoolService,
   type PoolServiceCall,
   type ZapperData,
@@ -71,14 +71,16 @@ function encodePoolCall(call: PoolServiceCall): {
 }
 
 describe("pool deposit and withdraw", () => {
-  let sdk: GearboxSDK;
+  let sdk: OnchainSDK;
 
   useFixture({ network: "Mainnet", block: BLOCK });
 
   beforeAll(async () => {
-    sdk = await GearboxSDK.attach({
+    sdk = new OnchainSDK("Mainnet", {
       rpcURLs: [ANVIL_URL],
       timeout: 120_000,
+    });
+    await sdk.attach({
       blockNumber: BLOCK,
       redstone: {
         historicTimestamp: true,

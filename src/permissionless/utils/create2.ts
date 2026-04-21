@@ -1,4 +1,3 @@
-import { formatAbiItem } from "abitype";
 import {
   type Address,
   getCreate2Address,
@@ -7,6 +6,7 @@ import {
   stringToHex,
   type WalletClient,
 } from "viem";
+import { formatAbiItem } from "viem/utils";
 import type { ContractMethod, RawTx } from "../../sdk/index.js";
 
 export const PUBLIC_CREATE2_FACTORY =

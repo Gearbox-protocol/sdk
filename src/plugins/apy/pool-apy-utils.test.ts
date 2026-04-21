@@ -1,4 +1,4 @@
-import type { Address } from "abitype";
+import type { Address } from "viem";
 import { describe, expect, it } from "vitest";
 import type {
   ExternalApy,

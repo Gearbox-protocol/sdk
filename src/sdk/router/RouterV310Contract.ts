@@ -1,7 +1,7 @@
 import { type Address, getAddress } from "viem";
 import { gearboxRouterAbi } from "../../abi/router/gearboxRouter.js";
-import type { GearboxSDK } from "../GearboxSDK.js";
 import type { IPriceOracleContract } from "../market/index.js";
+import type { OnchainSDK } from "../OnchainSDK.js";
 import { AddressMap } from "../utils/AddressMap.js";
 import { formatBN } from "../utils/formatter.js";
 import { isDust } from "../utils/index.js";
@@ -46,7 +46,7 @@ export class RouterV310Contract
   #numSplits = new AddressMap<bigint>();
   #defaultNumSplits = 4n;
 
-  constructor(sdk: GearboxSDK, address: Address, version: number) {
+  constructor(sdk: OnchainSDK, address: Address, version: number) {
     super(sdk, {
       addr: address,
       name: "RouterV310",

@@ -2,7 +2,7 @@ import type { Address } from "viem";
 import { formatEther, parseEther, stringToHex } from "viem";
 
 import { iAddressProviderV310Abi } from "../abi/310/generated.js";
-import type { GearboxSDK } from "../sdk/index.js";
+import type { OnchainSDK } from "../sdk/index.js";
 import { extendAnvilClient } from "./createAnvilClient.js";
 
 /**
@@ -12,7 +12,7 @@ import { extendAnvilClient } from "./createAnvilClient.js";
  * @returns faucet address as read from address provider
  */
 export async function migrateFaucet(
-  sdk: GearboxSDK,
+  sdk: OnchainSDK,
   faucet: Address,
 ): Promise<Address> {
   try {
@@ -30,7 +30,7 @@ export async function migrateFaucet(
 }
 
 async function unsafeMigrateFaucet(
-  sdk: GearboxSDK,
+  sdk: OnchainSDK,
   faucet: Address,
 ): Promise<void> {
   const anvil = extendAnvilClient(sdk.client);

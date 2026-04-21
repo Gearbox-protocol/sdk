@@ -1,12 +1,12 @@
 import type { PoolState, RateKeeperState } from "../../base/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
+import type { OnchainSDK } from "../../OnchainSDK.js";
 import { bytes32ToString } from "../../utils/index.js";
 import { GaugeContract } from "./GaugeContract.js";
 import { TumblerContract } from "./TumblerContract.js";
 import type { IRateKeeperContract, RateKeeperType } from "./types.js";
 
 export default function createRateKeeper(
-  sdk: GearboxSDK,
+  sdk: OnchainSDK,
   pool: PoolState,
   data: RateKeeperState,
 ): IRateKeeperContract {

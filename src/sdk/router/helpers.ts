@@ -1,4 +1,4 @@
-import type { Address } from "abitype";
+import type { Address } from "viem";
 import { AddressMap } from "../utils/index.js";
 import type { Asset } from "./types.js";
 

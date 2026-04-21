@@ -1,4 +1,3 @@
-import type { Narrow } from "abitype";
 import type {
   CallParameters,
   Chain,
@@ -7,6 +6,7 @@ import type {
   MulticallContracts,
   MulticallResponse,
   MulticallReturnType,
+  Narrow,
   Transport,
 } from "viem";
 import {

@@ -1,4 +1,4 @@
-import type { Address } from "abitype";
+import type { Address } from "viem";
 import type { CreditManagerState, IBaseContract } from "../../base/index.js";
 import type {
   CreditConfiguratorStateHuman,

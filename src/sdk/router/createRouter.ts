@@ -1,12 +1,12 @@
 import type { Address } from "viem";
 
 import { isV310 } from "../constants/index.js";
-import type { GearboxSDK } from "../GearboxSDK.js";
+import type { OnchainSDK } from "../OnchainSDK.js";
 import { RouterV310Contract } from "./RouterV310Contract.js";
 import type { IRouterContract } from "./types.js";
 
 export function createRouter(
-  sdk: GearboxSDK,
+  sdk: OnchainSDK,
   address: Address,
   version: number,
 ): IRouterContract {

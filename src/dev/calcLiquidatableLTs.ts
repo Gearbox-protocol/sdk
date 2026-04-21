@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-import type { CreditAccountData, GearboxSDK, ILogger } from "../sdk/index.js";
+import type { CreditAccountData, ILogger, OnchainSDK } from "../sdk/index.js";
 import { isDust, PERCENTAGE_FACTOR, WAD } from "../sdk/index.js";
 
 /**
@@ -8,7 +8,7 @@ import { isDust, PERCENTAGE_FACTOR, WAD } from "../sdk/index.js";
  * @param ca
  */
 export async function calcLiquidatableLTs(
-  sdk: GearboxSDK,
+  sdk: OnchainSDK,
   ca: CreditAccountData,
   factor = 9990n,
   logger?: ILogger,

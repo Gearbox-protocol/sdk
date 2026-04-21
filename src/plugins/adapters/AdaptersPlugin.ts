@@ -1,7 +1,7 @@
 import type {
   BaseState,
   IBaseContract,
-  IGearboxSDKPlugin,
+  IOnchainSDKPlugin,
 } from "../../sdk/index.js";
 import { BasePlugin } from "../../sdk/index.js";
 import { AbstractAdapterContract } from "./contracts/AbstractAdapter.js";
@@ -9,7 +9,7 @@ import { createAdapter } from "./createAdapter.js";
 
 export class AdaptersPlugin
   extends BasePlugin<{}>
-  implements IGearboxSDKPlugin<{}>
+  implements IOnchainSDKPlugin<{}>
 {
   public readonly name = "Adapters";
   public readonly version = 1;

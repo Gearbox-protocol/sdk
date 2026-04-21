@@ -19,7 +19,7 @@ import {
   AP_PRICE_FEED_COMPRESSOR,
   VERSION_RANGE_310,
 } from "../../constants/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
+import type { OnchainSDK } from "../../OnchainSDK.js";
 import type { PriceOracleStateHuman } from "../../types/index.js";
 import { AddressMap, formatBN } from "../../utils/index.js";
 import type {
@@ -53,7 +53,7 @@ export abstract class PriceOracleBaseContract<
   extends BaseContract<abi>
   implements IPriceOracleContract
 {
-  public readonly sdk: GearboxSDK;
+  public readonly sdk: OnchainSDK;
   /**
    * {@inheritDoc IPriceOracleContract.mainPriceFeeds}
    **/
@@ -86,7 +86,7 @@ export abstract class PriceOracleBaseContract<
   );
 
   constructor(
-    sdk: GearboxSDK,
+    sdk: OnchainSDK,
     args: BaseContractArgs<abi>,
     data: PriceOracleData,
   ) {

@@ -2,7 +2,7 @@ import type { Address } from "viem";
 
 import type { MarketData } from "../../base/index.js";
 import { SDKConstruct } from "../../base/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
+import type { OnchainSDK } from "../../OnchainSDK.js";
 import type { PoolSuiteStateHuman } from "../../types/index.js";
 import type { MarketConfiguratorContract } from "../MarketConfiguratorContract.js";
 import createInterestRateModel from "./createInterestRateModel.js";
@@ -27,7 +27,7 @@ export class PoolSuite extends SDKConstruct {
 
   #marketConfigurator: Address;
 
-  constructor(sdk: GearboxSDK, data: MarketData) {
+  constructor(sdk: OnchainSDK, data: MarketData) {
     super(sdk);
     this.pool = createPool(sdk, data.pool);
     this.pqk = createPoolQuotaKeeper(sdk, data.pool, data.quotaKeeper);

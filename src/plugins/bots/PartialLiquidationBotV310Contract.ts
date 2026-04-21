@@ -1,5 +1,5 @@
 import { type Address, decodeAbiParameters, type Hex, stringToHex } from "viem";
-import { BaseContract, type GearboxSDK, percentFmt } from "../../sdk/index.js";
+import { BaseContract, type OnchainSDK, percentFmt } from "../../sdk/index.js";
 import { iPartialLiquidationBotV310Abi } from "./abi/index.js";
 import { BOT_PARAMS_ABI, type BotStateV310Human } from "./types.js";
 
@@ -21,7 +21,7 @@ export class PartialLiquidationBotV310Contract extends BaseContract<abi> {
   public readonly feeScaleFactor: number;
   readonly #serializedParams: Hex;
 
-  constructor(sdk: GearboxSDK, args: PartialLiquidationBotV310Params) {
+  constructor(sdk: OnchainSDK, args: PartialLiquidationBotV310Params) {
     super(sdk, {
       ...args,
       abi,

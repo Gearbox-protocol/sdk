@@ -2,15 +2,15 @@ import { type Address, getContract, type PublicClient } from "viem";
 import { priceFeedCompressorAbi } from "../../../abi/compressors/priceFeedCompressor.js";
 import {
   bytes32ToString,
-  type GearboxSDK,
   type IPriceFeedContract,
+  type OnchainSDK,
   type PriceFeedTreeNode,
   PythPriceFeed,
   RedstonePriceFeedContract,
 } from "../../../sdk/index.js";
 
 export async function getUpdatablePriceFeeds(args: {
-  sdk: GearboxSDK;
+  sdk: OnchainSDK;
   client: PublicClient;
   pfCompressor: Address;
   priceFeeds: Address[];

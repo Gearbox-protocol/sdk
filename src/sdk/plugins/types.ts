@@ -1,5 +1,5 @@
 import type { BaseState, IBaseContract } from "../base/index.js";
-import type { GearboxSDK } from "../GearboxSDK.js";
+import type { OnchainSDK } from "../OnchainSDK.js";
 
 /**
  * Serialisable snapshot of a plugin's state, used for hydration.
@@ -20,10 +20,10 @@ export type IPluginState<State extends Record<keyof State, unknown> = {}> = {
  * @typeParam TState  - Plugin-specific state shape.
  * @typeParam TPlugin - Concrete plugin type produced by the constructor.
  **/
-export type IGearboxSDKPluginConstructor<
+export type IOnchainSDKPluginConstructor<
   TState extends Record<keyof TState, unknown>,
-  TPlugin extends IGearboxSDKPlugin<TState>,
-> = new (sdk: GearboxSDK<any>) => TPlugin;
+  TPlugin extends IOnchainSDKPlugin<TState>,
+> = new (sdk: OnchainSDK<any>) => TPlugin;
 
 /**
  * Public contract every SDK plugin must satisfy.
@@ -34,14 +34,14 @@ export type IGearboxSDKPluginConstructor<
  *
  * @typeParam TState - Plugin-specific state shape.
  **/
-export interface IGearboxSDKPlugin<
+export interface IOnchainSDKPlugin<
   TState extends Record<keyof TState, unknown> = {},
 > {
   /**
    * Reference to the parent SDK instance.
    * Set automatically by the SDK constructor.
    **/
-  sdk: GearboxSDK<any>;
+  sdk: OnchainSDK<any>;
   /**
    * Plugin version, used to verify state compatibility during hydration.
    **/
@@ -104,13 +104,13 @@ export interface IGearboxSDKPlugin<
  * Helper type that extracts the state type from a plugin instance.
  **/
 export type PluginState<T> =
-  T extends IGearboxSDKPlugin<infer TState> ? IPluginState<TState> : never;
+  T extends IOnchainSDKPlugin<infer TState> ? IPluginState<TState> : never;
 
 /**
  * @internal
  * Mapping between plugin name and plugin instance.
  **/
-export type PluginsMap = Record<string, IGearboxSDKPlugin<any>>;
+export type PluginsMap = Record<string, IOnchainSDKPlugin<any>>;
 
 /**
  * @internal
@@ -118,4 +118,16 @@ export type PluginsMap = Record<string, IGearboxSDKPlugin<any>>;
  **/
 export type PluginStatesMap<T extends PluginsMap> = {
   [K in keyof T]: PluginState<T[K]>;
+};
+
+/**
+ * Factory function that produces a plugin instance.
+ **/
+export type PluginFactory<P extends IOnchainSDKPlugin> = () => P;
+
+/**
+ * Map of plugin factories keyed by plugin name.
+ **/
+export type PluginFactoriesMap<Plugins extends PluginsMap> = {
+  [K in keyof Plugins]: PluginFactory<Plugins[K]>;
 };

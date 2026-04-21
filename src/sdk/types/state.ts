@@ -4,10 +4,10 @@ import type { AddressProviderState } from "../core/index.js";
 import type { PluginStatesMap, PluginsMap } from "../plugins/index.js";
 
 /**
- * Complete serialisable snapshot of the Gearbox SDK state.
+ * Complete serialisable snapshot of the SDK state for a single chain.
  *
- * Produced by {@link GearboxSDK.state} and consumed by
- * {@link GearboxSDK.hydrate} for instant offline restoration.
+ * Produced by {@link OnchainSDK.state} and consumed by
+ * {@link OnchainSDK.hydrate} for instant offline restoration.
  *
  * @typeParam Plugins - Map of plugin names to plugin instances.
  **/
@@ -45,4 +45,16 @@ export interface GearboxState<Plugins extends PluginsMap = {}> {
    * Per-plugin serialised state.
    **/
   plugins: PluginStatesMap<Plugins>;
+}
+
+/**
+ * Serialised state for all chains managed by {@link MultichainSDK}.
+ *
+ * @typeParam Plugins - Map of plugin names to plugin instances.
+ **/
+export interface MultichainState<Plugins extends PluginsMap = {}> {
+  /** State format version. */
+  version: number;
+  /** Per-chain serialised state. */
+  chains: GearboxState<Plugins>[];
 }

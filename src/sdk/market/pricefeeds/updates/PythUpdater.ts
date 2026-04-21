@@ -1,7 +1,7 @@
 import type { Address, Hex } from "viem";
 import { z } from "zod/v4";
 import { SDKConstruct } from "../../../base/index.js";
-import type { GearboxSDK } from "../../../GearboxSDK.js";
+import type { OnchainSDK } from "../../../OnchainSDK.js";
 import type {
   IPriceFeedContract,
   IUpdatablePriceFeedContract,
@@ -53,7 +53,10 @@ export const PythOptions = z.object({
   failOnMissingFeeds: z.boolean().optional(),
 });
 
-export type PythOptions = z.infer<typeof PythOptions>;
+export type PythOptions = z.infer<typeof PythOptions> & {
+  /** Shared cache injected by {@link MultichainSDK} to avoid redundant fetches. */
+  cache?: PriceUpdatesCache;
+};
 
 /**
  * Class to update multiple pyth price feeds at once
@@ -63,11 +66,14 @@ export class PythUpdater
   implements IPriceUpdater<PythUpdateTask>
 {
   #cache: PriceUpdatesCache;
+  /**
+   * Fixed pyth historic timestamp in seconds
+   */
   #historicalTimestamp?: number;
   #apiProxy?: string;
   #failOnMissingFeeds?: boolean;
 
-  constructor(sdk: GearboxSDK, opts: PythOptions = {}) {
+  constructor(sdk: OnchainSDK, opts: PythOptions = {}) {
     super(sdk);
     const { apiProxy, cacheTTL, failOnMissingFeeds, historicTimestamp } = opts;
     this.#failOnMissingFeeds = failOnMissingFeeds;
@@ -82,13 +88,12 @@ export class PythUpdater
         `using historical timestamp ${this.#historicalTimestamp}`,
       );
     }
-    this.#cache = new PriceUpdatesCache({
-      // currently staleness period is 240 seconds on all networks, add some buffer
-      // this period of 4 minutes is selected based on time that is required for user to sign transaction with wallet
-      // so it's unlikely to decrease
-      ttl: cacheTTL ?? 225 * 1000,
-      historical: !!historicTimestamp,
-    });
+    this.#cache =
+      opts.cache ??
+      new PriceUpdatesCache({
+        ttl: cacheTTL ?? 225 * 1000,
+        historical: !!historicTimestamp,
+      });
   }
 
   public async getUpdateTxs(
@@ -139,6 +144,10 @@ export class PythUpdater
       `generated ${results.length} update transactions for pyth price feeds: ${Array.from(pythFeeds.keys()).join(", ")}${tsRange}`,
     );
     return results;
+  }
+
+  public get historical(): boolean {
+    return !!this.#historicalTimestamp;
   }
 
   /**

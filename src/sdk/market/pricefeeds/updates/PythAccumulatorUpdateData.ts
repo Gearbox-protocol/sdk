@@ -2,7 +2,6 @@
  * This is https://github.com/pyth-network/pyth-crosschain/blob/main/price_service/sdk/js/src/AccumulatorUpdateData.ts
  * modified to use buffer from npm package
  */
-import BN from "bn.js";
 import { Buffer } from "buffer";
 
 const ACCUMULATOR_MAGIC = "504e4155";
@@ -12,30 +11,39 @@ const KECCAK160_HASH_SIZE = 20;
 const PRICE_FEED_MESSAGE_VARIANT = 0;
 const TWAP_MESSAGE_VARIANT = 1;
 
+function bufToBigInt(buf: Uint8Array): bigint {
+  if (buf.length === 0) return 0n;
+  let result = 0n;
+  for (let i = 0; i < buf.length; i++) {
+    result = (result << 8n) | BigInt(buf[i]);
+  }
+  return result;
+}
+
 export type AccumulatorUpdateData = {
   vaa: Buffer;
   updates: { message: Buffer; proof: number[][] }[];
 };
 export type PriceFeedMessage = {
   feedId: Buffer;
-  price: BN;
-  confidence: BN;
+  price: bigint;
+  confidence: bigint;
   exponent: number;
-  publishTime: BN;
-  prevPublishTime: BN;
-  emaPrice: BN;
-  emaConf: BN;
+  publishTime: bigint;
+  prevPublishTime: bigint;
+  emaPrice: bigint;
+  emaConf: bigint;
 };
 
 export type TwapMessage = {
   feedId: Buffer;
-  cumulativePrice: BN;
-  cumulativeConf: BN;
-  numDownSlots: BN;
+  cumulativePrice: bigint;
+  cumulativeConf: bigint;
+  numDownSlots: bigint;
   exponent: number;
-  publishTime: BN;
-  prevPublishTime: BN;
-  publishSlot: BN;
+  publishTime: bigint;
+  prevPublishTime: bigint;
+  publishSlot: bigint;
 };
 
 export function isAccumulatorUpdateData(updateBytes: Buffer): boolean {
@@ -55,19 +63,19 @@ export function parsePriceFeedMessage(message: Buffer): PriceFeedMessage {
   cursor += 1;
   const feedId = message.subarray(cursor, cursor + 32);
   cursor += 32;
-  const price = new BN(message.subarray(cursor, cursor + 8), "be");
+  const price = bufToBigInt(message.subarray(cursor, cursor + 8));
   cursor += 8;
-  const confidence = new BN(message.subarray(cursor, cursor + 8), "be");
+  const confidence = bufToBigInt(message.subarray(cursor, cursor + 8));
   cursor += 8;
   const exponent = message.readInt32BE(cursor);
   cursor += 4;
-  const publishTime = new BN(message.subarray(cursor, cursor + 8), "be");
+  const publishTime = bufToBigInt(message.subarray(cursor, cursor + 8));
   cursor += 8;
-  const prevPublishTime = new BN(message.subarray(cursor, cursor + 8), "be");
+  const prevPublishTime = bufToBigInt(message.subarray(cursor, cursor + 8));
   cursor += 8;
-  const emaPrice = new BN(message.subarray(cursor, cursor + 8), "be");
+  const emaPrice = bufToBigInt(message.subarray(cursor, cursor + 8));
   cursor += 8;
-  const emaConf = new BN(message.subarray(cursor, cursor + 8), "be");
+  const emaConf = bufToBigInt(message.subarray(cursor, cursor + 8));
   cursor += 8;
   return {
     feedId,
@@ -90,19 +98,19 @@ export function parseTwapMessage(message: Buffer): TwapMessage {
   cursor += 1;
   const feedId = message.subarray(cursor, cursor + 32);
   cursor += 32;
-  const cumulativePrice = new BN(message.subarray(cursor, cursor + 16), "be");
+  const cumulativePrice = bufToBigInt(message.subarray(cursor, cursor + 16));
   cursor += 16;
-  const cumulativeConf = new BN(message.subarray(cursor, cursor + 16), "be");
+  const cumulativeConf = bufToBigInt(message.subarray(cursor, cursor + 16));
   cursor += 16;
-  const numDownSlots = new BN(message.subarray(cursor, cursor + 8), "be");
+  const numDownSlots = bufToBigInt(message.subarray(cursor, cursor + 8));
   cursor += 8;
   const exponent = message.readInt32BE(cursor);
   cursor += 4;
-  const publishTime = new BN(message.subarray(cursor, cursor + 8), "be");
+  const publishTime = bufToBigInt(message.subarray(cursor, cursor + 8));
   cursor += 8;
-  const prevPublishTime = new BN(message.subarray(cursor, cursor + 8), "be");
+  const prevPublishTime = bufToBigInt(message.subarray(cursor, cursor + 8));
   cursor += 8;
-  const publishSlot = new BN(message.subarray(cursor, cursor + 8), "be");
+  const publishSlot = bufToBigInt(message.subarray(cursor, cursor + 8));
   cursor += 8;
   return {
     feedId,

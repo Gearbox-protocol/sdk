@@ -8,7 +8,7 @@ import {
   AP_PRICE_FEED_STORE,
   VERSION_RANGE_310,
 } from "../../constants/index.js";
-import type { GearboxSDK } from "../../GearboxSDK.js";
+import type { OnchainSDK } from "../../OnchainSDK.js";
 import type { IPriceUpdateTx, RawTx } from "../../types/index.js";
 import { AddressMap, bytes32ToString, createRawTx } from "../../utils/index.js";
 import type { IHooks } from "../../utils/internal/index.js";
@@ -102,7 +102,7 @@ export class PriceFeedRegister
   #feeds = new AddressMap<IPriceFeedContract>(undefined, "priceFeeds");
   #latestUpdate: LatestUpdate | undefined;
 
-  constructor(sdk: GearboxSDK, opts: PriceFeedRegisterOptions = {}) {
+  constructor(sdk: OnchainSDK, opts: PriceFeedRegisterOptions = {}) {
     super(sdk);
     this.#updaters = [
       new PythUpdater(sdk, opts?.pyth),
@@ -458,5 +458,13 @@ export class PriceFeedRegister
    **/
   public get latestUpdate(): LatestUpdate | undefined {
     return this.#latestUpdate;
+  }
+
+  /**
+   * @internal
+   * Returns true if any of the updaters are in historical mode
+   */
+  public get historical(): boolean {
+    return this.#updaters.some(u => u.historical);
   }
 }

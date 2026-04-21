@@ -2,7 +2,7 @@ import type { Address } from "viem";
 
 import type { MarketData } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
-import type { GearboxSDK } from "../GearboxSDK.js";
+import type { OnchainSDK } from "../OnchainSDK.js";
 import type { MarketStateHuman } from "../types/index.js";
 import { CreditSuite } from "./credit/index.js";
 import {
@@ -27,7 +27,7 @@ export class MarketSuite extends SDKConstruct {
    */
   public readonly state: MarketData;
 
-  constructor(sdk: GearboxSDK, marketData: MarketData) {
+  constructor(sdk: OnchainSDK, marketData: MarketData) {
     super(sdk);
     this.state = marketData;
 

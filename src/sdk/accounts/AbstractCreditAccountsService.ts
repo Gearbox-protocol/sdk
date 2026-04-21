@@ -23,7 +23,6 @@ import {
   RAY,
   VERSION_RANGE_310,
 } from "../constants/index.js";
-import type { GearboxSDK } from "../GearboxSDK.js";
 import type { CreditSuite } from "../market/index.js";
 import {
   getRawPriceUpdates,
@@ -31,6 +30,7 @@ import {
   type PriceUpdate,
   type UpdatePriceFeedsResult,
 } from "../market/index.js";
+import type { OnchainSDK } from "../OnchainSDK.js";
 import { type Asset, assetsMap, type RouterCASlice } from "../router/index.js";
 import type { IPriceUpdateTx, MultiCall, RawTx } from "../types/index.js";
 import { AddressMap, AddressSet } from "../utils/index.js";
@@ -137,7 +137,7 @@ export abstract class AbstractCreditAccountService extends SDKConstruct {
   #compressor: Address;
   #batchSize?: number;
 
-  constructor(sdk: GearboxSDK, options?: CreditAccountServiceOptions) {
+  constructor(sdk: OnchainSDK, options?: CreditAccountServiceOptions) {
     super(sdk);
     [this.#compressor] = sdk.addressProvider.mustGetLatest(
       AP_CREDIT_ACCOUNT_COMPRESSOR,

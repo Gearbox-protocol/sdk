@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import { creditAccountCompressorAbi } from "../../abi/compressors/creditAccountCompressor.js";
-import type { IGearboxSDKPlugin } from "../../sdk/index.js";
+import type { IOnchainSDKPlugin } from "../../sdk/index.js";
 import {
   ADDRESS_0X0,
   AddressMap,
@@ -20,7 +20,7 @@ export interface AccountsCounterPluginState {
 
 export class AccountsCounterPlugin
   extends BasePlugin<AccountsCounterPluginState>
-  implements IGearboxSDKPlugin<AccountsCounterPluginState>
+  implements IOnchainSDKPlugin<AccountsCounterPluginState>
 {
   #accounts?: AddressMap<bigint>;
 
