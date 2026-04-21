@@ -1,11 +1,10 @@
-import {
-  type Address,
-  type Chain,
-  erc20Abi,
-  type Hex,
-  type MulticallResponse,
-  type PublicClient,
-  type Transport,
+import type {
+  Address,
+  Chain,
+  Hex,
+  MulticallResponse,
+  PublicClient,
+  Transport,
 } from "viem";
 import { iStateSerializerAbi } from "../../abi/iStateSerializer.js";
 import { iVersionAbi } from "../../abi/iVersion.js";
@@ -17,7 +16,11 @@ import {
   bytes32ToString,
   formatBN,
 } from "../utils/index.js";
-import type { PhantomTokenMeta, TokenMetaData } from "./token-types.js";
+import type {
+  KYCTokenMeta,
+  PhantomTokenMeta,
+  TokenMetaData,
+} from "./token-types.js";
 
 /**
  * Options for {@link TokensMeta.formatBN}.
@@ -110,6 +113,15 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
   }
 
   /**
+   * Returns true if the token is a KYC underlying token, throws if the token data is not loaded
+   * @param t
+   * @returns
+   */
+  public isKYCUnderlying(t: TokenMetaData): t is KYCTokenMeta {
+    return !!t.contractType?.startsWith("KYC_UNDERLYING::");
+  }
+
+  /**
    * Returns a map of all phantom tokens
    * Throws if token data is not loaded
    */
@@ -117,6 +129,20 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
     const result = new AddressMap<PhantomTokenMeta>();
     for (const [token, meta] of this.entries()) {
       if (this.isPhantomToken(meta)) {
+        result.upsert(token, meta);
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Returns a map of all KYC underlying tokens
+   * Throws if token data is not loaded
+   */
+  public get kycUnderlyings(): AddressMap<KYCTokenMeta> {
+    const result = new AddressMap<KYCTokenMeta>();
+    for (const [token, meta] of this.entries()) {
+      if (this.isKYCUnderlying(meta)) {
         result.upsert(token, meta);
       }
     }
@@ -184,7 +210,7 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
 
   /**
    * Loads token information about phantom tokens
-   * Other special tokens may be loaded here in the future
+   * In future other custom tokens types that do not have compressors might be handled here
    *
    * @param tokens - tokens to load data for, defaults to all tokens
    */
@@ -238,47 +264,5 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
       this.#logger?.debug(`token ${meta.symbol} is ${contractType}`);
     }
     return this.mustGet(token);
-  }
-
-  async #loadWithoutCompressor(tokens_: AddressSet): Promise<void> {
-    if (tokens_.size === 0) {
-      return;
-    }
-    const tokens = Array.from(tokens_);
-    const resp = await this.#client.multicall({
-      contracts: tokens.flatMap(
-        t =>
-          [
-            {
-              address: t,
-              abi: erc20Abi,
-              functionName: "symbol",
-            },
-            {
-              address: t,
-              abi: erc20Abi,
-              functionName: "name",
-            },
-            {
-              address: t,
-              abi: erc20Abi,
-              functionName: "decimals",
-            },
-          ] as const,
-      ),
-      allowFailure: false,
-      batchSize: 0,
-    });
-    this.#logger?.debug(
-      `loaded ${resp.length} basic metadata without compressor`,
-    );
-    for (let i = 0; i < tokens.length; i++) {
-      this.upsert(tokens[i], {
-        addr: tokens[i],
-        symbol: resp[3 * i] as string,
-        name: resp[3 * i + 1] as string,
-        decimals: resp[3 * i + 2] as number,
-      });
-    }
   }
 }

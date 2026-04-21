@@ -11,7 +11,6 @@ import {
 import { dealActions } from "viem-deal";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
-  hexEq,
   MAX_UINT256,
   OnchainSDK,
   PoolService,
@@ -91,6 +90,7 @@ describe("pool deposit and withdraw", () => {
         apiProxy: PYTH_API_PROXY,
       },
     });
+    await sdk.tokensMeta.loadTokenData();
     await sdk.marketRegister.loadZappers();
   });
 

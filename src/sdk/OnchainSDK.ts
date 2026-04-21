@@ -30,6 +30,7 @@ import {
   SdkNotAttachedError,
   SdkStateVersionMismatchError,
 } from "./core/index.js";
+import { KYCRegistry } from "./market/index.js";
 import { MarketRegister } from "./market/MarketRegister.js";
 import { PriceFeedRegister } from "./market/pricefeeds/index.js";
 import type {
@@ -43,8 +44,13 @@ import type {
   GearboxState,
   GearboxStateHuman,
   ILogger,
+  IPriceUpdateTx,
 } from "./types/index.js";
 import { formatTimestamp, TypedObjectUtils, toAddress } from "./utils/index.js";
+import {
+  type DelegatedMulticall,
+  executeDelegatedMulticalls,
+} from "./utils/viem/index.js";
 
 /**
  * Serialised state format version, checked during hydration to detect
@@ -130,6 +136,10 @@ export interface AttachOptions {
    * Addresses of market configurator contracts to load.
    **/
   marketConfigurators?: Address[];
+  /**
+   * Addresses of KYC factory contracts to load.
+   **/
+  kycFactories?: Address[];
   /**
    * Pin SDK to a specific block number during attach.
    **/
@@ -243,6 +253,7 @@ export class OnchainSDK<
 
   #addressProvider?: IAddressProviderContract;
 
+  #kyc: KYCRegistry;
   #marketRegister?: MarketRegister;
   #priceFeeds?: PriceFeedRegister;
 
@@ -280,6 +291,7 @@ export class OnchainSDK<
 
     this.strictContractTypes = options?.strictContractTypes ?? false;
     this.plugins = options?.plugins ?? ({} as Plugins);
+    this.#kyc = new KYCRegistry(this);
 
     for (const plugin of Object.values(this.plugins)) {
       plugin.sdk = this;
@@ -314,6 +326,8 @@ export class OnchainSDK<
       TypedObjectUtils.keys(
         (this.client.chain as GearboxChain).defaultMarketConfigurators,
       );
+    const kycFactories =
+      options?.kycFactories ?? (this.client.chain as GearboxChain).kycFactories;
 
     this.logger?.info(
       {
@@ -369,10 +383,37 @@ export class OnchainSDK<
     await this.#addressProvider.syncState(this.currentBlock);
 
     this.#marketRegister = new MarketRegister(this, ignoreMarkets);
-    await this.#marketRegister.loadMarkets(
-      marketConfigurators,
-      ignoreUpdateablePrices,
-    );
+    if (!marketConfigurators.length) {
+      this.logger?.warn(
+        "no market configurators provided, skipping market loading",
+      );
+    } else {
+      const delegated: DelegatedMulticall[] = [
+        ...this.#marketRegister.getLoadMulticalls(marketConfigurators),
+        ...this.#kyc.getLoadMulticalls(marketConfigurators, kycFactories),
+      ];
+
+      let txs: IPriceUpdateTx[] = [];
+      if (!ignoreUpdateablePrices) {
+        const updatables =
+          await this.#priceFeeds.getPartialUpdatablePriceFeeds(
+            marketConfigurators,
+          );
+        const updates =
+          await this.#priceFeeds.generatePriceFeedsUpdateTxs(updatables);
+        txs = updates.txs;
+      }
+      this.logger?.debug(
+        { configurators: marketConfigurators },
+        `calling getMarkets with ${txs.length} price updates in block ${this.currentBlock}`,
+      );
+
+      await executeDelegatedMulticalls(this.client, delegated, {
+        priceUpdates: txs,
+        blockNumber: this.currentBlock,
+        gas: this.gasLimit,
+      });
+    }
 
     const pluginsList = TypedObjectUtils.entries(this.plugins);
     const pluginResponse = await Promise.allSettled(
@@ -436,6 +477,9 @@ export class OnchainSDK<
     this.#marketRegister = new MarketRegister(this, ignoreMarkets);
     this.#marketRegister.hydrate(state.markets);
 
+    this.#kyc = new KYCRegistry(this);
+    this.#kyc.setState(state.kyc);
+
     for (const [name, plugin] of TypedObjectUtils.entries(this.plugins)) {
       const pluginState = state.plugins[name];
       if (plugin.hydrate && pluginState) {
@@ -482,6 +526,7 @@ export class OnchainSDK<
         addressProviderV3: this.addressProvider.stateHuman(raw),
       },
       tokens: this.tokensMeta.values(),
+      kyc: this.#kyc.stateHuman(raw),
       plugins: Object.fromEntries(
         TypedObjectUtils.entries(this.plugins).map(([name, plugin]) => [
           name,
@@ -502,6 +547,7 @@ export class OnchainSDK<
       timestamp: this.timestamp,
       addressProvider: this.addressProvider.state,
       markets: this.marketRegister.state,
+      kyc: this.#kyc.state,
       plugins: Object.fromEntries(
         TypedObjectUtils.entries(this.plugins).map(([name, plugin]) => [
           name,
@@ -687,9 +733,28 @@ export class OnchainSDK<
   }
 
   /**
+   * KYC register for KYC-wrapped underlying tokens and factories.
+   *
+   * @throws If the SDK has not been attached or hydrated yet.
+   **/
+  public get kyc(): KYCRegistry {
+    if (this.#kyc === undefined) {
+      throw new SdkNotAttachedError();
+    }
+    return this.#kyc;
+  }
+
+  /**
+   * @internal
    * Resolves the appropriate router contract for a given credit manager,
    * credit facade, or explicit version range.
-   */
+   *
+   * @param params - Identifies the context: a credit manager address/state,
+   *   a credit facade address/state, or a {@link VersionRange}.
+   * @returns The matching router contract instance.
+   * @throws If the credit facade version is unsupported or no router is
+   *   registered for the resolved version range.
+   **/
   public routerFor(
     params:
       | { creditManager: Address | BaseState | IBaseContract }

@@ -22,6 +22,7 @@ import {
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import type { PriceOracleStateHuman } from "../../types/index.js";
 import { AddressMap, formatBN } from "../../utils/index.js";
+import type { DelegatedMulticall } from "../../utils/viem/index.js";
 import type {
   IPriceFeedContract,
   PriceFeedUsageType,
@@ -30,7 +31,6 @@ import type {
 import { PriceFeedRef } from "../pricefeeds/index.js";
 import PriceFeedAnswerMap from "./PriceFeedAnswerMap.js";
 import type {
-  DelegatedOracleMulticall,
   IPriceOracleContract,
   OnDemandPriceUpdates,
   PriceFeedsForTokensOptions,
@@ -195,7 +195,7 @@ export abstract class PriceOracleBaseContract<
   /**
    * {@inheritDoc IPriceOracleContract.syncStateMulticall}
    **/
-  public syncStateMulticall(): DelegatedOracleMulticall {
+  public syncStateMulticall(): DelegatedMulticall {
     const args: ContractFunctionArgs<
       typeof priceFeedCompressorAbi,
       "view",
@@ -213,14 +213,13 @@ export abstract class PriceOracleBaseContract<
         functionName: "getPriceOracleState",
         args,
       },
-      onResult: (
-        resp: ContractFunctionReturnType<
-          typeof priceFeedCompressorAbi,
-          "view",
-          "getPriceOracleState"
-        >,
-      ) => {
-        const { priceFeedMap, priceFeedTree } = resp;
+      onResult: (resp: unknown) => {
+        const { priceFeedMap, priceFeedTree } =
+          resp as ContractFunctionReturnType<
+            typeof priceFeedCompressorAbi,
+            "view",
+            "getPriceOracleState"
+          >;
         this.#loadState(priceFeedMap, priceFeedTree);
       },
     };

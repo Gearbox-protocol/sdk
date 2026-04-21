@@ -1,6 +1,8 @@
+import type { Address } from "viem";
 import type { MarketData } from "../base/index.js";
 import type { NetworkType } from "../chain/chains.js";
 import type { AddressProviderState } from "../core/index.js";
+import type { KYCState } from "../market/kyc/index.js";
 import type { PluginStatesMap, PluginsMap } from "../plugins/index.js";
 
 /**
@@ -41,6 +43,10 @@ export interface GearboxState<Plugins extends PluginsMap = {}> {
    * All loaded market data.
    **/
   markets: MarketData[];
+  /**
+   * KYC compressor state snapshot, if KYC factories were loaded.
+   **/
+  kyc?: KYCState;
   /**
    * Per-plugin serialised state.
    **/
