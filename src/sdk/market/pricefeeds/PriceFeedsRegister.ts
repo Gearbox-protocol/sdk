@@ -327,14 +327,13 @@ export class PriceFeedRegister
    */
   public async getPartialUpdatablePriceFeeds(
     configurators: Address[],
-    pools?: Address[],
   ): Promise<IPriceFeedContract[]> {
     const [priceFeedCompressorAddress] = this.sdk.addressProvider.mustGetLatest(
       AP_PRICE_FEED_COMPRESSOR,
       VERSION_RANGE_310,
     );
     this.logger?.debug(
-      { configurators, pools },
+      { configurators },
       `calling getUpdatablePriceFeeds in block ${this.sdk.currentBlock}`,
     );
     const result = await this.client.readContract({
@@ -344,7 +343,7 @@ export class PriceFeedRegister
       args: [
         {
           configurators,
-          pools: pools ?? [],
+          pools: [],
           underlying: ADDRESS_0X0,
         },
       ],

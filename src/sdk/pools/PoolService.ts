@@ -1,9 +1,16 @@
 import type { Address } from "viem";
 import { iPoolV310Abi } from "../../abi/310/generated.js";
+
+import { ierc20Abi } from "../../abi/iERC20.js";
 import { ierc20ZapperDepositsAbi } from "../../abi/iERC20ZapperDeposits.js";
 import { iethZapperDepositsAbi } from "../../abi/iETHZapperDeposits.js";
 import { iZapperAbi } from "../../abi/iZapper.js";
-import { SDKConstruct, type TokenMetaData } from "../base/index.js";
+import {
+  KYC_UNDERLYING_DEFAULT,
+  KYC_UNDERLYING_ON_DEMAND,
+  SDKConstruct,
+  type TokenMetaData,
+} from "../base/index.js";
 import { NATIVE_ADDRESS } from "../constants/index.js";
 import type { ZapperData } from "../market/index.js";
 import { AddressSet, hexEq } from "../utils/index.js";
@@ -18,39 +25,91 @@ import type {
 
 export class PoolService extends SDKConstruct implements IPoolsService {
   /**
-   * @inheritdoc IPoolsService.getDepositTokensIn
+   * {@inheritDoc IPoolsService.getDepositTokensIn}
    */
   public getDepositTokensIn(pool: Address): Address[] {
+    const underlying = this.#describeUnderlying(pool);
+    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
+      switch (underlying.contractType) {
+        case KYC_UNDERLYING_DEFAULT:
+          return this.#depositTokensIn(pool, false);
+        case KYC_UNDERLYING_ON_DEMAND:
+          return [underlying.asset];
+      }
+    }
+
     // Classic pool flow: allow direct underlying deposits and zapper-based deposits.
     return this.#depositTokensIn(pool, true);
   }
 
   /**
-   * @inheritdoc IPoolsService.getDepositTokensOut
+   * {@inheritDoc IPoolsService.getDepositTokensOut}
    */
   public getDepositTokensOut(pool: Address, tokenIn: Address): Address[] {
+    const underlying = this.#describeUnderlying(pool);
+
+    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
+      switch (underlying.contractType) {
+        case KYC_UNDERLYING_DEFAULT:
+          return this.#depositTokensOut(pool, tokenIn, false);
+        case KYC_UNDERLYING_ON_DEMAND:
+          return [];
+      }
+    }
+
     // Classic pool flow: allow direct underlying deposits and zapper-based deposits.
     return this.#depositTokensOut(pool, tokenIn, true);
   }
 
   /**
-   * @inheritdoc IPoolsService.getDepositMetadata
+   * {@inheritDoc IPoolsService.getDepositMetadata}
    */
   public getDepositMetadata(
     pool: Address,
     tokenIn: Address,
     tokenOut?: Address,
   ): DepositMetadata {
+    const underlying = this.#describeUnderlying(pool);
+
+    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
+      switch (underlying.contractType) {
+        case KYC_UNDERLYING_DEFAULT: {
+          return this.#depositMetadata(
+            "kyc-default",
+            pool,
+            tokenIn,
+            tokenOut,
+            false,
+          );
+        }
+        case KYC_UNDERLYING_ON_DEMAND:
+          return {
+            zapper: undefined,
+            approveTarget: underlying.liquidityProvider.addr,
+            permissible: false,
+            type: "kyc-on-demand",
+          };
+      }
+    }
+
     return this.#depositMetadata("classic", pool, tokenIn, tokenOut, true);
   }
 
   /**
-   * @inheritdoc IPoolsService.addLiquidity
+   * {@inheritDoc IPoolsService.addLiquidity}
    */
   public addLiquidity(props: AddLiquidityProps): PoolServiceCall | undefined {
     const { collateral, meta, permit, referralCode, pool, wallet } = props;
-    const { zapper } = meta;
 
+    const underlying = this.#describeUnderlying(pool);
+
+    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
+      if (underlying.contractType === KYC_UNDERLYING_ON_DEMAND) {
+        return undefined;
+      }
+    }
+
+    const { zapper } = meta;
     if (zapper && hexEq(zapper.tokenIn.addr, NATIVE_ADDRESS)) {
       return {
         target: zapper.baseParams.addr,
@@ -92,26 +151,59 @@ export class PoolService extends SDKConstruct implements IPoolsService {
   }
 
   /**
-   * @inheritdoc IPoolsService.getWithdrawalTokensIn
+   * {@inheritDoc IPoolsService.getWithdrawalTokensIn}
    */
   public getWithdrawalTokensIn(pool: Address): Address[] {
+    const underlying = this.#describeUnderlying(pool);
+    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
+      switch (underlying.contractType) {
+        case KYC_UNDERLYING_DEFAULT:
+          return this.#withdrawalTokensIn(pool, false);
+        case KYC_UNDERLYING_ON_DEMAND:
+          return [];
+      }
+    }
+
     // Classic pool flow: allow direct diesel-token redemption and zapper-based redemption.
     return this.#withdrawalTokensIn(pool, true);
   }
 
   /**
-   * @inheritdoc IPoolsService.getWithdrawalTokensOut
+   * {@inheritDoc IPoolsService.getWithdrawalTokensOut}
    */
   public getWithdrawalTokensOut(pool: Address, tokenIn: Address): Address[] {
+    const underlying = this.#describeUnderlying(pool);
+    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
+      switch (underlying.contractType) {
+        case KYC_UNDERLYING_DEFAULT:
+          return this.#withdrawalTokensOut(pool, tokenIn, false);
+        case KYC_UNDERLYING_ON_DEMAND:
+          return [underlying.asset];
+      }
+    }
+
     // Classic pool flow: allow direct diesel-token redemption and zapper-based redemption.
     return this.#withdrawalTokensOut(pool, tokenIn, true);
   }
 
   /**
-   * @inheritdoc IPoolsService.removeLiquidity
+   * {@inheritDoc IPoolsService.removeLiquidity}
    */
   public removeLiquidity(props: RemoveLiquidityProps): PoolServiceCall {
     const { pool, amount, meta, wallet, permit } = props;
+
+    const underlying = this.#describeUnderlying(pool);
+    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
+      if (underlying.contractType === KYC_UNDERLYING_ON_DEMAND) {
+        // in this flow, withdrawal === set allowance to 0
+        return {
+          abi: ierc20Abi,
+          functionName: "approve",
+          args: [underlying.liquidityProvider, 0n],
+          target: underlying.asset,
+        };
+      }
+    }
 
     if (meta.zapper) {
       return permit
@@ -145,13 +237,36 @@ export class PoolService extends SDKConstruct implements IPoolsService {
   }
 
   /**
-   * @inheritdoc IPoolsService.getWithdrawalMetadata
+   * {@inheritDoc IPoolsService.getWithdrawalMetadata}
    */
   public getWithdrawalMetadata(
     pool: Address,
     tokenIn: Address,
     tokenOut?: Address,
   ): WithdrawalMetadata {
+    const underlying = this.#describeUnderlying(pool);
+
+    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
+      switch (underlying.contractType) {
+        case KYC_UNDERLYING_DEFAULT: {
+          return this.#withdrawalMetadata(
+            "kyc-default",
+            pool,
+            tokenIn,
+            tokenOut,
+            false,
+          );
+        }
+        case KYC_UNDERLYING_ON_DEMAND:
+          return {
+            zapper: undefined,
+            approveTarget: undefined,
+            permissible: false,
+            type: "kyc-on-demand",
+          };
+      }
+    }
+
     return this.#withdrawalMetadata("classic", pool, tokenIn, tokenOut, true);
   }
 
@@ -172,7 +287,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
    */
   #depositTokensIn(poolAddr: Address, allowDirectDeposit: boolean): Address[] {
     const { pool } = this.sdk.marketRegister.findByPool(poolAddr);
-    const result: AddressSet = new AddressSet();
+    const result = new AddressSet();
 
     if (allowDirectDeposit) {
       result.add(pool.underlying);
@@ -368,8 +483,6 @@ export class PoolService extends SDKConstruct implements IPoolsService {
       zapper,
       // Approval target is zapper when routed, otherwise the pool contract.
       approveTarget: zapper?.baseParams.addr ?? pool.pool.address,
-      // TODO: instead of permissible, return permitType depending on tokenIn
-      // "none" | "eip2612" | "dai_like";
       permissible: !!zapper && !hexEq(tokenIn, NATIVE_ADDRESS),
       type,
     };
@@ -406,8 +519,6 @@ export class PoolService extends SDKConstruct implements IPoolsService {
       zapper,
       // Approval target exists only for zapper-based withdrawals.
       approveTarget: zapper?.baseParams.addr,
-      // TODO: instead of permissible, return permitType depending on tokenIn
-      // "none" | "eip2612" | "dai_like";
       permissible: !!zapper,
       type,
     };

@@ -24,6 +24,7 @@ import {
 } from "../src/e2e/oracleProxy.js";
 import { AccountsPlugin } from "../src/plugins/accounts/AccountsPlugin.js";
 import { AdaptersPlugin } from "../src/plugins/adapters/AdaptersPlugin.js";
+import { ApyPlugin } from "../src/plugins/apy/index.js";
 import { BotsPlugin } from "../src/plugins/bots/index.js";
 import { DegenDistributorsPlugin } from "../src/plugins/degen-distributors/index.js";
 import { chains, type NetworkType, OnchainSDK } from "../src/sdk/index.js";
@@ -34,6 +35,10 @@ const BLOCK = process.env.E2E_BLOCK
   ? BigInt(process.env.E2E_BLOCK)
   : 24_736_900n;
 const SINGLE_MC = process.env.E2E_MC as Address | undefined;
+const KYC_FACTORIES = process.env.E2E_KYC
+  ? (process.env.E2E_KYC.split(",") as Address[])
+  : undefined;
+const IGNORE_UPDATABLE_PRICES = !!process.env.E2E_NO_ORACLES;
 // ─────────────────────────────────────────────────────────────────────────────
 
 const RPC_URL = process.env.RPC_URL ?? "";
@@ -93,6 +98,7 @@ async function main() {
     };
 
     const mcOpts = SINGLE_MC ? { marketConfigurators: [SINGLE_MC] } : {};
+    const kycOpts = KYC_FACTORIES ? { kycFactories: KYC_FACTORIES } : {};
 
     const sdk = new OnchainSDK(
       NETWORK,
@@ -111,8 +117,19 @@ async function main() {
     );
     await sdk.attach({
       blockNumber: BLOCK,
+      ...(!SINGLE_MC && {
+        plugins: {
+          adapters: new AdaptersPlugin(true),
+          bots: new BotsPlugin(true),
+          degen: new DegenDistributorsPlugin(true),
+          apy: new ApyPlugin(true),
+          accounts: new AccountsPlugin({ includeZeroDebt: true }, true),
+        },
+      }),
+      ...(IGNORE_UPDATABLE_PRICES && { ignoreUpdateablePrices: true }),
       ...oracleOpts,
       ...mcOpts,
+      ...kycOpts,
     });
 
     // Re-attach per individual market configurator so that oracle proxy
@@ -133,7 +150,9 @@ async function main() {
       await mcSdk.attach({
         blockNumber: BLOCK,
         marketConfigurators: [mc],
+        ...(IGNORE_UPDATABLE_PRICES && { ignoreUpdateablePrices: true }),
         ...oracleOpts,
+        ...kycOpts,
       });
     }
   } finally {
