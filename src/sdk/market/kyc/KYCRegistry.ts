@@ -52,7 +52,9 @@ export class KYCRegistry extends SDKConstruct {
     configurators: Address[],
     kycFactories: Address[] = [],
   ): DelegatedMulticall[] {
-    if (!kycFactories.length) return [];
+    if (!kycFactories.length) {
+      return [];
+    }
     const [kycCompressorAddress] = this.sdk.addressProvider.mustGetLatest(
       AP_KYC_COMPRESSOR,
       VERSION_RANGE_310,
@@ -85,14 +87,17 @@ export class KYCRegistry extends SDKConstruct {
     investor: Address,
     factories_?: Address[],
   ): Promise<KYCInvestorData[]> {
-    const [kycCompressorAddress] = this.sdk.addressProvider.mustGetLatest(
-      AP_KYC_COMPRESSOR,
-      VERSION_RANGE_310,
-    );
     let factories = this.#factories.values();
     if (factories_?.length) {
       factories = factories_.map(f => this.#factories.mustGet(f));
     }
+    if (!factories.length) {
+      return [];
+    }
+    const [kycCompressorAddress] = this.sdk.addressProvider.mustGetLatest(
+      AP_KYC_COMPRESSOR,
+      VERSION_RANGE_310,
+    );
     const resp = await this.client.readContract({
       abi: iKYCCompressorAbi,
       address: kycCompressorAddress,
