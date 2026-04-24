@@ -71,6 +71,7 @@ import type {
   GetPendingWithdrawalsResult,
   ICreditAccountsService,
   OpenCAProps,
+  PartiallyLiquidateProps,
   PermitResult,
   PrepareUpdateQuotasProps,
   PreviewDelayedWithdrawalProps,
@@ -681,6 +682,26 @@ export class CreditAccountsServiceV310
       lossPolicyData,
       creditFacade: cm.creditFacade,
     };
+  }
+
+  /**
+   * {@inheritDoc ICreditAccountsService.partiallyLiquidate}
+   */
+  public async partiallyLiquidate(
+    props: PartiallyLiquidateProps,
+  ): Promise<RawTx> {
+    const { account, token, repaidAmount, minSeizedAmount, to } = props;
+    const cm = this.sdk.marketRegister.findCreditManager(account.creditManager);
+    const updates = await this.getOnDemandPriceUpdates(account, true);
+    const tx = cm.creditFacade.partiallyLiquidateCreditAccount(
+      account.creditAccount,
+      token,
+      repaidAmount,
+      minSeizedAmount,
+      to,
+      updates,
+    );
+    return tx;
   }
 
   /**

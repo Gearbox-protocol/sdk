@@ -16,6 +16,7 @@ import {
   formatBNvalue,
   formatTimestamp,
 } from "../../utils/index.js";
+import type { PriceUpdate } from "../pricefeeds/index.js";
 import type { CreditFacadeV310Abi } from "./CreditFacadeV310BaseContract.js";
 import { CreditFacadeV310BaseContract } from "./CreditFacadeV310BaseContract.js";
 
@@ -100,6 +101,20 @@ export class CreditFacadeV310Contract extends CreditFacadeV310BaseContract {
     return this.createRawTx({
       functionName: "liquidateCreditAccount",
       args: lossPolicyData ? [ca, to, calls, lossPolicyData] : [ca, to, calls],
+    });
+  }
+
+  public partiallyLiquidateCreditAccount(
+    ca: Address,
+    token: Address,
+    repaidAmount: bigint,
+    minSeizedAmount: bigint,
+    to: Address,
+    updates: PriceUpdate[],
+  ): RawTx {
+    return this.createRawTx({
+      functionName: "partiallyLiquidateCreditAccount",
+      args: [ca, token, repaidAmount, minSeizedAmount, to, updates],
     });
   }
 

@@ -558,6 +558,29 @@ export interface FullyLiquidateProps {
   debtOnly?: boolean;
 }
 
+export interface PartiallyLiquidateProps {
+  /**
+   * Credit account to liquidate
+   */
+  account: RouterCASlice;
+  /**
+   * Address to transfer underlying left after liquidation
+   */
+  to: Address;
+  /**
+   * Collateral token to seize
+   */
+  token: Address;
+  /**
+   * Amount of underlying token to repay
+   */
+  repaidAmount: bigint;
+  /**
+   * Minimum amount of `token` to seize from `creditAccount`
+   */
+  minSeizedAmount: bigint;
+}
+
 /**
  * EIP-2612 permit signature data for a token, enabling gasless approval for credit account operations.
  **/
@@ -791,6 +814,20 @@ export interface ICreditAccountsService extends Construct {
    * @returns Transaction data and optional loss policy data
    */
   fullyLiquidate(props: FullyLiquidateProps): Promise<FullyLiquidateResult>;
+
+  /**
+   * Generates transaction to partially liquidate credit account;
+   *
+   * Transaction partially liquidates credit account's debt in exchange for discounted collateral
+   * by transferring underlying from the caller (requires approval to the credit manager) and uses it to repay
+   * account's debt and pay fees to the treasury
+   * Transfers chosen collateral token at discounted oracle price to the liquidator (liquidation discount
+   * and fee are the same as for full liquidations, though fees are not deposited into the pool)
+   *
+   * @param props - {@link PartiallyLiquidateProps}
+   * @returns Raw transaction ready to be signed and sent
+   */
+  partiallyLiquidate(props: PartiallyLiquidateProps): Promise<RawTx>;
 
   /**
    * Closes credit account or closes credit account and keeps it open with zero debt.
