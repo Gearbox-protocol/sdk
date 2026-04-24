@@ -161,6 +161,10 @@ export class PriceFeedRegister
       }
     }
 
+    if (updateables.length === 0) {
+      return { txs: [], timestamp: 0 };
+    }
+
     const txs: IPriceUpdateTx[] = [];
     const latestUpdate: LatestUpdate = {
       updates: [],

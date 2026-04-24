@@ -138,6 +138,19 @@ export interface IPriceOracleContract extends IBaseContract {
    **/
   convertFromUSD: (to: Address, amount: bigint, reserve?: boolean) => bigint;
   /**
+   * Unlike {@link convert}, this method will update the price feeds before converting,
+   * and conversion will be peformed onchain using main price feeds
+   * @param from
+   * @param to
+   * @param amount
+   * @returns
+   */
+  updateAndConvert: (
+    from: Address,
+    to: Address,
+    amount: bigint,
+  ) => Promise<bigint>;
+  /**
    * @internal
    **/
   watchAddresses: Set<Address>;

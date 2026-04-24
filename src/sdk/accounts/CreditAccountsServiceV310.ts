@@ -685,6 +685,31 @@ export class CreditAccountsServiceV310
   }
 
   /**
+   * {@inheritDoc ICreditAccountsService.calcMinSeizedAmount}
+   */
+  public async calcMinSeizedAmount(
+    props: PartiallyLiquidateProps,
+  ): Promise<bigint> {
+    const { account, token, repaidAmount } = props;
+    const market = this.sdk.marketRegister.findByCreditManager(
+      account.creditManager,
+    );
+    const suite = this.sdk.marketRegister.findCreditManager(
+      account.creditManager,
+    );
+    const fee = suite.isExpired
+      ? suite.creditManager.liquidationDiscountExpired
+      : suite.creditManager.liquidationDiscount;
+
+    const tokenAmount = await market.priceOracle.updateAndConvert(
+      market.underlying,
+      token,
+      repaidAmount,
+    );
+    return (tokenAmount * 9990n) / BigInt(fee);
+  }
+
+  /**
    * {@inheritDoc ICreditAccountsService.partiallyLiquidate}
    */
   public async partiallyLiquidate(
