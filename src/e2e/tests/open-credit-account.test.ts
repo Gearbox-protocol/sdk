@@ -9,12 +9,7 @@ import {
 import { dealActions } from "viem-deal";
 import { beforeAll, describe, expect, it } from "vitest";
 import { iCreditFacadeV310Abi } from "../../abi/310/generated.js";
-import {
-  createCreditAccountService,
-  MAX_UINT256,
-  OnchainSDK,
-  sendRawTx,
-} from "../../sdk/index.js";
+import { MAX_UINT256, OnchainSDK, sendRawTx } from "../../sdk/index.js";
 import { ANVIL_URL } from "../constants.js";
 import {
   getAnvilWallet,
@@ -96,8 +91,7 @@ describe("open credit account", () => {
       target: TARGET_TOKEN,
     });
 
-    const service = createCreditAccountService(sdk, 310);
-    const { tx } = await service.openCA({
+    const { tx } = await sdk.accounts.openCA({
       creditManager: cm.creditManager.address,
       averageQuota: [{ token: TARGET_TOKEN, balance: 1050000000n }],
       minQuota: [{ token: TARGET_TOKEN, balance: 1050000000n }],
@@ -134,7 +128,7 @@ describe("open credit account", () => {
 
     // --- Add collateral (pmUSD) ---
     const creditAccount = logs[0].args.creditAccount;
-    const caData = await service.getCreditAccountData(creditAccount);
+    const caData = await sdk.accounts.getCreditAccountData(creditAccount);
     if (!caData) {
       throw new Error("credit account not found after open");
     }
@@ -154,7 +148,7 @@ describe("open credit account", () => {
     });
     await sdk.client.waitForTransactionReceipt({ hash, pollingInterval: 100 });
 
-    const { tx: addCollateralTx } = await service.addCollateral({
+    const { tx: addCollateralTx } = await sdk.accounts.addCollateral({
       creditAccount: caData,
       asset: { token: PMUSD, balance: pmUsdAmount },
       permit: undefined,
@@ -170,7 +164,8 @@ describe("open credit account", () => {
     expect(addCollateralReceipt.status).toBe("success");
 
     // --- Close credit account ---
-    const refreshedCaData = await service.getCreditAccountData(creditAccount);
+    const refreshedCaData =
+      await sdk.accounts.getCreditAccountData(creditAccount);
     if (!refreshedCaData)
       throw new Error("credit account not found after addCollateral");
 
@@ -180,7 +175,7 @@ describe("open credit account", () => {
       slippage: 50,
     });
 
-    const { tx: closeTx } = await service.closeCreditAccount({
+    const { tx: closeTx } = await sdk.accounts.closeCreditAccount({
       operation: "close",
       creditAccount: refreshedCaData,
       assetsToWithdraw: [cm.underlying],
