@@ -687,9 +687,7 @@ export class CreditAccountsServiceV310
   /**
    * {@inheritDoc ICreditAccountsService.calcMinSeizedAmount}
    */
-  public async calcMinSeizedAmount(
-    props: PartiallyLiquidateProps,
-  ): Promise<bigint> {
+  public calcMinSeizedAmount(props: PartiallyLiquidateProps): bigint {
     const { account, token, repaidAmount } = props;
     const market = this.sdk.marketRegister.findByCreditManager(
       account.creditManager,
@@ -701,7 +699,7 @@ export class CreditAccountsServiceV310
       ? suite.creditManager.liquidationDiscountExpired
       : suite.creditManager.liquidationDiscount;
 
-    const tokenAmount = await market.priceOracle.updateAndConvert(
+    const tokenAmount = market.priceOracle.convert(
       market.underlying,
       token,
       repaidAmount,

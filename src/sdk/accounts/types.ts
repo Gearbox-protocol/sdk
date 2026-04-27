@@ -836,7 +836,7 @@ export interface ICreditAccountsService extends Construct {
    * @param props - {@link CalcMinSeizedAmountProps}
    * @returns Minimum amount of collateral token to seize
    */
-  calcMinSeizedAmount(props: CalcMinSeizedAmountProps): Promise<bigint>;
+  calcMinSeizedAmount(props: CalcMinSeizedAmountProps): bigint;
 
   /**
    * Generates transaction to partially liquidate credit account;
