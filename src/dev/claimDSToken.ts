@@ -1,14 +1,4 @@
 import {
-  formatBN,
-  type GearboxChain,
-  type ILogger,
-  MAX_UINT256,
-  OnchainSDK,
-} from "@gearbox-protocol/sdk";
-import { iDSRegistryServiceAbi } from "@gearbox-protocol/sdk/abi/kyc/iDSRegistryService";
-import { iDSTokenAbi } from "@gearbox-protocol/sdk/abi/kyc/iDSToken";
-import type { AnvilClient } from "@gearbox-protocol/sdk/dev";
-import {
   type Address,
   erc20Abi,
   type Hex,
@@ -16,6 +6,15 @@ import {
   type Transport,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
+import { iDSRegistryServiceAbi } from "../abi/kyc/iDSRegistryService.js";
+import { iDSTokenAbi } from "../abi/kyc/iDSToken.js";
+import {
+  type GearboxChain,
+  type ILogger,
+  MAX_UINT256,
+  OnchainSDK,
+} from "../sdk/index.js";
+import type { AnvilClient } from "./createAnvilClient.js";
 
 async function writeAndWait(
   anvil: AnvilClient,
@@ -178,7 +177,7 @@ export async function claimDSToken(props: ClaimDSTokenProps): Promise<void> {
     functionName: "symbol",
     args: [],
   });
-  const logger = props.logger?.child?.({ symbol }) ?? console;
+  const logger = props.logger?.child?.({ symbol });
 
   const usdAmount = BigInt(usdAmountProp) * 10n ** 8n;
   const sdk = new OnchainSDK((anvil.chain as GearboxChain).network, {
@@ -195,11 +194,11 @@ export async function claimDSToken(props: ClaimDSTokenProps): Promise<void> {
   if (amount === 0n) {
     throw new Error(`No market found for token ${token}`);
   }
-  logger.debug(`${usdAmountProp} USD === ${amount} ${symbol}`);
+  logger?.debug(`${usdAmountProp} USD === ${amount} ${symbol}`);
 
   await registerInvestor({ ...props, logger });
 
-  logger.debug(`Issuing ${amount} tokens to ${claimer}...`);
+  logger?.debug(`Issuing ${amount} tokens to ${claimer}...`);
   const mintHash = await writeAndWait(anvil, {
     account,
     chain: anvil.chain,
@@ -208,14 +207,14 @@ export async function claimDSToken(props: ClaimDSTokenProps): Promise<void> {
     functionName: "issueTokens",
     args: [claimer, amount],
   });
-  logger.debug(`Done! tx: ${mintHash}`);
+  logger?.debug(`Done! tx: ${mintHash}`);
   const balance = await anvil.readContract({
     address: token,
     abi: erc20Abi,
     functionName: "balanceOf",
     args: [claimer],
   });
-  logger.debug(
+  logger?.debug(
     `Balance of ${claimer}: ${sdk.tokensMeta.formatBN(token, balance)}`,
   );
 }
