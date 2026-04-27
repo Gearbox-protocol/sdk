@@ -8,6 +8,10 @@ import {
   type Transport,
 } from "viem";
 import type { HttpRpcClientOptions } from "viem/utils";
+import {
+  CreditAccountsServiceV310,
+  type ICreditAccountsService,
+} from "./accounts/index.js";
 import type { BaseState, IBaseContract } from "./base/index.js";
 import { ChainContractsRegister } from "./base/index.js";
 import type { GearboxChain, NetworkType } from "./chain/chains.js";
@@ -39,6 +43,7 @@ import type {
 } from "./market/pricefeeds/updates/index.js";
 import type { PluginStatesMap, PluginsMap } from "./plugins/index.js";
 import { PluginStateVersionError } from "./plugins/index.js";
+import { type IPoolsService, PoolService } from "./pools/index.js";
 import { createRouter, type IRouterContract } from "./router/index.js";
 import type {
   GearboxState,
@@ -268,6 +273,15 @@ export class OnchainSDK<
   public readonly strictContractTypes: boolean;
 
   /**
+   * Namespace for credit accounts operations.
+   */
+  public readonly accounts: ICreditAccountsService;
+  /**
+   * Namespace for pool operations.
+   */
+  public readonly pools: IPoolsService;
+
+  /**
    * @param network - Gearbox network type (e.g. `"Mainnet"`, `"Monad"`).
    * @param clientOptions - Connection options (RPC URLs, transport, or client).
    * @param options - SDK configuration options.
@@ -299,6 +313,8 @@ export class OnchainSDK<
     if (options?.gasLimit !== null) {
       this.gasLimit = options?.gasLimit ?? getChain(this.networkType).gasLimit;
     }
+    this.accounts = new CreditAccountsServiceV310(this);
+    this.pools = new PoolService(this);
   }
 
   /**

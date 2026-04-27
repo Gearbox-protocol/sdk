@@ -1,10 +1,5 @@
-import type { Address, Hex } from "viem";
-import {
-  decodeFunctionData,
-  encodeFunctionData,
-  getAbiItem,
-  toFunctionSelector,
-} from "viem";
+import type { Address } from "viem";
+import { decodeFunctionData, getAbiItem, toFunctionSelector } from "viem";
 import { iCreditFacadeMulticallV310Abi } from "../../abi/310/generated.js";
 import type { PriceUpdate } from "../market/pricefeeds/types.js";
 import type { MultiCall } from "../types/index.js";

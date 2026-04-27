@@ -156,6 +156,32 @@ export interface IPoolsService {
   ): DepositMetadata;
 
   /**
+   * Returns a list of tokens that can be redeemed from a pool
+   * @param pool
+   */
+  getWithdrawalTokensIn(pool: Address): Address[];
+
+  /**
+   * Returns a list of tokens that can be received after redeeming from a pool
+   * @param pool
+   * @param tokenIn token that will be redeemed from the pool
+   */
+  getWithdrawalTokensOut(pool: Address, tokenIn: Address): Address[];
+
+  /**
+   * After user chooses tokenIn from {@link getWithdrawalTokensIn} and tokenOut from {@link getWithdrawalTokensOut},
+   * this method returns metadata that will be used to perform the withdrawal.
+   * @param pool
+   * @param tokenIn
+   * @param tokenOut
+   */
+  getWithdrawalMetadata(
+    pool: Address,
+    tokenIn: Address,
+    tokenOut?: Address,
+  ): WithdrawalMetadata;
+
+  /**
    * Returns contract call parameters for adding liquidity to a pool
    * Or undefined if no deposit action is required (e.g. for KYC underlying on demand)
    * @param props - {@link AddLiquidityProps}

@@ -140,6 +140,16 @@ export abstract class PriceOracleBaseContract<
   }
 
   /**
+   *
+   * {@inheritDoc IPriceOracleContract.updateAndConvert}
+   **/
+  public abstract updateAndConvert(
+    from: Address,
+    to: Address,
+    amount: bigint,
+  ): Promise<bigint>;
+
+  /**
    * {@inheritDoc IPriceOracleContract.convert}
    **/
   public convert(

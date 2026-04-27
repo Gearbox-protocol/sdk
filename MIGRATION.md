@@ -3,6 +3,58 @@
 Migration notes between consecutive major versions of `@gearbox-protocol/sdk`.
 New sections are appended below as future majors ship.
 
+## v14 → v15
+
+### Summary of changes
+
+- **`sdk.accounts` and `sdk.pools` are now built for you.** `OnchainSDK` instantiates a `CreditAccountsServiceV310` and a `PoolService` in its constructor and exposes them as `sdk.accounts` (`ICreditAccountsService`) and `sdk.pools` (`IPoolsService`). You no longer create these services manually.
+---
+
+### Use `sdk.accounts` instead of `createCreditAccountService`
+
+**Before:**
+
+```typescript
+import { createCreditAccountService } from "@gearbox-protocol/sdk";
+
+const accounts = createCreditAccountService(sdk, 310);
+const data = await accounts.getCreditAccountData(account);
+```
+
+**After:**
+
+```typescript
+const data = await sdk.accounts.getCreditAccountData(account);
+```
+
+### Use `sdk.pools` instead of `new PoolService(sdk)`
+
+**Before:**
+
+```typescript
+import { PoolService } from "@gearbox-protocol/sdk";
+
+const pools = new PoolService(sdk);
+pools.getDepositTokensIn(pool);
+```
+
+**After:**
+
+```typescript
+sdk.pools.getDepositTokensIn(pool);
+```
+
+### Automated migration
+
+An agent skill ships with this repo at
+[`skills/gearbox-sdk-v14-to-v15`](skills/gearbox-sdk-v14-to-v15/SKILL.md).
+
+```bash
+npx skills add Gearbox-protocol/sdk --skill gearbox-sdk-v14-to-v15
+```
+
+---
+
 ## v13 → v14
 
 ### Summary of changes

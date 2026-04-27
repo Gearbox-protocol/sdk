@@ -5,11 +5,7 @@ import type {
   GetCreditAccountsOptions,
   IOnchainSDKPlugin,
 } from "../../sdk/index.js";
-import {
-  AddressMap,
-  BasePlugin,
-  createCreditAccountService,
-} from "../../sdk/index.js";
+import { AddressMap, BasePlugin } from "../../sdk/index.js";
 
 export interface AccountsPluginState {
   /**
@@ -55,8 +51,7 @@ export class AccountsPlugin
     if (!force && this.loaded) {
       return this.state;
     }
-    const service = createCreditAccountService(this.sdk, 310);
-    const accounts = await service.getCreditAccounts(
+    const accounts = await this.sdk.accounts.getCreditAccounts(
       this.#options,
       this.sdk.currentBlock,
     );
