@@ -1,4 +1,4 @@
-import type { Address, Hex } from "viem";
+import type { Address, Hex, TypedDataDefinition } from "viem";
 import type { BaseContractStateHuman } from "../../../types/index.js";
 import type { KYC_FACTORY_SECURITIZE } from "./constants.js";
 
@@ -38,30 +38,40 @@ export interface SecuritizeSignature {
 }
 
 /**
- * EIP-712 typed-data message that must be signed by the investor to allow the
- * KYC factory to register a credit account as a vault in Securitize's VaultRegistrar
- * @see VaultRegistrar in https://github.com/Gearbox-protocol/periphery-v3
- *
+ * EIP-712 type schema for the `RegisterVault` message expected by Securitize's
+ * VaultRegistrar. Matches the contract's `RegisterVault` typehash field order.
  **/
-export interface SecuritizeRegisterVaultMessage {
-  /** EIP-712 domain from the VaultRegistrar contract. */
-  domain: {
-    name: string;
-    version: string;
-    chainId: bigint;
-    verifyingContract: Address;
-  };
-  /** Investor EOA that will sign the message. */
-  investor: Address;
-  /** Operator address (the DegenNFT contract). */
-  operator: Address;
-  /** DSToken address to register for. */
-  token: Address;
-  /** Monotonic nonce from VaultRegistrar (investor, operator). */
-  nonce: bigint;
-  /** Unix timestamp after which the message is no longer valid. */
-  deadline: bigint;
-}
+export const SECURITIZE_REGISTER_VAULT_TYPES = {
+  RegisterVault: [
+    { name: "investor", type: "address" },
+    { name: "operator", type: "address" },
+    { name: "token", type: "address" },
+    { name: "nonce", type: "uint256" },
+    { name: "deadline", type: "uint256" },
+  ],
+} as const;
+
+/**
+ * EIP-712 typed-data message that must be signed by the investor to allow the
+ * KYC factory to register a credit account as a vault in Securitize's VaultRegistrar.
+ *
+ * Shaped as a viem {@link TypedDataDefinition} so it can be spread directly into
+ * `walletClient.signTypedData({ account, ...message })`. The caller only has to
+ * supply the signing `account`.
+ *
+ * - `domain` — EIP-712 domain from the VaultRegistrar contract.
+ * - `message.investor` — investor EOA that will sign the message.
+ * - `message.operator` — operator address (the DegenNFT contract).
+ * - `message.token` — DSToken address to register for.
+ * - `message.nonce` — monotonic nonce from VaultRegistrar `(investor, operator)`.
+ * - `message.deadline` — unix timestamp after which the message is no longer valid.
+ *
+ * @see VaultRegistrar in https://github.com/Gearbox-protocol/periphery-v3
+ **/
+export type SecuritizeRegisterVaultMessage = TypedDataDefinition<
+  typeof SECURITIZE_REGISTER_VAULT_TYPES,
+  "RegisterVault"
+>;
 
 /**
  * Per-credit-account data decoded from the KYC compressor's

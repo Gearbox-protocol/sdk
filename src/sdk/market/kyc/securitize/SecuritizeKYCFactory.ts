@@ -11,12 +11,13 @@ import type {
   KYCFactoryData,
 } from "../types.js";
 import { KYC_FACTORY_SECURITIZE } from "./constants.js";
-import type {
-  DStokenData,
-  SecuritizeInvestorData,
-  SecuritizeKYCFactoryStateHuman,
-  SecuritizeOpenAccountRequirements,
-  SecuritizeOperationParams,
+import {
+  type DStokenData,
+  SECURITIZE_REGISTER_VAULT_TYPES,
+  type SecuritizeInvestorData,
+  type SecuritizeKYCFactoryStateHuman,
+  type SecuritizeOpenAccountRequirements,
+  type SecuritizeOperationParams,
 } from "./types.js";
 
 const abi = iSecuritizeKYCFactoryAbi;
@@ -97,7 +98,23 @@ export class SecuritizeKYCFactory
       type: KYC_FACTORY_SECURITIZE,
       factory: this.address,
       cachedSignatures: [...cachedSignatures],
-      registerVaultMessages: [...registerVaultMessages],
+      registerVaultMessages: registerVaultMessages.map(m => ({
+        types: SECURITIZE_REGISTER_VAULT_TYPES,
+        primaryType: "RegisterVault",
+        domain: {
+          name: m.domain.name,
+          version: m.domain.version,
+          chainId: m.domain.chainId,
+          verifyingContract: m.domain.verifyingContract,
+        },
+        message: {
+          investor: m.investor,
+          operator: m.operator,
+          token: m.token,
+          nonce: m.nonce,
+          deadline: m.deadline,
+        },
+      })),
       registeredTokens: [...registeredTokens],
       creditAccounts: creditAccounts.map(ca => {
         const [registeredTokens] = decodeAbiParameters(
@@ -195,7 +212,7 @@ export class SecuritizeKYCFactory
     const securitizeTokensToRegister =
       tokensToRegister.difference(registredTokens);
     const requiredSignatures = investorData.registerVaultMessages.filter(m =>
-      unsignedTokens.has(m.token),
+      unsignedTokens.has(m.message.token),
     );
 
     return {
