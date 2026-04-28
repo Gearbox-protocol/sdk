@@ -558,42 +558,37 @@ export interface FullyLiquidateProps {
   debtOnly?: boolean;
 }
 
-export interface CalcMinSeizedAmountProps {
-  /**
-   * Credit account to liquidate
-   */
-  account: RouterCASlice;
-  /**
-   * Collateral token to seize
-   */
-  token: Address;
-  /**
-   * Amount of underlying token to repay
-   */
-  repaidAmount: bigint;
-}
-
 export interface PartiallyLiquidateProps {
   /**
    * Credit account to liquidate
    */
-  account: RouterCASlice;
+  account: CreditAccountData;
   /**
    * Address to transfer underlying left after liquidation
    */
   to: Address;
   /**
-   * Collateral token to seize
+   * Collateral token to seize.
+   * If omitted, the most valuable enabled non-underlying collateral token
+   * (by oracle)
    */
-  token: Address;
+  tokenOut?: Address;
   /**
-   * Amount of underlying token to repay
+   * Amount of underlying token to repay.
+   * If omitted, computed internally
    */
-  repaidAmount: bigint;
+  repaidAmount?: bigint;
   /**
-   * Minimum amount of `token` to seize from `creditAccount`
+   * Minimum amount of `token` to seize from `creditAccount`.
+   * If omitted, computed internally
    */
-  minSeizedAmount: bigint;
+  minSeizedAmount?: bigint;
+  /**
+   * Target health factor for partial liquidation (4 digits precision, 10000 = 100%).
+   * If omitted, defaults to {@link ICreditAccountsService.getOptimalHFForPartialLiquidation}.
+   * Only used when `repaidAmount` is not explicitly provided.
+   */
+  optimalHF?: bigint;
 }
 
 /**
@@ -829,14 +824,6 @@ export interface ICreditAccountsService extends Construct {
    * @returns Transaction data and optional loss policy data
    */
   fullyLiquidate(props: FullyLiquidateProps): Promise<FullyLiquidateResult>;
-
-  /**
-   * Calculates minimum amount of collateral token to seize from credit account
-   * for partial liquidation, can be passed to {@link partiallyLiquidate} as `minSeizedAmount`
-   * @param props - {@link CalcMinSeizedAmountProps}
-   * @returns Minimum amount of collateral token to seize
-   */
-  calcMinSeizedAmount(props: CalcMinSeizedAmountProps): bigint;
 
   /**
    * Generates transaction to partially liquidate credit account;
