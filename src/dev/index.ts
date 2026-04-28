@@ -1,5 +1,6 @@
 export * from "./AccountOpener.js";
 export * from "./calcLiquidatableLTs.js";
+export * from "./claimDSToken.js";
 export * from "./claimFromFaucet.js";
 export * from "./create2.js";
 export * from "./createAnvilClient.js";
