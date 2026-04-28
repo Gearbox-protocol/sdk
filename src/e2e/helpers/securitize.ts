@@ -1,22 +1,18 @@
 import {
   type Address,
   type Chain,
-  createTestClient,
   createWalletClient,
   erc20Abi,
   http,
   type PrivateKeyAccount,
   parseEther,
   parseUnits,
-  publicActions,
   type Transport,
   type WalletClient,
-  walletActions,
 } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { dealActions } from "viem-deal";
+import type { AnvilClient } from "../../dev/createAnvilClient.js";
 import {
-  chains,
   KYC_UNDERLYING_DEFAULT,
   KYC_UNDERLYING_ON_DEMAND,
   type KYCOnDemandTokenMeta,
@@ -34,26 +30,12 @@ export const KYC_FACTORY: Address =
   "0x867b5b0cd9999959f696cef4ecf7777a39516d27";
 export const USDC: Address = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
 
-export function createSecuritizeAnvilClient() {
-  return createTestClient({
-    mode: "anvil",
-    transport: http(KYC_RPC_URL, { timeout: 120_000 }),
-    chain: chains.Mainnet,
-    pollingInterval: 100,
-  })
-    .extend(publicActions)
-    .extend(walletActions)
-    .extend(dealActions);
-}
-
-type SecuritizeAnvilClient = ReturnType<typeof createSecuritizeAnvilClient>;
-
 /**
  * Generates a fresh investor wallet, funds it with 1 ETH for gas, and returns
  * a `WalletClient` ready to sign txs on the Securitize anvil.
  */
 export async function createInvestorWallet(
-  anvil: SecuritizeAnvilClient,
+  anvil: AnvilClient,
   chain: Chain,
 ): Promise<WalletClient<Transport, Chain, PrivateKeyAccount>> {
   const account = privateKeyToAccount(generatePrivateKey());
@@ -108,7 +90,7 @@ export const POOL_LIQUIDITY_USDC = parseUnits("1000000", 6);
  */
 export async function seedSecuritizePoolLiquidity(
   sdk: OnchainSDK,
-  anvil: SecuritizeAnvilClient,
+  anvil: AnvilClient,
   pool: Address,
 ): Promise<void> {
   const market = sdk.marketRegister.findByPool(pool);
@@ -132,7 +114,7 @@ export async function seedSecuritizePoolLiquidity(
 
 async function seedDefaultPool(
   sdk: OnchainSDK,
-  anvil: SecuritizeAnvilClient,
+  anvil: AnvilClient,
   pool: Address,
 ): Promise<void> {
   const wallet = await createInvestorWallet(anvil, sdk.chain);
@@ -188,7 +170,7 @@ async function seedDefaultPool(
 }
 
 async function seedOnDemandPool(
-  anvil: SecuritizeAnvilClient,
+  anvil: AnvilClient,
   meta: KYCOnDemandTokenMeta,
 ): Promise<void> {
   const liquidityProvider = meta.liquidityProvider.addr;

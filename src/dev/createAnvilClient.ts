@@ -1,4 +1,6 @@
 import type {
+  Account,
+  Address,
   Block,
   Chain,
   Client,
@@ -6,11 +8,18 @@ import type {
   Prettify,
   PublicClient,
   TestActions,
+  TestClient,
   TestRpcSchema,
   Transport,
   WalletClient,
 } from "viem";
-import { createPublicClient, testActions, toHex, walletActions } from "viem";
+import {
+  createTestClient,
+  publicActions,
+  testActions,
+  toHex,
+  walletActions,
+} from "viem";
 
 export interface AnvilNodeInfo {
   currentBlockNumber: string; // hexutil.Big is a big number in hex format
@@ -45,6 +54,21 @@ export type AnvilRPCSchema = [
   },
 ];
 
+export interface AnvilDealParameters {
+  /**
+   * ERC20 token address.
+   */
+  erc20: Address;
+  /**
+   * Account that should receive the tokens.
+   */
+  account: Account | Address;
+  /**
+   * Token amount in raw units (no decimals applied).
+   */
+  amount: bigint;
+}
+
 export type AnvilActions = {
   anvilNodeInfo: () => Promise<AnvilNodeInfo>;
   isAnvil: () => Promise<boolean>;
@@ -54,6 +78,11 @@ export type AnvilActions = {
      */
     timestamp: bigint | number,
   ) => Promise<Block<Hex> | undefined>;
+  /**
+   * Deals ERC20 tokens to an account by overriding the storage of
+   * `balanceOf(account)`. Requires `viem-deal` as a peer dependency.
+   */
+  deal: (params: AnvilDealParameters) => Promise<void>;
 };
 
 export type AnvilClient = Prettify<
@@ -78,16 +107,50 @@ export interface AnvilClientConfig<
   pollingInterval?: number;
 }
 
+let dealModulePromise: Promise<typeof import("viem-deal") | null> | undefined;
+
+async function loadDeal(): Promise<typeof import("viem-deal").deal> {
+  // Cache the dynamic import (and any failure) so we only pay the resolve cost
+  // once even when `deal` is called many times.
+  dealModulePromise ??= import("viem-deal").catch(() => null);
+  const mod = await dealModulePromise;
+  if (!mod) {
+    throw new Error(
+      "createAnvilClient: deal action requires the 'viem-deal' package; install it as a dependency",
+    );
+  }
+  return mod.deal;
+}
+
+/**
+ * Extends an arbitrary viem `PublicClient` with anvil + wallet actions plus
+ * the SDK's bonus actions (`anvilNodeInfo`, `isAnvil`, `evmMineDetailed`,
+ * `deal`).
+ *
+ * Used to lift `sdk.client` into an `AnvilClient` shape on the fly when test
+ * RPCs (impersonateAccount, setBalance, setStorageAt, ...) are needed.
+ */
 export function extendAnvilClient(client: PublicClient): AnvilClient {
-  return client
-    .extend(testActions({ mode: "anvil" }))
-    .extend(walletActions)
-    .extend(c => ({
-      anvilNodeInfo: () => anvilNodeInfo(c),
-      isAnvil: () => isAnvil(c),
-      evmMineDetailed: (timestamp: bigint | number) =>
-        evmMineDetailed(c, timestamp),
-    })) as any;
+  return (
+    client
+      // Mark the client itself as `mode: "anvil"`. Without this, bare
+      // `viem/actions` test functions like `setStorageAt(client, ...)` (used
+      // internally by `viem-deal`) would build their RPC method names from
+      // `client.mode === undefined` and silently fail.
+      .extend(() => ({ mode: "anvil" as const }))
+      .extend(testActions({ mode: "anvil" }))
+      .extend(walletActions)
+      .extend(c => ({
+        anvilNodeInfo: () => anvilNodeInfo(c),
+        isAnvil: () => isAnvil(c),
+        evmMineDetailed: (timestamp: bigint | number) =>
+          evmMineDetailed(c, timestamp),
+        deal: async (params: AnvilDealParameters) => {
+          const deal = await loadDeal();
+          await deal(c as unknown as TestClient, params);
+        },
+      })) as any
+  );
 }
 
 export function createAnvilClient({
@@ -96,13 +159,25 @@ export function createAnvilClient({
   cacheTime = 0,
   pollingInterval = 50,
 }: AnvilClientConfig): AnvilClient {
-  const client = createPublicClient({
+  return createTestClient({
+    mode: "anvil",
     chain,
     transport,
     cacheTime,
     pollingInterval,
-  });
-  return extendAnvilClient(client);
+  })
+    .extend(publicActions)
+    .extend(walletActions)
+    .extend(c => ({
+      anvilNodeInfo: () => anvilNodeInfo(c),
+      isAnvil: () => isAnvil(c),
+      evmMineDetailed: (timestamp: bigint | number) =>
+        evmMineDetailed(c, timestamp),
+      deal: async (params: AnvilDealParameters) => {
+        const deal = await loadDeal();
+        await deal(c as unknown as TestClient, params);
+      },
+    })) as unknown as AnvilClient;
 }
 
 /**

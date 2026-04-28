@@ -109,6 +109,11 @@
     "axios": "^1.0.0",
     "viem-deal": "^2.0.4"
   },
+  "peerDependenciesMeta": {
+    "viem-deal": {
+      "optional": true
+    }
+  },
   "commitlint": {
     "extends": [
       "@commitlint/config-conventional"

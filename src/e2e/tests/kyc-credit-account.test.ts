@@ -2,14 +2,19 @@ import {
   type Address,
   erc20Abi,
   type Hex,
+  http,
   parseEventLogs,
   parseUnits,
 } from "viem";
 import { beforeAll, describe, expect, it } from "vitest";
 import { iCreditFacadeV310Abi } from "../../abi/310/generated.js";
 import { claimDSToken, registerInvestor } from "../../dev/claimDSToken.js";
-import type { AnvilClient } from "../../dev/createAnvilClient.js";
 import {
+  type AnvilClient,
+  createAnvilClient,
+} from "../../dev/createAnvilClient.js";
+import {
+  chains,
   KYC_FACTORY_SECURITIZE,
   MAX_UINT256,
   OnchainSDK,
@@ -17,7 +22,6 @@ import {
 } from "../../sdk/index.js";
 import {
   createInvestorWallet,
-  createSecuritizeAnvilClient,
   KYC_FACTORY,
   KYC_MARKET_CONFIGURATOR,
   KYC_RPC_URL,
@@ -62,7 +66,11 @@ const CREDIT_MANAGERS = [
 
 describe.skipIf(!!process.env.CI)("kyc credit account (securitize)", () => {
   let sdk: OnchainSDK;
-  const anvil = createSecuritizeAnvilClient();
+  const anvil = createAnvilClient({
+    chain: chains.Mainnet,
+    transport: http(KYC_RPC_URL, { timeout: 120_000 }),
+    pollingInterval: 100,
+  });
   const adminPrivateKey = process.env.E2E_SECURITIZE_ADMIN_PRIVATE_KEY as Hex;
 
   beforeAll(async () => {
