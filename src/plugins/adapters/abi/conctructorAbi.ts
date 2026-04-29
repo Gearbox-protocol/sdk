@@ -89,6 +89,13 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
     310: BASIC_ADAPTER_ABI,
   },
 
+  [AdapterType.SECURITIZE_ONRAMP]: {
+    310: BASIC_ADAPTER_ABI,
+  },
+  [AdapterType.SECURITIZE_SWAP]: {
+    310: BASIC_ADAPTER_ABI,
+  },
+
   // Curve adapters
   // curve pattern [creditManager, target, lpToken, basePool, use256]
   [AdapterType.CURVE_V1_2ASSETS]: {
@@ -177,6 +184,9 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
     311: PHANTOM_TOKEN_ADAPTER_ABI,
   },
   [AdapterType.INFINIFI_UNWINDING]: {
+    310: PHANTOM_TOKEN_ADAPTER_ABI,
+  },
+  [AdapterType.SECURITIZE_REDEMPTION]: {
     310: PHANTOM_TOKEN_ADAPTER_ABI,
   },
 
