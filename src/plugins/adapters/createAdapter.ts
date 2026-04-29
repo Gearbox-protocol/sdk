@@ -46,6 +46,9 @@ import {
   VelodromeV2RouterAdapterContract,
   WstETHV1AdapterContract,
 } from "./contracts/index.js";
+import { SecuritizeOnRampAdapterContract } from "./contracts/SecuritizeOnRampAdapterContract.js";
+import { SecuritizeRedemptionGatewayAdapterContract } from "./contracts/SecuritizeRedemptionGatewayAdapterContract.js";
+import { SecuritizeSwapAdapterContract } from "./contracts/SecuritizeSwapAdapterContract.js";
 import { UniswapV4AdapterContract } from "./contracts/UniswapV4AdapterContract.js";
 import type { AdapterContractType } from "./types.js";
 
@@ -126,6 +129,12 @@ export function createAdapter(
       return new MidasRedemptionVaultAdapterContract(options, data);
     case "ADAPTER::PENDLE_ROUTER":
       return new PendleRouterAdapterContract(options, data);
+    case "ADAPTER::SECURITIZE_ONRAMP":
+      return new SecuritizeOnRampAdapterContract(options, data);
+    case "ADAPTER::SECURITIZE_REDEMPTION":
+      return new SecuritizeRedemptionGatewayAdapterContract(options, data);
+    case "ADAPTER::SECURITIZE_SWAP":
+      return new SecuritizeSwapAdapterContract(options, data);
     case "ADAPTER::STAKING_REWARDS":
       return new StakingRewardsAdapterContract(options, data);
     case "ADAPTER::TRADER_JOE_ROUTER":
