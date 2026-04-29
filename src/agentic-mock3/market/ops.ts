@@ -1,0 +1,23 @@
+import type { Mode } from "../core/mode.js";
+import type { RawTx, TvlChartData } from "../core/types.js";
+import type { Curator } from "../curator/entity.js";
+import type { OpportunityCollection } from "../opportunity/collection.js";
+import type { Opportunity } from "../opportunity/entity.js";
+
+export interface OnchainMarketOps {
+  readonly kycRequired: boolean;
+  readonly availableLiquidity: bigint;
+  createDepositTx(amount: bigint): RawTx;
+}
+
+export interface OffchainMarketOps {
+  readonly supplyApy: number;
+  readonly description: string;
+  loadHistoricalTvl(from: number, to: number): Promise<TvlChartData>;
+  readonly opportunities: Opportunity[];
+  readonly curator: Curator | undefined;
+}
+
+export interface OffchainMarketCollectionOps<M extends Mode> {
+  readonly opportunities: OpportunityCollection<M>;
+}
