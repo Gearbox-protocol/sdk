@@ -7,6 +7,7 @@ import {
 } from "../../sdk/index.js";
 import { MOCK_DATA } from "./mock-data/index.js";
 import type {
+  OffchainCurator,
   OffchainStateSnapshot,
   Opportunity,
   TokenRef,
@@ -61,6 +62,13 @@ export class OffchainSDK {
       throw new Error("SDK is not attached");
     }
     return this.#state.opportunities;
+  }
+
+  public get curators(): OffchainCurator[] {
+    if (!this.#attached || !this.#state) {
+      throw new Error("SDK is not attached");
+    }
+    return this.#state.curators;
   }
 
   public get tokens(): TokenRef[] {

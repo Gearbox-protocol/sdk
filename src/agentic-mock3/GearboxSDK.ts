@@ -93,7 +93,7 @@ class GearboxSDKImpl implements SDKContext<Mode> {
     this.#tokens = new TokensNamespace<Mode>(this);
     this.#markets = new MarketsNamespace<Mode>(this);
     this.#opportunities = new OpportunitiesNamespace<Mode>(this);
-    this.#curators = new CuratorsNamespace(this, []);
+    this.#curators = new CuratorsNamespace(this);
   }
 
   // -- SDKContext<Mode> surface ----------------------------------------------

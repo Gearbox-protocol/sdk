@@ -5,15 +5,17 @@
  * Implementation classes are never generic -- they always have all methods.
  * The Mode parameter only restricts the PUBLIC type surface.
  *
- * Per-entity Ops interfaces live next to their entity definitions.
+ * Per-entity Caps interfaces live next to their entity definitions.
  * This file imports them to build the central ModeCapabilities manifest.
  */
 /** biome-ignore-all lint/complexity/noBannedTypes: <we want to be explicit about capabilities> */
 import type {
-  OffchainMarketCollectionOps,
-  OffchainMarketOps,
-  OnchainMarketOps,
-} from "../market/ops.js";
+  CommonMarketCaps,
+  OffchainMarketCaps,
+  OffchainMarketCollectionCaps,
+  OnchainMarketCaps,
+  OnchainMarketCollectionCaps,
+} from "../market/types.js";
 import type {
   OffchainTokenCaps,
   OffchainTokenCollectionCaps,
@@ -24,14 +26,14 @@ export type Mode = "onchain" | "offchain";
 
 export interface ModeCapabilities<M extends Mode = Mode> {
   onchain: {
-    Market: OnchainMarketOps;
-    MarketCollection: {};
+    Market: CommonMarketCaps & OnchainMarketCaps;
+    MarketCollection: OnchainMarketCollectionCaps<M>;
     Token: OnchainTokenCaps;
     TokenCollection: {};
   };
   offchain: {
-    Market: OffchainMarketOps;
-    MarketCollection: OffchainMarketCollectionOps<M>;
+    Market: CommonMarketCaps & OffchainMarketCaps<M>;
+    MarketCollection: OffchainMarketCollectionCaps<M>;
     Token: OffchainTokenCaps<M>;
     TokenCollection: OffchainTokenCollectionCaps<M>;
   };

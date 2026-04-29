@@ -11,6 +11,7 @@ export type {
   OpportunityRisk,
   PoolCollateral,
   PoolOpportunityType,
+  RiskLevel,
   StrategyCollateral,
   StrategyOpportunityType,
   YieldBreakdown,

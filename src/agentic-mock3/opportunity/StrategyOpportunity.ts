@@ -1,5 +1,7 @@
-import type { Address } from "viem";
+import { type Address, isAddressEqual } from "viem";
 import { GearboxEntity, type Mode, type SDKContext } from "../core/index.js";
+import type { Curator } from "../curator/Curator.js";
+import type { MarketType } from "../market/Market.js";
 import type * as offchain from "../offchain/index.js";
 import type { TokenType } from "../tokens/index.js";
 import type {
@@ -37,8 +39,13 @@ export class StrategyOpportunity
     return this.#offchain.title;
   }
 
-  public get curatorId(): string {
-    return this.#offchain.curatorId;
+  public get curator(): Curator {
+    const id = this.#offchain.curatorId;
+    const found = this.ctx.curators.all().find(c => c.id === id);
+    if (!found) {
+      throw new Error(`No curator found for id ${id}`);
+    }
+    return found;
   }
 
   public get access(): OpportunityAccess {
@@ -55,8 +62,21 @@ export class StrategyOpportunity
     return this.#offchain.creditManagerAddress;
   }
 
-  public get poolAddress(): Address {
-    return this.#offchain.poolAddress;
+  public get market(): MarketType<Mode> {
+    const poolAddress = this.#offchain.poolAddress;
+    const chainId = this.#offchain.chainId;
+    const found = this.ctx.markets
+      .all()
+      .find(
+        m =>
+          m.chainId === chainId && isAddressEqual(m.poolAddress, poolAddress),
+      );
+    if (!found) {
+      throw new Error(
+        `No market found for pool ${poolAddress} on chain ${chainId}`,
+      );
+    }
+    return found;
   }
 
   public get borrowed(): number {

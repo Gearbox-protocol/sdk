@@ -1,10 +1,13 @@
 import type { Address } from "viem";
 import type { Mode } from "../core/index.js";
+import type { Curator } from "../curator/Curator.js";
+import type { MarketType } from "../market/Market.js";
 import type * as offchain from "../offchain/index.js";
 import type { TokenType } from "../tokens/index.js";
 
 export type OpportunityAccess = offchain.OpportunityAccess;
 export type OpportunityRisk = offchain.OpportunityRisk;
+export type RiskLevel = OpportunityRisk["level"];
 export type YieldBreakdown = offchain.YieldBreakdown;
 
 export interface PoolCollateral<M extends Mode> {
@@ -24,7 +27,7 @@ export interface OpportunityBase<M extends Mode> {
   chainId: number;
   type: "pool" | "strategy";
   title: string;
-  curatorId: string; // TODO: curator entity
+  curator: Curator;
   underlyingToken: TokenType<M>;
   access: OpportunityAccess;
   risk: OpportunityRisk;
@@ -33,7 +36,7 @@ export interface OpportunityBase<M extends Mode> {
 export interface PoolOpportunityType<M extends Mode>
   extends OpportunityBase<M> {
   type: "pool";
-  poolAddress: Address; // TODO: pool/market entity
+  market: MarketType<M>;
 
   yield: YieldBreakdown;
 
@@ -52,7 +55,7 @@ export interface StrategyOpportunityType<M extends Mode>
   extends OpportunityBase<M> {
   type: "strategy";
   creditManagerAddress: Address;
-  poolAddress: Address;
+  market: MarketType<M>;
 
   targetCollateral: TokenType<M>;
   collaterals: StrategyCollateral<M>[];
