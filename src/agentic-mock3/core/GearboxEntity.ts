@@ -2,39 +2,42 @@ import type { MultichainSDK } from "../../sdk/index.js";
 import type { OffchainSDK } from "../offchain/index.js";
 import type { SDKContext } from "./context.js";
 import { ModeNotAvailableError } from "./errors.js";
+import type { Mode } from "./mode.js";
 
 export abstract class GearboxEntity {
-  readonly #multichain: MultichainSDK | null;
-  readonly #offchain: OffchainSDK | null;
+  readonly #ctx: SDKContext<Mode>;
 
-  constructor(ctx: SDKContext) {
-    this.#multichain = ctx.multichain;
-    this.#offchain = ctx.offchain;
+  constructor(ctx: SDKContext<Mode>) {
+    this.#ctx = ctx;
   }
 
   protected get multichain(): MultichainSDK {
-    if (!this.#multichain) {
+    if (!this.#ctx.multichain) {
       throw new ModeNotAvailableError("onchain", this.constructor.name);
     }
-    return this.#multichain;
+    return this.#ctx.multichain;
   }
 
   protected get offchain(): OffchainSDK {
-    if (!this.#offchain) {
+    if (!this.#ctx.offchain) {
       throw new ModeNotAvailableError("offchain", this.constructor.name);
     }
-    return this.#offchain;
+    return this.#ctx.offchain;
   }
 
   protected get multichainOrNull(): MultichainSDK | null {
-    return this.#multichain;
+    return this.#ctx.multichain;
   }
 
   protected get offchainOrNull(): OffchainSDK | null {
-    return this.#offchain;
+    return this.#ctx.offchain;
   }
 
-  protected get ctx(): SDKContext {
-    return { multichain: this.#multichain, offchain: this.#offchain };
+  /**
+   * Full SDK handle. Entities reach sibling namespaces via `this.ctx.tokens`,
+   * `this.ctx.opportunities`, etc.
+   */
+  protected get ctx(): SDKContext<Mode> {
+    return this.#ctx;
   }
 }

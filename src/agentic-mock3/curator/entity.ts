@@ -1,14 +1,14 @@
-import type { SDKContext } from "../core/index.js";
+import type { Mode, SDKContext } from "../core/index.js";
 import { GearboxEntity } from "../core/index.js";
 import { Market } from "../market/entity.js";
 import type { OffchainCurator } from "../offchain/index.js";
-import type { Opportunity } from "../opportunity/entity.js";
-import { PoolOpportunity, StrategyOpportunity } from "../opportunity/entity.js";
+import type { Opportunity } from "../opportunity/index.js";
+import { PoolOpportunity, StrategyOpportunity } from "../opportunity/index.js";
 
 export class Curator extends GearboxEntity {
   readonly #offchain: OffchainCurator;
 
-  constructor(ctx: SDKContext, offchain: OffchainCurator) {
+  constructor(ctx: SDKContext<Mode>, offchain: OffchainCurator) {
     super(ctx);
     this.#offchain = offchain;
   }
@@ -47,7 +47,7 @@ export class Curator extends GearboxEntity {
     return results;
   }
 
-  get opportunities(): Opportunity[] {
+  get opportunities(): Opportunity<Mode>[] {
     const poolAddresses = new Set(
       this.#offchain.marketConfigurators.flatMap(mc => mc.poolAddresses),
     );
@@ -56,17 +56,13 @@ export class Curator extends GearboxEntity {
     );
 
     return offOpps.map(o => {
-      const offMarket = this.offchain.markets.find(
-        m => m.pool.address === o.poolAddress,
-      );
-      const network = offMarket?.network;
-      const onchain = network
-        ? this.multichainOrNull?.chain(network as any).findMarket(o.poolAddress)
-        : undefined;
       if (o.type === "strategy") {
-        return new StrategyOpportunity(this.ctx, o, onchain);
+        return new StrategyOpportunity(
+          this.ctx,
+          o,
+        ) as unknown as Opportunity<Mode>;
       }
-      return new PoolOpportunity(this.ctx, o, onchain);
+      return new PoolOpportunity(this.ctx, o) as unknown as Opportunity<Mode>;
     });
   }
 }

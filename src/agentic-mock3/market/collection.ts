@@ -7,9 +7,12 @@ import type {
   SDKContext,
 } from "../core/index.js";
 import { BaseCollection } from "../core/index.js";
-import { OpportunityCollection } from "../opportunity/collection.js";
-import type { Opportunity } from "../opportunity/entity.js";
-import { PoolOpportunity, StrategyOpportunity } from "../opportunity/entity.js";
+import type { Opportunity } from "../opportunity/index.js";
+import {
+  OpportunityCollection,
+  PoolOpportunity,
+  StrategyOpportunity,
+} from "../opportunity/index.js";
 import type { Market, MarketType } from "./entity.js";
 
 // ============================================================================
@@ -34,7 +37,7 @@ export class MarketCollection<M extends Mode> extends BaseCollection<
   MarketType<M>,
   M
 > {
-  constructor(ctx: SDKContext, items: MarketType<M>[]) {
+  constructor(ctx: SDKContext<Mode>, items: MarketType<M>[]) {
     super(ctx, items);
   }
 
@@ -64,18 +67,19 @@ export class MarketCollection<M extends Mode> extends BaseCollection<
   }
 
   get opportunities(): OpportunityCollection<M> {
-    const allOpps: Opportunity[] = [];
+    const allOpps: Opportunity<M>[] = [];
     for (const m of this.items) {
       const market = m as unknown as Market;
       const offOpps = this.offchain.findOpportunitiesByPool(market.poolAddress);
       for (const o of offOpps) {
-        const onchain = this.multichainOrNull
-          ?.chain(market.network)
-          .findMarket(market.poolAddress);
         if (o.type === "strategy") {
-          allOpps.push(new StrategyOpportunity(this.ctx, o, onchain));
+          allOpps.push(
+            new StrategyOpportunity(this.ctx, o) as unknown as Opportunity<M>,
+          );
         } else {
-          allOpps.push(new PoolOpportunity(this.ctx, o, onchain));
+          allOpps.push(
+            new PoolOpportunity(this.ctx, o) as unknown as Opportunity<M>,
+          );
         }
       }
     }

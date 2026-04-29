@@ -2,13 +2,12 @@ import type { Mode, SDKContext } from "../core/index.js";
 import { BaseCollection } from "../core/index.js";
 import { MarketCollection } from "../market/collection.js";
 import type { Market } from "../market/entity.js";
-import { OpportunityCollection } from "../opportunity/collection.js";
-import type { Opportunity } from "../opportunity/entity.js";
-import { PoolOpportunity, StrategyOpportunity } from "../opportunity/entity.js";
+import type { Opportunity } from "../opportunity/index.js";
+import { OpportunityCollection } from "../opportunity/index.js";
 import type { Curator } from "./entity.js";
 
 export class CuratorCollection extends BaseCollection<Curator> {
-  constructor(ctx: SDKContext, items: Curator[]) {
+  constructor(ctx: SDKContext<Mode>, items: Curator[]) {
     super(ctx, items);
   }
 
@@ -38,7 +37,7 @@ export class CuratorCollection extends BaseCollection<Curator> {
   }
 
   get opportunities(): OpportunityCollection<Mode> {
-    const allOpps: Opportunity[] = [];
+    const allOpps: Opportunity<Mode>[] = [];
     const seen = new Set<string>();
     for (const curator of this.items) {
       for (const opp of curator.opportunities) {

@@ -1,12 +1,10 @@
 import type { Address } from "viem";
-import type { Caps, Mode } from "../core/index.js";
+import type { Mode } from "../core/index.js";
 import type * as offchain from "../offchain/index.js";
 import type { TokenType } from "../tokens/index.js";
 
 export type OpportunityAccess = offchain.OpportunityAccess;
-
 export type OpportunityRisk = offchain.OpportunityRisk;
-
 export type YieldBreakdown = offchain.YieldBreakdown;
 
 export interface PoolCollateral<M extends Mode> {
@@ -14,6 +12,11 @@ export interface PoolCollateral<M extends Mode> {
   quotaLimit: number;
   quotaUsed: number;
   quotaRate: number;
+}
+
+export interface StrategyCollateral<M extends Mode> extends PoolCollateral<M> {
+  liquidationThreshold: number;
+  yield: YieldBreakdown;
 }
 
 export interface OpportunityBase<M extends Mode> {
@@ -45,8 +48,6 @@ export interface PoolOpportunityType<M extends Mode>
   collaterals: PoolCollateral<M>[];
 }
 
-////////
-
 export interface StrategyOpportunityType<M extends Mode>
   extends OpportunityBase<M> {
   type: "strategy";
@@ -54,10 +55,8 @@ export interface StrategyOpportunityType<M extends Mode>
   poolAddress: Address;
 
   targetCollateral: TokenType<M>;
-  // collaterals with non-zero LT and quota
-  collaterals: StrategyCollateral[];
+  collaterals: StrategyCollateral<M>[];
 
-  // strategy info
   borrowed: number;
   totalValue: number;
   minDebt: number;
@@ -71,8 +70,10 @@ export interface StrategyOpportunityType<M extends Mode>
   maxLeveragedTargetCollateralYield: YieldBreakdown;
   /** Best collateral base yield without leverage */
   baseTargetCollateralYield: YieldBreakdown;
-  // avgYield7d: YieldBreakdown;
 
-  // isPaused?: boolean;
   hasDelayedWithdrawal: boolean;
 }
+
+export type Opportunity<M extends Mode> =
+  | PoolOpportunityType<M>
+  | StrategyOpportunityType<M>;

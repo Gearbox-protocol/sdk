@@ -8,6 +8,7 @@ import {
   type SDKContext,
 } from "../core/index.js";
 import type * as offchain from "../offchain/index.js";
+import type { PoolOpportunityCollection } from "../opportunity/index.js";
 import type {
   CommonTokenCaps,
   OffchainTokenCaps,
@@ -25,7 +26,7 @@ export class Token extends GearboxEntity implements CommonTokenCaps {
   #offchain: offchain.TokenRef | undefined;
 
   constructor(
-    ctx: SDKContext,
+    ctx: SDKContext<Mode>,
     offchain: offchain.TokenRef | undefined,
     onchain: OnchainTokenMetaData | undefined,
   ) {
@@ -89,5 +90,13 @@ export class Token extends GearboxEntity implements CommonTokenCaps {
 
   public get price(): number {
     return this.offchainData.price;
+  }
+
+  // ============================================================================
+  // Navigation -- reverse link into opportunities
+  // ============================================================================
+
+  public poolOpportunities(): PoolOpportunityCollection<Mode> {
+    return this.ctx.opportunities.pools().withUnderlying(this.address);
   }
 }

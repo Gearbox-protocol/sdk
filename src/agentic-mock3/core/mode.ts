@@ -32,7 +32,7 @@ export interface ModeCapabilities<M extends Mode = Mode> {
   offchain: {
     Market: OffchainMarketOps;
     MarketCollection: OffchainMarketCollectionOps<M>;
-    Token: OffchainTokenCaps;
+    Token: OffchainTokenCaps<M>;
     TokenCollection: OffchainTokenCollectionCaps<M>;
   };
 }

@@ -1,24 +1,18 @@
-import { BaseCollection, type Mode, type SDKContext } from "../core/index.js";
-import type { StrategyOpportunity } from "./entity.js";
+import { BaseCollection, type Mode } from "../core/index.js";
+import { matchUnderlying } from "./filters.js";
+import type { StrategyOpportunityType } from "./types.js";
 
 export class StrategyOpportunityCollection<
   M extends Mode,
-> extends BaseCollection<StrategyOpportunity, M> {
-  minBasicApy(threshold: number): StrategyOpportunityCollection<M> {
+> extends BaseCollection<StrategyOpportunityType<M>, M> {
+  withUnderlying(query: string | RegExp): StrategyOpportunityCollection<M> {
     return new StrategyOpportunityCollection<M>(
       this.ctx,
-      this.items.filter(o => o.basicApy >= threshold),
+      this.items.filter(o => matchUnderlying(o.underlyingToken, query)),
     );
   }
 
-  withUnderlyings(...tokens: Address[]): StrategyOpportunityCollection<M> {
-    return new StrategyOpportunityCollection<M>(
-      this.ctx,
-      this.items.filter(o => tokens.includes(o.underlying)),
-    );
-  }
-
-  protected wrap(items: StrategyOpportunity[]): this {
+  protected wrap(items: StrategyOpportunityType<M>[]): this {
     return new StrategyOpportunityCollection<M>(this.ctx, items) as this;
   }
 }

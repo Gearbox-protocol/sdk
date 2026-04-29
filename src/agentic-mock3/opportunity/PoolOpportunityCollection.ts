@@ -1,39 +1,19 @@
-import { BaseCollection, type Mode, type SDKContext } from "../core/index.js";
-import type { PoolOpportunity } from "./entity.js";
+import { BaseCollection, type Mode } from "../core/index.js";
+import { matchUnderlying } from "./filters.js";
+import type { PoolOpportunityType } from "./types.js";
 
 export class PoolOpportunityCollection<M extends Mode> extends BaseCollection<
-  PoolOpportunity,
+  PoolOpportunityType<M>,
   M
 > {
-  minApy(threshold: number): PoolOpportunityCollection<M> {
+  withUnderlying(query: string | RegExp): PoolOpportunityCollection<M> {
     return new PoolOpportunityCollection<M>(
       this.ctx,
-      this.items.filter(o => o.supplyApy >= threshold),
+      this.items.filter(o => matchUnderlying(o.underlyingToken, query)),
     );
   }
 
-  minTvlUsd(threshold: number): PoolOpportunityCollection<M> {
-    return new PoolOpportunityCollection<M>(
-      this.ctx,
-      this.items.filter(o => o.tvlUsd >= threshold),
-    );
-  }
-
-  kycFree(): PoolOpportunityCollection<M> {
-    return new PoolOpportunityCollection<M>(
-      this.ctx,
-      this.items.filter(o => !o.kycRequired),
-    );
-  }
-
-  withUnderlyings(...tokens: Address[]): PoolOpportunityCollection<M> {
-    return new PoolOpportunityCollection<M>(
-      this.ctx,
-      this.items.filter(o => tokens.includes(o.underlying)),
-    );
-  }
-
-  protected wrap(items: PoolOpportunity[]): this {
+  protected wrap(items: PoolOpportunityType<M>[]): this {
     return new PoolOpportunityCollection<M>(this.ctx, items) as this;
   }
 }

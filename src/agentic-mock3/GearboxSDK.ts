@@ -39,7 +39,8 @@ export type GearboxSDK<M extends Mode> = GearboxSDKBase & GearboxNamespaces<M>;
 export interface GearboxSDKConfig<M extends Mode> {
   modes: M[];
   networks: NetworkType[];
-  onchain?: Omit<MultichainSDKOptions<{}>, "logger">; // TODO: generic plugins
+  // biome-ignore lint/complexity/noBannedTypes: TODO generic plugin map
+  onchain?: Omit<MultichainSDKOptions<{}>, "logger">;
   offchain?: OffchainSDKConfig;
   logger?: ILogger;
 }
@@ -49,7 +50,7 @@ export type GearboxSDKAttachOptions<M extends Mode> = IfOnchain<
   { onchain?: MultichainAttachOptions }
 >;
 
-class GearboxSDKImpl {
+class GearboxSDKImpl implements SDKContext<Mode> {
   public readonly modes: Mode[];
   public readonly networks: NetworkType[];
 
@@ -87,15 +88,22 @@ class GearboxSDKImpl {
       this.#offchain?.attach(),
     ]);
 
-    const ctx: SDKContext = {
-      multichain: this.#multichain,
-      offchain: this.#offchain,
-    };
+    // Order matters: downstream namespaces call `sdk.tokens.getOrCreate(...)`
+    // from their constructors, so tokens must be populated first.
+    this.#tokens = new TokensNamespace<Mode>(this);
+    this.#markets = new MarketsNamespace<Mode>(this);
+    this.#opportunities = new OpportunitiesNamespace<Mode>(this);
+    this.#curators = new CuratorsNamespace(this, []);
+  }
 
-    this.#markets = new MarketsNamespace<Mode>(ctx);
-    this.#opportunities = new OpportunitiesNamespace<Mode>(ctx);
-    this.#curators = new CuratorsNamespace(ctx);
-    this.#tokens = new TokensNamespace<Mode>(ctx);
+  // -- SDKContext<Mode> surface ----------------------------------------------
+
+  public get multichain(): MultichainSDK | null {
+    return this.#multichain;
+  }
+
+  public get offchain(): OffchainSDK | null {
+    return this.#offchain;
   }
 
   public get markets(): MarketsNamespace<Mode> {

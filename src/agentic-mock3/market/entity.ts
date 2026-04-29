@@ -11,8 +11,8 @@ import { GearboxEntity } from "../core/index.js";
 import { Curator } from "../curator/entity.js";
 import type { OffchainMarketData } from "../offchain/index.js";
 import type { OnchainMarketData } from "../onchain/index.js";
-import type { Opportunity } from "../opportunity/entity.js";
-import { PoolOpportunity, StrategyOpportunity } from "../opportunity/entity.js";
+import type { Opportunity } from "../opportunity/index.js";
+import { PoolOpportunity, StrategyOpportunity } from "../opportunity/index.js";
 
 // ============================================================================
 // Public types
@@ -43,7 +43,7 @@ export class Market extends GearboxEntity implements MarketBase {
   readonly underlying: Address;
 
   constructor(
-    ctx: SDKContext,
+    ctx: SDKContext<Mode>,
     offchain: OffchainMarketData | undefined,
     onchain: OnchainMarketData | undefined,
   ) {
@@ -106,16 +106,16 @@ export class Market extends GearboxEntity implements MarketBase {
 
   // -- Navigation (offchain-only) --------------------------------------------
 
-  get opportunities(): Opportunity[] {
+  get opportunities(): Opportunity<Mode>[] {
     const offOpps = this.offchain.findOpportunitiesByPool(this.poolAddress);
     return offOpps.map(o => {
-      const onchain = this.multichainOrNull
-        ?.chain(this.network)
-        .findMarket(this.poolAddress);
       if (o.type === "strategy") {
-        return new StrategyOpportunity(this.ctx, o, onchain);
+        return new StrategyOpportunity(
+          this.ctx,
+          o,
+        ) as unknown as Opportunity<Mode>;
       }
-      return new PoolOpportunity(this.ctx, o, onchain);
+      return new PoolOpportunity(this.ctx, o) as unknown as Opportunity<Mode>;
     });
   }
 

@@ -1,6 +1,6 @@
 import { orderBy } from "es-toolkit";
-import { GearboxEntity } from "./base.js";
 import type { SDKContext } from "./context.js";
+import { GearboxEntity } from "./GearboxEntity.js";
 import type { Mode } from "./mode.js";
 
 export interface IBaseCollection<T, Self> extends Iterable<T> {
@@ -26,7 +26,7 @@ export abstract class BaseCollection<T extends object, M extends Mode = Mode>
 {
   readonly #items: T[];
 
-  constructor(ctx: SDKContext, items: T[]) {
+  constructor(ctx: SDKContext<Mode>, items: T[]) {
     super(ctx);
     this.#items = items;
   }

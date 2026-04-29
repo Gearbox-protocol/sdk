@@ -1,109 +1,124 @@
-import {
-  type Address,
-  GearboxEntity,
-  type NetworkType,
-  type RawTx,
-  type SDKContext,
-} from "../core/index.js";
-import { Curator } from "../curator/entity.js";
-import { Market } from "../market/entity.js";
-import type { OffchainStrategyOpportunity } from "../offchain/index.js";
-import type { OnchainMarketData } from "../onchain/index.js";
-import type { OpportunityBase } from "./entity";
+import type { Address } from "viem";
+import { GearboxEntity, type Mode, type SDKContext } from "../core/index.js";
+import type * as offchain from "../offchain/index.js";
+import type { TokenType } from "../tokens/index.js";
+import type {
+  OpportunityAccess,
+  OpportunityRisk,
+  StrategyCollateral,
+  StrategyOpportunityType,
+  YieldBreakdown,
+} from "./types.js";
 
 export class StrategyOpportunity
   extends GearboxEntity
-  implements OpportunityBase
+  implements StrategyOpportunityType<Mode>
 {
-  readonly #offchain: OffchainStrategyOpportunity;
-  readonly #onchain: OnchainMarketData | undefined;
+  readonly #offchain: offchain.StrategyOpportunity;
 
   readonly type = "strategy" as const;
 
-  constructor(
-    ctx: SDKContext,
-    offchain: OffchainStrategyOpportunity,
-    onchain: OnchainMarketData | undefined,
-  ) {
+  constructor(ctx: SDKContext<Mode>, offchain: offchain.StrategyOpportunity) {
     super(ctx);
     this.#offchain = offchain;
-    this.#onchain = onchain;
   }
 
-  get id(): string {
+  // -- Common passthroughs ---------------------------------------------------
+
+  public get id(): string {
     return this.#offchain.id;
   }
-  get chainId(): number {
+
+  public get chainId(): number {
     return this.#offchain.chainId;
   }
-  get title(): string {
+
+  public get title(): string {
     return this.#offchain.title;
   }
-  get curatorName(): string {
-    return this.#offchain.curatorName;
-  }
-  get poolAddress(): Address {
-    return this.#offchain.poolAddress;
-  }
-  get underlying(): Address {
-    return this.#offchain.underlying;
-  }
-  get permissionless(): boolean {
-    return this.#offchain.permissionless;
-  }
-  get kycRequired(): boolean {
-    return this.#offchain.kycRequired;
+
+  public get curatorId(): string {
+    return this.#offchain.curatorId;
   }
 
-  // -- Strategy-specific -----------------------------------------------------
+  public get access(): OpportunityAccess {
+    return this.#offchain.access;
+  }
 
-  get creditManagerAddress(): Address {
+  public get risk(): OpportunityRisk {
+    return this.#offchain.risk;
+  }
+
+  // -- Strategy-specific passthroughs ----------------------------------------
+
+  public get creditManagerAddress(): Address {
     return this.#offchain.creditManagerAddress;
   }
-  get borrowApy(): number {
-    return this.#offchain.borrowApy;
+
+  public get poolAddress(): Address {
+    return this.#offchain.poolAddress;
   }
-  get maxLeverage(): number {
-    return this.#offchain.maxLeverage;
+
+  public get borrowed(): number {
+    return this.#offchain.borrowed;
   }
-  get basicApy(): number {
-    return this.#offchain.basicApy;
+
+  public get totalValue(): number {
+    return this.#offchain.totalValue;
   }
-  get maxLeverageApy(): number {
-    return this.#offchain.maxLeverageApy;
-  }
-  get minDebt(): bigint {
+
+  public get minDebt(): number {
     return this.#offchain.minDebt;
   }
-  get maxDebt(): bigint {
+
+  public get maxDebt(): number {
     return this.#offchain.maxDebt;
   }
 
-  // -- Onchain ops -----------------------------------------------------------
-
-  createDepositTx(amount: bigint): RawTx {
-    const network = this.#resolveNetwork();
-    return this.multichain
-      .chain(network)
-      .createDepositTx(this.poolAddress, amount);
+  public get borrowableLiquidity(): number {
+    return this.#offchain.borrowableLiquidity;
   }
 
-  // -- Navigation ------------------------------------------------------------
-
-  get market(): Market {
-    const network = this.#resolveNetwork();
-    const offMarket = this.offchain.findMarket(network, this.poolAddress);
-    return new Market(this.ctx, offMarket, this.#onchain);
+  public get maxLeverage(): number {
+    return this.#offchain.maxLeverage;
   }
 
-  get curator(): Curator | undefined {
-    const offCurator = this.offchain.findCurator(this.curatorName);
-    if (!offCurator) return undefined;
-    return new Curator(this.ctx, offCurator);
+  public get borrowApy(): number {
+    return this.#offchain.borrowApy;
   }
 
-  #resolveNetwork(): NetworkType {
-    return this.offchain.markets.find(m => m.pool.address === this.poolAddress)
-      ?.network as NetworkType;
+  public get maxLeveragedTargetCollateralYield(): YieldBreakdown {
+    return this.#offchain.maxLeveragedTargetCollateralYield;
+  }
+
+  public get baseTargetCollateralYield(): YieldBreakdown {
+    return this.#offchain.baseTargetCollateralYield;
+  }
+
+  public get hasDelayedWithdrawal(): boolean {
+    return this.#offchain.hasDelayedWithdrawal;
+  }
+
+  // -- Navigation to tokens --------------------------------------------------
+
+  public get underlyingToken(): TokenType<Mode> {
+    const { address, chainId } = this.#offchain.underlyingToken;
+    return this.ctx.tokens.getOrCreate(address, chainId);
+  }
+
+  public get targetCollateral(): TokenType<Mode> {
+    const { address, chainId } = this.#offchain.targetCollateral;
+    return this.ctx.tokens.getOrCreate(address, chainId);
+  }
+
+  public get collaterals(): StrategyCollateral<Mode>[] {
+    return this.#offchain.collaterals.map(c => ({
+      token: this.ctx.tokens.getOrCreate(c.token.address, c.token.chainId),
+      quotaLimit: c.quotaLimit,
+      quotaUsed: c.quotaUsed,
+      quotaRate: c.quotaRate,
+      liquidationThreshold: c.liquidationThreshold,
+      yield: c.yield,
+    }));
   }
 }

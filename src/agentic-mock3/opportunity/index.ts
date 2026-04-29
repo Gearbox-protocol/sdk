@@ -1,8 +1,17 @@
-export {
-  OpportunityCollection,
-  PoolOpportunityCollection,
-  StrategyOpportunityCollection,
-} from "./collection.js";
-export type { Opportunity, OpportunityBase } from "./entity.js";
-export { PoolOpportunity, StrategyOpportunity } from "./entity.js";
-export { OpportunitiesNamespace } from "./namespace.js";
+export { OpportunitiesNamespace } from "./OpportunitiesNamespace.js";
+export { OpportunityCollection } from "./OpportunityCollection.js";
+export { PoolOpportunity } from "./PoolOpportunity.js";
+export { PoolOpportunityCollection } from "./PoolOpportunityCollection.js";
+export { StrategyOpportunity } from "./StrategyOpportunity.js";
+export { StrategyOpportunityCollection } from "./StrategyOpportunityCollection.js";
+export type {
+  Opportunity,
+  OpportunityAccess,
+  OpportunityBase,
+  OpportunityRisk,
+  PoolCollateral,
+  PoolOpportunityType,
+  StrategyCollateral,
+  StrategyOpportunityType,
+  YieldBreakdown,
+} from "./types.js";
