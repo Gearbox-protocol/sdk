@@ -58,6 +58,7 @@ import type {
   CreditAccountTokensSlice,
   CreditManagerFilter,
   CreditManagerOperationResult,
+  DefaultPartialLiquidationParams,
   ExecuteSwapProps,
   FullyLiquidateProps,
   FullyLiquidateResult,
@@ -682,6 +683,23 @@ export class CreditAccountsServiceV310
       lossPolicyData,
       creditFacade: cm.creditFacade,
     };
+  }
+
+  /**
+   * {@inheritDoc ICreditAccountsService.defaultPartialLiquidationParams}
+   */
+  public defaultPartialLiquidationParams(
+    ca: CreditAccountData,
+  ): DefaultPartialLiquidationParams {
+    const tokenOut = this.#getBestTokenOut(ca);
+    const optimalHF = this.getOptimalHFForPartialLiquidation(ca);
+    const repaidAmount = this.#calcOptimalRepaidAmount(ca, tokenOut, optimalHF);
+    const minSeizedAmount = this.#calcMinSeizedAmount(
+      ca,
+      tokenOut,
+      repaidAmount,
+    );
+    return { tokenOut, optimalHF, repaidAmount, minSeizedAmount };
   }
 
   /**

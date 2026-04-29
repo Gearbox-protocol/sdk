@@ -558,6 +558,25 @@ export interface FullyLiquidateProps {
   debtOnly?: boolean;
 }
 
+export interface DefaultPartialLiquidationParams {
+  /**
+   * {@link PartiallyLiquidateProps.tokenOut}
+   */
+  tokenOut: Address;
+  /**
+   * {@link PartiallyLiquidateProps.repaidAmount}
+   */
+  repaidAmount: bigint;
+  /**
+   * {@link PartiallyLiquidateProps.minSeizedAmount}
+   */
+  minSeizedAmount: bigint;
+  /**
+   * {@link PartiallyLiquidateProps.optimalHF}
+   */
+  optimalHF: bigint;
+}
+
 export interface PartiallyLiquidateProps {
   /**
    * Credit account to liquidate
@@ -580,7 +599,9 @@ export interface PartiallyLiquidateProps {
   repaidAmount?: bigint;
   /**
    * Minimum amount of `token` to seize from `creditAccount`.
-   * If omitted, computed internally
+   * If `token` is a phantom token, it's withdrawn first, and its `depositedToken` is then sent to the liquidator.
+   * In this case, `minSeizedAmount` is denominated in `depositedToken`.
+   * If omitted, computed internally.
    */
   minSeizedAmount?: bigint;
   /**
@@ -826,13 +847,21 @@ export interface ICreditAccountsService extends Construct {
   fullyLiquidate(props: FullyLiquidateProps): Promise<FullyLiquidateResult>;
 
   /**
+   * Calculates default partial liquidation parameters for a credit account
+   * These parameters are used as defaults for the {@link partiallyLiquidate} method.
+   * @param ca - Credit account to partially liquidate
+   */
+  defaultPartialLiquidationParams(
+    ca: CreditAccountData,
+  ): DefaultPartialLiquidationParams;
+
+  /**
    * Generates transaction to partially liquidate credit account;
    *
    * Transaction partially liquidates credit account's debt in exchange for discounted collateral
    * by transferring underlying from the caller (requires approval to the credit manager) and uses it to repay
    * account's debt and pay fees to the treasury
-   * Transfers chosen collateral token at discounted oracle price to the liquidator (liquidation discount
-   * and fee are the same as for full liquidations, though fees are not deposited into the pool)
+   * Transfers chosen collateral token at discounted oracle price to the liquidator
    *
    * @param props - {@link PartiallyLiquidateProps}
    * @returns Raw transaction ready to be signed and sent
