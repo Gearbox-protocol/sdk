@@ -233,6 +233,60 @@ public stateHuman(raw?: boolean): MultichainStateHuman
 
 Per-chain hooks remain on `OnchainSDK`, accessible via `multiSdk.chain("Mainnet").addHook(...)`.
 
+### 3.11 Shared `PriceUpdatesCache`
+
+Oracle data from Redstone/Pyth is chain-agnostic — the same payload for a given data feed works on any network. `MultichainSDK` creates shared `PriceUpdatesCache` instances and injects them into each chain's updaters to avoid redundant fetches.
+
+`PriceUpdatesCache` itself is unchanged. `RedstoneOptions` and `PythOptions` each gain an optional `cache` field:
+
+```typescript
+// in RedstoneOptions / PythOptions zod schemas — not validated by zod, just a plain TS field
+cache?: PriceUpdatesCache;
+```
+
+Updater constructors use the injected cache or fall back to creating their own:
+
+```typescript
+// in PythUpdater / RedstoneUpdater constructor
+this.#cache = opts.cache ?? new PriceUpdatesCache({ ttl: ..., historical: ... });
+```
+
+`MultichainSDK` wiring (in `attach()` / `hydrate()`):
+
+```typescript
+// MultichainSDK creates shared caches once
+#redstoneCache?: PriceUpdatesCache;
+#pythCache?: PriceUpdatesCache;
+
+public async attach(options?: MultichainAttachOptions): Promise<void> {
+  // Create shared caches from the top-level redstone/pyth options
+  if (options?.redstone) {
+    this.#redstoneCache = new PriceUpdatesCache({
+      ttl: options.redstone.cacheTTL ?? 225_000,
+      historical: !!options.redstone.historicTimestamp,
+    });
+  }
+  if (options?.pyth) {
+    this.#pythCache = new PriceUpdatesCache({
+      ttl: options.pyth.cacheTTL ?? 225_000,
+      historical: !!options.pyth.historicTimestamp,
+    });
+  }
+  // Each chain gets the shared cache injected
+  await Promise.all(
+    [...this.#chains.entries()].map(([network, sdk]) =>
+      sdk.attach({
+        ...perChainOpts[network],
+        redstone: { ...options?.redstone, cache: this.#redstoneCache },
+        pyth: { ...options?.pyth, cache: this.#pythCache },
+      }),
+    ),
+  );
+}
+```
+
+Single-chain `OnchainSDK` is unaffected — when no cache is injected, updaters create their own internally as before.
+
 ## Phase 4: Plugin System Updates
 
 ### 4.1 Update `IGearboxSDKPlugin` interface
