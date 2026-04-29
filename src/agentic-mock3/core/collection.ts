@@ -90,7 +90,7 @@ export abstract class BaseCollection<T extends object, M extends Mode = Mode>
 
   protected abstract wrap(items: T[]): this;
 
-  protected get items(): readonly T[] {
+  protected get items(): T[] {
     return this.#items;
   }
 }

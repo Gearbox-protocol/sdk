@@ -14,6 +14,11 @@ import type {
   OffchainMarketOps,
   OnchainMarketOps,
 } from "../market/ops.js";
+import type {
+  OffchainTokenCaps,
+  OffchainTokenCollectionCaps,
+  OnchainTokenCaps,
+} from "../tokens/index.js";
 
 export type Mode = "onchain" | "offchain";
 
@@ -21,10 +26,14 @@ export interface ModeCapabilities<M extends Mode = Mode> {
   onchain: {
     Market: OnchainMarketOps;
     MarketCollection: {};
+    Token: OnchainTokenCaps;
+    TokenCollection: {};
   };
   offchain: {
     Market: OffchainMarketOps;
     MarketCollection: OffchainMarketCollectionOps<M>;
+    Token: OffchainTokenCaps;
+    TokenCollection: OffchainTokenCollectionCaps<M>;
   };
 }
 
@@ -53,3 +62,6 @@ export type IfBothModes<M extends Mode, T> = "onchain" extends M
 
 /** Resolves to `T` when offchain mode is active. */
 export type IfOffchain<M extends Mode, T> = "offchain" extends M ? T : unknown;
+
+/** Resolves to `T` when onchain mode is active. */
+export type IfOnchain<M extends Mode, T> = "onchain" extends M ? T : unknown;
