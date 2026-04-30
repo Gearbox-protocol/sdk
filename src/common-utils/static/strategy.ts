@@ -11,6 +11,8 @@ export type TokenTypeStrategy =
   | "bfBTC"
   | "mon";
 
+export type StrategyMarketType = "common" | "rwa";
+
 export interface StrategyConfigPayload {
   name: string;
   /**
@@ -34,7 +36,10 @@ export interface StrategyConfigPayload {
    * Strategy type. Used for filtering
    */
   strategyType: [TokenTypeStrategy];
-
+  /**
+   * Strategy market type. Used for filtering
+   */
+  strategyMarketType?: [StrategyMarketType];
   /**
    * undefined - released;
    * number - one value for the current chain.
@@ -46,7 +51,7 @@ export interface StrategyConfigPayload {
    * undefined, false = no.
    */
   hideInProd?: boolean;
-  /** An option to show strategies in main app only.
+  /** An option to show strategies in main app (app.gearbox.fi).
    * undefined, true = yes; false = no.
    */
   showInMainApp?: boolean;
