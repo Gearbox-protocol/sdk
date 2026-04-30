@@ -79,3 +79,5 @@ export enum AccessMode {
   Permissioned = 1,
   Forbidden = 2,
 }
+
+export type PeripheryDomain = "ZAPPER" | "DEGEN_NFT";

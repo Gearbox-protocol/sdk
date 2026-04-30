@@ -43,6 +43,7 @@ import type {
   ForbidTokenParams,
   Market,
   PauseCreditManagerParams,
+  PeripheryDomain,
   SetExpirationDateParams,
   SetFeesParams,
   SetPriceFeedParams,
@@ -50,6 +51,8 @@ import type {
   SetTokenQuotaIncreaseFeeParams,
   UnpauseCreditManagerParams,
 } from "./types.js";
+
+const PERIPHERY_DOMAINS: readonly PeripheryDomain[] = ["ZAPPER", "DEGEN_NFT"];
 
 const abi = iMarketConfiguratorV310Abi;
 
@@ -662,6 +665,40 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
       functionName: "setEmergencyAdmin",
       args: [newEmergencyAdmin],
     });
+  }
+
+  addPeripheryContract(peripheryContract: Address): RawTx {
+    return this.createRawTx({
+      functionName: "addPeripheryContract",
+      args: [peripheryContract],
+    });
+  }
+
+  removePeripheryContract(peripheryContract: Address): RawTx {
+    return this.createRawTx({
+      functionName: "removePeripheryContract",
+      args: [peripheryContract],
+    });
+  }
+
+  getPeripheryDomains(): readonly PeripheryDomain[] {
+    return PERIPHERY_DOMAINS;
+  }
+
+  async getPeripheryContracts(): Promise<{
+    [key in PeripheryDomain]: Address[];
+  }> {
+    const entries = await Promise.all(
+      PERIPHERY_DOMAINS.map(async domain => {
+        const contracts = await this.contract.read.getPeripheryContracts([
+          stringToHex(domain, { size: 32 }),
+        ]);
+        return [domain, contracts] as const;
+      }),
+    );
+    return Object.fromEntries(entries) as {
+      [key in PeripheryDomain]: Address[];
+    };
   }
 
   //
