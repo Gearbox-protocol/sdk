@@ -33,7 +33,7 @@ export type Curator =
   | "Invariant Group"
   | "Tulipa"
   | "M11 Credit"
-  | "kpk"
+  | "KPK"
   | "Hyperithm"
   | "UltraYield"
   | "TelosC"
@@ -145,7 +145,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         "0x3b56538833fc02f4f0e75609390f26ded0c32e42": "Re7",
         "0x7a133fbd01736fd076158307c9476cc3877f1af5": "Invariant Group",
         "0x09d8305F49374AEA6A78aF6C996df2913e8f3b19": "Tulipa",
-        "0x1b265b97eb169fb6668e3258007c3b0242c7bdbe": "kpk",
+        "0x1b265b97eb169fb6668e3258007c3b0242c7bdbe": "KPK",
         "0x9dddd1b9ce0ac8aa0c80e4ec141600b9bf0101c3": "UltraYield",
         "0x601067eba24bb5b558a184fc082525637e96a42d": "Gami Labs",
       },
