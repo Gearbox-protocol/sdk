@@ -72,6 +72,7 @@ export function parseCreditAccountTransaction(
     directTransfers,
     liquidationRemainingFunds,
     phantomTokens,
+    withdrawCollateralEvents,
   } = extractTransfers(logs, creditAccount, pool, creditFacade);
 
   const meta: FacadeOperationMetadata = {
@@ -88,6 +89,7 @@ export function parseCreditAccountTransaction(
     underlying,
     liquidationRemainingFunds,
     phantomTokens,
+    withdrawCollateralEvents,
     strict,
   }).map(o => ({ ...o, ...meta }) as OuterFacadeOperation);
 

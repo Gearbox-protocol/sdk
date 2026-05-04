@@ -541,4 +541,156 @@ describe("classifyCreditAccountOperation", () => {
       });
     });
   });
+
+  describe("withdrawCollateralEvents", () => {
+    const PHANTOM = addr("0xF0");
+    const DEPOSITED = addr("0xF1");
+    const MAX_UINT256 =
+      115792089237316195423570985008687907853269984665640564039457584007913129639935n;
+
+    it("uses event amount over rawArgs.amount for regular withdrawal", () => {
+      const register = setupRegister();
+      const to = addr("0xCC");
+      const [result] = classifyMulticallOperations({
+        innerCalls: [
+          makeParsed(FACADE, "withdrawCollateral", {
+            token: TOKEN_B,
+            amount: MAX_UINT256,
+            to,
+          }),
+        ],
+        executeResults: [],
+        protocolCalldatas: [],
+        register,
+        creditAccount: CA,
+        underlying: UNDERLYING,
+        strict: true,
+        withdrawCollateralEvents: [{ token: TOKEN_B, amount: 12345n, to }],
+      });
+      expect(result).toEqual({
+        operation: "WithdrawCollateral",
+        token: TOKEN_B,
+        amount: 12345n,
+        to,
+      });
+    });
+
+    it("uses event amount in deposited-token units for phantom withdrawal", () => {
+      const register = setupRegister();
+      const to = addr("0xCC");
+      const phantomTokens = new AddressMap([[PHANTOM, DEPOSITED]]);
+      const [result] = classifyMulticallOperations({
+        innerCalls: [
+          makeParsed(FACADE, "withdrawCollateral", {
+            token: PHANTOM,
+            amount: MAX_UINT256,
+            to,
+          }),
+        ],
+        executeResults: [],
+        protocolCalldatas: [],
+        register,
+        creditAccount: CA,
+        underlying: UNDERLYING,
+        strict: true,
+        phantomTokens,
+        withdrawCollateralEvents: [{ token: DEPOSITED, amount: 9876n, to }],
+      });
+      expect(result).toEqual({
+        operation: "WithdrawCollateral",
+        token: DEPOSITED,
+        amount: 9876n,
+        to,
+        phantomToken: PHANTOM,
+      });
+    });
+
+    it("consumes events in FIFO order across multiple withdrawCollateral calls", () => {
+      const register = setupRegister();
+      const to = addr("0xCC");
+      const result = classifyMulticallOperations({
+        innerCalls: [
+          makeParsed(FACADE, "withdrawCollateral", {
+            token: TOKEN_A,
+            amount: MAX_UINT256,
+            to,
+          }),
+          makeParsed(FACADE, "increaseDebt", { amount: 1n }),
+          makeParsed(FACADE, "withdrawCollateral", {
+            token: TOKEN_B,
+            amount: MAX_UINT256,
+            to,
+          }),
+        ],
+        executeResults: [],
+        protocolCalldatas: [],
+        register,
+        creditAccount: CA,
+        underlying: UNDERLYING,
+        strict: true,
+        withdrawCollateralEvents: [
+          { token: TOKEN_A, amount: 111n, to },
+          { token: TOKEN_B, amount: 222n, to },
+        ],
+      });
+      expect(result).toMatchObject([
+        { operation: "WithdrawCollateral", token: TOKEN_A, amount: 111n, to },
+        { operation: "IncreaseBorrowedAmount", amount: 1n },
+        { operation: "WithdrawCollateral", token: TOKEN_B, amount: 222n, to },
+      ]);
+    });
+
+    it("falls back to rawArgs.amount when events are empty", () => {
+      const register = setupRegister();
+      const to = addr("0xCC");
+      const [result] = classifyMulticallOperations({
+        innerCalls: [
+          makeParsed(FACADE, "withdrawCollateral", {
+            token: TOKEN_B,
+            amount: 200n,
+            to,
+          }),
+        ],
+        executeResults: [],
+        protocolCalldatas: [],
+        register,
+        creditAccount: CA,
+        underlying: UNDERLYING,
+        strict: true,
+        withdrawCollateralEvents: [],
+      });
+      expect(result).toEqual({
+        operation: "WithdrawCollateral",
+        token: TOKEN_B,
+        amount: 200n,
+        to,
+      });
+    });
+
+    it("throws when more events than withdrawCollateral inner calls", () => {
+      const register = setupRegister();
+      const to = addr("0xCC");
+      expect(() =>
+        classifyMulticallOperations({
+          innerCalls: [
+            makeParsed(FACADE, "withdrawCollateral", {
+              token: TOKEN_B,
+              amount: MAX_UINT256,
+              to,
+            }),
+          ],
+          executeResults: [],
+          protocolCalldatas: [],
+          register,
+          creditAccount: CA,
+          underlying: UNDERLYING,
+          strict: true,
+          withdrawCollateralEvents: [
+            { token: TOKEN_B, amount: 1n, to },
+            { token: TOKEN_B, amount: 2n, to },
+          ],
+        }),
+      ).toThrow(/withdrawCollateral event alignment mismatch/);
+    });
+  });
 });

@@ -1,4 +1,4 @@
-import type { Address, Hex } from "viem";
+import type { Address } from "viem";
 import { AbstractAdapterContract } from "../plugins/adapters/index.js";
 import type {
   AddressMap,
@@ -7,6 +7,7 @@ import type {
 } from "../sdk/index.js";
 import { classifyMulticallOperations } from "./classifyMulticallOperations.js";
 import { extractProtocolCalls } from "./extractProtocolCalls.js";
+import type { WithdrawCollateralEventInfo } from "./extractTransfers.js";
 import type { ExecuteResult, FacadeParsedCall } from "./internal-types.js";
 import type {
   FacadeOperationMetadata,
@@ -21,6 +22,7 @@ export interface AssembleOperationsInput {
   underlying: Address;
   liquidationRemainingFunds?: bigint;
   phantomTokens?: AddressMap<Address>;
+  withdrawCollateralEvents?: WithdrawCollateralEventInfo[];
   strict?: boolean;
 }
 
@@ -42,9 +44,11 @@ export function assembleOperations(
     underlying,
     liquidationRemainingFunds,
     phantomTokens,
+    withdrawCollateralEvents = [],
     strict,
   } = input;
-  let offset = 0;
+  let executeOffset = 0;
+  let withdrawOffset = 0;
 
   return facadeCalls.map(fc => {
     if (fc.operation === "PartiallyLiquidateCreditAccount") {
@@ -52,8 +56,15 @@ export function assembleOperations(
     }
 
     const count = countAdapterCalls(fc.innerCalls, register);
-    const sliced = executeResults.slice(offset, offset + count);
-    offset += count;
+    const sliced = executeResults.slice(executeOffset, executeOffset + count);
+    executeOffset += count;
+
+    const withdrawCount = countWithdrawCollateralCalls(fc.innerCalls);
+    const slicedWithdrawEvents = withdrawCollateralEvents.slice(
+      withdrawOffset,
+      withdrawOffset + withdrawCount,
+    );
+    withdrawOffset += withdrawCount;
 
     const protocolCalldatas = extractProtocolCalls(fc.trace, sliced);
 
@@ -66,6 +77,7 @@ export function assembleOperations(
       underlying,
       strict,
       phantomTokens,
+      withdrawCollateralEvents: slicedWithdrawEvents,
     });
 
     switch (fc.operation) {
@@ -109,6 +121,12 @@ function countAdapterCalls(
     const contract = register.getContract(call.target);
     return !contract || contract instanceof AbstractAdapterContract;
   }).length;
+}
+
+function countWithdrawCollateralCalls(innerCalls: ParsedCallV2[]): number {
+  return innerCalls.filter(call =>
+    call.functionName.startsWith("withdrawCollateral"),
+  ).length;
 }
 
 function assemblePartialLiquidation(

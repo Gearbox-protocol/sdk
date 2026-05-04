@@ -10,7 +10,12 @@ import type {
   ChainContractsRegister,
   ParsedCallV2,
 } from "../sdk/index.js";
-import { TransferAlignmentError, UnknownAdapterError } from "./errors.js";
+import {
+  TransferAlignmentError,
+  UnknownAdapterError,
+  WithdrawCollateralAlignmentError,
+} from "./errors.js";
+import type { WithdrawCollateralEventInfo } from "./extractTransfers.js";
 import type {
   InnerFacadeOperation,
   InnerOperation,
@@ -26,6 +31,7 @@ export interface ClassifyMulticallOperationsInput {
   underlying: Address;
   strict?: boolean;
   phantomTokens?: AddressMap<Address>;
+  withdrawCollateralEvents?: WithdrawCollateralEventInfo[];
 }
 
 /**
@@ -60,8 +66,10 @@ export function classifyMulticallOperations(
     underlying,
     strict,
     phantomTokens,
+    withdrawCollateralEvents,
   } = input;
   let transferIdx = 0;
+  let withdrawIdx = 0;
   const result: InnerOperation[] = [];
 
   for (const call of innerCalls) {
@@ -87,7 +95,16 @@ export function classifyMulticallOperations(
     }
 
     if (contract !== undefined) {
-      const op = classifyFacadeInnerCall(call, underlying, phantomTokens);
+      const isWithdraw = call.functionName.startsWith("withdrawCollateral");
+      const withdrawEvent = isWithdraw
+        ? withdrawCollateralEvents?.[withdrawIdx++]
+        : undefined;
+      const op = classifyFacadeInnerCall(
+        call,
+        underlying,
+        phantomTokens,
+        withdrawEvent,
+      );
       if (op) result.push(op);
       continue;
     }
@@ -126,6 +143,17 @@ export function classifyMulticallOperations(
     throw new TransferAlignmentError(executeResults.length, transferIdx);
   }
 
+  if (
+    withdrawCollateralEvents &&
+    withdrawCollateralEvents.length > 0 &&
+    withdrawIdx !== withdrawCollateralEvents.length
+  ) {
+    throw new WithdrawCollateralAlignmentError(
+      withdrawCollateralEvents.length,
+      withdrawIdx,
+    );
+  }
+
   return result;
 }
 
@@ -133,6 +161,7 @@ function classifyFacadeInnerCall(
   call: ParsedCallV2,
   underlying: Address,
   phantomTokens?: AddressMap<Address>,
+  withdrawEvent?: WithdrawCollateralEventInfo,
 ): InnerFacadeOperation | null {
   const { functionName: sig, rawArgs } = call;
   const functionName = sig.split("(")[0];
@@ -162,10 +191,15 @@ function classifyFacadeInnerCall(
         calldataToken,
         phantomTokens,
       );
+      // Prefer the facade event amount: it handles MAX_UINT256 shortcut for "withdraw all"
+      // and is already in deposited-token in case of phantom token.
+      const amount = withdrawEvent
+        ? withdrawEvent.amount
+        : (rawArgs.amount as bigint);
       return {
         operation: "WithdrawCollateral",
         token: depositedToken ?? calldataToken,
-        amount: rawArgs.amount as bigint,
+        amount,
         to: rawArgs.to as Address,
         ...(depositedToken ? { phantomToken: calldataToken } : {}),
       };

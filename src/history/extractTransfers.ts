@@ -39,9 +39,27 @@ type WithdrawPhantomTokenEvent = ReturnType<
   >
 >[number];
 
+type WithdrawCollateralEvent = ReturnType<
+  typeof parseEventLogs<typeof iCreditFacadeV310Abi, true, "WithdrawCollateral">
+>[number];
+
 type TransferEvent = ReturnType<
   typeof parseEventLogs<typeof ierc20Abi, true, "Transfer">
 >[number];
+
+/**
+ * Effective `withdrawCollateral` outcome decoded from the facade's
+ * `WithdrawCollateral` event.
+ */
+export interface WithdrawCollateralEventInfo {
+  /**
+   * For regular withdrawals: the calldata token.
+   * For phantom withdrawals: the deposited (resolved) token.
+   */
+  token: Address;
+  amount: bigint;
+  to: Address;
+}
 
 /**
  * Log index range of single facade operation.
@@ -66,6 +84,12 @@ export interface ExtractTransfersResult {
   liquidationRemainingFunds?: bigint;
   /** Maps phantom token address to its deposited (underlying) token address. */
   phantomTokens: AddressMap<Address>;
+  /**
+   * One entry per facade `WithdrawCollateral` event targeting `creditAccount`,
+   * in transaction order. Used to recover the effective amount when the
+   * calldata uses the `type(uint256).max` "withdraw all" sentinel.
+   */
+  withdrawCollateralEvents: WithdrawCollateralEventInfo[];
 }
 
 export function extractTransfers(
@@ -80,6 +104,7 @@ export function extractTransfers(
   const executeResults: ExecuteResult[] = [];
   const directTransfers: DirectTransferInfo[] = [];
   const phantomTokens = new AddressMap<Address>();
+  const withdrawCollateralEvents: WithdrawCollateralEventInfo[] = [];
   let liquidationRemainingFunds: bigint | undefined;
 
   for (const log of logs) {
@@ -111,6 +136,12 @@ export function extractTransfers(
           facadeEvent.args.token,
           getAddress(rawDeposit.token),
         );
+      } else if (isWithdrawCollateral(facadeEvent, creditAccount)) {
+        withdrawCollateralEvents.push({
+          token: getAddress(facadeEvent.args.token),
+          amount: facadeEvent.args.amount,
+          to: getAddress(facadeEvent.args.to),
+        });
       }
       currentEntries = [];
       continue;
@@ -149,6 +180,7 @@ export function extractTransfers(
     directTransfers,
     liquidationRemainingFunds,
     phantomTokens,
+    withdrawCollateralEvents,
   };
 }
 
@@ -286,6 +318,16 @@ function isWithdrawPhantomToken(
 ): e is WithdrawPhantomTokenEvent {
   return (
     e.eventName === "WithdrawPhantomToken" &&
+    isAddressEqual(e.args.creditAccount, creditAccount)
+  );
+}
+
+function isWithdrawCollateral(
+  e: FacadeEvent,
+  creditAccount: Address,
+): e is WithdrawCollateralEvent {
+  return (
+    e.eventName === "WithdrawCollateral" &&
     isAddressEqual(e.args.creditAccount, creditAccount)
   );
 }

@@ -186,6 +186,7 @@ describe("mocked events", () => {
         ],
         directTransfers: [],
         phantomTokens: new AddressMap(),
+        withdrawCollateralEvents: [],
       });
     });
 
@@ -217,6 +218,7 @@ describe("mocked events", () => {
         ],
         directTransfers: [],
         phantomTokens: new AddressMap(),
+        withdrawCollateralEvents: [],
       });
     });
 
@@ -240,6 +242,7 @@ describe("mocked events", () => {
         ],
         directTransfers: [],
         phantomTokens: new AddressMap(),
+        withdrawCollateralEvents: [],
       });
     });
 
@@ -271,6 +274,7 @@ describe("mocked events", () => {
         ],
         directTransfers: [],
         phantomTokens: new AddressMap(),
+        withdrawCollateralEvents: [],
       });
     });
 
@@ -280,6 +284,7 @@ describe("mocked events", () => {
         executeResults: [],
         directTransfers: [],
         phantomTokens: new AddressMap(),
+        withdrawCollateralEvents: [],
       });
     });
 
@@ -303,6 +308,7 @@ describe("mocked events", () => {
         ],
         directTransfers: [],
         phantomTokens: new AddressMap(),
+        withdrawCollateralEvents: [],
       });
     });
   });
@@ -319,6 +325,7 @@ describe("mocked events", () => {
         executeResults: [{ transfers: [], targetContract: ADAPTER }],
         directTransfers: [{ token: TOKEN_A, from: SOMEONE, amount: 500n }],
         phantomTokens: new AddressMap(),
+        withdrawCollateralEvents: [],
       });
     });
 
@@ -333,6 +340,7 @@ describe("mocked events", () => {
         executeResults: [{ transfers: [], targetContract: ADAPTER }],
         directTransfers: [{ token: TOKEN_A, from: SOMEONE, amount: 500n }],
         phantomTokens: new AddressMap(),
+        withdrawCollateralEvents: [],
       });
     });
 
@@ -353,6 +361,7 @@ describe("mocked events", () => {
         ],
         directTransfers: [{ token: TOKEN_A, from: SOMEONE, amount: 300n }],
         phantomTokens: new AddressMap(),
+        withdrawCollateralEvents: [],
       });
     });
 
@@ -366,6 +375,7 @@ describe("mocked events", () => {
         executeResults: [],
         directTransfers: [],
         phantomTokens: new AddressMap(),
+        withdrawCollateralEvents: [],
       });
     });
 
@@ -375,6 +385,7 @@ describe("mocked events", () => {
         executeResults: [],
         directTransfers: [],
         phantomTokens: new AddressMap(),
+        withdrawCollateralEvents: [],
       });
     });
 
@@ -406,6 +417,7 @@ describe("mocked events", () => {
         ],
         directTransfers: [],
         phantomTokens: new AddressMap(),
+        withdrawCollateralEvents: [],
       });
     });
 
@@ -420,6 +432,7 @@ describe("mocked events", () => {
         executeResults: [{ transfers: [], targetContract: ADAPTER }],
         directTransfers: [],
         phantomTokens: new AddressMap(),
+        withdrawCollateralEvents: [],
       });
     });
   });
@@ -579,6 +592,13 @@ describe("real events", () => {
         ],
         "liquidationRemainingFunds": undefined,
         "phantomTokens": {},
+        "withdrawCollateralEvents": [
+          {
+            "amount": 237770930843n,
+            "to": "0xbE5E2bAe43738f6B790eAD9568bD4fc2846289b8",
+            "token": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          },
+        ],
       }
     `,
     );

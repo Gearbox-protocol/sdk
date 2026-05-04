@@ -18,6 +18,15 @@ export class TransferAlignmentError extends Error {
   }
 }
 
+export class WithdrawCollateralAlignmentError extends Error {
+  constructor(expected: number, actual: number) {
+    super(
+      `withdrawCollateral event alignment mismatch: expected ${expected} events, consumed ${actual}`,
+    );
+    this.name = "WithdrawCollateralAlignmentError";
+  }
+}
+
 export class ProtocolCallNotFoundError extends Error {
   public readonly targetContract: Address;
   public readonly executeIndex: number;
