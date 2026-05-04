@@ -3,14 +3,17 @@ import {
   type ConstructOptions,
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
+import { iSecuritizeRedemptionGatewayAbi } from "../abi/securitize/iSecuritizeRedemptionGateway.js";
+import { iSecuritizeRedemptionGatewayAdapterAbi } from "../abi/securitize/iSecuritizeRedemptionGatewayAdapter.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
 // TODO: not yet mered into integrations-v3/main branch
-const abi = [] as const;
+const abi = iSecuritizeRedemptionGatewayAdapterAbi;
 type abi = typeof abi;
 
-const protocolAbi = [] as const;
+// TODO: not yet mered into integrations-v3/main branch
+const protocolAbi = iSecuritizeRedemptionGatewayAbi;
 type protocolAbi = typeof protocolAbi;
 
 export class SecuritizeRedemptionGatewayAdapterContract extends AbstractAdapterContract<
