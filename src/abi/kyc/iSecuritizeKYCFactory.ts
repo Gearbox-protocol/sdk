@@ -165,7 +165,28 @@ export const iSecuritizeKYCFactoryAbi = [
   },
   {
     type: "function",
-    name: "setFrozenStatus",
+    name: "setAllCreditAccountsFrozenStatus",
+    inputs: [
+      { name: "creditManager", type: "address", internalType: "address" },
+      { name: "investor", type: "address", internalType: "address" },
+      { name: "frozen", type: "bool", internalType: "bool" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setAllCreditAccountsFrozenStatus",
+    inputs: [
+      { name: "investor", type: "address", internalType: "address" },
+      { name: "frozen", type: "bool", internalType: "bool" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setCreditAccountFrozenStatus",
     inputs: [
       { name: "creditAccount", type: "address", internalType: "address" },
       { name: "frozen", type: "bool", internalType: "bool" },
@@ -175,10 +196,31 @@ export const iSecuritizeKYCFactoryAbi = [
   },
   {
     type: "function",
-    name: "setInvestor",
+    name: "transferAllCreditAccounts",
+    inputs: [
+      { name: "investor", type: "address", internalType: "address" },
+      { name: "newInvestor", type: "address", internalType: "address" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "transferAllCreditAccounts",
+    inputs: [
+      { name: "creditManager", type: "address", internalType: "address" },
+      { name: "investor", type: "address", internalType: "address" },
+      { name: "newInvestor", type: "address", internalType: "address" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "transferCreditAccount",
     inputs: [
       { name: "creditAccount", type: "address", internalType: "address" },
-      { name: "investor", type: "address", internalType: "address" },
+      { name: "newInvestor", type: "address", internalType: "address" },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -192,7 +234,7 @@ export const iSecuritizeKYCFactoryAbi = [
   },
   {
     type: "event",
-    name: "CreateWallet",
+    name: "OpenKYCCreditAccount",
     inputs: [
       {
         name: "creditAccount",
@@ -217,7 +259,7 @@ export const iSecuritizeKYCFactoryAbi = [
   },
   {
     type: "event",
-    name: "SetFrozenStatus",
+    name: "SetCreditAccountFrozenStatus",
     inputs: [
       {
         name: "creditAccount",
@@ -231,7 +273,7 @@ export const iSecuritizeKYCFactoryAbi = [
   },
   {
     type: "event",
-    name: "SetInvestor",
+    name: "TransferCreditAccount",
     inputs: [
       {
         name: "creditAccount",
@@ -280,6 +322,11 @@ export const iSecuritizeKYCFactoryAbi = [
     type: "error",
     name: "InvalidUnderlyingTokenException",
     inputs: [{ name: "underlying", type: "address", internalType: "address" }],
+  },
+  {
+    type: "error",
+    name: "TooManyCreditAccountsException",
+    inputs: [{ name: "investor", type: "address", internalType: "address" }],
   },
   {
     type: "error",

@@ -119,4 +119,269 @@ export const iDSRegistryServiceAbi = [
     outputs: [],
     stateMutability: "nonpayable",
   },
+  // Events below are copied from contract to interface
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "string",
+        name: "investorId",
+        type: "string",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "sender",
+        type: "address",
+      },
+    ],
+    name: "DSRegistryServiceInvestorAdded",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "string",
+        name: "investorId",
+        type: "string",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "attributeId",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "value",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "expiry",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "string",
+        name: "proofHash",
+        type: "string",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "sender",
+        type: "address",
+      },
+    ],
+    name: "DSRegistryServiceInvestorAttributeChanged",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "string",
+        name: "investorId",
+        type: "string",
+      },
+      {
+        indexed: false,
+        internalType: "string",
+        name: "country",
+        type: "string",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "sender",
+        type: "address",
+      },
+    ],
+    name: "DSRegistryServiceInvestorCountryChanged",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "string",
+        name: "investorId",
+        type: "string",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "sender",
+        type: "address",
+      },
+    ],
+    name: "DSRegistryServiceInvestorRemoved",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "omnibusWallet",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "string",
+        name: "investorId",
+        type: "string",
+      },
+      {
+        indexed: false,
+        internalType: "contract IDSOmnibusWalletController",
+        name: "omnibusWalletController",
+        type: "address",
+      },
+    ],
+    name: "DSRegistryServiceOmnibusWalletAdded",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "omnibusWallet",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "string",
+        name: "investorId",
+        type: "string",
+      },
+    ],
+    name: "DSRegistryServiceOmnibusWalletRemoved",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "wallet",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "string",
+        name: "investorId",
+        type: "string",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "sender",
+        type: "address",
+      },
+    ],
+    name: "DSRegistryServiceWalletAdded",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "wallet",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "string",
+        name: "investorId",
+        type: "string",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "sender",
+        type: "address",
+      },
+    ],
+    name: "DSRegistryServiceWalletRemoved",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "serviceId",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "serviceAddress",
+        type: "address",
+      },
+    ],
+    name: "DSServiceSet",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint64",
+        name: "version",
+        type: "uint64",
+      },
+    ],
+    name: "Initialized",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "previousOwner",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "newOwner",
+        type: "address",
+      },
+    ],
+    name: "OwnershipTransferred",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "implementation",
+        type: "address",
+      },
+    ],
+    name: "Upgraded",
+    type: "event",
+  },
 ] as const;

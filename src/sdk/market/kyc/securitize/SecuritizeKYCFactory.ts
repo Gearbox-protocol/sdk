@@ -11,6 +11,7 @@ import type {
   KYCFactoryData,
 } from "../types.js";
 import { KYC_FACTORY_SECURITIZE } from "./constants.js";
+import { SecuritizeDegenNFT } from "./SecuritizeDegenNFT.js";
 import {
   type DStokenData,
   SECURITIZE_REGISTER_VAULT_TYPES,
@@ -29,7 +30,7 @@ export class SecuritizeKYCFactory
 {
   readonly #sdk: OnchainSDK;
   #investorCache = new AddressMap<Address>();
-  public readonly degenNFT: Address;
+  public readonly degenNFT: SecuritizeDegenNFT;
   public readonly owner: Address;
   public readonly dsTokens: DStokenData[];
   public readonly contractType = KYC_FACTORY_SECURITIZE;
@@ -58,7 +59,7 @@ export class SecuritizeKYCFactory
       data.baseParams.serializedParams,
     );
     this.owner = decoded[0];
-    this.degenNFT = decoded[1];
+    this.degenNFT = new SecuritizeDegenNFT(sdk, decoded[1]);
     for (const t of data.tokens) {
       this.tokensMeta.upsert(t.addr, t);
     }
@@ -242,7 +243,7 @@ export class SecuritizeKYCFactory
     return {
       ...super.stateHuman(_raw),
       owner: this.labelAddress(this.owner),
-      degenNFT: this.labelAddress(this.degenNFT),
+      degenNFT: this.labelAddress(this.degenNFT.address),
       dsTokens: this.dsTokens.map(t => ({
         ...this.tokensMeta.mustGet(t.address),
         registrar: this.labelAddress(t.registrar),
