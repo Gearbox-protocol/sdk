@@ -3,6 +3,7 @@ import {
   type ConstructOptions,
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
+import { iBaseOnRampAbi } from "../abi/securitize/iBaseOnRamp.js";
 import { iSecuritizeOnRampAbi } from "../abi/securitize/iSecuritizeOnRamp.js";
 import { iSecuritizeOnRampAdapterAbi } from "../abi/securitize/iSecuritizeOnRampAdapter.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
@@ -13,7 +14,7 @@ const abi = iSecuritizeOnRampAdapterAbi;
 type abi = typeof abi;
 
 // TODO: not yet mered into integrations-v3/main branch
-const protocolAbi = iSecuritizeOnRampAbi;
+const protocolAbi = [...iSecuritizeOnRampAbi, ...iBaseOnRampAbi] as const;
 type protocolAbi = typeof protocolAbi;
 
 export class SecuritizeOnRampAdapterContract extends AbstractAdapterContract<
