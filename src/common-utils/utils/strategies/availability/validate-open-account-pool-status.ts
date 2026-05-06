@@ -5,7 +5,10 @@ import type { CreditManagerSlice, PoolSlice } from "../strategy-info/types.js";
 import { validateOpenAccountPoolQuotaStatus } from "./validate-open-account-pool-quota-status.js";
 
 export interface ValidateOpenAccountPoolStatusProps {
-  creditManager: CreditManagerSlice;
+  creditManager: Pick<
+    CreditManagerSlice,
+    "minDebt" | "totalDebtLimit" | "totalDebt" | "availableToBorrow" | "quotas"
+  >;
   pool: PoolSlice | undefined | null;
   debt: bigint;
   targetToken: Address | null;

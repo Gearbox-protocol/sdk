@@ -1,8 +1,8 @@
 import type { CreditManagerSlice, QuotaSlice } from "./types.js";
 
 export function isStrategyCMDisabled(
-  cm: CreditManagerSlice,
-  quota: QuotaSlice | undefined,
+  cm: Pick<CreditManagerSlice, "availableToBorrow" | "minDebt">,
+  quota: Pick<QuotaSlice, "isActive" | "limit" | "totalQuoted"> | undefined,
 ): boolean {
   if (!quota) return true;
 

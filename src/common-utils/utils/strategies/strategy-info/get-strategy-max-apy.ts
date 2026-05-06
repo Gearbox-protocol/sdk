@@ -16,9 +16,21 @@ import {
 } from "../leverage/index.js";
 import type { APYListSlice, CreditManagerSlice, QuotaSlice } from "./types.js";
 
+type CMForStrategyMaxAPY = Pick<
+  CreditManagerSlice,
+  | "chainId"
+  | "pool"
+  | "underlyingToken"
+  | "baseBorrowRate"
+  | "liquidationThresholds"
+  | "feeInterest"
+  | "quotas"
+  | "address"
+>;
+
 export function getStrategyMaxAPY(
   targetToken: Address,
-  cm: CreditManagerSlice | undefined,
+  cm: CMForStrategyMaxAPY | undefined,
   apyListByNetwork: Record<number, APYListSlice | undefined> | undefined,
   slippage: number,
   quotaReserve: number,

@@ -4,7 +4,7 @@ import type { CreditManagerSlice } from "../strategy-info/types.js";
 
 export function validateOpenAccountPoolQuotaStatus(
   targetToken: Address,
-  creditManager: CreditManagerSlice,
+  creditManager: Pick<CreditManagerSlice, "quotas">,
   amountToBorrow: bigint,
 ) {
   const quota = creditManager.quotas[targetToken];
