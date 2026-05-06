@@ -38,12 +38,6 @@ const mockCreditManager = buildCreditManager({
       rate: 0n,
     }),
   },
-  supportedTokens: {
-    [mockToken1]: true,
-    [mockToken2]: true,
-    [mockUnderlyingToken]: true,
-  },
-  forbiddenTokens: {},
 });
 
 const mockPool = buildPool({

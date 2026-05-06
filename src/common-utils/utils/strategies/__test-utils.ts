@@ -28,7 +28,6 @@ export function buildQuota(
   overrides: Partial<QuotaSlice> & { token: Address },
 ): QuotaSlice {
   return {
-    token: overrides.token,
     rate: 0n,
     quotaIncreaseFee: 0n,
     totalQuoted: 0n,
