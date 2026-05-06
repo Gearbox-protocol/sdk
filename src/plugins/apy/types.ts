@@ -1,11 +1,11 @@
 import type { Address } from "viem";
 import type { StrategyInfoResult } from "../../common-utils/utils/strategies/strategy-info/types.js";
 import type {
-  CreditManagerDataSlice,
   CuratorFilter,
   NotValidatedStrategy,
   StrategiesCMListByChain,
   Strategy,
+  StrategyCreditManagerView,
   StrategyRecord,
 } from "../../common-utils/utils/strategies/types.js";
 import type {
@@ -71,7 +71,7 @@ export interface GetStrategyInfoSnapshotArgs {
 }
 
 export interface StrategyInfoSnapshot<
-  CM extends CreditManagerDataSlice = CreditManagerDataSlice,
+  CM extends StrategyCreditManagerView = StrategyCreditManagerView,
 > {
   availableStrategies: StrategyRecord | null | Error;
   disabledStrategies: StrategyRecord;

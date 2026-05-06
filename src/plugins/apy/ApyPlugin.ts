@@ -3,27 +3,21 @@ import type { Address } from "viem";
 import { marketCompressorAbi } from "../../abi/compressors/marketCompressor.js";
 import {
   getAvailableAndDisabledStrategies,
-  getReleasedStrategiesList,
-  getStrategyCreditManagersList,
-  getStrategyInfo,
-  type PoolSlice,
-  type PricesByChainSlice,
+  getReleasedStrategiesListCore,
+  getStrategyCreditManagersListCore,
+  getStrategyInfoCore,
 } from "../../common-utils/utils/strategies/index.js";
 import type {
-  CreditManagerDataSlice,
-  GearboxSDKFullStateByChain,
   Strategy,
+  StrategyCreditManagerView,
 } from "../../common-utils/utils/strategies/types.js";
 import { PoolPointsAPI } from "../../rewards/rewards/extra-apy.js";
 import type { ILogger, IOnchainSDKPlugin } from "../../sdk/index.js";
 import {
-  ADDRESS_0X0,
   AddressMap,
   AP_MARKET_COMPRESSOR,
-  AP_WETH_TOKEN,
   BasePlugin,
   BLOCKS_PER_WEEK_BY_NETWORK,
-  NATIVE_ADDRESS,
   PERCENTAGE_DECIMALS,
   VERSION_RANGE_310,
 } from "../../sdk/index.js";
@@ -33,11 +27,6 @@ import { hexEq } from "../../sdk/utils/hex.js";
 import { ApyOutputCache } from "./apy-cache.js";
 import { parseGearStats, parseNetworkApy } from "./apy-parser.js";
 import { APY_STATE_CACHE_URL, DEFAULT_APY_INTERVAL_MS } from "./constants.js";
-import {
-  buildTokenDataList,
-  toCreditManagerDataSlice,
-  toPoolSlice,
-} from "./credit-manager-mapper.js";
 import type { GetPoolsAPYResult } from "./pool-apy-types.js";
 import {
   calculatePoolFullAPY,
@@ -46,6 +35,7 @@ import {
   calculateSupplyApy7d,
   getPoolExtraAPY,
 } from "./pool-apy-utils.js";
+import { OnchainSdkStrategyDataSource } from "./strategy-data-source.js";
 import type {
   ApySnapshotState,
   GetStrategyInfoSnapshotArgs,
@@ -293,7 +283,7 @@ export class ApyPlugin
     curatorFilter,
     strategyPayloadsList,
     showHiddenStrategies,
-  }: GetStrategyInfoSnapshotArgs): StrategyInfoSnapshot<CreditManagerDataSlice> {
+  }: GetStrategyInfoSnapshotArgs): StrategyInfoSnapshot<StrategyCreditManagerView> {
     if (!this.loaded) {
       throw new Error("apy plugin not loaded");
     }
@@ -301,57 +291,25 @@ export class ApyPlugin
     const chainId = this.sdk.chainId;
     const network = this.sdk.networkType;
     const allowedChains = { [chainId]: network };
+    const source = new OnchainSdkStrategyDataSource(this.sdk);
 
-    const tokenDataList = buildTokenDataList(this.sdk.tokensMeta);
-
-    const creditManagers: Record<Address, CreditManagerDataSlice> = {};
-    const pools: Record<Address, PoolSlice> = {};
-
-    for (const market of this.sdk.marketRegister.markets) {
-      pools[market.pool.pool.address] = toPoolSlice(market.pool);
-
-      for (const cs of market.creditManagers) {
-        creditManagers[cs.creditManager.address] = toCreditManagerDataSlice(
-          cs,
-          market.pool,
-          network,
-          chainId,
-        );
-      }
-    }
-
-    const sdkStateByChain: GearboxSDKFullStateByChain<CreditManagerDataSlice> =
-      {
-        [chainId]: {
-          lastSyncBlock: {
-            blockTimestamp_js: Number(this.sdk.timestamp),
-          },
-          tokens: {
-            tokenDataList,
-          },
-          creditManagers,
-          pools,
-        },
-      };
-
-    const releasedStrategies =
-      getReleasedStrategiesList<CreditManagerDataSlice>(
-        strategyPayloadsList,
-        allowedChains,
-        sdkStateByChain,
-        curatorFilter,
-        showHiddenStrategies,
-      );
+    const releasedStrategies = getReleasedStrategiesListCore({
+      strategyPayloadsList,
+      allowedChains,
+      source,
+      curatorFilter,
+      showHiddenStrategies,
+    });
 
     const cmsOfStrategiesByChain =
-      getStrategyCreditManagersList<CreditManagerDataSlice>(
-        releasedStrategies,
-        sdkStateByChain,
+      getStrategyCreditManagersListCore<StrategyCreditManagerView>({
+        strategies: releasedStrategies,
+        source,
         curatorFilter,
-      );
+      });
 
     const { available, disabled, availableList, disabledList } =
-      getAvailableAndDisabledStrategies<CreditManagerDataSlice>(
+      getAvailableAndDisabledStrategies<StrategyCreditManagerView>(
         releasedStrategies,
         cmsOfStrategiesByChain,
         curatorFilter,
@@ -361,62 +319,21 @@ export class ApyPlugin
       [chainId]: this.apySnapshot.apy,
     };
 
-    let wrappedNativeToken: Address | undefined;
-    try {
-      wrappedNativeToken = this.sdk.addressProvider
-        .getAddress(AP_WETH_TOKEN, 0)
-        ?.toLowerCase() as Address | undefined;
-    } catch {
-      wrappedNativeToken = undefined;
-    }
-
-    const allPricesByChain: PricesByChainSlice = {
-      [chainId]: {
-        prices: Object.fromEntries(
-          this.sdk.marketRegister.markets.map(market => {
-            const marketPrices = Object.fromEntries(
-              market.priceOracle.mainPrices
-                .entries()
-                .map(([token, mainPrice]) => {
-                  const tokenLc = token.toLowerCase() as Address;
-                  const reservePrice =
-                    market.priceOracle.reservePrices?.get(token);
-
-                  return [
-                    tokenLc,
-                    mainPrice?.price || reservePrice?.price || 0n,
-                  ];
-                }),
-            );
-
-            const wrappedNativePrice =
-              marketPrices[wrappedNativeToken || ADDRESS_0X0];
-            if (wrappedNativePrice !== undefined) {
-              marketPrices[NATIVE_ADDRESS.toLowerCase() as Address] =
-                wrappedNativePrice;
-            }
-
-            return [
-              market.pool.pool.address.toLowerCase() as Address,
-              marketPrices,
-            ];
-          }),
-        ),
-      },
-    };
-
     const strategiesInfo =
       releasedStrategies?.reduce<
-        StrategyInfoSnapshot<CreditManagerDataSlice>["strategiesInfo"]
+        StrategyInfoSnapshot<StrategyCreditManagerView>["strategiesInfo"]
       >((acc, strategy) => {
-        const info = getStrategyInfo<Strategy["id"], CreditManagerDataSlice>({
+        const info = getStrategyInfoCore<
+          Strategy["id"],
+          StrategyCreditManagerView
+        >({
           strategy,
-          creditManagers: cmsOfStrategiesByChain,
-          sdkStateByChain,
+          creditManagers:
+            cmsOfStrategiesByChain?.[strategy.chainId]?.[strategy.id],
+          source,
           apyListByNetwork,
           quotaReserve,
           slippage,
-          allPricesByChain,
         });
 
         if (info) {

@@ -1,0 +1,124 @@
+import type { Address } from "viem";
+
+import { PriceUtils } from "../../price-math.js";
+import { getFactorFromLeverage } from "../leverage/index.js";
+import { sortStrategyCMsByAvailability } from "../sort-strategy-cms-by-availability/index.js";
+import type { StrategyDataSource } from "../types/index.js";
+import { getStrategyMaxAPY } from "./get-strategy-max-apy.js";
+import { isStrategyCMDisabled } from "./is-strategy-cm-disabled.js";
+import type {
+  APYListSlice,
+  CreditManagerSlice,
+  PoolSlice,
+  StrategyInfoResult,
+  StrategySlice,
+} from "./types.js";
+
+const EMPTY_ADDRESS = "" as Address;
+const lc = (address: Address): Address => address.toLowerCase() as Address;
+
+export interface GetStrategyInfoCoreArgs<
+  ID extends string | number,
+  CM extends CreditManagerSlice,
+> {
+  strategy: StrategySlice<ID>;
+  creditManagers: Record<Address, CM> | undefined;
+  source: StrategyDataSource;
+  apyListByNetwork: Record<number, APYListSlice | undefined> | undefined;
+  quotaReserve: number;
+  slippage: number;
+}
+
+export function getStrategyInfoCore<
+  ID extends string | number,
+  CM extends CreditManagerSlice,
+>({
+  strategy,
+  creditManagers,
+  source,
+  apyListByNetwork,
+  quotaReserve,
+  slippage,
+}: GetStrategyInfoCoreArgs<ID, CM>): StrategyInfoResult<CM> | undefined {
+  const strategyCMsList = Object.values(creditManagers || {});
+
+  if (strategyCMsList.length === 0) return undefined;
+
+  const targetTokenAddress = lc(strategy.tokenOutAddress);
+
+  const openableCMsList = strategyCMsList.filter(
+    cm => !isStrategyCMDisabled(cm, cm.quotas[targetTokenAddress]),
+  );
+
+  const pools = strategyCMsList.reduce<Record<Address, PoolSlice>>(
+    (acc, cm) => {
+      const pool = source.getPool(cm.chainId, cm.pool);
+      if (pool) acc[cm.pool] = pool;
+      return acc;
+    },
+    {},
+  );
+
+  const minCreditManager =
+    sortStrategyCMsByAvailability({
+      targetToken: targetTokenAddress,
+      allCreditManagers:
+        openableCMsList.length > 0 ? openableCMsList : strategyCMsList,
+      apyListByNetwork,
+
+      slippage,
+      quotaReserve,
+
+      pools,
+      leverageLimit: strategy.maxLeverage,
+
+      isStrategy: true,
+    })?.[0] || strategyCMsList[0];
+
+  const { underlyingToken = EMPTY_ADDRESS, availableToBorrow = 0n } =
+    minCreditManager || {};
+
+  const {
+    bonusAPY,
+    totalMaxApy = 0,
+    maxLeverage = 0n,
+
+    baseBorrowRate = 0,
+    quotaRateMin = 0n,
+  } = getStrategyMaxAPY(
+    targetTokenAddress,
+    minCreditManager,
+    apyListByNetwork,
+    slippage,
+    quotaReserve,
+    strategy.maxLeverage,
+  ) || {};
+
+  const prices = source.getMarketPrices(
+    minCreditManager?.chainId ?? strategy.chainId,
+    minCreditManager?.pool || EMPTY_ADDRESS,
+  );
+  const underlyingPrice = prices?.[underlyingToken] || 0n;
+  const underlyingDecimals =
+    source.getToken(strategy.chainId, underlyingToken)?.decimals || 18;
+  const availableToBorrowMoney = PriceUtils.calcTotalPrice(
+    underlyingPrice,
+    availableToBorrow,
+    underlyingDecimals,
+  );
+
+  const r =
+    (BigInt(baseBorrowRate) * getFactorFromLeverage(maxLeverage)) / maxLeverage;
+  const qr = quotaRateMin;
+  const totalBorrowRate = Number(r + qr);
+
+  return {
+    maxLeverage,
+    maxAPY: totalMaxApy,
+    bonusAPY,
+
+    totalBorrowRate,
+    availableToBorrowMoney,
+    minCreditManager,
+  };
+}

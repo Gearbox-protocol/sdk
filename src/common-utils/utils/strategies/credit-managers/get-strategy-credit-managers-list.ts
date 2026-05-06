@@ -1,48 +1,25 @@
-import { TypedObjectUtils } from "../../../../sdk/utils/mappers.js";
-
 import type {
-  CreditManagerDataSlice,
   CuratorFilter,
   GearboxSDKFullStateByChain,
-  StrategiesCMListByChain,
   Strategy,
+  StrategyCreditManagerView,
 } from "../types.js";
+import { createLegacyStrategyDataSource } from "../types.js";
 
-import { getStrategyCreditManagers } from "./get-strategy-credit-managers.js";
+import { getStrategyCreditManagersListCore } from "./get-strategy-credit-managers-list-core.js";
 
 export function getStrategyCreditManagersList<
-  CM extends CreditManagerDataSlice,
+  CM extends StrategyCreditManagerView,
 >(
   strategies: Array<Strategy> | undefined,
   sdkStateByChain: GearboxSDKFullStateByChain<CM> | undefined,
   curatorFilter: CuratorFilter,
 ) {
   if (!sdkStateByChain) return sdkStateByChain;
-  if (!strategies) return strategies;
 
-  const r = strategies.reduce<StrategiesCMListByChain<CM>>((acc, s) => {
-    const currentSdkState = sdkStateByChain[s.chainId];
-    const { creditManagers, tokens } = currentSdkState || {};
-
-    const cms =
-      creditManagers && tokens
-        ? getStrategyCreditManagers({
-            strategy: s,
-            allCreditManagers: creditManagers,
-          })
-        : {};
-
-    const cmsAfterCuratorFilter = curatorFilter
-      ? TypedObjectUtils.entries(cms).filter(
-          ([, cm]) => curatorFilter[cm.marketConfigurator],
-        )
-      : TypedObjectUtils.entries(cms);
-
-    if (!acc[s.chainId]) acc[s.chainId] = {};
-    acc[s.chainId][s.id] = Object.fromEntries(cmsAfterCuratorFilter);
-
-    return acc;
-  }, {});
-
-  return r;
+  return getStrategyCreditManagersListCore({
+    strategies,
+    source: createLegacyStrategyDataSource(sdkStateByChain),
+    curatorFilter,
+  });
 }

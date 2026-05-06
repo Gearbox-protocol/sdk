@@ -1,13 +1,13 @@
 import type {
   AppChains,
-  CreditManagerDataSlice,
   CuratorFilter,
   GearboxSDKFullState,
   NotValidatedStrategy,
+  StrategyCreditManagerView,
 } from "../types.js";
 import { EMPTY_ADDRESS } from "../types.js";
 
-export function isStrategyEligible<CM extends CreditManagerDataSlice>(
+export function isStrategyEligible<CM extends StrategyCreditManagerView>(
   s: Pick<
     NotValidatedStrategy,
     "chainId" | "network" | "hideInProd" | "tokenOutAddress" | "showInMainApp"

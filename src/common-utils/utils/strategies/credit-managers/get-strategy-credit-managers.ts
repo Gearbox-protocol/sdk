@@ -1,24 +1,26 @@
 import type { Address } from "viem";
 
 import { isUsableToken } from "../tokens/is-usable-token.js";
-import type { CreditManagerDataSlice, Strategy } from "../types.js";
+import type { Strategy, StrategyCreditManagerView } from "../types.js";
 
 import { isCreditManagerUsable } from "./is-credit-manager-usable.js";
 
-interface GetStrategyCreditManagersProps<CM extends CreditManagerDataSlice> {
+const lc = (address: Address): Address => address.toLowerCase() as Address;
+
+interface GetStrategyCreditManagersProps<CM extends StrategyCreditManagerView> {
   strategy: Pick<Strategy, "tokenOutAddress" | "creditManagers">;
   allCreditManagers: Record<Address, CM>;
 }
 
-export function getStrategyCreditManagers<CM extends CreditManagerDataSlice>({
-  strategy,
-  allCreditManagers,
-}: GetStrategyCreditManagersProps<CM>) {
-  const lpAddress = strategy.tokenOutAddress;
+export function getStrategyCreditManagers<
+  CM extends StrategyCreditManagerView,
+>({ strategy, allCreditManagers }: GetStrategyCreditManagersProps<CM>) {
+  const lpAddress = lc(strategy.tokenOutAddress);
 
   const res = (strategy?.creditManagers || []).reduce<Record<Address, CM>>(
     (acc, cmAddress) => {
-      const cm = allCreditManagers[cmAddress];
+      const cm =
+        allCreditManagers[cmAddress] ?? allCreditManagers[lc(cmAddress)];
 
       if (cm && isCreditManagerUsable(cm)) {
         const usable = isUsableToken({

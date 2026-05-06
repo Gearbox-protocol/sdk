@@ -5,7 +5,14 @@ import type {
   NotValidatedStrategy,
   Strategy,
 } from "../../common-utils/utils/strategies/types.js";
-import { AddressMap } from "../../sdk/index.js";
+import {
+  AddressMap,
+  AP_WETH_TOKEN,
+  NATIVE_ADDRESS,
+  PERCENTAGE_DECIMALS,
+  PERCENTAGE_FACTOR,
+  RAY,
+} from "../../sdk/index.js";
 import { ApyPlugin } from "./ApyPlugin.js";
 import type { ApySnapshotState, GetStrategyInfoSnapshotArgs } from "./types.js";
 
@@ -17,6 +24,8 @@ const mockFacade = "0xcccccccccccccccccccccccccccccccccccccccc" as Address;
 const mockConfigurator =
   "0xdddddddddddddddddddddddddddddddddddddddd" as Address;
 const mockAdapter = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee" as Address;
+const mockWrappedNative =
+  "0x7777777777777777777777777777777777777777" as Address;
 
 function makeMockTokensMeta(
   entries: Array<[Address, { decimals: number }]> = [
@@ -46,12 +55,14 @@ function makeMockMarket(
     maxDebtPerBlockMultiplier?: number;
     isDegenMode?: boolean;
     quotaLimit?: bigint;
+    quotaActive?: boolean;
     availableToBorrow?: bigint;
     minDebt?: bigint;
     maxDebt?: bigint;
     collateralTokens?: Address[];
     priceSuccess?: boolean;
     priceValue?: bigint;
+    reservePriceValue?: bigint;
     marketConfigurator?: Address;
   } = {},
 ) {
@@ -75,7 +86,7 @@ function makeMockMarket(
           quotaIncreaseFee: 0,
           totalQuoted: 0n,
           limit: quotaLimit,
-          isActive: true,
+          isActive: overrides.quotaActive ?? true,
         },
       ],
     ],
@@ -128,8 +139,37 @@ function makeMockMarket(
           success: overrides.priceSuccess ?? true,
         },
       ],
+      [
+        mockWrappedNative,
+        {
+          price: 3_000_00000000n,
+          updatedAt: 0n,
+          success: true,
+        },
+      ],
     ],
     "mainPrices",
+  );
+  const reservePrices = new AddressMap(
+    [
+      [
+        underlying,
+        {
+          price: overrides.reservePriceValue ?? 0n,
+          updatedAt: 0n,
+          success: true,
+        },
+      ],
+      [
+        mockWrappedNative,
+        {
+          price: 3_000_00000000n,
+          updatedAt: 0n,
+          success: true,
+        },
+      ],
+    ],
+    "reservePrices",
   );
 
   return {
@@ -148,6 +188,7 @@ function makeMockMarket(
     },
     priceOracle: {
       mainPrices,
+      reservePrices,
     },
     creditManagers: [
       {
@@ -228,6 +269,10 @@ function setupPlugin(
     tokensMeta: opts.tokensMeta ?? makeMockTokensMeta(),
     marketRegister: {
       markets: opts.markets ?? [makeMockMarket()],
+    },
+    addressProvider: {
+      getAddress: (key: string) =>
+        key === AP_WETH_TOKEN ? mockWrappedNative : undefined,
     },
   };
 
@@ -354,6 +399,20 @@ describe("ApyPlugin.getStrategyInfoSnapshot", () => {
     expect(Object.keys(cms ?? {})).toEqual([mockCM]);
   });
 
+  it("matches strategy CM addresses case-insensitively", () => {
+    const { plugin } = setupPlugin();
+    const result = plugin.getStrategyInfoSnapshot({
+      ...baseArgs,
+      strategyPayloadsList: [
+        makeStrategy({
+          creditManagers: [mockCM.toUpperCase() as Address],
+        }),
+      ],
+    });
+
+    expect(result.strategiesInfo[1][mockToken]).toBeDefined();
+  });
+
   it("computes strategiesInfo for released strategies", () => {
     const { plugin } = setupPlugin();
     const strategies = [makeStrategy()];
@@ -400,5 +459,83 @@ describe("ApyPlugin.getStrategyInfoSnapshot", () => {
     const info = result.strategiesInfo[1][mockToken];
     expect(info).toBeDefined();
     expect(info?.availableToBorrowMoney).toBeGreaterThan(0n);
+  });
+
+  it("scales borrow and quota rates like client-v3", () => {
+    const { plugin } = setupPlugin();
+    const result = plugin.getStrategyInfoSnapshot({
+      ...baseArgs,
+      strategyPayloadsList: [makeStrategy()],
+    });
+
+    const cm = result.strategiesInfo[1][mockToken]?.minCreditManager;
+    const expectedBaseBorrowRate = Number(
+      (10000000000000000000000000n *
+        (1000n + PERCENTAGE_FACTOR) *
+        PERCENTAGE_DECIMALS) /
+        RAY,
+    );
+
+    expect(cm?.baseBorrowRate).toBe(expectedBaseBorrowRate);
+    expect(cm?.quotas[mockToken]?.rate).toBe(100n * PERCENTAGE_DECIMALS);
+  });
+
+  it("uses reserve price fallback when main price is zero", () => {
+    const { plugin } = setupPlugin({
+      markets: [
+        makeMockMarket({
+          priceValue: 0n,
+          reservePriceValue: 3_000_00000000n,
+        }),
+      ],
+    });
+
+    const result = plugin.getStrategyInfoSnapshot({
+      ...baseArgs,
+      strategyPayloadsList: [makeStrategy()],
+    });
+
+    expect(
+      result.strategiesInfo[1][mockToken]?.availableToBorrowMoney,
+    ).toBeGreaterThan(0n);
+  });
+
+  it("does not expose CM when target quota is inactive", () => {
+    const { plugin } = setupPlugin({
+      markets: [makeMockMarket({ quotaActive: false })],
+    });
+
+    const result = plugin.getStrategyInfoSnapshot({
+      ...baseArgs,
+      strategyPayloadsList: [makeStrategy()],
+    });
+
+    expect(result.availableList).toEqual([]);
+    expect(result.strategiesInfo[1]).toBeUndefined();
+  });
+
+  it("adds native token price alias from wrapped native", () => {
+    const { plugin } = setupPlugin({
+      tokensMeta: makeMockTokensMeta([
+        [mockToken, { decimals: 18 }],
+        [NATIVE_ADDRESS, { decimals: 18 }],
+      ]),
+      markets: [
+        makeMockMarket({
+          underlying: NATIVE_ADDRESS,
+          collateralTokens: [mockToken, NATIVE_ADDRESS],
+          priceValue: 0n,
+        }),
+      ],
+    });
+
+    const result = plugin.getStrategyInfoSnapshot({
+      ...baseArgs,
+      strategyPayloadsList: [makeStrategy()],
+    });
+
+    expect(
+      result.strategiesInfo[1][mockToken]?.availableToBorrowMoney,
+    ).toBeGreaterThan(0n);
   });
 });
