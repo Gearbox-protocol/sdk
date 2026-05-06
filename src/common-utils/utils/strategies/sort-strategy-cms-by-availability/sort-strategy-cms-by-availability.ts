@@ -20,7 +20,14 @@ export interface SortStrategyCMsByAvailabilityProps {
   isStrategy: boolean;
 }
 
-export function sortStrategyCMsByAvailability({
+/**
+ * CMs sorted by availability (debt, quota, apy)
+ */
+export type SortedCMs<T extends CreditManagerSlice> = Array<T> & {
+  __brand: "availability";
+};
+
+export function sortStrategyCMsByAvailability<CM extends CreditManagerSlice>({
   targetToken,
   allCreditManagers,
   apyListByNetwork,
@@ -29,7 +36,16 @@ export function sortStrategyCMsByAvailability({
   quotaReserve,
   leverageLimit,
   isStrategy,
-}: SortStrategyCMsByAvailabilityProps): Array<CreditManagerSlice> {
+}: {
+  targetToken: Address;
+  allCreditManagers: Array<CM>;
+  apyListByNetwork: Record<number, APYListSlice | undefined> | undefined;
+  pools: Record<Address, PoolSlice> | undefined | null;
+  slippage: number;
+  quotaReserve: number;
+  leverageLimit: number | undefined;
+  isStrategy: boolean;
+}): SortedCMs<CM> {
   const list = [...allCreditManagers].sort((cmA, cmB) => {
     // check if min debt is available (ca is openable)
     const sort = cmAvailabilityCondition(targetToken, cmA, cmB, pools);
@@ -61,5 +77,5 @@ export function sortStrategyCMsByAvailability({
     return amountAbcComparator(cmA.maxDebt, cmB.maxDebt);
   });
 
-  return list;
+  return list as SortedCMs<CM>;
 }

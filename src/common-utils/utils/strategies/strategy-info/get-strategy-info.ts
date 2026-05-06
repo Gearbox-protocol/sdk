@@ -1,21 +1,14 @@
 import type { Address } from "viem";
 
-import type { PartialRecord } from "../../../../sdk/index.js";
-
 import { PriceUtils } from "../../price-math.js";
 import { getFactorFromLeverage } from "../leverage/index.js";
 import { sortStrategyCMsByAvailability } from "../sort-strategy-cms-by-availability/index.js";
 import { getStrategyMaxAPY } from "./get-strategy-max-apy.js";
 import { isStrategyCMDisabled } from "./is-strategy-cm-disabled.js";
 import type {
-  APYListSlice,
   CreditManagerSlice,
   GetStrategyInfoArgs,
-  PoolSlice,
-  PricesByChainSlice,
   StrategyInfoResult,
-  StrategySlice,
-  TokenSlice,
 } from "./types.js";
 
 const EMPTY_ADDRESS = "" as Address;
