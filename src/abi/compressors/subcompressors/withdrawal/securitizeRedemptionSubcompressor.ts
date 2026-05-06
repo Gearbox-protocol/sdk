@@ -103,6 +103,7 @@ export const securitizeRedemptionSubcompressorAbi = [
             type: "uint256",
             internalType: "uint256",
           },
+          { name: "maxWithdrawals", type: "uint256", internalType: "uint256" },
         ],
       },
     ],
