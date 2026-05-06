@@ -2,7 +2,7 @@ import type { Address } from "viem";
 import { describe, expect, it } from "vitest";
 
 import { buildCreditManager, buildQuota } from "../__test-utils.js";
-import type { CreditManagerData_Legacy } from "../types.js";
+import type { CreditManagerDataSlice } from "../types.js";
 import { isStrategyDisabled } from "./is-strategy-disabled.js";
 
 describe("isStrategyDisabled", () => {
@@ -16,7 +16,7 @@ describe("isStrategyDisabled", () => {
     const cms = [
       buildCreditManager({
         availableToBorrow: 100n,
-      }) as CreditManagerData_Legacy,
+      }) as CreditManagerDataSlice,
     ];
     expect(isStrategyDisabled(tokenOut, cms)).toBe(true);
   });
@@ -34,7 +34,7 @@ describe("isStrategyDisabled", () => {
             totalQuoted: 20n,
           }),
         },
-      }) as CreditManagerData_Legacy,
+      }) as CreditManagerDataSlice,
     ];
 
     expect(isStrategyDisabled(tokenOut, cms)).toBe(false);
@@ -53,7 +53,7 @@ describe("isStrategyDisabled", () => {
             rate: 0n,
           }),
         },
-      }) as CreditManagerData_Legacy,
+      }) as CreditManagerDataSlice,
     ];
 
     expect(isStrategyDisabled(tokenOut, cms)).toBe(true);
@@ -71,7 +71,7 @@ describe("isStrategyDisabled", () => {
             rate: 0n,
           }),
         },
-      }) as CreditManagerData_Legacy,
+      }) as CreditManagerDataSlice,
     ];
 
     expect(isStrategyDisabled(tokenOut, cms)).toBe(true);

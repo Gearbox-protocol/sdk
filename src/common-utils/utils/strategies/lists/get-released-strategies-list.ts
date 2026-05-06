@@ -2,17 +2,18 @@ import { isStrategyEligible } from "../eligibility/is-strategy-eligible.js";
 import { isStrategyReleased } from "../eligibility/is-strategy-released.js";
 import type {
   AppChains,
+  CreditManagerDataSlice,
   CuratorFilter,
   GearboxSDKFullStateByChain,
   NotValidatedStrategy,
   Strategy,
 } from "../types.js";
 
-export function getReleasedStrategiesList(
+export function getReleasedStrategiesList<CM extends CreditManagerDataSlice>(
   strategyPayloadsList: NotValidatedStrategy[] | undefined,
   allowedChains: AppChains | undefined,
 
-  sdkStateByChain: GearboxSDKFullStateByChain | undefined,
+  sdkStateByChain: GearboxSDKFullStateByChain<CM> | undefined,
   curatorFilter: CuratorFilter,
   showHiddenStrategies: boolean,
 ) {

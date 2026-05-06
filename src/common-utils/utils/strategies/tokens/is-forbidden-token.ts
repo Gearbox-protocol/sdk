@@ -1,13 +1,13 @@
 import type { Address } from "viem";
 
-import type { CreditManagerData_Legacy } from "../types.js";
+import type { CreditManagerDataSlice } from "../types.js";
 
 export function isForbiddenToken({
   address,
   creditManager,
 }: {
   address: Address;
-  creditManager: Pick<CreditManagerData_Legacy, "forbiddenTokens">;
+  creditManager: Pick<CreditManagerDataSlice, "forbiddenTokens">;
 }) {
   return !!creditManager.forbiddenTokens[address];
 }

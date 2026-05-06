@@ -10,7 +10,7 @@ interface AdapterContract {
   targetContract: Address;
 }
 
-export type CreditManagerData_Legacy = CreditManagerSlice & {
+export type CreditManagerDataSlice = CreditManagerSlice & {
   readonly network: NetworkType;
   readonly creditFacade: Address;
   readonly creditConfigurator: Address;

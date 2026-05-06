@@ -1,6 +1,7 @@
 import { TypedObjectUtils } from "../../../../sdk/utils/mappers.js";
 
 import type {
+  CreditManagerDataSlice,
   CuratorFilter,
   GearboxSDKFullStateByChain,
   StrategiesCMListByChain,
@@ -9,15 +10,17 @@ import type {
 
 import { getStrategyCreditManagers } from "./get-strategy-credit-managers.js";
 
-export function getStrategyCreditManagersList(
+export function getStrategyCreditManagersList<
+  CM extends CreditManagerDataSlice,
+>(
   strategies: Array<Strategy> | undefined,
-  sdkStateByChain: GearboxSDKFullStateByChain | undefined,
+  sdkStateByChain: GearboxSDKFullStateByChain<CM> | undefined,
   curatorFilter: CuratorFilter,
 ) {
   if (!sdkStateByChain) return sdkStateByChain;
   if (!strategies) return strategies;
 
-  const r = strategies.reduce<StrategiesCMListByChain>((acc, s) => {
+  const r = strategies.reduce<StrategiesCMListByChain<CM>>((acc, s) => {
     const currentSdkState = sdkStateByChain[s.chainId];
     const { creditManagers, tokens } = currentSdkState || {};
 

@@ -2,19 +2,17 @@ import type { Address } from "viem";
 
 import type { TokenSlice } from "../strategy-info/types.js";
 
-import type { CreditManagerData_Legacy } from "./credit-manager-data-legacy.js";
+import type { CreditManagerDataSlice } from "./credit-manager-data-legacy.js";
 
-export interface GearboxSDKFullState {
+export interface GearboxSDKFullState<CM extends CreditManagerDataSlice> {
   lastSyncBlock?: {
     blockTimestamp_js: number;
   };
   tokens?: {
     tokenDataList?: Record<Address, TokenSlice>;
   };
-  creditManagers?: Record<Address, CreditManagerData_Legacy>;
+  creditManagers?: Record<Address, CM>;
 }
 
-export type GearboxSDKFullStateByChain = Record<
-  number,
-  GearboxSDKFullState | undefined
->;
+export type GearboxSDKFullStateByChain<CM extends CreditManagerDataSlice> =
+  Record<number, GearboxSDKFullState<CM> | undefined>;

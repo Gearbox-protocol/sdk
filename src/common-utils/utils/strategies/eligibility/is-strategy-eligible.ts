@@ -1,12 +1,13 @@
 import type {
   AppChains,
+  CreditManagerDataSlice,
   CuratorFilter,
   GearboxSDKFullState,
   NotValidatedStrategy,
 } from "../types.js";
 import { EMPTY_ADDRESS } from "../types.js";
 
-export function isStrategyEligible(
+export function isStrategyEligible<CM extends CreditManagerDataSlice>(
   s: Pick<
     NotValidatedStrategy,
     "chainId" | "network" | "hideInProd" | "tokenOutAddress" | "showInMainApp"
@@ -14,7 +15,7 @@ export function isStrategyEligible(
   allowedChains: AppChains,
   showHiddenStrategies: boolean,
   sdkStateByChain:
-    | Record<number, Pick<GearboxSDKFullState, "tokens"> | undefined>
+    | Record<number, Pick<GearboxSDKFullState<CM>, "tokens"> | undefined>
     | undefined,
   curatorFilter: CuratorFilter,
 ) {

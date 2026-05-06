@@ -1,14 +1,15 @@
 import { isStrategyDisabled } from "../strategy-state/is-strategy-disabled.js";
 import type {
+  CreditManagerDataSlice,
   CuratorFilter,
   StrategiesCMListByChain,
   Strategy,
   StrategyRecord,
 } from "../types.js";
 
-export function getDisabledStrategies(
+export function getDisabledStrategies<CM extends CreditManagerDataSlice>(
   list: Strategy[] | undefined | undefined,
-  listCMs: StrategiesCMListByChain | undefined,
+  listCMs: StrategiesCMListByChain<CM> | undefined,
   curatorFilter: CuratorFilter | undefined,
 ): {
   record: StrategyRecord;

@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { buildCreditManager, buildQuota } from "../__test-utils.js";
 import type * as UsableTokensTypes from "../tokens/is-usable-token.js";
 import { isUsableToken } from "../tokens/is-usable-token.js";
-import type { CreditManagerData_Legacy } from "../types.js";
+import type { CreditManagerDataSlice } from "../types.js";
 import { getStrategyCreditManagers } from "./get-strategy-credit-managers.js";
 import type * as IsCreditManagerUsableTypes from "./is-credit-manager-usable.js";
 import { isCreditManagerUsable } from "./is-credit-manager-usable.js";
@@ -47,7 +47,7 @@ describe("getStrategyCreditManagers", () => {
     availableToBorrow: 100n,
     minDebt: 10n,
     isBorrowingForbidden: false,
-  } as any) as CreditManagerData_Legacy;
+  } as any) as CreditManagerDataSlice;
 
   const borrowingForbidden = buildCreditManager({
     address: "0xcmBorrowForbidden",
@@ -61,7 +61,7 @@ describe("getStrategyCreditManagers", () => {
     availableToBorrow: 100n,
     minDebt: 10n,
     isBorrowingForbidden: true,
-  } as any) as CreditManagerData_Legacy;
+  } as any) as CreditManagerDataSlice;
 
   const isCreditManagerUsableFalse = buildCreditManager({
     address: "0xcmUsableFalse",
@@ -75,7 +75,7 @@ describe("getStrategyCreditManagers", () => {
     availableToBorrow: 100n,
     minDebt: 10n,
     isBorrowingForbidden: false,
-  } as any) as CreditManagerData_Legacy;
+  } as any) as CreditManagerDataSlice;
 
   const isUsableTokenFalse = buildCreditManager({
     address: "0xisUsableToken",
@@ -89,7 +89,7 @@ describe("getStrategyCreditManagers", () => {
     availableToBorrow: 100n,
     minDebt: 10n,
     isBorrowingForbidden: false,
-  } as any) as CreditManagerData_Legacy;
+  } as any) as CreditManagerDataSlice;
 
   const unusableByQuotaZero = buildCreditManager({
     address: "0xcm2",
@@ -104,7 +104,7 @@ describe("getStrategyCreditManagers", () => {
     availableToBorrow: 100n,
     minDebt: 10n,
     isBorrowingForbidden: false,
-  } as any) as CreditManagerData_Legacy;
+  } as any) as CreditManagerDataSlice;
 
   const unusableByQuotaZeroButUnderlying = buildCreditManager({
     address: "0xcm3",
@@ -120,7 +120,7 @@ describe("getStrategyCreditManagers", () => {
     availableToBorrow: 100n,
     minDebt: 10n,
     isBorrowingForbidden: false,
-  } as any) as CreditManagerData_Legacy;
+  } as any) as CreditManagerDataSlice;
 
   const strategy = {
     tokenOutAddress: "0xlp",

@@ -1,9 +1,9 @@
 import { isV310 } from "../../../../sdk/index.js";
 
-import type { CreditManagerData_Legacy } from "../types.js";
+import type { CreditManagerDataSlice } from "../types.js";
 
 export function isCreditManagerUsable(
-  cm: Pick<CreditManagerData_Legacy, "isBorrowingForbidden" | "version">,
+  cm: Pick<CreditManagerDataSlice, "isBorrowingForbidden" | "version">,
 ) {
   return !cm.isBorrowingForbidden && isV310(cm.version);
 }

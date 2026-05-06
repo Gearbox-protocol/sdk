@@ -1,4 +1,5 @@
 import type {
+  CreditManagerDataSlice,
   CuratorFilter,
   StrategiesCMListByChain,
   Strategy,
@@ -7,9 +8,11 @@ import type {
 import { getAvailableStrategies } from "./get-available-strategies.js";
 import { getDisabledStrategies } from "./get-disabled-strategies.js";
 
-export function getAvailableAndDisabledStrategies(
+export function getAvailableAndDisabledStrategies<
+  CM extends CreditManagerDataSlice,
+>(
   list: Strategy[] | undefined | undefined,
-  listCMs: StrategiesCMListByChain | undefined,
+  listCMs: StrategiesCMListByChain<CM> | undefined,
   curatorFilter: CuratorFilter | undefined,
 ) {
   const available = getAvailableStrategies(list, listCMs);

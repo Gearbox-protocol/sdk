@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-import type { CreditManagerData_Legacy } from "../types.js";
+import type { CreditManagerDataSlice } from "../types.js";
 
 export function isActivatedToken({
   address,
@@ -8,7 +8,7 @@ export function isActivatedToken({
 }: {
   address: Address;
   creditManager: Pick<
-    CreditManagerData_Legacy,
+    CreditManagerDataSlice,
     "liquidationThresholds" | "quotas" | "supportedTokens"
   >;
 }) {
