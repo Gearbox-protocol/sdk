@@ -2,8 +2,10 @@ import type { Address } from "viem";
 import { getSingleQuotaBorrowRate } from "../../index.js";
 import { PriceUtils } from "../../price-math.js";
 import { getFactorFromLeverage } from "../leverage/index.js";
+import { getStrategyPoints } from "../points/get-strategy-points.js";
 import { sortStrategyCMsByAvailability } from "../sort-strategy-cms-by-availability/index.js";
 import type { StrategyDataSource } from "../types/index.js";
+import type { BasePointsList, ExtraCollateralPointsList } from "../types.js";
 import { getStrategyMaxAPY } from "./get-strategy-max-apy.js";
 import { isStrategyCMDisabled } from "./is-strategy-cm-disabled.js";
 import type {
@@ -24,7 +26,16 @@ export interface GetStrategyInfoCoreArgs<
   strategy: StrategySlice<ID>;
   creditManagers: Record<Address, CM> | undefined;
   source: StrategyDataSource;
-  apyListByNetwork: Record<number, APYListSlice | undefined> | undefined;
+  apyListByNetwork:
+    | Record<
+        number,
+        | (APYListSlice & {
+            pointsList?: BasePointsList;
+            extraCollateralPointsList?: ExtraCollateralPointsList;
+          })
+        | undefined
+      >
+    | undefined;
   quotaReserve: number;
   slippage: number;
 }
@@ -124,6 +135,19 @@ export function getStrategyInfoCore<
     },
   });
 
+  const points = getStrategyPoints({
+    strategy: {
+      chainId: strategy.chainId,
+      tokenOutAddress: targetTokenAddress,
+    },
+    info: {
+      maxLeverage,
+      minCreditManager,
+    },
+    strategyCreditManagers: creditManagers ?? {},
+    apyListByNetwork,
+  });
+
   return {
     maxLeverage,
     maxAPY: totalMaxApy,
@@ -133,5 +157,6 @@ export function getStrategyInfoCore<
     baseQuotaRateWithFee,
     availableToBorrowMoney,
     minCreditManager,
+    points,
   };
 }

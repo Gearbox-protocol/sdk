@@ -1,6 +1,7 @@
 import type { Address } from "viem";
 
 import type { PartialRecord } from "../../../../sdk/index.js";
+import type { StrategyPointsResult } from "../points/get-strategy-points.js";
 
 export interface QuotaSlice {
   token: Address;
@@ -75,6 +76,7 @@ export interface StrategyInfoResult<
   availableToBorrowMoney: bigint;
   minCreditManager: CM;
   baseQuotaRateWithFee: bigint;
+  points?: StrategyPointsResult;
 }
 
 export interface GetStrategyInfoArgs<

@@ -3,7 +3,6 @@ import type { Address } from "viem";
 import { getFactorFromLeverage } from "../leverage/index.js";
 import type {
   APYListByNetwork,
-  Strategy,
   StrategyCreditManagerLike,
   StrategyInfoLike,
 } from "../types.js";
@@ -16,8 +15,13 @@ const EMPTY_CHAIN_ID = 0;
 const EMPTY_ARRAY: Array<never> = [];
 const EMPTY_ADDRESS = "" as Address;
 
+export interface StrategyLike {
+  chainId: number;
+  tokenOutAddress: Address;
+}
+
 export interface GetStrategyPointsProps {
-  readonly strategy: Strategy;
+  readonly strategy: StrategyLike;
   readonly info: StrategyInfoLike | undefined;
   readonly strategyCreditManagers: Record<Address, StrategyCreditManagerLike>;
   readonly apyListByNetwork: APYListByNetwork | undefined;
@@ -78,3 +82,5 @@ export function getStrategyPoints({
     debtRewardRates,
   };
 }
+
+export type StrategyPointsResult = ReturnType<typeof getStrategyPoints>;
