@@ -1,24 +1,13 @@
 import type { Address } from "viem";
+import type {
+  DebtReward,
+  PointsInfo,
+  PointsReward,
+} from "../../../../rewards/index.js";
 
-export type PointsMultiplier = bigint | "soon";
-
-export interface LocalPointsReward {
-  name: string;
-  units: string;
-  type: string;
-  multiplier: PointsMultiplier;
-}
-
-export interface LocalDebtReward extends LocalPointsReward {
-  cm: Address | "any";
-}
-
-export interface LocalPointsInfo {
-  symbol: string;
-  address: Address;
-  rewards?: Array<LocalPointsReward> | undefined;
-  debtRewards?: Array<LocalDebtReward> | undefined;
-}
+export type LocalPointsReward = PointsReward<string>;
+export type LocalDebtReward = DebtReward<string>;
+export type LocalPointsInfo = PointsInfo<string>;
 
 export type PointsList = Record<Address, LocalPointsInfo>;
 export type BasePointsList = Record<Address, LocalPointsInfo>;
