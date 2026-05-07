@@ -1,6 +1,16 @@
 import type { Address } from "viem";
 
 import { marketCompressorAbi } from "../../abi/compressors/marketCompressor.js";
+import {
+  getAvailableAndDisabledStrategies,
+  getReleasedStrategiesListCore,
+  getStrategyCreditManagersListCore,
+  getStrategyInfoCore,
+} from "../../common-utils/utils/strategies/index.js";
+import type {
+  Strategy,
+  StrategyCreditManagerView,
+} from "../../common-utils/utils/strategies/types.js";
 import { PoolPointsAPI } from "../../rewards/rewards/extra-apy.js";
 import type { ILogger, IOnchainSDKPlugin } from "../../sdk/index.js";
 import {
@@ -25,10 +35,13 @@ import {
   calculateSupplyApy7d,
   getPoolExtraAPY,
 } from "./pool-apy-utils.js";
+import { OnchainSdkStrategyDataSource } from "./strategy-data-source.js";
 import type {
   ApySnapshotState,
+  GetStrategyInfoSnapshotArgs,
   Pool7DAgoState,
   Pools7DAgoStateHuman,
+  StrategyInfoSnapshot,
 } from "./types.js";
 
 export interface ApyPluginState {
@@ -257,6 +270,88 @@ export class ApyPlugin
     }
 
     return { data, data7DAgo, pointsBase: poolPointsBase, points };
+  }
+
+  /**
+   * Computes a strategy-info snapshot from the current SDK and APY state.
+   *
+   * @throws if plugin is not loaded
+   */
+  public getStrategyInfoSnapshot({
+    slippage,
+    quotaReserve,
+    curatorFilter,
+    strategyPayloadsList,
+    showHiddenStrategies,
+  }: GetStrategyInfoSnapshotArgs): StrategyInfoSnapshot<StrategyCreditManagerView> {
+    if (!this.loaded) {
+      throw new Error("apy plugin not loaded");
+    }
+
+    const chainId = this.sdk.chainId;
+    const network = this.sdk.networkType;
+    const allowedChains = { [chainId]: network };
+    const source = new OnchainSdkStrategyDataSource(this.sdk);
+
+    const releasedStrategies = getReleasedStrategiesListCore({
+      strategyPayloadsList,
+      allowedChains,
+      source,
+      curatorFilter,
+      showHiddenStrategies,
+    });
+
+    const cmsOfStrategiesByChain =
+      getStrategyCreditManagersListCore<StrategyCreditManagerView>({
+        strategies: releasedStrategies,
+        source,
+        curatorFilter,
+      });
+
+    const { available, disabled, availableList, disabledList } =
+      getAvailableAndDisabledStrategies<StrategyCreditManagerView>(
+        releasedStrategies,
+        cmsOfStrategiesByChain,
+        curatorFilter,
+      );
+
+    const apyListByNetwork = {
+      [chainId]: this.apySnapshot.apy,
+    };
+
+    const strategiesInfo =
+      releasedStrategies?.reduce<
+        StrategyInfoSnapshot<StrategyCreditManagerView>["strategiesInfo"]
+      >((acc, strategy) => {
+        const info = getStrategyInfoCore<
+          Strategy["id"],
+          StrategyCreditManagerView
+        >({
+          strategy,
+          creditManagers:
+            cmsOfStrategiesByChain?.[strategy.chainId]?.[strategy.id],
+          source,
+          apyListByNetwork,
+          quotaReserve,
+          slippage,
+        });
+
+        if (info) {
+          acc[strategy.chainId] ??= {};
+          acc[strategy.chainId][strategy.id] = info;
+        }
+
+        return acc;
+      }, {}) ?? {};
+
+    return {
+      availableStrategies: available,
+      disabledStrategies: disabled,
+      availableList,
+      disabledList,
+      cmsOfStrategiesByChain,
+      strategiesInfo,
+    };
   }
 
   // ---------------------------------------------------------------------------
