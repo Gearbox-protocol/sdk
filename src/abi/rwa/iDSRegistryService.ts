@@ -15,7 +15,7 @@ export const iDSRegistryServiceAbi = [
   },
   {
     type: "function",
-    name: "RWA_APPROVED",
+    name: "KYC_APPROVED",
     inputs: [],
     outputs: [{ name: "", type: "uint8", internalType: "uint8" }],
     stateMutability: "view",
