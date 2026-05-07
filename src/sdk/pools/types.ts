@@ -77,7 +77,7 @@ export interface RemoveLiquidityProps {
   meta: WithdrawalMetadata;
 }
 
-export type MarketType = "kyc-on-demand" | "kyc-default" | "classic";
+export type MarketType = "rwa-on-demand" | "rwa-default" | "classic";
 
 export interface DepositMetadata {
   /**
@@ -134,7 +134,7 @@ export interface IPoolsService {
    * Returns list of tokens that user can receive after depositing to a pool,
    * depends on the pool type and the token being deposited (one of returned by {@link getDepositTokensIn}).
    *
-   * Can return empty array if no tokens can be received (e.g. for KYC underlying on demand)
+   * Can return empty array if no tokens can be received (e.g. for RWA underlying on demand)
    *
    * @param pool
    * @param tokenIn
@@ -147,7 +147,7 @@ export interface IPoolsService {
    *
    * @param pool
    * @param tokenIn
-   * @param tokenOut can be undefined if deposit is not resulting in a token out (e.g. for KYC underlying on demand)
+   * @param tokenOut can be undefined if deposit is not resulting in a token out (e.g. for RWA underlying on demand)
    */
   getDepositMetadata(
     pool: Address,
@@ -183,7 +183,7 @@ export interface IPoolsService {
 
   /**
    * Returns contract call parameters for adding liquidity to a pool
-   * Or undefined if no deposit action is required (e.g. for KYC underlying on demand)
+   * Or undefined if no deposit action is required (e.g. for RWA underlying on demand)
    * @param props - {@link AddLiquidityProps}
    * @returns - {@link AddLiquidityCall}
    */

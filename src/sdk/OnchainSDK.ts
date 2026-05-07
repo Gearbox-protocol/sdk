@@ -34,7 +34,7 @@ import {
   SdkNotAttachedError,
   SdkStateVersionMismatchError,
 } from "./core/index.js";
-import { KYCRegistry } from "./market/index.js";
+import { RWARegistry } from "./market/index.js";
 import { MarketRegister } from "./market/MarketRegister.js";
 import { PriceFeedRegister } from "./market/pricefeeds/index.js";
 import type {
@@ -142,9 +142,9 @@ export interface AttachOptions {
    **/
   marketConfigurators?: Address[];
   /**
-   * Addresses of KYC factory contracts to load.
+   * Addresses of RWA factory contracts to load.
    **/
-  kycFactories?: Address[];
+  rwaFactories?: Address[];
   /**
    * Pin SDK to a specific block number during attach.
    **/
@@ -258,7 +258,7 @@ export class OnchainSDK<
 
   #addressProvider?: IAddressProviderContract;
 
-  #kyc: KYCRegistry;
+  #rwa: RWARegistry;
   #marketRegister?: MarketRegister;
   #priceFeeds?: PriceFeedRegister;
 
@@ -305,7 +305,7 @@ export class OnchainSDK<
 
     this.strictContractTypes = options?.strictContractTypes ?? false;
     this.plugins = options?.plugins ?? ({} as Plugins);
-    this.#kyc = new KYCRegistry(this);
+    this.#rwa = new RWARegistry(this);
 
     for (const plugin of Object.values(this.plugins)) {
       plugin.sdk = this;
@@ -342,8 +342,8 @@ export class OnchainSDK<
       TypedObjectUtils.keys(
         (this.client.chain as GearboxChain).defaultMarketConfigurators,
       );
-    const kycFactories =
-      options?.kycFactories ?? (this.client.chain as GearboxChain).kycFactories;
+    const rwaFactories =
+      options?.rwaFactories ?? (this.client.chain as GearboxChain).rwaFactories;
 
     this.logger?.info(
       {
@@ -406,7 +406,7 @@ export class OnchainSDK<
     } else {
       const delegated: DelegatedMulticall[] = [
         ...this.#marketRegister.getLoadMulticalls(marketConfigurators),
-        ...this.#kyc.getLoadMulticalls(marketConfigurators, kycFactories),
+        ...this.#rwa.getLoadMulticalls(marketConfigurators, rwaFactories),
       ];
 
       let txs: IPriceUpdateTx[] = [];
@@ -493,8 +493,8 @@ export class OnchainSDK<
     this.#marketRegister = new MarketRegister(this, ignoreMarkets);
     this.#marketRegister.hydrate(state.markets);
 
-    this.#kyc = new KYCRegistry(this);
-    this.#kyc.setState(state.kyc);
+    this.#rwa = new RWARegistry(this);
+    this.#rwa.setState(state.rwa);
 
     for (const [name, plugin] of TypedObjectUtils.entries(this.plugins)) {
       const pluginState = state.plugins[name];
@@ -542,7 +542,7 @@ export class OnchainSDK<
         addressProviderV3: this.addressProvider.stateHuman(raw),
       },
       tokens: this.tokensMeta.values(),
-      kyc: this.#kyc.stateHuman(raw),
+      rwa: this.#rwa.stateHuman(raw),
       plugins: Object.fromEntries(
         TypedObjectUtils.entries(this.plugins).map(([name, plugin]) => [
           name,
@@ -563,7 +563,7 @@ export class OnchainSDK<
       timestamp: this.timestamp,
       addressProvider: this.addressProvider.state,
       markets: this.marketRegister.state,
-      kyc: this.#kyc.state,
+      rwa: this.#rwa.state,
       plugins: Object.fromEntries(
         TypedObjectUtils.entries(this.plugins).map(([name, plugin]) => [
           name,
@@ -749,15 +749,15 @@ export class OnchainSDK<
   }
 
   /**
-   * KYC register for KYC-wrapped underlying tokens and factories.
+   * RWA register for RWA-wrapped underlying tokens and factories.
    *
    * @throws If the SDK has not been attached or hydrated yet.
    **/
-  public get kyc(): KYCRegistry {
-    if (this.#kyc === undefined) {
+  public get rwa(): RWARegistry {
+    if (this.#rwa === undefined) {
       throw new SdkNotAttachedError();
     }
-    return this.#kyc;
+    return this.#rwa;
   }
 
   /**

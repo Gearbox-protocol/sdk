@@ -2,7 +2,7 @@ import type { Address } from "viem";
 
 import type { TokenMetaData } from "../base/index.js";
 import type { PriceFeedContractType } from "../market/index.js";
-import type { KYCStateHuman } from "../market/kyc/index.js";
+import type { RWAStateHuman } from "../market/rwa/index.js";
 
 export interface BaseContractStateHuman {
   address: string;
@@ -244,7 +244,7 @@ export interface GearboxStateHuman {
   markets: MarketStateHuman[];
   plugins: Record<string, unknown>;
   tokens: TokenMetaData[];
-  kyc: KYCStateHuman;
+  rwa: RWAStateHuman;
 }
 
 /**

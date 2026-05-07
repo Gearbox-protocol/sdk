@@ -4,8 +4,8 @@ import type { MarketData } from "../../base/index.js";
 import { SDKConstruct } from "../../base/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import type { PoolSuiteStateHuman } from "../../types/index.js";
-import type { IKYCFactory } from "../kyc/types.js";
 import type { MarketConfiguratorContract } from "../MarketConfiguratorContract.js";
+import type { IRWAFactory } from "../rwa/types.js";
 import createInterestRateModel from "./createInterestRateModel.js";
 import createPool from "./createPool.js";
 import createPoolQuotaKeeper from "./createPoolQuotaKeeper.js";
@@ -77,8 +77,8 @@ export class PoolSuite extends SDKConstruct {
     return this.pool.underlying;
   }
 
-  public get kycFactory(): IKYCFactory | undefined {
-    return this.pool.kycFactory;
+  public get rwaFactory(): IRWAFactory | undefined {
+    return this.pool.rwaFactory;
   }
 
   override get dirty(): boolean {

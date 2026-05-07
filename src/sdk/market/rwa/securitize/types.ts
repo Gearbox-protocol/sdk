@@ -1,6 +1,6 @@
 import type { Address, Hex, TypedDataDefinition } from "viem";
 import type { BaseContractStateHuman } from "../../../types/index.js";
-import type { KYC_FACTORY_SECURITIZE } from "./constants.js";
+import type { RWA_FACTORY_SECURITIZE } from "./constants.js";
 
 /**
  * On-chain data about Securitize DSTokens
@@ -53,7 +53,7 @@ export const SECURITIZE_REGISTER_VAULT_TYPES = {
 
 /**
  * EIP-712 typed-data message that must be signed by the investor to allow the
- * KYC factory to register a credit account as a vault in Securitize's VaultRegistrar.
+ * RWA factory to register a credit account as a vault in Securitize's VaultRegistrar.
  *
  * Shaped as a viem {@link TypedDataDefinition} so it can be spread directly into
  * `walletClient.signTypedData({ account, ...message })`. The caller only has to
@@ -74,7 +74,7 @@ export type SecuritizeRegisterVaultMessage = TypedDataDefinition<
 >;
 
 /**
- * Per-credit-account data decoded from the KYC compressor's
+ * Per-credit-account data decoded from the RWA compressor's
  * `getCreditAccountData` extra details for a Securitize factory.
  **/
 export interface SecuritizeCreditAccountData {
@@ -89,12 +89,12 @@ export interface SecuritizeCreditAccountData {
 }
 
 /**
- * Investor-level data decoded from the KYC compressor's `getKYCInvestorData`
+ * Investor-level data decoded from the RWA compressor's `getRWAInvestorData`
  * extra details for a Securitize factory.
  **/
 export interface SecuritizeInvestorData {
-  type: typeof KYC_FACTORY_SECURITIZE;
-  /** Securitize KYC factory address that produced this data. */
+  type: typeof RWA_FACTORY_SECURITIZE;
+  /** Securitize RWA factory address that produced this data. */
   factory: Address;
   /** Credit accounts owned by the investor through this factory. */
   creditAccounts: SecuritizeCreditAccountData[];
@@ -107,9 +107,9 @@ export interface SecuritizeInvestorData {
 }
 
 /**
- * Human-readable serialisation of {@link SecuritizeKYCFactory} state.
+ * Human-readable serialisation of {@link SecuritizeRWAFactory} state.
  **/
-export interface SecuritizeKYCFactoryStateHuman extends BaseContractStateHuman {
+export interface SecuritizeRWAFactoryStateHuman extends BaseContractStateHuman {
   owner: string;
   degenNFT: string;
   dsTokens: {
@@ -123,11 +123,11 @@ export interface SecuritizeKYCFactoryStateHuman extends BaseContractStateHuman {
 }
 
 /**
- * Factory-specific parameters for {@link SecuritizeKYCFactory.multicall}
- * and {@link SecuritizeKYCFactory.openCreditAccount}.
+ * Factory-specific parameters for {@link SecuritizeRWAFactory.multicall}
+ * and {@link SecuritizeRWAFactory.openCreditAccount}.
  **/
 export interface SecuritizeOperationParams {
-  type: typeof KYC_FACTORY_SECURITIZE;
+  type: typeof RWA_FACTORY_SECURITIZE;
   /** DSToken addresses to register for this operation. */
   tokensToRegister: Address[];
   /** Cached EIP-712 registration signatures to store on-chain. */
@@ -135,7 +135,7 @@ export interface SecuritizeOperationParams {
 }
 
 export interface SecuritizeOpenAccountRequirements {
-  type: typeof KYC_FACTORY_SECURITIZE;
+  type: typeof RWA_FACTORY_SECURITIZE;
   /**
    * User must visit securitize website to register these tokens
    * May be empty if user already registered all required tokens

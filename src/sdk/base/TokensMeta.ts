@@ -17,8 +17,8 @@ import {
   formatBN,
 } from "../utils/index.js";
 import type {
-  KYCTokenMeta,
   PhantomTokenMeta,
+  RWATokenMeta,
   TokenMetaData,
 } from "./token-types.js";
 
@@ -113,12 +113,12 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
   }
 
   /**
-   * Returns true if the token is a KYC underlying token, throws if the token data is not loaded
+   * Returns true if the token is a RWA underlying token, throws if the token data is not loaded
    * @param t
    * @returns
    */
-  public isKYCUnderlying(t: TokenMetaData): t is KYCTokenMeta {
-    return !!t.contractType?.startsWith("KYC_UNDERLYING::");
+  public isRWAUnderlying(t: TokenMetaData): t is RWATokenMeta {
+    return !!t.contractType?.startsWith("RWA_UNDERLYING::");
   }
 
   /**
@@ -136,13 +136,13 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
   }
 
   /**
-   * Returns a map of all KYC underlying tokens
+   * Returns a map of all RWA underlying tokens
    * Throws if token data is not loaded
    */
-  public get kycUnderlyings(): AddressMap<KYCTokenMeta> {
-    const result = new AddressMap<KYCTokenMeta>();
+  public get rwaUnderlyings(): AddressMap<RWATokenMeta> {
+    const result = new AddressMap<RWATokenMeta>();
     for (const [token, meta] of this.entries()) {
-      if (this.isKYCUnderlying(meta)) {
+      if (this.isRWAUnderlying(meta)) {
         result.upsert(token, meta);
       }
     }

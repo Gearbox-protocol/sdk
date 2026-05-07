@@ -14,10 +14,10 @@ import type {
 } from "../base/index.js";
 import type {
   CreditSuite,
-  KYCOperationParams,
   PriceUpdate,
+  RWAOperationParams,
 } from "../market/index.js";
-import type { KYCOpenAccountRequirements } from "../market/kyc/index.js";
+import type { RWAOpenAccountRequirements } from "../market/rwa/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
 import type {
   Asset,
@@ -495,14 +495,14 @@ export interface OpenCAProps extends PrepareUpdateQuotasProps {
    */
   referralCode: bigint;
   /**
-   * KYC options to open credit account with, required for KYC factories
+   * RWA options to open credit account with, required for RWA factories
    * First we ask for getOpenAccountRequirements,
    * then perform necessary actions (e.g. for Securitize, convert requiredSignatures to signaturesToCache)
-   * to produce KYCOperationParams
+   * to produce RWAOperationParams
    * If getOpenAccountRequirements returned undefined, we need to pass undefined here too;
-   * It means that no KYC actions are required (e.g. when we open second credit account)
+   * It means that no RWA actions are required (e.g. when we open second credit account)
    */
-  kycOptions?: KYCOperationParams;
+  rwaOptions?: RWAOperationParams;
 }
 
 export interface ChangeDeptProps {
@@ -792,7 +792,7 @@ export interface ICreditAccountsService extends Construct {
 
   /**
    * Returns all credit accounts for a borrower,
-   * both normal and KYC accounts with investor resolved on each.
+   * both normal and RWA accounts with investor resolved on each.
    *
    * @param borrower - Actual owner of credit account
    * @param options - Filter options (creditManager, health factor, etc.)
@@ -949,7 +949,7 @@ export interface ICreditAccountsService extends Construct {
 
   /**
    * Returns address to which approval should be given on collateral token
-   * It's credit manager for classical markets and special wallet for KYC markets
+   * It's credit manager for classical markets and special wallet for RWA markets
    * @param props - {@link GetApprovalAddressProps}
    * @returns
    */
@@ -966,7 +966,7 @@ export interface ICreditAccountsService extends Construct {
     borrower: Address,
     creditManager: Address,
     props: GetOpenAccountRequirementsProps,
-  ): Promise<KYCOpenAccountRequirements | undefined>;
+  ): Promise<RWAOpenAccountRequirements | undefined>;
 
   /**
    * Executes swap specified by given calls, update quotas of affected tokens
@@ -1037,38 +1037,38 @@ export interface ICreditAccountsService extends Construct {
   ): Promise<RawTx>;
 
   /**
-   * Returns multicall entries to redeem (unwrap) KYC ERC-4626 vault shares into underlying for the given credit manager.
-   * Used when withdrawing debt from a KYC market: redeems adapter vault shares so the underlying can be withdrawn.
-   * Only applies when the credit manager's underlying is KYC-gated and has an ERC-4626 adapter configured.
+   * Returns multicall entries to redeem (unwrap) RWA ERC-4626 vault shares into underlying for the given credit manager.
+   * Used when withdrawing debt from a RWA market: redeems adapter vault shares so the underlying can be withdrawn.
+   * Only applies when the credit manager's underlying is RWA-gated and has an ERC-4626 adapter configured.
    * @param amount - Number of vault shares (adapter tokens) to redeem
    * @param creditManager - Credit manager address
-   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not KYC or no adapter is configured
+   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not RWA or no adapter is configured
    */
-  getKYCUnwrapCalls(
+  getRWAUnwrapCalls(
     amount: bigint,
     creditManager: Address,
   ): Promise<Array<MultiCall> | undefined>;
 
   /**
-   * Returns multicall entries to deposit (wrap) underlying into KYC ERC-4626 vault shares for the given credit manager.
-   * Used when adding debt on a KYC market: deposits underlying into the adapter vault so shares are minted on the account.
-   * Only applies when the credit manager's underlying is KYC-gated and has an ERC-4626 adapter configured.
+   * Returns multicall entries to deposit (wrap) underlying into RWA ERC-4626 vault shares for the given credit manager.
+   * Used when adding debt on a RWA market: deposits underlying into the adapter vault so shares are minted on the account.
+   * Only applies when the credit manager's underlying is RWA-gated and has an ERC-4626 adapter configured.
    * @param amount - Amount of underlying assets to deposit into the vault (in underlying decimals)
    * @param creditManager - Credit manager address
-   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not KYC or no adapter is configured
+   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not RWA or no adapter is configured
    */
-  getKYCWrapCalls(
+  getRWAWrapCalls(
     amount: bigint,
     creditManager: Address,
   ): Promise<Array<MultiCall> | undefined>;
 
   /**
-   * Returns multicall entries to call redeemDiff on the KYC ERC-4626 adapter for the given credit manager.
-   * Redeems the leftover vault shares (e.g. after repaying debt) so the account does not hold excess KYC vault tokens.
-   * Only applies when the credit manager's underlying is KYC-gated and has an ERC-4626 adapter configured.
+   * Returns multicall entries to call redeemDiff on the RWA ERC-4626 adapter for the given credit manager.
+   * Redeems the leftover vault shares (e.g. after repaying debt) so the account does not hold excess RWA vault tokens.
+   * Only applies when the credit manager's underlying is RWA-gated and has an ERC-4626 adapter configured.
    * @param amount - Leftover vault share amount to redeem (in adapter/vault decimals)
    * @param creditManager - Credit manager address
-   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not KYC or no adapter is configured
+   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not RWA or no adapter is configured
    */
   getRedeemDiffCalls(
     amount: bigint,
@@ -1076,12 +1076,12 @@ export interface ICreditAccountsService extends Construct {
   ): Promise<Array<MultiCall> | undefined>;
 
   /**
-   * Returns multicall entries to call depositDiff on the KYC ERC-4626 adapter for the given credit manager.
+   * Returns multicall entries to call depositDiff on the RWA ERC-4626 adapter for the given credit manager.
    * Deposits the leftover underlying (e.g. after decreasing debt) into the vault so the account does not hold excess underlying.
-   * Only applies when the credit manager's underlying is KYC-gated and has an ERC-4626 adapter configured.
+   * Only applies when the credit manager's underlying is RWA-gated and has an ERC-4626 adapter configured.
    * @param amount - Leftover underlying amount to deposit into the vault (in underlying decimals)
    * @param creditManager - Credit manager address
-   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not KYC or no adapter is configured
+   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not RWA or no adapter is configured
    */
   getDepositDiffCalls(
     amount: bigint,

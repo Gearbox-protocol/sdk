@@ -156,7 +156,7 @@ export interface CreditAccountDataPayload {
    **/
   underlying: Address;
   /**
-   * Credit account's owner (contract address for KYC accounts, EOA for
+   * Credit account's owner (contract address for RWA accounts, EOA for
    * normal accounts).
    **/
   owner: Address;
@@ -229,7 +229,7 @@ export type CreditAccountData<WithInvestor extends boolean = false> =
     ? CreditAccountDataPayload & {
         /**
          * Investor EOA address (the real person behind the account).
-         * - KYC accounts: resolved from KYC factory, always defined.
+         * - RWA accounts: resolved from RWA factory, always defined.
          * - Normal accounts: `undefined` (owner IS the investor).
          **/
         investor: Address | undefined;

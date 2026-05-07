@@ -5,7 +5,6 @@ import { SDKConstruct } from "../base/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
 import type { MarketStateHuman } from "../types/index.js";
 import { CreditSuite } from "./credit/index.js";
-import type { IKYCFactory } from "./kyc/types.js";
 import {
   createLossPolicy,
   type ILossPolicyContract,
@@ -14,6 +13,7 @@ import { MarketConfiguratorContract } from "./MarketConfiguratorContract.js";
 import type { IPriceOracleContract } from "./oracle/index.js";
 import { createPriceOracle } from "./oracle/index.js";
 import { PoolSuite } from "./pool/index.js";
+import type { IRWAFactory } from "./rwa/types.js";
 
 export class MarketSuite extends SDKConstruct {
   public readonly acl: Address;
@@ -63,8 +63,8 @@ export class MarketSuite extends SDKConstruct {
     return this.pool.underlying;
   }
 
-  public get kycFactory(): IKYCFactory | undefined {
-    return this.pool.kycFactory;
+  public get rwaFactory(): IRWAFactory | undefined {
+    return this.pool.rwaFactory;
   }
 
   override get dirty(): boolean {

@@ -14,5 +14,5 @@ type CompressorZapperData = Unarray<
 
 export interface ZapperData extends CompressorZapperData {
   pool: Address;
-  type: "migration" | "kyc" | "base";
+  type: "migration" | "rwa" | "base";
 }

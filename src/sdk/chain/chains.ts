@@ -56,9 +56,9 @@ export interface GearboxChain extends Chain {
    **/
   defaultMarketConfigurators: Record<Address, Curator>;
   /**
-   * Known KYC factory addresses on this chain
+   * Known RWA factory addresses on this chain
    */
-  kycFactories: Address[];
+  rwaFactories: Address[];
   /**
    * Market configurators used in test/staging environments.
    **/
@@ -153,7 +153,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         "0x99df7330bf42d596af2e9d9836d4fc2077c574aa": "M11 Credit",
         "0x610627d8d01a413bdd9b0a0b60070da7dd1e54ad": "Securitize",
       },
-      kycFactories: [] as Address[],
+      rwaFactories: [] as Address[],
       isPublic: true,
       wellKnownToken: {
         address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
@@ -171,7 +171,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       defaultMarketConfigurators: {
         "0x01023850b360b88de0d0f84015bbba1eba57fe7e": "Chaos Labs",
       },
-      kycFactories: [] as Address[],
+      rwaFactories: [] as Address[],
       isPublic: true,
       wellKnownToken: {
         address: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
@@ -190,7 +190,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         "0x2a15969CE5320868eb609680751cF8896DD92De5": "Chaos Labs",
         "0x9dddd1b9ce0ac8aa0c80e4ec141600b9bf0101c3": "UltraYield",
       },
-      kycFactories: [] as Address[],
+      rwaFactories: [] as Address[],
       isPublic: true,
       wellKnownToken: {
         address: "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
@@ -206,7 +206,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       ...base,
       network: "Base",
       defaultMarketConfigurators: {},
-      kycFactories: [] as Address[],
+      rwaFactories: [] as Address[],
       isPublic: false,
       wellKnownToken: {
         address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
@@ -223,7 +223,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       defaultMarketConfigurators: {
         "0x8FFDd1F1433674516f83645a768E8900A2A5D076": "Chaos Labs",
       },
-      kycFactories: [] as Address[],
+      rwaFactories: [] as Address[],
       isPublic: true,
       blockExplorers: {
         default: {
@@ -245,7 +245,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
     ...megaeth,
     network: "MegaETH",
     defaultMarketConfigurators: {},
-    kycFactories: [] as Address[],
+    rwaFactories: [] as Address[],
     isPublic: false,
     wellKnownToken: {
       address: "0xFAfDdbb3FC7688494971a79cc65DCa3EF82079E7",
@@ -267,7 +267,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       "0x16956912813ab9a38d95730b52a8cf53e860a7c5": "Tulipa",
       "0x7c6ee1bf9c1eb3ee55bdbdc1e8d0317aab718e0a": "UltraYield",
     },
-    kycFactories: [] as Address[],
+    rwaFactories: [] as Address[],
     isPublic: true,
     wellKnownToken: {
       address: "0xe7cd86e13AC4309349F30B3435a9d337750fC82D",
@@ -281,7 +281,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       ...berachain,
       network: "Berachain",
       defaultMarketConfigurators: {},
-      kycFactories: [] as Address[],
+      rwaFactories: [] as Address[],
       isPublic: false,
       blockExplorers: {
         default: {
@@ -303,7 +303,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       ...avalanche,
       network: "Avalanche",
       defaultMarketConfigurators: {},
-      kycFactories: [] as Address[],
+      rwaFactories: [] as Address[],
       isPublic: false,
       wellKnownToken: {
         address: "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
@@ -322,7 +322,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         "0x92dc4ee43e9b207e16fbf3fd1a6933563c0a0d35": "Re7",
       },
       testMarketConfigurators: {},
-      kycFactories: [] as Address[],
+      rwaFactories: [] as Address[],
       isPublic: true,
       wellKnownToken: {
         address: "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
@@ -337,7 +337,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
     ...worldchain,
     network: "WorldChain",
     defaultMarketConfigurators: {},
-    kycFactories: [] as Address[],
+    rwaFactories: [] as Address[],
     isPublic: false,
     wellKnownToken: {
       address: "0x79a02482a880bce3f13e09da970dc34db4cd24d1",
@@ -352,7 +352,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
     defaultMarketConfigurators: {
       "0x577424f0e6f50db668cc1bc76babb87e36732291": "Re7",
     },
-    kycFactories: [] as Address[],
+    rwaFactories: [] as Address[],
     isPublic: true,
     wellKnownToken: {
       address: "0x796Ea11Fa2dD751eD01b53C372fFDB4AAa8f00F9",
@@ -367,7 +367,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
     defaultMarketConfigurators: {
       "0xc9961b8a0c763779690577f2c76962c086af2fe3": "Invariant Group",
     },
-    kycFactories: [] as Address[],
+    rwaFactories: [] as Address[],
     isPublic: true,
     wellKnownToken: {
       address: "0xad11a8BEb98bbf61dbb1aa0F6d6F2ECD87b35afA",
@@ -387,7 +387,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
     defaultMarketConfigurators: {
       "0x25778dbf0e56b7feb8358c4aa2f6f9e19a1c145a": "Re7",
     },
-    kycFactories: [] as Address[],
+    rwaFactories: [] as Address[],
     isPublic: true,
     wellKnownToken: {
       address: "0xF242275d3a6527d877f2c927a82D9b057609cc71",
@@ -404,7 +404,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       "0xce1cf71a28837daaa7b92d00ca4ef2fd649c2a67": "Hyperithm",
       "0x9655f82b585b11cee8a05576ed8efcf755cec04b": "TelosC",
     },
-    kycFactories: [] as Address[],
+    rwaFactories: [] as Address[],
     isPublic: true,
     wellKnownToken: {
       address: "0x5d72a9d9a9510cd8cbdba12ac62593a58930a948",
@@ -431,7 +431,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
     defaultMarketConfigurators: {
       "0x1ca8b92aa7233a9f8f7ba031ac45c878141adff0": "Invariant Group",
     },
-    kycFactories: [] as Address[],
+    rwaFactories: [] as Address[],
     isPublic: true,
     wellKnownToken: {
       address: "0x67B302E35Aef5EEE8c32D934F5856869EF428330",

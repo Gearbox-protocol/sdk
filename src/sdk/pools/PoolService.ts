@@ -6,8 +6,8 @@ import { ierc20ZapperDepositsAbi } from "../../abi/iERC20ZapperDeposits.js";
 import { iethZapperDepositsAbi } from "../../abi/iETHZapperDeposits.js";
 import { iZapperAbi } from "../../abi/iZapper.js";
 import {
-  KYC_UNDERLYING_DEFAULT,
-  KYC_UNDERLYING_ON_DEMAND,
+  RWA_UNDERLYING_DEFAULT,
+  RWA_UNDERLYING_ON_DEMAND,
   SDKConstruct,
   type TokenMetaData,
 } from "../base/index.js";
@@ -29,11 +29,11 @@ export class PoolService extends SDKConstruct implements IPoolsService {
    */
   public getDepositTokensIn(pool: Address): Address[] {
     const underlying = this.#describeUnderlying(pool);
-    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
+    if (this.sdk.tokensMeta.isRWAUnderlying(underlying)) {
       switch (underlying.contractType) {
-        case KYC_UNDERLYING_DEFAULT:
+        case RWA_UNDERLYING_DEFAULT:
           return this.#depositTokensIn(pool, false);
-        case KYC_UNDERLYING_ON_DEMAND:
+        case RWA_UNDERLYING_ON_DEMAND:
           return [underlying.asset];
       }
     }
@@ -48,11 +48,11 @@ export class PoolService extends SDKConstruct implements IPoolsService {
   public getDepositTokensOut(pool: Address, tokenIn: Address): Address[] {
     const underlying = this.#describeUnderlying(pool);
 
-    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
+    if (this.sdk.tokensMeta.isRWAUnderlying(underlying)) {
       switch (underlying.contractType) {
-        case KYC_UNDERLYING_DEFAULT:
+        case RWA_UNDERLYING_DEFAULT:
           return this.#depositTokensOut(pool, tokenIn, false);
-        case KYC_UNDERLYING_ON_DEMAND:
+        case RWA_UNDERLYING_ON_DEMAND:
           return [];
       }
     }
@@ -71,23 +71,23 @@ export class PoolService extends SDKConstruct implements IPoolsService {
   ): DepositMetadata {
     const underlying = this.#describeUnderlying(pool);
 
-    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
+    if (this.sdk.tokensMeta.isRWAUnderlying(underlying)) {
       switch (underlying.contractType) {
-        case KYC_UNDERLYING_DEFAULT: {
+        case RWA_UNDERLYING_DEFAULT: {
           return this.#depositMetadata(
-            "kyc-default",
+            "rwa-default",
             pool,
             tokenIn,
             tokenOut,
             false,
           );
         }
-        case KYC_UNDERLYING_ON_DEMAND:
+        case RWA_UNDERLYING_ON_DEMAND:
           return {
             zapper: undefined,
             approveTarget: underlying.liquidityProvider.addr,
             permissible: false,
-            type: "kyc-on-demand",
+            type: "rwa-on-demand",
           };
       }
     }
@@ -103,8 +103,8 @@ export class PoolService extends SDKConstruct implements IPoolsService {
 
     const underlying = this.#describeUnderlying(pool);
 
-    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
-      if (underlying.contractType === KYC_UNDERLYING_ON_DEMAND) {
+    if (this.sdk.tokensMeta.isRWAUnderlying(underlying)) {
+      if (underlying.contractType === RWA_UNDERLYING_ON_DEMAND) {
         return undefined;
       }
     }
@@ -155,11 +155,11 @@ export class PoolService extends SDKConstruct implements IPoolsService {
    */
   public getWithdrawalTokensIn(pool: Address): Address[] {
     const underlying = this.#describeUnderlying(pool);
-    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
+    if (this.sdk.tokensMeta.isRWAUnderlying(underlying)) {
       switch (underlying.contractType) {
-        case KYC_UNDERLYING_DEFAULT:
+        case RWA_UNDERLYING_DEFAULT:
           return this.#withdrawalTokensIn(pool, false);
-        case KYC_UNDERLYING_ON_DEMAND:
+        case RWA_UNDERLYING_ON_DEMAND:
           return [];
       }
     }
@@ -173,11 +173,11 @@ export class PoolService extends SDKConstruct implements IPoolsService {
    */
   public getWithdrawalTokensOut(pool: Address, tokenIn: Address): Address[] {
     const underlying = this.#describeUnderlying(pool);
-    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
+    if (this.sdk.tokensMeta.isRWAUnderlying(underlying)) {
       switch (underlying.contractType) {
-        case KYC_UNDERLYING_DEFAULT:
+        case RWA_UNDERLYING_DEFAULT:
           return this.#withdrawalTokensOut(pool, tokenIn, false);
-        case KYC_UNDERLYING_ON_DEMAND:
+        case RWA_UNDERLYING_ON_DEMAND:
           return [underlying.asset];
       }
     }
@@ -193,8 +193,8 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     const { pool, amount, meta, wallet, permit } = props;
 
     const underlying = this.#describeUnderlying(pool);
-    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
-      if (underlying.contractType === KYC_UNDERLYING_ON_DEMAND) {
+    if (this.sdk.tokensMeta.isRWAUnderlying(underlying)) {
+      if (underlying.contractType === RWA_UNDERLYING_ON_DEMAND) {
         // in this flow, withdrawal === set allowance to 0
         return {
           abi: ierc20Abi,
@@ -246,23 +246,23 @@ export class PoolService extends SDKConstruct implements IPoolsService {
   ): WithdrawalMetadata {
     const underlying = this.#describeUnderlying(pool);
 
-    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
+    if (this.sdk.tokensMeta.isRWAUnderlying(underlying)) {
       switch (underlying.contractType) {
-        case KYC_UNDERLYING_DEFAULT: {
+        case RWA_UNDERLYING_DEFAULT: {
           return this.#withdrawalMetadata(
-            "kyc-default",
+            "rwa-default",
             pool,
             tokenIn,
             tokenOut,
             false,
           );
         }
-        case KYC_UNDERLYING_ON_DEMAND:
+        case RWA_UNDERLYING_ON_DEMAND:
           return {
             zapper: undefined,
             approveTarget: undefined,
             permissible: false,
-            type: "kyc-on-demand",
+            type: "rwa-on-demand",
           };
       }
     }

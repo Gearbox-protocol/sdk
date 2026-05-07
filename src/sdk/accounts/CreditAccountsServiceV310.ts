@@ -10,7 +10,7 @@ import { peripheryCompressorAbi } from "../../abi/compressors/peripheryCompresso
 import { rewardsCompressorAbi } from "../../abi/compressors/rewardsCompressor.js";
 import { iWithdrawalCompressorV310Abi } from "../../abi/IWithdrawalCompressorV310.js";
 import { iBaseRewardPoolAbi } from "../../abi/iBaseRewardPool.js";
-import { iKYCFactoryAbi } from "../../abi/kyc/iKYCFactory.js";
+import { iRWAFactoryAbi } from "../../abi/rwa/iRWAFactory.js";
 import type { CreditAccountData } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
 import { chains } from "../chain/chains.js";
@@ -25,14 +25,14 @@ import {
   RAY,
   VERSION_RANGE_310,
 } from "../constants/index.js";
-import type { CreditSuite, KYCOperationParams } from "../market/index.js";
+import type { CreditSuite, RWAOperationParams } from "../market/index.js";
 import {
   getRawPriceUpdates,
   type IPriceFeedContract,
   type PriceUpdate,
   type UpdatePriceFeedsResult,
 } from "../market/index.js";
-import type { KYCOpenAccountRequirements } from "../market/kyc/index.js";
+import type { RWAOpenAccountRequirements } from "../market/rwa/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
 import { type Asset, assetsMap, type RouterCASlice } from "../router/index.js";
 import type { RouterRewardsResult } from "../router/types.js";
@@ -195,7 +195,7 @@ export class CreditAccountsServiceV310
     const marketSuite = this.sdk.marketRegister.findByCreditManager(
       raw.creditManager,
     );
-    const factory = marketSuite.kycFactory;
+    const factory = marketSuite.rwaFactory;
 
     let ca: CreditAccountData;
     let investor: Address | undefined;
@@ -216,7 +216,7 @@ export class CreditAccountsServiceV310
           ...(factory
             ? [
                 {
-                  abi: iKYCFactoryAbi,
+                  abi: iRWAFactoryAbi,
                   address: factory.address,
                   functionName: "getInvestor",
                   args: [raw.creditAccount],
@@ -323,14 +323,14 @@ export class CreditAccountsServiceV310
         ignoreReservePrices ? { main: true } : undefined,
       );
 
-    // 1. Discover KYC credit accounts for this borrower across all factories
-    const investorDataList = await this.sdk.kyc.getInvestorData(borrower);
-    const kycAccountAddresses: Address[] = investorDataList.flatMap(d =>
+    // 1. Discover RWA credit accounts for this borrower across all factories
+    const investorDataList = await this.sdk.rwa.getInvestorData(borrower);
+    const rwaAccountAddresses: Address[] = investorDataList.flatMap(d =>
       d.creditAccounts.map(ca => ca.creditAccount),
     );
 
     // 2. Build a single multicall:
-    //    - getCreditAccountData for each KYC account
+    //    - getCreditAccountData for each RWA account
     //    - getCreditAccounts(borrower, reverting=false)
     //    - getCreditAccounts(borrower, reverting=true)
     const cmFilter: CreditManagerFilter = creditManager
@@ -355,7 +355,7 @@ export class CreditAccountsServiceV310
       reverting: false,
     };
 
-    const kycContracts = kycAccountAddresses.map(
+    const rwaContracts = rwaAccountAddresses.map(
       account =>
         ({
           abi: creditAccountCompressorAbi,
@@ -375,7 +375,7 @@ export class CreditAccountsServiceV310
         }) as const,
     );
 
-    const allContracts = [...kycContracts, ...getCreditAccountsContracts];
+    const allContracts = [...rwaContracts, ...getCreditAccountsContracts];
 
     const results = await simulateWithPriceUpdates(this.client, {
       priceUpdates: priceUpdateTxs,
@@ -385,11 +385,11 @@ export class CreditAccountsServiceV310
     });
 
     // 3. Split results back
-    const kycResults = results.slice(
+    const rwaResults = results.slice(
       0,
-      kycAccountAddresses.length,
+      rwaAccountAddresses.length,
     ) as Array<CreditAccountData>;
-    const normalResults = results.slice(kycAccountAddresses.length) as Array<
+    const normalResults = results.slice(rwaAccountAddresses.length) as Array<
       [CreditAccountData[], bigint]
     >;
 
@@ -397,7 +397,7 @@ export class CreditAccountsServiceV310
     const seen = new AddressSet();
     const allCAs: Array<CreditAccountData<true>> = [];
 
-    for (const ca of kycResults) {
+    for (const ca of rwaResults) {
       if (!seen.has(ca.creditAccount)) {
         seen.add(ca.creditAccount);
         allCAs.push({ ...ca, investor: borrower });
@@ -424,7 +424,7 @@ export class CreditAccountsServiceV310
     });
 
     this.logger?.debug(
-      `loaded ${allCAs.length} borrower credit accounts (${kycResults.length} KYC, ${filtered.length} after filter)`,
+      `loaded ${allCAs.length} borrower credit accounts (${rwaResults.length} RWA, ${filtered.length} after filter)`,
     );
 
     return filtered.sort((a, b) => Number(a.healthFactor - b.healthFactor));
@@ -878,9 +878,9 @@ export class CreditAccountsServiceV310
 
     await this.sdk.tokensMeta.loadTokenData(cm.underlying);
     const underlying = this.sdk.tokensMeta.mustGet(cm.underlying);
-    if (this.sdk.tokensMeta.isKYCUnderlying(underlying)) {
+    if (this.sdk.tokensMeta.isRWAUnderlying(underlying)) {
       throw new Error(
-        "closeCreditAccount is not supported for KYC underlying credit accounts",
+        "closeCreditAccount is not supported for RWA underlying credit accounts",
       );
     }
 
@@ -1015,7 +1015,7 @@ export class CreditAccountsServiceV310
         : [];
     const unwrapCalls =
       collateral && isDecrease
-        ? (await this.getKYCUnwrapCalls(
+        ? (await this.getRWAUnwrapCalls(
             collateral[0].balance,
             creditAccount.creditManager,
           )) || []
@@ -1028,7 +1028,7 @@ export class CreditAccountsServiceV310
       collateral?.[0].token !== creditAccount.underlying
     ) {
       throw new Error(
-        "Can't use collateral other than underlying for non KYC market",
+        "Can't use collateral other than underlying for non RWA market",
       );
     }
 
@@ -1294,7 +1294,7 @@ export class CreditAccountsServiceV310
     const { creditManager } = options;
     const suite = this.sdk.marketRegister.findCreditManager(creditManager);
     const marketSuite = this.sdk.marketRegister.findByPool(suite.pool);
-    const factory = marketSuite.kycFactory;
+    const factory = marketSuite.rwaFactory;
 
     if (factory) {
       return factory.getApprovalAddress(options);
@@ -1309,13 +1309,13 @@ export class CreditAccountsServiceV310
     borrower: Address,
     creditManager: Address,
     props: GetOpenAccountRequirementsProps,
-  ): Promise<KYCOpenAccountRequirements | undefined> {
-    const { kycFactory } =
+  ): Promise<RWAOpenAccountRequirements | undefined> {
+    const { rwaFactory } =
       this.sdk.marketRegister.findByCreditManager(creditManager);
-    if (!kycFactory) {
+    if (!rwaFactory) {
       return undefined;
     }
-    return kycFactory.getOpenAccountRequirements(borrower, props);
+    return rwaFactory.getOpenAccountRequirements(borrower, props);
   }
 
   /**
@@ -1340,7 +1340,7 @@ export class CreditAccountsServiceV310
       minQuota,
       averageQuota,
 
-      kycOptions,
+      rwaOptions,
     } = props;
     const cmSuite = this.sdk.marketRegister.findCreditManager(creditManager);
     const cm = cmSuite.creditManager;
@@ -1382,7 +1382,7 @@ export class CreditAccountsServiceV310
         to,
         calls,
         referralCode,
-        kycOptions,
+        rwaOptions,
       );
     }
     tx.value = ethAmount.toString(10);
@@ -1491,20 +1491,20 @@ export class CreditAccountsServiceV310
   }
 
   /**
-   * Returns multicall entries to redeem (unwrap) KYC ERC-4626 vault shares into underlying for the given credit manager.
-   * Used when withdrawing debt from a KYC market: redeems adapter vault shares so the underlying can be withdrawn.
-   * Only applies when the credit manager's underlying is KYC-gated and has an ERC-4626 adapter configured.
+   * Returns multicall entries to redeem (unwrap) RWA ERC-4626 vault shares into underlying for the given credit manager.
+   * Used when withdrawing debt from a RWA market: redeems adapter vault shares so the underlying can be withdrawn.
+   * Only applies when the credit manager's underlying is RWA-gated and has an ERC-4626 adapter configured.
    * @param amount - Number of vault shares (adapter tokens) to redeem
    * @param creditManager - Credit manager address
-   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not KYC or no adapter is configured
+   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not RWA or no adapter is configured
    */
-  public async getKYCUnwrapCalls(
+  public async getRWAUnwrapCalls(
     amount: bigint,
     creditManager: Address,
   ): Promise<Array<MultiCall> | undefined> {
     const suite = this.sdk.marketRegister.findCreditManager(creditManager);
     const meta = this.sdk.tokensMeta.mustGet(suite.underlying);
-    if (!this.sdk.tokensMeta.isKYCUnderlying(meta)) {
+    if (!this.sdk.tokensMeta.isRWAUnderlying(meta)) {
       return undefined;
     }
 
@@ -1529,20 +1529,20 @@ export class CreditAccountsServiceV310
     return mc;
   }
   /**
-   * Returns multicall entries to deposit (wrap) underlying into KYC ERC-4626 vault shares for the given credit manager.
-   * Used when adding debt on a KYC market: deposits underlying into the adapter vault so shares are minted on the account.
-   * Only applies when the credit manager's underlying is KYC-gated and has an ERC-4626 adapter configured.
+   * Returns multicall entries to deposit (wrap) underlying into RWA ERC-4626 vault shares for the given credit manager.
+   * Used when adding debt on a RWA market: deposits underlying into the adapter vault so shares are minted on the account.
+   * Only applies when the credit manager's underlying is RWA-gated and has an ERC-4626 adapter configured.
    * @param amount - Amount of underlying assets to deposit into the vault (in underlying decimals)
    * @param creditManager - Credit manager address
-   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not KYC or no adapter is configured
+   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not RWA or no adapter is configured
    */
-  public async getKYCWrapCalls(
+  public async getRWAWrapCalls(
     amount: bigint,
     creditManager: Address,
   ): Promise<Array<MultiCall> | undefined> {
     const suite = this.sdk.marketRegister.findCreditManager(creditManager);
     const meta = this.sdk.tokensMeta.mustGet(suite.underlying);
-    if (!this.sdk.tokensMeta.isKYCUnderlying(meta)) {
+    if (!this.sdk.tokensMeta.isRWAUnderlying(meta)) {
       return undefined;
     }
 
@@ -1568,12 +1568,12 @@ export class CreditAccountsServiceV310
   }
 
   /**
-   * Returns multicall entries to call redeemDiff on the KYC ERC-4626 adapter for the given credit manager.
-   * Redeems the leftover vault shares (e.g. after repaying debt) so the account does not hold excess KYC vault tokens.
-   * Only applies when the credit manager's underlying is KYC-gated and has an ERC-4626 adapter configured.
+   * Returns multicall entries to call redeemDiff on the RWA ERC-4626 adapter for the given credit manager.
+   * Redeems the leftover vault shares (e.g. after repaying debt) so the account does not hold excess RWA vault tokens.
+   * Only applies when the credit manager's underlying is RWA-gated and has an ERC-4626 adapter configured.
    * @param amount - Leftover vault share amount to redeem (in adapter/vault decimals)
    * @param creditManager - Credit manager address
-   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not KYC or no adapter is configured
+   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not RWA or no adapter is configured
    */
   public async getRedeemDiffCalls(
     amount: bigint,
@@ -1581,7 +1581,7 @@ export class CreditAccountsServiceV310
   ): Promise<Array<MultiCall> | undefined> {
     const suite = this.sdk.marketRegister.findCreditManager(creditManager);
     const meta = this.sdk.tokensMeta.mustGet(suite.underlying);
-    if (!this.sdk.tokensMeta.isKYCUnderlying(meta)) {
+    if (!this.sdk.tokensMeta.isRWAUnderlying(meta)) {
       return undefined;
     }
 
@@ -1607,12 +1607,12 @@ export class CreditAccountsServiceV310
   }
 
   /**
-   * Returns multicall entries to call depositDiff on the KYC ERC-4626 adapter for the given credit manager.
+   * Returns multicall entries to call depositDiff on the RWA ERC-4626 adapter for the given credit manager.
    * Deposits the leftover underlying (e.g. after decreasing debt) into the vault so the account does not hold excess underlying.
-   * Only applies when the credit manager's underlying is KYC-gated and has an ERC-4626 adapter configured.
+   * Only applies when the credit manager's underlying is RWA-gated and has an ERC-4626 adapter configured.
    * @param amount - Leftover underlying amount to deposit into the vault (in underlying decimals)
    * @param creditManager - Credit manager address
-   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not KYC or no adapter is configured
+   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not RWA or no adapter is configured
    */
   public async getDepositDiffCalls(
     amount: bigint,
@@ -1620,7 +1620,7 @@ export class CreditAccountsServiceV310
   ): Promise<Array<MultiCall> | undefined> {
     const suite = this.sdk.marketRegister.findCreditManager(creditManager);
     const meta = this.sdk.tokensMeta.mustGet(suite.underlying);
-    if (!this.sdk.tokensMeta.isKYCUnderlying(meta)) {
+    if (!this.sdk.tokensMeta.isRWAUnderlying(meta)) {
       return undefined;
     }
 
@@ -2224,12 +2224,12 @@ export class CreditAccountsServiceV310
   }
 
   /**
-   * Wrapper that selects between credit facade and KYC factory
+   * Wrapper that selects between credit facade and RWA factory
    * @param suite
    * @param to
    * @param calls
    * @param referralCode
-   * @param kycOptions
+   * @param rwaOptions
    * @returns
    */
   async #openCreditAccountTx(
@@ -2237,16 +2237,16 @@ export class CreditAccountsServiceV310
     to: Address,
     calls: MultiCall[],
     referralCode?: bigint,
-    kycOptions?: KYCOperationParams,
+    rwaOptions?: RWAOperationParams,
   ): Promise<RawTx> {
     const marketSuite = this.sdk.marketRegister.findByPool(suite.pool);
-    const factory = marketSuite.kycFactory;
+    const factory = marketSuite.rwaFactory;
 
     if (factory) {
       return factory.openCreditAccount(
         suite.creditManager.address,
         calls,
-        kycOptions,
+        rwaOptions,
       );
     }
 
@@ -2254,38 +2254,38 @@ export class CreditAccountsServiceV310
   }
 
   /**
-   * Wrapper that selects between credit facade and KYC factory
+   * Wrapper that selects between credit facade and RWA factory
    * @param suite
    * @param creditAccount
    * @param calls
-   * @param kycOptions
+   * @param rwaOptions
    * @returns
    */
   async #multicallTx(
     suite: CreditSuite,
     creditAccount: Address,
     calls: MultiCall[],
-    kycOptions?: KYCOperationParams,
+    rwaOptions?: RWAOperationParams,
   ): Promise<RawTx> {
     const marketSuite = this.sdk.marketRegister.findByCreditManager(
       suite.creditManager.address,
     );
-    const factory = marketSuite.kycFactory;
+    const factory = marketSuite.rwaFactory;
 
     if (factory) {
-      return factory.multicall(creditAccount, calls, kycOptions);
+      return factory.multicall(creditAccount, calls, rwaOptions);
     }
 
     return suite.creditFacade.multicall(creditAccount, calls);
   }
 
   /**
-   * Wrapper that selects between credit facade and KYC factory
+   * Wrapper that selects between credit facade and RWA factory
    * @param suite
    * @param creditAccount
    * @param calls
    * @param operation
-   * @param kycOptions
+   * @param rwaOptions
    * @returns
    */
   async #closeCreditAccountTx(
@@ -2293,24 +2293,24 @@ export class CreditAccountsServiceV310
     creditAccount: Address,
     calls: MultiCall[],
     operation: CloseOptions,
-    kycOptions?: KYCOperationParams,
+    rwaOptions?: RWAOperationParams,
   ): Promise<RawTx> {
     const marketSuite = this.sdk.marketRegister.findByCreditManager(
       suite.creditManager.address,
     );
-    const factory = marketSuite.kycFactory;
+    const factory = marketSuite.rwaFactory;
 
     if (operation === "close") {
       if (factory) {
         throw new Error(
-          "CloseOptions=close is not supported for KYC underlying credit accounts",
+          "CloseOptions=close is not supported for RWA underlying credit accounts",
         );
       }
       return suite.creditFacade.closeCreditAccount(creditAccount, calls);
     }
 
     if (factory) {
-      return factory.multicall(creditAccount, calls, kycOptions);
+      return factory.multicall(creditAccount, calls, rwaOptions);
     }
 
     return suite.creditFacade.multicall(creditAccount, calls);

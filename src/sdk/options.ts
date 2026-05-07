@@ -34,11 +34,11 @@ export const AttachOptionsSchema = z.object({
   /** Addresses of market configurator contracts to load. */
   marketConfigurators: z.array(ZodAddress()).optional(),
   /**
-   * Addresses of KYC factory contracts to load.
-   * If not set, all default KYC factories for the chain are loaded
-   * (from {@link GearboxChain.kycFactories})
+   * Addresses of RWA factory contracts to load.
+   * If not set, all default RWA factories for the chain are loaded
+   * (from {@link GearboxChain.rwaFactories})
    **/
-  kycFactories: z.array(ZodAddress()).optional(),
+  rwaFactories: z.array(ZodAddress()).optional(),
   /** Pin SDK to a specific block number during attach. */
   blockNumber: z
     .union([z.bigint().nonnegative(), z.number().int().nonnegative()])

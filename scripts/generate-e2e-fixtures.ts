@@ -35,8 +35,8 @@ const BLOCK = process.env.E2E_BLOCK
   ? BigInt(process.env.E2E_BLOCK)
   : 24_736_900n;
 const SINGLE_MC = process.env.E2E_MC as Address | undefined;
-const KYC_FACTORIES = process.env.E2E_KYC
-  ? (process.env.E2E_KYC.split(",") as Address[])
+const RWA_FACTORIES = process.env.E2E_RWA
+  ? (process.env.E2E_RWA.split(",") as Address[])
   : undefined;
 const IGNORE_UPDATABLE_PRICES = !!process.env.E2E_NO_ORACLES;
 // ─────────────────────────────────────────────────────────────────────────────
@@ -98,7 +98,7 @@ async function main() {
     };
 
     const mcOpts = SINGLE_MC ? { marketConfigurators: [SINGLE_MC] } : {};
-    const kycOpts = KYC_FACTORIES ? { kycFactories: KYC_FACTORIES } : {};
+    const rwaOpts = RWA_FACTORIES ? { rwaFactories: RWA_FACTORIES } : {};
 
     const sdk = new OnchainSDK(
       NETWORK,
@@ -129,7 +129,7 @@ async function main() {
       ...(IGNORE_UPDATABLE_PRICES && { ignoreUpdateablePrices: true }),
       ...oracleOpts,
       ...mcOpts,
-      ...kycOpts,
+      ...rwaOpts,
     });
 
     // Re-attach per individual market configurator so that oracle proxy
@@ -152,7 +152,7 @@ async function main() {
         marketConfigurators: [mc],
         ...(IGNORE_UPDATABLE_PRICES && { ignoreUpdateablePrices: true }),
         ...oracleOpts,
-        ...kycOpts,
+        ...rwaOpts,
       });
     }
   } finally {

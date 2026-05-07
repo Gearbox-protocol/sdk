@@ -13,15 +13,15 @@ export const PHANTOM_TOKEN_CONTRACT_TYPES = [
   "PHANTOM_TOKEN::UPSHIFT_WITHDRAW",
 ] as const;
 
-export const KYC_UNDERLYING_DEFAULT = "KYC_UNDERLYING::DEFAULT";
-export const KYC_UNDERLYING_ON_DEMAND = "KYC_UNDERLYING::ON_DEMAND";
+export const RWA_UNDERLYING_DEFAULT = "RWA_UNDERLYING::DEFAULT";
+export const RWA_UNDERLYING_ON_DEMAND = "RWA_UNDERLYING::ON_DEMAND";
 
-export type KYCUnderlyingContractType =
-  | typeof KYC_UNDERLYING_DEFAULT
-  | typeof KYC_UNDERLYING_ON_DEMAND;
+export type RWAUnderlyingContractType =
+  | typeof RWA_UNDERLYING_DEFAULT
+  | typeof RWA_UNDERLYING_ON_DEMAND;
 
-export const KYC_ON_DEMAND_LP_MONOPOLIZED = "ON_DEMAND_LP::MONOPOLIZED";
-export type KYCOnDemandLpContractType = typeof KYC_ON_DEMAND_LP_MONOPOLIZED;
+export const RWA_ON_DEMAND_LP_MONOPOLIZED = "ON_DEMAND_LP::MONOPOLIZED";
+export type RWAOnDemandLpContractType = typeof RWA_ON_DEMAND_LP_MONOPOLIZED;
 
 export type PhantomTokenContractType =
   (typeof PHANTOM_TOKEN_CONTRACT_TYPES)[number];
@@ -34,9 +34,9 @@ export type PhantomTokenMeta = SimpleTokenMeta & {
   contractType: PhantomTokenContractType;
 };
 
-export interface KYCDefaultTokenMeta extends SimpleTokenMeta {
-  contractType: typeof KYC_UNDERLYING_DEFAULT;
-  kycFactory: Address;
+export interface RWADefaultTokenMeta extends SimpleTokenMeta {
+  contractType: typeof RWA_UNDERLYING_DEFAULT;
+  rwaFactory: Address;
   asset: Address;
 }
 
@@ -48,10 +48,10 @@ export interface LPMonopolizedPoolMeta {
   claimableAmount: bigint;
 }
 
-export interface KYCOnDemandLPMonopolizedMeta {
+export interface RWAOnDemandLPMonopolizedMeta {
   addr: Address;
   version: bigint;
-  contractType: typeof KYC_ON_DEMAND_LP_MONOPOLIZED;
+  contractType: typeof RWA_ON_DEMAND_LP_MONOPOLIZED;
   marketConfigurator: Address;
   /**
    * Only this user can deposit into the pool and withdraw
@@ -61,18 +61,18 @@ export interface KYCOnDemandLPMonopolizedMeta {
   pools: LPMonopolizedPoolMeta[];
 }
 
-export type KYCOnDemandLPMeta = KYCOnDemandLPMonopolizedMeta;
+export type RWAOnDemandLPMeta = RWAOnDemandLPMonopolizedMeta;
 
-export interface KYCOnDemandTokenMeta extends SimpleTokenMeta {
-  contractType: typeof KYC_UNDERLYING_ON_DEMAND;
-  kycFactory: Address;
+export interface RWAOnDemandTokenMeta extends SimpleTokenMeta {
+  contractType: typeof RWA_UNDERLYING_ON_DEMAND;
+  rwaFactory: Address;
   asset: Address;
   pool: Address;
   marketConfigurator: Address;
   allowedDepositors: Address[];
-  liquidityProvider: KYCOnDemandLPMeta;
+  liquidityProvider: RWAOnDemandLPMeta;
 }
 
-export type KYCTokenMeta = KYCDefaultTokenMeta | KYCOnDemandTokenMeta;
+export type RWATokenMeta = RWADefaultTokenMeta | RWAOnDemandTokenMeta;
 
-export type TokenMetaData = SimpleTokenMeta | PhantomTokenMeta | KYCTokenMeta;
+export type TokenMetaData = SimpleTokenMeta | PhantomTokenMeta | RWATokenMeta;

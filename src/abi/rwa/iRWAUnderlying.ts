@@ -1,4 +1,4 @@
-export const iKYCUnderlyingAbi = [
+export const iRWAUnderlyingAbi = [
   {
     type: "function",
     name: "allowance",
@@ -368,7 +368,7 @@ export const iKYCUnderlyingAbi = [
   },
   {
     type: "error",
-    name: "InvalidKYCFactoryException",
+    name: "InvalidRWAFactoryException",
     inputs: [{ name: "factory", type: "address", internalType: "address" }],
   },
 ] as const;

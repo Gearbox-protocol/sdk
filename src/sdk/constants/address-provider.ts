@@ -32,7 +32,7 @@ export const AP_WETH_GATEWAY = "WETH_GATEWAY";
 export const AP_WETH_TOKEN = "WETH_TOKEN";
 export const AP_ZAPPER_REGISTER = "ZAPPER_REGISTER";
 export const AP_ZERO_PRICE_FEED = "ZERO_PRICE_FEED";
-export const AP_KYC_COMPRESSOR = "GLOBAL::KYC_COMPRESSOR";
+export const AP_RWA_COMPRESSOR = "GLOBAL::RWA_COMPRESSOR";
 
 /**
  * Default address provider address for v3.1.0

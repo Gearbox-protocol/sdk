@@ -3,133 +3,133 @@ import type {
   ExtractAbiFunction,
 } from "abitype";
 import type { Address, ContractFunctionParameters } from "viem";
-import type { iKYCCompressorAbi } from "../../../abi/kyc/iKYCCompressor.js";
+import type { iRWACompressorAbi } from "../../../abi/rwa/iRWACompressor.js";
 import type { GetOpenAccountRequirementsProps } from "../../accounts/types.js";
 import type { IBaseContract, Unarray } from "../../base/index.js";
 import type { MultiCall, RawTx } from "../../types/index.js";
 import type {
   SecuritizeInvestorData,
-  SecuritizeKYCFactoryStateHuman,
   SecuritizeOpenAccountRequirements,
   SecuritizeOperationParams,
+  SecuritizeRWAFactoryStateHuman,
 } from "./securitize/index.js";
-import { KYC_FACTORY_SECURITIZE } from "./securitize/index.js";
+import { RWA_FACTORY_SECURITIZE } from "./securitize/index.js";
 
 /**
- * Discriminated union of all known KYC factory contract type strings.
+ * Discriminated union of all known RWA factory contract type strings.
  **/
-export const KYC_FACTORY_TYPES = [KYC_FACTORY_SECURITIZE] as const;
+export const RWA_FACTORY_TYPES = [RWA_FACTORY_SECURITIZE] as const;
 
 /**
- * String literal union of known KYC factory types.
+ * String literal union of known RWA factory types.
  **/
-export type KYCFactoryType = (typeof KYC_FACTORY_TYPES)[number];
+export type RWAFactoryType = (typeof RWA_FACTORY_TYPES)[number];
 
 /**
  * @internal
  *
- * Type-level registry mapping each {@link KYCFactoryType} to its associated
- * data types. Adding a new KYC factory requires a single new entry here;
+ * Type-level registry mapping each {@link RWAFactoryType} to its associated
+ * data types. Adding a new RWA factory requires a single new entry here;
  * all derived types update automatically.
  **/
-interface KYCFactoryTypeMap {
-  [KYC_FACTORY_SECURITIZE]: {
+interface RWAFactoryTypeMap {
+  [RWA_FACTORY_SECURITIZE]: {
     investorData: SecuritizeInvestorData;
     openAccountRequirements: SecuritizeOpenAccountRequirements;
-    stateHuman: SecuritizeKYCFactoryStateHuman;
+    stateHuman: SecuritizeRWAFactoryStateHuman;
     operationParams: SecuritizeOperationParams;
   };
 }
 
 /**
- * Investor data decoded from the KYC compressor, defaults to union of all factory types
+ * Investor data decoded from the RWA compressor, defaults to union of all factory types
  * Can be discriminated by type
  **/
-export type KYCInvestorData<T extends KYCFactoryType = KYCFactoryType> =
-  KYCFactoryTypeMap[T]["investorData"];
+export type RWAInvestorData<T extends RWAFactoryType = RWAFactoryType> =
+  RWAFactoryTypeMap[T]["investorData"];
 
 /**
- * Open-account requirements for a KYC factory, defaults to union of all factory types
+ * Open-account requirements for a RWA factory, defaults to union of all factory types
  * Can be discriminated by type
  **/
-export type KYCOpenAccountRequirements<
-  T extends KYCFactoryType = KYCFactoryType,
-> = KYCFactoryTypeMap[T]["openAccountRequirements"];
+export type RWAOpenAccountRequirements<
+  T extends RWAFactoryType = RWAFactoryType,
+> = RWAFactoryTypeMap[T]["openAccountRequirements"];
 
 /**
- * Open credit account/Multicall extra params type for a KYC factory, defaults to union of all factory types
+ * Open credit account/Multicall extra params type for a RWA factory, defaults to union of all factory types
  * Can be discriminated by type
  **/
-export type KYCOperationParams<T extends KYCFactoryType = KYCFactoryType> =
-  KYCFactoryTypeMap[T]["operationParams"];
+export type RWAOperationParams<T extends RWAFactoryType = RWAFactoryType> =
+  RWAFactoryTypeMap[T]["operationParams"];
 
 /**
- * Raw return type of `KYCCompressor.getKYCMarketsData`.
+ * Raw return type of `RWACompressor.getRWAMarketsData`.
  **/
-export type KYCCompressorResponse = AbiParametersToPrimitiveTypes<
-  ExtractAbiFunction<typeof iKYCCompressorAbi, "getKYCMarketsData">["outputs"]
+export type RWACompressorResponse = AbiParametersToPrimitiveTypes<
+  ExtractAbiFunction<typeof iRWACompressorAbi, "getRWAMarketsData">["outputs"]
 >;
 
 /**
- * On-chain state of a KYC underlying token.
+ * On-chain state of a RWA underlying token.
  **/
-export type KYCUnderlyingData = Unarray<KYCCompressorResponse[0]>;
+export type RWAUnderlyingData = Unarray<RWACompressorResponse[0]>;
 
 /**
- * On-chain state of a KYC factory.
+ * On-chain state of a RWA factory.
  **/
-export type KYCFactoryData = Unarray<KYCCompressorResponse[1]>;
+export type RWAFactoryData = Unarray<RWACompressorResponse[1]>;
 
 /**
- * Typed contract call parameters for `KYCCompressor.getKYCMarketsData`.
+ * Typed contract call parameters for `RWACompressor.getRWAMarketsData`.
  **/
-export type KYCCompressorCall = ContractFunctionParameters<
-  typeof iKYCCompressorAbi,
+export type RWACompressorCall = ContractFunctionParameters<
+  typeof iRWACompressorAbi,
   "view",
-  "getKYCMarketsData"
+  "getRWAMarketsData"
 >;
 
 /**
- * Single element of the `KYCCompressor.getKYCInvestorData` return array.
+ * Single element of the `RWACompressor.getRWAInvestorData` return array.
  * Contains per-factory credit accounts and factory-specific extra details.
  **/
-export type KYCCompressorInvestorData = Unarray<
+export type RWACompressorInvestorData = Unarray<
   AbiParametersToPrimitiveTypes<
     ExtractAbiFunction<
-      typeof iKYCCompressorAbi,
-      "getKYCInvestorData"
+      typeof iRWACompressorAbi,
+      "getRWAInvestorData"
     >["outputs"]
   >[0]
 >;
 
 /**
- * Full KYC compressor response, used as the persisted/hydrated state.
+ * Full RWA compressor response, used as the persisted/hydrated state.
  **/
-export type KYCState = KYCCompressorResponse;
+export type RWAState = RWACompressorResponse;
 
 /**
- * Human-readable KYC factory state, union of all factory types.
+ * Human-readable RWA factory state, union of all factory types.
  **/
-export type KYCFactoryStateHuman =
-  KYCFactoryTypeMap[KYCFactoryType]["stateHuman"];
+export type RWAFactoryStateHuman =
+  RWAFactoryTypeMap[RWAFactoryType]["stateHuman"];
 
 /**
- * Human-readable snapshot of the full KYC registry state.
+ * Human-readable snapshot of the full RWA registry state.
  **/
-export interface KYCStateHuman {
-  /** State of each loaded KYC factory. */
-  factories: KYCFactoryStateHuman[];
+export interface RWAStateHuman {
+  /** State of each loaded RWA factory. */
+  factories: RWAFactoryStateHuman[];
 }
 
 /**
- * Shared interface for all KYC factory contracts.
+ * Shared interface for all RWA factory contracts.
  *
  * Parameterised by a single factory type literal `T` which indexes into
- * {@link KYCFactoryTypeMap} to derive all associated data types.
+ * {@link RWAFactoryTypeMap} to derive all associated data types.
  *
  * @typeParam T - factory type
  **/
-export interface IKYCFactory<T extends KYCFactoryType = KYCFactoryType>
+export interface IRWAFactory<T extends RWAFactoryType = RWAFactoryType>
   extends IBaseContract {
   /**
    * Narrowed factory type discriminant
@@ -141,9 +141,9 @@ export interface IKYCFactory<T extends KYCFactoryType = KYCFactoryType>
    * Decodes factory-specific extra details from the compressor's investor data.
    * Each factory knows how to decode its own extra details.
    *
-   * @param data - raw KYCCompressor InvestorData
+   * @param data - raw RWACompressor InvestorData
    **/
-  decodeInvestorData(data: KYCCompressorInvestorData): KYCInvestorData<T>;
+  decodeInvestorData(data: RWACompressorInvestorData): RWAInvestorData<T>;
   /**
    * Returns the investor address for a credit account.
    * @param creditAccount - credit account address
@@ -177,12 +177,12 @@ export interface IKYCFactory<T extends KYCFactoryType = KYCFactoryType>
    * @param creditAccount - credit account address
    * @param calls - calls to perform
    * @param options - factory-specific parameters (e.g. tokens to
-   *   register, signatures to cache). Undefined value means that no KYC actions are required
+   *   register, signatures to cache). Undefined value means that no RWA actions are required
    **/
   multicall(
     creditAccount: Address,
     calls: MultiCall[],
-    options?: KYCOperationParams<T>,
+    options?: RWAOperationParams<T>,
   ): RawTx;
   /**
    * Checks if the user can open a credit account with this factory.
@@ -194,7 +194,7 @@ export interface IKYCFactory<T extends KYCFactoryType = KYCFactoryType>
   getOpenAccountRequirements(
     investor: Address,
     props: GetOpenAccountRequirementsProps,
-  ): Promise<KYCOpenAccountRequirements<T> | undefined>;
+  ): Promise<RWAOpenAccountRequirements<T> | undefined>;
   /**
    * Creates a raw transaction to open a credit account.
    * Similar to {@link CreditFacadeV310Contract.openCreditAccount}.
@@ -203,25 +203,25 @@ export interface IKYCFactory<T extends KYCFactoryType = KYCFactoryType>
    * @param calls - initial calls to perform
    * @param options - factory-specific parameters (e.g. tokens to
    *   register, signatures to cache).
-   * Undefined value means that no KYC actions are required (e.g. when we open second credit account)
+   * Undefined value means that no RWA actions are required (e.g. when we open second credit account)
    **/
   openCreditAccount(
     creditManager: Address,
     calls: MultiCall[],
-    options?: KYCOperationParams<T>,
+    options?: RWAOperationParams<T>,
   ): RawTx;
 }
 
 /**
- * Narrows an {@link IKYCFactory} to a specific factory type.
+ * Narrows an {@link IRWAFactory} to a specific factory type.
  *
  * @param factory - factory instance to check
  * @param type - expected factory type literal
  * @returns `true` if `factory.factoryType === type`
  **/
-export function isKYCFactory<T extends KYCFactoryType>(
-  factory: IKYCFactory,
+export function isRWAFactory<T extends RWAFactoryType>(
+  factory: IRWAFactory,
   type: T,
-): factory is IKYCFactory<T> {
+): factory is IRWAFactory<T> {
   return factory.contractType === type;
 }

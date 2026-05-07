@@ -15,16 +15,16 @@ import {
 } from "../../dev/createAnvilClient.js";
 import {
   chains,
-  KYC_FACTORY_SECURITIZE,
   MAX_UINT256,
   OnchainSDK,
+  RWA_FACTORY_SECURITIZE,
   sendRawTx,
 } from "../../sdk/index.js";
 import {
   createInvestorWallet,
-  KYC_FACTORY,
-  KYC_MARKET_CONFIGURATOR,
-  KYC_RPC_URL,
+  RWA_FACTORY,
+  RWA_MARKET_CONFIGURATOR,
+  RWA_RPC_URL,
   seedSecuritizePoolLiquidity,
   signRegisterVaultMessages,
   USDC,
@@ -64,23 +64,23 @@ const CREDIT_MANAGERS = [
   },
 ] as const;
 
-describe.skipIf(!!process.env.CI)("kyc credit account (securitize)", () => {
+describe.skipIf(!!process.env.CI)("rwa credit account (securitize)", () => {
   let sdk: OnchainSDK;
   const anvil = createAnvilClient({
     chain: chains.Mainnet,
-    transport: http(KYC_RPC_URL, { timeout: 120_000 }),
+    transport: http(RWA_RPC_URL, { timeout: 120_000 }),
     pollingInterval: 100,
   });
   const adminPrivateKey = process.env.E2E_SECURITIZE_ADMIN_PRIVATE_KEY as Hex;
 
   beforeAll(async () => {
     sdk = new OnchainSDK("Mainnet", {
-      rpcURLs: [KYC_RPC_URL],
+      rpcURLs: [RWA_RPC_URL],
       timeout: 120_000,
     });
     await sdk.attach({
-      marketConfigurators: [KYC_MARKET_CONFIGURATOR],
-      kycFactories: [KYC_FACTORY],
+      marketConfigurators: [RWA_MARKET_CONFIGURATOR],
+      rwaFactories: [RWA_FACTORY],
       ignoreUpdateablePrices: true,
     });
     await sdk.tokensMeta.loadTokenData();
@@ -107,8 +107,8 @@ describe.skipIf(!!process.env.CI)("kyc credit account (securitize)", () => {
       adminPrivateKey,
       token: dsToken,
       usdAmount: "60000",
-      marketConfigurators: [KYC_MARKET_CONFIGURATOR],
-      kycFactories: [KYC_FACTORY],
+      marketConfigurators: [RWA_MARKET_CONFIGURATOR],
+      rwaFactories: [RWA_FACTORY],
     });
 
     const approvalTarget = await sdk.accounts.getApprovalAddress({
@@ -142,12 +142,12 @@ describe.skipIf(!!process.env.CI)("kyc credit account (securitize)", () => {
     );
 
     const debt = parseUnits("50000", 6);
-    const unwrapCalls = await sdk.accounts.getKYCUnwrapCalls(
+    const unwrapCalls = await sdk.accounts.getRWAUnwrapCalls(
       debt,
       creditManager,
     );
     if (!unwrapCalls) {
-      throw new Error(`getKYCUnwrapCalls returned undefined for ${label}`);
+      throw new Error(`getRWAUnwrapCalls returned undefined for ${label}`);
     }
 
     const { tx } = await sdk.accounts.openCA({
@@ -162,8 +162,8 @@ describe.skipIf(!!process.env.CI)("kyc credit account (securitize)", () => {
       ethAmount: 0n,
       permits: {},
       referralCode: 0n,
-      kycOptions: {
-        type: KYC_FACTORY_SECURITIZE,
+      rwaOptions: {
+        type: RWA_FACTORY_SECURITIZE,
         tokensToRegister: [dsToken],
         signaturesToCache,
       },
@@ -239,12 +239,12 @@ describe.skipIf(!!process.env.CI)("kyc credit account (securitize)", () => {
     );
 
     const debt = parseUnits("50000", 6);
-    const unwrapCalls = await sdk.accounts.getKYCUnwrapCalls(
+    const unwrapCalls = await sdk.accounts.getRWAUnwrapCalls(
       debt,
       creditManager,
     );
     if (!unwrapCalls) {
-      throw new Error(`getKYCUnwrapCalls returned undefined for ${label}`);
+      throw new Error(`getRWAUnwrapCalls returned undefined for ${label}`);
     }
 
     const strategy = await sdk.routerFor(cm).findOpenStrategyPath({
@@ -266,8 +266,8 @@ describe.skipIf(!!process.env.CI)("kyc credit account (securitize)", () => {
       ethAmount: 0n,
       permits: {},
       referralCode: 0n,
-      kycOptions: {
-        type: KYC_FACTORY_SECURITIZE,
+      rwaOptions: {
+        type: RWA_FACTORY_SECURITIZE,
         tokensToRegister: [dsToken],
         signaturesToCache,
       },
