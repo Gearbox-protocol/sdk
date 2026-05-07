@@ -7,7 +7,6 @@ import type {
   StrategyCreditManagerLike,
   StrategyInfoLike,
 } from "../types.js";
-import { EMPTY_ADDRESS } from "../types.js";
 
 import { getComplexPointsList } from "./get-complex-points-list.js";
 import { getPointsInfo } from "./get-points-info.js";
@@ -15,6 +14,7 @@ import { getPointsRates } from "./get-points-rates.js";
 
 const EMPTY_CHAIN_ID = 0;
 const EMPTY_ARRAY: Array<never> = [];
+const EMPTY_ADDRESS = "" as Address;
 
 export interface GetStrategyPointsProps {
   readonly strategy: Strategy;
