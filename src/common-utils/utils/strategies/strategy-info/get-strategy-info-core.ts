@@ -1,9 +1,11 @@
 import type { Address } from "viem";
-
+import { getSingleQuotaBorrowRate } from "../../index.js";
 import { PriceUtils } from "../../price-math.js";
 import { getFactorFromLeverage } from "../leverage/index.js";
+import { getStrategyPoints } from "../points/get-strategy-points.js";
 import { sortStrategyCMsByAvailability } from "../sort-strategy-cms-by-availability/index.js";
 import type { StrategyDataSource } from "../types/index.js";
+import type { BasePointsList, ExtraCollateralPointsList } from "../types.js";
 import { getStrategyMaxAPY } from "./get-strategy-max-apy.js";
 import { isStrategyCMDisabled } from "./is-strategy-cm-disabled.js";
 import type {
@@ -24,7 +26,16 @@ export interface GetStrategyInfoCoreArgs<
   strategy: StrategySlice<ID>;
   creditManagers: Record<Address, CM> | undefined;
   source: StrategyDataSource;
-  apyListByNetwork: Record<number, APYListSlice | undefined> | undefined;
+  apyListByNetwork:
+    | Record<
+        number,
+        | (APYListSlice & {
+            pointsList?: BasePointsList;
+            extraCollateralPointsList?: ExtraCollateralPointsList;
+          })
+        | undefined
+      >
+    | undefined;
   quotaReserve: number;
   slippage: number;
 }
@@ -83,8 +94,8 @@ export function getStrategyInfoCore<
     totalMaxApy = 0,
     maxLeverage = 0n,
 
-    baseBorrowRate = 0,
-    quotaRateMin = 0n,
+    effectiveBaseRate = 0,
+    effectiveQuotaRate = 0n,
   } = getStrategyMaxAPY(
     targetTokenAddress,
     minCreditManager,
@@ -108,9 +119,34 @@ export function getStrategyInfoCore<
   );
 
   const r =
-    (BigInt(baseBorrowRate) * getFactorFromLeverage(maxLeverage)) / maxLeverage;
-  const qr = quotaRateMin;
+    (BigInt(effectiveBaseRate) * getFactorFromLeverage(maxLeverage)) /
+    maxLeverage;
+  const qr = effectiveQuotaRate;
   const totalBorrowRate = Number(r + qr);
+
+  const baseQuotaRateWithFee = getSingleQuotaBorrowRate({
+    quotaRates: minCreditManager?.quotas || {},
+    feeInterest: minCreditManager?.feeInterest || 0,
+    quotas: {
+      [targetTokenAddress]: {
+        token: targetTokenAddress,
+        balance: 1n,
+      },
+    },
+  });
+
+  const points = getStrategyPoints({
+    strategy: {
+      chainId: strategy.chainId,
+      tokenOutAddress: targetTokenAddress,
+    },
+    info: {
+      maxLeverage,
+      minCreditManager,
+    },
+    strategyCreditManagers: creditManagers ?? {},
+    apyListByNetwork,
+  });
 
   return {
     maxLeverage,
@@ -118,7 +154,9 @@ export function getStrategyInfoCore<
     bonusAPY,
 
     totalBorrowRate,
+    baseQuotaRateWithFee,
     availableToBorrowMoney,
     minCreditManager,
+    points,
   };
 }

@@ -424,6 +424,61 @@ describe("ApyPlugin.getStrategyInfoSnapshot", () => {
 
     expect(result.strategiesInfo[1]).toBeDefined();
     expect(result.strategiesInfo[1][mockToken]).toBeDefined();
+    expect(result.strategiesInfo[1][mockToken]?.points).toBeDefined();
+    expect(
+      result.strategiesInfo[1][mockToken]?.points?.pointsInfo,
+    ).toBeUndefined();
+  });
+
+  it("includes points in strategiesInfo when pointsList is present", () => {
+    const { plugin } = setupPlugin({
+      apySnapshot: {
+        apy: {
+          apyList: { [mockToken]: 100 },
+          extraCollateralAPYList: undefined,
+          pointsList: {
+            [mockToken]: {
+              symbol: "TKN",
+              address: mockToken,
+              rewards: [
+                {
+                  name: "pts",
+                  units: "pts",
+                  multiplier: 1n,
+                  type: "test",
+                },
+              ],
+              debtRewards: [
+                {
+                  name: "debt",
+                  units: "pts",
+                  multiplier: 2n,
+                  type: "test",
+                  cm: "any",
+                },
+              ],
+            },
+          },
+          extraCollateralPointsList: undefined,
+          poolRewardsList: undefined,
+          tokenExtraRewardsList: undefined,
+          poolExternalAPYList: undefined,
+          poolExtraAPYList: undefined,
+        },
+        gearStats: null,
+        timestamp: "0",
+      },
+    });
+
+    const result = plugin.getStrategyInfoSnapshot({
+      ...baseArgs,
+      strategyPayloadsList: [makeStrategy()],
+    });
+
+    const points = result.strategiesInfo[1][mockToken]?.points;
+    expect(points).toBeDefined();
+    expect(points?.rewardRates).toHaveLength(1);
+    expect(points?.debtRewardRates).toHaveLength(1);
   });
 
   it("excludes strategy from strategiesInfo when no suitable CM", () => {

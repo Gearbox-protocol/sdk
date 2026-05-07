@@ -1,3 +1,4 @@
+import type { Address } from "abitype";
 import type {
   AppChains,
   CuratorFilter,
@@ -5,7 +6,8 @@ import type {
   NotValidatedStrategy,
   StrategyCreditManagerView,
 } from "../types.js";
-import { EMPTY_ADDRESS } from "../types.js";
+
+const EMPTY_ADDRESS = "" as Address;
 
 export function isStrategyEligible<CM extends StrategyCreditManagerView>(
   s: Pick<

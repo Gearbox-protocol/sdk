@@ -159,8 +159,8 @@ describe("getStrategyMaxAPY", () => {
       bonusAPY: undefined,
       maxAPY: 150,
       maxLeverage: 220n,
-      quotaRateMin: 50n,
-      baseBorrowRate: 30,
+      effectiveQuotaRate: 50n,
+      effectiveBaseRate: 30,
       totalBorrowRate: 80,
     });
   });
@@ -180,8 +180,8 @@ describe("getStrategyMaxAPY", () => {
       bonusAPY: undefined,
       maxAPY: 150,
       maxLeverage: 220n,
-      quotaRateMin: 50n,
-      baseBorrowRate: 30,
+      effectiveQuotaRate: 50n,
+      effectiveBaseRate: 30,
       totalBorrowRate: 80,
     });
   });
