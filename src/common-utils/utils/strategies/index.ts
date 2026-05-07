@@ -3,6 +3,7 @@ export * from "./credit-managers/index.js";
 export * from "./eligibility/index.js";
 export * from "./leverage/index.js";
 export * from "./lists/index.js";
+export * from "./points/index.js";
 export * from "./sort-strategy-cms-by-availability/index.js";
 export * from "./strategy-info/index.js";
 export * from "./strategy-state/index.js";
