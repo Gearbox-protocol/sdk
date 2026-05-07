@@ -1,80 +1,80 @@
 import type { Address } from "abitype";
 import { decodeAbiParameters, type Hex } from "viem";
-import { iKYCCompressorAbi } from "../../../abi/kyc/iKYCCompressor.js";
+import { iRWACompressorAbi } from "../../../abi/rwa/iRWACompressor.js";
 import {
-  KYC_ON_DEMAND_LP_MONOPOLIZED,
-  KYC_UNDERLYING_DEFAULT,
-  KYC_UNDERLYING_ON_DEMAND,
-  type KYCDefaultTokenMeta,
-  type KYCOnDemandLPMeta,
-  type KYCOnDemandLPMonopolizedMeta,
-  type KYCOnDemandTokenMeta,
+  RWA_ON_DEMAND_LP_MONOPOLIZED,
+  RWA_UNDERLYING_DEFAULT,
+  RWA_UNDERLYING_ON_DEMAND,
+  type RWADefaultTokenMeta,
+  type RWAOnDemandLPMeta,
+  type RWAOnDemandLPMonopolizedMeta,
+  type RWAOnDemandTokenMeta,
   SDKConstruct,
   type TokenMetaData,
 } from "../../base/index.js";
-import { AP_KYC_COMPRESSOR, VERSION_RANGE_310 } from "../../constants/index.js";
+import { AP_RWA_COMPRESSOR, VERSION_RANGE_310 } from "../../constants/index.js";
 import { AddressMap, bytes32ToString } from "../../utils/index.js";
 import type { DelegatedMulticall } from "../../utils/viem/index.js";
 import {
-  KYC_FACTORY_SECURITIZE,
-  SecuritizeKYCFactory,
+  RWA_FACTORY_SECURITIZE,
+  SecuritizeRWAFactory,
 } from "./securitize/index.js";
 import type {
-  KYCCompressorResponse,
-  KYCFactoryData,
-  KYCInvestorData,
-  KYCState,
-  KYCStateHuman,
-  KYCUnderlyingData,
+  RWACompressorResponse,
+  RWAFactoryData,
+  RWAInvestorData,
+  RWAState,
+  RWAStateHuman,
+  RWAUnderlyingData,
 } from "./types.js";
 
 /**
- * Registry of KYC underlying tokens and KYC factory contracts.
+ * Registry of RWA underlying tokens and RWA factory contracts.
  *
- * Populated from the on-chain {@link https://github.com/Gearbox-protocol/periphery-v3 KYCCompressor}
+ * Populated from the on-chain {@link https://github.com/Gearbox-protocol/periphery-v3 RWACompressor}
  * during SDK attach/hydrate. Provides methods to query investor-level data and
- * to resolve KYC factory instances by address.
+ * to resolve RWA factory instances by address.
  **/
-export class KYCRegistry extends SDKConstruct {
-  #state?: KYCState;
-  #factories = new AddressMap<SecuritizeKYCFactory>();
+export class RWARegistry extends SDKConstruct {
+  #state?: RWAState;
+  #factories = new AddressMap<SecuritizeRWAFactory>();
 
   /**
    * @internal
    *
-   * Returns delegated multicalls for loading all KYC underlying tokens from the on-chain KYC compressor.
+   * Returns delegated multicalls for loading all RWA underlying tokens from the on-chain RWA compressor.
    * Used by the SDK to compose batched RPC calls.
    *
    * @param configurators - Market configurators to query.
-   * @param kycFactories - KYC factory contracts to query.
+   * @param rwaFactories - RWA factory contracts to query.
    */
   public getLoadMulticalls(
     configurators: Address[],
-    kycFactories: Address[] = [],
+    rwaFactories: Address[] = [],
   ): DelegatedMulticall[] {
-    if (!kycFactories.length) {
+    if (!rwaFactories.length) {
       return [];
     }
-    const [kycCompressorAddress] = this.sdk.addressProvider.mustGetLatest(
-      AP_KYC_COMPRESSOR,
+    const [rwaCompressorAddress] = this.sdk.addressProvider.mustGetLatest(
+      AP_RWA_COMPRESSOR,
       VERSION_RANGE_310,
     );
     return [
       {
         call: {
-          abi: iKYCCompressorAbi,
-          address: kycCompressorAddress,
-          functionName: "getKYCMarketsData",
-          args: [configurators, kycFactories],
+          abi: iRWACompressorAbi,
+          address: rwaCompressorAddress,
+          functionName: "getRWAMarketsData",
+          args: [configurators, rwaFactories],
         },
         onResult: (resp: unknown) =>
-          this.setState(resp as KYCCompressorResponse),
+          this.setState(resp as RWACompressorResponse),
       },
     ];
   }
 
   /**
-   * Fetches decoded investor data from the on-chain KYC compressor.
+   * Fetches decoded investor data from the on-chain RWA compressor.
    *
    * Each factory produces its own investor data (e.g. registered tokens,
    * cached signatures, EIP-712 messages to sign).
@@ -86,7 +86,7 @@ export class KYCRegistry extends SDKConstruct {
   public async getInvestorData(
     investor: Address,
     factories_?: Address[],
-  ): Promise<KYCInvestorData[]> {
+  ): Promise<RWAInvestorData[]> {
     let factories = this.#factories.values();
     if (factories_?.length) {
       factories = factories_.map(f => this.#factories.mustGet(f));
@@ -94,17 +94,17 @@ export class KYCRegistry extends SDKConstruct {
     if (!factories.length) {
       return [];
     }
-    const [kycCompressorAddress] = this.sdk.addressProvider.mustGetLatest(
-      AP_KYC_COMPRESSOR,
+    const [rwaCompressorAddress] = this.sdk.addressProvider.mustGetLatest(
+      AP_RWA_COMPRESSOR,
       VERSION_RANGE_310,
     );
     const resp = await this.client.readContract({
-      abi: iKYCCompressorAbi,
-      address: kycCompressorAddress,
-      functionName: "getKYCInvestorData",
+      abi: iRWACompressorAbi,
+      address: rwaCompressorAddress,
+      functionName: "getRWAInvestorData",
       args: [investor, factories.map(f => f.address)],
     });
-    const result: KYCInvestorData[] = [];
+    const result: RWAInvestorData[] = [];
     for (let i = 0; i < factories.length; i++) {
       const factory = factories[i];
       const factoryData = resp[i];
@@ -114,20 +114,20 @@ export class KYCRegistry extends SDKConstruct {
     return result;
   }
 
-  /** All loaded KYC factory instances. */
-  public get factories(): SecuritizeKYCFactory[] {
+  /** All loaded RWA factory instances. */
+  public get factories(): SecuritizeRWAFactory[] {
     return this.#factories.values();
   }
 
-  /** Raw KYC compressor response, or `undefined` before attach/hydrate. */
-  public get state(): KYCState | undefined {
+  /** Raw RWA compressor response, or `undefined` before attach/hydrate. */
+  public get state(): RWAState | undefined {
     return this.#state;
   }
 
   /**
-   * Returns a human-readable snapshot of the KYC state.
+   * Returns a human-readable snapshot of the RWA state.
    */
-  public stateHuman(raw?: boolean): KYCStateHuman {
+  public stateHuman(raw?: boolean): RWAStateHuman {
     return {
       factories: this.factories.map(f => f.stateHuman(raw)),
     };
@@ -136,50 +136,50 @@ export class KYCRegistry extends SDKConstruct {
   /**
    * @internal
    *
-   * Replaces the internal state with a new KYC compressor response.
-   * Rebuilds token metadata for KYC underlyings and re-instantiates factory
+   * Replaces the internal state with a new RWA compressor response.
+   * Rebuilds token metadata for RWA underlyings and re-instantiates factory
    * wrappers.
    */
-  public setState(resp?: KYCCompressorResponse): void {
+  public setState(resp?: RWACompressorResponse): void {
     this.#state = resp;
     for (const u of resp?.[0] ?? []) {
       this.#loadUnderlyingTokenData(u);
     }
     this.#factories.clear();
     for (const f of resp?.[1] ?? []) {
-      this.#loadKYCFactoryData(f);
+      this.#loadRWAFactoryData(f);
     }
   }
 
-  #loadUnderlyingTokenData(u: KYCUnderlyingData): void {
+  #loadUnderlyingTokenData(u: RWAUnderlyingData): void {
     const contractType = bytes32ToString(u.baseParams.contractType);
     // token must be loaded by market compressor first
     const meta = this.tokensMeta.get(u.baseParams.addr);
     if (!meta) {
       throw new Error(
-        `KYC underlying token ${contractType} (${u.baseParams.addr}) not found in tokensMeta`,
+        `RWA underlying token ${contractType} (${u.baseParams.addr}) not found in tokensMeta`,
       );
     }
 
     switch (contractType) {
-      case KYC_UNDERLYING_DEFAULT:
-        this.#loadKYCUnderlyingDefault(meta, u);
+      case RWA_UNDERLYING_DEFAULT:
+        this.#loadRWAUnderlyingDefault(meta, u);
         break;
 
-      case KYC_UNDERLYING_ON_DEMAND:
-        this.#loadKYCUnderlyingOnDemand(meta, u);
+      case RWA_UNDERLYING_ON_DEMAND:
+        this.#loadRWAUnderlyingOnDemand(meta, u);
         break;
       default:
         if (this.sdk.strictContractTypes) {
-          throw new Error(`Unknown KYC underlying type: ${contractType}`);
+          throw new Error(`Unknown RWA underlying type: ${contractType}`);
         }
-        this.logger?.warn(`unknown KYC underlying type: ${contractType}`);
+        this.logger?.warn(`unknown RWA underlying type: ${contractType}`);
     }
   }
 
-  #loadKYCUnderlyingDefault(
+  #loadRWAUnderlyingDefault(
     meta: TokenMetaData,
-    data: KYCUnderlyingData,
+    data: RWAUnderlyingData,
   ): void {
     const decoded = decodeAbiParameters(
       [
@@ -190,15 +190,15 @@ export class KYCRegistry extends SDKConstruct {
     );
     this.tokensMeta.upsert(data.baseParams.addr, {
       ...meta,
-      contractType: KYC_UNDERLYING_DEFAULT,
-      kycFactory: decoded[0],
+      contractType: RWA_UNDERLYING_DEFAULT,
+      rwaFactory: decoded[0],
       asset: decoded[1],
-    } as KYCDefaultTokenMeta);
+    } as RWADefaultTokenMeta);
   }
 
-  #loadKYCUnderlyingOnDemand(
+  #loadRWAUnderlyingOnDemand(
     meta: TokenMetaData,
-    data: KYCUnderlyingData,
+    data: RWAUnderlyingData,
   ): void {
     const decoded = decodeAbiParameters(
       [
@@ -221,18 +221,18 @@ export class KYCRegistry extends SDKConstruct {
 
     this.tokensMeta.upsert(data.baseParams.addr, {
       ...meta,
-      contractType: KYC_UNDERLYING_ON_DEMAND,
-      kycFactory: decoded[0],
+      contractType: RWA_UNDERLYING_ON_DEMAND,
+      rwaFactory: decoded[0],
       asset: decoded[1],
       pool: decoded[2],
       marketConfigurator: decoded[4],
       allowedDepositors: decoded[5],
       // liquidityProvider: decoded[3],
       liquidityProvider: lpMeta,
-    } as KYCOnDemandTokenMeta);
+    } as RWAOnDemandTokenMeta);
   }
 
-  #getOnDemandLPMeta(extraDetails: Hex): KYCOnDemandLPMeta {
+  #getOnDemandLPMeta(extraDetails: Hex): RWAOnDemandLPMeta {
     const [decoded] = decodeAbiParameters(
       [
         {
@@ -250,7 +250,7 @@ export class KYCRegistry extends SDKConstruct {
     );
     const contractType = bytes32ToString(decoded.contractType);
     switch (contractType) {
-      case KYC_ON_DEMAND_LP_MONOPOLIZED:
+      case RWA_ON_DEMAND_LP_MONOPOLIZED:
         return this.#getOnDemandLPMonopolizedMeta(
           decoded.addr,
           decoded.version,
@@ -265,7 +265,7 @@ export class KYCRegistry extends SDKConstruct {
     addr: Address,
     version: bigint,
     serializedParams: Hex,
-  ): KYCOnDemandLPMonopolizedMeta {
+  ): RWAOnDemandLPMonopolizedMeta {
     const [marketConfigurator, depositor, pools] = decodeAbiParameters(
       [
         { name: "marketConfigurator", type: "address" },
@@ -287,25 +287,25 @@ export class KYCRegistry extends SDKConstruct {
     return {
       addr,
       version,
-      contractType: KYC_ON_DEMAND_LP_MONOPOLIZED,
+      contractType: RWA_ON_DEMAND_LP_MONOPOLIZED,
       marketConfigurator,
       depositor,
       pools: [...pools],
     };
   }
 
-  #loadKYCFactoryData(data: KYCFactoryData): void {
+  #loadRWAFactoryData(data: RWAFactoryData): void {
     const contractType = bytes32ToString(data.baseParams.contractType);
     switch (contractType) {
-      case KYC_FACTORY_SECURITIZE:
+      case RWA_FACTORY_SECURITIZE:
         this.#factories.upsert(
           data.baseParams.addr,
-          new SecuritizeKYCFactory(this.sdk, data),
+          new SecuritizeRWAFactory(this.sdk, data),
         );
         break;
       default:
         throw new Error(
-          `Unknown KYC factory type: ${contractType} for ${data.baseParams.addr}`,
+          `Unknown RWA factory type: ${contractType} for ${data.baseParams.addr}`,
         );
     }
   }

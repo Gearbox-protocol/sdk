@@ -1,4 +1,4 @@
-export const iKYCCompressorAbi = [
+export const iRWACompressorAbi = [
   {
     type: "function",
     name: "contractType",
@@ -8,7 +8,7 @@ export const iKYCCompressorAbi = [
   },
   {
     type: "function",
-    name: "getKYCInvestorData",
+    name: "getRWAInvestorData",
     inputs: [
       { name: "investor", type: "address", internalType: "address" },
       { name: "factories", type: "address[]", internalType: "address[]" },
@@ -17,12 +17,12 @@ export const iKYCCompressorAbi = [
       {
         name: "",
         type: "tuple[]",
-        internalType: "struct IKYCCompressor.KYCInvestorData[]",
+        internalType: "struct IRWACompressor.RWAInvestorData[]",
         components: [
           {
             name: "creditAccounts",
             type: "tuple[]",
-            internalType: "struct IKYCCompressor.KYCCreditAccountData[]",
+            internalType: "struct IRWACompressor.RWACreditAccountData[]",
             components: [
               {
                 name: "creditAccount",
@@ -42,7 +42,7 @@ export const iKYCCompressorAbi = [
   },
   {
     type: "function",
-    name: "getKYCMarketsData",
+    name: "getRWAMarketsData",
     inputs: [
       { name: "configurators", type: "address[]", internalType: "address[]" },
       { name: "factories", type: "address[]", internalType: "address[]" },
@@ -51,7 +51,7 @@ export const iKYCCompressorAbi = [
       {
         name: "",
         type: "tuple[]",
-        internalType: "struct IKYCCompressor.KYCUnderlyingData[]",
+        internalType: "struct IRWACompressor.RWAUnderlyingData[]",
         components: [
           {
             name: "baseParams",
@@ -80,7 +80,7 @@ export const iKYCCompressorAbi = [
       {
         name: "",
         type: "tuple[]",
-        internalType: "struct IKYCCompressor.KYCFactoryData[]",
+        internalType: "struct IRWACompressor.RWAFactoryData[]",
         components: [
           {
             name: "baseParams",
@@ -156,7 +156,7 @@ export const iKYCCompressorAbi = [
   },
   {
     type: "error",
-    name: "InvalidKYCFactoryException",
+    name: "InvalidRWAFactoryException",
     inputs: [{ name: "factory", type: "address", internalType: "address" }],
   },
   {

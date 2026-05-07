@@ -13,20 +13,20 @@ import {
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import type { AnvilClient } from "../../dev/createAnvilClient.js";
 import {
-  KYC_UNDERLYING_DEFAULT,
-  KYC_UNDERLYING_ON_DEMAND,
-  type KYCOnDemandTokenMeta,
   MAX_UINT256,
   type OnchainSDK,
   PoolService,
+  RWA_UNDERLYING_DEFAULT,
+  RWA_UNDERLYING_ON_DEMAND,
+  type RWAOnDemandTokenMeta,
   type SecuritizeRegisterMessage,
   type SecuritizeRegisterVaultMessage,
 } from "../../sdk/index.js";
 
-export const KYC_RPC_URL = "https://anvil.gearbox.foundation/rpc/Securitize";
-export const KYC_MARKET_CONFIGURATOR: Address =
+export const RWA_RPC_URL = "https://anvil.gearbox.foundation/rpc/Securitize";
+export const RWA_MARKET_CONFIGURATOR: Address =
   "0x610627d8d01a413bdd9b0a0b60070da7dd1e54ad";
-export const KYC_FACTORY: Address =
+export const RWA_FACTORY: Address =
   "0x867b5b0cd9999959f696cef4ecf7777a39516d27";
 export const USDC: Address = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
 
@@ -45,7 +45,7 @@ export async function createInvestorWallet(
   });
   return createWalletClient({
     chain,
-    transport: http(KYC_RPC_URL, { timeout: 120_000 }),
+    transport: http(RWA_RPC_URL, { timeout: 120_000 }),
     account,
     pollingInterval: 100,
   });
@@ -54,7 +54,7 @@ export async function createInvestorWallet(
 /**
  * Signs a list of `RegisterVault` EIP-712 messages (returned by
  * `sdk.accounts.getOpenAccountRequirements`) and converts them into the
- * `SecuritizeRegisterMessage[]` shape consumed by `kycOptions.signaturesToCache`.
+ * `SecuritizeRegisterMessage[]` shape consumed by `rwaOptions.signaturesToCache`.
  */
 export async function signRegisterVaultMessages(
   wallet: WalletClient<Transport, Chain, PrivateKeyAccount>,
@@ -80,10 +80,10 @@ export const POOL_LIQUIDITY_USDC = parseUnits("1000000", 6);
  * Seeds liquidity for a Securitize pool, mirroring the `setUp()` of the
  * matching Solidity attach test:
  *
- * - `KYC_UNDERLYING::DEFAULT` (e.g. dcUSDC): a fresh wallet is funded with USDC
+ * - `RWA_UNDERLYING::DEFAULT` (e.g. dcUSDC): a fresh wallet is funded with USDC
  *   and deposits via the pool's ERC4626 zapper (same code path as
  *   `IERC20ZapperDeposits.deposit(1_000_000e6, depositor)`).
- * - `KYC_UNDERLYING::ON_DEMAND` (e.g. ocUSDC): the `MonopolizedOnDemandLP`
+ * - `RWA_UNDERLYING::ON_DEMAND` (e.g. ocUSDC): the `MonopolizedOnDemandLP`
  *   depositor (baked into the LP at deploy time) is impersonated via anvil,
  *   funded with USDC, and approves the LP for `POOL_LIQUIDITY_USDC` so the
  *   pool can pull on demand on each borrow.
@@ -96,17 +96,17 @@ export async function seedSecuritizePoolLiquidity(
   const market = sdk.marketRegister.findByPool(pool);
   const underlying = market.pool.underlying;
   const meta = sdk.tokensMeta.mustGet(underlying);
-  if (!sdk.tokensMeta.isKYCUnderlying(meta)) {
+  if (!sdk.tokensMeta.isRWAUnderlying(meta)) {
     throw new Error(
-      `Pool ${pool} underlying ${underlying} is not a KYC underlying`,
+      `Pool ${pool} underlying ${underlying} is not a RWA underlying`,
     );
   }
 
   switch (meta.contractType) {
-    case KYC_UNDERLYING_DEFAULT:
+    case RWA_UNDERLYING_DEFAULT:
       await seedDefaultPool(sdk, anvil, pool);
       return;
-    case KYC_UNDERLYING_ON_DEMAND:
+    case RWA_UNDERLYING_ON_DEMAND:
       await seedOnDemandPool(anvil, meta);
       return;
   }
@@ -128,9 +128,9 @@ async function seedDefaultPool(
 
   const poolService = new PoolService(sdk);
   const depositMeta = poolService.getDepositMetadata(pool, USDC, pool);
-  if (depositMeta.type !== "kyc-default") {
+  if (depositMeta.type !== "rwa-default") {
     throw new Error(
-      `Expected kyc-default deposit metadata for pool ${pool}, got ${depositMeta.type}`,
+      `Expected rwa-default deposit metadata for pool ${pool}, got ${depositMeta.type}`,
     );
   }
 
@@ -171,7 +171,7 @@ async function seedDefaultPool(
 
 async function seedOnDemandPool(
   anvil: AnvilClient,
-  meta: KYCOnDemandTokenMeta,
+  meta: RWAOnDemandTokenMeta,
 ): Promise<void> {
   const liquidityProvider = meta.liquidityProvider.addr;
   const depositor = meta.liquidityProvider.depositor;

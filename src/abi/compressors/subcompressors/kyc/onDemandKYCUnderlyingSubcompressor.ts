@@ -1,4 +1,4 @@
-export const onDemandKYCUnderlyingSubcompressorAbi = [
+export const onDemandRWAUnderlyingSubcompressorAbi = [
   {
     type: "function",
     name: "contractType",

@@ -1,44 +1,44 @@
 import { type Address, decodeAbiParameters } from "viem";
-import { iSecuritizeKYCFactoryAbi } from "../../../../abi/kyc/iSecuritizeKYCFactory.js";
+import { iSecuritizeRWAFactoryAbi } from "../../../../abi/rwa/iSecuritizeRWAFactory.js";
 import type { GetOpenAccountRequirementsProps } from "../../../accounts/types.js";
 import { BaseContract } from "../../../base/index.js";
 import type { OnchainSDK } from "../../../OnchainSDK.js";
 import type { MultiCall, RawTx } from "../../../types/index.js";
 import { AddressMap, AddressSet } from "../../../utils/index.js";
 import type {
-  IKYCFactory,
-  KYCCompressorInvestorData,
-  KYCFactoryData,
+  IRWAFactory,
+  RWACompressorInvestorData,
+  RWAFactoryData,
 } from "../types.js";
-import { KYC_FACTORY_SECURITIZE } from "./constants.js";
+import { RWA_FACTORY_SECURITIZE } from "./constants.js";
 import { SecuritizeDegenNFT } from "./SecuritizeDegenNFT.js";
 import {
   type DStokenData,
   SECURITIZE_REGISTER_VAULT_TYPES,
   type SecuritizeInvestorData,
-  type SecuritizeKYCFactoryStateHuman,
   type SecuritizeOpenAccountRequirements,
   type SecuritizeOperationParams,
+  type SecuritizeRWAFactoryStateHuman,
 } from "./types.js";
 
-const abi = iSecuritizeKYCFactoryAbi;
+const abi = iSecuritizeRWAFactoryAbi;
 type abi = typeof abi;
 
-export class SecuritizeKYCFactory
+export class SecuritizeRWAFactory
   extends BaseContract<abi>
-  implements IKYCFactory<typeof KYC_FACTORY_SECURITIZE>
+  implements IRWAFactory<typeof RWA_FACTORY_SECURITIZE>
 {
   readonly #sdk: OnchainSDK;
   #investorCache = new AddressMap<Address>();
   public readonly degenNFT: SecuritizeDegenNFT;
   public readonly owner: Address;
   public readonly dsTokens: DStokenData[];
-  public readonly contractType = KYC_FACTORY_SECURITIZE;
+  public readonly contractType = RWA_FACTORY_SECURITIZE;
 
-  constructor(sdk: OnchainSDK, data: KYCFactoryData) {
+  constructor(sdk: OnchainSDK, data: RWAFactoryData) {
     super(sdk, {
       ...data.baseParams,
-      name: "SecuritizeKYCFactory",
+      name: "SecuritizeRWAFactory",
       abi,
     });
     this.#sdk = sdk;
@@ -72,10 +72,10 @@ export class SecuritizeKYCFactory
   }
 
   /**
-   * {@inheritDoc IKYCFactory.decodeInvestorData}
+   * {@inheritDoc IRWAFactory.decodeInvestorData}
    */
   public decodeInvestorData(
-    data: KYCCompressorInvestorData,
+    data: RWACompressorInvestorData,
   ): SecuritizeInvestorData {
     const { creditAccounts, extraDetails } = data;
     const [registeredTokens, cachedSignatures, registerVaultMessages] =
@@ -96,7 +96,7 @@ export class SecuritizeKYCFactory
         extraDetails,
       );
     return {
-      type: KYC_FACTORY_SECURITIZE,
+      type: RWA_FACTORY_SECURITIZE,
       factory: this.address,
       cachedSignatures: [...cachedSignatures],
       registerVaultMessages: registerVaultMessages.map(m => ({
@@ -131,7 +131,7 @@ export class SecuritizeKYCFactory
   }
 
   /**
-   * {@inheritDoc IKYCFactory.getInvestor}
+   * {@inheritDoc IRWAFactory.getInvestor}
    */
   public async getInvestor(
     creditAccount: Address,
@@ -148,7 +148,7 @@ export class SecuritizeKYCFactory
   }
 
   /**
-   * {@inheritDoc IKYCFactory.getApprovalAddress}
+   * {@inheritDoc IRWAFactory.getApprovalAddress}
    */
   public async getApprovalAddress(
     options:
@@ -165,14 +165,14 @@ export class SecuritizeKYCFactory
   }
 
   /**
-   * {@inheritDoc IKYCFactory.getWallet}
+   * {@inheritDoc IRWAFactory.getWallet}
    */
   public async getWallet(creditAccount: Address): Promise<Address> {
     return this.contract.read.getWallet([creditAccount]);
   }
 
   /**
-   * {@inheritDoc IKYCFactory.multicall}
+   * {@inheritDoc IRWAFactory.multicall}
    */
   public multicall(
     creditAccount: Address,
@@ -192,13 +192,13 @@ export class SecuritizeKYCFactory
   }
 
   /**
-   * {@inheritDoc IKYCFactory.getOpenAccountRequirements}
+   * {@inheritDoc IRWAFactory.getOpenAccountRequirements}
    */
   public async getOpenAccountRequirements(
     investor: Address,
     props: GetOpenAccountRequirementsProps,
   ): Promise<SecuritizeOpenAccountRequirements | undefined> {
-    const [investorData] = await this.#sdk.kyc.getInvestorData(investor, [
+    const [investorData] = await this.#sdk.rwa.getInvestorData(investor, [
       this.address,
     ]);
     // desired tokens, coming from strategy configuration
@@ -217,7 +217,7 @@ export class SecuritizeKYCFactory
     );
 
     return {
-      type: KYC_FACTORY_SECURITIZE,
+      type: RWA_FACTORY_SECURITIZE,
       securitizeTokensToRegister: Array.from(securitizeTokensToRegister),
       tokensToRegister: Array.from(tokensToRegister),
       requiredSignatures,
@@ -225,7 +225,7 @@ export class SecuritizeKYCFactory
   }
 
   /**
-   * {@inheritDoc IKYCFactory.openCreditAccount}
+   * {@inheritDoc IRWAFactory.openCreditAccount}
    */
   public openCreditAccount(
     creditManager: Address,
@@ -239,7 +239,7 @@ export class SecuritizeKYCFactory
     });
   }
 
-  override stateHuman(_raw?: boolean): SecuritizeKYCFactoryStateHuman {
+  override stateHuman(_raw?: boolean): SecuritizeRWAFactoryStateHuman {
     return {
       ...super.stateHuman(_raw),
       owner: this.labelAddress(this.owner),

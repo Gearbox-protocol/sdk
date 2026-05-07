@@ -1,4 +1,4 @@
-export const securitizeKYCFactorySubcompressorAbi = [
+export const securitizeRWAFactorySubcompressorAbi = [
   {
     type: "function",
     name: "contractType",

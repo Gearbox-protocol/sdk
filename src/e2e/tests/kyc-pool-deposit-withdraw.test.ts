@@ -15,27 +15,27 @@ import { dealActions } from "viem-deal";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   chains,
-  type KYCDefaultTokenMeta,
-  type KYCOnDemandTokenMeta,
   MAX_UINT256,
   OnchainSDK,
   PoolService,
   type PoolServiceCall,
+  type RWADefaultTokenMeta,
+  type RWAOnDemandTokenMeta,
 } from "../../sdk/index.js";
 
-const KYC_RPC_URL = "https://anvil.gearbox.foundation/rpc/Securitize";
+const RWA_RPC_URL = "https://anvil.gearbox.foundation/rpc/Securitize";
 
 const MARKET_CONFIGURATOR: Address =
   "0x610627d8d01a413bdd9b0a0b60070da7dd1e54ad";
-const KYC_FACTORY: Address = "0x867b5b0cd9999959f696cef4ecf7777a39516d27";
+const RWA_FACTORY: Address = "0x867b5b0cd9999959f696cef4ecf7777a39516d27";
 
 const USDC: Address = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
 
-// KYC Default pool: PoolV3(Mock Diesel Default compliant USD Coin)
+// RWA Default pool: PoolV3(Mock Diesel Default compliant USD Coin)
 const DEFAULT_POOL: Address = "0xA052899a26a7847E694631B53D1c4C83d0FE1529";
 const DC_USDC: Address = "0x42d3618A6c0770d413c93D4d1bEcC041C27D7524";
 
-// KYC On-Demand pool: PoolV3(Mock Diesel On-demand compliant USD Coin)
+// RWA On-Demand pool: PoolV3(Mock Diesel On-demand compliant USD Coin)
 const ON_DEMAND_POOL: Address = "0x4284dC6CdDC8Da0fE9aa369ab682706912605954";
 const OC_USDC: Address = "0x5a1C395181b397e7f389629b3575e091a20d160d";
 
@@ -43,7 +43,7 @@ const ANVIL_ACCOUNT = privateKeyToAccount(generatePrivateKey());
 
 const anvil = createTestClient({
   mode: "anvil",
-  transport: http(KYC_RPC_URL),
+  transport: http(RWA_RPC_URL),
   chain: chains.Mainnet,
   pollingInterval: 100,
 }).extend(dealActions);
@@ -82,17 +82,17 @@ function encodePoolCall(call: PoolServiceCall): {
   };
 }
 
-describe.skipIf(!!process.env.CI)("KYC pool deposit and withdraw", () => {
+describe.skipIf(!!process.env.CI)("RWA pool deposit and withdraw", () => {
   let sdk: OnchainSDK;
 
   beforeAll(async () => {
     sdk = new OnchainSDK("Mainnet", {
-      rpcURLs: [KYC_RPC_URL],
+      rpcURLs: [RWA_RPC_URL],
       timeout: 120_000,
     });
     await sdk.attach({
       marketConfigurators: [MARKET_CONFIGURATOR],
-      kycFactories: [KYC_FACTORY],
+      rwaFactories: [RWA_FACTORY],
       ignoreUpdateablePrices: true,
     });
     await sdk.tokensMeta.loadTokenData();
@@ -103,21 +103,21 @@ describe.skipIf(!!process.env.CI)("KYC pool deposit and withdraw", () => {
     });
   });
 
-  describe("KYC default underlying (dcUSDC)", () => {
-    it("should recognize dcUSDC as KYC default underlying", () => {
+  describe("RWA default underlying (dcUSDC)", () => {
+    it("should recognize dcUSDC as RWA default underlying", () => {
       const meta = sdk.tokensMeta.mustGet(DC_USDC);
-      expect(sdk.tokensMeta.isKYCUnderlying(meta)).toBe(true);
-      expect(meta.contractType).toBe("KYC_UNDERLYING::DEFAULT");
+      expect(sdk.tokensMeta.isRWAUnderlying(meta)).toBe(true);
+      expect(meta.contractType).toBe("RWA_UNDERLYING::DEFAULT");
 
-      const kycMeta = meta as KYCDefaultTokenMeta;
-      expect(kycMeta.kycFactory.toLowerCase()).toBe(KYC_FACTORY.toLowerCase());
-      expect(kycMeta.asset).toBeDefined();
+      const rwaMeta = meta as RWADefaultTokenMeta;
+      expect(rwaMeta.rwaFactory.toLowerCase()).toBe(RWA_FACTORY.toLowerCase());
+      expect(rwaMeta.asset).toBeDefined();
     });
 
-    it("should deposit and withdraw from KYC default pool", async () => {
+    it("should deposit and withdraw from RWA default pool", async () => {
       const wallet = createWalletClient({
         chain: sdk.client.chain,
-        transport: http(KYC_RPC_URL, { timeout: 120_000 }),
+        transport: http(RWA_RPC_URL, { timeout: 120_000 }),
         account: ANVIL_ACCOUNT,
         pollingInterval: 100,
       });
@@ -137,7 +137,7 @@ describe.skipIf(!!process.env.CI)("KYC pool deposit and withdraw", () => {
         tokenIn,
         tokenOut,
       );
-      expect(depositMeta.type).toBe("kyc-default");
+      expect(depositMeta.type).toBe("rwa-default");
 
       const depositAmount = parseUnits("100", 6);
       await anvil.deal({
@@ -170,7 +170,7 @@ describe.skipIf(!!process.env.CI)("KYC pool deposit and withdraw", () => {
         referralCode: 0n,
       });
       if (!depositCall) {
-        throw new Error("addLiquidity returned undefined for KYC default pool");
+        throw new Error("addLiquidity returned undefined for RWA default pool");
       }
 
       const encoded = encodePoolCall(depositCall);
@@ -206,7 +206,7 @@ describe.skipIf(!!process.env.CI)("KYC pool deposit and withdraw", () => {
         withdrawTokenIn,
         withdrawTokensOut[0],
       );
-      expect(withdrawalMeta.type).toBe("kyc-default");
+      expect(withdrawalMeta.type).toBe("rwa-default");
 
       hash = await wallet.writeContract({
         address: withdrawTokenIn,
@@ -243,56 +243,56 @@ describe.skipIf(!!process.env.CI)("KYC pool deposit and withdraw", () => {
     });
   });
 
-  describe("KYC on-demand underlying (ocUSDC)", () => {
-    it("should recognize ocUSDC as KYC on-demand underlying", () => {
+  describe("RWA on-demand underlying (ocUSDC)", () => {
+    it("should recognize ocUSDC as RWA on-demand underlying", () => {
       const meta = sdk.tokensMeta.mustGet(OC_USDC);
-      expect(sdk.tokensMeta.isKYCUnderlying(meta)).toBe(true);
-      expect(meta.contractType).toBe("KYC_UNDERLYING::ON_DEMAND");
+      expect(sdk.tokensMeta.isRWAUnderlying(meta)).toBe(true);
+      expect(meta.contractType).toBe("RWA_UNDERLYING::ON_DEMAND");
 
-      const kycMeta = meta as KYCOnDemandTokenMeta;
-      expect(kycMeta.kycFactory.toLowerCase()).toBe(KYC_FACTORY.toLowerCase());
-      expect(kycMeta.asset).toBeDefined();
-      expect(kycMeta.liquidityProvider).toBeDefined();
-      expect(kycMeta.liquidityProvider.addr).toBeDefined();
+      const rwaMeta = meta as RWAOnDemandTokenMeta;
+      expect(rwaMeta.rwaFactory.toLowerCase()).toBe(RWA_FACTORY.toLowerCase());
+      expect(rwaMeta.asset).toBeDefined();
+      expect(rwaMeta.liquidityProvider).toBeDefined();
+      expect(rwaMeta.liquidityProvider.addr).toBeDefined();
     });
 
     it("should return correct deposit routing for on-demand pool", () => {
       const poolService = new PoolService(sdk);
-      const kycMeta = sdk.tokensMeta.mustGet(OC_USDC) as KYCOnDemandTokenMeta;
+      const rwaMeta = sdk.tokensMeta.mustGet(OC_USDC) as RWAOnDemandTokenMeta;
 
       const tokensIn = poolService.getDepositTokensIn(ON_DEMAND_POOL);
-      expect(tokensIn).toEqual([kycMeta.asset]);
+      expect(tokensIn).toEqual([rwaMeta.asset]);
 
       const tokensOut = poolService.getDepositTokensOut(
         ON_DEMAND_POOL,
-        kycMeta.asset,
+        rwaMeta.asset,
       );
       expect(tokensOut).toEqual([]);
 
       const depositMeta = poolService.getDepositMetadata(
         ON_DEMAND_POOL,
-        kycMeta.asset,
+        rwaMeta.asset,
       );
       expect(depositMeta).toEqual({
         zapper: undefined,
-        approveTarget: kycMeta.liquidityProvider.addr,
+        approveTarget: rwaMeta.liquidityProvider.addr,
         permissible: false,
-        type: "kyc-on-demand",
+        type: "rwa-on-demand",
       });
     });
 
     it("should return undefined from addLiquidity for on-demand pool", () => {
       const poolService = new PoolService(sdk);
-      const kycMeta = sdk.tokensMeta.mustGet(OC_USDC) as KYCOnDemandTokenMeta;
+      const rwaMeta = sdk.tokensMeta.mustGet(OC_USDC) as RWAOnDemandTokenMeta;
 
       const depositMeta = poolService.getDepositMetadata(
         ON_DEMAND_POOL,
-        kycMeta.asset,
+        rwaMeta.asset,
       );
 
       const call = poolService.addLiquidity({
         collateral: {
-          token: kycMeta.asset,
+          token: rwaMeta.asset,
           balance: parseUnits("100", 6),
         },
         pool: ON_DEMAND_POOL,
@@ -305,7 +305,7 @@ describe.skipIf(!!process.env.CI)("KYC pool deposit and withdraw", () => {
 
     it("should return correct withdrawal routing for on-demand pool", () => {
       const poolService = new PoolService(sdk);
-      const kycMeta = sdk.tokensMeta.mustGet(OC_USDC) as KYCOnDemandTokenMeta;
+      const rwaMeta = sdk.tokensMeta.mustGet(OC_USDC) as RWAOnDemandTokenMeta;
 
       const withdrawTokensIn =
         poolService.getWithdrawalTokensIn(ON_DEMAND_POOL);
@@ -315,7 +315,7 @@ describe.skipIf(!!process.env.CI)("KYC pool deposit and withdraw", () => {
         ON_DEMAND_POOL,
         ON_DEMAND_POOL,
       );
-      expect(withdrawTokensOut).toEqual([kycMeta.asset]);
+      expect(withdrawTokensOut).toEqual([rwaMeta.asset]);
 
       const withdrawalMeta = poolService.getWithdrawalMetadata(
         ON_DEMAND_POOL,
@@ -325,13 +325,13 @@ describe.skipIf(!!process.env.CI)("KYC pool deposit and withdraw", () => {
         zapper: undefined,
         approveTarget: undefined,
         permissible: false,
-        type: "kyc-on-demand",
+        type: "rwa-on-demand",
       });
     });
 
     it("should return approve(0) call from removeLiquidity for on-demand pool", () => {
       const poolService = new PoolService(sdk);
-      const kycMeta = sdk.tokensMeta.mustGet(OC_USDC) as KYCOnDemandTokenMeta;
+      const rwaMeta = sdk.tokensMeta.mustGet(OC_USDC) as RWAOnDemandTokenMeta;
 
       const withdrawalMeta = poolService.getWithdrawalMetadata(
         ON_DEMAND_POOL,
@@ -346,7 +346,7 @@ describe.skipIf(!!process.env.CI)("KYC pool deposit and withdraw", () => {
         meta: withdrawalMeta,
       });
 
-      expect(call.target).toBe(kycMeta.asset);
+      expect(call.target).toBe(rwaMeta.asset);
       expect(call.functionName).toBe("approve");
       expect(call.args[1]).toBe(0n);
     });

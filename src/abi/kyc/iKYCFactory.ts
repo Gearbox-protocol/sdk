@@ -1,4 +1,4 @@
-export const iKYCFactoryAbi = [
+export const iRWAFactoryAbi = [
   {
     type: "function",
     name: "contractType",

@@ -6,8 +6,8 @@ import {
   type Transport,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { iDSRegistryServiceAbi } from "../abi/kyc/iDSRegistryService.js";
-import { iDSTokenAbi } from "../abi/kyc/iDSToken.js";
+import { iDSRegistryServiceAbi } from "../abi/rwa/iDSRegistryService.js";
+import { iDSTokenAbi } from "../abi/rwa/iDSToken.js";
 import {
   type GearboxChain,
   type ILogger,
@@ -42,7 +42,7 @@ interface ClaimDSTokenProps {
    */
   usdAmount?: string;
   marketConfigurators?: Address[];
-  kycFactories?: Address[];
+  rwaFactories?: Address[];
   logger?: ILogger;
 }
 
@@ -166,7 +166,7 @@ export async function claimDSToken(props: ClaimDSTokenProps): Promise<void> {
     adminPrivateKey,
     token,
     marketConfigurators,
-    kycFactories,
+    rwaFactories,
     usdAmount: usdAmountProp = "100000",
   } = props;
 
@@ -184,7 +184,7 @@ export async function claimDSToken(props: ClaimDSTokenProps): Promise<void> {
     client: anvil as unknown as PublicClient<Transport, GearboxChain>,
     timeout: 120_000,
   });
-  await sdk.attach({ marketConfigurators, kycFactories });
+  await sdk.attach({ marketConfigurators, rwaFactories });
   let amount = 0n;
   for (const market of sdk.marketRegister.markets) {
     try {

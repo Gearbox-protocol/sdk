@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import { iSecuritizeDegenNFTAbi } from "../../../../abi/kyc/iSecuritizeDegenNFT.js";
+import { iSecuritizeDegenNFTAbi } from "../../../../abi/rwa/iSecuritizeDegenNFT.js";
 import { BaseContract } from "../../../base/index.js";
 import type { OnchainSDK } from "../../../OnchainSDK.js";
 

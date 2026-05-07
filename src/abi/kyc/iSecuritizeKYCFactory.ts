@@ -1,4 +1,4 @@
-export const iSecuritizeKYCFactoryAbi = [
+export const iSecuritizeRWAFactoryAbi = [
   {
     type: "function",
     name: "contractType",
@@ -234,7 +234,7 @@ export const iSecuritizeKYCFactoryAbi = [
   },
   {
     type: "event",
-    name: "OpenKYCCreditAccount",
+    name: "OpenRWACreditAccount",
     inputs: [
       {
         name: "creditAccount",

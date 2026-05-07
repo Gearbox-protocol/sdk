@@ -16,7 +16,7 @@ import {
   formatBNvalue,
   percentFmt,
 } from "../../utils/index.js";
-import type { IKYCFactory } from "../kyc/types.js";
+import type { IRWAFactory } from "../rwa/types.js";
 
 const abi = [...iPoolV310Abi, ...iPausableAbi] as const;
 type abi = typeof abi;
@@ -51,10 +51,10 @@ export class PoolV310Contract extends BaseContract<abi> {
     });
   }
 
-  public get kycFactory(): IKYCFactory | undefined {
+  public get rwaFactory(): IRWAFactory | undefined {
     const meta = this.#sdk.tokensMeta.mustGet(this.underlying);
-    if (this.#sdk.tokensMeta.isKYCUnderlying(meta)) {
-      return this.#sdk.mustGetContract<IKYCFactory>(meta.kycFactory);
+    if (this.#sdk.tokensMeta.isRWAUnderlying(meta)) {
+      return this.#sdk.mustGetContract<IRWAFactory>(meta.rwaFactory);
     }
     return undefined;
   }
