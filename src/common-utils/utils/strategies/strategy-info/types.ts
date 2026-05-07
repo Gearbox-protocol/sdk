@@ -74,6 +74,7 @@ export interface StrategyInfoResult<
   totalBorrowRate: number;
   availableToBorrowMoney: bigint;
   minCreditManager: CM;
+  baseQuotaRateWithFee: bigint;
 }
 
 export interface GetStrategyInfoArgs<

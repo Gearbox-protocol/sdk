@@ -4,7 +4,7 @@ import type { QuotaInfoSlice } from "./types.js";
 
 export interface CalcQuotaBorrowRateProps {
   quotas: Record<Address, Asset>;
-  quotaRates: Record<Address, QuotaInfoSlice>;
+  quotaRates: Record<Address, QuotaInfoSlice | undefined>;
 }
 
 /**

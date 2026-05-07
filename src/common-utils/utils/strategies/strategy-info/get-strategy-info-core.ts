@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-
+import { getSingleQuotaBorrowRate } from "../../index.js";
 import { PriceUtils } from "../../price-math.js";
 import { getFactorFromLeverage } from "../leverage/index.js";
 import { sortStrategyCMsByAvailability } from "../sort-strategy-cms-by-availability/index.js";
@@ -83,8 +83,8 @@ export function getStrategyInfoCore<
     totalMaxApy = 0,
     maxLeverage = 0n,
 
-    baseBorrowRate = 0,
-    quotaRateMin = 0n,
+    effectiveBaseRate = 0,
+    effectiveQuotaRate = 0n,
   } = getStrategyMaxAPY(
     targetTokenAddress,
     minCreditManager,
@@ -108,9 +108,21 @@ export function getStrategyInfoCore<
   );
 
   const r =
-    (BigInt(baseBorrowRate) * getFactorFromLeverage(maxLeverage)) / maxLeverage;
-  const qr = quotaRateMin;
+    (BigInt(effectiveBaseRate) * getFactorFromLeverage(maxLeverage)) /
+    maxLeverage;
+  const qr = effectiveQuotaRate;
   const totalBorrowRate = Number(r + qr);
+
+  const baseQuotaRateWithFee = getSingleQuotaBorrowRate({
+    quotaRates: minCreditManager?.quotas || {},
+    feeInterest: minCreditManager?.feeInterest || 0,
+    quotas: {
+      [targetTokenAddress]: {
+        token: targetTokenAddress,
+        balance: 1n,
+      },
+    },
+  });
 
   return {
     maxLeverage,
@@ -118,6 +130,7 @@ export function getStrategyInfoCore<
     bonusAPY,
 
     totalBorrowRate,
+    baseQuotaRateWithFee,
     availableToBorrowMoney,
     minCreditManager,
   };

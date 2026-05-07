@@ -14,7 +14,7 @@ import {
   calculateMaxLeverageFactor,
   getLeverageFromFactor,
 } from "../leverage/index.js";
-import type { APYListSlice, CreditManagerSlice, QuotaSlice } from "./types.js";
+import type { APYListSlice, CreditManagerSlice } from "./types.js";
 
 type CMForStrategyMaxAPY = Pick<
   CreditManagerSlice,
@@ -44,7 +44,7 @@ export function getStrategyMaxAPY(
     cm.pool,
   );
 
-  const baseRateWithFee = calculateEffectiveBorrowRate({
+  const effectiveBaseRate = calculateEffectiveBorrowRate({
     underlyingTokenAddress: cm.underlyingToken,
     baseRateWithFee: cm.baseBorrowRate,
     apyList: apyRecord,
@@ -52,24 +52,16 @@ export function getStrategyMaxAPY(
 
   const lt = cm.liquidationThresholds[targetToken] || 0n;
   const feeInterest = cm.feeInterest;
-  const tokenQuota =
-    cm.quotas[targetToken] ||
-    ({
-      token: targetToken,
-      rate: 0n,
-      quotaIncreaseFee: 0n,
-      totalQuoted: 0n,
-      limit: 0n,
-      isActive: true,
-    } satisfies QuotaSlice);
+  const tokenQuota = cm.quotas[targetToken];
   const qRate = ((tokenQuota?.rate || 0n) * lt) / PERCENTAGE_FACTOR;
   const qRate_reserve =
     (qRate * (PERCENTAGE_FACTOR + toBigInt(quotaReserve))) / PERCENTAGE_FACTOR;
 
-  const quotaRateWithFee = getSingleQuotaBorrowRate({
+  const effectiveQuotaRate = getSingleQuotaBorrowRate({
     quotaRates: {
       [targetToken]: {
         ...tokenQuota,
+        isActive: tokenQuota?.isActive ?? true,
         rate: qRate_reserve,
       },
     },
@@ -97,8 +89,8 @@ export function getStrategyMaxAPY(
     ? maxAPYFormula({
         apy,
         leverage,
-        baseRateWithFee,
-        quotaRateWithFee: Number(quotaRateWithFee),
+        baseRateWithFee: effectiveBaseRate,
+        quotaRateWithFee: Number(effectiveQuotaRate),
       })
     : undefined;
 
@@ -108,7 +100,7 @@ export function getStrategyMaxAPY(
 
   const totalMaxApy = (maxAPY || 0) + Number(bonusAPYTotal);
 
-  const totalBorrowRate = baseRateWithFee + Number(quotaRateWithFee);
+  const totalBorrowRate = effectiveBaseRate + Number(effectiveQuotaRate);
 
   return {
     totalMaxApy,
@@ -116,8 +108,9 @@ export function getStrategyMaxAPY(
     maxAPY: maxAPY || 0,
     maxLeverage: leverage,
 
-    quotaRateMin: quotaRateWithFee,
-    baseBorrowRate: baseRateWithFee,
+    effectiveBaseRate,
+    effectiveQuotaRate,
+
     totalBorrowRate,
   };
 }
