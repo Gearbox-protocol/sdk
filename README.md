@@ -1,5 +1,7 @@
 # Gearbox SDK
 
+![NPM Version](https://img.shields.io/npm/v/%40gearbox-protocol%2Fsdk?link=https%3A%2F%2Fwww.npmjs.com%2Fpackage%2F%40gearbox-protocol%2Fsdk)
+
 Gearbox core types SDK
 Contains core datastructures which are used across multiple gearbox services
 
