@@ -12,7 +12,7 @@ export interface NotValidatedStrategy
 }
 
 export interface Strategy extends Omit<NotValidatedStrategy, "network" | "id"> {
-  id: Address;
+  id: string;
   network: NetworkType;
 }
 
