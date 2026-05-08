@@ -3,6 +3,10 @@
   "version": "0.0.0-semantic-release",
   "description": "Gearbox SDK",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Gearbox-protocol/sdk.git"
+  },
   "main": "./dist/cjs/sdk/index.js",
   "module": "./dist/esm/sdk/index.js",
   "types": "./dist/types/sdk/index.d.ts",
