@@ -30,19 +30,13 @@ export function getReleasedStrategiesListCore({
       const network =
         s.chainId !== undefined ? allowedChains[s.chainId] : undefined;
       const isNetworkCorrect = !!network && network === s.network;
-      const isHidden = !showHiddenStrategies && s.hideInProd;
+      const isHidden = !showHiddenStrategies && !!s.hideInProd;
       const showInMainApp = s.showInMainApp ?? true;
-      const showCondition = curatorFilter || showInMainApp;
+      const showCondition = !!curatorFilter || showInMainApp;
 
-      if (
-        isNetworkCorrect &&
-        !isHidden &&
-        source.hasToken(s.chainId, s.tokenOutAddress) &&
-        showCondition
-      ) {
+      if (isNetworkCorrect && !isHidden && showCondition) {
         acc.push({
           ...s,
-          id: s.tokenOutAddress,
           network,
         });
       }
