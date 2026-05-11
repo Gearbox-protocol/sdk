@@ -41,6 +41,8 @@ const TRANSIENT_PATTERNS: RegExp[] = [
   /context cancel/i,
   // DRPC error: Can't route your request to suitable provider, if you specified certain providers revise the list
   /suitable provider/i,
+  // DRPC error: Temporary internal error. Please retry, trace-id: xxx
+  /temporary internal error/i,
 ];
 
 /**
