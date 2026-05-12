@@ -1,12 +1,13 @@
 packages:
   - "website"
 allowBuilds:
-  '@swc/core': true
+  "@swc/core": true
   core-js: true
   core-js-pure: true
   esbuild: true
   secp256k1: true
 
+blockExoticSubdeps: true
 minimumReleaseAge: 1440
 minimumReleaseAgeExclude:
   - "@gearbox-protocol/*"
