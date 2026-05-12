@@ -1,5 +1,27 @@
 import type { Address } from "viem";
 
+export type TokenIconLayerSource =
+  | { type: "symbol"; symbol: string }
+  | { type: "url"; url: string };
+
+/**
+ * Named layout presets for composite icons. Pixel layout lives in UI-kit (TokenIcon), not in API payloads.
+ */
+export type TokenIconCompositePreset =
+  /** Background full size; foreground centered at ~65% (e.g. token on plate). */
+  "centered_foreground";
+
+/**
+ * Client-composed token icon: multiple layers by preset.
+ */
+export type IconComposite = {
+  kind: "composite";
+  preset: TokenIconCompositePreset;
+  scaleFactor?: number;
+  /** Exactly two layers (bottom then top). */
+  layers: readonly [TokenIconLayerSource, TokenIconLayerSource];
+};
+
 export interface TokenDataPayload {
   addr: Address;
 
@@ -13,6 +35,8 @@ export interface TokenDataPayload {
   decimals: number;
 
   isPhantom: boolean;
+
+  icon?: string | IconComposite;
 }
 
 // UPDATE ME
@@ -90,7 +114,7 @@ export class TokenData {
   readonly name: string;
 
   readonly decimals: number;
-  readonly icon: string;
+  readonly icon: string | IconComposite;
 
   readonly isPhantom: boolean;
 
@@ -107,7 +131,7 @@ export class TokenData {
     this.name = payload.name;
 
     this.decimals = payload.decimals;
-    this.icon = TokenData.getTokenIcon(payload.symbol);
+    this.icon = payload.icon ?? TokenData.getTokenIcon(payload.symbol);
 
     this.isPhantom = payload.isPhantom ?? false;
   }
