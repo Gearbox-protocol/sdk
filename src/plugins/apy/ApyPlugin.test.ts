@@ -26,6 +26,7 @@ const mockConfigurator =
 const mockAdapter = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee" as Address;
 const mockWrappedNative =
   "0x7777777777777777777777777777777777777777" as Address;
+const mockStrategyId = "test-strategy";
 
 function makeMockTokensMeta(
   entries: Array<[Address, { decimals: number }]> = [
@@ -284,7 +285,7 @@ function makeStrategy(
 ): NotValidatedStrategy {
   return {
     name: "Test strategy",
-    id: "test-strategy",
+    id: mockStrategyId,
     chainId: 1,
     network: "Mainnet",
     tokenOutAddress: mockToken,
@@ -395,7 +396,7 @@ describe("ApyPlugin.getStrategyInfoSnapshot", () => {
       curatorFilter,
     });
 
-    const cms = result.cmsOfStrategiesByChain?.[1]?.[mockToken];
+    const cms = result.cmsOfStrategiesByChain?.[1]?.[mockStrategyId];
     expect(Object.keys(cms ?? {})).toEqual([mockCM]);
   });
 
@@ -410,7 +411,7 @@ describe("ApyPlugin.getStrategyInfoSnapshot", () => {
       ],
     });
 
-    expect(result.strategiesInfo[1][mockToken]).toBeDefined();
+    expect(result.strategiesInfo[1][mockStrategyId]).toBeDefined();
   });
 
   it("computes strategiesInfo for released strategies", () => {
@@ -423,10 +424,10 @@ describe("ApyPlugin.getStrategyInfoSnapshot", () => {
     });
 
     expect(result.strategiesInfo[1]).toBeDefined();
-    expect(result.strategiesInfo[1][mockToken]).toBeDefined();
-    expect(result.strategiesInfo[1][mockToken]?.points).toBeDefined();
+    expect(result.strategiesInfo[1][mockStrategyId]).toBeDefined();
+    expect(result.strategiesInfo[1][mockStrategyId]?.points).toBeDefined();
     expect(
-      result.strategiesInfo[1][mockToken]?.points?.pointsInfo,
+      result.strategiesInfo[1][mockStrategyId]?.points?.pointsInfo,
     ).toBeUndefined();
   });
 
@@ -475,7 +476,7 @@ describe("ApyPlugin.getStrategyInfoSnapshot", () => {
       strategyPayloadsList: [makeStrategy()],
     });
 
-    const points = result.strategiesInfo[1][mockToken]?.points;
+    const points = result.strategiesInfo[1][mockStrategyId]?.points;
     expect(points).toBeDefined();
     expect(points?.rewardRates).toHaveLength(1);
     expect(points?.debtRewardRates).toHaveLength(1);
@@ -511,7 +512,7 @@ describe("ApyPlugin.getStrategyInfoSnapshot", () => {
       strategyPayloadsList: strategies,
     });
 
-    const info = result.strategiesInfo[1][mockToken];
+    const info = result.strategiesInfo[1][mockStrategyId];
     expect(info).toBeDefined();
     expect(info?.availableToBorrowMoney).toBeGreaterThan(0n);
   });
@@ -523,7 +524,7 @@ describe("ApyPlugin.getStrategyInfoSnapshot", () => {
       strategyPayloadsList: [makeStrategy()],
     });
 
-    const cm = result.strategiesInfo[1][mockToken]?.minCreditManager;
+    const cm = result.strategiesInfo[1][mockStrategyId]?.minCreditManager;
     const expectedBaseBorrowRate = Number(
       (10000000000000000000000000n *
         (1000n + PERCENTAGE_FACTOR) *
@@ -551,7 +552,7 @@ describe("ApyPlugin.getStrategyInfoSnapshot", () => {
     });
 
     expect(
-      result.strategiesInfo[1][mockToken]?.availableToBorrowMoney,
+      result.strategiesInfo[1][mockStrategyId]?.availableToBorrowMoney,
     ).toBeGreaterThan(0n);
   });
 
@@ -590,7 +591,7 @@ describe("ApyPlugin.getStrategyInfoSnapshot", () => {
     });
 
     expect(
-      result.strategiesInfo[1][mockToken]?.availableToBorrowMoney,
+      result.strategiesInfo[1][mockStrategyId]?.availableToBorrowMoney,
     ).toBeGreaterThan(0n);
   });
 });
