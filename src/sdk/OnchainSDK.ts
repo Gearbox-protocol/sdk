@@ -369,7 +369,7 @@ export class OnchainSDK<
     // attaching to historical block but providing latest price update will fail
     // with PriceTimestampTooFarAheadException if we exceed MAX_DATA_TIMESTAMP_AHEAD_SECONDS (1 minute)
     if (
-      !!blockNumber &&
+      blockNumber &&
       !redstone?.historicTimestamp &&
       time - Number(block.timestamp) * 1000 > 60 * 1000
     ) {
@@ -378,7 +378,7 @@ export class OnchainSDK<
       );
     }
     if (
-      !!blockNumber &&
+      blockNumber &&
       !pyth?.historicTimestamp &&
       time - Number(block.timestamp) * 1000 > 60 * 1000
     ) {
