@@ -176,7 +176,7 @@ export async function simulateWithPriceUpdates<
       const r = multicallResults[1];
       if (r.status === "success") {
         const fromMc = BigInt(r.result as bigint);
-        if (!!r.result && fromMc !== parameters.blockNumber) {
+        if (r.result && fromMc !== parameters.blockNumber) {
           throw getSimulateWithPriceUpdatesError(
             new BaseError(
               `block number returned from multicall (${fromMc}) is different from the one provided (${parameters.blockNumber})`,
