@@ -52,6 +52,10 @@ export class RemoteConfigsPlugin
     return this.state;
   }
 
+  public override async syncState(): Promise<void> {
+    await this.load(false);
+  }
+
   public get state(): RemoteConfigsPluginState {
     return {
       pools: this.pools,
@@ -73,7 +77,7 @@ export class RemoteConfigsPlugin
   // ---------------------------------------------------------------------------
 
   /**
-   * All loaded pool configs.
+   * Pool configs for the current SDK network.
    * @throws if plugin is not loaded
    */
   public get pools(): PoolConfigPayload[] {
@@ -84,28 +88,7 @@ export class RemoteConfigsPlugin
   }
 
   /**
-   * Pool configs filtered for the current SDK network.
-   * @throws if plugin is not loaded
-   */
-  public get poolsForCurrentNetwork(): PoolConfigPayload[] {
-    return this.pools.filter(
-      p =>
-        p.chainId === this.sdk.chainId &&
-        p.network.toLowerCase() === this.sdk.networkType.toLowerCase(),
-    );
-  }
-
-  /**
-   * Returns a pool config by address (case-insensitive).
-   * @throws if plugin is not loaded
-   */
-  public getPoolConfig(address: Address): PoolConfigPayload | undefined {
-    const lc = address.toLowerCase();
-    return this.pools.find(p => p.address === lc);
-  }
-
-  /**
-   * All loaded strategy configs.
+   * Strategy configs for the current SDK network.
    * @throws if plugin is not loaded
    */
   public get strategies(): NotValidatedStrategy[] {
@@ -113,26 +96,6 @@ export class RemoteConfigsPlugin
       throw new Error("remote-configs plugin not loaded");
     }
     return this.#strategies;
-  }
-
-  /**
-   * Strategy configs filtered for the current SDK network.
-   * @throws if plugin is not loaded
-   */
-  public get strategiesForCurrentNetwork(): NotValidatedStrategy[] {
-    return this.strategies.filter(
-      s =>
-        s.chainId === this.sdk.chainId &&
-        s.network.toLowerCase() === this.sdk.networkType.toLowerCase(),
-    );
-  }
-
-  /**
-   * Returns a strategy config by its id.
-   * @throws if plugin is not loaded
-   */
-  public getStrategyConfig(id: string): NotValidatedStrategy | undefined {
-    return this.strategies.find(s => s.id === id);
   }
 
   // ---------------------------------------------------------------------------
@@ -143,7 +106,14 @@ export class RemoteConfigsPlugin
     for (const source of this.#sources) {
       try {
         const data = await source.getPools();
-        return this.#mapPoolPayload(data);
+        const mapped = this.#mapPoolPayload(
+          data.filter(
+            p =>
+              p.chainId === this.sdk.chainId &&
+              p.network.toLowerCase() === this.sdk.networkType.toLowerCase(),
+          ),
+        );
+        return mapped;
       } catch (e) {
         this.logger?.warn(e, `${source.constructor.name} failed to load pools`);
       }
@@ -155,7 +125,14 @@ export class RemoteConfigsPlugin
     for (const source of this.#sources) {
       try {
         const data = await source.getStrategies();
-        return this.#mapStrategyPayload(data);
+        const mapped = this.#mapStrategyPayload(
+          data.filter(
+            s =>
+              s.chainId === this.sdk.chainId &&
+              s.network.toLowerCase() === this.sdk.networkType.toLowerCase(),
+          ),
+        );
+        return mapped;
       } catch (e) {
         this.logger?.warn(
           e,

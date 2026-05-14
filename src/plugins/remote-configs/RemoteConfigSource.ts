@@ -1,13 +1,14 @@
-import axios from "axios";
-
 import type { PoolConfigPayload } from "../../common-utils/static/pool-config.js";
 import type { StrategyConfigPayload } from "../../common-utils/static/strategy.js";
+import type { ILogger } from "../../sdk/index.js";
+import { ConfigCache } from "./config-cache.js";
 import type { ConfigSource } from "./types.js";
 
 const DEFAULT_POOLS_URL =
   "https://static.gearbox.finance/client-v3/configs/pools/pools.json";
 const DEFAULT_STRATEGIES_URL =
   "https://static.gearbox.finance/client-v3/configs/strategies/strategies.json";
+const DEFAULT_CACHE_TTL_MS = 30 * 60 * 1000;
 
 export interface RemoteConfigSourceOptions {
   /**
@@ -20,26 +21,43 @@ export interface RemoteConfigSourceOptions {
    * @default "https://static.gearbox.finance/client-v3/configs/strategies/strategies.json"
    */
   strategiesUrl?: string;
+  /**
+   * Cache TTL in milliseconds.
+   * @default 60_000
+   */
+  cacheTtlMs?: number;
+  /**
+   * Optional logger for cache diagnostics.
+   */
+  logger?: ILogger;
 }
 
 export class RemoteConfigSource implements ConfigSource {
-  #poolsUrl: string;
-  #strategiesUrl: string;
+  #poolsCache: ConfigCache<Array<PoolConfigPayload>>;
+  #strategiesCache: ConfigCache<Array<StrategyConfigPayload>>;
 
   constructor(options?: RemoteConfigSourceOptions) {
-    this.#poolsUrl = options?.poolsUrl ?? DEFAULT_POOLS_URL;
-    this.#strategiesUrl = options?.strategiesUrl ?? DEFAULT_STRATEGIES_URL;
-  }
+    const poolsUrl = options?.poolsUrl ?? DEFAULT_POOLS_URL;
+    const strategiesUrl = options?.strategiesUrl ?? DEFAULT_STRATEGIES_URL;
+    const ttlMs = options?.cacheTtlMs ?? DEFAULT_CACHE_TTL_MS;
 
-  public async getPools(): Promise<PoolConfigPayload[]> {
-    const { data } = await axios.get<Array<PoolConfigPayload>>(this.#poolsUrl);
-    return data || [];
-  }
-
-  public async getStrategies(): Promise<StrategyConfigPayload[]> {
-    const { data } = await axios.get<Array<StrategyConfigPayload>>(
-      this.#strategiesUrl,
+    this.#poolsCache = ConfigCache.get<Array<PoolConfigPayload>>(
+      poolsUrl,
+      ttlMs,
+      options?.logger,
     );
-    return data || [];
+    this.#strategiesCache = ConfigCache.get<Array<StrategyConfigPayload>>(
+      strategiesUrl,
+      ttlMs,
+      options?.logger,
+    );
+  }
+
+  public async getPools(): Promise<Array<PoolConfigPayload>> {
+    return this.#poolsCache.fetch();
+  }
+
+  public async getStrategies(): Promise<Array<StrategyConfigPayload>> {
+    return this.#strategiesCache.fetch();
   }
 }
