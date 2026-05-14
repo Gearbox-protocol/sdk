@@ -1,7 +1,7 @@
+import { AxiosCache } from "../../common-utils/axios-cache/index.js";
 import type { PoolConfigPayload } from "../../common-utils/static/pool-config.js";
 import type { StrategyConfigPayload } from "../../common-utils/static/strategy.js";
 import type { ILogger } from "../../sdk/index.js";
-import { ConfigCache } from "./config-cache.js";
 import type { ConfigSource } from "./types.js";
 
 const DEFAULT_POOLS_URL =
@@ -33,20 +33,20 @@ export interface RemoteConfigSourceOptions {
 }
 
 export class RemoteConfigSource implements ConfigSource {
-  #poolsCache: ConfigCache<Array<PoolConfigPayload>>;
-  #strategiesCache: ConfigCache<Array<StrategyConfigPayload>>;
+  #poolsCache: AxiosCache<Array<PoolConfigPayload>>;
+  #strategiesCache: AxiosCache<Array<StrategyConfigPayload>>;
 
   constructor(options?: RemoteConfigSourceOptions) {
     const poolsUrl = options?.poolsUrl ?? DEFAULT_POOLS_URL;
     const strategiesUrl = options?.strategiesUrl ?? DEFAULT_STRATEGIES_URL;
     const ttlMs = options?.cacheTtlMs ?? DEFAULT_CACHE_TTL_MS;
 
-    this.#poolsCache = ConfigCache.get<Array<PoolConfigPayload>>(
+    this.#poolsCache = AxiosCache.get<Array<PoolConfigPayload>>(
       poolsUrl,
       ttlMs,
       options?.logger,
     );
-    this.#strategiesCache = ConfigCache.get<Array<StrategyConfigPayload>>(
+    this.#strategiesCache = AxiosCache.get<Array<StrategyConfigPayload>>(
       strategiesUrl,
       ttlMs,
       options?.logger,
