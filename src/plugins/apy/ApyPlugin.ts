@@ -1,6 +1,7 @@
 import type { Address } from "viem";
 
 import { marketCompressorAbi } from "../../abi/compressors/marketCompressor.js";
+import { AxiosCache } from "../../common-utils/axios-cache/index.js";
 import {
   getAvailableAndDisabledStrategies,
   getReleasedStrategiesListCore,
@@ -11,6 +12,7 @@ import type {
   Strategy,
   StrategyCreditManagerView,
 } from "../../common-utils/utils/strategies/types.js";
+import type { Output } from "../../rewards/apy/index.js";
 import { PoolPointsAPI } from "../../rewards/rewards/extra-apy.js";
 import type { ILogger, IOnchainSDKPlugin } from "../../sdk/index.js";
 import {
@@ -24,7 +26,6 @@ import {
 import type { Asset } from "../../sdk/router/types.js";
 import { rayToNumber } from "../../sdk/utils/formatter.js";
 import { hexEq } from "../../sdk/utils/hex.js";
-import { ApyOutputCache } from "./apy-cache.js";
 import { parseGearStats, parseNetworkApy } from "./apy-parser.js";
 import { APY_STATE_CACHE_URL, DEFAULT_APY_INTERVAL_MS } from "./constants.js";
 import type { GetPoolsAPYResult } from "./pool-apy-types.js";
@@ -391,13 +392,13 @@ export class ApyPlugin
 
   async #fetchApy(): Promise<ApySnapshotState | undefined> {
     try {
-      const cache = ApyOutputCache.get(
+      const cache = AxiosCache.get<Output<string, string>>(
         this.#apyUrl,
         this.#cacheTtlMs,
         this.#logger,
+        data => `timestamp: ${data.timestamp}`,
       );
       const output = await cache.fetch();
-      if (!output) return undefined;
 
       const chainData = output.chains[this.sdk.chainId];
       if (!chainData) {
