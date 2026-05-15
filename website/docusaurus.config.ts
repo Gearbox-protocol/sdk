@@ -65,6 +65,7 @@ const config: Config = {
           "../src/plugins/bots/index.ts",
           "../src/plugins/degen-distributors/index.ts",
           "../src/plugins/delayed-withdrawal/index.ts",
+          "../src/plugins/remote-configs/index.ts",
           "../src/plugins/pools-history/index.ts",
         ],
         entryPointStrategy: "resolve",
