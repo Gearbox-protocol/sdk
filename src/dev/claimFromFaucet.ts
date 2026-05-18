@@ -7,6 +7,7 @@ import {
   type Address,
   type PublicClient,
   parseAbi,
+  type TransactionReceipt,
   type WalletClient,
 } from "viem";
 import { readContract } from "viem/actions";
@@ -34,6 +35,7 @@ interface ClaimFromFaucetOptions {
   amount?: TokenClaim[] | bigint | ((minAmountUSD: bigint) => bigint);
   gasMultiplier?: bigint;
   logger?: ILogger;
+  sync?: boolean;
 }
 
 const faucetAbi = parseAbi([
@@ -56,6 +58,7 @@ export async function claimFromFaucet(
     amount,
     logger,
     gasMultiplier = 10n,
+    sync = false,
   } = opts;
 
   let amnt = "default amount";
@@ -108,7 +111,8 @@ export async function claimFromFaucet(
     functionName: "claim",
     args,
   });
-  const hash = await wallet.writeContract({
+  logger?.debug({ gas }, "estimated claim tx gas");
+  const { request } = await publicClient.simulateContract({
     account: claimer,
     address: faucet,
     abi: faucetAbi,
@@ -117,13 +121,21 @@ export async function claimFromFaucet(
     chain: wallet.chain,
     gas: gas * gasMultiplier,
   });
-  const receipt = await publicClient.waitForTransactionReceipt({
-    hash,
-  });
+  logger?.debug({ request }, "simulated claim tx request");
+  let receipt: TransactionReceipt;
+  if (sync) {
+    receipt = await wallet.writeContractSync(request);
+  } else {
+    const hash = await wallet.writeContract(request);
+    logger?.debug({ hash }, "claim tx hash");
+    receipt = await publicClient.waitForTransactionReceipt({ hash });
+  }
   if (receipt.status === "reverted") {
     throw new Error(
-      `${usr} failed to claimed ${amnt} from faucet, tx: ${hash}`,
+      `${usr} failed to claimed ${amnt} from faucet, tx: ${receipt.transactionHash}`,
     );
   }
-  logger?.debug(`${usr} claimed ${amnt} from faucet, tx: ${hash}`);
+  logger?.debug(
+    `${usr} claimed ${amnt} from faucet, tx: ${receipt.transactionHash}`,
+  );
 }
