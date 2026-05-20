@@ -1,8 +1,10 @@
-import { PERCENTAGE_DECIMALS, PERCENTAGE_FACTOR } from "@gearbox-protocol/sdk";
-import { BigIntMath } from "@gearbox-protocol/sdk/common-utils";
+import {
+  PERCENTAGE_DECIMALS,
+  PERCENTAGE_FACTOR,
+} from "../../../sdk/constants/math.js";
+import { BigIntMath } from "../../utils/bigint-math.js";
 import { calculateBorrowRateFromUtilization } from "./calculate-borrow-rate-from-utilization.js";
 import type { CreditManagerData, PoolData } from "./types.js";
-
 export interface CalculateBorrowRateSafelyProps {
   pool: PoolData;
   creditManager: CreditManagerData;

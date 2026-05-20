@@ -1,13 +1,14 @@
-import { toBN } from "@gearbox-protocol/sdk";
-import type { Strategy, TokenData } from "@gearbox-protocol/sdk/common-utils";
 import type { Address } from "viem";
 import { describe, expect, it } from "vitest";
+import { toBN } from "../../../sdk/utils/formatter.js";
 import {
   buildCreditManager,
   buildPool,
   buildQuota,
   buildTokenData,
 } from "../../../test-utils";
+import type { TokenData } from "../../charts/token-data.js";
+import type { Strategy } from "../../utils/strategies/types/strategy.js";
 import { getCMYouCanEarn } from "./get-cm-you-can-earn.js";
 import type { APYList, PoolData } from "./types.js";
 
@@ -81,7 +82,7 @@ describe("getCMYouCanEarn", () => {
         totalQuoted: 28666207338545540000n,
       }),
     },
-    isQuoted: t => t.toLowerCase() !== underlyingTokenAddress,
+    isQuoted: (t: Address) => t.toLowerCase() !== underlyingTokenAddress,
     feeInterest: 2000,
     isPaused: false,
     baseBorrowRate: 18991,

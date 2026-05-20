@@ -1,6 +1,9 @@
-import { PERCENTAGE_DECIMALS, PERCENTAGE_FACTOR } from "@gearbox-protocol/sdk";
 import type { Address } from "viem";
 
+import {
+  PERCENTAGE_DECIMALS,
+  PERCENTAGE_FACTOR,
+} from "../../../sdk/constants/math.js";
 export const EMPTY_OBJECT = {};
 
 export const EMPTY_ARRAY = [];

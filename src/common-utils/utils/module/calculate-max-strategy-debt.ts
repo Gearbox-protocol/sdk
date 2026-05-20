@@ -1,9 +1,10 @@
-import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR } from "@gearbox-protocol/sdk";
-import {
-  BigIntMath,
-  calculateLossCoefficient,
-} from "@gearbox-protocol/sdk/common-utils";
 import type { Address } from "viem";
+import {
+  LEVERAGE_DECIMALS,
+  PERCENTAGE_FACTOR,
+} from "../../../sdk/constants/math.js";
+import { BigIntMath } from "../../utils/bigint-math.js";
+import { calculateLossCoefficient } from "../../utils/strategies/leverage/calculate-loss-coefficient.js";
 import { maxLeverage } from "./max-leverage.js";
 import type { CreditManagerData } from "./types.js";
 

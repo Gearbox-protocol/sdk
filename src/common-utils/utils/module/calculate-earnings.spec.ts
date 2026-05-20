@@ -1,5 +1,5 @@
-import { toBN } from "@gearbox-protocol/sdk";
 import { describe, expect, it } from "vitest";
+import { toBN } from "../../../sdk/utils/formatter.js";
 import { mockPrices, mockToken1, mockTokenData } from "../../../test-utils";
 import { calculateEarnings } from "./calculate-earnings.js";
 import { PERCENTAGE_FACTOR_1KK } from "./constants.js";

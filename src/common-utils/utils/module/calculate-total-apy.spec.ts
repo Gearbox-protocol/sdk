@@ -1,18 +1,19 @@
-import { PERCENTAGE_FACTOR } from "@gearbox-protocol/sdk";
-import { calcOverallAPY } from "@gearbox-protocol/sdk/common-utils";
 import type { Address } from "viem";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { PERCENTAGE_FACTOR } from "../../../sdk/constants/math.js";
 import {
   mockPrices,
   mockToken1,
   mockTokenData,
   mockUnderlyingToken,
 } from "../../../test-utils";
-
+import { calcOverallAPY } from "../../utils/creditAccount/calc-overall-apy.js";
 import { calculateTotalAPY } from "./calculate-total-apy.js";
 
-vi.mock("@gearbox-protocol/sdk/common-utils", async importOriginal => {
-  const actual = await importOriginal();
+vi.mock("../../utils/creditAccount/calc-overall-apy.js", async () => {
+  const actual = await vi.importActual(
+    "../../utils/creditAccount/calc-overall-apy.js",
+  );
 
   return {
     ...(actual as object),

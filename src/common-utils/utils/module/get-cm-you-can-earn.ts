@@ -1,28 +1,22 @@
-import type { Asset } from "@gearbox-protocol/sdk";
-import {
-  formatBN,
-  LEVERAGE_DECIMALS,
-  toBigInt,
-  toBN,
-  WAD_DECIMALS_POW,
-} from "@gearbox-protocol/sdk";
-import type {
-  LeverageFactor,
-  Strategy,
-} from "@gearbox-protocol/sdk/common-utils";
-import {
-  AssetUtils,
-  BigIntMath,
-  calcHealthFactor,
-  calcQuotaUpdate,
-  calculateEffectiveBorrowRate,
-  getComplexAPYList,
-  getComplexPointsList,
-  getLeverageFromFactor,
-  getPointsInfo,
-  PriceUtils,
-} from "@gearbox-protocol/sdk/common-utils";
 import type { Address } from "viem";
+import {
+  LEVERAGE_DECIMALS,
+  WAD_DECIMALS_POW,
+} from "../../../sdk/constants/math.js";
+import type { Asset } from "../../../sdk/router/types.js";
+import { formatBN, toBigInt, toBN } from "../../../sdk/utils/formatter.js";
+import { calculateEffectiveBorrowRate } from "../../utils/apy/calculate-effective-borrow-rate.js";
+import { getComplexAPYList } from "../../utils/apy/get-complex-apy-list.js";
+import { AssetUtils } from "../../utils/assets-math.js";
+import { BigIntMath } from "../../utils/bigint-math.js";
+import { calcHealthFactor } from "../../utils/creditAccount/calc-health-factor.js";
+import { calcQuotaUpdate } from "../../utils/creditAccount/quota-utils.js";
+import { PriceUtils } from "../../utils/price-math.js";
+import type { LeverageFactor } from "../../utils/strategies/leverage/get-factor-from-leverage.js";
+import { getLeverageFromFactor } from "../../utils/strategies/leverage/get-leverage-from-factor.js";
+import { getComplexPointsList } from "../../utils/strategies/points/get-complex-points-list.js";
+import { getPointsInfo } from "../../utils/strategies/points/get-points-info.js";
+import type { Strategy } from "../../utils/strategies/types/strategy.js";
 import { calculateEarnings } from "./calculate-earnings.js";
 import { calculateTotalAPY } from "./calculate-total-apy.js";
 import { calculateTotalPoints } from "./calculate-total-points.js";

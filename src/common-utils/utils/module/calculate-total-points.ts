@@ -1,20 +1,18 @@
-import type { Asset } from "@gearbox-protocol/sdk";
+import type { Address } from "viem";
 import {
   LEVERAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS,
-} from "@gearbox-protocol/sdk";
+} from "../../../sdk/constants/math.js";
+import type { Asset } from "../../../sdk/router/types.js";
+import { BigIntMath } from "../../utils/bigint-math.js";
+import { PriceUtils } from "../../utils/price-math.js";
+import { getPointsRates } from "../../utils/strategies/points/get-points-rates.js";
 import type {
   LocalDebtReward,
   LocalPointsInfo,
   LocalPointsReward,
-} from "@gearbox-protocol/sdk/common-utils";
-import {
-  BigIntMath,
-  getPointsRates,
-  PriceUtils,
-} from "@gearbox-protocol/sdk/common-utils";
-import type { Address } from "viem";
+} from "../../utils/strategies/types/points-slices.js";
 import type { TokenData } from "./types.js";
 
 const THRESHOLD_POINTS = 1000;

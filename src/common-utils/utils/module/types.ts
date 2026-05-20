@@ -1,9 +1,7 @@
-import type {
-  IconComposite,
-  LocalPointsInfo,
-} from "@gearbox-protocol/sdk/common-utils";
 import type { Address } from "viem";
 
+import type { IconComposite } from "../../charts/token-data.js";
+import type { LocalPointsInfo } from "../../utils/strategies/types/points-slices.js";
 export interface TokenData {
   address: Address;
   symbol: string;

@@ -1,7 +1,6 @@
-import type { Asset } from "@gearbox-protocol/sdk";
 import type { Address } from "viem";
+import type { Asset } from "../../../sdk/router/types.js";
 import type { CreditManagerData } from "./types.js";
-
 export interface ValidateQuotaProps {
   desiredQuota: Record<Address, Asset>;
   quotaUpdate: Array<Asset>;

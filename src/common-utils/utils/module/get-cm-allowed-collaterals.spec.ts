@@ -1,4 +1,3 @@
-import { TokenData } from "@gearbox-protocol/sdk/common-utils";
 import type { Address } from "viem";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
@@ -9,6 +8,7 @@ import {
   mockUnderlyingToken,
   mockWrappedNativeTokenAddress,
 } from "../../../test-utils";
+import { TokenData } from "../../charts/token-data.js";
 import { getCMAllowedCollaterals } from "./get-cm-allowed-collaterals.js";
 import { isCollateralToken } from "./is-collateral-token.js";
 

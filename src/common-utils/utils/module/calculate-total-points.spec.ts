@@ -1,5 +1,8 @@
-import { LEVERAGE_DECIMALS, PRICE_DECIMALS } from "@gearbox-protocol/sdk";
 import { describe, expect, it } from "vitest";
+import {
+  LEVERAGE_DECIMALS,
+  PRICE_DECIMALS,
+} from "../../../sdk/constants/math.js";
 import {
   mockCMAddress,
   mockPrices,

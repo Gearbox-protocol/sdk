@@ -1,8 +1,8 @@
-import type { Asset } from "@gearbox-protocol/sdk";
-import { PriceUtils } from "@gearbox-protocol/sdk/common-utils";
 import type { Address } from "viem";
-import type { TokenData } from "./types.js";
+import type { Asset } from "../../../sdk/router/types.js";
 
+import { PriceUtils } from "../../utils/price-math.js";
+import type { TokenData } from "./types.js";
 export function addAmountInTarget<T extends Asset>(
   asset: T,
   tokensList: Record<Address, TokenData>,

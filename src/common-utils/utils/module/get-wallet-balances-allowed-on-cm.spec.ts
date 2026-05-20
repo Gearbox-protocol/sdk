@@ -1,4 +1,3 @@
-import { sortBalances, TokenData } from "@gearbox-protocol/sdk/common-utils";
 import type { Address } from "viem";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
@@ -6,10 +5,14 @@ import {
   mockToken1,
   mockWrappedNativeTokenAddress,
 } from "../../../test-utils";
+import { TokenData } from "../../charts/token-data.js";
+import { sortBalances } from "../../utils/creditAccount/sort.js";
 import { getWalletBalancesAllowedOnCM } from "./get-wallet-balances-allowed-on-cm.js";
 
-vi.mock("@gearbox-protocol/sdk/common-utils", async importOriginal => {
-  const actual = await importOriginal<Record<string, unknown>>();
+vi.mock("../../utils/creditAccount/sort.js", async () => {
+  const actual = await vi.importActual<Record<string, unknown>>(
+    "../../utils/creditAccount/sort.js",
+  );
 
   return {
     ...actual,

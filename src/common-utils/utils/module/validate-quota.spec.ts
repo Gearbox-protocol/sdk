@@ -1,5 +1,5 @@
-import type { Asset } from "@gearbox-protocol/sdk";
 import { describe, expect, it } from "vitest";
+import type { Asset } from "../../../sdk/router/types.js";
 import {
   buildCreditManager,
   buildQuota,

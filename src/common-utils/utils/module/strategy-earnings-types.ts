@@ -1,11 +1,10 @@
-import type { Asset } from "@gearbox-protocol/sdk";
-import type { Strategy } from "@gearbox-protocol/sdk/common-utils";
+import type { Asset } from "../../../sdk/router/types.js";
+import type { Strategy } from "../../utils/strategies/types/strategy.js";
 import type { calculateEarnings } from "./calculate-earnings.js";
 import type { calculateTotalAPY } from "./calculate-total-apy.js";
 import type { calculateTotalPoints } from "./calculate-total-points.js";
 import type { getListWithAmountInTarget } from "./get-list-with-amount-in-target.js";
 import type { CreditManagerData } from "./types.js";
-
 export type StrategyCMEarningsInfo<CM extends CreditManagerData> =
   | {
       status: "ok";

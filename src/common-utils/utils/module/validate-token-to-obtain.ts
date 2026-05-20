@@ -1,6 +1,6 @@
-import type { Asset } from "@gearbox-protocol/sdk";
 import type { Address } from "viem";
 
+import type { Asset } from "../../../sdk/router/types.js";
 export interface ValidateTokenToObtainProps {
   targetToken: Address | Array<Asset> | null;
   creditManager: { forbiddenTokens: Record<Address, boolean> };

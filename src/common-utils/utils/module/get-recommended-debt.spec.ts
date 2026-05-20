@@ -1,25 +1,31 @@
-import { LEVERAGE_DECIMALS } from "@gearbox-protocol/sdk";
-import type { LeverageFactor } from "@gearbox-protocol/sdk/common-utils";
-import { calculateMaxLeverageFactor } from "@gearbox-protocol/sdk/common-utils";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { LEVERAGE_DECIMALS } from "../../../sdk/constants/math.js";
 import { buildCreditManager, mockToken1 } from "../../../test-utils";
+import { calculateMaxLeverageFactor } from "../../utils/strategies/leverage/calculate-max-leverage-factor.js";
+
+import type { LeverageFactor } from "../../utils/strategies/leverage/get-factor-from-leverage.js";
 import { calculateMaxStrategyDebt } from "./calculate-max-strategy-debt.js";
 import { getRecommendedDebt } from "./get-recommended-debt.js";
 
 vi.mock("./calculate-max-strategy-debt");
-vi.mock("@gearbox-protocol/sdk/common-utils", async importOriginal => {
-  const actual = await importOriginal();
-  return {
-    ...(actual as object),
-    calculateMaxLeverageFactor: vi.fn(
-      (
-        actual as {
-          calculateMaxLeverageFactor: typeof calculateMaxLeverageFactor;
-        }
-      ).calculateMaxLeverageFactor,
-    ),
-  };
-});
+vi.mock(
+  "../../utils/strategies/leverage/calculate-max-leverage-factor.js",
+  async () => {
+    const actual = await vi.importActual(
+      "../../utils/strategies/leverage/calculate-max-leverage-factor.js",
+    );
+    return {
+      ...(actual as object),
+      calculateMaxLeverageFactor: vi.fn(
+        (
+          actual as {
+            calculateMaxLeverageFactor: typeof calculateMaxLeverageFactor;
+          }
+        ).calculateMaxLeverageFactor,
+      ),
+    };
+  },
+);
 
 const mockCalculateMaxStrategyDebt = vi.mocked(calculateMaxStrategyDebt);
 const mockCalculateMaxLeverageFactor = vi.mocked(calculateMaxLeverageFactor);

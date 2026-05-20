@@ -1,9 +1,11 @@
-import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR } from "@gearbox-protocol/sdk";
-import {
-  getFactorFromLeverage,
-  maxLeverageThreshold,
-} from "@gearbox-protocol/sdk/common-utils";
 import type { Address } from "viem";
+import {
+  LEVERAGE_DECIMALS,
+  PERCENTAGE_FACTOR,
+} from "../../../sdk/constants/math.js";
+
+import { getFactorFromLeverage } from "../../utils/strategies/leverage/get-factor-from-leverage.js";
+import { maxLeverageThreshold } from "../../utils/strategies/leverage/max-leverage-threshold.js";
 import type { CreditManagerData } from "./types.js";
 
 type PartialCM = Pick<CreditManagerData, "liquidationThresholds" | "address">;

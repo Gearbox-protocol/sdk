@@ -1,9 +1,8 @@
-import type { Asset } from "@gearbox-protocol/sdk";
-import { sortBalances } from "@gearbox-protocol/sdk/common-utils";
 import type { Address } from "viem";
+import type { Asset } from "../../../sdk/router/types.js";
+import { sortBalances } from "../../utils/creditAccount/sort.js";
 import type { TokenData } from "./types.js";
 import { wrapTokenAddress } from "./wrap-token-address.js";
-
 export interface GetWalletBalancesAllowedOnCMProps {
   walletBalances: Record<Address, bigint> | undefined;
   collateralRecord: Record<Address, Address>;

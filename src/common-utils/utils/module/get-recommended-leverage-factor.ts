@@ -1,5 +1,4 @@
-import type { LeverageFactor } from "@gearbox-protocol/sdk/common-utils";
-
+import type { LeverageFactor } from "../../utils/strategies/leverage/get-factor-from-leverage.js";
 export function getRecommendedLeverageFactor({
   maxLeverageFactor,
 }: {

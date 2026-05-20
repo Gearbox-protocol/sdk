@@ -1,7 +1,6 @@
-import { isUsableToken } from "@gearbox-protocol/sdk/common-utils";
 import type { Address } from "viem";
+import { isUsableToken } from "../../utils/strategies/tokens/is-usable-token.js";
 import type { QuotaInfo } from "./types.js";
-
 export interface IsObtainableTokenProps {
   address: Address;
   creditManager: {

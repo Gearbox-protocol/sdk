@@ -1,5 +1,4 @@
-import { PERCENTAGE_FACTOR } from "@gearbox-protocol/sdk";
-
+import { PERCENTAGE_FACTOR } from "../../../sdk/constants/math.js";
 export function getCollateralByDebt(
   debt: bigint,
   lt: bigint, // 1

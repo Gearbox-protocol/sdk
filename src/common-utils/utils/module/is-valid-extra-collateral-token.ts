@@ -1,6 +1,6 @@
-import { isForbiddenToken } from "@gearbox-protocol/sdk/common-utils";
 import type { Address } from "viem";
 
+import { isForbiddenToken } from "../../utils/strategies/tokens/is-forbidden-token.js";
 export interface IsValidExtraCollateralTokenProps {
   address: Address;
   extraCollateralConfigs:

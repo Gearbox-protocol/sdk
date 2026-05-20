@@ -1,6 +1,6 @@
-import { PERCENTAGE_FACTOR, toBN, WAD } from "@gearbox-protocol/sdk";
 import { describe, expect, it } from "vitest";
-
+import { PERCENTAGE_FACTOR, WAD } from "../../../sdk/constants/math.js";
+import { toBN } from "../../../sdk/utils/formatter.js";
 import { getCollateralByDebt } from "./get-collateral-by-debt.js";
 
 describe("getCollateralByDebt", () => {

@@ -1,5 +1,5 @@
-import type { Asset } from "@gearbox-protocol/sdk";
 import { describe, expect, it } from "vitest";
+import type { Asset } from "../../../sdk/router/types.js";
 import { mockToken1, mockToken2 } from "../../../test-utils";
 import { validateBalances } from "./validate-balances.js";
 

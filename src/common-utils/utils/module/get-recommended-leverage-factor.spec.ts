@@ -1,5 +1,5 @@
-import type { LeverageFactor } from "@gearbox-protocol/sdk/common-utils";
 import { describe, expect, it } from "vitest";
+import type { LeverageFactor } from "../../utils/strategies/leverage/get-factor-from-leverage.js";
 import { getRecommendedLeverageFactor } from "./get-recommended-leverage-factor.js";
 
 describe("getRecommendedLeverageFactor", () => {

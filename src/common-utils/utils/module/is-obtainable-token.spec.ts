@@ -1,11 +1,13 @@
-import { isUsableToken } from "@gearbox-protocol/sdk/common-utils";
 import type { Address } from "viem";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { buildCreditManager } from "../../../test-utils";
+import { isUsableToken } from "../../utils/strategies/tokens/is-usable-token.js";
 import { isObtainableToken } from "./is-obtainable-token.js";
 
-vi.mock("@gearbox-protocol/sdk/common-utils", async importOriginal => {
-  const actual = await importOriginal();
+vi.mock("../../utils/strategies/tokens/is-usable-token.js", async () => {
+  const actual = await vi.importActual(
+    "../../utils/strategies/tokens/is-usable-token.js",
+  );
   return {
     ...(actual as object),
     isUsableToken: vi.fn(
@@ -21,7 +23,9 @@ describe("isObtainableToken", () => {
 
   beforeEach(async () => {
     mockIsUsableToken.mockReset();
-    const actual = await vi.importActual("@gearbox-protocol/sdk/common-utils");
+    const actual = await vi.importActual(
+      "../../utils/strategies/tokens/is-usable-token.js",
+    );
     mockIsUsableToken.mockImplementation(
       (actual as { isUsableToken: typeof isUsableToken }).isUsableToken,
     );

@@ -1,23 +1,35 @@
-import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR } from "@gearbox-protocol/sdk";
-import type { LeverageFactor } from "@gearbox-protocol/sdk/common-utils";
-import { calculateLossCoefficient } from "@gearbox-protocol/sdk/common-utils";
 import type { Address } from "viem";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  LEVERAGE_DECIMALS,
+  PERCENTAGE_FACTOR,
+} from "../../../sdk/constants/math.js";
 import { buildCreditManager, mockToken1 } from "../../../test-utils";
+import { calculateLossCoefficient } from "../../utils/strategies/leverage/calculate-loss-coefficient.js";
+
+import type { LeverageFactor } from "../../utils/strategies/leverage/get-factor-from-leverage.js";
 import { calculateMaxStrategyDebt } from "./calculate-max-strategy-debt.js";
 import { maxLeverage } from "./max-leverage.js";
 
 vi.mock("./max-leverage");
-vi.mock("@gearbox-protocol/sdk/common-utils", async importOriginal => {
-  const actual = await importOriginal();
-  return {
-    ...(actual as object),
-    calculateLossCoefficient: vi.fn(
-      (actual as { calculateLossCoefficient: typeof calculateLossCoefficient })
-        .calculateLossCoefficient,
-    ),
-  };
-});
+vi.mock(
+  "../../utils/strategies/leverage/calculate-loss-coefficient.js",
+  async () => {
+    const actual = await vi.importActual(
+      "../../utils/strategies/leverage/calculate-loss-coefficient.js",
+    );
+    return {
+      ...(actual as object),
+      calculateLossCoefficient: vi.fn(
+        (
+          actual as {
+            calculateLossCoefficient: typeof calculateLossCoefficient;
+          }
+        ).calculateLossCoefficient,
+      ),
+    };
+  },
+);
 
 const mockMaxLeverage = vi.mocked(maxLeverage);
 const mockCalculateLossCoefficient = vi.mocked(calculateLossCoefficient);

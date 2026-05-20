@@ -1,11 +1,10 @@
-import { LEVERAGE_DECIMALS } from "@gearbox-protocol/sdk";
-import type { LeverageFactor } from "@gearbox-protocol/sdk/common-utils";
-import { calculateMaxLeverageFactor } from "@gearbox-protocol/sdk/common-utils";
 import type { Address } from "viem";
+import { LEVERAGE_DECIMALS } from "../../../sdk/constants/math.js";
+import { calculateMaxLeverageFactor } from "../../utils/strategies/leverage/calculate-max-leverage-factor.js";
+import type { LeverageFactor } from "../../utils/strategies/leverage/get-factor-from-leverage.js";
 import { calculateMaxStrategyDebt } from "./calculate-max-strategy-debt.js";
 import { getRecommendedLeverageFactor } from "./get-recommended-leverage-factor.js";
 import type { CreditManagerData } from "./types.js";
-
 export interface GetRecommendedDebtProps {
   targetToken: Address;
   amount: bigint;

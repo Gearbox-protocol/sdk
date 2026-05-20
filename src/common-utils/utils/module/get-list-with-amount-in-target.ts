@@ -1,8 +1,7 @@
-import type { Asset } from "@gearbox-protocol/sdk";
 import type { Address } from "viem";
+import type { Asset } from "../../../sdk/router/types.js";
 import { addAmountInTarget } from "./add-amount-in-target.js";
 import type { TokenData } from "./types.js";
-
 export interface AddAmountInTargetProps<T> {
   assets: Array<T>;
   targetToken: Address;

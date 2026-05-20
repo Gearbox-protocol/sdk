@@ -1,8 +1,7 @@
-import { PriceUtils } from "@gearbox-protocol/sdk/common-utils";
 import type { Address } from "viem";
+import { PriceUtils } from "../../utils/price-math.js";
 import { PERCENTAGE_FACTOR_1KK } from "./constants.js";
 import type { TokenData } from "./types.js";
-
 export interface CalculateEarningsProps {
   overallAPYBigInt: bigint | undefined | null;
   targetAmount: bigint | undefined;

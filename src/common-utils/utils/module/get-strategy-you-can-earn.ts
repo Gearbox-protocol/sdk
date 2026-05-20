@@ -1,6 +1,6 @@
-import type { Strategy } from "@gearbox-protocol/sdk/common-utils";
-import { isStrategyCMDisabled } from "@gearbox-protocol/sdk/common-utils";
 import type { Address } from "viem";
+import { isStrategyCMDisabled } from "../../utils/strategies/strategy-info/is-strategy-cm-disabled.js";
+import type { Strategy } from "../../utils/strategies/types/strategy.js";
 import { getChainPhantomTokens } from "./get-chain-phantom-tokens.js";
 import { getCMYouCanEarn } from "./get-cm-you-can-earn.js";
 import { getNativeTokenAddress } from "./get-native-token-address.js";

@@ -1,5 +1,5 @@
-import type { StrategyConfigPayload } from "@gearbox-protocol/sdk/common-utils";
 import type { Address } from "viem";
+import type { StrategyConfigPayload } from "../../static/strategy.js";
 import { isObtainableToken } from "./is-obtainable-token.js";
 import { isValidExtraCollateralToken } from "./is-valid-extra-collateral-token.js";
 import type { CreditManagerData, TokenData } from "./types.js";

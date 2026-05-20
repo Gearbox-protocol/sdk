@@ -1,5 +1,5 @@
-import { BigIntMath } from "@gearbox-protocol/sdk/common-utils";
 import type { Address } from "viem";
+import { BigIntMath } from "../../utils/bigint-math.js";
 import type { CreditManagerData, PoolData } from "./types.js";
 import {
   type ValidateOpenAccountPoolQuotaStatusResult,

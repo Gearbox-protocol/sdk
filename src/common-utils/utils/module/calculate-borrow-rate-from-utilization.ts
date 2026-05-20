@@ -1,6 +1,5 @@
-import { PERCENTAGE_FACTOR } from "@gearbox-protocol/sdk";
+import { PERCENTAGE_FACTOR } from "../../../sdk/constants/math.js";
 import type { LinearModel } from "./types.js";
-
 export function calculateBorrowRateFromUtilization(
   util: bigint,
   model: LinearModel,

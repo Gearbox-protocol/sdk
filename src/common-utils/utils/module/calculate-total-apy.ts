@@ -1,11 +1,10 @@
-import type { Asset } from "@gearbox-protocol/sdk";
-import { PERCENTAGE_FACTOR } from "@gearbox-protocol/sdk";
-import { calcOverallAPY } from "@gearbox-protocol/sdk/common-utils";
 import type { Address } from "viem";
+import { PERCENTAGE_FACTOR } from "../../../sdk/constants/math.js";
+import type { Asset } from "../../../sdk/router/types.js";
+import { calcOverallAPY } from "../../utils/creditAccount/calc-overall-apy.js";
 import { EMPTY_ADDRESS } from "./constants.js";
 import { isApyWithPointsException } from "./is-apy-with-points-exception.js";
 import type { QuotaInfo, TokenData } from "./types.js";
-
 export interface TotalAPY {
   overallAPY: number | undefined | null;
   overallAPYBigInt: bigint | undefined | null;
