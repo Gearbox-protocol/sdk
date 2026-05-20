@@ -1,9 +1,12 @@
 import type { Address } from "viem";
 import { describe, expect, it, vi } from "vitest";
 import { toBN } from "../../../../sdk/index.js";
+import {
+  buildCreditManager,
+  buildPool,
+  mockToken1,
+} from "../../../test-utils/index.js";
 import { amountAbcComparator } from "../../creditAccount/sort.js";
-
-import { buildCreditManager, buildPool, mockToken1 } from "../__test-utils.js";
 import type { APYListSlice, PoolSlice } from "../strategy-info/index.js";
 import * as StrategyInfoModule from "../strategy-info/index.js";
 import { sortStrategyCMsByAvailability } from "./index.js";

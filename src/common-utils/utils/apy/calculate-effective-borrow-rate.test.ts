@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 import { describe, expect, it } from "vitest";
 
-import { mockToken1 } from "../strategies/__test-utils.js";
+import { mockToken1 } from "../../test-utils/index.js";
 import { calculateEffectiveBorrowRate } from "./calculate-effective-borrow-rate.js";
 
 describe("calculateEffectiveBorrowRate", () => {

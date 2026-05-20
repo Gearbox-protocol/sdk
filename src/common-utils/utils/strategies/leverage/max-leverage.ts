@@ -14,10 +14,12 @@ export function maxLeverage(
     liquidationThresholds: Record<Address, bigint>;
     address: Address;
   }>,
+  // 1
   targetHF = PERCENTAGE_FACTOR,
 ): bigint {
   const [maxThreshold] = maxLeverageThreshold(lpToken, cms);
-  const maxLeverageValue =
+
+  const maxLeverage =
     (targetHF * LEVERAGE_DECIMALS) / (targetHF - maxThreshold);
-  return getFactorFromLeverage(maxLeverageValue);
+  return getFactorFromLeverage(maxLeverage);
 }

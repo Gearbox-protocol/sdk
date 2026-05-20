@@ -2,7 +2,11 @@ import type { Address } from "viem";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ADDRESS_0X0, toBN } from "../../../../sdk/index.js";
 
-import { buildCreditManager, buildPool, mockToken1 } from "../__test-utils.js";
+import {
+  buildCreditManager,
+  buildPool,
+  mockToken1,
+} from "../../../test-utils/index.js";
 import type * as CheckDegenNftModule from "../availability/check-degen-nft.js";
 import { checkDegenNFT } from "../availability/check-degen-nft.js";
 import type * as ValidatePoolStatusModule from "../availability/validate-open-account-pool-status.js";

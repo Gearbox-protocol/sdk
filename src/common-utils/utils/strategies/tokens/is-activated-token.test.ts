@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 import { describe, expect, it } from "vitest";
 
-import { buildCreditManager, buildQuota } from "../__test-utils.js";
+import { buildCreditManager, buildQuota } from "../../../test-utils/index.js";
 import { isActivatedToken } from "./is-activated-token.js";
 
 describe("isActivatedToken", () => {

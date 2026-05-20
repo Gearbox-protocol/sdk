@@ -7,7 +7,7 @@ import {
   mockToken1,
   mockToken2,
   mockUnderlyingToken,
-} from "../__test-utils.js";
+} from "../../../test-utils/index.js";
 
 import { validateOpenAccountPoolStatus } from "./validate-open-account-pool-status.js";
 
@@ -117,7 +117,7 @@ describe("validateOpenAccountPoolStatus", () => {
       },
       expected: {
         message: "insufficientQuota",
-        token: "0x1111111111111111111111111111111111111111",
+        token: mockToken1,
       },
     },
     {
