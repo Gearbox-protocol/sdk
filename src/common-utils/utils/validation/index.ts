@@ -4,6 +4,8 @@ export * from "./validate-balances.js";
 export * from "./validate-credit-manager.js";
 export * from "./validate-hf.js";
 export * from "./validate-open-account.js";
+export * from "./validate-open-account-pool-quota-status.js";
+export * from "./validate-open-account-pool-status.js";
 export * from "./validate-quota.js";
 export * from "./validate-token-to-obtain.js";
 export * from "./validation-types.js";
