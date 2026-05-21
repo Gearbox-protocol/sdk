@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ADDRESS_0X0 } from "../../../../sdk/index.js";
-import { buildCreditManager } from "../__test-utils.js";
+import { buildCreditManager } from "../../../test-utils/index.js";
 import { checkDegenNFT } from "./check-degen-nft.js";
 
 describe("checkDegenNFT", () => {

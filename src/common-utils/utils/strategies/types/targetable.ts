@@ -1,11 +1,11 @@
 import type { Address } from "viem";
 
-import type { StrategyCreditManagerView } from "./strategy-data-source.js";
+import type { CreditManagerSlice } from "../strategy-info/types.js";
 
 export type IsTargetableProps = {
   address: Address;
   creditManager: Pick<
-    StrategyCreditManagerView,
+    CreditManagerSlice,
     "forbiddenTokens" | "liquidationThresholds" | "quotas" | "supportedTokens"
   >;
 };

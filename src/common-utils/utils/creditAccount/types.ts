@@ -6,15 +6,6 @@ export interface TokenDataSlice {
   decimals: number;
 }
 
-// interface QuotaInfo {
-//   token: Address;
-//   rate: bigint;
-//   quotaIncreaseFee: bigint;
-//   totalQuoted: bigint;
-//   limit: bigint;
-//   isActive: boolean;
-// }
-
 export interface QuotaInfoIsActiveSlice {
   isActive: boolean;
 }

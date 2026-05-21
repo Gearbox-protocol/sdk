@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { buildCreditManager, buildQuota, mockToken1 } from "../__test-utils.js";
+import {
+  buildCreditManager,
+  buildQuota,
+  mockToken1,
+} from "../../../test-utils/index.js";
 import { isStrategyCMDisabled } from "./is-strategy-cm-disabled.js";
 
 describe("isStrategyCMDisabled", () => {

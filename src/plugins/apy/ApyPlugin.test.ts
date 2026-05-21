@@ -181,10 +181,25 @@ function makeMockMarket(
         totalBorrowed: 1000n,
         baseInterestRate: 10000000000000000000000000n, // ~1% in ray
         isPaused: overrides.poolPaused ?? false,
+        expectedLiquidity: 10000n,
+        availableLiquidity: 5000n,
         creditManagerDebtParams,
       },
       pqk: {
         quotas,
+      },
+      interestRateModel: {
+        address: "0x1234000000000000000000000000000000000000" as Address,
+        version: 310,
+      },
+      linearModel: {
+        U1: 8000,
+        U2: 9000,
+        Rbase: 100,
+        Rslope1: 200,
+        Rslope2: 300,
+        Rslope3: 400,
+        isBorrowingMoreU2Forbidden: false,
       },
     },
     priceOracle: {

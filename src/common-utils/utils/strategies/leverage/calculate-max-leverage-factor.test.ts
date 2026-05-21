@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LEVERAGE_DECIMALS } from "../../../../sdk/index.js";
 
-import { buildCreditManager, mockToken1 } from "../__test-utils.js";
+import { buildCreditManager, mockToken1 } from "../../../test-utils/index.js";
 import { calculateMaxLeverageFactor } from "./calculate-max-leverage-factor.js";
 import type { LeverageFactor } from "./get-factor-from-leverage.js";
 import { maxLeverage } from "./max-leverage.js";

@@ -5,6 +5,7 @@ import {
   PERCENTAGE_FACTOR,
 } from "../../../sdk/index.js";
 import { BigIntMath } from "../bigint-math.js";
+import type { QuotaSlice } from "../strategies/strategy-info/types.js";
 import type { AssetWithAmountInTarget, QuotaInfoTokenSlice } from "./types.js";
 
 export interface CalcDefaultQuotaProps {
@@ -21,7 +22,7 @@ export interface CalcRecommendedQuotaProps {
 }
 
 export interface CalcQuotaUpdateProps {
-  quotas: Record<Address, QuotaInfoTokenSlice>;
+  quotas: Record<Address, QuotaSlice | undefined>;
   initialQuotas: Record<
     Address,
     {
@@ -172,6 +173,7 @@ export function calcQuotaUpdate(
 
   const desiredQuota = Object.values(quotas).reduce<Record<Address, Asset>>(
     (acc, cmQuota) => {
+      if (!cmQuota) return acc;
       const { token, isActive } = cmQuota;
       const { quota: initialQuota = 0n } = initialQuotas[token] || {};
 

@@ -1,22 +1,45 @@
 import type { Address } from "viem";
-
-import { BigIntMath } from "../../bigint-math.js";
-import type { CreditManagerSlice, PoolSlice } from "../strategy-info/types.js";
-import { validateOpenAccountPoolQuotaStatus } from "./validate-open-account-pool-quota-status.js";
+import { BigIntMath } from "../bigint-math.js";
+import type {
+  CreditManagerSlice,
+  PoolSlice,
+} from "../strategies/strategy-info/types.js";
+import {
+  type ValidateOpenAccountPoolQuotaStatusResult,
+  validateOpenAccountPoolQuotaStatus,
+} from "./validate-open-account-pool-quota-status.js";
 
 export interface ValidateOpenAccountPoolStatusProps {
   creditManager: Pick<
     CreditManagerSlice,
     "minDebt" | "totalDebtLimit" | "totalDebt" | "availableToBorrow" | "quotas"
   >;
-  pool: PoolSlice | undefined | null;
+  pool: Pick<PoolSlice, "totalDebtLimit" | "totalBorrowed"> | undefined | null;
   debt: bigint;
   targetToken: Address | null;
 }
 
+export type ValidateOpenAccountPoolStatusResult =
+  | {
+      message: "insufficientDebtLimit";
+      amount: bigint;
+      solutionAmount?: bigint;
+    }
+  | {
+      message: "insufficientPoolDebtLimit";
+      amount: bigint;
+      solutionAmount?: bigint;
+    }
+  | {
+      message: "insufficientPoolLiquidity";
+      amount: bigint;
+      solutionAmount?: bigint;
+    }
+  | ValidateOpenAccountPoolQuotaStatusResult;
+
 export function validateOpenAccountPoolStatus(
   props: ValidateOpenAccountPoolStatusProps,
-) {
+): ValidateOpenAccountPoolStatusResult | null {
   const { debt, creditManager, pool, targetToken } = props;
 
   const effectiveDebt = BigIntMath.max(creditManager.minDebt, debt);
@@ -45,7 +68,7 @@ export function validateOpenAccountPoolStatus(
       message: "insufficientDebtLimit",
       amount: debtLimitLeft,
       solutionAmount: canOpenMinDebt ? minPositionSize : undefined,
-    } as const;
+    };
   }
 
   if (hasPoolDebtLimit && effectiveDebt > poolDebtLimitLeft) {
@@ -53,7 +76,7 @@ export function validateOpenAccountPoolStatus(
       message: "insufficientPoolDebtLimit",
       amount: poolDebtLimitLeft,
       solutionAmount: canOpenMinDebt ? minPositionSize : undefined,
-    } as const;
+    };
   }
 
   if (effectiveDebt > creditManager.availableToBorrow) {
@@ -61,7 +84,7 @@ export function validateOpenAccountPoolStatus(
       message: "insufficientPoolLiquidity",
       amount: creditManager.availableToBorrow,
       solutionAmount: canOpenMinDebt ? minPositionSize : undefined,
-    } as const;
+    };
   }
 
   if (targetToken !== null) {

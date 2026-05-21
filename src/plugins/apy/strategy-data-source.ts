@@ -40,7 +40,7 @@ export class OnchainSdkStrategyDataSource
     if (!meta) return undefined;
 
     const address = lc(token);
-    return { address, decimals: meta.decimals };
+    return { address, decimals: meta.decimals, symbol: meta.symbol };
   }
 
   public getPool(chainId: number, pool: Address): StrategyPoolView | undefined {
@@ -51,10 +51,24 @@ export class OnchainSdkStrategyDataSource
     );
     if (!market) return undefined;
 
+    const linearModel = market.pool.linearModel;
     return {
       address: lc(market.pool.pool.address),
       totalDebtLimit: market.pool.pool.totalDebtLimit,
       totalBorrowed: market.pool.pool.totalBorrowed,
+      expectedLiquidity: market.pool.pool.expectedLiquidity,
+      availableLiquidity: market.pool.pool.availableLiquidity,
+      interestModel: {
+        interestModel: market.pool.interestRateModel.address,
+        U_1: BigInt(linearModel.U1),
+        U_2: BigInt(linearModel.U2),
+        R_base: BigInt(linearModel.Rbase),
+        R_slope1: BigInt(linearModel.Rslope1),
+        R_slope2: BigInt(linearModel.Rslope2),
+        R_slope3: BigInt(linearModel.Rslope3),
+        version: Number(linearModel.version),
+        isBorrowingMoreU2Forbidden: linearModel.isBorrowingMoreU2Forbidden,
+      },
     };
   }
 
@@ -176,11 +190,16 @@ export class OnchainSdkStrategyDataSource
       liquidationThresholds,
       quotas,
       collateralTokens: cm.collateralTokens.map(lc),
+      maxEnabledTokensLength: cm.maxEnabledTokens,
       version: Number(facade.version),
       isBorrowingForbidden: facade.maxDebtPerBlockMultiplier === 0,
       marketConfigurator: lc(cs.marketConfigurator),
       supportedTokens,
       forbiddenTokens,
+      name: cs.name,
+      isPaused: facade.isPaused,
+      isQuoted: (token: Address) => quotas[token] !== undefined,
+      isForbidden: (token: Address) => forbiddenTokens[token] === true,
     };
   }
 

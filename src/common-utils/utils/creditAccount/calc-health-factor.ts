@@ -11,7 +11,7 @@ import type { QuotaInfoIsActiveSlice, TokenDataSlice } from "./types.js";
 export interface CalcHealthFactorProps {
   assets: Array<Asset>;
   quotas: Record<Address, Asset>;
-  quotasInfo: Record<Address, QuotaInfoIsActiveSlice>;
+  quotasInfo: Record<Address, QuotaInfoIsActiveSlice | undefined>;
 
   prices: Record<Address, bigint>;
   liquidationThresholds: Record<Address, bigint>;

@@ -3,6 +3,18 @@ import type { Address } from "viem";
 import type { PartialRecord } from "../../../../sdk/index.js";
 import type { StrategyPointsResult } from "../points/get-strategy-points.js";
 
+export interface LinearModel {
+  U_1: bigint;
+  U_2: bigint;
+  R_base: bigint;
+  R_slope1: bigint;
+  R_slope2: bigint;
+  R_slope3: bigint;
+  interestModel: Address;
+  version: number;
+  isBorrowingMoreU2Forbidden: boolean;
+}
+
 export interface QuotaSlice {
   token: Address;
   rate: bigint;
@@ -29,18 +41,33 @@ export interface CreditManagerSlice {
   liquidationThresholds: Record<Address, bigint>;
   quotas: Record<Address, QuotaSlice | undefined>;
   collateralTokens: readonly Address[];
+  maxEnabledTokensLength: number;
+  name: string;
+  isPaused: boolean;
+  supportedTokens: Record<Address, true>;
+  forbiddenTokens: Record<Address, true>;
+  isQuoted(token: Address): boolean;
+  isForbidden(token: Address): boolean;
 }
 
 export interface PoolSlice {
   address: Address;
   totalDebtLimit: bigint;
   totalBorrowed: bigint;
+  expectedLiquidity: bigint;
+  availableLiquidity: bigint;
+  interestModel: LinearModel;
+  underlyingToken?: Address;
+  isPaused?: boolean;
 }
 
 export interface TokenSlice {
   address: Address;
   decimals: number;
   title?: string;
+  symbol: string;
+  name?: string;
+  isPhantom?: boolean;
 }
 
 export interface StrategySlice<ID extends string | number = string> {

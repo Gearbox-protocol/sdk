@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildCreditManager } from "../__test-utils.js";
+import { buildCreditManager } from "../../../test-utils/index.js";
 import { isCreditManagerUsable } from "./is-credit-manager-usable.js";
 
 describe("isCreditManagerUsable", () => {

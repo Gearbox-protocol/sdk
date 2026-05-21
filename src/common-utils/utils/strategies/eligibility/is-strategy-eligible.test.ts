@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { mockToken1 } from "../__test-utils.js";
+import { mockToken1 } from "../../../test-utils/index.js";
 import type { AppChains, NotValidatedStrategy } from "../types.js";
 import { isStrategyEligible } from "./is-strategy-eligible.js";
 

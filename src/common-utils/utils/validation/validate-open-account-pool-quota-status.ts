@@ -1,12 +1,16 @@
 import type { Address } from "viem";
+import type { CreditManagerSlice } from "../strategies/strategy-info/types.js";
 
-import type { CreditManagerSlice } from "../strategy-info/types.js";
+export interface ValidateOpenAccountPoolQuotaStatusResult {
+  message: "insufficientQuota";
+  token: Address;
+}
 
 export function validateOpenAccountPoolQuotaStatus(
   targetToken: Address,
   creditManager: Pick<CreditManagerSlice, "quotas">,
   amountToBorrow: bigint,
-) {
+): ValidateOpenAccountPoolQuotaStatusResult | null {
   const quota = creditManager.quotas[targetToken];
 
   if (quota) {
@@ -14,10 +18,7 @@ export function validateOpenAccountPoolQuotaStatus(
     const quotaLeft = realLimit - quota.totalQuoted;
 
     if (quotaLeft < amountToBorrow)
-      return {
-        message: "insufficientQuota",
-        token: targetToken,
-      } as const;
+      return { message: "insufficientQuota", token: targetToken };
   }
 
   return null;

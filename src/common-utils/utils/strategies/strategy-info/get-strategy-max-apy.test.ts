@@ -1,11 +1,11 @@
 import type { Address } from "viem";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PERCENTAGE_FACTOR, toBigInt } from "../../../../sdk/index.js";
+import { buildCreditManager, mockToken1 } from "../../../test-utils/index.js";
 import { calculateEffectiveBorrowRate } from "../../apy/calculate-effective-borrow-rate.js";
 import { getComplexAPYList } from "../../apy/get-complex-apy-list.js";
 import { getSingleQuotaBorrowRate } from "../../apy/get-single-quota-borrow-rate.js";
 import { maxAPYFormula } from "../../apy/max-apy-formula.js";
-import { buildCreditManager, mockToken1 } from "../__test-utils.js";
 import type { LeverageFactor } from "../leverage/get-factor-from-leverage.js";
 import { calculateMaxLeverageFactor } from "../leverage/index.js";
 import { getStrategyMaxAPY } from "./get-strategy-max-apy.js";
