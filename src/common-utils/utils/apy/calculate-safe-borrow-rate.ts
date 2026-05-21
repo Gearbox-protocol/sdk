@@ -4,13 +4,13 @@ import {
 } from "../../../sdk/constants/math.js";
 import { BigIntMath } from "../../utils/bigint-math.js";
 import type {
-  CreditManagerData,
-  PoolData,
-} from "../strategies/types/strategy-data.js";
+  CreditManagerSlice,
+  PoolSlice,
+} from "../strategies/strategy-info/types.js";
 import { calculateBorrowRateFromUtilization } from "./calculate-borrow-rate-from-utilization.js";
 export interface CalculateBorrowRateSafelyProps {
-  pool: PoolData;
-  creditManager: CreditManagerData;
+  pool: PoolSlice;
+  creditManager: CreditManagerSlice;
 
   expectedLiquidityChange?: bigint;
   availableLiquidityChange?: bigint;

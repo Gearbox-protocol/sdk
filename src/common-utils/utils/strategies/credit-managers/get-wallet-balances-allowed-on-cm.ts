@@ -1,13 +1,13 @@
 import type { Address } from "viem";
 import type { Asset } from "../../../../sdk/router/types.js";
-import type { TokenData } from "../../../charts/token-data.js";
 import { sortBalances } from "../../creditAccount/sort.js";
+import type { TokenSlice } from "../strategy-info/types.js";
 import { wrapTokenAddress } from "../tokens/wrap-token-address.js";
 export interface GetWalletBalancesAllowedOnCMProps {
   walletBalances: Record<Address, bigint> | undefined;
   collateralRecord: Record<Address, Address>;
 
-  tokensList: Record<Address, TokenData>;
+  tokensList: Record<Address, TokenSlice>;
   prices: Record<Address, bigint>;
   nativeTokenAddress: Address;
   wrappedNativeTokenAddress: Address | undefined;

@@ -7,7 +7,6 @@ import {
   buildPool,
   mockToken1,
 } from "../../../test-utils/index.js";
-import type * as ValidatePoolStatusModule from "../../validation/validate-open-account-pool-status.js";
 import { validateOpenAccountPoolStatus } from "../../validation/validate-open-account-pool-status.js";
 import type * as CheckDegenNftModule from "../availability/check-degen-nft.js";
 import { checkDegenNFT } from "../availability/check-degen-nft.js";

@@ -3,9 +3,9 @@ import type { calculateEarnings } from "../../apy/calculate-earnings.js";
 import type { Strategy } from "../../strategies/types/strategy.js";
 import type { calculateTotalAPY } from "../strategy-info/calculate-total-apy.js";
 import type { calculateTotalPoints } from "../strategy-info/calculate-total-points.js";
+import type { CreditManagerSlice } from "../strategy-info/types.js";
 import type { getListWithAmountInTarget } from "../tokens/get-list-with-amount-in-target.js";
-import type { CreditManagerData } from "./strategy-data.js";
-export type StrategyCMEarningsInfo<CM extends CreditManagerData> =
+export type StrategyCMEarningsInfo<CM extends CreditManagerSlice> =
   | {
       status: "ok";
       description: string;
@@ -37,16 +37,16 @@ export type StrategyCMEarningsInfo<CM extends CreditManagerData> =
       data: undefined;
     };
 
-export type EarningsList<CM extends CreditManagerData> = Array<
+export type EarningsList<CM extends CreditManagerSlice> = Array<
   StrategyCMEarningsInfo<CM>
 >;
 
-export type StrategyEarningsListByChain<CM extends CreditManagerData> = Record<
+export type StrategyEarningsListByChain<CM extends CreditManagerSlice> = Record<
   number,
   Record<string, EarningsList<CM>>
 >;
 
-export interface BestEarningsState<CM extends CreditManagerData> {
+export interface BestEarningsState<CM extends CreditManagerSlice> {
   best: StrategyCMEarningsInfo<CM> | undefined;
   sorted: StrategyCMEarningsInfo<CM>[];
   bestRecord: Record<

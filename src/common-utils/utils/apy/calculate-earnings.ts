@@ -1,13 +1,13 @@
 import type { Address } from "viem";
 import { PERCENTAGE_FACTOR_1KK } from "../../../sdk/constants/math.js";
-import type { TokenData } from "../../charts/token-data.js";
 import { PriceUtils } from "../../utils/price-math.js";
+import type { TokenSlice } from "../strategies/strategy-info/types.js";
 export interface CalculateEarningsProps {
   overallAPYBigInt: bigint | undefined | null;
   targetAmount: bigint | undefined;
   targetToken: Address;
 
-  tokensList: Record<Address, TokenData>;
+  tokensList: Record<Address, TokenSlice>;
   prices: Record<Address, bigint>;
 }
 

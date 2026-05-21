@@ -4,7 +4,7 @@ import {
   PERCENTAGE_FACTOR,
 } from "../../../../sdk/constants/math.js";
 import { BigIntMath } from "../../bigint-math.js";
-import type { CreditManagerData } from "../types/strategy-data.js";
+import type { CreditManagerSlice } from "../strategy-info/types.js";
 import { calculateLossCoefficient } from "./calculate-loss-coefficient.js";
 import { maxLeverage } from "./max-leverage.js";
 
@@ -13,7 +13,7 @@ const DEFAULT_DEBT_CONSTANT_LOSS = 1500n;
 export interface CalculateMaxDebtProps {
   targetToken: Address;
   amount: bigint;
-  creditManager: CreditManagerData;
+  creditManager: CreditManagerSlice;
   slippage: number;
   constantLoss?: bigint;
   swapCollateral?: boolean;

@@ -1,15 +1,16 @@
 import type { Address } from "viem";
 import { isUsableToken } from "../../strategies/tokens/is-usable-token.js";
-import type { QuotaInfo } from "../types/strategy-data.js";
+import type { CreditManagerSlice } from "../strategy-info/types.js";
 export interface IsObtainableTokenProps {
   address: Address;
-  creditManager: {
-    quotas: Record<Address, QuotaInfo | undefined>;
-    isQuoted(token: Address): boolean;
-    forbiddenTokens: Record<Address, true>;
-    liquidationThresholds: Record<Address, bigint>;
-    supportedTokens: Record<Address, true>;
-  };
+  creditManager: Pick<
+    CreditManagerSlice,
+    | "quotas"
+    | "isQuoted"
+    | "forbiddenTokens"
+    | "liquidationThresholds"
+    | "supportedTokens"
+  >;
   delayedPhantoms: Record<Address, boolean>;
 }
 

@@ -1,6 +1,6 @@
 import type { Address } from "viem";
-
 import { isForbiddenToken } from "../../strategies/tokens/is-forbidden-token.js";
+import type { CreditManagerSlice } from "../strategy-info/types.js";
 export interface IsValidExtraCollateralTokenProps {
   address: Address;
   extraCollateralConfigs:
@@ -8,13 +8,12 @@ export interface IsValidExtraCollateralTokenProps {
     | undefined;
   prices: Record<Address, bigint> | undefined;
   creditManager:
-    | {
-        address: Address;
-        underlyingToken: Address;
-        forbiddenTokens: Record<Address, true>;
-      }
+    | Pick<
+        CreditManagerSlice,
+        "address" | "underlyingToken" | "forbiddenTokens"
+      >
     | undefined;
-  tokensList: Record<Address, { isPhantom: boolean }>;
+  tokensList: Record<Address, { isPhantom?: boolean }>;
   delayedPhantoms: Record<Address, boolean>;
   zeroDebt?: boolean;
 }

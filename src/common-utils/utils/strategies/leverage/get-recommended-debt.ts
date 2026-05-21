@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import { LEVERAGE_DECIMALS } from "../../../../sdk/constants/math.js";
-import type { CreditManagerData } from "../types/strategy-data.js";
+import type { CreditManagerSlice } from "../strategy-info/types.js";
 import { calculateMaxLeverageFactor } from "./calculate-max-leverage-factor.js";
 import { calculateMaxStrategyDebt } from "./calculate-max-strategy-debt.js";
 import type { LeverageFactor } from "./get-factor-from-leverage.js";
@@ -8,7 +8,7 @@ import { getRecommendedLeverageFactor } from "./get-recommended-leverage-factor.
 export interface GetRecommendedDebtProps {
   targetToken: Address;
   amount: bigint;
-  creditManager: CreditManagerData;
+  creditManager: CreditManagerSlice;
   slippage: number;
   maxLeverageConstantLoss?: bigint;
   maxDebtConstantLoss?: bigint;

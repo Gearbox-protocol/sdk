@@ -1,6 +1,3 @@
-import type { QuotaSlice } from "../strategy-info/types.js";
-export type QuotaInfo = QuotaSlice;
-
 export * from "./chains.js";
 export * from "./credit-manager-data-legacy.js";
 export * from "./curator-filter.js";

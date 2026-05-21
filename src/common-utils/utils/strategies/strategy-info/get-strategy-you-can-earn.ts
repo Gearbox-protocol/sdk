@@ -1,27 +1,26 @@
 import type { Address } from "viem";
-import type { TokenData } from "../../../charts/token-data.js";
 import { isStrategyCMDisabled } from "../../strategies/strategy-info/is-strategy-cm-disabled.js";
+import type {
+  CreditManagerSlice,
+  PoolSlice,
+  TokenSlice,
+} from "../strategy-info/types.js";
 import { getChainPhantomTokens } from "../tokens/get-chain-phantom-tokens.js";
 import { getNativeTokenAddress } from "../tokens/get-native-token-address.js";
 import type { Strategy } from "../types/strategy.js";
-import type {
-  APYList,
-  CreditManagerData,
-  PoolData,
-  PricesRecord,
-} from "../types/strategy-data.js";
+import type { APYList, PricesRecord } from "../types/strategy-data.js";
 import type { StrategyCMEarningsInfo } from "../types/strategy-earnings.js";
 import { getCMYouCanEarn } from "./get-cm-you-can-earn.js";
 
-type EarningsList<CM extends CreditManagerData> = Array<
+type EarningsList<CM extends CreditManagerSlice> = Array<
   StrategyCMEarningsInfo<CM>
 >;
 
 interface GearboxSDKFullState {
-  pools: Record<Address, PoolData> | undefined;
+  pools: Record<Address, PoolSlice> | undefined;
   tokens:
     | {
-        tokenDataList: Record<Address, TokenData>;
+        tokenDataList: Record<Address, TokenSlice>;
       }
     | undefined;
   addressProvider: {
@@ -32,7 +31,7 @@ interface GearboxSDKFullState {
     | undefined;
 }
 
-export function getStrategyYouCanEarn<CM extends CreditManagerData>({
+export function getStrategyYouCanEarn<CM extends CreditManagerSlice>({
   strategy,
   creditManagers,
   sdkState,

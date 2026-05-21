@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { LinearModel } from "../strategies/types/strategy-data.js";
+import type { LinearModel } from "../strategies/strategy-info/types.js";
 import { calculateBorrowRateFromUtilization } from "./calculate-borrow-rate-from-utilization.js";
 
 describe("calculateBorrowRateFromUtilization", () => {

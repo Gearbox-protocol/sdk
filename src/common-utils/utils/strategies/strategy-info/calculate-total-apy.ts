@@ -1,11 +1,10 @@
 import type { Address } from "viem";
 import { PERCENTAGE_FACTOR } from "../../../../sdk/constants/math.js";
 import type { Asset } from "../../../../sdk/router/types.js";
-import type { TokenData } from "../../../charts/token-data.js";
 import { EMPTY_ADDRESS } from "../../constants.js";
 import { calcOverallAPY } from "../../creditAccount/calc-overall-apy.js";
 import { isApyWithPointsException } from "../tokens/is-apy-with-points-exception.js";
-import type { QuotaInfo } from "../types/strategy-data.js";
+import type { QuotaSlice, TokenSlice } from "./types.js";
 export interface TotalAPY {
   overallAPY: number | undefined | null;
   overallAPYBigInt: bigint | undefined | null;
@@ -29,11 +28,14 @@ export interface CalculateTotalAPYProps {
   showAPY: boolean;
 
   prices: Record<Address, bigint>;
-  quotaRates: Record<Address, Pick<QuotaInfo, "isActive" | "rate">>;
+  quotaRates: Record<
+    Address,
+    Pick<QuotaSlice, "isActive" | "rate"> | undefined
+  >;
   quotas: Record<Address, Asset>;
   feeInterest: number;
   underlyingToken: Address;
-  tokensList: Record<Address, TokenData>;
+  tokensList: Record<Address, TokenSlice>;
 }
 
 export function calculateTotalAPY({

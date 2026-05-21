@@ -9,8 +9,9 @@ import {
   buildTokenData,
 } from "../../../test-utils/index.js";
 import type { Strategy } from "../types/strategy.js";
-import type { APYList, PoolData } from "../types/strategy-data.js";
+import type { APYList } from "../types/strategy-data.js";
 import { getCMYouCanEarn } from "./get-cm-you-can-earn.js";
+import type { PoolSlice } from "./types.js";
 
 describe("getCMYouCanEarn", () => {
   const collateralTokenAddress: Address =
@@ -91,7 +92,7 @@ describe("getCMYouCanEarn", () => {
     availableToBorrow: 859640767327531138355n,
   });
 
-  const pools: Record<Address, PoolData> = {
+  const pools: Record<Address, PoolSlice> = {
     [poolAddress]: buildPool({
       address: poolAddress,
       chainId: 1,

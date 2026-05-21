@@ -5,7 +5,6 @@ import {
   PRICE_DECIMALS,
 } from "../../../../sdk/constants/math.js";
 import type { Asset } from "../../../../sdk/router/types.js";
-import type { TokenData } from "../../../charts/token-data.js";
 import { BigIntMath } from "../../bigint-math.js";
 import { PriceUtils } from "../../price-math.js";
 import { getPointsRates } from "../points/get-points-rates.js";
@@ -14,6 +13,7 @@ import type {
   LocalPointsInfo,
   LocalPointsReward,
 } from "../types/points-slices.js";
+import type { TokenSlice } from "./types.js";
 
 const THRESHOLD_POINTS = 1000;
 
@@ -42,7 +42,7 @@ export function calculateTotalPoints({
   totalValue: bigint | undefined;
   assetValue: bigint | undefined;
   prices: Record<Address, bigint>;
-  tokensList: Record<Address, TokenData>;
+  tokensList: Record<Address, TokenSlice>;
   underlyingToken: Address;
 }): PointsData | null {
   if (!pointsAsset || !info) return null;

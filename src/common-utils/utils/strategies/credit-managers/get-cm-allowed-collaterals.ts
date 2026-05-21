@@ -1,8 +1,7 @@
 import type { Address } from "viem";
-import type { TokenData } from "../../../charts/token-data.js";
 import type { StrategyConfigPayload } from "../../../static/strategy.js";
+import type { CreditManagerSlice, TokenSlice } from "../strategy-info/types.js";
 import { isCollateralToken } from "../tokens/is-collateral-token.js";
-import type { CreditManagerData } from "../types/strategy-data.js";
 
 type ExtraCollateralConfig = NonNullable<
   StrategyConfigPayload["additionalCollaterals"]
@@ -10,8 +9,8 @@ type ExtraCollateralConfig = NonNullable<
 type ExtraCollaterals = Record<Address, Array<ExtraCollateralConfig>>;
 
 export interface GetCMAllowedCollateralsProps {
-  creditManager: CreditManagerData | undefined;
-  tokensList: Record<Address, TokenData>;
+  creditManager: CreditManagerSlice | undefined;
+  tokensList: Record<Address, TokenSlice>;
   zeroDebt?: boolean;
   delayedPhantoms: Record<Address, boolean>;
   extraCollaterals:

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildCreditManager, buildPool } from "../../test-utils/index.js";
-import type { LinearModel } from "../strategies/types/strategy-data.js";
+import type { LinearModel } from "../strategies/strategy-info/types.js";
 import { calculateSafeBorrowRate } from "./calculate-safe-borrow-rate.js";
 
 describe("calculateSafeBorrowRate", () => {

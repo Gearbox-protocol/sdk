@@ -2,9 +2,9 @@ import type { Address } from "viem";
 
 import { TokenData } from "../charts/token-data.js";
 import type {
-  CreditManagerData,
-  PoolData,
-} from "../utils/strategies/types/strategy-data.js";
+  CreditManagerSlice,
+  PoolSlice,
+} from "../utils/strategies/strategy-info/types.js";
 
 export const mockToken1 =
   "0x1111111111111111111111111111111111111111" as Address;
@@ -67,7 +67,7 @@ export function buildCreditManager(
     ("0xcccccccccccccccccccccccccccccccccccccccc" as Address)) as Address;
   const underlyingToken = (overrides.underlyingToken ??
     mockUnderlyingToken) as Address;
-  const quotas = (overrides.quotas ?? {}) as CreditManagerData["quotas"];
+  const quotas = (overrides.quotas ?? {}) as CreditManagerSlice["quotas"];
 
   return {
     address,

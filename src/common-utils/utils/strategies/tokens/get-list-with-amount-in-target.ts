@@ -1,12 +1,12 @@
 import type { Address } from "viem";
 import type { Asset } from "../../../../sdk/router/types.js";
-import type { TokenData } from "../../../charts/token-data.js";
+import type { TokenSlice } from "../strategy-info/types.js";
 import { addAmountInTarget } from "./add-amount-in-target.js";
 export interface AddAmountInTargetProps<T> {
   assets: Array<T>;
   targetToken: Address;
   prices: Record<Address, bigint>;
-  tokensList: Record<Address, TokenData>;
+  tokensList: Record<Address, TokenSlice>;
 }
 
 export function getListWithAmountInTarget<T extends Asset>({

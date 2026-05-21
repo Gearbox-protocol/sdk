@@ -5,7 +5,6 @@ import {
 } from "../../../../sdk/constants/math.js";
 import type { Asset } from "../../../../sdk/router/types.js";
 import { formatBN, toBigInt, toBN } from "../../../../sdk/utils/formatter.js";
-import type { TokenData } from "../../../charts/token-data.js";
 import { calculateEarnings } from "../../apy/calculate-earnings.js";
 import { calculateEffectiveBorrowRate } from "../../apy/calculate-effective-borrow-rate.js";
 import { getComplexAPYList } from "../../apy/get-complex-apy-list.js";
@@ -31,19 +30,19 @@ import { getLeverageFromFactor } from "../leverage/get-leverage-from-factor.js";
 import { getRecommendedDebt } from "../leverage/get-recommended-debt.js";
 import { getComplexPointsList } from "../points/get-complex-points-list.js";
 import { getPointsInfo } from "../points/get-points-info.js";
+import type {
+  CreditManagerSlice,
+  PoolSlice,
+  TokenSlice,
+} from "../strategy-info/types.js";
 import { getListWithAmountInTarget } from "../tokens/get-list-with-amount-in-target.js";
 import type { Strategy } from "../types/strategy.js";
-import type {
-  APYList,
-  CreditManagerData,
-  PoolData,
-  PricesRecord,
-} from "../types/strategy-data.js";
+import type { APYList, PricesRecord } from "../types/strategy-data.js";
 import type { StrategyCMEarningsInfo } from "../types/strategy-earnings.js";
 import { calculateTotalAPY } from "./calculate-total-apy.js";
 import { calculateTotalPoints } from "./calculate-total-points.js";
 
-export function getCMYouCanEarn<CM extends CreditManagerData>({
+export function getCMYouCanEarn<CM extends CreditManagerSlice>({
   allPrices,
   creditManager,
   tokensList,
@@ -59,7 +58,7 @@ export function getCMYouCanEarn<CM extends CreditManagerData>({
 }: {
   allPrices: PricesRecord | undefined;
   creditManager: CM;
-  tokensList: Record<Address, TokenData>;
+  tokensList: Record<Address, TokenSlice>;
   delayedPhantoms: Record<Address, boolean>;
   nativeTokenAddress: Address;
   wrappedNativeTokenAddress: Address | undefined;
@@ -68,7 +67,7 @@ export function getCMYouCanEarn<CM extends CreditManagerData>({
   slippage: number;
   quotaReserve: number;
   apyList: APYList | undefined;
-  pools: Record<`0x${string}`, PoolData>;
+  pools: Record<`0x${string}`, PoolSlice>;
 }): StrategyCMEarningsInfo<CM> {
   const baseInfo = {
     strategy: strategy.name,

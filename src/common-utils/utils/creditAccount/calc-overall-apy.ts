@@ -12,7 +12,7 @@ export interface CalcOverallAPYProps {
   lpAPY: Record<Address, number> | undefined;
 
   quotas: Record<Address, Asset>;
-  quotaRates: Record<Address, QuotaInfoSlice>;
+  quotaRates: Record<Address, QuotaInfoSlice | undefined>;
   feeInterest: number;
 
   prices: Record<Address, bigint>;

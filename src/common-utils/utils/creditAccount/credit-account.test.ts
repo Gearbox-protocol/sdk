@@ -685,14 +685,26 @@ const cmQuotas: CalcQuotaUpdateProps["quotas"] = {
   [DAI]: {
     token: DAI,
     isActive: true,
+    rate: 0n,
+    quotaIncreaseFee: 0n,
+    totalQuoted: 0n,
+    limit: 0n,
   },
   [WETH]: {
     token: WETH,
     isActive: true,
+    rate: 0n,
+    quotaIncreaseFee: 0n,
+    totalQuoted: 0n,
+    limit: 0n,
   },
   [STETH]: {
     token: STETH,
     isActive: true,
+    rate: 0n,
+    quotaIncreaseFee: 0n,
+    totalQuoted: 0n,
+    limit: 0n,
   },
 };
 
@@ -1164,14 +1176,26 @@ describe("CreditAccount calcQuotaUpdate test", () => {
         [DAI]: {
           token: DAI,
           isActive: false,
+          rate: 0n,
+          quotaIncreaseFee: 0n,
+          totalQuoted: 0n,
+          limit: 0n,
         },
         [WETH]: {
           token: WETH,
           isActive: false,
+          rate: 0n,
+          quotaIncreaseFee: 0n,
+          totalQuoted: 0n,
+          limit: 0n,
         },
         [STETH]: {
           token: STETH,
           isActive: false,
+          rate: 0n,
+          quotaIncreaseFee: 0n,
+          totalQuoted: 0n,
+          limit: 0n,
         },
       },
       initialQuotas: caQuota,

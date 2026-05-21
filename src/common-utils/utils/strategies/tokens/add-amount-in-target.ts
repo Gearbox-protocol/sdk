@@ -1,10 +1,10 @@
 import type { Address } from "viem";
 import type { Asset } from "../../../../sdk/router/types.js";
-import type { TokenData } from "../../../charts/token-data.js";
 import { PriceUtils } from "../../price-math.js";
+import type { TokenSlice } from "../strategy-info/types.js";
 export function addAmountInTarget<T extends Asset>(
   asset: T,
-  tokensList: Record<Address, TokenData>,
+  tokensList: Record<Address, TokenSlice>,
   prices: Record<Address, bigint>,
   toPrice: bigint,
   toDecimals: number,
