@@ -29,6 +29,7 @@ export interface CreditManagerSlice {
   liquidationThresholds: Record<Address, bigint>;
   quotas: Record<Address, QuotaSlice | undefined>;
   collateralTokens: readonly Address[];
+  maxEnabledTokensLength: number;
 }
 
 export interface PoolSlice {

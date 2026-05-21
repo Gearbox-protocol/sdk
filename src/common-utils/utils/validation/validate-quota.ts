@@ -1,10 +1,10 @@
 import type { Address } from "viem";
 import type { Asset } from "../../../sdk/router/types.js";
-import type { CreditManagerData } from "../strategies/types/strategy-data.js";
+import type { CreditManagerSlice } from "../strategies/strategy-info/types.js";
 export interface ValidateQuotaProps {
   desiredQuota: Record<Address, Asset>;
   quotaUpdate: Array<Asset>;
-  creditManager: Pick<CreditManagerData, "quotas" | "maxEnabledTokensLength">;
+  creditManager: Pick<CreditManagerSlice, "quotas" | "maxEnabledTokensLength">;
   throwOnZeroQuotaUpdate?: boolean;
 }
 

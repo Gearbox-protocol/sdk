@@ -1,10 +1,6 @@
 import type { Address } from "viem";
-
-import {
-  checkBoolean,
-  checkDegenNFT,
-  validateOpenAccountPoolStatus,
-} from "../availability/index.js";
+import { validateOpenAccountPoolStatus } from "../../validation/validate-open-account-pool-status.js";
+import { checkBoolean, checkDegenNFT } from "../availability/index.js";
 import type { CreditManagerSlice, PoolSlice } from "./types.js";
 
 export function cmAvailabilityCondition(

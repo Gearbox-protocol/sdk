@@ -1,9 +1,9 @@
 import type { Address } from "viem";
 import { BigIntMath } from "../bigint-math.js";
 import type {
-  CreditManagerData,
-  PoolData,
-} from "../strategies/types/strategy-data.js";
+  CreditManagerSlice,
+  PoolSlice,
+} from "../strategies/strategy-info/types.js";
 import {
   type ValidateOpenAccountPoolQuotaStatusResult,
   validateOpenAccountPoolQuotaStatus,
@@ -11,10 +11,10 @@ import {
 
 export interface ValidateOpenAccountPoolStatusProps {
   creditManager: Pick<
-    CreditManagerData,
+    CreditManagerSlice,
     "minDebt" | "totalDebtLimit" | "totalDebt" | "availableToBorrow" | "quotas"
   >;
-  pool: Pick<PoolData, "totalDebtLimit" | "totalBorrowed"> | undefined | null;
+  pool: Pick<PoolSlice, "totalDebtLimit" | "totalBorrowed"> | undefined | null;
   debt: bigint;
   targetToken: Address | null;
 }

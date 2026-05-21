@@ -7,10 +7,10 @@ import {
   buildPool,
   mockToken1,
 } from "../../../test-utils/index.js";
+import type * as ValidatePoolStatusModule from "../../validation/validate-open-account-pool-status.js";
+import { validateOpenAccountPoolStatus } from "../../validation/validate-open-account-pool-status.js";
 import type * as CheckDegenNftModule from "../availability/check-degen-nft.js";
 import { checkDegenNFT } from "../availability/check-degen-nft.js";
-import type * as ValidatePoolStatusModule from "../availability/validate-open-account-pool-status.js";
-import { validateOpenAccountPoolStatus } from "../availability/validate-open-account-pool-status.js";
 import { cmAvailabilityCondition } from "./cm-availability-condition.js";
 import type { PoolSlice } from "./types.js";
 
@@ -25,17 +25,9 @@ vi.mock("../availability/check-degen-nft.js", async importOriginal => {
     checkDegenNFT: vi.fn(),
   };
 });
-vi.mock(
-  "../availability/validate-open-account-pool-status.js",
-  async importOriginal => {
-    const actual = await importOriginal<typeof ValidatePoolStatusModule>();
-
-    return {
-      ...actual,
-      validateOpenAccountPoolStatus: vi.fn(),
-    };
-  },
-);
+vi.mock("../../validation/validate-open-account-pool-status.js", () => ({
+  validateOpenAccountPoolStatus: vi.fn(),
+}));
 vi.mock("@gearbox-protocol/ui-kit", () => ({
   getAvailableRanges: vi.fn(),
 }));

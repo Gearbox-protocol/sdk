@@ -176,6 +176,7 @@ export class OnchainSdkStrategyDataSource
       liquidationThresholds,
       quotas,
       collateralTokens: cm.collateralTokens.map(lc),
+      maxEnabledTokensLength: cm.maxEnabledTokens,
       version: Number(facade.version),
       isBorrowingForbidden: facade.maxDebtPerBlockMultiplier === 0,
       marketConfigurator: lc(cs.marketConfigurator),
