@@ -1,11 +1,7 @@
 import type { Address } from "viem";
-import { iPoolV310Abi } from "../../abi/310/generated.js";
-
 import { ierc20Abi } from "../../abi/iERC20.js";
-import { ierc20ZapperDepositsAbi } from "../../abi/iERC20ZapperDeposits.js";
-import { iethZapperDepositsAbi } from "../../abi/iETHZapperDeposits.js";
-import { iZapperAbi } from "../../abi/iZapper.js";
 import {
+  BaseContract,
   RWA_UNDERLYING_DEFAULT,
   RWA_UNDERLYING_ON_DEMAND,
   SDKConstruct,
@@ -13,12 +9,17 @@ import {
 } from "../base/index.js";
 import { NATIVE_ADDRESS } from "../constants/index.js";
 import type { ZapperData } from "../market/index.js";
+import {
+  IERC20ZapperDepositsContract,
+  IETHZapperDepositsContract,
+  IZapperContract,
+} from "../market/zapper/index.js";
 import { AddressSet, hexEq } from "../utils/index.js";
 import type {
   AddLiquidityProps,
   DepositMetadata,
   IPoolsService,
-  PoolServiceCall,
+  PoolServiceCallResult,
   RemoveLiquidityProps,
   WithdrawalMetadata,
 } from "./types.js";
@@ -98,7 +99,9 @@ export class PoolService extends SDKConstruct implements IPoolsService {
   /**
    * {@inheritDoc IPoolsService.addLiquidity}
    */
-  public addLiquidity(props: AddLiquidityProps): PoolServiceCall | undefined {
+  public addLiquidity(
+    props: AddLiquidityProps,
+  ): PoolServiceCallResult | undefined {
     const { collateral, meta, permit, referralCode, pool, wallet } = props;
 
     const underlying = this.#describeUnderlying(pool);
@@ -111,43 +114,52 @@ export class PoolService extends SDKConstruct implements IPoolsService {
 
     const { zapper } = meta;
     if (zapper && hexEq(zapper.tokenIn.addr, NATIVE_ADDRESS)) {
+      const zapperContract = new IETHZapperDepositsContract(this.sdk, {
+        addr: zapper.baseParams.addr,
+        name: `ETHZapper(${this.labelAddress(zapper.baseParams.addr)})`,
+      });
+      const tx = zapperContract.depositWithReferral(wallet, referralCode ?? 0n);
+      tx.value = collateral.balance.toString();
       return {
-        target: zapper.baseParams.addr,
-        abi: iethZapperDepositsAbi,
-        functionName: "depositWithReferral",
-        args: [wallet, referralCode],
-        value: collateral.balance,
+        tx,
+        calls: [{ target: zapper.baseParams.addr, callData: tx.callData }],
       };
     } else if (zapper) {
-      return permit
-        ? {
-            target: zapper.baseParams.addr,
-            abi: ierc20ZapperDepositsAbi,
-            functionName: "depositWithReferralAndPermit",
-            args: [
-              collateral.balance,
-              wallet,
-              referralCode,
-              permit.deadline,
-              permit.v,
-              permit.r,
-              permit.s,
-            ],
-          }
-        : {
-            target: zapper.baseParams.addr,
-            abi: ierc20ZapperDepositsAbi,
-            functionName: "depositWithReferral",
-            args: [collateral.balance, wallet, referralCode],
-          };
-    } else {
+      const zapperContract = new IERC20ZapperDepositsContract(this.sdk, {
+        addr: zapper.baseParams.addr,
+        name: `ERC20Zapper(${this.labelAddress(zapper.baseParams.addr)})`,
+      });
+      const tx = permit
+        ? zapperContract.depositWithReferralAndPermit(
+            collateral.balance,
+            wallet,
+            referralCode ?? 0n,
+            permit.deadline,
+            permit.v,
+            permit.r,
+            permit.s,
+          )
+        : zapperContract.depositWithReferral(
+            collateral.balance,
+            wallet,
+            referralCode ?? 0n,
+          );
       return {
-        target: pool,
-        abi: iPoolV310Abi,
-        functionName: "depositWithReferral",
-        args: [collateral.balance, wallet, referralCode],
+        tx,
+        calls: [{ target: zapper.baseParams.addr, callData: tx.callData }],
       };
     }
+
+    const poolContract = this.sdk.marketRegister.findByPool(pool).pool.pool;
+    const tx = poolContract.depositWithReferral(
+      collateral.balance,
+      wallet,
+      referralCode ?? 0n,
+    );
+    return {
+      tx,
+      calls: [{ target: pool, callData: tx.callData }],
+    };
   }
 
   /**
@@ -189,50 +201,55 @@ export class PoolService extends SDKConstruct implements IPoolsService {
   /**
    * {@inheritDoc IPoolsService.removeLiquidity}
    */
-  public removeLiquidity(props: RemoveLiquidityProps): PoolServiceCall {
+  public removeLiquidity(props: RemoveLiquidityProps): PoolServiceCallResult {
     const { pool, amount, meta, wallet, permit } = props;
 
     const underlying = this.#describeUnderlying(pool);
     if (this.sdk.tokensMeta.isRWAUnderlying(underlying)) {
       if (underlying.contractType === RWA_UNDERLYING_ON_DEMAND) {
         // in this flow, withdrawal === set allowance to 0
-        return {
+        const tokenContract = new BaseContract(this.sdk, {
+          addr: underlying.asset,
           abi: ierc20Abi,
+          name: "ERC20",
+        });
+        const tx = tokenContract.createRawTx({
           functionName: "approve",
-          args: [underlying.liquidityProvider, 0n],
-          target: underlying.asset,
+          args: [underlying.liquidityProvider.addr, 0n],
+        });
+        return {
+          tx,
+          calls: [{ target: underlying.asset, callData: tx.callData }],
         };
       }
     }
 
     if (meta.zapper) {
-      return permit
-        ? {
-            target: meta.zapper.baseParams.addr,
-            abi: iZapperAbi,
-            functionName: "redeemWithPermit",
-            args: [
-              amount,
-              wallet,
-              permit.deadline,
-              permit.v,
-              permit.r,
-              permit.s,
-            ],
-          }
-        : {
-            target: meta.zapper.baseParams.addr,
-            abi: iZapperAbi,
-            functionName: "redeem",
-            args: [amount, wallet],
-          };
+      const zapperContract = new IZapperContract(this.sdk, {
+        addr: meta.zapper.baseParams.addr,
+        name: `Zapper(${this.labelAddress(meta.zapper.baseParams.addr)})`,
+      });
+      const tx = permit
+        ? zapperContract.redeemWithPermit(
+            amount,
+            wallet,
+            permit.deadline,
+            permit.v,
+            permit.r,
+            permit.s,
+          )
+        : zapperContract.redeem(amount, wallet);
+      return {
+        tx,
+        calls: [{ target: meta.zapper.baseParams.addr, callData: tx.callData }],
+      };
     }
 
+    const poolContract = this.sdk.marketRegister.findByPool(pool).pool.pool;
+    const tx = poolContract.redeem(amount, wallet, wallet);
     return {
-      target: pool,
-      abi: iPoolV310Abi,
-      functionName: "redeem",
-      args: [amount, wallet, wallet],
+      tx,
+      calls: [{ target: pool, callData: tx.callData }],
     };
   }
 

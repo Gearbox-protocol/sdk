@@ -1,15 +1,15 @@
 import type {
+  Address,
   ContractEventName,
   DecodeFunctionDataReturnType,
   Log,
 } from "viem";
-
 import { iPoolV310Abi } from "../../../abi/310/generated.js";
 import { iPausableAbi } from "../../../abi/iPausable.js";
 import type { CreditManagerDebtParams, PoolState } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
-import type { PoolStateHuman } from "../../types/index.js";
+import type { PoolStateHuman, RawTx } from "../../types/index.js";
 import {
   AddressMap,
   formatBN,
@@ -143,6 +143,32 @@ export class PoolV310Contract extends BaseContract<abi> {
         this.dirty = true;
         break;
     }
+  }
+
+  /**
+   * Deposits underlying assets into the pool on behalf of a user with a
+   * referral code.
+   */
+  public depositWithReferral(
+    amount: bigint,
+    onBehalfOf: Address,
+    referralCode: bigint,
+  ): RawTx {
+    return this.createRawTx({
+      functionName: "depositWithReferral",
+      args: [amount, onBehalfOf, referralCode],
+    });
+  }
+
+  /**
+   * Redeems pool shares from the owner and sends the underlying assets to
+   * the receiver.
+   */
+  public redeem(amount: bigint, owner: Address, receiver: Address): RawTx {
+    return this.createRawTx({
+      functionName: "redeem",
+      args: [amount, owner, receiver],
+    });
   }
 
   protected override stringifyFunctionParams(

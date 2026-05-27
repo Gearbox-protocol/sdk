@@ -14,7 +14,7 @@ import {
   MAX_UINT256,
   OnchainSDK,
   PoolService,
-  type PoolServiceCall,
+  type PoolServiceCallResult,
   type ZapperData,
 } from "../../sdk/index.js";
 import { ANVIL_URL } from "../constants.js";
@@ -53,19 +53,15 @@ async function getBalances(
   );
 }
 
-function encodePoolCall(call: PoolServiceCall): {
+function encodePoolCall(call: PoolServiceCallResult): {
   to: Address;
   data: Hex;
   value?: bigint;
 } {
   return {
-    to: call.target,
-    data: encodeFunctionData({
-      abi: call.abi,
-      functionName: call.functionName,
-      args: call.args,
-    }),
-    value: call.value,
+    to: call.tx.to,
+    data: call.tx.callData,
+    value: BigInt(call.tx.value ?? "0"),
   };
 }
 

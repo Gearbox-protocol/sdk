@@ -675,12 +675,11 @@ export class AccountOpener extends SDKConstruct {
         throw new Error(`no deposit call could be created for ${poolName}`);
       }
 
-      txHash = await this.#anvil.writeContract({
+      txHash = await this.#anvil.sendTransaction({
         account: depositor,
-        address: depositCall.target,
-        abi: depositCall.abi,
-        functionName: depositCall.functionName,
-        args: depositCall.args,
+        to: depositCall.tx.to,
+        data: depositCall.tx.callData,
+        value: BigInt(depositCall.tx.value ?? "0"),
         chain: this.#anvil.chain,
       });
       receipt = await this.#anvil.waitForTransactionReceipt({ hash: txHash });

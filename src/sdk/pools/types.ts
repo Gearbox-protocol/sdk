@@ -3,9 +3,11 @@ import type {
   Address,
   ContractFunctionArgs,
   ContractFunctionName,
+  Hex,
 } from "viem";
 import type { ZapperData } from "../market/index.js";
 import type { Asset } from "../router/index.js";
+import type { MultiCall, RawTx } from "../types/transactions.js";
 
 interface PermitResult {
   r: Address;
@@ -39,6 +41,11 @@ export type PoolServiceCall<
   target: Address;
   value?: bigint;
 };
+
+export interface PoolServiceCallResult {
+  tx: RawTx;
+  calls: Array<MultiCall>;
+}
 
 export interface AddLiquidityProps {
   /**
@@ -187,7 +194,7 @@ export interface IPoolsService {
    * @param props - {@link AddLiquidityProps}
    * @returns - {@link AddLiquidityCall}
    */
-  addLiquidity(props: AddLiquidityProps): PoolServiceCall | undefined;
+  addLiquidity(props: AddLiquidityProps): PoolServiceCallResult | undefined;
 
   /**
    * Construct a call to remove liquidity from a Gearbox lending pool.
@@ -195,5 +202,5 @@ export interface IPoolsService {
    * @param props - {@link RemoveLiquidityProps}
    * @returns - {@link RemoveLiquidityCall}
    */
-  removeLiquidity(props: RemoveLiquidityProps): PoolServiceCall;
+  removeLiquidity(props: RemoveLiquidityProps): PoolServiceCallResult;
 }

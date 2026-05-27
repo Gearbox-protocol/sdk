@@ -18,7 +18,7 @@ import {
   MAX_UINT256,
   OnchainSDK,
   PoolService,
-  type PoolServiceCall,
+  type PoolServiceCallResult,
   type RWADefaultTokenMeta,
   type RWAOnDemandTokenMeta,
 } from "../../sdk/index.js";
@@ -66,19 +66,15 @@ async function getBalances(
   );
 }
 
-function encodePoolCall(call: PoolServiceCall): {
+function encodePoolCall(call: PoolServiceCallResult): {
   to: Address;
   data: Hex;
   value?: bigint;
 } {
   return {
-    to: call.target,
-    data: encodeFunctionData({
-      abi: call.abi,
-      functionName: call.functionName,
-      args: call.args,
-    }),
-    value: call.value,
+    to: call.tx.to,
+    data: call.tx.callData,
+    value: BigInt(call.tx.value ?? "0"),
   };
 }
 
@@ -346,9 +342,14 @@ describe.skipIf(!!process.env.CI)("RWA pool deposit and withdraw", () => {
         meta: withdrawalMeta,
       });
 
-      expect(call.target).toBe(rwaMeta.asset);
-      expect(call.functionName).toBe("approve");
-      expect(call.args[1]).toBe(0n);
+      expect(call.tx.to).toBe(rwaMeta.asset);
+      expect(call.tx.callData).toBe(
+        encodeFunctionData({
+          abi: erc20Abi,
+          functionName: "approve",
+          args: [rwaMeta.liquidityProvider.addr, 0n],
+        }),
+      );
     });
   });
 });
