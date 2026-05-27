@@ -1,3 +1,4 @@
-export * from "./IERC20ZapperDepositsContract.js";
-export * from "./IETHZapperDepositsContract.js";
-export * from "./IZapperContract.js";
+export * from "./createZapper.js";
+export * from "./IERC20ZapperContract.js";
+export * from "./IETHZapperContract.js";
+export * from "./Zapper.js";

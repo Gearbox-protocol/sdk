@@ -8,12 +8,11 @@ import {
   type TokenMetaData,
 } from "../base/index.js";
 import { NATIVE_ADDRESS } from "../constants/index.js";
-import type { ZapperData } from "../market/index.js";
 import {
-  IERC20ZapperDepositsContract,
-  IETHZapperDepositsContract,
-  IZapperContract,
-} from "../market/zapper/index.js";
+  IERC20ZapperContract,
+  IETHZapperContract,
+  type Zapper,
+} from "../market/index.js";
 import { AddressSet, hexEq } from "../utils/index.js";
 import type {
   AddLiquidityProps,
@@ -113,24 +112,16 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     }
 
     const { zapper } = meta;
-    if (zapper && hexEq(zapper.tokenIn.addr, NATIVE_ADDRESS)) {
-      const zapperContract = new IETHZapperDepositsContract(this.sdk, {
-        addr: zapper.baseParams.addr,
-        name: `ETHZapper(${this.labelAddress(zapper.baseParams.addr)})`,
-      });
-      const tx = zapperContract.depositWithReferral(wallet, referralCode ?? 0n);
+    if (zapper instanceof IETHZapperContract) {
+      const tx = zapper.depositWithReferral(wallet, referralCode ?? 0n);
       tx.value = collateral.balance.toString();
       return {
         tx,
         calls: [{ target: zapper.baseParams.addr, callData: tx.callData }],
       };
-    } else if (zapper) {
-      const zapperContract = new IERC20ZapperDepositsContract(this.sdk, {
-        addr: zapper.baseParams.addr,
-        name: `ERC20Zapper(${this.labelAddress(zapper.baseParams.addr)})`,
-      });
+    } else if (zapper instanceof IERC20ZapperContract) {
       const tx = permit
-        ? zapperContract.depositWithReferralAndPermit(
+        ? zapper.depositWithReferralAndPermit(
             collateral.balance,
             wallet,
             referralCode ?? 0n,
@@ -139,7 +130,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
             permit.r,
             permit.s,
           )
-        : zapperContract.depositWithReferral(
+        : zapper.depositWithReferral(
             collateral.balance,
             wallet,
             referralCode ?? 0n,
@@ -224,13 +215,12 @@ export class PoolService extends SDKConstruct implements IPoolsService {
       }
     }
 
-    if (meta.zapper) {
-      const zapperContract = new IZapperContract(this.sdk, {
-        addr: meta.zapper.baseParams.addr,
-        name: `Zapper(${this.labelAddress(meta.zapper.baseParams.addr)})`,
-      });
+    if (
+      meta.zapper instanceof IETHZapperContract ||
+      meta.zapper instanceof IERC20ZapperContract
+    ) {
       const tx = permit
-        ? zapperContract.redeemWithPermit(
+        ? meta.zapper.redeemWithPermit(
             amount,
             wallet,
             permit.deadline,
@@ -238,7 +228,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
             permit.r,
             permit.s,
           )
-        : zapperContract.redeem(amount, wallet);
+        : meta.zapper.redeem(amount, wallet);
       return {
         tx,
         calls: [{ target: meta.zapper.baseParams.addr, callData: tx.callData }],
@@ -450,7 +440,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     poolAddr: Address,
     tokenIn: Address,
     tokenOut: Address,
-  ): ZapperData | undefined {
+  ): Zapper | undefined {
     const zappers = this.sdk.marketRegister
       .getZapper(poolAddr, tokenIn, tokenOut)
       ?.filter(z => z.type !== "migration");
