@@ -2,12 +2,12 @@ import type { PoolState } from "../../base/index.js";
 import { isV310 } from "../../constants/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import { PoolV310Contract } from "./PoolV310Contract.js";
-import type { PoolContract } from "./types.js";
+import type { IPoolContract } from "./types.js";
 
 export default function createPool(
   sdk: OnchainSDK,
   data: PoolState,
-): PoolContract {
+): IPoolContract {
   const v = data.baseParams.version;
   if (isV310(v)) {
     return new PoolV310Contract(sdk, data);

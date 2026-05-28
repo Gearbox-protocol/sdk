@@ -15,8 +15,8 @@ import { LinearInterestRateModelContract } from "./LinearInterestRateModelContra
 import { TumblerContract } from "./TumblerContract.js";
 import type {
   IInterestRateModelContract,
+  IPoolContract,
   IRateKeeperContract,
-  PoolContract,
   PoolQuotaKeeperContract,
 } from "./types.js";
 
@@ -36,7 +36,7 @@ export class PoolSuite extends SDKConstruct {
    * ERC-4626 liquidity pool wrapper for deposits, withdrawals, borrowing
    * limits, and base interest accounting.
    */
-  public readonly pool: PoolContract;
+  public readonly pool: IPoolContract;
   /**
    * Quota keeper wrapper that tracks per-token quota limits, quoted exposure,
    * quota rates, and credit-manager access.

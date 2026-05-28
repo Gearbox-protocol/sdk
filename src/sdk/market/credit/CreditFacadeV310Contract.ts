@@ -19,14 +19,22 @@ import {
 import type { PriceUpdate } from "../pricefeeds/index.js";
 import type { CreditFacadeV310Abi } from "./CreditFacadeV310BaseContract.js";
 import { CreditFacadeV310BaseContract } from "./CreditFacadeV310BaseContract.js";
+import type { ICreditFacadeContract } from "./types.js";
 
 type abi = CreditFacadeV310Abi;
 
+// Augmenting contract class with interface of compressor data object so that
+// the abi-inferred `CreditFacadeState` fields are grafted onto the instance
+// type (they are populated at runtime via `Object.assign` in the constructor).
 export interface CreditFacadeV310Contract
   extends Omit<CreditFacadeState, "baseParams">,
     CreditFacadeV310BaseContract {}
 
-export class CreditFacadeV310Contract extends CreditFacadeV310BaseContract {
+// biome-ignore lint/suspicious/noUnsafeDeclarationMerging: typing for Object.assign
+export class CreditFacadeV310Contract
+  extends CreditFacadeV310BaseContract
+  implements ICreditFacadeContract
+{
   public readonly underlying: Address;
 
   constructor(

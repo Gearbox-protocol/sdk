@@ -17,16 +17,23 @@ import {
   percentFmt,
 } from "../../utils/index.js";
 import type { IRWAFactory } from "../rwa/types.js";
+import type { IPoolContract } from "./types.js";
 
 const abi = [...iPoolV310Abi, ...iPausableAbi] as const;
 type abi = typeof abi;
 
-// Augmenting contract class with interface of compressor data object
+// Augmenting contract class with interface of compressor data object so that
+// the abi-inferred `PoolState` fields are grafted onto the instance type
+// (they are populated at runtime via `Object.assign` in the constructor).
 export interface PoolV310Contract
   extends Omit<PoolState, "baseParams" | "creditManagerDebtParams" | "name">,
     BaseContract<abi> {}
 
-export class PoolV310Contract extends BaseContract<abi> {
+// biome-ignore lint/suspicious/noUnsafeDeclarationMerging: typing for Object.assign
+export class PoolV310Contract
+  extends BaseContract<abi>
+  implements IPoolContract
+{
   public readonly creditManagerDebtParams: AddressMap<CreditManagerDebtParams>;
   #sdk: OnchainSDK;
 

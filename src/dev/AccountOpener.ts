@@ -15,8 +15,8 @@ import type {
   CreditSuite,
   ICreditAccountsService,
   ILogger,
+  IPoolContract,
   IPoolsService,
-  PoolContract,
   RawTx,
 } from "../sdk/index.js";
 import {
@@ -530,7 +530,7 @@ export class AccountOpener extends SDKConstruct {
       );
     }
 
-    const deposits: [PoolContract, bigint][] = [];
+    const deposits: [IPoolContract, bigint][] = [];
     const claims: AddressMap<bigint> = new AddressMap();
     for (const [p, minAvailable] of Object.entries(minAvailableByPool)) {
       const market = this.sdk.marketRegister.findByPool(p as Address);
@@ -579,7 +579,7 @@ export class AccountOpener extends SDKConstruct {
   }
 
   async #depositToPool(
-    pool: PoolContract,
+    pool: IPoolContract,
     depositor: PrivateKeyAccount,
     amount: bigint,
   ): Promise<PoolDepositResult> {

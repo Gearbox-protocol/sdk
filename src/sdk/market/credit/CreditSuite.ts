@@ -11,8 +11,8 @@ import createCreditConfigurator from "./createCreditConfigurator.js";
 import createCreditFacade from "./createCreditFacade.js";
 import createCreditManager from "./createCreditManager.js";
 import type {
-  CreditFacadeContract,
   ICreditConfiguratorContract,
+  ICreditFacadeContract,
   ICreditManagerContract,
 } from "./types.js";
 
@@ -46,7 +46,7 @@ export class CreditSuite extends SDKConstruct {
    * Wrapper around the credit facade contract used to build account
    * transactions such as open, close, liquidate, and multicall.
    */
-  public readonly creditFacade: CreditFacadeContract;
+  public readonly creditFacade: ICreditFacadeContract;
   /**
    * Wrapper around the credit configurator that mutates risk
    * parameters, collateral tokens, adapter permissions, and facade settings.
