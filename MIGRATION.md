@@ -1,13 +1,23 @@
 # SDK Migration Guide
 
-Migration notes between consecutive major versions of `@gearbox-protocol/sdk`.
-New sections are appended below as future majors ship.
+Migration notes between consecutive versions of `@gearbox-protocol/sdk` that
+introduce consumer-visible breaking changes. New sections are appended below
+as future releases ship.
 
-## v14 → v15
+## v14.x → v14.10
+
+> Despite being a minor bump, `v14.10.0` introduced consumer-visible breaking
+> changes. A short-lived `v15.0.0-next.{1,2,3}` prerelease line carried the
+> same changes but was never released as stable — `^14.10.0` is the supported
+> upgrade target.
 
 ### Summary of changes
 
 - **`sdk.accounts` and `sdk.pools` are now built for you.** `OnchainSDK` instantiates a `CreditAccountsServiceV310` and a `PoolService` in its constructor and exposes them as `sdk.accounts` (`ICreditAccountsService`) and `sdk.pools` (`IPoolsService`). You no longer create these services manually.
+- **`createCreditAccountService` factory removed.** Use `sdk.accounts` directly.
+- **`AbstractCreditAccountService` removed.** Its functionality was merged into `CreditAccountsServiceV310`.
+- **`CreditAccountServiceV310` renamed to `CreditAccountsServiceV310`** (note the plural `Accounts`).
+
 ---
 
 ### Use `sdk.accounts` instead of `createCreditAccountService`
@@ -44,13 +54,20 @@ pools.getDepositTokensIn(pool);
 sdk.pools.getDepositTokensIn(pool);
 ```
 
+### Rename `CreditAccountServiceV310` → `CreditAccountsServiceV310`
+
+```diff
+- import { CreditAccountServiceV310 } from "@gearbox-protocol/sdk";
++ import { CreditAccountsServiceV310 } from "@gearbox-protocol/sdk";
+```
+
 ### Automated migration
 
 An agent skill ships with this repo at
-[`skills/gearbox-sdk-v14-to-v15`](skills/gearbox-sdk-v14-to-v15/SKILL.md).
+[`skills/gearbox-sdk-v14.x-to-v14.10`](skills/gearbox-sdk-v14.x-to-v14.10/SKILL.md).
 
 ```bash
-npx skills add Gearbox-protocol/sdk --skill gearbox-sdk-v14-to-v15
+npx skills add Gearbox-protocol/sdk --skill gearbox-sdk-v14.x-to-v14.10
 ```
 
 ---

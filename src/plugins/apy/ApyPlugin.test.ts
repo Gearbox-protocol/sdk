@@ -237,7 +237,9 @@ function makeMockMarket(
           minDebt,
           maxDebt,
         },
-        marketConfigurator: overrides.marketConfigurator ?? mockConfigurator,
+        marketConfigurator: {
+          address: overrides.marketConfigurator ?? mockConfigurator,
+        },
       },
     ],
   };

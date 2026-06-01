@@ -1,23 +1,25 @@
 ---
-name: gearbox-sdk-v14-to-v15
+name: gearbox-sdk-v14.x-to-v14.10
 description: >-
-  Migrate a TypeScript repo that consumes @gearbox-protocol/sdk from v14 to v15
-  (covers stable 15.x.x and 15.x.x-next.x pre-releases). Focuses on the new
+  Migrate a TypeScript repo that consumes @gearbox-protocol/sdk from an early
+  v14 minor (v14.0.x – v14.9.x) up to v14.10.0 or later (covers stable
+  14.10.x and 14.10.x-next.x pre-releases). Focuses on the new
   sdk.accounts / sdk.pools namespaces, removal of createCreditAccountService,
   removal of AbstractCreditAccountService, and the CreditAccountServiceV310 ->
   CreditAccountsServiceV310 rename. Use when the user asks to upgrade
-  @gearbox-protocol/sdk to v15, bump to ^15.0.0, or fix breakage after the
-  v15 bump.
+  @gearbox-protocol/sdk to v14.10, bump to ^14.10.0, or fix breakage after the
+  v14.10 bump.
 ---
 
-# Gearbox SDK v14 → v15 Migration
+# Gearbox SDK v14.x → v14.10 Migration
 
-Migrate a consumer repo that depends on `@gearbox-protocol/sdk@^14.x` to
-`@gearbox-protocol/sdk@^15.x`. This skill only covers the high-impact,
-consumer-visible API changes introduced in v15: `sdk.accounts` / `sdk.pools`
-are now built by the SDK, the `createCreditAccountService` factory is gone,
-`AbstractCreditAccountService` is gone, and `CreditAccountServiceV310` is
-renamed to `CreditAccountsServiceV310`. See the upstream
+Migrate a consumer repo that depends on `@gearbox-protocol/sdk@^14.x` (any minor
+older than `14.10`) to `@gearbox-protocol/sdk@^14.10.x`. Despite landing in a
+minor bump, `v14.10.0` shipped a handful of consumer-visible breaking changes:
+`sdk.accounts` / `sdk.pools` are now built by the SDK, the
+`createCreditAccountService` factory is gone, `AbstractCreditAccountService` is
+gone, and `CreditAccountServiceV310` is renamed to `CreditAccountsServiceV310`.
+See the upstream
 [`MIGRATION.md`](https://github.com/Gearbox-protocol/sdk/blob/master/MIGRATION.md)
 for the authoritative reference.
 
@@ -26,15 +28,19 @@ then this one.
 
 ## 1. Pre-flight
 
-1. Confirm the consumer is on `@gearbox-protocol/sdk@^14.x`:
+1. Confirm the consumer is on `@gearbox-protocol/sdk@^14.x` **older than
+   `14.10`**:
    - Check `package.json` `dependencies` / `devDependencies`.
    - Cross-check the lockfile (`package-lock.json` / `yarn.lock` / `pnpm-lock.yaml`).
+   - If the installed version is already `>=14.10.0`, this skill is a no-op —
+     report that and stop.
 2. Capture a typecheck baseline so post-migration errors are easy to diff
    against. Use whatever script the repo has (`tsc --noEmit`, `pnpm typecheck`,
    `npm run typecheck`, etc.). Save the output.
 3. Search the codebase for the symbols this migration touches:
    - `createCreditAccountService` (imports and call sites)
    - `CreditAccountServiceV310` (singular — the old class name)
+   - `AbstractCreditAccountService` (extremely rare)
    - `new PoolService(` (direct instantiations)
 
 This gives you a complete picture of what needs changing before touching any
@@ -45,8 +51,11 @@ files.
 Edit `package.json` to one of the following. Use whichever channel the user is
 tracking.
 
-- **Stable**: `"@gearbox-protocol/sdk": "^15.0.0"`
-- **Prerelease (`next` channel)**: pin an exact tag, e.g. `"@gearbox-protocol/sdk": "15.0.0-next.1"`. Ask the user which tag they want if unclear — `^15.x.x-next.x` ranges don't behave the way you'd expect with semver.
+- **Stable**: `"@gearbox-protocol/sdk": "^14.10.0"`
+- **Prerelease (`next` channel)**: pin an exact tag, e.g.
+  `"@gearbox-protocol/sdk": "14.10.3-next.2"`. Ask the user which tag they want
+  if unclear — `^14.10.x-next.x` ranges don't behave the way you'd expect with
+  semver.
 
 Reinstall with the project's existing package manager (`npm install`, `yarn`,
 or `pnpm install`). **Do not switch package managers** as part of this
@@ -54,8 +63,9 @@ migration.
 
 ## 3. Replace `createCreditAccountService` with `sdk.accounts`
 
-In v15, every `OnchainSDK` already owns a `CreditAccountsServiceV310` instance
-at `sdk.accounts` (type `ICreditAccountsService`). The factory is gone.
+In v14.10, every `OnchainSDK` already owns a `CreditAccountsServiceV310`
+instance at `sdk.accounts` (type `ICreditAccountsService`). The factory is
+gone.
 
 **Before:**
 
@@ -132,7 +142,7 @@ extending it are extremely rare, but if you find one:
   a wrapper instead.
 
 Remove any imports of `AbstractCreditAccountService` — they will fail to
-resolve in v15.
+resolve in v14.10.
 
 ## 7. Verify
 
@@ -148,13 +158,13 @@ errors exist, cross-reference against the quick-reference below.
 
 ## Quick reference (old → new)
 
-| v14                                                 | v15                                                             |
-| --------------------------------------------------- | --------------------------------------------------------------- |
-| `createCreditAccountService(sdk, 310)`              | `sdk.accounts`                                                  |
-| `createCreditAccountService(sdk, 310, { batchSize })` | `sdk.accounts` + `sdk.accounts.setBatchSize(n)`               |
-| `new PoolService(sdk)`                              | `sdk.pools`                                                     |
-| `CreditAccountServiceV310`                          | `CreditAccountsServiceV310` (plural)                            |
-| `AbstractCreditAccountService`                      | Removed — extend `CreditAccountsServiceV310` or wrap `sdk.accounts` |
+| Pre-14.10                                             | v14.10+                                                             |
+| ----------------------------------------------------- | ------------------------------------------------------------------- |
+| `createCreditAccountService(sdk, 310)`                | `sdk.accounts`                                                      |
+| `createCreditAccountService(sdk, 310, { batchSize })` | `sdk.accounts` + `sdk.accounts.setBatchSize(n)`                     |
+| `new PoolService(sdk)`                                | `sdk.pools`                                                         |
+| `CreditAccountServiceV310`                            | `CreditAccountsServiceV310` (plural)                                |
+| `AbstractCreditAccountService`                        | Removed — extend `CreditAccountsServiceV310` or wrap `sdk.accounts` |
 
 ## Upstream references
 

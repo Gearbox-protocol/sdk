@@ -193,7 +193,7 @@ export class OnchainSdkStrategyDataSource
       maxEnabledTokensLength: cm.maxEnabledTokens,
       version: Number(facade.version),
       isBorrowingForbidden: facade.maxDebtPerBlockMultiplier === 0,
-      marketConfigurator: lc(cs.marketConfigurator),
+      marketConfigurator: lc(cs.marketConfigurator.address),
       supportedTokens,
       forbiddenTokens,
       name: cs.name,

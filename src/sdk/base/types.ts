@@ -122,9 +122,13 @@ export interface TokenInfo {
 
 /**
  * Compile-time assertion: `U` must be assignable to `T`.
- * @internal
+ *
+ * Used to verify that hand-written interfaces stay structurally compatible
+ * with viem/abitype-inferred state types. If the inferred type drifts away
+ * from the hand-written one (a field is added, removed, or retyped in the
+ * ABI), the assertion line that uses it produces a type error.
  **/
-type AssertAssignable<T, U extends T> = U;
+export type AssertAssignable<T, U extends T> = U;
 
 // Compile-time check: TokenInfo stays in sync with the ABI-inferred type.
 // If the compressor ABI changes, this line will produce a type error.
