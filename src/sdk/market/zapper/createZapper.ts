@@ -1,6 +1,5 @@
-import { NATIVE_ADDRESS } from "../../constants/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
-import { hexEq } from "../../utils/index.js";
+import { bytes32ToString } from "../../utils/index.js";
 import type { ZapperData } from "../types.js";
 import { IERC20ZapperContract } from "./IERC20ZapperContract.js";
 import { IETHZapperContract } from "./IETHZapperContract.js";
@@ -11,9 +10,16 @@ export function createZapper(
   data: ZapperData,
 ): Zapper | IETHZapperContract | IERC20ZapperContract {
   if (data.type === "base") {
-    return hexEq(data.tokenIn.addr, NATIVE_ADDRESS)
-      ? new IETHZapperContract(sdk, data)
-      : new IERC20ZapperContract(sdk, data);
+    const contractType = Zapper.contractType(data.baseParams);
+    switch (contractType) {
+      case "ZAPPER::ERC4626_UNDERLYING":
+        return new IERC20ZapperContract(sdk, data);
+      case "ZAPPER::WETH_DEPOSIT":
+        return new IETHZapperContract(sdk, data);
+      default:
+        sdk.logger?.warn(`Unknown zapper contract type: ${contractType}`);
+        return new Zapper(data);
+    }
   }
   return new Zapper(data);
 }
