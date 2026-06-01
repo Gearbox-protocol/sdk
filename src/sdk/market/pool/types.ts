@@ -9,6 +9,7 @@ import type {
   InterestRateModelStateHuman,
   PoolStateHuman,
   RateKeeperStateHuman,
+  RawTx,
 } from "../../types/index.js";
 import type { AddressMap } from "../../utils/index.js";
 import type { IRWAFactory } from "../rwa/types.js";
@@ -132,6 +133,22 @@ export interface IPoolContract extends IBaseContract {
   readonly rwaFactory: IRWAFactory | undefined;
 
   stateHuman: (raw?: boolean) => PoolStateHuman;
+
+  /**
+   * Deposits underlying assets into the pool on behalf of a user with a
+   * referral code.
+   */
+  depositWithReferral(
+    amount: bigint,
+    onBehalfOf: Address,
+    referralCode: bigint,
+  ): RawTx;
+
+  /**
+   * Redeems pool shares from the owner and sends the underlying assets to
+   * the receiver.
+   */
+  redeem(amount: bigint, owner: Address, receiver: Address): RawTx;
 }
 
 // Compile-time check: IPoolContract covers every abi-inferred PoolState field

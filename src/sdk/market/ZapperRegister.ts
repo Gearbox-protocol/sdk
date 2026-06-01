@@ -7,13 +7,14 @@ import {
 } from "../constants/index.js";
 import { AddressMap, hexEq } from "../utils/index.js";
 import type { ZapperData } from "./types.js";
+import { createZapper, type Zapper } from "./zapper/index.js";
 
 export class ZapperRegister extends SDKConstruct {
   /**
-   * Mapping pool.address -> ZapperData[]
+   * Mapping pool.address -> Zapper[]
    * Needs to be loaded explicitly using loadZappers method
    */
-  #zappers?: AddressMap<ZapperData[]>;
+  #zappers?: AddressMap<Zapper[]>;
 
   /**
    * Load zappers for all pools using periphery compressor, adds hardcoded zappers
@@ -43,7 +44,7 @@ export class ZapperRegister extends SDKConstruct {
       batchSize: 0,
     });
 
-    this.#zappers = new AddressMap<ZapperData[]>(undefined, "zappers");
+    this.#zappers = new AddressMap<Zapper[]>(undefined, "zappers");
     for (let i = 0; i < resp.length; i++) {
       const { status, result, error } = resp[i];
       const marketConfigurator = markets[i].configurator.address;
@@ -64,16 +65,17 @@ export class ZapperRegister extends SDKConstruct {
   }
 
   #addZapper(z: ZapperData): void {
+    const zapper = createZapper(this.sdk, z);
     const existing = this.zappers.get(z.pool);
     if (existing) {
       const hasZapper = existing.some(zz =>
         hexEq(zz.baseParams.addr, z.baseParams.addr),
       );
       if (!hasZapper) {
-        existing.push(z);
+        existing.push(zapper);
       }
     } else {
-      this.zappers.upsert(z.pool, [z]);
+      this.zappers.upsert(z.pool, [zapper]);
     }
     const zappersTokens = [z.tokenIn, z.tokenOut];
     for (const t of zappersTokens) {
@@ -82,14 +84,14 @@ export class ZapperRegister extends SDKConstruct {
     }
   }
 
-  public get zappers(): AddressMap<ZapperData[]> {
+  public get zappers(): AddressMap<Zapper[]> {
     if (!this.#zappers) {
       throw new Error("zappers not loaded, call loadZappers first");
     }
     return this.#zappers;
   }
 
-  public poolZappers(pool: Address): ZapperData[] {
+  public poolZappers(pool: Address): Zapper[] {
     return this.zappers.get(pool) ?? [];
   }
 
@@ -100,7 +102,7 @@ export class ZapperRegister extends SDKConstruct {
     pool: Address,
     tokenIn: Address,
     tokenOut: Address,
-  ): Array<ZapperData> | undefined {
+  ): Array<Zapper> | undefined {
     const zappers = this.zappers
       .get(pool)
       ?.filter(

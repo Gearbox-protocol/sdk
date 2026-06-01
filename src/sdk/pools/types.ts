@@ -3,9 +3,11 @@ import type {
   Address,
   ContractFunctionArgs,
   ContractFunctionName,
+  Hex,
 } from "viem";
-import type { ZapperData } from "../market/index.js";
+import type { Zapper } from "../market/index.js";
 import type { Asset } from "../router/index.js";
+import type { MultiCall, RawTx } from "../types/transactions.js";
 
 interface PermitResult {
   r: Address;
@@ -39,6 +41,11 @@ export type PoolServiceCall<
   target: Address;
   value?: bigint;
 };
+
+export interface PoolServiceCallResult {
+  tx: RawTx;
+  calls: Array<MultiCall>;
+}
 
 export interface AddLiquidityProps {
   /**
@@ -83,7 +90,7 @@ export interface DepositMetadata {
   /**
    * Zapper that will perform the deposit, undefined in case of direct pool underlying deposit
    */
-  zapper?: ZapperData;
+  zapper?: Zapper;
   /**
    * Before deposit user will nedd to call approve method on token that he wants to deposit,
    * this is the spender address that will be used to call approve method.
@@ -104,7 +111,7 @@ export interface WithdrawalMetadata {
   /**
    * Zapper that will perform the withdrawal, undefined in case of direct pool underlying withdrawal
    */
-  zapper?: ZapperData;
+  zapper?: Zapper;
   /**
    * Before withdrawal user will need to call approve method on token that he wants to withdraw (diesel token),
    * this is the spender address that will be used to call approve method.
@@ -187,7 +194,7 @@ export interface IPoolsService {
    * @param props - {@link AddLiquidityProps}
    * @returns - {@link AddLiquidityCall}
    */
-  addLiquidity(props: AddLiquidityProps): PoolServiceCall | undefined;
+  addLiquidity(props: AddLiquidityProps): PoolServiceCallResult | undefined;
 
   /**
    * Construct a call to remove liquidity from a Gearbox lending pool.
@@ -195,5 +202,5 @@ export interface IPoolsService {
    * @param props - {@link RemoveLiquidityProps}
    * @returns - {@link RemoveLiquidityCall}
    */
-  removeLiquidity(props: RemoveLiquidityProps): PoolServiceCall;
+  removeLiquidity(props: RemoveLiquidityProps): PoolServiceCallResult;
 }

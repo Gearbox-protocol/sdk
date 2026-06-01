@@ -11,11 +11,11 @@ import {
 import { dealActions } from "viem-deal";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
+  IERC20ZapperContract,
   MAX_UINT256,
   OnchainSDK,
   PoolService,
-  type PoolServiceCall,
-  type ZapperData,
+  type PoolServiceCallResult,
 } from "../../sdk/index.js";
 import { ANVIL_URL } from "../constants.js";
 import {
@@ -53,19 +53,15 @@ async function getBalances(
   );
 }
 
-function encodePoolCall(call: PoolServiceCall): {
+function encodePoolCall(call: PoolServiceCallResult): {
   to: Address;
   data: Hex;
   value?: bigint;
 } {
   return {
-    to: call.target,
-    data: encodeFunctionData({
-      abi: call.abi,
-      functionName: call.functionName,
-      args: call.args,
-    }),
-    value: call.value,
+    to: call.tx.to,
+    data: call.tx.callData,
+    value: BigInt(call.tx.value ?? "0"),
   };
 }
 
@@ -227,7 +223,7 @@ describe("pool deposit and withdraw", () => {
     }).extend(dealActions);
 
     // hardcoded migration zapper, not returned by sdk.marketRegister.loadZappers
-    const zapper: ZapperData = {
+    const zapper = new IERC20ZapperContract(sdk, {
       pool: KPK_WETH_POOL,
       tokenIn: {
         addr: "0xda0002859B2d05F66a753d8241fCDE8623f26F4f",
@@ -250,7 +246,7 @@ describe("pool deposit and withdraw", () => {
         serializedParams:
           "0x000000000000000000000000da0002859b2d05f66a753d8241fcde8623f26f4f",
       },
-    };
+    });
 
     const depositAmount = parseUnits("1", 18);
     await anvil.deal({

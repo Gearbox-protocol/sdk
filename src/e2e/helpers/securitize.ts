@@ -153,12 +153,11 @@ async function seedDefaultPool(
     throw new Error(`addLiquidity returned undefined for default pool ${pool}`);
   }
 
-  hash = await wallet.writeContract({
-    address: depositCall.target,
-    abi: depositCall.abi,
-    functionName: depositCall.functionName,
-    args: depositCall.args,
-    value: depositCall.value,
+  hash = await wallet.sendTransaction({
+    account: depositor,
+    to: depositCall.tx.to,
+    data: depositCall.tx.callData,
+    value: BigInt(depositCall.tx.value ?? "0"),
   });
   const receipt = await sdk.client.waitForTransactionReceipt({
     hash,
