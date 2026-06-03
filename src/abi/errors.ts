@@ -331,8 +331,47 @@ export const iERC20ErrorsAbi = [
   },
 ] as const;
 
+export const safeERC20ErrorsAbi = [
+  {
+    type: "error",
+    name: "ForceApproveFailed",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "Permit2TransferAmountTooHigh",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "SafeDecreaseAllowanceFailed",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "SafeIncreaseAllowanceFailed",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "SafePermitBadLength",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "SafeTransferFailed",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "SafeTransferFromFailed",
+    inputs: [],
+  },
+] as const;
+
 export const errorAbis = [
   ...iERC20ErrorsAbi,
+  ...safeERC20ErrorsAbi,
   ...iExceptionsV310Abi,
   ...iRedstonePriceFeedExceptionsAbi,
   ...iRedstoneErrorsAbi,
