@@ -1,0 +1,58 @@
+import type { Address, Hex } from "viem";
+import type { OnchainSDK, PoolV310Contract } from "../../sdk/index.js";
+import { UnsupportedPoolFunctionError } from "./errors.js";
+import type { PoolOperation } from "./types.js";
+
+export interface ParsePoolOperationProps {
+  sdk: OnchainSDK;
+  /** Resolved pool contract for the transaction target. */
+  pool: PoolV310Contract;
+  calldata: Hex;
+}
+
+/**
+ * Decodes ERC4626 `deposit`/`depositWithReferral`/`redeem` calldata on a
+ * Gearbox pool into a {@link PoolOperation}. Any other selector throws
+ * {@link UnsupportedPoolFunctionError}.
+ */
+export function parsePoolOperation(
+  props: ParsePoolOperationProps,
+): PoolOperation {
+  const { sdk, pool, calldata } = props;
+  const parsed = sdk.parseFunctionDataV2(pool.address, calldata);
+  const functionName = parsed.functionName.split("(")[0];
+  const { rawArgs } = parsed;
+
+  const underlying = pool.underlying;
+
+  switch (functionName) {
+    case "deposit":
+    case "depositWithReferral":
+      return {
+        operation: "Deposit",
+        pool: pool.address,
+        receiver: rawArgs.receiver as Address,
+        assets: rawArgs.assets as bigint,
+        underlying,
+        referralCode:
+          functionName === "depositWithReferral"
+            ? (rawArgs.referralCode as bigint)
+            : undefined,
+        // Calldata-only parse: transfers are recovered later by simulation.
+        transfers: [],
+      };
+    case "redeem":
+      return {
+        operation: "Redeem",
+        pool: pool.address,
+        receiver: rawArgs.receiver as Address,
+        owner: rawArgs.owner as Address,
+        shares: rawArgs.shares as bigint,
+        underlying,
+        // Calldata-only parse: transfers are recovered later by simulation.
+        transfers: [],
+      };
+    default:
+      throw new UnsupportedPoolFunctionError(pool.address, parsed.functionName);
+  }
+}
