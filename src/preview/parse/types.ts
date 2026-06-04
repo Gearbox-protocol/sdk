@@ -79,16 +79,16 @@ export interface PoolRedeemOperation {
 export type PoolOperation = PoolDepositOperation | PoolRedeemOperation;
 
 /**
- * Narrows a {@link ParsedTransaction} to a {@link PoolOperation} (deposit or
- * redeem). Used by the UI to decide whether a custom view exists for the parsed
- * result; everything else falls back to the raw JSON view.
+ * Narrows an {@link Operation} to a {@link PoolOperation} (deposit or redeem).
+ * Used by the UI to decide whether a custom view exists for the parsed result;
+ * everything else falls back to the raw JSON view.
  */
-export function isPoolOperation(tx: ParsedTransaction): tx is PoolOperation {
+export function isPoolOperation(tx: Operation): tx is PoolOperation {
   return tx.operation === "Deposit" || tx.operation === "Redeem";
 }
 
 /**
- * Result of decoding a single raw transaction calldata: either a pool
+ * Result of decoding a single raw operation calldata: either a pool
  * deposit/redeem or one of the credit-facade operations from `sdk/history`.
  */
-export type ParsedTransaction = PoolOperation | OuterFacadeOperation;
+export type Operation = PoolOperation | OuterFacadeOperation;

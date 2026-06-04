@@ -2,7 +2,7 @@ import { type Address, isAddressEqual } from "viem";
 import type { InnerOperation } from "../../history/index.js";
 
 import type { OnchainSDK } from "../../sdk/index.js";
-import type { ParsedTransaction } from "../parse/index.js";
+import type { Operation } from "../parse/index.js";
 
 import { AllowancePrerequisite } from "./AllowancePrerequisite.js";
 import { BalancePrerequisite } from "./BalancePrerequisite.js";
@@ -10,7 +10,7 @@ import type { AnyPrerequisite } from "./Prerequisite.js";
 import type { PrerequisiteContext } from "./types.js";
 
 /**
- * Derives the on-chain prerequisites for a parsed transaction: the conditions
+ * Derives the on-chain prerequisites for a parsed operation: the conditions
  * that must hold for the call not to revert and that we can verify with the
  * SDK (token approvals, wallet balances).
  *
@@ -22,7 +22,7 @@ import type { PrerequisiteContext } from "./types.js";
  * resolve it. New {@link AnyPrerequisite} subclasses must follow the same rule.
  */
 export function buildPrerequisites(
-  tx: ParsedTransaction,
+  tx: Operation,
   ctx: PrerequisiteContext,
 ): AnyPrerequisite[] {
   const { wallet } = ctx;

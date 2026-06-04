@@ -3,7 +3,7 @@ import type { OnchainSDK, PoolV310Contract } from "../../sdk/index.js";
 import { UnsupportedPoolFunctionError } from "./errors.js";
 import type { PoolOperation } from "./types.js";
 
-export interface ParsePoolOperationProps {
+export interface ParsePoolOperationCalldataProps {
   sdk: OnchainSDK;
   /** Resolved pool contract for the transaction target. */
   pool: PoolV310Contract;
@@ -15,8 +15,8 @@ export interface ParsePoolOperationProps {
  * Gearbox pool into a {@link PoolOperation}. Any other selector throws
  * {@link UnsupportedPoolFunctionError}.
  */
-export function parsePoolOperation(
-  props: ParsePoolOperationProps,
+export function parsePoolOperationCalldata(
+  props: ParsePoolOperationCalldataProps,
 ): PoolOperation {
   const { sdk, pool, calldata } = props;
   const parsed = sdk.parseFunctionDataV2(pool.address, calldata);
