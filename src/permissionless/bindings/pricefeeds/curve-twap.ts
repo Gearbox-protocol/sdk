@@ -6,12 +6,12 @@ export const curveTwapPriceFeed: PriceFeedSetupParams = {
   constructorParams: [
     {
       label: "lowerBound ($)",
-      type: { type: "int256", decimals: 8 },
+      type: { type: "int256", decimals: 18 },
       defaultValue: "0",
     },
     {
       label: "upperBound ($)",
-      type: { type: "int256", decimals: 8 },
+      type: { type: "int256", decimals: 18 },
       defaultValue: "1",
     },
     {
