@@ -27,29 +27,6 @@ export class WithdrawCollateralAlignmentError extends Error {
   }
 }
 
-export class ProtocolCallNotFoundError extends Error {
-  public readonly targetContract: Address;
-  public readonly executeIndex: number;
-  constructor(targetContract: Address, executeIndex: number) {
-    super(
-      `protocol call to ${targetContract} not found in trace for Execute #${executeIndex}`,
-    );
-    this.name = "ProtocolCallNotFoundError";
-    this.targetContract = targetContract;
-    this.executeIndex = executeIndex;
-  }
-}
-
-export class AdapterTraceAlignmentError extends Error {
-  constructor(
-    public readonly expected: number,
-    public readonly actual: number,
-  ) {
-    super(`found ${actual} adapter traces for ${expected} execute events`);
-    this.name = "AdapterTracesAlignmentError";
-  }
-}
-
 export class UnexpectedFacadeEventOrderError extends Error {
   constructor(e: {
     eventName: string;

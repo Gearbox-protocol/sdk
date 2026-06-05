@@ -35,6 +35,7 @@
     "operation": "DirectTokenTransfer",
     "protocol": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
     "timestamp": 1772117219,
+    "to": "0xfc408a4994c622AfC7aFb474Dc02Ebc8cDf3C584",
     "token": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
     "txHash": "0x3df2f68621486ac4110cbcee7a94d4575ac402b6f52071cf9772877a663fd886",
   },

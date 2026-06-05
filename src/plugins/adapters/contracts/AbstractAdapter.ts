@@ -6,6 +6,8 @@ import {
   type Hex,
   zeroAddress,
 } from "viem";
+import type { CallTrace } from "../../../history/internal-types.js";
+import { resolveProtocolCall } from "../../../history/trace-utils.js";
 import type {
   ConstructOptions,
   ParsedCallV2,
@@ -102,34 +104,36 @@ export class AbstractAdapterContract<
 
   /**
    * Decodes the protocol-level call (target contract + function name + args)
-   * from the raw calldata the adapter sent to its target contract.
+   * performed by this adapter, recovered from its adapter-level call trace.
    *
-   * `targetContract` is taken from the execution trace (the authoritative
-   * CALL target) rather than `this.targetContract`, because adapters parsed
-   * from on-chain state may not carry `serializedParams`. Consumers build the
-   * full adapter `Execute` operation around this result (adding transfers /
-   * legacy).
+   * Both the `targetContract` and the protocol calldata are taken from the
+   * execution trace.
    *
-   * @param calldata Raw calldata of the actual CALL to targetContract, extracted from trace
-   * @param contract Address of the target (protocol) contract, from the trace
-   * @param strict When true, throws if protocol ABI is missing or decode fails
+   * Returns `undefined` (in non-strict mode) when no external protocol call can
+   * be recovered, in strict mode throws instead.
+   *
+   * @param trace Adapter-level call trace (a direct child of the facade trace)
+   * @param strict When true, throws instead of returning `undefined`
    */
   public parseProtocolCall(
-    calldata: Hex,
-    contract: Address,
+    trace: CallTrace,
     strict?: boolean,
-  ): AdapterProtocolOperation {
+  ): AdapterProtocolOperation | undefined {
+    const resolved = resolveProtocolCall(trace);
+    if (!resolved) {
+      if (strict) {
+        throw new Error("no external protocol call found in adapter trace");
+      }
+      return undefined;
+    }
+    const { contract, calldata } = resolved;
     const selector = calldata.slice(0, 10) as Hex;
 
     if (this.protocolAbi.length === 0) {
       if (strict) {
         throw new Error(`Protocol ABI is missing for selector ${selector}`);
       }
-      return {
-        contract,
-        functionName: `unknown function ${selector}`,
-        functionArgs: {},
-      };
+      return undefined;
     }
 
     try {
@@ -151,11 +155,7 @@ export class AbstractAdapterContract<
           { cause: e },
         );
       }
-      return {
-        contract,
-        functionName: `unknown function ${selector}`,
-        functionArgs: {},
-      };
+      return undefined;
     }
   }
 

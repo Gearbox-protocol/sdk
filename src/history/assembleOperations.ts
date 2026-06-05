@@ -1,14 +1,15 @@
 import type { Address } from "viem";
 import { AbstractAdapterContract } from "../plugins/adapters/index.js";
+import type { TokenTransfer } from "../preview/parse/index.js";
 import type {
   AddressMap,
   ChainContractsRegister,
   ParsedCallV2,
 } from "../sdk/index.js";
 import { classifyMulticallOperations } from "./classifyMulticallOperations.js";
-import { extractProtocolCalls } from "./extractProtocolCalls.js";
+import { extractAdapterCallTraces } from "./extractAdapterCallTraces.js";
 import type { WithdrawCollateralEventInfo } from "./extractTransfers.js";
-import type { ExecuteResult, FacadeParsedCall } from "./internal-types.js";
+import type { FacadeParsedCall } from "./internal-types.js";
 import type {
   FacadeOperationMetadata,
   OuterFacadeOperation,
@@ -17,7 +18,12 @@ import type {
 
 export interface AssembleOperationsInput {
   facadeCalls: FacadeParsedCall[];
-  executeResults: ExecuteResult[];
+  /**
+   * ERC-20 transfers grouped per facade `Execute` event, one inner array per
+   * Execute event across the whole transaction, in emission order. Sliced per
+   * facade call and consumed one inner array per adapter/unknown inner call.
+   */
+  executeTransfers: TokenTransfer[][];
   register: ChainContractsRegister;
   underlying: Address;
   liquidationRemainingFunds?: bigint;
@@ -30,7 +36,7 @@ export interface AssembleOperationsInput {
  * Combines parsed facade calls with per-Execute transfer data into
  * fully classified {@link OuterFacadeOperation} entries.
  *
- * The flat `executeResults` array (one entry per Execute event across
+ * The flat `executeTransfers` array (one inner array per Execute event across
  * the entire transaction) is sliced per facade call based on how many
  * adapter/unknown inner calls each one contains.
  */
@@ -39,7 +45,7 @@ export function assembleOperations(
 ): Omit<OuterFacadeOperation, keyof FacadeOperationMetadata>[] {
   const {
     facadeCalls,
-    executeResults,
+    executeTransfers,
     register,
     underlying,
     liquidationRemainingFunds,
@@ -56,7 +62,7 @@ export function assembleOperations(
     }
 
     const count = countAdapterCalls(fc.innerCalls, register);
-    const sliced = executeResults.slice(executeOffset, executeOffset + count);
+    const sliced = executeTransfers.slice(executeOffset, executeOffset + count);
     executeOffset += count;
 
     const withdrawCount = countWithdrawCollateralCalls(fc.innerCalls);
@@ -66,12 +72,12 @@ export function assembleOperations(
     );
     withdrawOffset += withdrawCount;
 
-    const protocolCalldatas = extractProtocolCalls(fc.trace, sliced);
+    const adapterTraces = extractAdapterCallTraces(fc.trace);
 
     const multicall = classifyMulticallOperations({
       innerCalls: fc.innerCalls,
-      executeResults: sliced,
-      protocolCalldatas,
+      executeTransfers: sliced,
+      adapterTraces,
       register,
       creditAccount: fc.creditAccount,
       underlying,
@@ -109,9 +115,13 @@ export function assembleOperations(
 }
 
 /**
- * Counts inner calls that consume an Execute transfer entry:
- * adapter contracts and unknown addresses (not in register).
- * Known non-adapter contracts (facade) do not consume transfers.
+ * Counts inner calls that consume an Execute transfer entry: adapter contracts
+ * and unknown addresses (not in register). Known non-adapter contracts (facade)
+ * do not consume transfers.
+ *
+ * The count determines how many `executeTransfers` entries belong to this
+ * facade call and matches the number of adapter call traces returned by
+ * {@link extractAdapterCallTraces}.
  */
 function countAdapterCalls(
   innerCalls: ParsedCallV2[],

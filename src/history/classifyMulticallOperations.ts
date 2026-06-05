@@ -1,9 +1,10 @@
-import { type Address, type Hex, isAddressEqual } from "viem";
+import { type Address, isAddressEqual } from "viem";
 import {
   AbstractAdapterContract,
   swapFromTransfers,
   toNetTransfers,
 } from "../plugins/adapters/index.js";
+import type { TokenTransfer } from "../preview/parse/index.js";
 import type {
   AddressMap,
   ChainContractsRegister,
@@ -15,7 +16,7 @@ import {
   WithdrawCollateralAlignmentError,
 } from "./errors.js";
 import type { WithdrawCollateralEventInfo } from "./extractTransfers.js";
-import type { ExecuteResult } from "./internal-types.js";
+import type { CallTrace } from "./internal-types.js";
 import type {
   AdapterOperation,
   InnerFacadeOperation,
@@ -24,8 +25,18 @@ import type {
 
 export interface ClassifyMulticallOperationsInput {
   innerCalls: ParsedCallV2[];
-  executeResults: ExecuteResult[];
-  protocolCalldatas: Hex[];
+  /**
+   * ERC-20 transfers grouped per facade `Execute` event for this facade call,
+   * one inner array per Execute event, in order. One inner array is consumed
+   * per adapter/unknown inner call.
+   */
+  executeTransfers: TokenTransfer[][];
+  /**
+   * Adapter-level call traces (one per Execute event, in order) used to recover
+   * the protocol-level call for adapter inner calls. See
+   * `extractAdapterCallTraces`.
+   */
+  adapterTraces: CallTrace[];
   register: ChainContractsRegister;
   creditAccount: Address;
   underlying: Address;
@@ -40,7 +51,7 @@ export interface ClassifyMulticallOperationsInput {
  * - **Adapter calls** (target registered as an adapter): decodes the
  *   protocol-level call via `adapter.parseProtocolCall()`, classifies the
  *   legacy operation via `adapter.classifyLegacyOperation()`, and consumes the
- *   next entry from `executeResults` (one Execute event per adapter call).
+ *   next entry from `executeTransfers` (one Execute event per adapter call).
  *
  * - **Facade self-calls** (`increaseDebt`, `updateQuota`, etc.): mapped
  *   directly from `functionName` / `rawArgs`. No transfer consumed.
@@ -60,8 +71,8 @@ export function classifyMulticallOperations(
 ): InnerOperation[] {
   const {
     innerCalls,
-    executeResults,
-    protocolCalldatas,
+    executeTransfers,
+    adapterTraces,
     register,
     creditAccount,
     underlying,
@@ -78,17 +89,11 @@ export function classifyMulticallOperations(
 
     if (contract instanceof AbstractAdapterContract) {
       const idx = transferIdx++;
-      const executeResult = executeResults[idx];
-      if (!executeResult) {
-        throw new TransferAlignmentError(executeResults.length, transferIdx);
+      const transfers = executeTransfers[idx];
+      if (!transfers) {
+        throw new TransferAlignmentError(executeTransfers.length, transferIdx);
       }
-      const { transfers, targetContract } = executeResult;
-      const protocolCalldata = protocolCalldatas[idx];
-      const protocol = contract.parseProtocolCall(
-        protocolCalldata,
-        targetContract,
-        strict,
-      );
+      const protocol = contract.parseProtocolCall(adapterTraces[idx], strict);
       const legacy = contract.classifyLegacyOperation(
         call,
         toNetTransfers(transfers, creditAccount),
@@ -128,11 +133,10 @@ export function classifyMulticallOperations(
     }
 
     const unknownIdx = transferIdx++;
-    const unknownResult = executeResults[unknownIdx];
-    if (!unknownResult) {
-      throw new TransferAlignmentError(executeResults.length, transferIdx);
+    const transfers = executeTransfers[unknownIdx];
+    if (!transfers) {
+      throw new TransferAlignmentError(executeTransfers.length, transferIdx);
     }
-    const { transfers, targetContract } = unknownResult;
     const netTransfers = toNetTransfers(transfers, creditAccount);
     result.push({
       operation: "Execute",
@@ -142,11 +146,9 @@ export function classifyMulticallOperations(
       label: call.label,
       adapterFunctionName: call.functionName,
       adapterArgs: call.rawArgs,
-      protocol: {
-        contract: targetContract,
-        functionName: call.functionName,
-        functionArgs: call.rawArgs,
-      },
+      // Unknown adapter (non-strict): we have no ABI to decode the protocol
+      // call, so `protocol` is left absent rather than filled with placeholders.
+      protocol: undefined,
       transfers,
       legacy: {
         operation: "Swap" as const,
@@ -155,8 +157,8 @@ export function classifyMulticallOperations(
     } satisfies AdapterOperation);
   }
 
-  if (transferIdx !== executeResults.length) {
-    throw new TransferAlignmentError(executeResults.length, transferIdx);
+  if (transferIdx !== executeTransfers.length) {
+    throw new TransferAlignmentError(executeTransfers.length, transferIdx);
   }
 
   if (

@@ -1,5 +1,4 @@
 import type { Address, Hex } from "viem";
-import type { TokenTransfer } from "../preview/parse/index.js";
 import type { ParsedCallV2 } from "../sdk/index.js";
 
 /**
@@ -45,13 +44,4 @@ export interface FacadeParsedCall {
   innerCalls: ParsedCallV2[];
   /** The full call trace node for this facade call (used to extract protocol-level calldata). */
   trace: CallTrace;
-}
-
-/**
- * Data extracted from a single Execute event: the ERC-20 transfers that
- * occurred between Execute boundaries and the target contract address.
- */
-export interface ExecuteResult {
-  transfers: TokenTransfer[];
-  targetContract: Address;
 }

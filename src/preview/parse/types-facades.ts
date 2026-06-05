@@ -73,16 +73,6 @@ export type InnerOperation<Ext extends object = {}> =
   | AdapterOperation<Ext>
   | InnerFacadeOperation;
 
-/**
- * An ERC-20 Transfer to the credit account that was not part of any
- * facade operation (multicall, liquidation, etc.).
- */
-export interface DirectTransferInfo {
-  token: Address;
-  from: Address;
-  amount: bigint;
-}
-
 export interface OperationMetadata {
   txHash: Hex;
   blockNumber: number;

@@ -68,7 +68,7 @@ export function parseCreditAccountTransaction(
   );
 
   const {
-    executeResults,
+    executeTransfers,
     directTransfers,
     liquidationRemainingFunds,
     phantomTokens,
@@ -84,7 +84,7 @@ export function parseCreditAccountTransaction(
   };
   const facadeOps = assembleOperations({
     facadeCalls,
-    executeResults,
+    executeTransfers,
     register,
     underlying,
     liquidationRemainingFunds,

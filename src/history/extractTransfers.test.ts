@@ -176,13 +176,8 @@ describe("mocked events", () => {
         finishMultiCall(),
       ]);
       expect(extractTransfers(logs, CA1, POOL, FACADE)).toEqual({
-        executeResults: [
-          {
-            transfers: [
-              { token: TOKEN_A, amount: 100n, from: CA1, to: SOMEONE },
-            ],
-            targetContract: ADAPTER,
-          },
+        executeTransfers: [
+          [{ token: TOKEN_A, amount: 100n, from: CA1, to: SOMEONE }],
         ],
         directTransfers: [],
         phantomTokens: new AddressMap(),
@@ -201,20 +196,12 @@ describe("mocked events", () => {
         finishMultiCall(),
       ]);
       expect(extractTransfers(logs, CA1, POOL, FACADE)).toEqual({
-        executeResults: [
-          {
-            transfers: [
-              { token: TOKEN_A, amount: 100n, from: CA1, to: SOMEONE },
-              { token: TOKEN_B, amount: 200n, from: SOMEONE, to: CA1 },
-            ],
-            targetContract: ADAPTER,
-          },
-          {
-            transfers: [
-              { token: TOKEN_A, amount: 50n, from: CA1, to: SOMEONE },
-            ],
-            targetContract: ADAPTER,
-          },
+        executeTransfers: [
+          [
+            { token: TOKEN_A, amount: 100n, from: CA1, to: SOMEONE },
+            { token: TOKEN_B, amount: 200n, from: SOMEONE, to: CA1 },
+          ],
+          [{ token: TOKEN_A, amount: 50n, from: CA1, to: SOMEONE }],
         ],
         directTransfers: [],
         phantomTokens: new AddressMap(),
@@ -232,13 +219,8 @@ describe("mocked events", () => {
         finishMultiCall(),
       ]);
       expect(extractTransfers(logs, CA1, POOL, FACADE)).toEqual({
-        executeResults: [
-          {
-            transfers: [
-              { token: TOKEN_A, amount: 50n, from: CA1, to: SOMEONE },
-            ],
-            targetContract: ADAPTER,
-          },
+        executeTransfers: [
+          [{ token: TOKEN_A, amount: 50n, from: CA1, to: SOMEONE }],
         ],
         directTransfers: [],
         phantomTokens: new AddressMap(),
@@ -258,19 +240,9 @@ describe("mocked events", () => {
         finishMultiCall(),
       ]);
       expect(extractTransfers(logs, CA1, POOL, FACADE)).toEqual({
-        executeResults: [
-          {
-            transfers: [
-              { token: TOKEN_A, amount: 10n, from: CA1, to: SOMEONE },
-            ],
-            targetContract: ADAPTER,
-          },
-          {
-            transfers: [
-              { token: TOKEN_A, amount: 20n, from: SOMEONE, to: CA1 },
-            ],
-            targetContract: ADAPTER,
-          },
+        executeTransfers: [
+          [{ token: TOKEN_A, amount: 10n, from: CA1, to: SOMEONE }],
+          [{ token: TOKEN_A, amount: 20n, from: SOMEONE, to: CA1 }],
         ],
         directTransfers: [],
         phantomTokens: new AddressMap(),
@@ -281,7 +253,7 @@ describe("mocked events", () => {
     it("empty multicall", () => {
       const logs = mockLogs(() => [startMultiCall(), finishMultiCall()]);
       expect(extractTransfers(logs, CA1, POOL, FACADE)).toEqual({
-        executeResults: [],
+        executeTransfers: [],
         directTransfers: [],
         phantomTokens: new AddressMap(),
         withdrawCollateralEvents: [],
@@ -297,14 +269,11 @@ describe("mocked events", () => {
         finishMultiCall(),
       ]);
       expect(extractTransfers(logs, CA1, POOL, FACADE)).toEqual({
-        executeResults: [
-          {
-            transfers: [
-              { token: TOKEN_A, amount: 100n, from: CA1, to: SOMEONE },
-              { token: TOKEN_A, amount: 30n, from: SOMEONE, to: CA1 },
-            ],
-            targetContract: ADAPTER,
-          },
+        executeTransfers: [
+          [
+            { token: TOKEN_A, amount: 100n, from: CA1, to: SOMEONE },
+            { token: TOKEN_A, amount: 30n, from: SOMEONE, to: CA1 },
+          ],
         ],
         directTransfers: [],
         phantomTokens: new AddressMap(),
@@ -322,8 +291,10 @@ describe("mocked events", () => {
         finishMultiCall(),
       ]);
       expect(extractTransfers(logs, CA1, POOL, FACADE)).toEqual({
-        executeResults: [{ transfers: [], targetContract: ADAPTER }],
-        directTransfers: [{ token: TOKEN_A, from: SOMEONE, amount: 500n }],
+        executeTransfers: [[]],
+        directTransfers: [
+          { token: TOKEN_A, from: SOMEONE, amount: 500n, to: CA1 },
+        ],
         phantomTokens: new AddressMap(),
         withdrawCollateralEvents: [],
       });
@@ -337,8 +308,10 @@ describe("mocked events", () => {
         transfer(SOMEONE, CA1, 500n, TOKEN_A),
       ]);
       expect(extractTransfers(logs, CA1, POOL, FACADE)).toEqual({
-        executeResults: [{ transfers: [], targetContract: ADAPTER }],
-        directTransfers: [{ token: TOKEN_A, from: SOMEONE, amount: 500n }],
+        executeTransfers: [[]],
+        directTransfers: [
+          { token: TOKEN_A, from: SOMEONE, amount: 500n, to: CA1 },
+        ],
         phantomTokens: new AddressMap(),
         withdrawCollateralEvents: [],
       });
@@ -355,11 +328,10 @@ describe("mocked events", () => {
         finishMultiCall(),
       ]);
       expect(extractTransfers(logs, CA1, POOL, FACADE)).toEqual({
-        executeResults: [
-          { transfers: [], targetContract: ADAPTER },
-          { transfers: [], targetContract: ADAPTER },
+        executeTransfers: [[], []],
+        directTransfers: [
+          { token: TOKEN_A, from: SOMEONE, amount: 300n, to: CA1 },
         ],
-        directTransfers: [{ token: TOKEN_A, from: SOMEONE, amount: 300n }],
         phantomTokens: new AddressMap(),
         withdrawCollateralEvents: [],
       });
@@ -372,7 +344,7 @@ describe("mocked events", () => {
         partiallyLiquidate(),
       ]);
       expect(extractTransfers(logs, CA1, POOL, FACADE)).toEqual({
-        executeResults: [],
+        executeTransfers: [],
         directTransfers: [],
         phantomTokens: new AddressMap(),
         withdrawCollateralEvents: [],
@@ -382,7 +354,7 @@ describe("mocked events", () => {
     it("outgoing transfer is never flagged as direct", () => {
       const logs = mockLogs(() => [transfer(CA1, SOMEONE, 100n, TOKEN_A)]);
       expect(extractTransfers(logs, CA1, POOL, FACADE)).toEqual({
-        executeResults: [],
+        executeTransfers: [],
         directTransfers: [],
         phantomTokens: new AddressMap(),
         withdrawCollateralEvents: [],
@@ -401,19 +373,9 @@ describe("mocked events", () => {
         finishMultiCall(),
       ]);
       expect(extractTransfers(logs, CA1, POOL, FACADE)).toEqual({
-        executeResults: [
-          {
-            transfers: [
-              { token: TOKEN_A, amount: 400n, from: CA1, to: SOMEONE },
-            ],
-            targetContract: ADAPTER,
-          },
-          {
-            transfers: [
-              { token: TOKEN_B, amount: 300n, from: SOMEONE, to: CA1 },
-            ],
-            targetContract: ADAPTER,
-          },
+        executeTransfers: [
+          [{ token: TOKEN_A, amount: 400n, from: CA1, to: SOMEONE }],
+          [{ token: TOKEN_B, amount: 300n, from: SOMEONE, to: CA1 }],
         ],
         directTransfers: [],
         phantomTokens: new AddressMap(),
@@ -429,7 +391,7 @@ describe("mocked events", () => {
         finishMultiCall(),
       ]);
       expect(extractTransfers(logs, CA1, POOL, FACADE)).toEqual({
-        executeResults: [{ transfers: [], targetContract: ADAPTER }],
+        executeTransfers: [[]],
         directTransfers: [],
         phantomTokens: new AddressMap(),
         withdrawCollateralEvents: [],
@@ -448,7 +410,7 @@ describe("mocked events", () => {
         finishMultiCall(),
       ]);
       const result = extractTransfers(logs, CA1, POOL, FACADE);
-      expect(result.executeResults).toEqual([]);
+      expect(result.executeTransfers).toEqual([]);
       expect(result.phantomTokens).toEqual(
         new AddressMap([[PHANTOM, DEPOSITED]]),
       );
@@ -468,18 +430,12 @@ describe("mocked events", () => {
         finishMultiCall(),
       ]);
       const result = extractTransfers(logs, CA1, POOL, FACADE);
-      expect(result.executeResults).toEqual([
-        {
-          transfers: [{ token: TOKEN_A, amount: 50n, from: CA1, to: SOMEONE }],
-          targetContract: ADAPTER,
-        },
-        {
-          transfers: [
-            { token: DEPOSITED, amount: 100n, from: CA1, to: SOMEONE },
-            { token: TOKEN_B, amount: 30n, from: CA1, to: SOMEONE },
-          ],
-          targetContract: ADAPTER,
-        },
+      expect(result.executeTransfers).toEqual([
+        [{ token: TOKEN_A, amount: 50n, from: CA1, to: SOMEONE }],
+        [
+          { token: DEPOSITED, amount: 100n, from: CA1, to: SOMEONE },
+          { token: TOKEN_B, amount: 30n, from: CA1, to: SOMEONE },
+        ],
       ]);
       expect(result.phantomTokens).toEqual(
         new AddressMap([[PHANTOM, DEPOSITED]]),
@@ -496,7 +452,7 @@ describe("mocked events", () => {
         partiallyLiquidate(),
       ]);
       const result = extractTransfers(logs, CA1, POOL, FACADE);
-      expect(result.executeResults).toEqual([]);
+      expect(result.executeTransfers).toEqual([]);
       expect(result.phantomTokens).toEqual(
         new AddressMap([[PHANTOM, DEPOSITED]]),
       );
@@ -524,35 +480,29 @@ describe("real events", () => {
     expect(result).toMatchInlineSnapshot(
       {
         directTransfers: [],
-        executeResults: [
-          {
-            targetContract: "0x5A71E7e04F8725fD42a216949E7099ebd08A42E3",
-            transfers: [
-              {
-                amount: 269272994973813956812599n,
-                from: "0x9D7aB1290D7a3eE662F545AC29091C4C61f81f14",
-                to: "0x5A71E7e04F8725fD42a216949E7099ebd08A42E3",
-                token: "0xbd5d4c539b3773086632416a4ec8cef57c945319",
-              },
-            ],
-          },
-          {
-            targetContract: "0x667701e51B4D1Ca244F17C78F7aB8744B4C99F9B",
-            transfers: [
-              {
-                amount: 239891558324n,
-                from: "0x9D7aB1290D7a3eE662F545AC29091C4C61f81f14",
-                to: "0x52Aa899454998Be5b000Ad077a46Bbe360F4e497",
-                token: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-              },
-              {
-                amount: 240180870653n,
-                from: "0x52Aa899454998Be5b000Ad077a46Bbe360F4e497",
-                to: "0x9D7aB1290D7a3eE662F545AC29091C4C61f81f14",
-                token: "0xdac17f958d2ee523a2206206994597c13d831ec7",
-              },
-            ],
-          },
+        executeTransfers: [
+          [
+            {
+              amount: 269272994973813956812599n,
+              from: "0x9D7aB1290D7a3eE662F545AC29091C4C61f81f14",
+              to: "0x5A71E7e04F8725fD42a216949E7099ebd08A42E3",
+              token: "0xbd5d4c539b3773086632416a4ec8cef57c945319",
+            },
+          ],
+          [
+            {
+              amount: 239891558324n,
+              from: "0x9D7aB1290D7a3eE662F545AC29091C4C61f81f14",
+              to: "0x52Aa899454998Be5b000Ad077a46Bbe360F4e497",
+              token: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+            },
+            {
+              amount: 240180870653n,
+              from: "0x52Aa899454998Be5b000Ad077a46Bbe360F4e497",
+              to: "0x9D7aB1290D7a3eE662F545AC29091C4C61f81f14",
+              token: "0xdac17f958d2ee523a2206206994597c13d831ec7",
+            },
+          ],
         ],
         liquidationRemainingFunds: undefined,
         phantomTokens: new AddressMap(),
@@ -560,35 +510,29 @@ describe("real events", () => {
       `
       {
         "directTransfers": [],
-        "executeResults": [
-          {
-            "targetContract": "0x5A71E7e04F8725fD42a216949E7099ebd08A42E3",
-            "transfers": [
-              {
-                "amount": 269272994973813956812599n,
-                "from": "0x9D7aB1290D7a3eE662F545AC29091C4C61f81f14",
-                "to": "0x5A71E7e04F8725fD42a216949E7099ebd08A42E3",
-                "token": "0xbd5d4c539b3773086632416a4ec8cef57c945319",
-              },
-            ],
-          },
-          {
-            "targetContract": "0x667701e51B4D1Ca244F17C78F7aB8744B4C99F9B",
-            "transfers": [
-              {
-                "amount": 239891558324n,
-                "from": "0x9D7aB1290D7a3eE662F545AC29091C4C61f81f14",
-                "to": "0x52Aa899454998Be5b000Ad077a46Bbe360F4e497",
-                "token": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-              },
-              {
-                "amount": 240180870653n,
-                "from": "0x52Aa899454998Be5b000Ad077a46Bbe360F4e497",
-                "to": "0x9D7aB1290D7a3eE662F545AC29091C4C61f81f14",
-                "token": "0xdac17f958d2ee523a2206206994597c13d831ec7",
-              },
-            ],
-          },
+        "executeTransfers": [
+          [
+            {
+              "amount": 269272994973813956812599n,
+              "from": "0x9D7aB1290D7a3eE662F545AC29091C4C61f81f14",
+              "to": "0x5A71E7e04F8725fD42a216949E7099ebd08A42E3",
+              "token": "0xbd5d4c539b3773086632416a4ec8cef57c945319",
+            },
+          ],
+          [
+            {
+              "amount": 239891558324n,
+              "from": "0x9D7aB1290D7a3eE662F545AC29091C4C61f81f14",
+              "to": "0x52Aa899454998Be5b000Ad077a46Bbe360F4e497",
+              "token": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+            },
+            {
+              "amount": 240180870653n,
+              "from": "0x52Aa899454998Be5b000Ad077a46Bbe360F4e497",
+              "to": "0x9D7aB1290D7a3eE662F545AC29091C4C61f81f14",
+              "token": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+            },
+          ],
         ],
         "liquidationRemainingFunds": undefined,
         "phantomTokens": {},

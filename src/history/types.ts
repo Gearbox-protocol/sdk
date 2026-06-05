@@ -17,7 +17,6 @@ export type {
   AddCollateralOp,
   DecreaseDebtOp,
   DirectTokenTransferOperation,
-  DirectTransferInfo,
   FacadeOperationMetadata,
   IncreaseDebtOp,
   InnerFacadeOperation,

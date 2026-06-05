@@ -61,8 +61,14 @@ export type AdapterOperation<Ext extends object = {}> = AdapterOperationBase &
  * Trace-derived adapter data: the protocol-level call and the ERC-20 transfers
  * made during the adapter call. Both are only available from an execution
  * trace, so they always travel together.
+ *
+ * `protocol` is optional: it is absent when no external protocol call was
+ * recovered for the adapter `Execute`. This happens for the account-migrator
+ * adapter (its `execute` targets the migrator bot, not an external protocol),
+ * for unknown adapters in non-strict mode (no ABI to decode against), and when
+ * the protocol calldata cannot be decoded.
  */
 export interface TraceAdapterExt {
-  protocol: AdapterProtocolOperation;
+  protocol?: AdapterProtocolOperation;
   transfers: TokenTransfer[];
 }

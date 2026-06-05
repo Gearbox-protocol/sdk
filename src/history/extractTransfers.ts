@@ -10,8 +10,6 @@ import { ierc20Abi } from "../abi/iERC20.js";
 import type { TokenTransfer } from "../preview/parse/index.js";
 import { AddressMap } from "../sdk/index.js";
 import { UnexpectedFacadeEventOrderError } from "./errors.js";
-import type { ExecuteResult } from "./internal-types.js";
-import type { DirectTransferInfo } from "./types.js";
 
 type RawLog = Log<bigint | number, number, false>;
 
@@ -79,8 +77,18 @@ interface OperationRange {
  * @param creditAccount - the credit account address to track
  */
 export interface ExtractTransfersResult {
-  executeResults: ExecuteResult[];
-  directTransfers: DirectTransferInfo[];
+  /**
+   * ERC-20 transfers grouped per facade `Execute` event, one inner array per
+   * Execute event across the whole transaction, in emission order. Each inner
+   * array holds the transfers to/from the credit account that occurred between
+   * that Execute boundary and the previous one.
+   */
+  executeTransfers: TokenTransfer[][];
+  /**
+   * ERC-20 transfers that are not part of a facade `Execute` event and are
+   * direct incoming transfers to the credit account.
+   */
+  directTransfers: TokenTransfer[];
   liquidationRemainingFunds?: bigint;
   /** Maps phantom token address to its deposited (underlying) token address. */
   phantomTokens: AddressMap<Address>;
@@ -101,8 +109,8 @@ export function extractTransfers(
   const ranges = buildOperationRanges(logs, creditFacade, creditAccount);
 
   let currentEntries: TokenTransfer[] = [];
-  const executeResults: ExecuteResult[] = [];
-  const directTransfers: DirectTransferInfo[] = [];
+  const executeTransfers: TokenTransfer[][] = [];
+  const directTransfers: TokenTransfer[] = [];
   const phantomTokens = new AddressMap<Address>();
   const withdrawCollateralEvents: WithdrawCollateralEventInfo[] = [];
   let liquidationRemainingFunds: bigint | undefined;
@@ -111,20 +119,17 @@ export function extractTransfers(
     const facadeEvent = tryDecodeFacadeEvent(log, creditFacade);
     if (facadeEvent) {
       if (isExecute(facadeEvent, creditAccount)) {
-        executeResults.push({
-          transfers: currentEntries,
-          targetContract: facadeEvent.args.targetContract,
-        });
+        executeTransfers.push(currentEntries);
       } else if (isLiquidation(facadeEvent, creditAccount)) {
         liquidationRemainingFunds = facadeEvent.args.remainingFunds;
       } else if (isWithdrawPhantomToken(facadeEvent, creditAccount)) {
-        const phantomExec = executeResults.pop();
-        if (!phantomExec) {
+        const phantomTransfers = executeTransfers.pop();
+        if (!phantomTransfers) {
           throw new Error(
             `WithdrawPhantomToken without preceding Execute at logIndex ${facadeEvent.logIndex}`,
           );
         }
-        const rawDeposit = phantomExec.transfers.find(t =>
+        const rawDeposit = phantomTransfers.find(t =>
           isAddressEqual(t.to, creditAccount),
         );
         if (!rawDeposit) {
@@ -171,12 +176,12 @@ export function extractTransfers(
     }
 
     if (isAddressEqual(to, creditAccount) && !isInRange(log.logIndex, ranges)) {
-      directTransfers.push({ token, from, amount: value });
+      directTransfers.push({ token, amount: value, from, to });
     }
   }
 
   return {
-    executeResults,
+    executeTransfers,
     directTransfers,
     liquidationRemainingFunds,
     phantomTokens,

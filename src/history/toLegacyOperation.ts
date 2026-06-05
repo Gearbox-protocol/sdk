@@ -56,7 +56,11 @@ export function createLegacyVisitor(
         blockNum: ctx.blockNumber,
         timestamp: ctx.timestamp,
         sessionId: params.sessionId,
-        protocol: op.protocol.contract,
+        // `protocol` may be absent (migrator adapter, unknown adapter in
+        // non-strict mode, or undecodable calldata). The deprecated charts
+        // output still needs an address, so fall back to the on-chain adapter
+        // address, which is the closest meaningful value.
+        protocol: op.protocol?.contract ?? op.adapter,
       };
     },
     IncreaseBorrowedAmount(op, ctx) {
