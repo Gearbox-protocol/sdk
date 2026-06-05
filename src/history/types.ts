@@ -1,91 +1,51 @@
-import type { Address, Hex } from "viem";
+import type { LegacyAdapterOperation } from "../plugins/adapters/index.js";
+import type {
+  AdapterOperation as BaseAdapterOperation,
+  CloseCreditAccountOperation as BaseCloseCreditAccountOperation,
+  CreditAccountOperation as BaseCreditAccountOperation,
+  InnerOperation as BaseInnerOperation,
+  LiquidateCreditAccountOperation as BaseLiquidateCreditAccountOperation,
+  MulticallOperation as BaseMulticallOperation,
+  OpenCreditAccountOperation as BaseOpenCreditAccountOperation,
+  OuterFacadeOperation as BaseOuterFacadeOperation,
+  TraceAdapterExt,
+} from "../preview/parse/index.js";
 
-import type { InnerOperation } from "./inner-operations.js";
-
-/**
- * An ERC-20 Transfer to the credit account that was not part of any
- * facade operation (multicall, liquidation, etc.).
- */
-export interface DirectTransferInfo {
-  token: Address;
-  from: Address;
-  amount: bigint;
-}
-
-export interface OperationMetadata {
-  txHash: Hex;
-  blockNumber: number;
-  timestamp: number;
-}
-
-export interface FacadeOperationMetadata extends OperationMetadata {
-  creditManager: Address;
-  creditFacade: Address;
-}
-
-export interface MulticallOperation extends FacadeOperationMetadata {
-  operation: "MultiCall" | "BotMulticall";
-  creditAccount: Address;
-  multicall: InnerOperation[];
-}
-
-export interface OpenCreditAccountOperation extends FacadeOperationMetadata {
-  operation: "OpenCreditAccount";
-  creditAccount: Address;
-  onBehalfOf: Address;
-  referralCode: bigint;
-  multicall: InnerOperation[];
-}
-
-export interface CloseCreditAccountOperation extends FacadeOperationMetadata {
-  operation: "CloseCreditAccount";
-  creditAccount: Address;
-  multicall: InnerOperation[];
-}
-
-export interface LiquidateCreditAccountOperation
-  extends FacadeOperationMetadata {
-  operation: "LiquidateCreditAccount";
-  creditAccount: Address;
-  to: Address;
-  token: Address;
-  remainingFunds: bigint;
-  multicall: InnerOperation[];
-}
-
-export interface PartialLiquidationOperation extends FacadeOperationMetadata {
-  operation: "PartiallyLiquidateCreditAccount";
-  creditAccount: Address;
-  token: Address;
-  repaidAmount: bigint;
-  minSeizedAmount: bigint;
-  to: Address;
-}
-
-export interface DirectTokenTransferOperation extends OperationMetadata {
-  operation: "DirectTokenTransfer";
-  protocol: Address;
-  token: Address;
-  from: Address;
-  creditAccount: Address;
-  amount: bigint;
-}
+// Non-generic shared operation types are re-exported from `preview` unchanged
+// so the `history` entry point keeps exposing them.
+export type {
+  AddCollateralOp,
+  DecreaseDebtOp,
+  DirectTokenTransferOperation,
+  DirectTransferInfo,
+  FacadeOperationMetadata,
+  IncreaseDebtOp,
+  InnerFacadeOperation,
+  OperationMetadata,
+  PartialLiquidationOperation,
+  UpdateQuotaOp,
+  WithdrawCollateralOp,
+} from "../preview/parse/index.js";
 
 /**
- * Discriminated union of all facade-level operation types.
- * One per facade entry-point call within a transaction.
+ * History-specific adapter-operation extension: trace-derived data
+ * ({@link TraceAdapterExt}) plus the backward-compatible `legacy` classification
+ * used by charts_server serialization. The `legacy` field lives only in
+ * `history`; the base `preview` operations carry no `legacy`.
  */
-export type OuterFacadeOperation =
-  | MulticallOperation
-  | OpenCreditAccountOperation
-  | CloseCreditAccountOperation
-  | LiquidateCreditAccountOperation
-  | PartialLiquidationOperation;
+export type HistoryAdapterExt = TraceAdapterExt & {
+  legacy: LegacyAdapterOperation;
+};
 
-/**
- * Discriminated union of all credit account operation types
- * (facade operations + direct token transfers).
- */
+export type AdapterOperation = BaseAdapterOperation<HistoryAdapterExt>;
+export type InnerOperation = BaseInnerOperation<HistoryAdapterExt>;
+export type MulticallOperation = BaseMulticallOperation<HistoryAdapterExt>;
+export type OpenCreditAccountOperation =
+  BaseOpenCreditAccountOperation<HistoryAdapterExt>;
+export type CloseCreditAccountOperation =
+  BaseCloseCreditAccountOperation<HistoryAdapterExt>;
+export type LiquidateCreditAccountOperation =
+  BaseLiquidateCreditAccountOperation<HistoryAdapterExt>;
+export type OuterFacadeOperation = BaseOuterFacadeOperation<HistoryAdapterExt>;
 export type CreditAccountOperation =
-  | OuterFacadeOperation
-  | DirectTokenTransferOperation;
+  BaseCreditAccountOperation<HistoryAdapterExt>;

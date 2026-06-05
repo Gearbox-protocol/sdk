@@ -86,7 +86,7 @@ export class ERC4626AdapterContract extends AbstractAdapterContract<
    *
    * @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type_v3.go#L32-L38
    */
-  protected override classifyLegacyOperation(
+  public override classifyLegacyOperation(
     parsed: ParsedCallV2,
     transfers: Transfers,
   ): LegacyAdapterOperation {

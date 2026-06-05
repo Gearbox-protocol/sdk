@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import type { TokenTransfer } from "../../plugins/adapters/index.js";
+import type { TokenTransfer } from "../parse/index.js";
 
 /**
  * Change in an address's balance of a single token over the simulated call.

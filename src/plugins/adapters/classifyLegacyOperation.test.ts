@@ -1,11 +1,10 @@
-import type { Address, Hex } from "viem";
+import type { Address } from "viem";
 import { createPublicClient, custom } from "viem";
 import { mainnet } from "viem/chains";
 import { describe, expect, it } from "vitest";
 import type { ParsedCallV2 } from "../../sdk/base/types.js";
-import type { TokenTransfer } from "./types.js";
-
-const DUMMY_CALLDATA = "0x00000000" as Hex;
+import { toNetTransfers } from "./transferHelpers.js";
+import type { TokenTransfer } from "./transfers.js";
 
 const client = createPublicClient({
   chain: mainnet,
@@ -39,6 +38,11 @@ function makeParsed(
   };
 }
 
+/** Net signed balance changes for the credit account from raw transfers. */
+function net(transfers: TokenTransfer[]) {
+  return toNetTransfers(transfers, CA);
+}
+
 const baseParams = {
   addr: ADDR,
   version: 310n,
@@ -60,15 +64,13 @@ describe("AbstractAdapterContract default", () => {
       abi: [],
       protocolAbi: [],
     });
-    const result = adapter.parseAdapterOperation(
+    const result = adapter.classifyLegacyOperation(
       makeParsed("anything"),
-      swapTransfers,
-      CA,
-      DUMMY_CALLDATA,
+      net(swapTransfers),
     );
-    expect(result.legacy.operation).toBe("Swap");
-    expect(result.legacy).toHaveProperty("from", TOKEN_A);
-    expect(result.legacy).toHaveProperty("to", TOKEN_B);
+    expect(result.operation).toBe("Swap");
+    expect(result).toHaveProperty("from", TOKEN_A);
+    expect(result).toHaveProperty("to", TOKEN_B);
   });
 });
 
@@ -78,13 +80,11 @@ describe("Curve adapters", () => {
       "./contracts/Curve2AssetsAdapterContract.js"
     );
     const adapter = new Curve2AssetsAdapterContract(options, { baseParams });
-    const result = adapter.parseAdapterOperation(
+    const result = adapter.classifyLegacyOperation(
       makeParsed("exchange"),
-      swapTransfers,
-      CA,
-      DUMMY_CALLDATA,
+      net(swapTransfers),
     );
-    expect(result.legacy.operation).toBe("CurveExchange");
+    expect(result.operation).toBe("CurveExchange");
   });
 
   it("classifies add_liquidity as CurveAddLiquidity", async () => {
@@ -102,16 +102,14 @@ describe("Curve adapters", () => {
         to: CA,
       },
     ];
-    const result = adapter.parseAdapterOperation(
+    const result = adapter.classifyLegacyOperation(
       makeParsed("add_liquidity"),
-      transfers,
-      CA,
-      DUMMY_CALLDATA,
+      net(transfers),
     );
-    expect(result.legacy.operation).toBe("CurveAddLiquidity");
-    if (result.legacy.operation === "CurveAddLiquidity") {
-      expect(result.legacy.lpToken).toBe(LP_TOKEN);
-      expect(result.legacy.addedLiquidity).toHaveLength(2);
+    expect(result.operation).toBe("CurveAddLiquidity");
+    if (result.operation === "CurveAddLiquidity") {
+      expect(result.lpToken).toBe(LP_TOKEN);
+      expect(result.addedLiquidity).toHaveLength(2);
     }
   });
 
@@ -120,13 +118,11 @@ describe("Curve adapters", () => {
       "./contracts/Curve4AssetsAdapterContract.js"
     );
     const adapter = new Curve4AssetsAdapterContract(options, { baseParams });
-    const result = adapter.parseAdapterOperation(
+    const result = adapter.classifyLegacyOperation(
       makeParsed("remove_liquidity_one_coin"),
-      swapTransfers,
-      CA,
-      DUMMY_CALLDATA,
+      net(swapTransfers),
     );
-    expect(result.legacy.operation).toBe("CurveRemoveLiquidityOneCoin");
+    expect(result.operation).toBe("CurveRemoveLiquidityOneCoin");
   });
 
   it("classifies remove_liquidity as CurveRemoveLiquidity", async () => {
@@ -146,13 +142,11 @@ describe("Curve adapters", () => {
       { token: TOKEN_A, amount: 100n, from: DEX, to: CA },
       { token: TOKEN_B, amount: 200n, from: DEX, to: CA },
     ];
-    const result = adapter.parseAdapterOperation(
+    const result = adapter.classifyLegacyOperation(
       makeParsed("remove_liquidity"),
-      transfers,
-      CA,
-      DUMMY_CALLDATA,
+      net(transfers),
     );
-    expect(result.legacy.operation).toBe("CurveRemoveLiquidity");
+    expect(result.operation).toBe("CurveRemoveLiquidity");
   });
 
   it("falls back to Swap for unknown Curve function", async () => {
@@ -160,13 +154,11 @@ describe("Curve adapters", () => {
       "./contracts/CurveV1AdapterStETHContract.js"
     );
     const adapter = new CurveV1AdapterStETHContract(options, { baseParams });
-    const result = adapter.parseAdapterOperation(
+    const result = adapter.classifyLegacyOperation(
       makeParsed("unknown_fn"),
-      swapTransfers,
-      CA,
-      DUMMY_CALLDATA,
+      net(swapTransfers),
     );
-    expect(result.legacy.operation).toBe("Swap");
+    expect(result.operation).toBe("Swap");
   });
 });
 
@@ -178,15 +170,13 @@ describe("Convex adapters", () => {
     const adapter = new ConvexV1BoosterAdapterContract(options, {
       baseParams,
     });
-    const result = adapter.parseAdapterOperation(
+    const result = adapter.classifyLegacyOperation(
       makeParsed("deposit", { _stake: true }),
-      swapTransfers,
-      CA,
-      DUMMY_CALLDATA,
+      net(swapTransfers),
     );
-    expect(result.legacy.operation).toBe("ConvexDepositAndStake");
-    if (result.legacy.operation === "ConvexDepositAndStake") {
-      expect(result.legacy.depositToken).toBe(TOKEN_A);
+    expect(result.operation).toBe("ConvexDepositAndStake");
+    if (result.operation === "ConvexDepositAndStake") {
+      expect(result.depositToken).toBe(TOKEN_A);
     }
   });
 
@@ -197,13 +187,11 @@ describe("Convex adapters", () => {
     const adapter = new ConvexV1BoosterAdapterContract(options, {
       baseParams,
     });
-    const result = adapter.parseAdapterOperation(
+    const result = adapter.classifyLegacyOperation(
       makeParsed("deposit", { _stake: false }),
-      swapTransfers,
-      CA,
-      DUMMY_CALLDATA,
+      net(swapTransfers),
     );
-    expect(result.legacy.operation).toBe("ConvexDeposit");
+    expect(result.operation).toBe("ConvexDeposit");
   });
 
   it("ConvexV1Booster: withdrawAll returns CurveWithdrawal", async () => {
@@ -213,13 +201,11 @@ describe("Convex adapters", () => {
     const adapter = new ConvexV1BoosterAdapterContract(options, {
       baseParams,
     });
-    const result = adapter.parseAdapterOperation(
+    const result = adapter.classifyLegacyOperation(
       makeParsed("withdrawAll"),
-      swapTransfers,
-      CA,
-      DUMMY_CALLDATA,
+      net(swapTransfers),
     );
-    expect(result.legacy.operation).toBe("CurveWithdrawal");
+    expect(result.operation).toBe("CurveWithdrawal");
   });
 
   it("ConvexV1BaseRewardPool: getReward returns GetReward", async () => {
@@ -233,15 +219,13 @@ describe("Convex adapters", () => {
       { token: TOKEN_A, amount: 100n, from: DEX, to: CA },
       { token: TOKEN_B, amount: 200n, from: DEX, to: CA },
     ];
-    const result = adapter.parseAdapterOperation(
+    const result = adapter.classifyLegacyOperation(
       makeParsed("getReward"),
-      transfers,
-      CA,
-      DUMMY_CALLDATA,
+      net(transfers),
     );
-    expect(result.legacy.operation).toBe("GetReward");
-    if (result.legacy.operation === "GetReward") {
-      expect(result.legacy.rewards).toHaveLength(2);
+    expect(result.operation).toBe("GetReward");
+    if (result.operation === "GetReward") {
+      expect(result.rewards).toHaveLength(2);
     }
   });
 
@@ -255,13 +239,11 @@ describe("Convex adapters", () => {
     const transfers: TokenTransfer[] = [
       { token: TOKEN_A, amount: 100n, from: CA, to: DEX },
     ];
-    const result = adapter.parseAdapterOperation(
+    const result = adapter.classifyLegacyOperation(
       makeParsed("stake"),
-      transfers,
-      CA,
-      DUMMY_CALLDATA,
+      net(transfers),
     );
-    expect(result.legacy.operation).toBe("ConvexStake");
+    expect(result.operation).toBe("ConvexStake");
   });
 
   it("ConvexV1BaseRewardPool: withdrawAndUnwrap with claim returns ConvexWithdrawAndClaim", async () => {
@@ -276,13 +258,11 @@ describe("Convex adapters", () => {
       { token: TOKEN_B, amount: 200n, from: DEX, to: CA },
       { token: TOKEN_C, amount: 50n, from: DEX, to: CA },
     ];
-    const result = adapter.parseAdapterOperation(
+    const result = adapter.classifyLegacyOperation(
       makeParsed("withdrawAndUnwrap", { claim: true }),
-      transfers,
-      CA,
-      DUMMY_CALLDATA,
+      net(transfers),
     );
-    expect(result.legacy.operation).toBe("ConvexWithdrawAndClaim");
+    expect(result.operation).toBe("ConvexWithdrawAndClaim");
   });
 
   it("ConvexV1BaseRewardPool: withdrawAndUnwrap without claim returns ConvexWithdraw", async () => {
@@ -292,15 +272,13 @@ describe("Convex adapters", () => {
     const adapter = new ConvexV1BaseRewardPoolAdapterContract(options, {
       baseParams,
     });
-    const result = adapter.parseAdapterOperation(
+    const result = adapter.classifyLegacyOperation(
       makeParsed("withdrawAndUnwrap", { claim: false }),
-      swapTransfers,
-      CA,
-      DUMMY_CALLDATA,
+      net(swapTransfers),
     );
-    expect(result.legacy.operation).toBe("ConvexWithdraw");
-    if (result.legacy.operation === "ConvexWithdraw") {
-      expect(result.legacy.withdrawToken).toBe(TOKEN_B);
+    expect(result.operation).toBe("ConvexWithdraw");
+    if (result.operation === "ConvexWithdraw") {
+      expect(result.withdrawToken).toBe(TOKEN_B);
     }
   });
 });
@@ -311,13 +289,11 @@ describe("Uniswap adapters", () => {
       "./contracts/UniswapV2AdapterContract.js"
     );
     const adapter = new UniswapV2AdapterContract(options, { baseParams });
-    const result = adapter.parseAdapterOperation(
+    const result = adapter.classifyLegacyOperation(
       makeParsed("swapExactTokensForTokens"),
-      swapTransfers,
-      CA,
-      DUMMY_CALLDATA,
+      net(swapTransfers),
     );
-    expect(result.legacy.operation).toBe("UniswapSwap");
+    expect(result.operation).toBe("UniswapSwap");
   });
 
   it("UniswapV3 returns Swap", async () => {
@@ -325,13 +301,11 @@ describe("Uniswap adapters", () => {
       "./contracts/UniswapV3AdapterContract.js"
     );
     const adapter = new UniswapV3AdapterContract(options, { baseParams });
-    const result = adapter.parseAdapterOperation(
+    const result = adapter.classifyLegacyOperation(
       makeParsed("exactInputSingle"),
-      swapTransfers,
-      CA,
-      DUMMY_CALLDATA,
+      net(swapTransfers),
     );
-    expect(result.legacy.operation).toBe("Swap");
+    expect(result.operation).toBe("Swap");
   });
 
   it("UniswapV4 returns UniswapSwap", async () => {
@@ -339,13 +313,11 @@ describe("Uniswap adapters", () => {
       "./contracts/UniswapV4AdapterContract.js"
     );
     const adapter = new UniswapV4AdapterContract(options, { baseParams });
-    const result = adapter.parseAdapterOperation(
+    const result = adapter.classifyLegacyOperation(
       makeParsed("exactInput"),
-      swapTransfers,
-      CA,
-      DUMMY_CALLDATA,
+      net(swapTransfers),
     );
-    expect(result.legacy.operation).toBe("UniswapSwap");
+    expect(result.operation).toBe("UniswapSwap");
   });
 });
 
@@ -357,13 +329,11 @@ describe("Balancer adapter", () => {
     const adapter = new BalancerV3RouterAdapterContract(options, {
       baseParams,
     });
-    const result = adapter.parseAdapterOperation(
+    const result = adapter.classifyLegacyOperation(
       makeParsed("swap"),
-      swapTransfers,
-      CA,
-      DUMMY_CALLDATA,
+      net(swapTransfers),
     );
-    expect(result.legacy.operation).toBe("Swap");
+    expect(result.operation).toBe("Swap");
   });
 });
 
@@ -373,13 +343,11 @@ describe("WstETH + Lido adapters", () => {
       "./contracts/WstETHV1AdapterContract.js"
     );
     const adapter = new WstETHV1AdapterContract(options, { baseParams });
-    const result = adapter.parseAdapterOperation(
+    const result = adapter.classifyLegacyOperation(
       makeParsed("wrap"),
-      swapTransfers,
-      CA,
-      DUMMY_CALLDATA,
+      net(swapTransfers),
     );
-    expect(result.legacy.operation).toBe("WstETHWrap");
+    expect(result.operation).toBe("WstETHWrap");
   });
 
   it("WstETHV1: unwrap returns WstETHUnwrap", async () => {
@@ -387,13 +355,11 @@ describe("WstETH + Lido adapters", () => {
       "./contracts/WstETHV1AdapterContract.js"
     );
     const adapter = new WstETHV1AdapterContract(options, { baseParams });
-    const result = adapter.parseAdapterOperation(
+    const result = adapter.classifyLegacyOperation(
       makeParsed("unwrap"),
-      swapTransfers,
-      CA,
-      DUMMY_CALLDATA,
+      net(swapTransfers),
     );
-    expect(result.legacy.operation).toBe("WstETHUnwrap");
+    expect(result.operation).toBe("WstETHUnwrap");
   });
 
   it("WstETHV1: unknown falls back to Swap", async () => {
@@ -401,13 +367,11 @@ describe("WstETH + Lido adapters", () => {
       "./contracts/WstETHV1AdapterContract.js"
     );
     const adapter = new WstETHV1AdapterContract(options, { baseParams });
-    const result = adapter.parseAdapterOperation(
+    const result = adapter.classifyLegacyOperation(
       makeParsed("other"),
-      swapTransfers,
-      CA,
-      DUMMY_CALLDATA,
+      net(swapTransfers),
     );
-    expect(result.legacy.operation).toBe("Swap");
+    expect(result.operation).toBe("Swap");
   });
 
   it("LidoV1 returns LidoSubmit", async () => {
@@ -415,13 +379,11 @@ describe("WstETH + Lido adapters", () => {
       "./contracts/LidoV1AdapterContract.js"
     );
     const adapter = new LidoV1AdapterContract(options, { baseParams });
-    const result = adapter.parseAdapterOperation(
+    const result = adapter.classifyLegacyOperation(
       makeParsed("submit"),
-      swapTransfers,
-      CA,
-      DUMMY_CALLDATA,
+      net(swapTransfers),
     );
-    expect(result.legacy.operation).toBe("LidoSubmit");
+    expect(result.operation).toBe("LidoSubmit");
   });
 });
 
@@ -431,13 +393,11 @@ describe("ERC4626 adapters", () => {
       "./contracts/ERC4626AdapterContract.js"
     );
     const adapter = new ERC4626AdapterContract(options, { baseParams });
-    const result = adapter.parseAdapterOperation(
+    const result = adapter.classifyLegacyOperation(
       makeParsed("deposit"),
-      swapTransfers,
-      CA,
-      DUMMY_CALLDATA,
+      net(swapTransfers),
     );
-    expect(result.legacy.operation).toBe("Swap");
+    expect(result.operation).toBe("Swap");
   });
 
   it("ERC4626: redeem returns MakerRedeem", async () => {
@@ -445,13 +405,11 @@ describe("ERC4626 adapters", () => {
       "./contracts/ERC4626AdapterContract.js"
     );
     const adapter = new ERC4626AdapterContract(options, { baseParams });
-    const result = adapter.parseAdapterOperation(
+    const result = adapter.classifyLegacyOperation(
       makeParsed("redeem"),
-      swapTransfers,
-      CA,
-      DUMMY_CALLDATA,
+      net(swapTransfers),
     );
-    expect(result.legacy.operation).toBe("MakerRedeem");
+    expect(result.operation).toBe("MakerRedeem");
   });
 
   it("ERC4626: withdraw returns Swap", async () => {
@@ -459,13 +417,11 @@ describe("ERC4626 adapters", () => {
       "./contracts/ERC4626AdapterContract.js"
     );
     const adapter = new ERC4626AdapterContract(options, { baseParams });
-    const result = adapter.parseAdapterOperation(
+    const result = adapter.classifyLegacyOperation(
       makeParsed("withdraw"),
-      swapTransfers,
-      CA,
-      DUMMY_CALLDATA,
+      net(swapTransfers),
     );
-    expect(result.legacy.operation).toBe("Swap");
+    expect(result.operation).toBe("Swap");
   });
 
   it("ERC4626Referral: deposit returns Swap", async () => {
@@ -475,13 +431,11 @@ describe("ERC4626 adapters", () => {
     const adapter = new ERC4626ReferralAdapterContract(options, {
       baseParams,
     });
-    const result = adapter.parseAdapterOperation(
+    const result = adapter.classifyLegacyOperation(
       makeParsed("deposit"),
-      swapTransfers,
-      CA,
-      DUMMY_CALLDATA,
+      net(swapTransfers),
     );
-    expect(result.legacy.operation).toBe("Swap");
+    expect(result.operation).toBe("Swap");
   });
 });
 
@@ -491,13 +445,11 @@ describe("DaiUsds adapter", () => {
       "./contracts/DaiUsdsAdapterContract.js"
     );
     const adapter = new DaiUsdsAdapterContract(options, { baseParams });
-    const result = adapter.parseAdapterOperation(
+    const result = adapter.classifyLegacyOperation(
       makeParsed("daiToUsds"),
-      swapTransfers,
-      CA,
-      DUMMY_CALLDATA,
+      net(swapTransfers),
     );
-    expect(result.legacy.operation).toBe("VaultDeposit");
+    expect(result.operation).toBe("VaultDeposit");
   });
 
   it("usdsToDai returns MakerRedeem", async () => {
@@ -505,13 +457,11 @@ describe("DaiUsds adapter", () => {
       "./contracts/DaiUsdsAdapterContract.js"
     );
     const adapter = new DaiUsdsAdapterContract(options, { baseParams });
-    const result = adapter.parseAdapterOperation(
+    const result = adapter.classifyLegacyOperation(
       makeParsed("usdsToDai"),
-      swapTransfers,
-      CA,
-      DUMMY_CALLDATA,
+      net(swapTransfers),
     );
-    expect(result.legacy.operation).toBe("MakerRedeem");
+    expect(result.operation).toBe("MakerRedeem");
   });
 
   it("unknown falls back to Swap", async () => {
@@ -519,13 +469,11 @@ describe("DaiUsds adapter", () => {
       "./contracts/DaiUsdsAdapterContract.js"
     );
     const adapter = new DaiUsdsAdapterContract(options, { baseParams });
-    const result = adapter.parseAdapterOperation(
+    const result = adapter.classifyLegacyOperation(
       makeParsed("something"),
-      swapTransfers,
-      CA,
-      DUMMY_CALLDATA,
+      net(swapTransfers),
     );
-    expect(result.legacy.operation).toBe("Swap");
+    expect(result.operation).toBe("Swap");
   });
 });
 
@@ -544,16 +492,14 @@ describe("Legacy adapters throw", () => {
   ] as const;
 
   for (const { name, path, className } of legacyAdapters) {
-    it(`${name} throws on parseAdapterOperation`, async () => {
+    it(`${name} throws on classifyLegacyOperation`, async () => {
       const mod = await import(path);
       const AdapterClass = mod[className];
       const adapter = new AdapterClass(options, { baseParams });
       expect(() =>
-        adapter.parseAdapterOperation(
+        adapter.classifyLegacyOperation(
           makeParsed("anything"),
-          swapTransfers,
-          CA,
-          DUMMY_CALLDATA,
+          net(swapTransfers),
         ),
       ).toThrow("classifyLegacyOperation is not supported for legacy adapter");
     });

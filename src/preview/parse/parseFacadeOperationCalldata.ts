@@ -6,15 +6,12 @@ import {
   zeroHash,
 } from "viem";
 import type {
-  FacadeOperationMetadata,
-  OuterFacadeOperation,
-} from "../../history/index.js";
-import type {
   CreditFacadeV310Contract,
   OnchainSDK,
   ParsedCallV2,
 } from "../../sdk/index.js";
 import { classifyInnerOperations } from "./classifyInnerOperations.js";
+import type { FacadeOperationMetadata, OuterFacadeOperation } from "./types.js";
 
 export interface ParseFacadeOperationCalldataProps {
   sdk: OnchainSDK;

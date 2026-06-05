@@ -1,10 +1,12 @@
-import type { Address } from "viem";
-import type { OuterFacadeOperation } from "../../history/index.js";
-import type {
-  AdaptersPlugin,
-  TokenTransfer,
-} from "../../plugins/adapters/index.js";
+import type { AdaptersPlugin } from "../../plugins/adapters/index.js";
 import type { OnchainSDK, PluginsMap } from "../../sdk/index.js";
+
+import type { OuterFacadeOperation } from "./types-facades.js";
+import type { PoolOperation } from "./types-pools.js";
+
+export * from "./types-adapters.js";
+export * from "./types-facades.js";
+export * from "./types-pools.js";
 
 /**
  * True when the plugin map `P` contains the {@link AdaptersPlugin} under any
@@ -36,47 +38,13 @@ export type SdkWithAdapters<P extends PluginsMap = PluginsMap> = OnchainSDK<P> &
   RequireAdaptersPlugin<P>;
 
 /**
- * ERC4626 `deposit` into a Gearbox pool.
- * Token metadata (symbol/decimals) is intentionally omitted: consumers resolve
- * it from `sdk.tokensMeta` using the token addresses below.
+ * Result of decoding a single raw operation calldata: either a pool
+ * deposit/redeem or one of the credit-facade operations.
+ *
+ * Calldata-only parse produces base (descriptor) adapter operations, so the
+ * facade operations are used with the default `Ext = {}`.
  */
-export interface PoolDepositOperation {
-  operation: "Deposit";
-  pool: Address;
-  receiver: Address;
-  /** Underlying assets supplied to the pool. */
-  assets: bigint;
-  underlying: Address;
-  /** Referral code, present only for `depositWithReferral` calls. */
-  referralCode?: bigint;
-  /**
-   * ERC-20 transfers involving the wallet, recovered by simulating the call.
-   * Empty for the calldata-only parse; populated by the simulation stage.
-   */
-  transfers: TokenTransfer[];
-}
-
-/**
- * ERC4626 `redeem` from a Gearbox pool.
- * Token metadata (symbol/decimals) is intentionally omitted: consumers resolve
- * it from `sdk.tokensMeta` using the token addresses below.
- */
-export interface PoolRedeemOperation {
-  operation: "Redeem";
-  pool: Address;
-  receiver: Address;
-  owner: Address;
-  /** Pool shares (diesel) burned. */
-  shares: bigint;
-  underlying: Address;
-  /**
-   * ERC-20 transfers involving the wallet, recovered by simulating the call.
-   * Empty for the calldata-only parse; populated by the simulation stage.
-   */
-  transfers: TokenTransfer[];
-}
-
-export type PoolOperation = PoolDepositOperation | PoolRedeemOperation;
+export type Operation = PoolOperation | OuterFacadeOperation;
 
 /**
  * Narrows an {@link Operation} to a {@link PoolOperation} (deposit or redeem).
@@ -86,9 +54,3 @@ export type PoolOperation = PoolDepositOperation | PoolRedeemOperation;
 export function isPoolOperation(tx: Operation): tx is PoolOperation {
   return tx.operation === "Deposit" || tx.operation === "Redeem";
 }
-
-/**
- * Result of decoding a single raw operation calldata: either a pool
- * deposit/redeem or one of the credit-facade operations from `sdk/history`.
- */
-export type Operation = PoolOperation | OuterFacadeOperation;

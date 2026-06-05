@@ -8,7 +8,7 @@ import type {
   TokenAmount,
   Transfers,
 } from "./legacyAdapterOperations.js";
-import type { TokenTransfer } from "./types.js";
+import type { TokenTransfer } from "./transfers.js";
 
 /**
  * Converts an ordered array of {@link TokenTransfer} into net signed balance

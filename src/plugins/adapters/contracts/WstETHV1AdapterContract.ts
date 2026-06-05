@@ -56,7 +56,7 @@ export class WstETHV1AdapterContract extends AbstractAdapterContract<
   }
 
   /** @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type.go#L264-L275 */
-  protected override classifyLegacyOperation(
+  public override classifyLegacyOperation(
     parsed: ParsedCallV2,
     transfers: Transfers,
   ): LegacyAdapterOperation {

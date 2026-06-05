@@ -1,21 +1,19 @@
-import type { AdapterOperation } from "../plugins/adapters/index.js";
 import type {
+  AdapterOperation,
   AddCollateralOp,
-  DecreaseDebtOp,
-  IncreaseDebtOp,
-  InnerOperation,
-  UpdateQuotaOp,
-  WithdrawCollateralOp,
-} from "./inner-operations.js";
-import type {
   CloseCreditAccountOperation,
   CreditAccountOperation,
+  DecreaseDebtOp,
   DirectTokenTransferOperation,
   FacadeOperationMetadata,
+  IncreaseDebtOp,
+  InnerOperation,
   LiquidateCreditAccountOperation,
   MulticallOperation,
   OpenCreditAccountOperation,
   PartialLiquidationOperation,
+  UpdateQuotaOp,
+  WithdrawCollateralOp,
 } from "./types.js";
 
 /**

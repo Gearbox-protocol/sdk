@@ -116,7 +116,7 @@ export class Curve4AssetsAdapterContract extends AbstractAdapterContract<
   }
 
   /** @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type.go#L132-L164 */
-  protected override classifyLegacyOperation(
+  public override classifyLegacyOperation(
     parsed: ParsedCallV2,
     transfers: Transfers,
   ): LegacyAdapterOperation {

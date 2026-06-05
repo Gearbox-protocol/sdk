@@ -1,5 +1,5 @@
 import type { Address, Hex } from "viem";
-import type { TokenTransfer } from "../plugins/adapters/index.js";
+import type { TokenTransfer } from "../preview/parse/index.js";
 import type { ParsedCallV2 } from "../sdk/index.js";
 
 /**

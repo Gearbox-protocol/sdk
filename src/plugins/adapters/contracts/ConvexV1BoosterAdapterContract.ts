@@ -89,7 +89,7 @@ export class ConvexV1BoosterAdapterContract extends AbstractAdapterContract<
    * @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type.go#L166-L199
    * @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type_v3.go#L84-L91
    */
-  protected override classifyLegacyOperation(
+  public override classifyLegacyOperation(
     parsed: ParsedCallV2,
     transfers: Transfers,
   ): LegacyAdapterOperation {

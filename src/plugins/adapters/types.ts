@@ -1,6 +1,5 @@
 import type { AbiParameter, Address } from "viem";
 import type { BaseContractStateHuman } from "../../sdk/types/state-human.js";
-import type { LegacyAdapterOperation } from "./legacyAdapterOperations.js";
 
 export type VersionedAbi = Record<number, readonly AbiParameter[]>;
 
@@ -109,60 +108,22 @@ export interface AdapterContractStateHuman extends BaseContractStateHuman {
 }
 
 /**
- * A single ERC-20 Transfer event captured between Execute boundaries.
+ * Protocol-level call performed by an adapter: the target (protocol) contract
+ * together with the decoded function name and arguments of the actual CALL the
+ * adapter made to it. Recovered from an execution trace, so it is only present
+ * when a trace is available (history, facade simulation).
  */
-export interface TokenTransfer {
-  token: Address;
-  amount: bigint;
-  from: Address;
-  to: Address;
-}
-
-/**
- * Parsed adapter operation to display in credit account transactions history
- */
-export interface AdapterOperation {
-  operation: "Execute";
-  /**
-   * Address of Gearbox Adapter contract
-   */
-  adapter: Address;
+export interface AdapterProtocolOperation {
   /**
    * Address of protocol contract (targetContract of adapter contract)
    */
-  protocol: Address;
-  /**
-   * Namespaced adapter type
-   * E.g. "ADAPTER::FLUID_DEX"
-   */
-  adapterType: string;
-  /**
-   * Adapter contract version
-   */
-  version: number;
-  /**
-   * Label of protocol contract (NOT adapter contract)
-   */
-  label?: string;
-  /**
-   * Function name of adapter contract
-   */
-  adapterFunctionName: string;
-  /**
-   * Arguments of adapter contract
-   */
-  adapterArgs: Record<string, unknown>;
+  contract: Address;
   /**
    * Function name protocol called by adapter
    */
-  protocolFunctionName: string;
+  functionName: string;
   /**
    * Arguments of protocol called by adapter
    */
-  protocolArgs: Record<string, unknown>;
-  /**
-   * ERC20 transfer to and from credit account made during adapter call
-   */
-  transfers: TokenTransfer[];
-  legacy: LegacyAdapterOperation;
+  functionArgs: Record<string, unknown>;
 }

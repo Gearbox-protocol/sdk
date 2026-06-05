@@ -74,7 +74,7 @@ export class LidoV1AdapterContract extends AbstractAdapterContract<
   }
 
   /** @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type.go#L277-L282 */
-  protected override classifyLegacyOperation(
+  public override classifyLegacyOperation(
     _parsed: ParsedCallV2,
     transfers: Transfers,
   ): LegacyAdapterOperation {

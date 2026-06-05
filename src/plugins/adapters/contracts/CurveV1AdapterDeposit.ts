@@ -109,7 +109,7 @@ export class CurveV1AdapterDeposit extends AbstractAdapterContract<
   }
 
   /** Legacy adapter not present in integrations-v3. Go: Curve operations via operation_type.go L132-L164 */
-  protected override classifyLegacyOperation(
+  public override classifyLegacyOperation(
     _parsed: ParsedCallV2,
     _transfers: Transfers,
   ): LegacyAdapterOperation {

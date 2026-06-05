@@ -1,6 +1,6 @@
 import type { Address, Hex } from "viem";
-import type { OuterFacadeOperation } from "../../history/index.js";
 import type { OnchainSDK } from "../../sdk/index.js";
+import type { OuterFacadeOperation } from "../parse/index.js";
 
 import type { PoolSimulationResult } from "./types.js";
 

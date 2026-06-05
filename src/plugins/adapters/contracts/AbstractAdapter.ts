@@ -4,7 +4,6 @@ import {
   decodeAbiParameters,
   decodeFunctionData,
   type Hex,
-  type PartialBy,
   zeroAddress,
 } from "viem";
 import type {
@@ -22,12 +21,11 @@ import type {
   LegacyAdapterOperation,
   Transfers,
 } from "../legacyAdapterOperations.js";
-import { swapFromTransfers, toNetTransfers } from "../transferHelpers.js";
+import { swapFromTransfers } from "../transferHelpers.js";
 import type {
   AdapterContractStateHuman,
   AdapterContractType,
-  AdapterOperation,
-  TokenTransfer,
+  AdapterProtocolOperation,
 } from "../types.js";
 
 export interface ConcreteAdapterContractOptions {
@@ -103,43 +101,24 @@ export class AbstractAdapterContract<
   }
 
   /**
-   * Builds an {@link AdapterOperation} from a parsed call and ordered transfer entries.
+   * Decodes the protocol-level call (target contract + function name + args)
+   * from the raw calldata the adapter sent to its target contract.
    *
-   * Returns `PartialBy<AdapterOperation, "targetContract">` because the adapter
-   * may not have `targetContract` (adapters created without SDK do not have serializedParams)
+   * `targetContract` is taken from the execution trace (the authoritative
+   * CALL target) rather than `this.targetContract`, because adapters parsed
+   * from on-chain state may not carry `serializedParams`. Consumers build the
+   * full adapter `Execute` operation around this result (adding transfers /
+   * legacy).
    *
-   * @param protocolCalldata Raw calldata of the actual CALL to targetContract, extracted from trace
+   * @param calldata Raw calldata of the actual CALL to targetContract, extracted from trace
+   * @param contract Address of the target (protocol) contract, from the trace
    * @param strict When true, throws if protocol ABI is missing or decode fails
    */
-  public parseAdapterOperation(
-    parsed: ParsedCallV2,
-    transfers: TokenTransfer[],
-    creditAccount: Address,
-    protocolCalldata: Hex,
+  public parseProtocolCall(
+    calldata: Hex,
+    contract: Address,
     strict?: boolean,
-  ): PartialBy<AdapterOperation, "protocol"> {
-    const netTransfers = toNetTransfers(transfers, creditAccount);
-    const protocol = this.parseProtocolCall(protocolCalldata, strict);
-    return {
-      operation: "Execute",
-      adapter: this.address,
-      protocol: this.#targetContract,
-      adapterType: this.adapterType,
-      version: this.version,
-      label: parsed.label,
-      adapterFunctionName: parsed.functionName,
-      adapterArgs: parsed.rawArgs,
-      ...protocol,
-      transfers,
-      legacy: this.classifyLegacyOperation(parsed, netTransfers),
-    };
-  }
-
-  /**
-   * Decodes protocol-level function name and args from the raw calldata
-   * sent to targetContract.
-   */
-  protected parseProtocolCall(calldata: Hex, strict?: boolean) {
+  ): AdapterProtocolOperation {
     const selector = calldata.slice(0, 10) as Hex;
 
     if (this.protocolAbi.length === 0) {
@@ -147,8 +126,9 @@ export class AbstractAdapterContract<
         throw new Error(`Protocol ABI is missing for selector ${selector}`);
       }
       return {
-        protocolFunctionName: `unknown function ${selector}`,
-        protocolArgs: {},
+        contract,
+        functionName: `unknown function ${selector}`,
+        functionArgs: {},
       };
     }
 
@@ -158,12 +138,12 @@ export class AbstractAdapterContract<
         data: calldata,
       });
       const functionName = getFunctionSignature(this.protocolAbi, calldata);
-      const protocolArgs = functionArgsToRecord(
+      const functionArgs = functionArgsToRecord(
         this.protocolAbi,
         decoded.functionName,
         decoded.args,
       );
-      return { protocolFunctionName: functionName, protocolArgs };
+      return { contract, functionName, functionArgs };
     } catch (e) {
       if (strict) {
         throw new Error(
@@ -172,8 +152,9 @@ export class AbstractAdapterContract<
         );
       }
       return {
-        protocolFunctionName: `unknown function ${selector}`,
-        protocolArgs: {},
+        contract,
+        functionName: `unknown function ${selector}`,
+        functionArgs: {},
       };
     }
   }
@@ -189,8 +170,10 @@ export class AbstractAdapterContract<
    * Override in protocol-specific subclasses for richer classification.
    *
    * @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/account_operation.go#L238-L264
+   *
+   * @deprecated Eventually will be gone, exists to produce output that legacy UI can display
    */
-  protected classifyLegacyOperation(
+  public classifyLegacyOperation(
     _parsed: ParsedCallV2,
     transfers: Transfers,
   ): LegacyAdapterOperation {

@@ -56,7 +56,7 @@ export function createLegacyVisitor(
         blockNum: ctx.blockNumber,
         timestamp: ctx.timestamp,
         sessionId: params.sessionId,
-        protocol: op.protocol,
+        protocol: op.protocol.contract,
       };
     },
     IncreaseBorrowedAmount(op, ctx) {

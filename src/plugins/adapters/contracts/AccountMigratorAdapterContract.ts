@@ -22,7 +22,7 @@ export class AccountMigratorAdapterContract extends AbstractAdapterContract<
   }
 
   /** Legacy adapter not present in integrations-v3. */
-  protected override classifyLegacyOperation(
+  public override classifyLegacyOperation(
     _parsed: ParsedCallV2,
     _transfers: Transfers,
   ): LegacyAdapterOperation {

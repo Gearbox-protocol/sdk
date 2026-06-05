@@ -1,6 +1,6 @@
 import { type Address, isAddressEqual, type Log, parseEventLogs } from "viem";
 import { ierc20Abi } from "../../abi/iERC20.js";
-import type { TokenTransfer } from "../../plugins/adapters/index.js";
+import type { TokenTransfer } from "../parse/index.js";
 
 /**
  * Parses ERC-20 `Transfer` logs and keeps only those involving one of the

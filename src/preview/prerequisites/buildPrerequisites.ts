@@ -1,8 +1,7 @@
 import { type Address, isAddressEqual } from "viem";
-import type { InnerOperation } from "../../history/index.js";
 
 import type { OnchainSDK } from "../../sdk/index.js";
-import type { Operation } from "../parse/index.js";
+import type { InnerOperation, Operation } from "../parse/index.js";
 
 import { AllowancePrerequisite } from "./AllowancePrerequisite.js";
 import { BalancePrerequisite } from "./BalancePrerequisite.js";

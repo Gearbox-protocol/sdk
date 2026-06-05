@@ -1,14 +1,11 @@
-import { type Address, zeroAddress } from "viem";
+import type { Address } from "viem";
+import { AbstractAdapterContract } from "../../plugins/adapters/index.js";
+import type { OnchainSDK, ParsedCallV2 } from "../../sdk/index.js";
 import type {
+  AdapterOperation,
   InnerFacadeOperation,
   InnerOperation,
-} from "../../history/index.js";
-import {
-  AbstractAdapterContract,
-  type AdapterOperation,
-  type LegacyAdapterOperation,
-} from "../../plugins/adapters/index.js";
-import type { OnchainSDK, ParsedCallV2 } from "../../sdk/index.js";
+} from "./types.js";
 
 export interface ClassifyInnerOperationsProps {
   sdk: OnchainSDK;
@@ -20,13 +17,13 @@ export interface ClassifyInnerOperationsProps {
  * Calldata-only counterpart of the SDK's `classifyMulticallOperations`.
  *
  * Maps each inner multicall entry to an {@link InnerOperation}:
- * - adapter targets become an `Execute` {@link AdapterOperation};
- * - credit-facade self-calls map to the matching inner facade operation;
- * - unknown targets fall back to a generic `Execute`.
+ * - adapter and unknown targets become a pure-descriptor `Execute`
+ *   {@link AdapterOperation};
+ * - credit-facade self-calls map to the matching inner facade operation.
  *
- * Since raw calldata has no execution trace, `transfers` is always empty and
- * `legacy` is a zeroed placeholder; protocol-level fields mirror the adapter
- * call.
+ * Raw calldata has no execution trace, so the trace-derived adapter data
+ * (`protocol`, `transfers`) and `legacy` are intentionally absent; they are only
+ * recovered by trace-based flows (history, facade simulation).
  */
 export function classifyInnerOperations(
   calls: ParsedCallV2[],
@@ -38,52 +35,25 @@ export function classifyInnerOperations(
   for (const call of calls) {
     const contract = sdk.getContract(call.target);
 
-    if (contract instanceof AbstractAdapterContract) {
+    // Adapter and unknown targets both produce the same calldata-only
+    // descriptor; only credit-facade self-calls are classified separately.
+    if (contract instanceof AbstractAdapterContract || contract === undefined) {
       result.push({
         operation: "Execute",
         adapter: call.target,
-        protocol: contract.targetContract,
         adapterType: call.contractType,
         version: call.version,
         label: call.label,
         adapterFunctionName: call.functionName,
         adapterArgs: call.rawArgs,
-        // TODO: mirror the adapter call into the protocol fields for now. The
-        // real protocol-level call (adapter -> target contract) only exists in
-        // the execution call trace, which is not available from raw calldata.
-        // Recovering the actual protocol function/args requires a call trace.
-        protocolFunctionName: call.functionName,
-        protocolArgs: call.rawArgs,
-        transfers: [],
-        legacy: mockLegacyOperation(),
       });
       continue;
     }
 
-    if (contract !== undefined) {
-      const op = classifyFacadeInnerCall(call, underlying);
-      if (op) result.push(op);
-      continue;
+    const op = classifyFacadeInnerCall(call, underlying);
+    if (op) {
+      result.push(op);
     }
-
-    result.push({
-      operation: "Execute",
-      adapter: call.target,
-      protocol: call.target,
-      adapterType: call.contractType,
-      version: call.version,
-      label: call.label,
-      adapterFunctionName: call.functionName,
-      adapterArgs: call.rawArgs,
-      // TODO: mirror the adapter call into the protocol fields for now. The
-      // real protocol-level call (adapter -> target contract) only exists in
-      // the execution call trace, which is not available from raw calldata.
-      // Recovering the actual protocol function/args requires a call trace.
-      protocolFunctionName: call.functionName,
-      protocolArgs: call.rawArgs,
-      transfers: [],
-      legacy: mockLegacyOperation(),
-    });
   }
 
   return result;
@@ -139,18 +109,4 @@ function classifyFacadeInnerCall(
     default:
       return null;
   }
-}
-
-/**
- * Zeroed `Swap` placeholder used where execution-trace transfers are not
- * available from raw calldata.
- */
-function mockLegacyOperation(): LegacyAdapterOperation {
-  return {
-    operation: "Swap",
-    from: zeroAddress,
-    fromAmount: "0",
-    to: zeroAddress,
-    toAmount: "0",
-  };
 }

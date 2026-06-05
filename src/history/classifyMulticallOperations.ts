@@ -1,7 +1,6 @@
 import { type Address, type Hex, isAddressEqual } from "viem";
 import {
   AbstractAdapterContract,
-  type AdapterOperation,
   swapFromTransfers,
   toNetTransfers,
 } from "../plugins/adapters/index.js";
@@ -16,11 +15,12 @@ import {
   WithdrawCollateralAlignmentError,
 } from "./errors.js";
 import type { WithdrawCollateralEventInfo } from "./extractTransfers.js";
+import type { ExecuteResult } from "./internal-types.js";
 import type {
+  AdapterOperation,
   InnerFacadeOperation,
   InnerOperation,
-} from "./inner-operations.js";
-import type { ExecuteResult } from "./internal-types.js";
+} from "./types.js";
 
 export interface ClassifyMulticallOperationsInput {
   innerCalls: ParsedCallV2[];
@@ -37,9 +37,10 @@ export interface ClassifyMulticallOperationsInput {
 /**
  * Classifies each multicall inner call into a {@link InnerOperation}:
  *
- * - **Adapter calls** (target registered as an adapter): delegates to
- *   `adapter.parseAdapterOperation()` and consumes the next entry from
- *   `executeTransfers` (one Execute event per adapter call).
+ * - **Adapter calls** (target registered as an adapter): decodes the
+ *   protocol-level call via `adapter.parseProtocolCall()`, classifies the
+ *   legacy operation via `adapter.classifyLegacyOperation()`, and consumes the
+ *   next entry from `executeResults` (one Execute event per adapter call).
  *
  * - **Facade self-calls** (`increaseDebt`, `updateQuota`, etc.): mapped
  *   directly from `functionName` / `rawArgs`. No transfer consumed.
@@ -83,14 +84,27 @@ export function classifyMulticallOperations(
       }
       const { transfers, targetContract } = executeResult;
       const protocolCalldata = protocolCalldatas[idx];
-      const partial = contract.parseAdapterOperation(
-        call,
-        transfers,
-        creditAccount,
+      const protocol = contract.parseProtocolCall(
         protocolCalldata,
+        targetContract,
         strict,
       );
-      if (partial) result.push({ ...partial, protocol: targetContract });
+      const legacy = contract.classifyLegacyOperation(
+        call,
+        toNetTransfers(transfers, creditAccount),
+      );
+      result.push({
+        operation: "Execute",
+        adapter: call.target,
+        adapterType: call.contractType,
+        version: call.version,
+        label: call.label,
+        adapterFunctionName: call.functionName,
+        adapterArgs: call.rawArgs,
+        protocol,
+        transfers,
+        legacy,
+      } satisfies AdapterOperation);
       continue;
     }
 
@@ -123,14 +137,16 @@ export function classifyMulticallOperations(
     result.push({
       operation: "Execute",
       adapter: call.target,
-      protocol: targetContract,
       adapterType: call.contractType,
       version: call.version,
       label: call.label,
       adapterFunctionName: call.functionName,
       adapterArgs: call.rawArgs,
-      protocolFunctionName: call.functionName,
-      protocolArgs: call.rawArgs,
+      protocol: {
+        contract: targetContract,
+        functionName: call.functionName,
+        functionArgs: call.rawArgs,
+      },
       transfers,
       legacy: {
         operation: "Swap" as const,

@@ -7,7 +7,7 @@ import {
 } from "viem";
 import { iCreditFacadeV310Abi } from "../abi/310/generated.js";
 import { ierc20Abi } from "../abi/iERC20.js";
-import type { TokenTransfer } from "../plugins/adapters/index.js";
+import type { TokenTransfer } from "../preview/parse/index.js";
 import { AddressMap } from "../sdk/index.js";
 import { UnexpectedFacadeEventOrderError } from "./errors.js";
 import type { ExecuteResult } from "./internal-types.js";

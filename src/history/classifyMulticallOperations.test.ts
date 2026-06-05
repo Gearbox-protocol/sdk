@@ -10,10 +10,10 @@ import { mainnet } from "viem/chains";
 import { describe, expect, it } from "vitest";
 import {
   Curve2AssetsAdapterContract,
-  type TokenTransfer,
   UniswapV3AdapterContract,
   WstETHV1AdapterContract,
 } from "../plugins/adapters/index.js";
+import type { TokenTransfer } from "../preview/parse/index.js";
 import {
   AddressMap,
   ChainContractsRegister,
@@ -158,17 +158,17 @@ describe("classifyCreditAccountOperation", () => {
       expect(result).toMatchObject([
         {
           adapter: ADAPTER_UNI,
-          protocol: TARGET,
+          protocol: { contract: TARGET },
           legacy: { operation: "Swap" },
         },
         {
           adapter: ADAPTER_CURVE,
-          protocol: TARGET,
+          protocol: { contract: TARGET },
           legacy: { operation: "CurveExchange" },
         },
         {
           adapter: ADAPTER_WSTETH,
-          protocol: TARGET,
+          protocol: { contract: TARGET },
           legacy: { operation: "WstETHWrap" },
         },
       ]);
@@ -205,13 +205,13 @@ describe("classifyCreditAccountOperation", () => {
         },
         {
           adapter: ADAPTER_UNI,
-          protocol: TARGET,
+          protocol: { contract: TARGET },
           legacy: { operation: "Swap" },
         },
         { operation: "UpdateQuota", token: TOKEN_A, change: 500n },
         {
           adapter: ADAPTER_CURVE,
-          protocol: TARGET,
+          protocol: { contract: TARGET },
           legacy: { operation: "CurveExchange" },
         },
       ]);
@@ -389,7 +389,7 @@ describe("classifyCreditAccountOperation", () => {
       });
       expect(result).toMatchObject({
         adapter: UNKNOWN,
-        protocol: TARGET,
+        protocol: { contract: TARGET },
         legacy: {
           operation: "Swap",
           from: TOKEN_A,
@@ -444,7 +444,7 @@ describe("classifyCreditAccountOperation", () => {
       });
       expect(result).toMatchObject({
         adapter: ADAPTER_UNI,
-        protocol: TARGET,
+        protocol: { contract: TARGET },
         legacy: {
           operation: "MakerDeposit",
           token: zeroAddress,
