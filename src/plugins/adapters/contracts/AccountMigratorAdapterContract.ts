@@ -1,5 +1,5 @@
 import { accountMigratorAbi } from "../../../abi/AccountMigrator.js";
-import type { CallTrace } from "../../../history/internal-types.js";
+import type { CallTrace } from "../../../common-utils/utils/trace.js";
 import type { ConstructOptions, ParsedCallV2 } from "../../../sdk/index.js";
 import type {
   LegacyAdapterOperation,

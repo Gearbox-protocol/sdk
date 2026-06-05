@@ -10,6 +10,10 @@ import {
 import { mainnet } from "viem/chains";
 import { describe, expect, it } from "vitest";
 import {
+  type CallTrace,
+  EXECUTE_BYTES_SELECTOR,
+} from "../common-utils/utils/trace.js";
+import {
   Curve2AssetsAdapterContract,
   UniswapV3AdapterContract,
   WstETHV1AdapterContract,
@@ -22,8 +26,6 @@ import {
   type ParsedCallV2,
 } from "../sdk/index.js";
 import { classifyMulticallOperations } from "./classifyMulticallOperations.js";
-import type { CallTrace } from "./internal-types.js";
-import { EXECUTE_BYTES_SELECTOR } from "./trace-utils.js";
 
 const addr = (hex: string) => getAddress(padHex(hex as Address, { size: 20 }));
 

@@ -6,8 +6,10 @@ import {
   type Hex,
   zeroAddress,
 } from "viem";
-import type { CallTrace } from "../../../history/internal-types.js";
-import { resolveProtocolCall } from "../../../history/trace-utils.js";
+import {
+  type CallTrace,
+  resolveProtocolCall,
+} from "../../../common-utils/utils/trace.js";
 import type {
   ConstructOptions,
   ParsedCallV2,

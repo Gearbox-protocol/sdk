@@ -11,12 +11,12 @@ import {
 } from "viem";
 import { mainnet } from "viem/chains";
 import { describe, expect, it } from "vitest";
-import { extractAdapterCallTraces } from "../../../history/extractAdapterCallTraces.js";
-import type { CallTrace } from "../../../history/internal-types.js";
 import {
+  type CallTrace,
   collectTraces,
   EXECUTE_BYTES_SELECTOR,
-} from "../../../history/trace-utils.js";
+} from "../../../common-utils/utils/trace.js";
+import { extractAdapterCallTraces } from "../../../preview/trace/index.js";
 import { ChainContractsRegister } from "../../../sdk/index.js";
 import { ConvexV1BaseRewardPoolAdapterContract } from "./ConvexV1BaseRewardPoolAdapterContract.js";
 

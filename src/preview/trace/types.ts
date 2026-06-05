@@ -1,24 +1,6 @@
-import type { Address, Hex } from "viem";
-import type { ParsedCallV2 } from "../sdk/index.js";
-
-/**
- * A single frame from Ethereum's `debug_traceTransaction` callTracer output.
- * Recursive: each frame may contain nested sub-calls.
- */
-export interface CallTrace {
-  from: Address;
-  to: Address;
-  input: Hex;
-  output: Hex;
-  value: Hex;
-  /** "CALL", "DELEGATECALL", "STATICCALL", "CREATE", etc. */
-  type: string;
-  /** Present when the call reverted (e.g. "execution reverted"). */
-  error?: string;
-  /** ABI-encoded revert data, if available. */
-  revertReason?: Hex;
-  calls?: CallTrace[];
-}
+import type { Address } from "viem";
+import type { CallTrace } from "../../common-utils/utils/trace.js";
+import type { ParsedCallV2 } from "../../sdk/index.js";
 
 /**
  * The set of credit facade entry-point functions that produce history operations.

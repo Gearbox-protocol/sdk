@@ -2,16 +2,16 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { type Address, decodeAbiParameters, getAddress, type Hex } from "viem";
 import { expect, it } from "vitest";
-import { extractAdapterCallTraces } from "./extractAdapterCallTraces.js";
-import type { CallTrace } from "./internal-types.js";
 import {
+  type CallTrace,
   collectTraces,
   findCallWithInput,
   findExecuteBytes,
   resolveProtocolCall,
-} from "./trace-utils.js";
+} from "../../common-utils/utils/trace.js";
+import { extractAdapterCallTraces } from "./extractAdapterCallTraces.js";
 
-const FIXTURES_DIR = path.resolve(__dirname, "__fixtures__");
+const FIXTURES_DIR = path.resolve(__dirname, "../../history/__fixtures__");
 const INPUTS_DIR = path.join(FIXTURES_DIR, "inputs");
 
 interface FixtureInput {

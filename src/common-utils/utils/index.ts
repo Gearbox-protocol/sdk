@@ -5,4 +5,5 @@ export * from "./constants.js";
 export * from "./creditAccount/index.js";
 export * from "./price-math.js";
 export * from "./strategies/index.js";
+export * from "./trace.js";
 export * from "./validation/index.js";

@@ -4,8 +4,10 @@ import {
   isAddressEqual,
   toFunctionSelector,
 } from "viem";
-import type { CallTrace } from "./internal-types.js";
-import { resolveProtocolCall } from "./trace-utils.js";
+import {
+  type CallTrace,
+  resolveProtocolCall,
+} from "../../common-utils/utils/trace.js";
 
 /**
  * Selector of `IPhantomTokenWithdrawer.withdrawPhantomToken(address,uint256)`.

@@ -5,7 +5,25 @@ import {
   type Hex,
   isAddressEqual,
 } from "viem";
-import type { CallTrace } from "./internal-types.js";
+
+/**
+ * A single frame from Ethereum's `debug_traceTransaction` callTracer output.
+ * Recursive: each frame may contain nested sub-calls.
+ */
+export interface CallTrace {
+  from: Address;
+  to: Address;
+  input: Hex;
+  output: Hex;
+  value: Hex;
+  /** "CALL", "DELEGATECALL", "STATICCALL", "CREATE", etc. */
+  type: string;
+  /** Present when the call reverted (e.g. "execution reverted"). */
+  error?: string;
+  /** ABI-encoded revert data, if available. */
+  revertReason?: Hex;
+  calls?: CallTrace[];
+}
 
 /**
  * Selector of `CreditManagerV3.execute(bytes)` (`0x09c5eabe`).

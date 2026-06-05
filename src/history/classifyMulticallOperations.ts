@@ -1,22 +1,22 @@
 import { type Address, isAddressEqual } from "viem";
+import type { CallTrace } from "../common-utils/utils/trace.js";
 import {
   AbstractAdapterContract,
   swapFromTransfers,
   toNetTransfers,
 } from "../plugins/adapters/index.js";
 import type { TokenTransfer } from "../preview/parse/index.js";
+import {
+  TransferAlignmentError,
+  UnknownAdapterError,
+  WithdrawCollateralAlignmentError,
+  type WithdrawCollateralEventInfo,
+} from "../preview/trace/index.js";
 import type {
   AddressMap,
   ChainContractsRegister,
   ParsedCallV2,
 } from "../sdk/index.js";
-import {
-  TransferAlignmentError,
-  UnknownAdapterError,
-  WithdrawCollateralAlignmentError,
-} from "./errors.js";
-import type { WithdrawCollateralEventInfo } from "./extractTransfers.js";
-import type { CallTrace } from "./internal-types.js";
 import type {
   AdapterOperation,
   InnerFacadeOperation,

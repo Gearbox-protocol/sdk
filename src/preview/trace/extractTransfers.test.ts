@@ -17,12 +17,12 @@ import {
   padHex,
 } from "viem";
 import { describe, expect, it } from "vitest";
-import { iCreditFacadeV310Abi } from "../abi/310/generated.js";
-import { ierc20Abi } from "../abi/iERC20.js";
-import { AddressMap } from "../sdk/index.js";
+import { iCreditFacadeV310Abi } from "../../abi/310/generated.js";
+import { ierc20Abi } from "../../abi/iERC20.js";
+import { AddressMap } from "../../sdk/index.js";
 import { extractTransfers } from "./extractTransfers.js";
 
-const FIXTURES_DIR = path.resolve(__dirname, "__fixtures__");
+const FIXTURES_DIR = path.resolve(__dirname, "../../history/__fixtures__");
 const INPUTS_DIR = path.join(FIXTURES_DIR, "inputs");
 
 const addr = (hex: string) => getAddress(padHex(hex as Address, { size: 20 }));

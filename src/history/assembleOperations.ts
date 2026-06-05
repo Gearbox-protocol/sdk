@@ -1,15 +1,17 @@
 import type { Address } from "viem";
 import { AbstractAdapterContract } from "../plugins/adapters/index.js";
 import type { TokenTransfer } from "../preview/parse/index.js";
+import {
+  extractAdapterCallTraces,
+  type FacadeParsedCall,
+  type WithdrawCollateralEventInfo,
+} from "../preview/trace/index.js";
 import type {
   AddressMap,
   ChainContractsRegister,
   ParsedCallV2,
 } from "../sdk/index.js";
 import { classifyMulticallOperations } from "./classifyMulticallOperations.js";
-import { extractAdapterCallTraces } from "./extractAdapterCallTraces.js";
-import type { WithdrawCollateralEventInfo } from "./extractTransfers.js";
-import type { FacadeParsedCall } from "./internal-types.js";
 import type {
   FacadeOperationMetadata,
   OuterFacadeOperation,

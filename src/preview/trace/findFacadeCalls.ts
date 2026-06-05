@@ -4,15 +4,14 @@ import {
   type Hex,
   isAddressEqual,
 } from "viem";
-import { iCreditFacadeV310Abi } from "../abi/310/generated.js";
-import type { ChainContractsRegister, ParsedCallV2 } from "../sdk/index.js";
+import { iCreditFacadeV310Abi } from "../../abi/310/generated.js";
+import {
+  type CallTrace,
+  collectTraces,
+} from "../../common-utils/utils/trace.js";
+import type { ChainContractsRegister, ParsedCallV2 } from "../../sdk/index.js";
 import { UnknownFacadeCallError } from "./errors.js";
-import type {
-  CallTrace,
-  FacadeCallType,
-  FacadeParsedCall,
-} from "./internal-types.js";
-import { collectTraces } from "./trace-utils.js";
+import type { FacadeCallType, FacadeParsedCall } from "./types.js";
 
 const FACADE_CALL_TYPES: Record<string, FacadeCallType> = {
   multicall: "MultiCall",
