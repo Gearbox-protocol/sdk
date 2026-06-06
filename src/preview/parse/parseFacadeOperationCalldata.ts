@@ -1,10 +1,4 @@
-import {
-  type Address,
-  type Hex,
-  isAddressEqual,
-  zeroAddress,
-  zeroHash,
-} from "viem";
+import { type Address, type Hex, isAddressEqual, zeroAddress } from "viem";
 import type {
   CreditFacadeV310Contract,
   OnchainSDK,
@@ -24,8 +18,9 @@ export interface ParseFacadeOperationCalldataProps {
  * Decodes a credit-facade entry-point call into the matching
  * {@link OuterFacadeOperation}.
  *
- * Metadata is partial: `txHash` is `zeroHash` and `timestamp` is `0` because
- * those are only known once the transaction is mined. `creditAccount` is
+ * Transaction-level metadata (`txHash`, `blockNumber`, `timestamp`) is not part
+ * of the base `preview` operation: those values are only known once the
+ * transaction is mined and are added in `history` mode. `creditAccount` is
  * `zeroAddress` for `openCreditAccount` (the address is assigned on-chain).
  */
 export function parseFacadeOperationCalldata(
@@ -46,9 +41,6 @@ export function parseFacadeOperationCalldata(
   const metadata: FacadeOperationMetadata = {
     creditManager: suite.creditManager.address,
     creditFacade: facade.address,
-    blockNumber: Number(sdk.currentBlock),
-    txHash: zeroHash,
-    timestamp: 0,
   };
 
   const innerCalls = (rawArgs.calls ?? []) as ParsedCallV2[];

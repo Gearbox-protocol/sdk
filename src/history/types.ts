@@ -2,12 +2,14 @@ import type { LegacyAdapterOperation } from "../plugins/adapters/index.js";
 import type {
   AdapterOperation as BaseAdapterOperation,
   CloseCreditAccountOperation as BaseCloseCreditAccountOperation,
-  CreditAccountOperation as BaseCreditAccountOperation,
+  DirectTokenTransferOperation as BaseDirectTokenTransferOperation,
   InnerOperation as BaseInnerOperation,
   LiquidateCreditAccountOperation as BaseLiquidateCreditAccountOperation,
   MulticallOperation as BaseMulticallOperation,
   OpenCreditAccountOperation as BaseOpenCreditAccountOperation,
-  OuterFacadeOperation as BaseOuterFacadeOperation,
+  PartialLiquidationOperation as BasePartialLiquidationOperation,
+  FacadeOperationMetadata,
+  OperationMetadata,
   TraceAdapterExt,
 } from "../preview/parse/index.js";
 
@@ -16,12 +18,10 @@ import type {
 export type {
   AddCollateralOp,
   DecreaseDebtOp,
-  DirectTokenTransferOperation,
   FacadeOperationMetadata,
   IncreaseDebtOp,
   InnerFacadeOperation,
   OperationMetadata,
-  PartialLiquidationOperation,
   UpdateQuotaOp,
   WithdrawCollateralOp,
 } from "../preview/parse/index.js";
@@ -36,15 +36,37 @@ export type HistoryAdapterExt = TraceAdapterExt & {
   legacy: LegacyAdapterOperation;
 };
 
+/**
+ * Facade context available in `history` mode: the base facade metadata
+ * (`creditManager`/`creditFacade`) plus the transaction-level
+ * {@link OperationMetadata} that is only known once the transaction is mined.
+ */
+export type HistoryFacadeMetadata = FacadeOperationMetadata & OperationMetadata;
+
 export type AdapterOperation = BaseAdapterOperation<HistoryAdapterExt>;
 export type InnerOperation = BaseInnerOperation<HistoryAdapterExt>;
-export type MulticallOperation = BaseMulticallOperation<HistoryAdapterExt>;
+
+// Outer operations carry the transaction-level {@link OperationMetadata} only in
+// `history` mode, so each history variant intersects its base type with it.
+export type MulticallOperation = BaseMulticallOperation<HistoryAdapterExt> &
+  OperationMetadata;
 export type OpenCreditAccountOperation =
-  BaseOpenCreditAccountOperation<HistoryAdapterExt>;
+  BaseOpenCreditAccountOperation<HistoryAdapterExt> & OperationMetadata;
 export type CloseCreditAccountOperation =
-  BaseCloseCreditAccountOperation<HistoryAdapterExt>;
+  BaseCloseCreditAccountOperation<HistoryAdapterExt> & OperationMetadata;
 export type LiquidateCreditAccountOperation =
-  BaseLiquidateCreditAccountOperation<HistoryAdapterExt>;
-export type OuterFacadeOperation = BaseOuterFacadeOperation<HistoryAdapterExt>;
+  BaseLiquidateCreditAccountOperation<HistoryAdapterExt> & OperationMetadata;
+export type PartialLiquidationOperation = BasePartialLiquidationOperation &
+  OperationMetadata;
+export type DirectTokenTransferOperation = BaseDirectTokenTransferOperation &
+  OperationMetadata;
+
+export type OuterFacadeOperation =
+  | MulticallOperation
+  | OpenCreditAccountOperation
+  | CloseCreditAccountOperation
+  | LiquidateCreditAccountOperation
+  | PartialLiquidationOperation;
 export type CreditAccountOperation =
-  BaseCreditAccountOperation<HistoryAdapterExt>;
+  | OuterFacadeOperation
+  | DirectTokenTransferOperation;

@@ -13,7 +13,7 @@ import type {
 } from "../sdk/index.js";
 import { classifyMulticallOperations } from "./classifyMulticallOperations.js";
 import type {
-  FacadeOperationMetadata,
+  HistoryFacadeMetadata,
   OuterFacadeOperation,
   PartialLiquidationOperation,
 } from "./types.js";
@@ -44,7 +44,7 @@ export interface AssembleOperationsInput {
  */
 export function assembleOperations(
   input: AssembleOperationsInput,
-): Omit<OuterFacadeOperation, keyof FacadeOperationMetadata>[] {
+): Omit<OuterFacadeOperation, keyof HistoryFacadeMetadata>[] {
   const {
     facadeCalls,
     executeTransfers,
@@ -143,7 +143,7 @@ function countWithdrawCollateralCalls(innerCalls: ParsedCallV2[]): number {
 
 function assemblePartialLiquidation(
   fc: FacadeParsedCall,
-): Omit<PartialLiquidationOperation, keyof FacadeOperationMetadata> {
+): Omit<PartialLiquidationOperation, keyof HistoryFacadeMetadata> {
   const { rawArgs } = fc.parsed;
   return {
     operation: "PartiallyLiquidateCreditAccount",

@@ -1,9 +1,6 @@
 import type { Address, Hex } from "viem";
 import { mapOperations, type OperationVisitor } from "./mapOperations.js";
-import type {
-  CreditAccountOperation,
-  FacadeOperationMetadata,
-} from "./types.js";
+import type { CreditAccountOperation, HistoryFacadeMetadata } from "./types.js";
 
 export interface LegacyApiOperation {
   operation: string;
@@ -21,10 +18,7 @@ export interface LegacyVisitorParams {
   sessionId: string;
 }
 
-function commonFields(
-  op: FacadeOperationMetadata,
-  params: LegacyVisitorParams,
-) {
+function commonFields(op: HistoryFacadeMetadata, params: LegacyVisitorParams) {
   return {
     timestamp: op.timestamp,
     sessionId: params.sessionId,
@@ -33,7 +27,7 @@ function commonFields(
 }
 
 function innerCommonFields(
-  ctx: FacadeOperationMetadata,
+  ctx: HistoryFacadeMetadata,
   params: LegacyVisitorParams,
 ) {
   return {

@@ -6,7 +6,7 @@ import { assembleOperations } from "./assembleOperations.js";
 import type {
   CreditAccountOperation,
   DirectTokenTransferOperation,
-  FacadeOperationMetadata,
+  HistoryFacadeMetadata,
   OuterFacadeOperation,
 } from "./types.js";
 
@@ -74,7 +74,7 @@ export function parseCreditAccountTransaction(
     withdrawCollateralEvents,
   } = extractTransfers(logs, creditAccount, pool, creditFacade);
 
-  const meta: FacadeOperationMetadata = {
+  const meta: HistoryFacadeMetadata = {
     creditManager,
     creditFacade,
     timestamp,

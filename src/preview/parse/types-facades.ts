@@ -73,13 +73,18 @@ export type InnerOperation<Ext extends object = {}> =
   | AdapterOperation<Ext>
   | InnerFacadeOperation;
 
+/**
+ * Transaction-level metadata available only when parsing a mined transaction
+ * (the `history` mode). It is intentionally absent from base `preview`
+ * operations, which describe not-yet-mined calls where these values are unknown.
+ */
 export interface OperationMetadata {
   txHash: Hex;
   blockNumber: number;
   timestamp: number;
 }
 
-export interface FacadeOperationMetadata extends OperationMetadata {
+export interface FacadeOperationMetadata {
   creditManager: Address;
   creditFacade: Address;
 }
@@ -126,7 +131,7 @@ export interface PartialLiquidationOperation extends FacadeOperationMetadata {
   to: Address;
 }
 
-export interface DirectTokenTransferOperation extends OperationMetadata {
+export interface DirectTokenTransferOperation {
   operation: "DirectTokenTransfer";
   protocol: Address;
   token: Address;

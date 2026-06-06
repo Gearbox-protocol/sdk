@@ -5,7 +5,7 @@ import type {
   CreditAccountOperation,
   DecreaseDebtOp,
   DirectTokenTransferOperation,
-  FacadeOperationMetadata,
+  HistoryFacadeMetadata,
   IncreaseDebtOp,
   InnerOperation,
   LiquidateCreditAccountOperation,
@@ -22,21 +22,21 @@ import type {
  *
  */
 export interface OperationVisitor<TInner, TOuter> {
-  Execute(op: AdapterOperation, ctx: FacadeOperationMetadata): TInner;
+  Execute(op: AdapterOperation, ctx: HistoryFacadeMetadata): TInner;
   IncreaseBorrowedAmount(
     op: IncreaseDebtOp,
-    ctx: FacadeOperationMetadata,
+    ctx: HistoryFacadeMetadata,
   ): TInner;
   DecreaseBorrowedAmount(
     op: DecreaseDebtOp,
-    ctx: FacadeOperationMetadata,
+    ctx: HistoryFacadeMetadata,
   ): TInner;
-  AddCollateral(op: AddCollateralOp, ctx: FacadeOperationMetadata): TInner;
+  AddCollateral(op: AddCollateralOp, ctx: HistoryFacadeMetadata): TInner;
   WithdrawCollateral(
     op: WithdrawCollateralOp,
-    ctx: FacadeOperationMetadata,
+    ctx: HistoryFacadeMetadata,
   ): TInner;
-  UpdateQuota(op: UpdateQuotaOp, ctx: FacadeOperationMetadata): TInner;
+  UpdateQuota(op: UpdateQuotaOp, ctx: HistoryFacadeMetadata): TInner;
 
   DirectTokenTransfer(op: DirectTokenTransferOperation): TOuter;
   MultiCall(op: MulticallOperation, multicall: TInner[]): TOuter;
@@ -66,7 +66,7 @@ function mapInnerOperation<TInner>(
     | "WithdrawCollateral"
     | "UpdateQuota"
   >,
-  ctx: FacadeOperationMetadata,
+  ctx: HistoryFacadeMetadata,
 ): TInner {
   switch (op.operation) {
     case "Execute":
