@@ -89,11 +89,27 @@ export interface FacadeOperationMetadata {
   creditFacade: Address;
 }
 
+/**
+ * Signed token balance delta recovered from a router-generated
+ * `storeExpectedBalances` call (the `BalanceDelta` struct). `amount` is the
+ * signed `int256` delta, so it may be negative.
+ */
+export interface ExpectedBalanceChange {
+  token: Address;
+  delta: bigint;
+}
+
 export interface MulticallOperation<Ext extends object = {}>
   extends FacadeOperationMetadata {
   operation: "MultiCall" | "BotMulticall";
   creditAccount: Address;
   multicall: InnerOperation<Ext>[];
+  /**
+   * Potential balance changes declared by a router-generated
+   * `storeExpectedBalances`/`compareBalances` pair, or `undefined` when the
+   * multicall is not router-shaped. See {@link ExpectedBalanceChange}.
+   */
+  expectedBalanceChanges?: ExpectedBalanceChange[];
 }
 
 export interface OpenCreditAccountOperation<Ext extends object = {}>
@@ -103,6 +119,12 @@ export interface OpenCreditAccountOperation<Ext extends object = {}>
   onBehalfOf: Address;
   referralCode: bigint;
   multicall: InnerOperation<Ext>[];
+  /**
+   * Potential balance changes declared by a router-generated
+   * `storeExpectedBalances`/`compareBalances` pair, or `undefined` when the
+   * multicall is not router-shaped. See {@link ExpectedBalanceChange}.
+   */
+  expectedBalanceChanges?: ExpectedBalanceChange[];
 }
 
 export interface CloseCreditAccountOperation<Ext extends object = {}>
@@ -110,6 +132,12 @@ export interface CloseCreditAccountOperation<Ext extends object = {}>
   operation: "CloseCreditAccount";
   creditAccount: Address;
   multicall: InnerOperation<Ext>[];
+  /**
+   * Potential balance changes declared by a router-generated
+   * `storeExpectedBalances`/`compareBalances` pair, or `undefined` when the
+   * multicall is not router-shaped. See {@link ExpectedBalanceChange}.
+   */
+  expectedBalanceChanges?: ExpectedBalanceChange[];
 }
 
 export interface LiquidateCreditAccountOperation<Ext extends object = {}>
@@ -120,6 +148,12 @@ export interface LiquidateCreditAccountOperation<Ext extends object = {}>
   token: Address;
   remainingFunds: bigint;
   multicall: InnerOperation<Ext>[];
+  /**
+   * Potential balance changes declared by a router-generated
+   * `storeExpectedBalances`/`compareBalances` pair, or `undefined` when the
+   * multicall is not router-shaped. See {@link ExpectedBalanceChange}.
+   */
+  expectedBalanceChanges?: ExpectedBalanceChange[];
 }
 
 export interface PartialLiquidationOperation extends FacadeOperationMetadata {

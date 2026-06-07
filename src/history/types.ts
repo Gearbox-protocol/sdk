@@ -48,14 +48,29 @@ export type InnerOperation = BaseInnerOperation<HistoryAdapterExt>;
 
 // Outer operations carry the transaction-level {@link OperationMetadata} only in
 // `history` mode, so each history variant intersects its base type with it.
-export type MulticallOperation = BaseMulticallOperation<HistoryAdapterExt> &
+// `expectedBalanceChanges` is a calldata-only `preview` field (recovered from a
+// router `storeExpectedBalances`/`compareBalances` pair); the trace-based
+// `history` flow never populates it, so it is omitted from the type surface.
+export type MulticallOperation = Omit<
+  BaseMulticallOperation<HistoryAdapterExt>,
+  "expectedBalanceChanges"
+> &
   OperationMetadata;
-export type OpenCreditAccountOperation =
-  BaseOpenCreditAccountOperation<HistoryAdapterExt> & OperationMetadata;
-export type CloseCreditAccountOperation =
-  BaseCloseCreditAccountOperation<HistoryAdapterExt> & OperationMetadata;
-export type LiquidateCreditAccountOperation =
-  BaseLiquidateCreditAccountOperation<HistoryAdapterExt> & OperationMetadata;
+export type OpenCreditAccountOperation = Omit<
+  BaseOpenCreditAccountOperation<HistoryAdapterExt>,
+  "expectedBalanceChanges"
+> &
+  OperationMetadata;
+export type CloseCreditAccountOperation = Omit<
+  BaseCloseCreditAccountOperation<HistoryAdapterExt>,
+  "expectedBalanceChanges"
+> &
+  OperationMetadata;
+export type LiquidateCreditAccountOperation = Omit<
+  BaseLiquidateCreditAccountOperation<HistoryAdapterExt>,
+  "expectedBalanceChanges"
+> &
+  OperationMetadata;
 export type PartialLiquidationOperation = BasePartialLiquidationOperation &
   OperationMetadata;
 export type DirectTokenTransferOperation = BaseDirectTokenTransferOperation &
