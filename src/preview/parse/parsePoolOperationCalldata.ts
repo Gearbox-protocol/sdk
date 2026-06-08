@@ -11,8 +11,10 @@ export interface ParsePoolOperationCalldataProps {
 }
 
 /**
- * Decodes ERC4626 `deposit`/`depositWithReferral`/`redeem` calldata on a
- * Gearbox pool into a {@link PoolOperation}. Any other selector throws
+ * Decodes ERC4626 pool calldata into a {@link PoolOperation}. Supports every
+ * deposit/mint/withdraw/redeem variant of `IPoolV3` (and the `IERC4626` base it
+ * extends): `deposit`/`depositWithReferral`, `mint`/`mintWithReferral`,
+ * `withdraw` and `redeem`. Any other selector throws
  * {@link UnsupportedPoolFunctionError}.
  */
 export function parsePoolOperationCalldata(
@@ -38,8 +40,28 @@ export function parsePoolOperationCalldata(
           functionName === "depositWithReferral"
             ? (rawArgs.referralCode as bigint)
             : undefined,
-        // Calldata-only parse: transfers are recovered later by simulation.
-        transfers: [],
+      };
+    case "mint":
+    case "mintWithReferral":
+      return {
+        operation: "Mint",
+        pool: pool.address,
+        receiver: rawArgs.receiver as Address,
+        shares: rawArgs.shares as bigint,
+        underlying,
+        referralCode:
+          functionName === "mintWithReferral"
+            ? (rawArgs.referralCode as bigint)
+            : undefined,
+      };
+    case "withdraw":
+      return {
+        operation: "Withdraw",
+        pool: pool.address,
+        receiver: rawArgs.receiver as Address,
+        owner: rawArgs.owner as Address,
+        assets: rawArgs.assets as bigint,
+        underlying,
       };
     case "redeem":
       return {
@@ -49,8 +71,6 @@ export function parsePoolOperationCalldata(
         owner: rawArgs.owner as Address,
         shares: rawArgs.shares as bigint,
         underlying,
-        // Calldata-only parse: transfers are recovered later by simulation.
-        transfers: [],
       };
     default:
       throw new UnsupportedPoolFunctionError(pool.address, parsed.functionName);

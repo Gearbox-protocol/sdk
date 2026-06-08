@@ -1,5 +1,9 @@
-import type { Address } from "viem";
-import type { TokenTransfer } from "../parse/index.js";
+import type { Address, Hex } from "viem";
+import type { OnchainSDK } from "../../sdk/index.js";
+import type { ILogger } from "../../sdk/types/logger.js";
+import type { PoolOperation, TokenTransfer } from "../parse/index.js";
+import { ETH_SIMULATE_V1_NETWORKS } from "./constants.js";
+import type { PreviewSimulationError } from "./errors.js";
 
 /**
  * Change in an address's balance of a single token over the simulated call.
@@ -22,28 +26,63 @@ export interface AddressBalanceChanges {
   changes: TokenBalanceChange[];
 }
 
-/** Decoded revert of the simulated transaction. */
-export interface SimulationError {
-  /** Human-readable revert reason / error name. */
-  reason: string;
-  /** Original error, kept for debugging. */
-  cause?: unknown;
+export interface PoolOperationSimulationInput {
+  /** Only `client`/`networkType` are used, so any OnchainSDK works. */
+  sdk: OnchainSDK;
+  /** Parsed operation, used to resolve the underlying and pool tokens. */
+  operation: PoolOperation;
+  /** Target contract the calldata is sent to (the pool). */
+  to: Address;
+  /** Raw deposit/mint/withdraw/redeem calldata to simulate. */
+  calldata: Hex;
+  /** Wallet whose balance changes and transfers we track. */
+  wallet: Address;
+}
+
+export interface OperationSimulationOptions {
+  /** Block to simulate at; defaults to latest. */
+  blockNumber?: bigint;
+  /**
+   * Whether to run the `eth_simulateV1` flow (preferred, recovers transfers).
+   * When `undefined`, defaults to whether the SDK's network is in
+   * {@link ETH_SIMULATE_V1_NETWORKS}.
+   */
+  useSimulateV1?: boolean;
+  /**
+   * Optional logger.
+   **/
+  logger?: ILogger;
 }
 
 /**
- * Outcome of simulating a pool operation. On success it carries the
- * wallet-filtered ERC-20 transfers (to merge into the parsed operation) and the
- * balance changes grouped by watched address; on failure it carries the decoded
- * revert reason.
+ * Successful simulation of a pool operation: the balance changes grouped by
+ * watched address and, when available, the wallet-filtered ERC-20 transfers.
+ * This is the success payload of {@link PoolOperationSimulation} without the
+ * `status` discriminant.
  */
-export type PoolSimulationResult =
-  | {
+export interface PoolOperationSimulationResult {
+  /**
+   * Balance changes grouped by watched address (wallet, recipient, owner).
+   **/
+  balanceChanges: AddressBalanceChanges[];
+  /**
+   * ERC-20 transfers involving the watched addresses.
+   *
+   * NOTE: transfers are **not guaranteed** to be returned.
+   */
+  transfers?: TokenTransfer[];
+}
+
+/**
+ * Outcome of simulating a pool operation. On success it carries a
+ * {@link PoolOperationSimulationResult}; on failure it carries a
+ * {@link PreviewSimulationError}.
+ */
+export type PoolOperationSimulation =
+  | ({
       status: "success";
-      transfers: TokenTransfer[];
-      balanceChanges: AddressBalanceChanges[];
-      gasUsed: bigint;
-    }
+    } & PoolOperationSimulationResult)
   | {
       status: "failure";
-      error: SimulationError;
+      error: PreviewSimulationError;
     };

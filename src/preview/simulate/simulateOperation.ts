@@ -5,12 +5,15 @@ import { isPoolOperation, type Operation } from "../parse/index.js";
 
 import { simulateFacadeOperation } from "./simulateFacadeOperation.js";
 import { simulatePoolOperation } from "./simulatePoolOperation.js";
-import type { PoolSimulationResult } from "./types.js";
+import type {
+  OperationSimulationOptions,
+  PoolOperationSimulation,
+} from "./types.js";
 
 export interface SimulateOperationInput {
-  /** Only `client` is used, so any OnchainSDK works. */
+  /** Gearbox SDK instance. */
   sdk: OnchainSDK;
-  /** Parsed operation, used to route to the matching simulation. */
+  /** Parsed pool or credit account operation */
   operation: Operation;
   /** Target contract the calldata is sent to. */
   to: Address;
@@ -18,25 +21,20 @@ export interface SimulateOperationInput {
   calldata: Hex;
   /** Wallet whose balance changes and transfers we track. */
   wallet: Address;
-  /** Block to simulate at; defaults to latest. Only set for testnet forks. */
-  blockNumber?: bigint;
 }
 
 /**
- * Simulates a parsed {@link Operation} by delegating to the matching simulator:
- * pool deposit/redeem operations go to {@link simulatePoolOperation}, and
- * credit-facade operations go to {@link simulateFacadeOperation} (currently a
- * stub). Returns the recovered transfers, balance changes and gas on success,
- * or a decoded revert on failure.
+ * Simulates a parsed pool or credit account operation {@link Operation}
  */
 export async function simulateOperation(
   input: SimulateOperationInput,
-): Promise<PoolSimulationResult> {
+  options?: OperationSimulationOptions,
+): Promise<PoolOperationSimulation> {
   const { operation } = input;
 
   if (isPoolOperation(operation)) {
-    return simulatePoolOperation({ ...input, operation });
+    return simulatePoolOperation({ ...input, operation }, options);
   }
 
-  return simulateFacadeOperation({ ...input, operation });
+  return simulateFacadeOperation({ ...input, operation }, options);
 }

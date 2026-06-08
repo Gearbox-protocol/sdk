@@ -1,6 +1,20 @@
-export * from "./decodeSimulationError.js";
-export * from "./extractERC20Transfers.js";
-export * from "./simulateFacadeOperation.js";
-export * from "./simulateOperation.js";
-export * from "./simulatePoolOperation.js";
-export * from "./types.js";
+export { ETH_SIMULATE_V1_NETWORKS } from "./constants.js";
+export type {
+  SimulationError,
+  SimulationFlowFailure,
+  SimulationFlowSource,
+} from "./errors.js";
+export { PreviewSimulationError } from "./errors.js";
+export type { SimulateFacadeOperationInput } from "./simulateFacadeOperation.js";
+export { simulateFacadeOperation } from "./simulateFacadeOperation.js";
+export type { SimulateOperationInput } from "./simulateOperation.js";
+export { simulateOperation } from "./simulateOperation.js";
+export { simulatePoolOperation } from "./simulatePoolOperation.js";
+export type {
+  AddressBalanceChanges,
+  OperationSimulationOptions,
+  PoolOperationSimulation,
+  PoolOperationSimulationInput,
+  PoolOperationSimulationResult,
+  TokenBalanceChange,
+} from "./types.js";

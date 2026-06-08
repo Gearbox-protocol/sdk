@@ -27,6 +27,12 @@ export function buildPrerequisites(
   const { wallet } = ctx;
 
   switch (tx.operation) {
+    // Deposit and Mint both pull the underlying from the caller into the pool;
+    // they only differ in which side (assets vs shares) the caller specifies.
+    // The exact underlying amount for Mint is resolved by the pool, so we can
+    // only require an allowance/balance against the known specified amount —
+    // here we approximate Mint by its shares amount (a lower bound on assets is
+    // not knowable from calldata alone).
     case "Deposit":
       return [
         new AllowancePrerequisite({
@@ -44,6 +50,25 @@ export function buildPrerequisites(
         }),
       ];
 
+    case "Mint":
+      return [
+        new AllowancePrerequisite({
+          token: tx.underlying,
+          owner: wallet,
+          spender: tx.pool,
+          required: tx.shares,
+          title: "Token approved to pool",
+        }),
+        new BalancePrerequisite({
+          token: tx.underlying,
+          owner: wallet,
+          required: tx.shares,
+          title: "Sufficient token balance",
+        }),
+      ];
+
+    // Redeem and Withdraw both burn LP shares from `owner`; they only differ in
+    // which side (shares vs assets) the caller specifies.
     case "Redeem": {
       const prereqs: AnyPrerequisite[] = [
         new BalancePrerequisite({
@@ -61,6 +86,30 @@ export function buildPrerequisites(
             owner: tx.owner,
             spender: wallet,
             required: tx.shares,
+            title: "LP token approved to caller",
+          }),
+        );
+      }
+      return prereqs;
+    }
+
+    case "Withdraw": {
+      const prereqs: AnyPrerequisite[] = [
+        new BalancePrerequisite({
+          token: tx.pool,
+          owner: tx.owner,
+          required: tx.assets,
+          title: "Sufficient LP token balance",
+        }),
+      ];
+      // A third party withdrawing on behalf of `owner` needs an LP allowance.
+      if (!isAddressEqual(tx.owner, wallet)) {
+        prereqs.push(
+          new AllowancePrerequisite({
+            token: tx.pool,
+            owner: tx.owner,
+            spender: wallet,
+            required: tx.assets,
             title: "LP token approved to caller",
           }),
         );

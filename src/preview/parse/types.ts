@@ -47,10 +47,15 @@ export type SdkWithAdapters<P extends PluginsMap = PluginsMap> = OnchainSDK<P> &
 export type Operation = PoolOperation | OuterFacadeOperation;
 
 /**
- * Narrows an {@link Operation} to a {@link PoolOperation} (deposit or redeem).
- * Used by the UI to decide whether a custom view exists for the parsed result;
- * everything else falls back to the raw JSON view.
+ * Narrows an {@link Operation} to a {@link PoolOperation} (deposit, mint,
+ * withdraw or redeem). Used by the UI to decide whether a custom view exists for
+ * the parsed result; everything else falls back to the raw JSON view.
  */
 export function isPoolOperation(tx: Operation): tx is PoolOperation {
-  return tx.operation === "Deposit" || tx.operation === "Redeem";
+  return (
+    tx.operation === "Deposit" ||
+    tx.operation === "Mint" ||
+    tx.operation === "Withdraw" ||
+    tx.operation === "Redeem"
+  );
 }

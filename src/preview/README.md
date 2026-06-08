@@ -31,7 +31,8 @@ Decodes raw calldata into a typed [`Operation`](./parse/types.ts).
 - [`parseOperationCalldata`](./parse/parseOperationCalldata.ts) is the entry point.
   It resolves the contract at `to` and routes:
   - a pool target -> [`parsePoolOperationCalldata`](./parse/parsePoolOperationCalldata.ts)
-    (`deposit` / `depositWithReferral` / `redeem`);
+    (`deposit` / `depositWithReferral`, `mint` / `mintWithReferral`, `withdraw`,
+    `redeem`);
   - a credit-facade target -> [`parseFacadeOperationCalldata`](./parse/parseFacadeOperationCalldata.ts)
     (`multicall`, `botMulticall`, `openCreditAccount`, `closeCreditAccount`,
     liquidations), with inner calls classified by
@@ -59,19 +60,18 @@ health factor, bot permissions, degen NFT gating) is intentionally out of scope.
 
 ### `simulate`
 
-Runs the call against real chain state to recover what actually happens.
+Runs the call against real chain state to recover what actually will happen.
 
 - [`simulateOperation`](./simulate/simulateOperation.ts) is the entry point. It
   routes by operation kind:
-  - pool operations -> [`simulatePoolOperation`](./simulate/simulatePoolOperation.ts),
-    which sandwiches the raw calldata between `balanceOf` reads to compute balance
-    changes and extracts wallet-relevant ERC-20 transfers;
+  - pool operations -> [`simulatePoolOperation`](./simulate/simulatePoolOperation.ts);
   - credit-facade operations -> [`simulateFacadeOperation`](./simulate/simulateFacadeOperation.ts)
-    (currently a stub that throws `"not yet implemented"`).
-- On success it returns `{ transfers, balanceChanges, gasUsed }`; on revert it
-  returns a decoded reason via
-  [`decodeSimulationError`](./simulate/decodeSimulationError.ts). Because there are
-  no state overrides, an unmet prerequisite surfaces here as a simulation failure.
+- does its best to recover what the operation would do,
+  using the most accurate method available for the current network.
+- an unmet prerequisite surfaces here as a simulation failure
+- On success it returns `{ balanceChanges, transfers? }` — note `transfers` is
+  **not guaranteed**. 
+- On failure it throws a [`PreviewSimulationError`](./simulate/errors.ts)
 
 ## Intended usage
 

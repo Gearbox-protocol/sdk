@@ -2,10 +2,13 @@ import type { Address, Hex } from "viem";
 import type { OnchainSDK } from "../../sdk/index.js";
 import type { OuterFacadeOperation } from "../parse/index.js";
 
-import type { PoolSimulationResult } from "./types.js";
+import type {
+  OperationSimulationOptions,
+  PoolOperationSimulation,
+} from "./types.js";
 
 export interface SimulateFacadeOperationInput {
-  /** Only `client` is used, so any OnchainSDK works. */
+  /** Only `client`/`networkType` are used, so any OnchainSDK works. */
   sdk: OnchainSDK;
   /** Parsed credit-facade operation to simulate. */
   operation: OuterFacadeOperation;
@@ -15,8 +18,6 @@ export interface SimulateFacadeOperationInput {
   calldata: Hex;
   /** Wallet whose balance changes and transfers we track. */
   wallet: Address;
-  /** Block to simulate at; defaults to latest. Only set for testnet forks. */
-  blockNumber?: bigint;
 }
 
 /**
@@ -29,6 +30,7 @@ export interface SimulateFacadeOperationInput {
  */
 export async function simulateFacadeOperation(
   _input: SimulateFacadeOperationInput,
-): Promise<PoolSimulationResult> {
+  _options?: OperationSimulationOptions,
+): Promise<PoolOperationSimulation> {
   throw new Error("not yet implemented");
 }
