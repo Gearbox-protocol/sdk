@@ -1,3 +1,4 @@
+import { ETH_SIMULATE_V1_NETWORKS } from "./constants.js";
 import {
   asPreviewSimulationError,
   combinePreviewSimulationErrors,
@@ -20,7 +21,10 @@ export async function simulatePoolOperation(
   input: PoolOperationSimulationInput,
   options: OperationSimulationOptions = {},
 ): Promise<PoolOperationSimulation> {
-  const { logger, useSimulateV1 } = options;
+  const { sdk } = input;
+  const { logger } = options;
+  const useSimulateV1 =
+    options.useSimulateV1 ?? ETH_SIMULATE_V1_NETWORKS.has(sdk.networkType);
 
   logger?.debug(
     { wallet: input.wallet, to: input.to },
