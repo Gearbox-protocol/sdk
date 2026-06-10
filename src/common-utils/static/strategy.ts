@@ -24,6 +24,12 @@ export interface StrategyConfigPayload {
    */
   tokenOutAddress: Address;
   /**
+   * Underlying token borrowed against the collateral (the debt side of the
+   * (collateral, debt) pair). Equals `underlying()` of every credit manager
+   * listed in `creditManagers`.
+   */
+  debt: Address;
+  /**
    * Chain id and network type as they are written in sdk. Wrong entries are being omitted
    */
   chainId: number;
