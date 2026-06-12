@@ -39,6 +39,7 @@ export interface GetLmRewardsMerkleProps {
   account: Address;
   network: NetworkType;
   reportError?: ReportHandler;
+  apiKey?: string;
 }
 
 export class RewardAmountAPI {
@@ -49,6 +50,7 @@ export class RewardAmountAPI {
     account,
     network,
     reportError,
+    apiKey,
   }: GetLmRewardsMerkleProps) {
     const [merkleXYZLMResponse] = await Promise.allSettled([
       MerkleXYZApi.fetchWithFallback<MerkleXYZUserRewardsV4Response>(
@@ -58,6 +60,7 @@ export class RewardAmountAPI {
             user: getAddress(account),
           },
         }),
+        apiKey,
       ),
     ]);
 
