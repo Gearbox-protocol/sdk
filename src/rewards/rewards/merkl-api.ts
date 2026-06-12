@@ -47,12 +47,24 @@ export class MerkleXYZApi {
 
   static defaultDomain = "https://api.merkl.xyz";
   static angleDomain = "https://api-merkl.angle.money";
+  static apiKeyHeader = "X-API-Key";
 
-  static fetchWithFallback = async <T>(getUrl: (domain: string) => string) => {
+  static fetchWithFallback = async <T>(
+    getUrl: (domain: string) => string,
+    apiKey?: string,
+  ) => {
+    const headers = apiKey
+      ? { [MerkleXYZApi.apiKeyHeader]: apiKey }
+      : undefined;
+
     try {
-      return await axios.get<T>(getUrl(MerkleXYZApi.defaultDomain));
+      return await axios.get<T>(getUrl(MerkleXYZApi.defaultDomain), {
+        headers,
+      });
     } catch {
-      return await axios.get<T>(getUrl(MerkleXYZApi.angleDomain));
+      return await axios.get<T>(getUrl(MerkleXYZApi.angleDomain), {
+        headers,
+      });
     }
   };
 
