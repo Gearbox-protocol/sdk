@@ -1,4 +1,4 @@
-import type { Address, Hex } from "viem";
+import type { Hex } from "viem";
 import { mapOperations, type OperationVisitor } from "./mapOperations.js";
 import type {
   CreditAccountOperation,
@@ -113,7 +113,8 @@ export function createLegacyVisitor(
         token: op.token,
         amount: op.amount.toString(),
         from: op.from,
-        to: op.creditAccount as Address,
+        to: op.to,
+        direction: op.direction,
       };
     },
     MultiCall(op, multicall) {
