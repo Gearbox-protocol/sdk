@@ -114,7 +114,6 @@ export function createLegacyVisitor(
         amount: op.amount.toString(),
         from: op.from,
         to: op.to,
-        direction: op.direction,
       };
     },
     MultiCall(op, multicall) {

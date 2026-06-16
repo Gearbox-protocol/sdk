@@ -188,29 +188,20 @@ export function extractTransfers(
     }
 
     // A transfer touching the credit account outside every facade operation
-    // range is a "direct" movement performed independently of the protocol:
-    //   to == account   -> manual deposit (direction "in")
-    //   from == account  -> direct withdrawal (direction "out")
+    // range is a "direct" movement performed independently of the protocol.
     // Pool legs (increaseDebt / decreaseDebt) were already skipped above, and
     // liquidation txs are excluded wholesale (see hasLiquidation).
-    if (!hasLiquidation && !isInRange(log.logIndex, ranges)) {
-      if (isAddressEqual(to, creditAccount)) {
-        directTransfers.push({
-          token,
-          from,
-          to,
-          amount: value,
-          direction: "in",
-        });
-      } else if (isAddressEqual(from, creditAccount)) {
-        directTransfers.push({
-          token,
-          from,
-          to,
-          amount: value,
-          direction: "out",
-        });
-      }
+    if (
+      !hasLiquidation &&
+      !isInRange(log.logIndex, ranges) &&
+      (isAddressEqual(from, creditAccount) || isAddressEqual(to, creditAccount))
+    ) {
+      directTransfers.push({
+        token,
+        from,
+        to,
+        amount: value,
+      });
     }
   }
 

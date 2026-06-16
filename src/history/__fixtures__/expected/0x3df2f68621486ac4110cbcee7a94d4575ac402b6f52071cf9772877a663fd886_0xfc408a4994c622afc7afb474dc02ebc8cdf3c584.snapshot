@@ -31,7 +31,6 @@
     "amount": 21756809204101609813n,
     "blockNumber": 24541784,
     "creditAccount": "0xfc408a4994c622afc7afb474dc02ebc8cdf3c584",
-    "direction": "in",
     "from": "0x339c0db4A0030c88b4A48aafE56CdBa23c8d4338",
     "operation": "DirectTokenTransfer",
     "protocol": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
