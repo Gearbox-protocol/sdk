@@ -3,12 +3,17 @@ import type { Address, Hex } from "viem";
 import type { InnerOperation } from "./inner-operations.js";
 
 /**
- * An ERC-20 Transfer to the credit account that was not part of any
- * facade operation (multicall, liquidation, etc.).
+ * An ERC-20 Transfer into or out of the credit account that was not part of
+ * any facade operation (multicall, liquidation, etc.).
+ *
+ * `from`/`to` are the raw transfer endpoints: an inbound transfer (manual
+ * top-up / deposit) has `to` == the credit account, an outbound transfer
+ * (direct withdrawal) has `from` == the credit account.
  */
 export interface DirectTransferInfo {
   token: Address;
   from: Address;
+  to: Address;
   amount: bigint;
 }
 
@@ -67,6 +72,7 @@ export interface DirectTokenTransferOperation extends OperationMetadata {
   protocol: Address;
   token: Address;
   from: Address;
+  to: Address;
   creditAccount: Address;
   amount: bigint;
 }

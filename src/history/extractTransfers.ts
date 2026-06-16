@@ -72,7 +72,8 @@ interface OperationRange {
 
 /**
  * Extracts per-adapter-call token balance changes and detects direct
- * incoming transfers to the credit account.
+ * transfers into and out of the credit account (deposits and withdrawals
+ * performed independently of the facade).
  *
  * @param logs - raw viem Log[] from transaction receipt, sorted by logIndex
  * @param facadeAddress - the credit facade address (sole boundary event source)
@@ -99,6 +100,22 @@ export function extractTransfers(
   creditFacade: Address,
 ): ExtractTransfersResult {
   const ranges = buildOperationRanges(logs, creditFacade, creditAccount);
+
+  // A liquidation puts all of this account's token movement under protocol
+  // control -- notably the seized-collateral payout to the liquidator, which is
+  // emitted outside the multicall range. Those transfers belong to the
+  // LiquidateCreditAccount operation, not to borrower-initiated deposits or
+  // withdrawals, so direct-transfer detection is suppressed for the whole tx
+  // (mirroring the deposit/withdrawal extractor, which skips liquidation txs).
+  const hasLiquidation = logs.some(l => {
+    const e = tryDecodeFacadeEvent(l, creditFacade);
+    return (
+      !!e &&
+      (e.eventName === "LiquidateCreditAccount" ||
+        e.eventName === "PartiallyLiquidateCreditAccount") &&
+      isAddressEqual(e.args.creditAccount, creditAccount)
+    );
+  });
 
   let currentEntries: TokenTransfer[] = [];
   const executeResults: ExecuteResult[] = [];
@@ -170,8 +187,21 @@ export function extractTransfers(
       currentEntries.push({ token, amount: value, from, to });
     }
 
-    if (isAddressEqual(to, creditAccount) && !isInRange(log.logIndex, ranges)) {
-      directTransfers.push({ token, from, amount: value });
+    // A transfer touching the credit account outside every facade operation
+    // range is a "direct" movement performed independently of the protocol.
+    // Pool legs (increaseDebt / decreaseDebt) were already skipped above, and
+    // liquidation txs are excluded wholesale (see hasLiquidation).
+    if (
+      !hasLiquidation &&
+      !isInRange(log.logIndex, ranges) &&
+      (isAddressEqual(from, creditAccount) || isAddressEqual(to, creditAccount))
+    ) {
+      directTransfers.push({
+        token,
+        from,
+        to,
+        amount: value,
+      });
     }
   }
 
@@ -187,8 +217,8 @@ export function extractTransfers(
 /**
  * Identifies log-index ranges that cover all facade-managed operations for
  * a given credit account.  Any Transfer involving the credit account whose
- * logIndex falls outside every range is a "direct transfer" (someone sent
- * tokens to the account independently of the protocol).
+ * logIndex falls outside every range is a "direct transfer" — tokens moved
+ * into or out of the account independently of the protocol.
  *
  * Two kinds of ranges exist:
  *
