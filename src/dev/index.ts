@@ -1,4 +1,5 @@
 export * from "./AccountOpener.js";
+export * from "./abi.js";
 export * from "./calcLiquidatableLTs.js";
 export * from "./claimDSToken.js";
 export * from "./claimFromFaucet.js";

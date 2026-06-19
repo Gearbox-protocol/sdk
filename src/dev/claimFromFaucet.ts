@@ -2,16 +2,16 @@ import type {
   AbiParametersToPrimitiveTypes,
   ExtractAbiFunction,
 } from "abitype";
-import {
-  type Account,
-  type Address,
-  type PublicClient,
-  parseAbi,
-  type TransactionReceipt,
-  type WalletClient,
+import type {
+  Account,
+  Address,
+  PublicClient,
+  TransactionReceipt,
+  WalletClient,
 } from "viem";
 import { readContract } from "viem/actions";
 import { formatBN, type ILogger, type OnchainSDK } from "../sdk/index.js";
+import { faucetAbi } from "./abi.js";
 
 interface TokenClaim {
   token: Address;
@@ -37,13 +37,6 @@ interface ClaimFromFaucetOptions {
   logger?: ILogger;
   sync?: boolean;
 }
-
-const faucetAbi = parseAbi([
-  "function minAmountUSD() external view returns (uint256)",
-  "function claim() external",
-  "function claim(uint256 amountUSD) external",
-  "function claim((address token, uint256 amount)[] claims) external",
-]);
 
 export async function claimFromFaucet(
   opts: ClaimFromFaucetOptions,
