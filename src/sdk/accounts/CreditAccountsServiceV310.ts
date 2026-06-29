@@ -48,6 +48,7 @@ import {
 import type {
   AccountToCheck,
   AddCollateralProps,
+  AssembleCaUpdateCallsProps,
   ChangeDeptProps,
   ClaimDelayedProps,
   ClaimFarmRewardsProps,
@@ -2076,6 +2077,184 @@ export class CreditAccountsServiceV310
       creditAccount.creditAccount,
       callsWithPrices,
     );
+  }
+
+  /**
+   * {@inheritDoc ICreditAccountsService.prependPriceUpdates}
+   */
+  public async prependPriceUpdates(
+    creditManager: Address,
+    calls: MultiCall[],
+    creditAccount?: RouterCASlice,
+    options?: { ignoreReservePrices?: boolean },
+  ): Promise<MultiCall[]> {
+    return this.#prependPriceUpdates(
+      creditManager,
+      calls,
+      creditAccount,
+      options,
+    );
+  }
+
+  /**
+   * {@inheritDoc ICreditAccountsService.assembleCaUpdateCalls}
+   */
+  public assembleCaUpdateCalls({
+    operations,
+    routerCallGroups,
+    creditFacade,
+    withdrawTo,
+    creditAccount,
+    underlyingToken,
+  }: AssembleCaUpdateCallsProps): MultiCall[] {
+    const calls: MultiCall[] = [];
+    let swapGroupIndex = 0;
+    let routerGroupsConsumed = 0;
+
+    for (const op of operations) {
+      switch (op.type) {
+        case "increaseDebt":
+          calls.push(this.#prepareIncreaseDebt(creditFacade, op.amount));
+          break;
+
+        case "decreaseDebt":
+          calls.push(this.#prepareChangeDebt(creditFacade, op.amount, true));
+          break;
+
+        case "addCollateral":
+          calls.push(
+            ...this.#prepareAddCollateral(
+              creditFacade,
+              [{ token: op.token, balance: op.amount }],
+              {},
+            ),
+          );
+          break;
+
+        case "withdrawCollateral":
+          calls.push(
+            this.#prepareWithdrawToken(
+              creditFacade,
+              op.token,
+              op.amount,
+              withdrawTo,
+            ),
+          );
+          break;
+
+        case "swap": {
+          const routerCalls = routerCallGroups[swapGroupIndex];
+          if (!routerCalls) {
+            throw new Error(
+              `assembleCaUpdateCalls: missing router calls for swap leg ${swapGroupIndex}`,
+            );
+          }
+          calls.push(...routerCalls);
+          swapGroupIndex += 1;
+          routerGroupsConsumed += 1;
+          break;
+        }
+
+        case "changeQuota": {
+          const quotaAssets = [...op.quotaIncrease, ...op.quotaDecrease];
+          if (quotaAssets.length === 0) {
+            break;
+          }
+          calls.push(
+            ...this.#prepareUpdateQuotas(creditFacade, {
+              averageQuota: quotaAssets,
+              minQuota: quotaAssets,
+            }),
+          );
+          break;
+        }
+
+        case "closeCreditAccount": {
+          for (const group of routerCallGroups) {
+            calls.push(...group);
+            routerGroupsConsumed += 1;
+          }
+          calls.push(
+            ...this.#prepareDisableQuotas({
+              creditFacade,
+              tokens: Object.entries(creditAccount.initialQuotas).map(
+                ([token, { quota }]) => ({
+                  token: token as Address,
+                  quota,
+                }),
+              ),
+            } as unknown as RouterCASlice),
+          );
+          if (creditAccount.debt > 0n) {
+            calls.push(
+              ...this.#prepareDecreaseDebt({
+                creditFacade,
+                debt: creditAccount.debt,
+              } as unknown as RouterCASlice),
+            );
+          }
+          const hasAssets = creditAccount.assets.some(
+            asset => asset.balance > 0n,
+          );
+          if (hasAssets) {
+            calls.push(
+              this.#prepareWithdrawToken(
+                creditFacade,
+                underlyingToken,
+                MAX_UINT256,
+                withdrawTo,
+              ),
+            );
+          }
+          break;
+        }
+
+        default: {
+          const _exhaustive: never = op;
+          throw new Error(
+            `assembleCaUpdateCalls: unsupported operation ${_exhaustive}`,
+          );
+        }
+      }
+    }
+
+    if (routerGroupsConsumed !== routerCallGroups.length) {
+      throw new Error(
+        `assembleCaUpdateCalls: router call group mismatch (consumed ${routerGroupsConsumed}, got ${routerCallGroups.length})`,
+      );
+    }
+
+    return calls;
+  }
+
+  /**
+   * {@inheritDoc ICreditAccountsService.executeCaUpdate}
+   */
+  public async executeCaUpdate(
+    creditAccount: RouterCASlice,
+    calls: MultiCall[],
+    options?: { ignoreReservePrices?: boolean; ethAmount?: bigint },
+  ): Promise<{ tx: RawTx; calls: MultiCall[] }> {
+    const cm = this.sdk.marketRegister.findCreditManager(
+      creditAccount.creditManager,
+    );
+    const callsWithPrices = await this.#prependPriceUpdates(
+      creditAccount.creditManager,
+      calls,
+      creditAccount,
+      { ignoreReservePrices: options?.ignoreReservePrices },
+    );
+    const tx = await this.#multicallTx(
+      cm,
+      creditAccount.creditAccount,
+      callsWithPrices,
+    );
+
+    if (options?.ethAmount && options.ethAmount > 0n) {
+      tx.value = options.ethAmount.toString(10);
+    }
+
+    return { tx, calls: callsWithPrices };
   }
 
   #prepareDisableQuotas(ca: RouterCASlice): Array<MultiCall> {

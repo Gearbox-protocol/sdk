@@ -762,6 +762,42 @@ export type GetApprovalAddressProps =
       creditAccount: Address;
     };
 
+/**
+ * A single step in a generic credit account update operation chain.
+ *
+ * Used by {@link ICreditAccountsService.assembleCaUpdateCalls} to build the
+ * underlying credit facade multicall calls.
+ */
+export type CreditAccountUpdateOperation =
+  | { type: "increaseDebt"; amount: bigint }
+  | { type: "decreaseDebt"; amount: bigint }
+  | { type: "addCollateral"; token: Address; amount: bigint }
+  | { type: "withdrawCollateral"; token: Address; amount: bigint }
+  | { type: "swap" }
+  | {
+      type: "changeQuota";
+      quotaIncrease: Array<Asset>;
+      quotaDecrease: Array<Asset>;
+    }
+  | { type: "closeCreditAccount" };
+
+/**
+ * Input for {@link ICreditAccountsService.assembleCaUpdateCalls}.
+ */
+export type AssembleCaUpdateCallsProps = {
+  operations: Array<CreditAccountUpdateOperation>;
+  /** One group per swap leg (in order), or a single group for the close path. */
+  routerCallGroups: Array<Array<MultiCall>>;
+  creditFacade: Address;
+  withdrawTo: Address;
+  creditAccount: {
+    debt: bigint;
+    assets: Array<Asset>;
+    initialQuotas: Record<Address, { quota: bigint }>;
+  };
+  underlyingToken: Address;
+};
+
 export interface ICreditAccountsService extends Construct {
   sdk: OnchainSDK;
   /**
@@ -1035,6 +1071,45 @@ export interface ICreditAccountsService extends Construct {
     calls: Array<MultiCall>,
     options?: { ignoreReservePrices?: boolean },
   ): Promise<RawTx>;
+
+  /**
+   * Analyzes a multicall array and prepends necessary on-demand price feed updates.
+   *
+   * @param creditManager - Credit manager address
+   * @param calls - Original multicall payload
+   * @param creditAccount - Optional credit account slice (used to determine which tokens need prices)
+   * @param options - Optional settings for price update generation
+   * @returns Multicall payload with price updates prepended when needed
+   */
+  prependPriceUpdates(
+    creditManager: Address,
+    calls: Array<MultiCall>,
+    creditAccount?: RouterCASlice,
+    options?: { ignoreReservePrices?: boolean },
+  ): Promise<Array<MultiCall>>;
+
+  /**
+   * Builds the credit facade multicall calls for a chain of update operations.
+   *
+   * @param props - Operation chain, router call groups and account context
+   * @returns Array of facade multicall calls (without price feed updates)
+   */
+  assembleCaUpdateCalls(props: AssembleCaUpdateCallsProps): Array<MultiCall>;
+
+  /**
+   * Executes a credit account update: prepends price feed updates and builds the raw
+   * multicall transaction. Uses the RWA factory when applicable.
+   *
+   * @param creditAccount - Credit account to update
+   * @param calls - Operation calls to execute
+   * @param options - Optional price update and ETH value settings
+   * @returns Raw transaction and the final multicall payload
+   */
+  executeCaUpdate(
+    creditAccount: RouterCASlice,
+    calls: Array<MultiCall>,
+    options?: { ignoreReservePrices?: boolean; ethAmount?: bigint },
+  ): Promise<{ tx: RawTx; calls: Array<MultiCall> }>;
 
   /**
    * Returns multicall entries to redeem (unwrap) RWA ERC-4626 vault shares into underlying for the given credit manager.
