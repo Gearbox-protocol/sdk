@@ -291,9 +291,14 @@ describe("mocked events", () => {
         finishMultiCall(),
       ]);
       expect(extractTransfers(logs, CA1, POOL, FACADE)).toEqual({
-        executeTransfers: [[]],
+        executeResults: [{ transfers: [], targetContract: ADAPTER }],
         directTransfers: [
-          { token: TOKEN_A, from: SOMEONE, amount: 500n, to: CA1 },
+          {
+            token: TOKEN_A,
+            from: SOMEONE,
+            to: CA1,
+            amount: 500n,
+          },
         ],
         phantomTokens: new AddressMap(),
         withdrawCollateralEvents: [],
@@ -308,9 +313,14 @@ describe("mocked events", () => {
         transfer(SOMEONE, CA1, 500n, TOKEN_A),
       ]);
       expect(extractTransfers(logs, CA1, POOL, FACADE)).toEqual({
-        executeTransfers: [[]],
+        executeResults: [{ transfers: [], targetContract: ADAPTER }],
         directTransfers: [
-          { token: TOKEN_A, from: SOMEONE, amount: 500n, to: CA1 },
+          {
+            token: TOKEN_A,
+            from: SOMEONE,
+            to: CA1,
+            amount: 500n,
+          },
         ],
         phantomTokens: new AddressMap(),
         withdrawCollateralEvents: [],
@@ -330,7 +340,12 @@ describe("mocked events", () => {
       expect(extractTransfers(logs, CA1, POOL, FACADE)).toEqual({
         executeTransfers: [[], []],
         directTransfers: [
-          { token: TOKEN_A, from: SOMEONE, amount: 300n, to: CA1 },
+          {
+            token: TOKEN_A,
+            from: SOMEONE,
+            to: CA1,
+            amount: 300n,
+          },
         ],
         phantomTokens: new AddressMap(),
         withdrawCollateralEvents: [],
@@ -351,10 +366,85 @@ describe("mocked events", () => {
       });
     });
 
-    it("outgoing transfer is never flagged as direct", () => {
+    it("transfers in a liquidation tx are not flagged as direct (in or out)", () => {
+      // The seized-collateral payout to the liquidator is an outbound transfer
+      // outside any multicall range; it belongs to the liquidation, not a
+      // borrower withdrawal, so it (and any inbound leg) must be suppressed.
+      const logs = mockLogs(() => [
+        partiallyLiquidate(),
+        transfer(CA1, LIQUIDATOR, 100n, TOKEN_A),
+        transfer(SOMEONE, CA1, 50n, TOKEN_B),
+      ]);
+      expect(extractTransfers(logs, CA1, POOL, FACADE)).toEqual({
+        executeResults: [],
+        directTransfers: [],
+        phantomTokens: new AddressMap(),
+        withdrawCollateralEvents: [],
+      });
+    });
+
+    it("outgoing transfer outside facade ops is flagged as direct withdrawal", () => {
       const logs = mockLogs(() => [transfer(CA1, SOMEONE, 100n, TOKEN_A)]);
       expect(extractTransfers(logs, CA1, POOL, FACADE)).toEqual({
-        executeTransfers: [],
+        executeResults: [],
+        directTransfers: [
+          {
+            token: TOKEN_A,
+            from: CA1,
+            to: SOMEONE,
+            amount: 100n,
+          },
+        ],
+        phantomTokens: new AddressMap(),
+        withdrawCollateralEvents: [],
+      });
+    });
+
+    it("direct withdrawal before and after facade operations", () => {
+      const logs = mockLogs(() => [
+        transfer(CA1, SOMEONE, 100n, TOKEN_A),
+        startMultiCall(),
+        execute(),
+        finishMultiCall(),
+        transfer(CA1, SOMEONE, 200n, TOKEN_B),
+      ]);
+      expect(extractTransfers(logs, CA1, POOL, FACADE)).toEqual({
+        executeResults: [{ transfers: [], targetContract: ADAPTER }],
+        directTransfers: [
+          {
+            token: TOKEN_A,
+            from: CA1,
+            to: SOMEONE,
+            amount: 100n,
+          },
+          {
+            token: TOKEN_B,
+            from: CA1,
+            to: SOMEONE,
+            amount: 200n,
+          },
+        ],
+        phantomTokens: new AddressMap(),
+        withdrawCollateralEvents: [],
+      });
+    });
+
+    it("outgoing transfer inside a multicall is not flagged as direct", () => {
+      const logs = mockLogs(() => [
+        startMultiCall(),
+        transfer(CA1, SOMEONE, 100n, TOKEN_A),
+        execute(),
+        finishMultiCall(),
+      ]);
+      expect(extractTransfers(logs, CA1, POOL, FACADE)).toEqual({
+        executeResults: [
+          {
+            transfers: [
+              { token: TOKEN_A, amount: 100n, from: CA1, to: SOMEONE },
+            ],
+            targetContract: ADAPTER,
+          },
+        ],
         directTransfers: [],
         phantomTokens: new AddressMap(),
         withdrawCollateralEvents: [],
@@ -546,5 +636,39 @@ describe("real events", () => {
       }
     `,
     );
+  });
+
+  // Session 0x0f23285bc61c93a7678da690acbaa6d234bc9c00_23537602_393: a token is
+  // burnt out of the credit account (Transfer from CA -> 0x0) without
+  // facade involvement -> a direct withdrawal.
+  it("0xc6b6f5637c2adc8ecc5d4e761cb4b28af2367feb01455f3f0057afc84e6fe274_0x0f23285bc61c93a7678da690acbaa6d234bc9c00", () => {
+    const inputJson = JSON.parse(
+      readFileSync(
+        path.join(
+          INPUTS_DIR,
+          "0xc6b6f5637c2adc8ecc5d4e761cb4b28af2367feb01455f3f0057afc84e6fe274_0x0f23285bc61c93a7678da690acbaa6d234bc9c00.json",
+        ),
+        "utf-8",
+      ),
+    );
+    const result = extractTransfers(
+      inputJson.receipt.logs,
+      inputJson.creditAccount,
+      inputJson.pool,
+      inputJson.creditFacade,
+    );
+    expect(result).toEqual({
+      executeResults: [],
+      directTransfers: [
+        {
+          token: "0x4956b52ae2ff65d74ca2d61207523288e4528f96",
+          from: "0x0F23285bc61c93a7678dA690acBAa6D234bC9c00",
+          to: "0x0000000000000000000000000000000000000000",
+          amount: 31316926250588016774531n,
+        },
+      ],
+      phantomTokens: new AddressMap(),
+      withdrawCollateralEvents: [],
+    });
   });
 });

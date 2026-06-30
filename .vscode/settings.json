@@ -18,6 +18,9 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "biome.enabled": true,
+  "debug.javascript.defaultRuntimeExecutable": {
+    "pwa-node": "${workspaceFolder}/.vscode/mise-tools/node"
+  },
   "editor.codeActionsOnSave": {
     "source.action.useSortedKeys.biome": "explicit",
     "source.fixAll.biome": "explicit",
@@ -28,15 +31,22 @@
   "editor.formatOnSave": true,
   "editor.tabSize": 2,
   "eslint.enable": false,
-  "javascript.preferences.importModuleSpecifierEnding": "js",
-  "typescript.preferences.importModuleSpecifierEnding": "js",
   "files.eol": "\n",
+  "go.goroot": "${workspaceFolder}/.vscode/mise-tools/goRoot",
+  "javascript.preferences.importModuleSpecifierEnding": "js",
+  "mise.configureExtensionsUseSymLinks": true,
   "search.exclude": {
-    "**/node_modules": true,
-    "**/cache": true,
-    "**/lib": true,
     "**/build": true,
+    "**/cache": true,
     "**/dist": true,
-    "**/forge-out": true
+    "**/forge-out": true,
+    "**/lib": true,
+    "**/node_modules": true
+  },
+  "typescript.preferences.importModuleSpecifierEnding": "js",
+  "go.alternateTools": {
+    "go": "${workspaceFolder}/.vscode/mise-tools/go",
+    "dlv": "${workspaceFolder}/.vscode/mise-tools/dlv",
+    "gopls": "${workspaceFolder}/.vscode/mise-tools/gopls"
   }
 }

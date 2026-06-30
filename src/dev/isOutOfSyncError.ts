@@ -19,6 +19,8 @@ const OUT_OF_SYNC_PATTERNS: RegExp[] = [
   /block is out of range/i,
   // EIP-1474 standard (code -32001) when block/state is not available
   /resource not found/i,
+  // DRPC when a requested block is ahead of the node's latest block
+  /greater than latest block/i,
 ];
 
 /**
