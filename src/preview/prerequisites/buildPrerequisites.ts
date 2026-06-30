@@ -34,6 +34,25 @@ export function buildPrerequisites(
     // here we approximate Mint by its shares amount (a lower bound on assets is
     // not knowable from calldata alone).
     case "Deposit":
+      // Zapper-routed deposits pull the zapper's `tokenIn` (which may differ
+      // from the pool underlying) and the allowance must go to the zapper.
+      if (tx.zapper) {
+        return [
+          new AllowancePrerequisite({
+            token: tx.tokenIn,
+            owner: wallet,
+            spender: tx.zapper,
+            required: tx.assets,
+            title: "Token approved to zapper",
+          }),
+          new BalancePrerequisite({
+            token: tx.tokenIn,
+            owner: wallet,
+            required: tx.assets,
+            title: "Sufficient token balance",
+          }),
+        ];
+      }
       return [
         new AllowancePrerequisite({
           token: tx.underlying,
@@ -70,6 +89,25 @@ export function buildPrerequisites(
     // Redeem and Withdraw both burn LP shares from `owner`; they only differ in
     // which side (shares vs assets) the caller specifies.
     case "Redeem": {
+      // Zapper-routed redeems burn LP shares pulled from the caller, so the LP
+      // token must be approved to the zapper (no third-party `owner`).
+      if (tx.zapper) {
+        return [
+          new BalancePrerequisite({
+            token: tx.pool,
+            owner: wallet,
+            required: tx.shares,
+            title: "Sufficient LP token balance",
+          }),
+          new AllowancePrerequisite({
+            token: tx.pool,
+            owner: wallet,
+            spender: tx.zapper,
+            required: tx.shares,
+            title: "LP token approved to zapper",
+          }),
+        ];
+      }
       const prereqs: AnyPrerequisite[] = [
         new BalancePrerequisite({
           token: tx.pool,

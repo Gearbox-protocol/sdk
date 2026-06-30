@@ -64,6 +64,8 @@ describe("parsePoolOperationCalldata", () => {
       receiver: RECEIVER,
       assets,
       underlying: WETH,
+      tokenIn: WETH,
+      zapper: undefined,
       referralCode,
     });
   });
@@ -83,6 +85,8 @@ describe("parsePoolOperationCalldata", () => {
       owner: OWNER,
       shares,
       underlying: WETH,
+      tokenOut: WETH,
+      zapper: undefined,
     });
   });
 });

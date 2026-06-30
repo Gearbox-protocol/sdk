@@ -11,7 +11,7 @@ import { NATIVE_ADDRESS } from "../constants/index.js";
 import {
   IERC20ZapperContract,
   IETHZapperContract,
-  type Zapper,
+  type IZapperContract,
 } from "../market/index.js";
 import { AddressSet, hexEq } from "../utils/index.js";
 import type {
@@ -440,7 +440,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     poolAddr: Address,
     tokenIn: Address,
     tokenOut: Address,
-  ): Zapper | undefined {
+  ): IZapperContract | undefined {
     const zappers = this.sdk.marketRegister
       .getZapper(poolAddr, tokenIn, tokenOut)
       ?.filter(z => z.type !== "migration");

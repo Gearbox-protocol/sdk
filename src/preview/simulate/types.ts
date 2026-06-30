@@ -1,8 +1,7 @@
 import type { Address, Hex } from "viem";
 import type { OnchainSDK } from "../../sdk/index.js";
 import type { ILogger } from "../../sdk/types/logger.js";
-import type { PoolOperation, TokenTransfer } from "../parse/index.js";
-import { ETH_SIMULATE_V1_NETWORKS } from "./constants.js";
+import type { PoolOperation } from "../parse/index.js";
 import type { PreviewSimulationError } from "./errors.js";
 
 /**
@@ -43,12 +42,6 @@ export interface OperationSimulationOptions {
   /** Block to simulate at; defaults to latest. */
   blockNumber?: bigint;
   /**
-   * Whether to run the `eth_simulateV1` flow (preferred, recovers transfers).
-   * When `undefined`, defaults to whether the SDK's network is in
-   * {@link ETH_SIMULATE_V1_NETWORKS}.
-   */
-  useSimulateV1?: boolean;
-  /**
    * Optional logger.
    **/
   logger?: ILogger;
@@ -56,21 +49,14 @@ export interface OperationSimulationOptions {
 
 /**
  * Successful simulation of a pool operation: the balance changes grouped by
- * watched address and, when available, the wallet-filtered ERC-20 transfers.
- * This is the success payload of {@link PoolOperationSimulation} without the
- * `status` discriminant.
+ * watched address. This is the success payload of
+ * {@link PoolOperationSimulation} without the `status` discriminant.
  */
 export interface PoolOperationSimulationResult {
   /**
    * Balance changes grouped by watched address (wallet, recipient, owner).
    **/
   balanceChanges: AddressBalanceChanges[];
-  /**
-   * ERC-20 transfers involving the watched addresses.
-   *
-   * NOTE: transfers are **not guaranteed** to be returned.
-   */
-  transfers?: TokenTransfer[];
 }
 
 /**

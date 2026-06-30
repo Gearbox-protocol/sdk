@@ -8,14 +8,14 @@ import {
 import type { ZapperStateHuman } from "../types/index.js";
 import { AddressMap, hexEq } from "../utils/index.js";
 import type { ZapperData } from "./types.js";
-import { createZapper, type Zapper } from "./zapper/index.js";
+import { createZapper, type IZapperContract } from "./zapper/index.js";
 
 export class ZapperRegister extends SDKConstruct {
   /**
    * Mapping pool.address -> Zapper[]
    * Needs to be loaded explicitly using loadZappers method
    */
-  #zappers?: AddressMap<Zapper[]>;
+  #zappers?: AddressMap<IZapperContract[]>;
 
   /**
    * Load zappers for all pools using periphery compressor, adds hardcoded zappers
@@ -45,7 +45,7 @@ export class ZapperRegister extends SDKConstruct {
       batchSize: 0,
     });
 
-    this.#zappers = new AddressMap<Zapper[]>(undefined, "zappers");
+    this.#zappers = new AddressMap<IZapperContract[]>(undefined, "zappers");
     for (let i = 0; i < resp.length; i++) {
       const { status, result, error } = resp[i];
       const marketConfigurator = markets[i].configurator.address;
@@ -95,7 +95,7 @@ export class ZapperRegister extends SDKConstruct {
     if (!state) {
       return;
     }
-    this.#zappers = new AddressMap<Zapper[]>(undefined, "zappers");
+    this.#zappers = new AddressMap<IZapperContract[]>(undefined, "zappers");
     for (const z of state) {
       this.#addZapper(z);
     }
@@ -142,14 +142,14 @@ export class ZapperRegister extends SDKConstruct {
     }
   }
 
-  public get zappers(): AddressMap<Zapper[]> {
+  public get zappers(): AddressMap<IZapperContract[]> {
     if (!this.#zappers) {
       throw new Error("zappers not loaded, call loadZappers first");
     }
     return this.#zappers;
   }
 
-  public poolZappers(pool: Address): Zapper[] {
+  public poolZappers(pool: Address): IZapperContract[] {
     return this.zappers.get(pool) ?? [];
   }
 
@@ -160,7 +160,7 @@ export class ZapperRegister extends SDKConstruct {
     pool: Address,
     tokenIn: Address,
     tokenOut: Address,
-  ): Array<Zapper> | undefined {
+  ): Array<IZapperContract> | undefined {
     const zappers = this.zappers
       .get(pool)
       ?.filter(

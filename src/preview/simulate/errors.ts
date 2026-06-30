@@ -7,7 +7,7 @@ import {
 import { errorAbis } from "../../abi/errors.js";
 
 /** Which simulation flow produced a failure. */
-export type SimulationFlowSource = "eth_simulateV1" | "multicall" | "unknown";
+export type SimulationFlowSource = "multicall" | "unknown";
 
 /** A single flow failure with its decoded revert detail. */
 export interface SimulationFlowFailure {
@@ -16,11 +16,8 @@ export interface SimulationFlowFailure {
 }
 
 /**
- * Error returned by the pool simulation when all attempted flows fail.
- *
- * On a single-flow failure it wraps that flow's decoded revert reason; when both
- * the `eth_simulateV1` and multicall flows fail, it carries the details of both
- * (see {@link failures}).
+ * Error returned by the pool simulation when it fails. It wraps the flow's
+ * decoded revert reason (see {@link failures}).
  */
 export class PreviewSimulationError extends BaseError {
   override name = "PreviewSimulationError";
@@ -60,15 +57,6 @@ export function asPreviewSimulationError(
   ]);
 }
 
-/** Merges several {@link PreviewSimulationError}s into one carrying all failures. */
-export function combinePreviewSimulationErrors(
-  ...errors: (PreviewSimulationError | undefined)[]
-): PreviewSimulationError {
-  return new PreviewSimulationError(
-    errors.filter(e => e).flatMap(e => e?.failures ?? []),
-  );
-}
-
 /** Decoded revert of the simulated transaction. */
 export interface SimulationError {
   /** Human-readable revert reason / error name. */
@@ -77,7 +65,7 @@ export interface SimulationError {
   cause?: unknown;
 }
 
-/** Per-call slice of a `simulateCalls` failure we need to decode. */
+/** Per-call slice of a multicall failure we need to decode. */
 export interface SimulationRevert {
   error?: Error;
   /** Raw revert return data, when present. */
@@ -85,10 +73,9 @@ export interface SimulationRevert {
 }
 
 /**
- * Decodes a simulated transaction revert into a {@link SimulationError}.
+ * Decodes a simulated call revert into a {@link SimulationError}.
  *
- * The simulated call is raw calldata (no ABI), so viem cannot decode the revert
- * itself. We first try to decode the raw return bytes against the SDK's
+ * We first try to decode any raw return bytes against the SDK's
  * {@link errorAbis} (Gearbox protocol exceptions plus standard ERC-20 custom
  * errors); failing that, we walk viem's error chain for a
  * {@link ContractFunctionRevertedError} (covers `Error(string)` / `Panic`).

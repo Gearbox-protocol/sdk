@@ -5,80 +5,118 @@
 export const iZapperAbi = [
   {
     type: "function",
+    name: "contractType",
     inputs: [],
+    outputs: [{ name: "", type: "bytes32", internalType: "bytes32" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "pool",
-    outputs: [{ name: "", internalType: "address", type: "address" }],
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
     stateMutability: "view",
   },
   {
     type: "function",
-    inputs: [
-      { name: "tokenInAmount", internalType: "uint256", type: "uint256" },
-    ],
     name: "previewDeposit",
+    inputs: [
+      { name: "tokenInAmount", type: "uint256", internalType: "uint256" },
+    ],
     outputs: [
-      { name: "tokenOutAmount", internalType: "uint256", type: "uint256" },
+      { name: "tokenOutAmount", type: "uint256", internalType: "uint256" },
     ],
     stateMutability: "view",
   },
   {
     type: "function",
-    inputs: [
-      { name: "tokenOutAmount", internalType: "uint256", type: "uint256" },
-    ],
     name: "previewRedeem",
+    inputs: [
+      { name: "tokenOutAmount", type: "uint256", internalType: "uint256" },
+    ],
     outputs: [
-      { name: "tokenInAmount", internalType: "uint256", type: "uint256" },
+      { name: "tokenInAmount", type: "uint256", internalType: "uint256" },
     ],
     stateMutability: "view",
   },
   {
     type: "function",
-    inputs: [
-      { name: "tokenOutAmount", internalType: "uint256", type: "uint256" },
-      { name: "receiver", internalType: "address", type: "address" },
-    ],
     name: "redeem",
-    outputs: [
-      { name: "tokenInAmount", internalType: "uint256", type: "uint256" },
-    ],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
     inputs: [
-      { name: "tokenOutAmount", internalType: "uint256", type: "uint256" },
-      { name: "receiver", internalType: "address", type: "address" },
-      { name: "deadline", internalType: "uint256", type: "uint256" },
-      { name: "v", internalType: "uint8", type: "uint8" },
-      { name: "r", internalType: "bytes32", type: "bytes32" },
-      { name: "s", internalType: "bytes32", type: "bytes32" },
+      { name: "tokenOutAmount", type: "uint256", internalType: "uint256" },
+      { name: "receiver", type: "address", internalType: "address" },
     ],
-    name: "redeemWithPermit",
     outputs: [
-      { name: "tokenInAmount", internalType: "uint256", type: "uint256" },
+      { name: "tokenInAmount", type: "uint256", internalType: "uint256" },
     ],
     stateMutability: "nonpayable",
   },
   {
     type: "function",
+    name: "redeemWithPermit",
+    inputs: [
+      { name: "tokenOutAmount", type: "uint256", internalType: "uint256" },
+      { name: "receiver", type: "address", internalType: "address" },
+      { name: "deadline", type: "uint256", internalType: "uint256" },
+      { name: "v", type: "uint8", internalType: "uint8" },
+      { name: "r", type: "bytes32", internalType: "bytes32" },
+      { name: "s", type: "bytes32", internalType: "bytes32" },
+    ],
+    outputs: [
+      { name: "tokenInAmount", type: "uint256", internalType: "uint256" },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "redeemWithPermitAllowed",
+    inputs: [
+      { name: "tokenOutAmount", type: "uint256", internalType: "uint256" },
+      { name: "receiver", type: "address", internalType: "address" },
+      { name: "nonce", type: "uint256", internalType: "uint256" },
+      { name: "expiry", type: "uint256", internalType: "uint256" },
+      { name: "v", type: "uint8", internalType: "uint8" },
+      { name: "r", type: "bytes32", internalType: "bytes32" },
+      { name: "s", type: "bytes32", internalType: "bytes32" },
+    ],
+    outputs: [
+      { name: "tokenInAmount", type: "uint256", internalType: "uint256" },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "serialize",
     inputs: [],
+    outputs: [{ name: "serializedData", type: "bytes", internalType: "bytes" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "tokenIn",
-    outputs: [{ name: "", internalType: "address", type: "address" }],
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
     stateMutability: "view",
   },
   {
     type: "function",
-    inputs: [],
     name: "tokenOut",
-    outputs: [{ name: "", internalType: "address", type: "address" }],
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
     stateMutability: "view",
   },
   {
     type: "function",
-    inputs: [],
     name: "underlying",
-    outputs: [{ name: "", internalType: "address", type: "address" }],
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "version",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },
 ] as const;

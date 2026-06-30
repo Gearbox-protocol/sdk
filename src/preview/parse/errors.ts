@@ -1,5 +1,9 @@
 import type { Address } from "viem";
 
+// Re-exported from the SDK zapper module, where it is now thrown, to keep the
+// preview public API stable.
+export { UnsupportedZapperFunctionError } from "../../sdk/index.js";
+
 /**
  * Thrown when the target of a transaction is neither a known Gearbox pool nor a
  * credit facade.

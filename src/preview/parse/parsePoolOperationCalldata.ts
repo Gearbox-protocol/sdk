@@ -36,6 +36,8 @@ export function parsePoolOperationCalldata(
         receiver: rawArgs.receiver as Address,
         assets: rawArgs.assets as bigint,
         underlying,
+        tokenIn: underlying,
+        zapper: undefined,
         referralCode:
           functionName === "depositWithReferral"
             ? (rawArgs.referralCode as bigint)
@@ -49,6 +51,8 @@ export function parsePoolOperationCalldata(
         receiver: rawArgs.receiver as Address,
         shares: rawArgs.shares as bigint,
         underlying,
+        tokenIn: underlying,
+        zapper: undefined,
         referralCode:
           functionName === "mintWithReferral"
             ? (rawArgs.referralCode as bigint)
@@ -62,6 +66,8 @@ export function parsePoolOperationCalldata(
         owner: rawArgs.owner as Address,
         assets: rawArgs.assets as bigint,
         underlying,
+        tokenOut: underlying,
+        zapper: undefined,
       };
     case "redeem":
       return {
@@ -71,6 +77,8 @@ export function parsePoolOperationCalldata(
         owner: rawArgs.owner as Address,
         shares: rawArgs.shares as bigint,
         underlying,
+        tokenOut: underlying,
+        zapper: undefined,
       };
     default:
       throw new UnsupportedPoolFunctionError(pool.address, parsed.functionName);

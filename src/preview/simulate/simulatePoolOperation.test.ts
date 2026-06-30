@@ -4,7 +4,7 @@ import type { PoolOperation } from "../parse/index.js";
 import {
   type BalanceLookup,
   computePoolOpBalanceChanges,
-} from "./simulatePoolOpMulticall.js";
+} from "./simulatePoolOperation.js";
 
 const addr = (hex: string): Address =>
   getAddress(padHex(hex as Address, { size: 20 }));
@@ -14,6 +14,9 @@ const RECEIVER = addr("0xc1");
 const OWNER = addr("0x0e");
 const POOL = addr("0x90");
 const UNDERLYING = addr("0xde");
+const ZAPPER = addr("0x2a");
+// A zapper's "outside" token, distinct from the pool underlying.
+const USDC = addr("0xdc");
 
 /** Builds a {@link BalanceLookup} backed by a literal `(holder, token)` map. */
 function lookup(
@@ -35,6 +38,8 @@ describe("computePoolOpBalanceChanges", () => {
       receiver: RECEIVER,
       assets: 100n,
       underlying: UNDERLYING,
+      tokenIn: UNDERLYING,
+      zapper: undefined,
     };
     // previewDeposit(assets) -> shares minted to receiver
     const previewAmount = 90n;
@@ -66,6 +71,8 @@ describe("computePoolOpBalanceChanges", () => {
       receiver: WALLET,
       assets: 100n,
       underlying: UNDERLYING,
+      tokenIn: UNDERLYING,
+      zapper: undefined,
     };
     const previewAmount = 90n;
     const before = lookup([
@@ -93,6 +100,8 @@ describe("computePoolOpBalanceChanges", () => {
       receiver: RECEIVER,
       shares: 50n,
       underlying: UNDERLYING,
+      tokenIn: UNDERLYING,
+      zapper: undefined,
     };
     // previewMint(shares) -> assets pulled from wallet
     const previewAmount = 55n;
@@ -125,6 +134,8 @@ describe("computePoolOpBalanceChanges", () => {
       owner: OWNER,
       assets: 200n,
       underlying: UNDERLYING,
+      tokenOut: UNDERLYING,
+      zapper: undefined,
     };
     // previewWithdraw(assets) -> shares burned from owner
     const previewAmount = 180n;
@@ -155,6 +166,8 @@ describe("computePoolOpBalanceChanges", () => {
       owner: OWNER,
       shares: 120n,
       underlying: UNDERLYING,
+      tokenOut: UNDERLYING,
+      zapper: undefined,
     };
     // previewRedeem(shares) -> assets sent to receiver
     const previewAmount = 130n;
@@ -173,6 +186,73 @@ describe("computePoolOpBalanceChanges", () => {
       {
         address: RECEIVER,
         changes: [{ token: UNDERLYING, before: 0n, after: 130n, delta: 130n }],
+      },
+    ]);
+  });
+
+  it("zapper Deposit debits the zapper's input token and credits pool shares", () => {
+    const op: PoolOperation = {
+      operation: "Deposit",
+      pool: POOL,
+      receiver: RECEIVER,
+      assets: 1_000n,
+      underlying: UNDERLYING,
+      // Zapper-routed: the caller supplies USDC, not the pool underlying.
+      tokenIn: USDC,
+      zapper: ZAPPER,
+    };
+    // zapper.previewDeposit(assets) -> pool shares minted to receiver
+    const previewAmount = 950n;
+    const before = lookup([
+      { holder: WALLET, token: USDC, balance: 5_000n },
+      { holder: RECEIVER, token: POOL, balance: 0n },
+    ]);
+
+    expect(
+      computePoolOpBalanceChanges(op, WALLET, previewAmount, before),
+    ).toEqual([
+      {
+        address: WALLET,
+        changes: [
+          { token: USDC, before: 5_000n, after: 4_000n, delta: -1_000n },
+        ],
+      },
+      {
+        address: RECEIVER,
+        changes: [{ token: POOL, before: 0n, after: 950n, delta: 950n }],
+      },
+    ]);
+  });
+
+  it("zapper Redeem burns pool shares from owner and credits the zapper's output token", () => {
+    const op: PoolOperation = {
+      operation: "Redeem",
+      pool: POOL,
+      receiver: RECEIVER,
+      owner: OWNER,
+      shares: 120n,
+      underlying: UNDERLYING,
+      // Zapper-routed: the receiver gets USDC back, not the pool underlying.
+      tokenOut: USDC,
+      zapper: ZAPPER,
+    };
+    // zapper.previewRedeem(shares) -> USDC sent to receiver
+    const previewAmount = 130n;
+    const before = lookup([
+      { holder: OWNER, token: POOL, balance: 300n },
+      { holder: RECEIVER, token: USDC, balance: 0n },
+    ]);
+
+    expect(
+      computePoolOpBalanceChanges(op, WALLET, previewAmount, before),
+    ).toEqual([
+      {
+        address: OWNER,
+        changes: [{ token: POOL, before: 300n, after: 180n, delta: -120n }],
+      },
+      {
+        address: RECEIVER,
+        changes: [{ token: USDC, before: 0n, after: 130n, delta: 130n }],
       },
     ]);
   });

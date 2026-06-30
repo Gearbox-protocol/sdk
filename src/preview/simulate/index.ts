@@ -1,4 +1,3 @@
-export { ETH_SIMULATE_V1_NETWORKS } from "./constants.js";
 export type {
   SimulationError,
   SimulationFlowFailure,
