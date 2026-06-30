@@ -79,6 +79,11 @@ export interface MultichainAttachOptions {
    * Options for Pyth price-feed updates (shared cache across chains).
    **/
   pyth?: PythOptions;
+  /**
+   * When `true`, automatically load zappers after markets are loaded during
+   * attach on every chain.
+   **/
+  loadZappers?: boolean;
 }
 
 /**
@@ -185,6 +190,7 @@ export class MultichainSDK<const Plugins extends PluginsMap = {}> {
         const perChainOpts = options?.perChain?.[network] ?? {};
         return sdk.attach({
           ...perChainOpts,
+          loadZappers: perChainOpts.loadZappers ?? options?.loadZappers,
           redstone: {
             ...options?.redstone,
             cache: this.#redstoneCache,

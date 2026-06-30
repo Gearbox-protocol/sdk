@@ -165,6 +165,10 @@ export interface AttachOptions {
    * Options for Pyth price-feed updates.
    **/
   pyth?: PythOptions;
+  /**
+   * When `true`, automatically call {@link MarketRegister.loadZappers} during attach.
+   **/
+  loadZappers?: boolean;
 }
 
 /**
@@ -335,6 +339,7 @@ export class OnchainSDK<
       marketConfigurators: mcs,
       redstone,
       pyth,
+      loadZappers,
     } = options ?? {};
 
     const marketConfigurators =
@@ -429,6 +434,10 @@ export class OnchainSDK<
         blockNumber: this.currentBlock,
         gas: this.gasLimit,
       });
+
+      if (loadZappers) {
+        await this.#marketRegister.loadZappers();
+      }
     }
 
     const pluginsList = TypedObjectUtils.entries(this.plugins);
@@ -491,7 +500,7 @@ export class OnchainSDK<
     );
 
     this.#marketRegister = new MarketRegister(this, ignoreMarkets);
-    this.#marketRegister.hydrate(state.markets);
+    this.#marketRegister.hydrate(state);
 
     this.#rwa = new RWARegistry(this);
     this.#rwa.setState(state.rwa);
@@ -562,7 +571,7 @@ export class OnchainSDK<
       currentBlock: this.currentBlock,
       timestamp: this.timestamp,
       addressProvider: this.addressProvider.state,
-      markets: this.marketRegister.state,
+      ...this.marketRegister.state,
       rwa: this.#rwa.state,
       plugins: Object.fromEntries(
         TypedObjectUtils.entries(this.plugins).map(([name, plugin]) => [

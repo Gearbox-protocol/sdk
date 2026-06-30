@@ -5,6 +5,7 @@ import {
   AP_PERIPHERY_COMPRESSOR,
   VERSION_RANGE_310,
 } from "../constants/index.js";
+import type { ZapperStateHuman } from "../types/index.js";
 import { AddressMap, hexEq } from "../utils/index.js";
 import type { ZapperData } from "./types.js";
 import { createZapper, type Zapper } from "./zapper/index.js";
@@ -62,6 +63,63 @@ export class ZapperRegister extends SDKConstruct {
         );
       }
     }
+  }
+
+  /**
+   * Serializable snapshot of all loaded zappers, suitable for hydration.
+   * Returns `undefined` when zappers were never loaded (i.e. `loadZappers` was
+   * not called), so the not-loaded state round-trips cleanly.
+   **/
+  protected get zappersState(): ZapperData[] | undefined {
+    if (!this.#zappers) {
+      return undefined;
+    }
+    return this.#zappers.values().flatMap(zappers =>
+      zappers.map(z => ({
+        pool: z.pool,
+        type: z.type,
+        baseParams: z.baseParams,
+        tokenIn: z.tokenIn,
+        tokenOut: z.tokenOut,
+      })),
+    );
+  }
+
+  /**
+   * Restores zapper state from a previously serialized snapshot,
+   * bypassing on-chain reads.
+   * @param state - Array of zapper data snapshots, or `undefined` when zappers
+   *   were not loaded in the snapshot (leaves the registry in the not-loaded state).
+   **/
+  protected hydrateZappers(state?: ZapperData[]): void {
+    if (!state) {
+      return;
+    }
+    this.#zappers = new AddressMap<Zapper[]>(undefined, "zappers");
+    for (const z of state) {
+      this.#addZapper(z);
+    }
+  }
+
+  /**
+   * Returns a human-readable snapshot of all loaded zappers.
+   * Returns `undefined` when zappers were never loaded.
+   * @param raw - When `true`, includes raw/unformatted values.
+   **/
+  protected zappersStateHuman(_ = true): ZapperStateHuman[] | undefined {
+    if (!this.#zappers) {
+      return undefined;
+    }
+    return this.#zappers.values().flatMap(zappers =>
+      zappers.map(z => ({
+        address: this.labelAddress(z.baseParams.addr),
+        contractType: z.contractType,
+        type: z.type,
+        pool: this.labelAddress(z.pool),
+        tokenIn: this.sdk.labelAddress(z.tokenIn.addr),
+        tokenOut: this.sdk.labelAddress(z.tokenOut.addr),
+      })),
+    );
   }
 
   #addZapper(z: ZapperData): void {

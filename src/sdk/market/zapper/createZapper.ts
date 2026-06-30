@@ -1,5 +1,4 @@
 import type { OnchainSDK } from "../../OnchainSDK.js";
-import { bytes32ToString } from "../../utils/index.js";
 import type { ZapperData } from "../types.js";
 import { IERC20ZapperContract } from "./IERC20ZapperContract.js";
 import { IETHZapperContract } from "./IETHZapperContract.js";
