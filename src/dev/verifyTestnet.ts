@@ -1,86 +1,11 @@
 import type { Address, PublicClient } from "viem";
+import { iOnchainExecutionIdAbi } from "./abi.js";
 
 /**
  * Address is stable, contract deployed via create2
  */
 export const ONCHAIN_EXECUTION_ID_ADDRESS: Address =
   "0x34131bc13eaa4ef5f98c2a423f93bc88d6ee01ba";
-
-/**
- * This contract is deployed on every Gearbox testnet and contains
- * execution id and alias of the testnet
- */
-export const iOnchainExecutionIdAbi = [
-  {
-    type: "function",
-    name: "deployer",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "string",
-        internalType: "string",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "executionId",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "string",
-        internalType: "string",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "forkAlias",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "string",
-        internalType: "string",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "info",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "tuple",
-        internalType: "struct ExecutionId.Info",
-        components: [
-          {
-            name: "deployer",
-            type: "string",
-            internalType: "string",
-          },
-          {
-            name: "executionId",
-            type: "string",
-            internalType: "string",
-          },
-          {
-            name: "forkAlias",
-            type: "string",
-            internalType: "string",
-          },
-        ],
-      },
-    ],
-    stateMutability: "view",
-  },
-] as const;
 
 export type VerifyTestnetParams =
   | {

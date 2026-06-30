@@ -291,7 +291,7 @@ describe("mocked events", () => {
         finishMultiCall(),
       ]);
       expect(extractTransfers(logs, CA1, POOL, FACADE)).toEqual({
-        executeResults: [{ transfers: [], targetContract: ADAPTER }],
+        executeTransfers: [[]],
         directTransfers: [
           {
             token: TOKEN_A,
@@ -313,7 +313,7 @@ describe("mocked events", () => {
         transfer(SOMEONE, CA1, 500n, TOKEN_A),
       ]);
       expect(extractTransfers(logs, CA1, POOL, FACADE)).toEqual({
-        executeResults: [{ transfers: [], targetContract: ADAPTER }],
+        executeTransfers: [[]],
         directTransfers: [
           {
             token: TOKEN_A,
@@ -376,7 +376,7 @@ describe("mocked events", () => {
         transfer(SOMEONE, CA1, 50n, TOKEN_B),
       ]);
       expect(extractTransfers(logs, CA1, POOL, FACADE)).toEqual({
-        executeResults: [],
+        executeTransfers: [],
         directTransfers: [],
         phantomTokens: new AddressMap(),
         withdrawCollateralEvents: [],
@@ -386,7 +386,7 @@ describe("mocked events", () => {
     it("outgoing transfer outside facade ops is flagged as direct withdrawal", () => {
       const logs = mockLogs(() => [transfer(CA1, SOMEONE, 100n, TOKEN_A)]);
       expect(extractTransfers(logs, CA1, POOL, FACADE)).toEqual({
-        executeResults: [],
+        executeTransfers: [],
         directTransfers: [
           {
             token: TOKEN_A,
@@ -409,7 +409,7 @@ describe("mocked events", () => {
         transfer(CA1, SOMEONE, 200n, TOKEN_B),
       ]);
       expect(extractTransfers(logs, CA1, POOL, FACADE)).toEqual({
-        executeResults: [{ transfers: [], targetContract: ADAPTER }],
+        executeTransfers: [[]],
         directTransfers: [
           {
             token: TOKEN_A,
@@ -437,13 +437,8 @@ describe("mocked events", () => {
         finishMultiCall(),
       ]);
       expect(extractTransfers(logs, CA1, POOL, FACADE)).toEqual({
-        executeResults: [
-          {
-            transfers: [
-              { token: TOKEN_A, amount: 100n, from: CA1, to: SOMEONE },
-            ],
-            targetContract: ADAPTER,
-          },
+        executeTransfers: [
+          [{ token: TOKEN_A, amount: 100n, from: CA1, to: SOMEONE }],
         ],
         directTransfers: [],
         phantomTokens: new AddressMap(),
@@ -658,7 +653,7 @@ describe("real events", () => {
       inputJson.creditFacade,
     );
     expect(result).toEqual({
-      executeResults: [],
+      executeTransfers: [],
       directTransfers: [
         {
           token: "0x4956b52ae2ff65d74ca2d61207523288e4528f96",

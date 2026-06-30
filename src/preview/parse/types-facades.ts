@@ -170,6 +170,7 @@ export interface DirectTokenTransferOperation {
   protocol: Address;
   token: Address;
   from: Address;
+  to: Address;
   creditAccount: Address;
   amount: bigint;
 }
