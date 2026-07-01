@@ -3,11 +3,13 @@ import {
   CreditFacadeV310Contract,
   type PluginsMap,
   PoolV310Contract,
+  SecuritizeRWAFactory,
   ZapperContract,
 } from "../../sdk/index.js";
 import { UnsupportedTargetError } from "./errors.js";
 import { parseFacadeOperationCalldata } from "./parseFacadeOperationCalldata.js";
 import { parsePoolOperationCalldata } from "./parsePoolOperationCalldata.js";
+import { parseRWAFactoryOperationCalldata } from "./parseRWAFactoryOperationCalldata.js";
 import type { Operation, SdkWithAdapters } from "./types.js";
 import type { PoolOperation } from "./types-pools.js";
 
@@ -77,6 +79,14 @@ export function parseOperationCalldata<P extends PluginsMap>(
     return parseFacadeOperationCalldata({
       sdk,
       facade: contract,
+      calldata,
+    });
+  }
+
+  if (contract instanceof SecuritizeRWAFactory) {
+    return parseRWAFactoryOperationCalldata({
+      sdk,
+      factory: contract,
       calldata,
     });
   }

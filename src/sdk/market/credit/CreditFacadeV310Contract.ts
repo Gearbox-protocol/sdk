@@ -19,6 +19,7 @@ import {
 import type { PriceUpdate } from "../pricefeeds/index.js";
 import type { CreditFacadeV310Abi } from "./CreditFacadeV310BaseContract.js";
 import { CreditFacadeV310BaseContract } from "./CreditFacadeV310BaseContract.js";
+import { CreditSuite } from "./CreditSuite.js";
 import type { ICreditFacadeContract } from "./types.js";
 
 type abi = CreditFacadeV310Abi;

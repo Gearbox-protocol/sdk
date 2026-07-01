@@ -14,8 +14,6 @@ export interface ClassifyInnerOperationsProps {
 }
 
 /**
- * Calldata-only counterpart of the SDK's `classifyMulticallOperations`.
- *
  * Maps each inner multicall entry to an {@link InnerOperation}:
  * - adapter and unknown targets become a pure-descriptor `Execute`
  *   {@link AdapterOperation};

@@ -1,4 +1,8 @@
-import { type Address, decodeAbiParameters } from "viem";
+import {
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
 import { iSecuritizeRWAFactoryAbi } from "../../../../abi/rwa/iSecuritizeRWAFactory.js";
 import type { GetOpenAccountRequirementsProps } from "../../../accounts/types.js";
 import { BaseContract } from "../../../base/index.js";
@@ -69,6 +73,30 @@ export class SecuritizeRWAFactory
       registrar: t.registrar,
       operators: [...t.operators],
     }));
+  }
+
+  protected override parseFunctionParamsV2(
+    params: DecodeFunctionDataReturnType<abi>,
+    strict?: boolean,
+  ): Record<string, unknown> {
+    switch (params.functionName) {
+      case "openCreditAccount": {
+        const [creditManager, calls] = params.args;
+        return {
+          creditManager,
+          calls: this.register.parseMultiCallV2([...calls], strict),
+        };
+      }
+      case "multicall": {
+        const [creditAccount, calls] = params.args;
+        return {
+          creditAccount,
+          calls: this.register.parseMultiCallV2([...calls], strict),
+        };
+      }
+      default:
+        return super.parseFunctionParamsV2(params, strict);
+    }
   }
 
   /**

@@ -4,4 +4,5 @@ export * from "./extractExpectedBalanceChanges.js";
 export * from "./parseFacadeOperationCalldata.js";
 export * from "./parseOperationCalldata.js";
 export * from "./parsePoolOperationCalldata.js";
+export * from "./parseRWAFactoryOperationCalldata.js";
 export * from "./types.js";
