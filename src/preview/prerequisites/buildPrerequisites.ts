@@ -1,7 +1,11 @@
-import { type Address, isAddressEqual } from "viem";
+import { type Address, isAddressEqual, zeroAddress } from "viem";
 
 import type { OnchainSDK } from "../../sdk/index.js";
-import type { InnerOperation, Operation } from "../parse/index.js";
+import type {
+  InnerOperation,
+  Operation,
+  OuterFacadeOperation,
+} from "../parse/index.js";
 
 import { AllowancePrerequisite } from "./AllowancePrerequisite.js";
 import { BalancePrerequisite } from "./BalancePrerequisite.js";
@@ -20,10 +24,10 @@ import type { PrerequisiteContext } from "./types.js";
  * bot permissions) is intentionally out of scope, since the user cannot
  * resolve it. New {@link AnyPrerequisite} subclasses must follow the same rule.
  */
-export function buildPrerequisites(
+export async function buildPrerequisites(
   tx: Operation,
   ctx: PrerequisiteContext,
-): AnyPrerequisite[] {
+): Promise<AnyPrerequisite[]> {
   const { wallet } = ctx;
 
   switch (tx.operation) {
@@ -160,7 +164,13 @@ export function buildPrerequisites(
     case "OpenCreditAccount":
     case "CloseCreditAccount":
     case "LiquidateCreditAccount":
-      return collateralPrerequisites(tx.multicall, tx.creditManager, wallet);
+      return collateralPrerequisites(
+        tx.operation,
+        tx.multicall,
+        tx.creditManager,
+        tx.creditAccount,
+        ctx,
+      );
 
     case "PartiallyLiquidateCreditAccount": {
       const underlying = underlyingOf(ctx.sdk, tx.creditManager);
@@ -191,14 +201,20 @@ export function buildPrerequisites(
 
 /**
  * For every `addCollateral` inside a multicall, requires the wallet to approve
- * and hold the collateral token for the credit manager. Amounts for the same
- * token are summed; zero-amount collateral is skipped.
+ * and hold the collateral token for the collateral spender.
+ *
+ * The approval spender is resolved via {@link OnchainSDK.accounts.getApprovalAddress}:
+ * the credit manager for classic markets, but a per-investor "special wallet"
+ * for RWA markets.
  */
-function collateralPrerequisites(
+async function collateralPrerequisites(
+  op: OuterFacadeOperation["operation"],
   multicall: InnerOperation[],
   creditManager: Address,
-  wallet: Address,
-): AnyPrerequisite[] {
+  creditAccount: Address,
+  ctx: PrerequisiteContext,
+): Promise<AnyPrerequisite[]> {
+  const { sdk, wallet } = ctx;
   const required = new Map<string, { token: Address; amount: bigint }>();
   for (const op of multicall) {
     if (op.operation !== "AddCollateral" || op.amount === 0n) {
@@ -212,15 +228,25 @@ function collateralPrerequisites(
     });
   }
 
+  if (required.size === 0) {
+    return [];
+  }
+
+  const spender = await sdk.accounts.getApprovalAddress(
+    op === "OpenCreditAccount"
+      ? { creditManager, borrower: wallet }
+      : { creditManager, creditAccount },
+  );
+
   const prereqs: AnyPrerequisite[] = [];
   for (const { token, amount } of required.values()) {
     prereqs.push(
       new AllowancePrerequisite({
         token,
         owner: wallet,
-        spender: creditManager,
+        spender,
         required: amount,
-        title: "Collateral approved to credit manager",
+        title: "Collateral approved",
       }),
       new BalancePrerequisite({
         token,

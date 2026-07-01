@@ -83,7 +83,7 @@ import {
 const operation = parseOperationCalldata({ sdk, to, calldata, sender });
 
 // 2. Check sender-actionable prerequisites (allowances, balances).
-const prereqs = buildPrerequisites(operation, { sdk, wallet: sender });
+const prereqs = await buildPrerequisites(operation, { sdk, wallet: sender });
 const prereqResults = await verifyPrerequisites(prereqs, { sdk, wallet: sender });
 
 // 3. Simulate to recover balance changes (or the revert reason).
