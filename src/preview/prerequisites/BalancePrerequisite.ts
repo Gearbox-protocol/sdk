@@ -17,15 +17,15 @@ export interface BalancePrerequisiteProps {
 
 /** Checks that `owner` holds an ERC-20 balance >= `required`. */
 export class BalancePrerequisite extends Prerequisite<"balance"> {
-  private readonly _id: string;
-  private readonly _title: string;
-  private readonly _detail: PrerequisiteDetail<"balance">;
+  readonly #id: string;
+  readonly #title: string;
+  readonly #detail: PrerequisiteDetail<"balance">;
 
   constructor(props: BalancePrerequisiteProps) {
     super();
-    this._id = props.id ?? `balance:${props.token}:${props.owner}`;
-    this._title = props.title ?? "Sufficient balance";
-    this._detail = {
+    this.#id = props.id ?? `balance:${props.token}:${props.owner}`;
+    this.#title = props.title ?? "Sufficient balance";
+    this.#detail = {
       token: props.token,
       owner: props.owner,
       required: props.required,
@@ -33,7 +33,7 @@ export class BalancePrerequisite extends Prerequisite<"balance"> {
   }
 
   public get id(): string {
-    return this._id;
+    return this.#id;
   }
 
   public get kind(): "balance" {
@@ -41,20 +41,20 @@ export class BalancePrerequisite extends Prerequisite<"balance"> {
   }
 
   public get title(): string {
-    return this._title;
+    return this.#title;
   }
 
   public get detail(): PrerequisiteDetail<"balance"> {
-    return this._detail;
+    return this.#detail;
   }
 
   public calls(): ContractFunctionParameters[] {
     return [
       {
-        address: this._detail.token,
+        address: this.#detail.token,
         abi: erc20Abi,
         functionName: "balanceOf",
-        args: [this._detail.owner],
+        args: [this.#detail.owner],
       },
     ];
   }
@@ -65,8 +65,8 @@ export class BalancePrerequisite extends Prerequisite<"balance"> {
       return this.errorResult(toPrerequisiteError(res?.error));
     }
     const actual = res.result as bigint;
-    return this.satisfiedResult(actual >= this._detail.required, {
-      ...this._detail,
+    return this.satisfiedResult(actual >= this.#detail.required, {
+      ...this.#detail,
       actual,
     });
   }

@@ -81,17 +81,23 @@ export class SecuritizeRWAFactory
   ): Record<string, unknown> {
     switch (params.functionName) {
       case "openCreditAccount": {
-        const [creditManager, calls] = params.args;
+        const [creditManager, calls, tokensToRegister, signaturesToCache] =
+          params.args;
         return {
           creditManager,
           calls: this.register.parseMultiCallV2([...calls], strict),
+          tokensToRegister,
+          signaturesToCache,
         };
       }
       case "multicall": {
-        const [creditAccount, calls] = params.args;
+        const [creditAccount, calls, tokensToRegister, signaturesToCache] =
+          params.args;
         return {
           creditAccount,
           calls: this.register.parseMultiCallV2([...calls], strict),
+          tokensToRegister,
+          signaturesToCache,
         };
       }
       default:
@@ -156,6 +162,13 @@ export class SecuritizeRWAFactory
         };
       }),
     };
+  }
+
+  /**
+   * {@inheritDoc IRWAFactory.getTokens}
+   */
+  public getTokens(): Address[] {
+    return this.dsTokens.map(t => t.address);
   }
 
   /**

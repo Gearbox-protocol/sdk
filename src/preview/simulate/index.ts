@@ -9,6 +9,8 @@ export { simulateFacadeOperation } from "./simulateFacadeOperation.js";
 export type { SimulateOperationInput } from "./simulateOperation.js";
 export { simulateOperation } from "./simulateOperation.js";
 export { simulatePoolOperation } from "./simulatePoolOperation.js";
+export type { SimulateRWAOperationInput } from "./simulateRWAOperation.js";
+export { simulateRWAOperation } from "./simulateRWAOperation.js";
 export type {
   AddressBalanceChanges,
   OperationSimulationOptions,

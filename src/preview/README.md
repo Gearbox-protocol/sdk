@@ -29,11 +29,12 @@ contracts resolve during multicall classification.
 Decodes raw calldata into a typed [`Operation`](./parse/types.ts).
 
 - [`parseOperationCalldata`](./parse/parseOperationCalldata.ts) is the entry point.
-  It resolves the contract at `to` and parses both pool operations (direct and
-  zapper routes) and credit-facade operations from a single call. Any other target,
-  or a not-yet-supported pool/facade operation, throws `UnsupportedTargetError`.
-- `Operation = PoolOperation | OuterFacadeOperation`. Use `isPoolOperation` to
-  narrow.
+  It resolves the contract at `to` and parses pool operations (direct and
+  zapper routes), credit-facade operations and RWA-factory operations from a
+  single call. Any other target, or a not-yet-supported pool/facade operation,
+  throws `UnsupportedTargetError`.
+- `Operation = PoolOperation | OuterFacadeOperation | RWAOperation`. Use
+  `isPoolOperation`/`isRWAOperation` to narrow.
 
 ### `prerequisites`
 
@@ -41,13 +42,18 @@ The on-chain conditions the **sender can fix themselves** before retrying.
 
 - [`buildPrerequisites`](./prerequisites/buildPrerequisites.ts) derives the
   prerequisites for an `Operation` (token allowances and balances for deposits,
-  redeems, collateral, partial liquidation).
+  redeems, collateral, partial liquidation; RWA open-account requirements for
+  RWA-factory open operations). For RWA open operations the prerequisite detail
+  is the exact `sdk.accounts.getOpenAccountRequirements` output, so consumers
+  can use it to fill in the operation's template
+  `tokensToRegister`/`signaturesToCache`.
 - [`verifyPrerequisites`](./prerequisites/runPrerequisites.ts) checks them all in a
   single resilient `multicall` (`allowFailure: true`); each prerequisite resolves
   its own slice into an `AnyPrerequisiteResult` (`satisfied` or `error`).
 
 Only **sender-actionable** conditions belong here (approve a token, top up a
-balance). Non-actionable protocol/admin state (pool pause, available liquidity,
+balance, register an RWA token / sign the factory's EIP-712 messages).
+Non-actionable protocol/admin state (pool pause, available liquidity,
 health factor, bot permissions, degen NFT gating) is intentionally out of scope.
 
 ### `simulate`

@@ -3,10 +3,12 @@ import type { OnchainSDK, PluginsMap } from "../../sdk/index.js";
 
 import type { OuterFacadeOperation } from "./types-facades.js";
 import type { PoolOperation } from "./types-pools.js";
+import type { RWAOperation } from "./types-rwa.js";
 
 export * from "./types-adapters.js";
 export * from "./types-facades.js";
 export * from "./types-pools.js";
+export * from "./types-rwa.js";
 
 /**
  * True when the plugin map `P` contains the {@link AdaptersPlugin} under any
@@ -38,13 +40,10 @@ export type SdkWithAdapters<P extends PluginsMap = PluginsMap> = OnchainSDK<P> &
   RequireAdaptersPlugin<P>;
 
 /**
- * Result of decoding a single raw operation calldata: either a pool
- * deposit/redeem or one of the credit-facade operations.
- *
- * Calldata-only parse produces base (descriptor) adapter operations, so the
- * facade operations are used with the default `Ext = {}`.
+ * Result of decoding a single raw operation calldata: a pool deposit/redeem,
+ * one of the credit-facade operations, or an RWA-factory operation.
  */
-export type Operation = PoolOperation | OuterFacadeOperation;
+export type Operation = PoolOperation | OuterFacadeOperation | RWAOperation;
 
 /**
  * Narrows an {@link Operation} to a {@link PoolOperation} (deposit, mint,
@@ -57,5 +56,17 @@ export function isPoolOperation(tx: Operation): tx is PoolOperation {
     tx.operation === "Mint" ||
     tx.operation === "Withdraw" ||
     tx.operation === "Redeem"
+  );
+}
+
+/**
+ * Narrows an {@link Operation} to an {@link RWAOperation} (an RWA-factory
+ * open-account or multicall). Used to route parsed operations to the
+ * RWA-specific simulation path.
+ */
+export function isRWAOperation(tx: Operation): tx is RWAOperation {
+  return (
+    tx.operation === "SecuritizeOpenCreditAccount" ||
+    tx.operation === "SecuritizeMulticall"
   );
 }

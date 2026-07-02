@@ -1,15 +1,16 @@
-import { type Address, isAddressEqual, zeroAddress } from "viem";
+import { type Address, isAddressEqual } from "viem";
 
-import type { OnchainSDK } from "../../sdk/index.js";
-import type {
-  InnerOperation,
-  Operation,
-  OuterFacadeOperation,
-} from "../parse/index.js";
+import {
+  AddressSet,
+  type GetApprovalAddressProps,
+  type OnchainSDK,
+} from "../../sdk/index.js";
+import type { InnerOperation, Operation } from "../parse/index.js";
 
 import { AllowancePrerequisite } from "./AllowancePrerequisite.js";
 import { BalancePrerequisite } from "./BalancePrerequisite.js";
 import type { AnyPrerequisite } from "./Prerequisite.js";
+import { RWAOpenRequirementsPrerequisite } from "./RWAOpenRequirementsPrerequisite.js";
 import type { PrerequisiteContext } from "./types.js";
 
 /**
@@ -165,10 +166,38 @@ export async function buildPrerequisites(
     case "CloseCreditAccount":
     case "LiquidateCreditAccount":
       return collateralPrerequisites(
-        tx.operation,
+        tx.operation === "OpenCreditAccount"
+          ? { creditManager: tx.creditManager, borrower: wallet }
+          : {
+              creditManager: tx.creditManager,
+              creditAccount: tx.creditAccount,
+            },
         tx.multicall,
-        tx.creditManager,
-        tx.creditAccount,
+        ctx,
+      );
+
+    // RWA-factory operations: same collateral checks as facade operations,
+    // plus (for opening) the factory's open-account requirements. The parsed
+    // operation carries template (empty) `tokensToRegister`/`signaturesToCache`;
+    // the prerequisite detail provides the real values.
+    case "SecuritizeOpenCreditAccount":
+      return [
+        ...(await collateralPrerequisites(
+          { creditManager: tx.creditManager, borrower: wallet },
+          tx.multicall,
+          ctx,
+        )),
+        ...(await rwaOpenRequirementsPrerequisites(
+          tx.multicall,
+          tx.creditManager,
+          ctx,
+        )),
+      ];
+
+    case "SecuritizeMulticall":
+      return collateralPrerequisites(
+        { creditManager: tx.creditManager, creditAccount: tx.creditAccount },
+        tx.multicall,
         ctx,
       );
 
@@ -208,10 +237,8 @@ export async function buildPrerequisites(
  * for RWA markets.
  */
 async function collateralPrerequisites(
-  op: OuterFacadeOperation["operation"],
+  spenderOptions: GetApprovalAddressProps,
   multicall: InnerOperation[],
-  creditManager: Address,
-  creditAccount: Address,
   ctx: PrerequisiteContext,
 ): Promise<AnyPrerequisite[]> {
   const { sdk, wallet } = ctx;
@@ -232,11 +259,7 @@ async function collateralPrerequisites(
     return [];
   }
 
-  const spender = await sdk.accounts.getApprovalAddress(
-    op === "OpenCreditAccount"
-      ? { creditManager, borrower: wallet }
-      : { creditManager, creditAccount },
-  );
+  const spender = await sdk.accounts.getApprovalAddress(spenderOptions);
 
   const prereqs: AnyPrerequisite[] = [];
   for (const { token, amount } of required.values()) {
@@ -255,6 +278,66 @@ async function collateralPrerequisites(
         title: "Sufficient collateral balance",
       }),
     );
+  }
+  return prereqs;
+}
+
+/**
+ * For RWA-factory open-account operations (e.g. `SecuritizeOpenCreditAccount`),
+ * checks the factory's open-account requirements (issuer-side token
+ * registration, EIP-712 signatures) for every RWA token the multicall touches.
+ *
+ * Each prerequisite's detail is the exact
+ * `sdk.accounts.getOpenAccountRequirements` output, so consumers can use it to
+ * fill in the operation's template `tokensToRegister`/`signaturesToCache` when
+ * building the final transaction.
+ *
+ * The candidate tokens are the union of `addCollateral` and `updateQuota`
+ * tokens: in the direct-deposit flow the RWA token is added as collateral,
+ * while in the leverage flow it only appears as the quoted token. The union is
+ * then filtered to tokens the factory actually gates
+ * (via {@link IRWAFactory.getTokens}).
+ *
+ * Returns nothing for non-RWA markets.
+ */
+async function rwaOpenRequirementsPrerequisites(
+  multicall: InnerOperation[],
+  creditManager: Address,
+  ctx: PrerequisiteContext,
+): Promise<AnyPrerequisite[]> {
+  const { sdk, wallet } = ctx;
+  const { rwaFactory } = sdk.marketRegister.findByCreditManager(creditManager);
+  if (!rwaFactory) {
+    return [];
+  }
+
+  const rwaTokens = new AddressSet(rwaFactory.getTokens());
+  const candidates = new AddressSet();
+  for (const op of multicall) {
+    if (op.operation === "AddCollateral" || op.operation === "UpdateQuota") {
+      candidates.add(op.token);
+    }
+  }
+
+  const prereqs: AnyPrerequisite[] = [];
+  for (const token of candidates) {
+    if (!rwaTokens.has(token)) {
+      continue;
+    }
+    const requirements = await sdk.accounts.getOpenAccountRequirements(
+      wallet,
+      creditManager,
+      { tokenOutAddress: token },
+    );
+    if (requirements) {
+      prereqs.push(
+        new RWAOpenRequirementsPrerequisite({
+          requirements,
+          token,
+          factory: rwaFactory.address,
+        }),
+      );
+    }
   }
   return prereqs;
 }

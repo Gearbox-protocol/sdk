@@ -1,20 +1,19 @@
 import type { Address } from "viem";
 
-import type { OnchainSDK } from "../../sdk/index.js";
+import type {
+  OnchainSDK,
+  RWAOpenAccountRequirements,
+} from "../../sdk/index.js";
 
 /**
  * Extension point that ties each prerequisite kind to its detail payload.
  *
- * Adding a new prerequisite kind only requires a new entry here: the generic
- * machinery below and the UI renderer registry both key off this map, so TS
- * forces every consumer to handle the new kind.
- *
  * IMPORTANT: only add prerequisites that are *actionable by the transaction
  * sender* (the LP provider or borrower). A valid prerequisite is one the user
  * can resolve themselves before retrying, e.g. approve a token (`allowance`)
- * or acquire/free up funds (`balance`). Do NOT add protocol- or admin-level
- * state the user cannot change, such as pool pause status or available pool
- * liquidity; those are not actionable and must not be listed as prerequisites.
+ * or perform offchain KYC verification.
+ *
+ * Do NOT add protocol- or admin-level state the user cannot change.
  */
 export interface PrerequisiteDetailMap {
   /** ERC-20 allowance from `owner` to `spender` must cover `required`. */
@@ -34,6 +33,12 @@ export interface PrerequisiteDetailMap {
     /** On-chain balance read; only present when the read succeeded. */
     actual?: bigint;
   };
+  /**
+   * RWA (e.g. Securitize) open-account requirements: off-chain token
+   * registration and/or EIP-712 signatures the borrower must provide before
+   * opening a credit account in an RWA market.
+   */
+  rwaOpenRequirements: RWAOpenAccountRequirements;
 }
 
 export type PrerequisiteKind = keyof PrerequisiteDetailMap;

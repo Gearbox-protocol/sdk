@@ -1,10 +1,15 @@
 import type { Address, Hex } from "viem";
 import type { OnchainSDK } from "../../sdk/index.js";
 
-import { isPoolOperation, type Operation } from "../parse/index.js";
+import {
+  isPoolOperation,
+  isRWAOperation,
+  type Operation,
+} from "../parse/index.js";
 
 import { simulateFacadeOperation } from "./simulateFacadeOperation.js";
 import { simulatePoolOperation } from "./simulatePoolOperation.js";
+import { simulateRWAOperation } from "./simulateRWAOperation.js";
 import type {
   OperationSimulationOptions,
   PoolOperationSimulation,
@@ -34,6 +39,10 @@ export async function simulateOperation(
 
   if (isPoolOperation(operation)) {
     return simulatePoolOperation({ ...input, operation }, options);
+  }
+
+  if (isRWAOperation(operation)) {
+    return simulateRWAOperation({ ...input, operation }, options);
   }
 
   return simulateFacadeOperation({ ...input, operation }, options);

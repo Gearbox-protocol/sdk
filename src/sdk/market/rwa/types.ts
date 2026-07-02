@@ -145,6 +145,12 @@ export interface IRWAFactory<T extends RWAFactoryType = RWAFactoryType>
    **/
   decodeInvestorData(data: RWACompressorInvestorData): RWAInvestorData<T>;
   /**
+   * Returns the RWA token addresses this factory can register/gate
+   * (e.g. Securitize DSTokens). Named for parity with the Solidity
+   * `IRWAFactory` contract.
+   **/
+  getTokens(): Address[];
+  /**
    * Returns the investor address for a credit account.
    * @param creditAccount - credit account address
    * @param fromCache - if true, use and update an in-memory cache
@@ -213,15 +219,20 @@ export interface IRWAFactory<T extends RWAFactoryType = RWAFactoryType>
 }
 
 /**
- * Narrows an {@link IRWAFactory} to a specific factory type.
+ * Narrows any contract to an {@link IRWAFactory}.
  *
- * @param factory - factory instance to check
- * @param type - expected factory type literal
- * @returns `true` if `factory.factoryType === type`
+ * @param contract - contract instance to check
+ * @param type - optional expected factory type literal. When provided, narrows
+ *   to the concrete `IRWAFactory<T>`; when omitted, narrows to the
+ *   generalized {@link IRWAFactory}
+ * @returns `true` if the contract is an RWA factory (of the given type, if provided)
  **/
-export function isRWAFactory<T extends RWAFactoryType>(
-  factory: IRWAFactory,
-  type: T,
-): factory is IRWAFactory<T> {
-  return factory.contractType === type;
+export function isRWAFactory<T extends RWAFactoryType = RWAFactoryType>(
+  contract: IBaseContract,
+  type?: T,
+): contract is IRWAFactory<T> {
+  if (type) {
+    return contract.contractType === type;
+  }
+  return contract.contractType.startsWith("RWA_FACTORY::");
 }

@@ -1,9 +1,9 @@
 import type { Address, Hex } from "viem";
 import {
   CreditFacadeV310Contract,
+  isRWAFactory,
   type PluginsMap,
   PoolV310Contract,
-  SecuritizeRWAFactory,
   ZapperContract,
 } from "../../sdk/index.js";
 import { UnsupportedTargetError } from "./errors.js";
@@ -83,7 +83,7 @@ export function parseOperationCalldata<P extends PluginsMap>(
     });
   }
 
-  if (contract instanceof SecuritizeRWAFactory) {
+  if (contract && isRWAFactory(contract)) {
     return parseRWAFactoryOperationCalldata({
       sdk,
       factory: contract,
