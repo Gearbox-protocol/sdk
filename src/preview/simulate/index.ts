@@ -12,10 +12,8 @@ export { simulatePoolOperation } from "./simulatePoolOperation.js";
 export type { SimulateRWAOperationInput } from "./simulateRWAOperation.js";
 export { simulateRWAOperation } from "./simulateRWAOperation.js";
 export type {
-  AddressBalanceChanges,
   OperationSimulationOptions,
   PoolOperationSimulation,
   PoolOperationSimulationInput,
   PoolOperationSimulationResult,
-  TokenBalanceChange,
 } from "./types.js";

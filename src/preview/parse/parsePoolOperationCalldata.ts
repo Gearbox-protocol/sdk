@@ -37,6 +37,7 @@ export function parsePoolOperationCalldata(
         assets: rawArgs.assets as bigint,
         underlying,
         tokenIn: underlying,
+        tokenOut: pool.address,
         zapper: undefined,
         referralCode:
           functionName === "depositWithReferral"
@@ -52,6 +53,7 @@ export function parsePoolOperationCalldata(
         shares: rawArgs.shares as bigint,
         underlying,
         tokenIn: underlying,
+        tokenOut: pool.address,
         zapper: undefined,
         referralCode:
           functionName === "mintWithReferral"
@@ -66,6 +68,7 @@ export function parsePoolOperationCalldata(
         owner: rawArgs.owner as Address,
         assets: rawArgs.assets as bigint,
         underlying,
+        tokenIn: pool.address,
         tokenOut: underlying,
         zapper: undefined,
       };
@@ -77,6 +80,7 @@ export function parsePoolOperationCalldata(
         owner: rawArgs.owner as Address,
         shares: rawArgs.shares as bigint,
         underlying,
+        tokenIn: pool.address,
         tokenOut: underlying,
         zapper: undefined,
       };

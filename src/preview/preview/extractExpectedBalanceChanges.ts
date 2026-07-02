@@ -1,6 +1,5 @@
 import type { Address } from "viem";
-import type { ParsedCallV2 } from "../../sdk/index.js";
-import type { ExpectedBalanceChange } from "./types.js";
+import type { Asset, ParsedCallV2 } from "../../sdk/index.js";
 
 /**
  * Recovers the potential balance changes declared by a router-generated
@@ -15,15 +14,15 @@ import type { ExpectedBalanceChange } from "./types.js";
  *
  * When the multicall does not match this shape, `undefined` is returned. On a
  * match, the `BalanceDelta[]` argument of `storeExpectedBalances` is decoded
- * into {@link ExpectedBalanceChange}[] (the `amount` is the signed `int256`
- * delta and may be negative).
+ * into {@link Asset}[] (the `balance` is the signed `int256` delta and may be
+ * negative).
  *
  * @param innerCalls - Raw (already-decoded) inner multicall calls.
  * @returns The declared balance changes, or `undefined` when not router-shaped.
  */
 export function extractExpectedBalanceChanges(
   innerCalls: ParsedCallV2[],
-): ExpectedBalanceChange[] | undefined {
+): Asset[] | undefined {
   const calls = innerCalls.filter(
     call => functionName(call) !== "onDemandPriceUpdates",
   );
@@ -49,7 +48,7 @@ export function extractExpectedBalanceChanges(
     return undefined;
   }
 
-  return balanceDeltas.map(({ token, amount }) => ({ token, delta: amount }));
+  return balanceDeltas.map(({ token, amount }) => ({ token, balance: amount }));
 }
 
 function functionName(call: ParsedCallV2): string {

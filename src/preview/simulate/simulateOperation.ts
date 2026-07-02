@@ -24,8 +24,6 @@ export interface SimulateOperationInput {
   to: Address;
   /** Raw operation calldata to simulate. */
   calldata: Hex;
-  /** Wallet whose balance changes and transfers we track. */
-  wallet: Address;
 }
 
 /**

@@ -4,27 +4,6 @@ import type { ILogger } from "../../sdk/types/logger.js";
 import type { PoolOperation } from "../parse/index.js";
 import type { PreviewSimulationError } from "./errors.js";
 
-/**
- * Change in an address's balance of a single token over the simulated call.
- * `delta` is `after - before` (negative when the address spent the token).
- */
-export interface TokenBalanceChange {
-  token: Address;
-  before: bigint;
-  after: bigint;
-  delta: bigint;
-}
-
-/**
- * Balance changes for a single watched address (e.g. the wallet or the
- * operation recipient). Keyed purely by address; UI labeling is resolved
- * separately by the presentation layer.
- */
-export interface AddressBalanceChanges {
-  address: Address;
-  changes: TokenBalanceChange[];
-}
-
 export interface PoolOperationSimulationInput {
   /** Only `client`/`networkType` are used, so any OnchainSDK works. */
   sdk: OnchainSDK;
@@ -34,8 +13,6 @@ export interface PoolOperationSimulationInput {
   to: Address;
   /** Raw deposit/mint/withdraw/redeem calldata to simulate. */
   calldata: Hex;
-  /** Wallet whose balance changes and transfers we track. */
-  wallet: Address;
 }
 
 export interface OperationSimulationOptions {
@@ -48,15 +25,22 @@ export interface OperationSimulationOptions {
 }
 
 /**
- * Successful simulation of a pool operation: the balance changes grouped by
- * watched address. This is the success payload of
- * {@link PoolOperationSimulation} without the `status` discriminant.
+ * Successful simulation of a pool operation: the amounts of tokens going in
+ * and out. One side comes from calldata, the other from the matching ERC4626
+ * preview read. This is the success payload of {@link PoolOperationSimulation}
+ * without the `status` discriminant.
  */
 export interface PoolOperationSimulationResult {
   /**
-   * Balance changes grouped by watched address (wallet, recipient, owner).
+   * Amount of tokens going from the user to the pool (underlying or zapper
+   * input token for deposit/mint, pool shares for withdraw/redeem).
    **/
-  balanceChanges: AddressBalanceChanges[];
+  amountIn: bigint;
+  /**
+   * Amount of tokens going from the pool to the user (pool shares or zapper
+   * output token for deposit/mint, underlying for withdraw/redeem).
+   **/
+  amountOut: bigint;
 }
 
 /**

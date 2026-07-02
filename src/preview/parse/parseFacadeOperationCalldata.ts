@@ -5,7 +5,6 @@ import type {
   ParsedCallV2,
 } from "../../sdk/index.js";
 import { classifyInnerOperations } from "./classifyInnerOperations.js";
-import { extractExpectedBalanceChanges } from "./extractExpectedBalanceChanges.js";
 import type { FacadeOperationMetadata, OuterFacadeOperation } from "./types.js";
 
 export interface ParseFacadeOperationCalldataProps {
@@ -49,7 +48,6 @@ export function parseFacadeOperationCalldata(
     sdk,
     underlying: suite.underlying,
   });
-  const expectedBalanceChanges = extractExpectedBalanceChanges(innerCalls);
 
   switch (functionName) {
     case "multicall":
@@ -58,7 +56,6 @@ export function parseFacadeOperationCalldata(
         operation: "MultiCall",
         creditAccount: rawArgs.creditAccount as Address,
         multicall,
-        expectedBalanceChanges,
       };
     case "botMulticall":
       return {
@@ -66,7 +63,6 @@ export function parseFacadeOperationCalldata(
         operation: "BotMulticall",
         creditAccount: rawArgs.creditAccount as Address,
         multicall,
-        expectedBalanceChanges,
       };
     case "openCreditAccount":
       return {
@@ -76,7 +72,6 @@ export function parseFacadeOperationCalldata(
         onBehalfOf: rawArgs.onBehalfOf as Address,
         referralCode: rawArgs.referralCode as bigint,
         multicall,
-        expectedBalanceChanges,
       };
     case "closeCreditAccount":
       return {
@@ -84,7 +79,6 @@ export function parseFacadeOperationCalldata(
         operation: "CloseCreditAccount",
         creditAccount: rawArgs.creditAccount as Address,
         multicall,
-        expectedBalanceChanges,
       };
     case "liquidateCreditAccount":
       return {
@@ -97,7 +91,6 @@ export function parseFacadeOperationCalldata(
         token: zeroAddress,
         remainingFunds: 0n,
         multicall,
-        expectedBalanceChanges,
       };
     case "partiallyLiquidateCreditAccount":
       return {

@@ -54,7 +54,8 @@ export function parseOperationCalldata<P extends PluginsMap>(
         receiver: parsed.receiver,
         assets: parsed.assets,
         underlying: parsed.underlying,
-        tokenIn: parsed.token,
+        tokenIn: contract.tokenIn.addr,
+        tokenOut: contract.tokenOut.addr,
         zapper: parsed.zapper,
         referralCode: parsed.referralCode,
       };
@@ -64,12 +65,13 @@ export function parseOperationCalldata<P extends PluginsMap>(
       operation: "Redeem",
       pool: parsed.pool,
       receiver: parsed.receiver,
-      // The zapper burns the caller's pool shares, so the share owner is the
+      // The zapper burns the caller's share tokens, so the share owner is the
       // transaction sender.
       owner: sender,
       shares: parsed.shares,
       underlying: parsed.underlying,
-      tokenOut: parsed.token,
+      tokenIn: contract.tokenOut.addr,
+      tokenOut: contract.tokenIn.addr,
       zapper: parsed.zapper,
     };
     return op;

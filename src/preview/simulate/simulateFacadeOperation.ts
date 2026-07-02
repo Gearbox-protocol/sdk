@@ -16,8 +16,6 @@ export interface SimulateFacadeOperationInput {
   to: Address;
   /** Raw credit-facade calldata to simulate. */
   calldata: Hex;
-  /** Wallet whose balance changes and transfers we track. */
-  wallet: Address;
 }
 
 /**

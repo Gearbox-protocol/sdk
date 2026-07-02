@@ -3,9 +3,15 @@ import { type Address, isAddressEqual } from "viem";
 import {
   AddressSet,
   type GetApprovalAddressProps,
+  NATIVE_ADDRESS,
   type OnchainSDK,
+  type PluginsMap,
 } from "../../sdk/index.js";
-import type { InnerOperation, Operation } from "../parse/index.js";
+import type { InnerOperation } from "../parse/index.js";
+import {
+  type ParseOperationCalldataInput,
+  parseOperationCalldata,
+} from "../parse/parseOperationCalldata.js";
 
 import { AllowancePrerequisite } from "./AllowancePrerequisite.js";
 import { BalancePrerequisite } from "./BalancePrerequisite.js";
@@ -14,9 +20,20 @@ import { RWAOpenRequirementsPrerequisite } from "./RWAOpenRequirementsPrerequisi
 import type { PrerequisiteContext } from "./types.js";
 
 /**
- * Derives the on-chain prerequisites for a parsed operation: the conditions
- * that must hold for the call not to revert and that we can verify with the
- * SDK (token approvals, wallet balances).
+ * Input of {@link buildPrerequisites}: the same raw-calldata input as the
+ * internal calldata parser, plus an optional block to read at.
+ */
+export type BuildPrerequisitesInput<P extends PluginsMap = PluginsMap> =
+  ParseOperationCalldataInput<P> & {
+    /** Block to read at; defaults to latest. Only set for testnet forks. */
+    blockNumber?: bigint;
+  };
+
+/**
+ * Derives the on-chain prerequisites for an operation given its raw calldata:
+ * the conditions that must hold for the call not to revert and that we can
+ * verify with the SDK (token approvals, wallet balances). The calldata is
+ * decoded internally via `parseOperationCalldata`.
  *
  * Only *sender-actionable* prerequisites belong here: conditions the LP
  * provider or borrower can fix themselves before retrying (e.g. approve a
@@ -25,11 +42,12 @@ import type { PrerequisiteContext } from "./types.js";
  * bot permissions) is intentionally out of scope, since the user cannot
  * resolve it. New {@link AnyPrerequisite} subclasses must follow the same rule.
  */
-export async function buildPrerequisites(
-  tx: Operation,
-  ctx: PrerequisiteContext,
+export async function buildPrerequisites<P extends PluginsMap>(
+  input: BuildPrerequisitesInput<P>,
 ): Promise<AnyPrerequisite[]> {
-  const { wallet } = ctx;
+  const { sdk, sender: wallet, blockNumber } = input;
+  const tx = parseOperationCalldata(input);
+  const ctx: PrerequisiteContext = { sdk, wallet, blockNumber };
 
   switch (tx.operation) {
     // Deposit and Mint both pull the underlying from the caller into the pool;
@@ -41,22 +59,30 @@ export async function buildPrerequisites(
     case "Deposit":
       // Zapper-routed deposits pull the zapper's `tokenIn` (which may differ
       // from the pool underlying) and the allowance must go to the zapper.
+      // Native-token zappers (e.g. WETH_DEPOSIT) take the deposit as
+      // `msg.value`, so no allowance is needed there.
       if (tx.zapper) {
-        return [
-          new AllowancePrerequisite({
-            token: tx.tokenIn,
-            owner: wallet,
-            spender: tx.zapper,
-            required: tx.assets,
-            title: "Token approved to zapper",
-          }),
+        const prereqs: AnyPrerequisite[] = [];
+        if (!isAddressEqual(tx.tokenIn, NATIVE_ADDRESS)) {
+          prereqs.push(
+            new AllowancePrerequisite({
+              token: tx.tokenIn,
+              owner: wallet,
+              spender: tx.zapper,
+              required: tx.assets,
+              title: "Token approved to zapper",
+            }),
+          );
+        }
+        prereqs.push(
           new BalancePrerequisite({
             token: tx.tokenIn,
             owner: wallet,
             required: tx.assets,
             title: "Sufficient token balance",
           }),
-        ];
+        );
+        return prereqs;
       }
       return [
         new AllowancePrerequisite({
@@ -94,22 +120,24 @@ export async function buildPrerequisites(
     // Redeem and Withdraw both burn LP shares from `owner`; they only differ in
     // which side (shares vs assets) the caller specifies.
     case "Redeem": {
-      // Zapper-routed redeems burn LP shares pulled from the caller, so the LP
+      // Zapper-routed redeems pull the operation's `tokenIn` (the zapper's
+      // share-side token, which is the pool diesel token only for plain
+      // zappers — farmed/staked wrappers differ) from the caller, so that
       // token must be approved to the zapper (no third-party `owner`).
       if (tx.zapper) {
         return [
           new BalancePrerequisite({
-            token: tx.pool,
+            token: tx.tokenIn,
             owner: wallet,
             required: tx.shares,
-            title: "Sufficient LP token balance",
+            title: "Sufficient share token balance",
           }),
           new AllowancePrerequisite({
-            token: tx.pool,
+            token: tx.tokenIn,
             owner: wallet,
             spender: tx.zapper,
             required: tx.shares,
-            title: "LP token approved to zapper",
+            title: "Share token approved to zapper",
           }),
         ];
       }

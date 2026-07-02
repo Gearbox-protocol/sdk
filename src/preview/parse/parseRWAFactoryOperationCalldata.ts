@@ -12,7 +12,6 @@ import {
   type SecuritizeRegisterMessage,
 } from "../../sdk/index.js";
 import { classifyInnerOperations } from "./classifyInnerOperations.js";
-import { extractExpectedBalanceChanges } from "./extractExpectedBalanceChanges.js";
 import type { RWAOperation, RWAOperationMetadata } from "./types-rwa.js";
 
 export interface ParseRWAFactoryOperationCalldataProps {
@@ -89,7 +88,6 @@ function parseSecuritizeOperationCalldata(
     sdk,
     underlying: suite.underlying,
   });
-  const expectedBalanceChanges = extractExpectedBalanceChanges(innerCalls);
 
   switch (functionName) {
     case "openCreditAccount":
@@ -97,7 +95,6 @@ function parseSecuritizeOperationCalldata(
         ...metadata,
         operation: "SecuritizeOpenCreditAccount",
         multicall,
-        expectedBalanceChanges,
         tokensToRegister,
         signaturesToCache,
       };
@@ -107,7 +104,6 @@ function parseSecuritizeOperationCalldata(
         operation: "SecuritizeMulticall",
         creditAccount: rawArgs.creditAccount as Address,
         multicall,
-        expectedBalanceChanges,
         tokensToRegister,
         signaturesToCache,
       };

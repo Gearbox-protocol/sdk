@@ -65,6 +65,7 @@ describe("parsePoolOperationCalldata", () => {
       assets,
       underlying: WETH,
       tokenIn: WETH,
+      tokenOut: KPK_WETH_POOL,
       zapper: undefined,
       referralCode,
     });
@@ -85,6 +86,7 @@ describe("parsePoolOperationCalldata", () => {
       owner: OWNER,
       shares,
       underlying: WETH,
+      tokenIn: KPK_WETH_POOL,
       tokenOut: WETH,
       zapper: undefined,
     });

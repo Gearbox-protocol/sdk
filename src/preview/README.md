@@ -1,52 +1,61 @@
 # Preview
 
 Tools for **previewing a Gearbox operation before it is sent on-chain**: turn raw
-transaction calldata into a typed, human-readable operation, check the conditions
-the sender must satisfy for it to succeed, and simulate it to recover the
-resulting balance changes.
+transaction calldata into an operation-specific, human-displayable preview, and
+check the conditions the sender must satisfy for it to succeed.
 
 ## Concepts
 
 An **operation** is a transaction performed on behalf of a Gearbox protocol user:
 
 - a **pool user** (liquidity provider) depositing into or redeeming from a pool, or
-- a **credit account user** (borrower / liquidator) acting through a credit facade.
+- a **credit account user** (borrower) opening a credit account.
 
-Given only `{ to, calldata, sender }`, this module answers three questions:
+Given only `{ to, calldata, sender }`, this module answers two questions:
 
-1. **What is this operation?** (`parse`)
-2. **Can the sender execute it, and what must they fix first?** (`prerequisites`)
-3. **What would actually happen if it ran right now?** (`simulate`)
+1. **What would this operation do?** (`previewOperation`)
+2. **Can the sender execute it, and what must they fix first?** (`buildPrerequisites` / `verifyPrerequisites`)
 
 All reads use the already-attached `OnchainSDK` (chain, RPC and block are baked in
 at attach time). The SDK must be created with the adapters plugin so that adapter
 contracts resolve during multicall classification.
 
-## Components
+## Public API
 
-### `parse`
+### `previewOperation`
 
-Decodes raw calldata into a typed [`Operation`](./parse/types.ts).
+[`previewOperation`](./preview/previewOperation.ts) is the async entry point. It
+decodes the raw calldata internally (see [`parse`](#internals)) and assembles an
+operation-specific preview:
 
-- [`parseOperationCalldata`](./parse/parseOperationCalldata.ts) is the entry point.
-  It resolves the contract at `to` and parses pool operations (direct and
-  zapper routes), credit-facade operations and RWA-factory operations from a
-  single call. Any other target, or a not-yet-supported pool/facade operation,
-  throws `UnsupportedTargetError`.
-- `Operation = PoolOperation | OuterFacadeOperation | RWAOperation`. Use
-  `isPoolOperation`/`isRWAOperation` to narrow.
+- **Pool operations** (ERC4626 deposit/mint/withdraw/redeem, direct or
+  zapper-routed) produce a [`PoolOperationPreview`](./preview/types.ts): the
+  tokens going in and out. The amount on the side that is not present in
+  calldata is recovered with an async ERC4626 preview read
+  (`previewDeposit`/`previewMint`/`previewWithdraw`/`previewRedeem` on the pool
+  or zapper); when that read fails, the side carries `{ token, error }` instead
+  of the amount.
+- **Credit account opening** (`OpenCreditAccount` and
+  `SecuritizeOpenCreditAccount`) produces an
+  [`OpenCreditAccountPreview`](./preview/types.ts): collateral, collateral
+  value in underlying, debt, quotas and the minimal assets on the account after
+  opening (recovered from the router's `storeExpectedBalances` deltas — since
+  the account is being opened, initial balances are all zero). No simulation
+  call is needed.
+- **Any other operation** throws an
+  [`UnsupportedOperationError`](./preview/errors.ts).
 
 ### `prerequisites`
 
 The on-chain conditions the **sender can fix themselves** before retrying.
 
-- [`buildPrerequisites`](./prerequisites/buildPrerequisites.ts) derives the
-  prerequisites for an `Operation` (token allowances and balances for deposits,
-  redeems, collateral, partial liquidation; RWA open-account requirements for
-  RWA-factory open operations). For RWA open operations the prerequisite detail
-  is the exact `sdk.accounts.getOpenAccountRequirements` output, so consumers
-  can use it to fill in the operation's template
-  `tokensToRegister`/`signaturesToCache`.
+- [`buildPrerequisites`](./prerequisites/buildPrerequisites.ts) takes the same
+  raw-calldata input as `previewOperation` and derives the prerequisites (token
+  allowances and balances for deposits, redeems, collateral, partial
+  liquidation; RWA open-account requirements for RWA-factory open operations).
+  For RWA open operations the prerequisite detail is the exact
+  `sdk.accounts.getOpenAccountRequirements` output, so consumers can use it to
+  fill in the operation's template `tokensToRegister`/`signaturesToCache`.
 - [`verifyPrerequisites`](./prerequisites/runPrerequisites.ts) checks them all in a
   single resilient `multicall` (`allowFailure: true`); each prerequisite resolves
   its own slice into an `AnyPrerequisiteResult` (`satisfied` or `error`).
@@ -56,52 +65,29 @@ balance, register an RWA token / sign the factory's EIP-712 messages).
 Non-actionable protocol/admin state (pool pause, available liquidity,
 health factor, bot permissions, degen NFT gating) is intentionally out of scope.
 
-### `simulate`
-
-Recovers the balance changes a pool operation would produce, or a decoded
-failure.
-
-- [`simulateOperation`](./simulate/simulateOperation.ts) is the entry point. It
-  routes by operation kind:
-  - pool operations (direct and zapper-routed) -> [`simulatePoolOperation`](./simulate/simulatePoolOperation.ts);
-  - credit-facade operations -> [`simulateFacadeOperation`](./simulate/simulateFacadeOperation.ts)
-- backed by a single `multicall` that reads the watched holders' balances
-  together with the matching preview (the pool's ERC4626
-  `previewDeposit`/`previewMint`/`previewWithdraw`/`previewRedeem`, or the
-  zapper's `previewDeposit`/`previewRedeem`). This works on every network the SDK
-  supports.
-- because it does not execute the calldata, it ignores balance/allowance
-  prerequisites (preview reads succeed regardless).
-- On success it returns `{ balanceChanges }`.
-- On failure it throws a [`PreviewSimulationError`](./simulate/errors.ts)
-
 ## Intended usage
 
 ```ts
 import {
-  parseOperationCalldata,
+  previewOperation,
   buildPrerequisites,
   verifyPrerequisites,
-  simulateOperation,
 } from "@gearbox-protocol/sdk/preview";
 
-// 1. Parse raw calldata into a typed operation.
-const operation = parseOperationCalldata({ sdk, to, calldata, sender });
+// 1. Preview the operation (pool operation or credit account opening).
+const preview = await previewOperation({ sdk, to, calldata, sender });
 
-// 2. Check sender-actionable prerequisites (allowances, balances).
-const prereqs = await buildPrerequisites(operation, { sdk, wallet: sender });
+// 2. When/if necessary, check sender-actionable prerequisites
+//    (allowances, balances). Takes the same input as previewOperation.
+const prereqs = await buildPrerequisites({ sdk, to, calldata, sender });
 const prereqResults = await verifyPrerequisites(prereqs, { sdk, wallet: sender });
-
-// 3. Simulate to recover balance changes (or the revert reason).
-const sim = await simulateOperation({ sdk, operation, to, calldata, wallet: sender });
 ```
 
 ```mermaid
 flowchart LR
-  calldata["to + calldata + sender"] --> parse["parseOperationCalldata"]
-  parse --> operation["Operation"]
-  operation --> prereq["buildPrerequisites -> verifyPrerequisites"]
-  operation --> sim["simulateOperation"]
-  prereq --> result["preview result"]
-  sim --> result
+  calldata["to + calldata + sender"] --> previewOp["previewOperation"]
+  previewOp --> poolPreview["PoolOperationPreview"]
+  previewOp --> openPreview["OpenCreditAccountPreview"]
+  calldata --> prereq["buildPrerequisites -> verifyPrerequisites"]
+  prereq --> results["prerequisite results"]
 ```

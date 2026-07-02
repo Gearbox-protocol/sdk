@@ -24,6 +24,12 @@ export interface PoolDepositOperation {
    * deposits, or the zapper's input token for zapper-routed deposits.
    */
   tokenIn: Address;
+  /**
+   * Token minted to the receiver: the pool's diesel token for direct
+   * deposits, or the zapper's output token (e.g. a farmed/staked diesel
+   * wrapper) for zapper-routed deposits.
+   */
+  tokenOut: Address;
   /** Zapper contract the call is sent to; `undefined` for direct deposits. */
   zapper?: Address;
   /** Referral code, present only for `depositWithReferral` calls. */
@@ -50,6 +56,11 @@ export interface PoolMintOperation {
    * mints, or the zapper's input token for zapper-routed mints.
    */
   tokenIn: Address;
+  /**
+   * Token minted to the receiver: the pool's diesel token for direct mints,
+   * or the zapper's output token for zapper-routed mints.
+   */
+  tokenOut: Address;
   /** Zapper contract the call is sent to; `undefined` for direct mints. */
   zapper?: Address;
   /** Referral code, present only for `mintWithReferral` calls. */
@@ -75,6 +86,12 @@ export interface PoolWithdrawOperation {
   /** Underlying token of the source pool. */
   underlying: Address;
   /**
+   * Token burned from `owner`: the pool's diesel token for direct
+   * withdrawals, or the zapper's share-side token for zapper-routed
+   * withdrawals.
+   */
+  tokenIn: Address;
+  /**
    * Token actually returned to the receiver: the pool underlying for direct
    * withdrawals, or the zapper's output token for zapper-routed withdrawals.
    */
@@ -99,10 +116,20 @@ export interface PoolRedeemOperation {
   receiver: Address;
   /** Address whose pool shares are burned. */
   owner: Address;
-  /** Pool shares (diesel) burned. */
+  /**
+   * Amount of {@link PoolRedeemOperation.tokenIn} burned: pool shares
+   * (diesel) for direct redeems, or the zapper's share-side token amount for
+   * zapper-routed redeems.
+   */
   shares: bigint;
   /** Underlying token of the source pool. */
   underlying: Address;
+  /**
+   * Token burned from `owner`: the pool's diesel token for direct redeems, or
+   * the zapper's share-side token (e.g. a farmed/staked diesel wrapper) for
+   * zapper-routed redeems.
+   */
+  tokenIn: Address;
   /**
    * Token actually returned to the receiver: the pool underlying for direct
    * redeems, or the zapper's output token for zapper-routed redeems.
@@ -122,3 +149,5 @@ export type PoolOperation =
   | PoolMintOperation
   | PoolWithdrawOperation
   | PoolRedeemOperation;
+
+export type PoolOperationType = PoolOperation["operation"];

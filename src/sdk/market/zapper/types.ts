@@ -13,10 +13,8 @@ export interface ParsedZapperDeposit {
   /** Zapper contract the call is sent to. */
   zapper: Address;
   receiver: Address;
-  /** Amount of `token` supplied to the zapper. */
+  /** Amount of `tokenIn` supplied to the zapper. */
   assets: bigint;
-  /** Token actually deposited into the zapper (the zapper's `tokenIn`). */
-  token: Address;
   /** Underlying token of the destination pool. */
   underlying: Address;
   /** Referral code, present only for `depositWithReferral(...)` calls. */
@@ -34,10 +32,12 @@ export interface ParsedZapperRedeem {
   /** Zapper contract the call is sent to. */
   zapper: Address;
   receiver: Address;
-  /** Pool shares (diesel) burned. */
+  /**
+   * Amount of the zapper's `tokenOut` burned. This is the pool's diesel token
+   * only when the zapper's `tokenOut` is the pool itself; for farmed/staked
+   * wrappers it's denominated in the wrapper token.
+   */
   shares: bigint;
-  /** Token returned to the receiver (the zapper's `tokenIn`). */
-  token: Address;
   /** Underlying token of the source pool. */
   underlying: Address;
 }

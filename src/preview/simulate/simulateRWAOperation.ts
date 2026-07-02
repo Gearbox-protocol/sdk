@@ -16,8 +16,6 @@ export interface SimulateRWAOperationInput {
   to: Address;
   /** Raw RWA-factory calldata to simulate. */
   calldata: Hex;
-  /** Wallet whose balance changes and transfers we track. */
-  wallet: Address;
 }
 
 /**

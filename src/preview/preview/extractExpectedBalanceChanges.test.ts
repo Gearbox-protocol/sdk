@@ -40,8 +40,8 @@ describe("extractExpectedBalanceChanges", () => {
     ];
 
     expect(extractExpectedBalanceChanges(innerCalls)).toEqual([
-      { token: TOKEN_A, delta: 1_000n },
-      { token: TOKEN_B, delta: -50n },
+      { token: TOKEN_A, balance: 1_000n },
+      { token: TOKEN_B, balance: -50n },
     ]);
   });
 });

@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 
 import type { SecuritizeRegisterMessage } from "../../sdk/index.js";
-import type { ExpectedBalanceChange, InnerOperation } from "./types-facades.js";
+import type { InnerOperation } from "./types-facades.js";
 
 /**
  * Metadata shared by all RWA factory operations. RWA credit accounts are
@@ -20,12 +20,6 @@ export interface SecuritizeOpenCreditAccountOperation<Ext extends object = {}>
   extends RWAOperationMetadata {
   operation: "SecuritizeOpenCreditAccount";
   multicall: InnerOperation<Ext>[];
-  /**
-   * Potential balance changes declared by a router-generated
-   * `storeExpectedBalances`/`compareBalances` pair, or `undefined` when the
-   * multicall is not router-shaped. See {@link ExpectedBalanceChange}.
-   */
-  expectedBalanceChanges?: ExpectedBalanceChange[];
   /**
    * DSToken addresses to register, decoded from calldata. Empty in the
    * template flow, where the real value comes from the factory's open-account
@@ -48,12 +42,6 @@ export interface SecuritizeMulticallOperation<Ext extends object = {}>
   operation: "SecuritizeMulticall";
   creditAccount: Address;
   multicall: InnerOperation<Ext>[];
-  /**
-   * Potential balance changes declared by a router-generated
-   * `storeExpectedBalances`/`compareBalances` pair, or `undefined` when the
-   * multicall is not router-shaped. See {@link ExpectedBalanceChange}.
-   */
-  expectedBalanceChanges?: ExpectedBalanceChange[];
   /** DSToken addresses to register, decoded from calldata. */
   tokensToRegister: Address[];
   /** EIP-712 registration signatures to store on-chain, decoded from calldata. */

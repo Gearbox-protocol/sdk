@@ -60,7 +60,6 @@ export class ZapperContract<A extends Abi = Abi>
 
     const pool = this.pool;
     const zapper = this.address;
-    const token = this.tokenIn.addr;
     const underlying = this.sdk.marketRegister.findByPool(pool).underlying;
     const receiver = rawArgs.receiver as Address;
 
@@ -71,7 +70,6 @@ export class ZapperContract<A extends Abi = Abi>
         zapper,
         receiver,
         assets: (rawArgs.tokenInAmount as bigint | undefined) ?? value ?? 0n,
-        token,
         underlying,
         referralCode: rawArgs.referralCode as bigint | undefined,
       };
@@ -84,7 +82,6 @@ export class ZapperContract<A extends Abi = Abi>
         zapper,
         receiver,
         shares: rawArgs.tokenOutAmount as bigint,
-        token,
         underlying,
       };
     }
