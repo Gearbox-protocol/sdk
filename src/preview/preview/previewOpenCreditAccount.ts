@@ -1,6 +1,8 @@
 import {
   AddressMap,
+  AP_WETH_TOKEN,
   type Asset,
+  NO_VERSION,
   type ParsedCallV2,
   type PluginsMap,
 } from "../../sdk/index.js";
@@ -14,12 +16,13 @@ import type {
   OpenCreditAccountPreview,
   PreviewOperationInput,
 } from "./types.js";
+import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
 
 export function previewOpenCreditAccount<P extends PluginsMap>(
   input: PreviewOperationInput<P>,
   operation: OpenCreditAccountOperation | SecuritizeOpenCreditAccountOperation,
 ): OpenCreditAccountPreview {
-  const { sdk, to, calldata } = input;
+  const { sdk, to, calldata, value = 0n } = input;
   const market = sdk.marketRegister.findByCreditManager(
     operation.creditManager,
   );
@@ -60,11 +63,18 @@ export function previewOpenCreditAccount<P extends PluginsMap>(
         break;
     }
   }
-  const collateral = collateralByToken.values();
+  let collateral = collateralByToken.values();
+  // collateral value is computed before unwrapping since the oracle cannot
+  // price the native token
   const collateralValue = collateral.reduce(
     (acc, { token, balance }) =>
       acc + market.priceOracle.convert(token, market.underlying, balance),
     0n,
+  );
+  collateral = unwrapNativeCollateral(
+    collateral,
+    value,
+    sdk.addressProvider.getAddress(AP_WETH_TOKEN, NO_VERSION),
   );
 
   // Since we open an account, initial balances are all zero and the router's

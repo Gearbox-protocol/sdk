@@ -76,7 +76,11 @@ export interface OpenCreditAccountPreview {
    */
   target?: Asset;
   /**
-   * Tokens that were added as collateral during account opening
+   * Tokens that were added as collateral during account opening.
+   *
+   * When the transaction has native value attached, it is represented as a
+   * `NATIVE_ADDRESS` entry, with the wrapped native token amount reduced
+   * accordingly (omitted entirely when it reaches zero).
    */
   collateral: Asset[];
   /**
