@@ -4,48 +4,50 @@ import type { Asset, ParsedCallV2 } from "../../sdk/index.js";
 /**
  * Recovers the potential balance changes declared by a router-generated
  * `storeExpectedBalances`/`compareBalances` pair inside a credit-facade
- * multicall.
- *
- * The detection is intentionally limited to the router shape:
- * - `onDemandPriceUpdates` calls are dropped first (they may only appear at the
- *   front of a multicall);
- * - the remaining calls must start with `storeExpectedBalances` and end with
- *   `compareBalances`.
- *
- * When the multicall does not match this shape, `undefined` is returned. On a
- * match, the `BalanceDelta[]` argument of `storeExpectedBalances` is decoded
- * into {@link Asset}[] (the `balance` is the signed `int256` delta and may be
- * negative).
+ * multicall
  *
  * @param innerCalls - Raw (already-decoded) inner multicall calls.
- * @returns The declared balance changes, or `undefined` when not router-shaped.
+ * @returns The declared balance changes, or `undefined` when no
+ * `storeExpectedBalances`/`compareBalances` pair is present.
+ * @throws When the multicall contains a malformed pair (duplicates, one call
+ * without the other, or `compareBalances` before `storeExpectedBalances`).
  */
 export function extractExpectedBalanceChanges(
   innerCalls: ParsedCallV2[],
 ): Asset[] | undefined {
-  const calls = innerCalls.filter(
-    call => functionName(call) !== "onDemandPriceUpdates",
-  );
-
-  if (calls.length === 0) {
-    return undefined;
+  const storeIndices: number[] = [];
+  const compareIndices: number[] = [];
+  for (let i = 0; i < innerCalls.length; i++) {
+    const name = functionName(innerCalls[i]);
+    if (name === "storeExpectedBalances") {
+      storeIndices.push(i);
+    } else if (name === "compareBalances") {
+      compareIndices.push(i);
+    }
   }
 
-  const first = calls[0];
-  const last = calls[calls.length - 1];
-
-  if (
-    functionName(first) !== "storeExpectedBalances" ||
-    functionName(last) !== "compareBalances"
-  ) {
+  if (storeIndices.length === 0 && compareIndices.length === 0) {
     return undefined;
   }
+  if (storeIndices.length !== 1 || compareIndices.length !== 1) {
+    throw new Error(
+      `malformed multicall: expected exactly one storeExpectedBalances/compareBalances pair, got ${storeIndices.length} storeExpectedBalances and ${compareIndices.length} compareBalances calls`,
+    );
+  }
+  if (compareIndices[0] < storeIndices[0]) {
+    throw new Error(
+      "malformed multicall: compareBalances appears before storeExpectedBalances",
+    );
+  }
 
-  const balanceDeltas = first.rawArgs.balanceDeltas as
+  const store = innerCalls[storeIndices[0]];
+  const balanceDeltas = store.rawArgs.balanceDeltas as
     | Array<{ token: Address; amount: bigint }>
     | undefined;
   if (!balanceDeltas) {
-    return undefined;
+    throw new Error(
+      "malformed multicall: storeExpectedBalances has no balanceDeltas argument",
+    );
   }
 
   return balanceDeltas.map(({ token, amount }) => ({ token, balance: amount }));

@@ -25,23 +25,85 @@ function makeCall(
   };
 }
 
+const storeCall = makeCall("storeExpectedBalances((address,int256)[])", {
+  balanceDeltas: [
+    { token: TOKEN_A, amount: 1_000n },
+    { token: TOKEN_B, amount: -50n },
+  ],
+});
+const compareCall = makeCall("compareBalances()");
+
+const EXPECTED = [
+  { token: TOKEN_A, balance: 1_000n },
+  { token: TOKEN_B, balance: -50n },
+];
+
 describe("extractExpectedBalanceChanges", () => {
   it("returns decoded deltas for a router-shaped multicall", () => {
     const innerCalls: ParsedCallV2[] = [
       makeCall("onDemandPriceUpdates((address,bytes)[])", { updates: [] }),
-      makeCall("storeExpectedBalances((address,int256)[])", {
-        balanceDeltas: [
-          { token: TOKEN_A, amount: 1_000n },
-          { token: TOKEN_B, amount: -50n },
-        ],
-      }),
+      storeCall,
       makeCall("swap(uint256)", { amount: 1n }, ADAPTER),
-      makeCall("compareBalances()"),
+      compareCall,
     ];
 
-    expect(extractExpectedBalanceChanges(innerCalls)).toEqual([
-      { token: TOKEN_A, balance: 1_000n },
-      { token: TOKEN_B, balance: -50n },
-    ]);
+    expect(extractExpectedBalanceChanges(innerCalls)).toEqual(EXPECTED);
+  });
+
+  it("returns decoded deltas when the pair sits mid-multicall", () => {
+    const innerCalls: ParsedCallV2[] = [
+      makeCall("increaseDebt(uint256)", { amount: 100n }),
+      makeCall("addCollateral(address,uint256)", {
+        token: TOKEN_A,
+        amount: 10n,
+      }),
+      storeCall,
+      makeCall("swap(uint256)", { amount: 1n }, ADAPTER),
+      compareCall,
+      makeCall("updateQuota(address,int96,uint96)", {
+        token: TOKEN_B,
+        quotaChange: 5n,
+        minQuota: 0n,
+      }),
+    ];
+
+    expect(extractExpectedBalanceChanges(innerCalls)).toEqual(EXPECTED);
+  });
+
+  it("returns undefined when no pair is present", () => {
+    const innerCalls: ParsedCallV2[] = [
+      makeCall("increaseDebt(uint256)", { amount: 100n }),
+      makeCall("addCollateral(address,uint256)", {
+        token: TOKEN_A,
+        amount: 10n,
+      }),
+    ];
+
+    expect(extractExpectedBalanceChanges(innerCalls)).toBeUndefined();
+    expect(extractExpectedBalanceChanges([])).toBeUndefined();
+  });
+
+  it("throws on duplicate storeExpectedBalances", () => {
+    expect(() =>
+      extractExpectedBalanceChanges([storeCall, storeCall, compareCall]),
+    ).toThrow(/exactly one storeExpectedBalances\/compareBalances pair/);
+  });
+
+  it("throws on storeExpectedBalances without compareBalances", () => {
+    expect(() => extractExpectedBalanceChanges([storeCall])).toThrow(
+      /exactly one storeExpectedBalances\/compareBalances pair/,
+    );
+  });
+
+  it("throws on compareBalances without storeExpectedBalances", () => {
+    expect(() => extractExpectedBalanceChanges([compareCall])).toThrow(
+      /exactly one storeExpectedBalances\/compareBalances pair/,
+    );
+  });
+
+  it("throws when compareBalances appears before storeExpectedBalances", () => {
+    expect(() =>
+      extractExpectedBalanceChanges([compareCall, storeCall]),
+    ).toThrow(/compareBalances appears before storeExpectedBalances/);
   });
 });
