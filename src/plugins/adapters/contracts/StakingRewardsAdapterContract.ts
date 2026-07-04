@@ -1,10 +1,16 @@
 import { iStakingRewardsAdapterAbi } from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters } from "viem";
 import {
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import {
+  type AddressMap,
   type ConstructOptions,
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
 import { iStakingRewardsAbi } from "../abi/targetContractAbi.js";
+import { clampToLeftover, copyBalances } from "../balanceChanges.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -103,5 +109,30 @@ export class StakingRewardsAdapterContract extends AbstractAdapterContract<
         : undefined,
       referral: this.#referral,
     };
+  }
+
+  protected override previewDecodedBalanceChanges(
+    balances: AddressMap<bigint>,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): AddressMap<bigint> {
+    switch (decoded.functionName) {
+      case "stakeDiff": {
+        const [leftoverAmount] = decoded.args;
+        return clampToLeftover(balances, this.stakingToken, leftoverAmount);
+      }
+      case "withdrawDiff": {
+        const [leftoverAmount] = decoded.args;
+        return clampToLeftover(
+          balances,
+          this.stakedPhantomToken,
+          leftoverAmount,
+        );
+      }
+      // no accrued rewards on a freshly opened account
+      case "getReward":
+        return copyBalances(balances);
+      default:
+        return super.previewDecodedBalanceChanges(balances, decoded);
+    }
   }
 }

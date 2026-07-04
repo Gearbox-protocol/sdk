@@ -1,10 +1,16 @@
 import { iFluidDexAdapterAbi } from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters } from "viem";
 import {
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import {
+  type AddressMap,
   type ConstructOptions,
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
 import { iFluidDexAbi } from "../abi/targetContractAbi.js";
+import { clampToLeftover } from "../balanceChanges.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -56,5 +62,23 @@ export class FluidDexAdapterContract extends AbstractAdapterContract<
       token0: this.#token0 ? this.labelAddress(this.#token0) : undefined,
       token1: this.#token1 ? this.labelAddress(this.#token1) : undefined,
     };
+  }
+
+  protected override previewDecodedBalanceChanges(
+    balances: AddressMap<bigint>,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): AddressMap<bigint> {
+    switch (decoded.functionName) {
+      case "swapInDiff": {
+        const [swap0to1, leftoverAmount] = decoded.args;
+        return clampToLeftover(
+          balances,
+          swap0to1 ? this.token0 : this.token1,
+          leftoverAmount,
+        );
+      }
+      default:
+        return super.previewDecodedBalanceChanges(balances, decoded);
+    }
   }
 }

@@ -1,11 +1,18 @@
 import { ierc4626AdapterAbi } from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters, zeroAddress } from "viem";
 import {
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+  zeroAddress,
+} from "viem";
+import {
+  type AddressMap,
   type ConstructOptions,
   MissingSerializedParamsError,
   type ParsedCallV2,
 } from "../../../sdk/index.js";
 import { iERC4626Abi } from "../abi/targetContractAbi.js";
+import { clampToLeftover } from "../balanceChanges.js";
 import type {
   LegacyAdapterOperation,
   Transfers,
@@ -95,5 +102,29 @@ export class ERC4626AdapterContract extends AbstractAdapterContract<
       return { operation: "MakerRedeem", ...swapFromTransfers(transfers) };
     }
     return super.classifyLegacyOperation(parsed, transfers);
+  }
+
+  protected override previewDecodedBalanceChanges(
+    balances: AddressMap<bigint>,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): AddressMap<bigint> {
+    // for v<=311 the serialized vault is zeroAddress and the adapter targets
+    // the vault directly
+    const share =
+      this.#vault && this.#vault !== zeroAddress
+        ? this.#vault
+        : this.targetContract;
+    switch (decoded.functionName) {
+      case "depositDiff": {
+        const [leftoverAmount] = decoded.args;
+        return clampToLeftover(balances, this.asset, leftoverAmount);
+      }
+      case "redeemDiff": {
+        const [leftoverAmount] = decoded.args;
+        return clampToLeftover(balances, share, leftoverAmount);
+      }
+      default:
+        return super.previewDecodedBalanceChanges(balances, decoded);
+    }
   }
 }

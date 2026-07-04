@@ -1,11 +1,17 @@
 import { mellowDvvAdapterAbi } from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters } from "viem";
 import {
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import {
+  type AddressMap,
   type ConstructOptions,
   MissingSerializedParamsError,
   type ParsedCallV2,
 } from "../../../sdk/index.js";
 import { iERC4626Abi } from "../abi/targetContractAbi.js";
+import { clampToLeftover } from "../balanceChanges.js";
 import type {
   LegacyAdapterOperation,
   Transfers,
@@ -76,5 +82,24 @@ export class MellowDVVAdapterContract extends AbstractAdapterContract<
       return { operation: "MakerRedeem", ...swapFromTransfers(transfers) };
     }
     return super.classifyLegacyOperation(parsed, transfers);
+  }
+
+  protected override previewDecodedBalanceChanges(
+    balances: AddressMap<bigint>,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): AddressMap<bigint> {
+    const share = this.#vault ?? this.targetContract;
+    switch (decoded.functionName) {
+      case "depositDiff": {
+        const [leftoverAmount] = decoded.args;
+        return clampToLeftover(balances, this.asset, leftoverAmount);
+      }
+      case "redeemDiff": {
+        const [leftoverAmount] = decoded.args;
+        return clampToLeftover(balances, share, leftoverAmount);
+      }
+      default:
+        return super.previewDecodedBalanceChanges(balances, decoded);
+    }
   }
 }

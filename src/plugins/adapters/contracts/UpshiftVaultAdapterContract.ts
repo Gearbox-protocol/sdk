@@ -2,11 +2,17 @@ import {
   iUpshiftVaultAdapterAbi,
   iUpshiftVaultGatewayAbi,
 } from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters } from "viem";
 import {
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import {
+  type AddressMap,
   type ConstructOptions,
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
+import { clampToLeftover } from "../balanceChanges.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -70,5 +76,23 @@ export class UpshiftVaultAdapterContract extends AbstractAdapterContract<
         ? this.labelAddress(this.#stakedPhantomToken)
         : undefined,
     };
+  }
+
+  protected override previewDecodedBalanceChanges(
+    balances: AddressMap<bigint>,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): AddressMap<bigint> {
+    switch (decoded.functionName) {
+      case "depositDiff": {
+        const [leftoverAmount] = decoded.args;
+        return clampToLeftover(balances, this.asset, leftoverAmount);
+      }
+      case "redeemDiff": {
+        const [leftoverAmount] = decoded.args;
+        return clampToLeftover(balances, this.vault, leftoverAmount);
+      }
+      default:
+        return super.previewDecodedBalanceChanges(balances, decoded);
+    }
   }
 }

@@ -33,13 +33,13 @@ const storeCall = makeCall("storeExpectedBalances((address,int256)[])", {
 });
 const compareCall = makeCall("compareBalances()");
 
-const EXPECTED = [
+const EXPECTED_DELTAS = [
   { token: TOKEN_A, balance: 1_000n },
   { token: TOKEN_B, balance: -50n },
 ];
 
 describe("extractExpectedBalanceChanges", () => {
-  it("returns decoded deltas for a router-shaped multicall", () => {
+  it("returns decoded deltas and bracket indices for a router-shaped multicall", () => {
     const innerCalls: ParsedCallV2[] = [
       makeCall("onDemandPriceUpdates((address,bytes)[])", { updates: [] }),
       storeCall,
@@ -47,10 +47,14 @@ describe("extractExpectedBalanceChanges", () => {
       compareCall,
     ];
 
-    expect(extractExpectedBalanceChanges(innerCalls)).toEqual(EXPECTED);
+    expect(extractExpectedBalanceChanges(innerCalls)).toEqual({
+      deltas: EXPECTED_DELTAS,
+      startIndex: 1,
+      endIndex: 3,
+    });
   });
 
-  it("returns decoded deltas when the pair sits mid-multicall", () => {
+  it("returns decoded deltas and bracket indices when the pair sits mid-multicall", () => {
     const innerCalls: ParsedCallV2[] = [
       makeCall("increaseDebt(uint256)", { amount: 100n }),
       makeCall("addCollateral(address,uint256)", {
@@ -67,7 +71,11 @@ describe("extractExpectedBalanceChanges", () => {
       }),
     ];
 
-    expect(extractExpectedBalanceChanges(innerCalls)).toEqual(EXPECTED);
+    expect(extractExpectedBalanceChanges(innerCalls)).toEqual({
+      deltas: EXPECTED_DELTAS,
+      startIndex: 2,
+      endIndex: 4,
+    });
   });
 
   it("returns undefined when no pair is present", () => {

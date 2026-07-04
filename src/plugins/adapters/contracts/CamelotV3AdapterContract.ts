@@ -1,8 +1,13 @@
 import { iCamelotV3AdapterAbi } from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters } from "viem";
-import type { ConstructOptions } from "../../../sdk/index.js";
+import {
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import type { AddressMap, ConstructOptions } from "../../../sdk/index.js";
 import { MissingSerializedParamsError } from "../../../sdk/index.js";
 import { iCamelotV3RouterAbi } from "../abi/targetContractAbi.js";
+import { clampToLeftover } from "../balanceChanges.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -64,5 +69,25 @@ export class CamelotV3AdapterContract extends AbstractAdapterContract<
         token1: this.labelAddress(p.token1),
       })),
     };
+  }
+
+  protected override previewDecodedBalanceChanges(
+    balances: AddressMap<bigint>,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): AddressMap<bigint> {
+    switch (decoded.functionName) {
+      case "exactDiffInputSingle": {
+        const [params] = decoded.args;
+        return clampToLeftover(balances, params.tokenIn, params.leftoverAmount);
+      }
+      case "exactDiffInput": {
+        const [params] = decoded.args;
+        const tokenIn =
+          `0x${params.path.replace("0x", "").slice(0, 40)}` as Address;
+        return clampToLeftover(balances, tokenIn, params.leftoverAmount);
+      }
+      default:
+        return super.previewDecodedBalanceChanges(balances, decoded);
+    }
   }
 }

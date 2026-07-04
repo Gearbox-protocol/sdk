@@ -4,9 +4,14 @@ import {
   type DecodeFunctionDataReturnType,
   decodeAbiParameters,
 } from "viem";
-import type { ConstructOptions, ParsedCallV2 } from "../../../sdk/index.js";
+import type {
+  AddressMap,
+  ConstructOptions,
+  ParsedCallV2,
+} from "../../../sdk/index.js";
 import { formatBN, MissingSerializedParamsError } from "../../../sdk/index.js";
 import { iUniswapV2Router02Abi } from "../abi/targetContractAbi.js";
+import { clampToLeftover } from "../balanceChanges.js";
 import type {
   LegacyAdapterOperation,
   Transfers,
@@ -109,5 +114,19 @@ export class UniswapV2AdapterContract extends AbstractAdapterContract<
     transfers: Transfers,
   ): LegacyAdapterOperation {
     return { operation: "UniswapSwap", ...swapFromTransfers(transfers) };
+  }
+
+  protected override previewDecodedBalanceChanges(
+    balances: AddressMap<bigint>,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): AddressMap<bigint> {
+    switch (decoded.functionName) {
+      case "swapDiffTokensForTokens": {
+        const [leftoverAmount, , path] = decoded.args;
+        return clampToLeftover(balances, path[0], leftoverAmount);
+      }
+      default:
+        return super.previewDecodedBalanceChanges(balances, decoded);
+    }
   }
 }

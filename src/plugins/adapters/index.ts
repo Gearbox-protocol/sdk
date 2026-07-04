@@ -1,5 +1,6 @@
 export * from "./AdaptersPlugin.js";
 export * from "./abi/index.js";
+export * from "./balanceChanges.js";
 export * from "./contracts/index.js";
 export * from "./createAdapter.js";
 export * from "./legacyAdapterOperations.js";

@@ -1,13 +1,30 @@
-import { type Address, decodeAbiParameters } from "viem";
 import {
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import {
+  type AddressMap,
   type ConstructOptions,
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
+import { clampToLeftover } from "../balanceChanges.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
 // TODO: not yet mered into integrations-v3/main branch
-const abi = [] as const;
+// minimal ABI for the diff call emitted by the router's SecuritizeSwapWorker
+const abi = [
+  {
+    type: "function",
+    name: "buyExactInDiff",
+    inputs: [
+      { name: "leftoverAmount", type: "uint256", internalType: "uint256" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+] as const;
 type abi = typeof abi;
 
 const protocolAbi = [] as const;
@@ -58,5 +75,20 @@ export class SecuritizeSwapAdapterContract extends AbstractAdapterContract<
         ? this.labelAddress(this.#stableCoinToken)
         : undefined,
     };
+  }
+
+  protected override previewDecodedBalanceChanges(
+    balances: AddressMap<bigint>,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): AddressMap<bigint> {
+    switch (decoded.functionName) {
+      // buys dsToken with the stablecoin
+      case "buyExactInDiff": {
+        const [leftoverAmount] = decoded.args;
+        return clampToLeftover(balances, this.stableCoinToken, leftoverAmount);
+      }
+      default:
+        return super.previewDecodedBalanceChanges(balances, decoded);
+    }
   }
 }

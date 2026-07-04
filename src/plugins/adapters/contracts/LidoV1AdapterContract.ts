@@ -1,11 +1,17 @@
 import { iLidoV1AdapterAbi } from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters } from "viem";
 import {
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import {
+  type AddressMap,
   type ConstructOptions,
   MissingSerializedParamsError,
   type ParsedCallV2,
 } from "../../../sdk/index.js";
 import { lidoV1_WETHGatewayAbi } from "../abi/targetContractAbi.js";
+import { clampToLeftover } from "../balanceChanges.js";
 import type {
   LegacyAdapterOperation,
   Transfers,
@@ -79,5 +85,20 @@ export class LidoV1AdapterContract extends AbstractAdapterContract<
     transfers: Transfers,
   ): LegacyAdapterOperation {
     return { operation: "LidoSubmit", ...swapFromTransfers(transfers) };
+  }
+
+  protected override previewDecodedBalanceChanges(
+    balances: AddressMap<bigint>,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): AddressMap<bigint> {
+    switch (decoded.functionName) {
+      // the adapter targets the WETH gateway, so WETH is spent
+      case "submitDiff": {
+        const [leftoverAmount] = decoded.args;
+        return clampToLeftover(balances, this.weth, leftoverAmount);
+      }
+      default:
+        return super.previewDecodedBalanceChanges(balances, decoded);
+    }
   }
 }

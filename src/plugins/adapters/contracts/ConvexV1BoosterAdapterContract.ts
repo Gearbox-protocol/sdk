@@ -1,11 +1,17 @@
-import { iConvexV1BoosterAdapterAbi } from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters } from "viem";
 import {
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import {
+  type AddressMap,
   type ConstructOptions,
   MissingSerializedParamsError,
   type ParsedCallV2,
 } from "../../../sdk/index.js";
+import { iConvexV1BoosterAdapterAbi } from "../abi/iConvexV1BoosterAdapter.js";
 import { iBoosterAbi } from "../abi/targetContractAbi.js";
+import { clampToLeftover } from "../balanceChanges.js";
 import type {
   LegacyAdapterOperation,
   Transfers,
@@ -112,5 +118,36 @@ export class ConvexV1BoosterAdapterContract extends AbstractAdapterContract<
       return { operation: "ConvexDeposit", ...swap };
     }
     return super.classifyLegacyOperation(parsed, transfers);
+  }
+
+  protected override previewDecodedBalanceChanges(
+    balances: AddressMap<bigint>,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): AddressMap<bigint> {
+    switch (decoded.functionName) {
+      // deposit spends the curve LP token, withdraw spends the convex token
+      case "depositDiff": {
+        const [pid, leftoverAmount] = decoded.args;
+        const pool = this.#mustFindPool(Number(pid));
+        return clampToLeftover(balances, pool.curveToken, leftoverAmount);
+      }
+      case "withdrawDiff": {
+        const [pid, leftoverAmount] = decoded.args;
+        const pool = this.#mustFindPool(Number(pid));
+        return clampToLeftover(balances, pool.convexToken, leftoverAmount);
+      }
+      default:
+        return super.previewDecodedBalanceChanges(balances, decoded);
+    }
+  }
+
+  #mustFindPool(pid: number): ConvexV1BoosterPool {
+    const pool = this.supportedPools.find(p => p.pid === pid);
+    if (!pool) {
+      throw new Error(
+        `convex pool with pid ${pid} not found on booster adapter at ${this.address}`,
+      );
+    }
+    return pool;
   }
 }

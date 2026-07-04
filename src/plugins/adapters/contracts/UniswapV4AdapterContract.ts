@@ -2,9 +2,18 @@ import {
   iUniswapV4AdapterAbi,
   iUniswapV4GatewayAbi,
 } from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters } from "viem";
-import type { ConstructOptions, ParsedCallV2 } from "../../../sdk/index.js";
+import {
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import type {
+  AddressMap,
+  ConstructOptions,
+  ParsedCallV2,
+} from "../../../sdk/index.js";
 import { MissingSerializedParamsError } from "../../../sdk/index.js";
+import { clampToLeftover } from "../balanceChanges.js";
 import type {
   LegacyAdapterOperation,
   Transfers,
@@ -94,5 +103,23 @@ export class UniswapV4AdapterContract extends AbstractAdapterContract<
     transfers: Transfers,
   ): LegacyAdapterOperation {
     return { operation: "UniswapSwap", ...swapFromTransfers(transfers) };
+  }
+
+  protected override previewDecodedBalanceChanges(
+    balances: AddressMap<bigint>,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): AddressMap<bigint> {
+    switch (decoded.functionName) {
+      case "swapExactInputSingleDiff": {
+        const [poolKey, zeroForOne, leftoverAmount] = decoded.args;
+        return clampToLeftover(
+          balances,
+          zeroForOne ? poolKey.token0 : poolKey.token1,
+          leftoverAmount,
+        );
+      }
+      default:
+        return super.previewDecodedBalanceChanges(balances, decoded);
+    }
   }
 }

@@ -1,8 +1,13 @@
 import { iBalancerV3WrapperAdapterAbi } from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters } from "viem";
-import type { ConstructOptions } from "../../../sdk/index.js";
+import {
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import type { AddressMap, ConstructOptions } from "../../../sdk/index.js";
 import { MissingSerializedParamsError } from "../../../sdk/index.js";
 import { iBalancerV3WrapperAbi } from "../abi/targetContractAbi.js";
+import { clampToLeftover } from "../balanceChanges.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -48,5 +53,28 @@ export class BalancerV3WrapperAdapterContract extends AbstractAdapterContract<
         ? this.labelAddress(this.#balancerPoolToken)
         : undefined,
     };
+  }
+
+  protected override previewDecodedBalanceChanges(
+    balances: AddressMap<bigint>,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): AddressMap<bigint> {
+    switch (decoded.functionName) {
+      // mint spends the pool token, burn spends the wrapper (target contract)
+      case "mintDiff": {
+        const [leftoverAmount] = decoded.args;
+        return clampToLeftover(
+          balances,
+          this.balancerPoolToken,
+          leftoverAmount,
+        );
+      }
+      case "burnDiff": {
+        const [leftoverAmount] = decoded.args;
+        return clampToLeftover(balances, this.targetContract, leftoverAmount);
+      }
+      default:
+        return super.previewDecodedBalanceChanges(balances, decoded);
+    }
   }
 }

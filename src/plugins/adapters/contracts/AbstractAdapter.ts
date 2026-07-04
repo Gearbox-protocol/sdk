@@ -1,6 +1,7 @@
 import {
   type Abi,
   type Address,
+  type DecodeFunctionDataReturnType,
   decodeAbiParameters,
   decodeFunctionData,
   type Hex,
@@ -11,6 +12,7 @@ import {
   resolveProtocolCall,
 } from "../../../common-utils/utils/trace.js";
 import type {
+  AddressMap,
   ConstructOptions,
   ParsedCallV2,
   RelaxedBaseParams,
@@ -159,6 +161,49 @@ export class AbstractAdapterContract<
       }
       return undefined;
     }
+  }
+
+  /**
+   * Applies the balance changes implied by a router-generated diff-style
+   * adapter call to a map of credit-account token balances.
+   *
+   * @param balances - Token balances before the call. Not mutated.
+   * @param calldata - Raw ABI-encoded adapter calldata.
+   * @returns A new balances map with the call's changes applied.
+   * @throws When the calldata cannot be decoded or the adapter (or the
+   * specific function) has no balance-changes support.
+   */
+  public previewBalanceChanges(
+    balances: AddressMap<bigint>,
+    calldata: Hex,
+  ): AddressMap<bigint> {
+    let decoded: DecodeFunctionDataReturnType<abi>;
+    try {
+      decoded = decodeFunctionData({ abi: this.abi, data: calldata });
+    } catch (e) {
+      throw new Error(
+        `previewBalanceChanges: cannot decode selector ${calldata.slice(0, 10)} on ${this.contractType} adapter at ${this.address}`,
+        { cause: e },
+      );
+    }
+    return this.previewDecodedBalanceChanges(balances, decoded);
+  }
+
+  /**
+   * Typed hook for {@link previewBalanceChanges}: receives the viem-decoded
+   * adapter call, so overrides can switch on `decoded.functionName` and get
+   * fully-typed `decoded.args` without casts.
+   *
+   * @throws When the adapter (or the specific function) has no balance-changes
+   * support; protocol-specific subclasses override this method.
+   */
+  protected previewDecodedBalanceChanges(
+    _balances: AddressMap<bigint>,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): AddressMap<bigint> {
+    throw new Error(
+      `previewBalanceChanges is not supported for ${decoded.functionName} on ${this.contractType} adapter at ${this.address}`,
+    );
   }
 
   /**

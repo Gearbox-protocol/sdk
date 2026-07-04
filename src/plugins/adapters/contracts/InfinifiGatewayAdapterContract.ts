@@ -1,10 +1,16 @@
 import { iInfinifiGatewayAdapterAbi } from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters } from "viem";
 import {
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import {
+  type AddressMap,
   type ConstructOptions,
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
 import { iInfinifiGatewayAbi } from "../abi/targetContractAbi.js";
+import { clampToLeftover } from "../balanceChanges.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -80,5 +86,30 @@ export class InfinifiGatewayAdapterContract extends AbstractAdapterContract<
         this.labelAddress(t),
       ),
     };
+  }
+
+  protected override previewDecodedBalanceChanges(
+    balances: AddressMap<bigint>,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): AddressMap<bigint> {
+    switch (decoded.functionName) {
+      case "mintDiff": {
+        const [leftoverAmount] = decoded.args;
+        return clampToLeftover(balances, this.usdc, leftoverAmount);
+      }
+      // redeem, stake and lock all spend iUSD
+      case "redeemDiff":
+      case "stakeDiff":
+      case "createPositionDiff": {
+        const [leftoverAmount] = decoded.args;
+        return clampToLeftover(balances, this.iusd, leftoverAmount);
+      }
+      case "unstakeDiff": {
+        const [leftoverAmount] = decoded.args;
+        return clampToLeftover(balances, this.siusd, leftoverAmount);
+      }
+      default:
+        return super.previewDecodedBalanceChanges(balances, decoded);
+    }
   }
 }

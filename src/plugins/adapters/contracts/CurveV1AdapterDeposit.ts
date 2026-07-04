@@ -1,11 +1,17 @@
 import { iCurveV1AdapterAbi } from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters } from "viem";
 import {
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import {
+  type AddressMap,
   type ConstructOptions,
   MissingSerializedParamsError,
   type ParsedCallV2,
 } from "../../../sdk/index.js";
 import { iCurvePoolAbi } from "../abi/targetContractAbi.js";
+import { clampToLeftover, curveCoin } from "../balanceChanges.js";
 import type {
   LegacyAdapterOperation,
   Transfers,
@@ -116,5 +122,35 @@ export class CurveV1AdapterDeposit extends AbstractAdapterContract<
     throw new Error(
       `classifyLegacyOperation is not supported for legacy adapter: ${this.contractType}`,
     );
+  }
+
+  protected override previewDecodedBalanceChanges(
+    balances: AddressMap<bigint>,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): AddressMap<bigint> {
+    switch (decoded.functionName) {
+      case "exchange_diff": {
+        const [i, , leftoverAmount] = decoded.args;
+        return clampToLeftover(
+          balances,
+          curveCoin(this.tokens, i),
+          leftoverAmount,
+        );
+      }
+      case "add_diff_liquidity_one_coin": {
+        const [leftoverAmount, i] = decoded.args;
+        return clampToLeftover(
+          balances,
+          curveCoin(this.tokens, i),
+          leftoverAmount,
+        );
+      }
+      case "remove_diff_liquidity_one_coin": {
+        const [leftoverAmount] = decoded.args;
+        return clampToLeftover(balances, this.lpToken, leftoverAmount);
+      }
+      default:
+        return super.previewDecodedBalanceChanges(balances, decoded);
+    }
   }
 }

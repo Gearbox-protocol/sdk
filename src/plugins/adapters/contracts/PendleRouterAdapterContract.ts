@@ -1,10 +1,16 @@
 import { iPendleRouterAdapterAbi } from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters } from "viem";
 import {
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import {
+  type AddressMap,
   type ConstructOptions,
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
 import { iPendleRouterAbi } from "../abi/targetContractAbi.js";
+import { clampToLeftover } from "../balanceChanges.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -117,5 +123,70 @@ export class PendleRouterAdapterContract extends AbstractAdapterContract<
         status: p.status,
       })),
     };
+  }
+
+  protected override previewDecodedBalanceChanges(
+    balances: AddressMap<bigint>,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): AddressMap<bigint> {
+    switch (decoded.functionName) {
+      case "swapDiffTokenForPt":
+      case "addLiquiditySingleTokenDiff": {
+        const [, , , diffInput] = decoded.args;
+        return clampToLeftover(
+          balances,
+          diffInput.tokenIn,
+          diffInput.leftoverTokenIn,
+        );
+      }
+      case "swapDiffPtForToken": {
+        const [market, leftoverPt] = decoded.args;
+        const pt = this.#mustFindPendleToken(market, PendleTokenType.PT);
+        return clampToLeftover(balances, pt, leftoverPt);
+      }
+      case "removeLiquiditySingleTokenDiff": {
+        const [market, leftoverLp] = decoded.args;
+        const lp = this.#mustFindPendleToken(market, PendleTokenType.LP);
+        return clampToLeftover(balances, lp, leftoverLp);
+      }
+      case "redeemDiffPyToToken": {
+        // calldata only carries the YT address, and the YT→PT mapping is not
+        // part of the serialized params; recover the PT as the unique PT-type
+        // pair currently holding a balance
+        const candidates = this.allowedPairs.filter(
+          p =>
+            (p.pendleTokenType === undefined ||
+              p.pendleTokenType === PendleTokenType.PT) &&
+            (balances.get(p.pendleToken) ?? 0n) > 1n,
+        );
+        const ptTokens = new Set(
+          candidates.map(p => p.pendleToken.toLowerCase()),
+        );
+        if (ptTokens.size !== 1) {
+          throw new Error(
+            `cannot recover PT token for redeemDiffPyToToken on pendle adapter at ${this.address}: ${ptTokens.size} candidates`,
+          );
+        }
+        const [, leftoverPt] = decoded.args;
+        return clampToLeftover(balances, candidates[0].pendleToken, leftoverPt);
+      }
+      default:
+        return super.previewDecodedBalanceChanges(balances, decoded);
+    }
+  }
+
+  #mustFindPendleToken(market: Address, type: PendleTokenType): Address {
+    const marketLC = market.toLowerCase();
+    const pair = this.allowedPairs.find(
+      p =>
+        p.market.toLowerCase() === marketLC &&
+        (p.pendleTokenType === undefined || p.pendleTokenType === type),
+    );
+    if (!pair) {
+      throw new Error(
+        `pendle pair for market ${market} not found on adapter at ${this.address}`,
+      );
+    }
+    return pair.pendleToken;
   }
 }

@@ -2,11 +2,17 @@ import {
   iMidasRedemptionVaultAdapterAbi,
   iMidasRedemptionVaultGatewayAbi,
 } from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters } from "viem";
 import {
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import {
+  type AddressMap,
   type ConstructOptions,
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
+import { clampToLeftover } from "../balanceChanges.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -75,5 +81,21 @@ export class MidasRedemptionVaultAdapterContract extends AbstractAdapterContract
         phantomToken: this.labelAddress(t.phantomToken),
       })),
     };
+  }
+
+  protected override previewDecodedBalanceChanges(
+    balances: AddressMap<bigint>,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): AddressMap<bigint> {
+    switch (decoded.functionName) {
+      // redemption spends the mToken down to the leftover, tokenOut arg is
+      // the received token
+      case "redeemInstantDiff": {
+        const [, leftoverAmount] = decoded.args;
+        return clampToLeftover(balances, this.mToken, leftoverAmount);
+      }
+      default:
+        return super.previewDecodedBalanceChanges(balances, decoded);
+    }
   }
 }

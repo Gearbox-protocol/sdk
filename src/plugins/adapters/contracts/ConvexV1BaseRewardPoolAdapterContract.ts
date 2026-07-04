@@ -1,11 +1,18 @@
 import { iConvexV1BaseRewardPoolAdapterAbi } from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters, zeroAddress } from "viem";
 import {
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+  zeroAddress,
+} from "viem";
+import {
+  type AddressMap,
   type ConstructOptions,
   MissingSerializedParamsError,
   type ParsedCallV2,
 } from "../../../sdk/index.js";
 import { iBaseRewardPoolAbi } from "../abi/targetContractAbi.js";
+import { clampToLeftover, copyBalances } from "../balanceChanges.js";
 import type {
   LegacyAdapterOperation,
   Transfers,
@@ -146,5 +153,31 @@ export class ConvexV1BaseRewardPoolAdapterContract extends AbstractAdapterContra
       withdrawToken: swap.to,
       withdrawAmount: swap.toAmount,
     };
+  }
+
+  protected override previewDecodedBalanceChanges(
+    balances: AddressMap<bigint>,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): AddressMap<bigint> {
+    switch (decoded.functionName) {
+      case "stakeDiff": {
+        const [leftoverAmount] = decoded.args;
+        return clampToLeftover(balances, this.stakingToken, leftoverAmount);
+      }
+      case "withdrawDiff":
+      case "withdrawDiffAndUnwrap": {
+        const [leftoverAmount] = decoded.args;
+        return clampToLeftover(
+          balances,
+          this.stakedPhantomToken,
+          leftoverAmount,
+        );
+      }
+      // no accrued rewards on a freshly opened account
+      case "getReward":
+        return copyBalances(balances);
+      default:
+        return super.previewDecodedBalanceChanges(balances, decoded);
+    }
   }
 }

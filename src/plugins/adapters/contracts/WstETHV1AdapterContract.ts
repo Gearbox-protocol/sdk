@@ -1,11 +1,17 @@
 import { iwstEthv1AdapterAbi } from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters } from "viem";
 import {
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import {
+  type AddressMap,
   type ConstructOptions,
   MissingSerializedParamsError,
   type ParsedCallV2,
 } from "../../../sdk/index.js";
 import { iwstETHAbi } from "../abi/targetContractAbi.js";
+import { clampToLeftover } from "../balanceChanges.js";
 import type {
   LegacyAdapterOperation,
   Transfers,
@@ -67,5 +73,24 @@ export class WstETHV1AdapterContract extends AbstractAdapterContract<
       return { operation: "WstETHUnwrap", ...swapFromTransfers(transfers) };
     }
     return super.classifyLegacyOperation(parsed, transfers);
+  }
+
+  protected override previewDecodedBalanceChanges(
+    balances: AddressMap<bigint>,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): AddressMap<bigint> {
+    switch (decoded.functionName) {
+      case "wrapDiff": {
+        const [leftoverAmount] = decoded.args;
+        return clampToLeftover(balances, this.stETH, leftoverAmount);
+      }
+      // wstETH is the adapter's target contract
+      case "unwrapDiff": {
+        const [leftoverAmount] = decoded.args;
+        return clampToLeftover(balances, this.targetContract, leftoverAmount);
+      }
+      default:
+        return super.previewDecodedBalanceChanges(balances, decoded);
+    }
   }
 }

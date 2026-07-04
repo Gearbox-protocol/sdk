@@ -1,4 +1,8 @@
-import type { DecodeFunctionDataReturnType } from "viem";
+import {
+  type DecodeFunctionDataReturnType,
+  decodeFunctionData,
+  type Hex,
+} from "viem";
 
 import {
   iCreditFacadeMulticallV310Abi,
@@ -7,6 +11,7 @@ import {
 import { iPausableAbi } from "../../../abi/iPausable.js";
 import type { BaseContractArgs, ConstructOptions } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
+import type { MultiCall } from "../../types/index.js";
 
 const abi = [
   ...iCreditFacadeV310Abi,
@@ -27,6 +32,37 @@ export class CreditFacadeV310BaseContract extends BaseContract<abi> {
     args: Omit<BaseContractArgs<abi>, "abi">,
   ) {
     super(options, { ...args, abi });
+  }
+
+  /**
+   * Decodes entry-point calldata with the facade ABI and returns the untouched
+   * inner multicall structs (targets with still-ABI-encoded `callData`).
+   *
+   * Unlike {@link ChainContractsRegister.parseMultiCallV2}, the inner calls are
+   * not decoded, so callers can re-decode them with a specific contract's ABI.
+   *
+   * @throws When the calldata cannot be decoded or the function has no inner
+   * multicall argument.
+   */
+  public extractRawInnerCalls(calldata: Hex): MultiCall[] {
+    const decoded = decodeFunctionData({ abi: this.abi, data: calldata });
+    switch (decoded.functionName) {
+      case "openCreditAccount":
+      case "closeCreditAccount":
+      case "botMulticall":
+      case "multicall": {
+        const [, calls] = decoded.args;
+        return [...calls];
+      }
+      case "liquidateCreditAccount": {
+        const [, , calls] = decoded.args;
+        return [...calls];
+      }
+      default:
+        throw new Error(
+          `function ${decoded.functionName} on ${this.name} has no inner multicall`,
+        );
+    }
   }
 
   protected override parseFunctionParamsV2(

@@ -1,10 +1,16 @@
 import { iMidasIssuanceVaultAdapterAbi } from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters } from "viem";
 import {
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import {
+  type AddressMap,
   type ConstructOptions,
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
 import { iMidasIssuanceVaultAbi } from "../abi/targetContractAbi.js";
+import { clampToLeftover } from "../balanceChanges.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -67,5 +73,19 @@ export class MidasIssuanceVaultAdapterContract extends AbstractAdapterContract<
       referrerId: this.#referrerId,
       allowedTokens: this.#allowedTokens?.map(t => this.labelAddress(t)),
     };
+  }
+
+  protected override previewDecodedBalanceChanges(
+    balances: AddressMap<bigint>,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): AddressMap<bigint> {
+    switch (decoded.functionName) {
+      case "depositInstantDiff": {
+        const [tokenIn, leftoverAmount] = decoded.args;
+        return clampToLeftover(balances, tokenIn, leftoverAmount);
+      }
+      default:
+        return super.previewDecodedBalanceChanges(balances, decoded);
+    }
   }
 }

@@ -2,19 +2,40 @@ import type { Address } from "viem";
 import type { Asset, ParsedCallV2 } from "../../sdk/index.js";
 
 /**
+ * Balance changes declared by a router-generated
+ * `storeExpectedBalances`/`compareBalances` pair, along with the positions of
+ * the bracketing calls in the inner multicall.
+ */
+export interface ExpectedBalanceChanges {
+  /**
+   * Declared minimal balance changes (relative to balances at
+   * `storeExpectedBalances` time).
+   */
+  deltas: Asset[];
+  /**
+   * Index of the `storeExpectedBalances` call.
+   */
+  startIndex: number;
+  /**
+   * Index of the `compareBalances` call.
+   */
+  endIndex: number;
+}
+
+/**
  * Recovers the potential balance changes declared by a router-generated
  * `storeExpectedBalances`/`compareBalances` pair inside a credit-facade
  * multicall
  *
  * @param innerCalls - Raw (already-decoded) inner multicall calls.
- * @returns The declared balance changes, or `undefined` when no
- * `storeExpectedBalances`/`compareBalances` pair is present.
+ * @returns The declared balance changes and bracket indices, or `undefined`
+ * when no `storeExpectedBalances`/`compareBalances` pair is present.
  * @throws When the multicall contains a malformed pair (duplicates, one call
  * without the other, or `compareBalances` before `storeExpectedBalances`).
  */
 export function extractExpectedBalanceChanges(
   innerCalls: ParsedCallV2[],
-): Asset[] | undefined {
+): ExpectedBalanceChanges | undefined {
   const storeIndices: number[] = [];
   const compareIndices: number[] = [];
   for (let i = 0; i < innerCalls.length; i++) {
@@ -50,7 +71,14 @@ export function extractExpectedBalanceChanges(
     );
   }
 
-  return balanceDeltas.map(({ token, amount }) => ({ token, balance: amount }));
+  return {
+    deltas: balanceDeltas.map(({ token, amount }) => ({
+      token,
+      balance: amount,
+    })),
+    startIndex: storeIndices[0],
+    endIndex: compareIndices[0],
+  };
 }
 
 function functionName(call: ParsedCallV2): string {

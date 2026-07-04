@@ -2,6 +2,8 @@ import {
   type Address,
   type DecodeFunctionDataReturnType,
   decodeAbiParameters,
+  decodeFunctionData,
+  type Hex,
 } from "viem";
 import { iSecuritizeRWAFactoryAbi } from "../../../../abi/rwa/iSecuritizeRWAFactory.js";
 import type { GetOpenAccountRequirementsProps } from "../../../accounts/types.js";
@@ -73,6 +75,32 @@ export class SecuritizeRWAFactory
       registrar: t.registrar,
       operators: [...t.operators],
     }));
+  }
+
+  /**
+   * Decodes entry-point calldata with the factory ABI and returns the
+   * untouched inner multicall structs (targets with still-ABI-encoded
+   * `callData`).
+   *
+   * Unlike {@link ChainContractsRegister.parseMultiCallV2}, the inner calls are
+   * not decoded, so callers can re-decode them with a specific contract's ABI.
+   *
+   * @throws When the calldata cannot be decoded or the function has no inner
+   * multicall argument.
+   */
+  public extractRawInnerCalls(calldata: Hex): MultiCall[] {
+    const decoded = decodeFunctionData({ abi: this.abi, data: calldata });
+    switch (decoded.functionName) {
+      case "openCreditAccount":
+      case "multicall": {
+        const [, calls] = decoded.args;
+        return [...calls];
+      }
+      default:
+        throw new Error(
+          `function ${decoded.functionName} on ${this.name} has no inner multicall`,
+        );
+    }
   }
 
   protected override parseFunctionParamsV2(
