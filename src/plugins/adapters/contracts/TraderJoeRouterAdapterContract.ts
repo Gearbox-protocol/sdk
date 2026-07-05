@@ -7,7 +7,7 @@ import {
 import type { AddressMap, ConstructOptions } from "../../../sdk/index.js";
 import { MissingSerializedParamsError } from "../../../sdk/index.js";
 import { iTraderJoeRouterAbi } from "../abi/targetContractAbi.js";
-import { clampToLeftover } from "../balanceChanges.js";
+import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -86,17 +86,17 @@ export class TraderJoeRouterAdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override previewDecodedBalanceChanges(
-    balances: AddressMap<bigint>,
+  protected override decodeDiffLeftovers(
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): AddressMap<bigint> {
+    balances: AddressMap<bigint>,
+  ): DiffLeftover[] {
     switch (decoded.functionName) {
       case "swapDiffTokensForTokens": {
         const [leftoverAmount, , path] = decoded.args;
-        return clampToLeftover(balances, path.tokenPath[0], leftoverAmount);
+        return [{ tokenIn: path.tokenPath[0], leftoverAmount }];
       }
       default:
-        return super.previewDecodedBalanceChanges(balances, decoded);
+        return super.decodeDiffLeftovers(decoded, balances);
     }
   }
 }

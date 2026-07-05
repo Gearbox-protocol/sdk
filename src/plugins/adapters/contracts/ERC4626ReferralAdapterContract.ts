@@ -11,12 +11,12 @@ import {
   type ParsedCallV2,
 } from "../../../sdk/index.js";
 import { iERC4626ReferralAbi } from "../abi/targetContractAbi.js";
-import { clampToLeftover } from "../balanceChanges.js";
 import type {
   LegacyAdapterOperation,
   Transfers,
 } from "../legacyAdapterOperations.js";
 import { fnSigToName, swapFromTransfers } from "../transferHelpers.js";
+import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -85,21 +85,21 @@ export class ERC4626ReferralAdapterContract extends AbstractAdapterContract<
     return super.classifyLegacyOperation(parsed, transfers);
   }
 
-  protected override previewDecodedBalanceChanges(
-    balances: AddressMap<bigint>,
+  protected override decodeDiffLeftovers(
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): AddressMap<bigint> {
+    balances: AddressMap<bigint>,
+  ): DiffLeftover[] {
     switch (decoded.functionName) {
       case "depositDiff": {
         const [leftoverAmount] = decoded.args;
-        return clampToLeftover(balances, this.asset, leftoverAmount);
+        return [{ tokenIn: this.asset, leftoverAmount }];
       }
       case "redeemDiff": {
         const [leftoverAmount] = decoded.args;
-        return clampToLeftover(balances, this.targetContract, leftoverAmount);
+        return [{ tokenIn: this.targetContract, leftoverAmount }];
       }
       default:
-        return super.previewDecodedBalanceChanges(balances, decoded);
+        return super.decodeDiffLeftovers(decoded, balances);
     }
   }
 }

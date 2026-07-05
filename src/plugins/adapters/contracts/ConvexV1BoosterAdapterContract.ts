@@ -11,12 +11,12 @@ import {
 } from "../../../sdk/index.js";
 import { iConvexV1BoosterAdapterAbi } from "../abi/iConvexV1BoosterAdapter.js";
 import { iBoosterAbi } from "../abi/targetContractAbi.js";
-import { clampToLeftover } from "../balanceChanges.js";
 import type {
   LegacyAdapterOperation,
   Transfers,
 } from "../legacyAdapterOperations.js";
 import { fnSigToName, swapFromTransfers } from "../transferHelpers.js";
+import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -120,24 +120,24 @@ export class ConvexV1BoosterAdapterContract extends AbstractAdapterContract<
     return super.classifyLegacyOperation(parsed, transfers);
   }
 
-  protected override previewDecodedBalanceChanges(
-    balances: AddressMap<bigint>,
+  protected override decodeDiffLeftovers(
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): AddressMap<bigint> {
+    balances: AddressMap<bigint>,
+  ): DiffLeftover[] {
     switch (decoded.functionName) {
       // deposit spends the curve LP token, withdraw spends the convex token
       case "depositDiff": {
         const [pid, leftoverAmount] = decoded.args;
         const pool = this.#mustFindPool(Number(pid));
-        return clampToLeftover(balances, pool.curveToken, leftoverAmount);
+        return [{ tokenIn: pool.curveToken, leftoverAmount }];
       }
       case "withdrawDiff": {
         const [pid, leftoverAmount] = decoded.args;
         const pool = this.#mustFindPool(Number(pid));
-        return clampToLeftover(balances, pool.convexToken, leftoverAmount);
+        return [{ tokenIn: pool.convexToken, leftoverAmount }];
       }
       default:
-        return super.previewDecodedBalanceChanges(balances, decoded);
+        return super.decodeDiffLeftovers(decoded, balances);
     }
   }
 

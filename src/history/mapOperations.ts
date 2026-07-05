@@ -81,6 +81,13 @@ function mapInnerOperation<TInner>(
       return visitor.WithdrawCollateral(op, ctx);
     case "UpdateQuota":
       return visitor.UpdateQuota(op, ctx);
+    // The history classifier never emits other InnerOperation variants
+    // (e.g. StoreExpectedBalances/CompareBalances, which it drops), so this
+    // guards against silently returning undefined if that ever changes.
+    default:
+      throw new Error(
+        `unexpected inner operation: ${(op as InnerOperation).operation}`,
+      );
   }
 }
 

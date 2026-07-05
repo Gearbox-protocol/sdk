@@ -11,12 +11,12 @@ import {
   type ParsedCallV2,
 } from "../../../sdk/index.js";
 import { lidoV1_WETHGatewayAbi } from "../abi/targetContractAbi.js";
-import { clampToLeftover } from "../balanceChanges.js";
 import type {
   LegacyAdapterOperation,
   Transfers,
 } from "../legacyAdapterOperations.js";
 import { swapFromTransfers } from "../transferHelpers.js";
+import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -87,18 +87,18 @@ export class LidoV1AdapterContract extends AbstractAdapterContract<
     return { operation: "LidoSubmit", ...swapFromTransfers(transfers) };
   }
 
-  protected override previewDecodedBalanceChanges(
-    balances: AddressMap<bigint>,
+  protected override decodeDiffLeftovers(
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): AddressMap<bigint> {
+    balances: AddressMap<bigint>,
+  ): DiffLeftover[] {
     switch (decoded.functionName) {
       // the adapter targets the WETH gateway, so WETH is spent
       case "submitDiff": {
         const [leftoverAmount] = decoded.args;
-        return clampToLeftover(balances, this.weth, leftoverAmount);
+        return [{ tokenIn: this.weth, leftoverAmount }];
       }
       default:
-        return super.previewDecodedBalanceChanges(balances, decoded);
+        return super.decodeDiffLeftovers(decoded, balances);
     }
   }
 }

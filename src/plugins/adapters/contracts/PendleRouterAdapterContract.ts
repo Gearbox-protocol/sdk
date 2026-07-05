@@ -10,7 +10,7 @@ import {
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
 import { iPendleRouterAbi } from "../abi/targetContractAbi.js";
-import { clampToLeftover } from "../balanceChanges.js";
+import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -125,29 +125,30 @@ export class PendleRouterAdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override previewDecodedBalanceChanges(
-    balances: AddressMap<bigint>,
+  protected override decodeDiffLeftovers(
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): AddressMap<bigint> {
+    balances: AddressMap<bigint>,
+  ): DiffLeftover[] {
     switch (decoded.functionName) {
       case "swapDiffTokenForPt":
       case "addLiquiditySingleTokenDiff": {
         const [, , , diffInput] = decoded.args;
-        return clampToLeftover(
-          balances,
-          diffInput.tokenIn,
-          diffInput.leftoverTokenIn,
-        );
+        return [
+          {
+            tokenIn: diffInput.tokenIn,
+            leftoverAmount: diffInput.leftoverTokenIn,
+          },
+        ];
       }
       case "swapDiffPtForToken": {
         const [market, leftoverPt] = decoded.args;
         const pt = this.#mustFindPendleToken(market, PendleTokenType.PT);
-        return clampToLeftover(balances, pt, leftoverPt);
+        return [{ tokenIn: pt, leftoverAmount: leftoverPt }];
       }
       case "removeLiquiditySingleTokenDiff": {
         const [market, leftoverLp] = decoded.args;
         const lp = this.#mustFindPendleToken(market, PendleTokenType.LP);
-        return clampToLeftover(balances, lp, leftoverLp);
+        return [{ tokenIn: lp, leftoverAmount: leftoverLp }];
       }
       case "redeemDiffPyToToken": {
         // calldata only carries the YT address, and the YT→PT mapping is not
@@ -168,10 +169,15 @@ export class PendleRouterAdapterContract extends AbstractAdapterContract<
           );
         }
         const [, leftoverPt] = decoded.args;
-        return clampToLeftover(balances, candidates[0].pendleToken, leftoverPt);
+        return [
+          {
+            tokenIn: candidates[0].pendleToken,
+            leftoverAmount: leftoverPt,
+          },
+        ];
       }
       default:
-        return super.previewDecodedBalanceChanges(balances, decoded);
+        return super.decodeDiffLeftovers(decoded, balances);
     }
   }
 

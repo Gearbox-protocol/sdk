@@ -12,7 +12,7 @@ import {
   type ConstructOptions,
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
-import { clampToLeftover } from "../balanceChanges.js";
+import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -78,21 +78,21 @@ export class UpshiftVaultAdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override previewDecodedBalanceChanges(
-    balances: AddressMap<bigint>,
+  protected override decodeDiffLeftovers(
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): AddressMap<bigint> {
+    balances: AddressMap<bigint>,
+  ): DiffLeftover[] {
     switch (decoded.functionName) {
       case "depositDiff": {
         const [leftoverAmount] = decoded.args;
-        return clampToLeftover(balances, this.asset, leftoverAmount);
+        return [{ tokenIn: this.asset, leftoverAmount }];
       }
       case "redeemDiff": {
         const [leftoverAmount] = decoded.args;
-        return clampToLeftover(balances, this.vault, leftoverAmount);
+        return [{ tokenIn: this.vault, leftoverAmount }];
       }
       default:
-        return super.previewDecodedBalanceChanges(balances, decoded);
+        return super.decodeDiffLeftovers(decoded, balances);
     }
   }
 }

@@ -211,6 +211,7 @@ export class ChainContractsRegister {
       label: this.labelAddress(address, true),
       version: 0,
       functionName: `unknown function ${selector}`,
+      calldata,
       rawArgs: { _data: data },
     };
   }

@@ -13,12 +13,12 @@ import type {
   ParsedCallV2,
 } from "../../../sdk/index.js";
 import { MissingSerializedParamsError } from "../../../sdk/index.js";
-import { clampToLeftover } from "../balanceChanges.js";
 import type {
   LegacyAdapterOperation,
   Transfers,
 } from "../legacyAdapterOperations.js";
 import { swapFromTransfers } from "../transferHelpers.js";
+import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -105,21 +105,22 @@ export class UniswapV4AdapterContract extends AbstractAdapterContract<
     return { operation: "UniswapSwap", ...swapFromTransfers(transfers) };
   }
 
-  protected override previewDecodedBalanceChanges(
-    balances: AddressMap<bigint>,
+  protected override decodeDiffLeftovers(
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): AddressMap<bigint> {
+    balances: AddressMap<bigint>,
+  ): DiffLeftover[] {
     switch (decoded.functionName) {
       case "swapExactInputSingleDiff": {
         const [poolKey, zeroForOne, leftoverAmount] = decoded.args;
-        return clampToLeftover(
-          balances,
-          zeroForOne ? poolKey.token0 : poolKey.token1,
-          leftoverAmount,
-        );
+        return [
+          {
+            tokenIn: zeroForOne ? poolKey.token0 : poolKey.token1,
+            leftoverAmount,
+          },
+        ];
       }
       default:
-        return super.previewDecodedBalanceChanges(balances, decoded);
+        return super.decodeDiffLeftovers(decoded, balances);
     }
   }
 }

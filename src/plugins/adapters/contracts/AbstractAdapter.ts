@@ -13,6 +13,7 @@ import {
 } from "../../../common-utils/utils/trace.js";
 import type {
   AddressMap,
+  AssetsMap,
   ConstructOptions,
   ParsedCallV2,
   RelaxedBaseParams,
@@ -32,6 +33,7 @@ import type {
   AdapterContractStateHuman,
   AdapterContractType,
   AdapterProtocolOperation,
+  DiffLeftover,
 } from "../types.js";
 
 export interface ConcreteAdapterContractOptions {
@@ -167,16 +169,12 @@ export class AbstractAdapterContract<
    * Applies the balance changes implied by a router-generated diff-style
    * adapter call to a map of credit-account token balances.
    *
-   * @param balances - Token balances before the call. Not mutated.
+   * @param balances - Token balances before the call. Mutated in place.
    * @param calldata - Raw ABI-encoded adapter calldata.
-   * @returns A new balances map with the call's changes applied.
    * @throws When the calldata cannot be decoded or the adapter (or the
    * specific function) has no balance-changes support.
    */
-  public previewBalanceChanges(
-    balances: AddressMap<bigint>,
-    calldata: Hex,
-  ): AddressMap<bigint> {
+  public previewBalanceChanges(balances: AssetsMap, calldata: Hex): void {
     let decoded: DecodeFunctionDataReturnType<abi>;
     try {
       decoded = decodeFunctionData({ abi: this.abi, data: calldata });
@@ -186,21 +184,23 @@ export class AbstractAdapterContract<
         { cause: e },
       );
     }
-    return this.previewDecodedBalanceChanges(balances, decoded);
+    const leftovers = this.decodeDiffLeftovers(decoded, balances);
+    for (const { tokenIn, leftoverAmount } of leftovers) {
+      balances.upsert(tokenIn, leftoverAmount);
+    }
   }
 
   /**
-   * Typed hook for {@link previewBalanceChanges}: receives the viem-decoded
-   * adapter call, so overrides can switch on `decoded.functionName` and get
-   * fully-typed `decoded.args` without casts.
+   * Resolves which tokens the diff-style call spends down to which leftovers.
    *
-   * @throws When the adapter (or the specific function) has no balance-changes
-   * support; protocol-specific subclasses override this method.
+   * @param decoded - The viem-decoded adapter call
+   * @param _balances - Token balances before the call
+   * @throws When the adapter (or the specific function) has no balance-changes support
    */
-  protected previewDecodedBalanceChanges(
-    _balances: AddressMap<bigint>,
+  protected decodeDiffLeftovers(
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): AddressMap<bigint> {
+    _balances: AddressMap<bigint>,
+  ): DiffLeftover[] {
     throw new Error(
       `previewBalanceChanges is not supported for ${decoded.functionName} on ${this.contractType} adapter at ${this.address}`,
     );

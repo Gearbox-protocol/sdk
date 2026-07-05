@@ -108,6 +108,7 @@ function makeParsed(
     contractType: "TEST",
     version: 310,
     functionName,
+    calldata: "0x",
     rawArgs,
   };
 }

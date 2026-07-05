@@ -363,6 +363,7 @@ export class BaseContract<abi extends Abi | readonly unknown[]>
       const functionName = getFunctionSignature(this.abi, calldata);
       return this.wrapParseCallV2(
         functionName,
+        calldata,
         this.parseFunctionParamsV2(decoded, strict),
       );
     } catch (e) {
@@ -376,7 +377,7 @@ export class BaseContract<abi extends Abi | readonly unknown[]>
       this.logger?.warn(e);
       const selector = calldata.slice(0, 10) as Hex;
       const data = `0x${calldata.slice(10)}` as Hex;
-      return this.wrapParseCallV2(`unknown function ${selector}`, {
+      return this.wrapParseCallV2(`unknown function ${selector}`, calldata, {
         _data: data,
       });
     }
@@ -396,6 +397,7 @@ export class BaseContract<abi extends Abi | readonly unknown[]>
 
   protected wrapParseCallV2(
     functionName: string,
+    calldata: Hex,
     rawArgs: Record<string, unknown>,
   ): ParsedCallV2 {
     return {
@@ -405,6 +407,7 @@ export class BaseContract<abi extends Abi | readonly unknown[]>
       label: this.labelAddress(this.address, true),
       version: this.version,
       functionName,
+      calldata,
       rawArgs,
     };
   }

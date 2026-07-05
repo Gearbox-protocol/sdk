@@ -106,6 +106,7 @@ export function classifyMulticallOperations(
         label: call.label,
         adapterFunctionName: call.functionName,
         adapterArgs: call.rawArgs,
+        calldata: call.calldata,
         protocol,
         transfers,
         legacy,
@@ -146,6 +147,7 @@ export function classifyMulticallOperations(
       label: call.label,
       adapterFunctionName: call.functionName,
       adapterArgs: call.rawArgs,
+      calldata: call.calldata,
       // Unknown adapter (non-strict): we have no ABI to decode the protocol
       // call, so `protocol` is left absent rather than filled with placeholders.
       protocol: undefined,

@@ -10,7 +10,7 @@ import {
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
 import { iFluidDexAbi } from "../abi/targetContractAbi.js";
-import { clampToLeftover } from "../balanceChanges.js";
+import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -64,21 +64,22 @@ export class FluidDexAdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override previewDecodedBalanceChanges(
-    balances: AddressMap<bigint>,
+  protected override decodeDiffLeftovers(
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): AddressMap<bigint> {
+    balances: AddressMap<bigint>,
+  ): DiffLeftover[] {
     switch (decoded.functionName) {
       case "swapInDiff": {
         const [swap0to1, leftoverAmount] = decoded.args;
-        return clampToLeftover(
-          balances,
-          swap0to1 ? this.token0 : this.token1,
-          leftoverAmount,
-        );
+        return [
+          {
+            tokenIn: swap0to1 ? this.token0 : this.token1,
+            leftoverAmount,
+          },
+        ];
       }
       default:
-        return super.previewDecodedBalanceChanges(balances, decoded);
+        return super.decodeDiffLeftovers(decoded, balances);
     }
   }
 }

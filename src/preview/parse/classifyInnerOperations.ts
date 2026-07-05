@@ -44,6 +44,7 @@ export function classifyInnerOperations(
         label: call.label,
         adapterFunctionName: call.functionName,
         adapterArgs: call.rawArgs,
+        calldata: call.calldata,
       });
       continue;
     }
@@ -104,6 +105,21 @@ function classifyFacadeInnerCall(
         token: rawArgs.token as Address,
         change: rawArgs.quotaChange as bigint,
       };
+    case "storeExpectedBalances": {
+      const balanceDeltas = rawArgs.balanceDeltas as Array<{
+        token: Address;
+        amount: bigint;
+      }>;
+      return {
+        operation: "StoreExpectedBalances",
+        deltas: balanceDeltas.map(({ token, amount }) => ({
+          token,
+          balance: amount,
+        })),
+      };
+    }
+    case "compareBalances":
+      return { operation: "CompareBalances" };
     default:
       return null;
   }

@@ -12,7 +12,7 @@ import {
   type ConstructOptions,
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
-import { clampToLeftover } from "../balanceChanges.js";
+import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -83,19 +83,19 @@ export class MidasRedemptionVaultAdapterContract extends AbstractAdapterContract
     };
   }
 
-  protected override previewDecodedBalanceChanges(
-    balances: AddressMap<bigint>,
+  protected override decodeDiffLeftovers(
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): AddressMap<bigint> {
+    balances: AddressMap<bigint>,
+  ): DiffLeftover[] {
     switch (decoded.functionName) {
       // redemption spends the mToken down to the leftover, tokenOut arg is
       // the received token
       case "redeemInstantDiff": {
         const [, leftoverAmount] = decoded.args;
-        return clampToLeftover(balances, this.mToken, leftoverAmount);
+        return [{ tokenIn: this.mToken, leftoverAmount }];
       }
       default:
-        return super.previewDecodedBalanceChanges(balances, decoded);
+        return super.decodeDiffLeftovers(decoded, balances);
     }
   }
 }

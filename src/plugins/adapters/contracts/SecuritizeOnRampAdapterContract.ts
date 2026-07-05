@@ -11,7 +11,7 @@ import {
 import { iBaseOnRampAbi } from "../abi/securitize/iBaseOnRamp.js";
 import { iSecuritizeOnRampAbi } from "../abi/securitize/iSecuritizeOnRamp.js";
 import { iSecuritizeOnRampAdapterAbi } from "../abi/securitize/iSecuritizeOnRampAdapter.js";
-import { clampToLeftover } from "../balanceChanges.js";
+import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -70,18 +70,18 @@ export class SecuritizeOnRampAdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override previewDecodedBalanceChanges(
-    balances: AddressMap<bigint>,
+  protected override decodeDiffLeftovers(
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): AddressMap<bigint> {
+    balances: AddressMap<bigint>,
+  ): DiffLeftover[] {
     switch (decoded.functionName) {
       // swaps the liquidity token into dsToken
       case "swapDiff": {
         const [leftoverAmount] = decoded.args;
-        return clampToLeftover(balances, this.liquidityToken, leftoverAmount);
+        return [{ tokenIn: this.liquidityToken, leftoverAmount }];
       }
       default:
-        return super.previewDecodedBalanceChanges(balances, decoded);
+        return super.decodeDiffLeftovers(decoded, balances);
     }
   }
 }

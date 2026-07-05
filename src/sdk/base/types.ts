@@ -434,6 +434,10 @@ export interface ParsedCallV2 {
    */
   functionName: string;
   /**
+   * Raw ABI-encoded calldata this call was parsed from.
+   **/
+  calldata: Hex;
+  /**
    * Named arguments with their original types (bigint, Address, etc.).
    **/
   rawArgs: Record<string, unknown>;

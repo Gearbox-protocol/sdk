@@ -46,6 +46,7 @@ describe("BaseContract.parseFunctionDataV2", () => {
 
     expect(contract.parseFunctionDataV2(calldata)).toEqual({
       functionName: "doStuff(uint256,address)",
+      calldata,
       rawArgs: { amount: 42n, token: TOKEN_ADDR },
       chainId: 1,
       target: CONTRACT_ADDR,
@@ -64,6 +65,7 @@ describe("BaseContract.parseFunctionDataV2", () => {
 
     expect(contract.parseFunctionDataV2(calldata, true)).toEqual({
       functionName: "doStuff(uint256,address)",
+      calldata,
       rawArgs: { amount: 100n, token: TOKEN_ADDR },
       chainId: 1,
       target: CONTRACT_ADDR,
@@ -79,6 +81,7 @@ describe("BaseContract.parseFunctionDataV2", () => {
 
     expect(contract.parseFunctionDataV2(calldata)).toEqual({
       functionName: "unknown function 0xdeadbeef",
+      calldata,
       rawArgs: {
         _data:
           "0x0000000000000000000000000000000000000000000000000000000000000001",
@@ -108,6 +111,7 @@ describe("BaseContract.parseFunctionDataV2", () => {
 
     expect(contract.parseFunctionDataV2(calldata)).toEqual({
       functionName: "noArgs()",
+      calldata,
       rawArgs: {},
       chainId: 1,
       target: CONTRACT_ADDR,

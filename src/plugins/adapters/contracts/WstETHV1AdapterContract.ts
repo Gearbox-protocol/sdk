@@ -11,12 +11,12 @@ import {
   type ParsedCallV2,
 } from "../../../sdk/index.js";
 import { iwstETHAbi } from "../abi/targetContractAbi.js";
-import { clampToLeftover } from "../balanceChanges.js";
 import type {
   LegacyAdapterOperation,
   Transfers,
 } from "../legacyAdapterOperations.js";
 import { swapFromTransfers } from "../transferHelpers.js";
+import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -75,22 +75,22 @@ export class WstETHV1AdapterContract extends AbstractAdapterContract<
     return super.classifyLegacyOperation(parsed, transfers);
   }
 
-  protected override previewDecodedBalanceChanges(
-    balances: AddressMap<bigint>,
+  protected override decodeDiffLeftovers(
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): AddressMap<bigint> {
+    balances: AddressMap<bigint>,
+  ): DiffLeftover[] {
     switch (decoded.functionName) {
       case "wrapDiff": {
         const [leftoverAmount] = decoded.args;
-        return clampToLeftover(balances, this.stETH, leftoverAmount);
+        return [{ tokenIn: this.stETH, leftoverAmount }];
       }
       // wstETH is the adapter's target contract
       case "unwrapDiff": {
         const [leftoverAmount] = decoded.args;
-        return clampToLeftover(balances, this.targetContract, leftoverAmount);
+        return [{ tokenIn: this.targetContract, leftoverAmount }];
       }
       default:
-        return super.previewDecodedBalanceChanges(balances, decoded);
+        return super.decodeDiffLeftovers(decoded, balances);
     }
   }
 }

@@ -1,4 +1,4 @@
-import type { Address } from "viem";
+import type { Address, Hex } from "viem";
 import type { AdapterProtocolOperation } from "../../plugins/adapters/index.js";
 
 /**
@@ -45,6 +45,10 @@ export interface AdapterOperationBase {
    * Arguments of adapter contract
    */
   adapterArgs: Record<string, unknown>;
+  /**
+   * Raw ABI-encoded adapter calldata
+   */
+  calldata: Hex;
 }
 
 /**

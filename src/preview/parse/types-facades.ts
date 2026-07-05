@@ -1,5 +1,6 @@
 import type { Address, Hex } from "viem";
 
+import type { Asset } from "../../sdk/index.js";
 import type { AdapterOperation } from "./types-adapters.js";
 
 /**
@@ -54,6 +55,29 @@ export interface UpdateQuotaOp {
 }
 
 /**
+ * Router-generated slippage-control call that declares expected minimal
+ * balance changes for the adapter calls that follow, up to the matching
+ * {@link CompareBalancesOp}.
+ */
+export interface StoreExpectedBalancesOp {
+  operation: "StoreExpectedBalances";
+  /**
+   * Declared minimal balance changes (relative to balances at
+   * `storeExpectedBalances` time).
+   */
+  deltas: Asset[];
+}
+
+/**
+ * Router-generated slippage-control call that validates the balance changes
+ * declared by the preceding {@link StoreExpectedBalancesOp}. Pure validation
+ * marker, carries no data.
+ */
+export interface CompareBalancesOp {
+  operation: "CompareBalances";
+}
+
+/**
  * Union of facade inner-call operation types (non-adapter credit account operations).
  * Discriminated on the `operation` field.
  */
@@ -62,7 +86,9 @@ export type InnerFacadeOperation =
   | DecreaseDebtOp
   | AddCollateralOp
   | WithdrawCollateralOp
-  | UpdateQuotaOp;
+  | UpdateQuotaOp
+  | StoreExpectedBalancesOp
+  | CompareBalancesOp;
 
 /**
  * All operations that can happen within a CreditFacade's multicall and that we're interested in.

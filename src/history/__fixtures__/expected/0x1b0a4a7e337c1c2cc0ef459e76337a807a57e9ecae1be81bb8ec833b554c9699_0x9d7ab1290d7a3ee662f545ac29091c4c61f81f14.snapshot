@@ -18,6 +18,7 @@
         },
         "adapterFunctionName": "depositPhantomToken(address,uint256)",
         "adapterType": "ADAPTER::CVX_V1_BASE_REWARD_POOL",
+        "calldata": "0x50a040e400000000000000000000000087fa6c0296c986d1c901d72571282d57916b964a000000000000000000000000000000000000000000003905517c93364e161f37",
         "label": "ADAPTER::CVX_V1_BASE_REWARD_POOL",
         "legacy": {
           "operation": "ConvexStake",
@@ -63,6 +64,7 @@
         },
         "adapterFunctionName": "swapInDiff(bool,uint256,uint256)",
         "adapterType": "ADAPTER::FLUID_DEX",
+        "calldata": "0x6b8dc049000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000",
         "label": "ADAPTER::FLUID_DEX",
         "legacy": {
           "from": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",

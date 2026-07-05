@@ -12,7 +12,6 @@ import {
   type ParsedCallV2,
 } from "../../../sdk/index.js";
 import { iBaseRewardPoolAbi } from "../abi/targetContractAbi.js";
-import { clampToLeftover } from "../balanceChanges.js";
 import type {
   LegacyAdapterOperation,
   Transfers,
@@ -24,6 +23,7 @@ import {
   rewardsFromTransfers,
   swapFromTransfers,
 } from "../transferHelpers.js";
+import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -155,29 +155,25 @@ export class ConvexV1BaseRewardPoolAdapterContract extends AbstractAdapterContra
     };
   }
 
-  protected override previewDecodedBalanceChanges(
-    balances: AddressMap<bigint>,
+  protected override decodeDiffLeftovers(
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): AddressMap<bigint> {
+    balances: AddressMap<bigint>,
+  ): DiffLeftover[] {
     switch (decoded.functionName) {
       case "stakeDiff": {
         const [leftoverAmount] = decoded.args;
-        return clampToLeftover(balances, this.stakingToken, leftoverAmount);
+        return [{ tokenIn: this.stakingToken, leftoverAmount }];
       }
       case "withdrawDiff":
       case "withdrawDiffAndUnwrap": {
         const [leftoverAmount] = decoded.args;
-        return clampToLeftover(
-          balances,
-          this.stakedPhantomToken,
-          leftoverAmount,
-        );
+        return [{ tokenIn: this.stakedPhantomToken, leftoverAmount }];
       }
       // no accrued rewards on a freshly opened account
       case "getReward":
-        return balances.clone();
+        return [];
       default:
-        return super.previewDecodedBalanceChanges(balances, decoded);
+        return super.decodeDiffLeftovers(decoded, balances);
     }
   }
 }

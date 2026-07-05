@@ -7,7 +7,7 @@ import {
 import type { AddressMap, ConstructOptions } from "../../../sdk/index.js";
 import { MissingSerializedParamsError } from "../../../sdk/index.js";
 import { iCamelotV3RouterAbi } from "../abi/targetContractAbi.js";
-import { clampToLeftover } from "../balanceChanges.js";
+import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -71,23 +71,28 @@ export class CamelotV3AdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override previewDecodedBalanceChanges(
-    balances: AddressMap<bigint>,
+  protected override decodeDiffLeftovers(
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): AddressMap<bigint> {
+    balances: AddressMap<bigint>,
+  ): DiffLeftover[] {
     switch (decoded.functionName) {
       case "exactDiffInputSingle": {
         const [params] = decoded.args;
-        return clampToLeftover(balances, params.tokenIn, params.leftoverAmount);
+        return [
+          {
+            tokenIn: params.tokenIn,
+            leftoverAmount: params.leftoverAmount,
+          },
+        ];
       }
       case "exactDiffInput": {
         const [params] = decoded.args;
         const tokenIn =
           `0x${params.path.replace("0x", "").slice(0, 40)}` as Address;
-        return clampToLeftover(balances, tokenIn, params.leftoverAmount);
+        return [{ tokenIn, leftoverAmount: params.leftoverAmount }];
       }
       default:
-        return super.previewDecodedBalanceChanges(balances, decoded);
+        return super.decodeDiffLeftovers(decoded, balances);
     }
   }
 }

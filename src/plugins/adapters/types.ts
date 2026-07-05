@@ -102,6 +102,17 @@ export enum AdapterType {
   YEARN_V2 = "YEARN_V2",
 }
 
+/**
+ * Diff-call semantics of a diff-style adapter call: the call spends the
+ * consumed token down to the exact `leftoverAmount` encoded in its calldata,
+ * so the post-call balance of `tokenIn` is `leftoverAmount` regardless of the
+ * actual amount spent.
+ */
+export interface DiffLeftover {
+  tokenIn: Address;
+  leftoverAmount: bigint;
+}
+
 export interface AdapterContractStateHuman extends BaseContractStateHuman {
   creditManager?: string;
   targetContract?: string;

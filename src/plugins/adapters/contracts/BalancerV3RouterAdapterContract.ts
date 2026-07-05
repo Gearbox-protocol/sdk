@@ -7,7 +7,7 @@ import {
 import type { AddressMap, ConstructOptions } from "../../../sdk/index.js";
 import { MissingSerializedParamsError } from "../../../sdk/index.js";
 import { iBalancerV3RouterAbi } from "../abi/targetContractAbi.js";
-import { clampToLeftover } from "../balanceChanges.js";
+import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -94,19 +94,19 @@ export class BalancerV3RouterAdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override previewDecodedBalanceChanges(
-    balances: AddressMap<bigint>,
+  protected override decodeDiffLeftovers(
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): AddressMap<bigint> {
+    balances: AddressMap<bigint>,
+  ): DiffLeftover[] {
     switch (decoded.functionName) {
       case "swapSingleTokenDiffIn": {
         const [, tokenIn, , leftoverAmount] = decoded.args;
-        return clampToLeftover(balances, tokenIn, leftoverAmount);
+        return [{ tokenIn, leftoverAmount }];
       }
       // BPT (pool token) is spent down to the leftover
       case "removeLiquiditySingleTokenDiff": {
         const [pool, leftoverAmount] = decoded.args;
-        return clampToLeftover(balances, pool, leftoverAmount);
+        return [{ tokenIn: pool, leftoverAmount }];
       }
       case "addLiquidityUnbalancedDiff":
         // leftoverAmounts are ordered by the pool's token list, which is only
@@ -116,7 +116,7 @@ export class BalancerV3RouterAdapterContract extends AbstractAdapterContract<
           `previewBalanceChanges cannot resolve pool tokens for addLiquidityUnbalancedDiff on ${this.contractType} adapter at ${this.address}`,
         );
       default:
-        return super.previewDecodedBalanceChanges(balances, decoded);
+        return super.decodeDiffLeftovers(decoded, balances);
     }
   }
 }

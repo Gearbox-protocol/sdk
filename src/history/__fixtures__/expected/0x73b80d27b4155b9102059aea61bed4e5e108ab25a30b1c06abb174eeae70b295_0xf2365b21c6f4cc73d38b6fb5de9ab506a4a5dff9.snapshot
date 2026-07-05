@@ -12,6 +12,7 @@
         },
         "adapterFunctionName": "redeemDiff(uint256)",
         "adapterType": "ADAPTER::MELLOW_ERC4626_VAULT",
+        "calldata": "0x0acb32020000000000000000000000000000000000000000000000000000000000000001",
         "label": "ADAPTER::MELLOW_ERC4626_VAULT",
         "legacy": {
           "from": "0x7a4effd87c2f3c55ca251080b1343b605f327e3a",
