@@ -136,6 +136,7 @@ export function previewOpenCreditAccount<P extends PluginsMap>(
 
   return {
     operation: operation.operation,
+    creditManager: operation.creditManager,
     target: inferTargetAsset(operation.multicall, finalBalances),
     collateral,
     collateralValue,

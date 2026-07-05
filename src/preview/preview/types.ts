@@ -71,6 +71,10 @@ export interface PoolOperationPreview {
 export interface OpenCreditAccountPreview {
   operation: "OpenCreditAccount" | "SecuritizeOpenCreditAccount";
   /**
+   * Credit manager the account is opened in
+   */
+  creditManager: Address;
+  /**
    * Target token of strategy: the first quoted token, with its balance taken
    * from `assets`. Undefined when nothing is quoted.
    */

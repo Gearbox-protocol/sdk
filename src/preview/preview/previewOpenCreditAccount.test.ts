@@ -24,6 +24,11 @@ const WSTETH = getAddress("0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0");
 const WEETH = getAddress("0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee");
 const CBETH = getAddress("0xBe9895146f7AF43049ca1c1AE358B0541Ea49704");
 
+// Credit managers behind the credit facades the transactions call
+const CM_PLAIN = getAddress("0xbCd2fFaC58189E57334Bb63253AcbF34D776DE53");
+const CM_LENDING = getAddress("0x0F4e4432977Bbf3962322996F1c9aeFdBC62256d");
+const CM_STRATEGY = getAddress("0x79C6C1ce5B12abCC3E407ce8C160eE1160250921");
+
 interface Tx {
   to: Address;
   data: Hex;
@@ -69,6 +74,7 @@ it("previews plain account: USDC collateral, USDC debt, no swap", async () => {
 
   await expect(preview(PLAIN_USDC)).resolves.toMatchObject({
     operation: "OpenCreditAccount",
+    creditManager: CM_PLAIN,
     target: undefined,
     collateral: [{ token: USDC, balance: 1_000_000_000n }],
     collateralValue: 1_000_000_000n,
@@ -87,6 +93,7 @@ it("previews lending: native ETH collateral stays on the account, wstETH debt is
 
   await expect(preview(LENDING_ETH_WSTETH)).resolves.toMatchObject({
     operation: "OpenCreditAccount",
+    creditManager: CM_LENDING,
     target: { token: WETH, balance: 100_893_608_181_830_735_543n },
     collateral: [
       { token: NATIVE_ADDRESS, balance: 100_893_608_181_830_735_543n },
@@ -107,6 +114,7 @@ it("previews strategy 1: ETH collateral and WETH debt swapped into weETH target"
 
   await expect(preview(STRATEGY_ETH_TO_WEETH)).resolves.toMatchObject({
     operation: "OpenCreditAccount",
+    creditManager: CM_STRATEGY,
     target: { token: WEETH, balance: 88_711_008_598_339_891_555n },
     collateral: [{ token: NATIVE_ADDRESS, balance: parseEther("10") }],
     collateralValue: parseEther("10"),
@@ -125,6 +133,7 @@ it("previews strategy 2: wstETH collateral already in target, WETH debt swapped"
 
   await expect(preview(STRATEGY_WSTETH_TARGET)).resolves.toMatchObject({
     operation: "OpenCreditAccount",
+    creditManager: CM_STRATEGY,
     target: { token: WSTETH, balance: 67_539_176_884_849_002_897n },
     collateral: [{ token: WSTETH, balance: 5_000_000_000_000_000_000n }],
     collateralValue: 6_192_629_874_516_533_829n,
@@ -143,6 +152,7 @@ it("previews strategy 3: wstETH collateral deliberately not swapped, WETH debt s
 
   await expect(preview(STRATEGY_KEEP_WSTETH_CBETH)).resolves.toMatchObject({
     operation: "OpenCreditAccount",
+    creditManager: CM_STRATEGY,
     target: { token: CBETH, balance: 37_140_380_298_847_597_770n },
     collateral: [{ token: WSTETH, balance: parseEther("10") }],
     collateralValue: 12_385_259_749_033_067_658n,
