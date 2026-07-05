@@ -4,8 +4,8 @@ import type {
   ContractFunctionArgs,
   ContractFunctionName,
 } from "viem";
+import type { Asset } from "../base/index.js";
 import type { IZapperContract } from "../market/index.js";
-import type { Asset } from "../router/index.js";
 import type { MultiCall, RawTx } from "../types/transactions.js";
 
 interface PermitResult {

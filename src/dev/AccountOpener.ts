@@ -23,6 +23,7 @@ import {
   ADDRESS_0X0,
   AddressMap,
   AddressSet,
+  AssetsMap,
   childLogger,
   MAX_UINT256,
   PERCENTAGE_FACTOR,
@@ -509,7 +510,7 @@ export class AccountOpener extends SDKConstruct {
   ): Promise<PoolDepositResult[]> {
     this.#logger?.debug("checking and topping up pools if necessary");
 
-    const minAvailableByPool: Record<Address, bigint> = {};
+    const minAvailableByPool = new AssetsMap();
 
     for (let i = 0; i < targets.length; i++) {
       const t = targets[i];
@@ -523,17 +524,16 @@ export class AccountOpener extends SDKConstruct {
         PERCENTAGE_FACTOR;
       amount =
         amount > cm.creditFacade.maxDebt ? cm.creditFacade.maxDebt : amount;
-      minAvailableByPool[cm.pool] =
-        (minAvailableByPool[cm.pool] ?? 0n) + amount;
+      minAvailableByPool.inc(cm.pool, amount);
       this.#logger?.debug(
         `target #${i + 1} (${this.labelAddress(t.target)}) needs ${this.sdk.tokensMeta.formatBN(cm.underlying, amount, { symbol: true })} in pool (leverage: ${Number(leverage / PERCENTAGE_FACTOR)}%)`,
       );
     }
 
     const deposits: [IPoolContract, bigint][] = [];
-    const claims: AddressMap<bigint> = new AddressMap();
-    for (const [p, minAvailable] of Object.entries(minAvailableByPool)) {
-      const market = this.sdk.marketRegister.findByPool(p as Address);
+    const claims = new AssetsMap();
+    for (const [p, minAvailable] of minAvailableByPool.entries()) {
+      const market = this.sdk.marketRegister.findByPool(p);
       const pool = market.pool.pool;
       let diff = minAvailable - pool.availableLiquidity;
       diff = diff < 0n ? 0n : diff;
@@ -549,11 +549,9 @@ export class AccountOpener extends SDKConstruct {
       );
       if (diff > 0n) {
         deposits.push([pool, diff]);
-        let claim = claims.get(pool.underlying) ?? 0n;
         // pool.available * linearModel.U2 can be borrowed
         // U2 is currently at 90% in all pools
-        claim += (diff * PERCENTAGE_FACTOR) / 8950n;
-        claims.upsert(pool.underlying, claim);
+        claims.inc(pool.underlying, (diff * PERCENTAGE_FACTOR) / 8950n);
       }
     }
 
@@ -732,21 +730,17 @@ export class AccountOpener extends SDKConstruct {
     // each account will have minDebt*minDebtMultiplier in USD, see how much we need to claim from faucet
     // collect all degen nfts
     const degenNFTS: Record<Address, number> = {};
-    const claims: AddressMap<bigint> = new AddressMap();
+    const claims = new AssetsMap();
     for (const target of targets) {
       const cm = this.sdk.marketRegister.findCreditManager(
-        target.creditManager,
-      );
-      const market = this.sdk.marketRegister.findByCreditManager(
         target.creditManager,
       );
       const { degenNFT } = cm.creditFacade;
       const minDebt =
         (this.#minDebtMultiplier * cm.creditFacade.minDebt) / PERCENTAGE_FACTOR;
 
-      const claim = claims.get(cm.underlying) ?? 0n;
       // 10% more to be safe
-      claims.upsert(cm.underlying, claim + (minDebt * 11n) / 10n);
+      claims.inc(cm.underlying, (minDebt * 11n) / 10n);
 
       if (isAddress(degenNFT) && degenNFT !== ADDRESS_0X0) {
         degenNFTS[degenNFT] = (degenNFTS[degenNFT] ?? 0) + 1;
@@ -765,7 +759,7 @@ export class AccountOpener extends SDKConstruct {
   async #claimFromFaucet(
     claimer: PrivateKeyAccount,
     role: string,
-    claims: AddressMap<bigint>,
+    claims: AssetsMap,
   ): Promise<void> {
     await claimFromFaucet({
       sdk: this.sdk,

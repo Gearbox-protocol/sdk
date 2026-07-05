@@ -29,8 +29,8 @@ describe("unwrapNativeCollateral", () => {
     const collateral = [{ token: WETH, balance: parseEther("10") }];
 
     expect(unwrapNativeCollateral(collateral, parseEther("5"), WETH)).toEqual([
-      { token: NATIVE_ADDRESS, balance: parseEther("5") },
       { token: WETH, balance: parseEther("5") },
+      { token: NATIVE_ADDRESS, balance: parseEther("5") },
     ]);
   });
 
@@ -50,7 +50,7 @@ describe("unwrapNativeCollateral", () => {
     ).toThrow(InvalidTransactionValueError);
   });
 
-  it("preserves other collateral entries and their order", () => {
+  it("preserves other collateral entries", () => {
     const collateral = [
       { token: USDC, balance: 1_000_000n },
       { token: WETH, balance: parseEther("10") },
@@ -59,9 +59,9 @@ describe("unwrapNativeCollateral", () => {
 
     expect(unwrapNativeCollateral(collateral, parseEther("4"), WETH)).toEqual([
       { token: USDC, balance: 1_000_000n },
-      { token: NATIVE_ADDRESS, balance: parseEther("4") },
       { token: WETH, balance: parseEther("6") },
       { token: DAI, balance: parseEther("100") },
+      { token: NATIVE_ADDRESS, balance: parseEther("4") },
     ]);
   });
 });

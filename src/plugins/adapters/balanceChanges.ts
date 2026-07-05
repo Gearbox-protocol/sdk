@@ -1,12 +1,5 @@
 import type { Address } from "viem";
-import { AddressMap } from "../../sdk/index.js";
-
-/**
- * Returns a copy of the balances map, leaving the original untouched.
- */
-export function copyBalances(balances: AddressMap<bigint>): AddressMap<bigint> {
-  return new AddressMap(balances.entries());
-}
+import type { AddressMap } from "../../sdk/index.js";
 
 /**
  * Applies diff-call semantics to a balances map: a diff-style adapter call
@@ -21,7 +14,7 @@ export function clampToLeftover(
   tokenIn: Address,
   leftoverAmount: bigint,
 ): AddressMap<bigint> {
-  const next = copyBalances(balances);
+  const next = balances.clone();
   next.upsert(tokenIn, leftoverAmount);
   return next;
 }

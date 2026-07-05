@@ -8,7 +8,7 @@ import type {
 } from "viem";
 import { iStateSerializerAbi } from "../../abi/iStateSerializer.js";
 import { iVersionAbi } from "../../abi/iVersion.js";
-import type { Asset } from "../router/index.js";
+import type { Asset } from "../index.js";
 import type { ILogger } from "../types/logger.js";
 import {
   AddressMap,

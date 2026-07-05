@@ -1,5 +1,5 @@
-import { type Address, isAddressEqual } from "viem";
-import { type Asset, NATIVE_ADDRESS } from "../../sdk/index.js";
+import type { Address } from "viem";
+import { type Asset, AssetsMap, NATIVE_ADDRESS } from "../../sdk/index.js";
 import { InvalidTransactionValueError } from "./errors.js";
 
 /**
@@ -10,7 +10,7 @@ import { InvalidTransactionValueError } from "./errors.js";
  * pulls it, so the WETH collateral amount already includes the attached native
  * value. This helper splits the WETH entry back: the native amount is shown as
  * `NATIVE_ADDRESS` and the WETH entry is reduced accordingly (dropped when it
- * reaches zero). Other entries and their order are preserved.
+ * reaches zero). Other entries are preserved.
  *
  * @param collateral - Collateral assets as declared by the multicall.
  * @param nativeAmount - Transaction `msg.value`.
@@ -28,31 +28,16 @@ export function unwrapNativeCollateral(
     return collateral;
   }
 
-  let unwrapped = false;
-  const result: Asset[] = [];
-  for (const asset of collateral) {
-    const isWeth = !unwrapped && isAddressEqual(asset.token, wethToken);
-    if (!isWeth) {
-      result.push(asset);
-      continue;
-    }
-
-    if (asset.balance < nativeAmount) {
-      throw new InvalidTransactionValueError(nativeAmount, asset.balance);
-    }
-    // split WETH into native part and (possibly empty) WETH remainder
-    result.push({ token: NATIVE_ADDRESS, balance: nativeAmount });
-    if (asset.balance > nativeAmount) {
-      result.push({
-        token: asset.token,
-        balance: asset.balance - nativeAmount,
-      });
-    }
-    unwrapped = true;
+  const balances = new AssetsMap(collateral);
+  const wethBalance = balances.get(wethToken) ?? 0n;
+  if (wethBalance < nativeAmount) {
+    throw new InvalidTransactionValueError(nativeAmount, wethBalance);
   }
 
-  if (!unwrapped) {
-    throw new InvalidTransactionValueError(nativeAmount, 0n);
-  }
-  return result;
+  balances.upsert(
+    wethToken,
+    wethBalance === nativeAmount ? undefined : wethBalance - nativeAmount,
+  );
+  balances.inc(NATIVE_ADDRESS, nativeAmount);
+  return balances.toAssets();
 }

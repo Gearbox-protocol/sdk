@@ -2,6 +2,7 @@ import { type Address, isAddressEqual } from "viem";
 
 import {
   AddressSet,
+  AssetsMap,
   type GetApprovalAddressProps,
   NATIVE_ADDRESS,
   type OnchainSDK,
@@ -270,17 +271,12 @@ async function collateralPrerequisites(
   ctx: PrerequisiteContext,
 ): Promise<AnyPrerequisite[]> {
   const { sdk, wallet } = ctx;
-  const required = new Map<string, { token: Address; amount: bigint }>();
+  const required = new AssetsMap();
   for (const op of multicall) {
     if (op.operation !== "AddCollateral" || op.amount === 0n) {
       continue;
     }
-    const key = op.token.toLowerCase();
-    const existing = required.get(key);
-    required.set(key, {
-      token: op.token,
-      amount: (existing?.amount ?? 0n) + op.amount,
-    });
+    required.inc(op.token, op.amount);
   }
 
   if (required.size === 0) {
@@ -290,7 +286,7 @@ async function collateralPrerequisites(
   const spender = await sdk.accounts.getApprovalAddress(spenderOptions);
 
   const prereqs: AnyPrerequisite[] = [];
-  for (const { token, amount } of required.values()) {
+  for (const [token, amount] of required.entries()) {
     prereqs.push(
       new AllowancePrerequisite({
         token,

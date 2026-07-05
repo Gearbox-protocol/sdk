@@ -1,10 +1,6 @@
 import type { Address } from "viem";
+import type { Asset } from "../base/types.js";
 import { AddressMap } from "../utils/index.js";
-import type { Asset } from "./types.js";
-
-export function balancesMap(assets: Array<Asset>): AddressMap<bigint> {
-  return new AddressMap(assets.map(({ token, balance }) => [token, balance]));
-}
 
 export function assetsMap<T extends Asset>(
   assets: Array<T> | readonly T[],

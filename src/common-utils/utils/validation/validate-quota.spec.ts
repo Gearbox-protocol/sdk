@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Asset } from "../../../sdk/router/types.js";
+import type { Asset } from "../../../sdk/index.js";
 import {
   buildCreditManager,
   buildQuota,

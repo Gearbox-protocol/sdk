@@ -14,7 +14,7 @@ import type {
 } from "../../common-utils/utils/strategies/types.js";
 import type { Output } from "../../rewards/apy/index.js";
 import { PoolPointsAPI } from "../../rewards/rewards/extra-apy.js";
-import type { ILogger, IOnchainSDKPlugin } from "../../sdk/index.js";
+import type { Asset, ILogger, IOnchainSDKPlugin } from "../../sdk/index.js";
 import {
   AddressMap,
   AP_MARKET_COMPRESSOR,
@@ -23,7 +23,6 @@ import {
   PERCENTAGE_DECIMALS,
   VERSION_RANGE_310,
 } from "../../sdk/index.js";
-import type { Asset } from "../../sdk/router/types.js";
 import { rayToNumber } from "../../sdk/utils/formatter.js";
 import { hexEq } from "../../sdk/utils/hex.js";
 import { parseGearStats, parseNetworkApy } from "./apy-parser.js";

@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import type { Asset } from "../../../../sdk/router/types.js";
+import type { Asset } from "../../../../sdk/index.js";
 import { PriceUtils } from "../../price-math.js";
 import type { TokenSlice } from "../strategy-info/types.js";
 export function addAmountInTarget<T extends Asset>(

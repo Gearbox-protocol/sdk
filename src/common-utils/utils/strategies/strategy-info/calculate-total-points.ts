@@ -4,7 +4,7 @@ import {
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS,
 } from "../../../../sdk/constants/math.js";
-import type { Asset } from "../../../../sdk/router/types.js";
+import type { Asset } from "../../../../sdk/index.js";
 import { BigIntMath } from "../../bigint-math.js";
 import { PriceUtils } from "../../price-math.js";
 import { getPointsRates } from "../points/get-points-rates.js";

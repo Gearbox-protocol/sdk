@@ -1,14 +1,11 @@
 import type { Address, Hex } from "viem";
+import { AbstractAdapterContract } from "../../plugins/adapters/index.js";
 import {
-  AbstractAdapterContract,
-  copyBalances,
-} from "../../plugins/adapters/index.js";
-import {
-  AddressMap,
+  type AddressMap,
   AP_WETH_TOKEN,
   type Asset,
+  AssetsMap,
   CreditFacadeV310BaseContract,
-  hexEq,
   type MultiCall,
   NO_VERSION,
   type ParsedCallV2,
@@ -36,43 +33,35 @@ export function previewOpenCreditAccount<P extends PluginsMap>(
     operation.creditManager,
   );
 
-  const collateralByToken = new AddressMap<Asset>();
+  const collateralBalances = new AssetsMap();
   // Balances resulting from the facade operations themselves; the router's
   // expected-balance deltas are applied on top of these.
-  const balances = new AddressMap<bigint>();
-  const addBalance = (token: string, amount: bigint): void => {
-    balances.upsert(token, (balances.get(token) ?? 0n) + amount);
-  };
+  const balances = new AssetsMap();
   let debt = 0n;
   const quotas: Asset[] = [];
   for (const op of operation.multicall) {
     switch (op.operation) {
-      case "AddCollateral": {
-        const balance = collateralByToken.get(op.token)?.balance ?? 0n;
-        collateralByToken.upsert(op.token, {
-          token: op.token,
-          balance: balance + op.amount,
-        });
-        addBalance(op.token, op.amount);
+      case "AddCollateral":
+        collateralBalances.inc(op.token, op.amount);
+        balances.inc(op.token, op.amount);
         break;
-      }
       case "WithdrawCollateral":
-        addBalance(op.token, -op.amount);
+        balances.dec(op.token, op.amount);
         break;
       case "IncreaseBorrowedAmount":
         debt += op.amount;
-        addBalance(op.token, op.amount);
+        balances.inc(op.token, op.amount);
         break;
       case "DecreaseBorrowedAmount":
         debt -= op.amount;
-        addBalance(op.token, -op.amount);
+        balances.dec(op.token, op.amount);
         break;
       case "UpdateQuota":
         quotas.push({ token: op.token, balance: op.change });
         break;
     }
   }
-  let collateral = collateralByToken.values();
+  let collateral: Asset[] = collateralBalances.toAssets();
   // collateral value is computed before unwrapping since the oracle cannot
   // price the native token
   const collateralValue = collateral.reduce(
@@ -97,7 +86,7 @@ export function previewOpenCreditAccount<P extends PluginsMap>(
   const parsed = sdk.parseFunctionDataV2(to, calldata);
   const innerCalls = (parsed.rawArgs.calls ?? []) as ParsedCallV2[];
   const expected = extractExpectedBalanceChanges(innerCalls);
-  let finalBalances = balances;
+  let finalBalances: AddressMap<bigint> = balances;
   if (expected) {
     // Adapters need the still-encoded inner calldata (parseFunctionDataV2
     // erases argument types), so recover the raw multicall structs; they are
@@ -108,7 +97,7 @@ export function previewOpenCreditAccount<P extends PluginsMap>(
         `raw and parsed inner calls of ${to} are misaligned: ${rawCalls.length} raw vs ${innerCalls.length} parsed`,
       );
     }
-    const snapshot = copyBalances(balances);
+    const snapshot = balances.clone();
     for (let i = expected.startIndex + 1; i < expected.endIndex; i++) {
       const call = rawCalls[i];
       const adapter = sdk.getContract(call.target);

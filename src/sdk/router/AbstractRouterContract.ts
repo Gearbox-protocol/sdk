@@ -1,12 +1,16 @@
 import type { Abi, Address } from "viem";
 
-import { BaseContract, type BaseContractArgs } from "../base/index.js";
+import {
+  type Asset,
+  BaseContract,
+  type BaseContractArgs,
+} from "../base/index.js";
 import { PERCENTAGE_FACTOR } from "../constants/math.js";
 import type { IPriceOracleContract } from "../market/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
-import { AddressMap, AddressSet, formatBN, isDust } from "../utils/index.js";
+import { AddressSet, AssetsMap, formatBN, isDust } from "../utils/index.js";
 import { limitLeftover } from "./helpers.js";
-import type { Asset, RouterCASlice, RouterCMSlice } from "./types.js";
+import type { RouterCASlice, RouterCMSlice } from "./types.js";
 
 export interface ExpectedAndLeftoverOptions {
   balances?: Leftovers;
@@ -15,9 +19,9 @@ export interface ExpectedAndLeftoverOptions {
 }
 
 export interface Leftovers {
-  expectedBalances: AddressMap<Asset>;
-  leftoverBalances: AddressMap<Asset>;
-  tokensToClaim: AddressMap<Asset>;
+  expectedBalances: AssetsMap;
+  leftoverBalances: AssetsMap;
+  tokensToClaim: AssetsMap;
 }
 
 /**
@@ -58,21 +62,19 @@ export abstract class AbstractRouterContract<
         );
     const { leftoverBalances, expectedBalances, tokensToClaim } = b;
 
-    const expected: AddressMap<Asset> = new AddressMap<Asset>();
-    const leftover: AddressMap<Asset> = new AddressMap<Asset>();
+    const expected = new AssetsMap();
+    const leftover = new AssetsMap();
 
     for (const token of cm.collateralTokens) {
       // When we pass expected balances explicitly, we need to mimic router behaviour by filtering out leftover tokens
       // for example, we can have stETH balance of 2, because 1 transforms to 2 because of rebasing
       // https://github.com/Gearbox-protocol/router-v3/blob/c230a3aa568bb432e50463cfddc877fec8940cf5/contracts/RouterV3.sol#L222
-      const actual = expectedBalances.get(token)?.balance || 0n;
-      expected.upsert(token, { token, balance: actual > 10n ? actual : 0n });
-      leftover.upsert(token, {
+      const actual = expectedBalances.get(token) || 0n;
+      expected.upsert(token, actual > 10n ? actual : 0n);
+      leftover.upsert(
         token,
-        balance:
-          limitLeftover(leftoverBalances.get(token)?.balance || 1n, token) ??
-          1n,
-      });
+        limitLeftover(leftoverBalances.get(token) || 1n, token) ?? 1n,
+      );
     }
 
     return {
@@ -87,8 +89,8 @@ export abstract class AbstractRouterContract<
     keepAssets?: Address[],
     debtOnly?: boolean,
   ): Leftovers {
-    const expectedBalances = new AddressMap<Asset>();
-    const leftoverBalances = new AddressMap<Asset>();
+    const expectedBalances = new AssetsMap();
+    const leftoverBalances = new AssetsMap();
     const keepAssetsSet = new AddressSet(keepAssets);
 
     if (debtOnly) {
@@ -102,7 +104,7 @@ export abstract class AbstractRouterContract<
 
     for (const { token, balance, mask } of ca.tokens) {
       const isEnabled = (mask & ca.enabledTokensMask) !== 0n;
-      expectedBalances.upsert(token, { token, balance });
+      expectedBalances.upsert(token, balance);
       // filter out dust, we don't want to swap it
       // also: gearbox liquidator does not need to swap disabled tokens. third-party liquidators might want to do it
       if (
@@ -115,17 +117,17 @@ export abstract class AbstractRouterContract<
           creditManager: ca.creditManager,
         })
       ) {
-        leftoverBalances.upsert(token, {
+        leftoverBalances.upsert(
           token,
-          balance: limitLeftover(balance, token) ?? balance,
-        });
+          limitLeftover(balance, token) ?? balance,
+        );
       }
     }
 
     return {
       expectedBalances,
       leftoverBalances,
-      tokensToClaim: new AddressMap<Asset>(),
+      tokensToClaim: new AssetsMap(),
     };
   }
 
@@ -143,17 +145,14 @@ export abstract class AbstractRouterContract<
       ca.creditManager,
     );
 
-    const expectedBalances = new AddressMap<Asset>();
-    const leftoverBalances = new AddressMap<Asset>();
+    const expectedBalances = new AssetsMap();
+    const leftoverBalances = new AssetsMap();
     const usdBalances: Asset[] = [];
 
     for (const { token, balance, mask } of ca.tokens) {
       const isEnabled = (mask & ca.enabledTokensMask) !== 0n;
-      expectedBalances.upsert(token, { token, balance });
-      leftoverBalances.upsert(token, {
-        token,
-        balance: limitLeftover(balance, token) ?? balance,
-      });
+      expectedBalances.upsert(token, balance);
+      leftoverBalances.upsert(token, limitLeftover(balance, token) ?? balance);
       if (isEnabled && !keepAssets.has(token)) {
         usdBalances.push({
           token,
@@ -190,16 +189,12 @@ export abstract class AbstractRouterContract<
     if (tokenAmount === 0n) {
       return undefined;
     }
-    let leftoverBalance =
-      leftoverBalances.get(highestToken.token)?.balance ?? 0n;
+    let leftoverBalance = leftoverBalances.get(highestToken.token) ?? 0n;
     leftoverBalance -= tokenAmount;
     if (leftoverBalance < 0n) {
       return undefined;
     }
-    leftoverBalances.upsert(highestToken.token, {
-      token: highestToken.token,
-      balance: leftoverBalance,
-    });
+    leftoverBalances.upsert(highestToken.token, leftoverBalance);
     const tokenAmountStr = this.sdk.tokensMeta.formatBN(
       highestToken.token,
       tokenAmount,
@@ -213,7 +208,7 @@ export abstract class AbstractRouterContract<
     return {
       expectedBalances,
       leftoverBalances,
-      tokensToClaim: new AddressMap<Asset>(),
+      tokensToClaim: new AssetsMap(),
     };
   }
 

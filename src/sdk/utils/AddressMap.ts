@@ -136,6 +136,13 @@ export class AddressMap<T> {
   }
 
   /**
+   * Returns an unfrozen shallow copy of the map.
+   **/
+  public clone(): AddressMap<T> {
+    return new AddressMap(this.entries(), this.name);
+  }
+
+  /**
    * Converts the map to a plain `Record<Address, T>` object.
    **/
   public asRecord(): Record<Address, T> {

@@ -8,6 +8,7 @@ import type {
 import type { creditAccountCompressorAbi } from "../../abi/compressors/creditAccountCompressor.js";
 import type { iWithdrawalCompressorV310Abi } from "../../abi/IWithdrawalCompressorV310.js";
 import type {
+  Asset,
   ConnectedBotData,
   Construct,
   CreditAccountData,
@@ -19,11 +20,7 @@ import type {
 } from "../market/index.js";
 import type { RWAOpenAccountRequirements } from "../market/rwa/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
-import type {
-  Asset,
-  RouterCASlice,
-  RouterCloseResult,
-} from "../router/index.js";
+import type { RouterCASlice, RouterCloseResult } from "../router/index.js";
 import type { MultiCall, RawTx } from "../types/index.js";
 
 /**

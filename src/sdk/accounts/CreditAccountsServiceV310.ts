@@ -12,7 +12,7 @@ import { iWithdrawalCompressorV310Abi } from "../../abi/IWithdrawalCompressorV31
 import { iWithdrawalCompressorV311Abi } from "../../abi/IWithdrawalCompressorV311.js";
 import { iBaseRewardPoolAbi } from "../../abi/iBaseRewardPool.js";
 import { iRWAFactoryAbi } from "../../abi/rwa/iRWAFactory.js";
-import type { CreditAccountData } from "../base/index.js";
+import type { Asset, CreditAccountData } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
 import { chains } from "../chain/chains.js";
 import {
@@ -35,10 +35,10 @@ import {
 } from "../market/index.js";
 import type { RWAOpenAccountRequirements } from "../market/rwa/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
-import { type Asset, assetsMap, type RouterCASlice } from "../router/index.js";
+import type { RouterCASlice } from "../router/index.js";
 import type { RouterRewardsResult } from "../router/types.js";
 import type { IPriceUpdateTx, MultiCall, RawTx } from "../types/index.js";
-import { AddressMap, AddressSet, hexEq } from "../utils/index.js";
+import { AddressMap, AddressSet, AssetsMap, hexEq } from "../utils/index.js";
 import { simulateWithPriceUpdates } from "../utils/viem/index.js";
 import {
   extractPriceUpdates,
@@ -2278,11 +2278,11 @@ export class CreditAccountsServiceV310
     creditFacade: Address,
     { averageQuota, minQuota }: PrepareUpdateQuotasProps,
   ): Array<MultiCall> {
-    const minRecord = assetsMap(minQuota);
+    const minRecord = new AssetsMap(minQuota);
 
     const calls: Array<MultiCall> = averageQuota.map(q => {
-      const minAsset = minRecord.get(q.token);
-      const min = minAsset && minAsset?.balance > 0 ? minAsset.balance : 0n;
+      const minBalance = minRecord.get(q.token);
+      const min = minBalance && minBalance > 0n ? minBalance : 0n;
 
       return {
         target: creditFacade,

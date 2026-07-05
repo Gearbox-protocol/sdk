@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import type { CreditAccountData, IBaseContract } from "../base/index.js";
+import type { Asset, CreditAccountData, IBaseContract } from "../base/index.js";
 import type { MultiCall } from "../types/index.js";
 
 /**
@@ -69,21 +69,6 @@ export interface RouterCloseResult extends RouterResult {
    * with underlying token amount received during swap and call it underlyingBalance
    */
   underlyingBalance: bigint;
-}
-
-/**
- * A token address paired with a balance, used throughout the router to
- * represent holdings, collateral inputs, and leftover targets.
- **/
-export interface Asset {
-  /**
-   * ERC-20 token address.
-   **/
-  token: Address;
-  /**
-   * Token amount in the token's native decimals.
-   **/
-  balance: bigint;
 }
 
 /**

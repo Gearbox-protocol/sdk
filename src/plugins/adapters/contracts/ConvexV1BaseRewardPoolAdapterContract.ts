@@ -12,7 +12,7 @@ import {
   type ParsedCallV2,
 } from "../../../sdk/index.js";
 import { iBaseRewardPoolAbi } from "../abi/targetContractAbi.js";
-import { clampToLeftover, copyBalances } from "../balanceChanges.js";
+import { clampToLeftover } from "../balanceChanges.js";
 import type {
   LegacyAdapterOperation,
   Transfers,
@@ -175,7 +175,7 @@ export class ConvexV1BaseRewardPoolAdapterContract extends AbstractAdapterContra
       }
       // no accrued rewards on a freshly opened account
       case "getReward":
-        return copyBalances(balances);
+        return balances.clone();
       default:
         return super.previewDecodedBalanceChanges(balances, decoded);
     }

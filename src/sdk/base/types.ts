@@ -121,6 +121,21 @@ export interface TokenInfo {
 }
 
 /**
+ * A token address paired with a balance, used throughout the SDK to
+ * represent holdings, collateral inputs, and leftover targets.
+ **/
+export interface Asset {
+  /**
+   * ERC-20 token address.
+   **/
+  token: Address;
+  /**
+   * Token amount in the token's native decimals.
+   **/
+  balance: bigint;
+}
+
+/**
  * Compile-time assertion: `U` must be assignable to `T`.
  *
  * Used to verify that hand-written interfaces stay structurally compatible

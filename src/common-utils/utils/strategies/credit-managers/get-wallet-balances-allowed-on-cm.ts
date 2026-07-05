@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import type { Asset } from "../../../../sdk/router/types.js";
+import type { Asset } from "../../../../sdk/index.js";
 import { sortBalances } from "../../creditAccount/sort.js";
 import type { TokenSlice } from "../strategy-info/types.js";
 import { wrapTokenAddress } from "../tokens/wrap-token-address.js";
