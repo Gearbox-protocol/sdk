@@ -33,9 +33,12 @@ export class AssetsMap extends AddressMap<bigint> {
 
   /**
    * Converts the map to an array of {@link Asset} objects.
+   * @param filterDust - If true, filters out assets with a balance less than 1.
    */
-  public toAssets(): Asset[] {
-    return this.entries().map(([token, balance]) => ({ token, balance }));
+  public toAssets(filterDust = false): Asset[] {
+    return this.entries()
+      .filter(filterDust ? ([, balance]) => balance > 1n : () => true)
+      .map(([token, balance]) => ({ token, balance }));
   }
 
   public override clone(): AssetsMap {

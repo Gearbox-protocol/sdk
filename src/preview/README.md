@@ -9,7 +9,7 @@ check the conditions the sender must satisfy for it to succeed.
 An **operation** is a transaction performed on behalf of a Gearbox protocol user:
 
 - a **pool user** (liquidity provider) depositing into or redeeming from a pool, or
-- a **credit account user** (borrower) opening a credit account.
+- a **credit account user** (borrower) opening or adjusting a credit account.
 
 Given only `{ to, calldata, sender }`, this module answers two questions:
 
@@ -42,6 +42,18 @@ operation-specific preview:
   opening (recovered from the router's `storeExpectedBalances` deltas — since
   the account is being opened, initial balances are all zero). No simulation
   call is needed.
+- **Credit account adjustment** (`multicall`/`botMulticall` on the facade and
+  `SecuritizeMulticall` on the RWA factory) produces an
+  [`AdjustCreditAccountPreview`](./preview/types.ts): collateral added and
+  withdrawn, debt, quotas, the minimal guaranteed assets after the operation,
+  and the changes of each relative to the account's pre-state. The pre-state
+  is fetched with one credit account compressor read (or taken from
+  `options.creditAccount` when the caller already holds it), then the
+  multicall is replayed over it using the same balance-threading logic as
+  account opening. Adapter calls outside a
+  `storeExpectedBalances`/`compareBalances` bracket (e.g. reward claims, RWA
+  wrap/unwrap) are ignored: nothing enforces their outcome on-chain, so their
+  guaranteed balance change is zero.
 - **Any other operation** throws an
   [`UnsupportedOperationError`](./preview/errors.ts).
 
@@ -88,6 +100,7 @@ flowchart LR
   calldata["to + calldata + sender"] --> previewOp["previewOperation"]
   previewOp --> poolPreview["PoolOperationPreview"]
   previewOp --> openPreview["OpenCreditAccountPreview"]
+  previewOp --> adjustPreview["AdjustCreditAccountPreview"]
   calldata --> prereq["buildPrerequisites -> verifyPrerequisites"]
   prereq --> results["prerequisite results"]
 ```

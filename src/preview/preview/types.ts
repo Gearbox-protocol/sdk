@@ -1,6 +1,7 @@
 import type { Address, Hex } from "viem";
-import type { Asset, PluginsMap } from "../../sdk/index.js";
+import type { Asset, CreditAccountData, PluginsMap } from "../../sdk/index.js";
 import type { PoolOperationType, SdkWithAdapters } from "../parse/index.js";
+import type { OperationSimulationOptions } from "../simulate/index.js";
 
 /**
  * Input of {@link previewOperation}: the raw operation calldata plus the
@@ -29,6 +30,20 @@ export interface PreviewOperationInput<P extends PluginsMap = PluginsMap> {
    * Transaction `msg.value`
    **/
   value?: bigint;
+}
+
+/**
+ * Options of {@link previewOperation}, extending the simulation options with
+ * preview-specific inputs.
+ */
+export interface PreviewOperationOptions extends OperationSimulationOptions {
+  /**
+   * Pre-fetched state of the credit account being adjusted. When omitted,
+   * multicall/botMulticall previews fetch it via
+   * `sdk.accounts.getCreditAccountData` (one compressor read). Ignored by
+   * other operation kinds.
+   */
+  creditAccount?: CreditAccountData;
 }
 
 /**
@@ -106,8 +121,64 @@ export interface OpenCreditAccountPreview {
   assets: Asset[];
 }
 
+export interface AdjustCreditAccountPreview {
+  operation: "AdjustCreditAccount";
+  /**
+   * Credit manager the account is opened in
+   */
+  creditManager: Address;
+  /**
+   * Credit account that is being adjusted
+   */
+  creditAccount: Address;
+  /**
+   * Tokens that were added as collateral during account opening.
+   *
+   * When the transaction has native value attached, it is represented as a
+   * `NATIVE_ADDRESS` entry, with the wrapped native token amount reduced
+   * accordingly (omitted entirely when it reaches zero).
+   */
+  collateralAdded: Asset[];
+  /**
+   * Tokens that were withdrawn as collateral during account adjustment.
+   */
+  collateralWithdrawn: Asset[];
+  /**
+   * Sum of collateral tokens in underlying
+   */
+  totalValue: bigint;
+  /**
+   * Borrowed amount in underlying
+   */
+  debt: bigint;
+  /**
+   * Debt after minus debt before
+   */
+  debtChange: bigint;
+  /**
+   * Desired quotas
+   */
+  quotas: Asset[];
+  /**
+   * Quotas after minus quotas before
+   */
+  quotasChange: Asset[];
+  /**
+   * Minimum amount of assets on credit account after the operation,
+   * as estimated by router
+   */
+  assets: Asset[];
+  /**
+   * Assets after minus assets before
+   */
+  assetsChange: Asset[];
+}
+
 /**
  * Result of previewing a raw operation calldata: currently pool operations and
  * credit account opening are supported.
  */
-export type OperationPreview = PoolOperationPreview | OpenCreditAccountPreview;
+export type OperationPreview =
+  | PoolOperationPreview
+  | OpenCreditAccountPreview
+  | AdjustCreditAccountPreview;
