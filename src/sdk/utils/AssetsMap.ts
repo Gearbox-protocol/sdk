@@ -1,3 +1,5 @@
+import type { Address } from "viem";
+
 import type { Asset } from "../base/types.js";
 import { AddressMap } from "./AddressMap.js";
 
@@ -18,10 +20,17 @@ export class AssetsMap extends AddressMap<bigint> {
   }
 
   /**
+   * Looks up a token balance, treating a missing key as `0n`.
+   */
+  public getOrZero(address: string): bigint {
+    return this.get(address) ?? 0n;
+  }
+
+  /**
    * Adds `amount` to the token balance, treating a missing key as `0n`.
    */
   public inc(address: string, amount: bigint): void {
-    this.upsert(address, (this.get(address) ?? 0n) + amount);
+    this.upsert(address, this.getOrZero(address) + amount);
   }
 
   /**
@@ -32,12 +41,40 @@ export class AssetsMap extends AddressMap<bigint> {
   }
 
   /**
-   * Converts the map to an array of {@link Asset} objects.
-   * @param filterDust - If true, filters out assets with a balance less than 1.
+   * Per-token difference `this - before`, non-zero entries only.
+   *
+   * Assumes this map's keys are a superset of `before`'s keys; tokens present
+   * only in `before` are not reported.
    */
-  public toAssets(filterDust = false): Asset[] {
+  public difference(before: AssetsMap): AssetsMap {
+    const result = new AssetsMap();
+    for (const [token, balance] of this.entries()) {
+      const change = balance - before.getOrZero(token);
+      if (change !== 0n) {
+        result.upsert(token, change);
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Sums `fn` over all entries.
+   */
+  public sum(fn: (token: Address, balance: bigint) => bigint): bigint {
+    return this.entries().reduce(
+      (acc, [token, balance]) => acc + fn(token, balance),
+      0n,
+    );
+  }
+
+  /**
+   * Converts the map to an array of {@link Asset} objects.
+   * @param minBalance - If provided, keeps only entries with a balance
+   * strictly greater than this threshold (e.g. `1n` to filter out dust).
+   */
+  public toAssets(minBalance?: bigint): Asset[] {
     return this.entries()
-      .filter(filterDust ? ([, balance]) => balance > 1n : () => true)
+      .filter(([, balance]) => minBalance === undefined || balance > minBalance)
       .map(([token, balance]) => ({ token, balance }));
   }
 

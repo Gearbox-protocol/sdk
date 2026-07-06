@@ -1,6 +1,5 @@
 import { AbstractAdapterContract } from "../../plugins/adapters/index.js";
 import {
-  type AddressMap,
   type Asset,
   AssetsMap,
   MAX_UINT256,
@@ -99,7 +98,7 @@ export function applyInnerOperations<P extends PluginsMap>(
         break;
       case "WithdrawCollateral": {
         // MAX_UINT256 is the facade sentinel for "withdraw the entire balance"
-        const running = state.balances.get(op.token) ?? 0n;
+        const running = state.balances.getOrZero(op.token);
         const amount =
           op.amount === MAX_UINT256 ? (running > 0n ? running : 0n) : op.amount;
         state.balances.dec(op.token, amount);
@@ -198,25 +197,13 @@ export function applyQuotaChanges(
     if (change === MIN_INT96) {
       final.upsert(token, 0n);
     } else {
-      const next = (final.get(token) ?? 0n) + change;
+      const next = final.getOrZero(token) + change;
       final.upsert(token, next > 0n ? next : 0n);
     }
   }
 
-  const quotas: Asset[] = final
-    .entries()
-    .filter(([, balance]) => balance > 0n)
-    .map(([token, balance]) => ({ token, balance }));
-
-  // `final` is seeded with all initial tokens and only gains entries, so its
-  // keys are the union of tokens present before or after
-  const quotasChange: Asset[] = final
-    .entries()
-    .map(([token, balance]) => ({
-      token,
-      balance: balance - (initialQuotas.get(token) ?? 0n),
-    }))
-    .filter(({ balance }) => balance !== 0n);
-
-  return { quotas, quotasChange };
+  return {
+    quotas: final.toAssets(0n),
+    quotasChange: final.difference(initialQuotas).toAssets(),
+  };
 }

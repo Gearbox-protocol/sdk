@@ -1,6 +1,5 @@
 import {
   AP_WETH_TOKEN,
-  type Asset,
   AssetsMap,
   NO_VERSION,
   type PluginsMap,
@@ -61,9 +60,7 @@ export async function previewAdjustCreditAccount<P extends PluginsMap>(
   }
 
   const state = makeInnerOperationsState();
-  for (const [token, balance] of initialBalances.entries()) {
-    state.balances.upsert(token, balance);
-  }
+  state.balances = initialBalances.clone();
   state.debt = ca.debt;
   state.totalDebt = ca.debt + ca.accruedInterest + ca.accruedFees;
 
@@ -80,17 +77,11 @@ export async function previewAdjustCreditAccount<P extends PluginsMap>(
     state.quotaChanges,
   );
 
-  const assets = state.balances.toAssets(true);
+  const assets = state.balances.toAssets(1n);
 
   // `state.balances` is seeded with all initial tokens and entries are never
   // deleted, so its keys are the union of tokens present before or after
-  const assetsChange: Asset[] = state.balances
-    .entries()
-    .map(([token, balance]) => ({
-      token,
-      balance: balance - (initialBalances.get(token) ?? 0n),
-    }))
-    .filter(({ balance }) => balance !== 0n);
+  const assetsChange = state.balances.difference(initialBalances).toAssets();
 
   // estimated post-operation account value: minimal guaranteed assets
   // converted to underlying and summed

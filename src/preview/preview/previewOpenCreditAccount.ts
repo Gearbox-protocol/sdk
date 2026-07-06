@@ -33,26 +33,20 @@ export function previewOpenCreditAccount<P extends PluginsMap>(
   const state = makeInnerOperationsState();
   applyInnerOperations(sdk, operation.multicall, state);
 
-  let collateral: Asset[] = state.collateralAdded.toAssets();
   // collateral value is computed before unwrapping since the oracle cannot
   // price the native token
-  const collateralValue = collateral.reduce(
-    (acc, { token, balance }) =>
-      acc + market.priceOracle.convert(token, market.underlying, balance),
-    0n,
+  const collateralValue = state.collateralAdded.sum((token, balance) =>
+    market.priceOracle.convert(token, market.underlying, balance),
   );
-  collateral = unwrapNativeCollateral(
-    collateral,
+  const collateral = unwrapNativeCollateral(
+    state.collateralAdded.toAssets(),
     value,
     sdk.addressProvider.getAddress(AP_WETH_TOKEN, NO_VERSION),
   );
 
   // filter out dust, including the 1-wei leftovers of drained inputs and
   // intermediate tokens
-  const assets: Asset[] = state.balances
-    .entries()
-    .filter(([, balance]) => balance > 1n)
-    .map(([token, balance]) => ({ token, balance }));
+  const assets = state.balances.toAssets(1n);
 
   return {
     operation: operation.operation,
