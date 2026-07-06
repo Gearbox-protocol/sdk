@@ -81,7 +81,7 @@ export async function previewAdjustCreditAccount<P extends PluginsMap>(
 
   // `state.balances` is seeded with all initial tokens and entries are never
   // deleted, so its keys are the union of tokens present before or after
-  const assetsChange = state.balances.difference(initialBalances).toAssets();
+  const assetsChange = state.balances.difference(initialBalances).toAssets(1n);
 
   // estimated post-operation account value: minimal guaranteed assets
   // converted to underlying and summed

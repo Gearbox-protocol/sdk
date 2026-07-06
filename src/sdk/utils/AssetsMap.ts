@@ -1,5 +1,4 @@
 import type { Address } from "viem";
-
 import type { Asset } from "../base/types.js";
 import { AddressMap } from "./AddressMap.js";
 
@@ -73,8 +72,11 @@ export class AssetsMap extends AddressMap<bigint> {
    * strictly greater than this threshold (e.g. `1n` to filter out dust).
    */
   public toAssets(minBalance?: bigint): Asset[] {
+    const abs = (balance: bigint) => (balance > 0n ? balance : -balance);
     return this.entries()
-      .filter(([, balance]) => minBalance === undefined || balance > minBalance)
+      .filter(
+        ([, balance]) => minBalance === undefined || abs(balance) > minBalance,
+      )
       .map(([token, balance]) => ({ token, balance }));
   }
 
