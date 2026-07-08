@@ -216,17 +216,27 @@ export interface CloseCreditAccountProps {
   closePath?: RouterCloseResult;
 }
 
-export interface RepayCreditAccountProps
-  extends RepayAndLiquidateCreditAccountProps {
+/**
+ * Input for {@link ICreditAccountsService.assembleCloseCreditAccountCalls}.
+ */
+export type AssembleCloseCreditAccountCallsProps = {
   /**
-   * Swap calls for repay
+   * Minimal credit account data on which operation is performed.
    */
-  calls?: Array<MultiCall>;
+  creditAccount: RouterCASlice;
   /**
-   * close or zeroDebt
+   * Pathfinder close router calls (`closePath.calls`).
    */
-  operation: CloseOptions;
-}
+  routerCalls: Array<MultiCall>;
+  /**
+   * Tokens to withdraw from credit account after close path swaps.
+   */
+  assetsToWithdraw: Array<Address>;
+  /**
+   * Wallet address to withdraw tokens to.
+   */
+  to: Address;
+};
 
 export interface RepayAndLiquidateCreditAccountProps {
   /**
@@ -255,6 +265,34 @@ export interface RepayAndLiquidateCreditAccountProps {
    */
   permits: Record<string, PermitResult>;
   tokensToClaim: Asset[];
+}
+
+/**
+ * Input for {@link ICreditAccountsService.assembleRepayCreditAccountCalls}.
+ */
+export type AssembleRepayCreditAccountCallsProps = {
+  collateralAssets: Array<Asset>;
+  assetsToWithdraw: Array<Asset>;
+  creditAccount: RouterCASlice;
+  to: Address;
+  permits: Record<string, PermitResult>;
+  tokensToClaim: Asset[];
+  /**
+   * RWA wrap multicall entries (from getRWAWrapCalls).
+   */
+  calls?: Array<MultiCall>;
+};
+
+export interface RepayCreditAccountProps
+  extends RepayAndLiquidateCreditAccountProps {
+  /**
+   * RWA wrap multicall entries (from getRWAWrapCalls).
+   */
+  calls?: Array<MultiCall>;
+  /**
+   * close or zeroDebt
+   */
+  operation: CloseOptions;
 }
 
 export interface PrepareUpdateQuotasProps {
@@ -902,6 +940,20 @@ export interface ICreditAccountsService extends Construct {
   partiallyLiquidate(props: PartiallyLiquidateProps): Promise<RawTx>;
 
   /**
+   * Builds close multicall calls without price feed updates.
+   *
+   * Same operation sequence as {@link closeCreditAccount} (close path swaps,
+   * disable quotas, decrease debt, withdraw assets), but does not prepend
+   * price updates and does not build the facade transaction.
+   *
+   * @param props - {@link AssembleCloseCreditAccountCallsProps}
+   * @returns Raw facade multicall payload for close (before price feed updates)
+   */
+  assembleCloseCreditAccountCalls(
+    props: AssembleCloseCreditAccountCallsProps,
+  ): Promise<Array<MultiCall>>;
+
+  /**
    * Closes credit account or closes credit account and keeps it open with zero debt.
    * - Ca is closed in the following order: price update -> close path to swap all tokens into underlying ->
    * -> disable quotas of exiting tokens -> decrease debt -> disable exiting tokens -> withdraw underlying tokens
@@ -1170,6 +1222,20 @@ export interface ICreditAccountsService extends Construct {
   withdrawCollateral(
     props: WithdrawCollateralProps,
   ): Promise<CreditAccountOperationResult>;
+
+  /**
+   * Builds repay multicall calls without price feed updates.
+   *
+   * Same operation sequence as {@link repayCreditAccount} (add collateral, wrap calls,
+   * disable quotas, decrease debt, redeem/unwrap, claim rewards, withdraw assets),
+   * but does not prepend price updates and does not build the facade transaction.
+   *
+   * @param props - {@link AssembleRepayCreditAccountCallsProps}
+   * @returns Raw facade multicall payload for repay (before price feed updates)
+   */
+  assembleRepayCreditAccountCalls(
+    props: AssembleRepayCreditAccountCallsProps,
+  ): Promise<Array<MultiCall>>;
 
   /**
    * Fully repays credit account or repays credit account and keeps it open with zero debt

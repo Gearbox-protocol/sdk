@@ -49,6 +49,8 @@ import type {
   AccountToCheck,
   AddCollateralProps,
   AssembleCaUpdateCallsProps,
+  AssembleCloseCreditAccountCallsProps,
+  AssembleRepayCreditAccountCallsProps,
   ChangeDeptProps,
   ClaimDelayedProps,
   ClaimFarmRewardsProps,
@@ -906,14 +908,12 @@ export class CreditAccountsServiceV310
         slippage,
       }));
 
-    const operationCalls: Array<MultiCall> = [
-      ...routerCloseResult.calls,
-      ...this.#prepareDisableQuotas(ca),
-      ...this.#prepareDecreaseDebt(ca),
-      ...assetsToWithdraw.map(t =>
-        this.#prepareWithdrawToken(ca.creditFacade, t, MAX_UINT256, to),
-      ),
-    ];
+    const operationCalls = await this.assembleCloseCreditAccountCalls({
+      creditAccount: ca,
+      routerCalls: routerCloseResult.calls,
+      assetsToWithdraw,
+      to,
+    });
 
     const calls =
       operation === "close"
@@ -927,6 +927,35 @@ export class CreditAccountsServiceV310
     );
 
     return { tx, calls, routerCloseResult, creditFacade: cm.creditFacade };
+  }
+
+  /**
+   * {@inheritDoc ICreditAccountsService.assembleCloseCreditAccountCalls}
+   */
+  public async assembleCloseCreditAccountCalls({
+    creditAccount: ca,
+    routerCalls,
+    assetsToWithdraw,
+    to,
+  }: AssembleCloseCreditAccountCallsProps): Promise<Array<MultiCall>> {
+    const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
+
+    await this.sdk.tokensMeta.loadTokenData(cm.underlying);
+    const underlying = this.sdk.tokensMeta.mustGet(cm.underlying);
+    if (this.sdk.tokensMeta.isRWAUnderlying(underlying)) {
+      throw new Error(
+        "closeCreditAccount is not supported for RWA underlying credit accounts",
+      );
+    }
+
+    return [
+      ...routerCalls,
+      ...this.#prepareDisableQuotas(ca),
+      ...this.#prepareDecreaseDebt(ca),
+      ...assetsToWithdraw.map(t =>
+        this.#prepareWithdrawToken(ca.creditFacade, t, MAX_UINT256, to),
+      ),
+    ];
   }
 
   /**
@@ -1767,8 +1796,32 @@ export class CreditAccountsServiceV310
   /**
    * {@inheritDoc ICreditAccountsService.repayCreditAccount}
    */
-  async repayCreditAccount({
-    operation,
+  async repayCreditAccount(
+    props: RepayCreditAccountProps,
+  ): Promise<CreditAccountOperationResult> {
+    const { operation, creditAccount: ca } = props;
+    const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
+
+    const operationCalls = await this.assembleRepayCreditAccountCalls(props);
+
+    const calls =
+      operation === "close"
+        ? operationCalls
+        : await this.#prependPriceUpdates(ca.creditManager, operationCalls, ca);
+    const tx = await this.#closeCreditAccountTx(
+      cm,
+      ca.creditAccount,
+      calls,
+      operation,
+    );
+
+    return { tx, calls, creditFacade: cm.creditFacade };
+  }
+
+  /**
+   * {@inheritDoc ICreditAccountsService.assembleRepayCreditAccountCalls}
+   */
+  async assembleRepayCreditAccountCalls({
     collateralAssets,
     assetsToWithdraw,
     creditAccount: ca,
@@ -1776,9 +1829,7 @@ export class CreditAccountsServiceV310
     to,
     tokensToClaim,
     calls: wrapCalls = [],
-  }: RepayCreditAccountProps): Promise<CreditAccountOperationResult> {
-    const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
-
+  }: AssembleRepayCreditAccountCallsProps): Promise<Array<MultiCall>> {
     const addCollateral = collateralAssets.filter(a => a.balance > 0);
 
     const router = this.sdk.routerFor(ca);
@@ -1803,18 +1854,7 @@ export class CreditAccountsServiceV310
       ),
     ];
 
-    const calls =
-      operation === "close"
-        ? operationCalls
-        : await this.#prependPriceUpdates(ca.creditManager, operationCalls, ca);
-    const tx = await this.#closeCreditAccountTx(
-      cm,
-      ca.creditAccount,
-      calls,
-      operation,
-    );
-
-    return { tx, calls, creditFacade: cm.creditFacade };
+    return operationCalls;
   }
 
   /**
