@@ -1,7 +1,9 @@
 import type { PluginsMap } from "../../sdk/index.js";
 import { isPoolOperation, parseOperationCalldata } from "../parse/index.js";
+import { isCloseOrRepay } from "./detectCloseOrRepay.js";
 import { UnsupportedOperationError } from "./errors.js";
 import { previewAdjustCreditAccount } from "./previewAdjustCreditAccount.js";
+import { previewCloseOrRepay } from "./previewCloseOrRepay.js";
 import { previewOpenCreditAccount } from "./previewOpenCreditAccount.js";
 import { previewPoolOperation } from "./previewPoolOperation.js";
 import type {
@@ -31,11 +33,20 @@ export async function previewOperation<P extends PluginsMap = PluginsMap>(
     return previewOpenCreditAccount(input, operation);
   }
 
+  if (operation.operation === "CloseCreditAccount") {
+    return previewCloseOrRepay(input, operation, true, options);
+  }
+
   if (
     operation.operation === "MultiCall" ||
     operation.operation === "BotMulticall" ||
     operation.operation === "RWAMulticall"
   ) {
+    // A multicall that fully repays the debt and withdraws everything is a
+    // zero-debt closure/repay: the account stays open but is emptied.
+    if (isCloseOrRepay(operation.multicall)) {
+      return previewCloseOrRepay(input, operation, false, options);
+    }
     return previewAdjustCreditAccount(input, operation, options);
   }
 

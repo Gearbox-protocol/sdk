@@ -174,11 +174,72 @@ export interface AdjustCreditAccountPreview {
   assetsChange: Asset[];
 }
 
+export interface CloseCreditAccountPreview {
+  operation: "CloseCreditAccount";
+  /**
+   * True when the account is closed permanently (facade `closeCreditAccount`
+   * entry point), false when the debt is zeroed but the account stays open
+   * (plain multicall).
+   */
+  permanent: boolean;
+  /**
+   * Credit manager the account belongs to
+   */
+  creditManager: Address;
+  /**
+   * Credit account that is being closed
+   */
+  creditAccount: Address;
+  /**
+   * Underlying withdrawn to the user: minimal guaranteed amount, from the
+   * multicall replay (all collateral is swapped into underlying before
+   * withdrawal)
+   */
+  receivedAmount: bigint;
+}
+
+export interface RepayCreditAccountPreview {
+  operation: "RepayCreditAccount";
+  /**
+   * True when the account is closed permanently (facade `closeCreditAccount`
+   * entry point), false when the debt is zeroed but the account stays open
+   * (plain multicall).
+   */
+  permanent: boolean;
+  /**
+   * Credit manager the account belongs to
+   */
+  creditManager: Address;
+  /**
+   * Credit account that is being repaid
+   */
+  creditAccount: Address;
+  /**
+   * Tokens added from the wallet to cover the debt (`addCollateral` calls).
+   *
+   * When the transaction has native value attached, it is represented as a
+   * `NATIVE_ADDRESS` entry, with the wrapped native token amount reduced
+   * accordingly (omitted entirely when it reaches zero).
+   */
+  collateralAdded: Asset[];
+  /**
+   * Tokens returned to the user in-kind (`withdrawCollateral` calls, with the
+   * MAX_UINT256 sentinel resolved against replayed balances)
+   */
+  collateralWithdrawn: Asset[];
+  /**
+   * Total debt repaid: principal + accrued interest + fees, in underlying
+   */
+  debtRepaid: bigint;
+}
+
 /**
  * Result of previewing a raw operation calldata: currently pool operations and
- * credit account opening are supported.
+ * credit account opening, adjustment, closure and repayment are supported.
  */
 export type OperationPreview =
   | PoolOperationPreview
   | OpenCreditAccountPreview
-  | AdjustCreditAccountPreview;
+  | AdjustCreditAccountPreview
+  | CloseCreditAccountPreview
+  | RepayCreditAccountPreview;

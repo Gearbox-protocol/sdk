@@ -25,6 +25,7 @@ All reads use the already-attached `OnchainSDK` (chain, RPC and block are baked 
 - **Pool operations** (ERC4626 deposit/withdraw, direct or zapper-routed) produce a [`PoolOperationPreview`](./preview/types.ts): the tokens going in and out.
 - **Credit account opening** (`OpenCreditAccount` and `RWAOpenCreditAccount`) produces an [`OpenCreditAccountPreview`](./preview/types.ts): collateral, debt, quotas, etc.
 - **Credit account adjustment** (`multicall`/`botMulticall` on the facade/RWA factory) produces an [`AdjustCreditAccountPreview`](./preview/types.ts): collateral, debt, quota changes, etc.
+- **Credit account closure/repayment** produces a [`CloseCreditAccountPreview`](./preview/types.ts) (collateral swapped into underlying, debt repaid, underlying withdrawn) or a [`RepayCreditAccountPreview`](./preview/types.ts) (debt covered from the wallet, collateral returned in-kind). The facade `closeCreditAccount` entry point closes the account permanently (`permanent: true`); a plain multicall that fully repays the debt returns `permanent: false`.
 - **Any other operation** throws an [`UnsupportedOperationError`](./preview/errors.ts).
 
 ### `prerequisites`
@@ -54,16 +55,4 @@ const results = await checkPrerequisites({ sdk, to, calldata, sender });
 // 3. For each unsatisfied result, the consumer inspects `kind` and `detail`
 //    (e.g. `detail.missing` for rwaOpenRequirements) and resolves it outside
 //    the SDK, then re-runs checkPrerequisites.
-```
-
-```mermaid
-flowchart LR
-  calldata["to + calldata + sender"] --> previewOp["previewOperation"]
-  previewOp --> poolPreview["PoolOperationPreview"]
-  previewOp --> openPreview["OpenCreditAccountPreview"]
-  previewOp --> adjustPreview["AdjustCreditAccountPreview"]
-  calldata --> checkFn["checkPrerequisites"]
-  checkFn --> results["AnyPrerequisiteResult[]"]
-  results --> consumer["consumer: approve / sign / register, then re-check"]
-  consumer --> checkFn
 ```
