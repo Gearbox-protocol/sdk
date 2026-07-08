@@ -6,7 +6,10 @@ import { MAX_UINT256, MIN_INT96 } from "../constants/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
 import type { MultiCall } from "../types/index.js";
 import { CreditAccountsServiceV310 } from "./CreditAccountsServiceV310.js";
-import type { AssembleCaUpdateCallsProps } from "./types.js";
+import type {
+  AssembleCaOperationsProps,
+  AssembleCaUpdateCallsProps,
+} from "./types.js";
 
 const FACADE: Address = "0xC78CF21A0f92929aC34ee86Cf94C15c9EE224adE";
 const TOKEN_A: Address = "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0";
@@ -23,6 +26,57 @@ function decode(call: MultiCall) {
     data: call.callData,
   });
 }
+
+describe("CreditAccountsServiceV310.assembleCaOperations", () => {
+  it("assembles debt, collateral and quota operations", () => {
+    const service = makeService();
+    const props: AssembleCaOperationsProps = {
+      operations: [
+        { type: "increaseDebt", amount: 100n },
+        { type: "addCollateral", token: TOKEN_A, amount: 200n },
+        {
+          type: "changeQuota",
+          quotaIncrease: [{ token: TOKEN_A, balance: 50n }],
+          quotaDecrease: [],
+        },
+        { type: "withdrawCollateral", token: TOKEN_A, amount: 25n },
+      ],
+      creditFacade: FACADE,
+      withdrawTo: TO,
+    };
+
+    const calls = service.assembleCaOperations(props);
+    expect(calls).toHaveLength(4);
+
+    expect(decode(calls[0]).functionName).toBe("increaseDebt");
+    expect(decode(calls[1]).functionName).toBe("addCollateral");
+    expect(decode(calls[2]).functionName).toBe("updateQuota");
+    expect(decode(calls[3]).functionName).toBe("withdrawCollateral");
+  });
+
+  it("inlines swap and wrapRwaCollateral calls", () => {
+    const service = makeService();
+    const swapCall: MultiCall = {
+      target: TOKEN_B,
+      callData: "0x1234",
+    };
+    const wrapCall: MultiCall = {
+      target: TOKEN_A,
+      callData: "0x5678",
+    };
+    const props: AssembleCaOperationsProps = {
+      operations: [
+        { type: "wrapRwaCollateral", calls: [wrapCall] },
+        { type: "swap", calls: [swapCall] },
+      ],
+      creditFacade: FACADE,
+      withdrawTo: TO,
+    };
+
+    const calls = service.assembleCaOperations(props);
+    expect(calls).toEqual([wrapCall, swapCall]);
+  });
+});
 
 describe("CreditAccountsServiceV310.assembleCaUpdateCalls", () => {
   it("assembles debt, collateral and quota operations", () => {

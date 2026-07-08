@@ -48,6 +48,7 @@ import {
 import type {
   AccountToCheck,
   AddCollateralProps,
+  AssembleCaOperationsProps,
   AssembleCaUpdateCallsProps,
   AssembleCloseCreditAccountCallsProps,
   AssembleRepayCreditAccountCallsProps,
@@ -63,6 +64,7 @@ import type {
   CreditManagerFilter,
   CreditManagerOperationResult,
   DefaultPartialLiquidationParams,
+  EncodableCreditAccountOperation,
   ExecuteSwapProps,
   FullyLiquidateProps,
   FullyLiquidateResult,
@@ -2137,19 +2139,14 @@ export class CreditAccountsServiceV310
   }
 
   /**
-   * {@inheritDoc ICreditAccountsService.assembleCaUpdateCalls}
+   * {@inheritDoc ICreditAccountsService.assembleCaOperations}
    */
-  public assembleCaUpdateCalls({
+  public assembleCaOperations({
     operations,
-    routerCallGroups,
     creditFacade,
     withdrawTo,
-    creditAccount,
-    underlyingToken,
-  }: AssembleCaUpdateCallsProps): MultiCall[] {
+  }: AssembleCaOperationsProps): MultiCall[] {
     const calls: MultiCall[] = [];
-    let swapGroupIndex = 0;
-    let routerGroupsConsumed = 0;
 
     for (const op of operations) {
       switch (op.type) {
@@ -2182,18 +2179,10 @@ export class CreditAccountsServiceV310
           );
           break;
 
-        case "swap": {
-          const routerCalls = routerCallGroups[swapGroupIndex];
-          if (!routerCalls) {
-            throw new Error(
-              `assembleCaUpdateCalls: missing router calls for swap leg ${swapGroupIndex}`,
-            );
-          }
-          calls.push(...routerCalls);
-          swapGroupIndex += 1;
-          routerGroupsConsumed += 1;
+        case "swap":
+        case "wrapRwaCollateral":
+          calls.push(...op.calls);
           break;
-        }
 
         case "changeQuota": {
           const quotaAssets = [...op.quotaIncrease, ...op.quotaDecrease];
@@ -2209,43 +2198,120 @@ export class CreditAccountsServiceV310
           break;
         }
 
-        case "closeCreditAccount": {
-          for (const group of routerCallGroups) {
-            calls.push(...group);
-            routerGroupsConsumed += 1;
-          }
+        default: {
+          const _exhaustive: never = op;
+          throw new Error(
+            `assembleCaOperations: unsupported operation ${JSON.stringify(_exhaustive)}`,
+          );
+        }
+      }
+    }
+
+    return calls;
+  }
+
+  /**
+   * {@inheritDoc ICreditAccountsService.assembleCaUpdateCalls}
+   * @deprecated Prefer {@link CreditAccountsServiceV310.assembleCaOperations}.
+   */
+  public assembleCaUpdateCalls({
+    operations,
+    routerCallGroups,
+    creditFacade,
+    withdrawTo,
+    creditAccount,
+    underlyingToken,
+  }: AssembleCaUpdateCallsProps): MultiCall[] {
+    const calls: MultiCall[] = [];
+    let swapGroupIndex = 0;
+    let routerGroupsConsumed = 0;
+
+    const encodableOps: EncodableCreditAccountOperation[] = [];
+    let pendingClose: {
+      routerGroupsStart: number;
+    } | null = null;
+
+    const flushEncodable = () => {
+      if (encodableOps.length === 0) {
+        return;
+      }
+      calls.push(
+        ...this.assembleCaOperations({
+          operations: encodableOps.splice(0, encodableOps.length),
+          creditFacade,
+          withdrawTo,
+        }),
+      );
+    };
+
+    for (const op of operations) {
+      if (op.type === "closeCreditAccount") {
+        flushEncodable();
+        pendingClose = { routerGroupsStart: routerGroupsConsumed };
+        for (const group of routerCallGroups.slice(routerGroupsConsumed)) {
+          calls.push(...group);
+          routerGroupsConsumed += 1;
+        }
+        calls.push(
+          ...this.#prepareDisableQuotas({
+            creditFacade,
+            tokens: Object.entries(creditAccount.initialQuotas).map(
+              ([token, { quota }]) => ({
+                token: token as Address,
+                quota,
+              }),
+            ),
+          } as unknown as RouterCASlice),
+        );
+        if (creditAccount.debt > 0n) {
           calls.push(
-            ...this.#prepareDisableQuotas({
+            ...this.#prepareDecreaseDebt({
               creditFacade,
-              tokens: Object.entries(creditAccount.initialQuotas).map(
-                ([token, { quota }]) => ({
-                  token: token as Address,
-                  quota,
-                }),
-              ),
+              debt: creditAccount.debt,
             } as unknown as RouterCASlice),
           );
-          if (creditAccount.debt > 0n) {
-            calls.push(
-              ...this.#prepareDecreaseDebt({
-                creditFacade,
-                debt: creditAccount.debt,
-              } as unknown as RouterCASlice),
-            );
-          }
-          const hasAssets = creditAccount.assets.some(
-            asset => asset.balance > 0n,
+        }
+        const hasAssets = creditAccount.assets.some(
+          asset => asset.balance > 0n,
+        );
+        if (hasAssets) {
+          calls.push(
+            this.#prepareWithdrawToken(
+              creditFacade,
+              underlyingToken,
+              MAX_UINT256,
+              withdrawTo,
+            ),
           );
-          if (hasAssets) {
-            calls.push(
-              this.#prepareWithdrawToken(
-                creditFacade,
-                underlyingToken,
-                MAX_UINT256,
-                withdrawTo,
-              ),
+        }
+        continue;
+      }
+
+      if (pendingClose !== null) {
+        throw new Error(
+          "assembleCaUpdateCalls: operations after closeCreditAccount are not supported",
+        );
+      }
+
+      switch (op.type) {
+        case "increaseDebt":
+        case "decreaseDebt":
+        case "addCollateral":
+        case "withdrawCollateral":
+        case "changeQuota":
+          encodableOps.push(op);
+          break;
+
+        case "swap": {
+          const routerCalls = routerCallGroups[swapGroupIndex];
+          if (!routerCalls) {
+            throw new Error(
+              `assembleCaUpdateCalls: missing router calls for swap leg ${swapGroupIndex}`,
             );
           }
+          encodableOps.push({ type: "swap", calls: routerCalls });
+          swapGroupIndex += 1;
+          routerGroupsConsumed += 1;
           break;
         }
 
@@ -2257,6 +2323,8 @@ export class CreditAccountsServiceV310
         }
       }
     }
+
+    flushEncodable();
 
     if (routerGroupsConsumed !== routerCallGroups.length) {
       throw new Error(
