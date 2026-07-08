@@ -7,6 +7,8 @@ import {
   NATIVE_ADDRESS,
   type OnchainSDK,
   type PluginsMap,
+  RWA_FACTORY_SECURITIZE,
+  type RWAOperationParams,
 } from "../../sdk/index.js";
 import type { InnerOperation } from "../parse/index.js";
 import {
@@ -206,9 +208,11 @@ export async function buildPrerequisites<P extends PluginsMap>(
       );
 
     // RWA-factory operations: same collateral checks as facade operations,
-    // plus (for opening) the factory's open-account requirements. The parsed
-    // operation carries template (empty) `tokensToRegister`/`signaturesToCache`;
-    // the prerequisite detail provides the real values.
+    // plus (for opening) the factory's open-account requirements. In the
+    // template flow the parsed `tokensToRegister`/`signaturesToCache` are
+    // empty and the prerequisite detail provides the real values; in a fully
+    // built transaction the calldata already carries them, so they are passed
+    // along and count towards satisfying the requirements.
     case "SecuritizeOpenCreditAccount":
       return [
         ...(await collateralPrerequisites(
@@ -219,6 +223,11 @@ export async function buildPrerequisites<P extends PluginsMap>(
         ...(await rwaOpenRequirementsPrerequisites(
           tx.multicall,
           tx.creditManager,
+          {
+            type: RWA_FACTORY_SECURITIZE,
+            tokensToRegister: tx.tokensToRegister,
+            signaturesToCache: tx.signaturesToCache,
+          },
           ctx,
         )),
       ];
@@ -314,7 +323,10 @@ async function collateralPrerequisites(
  * Each prerequisite's detail is the exact
  * `sdk.accounts.getOpenAccountRequirements` output, so consumers can use it to
  * fill in the operation's template `tokensToRegister`/`signaturesToCache` when
- * building the final transaction.
+ * building the final transaction. The `provided` params are the registration
+ * values decoded from the transaction calldata itself: signatures already
+ * included there satisfy the signature requirement, so a fully built
+ * transaction is not reported as pending signatures.
  *
  * The candidate tokens are the union of `addCollateral` and `updateQuota`
  * tokens: in the direct-deposit flow the RWA token is added as collateral,
@@ -327,6 +339,7 @@ async function collateralPrerequisites(
 async function rwaOpenRequirementsPrerequisites(
   multicall: InnerOperation[],
   creditManager: Address,
+  provided: RWAOperationParams,
   ctx: PrerequisiteContext,
 ): Promise<AnyPrerequisite[]> {
   const { sdk, wallet } = ctx;
@@ -359,6 +372,7 @@ async function rwaOpenRequirementsPrerequisites(
           requirements,
           token,
           factory: rwaFactory.address,
+          provided,
         }),
       );
     }

@@ -1,6 +1,10 @@
 import type { Address, ContractFunctionParameters } from "viem";
 
-import type { RWAOpenAccountRequirements } from "../../sdk/index.js";
+import {
+  hexEq,
+  type RWAOpenAccountRequirements,
+  type RWAOperationParams,
+} from "../../sdk/index.js";
 import { Prerequisite } from "./Prerequisite.js";
 import type { PrerequisiteDetail, PrerequisiteResult } from "./types.js";
 
@@ -11,6 +15,13 @@ export interface RWAOpenRequirementsPrerequisiteProps {
   token: Address;
   /** RWA factory that produced the requirements. */
   factory: Address;
+  /**
+   * Registration params (`tokensToRegister`/`signaturesToCache`) already
+   * carried by the transaction calldata. Signatures provided here count
+   * towards the `requiredSignatures` requirement: the transaction itself
+   * caches them on-chain, so the borrower has nothing left to sign.
+   */
+  provided?: RWAOperationParams;
   title?: string;
   id?: string;
 }
@@ -30,6 +41,7 @@ export class RWAOpenRequirementsPrerequisite extends Prerequisite<"rwaOpenRequir
   readonly #id: string;
   readonly #title: string;
   readonly #detail: PrerequisiteDetail<"rwaOpenRequirements">;
+  readonly #provided?: RWAOperationParams;
 
   constructor(props: RWAOpenRequirementsPrerequisiteProps) {
     super();
@@ -37,6 +49,7 @@ export class RWAOpenRequirementsPrerequisite extends Prerequisite<"rwaOpenRequir
       props.id ?? `rwaOpenRequirements:${props.factory}:${props.token}`;
     this.#title = props.title ?? "RWA account requirements fulfilled";
     this.#detail = props.requirements;
+    this.#provided = props.provided;
   }
 
   public get id(): string {
@@ -67,11 +80,32 @@ export class RWAOpenRequirementsPrerequisite extends Prerequisite<"rwaOpenRequir
   /**
    * Satisfied when the borrower has nothing left to do: no tokens pending
    * issuer-side registration and no messages left to sign.
+   *
+   * Issuer-side registration (`securitizeTokensToRegister`) can only happen on
+   * the Securitize website, so calldata cannot fulfil it. A required signature,
+   * however, is fulfilled when the transaction's own `signaturesToCache`
+   * carries a non-expired signature for the same token: the transaction caches
+   * it on-chain as part of the operation.
    */
   #satisfied(): boolean {
     const { securitizeTokensToRegister, requiredSignatures } = this.#detail;
-    return (
-      securitizeTokensToRegister.length === 0 && requiredSignatures.length === 0
+    if (securitizeTokensToRegister.length > 0) {
+      return false;
+    }
+    return requiredSignatures.every(m =>
+      this.#hasProvidedSignature(m.message.token),
+    );
+  }
+
+  /**
+   * Whether the transaction calldata carries a non-expired registration
+   * signature for the given token.
+   */
+  #hasProvidedSignature(token: Address): boolean {
+    const provided = this.#provided?.signaturesToCache ?? [];
+    const now = BigInt(Math.floor(Date.now() / 1000));
+    return provided.some(
+      s => hexEq(s.token, token) && s.signature.deadline > now,
     );
   }
 }
