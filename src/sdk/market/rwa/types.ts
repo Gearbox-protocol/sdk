@@ -9,8 +9,9 @@ import type { IBaseContract, Unarray } from "../../base/index.js";
 import type { MultiCall, RawTx } from "../../types/index.js";
 import type {
   SecuritizeInvestorData,
+  SecuritizeMissingOpenAccountRequirements,
   SecuritizeOpenAccountRequirements,
-  SecuritizeOperationParams,
+  SecuritizeOperationArgs,
   SecuritizeRWAFactoryStateHuman,
 } from "./securitize/index.js";
 import { RWA_FACTORY_SECURITIZE } from "./securitize/index.js";
@@ -36,8 +37,9 @@ interface RWAFactoryTypeMap {
   [RWA_FACTORY_SECURITIZE]: {
     investorData: SecuritizeInvestorData;
     openAccountRequirements: SecuritizeOpenAccountRequirements;
+    missingOpenAccountRequirements: SecuritizeMissingOpenAccountRequirements;
     stateHuman: SecuritizeRWAFactoryStateHuman;
-    operationParams: SecuritizeOperationParams;
+    operationArgs: SecuritizeOperationArgs;
   };
 }
 
@@ -57,11 +59,20 @@ export type RWAOpenAccountRequirements<
 > = RWAFactoryTypeMap[T]["openAccountRequirements"];
 
 /**
+ * Subset of {@link RWAOpenAccountRequirements} that is still unfulfilled,
+ * defaults to union of all factory types.
+ * Can be discriminated by type
+ **/
+export type RWAMissingOpenAccountRequirements<
+  T extends RWAFactoryType = RWAFactoryType,
+> = RWAFactoryTypeMap[T]["missingOpenAccountRequirements"];
+
+/**
  * Open credit account/Multicall extra params type for a RWA factory, defaults to union of all factory types
  * Can be discriminated by type
  **/
-export type RWAOperationParams<T extends RWAFactoryType = RWAFactoryType> =
-  RWAFactoryTypeMap[T]["operationParams"];
+export type RWAOperationArgs<T extends RWAFactoryType = RWAFactoryType> =
+  RWAFactoryTypeMap[T]["operationArgs"];
 
 /**
  * Raw return type of `RWACompressor.getRWAMarketsData`.
@@ -182,13 +193,13 @@ export interface IRWAFactory<T extends RWAFactoryType = RWAFactoryType>
    *
    * @param creditAccount - credit account address
    * @param calls - calls to perform
-   * @param options - factory-specific parameters (e.g. tokens to
-   *   register, signatures to cache). Undefined value means that no RWA actions are required
+   * @param args - factory-specific args (e.g. tokens to register, signatures to cache).
+   *   Undefined value means that no RWA actions are required
    **/
   multicall(
     creditAccount: Address,
     calls: MultiCall[],
-    options?: RWAOperationParams<T>,
+    args?: RWAOperationArgs<T>,
   ): RawTx;
   /**
    * Checks if the user can open a credit account with this factory.
@@ -202,19 +213,32 @@ export interface IRWAFactory<T extends RWAFactoryType = RWAFactoryType>
     props: GetOpenAccountRequirementsProps,
   ): Promise<RWAOpenAccountRequirements<T> | undefined>;
   /**
+   * Computes the subset of `requirements` still unfulfilled, given the
+   * factory-specific params already carried by the transaction calldata.
+   *
+   * @param requirements - requirements fetched via {@link getOpenAccountRequirements}
+   * @param providedArgs - params decoded from the transaction calldata, if
+   *   any; e.g. signatures already included there need not be signed again
+   * @returns the missing requirements, or `undefined` when everything is
+   *   satisfied
+   **/
+  getMissingRequirements(
+    requirements: RWAOpenAccountRequirements<T>,
+    providedArgs?: RWAOperationArgs<T>,
+  ): RWAMissingOpenAccountRequirements<T> | undefined;
+  /**
    * Creates a raw transaction to open a credit account.
    * Similar to {@link CreditFacadeV310Contract.openCreditAccount}.
    *
    * @param creditManager - credit manager address
    * @param calls - initial calls to perform
-   * @param options - factory-specific parameters (e.g. tokens to
-   *   register, signatures to cache).
+   * @param args - factory-specific args (e.g. tokens to register, signatures to cache).
    * Undefined value means that no RWA actions are required (e.g. when we open second credit account)
    **/
   openCreditAccount(
     creditManager: Address,
     calls: MultiCall[],
-    options?: RWAOperationParams<T>,
+    args?: RWAOperationArgs<T>,
   ): RawTx;
 }
 

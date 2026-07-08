@@ -8,7 +8,7 @@ import {
 import type {
   InnerOperation,
   OpenCreditAccountOperation,
-  SecuritizeOpenCreditAccountOperation,
+  RWAOpenCreditAccountOperation,
 } from "../parse/index.js";
 import {
   applyInnerOperations,
@@ -22,7 +22,7 @@ import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
 
 export function previewOpenCreditAccount<P extends PluginsMap>(
   input: PreviewOperationInput<P>,
-  operation: OpenCreditAccountOperation | SecuritizeOpenCreditAccountOperation,
+  operation: OpenCreditAccountOperation | RWAOpenCreditAccountOperation,
 ): OpenCreditAccountPreview {
   const { sdk, value = 0n } = input;
   const market = sdk.marketRegister.findByCreditManager(

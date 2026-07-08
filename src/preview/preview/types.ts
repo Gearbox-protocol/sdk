@@ -84,7 +84,7 @@ export interface PoolOperationPreview {
 }
 
 export interface OpenCreditAccountPreview {
-  operation: "OpenCreditAccount" | "SecuritizeOpenCreditAccount";
+  operation: "OpenCreditAccount" | "RWAOpenCreditAccount";
   /**
    * Credit manager the account is opened in
    */

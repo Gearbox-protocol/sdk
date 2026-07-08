@@ -26,6 +26,14 @@ export class AddressSet extends Set<Address> {
     return super.has(getAddress(value));
   }
 
+  override difference<U>(other: ReadonlySetLike<U>): AddressSet {
+    const result = new AddressSet(this.keys());
+    for (const key of other as unknown as Iterable<Address>) {
+      result.delete(getAddress(key));
+    }
+    return result;
+  }
+
   /**
    * Returns all addresses as an array.
    **/

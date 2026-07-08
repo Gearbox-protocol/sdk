@@ -16,7 +16,7 @@ import type {
 import type {
   CreditSuite,
   PriceUpdate,
-  RWAOperationParams,
+  RWAOperationArgs,
 } from "../market/index.js";
 import type { RWAOpenAccountRequirements } from "../market/rwa/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
@@ -533,11 +533,11 @@ export interface OpenCAProps extends PrepareUpdateQuotasProps {
    * RWA options to open credit account with, required for RWA factories
    * First we ask for getOpenAccountRequirements,
    * then perform necessary actions (e.g. for Securitize, convert requiredSignatures to signaturesToCache)
-   * to produce RWAOperationParams
+   * to produce RWAOperationArgs
    * If getOpenAccountRequirements returned undefined, we need to pass undefined here too;
    * It means that no RWA actions are required (e.g. when we open second credit account)
    */
-  rwaOptions?: RWAOperationParams;
+  rwaOptions?: RWAOperationArgs;
 }
 
 export interface ChangeDeptProps {

@@ -26,7 +26,7 @@ import {
   RAY,
   VERSION_RANGE_310,
 } from "../constants/index.js";
-import type { CreditSuite, RWAOperationParams } from "../market/index.js";
+import type { CreditSuite, RWAOperationArgs } from "../market/index.js";
 import {
   getRawPriceUpdates,
   type IPriceFeedContract,
@@ -2543,7 +2543,7 @@ export class CreditAccountsServiceV310
     to: Address,
     calls: MultiCall[],
     referralCode?: bigint,
-    rwaOptions?: RWAOperationParams,
+    rwaOptions?: RWAOperationArgs,
   ): Promise<RawTx> {
     const marketSuite = this.sdk.marketRegister.findByPool(suite.pool);
     const factory = marketSuite.rwaFactory;
@@ -2571,7 +2571,7 @@ export class CreditAccountsServiceV310
     suite: CreditSuite,
     creditAccount: Address,
     calls: MultiCall[],
-    rwaOptions?: RWAOperationParams,
+    rwaOptions?: RWAOperationArgs,
   ): Promise<RawTx> {
     const marketSuite = this.sdk.marketRegister.findByCreditManager(
       suite.creditManager.address,
@@ -2599,7 +2599,7 @@ export class CreditAccountsServiceV310
     creditAccount: Address,
     calls: MultiCall[],
     operation: CloseOptions,
-    rwaOptions?: RWAOperationParams,
+    rwaOptions?: RWAOperationArgs,
   ): Promise<RawTx> {
     const marketSuite = this.sdk.marketRegister.findByCreditManager(
       suite.creditManager.address,

@@ -20,8 +20,9 @@ import {
   type DStokenData,
   SECURITIZE_REGISTER_VAULT_TYPES,
   type SecuritizeInvestorData,
+  type SecuritizeMissingOpenAccountRequirements,
   type SecuritizeOpenAccountRequirements,
-  type SecuritizeOperationParams,
+  type SecuritizeOperationArgs,
   type SecuritizeRWAFactoryStateHuman,
 } from "./types.js";
 
@@ -218,14 +219,14 @@ export class SecuritizeRWAFactory
   public multicall(
     creditAccount: Address,
     calls: MultiCall[],
-    options?: SecuritizeOperationParams,
+    args?: SecuritizeOperationArgs,
   ): RawTx {
     // In practice, tokensToRegister and signaturesToCache are not used
     // They might be necessary in one of the following cases:
     // 1. credit manager has multiple DS tokens
     // 2. signature deadline expires
     // 3. signature is revoked by the user
-    const { tokensToRegister = [], signaturesToCache = [] } = options ?? {};
+    const { tokensToRegister = [], signaturesToCache = [] } = args ?? {};
     return this.createRawTx({
       functionName: "multicall",
       args: [creditAccount, calls, tokensToRegister, signaturesToCache],
@@ -266,14 +267,40 @@ export class SecuritizeRWAFactory
   }
 
   /**
+   * {@inheritDoc IRWAFactory.getMissingRequirements}
+   *
+   * A required signature is omitted when `providedArgs.signaturesToCache`
+   * already carries a signature for the same token: the transaction caches it
+   * on-chain as part of the operation.
+   */
+  public getMissingRequirements(
+    requirements: SecuritizeOpenAccountRequirements,
+    providedArgs?: SecuritizeOperationArgs,
+  ): SecuritizeMissingOpenAccountRequirements | undefined {
+    const providedTokens = new AddressSet(
+      (providedArgs?.signaturesToCache ?? []).map(s => s.token),
+    );
+    const requiredSignatures = requirements.requiredSignatures.filter(
+      message => !providedTokens.has(message.message.token),
+    );
+    if (requiredSignatures.length === 0) {
+      return undefined;
+    }
+    return {
+      type: RWA_FACTORY_SECURITIZE,
+      requiredSignatures,
+    };
+  }
+
+  /**
    * {@inheritDoc IRWAFactory.openCreditAccount}
    */
   public openCreditAccount(
     creditManager: Address,
     calls: MultiCall[],
-    options?: SecuritizeOperationParams,
+    args?: SecuritizeOperationArgs,
   ): RawTx {
-    const { tokensToRegister = [], signaturesToCache = [] } = options ?? {};
+    const { tokensToRegister = [], signaturesToCache = [] } = args ?? {};
     return this.createRawTx({
       functionName: "openCreditAccount",
       args: [creditManager, calls, tokensToRegister, signaturesToCache],

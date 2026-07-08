@@ -1,12 +1,7 @@
-import { type Address, type ContractFunctionParameters, erc20Abi } from "viem";
+import { type Address, erc20Abi } from "viem";
 
-import { iMulticall3Abi } from "../../abi/iMulticall3.js";
 import { hexEq, NATIVE_ADDRESS } from "../../sdk/index.js";
-import {
-  type MulticallCallResult,
-  Prerequisite,
-  toPrerequisiteError,
-} from "./Prerequisite.js";
+import { Prerequisite } from "./Prerequisite.js";
 import type {
   PrerequisiteContext,
   PrerequisiteDetail,
@@ -24,8 +19,7 @@ export interface BalancePrerequisiteProps {
 /**
  * Checks that `owner` holds a token balance >= `required`. The token is read
  * as an ERC-20, except for the native pseudo-address ({@link NATIVE_ADDRESS},
- * e.g. ETH-zapper deposits) whose balance is read via multicall3's
- * `getEthBalance`.
+ * e.g. ETH-zapper deposits) whose balance is read via `getBalance`.
  */
 export class BalancePrerequisite extends Prerequisite<"balance"> {
   readonly #id: string;
@@ -59,44 +53,32 @@ export class BalancePrerequisite extends Prerequisite<"balance"> {
     return this.#detail;
   }
 
-  public calls(ctx: PrerequisiteContext): ContractFunctionParameters[] {
-    if (hexEq(this.#detail.token, NATIVE_ADDRESS)) {
-      // The native pseudo-address has no ERC-20 code; read the balance via
-      // multicall3's getEthBalance instead.
-      const multicall3 = ctx.sdk.client.chain.contracts?.multicall3?.address;
-      if (!multicall3) {
-        throw new Error(
-          "multicall3 is not configured for this chain, cannot read native balance",
-        );
-      }
-      return [
-        {
-          address: multicall3,
-          abi: iMulticall3Abi,
-          functionName: "getEthBalance",
-          args: [this.#detail.owner],
-        },
-      ];
-    }
-    return [
-      {
-        address: this.#detail.token,
-        abi: erc20Abi,
-        functionName: "balanceOf",
-        args: [this.#detail.owner],
-      },
-    ];
-  }
-
-  public resolve(slice: MulticallCallResult[]): PrerequisiteResult<"balance"> {
-    const res = slice[0];
-    if (!res || res.status === "failure") {
-      return this.errorResult(toPrerequisiteError(res?.error));
-    }
-    const actual = res.result as bigint;
+  protected async check(
+    ctx: PrerequisiteContext,
+  ): Promise<PrerequisiteResult<"balance">> {
+    const actual = await this.#readBalance(ctx);
     return this.satisfiedResult(actual >= this.#detail.required, {
       ...this.#detail,
       actual,
+    });
+  }
+
+  async #readBalance(ctx: PrerequisiteContext): Promise<bigint> {
+    // `undefined` block number lets viem read at `latest`; it is only set for
+    // testnet forks pinned to a specific block.
+    if (hexEq(this.#detail.token, NATIVE_ADDRESS)) {
+      // The native pseudo-address has no ERC-20 code; read the native balance.
+      return ctx.sdk.client.getBalance({
+        address: this.#detail.owner,
+        blockNumber: ctx.blockNumber,
+      });
+    }
+    return ctx.sdk.client.readContract({
+      address: this.#detail.token,
+      abi: erc20Abi,
+      functionName: "balanceOf",
+      args: [this.#detail.owner],
+      blockNumber: ctx.blockNumber,
     });
   }
 }

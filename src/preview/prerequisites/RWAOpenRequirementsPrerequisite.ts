@@ -1,27 +1,27 @@
-import type { Address, ContractFunctionParameters } from "viem";
+import type { Address } from "viem";
 
-import {
-  hexEq,
-  type RWAOpenAccountRequirements,
-  type RWAOperationParams,
-} from "../../sdk/index.js";
+import type { RWAOperationArgs } from "../../sdk/index.js";
 import { Prerequisite } from "./Prerequisite.js";
-import type { PrerequisiteDetail, PrerequisiteResult } from "./types.js";
+import type {
+  PrerequisiteContext,
+  PrerequisiteDetail,
+  PrerequisiteResult,
+} from "./types.js";
 
 export interface RWAOpenRequirementsPrerequisiteProps {
-  /** Requirements already resolved via `sdk.accounts.getOpenAccountRequirements`. */
-  requirements: RWAOpenAccountRequirements;
-  /** RWA token (e.g. Securitize DSToken) the requirements were computed for. */
+  /** RWA token (e.g. Securitize DSToken) to check the requirements for. */
   token: Address;
-  /** RWA factory that produced the requirements. */
+  /** Credit manager of the RWA market. */
+  creditManager: Address;
+  /** RWA factory that gates the token. */
   factory: Address;
   /**
-   * Registration params (`tokensToRegister`/`signaturesToCache`) already
-   * carried by the transaction calldata. Signatures provided here count
-   * towards the `requiredSignatures` requirement: the transaction itself
-   * caches them on-chain, so the borrower has nothing left to sign.
+   * Factory-specific registration params already carried by the transaction
+   * calldata. Passed through to the factory's `getMissingRequirements`: e.g.
+   * signatures provided here need not be signed again, since the transaction
+   * itself caches them on-chain.
    */
-  provided?: RWAOperationParams;
+  providedArgs?: RWAOperationArgs;
   title?: string;
   id?: string;
 }
@@ -30,26 +30,31 @@ export interface RWAOpenRequirementsPrerequisiteProps {
  * Checks that the borrower has fulfilled the RWA factory's open-account
  * requirements (issuer-side token registration, EIP-712 signatures).
  *
- * Unlike `allowance`/`balance`, the requirements cannot be derived from plain
- * ERC-20 multicall reads: they come from an async compressor read performed by
- * `sdk.accounts.getOpenAccountRequirements`. The prerequisite is therefore
- * *pre-resolved*: it is constructed with the requirements already computed,
- * contributes no calls to the verification multicall, and `resolve` only
- * interprets the stored payload.
+ * The requirements are fetched at verify time via
+ * `sdk.accounts.getOpenAccountRequirements`, so re-running verification picks
+ * up off-chain progress (the borrower registering on the issuer's website or
+ * signing the factory's message) without rebuilding the prerequisites. The
+ * unfulfilled subset is computed by the factory itself
+ * (`IRWAFactory.getMissingRequirements`) and exposed on the result's
+ * `detail.missing`; the full requirements are kept on `detail.requirements`.
  */
 export class RWAOpenRequirementsPrerequisite extends Prerequisite<"rwaOpenRequirements"> {
   readonly #id: string;
   readonly #title: string;
   readonly #detail: PrerequisiteDetail<"rwaOpenRequirements">;
-  readonly #provided?: RWAOperationParams;
+  readonly #providedArgs?: RWAOperationArgs;
 
   constructor(props: RWAOpenRequirementsPrerequisiteProps) {
     super();
     this.#id =
       props.id ?? `rwaOpenRequirements:${props.factory}:${props.token}`;
     this.#title = props.title ?? "RWA account requirements fulfilled";
-    this.#detail = props.requirements;
-    this.#provided = props.provided;
+    this.#detail = {
+      token: props.token,
+      creditManager: props.creditManager,
+      factory: props.factory,
+    };
+    this.#providedArgs = props.providedArgs;
   }
 
   public get id(): string {
@@ -68,44 +73,37 @@ export class RWAOpenRequirementsPrerequisite extends Prerequisite<"rwaOpenRequir
     return this.#detail;
   }
 
-  /** Pre-resolved: no on-chain reads to contribute. */
-  public calls(): ContractFunctionParameters[] {
-    return [];
-  }
-
-  public resolve(): PrerequisiteResult<"rwaOpenRequirements"> {
-    return this.satisfiedResult(this.#satisfied(), this.#detail);
-  }
-
-  /**
-   * Satisfied when the borrower has nothing left to do: no tokens pending
-   * issuer-side registration and no messages left to sign.
-   *
-   * Issuer-side registration (`securitizeTokensToRegister`) can only happen on
-   * the Securitize website, so calldata cannot fulfil it. A required signature,
-   * however, is fulfilled when the transaction's own `signaturesToCache`
-   * carries a non-expired signature for the same token: the transaction caches
-   * it on-chain as part of the operation.
-   */
-  #satisfied(): boolean {
-    const { securitizeTokensToRegister, requiredSignatures } = this.#detail;
-    if (securitizeTokensToRegister.length > 0) {
-      return false;
-    }
-    return requiredSignatures.every(m =>
-      this.#hasProvidedSignature(m.message.token),
+  protected async check(
+    ctx: PrerequisiteContext,
+  ): Promise<PrerequisiteResult<"rwaOpenRequirements">> {
+    const requirements = await ctx.sdk.accounts.getOpenAccountRequirements(
+      ctx.wallet,
+      this.#detail.creditManager,
+      { tokenOutAddress: this.#detail.token },
     );
-  }
-
-  /**
-   * Whether the transaction calldata carries a non-expired registration
-   * signature for the given token.
-   */
-  #hasProvidedSignature(token: Address): boolean {
-    const provided = this.#provided?.signaturesToCache ?? [];
-    const now = BigInt(Math.floor(Date.now() / 1000));
-    return provided.some(
-      s => hexEq(s.token, token) && s.signature.deadline > now,
+    // No requirements means the factory does not gate this token: satisfied.
+    if (!requirements) {
+      return this.satisfiedResult(true, this.#detail);
+    }
+    const { rwaFactory } = ctx.sdk.marketRegister.findByCreditManager(
+      this.#detail.creditManager,
+    );
+    if (!rwaFactory) {
+      throw new Error(
+        `no RWA factory found for credit manager ${this.#detail.creditManager}`,
+      );
+    }
+    const missing = rwaFactory.getMissingRequirements(
+      requirements,
+      this.#providedArgs,
+    );
+    return this.satisfiedResult(
+      !missing && requirements.securitizeTokensToRegister.length === 0,
+      {
+        ...this.#detail,
+        requirements,
+        missing,
+      },
     );
   }
 }

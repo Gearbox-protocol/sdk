@@ -9,6 +9,7 @@ import {
   type OnchainSDK,
   type ParsedCallV2,
   RWA_FACTORY_SECURITIZE,
+  type RWAOperationArgs,
   type SecuritizeRegisterMessage,
 } from "../../sdk/index.js";
 import { classifyInnerOperations } from "./classifyInnerOperations.js";
@@ -31,7 +32,7 @@ export interface ParseRWAFactoryOperationCalldataProps {
  * identical to {@link parseFacadeOperationCalldata}.
  *
  * Dispatches on the factory's contract type; supporting a new factory type
- * requires a new branch here plus new operation types in `types-rwa.ts`.
+ * requires a new branch here.
  */
 export function parseRWAFactoryOperationCalldata(
   props: ParseRWAFactoryOperationCalldataProps,
@@ -54,7 +55,7 @@ export function parseRWAFactoryOperationCalldata(
  *
  * In the template flow `tokensToRegister`/`signaturesToCache` are empty; the
  * real values come from the factory's open-account requirements (see
- * `buildPrerequisites`).
+ * `checkPrerequisites`).
  */
 function parseSecuritizeOperationCalldata(
   props: ParseRWAFactoryOperationCalldataProps,
@@ -65,13 +66,16 @@ function parseSecuritizeOperationCalldata(
   const { rawArgs } = parsed;
 
   const innerCalls = (rawArgs.calls ?? []) as ParsedCallV2[];
-  const tokensToRegister = [
-    ...((rawArgs.tokensToRegister ?? []) as readonly Address[]),
-  ];
-  const signaturesToCache = [
-    ...((rawArgs.signaturesToCache ??
-      []) as readonly SecuritizeRegisterMessage[]),
-  ];
+  const args: RWAOperationArgs = {
+    type: RWA_FACTORY_SECURITIZE,
+    tokensToRegister: [
+      ...((rawArgs.tokensToRegister ?? []) as readonly Address[]),
+    ],
+    signaturesToCache: [
+      ...((rawArgs.signaturesToCache ??
+        []) as readonly SecuritizeRegisterMessage[]),
+    ],
+  };
 
   const suite =
     functionName === "openCreditAccount"
@@ -93,19 +97,17 @@ function parseSecuritizeOperationCalldata(
     case "openCreditAccount":
       return {
         ...metadata,
-        operation: "SecuritizeOpenCreditAccount",
+        operation: "RWAOpenCreditAccount",
         multicall,
-        tokensToRegister,
-        signaturesToCache,
+        args,
       };
     case "multicall":
       return {
         ...metadata,
-        operation: "SecuritizeMulticall",
+        operation: "RWAMulticall",
         creditAccount: rawArgs.creditAccount as Address,
         multicall,
-        tokensToRegister,
-        signaturesToCache,
+        args,
       };
     default:
       throw new Error(

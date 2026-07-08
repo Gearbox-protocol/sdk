@@ -26,7 +26,7 @@ export async function previewOperation<P extends PluginsMap = PluginsMap>(
 
   if (
     operation.operation === "OpenCreditAccount" ||
-    operation.operation === "SecuritizeOpenCreditAccount"
+    operation.operation === "RWAOpenCreditAccount"
   ) {
     return previewOpenCreditAccount(input, operation);
   }
@@ -34,7 +34,7 @@ export async function previewOperation<P extends PluginsMap = PluginsMap>(
   if (
     operation.operation === "MultiCall" ||
     operation.operation === "BotMulticall" ||
-    operation.operation === "SecuritizeMulticall"
+    operation.operation === "RWAMulticall"
   ) {
     return previewAdjustCreditAccount(input, operation, options);
   }

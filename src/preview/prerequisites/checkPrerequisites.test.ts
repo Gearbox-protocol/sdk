@@ -18,30 +18,24 @@ import {
   RWA_FACTORY_SECURITIZE,
   SECURITIZE_REGISTER_VAULT_TYPES,
   type SecuritizeInvestorData,
+  type SecuritizeRegisterVaultMessage,
 } from "../../sdk/index.js";
-import { buildPrerequisites } from "./buildPrerequisites.js";
+import { checkPrerequisites } from "./checkPrerequisites.js";
+import type { PrerequisiteResult } from "./types.js";
 
-// Scoped snapshot of the Securitize anvil fork, replayed via `hydrate` so the
-// test runs fully offline. Regenerate with
-// `tsx scripts/generate-rwa-pool-fixture.ts`.
 const FIXTURE = resolve(
   import.meta.dirname,
   "../__fixtures__/Mainnet-25432463-securitize.json",
 );
 
-const SENDER: Address = getAddress(
-  "0xf13df765f3047850Cede5aA9fDF20a12A75f7F70",
-);
-const FACTORY: Address = getAddress(
-  "0xc6f7B95f6fb8394541D9Ac8B0Abc94Bf6E84F703",
-);
+const SENDER: Address = "0xf13df765f3047850Cede5aA9fDF20a12A75f7F70";
+const FACTORY: Address = "0xc6f7B95f6fb8394541D9Ac8B0Abc94Bf6E84F703";
 // Securitize DSToken quoted by the operation's `updateQuota` call
-const DS_TOKEN: Address = getAddress(
-  "0x17418038ecf73BA4026C4F428547Bf099706F27B",
-);
-const SPENDER: Address = getAddress(
-  "0x0000000000000000000000000000000000000001",
-);
+const DS_TOKEN: Address = "0x17418038ecF73BA4026c4f428547BF099706F27B";
+const OPERATOR: Address = "0x04Ac894088fDd6fD622D9fe7c39192BafAeA15dB";
+const SPENDER: Address = "0x0000000000000000000000000000000000000001";
+
+const DUMMY_SIGNATURE: Hex = `0x${"ab".repeat(65)}`;
 
 // `openCreditAccount` transaction to the Securitize RWA factory, built by the
 // frontend against Mainnet. Its `tokensToRegister`/`signaturesToCache` args
@@ -77,69 +71,96 @@ beforeAll(() => {
     creditAccounts: [],
     registeredTokens: [DS_TOKEN],
     cachedSignatures: [],
-    registerVaultMessages: [
-      {
-        types: SECURITIZE_REGISTER_VAULT_TYPES,
-        primaryType: "RegisterVault",
-        domain: {
-          name: "VaultRegistrar",
-          version: "1",
-          chainId: 1n,
-          verifyingContract: FACTORY,
-        },
-        message: {
-          investor: SENDER,
-          operator: getAddress("0x04Ac894088fDd6fD622D9fe7c39192BafAeA15dB"),
-          token: DS_TOKEN,
-          nonce: 0n,
-          deadline: 2n ** 256n - 1n,
-        },
-      },
-    ],
+    registerVaultMessages: [registerVaultMessage(DS_TOKEN)],
   };
   vi.spyOn(sdk.rwa, "getInvestorData").mockResolvedValue([investorData]);
   vi.spyOn(sdk.accounts, "getApprovalAddress").mockResolvedValue(SPENDER);
 });
 
-async function resolveRWAPrerequisite(calldata: Hex) {
-  const prereqs = await buildPrerequisites({
-    sdk,
-    to: FACTORY,
-    calldata,
-    sender: SENDER,
-  });
-  const rwa = prereqs.find(p => p.kind === "rwaOpenRequirements");
-  expect(rwa).toBeDefined();
-  // Pre-resolved prerequisite: contributes no on-chain reads.
-  return rwa!.resolve([]);
+function registerVaultMessage(
+  token: Address,
+  deadline: bigint = 2n ** 256n - 1n,
+): SecuritizeRegisterVaultMessage {
+  return {
+    types: SECURITIZE_REGISTER_VAULT_TYPES,
+    primaryType: "RegisterVault",
+    domain: {
+      name: "VaultRegistrar",
+      version: "1",
+      chainId: 1n,
+      verifyingContract: FACTORY,
+    },
+    message: {
+      investor: SENDER,
+      operator: OPERATOR,
+      token,
+      nonce: 0n,
+      deadline,
+    },
+  };
 }
 
-it("is satisfied when the required signature is included in calldata", async () => {
-  const result = await resolveRWAPrerequisite(OPEN_CALLDATA);
-  expect(result.satisfied).toBe(true);
-});
-
-it("is unsatisfied for template calldata without registration params", async () => {
-  // Same operation re-encoded with empty `tokensToRegister`/`signaturesToCache`
+/** Same operation as {@link OPEN_CALLDATA} re-encoded with the given params. */
+function calldataWith(
+  tokensToRegister: Address[],
+  signaturesToCache: { token: Address; deadline: bigint }[],
+): Hex {
   const { args } = decodeFunctionData({
     abi: iSecuritizeRWAFactoryAbi,
     data: OPEN_CALLDATA,
   });
   const [creditManager, calls] = args as unknown as [Address, unknown[]];
-  const templateCalldata = encodeFunctionData({
+  return encodeFunctionData({
     abi: iSecuritizeRWAFactoryAbi,
     functionName: "openCreditAccount",
-    args: [creditManager, calls, [], []] as never,
+    args: [
+      creditManager,
+      calls,
+      tokensToRegister,
+      signaturesToCache.map(({ token, deadline }) => ({
+        token,
+        signature: { deadline, signature: DUMMY_SIGNATURE },
+      })),
+    ] as never,
   });
+}
 
-  const result = await resolveRWAPrerequisite(templateCalldata);
-  expect(result.satisfied).toBe(false);
-  // The detail still carries the full requirements so consumers can fill in
-  // the template registration params.
-  expect(result.detail).toMatchObject({
-    type: RWA_FACTORY_SECURITIZE,
-    securitizeTokensToRegister: [],
-    tokensToRegister: [DS_TOKEN],
-    requiredSignatures: [{ message: { token: DS_TOKEN } }],
+async function resolveRWAResult(
+  calldata: Hex,
+): Promise<PrerequisiteResult<"rwaOpenRequirements">> {
+  const results = await checkPrerequisites({
+    sdk,
+    to: FACTORY,
+    calldata,
+    sender: SENDER,
+  });
+  const rwa = results.find(r => r.kind === "rwaOpenRequirements");
+  expect(rwa).toBeDefined();
+  return rwa!;
+}
+
+it("is satisfied when the required signature is included in calldata", async () => {
+  const rwa = await resolveRWAResult(OPEN_CALLDATA);
+  expect(rwa.satisfied).toBe(true);
+  expect(rwa.detail.missing).toBeUndefined();
+});
+
+it("is unsatisfied for template calldata without registration params", async () => {
+  const rwa = await resolveRWAResult(calldataWith([], []));
+  expect(rwa.satisfied).toBe(false);
+  // The detail carries both the missing subset and the raw requirements.
+  expect(rwa.detail).toMatchObject({
+    token: DS_TOKEN,
+    factory: FACTORY,
+    requirements: {
+      type: RWA_FACTORY_SECURITIZE,
+      securitizeTokensToRegister: [],
+      tokensToRegister: [DS_TOKEN],
+      requiredSignatures: [{ message: { token: DS_TOKEN } }],
+    },
+    missing: {
+      type: RWA_FACTORY_SECURITIZE,
+      requiredSignatures: [{ message: { token: DS_TOKEN } }],
+    },
   });
 });

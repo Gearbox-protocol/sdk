@@ -66,7 +66,6 @@ export function isPoolOperation(tx: Operation): tx is PoolOperation {
  */
 export function isRWAOperation(tx: Operation): tx is RWAOperation {
   return (
-    tx.operation === "SecuritizeOpenCreditAccount" ||
-    tx.operation === "SecuritizeMulticall"
+    tx.operation === "RWAOpenCreditAccount" || tx.operation === "RWAMulticall"
   );
 }

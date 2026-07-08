@@ -6,7 +6,7 @@ import {
 } from "../../sdk/index.js";
 import type {
   MulticallOperation,
-  SecuritizeMulticallOperation,
+  RWAMulticallOperation,
 } from "../parse/index.js";
 import {
   applyInnerOperations,
@@ -29,7 +29,7 @@ import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
  */
 export async function previewAdjustCreditAccount<P extends PluginsMap>(
   input: PreviewOperationInput<P>,
-  operation: MulticallOperation | SecuritizeMulticallOperation,
+  operation: MulticallOperation | RWAMulticallOperation,
   options?: PreviewOperationOptions,
 ): Promise<AdjustCreditAccountPreview> {
   const { sdk, value = 0n } = input;

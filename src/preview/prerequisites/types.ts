@@ -2,6 +2,7 @@ import type { Address } from "viem";
 
 import type {
   OnchainSDK,
+  RWAMissingOpenAccountRequirements,
   RWAOpenAccountRequirements,
 } from "../../sdk/index.js";
 
@@ -38,7 +39,26 @@ export interface PrerequisiteDetailMap {
    * registration and/or EIP-712 signatures the borrower must provide before
    * opening a credit account in an RWA market.
    */
-  rwaOpenRequirements: RWAOpenAccountRequirements;
+  rwaOpenRequirements: {
+    /** RWA token (e.g. Securitize DSToken) the requirements are checked for. */
+    token: Address;
+    /** Credit manager of the RWA market. */
+    creditManager: Address;
+    /** RWA factory that gates the token. */
+    factory: Address;
+    /**
+     * Full requirements fetched at verify time via
+     * `sdk.accounts.getOpenAccountRequirements`; only present when the read
+     * succeeded and the factory gates the token.
+     */
+    requirements?: RWAOpenAccountRequirements;
+    /**
+     * Subset of `requirements` still unfulfilled, computed by the RWA
+     * factory at verify time (`IRWAFactory.getMissingRequirements`);
+     * `undefined` when everything is satisfied.
+     */
+    missing?: RWAMissingOpenAccountRequirements;
+  };
 }
 
 export type PrerequisiteKind = keyof PrerequisiteDetailMap;

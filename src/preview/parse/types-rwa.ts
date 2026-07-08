@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-import type { SecuritizeRegisterMessage } from "../../sdk/index.js";
+import type { RWAOperationArgs } from "../../sdk/index.js";
 import type { InnerOperation } from "./types-facades.js";
 
 /**
@@ -16,36 +16,24 @@ export interface RWAOperationMetadata {
   creditFacade: Address;
 }
 
-export interface SecuritizeOpenCreditAccountOperation<Ext extends object = {}>
+export interface RWAOpenCreditAccountOperation<Ext extends object = {}>
   extends RWAOperationMetadata {
-  operation: "SecuritizeOpenCreditAccount";
+  operation: "RWAOpenCreditAccount";
   multicall: InnerOperation<Ext>[];
   /**
-   * DSToken addresses to register, decoded from calldata. Empty in the
-   * template flow, where the real value comes from the factory's open-account
-   * requirements.
+   * Factory-specific registration args decoded from calldata (for
+   * Securitize: `tokensToRegister`/`signaturesToCache`).
    */
-  tokensToRegister: Address[];
-  /**
-   * EIP-712 registration signatures to store on-chain, decoded from calldata.
-   * Empty in the template flow.
-   */
-  signaturesToCache: SecuritizeRegisterMessage[];
+  args: RWAOperationArgs;
 }
 
-/**
- * `SecuritizeRWAFactory.multicall` call: like the facade's `multicall`, plus
- * the factory-specific registration args.
- */
-export interface SecuritizeMulticallOperation<Ext extends object = {}>
+export interface RWAMulticallOperation<Ext extends object = {}>
   extends RWAOperationMetadata {
-  operation: "SecuritizeMulticall";
+  operation: "RWAMulticall";
   creditAccount: Address;
   multicall: InnerOperation<Ext>[];
-  /** DSToken addresses to register, decoded from calldata. */
-  tokensToRegister: Address[];
-  /** EIP-712 registration signatures to store on-chain, decoded from calldata. */
-  signaturesToCache: SecuritizeRegisterMessage[];
+  /** Factory-specific registration args decoded from calldata. */
+  args: RWAOperationArgs;
 }
 
 /**
@@ -53,5 +41,5 @@ export interface SecuritizeMulticallOperation<Ext extends object = {}>
  * adding support for a new RWA factory type.
  */
 export type RWAOperation<Ext extends object = {}> =
-  | SecuritizeOpenCreditAccountOperation<Ext>
-  | SecuritizeMulticallOperation<Ext>;
+  | RWAOpenCreditAccountOperation<Ext>
+  | RWAMulticallOperation<Ext>;

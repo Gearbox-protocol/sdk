@@ -1,8 +1,4 @@
-import {
-  BaseError,
-  type ContractFunctionParameters,
-  ContractFunctionRevertedError,
-} from "viem";
+import { BaseError, ContractFunctionRevertedError } from "viem";
 
 import type {
   PrerequisiteContext,
@@ -13,20 +9,12 @@ import type {
 } from "./types.js";
 
 /**
- * One entry of a viem `multicall({ allowFailure: true })` response: either a
- * decoded `result` or the `error` that the call reverted with.
- */
-export type MulticallCallResult =
-  | { status: "success"; result: unknown; error?: undefined }
-  | { status: "failure"; result?: undefined; error: Error };
-
-/**
  * Decodes an unknown error into a {@link PrerequisiteError} with a
  * human-readable revert reason. Mirrors the SDK's `extractCallError`: walk the
  * viem error chain for a {@link ContractFunctionRevertedError} and use its
  * `errorName`, otherwise fall back to the error's short message / name.
  */
-export function toPrerequisiteError(cause: unknown): PrerequisiteError {
+function toPrerequisiteError(cause: unknown): PrerequisiteError {
   if (cause instanceof BaseError) {
     const reverted = cause.walk(
       e => e instanceof ContractFunctionRevertedError,
@@ -46,17 +34,11 @@ export function toPrerequisiteError(cause: unknown): PrerequisiteError {
 }
 
 /**
- * A single verifiable prerequisite for a transaction. Subclasses describe the
- * on-chain reads they need ({@link calls}) and how to turn the multicall slice
- * into a {@link PrerequisiteResult} ({@link resolve}).
+ * A single verifiable prerequisite for a transaction. Subclasses implement
+ * {@link check} to perform whatever async reads they need (an ERC-20
+ * `readContract`, a compressor call, ...) and map the outcome into a
+ * {@link PrerequisiteResult}.
  *
- * Identity (`id`, `kind`, `title`) and build-time `detail` are exposed as
- * read-only accessors; subclasses back them with private fields. The shared
- * {@link satisfiedResult}/{@link errorResult} helpers are `protected` so each
- * subclass builds results consistently.
- *
- * The same instance can be verified standalone via {@link verify} or batched
- * together with others by `verifyPrerequisites`.
  */
 export abstract class Prerequisite<K extends PrerequisiteKind> {
   /** Stable identifier, used as a React key and for deduplication. */
@@ -68,29 +50,29 @@ export abstract class Prerequisite<K extends PrerequisiteKind> {
   /** Inputs known before reading the chain (no `actual` yet). */
   public abstract get detail(): PrerequisiteDetail<K>;
 
-  /** Contract reads this check needs (usually one). */
-  public abstract calls(ctx: PrerequisiteContext): ContractFunctionParameters[];
-
-  /** Maps this check's slice of the multicall response into a result. */
-  public abstract resolve(slice: MulticallCallResult[]): PrerequisiteResult<K>;
-
   /**
-   * Verifies this prerequisite on its own using an `allowFailure` multicall.
-   * Prefer `verifyPrerequisites` to batch several checks into one round-trip.
+   * Verifies this prerequisite. Never rejects: any error thrown by
+   * {@link check} (revert, RPC/network failure, compressor error) is
+   * normalized into an `error` result.
    */
   public async verify(
     ctx: PrerequisiteContext,
   ): Promise<PrerequisiteResult<K>> {
-    const calls = this.calls(ctx);
-    const results = (await ctx.sdk.client.multicall({
-      allowFailure: true,
-      contracts: calls,
-      // `undefined` lets viem read at `latest`; `blockNumber` is only set for
-      // testnet forks pinned to a specific block.
-      blockNumber: ctx.blockNumber,
-    })) as unknown as MulticallCallResult[];
-    return this.resolve(results);
+    try {
+      return await this.check(ctx);
+    } catch (cause) {
+      return this.errorResult(cause);
+    }
   }
+
+  /**
+   * Performs the reads this prerequisite needs and maps them into a result.
+   * May throw on read failure; {@link verify} converts throws into `error`
+   * results.
+   */
+  protected abstract check(
+    ctx: PrerequisiteContext,
+  ): Promise<PrerequisiteResult<K>>;
 
   /** Builds a successful result; `detail` carries the on-chain `actual`. */
   protected satisfiedResult(
@@ -106,14 +88,14 @@ export abstract class Prerequisite<K extends PrerequisiteKind> {
     } as PrerequisiteResult<K>;
   }
 
-  /** Builds a failed result from a decoded read error. */
-  protected errorResult(error: PrerequisiteError): PrerequisiteResult<K> {
+  /** Builds a failed result from a raw read error (normalized internally). */
+  protected errorResult(cause: unknown): PrerequisiteResult<K> {
     return {
       id: this.id,
       kind: this.kind,
       title: this.title,
       detail: this.detail,
-      error,
+      error: toPrerequisiteError(cause),
     } as PrerequisiteResult<K>;
   }
 }

@@ -1,11 +1,11 @@
-import { type Address, type ContractFunctionParameters, erc20Abi } from "viem";
+import { type Address, erc20Abi } from "viem";
 
-import {
-  type MulticallCallResult,
-  Prerequisite,
-  toPrerequisiteError,
-} from "./Prerequisite.js";
-import type { PrerequisiteDetail, PrerequisiteResult } from "./types.js";
+import { Prerequisite } from "./Prerequisite.js";
+import type {
+  PrerequisiteContext,
+  PrerequisiteDetail,
+  PrerequisiteResult,
+} from "./types.js";
 
 export interface AllowancePrerequisiteProps {
   token: Address;
@@ -51,25 +51,18 @@ export class AllowancePrerequisite extends Prerequisite<"allowance"> {
     return this.#detail;
   }
 
-  public calls(): ContractFunctionParameters[] {
-    return [
-      {
-        address: this.#detail.token,
-        abi: erc20Abi,
-        functionName: "allowance",
-        args: [this.#detail.owner, this.#detail.spender],
-      },
-    ];
-  }
-
-  public resolve(
-    slice: MulticallCallResult[],
-  ): PrerequisiteResult<"allowance"> {
-    const res = slice[0];
-    if (!res || res.status === "failure") {
-      return this.errorResult(toPrerequisiteError(res?.error));
-    }
-    const actual = res.result as bigint;
+  protected async check(
+    ctx: PrerequisiteContext,
+  ): Promise<PrerequisiteResult<"allowance">> {
+    const actual = await ctx.sdk.client.readContract({
+      address: this.#detail.token,
+      abi: erc20Abi,
+      functionName: "allowance",
+      args: [this.#detail.owner, this.#detail.spender],
+      // `undefined` lets viem read at `latest`; `blockNumber` is only set for
+      // testnet forks pinned to a specific block.
+      blockNumber: ctx.blockNumber,
+    });
     return this.satisfiedResult(actual >= this.#detail.required, {
       ...this.#detail,
       actual,
