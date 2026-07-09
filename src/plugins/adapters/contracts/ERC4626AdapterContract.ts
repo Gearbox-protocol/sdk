@@ -78,6 +78,17 @@ export class ERC4626AdapterContract extends AbstractAdapterContract<
     return this.#asset;
   }
 
+  /**
+   * Vault share token: the serialized `vault` when set; for v<=311 the
+   * serialized vault is zeroAddress and the adapter targets the vault
+   * directly, so the target contract is the share token.
+   */
+  get share(): Address {
+    return this.#vault && this.#vault !== zeroAddress
+      ? this.#vault
+      : this.targetContract;
+  }
+
   public override stateHuman(raw?: boolean) {
     return {
       ...super.stateHuman(raw),
@@ -108,12 +119,6 @@ export class ERC4626AdapterContract extends AbstractAdapterContract<
     decoded: DecodeFunctionDataReturnType<abi>,
     balances: AddressMap<bigint>,
   ): DiffLeftover[] {
-    // for v<=311 the serialized vault is zeroAddress and the adapter targets
-    // the vault directly
-    const share =
-      this.#vault && this.#vault !== zeroAddress
-        ? this.#vault
-        : this.targetContract;
     switch (decoded.functionName) {
       case "depositDiff": {
         const [leftoverAmount] = decoded.args;
@@ -121,7 +126,7 @@ export class ERC4626AdapterContract extends AbstractAdapterContract<
       }
       case "redeemDiff": {
         const [leftoverAmount] = decoded.args;
-        return [{ tokenIn: share, leftoverAmount }];
+        return [{ tokenIn: this.share, leftoverAmount }];
       }
       default:
         return super.decodeDiffLeftovers(decoded, balances);

@@ -1,5 +1,6 @@
 import {
   AbstractAdapterContract,
+  ERC4626AdapterContract,
   type SdkWithAdapters,
 } from "../../plugins/adapters/index.js";
 import {
@@ -10,6 +11,7 @@ import {
   type PluginsMap,
 } from "../../sdk/index.js";
 import type { InnerOperation } from "../parse/index.js";
+import { applyRWAWrapUnwrap } from "./applyRWAWrapUnwrap.js";
 
 /**
  * Running state threaded through a credit-facade multicall by
@@ -73,9 +75,15 @@ export function makeInnerOperationsState(): InnerOperationsState {
  * exact deltas for explicit facade calls, exact leftovers for diff-style
  * adapter calls inside `storeExpectedBalances`/`compareBalances` brackets and
  * enforced minimums for bracket targets. Adapter calls outside a bracket are
- * ignored: nothing enforces their outcome on-chain (e.g. reward claims and RWA
- * wrap/unwrap calls emitted by `CreditAccountsServiceV310`), so their
- * guaranteed balance change is zero.
+ * ignored: nothing enforces their outcome on-chain (e.g. reward claims), so
+ * their guaranteed balance change is zero.
+ *
+ * The exception is RWA wrap/unwrap calls emitted by
+ * `CreditAccountsServiceV310`: out-of-bracket ERC4626 adapter calls whose
+ * share token is an RWA underlying. Their outcome is essential to the preview
+ * (the conversion between the market underlying and its asset); RWA
+ * underlyings always convert 1-to-1 with their vault asset, so the conversion
+ * is applied directly, see {@link applyRWAWrapUnwrap}.
  *
  * @throws On malformed `storeExpectedBalances`/`compareBalances` brackets and
  * on bracketed calls to non-adapter targets.
@@ -158,25 +166,45 @@ export function applyInnerOperations<P extends PluginsMap>(
         // that stored minimums are met and changes no balances.
         inBracket = false;
         break;
-      case "Execute":
+      case "Execute": {
+        const adapter = sdk.getContract(op.adapter);
         if (inBracket) {
-          const adapter = sdk.getContract(op.adapter);
           if (!(adapter instanceof AbstractAdapterContract)) {
             throw new Error(
               `call to ${op.adapter} between storeExpectedBalances and compareBalances is not an adapter call`,
             );
           }
           adapter.previewBalanceChanges(state.balances, op.calldata);
+        } else if (isRWAShare(sdk, adapter)) {
+          applyRWAWrapUnwrap(adapter, op.calldata, state.balances);
         }
         break;
+      }
     }
   }
+
   if (inBracket) {
     // The router always emits storeExpectedBalances/compareBalances as a pair
     throw new Error(
       "malformed multicall: storeExpectedBalances without a matching compareBalances",
     );
   }
+}
+
+/**
+ * True when the ERC4626 adapter converts an RWA underlying, i.e. it is the
+ * wrap/unwrap adapter of an RWA market rather than a regular vault strategy
+ * adapter.
+ */
+function isRWAShare<P extends PluginsMap>(
+  sdk: SdkWithAdapters<P>,
+  adapter: unknown,
+): adapter is ERC4626AdapterContract {
+  if (adapter instanceof ERC4626AdapterContract) {
+    const meta = sdk.tokensMeta.get(adapter.share);
+    return !!meta && sdk.tokensMeta.isRWAUnderlying(meta);
+  }
+  return false;
 }
 
 /**
