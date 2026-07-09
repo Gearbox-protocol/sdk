@@ -798,52 +798,9 @@ export type GetApprovalAddressProps =
     };
 
 /**
- * A single step in a generic credit account update operation chain.
- *
- * Used by {@link ICreditAccountsService.assembleCaUpdateCalls} to build the
- * underlying credit facade multicall calls.
- *
- * @deprecated Prefer {@link EncodableCreditAccountOperation} with
- * {@link ICreditAccountsService.assembleCaOperations}. Close stays on dedicated
- * assemblers / this deprecated path only.
- */
-export type CreditAccountUpdateOperation =
-  | { type: "increaseDebt"; amount: bigint }
-  | { type: "decreaseDebt"; amount: bigint }
-  | { type: "addCollateral"; token: Address; amount: bigint }
-  | { type: "withdrawCollateral"; token: Address; amount: bigint }
-  | { type: "swap" }
-  | {
-      type: "changeQuota";
-      quotaIncrease: Array<Asset>;
-      quotaDecrease: Array<Asset>;
-    }
-  | { type: "closeCreditAccount" };
-
-/**
- * Input for {@link ICreditAccountsService.assembleCaUpdateCalls}.
- *
- * @deprecated Prefer {@link AssembleCaOperationsProps} /
- * {@link ICreditAccountsService.assembleCaOperations}.
- */
-export type AssembleCaUpdateCallsProps = {
-  operations: Array<CreditAccountUpdateOperation>;
-  /** One group per swap leg (in order), or a single group for the close path. */
-  routerCallGroups: Array<Array<MultiCall>>;
-  creditFacade: Address;
-  withdrawTo: Address;
-  creditAccount: {
-    debt: bigint;
-    assets: Array<Asset>;
-    initialQuotas: Record<Address, { quota: bigint }>;
-  };
-  underlyingToken: Address;
-};
-
-/**
  * An enriched credit-account operation ready for encoding.
  * Each op carries everything needed to build facade / adapter multicalls —
- * swap and wrap attach concrete `calls` (no external routerCallGroups).
+ * swap / wrap / unwrap attach concrete `calls` (no external routerCallGroups).
  *
  * Used by {@link ICreditAccountsService.assembleCaOperations}. Does not include
  * close / repay (use dedicated assemblers).
@@ -855,6 +812,7 @@ export type EncodableCreditAccountOperation =
   | { type: "withdrawCollateral"; token: Address; amount: bigint }
   | { type: "swap"; calls: Array<MultiCall> }
   | { type: "wrapRwaCollateral"; calls: Array<MultiCall> }
+  | { type: "unwrapRwaCollateral"; calls: Array<MultiCall> }
   | {
       type: "changeQuota";
       quotaIncrease: Array<Asset>;
@@ -1187,16 +1145,6 @@ export interface ICreditAccountsService extends Construct {
    * @returns Array of facade / adapter multicall calls (without price feed updates)
    */
   assembleCaOperations(props: AssembleCaOperationsProps): Array<MultiCall>;
-
-  /**
-   * Builds the credit facade multicall calls for a chain of update operations.
-   *
-   * @param props - Operation chain, router call groups and account context
-   * @returns Array of facade multicall calls (without price feed updates)
-   * @deprecated Prefer {@link ICreditAccountsService.assembleCaOperations}. Close
-   * remains on this method / dedicated close assembler only.
-   */
-  assembleCaUpdateCalls(props: AssembleCaUpdateCallsProps): Array<MultiCall>;
 
   /**
    * Executes a credit account update: prepends price feed updates and builds the raw
