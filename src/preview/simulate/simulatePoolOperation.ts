@@ -3,12 +3,12 @@ import { iPoolV310Abi } from "../../abi/310/generated.js";
 import { iZapperAbi } from "../../abi/iZapper.js";
 
 import type { PoolOperation } from "../parse/index.js";
+import type { PreviewOperationOptions } from "../types.js";
 import { asPreviewSimulationError } from "./errors.js";
 import type {
-  OperationSimulationOptions,
   PoolOperationSimulation,
-  PoolOperationSimulationInput,
   PoolOperationSimulationResult,
+  SimulationInput,
 } from "./types.js";
 
 /** ERC4626 preview read paired with each pool operation kind. */
@@ -95,8 +95,8 @@ function amountsInOut(
  * prerequisites (preview reads succeed regardless).
  */
 export async function simulatePoolOperation(
-  input: PoolOperationSimulationInput,
-  options: OperationSimulationOptions = {},
+  input: SimulationInput<PoolOperation>,
+  options: PreviewOperationOptions = {},
 ): Promise<PoolOperationSimulation> {
   const { sdk, operation } = input;
   const { blockNumber, logger } = options;

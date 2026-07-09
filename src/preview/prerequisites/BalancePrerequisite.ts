@@ -1,20 +1,13 @@
-import { type Address, erc20Abi } from "viem";
+import { erc20Abi } from "viem";
 
 import { hexEq, NATIVE_ADDRESS } from "../../sdk/index.js";
 import { Prerequisite } from "./Prerequisite.js";
 import type {
   PrerequisiteContext,
   PrerequisiteDetail,
+  PrerequisiteProps,
   PrerequisiteResult,
 } from "./types.js";
-
-export interface BalancePrerequisiteProps {
-  token: Address;
-  owner: Address;
-  required: bigint;
-  title?: string;
-  id?: string;
-}
 
 /**
  * Checks that `owner` holds a token balance >= `required`. The token is read
@@ -26,7 +19,7 @@ export class BalancePrerequisite extends Prerequisite<"balance"> {
   readonly #title: string;
   readonly #detail: PrerequisiteDetail<"balance">;
 
-  constructor(props: BalancePrerequisiteProps) {
+  constructor(props: PrerequisiteProps<"balance">) {
     super();
     this.#id = props.id ?? `balance:${props.token}:${props.owner}`;
     this.#title = props.title ?? "Sufficient balance";

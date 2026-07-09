@@ -1,9 +1,9 @@
 import type { PluginsMap } from "../../sdk/index.js";
-import type { Operation } from "../parse/index.js";
-import {
-  type ParseOperationCalldataInput,
-  parseOperationCalldata,
-} from "../parse/parseOperationCalldata.js";
+import { type Operation, parseOperationCalldata } from "../parse/index.js";
+import type {
+  PreviewOperationInput,
+  PreviewOperationOptions,
+} from "../types.js";
 
 import { buildCollateralPrerequisites } from "./buildCollateralPrerequisites.js";
 import { buildPartialLiquidationPrerequisites } from "./buildPartialLiquidationPrerequisites.js";
@@ -11,16 +11,6 @@ import { buildPoolPrerequisites } from "./buildPoolPrerequisites.js";
 import { buildRWAPrerequisites } from "./buildRWAPrerequisites.js";
 import type { AnyPrerequisite } from "./Prerequisite.js";
 import type { AnyPrerequisiteResult, PrerequisiteContext } from "./types.js";
-
-/**
- * Input of {@link checkPrerequisites}: the same raw-calldata input as the
- * internal calldata parser, plus an optional block to read at.
- */
-export type CheckPrerequisitesInput<P extends PluginsMap = PluginsMap> =
-  ParseOperationCalldataInput<P> & {
-    /** Block to read at; defaults to latest. Only set for testnet forks. */
-    blockNumber?: bigint;
-  };
 
 /**
  * Derives and verifies the on-chain prerequisites for an operation given its
@@ -33,16 +23,21 @@ export type CheckPrerequisitesInput<P extends PluginsMap = PluginsMap> =
  *
  * Only *sender-actionable* prerequisites belong here: conditions the LP
  * provider or borrower can fix themselves before retrying (e.g. approve a
- * token, top up a balance, sign the RWA factory's messages). Non-actionable
- * protocol/admin state (e.g. pool is paused) is intentionally out of scope,
- * since the user cannot resolve it.
+ * token, sign the RWA factory's messages). Non-actionable protocol/admin state
+ * (e.g. pool is paused) is intentionally out of scope, since the user cannot
+ * resolve it.
  */
 export async function checkPrerequisites<P extends PluginsMap>(
-  input: CheckPrerequisitesInput<P>,
+  input: PreviewOperationInput<P>,
+  options?: PreviewOperationOptions,
 ): Promise<AnyPrerequisiteResult[]> {
-  const { sdk, sender: wallet, blockNumber } = input;
+  const { sdk, sender: wallet } = input;
   const tx = parseOperationCalldata(input);
-  const ctx: PrerequisiteContext = { sdk, wallet, blockNumber };
+  const ctx: PrerequisiteContext = {
+    sdk,
+    wallet,
+    blockNumber: options?.blockNumber,
+  };
   const prereqs = await buildPrerequisites(tx, ctx);
   return Promise.all(
     // Each prereq pairs its own kind with its detail, so the widened

@@ -10,6 +10,10 @@ export default defineConfig(({ mode }) => ({
           include: ["src/**/*.test.ts"],
           exclude: ["src/e2e/**/*.test.ts"],
           env: loadEnv(mode, process.cwd(), ""),
+          typecheck: {
+            enabled: true,
+            include: ["src/**/*.test-d.ts"],
+          },
         },
       },
       {

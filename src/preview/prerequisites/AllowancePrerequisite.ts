@@ -1,20 +1,12 @@
-import { type Address, erc20Abi } from "viem";
+import { erc20Abi } from "viem";
 
 import { Prerequisite } from "./Prerequisite.js";
 import type {
   PrerequisiteContext,
   PrerequisiteDetail,
+  PrerequisiteProps,
   PrerequisiteResult,
 } from "./types.js";
-
-export interface AllowancePrerequisiteProps {
-  token: Address;
-  owner: Address;
-  spender: Address;
-  required: bigint;
-  title?: string;
-  id?: string;
-}
 
 /** Checks that `owner` granted `spender` an ERC-20 allowance >= `required`. */
 export class AllowancePrerequisite extends Prerequisite<"allowance"> {
@@ -22,7 +14,7 @@ export class AllowancePrerequisite extends Prerequisite<"allowance"> {
   readonly #title: string;
   readonly #detail: PrerequisiteDetail<"allowance">;
 
-  constructor(props: AllowancePrerequisiteProps) {
+  constructor(props: PrerequisiteProps<"allowance">) {
     super();
     this.#id =
       props.id ?? `allowance:${props.token}:${props.owner}:${props.spender}`;

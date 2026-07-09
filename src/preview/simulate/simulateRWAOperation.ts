@@ -1,22 +1,7 @@
-import type { Address, Hex } from "viem";
-import type { OnchainSDK } from "../../sdk/index.js";
 import type { RWAOperation } from "../parse/index.js";
+import type { PreviewOperationOptions } from "../types.js";
 
-import type {
-  OperationSimulationOptions,
-  PoolOperationSimulation,
-} from "./types.js";
-
-export interface SimulateRWAOperationInput {
-  /** Only `client`/`networkType` are used, so any OnchainSDK works. */
-  sdk: OnchainSDK;
-  /** Parsed RWA-factory operation to simulate. */
-  operation: RWAOperation;
-  /** Target contract the calldata is sent to (the RWA factory). */
-  to: Address;
-  /** Raw RWA-factory calldata to simulate. */
-  calldata: Hex;
-}
+import type { PoolOperationSimulation, SimulationInput } from "./types.js";
 
 /**
  * Simulates an RWA-factory operation.
@@ -27,8 +12,8 @@ export interface SimulateRWAOperationInput {
  * {@link simulateOperation} wrapper can delegate uniformly once implemented.
  */
 export async function simulateRWAOperation(
-  _input: SimulateRWAOperationInput,
-  _options?: OperationSimulationOptions,
+  _input: SimulationInput<RWAOperation>,
+  _options?: PreviewOperationOptions,
 ): Promise<PoolOperationSimulation> {
   throw new Error("not yet implemented");
 }

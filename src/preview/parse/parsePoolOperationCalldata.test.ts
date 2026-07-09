@@ -58,7 +58,7 @@ describe("parsePoolOperationCalldata", () => {
       args: [assets, RECEIVER, referralCode],
     });
 
-    expect(parsePoolOperationCalldata({ sdk, pool, calldata })).toEqual({
+    expect(parsePoolOperationCalldata(sdk, pool, calldata)).toEqual({
       operation: "Deposit",
       pool: KPK_WETH_POOL,
       receiver: RECEIVER,
@@ -79,7 +79,7 @@ describe("parsePoolOperationCalldata", () => {
       args: [shares, RECEIVER, OWNER],
     });
 
-    expect(parsePoolOperationCalldata({ sdk, pool, calldata })).toEqual({
+    expect(parsePoolOperationCalldata(sdk, pool, calldata)).toEqual({
       operation: "Redeem",
       pool: KPK_WETH_POOL,
       receiver: RECEIVER,

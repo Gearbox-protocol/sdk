@@ -47,12 +47,14 @@ export function buildRWAPrerequisites(
       continue;
     }
     prereqs.push(
-      new RWAOpenRequirementsPrerequisite({
-        token,
-        creditManager,
-        factory: rwaFactory.address,
+      new RWAOpenRequirementsPrerequisite(
+        {
+          token,
+          creditManager,
+          factory: rwaFactory.address,
+        },
         providedArgs,
-      }),
+      ),
     );
   }
   return prereqs;

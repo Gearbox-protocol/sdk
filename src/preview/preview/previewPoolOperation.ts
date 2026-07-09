@@ -1,15 +1,16 @@
 import type { PluginsMap } from "../../sdk/index.js";
 import type { PoolOperation } from "../parse/index.js";
-import {
-  type OperationSimulationOptions,
-  simulatePoolOperation,
-} from "../simulate/index.js";
-import type { PoolOperationPreview, PreviewOperationInput } from "./types.js";
+import { simulatePoolOperation } from "../simulate/index.js";
+import type {
+  PreviewOperationInput,
+  PreviewOperationOptions,
+} from "../types.js";
+import type { PoolOperationPreview } from "./types.js";
 
 export async function previewPoolOperation<P extends PluginsMap>(
   input: PreviewOperationInput<P>,
   operation: PoolOperation,
-  options?: OperationSimulationOptions,
+  options?: PreviewOperationOptions,
 ): Promise<PoolOperationPreview> {
   const { sdk, to, calldata } = input;
   const { tokenIn, tokenOut } = operation;

@@ -7,13 +7,6 @@ import type {
 import { classifyInnerOperations } from "./classifyInnerOperations.js";
 import type { FacadeOperationMetadata, OuterFacadeOperation } from "./types.js";
 
-export interface ParseFacadeOperationCalldataProps {
-  sdk: OnchainSDK;
-  /** Resolved credit facade contract for the transaction target. */
-  facade: CreditFacadeV310Contract;
-  calldata: Hex;
-}
-
 /**
  * Decodes a credit-facade entry-point call into the matching
  * {@link OuterFacadeOperation}.
@@ -22,11 +15,17 @@ export interface ParseFacadeOperationCalldataProps {
  * of the base `preview` operation: those values are only known once the
  * transaction is mined and are added in `history` mode. `creditAccount` is
  * `zeroAddress` for `openCreditAccount` (the address is assigned on-chain).
+ *
+ * @param sdk - The SDK instance.
+ * @param facade - The credit facade contract.
+ * @param calldata - The calldata to parse.
+ * @returns The parsed operation.
  */
 export function parseFacadeOperationCalldata(
-  props: ParseFacadeOperationCalldataProps,
+  sdk: OnchainSDK,
+  facade: CreditFacadeV310Contract,
+  calldata: Hex,
 ): OuterFacadeOperation {
-  const { sdk, facade, calldata } = props;
   const parsed = sdk.parseFunctionDataV2(facade.address, calldata);
   const functionName = parsed.functionName.split("(")[0];
   const { rawArgs } = parsed;

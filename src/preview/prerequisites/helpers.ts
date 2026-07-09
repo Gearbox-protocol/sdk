@@ -1,17 +1,13 @@
-import type { Address } from "viem";
-
 import { AllowancePrerequisite } from "./AllowancePrerequisite.js";
 import { BalancePrerequisite } from "./BalancePrerequisite.js";
 import type { AnyPrerequisite } from "./Prerequisite.js";
+import type { PrerequisiteStaticDetailMap } from "./types.js";
 
-export interface AllowanceAndBalanceProps {
-  token: Address;
-  owner: Address;
-  spender: Address;
-  required: bigint;
-  allowanceTitle: string;
-  balanceTitle: string;
-}
+export type AllowanceAndBalanceProps =
+  PrerequisiteStaticDetailMap["allowance"] & {
+    allowanceTitle: string;
+    balanceTitle: string;
+  };
 
 /**
  * The most common prerequisite pair: `owner` must have approved `spender` for

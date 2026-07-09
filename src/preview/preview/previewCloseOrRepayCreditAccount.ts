@@ -1,3 +1,4 @@
+import type { SdkWithAdapters } from "../../plugins/adapters/index.js";
 import {
   AP_WETH_TOKEN,
   type CreditAccountData,
@@ -8,8 +9,11 @@ import type {
   CloseCreditAccountOperation,
   MulticallOperation,
   RWAMulticallOperation,
-  SdkWithAdapters,
 } from "../parse/index.js";
+import type {
+  PreviewOperationInput,
+  PreviewOperationOptions,
+} from "../types.js";
 import {
   applyInnerOperations,
   type InnerOperationsState,
@@ -19,8 +23,6 @@ import { classifyCloseOrRepay } from "./detectCloseOrRepay.js";
 import type {
   CloseCreditAccountPreview,
   OperationPreview,
-  PreviewOperationInput,
-  PreviewOperationOptions,
   RepayCreditAccountPreview,
 } from "./types.js";
 import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
@@ -35,7 +37,7 @@ export type CloseOrRepayOperation =
   | MulticallOperation
   | RWAMulticallOperation;
 
-export async function previewCloseOrRepay<P extends PluginsMap>(
+export async function previewCloseOrRepayCreditAccount<P extends PluginsMap>(
   input: PreviewOperationInput<P>,
   operation: CloseOrRepayOperation,
   permanent: boolean,

@@ -3,24 +3,19 @@ import type { OnchainSDK, PoolV310Contract } from "../../sdk/index.js";
 import { UnsupportedPoolFunctionError } from "./errors.js";
 import type { PoolOperation } from "./types.js";
 
-export interface ParsePoolOperationCalldataProps {
-  sdk: OnchainSDK;
-  /** Resolved pool contract for the transaction target. */
-  pool: PoolV310Contract;
-  calldata: Hex;
-}
-
 /**
- * Decodes ERC4626 pool calldata into a {@link PoolOperation}. Supports every
- * deposit/mint/withdraw/redeem variant of `IPoolV3` (and the `IERC4626` base it
- * extends): `deposit`/`depositWithReferral`, `mint`/`mintWithReferral`,
- * `withdraw` and `redeem`. Any other selector throws
- * {@link UnsupportedPoolFunctionError}.
+ * Decodes pool calldata into a {@link PoolOperation}.
+ *
+ * @param sdk - The SDK instance.
+ * @param pool - The pool contract.
+ * @param calldata - The calldata to parse.
+ * @returns The parsed operation.
  */
 export function parsePoolOperationCalldata(
-  props: ParsePoolOperationCalldataProps,
+  sdk: OnchainSDK,
+  pool: PoolV310Contract,
+  calldata: Hex,
 ): PoolOperation {
-  const { sdk, pool, calldata } = props;
   const parsed = sdk.parseFunctionDataV2(pool.address, calldata);
   const functionName = parsed.functionName.split("(")[0];
   const { rawArgs } = parsed;

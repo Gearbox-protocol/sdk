@@ -7,7 +7,8 @@ import type {
 } from "../../sdk/index.js";
 
 /**
- * Extension point that ties each prerequisite kind to its detail payload.
+ * Extension point that ties each prerequisite kind to the detail payload
+ * known at construction time (before any on-chain read).
  *
  * IMPORTANT: only add prerequisites that are *actionable by the transaction
  * sender* (the LP provider or borrower). A valid prerequisite is one the user
@@ -16,23 +17,19 @@ import type {
  *
  * Do NOT add protocol- or admin-level state the user cannot change.
  */
-export interface PrerequisiteDetailMap {
+export interface PrerequisiteStaticDetailMap {
   /** ERC-20 allowance from `owner` to `spender` must cover `required`. */
   allowance: {
     token: Address;
     owner: Address;
     spender: Address;
     required: bigint;
-    /** On-chain allowance read; only present when the read succeeded. */
-    actual?: bigint;
   };
   /** ERC-20 balance of `owner` must cover `required`. */
   balance: {
     token: Address;
     owner: Address;
     required: bigint;
-    /** On-chain balance read; only present when the read succeeded. */
-    actual?: bigint;
   };
   /**
    * RWA (e.g. Securitize) open-account requirements: off-chain token
@@ -46,6 +43,23 @@ export interface PrerequisiteDetailMap {
     creditManager: Address;
     /** RWA factory that gates the token. */
     factory: Address;
+  };
+}
+
+/**
+ * Companion of {@link PrerequisiteStaticDetailMap}: per-kind detail fields
+ * that are only populated at verify time, by the on-chain reads.
+ */
+export interface PrerequisiteVerifyDetailMap {
+  allowance: {
+    /** On-chain allowance read; only present when the read succeeded. */
+    actual?: bigint;
+  };
+  balance: {
+    /** On-chain balance read; only present when the read succeeded. */
+    actual?: bigint;
+  };
+  rwaOpenRequirements: {
     /**
      * Full requirements fetched at verify time via
      * `sdk.accounts.getOpenAccountRequirements`; only present when the read
@@ -61,10 +75,20 @@ export interface PrerequisiteDetailMap {
   };
 }
 
-export type PrerequisiteKind = keyof PrerequisiteDetailMap;
+export type PrerequisiteKind = keyof PrerequisiteStaticDetailMap;
 
 export type PrerequisiteDetail<K extends PrerequisiteKind = PrerequisiteKind> =
-  PrerequisiteDetailMap[K];
+  PrerequisiteStaticDetailMap[K] & PrerequisiteVerifyDetailMap[K];
+
+/**
+ * Constructor props of the prerequisite matching kind `K`: its static detail
+ * plus optional overrides for the auto-generated `id` and default `title`.
+ */
+export type PrerequisiteProps<K extends PrerequisiteKind> =
+  PrerequisiteStaticDetailMap[K] & {
+    title?: string;
+    id?: string;
+  };
 
 /** Failure of the underlying on-chain read (revert, decode error, RPC error). */
 export interface PrerequisiteError {

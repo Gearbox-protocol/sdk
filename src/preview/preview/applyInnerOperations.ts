@@ -1,4 +1,7 @@
-import { AbstractAdapterContract } from "../../plugins/adapters/index.js";
+import {
+  AbstractAdapterContract,
+  type SdkWithAdapters,
+} from "../../plugins/adapters/index.js";
 import {
   type Asset,
   AssetsMap,
@@ -6,7 +9,7 @@ import {
   MIN_INT96,
   type PluginsMap,
 } from "../../sdk/index.js";
-import type { InnerOperation, SdkWithAdapters } from "../parse/index.js";
+import type { InnerOperation } from "../parse/index.js";
 
 /**
  * Running state threaded through a credit-facade multicall by

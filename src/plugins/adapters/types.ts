@@ -1,5 +1,7 @@
 import type { AbiParameter, Address } from "viem";
+import type { OnchainSDK, PluginsMap } from "../../sdk/index.js";
 import type { BaseContractStateHuman } from "../../sdk/types/state-human.js";
+import type { AdaptersPlugin } from "./AdaptersPlugin.js";
 
 export type VersionedAbi = Record<number, readonly AbiParameter[]>;
 
@@ -138,3 +140,24 @@ export interface AdapterProtocolOperation {
    */
   functionArgs: Record<string, unknown>;
 }
+
+/**
+ * True when the plugin map `P` contains the {@link AdaptersPlugin} under any key
+ */
+export type HasAdaptersPlugin<P extends PluginsMap> =
+  Extract<P[keyof P], AdaptersPlugin> extends never ? false : true;
+
+/**
+ * Compile-time guard for the adapters plugin
+ */
+export type RequireAdaptersPlugin<P extends PluginsMap> =
+  HasAdaptersPlugin<P> extends true
+    ? unknown
+    : { "OnchainSDK must be created with the AdaptersPlugin": never };
+
+/**
+ * {@link OnchainSDK} whose plugin map is guaranteed at compile time to include
+ * the {@link AdaptersPlugin}.
+ */
+export type SdkWithAdapters<P extends PluginsMap = PluginsMap> = OnchainSDK<P> &
+  RequireAdaptersPlugin<P>;

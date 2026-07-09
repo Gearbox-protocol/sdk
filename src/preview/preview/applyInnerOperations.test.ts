@@ -1,14 +1,17 @@
 import type { Address, Hex } from "viem";
 import { getAddress } from "viem";
 import { describe, expect, it } from "vitest";
-import { AbstractAdapterContract } from "../../plugins/adapters/index.js";
+import {
+  AbstractAdapterContract,
+  type SdkWithAdapters,
+} from "../../plugins/adapters/index.js";
 import {
   type Asset,
   AssetsMap,
   MAX_UINT256,
   MIN_INT96,
 } from "../../sdk/index.js";
-import type { InnerOperation, SdkWithAdapters } from "../parse/index.js";
+import type { InnerOperation } from "../parse/index.js";
 import {
   applyInnerOperations,
   applyQuotaChanges,

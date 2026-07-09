@@ -1,22 +1,7 @@
-import type { Address, Hex } from "viem";
-import type { OnchainSDK } from "../../sdk/index.js";
 import type { OuterFacadeOperation } from "../parse/index.js";
+import type { PreviewOperationOptions } from "../types.js";
 
-import type {
-  OperationSimulationOptions,
-  PoolOperationSimulation,
-} from "./types.js";
-
-export interface SimulateFacadeOperationInput {
-  /** Only `client`/`networkType` are used, so any OnchainSDK works. */
-  sdk: OnchainSDK;
-  /** Parsed credit-facade operation to simulate. */
-  operation: OuterFacadeOperation;
-  /** Target contract the calldata is sent to (the credit facade). */
-  to: Address;
-  /** Raw credit-facade calldata to simulate. */
-  calldata: Hex;
-}
+import type { PoolOperationSimulation, SimulationInput } from "./types.js";
 
 /**
  * Simulates a credit-facade operation.
@@ -27,8 +12,8 @@ export interface SimulateFacadeOperationInput {
  * {@link simulateOperation} wrapper can delegate uniformly once implemented.
  */
 export async function simulateFacadeOperation(
-  _input: SimulateFacadeOperationInput,
-  _options?: OperationSimulationOptions,
+  _input: SimulationInput<OuterFacadeOperation>,
+  _options?: PreviewOperationOptions,
 ): Promise<PoolOperationSimulation> {
   throw new Error("not yet implemented");
 }

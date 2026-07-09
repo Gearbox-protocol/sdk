@@ -1,30 +1,11 @@
-import type { Address } from "viem";
-
 import type { RWAOperationArgs } from "../../sdk/index.js";
 import { Prerequisite } from "./Prerequisite.js";
 import type {
   PrerequisiteContext,
   PrerequisiteDetail,
+  PrerequisiteProps,
   PrerequisiteResult,
 } from "./types.js";
-
-export interface RWAOpenRequirementsPrerequisiteProps {
-  /** RWA token (e.g. Securitize DSToken) to check the requirements for. */
-  token: Address;
-  /** Credit manager of the RWA market. */
-  creditManager: Address;
-  /** RWA factory that gates the token. */
-  factory: Address;
-  /**
-   * Factory-specific registration params already carried by the transaction
-   * calldata. Passed through to the factory's `getMissingRequirements`: e.g.
-   * signatures provided here need not be signed again, since the transaction
-   * itself caches them on-chain.
-   */
-  providedArgs?: RWAOperationArgs;
-  title?: string;
-  id?: string;
-}
 
 /**
  * Checks that the borrower has fulfilled the RWA factory's open-account
@@ -44,7 +25,10 @@ export class RWAOpenRequirementsPrerequisite extends Prerequisite<"rwaOpenRequir
   readonly #detail: PrerequisiteDetail<"rwaOpenRequirements">;
   readonly #providedArgs?: RWAOperationArgs;
 
-  constructor(props: RWAOpenRequirementsPrerequisiteProps) {
+  constructor(
+    props: PrerequisiteProps<"rwaOpenRequirements">,
+    providedArgs?: RWAOperationArgs,
+  ) {
     super();
     this.#id =
       props.id ?? `rwaOpenRequirements:${props.factory}:${props.token}`;
@@ -54,7 +38,7 @@ export class RWAOpenRequirementsPrerequisite extends Prerequisite<"rwaOpenRequir
       creditManager: props.creditManager,
       factory: props.factory,
     };
-    this.#providedArgs = props.providedArgs;
+    this.#providedArgs = providedArgs;
   }
 
   public get id(): string {

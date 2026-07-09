@@ -1,50 +1,6 @@
-import type { Address, Hex } from "viem";
-import type { Asset, CreditAccountData, PluginsMap } from "../../sdk/index.js";
-import type { PoolOperationType, SdkWithAdapters } from "../parse/index.js";
-import type { OperationSimulationOptions } from "../simulate/index.js";
-
-/**
- * Input of {@link previewOperation}: the raw operation calldata plus the
- * already-attached SDK
- */
-export interface PreviewOperationInput<P extends PluginsMap = PluginsMap> {
-  /**
-   * Already-attached SDK; chain, RPC and block are baked in at attach time.
-   * Must be created with the adapters plugin (enforced at compile time) so
-   * adapter contracts resolve during multicall classification.
-   */
-  sdk: SdkWithAdapters<P>;
-  /**
-   * Contract address that was called
-   */
-  to: Address;
-  /**
-   * Raw calldata of the operation
-   */
-  calldata: Hex;
-  /**
-   * Transaction sender
-   */
-  sender: Address;
-  /**
-   * Transaction `msg.value`
-   **/
-  value?: bigint;
-}
-
-/**
- * Options of {@link previewOperation}, extending the simulation options with
- * preview-specific inputs.
- */
-export interface PreviewOperationOptions extends OperationSimulationOptions {
-  /**
-   * Pre-fetched state of the credit account being adjusted. When omitted,
-   * multicall/botMulticall previews fetch it via
-   * `sdk.accounts.getCreditAccountData` (one compressor read). Ignored by
-   * other operation kinds.
-   */
-  creditAccount?: CreditAccountData;
-}
+import type { Address } from "viem";
+import type { Asset } from "../../sdk/index.js";
+import type { PoolOperationType } from "../parse/index.js";
 
 /**
  * A token amount that may require an additional async call (e.g. an ERC4626

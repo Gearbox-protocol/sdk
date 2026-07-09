@@ -10,14 +10,12 @@ import type {
   OpenCreditAccountOperation,
   RWAOpenCreditAccountOperation,
 } from "../parse/index.js";
+import type { PreviewOperationInput } from "../types.js";
 import {
   applyInnerOperations,
   makeInnerOperationsState,
 } from "./applyInnerOperations.js";
-import type {
-  OpenCreditAccountPreview,
-  PreviewOperationInput,
-} from "./types.js";
+import type { OpenCreditAccountPreview } from "./types.js";
 import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
 
 export function previewOpenCreditAccount<P extends PluginsMap>(

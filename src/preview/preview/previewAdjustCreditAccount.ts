@@ -8,16 +8,16 @@ import type {
   MulticallOperation,
   RWAMulticallOperation,
 } from "../parse/index.js";
+import type {
+  PreviewOperationInput,
+  PreviewOperationOptions,
+} from "../types.js";
 import {
   applyInnerOperations,
   applyQuotaChanges,
   makeInnerOperationsState,
 } from "./applyInnerOperations.js";
-import type {
-  AdjustCreditAccountPreview,
-  PreviewOperationInput,
-  PreviewOperationOptions,
-} from "./types.js";
+import type { AdjustCreditAccountPreview } from "./types.js";
 import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
 
 /**

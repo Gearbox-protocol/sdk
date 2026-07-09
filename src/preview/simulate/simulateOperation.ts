@@ -1,37 +1,17 @@
-import type { Address, Hex } from "viem";
-import type { OnchainSDK } from "../../sdk/index.js";
-
-import {
-  isPoolOperation,
-  isRWAOperation,
-  type Operation,
-} from "../parse/index.js";
+import { isPoolOperation, isRWAOperation } from "../parse/index.js";
+import type { PreviewOperationOptions } from "../types.js";
 
 import { simulateFacadeOperation } from "./simulateFacadeOperation.js";
 import { simulatePoolOperation } from "./simulatePoolOperation.js";
 import { simulateRWAOperation } from "./simulateRWAOperation.js";
-import type {
-  OperationSimulationOptions,
-  PoolOperationSimulation,
-} from "./types.js";
-
-export interface SimulateOperationInput {
-  /** Gearbox SDK instance. */
-  sdk: OnchainSDK;
-  /** Parsed pool or credit account operation */
-  operation: Operation;
-  /** Target contract the calldata is sent to. */
-  to: Address;
-  /** Raw operation calldata to simulate. */
-  calldata: Hex;
-}
+import type { PoolOperationSimulation, SimulationInput } from "./types.js";
 
 /**
- * Simulates a parsed pool or credit account operation {@link Operation}
+ * Simulates a parsed pool or credit account operation
  */
 export async function simulateOperation(
-  input: SimulateOperationInput,
-  options?: OperationSimulationOptions,
+  input: SimulationInput,
+  options?: PreviewOperationOptions,
 ): Promise<PoolOperationSimulation> {
   const { operation } = input;
 

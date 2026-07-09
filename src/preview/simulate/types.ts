@@ -1,27 +1,22 @@
 import type { Address, Hex } from "viem";
 import type { OnchainSDK } from "../../sdk/index.js";
-import type { ILogger } from "../../sdk/types/logger.js";
-import type { PoolOperation } from "../parse/index.js";
+import type { Operation } from "../parse/index.js";
 import type { PreviewSimulationError } from "./errors.js";
 
-export interface PoolOperationSimulationInput {
+/**
+ * Input of the simulation functions, generic over the parsed operation kind
+ * so each specialized simulation narrows `operation` while sharing the same
+ * shape.
+ */
+export interface SimulationInput<Op extends Operation = Operation> {
   /** Only `client`/`networkType` are used, so any OnchainSDK works. */
   sdk: OnchainSDK;
-  /** Parsed operation, used to resolve the underlying and pool tokens. */
-  operation: PoolOperation;
-  /** Target contract the calldata is sent to (the pool). */
+  /** Parsed operation to simulate. */
+  operation: Op;
+  /** Target contract the calldata is sent to. */
   to: Address;
-  /** Raw deposit/mint/withdraw/redeem calldata to simulate. */
+  /** Raw operation calldata to simulate. */
   calldata: Hex;
-}
-
-export interface OperationSimulationOptions {
-  /** Block to simulate at; defaults to latest. */
-  blockNumber?: bigint;
-  /**
-   * Optional logger.
-   **/
-  logger?: ILogger;
 }
 
 /**
