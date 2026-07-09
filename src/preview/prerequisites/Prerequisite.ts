@@ -2,9 +2,7 @@ import { BaseError, ContractFunctionRevertedError } from "viem";
 
 import type {
   PrerequisiteContext,
-  PrerequisiteDetail,
   PrerequisiteError,
-  PrerequisiteKind,
   PrerequisiteResult,
 } from "./types.js";
 
@@ -38,30 +36,18 @@ function toPrerequisiteError(cause: unknown): PrerequisiteError {
  * {@link check} to perform whatever async reads they need (an ERC-20
  * `readContract`, a compressor call, ...) and map the outcome into a
  * {@link PrerequisiteResult}.
- *
  */
-export abstract class Prerequisite<K extends PrerequisiteKind> {
-  /** Stable identifier, used as a React key and for deduplication. */
-  public abstract get id(): string;
-  /** Discriminant tying this check to its detail payload. */
-  public abstract get kind(): K;
-  /** Human-readable label shown in the UI. */
-  public abstract get title(): string;
-  /** Inputs known before reading the chain (no `actual` yet). */
-  public abstract get detail(): PrerequisiteDetail<K>;
-
+export abstract class Prerequisite {
   /**
    * Verifies this prerequisite. Never rejects: any error thrown by
    * {@link check} (revert, RPC/network failure, compressor error) is
    * normalized into an `error` result.
    */
-  public async verify(
-    ctx: PrerequisiteContext,
-  ): Promise<PrerequisiteResult<K>> {
+  public async verify(ctx: PrerequisiteContext): Promise<PrerequisiteResult> {
     try {
       return await this.check(ctx);
     } catch (cause) {
-      return this.errorResult(cause);
+      return this.errorResult(toPrerequisiteError(cause));
     }
   }
 
@@ -72,33 +58,8 @@ export abstract class Prerequisite<K extends PrerequisiteKind> {
    */
   protected abstract check(
     ctx: PrerequisiteContext,
-  ): Promise<PrerequisiteResult<K>>;
+  ): Promise<PrerequisiteResult>;
 
-  /** Builds a successful result; `detail` carries the on-chain `actual`. */
-  protected satisfiedResult(
-    satisfied: boolean,
-    detail: PrerequisiteDetail<K>,
-  ): PrerequisiteResult<K> {
-    return {
-      id: this.id,
-      kind: this.kind,
-      title: this.title,
-      detail,
-      satisfied,
-    } as PrerequisiteResult<K>;
-  }
-
-  /** Builds a failed result from a raw read error (normalized internally). */
-  protected errorResult(cause: unknown): PrerequisiteResult<K> {
-    return {
-      id: this.id,
-      kind: this.kind,
-      title: this.title,
-      detail: this.detail,
-      error: toPrerequisiteError(cause),
-    } as PrerequisiteResult<K>;
-  }
+  /** Builds this prerequisite's failed result from a normalized read error. */
+  protected abstract errorResult(error: PrerequisiteError): PrerequisiteResult;
 }
-
-/** Any prerequisite regardless of its kind, used for heterogeneous lists. */
-export type AnyPrerequisite = Prerequisite<PrerequisiteKind>;

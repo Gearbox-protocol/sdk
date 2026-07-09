@@ -9,8 +9,8 @@ import { buildCollateralPrerequisites } from "./buildCollateralPrerequisites.js"
 import { buildPartialLiquidationPrerequisites } from "./buildPartialLiquidationPrerequisites.js";
 import { buildPoolPrerequisites } from "./buildPoolPrerequisites.js";
 import { buildRWAPrerequisites } from "./buildRWAPrerequisites.js";
-import type { AnyPrerequisite } from "./Prerequisite.js";
-import type { AnyPrerequisiteResult, PrerequisiteContext } from "./types.js";
+import type { Prerequisite } from "./Prerequisite.js";
+import type { PrerequisiteContext, PrerequisiteResult } from "./types.js";
 
 /**
  * Derives and verifies the on-chain prerequisites for an operation given its
@@ -18,8 +18,8 @@ import type { AnyPrerequisiteResult, PrerequisiteContext } from "./types.js";
  * that we can verify with the SDK (token approvals, wallet balances, RWA
  * open-account requirements).
  *
- * Each prerequisite performs its own reads and resolves into an
- * {@link AnyPrerequisiteResult} (`satisfied` or `error`).
+ * Each prerequisite performs its own reads and resolves into a
+ * {@link PrerequisiteResult} (`satisfied` or `error`).
  *
  * Only *sender-actionable* prerequisites belong here: conditions the LP
  * provider or borrower can fix themselves before retrying (e.g. approve a
@@ -30,7 +30,7 @@ import type { AnyPrerequisiteResult, PrerequisiteContext } from "./types.js";
 export async function checkPrerequisites<P extends PluginsMap>(
   input: PreviewOperationInput<P>,
   options?: PreviewOperationOptions,
-): Promise<AnyPrerequisiteResult[]> {
+): Promise<PrerequisiteResult[]> {
   const { sdk, sender: wallet } = input;
   const tx = parseOperationCalldata(input);
   const ctx: PrerequisiteContext = {
@@ -39,11 +39,7 @@ export async function checkPrerequisites<P extends PluginsMap>(
     blockNumber: options?.blockNumber,
   };
   const prereqs = await buildPrerequisites(tx, ctx);
-  return Promise.all(
-    // Each prereq pairs its own kind with its detail, so the widened
-    // `verify` return is safe to narrow back to the discriminated union.
-    prereqs.map(p => p.verify(ctx) as Promise<AnyPrerequisiteResult>),
-  );
+  return Promise.all(prereqs.map(p => p.verify(ctx)));
 }
 
 /**
@@ -53,7 +49,7 @@ export async function checkPrerequisites<P extends PluginsMap>(
 async function buildPrerequisites(
   tx: Operation,
   ctx: PrerequisiteContext,
-): Promise<AnyPrerequisite[]> {
+): Promise<Prerequisite[]> {
   const { wallet } = ctx;
   switch (tx.operation) {
     case "Deposit":

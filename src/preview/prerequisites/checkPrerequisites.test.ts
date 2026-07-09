@@ -21,7 +21,7 @@ import {
   type SecuritizeRegisterVaultMessage,
 } from "../../sdk/index.js";
 import { checkPrerequisites } from "./checkPrerequisites.js";
-import type { PrerequisiteResult } from "./types.js";
+import type { RWAOpenRequirementsResult } from "./RWAOpenRequirementsPrerequisite.js";
 
 const FIXTURE = resolve(
   import.meta.dirname,
@@ -127,14 +127,16 @@ function calldataWith(
 
 async function resolveRWAResult(
   calldata: Hex,
-): Promise<PrerequisiteResult<"rwaOpenRequirements">> {
+): Promise<RWAOpenRequirementsResult> {
   const results = await checkPrerequisites({
     sdk,
     to: FACTORY,
     calldata,
     sender: SENDER,
   });
-  const rwa = results.find(r => r.kind === "rwaOpenRequirements");
+  const rwa = results.find(
+    (r): r is RWAOpenRequirementsResult => r.kind === "rwaOpenRequirements",
+  );
   expect(rwa).toBeDefined();
   return rwa!;
 }

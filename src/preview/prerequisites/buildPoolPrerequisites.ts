@@ -5,7 +5,7 @@ import type { PoolOperation } from "../parse/index.js";
 import { AllowancePrerequisite } from "./AllowancePrerequisite.js";
 import { BalancePrerequisite } from "./BalancePrerequisite.js";
 import { allowanceAndBalance } from "./helpers.js";
-import type { AnyPrerequisite } from "./Prerequisite.js";
+import type { Prerequisite } from "./Prerequisite.js";
 
 /**
  * Prerequisites for ERC4626 pool operations (deposit, mint, withdraw, redeem),
@@ -14,7 +14,7 @@ import type { AnyPrerequisite } from "./Prerequisite.js";
 export function buildPoolPrerequisites(
   tx: PoolOperation,
   wallet: Address,
-): AnyPrerequisite[] {
+): Prerequisite[] {
   switch (tx.operation) {
     // Deposit and Mint both pull the underlying from the caller into the pool;
     // they only differ in which side (assets vs shares) the caller specifies.
@@ -34,7 +34,6 @@ export function buildPoolPrerequisites(
               token: tx.tokenIn,
               owner: wallet,
               required: tx.assets,
-              title: "Sufficient token balance",
             }),
           ];
         }
@@ -43,8 +42,6 @@ export function buildPoolPrerequisites(
           owner: wallet,
           spender: tx.zapper,
           required: tx.assets,
-          allowanceTitle: "Token approved to zapper",
-          balanceTitle: "Sufficient token balance",
         });
       }
       return allowanceAndBalance({
@@ -52,8 +49,6 @@ export function buildPoolPrerequisites(
         owner: wallet,
         spender: tx.pool,
         required: tx.assets,
-        allowanceTitle: "Token approved to pool",
-        balanceTitle: "Sufficient token balance",
       });
 
     case "Mint":
@@ -62,8 +57,6 @@ export function buildPoolPrerequisites(
         owner: wallet,
         spender: tx.pool,
         required: tx.shares,
-        allowanceTitle: "Token approved to pool",
-        balanceTitle: "Sufficient token balance",
       });
 
     // Redeem and Withdraw both burn LP shares from `owner`; they only differ in
@@ -79,14 +72,12 @@ export function buildPoolPrerequisites(
             token: tx.tokenIn,
             owner: wallet,
             required: tx.shares,
-            title: "Sufficient share token balance",
           }),
           new AllowancePrerequisite({
             token: tx.tokenIn,
             owner: wallet,
             spender: tx.zapper,
             required: tx.shares,
-            title: "Share token approved to zapper",
           }),
         ];
       }
@@ -107,23 +98,22 @@ function lpSharePrerequisites(
   owner: Address,
   required: bigint,
   wallet: Address,
-): AnyPrerequisite[] {
-  const prereqs: AnyPrerequisite[] = [
+): Prerequisite[] {
+  const prereqs: Prerequisite[] = [
     new BalancePrerequisite({
       token: pool,
       owner,
       required,
-      title: "Sufficient LP token balance",
     }),
   ];
   if (!isAddressEqual(owner, wallet)) {
+    // LP token allowance from `owner` to the third-party caller.
     prereqs.push(
       new AllowancePrerequisite({
         token: pool,
         owner,
         spender: wallet,
         required,
-        title: "LP token approved to caller",
       }),
     );
   }

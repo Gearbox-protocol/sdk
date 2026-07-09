@@ -1,59 +1,51 @@
-import { erc20Abi } from "viem";
+import { type Address, erc20Abi } from "viem";
 
 import { hexEq, NATIVE_ADDRESS } from "../../sdk/index.js";
 import { Prerequisite } from "./Prerequisite.js";
 import type {
   PrerequisiteContext,
-  PrerequisiteDetail,
-  PrerequisiteProps,
-  PrerequisiteResult,
+  PrerequisiteError,
+  PrerequisiteOutcome,
 } from "./types.js";
+
+/** ERC-20 balance of `owner` must cover `required`. */
+export interface BalanceDetail {
+  token: Address;
+  owner: Address;
+  required: bigint;
+  /** On-chain balance read; only present when the read succeeded. */
+  actual?: bigint;
+}
+
+export type BalanceResult = PrerequisiteOutcome & {
+  kind: "balance";
+  detail: BalanceDetail;
+};
 
 /**
  * Checks that `owner` holds a token balance >= `required`. The token is read
  * as an ERC-20, except for the native pseudo-address ({@link NATIVE_ADDRESS},
  * e.g. ETH-zapper deposits) whose balance is read via `getBalance`.
  */
-export class BalancePrerequisite extends Prerequisite<"balance"> {
-  readonly #id: string;
-  readonly #title: string;
-  readonly #detail: PrerequisiteDetail<"balance">;
+export class BalancePrerequisite extends Prerequisite {
+  readonly #detail: BalanceDetail;
 
-  constructor(props: PrerequisiteProps<"balance">) {
+  constructor(detail: Omit<BalanceDetail, "actual">) {
     super();
-    this.#id = props.id ?? `balance:${props.token}:${props.owner}`;
-    this.#title = props.title ?? "Sufficient balance";
-    this.#detail = {
-      token: props.token,
-      owner: props.owner,
-      required: props.required,
+    this.#detail = { ...detail };
+  }
+
+  protected async check(ctx: PrerequisiteContext): Promise<BalanceResult> {
+    const actual = await this.#readBalance(ctx);
+    return {
+      kind: "balance",
+      detail: { ...this.#detail, actual },
+      satisfied: actual >= this.#detail.required,
     };
   }
 
-  public get id(): string {
-    return this.#id;
-  }
-
-  public get kind(): "balance" {
-    return "balance";
-  }
-
-  public get title(): string {
-    return this.#title;
-  }
-
-  public get detail(): PrerequisiteDetail<"balance"> {
-    return this.#detail;
-  }
-
-  protected async check(
-    ctx: PrerequisiteContext,
-  ): Promise<PrerequisiteResult<"balance">> {
-    const actual = await this.#readBalance(ctx);
-    return this.satisfiedResult(actual >= this.#detail.required, {
-      ...this.#detail,
-      actual,
-    });
+  protected errorResult(error: PrerequisiteError): BalanceResult {
+    return { kind: "balance", detail: this.#detail, error };
   }
 
   async #readBalance(ctx: PrerequisiteContext): Promise<bigint> {

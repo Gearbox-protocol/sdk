@@ -2,7 +2,7 @@ import type { Address } from "viem";
 
 import { AddressSet, type RWAOperationArgs } from "../../sdk/index.js";
 import type { InnerOperation } from "../parse/index.js";
-import type { AnyPrerequisite } from "./Prerequisite.js";
+import type { Prerequisite } from "./Prerequisite.js";
 import { RWAOpenRequirementsPrerequisite } from "./RWAOpenRequirementsPrerequisite.js";
 import type { PrerequisiteContext } from "./types.js";
 
@@ -26,7 +26,7 @@ export function buildRWAPrerequisites(
   creditManager: Address,
   providedArgs: RWAOperationArgs,
   ctx: PrerequisiteContext,
-): AnyPrerequisite[] {
+): Prerequisite[] {
   const { rwaFactory } =
     ctx.sdk.marketRegister.findByCreditManager(creditManager);
   if (!rwaFactory) {
@@ -41,7 +41,7 @@ export function buildRWAPrerequisites(
     }
   }
 
-  const prereqs: AnyPrerequisite[] = [];
+  const prereqs: Prerequisite[] = [];
   for (const token of candidates) {
     if (!rwaTokens.has(token)) {
       continue;

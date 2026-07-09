@@ -1,51 +1,37 @@
-import { erc20Abi } from "viem";
+import { type Address, erc20Abi } from "viem";
 
 import { Prerequisite } from "./Prerequisite.js";
 import type {
   PrerequisiteContext,
-  PrerequisiteDetail,
-  PrerequisiteProps,
-  PrerequisiteResult,
+  PrerequisiteError,
+  PrerequisiteOutcome,
 } from "./types.js";
 
+/** ERC-20 allowance from `owner` to `spender` must cover `required`. */
+export interface AllowanceDetail {
+  token: Address;
+  owner: Address;
+  spender: Address;
+  required: bigint;
+  /** On-chain allowance read; only present when the read succeeded. */
+  actual?: bigint;
+}
+
+export type AllowanceResult = PrerequisiteOutcome & {
+  kind: "allowance";
+  detail: AllowanceDetail;
+};
+
 /** Checks that `owner` granted `spender` an ERC-20 allowance >= `required`. */
-export class AllowancePrerequisite extends Prerequisite<"allowance"> {
-  readonly #id: string;
-  readonly #title: string;
-  readonly #detail: PrerequisiteDetail<"allowance">;
+export class AllowancePrerequisite extends Prerequisite {
+  readonly #detail: AllowanceDetail;
 
-  constructor(props: PrerequisiteProps<"allowance">) {
+  constructor(detail: Omit<AllowanceDetail, "actual">) {
     super();
-    this.#id =
-      props.id ?? `allowance:${props.token}:${props.owner}:${props.spender}`;
-    this.#title = props.title ?? "Token approval";
-    this.#detail = {
-      token: props.token,
-      owner: props.owner,
-      spender: props.spender,
-      required: props.required,
-    };
+    this.#detail = { ...detail };
   }
 
-  public get id(): string {
-    return this.#id;
-  }
-
-  public get kind(): "allowance" {
-    return "allowance";
-  }
-
-  public get title(): string {
-    return this.#title;
-  }
-
-  public get detail(): PrerequisiteDetail<"allowance"> {
-    return this.#detail;
-  }
-
-  protected async check(
-    ctx: PrerequisiteContext,
-  ): Promise<PrerequisiteResult<"allowance">> {
+  protected async check(ctx: PrerequisiteContext): Promise<AllowanceResult> {
     const actual = await ctx.sdk.client.readContract({
       address: this.#detail.token,
       abi: erc20Abi,
@@ -55,9 +41,14 @@ export class AllowancePrerequisite extends Prerequisite<"allowance"> {
       // testnet forks pinned to a specific block.
       blockNumber: ctx.blockNumber,
     });
-    return this.satisfiedResult(actual >= this.#detail.required, {
-      ...this.#detail,
-      actual,
-    });
+    return {
+      kind: "allowance",
+      detail: { ...this.#detail, actual },
+      satisfied: actual >= this.#detail.required,
+    };
+  }
+
+  protected errorResult(error: PrerequisiteError): AllowanceResult {
+    return { kind: "allowance", detail: this.#detail, error };
   }
 }

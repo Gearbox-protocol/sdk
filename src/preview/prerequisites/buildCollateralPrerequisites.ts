@@ -5,7 +5,7 @@ import {
 } from "../../sdk/index.js";
 import type { InnerOperation } from "../parse/index.js";
 import { allowanceAndBalance } from "./helpers.js";
-import type { AnyPrerequisite } from "./Prerequisite.js";
+import type { Prerequisite } from "./Prerequisite.js";
 import type { PrerequisiteContext } from "./types.js";
 
 /**
@@ -21,7 +21,7 @@ export async function buildCollateralPrerequisites(
   spenderOptions: GetApprovalAddressProps,
   multicall: InnerOperation[],
   ctx: PrerequisiteContext,
-): Promise<AnyPrerequisite[]> {
+): Promise<Prerequisite[]> {
   const { sdk, wallet } = ctx;
   const required = new AssetsMap();
   for (const op of multicall) {
@@ -37,7 +37,7 @@ export async function buildCollateralPrerequisites(
 
   const spender = await sdk.accounts.getApprovalAddress(spenderOptions);
 
-  const prereqs: AnyPrerequisite[] = [];
+  const prereqs: Prerequisite[] = [];
   for (const [token, amount] of required.entries()) {
     prereqs.push(
       ...allowanceAndBalance({
@@ -45,8 +45,6 @@ export async function buildCollateralPrerequisites(
         owner: wallet,
         spender,
         required: amount,
-        allowanceTitle: "Collateral approved",
-        balanceTitle: "Sufficient collateral balance",
       }),
     );
   }
