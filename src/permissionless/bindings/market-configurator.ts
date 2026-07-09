@@ -34,6 +34,7 @@ import { CreditFactory } from "./factory/credit-factory.js";
 import { LossPolicyFactory } from "./factory/loss-policy-factory.js";
 import { PoolFactory } from "./factory/pool-factory.js";
 import { PriceOracleFactory } from "./factory/price-oracle-factory.js";
+import { RateKeeperFactory } from "./factory/rate-keeper-factory.js";
 import { AddressProviderContract } from "./index.js";
 import type {
   AddAssetParams,
@@ -61,6 +62,7 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
   public readonly poolFactory: PoolFactory;
   public readonly priceOracleFactory: PriceOracleFactory;
   public readonly lossPolicyFactory: LossPolicyFactory;
+  public readonly rateKeeperFactory: RateKeeperFactory;
 
   constructor(addr: Address, client: PublicClient<Transport, Chain>) {
     super({ client }, { abi, addr, name: "MarketConfigurator" });
@@ -68,6 +70,7 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
     this.poolFactory = new PoolFactory();
     this.priceOracleFactory = new PriceOracleFactory();
     this.lossPolicyFactory = new LossPolicyFactory();
+    this.rateKeeperFactory = new RateKeeperFactory();
   }
 
   async getAddressProvider(): Promise<AddressProviderContract> {
@@ -927,9 +930,19 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
           calldata,
         };
       }
+
       case "configureLossPolicy": {
         const [pool, calldata] = args;
         const decoded = this.lossPolicyFactory.decodeConfig(calldata);
+        return {
+          pool,
+          data: json_stringify(decoded),
+        };
+      }
+
+      case "configureRateKeeper": {
+        const [pool, calldata] = args;
+        const decoded = this.rateKeeperFactory.decodeConfig(calldata);
         return {
           pool,
           data: json_stringify(decoded),
