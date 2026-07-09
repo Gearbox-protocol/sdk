@@ -19,46 +19,10 @@ export async function previewPoolOperation<P extends PluginsMap>(
     options,
   );
 
-  if (sim.status === "success") {
-    return {
-      operation: operation.operation,
-      pool: operation.pool,
-      tokenIn: { token: tokenIn, balance: sim.amountIn },
-      tokenOut: { token: tokenOut, balance: sim.amountOut },
-    };
-  }
-
-  // The calldata-known side keeps its amount; the previewed side carries the
-  // simulation error instead.
-  const { error } = sim;
-  switch (operation.operation) {
-    case "Deposit":
-      return {
-        operation: "Deposit",
-        pool: operation.pool,
-        tokenIn: { token: tokenIn, balance: operation.assets },
-        tokenOut: { token: tokenOut, error },
-      };
-    case "Mint":
-      return {
-        operation: "Mint",
-        pool: operation.pool,
-        tokenIn: { token: tokenIn, error },
-        tokenOut: { token: tokenOut, balance: operation.shares },
-      };
-    case "Withdraw":
-      return {
-        operation: "Withdraw",
-        pool: operation.pool,
-        tokenIn: { token: tokenIn, error },
-        tokenOut: { token: tokenOut, balance: operation.assets },
-      };
-    case "Redeem":
-      return {
-        operation: "Redeem",
-        pool: operation.pool,
-        tokenIn: { token: tokenIn, balance: operation.shares },
-        tokenOut: { token: tokenOut, error },
-      };
-  }
+  return {
+    operation: operation.operation,
+    pool: operation.pool,
+    tokenIn: { token: tokenIn, balance: sim.amountIn },
+    tokenOut: { token: tokenOut, balance: sim.amountOut },
+  };
 }

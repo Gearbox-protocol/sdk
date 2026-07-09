@@ -1,7 +1,10 @@
 import type { OuterFacadeOperation } from "../parse/index.js";
 import type { PreviewOperationOptions } from "../types.js";
 
-import type { PoolOperationSimulation, SimulationInput } from "./types.js";
+import type {
+  PoolOperationSimulationResult,
+  SimulationInput,
+} from "./types.js";
 
 /**
  * Simulates a credit-facade operation.
@@ -14,6 +17,6 @@ import type { PoolOperationSimulation, SimulationInput } from "./types.js";
 export async function simulateFacadeOperation(
   _input: SimulationInput<OuterFacadeOperation>,
   _options?: PreviewOperationOptions,
-): Promise<PoolOperationSimulation> {
+): Promise<PoolOperationSimulationResult> {
   throw new Error("not yet implemented");
 }

@@ -1,7 +1,10 @@
 import type { RWAOperation } from "../parse/index.js";
 import type { PreviewOperationOptions } from "../types.js";
 
-import type { PoolOperationSimulation, SimulationInput } from "./types.js";
+import type {
+  PoolOperationSimulationResult,
+  SimulationInput,
+} from "./types.js";
 
 /**
  * Simulates an RWA-factory operation.
@@ -14,6 +17,6 @@ import type { PoolOperationSimulation, SimulationInput } from "./types.js";
 export async function simulateRWAOperation(
   _input: SimulationInput<RWAOperation>,
   _options?: PreviewOperationOptions,
-): Promise<PoolOperationSimulation> {
+): Promise<PoolOperationSimulationResult> {
   throw new Error("not yet implemented");
 }

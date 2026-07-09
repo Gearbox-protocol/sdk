@@ -6,7 +6,6 @@ import type { PoolOperation } from "../parse/index.js";
 import type { PreviewOperationOptions } from "../types.js";
 import { asPreviewSimulationError } from "./errors.js";
 import type {
-  PoolOperationSimulation,
   PoolOperationSimulationResult,
   SimulationInput,
 } from "./types.js";
@@ -84,7 +83,9 @@ function amountsInOut(
 
 /**
  * Simulates a pool deposit/mint/withdraw/redeem (direct or zapper-routed) and
- * returns the resulting token amounts going in and out, or a decoded failure.
+ * returns the resulting token amounts going in and out. Throws a
+ * {@link PreviewSimulationError} with the decoded revert when the preview read
+ * fails.
  *
  * Performs the matching preview read (the pool's ERC4626
  * `previewDeposit`/`previewMint`/`previewWithdraw`/`previewRedeem`, or the
@@ -97,7 +98,7 @@ function amountsInOut(
 export async function simulatePoolOperation(
   input: SimulationInput<PoolOperation>,
   options: PreviewOperationOptions = {},
-): Promise<PoolOperationSimulation> {
+): Promise<PoolOperationSimulationResult> {
   const { sdk, operation } = input;
   const { blockNumber, logger } = options;
 
@@ -109,13 +110,10 @@ export async function simulatePoolOperation(
       ...previewContract(operation),
     })) as bigint;
 
-    return {
-      status: "success",
-      ...amountsInOut(operation, previewAmount),
-    };
+    return amountsInOut(operation, previewAmount);
   } catch (cause) {
     const error = asPreviewSimulationError(cause, "multicall");
     logger?.error(error, "pool operation simulation failed");
-    return { status: "failure", error };
+    throw error;
   }
 }

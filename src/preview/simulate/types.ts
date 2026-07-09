@@ -1,7 +1,6 @@
 import type { Address, Hex } from "viem";
 import type { OnchainSDK } from "../../sdk/index.js";
 import type { Operation } from "../parse/index.js";
-import type { PreviewSimulationError } from "./errors.js";
 
 /**
  * Input of the simulation functions, generic over the parsed operation kind
@@ -20,10 +19,9 @@ export interface SimulationInput<Op extends Operation = Operation> {
 }
 
 /**
- * Successful simulation of a pool operation: the amounts of tokens going in
+ * Result of simulating a pool operation: the amounts of tokens going in
  * and out. One side comes from calldata, the other from the matching ERC4626
- * preview read. This is the success payload of {@link PoolOperationSimulation}
- * without the `status` discriminant.
+ * preview read.
  */
 export interface PoolOperationSimulationResult {
   /**
@@ -37,17 +35,3 @@ export interface PoolOperationSimulationResult {
    **/
   amountOut: bigint;
 }
-
-/**
- * Outcome of simulating a pool operation. On success it carries a
- * {@link PoolOperationSimulationResult}; on failure it carries a
- * {@link PreviewSimulationError}.
- */
-export type PoolOperationSimulation =
-  | ({
-      status: "success";
-    } & PoolOperationSimulationResult)
-  | {
-      status: "failure";
-      error: PreviewSimulationError;
-    };

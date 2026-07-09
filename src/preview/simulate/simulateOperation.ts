@@ -4,7 +4,10 @@ import type { PreviewOperationOptions } from "../types.js";
 import { simulateFacadeOperation } from "./simulateFacadeOperation.js";
 import { simulatePoolOperation } from "./simulatePoolOperation.js";
 import { simulateRWAOperation } from "./simulateRWAOperation.js";
-import type { PoolOperationSimulation, SimulationInput } from "./types.js";
+import type {
+  PoolOperationSimulationResult,
+  SimulationInput,
+} from "./types.js";
 
 /**
  * Simulates a parsed pool or credit account operation
@@ -12,7 +15,7 @@ import type { PoolOperationSimulation, SimulationInput } from "./types.js";
 export async function simulateOperation(
   input: SimulationInput,
   options?: PreviewOperationOptions,
-): Promise<PoolOperationSimulation> {
+): Promise<PoolOperationSimulationResult> {
   const { operation } = input;
 
   if (isPoolOperation(operation)) {

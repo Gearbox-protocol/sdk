@@ -2,6 +2,7 @@ import { type Address, getAddress, padHex } from "viem";
 import { describe, expect, it } from "vitest";
 import type { OnchainSDK } from "../../sdk/index.js";
 import type { PoolOperation } from "../parse/index.js";
+import { PreviewSimulationError } from "./errors.js";
 import { simulatePoolOperation } from "./simulatePoolOperation.js";
 
 const addr = (hex: string): Address =>
@@ -65,7 +66,6 @@ describe("simulatePoolOperation", () => {
     const { result, calls } = simulate(op, 90n);
 
     await expect(result).resolves.toEqual({
-      status: "success",
       amountIn: 100n,
       amountOut: 90n,
     });
@@ -88,7 +88,6 @@ describe("simulatePoolOperation", () => {
     const { result, calls } = simulate(op, 55n);
 
     await expect(result).resolves.toEqual({
-      status: "success",
       amountIn: 55n,
       amountOut: 50n,
     });
@@ -112,7 +111,6 @@ describe("simulatePoolOperation", () => {
     const { result, calls } = simulate(op, 180n);
 
     await expect(result).resolves.toEqual({
-      status: "success",
       amountIn: 180n,
       amountOut: 200n,
     });
@@ -136,7 +134,6 @@ describe("simulatePoolOperation", () => {
     const { result, calls } = simulate(op, 130n);
 
     await expect(result).resolves.toEqual({
-      status: "success",
       amountIn: 120n,
       amountOut: 130n,
     });
@@ -161,7 +158,6 @@ describe("simulatePoolOperation", () => {
     const { result, calls } = simulate(op, 950n);
 
     await expect(result).resolves.toEqual({
-      status: "success",
       amountIn: 1_000n,
       amountOut: 950n,
     });
@@ -170,7 +166,7 @@ describe("simulatePoolOperation", () => {
     ]);
   });
 
-  it("returns a decoded failure when the preview read reverts", async () => {
+  it("throws a decoded failure when the preview read reverts", async () => {
     const op: PoolOperation = {
       operation: "Deposit",
       pool: POOL,
@@ -189,16 +185,13 @@ describe("simulatePoolOperation", () => {
       },
     } as unknown as OnchainSDK;
 
-    const result = await simulatePoolOperation({
-      sdk,
-      operation: op,
-      to: POOL,
-      calldata: "0x",
-    });
-
-    expect(result.status).toBe("failure");
-    if (result.status === "failure") {
-      expect(result.error.failures[0]?.detail.reason).toBe("boom");
-    }
+    await expect(() =>
+      simulatePoolOperation({
+        sdk,
+        operation: op,
+        to: POOL,
+        calldata: "0x",
+      }),
+    ).rejects.toThrow(PreviewSimulationError);
   });
 });

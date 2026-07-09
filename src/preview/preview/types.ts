@@ -2,13 +2,6 @@ import type { Address } from "viem";
 import type { Asset } from "../../sdk/index.js";
 import type { PoolOperationType } from "../parse/index.js";
 
-/**
- * A token amount that may require an additional async call (e.g. an ERC4626
- * preview read) to determine. When that call fails, only the token address and
- * the error are returned.
- */
-export type PreviewedAsset = Asset | { token: Address; error: Error };
-
 export interface PoolOperationPreview {
   operation: PoolOperationType;
   /**
@@ -22,10 +15,9 @@ export interface PoolOperationPreview {
    *
    * For mint/withdraw the amount of tokenIn cannot be determined from
    * transaction calldata alone and requires an additional async call
-   * (previewMint/previewWithdraw). In case of error only the token address is
-   * returned.
+   * (previewMint/previewWithdraw).
    */
-  tokenIn: PreviewedAsset;
+  tokenIn: Asset;
   /**
    * Token that goes from pool to user
    * In case of deposit, pool shares (diesel token) for direct deposit or zapper token out
@@ -33,10 +25,9 @@ export interface PoolOperationPreview {
    *
    * For deposit/redeem the amount of tokenOut cannot be determined from
    * transaction calldata alone and requires an additional async call
-   * (previewDeposit/previewRedeem). In case of error only the token address is
-   * returned.
+   * (previewDeposit/previewRedeem).
    */
-  tokenOut: PreviewedAsset;
+  tokenOut: Asset;
 }
 
 export interface OpenCreditAccountPreview {
