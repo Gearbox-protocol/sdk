@@ -1,10 +1,10 @@
-import { ierc4626AdapterAbi } from "@gearbox-protocol/integrations-v3";
 import {
   type Address,
   type DecodeFunctionDataReturnType,
   decodeAbiParameters,
   zeroAddress,
 } from "viem";
+import { ierc4626AdapterAbi } from "../../../abi/ierc4626Adapter.js";
 import {
   type AddressMap,
   type ConstructOptions,

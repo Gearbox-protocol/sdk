@@ -17,7 +17,6 @@ import {
   Curve2AssetsAdapterContract,
   Curve3AssetsAdapterContract,
   Curve4AssetsAdapterContract,
-  CurveV1AdapterDeposit,
   CurveV1AdapterStETHContract,
   CurveV1StableNGAdapterContract,
   DaiUsdsAdapterContract,
@@ -30,10 +29,8 @@ import {
   KelpLRTWithdrawalManagerAdapterContract,
   LidoV1AdapterContract,
   MellowClaimerAdapterContract,
-  MellowDepositQueueAdapterContract,
   MellowDVVAdapterContract,
   MellowERC4626VaultAdapterContract,
-  MellowRedeemQueueAdapterContract,
   MellowWrapperAdapterContract,
   MidasIssuanceVaultAdapterContract,
   MidasRedemptionVaultAdapterContract,
@@ -48,7 +45,6 @@ import {
 } from "./contracts/index.js";
 import { SecuritizeOnRampAdapterContract } from "./contracts/SecuritizeOnRampAdapterContract.js";
 import { SecuritizeRedemptionGatewayAdapterContract } from "./contracts/SecuritizeRedemptionGatewayAdapterContract.js";
-import { SecuritizeSwapAdapterContract } from "./contracts/SecuritizeSwapAdapterContract.js";
 import { UniswapV4AdapterContract } from "./contracts/UniswapV4AdapterContract.js";
 import type { AdapterContractType } from "./types.js";
 
@@ -85,8 +81,6 @@ export function createAdapter(
       return new Curve4AssetsAdapterContract(options, data);
     case "ADAPTER::CURVE_V1_STECRV_POOL":
       return new CurveV1AdapterStETHContract(options, data);
-    case "ADAPTER::CURVE_V1_WRAPPER":
-      return new CurveV1AdapterDeposit(options, data);
     case "ADAPTER::CVX_V1_BASE_REWARD_POOL":
       return new ConvexV1BaseRewardPoolAdapterContract(options, data);
     case "ADAPTER::CVX_V1_BOOSTER":
@@ -119,10 +113,6 @@ export function createAdapter(
       return new MellowERC4626VaultAdapterContract(options, data);
     case "ADAPTER::MELLOW_WRAPPER":
       return new MellowWrapperAdapterContract(options, data);
-    case "ADAPTER::MELLOW_DEPOSIT_QUEUE_QUEUE":
-      return new MellowDepositQueueAdapterContract(options, data);
-    case "ADAPTER::MELLOW_REDEEM_QUEUE_QUEUE":
-      return new MellowRedeemQueueAdapterContract(options, data);
     case "ADAPTER::MIDAS_ISSUANCE_VAULT":
       return new MidasIssuanceVaultAdapterContract(options, data);
     case "ADAPTER::MIDAS_REDEMPTION_VAULT":
@@ -133,11 +123,9 @@ export function createAdapter(
       return new SecuritizeOnRampAdapterContract(options, data);
     case "ADAPTER::SECURITIZE_REDEMPTION":
       return new SecuritizeRedemptionGatewayAdapterContract(options, data);
-    case "ADAPTER::SECURITIZE_SWAP":
-      return new SecuritizeSwapAdapterContract(options, data);
     case "ADAPTER::STAKING_REWARDS":
       return new StakingRewardsAdapterContract(options, data);
-    case "ADAPTER::TRADER_JOE_ROUTER":
+    case "ADAPTER::TRADERJOE_ROUTER":
       return new TraderJoeRouterAdapterContract(options, data);
     case "ADAPTER::UNISWAP_V2_ROUTER":
       return new UniswapV2AdapterContract(options, data);

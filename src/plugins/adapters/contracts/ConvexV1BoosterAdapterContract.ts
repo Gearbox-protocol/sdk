@@ -9,7 +9,7 @@ import {
   MissingSerializedParamsError,
   type ParsedCallV2,
 } from "../../../sdk/index.js";
-import { iConvexV1BoosterAdapterAbi } from "../abi/iConvexV1BoosterAdapter.js";
+import { iConvexV1BoosterAdapterAbi } from "../abi/adapters/iConvexV1BoosterAdapter.js";
 import { iBoosterAbi } from "../abi/targetContractAbi.js";
 import type {
   LegacyAdapterOperation,

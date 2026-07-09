@@ -1,8 +1,4 @@
 import {
-  iMidasRedemptionVaultAdapterAbi,
-  iMidasRedemptionVaultGatewayAbi,
-} from "@gearbox-protocol/integrations-v3";
-import {
   type Address,
   type DecodeFunctionDataReturnType,
   decodeAbiParameters,
@@ -12,6 +8,10 @@ import {
   type ConstructOptions,
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
+import {
+  iMidasRedemptionVaultAdapterAbi,
+  iMidasRedemptionVaultGatewayAbi,
+} from "../abi/adapters/index.js";
 import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";

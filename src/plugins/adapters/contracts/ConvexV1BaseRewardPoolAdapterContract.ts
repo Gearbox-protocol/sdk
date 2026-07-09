@@ -1,4 +1,3 @@
-import { iConvexV1BaseRewardPoolAdapterAbi } from "@gearbox-protocol/integrations-v3";
 import {
   type Address,
   type DecodeFunctionDataReturnType,
@@ -11,6 +10,7 @@ import {
   MissingSerializedParamsError,
   type ParsedCallV2,
 } from "../../../sdk/index.js";
+import { iConvexV1BaseRewardPoolAdapterAbi } from "../abi/adapters/index.js";
 import { iBaseRewardPoolAbi } from "../abi/targetContractAbi.js";
 import type {
   LegacyAdapterOperation,

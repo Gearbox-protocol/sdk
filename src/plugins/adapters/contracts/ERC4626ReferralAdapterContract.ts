@@ -1,4 +1,3 @@
-import { erc4626ReferralAdapterAbi } from "@gearbox-protocol/integrations-v3";
 import {
   type Address,
   type DecodeFunctionDataReturnType,
@@ -10,6 +9,7 @@ import {
   MissingSerializedParamsError,
   type ParsedCallV2,
 } from "../../../sdk/index.js";
+import { erc4626ReferralAdapterAbi } from "../abi/adapters/index.js";
 import { iERC4626ReferralAbi } from "../abi/targetContractAbi.js";
 import type {
   LegacyAdapterOperation,

@@ -62,24 +62,10 @@ export const CURVE_V1_ADAPTER_311_ABI = [
   { type: "bool", name: "use256" },
 ] as const;
 
-export const CURVE_V1_WRAPPER_ADAPTER_ABI = [
-  { type: "address", name: "creditManager" },
-  { type: "address", name: "target" },
-  { type: "address", name: "lpToken" },
-  { type: "uint256", name: "nCoins" },
-] as const;
-
 // Other ABI patterns
 export const STAKING_REWARDS_ADAPTER_ABI = [
   { type: "address", name: "creditManager" },
   { type: "address", name: "target" },
   { type: "address", name: "stakedPhantomToken" },
   { type: "uint16", name: "referral" },
-] as const;
-
-export const MELLOW_DEPOSIT_QUEUE_ADAPTER_ABI = [
-  { type: "address", name: "creditManager" },
-  { type: "address", name: "target" },
-  { type: "address", name: "referral" },
-  { type: "address", name: "phantomToken" },
 ] as const;

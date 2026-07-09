@@ -1,12 +1,12 @@
-import {
-  iKelpLrtWithdrawalManagerAdapterAbi,
-  iKelpLrtWithdrawalManagerGatewayAbi,
-} from "@gearbox-protocol/integrations-v3";
 import { type Address, decodeAbiParameters } from "viem";
 import {
   type ConstructOptions,
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
+import {
+  iKelpLrtWithdrawalManagerAdapterAbi,
+  iKelpLrtWithdrawalManagerGatewayAbi,
+} from "../abi/adapters/index.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 

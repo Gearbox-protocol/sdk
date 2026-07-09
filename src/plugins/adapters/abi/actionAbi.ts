@@ -11,9 +11,6 @@ export const adapterActionSignatures: PartialRecord<
   AdapterType,
   Record<number, string>
 > = {
-  [AdapterType.BALANCER_VAULT]: {
-    310: "function setPoolStatus(bytes32,uint8)",
-  },
   [AdapterType.BALANCER_V3_ROUTER]: {
     310: "function setPoolStatusBatch(address[],bool[])",
     311: "function setPoolStatusBatch((address,uint8)[])",
@@ -23,9 +20,6 @@ export const adapterActionSignatures: PartialRecord<
   },
   [AdapterType.CVX_V1_BOOSTER]: {
     310: "function updateSupportedPids()",
-  },
-  [AdapterType.EQUALIZER_ROUTER]: {
-    310: "function setPoolStatusBatch((address,address,bool,bool)[])",
   },
   [AdapterType.INFINIFI_GATEWAY]: {
     310: "function setLockedTokenBatchStatus((address,uint32,bool)[])",
@@ -38,9 +32,6 @@ export const adapterActionSignatures: PartialRecord<
   },
   [AdapterType.KELP_WITHDRAWAL]: {
     310: "function setTokensOutBatchStatus((address,address,bool)[])",
-  },
-  [AdapterType.KODIAK_ISLAND_GATEWAY]: {
-    310: "function setIslandStatusBatch((address,uint8)[])",
   },
   [AdapterType.MELLOW_CLAIMER]: {
     310: "function setMultiVaultStatusBatch((address,address,bool)[])",
@@ -58,7 +49,7 @@ export const adapterActionSignatures: PartialRecord<
     310: "function setPairStatusBatch((address,address,address,uint8)[])",
     311: "function setPairStatusBatch((address,address,address,uint8,uint8)[])",
   },
-  [AdapterType.TRADER_JOE_ROUTER]: {
+  [AdapterType.TRADERJOE_ROUTER]: {
     310: "function setPoolStatusBatch((address,address,uint256,uint8,bool)[])",
   },
   [AdapterType.UNISWAP_V2_ROUTER]: {

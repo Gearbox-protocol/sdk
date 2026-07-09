@@ -1,4 +1,3 @@
-import { iUniswapV3AdapterAbi } from "@gearbox-protocol/integrations-v3";
 import {
   type Address,
   type DecodeFunctionDataReturnType,
@@ -6,6 +5,7 @@ import {
 } from "viem";
 import type { AddressMap, ConstructOptions } from "../../../sdk/index.js";
 import { formatBN, MissingSerializedParamsError } from "../../../sdk/index.js";
+import { iUniswapV3AdapterAbi } from "../abi/adapters/index.js";
 import { iUniswapV3Abi } from "../abi/targetContractAbi.js";
 import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";

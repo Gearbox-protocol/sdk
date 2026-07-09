@@ -1,9 +1,9 @@
-import { iCurveV1_2AssetsAdapterAbi } from "@gearbox-protocol/integrations-v3";
 import { type Address, decodeAbiParameters } from "viem";
 import {
   type ConstructOptions,
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
+import { iCurveV1_2AssetsAdapterAbi } from "../abi/adapters/index.js";
 import { iCurvePool_2Abi, iCurvePoolAbi } from "../abi/targetContractAbi.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractCurveAdapterContract } from "./AbstractCurveAdapter.js";

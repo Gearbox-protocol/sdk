@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@gearbox-protocol/integrations-v3':
-        specifier: 1.54.2
-        version: 1.54.2
       '@redstone-finance/evm-connector':
         specifier: ^0.9.0
         version: 0.9.0
@@ -1892,9 +1889,6 @@ packages:
     resolution: {integrity: sha512-e/KNqRr0/B20Z00gbuAJuhZzORw3+kQ9caUF/oowCjubHnrheSIuoyjpxO9Id1T6I20ysgHsVhZRkEG3i/u5dA==}
     peerDependencies:
       '@biomejs/biome': ^2.5.3
-
-  '@gearbox-protocol/integrations-v3@1.54.2':
-    resolution: {integrity: sha512-DHKBBtQaBNAoj1Dj9WEPpRXInNTL10olI+QVeGKDZQmbF5eEL7qzFfnc59uDPAwjL3BZZbS4clZte/5R7m7Neg==}
 
   '@gerrit0/mini-shiki@3.23.0':
     resolution: {integrity: sha512-bEMORlG0cqdjVyCEuU0cDQbORWX+kYCeo0kV1lbxF5bt4r7SID2l9bqsxJEM0zndaxpOUT7riCyIVEuqq/Ynxg==}
@@ -10283,8 +10277,6 @@ snapshots:
   '@gearbox-protocol/biome-config@1.1.2(@biomejs/biome@2.5.3)':
     dependencies:
       '@biomejs/biome': 2.5.3
-
-  '@gearbox-protocol/integrations-v3@1.54.2': {}
 
   '@gerrit0/mini-shiki@3.23.0':
     dependencies:

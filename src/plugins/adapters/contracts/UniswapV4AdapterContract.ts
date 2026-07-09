@@ -1,8 +1,4 @@
 import {
-  iUniswapV4AdapterAbi,
-  iUniswapV4GatewayAbi,
-} from "@gearbox-protocol/integrations-v3";
-import {
   type Address,
   type DecodeFunctionDataReturnType,
   decodeAbiParameters,
@@ -13,6 +9,10 @@ import type {
   ParsedCallV2,
 } from "../../../sdk/index.js";
 import { MissingSerializedParamsError } from "../../../sdk/index.js";
+import {
+  iUniswapV4AdapterAbi,
+  iUniswapV4GatewayAbi,
+} from "../abi/adapters/index.js";
 import type {
   LegacyAdapterOperation,
   Transfers,

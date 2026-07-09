@@ -1,9 +1,9 @@
-import { iCurveV1StableNgAdapterAbi } from "@gearbox-protocol/integrations-v3";
 import { type Address, decodeAbiParameters } from "viem";
 import {
   type ConstructOptions,
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
+import { iCurveV1StableNgAdapterAbi } from "../abi/adapters/index.js";
 import {
   iCurvePoolAbi,
   iCurvePoolStableNGAbi,

@@ -1,4 +1,3 @@
-import { iFluidDexAdapterAbi } from "@gearbox-protocol/integrations-v3";
 import {
   type Address,
   type DecodeFunctionDataReturnType,
@@ -9,6 +8,7 @@ import {
   type ConstructOptions,
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
+import { iFluidDexAdapterAbi } from "../abi/adapters/index.js";
 import { iFluidDexAbi } from "../abi/targetContractAbi.js";
 import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";

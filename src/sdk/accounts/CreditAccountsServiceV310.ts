@@ -1,4 +1,3 @@
-import { ierc4626AdapterAbi } from "@gearbox-protocol/integrations-v3";
 import type { Address, Hex } from "viem";
 import { encodeFunctionData, getContract } from "viem";
 import {
@@ -11,6 +10,7 @@ import { rewardsCompressorAbi } from "../../abi/compressors/rewardsCompressor.js
 import { iWithdrawalCompressorV310Abi } from "../../abi/IWithdrawalCompressorV310.js";
 import { iWithdrawalCompressorV311Abi } from "../../abi/IWithdrawalCompressorV311.js";
 import { iBaseRewardPoolAbi } from "../../abi/iBaseRewardPool.js";
+import { ierc4626AdapterAbi } from "../../abi/ierc4626Adapter.js";
 import { iRWAFactoryAbi } from "../../abi/rwa/iRWAFactory.js";
 import type { Asset, CreditAccountData } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";

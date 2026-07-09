@@ -481,11 +481,6 @@ describe("DaiUsds adapter", () => {
 describe("Legacy adapters throw", () => {
   const legacyAdapters = [
     {
-      name: "CurveV1AdapterDeposit",
-      path: "./contracts/CurveV1AdapterDeposit.js",
-      className: "CurveV1AdapterDeposit",
-    },
-    {
       name: "AccountMigratorAdapterContract",
       path: "./contracts/AccountMigratorAdapterContract.js",
       className: "AccountMigratorAdapterContract",

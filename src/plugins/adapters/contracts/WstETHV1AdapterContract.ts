@@ -1,4 +1,3 @@
-import { iwstEthv1AdapterAbi } from "@gearbox-protocol/integrations-v3";
 import {
   type Address,
   type DecodeFunctionDataReturnType,
@@ -10,6 +9,7 @@ import {
   MissingSerializedParamsError,
   type ParsedCallV2,
 } from "../../../sdk/index.js";
+import { iwstEthv1AdapterAbi } from "../abi/adapters/index.js";
 import { iwstETHAbi } from "../abi/targetContractAbi.js";
 import type {
   LegacyAdapterOperation,

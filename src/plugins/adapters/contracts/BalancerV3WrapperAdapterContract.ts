@@ -1,4 +1,3 @@
-import { iBalancerV3WrapperAdapterAbi } from "@gearbox-protocol/integrations-v3";
 import {
   type Address,
   type DecodeFunctionDataReturnType,
@@ -6,6 +5,7 @@ import {
 } from "viem";
 import type { AddressMap, ConstructOptions } from "../../../sdk/index.js";
 import { MissingSerializedParamsError } from "../../../sdk/index.js";
+import { iBalancerV3WrapperAdapterAbi } from "../abi/adapters/index.js";
 import { iBalancerV3WrapperAbi } from "../abi/targetContractAbi.js";
 import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
