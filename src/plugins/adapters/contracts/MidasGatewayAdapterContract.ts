@@ -9,26 +9,28 @@ import {
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
 import {
-  iMidasRedemptionVaultAdapterV310Abi,
-  iMidasRedemptionVaultGatewayV310Abi,
+  iMidasGatewayAdapterV311Abi,
+  iMidasGatewayV311Abi,
 } from "../abi/adapters/index.js";
 import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
-const abi = iMidasRedemptionVaultAdapterV310Abi;
+const abi = iMidasGatewayAdapterV311Abi;
 type abi = typeof abi;
 
-const protocolAbi = iMidasRedemptionVaultGatewayV310Abi;
+const protocolAbi = iMidasGatewayV311Abi;
 type protocolAbi = typeof protocolAbi;
 
-export class MidasRedemptionVaultAdapterContract extends AbstractAdapterContract<
+export class MidasGatewayAdapterContract extends AbstractAdapterContract<
   abi,
   protocolAbi
 > {
   #gateway?: Address;
   #mToken?: Address;
-  #allowedTokens?: { token: Address; phantomToken: Address }[];
+  #referrerId?: string;
+  #allowedInputTokens?: Address[];
+  #allowedOutputTokens?: { token: Address; phantomToken: Address }[];
 
   constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
     super(options, { ...args, abi, protocolAbi });
@@ -40,7 +42,9 @@ export class MidasRedemptionVaultAdapterContract extends AbstractAdapterContract
           { type: "address", name: "targetContract" },
           { type: "address", name: "gateway" },
           { type: "address", name: "mToken" },
-          { type: "address[]", name: "allowedTokens" },
+          { type: "bytes32", name: "referrerId" },
+          { type: "address[]", name: "allowedInputTokens" },
+          { type: "address[]", name: "allowedOutputTokens" },
           { type: "address[]", name: "allowedPhantomTokens" },
         ],
         args.baseParams.serializedParams,
@@ -48,9 +52,11 @@ export class MidasRedemptionVaultAdapterContract extends AbstractAdapterContract
 
       this.#gateway = decoded[2];
       this.#mToken = decoded[3];
-      this.#allowedTokens = decoded[4].map((token, index) => ({
+      this.#referrerId = decoded[4];
+      this.#allowedInputTokens = [...decoded[5]];
+      this.#allowedOutputTokens = decoded[6].map((token, index) => ({
         token,
-        phantomToken: decoded[5][index],
+        phantomToken: decoded[7][index],
       }));
     }
   }
@@ -65,10 +71,22 @@ export class MidasRedemptionVaultAdapterContract extends AbstractAdapterContract
     return this.#mToken;
   }
 
-  get allowedTokens(): { token: Address; phantomToken: Address }[] {
-    if (!this.#allowedTokens)
-      throw new MissingSerializedParamsError("allowedTokens");
-    return this.#allowedTokens;
+  get referrerId(): string {
+    if (this.#referrerId === undefined)
+      throw new MissingSerializedParamsError("referrerId");
+    return this.#referrerId;
+  }
+
+  get allowedInputTokens(): Address[] {
+    if (!this.#allowedInputTokens)
+      throw new MissingSerializedParamsError("allowedInputTokens");
+    return this.#allowedInputTokens;
+  }
+
+  get allowedOutputTokens(): { token: Address; phantomToken: Address }[] {
+    if (!this.#allowedOutputTokens)
+      throw new MissingSerializedParamsError("allowedOutputTokens");
+    return this.#allowedOutputTokens;
   }
 
   public override stateHuman(raw?: boolean) {
@@ -76,7 +94,11 @@ export class MidasRedemptionVaultAdapterContract extends AbstractAdapterContract
       ...super.stateHuman(raw),
       gateway: this.#gateway ? this.labelAddress(this.#gateway) : undefined,
       mToken: this.#mToken ? this.labelAddress(this.#mToken) : undefined,
-      allowedTokens: this.#allowedTokens?.map(t => ({
+      referrerId: this.#referrerId,
+      allowedInputTokens: this.#allowedInputTokens?.map(t =>
+        this.labelAddress(t),
+      ),
+      allowedOutputTokens: this.#allowedOutputTokens?.map(t => ({
         token: this.labelAddress(t.token),
         phantomToken: this.labelAddress(t.phantomToken),
       })),
@@ -88,9 +110,14 @@ export class MidasRedemptionVaultAdapterContract extends AbstractAdapterContract
     balances: AddressMap<bigint>,
   ): DiffLeftover[] {
     switch (decoded.functionName) {
-      // redemption spends the mToken down to the leftover, tokenOut arg is
+      case "depositInstantDiff": {
+        const [tokenIn, leftoverAmount] = decoded.args;
+        return [{ tokenIn, leftoverAmount }];
+      }
+      // redemptions spend the mToken down to the leftover, tokenOut arg is
       // the received token
-      case "redeemInstantDiff": {
+      case "redeemInstantDiff":
+      case "redeemRequestDiff": {
         const [, leftoverAmount] = decoded.args;
         return [{ tokenIn: this.mToken, leftoverAmount }];
       }

@@ -1,4 +1,4 @@
-export const iMidasIssuanceVaultAdapterAbi = [
+export const iMidasIssuanceVaultAdapterV310Abi = [
   {
     type: "function",
     inputs: [],

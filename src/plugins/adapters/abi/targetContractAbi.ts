@@ -3295,7 +3295,7 @@ export const iMellowWrapperAbi = [
   },
 ] as const;
 
-export const iMidasIssuanceVaultAbi = [
+export const iMidasIssuanceVaultV310Abi = [
   {
     type: "function",
     name: "depositInstant",

@@ -23,6 +23,7 @@ export * from "./MellowClaimerAdapterContract.js";
 export * from "./MellowDVVAdapterContract.js";
 export * from "./MellowERC4626VaultAdapterContract.js";
 export * from "./MellowWrapperAdapterContract.js";
+export * from "./MidasGatewayAdapterContract.js";
 export * from "./MidasIssuanceVaultAdapterContract.js";
 export * from "./MidasRedemptionVaultAdapterContract.js";
 export * from "./PendleRouterAdapterContract.js";

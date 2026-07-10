@@ -32,6 +32,7 @@ import {
   MellowDVVAdapterContract,
   MellowERC4626VaultAdapterContract,
   MellowWrapperAdapterContract,
+  MidasGatewayAdapterContract,
   MidasIssuanceVaultAdapterContract,
   MidasRedemptionVaultAdapterContract,
   PendleRouterAdapterContract,
@@ -113,6 +114,8 @@ export function createAdapter(
       return new MellowERC4626VaultAdapterContract(options, data);
     case "ADAPTER::MELLOW_WRAPPER":
       return new MellowWrapperAdapterContract(options, data);
+    case "ADAPTER::MIDAS_GATEWAY":
+      return new MidasGatewayAdapterContract(options, data);
     case "ADAPTER::MIDAS_ISSUANCE_VAULT":
       return new MidasIssuanceVaultAdapterContract(options, data);
     case "ADAPTER::MIDAS_REDEMPTION_VAULT":

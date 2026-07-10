@@ -156,4 +156,7 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
   [AdapterType.MIDAS_ISSUANCE_VAULT]: {
     310: REFERER_ID_ADAPTER_ABI,
   },
+  [AdapterType.MIDAS_GATEWAY]: {
+    311: REFERER_ID_ADAPTER_ABI,
+  },
 } as const;

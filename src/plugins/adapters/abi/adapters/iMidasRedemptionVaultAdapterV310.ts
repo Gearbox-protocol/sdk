@@ -1,4 +1,4 @@
-export const iMidasRedemptionVaultAdapterAbi = [
+export const iMidasRedemptionVaultAdapterV310Abi = [
   {
     type: "function",
     inputs: [],
@@ -363,7 +363,7 @@ export const iMidasRedemptionVaultAdapterAbi = [
   },
 ] as const;
 
-export const iMidasRedemptionVaultGatewayAbi = [
+export const iMidasRedemptionVaultGatewayV310Abi = [
   {
     type: "function",
     inputs: [],

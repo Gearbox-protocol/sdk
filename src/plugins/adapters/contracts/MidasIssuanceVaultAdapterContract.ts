@@ -8,16 +8,16 @@ import {
   type ConstructOptions,
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
-import { iMidasIssuanceVaultAdapterAbi } from "../abi/adapters/index.js";
-import { iMidasIssuanceVaultAbi } from "../abi/targetContractAbi.js";
+import { iMidasIssuanceVaultAdapterV310Abi } from "../abi/adapters/index.js";
+import { iMidasIssuanceVaultV310Abi } from "../abi/targetContractAbi.js";
 import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
-const abi = iMidasIssuanceVaultAdapterAbi;
+const abi = iMidasIssuanceVaultAdapterV310Abi;
 type abi = typeof abi;
 
-const protocolAbi = iMidasIssuanceVaultAbi;
+const protocolAbi = iMidasIssuanceVaultV310Abi;
 type protocolAbi = typeof protocolAbi;
 
 export class MidasIssuanceVaultAdapterContract extends AbstractAdapterContract<
