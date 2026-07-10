@@ -2142,7 +2142,6 @@ export class CreditAccountsServiceV310
   public assembleCaOperations({
     operations,
     creditFacade,
-    withdrawTo,
   }: AssembleCaOperationsProps): MultiCall[] {
     const calls: MultiCall[] = [];
 
@@ -2172,7 +2171,7 @@ export class CreditAccountsServiceV310
               creditFacade,
               op.token,
               op.amount,
-              withdrawTo,
+              op.to,
             ),
           );
           break;

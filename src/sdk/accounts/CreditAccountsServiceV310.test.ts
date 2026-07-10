@@ -35,10 +35,9 @@ describe("CreditAccountsServiceV310.assembleCaOperations", () => {
           quotaIncrease: [{ token: TOKEN_A, balance: 50n }],
           quotaDecrease: [],
         },
-        { type: "withdrawCollateral", token: TOKEN_A, amount: 25n },
+        { type: "withdrawCollateral", token: TOKEN_A, amount: 25n, to: TO },
       ],
       creditFacade: FACADE,
-      withdrawTo: TO,
     };
 
     const calls = service.assembleCaOperations(props);
@@ -71,7 +70,6 @@ describe("CreditAccountsServiceV310.assembleCaOperations", () => {
         { type: "swap", calls: [swapCall] },
       ],
       creditFacade: FACADE,
-      withdrawTo: TO,
     };
 
     const calls = service.assembleCaOperations(props);

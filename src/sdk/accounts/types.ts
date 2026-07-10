@@ -809,7 +809,7 @@ export type EncodableCreditAccountOperation =
   | { type: "increaseDebt"; amount: bigint }
   | { type: "decreaseDebt"; amount: bigint }
   | { type: "addCollateral"; token: Address; amount: bigint }
-  | { type: "withdrawCollateral"; token: Address; amount: bigint }
+  | { type: "withdrawCollateral"; token: Address; amount: bigint; to: Address }
   | { type: "swap"; calls: Array<MultiCall> }
   | { type: "wrapRwaCollateral"; calls: Array<MultiCall> }
   | { type: "unwrapRwaCollateral"; calls: Array<MultiCall> }
@@ -825,7 +825,6 @@ export type EncodableCreditAccountOperation =
 export type AssembleCaOperationsProps = {
   operations: Array<EncodableCreditAccountOperation>;
   creditFacade: Address;
-  withdrawTo: Address;
 };
 
 export interface ICreditAccountsService extends Construct {
