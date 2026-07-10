@@ -1,12 +1,5 @@
-import type {
-  Address,
-  ContractFunctionArgs,
-  GetContractReturnType,
-  Hex,
-  PublicClient,
-} from "viem";
+import type { Address, ContractFunctionArgs, Hex } from "viem";
 import type { creditAccountCompressorAbi } from "../../abi/compressors/creditAccountCompressor.js";
-import type { iWithdrawalCompressorV310Abi } from "../../abi/IWithdrawalCompressorV310.js";
 import type {
   Asset,
   ConnectedBotData,
@@ -22,6 +15,11 @@ import type { RWAOpenAccountRequirements } from "../market/rwa/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
 import type { RouterCASlice, RouterCloseResult } from "../router/index.js";
 import type { MultiCall, RawTx } from "../types/index.js";
+import type {
+  ClaimableWithdrawal,
+  PendingWithdrawal,
+  RequestableWithdrawal,
+} from "./withdrawal-compressor/index.js";
 
 /**
  * @internal
@@ -394,34 +392,6 @@ export interface GetPendingWithdrawalsProps {
   creditAccount: Address;
 }
 
-type WithdrawalCompressorV310InstanceType = GetContractReturnType<
-  typeof iWithdrawalCompressorV310Abi,
-  PublicClient
->;
-
-/**
- * Result of previewing a delayed withdrawal request, as returned by the withdrawal compressor.
- **/
-export type PreviewDelayedWithdrawalResult = Awaited<
-  ReturnType<
-    WithdrawalCompressorV310InstanceType["read"]["getWithdrawalRequestResult"]
-  >
->;
-
-type PendingWithdrawalResult = Awaited<
-  ReturnType<
-    WithdrawalCompressorV310InstanceType["read"]["getCurrentWithdrawals"]
-  >
->;
-/**
- * A single pending delayed withdrawal that is not yet claimable.
- **/
-export type PendingWithdrawal = PendingWithdrawalResult[1][number];
-/**
- * A single delayed withdrawal that is ready to be claimed.
- **/
-export type ClaimableWithdrawal = PendingWithdrawalResult[0][number];
-
 /**
  * Aggregated delayed withdrawal status, split into immediately claimable and still-pending entries.
  **/
@@ -440,7 +410,7 @@ export interface StartDelayedWithdrawalProps extends PrepareUpdateQuotasProps {
   /**
    * Withdrawal preview
    */
-  preview: PreviewDelayedWithdrawalResult;
+  preview: RequestableWithdrawal;
   /**
    * Minimal credit account data on which operation is performed
    */
@@ -1009,7 +979,7 @@ export interface ICreditAccountsService extends Construct {
    */
   previewDelayedWithdrawal(
     props: PreviewDelayedWithdrawalProps,
-  ): Promise<PreviewDelayedWithdrawalResult>;
+  ): Promise<RequestableWithdrawal>;
   /**
    * Get claimable and pending withdrawals of an account
    * @param props - {@link GetPendingWithdrawalsProps}

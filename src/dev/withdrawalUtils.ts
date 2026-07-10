@@ -2,7 +2,10 @@ import type { Address } from "viem";
 import { erc20Abi, hexToString, parseAbi, parseEther } from "viem";
 import { iWithdrawalCompressorV313Abi } from "../abi/IWithdrawalCompressorV313.js";
 import type { ILogger } from "../sdk/index.js";
-import { getWithdrawalCompressorAddress } from "../sdk/index.js";
+import {
+  getNetworkType,
+  getWithdrawalCompressorAddress,
+} from "../sdk/index.js";
 import type { AnvilClient } from "./createAnvilClient.js";
 import {
   iMidasDataFeedAbi,
@@ -55,7 +58,9 @@ export async function makePendingWithdrawalsClaimable(
   options?: MakePendingWithdrawalsClaimableOptions,
 ): Promise<void> {
   const { logger, timeWarp = false } = options || {};
-  const compressor = getWithdrawalCompressorAddress(anvil.chain.id);
+  const compressor = getWithdrawalCompressorAddress(
+    getNetworkType(anvil.chain.id),
+  );
   if (!compressor) {
     throw new Error(`no withdrawal compressor for chain ${anvil.chain.id}`);
   }

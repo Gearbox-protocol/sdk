@@ -118,6 +118,49 @@ export const iWithdrawalCompressorV313Abi = [
     inputs: [
       { name: "creditAccount", type: "address", internalType: "address" },
       { name: "token", type: "address", internalType: "address" },
+      { name: "withdrawalToken", type: "address", internalType: "address" },
+      { name: "amount", type: "uint256", internalType: "uint256" },
+      { name: "extraData", type: "bytes", internalType: "bytes" },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "tuple",
+        internalType: "struct RequestableWithdrawal",
+        components: [
+          { name: "token", type: "address", internalType: "address" },
+          { name: "amountIn", type: "uint256", internalType: "uint256" },
+          {
+            name: "outputs",
+            type: "tuple[]",
+            internalType: "struct WithdrawalOutput[]",
+            components: [
+              { name: "token", type: "address", internalType: "address" },
+              { name: "isDelayed", type: "bool", internalType: "bool" },
+              { name: "amount", type: "uint256", internalType: "uint256" },
+            ],
+          },
+          {
+            name: "requestCalls",
+            type: "tuple[]",
+            internalType: "struct MultiCall[]",
+            components: [
+              { name: "target", type: "address", internalType: "address" },
+              { name: "callData", type: "bytes", internalType: "bytes" },
+            ],
+          },
+          { name: "claimableAt", type: "uint256", internalType: "uint256" },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getWithdrawalRequestResult",
+    inputs: [
+      { name: "creditAccount", type: "address", internalType: "address" },
+      { name: "token", type: "address", internalType: "address" },
       { name: "amount", type: "uint256", internalType: "uint256" },
     ],
     outputs: [

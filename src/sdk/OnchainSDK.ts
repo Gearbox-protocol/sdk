@@ -10,7 +10,10 @@ import {
 import type { HttpRpcClientOptions } from "viem/utils";
 import {
   CreditAccountsServiceV310,
+  createWithdrawalCompressor,
   type ICreditAccountsService,
+  type IWithdrawalCompressorContract,
+  type WithdrawalCompressorVersion,
 } from "./accounts/index.js";
 import type { BaseState, IBaseContract } from "./base/index.js";
 import { ChainContractsRegister } from "./base/index.js";
@@ -812,5 +815,19 @@ export class OnchainSDK<
     }
     const [routerAddr, routerV] = routerEntry;
     return createRouter(this, routerAddr, routerV);
+  }
+
+  /**
+   * Lazily returns a withdrawal compressor contract for the current chain.
+   *
+   * @param version - Desired compressor version; when omitted, the latest
+   *   version supported on the current chain is used.
+   * @throws If no withdrawal compressor of the given version is supported
+   *   on the current chain.
+   **/
+  public withdrawalCompressor(
+    version?: WithdrawalCompressorVersion,
+  ): IWithdrawalCompressorContract {
+    return createWithdrawalCompressor(this, version);
   }
 }

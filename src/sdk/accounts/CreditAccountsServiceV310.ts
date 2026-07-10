@@ -7,15 +7,11 @@ import {
 import { creditAccountCompressorAbi } from "../../abi/compressors/creditAccountCompressor.js";
 import { peripheryCompressorAbi } from "../../abi/compressors/peripheryCompressor.js";
 import { rewardsCompressorAbi } from "../../abi/compressors/rewardsCompressor.js";
-import { iWithdrawalCompressorV310Abi } from "../../abi/IWithdrawalCompressorV310.js";
-import { iWithdrawalCompressorV311Abi } from "../../abi/IWithdrawalCompressorV311.js";
-import { iWithdrawalCompressorV313Abi } from "../../abi/IWithdrawalCompressorV313.js";
 import { iBaseRewardPoolAbi } from "../../abi/iBaseRewardPool.js";
 import { ierc4626AdapterAbi } from "../../abi/ierc4626Adapter.js";
 import { iRWAFactoryAbi } from "../../abi/rwa/iRWAFactory.js";
 import type { Asset, CreditAccountData } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
-import { chains } from "../chain/chains.js";
 import {
   ADDRESS_0X0,
   AP_CREDIT_ACCOUNT_COMPRESSOR,
@@ -81,7 +77,6 @@ import type {
   PermitResult,
   PrepareUpdateQuotasProps,
   PreviewDelayedWithdrawalProps,
-  PreviewDelayedWithdrawalResult,
   RepayAndLiquidateCreditAccountProps,
   RepayCreditAccountProps,
   Rewards,
@@ -90,6 +85,7 @@ import type {
   UpdateQuotasProps,
   WithdrawCollateralProps,
 } from "./types.js";
+import type { RequestableWithdrawal } from "./withdrawal-compressor/index.js";
 
 type MulticallWithFailure<T> = (
   | {
@@ -133,37 +129,6 @@ export interface CreditAccountServiceOptions {
    * When set, accounts are loaded in batches of this size until all are fetched.
    **/
   batchSize?: number;
-}
-
-// TODO: HARDCODED
-const COMPRESSORS: Record<
-  number,
-  {
-    address: Address;
-    version: 313 | 311 | 310;
-  }
-> = {
-  // [chains.Mainnet.id]: {
-  //   address: "0x36F3d0Bb73CBC2E94fE24dF0f26a689409cF9023",
-  //   version: 310,
-  // },
-  [chains.Mainnet.id]: {
-    address: "0x9605D59E40963ADce8a6895Aa3Fa497320Ef3F3b",
-    version: 313,
-  },
-  [chains.Monad.id]: {
-    address: "0x36F3d0Bb73CBC2E94fE24dF0f26a689409cF9023",
-    version: 310,
-  },
-};
-
-/**
- * Returns the withdrawal compressor contract address for the given chain, or `undefined` if none is configured.
- * @param chainId - Numeric chain ID.
- * @returns Withdrawal compressor address, or `undefined`.
- **/
-export function getWithdrawalCompressorAddress(chainId: number) {
-  return COMPRESSORS[chainId];
 }
 
 /**
@@ -1136,32 +1101,11 @@ export class CreditAccountsServiceV310
     creditAccount,
     amount,
     token,
-  }: PreviewDelayedWithdrawalProps): Promise<PreviewDelayedWithdrawalResult> {
-    const compressor = getWithdrawalCompressorAddress(this.sdk.chainId);
-    if (!compressor)
-      throw new Error(
-        `No compressor for current chain ${this.sdk.networkType}`,
-      );
-
-    const contract = getContract({
-      address: compressor.address,
-      abi:
-        compressor.version === 310
-          ? iWithdrawalCompressorV310Abi
-          : compressor.version === 313
-            ? iWithdrawalCompressorV313Abi
-            : iWithdrawalCompressorV311Abi,
-      client: this.client,
-    });
+  }: PreviewDelayedWithdrawalProps): Promise<RequestableWithdrawal> {
+    const compressor = this.sdk.withdrawalCompressor();
 
     // TODO: return multiple configs
-    const resp = await contract.read.getWithdrawalRequestResult([
-      creditAccount,
-      token,
-      amount,
-    ]);
-
-    return resp;
+    return compressor.getWithdrawalRequestResult(creditAccount, token, amount);
   }
 
   /**
@@ -1170,37 +1114,16 @@ export class CreditAccountsServiceV310
   public async getPendingWithdrawals({
     creditAccount,
   }: GetPendingWithdrawalsProps): Promise<GetPendingWithdrawalsResult> {
-    const compressor = getWithdrawalCompressorAddress(this.sdk.chainId);
-    if (!compressor)
-      throw new Error(
-        `No compressor for current chain ${this.sdk.networkType}`,
-      );
-
-    const contract = getContract({
-      address: compressor.address,
-      abi:
-        compressor.version === 310
-          ? iWithdrawalCompressorV310Abi
-          : compressor.version === 313
-            ? iWithdrawalCompressorV313Abi
-            : iWithdrawalCompressorV311Abi,
-      client: this.client,
-    });
+    const compressor = this.sdk.withdrawalCompressor();
 
     // TODO: return multiple configs
-    const resp = await contract.read.getCurrentWithdrawals([creditAccount]);
+    const { claimable, pending } =
+      await compressor.getCurrentWithdrawals(creditAccount);
 
-    const claimableNow = resp?.[0] || [];
-    const pendingResult = [...(resp?.[1] || [])].sort((a, b) =>
-      a.claimableAt < b.claimableAt ? -1 : 1,
-    );
-
-    const respResult: GetPendingWithdrawalsResult = {
-      claimableNow: [...claimableNow],
-      pending: pendingResult,
+    return {
+      claimableNow: claimable,
+      pending,
     };
-
-    return respResult;
   }
 
   /**

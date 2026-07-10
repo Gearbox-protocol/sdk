@@ -1,7 +1,4 @@
 import type { Address } from "viem";
-import { iWithdrawalCompressorV310Abi } from "../../abi/IWithdrawalCompressorV310.js";
-import { iWithdrawalCompressorV311Abi } from "../../abi/IWithdrawalCompressorV311.js";
-import { iWithdrawalCompressorV313Abi } from "../../abi/IWithdrawalCompressorV313.js";
 import type { IOnchainSDKPlugin } from "../../sdk/index.js";
 import {
   AddressMap,
@@ -30,67 +27,33 @@ export class DelayedWithdrawalPlugin
       return this.state;
     }
 
-    // TODO: load from address provider
-    // const [pcAddr] = this.sdk.addressProvider.mustGetLatest(
-    //   AP_PERIPHERY_COMPRESSOR,
-    //   VERSION_RANGE_310,
-    // );
-    const compressor = getWithdrawalCompressorAddress(this.sdk.chainId);
+    this.#withdrawableAssets = new AddressMap(undefined, MAP_LABEL);
+
+    const compressor = this.sdk.withdrawalCompressor();
 
     this.sdk.logger?.debug(
-      `loading delayed withdrawal plugin with compressor ${compressor}`,
+      `loading delayed withdrawal plugin with compressor ${compressor.address}`,
     );
 
-    const creditManagers = this.sdk.marketRegister.creditManagers;
-    const resp = await this.client.multicall({
-      contracts: compressor
-        ? creditManagers.map(
-            cm =>
-              ({
-                address: compressor.address,
-                abi:
-                  compressor.version === 310
-                    ? iWithdrawalCompressorV310Abi
-                    : compressor.version === 313
-                      ? iWithdrawalCompressorV313Abi
-                      : iWithdrawalCompressorV311Abi,
-                functionName: "getWithdrawableAssets",
-                args: [cm.creditManager.address],
-              }) as const,
-          )
-        : [],
-      allowFailure: true,
-      batchSize: 0,
-    });
+    const resp = await compressor.getWithdrawableAssetsBatch();
 
-    this.#withdrawableAssets = new AddressMap(undefined, MAP_LABEL);
-    resp.forEach((r, index) => {
-      const cm = creditManagers[index];
-
-      if (r.status === "success" && r.result?.length > 0) {
-        const configsToShow = r.result;
-
-        this.#withdrawableAssets?.upsert(
-          cm.creditManager.address,
-          configsToShow.map(cfg => ({
-            ...cfg,
-            creditManager: cm.creditManager.address,
-            disabled: isConfigToOmit({
-              creditManager: cm.creditManager.address,
-              token: cfg.token,
-              withdrawalPhantomToken: cfg.withdrawalPhantomToken,
-              underlying: cfg.underlying,
-            }),
-          })),
-        );
-      } else {
-        // this.sdk.logger?.error(
-        //   `failed to load delayed assets for cm ${this.labelAddress(
-        //     cm.creditManager.address,
-        //   )}: ${r.error}`,
-        // );
-      }
-    });
+    const byCreditManager = new Map<Address, WithdrawableAsset[]>();
+    for (const cfg of resp) {
+      const assets = byCreditManager.get(cfg.creditManager) ?? [];
+      assets.push({
+        ...cfg,
+        disabled: isConfigToOmit({
+          creditManager: cfg.creditManager,
+          token: cfg.token,
+          withdrawalPhantomToken: cfg.withdrawalPhantomToken,
+          underlying: cfg.underlying,
+        }),
+      });
+      byCreditManager.set(cfg.creditManager, assets);
+    }
+    for (const [creditManager, assets] of byCreditManager) {
+      this.#withdrawableAssets.upsert(creditManager, assets);
+    }
 
     return this.state;
   }
