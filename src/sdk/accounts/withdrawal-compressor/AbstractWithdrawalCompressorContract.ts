@@ -282,12 +282,7 @@ function toClaimableWithdrawal(
   decodeIntent: boolean,
 ): ClaimableWithdrawal {
   let intent: DelayedIntentExtended | undefined;
-  if (decodeIntent) {
-    if (!w.extraData || w.extraData === "0x") {
-      throw new Error(
-        `claimable withdrawal of ${w.token} has no delayed intent in extraData`,
-      );
-    }
+  if (decodeIntent && w.extraData && w.extraData !== "0x") {
     intent = { ...decodeDelayedIntent(w.extraData), creditManager };
   }
   return {

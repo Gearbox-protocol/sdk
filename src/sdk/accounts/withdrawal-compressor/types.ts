@@ -61,8 +61,8 @@ export interface ClaimableWithdrawal {
   /**
    * Delayed intent decoded from the withdrawal's `extraData`, enriched with
    * the credit manager of the credit account. `undefined` on compressor
-   * versions below 313; always present on v313+ (reading claimable
-   * withdrawals throws if `extraData` cannot be decoded).
+   * versions below 313, and on v313+ when the withdrawal was requested
+   * without an intent (empty `extraData`).
    **/
   intent?: DelayedIntentExtended;
 }
