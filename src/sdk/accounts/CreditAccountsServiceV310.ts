@@ -9,6 +9,7 @@ import { peripheryCompressorAbi } from "../../abi/compressors/peripheryCompresso
 import { rewardsCompressorAbi } from "../../abi/compressors/rewardsCompressor.js";
 import { iWithdrawalCompressorV310Abi } from "../../abi/IWithdrawalCompressorV310.js";
 import { iWithdrawalCompressorV311Abi } from "../../abi/IWithdrawalCompressorV311.js";
+import { iWithdrawalCompressorV313Abi } from "../../abi/IWithdrawalCompressorV313.js";
 import { iBaseRewardPoolAbi } from "../../abi/iBaseRewardPool.js";
 import { ierc4626AdapterAbi } from "../../abi/ierc4626Adapter.js";
 import { iRWAFactoryAbi } from "../../abi/rwa/iRWAFactory.js";
@@ -139,12 +140,16 @@ const COMPRESSORS: Record<
   number,
   {
     address: Address;
-    version: 311 | 310;
+    version: 313 | 311 | 310;
   }
 > = {
+  // [chains.Mainnet.id]: {
+  //   address: "0x36F3d0Bb73CBC2E94fE24dF0f26a689409cF9023",
+  //   version: 310,
+  // },
   [chains.Mainnet.id]: {
-    address: "0x36F3d0Bb73CBC2E94fE24dF0f26a689409cF9023",
-    version: 310,
+    address: "0x9605D59E40963ADce8a6895Aa3Fa497320Ef3F3b",
+    version: 313,
   },
   [chains.Monad.id]: {
     address: "0x36F3d0Bb73CBC2E94fE24dF0f26a689409cF9023",
@@ -1143,7 +1148,9 @@ export class CreditAccountsServiceV310
       abi:
         compressor.version === 310
           ? iWithdrawalCompressorV310Abi
-          : iWithdrawalCompressorV311Abi,
+          : compressor.version === 313
+            ? iWithdrawalCompressorV313Abi
+            : iWithdrawalCompressorV311Abi,
       client: this.client,
     });
 
@@ -1174,7 +1181,9 @@ export class CreditAccountsServiceV310
       abi:
         compressor.version === 310
           ? iWithdrawalCompressorV310Abi
-          : iWithdrawalCompressorV311Abi,
+          : compressor.version === 313
+            ? iWithdrawalCompressorV313Abi
+            : iWithdrawalCompressorV311Abi,
       client: this.client,
     });
 

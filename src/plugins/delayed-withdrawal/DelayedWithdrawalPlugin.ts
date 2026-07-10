@@ -1,6 +1,7 @@
 import type { Address } from "viem";
 import { iWithdrawalCompressorV310Abi } from "../../abi/IWithdrawalCompressorV310.js";
 import { iWithdrawalCompressorV311Abi } from "../../abi/IWithdrawalCompressorV311.js";
+import { iWithdrawalCompressorV313Abi } from "../../abi/IWithdrawalCompressorV313.js";
 import type { IOnchainSDKPlugin } from "../../sdk/index.js";
 import {
   AddressMap,
@@ -50,7 +51,9 @@ export class DelayedWithdrawalPlugin
                 abi:
                   compressor.version === 310
                     ? iWithdrawalCompressorV310Abi
-                    : iWithdrawalCompressorV311Abi,
+                    : compressor.version === 313
+                      ? iWithdrawalCompressorV313Abi
+                      : iWithdrawalCompressorV311Abi,
                 functionName: "getWithdrawableAssets",
                 args: [cm.creditManager.address],
               }) as const,
