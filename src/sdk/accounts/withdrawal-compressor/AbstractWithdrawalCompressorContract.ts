@@ -14,11 +14,11 @@ import type { BaseContractArgs } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import type { MultiCall } from "../../types/index.js";
-import type { DelayedIntent } from "./intent.js";
-import { decodeDelayedIntent, encodeDelayedIntent } from "./intent.js";
+import { decodeDelayedIntent, encodeDelayedIntent } from "./intent-codec.js";
 import type {
   ClaimableWithdrawal,
   CurrentWithdrawals,
+  DelayedIntent,
   DelayedIntentExtended,
   IWithdrawalCompressorContract,
   PendingWithdrawal,

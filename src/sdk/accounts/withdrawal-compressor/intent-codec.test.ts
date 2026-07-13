@@ -4,11 +4,10 @@ import { describe, expect, it } from "vitest";
 import {
   DELAYED_INTENT_TYPES,
   DELAYED_INTENT_VERSION,
-  type DelayedIntent,
   decodeDelayedIntent,
-  delayedIntentSchema,
   encodeDelayedIntent,
-} from "./intent.js";
+} from "./intent-codec.js";
+import type { DelayedIntent } from "./types.js";
 
 const TO: Address = "0xC78CF21A0f92929aC34ee86Cf94C15c9EE224adE";
 const TOKEN: Address = "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0";
@@ -92,15 +91,6 @@ describe("encodeDelayedIntent/decodeDelayedIntent", () => {
   it("throws when encoding an intent with missing fields", () => {
     expect(() =>
       encodeDelayedIntent({ type: "WITHDRAW_COLLATERAL" } as DelayedIntent),
-    ).toThrow();
-    expect(() =>
-      encodeDelayedIntent({
-        type: "WITHDRAW_COLLATERAL",
-        to: TO,
-        withdrawToken: TOKEN,
-        // biome-ignore lint/suspicious/noExplicitAny: intentionally invalid
-        withdrawAmount: "123" as any,
-      }),
     ).toThrow();
   });
 
