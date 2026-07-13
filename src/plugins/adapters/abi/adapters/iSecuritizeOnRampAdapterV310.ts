@@ -1,4 +1,4 @@
-export const iSecuritizeOnRampAdapterAbi = [
+export const iSecuritizeOnRampAdapterV310Abi = [
   {
     type: "function",
     name: "contractType",

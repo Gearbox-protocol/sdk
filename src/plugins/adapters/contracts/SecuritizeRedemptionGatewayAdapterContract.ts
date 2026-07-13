@@ -1,19 +1,23 @@
-import { type Address, decodeAbiParameters } from "viem";
 import {
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import {
+  type AddressMap,
   type ConstructOptions,
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
-import { iSecuritizeRedemptionGatewayAbi } from "../abi/securitize/iSecuritizeRedemptionGateway.js";
-import { iSecuritizeRedemptionGatewayAdapterAbi } from "../abi/securitize/iSecuritizeRedemptionGatewayAdapter.js";
+import { iSecuritizeRedemptionGatewayAdapterV311Abi } from "../abi/adapters/iSecuritizeRedemptionGatewayAdapterV311.js";
+import { iSecuritizeRedemptionGatewayV311Abi } from "../abi/securitize/iSecuritizeRedemptionGatewayV311.js";
+import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
-// TODO: not yet mered into integrations-v3/main branch
-const abi = iSecuritizeRedemptionGatewayAdapterAbi;
+const abi = iSecuritizeRedemptionGatewayAdapterV311Abi;
 type abi = typeof abi;
 
-// TODO: not yet mered into integrations-v3/main branch
-const protocolAbi = iSecuritizeRedemptionGatewayAbi;
+const protocolAbi = iSecuritizeRedemptionGatewayV311Abi;
 type protocolAbi = typeof protocolAbi;
 
 export class SecuritizeRedemptionGatewayAdapterContract extends AbstractAdapterContract<
@@ -73,5 +77,34 @@ export class SecuritizeRedemptionGatewayAdapterContract extends AbstractAdapterC
         ? this.labelAddress(this.#redemptionPhantomToken)
         : undefined,
     };
+  }
+
+  protected override decodeDiffLeftovers(
+    decoded: DecodeFunctionDataReturnType<abi>,
+    balances: AddressMap<bigint>,
+  ): DiffLeftover[] {
+    switch (decoded.functionName) {
+      // exact-input redemption: burns dsTokenAmount of the DS token in
+      // exchange for the redemption phantom token (which is credited by the
+      // storeExpectedBalances bracket delta, not here)
+      case "redeem": {
+        const [dsTokenAmount] = decoded.args;
+        const balance = balances.get(this.dsToken) ?? 0n;
+        return [
+          {
+            tokenIn: this.dsToken,
+            leftoverAmount:
+              balance > dsTokenAmount ? balance - dsTokenAmount : 0n,
+          },
+        ];
+      }
+      // diff-style redemption: spends the DS token down to the leftover
+      case "redeemDiff": {
+        const [leftoverAmount] = decoded.args;
+        return [{ tokenIn: this.dsToken, leftoverAmount }];
+      }
+      default:
+        return super.decodeDiffLeftovers(decoded, balances);
+    }
   }
 }

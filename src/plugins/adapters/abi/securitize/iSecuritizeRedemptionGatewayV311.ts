@@ -1,11 +1,11 @@
-export const iSecuritizeRedemptionGatewayAdapterAbi = [
+export const iSecuritizeRedemptionGatewayV311Abi = [
   {
     type: "function",
     name: "claim",
     inputs: [
       { name: "redeemers", type: "address[]", internalType: "address[]" },
     ],
-    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    outputs: [],
     stateMutability: "nonpayable",
   },
   {
@@ -17,24 +17,42 @@ export const iSecuritizeRedemptionGatewayAdapterAbi = [
   },
   {
     type: "function",
-    name: "creditManager",
+    name: "dsToken",
     inputs: [],
     outputs: [{ name: "", type: "address", internalType: "address" }],
     stateMutability: "view",
   },
   {
     type: "function",
-    name: "depositPhantomToken",
-    inputs: [
-      { name: "token", type: "address", internalType: "address" },
-      { name: "amount", type: "uint256", internalType: "uint256" },
-    ],
-    outputs: [{ name: "", type: "bool", internalType: "bool" }],
-    stateMutability: "nonpayable",
+    name: "getRedeemers",
+    inputs: [{ name: "account", type: "address", internalType: "address" }],
+    outputs: [{ name: "", type: "address[]", internalType: "address[]" }],
+    stateMutability: "view",
   },
   {
     type: "function",
-    name: "dsToken",
+    name: "getRedemptionAmount",
+    inputs: [{ name: "account", type: "address", internalType: "address" }],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getUnclaimedRedeemers",
+    inputs: [{ name: "account", type: "address", internalType: "address" }],
+    outputs: [{ name: "", type: "address[]", internalType: "address[]" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "masterRedeemer",
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "navProvider",
     inputs: [],
     outputs: [{ name: "", type: "address", internalType: "address" }],
     stateMutability: "view",
@@ -44,31 +62,30 @@ export const iSecuritizeRedemptionGatewayAdapterAbi = [
     name: "redeem",
     inputs: [
       { name: "dsTokenAmount", type: "uint256", internalType: "uint256" },
+      { name: "extraData", type: "bytes", internalType: "bytes" },
     ],
-    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    outputs: [],
     stateMutability: "nonpayable",
   },
   {
     type: "function",
-    name: "redeemDiff",
-    inputs: [
-      { name: "leftoverAmount", type: "uint256", internalType: "uint256" },
-    ],
-    outputs: [{ name: "", type: "bool", internalType: "bool" }],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "redemptionPhantomToken",
+    name: "redemptionAccount",
     inputs: [],
     outputs: [{ name: "", type: "address", internalType: "address" }],
     stateMutability: "view",
   },
   {
     type: "function",
-    name: "serialize",
+    name: "redemptionLogger",
     inputs: [],
-    outputs: [{ name: "serializedData", type: "bytes", internalType: "bytes" }],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "securitizeWhitelister",
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
     stateMutability: "view",
   },
   {
@@ -80,7 +97,7 @@ export const iSecuritizeRedemptionGatewayAdapterAbi = [
   },
   {
     type: "function",
-    name: "targetContract",
+    name: "transferMaster",
     inputs: [],
     outputs: [{ name: "", type: "address", internalType: "address" }],
     stateMutability: "view",
@@ -92,7 +109,7 @@ export const iSecuritizeRedemptionGatewayAdapterAbi = [
       { name: "redeemer", type: "address", internalType: "address" },
       { name: "newAccount", type: "address", internalType: "address" },
     ],
-    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    outputs: [],
     stateMutability: "nonpayable",
   },
   {
@@ -103,15 +120,11 @@ export const iSecuritizeRedemptionGatewayAdapterAbi = [
     stateMutability: "view",
   },
   {
-    type: "function",
-    name: "withdrawPhantomToken",
-    inputs: [
-      { name: "token", type: "address", internalType: "address" },
-      { name: "amount", type: "uint256", internalType: "uint256" },
-    ],
-    outputs: [{ name: "useSafePrices", type: "bool", internalType: "bool" }],
-    stateMutability: "nonpayable",
+    type: "error",
+    name: "MaxUnclaimedRedeemersPerAccountException",
+    inputs: [],
   },
-  { type: "error", name: "IncorrectStakedPhantomTokenException", inputs: [] },
-  { type: "error", name: "InvalidRedemptionGatewayException", inputs: [] },
+  { type: "error", name: "NewAccountNotRegisteredException", inputs: [] },
+  { type: "error", name: "RedeemerNotOwnedByAccountException", inputs: [] },
+  { type: "error", name: "RedeemerTransferNotAllowedException", inputs: [] },
 ] as const;

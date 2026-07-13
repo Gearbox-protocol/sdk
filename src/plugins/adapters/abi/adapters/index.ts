@@ -22,6 +22,8 @@ export * from "./iMidasGatewayAdapterV311.js";
 export * from "./iMidasIssuanceVaultAdapterV310.js";
 export * from "./iMidasRedemptionVaultAdapterV310.js";
 export * from "./iPendleRouterAdapter.js";
+export * from "./iSecuritizeOnRampAdapterV310.js";
+export * from "./iSecuritizeRedemptionGatewayAdapterV311.js";
 export * from "./iStakingRewardsAdapter.js";
 export * from "./iTraderJoeRouterAdapter.js";
 export * from "./iUniswapV2Adapter.js";
