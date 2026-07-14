@@ -1,5 +1,4 @@
 import type { OnchainSDK } from "../../OnchainSDK.js";
-import type { WithdrawalCompressorVersion } from "./addresses.js";
 import { getWithdrawalCompressorAddress } from "./addresses.js";
 import type { IWithdrawalCompressorContract } from "./types.js";
 import { WithdrawalCompressorV310Contract } from "./WithdrawalCompressorV310Contract.js";
@@ -10,18 +9,14 @@ import { WithdrawalCompressorV313Contract } from "./WithdrawalCompressorV313Cont
  * Returns a withdrawal compressor contract for the current chain,
  * reusing an instance from the contracts register when available.
  * @param sdk
- * @param version - Desired compressor version; when omitted, the latest supported version is used.
- * @throws if no withdrawal compressor of given version is supported on the current chain.
+ * @throws if no withdrawal compressor is supported on the current chain.
  **/
 export function createWithdrawalCompressor(
   sdk: OnchainSDK,
-  version?: WithdrawalCompressorVersion,
 ): IWithdrawalCompressorContract {
-  const location = getWithdrawalCompressorAddress(sdk.networkType, version);
+  const location = getWithdrawalCompressorAddress(sdk.networkType);
   if (!location) {
-    throw new Error(
-      `no withdrawal compressor${version ? ` v${version}` : ""} on ${sdk.networkType}`,
-    );
+    throw new Error(`no withdrawal compressor on ${sdk.networkType}`);
   }
   const cached = sdk.getContract<IWithdrawalCompressorContract>(
     location.address,

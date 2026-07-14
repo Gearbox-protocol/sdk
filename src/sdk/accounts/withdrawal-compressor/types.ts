@@ -229,6 +229,13 @@ export interface PendingWithdrawal {
    * Unix timestamp (in seconds) when the withdrawal becomes claimable
    **/
   claimableAt: bigint;
+  /**
+   * Delayed intent decoded from the withdrawal's `extraData`, enriched with
+   * the credit manager of the credit account. `undefined` on compressor
+   * versions below 313, and on v313+ when the withdrawal was requested
+   * without an intent (empty `extraData`).
+   **/
+  intent?: DelayedIntentExtended;
 }
 
 /**

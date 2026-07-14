@@ -1,10 +1,6 @@
 import type { Address } from "viem";
 import type { IOnchainSDKPlugin } from "../../sdk/index.js";
-import {
-  AddressMap,
-  BasePlugin,
-  getWithdrawalCompressorAddress,
-} from "../../sdk/index.js";
+import { AddressMap, BasePlugin } from "../../sdk/index.js";
 import type {
   WithdrawableAsset,
   WithdrawableAssetStateHuman,
@@ -29,13 +25,8 @@ export class DelayedWithdrawalPlugin
 
     this.#withdrawableAssets = new AddressMap(undefined, MAP_LABEL);
 
-    const compressor = this.sdk.withdrawalCompressor();
-
-    this.sdk.logger?.debug(
-      `loading delayed withdrawal plugin with compressor ${compressor.address}`,
-    );
-
-    const resp = await compressor.getWithdrawableAssetsBatch();
+    const resp =
+      await this.sdk.withdrawalCompressor.getWithdrawableAssetsBatch();
 
     const byCreditManager = new Map<Address, WithdrawableAsset[]>();
     for (const cfg of resp) {

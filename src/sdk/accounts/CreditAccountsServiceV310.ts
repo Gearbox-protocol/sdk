@@ -1105,10 +1105,8 @@ export class CreditAccountsServiceV310
     token,
     intent,
   }: PreviewDelayedWithdrawalProps): Promise<RequestableWithdrawal> {
-    const compressor = this.sdk.withdrawalCompressor();
-
     // TODO: return multiple configs
-    return compressor.getWithdrawalRequestResult(
+    return this.sdk.withdrawalCompressor.getWithdrawalRequestResult(
       creditAccount,
       token,
       amount,
@@ -1122,11 +1120,9 @@ export class CreditAccountsServiceV310
   public async getPendingWithdrawals({
     creditAccount,
   }: GetPendingWithdrawalsProps): Promise<GetPendingWithdrawalsResult> {
-    const compressor = this.sdk.withdrawalCompressor();
-
     // TODO: return multiple configs
     const { claimable, pending } =
-      await compressor.getCurrentWithdrawals(creditAccount);
+      await this.sdk.withdrawalCompressor.getCurrentWithdrawals(creditAccount);
 
     return {
       claimableNow: claimable,

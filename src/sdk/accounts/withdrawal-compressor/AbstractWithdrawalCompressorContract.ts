@@ -4,7 +4,6 @@ import type {
   Chain,
   ContractFunctionReturnType,
   GetContractReturnType,
-  Hex,
   PublicClient,
   Transport,
 } from "viem";
@@ -13,7 +12,6 @@ import type { iWithdrawalCompressorV313Abi } from "../../../abi/IWithdrawalCompr
 import type { BaseContractArgs } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
-import type { MultiCall } from "../../types/index.js";
 import { decodeDelayedIntent, encodeDelayedIntent } from "./intent-codec.js";
 import type {
   ClaimableWithdrawal,
@@ -24,7 +22,6 @@ import type {
   PendingWithdrawal,
   RequestableWithdrawal,
   WithdrawableAsset,
-  WithdrawalOutput,
 } from "./types.js";
 
 const iCreditAccountAbi = [
@@ -38,9 +35,10 @@ const iCreditAccountAbi = [
 ] as const;
 
 /**
- * v313 ABI is a type-level superset of v310/v311 for the read methods used here:
- * fields missing in older versions (`maxWithdrawals`, `extraData`) are optional
- * in the common result types.
+ * v313 ABI is a type-level superset of v310/v311 for the read methods used
+ * here. Fields missing in older versions (`maxWithdrawals`, `extraData`) are
+ * required in the inferred types but absent at runtime on v310/v311, so the
+ * normalization helpers must not assume their presence.
  **/
 type CommonAbi = typeof iWithdrawalCompressorV313Abi;
 type CommonContract = GetContractReturnType<
@@ -48,6 +46,20 @@ type CommonContract = GetContractReturnType<
   PublicClient<Transport, Chain>,
   Address
 >;
+
+type OnchainWithdrawableAsset = ContractFunctionReturnType<
+  CommonAbi,
+  "view",
+  "getWithdrawableAssets"
+>[number];
+
+type OnchainCurrentWithdrawals = ContractFunctionReturnType<
+  CommonAbi,
+  "view",
+  "getCurrentWithdrawals"
+>;
+type OnchainClaimableWithdrawal = OnchainCurrentWithdrawals[0][number];
+type OnchainPendingWithdrawal = OnchainCurrentWithdrawals[1][number];
 
 /**
  * Base class for WithdrawalCompressor contracts of different versions.
@@ -145,7 +157,7 @@ export abstract class AbstractWithdrawalCompressorContract<abi extends Abi>
         toClaimableWithdrawal(w, creditManager, this.version >= 313),
       ),
       pending: pending
-        .map(toPendingWithdrawal)
+        .map(w => toPendingWithdrawal(w, creditManager, this.version >= 313))
         .sort((a, b) => (a.claimableAt < b.claimableAt ? -1 : 1)),
     };
   }
@@ -174,8 +186,8 @@ export abstract class AbstractWithdrawalCompressorContract<abi extends Abi>
     return {
       token: resp.token,
       amountIn: resp.amountIn,
-      outputs: resp.outputs.map(toWithdrawalOutput),
-      requestCalls: resp.requestCalls.map(toMultiCall),
+      outputs: [...resp.outputs],
+      requestCalls: [...resp.requestCalls],
       claimableAt: resp.claimableAt,
     };
   }
@@ -241,43 +253,15 @@ export abstract class AbstractWithdrawalCompressorContract<abi extends Abi>
   }
 }
 
-function toWithdrawalOutput(o: WithdrawalOutput): WithdrawalOutput {
-  return { token: o.token, isDelayed: o.isDelayed, amount: o.amount };
-}
-
-function toMultiCall(c: MultiCall): MultiCall {
-  return { target: c.target, callData: c.callData };
-}
-
 function toWithdrawableAsset(
-  a: {
-    token: Address;
-    withdrawalPhantomToken: Address;
-    underlying: Address;
-    withdrawalLength: bigint;
-    maxWithdrawals?: bigint;
-  },
+  a: OnchainWithdrawableAsset,
   creditManager: Address,
 ): WithdrawableAsset {
-  return {
-    creditManager,
-    token: a.token,
-    withdrawalPhantomToken: a.withdrawalPhantomToken,
-    underlying: a.underlying,
-    withdrawalLength: a.withdrawalLength,
-    maxWithdrawals: a.maxWithdrawals,
-  };
+  return { creditManager, ...a };
 }
 
 function toClaimableWithdrawal(
-  w: {
-    token: Address;
-    withdrawalPhantomToken: Address;
-    withdrawalTokenSpent: bigint;
-    outputs: readonly WithdrawalOutput[];
-    claimCalls: readonly MultiCall[];
-    extraData?: Hex;
-  },
+  w: OnchainClaimableWithdrawal,
   creditManager: Address,
   decodeIntent: boolean,
 ): ClaimableWithdrawal {
@@ -289,22 +273,26 @@ function toClaimableWithdrawal(
     token: w.token,
     withdrawalPhantomToken: w.withdrawalPhantomToken,
     withdrawalTokenSpent: w.withdrawalTokenSpent,
-    outputs: w.outputs.map(toWithdrawalOutput),
-    claimCalls: w.claimCalls.map(toMultiCall),
+    outputs: [...w.outputs],
+    claimCalls: [...w.claimCalls],
     intent,
   };
 }
 
-function toPendingWithdrawal(w: {
-  token: Address;
-  withdrawalPhantomToken: Address;
-  expectedOutputs: readonly WithdrawalOutput[];
-  claimableAt: bigint;
-}): PendingWithdrawal {
+function toPendingWithdrawal(
+  w: OnchainPendingWithdrawal,
+  creditManager: Address,
+  decodeIntent: boolean,
+): PendingWithdrawal {
+  let intent: DelayedIntentExtended | undefined;
+  if (decodeIntent && w.extraData && w.extraData !== "0x") {
+    intent = { ...decodeDelayedIntent(w.extraData), creditManager };
+  }
   return {
     token: w.token,
     withdrawalPhantomToken: w.withdrawalPhantomToken,
-    expectedOutputs: w.expectedOutputs.map(toWithdrawalOutput),
+    expectedOutputs: [...w.expectedOutputs],
     claimableAt: w.claimableAt,
+    intent,
   };
 }
