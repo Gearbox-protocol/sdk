@@ -23,6 +23,7 @@ import { classifyCloseOrRepay } from "./detectCloseOrRepay.js";
 import type {
   CloseCreditAccountPreview,
   OperationPreview,
+  OperationPreviewError,
   RepayCreditAccountPreview,
 } from "./types.js";
 import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
@@ -69,14 +70,17 @@ async function previewCloseCreditAccount<P extends PluginsMap>(
     operation.creditManager,
   );
 
-  const { state } = await replayMulticall(sdk, operation, options);
+  const { state, error } = await replayMulticall(sdk, operation, options);
 
   return {
     operation: "CloseCreditAccount",
     permanent,
     creditManager: operation.creditManager,
     creditAccount: operation.creditAccount,
+    // On a malformed multicall the withdrawn amount depends on best-effort
+    // replayed balances and may be unreliable
     receivedAmount: state.collateralWithdrawn.getOrZero(market.underlying),
+    error,
   };
 }
 
@@ -93,13 +97,19 @@ async function previewRepayCreditAccount<P extends PluginsMap>(
 ): Promise<RepayCreditAccountPreview> {
   const { sdk, value = 0n } = input;
 
-  const { ca, state } = await replayMulticall(sdk, operation, options);
+  const {
+    ca,
+    state,
+    error: replayError,
+  } = await replayMulticall(sdk, operation, options);
 
-  const collateralAdded = unwrapNativeCollateral(
-    state.collateralAdded.toAssets(),
-    value,
-    sdk.addressProvider.getAddress(AP_WETH_TOKEN, NO_VERSION),
-  );
+  const { assets: collateralAdded, error: unwrapError } =
+    unwrapNativeCollateral(
+      state.collateralAdded.toAssets(),
+      value,
+      sdk.addressProvider.getAddress(AP_WETH_TOKEN, NO_VERSION),
+    );
+  const error = replayError ?? unwrapError;
 
   const initialTotalDebt = ca.debt + ca.accruedInterest + ca.accruedFees;
 
@@ -110,8 +120,17 @@ async function previewRepayCreditAccount<P extends PluginsMap>(
     creditAccount: operation.creditAccount,
     collateralAdded,
     debtRepaid: initialTotalDebt - state.totalDebt,
+    // On a malformed multicall the MAX_UINT256 withdrawal sentinel resolves
+    // against best-effort replayed balances and may be unreliable
     collateralWithdrawn: state.collateralWithdrawn.toAssets(),
+    error,
   };
+}
+
+interface ReplayMulticallResult {
+  ca: CreditAccountData;
+  state: InnerOperationsState;
+  error?: OperationPreviewError;
 }
 
 /**
@@ -123,7 +142,7 @@ async function replayMulticall<P extends PluginsMap>(
   sdk: SdkWithAdapters<P>,
   operation: CloseOrRepayOperation,
   options?: PreviewOperationOptions,
-): Promise<{ ca: CreditAccountData; state: InnerOperationsState }> {
+): Promise<ReplayMulticallResult> {
   let ca = options?.creditAccount;
   if (!ca) {
     ca = await sdk.accounts.getCreditAccountData(
@@ -144,7 +163,7 @@ async function replayMulticall<P extends PluginsMap>(
   state.debt = ca.debt;
   state.totalDebt = ca.debt + ca.accruedInterest + ca.accruedFees;
 
-  applyInnerOperations(sdk, operation.multicall, state);
+  const error = applyInnerOperations(sdk, operation.multicall, state);
 
-  return { ca, state };
+  return { ca, state, error };
 }

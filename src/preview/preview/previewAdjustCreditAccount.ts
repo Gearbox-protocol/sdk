@@ -17,7 +17,10 @@ import {
   applyQuotaChanges,
   makeInnerOperationsState,
 } from "./applyInnerOperations.js";
-import type { AdjustCreditAccountPreview } from "./types.js";
+import {
+  type AdjustCreditAccountPreview,
+  ERROR_UNPRICEABLE_TOKEN,
+} from "./types.js";
 import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
 
 /**
@@ -64,19 +67,23 @@ export async function previewAdjustCreditAccount<P extends PluginsMap>(
   state.debt = ca.debt;
   state.totalDebt = ca.debt + ca.accruedInterest + ca.accruedFees;
 
-  applyInnerOperations(sdk, operation.multicall, state);
+  let error = applyInnerOperations(sdk, operation.multicall, state);
 
-  const collateralAdded = unwrapNativeCollateral(
-    state.collateralAdded.toAssets(),
-    value,
-    sdk.addressProvider.getAddress(AP_WETH_TOKEN, NO_VERSION),
-  );
+  const { assets: collateralAdded, error: unwrapError } =
+    unwrapNativeCollateral(
+      state.collateralAdded.toAssets(),
+      value,
+      sdk.addressProvider.getAddress(AP_WETH_TOKEN, NO_VERSION),
+    );
+  error ??= unwrapError;
 
   const { quotas, quotasChange } = applyQuotaChanges(
     initialQuotas,
     state.quotaChanges,
   );
 
+  // On a malformed multicall the replayed balances are best-effort and may
+  // be unreliable.
   const assets = state.balances.toAssets(1n);
 
   // `state.balances` is seeded with all initial tokens and entries are never
@@ -84,12 +91,22 @@ export async function previewAdjustCreditAccount<P extends PluginsMap>(
   const assetsChange = state.balances.difference(initialBalances).toAssets(1n);
 
   // estimated post-operation account value: minimal guaranteed assets
-  // converted to underlying and summed
-  const totalValue = assets.reduce(
-    (acc, { token, balance }) =>
-      acc + market.priceOracle.convert(token, market.underlying, balance),
-    0n,
-  );
+  // converted to underlying and summed. Best-effort: tokens the oracle
+  // cannot price contribute nothing. Malformed-transaction (1xxx) errors
+  // recorded above take precedence over this preview limitation (2xxx).
+  const totalValue = assets.reduce((acc, { token, balance }) => {
+    try {
+      return (
+        acc + market.priceOracle.convert(token, market.underlying, balance)
+      );
+    } catch {
+      error ??= {
+        code: ERROR_UNPRICEABLE_TOKEN,
+        message: `cannot price token ${token}`,
+      };
+      return acc;
+    }
+  }, 0n);
 
   return {
     operation: "AdjustCreditAccount",
@@ -104,5 +121,6 @@ export async function previewAdjustCreditAccount<P extends PluginsMap>(
     quotasChange,
     assets,
     assetsChange,
+    error,
   };
 }

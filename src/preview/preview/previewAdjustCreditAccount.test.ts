@@ -1,7 +1,17 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { type Address, custom, type Hex, parseEther } from "viem";
+import {
+  type Address,
+  custom,
+  encodeFunctionData,
+  type Hex,
+  parseEther,
+} from "viem";
 import { beforeAll, expect, it } from "vitest";
+import {
+  iCreditFacadeMulticallV310Abi,
+  iCreditFacadeV310Abi,
+} from "../../abi/310/generated.js";
 import { AdaptersPlugin } from "../../plugins/adapters/index.js";
 import {
   type CreditAccountData,
@@ -9,6 +19,7 @@ import {
   OnchainSDK,
 } from "../../sdk/index.js";
 import { previewOperation } from "./previewOperation.js";
+import { ERROR_UNPRICEABLE_TOKEN } from "./types.js";
 
 // Scoped (KPK market configurator only) snapshot of the Gearbox anvil Mainnet
 // fork, replayed via `hydrate` so the test runs fully offline. The account
@@ -239,5 +250,46 @@ it("previews adjusting leverage to 4", async () => {
     assets: [{ token: CBETH, balance: 43_980_602_426_604_052_631n }],
     assetsChange: [],
     totalValue: 49_889_254_310_053_293_583n,
+  });
+});
+
+it("reports an unpriceable-token error and keeps the best-effort preview", async () => {
+  // Hand-crafted multicall adding collateral in a token the oracle cannot
+  // price: the preview is still computed, the unknown token contributes
+  // nothing to totalValue and a 2xxx preview-limitation error is reported.
+  const UNKNOWN: Address = "0x1111111111111111111111111111111111111111";
+  const amount = parseEther("1");
+  const calldata = encodeFunctionData({
+    abi: iCreditFacadeV310Abi,
+    functionName: "multicall",
+    args: [
+      CREDIT_ACCOUNT,
+      [
+        {
+          target: FACADE,
+          callData: encodeFunctionData({
+            abi: iCreditFacadeMulticallV310Abi,
+            functionName: "addCollateral",
+            args: [UNKNOWN, amount],
+          }),
+        },
+      ],
+    ],
+  });
+
+  const result = await preview(calldata);
+  expect(result).toMatchObject({
+    operation: "AdjustCreditAccount",
+    creditManager: CREDIT_MANAGER,
+    creditAccount: CREDIT_ACCOUNT,
+    collateralAdded: [{ token: UNKNOWN, balance: amount }],
+    debt: parseEther("40"),
+    debtChange: 0n,
+    // best-effort: the unknown token still appears in assets, but only the
+    // priceable pre-state cbETH contributes to totalValue (see the
+    // "adjusting leverage to 4" case above for the cbETH-only value)
+    assets: expect.arrayContaining([{ token: UNKNOWN, balance: amount }]),
+    totalValue: 49_889_254_310_053_293_583n,
+    error: { code: ERROR_UNPRICEABLE_TOKEN, message: expect.any(String) },
   });
 });

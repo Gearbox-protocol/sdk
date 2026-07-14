@@ -1,6 +1,20 @@
 import type { Address } from "viem";
 import { type Asset, AssetsMap, NATIVE_ADDRESS } from "../../sdk/index.js";
-import { InvalidTransactionValueError } from "./errors.js";
+import {
+  ERROR_INVALID_TRANSACTION_VALUE,
+  type OperationPreviewError,
+} from "./types.js";
+
+export interface UnwrapNativeCollateralResult {
+  /**
+   * Collateral with the native amount unwrapped from the WETH entry.
+   */
+  assets: Asset[];
+  /**
+   * Error set when the transaction value is malformed.
+   */
+  error?: OperationPreviewError;
+}
 
 /**
  * Represents the transaction's attached native value as a `NATIVE_ADDRESS`
@@ -12,26 +26,36 @@ import { InvalidTransactionValueError } from "./errors.js";
  * `NATIVE_ADDRESS` and the WETH entry is reduced accordingly (dropped when it
  * reaches zero). Other entries are preserved.
  *
+ * When `nativeAmount` is positive but the WETH collateral is missing or
+ * smaller than it, the transaction is malformed: the collateral is returned
+ * as-is (no unwrapping) together with an `ERROR_INVALID_TRANSACTION_VALUE`
+ * error.
+ *
  * @param collateral - Collateral assets as declared by the multicall.
  * @param nativeAmount - Transaction `msg.value`.
  * @param wethToken - Wrapped native token address.
- * @returns Collateral with the native amount unwrapped from the WETH entry.
- * @throws InvalidTransactionValueError when `nativeAmount` is positive but the
- * WETH collateral is missing or smaller than it.
+ * @returns Collateral with the native amount unwrapped from the WETH entry,
+ * plus the error on a malformed transaction value.
  */
 export function unwrapNativeCollateral(
   collateral: Asset[],
   nativeAmount: bigint,
   wethToken: Address,
-): Asset[] {
+): UnwrapNativeCollateralResult {
   if (nativeAmount === 0n) {
-    return collateral;
+    return { assets: collateral };
   }
 
   const balances = new AssetsMap(collateral);
   const wethBalance = balances.get(wethToken) ?? 0n;
   if (wethBalance < nativeAmount) {
-    throw new InvalidTransactionValueError(nativeAmount, wethBalance);
+    return {
+      assets: collateral,
+      error: {
+        code: ERROR_INVALID_TRANSACTION_VALUE,
+        message: `transaction value ${nativeAmount} exceeds WETH collateral ${wethBalance}`,
+      },
+    };
   }
 
   balances.upsert(
@@ -39,5 +63,5 @@ export function unwrapNativeCollateral(
     wethBalance === nativeAmount ? undefined : wethBalance - nativeAmount,
   );
   balances.inc(NATIVE_ADDRESS, nativeAmount);
-  return balances.toAssets();
+  return { assets: balances.toAssets() };
 }

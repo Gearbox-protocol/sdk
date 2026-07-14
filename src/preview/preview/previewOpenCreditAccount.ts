@@ -15,7 +15,11 @@ import {
   applyInnerOperations,
   makeInnerOperationsState,
 } from "./applyInnerOperations.js";
-import type { OpenCreditAccountPreview } from "./types.js";
+import {
+  ERROR_UNPRICEABLE_TOKEN,
+  type OpenCreditAccountPreview,
+  type OperationPreviewError,
+} from "./types.js";
 import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
 
 export function previewOpenCreditAccount<P extends PluginsMap>(
@@ -29,21 +33,33 @@ export function previewOpenCreditAccount<P extends PluginsMap>(
 
   // Since we open an account, initial balances, debt and quotas are all zero.
   const state = makeInnerOperationsState();
-  applyInnerOperations(sdk, operation.multicall, state);
+  let error = applyInnerOperations(sdk, operation.multicall, state);
 
   // collateral value is computed before unwrapping since the oracle cannot
-  // price the native token
-  const collateralValue = state.collateralAdded.sum((token, balance) =>
-    market.priceOracle.convert(token, market.underlying, balance),
-  );
-  const collateral = unwrapNativeCollateral(
+  // price the native token. Best-effort: tokens the oracle cannot price
+  // contribute nothing.
+  let priceError: OperationPreviewError | undefined;
+  const collateralValue = state.collateralAdded.sum((token, balance) => {
+    try {
+      return market.priceOracle.convert(token, market.underlying, balance);
+    } catch {
+      priceError ??= {
+        code: ERROR_UNPRICEABLE_TOKEN,
+        message: `cannot price token ${token}`,
+      };
+      return 0n;
+    }
+  });
+  const { assets: collateral, error: unwrapError } = unwrapNativeCollateral(
     state.collateralAdded.toAssets(),
     value,
     sdk.addressProvider.getAddress(AP_WETH_TOKEN, NO_VERSION),
   );
+  error ??= unwrapError ?? priceError;
 
   // filter out dust, including the 1-wei leftovers of drained inputs and
-  // intermediate tokens
+  // intermediate tokens. On a malformed multicall the replayed balances are
+  // best-effort and may be unreliable.
   const assets = state.balances.toAssets(1n);
 
   return {
@@ -56,6 +72,7 @@ export function previewOpenCreditAccount<P extends PluginsMap>(
     // On opening, initial quotas are zero, so the raw changes are the quotas.
     quotas: state.quotaChanges,
     assets,
+    error,
   };
 }
 

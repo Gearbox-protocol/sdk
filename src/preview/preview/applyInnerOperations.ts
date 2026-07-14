@@ -12,6 +12,14 @@ import {
 } from "../../sdk/index.js";
 import type { InnerOperation } from "../parse/index.js";
 import { applyRWAWrapUnwrap } from "./applyRWAWrapUnwrap.js";
+import {
+  ERROR_ADAPTER_CALL_OUTSIDE_BRACKET,
+  ERROR_MALFORMED_BRACKET,
+  ERROR_NON_ADAPTER_CALL_IN_BRACKET,
+  ERROR_UNPREVIEWABLE_ADAPTER_CALL,
+  ERROR_UNPREVIEWABLE_RWA_WRAP_UNWRAP,
+  type OperationPreviewError,
+} from "./types.js";
 
 /**
  * Running state threaded through a credit-facade multicall by
@@ -74,25 +82,32 @@ export function makeInnerOperationsState(): InnerOperationsState {
  * facade execution order. The result is the *minimal guaranteed* post-state:
  * exact deltas for explicit facade calls, exact leftovers for diff-style
  * adapter calls inside `storeExpectedBalances`/`compareBalances` brackets and
- * enforced minimums for bracket targets. Adapter calls outside a bracket are
- * ignored: nothing enforces their outcome on-chain (e.g. reward claims), so
- * their guaranteed balance change is zero.
+ * enforced minimums for bracket targets.
  *
- * The exception is RWA wrap/unwrap calls emitted by
- * `CreditAccountsServiceV310`: out-of-bracket ERC4626 adapter calls whose
- * share token is an RWA underlying. Their outcome is essential to the preview
- * (the conversion between the market underlying and its asset); RWA
- * underlyings always convert 1-to-1 with their vault asset, so the conversion
- * is applied directly, see {@link applyRWAWrapUnwrap}.
+ * The only adapter calls allowed outside a bracket are RWA wrap/unwrap calls
+ * emitted by `CreditAccountsServiceV310`: out-of-bracket ERC4626 adapter
+ * calls whose share token is an RWA underlying. Their outcome is essential to
+ * the preview (the conversion between the market underlying and its asset);
+ * RWA underlyings always convert 1-to-1 with their vault asset, so the
+ * conversion is applied directly, see {@link applyRWAWrapUnwrap}.
  *
- * @throws On malformed `storeExpectedBalances`/`compareBalances` brackets and
- * on bracketed calls to non-adapter targets.
+ * The multicall is considered malformed on broken
+ * `storeExpectedBalances`/`compareBalances` brackets (missing, unclosed or
+ * more than one pair), bracketed calls that cannot be replayed (non-adapter
+ * targets, unsupported adapter calldata) and any other out-of-bracket
+ * adapter call. In that case an error with the appropriate `ERROR_*` code
+ * describing the first detected failure is returned. Replay still proceeds
+ * best-effort: explicit facade ops (collateral, debt, quotas) are applied
+ * exactly and the running balances keep accumulating whatever could be
+ * replayed, but balance-derived results may be unreliable.
+ *
+ * @returns `undefined` on success, the error on a malformed multicall.
  */
 export function applyInnerOperations<P extends PluginsMap>(
   sdk: SdkWithAdapters<P>,
   multicall: InnerOperation[],
   state: InnerOperationsState,
-): void {
+): OperationPreviewError | undefined {
   // True between `StoreExpectedBalances` and `CompareBalances`. Every
   // router-generated call inside the bracket is diff-style: it spends the
   // consumed token down to the exact leftover encoded in its calldata, so
@@ -100,6 +115,12 @@ export function applyInnerOperations<P extends PluginsMap>(
   // all consumed tokens.
   let inBracket = false;
   let storeSeen = false;
+  let error: OperationPreviewError | undefined;
+
+  // First detected failure wins
+  const malformed = (code: number, message: string): void => {
+    error ??= { code, message };
+  };
 
   for (const op of multicall) {
     switch (op.operation) {
@@ -140,8 +161,9 @@ export function applyInnerOperations<P extends PluginsMap>(
         break;
       case "StoreExpectedBalances":
         if (storeSeen) {
-          throw new Error(
-            "malformed multicall: duplicate storeExpectedBalances call",
+          malformed(
+            ERROR_MALFORMED_BRACKET,
+            "duplicate storeExpectedBalances call",
           );
         }
         storeSeen = true;
@@ -158,8 +180,9 @@ export function applyInnerOperations<P extends PluginsMap>(
         break;
       case "CompareBalances":
         if (!inBracket) {
-          throw new Error(
-            "malformed multicall: compareBalances without a preceding storeExpectedBalances",
+          malformed(
+            ERROR_MALFORMED_BRACKET,
+            "compareBalances without a preceding storeExpectedBalances",
           );
         }
         // Purely a validation marker: on-chain, compareBalances only asserts
@@ -170,13 +193,38 @@ export function applyInnerOperations<P extends PluginsMap>(
         const adapter = sdk.getContract(op.adapter);
         if (inBracket) {
           if (!(adapter instanceof AbstractAdapterContract)) {
-            throw new Error(
+            malformed(
+              ERROR_NON_ADAPTER_CALL_IN_BRACKET,
               `call to ${op.adapter} between storeExpectedBalances and compareBalances is not an adapter call`,
             );
+          } else {
+            try {
+              adapter.previewBalanceChanges(state.balances, op.calldata);
+            } catch (e) {
+              malformed(
+                ERROR_UNPREVIEWABLE_ADAPTER_CALL,
+                e instanceof Error ? e.message : String(e),
+              );
+            }
           }
-          adapter.previewBalanceChanges(state.balances, op.calldata);
         } else if (isRWAShare(sdk, adapter)) {
-          applyRWAWrapUnwrap(adapter, op.calldata, state.balances);
+          try {
+            applyRWAWrapUnwrap(adapter, op.calldata, state.balances);
+          } catch (e) {
+            // decodeFunctionData throws on calldata that doesn't match the
+            // ERC4626 adapter ABI
+            malformed(
+              ERROR_UNPREVIEWABLE_RWA_WRAP_UNWRAP,
+              e instanceof Error ? e.message : String(e),
+            );
+          }
+        } else {
+          // Nothing enforces the outcome of an out-of-bracket adapter call
+          // on-chain, so its effect on balances cannot be previewed
+          malformed(
+            ERROR_ADAPTER_CALL_OUTSIDE_BRACKET,
+            `call to ${op.adapter} outside of a storeExpectedBalances/compareBalances bracket`,
+          );
         }
         break;
       }
@@ -185,10 +233,13 @@ export function applyInnerOperations<P extends PluginsMap>(
 
   if (inBracket) {
     // The router always emits storeExpectedBalances/compareBalances as a pair
-    throw new Error(
-      "malformed multicall: storeExpectedBalances without a matching compareBalances",
+    malformed(
+      ERROR_MALFORMED_BRACKET,
+      "storeExpectedBalances without a matching compareBalances",
     );
   }
+
+  return error;
 }
 
 /**
@@ -207,6 +258,17 @@ function isRWAShare<P extends PluginsMap>(
   return false;
 }
 
+export interface ApplyQuotaChangesResult {
+  /**
+   * Final non-zero per-token quotas.
+   */
+  quotas: Asset[];
+  /**
+   * Applied (post-clamp) per-token deltas, non-zero entries only.
+   */
+  quotasChange: Asset[];
+}
+
 /**
  * Applies raw `updateQuota` changes to the account's initial quotas.
  *
@@ -222,7 +284,7 @@ function isRWAShare<P extends PluginsMap>(
 export function applyQuotaChanges(
   initialQuotas: AssetsMap,
   changes: Asset[],
-): { quotas: Asset[]; quotasChange: Asset[] } {
+): ApplyQuotaChangesResult {
   const final = initialQuotas.clone();
   for (const { token, balance: change } of changes) {
     if (change === MIN_INT96) {

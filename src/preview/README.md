@@ -28,6 +28,13 @@ All reads use the already-attached `OnchainSDK` (chain, RPC and block are baked 
 - **Credit account closure/repayment** produces a [`CloseCreditAccountPreview`](./preview/types.ts) (collateral swapped into underlying, debt repaid, underlying withdrawn) or a [`RepayCreditAccountPreview`](./preview/types.ts) (debt covered from the wallet, collateral returned in-kind). The facade `closeCreditAccount` entry point closes the account permanently (`permanent: true`); a plain multicall that fully repays the debt returns `permanent: false`.
 - **Any other operation** throws an [`UnsupportedOperationError`](./preview/errors.ts).
 
+When the operation decodes but cannot be fully previewed, the preview is still returned with an [`error`](./preview/types.ts) field set. `error.code` is a numeric http-style code, see the `ERROR_*` constants in [types.ts](./preview/types.ts):
+
+- **1xxx** — the transaction is malformed (broken `storeExpectedBalances`/`compareBalances` brackets, unexpected adapter calls, a `msg.value` that does not fit the declared WETH collateral) and would not execute correctly on-chain.
+- **2xxx** — the transaction may be fine, but the SDK could not fully evaluate the preview (e.g. a token could not be priced by the oracle).
+
+All fields are computed best-effort in either case: fields driven by explicit facade calls (collateral, debt, quotas) are exact, while fields derived from replayed balances (e.g. `assets`, `assetsChange`, `target` asset balance) or oracle prices (`collateralValue`, `totalValue`) may be unreliable. When both categories apply, the more severe 1xxx code is reported.
+
 ### `prerequisites`
 
 The on-chain conditions the **sender can fix themselves** before retrying. The module is limited to **checking**: acting on an unsatisfied result (sending an approve transaction, signing messages, rebuilding calldata) is up to the consumer and out of the SDK's scope.
