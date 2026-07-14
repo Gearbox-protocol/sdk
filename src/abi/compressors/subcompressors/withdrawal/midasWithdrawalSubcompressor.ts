@@ -74,6 +74,7 @@ export const midasWithdrawalSubcompressorAbi = [
             ],
           },
           { name: "claimableAt", type: "uint256", internalType: "uint256" },
+          { name: "extraData", type: "bytes", internalType: "bytes" },
         ],
       },
     ],

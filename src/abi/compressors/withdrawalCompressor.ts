@@ -17,7 +17,10 @@ export const withdrawalCompressorAbi = [
   {
     type: "function",
     name: "compressorTypeToCompressor",
-    inputs: [{ name: "", type: "bytes32", internalType: "bytes32" }],
+    inputs: [
+      { name: "", type: "bytes32", internalType: "bytes32" },
+      { name: "", type: "uint256", internalType: "uint256" },
+    ],
     outputs: [{ name: "", type: "address", internalType: "address" }],
     stateMutability: "view",
   },
@@ -95,6 +98,7 @@ export const withdrawalCompressorAbi = [
             ],
           },
           { name: "claimableAt", type: "uint256", internalType: "uint256" },
+          { name: "extraData", type: "bytes", internalType: "bytes" },
         ],
       },
     ],
@@ -291,6 +295,17 @@ export const withdrawalCompressorAbi = [
   },
   {
     type: "function",
+    name: "setWithdrawableVersionToSpecificCompressorVersion",
+    inputs: [
+      { name: "withdrawableType", type: "bytes32", internalType: "bytes32" },
+      { name: "withdrawableVersion", type: "uint256", internalType: "uint256" },
+      { name: "compressorVersion", type: "uint256", internalType: "uint256" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "transferOwnership",
     inputs: [{ name: "newOwner", type: "address", internalType: "address" }],
     outputs: [],
@@ -308,6 +323,16 @@ export const withdrawalCompressorAbi = [
     name: "withdrawableTypeToCompressorType",
     inputs: [{ name: "", type: "bytes32", internalType: "bytes32" }],
     outputs: [{ name: "", type: "bytes32", internalType: "bytes32" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "withdrawableTypeToSpecificCompressorVersion",
+    inputs: [
+      { name: "", type: "bytes32", internalType: "bytes32" },
+      { name: "", type: "uint256", internalType: "uint256" },
+    ],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },
   {
