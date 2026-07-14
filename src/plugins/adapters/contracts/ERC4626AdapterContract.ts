@@ -128,6 +128,12 @@ export class ERC4626AdapterContract extends AbstractAdapterContract<
         const [leftoverAmount] = decoded.args;
         return [{ tokenIn: this.share, leftoverAmount }];
       }
+      case "redeem": {
+        const [shares] = decoded.args;
+        return this.spendExact(this.share, shares, balances);
+      }
+      // `withdraw`/`deposit`/`mint` stay unsupported: they are not emitted
+      // by the router (which uses diff variants) or the withdrawal compressor
       default:
         return super.decodeDiffLeftovers(decoded, balances);
     }

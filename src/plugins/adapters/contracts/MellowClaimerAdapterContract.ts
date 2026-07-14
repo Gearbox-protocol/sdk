@@ -1,10 +1,16 @@
-import { type Address, decodeAbiParameters } from "viem";
 import {
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import {
+  type AddressMap,
   type ConstructOptions,
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
 import { iMellowClaimerAdapterAbi } from "../abi/adapters/index.js";
 import { iMellowClaimerAbi } from "../abi/targetContractAbi.js";
+import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -50,5 +56,37 @@ export class MellowClaimerAdapterContract extends AbstractAdapterContract<
         this.labelAddress(v),
       ),
     };
+  }
+
+  protected override decodeDiffLeftovers(
+    decoded: DecodeFunctionDataReturnType<abi>,
+    balances: AddressMap<bigint>,
+  ): DiffLeftover[] {
+    switch (decoded.functionName) {
+      // pure "accept" of transferred pending assets, coupled with a Mellow
+      // withdrawal request: it moves no ERC-20s, and the withdrawal phantom
+      // token effect is credited by the storeExpectedBalances bracket delta
+      // built from the compressor's outputs
+      case "multiAccept":
+        return [];
+      case "withdrawPhantomToken": {
+        const [token, amount] = decoded.args;
+        return this.spendExact(token, amount, balances);
+      }
+      // TODO:
+      // `multiAcceptAndClaim` (the claim call emitted by the withdrawal
+      // compressor) cannot be previewed offline: the burn amount IS in
+      // calldata (`maxAssets` == the compressor's `withdrawalTokenSpent`),
+      // but the withdrawal phantom token to debit cannot be resolved from
+      // the `multiVault` argument. The on-chain adapter only serializes
+      // (creditManager, targetContract, allowedMultiVaults) and drops its
+      // `phantomTokenToMultiVault` mapping (unlike Midas/Kelp adapters,
+      // which serialize aligned token/phantom arrays). Resolving it would
+      // require DelayedWithdrawalPlugin state (WithdrawableAsset maps
+      // multiVault -> withdrawalPhantomToken) or a contract-side
+      // `serialize()` fix.
+      default:
+        return super.decodeDiffLeftovers(decoded, balances);
+    }
   }
 }

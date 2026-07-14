@@ -2,6 +2,7 @@ import {
   type Address,
   type DecodeFunctionDataReturnType,
   decodeAbiParameters,
+  isAddressEqual,
 } from "viem";
 import {
   type AddressMap,
@@ -120,6 +121,27 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
       case "redeemRequestDiff": {
         const [, leftoverAmount] = decoded.args;
         return [{ tokenIn: this.mToken, leftoverAmount }];
+      }
+      // exact-input redemption request emitted in-bracket by the withdrawal
+      // compressor
+      case "redeemRequest": {
+        const [, amountMTokenIn] = decoded.args;
+        return this.spendExact(this.mToken, amountMTokenIn, balances);
+      }
+      // claim call emitted by the withdrawal compressor
+      case "withdrawFromRedeemer": {
+        const [, tokenOut, amount] = decoded.args;
+        const phantomToken = this.allowedOutputTokens.find(t =>
+          isAddressEqual(t.token, tokenOut),
+        )?.phantomToken;
+        if (!phantomToken) {
+          return super.decodeDiffLeftovers(decoded, balances);
+        }
+        return this.spendExact(phantomToken, amount, balances);
+      }
+      case "withdrawPhantomToken": {
+        const [token, amount] = decoded.args;
+        return this.spendExact(token, amount, balances);
       }
       default:
         return super.decodeDiffLeftovers(decoded, balances);

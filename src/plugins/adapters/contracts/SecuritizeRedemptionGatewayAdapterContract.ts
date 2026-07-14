@@ -84,25 +84,23 @@ export class SecuritizeRedemptionGatewayAdapterContract extends AbstractAdapterC
     balances: AddressMap<bigint>,
   ): DiffLeftover[] {
     switch (decoded.functionName) {
-      // exact-input redemption: burns dsTokenAmount of the DS token in
-      // exchange for the redemption phantom token (which is credited by the
-      // storeExpectedBalances bracket delta, not here)
       case "redeem": {
         const [dsTokenAmount] = decoded.args;
-        const balance = balances.get(this.dsToken) ?? 0n;
-        return [
-          {
-            tokenIn: this.dsToken,
-            leftoverAmount:
-              balance > dsTokenAmount ? balance - dsTokenAmount : 0n,
-          },
-        ];
+        return this.spendExact(this.dsToken, dsTokenAmount, balances);
       }
       // diff-style redemption: spends the DS token down to the leftover
       case "redeemDiff": {
         const [leftoverAmount] = decoded.args;
         return [{ tokenIn: this.dsToken, leftoverAmount }];
       }
+      // TODO:
+      // `claim(address[] redeemers)` (the claim call emitted by the
+      // withdrawal compressor) cannot be previewed offline: the redemption
+      // phantom token burn (the compressor's `withdrawalTokenSpent`, i.e.
+      // each redeemer's `getRedemptionAmount()`) lives in per-redeemer clone
+      // contracts and is not recoverable from calldata. For claimable
+      // redeemers it equals the stablecoin credit, but that value is not in
+      // calldata either.
       default:
         return super.decodeDiffLeftovers(decoded, balances);
     }

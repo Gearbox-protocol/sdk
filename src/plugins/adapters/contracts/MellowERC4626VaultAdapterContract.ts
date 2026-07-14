@@ -141,6 +141,10 @@ export class MellowERC4626VaultAdapterContract extends AbstractAdapterContract<
         const [leftoverAmount] = decoded.args;
         return [{ tokenIn: share, leftoverAmount }];
       }
+      case "redeem": {
+        const [shares] = decoded.args;
+        return this.spendExact(share, shares, balances);
+      }
       default:
         return super.decodeDiffLeftovers(decoded, balances);
     }
