@@ -422,6 +422,20 @@ export type AssembleStartDelayedWithdrawalCallsProps = {
   preview: Pick<RequestableWithdrawal, "outputs" | "requestCalls">;
 };
 
+/**
+ * Input for {@link ICreditAccountsService.assembleClaimDelayedCalls}.
+ */
+export type AssembleClaimDelayedCallsProps = {
+  /**
+   * Credit facade that receives `storeExpectedBalances` / `compareBalances`.
+   */
+  creditFacade: Address;
+  /**
+   * Claimable withdrawal: `outputs` for expected balances, `claimCalls` for the body.
+   */
+  claimableNow: Pick<ClaimableWithdrawal, "outputs" | "claimCalls">;
+};
+
 export interface StartDelayedWithdrawalProps extends PrepareUpdateQuotasProps {
   /**
    * Withdrawal preview
@@ -1005,6 +1019,24 @@ export interface ICreditAccountsService extends Construct {
   ): Array<MultiCall>;
 
   /**
+   * Builds claim-delayed-withdrawal multicall calls without price feed updates
+   * or quota updates.
+   *
+   * Same balance bracket as {@link claimDelayed}:
+   * `storeExpectedBalances` → `claimableNow.claimCalls` → `compareBalances`.
+   *
+   * Does not prepend price updates, does not update quotas, and does not build
+   * the facade transaction. Use for resume / intent assembly where claim is
+   * followed by other ops and quotas/prices are applied separately.
+   *
+   * @param props - {@link AssembleClaimDelayedCallsProps}
+   * @returns Raw facade multicall payload for the claim
+   */
+  assembleClaimDelayedCalls(
+    props: AssembleClaimDelayedCallsProps,
+  ): Array<MultiCall>;
+
+  /**
    * Preview delayed withdrawal for given token
    * @param props - {@link PreviewDelayedWithdrawalProps}
    * @returns
@@ -1138,10 +1170,11 @@ export interface ICreditAccountsService extends Construct {
    * Each operation must already carry concrete encoding data (e.g. swap/wrap
    * `calls`). Unknown operation types throw.
    *
-   * Does not handle close, repay, or start delayed withdrawal — use
-   * {@link ICreditAccountsService.assembleCloseCreditAccountCalls} /
+   * Does not handle close, repay, start delayed withdrawal, or claim delayed —
+   * use {@link ICreditAccountsService.assembleCloseCreditAccountCalls} /
    * {@link ICreditAccountsService.assembleRepayCreditAccountCalls} /
-   * {@link ICreditAccountsService.assembleStartDelayedWithdrawalCalls}.
+   * {@link ICreditAccountsService.assembleStartDelayedWithdrawalCalls} /
+   * {@link ICreditAccountsService.assembleClaimDelayedCalls}.
    *
    * @param props - Encodable operations and account context
    * @returns Array of facade / adapter multicall calls (without price feed updates)

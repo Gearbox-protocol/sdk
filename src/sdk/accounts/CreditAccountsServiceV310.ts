@@ -46,6 +46,7 @@ import type {
   AccountToCheck,
   AddCollateralProps,
   AssembleCaOperationsProps,
+  AssembleClaimDelayedCallsProps,
   AssembleCloseCreditAccountCallsProps,
   AssembleRepayCreditAccountCallsProps,
   AssembleStartDelayedWithdrawalCallsProps,
@@ -1173,6 +1174,48 @@ export class CreditAccountsServiceV310
   }
 
   /**
+   * {@inheritDoc ICreditAccountsService.assembleClaimDelayedCalls}
+   **/
+  public assembleClaimDelayedCalls({
+    creditFacade,
+    claimableNow,
+  }: AssembleClaimDelayedCallsProps): Array<MultiCall> {
+    const record = claimableNow.outputs.reduce<Record<Address, bigint>>(
+      (acc, o) => {
+        const token = o.token.toLowerCase() as Address;
+        acc[token] = (acc[token] || 0n) + o.amount;
+        return acc;
+      },
+      {},
+    );
+    const balances = Object.entries(record).filter(([, a]) => a > 10n);
+
+    const storeExpectedBalances: MultiCall = {
+      target: creditFacade,
+      callData: encodeFunctionData({
+        abi: iCreditFacadeMulticallV310Abi,
+        functionName: "storeExpectedBalances",
+        args: [
+          balances.map(([token, amount]) => ({
+            token: token as Address,
+            amount: amount > 10n ? amount - 10n : 0n,
+          })),
+        ],
+      }),
+    };
+    const compareBalances: MultiCall = {
+      target: creditFacade,
+      callData: encodeFunctionData({
+        abi: iCreditFacadeMulticallV310Abi,
+        functionName: "compareBalances",
+        args: [],
+      }),
+    };
+
+    return [storeExpectedBalances, ...claimableNow.claimCalls, compareBalances];
+  }
+
+  /**
    * {@inheritDoc ICreditAccountsService.startDelayedWithdrawal}
    **/
   public async startDelayedWithdrawal({
@@ -1223,39 +1266,6 @@ export class CreditAccountsServiceV310
       creditAccount.creditManager,
     );
 
-    const record = claimableNow.outputs.reduce<Record<Address, bigint>>(
-      (acc, o) => {
-        const token = o.token.toLowerCase() as Address;
-        acc[token] = (acc[token] || 0n) + o.amount;
-
-        return acc;
-      },
-      {},
-    );
-    const balances = Object.entries(record).filter(([, a]) => a > 10n);
-
-    const storeExpectedBalances: MultiCall = {
-      target: cm.creditFacade.address,
-      callData: encodeFunctionData({
-        abi: iCreditFacadeMulticallV310Abi,
-        functionName: "storeExpectedBalances",
-        args: [
-          balances.map(([token, amount]) => ({
-            token: token as Address,
-            amount: amount > 10n ? amount - 10n : 0n,
-          })),
-        ],
-      }),
-    };
-    const compareBalances: MultiCall = {
-      target: cm.creditFacade.address,
-      callData: encodeFunctionData({
-        abi: iCreditFacadeMulticallV310Abi,
-        functionName: "compareBalances",
-        args: [],
-      }),
-    };
-
     const quotaCalls = zeroDebt
       ? []
       : this.#prepareUpdateQuotas(cm.creditFacade.address, {
@@ -1264,9 +1274,10 @@ export class CreditAccountsServiceV310
         });
 
     const operationCalls: Array<MultiCall> = [
-      storeExpectedBalances,
-      ...claimableNow.claimCalls,
-      compareBalances,
+      ...this.assembleClaimDelayedCalls({
+        creditFacade: cm.creditFacade.address,
+        claimableNow,
+      }),
       ...quotaCalls,
     ];
 
