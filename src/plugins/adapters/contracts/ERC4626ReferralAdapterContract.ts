@@ -4,7 +4,7 @@ import {
   decodeAbiParameters,
 } from "viem";
 import {
-  type AddressMap,
+  type AssetsMap,
   type ConstructOptions,
   MissingSerializedParamsError,
   type ParsedCallV2,
@@ -16,7 +16,6 @@ import type {
   Transfers,
 } from "../legacyAdapterOperations.js";
 import { fnSigToName, swapFromTransfers } from "../transferHelpers.js";
-import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -85,21 +84,23 @@ export class ERC4626ReferralAdapterContract extends AbstractAdapterContract<
     return super.classifyLegacyOperation(parsed, transfers);
   }
 
-  protected override decodeDiffLeftovers(
+  protected override applyBalanceChanges(
+    balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-    balances: AddressMap<bigint>,
-  ): DiffLeftover[] {
+  ): void {
     switch (decoded.functionName) {
       case "depositDiff": {
         const [leftoverAmount] = decoded.args;
-        return [{ tokenIn: this.asset, leftoverAmount }];
+        this.setLeftover(balances, this.asset, leftoverAmount);
+        break;
       }
       case "redeemDiff": {
         const [leftoverAmount] = decoded.args;
-        return [{ tokenIn: this.targetContract, leftoverAmount }];
+        this.setLeftover(balances, this.targetContract, leftoverAmount);
+        break;
       }
       default:
-        return super.decodeDiffLeftovers(decoded, balances);
+        super.applyBalanceChanges(balances, decoded);
     }
   }
 }

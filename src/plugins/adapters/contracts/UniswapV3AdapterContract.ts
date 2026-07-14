@@ -3,11 +3,10 @@ import {
   type DecodeFunctionDataReturnType,
   decodeAbiParameters,
 } from "viem";
-import type { AddressMap, ConstructOptions } from "../../../sdk/index.js";
+import type { AssetsMap, ConstructOptions } from "../../../sdk/index.js";
 import { formatBN, MissingSerializedParamsError } from "../../../sdk/index.js";
 import { iUniswapV3AdapterAbi } from "../abi/adapters/index.js";
 import { iUniswapV3Abi } from "../abi/targetContractAbi.js";
-import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -77,28 +76,25 @@ export class UniswapV3AdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override decodeDiffLeftovers(
+  protected override applyBalanceChanges(
+    balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-    balances: AddressMap<bigint>,
-  ): DiffLeftover[] {
+  ): void {
     switch (decoded.functionName) {
       case "exactDiffInputSingle": {
         const [params] = decoded.args;
-        return [
-          {
-            tokenIn: params.tokenIn,
-            leftoverAmount: params.leftoverAmount,
-          },
-        ];
+        this.setLeftover(balances, params.tokenIn, params.leftoverAmount);
+        break;
       }
       case "exactDiffInput": {
         const [params] = decoded.args;
         const tokenIn =
           `0x${params.path.replace("0x", "").slice(0, 40)}` as Address;
-        return [{ tokenIn, leftoverAmount: params.leftoverAmount }];
+        this.setLeftover(balances, tokenIn, params.leftoverAmount);
+        break;
       }
       default:
-        return super.decodeDiffLeftovers(decoded, balances);
+        super.applyBalanceChanges(balances, decoded);
     }
   }
 

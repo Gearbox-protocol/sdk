@@ -4,13 +4,12 @@ import {
   decodeAbiParameters,
 } from "viem";
 import {
-  type AddressMap,
+  type AssetsMap,
   type ConstructOptions,
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
 import { iSecuritizeRedemptionGatewayAdapterV311Abi } from "../abi/adapters/iSecuritizeRedemptionGatewayAdapterV311.js";
 import { iSecuritizeRedemptionGatewayV311Abi } from "../abi/securitize/iSecuritizeRedemptionGatewayV311.js";
-import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -79,19 +78,21 @@ export class SecuritizeRedemptionGatewayAdapterContract extends AbstractAdapterC
     };
   }
 
-  protected override decodeDiffLeftovers(
+  protected override applyBalanceChanges(
+    balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-    balances: AddressMap<bigint>,
-  ): DiffLeftover[] {
+  ): void {
     switch (decoded.functionName) {
       case "redeem": {
         const [dsTokenAmount] = decoded.args;
-        return this.spendExact(this.dsToken, dsTokenAmount, balances);
+        this.spendExact(balances, this.dsToken, dsTokenAmount);
+        break;
       }
       // diff-style redemption: spends the DS token down to the leftover
       case "redeemDiff": {
         const [leftoverAmount] = decoded.args;
-        return [{ tokenIn: this.dsToken, leftoverAmount }];
+        this.setLeftover(balances, this.dsToken, leftoverAmount);
+        break;
       }
       // TODO:
       // `claim(address[] redeemers)` (the claim call emitted by the
@@ -102,7 +103,7 @@ export class SecuritizeRedemptionGatewayAdapterContract extends AbstractAdapterC
       // redeemers it equals the stablecoin credit, but that value is not in
       // calldata either.
       default:
-        return super.decodeDiffLeftovers(decoded, balances);
+        super.applyBalanceChanges(balances, decoded);
     }
   }
 }

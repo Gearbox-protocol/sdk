@@ -4,13 +4,12 @@ import {
   decodeAbiParameters,
 } from "viem";
 import {
-  type AddressMap,
+  type AssetsMap,
   type ConstructOptions,
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
 import { iMidasIssuanceVaultAdapterV310Abi } from "../abi/adapters/index.js";
 import { iMidasIssuanceVaultV310Abi } from "../abi/targetContractAbi.js";
-import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -75,17 +74,18 @@ export class MidasIssuanceVaultAdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override decodeDiffLeftovers(
+  protected override applyBalanceChanges(
+    balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-    balances: AddressMap<bigint>,
-  ): DiffLeftover[] {
+  ): void {
     switch (decoded.functionName) {
       case "depositInstantDiff": {
         const [tokenIn, leftoverAmount] = decoded.args;
-        return [{ tokenIn, leftoverAmount }];
+        this.setLeftover(balances, tokenIn, leftoverAmount);
+        break;
       }
       default:
-        return super.decodeDiffLeftovers(decoded, balances);
+        super.applyBalanceChanges(balances, decoded);
     }
   }
 }

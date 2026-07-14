@@ -4,14 +4,13 @@ import {
   decodeAbiParameters,
 } from "viem";
 import {
-  type AddressMap,
+  type AssetsMap,
   type ConstructOptions,
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
 import { iSecuritizeOnRampAdapterV310Abi } from "../abi/adapters/iSecuritizeOnRampAdapterV310.js";
 import { iBaseOnRampAbi } from "../abi/securitize/iBaseOnRamp.js";
 import { iSecuritizeOnRampAbi } from "../abi/securitize/iSecuritizeOnRamp.js";
-import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -68,18 +67,19 @@ export class SecuritizeOnRampAdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override decodeDiffLeftovers(
+  protected override applyBalanceChanges(
+    balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-    balances: AddressMap<bigint>,
-  ): DiffLeftover[] {
+  ): void {
     switch (decoded.functionName) {
       // swaps the liquidity token into dsToken
       case "swapDiff": {
         const [leftoverAmount] = decoded.args;
-        return [{ tokenIn: this.liquidityToken, leftoverAmount }];
+        this.setLeftover(balances, this.liquidityToken, leftoverAmount);
+        break;
       }
       default:
-        return super.decodeDiffLeftovers(decoded, balances);
+        super.applyBalanceChanges(balances, decoded);
     }
   }
 }

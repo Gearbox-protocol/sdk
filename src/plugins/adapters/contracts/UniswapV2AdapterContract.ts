@@ -4,7 +4,7 @@ import {
   decodeAbiParameters,
 } from "viem";
 import type {
-  AddressMap,
+  AssetsMap,
   ConstructOptions,
   ParsedCallV2,
 } from "../../../sdk/index.js";
@@ -16,7 +16,6 @@ import type {
   Transfers,
 } from "../legacyAdapterOperations.js";
 import { swapFromTransfers } from "../transferHelpers.js";
-import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -116,17 +115,18 @@ export class UniswapV2AdapterContract extends AbstractAdapterContract<
     return { operation: "UniswapSwap", ...swapFromTransfers(transfers) };
   }
 
-  protected override decodeDiffLeftovers(
+  protected override applyBalanceChanges(
+    balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-    balances: AddressMap<bigint>,
-  ): DiffLeftover[] {
+  ): void {
     switch (decoded.functionName) {
       case "swapDiffTokensForTokens": {
         const [leftoverAmount, , path] = decoded.args;
-        return [{ tokenIn: path[0], leftoverAmount }];
+        this.setLeftover(balances, path[0], leftoverAmount);
+        break;
       }
       default:
-        return super.decodeDiffLeftovers(decoded, balances);
+        super.applyBalanceChanges(balances, decoded);
     }
   }
 }

@@ -6,7 +6,7 @@ import {
 } from "viem";
 import { ierc4626AdapterAbi } from "../../../abi/ierc4626Adapter.js";
 import {
-  type AddressMap,
+  type AssetsMap,
   type ConstructOptions,
   MissingSerializedParamsError,
   type ParsedCallV2,
@@ -17,7 +17,6 @@ import type {
   Transfers,
 } from "../legacyAdapterOperations.js";
 import { fnSigToName, swapFromTransfers } from "../transferHelpers.js";
-import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -115,27 +114,30 @@ export class ERC4626AdapterContract extends AbstractAdapterContract<
     return super.classifyLegacyOperation(parsed, transfers);
   }
 
-  protected override decodeDiffLeftovers(
+  protected override applyBalanceChanges(
+    balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-    balances: AddressMap<bigint>,
-  ): DiffLeftover[] {
+  ): void {
     switch (decoded.functionName) {
       case "depositDiff": {
         const [leftoverAmount] = decoded.args;
-        return [{ tokenIn: this.asset, leftoverAmount }];
+        this.setLeftover(balances, this.asset, leftoverAmount);
+        break;
       }
       case "redeemDiff": {
         const [leftoverAmount] = decoded.args;
-        return [{ tokenIn: this.share, leftoverAmount }];
+        this.setLeftover(balances, this.share, leftoverAmount);
+        break;
       }
       case "redeem": {
         const [shares] = decoded.args;
-        return this.spendExact(this.share, shares, balances);
+        this.spendExact(balances, this.share, shares);
+        break;
       }
       // `withdraw`/`deposit`/`mint` stay unsupported: they are not emitted
       // by the router (which uses diff variants) or the withdrawal compressor
       default:
-        return super.decodeDiffLeftovers(decoded, balances);
+        super.applyBalanceChanges(balances, decoded);
     }
   }
 }

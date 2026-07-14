@@ -1,11 +1,10 @@
 import type { Abi, Address, DecodeFunctionDataReturnType } from "viem";
-import type { AddressMap, ParsedCallV2 } from "../../../sdk/index.js";
+import type { AssetsMap, ParsedCallV2 } from "../../../sdk/index.js";
 import type {
   LegacyAdapterOperation,
   Transfers,
 } from "../legacyAdapterOperations.js";
 import { classifyCurveOperation } from "../transferHelpers.js";
-import type { DiffLeftover } from "../types.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
 export abstract class AbstractCurveAdapterContract<
@@ -26,10 +25,10 @@ export abstract class AbstractCurveAdapterContract<
     );
   }
 
-  protected override decodeDiffLeftovers(
+  protected override applyBalanceChanges(
+    balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-    balances: AddressMap<bigint>,
-  ): DiffLeftover[] {
+  ): void {
     const { functionName, args } = decoded as {
       functionName: string;
       args: readonly unknown[];
@@ -37,18 +36,21 @@ export abstract class AbstractCurveAdapterContract<
     switch (functionName) {
       case "exchange_diff": {
         const [i, , leftoverAmount] = args as readonly [bigint, bigint, bigint];
-        return [{ tokenIn: this.curveCoin(i), leftoverAmount }];
+        this.setLeftover(balances, this.curveCoin(i), leftoverAmount);
+        break;
       }
       case "add_diff_liquidity_one_coin": {
         const [leftoverAmount, i] = args as readonly [bigint, bigint];
-        return [{ tokenIn: this.curveCoin(i), leftoverAmount }];
+        this.setLeftover(balances, this.curveCoin(i), leftoverAmount);
+        break;
       }
       case "remove_diff_liquidity_one_coin": {
         const [leftoverAmount] = args as readonly [bigint];
-        return [{ tokenIn: this.lpToken, leftoverAmount }];
+        this.setLeftover(balances, this.lpToken, leftoverAmount);
+        break;
       }
       default:
-        return super.decodeDiffLeftovers(decoded, balances);
+        super.applyBalanceChanges(balances, decoded);
     }
   }
 

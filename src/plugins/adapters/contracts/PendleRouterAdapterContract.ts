@@ -4,13 +4,12 @@ import {
   decodeAbiParameters,
 } from "viem";
 import {
-  type AddressMap,
+  type AssetsMap,
   type ConstructOptions,
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
 import { iPendleRouterAdapterAbi } from "../abi/adapters/index.js";
 import { iPendleRouterAbi } from "../abi/targetContractAbi.js";
-import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -125,30 +124,32 @@ export class PendleRouterAdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override decodeDiffLeftovers(
+  protected override applyBalanceChanges(
+    balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-    balances: AddressMap<bigint>,
-  ): DiffLeftover[] {
+  ): void {
     switch (decoded.functionName) {
       case "swapDiffTokenForPt":
       case "addLiquiditySingleTokenDiff": {
         const [, , , diffInput] = decoded.args;
-        return [
-          {
-            tokenIn: diffInput.tokenIn,
-            leftoverAmount: diffInput.leftoverTokenIn,
-          },
-        ];
+        this.setLeftover(
+          balances,
+          diffInput.tokenIn,
+          diffInput.leftoverTokenIn,
+        );
+        break;
       }
       case "swapDiffPtForToken": {
         const [market, leftoverPt] = decoded.args;
         const pt = this.#mustFindPendleToken(market, PendleTokenType.PT);
-        return [{ tokenIn: pt, leftoverAmount: leftoverPt }];
+        this.setLeftover(balances, pt, leftoverPt);
+        break;
       }
       case "removeLiquiditySingleTokenDiff": {
         const [market, leftoverLp] = decoded.args;
         const lp = this.#mustFindPendleToken(market, PendleTokenType.LP);
-        return [{ tokenIn: lp, leftoverAmount: leftoverLp }];
+        this.setLeftover(balances, lp, leftoverLp);
+        break;
       }
       case "redeemDiffPyToToken": {
         // calldata only carries the YT address, and the YT→PT mapping is not
@@ -169,15 +170,11 @@ export class PendleRouterAdapterContract extends AbstractAdapterContract<
           );
         }
         const [, leftoverPt] = decoded.args;
-        return [
-          {
-            tokenIn: candidates[0].pendleToken,
-            leftoverAmount: leftoverPt,
-          },
-        ];
+        this.setLeftover(balances, candidates[0].pendleToken, leftoverPt);
+        break;
       }
       default:
-        return super.decodeDiffLeftovers(decoded, balances);
+        super.applyBalanceChanges(balances, decoded);
     }
   }
 

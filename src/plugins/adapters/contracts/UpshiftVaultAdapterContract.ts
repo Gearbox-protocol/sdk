@@ -4,7 +4,7 @@ import {
   decodeAbiParameters,
 } from "viem";
 import {
-  type AddressMap,
+  type AssetsMap,
   type ConstructOptions,
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
@@ -12,7 +12,6 @@ import {
   iUpshiftVaultAdapterAbi,
   iUpshiftVaultGatewayAbi,
 } from "../abi/adapters/index.js";
-import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -78,21 +77,23 @@ export class UpshiftVaultAdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override decodeDiffLeftovers(
+  protected override applyBalanceChanges(
+    balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-    balances: AddressMap<bigint>,
-  ): DiffLeftover[] {
+  ): void {
     switch (decoded.functionName) {
       case "depositDiff": {
         const [leftoverAmount] = decoded.args;
-        return [{ tokenIn: this.asset, leftoverAmount }];
+        this.setLeftover(balances, this.asset, leftoverAmount);
+        break;
       }
       case "redeemDiff": {
         const [leftoverAmount] = decoded.args;
-        return [{ tokenIn: this.vault, leftoverAmount }];
+        this.setLeftover(balances, this.vault, leftoverAmount);
+        break;
       }
       default:
-        return super.decodeDiffLeftovers(decoded, balances);
+        super.applyBalanceChanges(balances, decoded);
     }
   }
 }

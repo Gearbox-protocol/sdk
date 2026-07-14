@@ -4,13 +4,12 @@ import {
   decodeAbiParameters,
 } from "viem";
 import {
-  type AddressMap,
+  type AssetsMap,
   type ConstructOptions,
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
 import { iFluidDexAdapterAbi } from "../abi/adapters/index.js";
 import { iFluidDexAbi } from "../abi/targetContractAbi.js";
-import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -64,22 +63,22 @@ export class FluidDexAdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override decodeDiffLeftovers(
+  protected override applyBalanceChanges(
+    balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-    balances: AddressMap<bigint>,
-  ): DiffLeftover[] {
+  ): void {
     switch (decoded.functionName) {
       case "swapInDiff": {
         const [swap0to1, leftoverAmount] = decoded.args;
-        return [
-          {
-            tokenIn: swap0to1 ? this.token0 : this.token1,
-            leftoverAmount,
-          },
-        ];
+        this.setLeftover(
+          balances,
+          swap0to1 ? this.token0 : this.token1,
+          leftoverAmount,
+        );
+        break;
       }
       default:
-        return super.decodeDiffLeftovers(decoded, balances);
+        super.applyBalanceChanges(balances, decoded);
     }
   }
 }

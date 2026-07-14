@@ -5,7 +5,7 @@ import {
   isAddressEqual,
 } from "viem";
 import {
-  type AddressMap,
+  type AssetsMap,
   type ConstructOptions,
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
@@ -13,7 +13,6 @@ import {
   iMidasGatewayAdapterV311Abi,
   iMidasGatewayV311Abi,
 } from "../abi/adapters/index.js";
-import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -106,27 +105,30 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override decodeDiffLeftovers(
+  protected override applyBalanceChanges(
+    balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-    balances: AddressMap<bigint>,
-  ): DiffLeftover[] {
+  ): void {
     switch (decoded.functionName) {
       case "depositInstantDiff": {
         const [tokenIn, leftoverAmount] = decoded.args;
-        return [{ tokenIn, leftoverAmount }];
+        this.setLeftover(balances, tokenIn, leftoverAmount);
+        break;
       }
       // redemptions spend the mToken down to the leftover, tokenOut arg is
       // the received token
       case "redeemInstantDiff":
       case "redeemRequestDiff": {
         const [, leftoverAmount] = decoded.args;
-        return [{ tokenIn: this.mToken, leftoverAmount }];
+        this.setLeftover(balances, this.mToken, leftoverAmount);
+        break;
       }
       // exact-input redemption request emitted in-bracket by the withdrawal
       // compressor
       case "redeemRequest": {
         const [, amountMTokenIn] = decoded.args;
-        return this.spendExact(this.mToken, amountMTokenIn, balances);
+        this.spendExact(balances, this.mToken, amountMTokenIn);
+        break;
       }
       // claim call emitted by the withdrawal compressor
       case "withdrawFromRedeemer": {
@@ -135,16 +137,19 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
           isAddressEqual(t.token, tokenOut),
         )?.phantomToken;
         if (!phantomToken) {
-          return super.decodeDiffLeftovers(decoded, balances);
+          super.applyBalanceChanges(balances, decoded);
+          break;
         }
-        return this.spendExact(phantomToken, amount, balances);
+        this.spendExact(balances, phantomToken, amount);
+        break;
       }
       case "withdrawPhantomToken": {
         const [token, amount] = decoded.args;
-        return this.spendExact(token, amount, balances);
+        this.spendExact(balances, token, amount);
+        break;
       }
       default:
-        return super.decodeDiffLeftovers(decoded, balances);
+        super.applyBalanceChanges(balances, decoded);
     }
   }
 }

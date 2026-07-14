@@ -4,7 +4,7 @@ import {
   decodeAbiParameters,
 } from "viem";
 import {
-  type AddressMap,
+  type AssetsMap,
   type ConstructOptions,
   MissingSerializedParamsError,
   type ParsedCallV2,
@@ -16,7 +16,6 @@ import type {
   Transfers,
 } from "../legacyAdapterOperations.js";
 import { fnSigToName, swapFromTransfers } from "../transferHelpers.js";
-import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -120,24 +119,26 @@ export class ConvexV1BoosterAdapterContract extends AbstractAdapterContract<
     return super.classifyLegacyOperation(parsed, transfers);
   }
 
-  protected override decodeDiffLeftovers(
+  protected override applyBalanceChanges(
+    balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-    balances: AddressMap<bigint>,
-  ): DiffLeftover[] {
+  ): void {
     switch (decoded.functionName) {
       // deposit spends the curve LP token, withdraw spends the convex token
       case "depositDiff": {
         const [pid, leftoverAmount] = decoded.args;
         const pool = this.#mustFindPool(Number(pid));
-        return [{ tokenIn: pool.curveToken, leftoverAmount }];
+        this.setLeftover(balances, pool.curveToken, leftoverAmount);
+        break;
       }
       case "withdrawDiff": {
         const [pid, leftoverAmount] = decoded.args;
         const pool = this.#mustFindPool(Number(pid));
-        return [{ tokenIn: pool.convexToken, leftoverAmount }];
+        this.setLeftover(balances, pool.convexToken, leftoverAmount);
+        break;
       }
       default:
-        return super.decodeDiffLeftovers(decoded, balances);
+        super.applyBalanceChanges(balances, decoded);
     }
   }
 

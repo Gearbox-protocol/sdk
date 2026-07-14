@@ -4,13 +4,12 @@ import {
   decodeAbiParameters,
 } from "viem";
 import {
-  type AddressMap,
+  type AssetsMap,
   type ConstructOptions,
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
 import { iMellowWrapperAdapterAbi } from "../abi/adapters/index.js";
 import { iMellowWrapperAbi } from "../abi/targetContractAbi.js";
-import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -56,10 +55,10 @@ export class MellowWrapperAdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override decodeDiffLeftovers(
+  protected override applyBalanceChanges(
+    balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-    balances: AddressMap<bigint>,
-  ): DiffLeftover[] {
+  ): void {
     switch (decoded.functionName) {
       case "depositDiff": {
         // the wrapper wraps WETH into wstETH and deposits it into the vault;
@@ -68,10 +67,11 @@ export class MellowWrapperAdapterContract extends AbstractAdapterContract<
         // TODO: expose sdk and get WETH_TOKEN from address provider
         const weth = this.tokensMeta.mustFindBySymbol("WETH").addr;
         const [leftoverAmount] = decoded.args;
-        return [{ tokenIn: weth, leftoverAmount }];
+        this.setLeftover(balances, weth, leftoverAmount);
+        break;
       }
       default:
-        return super.decodeDiffLeftovers(decoded, balances);
+        super.applyBalanceChanges(balances, decoded);
     }
   }
 }

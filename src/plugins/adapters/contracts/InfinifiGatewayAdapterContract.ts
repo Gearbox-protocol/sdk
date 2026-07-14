@@ -4,13 +4,12 @@ import {
   decodeAbiParameters,
 } from "viem";
 import {
-  type AddressMap,
+  type AssetsMap,
   type ConstructOptions,
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
 import { iInfinifiGatewayAdapterAbi } from "../abi/adapters/index.js";
 import { iInfinifiGatewayAbi } from "../abi/targetContractAbi.js";
-import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -88,28 +87,31 @@ export class InfinifiGatewayAdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override decodeDiffLeftovers(
+  protected override applyBalanceChanges(
+    balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-    balances: AddressMap<bigint>,
-  ): DiffLeftover[] {
+  ): void {
     switch (decoded.functionName) {
       case "mintDiff": {
         const [leftoverAmount] = decoded.args;
-        return [{ tokenIn: this.usdc, leftoverAmount }];
+        this.setLeftover(balances, this.usdc, leftoverAmount);
+        break;
       }
       // redeem, stake and lock all spend iUSD
       case "redeemDiff":
       case "stakeDiff":
       case "createPositionDiff": {
         const [leftoverAmount] = decoded.args;
-        return [{ tokenIn: this.iusd, leftoverAmount }];
+        this.setLeftover(balances, this.iusd, leftoverAmount);
+        break;
       }
       case "unstakeDiff": {
         const [leftoverAmount] = decoded.args;
-        return [{ tokenIn: this.siusd, leftoverAmount }];
+        this.setLeftover(balances, this.siusd, leftoverAmount);
+        break;
       }
       default:
-        return super.decodeDiffLeftovers(decoded, balances);
+        super.applyBalanceChanges(balances, decoded);
     }
   }
 }

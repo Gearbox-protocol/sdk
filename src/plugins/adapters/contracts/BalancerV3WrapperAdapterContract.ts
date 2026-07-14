@@ -3,11 +3,10 @@ import {
   type DecodeFunctionDataReturnType,
   decodeAbiParameters,
 } from "viem";
-import type { AddressMap, ConstructOptions } from "../../../sdk/index.js";
+import type { AssetsMap, ConstructOptions } from "../../../sdk/index.js";
 import { MissingSerializedParamsError } from "../../../sdk/index.js";
 import { iBalancerV3WrapperAdapterAbi } from "../abi/adapters/index.js";
 import { iBalancerV3WrapperAbi } from "../abi/targetContractAbi.js";
-import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -55,22 +54,24 @@ export class BalancerV3WrapperAdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override decodeDiffLeftovers(
+  protected override applyBalanceChanges(
+    balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-    balances: AddressMap<bigint>,
-  ): DiffLeftover[] {
+  ): void {
     switch (decoded.functionName) {
       // mint spends the pool token, burn spends the wrapper (target contract)
       case "mintDiff": {
         const [leftoverAmount] = decoded.args;
-        return [{ tokenIn: this.balancerPoolToken, leftoverAmount }];
+        this.setLeftover(balances, this.balancerPoolToken, leftoverAmount);
+        break;
       }
       case "burnDiff": {
         const [leftoverAmount] = decoded.args;
-        return [{ tokenIn: this.targetContract, leftoverAmount }];
+        this.setLeftover(balances, this.targetContract, leftoverAmount);
+        break;
       }
       default:
-        return super.decodeDiffLeftovers(decoded, balances);
+        super.applyBalanceChanges(balances, decoded);
     }
   }
 }

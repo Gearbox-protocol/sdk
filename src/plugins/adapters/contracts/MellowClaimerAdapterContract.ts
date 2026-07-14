@@ -4,13 +4,12 @@ import {
   decodeAbiParameters,
 } from "viem";
 import {
-  type AddressMap,
+  type AssetsMap,
   type ConstructOptions,
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
 import { iMellowClaimerAdapterAbi } from "../abi/adapters/index.js";
 import { iMellowClaimerAbi } from "../abi/targetContractAbi.js";
-import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -58,20 +57,21 @@ export class MellowClaimerAdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override decodeDiffLeftovers(
+  protected override applyBalanceChanges(
+    balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-    balances: AddressMap<bigint>,
-  ): DiffLeftover[] {
+  ): void {
     switch (decoded.functionName) {
       // pure "accept" of transferred pending assets, coupled with a Mellow
       // withdrawal request: it moves no ERC-20s, and the withdrawal phantom
       // token effect is credited by the storeExpectedBalances bracket delta
       // built from the compressor's outputs
       case "multiAccept":
-        return [];
+        break;
       case "withdrawPhantomToken": {
         const [token, amount] = decoded.args;
-        return this.spendExact(token, amount, balances);
+        this.spendExact(balances, token, amount);
+        break;
       }
       // TODO:
       // `multiAcceptAndClaim` (the claim call emitted by the withdrawal
@@ -86,7 +86,7 @@ export class MellowClaimerAdapterContract extends AbstractAdapterContract<
       // multiVault -> withdrawalPhantomToken) or a contract-side
       // `serialize()` fix.
       default:
-        return super.decodeDiffLeftovers(decoded, balances);
+        super.applyBalanceChanges(balances, decoded);
     }
   }
 }

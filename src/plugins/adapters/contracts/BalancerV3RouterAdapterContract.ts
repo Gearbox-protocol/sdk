@@ -3,11 +3,10 @@ import {
   type DecodeFunctionDataReturnType,
   decodeAbiParameters,
 } from "viem";
-import type { AddressMap, ConstructOptions } from "../../../sdk/index.js";
+import type { AssetsMap, ConstructOptions } from "../../../sdk/index.js";
 import { MissingSerializedParamsError } from "../../../sdk/index.js";
 import { iBalancerV3RouterAdapterAbi } from "../abi/adapters/index.js";
 import { iBalancerV3RouterAbi } from "../abi/targetContractAbi.js";
-import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -94,19 +93,21 @@ export class BalancerV3RouterAdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override decodeDiffLeftovers(
+  protected override applyBalanceChanges(
+    balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-    balances: AddressMap<bigint>,
-  ): DiffLeftover[] {
+  ): void {
     switch (decoded.functionName) {
       case "swapSingleTokenDiffIn": {
         const [, tokenIn, , leftoverAmount] = decoded.args;
-        return [{ tokenIn, leftoverAmount }];
+        this.setLeftover(balances, tokenIn, leftoverAmount);
+        break;
       }
       // BPT (pool token) is spent down to the leftover
       case "removeLiquiditySingleTokenDiff": {
         const [pool, leftoverAmount] = decoded.args;
-        return [{ tokenIn: pool, leftoverAmount }];
+        this.setLeftover(balances, pool, leftoverAmount);
+        break;
       }
       case "addLiquidityUnbalancedDiff":
         // leftoverAmounts are ordered by the pool's token list, which is only
@@ -116,7 +117,7 @@ export class BalancerV3RouterAdapterContract extends AbstractAdapterContract<
           `previewBalanceChanges cannot resolve pool tokens for addLiquidityUnbalancedDiff on ${this.contractType} adapter at ${this.address}`,
         );
       default:
-        return super.decodeDiffLeftovers(decoded, balances);
+        super.applyBalanceChanges(balances, decoded);
     }
   }
 }

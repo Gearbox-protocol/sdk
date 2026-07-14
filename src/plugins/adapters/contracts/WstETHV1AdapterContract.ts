@@ -4,7 +4,7 @@ import {
   decodeAbiParameters,
 } from "viem";
 import {
-  type AddressMap,
+  type AssetsMap,
   type ConstructOptions,
   MissingSerializedParamsError,
   type ParsedCallV2,
@@ -16,7 +16,6 @@ import type {
   Transfers,
 } from "../legacyAdapterOperations.js";
 import { swapFromTransfers } from "../transferHelpers.js";
-import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -75,22 +74,24 @@ export class WstETHV1AdapterContract extends AbstractAdapterContract<
     return super.classifyLegacyOperation(parsed, transfers);
   }
 
-  protected override decodeDiffLeftovers(
+  protected override applyBalanceChanges(
+    balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-    balances: AddressMap<bigint>,
-  ): DiffLeftover[] {
+  ): void {
     switch (decoded.functionName) {
       case "wrapDiff": {
         const [leftoverAmount] = decoded.args;
-        return [{ tokenIn: this.stETH, leftoverAmount }];
+        this.setLeftover(balances, this.stETH, leftoverAmount);
+        break;
       }
       // wstETH is the adapter's target contract
       case "unwrapDiff": {
         const [leftoverAmount] = decoded.args;
-        return [{ tokenIn: this.targetContract, leftoverAmount }];
+        this.setLeftover(balances, this.targetContract, leftoverAmount);
+        break;
       }
       default:
-        return super.decodeDiffLeftovers(decoded, balances);
+        super.applyBalanceChanges(balances, decoded);
     }
   }
 }

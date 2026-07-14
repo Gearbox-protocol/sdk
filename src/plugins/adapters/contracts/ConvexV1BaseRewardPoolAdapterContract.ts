@@ -5,7 +5,7 @@ import {
   zeroAddress,
 } from "viem";
 import {
-  type AddressMap,
+  type AssetsMap,
   type ConstructOptions,
   MissingSerializedParamsError,
   type ParsedCallV2,
@@ -23,7 +23,6 @@ import {
   rewardsFromTransfers,
   swapFromTransfers,
 } from "../transferHelpers.js";
-import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -155,25 +154,27 @@ export class ConvexV1BaseRewardPoolAdapterContract extends AbstractAdapterContra
     };
   }
 
-  protected override decodeDiffLeftovers(
+  protected override applyBalanceChanges(
+    balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-    balances: AddressMap<bigint>,
-  ): DiffLeftover[] {
+  ): void {
     switch (decoded.functionName) {
       case "stakeDiff": {
         const [leftoverAmount] = decoded.args;
-        return [{ tokenIn: this.stakingToken, leftoverAmount }];
+        this.setLeftover(balances, this.stakingToken, leftoverAmount);
+        break;
       }
       case "withdrawDiff":
       case "withdrawDiffAndUnwrap": {
         const [leftoverAmount] = decoded.args;
-        return [{ tokenIn: this.stakedPhantomToken, leftoverAmount }];
+        this.setLeftover(balances, this.stakedPhantomToken, leftoverAmount);
+        break;
       }
       // no accrued rewards on a freshly opened account
       case "getReward":
-        return [];
+        break;
       default:
-        return super.decodeDiffLeftovers(decoded, balances);
+        super.applyBalanceChanges(balances, decoded);
     }
   }
 }

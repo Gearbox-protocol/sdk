@@ -4,7 +4,7 @@ import {
   decodeAbiParameters,
 } from "viem";
 import {
-  type AddressMap,
+  type AssetsMap,
   type ConstructOptions,
   MissingSerializedParamsError,
 } from "../../../sdk/index.js";
@@ -12,7 +12,6 @@ import {
   iKelpLrtDepositPoolAdapterAbi,
   iKelpLrtDepositPoolGatewayAbi,
 } from "../abi/adapters/index.js";
-import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -58,17 +57,18 @@ export class KelpLRTDepositPoolAdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override decodeDiffLeftovers(
+  protected override applyBalanceChanges(
+    balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-    balances: AddressMap<bigint>,
-  ): DiffLeftover[] {
+  ): void {
     switch (decoded.functionName) {
       case "depositAssetDiff": {
         const [tokenIn, leftoverAmount] = decoded.args;
-        return [{ tokenIn, leftoverAmount }];
+        this.setLeftover(balances, tokenIn, leftoverAmount);
+        break;
       }
       default:
-        return super.decodeDiffLeftovers(decoded, balances);
+        super.applyBalanceChanges(balances, decoded);
     }
   }
 }

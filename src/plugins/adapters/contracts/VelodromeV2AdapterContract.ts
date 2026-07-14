@@ -3,11 +3,10 @@ import {
   type DecodeFunctionDataReturnType,
   decodeAbiParameters,
 } from "viem";
-import type { AddressMap, ConstructOptions } from "../../../sdk/index.js";
+import type { AssetsMap, ConstructOptions } from "../../../sdk/index.js";
 import { MissingSerializedParamsError } from "../../../sdk/index.js";
 import { iVelodromeV2RouterAdapterAbi } from "../abi/adapters/index.js";
 import { iVelodromeV2RouterAbi } from "../abi/targetContractAbi.js";
-import type { DiffLeftover } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -82,17 +81,18 @@ export class VelodromeV2RouterAdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override decodeDiffLeftovers(
+  protected override applyBalanceChanges(
+    balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-    balances: AddressMap<bigint>,
-  ): DiffLeftover[] {
+  ): void {
     switch (decoded.functionName) {
       case "swapDiffTokensForTokens": {
         const [leftoverAmount, , routes] = decoded.args;
-        return [{ tokenIn: routes[0].from, leftoverAmount }];
+        this.setLeftover(balances, routes[0].from, leftoverAmount);
+        break;
       }
       default:
-        return super.decodeDiffLeftovers(decoded, balances);
+        super.applyBalanceChanges(balances, decoded);
     }
   }
 }
