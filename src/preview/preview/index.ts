@@ -1,4 +1,5 @@
 export * from "./applyInnerOperations.js";
+export * from "./applyQuotaChanges.js";
 export * from "./detectCloseOrRepay.js";
 export * from "./errors.js";
 export * from "./previewAdjustCreditAccount.js";

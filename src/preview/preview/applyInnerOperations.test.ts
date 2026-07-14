@@ -16,10 +16,10 @@ import {
 import type { InnerOperation } from "../parse/index.js";
 import {
   applyInnerOperations,
-  applyQuotaChanges,
   type InnerOperationsState,
   makeInnerOperationsState,
 } from "./applyInnerOperations.js";
+import { applyQuotaChanges } from "./applyQuotaChanges.js";
 import {
   ERROR_ADAPTER_CALL_OUTSIDE_BRACKET,
   ERROR_MALFORMED_BRACKET,

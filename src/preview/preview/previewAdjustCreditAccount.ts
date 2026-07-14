@@ -14,9 +14,9 @@ import type {
 } from "../types.js";
 import {
   applyInnerOperations,
-  applyQuotaChanges,
   makeInnerOperationsState,
 } from "./applyInnerOperations.js";
+import { applyQuotaChanges } from "./applyQuotaChanges.js";
 import {
   type AdjustCreditAccountPreview,
   ERROR_UNPRICEABLE_TOKEN,
