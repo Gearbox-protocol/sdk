@@ -17,6 +17,7 @@ import type { RouterCASlice, RouterCloseResult } from "../router/index.js";
 import type { MultiCall, RawTx } from "../types/index.js";
 import type {
   ClaimableWithdrawal,
+  DelayedIntent,
   PendingWithdrawal,
   RequestableWithdrawal,
 } from "./withdrawal-compressor/index.js";
@@ -383,6 +384,7 @@ export interface PreviewDelayedWithdrawalProps {
    * Minimal credit account data on which operation is performed
    */
   creditAccount: Address;
+  intent?: DelayedIntent;
 }
 
 export interface GetPendingWithdrawalsProps {
@@ -405,6 +407,20 @@ export interface GetPendingWithdrawalsResult {
    **/
   pending: Array<PendingWithdrawal>;
 }
+
+/**
+ * Input for {@link ICreditAccountsService.assembleStartDelayedWithdrawalCalls}.
+ */
+export type AssembleStartDelayedWithdrawalCallsProps = {
+  /**
+   * Credit facade that receives `storeExpectedBalances` / `compareBalances`.
+   */
+  creditFacade: Address;
+  /**
+   * Withdrawal preview: `outputs` for expected balances, `requestCalls` for the body.
+   */
+  preview: Pick<RequestableWithdrawal, "outputs" | "requestCalls">;
+};
 
 export interface StartDelayedWithdrawalProps extends PrepareUpdateQuotasProps {
   /**
@@ -973,6 +989,22 @@ export interface ICreditAccountsService extends Construct {
   ): Promise<CreditAccountOperationResult>;
 
   /**
+   * Builds start-delayed-withdrawal multicall calls without price feed updates
+   * or quota updates.
+   *
+   * Same balance bracket as {@link startDelayedWithdrawal}:
+   * `storeExpectedBalances` → `preview.requestCalls` → `compareBalances`.
+   *
+   * Does not prepend price updates and does not build the facade transaction.
+   *
+   * @param props - {@link AssembleStartDelayedWithdrawalCallsProps}
+   * @returns Raw facade multicall payload for the delayed-withdrawal request
+   */
+  assembleStartDelayedWithdrawalCalls(
+    props: AssembleStartDelayedWithdrawalCallsProps,
+  ): Array<MultiCall>;
+
+  /**
    * Preview delayed withdrawal for given token
    * @param props - {@link PreviewDelayedWithdrawalProps}
    * @returns
@@ -1106,9 +1138,10 @@ export interface ICreditAccountsService extends Construct {
    * Each operation must already carry concrete encoding data (e.g. swap/wrap
    * `calls`). Unknown operation types throw.
    *
-   * Does not handle close or repay — use
+   * Does not handle close, repay, or start delayed withdrawal — use
    * {@link ICreditAccountsService.assembleCloseCreditAccountCalls} /
-   * {@link ICreditAccountsService.assembleRepayCreditAccountCalls}.
+   * {@link ICreditAccountsService.assembleRepayCreditAccountCalls} /
+   * {@link ICreditAccountsService.assembleStartDelayedWithdrawalCalls}.
    *
    * @param props - Encodable operations and account context
    * @returns Array of facade / adapter multicall calls (without price feed updates)

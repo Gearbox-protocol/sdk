@@ -48,6 +48,7 @@ import type {
   AssembleCaOperationsProps,
   AssembleCloseCreditAccountCallsProps,
   AssembleRepayCreditAccountCallsProps,
+  AssembleStartDelayedWithdrawalCallsProps,
   ChangeDeptProps,
   ClaimDelayedProps,
   ClaimFarmRewardsProps,
@@ -1101,11 +1102,17 @@ export class CreditAccountsServiceV310
     creditAccount,
     amount,
     token,
+    intent,
   }: PreviewDelayedWithdrawalProps): Promise<RequestableWithdrawal> {
     const compressor = this.sdk.withdrawalCompressor();
 
     // TODO: return multiple configs
-    return compressor.getWithdrawalRequestResult(creditAccount, token, amount);
+    return compressor.getWithdrawalRequestResult(
+      creditAccount,
+      token,
+      amount,
+      intent,
+    );
   }
 
   /**
@@ -1127,6 +1134,45 @@ export class CreditAccountsServiceV310
   }
 
   /**
+   * {@inheritDoc ICreditAccountsService.assembleStartDelayedWithdrawalCalls}
+   **/
+  public assembleStartDelayedWithdrawalCalls({
+    creditFacade,
+    preview,
+  }: AssembleStartDelayedWithdrawalCallsProps): Array<MultiCall> {
+    const record = preview.outputs.reduce<Record<Address, bigint>>((acc, o) => {
+      const token = o.token.toLowerCase() as Address;
+      acc[token] = (acc[token] || 0n) + o.amount;
+      return acc;
+    }, {});
+    const balances = Object.entries(record).filter(([, a]) => a > 10n);
+
+    const storeExpectedBalances: MultiCall = {
+      target: creditFacade,
+      callData: encodeFunctionData({
+        abi: iCreditFacadeMulticallV310Abi,
+        functionName: "storeExpectedBalances",
+        args: [
+          balances.map(([token, amount]) => ({
+            token: token as Address,
+            amount: amount > 10n ? amount - 10n : 0n,
+          })),
+        ],
+      }),
+    };
+    const compareBalances: MultiCall = {
+      target: creditFacade,
+      callData: encodeFunctionData({
+        abi: iCreditFacadeMulticallV310Abi,
+        functionName: "compareBalances",
+        args: [],
+      }),
+    };
+
+    return [storeExpectedBalances, ...preview.requestCalls, compareBalances];
+  }
+
+  /**
    * {@inheritDoc ICreditAccountsService.startDelayedWithdrawal}
    **/
   public async startDelayedWithdrawal({
@@ -1140,41 +1186,12 @@ export class CreditAccountsServiceV310
       creditAccount.creditManager,
     );
 
-    const record = preview.outputs.reduce<Record<Address, bigint>>((acc, o) => {
-      const token = o.token.toLowerCase() as Address;
-      acc[token] = (acc[token] || 0n) + o.amount;
-
-      return acc;
-    }, {});
-    const balances = Object.entries(record).filter(([, a]) => a > 10n);
-
-    const storeExpectedBalances: MultiCall = {
-      target: cm.creditFacade.address,
-      callData: encodeFunctionData({
-        abi: iCreditFacadeMulticallV310Abi,
-        functionName: "storeExpectedBalances",
-        args: [
-          balances.map(([token, amount]) => ({
-            token: token as Address,
-            amount: amount > 10n ? amount - 10n : 0n,
-          })),
-        ],
-      }),
-    };
-    const compareBalances: MultiCall = {
-      target: cm.creditFacade.address,
-      callData: encodeFunctionData({
-        abi: iCreditFacadeMulticallV310Abi,
-        functionName: "compareBalances",
-        args: [],
-      }),
-    };
-
     const operationCalls: Array<MultiCall> = [
-      storeExpectedBalances,
-      ...preview.requestCalls,
-      compareBalances,
-      ...this.#prepareUpdateQuotas(creditAccount.creditFacade, {
+      ...this.assembleStartDelayedWithdrawalCalls({
+        creditFacade: cm.creditFacade.address,
+        preview,
+      }),
+      ...this.#prepareUpdateQuotas(cm.creditFacade.address, {
         minQuota,
         averageQuota,
       }),
@@ -1241,7 +1258,7 @@ export class CreditAccountsServiceV310
 
     const quotaCalls = zeroDebt
       ? []
-      : this.#prepareUpdateQuotas(creditAccount.creditFacade, {
+      : this.#prepareUpdateQuotas(cm.creditFacade.address, {
           minQuota,
           averageQuota,
         });
@@ -1703,13 +1720,13 @@ export class CreditAccountsServiceV310
     const operationCalls: Array<MultiCall> = [
       ...assetsToWithdraw.map(a =>
         this.#prepareWithdrawToken(
-          creditAccount.creditFacade,
+          cm.creditFacade.address,
           a.token,
           a.balance,
           to,
         ),
       ),
-      ...this.#prepareUpdateQuotas(creditAccount.creditFacade, {
+      ...this.#prepareUpdateQuotas(cm.creditFacade.address, {
         minQuota,
         averageQuota,
       }),
