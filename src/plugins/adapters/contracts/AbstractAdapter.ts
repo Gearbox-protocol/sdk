@@ -32,6 +32,7 @@ import type {
   AdapterContractStateHuman,
   AdapterContractType,
   AdapterProtocolOperation,
+  DelayedWithdrawalRequest,
 } from "../types.js";
 
 export interface ConcreteAdapterContractOptions {
@@ -217,6 +218,21 @@ export class AbstractAdapterContract<
     throw new Error(
       `previewBalanceChanges is not supported for ${decoded.functionName} on ${this.contractType} adapter at ${this.address}`,
     );
+  }
+
+  /**
+   * When the given adapter calldata is a delayed-withdrawal request (a call
+   * created by the withdrawal compressor that mints a withdrawal phantom
+   * token), returns its descriptor; `undefined` for any other call.
+   *
+   * The base implementation returns `undefined`; delayed-withdrawal adapters
+   * (Securitize, Midas, Mellow) override it next to their
+   * {@link applyBalanceChanges} cases for the same methods.
+   */
+  public parseDelayedWithdrawalRequest(
+    _calldata: Hex,
+  ): DelayedWithdrawalRequest | undefined {
+    return undefined;
   }
 
   /**

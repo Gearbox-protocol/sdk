@@ -2,6 +2,8 @@ import {
   type Address,
   type DecodeFunctionDataReturnType,
   decodeAbiParameters,
+  decodeFunctionData,
+  type Hex,
 } from "viem";
 import {
   type AssetsMap,
@@ -16,6 +18,7 @@ import type {
   Transfers,
 } from "../legacyAdapterOperations.js";
 import { fnSigToName, swapFromTransfers } from "../transferHelpers.js";
+import type { DelayedWithdrawalRequest } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -122,6 +125,34 @@ export class MellowERC4626VaultAdapterContract extends AbstractAdapterContract<
       return { operation: "MakerRedeem", ...swapFromTransfers(transfers) };
     }
     return super.classifyLegacyOperation(parsed, transfers);
+  }
+
+  /**
+   * Plain `redeem` on a Mellow multivault is a delayed-withdrawal request:
+   * it is only emitted by the withdrawal compressor (the router uses
+   * `redeemDiff`), spends the multivault shares and mints the withdrawal
+   * phantom token for the illiquid part. Mellow request calls cannot carry
+   * an intent, so `extraData` is always undefined.
+   *
+   * The withdrawal phantom token is only serialized by v311 adapters;
+   * on other versions it cannot be resolved offline and the request is not
+   * reported.
+   */
+  public override parseDelayedWithdrawalRequest(
+    calldata: Hex,
+  ): DelayedWithdrawalRequest | undefined {
+    if (!this.#stakedPhantomToken || !this.#asset) {
+      return undefined;
+    }
+    const decoded = decodeFunctionData({ abi: this.abi, data: calldata });
+    if (decoded.functionName !== "redeem") {
+      return undefined;
+    }
+    return {
+      phantomToken: this.#stakedPhantomToken,
+      claimToken: this.#asset,
+      extraData: undefined,
+    };
   }
 
   protected override async applyBalanceChanges(

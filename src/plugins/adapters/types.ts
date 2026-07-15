@@ -1,4 +1,4 @@
-import type { AbiParameter, Address } from "viem";
+import type { AbiParameter, Address, Hex } from "viem";
 import type { OnchainSDK, PluginsMap } from "../../sdk/index.js";
 import type { BaseContractStateHuman } from "../../sdk/types/state-human.js";
 import type { AdaptersPlugin } from "./AdaptersPlugin.js";
@@ -110,6 +110,28 @@ export interface AdapterProtocolOperation {
    * Arguments of protocol called by adapter
    */
   functionArgs: Record<string, unknown>;
+}
+
+/**
+ * Descriptor of a delayed-withdrawal request performed by an adapter call
+ * (constructed by the withdrawal compressor): the source token is spent now and
+ * the withdrawal phantom token is minted in its place; the claim token is
+ * received later, when the withdrawal matures and is claimed.
+ */
+export interface DelayedWithdrawalRequest {
+  /**
+   * Withdrawal phantom token minted by this request
+   */
+  phantomToken: Address;
+  /**
+   * Token received when the withdrawal is claimed
+   */
+  claimToken: Address;
+  /**
+   * Raw extraData arg that may encode a DelayedIntent; absent on adapters
+   * whose request methods carry none (e.g. Mellow)
+   */
+  extraData?: Hex;
 }
 
 /**

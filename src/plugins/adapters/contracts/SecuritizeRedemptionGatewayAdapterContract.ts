@@ -2,6 +2,8 @@ import {
   type Address,
   type DecodeFunctionDataReturnType,
   decodeAbiParameters,
+  decodeFunctionData,
+  type Hex,
 } from "viem";
 import {
   type AssetsMap,
@@ -10,6 +12,7 @@ import {
 } from "../../../sdk/index.js";
 import { iSecuritizeRedemptionGatewayAdapterV311Abi } from "../abi/adapters/iSecuritizeRedemptionGatewayAdapterV311.js";
 import { iSecuritizeRedemptionGatewayV311Abi } from "../abi/securitize/iSecuritizeRedemptionGatewayV311.js";
+import type { DelayedWithdrawalRequest } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -78,6 +81,27 @@ export class SecuritizeRedemptionGatewayAdapterContract extends AbstractAdapterC
     };
   }
 
+  /**
+   * `redeem` (the only request call the withdrawal compressor emits) spends
+   * the DS token and mints the redemption phantom token; the stable coin is
+   * received when the redemption is claimed. The 2-arg overload carries the
+   * intent `extraData`.
+   */
+  public override parseDelayedWithdrawalRequest(
+    calldata: Hex,
+  ): DelayedWithdrawalRequest | undefined {
+    const decoded = decodeFunctionData({ abi: this.abi, data: calldata });
+    if (decoded.functionName !== "redeem") {
+      return undefined;
+    }
+    const [, extraData] = decoded.args;
+    return {
+      phantomToken: this.redemptionPhantomToken,
+      claimToken: this.stableCoinToken,
+      extraData,
+    };
+  }
+
   protected override async applyBalanceChanges(
     balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
@@ -89,12 +113,6 @@ export class SecuritizeRedemptionGatewayAdapterContract extends AbstractAdapterC
       case "redeem": {
         // const [dsTokenAmount] = decoded.args;
         // this.spendExact(balances, this.dsToken, dsTokenAmount);
-        break;
-      }
-      // diff-style redemption: spends the DS token down to the leftover
-      case "redeemDiff": {
-        const [leftoverAmount] = decoded.args;
-        this.setLeftover(balances, this.dsToken, leftoverAmount);
         break;
       }
       // no-op:

@@ -2,6 +2,9 @@ import {
   type Address,
   type DecodeFunctionDataReturnType,
   decodeAbiParameters,
+  decodeFunctionData,
+  type Hex,
+  isAddressEqual,
 } from "viem";
 import {
   type AssetsMap,
@@ -12,6 +15,7 @@ import {
   iMidasGatewayAdapterV311Abi,
   iMidasGatewayV311Abi,
 } from "../abi/adapters/index.js";
+import type { DelayedWithdrawalRequest } from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -104,6 +108,29 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
     };
   }
 
+  /**
+   * `redeemRequest` (the only request call the withdrawal compressor emits)
+   * spends the mToken and mints the phantom token of the requested
+   * `tokenOut`, which is received when the redemption is claimed. The 3-arg
+   * overload carries the intent `extraData`.
+   */
+  public override parseDelayedWithdrawalRequest(
+    calldata: Hex,
+  ): DelayedWithdrawalRequest | undefined {
+    const decoded = decodeFunctionData({ abi: this.abi, data: calldata });
+    if (decoded.functionName !== "redeemRequest") {
+      return undefined;
+    }
+    const [tokenOut, , extraData] = decoded.args;
+    const phantomToken = this.allowedOutputTokens.find(t =>
+      isAddressEqual(t.token, tokenOut),
+    )?.phantomToken;
+    if (!phantomToken) {
+      return undefined;
+    }
+    return { phantomToken, claimToken: tokenOut, extraData };
+  }
+
   protected override async applyBalanceChanges(
     balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
@@ -114,10 +141,9 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
         this.setLeftover(balances, tokenIn, leftoverAmount);
         break;
       }
-      // redemptions spend the mToken down to the leftover, tokenOut arg is
-      // the received token
-      case "redeemInstantDiff":
-      case "redeemRequestDiff": {
+      // instant redemption spends the mToken down to the leftover, tokenOut
+      // arg is the received token
+      case "redeemInstantDiff": {
         const [, leftoverAmount] = decoded.args;
         this.setLeftover(balances, this.mToken, leftoverAmount);
         break;
