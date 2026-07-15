@@ -864,14 +864,6 @@ export class CreditAccountsServiceV310
   }: CloseCreditAccountProps): Promise<CloseCreditAccountResult> {
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
 
-    await this.sdk.tokensMeta.loadTokenData(cm.underlying);
-    const underlying = this.sdk.tokensMeta.mustGet(cm.underlying);
-    if (this.sdk.tokensMeta.isRWAUnderlying(underlying)) {
-      throw new Error(
-        "closeCreditAccount is not supported for RWA underlying credit accounts",
-      );
-    }
-
     const routerCloseResult =
       closePath ||
       (await this.sdk.routerFor(ca).findBestClosePath({
@@ -910,16 +902,6 @@ export class CreditAccountsServiceV310
     assetsToWithdraw,
     to,
   }: AssembleCloseCreditAccountCallsProps): Promise<Array<MultiCall>> {
-    const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
-
-    await this.sdk.tokensMeta.loadTokenData(cm.underlying);
-    const underlying = this.sdk.tokensMeta.mustGet(cm.underlying);
-    if (this.sdk.tokensMeta.isRWAUnderlying(underlying)) {
-      throw new Error(
-        "closeCreditAccount is not supported for RWA underlying credit accounts",
-      );
-    }
-
     return [
       ...routerCalls,
       ...this.#prepareDisableQuotas(ca),
