@@ -99,7 +99,6 @@ export async function applyInnerOperations<P extends PluginsMap>(
 ): Promise<OperationPreviewError | undefined> {
   // True between `StoreExpectedBalances` and `CompareBalances`
   let inBracket = false;
-  let storeSeen = false;
   let error: OperationPreviewError | undefined;
 
   for (const op of multicall) {
@@ -122,13 +121,12 @@ export async function applyInnerOperations<P extends PluginsMap>(
         state.quotaChanges.push({ token: op.token, balance: op.change });
         break;
       case "StoreExpectedBalances":
-        if (storeSeen) {
+        if (inBracket) {
           opError = {
             code: ERROR_MALFORMED_BRACKET,
-            message: "duplicate storeExpectedBalances call",
+            message: "nested storeExpectedBalances/compareBalances bracket",
           };
         }
-        storeSeen = true;
         inBracket = true;
         // StoreExpectedBalances applies deltas to "tokens out"
         for (const { token, balance } of op.deltas) {

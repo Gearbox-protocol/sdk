@@ -317,16 +317,50 @@ describe("applyInnerOperations on non-zero seeded state", () => {
 });
 
 describe("applyInnerOperations on malformed multicalls", () => {
-  it("reports an error on a second storeExpectedBalances/compareBalances pair", async () => {
+  it("allows multiple sequential storeExpectedBalances/compareBalances brackets", async () => {
+    const SECOND_ADAPTER = getAddress(
+      "0x3333333333333333333333333333333333333333",
+    );
+    const sdk = stubSdk({
+      [ADAPTER]: stubAdapter(WETH, 10n),
+      [SECOND_ADAPTER]: stubAdapter(WSTETH, 0n),
+    });
+    const { state, error } = await apply(
+      [
+        {
+          operation: "StoreExpectedBalances",
+          deltas: [{ token: WSTETH, balance: 90n }],
+        },
+        execute(),
+        { operation: "CompareBalances" },
+        {
+          operation: "StoreExpectedBalances",
+          deltas: [{ token: USDC, balance: 50n }],
+        },
+        execute(SECOND_ADAPTER),
+        { operation: "CompareBalances" },
+      ],
+      seededState([{ token: WETH, balance: 100n }], 0n, 0n),
+      sdk,
+    );
+    expect(error).toBeUndefined();
+    expect(state.balances.get(WETH)).toBe(10n);
+    expect(state.balances.get(WSTETH)).toBe(0n);
+    expect(state.balances.get(USDC)).toBe(50n);
+  });
+
+  it("reports an error on nested storeExpectedBalances/compareBalances brackets", async () => {
     const { error } = await apply([
       { operation: "StoreExpectedBalances", deltas: [] },
-      { operation: "CompareBalances" },
       { operation: "StoreExpectedBalances", deltas: [] },
+      { operation: "CompareBalances" },
       { operation: "CompareBalances" },
     ]);
     expect(error).toEqual({
       code: ERROR_MALFORMED_BRACKET,
-      message: expect.stringContaining("duplicate storeExpectedBalances"),
+      message: expect.stringContaining(
+        "nested storeExpectedBalances/compareBalances bracket",
+      ),
     });
   });
 
@@ -452,19 +486,6 @@ describe("applyInnerOperations on malformed multicalls", () => {
     expect(state.debt).toBe(1000n);
     expect(state.totalDebt).toBe(1000n);
     expect(state.quotaChanges).toEqual([{ token: WETH, balance: 50n }]);
-  });
-
-  it("returns the first detected failure when several occur", async () => {
-    const { error } = await apply([
-      { operation: "CompareBalances" },
-      { operation: "StoreExpectedBalances", deltas: [] },
-    ]);
-    expect(error).toEqual({
-      code: ERROR_MALFORMED_BRACKET,
-      message: expect.stringContaining(
-        "compareBalances without a preceding storeExpectedBalances",
-      ),
-    });
   });
 });
 
