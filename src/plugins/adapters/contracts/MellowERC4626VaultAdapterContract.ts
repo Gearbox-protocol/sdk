@@ -5,8 +5,8 @@ import {
 } from "viem";
 import {
   type AssetsMap,
-  type ConstructOptions,
   MissingSerializedParamsError,
+  type OnchainSDK,
   type ParsedCallV2,
 } from "../../../sdk/index.js";
 import { iMellow4626VaultAdapterAbi } from "../abi/adapters/index.js";
@@ -33,8 +33,8 @@ export class MellowERC4626VaultAdapterContract extends AbstractAdapterContract<
   #asset?: Address;
   #stakedPhantomToken?: Address;
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const version = Number(args.baseParams.version);

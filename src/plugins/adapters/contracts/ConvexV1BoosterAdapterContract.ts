@@ -5,8 +5,8 @@ import {
 } from "viem";
 import {
   type AssetsMap,
-  type ConstructOptions,
   MissingSerializedParamsError,
+  type OnchainSDK,
   type ParsedCallV2,
 } from "../../../sdk/index.js";
 import { iConvexV1BoosterAdapterAbi } from "../abi/adapters/iConvexV1BoosterAdapter.js";
@@ -38,8 +38,8 @@ export class ConvexV1BoosterAdapterContract extends AbstractAdapterContract<
 > {
   #supportedPools?: ConvexV1BoosterPool[];
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(

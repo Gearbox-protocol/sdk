@@ -7,8 +7,8 @@ import {
 import { ierc4626AdapterAbi } from "../../../abi/ierc4626Adapter.js";
 import {
   type AssetsMap,
-  type ConstructOptions,
   MissingSerializedParamsError,
+  type OnchainSDK,
   type ParsedCallV2,
 } from "../../../sdk/index.js";
 import { iERC4626Abi } from "../abi/targetContractAbi.js";
@@ -33,8 +33,8 @@ export class ERC4626AdapterContract extends AbstractAdapterContract<
   #vault?: Address;
   #asset?: Address;
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const version = Number(args.baseParams.version);

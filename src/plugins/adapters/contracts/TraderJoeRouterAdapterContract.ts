@@ -3,7 +3,7 @@ import {
   type DecodeFunctionDataReturnType,
   decodeAbiParameters,
 } from "viem";
-import type { AssetsMap, ConstructOptions } from "../../../sdk/index.js";
+import type { AssetsMap, OnchainSDK } from "../../../sdk/index.js";
 import { MissingSerializedParamsError } from "../../../sdk/index.js";
 import { iTraderJoeRouterAdapterAbi } from "../abi/adapters/index.js";
 import { iTraderJoeRouterAbi } from "../abi/targetContractAbi.js";
@@ -36,8 +36,8 @@ export class TraderJoeRouterAdapterContract extends AbstractAdapterContract<
 > {
   #supportedPools?: TraderJoePool[];
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(

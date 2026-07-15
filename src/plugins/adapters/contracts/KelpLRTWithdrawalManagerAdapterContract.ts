@@ -1,7 +1,7 @@
 import { type Address, decodeAbiParameters } from "viem";
 import {
-  type ConstructOptions,
   MissingSerializedParamsError,
+  type OnchainSDK,
 } from "../../../sdk/index.js";
 import {
   iKelpLrtWithdrawalManagerAdapterAbi,
@@ -25,8 +25,8 @@ export class KelpLRTWithdrawalManagerAdapterContract extends AbstractAdapterCont
     phantomToken: Address;
   }[];
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(

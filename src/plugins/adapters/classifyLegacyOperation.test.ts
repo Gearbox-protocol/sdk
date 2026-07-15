@@ -1,20 +1,18 @@
-import type { Address } from "viem";
-import { createPublicClient, custom } from "viem";
-import { mainnet } from "viem/chains";
+import { type Address, custom } from "viem";
 import { describe, expect, it } from "vitest";
-import type { ParsedCallV2 } from "../../sdk/base/types.js";
+import type { ParsedCallV2 } from "../../sdk/index.js";
+import { OnchainSDK } from "../../sdk/index.js";
 import { toNetTransfers } from "./transferHelpers.js";
 import type { TokenTransfer } from "./transfers.js";
 
-const client = createPublicClient({
-  chain: mainnet,
+// SDK stub
+const sdk = new OnchainSDK("Mainnet", {
   transport: custom({
     request: async () => {
       throw new Error("not implemented");
     },
   }),
 });
-const options = { client };
 
 const ADDR = "0xaAaAaAaaAaAaAaaAaAAAAAAAAaaaAaAaAaaAaaAa" as Address;
 const CA = "0xBBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB" as Address;
@@ -60,7 +58,7 @@ describe("AbstractAdapterContract default", () => {
     const { AbstractAdapterContract } = await import(
       "./contracts/AbstractAdapter.js"
     );
-    const adapter = new AbstractAdapterContract(options, {
+    const adapter = new AbstractAdapterContract(sdk, {
       baseParams,
       abi: [],
       protocolAbi: [],
@@ -80,7 +78,7 @@ describe("Curve adapters", () => {
     const { Curve2AssetsAdapterContract } = await import(
       "./contracts/Curve2AssetsAdapterContract.js"
     );
-    const adapter = new Curve2AssetsAdapterContract(options, { baseParams });
+    const adapter = new Curve2AssetsAdapterContract(sdk, { baseParams });
     const result = adapter.classifyLegacyOperation(
       makeParsed("exchange"),
       net(swapTransfers),
@@ -92,7 +90,7 @@ describe("Curve adapters", () => {
     const { Curve3AssetsAdapterContract } = await import(
       "./contracts/Curve3AssetsAdapterContract.js"
     );
-    const adapter = new Curve3AssetsAdapterContract(options, { baseParams });
+    const adapter = new Curve3AssetsAdapterContract(sdk, { baseParams });
     const transfers: TokenTransfer[] = [
       { token: TOKEN_A, amount: 100n, from: CA, to: DEX },
       { token: TOKEN_B, amount: 200n, from: CA, to: DEX },
@@ -118,7 +116,7 @@ describe("Curve adapters", () => {
     const { Curve4AssetsAdapterContract } = await import(
       "./contracts/Curve4AssetsAdapterContract.js"
     );
-    const adapter = new Curve4AssetsAdapterContract(options, { baseParams });
+    const adapter = new Curve4AssetsAdapterContract(sdk, { baseParams });
     const result = adapter.classifyLegacyOperation(
       makeParsed("remove_liquidity_one_coin"),
       net(swapTransfers),
@@ -130,7 +128,7 @@ describe("Curve adapters", () => {
     const { CurveV1StableNGAdapterContract } = await import(
       "./contracts/CurveV1StableNGAdapterContract.js"
     );
-    const adapter = new CurveV1StableNGAdapterContract(options, {
+    const adapter = new CurveV1StableNGAdapterContract(sdk, {
       baseParams,
     });
     const transfers: TokenTransfer[] = [
@@ -154,7 +152,7 @@ describe("Curve adapters", () => {
     const { CurveV1AdapterStETHContract } = await import(
       "./contracts/CurveV1AdapterStETHContract.js"
     );
-    const adapter = new CurveV1AdapterStETHContract(options, { baseParams });
+    const adapter = new CurveV1AdapterStETHContract(sdk, { baseParams });
     const result = adapter.classifyLegacyOperation(
       makeParsed("unknown_fn"),
       net(swapTransfers),
@@ -168,7 +166,7 @@ describe("Convex adapters", () => {
     const { ConvexV1BoosterAdapterContract } = await import(
       "./contracts/ConvexV1BoosterAdapterContract.js"
     );
-    const adapter = new ConvexV1BoosterAdapterContract(options, {
+    const adapter = new ConvexV1BoosterAdapterContract(sdk, {
       baseParams,
     });
     const result = adapter.classifyLegacyOperation(
@@ -185,7 +183,7 @@ describe("Convex adapters", () => {
     const { ConvexV1BoosterAdapterContract } = await import(
       "./contracts/ConvexV1BoosterAdapterContract.js"
     );
-    const adapter = new ConvexV1BoosterAdapterContract(options, {
+    const adapter = new ConvexV1BoosterAdapterContract(sdk, {
       baseParams,
     });
     const result = adapter.classifyLegacyOperation(
@@ -199,7 +197,7 @@ describe("Convex adapters", () => {
     const { ConvexV1BoosterAdapterContract } = await import(
       "./contracts/ConvexV1BoosterAdapterContract.js"
     );
-    const adapter = new ConvexV1BoosterAdapterContract(options, {
+    const adapter = new ConvexV1BoosterAdapterContract(sdk, {
       baseParams,
     });
     const result = adapter.classifyLegacyOperation(
@@ -213,7 +211,7 @@ describe("Convex adapters", () => {
     const { ConvexV1BaseRewardPoolAdapterContract } = await import(
       "./contracts/ConvexV1BaseRewardPoolAdapterContract.js"
     );
-    const adapter = new ConvexV1BaseRewardPoolAdapterContract(options, {
+    const adapter = new ConvexV1BaseRewardPoolAdapterContract(sdk, {
       baseParams,
     });
     const transfers: TokenTransfer[] = [
@@ -234,7 +232,7 @@ describe("Convex adapters", () => {
     const { ConvexV1BaseRewardPoolAdapterContract } = await import(
       "./contracts/ConvexV1BaseRewardPoolAdapterContract.js"
     );
-    const adapter = new ConvexV1BaseRewardPoolAdapterContract(options, {
+    const adapter = new ConvexV1BaseRewardPoolAdapterContract(sdk, {
       baseParams,
     });
     const transfers: TokenTransfer[] = [
@@ -251,7 +249,7 @@ describe("Convex adapters", () => {
     const { ConvexV1BaseRewardPoolAdapterContract } = await import(
       "./contracts/ConvexV1BaseRewardPoolAdapterContract.js"
     );
-    const adapter = new ConvexV1BaseRewardPoolAdapterContract(options, {
+    const adapter = new ConvexV1BaseRewardPoolAdapterContract(sdk, {
       baseParams,
     });
     const transfers: TokenTransfer[] = [
@@ -270,7 +268,7 @@ describe("Convex adapters", () => {
     const { ConvexV1BaseRewardPoolAdapterContract } = await import(
       "./contracts/ConvexV1BaseRewardPoolAdapterContract.js"
     );
-    const adapter = new ConvexV1BaseRewardPoolAdapterContract(options, {
+    const adapter = new ConvexV1BaseRewardPoolAdapterContract(sdk, {
       baseParams,
     });
     const result = adapter.classifyLegacyOperation(
@@ -289,7 +287,7 @@ describe("Uniswap adapters", () => {
     const { UniswapV2AdapterContract } = await import(
       "./contracts/UniswapV2AdapterContract.js"
     );
-    const adapter = new UniswapV2AdapterContract(options, { baseParams });
+    const adapter = new UniswapV2AdapterContract(sdk, { baseParams });
     const result = adapter.classifyLegacyOperation(
       makeParsed("swapExactTokensForTokens"),
       net(swapTransfers),
@@ -301,7 +299,7 @@ describe("Uniswap adapters", () => {
     const { UniswapV3AdapterContract } = await import(
       "./contracts/UniswapV3AdapterContract.js"
     );
-    const adapter = new UniswapV3AdapterContract(options, { baseParams });
+    const adapter = new UniswapV3AdapterContract(sdk, { baseParams });
     const result = adapter.classifyLegacyOperation(
       makeParsed("exactInputSingle"),
       net(swapTransfers),
@@ -313,7 +311,7 @@ describe("Uniswap adapters", () => {
     const { UniswapV4AdapterContract } = await import(
       "./contracts/UniswapV4AdapterContract.js"
     );
-    const adapter = new UniswapV4AdapterContract(options, { baseParams });
+    const adapter = new UniswapV4AdapterContract(sdk, { baseParams });
     const result = adapter.classifyLegacyOperation(
       makeParsed("exactInput"),
       net(swapTransfers),
@@ -327,7 +325,7 @@ describe("Balancer adapter", () => {
     const { BalancerV3RouterAdapterContract } = await import(
       "./contracts/BalancerV3RouterAdapterContract.js"
     );
-    const adapter = new BalancerV3RouterAdapterContract(options, {
+    const adapter = new BalancerV3RouterAdapterContract(sdk, {
       baseParams,
     });
     const result = adapter.classifyLegacyOperation(
@@ -343,7 +341,7 @@ describe("WstETH + Lido adapters", () => {
     const { WstETHV1AdapterContract } = await import(
       "./contracts/WstETHV1AdapterContract.js"
     );
-    const adapter = new WstETHV1AdapterContract(options, { baseParams });
+    const adapter = new WstETHV1AdapterContract(sdk, { baseParams });
     const result = adapter.classifyLegacyOperation(
       makeParsed("wrap"),
       net(swapTransfers),
@@ -355,7 +353,7 @@ describe("WstETH + Lido adapters", () => {
     const { WstETHV1AdapterContract } = await import(
       "./contracts/WstETHV1AdapterContract.js"
     );
-    const adapter = new WstETHV1AdapterContract(options, { baseParams });
+    const adapter = new WstETHV1AdapterContract(sdk, { baseParams });
     const result = adapter.classifyLegacyOperation(
       makeParsed("unwrap"),
       net(swapTransfers),
@@ -367,7 +365,7 @@ describe("WstETH + Lido adapters", () => {
     const { WstETHV1AdapterContract } = await import(
       "./contracts/WstETHV1AdapterContract.js"
     );
-    const adapter = new WstETHV1AdapterContract(options, { baseParams });
+    const adapter = new WstETHV1AdapterContract(sdk, { baseParams });
     const result = adapter.classifyLegacyOperation(
       makeParsed("other"),
       net(swapTransfers),
@@ -379,7 +377,7 @@ describe("WstETH + Lido adapters", () => {
     const { LidoV1AdapterContract } = await import(
       "./contracts/LidoV1AdapterContract.js"
     );
-    const adapter = new LidoV1AdapterContract(options, { baseParams });
+    const adapter = new LidoV1AdapterContract(sdk, { baseParams });
     const result = adapter.classifyLegacyOperation(
       makeParsed("submit"),
       net(swapTransfers),
@@ -393,7 +391,7 @@ describe("ERC4626 adapters", () => {
     const { ERC4626AdapterContract } = await import(
       "./contracts/ERC4626AdapterContract.js"
     );
-    const adapter = new ERC4626AdapterContract(options, { baseParams });
+    const adapter = new ERC4626AdapterContract(sdk, { baseParams });
     const result = adapter.classifyLegacyOperation(
       makeParsed("deposit"),
       net(swapTransfers),
@@ -405,7 +403,7 @@ describe("ERC4626 adapters", () => {
     const { ERC4626AdapterContract } = await import(
       "./contracts/ERC4626AdapterContract.js"
     );
-    const adapter = new ERC4626AdapterContract(options, { baseParams });
+    const adapter = new ERC4626AdapterContract(sdk, { baseParams });
     const result = adapter.classifyLegacyOperation(
       makeParsed("redeem"),
       net(swapTransfers),
@@ -417,7 +415,7 @@ describe("ERC4626 adapters", () => {
     const { ERC4626AdapterContract } = await import(
       "./contracts/ERC4626AdapterContract.js"
     );
-    const adapter = new ERC4626AdapterContract(options, { baseParams });
+    const adapter = new ERC4626AdapterContract(sdk, { baseParams });
     const result = adapter.classifyLegacyOperation(
       makeParsed("withdraw"),
       net(swapTransfers),
@@ -429,7 +427,7 @@ describe("ERC4626 adapters", () => {
     const { ERC4626ReferralAdapterContract } = await import(
       "./contracts/ERC4626ReferralAdapterContract.js"
     );
-    const adapter = new ERC4626ReferralAdapterContract(options, {
+    const adapter = new ERC4626ReferralAdapterContract(sdk, {
       baseParams,
     });
     const result = adapter.classifyLegacyOperation(
@@ -445,7 +443,7 @@ describe("DaiUsds adapter", () => {
     const { DaiUsdsAdapterContract } = await import(
       "./contracts/DaiUsdsAdapterContract.js"
     );
-    const adapter = new DaiUsdsAdapterContract(options, { baseParams });
+    const adapter = new DaiUsdsAdapterContract(sdk, { baseParams });
     const result = adapter.classifyLegacyOperation(
       makeParsed("daiToUsds"),
       net(swapTransfers),
@@ -457,7 +455,7 @@ describe("DaiUsds adapter", () => {
     const { DaiUsdsAdapterContract } = await import(
       "./contracts/DaiUsdsAdapterContract.js"
     );
-    const adapter = new DaiUsdsAdapterContract(options, { baseParams });
+    const adapter = new DaiUsdsAdapterContract(sdk, { baseParams });
     const result = adapter.classifyLegacyOperation(
       makeParsed("usdsToDai"),
       net(swapTransfers),
@@ -469,7 +467,7 @@ describe("DaiUsds adapter", () => {
     const { DaiUsdsAdapterContract } = await import(
       "./contracts/DaiUsdsAdapterContract.js"
     );
-    const adapter = new DaiUsdsAdapterContract(options, { baseParams });
+    const adapter = new DaiUsdsAdapterContract(sdk, { baseParams });
     const result = adapter.classifyLegacyOperation(
       makeParsed("something"),
       net(swapTransfers),
@@ -491,7 +489,7 @@ describe("Legacy adapters throw", () => {
     it(`${name} throws on classifyLegacyOperation`, async () => {
       const mod = await import(path);
       const AdapterClass = mod[className];
-      const adapter = new AdapterClass(options, { baseParams });
+      const adapter = new AdapterClass(sdk, { baseParams });
       expect(() =>
         adapter.classifyLegacyOperation(
           makeParsed("anything"),

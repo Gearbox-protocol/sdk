@@ -3,7 +3,7 @@ import {
   type DecodeFunctionDataReturnType,
   decodeAbiParameters,
 } from "viem";
-import type { AssetsMap, ConstructOptions } from "../../../sdk/index.js";
+import type { AssetsMap, OnchainSDK } from "../../../sdk/index.js";
 import { MissingSerializedParamsError } from "../../../sdk/index.js";
 import { iBalancerV3WrapperAdapterAbi } from "../abi/adapters/index.js";
 import { iBalancerV3WrapperAbi } from "../abi/targetContractAbi.js";
@@ -22,8 +22,8 @@ export class BalancerV3WrapperAdapterContract extends AbstractAdapterContract<
 > {
   #balancerPoolToken?: Address;
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(

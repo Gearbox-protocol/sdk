@@ -1,7 +1,7 @@
 import { type Address, decodeAbiParameters } from "viem";
 import {
-  type ConstructOptions,
   MissingSerializedParamsError,
+  type OnchainSDK,
 } from "../../../sdk/index.js";
 import { iCurveV1_2AssetsAdapterAbi } from "../abi/adapters/index.js";
 import { iCurvePool_2Abi, iCurvePoolAbi } from "../abi/targetContractAbi.js";
@@ -25,8 +25,8 @@ export class Curve2AssetsAdapterContract extends AbstractCurveAdapterContract<
   #tokens?: [Address, Address];
   #underlyings?: [Address, Address, Address, Address];
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(

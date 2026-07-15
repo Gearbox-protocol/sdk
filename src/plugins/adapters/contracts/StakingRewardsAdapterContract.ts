@@ -5,8 +5,8 @@ import {
 } from "viem";
 import {
   type AssetsMap,
-  type ConstructOptions,
   MissingSerializedParamsError,
+  type OnchainSDK,
 } from "../../../sdk/index.js";
 import { iStakingRewardsAdapterAbi } from "../abi/adapters/index.js";
 import { iStakingRewardsAbi } from "../abi/targetContractAbi.js";
@@ -28,8 +28,8 @@ export class StakingRewardsAdapterContract extends AbstractAdapterContract<
   #stakedPhantomToken?: Address;
   #referral?: number;
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const version = Number(args.baseParams.version);

@@ -1,8 +1,8 @@
 import { isHex } from "viem";
 
 import type {
-  ConstructOptions,
   IBaseContract,
+  OnchainSDK,
   RelaxedBaseParams,
 } from "../../sdk/index.js";
 import { bytes32ToString } from "../../sdk/index.js";
@@ -54,7 +54,7 @@ export interface AdapterFactoryArgs {
 }
 
 export function createAdapter(
-  options: ConstructOptions,
+  sdk: OnchainSDK,
   data: AdapterFactoryArgs,
   strict?: boolean,
 ): IBaseContract {
@@ -65,88 +65,88 @@ export function createAdapter(
 
   switch (adapterType) {
     case "ADAPTER::ACCOUNT_MIGRATOR":
-      return new AccountMigratorAdapterContract(options, data);
+      return new AccountMigratorAdapterContract(sdk, data);
     case "ADAPTER::BALANCER_V3_ROUTER":
-      return new BalancerV3RouterAdapterContract(options, data);
+      return new BalancerV3RouterAdapterContract(sdk, data);
     case "ADAPTER::BALANCER_V3_WRAPPER":
-      return new BalancerV3WrapperAdapterContract(options, data);
+      return new BalancerV3WrapperAdapterContract(sdk, data);
     case "ADAPTER::CAMELOT_V3_ROUTER":
-      return new CamelotV3AdapterContract(options, data);
+      return new CamelotV3AdapterContract(sdk, data);
     case "ADAPTER::CURVE_STABLE_NG":
-      return new CurveV1StableNGAdapterContract(options, data);
+      return new CurveV1StableNGAdapterContract(sdk, data);
     case "ADAPTER::CURVE_V1_2ASSETS":
-      return new Curve2AssetsAdapterContract(options, data);
+      return new Curve2AssetsAdapterContract(sdk, data);
     case "ADAPTER::CURVE_V1_3ASSETS":
-      return new Curve3AssetsAdapterContract(options, data);
+      return new Curve3AssetsAdapterContract(sdk, data);
     case "ADAPTER::CURVE_V1_4ASSETS":
-      return new Curve4AssetsAdapterContract(options, data);
+      return new Curve4AssetsAdapterContract(sdk, data);
     case "ADAPTER::CURVE_V1_STECRV_POOL":
-      return new CurveV1AdapterStETHContract(options, data);
+      return new CurveV1AdapterStETHContract(sdk, data);
     case "ADAPTER::CVX_V1_BASE_REWARD_POOL":
-      return new ConvexV1BaseRewardPoolAdapterContract(options, data);
+      return new ConvexV1BaseRewardPoolAdapterContract(sdk, data);
     case "ADAPTER::CVX_V1_BOOSTER":
-      return new ConvexV1BoosterAdapterContract(options, data);
+      return new ConvexV1BoosterAdapterContract(sdk, data);
     case "ADAPTER::DAI_USDS_EXCHANGE":
-      return new DaiUsdsAdapterContract(options, data);
+      return new DaiUsdsAdapterContract(sdk, data);
     case "ADAPTER::ERC4626_VAULT":
-      return new ERC4626AdapterContract(options, data);
+      return new ERC4626AdapterContract(sdk, data);
     case "ADAPTER::ERC4626_VAULT_REFERRAL":
-      return new ERC4626ReferralAdapterContract(options, data);
+      return new ERC4626ReferralAdapterContract(sdk, data);
     case "ADAPTER::FLUID_DEX":
-      return new FluidDexAdapterContract(options, data);
+      return new FluidDexAdapterContract(sdk, data);
     case "ADAPTER::INFINIFI_GATEWAY":
-      return new InfinifiGatewayAdapterContract(options, data);
+      return new InfinifiGatewayAdapterContract(sdk, data);
     case "ADAPTER::INFINIFI_UNWINDING":
-      return new InfinifiUnwindingGatewayAdapterContract(options, data);
+      return new InfinifiUnwindingGatewayAdapterContract(sdk, data);
     case "ADAPTER::KELP_DEPOSIT_POOL":
-      return new KelpLRTDepositPoolAdapterContract(options, data);
+      return new KelpLRTDepositPoolAdapterContract(sdk, data);
     case "ADAPTER::KELP_WITHDRAWAL":
-      return new KelpLRTWithdrawalManagerAdapterContract(options, data);
+      return new KelpLRTWithdrawalManagerAdapterContract(sdk, data);
     case "ADAPTER::LIDO_V1":
-      return new LidoV1AdapterContract(options, data);
+      return new LidoV1AdapterContract(sdk, data);
     case "ADAPTER::LIDO_WSTETH_V1":
-      return new WstETHV1AdapterContract(options, data);
+      return new WstETHV1AdapterContract(sdk, data);
     case "ADAPTER::MELLOW_CLAIMER":
-      return new MellowClaimerAdapterContract(options, data);
+      return new MellowClaimerAdapterContract(sdk, data);
     case "ADAPTER::MELLOW_DVV":
-      return new MellowDVVAdapterContract(options, data);
+      return new MellowDVVAdapterContract(sdk, data);
     case "ADAPTER::MELLOW_ERC4626_VAULT":
-      return new MellowERC4626VaultAdapterContract(options, data);
+      return new MellowERC4626VaultAdapterContract(sdk, data);
     case "ADAPTER::MELLOW_WRAPPER":
-      return new MellowWrapperAdapterContract(options, data);
+      return new MellowWrapperAdapterContract(sdk, data);
     case "ADAPTER::MIDAS_GATEWAY":
-      return new MidasGatewayAdapterContract(options, data);
+      return new MidasGatewayAdapterContract(sdk, data);
     case "ADAPTER::MIDAS_ISSUANCE_VAULT":
-      return new MidasIssuanceVaultAdapterContract(options, data);
+      return new MidasIssuanceVaultAdapterContract(sdk, data);
     case "ADAPTER::MIDAS_REDEMPTION_VAULT":
-      return new MidasRedemptionVaultAdapterContract(options, data);
+      return new MidasRedemptionVaultAdapterContract(sdk, data);
     case "ADAPTER::PENDLE_ROUTER":
-      return new PendleRouterAdapterContract(options, data);
+      return new PendleRouterAdapterContract(sdk, data);
     case "ADAPTER::SECURITIZE_ONRAMP":
-      return new SecuritizeOnRampAdapterContract(options, data);
+      return new SecuritizeOnRampAdapterContract(sdk, data);
     case "ADAPTER::SECURITIZE_REDEMPTION":
-      return new SecuritizeRedemptionGatewayAdapterContract(options, data);
+      return new SecuritizeRedemptionGatewayAdapterContract(sdk, data);
     case "ADAPTER::STAKING_REWARDS":
-      return new StakingRewardsAdapterContract(options, data);
+      return new StakingRewardsAdapterContract(sdk, data);
     case "ADAPTER::TRADERJOE_ROUTER":
-      return new TraderJoeRouterAdapterContract(options, data);
+      return new TraderJoeRouterAdapterContract(sdk, data);
     case "ADAPTER::UNISWAP_V2_ROUTER":
-      return new UniswapV2AdapterContract(options, data);
+      return new UniswapV2AdapterContract(sdk, data);
     case "ADAPTER::UNISWAP_V3_ROUTER":
-      return new UniswapV3AdapterContract(options, data);
+      return new UniswapV3AdapterContract(sdk, data);
     case "ADAPTER::UNISWAP_V4_GATEWAY":
-      return new UniswapV4AdapterContract(options, data);
+      return new UniswapV4AdapterContract(sdk, data);
     case "ADAPTER::UPSHIFT_VAULT":
-      return new UpshiftVaultAdapterContract(options, data);
+      return new UpshiftVaultAdapterContract(sdk, data);
     case "ADAPTER::VELODROME_V2_ROUTER":
-      return new VelodromeV2RouterAdapterContract(options, data);
+      return new VelodromeV2RouterAdapterContract(sdk, data);
     default: {
       if (strict) {
         throw new Error(
           `Adapter type ${adapterType} not supported for adapter at ${data.baseParams.addr}`,
         );
       }
-      return new AbstractAdapterContract(options, {
+      return new AbstractAdapterContract(sdk, {
         ...data,
         abi: [],
         protocolAbi: [],

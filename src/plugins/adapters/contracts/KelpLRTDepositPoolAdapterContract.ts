@@ -5,8 +5,8 @@ import {
 } from "viem";
 import {
   type AssetsMap,
-  type ConstructOptions,
   MissingSerializedParamsError,
+  type OnchainSDK,
 } from "../../../sdk/index.js";
 import {
   iKelpLrtDepositPoolAdapterAbi,
@@ -27,8 +27,8 @@ export class KelpLRTDepositPoolAdapterContract extends AbstractAdapterContract<
 > {
   #allowedAssets?: Address[];
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(

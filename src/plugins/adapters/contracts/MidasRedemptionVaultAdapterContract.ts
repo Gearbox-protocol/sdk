@@ -5,8 +5,8 @@ import {
 } from "viem";
 import {
   type AssetsMap,
-  type ConstructOptions,
   MissingSerializedParamsError,
+  type OnchainSDK,
 } from "../../../sdk/index.js";
 import {
   iMidasRedemptionVaultAdapterV310Abi,
@@ -29,8 +29,8 @@ export class MidasRedemptionVaultAdapterContract extends AbstractAdapterContract
   #mToken?: Address;
   #allowedTokens?: { token: Address; phantomToken: Address }[];
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(

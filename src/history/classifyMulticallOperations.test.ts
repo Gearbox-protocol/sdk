@@ -1,13 +1,11 @@
 import type { Address, Hex } from "viem";
 import {
-  createPublicClient,
   custom,
   encodeAbiParameters,
   getAddress,
   padHex,
   zeroAddress,
 } from "viem";
-import { mainnet } from "viem/chains";
 import { describe, expect, it } from "vitest";
 import {
   type CallTrace,
@@ -21,8 +19,9 @@ import {
 import type { TokenTransfer } from "../preview/parse/index.js";
 import {
   AddressMap,
-  ChainContractsRegister,
+  type ChainContractsRegister,
   CreditFacadeV310BaseContract,
+  OnchainSDK,
   type ParsedCallV2,
 } from "../sdk/index.js";
 import { classifyMulticallOperations } from "./classifyMulticallOperations.js";
@@ -114,48 +113,34 @@ function makeParsed(
 }
 
 function setupRegister(): ChainContractsRegister {
-  const client = createPublicClient({
-    chain: mainnet,
+  // SDK stub
+  const sdk = new OnchainSDK("Mainnet", {
     transport: custom({
-      request: () => {
+      request: async () => {
         throw new Error("not implemented");
       },
     }),
   });
+  sdk.resetContracts();
 
-  const register = new ChainContractsRegister(client);
-  register.resetContracts();
+  new UniswapV3AdapterContract(sdk, {
+    baseParams: { ...adapterBase, addr: ADAPTER_UNI },
+  });
 
-  new UniswapV3AdapterContract(
-    { register },
-    {
-      baseParams: { ...adapterBase, addr: ADAPTER_UNI },
-    },
-  );
+  new Curve2AssetsAdapterContract(sdk, {
+    baseParams: { ...adapterBase, addr: ADAPTER_CURVE },
+  });
 
-  new Curve2AssetsAdapterContract(
-    { register },
-    {
-      baseParams: { ...adapterBase, addr: ADAPTER_CURVE },
-    },
-  );
+  new WstETHV1AdapterContract(sdk, {
+    baseParams: { ...adapterBase, addr: ADAPTER_WSTETH },
+  });
 
-  new WstETHV1AdapterContract(
-    { register },
-    {
-      baseParams: { ...adapterBase, addr: ADAPTER_WSTETH },
-    },
-  );
+  new CreditFacadeV310BaseContract(sdk, {
+    addr: FACADE,
+    name: "CreditFacade",
+  });
 
-  new CreditFacadeV310BaseContract(
-    { register },
-    {
-      addr: FACADE,
-      name: "CreditFacade",
-    },
-  );
-
-  return register;
+  return sdk;
 }
 
 const swapTransfers: TokenTransfer[] = [

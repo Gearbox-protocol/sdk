@@ -6,8 +6,8 @@ import {
 } from "viem";
 import {
   type AssetsMap,
-  type ConstructOptions,
   MissingSerializedParamsError,
+  type OnchainSDK,
   type ParsedCallV2,
 } from "../../../sdk/index.js";
 import { iConvexV1BaseRewardPoolAdapterAbi } from "../abi/adapters/index.js";
@@ -41,8 +41,8 @@ export class ConvexV1BaseRewardPoolAdapterContract extends AbstractAdapterContra
   #stakedPhantomToken?: Address;
   #extraRewards?: [Address, Address, Address, Address];
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(

@@ -3,7 +3,7 @@ import {
   type DecodeFunctionDataReturnType,
   decodeAbiParameters,
 } from "viem";
-import type { AssetsMap, ConstructOptions } from "../../../sdk/index.js";
+import type { AssetsMap, OnchainSDK } from "../../../sdk/index.js";
 import { formatBN, MissingSerializedParamsError } from "../../../sdk/index.js";
 import { iUniswapV3AdapterAbi } from "../abi/adapters/index.js";
 import { iUniswapV3Abi } from "../abi/targetContractAbi.js";
@@ -26,8 +26,8 @@ export class UniswapV3AdapterContract extends AbstractAdapterContract<
     fee: number;
   }[];
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(

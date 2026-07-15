@@ -5,8 +5,8 @@ import {
 } from "viem";
 import {
   type AssetsMap,
-  type ConstructOptions,
   MissingSerializedParamsError,
+  type OnchainSDK,
 } from "../../../sdk/index.js";
 import { iFluidDexAdapterAbi } from "../abi/adapters/index.js";
 import { iFluidDexAbi } from "../abi/targetContractAbi.js";
@@ -26,8 +26,8 @@ export class FluidDexAdapterContract extends AbstractAdapterContract<
   #token0?: Address;
   #token1?: Address;
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(

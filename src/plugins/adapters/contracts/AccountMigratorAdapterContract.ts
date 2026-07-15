@@ -1,6 +1,6 @@
 import { accountMigratorAbi } from "../../../abi/AccountMigrator.js";
 import type { CallTrace } from "../../../common-utils/utils/trace.js";
-import type { ConstructOptions, ParsedCallV2 } from "../../../sdk/index.js";
+import type { OnchainSDK, ParsedCallV2 } from "../../../sdk/index.js";
 import type {
   LegacyAdapterOperation,
   Transfers,
@@ -19,8 +19,8 @@ export class AccountMigratorAdapterContract extends AbstractAdapterContract<
   abi,
   protocolAbi
 > {
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
   }
 
   /** Legacy adapter not present in integrations-v3. */

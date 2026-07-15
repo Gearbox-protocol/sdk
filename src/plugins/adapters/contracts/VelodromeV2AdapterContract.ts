@@ -3,7 +3,7 @@ import {
   type DecodeFunctionDataReturnType,
   decodeAbiParameters,
 } from "viem";
-import type { AssetsMap, ConstructOptions } from "../../../sdk/index.js";
+import type { AssetsMap, OnchainSDK } from "../../../sdk/index.js";
 import { MissingSerializedParamsError } from "../../../sdk/index.js";
 import { iVelodromeV2RouterAdapterAbi } from "../abi/adapters/index.js";
 import { iVelodromeV2RouterAbi } from "../abi/targetContractAbi.js";
@@ -27,8 +27,8 @@ export class VelodromeV2RouterAdapterContract extends AbstractAdapterContract<
     factory: Address;
   }[];
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(

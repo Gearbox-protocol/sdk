@@ -5,7 +5,7 @@ import {
 } from "viem";
 import type {
   AssetsMap,
-  ConstructOptions,
+  OnchainSDK,
   ParsedCallV2,
 } from "../../../sdk/index.js";
 import { formatBN, MissingSerializedParamsError } from "../../../sdk/index.js";
@@ -34,8 +34,8 @@ export class UniswapV2AdapterContract extends AbstractAdapterContract<
     token1: Address;
   }[];
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(

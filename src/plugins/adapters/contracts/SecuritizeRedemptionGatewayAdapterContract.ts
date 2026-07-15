@@ -5,8 +5,8 @@ import {
 } from "viem";
 import {
   type AssetsMap,
-  type ConstructOptions,
   MissingSerializedParamsError,
+  type OnchainSDK,
 } from "../../../sdk/index.js";
 import { iSecuritizeRedemptionGatewayAdapterV311Abi } from "../abi/adapters/iSecuritizeRedemptionGatewayAdapterV311.js";
 import { iSecuritizeRedemptionGatewayV311Abi } from "../abi/securitize/iSecuritizeRedemptionGatewayV311.js";
@@ -27,8 +27,8 @@ export class SecuritizeRedemptionGatewayAdapterContract extends AbstractAdapterC
   #stableCoinToken?: Address;
   #redemptionPhantomToken?: Address;
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(

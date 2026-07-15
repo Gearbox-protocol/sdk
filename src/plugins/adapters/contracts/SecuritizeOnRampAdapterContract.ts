@@ -5,8 +5,8 @@ import {
 } from "viem";
 import {
   type AssetsMap,
-  type ConstructOptions,
   MissingSerializedParamsError,
+  type OnchainSDK,
 } from "../../../sdk/index.js";
 import { iSecuritizeOnRampAdapterV310Abi } from "../abi/adapters/iSecuritizeOnRampAdapterV310.js";
 import { iBaseOnRampAbi } from "../abi/securitize/iBaseOnRamp.js";
@@ -27,8 +27,8 @@ export class SecuritizeOnRampAdapterContract extends AbstractAdapterContract<
   #dsToken?: Address;
   #liquidityToken?: Address;
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(

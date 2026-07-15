@@ -13,7 +13,7 @@ import {
 } from "../../../common-utils/utils/trace.js";
 import type {
   AssetsMap,
-  ConstructOptions,
+  OnchainSDK,
   ParsedCallV2,
   RelaxedBaseParams,
 } from "../../../sdk/index.js";
@@ -55,15 +55,17 @@ export class AbstractAdapterContract<
 > extends BaseContract<abi> {
   readonly #targetContract?: Address;
   readonly #creditManager?: Address;
+  readonly #sdk: OnchainSDK;
 
   public readonly protocolAbi: protocolAbi;
 
   constructor(
-    options: ConstructOptions,
+    sdk: OnchainSDK,
     args: AbstractAdapterContractOptions<abi, protocolAbi>,
   ) {
     const { baseParams, protocolAbi, ...rest } = args;
-    super(options, { ...rest, ...baseParams });
+    super(sdk, { ...rest, ...baseParams });
+    this.#sdk = sdk;
     this.protocolAbi = protocolAbi;
 
     if (baseParams.serializedParams) {
@@ -74,6 +76,13 @@ export class AbstractAdapterContract<
       this.#creditManager = cm;
       this.#targetContract = tc;
     }
+  }
+
+  /**
+   * The SDK instance this adapter belongs to.
+   */
+  protected get sdk(): OnchainSDK {
+    return this.#sdk;
   }
 
   public get targetContract(): Address {
