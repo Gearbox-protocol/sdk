@@ -279,45 +279,55 @@ async function fulfillSecuritizeWithdrawal(
       },
     ],
   });
+  // claimed redeemers stay in `getRedeemers` forever with zero redemption
+  // value, so only unclaimed ones matter here (matches the subcompressor's
+  // `_getPendingWithdrawals` which iterates `getUnclaimedRedeemers`)
   const redeemers = await anvil.readContract({
     address: redemptionGateway,
     abi: securitizeRedemptionGatewayAbi,
-    functionName: "getRedeemers",
+    functionName: "getUnclaimedRedeemers",
     args: [creditAccount],
   });
   logger?.debug(
-    `securitize: gateway ${redemptionGateway}, stablecoin ${stableCoinToken}, ${redeemers.length} redeemers`,
+    `securitize: gateway ${redemptionGateway}, stablecoin ${stableCoinToken}, ${redeemers.length} unclaimed redeemers`,
   );
   if (redeemers.length === 0) {
     logger?.warn(
-      `securitize: no redeemers found for credit account ${creditAccount}`,
+      `securitize: no unclaimed redeemers found for credit account ${creditAccount}`,
     );
     return;
   }
 
-  const redeemer = redeemers[0];
-  const [redemptionValue, redeemerBalance] = await anvil.multicall({
-    allowFailure: false,
-    contracts: [
-      {
-        address: redeemer,
-        abi: securitizeRedeemerAbi,
-        functionName: "getCurrentRedemptionValue",
-      },
-      {
-        address: stableCoinToken,
-        abi: erc20Abi,
-        functionName: "balanceOf",
-        args: [redeemer],
-      },
-    ],
-  });
-  logger?.debug(
-    `securitize: dealing ${redemptionValue} of stablecoin ${stableCoinToken} to redeemer ${redeemer}`,
-  );
-  await anvil.deal({
-    erc20: stableCoinToken,
-    account: redeemer,
-    amount: redeemerBalance + redemptionValue,
-  });
+  for (const redeemer of redeemers) {
+    const [redemptionValue, redeemerBalance] = await anvil.multicall({
+      allowFailure: false,
+      contracts: [
+        {
+          address: redeemer,
+          abi: securitizeRedeemerAbi,
+          functionName: "getCurrentRedemptionValue",
+        },
+        {
+          address: stableCoinToken,
+          abi: erc20Abi,
+          functionName: "balanceOf",
+          args: [redeemer],
+        },
+      ],
+    });
+    if (redemptionValue === 0n) {
+      logger?.debug(
+        `securitize: skipping redeemer ${redeemer} with zero redemption value`,
+      );
+      continue;
+    }
+    logger?.debug(
+      `securitize: dealing ${redemptionValue} of stablecoin ${stableCoinToken} to redeemer ${redeemer}`,
+    );
+    await anvil.deal({
+      erc20: stableCoinToken,
+      account: redeemer,
+      amount: redeemerBalance + redemptionValue,
+    });
+  }
 }
