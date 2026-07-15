@@ -417,9 +417,13 @@ export type AssembleStartDelayedWithdrawalCallsProps = {
    */
   creditFacade: Address;
   /**
-   * Withdrawal preview: `outputs` for expected balances, `requestCalls` for the body.
+   * Withdrawal preview: `outputs` for expected balances, `token`/`amountIn`
+   * for the negative source-token delta, `requestCalls` for the body.
    */
-  preview: Pick<RequestableWithdrawal, "outputs" | "requestCalls">;
+  preview: Pick<
+    RequestableWithdrawal,
+    "outputs" | "requestCalls" | "token" | "amountIn"
+  >;
 };
 
 /**
@@ -431,9 +435,14 @@ export type AssembleClaimDelayedCallsProps = {
    */
   creditFacade: Address;
   /**
-   * Claimable withdrawal: `outputs` for expected balances, `claimCalls` for the body.
+   * Claimable withdrawal: `outputs` for expected balances,
+   * `withdrawalPhantomToken`/`withdrawalTokenSpent` for the negative
+   * phantom-burn delta, `claimCalls` for the body.
    */
-  claimableNow: Pick<ClaimableWithdrawal, "outputs" | "claimCalls">;
+  claimableNow: Pick<
+    ClaimableWithdrawal,
+    "outputs" | "claimCalls" | "withdrawalPhantomToken" | "withdrawalTokenSpent"
+  >;
 };
 
 export interface StartDelayedWithdrawalProps extends PrepareUpdateQuotasProps {
@@ -1009,6 +1018,11 @@ export interface ICreditAccountsService extends Construct {
    * Same balance bracket as {@link startDelayedWithdrawal}:
    * `storeExpectedBalances` → `preview.requestCalls` → `compareBalances`.
    *
+   * Besides the positive output deltas, the bracket carries a negative delta
+   * of the spent source token (`preview.token` / `-preview.amountIn`). It
+   * makes the input-side balance decrease previewable from the calldata alone and lets
+   * `compareBalances` assert the balance doesn't drop by more than predicted.
+   *
    * Does not prepend price updates and does not build the facade transaction.
    *
    * @param props - {@link AssembleStartDelayedWithdrawalCallsProps}
@@ -1024,6 +1038,12 @@ export interface ICreditAccountsService extends Construct {
    *
    * Same balance bracket as {@link claimDelayed}:
    * `storeExpectedBalances` → `claimableNow.claimCalls` → `compareBalances`.
+   *
+   * Besides the positive output deltas, the bracket carries a negative delta
+   * of the burned withdrawal phantom token (`claimableNow.withdrawalPhantomToken`
+   * / `-claimableNow.withdrawalTokenSpent`). It makes the phantom burn
+   * previewable from the calldata alone and lets `compareBalances` assert the
+   * balance doesn't drop by more than predicted.
    *
    * Does not prepend price updates, does not update quotas, and does not build
    * the facade transaction. Use for resume / intent assembly where claim is

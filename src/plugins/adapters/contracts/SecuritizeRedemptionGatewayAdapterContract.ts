@@ -83,9 +83,12 @@ export class SecuritizeRedemptionGatewayAdapterContract extends AbstractAdapterC
     decoded: DecodeFunctionDataReturnType<abi>,
   ): Promise<void> {
     switch (decoded.functionName) {
+      // no-op:
+      // `redeem` is only emitted by the withdrawal compressor, and
+      // sdk now encodes the spent DS token amount as a negative storeExpectedBalances delta
       case "redeem": {
-        const [dsTokenAmount] = decoded.args;
-        this.spendExact(balances, this.dsToken, dsTokenAmount);
+        // const [dsTokenAmount] = decoded.args;
+        // this.spendExact(balances, this.dsToken, dsTokenAmount);
         break;
       }
       // diff-style redemption: spends the DS token down to the leftover
@@ -94,14 +97,13 @@ export class SecuritizeRedemptionGatewayAdapterContract extends AbstractAdapterC
         this.setLeftover(balances, this.dsToken, leftoverAmount);
         break;
       }
-      // TODO:
-      // `claim(address[] redeemers)` (the claim call emitted by the
-      // withdrawal compressor) cannot be previewed offline: the redemption
-      // phantom token burn (the compressor's `withdrawalTokenSpent`, i.e.
-      // each redeemer's `getRedemptionAmount()`) lives in per-redeemer clone
-      // contracts and is not recoverable from calldata. For claimable
-      // redeemers it equals the stablecoin credit, but that value is not in
-      // calldata either.
+      // no-op:
+      // the redemption phantom token burn of a `claim(address[])` is
+      // not recoverable from calldata (it lives in per-redeemer clone
+      // contracts, `SecuritizeRedeemer.getRedemptionAmount()`); instead,
+      // sdk now encodes it as a negative storeExpectedBalances delta.
+      case "claim":
+        break;
       default:
         await super.applyBalanceChanges(balances, decoded);
     }

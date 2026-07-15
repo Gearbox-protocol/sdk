@@ -1126,17 +1126,27 @@ export class CreditAccountsServiceV310
     }, {});
     const balances = Object.entries(record).filter(([, a]) => a > 10n);
 
+    const deltas: Array<{ token: Address; amount: bigint }> = balances.map(
+      ([token, amount]) => ({
+        token: token as Address,
+        amount: amount > 10n ? amount - 10n : 0n,
+      }),
+    );
+    // The negative delta of the spent source token makes the input-side
+    // balance decrease previewable from the multicall calldata alone; without
+    // it, adapter previewBalanceChanges handlers would need RPC calls to
+    // recover the spent token/amount, since the calldata does not carry
+    // sufficient info.
+    if (preview.amountIn > 0n) {
+      deltas.push({ token: preview.token, amount: -preview.amountIn });
+    }
+
     const storeExpectedBalances: MultiCall = {
       target: creditFacade,
       callData: encodeFunctionData({
         abi: iCreditFacadeMulticallV310Abi,
         functionName: "storeExpectedBalances",
-        args: [
-          balances.map(([token, amount]) => ({
-            token: token as Address,
-            amount: amount > 10n ? amount - 10n : 0n,
-          })),
-        ],
+        args: [deltas],
       }),
     };
     const compareBalances: MultiCall = {
@@ -1168,17 +1178,29 @@ export class CreditAccountsServiceV310
     );
     const balances = Object.entries(record).filter(([, a]) => a > 10n);
 
+    const deltas: Array<{ token: Address; amount: bigint }> = balances.map(
+      ([token, amount]) => ({
+        token: token as Address,
+        amount: amount > 10n ? amount - 10n : 0n,
+      }),
+    );
+    // The negative delta of the burned withdrawal phantom token makes the
+    // input-side balance decrease previewable from the multicall calldata
+    // alone; without it, adapter previewBalanceChanges handlers would need
+    // RPC calls to recover the burned amount
+    if (claimableNow.withdrawalTokenSpent > 0n) {
+      deltas.push({
+        token: claimableNow.withdrawalPhantomToken,
+        amount: -claimableNow.withdrawalTokenSpent,
+      });
+    }
+
     const storeExpectedBalances: MultiCall = {
       target: creditFacade,
       callData: encodeFunctionData({
         abi: iCreditFacadeMulticallV310Abi,
         functionName: "storeExpectedBalances",
-        args: [
-          balances.map(([token, amount]) => ({
-            token: token as Address,
-            amount: amount > 10n ? amount - 10n : 0n,
-          })),
-        ],
+        args: [deltas],
       }),
     };
     const compareBalances: MultiCall = {

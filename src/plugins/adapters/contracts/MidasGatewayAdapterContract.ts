@@ -2,7 +2,6 @@ import {
   type Address,
   type DecodeFunctionDataReturnType,
   decodeAbiParameters,
-  isAddressEqual,
 } from "viem";
 import {
   type AssetsMap,
@@ -123,29 +122,28 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
         this.setLeftover(balances, this.mToken, leftoverAmount);
         break;
       }
-      // exact-input redemption request emitted in-bracket by the withdrawal
-      // compressor
+      // no-op:
+      // `redeemRequest` is only emitted by the withdrawal compressor,
+      // and sdk now encodes the spent mToken amount as a negative storeExpectedBalances delta
       case "redeemRequest": {
-        const [, amountMTokenIn] = decoded.args;
-        this.spendExact(balances, this.mToken, amountMTokenIn);
+        // const [, amountMTokenIn] = decoded.args;
+        // this.spendExact(balances, this.mToken, amountMTokenIn);
         break;
       }
-      // claim call emitted by the withdrawal compressor
+      // no-op:
+      // `withdrawFromRedeemer` is only emitted by the withdrawal
+      // compressor, and `assembleClaimDelayedCalls` encodes the phantom token
+      // burn as a negative storeExpectedBalances delta
       case "withdrawFromRedeemer": {
-        const [, tokenOut, amount] = decoded.args;
-        const phantomToken = this.allowedOutputTokens.find(t =>
-          isAddressEqual(t.token, tokenOut),
-        )?.phantomToken;
-        if (!phantomToken) {
-          await super.applyBalanceChanges(balances, decoded);
-          break;
-        }
-        this.spendExact(balances, phantomToken, amount);
-        break;
-      }
-      case "withdrawPhantomToken": {
-        const [token, amount] = decoded.args;
-        this.spendExact(balances, token, amount);
+        // const [, tokenOut, amount] = decoded.args;
+        // const phantomToken = this.allowedOutputTokens.find(t =>
+        //   isAddressEqual(t.token, tokenOut),
+        // )?.phantomToken;
+        // if (!phantomToken) {
+        //   await super.applyBalanceChanges(balances, decoded);
+        //   break;
+        // }
+        // this.spendExact(balances, phantomToken, amount);
         break;
       }
       default:

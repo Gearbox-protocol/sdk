@@ -129,9 +129,18 @@ export class ERC4626AdapterContract extends AbstractAdapterContract<
         this.setLeftover(balances, this.share, leftoverAmount);
         break;
       }
+      // no-op:
+      // the only in-bracket producer of plain `redeem` is the
+      // withdrawal compressor, and sdk now encodes the spent
+      // shares as a negative storeExpectedBalances delta. The router never
+      // emits plain `redeem` — its workers use `redeemDiff` only. If the
+      // router (or another assembler) ever starts emitting in-bracket plain
+      // `redeem` without the negative delta, this case must decrease `share`
+      // by `shares` again (see commented-out lines). Out-of-bracket RWA
+      // wrap/unwrap `redeem` goes through applyRWAWrapUnwrap, not here.
       case "redeem": {
-        const [shares] = decoded.args;
-        this.spendExact(balances, this.share, shares);
+        // const [shares] = decoded.args;
+        // this.spendExact(balances, this.share, shares);
         break;
       }
       // `withdraw`/`deposit`/`mint` stay unsupported: they are not emitted

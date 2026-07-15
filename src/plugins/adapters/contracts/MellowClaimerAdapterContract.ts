@@ -68,19 +68,21 @@ export class MellowClaimerAdapterContract extends AbstractAdapterContract<
       // built from the compressor's outputs
       case "multiAccept":
         break;
-      case "withdrawPhantomToken": {
-        const [token, amount] = decoded.args;
-        this.spendExact(balances, token, amount);
-        break;
-      }
+      // no-op:
+      // `multiAcceptAndClaim` is only emitted by the withdrawal
+      // compressor, and sdk now encodes the spent phantom token
+      // burn as a negative storeExpectedBalances delta. Resolving the phantom
+      // from calldata alone is impossible offline (the multiVault-to-phantom
+      // mapping is not serialized); the commented-out code recovered it via
+      // an RPC lookup.
       case "multiAcceptAndClaim": {
-        const [multiVault, , , , maxAssets] = decoded.args;
-        const phantomToken =
-          await this.sdk.withdrawalCompressor.getWithdrawalPhantomToken(
-            this.creditManager,
-            multiVault,
-          );
-        this.spendExact(balances, phantomToken, maxAssets);
+        // const [multiVault, , , , maxAssets] = decoded.args;
+        // const phantomToken =
+        //   await this.sdk.withdrawalCompressor.getWithdrawalPhantomToken(
+        //     this.creditManager,
+        //     multiVault,
+        //   );
+        // this.spendExact(balances, phantomToken, maxAssets);
         break;
       }
       default:
