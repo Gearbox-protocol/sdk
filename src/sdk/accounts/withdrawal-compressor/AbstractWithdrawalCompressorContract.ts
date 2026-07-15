@@ -130,6 +130,23 @@ export abstract class AbstractWithdrawalCompressorContract<abi extends Abi>
   }
 
   /**
+   * {@inheritDoc IWithdrawalCompressorContract.getWithdrawalPhantomToken}
+   **/
+  public async getWithdrawalPhantomToken(
+    creditManager: Address,
+    token: Address,
+  ): Promise<Address> {
+    const assets = await this.getWithdrawableAssets(creditManager);
+    const asset = assets.find(a => isAddressEqual(a.token, token));
+    if (!asset) {
+      throw new Error(
+        `token ${token} is not withdrawable from credit manager ${creditManager}`,
+      );
+    }
+    return asset.withdrawalPhantomToken;
+  }
+
+  /**
    * {@inheritDoc IWithdrawalCompressorContract.getCurrentWithdrawals}
    **/
   public async getCurrentWithdrawals(
@@ -234,19 +251,14 @@ export abstract class AbstractWithdrawalCompressorContract<abi extends Abi>
       abi: iCreditAccountAbi,
       functionName: "creditManager",
     });
-    const assets = await this.common.read.getWithdrawableAssets([
+    const withdrawalPhantomToken = await this.getWithdrawalPhantomToken(
       creditManager,
-    ]);
-    const asset = assets.find(a => isAddressEqual(a.token, token));
-    if (!asset) {
-      throw new Error(
-        `token ${token} is not withdrawable from credit manager ${creditManager}`,
-      );
-    }
+      token,
+    );
     return this.common.read.getWithdrawalRequestResult([
       creditAccount,
       token,
-      asset.withdrawalPhantomToken,
+      withdrawalPhantomToken,
       amount,
       extraData,
     ]);

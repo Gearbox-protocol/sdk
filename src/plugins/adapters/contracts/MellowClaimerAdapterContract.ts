@@ -73,18 +73,16 @@ export class MellowClaimerAdapterContract extends AbstractAdapterContract<
         this.spendExact(balances, token, amount);
         break;
       }
-      // TODO:
-      // `multiAcceptAndClaim` (the claim call emitted by the withdrawal
-      // compressor) cannot be previewed offline: the burn amount IS in
-      // calldata (`maxAssets` == the compressor's `withdrawalTokenSpent`),
-      // but the withdrawal phantom token to debit cannot be resolved from
-      // the `multiVault` argument. The on-chain adapter only serializes
-      // (creditManager, targetContract, allowedMultiVaults) and drops its
-      // `phantomTokenToMultiVault` mapping (unlike Midas/Kelp adapters,
-      // which serialize aligned token/phantom arrays). Resolving it would
-      // require DelayedWithdrawalPlugin state (WithdrawableAsset maps
-      // multiVault -> withdrawalPhantomToken) or a contract-side
-      // `serialize()` fix.
+      case "multiAcceptAndClaim": {
+        const [multiVault, , , , maxAssets] = decoded.args;
+        const phantomToken =
+          await this.sdk.withdrawalCompressor.getWithdrawalPhantomToken(
+            this.creditManager,
+            multiVault,
+          );
+        this.spendExact(balances, phantomToken, maxAssets);
+        break;
+      }
       default:
         await super.applyBalanceChanges(balances, decoded);
     }

@@ -300,6 +300,15 @@ export interface IWithdrawalCompressorContract extends IBaseContract {
     creditManagers?: Address[],
   ): Promise<WithdrawableAsset[]>;
   /**
+   * Resolves the withdrawal phantom token for a withdrawable source token
+   * (e.g. a Mellow multivault share) of the given credit manager.
+   * @throws When the token is not withdrawable from the credit manager.
+   **/
+  getWithdrawalPhantomToken(
+    creditManager: Address,
+    token: Address,
+  ): Promise<Address>;
+  /**
    * Returns claimable and pending delayed withdrawals of the given credit account.
    **/
   getCurrentWithdrawals(creditAccount: Address): Promise<CurrentWithdrawals>;
