@@ -154,10 +154,10 @@ export class ConvexV1BaseRewardPoolAdapterContract extends AbstractAdapterContra
     };
   }
 
-  protected override applyBalanceChanges(
+  protected override async applyBalanceChanges(
     balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): void {
+  ): Promise<void> {
     switch (decoded.functionName) {
       case "stakeDiff": {
         const [leftoverAmount] = decoded.args;
@@ -174,7 +174,7 @@ export class ConvexV1BaseRewardPoolAdapterContract extends AbstractAdapterContra
       case "getReward":
         break;
       default:
-        super.applyBalanceChanges(balances, decoded);
+        await super.applyBalanceChanges(balances, decoded);
     }
   }
 }

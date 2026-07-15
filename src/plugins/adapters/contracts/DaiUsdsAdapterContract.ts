@@ -84,10 +84,10 @@ export class DaiUsdsAdapterContract extends AbstractAdapterContract<
     return super.classifyLegacyOperation(parsed, transfers);
   }
 
-  protected override applyBalanceChanges(
+  protected override async applyBalanceChanges(
     balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): void {
+  ): Promise<void> {
     switch (decoded.functionName) {
       case "daiToUsdsDiff": {
         const [leftoverAmount] = decoded.args;
@@ -100,7 +100,7 @@ export class DaiUsdsAdapterContract extends AbstractAdapterContract<
         break;
       }
       default:
-        super.applyBalanceChanges(balances, decoded);
+        await super.applyBalanceChanges(balances, decoded);
     }
   }
 }

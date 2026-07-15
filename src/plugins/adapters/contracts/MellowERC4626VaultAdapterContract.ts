@@ -124,10 +124,10 @@ export class MellowERC4626VaultAdapterContract extends AbstractAdapterContract<
     return super.classifyLegacyOperation(parsed, transfers);
   }
 
-  protected override applyBalanceChanges(
+  protected override async applyBalanceChanges(
     balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): void {
+  ): Promise<void> {
     // for v<=311 the adapter targets the vault directly and no separate vault
     // address is serialized
     const share = this.#vault ?? this.targetContract;
@@ -148,7 +148,7 @@ export class MellowERC4626VaultAdapterContract extends AbstractAdapterContract<
         break;
       }
       default:
-        super.applyBalanceChanges(balances, decoded);
+        await super.applyBalanceChanges(balances, decoded);
     }
   }
 }

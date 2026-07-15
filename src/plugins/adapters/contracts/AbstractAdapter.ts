@@ -183,7 +183,10 @@ export class AbstractAdapterContract<
    * @throws When the calldata cannot be decoded or the adapter (or the
    * specific function) has no balance-changes support.
    */
-  public previewBalanceChanges(balances: AssetsMap, calldata: Hex): void {
+  public async previewBalanceChanges(
+    balances: AssetsMap,
+    calldata: Hex,
+  ): Promise<void> {
     let decoded: DecodeFunctionDataReturnType<abi>;
     try {
       decoded = decodeFunctionData({ abi: this.abi, data: calldata });
@@ -193,7 +196,7 @@ export class AbstractAdapterContract<
         { cause: e },
       );
     }
-    this.applyBalanceChanges(balances, decoded);
+    await this.applyBalanceChanges(balances, decoded);
   }
 
   /**
@@ -207,10 +210,10 @@ export class AbstractAdapterContract<
    * @param decoded - The viem-decoded adapter call
    * @throws When the adapter (or the specific function) has no balance-changes support
    */
-  protected applyBalanceChanges(
+  protected async applyBalanceChanges(
     _balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): void {
+  ): Promise<void> {
     throw new Error(
       `previewBalanceChanges is not supported for ${decoded.functionName} on ${this.contractType} adapter at ${this.address}`,
     );

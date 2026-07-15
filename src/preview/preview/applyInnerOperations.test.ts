@@ -47,7 +47,10 @@ function stubAdapter(tokenIn: Address, leftover: bigint) {
   const adapter: AbstractAdapterContract<[], []> = Object.create(
     AbstractAdapterContract.prototype,
   );
-  adapter.previewBalanceChanges = (balances: AssetsMap, _calldata: Hex) => {
+  adapter.previewBalanceChanges = async (
+    balances: AssetsMap,
+    _calldata: Hex,
+  ) => {
     balances.upsert(tokenIn, leftover);
   };
   return adapter;
@@ -61,7 +64,7 @@ function stubThrowingAdapter(message: string) {
   const adapter: AbstractAdapterContract<[], []> = Object.create(
     AbstractAdapterContract.prototype,
   );
-  adapter.previewBalanceChanges = () => {
+  adapter.previewBalanceChanges = async () => {
     throw new Error(message);
   };
   return adapter;
@@ -115,12 +118,12 @@ interface ApplyResult {
   error?: OperationPreviewError;
 }
 
-function apply(
+async function apply(
   multicall: InnerOperation[],
   state: InnerOperationsState = makeInnerOperationsState(),
   sdk: SdkWithAdapters = stubSdk(),
-): ApplyResult {
-  const error = applyInnerOperations(sdk, multicall, state);
+): Promise<ApplyResult> {
+  const error = await applyInnerOperations(sdk, multicall, state);
   return { state, error };
 }
 
@@ -140,8 +143,8 @@ function seededState(
 }
 
 describe("applyInnerOperations on zero-seeded state", () => {
-  it("addCollateral increments balances and collateralAdded", () => {
-    const { state } = apply([
+  it("addCollateral increments balances and collateralAdded", async () => {
+    const { state } = await apply([
       { operation: "AddCollateral", token: USDC, amount: 100n },
       { operation: "AddCollateral", token: USDC, amount: 50n },
     ]);
@@ -150,8 +153,8 @@ describe("applyInnerOperations on zero-seeded state", () => {
     expect(state.collateralWithdrawn.size).toBe(0);
   });
 
-  it("increaseDebt increases debt, totalDebt and underlying balance", () => {
-    const { state } = apply([
+  it("increaseDebt increases debt, totalDebt and underlying balance", async () => {
+    const { state } = await apply([
       { operation: "IncreaseBorrowedAmount", token: USDC, amount: 1000n },
     ]);
     expect(state.debt).toBe(1000n);
@@ -159,8 +162,8 @@ describe("applyInnerOperations on zero-seeded state", () => {
     expect(state.balances.get(USDC)).toBe(1000n);
   });
 
-  it("withdrawCollateral with explicit amount decrements balances and increments collateralWithdrawn", () => {
-    const { state } = apply([
+  it("withdrawCollateral with explicit amount decrements balances and increments collateralWithdrawn", async () => {
+    const { state } = await apply([
       { operation: "AddCollateral", token: WETH, amount: 100n },
       {
         operation: "WithdrawCollateral",
@@ -173,8 +176,8 @@ describe("applyInnerOperations on zero-seeded state", () => {
     expect(state.collateralWithdrawn.get(WETH)).toBe(30n);
   });
 
-  it("updateQuota appends one quotaChanges entry per op", () => {
-    const { state } = apply([
+  it("updateQuota appends one quotaChanges entry per op", async () => {
+    const { state } = await apply([
       { operation: "UpdateQuota", token: WETH, change: 100n },
       { operation: "UpdateQuota", token: USDC, change: -50n },
     ]);
@@ -184,9 +187,9 @@ describe("applyInnerOperations on zero-seeded state", () => {
     ]);
   });
 
-  it("bracket: storeExpectedBalances applies deltas, Execute threads leftovers, compareBalances changes nothing", () => {
+  it("bracket: storeExpectedBalances applies deltas, Execute threads leftovers, compareBalances changes nothing", async () => {
     const sdk = stubSdk({ [ADAPTER]: stubAdapter(WETH, 1n) });
-    const { state, error } = apply(
+    const { state, error } = await apply(
       [
         { operation: "AddCollateral", token: WETH, amount: 100n },
         {
@@ -208,8 +211,8 @@ describe("applyInnerOperations on zero-seeded state", () => {
 });
 
 describe("applyInnerOperations on non-zero seeded state", () => {
-  it("withdrawCollateral(MAX_UINT256) withdraws the full running balance", () => {
-    const { state } = apply(
+  it("withdrawCollateral(MAX_UINT256) withdraws the full running balance", async () => {
+    const { state } = await apply(
       [
         {
           operation: "WithdrawCollateral",
@@ -233,8 +236,8 @@ describe("applyInnerOperations on non-zero seeded state", () => {
     expect(state.balances.get(USDC)).toBe(500n);
   });
 
-  it("decreaseDebt(MAX_UINT256) with accrued interest repays totalDebt and zeroes principal", () => {
-    const { state } = apply(
+  it("decreaseDebt(MAX_UINT256) with accrued interest repays totalDebt and zeroes principal", async () => {
+    const { state } = await apply(
       [
         {
           operation: "DecreaseBorrowedAmount",
@@ -250,8 +253,8 @@ describe("applyInnerOperations on non-zero seeded state", () => {
     expect(state.totalDebt).toBe(0n);
   });
 
-  it("partial decreaseDebt with amount <= accrued leaves principal unchanged", () => {
-    const { state } = apply(
+  it("partial decreaseDebt with amount <= accrued leaves principal unchanged", async () => {
+    const { state } = await apply(
       [{ operation: "DecreaseBorrowedAmount", token: USDC, amount: 80n }],
       seededState(
         [
@@ -269,8 +272,8 @@ describe("applyInnerOperations on non-zero seeded state", () => {
     expect(state.balances.get(WSTETH)).toBe(7n);
   });
 
-  it("partial decreaseDebt with amount > accrued reduces principal by the remainder", () => {
-    const { state } = apply(
+  it("partial decreaseDebt with amount > accrued reduces principal by the remainder", async () => {
+    const { state } = await apply(
       [{ operation: "DecreaseBorrowedAmount", token: USDC, amount: 300n }],
       seededState([{ token: USDC, balance: 1200n }], 1000n, 100n),
     );
@@ -280,9 +283,9 @@ describe("applyInnerOperations on non-zero seeded state", () => {
     expect(state.totalDebt).toBe(800n);
   });
 
-  it("bracket on pre-existing balances: delta on top of seeded target, leftover overwrites seeded input", () => {
+  it("bracket on pre-existing balances: delta on top of seeded target, leftover overwrites seeded input", async () => {
     const sdk = stubSdk({ [ADAPTER]: stubAdapter(WETH, 1n) });
-    const { state, error } = apply(
+    const { state, error } = await apply(
       [
         {
           operation: "StoreExpectedBalances",
@@ -314,8 +317,8 @@ describe("applyInnerOperations on non-zero seeded state", () => {
 });
 
 describe("applyInnerOperations on malformed multicalls", () => {
-  it("reports an error on a second storeExpectedBalances/compareBalances pair", () => {
-    const { error } = apply([
+  it("reports an error on a second storeExpectedBalances/compareBalances pair", async () => {
+    const { error } = await apply([
       { operation: "StoreExpectedBalances", deltas: [] },
       { operation: "CompareBalances" },
       { operation: "StoreExpectedBalances", deltas: [] },
@@ -327,8 +330,8 @@ describe("applyInnerOperations on malformed multicalls", () => {
     });
   });
 
-  it("reports an error on compareBalances without a preceding storeExpectedBalances", () => {
-    const { error } = apply([{ operation: "CompareBalances" }]);
+  it("reports an error on compareBalances without a preceding storeExpectedBalances", async () => {
+    const { error } = await apply([{ operation: "CompareBalances" }]);
     expect(error).toEqual({
       code: ERROR_MALFORMED_BRACKET,
       message: expect.stringContaining(
@@ -337,8 +340,8 @@ describe("applyInnerOperations on malformed multicalls", () => {
     });
   });
 
-  it("reports an error on storeExpectedBalances without a matching compareBalances", () => {
-    const { error } = apply([
+  it("reports an error on storeExpectedBalances without a matching compareBalances", async () => {
+    const { error } = await apply([
       { operation: "StoreExpectedBalances", deltas: [] },
     ]);
     expect(error).toEqual({
@@ -349,8 +352,8 @@ describe("applyInnerOperations on malformed multicalls", () => {
     });
   });
 
-  it("reports an error on a bracketed call to a non-adapter target", () => {
-    const { error } = apply([
+  it("reports an error on a bracketed call to a non-adapter target", async () => {
+    const { error } = await apply([
       { operation: "StoreExpectedBalances", deltas: [] },
       execute(),
       { operation: "CompareBalances" },
@@ -361,11 +364,11 @@ describe("applyInnerOperations on malformed multicalls", () => {
     });
   });
 
-  it("reports an error when a bracketed adapter preview throws, with the adapter's message", () => {
+  it("reports an error when a bracketed adapter preview throws, with the adapter's message", async () => {
     const sdk = stubSdk({
       [ADAPTER]: stubThrowingAdapter("cannot decode selector 0xdeadbeef"),
     });
-    const { error } = apply(
+    const { error } = await apply(
       [
         { operation: "StoreExpectedBalances", deltas: [] },
         execute(),
@@ -380,16 +383,16 @@ describe("applyInnerOperations on malformed multicalls", () => {
     });
   });
 
-  it("reports an error on an out-of-bracket adapter call that is not an RWA wrap/unwrap", () => {
+  it("reports an error on an out-of-bracket adapter call that is not an RWA wrap/unwrap", async () => {
     const sdk = stubSdk({ [ADAPTER]: stubAdapter(WETH, 1n) });
-    const { error } = apply([execute()], makeInnerOperationsState(), sdk);
+    const { error } = await apply([execute()], makeInnerOperationsState(), sdk);
     expect(error).toEqual({
       code: ERROR_ADAPTER_CALL_OUTSIDE_BRACKET,
       message: expect.stringContaining("outside of"),
     });
   });
 
-  it("does not report an error on an out-of-bracket RWA wrap/unwrap call", () => {
+  it("does not report an error on an out-of-bracket RWA wrap/unwrap call", async () => {
     const sdk = stubSdk({ [ADAPTER]: stubRWAAdapter(USDC, RWA_SHARE) }, [
       RWA_SHARE,
     ]);
@@ -398,7 +401,7 @@ describe("applyInnerOperations on malformed multicalls", () => {
       functionName: "deposit",
       args: [100n, zeroAddress],
     });
-    const { state, error } = apply(
+    const { state, error } = await apply(
       [
         { operation: "AddCollateral", token: USDC, amount: 500n },
         execute(ADAPTER, calldata),
@@ -412,11 +415,11 @@ describe("applyInnerOperations on malformed multicalls", () => {
     expect(state.balances.get(RWA_SHARE)).toBe(100n);
   });
 
-  it("reports an error on an out-of-bracket RWA wrap/unwrap call with undecodable calldata", () => {
+  it("reports an error on an out-of-bracket RWA wrap/unwrap call with undecodable calldata", async () => {
     const sdk = stubSdk({ [ADAPTER]: stubRWAAdapter(USDC, RWA_SHARE) }, [
       RWA_SHARE,
     ]);
-    const { error } = apply(
+    const { error } = await apply(
       [execute(ADAPTER, "0xdeadbeef")],
       makeInnerOperationsState(),
       sdk,
@@ -427,8 +430,8 @@ describe("applyInnerOperations on malformed multicalls", () => {
     });
   });
 
-  it("keeps applying explicit facade ops after the error is recorded", () => {
-    const { state, error } = apply([
+  it("keeps applying explicit facade ops after the error is recorded", async () => {
+    const { state, error } = await apply([
       execute(),
       { operation: "AddCollateral", token: USDC, amount: 100n },
       { operation: "IncreaseBorrowedAmount", token: USDC, amount: 1000n },
@@ -451,8 +454,8 @@ describe("applyInnerOperations on malformed multicalls", () => {
     expect(state.quotaChanges).toEqual([{ token: WETH, balance: 50n }]);
   });
 
-  it("returns the first detected failure when several occur", () => {
-    const { error } = apply([
+  it("returns the first detected failure when several occur", async () => {
+    const { error } = await apply([
       { operation: "CompareBalances" },
       { operation: "StoreExpectedBalances", deltas: [] },
     ]);

@@ -54,10 +54,10 @@ export class BalancerV3WrapperAdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override applyBalanceChanges(
+  protected override async applyBalanceChanges(
     balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): void {
+  ): Promise<void> {
     switch (decoded.functionName) {
       // mint spends the pool token, burn spends the wrapper (target contract)
       case "mintDiff": {
@@ -71,7 +71,7 @@ export class BalancerV3WrapperAdapterContract extends AbstractAdapterContract<
         break;
       }
       default:
-        super.applyBalanceChanges(balances, decoded);
+        await super.applyBalanceChanges(balances, decoded);
     }
   }
 }

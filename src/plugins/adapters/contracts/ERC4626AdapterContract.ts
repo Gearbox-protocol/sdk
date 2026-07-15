@@ -114,10 +114,10 @@ export class ERC4626AdapterContract extends AbstractAdapterContract<
     return super.classifyLegacyOperation(parsed, transfers);
   }
 
-  protected override applyBalanceChanges(
+  protected override async applyBalanceChanges(
     balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): void {
+  ): Promise<void> {
     switch (decoded.functionName) {
       case "depositDiff": {
         const [leftoverAmount] = decoded.args;
@@ -137,7 +137,7 @@ export class ERC4626AdapterContract extends AbstractAdapterContract<
       // `withdraw`/`deposit`/`mint` stay unsupported: they are not emitted
       // by the router (which uses diff variants) or the withdrawal compressor
       default:
-        super.applyBalanceChanges(balances, decoded);
+        await super.applyBalanceChanges(balances, decoded);
     }
   }
 }

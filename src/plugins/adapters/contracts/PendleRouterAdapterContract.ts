@@ -124,10 +124,10 @@ export class PendleRouterAdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override applyBalanceChanges(
+  protected override async applyBalanceChanges(
     balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): void {
+  ): Promise<void> {
     switch (decoded.functionName) {
       case "swapDiffTokenForPt":
       case "addLiquiditySingleTokenDiff": {
@@ -174,7 +174,7 @@ export class PendleRouterAdapterContract extends AbstractAdapterContract<
         break;
       }
       default:
-        super.applyBalanceChanges(balances, decoded);
+        await super.applyBalanceChanges(balances, decoded);
     }
   }
 

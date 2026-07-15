@@ -67,7 +67,7 @@ export async function previewAdjustCreditAccount<P extends PluginsMap>(
   state.debt = ca.debt;
   state.totalDebt = ca.debt + ca.accruedInterest + ca.accruedFees;
 
-  let error = applyInnerOperations(sdk, operation.multicall, state);
+  let error = await applyInnerOperations(sdk, operation.multicall, state);
 
   const { assets: collateralAdded, error: unwrapError } =
     unwrapNativeCollateral(

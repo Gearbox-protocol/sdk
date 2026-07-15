@@ -57,10 +57,10 @@ export class KelpLRTDepositPoolAdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override applyBalanceChanges(
+  protected override async applyBalanceChanges(
     balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): void {
+  ): Promise<void> {
     switch (decoded.functionName) {
       case "depositAssetDiff": {
         const [tokenIn, leftoverAmount] = decoded.args;
@@ -68,7 +68,7 @@ export class KelpLRTDepositPoolAdapterContract extends AbstractAdapterContract<
         break;
       }
       default:
-        super.applyBalanceChanges(balances, decoded);
+        await super.applyBalanceChanges(balances, decoded);
     }
   }
 }

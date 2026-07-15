@@ -78,10 +78,10 @@ export class SecuritizeRedemptionGatewayAdapterContract extends AbstractAdapterC
     };
   }
 
-  protected override applyBalanceChanges(
+  protected override async applyBalanceChanges(
     balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): void {
+  ): Promise<void> {
     switch (decoded.functionName) {
       case "redeem": {
         const [dsTokenAmount] = decoded.args;
@@ -103,7 +103,7 @@ export class SecuritizeRedemptionGatewayAdapterContract extends AbstractAdapterC
       // redeemers it equals the stablecoin credit, but that value is not in
       // calldata either.
       default:
-        super.applyBalanceChanges(balances, decoded);
+        await super.applyBalanceChanges(balances, decoded);
     }
   }
 }

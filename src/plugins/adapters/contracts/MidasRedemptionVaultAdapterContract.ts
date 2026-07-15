@@ -82,10 +82,10 @@ export class MidasRedemptionVaultAdapterContract extends AbstractAdapterContract
     };
   }
 
-  protected override applyBalanceChanges(
+  protected override async applyBalanceChanges(
     balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): void {
+  ): Promise<void> {
     switch (decoded.functionName) {
       // redemption spends the mToken down to the leftover, tokenOut arg is
       // the received token
@@ -95,7 +95,7 @@ export class MidasRedemptionVaultAdapterContract extends AbstractAdapterContract
         break;
       }
       default:
-        super.applyBalanceChanges(balances, decoded);
+        await super.applyBalanceChanges(balances, decoded);
     }
   }
 }

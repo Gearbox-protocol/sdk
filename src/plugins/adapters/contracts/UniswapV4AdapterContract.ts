@@ -104,10 +104,10 @@ export class UniswapV4AdapterContract extends AbstractAdapterContract<
     return { operation: "UniswapSwap", ...swapFromTransfers(transfers) };
   }
 
-  protected override applyBalanceChanges(
+  protected override async applyBalanceChanges(
     balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): void {
+  ): Promise<void> {
     switch (decoded.functionName) {
       case "swapExactInputSingleDiff": {
         const [poolKey, zeroForOne, leftoverAmount] = decoded.args;
@@ -119,7 +119,7 @@ export class UniswapV4AdapterContract extends AbstractAdapterContract<
         break;
       }
       default:
-        super.applyBalanceChanges(balances, decoded);
+        await super.applyBalanceChanges(balances, decoded);
     }
   }
 }

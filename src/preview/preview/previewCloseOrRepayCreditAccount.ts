@@ -163,7 +163,7 @@ async function replayMulticall<P extends PluginsMap>(
   state.debt = ca.debt;
   state.totalDebt = ca.debt + ca.accruedInterest + ca.accruedFees;
 
-  const error = applyInnerOperations(sdk, operation.multicall, state);
+  const error = await applyInnerOperations(sdk, operation.multicall, state);
 
   return { ca, state, error };
 }

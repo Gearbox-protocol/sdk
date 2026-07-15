@@ -105,10 +105,10 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override applyBalanceChanges(
+  protected override async applyBalanceChanges(
     balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): void {
+  ): Promise<void> {
     switch (decoded.functionName) {
       case "depositInstantDiff": {
         const [tokenIn, leftoverAmount] = decoded.args;
@@ -137,7 +137,7 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
           isAddressEqual(t.token, tokenOut),
         )?.phantomToken;
         if (!phantomToken) {
-          super.applyBalanceChanges(balances, decoded);
+          await super.applyBalanceChanges(balances, decoded);
           break;
         }
         this.spendExact(balances, phantomToken, amount);
@@ -149,7 +149,7 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
         break;
       }
       default:
-        super.applyBalanceChanges(balances, decoded);
+        await super.applyBalanceChanges(balances, decoded);
     }
   }
 }

@@ -74,10 +74,10 @@ export class MidasIssuanceVaultAdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override applyBalanceChanges(
+  protected override async applyBalanceChanges(
     balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): void {
+  ): Promise<void> {
     switch (decoded.functionName) {
       case "depositInstantDiff": {
         const [tokenIn, leftoverAmount] = decoded.args;
@@ -85,7 +85,7 @@ export class MidasIssuanceVaultAdapterContract extends AbstractAdapterContract<
         break;
       }
       default:
-        super.applyBalanceChanges(balances, decoded);
+        await super.applyBalanceChanges(balances, decoded);
     }
   }
 }

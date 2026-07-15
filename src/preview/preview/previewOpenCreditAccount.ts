@@ -22,10 +22,10 @@ import {
 } from "./types.js";
 import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
 
-export function previewOpenCreditAccount<P extends PluginsMap>(
+export async function previewOpenCreditAccount<P extends PluginsMap>(
   input: PreviewOperationInput<P>,
   operation: OpenCreditAccountOperation | RWAOpenCreditAccountOperation,
-): OpenCreditAccountPreview {
+): Promise<OpenCreditAccountPreview> {
   const { sdk, value = 0n } = input;
   const market = sdk.marketRegister.findByCreditManager(
     operation.creditManager,
@@ -33,7 +33,7 @@ export function previewOpenCreditAccount<P extends PluginsMap>(
 
   // Since we open an account, initial balances, debt and quotas are all zero.
   const state = makeInnerOperationsState();
-  let error = applyInnerOperations(sdk, operation.multicall, state);
+  let error = await applyInnerOperations(sdk, operation.multicall, state);
 
   // collateral value is computed before unwrapping since the oracle cannot
   // price the native token. Best-effort: tokens the oracle cannot price

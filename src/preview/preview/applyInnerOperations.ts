@@ -92,11 +92,11 @@ export function makeInnerOperationsState(): InnerOperationsState {
  *
  * @returns `undefined` on success, the error on a malformed multicall.
  */
-export function applyInnerOperations<P extends PluginsMap>(
+export async function applyInnerOperations<P extends PluginsMap>(
   sdk: SdkWithAdapters<P>,
   multicall: InnerOperation[],
   state: InnerOperationsState,
-): OperationPreviewError | undefined {
+): Promise<OperationPreviewError | undefined> {
   // True between `StoreExpectedBalances` and `CompareBalances`
   let inBracket = false;
   let storeSeen = false;
@@ -146,7 +146,7 @@ export function applyInnerOperations<P extends PluginsMap>(
         inBracket = false;
         break;
       case "Execute":
-        opError = applyExecute(sdk, op, inBracket, state.balances);
+        opError = await applyExecute(sdk, op, inBracket, state.balances);
         break;
     }
 
@@ -224,12 +224,12 @@ function applyDecreaseDebt(
  * nothing enforces the outcome of any other out-of-bracket adapter call
  * on-chain, so its effect on balances cannot be previewed.
  */
-function applyExecute<P extends PluginsMap>(
+async function applyExecute<P extends PluginsMap>(
   sdk: SdkWithAdapters<P>,
   op: AdapterOperation,
   inBracket: boolean,
   balances: AssetsMap,
-): OperationPreviewError | undefined {
+): Promise<OperationPreviewError | undefined> {
   const adapter = sdk.getContract(op.adapter);
 
   if (!inBracket) {
@@ -261,7 +261,7 @@ function applyExecute<P extends PluginsMap>(
   }
 
   try {
-    adapter.previewBalanceChanges(balances, op.calldata);
+    await adapter.previewBalanceChanges(balances, op.calldata);
     return undefined;
   } catch (e) {
     return {
