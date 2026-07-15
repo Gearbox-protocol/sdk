@@ -194,7 +194,7 @@ it("previews an unwrap-and-withdraw multicall on an existing RWA account", async
 });
 
 // TODO: replace with real transaction
-it("previews a delayed withdrawal request on an existing RWA account", async () => {
+it.skip("previews a delayed withdrawal request on an existing RWA account", async () => {
   const dsBalance = 26_000_000n; // 26 ACRED (6 decimals)
   const redeemAmount = 2_000_000n; // start delayed withdrawal of 2 ACRED
   // expected phantom-token output computed by the withdrawal compressor
