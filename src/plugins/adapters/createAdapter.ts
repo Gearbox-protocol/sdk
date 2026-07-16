@@ -46,6 +46,7 @@ import {
   VelodromeV2RouterAdapterContract,
   WstETHV1AdapterContract,
 } from "./contracts/index.js";
+import { MidasGatewayAdapterContract } from "./contracts/MidasGatewayAdapterContract.js";
 import { SecuritizeOnRampAdapterContract } from "./contracts/SecuritizeOnRampAdapterContract.js";
 import { SecuritizeRedemptionGatewayAdapterContract } from "./contracts/SecuritizeRedemptionGatewayAdapterContract.js";
 import { SecuritizeSwapAdapterContract } from "./contracts/SecuritizeSwapAdapterContract.js";
@@ -127,6 +128,8 @@ export function createAdapter(
       return new MidasIssuanceVaultAdapterContract(options, data);
     case "ADAPTER::MIDAS_REDEMPTION_VAULT":
       return new MidasRedemptionVaultAdapterContract(options, data);
+    case "ADAPTER::MIDAS_GATEWAY":
+      return new MidasGatewayAdapterContract(options, data);
     case "ADAPTER::PENDLE_ROUTER":
       return new PendleRouterAdapterContract(options, data);
     case "ADAPTER::SECURITIZE_ONRAMP":

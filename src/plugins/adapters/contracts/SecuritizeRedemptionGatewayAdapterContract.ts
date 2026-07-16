@@ -8,11 +8,11 @@ import { iSecuritizeRedemptionGatewayAdapterAbi } from "../abi/securitize/iSecur
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
-// TODO: not yet mered into integrations-v3/main branch
+// TODO: not yet merged into integrations-v3/main branch
 const abi = iSecuritizeRedemptionGatewayAdapterAbi;
 type abi = typeof abi;
 
-// TODO: not yet mered into integrations-v3/main branch
+// TODO: not yet merged into integrations-v3/main branch
 const protocolAbi = iSecuritizeRedemptionGatewayAbi;
 type protocolAbi = typeof protocolAbi;
 

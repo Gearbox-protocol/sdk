@@ -188,6 +188,7 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
   },
   [AdapterType.SECURITIZE_REDEMPTION]: {
     310: PHANTOM_TOKEN_ADAPTER_ABI,
+    311: PHANTOM_TOKEN_ADAPTER_ABI,
   },
 
   // other patterns
@@ -199,5 +200,9 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
 
   [AdapterType.MIDAS_ISSUANCE_VAULT]: {
     310: REFERER_ID_ADAPTER_ABI,
+  },
+
+  [AdapterType.MIDAS_GATEWAY]: {
+    311: REFERER_ID_ADAPTER_ABI,
   },
 } as const;
