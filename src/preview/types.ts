@@ -32,11 +32,7 @@ export interface PreviewOperationInput<P extends PluginsMap = PluginsMap> {
   value?: bigint;
 }
 
-/**
- * Options shared by the preview, simulation and prerequisite-check flows.
- * Each flow uses the subset it needs and ignores the rest.
- */
-export interface PreviewOperationOptions {
+interface PreviewOperationOptionsBase {
   /**
    * Block to read/simulate at; defaults to latest. Only set for testnet
    * forks.
@@ -46,9 +42,27 @@ export interface PreviewOperationOptions {
    * Optional logger.
    **/
   logger?: ILogger;
-  /**
-   * @internal
-   * Credit account state for testing purposes
-   */
-  creditAccount?: CreditAccountData;
 }
+
+/**
+ * Options shared by the preview, simulation and prerequisite-check flows.
+ * Each flow uses the subset it needs and ignores the rest.
+ *
+ * `WithAccount = true` marks options whose credit account state has already
+ * been resolved (internal preview paths on an existing credit account).
+ */
+export type PreviewOperationOptions<WithAccount extends boolean = false> =
+  WithAccount extends true
+    ? PreviewOperationOptionsBase & {
+        /**
+         * Pre-resolved state of the credit account the operation targets
+         */
+        creditAccount: CreditAccountData;
+      }
+    : PreviewOperationOptionsBase & {
+        /**
+         * @internal
+         * Credit account state for testing purposes
+         */
+        creditAccount?: CreditAccountData;
+      };

@@ -1,9 +1,17 @@
 import type { Address, Hex } from "viem";
-import { describe, it } from "vitest";
+import { describe, expectTypeOf, it } from "vitest";
 import { AdaptersPlugin } from "../../plugins/adapters/index.js";
 import { BotsPlugin } from "../../plugins/bots/index.js";
 import { type ClientOptions, OnchainSDK } from "../../sdk/index.js";
 import { previewOperation } from "./previewOperation.js";
+import type {
+  AdjustCreditAccountPreview,
+  CloseCreditAccountPreview,
+  DelayedCreditAccountOperationPreview,
+  InstantOperationPreview,
+  OperationPreview,
+  RepayCreditAccountPreview,
+} from "./types.js";
 
 const to: Address = "0x0000000000000000000000000000000000000001";
 const sender: Address = "0x0000000000000000000000000000000000000002";
@@ -54,5 +62,32 @@ describe("previewOperation sdk typing", () => {
       calldata,
       sender,
     });
+  });
+});
+
+describe("OperationPreview union", () => {
+  it("includes DelayedCreditAccountOperationPreview", () => {
+    expectTypeOf<DelayedCreditAccountOperationPreview>().toExtend<OperationPreview>();
+  });
+
+  it("InstantOperationPreview covers exactly the adjust/close/repay previews", () => {
+    expectTypeOf<InstantOperationPreview>().toEqualTypeOf<
+      | AdjustCreditAccountPreview
+      | CloseCreditAccountPreview
+      | RepayCreditAccountPreview
+    >();
+    expectTypeOf<InstantOperationPreview>().toExtend<OperationPreview>();
+  });
+
+  it("delayed wrapper nests instant previews, not other wrappers", () => {
+    expectTypeOf<
+      DelayedCreditAccountOperationPreview["instantPreview"]
+    >().toEqualTypeOf<InstantOperationPreview>();
+    expectTypeOf<
+      DelayedCreditAccountOperationPreview["delayedPreview"]
+    >().toEqualTypeOf<InstantOperationPreview>();
+    expectTypeOf<DelayedCreditAccountOperationPreview>().not.toExtend<
+      DelayedCreditAccountOperationPreview["instantPreview"]
+    >();
   });
 });

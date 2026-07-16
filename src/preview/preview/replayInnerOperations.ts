@@ -3,21 +3,15 @@ import {
   ERC4626AdapterContract,
   type SdkWithAdapters,
 } from "../../plugins/adapters/index.js";
-import {
-  type Asset,
-  AssetsMap,
-  MAX_UINT256,
-  type PluginsMap,
-} from "../../sdk/index.js";
+import { AssetsMap, MAX_UINT256, type PluginsMap } from "../../sdk/index.js";
 import type {
   AdapterOperation,
   AddCollateralOp,
-  DecreaseDebtOp,
-  IncreaseDebtOp,
   InnerOperation,
   WithdrawCollateralOp,
 } from "../parse/index.js";
 import { applyRWAWrapUnwrap } from "./applyRWAWrapUnwrap.js";
+import type { CreditAccountState } from "./CreditAccountState.js";
 import {
   ERROR_ADAPTER_CALL_OUTSIDE_BRACKET,
   ERROR_MALFORMED_BRACKET,
@@ -29,28 +23,17 @@ import {
 
 /**
  * Running state threaded through a credit-facade multicall by
- * {@link applyInnerOperations}. Seeded by the caller:
- * - account opening: everything zero/empty (the account doesn't exist yet);
- * - account adjustment: `balances` from the account's current token balances,
- *   `debt` from the principal, `totalDebt` from principal + accrued interest +
- *   accrued fees.
+ * {@link replayInnerOperations}: the account's post-state being mutated in
+ * facade execution order, plus per-multicall bookkeeping that is not account
+ * state (what was added from / withdrawn to the wallet).
  */
-export interface InnerOperationsState {
+export interface ReplayState {
   /**
-   * Cumulative credit-account balances, mutated in facade execution order.
+   * Running account state, mutated in facade execution order. Seeded by the
+   * caller: `CreditAccountState.beforeOpen` for account opening, a clone of
+   * `CreditAccountState.fromCreditAccountData` for an existing account.
    */
-  balances: AssetsMap;
-  /**
-   * Debt principal
-   */
-  debt: bigint;
-  /**
-   * Total debt: principal + accrued interest + accrued fees.
-   * `decreaseDebt` amounts operate on total debt (interest and fees are repaid
-   * before principal), so principal alone is not enough to resolve either the
-   * underlying balance decrement or the final principal.
-   */
-  totalDebt: bigint;
+  account: CreditAccountState;
   /**
    * Cumulative amounts added via `addCollateral`.
    */
@@ -60,25 +43,17 @@ export interface InnerOperationsState {
    * resolved against the running balance at the point of the call.
    */
   collateralWithdrawn: AssetsMap;
-  /**
-   * Raw `updateQuota` changes, one entry per op. Entries are relative signed
-   * changes (with the `MIN_INT96` "disable" sentinel kept as-is), not final
-   * quotas: folding them requires pre-state quotas, see `applyQuotaChanges`.
-   */
-  quotaChanges: Asset[];
 }
 
 /**
- * Creates an all-zero {@link InnerOperationsState} (the account-opening seed).
+ * Creates a {@link ReplayState} around the given account seed, with empty
+ * bookkeeping.
  */
-export function makeInnerOperationsState(): InnerOperationsState {
+export function makeReplayState(account: CreditAccountState): ReplayState {
   return {
-    balances: new AssetsMap(),
-    debt: 0n,
-    totalDebt: 0n,
+    account,
     collateralAdded: new AssetsMap(),
     collateralWithdrawn: new AssetsMap(),
-    quotaChanges: [],
   };
 }
 
@@ -92,10 +67,10 @@ export function makeInnerOperationsState(): InnerOperationsState {
  *
  * @returns `undefined` on success, the error on a malformed multicall.
  */
-export async function applyInnerOperations<P extends PluginsMap>(
+export async function replayInnerOperations<P extends PluginsMap>(
   sdk: SdkWithAdapters<P>,
   multicall: InnerOperation[],
-  state: InnerOperationsState,
+  state: ReplayState,
 ): Promise<OperationPreviewError | undefined> {
   // True between `StoreExpectedBalances` and `CompareBalances`
   let inBracket = false;
@@ -112,13 +87,13 @@ export async function applyInnerOperations<P extends PluginsMap>(
         applyWithdrawCollateral(state, op);
         break;
       case "IncreaseBorrowedAmount":
-        applyIncreaseDebt(state, op);
+        state.account.increaseDebt(op.amount);
         break;
       case "DecreaseBorrowedAmount":
-        applyDecreaseDebt(state, op);
+        state.account.repay(op.amount);
         break;
       case "UpdateQuota":
-        state.quotaChanges.push({ token: op.token, balance: op.change });
+        state.account.updateQuota(op.token, op.change);
         break;
       case "StoreExpectedBalances":
         if (inBracket) {
@@ -130,7 +105,7 @@ export async function applyInnerOperations<P extends PluginsMap>(
         inBracket = true;
         // StoreExpectedBalances applies deltas to "tokens out"
         for (const { token, balance } of op.deltas) {
-          state.balances.inc(token, balance);
+          state.account.balances.inc(token, balance);
         }
         break;
       case "CompareBalances":
@@ -144,7 +119,12 @@ export async function applyInnerOperations<P extends PluginsMap>(
         inBracket = false;
         break;
       case "Execute":
-        opError = await applyExecute(sdk, op, inBracket, state.balances);
+        opError = await applyExecute(
+          sdk,
+          op,
+          inBracket,
+          state.account.balances,
+        );
         break;
     }
 
@@ -163,12 +143,9 @@ export async function applyInnerOperations<P extends PluginsMap>(
   return error;
 }
 
-function applyAddCollateral(
-  state: InnerOperationsState,
-  op: AddCollateralOp,
-): void {
+function applyAddCollateral(state: ReplayState, op: AddCollateralOp): void {
   state.collateralAdded.inc(op.token, op.amount);
-  state.balances.inc(op.token, op.amount);
+  state.account.balances.inc(op.token, op.amount);
 }
 
 /**
@@ -176,41 +153,14 @@ function applyAddCollateral(
  * it is resolved against the running balance at the point of the call.
  */
 function applyWithdrawCollateral(
-  state: InnerOperationsState,
+  state: ReplayState,
   op: WithdrawCollateralOp,
 ): void {
-  const running = state.balances.getOrZero(op.token);
+  const running = state.account.balances.getOrZero(op.token);
   const amount =
     op.amount === MAX_UINT256 ? (running > 0n ? running : 0n) : op.amount;
-  state.balances.dec(op.token, amount);
+  state.account.balances.dec(op.token, amount);
   state.collateralWithdrawn.inc(op.token, amount);
-}
-
-function applyIncreaseDebt(
-  state: InnerOperationsState,
-  op: IncreaseDebtOp,
-): void {
-  state.debt += op.amount;
-  state.totalDebt += op.amount;
-  state.balances.inc(op.token, op.amount);
-}
-
-/**
- * The facade clamps the repaid amount to the total debt (principal + accrued
- * interest + fees); `MAX_UINT256` means "repay everything". Interest and fees
- * are repaid before principal (CreditLogic.calcDecrease), so principal only
- * decreases once total debt drops below it.
- */
-function applyDecreaseDebt(
-  state: InnerOperationsState,
-  op: DecreaseDebtOp,
-): void {
-  const repaid = op.amount > state.totalDebt ? state.totalDebt : op.amount;
-  state.balances.dec(op.token, repaid);
-  state.totalDebt -= repaid;
-  if (state.debt > state.totalDebt) {
-    state.debt = state.totalDebt;
-  }
 }
 
 /**

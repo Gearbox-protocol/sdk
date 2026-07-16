@@ -7,19 +7,14 @@ import {
   ERC4626AdapterContract,
   type SdkWithAdapters,
 } from "../../plugins/adapters/index.js";
-import {
-  type Asset,
-  AssetsMap,
-  MAX_UINT256,
-  MIN_INT96,
-} from "../../sdk/index.js";
+import { type Asset, type AssetsMap, MAX_UINT256 } from "../../sdk/index.js";
 import type { InnerOperation } from "../parse/index.js";
+import { CreditAccountState } from "./CreditAccountState.js";
 import {
-  applyInnerOperations,
-  type InnerOperationsState,
-  makeInnerOperationsState,
-} from "./applyInnerOperations.js";
-import { applyQuotaChanges } from "./applyQuotaChanges.js";
+  makeReplayState,
+  type ReplayState,
+  replayInnerOperations,
+} from "./replayInnerOperations.js";
 import {
   ERROR_ADAPTER_CALL_OUTSIDE_BRACKET,
   ERROR_MALFORMED_BRACKET,
@@ -34,6 +29,8 @@ const WETH = getAddress("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2");
 const WSTETH = getAddress("0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0");
 const ADAPTER = getAddress("0x1111111111111111111111111111111111111111");
 const RECEIVER = getAddress("0x2222222222222222222222222222222222222222");
+const CREDIT_ACCOUNT = getAddress("0x4444444444444444444444444444444444444444");
+const CREDIT_MANAGER = getAddress("0x5555555555555555555555555555555555555555");
 // RWA vault share token (an RWA underlying) for the wrap/unwrap exception
 const RWA_SHARE = getAddress("0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D");
 
@@ -113,17 +110,28 @@ function execute(
   };
 }
 
+/** Zeroed replay state around a USDC-underlying account. */
+function zeroState(): ReplayState {
+  return makeReplayState(
+    new CreditAccountState({
+      creditAccount: CREDIT_ACCOUNT,
+      creditManager: CREDIT_MANAGER,
+      underlying: USDC,
+    }),
+  );
+}
+
 interface ApplyResult {
-  state: InnerOperationsState;
+  state: ReplayState;
   error?: OperationPreviewError;
 }
 
 async function apply(
   multicall: InnerOperation[],
-  state: InnerOperationsState = makeInnerOperationsState(),
+  state: ReplayState = zeroState(),
   sdk: SdkWithAdapters = stubSdk(),
 ): Promise<ApplyResult> {
-  const error = await applyInnerOperations(sdk, multicall, state);
+  const error = await replayInnerOperations(sdk, multicall, state);
   return { state, error };
 }
 
@@ -132,23 +140,23 @@ function seededState(
   balances: Asset[],
   debt: bigint,
   accrued: bigint,
-): InnerOperationsState {
-  const state = makeInnerOperationsState();
+): ReplayState {
+  const state = zeroState();
   for (const { token, balance } of balances) {
-    state.balances.upsert(token, balance);
+    state.account.balances.upsert(token, balance);
   }
-  state.debt = debt;
-  state.totalDebt = debt + accrued;
+  state.account.debt = debt;
+  state.account.totalDebt = debt + accrued;
   return state;
 }
 
-describe("applyInnerOperations on zero-seeded state", () => {
+describe("replayInnerOperations on zero-seeded state", () => {
   it("addCollateral increments balances and collateralAdded", async () => {
     const { state } = await apply([
       { operation: "AddCollateral", token: USDC, amount: 100n },
       { operation: "AddCollateral", token: USDC, amount: 50n },
     ]);
-    expect(state.balances.get(USDC)).toBe(150n);
+    expect(state.account.balances.get(USDC)).toBe(150n);
     expect(state.collateralAdded.get(USDC)).toBe(150n);
     expect(state.collateralWithdrawn.size).toBe(0);
   });
@@ -157,9 +165,9 @@ describe("applyInnerOperations on zero-seeded state", () => {
     const { state } = await apply([
       { operation: "IncreaseBorrowedAmount", token: USDC, amount: 1000n },
     ]);
-    expect(state.debt).toBe(1000n);
-    expect(state.totalDebt).toBe(1000n);
-    expect(state.balances.get(USDC)).toBe(1000n);
+    expect(state.account.debt).toBe(1000n);
+    expect(state.account.totalDebt).toBe(1000n);
+    expect(state.account.balances.get(USDC)).toBe(1000n);
   });
 
   it("withdrawCollateral with explicit amount decrements balances and increments collateralWithdrawn", async () => {
@@ -172,19 +180,19 @@ describe("applyInnerOperations on zero-seeded state", () => {
         to: RECEIVER,
       },
     ]);
-    expect(state.balances.get(WETH)).toBe(70n);
+    expect(state.account.balances.get(WETH)).toBe(70n);
     expect(state.collateralWithdrawn.get(WETH)).toBe(30n);
   });
 
-  it("updateQuota appends one quotaChanges entry per op", async () => {
+  it("updateQuota folds changes into the account quotas, clamped at zero", async () => {
     const { state } = await apply([
       { operation: "UpdateQuota", token: WETH, change: 100n },
+      { operation: "UpdateQuota", token: WETH, change: 25n },
       { operation: "UpdateQuota", token: USDC, change: -50n },
     ]);
-    expect(state.quotaChanges).toEqual([
-      { token: WETH, balance: 100n },
-      { token: USDC, balance: -50n },
-    ]);
+    expect(state.account.quotas.get(WETH)).toBe(125n);
+    // negative change on an unquoted token clamps at zero
+    expect(state.account.quotas.get(USDC)).toBe(0n);
   });
 
   it("bracket: storeExpectedBalances applies deltas, Execute threads leftovers, compareBalances changes nothing", async () => {
@@ -199,18 +207,18 @@ describe("applyInnerOperations on zero-seeded state", () => {
         execute(),
         { operation: "CompareBalances" },
       ],
-      makeInnerOperationsState(),
+      zeroState(),
       sdk,
     );
     expect(error).toBeUndefined();
     // delta applied for the target token
-    expect(state.balances.get(WSTETH)).toBe(90n);
+    expect(state.account.balances.get(WSTETH)).toBe(90n);
     // diff-style adapter spent WETH down to 1 wei leftover
-    expect(state.balances.get(WETH)).toBe(1n);
+    expect(state.account.balances.get(WETH)).toBe(1n);
   });
 });
 
-describe("applyInnerOperations on non-zero seeded state", () => {
+describe("replayInnerOperations on non-zero seeded state", () => {
   it("withdrawCollateral(MAX_UINT256) withdraws the full running balance", async () => {
     const { state } = await apply(
       [
@@ -230,10 +238,10 @@ describe("applyInnerOperations on non-zero seeded state", () => {
         0n,
       ),
     );
-    expect(state.balances.get(WETH)).toBe(0n);
+    expect(state.account.balances.get(WETH)).toBe(0n);
     expect(state.collateralWithdrawn.get(WETH)).toBe(75n);
     // seeded token not touched by any op passes through unchanged
-    expect(state.balances.get(USDC)).toBe(500n);
+    expect(state.account.balances.get(USDC)).toBe(500n);
   });
 
   it("decreaseDebt(MAX_UINT256) with accrued interest repays totalDebt and zeroes principal", async () => {
@@ -248,9 +256,9 @@ describe("applyInnerOperations on non-zero seeded state", () => {
       seededState([{ token: USDC, balance: 1200n }], 1000n, 100n),
     );
     // underlying drops by totalDebt = 1100, not by principal
-    expect(state.balances.get(USDC)).toBe(100n);
-    expect(state.debt).toBe(0n);
-    expect(state.totalDebt).toBe(0n);
+    expect(state.account.balances.get(USDC)).toBe(100n);
+    expect(state.account.debt).toBe(0n);
+    expect(state.account.totalDebt).toBe(0n);
   });
 
   it("partial decreaseDebt with amount <= accrued leaves principal unchanged", async () => {
@@ -265,11 +273,11 @@ describe("applyInnerOperations on non-zero seeded state", () => {
         100n,
       ),
     );
-    expect(state.balances.get(USDC)).toBe(1120n);
-    expect(state.debt).toBe(1000n);
-    expect(state.totalDebt).toBe(1020n);
+    expect(state.account.balances.get(USDC)).toBe(1120n);
+    expect(state.account.debt).toBe(1000n);
+    expect(state.account.totalDebt).toBe(1020n);
     // seeded token not touched by any op passes through unchanged
-    expect(state.balances.get(WSTETH)).toBe(7n);
+    expect(state.account.balances.get(WSTETH)).toBe(7n);
   });
 
   it("partial decreaseDebt with amount > accrued reduces principal by the remainder", async () => {
@@ -277,10 +285,10 @@ describe("applyInnerOperations on non-zero seeded state", () => {
       [{ operation: "DecreaseBorrowedAmount", token: USDC, amount: 300n }],
       seededState([{ token: USDC, balance: 1200n }], 1000n, 100n),
     );
-    expect(state.balances.get(USDC)).toBe(900n);
+    expect(state.account.balances.get(USDC)).toBe(900n);
     // 100 repays accrued interest/fees, 200 repays principal
-    expect(state.debt).toBe(800n);
-    expect(state.totalDebt).toBe(800n);
+    expect(state.account.debt).toBe(800n);
+    expect(state.account.totalDebt).toBe(800n);
   });
 
   it("bracket on pre-existing balances: delta on top of seeded target, leftover overwrites seeded input", async () => {
@@ -307,16 +315,16 @@ describe("applyInnerOperations on non-zero seeded state", () => {
     );
     expect(error).toBeUndefined();
     // delta lands on top of the seeded target balance
-    expect(state.balances.get(WSTETH)).toBe(100n);
+    expect(state.account.balances.get(WSTETH)).toBe(100n);
     // diff semantics: input spent down to the calldata leftover regardless of
     // the seeded pre-balance
-    expect(state.balances.get(WETH)).toBe(1n);
+    expect(state.account.balances.get(WETH)).toBe(1n);
     // seeded token not touched by any op passes through unchanged
-    expect(state.balances.get(USDC)).toBe(500n);
+    expect(state.account.balances.get(USDC)).toBe(500n);
   });
 });
 
-describe("applyInnerOperations on malformed multicalls", () => {
+describe("replayInnerOperations on malformed multicalls", () => {
   it("allows multiple sequential storeExpectedBalances/compareBalances brackets", async () => {
     const SECOND_ADAPTER = getAddress(
       "0x3333333333333333333333333333333333333333",
@@ -344,9 +352,9 @@ describe("applyInnerOperations on malformed multicalls", () => {
       sdk,
     );
     expect(error).toBeUndefined();
-    expect(state.balances.get(WETH)).toBe(10n);
-    expect(state.balances.get(WSTETH)).toBe(0n);
-    expect(state.balances.get(USDC)).toBe(50n);
+    expect(state.account.balances.get(WETH)).toBe(10n);
+    expect(state.account.balances.get(WSTETH)).toBe(0n);
+    expect(state.account.balances.get(USDC)).toBe(50n);
   });
 
   it("reports an error on nested storeExpectedBalances/compareBalances brackets", async () => {
@@ -408,7 +416,7 @@ describe("applyInnerOperations on malformed multicalls", () => {
         execute(),
         { operation: "CompareBalances" },
       ],
-      makeInnerOperationsState(),
+      zeroState(),
       sdk,
     );
     expect(error).toEqual({
@@ -419,7 +427,7 @@ describe("applyInnerOperations on malformed multicalls", () => {
 
   it("reports an error on an out-of-bracket adapter call that is not an RWA wrap/unwrap", async () => {
     const sdk = stubSdk({ [ADAPTER]: stubAdapter(WETH, 1n) });
-    const { error } = await apply([execute()], makeInnerOperationsState(), sdk);
+    const { error } = await apply([execute()], zeroState(), sdk);
     expect(error).toEqual({
       code: ERROR_ADAPTER_CALL_OUTSIDE_BRACKET,
       message: expect.stringContaining("outside of"),
@@ -440,13 +448,13 @@ describe("applyInnerOperations on malformed multicalls", () => {
         { operation: "AddCollateral", token: USDC, amount: 500n },
         execute(ADAPTER, calldata),
       ],
-      makeInnerOperationsState(),
+      zeroState(),
       sdk,
     );
     expect(error).toBeUndefined();
     // 1-to-1 wrap applied directly
-    expect(state.balances.get(USDC)).toBe(400n);
-    expect(state.balances.get(RWA_SHARE)).toBe(100n);
+    expect(state.account.balances.get(USDC)).toBe(400n);
+    expect(state.account.balances.get(RWA_SHARE)).toBe(100n);
   });
 
   it("reports an error on an out-of-bracket RWA wrap/unwrap call with undecodable calldata", async () => {
@@ -455,7 +463,7 @@ describe("applyInnerOperations on malformed multicalls", () => {
     ]);
     const { error } = await apply(
       [execute(ADAPTER, "0xdeadbeef")],
-      makeInnerOperationsState(),
+      zeroState(),
       sdk,
     );
     expect(error).toEqual({
@@ -483,75 +491,8 @@ describe("applyInnerOperations on malformed multicalls", () => {
     });
     expect(state.collateralAdded.get(USDC)).toBe(100n);
     expect(state.collateralWithdrawn.get(USDC)).toBe(30n);
-    expect(state.debt).toBe(1000n);
-    expect(state.totalDebt).toBe(1000n);
-    expect(state.quotaChanges).toEqual([{ token: WETH, balance: 50n }]);
-  });
-});
-
-describe("applyQuotaChanges", () => {
-  it("creates a quota on an unquoted token", () => {
-    const { quotas, quotasChange } = applyQuotaChanges(new AssetsMap(), [
-      { token: WETH, balance: 100n },
-    ]);
-    expect(quotas).toEqual([{ token: WETH, balance: 100n }]);
-    expect(quotasChange).toEqual([{ token: WETH, balance: 100n }]);
-  });
-
-  it("adds a positive change to an existing quota", () => {
-    const { quotas, quotasChange } = applyQuotaChanges(
-      new AssetsMap([{ token: WETH, balance: 100n }]),
-      [{ token: WETH, balance: 50n }],
-    );
-    expect(quotas).toEqual([{ token: WETH, balance: 150n }]);
-    expect(quotasChange).toEqual([{ token: WETH, balance: 50n }]);
-  });
-
-  it("clamps at zero when the negative change exceeds the current quota", () => {
-    const { quotas, quotasChange } = applyQuotaChanges(
-      new AssetsMap([{ token: WETH, balance: 100n }]),
-      [{ token: WETH, balance: -1000n }],
-    );
-    expect(quotas).toEqual([]);
-    expect(quotasChange).toEqual([{ token: WETH, balance: -100n }]);
-  });
-
-  it("MIN_INT96 disables the quota regardless of its current value", () => {
-    const { quotas, quotasChange } = applyQuotaChanges(
-      new AssetsMap([
-        { token: WETH, balance: 12345n },
-        { token: USDC, balance: 500n },
-      ]),
-      [{ token: WETH, balance: MIN_INT96 }],
-    );
-    expect(quotas).toEqual([{ token: USDC, balance: 500n }]);
-    expect(quotasChange).toEqual([{ token: WETH, balance: -12345n }]);
-  });
-
-  it("reported change equals post-clamp final minus initial", () => {
-    const { quotas, quotasChange } = applyQuotaChanges(
-      new AssetsMap([
-        { token: WETH, balance: 100n },
-        { token: USDC, balance: 200n },
-      ]),
-      [
-        { token: WETH, balance: -300n },
-        { token: WSTETH, balance: 40n },
-      ],
-    );
-    expect(quotas).toEqual(
-      expect.arrayContaining([
-        { token: USDC, balance: 200n },
-        { token: WSTETH, balance: 40n },
-      ]),
-    );
-    expect(quotas).toHaveLength(2);
-    expect(quotasChange).toEqual(
-      expect.arrayContaining([
-        { token: WETH, balance: -100n },
-        { token: WSTETH, balance: 40n },
-      ]),
-    );
-    expect(quotasChange).toHaveLength(2);
+    expect(state.account.debt).toBe(1000n);
+    expect(state.account.totalDebt).toBe(1000n);
+    expect(state.account.quotas.get(WETH)).toBe(50n);
   });
 });

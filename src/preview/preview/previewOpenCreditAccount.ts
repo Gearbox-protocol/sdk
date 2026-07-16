@@ -11,10 +11,11 @@ import type {
   RWAOpenCreditAccountOperation,
 } from "../parse/index.js";
 import type { PreviewOperationInput } from "../types.js";
+import { CreditAccountState } from "./CreditAccountState.js";
 import {
-  applyInnerOperations,
-  makeInnerOperationsState,
-} from "./applyInnerOperations.js";
+  makeReplayState,
+  replayInnerOperations,
+} from "./replayInnerOperations.js";
 import {
   ERROR_UNPRICEABLE_TOKEN,
   type OpenCreditAccountPreview,
@@ -32,8 +33,11 @@ export async function previewOpenCreditAccount<P extends PluginsMap>(
   );
 
   // Since we open an account, initial balances, debt and quotas are all zero.
-  const state = makeInnerOperationsState();
-  let error = await applyInnerOperations(sdk, operation.multicall, state);
+  const state = makeReplayState(
+    CreditAccountState.beforeOpen(operation.creditManager, market.underlying),
+  );
+  let error = await replayInnerOperations(sdk, operation.multicall, state);
+  const account = state.account;
 
   // collateral value is computed before unwrapping since the oracle cannot
   // price the native token. Best-effort: tokens the oracle cannot price
@@ -60,17 +64,18 @@ export async function previewOpenCreditAccount<P extends PluginsMap>(
   // filter out dust, including the 1-wei leftovers of drained inputs and
   // intermediate tokens. On a malformed multicall the replayed balances are
   // best-effort and may be unreliable.
-  const assets = state.balances.toAssets(1n);
+  const assets = account.balances.toAssets(1n);
 
   return {
     operation: operation.operation,
     creditManager: operation.creditManager,
-    target: inferTargetAsset(operation.multicall, state.balances),
+    target: inferTargetAsset(operation.multicall, account.balances),
     collateral,
     collateralValue,
-    debt: state.debt,
-    // On opening, initial quotas are zero, so the raw changes are the quotas.
-    quotas: state.quotaChanges,
+    debt: account.debt,
+    // On opening, initial quotas are zero, so the folded quotas are the
+    // applied changes.
+    quotas: account.quotas.toAssets(0n),
     assets,
     error,
   };

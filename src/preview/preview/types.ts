@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import type { Asset } from "../../sdk/index.js";
+import type { Asset, DelayedIntent } from "../../sdk/index.js";
 import type { PoolOperationType } from "../parse/index.js";
 
 // 1xxx errors: the transaction is malformed and would not execute correctly
@@ -41,6 +41,22 @@ export const ERROR_INVALID_TRANSACTION_VALUE = 1006;
 
 /** A token in the preview could not be priced by the oracle */
 export const ERROR_UNPRICEABLE_TOKEN = 2001;
+
+/**
+ * Dust threshold for replayed preview balances and balance changes.
+ *
+ * Multicalls assembled by `CreditAccountsServiceV310` subtract a 10-unit
+ * safety buffer from every expected output token in their
+ * `storeExpectedBalances` deltas (`amount - 10n` in
+ * `assembleStartDelayedWithdrawalCalls`/`assembleClaimDelayedCalls`), while
+ * subsequent calls in the same multicall spend exact on-chain amounts. A
+ * replay that credits only the min-guarantee can therefore be off by up to
+ * 10 units per token, including small negative residues that are impossible
+ * on-chain. Amounts within this threshold (in absolute value) are filtered
+ * from preview outputs; anything beyond it is a genuine discrepancy and is
+ * reported.
+ */
+export const PREVIEW_DUST = 10n;
 
 /**
  * Non-throwing preview failure. When set on a preview, all fields are still
@@ -271,12 +287,58 @@ export interface RepayCreditAccountPreview {
 }
 
 /**
+ * Preview of the "instant" part of an operation on an existing credit
+ * account: what the transaction does in the same block, before any delayed
+ * withdrawal is claimed.
+ */
+export type InstantOperationPreview =
+  | AdjustCreditAccountPreview
+  | CloseCreditAccountPreview
+  | RepayCreditAccountPreview;
+
+/**
+ * Preview of a multicall that requests a delayed withdrawal (e.g. Securitize
+ * redemption): the source token is spent now and a withdrawal phantom token is received;
+ * the actual claim token materializes later, when the withdrawal is claimed and
+ * the recorded (if any) is resumed
+ */
+export interface DelayedCreditAccountOperationPreview {
+  operation: "DelayedCreditAccountOperation";
+  /**
+   * Credit account the operation is performed on
+   */
+  creditAccount: Address;
+  /**
+   * Credit manager the account belongs to
+   */
+  creditManager: Address;
+  /**
+   * Decoded from the withdrawal request's extraData; undefined when the
+   * request carries no intent (e.g. Mellow)
+   */
+  intent?: DelayedIntent;
+  /**
+   * What this transaction does right now: the delayed withdrawal is
+   * represented by the phantom token among the account's assets
+   */
+  instantPreview: InstantOperationPreview;
+  /**
+   * Best-effort state after the withdrawal is claimed and the intent is
+   * resumed; claim-only (phantom burned, claim token received) when
+   * `intent` is undefined
+   */
+  delayedPreview: InstantOperationPreview;
+}
+
+/**
  * Result of previewing a raw operation calldata: currently pool operations and
- * credit account opening, adjustment, closure and repayment are supported.
+ * credit account opening, adjustment, closure, repayment and delayed
+ * withdrawal operations are supported.
  */
 export type OperationPreview =
   | PoolOperationPreview
   | OpenCreditAccountPreview
   | AdjustCreditAccountPreview
   | CloseCreditAccountPreview
-  | RepayCreditAccountPreview;
+  | RepayCreditAccountPreview
+  | DelayedCreditAccountOperationPreview;

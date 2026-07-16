@@ -1,0 +1,2587 @@
+{
+  "version": 1,
+  "network": "Mainnet",
+  "chainId": 1,
+  "currentBlock": {
+    "__type": "bigint",
+    "__value": "25547326"
+  },
+  "timestamp": {
+    "__type": "bigint",
+    "__value": "1784224757"
+  },
+  "addressProvider": {
+    "baseParams": {
+      "addr": "0xF7f0a609BfAb9a0A98786951ef10e5FE26cC1E38",
+      "version": {
+        "__type": "bigint",
+        "__value": "310"
+      },
+      "contractType": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "serializedParams": "0x0"
+    },
+    "addresses": {
+      "GLOBAL::PRICE_FEED_COMPRESSOR": {
+        "310": "0x847a05C22c7508C674342A95356Adf9b3a0e0D57",
+        "311": "0x1fA2637B9fab0CD14290A7EE908DDc9688a15120"
+      },
+      "GLOBAL::MARKET_COMPRESSOR": {
+        "310": "0x70F1753a765C4df582FFA3B8d96AB492714E8992",
+        "311": "0x0C27F242f6e9F2A9AD3261bE6e439De3B948bcA2"
+      },
+      "BYTECODE_REPOSITORY": {
+        "0": "0x1cE2B1BE96a082b1b1539F80d5D8f82Ec06a0f9A"
+      },
+      "CROSS_CHAIN_GOVERNANCE": {
+        "0": "0xcCCCCcCc42B7DA9fdEc1761698Fb55fdD41CDF55"
+      },
+      "INSTANCE_MANAGER_PROXY": {
+        "0": "0xBcD875f0D62B9AA22481c81975F9AE1753Fc559A"
+      },
+      "TREASURY_PROXY": {
+        "0": "0x02e0371f10a99c841b68758492F9Ee1a7fE16DF2"
+      },
+      "CROSS_CHAIN_GOVERNANCE_PROXY": {
+        "0": "0xb1576BBA248D48cBdF50000Db84a0dF8cDe7B3CA"
+      },
+      "INSTANCE_MANAGER": {
+        "0": "0x77777777144339Bdc3aCceE992D8d4D31734CB2e"
+      },
+      "BOT_LIST": {
+        "0": "0x0Bc03983Da93021a374C964A22b73865220Ce962"
+      },
+      "GEAR_STAKING": {
+        "0": "0x2fcbD02d5B1D52FC78d4c02890D7f4f47a459c33"
+      },
+      "PRICE_FEED_STORE": {
+        "0": "0x74A868AC479EE145029bB80827BB77F7B7c441cB"
+      },
+      "MARKET_CONFIGURATOR_FACTORY": {
+        "0": "0x7D60CfaF7c2cec210638A5e46E4000894830C034"
+      },
+      "POOL_FACTORY": {
+        "310": "0x2238eDf33a72860cDbaec5F83ec246Df9e85c8E2"
+      },
+      "CREDIT_FACTORY": {
+        "310": "0x81Cda0aB38d8Bd0732123Eb0e36C0C566d35DADD"
+      },
+      "PRICE_ORACLE_FACTORY": {
+        "310": "0xF7533CDCE5A2F7BF78B6fbf4B05f04F45D10140B"
+      },
+      "INTEREST_RATE_MODEL_FACTORY": {
+        "310": "0xA7dE2e941c8818E51D1Fd84111d8F71dcafa6C3B"
+      },
+      "RATE_KEEPER_FACTORY": {
+        "310": "0x81c4df78B466d0b74E3B9f9f760af9980B058EF9",
+        "311": "0xBEde127c14407B9c345F5D7fAE5782ab8eAa33f3"
+      },
+      "LOSS_POLICY_FACTORY": {
+        "310": "0x0E535b7D073a93646512cEa18fa7e650CC2b17C4"
+      },
+      "GLOBAL::ACCOUNT_COMPRESSOR": {
+        "310": "0x4115708Fc8fe6bB392De2e0C21c2C81dA2222394"
+      },
+      "GLOBAL::CREDIT_SUITE_COMPRESSOR": {
+        "310": "0x93Cba8445b13a05287bFf90D882cbcB514D617b7"
+      },
+      "GLOBAL::GAUGE_COMPRESSOR": {
+        "310": "0x12c8faEdD62cF0C5d4D742E57B98737a9a3F5E0f"
+      },
+      "GLOBAL::PERIPHERY_COMPRESSOR": {
+        "310": "0xa7ED6dB5761613CaE7CaCfAAE9Dca07a77809F9d"
+      },
+      "GLOBAL::REWARDS_COMPRESSOR": {
+        "310": "0x19Ca61E672d1c6105f609418bfDC784F92F4Ecf0"
+      },
+      "GLOBAL::TOKEN_COMPRESSOR": {
+        "310": "0xAe3Dd11e5a7f99eD4cba2768D4095a55fbF7841B"
+      },
+      "GLOBAL::ROUTER": {
+        "302": "0xA6FCd1fE716aD3801C71F2DE4E7A15f3a6994835",
+        "310": "0x00aDE38841AB8c6e236E232041e43B41d74B8B45"
+      },
+      "TREASURY": {
+        "0": "0x3E965117A51186e41c2BB58b729A1e518A715e5F"
+      },
+      "WETH_TOKEN": {
+        "0": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+      },
+      "GLOBAL::GEAR_TOKEN": {
+        "0": "0xBa3335588D9403515223F109EdC4eB7269a9Ab5D"
+      },
+      "GLOBAL::RWA_COMPRESSOR": {
+        "310": "0xf6DE75Af5A29BDFA002e22D46dFAaC8A5126eC1C"
+      },
+      "FAUCET": {
+        "0": "0x7e3B874B35de9AD325b538b10E6a473c0a996cc7"
+      }
+    }
+  },
+  "markets": [
+    {
+      "acl": "0xB521a1931DdFDAC06396FeE7D4d6C9a0Cdfc5753",
+      "contractsRegister": "0xE43954bC20cF1051073129E2Bf076716f14948fc",
+      "treasury": "0x3E965117A51186e41c2BB58b729A1e518A715e5F",
+      "pool": {
+        "baseParams": {
+          "addr": "0xE0Ca34a68C58f6576966047B9A2d95D60701c36f",
+          "version": {
+            "__type": "bigint",
+            "__value": "310"
+          },
+          "contractType": "0x504f4f4c00000000000000000000000000000000000000000000000000000000",
+          "serializedParams": "0x"
+        },
+        "symbol": "mddcUSDC",
+        "name": "Mock Diesel Default compliant USD Coin",
+        "decimals": 6,
+        "totalSupply": {
+          "__type": "bigint",
+          "__value": "1000000127635"
+        },
+        "quotaKeeper": "0x7d24554115069794E05CDCb263f120f7a292D05A",
+        "interestRateModel": "0xA21eA7d0125485608425a1b46b29FD5a16071CF8",
+        "underlying": "0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D",
+        "availableLiquidity": {
+          "__type": "bigint",
+          "__value": "632308767799"
+        },
+        "expectedLiquidity": {
+          "__type": "bigint",
+          "__value": "1000006783557"
+        },
+        "baseInterestIndex": {
+          "__type": "bigint",
+          "__value": "1000030579752936904337833111"
+        },
+        "baseInterestRate": {
+          "__type": "bigint",
+          "__value": "40000000000000000000000000"
+        },
+        "dieselRate": {
+          "__type": "bigint",
+          "__value": "1000006655921150471503959569"
+        },
+        "supplyRate": {
+          "__type": "bigint",
+          "__value": "14747425606357796012328355"
+        },
+        "withdrawFee": {
+          "__type": "bigint",
+          "__value": "0"
+        },
+        "totalBorrowed": {
+          "__type": "bigint",
+          "__value": "367691415109"
+        },
+        "totalDebtLimit": {
+          "__type": "bigint",
+          "__value": "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+        },
+        "creditManagerDebtParams": [
+          {
+            "creditManager": "0x025512D771f778fad99aB30b7A7363E7C8DE078D",
+            "borrowed": {
+              "__type": "bigint",
+              "__value": "267691415109"
+            },
+            "limit": {
+              "__type": "bigint",
+              "__value": "1000000000000"
+            },
+            "available": {
+              "__type": "bigint",
+              "__value": "632308767799"
+            }
+          },
+          {
+            "creditManager": "0x4bbF1aAa78858086d88164182fd87f5a774197D4",
+            "borrowed": {
+              "__type": "bigint",
+              "__value": "100000000000"
+            },
+            "limit": {
+              "__type": "bigint",
+              "__value": "1000000000000"
+            },
+            "available": {
+              "__type": "bigint",
+              "__value": "632308767799"
+            }
+          }
+        ],
+        "baseInterestIndexLU": {
+          "__type": "bigint",
+          "__value": "1000027900834968153129386373"
+        },
+        "expectedLiquidityLU": {
+          "__type": "bigint",
+          "__value": "1000005796826"
+        },
+        "quotaRevenue": {
+          "__type": "bigint",
+          "__value": "39869042"
+        },
+        "lastBaseInterestUpdate": 1784222645,
+        "lastQuotaRevenueUpdate": 1784223377,
+        "isPaused": false
+      },
+      "quotaKeeper": {
+        "baseParams": {
+          "addr": "0x7d24554115069794E05CDCb263f120f7a292D05A",
+          "version": {
+            "__type": "bigint",
+            "__value": "310"
+          },
+          "contractType": "0x504f4f4c5f51554f54415f4b4545504552000000000000000000000000000000",
+          "serializedParams": "0x"
+        },
+        "rateKeeper": "0x4dEaf931D9ae330F4Da62110Ec6937Bc5ADFAE8C",
+        "quotas": [
+          {
+            "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "rate": 1,
+            "cumulativeIndexLU": {
+              "__type": "bigint",
+              "__value": "1"
+            },
+            "quotaIncreaseFee": 0,
+            "totalQuoted": {
+              "__type": "bigint",
+              "__value": "0"
+            },
+            "limit": {
+              "__type": "bigint",
+              "__value": "10000000000000"
+            },
+            "isActive": true
+          },
+          {
+            "token": "0x17418038ecF73BA4026c4f428547BF099706F27B",
+            "rate": 1,
+            "cumulativeIndexLU": {
+              "__type": "bigint",
+              "__value": "1"
+            },
+            "quotaIncreaseFee": 0,
+            "totalQuoted": {
+              "__type": "bigint",
+              "__value": "194337280000"
+            },
+            "limit": {
+              "__type": "bigint",
+              "__value": "10000000000000"
+            },
+            "isActive": true
+          },
+          {
+            "token": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+            "rate": 1,
+            "cumulativeIndexLU": {
+              "__type": "bigint",
+              "__value": "1"
+            },
+            "quotaIncreaseFee": 0,
+            "totalQuoted": {
+              "__type": "bigint",
+              "__value": "99353140000"
+            },
+            "limit": {
+              "__type": "bigint",
+              "__value": "10000000000000"
+            },
+            "isActive": true
+          },
+          {
+            "token": "0x51C2d74017390CbBd30550179A16A1c28F7210fc",
+            "rate": 1,
+            "cumulativeIndexLU": {
+              "__type": "bigint",
+              "__value": "1"
+            },
+            "quotaIncreaseFee": 0,
+            "totalQuoted": {
+              "__type": "bigint",
+              "__value": "105000000000"
+            },
+            "limit": {
+              "__type": "bigint",
+              "__value": "10000000000000"
+            },
+            "isActive": true
+          },
+          {
+            "token": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+            "rate": 1,
+            "cumulativeIndexLU": {
+              "__type": "bigint",
+              "__value": "1"
+            },
+            "quotaIncreaseFee": 0,
+            "totalQuoted": {
+              "__type": "bigint",
+              "__value": "0"
+            },
+            "limit": {
+              "__type": "bigint",
+              "__value": "10000000000000"
+            },
+            "isActive": true
+          }
+        ],
+        "creditManagers": [
+          "0x025512D771f778fad99aB30b7A7363E7C8DE078D",
+          "0x4bbF1aAa78858086d88164182fd87f5a774197D4"
+        ],
+        "lastQuotaRateUpdate": 1784200648
+      },
+      "interestRateModel": {
+        "baseParams": {
+          "addr": "0xA21eA7d0125485608425a1b46b29FD5a16071CF8",
+          "version": {
+            "__type": "bigint",
+            "__value": "310"
+          },
+          "contractType": "0x49524d3a3a4c494e454152000000000000000000000000000000000000000000",
+          "serializedParams": "0x0000000000000000000000000000000000000000000000000000000000001388000000000000000000000000000000000000000000000000000000000000232800000000000000000000000000000000000000000000000000000000000001900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        }
+      },
+      "rateKeeper": {
+        "baseParams": {
+          "addr": "0x4dEaf931D9ae330F4Da62110Ec6937Bc5ADFAE8C",
+          "version": {
+            "__type": "bigint",
+            "__value": "310"
+          },
+          "contractType": "0x524154455f4b45455045523a3a54554d424c4552000000000000000000000000",
+          "serializedParams": "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000001200000000000000000000000000000000000000000000000000000000000000005000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000017418038ecf73ba4026c4f428547bf099706f27b000000000000000000000000f126eacacf6b14c8985fc195768a55e886af420800000000000000000000000051c2d74017390cbbd30550179a16a1c28f7210fc000000000000000000000000d2f49d24c0f43bec0dc91b1ba42cbc49d1d16cea000000000000000000000000000000000000000000000000000000000000000500000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001"
+        },
+        "rates": [
+          {
+            "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "rate": 1
+          },
+          {
+            "token": "0x17418038ecF73BA4026c4f428547BF099706F27B",
+            "rate": 1
+          },
+          {
+            "token": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+            "rate": 1
+          },
+          {
+            "token": "0x51C2d74017390CbBd30550179A16A1c28F7210fc",
+            "rate": 1
+          },
+          {
+            "token": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+            "rate": 1
+          }
+        ]
+      },
+      "priceOracle": {
+        "baseParams": {
+          "addr": "0xF91D05ee2714a49A2767028296e110F9F5f5b795",
+          "version": {
+            "__type": "bigint",
+            "__value": "310"
+          },
+          "contractType": "0x50524943455f4f5241434c450000000000000000000000000000000000000000",
+          "serializedParams": "0x"
+        },
+        "priceFeedMap": [
+          {
+            "token": "0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D",
+            "reserve": false,
+            "priceFeed": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
+            "stalenessPeriod": 87300
+          },
+          {
+            "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "reserve": false,
+            "priceFeed": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
+            "stalenessPeriod": 87300
+          },
+          {
+            "token": "0x17418038ecF73BA4026c4f428547BF099706F27B",
+            "reserve": false,
+            "priceFeed": "0xD6BcbbC87bFb6c8964dDc73DC3EaE6d08865d51C",
+            "stalenessPeriod": 86400
+          },
+          {
+            "token": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+            "reserve": false,
+            "priceFeed": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
+            "stalenessPeriod": 87300
+          },
+          {
+            "token": "0x51C2d74017390CbBd30550179A16A1c28F7210fc",
+            "reserve": false,
+            "priceFeed": "0xEdC6287D3D41b322AF600317628D7E226DD3add4",
+            "stalenessPeriod": 86400
+          },
+          {
+            "token": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+            "reserve": false,
+            "priceFeed": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
+            "stalenessPeriod": 87300
+          },
+          {
+            "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "reserve": true,
+            "priceFeed": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
+            "stalenessPeriod": 87300
+          },
+          {
+            "token": "0x17418038ecF73BA4026c4f428547BF099706F27B",
+            "reserve": true,
+            "priceFeed": "0xD6BcbbC87bFb6c8964dDc73DC3EaE6d08865d51C",
+            "stalenessPeriod": 86400
+          },
+          {
+            "token": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+            "reserve": true,
+            "priceFeed": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
+            "stalenessPeriod": 87300
+          },
+          {
+            "token": "0x51C2d74017390CbBd30550179A16A1c28F7210fc",
+            "reserve": true,
+            "priceFeed": "0xEdC6287D3D41b322AF600317628D7E226DD3add4",
+            "stalenessPeriod": 86400
+          },
+          {
+            "token": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+            "reserve": true,
+            "priceFeed": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
+            "stalenessPeriod": 87300
+          }
+        ],
+        "priceFeedTree": [
+          {
+            "baseParams": {
+              "addr": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
+              "version": {
+                "__type": "bigint",
+                "__value": "6"
+              },
+              "contractType": "0x50524943455f464545443a3a45585445524e414c000000000000000000000000",
+              "serializedParams": "0x"
+            },
+            "description": "USDC / USD",
+            "decimals": 8,
+            "skipCheck": false,
+            "updatable": false,
+            "underlyingFeeds": [],
+            "underlyingStalenessPeriods": [],
+            "answer": {
+              "price": {
+                "__type": "bigint",
+                "__value": "99976264"
+              },
+              "updatedAt": {
+                "__type": "bigint",
+                "__value": "1784188811"
+              },
+              "success": true
+            }
+          },
+          {
+            "baseParams": {
+              "addr": "0xD6BcbbC87bFb6c8964dDc73DC3EaE6d08865d51C",
+              "version": {
+                "__type": "bigint",
+                "__value": "1"
+              },
+              "contractType": "0x50524943455f464545443a3a45585445524e414c000000000000000000000000",
+              "serializedParams": "0x"
+            },
+            "description": "RedStone Price Feed for ACRED_FUNDAMENTAL",
+            "decimals": 8,
+            "skipCheck": false,
+            "updatable": false,
+            "underlyingFeeds": [],
+            "underlyingStalenessPeriods": [],
+            "answer": {
+              "price": {
+                "__type": "bigint",
+                "__value": "110371423000"
+              },
+              "updatedAt": {
+                "__type": "bigint",
+                "__value": "1784154203"
+              },
+              "success": true
+            }
+          },
+          {
+            "baseParams": {
+              "addr": "0xEdC6287D3D41b322AF600317628D7E226DD3add4",
+              "version": {
+                "__type": "bigint",
+                "__value": "1"
+              },
+              "contractType": "0x50524943455f464545443a3a45585445524e414c000000000000000000000000",
+              "serializedParams": "0x"
+            },
+            "description": "RedStone Price Feed for STAC_FUNDAMENTAL",
+            "decimals": 8,
+            "skipCheck": false,
+            "updatable": false,
+            "underlyingFeeds": [],
+            "underlyingStalenessPeriods": [],
+            "answer": {
+              "price": {
+                "__type": "bigint",
+                "__value": "102400748100"
+              },
+              "updatedAt": {
+                "__type": "bigint",
+                "__value": "1784150483"
+              },
+              "success": true
+            }
+          }
+        ]
+      },
+      "lossPolicy": {
+        "baseParams": {
+          "addr": "0xF322109390c4310190117d1CC6c3e4E003b99002",
+          "version": {
+            "__type": "bigint",
+            "__value": "310"
+          },
+          "contractType": "0x4c4f53535f504f4c4943593a3a414c4941534544000000000000000000000000",
+          "serializedParams": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        }
+      },
+      "tokens": [
+        {
+          "addr": "0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D",
+          "symbol": "dcUSDC",
+          "name": "Default compliant USD Coin",
+          "decimals": 6
+        },
+        {
+          "addr": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin",
+          "decimals": 6
+        },
+        {
+          "addr": "0x17418038ecF73BA4026c4f428547BF099706F27B",
+          "symbol": "ACRED",
+          "name": "Apollo Diversified Credit Securitize Fund",
+          "decimals": 6
+        },
+        {
+          "addr": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+          "symbol": "srpACRED_USDC",
+          "name": "Securitize pending redemption Apollo Diversified Credit Securitize Fund to USD Coin",
+          "decimals": 6
+        },
+        {
+          "addr": "0x51C2d74017390CbBd30550179A16A1c28F7210fc",
+          "symbol": "STAC",
+          "name": "Securitize Tokenized AAA CLO Fund",
+          "decimals": 6
+        },
+        {
+          "addr": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+          "symbol": "srpSTAC_USDC",
+          "name": "Securitize pending redemption Securitize Tokenized AAA CLO Fund to USD Coin",
+          "decimals": 6
+        }
+      ],
+      "creditManagers": [
+        {
+          "creditFacade": {
+            "baseParams": {
+              "addr": "0xec6b8D8e18D48cb4df7028B8E1Aa1662e966cD86",
+              "version": {
+                "__type": "bigint",
+                "__value": "310"
+              },
+              "contractType": "0x4352454449545f46414341444500000000000000000000000000000000000000",
+              "serializedParams": "0x"
+            },
+            "degenNFT": "0xA2c12568615c7BA89f70c453DAddbA90a71FAf8a",
+            "botList": "0x0Bc03983Da93021a374C964A22b73865220Ce962",
+            "expirable": false,
+            "expirationDate": 0,
+            "maxDebtPerBlockMultiplier": 2,
+            "minDebt": {
+              "__type": "bigint",
+              "__value": "50000000000"
+            },
+            "maxDebt": {
+              "__type": "bigint",
+              "__value": "1000000000000"
+            },
+            "forbiddenTokensMask": {
+              "__type": "bigint",
+              "__value": "0"
+            },
+            "isPaused": false
+          },
+          "creditManager": {
+            "baseParams": {
+              "addr": "0x025512D771f778fad99aB30b7A7363E7C8DE078D",
+              "version": {
+                "__type": "bigint",
+                "__value": "310"
+              },
+              "contractType": "0x4352454449545f4d414e41474552000000000000000000000000000000000000",
+              "serializedParams": "0x"
+            },
+            "name": "Mock dcUSDC Credit Suite",
+            "accountFactory": "0x8122a4F56Bf146e5bAF88ea5564cCB09E46f36b6",
+            "underlying": "0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D",
+            "pool": "0xE0Ca34a68C58f6576966047B9A2d95D60701c36f",
+            "creditFacade": "0xec6b8D8e18D48cb4df7028B8E1Aa1662e966cD86",
+            "creditConfigurator": "0x1Fb05cb34D8EcF2275D16A6720809Ed18e116b3a",
+            "maxEnabledTokens": 2,
+            "collateralTokens": [
+              {
+                "token": "0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D",
+                "liquidationThreshold": 9800
+              },
+              {
+                "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                "liquidationThreshold": 9800
+              },
+              {
+                "token": "0x17418038ecF73BA4026c4f428547BF099706F27B",
+                "liquidationThreshold": 9000
+              },
+              {
+                "token": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+                "liquidationThreshold": 9000
+              }
+            ],
+            "feeInterest": 5000,
+            "feeLiquidation": 100,
+            "liquidationDiscount": 9900,
+            "feeLiquidationExpired": 100,
+            "liquidationDiscountExpired": 9900
+          },
+          "creditConfigurator": {
+            "baseParams": {
+              "addr": "0x1Fb05cb34D8EcF2275D16A6720809Ed18e116b3a",
+              "version": {
+                "__type": "bigint",
+                "__value": "310"
+              },
+              "contractType": "0x4352454449545f434f4e464947555241544f5200000000000000000000000000",
+              "serializedParams": "0x"
+            }
+          },
+          "accountFactory": {
+            "baseParams": {
+              "addr": "0x8122a4F56Bf146e5bAF88ea5564cCB09E46f36b6",
+              "version": {
+                "__type": "bigint",
+                "__value": "310"
+              },
+              "contractType": "0x4143434f554e545f464143544f52593a3a44454641554c540000000000000000",
+              "serializedParams": "0x"
+            }
+          },
+          "adapters": [
+            {
+              "baseParams": {
+                "addr": "0x04Ac894088FdD6FD622d9fe7c39192baFaEA15db",
+                "version": {
+                  "__type": "bigint",
+                  "__value": "312"
+                },
+                "contractType": "0x414441505445523a3a455243343632365f5641554c5400000000000000000000",
+                "serializedParams": "0x000000000000000000000000025512d771f778fad99ab30b7a7363e7c8de078d00000000000000000000000050a9c808cd114e8fea72f03ae2b1a8825677d56d00000000000000000000000050a9c808cd114e8fea72f03ae2b1a8825677d56d000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+              },
+              "targetContract": "0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D"
+            },
+            {
+              "baseParams": {
+                "addr": "0x51182e7f0fa35E669F49c40007020fB369344f12",
+                "version": {
+                  "__type": "bigint",
+                  "__value": "310"
+                },
+                "contractType": "0x414441505445523a3a53454355524954495a455f4f4e52414d50000000000000",
+                "serializedParams": "0x000000000000000000000000025512d771f778fad99ab30b7a7363e7c8de078d000000000000000000000000368e7478ff8c88c9002c32e1f576fabe2e9ddf7b00000000000000000000000017418038ecf73ba4026c4f428547bf099706f27b000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+              },
+              "targetContract": "0x368e7478fF8c88C9002c32E1F576fAbe2E9Ddf7B"
+            },
+            {
+              "baseParams": {
+                "addr": "0x176cB49Fb97B5138E1a45229Eb78B562c4b6F302",
+                "version": {
+                  "__type": "bigint",
+                  "__value": "311"
+                },
+                "contractType": "0x414441505445523a3a53454355524954495a455f524544454d5054494f4e0000",
+                "serializedParams": "0x000000000000000000000000025512d771f778fad99ab30b7a7363e7c8de078d0000000000000000000000001299902e066d556da861ca5c9d607aed5faf712c00000000000000000000000017418038ecf73ba4026c4f428547bf099706f27b000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000f126eacacf6b14c8985fc195768a55e886af4208"
+              },
+              "targetContract": "0x1299902e066d556Da861Ca5c9D607aEd5faF712c"
+            }
+          ]
+        },
+        {
+          "creditFacade": {
+            "baseParams": {
+              "addr": "0x7761372d666818ed27e5683ff8380bB2354Ec48E",
+              "version": {
+                "__type": "bigint",
+                "__value": "310"
+              },
+              "contractType": "0x4352454449545f46414341444500000000000000000000000000000000000000",
+              "serializedParams": "0x"
+            },
+            "degenNFT": "0xA2c12568615c7BA89f70c453DAddbA90a71FAf8a",
+            "botList": "0x0Bc03983Da93021a374C964A22b73865220Ce962",
+            "expirable": false,
+            "expirationDate": 0,
+            "maxDebtPerBlockMultiplier": 2,
+            "minDebt": {
+              "__type": "bigint",
+              "__value": "50000000000"
+            },
+            "maxDebt": {
+              "__type": "bigint",
+              "__value": "1000000000000"
+            },
+            "forbiddenTokensMask": {
+              "__type": "bigint",
+              "__value": "0"
+            },
+            "isPaused": false
+          },
+          "creditManager": {
+            "baseParams": {
+              "addr": "0x4bbF1aAa78858086d88164182fd87f5a774197D4",
+              "version": {
+                "__type": "bigint",
+                "__value": "310"
+              },
+              "contractType": "0x4352454449545f4d414e41474552000000000000000000000000000000000000",
+              "serializedParams": "0x"
+            },
+            "name": "Mock dcUSDC Credit Suite",
+            "accountFactory": "0x9E4181A9355Ebe857B25C33132ff06CA945aDFe5",
+            "underlying": "0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D",
+            "pool": "0xE0Ca34a68C58f6576966047B9A2d95D60701c36f",
+            "creditFacade": "0x7761372d666818ed27e5683ff8380bB2354Ec48E",
+            "creditConfigurator": "0x820A53D6ecCb858D57F611936AA6eaD0DF77ecfD",
+            "maxEnabledTokens": 2,
+            "collateralTokens": [
+              {
+                "token": "0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D",
+                "liquidationThreshold": 9800
+              },
+              {
+                "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                "liquidationThreshold": 9800
+              },
+              {
+                "token": "0x51C2d74017390CbBd30550179A16A1c28F7210fc",
+                "liquidationThreshold": 9000
+              },
+              {
+                "token": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+                "liquidationThreshold": 9000
+              }
+            ],
+            "feeInterest": 5000,
+            "feeLiquidation": 100,
+            "liquidationDiscount": 9900,
+            "feeLiquidationExpired": 100,
+            "liquidationDiscountExpired": 9900
+          },
+          "creditConfigurator": {
+            "baseParams": {
+              "addr": "0x820A53D6ecCb858D57F611936AA6eaD0DF77ecfD",
+              "version": {
+                "__type": "bigint",
+                "__value": "310"
+              },
+              "contractType": "0x4352454449545f434f4e464947555241544f5200000000000000000000000000",
+              "serializedParams": "0x"
+            }
+          },
+          "accountFactory": {
+            "baseParams": {
+              "addr": "0x9E4181A9355Ebe857B25C33132ff06CA945aDFe5",
+              "version": {
+                "__type": "bigint",
+                "__value": "310"
+              },
+              "contractType": "0x4143434f554e545f464143544f52593a3a44454641554c540000000000000000",
+              "serializedParams": "0x"
+            }
+          },
+          "adapters": [
+            {
+              "baseParams": {
+                "addr": "0x82dCea0E0DcaBA0F68E385fA24dA1F12a493d774",
+                "version": {
+                  "__type": "bigint",
+                  "__value": "312"
+                },
+                "contractType": "0x414441505445523a3a455243343632365f5641554c5400000000000000000000",
+                "serializedParams": "0x0000000000000000000000004bbf1aaa78858086d88164182fd87f5a774197d400000000000000000000000050a9c808cd114e8fea72f03ae2b1a8825677d56d00000000000000000000000050a9c808cd114e8fea72f03ae2b1a8825677d56d000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+              },
+              "targetContract": "0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D"
+            },
+            {
+              "baseParams": {
+                "addr": "0x5409EC27DAbC20F1DB22c43b6134EcB66C03C5C5",
+                "version": {
+                  "__type": "bigint",
+                  "__value": "310"
+                },
+                "contractType": "0x414441505445523a3a53454355524954495a455f4f4e52414d50000000000000",
+                "serializedParams": "0x0000000000000000000000004bbf1aaa78858086d88164182fd87f5a774197d4000000000000000000000000c793b33120e5b74b601b00af8fe2d30167ceb92300000000000000000000000051c2d74017390cbbd30550179a16a1c28f7210fc000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+              },
+              "targetContract": "0xc793b33120E5b74b601b00aF8FE2d30167CEB923"
+            },
+            {
+              "baseParams": {
+                "addr": "0x900FAD280E4Ef809Db7F06C341C01619d8687DD7",
+                "version": {
+                  "__type": "bigint",
+                  "__value": "311"
+                },
+                "contractType": "0x414441505445523a3a53454355524954495a455f524544454d5054494f4e0000",
+                "serializedParams": "0x0000000000000000000000004bbf1aaa78858086d88164182fd87f5a774197d40000000000000000000000006dbc24d7f878a75fde6bd1ebd5519281b59f26a500000000000000000000000051c2d74017390cbbd30550179a16a1c28f7210fc000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000d2f49d24c0f43bec0dc91b1ba42cbc49d1d16cea"
+              },
+              "targetContract": "0x6DBc24d7f878a75fde6bD1ebd5519281B59f26a5"
+            }
+          ]
+        }
+      ],
+      "configurator": "0x610627d8D01a413BDD9B0a0b60070Da7dd1e54aD",
+      "pausableAdmins": ["0x610627d8D01a413BDD9B0a0b60070Da7dd1e54aD"],
+      "unpausableAdmins": ["0x610627d8D01a413BDD9B0a0b60070Da7dd1e54aD"],
+      "emergencyLiquidators": []
+    },
+    {
+      "acl": "0xB521a1931DdFDAC06396FeE7D4d6C9a0Cdfc5753",
+      "contractsRegister": "0xE43954bC20cF1051073129E2Bf076716f14948fc",
+      "treasury": "0x3E965117A51186e41c2BB58b729A1e518A715e5F",
+      "pool": {
+        "baseParams": {
+          "addr": "0x99f6bE465624F2cDF7Fe436697CeBd4bE7bAF56b",
+          "version": {
+            "__type": "bigint",
+            "__value": "310"
+          },
+          "contractType": "0x504f4f4c00000000000000000000000000000000000000000000000000000000",
+          "serializedParams": "0x"
+        },
+        "symbol": "mdocUSDC",
+        "name": "Mock Diesel On-demand compliant USD Coin",
+        "decimals": 6,
+        "totalSupply": {
+          "__type": "bigint",
+          "__value": "200000100000"
+        },
+        "quotaKeeper": "0xCC85B110Cba093788BC75B7f52E756261Df35443",
+        "interestRateModel": "0x6BD6b29D042c43bE41ebFdc6D42Ff243d9598677",
+        "underlying": "0x03f919CA79C4E0a3Ae48Ac330445189156826873",
+        "availableLiquidity": {
+          "__type": "bigint",
+          "__value": "800000100000"
+        },
+        "expectedLiquidity": {
+          "__type": "bigint",
+          "__value": "200006231984"
+        },
+        "baseInterestIndex": {
+          "__type": "bigint",
+          "__value": "1000030579654997463216641298"
+        },
+        "baseInterestRate": {
+          "__type": "bigint",
+          "__value": "40000000000000000000000000"
+        },
+        "dieselRate": {
+          "__type": "bigint",
+          "__value": "1000030659904670047664976167"
+        },
+        "supplyRate": {
+          "__type": "bigint",
+          "__value": "40103750370346760024585374"
+        },
+        "withdrawFee": {
+          "__type": "bigint",
+          "__value": "0"
+        },
+        "totalBorrowed": {
+          "__type": "bigint",
+          "__value": "200000000000"
+        },
+        "totalDebtLimit": {
+          "__type": "bigint",
+          "__value": "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+        },
+        "creditManagerDebtParams": [
+          {
+            "creditManager": "0x48E2De8258fFFdd200d629eE1543745669E51e7a",
+            "borrowed": {
+              "__type": "bigint",
+              "__value": "100000000000"
+            },
+            "limit": {
+              "__type": "bigint",
+              "__value": "1000000000000"
+            },
+            "available": {
+              "__type": "bigint",
+              "__value": "800000100000"
+            }
+          },
+          {
+            "creditManager": "0x108E26961E59B7018e90E677Bb88e049D8a7e9Fb",
+            "borrowed": {
+              "__type": "bigint",
+              "__value": "100000000000"
+            },
+            "limit": {
+              "__type": "bigint",
+              "__value": "1000000000000"
+            },
+            "available": {
+              "__type": "bigint",
+              "__value": "800000100000"
+            }
+          }
+        ],
+        "baseInterestIndexLU": {
+          "__type": "bigint",
+          "__value": "1000000000000000000000000000"
+        },
+        "expectedLiquidityLU": {
+          "__type": "bigint",
+          "__value": "200000100000"
+        },
+        "quotaRevenue": {
+          "__type": "bigint",
+          "__value": "21000000"
+        },
+        "lastBaseInterestUpdate": 1784200648,
+        "lastQuotaRevenueUpdate": 1784200648,
+        "isPaused": false
+      },
+      "quotaKeeper": {
+        "baseParams": {
+          "addr": "0xCC85B110Cba093788BC75B7f52E756261Df35443",
+          "version": {
+            "__type": "bigint",
+            "__value": "310"
+          },
+          "contractType": "0x504f4f4c5f51554f54415f4b4545504552000000000000000000000000000000",
+          "serializedParams": "0x"
+        },
+        "rateKeeper": "0x961aEE6C8A9CF22682770dB5CAaADB8D656afc04",
+        "quotas": [
+          {
+            "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "rate": 1,
+            "cumulativeIndexLU": {
+              "__type": "bigint",
+              "__value": "1"
+            },
+            "quotaIncreaseFee": 0,
+            "totalQuoted": {
+              "__type": "bigint",
+              "__value": "0"
+            },
+            "limit": {
+              "__type": "bigint",
+              "__value": "10000000000000"
+            },
+            "isActive": true
+          },
+          {
+            "token": "0x17418038ecF73BA4026c4f428547BF099706F27B",
+            "rate": 1,
+            "cumulativeIndexLU": {
+              "__type": "bigint",
+              "__value": "1"
+            },
+            "quotaIncreaseFee": 0,
+            "totalQuoted": {
+              "__type": "bigint",
+              "__value": "105000000000"
+            },
+            "limit": {
+              "__type": "bigint",
+              "__value": "10000000000000"
+            },
+            "isActive": true
+          },
+          {
+            "token": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+            "rate": 1,
+            "cumulativeIndexLU": {
+              "__type": "bigint",
+              "__value": "1"
+            },
+            "quotaIncreaseFee": 0,
+            "totalQuoted": {
+              "__type": "bigint",
+              "__value": "0"
+            },
+            "limit": {
+              "__type": "bigint",
+              "__value": "10000000000000"
+            },
+            "isActive": true
+          },
+          {
+            "token": "0x51C2d74017390CbBd30550179A16A1c28F7210fc",
+            "rate": 1,
+            "cumulativeIndexLU": {
+              "__type": "bigint",
+              "__value": "1"
+            },
+            "quotaIncreaseFee": 0,
+            "totalQuoted": {
+              "__type": "bigint",
+              "__value": "105000000000"
+            },
+            "limit": {
+              "__type": "bigint",
+              "__value": "10000000000000"
+            },
+            "isActive": true
+          },
+          {
+            "token": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+            "rate": 1,
+            "cumulativeIndexLU": {
+              "__type": "bigint",
+              "__value": "1"
+            },
+            "quotaIncreaseFee": 0,
+            "totalQuoted": {
+              "__type": "bigint",
+              "__value": "0"
+            },
+            "limit": {
+              "__type": "bigint",
+              "__value": "10000000000000"
+            },
+            "isActive": true
+          }
+        ],
+        "creditManagers": [
+          "0x48E2De8258fFFdd200d629eE1543745669E51e7a",
+          "0x108E26961E59B7018e90E677Bb88e049D8a7e9Fb"
+        ],
+        "lastQuotaRateUpdate": 1784200648
+      },
+      "interestRateModel": {
+        "baseParams": {
+          "addr": "0x6BD6b29D042c43bE41ebFdc6D42Ff243d9598677",
+          "version": {
+            "__type": "bigint",
+            "__value": "310"
+          },
+          "contractType": "0x49524d3a3a4c494e454152000000000000000000000000000000000000000000",
+          "serializedParams": "0x0000000000000000000000000000000000000000000000000000000000001388000000000000000000000000000000000000000000000000000000000000232800000000000000000000000000000000000000000000000000000000000001900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        }
+      },
+      "rateKeeper": {
+        "baseParams": {
+          "addr": "0x961aEE6C8A9CF22682770dB5CAaADB8D656afc04",
+          "version": {
+            "__type": "bigint",
+            "__value": "310"
+          },
+          "contractType": "0x524154455f4b45455045523a3a54554d424c4552000000000000000000000000",
+          "serializedParams": "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000001200000000000000000000000000000000000000000000000000000000000000005000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000017418038ecf73ba4026c4f428547bf099706f27b000000000000000000000000f126eacacf6b14c8985fc195768a55e886af420800000000000000000000000051c2d74017390cbbd30550179a16a1c28f7210fc000000000000000000000000d2f49d24c0f43bec0dc91b1ba42cbc49d1d16cea000000000000000000000000000000000000000000000000000000000000000500000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001"
+        },
+        "rates": [
+          {
+            "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "rate": 1
+          },
+          {
+            "token": "0x17418038ecF73BA4026c4f428547BF099706F27B",
+            "rate": 1
+          },
+          {
+            "token": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+            "rate": 1
+          },
+          {
+            "token": "0x51C2d74017390CbBd30550179A16A1c28F7210fc",
+            "rate": 1
+          },
+          {
+            "token": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+            "rate": 1
+          }
+        ]
+      },
+      "priceOracle": {
+        "baseParams": {
+          "addr": "0xc66f81f73231e50F15f4D112B53811C4152a6023",
+          "version": {
+            "__type": "bigint",
+            "__value": "310"
+          },
+          "contractType": "0x50524943455f4f5241434c450000000000000000000000000000000000000000",
+          "serializedParams": "0x"
+        },
+        "priceFeedMap": [
+          {
+            "token": "0x03f919CA79C4E0a3Ae48Ac330445189156826873",
+            "reserve": false,
+            "priceFeed": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
+            "stalenessPeriod": 87300
+          },
+          {
+            "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "reserve": false,
+            "priceFeed": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
+            "stalenessPeriod": 87300
+          },
+          {
+            "token": "0x17418038ecF73BA4026c4f428547BF099706F27B",
+            "reserve": false,
+            "priceFeed": "0xD6BcbbC87bFb6c8964dDc73DC3EaE6d08865d51C",
+            "stalenessPeriod": 86400
+          },
+          {
+            "token": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+            "reserve": false,
+            "priceFeed": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
+            "stalenessPeriod": 87300
+          },
+          {
+            "token": "0x51C2d74017390CbBd30550179A16A1c28F7210fc",
+            "reserve": false,
+            "priceFeed": "0xEdC6287D3D41b322AF600317628D7E226DD3add4",
+            "stalenessPeriod": 86400
+          },
+          {
+            "token": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+            "reserve": false,
+            "priceFeed": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
+            "stalenessPeriod": 87300
+          },
+          {
+            "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "reserve": true,
+            "priceFeed": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
+            "stalenessPeriod": 87300
+          },
+          {
+            "token": "0x17418038ecF73BA4026c4f428547BF099706F27B",
+            "reserve": true,
+            "priceFeed": "0xD6BcbbC87bFb6c8964dDc73DC3EaE6d08865d51C",
+            "stalenessPeriod": 86400
+          },
+          {
+            "token": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+            "reserve": true,
+            "priceFeed": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
+            "stalenessPeriod": 87300
+          },
+          {
+            "token": "0x51C2d74017390CbBd30550179A16A1c28F7210fc",
+            "reserve": true,
+            "priceFeed": "0xEdC6287D3D41b322AF600317628D7E226DD3add4",
+            "stalenessPeriod": 86400
+          },
+          {
+            "token": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+            "reserve": true,
+            "priceFeed": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
+            "stalenessPeriod": 87300
+          }
+        ],
+        "priceFeedTree": [
+          {
+            "baseParams": {
+              "addr": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
+              "version": {
+                "__type": "bigint",
+                "__value": "6"
+              },
+              "contractType": "0x50524943455f464545443a3a45585445524e414c000000000000000000000000",
+              "serializedParams": "0x"
+            },
+            "description": "USDC / USD",
+            "decimals": 8,
+            "skipCheck": false,
+            "updatable": false,
+            "underlyingFeeds": [],
+            "underlyingStalenessPeriods": [],
+            "answer": {
+              "price": {
+                "__type": "bigint",
+                "__value": "99976264"
+              },
+              "updatedAt": {
+                "__type": "bigint",
+                "__value": "1784188811"
+              },
+              "success": true
+            }
+          },
+          {
+            "baseParams": {
+              "addr": "0xD6BcbbC87bFb6c8964dDc73DC3EaE6d08865d51C",
+              "version": {
+                "__type": "bigint",
+                "__value": "1"
+              },
+              "contractType": "0x50524943455f464545443a3a45585445524e414c000000000000000000000000",
+              "serializedParams": "0x"
+            },
+            "description": "RedStone Price Feed for ACRED_FUNDAMENTAL",
+            "decimals": 8,
+            "skipCheck": false,
+            "updatable": false,
+            "underlyingFeeds": [],
+            "underlyingStalenessPeriods": [],
+            "answer": {
+              "price": {
+                "__type": "bigint",
+                "__value": "110371423000"
+              },
+              "updatedAt": {
+                "__type": "bigint",
+                "__value": "1784154203"
+              },
+              "success": true
+            }
+          },
+          {
+            "baseParams": {
+              "addr": "0xEdC6287D3D41b322AF600317628D7E226DD3add4",
+              "version": {
+                "__type": "bigint",
+                "__value": "1"
+              },
+              "contractType": "0x50524943455f464545443a3a45585445524e414c000000000000000000000000",
+              "serializedParams": "0x"
+            },
+            "description": "RedStone Price Feed for STAC_FUNDAMENTAL",
+            "decimals": 8,
+            "skipCheck": false,
+            "updatable": false,
+            "underlyingFeeds": [],
+            "underlyingStalenessPeriods": [],
+            "answer": {
+              "price": {
+                "__type": "bigint",
+                "__value": "102400748100"
+              },
+              "updatedAt": {
+                "__type": "bigint",
+                "__value": "1784150483"
+              },
+              "success": true
+            }
+          }
+        ]
+      },
+      "lossPolicy": {
+        "baseParams": {
+          "addr": "0xD4Ba548f2F92CbC7d7c78bb710318eaAb08d5513",
+          "version": {
+            "__type": "bigint",
+            "__value": "310"
+          },
+          "contractType": "0x4c4f53535f504f4c4943593a3a414c4941534544000000000000000000000000",
+          "serializedParams": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        }
+      },
+      "tokens": [
+        {
+          "addr": "0x03f919CA79C4E0a3Ae48Ac330445189156826873",
+          "symbol": "ocUSDC",
+          "name": "On-demand compliant USD Coin",
+          "decimals": 6
+        },
+        {
+          "addr": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin",
+          "decimals": 6
+        },
+        {
+          "addr": "0x17418038ecF73BA4026c4f428547BF099706F27B",
+          "symbol": "ACRED",
+          "name": "Apollo Diversified Credit Securitize Fund",
+          "decimals": 6
+        },
+        {
+          "addr": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+          "symbol": "srpACRED_USDC",
+          "name": "Securitize pending redemption Apollo Diversified Credit Securitize Fund to USD Coin",
+          "decimals": 6
+        },
+        {
+          "addr": "0x51C2d74017390CbBd30550179A16A1c28F7210fc",
+          "symbol": "STAC",
+          "name": "Securitize Tokenized AAA CLO Fund",
+          "decimals": 6
+        },
+        {
+          "addr": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+          "symbol": "srpSTAC_USDC",
+          "name": "Securitize pending redemption Securitize Tokenized AAA CLO Fund to USD Coin",
+          "decimals": 6
+        }
+      ],
+      "creditManagers": [
+        {
+          "creditFacade": {
+            "baseParams": {
+              "addr": "0x97d59c5F0A27096F5d0A2a2A54114521D4C4EDe9",
+              "version": {
+                "__type": "bigint",
+                "__value": "310"
+              },
+              "contractType": "0x4352454449545f46414341444500000000000000000000000000000000000000",
+              "serializedParams": "0x"
+            },
+            "degenNFT": "0xA2c12568615c7BA89f70c453DAddbA90a71FAf8a",
+            "botList": "0x0Bc03983Da93021a374C964A22b73865220Ce962",
+            "expirable": false,
+            "expirationDate": 0,
+            "maxDebtPerBlockMultiplier": 2,
+            "minDebt": {
+              "__type": "bigint",
+              "__value": "50000000000"
+            },
+            "maxDebt": {
+              "__type": "bigint",
+              "__value": "1000000000000"
+            },
+            "forbiddenTokensMask": {
+              "__type": "bigint",
+              "__value": "0"
+            },
+            "isPaused": false
+          },
+          "creditManager": {
+            "baseParams": {
+              "addr": "0x48E2De8258fFFdd200d629eE1543745669E51e7a",
+              "version": {
+                "__type": "bigint",
+                "__value": "310"
+              },
+              "contractType": "0x4352454449545f4d414e41474552000000000000000000000000000000000000",
+              "serializedParams": "0x"
+            },
+            "name": "Mock ocUSDC Credit Suite",
+            "accountFactory": "0x9C0b1c6103e0bc39d1C43d51517D3079F1C8655d",
+            "underlying": "0x03f919CA79C4E0a3Ae48Ac330445189156826873",
+            "pool": "0x99f6bE465624F2cDF7Fe436697CeBd4bE7bAF56b",
+            "creditFacade": "0x97d59c5F0A27096F5d0A2a2A54114521D4C4EDe9",
+            "creditConfigurator": "0x95Ba090d78Db6bc11c6E5ED8eC1530399F9D5a7D",
+            "maxEnabledTokens": 2,
+            "collateralTokens": [
+              {
+                "token": "0x03f919CA79C4E0a3Ae48Ac330445189156826873",
+                "liquidationThreshold": 9800
+              },
+              {
+                "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                "liquidationThreshold": 9800
+              },
+              {
+                "token": "0x17418038ecF73BA4026c4f428547BF099706F27B",
+                "liquidationThreshold": 9000
+              },
+              {
+                "token": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+                "liquidationThreshold": 9000
+              }
+            ],
+            "feeInterest": 5000,
+            "feeLiquidation": 100,
+            "liquidationDiscount": 9900,
+            "feeLiquidationExpired": 100,
+            "liquidationDiscountExpired": 9900
+          },
+          "creditConfigurator": {
+            "baseParams": {
+              "addr": "0x95Ba090d78Db6bc11c6E5ED8eC1530399F9D5a7D",
+              "version": {
+                "__type": "bigint",
+                "__value": "310"
+              },
+              "contractType": "0x4352454449545f434f4e464947555241544f5200000000000000000000000000",
+              "serializedParams": "0x"
+            }
+          },
+          "accountFactory": {
+            "baseParams": {
+              "addr": "0x9C0b1c6103e0bc39d1C43d51517D3079F1C8655d",
+              "version": {
+                "__type": "bigint",
+                "__value": "310"
+              },
+              "contractType": "0x4143434f554e545f464143544f52593a3a44454641554c540000000000000000",
+              "serializedParams": "0x"
+            }
+          },
+          "adapters": [
+            {
+              "baseParams": {
+                "addr": "0x40cCC3a9a6Aa3418b2A0bc68f061146F08dB1Db7",
+                "version": {
+                  "__type": "bigint",
+                  "__value": "312"
+                },
+                "contractType": "0x414441505445523a3a455243343632365f5641554c5400000000000000000000",
+                "serializedParams": "0x00000000000000000000000048e2de8258fffdd200d629ee1543745669e51e7a00000000000000000000000003f919ca79c4e0a3ae48ac33044518915682687300000000000000000000000003f919ca79c4e0a3ae48ac330445189156826873000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+              },
+              "targetContract": "0x03f919CA79C4E0a3Ae48Ac330445189156826873"
+            },
+            {
+              "baseParams": {
+                "addr": "0x53AcC4E1D66111A967936b51BfBDFe0e1443F6C9",
+                "version": {
+                  "__type": "bigint",
+                  "__value": "310"
+                },
+                "contractType": "0x414441505445523a3a53454355524954495a455f4f4e52414d50000000000000",
+                "serializedParams": "0x00000000000000000000000048e2de8258fffdd200d629ee1543745669e51e7a000000000000000000000000368e7478ff8c88c9002c32e1f576fabe2e9ddf7b00000000000000000000000017418038ecf73ba4026c4f428547bf099706f27b000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+              },
+              "targetContract": "0x368e7478fF8c88C9002c32E1F576fAbe2E9Ddf7B"
+            },
+            {
+              "baseParams": {
+                "addr": "0xB422Cca3051068048E508d229Ef313AE3d682dba",
+                "version": {
+                  "__type": "bigint",
+                  "__value": "311"
+                },
+                "contractType": "0x414441505445523a3a53454355524954495a455f524544454d5054494f4e0000",
+                "serializedParams": "0x00000000000000000000000048e2de8258fffdd200d629ee1543745669e51e7a0000000000000000000000001299902e066d556da861ca5c9d607aed5faf712c00000000000000000000000017418038ecf73ba4026c4f428547bf099706f27b000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000f126eacacf6b14c8985fc195768a55e886af4208"
+              },
+              "targetContract": "0x1299902e066d556Da861Ca5c9D607aEd5faF712c"
+            }
+          ]
+        },
+        {
+          "creditFacade": {
+            "baseParams": {
+              "addr": "0x8DC94D3fA6f3C0E918E4499c8c1d8234e866eA7A",
+              "version": {
+                "__type": "bigint",
+                "__value": "310"
+              },
+              "contractType": "0x4352454449545f46414341444500000000000000000000000000000000000000",
+              "serializedParams": "0x"
+            },
+            "degenNFT": "0xA2c12568615c7BA89f70c453DAddbA90a71FAf8a",
+            "botList": "0x0Bc03983Da93021a374C964A22b73865220Ce962",
+            "expirable": false,
+            "expirationDate": 0,
+            "maxDebtPerBlockMultiplier": 2,
+            "minDebt": {
+              "__type": "bigint",
+              "__value": "50000000000"
+            },
+            "maxDebt": {
+              "__type": "bigint",
+              "__value": "1000000000000"
+            },
+            "forbiddenTokensMask": {
+              "__type": "bigint",
+              "__value": "0"
+            },
+            "isPaused": false
+          },
+          "creditManager": {
+            "baseParams": {
+              "addr": "0x108E26961E59B7018e90E677Bb88e049D8a7e9Fb",
+              "version": {
+                "__type": "bigint",
+                "__value": "310"
+              },
+              "contractType": "0x4352454449545f4d414e41474552000000000000000000000000000000000000",
+              "serializedParams": "0x"
+            },
+            "name": "Mock ocUSDC Credit Suite",
+            "accountFactory": "0x8feAf21be0b08452108bb025CaF05309c7ec9f95",
+            "underlying": "0x03f919CA79C4E0a3Ae48Ac330445189156826873",
+            "pool": "0x99f6bE465624F2cDF7Fe436697CeBd4bE7bAF56b",
+            "creditFacade": "0x8DC94D3fA6f3C0E918E4499c8c1d8234e866eA7A",
+            "creditConfigurator": "0x76776c00db868aFd22b07b1E153d86B933f40A20",
+            "maxEnabledTokens": 2,
+            "collateralTokens": [
+              {
+                "token": "0x03f919CA79C4E0a3Ae48Ac330445189156826873",
+                "liquidationThreshold": 9800
+              },
+              {
+                "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                "liquidationThreshold": 9800
+              },
+              {
+                "token": "0x51C2d74017390CbBd30550179A16A1c28F7210fc",
+                "liquidationThreshold": 9000
+              },
+              {
+                "token": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+                "liquidationThreshold": 9000
+              }
+            ],
+            "feeInterest": 5000,
+            "feeLiquidation": 100,
+            "liquidationDiscount": 9900,
+            "feeLiquidationExpired": 100,
+            "liquidationDiscountExpired": 9900
+          },
+          "creditConfigurator": {
+            "baseParams": {
+              "addr": "0x76776c00db868aFd22b07b1E153d86B933f40A20",
+              "version": {
+                "__type": "bigint",
+                "__value": "310"
+              },
+              "contractType": "0x4352454449545f434f4e464947555241544f5200000000000000000000000000",
+              "serializedParams": "0x"
+            }
+          },
+          "accountFactory": {
+            "baseParams": {
+              "addr": "0x8feAf21be0b08452108bb025CaF05309c7ec9f95",
+              "version": {
+                "__type": "bigint",
+                "__value": "310"
+              },
+              "contractType": "0x4143434f554e545f464143544f52593a3a44454641554c540000000000000000",
+              "serializedParams": "0x"
+            }
+          },
+          "adapters": [
+            {
+              "baseParams": {
+                "addr": "0x1a6FC5292218E5C301b9bC5D2E1d4918C2e68Cf1",
+                "version": {
+                  "__type": "bigint",
+                  "__value": "312"
+                },
+                "contractType": "0x414441505445523a3a455243343632365f5641554c5400000000000000000000",
+                "serializedParams": "0x000000000000000000000000108e26961e59b7018e90e677bb88e049d8a7e9fb00000000000000000000000003f919ca79c4e0a3ae48ac33044518915682687300000000000000000000000003f919ca79c4e0a3ae48ac330445189156826873000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+              },
+              "targetContract": "0x03f919CA79C4E0a3Ae48Ac330445189156826873"
+            },
+            {
+              "baseParams": {
+                "addr": "0x6724d24B77e1153d4891B42EDa074E8189708C76",
+                "version": {
+                  "__type": "bigint",
+                  "__value": "310"
+                },
+                "contractType": "0x414441505445523a3a53454355524954495a455f4f4e52414d50000000000000",
+                "serializedParams": "0x000000000000000000000000108e26961e59b7018e90e677bb88e049d8a7e9fb000000000000000000000000c793b33120e5b74b601b00af8fe2d30167ceb92300000000000000000000000051c2d74017390cbbd30550179a16a1c28f7210fc000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+              },
+              "targetContract": "0xc793b33120E5b74b601b00aF8FE2d30167CEB923"
+            },
+            {
+              "baseParams": {
+                "addr": "0xf04DBFE4e941edfe2Cb4c0380596d6115C672F3A",
+                "version": {
+                  "__type": "bigint",
+                  "__value": "311"
+                },
+                "contractType": "0x414441505445523a3a53454355524954495a455f524544454d5054494f4e0000",
+                "serializedParams": "0x000000000000000000000000108e26961e59b7018e90e677bb88e049d8a7e9fb0000000000000000000000006dbc24d7f878a75fde6bd1ebd5519281b59f26a500000000000000000000000051c2d74017390cbbd30550179a16a1c28f7210fc000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000d2f49d24c0f43bec0dc91b1ba42cbc49d1d16cea"
+              },
+              "targetContract": "0x6DBc24d7f878a75fde6bD1ebd5519281B59f26a5"
+            }
+          ]
+        }
+      ],
+      "configurator": "0x610627d8D01a413BDD9B0a0b60070Da7dd1e54aD",
+      "pausableAdmins": ["0x610627d8D01a413BDD9B0a0b60070Da7dd1e54aD"],
+      "unpausableAdmins": ["0x610627d8D01a413BDD9B0a0b60070Da7dd1e54aD"],
+      "emergencyLiquidators": []
+    },
+    {
+      "acl": "0xB521a1931DdFDAC06396FeE7D4d6C9a0Cdfc5753",
+      "contractsRegister": "0xE43954bC20cF1051073129E2Bf076716f14948fc",
+      "treasury": "0x3E965117A51186e41c2BB58b729A1e518A715e5F",
+      "pool": {
+        "baseParams": {
+          "addr": "0x2Fc5541073a30d16F12bcEd1ce98b38aa0F75126",
+          "version": {
+            "__type": "bigint",
+            "__value": "310"
+          },
+          "contractType": "0x504f4f4c00000000000000000000000000000000000000000000000000000000",
+          "serializedParams": "0x"
+        },
+        "symbol": "mddcRLUSD",
+        "name": "Mock Diesel Default compliant RLUSD",
+        "decimals": 18,
+        "totalSupply": {
+          "__type": "bigint",
+          "__value": "1000000000000000000100000"
+        },
+        "quotaKeeper": "0x9014fFA601A5e17B4aB12f2b725C12Ca3ba17522",
+        "interestRateModel": "0x73eC1Bd045e2e698EF46Fd13fc63A37551F7F6A0",
+        "underlying": "0x239223dA253006f9cc5737D315FdeD6F84E8240C",
+        "availableLiquidity": {
+          "__type": "bigint",
+          "__value": "800000000000000000100000"
+        },
+        "expectedLiquidity": {
+          "__type": "bigint",
+          "__value": "1000006131985318366411516"
+        },
+        "baseInterestIndex": {
+          "__type": "bigint",
+          "__value": "1000030579654997463216641298"
+        },
+        "baseInterestRate": {
+          "__type": "bigint",
+          "__value": "40000000000000000000000000"
+        },
+        "dieselRate": {
+          "__type": "bigint",
+          "__value": "1000006131985318366311515386"
+        },
+        "supplyRate": {
+          "__type": "bigint",
+          "__value": "8020950815647359111300515"
+        },
+        "withdrawFee": {
+          "__type": "bigint",
+          "__value": "0"
+        },
+        "totalBorrowed": {
+          "__type": "bigint",
+          "__value": "200000000000000000000000"
+        },
+        "totalDebtLimit": {
+          "__type": "bigint",
+          "__value": "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+        },
+        "creditManagerDebtParams": [
+          {
+            "creditManager": "0x328BD41b79D23569071DcE7573EfFbb9d046D640",
+            "borrowed": {
+              "__type": "bigint",
+              "__value": "100000000000000000000000"
+            },
+            "limit": {
+              "__type": "bigint",
+              "__value": "1000000000000000000000000"
+            },
+            "available": {
+              "__type": "bigint",
+              "__value": "800000000000000000100000"
+            }
+          },
+          {
+            "creditManager": "0x38533Db7c1CFC46E8a70625c269dE286FC412589",
+            "borrowed": {
+              "__type": "bigint",
+              "__value": "100000000000000000000000"
+            },
+            "limit": {
+              "__type": "bigint",
+              "__value": "1000000000000000000000000"
+            },
+            "available": {
+              "__type": "bigint",
+              "__value": "800000000000000000100000"
+            }
+          }
+        ],
+        "baseInterestIndexLU": {
+          "__type": "bigint",
+          "__value": "1000000000000000000000000000"
+        },
+        "expectedLiquidityLU": {
+          "__type": "bigint",
+          "__value": "1000000000000000000100000"
+        },
+        "quotaRevenue": {
+          "__type": "bigint",
+          "__value": "21000000000000000000"
+        },
+        "lastBaseInterestUpdate": 1784200648,
+        "lastQuotaRevenueUpdate": 1784200648,
+        "isPaused": false
+      },
+      "quotaKeeper": {
+        "baseParams": {
+          "addr": "0x9014fFA601A5e17B4aB12f2b725C12Ca3ba17522",
+          "version": {
+            "__type": "bigint",
+            "__value": "310"
+          },
+          "contractType": "0x504f4f4c5f51554f54415f4b4545504552000000000000000000000000000000",
+          "serializedParams": "0x"
+        },
+        "rateKeeper": "0xd3FD7bA8612E6d4CACE5C2334DAEF1E95cf01c85",
+        "quotas": [
+          {
+            "token": "0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD",
+            "rate": 1,
+            "cumulativeIndexLU": {
+              "__type": "bigint",
+              "__value": "1"
+            },
+            "quotaIncreaseFee": 0,
+            "totalQuoted": {
+              "__type": "bigint",
+              "__value": "0"
+            },
+            "limit": {
+              "__type": "bigint",
+              "__value": "10000000000000000000000000"
+            },
+            "isActive": true
+          },
+          {
+            "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "rate": 1,
+            "cumulativeIndexLU": {
+              "__type": "bigint",
+              "__value": "1"
+            },
+            "quotaIncreaseFee": 0,
+            "totalQuoted": {
+              "__type": "bigint",
+              "__value": "0"
+            },
+            "limit": {
+              "__type": "bigint",
+              "__value": "10000000000000000000000000"
+            },
+            "isActive": true
+          },
+          {
+            "token": "0x17418038ecF73BA4026c4f428547BF099706F27B",
+            "rate": 1,
+            "cumulativeIndexLU": {
+              "__type": "bigint",
+              "__value": "1"
+            },
+            "quotaIncreaseFee": 0,
+            "totalQuoted": {
+              "__type": "bigint",
+              "__value": "105000000000000000000000"
+            },
+            "limit": {
+              "__type": "bigint",
+              "__value": "10000000000000000000000000"
+            },
+            "isActive": true
+          },
+          {
+            "token": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+            "rate": 1,
+            "cumulativeIndexLU": {
+              "__type": "bigint",
+              "__value": "1"
+            },
+            "quotaIncreaseFee": 0,
+            "totalQuoted": {
+              "__type": "bigint",
+              "__value": "0"
+            },
+            "limit": {
+              "__type": "bigint",
+              "__value": "10000000000000000000000000"
+            },
+            "isActive": true
+          },
+          {
+            "token": "0x51C2d74017390CbBd30550179A16A1c28F7210fc",
+            "rate": 1,
+            "cumulativeIndexLU": {
+              "__type": "bigint",
+              "__value": "1"
+            },
+            "quotaIncreaseFee": 0,
+            "totalQuoted": {
+              "__type": "bigint",
+              "__value": "105000000000000000000000"
+            },
+            "limit": {
+              "__type": "bigint",
+              "__value": "10000000000000000000000000"
+            },
+            "isActive": true
+          },
+          {
+            "token": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+            "rate": 1,
+            "cumulativeIndexLU": {
+              "__type": "bigint",
+              "__value": "1"
+            },
+            "quotaIncreaseFee": 0,
+            "totalQuoted": {
+              "__type": "bigint",
+              "__value": "0"
+            },
+            "limit": {
+              "__type": "bigint",
+              "__value": "10000000000000000000000000"
+            },
+            "isActive": true
+          }
+        ],
+        "creditManagers": [
+          "0x328BD41b79D23569071DcE7573EfFbb9d046D640",
+          "0x38533Db7c1CFC46E8a70625c269dE286FC412589"
+        ],
+        "lastQuotaRateUpdate": 1784200648
+      },
+      "interestRateModel": {
+        "baseParams": {
+          "addr": "0x73eC1Bd045e2e698EF46Fd13fc63A37551F7F6A0",
+          "version": {
+            "__type": "bigint",
+            "__value": "310"
+          },
+          "contractType": "0x49524d3a3a4c494e454152000000000000000000000000000000000000000000",
+          "serializedParams": "0x0000000000000000000000000000000000000000000000000000000000001388000000000000000000000000000000000000000000000000000000000000232800000000000000000000000000000000000000000000000000000000000001900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        }
+      },
+      "rateKeeper": {
+        "baseParams": {
+          "addr": "0xd3FD7bA8612E6d4CACE5C2334DAEF1E95cf01c85",
+          "version": {
+            "__type": "bigint",
+            "__value": "310"
+          },
+          "contractType": "0x524154455f4b45455045523a3a54554d424c4552000000000000000000000000",
+          "serializedParams": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000014000000000000000000000000000000000000000000000000000000000000000060000000000000000000000008292bb45bf1ee4d140127049757c2e0ff06317ed000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000017418038ecf73ba4026c4f428547bf099706f27b000000000000000000000000f126eacacf6b14c8985fc195768a55e886af420800000000000000000000000051c2d74017390cbbd30550179a16a1c28f7210fc000000000000000000000000d2f49d24c0f43bec0dc91b1ba42cbc49d1d16cea0000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001"
+        },
+        "rates": [
+          {
+            "token": "0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD",
+            "rate": 1
+          },
+          {
+            "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "rate": 1
+          },
+          {
+            "token": "0x17418038ecF73BA4026c4f428547BF099706F27B",
+            "rate": 1
+          },
+          {
+            "token": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+            "rate": 1
+          },
+          {
+            "token": "0x51C2d74017390CbBd30550179A16A1c28F7210fc",
+            "rate": 1
+          },
+          {
+            "token": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+            "rate": 1
+          }
+        ]
+      },
+      "priceOracle": {
+        "baseParams": {
+          "addr": "0x515169819E47a1881c041A07979988B39d4cBc76",
+          "version": {
+            "__type": "bigint",
+            "__value": "310"
+          },
+          "contractType": "0x50524943455f4f5241434c450000000000000000000000000000000000000000",
+          "serializedParams": "0x"
+        },
+        "priceFeedMap": [
+          {
+            "token": "0x239223dA253006f9cc5737D315FdeD6F84E8240C",
+            "reserve": false,
+            "priceFeed": "0x26C46B7aD0012cA71F2298ada567dC9Af14E7f2A",
+            "stalenessPeriod": 87300
+          },
+          {
+            "token": "0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD",
+            "reserve": false,
+            "priceFeed": "0x26C46B7aD0012cA71F2298ada567dC9Af14E7f2A",
+            "stalenessPeriod": 87300
+          },
+          {
+            "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "reserve": false,
+            "priceFeed": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
+            "stalenessPeriod": 87300
+          },
+          {
+            "token": "0x17418038ecF73BA4026c4f428547BF099706F27B",
+            "reserve": false,
+            "priceFeed": "0xD6BcbbC87bFb6c8964dDc73DC3EaE6d08865d51C",
+            "stalenessPeriod": 86400
+          },
+          {
+            "token": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+            "reserve": false,
+            "priceFeed": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
+            "stalenessPeriod": 87300
+          },
+          {
+            "token": "0x51C2d74017390CbBd30550179A16A1c28F7210fc",
+            "reserve": false,
+            "priceFeed": "0xEdC6287D3D41b322AF600317628D7E226DD3add4",
+            "stalenessPeriod": 86400
+          },
+          {
+            "token": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+            "reserve": false,
+            "priceFeed": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
+            "stalenessPeriod": 87300
+          },
+          {
+            "token": "0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD",
+            "reserve": true,
+            "priceFeed": "0x26C46B7aD0012cA71F2298ada567dC9Af14E7f2A",
+            "stalenessPeriod": 87300
+          },
+          {
+            "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "reserve": true,
+            "priceFeed": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
+            "stalenessPeriod": 87300
+          },
+          {
+            "token": "0x17418038ecF73BA4026c4f428547BF099706F27B",
+            "reserve": true,
+            "priceFeed": "0xD6BcbbC87bFb6c8964dDc73DC3EaE6d08865d51C",
+            "stalenessPeriod": 86400
+          },
+          {
+            "token": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+            "reserve": true,
+            "priceFeed": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
+            "stalenessPeriod": 87300
+          },
+          {
+            "token": "0x51C2d74017390CbBd30550179A16A1c28F7210fc",
+            "reserve": true,
+            "priceFeed": "0xEdC6287D3D41b322AF600317628D7E226DD3add4",
+            "stalenessPeriod": 86400
+          },
+          {
+            "token": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+            "reserve": true,
+            "priceFeed": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
+            "stalenessPeriod": 87300
+          }
+        ],
+        "priceFeedTree": [
+          {
+            "baseParams": {
+              "addr": "0x26C46B7aD0012cA71F2298ada567dC9Af14E7f2A",
+              "version": {
+                "__type": "bigint",
+                "__value": "6"
+              },
+              "contractType": "0x50524943455f464545443a3a45585445524e414c000000000000000000000000",
+              "serializedParams": "0x"
+            },
+            "description": "RLUSD / USD",
+            "decimals": 8,
+            "skipCheck": false,
+            "updatable": false,
+            "underlyingFeeds": [],
+            "underlyingStalenessPeriods": [],
+            "answer": {
+              "price": {
+                "__type": "bigint",
+                "__value": "100009853"
+              },
+              "updatedAt": {
+                "__type": "bigint",
+                "__value": "1784145323"
+              },
+              "success": true
+            }
+          },
+          {
+            "baseParams": {
+              "addr": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
+              "version": {
+                "__type": "bigint",
+                "__value": "6"
+              },
+              "contractType": "0x50524943455f464545443a3a45585445524e414c000000000000000000000000",
+              "serializedParams": "0x"
+            },
+            "description": "USDC / USD",
+            "decimals": 8,
+            "skipCheck": false,
+            "updatable": false,
+            "underlyingFeeds": [],
+            "underlyingStalenessPeriods": [],
+            "answer": {
+              "price": {
+                "__type": "bigint",
+                "__value": "99976264"
+              },
+              "updatedAt": {
+                "__type": "bigint",
+                "__value": "1784188811"
+              },
+              "success": true
+            }
+          },
+          {
+            "baseParams": {
+              "addr": "0xD6BcbbC87bFb6c8964dDc73DC3EaE6d08865d51C",
+              "version": {
+                "__type": "bigint",
+                "__value": "1"
+              },
+              "contractType": "0x50524943455f464545443a3a45585445524e414c000000000000000000000000",
+              "serializedParams": "0x"
+            },
+            "description": "RedStone Price Feed for ACRED_FUNDAMENTAL",
+            "decimals": 8,
+            "skipCheck": false,
+            "updatable": false,
+            "underlyingFeeds": [],
+            "underlyingStalenessPeriods": [],
+            "answer": {
+              "price": {
+                "__type": "bigint",
+                "__value": "110371423000"
+              },
+              "updatedAt": {
+                "__type": "bigint",
+                "__value": "1784154203"
+              },
+              "success": true
+            }
+          },
+          {
+            "baseParams": {
+              "addr": "0xEdC6287D3D41b322AF600317628D7E226DD3add4",
+              "version": {
+                "__type": "bigint",
+                "__value": "1"
+              },
+              "contractType": "0x50524943455f464545443a3a45585445524e414c000000000000000000000000",
+              "serializedParams": "0x"
+            },
+            "description": "RedStone Price Feed for STAC_FUNDAMENTAL",
+            "decimals": 8,
+            "skipCheck": false,
+            "updatable": false,
+            "underlyingFeeds": [],
+            "underlyingStalenessPeriods": [],
+            "answer": {
+              "price": {
+                "__type": "bigint",
+                "__value": "102400748100"
+              },
+              "updatedAt": {
+                "__type": "bigint",
+                "__value": "1784150483"
+              },
+              "success": true
+            }
+          }
+        ]
+      },
+      "lossPolicy": {
+        "baseParams": {
+          "addr": "0x3065D518beA2D438Dc0AB185A4aa30Dd151Aa34E",
+          "version": {
+            "__type": "bigint",
+            "__value": "310"
+          },
+          "contractType": "0x4c4f53535f504f4c4943593a3a414c4941534544000000000000000000000000",
+          "serializedParams": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        }
+      },
+      "tokens": [
+        {
+          "addr": "0x239223dA253006f9cc5737D315FdeD6F84E8240C",
+          "symbol": "dcRLUSD",
+          "name": "Default compliant RLUSD",
+          "decimals": 18
+        },
+        {
+          "addr": "0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD",
+          "symbol": "RLUSD",
+          "name": "RLUSD",
+          "decimals": 18
+        },
+        {
+          "addr": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin",
+          "decimals": 6
+        },
+        {
+          "addr": "0x17418038ecF73BA4026c4f428547BF099706F27B",
+          "symbol": "ACRED",
+          "name": "Apollo Diversified Credit Securitize Fund",
+          "decimals": 6
+        },
+        {
+          "addr": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+          "symbol": "srpACRED_USDC",
+          "name": "Securitize pending redemption Apollo Diversified Credit Securitize Fund to USD Coin",
+          "decimals": 6
+        },
+        {
+          "addr": "0x51C2d74017390CbBd30550179A16A1c28F7210fc",
+          "symbol": "STAC",
+          "name": "Securitize Tokenized AAA CLO Fund",
+          "decimals": 6
+        },
+        {
+          "addr": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+          "symbol": "srpSTAC_USDC",
+          "name": "Securitize pending redemption Securitize Tokenized AAA CLO Fund to USD Coin",
+          "decimals": 6
+        }
+      ],
+      "creditManagers": [
+        {
+          "creditFacade": {
+            "baseParams": {
+              "addr": "0x8136E7fF7941535329e006708043407ec0858454",
+              "version": {
+                "__type": "bigint",
+                "__value": "310"
+              },
+              "contractType": "0x4352454449545f46414341444500000000000000000000000000000000000000",
+              "serializedParams": "0x"
+            },
+            "degenNFT": "0xA2c12568615c7BA89f70c453DAddbA90a71FAf8a",
+            "botList": "0x0Bc03983Da93021a374C964A22b73865220Ce962",
+            "expirable": false,
+            "expirationDate": 0,
+            "maxDebtPerBlockMultiplier": 2,
+            "minDebt": {
+              "__type": "bigint",
+              "__value": "50000000000000000000000"
+            },
+            "maxDebt": {
+              "__type": "bigint",
+              "__value": "1000000000000000000000000"
+            },
+            "forbiddenTokensMask": {
+              "__type": "bigint",
+              "__value": "0"
+            },
+            "isPaused": false
+          },
+          "creditManager": {
+            "baseParams": {
+              "addr": "0x328BD41b79D23569071DcE7573EfFbb9d046D640",
+              "version": {
+                "__type": "bigint",
+                "__value": "310"
+              },
+              "contractType": "0x4352454449545f4d414e41474552000000000000000000000000000000000000",
+              "serializedParams": "0x"
+            },
+            "name": "Mock dcRLUSD Credit Suite",
+            "accountFactory": "0x7468A3B984059cbe0DEc077C8C8743654A86e32E",
+            "underlying": "0x239223dA253006f9cc5737D315FdeD6F84E8240C",
+            "pool": "0x2Fc5541073a30d16F12bcEd1ce98b38aa0F75126",
+            "creditFacade": "0x8136E7fF7941535329e006708043407ec0858454",
+            "creditConfigurator": "0x77c3Ef8684808dbd46bd469f5652A2b4D1DCA2E0",
+            "maxEnabledTokens": 2,
+            "collateralTokens": [
+              {
+                "token": "0x239223dA253006f9cc5737D315FdeD6F84E8240C",
+                "liquidationThreshold": 9800
+              },
+              {
+                "token": "0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD",
+                "liquidationThreshold": 9800
+              },
+              {
+                "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                "liquidationThreshold": 9800
+              },
+              {
+                "token": "0x17418038ecF73BA4026c4f428547BF099706F27B",
+                "liquidationThreshold": 9000
+              },
+              {
+                "token": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+                "liquidationThreshold": 9000
+              }
+            ],
+            "feeInterest": 5000,
+            "feeLiquidation": 100,
+            "liquidationDiscount": 9900,
+            "feeLiquidationExpired": 100,
+            "liquidationDiscountExpired": 9900
+          },
+          "creditConfigurator": {
+            "baseParams": {
+              "addr": "0x77c3Ef8684808dbd46bd469f5652A2b4D1DCA2E0",
+              "version": {
+                "__type": "bigint",
+                "__value": "310"
+              },
+              "contractType": "0x4352454449545f434f4e464947555241544f5200000000000000000000000000",
+              "serializedParams": "0x"
+            }
+          },
+          "accountFactory": {
+            "baseParams": {
+              "addr": "0x7468A3B984059cbe0DEc077C8C8743654A86e32E",
+              "version": {
+                "__type": "bigint",
+                "__value": "310"
+              },
+              "contractType": "0x4143434f554e545f464143544f52593a3a44454641554c540000000000000000",
+              "serializedParams": "0x"
+            }
+          },
+          "adapters": [
+            {
+              "baseParams": {
+                "addr": "0x3Ae3345551b89A55547CfB4172917F433e66b373",
+                "version": {
+                  "__type": "bigint",
+                  "__value": "312"
+                },
+                "contractType": "0x414441505445523a3a455243343632365f5641554c5400000000000000000000",
+                "serializedParams": "0x000000000000000000000000328bd41b79d23569071dce7573effbb9d046d640000000000000000000000000239223da253006f9cc5737d315fded6f84e8240c000000000000000000000000239223da253006f9cc5737d315fded6f84e8240c0000000000000000000000008292bb45bf1ee4d140127049757c2e0ff06317ed"
+              },
+              "targetContract": "0x239223dA253006f9cc5737D315FdeD6F84E8240C"
+            },
+            {
+              "baseParams": {
+                "addr": "0x0cA209e96399dE85766E9aaA64B17e426fA6B805",
+                "version": {
+                  "__type": "bigint",
+                  "__value": "310"
+                },
+                "contractType": "0x414441505445523a3a554e49535741505f56335f524f55544552000000000000",
+                "serializedParams": "0x000000000000000000000000328bd41b79d23569071dce7573effbb9d046d640000000000000000000000000e592427a0aece92de3edee1f18e0157c05861564000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000010000000000000000000000008292bb45bf1ee4d140127049757c2e0ff06317ed000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb480000000000000000000000000000000000000000000000000000000000000064"
+              },
+              "targetContract": "0xE592427A0AEce92De3Edee1F18E0157C05861564"
+            },
+            {
+              "baseParams": {
+                "addr": "0x03e10CD7C6315a038866F14198ceC64B3cb701A0",
+                "version": {
+                  "__type": "bigint",
+                  "__value": "310"
+                },
+                "contractType": "0x414441505445523a3a53454355524954495a455f4f4e52414d50000000000000",
+                "serializedParams": "0x000000000000000000000000328bd41b79d23569071dce7573effbb9d046d640000000000000000000000000368e7478ff8c88c9002c32e1f576fabe2e9ddf7b00000000000000000000000017418038ecf73ba4026c4f428547bf099706f27b000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+              },
+              "targetContract": "0x368e7478fF8c88C9002c32E1F576fAbe2E9Ddf7B"
+            },
+            {
+              "baseParams": {
+                "addr": "0x8b774ff5Dc94D468677203dE06a9c659f782D4CF",
+                "version": {
+                  "__type": "bigint",
+                  "__value": "311"
+                },
+                "contractType": "0x414441505445523a3a53454355524954495a455f524544454d5054494f4e0000",
+                "serializedParams": "0x000000000000000000000000328bd41b79d23569071dce7573effbb9d046d6400000000000000000000000001299902e066d556da861ca5c9d607aed5faf712c00000000000000000000000017418038ecf73ba4026c4f428547bf099706f27b000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000f126eacacf6b14c8985fc195768a55e886af4208"
+              },
+              "targetContract": "0x1299902e066d556Da861Ca5c9D607aEd5faF712c"
+            }
+          ]
+        },
+        {
+          "creditFacade": {
+            "baseParams": {
+              "addr": "0x3E97b3460D36e3561bBf7134D7b205AAB1bd1Ba4",
+              "version": {
+                "__type": "bigint",
+                "__value": "310"
+              },
+              "contractType": "0x4352454449545f46414341444500000000000000000000000000000000000000",
+              "serializedParams": "0x"
+            },
+            "degenNFT": "0xA2c12568615c7BA89f70c453DAddbA90a71FAf8a",
+            "botList": "0x0Bc03983Da93021a374C964A22b73865220Ce962",
+            "expirable": false,
+            "expirationDate": 0,
+            "maxDebtPerBlockMultiplier": 2,
+            "minDebt": {
+              "__type": "bigint",
+              "__value": "50000000000000000000000"
+            },
+            "maxDebt": {
+              "__type": "bigint",
+              "__value": "1000000000000000000000000"
+            },
+            "forbiddenTokensMask": {
+              "__type": "bigint",
+              "__value": "0"
+            },
+            "isPaused": false
+          },
+          "creditManager": {
+            "baseParams": {
+              "addr": "0x38533Db7c1CFC46E8a70625c269dE286FC412589",
+              "version": {
+                "__type": "bigint",
+                "__value": "310"
+              },
+              "contractType": "0x4352454449545f4d414e41474552000000000000000000000000000000000000",
+              "serializedParams": "0x"
+            },
+            "name": "Mock dcRLUSD Credit Suite",
+            "accountFactory": "0xc7a7bD979ACf54e1205AeE587B154712B14eE632",
+            "underlying": "0x239223dA253006f9cc5737D315FdeD6F84E8240C",
+            "pool": "0x2Fc5541073a30d16F12bcEd1ce98b38aa0F75126",
+            "creditFacade": "0x3E97b3460D36e3561bBf7134D7b205AAB1bd1Ba4",
+            "creditConfigurator": "0x208C5106534df26de7202d9087f5203c6073A751",
+            "maxEnabledTokens": 2,
+            "collateralTokens": [
+              {
+                "token": "0x239223dA253006f9cc5737D315FdeD6F84E8240C",
+                "liquidationThreshold": 9800
+              },
+              {
+                "token": "0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD",
+                "liquidationThreshold": 9800
+              },
+              {
+                "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                "liquidationThreshold": 9800
+              },
+              {
+                "token": "0x51C2d74017390CbBd30550179A16A1c28F7210fc",
+                "liquidationThreshold": 9000
+              },
+              {
+                "token": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+                "liquidationThreshold": 9000
+              }
+            ],
+            "feeInterest": 5000,
+            "feeLiquidation": 100,
+            "liquidationDiscount": 9900,
+            "feeLiquidationExpired": 100,
+            "liquidationDiscountExpired": 9900
+          },
+          "creditConfigurator": {
+            "baseParams": {
+              "addr": "0x208C5106534df26de7202d9087f5203c6073A751",
+              "version": {
+                "__type": "bigint",
+                "__value": "310"
+              },
+              "contractType": "0x4352454449545f434f4e464947555241544f5200000000000000000000000000",
+              "serializedParams": "0x"
+            }
+          },
+          "accountFactory": {
+            "baseParams": {
+              "addr": "0xc7a7bD979ACf54e1205AeE587B154712B14eE632",
+              "version": {
+                "__type": "bigint",
+                "__value": "310"
+              },
+              "contractType": "0x4143434f554e545f464143544f52593a3a44454641554c540000000000000000",
+              "serializedParams": "0x"
+            }
+          },
+          "adapters": [
+            {
+              "baseParams": {
+                "addr": "0x693EAD8f834cEa7b895bA357d45FDE166ed0f65F",
+                "version": {
+                  "__type": "bigint",
+                  "__value": "312"
+                },
+                "contractType": "0x414441505445523a3a455243343632365f5641554c5400000000000000000000",
+                "serializedParams": "0x00000000000000000000000038533db7c1cfc46e8a70625c269de286fc412589000000000000000000000000239223da253006f9cc5737d315fded6f84e8240c000000000000000000000000239223da253006f9cc5737d315fded6f84e8240c0000000000000000000000008292bb45bf1ee4d140127049757c2e0ff06317ed"
+              },
+              "targetContract": "0x239223dA253006f9cc5737D315FdeD6F84E8240C"
+            },
+            {
+              "baseParams": {
+                "addr": "0x2c8bA82Af53399fD9a3aaa7c043D5ddfc82C63f6",
+                "version": {
+                  "__type": "bigint",
+                  "__value": "310"
+                },
+                "contractType": "0x414441505445523a3a554e49535741505f56335f524f55544552000000000000",
+                "serializedParams": "0x00000000000000000000000038533db7c1cfc46e8a70625c269de286fc412589000000000000000000000000e592427a0aece92de3edee1f18e0157c05861564000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000010000000000000000000000008292bb45bf1ee4d140127049757c2e0ff06317ed000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb480000000000000000000000000000000000000000000000000000000000000064"
+              },
+              "targetContract": "0xE592427A0AEce92De3Edee1F18E0157C05861564"
+            },
+            {
+              "baseParams": {
+                "addr": "0x91bC389C66DeB3A35Fb1C7906de680792226EA87",
+                "version": {
+                  "__type": "bigint",
+                  "__value": "310"
+                },
+                "contractType": "0x414441505445523a3a53454355524954495a455f4f4e52414d50000000000000",
+                "serializedParams": "0x00000000000000000000000038533db7c1cfc46e8a70625c269de286fc412589000000000000000000000000c793b33120e5b74b601b00af8fe2d30167ceb92300000000000000000000000051c2d74017390cbbd30550179a16a1c28f7210fc000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+              },
+              "targetContract": "0xc793b33120E5b74b601b00aF8FE2d30167CEB923"
+            },
+            {
+              "baseParams": {
+                "addr": "0xA6fA6A832Fa89C81Dd37647eeB2e08592f5a1522",
+                "version": {
+                  "__type": "bigint",
+                  "__value": "311"
+                },
+                "contractType": "0x414441505445523a3a53454355524954495a455f524544454d5054494f4e0000",
+                "serializedParams": "0x00000000000000000000000038533db7c1cfc46e8a70625c269de286fc4125890000000000000000000000006dbc24d7f878a75fde6bd1ebd5519281b59f26a500000000000000000000000051c2d74017390cbbd30550179a16a1c28f7210fc000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000d2f49d24c0f43bec0dc91b1ba42cbc49d1d16cea"
+              },
+              "targetContract": "0x6DBc24d7f878a75fde6bD1ebd5519281B59f26a5"
+            }
+          ]
+        }
+      ],
+      "configurator": "0x610627d8D01a413BDD9B0a0b60070Da7dd1e54aD",
+      "pausableAdmins": ["0x610627d8D01a413BDD9B0a0b60070Da7dd1e54aD"],
+      "unpausableAdmins": ["0x610627d8D01a413BDD9B0a0b60070Da7dd1e54aD"],
+      "emergencyLiquidators": []
+    }
+  ],
+  "zappers": [
+    {
+      "pool": "0xE0Ca34a68C58f6576966047B9A2d95D60701c36f",
+      "type": "base",
+      "baseParams": {
+        "addr": "0x86035B4073e8233b6Ff31E1eabB89bf4A4A9cE3C",
+        "version": {
+          "__type": "bigint",
+          "__value": "310"
+        },
+        "contractType": "0x5a41505045523a3a455243343632365f554e4445524c59494e47000000000000",
+        "serializedParams": "0x"
+      },
+      "tokenIn": {
+        "addr": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        "symbol": "USDC",
+        "name": "USD Coin",
+        "decimals": 6
+      },
+      "tokenOut": {
+        "addr": "0xE0Ca34a68C58f6576966047B9A2d95D60701c36f",
+        "symbol": "mddcUSDC",
+        "name": "Mock Diesel Default compliant USD Coin",
+        "decimals": 6
+      }
+    },
+    {
+      "pool": "0x2Fc5541073a30d16F12bcEd1ce98b38aa0F75126",
+      "type": "base",
+      "baseParams": {
+        "addr": "0x849794C78f7b9155BD5F3F97343ee441D8518A76",
+        "version": {
+          "__type": "bigint",
+          "__value": "310"
+        },
+        "contractType": "0x5a41505045523a3a455243343632365f554e4445524c59494e47000000000000",
+        "serializedParams": "0x"
+      },
+      "tokenIn": {
+        "addr": "0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD",
+        "symbol": "RLUSD",
+        "name": "RLUSD",
+        "decimals": 18
+      },
+      "tokenOut": {
+        "addr": "0x2Fc5541073a30d16F12bcEd1ce98b38aa0F75126",
+        "symbol": "mddcRLUSD",
+        "name": "Mock Diesel Default compliant RLUSD",
+        "decimals": 18
+      }
+    }
+  ],
+  "rwa": [
+    [
+      {
+        "baseParams": {
+          "addr": "0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D",
+          "version": {
+            "__type": "bigint",
+            "__value": "310"
+          },
+          "contractType": "0x5257415f554e4445524c59494e473a3a44454641554c54000000000000000000",
+          "serializedParams": "0x000000000000000000000000c6f7b95f6fb8394541d9ac8b0abc94bf6e84f703000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+        },
+        "asset": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        "factory": "0xc6f7B95f6fb8394541D9Ac8B0Abc94Bf6E84F703",
+        "extraDetails": "0x"
+      },
+      {
+        "baseParams": {
+          "addr": "0x03f919CA79C4E0a3Ae48Ac330445189156826873",
+          "version": {
+            "__type": "bigint",
+            "__value": "310"
+          },
+          "contractType": "0x5257415f554e4445524c59494e473a3a4f4e5f44454d414e4400000000000000",
+          "serializedParams": "0x000000000000000000000000c6f7b95f6fb8394541d9ac8b0abc94bf6e84f703000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000099f6be465624f2cdf7fe436697cebd4be7baf56b0000000000000000000000008b92e9d511fcf3b9e853a7374420affce87dbc86000000000000000000000000610627d8d01a413bdd9b0a0b60070da7dd1e54ad00000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000010000000000000000000000003e965117a51186e41c2bb58b729a1e518a715e5f"
+        },
+        "asset": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        "factory": "0xc6f7B95f6fb8394541D9Ac8B0Abc94Bf6E84F703",
+        "extraDetails": "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000008b92e9d511fcf3b9e853a7374420affce87dbc8600000000000000000000000000000000000000000000000000000000000001364f4e5f44454d414e445f4c503a3a4d4f4e4f504f4c495a45440000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000120000000000000000000000000610627d8d01a413bdd9b0a0b60070da7dd1e54ad00000000000000000000000015d34aaf54267db7d7c367839aaf71a00a2c6a650000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000100000000000000000000000099f6be465624f2cdf7fe436697cebd4be7baf56b00000000000000000000000003f919ca79c4e0a3ae48ac330445189156826873000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000000000000000000000000000000000ba43b740000000000000000000000000000000000000000000000000000000002e914b610c"
+      },
+      {
+        "baseParams": {
+          "addr": "0x239223dA253006f9cc5737D315FdeD6F84E8240C",
+          "version": {
+            "__type": "bigint",
+            "__value": "310"
+          },
+          "contractType": "0x5257415f554e4445524c59494e473a3a44454641554c54000000000000000000",
+          "serializedParams": "0x000000000000000000000000c6f7b95f6fb8394541d9ac8b0abc94bf6e84f7030000000000000000000000008292bb45bf1ee4d140127049757c2e0ff06317ed"
+        },
+        "asset": "0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD",
+        "factory": "0xc6f7B95f6fb8394541D9Ac8B0Abc94Bf6E84F703",
+        "extraDetails": "0x"
+      }
+    ],
+    [
+      {
+        "baseParams": {
+          "addr": "0xc6f7B95f6fb8394541D9Ac8B0Abc94Bf6E84F703",
+          "version": {
+            "__type": "bigint",
+            "__value": "310"
+          },
+          "contractType": "0x5257415f464143544f52593a3a53454355524954495a45000000000000000000",
+          "serializedParams": "0x00000000000000000000000015d34aaf54267db7d7c367839aaf71a00a2c6a65000000000000000000000000a2c12568615c7ba89f70c453daddba90a71faf8a00000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000e000000000000000000000000017418038ecf73ba4026c4f428547bf099706f27b000000000000000000000000626b7faee003cfbf8a3ea33b84fcf6cbe3150500000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000010000000000000000000000001299902e066d556da861ca5c9d607aed5faf712c00000000000000000000000051c2d74017390cbbd30550179a16a1c28f7210fc000000000000000000000000cbb8bbd2195a46ccd88393ae6a9a0cdb8d91e810000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000010000000000000000000000006dbc24d7f878a75fde6bd1ebd5519281b59f26a5"
+        },
+        "tokens": [
+          {
+            "addr": "0x17418038ecF73BA4026c4f428547BF099706F27B",
+            "symbol": "ACRED",
+            "name": "Apollo Diversified Credit Securitize Fund",
+            "decimals": 6
+          },
+          {
+            "addr": "0x51C2d74017390CbBd30550179A16A1c28F7210fc",
+            "symbol": "STAC",
+            "name": "Securitize Tokenized AAA CLO Fund",
+            "decimals": 6
+          }
+        ],
+        "extraDetails": "0x"
+      }
+    ]
+  ],
+  "plugins": {}
+}
