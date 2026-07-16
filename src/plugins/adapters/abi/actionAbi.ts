@@ -9,7 +9,7 @@ import { AdapterType, type VersionedAbi } from "../types.js";
  */
 export const adapterActionSignatures: PartialRecord<
   AdapterType,
-  Record<number, string>
+  Record<number, string | string[]>
 > = {
   [AdapterType.BALANCER_VAULT]: {
     310: "function setPoolStatus(bytes32,uint8)",
@@ -54,6 +54,12 @@ export const adapterActionSignatures: PartialRecord<
   [AdapterType.MIDAS_REDEMPTION_VAULT]: {
     310: "function setTokenAllowedStatusBatch((address,address,bool)[])",
   },
+  [AdapterType.MIDAS_GATEWAY]: {
+    311: [
+      "function setInputTokenAllowedStatusBatch(address[],bool[])",
+      "function setOutputTokenAllowedStatusBatch((address,address,bool)[])",
+    ],
+  },
   [AdapterType.PENDLE_ROUTER]: {
     310: "function setPairStatusBatch((address,address,address,uint8)[])",
     311: "function setPairStatusBatch((address,address,address,uint8,uint8)[])",
@@ -86,7 +92,7 @@ export const adapterActionAbi: PartialRecord<AdapterType, VersionedAbi> =
         Object.fromEntries(
           Object.entries(versionedSignature).map(([version, signature]) => [
             version,
-            parseAbi([signature]),
+            parseAbi(Array.isArray(signature) ? signature : [signature]),
           ]),
         ),
       ],
@@ -102,9 +108,17 @@ export const adapterActionSelectors: Record<
 > = Object.fromEntries(
   Object.entries(adapterActionSignatures).flatMap(
     ([adapterType, versionedSignature]) =>
-      Object.entries(versionedSignature).map(([version, signature]) => [
-        toFunctionSelector(signature),
-        { version: +version, signature, adapterType },
-      ]),
+      Object.entries(versionedSignature).map(([version, signature]) => {
+        if (Array.isArray(signature)) {
+          return signature.map(s => [
+            toFunctionSelector(s),
+            { version: +version, signature: s, adapterType },
+          ]);
+        }
+        return [
+          toFunctionSelector(signature),
+          { version: +version, signature, adapterType },
+        ];
+      }),
   ),
 );
