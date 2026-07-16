@@ -84,7 +84,7 @@ describe("buildDelayedPreview CLOSE_ACCOUNT", () => {
     totalDebt: 88300819164n,
   });
 
-  it("previews a permanent closure with the leftover after full repayment", () => {
+  it("previews an account closure with the leftover after full repayment", () => {
     const preview = buildDelayedPreview(
       account,
       before,
@@ -93,7 +93,7 @@ describe("buildDelayedPreview CLOSE_ACCOUNT", () => {
     );
     expect(preview).toEqual({
       operation: "CloseCreditAccount",
-      permanent: true,
+      permanent: false,
       creditManager: CREDIT_MANAGER,
       creditAccount: CREDIT_ACCOUNT,
       // total value (underlying + claimed USDC at 1:1) minus total debt

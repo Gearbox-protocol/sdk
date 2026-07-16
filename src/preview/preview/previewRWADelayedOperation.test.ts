@@ -180,7 +180,7 @@ it("previews a delayed withdraw-all with CLOSE_ACCOUNT intent", async () => {
     },
     delayedPreview: {
       operation: "CloseCreditAccount",
-      permanent: true,
+      permanent: false,
       creditAccount: CLOSE_ACCOUNT,
       creditManager: CREDIT_MANAGER,
       receivedAmount: 22_074_278_186n, // ~ 20 ACRED
