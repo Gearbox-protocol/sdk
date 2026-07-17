@@ -902,10 +902,15 @@ export class CreditAccountsServiceV310
     assetsToWithdraw,
     to,
   }: AssembleCloseCreditAccountCallsProps): Promise<Array<MultiCall>> {
+    // RWA: after debt repay, redeem leftover vault shares so withdraw can take rwa.asset
+    const unwrapCalls =
+      (await this.getRedeemDiffCalls(1n, ca.creditManager)) ?? [];
+
     return [
       ...routerCalls,
       ...this.#prepareDisableQuotas(ca),
       ...this.#prepareDecreaseDebt(ca),
+      ...unwrapCalls,
       ...assetsToWithdraw.map(t =>
         this.#prepareWithdrawToken(ca.creditFacade, t, MAX_UINT256, to),
       ),
