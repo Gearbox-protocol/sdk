@@ -16,14 +16,14 @@ export const midasGatewayAbi = [
         internalType: "address",
       },
       {
-        name: "_accessControl",
+        name: "_quoteToken",
         type: "address",
         internalType: "address",
       },
       {
-        name: "_transferMaster",
-        type: "address",
-        internalType: "address",
+        name: "_isAccessControlled",
+        type: "bool",
+        internalType: "bool",
       },
       {
         name: "_allowedMarketConfigurator",
@@ -44,6 +44,11 @@ export const midasGatewayAbi = [
         name: "_redemptionLogger",
         type: "address",
         internalType: "address",
+      },
+      {
+        name: "_withDelayedWithdrawals",
+        type: "bool",
+        internalType: "bool",
       },
     ],
     stateMutability: "nonpayable",
@@ -104,11 +109,6 @@ export const midasGatewayAbi = [
     type: "function",
     name: "depositInstant",
     inputs: [
-      {
-        name: "tokenIn",
-        type: "address",
-        internalType: "address",
-      },
       {
         name: "amountToken",
         type: "uint256",
@@ -202,11 +202,6 @@ export const midasGatewayAbi = [
         type: "address",
         internalType: "address",
       },
-      {
-        name: "tokenOut",
-        type: "address",
-        internalType: "address",
-      },
     ],
     outputs: [
       {
@@ -243,13 +238,34 @@ export const midasGatewayAbi = [
   },
   {
     type: "function",
-    name: "redeemInstant",
-    inputs: [
+    name: "phantomToken",
+    inputs: [],
+    outputs: [
       {
-        name: "tokenOut",
+        name: "",
         type: "address",
         internalType: "address",
       },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "quoteToken",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "redeemInstant",
+    inputs: [
       {
         name: "amountMTokenIn",
         type: "uint256",
@@ -281,11 +297,6 @@ export const midasGatewayAbi = [
     type: "function",
     name: "requestRedeem",
     inputs: [
-      {
-        name: "tokenOut",
-        type: "address",
-        internalType: "address",
-      },
       {
         name: "amountMTokenIn",
         type: "uint256",
@@ -349,11 +360,6 @@ export const midasGatewayAbi = [
     name: "withdraw",
     inputs: [
       {
-        name: "tokenOut",
-        type: "address",
-        internalType: "address",
-      },
-      {
         name: "amount",
         type: "uint256",
         internalType: "uint256",
@@ -368,11 +374,6 @@ export const midasGatewayAbi = [
     inputs: [
       {
         name: "redeemer",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "tokenOut",
         type: "address",
         internalType: "address",
       },
@@ -393,6 +394,11 @@ export const midasGatewayAbi = [
   {
     type: "error",
     name: "CreditAccountNotEligibleException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "IncompatibleAccessControlsException",
     inputs: [],
   },
   {
@@ -436,6 +442,11 @@ export const midasRedeemerAbi = [
         type: "address",
         internalType: "address",
       },
+      {
+        name: "_quoteToken",
+        type: "address",
+        internalType: "address",
+      },
     ],
     stateMutability: "nonpayable",
   },
@@ -468,13 +479,7 @@ export const midasRedeemerAbi = [
   {
     type: "function",
     name: "claimableTokenOutAmount",
-    inputs: [
-      {
-        name: "tokenOut",
-        type: "address",
-        internalType: "address",
-      },
-    ],
+    inputs: [],
     outputs: [
       {
         name: "",
@@ -565,18 +570,25 @@ export const midasRedeemerAbi = [
   {
     type: "function",
     name: "pendingTokenOutAmount",
-    inputs: [
-      {
-        name: "tokenOut",
-        type: "address",
-        internalType: "address",
-      },
-    ],
+    inputs: [],
     outputs: [
       {
         name: "",
         type: "uint256",
         internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "quoteToken",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
@@ -612,11 +624,6 @@ export const midasRedeemerAbi = [
     name: "requestRedeem",
     inputs: [
       {
-        name: "tokenOut",
-        type: "address",
-        internalType: "address",
-      },
-      {
         name: "amountMTokenIn",
         type: "uint256",
         internalType: "uint256",
@@ -642,11 +649,6 @@ export const midasRedeemerAbi = [
     type: "function",
     name: "withdraw",
     inputs: [
-      {
-        name: "tokenOut",
-        type: "address",
-        internalType: "address",
-      },
       {
         name: "amount",
         type: "uint256",
@@ -693,7 +695,12 @@ export const midasRedemptionVaultPhantomTokenAbi = [
         internalType: "address",
       },
       {
-        name: "_tokenOut",
+        name: "_mToken",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "_quoteToken",
         type: "address",
         internalType: "address",
       },
@@ -859,19 +866,6 @@ export const midasRedemptionVaultPhantomTokenAbi = [
         name: "",
         type: "string",
         internalType: "string",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "tokenOut",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "address",
-        internalType: "address",
       },
     ],
     stateMutability: "view",

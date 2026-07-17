@@ -5,6 +5,7 @@ import {
   decodeFunctionData,
   type Hex,
   isAddressEqual,
+  zeroAddress,
 } from "viem";
 import {
   type AssetsMap,
@@ -31,9 +32,9 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
 > {
   #gateway?: Address;
   #mToken?: Address;
+  #quoteToken?: Address;
+  #phantomToken?: Address;
   #referrerId?: string;
-  #allowedInputTokens?: Address[];
-  #allowedOutputTokens?: { token: Address; phantomToken: Address }[];
 
   constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
     super(sdk, { ...args, abi, protocolAbi });
@@ -45,22 +46,18 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
           { type: "address", name: "targetContract" },
           { type: "address", name: "gateway" },
           { type: "address", name: "mToken" },
+          { type: "address", name: "quoteToken" },
+          { type: "address", name: "phantomToken" },
           { type: "bytes32", name: "referrerId" },
-          { type: "address[]", name: "allowedInputTokens" },
-          { type: "address[]", name: "allowedOutputTokens" },
-          { type: "address[]", name: "allowedPhantomTokens" },
         ],
         args.baseParams.serializedParams,
       );
 
       this.#gateway = decoded[2];
       this.#mToken = decoded[3];
-      this.#referrerId = decoded[4];
-      this.#allowedInputTokens = [...decoded[5]];
-      this.#allowedOutputTokens = decoded[6].map((token, index) => ({
-        token,
-        phantomToken: decoded[7][index],
-      }));
+      this.#quoteToken = decoded[4];
+      this.#phantomToken = decoded[5];
+      this.#referrerId = decoded[6];
     }
   }
 
@@ -74,22 +71,25 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
     return this.#mToken;
   }
 
+  get quoteToken(): Address {
+    if (!this.#quoteToken) throw new MissingSerializedParamsError("quoteToken");
+    return this.#quoteToken;
+  }
+
+  /**
+   * Redemption phantom token; `zeroAddress` when the gateway was deployed
+   * without delayed withdrawals
+   */
+  get phantomToken(): Address {
+    if (!this.#phantomToken)
+      throw new MissingSerializedParamsError("phantomToken");
+    return this.#phantomToken;
+  }
+
   get referrerId(): string {
     if (this.#referrerId === undefined)
       throw new MissingSerializedParamsError("referrerId");
     return this.#referrerId;
-  }
-
-  get allowedInputTokens(): Address[] {
-    if (!this.#allowedInputTokens)
-      throw new MissingSerializedParamsError("allowedInputTokens");
-    return this.#allowedInputTokens;
-  }
-
-  get allowedOutputTokens(): { token: Address; phantomToken: Address }[] {
-    if (!this.#allowedOutputTokens)
-      throw new MissingSerializedParamsError("allowedOutputTokens");
-    return this.#allowedOutputTokens;
   }
 
   public override stateHuman(raw?: boolean) {
@@ -97,22 +97,21 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
       ...super.stateHuman(raw),
       gateway: this.#gateway ? this.labelAddress(this.#gateway) : undefined,
       mToken: this.#mToken ? this.labelAddress(this.#mToken) : undefined,
+      quoteToken: this.#quoteToken
+        ? this.labelAddress(this.#quoteToken)
+        : undefined,
+      phantomToken: this.#phantomToken
+        ? this.labelAddress(this.#phantomToken)
+        : undefined,
       referrerId: this.#referrerId,
-      allowedInputTokens: this.#allowedInputTokens?.map(t =>
-        this.labelAddress(t),
-      ),
-      allowedOutputTokens: this.#allowedOutputTokens?.map(t => ({
-        token: this.labelAddress(t.token),
-        phantomToken: this.labelAddress(t.phantomToken),
-      })),
     };
   }
 
   /**
    * `redeemRequest` (the only request call the withdrawal compressor emits)
-   * spends the mToken and mints the phantom token of the requested
-   * `tokenOut`, which is received when the redemption is claimed. The 3-arg
-   * overload carries the intent `extraData`.
+   * spends the mToken and mints the redemption phantom token; the quote token
+   * is received when the redemption is claimed. The 2-arg overload carries
+   * the intent `extraData`.
    */
   public override parseDelayedWithdrawalRequest(
     calldata: Hex,
@@ -121,14 +120,15 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
     if (decoded.functionName !== "redeemRequest") {
       return undefined;
     }
-    const [tokenOut, , extraData] = decoded.args;
-    const phantomToken = this.allowedOutputTokens.find(t =>
-      isAddressEqual(t.token, tokenOut),
-    )?.phantomToken;
-    if (!phantomToken) {
+    if (isAddressEqual(this.phantomToken, zeroAddress)) {
       return undefined;
     }
-    return { phantomToken, claimToken: tokenOut, extraData };
+    const [, extraData] = decoded.args;
+    return {
+      phantomToken: this.phantomToken,
+      claimToken: this.quoteToken,
+      extraData,
+    };
   }
 
   protected override async applyBalanceChanges(
@@ -137,14 +137,20 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
   ): Promise<void> {
     switch (decoded.functionName) {
       case "depositInstantDiff": {
-        const [tokenIn, leftoverAmount] = decoded.args;
-        this.setLeftover(balances, tokenIn, leftoverAmount);
+        const [leftoverAmount] = decoded.args;
+        this.setLeftover(balances, this.quoteToken, leftoverAmount);
         break;
       }
-      // instant redemption spends the mToken down to the leftover, tokenOut
-      // arg is the received token
+      // instant redemption spends the mToken down to the leftover
       case "redeemInstantDiff": {
-        const [, leftoverAmount] = decoded.args;
+        const [leftoverAmount] = decoded.args;
+        this.setLeftover(balances, this.mToken, leftoverAmount);
+        break;
+      }
+      // delayed redemption also spends the mToken down to the leftover (the
+      // minted phantom token is accounted for elsewhere)
+      case "redeemRequestDiff": {
+        const [leftoverAmount] = decoded.args;
         this.setLeftover(balances, this.mToken, leftoverAmount);
         break;
       }
@@ -152,7 +158,7 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
       // `redeemRequest` is only emitted by the withdrawal compressor,
       // and sdk now encodes the spent mToken amount as a negative storeExpectedBalances delta
       case "redeemRequest": {
-        // const [, amountMTokenIn] = decoded.args;
+        // const [amountMTokenIn] = decoded.args;
         // this.spendExact(balances, this.mToken, amountMTokenIn);
         break;
       }
@@ -161,15 +167,8 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
       // compressor, and `assembleClaimDelayedCalls` encodes the phantom token
       // burn as a negative storeExpectedBalances delta
       case "withdrawFromRedeemer": {
-        // const [, tokenOut, amount] = decoded.args;
-        // const phantomToken = this.allowedOutputTokens.find(t =>
-        //   isAddressEqual(t.token, tokenOut),
-        // )?.phantomToken;
-        // if (!phantomToken) {
-        //   await super.applyBalanceChanges(balances, decoded);
-        //   break;
-        // }
-        // this.spendExact(balances, phantomToken, amount);
+        // const [, amount] = decoded.args;
+        // this.spendExact(balances, this.phantomToken, amount);
         break;
       }
       default:

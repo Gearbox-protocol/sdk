@@ -154,6 +154,7 @@ async function fulfillMidasWithdrawal(
   withdrawalPhantomToken: Address,
   logger?: ILogger,
 ): Promise<void> {
+  // the quote token received when the redemption is claimed
   const [gateway, tokenOut] = await anvil.multicall({
     allowFailure: false,
     contracts: [
@@ -165,7 +166,7 @@ async function fulfillMidasWithdrawal(
       {
         address: withdrawalPhantomToken,
         abi: midasRedemptionVaultPhantomTokenAbi,
-        functionName: "tokenOut",
+        functionName: "underlying",
       },
     ],
   });

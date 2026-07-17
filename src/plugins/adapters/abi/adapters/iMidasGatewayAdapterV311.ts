@@ -1,45 +1,6 @@
 export const iMidasGatewayAdapterV311Abi = [
   {
     type: "function",
-    name: "allowedInputTokens",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "address[]",
-        internalType: "address[]",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "allowedOutputTokens",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "address[]",
-        internalType: "address[]",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "allowedPhantomTokens",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "address[]",
-        internalType: "address[]",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
     name: "contractType",
     inputs: [],
     outputs: [
@@ -69,11 +30,6 @@ export const iMidasGatewayAdapterV311Abi = [
     name: "depositInstant",
     inputs: [
       {
-        name: "tokenIn",
-        type: "address",
-        internalType: "address",
-      },
-      {
         name: "amountToken",
         type: "uint256",
         internalType: "uint256",
@@ -102,11 +58,6 @@ export const iMidasGatewayAdapterV311Abi = [
     type: "function",
     name: "depositInstantDiff",
     inputs: [
-      {
-        name: "tokenIn",
-        type: "address",
-        internalType: "address",
-      },
       {
         name: "leftoverAmount",
         type: "uint256",
@@ -166,44 +117,6 @@ export const iMidasGatewayAdapterV311Abi = [
   },
   {
     type: "function",
-    name: "isInputTokenAllowed",
-    inputs: [
-      {
-        name: "token",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "isOutputTokenAllowed",
-    inputs: [
-      {
-        name: "token",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
     name: "mToken",
     inputs: [],
     outputs: [
@@ -217,14 +130,8 @@ export const iMidasGatewayAdapterV311Abi = [
   },
   {
     type: "function",
-    name: "outputTokenToPhantomToken",
-    inputs: [
-      {
-        name: "outputToken",
-        type: "address",
-        internalType: "address",
-      },
-    ],
+    name: "phantomToken",
+    inputs: [],
     outputs: [
       {
         name: "",
@@ -236,14 +143,8 @@ export const iMidasGatewayAdapterV311Abi = [
   },
   {
     type: "function",
-    name: "phantomTokenToOutputToken",
-    inputs: [
-      {
-        name: "phantomToken",
-        type: "address",
-        internalType: "address",
-      },
-    ],
+    name: "quoteToken",
+    inputs: [],
     outputs: [
       {
         name: "",
@@ -257,11 +158,6 @@ export const iMidasGatewayAdapterV311Abi = [
     type: "function",
     name: "redeemInstant",
     inputs: [
-      {
-        name: "tokenOut",
-        type: "address",
-        internalType: "address",
-      },
       {
         name: "amountMTokenIn",
         type: "uint256",
@@ -287,11 +183,6 @@ export const iMidasGatewayAdapterV311Abi = [
     name: "redeemInstantDiff",
     inputs: [
       {
-        name: "tokenOut",
-        type: "address",
-        internalType: "address",
-      },
-      {
         name: "leftoverAmount",
         type: "uint256",
         internalType: "uint256",
@@ -316,10 +207,24 @@ export const iMidasGatewayAdapterV311Abi = [
     name: "redeemRequest",
     inputs: [
       {
-        name: "tokenOut",
-        type: "address",
-        internalType: "address",
+        name: "amountMTokenIn",
+        type: "uint256",
+        internalType: "uint256",
       },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "redeemRequest",
+    inputs: [
       {
         name: "amountMTokenIn",
         type: "uint256",
@@ -342,37 +247,8 @@ export const iMidasGatewayAdapterV311Abi = [
   },
   {
     type: "function",
-    name: "redeemRequest",
-    inputs: [
-      {
-        name: "tokenOut",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "amountMTokenIn",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
     name: "redeemRequestDiff",
     inputs: [
-      {
-        name: "tokenOut",
-        type: "address",
-        internalType: "address",
-      },
       {
         name: "leftoverAmount",
         type: "uint256",
@@ -392,11 +268,6 @@ export const iMidasGatewayAdapterV311Abi = [
     type: "function",
     name: "redeemRequestDiff",
     inputs: [
-      {
-        name: "tokenOut",
-        type: "address",
-        internalType: "address",
-      },
       {
         name: "leftoverAmount",
         type: "uint256",
@@ -442,54 +313,6 @@ export const iMidasGatewayAdapterV311Abi = [
       },
     ],
     stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "setInputTokenAllowedStatusBatch",
-    inputs: [
-      {
-        name: "tokens",
-        type: "address[]",
-        internalType: "address[]",
-      },
-      {
-        name: "allowed",
-        type: "bool[]",
-        internalType: "bool[]",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "setOutputTokenAllowedStatusBatch",
-    inputs: [
-      {
-        name: "configs",
-        type: "tuple[]",
-        internalType: "struct IMidasGatewayAdapter.MidasAllowedTokenStatus[]",
-        components: [
-          {
-            name: "token",
-            type: "address",
-            internalType: "address",
-          },
-          {
-            name: "phantomToken",
-            type: "address",
-            internalType: "address",
-          },
-          {
-            name: "allowed",
-            type: "bool",
-            internalType: "bool",
-          },
-        ],
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -546,11 +369,6 @@ export const iMidasGatewayAdapterV311Abi = [
     name: "withdraw",
     inputs: [
       {
-        name: "tokenOut",
-        type: "address",
-        internalType: "address",
-      },
-      {
         name: "amount",
         type: "uint256",
         internalType: "uint256",
@@ -571,11 +389,6 @@ export const iMidasGatewayAdapterV311Abi = [
     inputs: [
       {
         name: "redeemer",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "tokenOut",
         type: "address",
         internalType: "address",
       },
@@ -619,67 +432,13 @@ export const iMidasGatewayAdapterV311Abi = [
     stateMutability: "nonpayable",
   },
   {
-    type: "event",
-    name: "SetInputTokenAllowedStatus",
-    inputs: [
-      {
-        name: "token",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-      {
-        name: "allowed",
-        type: "bool",
-        indexed: false,
-        internalType: "bool",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
-    name: "SetOutputTokenAllowedStatus",
-    inputs: [
-      {
-        name: "token",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-      {
-        name: "phantomToken",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-      {
-        name: "allowed",
-        type: "bool",
-        indexed: false,
-        internalType: "bool",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "error",
-    name: "IncorrectArrayLengthException",
-    inputs: [],
-  },
-  {
     type: "error",
     name: "IncorrectStakedPhantomTokenException",
     inputs: [],
   },
   {
     type: "error",
-    name: "PhantomTokenTokenOutMismatchException",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "TokenNotAllowedException",
+    name: "PhantomTokenNotSetException",
     inputs: [],
   },
 ] as const;
@@ -715,11 +474,6 @@ export const iMidasGatewayV311Abi = [
     type: "function",
     name: "depositInstant",
     inputs: [
-      {
-        name: "tokenIn",
-        type: "address",
-        internalType: "address",
-      },
       {
         name: "amountToken",
         type: "uint256",
@@ -761,11 +515,6 @@ export const iMidasGatewayV311Abi = [
         type: "address",
         internalType: "address",
       },
-      {
-        name: "tokenOut",
-        type: "address",
-        internalType: "address",
-      },
     ],
     outputs: [
       {
@@ -802,13 +551,34 @@ export const iMidasGatewayV311Abi = [
   },
   {
     type: "function",
-    name: "redeemInstant",
-    inputs: [
+    name: "phantomToken",
+    inputs: [],
+    outputs: [
       {
-        name: "tokenOut",
+        name: "",
         type: "address",
         internalType: "address",
       },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "quoteToken",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "redeemInstant",
+    inputs: [
       {
         name: "amountMTokenIn",
         type: "uint256",
@@ -840,11 +610,6 @@ export const iMidasGatewayV311Abi = [
     type: "function",
     name: "requestRedeem",
     inputs: [
-      {
-        name: "tokenOut",
-        type: "address",
-        internalType: "address",
-      },
       {
         name: "amountMTokenIn",
         type: "uint256",
@@ -908,11 +673,6 @@ export const iMidasGatewayV311Abi = [
     name: "withdraw",
     inputs: [
       {
-        name: "tokenOut",
-        type: "address",
-        internalType: "address",
-      },
-      {
         name: "amount",
         type: "uint256",
         internalType: "uint256",
@@ -927,11 +687,6 @@ export const iMidasGatewayV311Abi = [
     inputs: [
       {
         name: "redeemer",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "tokenOut",
         type: "address",
         internalType: "address",
       },
@@ -952,6 +707,11 @@ export const iMidasGatewayV311Abi = [
   {
     type: "error",
     name: "CreditAccountNotEligibleException",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "IncompatibleAccessControlsException",
     inputs: [],
   },
   {
