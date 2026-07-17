@@ -1,4 +1,9 @@
-import { AP_WETH_TOKEN, NO_VERSION, type PluginsMap } from "../../sdk/index.js";
+import {
+  AP_WETH_TOKEN,
+  MAX_UINT256,
+  NO_VERSION,
+  type PluginsMap,
+} from "../../sdk/index.js";
 import type {
   CloseCreditAccountOperation,
   MulticallOperation,
@@ -39,8 +44,17 @@ export async function previewCloseOrRepayCreditAccount<P extends PluginsMap>(
   const market = sdk.marketRegister.findByCreditManager(
     operation.creditManager,
   );
+
+  // when RWA account is closed, we unwrap underlying before withrawing it (meta.asset)
+  // Hovewer, withdrawing plain underlying is still supported
+  const exitTokens = [market.underlying];
+  const meta = sdk.tokensMeta.get(market.underlying);
+  if (meta && sdk.tokensMeta.isRWAUnderlying(meta)) {
+    exitTokens.push(meta.asset);
+  }
+
   const replay = await replayMulticall(sdk, operation, options);
-  const kind = classifyCloseOrRepay(operation.multicall, market.underlying);
+  const kind = classifyCloseOrRepay(operation.multicall, exitTokens);
   return kind === "close"
     ? previewCloseCreditAccount(input, operation, permanent, replay)
     : previewRepayCreditAccount(input, operation, permanent, replay);
@@ -64,6 +78,16 @@ function previewCloseCreditAccount<P extends PluginsMap>(
 
   const { after, error } = replay;
 
+  // in case of RWA markets, withdrawn token might be underlying (dcUSDC)
+  // or unwrapped underlying (USDC)
+  let receivedToken = market.underlying;
+  for (const m of operation.multicall) {
+    if (m.operation === "WithdrawCollateral" && m.amount === MAX_UINT256) {
+      receivedToken = m.token;
+      break;
+    }
+  }
+
   return {
     operation: "CloseCreditAccount",
     permanent,
@@ -71,7 +95,10 @@ function previewCloseCreditAccount<P extends PluginsMap>(
     creditAccount: operation.creditAccount,
     // On a malformed multicall the withdrawn amount depends on best-effort
     // replayed balances and may be unreliable
-    receivedAmount: after.collateralWithdrawn.getOrZero(market.underlying),
+    receivedAmount: {
+      token: receivedToken,
+      balance: after.collateralWithdrawn.getOrZero(receivedToken),
+    },
     error,
   };
 }

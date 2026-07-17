@@ -68,7 +68,10 @@ it("previews closing the account", async () => {
     permanent: false,
     creditManager: CREDIT_MANAGER,
     creditAccount: CREDIT_ACCOUNT,
-    receivedAmount: 9_944_275_431_253_841_336n, // ~49.9 WETH - 40 weETH
+    receivedAmount: {
+      token: WETH,
+      balance: 9_944_275_431_253_841_336n, // ~49.9 WETH - 40 weETH
+    },
   });
 });
 

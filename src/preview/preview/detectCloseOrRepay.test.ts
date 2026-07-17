@@ -7,6 +7,8 @@ import { classifyCloseOrRepay, isCloseOrRepay } from "./detectCloseOrRepay.js";
 
 const UNDERLYING: Address = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"; // WETH
 const COLLATERAL: Address = "0xBe9895146f7AF43049ca1c1AE358B0541Ea49704"; // cbETH
+const dcUSDC: Address = "0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D"; // Wrapped USDC used as RWA underlying
+const USDC: Address = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"; // USDC
 const OWNER: Address = "0xC32FEB4DBd127a1993478Ad6E5250710f838b908";
 
 function decreaseDebt(amount: bigint): InnerOperation {
@@ -23,6 +25,19 @@ function addCollateral(token: Address, amount: bigint): InnerOperation {
 
 function disableQuota(token: Address): InnerOperation {
   return { operation: "UpdateQuota", token, change: MIN_INT96 };
+}
+
+/** Out-of-bracket RWA wrap/unwrap call: share -> asset */
+function redeemDiff(): InnerOperation {
+  return {
+    operation: "Execute",
+    adapter: "0x04Ac894088FdD6FD622d9fe7c39192baFaEA15db",
+    adapterType: "ADAPTER::ERC4626_VAULT",
+    version: 310,
+    adapterFunctionName: "redeemDiff",
+    adapterArgs: {},
+    calldata: "0x0acb3202",
+  };
 }
 
 function swapToUnderlyingBracket(): InnerOperation[] {
@@ -105,14 +120,14 @@ describe("isCloseOrRepay", () => {
 
 describe("classifyCloseOrRepay", () => {
   it("classifies a swap-to-underlying multicall as close", () => {
-    expect(classifyCloseOrRepay(closeShaped, UNDERLYING)).toBe("close");
+    expect(classifyCloseOrRepay(closeShaped, [UNDERLYING])).toBe("close");
   });
 
   it("classifies as repay when collateral is added", () => {
-    expect(classifyCloseOrRepay(repayShaped, UNDERLYING)).toBe("repay");
+    expect(classifyCloseOrRepay(repayShaped, [UNDERLYING])).toBe("repay");
   });
 
-  it("classifies as repay when a non-underlying token is withdrawn", () => {
+  it("classifies as repay when a non-exit token is withdrawn", () => {
     expect(
       classifyCloseOrRepay(
         [
@@ -121,7 +136,7 @@ describe("classifyCloseOrRepay", () => {
           withdraw(UNDERLYING, MAX_UINT256),
           withdraw(COLLATERAL, MAX_UINT256),
         ],
-        UNDERLYING,
+        [UNDERLYING],
       ),
     ).toBe("repay");
   });
@@ -130,8 +145,51 @@ describe("classifyCloseOrRepay", () => {
     expect(
       classifyCloseOrRepay(
         [decreaseDebt(MAX_UINT256), withdraw(UNDERLYING, MAX_UINT256)],
-        UNDERLYING,
+        [UNDERLYING],
       ),
     ).toBe("close");
+  });
+
+  // RWA claim tail assembled by the SDK: repay full debt, unwrap the
+  // leftover RWA underlying (share -> asset) via redeemDiff and withdraw
+  // the asset. Both the share and the asset are valid close exits.
+  it("classifies withdrawal of the unwrapped RWA underlying as close", () => {
+    expect(
+      classifyCloseOrRepay(
+        [
+          disableQuota(COLLATERAL),
+          decreaseDebt(MAX_UINT256),
+          redeemDiff(),
+          withdraw(USDC, MAX_UINT256),
+        ],
+        [dcUSDC, USDC],
+      ),
+    ).toBe("close");
+  });
+
+  it("classifies withdrawal of the RWA underlying share itself as close", () => {
+    expect(
+      classifyCloseOrRepay(
+        [
+          disableQuota(COLLATERAL),
+          decreaseDebt(MAX_UINT256),
+          withdraw(dcUSDC, MAX_UINT256),
+        ],
+        [dcUSDC, USDC],
+      ),
+    ).toBe("close");
+  });
+
+  it("classifies as repay when a non-exit token is withdrawn on a RWA market", () => {
+    expect(
+      classifyCloseOrRepay(
+        [
+          disableQuota(COLLATERAL),
+          decreaseDebt(MAX_UINT256),
+          withdraw(COLLATERAL, MAX_UINT256),
+        ],
+        [dcUSDC, USDC],
+      ),
+    ).toBe("repay");
   });
 });

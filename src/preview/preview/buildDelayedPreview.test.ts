@@ -97,7 +97,10 @@ describe("buildDelayedPreview CLOSE_ACCOUNT", () => {
       creditManager: CREDIT_MANAGER,
       creditAccount: CREDIT_ACCOUNT,
       // total value (underlying + claimed USDC at 1:1) minus total debt
-      receivedAmount: 88300811096n + 22070460800n - 88300819164n,
+      receivedAmount: {
+        token: UNDERLYING,
+        balance: 88300811096n + 22070460800n - 88300819164n,
+      },
       error: undefined,
     });
   });
@@ -113,7 +116,10 @@ describe("buildDelayedPreview CLOSE_ACCOUNT", () => {
     );
     expect(preview.operation).toBe("CloseCreditAccount");
     if (preview.operation === "CloseCreditAccount") {
-      expect(preview.receivedAmount).toBe(0n);
+      expect(preview.receivedAmount).toEqual({
+        token: UNDERLYING,
+        balance: 0n,
+      });
     }
   });
 

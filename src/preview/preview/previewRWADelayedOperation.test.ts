@@ -40,6 +40,7 @@ const CREDIT_MANAGER: Address = "0x025512D771f778fad99aB30b7A7363E7C8DE078D";
 // Securitize DSToken collateral of the market; the market underlying is the
 // ERC4626 vault 0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D (asset: USDC)
 const ACRED: Address = "0x17418038ecF73BA4026c4f428547BF099706F27B";
+const dcUSDC: Address = "0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D";
 // Delayed-withdrawal phantom token of the redemption gateway (srpACRED_USDC)
 const PHANTOM: Address = "0xF126EaCAcf6B14C8985fC195768A55E886Af4208";
 // Investor EOA behind both RWA accounts (also the tx sender)
@@ -183,7 +184,7 @@ it("previews a delayed withdraw-all with CLOSE_ACCOUNT intent", async () => {
       permanent: false,
       creditAccount: CLOSE_ACCOUNT,
       creditManager: CREDIT_MANAGER,
-      receivedAmount: 22_074_278_186n, // ~ 20 ACRED
+      receivedAmount: { token: dcUSDC, balance: 22_074_278_186n }, // ~ 20 ACRED
     },
   });
 
@@ -230,7 +231,7 @@ it("previews the claim tx of a CLOSE_ACCOUNT intent as a full closure", async ()
     permanent: false,
     creditAccount: CLOSE_ACCOUNT,
     creditManager: CREDIT_MANAGER,
-    receivedAmount: 22_074_154_833n, // ~ 20 ACRED
+    receivedAmount: { token: dcUSDC, balance: 22_074_154_833n }, // ~ 20 ACRED
   });
 });
 

@@ -232,11 +232,13 @@ export interface CloseCreditAccountPreview {
    */
   creditAccount: Address;
   /**
-   * Underlying withdrawn to the user: minimal guaranteed amount, from the
-   * multicall replay (all collateral is swapped into underlying before
-   * withdrawal)
+   * Token withdrawn to the user and its minimal guaranteed amount, from the
+   * multicall replay (all collateral is swapped into the received token
+   * before withdrawal). The token is the market underlying or, on RWA
+   * markets, the unwrapped RWA underlying (the ERC4626 vault asset the
+   * underlying share converts 1:1 into)
    */
-  receivedAmount: bigint;
+  receivedAmount: Asset;
   /**
    * Set when preview encountered non-fatal errors, all fields are
    * still computed best-effort, but the

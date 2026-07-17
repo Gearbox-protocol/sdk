@@ -26,13 +26,15 @@ export function isCloseOrRepay(multicall: InnerOperation[]): boolean {
 /**
  * Distinguishes a closure from a repayment by how collateral leaves the
  * account:
- * - close swaps all assets into underlying and withdraws only the underlying
+ * - close swaps all assets into an exit token and withdraws only exit
+ *   tokens: the underlying or, on RWA markets, the unwrapped RWA underlying
+ *   (the ERC4626 vault asset)
  * - repay returns collateral in-kind: it adds collateral from the wallet to
- *   cover the debt and/or withdraws non-underlying tokens.
+ *   cover the debt and/or withdraws non-exit tokens.
  */
 export function classifyCloseOrRepay(
   multicall: InnerOperation[],
-  underlying: Address,
+  exitTokens: Address[],
 ): "close" | "repay" {
   for (const op of multicall) {
     if (op.operation === "AddCollateral") {
@@ -40,7 +42,7 @@ export function classifyCloseOrRepay(
     }
     if (
       op.operation === "WithdrawCollateral" &&
-      !isAddressEqual(op.token, underlying)
+      !exitTokens.some(token => isAddressEqual(op.token, token))
     ) {
       return "repay";
     }

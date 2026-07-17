@@ -207,7 +207,11 @@ function buildClosePreview(
     permanent: false,
     creditManager: post.creditManager,
     creditAccount: post.creditAccount,
-    receivedAmount: BigIntMath.max(totalValue - post.totalDebt, 0n),
+    // Oracle estimate denominated in the underlying
+    receivedAmount: {
+      token: post.underlying,
+      balance: BigIntMath.max(totalValue - post.totalDebt, 0n),
+    },
     error: converter.error,
   };
 }
