@@ -20,10 +20,9 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
 > {
   #gateway?: Address;
   #mToken?: Address;
+  #quoteToken?: Address;
+  #phantomToken?: Address;
   #referralId?: Hex;
-  #allowedInputTokens?: Address[];
-  #allowedTokens?: { token: Address; phantomToken: Address }[];
-
   constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
     super(options, { ...args, abi, protocolAbi });
 
@@ -34,22 +33,18 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
           { type: "address", name: "targetContract" },
           { type: "address", name: "gateway" },
           { type: "address", name: "mToken" },
+          { type: "address", name: "quoteToken" },
+          { type: "address", name: "phantomToken" },
           { type: "bytes32", name: "referralId" },
-          { type: "address[]", name: "allowedInputTokens" },
-          { type: "address[]", name: "allowedOutputTokens" },
-          { type: "address[]", name: "allowedPhantomTokens" },
         ],
         args.baseParams.serializedParams,
       );
 
       this.#gateway = decoded[2];
       this.#mToken = decoded[3];
-      this.#referralId = decoded[4];
-      this.#allowedInputTokens = decoded[5].map(token => token as Address);
-      this.#allowedTokens = decoded[6].map((token, index) => ({
-        token,
-        phantomToken: decoded[7][index],
-      }));
+      this.#quoteToken = decoded[4];
+      this.#phantomToken = decoded[5];
+      this.#referralId = decoded[6];
     }
   }
 
@@ -63,10 +58,15 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
     return this.#mToken;
   }
 
-  get allowedTokens(): { token: Address; phantomToken: Address }[] {
-    if (!this.#allowedTokens)
-      throw new MissingSerializedParamsError("allowedTokens");
-    return this.#allowedTokens;
+  get quoteToken(): Address {
+    if (!this.#quoteToken) throw new MissingSerializedParamsError("quoteToken");
+    return this.#quoteToken;
+  }
+
+  get phantomToken(): Address {
+    if (!this.#phantomToken)
+      throw new MissingSerializedParamsError("phantomToken");
+    return this.#phantomToken;
   }
 
   get referralId(): Hex {
@@ -74,25 +74,18 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
     return this.#referralId;
   }
 
-  get allowedInputTokens(): Address[] {
-    if (!this.#allowedInputTokens)
-      throw new MissingSerializedParamsError("allowedInputTokens");
-    return this.#allowedInputTokens;
-  }
-
   public override stateHuman(raw?: boolean) {
     return {
       ...super.stateHuman(raw),
       gateway: this.#gateway ? this.labelAddress(this.#gateway) : undefined,
       mToken: this.#mToken ? this.labelAddress(this.#mToken) : undefined,
+      quoteToken: this.#quoteToken
+        ? this.labelAddress(this.#quoteToken)
+        : undefined,
+      phantomToken: this.#phantomToken
+        ? this.labelAddress(this.#phantomToken)
+        : undefined,
       referralId: this.#referralId,
-      allowedInputTokens: this.#allowedInputTokens?.map(token =>
-        this.labelAddress(token),
-      ),
-      allowedTokens: this.#allowedTokens?.map(t => ({
-        token: this.labelAddress(t.token),
-        phantomToken: this.labelAddress(t.phantomToken),
-      })),
     };
   }
 }
