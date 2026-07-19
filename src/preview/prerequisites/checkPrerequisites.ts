@@ -37,6 +37,7 @@ export async function checkPrerequisites<P extends PluginsMap>(
     sdk,
     wallet,
     blockNumber: options?.blockNumber,
+    value: input.value ?? 0n,
   };
   const prereqs = await buildPrerequisites(tx, ctx);
   return Promise.all(prereqs.map(p => p.verify(ctx)));

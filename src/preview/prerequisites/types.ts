@@ -39,8 +39,16 @@ export type PrerequisiteKind = PrerequisiteResult["kind"];
 /** Shared inputs for building and verifying prerequisites. */
 export interface PrerequisiteContext {
   sdk: OnchainSDK;
-  /** Address whose balances/allowances are checked (the tx sender). */
+  /**
+   * Address whose balances/allowances are checked (the tx sender).
+   **/
   wallet: Address;
-  /** Block to read at; defaults to latest. Only set for testnet forks. */
+  /**
+   * Block to read at; defaults to latest. Only set for testnet forks.
+   **/
   blockNumber?: bigint;
+  /**
+   * Transaction `msg.value`
+   **/
+  value: bigint;
 }
