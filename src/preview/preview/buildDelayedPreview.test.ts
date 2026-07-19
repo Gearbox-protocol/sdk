@@ -90,15 +90,17 @@ describe("buildDelayedPreview CLOSE_ACCOUNT", () => {
       before,
       detected({ type: "CLOSE_ACCOUNT", to: OWNER }),
       convert,
+      USDC,
     );
     expect(preview).toEqual({
       operation: "CloseCreditAccount",
       permanent: false,
       creditManager: CREDIT_MANAGER,
       creditAccount: CREDIT_ACCOUNT,
-      // total value (underlying + claimed USDC at 1:1) minus total debt
+      // total value (underlying + claimed USDC at 1:1) minus total debt,
+      // denominated in the unwrapped underlying (1:1 with the vault share)
       receivedAmount: {
-        token: UNDERLYING,
+        token: USDC,
         balance: 88300811096n + 22070460800n - 88300819164n,
       },
       error: undefined,
@@ -113,11 +115,12 @@ describe("buildDelayedPreview CLOSE_ACCOUNT", () => {
       before,
       detected({ type: "CLOSE_ACCOUNT", to: OWNER }),
       convert,
+      USDC,
     );
     expect(preview.operation).toBe("CloseCreditAccount");
     if (preview.operation === "CloseCreditAccount") {
       expect(preview.receivedAmount).toEqual({
-        token: UNDERLYING,
+        token: USDC,
         balance: 0n,
       });
     }
@@ -129,6 +132,7 @@ describe("buildDelayedPreview CLOSE_ACCOUNT", () => {
       before,
       detected({ type: "CLOSE_ACCOUNT", to: OWNER }),
       convert,
+      USDC,
     );
     expect(account.balances.get(PHANTOM)).toBe(22070460800n);
     expect(account.quotas.get(PHANTOM)).toBe(20861060000n);
@@ -151,6 +155,7 @@ describe("buildDelayedPreview DECREASE_LEVERAGE", () => {
       before,
       detected({ type: "DECREASE_LEVERAGE" }),
       convert,
+      USDC,
     );
     expect(preview).toEqual({
       operation: "AdjustCreditAccount",
@@ -184,6 +189,7 @@ describe("buildDelayedPreview DECREASE_LEVERAGE", () => {
       before,
       detected({ type: "DECREASE_LEVERAGE" }),
       convert,
+      USDC,
     );
     expect(preview.operation).toBe("AdjustCreditAccount");
     if (preview.operation === "AdjustCreditAccount") {
@@ -213,6 +219,7 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
         withdrawAmount: 300n,
       }),
       convert,
+      USDC,
     );
     expect(preview.operation).toBe("AdjustCreditAccount");
     if (preview.operation === "AdjustCreditAccount") {
@@ -240,6 +247,7 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
         withdrawAmount: 500n,
       }),
       convert,
+      USDC,
     );
     expect(preview.operation).toBe("AdjustCreditAccount");
     if (preview.operation === "AdjustCreditAccount") {
@@ -276,6 +284,7 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
         withdrawAmount: 30n,
       }),
       convert,
+      USDC,
     );
     expect(preview.operation).toBe("AdjustCreditAccount");
     if (preview.operation === "AdjustCreditAccount") {
@@ -339,6 +348,7 @@ describe("buildDelayedPreview claim-only", () => {
       before,
       detected({ type: "DEPOSIT" }),
       convert,
+      USDC,
     );
     expect(preview).toEqual(claimOnlyExpectation);
   });
@@ -349,6 +359,7 @@ describe("buildDelayedPreview claim-only", () => {
       before,
       detected(undefined),
       convert,
+      USDC,
     );
     expect(preview).toEqual(claimOnlyExpectation);
   });
@@ -371,6 +382,7 @@ describe("buildDelayedPreview unpriceable tokens", () => {
       makeAccount(),
       detected(undefined),
       convert,
+      USDC,
     );
     expect(preview.operation).toBe("AdjustCreditAccount");
     if (preview.operation === "AdjustCreditAccount") {

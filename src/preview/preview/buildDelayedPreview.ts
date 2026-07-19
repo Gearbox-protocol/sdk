@@ -33,7 +33,9 @@ export type ConvertFn = (token: Address, to: Address, amount: bigint) => bigint;
  *
  * Intent-specific resume:
  * - `CLOSE_ACCOUNT`: everything is swapped into the underlying, the debt is
- *   fully repaid and the rest is withdrawn to the user.
+ *   fully repaid and the rest is withdrawn to the user as `receivedToken`
+ *   (the unwrapped underlying for RWA markets, converting 1:1 with the
+ *   underlying; the underlying itself otherwise).
  * - `DECREASE_LEVERAGE`: the claimed amount is swapped into the underlying
  *   and used to decrease the debt.
  * - `WITHDRAW_COLLATERAL`: the recorded amount of the recorded token is
@@ -50,12 +52,16 @@ export type ConvertFn = (token: Address, to: Address, amount: bigint) => bigint;
  * @param afterInstant - Account state after the instant part of the
  * transaction.
  * @param before - Account state before the transaction (the diff base).
+ * @param receivedToken - Token the `CLOSE_ACCOUNT` resume withdraws to the
+ * user: the unwrapped underlying (vault asset) for RWA markets, the
+ * underlying itself otherwise.
  */
 export function buildDelayedPreview(
   afterInstant: CreditAccountState,
   before: CreditAccountState,
   detected: DetectedDelayedOperation,
   convert: ConvertFn,
+  receivedToken: Address,
 ): InstantOperationPreview {
   const { request, intent } = detected;
 
@@ -66,7 +72,7 @@ export function buildDelayedPreview(
 
   switch (intent?.type) {
     case "CLOSE_ACCOUNT":
-      return buildClosePreview(post, converter);
+      return buildClosePreview(post, converter, receivedToken);
 
     case "DECREASE_LEVERAGE":
       repayFromClaim(post, request.claimToken, converter.convert, claimed);
@@ -195,11 +201,13 @@ function totalValueInUnderlying(
 
 /**
  * `CLOSE_ACCOUNT` resume: everything is swapped into the underlying, the
- * debt is repaid in full and the remainder is withdrawn to the user.
+ * debt is repaid in full and the remainder is withdrawn to the user as
+ * `receivedToken`.
  */
 function buildClosePreview(
   post: CreditAccountState,
   converter: SafeConverter,
+  receivedToken: Address,
 ): CloseCreditAccountPreview {
   const totalValue = totalValueInUnderlying(post, converter.convert, 0n);
   return {
@@ -207,9 +215,10 @@ function buildClosePreview(
     permanent: false,
     creditManager: post.creditManager,
     creditAccount: post.creditAccount,
-    // Oracle estimate denominated in the underlying
+    // Oracle estimate computed in the underlying; RWA underlyings convert
+    // 1:1 with their vault asset, so the amount holds for `receivedToken`
     receivedAmount: {
-      token: post.underlying,
+      token: receivedToken,
       balance: BigIntMath.max(totalValue - post.totalDebt, 0n),
     },
     error: converter.error,

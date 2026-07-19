@@ -41,6 +41,8 @@ const CREDIT_MANAGER: Address = "0x025512D771f778fad99aB30b7A7363E7C8DE078D";
 // ERC4626 vault 0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D (asset: USDC)
 const ACRED: Address = "0x17418038ecF73BA4026c4f428547BF099706F27B";
 const dcUSDC: Address = "0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D";
+// Unwrapped underlying (the asset of the dcUSDC vault)
+const USDC: Address = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
 // Delayed-withdrawal phantom token of the redemption gateway (srpACRED_USDC)
 const PHANTOM: Address = "0xF126EaCAcf6B14C8985fC195768A55E886Af4208";
 // Investor EOA behind both RWA accounts (also the tx sender)
@@ -184,7 +186,9 @@ it("previews a delayed withdraw-all with CLOSE_ACCOUNT intent", async () => {
       permanent: false,
       creditAccount: CLOSE_ACCOUNT,
       creditManager: CREDIT_MANAGER,
-      receivedAmount: { token: dcUSDC, balance: 22_074_278_186n }, // ~ 20 ACRED
+      // denominated in the unwrapped underlying: the close resume unwraps
+      // dcUSDC into USDC (1:1) before withdrawing it to the user
+      receivedAmount: { token: USDC, balance: 22_074_278_186n }, // ~ 20 ACRED
     },
   });
 

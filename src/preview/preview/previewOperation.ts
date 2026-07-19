@@ -117,6 +117,14 @@ async function previewMulticallOperation<P extends PluginsMap>(
   const convert: ConvertFn = (token, to, amount) =>
     market.priceOracle.convert(token, to, amount);
 
+  // The CLOSE_ACCOUNT resume unwraps the RWA underlying before withdrawing
+  // it, so the user receives the vault asset, not the underlying itself
+  const meta = sdk.tokensMeta.get(market.underlying);
+  const receivedToken =
+    meta && sdk.tokensMeta.isRWAUnderlying(meta)
+      ? meta.asset
+      : market.underlying;
+
   return {
     operation: "DelayedCreditAccountOperation",
     creditAccount: operation.creditAccount,
@@ -128,6 +136,7 @@ async function previewMulticallOperation<P extends PluginsMap>(
       before,
       delayed,
       convert,
+      receivedToken,
     ),
   };
 }
