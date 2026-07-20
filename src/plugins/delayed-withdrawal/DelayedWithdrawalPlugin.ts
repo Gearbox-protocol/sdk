@@ -6,9 +6,12 @@ import type {
   WithdrawableAssetStateHuman,
 } from "./types.js";
 
-export interface DelayedWithdrawalPluginState {
-  withdrawableAssets: Record<Address, Array<WithdrawableAsset>>;
-}
+/**
+ * The plugin holds no state of its own: withdrawable assets are cached
+ * (and serialized/hydrated) by the withdrawal compressor contract in the
+ * core SDK state (`GearboxState.withdrawals`).
+ **/
+export type DelayedWithdrawalPluginState = Record<string, never>;
 
 const MAP_LABEL = "delayedWithdrawal";
 
@@ -16,21 +19,34 @@ export class DelayedWithdrawalPlugin
   extends BasePlugin<DelayedWithdrawalPluginState>
   implements IOnchainSDKPlugin<DelayedWithdrawalPluginState>
 {
-  #withdrawableAssets?: AddressMap<Array<WithdrawableAsset>>;
-
   public async load(force?: boolean): Promise<DelayedWithdrawalPluginState> {
     if (!force && this.loaded) {
       return this.state;
     }
+    // no-op on chains without a withdrawal compressor
+    await this.sdk.withdrawalCompressor?.loadWithdrawableAssets(force);
+    return this.state;
+  }
 
-    this.#withdrawableAssets = new AddressMap(undefined, MAP_LABEL);
+  public get loaded(): boolean {
+    return !!this.sdk.withdrawalCompressor?.state;
+  }
 
-    const resp =
-      await this.sdk.withdrawalCompressor.getWithdrawableAssetsBatch();
-
-    const byCreditManager = new Map<Address, WithdrawableAsset[]>();
-    for (const cfg of resp) {
-      const assets = byCreditManager.get(cfg.creditManager) ?? [];
+  /**
+   * Returns a map of cmAddress -> array of delayed assets
+   * @throws if withdrawable assets have not been loaded
+   */
+  public get withdrawableAssets(): AddressMap<Array<WithdrawableAsset>> {
+    const compressor = this.sdk.withdrawalCompressor;
+    if (!compressor?.state) {
+      throw new Error("withdrawable assets are not loaded");
+    }
+    const result = new AddressMap<Array<WithdrawableAsset>>(
+      undefined,
+      MAP_LABEL,
+    );
+    for (const cfg of compressor.getWithdrawableAssets()) {
+      const assets = result.get(cfg.creditManager) ?? [];
       assets.push({
         ...cfg,
         disabled: isConfigToOmit({
@@ -40,28 +56,9 @@ export class DelayedWithdrawalPlugin
           underlying: cfg.underlying,
         }),
       });
-      byCreditManager.set(cfg.creditManager, assets);
+      result.upsert(cfg.creditManager, assets);
     }
-    for (const [creditManager, assets] of byCreditManager) {
-      this.#withdrawableAssets.upsert(creditManager, assets);
-    }
-
-    return this.state;
-  }
-
-  public get loaded(): boolean {
-    return !!this.#withdrawableAssets;
-  }
-
-  /**
-   * Returns a map of cmAddress -> array of delayed assets
-   * @throws if plugin is not attached
-   */
-  public get withdrawableAssets(): AddressMap<Array<WithdrawableAsset>> {
-    if (!this.#withdrawableAssets) {
-      throw new Error("withdrawable assets plugin not attached");
-    }
-    return this.#withdrawableAssets;
+    return result;
   }
 
   public stateHuman(_?: boolean): WithdrawableAssetStateHuman[] {
@@ -78,16 +75,7 @@ export class DelayedWithdrawalPlugin
   }
 
   public get state(): DelayedWithdrawalPluginState {
-    return {
-      withdrawableAssets: this.withdrawableAssets.asRecord(),
-    };
-  }
-
-  public hydrate(state: DelayedWithdrawalPluginState): void {
-    this.#withdrawableAssets = new AddressMap(
-      Object.entries(state.withdrawableAssets),
-      MAP_LABEL,
-    );
+    return {};
   }
 }
 

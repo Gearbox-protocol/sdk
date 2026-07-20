@@ -1,3 +1,4 @@
+import type { WithdrawalsState } from "../accounts/withdrawal-compressor/types.js";
 import type { MarketData } from "../base/index.js";
 import type { NetworkType } from "../chain/chains.js";
 import type { AddressProviderState } from "../core/index.js";
@@ -53,6 +54,13 @@ export interface GearboxState<Plugins extends PluginsMap = {}> {
    * Present only when zappers were loaded (they are optional)
    **/
   zappers?: ZapperData[];
+  /**
+   * Withdrawal compressor's withdrawable assets cache.
+   *
+   * Present only when the compressor exists on the chain and its assets
+   * were loaded
+   **/
+  withdrawals?: WithdrawalsState;
   /**
    * Per-plugin serialised state.
    **/

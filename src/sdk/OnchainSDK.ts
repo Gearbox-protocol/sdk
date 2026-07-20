@@ -267,6 +267,7 @@ export class OnchainSDK<
   #rwa: RWARegistry;
   #marketRegister?: MarketRegister;
   #priceFeeds?: PriceFeedRegister;
+  readonly #withdrawalCompressor?: IWithdrawalCompressorContract;
 
   /**
    * Gas limit applied to read-only `eth_call` requests.
@@ -321,6 +322,7 @@ export class OnchainSDK<
     }
     this.accounts = new CreditAccountsServiceV310(this);
     this.pools = new PoolService(this);
+    this.#withdrawalCompressor = createWithdrawalCompressor(this);
   }
 
   /**
@@ -507,6 +509,10 @@ export class OnchainSDK<
     this.#rwa = new RWARegistry(this);
     this.#rwa.setState(state.rwa);
 
+    if (state.withdrawals) {
+      this.#withdrawalCompressor?.hydrate(state.withdrawals);
+    }
+
     for (const [name, plugin] of TypedObjectUtils.entries(this.plugins)) {
       const pluginState = state.plugins[name];
       if (plugin.hydrate && pluginState) {
@@ -575,6 +581,7 @@ export class OnchainSDK<
       addressProvider: this.addressProvider.state,
       ...this.marketRegister.state,
       rwa: this.#rwa.state,
+      withdrawals: this.#withdrawalCompressor?.state,
       plugins: Object.fromEntries(
         TypedObjectUtils.entries(this.plugins).map(([name, plugin]) => [
           name,
@@ -817,11 +824,10 @@ export class OnchainSDK<
   }
 
   /**
-   * Lazily returns a withdrawal compressor contract for the current chain.
-   *
-   * @throws If no withdrawal compressor is supported on the current chain.
+   * Withdrawal compressor contract for the current chain, or `undefined`
+   * when no withdrawal compressor is supported on it.
    **/
-  public get withdrawalCompressor(): IWithdrawalCompressorContract {
-    return createWithdrawalCompressor(this);
+  public get withdrawalCompressor(): IWithdrawalCompressorContract | undefined {
+    return this.#withdrawalCompressor;
   }
 }

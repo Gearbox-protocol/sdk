@@ -284,20 +284,102 @@ export interface CurrentWithdrawals {
 }
 
 /**
+ * Status of a single delayed withdrawal (redeemer contract).
+ * Mirrors the on-chain `WithdrawalStatus` enum.
+ **/
+export type WithdrawalStatus = "NULL" | "PENDING" | "CLAIMABLE" | "CLAIMED";
+
+const WITHDRAWAL_STATUSES: WithdrawalStatus[] = [
+  "NULL",
+  "PENDING",
+  "CLAIMABLE",
+  "CLAIMED",
+];
+
+/**
+ * Maps the on-chain `WithdrawalStatus` enum value to its string representation.
+ **/
+export function toWithdrawalStatus(status: number): WithdrawalStatus {
+  return WITHDRAWAL_STATUSES[status] ?? "NULL";
+}
+
+/**
+ * Serializable snapshot of the withdrawal compressor's assets cache,
+ * stored in the core SDK state (`GearboxState.withdrawals`).
+ **/
+export interface WithdrawalsState {
+  /**
+   * Cached withdrawable assets, keyed by credit manager
+   **/
+  withdrawableAssets: Record<Address, WithdrawableAsset[]>;
+}
+
+/**
+ * Props for {@link IWithdrawalCompressorContract.getWithdrawalRequestResult}.
+ **/
+export interface GetWithdrawalRequestResultProps {
+  /**
+   * Credit account to withdraw from
+   **/
+  creditAccount: Address;
+  /**
+   * Source token to withdraw (e.g. a Mellow multivault share, a Securitize
+   * dsToken or a Midas mToken)
+   **/
+  token: Address;
+  /**
+   * Amount of `token` to withdraw; capped at the credit account's balance
+   * by the contract
+   **/
+  amount: bigint;
+  /**
+   * Withdrawal phantom token that selects a specific withdrawal config when
+   * the source token has more than one. When omitted, the contract resolves
+   * it from the first matching withdrawable asset of the account's credit
+   * manager
+   **/
+  withdrawalPhantomToken?: Address;
+  /**
+   * Delayed intent to attach to the request as `extraData` (v313+ only)
+   **/
+  intent?: DelayedIntent;
+}
+
+/**
  * Version-agnostic interface of the WithdrawalCompressor contract.
  **/
 export interface IWithdrawalCompressorContract extends IBaseContract {
   /**
-   * Returns assets that can be withdrawn from the given credit manager via delayed withdrawal.
+   * Returns cached assets that can be withdrawn via delayed withdrawal.
+   * With no arguments, returns assets of all credit managers; with arguments,
+   * only assets of the given credit managers.
+   * @throws When the cache was never loaded (via {@link loadWithdrawableAssets}
+   * or state hydration).
    **/
-  getWithdrawableAssets(creditManager: Address): Promise<WithdrawableAsset[]>;
+  getWithdrawableAssets(...creditManagers: Address[]): WithdrawableAsset[];
   /**
-   * Same as {@link getWithdrawableAssets}, but for multiple credit managers in a single multicall.
-   * Defaults to all credit managers known to the SDK's market register.
-   * Failed per-manager calls are logged and skipped.
+   * Loads withdrawable assets of all credit managers known to the SDK's
+   * market register into the cache (a single multicall, only once per SDK
+   * lifetime) and returns them. Failed per-manager calls are logged and
+   * skipped.
+   * @param force - Invalidate the cache and refetch even if already loaded.
    **/
-  getWithdrawableAssetsBatch(
-    creditManagers?: Address[],
+  loadWithdrawableAssets(force?: boolean): Promise<WithdrawableAsset[]>;
+  /**
+   * Returns all withdrawal configs of a withdrawable source token
+   * (e.g. a Mellow multivault share) of the given credit manager.
+   * Loads the cache if necessary.
+   **/
+  findWithdrawableAssets(
+    creditManager: Address,
+    token: Address,
+  ): Promise<WithdrawableAsset[]>;
+  /**
+   * Returns withdrawal configs with the given withdrawal phantom token
+   * across all credit managers. Loads the cache if necessary.
+   **/
+  findWithdrawableAssetsByPhantomToken(
+    withdrawalPhantomToken: Address,
   ): Promise<WithdrawableAsset[]>;
   /**
    * Resolves the withdrawal phantom token for a withdrawable source token
@@ -313,6 +395,24 @@ export interface IWithdrawalCompressorContract extends IBaseContract {
    **/
   getCurrentWithdrawals(creditAccount: Address): Promise<CurrentWithdrawals>;
   /**
+   * Returns claimable and pending delayed withdrawals of an external address
+   * (non-credit-account, e.g. liquidator EOA) in the given withdrawal phantom token.
+   * Only supported on v313+ compressors; on older versions throws if
+   * `sdk.strictContractTypes` is `true`, otherwise logs a warning and
+   * returns empty lists.
+   **/
+  getExternalAccountCurrentWithdrawals(
+    withdrawalToken: Address,
+    account: Address,
+  ): Promise<CurrentWithdrawals>;
+  /**
+   * Returns statuses of the given redeemer contracts.
+   * Only supported on v313+ compressors; on older versions throws if
+   * `sdk.strictContractTypes` is `true`, otherwise logs a warning and
+   * returns `"NULL"` statuses.
+   **/
+  getWithdrawalStatus(...redeemers: Address[]): Promise<WithdrawalStatus[]>;
+  /**
    * Previews a delayed withdrawal request.
    *
    * When `intent` is provided, it is abi-encoded and passed as `extraData` to
@@ -321,9 +421,15 @@ export interface IWithdrawalCompressorContract extends IBaseContract {
    * logged and the intent is ignored.
    **/
   getWithdrawalRequestResult(
-    creditAccount: Address,
-    token: Address,
-    amount: bigint,
-    intent?: DelayedIntent,
+    props: GetWithdrawalRequestResultProps,
   ): Promise<RequestableWithdrawal>;
+  /**
+   * Seeds the assets cache from a previously serialized snapshot.
+   **/
+  hydrate(state: WithdrawalsState): void;
+  /**
+   * Serializable snapshot of the assets cache, or `undefined` if the cache
+   * was never loaded.
+   **/
+  readonly state: WithdrawalsState | undefined;
 }

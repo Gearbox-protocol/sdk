@@ -12,19 +12,22 @@ import type { iWithdrawalCompressorV313Abi } from "../../../abi/IWithdrawalCompr
 import type { BaseContractArgs } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
-import { decodeDelayedIntent, encodeDelayedIntent } from "./intent-codec.js";
+import { AddressMap } from "../../utils/index.js";
+import { decodeDelayedIntent } from "./intent-codec.js";
 import type {
   ClaimableWithdrawal,
   CurrentWithdrawals,
-  DelayedIntent,
   DelayedIntentExtended,
+  GetWithdrawalRequestResultProps,
   IWithdrawalCompressorContract,
   PendingWithdrawal,
   RequestableWithdrawal,
   WithdrawableAsset,
+  WithdrawalStatus,
+  WithdrawalsState,
 } from "./types.js";
 
-const iCreditAccountAbi = [
+export const iCreditAccountAbi = [
   {
     type: "function",
     name: "creditManager",
@@ -33,6 +36,8 @@ const iCreditAccountAbi = [
     stateMutability: "view",
   },
 ] as const;
+
+const MAP_LABEL = "withdrawableAssets";
 
 /**
  * v313 ABI is a type-level superset of v310/v311 for the read methods used
@@ -64,16 +69,29 @@ type OnchainPendingWithdrawal = OnchainCurrentWithdrawals[1][number];
 /**
  * Base class for WithdrawalCompressor contracts of different versions.
  * Implements version-agnostic reads, normalizing results to common types.
+ * Withdrawable assets are cached for the lifetime of the instance (which is
+ * reused across calls via the SDK's contracts register).
  **/
 export abstract class AbstractWithdrawalCompressorContract<abi extends Abi>
   extends BaseContract<abi>
   implements IWithdrawalCompressorContract
 {
   readonly #sdk: OnchainSDK;
+  #withdrawableAssets?: AddressMap<WithdrawableAsset[]>;
 
   constructor(sdk: OnchainSDK, args: BaseContractArgs<abi>) {
     super(sdk, args);
     this.#sdk = sdk;
+  }
+
+  /**
+   * {@inheritDoc IWithdrawalCompressorContract.hydrate}
+   **/
+  public hydrate(state: WithdrawalsState): void {
+    this.#withdrawableAssets = new AddressMap(
+      Object.entries(state.withdrawableAssets),
+      MAP_LABEL,
+    );
   }
 
   /**
@@ -85,26 +103,44 @@ export abstract class AbstractWithdrawalCompressorContract<abi extends Abi>
   }
 
   /**
-   * {@inheritDoc IWithdrawalCompressorContract.getWithdrawableAssets}
+   * {@inheritDoc IWithdrawalCompressorContract.state}
    **/
-  public async getWithdrawableAssets(
-    creditManager: Address,
-  ): Promise<WithdrawableAsset[]> {
-    const resp = await this.common.read.getWithdrawableAssets([creditManager]);
-    return resp.map(a => toWithdrawableAsset(a, creditManager));
+  public get state(): WithdrawalsState | undefined {
+    return this.#withdrawableAssets
+      ? { withdrawableAssets: this.#withdrawableAssets.asRecord() }
+      : undefined;
   }
 
   /**
-   * {@inheritDoc IWithdrawalCompressorContract.getWithdrawableAssetsBatch}
+   * {@inheritDoc IWithdrawalCompressorContract.getWithdrawableAssets}
    **/
-  public async getWithdrawableAssetsBatch(
-    creditManagers?: Address[],
-  ): Promise<WithdrawableAsset[]> {
-    const cms =
-      creditManagers ??
-      this.#sdk.marketRegister.creditManagers.map(
-        cm => cm.creditManager.address,
+  public getWithdrawableAssets(
+    ...creditManagers: Address[]
+  ): WithdrawableAsset[] {
+    const cache = this.#withdrawableAssets;
+    if (!cache) {
+      throw new Error(
+        "withdrawable assets are not loaded, call loadWithdrawableAssets first",
       );
+    }
+    if (creditManagers.length === 0) {
+      return cache.values().flat();
+    }
+    return creditManagers.flatMap(cm => cache.get(cm) ?? []);
+  }
+
+  /**
+   * {@inheritDoc IWithdrawalCompressorContract.loadWithdrawableAssets}
+   **/
+  public async loadWithdrawableAssets(
+    force?: boolean,
+  ): Promise<WithdrawableAsset[]> {
+    if (this.#withdrawableAssets && !force) {
+      return this.getWithdrawableAssets();
+    }
+    const cms = this.#sdk.marketRegister.creditManagers.map(
+      cm => cm.creditManager.address,
+    );
     const resp = await this.client.multicall({
       contracts: cms.map(
         cm =>
@@ -118,15 +154,49 @@ export abstract class AbstractWithdrawalCompressorContract<abi extends Abi>
       allowFailure: true,
       batchSize: 0,
     });
-    return resp.flatMap((r, i) => {
+    const cache = new AddressMap<WithdrawableAsset[]>(undefined, MAP_LABEL);
+    for (let i = 0; i < resp.length; i++) {
+      const r = resp[i];
       if (r.status !== "success") {
         this.logger?.warn(
           `failed to get withdrawable assets of credit manager ${cms[i]}: ${r.error}`,
         );
-        return [];
+        continue;
       }
-      return r.result.map(a => toWithdrawableAsset(a, cms[i]));
-    });
+      if (r.result.length > 0) {
+        cache.upsert(
+          cms[i],
+          r.result.map(a => toWithdrawableAsset(a, cms[i])),
+        );
+      }
+    }
+    this.#withdrawableAssets = cache;
+    return this.getWithdrawableAssets();
+  }
+
+  /**
+   * {@inheritDoc IWithdrawalCompressorContract.findWithdrawableAssets}
+   **/
+  public async findWithdrawableAssets(
+    creditManager: Address,
+    token: Address,
+  ): Promise<WithdrawableAsset[]> {
+    await this.loadWithdrawableAssets();
+    return this.getWithdrawableAssets(creditManager).filter(a =>
+      isAddressEqual(a.token, token),
+    );
+  }
+
+  /**
+   * {@inheritDoc IWithdrawalCompressorContract.findWithdrawableAssetsByPhantomToken}
+   **/
+  public async findWithdrawableAssetsByPhantomToken(
+    withdrawalPhantomToken: Address,
+  ): Promise<WithdrawableAsset[]> {
+    await this.loadWithdrawableAssets();
+    return this.getWithdrawableAssets().filter(a =>
+      isAddressEqual(a.withdrawalPhantomToken, withdrawalPhantomToken),
+    );
   }
 
   /**
@@ -136,8 +206,7 @@ export abstract class AbstractWithdrawalCompressorContract<abi extends Abi>
     creditManager: Address,
     token: Address,
   ): Promise<Address> {
-    const assets = await this.getWithdrawableAssets(creditManager);
-    const asset = assets.find(a => isAddressEqual(a.token, token));
+    const [asset] = await this.findWithdrawableAssets(creditManager, token);
     if (!asset) {
       throw new Error(
         `token ${token} is not withdrawable from credit manager ${creditManager}`,
@@ -169,101 +238,86 @@ export abstract class AbstractWithdrawalCompressorContract<abi extends Abi>
       allowFailure: false,
       batchSize: 0,
     });
+    // intent decoding is effectively a no-op on legacy compressors:
+    // their ABIs have no `extraData` field in the withdrawal structs
     return {
-      claimable: claimable.map(w =>
-        toClaimableWithdrawal(w, creditManager, this.version >= 313),
-      ),
+      claimable: claimable.map(w => toClaimableWithdrawal(w, creditManager)),
       pending: pending
-        .map(w => toPendingWithdrawal(w, creditManager, this.version >= 313))
+        .map(w => toPendingWithdrawal(w, creditManager))
         .sort((a, b) => (a.claimableAt < b.claimableAt ? -1 : 1)),
     };
   }
 
   /**
-   * {@inheritDoc IWithdrawalCompressorContract.getWithdrawalRequestResult}
+   * {@inheritDoc IWithdrawalCompressorContract.getExternalAccountCurrentWithdrawals}
    **/
-  public async getWithdrawalRequestResult(
-    creditAccount: Address,
-    token: Address,
-    amount: bigint,
-    intent?: DelayedIntent,
-  ): Promise<RequestableWithdrawal> {
-    const resp = intent
-      ? await this.#getWithdrawalRequestResultWithIntent(
-          creditAccount,
-          token,
-          amount,
-          intent,
-        )
-      : await this.common.read.getWithdrawalRequestResult([
-          creditAccount,
-          token,
-          amount,
-        ]);
-    return {
-      token: resp.token,
-      amountIn: resp.amountIn,
-      outputs: [...resp.outputs],
-      requestCalls: [...resp.requestCalls],
-      claimableAt: resp.claimableAt,
-    };
+  public async getExternalAccountCurrentWithdrawals(
+    _withdrawalToken: Address,
+    _account: Address,
+  ): Promise<CurrentWithdrawals> {
+    this.#reportUnsupported("external account withdrawals");
+    return { claimable: [], pending: [] };
   }
 
   /**
-   * Previews a delayed withdrawal request with an intent attached as
-   * `extraData`. Only supported on v313+ compressors; on older versions,
-   * throws if `sdk.strictContractTypes` is `true`, otherwise logs a warning
-   * and previews the request without the intent.
-   *
-   * The contract overload accepting `extraData` also requires the withdrawal
-   * phantom token, which is resolved here the same way the 3-arg overload
-   * does it internally: via `getWithdrawableAssets` of the account's credit
-   * manager.
+   * {@inheritDoc IWithdrawalCompressorContract.getWithdrawalStatus}
    **/
-  async #getWithdrawalRequestResultWithIntent(
-    creditAccount: Address,
-    token: Address,
-    amount: bigint,
-    intent: DelayedIntent,
-  ): Promise<
-    ContractFunctionReturnType<
-      CommonAbi,
-      "view",
-      "getWithdrawalRequestResult",
-      readonly [Address, Address, bigint]
-    >
-  > {
-    if (this.version < 313) {
-      const message = `withdrawal intents are not supported by ${this.name} v${this.version}`;
-      if (this.#sdk.strictContractTypes) {
-        throw new Error(message);
-      }
-      this.logger?.warn(`${message}, requesting withdrawal without intent`);
-      return this.common.read.getWithdrawalRequestResult([
-        creditAccount,
-        token,
-        amount,
-      ]);
+  public async getWithdrawalStatus(
+    ...redeemers: Address[]
+  ): Promise<WithdrawalStatus[]> {
+    if (redeemers.length === 0) {
+      return [];
     }
-    const extraData = encodeDelayedIntent(intent);
-    const creditManager = await this.client.readContract({
-      address: creditAccount,
-      abi: iCreditAccountAbi,
-      functionName: "creditManager",
-    });
-    const withdrawalPhantomToken = await this.getWithdrawalPhantomToken(
-      creditManager,
-      token,
-    );
-    return this.common.read.getWithdrawalRequestResult([
+    this.#reportUnsupported("withdrawal status");
+    return redeemers.map(() => "NULL");
+  }
+
+  /**
+   * {@inheritDoc IWithdrawalCompressorContract.getWithdrawalRequestResult}
+   *
+   * Legacy compressors only support the 3-arg overload: `intent` and
+   * `withdrawalPhantomToken` are reported as unsupported (in non-strict mode
+   * the request is previewed without them).
+   **/
+  public async getWithdrawalRequestResult({
+    creditAccount,
+    token,
+    amount,
+    withdrawalPhantomToken,
+    intent,
+  }: GetWithdrawalRequestResultProps): Promise<RequestableWithdrawal> {
+    if (intent) {
+      this.#reportUnsupported("withdrawal intents");
+    } else if (withdrawalPhantomToken) {
+      this.#reportUnsupported("withdrawal config selection");
+    }
+    const resp = await this.common.read.getWithdrawalRequestResult([
       creditAccount,
       token,
-      withdrawalPhantomToken,
       amount,
-      extraData,
     ]);
+    return toRequestableWithdrawal(resp);
+  }
+
+  /**
+   * Reports that a feature is not supported by this compressor version:
+   * throws if `sdk.strictContractTypes` is `true`, otherwise logs a warning.
+   **/
+  #reportUnsupported(feature: string): void {
+    const message = `${feature} is not supported by ${this.name} v${this.version}`;
+    if (this.#sdk.strictContractTypes) {
+      throw new Error(message);
+    }
+    this.logger?.warn(message);
   }
 }
+
+export type OnchainRequestableWithdrawal = ContractFunctionReturnType<
+  CommonAbi,
+  "view",
+  "getWithdrawalRequestResult",
+  readonly [Address, Address, bigint]
+>;
 
 function toWithdrawableAsset(
   a: OnchainWithdrawableAsset,
@@ -272,13 +326,33 @@ function toWithdrawableAsset(
   return { creditManager, ...a };
 }
 
-function toClaimableWithdrawal(
+/**
+ * Normalizes a previewed withdrawal request.
+ **/
+export function toRequestableWithdrawal(
+  resp: OnchainRequestableWithdrawal,
+): RequestableWithdrawal {
+  return {
+    token: resp.token,
+    amountIn: resp.amountIn,
+    outputs: [...resp.outputs],
+    requestCalls: [...resp.requestCalls],
+    claimableAt: resp.claimableAt,
+  };
+}
+
+/**
+ * Normalizes a claimable withdrawal. The intent is decoded from `extraData`
+ * only when `creditManager` is provided (it is required to build
+ * {@link DelayedIntentExtended} and is only meaningful for credit account
+ * withdrawals on v313+ compressors).
+ **/
+export function toClaimableWithdrawal(
   w: OnchainClaimableWithdrawal,
-  creditManager: Address,
-  decodeIntent: boolean,
+  creditManager: Address | undefined,
 ): ClaimableWithdrawal {
   let intent: DelayedIntentExtended | undefined;
-  if (decodeIntent && w.extraData && w.extraData !== "0x") {
+  if (creditManager && w.extraData && w.extraData !== "0x") {
     intent = { ...decodeDelayedIntent(w.extraData), creditManager };
   }
   return {
@@ -291,13 +365,16 @@ function toClaimableWithdrawal(
   };
 }
 
-function toPendingWithdrawal(
+/**
+ * Normalizes a pending withdrawal, see {@link toClaimableWithdrawal} for
+ * intent decoding rules.
+ **/
+export function toPendingWithdrawal(
   w: OnchainPendingWithdrawal,
-  creditManager: Address,
-  decodeIntent: boolean,
+  creditManager: Address | undefined,
 ): PendingWithdrawal {
   let intent: DelayedIntentExtended | undefined;
-  if (decodeIntent && w.extraData && w.extraData !== "0x") {
+  if (creditManager && w.extraData && w.extraData !== "0x") {
     intent = { ...decodeDelayedIntent(w.extraData), creditManager };
   }
   return {

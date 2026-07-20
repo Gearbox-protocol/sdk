@@ -87,7 +87,10 @@ import type {
   UpdateQuotasProps,
   WithdrawCollateralProps,
 } from "./types.js";
-import type { RequestableWithdrawal } from "./withdrawal-compressor/index.js";
+import type {
+  IWithdrawalCompressorContract,
+  RequestableWithdrawal,
+} from "./withdrawal-compressor/index.js";
 
 type MulticallWithFailure<T> = (
   | {
@@ -1090,15 +1093,16 @@ export class CreditAccountsServiceV310
     creditAccount,
     amount,
     token,
+    withdrawalPhantomToken,
     intent,
   }: PreviewDelayedWithdrawalProps): Promise<RequestableWithdrawal> {
-    // TODO: return multiple configs
-    return this.sdk.withdrawalCompressor.getWithdrawalRequestResult(
+    return this.#withdrawalCompressor.getWithdrawalRequestResult({
       creditAccount,
       token,
       amount,
+      withdrawalPhantomToken,
       intent,
-    );
+    });
   }
 
   /**
@@ -1109,7 +1113,7 @@ export class CreditAccountsServiceV310
   }: GetPendingWithdrawalsProps): Promise<GetPendingWithdrawalsResult> {
     // TODO: return multiple configs
     const { claimable, pending } =
-      await this.sdk.withdrawalCompressor.getCurrentWithdrawals(creditAccount);
+      await this.#withdrawalCompressor.getCurrentWithdrawals(creditAccount);
 
     return {
       claimableNow: claimable,
@@ -2458,5 +2462,17 @@ export class CreditAccountsServiceV310
     }
 
     return suite.creditFacade.multicall(creditAccount, calls);
+  }
+
+  /**
+   * Withdrawal compressor of the current chain.
+   * @throws If no withdrawal compressor is supported on the current chain.
+   **/
+  get #withdrawalCompressor(): IWithdrawalCompressorContract {
+    const compressor = this.sdk.withdrawalCompressor;
+    if (!compressor) {
+      throw new Error(`no withdrawal compressor on ${this.sdk.networkType}`);
+    }
+    return compressor;
   }
 }

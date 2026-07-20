@@ -384,6 +384,12 @@ export interface PreviewDelayedWithdrawalProps {
    * Minimal credit account data on which operation is performed
    */
   creditAccount: Address;
+  /**
+   * Withdrawal phantom token that selects a specific withdrawal config when
+   * the source token has more than one. When omitted, the first matching
+   * config is used
+   */
+  withdrawalPhantomToken?: Address;
   intent?: DelayedIntent;
 }
 

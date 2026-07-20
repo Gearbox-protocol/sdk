@@ -6,23 +6,18 @@ import { WithdrawalCompressorV311Contract } from "./WithdrawalCompressorV311Cont
 import { WithdrawalCompressorV313Contract } from "./WithdrawalCompressorV313Contract.js";
 
 /**
- * Returns a withdrawal compressor contract for the current chain,
- * reusing an instance from the contracts register when available.
+ * Creates a withdrawal compressor contract for the current chain,
+ * or returns `undefined` if no withdrawal compressor is supported on it.
+ * Called once from the SDK constructor; consumers should access the
+ * instance via `sdk.withdrawalCompressor`.
  * @param sdk
- * @throws if no withdrawal compressor is supported on the current chain.
  **/
 export function createWithdrawalCompressor(
   sdk: OnchainSDK,
-): IWithdrawalCompressorContract {
+): IWithdrawalCompressorContract | undefined {
   const location = getWithdrawalCompressorAddress(sdk.networkType);
   if (!location) {
-    throw new Error(`no withdrawal compressor on ${sdk.networkType}`);
-  }
-  const cached = sdk.getContract<IWithdrawalCompressorContract>(
-    location.address,
-  );
-  if (cached) {
-    return cached;
+    return undefined;
   }
   switch (location.version) {
     case 310:
