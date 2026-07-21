@@ -10,9 +10,11 @@ import {
 import type { HttpRpcClientOptions } from "viem/utils";
 import {
   CreditAccountsServiceV310,
+  createRedemptionLogger,
   createWithdrawalCompressor,
   type ICreditAccountsService,
   type ILiquidationsService,
+  type IRedemptionLoggerContract,
   type IWithdrawalCompressorContract,
   LiquidationsService,
 } from "./accounts/index.js";
@@ -270,6 +272,7 @@ export class OnchainSDK<
   #marketRegister?: MarketRegister;
   #priceFeeds?: PriceFeedRegister;
   readonly #withdrawalCompressor?: IWithdrawalCompressorContract;
+  #redemptionLogger?: IRedemptionLoggerContract;
 
   /**
    * Gas limit applied to read-only `eth_call` requests.
@@ -836,5 +839,16 @@ export class OnchainSDK<
    **/
   public get withdrawalCompressor(): IWithdrawalCompressorContract | undefined {
     return this.#withdrawalCompressor;
+  }
+
+  /**
+   * `RedemptionLogger` contract for the current chain, or `undefined` when
+   * it is not deployed on it. Created lazily on first access: the contract
+   * is resolved from the address provider, which is only available after
+   * the SDK is attached or hydrated.
+   **/
+  public get redemptionLogger(): IRedemptionLoggerContract | undefined {
+    this.#redemptionLogger ??= createRedemptionLogger(this);
+    return this.#redemptionLogger;
   }
 }

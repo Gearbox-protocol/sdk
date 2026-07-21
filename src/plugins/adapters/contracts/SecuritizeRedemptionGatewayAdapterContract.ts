@@ -12,7 +12,10 @@ import {
 } from "../../../sdk/index.js";
 import { iSecuritizeRedemptionGatewayAdapterV311Abi } from "../abi/adapters/iSecuritizeRedemptionGatewayAdapterV311.js";
 import { iSecuritizeRedemptionGatewayV311Abi } from "../abi/securitize/iSecuritizeRedemptionGatewayV311.js";
-import type { DelayedWithdrawalRequest } from "../types.js";
+import type {
+  DelayedWithdrawalClaim,
+  DelayedWithdrawalRequest,
+} from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -100,6 +103,25 @@ export class SecuritizeRedemptionGatewayAdapterContract extends AbstractAdapterC
       claimToken: this.stableCoinToken,
       extraData,
     };
+  }
+
+  /**
+   * `claim(address[] redeemers)` claims matured redemptions from redeemer
+   * contracts. Transactions built by the withdrawal compressor always claim
+   * from a single redeemer, so only the first one is reported.
+   */
+  public override parseDelayedWithdrawalClaim(
+    calldata: Hex,
+  ): DelayedWithdrawalClaim | undefined {
+    const decoded = decodeFunctionData({ abi: this.abi, data: calldata });
+    if (decoded.functionName !== "claim") {
+      return undefined;
+    }
+    const [redeemers] = decoded.args;
+    if (redeemers.length === 0) {
+      return undefined;
+    }
+    return { redeemer: redeemers[0] };
   }
 
   protected override async applyBalanceChanges(

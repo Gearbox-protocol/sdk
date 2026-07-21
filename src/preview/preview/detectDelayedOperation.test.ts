@@ -6,10 +6,13 @@ import {
   type DelayedWithdrawalRequest,
   type SdkWithAdapters,
 } from "../../plugins/adapters/index.js";
-import { type Asset, encodeDelayedIntent } from "../../sdk/index.js";
+import {
+  type Asset,
+  encodeDelayedIntent,
+  InvalidDelayedIntentError,
+} from "../../sdk/index.js";
 import type { InnerOperation } from "../parse/index.js";
 import { detectDelayedOperation } from "./detectDelayedOperation.js";
-import { InvalidDelayedIntentError } from "./errors.js";
 
 const ADAPTER = getAddress("0x1111111111111111111111111111111111111111");
 const OTHER_ADAPTER = getAddress("0x2222222222222222222222222222222222222222");

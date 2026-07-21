@@ -1,6 +1,7 @@
 export * from "./buildDelayedPreview.js";
 export * from "./CreditAccountState.js";
 export * from "./detectCloseOrRepay.js";
+export * from "./detectDelayedClaim.js";
 export * from "./detectDelayedOperation.js";
 export * from "./errors.js";
 export * from "./previewAdjustCreditAccount.js";

@@ -16,7 +16,10 @@ import {
   iMidasGatewayAdapterV311Abi,
   iMidasGatewayV311Abi,
 } from "../abi/adapters/index.js";
-import type { DelayedWithdrawalRequest } from "../types.js";
+import type {
+  DelayedWithdrawalClaim,
+  DelayedWithdrawalRequest,
+} from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -129,6 +132,21 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
       claimToken: this.quoteToken,
       extraData,
     };
+  }
+
+  /**
+   * `withdrawFromRedeemer(address redeemer, uint256 amount)` claims a matured
+   * redemption from a redeemer contract.
+   */
+  public override parseDelayedWithdrawalClaim(
+    calldata: Hex,
+  ): DelayedWithdrawalClaim | undefined {
+    const decoded = decodeFunctionData({ abi: this.abi, data: calldata });
+    if (decoded.functionName !== "withdrawFromRedeemer") {
+      return undefined;
+    }
+    const [redeemer] = decoded.args;
+    return { redeemer };
   }
 
   protected override async applyBalanceChanges(

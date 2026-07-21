@@ -32,6 +32,7 @@ import type {
   AdapterContractStateHuman,
   AdapterContractType,
   AdapterProtocolOperation,
+  DelayedWithdrawalClaim,
   DelayedWithdrawalRequest,
 } from "../types.js";
 
@@ -232,6 +233,21 @@ export class AbstractAdapterContract<
   public parseDelayedWithdrawalRequest(
     _calldata: Hex,
   ): DelayedWithdrawalRequest | undefined {
+    return undefined;
+  }
+
+  /**
+   * When the given adapter calldata is a delayed-withdrawal claim (a call
+   * created by the withdrawal compressor that burns a withdrawal phantom
+   * token and receives the claim token from a redeemer), returns its
+   * descriptor; `undefined` for any other call.
+   *
+   * The base implementation returns `undefined`; adapters whose gateways log
+   * redemption intents (Securitize, Midas) override it.
+   */
+  public parseDelayedWithdrawalClaim(
+    _calldata: Hex,
+  ): DelayedWithdrawalClaim | undefined {
     return undefined;
   }
 

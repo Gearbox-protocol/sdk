@@ -8,10 +8,10 @@ import {
   type Asset,
   type DelayedIntent,
   decodeDelayedIntent,
+  InvalidDelayedIntentError,
   type PluginsMap,
 } from "../../sdk/index.js";
 import type { InnerOperation } from "../parse/index.js";
-import { InvalidDelayedIntentError } from "./errors.js";
 
 /**
  * A delayed-withdrawal request detected in a credit-facade multicall,
@@ -83,7 +83,7 @@ export function detectDelayedOperation<P extends PluginsMap>(
       try {
         intent = decodeDelayedIntent(request.extraData);
       } catch (e) {
-        throw new InvalidDelayedIntentError(op.adapter, request.extraData, e);
+        throw new InvalidDelayedIntentError(request.extraData, e);
       }
     }
     return { request, intent };

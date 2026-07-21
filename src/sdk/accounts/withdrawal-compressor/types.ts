@@ -1,4 +1,4 @@
-import type { Address } from "viem";
+import type { Address, Hex } from "viem";
 import type { IBaseContract } from "../../base/index.js";
 import type { MultiCall } from "../../types/index.js";
 
@@ -443,4 +443,54 @@ export interface IWithdrawalCompressorContract extends IBaseContract {
    * was never loaded.
    **/
   readonly state: WithdrawalsState | undefined;
+}
+
+/**
+ * Redemption data logged by a delayed-withdrawal gateway (Securitize, Midas)
+ * when a redemption is requested, keyed by the redeemer contract address.
+ **/
+export interface RedemptionLog {
+  /**
+   * Credit account the redemption was requested for
+   */
+  creditAccount: Address;
+  /**
+   * Redeemer contract address
+   */
+  redeemer: Address;
+  /**
+   * Additional redemption data; carries the abi-encoded `DelayedIntent`
+   * when the request had one, `0x` otherwise
+   */
+  extraData: Hex;
+}
+
+/**
+ * Version-agnostic interface of the RedemptionLogger contract that stores
+ * redemption data logged by delayed-withdrawal gateways for off-chain
+ * indexing.
+ **/
+export interface IRedemptionLoggerContract extends IBaseContract {
+  /**
+   * Returns the redemption data logged for a redeemer; all-zero fields when
+   * nothing was logged for it.
+   **/
+  getRedemptionLog(
+    redeemer: Address,
+    blockNumber?: bigint,
+  ): Promise<RedemptionLog>;
+  /**
+   * Reads the redemption log of a redeemer and decodes the recorded intent.
+   *
+   * @param redeemer - Redeemer contract the withdrawal is claimed from.
+   * @param blockNumber - Optional block number to read the log at.
+   * @returns The decoded intent, or `undefined` when the log carries none
+   * (including when nothing was logged for the redeemer).
+   * @throws InvalidDelayedIntentError when the logged `extraData` is
+   * non-empty but cannot be decoded as a `DelayedIntent`.
+   **/
+  getDelayedIntent(
+    redeemer: Address,
+    blockNumber?: bigint,
+  ): Promise<DelayedIntent | undefined>;
 }

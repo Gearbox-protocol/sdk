@@ -33,6 +33,7 @@ export const AP_WETH_TOKEN = "WETH_TOKEN";
 export const AP_ZAPPER_REGISTER = "ZAPPER_REGISTER";
 export const AP_ZERO_PRICE_FEED = "ZERO_PRICE_FEED";
 export const AP_RWA_COMPRESSOR = "GLOBAL::RWA_COMPRESSOR";
+export const AP_REDEMPTION_LOGGER = "LOCAL::REDEMPTION_LOGGER";
 
 /**
  * Default address provider address for v3.1.0

@@ -208,6 +208,11 @@ export interface AdjustCreditAccountPreview {
    */
   assetsChange: Asset[];
   /**
+   * Intent of the delayed withdrawal this transaction claims; set when the
+   * multicall claims a delayed withdrawal
+   */
+  intent?: DelayedIntent;
+  /**
    * Set when preview encountered non-fatal errors, all fields are
    * still computed best-effort, but derived fields (`assets`, `assetsChange`,
    * `totalValue`) may be unreliable in that case.
@@ -239,6 +244,11 @@ export interface CloseCreditAccountPreview {
    * underlying share converts 1:1 into)
    */
   receivedAmount: Asset;
+  /**
+   * Intent of the delayed withdrawal this transaction claims; set when the
+   * multicall claims a delayed withdrawal
+   */
+  intent?: DelayedIntent;
   /**
    * Set when preview encountered non-fatal errors, all fields are
    * still computed best-effort, but the
@@ -280,6 +290,11 @@ export interface RepayCreditAccountPreview {
    * Total debt repaid: principal + accrued interest + fees, in underlying
    */
   debtRepaid: bigint;
+  /**
+   * Intent of the delayed withdrawal this transaction claims; set when the
+   * multicall claims a delayed withdrawal
+   */
+  intent?: DelayedIntent;
   /**
    * Set when preview encountered non-fatal errors, all fields are
    * still computed best-effort, but the

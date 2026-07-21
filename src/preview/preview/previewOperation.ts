@@ -11,6 +11,7 @@ import type {
 } from "../types.js";
 import { buildDelayedPreview, type ConvertFn } from "./buildDelayedPreview.js";
 import { isCloseOrRepay } from "./detectCloseOrRepay.js";
+import { resolveDelayedClaimIntent } from "./detectDelayedClaim.js";
 import { detectDelayedOperation } from "./detectDelayedOperation.js";
 import { UnsupportedOperationError } from "./errors.js";
 import { previewAdjustCreditAccount } from "./previewAdjustCreditAccount.js";
@@ -46,7 +47,19 @@ export async function previewOperation<P extends PluginsMap = PluginsMap>(
 
   if (operation.operation === "CloseCreditAccount") {
     const resolved = await resolveCreditAccount(input, operation, options);
-    return previewCloseOrRepayCreditAccount(input, operation, true, resolved);
+    const preview = await previewCloseOrRepayCreditAccount(
+      input,
+      operation,
+      true,
+      resolved,
+    );
+    preview.intent = await resolveDelayedClaimIntent(
+      input.sdk,
+      operation.multicall,
+      options?.blockNumber,
+    );
+
+    return preview;
   }
 
   if (
@@ -106,6 +119,14 @@ async function previewMulticallOperation<P extends PluginsMap>(
 
   const delayed = detectDelayedOperation(sdk, operation.multicall);
   if (!delayed) {
+    // Not a delayed-withdrawal request; it may still be the claim ("tail")
+    // part of a previously requested delayed withdrawal, in which case the
+    // recorded intent is surfaced on the instant preview
+    instantPreview.intent = await resolveDelayedClaimIntent(
+      sdk,
+      operation.multicall,
+      options?.blockNumber,
+    );
     return instantPreview;
   }
 

@@ -135,6 +135,18 @@ export interface DelayedWithdrawalRequest {
 }
 
 /**
+ * Descriptor of a delayed-withdrawal claim performed by an adapter call
+ * (constructed by the withdrawal compressor): the withdrawal phantom token
+ * is burned and the claim token is received from the redeemer.
+ */
+export interface DelayedWithdrawalClaim {
+  /**
+   * Redeemer contract the withdrawal is claimed from
+   */
+  redeemer: Address;
+}
+
+/**
  * True when the plugin map `P` contains the {@link AdaptersPlugin} under any key
  */
 export type HasAdaptersPlugin<P extends PluginsMap> =
