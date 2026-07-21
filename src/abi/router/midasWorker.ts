@@ -400,7 +400,7 @@ export const midasWorkerAbi = [
     name: "trimSpecialVertex",
     inputs: [
       {
-        name: "edge",
+        name: "",
         type: "tuple",
         internalType: "struct Edge",
         components: [
@@ -421,7 +421,7 @@ export const midasWorkerAbi = [
         ],
       },
       {
-        name: "graph",
+        name: "",
         type: "tuple",
         internalType: "struct Graph",
         components: [
@@ -480,10 +480,10 @@ export const midasWorkerAbi = [
           },
         ],
       },
-      { name: "targetToken", type: "address", internalType: "address" },
+      { name: "", type: "address", internalType: "address" },
     ],
     outputs: [{ name: "", type: "bool", internalType: "bool" }],
-    stateMutability: "view",
+    stateMutability: "pure",
   },
   {
     type: "function",
