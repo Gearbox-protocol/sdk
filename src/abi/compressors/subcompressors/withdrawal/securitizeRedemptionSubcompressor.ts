@@ -82,6 +82,80 @@ export const securitizeRedemptionSubcompressorAbi = [
   },
   {
     type: "function",
+    name: "getExternalAccountCurrentWithdrawals",
+    inputs: [
+      { name: "account", type: "address", internalType: "address" },
+      { name: "token", type: "address", internalType: "address" },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "tuple[]",
+        internalType: "struct ClaimableWithdrawal[]",
+        components: [
+          { name: "token", type: "address", internalType: "address" },
+          {
+            name: "withdrawalPhantomToken",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "withdrawalTokenSpent",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "outputs",
+            type: "tuple[]",
+            internalType: "struct WithdrawalOutput[]",
+            components: [
+              { name: "token", type: "address", internalType: "address" },
+              { name: "isDelayed", type: "bool", internalType: "bool" },
+              { name: "amount", type: "uint256", internalType: "uint256" },
+            ],
+          },
+          {
+            name: "claimCalls",
+            type: "tuple[]",
+            internalType: "struct MultiCall[]",
+            components: [
+              { name: "target", type: "address", internalType: "address" },
+              { name: "callData", type: "bytes", internalType: "bytes" },
+            ],
+          },
+          { name: "extraData", type: "bytes", internalType: "bytes" },
+        ],
+      },
+      {
+        name: "",
+        type: "tuple[]",
+        internalType: "struct PendingWithdrawal[]",
+        components: [
+          { name: "token", type: "address", internalType: "address" },
+          {
+            name: "withdrawalPhantomToken",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "expectedOutputs",
+            type: "tuple[]",
+            internalType: "struct WithdrawalOutput[]",
+            components: [
+              { name: "token", type: "address", internalType: "address" },
+              { name: "isDelayed", type: "bool", internalType: "bool" },
+              { name: "amount", type: "uint256", internalType: "uint256" },
+            ],
+          },
+          { name: "claimableAt", type: "uint256", internalType: "uint256" },
+          { name: "extraData", type: "bytes", internalType: "bytes" },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "getWithdrawableAssets",
     inputs: [
       { name: "", type: "address", internalType: "address" },
@@ -193,6 +267,15 @@ export const securitizeRedemptionSubcompressorAbi = [
           { name: "claimableAt", type: "uint256", internalType: "uint256" },
         ],
       },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getWithdrawalStatus",
+    inputs: [{ name: "redeemer", type: "address", internalType: "address" }],
+    outputs: [
+      { name: "", type: "uint8", internalType: "enum WithdrawalStatus" },
     ],
     stateMutability: "view",
   },
