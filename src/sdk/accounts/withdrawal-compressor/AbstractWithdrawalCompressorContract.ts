@@ -263,8 +263,8 @@ export abstract class AbstractWithdrawalCompressorContract<abi extends Abi>
    * {@inheritDoc IWithdrawalCompressorContract.getExternalAccountCurrentWithdrawals}
    **/
   public async getExternalAccountCurrentWithdrawals(
-    _withdrawalToken: Address,
     _account: Address,
+    ..._withdrawalTokens: Address[]
   ): Promise<CurrentWithdrawals> {
     this.#reportUnsupported("external account withdrawals");
     return { claimable: [], pending: [] };

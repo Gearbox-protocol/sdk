@@ -407,14 +407,15 @@ export interface IWithdrawalCompressorContract extends IBaseContract {
   getCurrentWithdrawals(creditAccount: Address): Promise<CurrentWithdrawals>;
   /**
    * Returns claimable and pending delayed withdrawals of an external address
-   * (non-credit-account, e.g. liquidator EOA) in the given withdrawal phantom token.
+   * (non-credit-account, e.g. liquidator EOA) in the given withdrawal phantom
+   * tokens. With no tokens given, returns empty lists.
    * Only supported on v313+ compressors; on older versions throws if
    * `sdk.strictContractTypes` is `true`, otherwise logs a warning and
    * returns empty lists.
    **/
   getExternalAccountCurrentWithdrawals(
-    withdrawalToken: Address,
     account: Address,
+    ...withdrawalTokens: Address[]
   ): Promise<CurrentWithdrawals>;
   /**
    * Returns statuses of the given redeemer contracts.
