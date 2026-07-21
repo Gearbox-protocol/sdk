@@ -216,6 +216,17 @@ export abstract class AbstractWithdrawalCompressorContract<abi extends Abi>
   }
 
   /**
+   * {@inheritDoc IWithdrawalCompressorContract.getWithdrawalSourceToken}
+   **/
+  public getWithdrawalSourceToken(
+    withdrawalPhantomToken: Address,
+  ): Address | undefined {
+    return this.getWithdrawableAssets().find(a =>
+      isAddressEqual(a.withdrawalPhantomToken, withdrawalPhantomToken),
+    )?.token;
+  }
+
+  /**
    * {@inheritDoc IWithdrawalCompressorContract.getCurrentWithdrawals}
    **/
   public async getCurrentWithdrawals(

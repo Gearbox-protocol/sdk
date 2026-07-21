@@ -1,3 +1,5 @@
+import type { ILiquidationsService } from "./accounts/index.js";
+import { MultichainLiquidationsService } from "./accounts/index.js";
 import type { NetworkType } from "./chain/chains.js";
 import { getNetworkType } from "./chain/chains.js";
 import {
@@ -133,6 +135,12 @@ export class MultichainSDK<const Plugins extends PluginsMap = {}> {
   #pythCache?: PriceUpdatesCache;
   #logger?: ILogger;
 
+  /**
+   * Namespace for liquidatable credit accounts discovery across all
+   * configured chains.
+   */
+  public readonly liquidations: ILiquidationsService;
+
   constructor(options: MultichainSDKOptions<Plugins>) {
     this.#chains = new Map();
     this.#logger = options.logger;
@@ -164,6 +172,7 @@ export class MultichainSDK<const Plugins extends PluginsMap = {}> {
       );
       this.#chains.set(network as NetworkType, sdk);
     }
+    this.liquidations = new MultichainLiquidationsService(this);
   }
 
   /**

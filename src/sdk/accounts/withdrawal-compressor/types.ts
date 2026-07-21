@@ -391,6 +391,17 @@ export interface IWithdrawalCompressorContract extends IBaseContract {
     token: Address,
   ): Promise<Address>;
   /**
+   * Resolves the source token of a withdrawal phantom token (e.g. `ACRED` for
+   * `srpACRED_USDC`), or `undefined` when the token is not a known withdrawal
+   * phantom token. The phantom-to-source binding is fixed at phantom token
+   * deployment, so no credit manager is needed.
+   * @throws When the cache was never loaded (via {@link loadWithdrawableAssets}
+   * or state hydration).
+   **/
+  getWithdrawalSourceToken(
+    withdrawalPhantomToken: Address,
+  ): Address | undefined;
+  /**
    * Returns claimable and pending delayed withdrawals of the given credit account.
    **/
   getCurrentWithdrawals(creditAccount: Address): Promise<CurrentWithdrawals>;

@@ -12,7 +12,9 @@ import {
   CreditAccountsServiceV310,
   createWithdrawalCompressor,
   type ICreditAccountsService,
+  type ILiquidationsService,
   type IWithdrawalCompressorContract,
+  LiquidationsService,
 } from "./accounts/index.js";
 import type { BaseState, IBaseContract } from "./base/index.js";
 import { ChainContractsRegister } from "./base/index.js";
@@ -287,6 +289,10 @@ export class OnchainSDK<
    * Namespace for pool operations.
    */
   public readonly pools: IPoolsService;
+  /**
+   * Namespace for liquidatable credit accounts discovery.
+   */
+  public readonly liquidations: ILiquidationsService;
 
   /**
    * @param network - Gearbox network type (e.g. `"Mainnet"`, `"Monad"`).
@@ -322,6 +328,7 @@ export class OnchainSDK<
     }
     this.accounts = new CreditAccountsServiceV310(this);
     this.pools = new PoolService(this);
+    this.liquidations = new LiquidationsService(this);
     this.#withdrawalCompressor = createWithdrawalCompressor(this);
   }
 
