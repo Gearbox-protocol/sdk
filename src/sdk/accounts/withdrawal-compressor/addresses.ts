@@ -18,7 +18,7 @@ const WITHDRAWAL_COMPRESSORS: Partial<
   Record<NetworkType, WithdrawalCompressorLocation>
 > = {
   Mainnet: {
-    address: "0x83e5AaC6590Cf9c6Dd323851a0D66fEc2Bc4F5A3",
+    address: "0x5c80d7e7b18eCb00Cc9FAd57c59eEC4eF7516597",
     version: 313,
   },
   Monad: {
