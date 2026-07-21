@@ -154,7 +154,6 @@ async function seedDefaultPool(
   }
 
   hash = await wallet.sendTransaction({
-    account: depositor,
     to: depositCall.tx.to,
     data: depositCall.tx.callData,
     value: BigInt(depositCall.tx.value ?? "0"),
