@@ -647,10 +647,10 @@ export class AccountOpener extends SDKConstruct {
 
       txHash = await this.#anvil.writeContract({
         account: depositor,
-        address: metadata.approveTarget,
+        address: underlying,
         abi: ierc20Abi,
         functionName: "approve",
-        args: [address, allowance],
+        args: [metadata.approveTarget, allowance],
         chain: this.#anvil.chain,
       });
       let receipt = await this.#anvil.waitForTransactionReceipt({
