@@ -9,6 +9,7 @@ export default defineConfig(({ mode }) => ({
           name: "unit",
           include: ["src/**/*.test.ts"],
           exclude: ["src/e2e/**/*.test.ts", "src/**/*.e2e.test.ts"],
+          setupFiles: ["./vitest.setup.ts"],
           env: loadEnv(mode, process.cwd(), ""),
           typecheck: {
             enabled: true,
@@ -20,6 +21,7 @@ export default defineConfig(({ mode }) => ({
         test: {
           name: "e2e",
           include: ["src/e2e/**/*.test.ts", "src/**/*.e2e.test.ts"],
+          setupFiles: ["./vitest.setup.ts"],
           globalSetup: ["src/e2e/globalSetup.ts"],
           testTimeout: 120_000,
           hookTimeout: 120_000,

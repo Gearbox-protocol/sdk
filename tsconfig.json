@@ -11,6 +11,6 @@
     "removeComments": false,
     "resolveJsonModule": true
   },
-  "include": ["src", "scripts", "tsup.config.ts"],
+  "include": ["src", "scripts", "tsup.config.ts", "vitest.setup.ts"],
   "exclude": ["dist", "node_modules"]
 }
