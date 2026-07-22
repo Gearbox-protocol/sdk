@@ -12,6 +12,7 @@
         },
         "adapterFunctionName": "redeemDiff(uint256)",
         "adapterType": "ADAPTER::MELLOW_ERC4626_VAULT",
+        "calldata": "0x0acb32020000000000000000000000000000000000000000000000000000000000000001",
         "label": "ADAPTER::MELLOW_ERC4626_VAULT",
         "legacy": {
           "from": "0x7a4effd87c2f3c55ca251080b1343b605f327e3a",
@@ -21,13 +22,15 @@
           "toAmount": "263348156415980435480",
         },
         "operation": "Execute",
-        "protocol": "0x7a4EffD87C2f3C55CA251080b1343b605f327E3a",
-        "protocolArgs": {
-          "owner": "0xF2365b21c6f4cc73d38B6fb5DE9AB506A4a5dff9",
-          "receiver": "0xF2365b21c6f4cc73d38B6fb5DE9AB506A4a5dff9",
-          "shares": 263348156389758489819n,
+        "protocol": {
+          "contract": "0x7a4EffD87C2f3C55CA251080b1343b605f327E3a",
+          "functionArgs": {
+            "owner": "0xF2365b21c6f4cc73d38B6fb5DE9AB506A4a5dff9",
+            "receiver": "0xF2365b21c6f4cc73d38B6fb5DE9AB506A4a5dff9",
+            "shares": 263348156389758489819n,
+          },
+          "functionName": "redeem(uint256,address,address)",
         },
-        "protocolFunctionName": "redeem(uint256,address,address)",
         "transfers": [
           {
             "amount": 263348156389758489819n,

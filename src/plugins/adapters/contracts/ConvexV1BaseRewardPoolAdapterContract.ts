@@ -1,10 +1,16 @@
-import { iConvexV1BaseRewardPoolAdapterAbi } from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters, zeroAddress } from "viem";
 import {
-  type ConstructOptions,
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+  zeroAddress,
+} from "viem";
+import {
+  type AssetsMap,
   MissingSerializedParamsError,
+  type OnchainSDK,
   type ParsedCallV2,
 } from "../../../sdk/index.js";
+import { iConvexV1BaseRewardPoolAdapterAbi } from "../abi/adapters/index.js";
 import { iBaseRewardPoolAbi } from "../abi/targetContractAbi.js";
 import type {
   LegacyAdapterOperation,
@@ -35,8 +41,8 @@ export class ConvexV1BaseRewardPoolAdapterContract extends AbstractAdapterContra
   #stakedPhantomToken?: Address;
   #extraRewards?: [Address, Address, Address, Address];
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(
@@ -107,7 +113,7 @@ export class ConvexV1BaseRewardPoolAdapterContract extends AbstractAdapterContra
    * @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type.go#L200-L262
    * @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type_v3.go#L76-L83
    */
-  protected override classifyLegacyOperation(
+  public override classifyLegacyOperation(
     parsed: ParsedCallV2,
     transfers: Transfers,
   ): LegacyAdapterOperation {
@@ -146,5 +152,29 @@ export class ConvexV1BaseRewardPoolAdapterContract extends AbstractAdapterContra
       withdrawToken: swap.to,
       withdrawAmount: swap.toAmount,
     };
+  }
+
+  protected override async applyBalanceChanges(
+    balances: AssetsMap,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): Promise<void> {
+    switch (decoded.functionName) {
+      case "stakeDiff": {
+        const [leftoverAmount] = decoded.args;
+        this.setLeftover(balances, this.stakingToken, leftoverAmount);
+        break;
+      }
+      case "withdrawDiff":
+      case "withdrawDiffAndUnwrap": {
+        const [leftoverAmount] = decoded.args;
+        this.setLeftover(balances, this.stakedPhantomToken, leftoverAmount);
+        break;
+      }
+      // no accrued rewards on a freshly opened account
+      case "getReward":
+        break;
+      default:
+        await super.applyBalanceChanges(balances, decoded);
+    }
   }
 }

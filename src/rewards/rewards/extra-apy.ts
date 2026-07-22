@@ -35,6 +35,8 @@ export interface GetTotalTokensOnProtocolProps {
 
   tokensList: Record<Address, TokenData>;
   network: NetworkType;
+
+  backendUrl?: string;
 }
 
 export type PoolPointsBase = Record<
@@ -62,16 +64,22 @@ export function getKeyForPoolPointsInfo(i: PoolPointsInfo<string>) {
 export class PoolPointsAPI {
   private constructor() {}
 
+  private static defaultBackendUrl = "https://api.gearbox.foundation";
+
   static async getTotalTokensOnProtocol({
     tokensToCheck,
 
     tokensList,
     network,
+
+    backendUrl = PoolPointsAPI.defaultBackendUrl,
   }: GetTotalTokensOnProtocolProps) {
     const list = [...new Set(tokensToCheck)];
 
     const res = await Promise.allSettled(
-      list.map(t => PoolPointsAPI.getTokenTotal(t, network, tokensList)),
+      list.map(t =>
+        PoolPointsAPI.getTokenTotal(t, network, tokensList, backendUrl),
+      ),
     );
 
     return res.map((r, i): [Address, PromiseSettledResult<Asset>] => [
@@ -84,10 +92,11 @@ export class PoolPointsAPI {
     token: Address,
     network: NetworkType,
     tokensList: Record<Address, TokenData>,
+    backendUrl: string,
   ) {
     const chainId = chains[network]?.id;
 
-    const url = `https://api.gearbox.foundation/v1/getBalanceAt?asset=${token}&chainId=${chainId}`;
+    const url = `${backendUrl}/v1/getBalanceAt?asset=${token}&chainId=${chainId}`;
 
     const result = await axios.get<GetBalanceAtResponse>(url);
     const balance = result.data.result.reduce(

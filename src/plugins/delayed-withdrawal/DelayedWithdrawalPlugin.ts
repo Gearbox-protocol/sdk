@@ -1,20 +1,17 @@
 import type { Address } from "viem";
-import { iWithdrawalCompressorV310Abi } from "../../abi/IWithdrawalCompressorV310.js";
-import { iWithdrawalCompressorV311Abi } from "../../abi/IWithdrawalCompressorV311.js";
 import type { IOnchainSDKPlugin } from "../../sdk/index.js";
-import {
-  AddressMap,
-  BasePlugin,
-  getWithdrawalCompressorAddress,
-} from "../../sdk/index.js";
+import { AddressMap, BasePlugin } from "../../sdk/index.js";
 import type {
   WithdrawableAsset,
   WithdrawableAssetStateHuman,
 } from "./types.js";
 
-export interface DelayedWithdrawalPluginState {
-  withdrawableAssets: Record<Address, Array<WithdrawableAsset>>;
-}
+/**
+ * The plugin holds no state of its own: withdrawable assets are cached
+ * (and serialized/hydrated) by the withdrawal compressor contract in the
+ * core SDK state (`GearboxState.withdrawals`).
+ **/
+export type DelayedWithdrawalPluginState = Record<string, never>;
 
 const MAP_LABEL = "delayedWithdrawal";
 
@@ -22,89 +19,46 @@ export class DelayedWithdrawalPlugin
   extends BasePlugin<DelayedWithdrawalPluginState>
   implements IOnchainSDKPlugin<DelayedWithdrawalPluginState>
 {
-  #withdrawableAssets?: AddressMap<Array<WithdrawableAsset>>;
-
   public async load(force?: boolean): Promise<DelayedWithdrawalPluginState> {
     if (!force && this.loaded) {
       return this.state;
     }
-
-    // TODO: load from address provider
-    // const [pcAddr] = this.sdk.addressProvider.mustGetLatest(
-    //   AP_PERIPHERY_COMPRESSOR,
-    //   VERSION_RANGE_310,
-    // );
-    const compressor = getWithdrawalCompressorAddress(this.sdk.chainId);
-
-    this.sdk.logger?.debug(
-      `loading delayed withdrawal plugin with compressor ${compressor}`,
-    );
-
-    const creditManagers = this.sdk.marketRegister.creditManagers;
-    const resp = await this.client.multicall({
-      contracts: compressor
-        ? creditManagers.map(
-            cm =>
-              ({
-                address: compressor.address,
-                abi:
-                  compressor.version === 310
-                    ? iWithdrawalCompressorV310Abi
-                    : iWithdrawalCompressorV311Abi,
-                functionName: "getWithdrawableAssets",
-                args: [cm.creditManager.address],
-              }) as const,
-          )
-        : [],
-      allowFailure: true,
-      batchSize: 0,
-    });
-
-    this.#withdrawableAssets = new AddressMap(undefined, MAP_LABEL);
-    resp.forEach((r, index) => {
-      const cm = creditManagers[index];
-
-      if (r.status === "success" && r.result?.length > 0) {
-        const configsToShow = r.result;
-
-        this.#withdrawableAssets?.upsert(
-          cm.creditManager.address,
-          configsToShow.map(cfg => ({
-            ...cfg,
-            creditManager: cm.creditManager.address,
-            disabled: isConfigToOmit({
-              creditManager: cm.creditManager.address,
-              token: cfg.token,
-              withdrawalPhantomToken: cfg.withdrawalPhantomToken,
-              underlying: cfg.underlying,
-            }),
-          })),
-        );
-      } else {
-        // this.sdk.logger?.error(
-        //   `failed to load delayed assets for cm ${this.labelAddress(
-        //     cm.creditManager.address,
-        //   )}: ${r.error}`,
-        // );
-      }
-    });
-
+    // no-op on chains without a withdrawal compressor
+    await this.sdk.withdrawalCompressor?.loadWithdrawableAssets(force);
     return this.state;
   }
 
   public get loaded(): boolean {
-    return !!this.#withdrawableAssets;
+    return !!this.sdk.withdrawalCompressor?.state;
   }
 
   /**
    * Returns a map of cmAddress -> array of delayed assets
-   * @throws if plugin is not attached
+   * @throws if withdrawable assets have not been loaded
    */
   public get withdrawableAssets(): AddressMap<Array<WithdrawableAsset>> {
-    if (!this.#withdrawableAssets) {
-      throw new Error("withdrawable assets plugin not attached");
+    const compressor = this.sdk.withdrawalCompressor;
+    if (!compressor?.state) {
+      throw new Error("withdrawable assets are not loaded");
     }
-    return this.#withdrawableAssets;
+    const result = new AddressMap<Array<WithdrawableAsset>>(
+      undefined,
+      MAP_LABEL,
+    );
+    for (const cfg of compressor.getWithdrawableAssets()) {
+      const assets = result.get(cfg.creditManager) ?? [];
+      assets.push({
+        ...cfg,
+        disabled: isConfigToOmit({
+          creditManager: cfg.creditManager,
+          token: cfg.token,
+          withdrawalPhantomToken: cfg.withdrawalPhantomToken,
+          underlying: cfg.underlying,
+        }),
+      });
+      result.upsert(cfg.creditManager, assets);
+    }
+    return result;
   }
 
   public stateHuman(_?: boolean): WithdrawableAssetStateHuman[] {
@@ -121,16 +75,7 @@ export class DelayedWithdrawalPlugin
   }
 
   public get state(): DelayedWithdrawalPluginState {
-    return {
-      withdrawableAssets: this.withdrawableAssets.asRecord(),
-    };
-  }
-
-  public hydrate(state: DelayedWithdrawalPluginState): void {
-    this.#withdrawableAssets = new AddressMap(
-      Object.entries(state.withdrawableAssets),
-      MAP_LABEL,
-    );
+    return {};
   }
 }
 

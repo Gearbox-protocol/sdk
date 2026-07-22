@@ -1,7 +1,11 @@
-import { iTraderJoeRouterAdapterAbi } from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters } from "viem";
-import type { ConstructOptions } from "../../../sdk/index.js";
+import {
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import type { AssetsMap, OnchainSDK } from "../../../sdk/index.js";
 import { MissingSerializedParamsError } from "../../../sdk/index.js";
+import { iTraderJoeRouterAdapterAbi } from "../abi/adapters/index.js";
 import { iTraderJoeRouterAbi } from "../abi/targetContractAbi.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
@@ -32,8 +36,8 @@ export class TraderJoeRouterAdapterContract extends AbstractAdapterContract<
 > {
   #supportedPools?: TraderJoePool[];
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(
@@ -79,5 +83,20 @@ export class TraderJoeRouterAdapterContract extends AbstractAdapterContract<
         poolVersion: p.poolVersion,
       })),
     };
+  }
+
+  protected override async applyBalanceChanges(
+    balances: AssetsMap,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): Promise<void> {
+    switch (decoded.functionName) {
+      case "swapDiffTokensForTokens": {
+        const [leftoverAmount, , path] = decoded.args;
+        this.setLeftover(balances, path.tokenPath[0], leftoverAmount);
+        break;
+      }
+      default:
+        await super.applyBalanceChanges(balances, decoded);
+    }
   }
 }

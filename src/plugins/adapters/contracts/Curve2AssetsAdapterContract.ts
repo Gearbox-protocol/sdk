@@ -1,18 +1,12 @@
-import { iCurveV1_2AssetsAdapterAbi } from "@gearbox-protocol/integrations-v3";
 import { type Address, decodeAbiParameters } from "viem";
 import {
-  type ConstructOptions,
   MissingSerializedParamsError,
-  type ParsedCallV2,
+  type OnchainSDK,
 } from "../../../sdk/index.js";
+import { iCurveV1_2AssetsAdapterAbi } from "../abi/adapters/index.js";
 import { iCurvePool_2Abi, iCurvePoolAbi } from "../abi/targetContractAbi.js";
-import type {
-  LegacyAdapterOperation,
-  Transfers,
-} from "../legacyAdapterOperations.js";
-import { classifyCurveOperation } from "../transferHelpers.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
-import { AbstractAdapterContract } from "./AbstractAdapter.js";
+import { AbstractCurveAdapterContract } from "./AbstractCurveAdapter.js";
 
 const abi = iCurveV1_2AssetsAdapterAbi;
 type abi = typeof abi;
@@ -20,7 +14,7 @@ type abi = typeof abi;
 const protocolAbi = [...iCurvePoolAbi, ...iCurvePool_2Abi] as const;
 type protocolAbi = typeof protocolAbi;
 
-export class Curve2AssetsAdapterContract extends AbstractAdapterContract<
+export class Curve2AssetsAdapterContract extends AbstractCurveAdapterContract<
   abi,
   protocolAbi
 > {
@@ -31,8 +25,8 @@ export class Curve2AssetsAdapterContract extends AbstractAdapterContract<
   #tokens?: [Address, Address];
   #underlyings?: [Address, Address, Address, Address];
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(
@@ -108,16 +102,5 @@ export class Curve2AssetsAdapterContract extends AbstractAdapterContract<
       tokens: this.#tokens?.map(t => this.labelAddress(t)),
       underlyings: this.#underlyings?.map(t => this.labelAddress(t)),
     };
-  }
-
-  /** @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type.go#L132-L164 */
-  protected override classifyLegacyOperation(
-    parsed: ParsedCallV2,
-    transfers: Transfers,
-  ): LegacyAdapterOperation {
-    return (
-      classifyCurveOperation(parsed.functionName, transfers) ??
-      super.classifyLegacyOperation(parsed, transfers)
-    );
   }
 }

@@ -1,13 +1,7 @@
-import type {
-  Address,
-  ContractFunctionArgs,
-  GetContractReturnType,
-  Hex,
-  PublicClient,
-} from "viem";
+import type { Address, ContractFunctionArgs, Hex } from "viem";
 import type { creditAccountCompressorAbi } from "../../abi/compressors/creditAccountCompressor.js";
-import type { iWithdrawalCompressorV310Abi } from "../../abi/IWithdrawalCompressorV310.js";
 import type {
+  Asset,
   ConnectedBotData,
   Construct,
   CreditAccountData,
@@ -15,16 +9,18 @@ import type {
 import type {
   CreditSuite,
   PriceUpdate,
-  RWAOperationParams,
+  RWAOperationArgs,
 } from "../market/index.js";
 import type { RWAOpenAccountRequirements } from "../market/rwa/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
-import type {
-  Asset,
-  RouterCASlice,
-  RouterCloseResult,
-} from "../router/index.js";
+import type { RouterCASlice, RouterCloseResult } from "../router/index.js";
 import type { MultiCall, RawTx } from "../types/index.js";
+import type {
+  ClaimableWithdrawal,
+  DelayedIntent,
+  PendingWithdrawal,
+  RequestableWithdrawal,
+} from "./withdrawal-compressor/index.js";
 
 /**
  * @internal
@@ -219,17 +215,27 @@ export interface CloseCreditAccountProps {
   closePath?: RouterCloseResult;
 }
 
-export interface RepayCreditAccountProps
-  extends RepayAndLiquidateCreditAccountProps {
+/**
+ * Input for {@link ICreditAccountsService.assembleCloseCreditAccountCalls}.
+ */
+export type AssembleCloseCreditAccountCallsProps = {
   /**
-   * Swap calls for repay
+   * Minimal credit account data on which operation is performed.
    */
-  calls?: Array<MultiCall>;
+  creditAccount: RouterCASlice;
   /**
-   * close or zeroDebt
+   * Pathfinder close router calls (`closePath.calls`).
    */
-  operation: CloseOptions;
-}
+  routerCalls: Array<MultiCall>;
+  /**
+   * Tokens to withdraw from credit account after close path swaps.
+   */
+  assetsToWithdraw: Array<Address>;
+  /**
+   * Wallet address to withdraw tokens to.
+   */
+  to: Address;
+};
 
 export interface RepayAndLiquidateCreditAccountProps {
   /**
@@ -258,6 +264,34 @@ export interface RepayAndLiquidateCreditAccountProps {
    */
   permits: Record<string, PermitResult>;
   tokensToClaim: Asset[];
+}
+
+/**
+ * Input for {@link ICreditAccountsService.assembleRepayCreditAccountCalls}.
+ */
+export type AssembleRepayCreditAccountCallsProps = {
+  collateralAssets: Array<Asset>;
+  assetsToWithdraw: Array<Asset>;
+  creditAccount: RouterCASlice;
+  to: Address;
+  permits: Record<string, PermitResult>;
+  tokensToClaim: Asset[];
+  /**
+   * RWA wrap multicall entries (from getRWAWrapCalls).
+   */
+  calls?: Array<MultiCall>;
+};
+
+export interface RepayCreditAccountProps
+  extends RepayAndLiquidateCreditAccountProps {
+  /**
+   * RWA wrap multicall entries (from getRWAWrapCalls).
+   */
+  calls?: Array<MultiCall>;
+  /**
+   * close or zeroDebt
+   */
+  operation: CloseOptions;
 }
 
 export interface PrepareUpdateQuotasProps {
@@ -350,6 +384,13 @@ export interface PreviewDelayedWithdrawalProps {
    * Minimal credit account data on which operation is performed
    */
   creditAccount: Address;
+  /**
+   * Withdrawal phantom token that selects a specific withdrawal config when
+   * the source token has more than one. When omitted, the first matching
+   * config is used
+   */
+  withdrawalPhantomToken?: Address;
+  intent?: DelayedIntent;
 }
 
 export interface GetPendingWithdrawalsProps {
@@ -358,34 +399,6 @@ export interface GetPendingWithdrawalsProps {
    */
   creditAccount: Address;
 }
-
-type WithdrawalCompressorV310InstanceType = GetContractReturnType<
-  typeof iWithdrawalCompressorV310Abi,
-  PublicClient
->;
-
-/**
- * Result of previewing a delayed withdrawal request, as returned by the withdrawal compressor.
- **/
-export type PreviewDelayedWithdrawalResult = Awaited<
-  ReturnType<
-    WithdrawalCompressorV310InstanceType["read"]["getWithdrawalRequestResult"]
-  >
->;
-
-type PendingWithdrawalResult = Awaited<
-  ReturnType<
-    WithdrawalCompressorV310InstanceType["read"]["getCurrentWithdrawals"]
-  >
->;
-/**
- * A single pending delayed withdrawal that is not yet claimable.
- **/
-export type PendingWithdrawal = PendingWithdrawalResult[1][number];
-/**
- * A single delayed withdrawal that is ready to be claimed.
- **/
-export type ClaimableWithdrawal = PendingWithdrawalResult[0][number];
 
 /**
  * Aggregated delayed withdrawal status, split into immediately claimable and still-pending entries.
@@ -401,11 +414,48 @@ export interface GetPendingWithdrawalsResult {
   pending: Array<PendingWithdrawal>;
 }
 
+/**
+ * Input for {@link ICreditAccountsService.assembleStartDelayedWithdrawalCalls}.
+ */
+export type AssembleStartDelayedWithdrawalCallsProps = {
+  /**
+   * Credit facade that receives `storeExpectedBalances` / `compareBalances`.
+   */
+  creditFacade: Address;
+  /**
+   * Withdrawal preview: `outputs` for expected balances, `token`/`amountIn`
+   * for the negative source-token delta, `requestCalls` for the body.
+   */
+  preview: Pick<
+    RequestableWithdrawal,
+    "outputs" | "requestCalls" | "token" | "amountIn"
+  >;
+};
+
+/**
+ * Input for {@link ICreditAccountsService.assembleClaimDelayedCalls}.
+ */
+export type AssembleClaimDelayedCallsProps = {
+  /**
+   * Credit facade that receives `storeExpectedBalances` / `compareBalances`.
+   */
+  creditFacade: Address;
+  /**
+   * Claimable withdrawal: `outputs` for expected balances,
+   * `withdrawalPhantomToken`/`withdrawalTokenSpent` for the negative
+   * phantom-burn delta, `claimCalls` for the body.
+   */
+  claimableNow: Pick<
+    ClaimableWithdrawal,
+    "outputs" | "claimCalls" | "withdrawalPhantomToken" | "withdrawalTokenSpent"
+  >;
+};
+
 export interface StartDelayedWithdrawalProps extends PrepareUpdateQuotasProps {
   /**
    * Withdrawal preview
    */
-  preview: PreviewDelayedWithdrawalResult;
+  preview: RequestableWithdrawal;
   /**
    * Minimal credit account data on which operation is performed
    */
@@ -498,11 +548,11 @@ export interface OpenCAProps extends PrepareUpdateQuotasProps {
    * RWA options to open credit account with, required for RWA factories
    * First we ask for getOpenAccountRequirements,
    * then perform necessary actions (e.g. for Securitize, convert requiredSignatures to signaturesToCache)
-   * to produce RWAOperationParams
+   * to produce RWAOperationArgs
    * If getOpenAccountRequirements returned undefined, we need to pass undefined here too;
    * It means that no RWA actions are required (e.g. when we open second credit account)
    */
-  rwaOptions?: RWAOperationParams;
+  rwaOptions?: RWAOperationArgs;
 }
 
 export interface ChangeDeptProps {
@@ -762,6 +812,36 @@ export type GetApprovalAddressProps =
       creditAccount: Address;
     };
 
+/**
+ * An enriched credit-account operation ready for encoding.
+ * Each op carries everything needed to build facade / adapter multicalls —
+ * swap / wrap / unwrap attach concrete `calls` (no external routerCallGroups).
+ *
+ * Used by {@link ICreditAccountsService.assembleCaOperations}. Does not include
+ * close / repay (use dedicated assemblers).
+ */
+export type EncodableCreditAccountOperation =
+  | { type: "increaseDebt"; amount: bigint }
+  | { type: "decreaseDebt"; amount: bigint }
+  | { type: "addCollateral"; token: Address; amount: bigint }
+  | { type: "withdrawCollateral"; token: Address; amount: bigint; to: Address }
+  | { type: "swap"; calls: Array<MultiCall> }
+  | { type: "wrapRwaCollateral"; calls: Array<MultiCall> }
+  | { type: "unwrapRwaCollateral"; calls: Array<MultiCall> }
+  | {
+      type: "changeQuota";
+      quotaIncrease: Array<Asset>;
+      quotaDecrease: Array<Asset>;
+    };
+
+/**
+ * Input for {@link ICreditAccountsService.assembleCaOperations}.
+ */
+export type AssembleCaOperationsProps = {
+  operations: Array<EncodableCreditAccountOperation>;
+  creditFacade: Address;
+};
+
 export interface ICreditAccountsService extends Construct {
   sdk: OnchainSDK;
   /**
@@ -869,6 +949,20 @@ export interface ICreditAccountsService extends Construct {
   partiallyLiquidate(props: PartiallyLiquidateProps): Promise<RawTx>;
 
   /**
+   * Builds close multicall calls without price feed updates.
+   *
+   * Same operation sequence as {@link closeCreditAccount} (close path swaps,
+   * disable quotas, decrease debt, withdraw assets), but does not prepend
+   * price updates and does not build the facade transaction.
+   *
+   * @param props - {@link AssembleCloseCreditAccountCallsProps}
+   * @returns Raw facade multicall payload for close (before price feed updates)
+   */
+  assembleCloseCreditAccountCalls(
+    props: AssembleCloseCreditAccountCallsProps,
+  ): Promise<Array<MultiCall>>;
+
+  /**
    * Closes credit account or closes credit account and keeps it open with zero debt.
    * - Ca is closed in the following order: price update -> close path to swap all tokens into underlying ->
    * -> disable quotas of exiting tokens -> decrease debt -> disable exiting tokens -> withdraw underlying tokens
@@ -924,13 +1018,58 @@ export interface ICreditAccountsService extends Construct {
   ): Promise<CreditAccountOperationResult>;
 
   /**
+   * Builds start-delayed-withdrawal multicall calls without price feed updates
+   * or quota updates.
+   *
+   * Same balance bracket as {@link startDelayedWithdrawal}:
+   * `storeExpectedBalances` → `preview.requestCalls` → `compareBalances`.
+   *
+   * Besides the positive output deltas, the bracket carries a negative delta
+   * of the spent source token (`preview.token` / `-preview.amountIn`). It
+   * makes the input-side balance decrease previewable from the calldata alone and lets
+   * `compareBalances` assert the balance doesn't drop by more than predicted.
+   *
+   * Does not prepend price updates and does not build the facade transaction.
+   *
+   * @param props - {@link AssembleStartDelayedWithdrawalCallsProps}
+   * @returns Raw facade multicall payload for the delayed-withdrawal request
+   */
+  assembleStartDelayedWithdrawalCalls(
+    props: AssembleStartDelayedWithdrawalCallsProps,
+  ): Array<MultiCall>;
+
+  /**
+   * Builds claim-delayed-withdrawal multicall calls without price feed updates
+   * or quota updates.
+   *
+   * Same balance bracket as {@link claimDelayed}:
+   * `storeExpectedBalances` → `claimableNow.claimCalls` → `compareBalances`.
+   *
+   * Besides the positive output deltas, the bracket carries a negative delta
+   * of the burned withdrawal phantom token (`claimableNow.withdrawalPhantomToken`
+   * / `-claimableNow.withdrawalTokenSpent`). It makes the phantom burn
+   * previewable from the calldata alone and lets `compareBalances` assert the
+   * balance doesn't drop by more than predicted.
+   *
+   * Does not prepend price updates, does not update quotas, and does not build
+   * the facade transaction. Use for resume / intent assembly where claim is
+   * followed by other ops and quotas/prices are applied separately.
+   *
+   * @param props - {@link AssembleClaimDelayedCallsProps}
+   * @returns Raw facade multicall payload for the claim
+   */
+  assembleClaimDelayedCalls(
+    props: AssembleClaimDelayedCallsProps,
+  ): Array<MultiCall>;
+
+  /**
    * Preview delayed withdrawal for given token
    * @param props - {@link PreviewDelayedWithdrawalProps}
    * @returns
    */
   previewDelayedWithdrawal(
     props: PreviewDelayedWithdrawalProps,
-  ): Promise<PreviewDelayedWithdrawalResult>;
+  ): Promise<RequestableWithdrawal>;
   /**
    * Get claimable and pending withdrawals of an account
    * @param props - {@link GetPendingWithdrawalsProps}
@@ -1037,6 +1176,53 @@ export interface ICreditAccountsService extends Construct {
   ): Promise<RawTx>;
 
   /**
+   * Analyzes a multicall array and prepends necessary on-demand price feed updates.
+   *
+   * @param creditManager - Credit manager address
+   * @param calls - Original multicall payload
+   * @param creditAccount - Optional credit account slice (used to determine which tokens need prices)
+   * @param options - Optional settings for price update generation
+   * @returns Multicall payload with price updates prepended when needed
+   */
+  prependPriceUpdates(
+    creditManager: Address,
+    calls: Array<MultiCall>,
+    creditAccount?: RouterCASlice,
+    options?: { ignoreReservePrices?: boolean },
+  ): Promise<Array<MultiCall>>;
+
+  /**
+   * Builds credit facade multicall calls from an enriched operation list.
+   * Each operation must already carry concrete encoding data (e.g. swap/wrap
+   * `calls`). Unknown operation types throw.
+   *
+   * Does not handle close, repay, start delayed withdrawal, or claim delayed —
+   * use {@link ICreditAccountsService.assembleCloseCreditAccountCalls} /
+   * {@link ICreditAccountsService.assembleRepayCreditAccountCalls} /
+   * {@link ICreditAccountsService.assembleStartDelayedWithdrawalCalls} /
+   * {@link ICreditAccountsService.assembleClaimDelayedCalls}.
+   *
+   * @param props - Encodable operations and account context
+   * @returns Array of facade / adapter multicall calls (without price feed updates)
+   */
+  assembleCaOperations(props: AssembleCaOperationsProps): Array<MultiCall>;
+
+  /**
+   * Executes a credit account update: prepends price feed updates and builds the raw
+   * multicall transaction. Uses the RWA factory when applicable.
+   *
+   * @param creditAccount - Credit account to update
+   * @param calls - Operation calls to execute
+   * @param options - Optional price update and ETH value settings
+   * @returns Raw transaction and the final multicall payload
+   */
+  executeCaUpdate(
+    creditAccount: RouterCASlice,
+    calls: Array<MultiCall>,
+    options?: { ignoreReservePrices?: boolean; ethAmount?: bigint },
+  ): Promise<{ tx: RawTx; calls: Array<MultiCall> }>;
+
+  /**
    * Returns multicall entries to redeem (unwrap) RWA ERC-4626 vault shares into underlying for the given credit manager.
    * Used when withdrawing debt from a RWA market: redeems adapter vault shares so the underlying can be withdrawn.
    * Only applies when the credit manager's underlying is RWA-gated and has an ERC-4626 adapter configured.
@@ -1098,6 +1284,20 @@ export interface ICreditAccountsService extends Construct {
   withdrawCollateral(
     props: WithdrawCollateralProps,
   ): Promise<CreditAccountOperationResult>;
+
+  /**
+   * Builds repay multicall calls without price feed updates.
+   *
+   * Same operation sequence as {@link repayCreditAccount} (add collateral, wrap calls,
+   * disable quotas, decrease debt, redeem/unwrap, claim rewards, withdraw assets),
+   * but does not prepend price updates and does not build the facade transaction.
+   *
+   * @param props - {@link AssembleRepayCreditAccountCallsProps}
+   * @returns Raw facade multicall payload for repay (before price feed updates)
+   */
+  assembleRepayCreditAccountCalls(
+    props: AssembleRepayCreditAccountCallsProps,
+  ): Promise<Array<MultiCall>>;
 
   /**
    * Fully repays credit account or repays credit account and keeps it open with zero debt

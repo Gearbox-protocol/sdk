@@ -121,6 +121,21 @@ export interface TokenInfo {
 }
 
 /**
+ * A token address paired with a balance, used throughout the SDK to
+ * represent holdings, collateral inputs, and leftover targets.
+ **/
+export interface Asset {
+  /**
+   * ERC-20 token address.
+   **/
+  token: Address;
+  /**
+   * Token amount in the token's native decimals.
+   **/
+  balance: bigint;
+}
+
+/**
  * Compile-time assertion: `U` must be assignable to `T`.
  *
  * Used to verify that hand-written interfaces stay structurally compatible
@@ -418,6 +433,10 @@ export interface ParsedCallV2 {
    * For unknown selectors: `"unknown function 0x1a2b3c4d"`
    */
   functionName: string;
+  /**
+   * Raw ABI-encoded calldata this call was parsed from.
+   **/
+  calldata: Hex;
   /**
    * Named arguments with their original types (bigint, Address, etc.).
    **/

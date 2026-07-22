@@ -1,14 +1,13 @@
 import { type Address, getAddress } from "viem";
 import { gearboxRouterAbi } from "../../abi/router/gearboxRouter.js";
+import type { Asset } from "../base/index.js";
 import type { IPriceOracleContract } from "../market/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
-import { AddressMap } from "../utils/AddressMap.js";
 import { formatBN } from "../utils/formatter.js";
-import { isDust } from "../utils/index.js";
+import { AddressMap, AssetsMap, isDust } from "../utils/index.js";
 import { AbstractRouterContract } from "./AbstractRouterContract.js";
-import { assetsMap, balancesMap, limitLeftover } from "./helpers.js";
+import { limitLeftover } from "./helpers.js";
 import type {
-  Asset,
   FindBestClosePathProps,
   FindClaimAllRewardsProps,
   FindOneTokenPathProps,
@@ -113,8 +112,8 @@ export class RouterV310Contract
       slippage,
     } = props;
     const [expectedMap, leftoverMap] = [
-      balancesMap(expectedBalances),
-      balancesMap(leftoverBalances),
+      new AssetsMap(expectedBalances),
+      new AssetsMap(leftoverBalances),
     ];
 
     const getNumSplits = this.#numSplitsGetter(cm, expectedBalances);
@@ -213,25 +212,25 @@ export class RouterV310Contract
       this.getExpectedAndLeftover(ca, cm, {
         balances: balances
           ? {
-              expectedBalances: assetsMap(balances.expectedBalances),
-              leftoverBalances: assetsMap(balances.leftoverBalances),
-              tokensToClaim: assetsMap(balances.tokensToClaim || []),
+              expectedBalances: new AssetsMap(balances.expectedBalances),
+              leftoverBalances: new AssetsMap(balances.leftoverBalances),
+              tokensToClaim: new AssetsMap(balances.tokensToClaim || []),
             }
           : undefined,
         keepAssets: balances ? undefined : keepAssets,
         debtOnly,
       });
 
-    const getNumSplits = this.#numSplitsGetter(cm, expectedBalances.values());
+    const getNumSplits = this.#numSplitsGetter(cm, expectedBalances.toAssets());
     const tData: TokenData[] = [];
     for (const token of cm.collateralTokens) {
       tData.push({
         token,
-        balance: expectedBalances.get(token)?.balance || 0n,
+        balance: expectedBalances.get(token) || 0n,
         leftoverBalance:
-          limitLeftover(leftoverBalances.get(token)?.balance, token) ?? 0n,
+          limitLeftover(leftoverBalances.get(token), token) ?? 0n,
         numSplits: getNumSplits(token),
-        claimRewards: !!tokensToClaim.get(token),
+        claimRewards: tokensToClaim.has(token),
       });
     }
 

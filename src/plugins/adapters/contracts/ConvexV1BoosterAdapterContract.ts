@@ -1,10 +1,15 @@
-import { iConvexV1BoosterAdapterAbi } from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters } from "viem";
 import {
-  type ConstructOptions,
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import {
+  type AssetsMap,
   MissingSerializedParamsError,
+  type OnchainSDK,
   type ParsedCallV2,
 } from "../../../sdk/index.js";
+import { iConvexV1BoosterAdapterAbi } from "../abi/adapters/iConvexV1BoosterAdapter.js";
 import { iBoosterAbi } from "../abi/targetContractAbi.js";
 import type {
   LegacyAdapterOperation,
@@ -33,8 +38,8 @@ export class ConvexV1BoosterAdapterContract extends AbstractAdapterContract<
 > {
   #supportedPools?: ConvexV1BoosterPool[];
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(
@@ -89,7 +94,7 @@ export class ConvexV1BoosterAdapterContract extends AbstractAdapterContract<
    * @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type.go#L166-L199
    * @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type_v3.go#L84-L91
    */
-  protected override classifyLegacyOperation(
+  public override classifyLegacyOperation(
     parsed: ParsedCallV2,
     transfers: Transfers,
   ): LegacyAdapterOperation {
@@ -112,5 +117,38 @@ export class ConvexV1BoosterAdapterContract extends AbstractAdapterContract<
       return { operation: "ConvexDeposit", ...swap };
     }
     return super.classifyLegacyOperation(parsed, transfers);
+  }
+
+  protected override async applyBalanceChanges(
+    balances: AssetsMap,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): Promise<void> {
+    switch (decoded.functionName) {
+      // deposit spends the curve LP token, withdraw spends the convex token
+      case "depositDiff": {
+        const [pid, leftoverAmount] = decoded.args;
+        const pool = this.#mustFindPool(Number(pid));
+        this.setLeftover(balances, pool.curveToken, leftoverAmount);
+        break;
+      }
+      case "withdrawDiff": {
+        const [pid, leftoverAmount] = decoded.args;
+        const pool = this.#mustFindPool(Number(pid));
+        this.setLeftover(balances, pool.convexToken, leftoverAmount);
+        break;
+      }
+      default:
+        await super.applyBalanceChanges(balances, decoded);
+    }
+  }
+
+  #mustFindPool(pid: number): ConvexV1BoosterPool {
+    const pool = this.supportedPools.find(p => p.pid === pid);
+    if (!pool) {
+      throw new Error(
+        `convex pool with pid ${pid} not found on booster adapter at ${this.address}`,
+      );
+    }
+    return pool;
   }
 }

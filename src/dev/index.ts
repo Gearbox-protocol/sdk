@@ -24,3 +24,5 @@ export * from "./replaceStorage.js";
 export * from "./resilientTransport.js";
 export * from "./transports.js";
 export * from "./types.js";
+export * from "./verifyTestnet.js";
+export * from "./withdrawalUtils.js";

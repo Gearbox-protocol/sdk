@@ -1,12 +1,12 @@
+import { type Address, decodeAbiParameters } from "viem";
+import {
+  MissingSerializedParamsError,
+  type OnchainSDK,
+} from "../../../sdk/index.js";
 import {
   iKelpLrtWithdrawalManagerAdapterAbi,
   iKelpLrtWithdrawalManagerGatewayAbi,
-} from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters } from "viem";
-import {
-  type ConstructOptions,
-  MissingSerializedParamsError,
-} from "../../../sdk/index.js";
+} from "../abi/adapters/index.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -25,8 +25,8 @@ export class KelpLRTWithdrawalManagerAdapterContract extends AbstractAdapterCont
     phantomToken: Address;
   }[];
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(

@@ -1,9 +1,14 @@
-import { iStakingRewardsAdapterAbi } from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters } from "viem";
 import {
-  type ConstructOptions,
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import {
+  type AssetsMap,
   MissingSerializedParamsError,
+  type OnchainSDK,
 } from "../../../sdk/index.js";
+import { iStakingRewardsAdapterAbi } from "../abi/adapters/index.js";
 import { iStakingRewardsAbi } from "../abi/targetContractAbi.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
@@ -23,8 +28,8 @@ export class StakingRewardsAdapterContract extends AbstractAdapterContract<
   #stakedPhantomToken?: Address;
   #referral?: number;
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const version = Number(args.baseParams.version);
@@ -103,5 +108,28 @@ export class StakingRewardsAdapterContract extends AbstractAdapterContract<
         : undefined,
       referral: this.#referral,
     };
+  }
+
+  protected override async applyBalanceChanges(
+    balances: AssetsMap,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): Promise<void> {
+    switch (decoded.functionName) {
+      case "stakeDiff": {
+        const [leftoverAmount] = decoded.args;
+        this.setLeftover(balances, this.stakingToken, leftoverAmount);
+        break;
+      }
+      case "withdrawDiff": {
+        const [leftoverAmount] = decoded.args;
+        this.setLeftover(balances, this.stakedPhantomToken, leftoverAmount);
+        break;
+      }
+      // no accrued rewards on a freshly opened account
+      case "getReward":
+        break;
+      default:
+        await super.applyBalanceChanges(balances, decoded);
+    }
   }
 }

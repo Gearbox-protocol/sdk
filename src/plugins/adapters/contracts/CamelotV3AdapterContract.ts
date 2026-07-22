@@ -1,7 +1,11 @@
-import { iCamelotV3AdapterAbi } from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters } from "viem";
-import type { ConstructOptions } from "../../../sdk/index.js";
+import {
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import type { AssetsMap, OnchainSDK } from "../../../sdk/index.js";
 import { MissingSerializedParamsError } from "../../../sdk/index.js";
+import { iCamelotV3AdapterAbi } from "../abi/adapters/index.js";
 import { iCamelotV3RouterAbi } from "../abi/targetContractAbi.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
@@ -23,8 +27,8 @@ export class CamelotV3AdapterContract extends AbstractAdapterContract<
 > {
   #supportedPools?: CamelotPool[];
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(
@@ -64,5 +68,27 @@ export class CamelotV3AdapterContract extends AbstractAdapterContract<
         token1: this.labelAddress(p.token1),
       })),
     };
+  }
+
+  protected override async applyBalanceChanges(
+    balances: AssetsMap,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): Promise<void> {
+    switch (decoded.functionName) {
+      case "exactDiffInputSingle": {
+        const [params] = decoded.args;
+        this.setLeftover(balances, params.tokenIn, params.leftoverAmount);
+        break;
+      }
+      case "exactDiffInput": {
+        const [params] = decoded.args;
+        const tokenIn =
+          `0x${params.path.replace("0x", "").slice(0, 40)}` as Address;
+        this.setLeftover(balances, tokenIn, params.leftoverAmount);
+        break;
+      }
+      default:
+        await super.applyBalanceChanges(balances, decoded);
+    }
   }
 }

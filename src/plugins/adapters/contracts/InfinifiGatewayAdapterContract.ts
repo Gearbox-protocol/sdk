@@ -1,9 +1,14 @@
-import { iInfinifiGatewayAdapterAbi } from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters } from "viem";
 import {
-  type ConstructOptions,
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import {
+  type AssetsMap,
   MissingSerializedParamsError,
+  type OnchainSDK,
 } from "../../../sdk/index.js";
+import { iInfinifiGatewayAdapterAbi } from "../abi/adapters/index.js";
 import { iInfinifiGatewayAbi } from "../abi/targetContractAbi.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
@@ -23,8 +28,8 @@ export class InfinifiGatewayAdapterContract extends AbstractAdapterContract<
   #siusd?: Address;
   #allowedLockedTokens?: Address[];
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(
@@ -80,5 +85,33 @@ export class InfinifiGatewayAdapterContract extends AbstractAdapterContract<
         this.labelAddress(t),
       ),
     };
+  }
+
+  protected override async applyBalanceChanges(
+    balances: AssetsMap,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): Promise<void> {
+    switch (decoded.functionName) {
+      case "mintDiff": {
+        const [leftoverAmount] = decoded.args;
+        this.setLeftover(balances, this.usdc, leftoverAmount);
+        break;
+      }
+      // redeem, stake and lock all spend iUSD
+      case "redeemDiff":
+      case "stakeDiff":
+      case "createPositionDiff": {
+        const [leftoverAmount] = decoded.args;
+        this.setLeftover(balances, this.iusd, leftoverAmount);
+        break;
+      }
+      case "unstakeDiff": {
+        const [leftoverAmount] = decoded.args;
+        this.setLeftover(balances, this.siusd, leftoverAmount);
+        break;
+      }
+      default:
+        await super.applyBalanceChanges(balances, decoded);
+    }
   }
 }

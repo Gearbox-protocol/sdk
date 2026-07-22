@@ -28,6 +28,7 @@ export default defineConfig(options => {
     entry: [
       "src/**/*.ts",
       "!src/**/*.test.ts",
+      "!src/**/*.test-d.ts",
       "!src/**/*.mock.ts",
       "!src/e2e/**",
     ],

@@ -1,19 +1,24 @@
 import {
-  iMidasRedemptionVaultAdapterAbi,
-  iMidasRedemptionVaultGatewayAbi,
-} from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters } from "viem";
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
 import {
-  type ConstructOptions,
+  type AssetsMap,
   MissingSerializedParamsError,
+  type OnchainSDK,
 } from "../../../sdk/index.js";
+import {
+  iMidasRedemptionVaultAdapterV310Abi,
+  iMidasRedemptionVaultGatewayV310Abi,
+} from "../abi/adapters/index.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
-const abi = iMidasRedemptionVaultAdapterAbi;
+const abi = iMidasRedemptionVaultAdapterV310Abi;
 type abi = typeof abi;
 
-const protocolAbi = iMidasRedemptionVaultGatewayAbi;
+const protocolAbi = iMidasRedemptionVaultGatewayV310Abi;
 type protocolAbi = typeof protocolAbi;
 
 export class MidasRedemptionVaultAdapterContract extends AbstractAdapterContract<
@@ -24,8 +29,8 @@ export class MidasRedemptionVaultAdapterContract extends AbstractAdapterContract
   #mToken?: Address;
   #allowedTokens?: { token: Address; phantomToken: Address }[];
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(
@@ -75,5 +80,22 @@ export class MidasRedemptionVaultAdapterContract extends AbstractAdapterContract
         phantomToken: this.labelAddress(t.phantomToken),
       })),
     };
+  }
+
+  protected override async applyBalanceChanges(
+    balances: AssetsMap,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): Promise<void> {
+    switch (decoded.functionName) {
+      // redemption spends the mToken down to the leftover, tokenOut arg is
+      // the received token
+      case "redeemInstantDiff": {
+        const [, leftoverAmount] = decoded.args;
+        this.setLeftover(balances, this.mToken, leftoverAmount);
+        break;
+      }
+      default:
+        await super.applyBalanceChanges(balances, decoded);
+    }
   }
 }

@@ -1,7 +1,8 @@
-import type { Address } from "viem";
+import type { WithdrawalsState } from "../accounts/withdrawal-compressor/types.js";
 import type { MarketData } from "../base/index.js";
 import type { NetworkType } from "../chain/chains.js";
 import type { AddressProviderState } from "../core/index.js";
+import type { ZapperData } from "../market/index.js";
 import type { RWAState } from "../market/rwa/index.js";
 import type { PluginStatesMap, PluginsMap } from "../plugins/index.js";
 
@@ -47,6 +48,19 @@ export interface GearboxState<Plugins extends PluginsMap = {}> {
    * RWA compressor state snapshot, if RWA factories were loaded.
    **/
   rwa?: RWAState;
+  /**
+   * All loaded zappers, keyed implicitly by their `pool` field.
+   *
+   * Present only when zappers were loaded (they are optional)
+   **/
+  zappers?: ZapperData[];
+  /**
+   * Withdrawal compressor's withdrawable assets cache.
+   *
+   * Present only when the compressor exists on the chain and its assets
+   * were loaded
+   **/
+  withdrawals?: WithdrawalsState;
   /**
    * Per-plugin serialised state.
    **/

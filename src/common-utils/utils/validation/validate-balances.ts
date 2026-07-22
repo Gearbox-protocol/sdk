@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import type { Asset } from "../../../sdk/router/types.js";
+import type { Asset } from "../../../sdk/index.js";
 import type { ValidateBalanceResult } from "./validate-balance.js";
 import { validateBalance } from "./validate-balance.js";
 export interface ValidateBalancesProps {

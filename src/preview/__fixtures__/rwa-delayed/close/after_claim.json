@@ -1,0 +1,64 @@
+{
+  "creditAccount": "0x82900e2Ab20B6F60C159F1A141A6f2d3D810C4fA",
+  "creditManager": "0x025512D771f778fad99aB30b7A7363E7C8DE078D",
+  "creditFacade": "0xA36f204ae8a3Ea2E02425960C627771FB180B315",
+  "underlying": "0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D",
+  "owner": "0x6f06A04B475EaBB94D50Fc119B79b8C68DF669af",
+  "expirationDate": 0,
+  "enabledTokensMask": {
+    "__type": "bigint",
+    "__value": "1"
+  },
+  "debt": {
+    "__type": "bigint",
+    "__value": "0"
+  },
+  "accruedInterest": {
+    "__type": "bigint",
+    "__value": "0"
+  },
+  "accruedFees": {
+    "__type": "bigint",
+    "__value": "0"
+  },
+  "totalDebtUSD": {
+    "__type": "bigint",
+    "__value": "0"
+  },
+  "totalValueUSD": {
+    "__type": "bigint",
+    "__value": "99"
+  },
+  "twvUSD": {
+    "__type": "bigint",
+    "__value": "97"
+  },
+  "totalValue": {
+    "__type": "bigint",
+    "__value": "0"
+  },
+  "healthFactor": {
+    "__type": "bigint",
+    "__value": "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+  },
+  "success": true,
+  "tokens": [
+    {
+      "token": "0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D",
+      "mask": {
+        "__type": "bigint",
+        "__value": "1"
+      },
+      "balance": {
+        "__type": "bigint",
+        "__value": "1"
+      },
+      "quota": {
+        "__type": "bigint",
+        "__value": "0"
+      },
+      "success": true
+    }
+  ],
+  "investor": "0x4D1698eD96Bdf0070AB6C399B340bacD50a78ccc"
+}

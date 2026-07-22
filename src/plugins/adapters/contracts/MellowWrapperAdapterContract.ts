@@ -1,9 +1,14 @@
-import { iMellowWrapperAdapterAbi } from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters } from "viem";
 import {
-  type ConstructOptions,
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import {
+  type AssetsMap,
   MissingSerializedParamsError,
+  type OnchainSDK,
 } from "../../../sdk/index.js";
+import { iMellowWrapperAdapterAbi } from "../abi/adapters/index.js";
 import { iMellowWrapperAbi } from "../abi/targetContractAbi.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
@@ -20,8 +25,8 @@ export class MellowWrapperAdapterContract extends AbstractAdapterContract<
 > {
   #allowedVaults?: Address[];
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(
@@ -48,5 +53,25 @@ export class MellowWrapperAdapterContract extends AbstractAdapterContract<
       ...super.stateHuman(raw),
       allowedVaults: this.#allowedVaults?.map(v => this.labelAddress(v)),
     };
+  }
+
+  protected override async applyBalanceChanges(
+    balances: AssetsMap,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): Promise<void> {
+    switch (decoded.functionName) {
+      case "depositDiff": {
+        // the wrapper wraps WETH into wstETH and deposits it into the vault;
+        // WETH is not part of the serialized params, so resolve it from token
+        // metadata
+        // TODO: expose sdk and get WETH_TOKEN from address provider
+        const weth = this.tokensMeta.mustFindBySymbol("WETH").addr;
+        const [leftoverAmount] = decoded.args;
+        this.setLeftover(balances, weth, leftoverAmount);
+        break;
+      }
+      default:
+        await super.applyBalanceChanges(balances, decoded);
+    }
   }
 }

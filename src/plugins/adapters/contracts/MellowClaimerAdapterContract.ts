@@ -1,9 +1,14 @@
-import { iMellowClaimerAdapterAbi } from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters } from "viem";
 import {
-  type ConstructOptions,
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import {
+  type AssetsMap,
   MissingSerializedParamsError,
+  type OnchainSDK,
 } from "../../../sdk/index.js";
+import { iMellowClaimerAdapterAbi } from "../abi/adapters/index.js";
 import { iMellowClaimerAbi } from "../abi/targetContractAbi.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
@@ -20,8 +25,8 @@ export class MellowClaimerAdapterContract extends AbstractAdapterContract<
 > {
   #allowedMultiVaults?: Address[];
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(
@@ -50,5 +55,38 @@ export class MellowClaimerAdapterContract extends AbstractAdapterContract<
         this.labelAddress(v),
       ),
     };
+  }
+
+  protected override async applyBalanceChanges(
+    balances: AssetsMap,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): Promise<void> {
+    switch (decoded.functionName) {
+      // pure "accept" of transferred pending assets, coupled with a Mellow
+      // withdrawal request: it moves no ERC-20s, and the withdrawal phantom
+      // token effect is credited by the storeExpectedBalances bracket delta
+      // built from the compressor's outputs
+      case "multiAccept":
+        break;
+      // no-op:
+      // `multiAcceptAndClaim` is only emitted by the withdrawal
+      // compressor, and sdk now encodes the spent phantom token
+      // burn as a negative storeExpectedBalances delta. Resolving the phantom
+      // from calldata alone is impossible offline (the multiVault-to-phantom
+      // mapping is not serialized); the commented-out code recovered it via
+      // an RPC lookup.
+      case "multiAcceptAndClaim": {
+        // const [multiVault, , , , maxAssets] = decoded.args;
+        // const phantomToken =
+        //   await this.sdk.withdrawalCompressor.getWithdrawalPhantomToken(
+        //     this.creditManager,
+        //     multiVault,
+        //   );
+        // this.spendExact(balances, phantomToken, maxAssets);
+        break;
+      }
+      default:
+        await super.applyBalanceChanges(balances, decoded);
+    }
   }
 }

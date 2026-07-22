@@ -4,10 +4,8 @@ import {
   BASIC_ADAPTER_ABI,
   CURVE_V1_ADAPTER_310_ABI,
   CURVE_V1_ADAPTER_311_ABI,
-  CURVE_V1_WRAPPER_ADAPTER_ABI,
   GATEWAY_ADAPTER_ABI,
   LP_ADAPTER_ABI,
-  MELLOW_DEPOSIT_QUEUE_ADAPTER_ABI,
   PHANTOM_TOKEN_ADAPTER_ABI,
   REFERER_ID_ADAPTER_ABI,
   STAKING_REWARDS_ADAPTER_ABI,
@@ -25,9 +23,6 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
   [AdapterType.ACCOUNT_MIGRATOR]: {
     310: BASIC_ADAPTER_ABI,
   },
-  [AdapterType.BALANCER_VAULT]: {
-    310: BASIC_ADAPTER_ABI,
-  },
   [AdapterType.BALANCER_V3_ROUTER]: {
     310: BASIC_ADAPTER_ABI,
     311: BASIC_ADAPTER_ABI,
@@ -41,16 +36,10 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
   [AdapterType.CVX_V1_BOOSTER]: {
     310: BASIC_ADAPTER_ABI,
   },
-  [AdapterType.EQUALIZER_ROUTER]: {
-    310: BASIC_ADAPTER_ABI,
-  },
   [AdapterType.FLUID_DEX]: {
     310: BASIC_ADAPTER_ABI,
   },
   [AdapterType.INFINIFI_GATEWAY]: {
-    310: BASIC_ADAPTER_ABI,
-  },
-  [AdapterType.KODIAK_ISLAND_GATEWAY]: {
     310: BASIC_ADAPTER_ABI,
   },
   [AdapterType.LIDO_V1]: {
@@ -69,7 +58,7 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
   [AdapterType.DAI_USDS_EXCHANGE]: {
     310: BASIC_ADAPTER_ABI,
   },
-  [AdapterType.TRADER_JOE_ROUTER]: {
+  [AdapterType.TRADERJOE_ROUTER]: {
     310: BASIC_ADAPTER_ABI,
   },
   [AdapterType.UNISWAP_V2_ROUTER]: {
@@ -85,29 +74,19 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
     310: BASIC_ADAPTER_ABI,
   },
 
-  [AdapterType.YEARN_V2]: {
-    310: BASIC_ADAPTER_ABI,
-  },
-
   [AdapterType.SECURITIZE_ONRAMP]: {
-    310: BASIC_ADAPTER_ABI,
-  },
-  [AdapterType.SECURITIZE_SWAP]: {
     310: BASIC_ADAPTER_ABI,
   },
 
   // Curve adapters
   // curve pattern [creditManager, target, lpToken, basePool, use256]
   [AdapterType.CURVE_V1_2ASSETS]: {
-    310: CURVE_V1_ADAPTER_310_ABI,
     311: CURVE_V1_ADAPTER_311_ABI,
   },
   [AdapterType.CURVE_V1_3ASSETS]: {
-    310: CURVE_V1_ADAPTER_310_ABI,
     311: CURVE_V1_ADAPTER_311_ABI,
   },
   [AdapterType.CURVE_V1_4ASSETS]: {
-    310: CURVE_V1_ADAPTER_310_ABI,
     311: CURVE_V1_ADAPTER_311_ABI,
   },
   [AdapterType.CURVE_STABLE_NG]: {
@@ -116,18 +95,12 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
   },
 
   // other patterns
-  [AdapterType.CURVE_V1_WRAPPER]: {
-    310: CURVE_V1_WRAPPER_ADAPTER_ABI,
-    311: CURVE_V1_WRAPPER_ADAPTER_ABI,
-  },
   [AdapterType.CURVE_V1_STECRV_POOL]: {
-    310: LP_ADAPTER_ABI,
     311: LP_ADAPTER_ABI,
   },
 
   // ERC4626 adapters
   [AdapterType.ERC4626_VAULT]: {
-    310: BASIC_ADAPTER_ABI,
     311: BASIC_ADAPTER_ABI,
     312: GATEWAY_ADAPTER_ABI,
   },
@@ -137,8 +110,6 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
 
   // Mellow adapters
   [AdapterType.MELLOW_ERC4626_VAULT]: {
-    310: BASIC_ADAPTER_ABI,
-    311: PHANTOM_TOKEN_ADAPTER_ABI,
     312: PHANTOM_TOKEN_ADAPTER_ABI,
   },
   [AdapterType.MELLOW_CLAIMER]: {
@@ -147,17 +118,8 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
   [AdapterType.MELLOW_DVV]: {
     310: BASIC_ADAPTER_ABI,
   },
-  [AdapterType.MELLOW_LRT_VAULT]: {
-    310: BASIC_ADAPTER_ABI,
-  },
   [AdapterType.MELLOW_WRAPPER]: {
     310: ADDRESS_REFERRAL_ADAPTER_ABI,
-  },
-  [AdapterType.MELLOW_DEPOSIT_QUEUE]: {
-    310: MELLOW_DEPOSIT_QUEUE_ADAPTER_ABI,
-  },
-  [AdapterType.MELLOW_REDEEM_QUEUE]: {
-    310: PHANTOM_TOKEN_ADAPTER_ABI,
   },
 
   // Kelp adapters
@@ -175,10 +137,6 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
     310: PHANTOM_TOKEN_ADAPTER_ABI,
     311: PHANTOM_TOKEN_ADAPTER_ABI,
   },
-  [AdapterType.INFRARED_VAULT]: {
-    310: PHANTOM_TOKEN_ADAPTER_ABI,
-    311: PHANTOM_TOKEN_ADAPTER_ABI,
-  },
   [AdapterType.UPSHIFT_VAULT]: {
     310: PHANTOM_TOKEN_ADAPTER_ABI,
     311: PHANTOM_TOKEN_ADAPTER_ABI,
@@ -193,15 +151,12 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
 
   // other patterns
   [AdapterType.STAKING_REWARDS]: {
-    310: PHANTOM_TOKEN_ADAPTER_ABI,
-    311: STAKING_REWARDS_ADAPTER_ABI,
     312: STAKING_REWARDS_ADAPTER_ABI,
   },
 
   [AdapterType.MIDAS_ISSUANCE_VAULT]: {
     310: REFERER_ID_ADAPTER_ABI,
   },
-
   [AdapterType.MIDAS_GATEWAY]: {
     311: REFERER_ID_ADAPTER_ABI,
   },

@@ -1,10 +1,15 @@
-import { iDaiUsdsAdapterAbi } from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters } from "viem";
 import {
-  type ConstructOptions,
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import {
+  type AssetsMap,
   MissingSerializedParamsError,
+  type OnchainSDK,
   type ParsedCallV2,
 } from "../../../sdk/index.js";
+import { iDaiUsdsAdapterAbi } from "../abi/adapters/index.js";
 import { iDaiUsdsAbi } from "../abi/targetContractAbi.js";
 import type {
   LegacyAdapterOperation,
@@ -27,8 +32,8 @@ export class DaiUsdsAdapterContract extends AbstractAdapterContract<
   #dai?: Address;
   #usds?: Address;
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(
@@ -65,7 +70,7 @@ export class DaiUsdsAdapterContract extends AbstractAdapterContract<
   }
 
   /** @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type_v3.go#L51-L68 */
-  protected override classifyLegacyOperation(
+  public override classifyLegacyOperation(
     parsed: ParsedCallV2,
     transfers: Transfers,
   ): LegacyAdapterOperation {
@@ -77,5 +82,25 @@ export class DaiUsdsAdapterContract extends AbstractAdapterContract<
       return { operation: "MakerRedeem", ...swapFromTransfers(transfers) };
     }
     return super.classifyLegacyOperation(parsed, transfers);
+  }
+
+  protected override async applyBalanceChanges(
+    balances: AssetsMap,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): Promise<void> {
+    switch (decoded.functionName) {
+      case "daiToUsdsDiff": {
+        const [leftoverAmount] = decoded.args;
+        this.setLeftover(balances, this.dai, leftoverAmount);
+        break;
+      }
+      case "usdsToDaiDiff": {
+        const [leftoverAmount] = decoded.args;
+        this.setLeftover(balances, this.usds, leftoverAmount);
+        break;
+      }
+      default:
+        await super.applyBalanceChanges(balances, decoded);
+    }
   }
 }

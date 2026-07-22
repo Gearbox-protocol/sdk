@@ -1,7 +1,11 @@
-import { iBalancerV3RouterAdapterAbi } from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters } from "viem";
-import type { ConstructOptions } from "../../../sdk/index.js";
+import {
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import type { AssetsMap, OnchainSDK } from "../../../sdk/index.js";
 import { MissingSerializedParamsError } from "../../../sdk/index.js";
+import { iBalancerV3RouterAdapterAbi } from "../abi/adapters/index.js";
 import { iBalancerV3RouterAbi } from "../abi/targetContractAbi.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
@@ -31,8 +35,8 @@ export class BalancerV3RouterAdapterContract extends AbstractAdapterContract<
 > {
   #allowedPools?: BalancerV3Pool[];
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const version = Number(args.baseParams.version);
@@ -87,5 +91,33 @@ export class BalancerV3RouterAdapterContract extends AbstractAdapterContract<
         status: p.status,
       })),
     };
+  }
+
+  protected override async applyBalanceChanges(
+    balances: AssetsMap,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): Promise<void> {
+    switch (decoded.functionName) {
+      case "swapSingleTokenDiffIn": {
+        const [, tokenIn, , leftoverAmount] = decoded.args;
+        this.setLeftover(balances, tokenIn, leftoverAmount);
+        break;
+      }
+      // BPT (pool token) is spent down to the leftover
+      case "removeLiquiditySingleTokenDiff": {
+        const [pool, leftoverAmount] = decoded.args;
+        this.setLeftover(balances, pool, leftoverAmount);
+        break;
+      }
+      case "addLiquidityUnbalancedDiff":
+        // leftoverAmounts are ordered by the pool's token list, which is only
+        // available on-chain, so the consumed tokens cannot be resolved from
+        // calldata and adapter metadata alone
+        throw new Error(
+          `previewBalanceChanges cannot resolve pool tokens for addLiquidityUnbalancedDiff on ${this.contractType} adapter at ${this.address}`,
+        );
+      default:
+        await super.applyBalanceChanges(balances, decoded);
+    }
   }
 }

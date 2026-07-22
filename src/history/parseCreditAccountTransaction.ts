@@ -1,13 +1,12 @@
 import type { Address, Log, TransactionReceipt } from "viem";
+import type { CallTrace } from "../common-utils/utils/trace.js";
+import { extractTransfers, findFacadeCalls } from "../preview/trace/index.js";
 import type { ChainContractsRegister } from "../sdk/index.js";
 import { assembleOperations } from "./assembleOperations.js";
-import { extractTransfers } from "./extractTransfers.js";
-import { findFacadeCalls } from "./findFacadeCalls.js";
-import type { CallTrace } from "./internal-types.js";
 import type {
   CreditAccountOperation,
   DirectTokenTransferOperation,
-  FacadeOperationMetadata,
+  HistoryFacadeMetadata,
   OuterFacadeOperation,
 } from "./types.js";
 
@@ -68,14 +67,14 @@ export function parseCreditAccountTransaction(
   );
 
   const {
-    executeResults,
+    executeTransfers,
     directTransfers,
     liquidationRemainingFunds,
     phantomTokens,
     withdrawCollateralEvents,
   } = extractTransfers(logs, creditAccount, pool, creditFacade);
 
-  const meta: FacadeOperationMetadata = {
+  const meta: HistoryFacadeMetadata = {
     creditManager,
     creditFacade,
     timestamp,
@@ -84,7 +83,7 @@ export function parseCreditAccountTransaction(
   };
   const facadeOps = assembleOperations({
     facadeCalls,
-    executeResults,
+    executeTransfers,
     register,
     underlying,
     liquidationRemainingFunds,

@@ -3,7 +3,7 @@ import {
   LEVERAGE_DECIMALS,
   WAD_DECIMALS_POW,
 } from "../../../../sdk/constants/math.js";
-import type { Asset } from "../../../../sdk/router/types.js";
+import type { Asset } from "../../../../sdk/index.js";
 import { formatBN, toBigInt, toBN } from "../../../../sdk/utils/formatter.js";
 import { calculateEarnings } from "../../apy/calculate-earnings.js";
 import { calculateEffectiveBorrowRate } from "../../apy/calculate-effective-borrow-rate.js";

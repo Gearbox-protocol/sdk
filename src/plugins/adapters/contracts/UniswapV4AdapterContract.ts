@@ -1,10 +1,18 @@
 import {
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import type {
+  AssetsMap,
+  OnchainSDK,
+  ParsedCallV2,
+} from "../../../sdk/index.js";
+import { MissingSerializedParamsError } from "../../../sdk/index.js";
+import {
   iUniswapV4AdapterAbi,
   iUniswapV4GatewayAbi,
-} from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters } from "viem";
-import type { ConstructOptions, ParsedCallV2 } from "../../../sdk/index.js";
-import { MissingSerializedParamsError } from "../../../sdk/index.js";
+} from "../abi/adapters/index.js";
 import type {
   LegacyAdapterOperation,
   Transfers,
@@ -30,8 +38,8 @@ export class UniswapV4AdapterContract extends AbstractAdapterContract<
     hooks: Address;
   }[];
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(
@@ -89,10 +97,29 @@ export class UniswapV4AdapterContract extends AbstractAdapterContract<
   }
 
   /** @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type.go#L81-L91 */
-  protected override classifyLegacyOperation(
+  public override classifyLegacyOperation(
     _parsed: ParsedCallV2,
     transfers: Transfers,
   ): LegacyAdapterOperation {
     return { operation: "UniswapSwap", ...swapFromTransfers(transfers) };
+  }
+
+  protected override async applyBalanceChanges(
+    balances: AssetsMap,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): Promise<void> {
+    switch (decoded.functionName) {
+      case "swapExactInputSingleDiff": {
+        const [poolKey, zeroForOne, leftoverAmount] = decoded.args;
+        this.setLeftover(
+          balances,
+          zeroForOne ? poolKey.token0 : poolKey.token1,
+          leftoverAmount,
+        );
+        break;
+      }
+      default:
+        await super.applyBalanceChanges(balances, decoded);
+    }
   }
 }

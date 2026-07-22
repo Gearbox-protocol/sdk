@@ -1,10 +1,15 @@
-import { iLidoV1AdapterAbi } from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters } from "viem";
 import {
-  type ConstructOptions,
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import {
+  type AssetsMap,
   MissingSerializedParamsError,
+  type OnchainSDK,
   type ParsedCallV2,
 } from "../../../sdk/index.js";
+import { iLidoV1AdapterAbi } from "../abi/adapters/index.js";
 import { lidoV1_WETHGatewayAbi } from "../abi/targetContractAbi.js";
 import type {
   LegacyAdapterOperation,
@@ -28,8 +33,8 @@ export class LidoV1AdapterContract extends AbstractAdapterContract<
   #weth?: Address;
   #treasury?: Address;
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(
@@ -74,10 +79,26 @@ export class LidoV1AdapterContract extends AbstractAdapterContract<
   }
 
   /** @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type.go#L277-L282 */
-  protected override classifyLegacyOperation(
+  public override classifyLegacyOperation(
     _parsed: ParsedCallV2,
     transfers: Transfers,
   ): LegacyAdapterOperation {
     return { operation: "LidoSubmit", ...swapFromTransfers(transfers) };
+  }
+
+  protected override async applyBalanceChanges(
+    balances: AssetsMap,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): Promise<void> {
+    switch (decoded.functionName) {
+      // the adapter targets the WETH gateway, so WETH is spent
+      case "submitDiff": {
+        const [leftoverAmount] = decoded.args;
+        this.setLeftover(balances, this.weth, leftoverAmount);
+        break;
+      }
+      default:
+        await super.applyBalanceChanges(balances, decoded);
+    }
   }
 }

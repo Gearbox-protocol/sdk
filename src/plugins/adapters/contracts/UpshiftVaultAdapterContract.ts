@@ -1,12 +1,17 @@
 import {
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import {
+  type AssetsMap,
+  MissingSerializedParamsError,
+  type OnchainSDK,
+} from "../../../sdk/index.js";
+import {
   iUpshiftVaultAdapterAbi,
   iUpshiftVaultGatewayAbi,
-} from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters } from "viem";
-import {
-  type ConstructOptions,
-  MissingSerializedParamsError,
-} from "../../../sdk/index.js";
+} from "../abi/adapters/index.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -24,8 +29,8 @@ export class UpshiftVaultAdapterContract extends AbstractAdapterContract<
   #asset?: Address;
   #stakedPhantomToken?: Address;
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(
@@ -70,5 +75,25 @@ export class UpshiftVaultAdapterContract extends AbstractAdapterContract<
         ? this.labelAddress(this.#stakedPhantomToken)
         : undefined,
     };
+  }
+
+  protected override async applyBalanceChanges(
+    balances: AssetsMap,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): Promise<void> {
+    switch (decoded.functionName) {
+      case "depositDiff": {
+        const [leftoverAmount] = decoded.args;
+        this.setLeftover(balances, this.asset, leftoverAmount);
+        break;
+      }
+      case "redeemDiff": {
+        const [leftoverAmount] = decoded.args;
+        this.setLeftover(balances, this.vault, leftoverAmount);
+        break;
+      }
+      default:
+        await super.applyBalanceChanges(balances, decoded);
+    }
   }
 }

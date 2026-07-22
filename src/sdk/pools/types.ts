@@ -3,10 +3,9 @@ import type {
   Address,
   ContractFunctionArgs,
   ContractFunctionName,
-  Hex,
 } from "viem";
-import type { Zapper } from "../market/index.js";
-import type { Asset } from "../router/index.js";
+import type { Asset } from "../base/index.js";
+import type { IZapperContract } from "../market/index.js";
 import type { MultiCall, RawTx } from "../types/transactions.js";
 
 interface PermitResult {
@@ -90,7 +89,7 @@ export interface DepositMetadata {
   /**
    * Zapper that will perform the deposit, undefined in case of direct pool underlying deposit
    */
-  zapper?: Zapper;
+  zapper?: IZapperContract;
   /**
    * Before deposit user will nedd to call approve method on token that he wants to deposit,
    * this is the spender address that will be used to call approve method.
@@ -111,7 +110,7 @@ export interface WithdrawalMetadata {
   /**
    * Zapper that will perform the withdrawal, undefined in case of direct pool underlying withdrawal
    */
-  zapper?: Zapper;
+  zapper?: IZapperContract;
   /**
    * Before withdrawal user will need to call approve method on token that he wants to withdraw (diesel token),
    * this is the spender address that will be used to call approve method.

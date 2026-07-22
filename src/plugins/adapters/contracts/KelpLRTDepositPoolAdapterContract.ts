@@ -1,12 +1,17 @@
 import {
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import {
+  type AssetsMap,
+  MissingSerializedParamsError,
+  type OnchainSDK,
+} from "../../../sdk/index.js";
+import {
   iKelpLrtDepositPoolAdapterAbi,
   iKelpLrtDepositPoolGatewayAbi,
-} from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters } from "viem";
-import {
-  type ConstructOptions,
-  MissingSerializedParamsError,
-} from "../../../sdk/index.js";
+} from "../abi/adapters/index.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
@@ -22,8 +27,8 @@ export class KelpLRTDepositPoolAdapterContract extends AbstractAdapterContract<
 > {
   #allowedAssets?: Address[];
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(
@@ -50,5 +55,20 @@ export class KelpLRTDepositPoolAdapterContract extends AbstractAdapterContract<
       ...super.stateHuman(raw),
       allowedAssets: this.#allowedAssets?.map(a => this.labelAddress(a)),
     };
+  }
+
+  protected override async applyBalanceChanges(
+    balances: AssetsMap,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): Promise<void> {
+    switch (decoded.functionName) {
+      case "depositAssetDiff": {
+        const [tokenIn, leftoverAmount] = decoded.args;
+        this.setLeftover(balances, tokenIn, leftoverAmount);
+        break;
+      }
+      default:
+        await super.applyBalanceChanges(balances, decoded);
+    }
   }
 }

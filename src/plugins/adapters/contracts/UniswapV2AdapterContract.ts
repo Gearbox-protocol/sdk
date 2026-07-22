@@ -1,11 +1,15 @@
-import { iUniswapV2AdapterAbi } from "@gearbox-protocol/integrations-v3";
 import {
   type Address,
   type DecodeFunctionDataReturnType,
   decodeAbiParameters,
 } from "viem";
-import type { ConstructOptions, ParsedCallV2 } from "../../../sdk/index.js";
+import type {
+  AssetsMap,
+  OnchainSDK,
+  ParsedCallV2,
+} from "../../../sdk/index.js";
 import { formatBN, MissingSerializedParamsError } from "../../../sdk/index.js";
+import { iUniswapV2AdapterAbi } from "../abi/adapters/index.js";
 import { iUniswapV2Router02Abi } from "../abi/targetContractAbi.js";
 import type {
   LegacyAdapterOperation,
@@ -30,8 +34,8 @@ export class UniswapV2AdapterContract extends AbstractAdapterContract<
     token1: Address;
   }[];
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(
@@ -104,10 +108,25 @@ export class UniswapV2AdapterContract extends AbstractAdapterContract<
   }
 
   /** @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type.go#L81-L91 */
-  protected override classifyLegacyOperation(
+  public override classifyLegacyOperation(
     _parsed: ParsedCallV2,
     transfers: Transfers,
   ): LegacyAdapterOperation {
     return { operation: "UniswapSwap", ...swapFromTransfers(transfers) };
+  }
+
+  protected override async applyBalanceChanges(
+    balances: AssetsMap,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): Promise<void> {
+    switch (decoded.functionName) {
+      case "swapDiffTokensForTokens": {
+        const [leftoverAmount, , path] = decoded.args;
+        this.setLeftover(balances, path[0], leftoverAmount);
+        break;
+      }
+      default:
+        await super.applyBalanceChanges(balances, decoded);
+    }
   }
 }

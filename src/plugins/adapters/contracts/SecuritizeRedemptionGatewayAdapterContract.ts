@@ -1,19 +1,28 @@
-import { type Address, decodeAbiParameters } from "viem";
 import {
-  type ConstructOptions,
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+  decodeFunctionData,
+  type Hex,
+} from "viem";
+import {
+  type AssetsMap,
   MissingSerializedParamsError,
+  type OnchainSDK,
 } from "../../../sdk/index.js";
-import { iSecuritizeRedemptionGatewayAbi } from "../abi/securitize/iSecuritizeRedemptionGateway.js";
-import { iSecuritizeRedemptionGatewayAdapterAbi } from "../abi/securitize/iSecuritizeRedemptionGatewayAdapter.js";
+import { iSecuritizeRedemptionGatewayAdapterV311Abi } from "../abi/adapters/iSecuritizeRedemptionGatewayAdapterV311.js";
+import { iSecuritizeRedemptionGatewayV311Abi } from "../abi/securitize/iSecuritizeRedemptionGatewayV311.js";
+import type {
+  DelayedWithdrawalClaim,
+  DelayedWithdrawalRequest,
+} from "../types.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
-// TODO: not yet merged into integrations-v3/main branch
-const abi = iSecuritizeRedemptionGatewayAdapterAbi;
+const abi = iSecuritizeRedemptionGatewayAdapterV311Abi;
 type abi = typeof abi;
 
-// TODO: not yet merged into integrations-v3/main branch
-const protocolAbi = iSecuritizeRedemptionGatewayAbi;
+const protocolAbi = iSecuritizeRedemptionGatewayV311Abi;
 type protocolAbi = typeof protocolAbi;
 
 export class SecuritizeRedemptionGatewayAdapterContract extends AbstractAdapterContract<
@@ -24,8 +33,8 @@ export class SecuritizeRedemptionGatewayAdapterContract extends AbstractAdapterC
   #stableCoinToken?: Address;
   #redemptionPhantomToken?: Address;
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(
@@ -73,5 +82,70 @@ export class SecuritizeRedemptionGatewayAdapterContract extends AbstractAdapterC
         ? this.labelAddress(this.#redemptionPhantomToken)
         : undefined,
     };
+  }
+
+  /**
+   * `redeem` (the only request call the withdrawal compressor emits) spends
+   * the DS token and mints the redemption phantom token; the stable coin is
+   * received when the redemption is claimed. The 2-arg overload carries the
+   * intent `extraData`.
+   */
+  public override parseDelayedWithdrawalRequest(
+    calldata: Hex,
+  ): DelayedWithdrawalRequest | undefined {
+    const decoded = decodeFunctionData({ abi: this.abi, data: calldata });
+    if (decoded.functionName !== "redeem") {
+      return undefined;
+    }
+    const [, extraData] = decoded.args;
+    return {
+      phantomToken: this.redemptionPhantomToken,
+      claimToken: this.stableCoinToken,
+      extraData,
+    };
+  }
+
+  /**
+   * `claim(address[] redeemers)` claims matured redemptions from redeemer
+   * contracts. Transactions built by the withdrawal compressor always claim
+   * from a single redeemer, so only the first one is reported.
+   */
+  public override parseDelayedWithdrawalClaim(
+    calldata: Hex,
+  ): DelayedWithdrawalClaim | undefined {
+    const decoded = decodeFunctionData({ abi: this.abi, data: calldata });
+    if (decoded.functionName !== "claim") {
+      return undefined;
+    }
+    const [redeemers] = decoded.args;
+    if (redeemers.length === 0) {
+      return undefined;
+    }
+    return { redeemer: redeemers[0] };
+  }
+
+  protected override async applyBalanceChanges(
+    balances: AssetsMap,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): Promise<void> {
+    switch (decoded.functionName) {
+      // no-op:
+      // `redeem` is only emitted by the withdrawal compressor, and
+      // sdk now encodes the spent DS token amount as a negative storeExpectedBalances delta
+      case "redeem": {
+        // const [dsTokenAmount] = decoded.args;
+        // this.spendExact(balances, this.dsToken, dsTokenAmount);
+        break;
+      }
+      // no-op:
+      // the redemption phantom token burn of a `claim(address[])` is
+      // not recoverable from calldata (it lives in per-redeemer clone
+      // contracts, `SecuritizeRedeemer.getRedemptionAmount()`); instead,
+      // sdk now encodes it as a negative storeExpectedBalances delta.
+      case "claim":
+        break;
+      default:
+        await super.applyBalanceChanges(balances, decoded);
+    }
   }
 }

@@ -7,7 +7,11 @@ import {
   VERSION_RANGE_310,
 } from "../constants/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
-import type { IPriceUpdateTx, MarketStateHuman } from "../types/index.js";
+import type {
+  IPriceUpdateTx,
+  MarketStateHuman,
+  ZapperStateHuman,
+} from "../types/index.js";
 import { AddressMap, AddressSet } from "../utils/index.js";
 import {
   type DelegatedMulticall,
@@ -18,7 +22,20 @@ import { MarketConfiguratorContract } from "./MarketConfiguratorContract.js";
 import { MarketSuite } from "./MarketSuite.js";
 import type { IPriceOracleContract } from "./oracle/index.js";
 import type { PoolSuite } from "./pool/index.js";
+import type { ZapperData } from "./types.js";
 import { ZapperRegister } from "./ZapperRegister.js";
+
+/** @internal */
+export interface MarketRegistryState {
+  markets: MarketData[];
+  zappers?: ZapperData[];
+}
+
+/** @internal */
+export interface MarketRegistryStateHuman {
+  markets: MarketStateHuman[];
+  zappers?: ZapperStateHuman[];
+}
 
 /**
  * Central registry of all Gearbox markets on the current chain.
@@ -53,10 +70,11 @@ export class MarketRegister extends ZapperRegister {
    * bypassing on-chain reads.
    * @param state - Array of market data snapshots.
    **/
-  public hydrate(state: MarketData[]): void {
-    const configurators = new Set<Address>(state.map(m => m.configurator));
+  public hydrate({ markets, zappers }: MarketRegistryState): void {
+    const configurators = new Set<Address>(markets.map(m => m.configurator));
     this.#setMarketFilter([...configurators]);
-    this.#setMarkets(state);
+    this.#setMarkets(markets);
+    this.hydrateZappers(zappers);
   }
 
   /**
@@ -193,19 +211,21 @@ export class MarketRegister extends ZapperRegister {
   /**
    * Serializable snapshot of all loaded markets, suitable for hydration.
    **/
-  public get state(): MarketData[] {
-    return this.markets.map(market => market.state);
+  public get state(): MarketRegistryState {
+    return {
+      markets: this.markets.map(market => market.state),
+      zappers: this.zappersState,
+    };
   }
 
   /**
    * Returns a human-readable snapshot of all markets.
    * @param raw - When `true`, includes raw/unformatted values.
    **/
-  public stateHuman(raw = true): {
-    markets: MarketStateHuman[];
-  } {
+  public stateHuman(raw = true): MarketRegistryStateHuman {
     return {
       markets: this.markets.map(market => market.stateHuman(raw)),
+      zappers: this.zappersStateHuman(raw),
     };
   }
 

@@ -1,10 +1,15 @@
-import { mellowDvvAdapterAbi } from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters } from "viem";
 import {
-  type ConstructOptions,
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import {
+  type AssetsMap,
   MissingSerializedParamsError,
+  type OnchainSDK,
   type ParsedCallV2,
 } from "../../../sdk/index.js";
+import { mellowDvvAdapterAbi } from "../abi/adapters/index.js";
 import { iERC4626Abi } from "../abi/targetContractAbi.js";
 import type {
   LegacyAdapterOperation,
@@ -27,8 +32,8 @@ export class MellowDVVAdapterContract extends AbstractAdapterContract<
   #vault?: Address;
   #asset?: Address;
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(
@@ -67,7 +72,7 @@ export class MellowDVVAdapterContract extends AbstractAdapterContract<
   /**
    * @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type_v3.go#L32-L38
    */
-  protected override classifyLegacyOperation(
+  public override classifyLegacyOperation(
     parsed: ParsedCallV2,
     transfers: Transfers,
   ): LegacyAdapterOperation {
@@ -76,5 +81,26 @@ export class MellowDVVAdapterContract extends AbstractAdapterContract<
       return { operation: "MakerRedeem", ...swapFromTransfers(transfers) };
     }
     return super.classifyLegacyOperation(parsed, transfers);
+  }
+
+  protected override async applyBalanceChanges(
+    balances: AssetsMap,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): Promise<void> {
+    const share = this.#vault ?? this.targetContract;
+    switch (decoded.functionName) {
+      case "depositDiff": {
+        const [leftoverAmount] = decoded.args;
+        this.setLeftover(balances, this.asset, leftoverAmount);
+        break;
+      }
+      case "redeemDiff": {
+        const [leftoverAmount] = decoded.args;
+        this.setLeftover(balances, share, leftoverAmount);
+        break;
+      }
+      default:
+        await super.applyBalanceChanges(balances, decoded);
+    }
   }
 }

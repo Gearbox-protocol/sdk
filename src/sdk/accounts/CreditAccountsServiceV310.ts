@@ -1,4 +1,3 @@
-import { ierc4626AdapterAbi } from "@gearbox-protocol/integrations-v3";
 import type { Address, Hex } from "viem";
 import { encodeFunctionData, getContract } from "viem";
 import {
@@ -8,13 +7,11 @@ import {
 import { creditAccountCompressorAbi } from "../../abi/compressors/creditAccountCompressor.js";
 import { peripheryCompressorAbi } from "../../abi/compressors/peripheryCompressor.js";
 import { rewardsCompressorAbi } from "../../abi/compressors/rewardsCompressor.js";
-import { iWithdrawalCompressorV310Abi } from "../../abi/IWithdrawalCompressorV310.js";
-import { iWithdrawalCompressorV311Abi } from "../../abi/IWithdrawalCompressorV311.js";
 import { iBaseRewardPoolAbi } from "../../abi/iBaseRewardPool.js";
+import { ierc4626AdapterAbi } from "../../abi/ierc4626Adapter.js";
 import { iRWAFactoryAbi } from "../../abi/rwa/iRWAFactory.js";
-import type { CreditAccountData } from "../base/index.js";
+import type { Asset, CreditAccountData } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
-import { chains } from "../chain/chains.js";
 import {
   ADDRESS_0X0,
   AP_CREDIT_ACCOUNT_COMPRESSOR,
@@ -26,7 +23,7 @@ import {
   RAY,
   VERSION_RANGE_310,
 } from "../constants/index.js";
-import type { CreditSuite, RWAOperationParams } from "../market/index.js";
+import type { CreditSuite, RWAOperationArgs } from "../market/index.js";
 import {
   getRawPriceUpdates,
   type IPriceFeedContract,
@@ -35,10 +32,10 @@ import {
 } from "../market/index.js";
 import type { RWAOpenAccountRequirements } from "../market/rwa/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
-import { type Asset, assetsMap, type RouterCASlice } from "../router/index.js";
+import type { RouterCASlice } from "../router/index.js";
 import type { RouterRewardsResult } from "../router/types.js";
 import type { IPriceUpdateTx, MultiCall, RawTx } from "../types/index.js";
-import { AddressMap, AddressSet, hexEq } from "../utils/index.js";
+import { AddressMap, AddressSet, AssetsMap, hexEq } from "../utils/index.js";
 import { simulateWithPriceUpdates } from "../utils/viem/index.js";
 import {
   extractPriceUpdates,
@@ -48,6 +45,11 @@ import {
 import type {
   AccountToCheck,
   AddCollateralProps,
+  AssembleCaOperationsProps,
+  AssembleClaimDelayedCallsProps,
+  AssembleCloseCreditAccountCallsProps,
+  AssembleRepayCreditAccountCallsProps,
+  AssembleStartDelayedWithdrawalCallsProps,
   ChangeDeptProps,
   ClaimDelayedProps,
   ClaimFarmRewardsProps,
@@ -77,7 +79,6 @@ import type {
   PermitResult,
   PrepareUpdateQuotasProps,
   PreviewDelayedWithdrawalProps,
-  PreviewDelayedWithdrawalResult,
   RepayAndLiquidateCreditAccountProps,
   RepayCreditAccountProps,
   Rewards,
@@ -86,6 +87,10 @@ import type {
   UpdateQuotasProps,
   WithdrawCollateralProps,
 } from "./types.js";
+import type {
+  IWithdrawalCompressorContract,
+  RequestableWithdrawal,
+} from "./withdrawal-compressor/index.js";
 
 type MulticallWithFailure<T> = (
   | {
@@ -129,33 +134,6 @@ export interface CreditAccountServiceOptions {
    * When set, accounts are loaded in batches of this size until all are fetched.
    **/
   batchSize?: number;
-}
-
-// TODO: HARDCODED
-const COMPRESSORS: Record<
-  number,
-  {
-    address: Address;
-    version: 311 | 310;
-  }
-> = {
-  [chains.Mainnet.id]: {
-    address: "0x36F3d0Bb73CBC2E94fE24dF0f26a689409cF9023",
-    version: 310,
-  },
-  [chains.Monad.id]: {
-    address: "0x36F3d0Bb73CBC2E94fE24dF0f26a689409cF9023",
-    version: 310,
-  },
-};
-
-/**
- * Returns the withdrawal compressor contract address for the given chain, or `undefined` if none is configured.
- * @param chainId - Numeric chain ID.
- * @returns Withdrawal compressor address, or `undefined`.
- **/
-export function getWithdrawalCompressorAddress(chainId: number) {
-  return COMPRESSORS[chainId];
 }
 
 /**
@@ -889,14 +867,6 @@ export class CreditAccountsServiceV310
   }: CloseCreditAccountProps): Promise<CloseCreditAccountResult> {
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
 
-    await this.sdk.tokensMeta.loadTokenData(cm.underlying);
-    const underlying = this.sdk.tokensMeta.mustGet(cm.underlying);
-    if (this.sdk.tokensMeta.isRWAUnderlying(underlying)) {
-      throw new Error(
-        "closeCreditAccount is not supported for RWA underlying credit accounts",
-      );
-    }
-
     const routerCloseResult =
       closePath ||
       (await this.sdk.routerFor(ca).findBestClosePath({
@@ -905,14 +875,12 @@ export class CreditAccountsServiceV310
         slippage,
       }));
 
-    const operationCalls: Array<MultiCall> = [
-      ...routerCloseResult.calls,
-      ...this.#prepareDisableQuotas(ca),
-      ...this.#prepareDecreaseDebt(ca),
-      ...assetsToWithdraw.map(t =>
-        this.#prepareWithdrawToken(ca.creditFacade, t, MAX_UINT256, to),
-      ),
-    ];
+    const operationCalls = await this.assembleCloseCreditAccountCalls({
+      creditAccount: ca,
+      routerCalls: routerCloseResult.calls,
+      assetsToWithdraw,
+      to,
+    });
 
     const calls =
       operation === "close"
@@ -926,6 +894,30 @@ export class CreditAccountsServiceV310
     );
 
     return { tx, calls, routerCloseResult, creditFacade: cm.creditFacade };
+  }
+
+  /**
+   * {@inheritDoc ICreditAccountsService.assembleCloseCreditAccountCalls}
+   */
+  public async assembleCloseCreditAccountCalls({
+    creditAccount: ca,
+    routerCalls,
+    assetsToWithdraw,
+    to,
+  }: AssembleCloseCreditAccountCallsProps): Promise<Array<MultiCall>> {
+    // RWA: after debt repay, redeem leftover vault shares so withdraw can take rwa.asset
+    const unwrapCalls =
+      (await this.getRedeemDiffCalls(1n, ca.creditManager)) ?? [];
+
+    return [
+      ...routerCalls,
+      ...this.#prepareDisableQuotas(ca),
+      ...this.#prepareDecreaseDebt(ca),
+      ...unwrapCalls,
+      ...assetsToWithdraw.map(t =>
+        this.#prepareWithdrawToken(ca.creditFacade, t, MAX_UINT256, to),
+      ),
+    ];
   }
 
   /**
@@ -1101,30 +1093,16 @@ export class CreditAccountsServiceV310
     creditAccount,
     amount,
     token,
-  }: PreviewDelayedWithdrawalProps): Promise<PreviewDelayedWithdrawalResult> {
-    const compressor = getWithdrawalCompressorAddress(this.sdk.chainId);
-    if (!compressor)
-      throw new Error(
-        `No compressor for current chain ${this.sdk.networkType}`,
-      );
-
-    const contract = getContract({
-      address: compressor.address,
-      abi:
-        compressor.version === 310
-          ? iWithdrawalCompressorV310Abi
-          : iWithdrawalCompressorV311Abi,
-      client: this.client,
-    });
-
-    // TODO: return multiple configs
-    const resp = await contract.read.getWithdrawalRequestResult([
+    withdrawalPhantomToken,
+    intent,
+  }: PreviewDelayedWithdrawalProps): Promise<RequestableWithdrawal> {
+    return this.#withdrawalCompressor.getWithdrawalRequestResult({
       creditAccount,
       token,
       amount,
-    ]);
-
-    return resp;
+      withdrawalPhantomToken,
+      intent,
+    });
   }
 
   /**
@@ -1133,35 +1111,117 @@ export class CreditAccountsServiceV310
   public async getPendingWithdrawals({
     creditAccount,
   }: GetPendingWithdrawalsProps): Promise<GetPendingWithdrawalsResult> {
-    const compressor = getWithdrawalCompressorAddress(this.sdk.chainId);
-    if (!compressor)
-      throw new Error(
-        `No compressor for current chain ${this.sdk.networkType}`,
-      );
-
-    const contract = getContract({
-      address: compressor.address,
-      abi:
-        compressor.version === 310
-          ? iWithdrawalCompressorV310Abi
-          : iWithdrawalCompressorV311Abi,
-      client: this.client,
-    });
-
     // TODO: return multiple configs
-    const resp = await contract.read.getCurrentWithdrawals([creditAccount]);
+    const { claimable, pending } =
+      await this.#withdrawalCompressor.getCurrentWithdrawals(creditAccount);
 
-    const claimableNow = resp?.[0] || [];
-    const pendingResult = [...(resp?.[1] || [])].sort((a, b) =>
-      a.claimableAt < b.claimableAt ? -1 : 1,
+    return {
+      claimableNow: claimable,
+      pending,
+    };
+  }
+
+  /**
+   * {@inheritDoc ICreditAccountsService.assembleStartDelayedWithdrawalCalls}
+   **/
+  public assembleStartDelayedWithdrawalCalls({
+    creditFacade,
+    preview,
+  }: AssembleStartDelayedWithdrawalCallsProps): Array<MultiCall> {
+    const record = preview.outputs.reduce<Record<Address, bigint>>((acc, o) => {
+      const token = o.token.toLowerCase() as Address;
+      acc[token] = (acc[token] || 0n) + o.amount;
+      return acc;
+    }, {});
+    const balances = Object.entries(record).filter(([, a]) => a > 10n);
+
+    const deltas: Array<{ token: Address; amount: bigint }> = balances.map(
+      ([token, amount]) => ({
+        token: token as Address,
+        amount: amount > 10n ? amount - 10n : 0n,
+      }),
     );
+    // The negative delta of the spent source token makes the input-side
+    // balance decrease previewable from the multicall calldata alone; without
+    // it, adapter previewBalanceChanges handlers would need RPC calls to
+    // recover the spent token/amount, since the calldata does not carry
+    // sufficient info.
+    if (preview.amountIn > 0n) {
+      deltas.push({ token: preview.token, amount: -preview.amountIn });
+    }
 
-    const respResult: GetPendingWithdrawalsResult = {
-      claimableNow: [...claimableNow],
-      pending: pendingResult,
+    const storeExpectedBalances: MultiCall = {
+      target: creditFacade,
+      callData: encodeFunctionData({
+        abi: iCreditFacadeMulticallV310Abi,
+        functionName: "storeExpectedBalances",
+        args: [deltas],
+      }),
+    };
+    const compareBalances: MultiCall = {
+      target: creditFacade,
+      callData: encodeFunctionData({
+        abi: iCreditFacadeMulticallV310Abi,
+        functionName: "compareBalances",
+        args: [],
+      }),
     };
 
-    return respResult;
+    return [storeExpectedBalances, ...preview.requestCalls, compareBalances];
+  }
+
+  /**
+   * {@inheritDoc ICreditAccountsService.assembleClaimDelayedCalls}
+   **/
+  public assembleClaimDelayedCalls({
+    creditFacade,
+    claimableNow,
+  }: AssembleClaimDelayedCallsProps): Array<MultiCall> {
+    const record = claimableNow.outputs.reduce<Record<Address, bigint>>(
+      (acc, o) => {
+        const token = o.token.toLowerCase() as Address;
+        acc[token] = (acc[token] || 0n) + o.amount;
+        return acc;
+      },
+      {},
+    );
+    const balances = Object.entries(record).filter(([, a]) => a > 10n);
+
+    const deltas: Array<{ token: Address; amount: bigint }> = balances.map(
+      ([token, amount]) => ({
+        token: token as Address,
+        amount: amount > 10n ? amount - 10n : 0n,
+      }),
+    );
+    // The negative delta of the burned withdrawal phantom token makes the
+    // input-side balance decrease previewable from the multicall calldata
+    // alone; without it, adapter previewBalanceChanges handlers would need
+    // RPC calls to recover the burned amount
+    if (claimableNow.withdrawalTokenSpent > 0n) {
+      deltas.push({
+        token: claimableNow.withdrawalPhantomToken,
+        amount: -claimableNow.withdrawalTokenSpent,
+      });
+    }
+
+    const storeExpectedBalances: MultiCall = {
+      target: creditFacade,
+      callData: encodeFunctionData({
+        abi: iCreditFacadeMulticallV310Abi,
+        functionName: "storeExpectedBalances",
+        args: [deltas],
+      }),
+    };
+    const compareBalances: MultiCall = {
+      target: creditFacade,
+      callData: encodeFunctionData({
+        abi: iCreditFacadeMulticallV310Abi,
+        functionName: "compareBalances",
+        args: [],
+      }),
+    };
+
+    return [storeExpectedBalances, ...claimableNow.claimCalls, compareBalances];
   }
 
   /**
@@ -1178,41 +1238,12 @@ export class CreditAccountsServiceV310
       creditAccount.creditManager,
     );
 
-    const record = preview.outputs.reduce<Record<Address, bigint>>((acc, o) => {
-      const token = o.token.toLowerCase() as Address;
-      acc[token] = (acc[token] || 0n) + o.amount;
-
-      return acc;
-    }, {});
-    const balances = Object.entries(record).filter(([, a]) => a > 10n);
-
-    const storeExpectedBalances: MultiCall = {
-      target: cm.creditFacade.address,
-      callData: encodeFunctionData({
-        abi: iCreditFacadeMulticallV310Abi,
-        functionName: "storeExpectedBalances",
-        args: [
-          balances.map(([token, amount]) => ({
-            token: token as Address,
-            amount: amount > 10n ? amount - 10n : 0n,
-          })),
-        ],
-      }),
-    };
-    const compareBalances: MultiCall = {
-      target: cm.creditFacade.address,
-      callData: encodeFunctionData({
-        abi: iCreditFacadeMulticallV310Abi,
-        functionName: "compareBalances",
-        args: [],
-      }),
-    };
-
     const operationCalls: Array<MultiCall> = [
-      storeExpectedBalances,
-      ...preview.requestCalls,
-      compareBalances,
-      ...this.#prepareUpdateQuotas(creditAccount.creditFacade, {
+      ...this.assembleStartDelayedWithdrawalCalls({
+        creditFacade: cm.creditFacade.address,
+        preview,
+      }),
+      ...this.#prepareUpdateQuotas(cm.creditFacade.address, {
         minQuota,
         averageQuota,
       }),
@@ -1244,50 +1275,18 @@ export class CreditAccountsServiceV310
       creditAccount.creditManager,
     );
 
-    const record = claimableNow.outputs.reduce<Record<Address, bigint>>(
-      (acc, o) => {
-        const token = o.token.toLowerCase() as Address;
-        acc[token] = (acc[token] || 0n) + o.amount;
-
-        return acc;
-      },
-      {},
-    );
-    const balances = Object.entries(record).filter(([, a]) => a > 10n);
-
-    const storeExpectedBalances: MultiCall = {
-      target: cm.creditFacade.address,
-      callData: encodeFunctionData({
-        abi: iCreditFacadeMulticallV310Abi,
-        functionName: "storeExpectedBalances",
-        args: [
-          balances.map(([token, amount]) => ({
-            token: token as Address,
-            amount: amount > 10n ? amount - 10n : 0n,
-          })),
-        ],
-      }),
-    };
-    const compareBalances: MultiCall = {
-      target: cm.creditFacade.address,
-      callData: encodeFunctionData({
-        abi: iCreditFacadeMulticallV310Abi,
-        functionName: "compareBalances",
-        args: [],
-      }),
-    };
-
     const quotaCalls = zeroDebt
       ? []
-      : this.#prepareUpdateQuotas(creditAccount.creditFacade, {
+      : this.#prepareUpdateQuotas(cm.creditFacade.address, {
           minQuota,
           averageQuota,
         });
 
     const operationCalls: Array<MultiCall> = [
-      storeExpectedBalances,
-      ...claimableNow.claimCalls,
-      compareBalances,
+      ...this.assembleClaimDelayedCalls({
+        creditFacade: cm.creditFacade.address,
+        claimableNow,
+      }),
       ...quotaCalls,
     ];
 
@@ -1741,13 +1740,13 @@ export class CreditAccountsServiceV310
     const operationCalls: Array<MultiCall> = [
       ...assetsToWithdraw.map(a =>
         this.#prepareWithdrawToken(
-          creditAccount.creditFacade,
+          cm.creditFacade.address,
           a.token,
           a.balance,
           to,
         ),
       ),
-      ...this.#prepareUpdateQuotas(creditAccount.creditFacade, {
+      ...this.#prepareUpdateQuotas(cm.creditFacade.address, {
         minQuota,
         averageQuota,
       }),
@@ -1766,8 +1765,32 @@ export class CreditAccountsServiceV310
   /**
    * {@inheritDoc ICreditAccountsService.repayCreditAccount}
    */
-  async repayCreditAccount({
-    operation,
+  async repayCreditAccount(
+    props: RepayCreditAccountProps,
+  ): Promise<CreditAccountOperationResult> {
+    const { operation, creditAccount: ca } = props;
+    const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
+
+    const operationCalls = await this.assembleRepayCreditAccountCalls(props);
+
+    const calls =
+      operation === "close"
+        ? operationCalls
+        : await this.#prependPriceUpdates(ca.creditManager, operationCalls, ca);
+    const tx = await this.#closeCreditAccountTx(
+      cm,
+      ca.creditAccount,
+      calls,
+      operation,
+    );
+
+    return { tx, calls, creditFacade: cm.creditFacade };
+  }
+
+  /**
+   * {@inheritDoc ICreditAccountsService.assembleRepayCreditAccountCalls}
+   */
+  async assembleRepayCreditAccountCalls({
     collateralAssets,
     assetsToWithdraw,
     creditAccount: ca,
@@ -1775,9 +1798,7 @@ export class CreditAccountsServiceV310
     to,
     tokensToClaim,
     calls: wrapCalls = [],
-  }: RepayCreditAccountProps): Promise<CreditAccountOperationResult> {
-    const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
-
+  }: AssembleRepayCreditAccountCallsProps): Promise<Array<MultiCall>> {
     const addCollateral = collateralAssets.filter(a => a.balance > 0);
 
     const router = this.sdk.routerFor(ca);
@@ -1802,18 +1823,7 @@ export class CreditAccountsServiceV310
       ),
     ];
 
-    const calls =
-      operation === "close"
-        ? operationCalls
-        : await this.#prependPriceUpdates(ca.creditManager, operationCalls, ca);
-    const tx = await this.#closeCreditAccountTx(
-      cm,
-      ca.creditAccount,
-      calls,
-      operation,
-    );
-
-    return { tx, calls, creditFacade: cm.creditFacade };
+    return operationCalls;
   }
 
   /**
@@ -2078,6 +2088,125 @@ export class CreditAccountsServiceV310
     );
   }
 
+  /**
+   * {@inheritDoc ICreditAccountsService.prependPriceUpdates}
+   */
+  public async prependPriceUpdates(
+    creditManager: Address,
+    calls: MultiCall[],
+    creditAccount?: RouterCASlice,
+    options?: { ignoreReservePrices?: boolean },
+  ): Promise<MultiCall[]> {
+    return this.#prependPriceUpdates(
+      creditManager,
+      calls,
+      creditAccount,
+      options,
+    );
+  }
+
+  /**
+   * {@inheritDoc ICreditAccountsService.assembleCaOperations}
+   */
+  public assembleCaOperations({
+    operations,
+    creditFacade,
+  }: AssembleCaOperationsProps): MultiCall[] {
+    const calls: MultiCall[] = [];
+
+    for (const op of operations) {
+      switch (op.type) {
+        case "increaseDebt":
+          calls.push(this.#prepareIncreaseDebt(creditFacade, op.amount));
+          break;
+
+        case "decreaseDebt":
+          calls.push(this.#prepareChangeDebt(creditFacade, op.amount, true));
+          break;
+
+        case "addCollateral":
+          calls.push(
+            ...this.#prepareAddCollateral(
+              creditFacade,
+              [{ token: op.token, balance: op.amount }],
+              {},
+            ),
+          );
+          break;
+
+        case "withdrawCollateral":
+          calls.push(
+            this.#prepareWithdrawToken(
+              creditFacade,
+              op.token,
+              op.amount,
+              op.to,
+            ),
+          );
+          break;
+
+        case "swap":
+        case "wrapRwaCollateral":
+        case "unwrapRwaCollateral":
+          calls.push(...op.calls);
+          break;
+
+        case "changeQuota": {
+          const quotaAssets = [...op.quotaIncrease, ...op.quotaDecrease];
+          if (quotaAssets.length === 0) {
+            break;
+          }
+          calls.push(
+            ...this.#prepareUpdateQuotas(creditFacade, {
+              averageQuota: quotaAssets,
+              minQuota: quotaAssets,
+            }),
+          );
+          break;
+        }
+
+        default: {
+          const _exhaustive: never = op;
+          throw new Error(
+            `assembleCaOperations: unsupported operation ${JSON.stringify(_exhaustive)}`,
+          );
+        }
+      }
+    }
+
+    return calls;
+  }
+
+  /**
+   * {@inheritDoc ICreditAccountsService.executeCaUpdate}
+   */
+  public async executeCaUpdate(
+    creditAccount: RouterCASlice,
+    calls: MultiCall[],
+    options?: { ignoreReservePrices?: boolean; ethAmount?: bigint },
+  ): Promise<{ tx: RawTx; calls: MultiCall[] }> {
+    const cm = this.sdk.marketRegister.findCreditManager(
+      creditAccount.creditManager,
+    );
+    const callsWithPrices = await this.#prependPriceUpdates(
+      creditAccount.creditManager,
+      calls,
+      creditAccount,
+      { ignoreReservePrices: options?.ignoreReservePrices },
+    );
+    const tx = await this.#multicallTx(
+      cm,
+      creditAccount.creditAccount,
+      callsWithPrices,
+    );
+
+    if (options?.ethAmount && options.ethAmount > 0n) {
+      tx.value = options.ethAmount.toString(10);
+    }
+
+    return { tx, calls: callsWithPrices };
+  }
+
   #prepareDisableQuotas(ca: RouterCASlice): Array<MultiCall> {
     const calls: Array<MultiCall> = [];
     for (const { token, quota } of ca.tokens) {
@@ -2099,11 +2228,11 @@ export class CreditAccountsServiceV310
     creditFacade: Address,
     { averageQuota, minQuota }: PrepareUpdateQuotasProps,
   ): Array<MultiCall> {
-    const minRecord = assetsMap(minQuota);
+    const minRecord = new AssetsMap(minQuota);
 
     const calls: Array<MultiCall> = averageQuota.map(q => {
-      const minAsset = minRecord.get(q.token);
-      const min = minAsset && minAsset?.balance > 0 ? minAsset.balance : 0n;
+      const minBalance = minRecord.get(q.token);
+      const min = minBalance && minBalance > 0n ? minBalance : 0n;
 
       return {
         target: creditFacade,
@@ -2256,7 +2385,7 @@ export class CreditAccountsServiceV310
     to: Address,
     calls: MultiCall[],
     referralCode?: bigint,
-    rwaOptions?: RWAOperationParams,
+    rwaOptions?: RWAOperationArgs,
   ): Promise<RawTx> {
     const marketSuite = this.sdk.marketRegister.findByPool(suite.pool);
     const factory = marketSuite.rwaFactory;
@@ -2284,7 +2413,7 @@ export class CreditAccountsServiceV310
     suite: CreditSuite,
     creditAccount: Address,
     calls: MultiCall[],
-    rwaOptions?: RWAOperationParams,
+    rwaOptions?: RWAOperationArgs,
   ): Promise<RawTx> {
     const marketSuite = this.sdk.marketRegister.findByCreditManager(
       suite.creditManager.address,
@@ -2312,7 +2441,7 @@ export class CreditAccountsServiceV310
     creditAccount: Address,
     calls: MultiCall[],
     operation: CloseOptions,
-    rwaOptions?: RWAOperationParams,
+    rwaOptions?: RWAOperationArgs,
   ): Promise<RawTx> {
     const marketSuite = this.sdk.marketRegister.findByCreditManager(
       suite.creditManager.address,
@@ -2333,5 +2462,17 @@ export class CreditAccountsServiceV310
     }
 
     return suite.creditFacade.multicall(creditAccount, calls);
+  }
+
+  /**
+   * Withdrawal compressor of the current chain.
+   * @throws If no withdrawal compressor is supported on the current chain.
+   **/
+  get #withdrawalCompressor(): IWithdrawalCompressorContract {
+    const compressor = this.sdk.withdrawalCompressor;
+    if (!compressor) {
+      throw new Error(`no withdrawal compressor on ${this.sdk.networkType}`);
+    }
+    return compressor;
   }
 }

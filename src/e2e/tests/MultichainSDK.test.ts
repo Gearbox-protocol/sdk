@@ -23,6 +23,7 @@ beforeAll(async () => {
     },
   });
   await sdk.attach({
+    loadZappers: true,
     perChain: {
       Mainnet: { ignoreUpdateablePrices: true },
       Plasma: { ignoreUpdateablePrices: true },

@@ -108,7 +108,11 @@ function makeFacadeAndAdapter() {
   return { facade, adapter };
 }
 
-function facadeCall(functionName: string, rawArgs: Record<string, unknown>) {
+function facadeCall(
+  functionName: string,
+  calldata: Hex,
+  rawArgs: Record<string, unknown>,
+) {
   return {
     chainId: 1,
     target: FACADE_ADDR,
@@ -116,11 +120,16 @@ function facadeCall(functionName: string, rawArgs: Record<string, unknown>) {
     label: FACADE_NAME,
     version: 310,
     functionName,
+    calldata,
     rawArgs,
   };
 }
 
-function adapterCall(functionName: string, rawArgs: Record<string, unknown>) {
+function adapterCall(
+  functionName: string,
+  calldata: Hex,
+  rawArgs: Record<string, unknown>,
+) {
   return {
     chainId: 1,
     target: ADAPTER_ADDR,
@@ -128,6 +137,7 @@ function adapterCall(functionName: string, rawArgs: Record<string, unknown>) {
     label: "UniswapV3Adapter",
     version: 310,
     functionName,
+    calldata,
     rawArgs,
   };
 }
@@ -156,14 +166,14 @@ describe("parseFunctionDataV2", () => {
     });
 
     expect(facade.parseFunctionDataV2(calldata)).toEqual(
-      facadeCall("multicall(address,(address,bytes)[])", {
+      facadeCall("multicall(address,(address,bytes)[])", calldata, {
         creditAccount: CREDIT_ACCOUNT,
         calls: [
-          facadeCall("addCollateral(address,uint256)", {
+          facadeCall("addCollateral(address,uint256)", innerCalls[0].callData, {
             token: TOKEN_ADDR,
             amount: 1000n,
           }),
-          adapterCall("swap(address,address,uint256)", {
+          adapterCall("swap(address,address,uint256)", innerCalls[1].callData, {
             tokenIn: TOKEN_ADDR,
             tokenOut: CREDIT_ACCOUNT,
             amountIn: 500n,
@@ -191,11 +201,19 @@ describe("parseFunctionDataV2", () => {
     });
 
     expect(facade.parseFunctionDataV2(calldata)).toEqual(
-      facadeCall("openCreditAccount(address,(address,bytes)[],uint256)", {
-        onBehalfOf: ON_BEHALF_OF,
-        calls: [facadeCall("increaseDebt(uint256)", { amount: 5000n })],
-        referralCode: 0n,
-      }),
+      facadeCall(
+        "openCreditAccount(address,(address,bytes)[],uint256)",
+        calldata,
+        {
+          onBehalfOf: ON_BEHALF_OF,
+          calls: [
+            facadeCall("increaseDebt(uint256)", innerCalls[0].callData, {
+              amount: 5000n,
+            }),
+          ],
+          referralCode: 0n,
+        },
+      ),
     );
   });
 
@@ -217,10 +235,10 @@ describe("parseFunctionDataV2", () => {
     });
 
     expect(facade.parseFunctionDataV2(calldata)).toEqual(
-      facadeCall("closeCreditAccount(address,(address,bytes)[])", {
+      facadeCall("closeCreditAccount(address,(address,bytes)[])", calldata, {
         creditAccount: CREDIT_ACCOUNT,
         calls: [
-          facadeCall("addCollateral(address,uint256)", {
+          facadeCall("addCollateral(address,uint256)", innerCalls[0].callData, {
             token: TOKEN_ADDR,
             amount: 200n,
           }),
@@ -247,17 +265,25 @@ describe("parseFunctionDataV2", () => {
     });
 
     expect(facade.parseFunctionDataV2(calldata)).toEqual(
-      facadeCall("liquidateCreditAccount(address,address,(address,bytes)[])", {
-        creditAccount: CREDIT_ACCOUNT,
-        to: LIQUIDATOR,
-        calls: [
-          adapterCall("swap(address,address,uint256)", {
-            tokenIn: TOKEN_ADDR,
-            tokenOut: CREDIT_ACCOUNT,
-            amountIn: 1000n,
-          }),
-        ],
-      }),
+      facadeCall(
+        "liquidateCreditAccount(address,address,(address,bytes)[])",
+        calldata,
+        {
+          creditAccount: CREDIT_ACCOUNT,
+          to: LIQUIDATOR,
+          calls: [
+            adapterCall(
+              "swap(address,address,uint256)",
+              innerCalls[0].callData,
+              {
+                tokenIn: TOKEN_ADDR,
+                tokenOut: CREDIT_ACCOUNT,
+                amountIn: 1000n,
+              },
+            ),
+          ],
+        },
+      ),
     );
   });
 
@@ -283,10 +309,10 @@ describe("parseFunctionDataV2", () => {
     });
 
     expect(facade.parseFunctionDataV2(calldata)).toEqual(
-      facadeCall("multicall(address,(address,bytes)[])", {
+      facadeCall("multicall(address,(address,bytes)[])", calldata, {
         creditAccount: CREDIT_ACCOUNT,
         calls: [
-          facadeCall("addCollateral(address,uint256)", {
+          facadeCall("addCollateral(address,uint256)", innerCalls[0].callData, {
             token: TOKEN_ADDR,
             amount: 100n,
           }),
@@ -297,6 +323,7 @@ describe("parseFunctionDataV2", () => {
             label: UNKNOWN_ADDR,
             version: 0,
             functionName: "unknown function 0xdeadbeef",
+            calldata: unknownCalldata,
             rawArgs: {
               _data:
                 "0x0000000000000000000000000000000000000000000000000000000000000001",
@@ -337,7 +364,7 @@ describe("parseFunctionDataV2", () => {
     });
 
     expect(facade.parseFunctionDataV2(calldata)).toEqual(
-      facadeCall("addCollateral(address,uint256)", {
+      facadeCall("addCollateral(address,uint256)", calldata, {
         token: TOKEN_ADDR,
         amount: 999n,
       }),

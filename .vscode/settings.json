@@ -43,5 +43,10 @@
     "**/lib": true,
     "**/node_modules": true
   },
-  "typescript.preferences.importModuleSpecifierEnding": "js"
+  "typescript.preferences.importModuleSpecifierEnding": "js",
+  "go.alternateTools": {
+    "go": "${workspaceFolder}/.vscode/mise-tools/go",
+    "dlv": "${workspaceFolder}/.vscode/mise-tools/dlv",
+    "gopls": "${workspaceFolder}/.vscode/mise-tools/gopls"
+  }
 }

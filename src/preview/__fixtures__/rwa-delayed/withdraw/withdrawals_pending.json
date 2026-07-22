@@ -1,0 +1,33 @@
+{
+  "claimable": [],
+  "pending": [
+    {
+      "token": "0x17418038ecF73BA4026c4f428547BF099706F27B",
+      "withdrawalPhantomToken": "0xe4a38b653B2580C9D72a50F190Ddd6E2d2D2a412",
+      "expectedOutputs": [
+        {
+          "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "isDelayed": false,
+          "amount": {
+            "__type": "bigint",
+            "__value": "8842883680"
+          }
+        }
+      ],
+      "claimableAt": {
+        "__type": "bigint",
+        "__value": "1792455721"
+      },
+      "intent": {
+        "type": "WITHDRAW_COLLATERAL",
+        "to": "0x4D1698eD96Bdf0070AB6C399B340bacD50a78ccc",
+        "withdrawToken": "0x17418038ecF73BA4026c4f428547BF099706F27B",
+        "withdrawAmount": {
+          "__type": "bigint",
+          "__value": "2000000"
+        },
+        "creditManager": "0x025512D771f778fad99aB30b7A7363E7C8DE078D"
+      }
+    }
+  ]
+}

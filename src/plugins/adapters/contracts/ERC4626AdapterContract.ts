@@ -1,8 +1,14 @@
-import { ierc4626AdapterAbi } from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters, zeroAddress } from "viem";
 import {
-  type ConstructOptions,
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+  zeroAddress,
+} from "viem";
+import { ierc4626AdapterAbi } from "../../../abi/ierc4626Adapter.js";
+import {
+  type AssetsMap,
   MissingSerializedParamsError,
+  type OnchainSDK,
   type ParsedCallV2,
 } from "../../../sdk/index.js";
 import { iERC4626Abi } from "../abi/targetContractAbi.js";
@@ -27,8 +33,8 @@ export class ERC4626AdapterContract extends AbstractAdapterContract<
   #vault?: Address;
   #asset?: Address;
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const version = Number(args.baseParams.version);
@@ -71,6 +77,17 @@ export class ERC4626AdapterContract extends AbstractAdapterContract<
     return this.#asset;
   }
 
+  /**
+   * Vault share token: the serialized `vault` when set; for v<=311 the
+   * serialized vault is zeroAddress and the adapter targets the vault
+   * directly, so the target contract is the share token.
+   */
+  get share(): Address {
+    return this.#vault && this.#vault !== zeroAddress
+      ? this.#vault
+      : this.targetContract;
+  }
+
   public override stateHuman(raw?: boolean) {
     return {
       ...super.stateHuman(raw),
@@ -86,7 +103,7 @@ export class ERC4626AdapterContract extends AbstractAdapterContract<
    *
    * @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type_v3.go#L32-L38
    */
-  protected override classifyLegacyOperation(
+  public override classifyLegacyOperation(
     parsed: ParsedCallV2,
     transfers: Transfers,
   ): LegacyAdapterOperation {
@@ -95,5 +112,41 @@ export class ERC4626AdapterContract extends AbstractAdapterContract<
       return { operation: "MakerRedeem", ...swapFromTransfers(transfers) };
     }
     return super.classifyLegacyOperation(parsed, transfers);
+  }
+
+  protected override async applyBalanceChanges(
+    balances: AssetsMap,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): Promise<void> {
+    switch (decoded.functionName) {
+      case "depositDiff": {
+        const [leftoverAmount] = decoded.args;
+        this.setLeftover(balances, this.asset, leftoverAmount);
+        break;
+      }
+      case "redeemDiff": {
+        const [leftoverAmount] = decoded.args;
+        this.setLeftover(balances, this.share, leftoverAmount);
+        break;
+      }
+      // no-op:
+      // the only in-bracket producer of plain `redeem` is the
+      // withdrawal compressor, and sdk now encodes the spent
+      // shares as a negative storeExpectedBalances delta. The router never
+      // emits plain `redeem` — its workers use `redeemDiff` only. If the
+      // router (or another assembler) ever starts emitting in-bracket plain
+      // `redeem` without the negative delta, this case must decrease `share`
+      // by `shares` again (see commented-out lines). Out-of-bracket RWA
+      // wrap/unwrap `redeem` goes through applyRWAWrapUnwrap, not here.
+      case "redeem": {
+        // const [shares] = decoded.args;
+        // this.spendExact(balances, this.share, shares);
+        break;
+      }
+      // `withdraw`/`deposit`/`mint` stay unsupported: they are not emitted
+      // by the router (which uses diff variants) or the withdrawal compressor
+      default:
+        await super.applyBalanceChanges(balances, decoded);
+    }
   }
 }

@@ -1,27 +1,30 @@
 import type { Address, Hex } from "viem";
 import {
-  createPublicClient,
   custom,
+  encodeAbiParameters,
   getAddress,
   padHex,
   zeroAddress,
 } from "viem";
-import { mainnet } from "viem/chains";
 import { describe, expect, it } from "vitest";
 import {
+  type CallTrace,
+  EXECUTE_BYTES_SELECTOR,
+} from "../common-utils/utils/trace.js";
+import {
   Curve2AssetsAdapterContract,
-  type TokenTransfer,
   UniswapV3AdapterContract,
   WstETHV1AdapterContract,
 } from "../plugins/adapters/index.js";
+import type { TokenTransfer } from "../preview/parse/index.js";
 import {
   AddressMap,
-  ChainContractsRegister,
+  type ChainContractsRegister,
   CreditFacadeV310BaseContract,
+  OnchainSDK,
   type ParsedCallV2,
 } from "../sdk/index.js";
 import { classifyMulticallOperations } from "./classifyMulticallOperations.js";
-import type { ExecuteResult } from "./internal-types.js";
 
 const addr = (hex: string) => getAddress(padHex(hex as Address, { size: 20 }));
 
@@ -38,20 +41,54 @@ const TOKEN_B = addr("0x02");
 const TOKEN_C = addr("0x03");
 const UNDERLYING = addr("0x81");
 
-function toExecuteResults(
-  transferArrays: TokenTransfer[][],
-  protocol: Address = TARGET,
-): ExecuteResult[] {
-  return transferArrays.map(transfers => ({
-    transfers,
-    targetContract: protocol,
-  }));
+/**
+ * Builds a minimal adapter-level call trace shaped like a real one:
+ * adapter -> `CreditManager.execute(bytes)` -> leaf CALL to `target`.
+ *
+ * `parseProtocolCall` resolves `target` from the leaf CALL whose input matches
+ * the forwarded calldata. The calldata itself is intentionally not decodable by
+ * the protocol ABIs here: this suite covers transfer/trace alignment, while the
+ * decode path is covered by the integration snapshot and the per-adapter unit
+ * test with real data.
+ */
+function makeAdapterTrace(
+  target: Address,
+  calldata: Hex = "0xdeadbeef",
+): CallTrace {
+  const executeInput = `${EXECUTE_BYTES_SELECTOR}${encodeAbiParameters(
+    [{ type: "bytes" }],
+    [calldata],
+  ).slice(2)}` as Hex;
+  const leaf: CallTrace = {
+    from: CA,
+    to: target,
+    input: calldata,
+    output: "0x",
+    value: "0x0",
+    type: "CALL",
+  };
+  const executeNode: CallTrace = {
+    from: DEX,
+    to: DEX,
+    input: executeInput,
+    output: "0x",
+    value: "0x0",
+    type: "CALL",
+    calls: [leaf],
+  };
+  return {
+    from: FACADE,
+    to: DEX,
+    input: "0x00000000",
+    output: "0x",
+    value: "0x0",
+    type: "CALL",
+    calls: [executeNode],
+  };
 }
 
-const DUMMY_CALLDATA = "0x00000000" as Hex;
-
-function dummyProtocolCalldatas(count: number): Hex[] {
-  return Array.from({ length: count }, () => DUMMY_CALLDATA);
+function makeAdapterTraces(count: number): CallTrace[] {
+  return Array.from({ length: count }, () => makeAdapterTrace(TARGET));
 }
 
 const adapterBase = {
@@ -70,53 +107,40 @@ function makeParsed(
     contractType: "TEST",
     version: 310,
     functionName,
+    calldata: "0x",
     rawArgs,
   };
 }
 
 function setupRegister(): ChainContractsRegister {
-  const client = createPublicClient({
-    chain: mainnet,
+  // SDK stub
+  const sdk = new OnchainSDK("Mainnet", {
     transport: custom({
-      request: () => {
+      request: async () => {
         throw new Error("not implemented");
       },
     }),
   });
+  sdk.resetContracts();
 
-  const register = new ChainContractsRegister(client);
-  register.resetContracts();
+  new UniswapV3AdapterContract(sdk, {
+    baseParams: { ...adapterBase, addr: ADAPTER_UNI },
+  });
 
-  new UniswapV3AdapterContract(
-    { register },
-    {
-      baseParams: { ...adapterBase, addr: ADAPTER_UNI },
-    },
-  );
+  new Curve2AssetsAdapterContract(sdk, {
+    baseParams: { ...adapterBase, addr: ADAPTER_CURVE },
+  });
 
-  new Curve2AssetsAdapterContract(
-    { register },
-    {
-      baseParams: { ...adapterBase, addr: ADAPTER_CURVE },
-    },
-  );
+  new WstETHV1AdapterContract(sdk, {
+    baseParams: { ...adapterBase, addr: ADAPTER_WSTETH },
+  });
 
-  new WstETHV1AdapterContract(
-    { register },
-    {
-      baseParams: { ...adapterBase, addr: ADAPTER_WSTETH },
-    },
-  );
+  new CreditFacadeV310BaseContract(sdk, {
+    addr: FACADE,
+    name: "CreditFacade",
+  });
 
-  new CreditFacadeV310BaseContract(
-    { register },
-    {
-      addr: FACADE,
-      name: "CreditFacade",
-    },
-  );
-
-  return register;
+  return sdk;
 }
 
 const swapTransfers: TokenTransfer[] = [
@@ -144,12 +168,8 @@ describe("classifyCreditAccountOperation", () => {
 
       const result = classifyMulticallOperations({
         innerCalls,
-        executeResults: toExecuteResults([
-          swapTransfers,
-          curveTransfers,
-          wrapTransfers,
-        ]),
-        protocolCalldatas: dummyProtocolCalldatas(3),
+        executeTransfers: [swapTransfers, curveTransfers, wrapTransfers],
+        adapterTraces: makeAdapterTraces(3),
         register,
         creditAccount: CA,
         underlying: UNDERLYING,
@@ -158,17 +178,14 @@ describe("classifyCreditAccountOperation", () => {
       expect(result).toMatchObject([
         {
           adapter: ADAPTER_UNI,
-          protocol: TARGET,
           legacy: { operation: "Swap" },
         },
         {
           adapter: ADAPTER_CURVE,
-          protocol: TARGET,
           legacy: { operation: "CurveExchange" },
         },
         {
           adapter: ADAPTER_WSTETH,
-          protocol: TARGET,
           legacy: { operation: "WstETHWrap" },
         },
       ]);
@@ -190,8 +207,8 @@ describe("classifyCreditAccountOperation", () => {
 
       const result = classifyMulticallOperations({
         innerCalls,
-        executeResults: toExecuteResults([swapTransfers, curveTransfers]),
-        protocolCalldatas: dummyProtocolCalldatas(2),
+        executeTransfers: [swapTransfers, curveTransfers],
+        adapterTraces: makeAdapterTraces(2),
         register,
         creditAccount: CA,
         underlying: UNDERLYING,
@@ -205,13 +222,11 @@ describe("classifyCreditAccountOperation", () => {
         },
         {
           adapter: ADAPTER_UNI,
-          protocol: TARGET,
           legacy: { operation: "Swap" },
         },
         { operation: "UpdateQuota", token: TOKEN_A, change: 500n },
         {
           adapter: ADAPTER_CURVE,
-          protocol: TARGET,
           legacy: { operation: "CurveExchange" },
         },
       ]);
@@ -223,8 +238,8 @@ describe("classifyCreditAccountOperation", () => {
       const register = setupRegister();
       const [result] = classifyMulticallOperations({
         innerCalls: [makeParsed(FACADE, "increaseDebt", { amount: 5000n })],
-        executeResults: [],
-        protocolCalldatas: [],
+        executeTransfers: [],
+        adapterTraces: [],
         register,
         creditAccount: CA,
         underlying: UNDERLYING,
@@ -241,8 +256,8 @@ describe("classifyCreditAccountOperation", () => {
       const register = setupRegister();
       const [result] = classifyMulticallOperations({
         innerCalls: [makeParsed(FACADE, "decreaseDebt", { amount: 3000n })],
-        executeResults: [],
-        protocolCalldatas: [],
+        executeTransfers: [],
+        adapterTraces: [],
         register,
         creditAccount: CA,
         underlying: UNDERLYING,
@@ -264,8 +279,8 @@ describe("classifyCreditAccountOperation", () => {
             amount: 100n,
           }),
         ],
-        executeResults: [],
-        protocolCalldatas: [],
+        executeTransfers: [],
+        adapterTraces: [],
         register,
         creditAccount: CA,
         underlying: UNDERLYING,
@@ -289,8 +304,8 @@ describe("classifyCreditAccountOperation", () => {
             to,
           }),
         ],
-        executeResults: [],
-        protocolCalldatas: [],
+        executeTransfers: [],
+        adapterTraces: [],
         register,
         creditAccount: CA,
         underlying: UNDERLYING,
@@ -313,8 +328,8 @@ describe("classifyCreditAccountOperation", () => {
             quotaChange: -400n,
           }),
         ],
-        executeResults: [],
-        protocolCalldatas: [],
+        executeTransfers: [],
+        adapterTraces: [],
         register,
         creditAccount: CA,
         underlying: UNDERLYING,
@@ -332,8 +347,8 @@ describe("classifyCreditAccountOperation", () => {
     const register = setupRegister();
     const result = classifyMulticallOperations({
       innerCalls: [makeParsed(FACADE, "setBotPermissions")],
-      executeResults: [],
-      protocolCalldatas: [],
+      executeTransfers: [],
+      adapterTraces: [],
       register,
       creditAccount: CA,
       underlying: UNDERLYING,
@@ -348,8 +363,8 @@ describe("classifyCreditAccountOperation", () => {
       expect(() =>
         classifyMulticallOperations({
           innerCalls: [makeParsed(FACADE, "increaseDebt", { amount: 100n })],
-          executeResults: toExecuteResults([swapTransfers]),
-          protocolCalldatas: dummyProtocolCalldatas(1),
+          executeTransfers: [swapTransfers],
+          adapterTraces: makeAdapterTraces(1),
           register,
           creditAccount: CA,
           underlying: UNDERLYING,
@@ -366,8 +381,8 @@ describe("classifyCreditAccountOperation", () => {
             makeParsed(ADAPTER_UNI, "exactInputSingle"),
             makeParsed(ADAPTER_CURVE, "exchange"),
           ],
-          executeResults: toExecuteResults([swapTransfers]),
-          protocolCalldatas: dummyProtocolCalldatas(1),
+          executeTransfers: [swapTransfers],
+          adapterTraces: makeAdapterTraces(1),
           register,
           creditAccount: CA,
           underlying: UNDERLYING,
@@ -381,15 +396,15 @@ describe("classifyCreditAccountOperation", () => {
       const register = setupRegister();
       const [result] = classifyMulticallOperations({
         innerCalls: [makeParsed(UNKNOWN, "doSomething")],
-        executeResults: toExecuteResults([swapTransfers]),
-        protocolCalldatas: dummyProtocolCalldatas(1),
+        executeTransfers: [swapTransfers],
+        adapterTraces: makeAdapterTraces(1),
         register,
         creditAccount: CA,
         underlying: UNDERLYING,
       });
       expect(result).toMatchObject({
         adapter: UNKNOWN,
-        protocol: TARGET,
+        protocol: undefined,
         legacy: {
           operation: "Swap",
           from: TOKEN_A,
@@ -405,8 +420,8 @@ describe("classifyCreditAccountOperation", () => {
       expect(() =>
         classifyMulticallOperations({
           innerCalls: [makeParsed(UNKNOWN, "doSomething")],
-          executeResults: [],
-          protocolCalldatas: [],
+          executeTransfers: [],
+          adapterTraces: [],
           register,
           creditAccount: CA,
           underlying: UNDERLYING,
@@ -420,8 +435,8 @@ describe("classifyCreditAccountOperation", () => {
       expect(() =>
         classifyMulticallOperations({
           innerCalls: [makeParsed(UNKNOWN, "doSomething")],
-          executeResults: toExecuteResults([swapTransfers]),
-          protocolCalldatas: dummyProtocolCalldatas(1),
+          executeTransfers: [swapTransfers],
+          adapterTraces: makeAdapterTraces(1),
           register,
           creditAccount: CA,
           underlying: UNDERLYING,
@@ -436,15 +451,14 @@ describe("classifyCreditAccountOperation", () => {
       const register = setupRegister();
       const [result] = classifyMulticallOperations({
         innerCalls: [makeParsed(ADAPTER_UNI, "exactInputSingle")],
-        executeResults: toExecuteResults([[]]),
-        protocolCalldatas: dummyProtocolCalldatas(1),
+        executeTransfers: [[]],
+        adapterTraces: makeAdapterTraces(1),
         register,
         creditAccount: CA,
         underlying: UNDERLYING,
       });
       expect(result).toMatchObject({
         adapter: ADAPTER_UNI,
-        protocol: TARGET,
         legacy: {
           operation: "MakerDeposit",
           token: zeroAddress,
@@ -470,8 +484,8 @@ describe("classifyCreditAccountOperation", () => {
             to,
           }),
         ],
-        executeResults: [],
-        protocolCalldatas: [],
+        executeTransfers: [],
+        adapterTraces: [],
         register,
         creditAccount: CA,
         underlying: UNDERLYING,
@@ -499,8 +513,8 @@ describe("classifyCreditAccountOperation", () => {
             to,
           }),
         ],
-        executeResults: [],
-        protocolCalldatas: [],
+        executeTransfers: [],
+        adapterTraces: [],
         register,
         creditAccount: CA,
         underlying: UNDERLYING,
@@ -526,8 +540,8 @@ describe("classifyCreditAccountOperation", () => {
             to,
           }),
         ],
-        executeResults: [],
-        protocolCalldatas: [],
+        executeTransfers: [],
+        adapterTraces: [],
         register,
         creditAccount: CA,
         underlying: UNDERLYING,
@@ -559,8 +573,8 @@ describe("classifyCreditAccountOperation", () => {
             to,
           }),
         ],
-        executeResults: [],
-        protocolCalldatas: [],
+        executeTransfers: [],
+        adapterTraces: [],
         register,
         creditAccount: CA,
         underlying: UNDERLYING,
@@ -587,8 +601,8 @@ describe("classifyCreditAccountOperation", () => {
             to,
           }),
         ],
-        executeResults: [],
-        protocolCalldatas: [],
+        executeTransfers: [],
+        adapterTraces: [],
         register,
         creditAccount: CA,
         underlying: UNDERLYING,
@@ -622,8 +636,8 @@ describe("classifyCreditAccountOperation", () => {
             to,
           }),
         ],
-        executeResults: [],
-        protocolCalldatas: [],
+        executeTransfers: [],
+        adapterTraces: [],
         register,
         creditAccount: CA,
         underlying: UNDERLYING,
@@ -651,8 +665,8 @@ describe("classifyCreditAccountOperation", () => {
             to,
           }),
         ],
-        executeResults: [],
-        protocolCalldatas: [],
+        executeTransfers: [],
+        adapterTraces: [],
         register,
         creditAccount: CA,
         underlying: UNDERLYING,
@@ -679,8 +693,8 @@ describe("classifyCreditAccountOperation", () => {
               to,
             }),
           ],
-          executeResults: [],
-          protocolCalldatas: [],
+          executeTransfers: [],
+          adapterTraces: [],
           register,
           creditAccount: CA,
           underlying: UNDERLYING,

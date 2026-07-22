@@ -1,14 +1,19 @@
 import {
   type Abi,
   type Address,
+  type DecodeFunctionDataReturnType,
   decodeAbiParameters,
   decodeFunctionData,
   type Hex,
-  type PartialBy,
   zeroAddress,
 } from "viem";
+import {
+  type CallTrace,
+  resolveProtocolCall,
+} from "../../../common-utils/utils/trace.js";
 import type {
-  ConstructOptions,
+  AssetsMap,
+  OnchainSDK,
   ParsedCallV2,
   RelaxedBaseParams,
 } from "../../../sdk/index.js";
@@ -22,12 +27,13 @@ import type {
   LegacyAdapterOperation,
   Transfers,
 } from "../legacyAdapterOperations.js";
-import { swapFromTransfers, toNetTransfers } from "../transferHelpers.js";
+import { swapFromTransfers } from "../transferHelpers.js";
 import type {
   AdapterContractStateHuman,
   AdapterContractType,
-  AdapterOperation,
-  TokenTransfer,
+  AdapterProtocolOperation,
+  DelayedWithdrawalClaim,
+  DelayedWithdrawalRequest,
 } from "../types.js";
 
 export interface ConcreteAdapterContractOptions {
@@ -51,15 +57,17 @@ export class AbstractAdapterContract<
 > extends BaseContract<abi> {
   readonly #targetContract?: Address;
   readonly #creditManager?: Address;
+  readonly #sdk: OnchainSDK;
 
   public readonly protocolAbi: protocolAbi;
 
   constructor(
-    options: ConstructOptions,
+    sdk: OnchainSDK,
     args: AbstractAdapterContractOptions<abi, protocolAbi>,
   ) {
     const { baseParams, protocolAbi, ...rest } = args;
-    super(options, { ...rest, ...baseParams });
+    super(sdk, { ...rest, ...baseParams });
+    this.#sdk = sdk;
     this.protocolAbi = protocolAbi;
 
     if (baseParams.serializedParams) {
@@ -70,6 +78,13 @@ export class AbstractAdapterContract<
       this.#creditManager = cm;
       this.#targetContract = tc;
     }
+  }
+
+  /**
+   * The SDK instance this adapter belongs to.
+   */
+  protected get sdk(): OnchainSDK {
+    return this.#sdk;
   }
 
   public get targetContract(): Address {
@@ -103,53 +118,37 @@ export class AbstractAdapterContract<
   }
 
   /**
-   * Builds an {@link AdapterOperation} from a parsed call and ordered transfer entries.
+   * Decodes the protocol-level call (target contract + function name + args)
+   * performed by this adapter, recovered from its adapter-level call trace.
    *
-   * Returns `PartialBy<AdapterOperation, "targetContract">` because the adapter
-   * may not have `targetContract` (adapters created without SDK do not have serializedParams)
+   * Both the `targetContract` and the protocol calldata are taken from the
+   * execution trace.
    *
-   * @param protocolCalldata Raw calldata of the actual CALL to targetContract, extracted from trace
-   * @param strict When true, throws if protocol ABI is missing or decode fails
+   * Returns `undefined` (in non-strict mode) when no external protocol call can
+   * be recovered, in strict mode throws instead.
+   *
+   * @param trace Adapter-level call trace (a direct child of the facade trace)
+   * @param strict When true, throws instead of returning `undefined`
    */
-  public parseAdapterOperation(
-    parsed: ParsedCallV2,
-    transfers: TokenTransfer[],
-    creditAccount: Address,
-    protocolCalldata: Hex,
+  public parseProtocolCall(
+    trace: CallTrace,
     strict?: boolean,
-  ): PartialBy<AdapterOperation, "protocol"> {
-    const netTransfers = toNetTransfers(transfers, creditAccount);
-    const protocol = this.parseProtocolCall(protocolCalldata, strict);
-    return {
-      operation: "Execute",
-      adapter: this.address,
-      protocol: this.#targetContract,
-      adapterType: this.adapterType,
-      version: this.version,
-      label: parsed.label,
-      adapterFunctionName: parsed.functionName,
-      adapterArgs: parsed.rawArgs,
-      ...protocol,
-      transfers,
-      legacy: this.classifyLegacyOperation(parsed, netTransfers),
-    };
-  }
-
-  /**
-   * Decodes protocol-level function name and args from the raw calldata
-   * sent to targetContract.
-   */
-  protected parseProtocolCall(calldata: Hex, strict?: boolean) {
+  ): AdapterProtocolOperation | undefined {
+    const resolved = resolveProtocolCall(trace);
+    if (!resolved) {
+      if (strict) {
+        throw new Error("no external protocol call found in adapter trace");
+      }
+      return undefined;
+    }
+    const { contract, calldata } = resolved;
     const selector = calldata.slice(0, 10) as Hex;
 
     if (this.protocolAbi.length === 0) {
       if (strict) {
         throw new Error(`Protocol ABI is missing for selector ${selector}`);
       }
-      return {
-        protocolFunctionName: `unknown function ${selector}`,
-        protocolArgs: {},
-      };
+      return undefined;
     }
 
     try {
@@ -158,12 +157,12 @@ export class AbstractAdapterContract<
         data: calldata,
       });
       const functionName = getFunctionSignature(this.protocolAbi, calldata);
-      const protocolArgs = functionArgsToRecord(
+      const functionArgs = functionArgsToRecord(
         this.protocolAbi,
         decoded.functionName,
         decoded.args,
       );
-      return { protocolFunctionName: functionName, protocolArgs };
+      return { contract, functionName, functionArgs };
     } catch (e) {
       if (strict) {
         throw new Error(
@@ -171,11 +170,114 @@ export class AbstractAdapterContract<
           { cause: e },
         );
       }
-      return {
-        protocolFunctionName: `unknown function ${selector}`,
-        protocolArgs: {},
-      };
+      return undefined;
     }
+  }
+
+  /**
+   * Applies the balance changes implied by an adapter call to a map of
+   * credit-account token balances. Handles both router-generated diff-style
+   * calls and exact-input calls (e.g. those emitted by the withdrawal
+   * compressor).
+   *
+   * @param balances - Token balances before the call. Mutated in place.
+   * @param calldata - Raw ABI-encoded adapter calldata.
+   * @throws When the calldata cannot be decoded or the adapter (or the
+   * specific function) has no balance-changes support.
+   */
+  public async previewBalanceChanges(
+    balances: AssetsMap,
+    calldata: Hex,
+  ): Promise<void> {
+    let decoded: DecodeFunctionDataReturnType<abi>;
+    try {
+      decoded = decodeFunctionData({ abi: this.abi, data: calldata });
+    } catch (e) {
+      throw new Error(
+        `previewBalanceChanges: cannot decode selector ${calldata.slice(0, 10)} on ${this.contractType} adapter at ${this.address}`,
+        { cause: e },
+      );
+    }
+    await this.applyBalanceChanges(balances, decoded);
+  }
+
+  /**
+   * Applies the balance changes of a decoded adapter call to the running
+   * balances, mutating them in place. Overrides should express changes via
+   * {@link setLeftover} (diff-style calls) and {@link spendExact}
+   * (exact-input calls), and should resolve all tokens/amounts before the
+   * first write so a throw never leaves balances partially mutated.
+   *
+   * @param _balances - Token balances before the call. Mutated in place.
+   * @param decoded - The viem-decoded adapter call
+   * @throws When the adapter (or the specific function) has no balance-changes support
+   */
+  protected async applyBalanceChanges(
+    _balances: AssetsMap,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): Promise<void> {
+    throw new Error(
+      `previewBalanceChanges is not supported for ${decoded.functionName} on ${this.contractType} adapter at ${this.address}`,
+    );
+  }
+
+  /**
+   * When the given adapter calldata is a delayed-withdrawal request (a call
+   * created by the withdrawal compressor that mints a withdrawal phantom
+   * token), returns its descriptor; `undefined` for any other call.
+   *
+   * The base implementation returns `undefined`; delayed-withdrawal adapters
+   * (Securitize, Midas, Mellow) override it next to their
+   * {@link applyBalanceChanges} cases for the same methods.
+   */
+  public parseDelayedWithdrawalRequest(
+    _calldata: Hex,
+  ): DelayedWithdrawalRequest | undefined {
+    return undefined;
+  }
+
+  /**
+   * When the given adapter calldata is a delayed-withdrawal claim (a call
+   * created by the withdrawal compressor that burns a withdrawal phantom
+   * token and receives the claim token from a redeemer), returns its
+   * descriptor; `undefined` for any other call.
+   *
+   * The base implementation returns `undefined`; adapters whose gateways log
+   * redemption intents (Securitize, Midas) override it.
+   */
+  public parseDelayedWithdrawalClaim(
+    _calldata: Hex,
+  ): DelayedWithdrawalClaim | undefined {
+    return undefined;
+  }
+
+  /**
+   * Diff-call semantics of a diff-style adapter call: the call spends the
+   * consumed token down to the exact `leftoverAmount` encoded in its
+   * calldata, so the post-call balance of `tokenIn` is `leftoverAmount`
+   * regardless of the actual amount spent.
+   */
+  protected setLeftover(
+    balances: AssetsMap,
+    tokenIn: Address,
+    leftoverAmount: bigint,
+  ): void {
+    balances.upsert(tokenIn, leftoverAmount);
+  }
+
+  /**
+   * Exact-input call semantics: spends exactly `amount` of `tokenIn` from
+   * the running balance, clamping at zero. Used for non-diff adapter calls
+   * (e.g. those generated by the withdrawal compressor) whose spent amount
+   * is present in calldata.
+   */
+  protected spendExact(
+    balances: AssetsMap,
+    tokenIn: Address,
+    amount: bigint,
+  ): void {
+    const balance = balances.getOrZero(tokenIn);
+    balances.upsert(tokenIn, balance > amount ? balance - amount : 0n);
   }
 
   /**
@@ -189,8 +291,10 @@ export class AbstractAdapterContract<
    * Override in protocol-specific subclasses for richer classification.
    *
    * @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/account_operation.go#L238-L264
+   *
+   * @deprecated Eventually will be gone, exists to produce output that legacy UI can display
    */
-  protected classifyLegacyOperation(
+  public classifyLegacyOperation(
     _parsed: ParsedCallV2,
     transfers: Transfers,
   ): LegacyAdapterOperation {

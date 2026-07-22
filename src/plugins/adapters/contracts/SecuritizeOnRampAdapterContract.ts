@@ -1,19 +1,22 @@
-import { type Address, decodeAbiParameters } from "viem";
 import {
-  type ConstructOptions,
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import {
+  type AssetsMap,
   MissingSerializedParamsError,
+  type OnchainSDK,
 } from "../../../sdk/index.js";
+import { iSecuritizeOnRampAdapterV310Abi } from "../abi/adapters/iSecuritizeOnRampAdapterV310.js";
 import { iBaseOnRampAbi } from "../abi/securitize/iBaseOnRamp.js";
 import { iSecuritizeOnRampAbi } from "../abi/securitize/iSecuritizeOnRamp.js";
-import { iSecuritizeOnRampAdapterAbi } from "../abi/securitize/iSecuritizeOnRampAdapter.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
 
-// TODO: not yet mered into integrations-v3/main branch
-const abi = iSecuritizeOnRampAdapterAbi;
+const abi = iSecuritizeOnRampAdapterV310Abi;
 type abi = typeof abi;
 
-// TODO: not yet mered into integrations-v3/main branch
 const protocolAbi = [...iSecuritizeOnRampAbi, ...iBaseOnRampAbi] as const;
 type protocolAbi = typeof protocolAbi;
 
@@ -24,8 +27,8 @@ export class SecuritizeOnRampAdapterContract extends AbstractAdapterContract<
   #dsToken?: Address;
   #liquidityToken?: Address;
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(
@@ -62,5 +65,21 @@ export class SecuritizeOnRampAdapterContract extends AbstractAdapterContract<
         ? this.labelAddress(this.#liquidityToken)
         : undefined,
     };
+  }
+
+  protected override async applyBalanceChanges(
+    balances: AssetsMap,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): Promise<void> {
+    switch (decoded.functionName) {
+      // swaps the liquidity token into dsToken
+      case "swapDiff": {
+        const [leftoverAmount] = decoded.args;
+        this.setLeftover(balances, this.liquidityToken, leftoverAmount);
+        break;
+      }
+      default:
+        await super.applyBalanceChanges(balances, decoded);
+    }
   }
 }

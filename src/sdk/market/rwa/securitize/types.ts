@@ -123,15 +123,32 @@ export interface SecuritizeRWAFactoryStateHuman extends BaseContractStateHuman {
 }
 
 /**
- * Factory-specific parameters for {@link SecuritizeRWAFactory.multicall}
+ * Factory-specific args for {@link SecuritizeRWAFactory.multicall}
  * and {@link SecuritizeRWAFactory.openCreditAccount}.
  **/
-export interface SecuritizeOperationParams {
+export interface SecuritizeOperationArgs {
   type: typeof RWA_FACTORY_SECURITIZE;
   /** DSToken addresses to register for this operation. */
   tokensToRegister: Address[];
   /** Cached EIP-712 registration signatures to store on-chain. */
   signaturesToCache: SecuritizeRegisterMessage[];
+}
+
+/**
+ * Subset of {@link SecuritizeOpenAccountRequirements} still unfulfilled given
+ * the params already carried by the transaction calldata. Returned by
+ * `SecuritizeRWAFactory.getMissingRequirements`; `undefined` there means the
+ * requirements are satisfied.
+ **/
+export interface SecuritizeMissingOpenAccountRequirements {
+  type: typeof RWA_FACTORY_SECURITIZE;
+  /**
+   * EIP-712 messages the investor still has to sign (not covered by
+   * calldata-provided signatures). Once signed, they become the
+   * `signaturesToCache` arg of the factory's `openCreditAccount`/`multicall`
+   * calls (see {@link SecuritizeOperationArgs}).
+   */
+  requiredSignatures: SecuritizeRegisterVaultMessage[];
 }
 
 export interface SecuritizeOpenAccountRequirements {

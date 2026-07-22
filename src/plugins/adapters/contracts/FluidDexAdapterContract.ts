@@ -1,9 +1,14 @@
-import { iFluidDexAdapterAbi } from "@gearbox-protocol/integrations-v3";
-import { type Address, decodeAbiParameters } from "viem";
 import {
-  type ConstructOptions,
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import {
+  type AssetsMap,
   MissingSerializedParamsError,
+  type OnchainSDK,
 } from "../../../sdk/index.js";
+import { iFluidDexAdapterAbi } from "../abi/adapters/index.js";
 import { iFluidDexAbi } from "../abi/targetContractAbi.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
 import { AbstractAdapterContract } from "./AbstractAdapter.js";
@@ -21,8 +26,8 @@ export class FluidDexAdapterContract extends AbstractAdapterContract<
   #token0?: Address;
   #token1?: Address;
 
-  constructor(options: ConstructOptions, args: ConcreteAdapterContractOptions) {
-    super(options, { ...args, abi, protocolAbi });
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
       const decoded = decodeAbiParameters(
@@ -56,5 +61,24 @@ export class FluidDexAdapterContract extends AbstractAdapterContract<
       token0: this.#token0 ? this.labelAddress(this.#token0) : undefined,
       token1: this.#token1 ? this.labelAddress(this.#token1) : undefined,
     };
+  }
+
+  protected override async applyBalanceChanges(
+    balances: AssetsMap,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): Promise<void> {
+    switch (decoded.functionName) {
+      case "swapInDiff": {
+        const [swap0to1, leftoverAmount] = decoded.args;
+        this.setLeftover(
+          balances,
+          swap0to1 ? this.token0 : this.token1,
+          leftoverAmount,
+        );
+        break;
+      }
+      default:
+        await super.applyBalanceChanges(balances, decoded);
+    }
   }
 }

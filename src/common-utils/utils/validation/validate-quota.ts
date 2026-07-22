@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import type { Asset } from "../../../sdk/router/types.js";
+import type { Asset } from "../../../sdk/index.js";
 import type { CreditManagerSlice } from "../strategies/strategy-info/types.js";
 export interface ValidateQuotaProps {
   desiredQuota: Record<Address, Asset>;

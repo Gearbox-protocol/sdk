@@ -236,6 +236,15 @@ export interface MarketStateHuman {
   emergencyLiquidators: string[];
 }
 
+export interface ZapperStateHuman {
+  address: string;
+  contractType: string;
+  type: "migration" | "rwa" | "base";
+  pool: string;
+  tokenIn: string;
+  tokenOut: string;
+}
+
 export interface GearboxStateHuman {
   network: string;
   block: number;
@@ -245,6 +254,7 @@ export interface GearboxStateHuman {
   plugins: Record<string, unknown>;
   tokens: TokenMetaData[];
   rwa: RWAStateHuman;
+  zappers?: ZapperStateHuman[];
 }
 
 /**

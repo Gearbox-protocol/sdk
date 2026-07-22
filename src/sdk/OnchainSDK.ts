@@ -10,7 +10,13 @@ import {
 import type { HttpRpcClientOptions } from "viem/utils";
 import {
   CreditAccountsServiceV310,
+  createRedemptionLogger,
+  createWithdrawalCompressor,
   type ICreditAccountsService,
+  type ILiquidationsService,
+  type IRedemptionLoggerContract,
+  type IWithdrawalCompressorContract,
+  LiquidationsService,
 } from "./accounts/index.js";
 import type { BaseState, IBaseContract } from "./base/index.js";
 import { ChainContractsRegister } from "./base/index.js";
@@ -165,6 +171,10 @@ export interface AttachOptions {
    * Options for Pyth price-feed updates.
    **/
   pyth?: PythOptions;
+  /**
+   * When `true`, automatically call {@link MarketRegister.loadZappers} during attach.
+   **/
+  loadZappers?: boolean;
 }
 
 /**
@@ -261,6 +271,8 @@ export class OnchainSDK<
   #rwa: RWARegistry;
   #marketRegister?: MarketRegister;
   #priceFeeds?: PriceFeedRegister;
+  readonly #withdrawalCompressor?: IWithdrawalCompressorContract;
+  #redemptionLogger?: IRedemptionLoggerContract;
 
   /**
    * Gas limit applied to read-only `eth_call` requests.
@@ -280,6 +292,10 @@ export class OnchainSDK<
    * Namespace for pool operations.
    */
   public readonly pools: IPoolsService;
+  /**
+   * Namespace for liquidatable credit accounts discovery.
+   */
+  public readonly liquidations: ILiquidationsService;
 
   /**
    * @param network - Gearbox network type (e.g. `"Mainnet"`, `"Monad"`).
@@ -315,6 +331,8 @@ export class OnchainSDK<
     }
     this.accounts = new CreditAccountsServiceV310(this);
     this.pools = new PoolService(this);
+    this.liquidations = new LiquidationsService(this);
+    this.#withdrawalCompressor = createWithdrawalCompressor(this);
   }
 
   /**
@@ -335,6 +353,7 @@ export class OnchainSDK<
       marketConfigurators: mcs,
       redstone,
       pyth,
+      loadZappers,
     } = options ?? {};
 
     const marketConfigurators =
@@ -429,6 +448,10 @@ export class OnchainSDK<
         blockNumber: this.currentBlock,
         gas: this.gasLimit,
       });
+
+      if (loadZappers) {
+        await this.#marketRegister.loadZappers();
+      }
     }
 
     const pluginsList = TypedObjectUtils.entries(this.plugins);
@@ -491,10 +514,14 @@ export class OnchainSDK<
     );
 
     this.#marketRegister = new MarketRegister(this, ignoreMarkets);
-    this.#marketRegister.hydrate(state.markets);
+    this.#marketRegister.hydrate(state);
 
     this.#rwa = new RWARegistry(this);
     this.#rwa.setState(state.rwa);
+
+    if (state.withdrawals) {
+      this.#withdrawalCompressor?.hydrate(state.withdrawals);
+    }
 
     for (const [name, plugin] of TypedObjectUtils.entries(this.plugins)) {
       const pluginState = state.plugins[name];
@@ -562,8 +589,9 @@ export class OnchainSDK<
       currentBlock: this.currentBlock,
       timestamp: this.timestamp,
       addressProvider: this.addressProvider.state,
-      markets: this.marketRegister.state,
+      ...this.marketRegister.state,
       rwa: this.#rwa.state,
+      withdrawals: this.#withdrawalCompressor?.state,
       plugins: Object.fromEntries(
         TypedObjectUtils.entries(this.plugins).map(([name, plugin]) => [
           name,
@@ -803,5 +831,24 @@ export class OnchainSDK<
     }
     const [routerAddr, routerV] = routerEntry;
     return createRouter(this, routerAddr, routerV);
+  }
+
+  /**
+   * Withdrawal compressor contract for the current chain, or `undefined`
+   * when no withdrawal compressor is supported on it.
+   **/
+  public get withdrawalCompressor(): IWithdrawalCompressorContract | undefined {
+    return this.#withdrawalCompressor;
+  }
+
+  /**
+   * `RedemptionLogger` contract for the current chain, or `undefined` when
+   * it is not deployed on it. Created lazily on first access: the contract
+   * is resolved from the address provider, which is only available after
+   * the SDK is attached or hydrated.
+   **/
+  public get redemptionLogger(): IRedemptionLoggerContract | undefined {
+    this.#redemptionLogger ??= createRedemptionLogger(this);
+    return this.#redemptionLogger;
   }
 }
