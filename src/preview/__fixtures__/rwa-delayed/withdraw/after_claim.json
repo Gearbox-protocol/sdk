@@ -1,9 +1,9 @@
 {
-  "creditAccount": "0x82900e2Ab20B6F60C159F1A141A6f2d3D810C4fA",
+  "creditAccount": "0xdE4B908BE5ca3CFc4885277C6967F01217621259",
   "creditManager": "0x025512D771f778fad99aB30b7A7363E7C8DE078D",
-  "creditFacade": "0xec6b8D8e18D48cb4df7028B8E1Aa1662e966cD86",
+  "creditFacade": "0xA36f204ae8a3Ea2E02425960C627771FB180B315",
   "underlying": "0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D",
-  "owner": "0x0c30A827605EDCF10596676A3D9346E887a1A267",
+  "owner": "0xe57606Db26B06d40138483F649Fc8e3fD8fE788d",
   "expirationDate": 0,
   "enabledTokensMask": {
     "__type": "bigint",
@@ -11,35 +11,35 @@
   },
   "debt": {
     "__type": "bigint",
-    "__value": "79373313525"
+    "__value": "79596326664"
   },
   "accruedInterest": {
     "__type": "bigint",
-    "__value": "2422"
+    "__value": "0"
   },
   "accruedFees": {
     "__type": "bigint",
-    "__value": "1211"
+    "__value": "0"
   },
   "totalDebtUSD": {
     "__type": "bigint",
-    "__value": "7935447710743"
+    "__value": "7958699399469"
   },
   "totalValueUSD": {
     "__type": "bigint",
-    "__value": "9924008641745"
+    "__value": "9949281078746"
   },
   "twvUSD": {
     "__type": "bigint",
-    "__value": "8931607490418"
+    "__value": "8954352970879"
   },
   "totalValue": {
     "__type": "bigint",
-    "__value": "99263647636"
+    "__value": "99504477687"
   },
   "healthFactor": {
     "__type": "bigint",
-    "__value": "1125532901984395919"
+    "__value": "1125102547719848478"
   },
   "success": true,
   "tokens": [
@@ -67,14 +67,14 @@
       },
       "balance": {
         "__type": "bigint",
-        "__value": "89914657"
+        "__value": "90009381"
       },
       "quota": {
         "__type": "bigint",
-        "__value": "89337280000"
+        "__value": "99494100000"
       },
       "success": true
     }
   ],
-  "investor": "0xC32FEB4DBd127a1993478Ad6E5250710f838b908"
+  "investor": "0x4D1698eD96Bdf0070AB6C399B340bacD50a78ccc"
 }

@@ -10,6 +10,10 @@
  *                leverage (8 ACRED redeemed, proceeds repay debt) ->
  *                claim + partial debt repay + withdraw 2 ACRED to the wallet.
  *
+ * The multicall composition of every transaction mirrors what the frontend
+ * generates: the open tx unwraps the borrowed vault shares via the
+ * router-emitted redeemDiff inside the slippage-checked block.
+ *
  * Produces, under src/preview/__fixtures__:
  * - Mainnet-{block}-securitize.json: serialized `sdk.state` snapshot
  *   (including withdrawable assets of the withdrawal compressor);
@@ -55,7 +59,6 @@ import {
   createInvestorWallet,
   seedSecuritizePoolLiquidity,
   signRegisterVaultMessages,
-  USDC,
 } from "../src/e2e/helpers/securitize.js";
 import {
   AbstractAdapterContract,
@@ -308,8 +311,10 @@ async function snapshotCurrentWithdrawals(
 
 /**
  * Opens a credit account with 20 ACRED collateral at 5x leverage: borrows
- * dcUSDC worth 80 ACRED, unwraps it into USDC and swaps the USDC into ACRED
- * via the router path.
+ * dcUSDC worth 80 ACRED and swaps it into ACRED via the router path. The
+ * borrowed amount is routed in the vault-share token so the router emits the
+ * unwrap (redeemDiff into USDC) inside its slippage-checked block, matching
+ * the multicall composition the frontend generates.
  */
 async function openLeveragedAccount({
   sdk,
@@ -347,21 +352,20 @@ async function openLeveragedAccount({
     requirements.requiredSignatures,
   );
 
-  // Debt in dcUSDC vault shares worth 80 ACRED (mock vault is 1:1 with USDC)
+  // Debt in dcUSDC vault shares worth 80 ACRED (mock vault is 1:1 with USDC).
+  // The borrowed amount is passed to the router in the vault-share token, the
+  // same way the frontend does: the router itself emits the unwrap
+  // (redeemDiff) inside the storeExpectedBalances/compareBalances block
   const borrowedAcred = COLLATERAL_ACRED * (LEVERAGE - 1n);
   const debt = market.priceOracle.convert(ACRED, cm.underlying, borrowedAcred);
-  const unwrapCalls = await sdk.accounts.getRWAUnwrapCalls(
-    debt,
-    CREDIT_MANAGER,
-  );
-  if (!unwrapCalls) {
-    throw new Error("getRWAUnwrapCalls returned undefined");
-  }
 
   const strategy = await sdk.routerFor(cm).findOpenStrategyPath({
     creditManager: cm.creditManager,
-    expectedBalances: [{ token: USDC, balance: debt }],
-    leftoverBalances: [{ token: USDC, balance: 1n }],
+    expectedBalances: [
+      { token: ACRED, balance: COLLATERAL_ACRED },
+      { token: cm.underlying, balance: debt },
+    ],
+    leftoverBalances: [{ token: ACRED, balance: COLLATERAL_ACRED }],
     slippage: SLIPPAGE,
     target: ACRED,
   });
@@ -380,7 +384,7 @@ async function openLeveragedAccount({
     creditManager: CREDIT_MANAGER,
     collateral: [{ token: ACRED, balance: COLLATERAL_ACRED }],
     debt,
-    calls: [...unwrapCalls, ...strategy.calls],
+    calls: strategy.calls,
     averageQuota: quotas,
     minQuota: quotas,
     to: investor,
@@ -572,10 +576,8 @@ async function claimWithResumeTail({
         quotaDecrease: [
           {
             token: ACRED,
-            balance: -market.priceOracle.convert(
-              ACRED,
-              cm.underlying,
-              WITHDRAW_ACRED,
+            balance: -roundQuota(
+              market.priceOracle.convert(ACRED, cm.underlying, WITHDRAW_ACRED),
             ),
           },
           { token: claimable.withdrawalPhantomToken, balance: MIN_INT96 },

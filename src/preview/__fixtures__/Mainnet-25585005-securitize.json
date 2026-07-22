@@ -4,11 +4,11 @@
   "chainId": 1,
   "currentBlock": {
     "__type": "bigint",
-    "__value": "25547326"
+    "__value": "25585005"
   },
   "timestamp": {
     "__type": "bigint",
-    "__value": "1784224757"
+    "__value": "1784679601"
   },
   "addressProvider": {
     "baseParams": {
@@ -109,8 +109,11 @@
       "GLOBAL::GEAR_TOKEN": {
         "0": "0xBa3335588D9403515223F109EdC4eB7269a9Ab5D"
       },
+      "LOCAL::REDEMPTION_LOGGER": {
+        "310": "0x8a6C7a0020321e3175b7Cb6fd76481330Ad9496C"
+      },
       "GLOBAL::RWA_COMPRESSOR": {
-        "310": "0xf6DE75Af5A29BDFA002e22D46dFAaC8A5126eC1C"
+        "310": "0x8c93Cc1530A1A1BaaE0CFe331919Eaee3BeD07D8"
       },
       "FAUCET": {
         "0": "0x7e3B874B35de9AD325b538b10E6a473c0a996cc7"
@@ -137,22 +140,22 @@
         "decimals": 6,
         "totalSupply": {
           "__type": "bigint",
-          "__value": "1000000127635"
+          "__value": "1000000100000"
         },
         "quotaKeeper": "0x7d24554115069794E05CDCb263f120f7a292D05A",
         "interestRateModel": "0xA21eA7d0125485608425a1b46b29FD5a16071CF8",
         "underlying": "0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D",
         "availableLiquidity": {
           "__type": "bigint",
-          "__value": "632308767799"
+          "__value": "800000100000"
         },
         "expectedLiquidity": {
           "__type": "bigint",
-          "__value": "1000006783557"
+          "__value": "1000000195124"
         },
         "baseInterestIndex": {
           "__type": "bigint",
-          "__value": "1000030579752936904337833111"
+          "__value": "1000000474378488077118214104"
         },
         "baseInterestRate": {
           "__type": "bigint",
@@ -160,11 +163,11 @@
         },
         "dieselRate": {
           "__type": "bigint",
-          "__value": "1000006655921150471503959569"
+          "__value": "1000000095123990487600951239"
         },
         "supplyRate": {
           "__type": "bigint",
-          "__value": "14747425606357796012328355"
+          "__value": "8020998434910701386484302"
         },
         "withdrawFee": {
           "__type": "bigint",
@@ -172,7 +175,7 @@
         },
         "totalBorrowed": {
           "__type": "bigint",
-          "__value": "367691415109"
+          "__value": "200000000000"
         },
         "totalDebtLimit": {
           "__type": "bigint",
@@ -183,7 +186,7 @@
             "creditManager": "0x025512D771f778fad99aB30b7A7363E7C8DE078D",
             "borrowed": {
               "__type": "bigint",
-              "__value": "267691415109"
+              "__value": "100000000000"
             },
             "limit": {
               "__type": "bigint",
@@ -191,7 +194,7 @@
             },
             "available": {
               "__type": "bigint",
-              "__value": "632308767799"
+              "__value": "800000100000"
             }
           },
           {
@@ -206,24 +209,24 @@
             },
             "available": {
               "__type": "bigint",
-              "__value": "632308767799"
+              "__value": "800000100000"
             }
           }
         ],
         "baseInterestIndexLU": {
           "__type": "bigint",
-          "__value": "1000027900834968153129386373"
+          "__value": "1000000000000000000000000000"
         },
         "expectedLiquidityLU": {
           "__type": "bigint",
-          "__value": "1000005796826"
+          "__value": "1000000100000"
         },
         "quotaRevenue": {
           "__type": "bigint",
-          "__value": "39869042"
+          "__value": "21000000"
         },
-        "lastBaseInterestUpdate": 1784222645,
-        "lastQuotaRevenueUpdate": 1784223377,
+        "lastBaseInterestUpdate": 1784679227,
+        "lastQuotaRevenueUpdate": 1784679227,
         "isPaused": false
       },
       "quotaKeeper": {
@@ -236,7 +239,7 @@
           "contractType": "0x504f4f4c5f51554f54415f4b4545504552000000000000000000000000000000",
           "serializedParams": "0x"
         },
-        "rateKeeper": "0x4dEaf931D9ae330F4Da62110Ec6937Bc5ADFAE8C",
+        "rateKeeper": "0x0c601B41De1613c5b25225Cb410050b5Cefe6411",
         "quotas": [
           {
             "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
@@ -266,7 +269,7 @@
             "quotaIncreaseFee": 0,
             "totalQuoted": {
               "__type": "bigint",
-              "__value": "194337280000"
+              "__value": "105000000000"
             },
             "limit": {
               "__type": "bigint",
@@ -275,7 +278,7 @@
             "isActive": true
           },
           {
-            "token": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+            "token": "0xe4a38b653B2580C9D72a50F190Ddd6E2d2D2a412",
             "rate": 1,
             "cumulativeIndexLU": {
               "__type": "bigint",
@@ -284,7 +287,7 @@
             "quotaIncreaseFee": 0,
             "totalQuoted": {
               "__type": "bigint",
-              "__value": "99353140000"
+              "__value": "0"
             },
             "limit": {
               "__type": "bigint",
@@ -311,7 +314,7 @@
             "isActive": true
           },
           {
-            "token": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+            "token": "0x6F18060A53eaeaAd6fb02df908153735554e520E",
             "rate": 1,
             "cumulativeIndexLU": {
               "__type": "bigint",
@@ -333,7 +336,7 @@
           "0x025512D771f778fad99aB30b7A7363E7C8DE078D",
           "0x4bbF1aAa78858086d88164182fd87f5a774197D4"
         ],
-        "lastQuotaRateUpdate": 1784200648
+        "lastQuotaRateUpdate": 1784679227
       },
       "interestRateModel": {
         "baseParams": {
@@ -348,13 +351,13 @@
       },
       "rateKeeper": {
         "baseParams": {
-          "addr": "0x4dEaf931D9ae330F4Da62110Ec6937Bc5ADFAE8C",
+          "addr": "0x0c601B41De1613c5b25225Cb410050b5Cefe6411",
           "version": {
             "__type": "bigint",
             "__value": "310"
           },
           "contractType": "0x524154455f4b45455045523a3a54554d424c4552000000000000000000000000",
-          "serializedParams": "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000001200000000000000000000000000000000000000000000000000000000000000005000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000017418038ecf73ba4026c4f428547bf099706f27b000000000000000000000000f126eacacf6b14c8985fc195768a55e886af420800000000000000000000000051c2d74017390cbbd30550179a16a1c28f7210fc000000000000000000000000d2f49d24c0f43bec0dc91b1ba42cbc49d1d16cea000000000000000000000000000000000000000000000000000000000000000500000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001"
+          "serializedParams": "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000001200000000000000000000000000000000000000000000000000000000000000005000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000017418038ecf73ba4026c4f428547bf099706f27b000000000000000000000000e4a38b653b2580c9d72a50f190ddd6e2d2d2a41200000000000000000000000051c2d74017390cbbd30550179a16a1c28f7210fc0000000000000000000000006f18060a53eaeaad6fb02df908153735554e520e000000000000000000000000000000000000000000000000000000000000000500000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001"
         },
         "rates": [
           {
@@ -366,7 +369,7 @@
             "rate": 1
           },
           {
-            "token": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+            "token": "0xe4a38b653B2580C9D72a50F190Ddd6E2d2D2a412",
             "rate": 1
           },
           {
@@ -374,7 +377,7 @@
             "rate": 1
           },
           {
-            "token": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+            "token": "0x6F18060A53eaeaAd6fb02df908153735554e520E",
             "rate": 1
           }
         ]
@@ -409,7 +412,7 @@
             "stalenessPeriod": 86400
           },
           {
-            "token": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+            "token": "0xe4a38b653B2580C9D72a50F190Ddd6E2d2D2a412",
             "reserve": false,
             "priceFeed": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
             "stalenessPeriod": 87300
@@ -421,7 +424,7 @@
             "stalenessPeriod": 86400
           },
           {
-            "token": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+            "token": "0x6F18060A53eaeaAd6fb02df908153735554e520E",
             "reserve": false,
             "priceFeed": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
             "stalenessPeriod": 87300
@@ -439,7 +442,7 @@
             "stalenessPeriod": 86400
           },
           {
-            "token": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+            "token": "0xe4a38b653B2580C9D72a50F190Ddd6E2d2D2a412",
             "reserve": true,
             "priceFeed": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
             "stalenessPeriod": 87300
@@ -451,7 +454,7 @@
             "stalenessPeriod": 86400
           },
           {
-            "token": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+            "token": "0x6F18060A53eaeaAd6fb02df908153735554e520E",
             "reserve": true,
             "priceFeed": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
             "stalenessPeriod": 87300
@@ -477,11 +480,11 @@
             "answer": {
               "price": {
                 "__type": "bigint",
-                "__value": "99976264"
+                "__value": "99988275"
               },
               "updatedAt": {
                 "__type": "bigint",
-                "__value": "1784188811"
+                "__value": "1784620823"
               },
               "success": true
             }
@@ -505,11 +508,11 @@
             "answer": {
               "price": {
                 "__type": "bigint",
-                "__value": "110371423000"
+                "__value": "110536046000"
               },
               "updatedAt": {
                 "__type": "bigint",
-                "__value": "1784154203"
+                "__value": "1784671283"
               },
               "success": true
             }
@@ -533,11 +536,11 @@
             "answer": {
               "price": {
                 "__type": "bigint",
-                "__value": "102400748100"
+                "__value": "102472769700"
               },
               "updatedAt": {
                 "__type": "bigint",
-                "__value": "1784150483"
+                "__value": "1784669351"
               },
               "success": true
             }
@@ -546,7 +549,7 @@
       },
       "lossPolicy": {
         "baseParams": {
-          "addr": "0xF322109390c4310190117d1CC6c3e4E003b99002",
+          "addr": "0x9F4b15322D3948213E8DBb46661b644FEEe1D73b",
           "version": {
             "__type": "bigint",
             "__value": "310"
@@ -575,7 +578,7 @@
           "decimals": 6
         },
         {
-          "addr": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+          "addr": "0xe4a38b653B2580C9D72a50F190Ddd6E2d2D2a412",
           "symbol": "srpACRED_USDC",
           "name": "Securitize pending redemption Apollo Diversified Credit Securitize Fund to USD Coin",
           "decimals": 6
@@ -587,7 +590,7 @@
           "decimals": 6
         },
         {
-          "addr": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+          "addr": "0x6F18060A53eaeaAd6fb02df908153735554e520E",
           "symbol": "srpSTAC_USDC",
           "name": "Securitize pending redemption Securitize Tokenized AAA CLO Fund to USD Coin",
           "decimals": 6
@@ -597,7 +600,7 @@
         {
           "creditFacade": {
             "baseParams": {
-              "addr": "0xec6b8D8e18D48cb4df7028B8E1Aa1662e966cD86",
+              "addr": "0xA36f204ae8a3Ea2E02425960C627771FB180B315",
               "version": {
                 "__type": "bigint",
                 "__value": "310"
@@ -638,7 +641,7 @@
             "accountFactory": "0x8122a4F56Bf146e5bAF88ea5564cCB09E46f36b6",
             "underlying": "0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D",
             "pool": "0xE0Ca34a68C58f6576966047B9A2d95D60701c36f",
-            "creditFacade": "0xec6b8D8e18D48cb4df7028B8E1Aa1662e966cD86",
+            "creditFacade": "0xA36f204ae8a3Ea2E02425960C627771FB180B315",
             "creditConfigurator": "0x1Fb05cb34D8EcF2275D16A6720809Ed18e116b3a",
             "maxEnabledTokens": 2,
             "collateralTokens": [
@@ -655,7 +658,7 @@
                 "liquidationThreshold": 9000
               },
               {
-                "token": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+                "token": "0xe4a38b653B2580C9D72a50F190Ddd6E2d2D2a412",
                 "liquidationThreshold": 9000
               }
             ],
@@ -714,22 +717,22 @@
             },
             {
               "baseParams": {
-                "addr": "0x176cB49Fb97B5138E1a45229Eb78B562c4b6F302",
+                "addr": "0x6A589123A24E2792311AbCF4C84ABA2Fb9CC5ef2",
                 "version": {
                   "__type": "bigint",
                   "__value": "311"
                 },
                 "contractType": "0x414441505445523a3a53454355524954495a455f524544454d5054494f4e0000",
-                "serializedParams": "0x000000000000000000000000025512d771f778fad99ab30b7a7363e7c8de078d0000000000000000000000001299902e066d556da861ca5c9d607aed5faf712c00000000000000000000000017418038ecf73ba4026c4f428547bf099706f27b000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000f126eacacf6b14c8985fc195768a55e886af4208"
+                "serializedParams": "0x000000000000000000000000025512d771f778fad99ab30b7a7363e7c8de078d00000000000000000000000037968a7f330f455b8757f6021d03e7111cd4de3b00000000000000000000000017418038ecf73ba4026c4f428547bf099706f27b000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000e4a38b653b2580c9d72a50f190ddd6e2d2d2a412"
               },
-              "targetContract": "0x1299902e066d556Da861Ca5c9D607aEd5faF712c"
+              "targetContract": "0x37968A7f330f455B8757F6021d03e7111cd4de3b"
             }
           ]
         },
         {
           "creditFacade": {
             "baseParams": {
-              "addr": "0x7761372d666818ed27e5683ff8380bB2354Ec48E",
+              "addr": "0x3e605B2E3abC2cB37B64effaA1c7182CD0a1F7dd",
               "version": {
                 "__type": "bigint",
                 "__value": "310"
@@ -770,7 +773,7 @@
             "accountFactory": "0x9E4181A9355Ebe857B25C33132ff06CA945aDFe5",
             "underlying": "0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D",
             "pool": "0xE0Ca34a68C58f6576966047B9A2d95D60701c36f",
-            "creditFacade": "0x7761372d666818ed27e5683ff8380bB2354Ec48E",
+            "creditFacade": "0x3e605B2E3abC2cB37B64effaA1c7182CD0a1F7dd",
             "creditConfigurator": "0x820A53D6ecCb858D57F611936AA6eaD0DF77ecfD",
             "maxEnabledTokens": 2,
             "collateralTokens": [
@@ -787,7 +790,7 @@
                 "liquidationThreshold": 9000
               },
               {
-                "token": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+                "token": "0x6F18060A53eaeaAd6fb02df908153735554e520E",
                 "liquidationThreshold": 9000
               }
             ],
@@ -846,15 +849,15 @@
             },
             {
               "baseParams": {
-                "addr": "0x900FAD280E4Ef809Db7F06C341C01619d8687DD7",
+                "addr": "0x0D26D31196291fF41A27f4e2a9972b78ebB44315",
                 "version": {
                   "__type": "bigint",
                   "__value": "311"
                 },
                 "contractType": "0x414441505445523a3a53454355524954495a455f524544454d5054494f4e0000",
-                "serializedParams": "0x0000000000000000000000004bbf1aaa78858086d88164182fd87f5a774197d40000000000000000000000006dbc24d7f878a75fde6bd1ebd5519281b59f26a500000000000000000000000051c2d74017390cbbd30550179a16a1c28f7210fc000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000d2f49d24c0f43bec0dc91b1ba42cbc49d1d16cea"
+                "serializedParams": "0x0000000000000000000000004bbf1aaa78858086d88164182fd87f5a774197d4000000000000000000000000bc1df300d10c2d15d753cdef70bed5d605d39b6b00000000000000000000000051c2d74017390cbbd30550179a16a1c28f7210fc000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb480000000000000000000000006f18060a53eaeaad6fb02df908153735554e520e"
               },
-              "targetContract": "0x6DBc24d7f878a75fde6bD1ebd5519281B59f26a5"
+              "targetContract": "0xBc1dF300D10C2D15D753cdeF70BEd5d605D39B6B"
             }
           ]
         }
@@ -894,11 +897,11 @@
         },
         "expectedLiquidity": {
           "__type": "bigint",
-          "__value": "200006231984"
+          "__value": "200000195124"
         },
         "baseInterestIndex": {
           "__type": "bigint",
-          "__value": "1000030579654997463216641298"
+          "__value": "1000000474378488077118214104"
         },
         "baseInterestRate": {
           "__type": "bigint",
@@ -906,11 +909,11 @@
         },
         "dieselRate": {
           "__type": "bigint",
-          "__value": "1000030659904670047664976167"
+          "__value": "1000000475619762190118904940"
         },
         "supplyRate": {
           "__type": "bigint",
-          "__value": "40103750370346760024585374"
+          "__value": "40104960872798073280743745"
         },
         "withdrawFee": {
           "__type": "bigint",
@@ -968,8 +971,8 @@
           "__type": "bigint",
           "__value": "21000000"
         },
-        "lastBaseInterestUpdate": 1784200648,
-        "lastQuotaRevenueUpdate": 1784200648,
+        "lastBaseInterestUpdate": 1784679227,
+        "lastQuotaRevenueUpdate": 1784679227,
         "isPaused": false
       },
       "quotaKeeper": {
@@ -982,7 +985,7 @@
           "contractType": "0x504f4f4c5f51554f54415f4b4545504552000000000000000000000000000000",
           "serializedParams": "0x"
         },
-        "rateKeeper": "0x961aEE6C8A9CF22682770dB5CAaADB8D656afc04",
+        "rateKeeper": "0xf81C3e1E9418080C15184eb8E950e57a6b2F647C",
         "quotas": [
           {
             "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
@@ -1021,7 +1024,7 @@
             "isActive": true
           },
           {
-            "token": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+            "token": "0xe4a38b653B2580C9D72a50F190Ddd6E2d2D2a412",
             "rate": 1,
             "cumulativeIndexLU": {
               "__type": "bigint",
@@ -1057,7 +1060,7 @@
             "isActive": true
           },
           {
-            "token": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+            "token": "0x6F18060A53eaeaAd6fb02df908153735554e520E",
             "rate": 1,
             "cumulativeIndexLU": {
               "__type": "bigint",
@@ -1079,7 +1082,7 @@
           "0x48E2De8258fFFdd200d629eE1543745669E51e7a",
           "0x108E26961E59B7018e90E677Bb88e049D8a7e9Fb"
         ],
-        "lastQuotaRateUpdate": 1784200648
+        "lastQuotaRateUpdate": 1784679227
       },
       "interestRateModel": {
         "baseParams": {
@@ -1094,13 +1097,13 @@
       },
       "rateKeeper": {
         "baseParams": {
-          "addr": "0x961aEE6C8A9CF22682770dB5CAaADB8D656afc04",
+          "addr": "0xf81C3e1E9418080C15184eb8E950e57a6b2F647C",
           "version": {
             "__type": "bigint",
             "__value": "310"
           },
           "contractType": "0x524154455f4b45455045523a3a54554d424c4552000000000000000000000000",
-          "serializedParams": "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000001200000000000000000000000000000000000000000000000000000000000000005000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000017418038ecf73ba4026c4f428547bf099706f27b000000000000000000000000f126eacacf6b14c8985fc195768a55e886af420800000000000000000000000051c2d74017390cbbd30550179a16a1c28f7210fc000000000000000000000000d2f49d24c0f43bec0dc91b1ba42cbc49d1d16cea000000000000000000000000000000000000000000000000000000000000000500000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001"
+          "serializedParams": "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000001200000000000000000000000000000000000000000000000000000000000000005000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000017418038ecf73ba4026c4f428547bf099706f27b000000000000000000000000e4a38b653b2580c9d72a50f190ddd6e2d2d2a41200000000000000000000000051c2d74017390cbbd30550179a16a1c28f7210fc0000000000000000000000006f18060a53eaeaad6fb02df908153735554e520e000000000000000000000000000000000000000000000000000000000000000500000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001"
         },
         "rates": [
           {
@@ -1112,7 +1115,7 @@
             "rate": 1
           },
           {
-            "token": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+            "token": "0xe4a38b653B2580C9D72a50F190Ddd6E2d2D2a412",
             "rate": 1
           },
           {
@@ -1120,7 +1123,7 @@
             "rate": 1
           },
           {
-            "token": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+            "token": "0x6F18060A53eaeaAd6fb02df908153735554e520E",
             "rate": 1
           }
         ]
@@ -1155,7 +1158,7 @@
             "stalenessPeriod": 86400
           },
           {
-            "token": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+            "token": "0xe4a38b653B2580C9D72a50F190Ddd6E2d2D2a412",
             "reserve": false,
             "priceFeed": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
             "stalenessPeriod": 87300
@@ -1167,7 +1170,7 @@
             "stalenessPeriod": 86400
           },
           {
-            "token": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+            "token": "0x6F18060A53eaeaAd6fb02df908153735554e520E",
             "reserve": false,
             "priceFeed": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
             "stalenessPeriod": 87300
@@ -1185,7 +1188,7 @@
             "stalenessPeriod": 86400
           },
           {
-            "token": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+            "token": "0xe4a38b653B2580C9D72a50F190Ddd6E2d2D2a412",
             "reserve": true,
             "priceFeed": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
             "stalenessPeriod": 87300
@@ -1197,7 +1200,7 @@
             "stalenessPeriod": 86400
           },
           {
-            "token": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+            "token": "0x6F18060A53eaeaAd6fb02df908153735554e520E",
             "reserve": true,
             "priceFeed": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
             "stalenessPeriod": 87300
@@ -1223,11 +1226,11 @@
             "answer": {
               "price": {
                 "__type": "bigint",
-                "__value": "99976264"
+                "__value": "99988275"
               },
               "updatedAt": {
                 "__type": "bigint",
-                "__value": "1784188811"
+                "__value": "1784620823"
               },
               "success": true
             }
@@ -1251,11 +1254,11 @@
             "answer": {
               "price": {
                 "__type": "bigint",
-                "__value": "110371423000"
+                "__value": "110536046000"
               },
               "updatedAt": {
                 "__type": "bigint",
-                "__value": "1784154203"
+                "__value": "1784671283"
               },
               "success": true
             }
@@ -1279,11 +1282,11 @@
             "answer": {
               "price": {
                 "__type": "bigint",
-                "__value": "102400748100"
+                "__value": "102472769700"
               },
               "updatedAt": {
                 "__type": "bigint",
-                "__value": "1784150483"
+                "__value": "1784669351"
               },
               "success": true
             }
@@ -1292,7 +1295,7 @@
       },
       "lossPolicy": {
         "baseParams": {
-          "addr": "0xD4Ba548f2F92CbC7d7c78bb710318eaAb08d5513",
+          "addr": "0x3B996eAE2F4D20DEbd6BE05ea633262F0361E980",
           "version": {
             "__type": "bigint",
             "__value": "310"
@@ -1321,7 +1324,7 @@
           "decimals": 6
         },
         {
-          "addr": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+          "addr": "0xe4a38b653B2580C9D72a50F190Ddd6E2d2D2a412",
           "symbol": "srpACRED_USDC",
           "name": "Securitize pending redemption Apollo Diversified Credit Securitize Fund to USD Coin",
           "decimals": 6
@@ -1333,7 +1336,7 @@
           "decimals": 6
         },
         {
-          "addr": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+          "addr": "0x6F18060A53eaeaAd6fb02df908153735554e520E",
           "symbol": "srpSTAC_USDC",
           "name": "Securitize pending redemption Securitize Tokenized AAA CLO Fund to USD Coin",
           "decimals": 6
@@ -1343,7 +1346,7 @@
         {
           "creditFacade": {
             "baseParams": {
-              "addr": "0x97d59c5F0A27096F5d0A2a2A54114521D4C4EDe9",
+              "addr": "0x88A7eB4afA676bd9153DbF0244259636E754442f",
               "version": {
                 "__type": "bigint",
                 "__value": "310"
@@ -1384,7 +1387,7 @@
             "accountFactory": "0x9C0b1c6103e0bc39d1C43d51517D3079F1C8655d",
             "underlying": "0x03f919CA79C4E0a3Ae48Ac330445189156826873",
             "pool": "0x99f6bE465624F2cDF7Fe436697CeBd4bE7bAF56b",
-            "creditFacade": "0x97d59c5F0A27096F5d0A2a2A54114521D4C4EDe9",
+            "creditFacade": "0x88A7eB4afA676bd9153DbF0244259636E754442f",
             "creditConfigurator": "0x95Ba090d78Db6bc11c6E5ED8eC1530399F9D5a7D",
             "maxEnabledTokens": 2,
             "collateralTokens": [
@@ -1401,7 +1404,7 @@
                 "liquidationThreshold": 9000
               },
               {
-                "token": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+                "token": "0xe4a38b653B2580C9D72a50F190Ddd6E2d2D2a412",
                 "liquidationThreshold": 9000
               }
             ],
@@ -1460,22 +1463,22 @@
             },
             {
               "baseParams": {
-                "addr": "0xB422Cca3051068048E508d229Ef313AE3d682dba",
+                "addr": "0x373d4c6a88a2004D0C06C6C61532A235a45e7Cb8",
                 "version": {
                   "__type": "bigint",
                   "__value": "311"
                 },
                 "contractType": "0x414441505445523a3a53454355524954495a455f524544454d5054494f4e0000",
-                "serializedParams": "0x00000000000000000000000048e2de8258fffdd200d629ee1543745669e51e7a0000000000000000000000001299902e066d556da861ca5c9d607aed5faf712c00000000000000000000000017418038ecf73ba4026c4f428547bf099706f27b000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000f126eacacf6b14c8985fc195768a55e886af4208"
+                "serializedParams": "0x00000000000000000000000048e2de8258fffdd200d629ee1543745669e51e7a00000000000000000000000037968a7f330f455b8757f6021d03e7111cd4de3b00000000000000000000000017418038ecf73ba4026c4f428547bf099706f27b000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000e4a38b653b2580c9d72a50f190ddd6e2d2d2a412"
               },
-              "targetContract": "0x1299902e066d556Da861Ca5c9D607aEd5faF712c"
+              "targetContract": "0x37968A7f330f455B8757F6021d03e7111cd4de3b"
             }
           ]
         },
         {
           "creditFacade": {
             "baseParams": {
-              "addr": "0x8DC94D3fA6f3C0E918E4499c8c1d8234e866eA7A",
+              "addr": "0x3d7f803e1923c557A4ADD2125A8AEDaD1b9FdD25",
               "version": {
                 "__type": "bigint",
                 "__value": "310"
@@ -1516,7 +1519,7 @@
             "accountFactory": "0x8feAf21be0b08452108bb025CaF05309c7ec9f95",
             "underlying": "0x03f919CA79C4E0a3Ae48Ac330445189156826873",
             "pool": "0x99f6bE465624F2cDF7Fe436697CeBd4bE7bAF56b",
-            "creditFacade": "0x8DC94D3fA6f3C0E918E4499c8c1d8234e866eA7A",
+            "creditFacade": "0x3d7f803e1923c557A4ADD2125A8AEDaD1b9FdD25",
             "creditConfigurator": "0x76776c00db868aFd22b07b1E153d86B933f40A20",
             "maxEnabledTokens": 2,
             "collateralTokens": [
@@ -1533,7 +1536,7 @@
                 "liquidationThreshold": 9000
               },
               {
-                "token": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+                "token": "0x6F18060A53eaeaAd6fb02df908153735554e520E",
                 "liquidationThreshold": 9000
               }
             ],
@@ -1592,15 +1595,15 @@
             },
             {
               "baseParams": {
-                "addr": "0xf04DBFE4e941edfe2Cb4c0380596d6115C672F3A",
+                "addr": "0xE1149633c754ddF7748d4Aa065d3A0454a3f03cf",
                 "version": {
                   "__type": "bigint",
                   "__value": "311"
                 },
                 "contractType": "0x414441505445523a3a53454355524954495a455f524544454d5054494f4e0000",
-                "serializedParams": "0x000000000000000000000000108e26961e59b7018e90e677bb88e049d8a7e9fb0000000000000000000000006dbc24d7f878a75fde6bd1ebd5519281b59f26a500000000000000000000000051c2d74017390cbbd30550179a16a1c28f7210fc000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000d2f49d24c0f43bec0dc91b1ba42cbc49d1d16cea"
+                "serializedParams": "0x000000000000000000000000108e26961e59b7018e90e677bb88e049d8a7e9fb000000000000000000000000bc1df300d10c2d15d753cdef70bed5d605d39b6b00000000000000000000000051c2d74017390cbbd30550179a16a1c28f7210fc000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb480000000000000000000000006f18060a53eaeaad6fb02df908153735554e520e"
               },
-              "targetContract": "0x6DBc24d7f878a75fde6bD1ebd5519281B59f26a5"
+              "targetContract": "0xBc1dF300D10C2D15D753cdeF70BEd5d605D39B6B"
             }
           ]
         }
@@ -1640,11 +1643,11 @@
         },
         "expectedLiquidity": {
           "__type": "bigint",
-          "__value": "1000006131985318366411516"
+          "__value": "1000000095124746321764129"
         },
         "baseInterestIndex": {
           "__type": "bigint",
-          "__value": "1000030579654997463216641298"
+          "__value": "1000000474378488077118214104"
         },
         "baseInterestRate": {
           "__type": "bigint",
@@ -1652,11 +1655,11 @@
         },
         "dieselRate": {
           "__type": "bigint",
-          "__value": "1000006131985318366311515386"
+          "__value": "1000000095124746321664128990"
         },
         "supplyRate": {
           "__type": "bigint",
-          "__value": "8020950815647359111300515"
+          "__value": "8020999237004482332884984"
         },
         "withdrawFee": {
           "__type": "bigint",
@@ -1714,8 +1717,8 @@
           "__type": "bigint",
           "__value": "21000000000000000000"
         },
-        "lastBaseInterestUpdate": 1784200648,
-        "lastQuotaRevenueUpdate": 1784200648,
+        "lastBaseInterestUpdate": 1784679227,
+        "lastQuotaRevenueUpdate": 1784679227,
         "isPaused": false
       },
       "quotaKeeper": {
@@ -1728,7 +1731,7 @@
           "contractType": "0x504f4f4c5f51554f54415f4b4545504552000000000000000000000000000000",
           "serializedParams": "0x"
         },
-        "rateKeeper": "0xd3FD7bA8612E6d4CACE5C2334DAEF1E95cf01c85",
+        "rateKeeper": "0x0cD8c183143FA272c85eA56BDA2b52CDA29327Ad",
         "quotas": [
           {
             "token": "0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD",
@@ -1785,7 +1788,7 @@
             "isActive": true
           },
           {
-            "token": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+            "token": "0xe4a38b653B2580C9D72a50F190Ddd6E2d2D2a412",
             "rate": 1,
             "cumulativeIndexLU": {
               "__type": "bigint",
@@ -1821,7 +1824,7 @@
             "isActive": true
           },
           {
-            "token": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+            "token": "0x6F18060A53eaeaAd6fb02df908153735554e520E",
             "rate": 1,
             "cumulativeIndexLU": {
               "__type": "bigint",
@@ -1843,7 +1846,7 @@
           "0x328BD41b79D23569071DcE7573EfFbb9d046D640",
           "0x38533Db7c1CFC46E8a70625c269dE286FC412589"
         ],
-        "lastQuotaRateUpdate": 1784200648
+        "lastQuotaRateUpdate": 1784679227
       },
       "interestRateModel": {
         "baseParams": {
@@ -1858,13 +1861,13 @@
       },
       "rateKeeper": {
         "baseParams": {
-          "addr": "0xd3FD7bA8612E6d4CACE5C2334DAEF1E95cf01c85",
+          "addr": "0x0cD8c183143FA272c85eA56BDA2b52CDA29327Ad",
           "version": {
             "__type": "bigint",
             "__value": "310"
           },
           "contractType": "0x524154455f4b45455045523a3a54554d424c4552000000000000000000000000",
-          "serializedParams": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000014000000000000000000000000000000000000000000000000000000000000000060000000000000000000000008292bb45bf1ee4d140127049757c2e0ff06317ed000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000017418038ecf73ba4026c4f428547bf099706f27b000000000000000000000000f126eacacf6b14c8985fc195768a55e886af420800000000000000000000000051c2d74017390cbbd30550179a16a1c28f7210fc000000000000000000000000d2f49d24c0f43bec0dc91b1ba42cbc49d1d16cea0000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001"
+          "serializedParams": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000014000000000000000000000000000000000000000000000000000000000000000060000000000000000000000008292bb45bf1ee4d140127049757c2e0ff06317ed000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000017418038ecf73ba4026c4f428547bf099706f27b000000000000000000000000e4a38b653b2580c9d72a50f190ddd6e2d2d2a41200000000000000000000000051c2d74017390cbbd30550179a16a1c28f7210fc0000000000000000000000006f18060a53eaeaad6fb02df908153735554e520e0000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001"
         },
         "rates": [
           {
@@ -1880,7 +1883,7 @@
             "rate": 1
           },
           {
-            "token": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+            "token": "0xe4a38b653B2580C9D72a50F190Ddd6E2d2D2a412",
             "rate": 1
           },
           {
@@ -1888,7 +1891,7 @@
             "rate": 1
           },
           {
-            "token": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+            "token": "0x6F18060A53eaeaAd6fb02df908153735554e520E",
             "rate": 1
           }
         ]
@@ -1929,7 +1932,7 @@
             "stalenessPeriod": 86400
           },
           {
-            "token": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+            "token": "0xe4a38b653B2580C9D72a50F190Ddd6E2d2D2a412",
             "reserve": false,
             "priceFeed": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
             "stalenessPeriod": 87300
@@ -1941,7 +1944,7 @@
             "stalenessPeriod": 86400
           },
           {
-            "token": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+            "token": "0x6F18060A53eaeaAd6fb02df908153735554e520E",
             "reserve": false,
             "priceFeed": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
             "stalenessPeriod": 87300
@@ -1965,7 +1968,7 @@
             "stalenessPeriod": 86400
           },
           {
-            "token": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+            "token": "0xe4a38b653B2580C9D72a50F190Ddd6E2d2D2a412",
             "reserve": true,
             "priceFeed": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
             "stalenessPeriod": 87300
@@ -1977,7 +1980,7 @@
             "stalenessPeriod": 86400
           },
           {
-            "token": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+            "token": "0x6F18060A53eaeaAd6fb02df908153735554e520E",
             "reserve": true,
             "priceFeed": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
             "stalenessPeriod": 87300
@@ -2003,11 +2006,11 @@
             "answer": {
               "price": {
                 "__type": "bigint",
-                "__value": "100009853"
+                "__value": "100006450"
               },
               "updatedAt": {
                 "__type": "bigint",
-                "__value": "1784145323"
+                "__value": "1784607491"
               },
               "success": true
             }
@@ -2031,11 +2034,11 @@
             "answer": {
               "price": {
                 "__type": "bigint",
-                "__value": "99976264"
+                "__value": "99988275"
               },
               "updatedAt": {
                 "__type": "bigint",
-                "__value": "1784188811"
+                "__value": "1784620823"
               },
               "success": true
             }
@@ -2059,11 +2062,11 @@
             "answer": {
               "price": {
                 "__type": "bigint",
-                "__value": "110371423000"
+                "__value": "110536046000"
               },
               "updatedAt": {
                 "__type": "bigint",
-                "__value": "1784154203"
+                "__value": "1784671283"
               },
               "success": true
             }
@@ -2087,11 +2090,11 @@
             "answer": {
               "price": {
                 "__type": "bigint",
-                "__value": "102400748100"
+                "__value": "102472769700"
               },
               "updatedAt": {
                 "__type": "bigint",
-                "__value": "1784150483"
+                "__value": "1784669351"
               },
               "success": true
             }
@@ -2100,7 +2103,7 @@
       },
       "lossPolicy": {
         "baseParams": {
-          "addr": "0x3065D518beA2D438Dc0AB185A4aa30Dd151Aa34E",
+          "addr": "0x4b5be11d9eC4208571135f245ee498DE0eAFea1f",
           "version": {
             "__type": "bigint",
             "__value": "310"
@@ -2135,7 +2138,7 @@
           "decimals": 6
         },
         {
-          "addr": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+          "addr": "0xe4a38b653B2580C9D72a50F190Ddd6E2d2D2a412",
           "symbol": "srpACRED_USDC",
           "name": "Securitize pending redemption Apollo Diversified Credit Securitize Fund to USD Coin",
           "decimals": 6
@@ -2147,7 +2150,7 @@
           "decimals": 6
         },
         {
-          "addr": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+          "addr": "0x6F18060A53eaeaAd6fb02df908153735554e520E",
           "symbol": "srpSTAC_USDC",
           "name": "Securitize pending redemption Securitize Tokenized AAA CLO Fund to USD Coin",
           "decimals": 6
@@ -2157,7 +2160,7 @@
         {
           "creditFacade": {
             "baseParams": {
-              "addr": "0x8136E7fF7941535329e006708043407ec0858454",
+              "addr": "0x35EBA7F9D52a2639CD3172E40f4365FFC8045fc5",
               "version": {
                 "__type": "bigint",
                 "__value": "310"
@@ -2198,7 +2201,7 @@
             "accountFactory": "0x7468A3B984059cbe0DEc077C8C8743654A86e32E",
             "underlying": "0x239223dA253006f9cc5737D315FdeD6F84E8240C",
             "pool": "0x2Fc5541073a30d16F12bcEd1ce98b38aa0F75126",
-            "creditFacade": "0x8136E7fF7941535329e006708043407ec0858454",
+            "creditFacade": "0x35EBA7F9D52a2639CD3172E40f4365FFC8045fc5",
             "creditConfigurator": "0x77c3Ef8684808dbd46bd469f5652A2b4D1DCA2E0",
             "maxEnabledTokens": 2,
             "collateralTokens": [
@@ -2219,7 +2222,7 @@
                 "liquidationThreshold": 9000
               },
               {
-                "token": "0xF126EaCAcf6B14C8985fC195768A55E886Af4208",
+                "token": "0xe4a38b653B2580C9D72a50F190Ddd6E2d2D2a412",
                 "liquidationThreshold": 9000
               }
             ],
@@ -2290,22 +2293,22 @@
             },
             {
               "baseParams": {
-                "addr": "0x8b774ff5Dc94D468677203dE06a9c659f782D4CF",
+                "addr": "0x11Dd82894727b7451f467F15B46Ed903940A496b",
                 "version": {
                   "__type": "bigint",
                   "__value": "311"
                 },
                 "contractType": "0x414441505445523a3a53454355524954495a455f524544454d5054494f4e0000",
-                "serializedParams": "0x000000000000000000000000328bd41b79d23569071dce7573effbb9d046d6400000000000000000000000001299902e066d556da861ca5c9d607aed5faf712c00000000000000000000000017418038ecf73ba4026c4f428547bf099706f27b000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000f126eacacf6b14c8985fc195768a55e886af4208"
+                "serializedParams": "0x000000000000000000000000328bd41b79d23569071dce7573effbb9d046d64000000000000000000000000037968a7f330f455b8757f6021d03e7111cd4de3b00000000000000000000000017418038ecf73ba4026c4f428547bf099706f27b000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000e4a38b653b2580c9d72a50f190ddd6e2d2d2a412"
               },
-              "targetContract": "0x1299902e066d556Da861Ca5c9D607aEd5faF712c"
+              "targetContract": "0x37968A7f330f455B8757F6021d03e7111cd4de3b"
             }
           ]
         },
         {
           "creditFacade": {
             "baseParams": {
-              "addr": "0x3E97b3460D36e3561bBf7134D7b205AAB1bd1Ba4",
+              "addr": "0x0037cae4eB093fF5F8287bBe417dF1E29F80c90a",
               "version": {
                 "__type": "bigint",
                 "__value": "310"
@@ -2346,7 +2349,7 @@
             "accountFactory": "0xc7a7bD979ACf54e1205AeE587B154712B14eE632",
             "underlying": "0x239223dA253006f9cc5737D315FdeD6F84E8240C",
             "pool": "0x2Fc5541073a30d16F12bcEd1ce98b38aa0F75126",
-            "creditFacade": "0x3E97b3460D36e3561bBf7134D7b205AAB1bd1Ba4",
+            "creditFacade": "0x0037cae4eB093fF5F8287bBe417dF1E29F80c90a",
             "creditConfigurator": "0x208C5106534df26de7202d9087f5203c6073A751",
             "maxEnabledTokens": 2,
             "collateralTokens": [
@@ -2367,7 +2370,7 @@
                 "liquidationThreshold": 9000
               },
               {
-                "token": "0xD2f49D24c0F43bec0dc91B1bA42CBc49D1D16CEa",
+                "token": "0x6F18060A53eaeaAd6fb02df908153735554e520E",
                 "liquidationThreshold": 9000
               }
             ],
@@ -2438,15 +2441,15 @@
             },
             {
               "baseParams": {
-                "addr": "0xA6fA6A832Fa89C81Dd37647eeB2e08592f5a1522",
+                "addr": "0xf7ba6B50B5c63cB56FDB87ff6bFF9302DB2BB042",
                 "version": {
                   "__type": "bigint",
                   "__value": "311"
                 },
                 "contractType": "0x414441505445523a3a53454355524954495a455f524544454d5054494f4e0000",
-                "serializedParams": "0x00000000000000000000000038533db7c1cfc46e8a70625c269de286fc4125890000000000000000000000006dbc24d7f878a75fde6bd1ebd5519281b59f26a500000000000000000000000051c2d74017390cbbd30550179a16a1c28f7210fc000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000d2f49d24c0f43bec0dc91b1ba42cbc49d1d16cea"
+                "serializedParams": "0x00000000000000000000000038533db7c1cfc46e8a70625c269de286fc412589000000000000000000000000bc1df300d10c2d15d753cdef70bed5d605d39b6b00000000000000000000000051c2d74017390cbbd30550179a16a1c28f7210fc000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb480000000000000000000000006f18060a53eaeaad6fb02df908153735554e520e"
               },
-              "targetContract": "0x6DBc24d7f878a75fde6bD1ebd5519281B59f26a5"
+              "targetContract": "0xBc1dF300D10C2D15D753cdeF70BEd5d605D39B6B"
             }
           ]
         }
@@ -2537,7 +2540,7 @@
         },
         "asset": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
         "factory": "0xc6f7B95f6fb8394541D9Ac8B0Abc94Bf6E84F703",
-        "extraDetails": "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000008b92e9d511fcf3b9e853a7374420affce87dbc8600000000000000000000000000000000000000000000000000000000000001364f4e5f44454d414e445f4c503a3a4d4f4e4f504f4c495a45440000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000120000000000000000000000000610627d8d01a413bdd9b0a0b60070da7dd1e54ad00000000000000000000000015d34aaf54267db7d7c367839aaf71a00a2c6a650000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000100000000000000000000000099f6be465624f2cdf7fe436697cebd4be7baf56b00000000000000000000000003f919ca79c4e0a3ae48ac330445189156826873000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000000000000000000000000000000000ba43b740000000000000000000000000000000000000000000000000000000002e914b610c"
+        "extraDetails": "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000008b92e9d511fcf3b9e853a7374420affce87dbc8600000000000000000000000000000000000000000000000000000000000001364f4e5f44454d414e445f4c503a3a4d4f4e4f504f4c495a45440000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000120000000000000000000000000610627d8d01a413bdd9b0a0b60070da7dd1e54ad00000000000000000000000015d34aaf54267db7d7c367839aaf71a00a2c6a650000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000100000000000000000000000099f6be465624f2cdf7fe436697cebd4be7baf56b00000000000000000000000003f919ca79c4e0a3ae48ac330445189156826873000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000000000000000000000000000000000ba43b740000000000000000000000000000000000000000000000000000000002e90ef4393"
       },
       {
         "baseParams": {
@@ -2563,7 +2566,7 @@
             "__value": "310"
           },
           "contractType": "0x5257415f464143544f52593a3a53454355524954495a45000000000000000000",
-          "serializedParams": "0x00000000000000000000000015d34aaf54267db7d7c367839aaf71a00a2c6a65000000000000000000000000a2c12568615c7ba89f70c453daddba90a71faf8a00000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000e000000000000000000000000017418038ecf73ba4026c4f428547bf099706f27b000000000000000000000000626b7faee003cfbf8a3ea33b84fcf6cbe3150500000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000010000000000000000000000001299902e066d556da861ca5c9d607aed5faf712c00000000000000000000000051c2d74017390cbbd30550179a16a1c28f7210fc000000000000000000000000cbb8bbd2195a46ccd88393ae6a9a0cdb8d91e810000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000010000000000000000000000006dbc24d7f878a75fde6bd1ebd5519281b59f26a5"
+          "serializedParams": "0x00000000000000000000000015d34aaf54267db7d7c367839aaf71a00a2c6a65000000000000000000000000a2c12568615c7ba89f70c453daddba90a71faf8a00000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000e000000000000000000000000017418038ecf73ba4026c4f428547bf099706f27b000000000000000000000000c533167a3f57badaa0b9a1e1734d31e8e64f5d6f0000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000100000000000000000000000037968a7f330f455b8757f6021d03e7111cd4de3b00000000000000000000000051c2d74017390cbbd30550179a16a1c28f7210fc0000000000000000000000000d216c2cda2443394e183b88c5d85db6cb99c64800000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000001000000000000000000000000bc1df300d10c2d15d753cdef70bed5d605d39b6b"
         },
         "tokens": [
           {
@@ -2583,5 +2586,110 @@
       }
     ]
   ],
-  "plugins": {}
+  "withdrawals": {
+    "withdrawableAssets": {
+      "0x025512D771f778fad99aB30b7A7363E7C8DE078D": [
+        {
+          "creditManager": "0x025512D771f778fad99aB30b7A7363E7C8DE078D",
+          "token": "0x17418038ecF73BA4026c4f428547BF099706F27B",
+          "withdrawalPhantomToken": "0xe4a38b653B2580C9D72a50F190Ddd6E2d2D2a412",
+          "underlying": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "withdrawalLength": {
+            "__type": "bigint",
+            "__value": "7776000"
+          },
+          "maxWithdrawals": {
+            "__type": "bigint",
+            "__value": "10"
+          }
+        }
+      ],
+      "0x4bbF1aAa78858086d88164182fd87f5a774197D4": [
+        {
+          "creditManager": "0x4bbF1aAa78858086d88164182fd87f5a774197D4",
+          "token": "0x51C2d74017390CbBd30550179A16A1c28F7210fc",
+          "withdrawalPhantomToken": "0x6F18060A53eaeaAd6fb02df908153735554e520E",
+          "underlying": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "withdrawalLength": {
+            "__type": "bigint",
+            "__value": "7776000"
+          },
+          "maxWithdrawals": {
+            "__type": "bigint",
+            "__value": "10"
+          }
+        }
+      ],
+      "0x48E2De8258fFFdd200d629eE1543745669E51e7a": [
+        {
+          "creditManager": "0x48E2De8258fFFdd200d629eE1543745669E51e7a",
+          "token": "0x17418038ecF73BA4026c4f428547BF099706F27B",
+          "withdrawalPhantomToken": "0xe4a38b653B2580C9D72a50F190Ddd6E2d2D2a412",
+          "underlying": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "withdrawalLength": {
+            "__type": "bigint",
+            "__value": "7776000"
+          },
+          "maxWithdrawals": {
+            "__type": "bigint",
+            "__value": "10"
+          }
+        }
+      ],
+      "0x108E26961E59B7018e90E677Bb88e049D8a7e9Fb": [
+        {
+          "creditManager": "0x108E26961E59B7018e90E677Bb88e049D8a7e9Fb",
+          "token": "0x51C2d74017390CbBd30550179A16A1c28F7210fc",
+          "withdrawalPhantomToken": "0x6F18060A53eaeaAd6fb02df908153735554e520E",
+          "underlying": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "withdrawalLength": {
+            "__type": "bigint",
+            "__value": "7776000"
+          },
+          "maxWithdrawals": {
+            "__type": "bigint",
+            "__value": "10"
+          }
+        }
+      ],
+      "0x328BD41b79D23569071DcE7573EfFbb9d046D640": [
+        {
+          "creditManager": "0x328BD41b79D23569071DcE7573EfFbb9d046D640",
+          "token": "0x17418038ecF73BA4026c4f428547BF099706F27B",
+          "withdrawalPhantomToken": "0xe4a38b653B2580C9D72a50F190Ddd6E2d2D2a412",
+          "underlying": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "withdrawalLength": {
+            "__type": "bigint",
+            "__value": "7776000"
+          },
+          "maxWithdrawals": {
+            "__type": "bigint",
+            "__value": "10"
+          }
+        }
+      ],
+      "0x38533Db7c1CFC46E8a70625c269dE286FC412589": [
+        {
+          "creditManager": "0x38533Db7c1CFC46E8a70625c269dE286FC412589",
+          "token": "0x51C2d74017390CbBd30550179A16A1c28F7210fc",
+          "withdrawalPhantomToken": "0x6F18060A53eaeaAd6fb02df908153735554e520E",
+          "underlying": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "withdrawalLength": {
+            "__type": "bigint",
+            "__value": "7776000"
+          },
+          "maxWithdrawals": {
+            "__type": "bigint",
+            "__value": "10"
+          }
+        }
+      ]
+    }
+  },
+  "plugins": {
+    "adapters": {
+      "version": 1,
+      "loaded": true
+    }
+  }
 }
