@@ -74,10 +74,85 @@ export const mellowWithdrawalSubcompressorAbi = [
             ],
           },
           { name: "claimableAt", type: "uint256", internalType: "uint256" },
+          { name: "extraData", type: "bytes", internalType: "bytes" },
         ],
       },
     ],
     stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getExternalAccountCurrentWithdrawals",
+    inputs: [
+      { name: "", type: "address", internalType: "address" },
+      { name: "", type: "address", internalType: "address" },
+    ],
+    outputs: [
+      {
+        name: "claimableWithdrawals",
+        type: "tuple[]",
+        internalType: "struct ClaimableWithdrawal[]",
+        components: [
+          { name: "token", type: "address", internalType: "address" },
+          {
+            name: "withdrawalPhantomToken",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "withdrawalTokenSpent",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "outputs",
+            type: "tuple[]",
+            internalType: "struct WithdrawalOutput[]",
+            components: [
+              { name: "token", type: "address", internalType: "address" },
+              { name: "isDelayed", type: "bool", internalType: "bool" },
+              { name: "amount", type: "uint256", internalType: "uint256" },
+            ],
+          },
+          {
+            name: "claimCalls",
+            type: "tuple[]",
+            internalType: "struct MultiCall[]",
+            components: [
+              { name: "target", type: "address", internalType: "address" },
+              { name: "callData", type: "bytes", internalType: "bytes" },
+            ],
+          },
+          { name: "extraData", type: "bytes", internalType: "bytes" },
+        ],
+      },
+      {
+        name: "pendingWithdrawals",
+        type: "tuple[]",
+        internalType: "struct PendingWithdrawal[]",
+        components: [
+          { name: "token", type: "address", internalType: "address" },
+          {
+            name: "withdrawalPhantomToken",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "expectedOutputs",
+            type: "tuple[]",
+            internalType: "struct WithdrawalOutput[]",
+            components: [
+              { name: "token", type: "address", internalType: "address" },
+              { name: "isDelayed", type: "bool", internalType: "bool" },
+              { name: "amount", type: "uint256", internalType: "uint256" },
+            ],
+          },
+          { name: "claimableAt", type: "uint256", internalType: "uint256" },
+          { name: "extraData", type: "bytes", internalType: "bytes" },
+        ],
+      },
+    ],
+    stateMutability: "pure",
   },
   {
     type: "function",
@@ -194,6 +269,15 @@ export const mellowWithdrawalSubcompressorAbi = [
       },
     ],
     stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getWithdrawalStatus",
+    inputs: [{ name: "", type: "address", internalType: "address" }],
+    outputs: [
+      { name: "", type: "uint8", internalType: "enum WithdrawalStatus" },
+    ],
+    stateMutability: "pure",
   },
   {
     type: "function",

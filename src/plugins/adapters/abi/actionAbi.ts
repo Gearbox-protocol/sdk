@@ -9,7 +9,7 @@ import { AdapterType, type VersionedAbi } from "../types.js";
  */
 export const adapterActionSignatures: PartialRecord<
   AdapterType,
-  Record<number, string>
+  Record<number, string | string[]>
 > = {
   [AdapterType.BALANCER_V3_ROUTER]: {
     310: "function setPoolStatusBatch(address[],bool[])",
@@ -77,7 +77,7 @@ export const adapterActionAbi: PartialRecord<AdapterType, VersionedAbi> =
         Object.fromEntries(
           Object.entries(versionedSignature).map(([version, signature]) => [
             version,
-            parseAbi([signature]),
+            parseAbi(Array.isArray(signature) ? signature : [signature]),
           ]),
         ),
       ],
@@ -93,9 +93,17 @@ export const adapterActionSelectors: Record<
 > = Object.fromEntries(
   Object.entries(adapterActionSignatures).flatMap(
     ([adapterType, versionedSignature]) =>
-      Object.entries(versionedSignature).map(([version, signature]) => [
-        toFunctionSelector(signature),
-        { version: +version, signature, adapterType },
-      ]),
+      Object.entries(versionedSignature).map(([version, signature]) => {
+        if (Array.isArray(signature)) {
+          return signature.map(s => [
+            toFunctionSelector(s),
+            { version: +version, signature: s, adapterType },
+          ]);
+        }
+        return [
+          toFunctionSelector(signature),
+          { version: +version, signature, adapterType },
+        ];
+      }),
   ),
 );

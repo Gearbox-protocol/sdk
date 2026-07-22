@@ -1,6 +1,13 @@
 export const iSecuritizeRedemptionGatewayAdapterV311Abi = [
   {
     type: "function",
+    name: "acl",
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "claim",
     inputs: [
       { name: "redeemers", type: "address[]", internalType: "address[]" },
@@ -26,11 +33,11 @@ export const iSecuritizeRedemptionGatewayAdapterV311Abi = [
     type: "function",
     name: "depositPhantomToken",
     inputs: [
-      { name: "token", type: "address", internalType: "address" },
-      { name: "amount", type: "uint256", internalType: "uint256" },
+      { name: "", type: "address", internalType: "address" },
+      { name: "", type: "uint256", internalType: "uint256" },
     ],
     outputs: [{ name: "", type: "bool", internalType: "bool" }],
-    stateMutability: "nonpayable",
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -126,12 +133,20 @@ export const iSecuritizeRedemptionGatewayAdapterV311Abi = [
     type: "function",
     name: "withdrawPhantomToken",
     inputs: [
-      { name: "token", type: "address", internalType: "address" },
-      { name: "amount", type: "uint256", internalType: "uint256" },
+      { name: "", type: "address", internalType: "address" },
+      { name: "", type: "uint256", internalType: "uint256" },
     ],
-    outputs: [{ name: "useSafePrices", type: "bool", internalType: "bool" }],
-    stateMutability: "nonpayable",
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "view",
   },
+  {
+    type: "error",
+    name: "AddressIsNotContractException",
+    inputs: [{ name: "", type: "address", internalType: "address" }],
+  },
+  { type: "error", name: "CallerNotCreditFacadeException", inputs: [] },
   { type: "error", name: "IncorrectStakedPhantomTokenException", inputs: [] },
   { type: "error", name: "InvalidRedemptionGatewayException", inputs: [] },
+  { type: "error", name: "NotImplementedException", inputs: [] },
+  { type: "error", name: "ZeroAddressException", inputs: [] },
 ] as const;

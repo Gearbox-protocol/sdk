@@ -17,7 +17,10 @@ export const withdrawalCompressorAbi = [
   {
     type: "function",
     name: "compressorTypeToCompressor",
-    inputs: [{ name: "", type: "bytes32", internalType: "bytes32" }],
+    inputs: [
+      { name: "", type: "bytes32", internalType: "bytes32" },
+      { name: "", type: "uint256", internalType: "uint256" },
+    ],
     outputs: [{ name: "", type: "address", internalType: "address" }],
     stateMutability: "view",
   },
@@ -33,6 +36,158 @@ export const withdrawalCompressorAbi = [
     name: "getCurrentWithdrawals",
     inputs: [
       { name: "creditAccount", type: "address", internalType: "address" },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "tuple[]",
+        internalType: "struct ClaimableWithdrawal[]",
+        components: [
+          { name: "token", type: "address", internalType: "address" },
+          {
+            name: "withdrawalPhantomToken",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "withdrawalTokenSpent",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "outputs",
+            type: "tuple[]",
+            internalType: "struct WithdrawalOutput[]",
+            components: [
+              { name: "token", type: "address", internalType: "address" },
+              { name: "isDelayed", type: "bool", internalType: "bool" },
+              { name: "amount", type: "uint256", internalType: "uint256" },
+            ],
+          },
+          {
+            name: "claimCalls",
+            type: "tuple[]",
+            internalType: "struct MultiCall[]",
+            components: [
+              { name: "target", type: "address", internalType: "address" },
+              { name: "callData", type: "bytes", internalType: "bytes" },
+            ],
+          },
+          { name: "extraData", type: "bytes", internalType: "bytes" },
+        ],
+      },
+      {
+        name: "",
+        type: "tuple[]",
+        internalType: "struct PendingWithdrawal[]",
+        components: [
+          { name: "token", type: "address", internalType: "address" },
+          {
+            name: "withdrawalPhantomToken",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "expectedOutputs",
+            type: "tuple[]",
+            internalType: "struct WithdrawalOutput[]",
+            components: [
+              { name: "token", type: "address", internalType: "address" },
+              { name: "isDelayed", type: "bool", internalType: "bool" },
+              { name: "amount", type: "uint256", internalType: "uint256" },
+            ],
+          },
+          { name: "claimableAt", type: "uint256", internalType: "uint256" },
+          { name: "extraData", type: "bytes", internalType: "bytes" },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getExternalAccountCurrentWithdrawals",
+    inputs: [
+      {
+        name: "withdrawalTokens",
+        type: "address[]",
+        internalType: "address[]",
+      },
+      { name: "account", type: "address", internalType: "address" },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "tuple[]",
+        internalType: "struct ClaimableWithdrawal[]",
+        components: [
+          { name: "token", type: "address", internalType: "address" },
+          {
+            name: "withdrawalPhantomToken",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "withdrawalTokenSpent",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "outputs",
+            type: "tuple[]",
+            internalType: "struct WithdrawalOutput[]",
+            components: [
+              { name: "token", type: "address", internalType: "address" },
+              { name: "isDelayed", type: "bool", internalType: "bool" },
+              { name: "amount", type: "uint256", internalType: "uint256" },
+            ],
+          },
+          {
+            name: "claimCalls",
+            type: "tuple[]",
+            internalType: "struct MultiCall[]",
+            components: [
+              { name: "target", type: "address", internalType: "address" },
+              { name: "callData", type: "bytes", internalType: "bytes" },
+            ],
+          },
+          { name: "extraData", type: "bytes", internalType: "bytes" },
+        ],
+      },
+      {
+        name: "",
+        type: "tuple[]",
+        internalType: "struct PendingWithdrawal[]",
+        components: [
+          { name: "token", type: "address", internalType: "address" },
+          {
+            name: "withdrawalPhantomToken",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "expectedOutputs",
+            type: "tuple[]",
+            internalType: "struct WithdrawalOutput[]",
+            components: [
+              { name: "token", type: "address", internalType: "address" },
+              { name: "isDelayed", type: "bool", internalType: "bool" },
+              { name: "amount", type: "uint256", internalType: "uint256" },
+            ],
+          },
+          { name: "claimableAt", type: "uint256", internalType: "uint256" },
+          { name: "extraData", type: "bytes", internalType: "bytes" },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getExternalAccountCurrentWithdrawals",
+    inputs: [
+      { name: "withdrawalToken", type: "address", internalType: "address" },
+      { name: "account", type: "address", internalType: "address" },
     ],
     outputs: [
       {
@@ -259,6 +414,26 @@ export const withdrawalCompressorAbi = [
   },
   {
     type: "function",
+    name: "getWithdrawalStatus",
+    inputs: [
+      { name: "redeemers", type: "address[]", internalType: "address[]" },
+    ],
+    outputs: [
+      { name: "", type: "uint8[]", internalType: "enum WithdrawalStatus[]" },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getWithdrawalStatus",
+    inputs: [{ name: "redeemer", type: "address", internalType: "address" }],
+    outputs: [
+      { name: "", type: "uint8", internalType: "enum WithdrawalStatus" },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "owner",
     inputs: [],
     outputs: [{ name: "", type: "address", internalType: "address" }],
@@ -292,6 +467,17 @@ export const withdrawalCompressorAbi = [
   },
   {
     type: "function",
+    name: "setWithdrawableVersionToSpecificCompressorVersion",
+    inputs: [
+      { name: "withdrawableType", type: "bytes32", internalType: "bytes32" },
+      { name: "withdrawableVersion", type: "uint256", internalType: "uint256" },
+      { name: "compressorVersion", type: "uint256", internalType: "uint256" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "transferOwnership",
     inputs: [{ name: "newOwner", type: "address", internalType: "address" }],
     outputs: [],
@@ -309,6 +495,16 @@ export const withdrawalCompressorAbi = [
     name: "withdrawableTypeToCompressorType",
     inputs: [{ name: "", type: "bytes32", internalType: "bytes32" }],
     outputs: [{ name: "", type: "bytes32", internalType: "bytes32" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "withdrawableTypeToSpecificCompressorVersion",
+    inputs: [
+      { name: "", type: "bytes32", internalType: "bytes32" },
+      { name: "", type: "uint256", internalType: "uint256" },
+    ],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },
   {
