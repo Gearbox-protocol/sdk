@@ -1,17 +1,17 @@
 {
-  "creditAccount": "0xdE4B908BE5ca3CFc4885277C6967F01217621259",
-  "creditManager": "0x025512D771f778fad99aB30b7A7363E7C8DE078D",
-  "creditFacade": "0xA36f204ae8a3Ea2E02425960C627771FB180B315",
-  "underlying": "0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D",
-  "owner": "0xe57606Db26B06d40138483F649Fc8e3fD8fE788d",
+  "creditAccount": "0xB218fBD30Bd02250EEE61dB3AC82392dd38517Ea",
+  "creditManager": "0x328BD41b79D23569071DcE7573EfFbb9d046D640",
+  "creditFacade": "0x35EBA7F9D52a2639CD3172E40f4365FFC8045fc5",
+  "underlying": "0x239223dA253006f9cc5737D315FdeD6F84E8240C",
+  "owner": "0xdaA90Df185660C46155E6aD7861789fbecAC7eEE",
   "expirationDate": 0,
   "enabledTokensMask": {
     "__type": "bigint",
-    "__value": "5"
+    "__value": "9"
   },
   "debt": {
     "__type": "bigint",
-    "__value": "88439206296"
+    "__value": "79983614790876999059708"
   },
   "accruedInterest": {
     "__type": "bigint",
@@ -23,28 +23,28 @@
   },
   "totalDebtUSD": {
     "__type": "bigint",
-    "__value": "8842883679906"
+    "__value": "7998942799999"
   },
   "totalValueUSD": {
     "__type": "bigint",
-    "__value": "11054641538746"
+    "__value": "9997549295998"
   },
   "twvUSD": {
     "__type": "bigint",
-    "__value": "9949177384879"
+    "__value": "8997794366398"
   },
   "totalValue": {
     "__type": "bigint",
-    "__value": "110559378474"
+    "__value": "99968227269222072939738"
   },
   "healthFactor": {
     "__type": "bigint",
-    "__value": "1125105536272841702"
+    "__value": "1124872947759937084"
   },
   "success": true,
   "tokens": [
     {
-      "token": "0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D",
+      "token": "0x239223dA253006f9cc5737D315FdeD6F84E8240C",
       "mask": {
         "__type": "bigint",
         "__value": "1"
@@ -63,18 +63,18 @@
       "token": "0x17418038ecF73BA4026c4f428547BF099706F27B",
       "mask": {
         "__type": "bigint",
-        "__value": "4"
+        "__value": "8"
       },
       "balance": {
         "__type": "bigint",
-        "__value": "100009381"
+        "__value": "90446055"
       },
       "quota": {
         "__type": "bigint",
-        "__value": "110549000000"
+        "__value": "99979518488596248820000"
       },
       "success": true
     }
   ],
-  "investor": "0x4D1698eD96Bdf0070AB6C399B340bacD50a78ccc"
+  "investor": "0x695AB745C1A9f9977a5160114886B4C1933B5A03"
 }

@@ -10,23 +10,18 @@
           "isDelayed": false,
           "amount": {
             "__type": "bigint",
-            "__value": "8842883680"
+            "__value": "89974766305"
           }
         }
       ],
       "claimableAt": {
         "__type": "bigint",
-        "__value": "1792455721"
+        "__value": "1792527356"
       },
       "intent": {
-        "type": "WITHDRAW_COLLATERAL",
-        "to": "0x4D1698eD96Bdf0070AB6C399B340bacD50a78ccc",
-        "withdrawToken": "0x17418038ecF73BA4026c4f428547BF099706F27B",
-        "withdrawAmount": {
-          "__type": "bigint",
-          "__value": "2000000"
-        },
-        "creditManager": "0x025512D771f778fad99aB30b7A7363E7C8DE078D"
+        "type": "CLOSE_ACCOUNT",
+        "to": "0x695AB745C1A9f9977a5160114886B4C1933B5A03",
+        "creditManager": "0x328BD41b79D23569071DcE7573EfFbb9d046D640"
       }
     }
   ]

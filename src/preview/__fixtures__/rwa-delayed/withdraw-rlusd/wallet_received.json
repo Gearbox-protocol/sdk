@@ -1,0 +1,16 @@
+{
+  "claim": {
+    "token": "0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD",
+    "amount": {
+      "__type": "bigint",
+      "__value": "1990232925396835183596"
+    }
+  },
+  "close": {
+    "token": "0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD",
+    "amount": {
+      "__type": "bigint",
+      "__value": "17991543922480641207366"
+    }
+  }
+}

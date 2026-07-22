@@ -33,6 +33,8 @@ describe("encodeDelayedIntent/decodeDelayedIntent", () => {
       to: TO,
       withdrawToken: TOKEN,
       withdrawAmount: 123456789012345678901234567890n,
+      sourceToken: TOKEN,
+      debtRepaid: 0n,
     },
     { type: "CLOSE_ACCOUNT", to: TO },
     { type: "ADD_COLLATERAL" },

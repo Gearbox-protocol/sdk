@@ -202,7 +202,7 @@ describe("buildDelayedPreview DECREASE_LEVERAGE", () => {
 });
 
 describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
-  it("withdraws the recorded amount and repays with the rest of the claim", () => {
+  it("withdraws the claim token and repays with the rest of the claim, capped by debtRepaid", () => {
     const account = makeAccount({
       balances: new AssetsMap([{ token: PHANTOM, balance: 1000n }]),
       debt: 500n,
@@ -217,6 +217,8 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
         to: OWNER,
         withdrawToken: USDC,
         withdrawAmount: 300n,
+        sourceToken: WETH,
+        debtRepaid: 600n,
       }),
       convert,
       USDC,
@@ -233,6 +235,70 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
     }
   });
 
+  it("caps the repayment at debtRepaid and keeps the excess as underlying", () => {
+    const account = makeAccount({
+      balances: new AssetsMap([{ token: PHANTOM, balance: 1000n }]),
+      debt: 500n,
+      totalDebt: 600n,
+    });
+    const before = makeAccount({ debt: 500n, totalDebt: 600n });
+    const preview = buildDelayedPreview(
+      account,
+      before,
+      detected({
+        type: "WITHDRAW_COLLATERAL",
+        to: OWNER,
+        withdrawToken: USDC,
+        withdrawAmount: 300n,
+        sourceToken: WETH,
+        // only 200 of the 700 remaining claim goes to debt
+        debtRepaid: 200n,
+      }),
+      convert,
+      USDC,
+    );
+    expect(preview.operation).toBe("AdjustCreditAccount");
+    if (preview.operation === "AdjustCreditAccount") {
+      expect(preview.collateralWithdrawn).toEqual([
+        { token: USDC, balance: 300n },
+      ]);
+      // 200 repays interest/fees (100) then principal (100)
+      expect(preview.debt).toBe(400n);
+      expect(preview.debtChange).toBe(-100n);
+      // 700 swept into underlying, 200 spent on the repayment
+      expect(preview.assets).toEqual([{ token: UNDERLYING, balance: 500n }]);
+    }
+  });
+
+  it("repays nothing when debtRepaid is zero (debt was repaid on start)", () => {
+    const account = makeAccount({
+      balances: new AssetsMap([{ token: PHANTOM, balance: 1000n }]),
+      debt: 500n,
+      totalDebt: 600n,
+    });
+    const before = makeAccount({ debt: 500n, totalDebt: 600n });
+    const preview = buildDelayedPreview(
+      account,
+      before,
+      detected({
+        type: "WITHDRAW_COLLATERAL",
+        to: OWNER,
+        withdrawToken: USDC,
+        withdrawAmount: 300n,
+        sourceToken: WETH,
+        debtRepaid: 0n,
+      }),
+      convert,
+      USDC,
+    );
+    expect(preview.operation).toBe("AdjustCreditAccount");
+    if (preview.operation === "AdjustCreditAccount") {
+      expect(preview.debt).toBe(500n);
+      expect(preview.debtChange).toBe(0n);
+      expect(preview.assets).toEqual([{ token: UNDERLYING, balance: 700n }]);
+    }
+  });
+
   it("caps the withdrawal at the running balance", () => {
     const account = makeAccount({
       balances: new AssetsMap([{ token: PHANTOM, balance: 100n }]),
@@ -245,6 +311,8 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
         to: OWNER,
         withdrawToken: USDC,
         withdrawAmount: 500n,
+        sourceToken: WETH,
+        debtRepaid: 0n,
       }),
       convert,
       USDC,
@@ -259,7 +327,46 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
     }
   });
 
-  it("withdraws a non-claim token from the existing balance and repays with the full claim", () => {
+  it("funds a non-claim withdrawal token from claim proceeds at the oracle rate", () => {
+    // RLUSD-style scenario: the withdrawal token is not on the account,
+    // the claim funds both the withdrawal and the debt repayment
+    const account = makeAccount({
+      balances: new AssetsMap([{ token: PHANTOM, balance: 100_000n }]),
+      debt: 50_000n,
+      totalDebt: 60_000n,
+    });
+    const before = makeAccount({ debt: 50_000n, totalDebt: 60_000n });
+    const preview = buildDelayedPreview(
+      account,
+      before,
+      detected({
+        type: "WITHDRAW_COLLATERAL",
+        to: OWNER,
+        // WETH is worth 2000 USDC: withdrawing 10 WETH costs 20_000 USDC
+        withdrawToken: WETH,
+        withdrawAmount: 10n,
+        sourceToken: WETH,
+        debtRepaid: 60_000n,
+      }),
+      convert,
+      USDC,
+    );
+    expect(preview.operation).toBe("AdjustCreditAccount");
+    if (preview.operation === "AdjustCreditAccount") {
+      expect(preview.collateralWithdrawn).toEqual([
+        { token: WETH, balance: 10n },
+      ]);
+      // 100_000 claimed - 20_000 spent on the withdrawal = 80_000 swept
+      // into the underlying; 60_000 repays the total debt in full
+      expect(preview.debt).toBe(0n);
+      expect(preview.debtChange).toBe(-50_000n);
+      expect(preview.assets).toEqual([{ token: UNDERLYING, balance: 20_000n }]);
+    }
+  });
+
+  it("withdraws a non-claim token from the existing balance first and sweeps the full claim", () => {
+    // ACRED-style scenario: the withdrawal token (the intent's sourceToken)
+    // is already on the account, the claim only repays debt
     const account = makeAccount({
       balances: new AssetsMap([
         { token: PHANTOM, balance: 1000n },
@@ -282,6 +389,8 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
         to: OWNER,
         withdrawToken: WETH,
         withdrawAmount: 30n,
+        sourceToken: WETH,
+        debtRepaid: 600n,
       }),
       convert,
       USDC,
@@ -300,6 +409,47 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
         ]),
       );
       expect(preview.totalValue).toBe(400n + 20n * 2000n);
+    }
+  });
+
+  it("splits the withdrawal between the existing balance and claim proceeds", () => {
+    const account = makeAccount({
+      balances: new AssetsMap([
+        { token: PHANTOM, balance: 10_000n },
+        // covers only 3 of the 5 WETH to withdraw
+        { token: WETH, balance: 3n },
+      ]),
+      debt: 4000n,
+      totalDebt: 5000n,
+    });
+    const before = makeAccount({
+      balances: new AssetsMap([{ token: WETH, balance: 3n }]),
+      debt: 4000n,
+      totalDebt: 5000n,
+    });
+    const preview = buildDelayedPreview(
+      account,
+      before,
+      detected({
+        type: "WITHDRAW_COLLATERAL",
+        to: OWNER,
+        withdrawToken: WETH,
+        withdrawAmount: 5n,
+        sourceToken: WETH,
+        debtRepaid: 5000n,
+      }),
+      convert,
+      USDC,
+    );
+    expect(preview.operation).toBe("AdjustCreditAccount");
+    if (preview.operation === "AdjustCreditAccount") {
+      expect(preview.collateralWithdrawn).toEqual([
+        { token: WETH, balance: 5n },
+      ]);
+      // 2 WETH shortfall costs 4000 of the 10_000 claim; the remaining
+      // 6000 sweeps into the underlying and repays the 5000 total debt
+      expect(preview.debt).toBe(0n);
+      expect(preview.assets).toEqual([{ token: UNDERLYING, balance: 1000n }]);
     }
   });
 });

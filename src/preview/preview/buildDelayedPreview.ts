@@ -1,7 +1,10 @@
 import { type Address, isAddressEqual } from "viem";
 import { BigIntMath } from "../../common-utils/index.js";
 import type { DelayedWithdrawalRequest } from "../../plugins/adapters/index.js";
-import { AssetsMap } from "../../sdk/index.js";
+import {
+  AssetsMap,
+  type DelayedWithdrawCollateralIntent,
+} from "../../sdk/index.js";
 import type { CreditAccountState } from "./CreditAccountState.js";
 import type { DetectedDelayedOperation } from "./detectDelayedOperation.js";
 import {
@@ -20,34 +23,16 @@ export type ConvertFn = (token: Address, to: Address, amount: bigint) => bigint;
 
 /**
  * Builds the best-effort preview of the account state after the detected
- * delayed withdrawal is claimed and its intent (if any) is resumed.
+ * delayed withdrawal is claimed and its intent (if any) is resumed:
+ * the claim itself followed by the intent-specific tail
  *
- * Pure function: reads the post-instant account state, never mutates it and
- * performs no network access. Swaps that the resume flow would route through
- * the router are estimated with the injected oracle conversion; tokens the
- * oracle cannot price contribute nothing and set a non-fatal
- * `ERROR_UNPRICEABLE_TOKEN` error on the preview.
+ * Pure function: the input states are never mutated and no network access is performed.
+ * Swaps are estimated with the injected conversion; tokens it cannot price contribute
+ * nothing and set a non-fatal `ERROR_UNPRICEABLE_TOKEN` error on the
+ * preview.
  *
- * Common claim step (all intents): the phantom token is burned (balance and
- * quota zeroed) and the claim token is credited with the same amount 1:1.
- *
- * Intent-specific resume:
- * - `CLOSE_ACCOUNT`: everything is swapped into the underlying, the debt is
- *   fully repaid and the rest is withdrawn to the user as `receivedToken`
- *   (the unwrapped underlying for RWA markets, converting 1:1 with the
- *   underlying; the underlying itself otherwise).
- * - `DECREASE_LEVERAGE`: the claimed amount is swapped into the underlying
- *   and used to decrease the debt.
- * - `WITHDRAW_COLLATERAL`: the recorded amount of the recorded token is
- *   withdrawn to the user, the rest of the claimed amount decreases the debt.
- * - other intents and `intent: undefined`: claim-only, the post-claim swap
- *   target is not recoverable from the intent.
- *
- * The changes (`debtChange`, `quotasChange`, `assetsChange`) are reported
- * relative to the account state before the whole transaction, not the
- * post-instant-part state: to the user the delayed preview answers "where will
- * the account end up compared to now", so the transient phantom token
- * (minted by the instant part, burned by the claim) nets out to nothing.
+ * The changes (e.g. `debtChange`) are reported relative to the account
+ * state before the whole transaction.
  *
  * @param afterInstant - Account state after the instant part of the
  * transaction.
@@ -79,37 +64,19 @@ export function buildDelayedPreview(
       break;
 
     case "WITHDRAW_COLLATERAL": {
-      // The recorded amount goes to the wallet, the rest of the claimed
-      // amount decreases the debt
-      const withdrawn = BigIntMath.min(
-        intent.withdrawAmount,
-        post.balances.getOrZero(intent.withdrawToken),
-      );
-      if (withdrawn > 0n) {
-        post.balances.dec(intent.withdrawToken, withdrawn);
-        collateralWithdrawn.upsert(intent.withdrawToken, withdrawn);
-      }
-      // When the withdrawn token is the claim token itself, the withdrawn
-      // part already left the claimed amount and cannot repay debt. The
-      // clamp covers withdrawals partially served by a pre-existing balance
-      // of the claim token (withdrawn > claimed)
-      const claimSpentOnWithdrawal = isAddressEqual(
-        intent.withdrawToken,
-        request.claimToken,
-      )
-        ? withdrawn
-        : 0n;
-      repayFromClaim(
+      applyWithdrawCollateral(
         post,
-        request.claimToken,
-        converter.convert,
-        BigIntMath.max(claimed - claimSpentOnWithdrawal, 0n),
+        request,
+        intent,
+        converter,
+        collateralWithdrawn,
       );
       break;
     }
 
     default:
-      // other intents and intent: undefined are claim-only
+      // other intents and intent: undefined are claim-only: the post-claim
+      // swap target is not recoverable from the intent
       break;
   }
 
@@ -166,8 +133,94 @@ function applyClaim(
 }
 
 /**
- * Swaps `amount` of the claim token (capped at the running balance) into
- * the underlying (oracle estimate) and repays the debt with it.
+ * `WITHDRAW_COLLATERAL` operation tail:
+ * after the claim, `withdrawAmount` of `withdrawToken` goes to the
+ * user's wallet and the rest of the claim proceeds repay the debt.
+ *
+ * Tokens involved (Securitize ACRED redemption as the example):
+ * - claim token (`request.claimToken`) - the token the claim pays out;
+ *   redeeming ACRED pays out USDC.
+ * - withdraw token (`intent.withdrawToken`) - the token the user receives
+ *   in the wallet. It can be the claim token itself (withdraw USDC) or a
+ *   different token (withdraw RLUSD, bought with the claimed USDC).
+ * - source token (`intent.sourceToken`) - the token that was sent to
+ *   redemption when the withdrawal was requested (ACRED). The user may also
+ *   withdraw this token: e.g. redeem part of the ACRED position and
+ *   withdraw some of the ACRED still left on the account.
+ *
+ * The preview models the operation tail in three steps:
+ * 1. Take `withdrawAmount` of `withdrawToken` from the account balance.
+ *    This handles the two simple cases: the withdraw token is the claim
+ *    token (the claim just credited it) or the source token (some of it is
+ *    still on the account).
+ * 2. If the account holds less than `withdrawAmount` of `withdrawToken`,
+ *    buy the missing part with the claim-token balance. This happens when
+ *    the withdraw token differs from the claim token: e.g. withdrawing
+ *    RLUSD from a claim that paid out USDC - RLUSD is bought with the
+ *    claimed USDC. If even the whole claim balance cannot cover it, spend
+ *    all of it and withdraw whatever it buys.
+ * 3. Convert the claim tokens still left into the underlying and repay the
+ *    debt with them, but no more than the intent's `debtRepaid` target;
+ *    whatever is not spent on repayment stays on the account as underlying.
+ */
+function applyWithdrawCollateral(
+  post: CreditAccountState,
+  request: DelayedWithdrawalRequest,
+  intent: DelayedWithdrawCollateralIntent,
+  converter: SafeConverter,
+  collateralWithdrawn: AssetsMap,
+): void {
+  const { withdrawToken, withdrawAmount, debtRepaid } = intent;
+  const { claimToken } = request;
+  const sameToken = isAddressEqual(withdrawToken, claimToken);
+
+  // Step 1: take the withdraw token from the account balance first
+  // (withdrawing USDC just credited by the claim, or ACRED still held)
+  const fromBalance = BigIntMath.min(
+    withdrawAmount,
+    post.balances.getOrZero(withdrawToken),
+  );
+  post.balances.dec(withdrawToken, fromBalance);
+  let withdrawn = fromBalance;
+
+  // Step 2: the account holds less than withdrawAmount of the withdraw
+  // token - buy the missing amount with the claim-token balance, e.g.
+  // withdrawing RLUSD bought with the claimed USDC (when the withdraw token
+  // is the claim token itself, step 1 already spent it)
+  const missing = withdrawAmount - fromBalance;
+  if (missing > 0n && !sameToken) {
+    const available = post.balances.getOrZero(claimToken);
+    const cost = converter.convert(withdrawToken, claimToken, missing);
+    if (cost > 0n && cost <= available) {
+      post.balances.dec(claimToken, cost);
+      withdrawn += missing;
+    } else if (available > 0n) {
+      // the whole claim balance is not enough: spend all of it and withdraw
+      // whatever it buys
+      post.balances.dec(claimToken, available);
+      withdrawn += converter.convert(claimToken, withdrawToken, available);
+    }
+  }
+  if (withdrawn > 0n) {
+    collateralWithdrawn.upsert(withdrawToken, withdrawn);
+  }
+
+  // Step 3: convert the claim tokens still left (USDC not spent on the
+  // withdrawal) into the underlying and repay the debt with them, no more
+  // than the intent's debtRepaid target
+  const remaining = post.balances.getOrZero(claimToken);
+  if (remaining > 0n) {
+    const proceeds = converter.convert(claimToken, post.underlying, remaining);
+    post.balances.dec(claimToken, remaining);
+    post.balances.inc(post.underlying, proceeds);
+    post.repay(BigIntMath.min(proceeds, debtRepaid));
+  }
+}
+
+/**
+ * `DECREASE_LEVERAGE` operation tail: swaps `amount` of the claim token
+ * (capped at the running balance) into the underlying and repays the debt
+ * with it.
  */
 function repayFromClaim(
   post: CreditAccountState,
@@ -200,9 +253,9 @@ function totalValueInUnderlying(
 }
 
 /**
- * `CLOSE_ACCOUNT` resume: everything is swapped into the underlying, the
- * debt is repaid in full and the remainder is withdrawn to the user as
- * `receivedToken`.
+ * `CLOSE_ACCOUNT` operation tail: everything is swapped into the
+ * underlying, the debt is repaid in full and the remainder is withdrawn to
+ * the user as `receivedToken`.
  */
 function buildClosePreview(
   post: CreditAccountState,

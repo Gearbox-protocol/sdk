@@ -1,0 +1,34 @@
+{
+  "claimable": [
+    {
+      "token": "0x17418038ecF73BA4026c4f428547BF099706F27B",
+      "withdrawalPhantomToken": "0xe4a38b653B2580C9D72a50F190Ddd6E2d2D2a412",
+      "withdrawalTokenSpent": {
+        "__type": "bigint",
+        "__value": "89974766305"
+      },
+      "outputs": [
+        {
+          "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "isDelayed": false,
+          "amount": {
+            "__type": "bigint",
+            "__value": "89974766305"
+          }
+        }
+      ],
+      "claimCalls": [
+        {
+          "target": "0x11Dd82894727b7451f467F15B46Ed903940A496b",
+          "callData": "0x318d9e5d000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000010000000000000000000000002357765d86324cf3e8a3389c18241a90269abf0d"
+        }
+      ],
+      "intent": {
+        "type": "CLOSE_ACCOUNT",
+        "to": "0x695AB745C1A9f9977a5160114886B4C1933B5A03",
+        "creditManager": "0x328BD41b79D23569071DcE7573EfFbb9d046D640"
+      }
+    }
+  ],
+  "pending": []
+}

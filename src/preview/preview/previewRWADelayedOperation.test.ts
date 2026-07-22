@@ -8,13 +8,13 @@ import {
   type Hex,
   zeroAddress,
 } from "viem";
-import { beforeAll, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { iRedemptionLoggerV310Abi } from "../../abi/iRedemptionLoggerV310.js";
 import { AdaptersPlugin } from "../../plugins/adapters/index.js";
 import {
+  type Asset,
   type CreditAccountData,
   json_parse,
-  MAX_UINT256,
   OnchainSDK,
   type RedemptionLog,
 } from "../../sdk/index.js";
@@ -26,65 +26,160 @@ import type {
   OpenCreditAccountPreview,
 } from "./types.js";
 
-// Integration-style tests for delayed RWA operations: five real transactions
-// executed against the Securitize anvil Mainnet fork (their calldata is
-// inlined below), with credit account snapshots taken between them (see
-// __fixtures__/rwa-delayed). The transactions are built by
-// `scripts/generate-rwa-delayed-fixtures.ts` with a multicall composition
-// identical to what the frontend generates.
+// Integration-style tests for delayed RWA operations: two 5-transaction
+// scenarios executed against the Securitize anvil Mainnet fork by
+// `scripts/generate-rwa-delayed-fixtures.ts`, with credit account snapshots
+// taken between the transactions (see __fixtures__/rwa-delayed). The
+// multicall composition of every transaction is identical to what the
+// frontend generates (verified against manually generated reference
+// transactions by `scripts/compare-rwa-delayed-txs.ts`).
 //
-// Two scenarios on the same market (20 ACRED collateral, 5x leverage):
-// 1. "close":    open -> delayed withdraw-all with CLOSE_ACCOUNT intent ->
-//                claim tx that repays the full debt and empties the account;
-// 2. "withdraw": open -> delayed withdrawal of 2 ACRED with
-//                WITHDRAW_COLLATERAL intent (maintaining leverage) -> claim
-//                tx with the intent's resume tail.
+// Each scenario opens an account with 20k USDC at 5x leverage (buys ACRED),
+// then runs a delayed withdrawal of 2000 units of the withdraw token at
+// fixed leverage (WITHDRAW_COLLATERAL intent -> claim with the resume tail),
+// then a delayed close (CLOSE_ACCOUNT intent -> final claim + close):
+// 1. "withdraw-usdc":  dcUSDC credit manager, withdraws USDC;
+// 2. "withdraw-rlusd": dcRLUSD credit manager, withdraws RLUSD (the claim
+//    proceeds are in USDC and are partially swapped into RLUSD).
 //
 // The SDK state fixture is a `dehydrate` snapshot of the same fork.
 // Regenerate everything with `tsx scripts/generate-rwa-delayed-fixtures.ts`.
 const FIXTURES = resolve(import.meta.dirname, "../__fixtures__");
-const STATE_FIXTURE = resolve(FIXTURES, "Mainnet-25585005-securitize.json");
 
-// Securitize RWA factory and its credit manager, hardcoded from the fixture
-const FACTORY: Address = "0xc6f7B95f6fb8394541D9Ac8B0Abc94Bf6E84F703";
-const CREDIT_MANAGER: Address = "0x025512D771f778fad99aB30b7A7363E7C8DE078D";
-// Securitize DSToken collateral of the market; the market underlying is the
-// ERC4626 vault 0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D (asset: USDC)
+// Securitize DSToken collateral of both markets
 const ACRED: Address = "0x17418038ecF73BA4026c4f428547BF099706F27B";
-const dcUSDC: Address = "0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D";
-// Unwrapped underlying (the asset of the dcUSDC vault)
 const USDC: Address = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
-// Delayed-withdrawal phantom token of the redemption gateway (srpACRED_USDC)
+const RLUSD: Address = "0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD";
+// Delayed-withdrawal phantom token of the redemption gateway (srpACRED_USDC),
+// shared by both markets
 const PHANTOM: Address = "0xe4a38b653B2580C9D72a50F190Ddd6E2d2D2a412";
-// Investor EOA behind both RWA accounts (also the tx sender)
-const INVESTOR: Address = "0x4D1698eD96Bdf0070AB6C399B340bacD50a78ccc";
 
-const CLOSE_ACCOUNT: Address = "0x82900e2Ab20B6F60C159F1A141A6f2d3D810C4fA";
-const WITHDRAW_ACCOUNT: Address = "0xdE4B908BE5ca3CFc4885277C6967F01217621259";
+const STATE_FIXTURE = resolve(FIXTURES, "Mainnet-25590929-securitize.json");
 
-let sdk: OnchainSDK<{ adapters: AdaptersPlugin }>;
+interface ScenarioSpec {
+  name: "withdraw-usdc" | "withdraw-rlusd";
+  /**
+   * Token withdrawn to the wallet by the WITHDRAW_COLLATERAL flow, and
+   * received by the wallet when the account is closed
+   */
+  withdrawToken: Address;
+  /**
+   * 2000 units of `withdrawToken`
+   */
+  withdrawAmount: bigint;
+}
+
+const SCENARIOS: ScenarioSpec[] = [
+  { name: "withdraw-usdc", withdrawToken: USDC, withdrawAmount: 2000_000000n },
+  {
+    name: "withdraw-rlusd",
+    withdrawToken: RLUSD,
+    withdrawAmount: 2000_000000000000000000n,
+  },
+];
+
+interface SavedTx {
+  to: Address;
+  calldata: Hex;
+}
+
+interface SavedTxs {
+  open: SavedTx;
+  request: SavedTx;
+  claim: SavedTx;
+  closeRequest: SavedTx;
+  close: SavedTx;
+}
+
+interface WalletReceivedEntry {
+  token: Address;
+  amount: bigint;
+}
+
+interface WalletReceived {
+  claim: WalletReceivedEntry;
+  close: WalletReceivedEntry;
+}
 
 /**
- * Redemption logs snapshotted from the fork after each withdrawal request
- * (`redemption_log.json`), keyed by lowercased redeemer address. Claim
- * previews read the recorded `DelayedIntent` from the `RedemptionLogger`
- * contract, so the offline transport serves these snapshots instead.
+ * All fixtures of one scenario, loaded from
+ * `__fixtures__/rwa-delayed/{scenario}`.
+ */
+interface ScenarioFixtures {
+  txs: SavedTxs;
+  afterOpen: CreditAccountData<true>;
+  afterRequest: CreditAccountData<true>;
+  afterClaim: CreditAccountData<true>;
+  afterCloseRequest: CreditAccountData<true>;
+  afterClose: CreditAccountData<true>;
+  /**
+   * Investor wallet balance deltas of the withdrawn asset across the claim
+   * (tx 3) and close (tx 5) transactions
+   */
+  walletReceived: WalletReceived;
+  redemptionLogs: RedemptionLog[];
+}
+
+function readScenarioJson<T>(scenario: string, file: string): T {
+  return json_parse(
+    readFileSync(resolve(FIXTURES, "rwa-delayed", scenario, file), "utf-8"),
+  ) as T;
+}
+
+function loadScenario(scenario: string): ScenarioFixtures {
+  return {
+    txs: readScenarioJson<SavedTxs>(scenario, "txs.json"),
+    afterOpen: readScenarioJson<CreditAccountData<true>>(
+      scenario,
+      "after_open.json",
+    ),
+    afterRequest: readScenarioJson<CreditAccountData<true>>(
+      scenario,
+      "after_request.json",
+    ),
+    afterClaim: readScenarioJson<CreditAccountData<true>>(
+      scenario,
+      "after_claim.json",
+    ),
+    afterCloseRequest: readScenarioJson<CreditAccountData<true>>(
+      scenario,
+      "after_close_request.json",
+    ),
+    afterClose: readScenarioJson<CreditAccountData<true>>(
+      scenario,
+      "after_close.json",
+    ),
+    walletReceived: readScenarioJson<WalletReceived>(
+      scenario,
+      "wallet_received.json",
+    ),
+    redemptionLogs: [
+      readScenarioJson<RedemptionLog>(scenario, "redemption_log_withdraw.json"),
+      readScenarioJson<RedemptionLog>(scenario, "redemption_log_close.json"),
+    ],
+  };
+}
+
+const FIXTURES_BY_SCENARIO: Record<string, ScenarioFixtures> =
+  Object.fromEntries(SCENARIOS.map(s => [s.name, loadScenario(s.name)]));
+
+/**
+ * Redemption logs snapshotted from the fork after each withdrawal request,
+ * keyed by lowercased redeemer address. Claim previews read the recorded
+ * `DelayedIntent` from the `RedemptionLogger` contract, so the offline
+ * transport serves these snapshots instead.
  */
 const REDEMPTION_LOGS: Record<string, RedemptionLog> = Object.fromEntries(
-  ["close", "withdraw"].map(scenario => {
-    const log = json_parse(
-      readFileSync(
-        resolve(FIXTURES, "rwa-delayed", scenario, "redemption_log.json"),
-        "utf-8",
-      ),
-    ) as RedemptionLog;
-    return [log.redeemer.toLowerCase(), log];
-  }),
+  Object.values(FIXTURES_BY_SCENARIO)
+    .flatMap(f => f.redemptionLogs)
+    .map(log => [log.redeemer.toLowerCase(), log]),
 );
 
 interface EthCallParams {
   data?: Hex;
 }
+
+let sdk: OnchainSDK<{ adapters: AdaptersPlugin }>;
 
 beforeAll(() => {
   // The preview must run fully offline: the only allowed RPC request is the
@@ -130,340 +225,277 @@ beforeAll(() => {
   sdk.hydrate(json_parse(readFileSync(STATE_FIXTURE, "utf-8")));
 });
 
-// Raw calldata of the five transactions, all targeting the RWA factory.
-// Prepared by the frontend against the fork; kept verbatim.
-
-/** Scenario 1, step 1: `openCreditAccount` with 20 ACRED at 5x leverage */
-const OPEN_TX: Hex =
-  "0x9cc9984d000000000000000000000000025512d771f778fad99ab30b7a7363e7c8de078d000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000006a000000000000000000000000000000000000000000000000000000000000006e0000000000000000000000000000000000000000000000000000000000000000700000000000000000000000000000000000000000000000000000000000000e000000000000000000000000000000000000000000000000000000000000001800000000000000000000000000000000000000000000000000000000000000240000000000000000000000000000000000000000000000000000000000000034000000000000000000000000000000000000000000000000000000000000003e000000000000000000000000000000000000000000000000000000000000004a00000000000000000000000000000000000000000000000000000000000000520000000000000000000000000a36f204ae8a3ea2e02425960c627771fb180b315000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000242b7c7b11000000000000000000000000000000000000000000000000000000149763319800000000000000000000000000000000000000000000000000000000000000000000000000000000a36f204ae8a3ea2e02425960c627771fb180b315000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000446d75b9ee00000000000000000000000017418038ecf73ba4026c4f428547bf099706f27b0000000000000000000000000000000000000000000000000000000001312d0000000000000000000000000000000000000000000000000000000000000000000000000000000000a36f204ae8a3ea2e02425960c627771fb180b315000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000842f2ca49b0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000100000000000000000000000017418038ecf73ba4026c4f428547bf099706f27b0000000000000000000000000000000000000000000000000000000004bebdf60000000000000000000000000000000000000000000000000000000000000000000000000000000004ac894088fdd6fd622d9fe7c39192bafaea15db000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000240acb320200000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000051182e7f0fa35e669f49c40007020fb369344f12000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000448375a4760000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a36f204ae8a3ea2e02425960c627771fb180b31500000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000004f42aeb0000000000000000000000000000000000000000000000000000000000000000000000000000000000a36f204ae8a3ea2e02425960c627771fb180b31500000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000064712c10ad00000000000000000000000017418038ecf73ba4026c4f428547bf099706f27b00000000000000000000000000000000000000000000000000000019bd3bdf4000000000000000000000000000000000000000000000000000000019bd3bdf4000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000017418038ecf73ba4026c4f428547bf099706f27b0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000002000000000000000000000000017418038ecf73ba4026c4f428547bf099706f27b0000000000000000000000000000000000000000000000000000000000000040ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000417bdbe134cc72409e2d32f92513e7a21fb5e8c0ae741f892ad2e966329b2a19bc53f6e87359b761f60ad559c80270bf765ff3d17f6089d899a2b7da1e6ae27c001b00000000000000000000000000000000000000000000000000000000000000";
-
-/** Scenario 1, step 2: delayed withdraw-all with CLOSE_ACCOUNT intent */
-const CLOSE_TX: Hex =
-  "0xd7fbed4f00000000000000000000000082900e2ab20b6f60c159f1a141a6f2d3d810c4fa000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000620000000000000000000000000000000000000000000000000000000000000000500000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000001e0000000000000000000000000000000000000000000000000000000000000032000000000000000000000000000000000000000000000000000000000000003a00000000000000000000000000000000000000000000000000000000000000480000000000000000000000000a36f204ae8a3ea2e02425960c627771fb180b315000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000c42f2ca49b00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000002000000000000000000000000e4a38b653b2580c9d72a50f190ddd6e2d2d2a41200000000000000000000000000000000000000000000000000000019bd146f1000000000000000000000000017418038ecf73ba4026c4f428547bf099706f27bfffffffffffffffffffffffffffffffffffffffffffffffffffffffffa09fa5b000000000000000000000000000000000000000000000000000000000000000000000000000000006a589123a24e2792311abcf4c84aba2fb9cc5ef2000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000c4e77c646d0000000000000000000000000000000000000000000000000000000005f605a500000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000050000000000000000000000004d1698ed96bdf0070ab6c399b340bacd50a78ccc00000000000000000000000000000000000000000000000000000000000000000000000000000000a36f204ae8a3ea2e02425960c627771fb180b31500000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000004f42aeb0000000000000000000000000000000000000000000000000000000000000000000000000000000000a36f204ae8a3ea2e02425960c627771fb180b31500000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000064712c10ad000000000000000000000000e4a38b653b2580c9d72a50f190ddd6e2d2d2a412000000000000000000000000000000000000000000000000000000172a2bee90000000000000000000000000000000000000000000000000000000172a2bee9000000000000000000000000000000000000000000000000000000000000000000000000000000000a36f204ae8a3ea2e02425960c627771fb180b31500000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000064712c10ad00000000000000000000000017418038ecf73ba4026c4f428547bf099706f27bffffffffffffffffffffffffffffffffffffffff80000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-
-/** Scenario 1, step 3: claim + full debt repay + withdraw-all */
-const CLOSE_CLAIM_TX: Hex =
-  "0xd7fbed4f00000000000000000000000082900e2ab20b6f60c159f1a141a6f2d3d810c4fa000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000007400000000000000000000000000000000000000000000000000000000000000760000000000000000000000000000000000000000000000000000000000000000700000000000000000000000000000000000000000000000000000000000000e00000000000000000000000000000000000000000000000000000000000000220000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000000003800000000000000000000000000000000000000000000000000000000000000440000000000000000000000000000000000000000000000000000000000000052000000000000000000000000000000000000000000000000000000000000005c0000000000000000000000000a36f204ae8a3ea2e02425960c627771fb180b315000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000c42f2ca49b00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000002000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000000000000000000000000000000000019bd146f10000000000000000000000000e4a38b653b2580c9d72a50f190ddd6e2d2d2a412ffffffffffffffffffffffffffffffffffffffffffffffffffffffe642eb90e6000000000000000000000000000000000000000000000000000000000000000000000000000000006a589123a24e2792311abcf4c84aba2fb9cc5ef200000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000064318d9e5d0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000100000000000000000000000055f5aae4d9bdb4a1ef03c89f9acfa99cbe6edcd500000000000000000000000000000000000000000000000000000000000000000000000000000000a36f204ae8a3ea2e02425960c627771fb180b31500000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000004f42aeb000000000000000000000000000000000000000000000000000000000000000000000000000000000004ac894088fdd6fd622d9fe7c39192bafaea15db000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000446e553f6500000000000000000000000000000000000000000000000000000019bd146f1a000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a36f204ae8a3ea2e02425960c627771fb180b31500000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000064712c10ad000000000000000000000000e4a38b653b2580c9d72a50f190ddd6e2d2d2a412ffffffffffffffffffffffffffffffffffffffff800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a36f204ae8a3ea2e02425960c627771fb180b315000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000242a7ba1f7ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000a36f204ae8a3ea2e02425960c627771fb180b315000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000641f1088a000000000000000000000000050a9c808cd114e8fea72f03ae2b1a8825677d56dffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000000000000000004d1698ed96bdf0070ab6c399b340bacd50a78ccc0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-
-/** Scenario 2, step 2: delayed withdrawal of 2 ACRED, maintaining leverage */
-const WITHDRAW_TX: Hex =
-  "0xd7fbed4f000000000000000000000000de4b908be5ca3cfc4885277c6967f01217621259000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000006400000000000000000000000000000000000000000000000000000000000000660000000000000000000000000000000000000000000000000000000000000000500000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000001e0000000000000000000000000000000000000000000000000000000000000036000000000000000000000000000000000000000000000000000000000000003e000000000000000000000000000000000000000000000000000000000000004c0000000000000000000000000a36f204ae8a3ea2e02425960c627771fb180b315000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000c42f2ca49b00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000002000000000000000000000000e4a38b653b2580c9d72a50f190ddd6e2d2d2a412000000000000000000000000000000000000000000000000000000020f13b25600000000000000000000000017418038ecf73ba4026c4f428547bf099706f27bffffffffffffffffffffffffffffffffffffffffffffffffffffffffff85ee00000000000000000000000000000000000000000000000000000000000000000000000000000000006a589123a24e2792311abcf4c84aba2fb9cc5ef200000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000104e77c646d00000000000000000000000000000000000000000000000000000000007a1200000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000040000000000000000000000004d1698ed96bdf0070ab6c399b340bacd50a78ccc00000000000000000000000017418038ecf73ba4026c4f428547bf099706f27b00000000000000000000000000000000000000000000000000000000001e848000000000000000000000000000000000000000000000000000000000000000000000000000000000a36f204ae8a3ea2e02425960c627771fb180b31500000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000004f42aeb0000000000000000000000000000000000000000000000000000000000000000000000000000000000a36f204ae8a3ea2e02425960c627771fb180b31500000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000064712c10ad000000000000000000000000e4a38b653b2580c9d72a50f190ddd6e2d2d2a41200000000000000000000000000000000000000000000000000000001da5e723000000000000000000000000000000000000000000000000000000001da5e723000000000000000000000000000000000000000000000000000000000000000000000000000000000a36f204ae8a3ea2e02425960c627771fb180b31500000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000064712c10ad00000000000000000000000017418038ecf73ba4026c4f428547bf099706f27bfffffffffffffffffffffffffffffffffffffffffffffffffffffffdf0dc7b0b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-
-/** Scenario 2, step 3: claim with the WITHDRAW_COLLATERAL resume tail */
-const WITHDRAW_CLAIM_TX: Hex =
-  "0xd7fbed4f000000000000000000000000de4b908be5ca3cfc4885277c6967f01217621259000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000008400000000000000000000000000000000000000000000000000000000000000860000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000240000000000000000000000000000000000000000000000000000000000000032000000000000000000000000000000000000000000000000000000000000003a00000000000000000000000000000000000000000000000000000000000000460000000000000000000000000000000000000000000000000000000000000050000000000000000000000000000000000000000000000000000000000000005e000000000000000000000000000000000000000000000000000000000000006c0000000000000000000000000a36f204ae8a3ea2e02425960c627771fb180b315000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000c42f2ca49b00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000002000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000000000000000000000000000000000020f13b256000000000000000000000000e4a38b653b2580c9d72a50f190ddd6e2d2d2a412fffffffffffffffffffffffffffffffffffffffffffffffffffffffdf0ec4da0000000000000000000000000000000000000000000000000000000000000000000000000000000006a589123a24e2792311abcf4c84aba2fb9cc5ef200000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000064318d9e5d00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000001000000000000000000000000a7d0dd0e2b71484750e4ce929c871e2831618fe200000000000000000000000000000000000000000000000000000000000000000000000000000000a36f204ae8a3ea2e02425960c627771fb180b31500000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000004f42aeb000000000000000000000000000000000000000000000000000000000000000000000000000000000004ac894088fdd6fd622d9fe7c39192bafaea15db000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000446e553f65000000000000000000000000000000000000000000000000000000020f13b260000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a36f204ae8a3ea2e02425960c627771fb180b315000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000242a7ba1f7000000000000000000000000000000000000000000000000000000020f13b26000000000000000000000000000000000000000000000000000000000000000000000000000000000a36f204ae8a3ea2e02425960c627771fb180b315000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000641f1088a000000000000000000000000017418038ecf73ba4026c4f428547bf099706f27b00000000000000000000000000000000000000000000000000000000001e84800000000000000000000000004d1698ed96bdf0070ab6c399b340bacd50a78ccc00000000000000000000000000000000000000000000000000000000000000000000000000000000a36f204ae8a3ea2e02425960c627771fb180b31500000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000064712c10ad00000000000000000000000017418038ecf73ba4026c4f428547bf099706f27bffffffffffffffffffffffffffffffffffffffffffffffffffffffff7c371f60000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a36f204ae8a3ea2e02425960c627771fb180b31500000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000064712c10ad000000000000000000000000e4a38b653b2580c9d72a50f190ddd6e2d2d2a412ffffffffffffffffffffffffffffffffffffffff80000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-
-/**
- * Reads a `json_stringify`-serialized credit account snapshot taken from the
- * fork between the transactions.
- */
-function readAccountSnapshot(rel: string): CreditAccountData {
-  return json_parse(
-    readFileSync(resolve(FIXTURES, "rwa-delayed", rel), "utf-8"),
-  ) as CreditAccountData;
+function findBalance(ca: CreditAccountData, token: Address): bigint {
+  return ca.tokens.find(t => t.token === token)?.balance ?? 0n;
 }
 
-// Scenario 1, step 1: open with 20 ACRED collateral and 5x leverage.
-// Borrows 88439.206296 vault shares, buys ~80 ACRED with them via the onramp
-// adapter and quotes the total ~100 ACRED position.
-it("previews RWA account opening with 20 ACRED collateral at 5x leverage", async () => {
-  const preview = (await previewOperation({
-    sdk,
-    to: FACTORY,
-    calldata: OPEN_TX,
-    sender: INVESTOR,
-    value: 0n,
-  })) as unknown as OpenCreditAccountPreview;
+function findQuota(ca: CreditAccountData, token: Address): bigint {
+  return ca.tokens.find(t => t.token === token)?.quota ?? 0n;
+}
 
-  expect(preview).toEqual({
-    operation: "RWAOpenCreditAccount",
-    creditManager: CREDIT_MANAGER,
-    debt: 88_439_206_296n,
-    collateral: [{ token: ACRED, balance: 20_000_000n }],
-    collateralValue: 22109801574n,
-    quotas: [{ token: ACRED, balance: 110_549_000_000n }],
-    target: { token: ACRED, balance: 99_609_334n },
-    // Minimum guaranteed position: 20 ACRED collateral + 79.609334 ACRED
-    // bought from the borrowed funds (storeExpectedBalances delta)
-    assets: [{ token: ACRED, balance: 99_609_334n }],
+function findAsset(assets: Asset[], token: Address): bigint {
+  return assets.find(a => a.token === token)?.balance ?? 0n;
+}
+
+/**
+ * Asserts that `actual` deviates from the oracle-estimated `predicted` value
+ * by at most `bps` basis points: previews estimate router swaps with oracle
+ * conversions, real swaps add slippage and fees.
+ */
+function expectWithinBps(actual: bigint, predicted: bigint, bps = 100n): void {
+  const diff = actual >= predicted ? actual - predicted : predicted - actual;
+  expect(diff * 10_000n).toBeLessThanOrEqual(predicted * bps);
+}
+
+describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
+  const fx = () => FIXTURES_BY_SCENARIO[spec.name];
+  // RWA accounts are owned by a per-account proxy vault: the actual EOA
+  // behind the account (the tx sender and the intents' `to`) is `investor`
+  const investor = (): Address => {
+    const address = fx().afterOpen.investor;
+    if (!address) {
+      throw new Error("expected an investor on the RWA account snapshot");
+    }
+    return address;
+  };
+
+  // Tx 1: open with 20k USDC collateral at 5x leverage; the router swaps
+  // the collateral and the borrowed vault shares into ACRED.
+  it("previews the account opening with 20k USDC at 5x leverage", async () => {
+    const { txs, afterOpen } = fx();
+    const preview = (await previewOperation({
+      sdk,
+      to: txs.open.to,
+      calldata: txs.open.calldata,
+      sender: investor(),
+      value: 0n,
+    })) as OpenCreditAccountPreview;
+
+    expect(preview.operation).toBe("RWAOpenCreditAccount");
+    expect(preview.creditManager).toBe(afterOpen.creditManager);
+    expect(preview.collateral).toEqual([
+      { token: USDC, balance: 20_000_000000n },
+    ]);
+    const target = preview.target;
+    if (!target) {
+      throw new Error("expected a target asset on the open preview");
+    }
+    expect(target.token).toBe(ACRED);
+
+    // The min guaranteed ACRED position must not exceed the actual on-chain
+    // result, and must be within slippage of it
+    const actualAcred = findBalance(afterOpen, ACRED);
+    expect(actualAcred).toBeGreaterThanOrEqual(target.balance);
+    expectWithinBps(actualAcred, target.balance);
   });
 
-  // The min guaranteed amount must not exceed the actual on-chain result
-  const afterOpen = readAccountSnapshot("close/after_open.json");
-  const actualAcred = afterOpen.tokens.find(t => t.token === ACRED);
-  expect(actualAcred?.balance).toBeGreaterThanOrEqual(
-    preview.assets[0].balance,
-  );
-});
+  // Tx 2: delayed withdrawal request carrying the WITHDRAW_COLLATERAL
+  // intent: enough ACRED to fund the withdrawal plus the leverage-keeping
+  // debt repayment is sent to redemption (phantom token minted), debt is
+  // untouched until the withdrawal is claimed.
+  it("previews the delayed withdrawal request and its resume", async () => {
+    const { txs, afterOpen, afterRequest, afterClaim, walletReceived } = fx();
+    const preview = (await previewOperation(
+      {
+        sdk,
+        to: txs.request.to,
+        calldata: txs.request.calldata,
+        sender: investor(),
+        value: 0n,
+      },
+      { creditAccount: afterOpen },
+    )) as DelayedCreditAccountOperationPreview;
 
-// Scenario 1, step 2: delayed withdraw-all with the intent to close the
-// account. The whole ACRED position is sent to redemption (phantom token
-// minted), debt is untouched until the withdrawal is claimed.
-it("previews a delayed withdraw-all with CLOSE_ACCOUNT intent", async () => {
-  const creditAccount = readAccountSnapshot("close/after_open.json");
+    expect(preview.operation).toBe("DelayedCreditAccountOperation");
+    expect(preview.creditAccount).toBe(afterOpen.creditAccount);
+    expect(preview.creditManager).toBe(afterOpen.creditManager);
 
-  const preview = (await previewOperation(
-    {
-      sdk,
-      to: FACTORY,
-      calldata: CLOSE_TX,
-      sender: INVESTOR,
-      value: 0n,
-    },
-    { creditAccount },
-  )) as unknown as DelayedCreditAccountOperationPreview;
-
-  expect(preview).toEqual({
-    operation: "DelayedCreditAccountOperation",
-    creditAccount: CLOSE_ACCOUNT,
-    creditManager: CREDIT_MANAGER,
-    intent: { type: "CLOSE_ACCOUNT", to: INVESTOR },
-    instantPreview: {
-      operation: "AdjustCreditAccount",
-      creditAccount: CLOSE_ACCOUNT,
-      creditManager: CREDIT_MANAGER,
-      collateralAdded: [],
-      collateralWithdrawn: [],
-      // Debt is not touched by the request transaction
-      debt: 88_439_206_296n,
-      debtChange: 0n,
-      // The whole ACRED position turns into the redemption phantom token
-      quotas: [{ token: PHANTOM, balance: 99_491_770_000n }],
-      quotasChange: [
-        { token: ACRED, balance: -110_549_000_000n },
-        { token: PHANTOM, balance: 99_491_770_000n },
-      ],
-      assets: [{ token: PHANTOM, balance: 110_546_415_376n }],
-      assetsChange: [
-        { token: ACRED, balance: -100_009_381n },
-        { token: PHANTOM, balance: 110_546_415_376n },
-      ],
-      totalValue: 110546415376n,
-    },
-    delayedPreview: {
-      operation: "CloseCreditAccount",
-      permanent: false,
-      creditAccount: CLOSE_ACCOUNT,
-      creditManager: CREDIT_MANAGER,
-      // denominated in the unwrapped underlying: the close resume unwraps
-      // dcUSDC into USDC (1:1) before withdrawing it to the user
-      receivedAmount: { token: USDC, balance: 22_107_209_080n }, // ~ 20 ACRED
-    },
-  });
-
-  const delayed = preview as DelayedCreditAccountOperationPreview;
-  const instant = delayed.instantPreview as AdjustCreditAccountPreview;
-  expect(instant.error).toBeUndefined();
-
-  // Cross-check against the actual on-chain state after the request tx: the
-  // phantom quota matches exactly, the phantom balance is a min guarantee
-  // (10 units of dust below the actual redemption amount)
-  const afterClose = readAccountSnapshot("close/after_close.json");
-  const actualPhantom = afterClose.tokens.find(t => t.token === PHANTOM);
-  expect(actualPhantom?.balance).toBeGreaterThanOrEqual(
-    (preview.instantPreview as AdjustCreditAccountPreview).assets[0].balance,
-  );
-  expect(actualPhantom?.quota).toBe(
-    (preview.instantPreview as AdjustCreditAccountPreview).quotas[0].balance,
-  );
-});
-
-// Scenario 1, steps 3-4: the pending withdrawal was made claimable and the
-// claim tx was sent. It claims USDC for the phantom token, deposits it into
-// the vault, repays the entire debt (decreaseDebt MAX) and withdraws all
-// remaining underlying: the account ends up with zero debt and empty.
-it("previews the claim tx of a CLOSE_ACCOUNT intent as a full closure", async () => {
-  const creditAccount = readAccountSnapshot("close/after_close.json");
-
-  const preview = (await previewOperation(
-    {
-      sdk,
-      to: FACTORY,
-      calldata: CLOSE_CLAIM_TX,
-      sender: INVESTOR,
-      value: 0n,
-    },
-    { creditAccount },
-  )) as CloseCreditAccountPreview;
-
-  // decreaseDebt(MAX) + withdrawCollateral(underlying, MAX) and no new
-  // withdrawal request: a zero-debt closure (account stays open but empty)
-  expect(preview).toEqual({
-    operation: "CloseCreditAccount",
-    permanent: false,
-    creditAccount: CLOSE_ACCOUNT,
-    creditManager: CREDIT_MANAGER,
-    // the intent recorded by the request tx, read from the redemption logger
-    intent: { type: "CLOSE_ACCOUNT", to: INVESTOR },
-    receivedAmount: { token: dcUSDC, balance: 22_107_207_065n }, // ~ 20 ACRED
-  });
-});
-
-// Scenario 2, step 2: delayed withdrawal of 2 ACRED while maintaining
-// leverage: 8 ACRED go to redemption, 2 ACRED of the claimed value will be
-// withdrawn to the wallet and the rest will repay debt.
-it("previews a delayed 2 ACRED withdrawal with WITHDRAW_COLLATERAL intent", async () => {
-  const creditAccount = readAccountSnapshot("withdraw/after_open.json");
-
-  const preview = (await previewOperation(
-    {
-      sdk,
-      to: FACTORY,
-      calldata: WITHDRAW_TX,
-      sender: INVESTOR,
-      value: 0n,
-    },
-    { creditAccount },
-  )) as DelayedCreditAccountOperationPreview;
-
-  expect(preview).toEqual({
-    operation: "DelayedCreditAccountOperation",
-    creditAccount: WITHDRAW_ACCOUNT,
-    creditManager: CREDIT_MANAGER,
-    intent: {
+    // The decoded intent carries the new sourceToken/debtRepaid fields
+    expect(preview.intent).toMatchObject({
       type: "WITHDRAW_COLLATERAL",
-      to: INVESTOR,
-      withdrawToken: ACRED,
-      withdrawAmount: 2_000_000n,
-    },
-    instantPreview: {
-      operation: "AdjustCreditAccount",
-      creditAccount: WITHDRAW_ACCOUNT,
-      creditManager: CREDIT_MANAGER,
-      collateralAdded: [],
-      collateralWithdrawn: [],
-      debt: 88_439_206_296n,
-      debtChange: 0n,
-      quotas: [
-        { token: ACRED, balance: 101_705_079_371n },
-        { token: PHANTOM, balance: 7_958_590_000n },
-      ],
-      quotasChange: [
-        { token: ACRED, balance: -8_843_920_629n },
-        { token: PHANTOM, balance: 7_958_590_000n },
-      ],
-      // 8 ACRED sent to redemption for 8842.883670 srpACRED_USDC
-      assets: [
-        { token: ACRED, balance: 92_009_381n },
-        { token: PHANTOM, balance: 8_842_883_670n },
-      ],
-      assetsChange: [
-        { token: ACRED, balance: -8_000_000n },
-        { token: PHANTOM, balance: 8_842_883_670n },
-      ],
-      totalValue: 110558341513n,
-    },
-    delayedPreview: {
-      operation: "AdjustCreditAccount",
-      creditAccount: WITHDRAW_ACCOUNT,
-      creditManager: CREDIT_MANAGER,
-      debt: 79596322626n,
-      debtChange: -8842883670n,
-      // 2 ACRED go to the wallet, the rest of the claim repays debt
-      collateralWithdrawn: [{ token: ACRED, balance: 2_000_000n }],
-      collateralAdded: [],
-      quotas: [{ token: ACRED, balance: 101_705_079_371n }],
-      quotasChange: [{ token: ACRED, balance: -8_843_920_629n }],
-      assets: [{ token: ACRED, balance: 90_009_381n }],
-      // relative to after_open.json: 8 ACRED redeemed by the request tx
-      // + 2 ACRED withdrawn to the wallet at claim time
-      assetsChange: [{ token: ACRED, balance: -10_000_000n }],
-      totalValue: 99504477686n,
-    },
+      to: investor(),
+      withdrawToken: spec.withdrawToken,
+      withdrawAmount: spec.withdrawAmount,
+      sourceToken: ACRED,
+    });
+    if (preview.intent?.type !== "WITHDRAW_COLLATERAL") {
+      throw new Error("expected WITHDRAW_COLLATERAL intent");
+    }
+    expect(preview.intent.debtRepaid).toBeGreaterThan(0n);
+
+    // Instant preview vs the actual state after the request tx: the request
+    // only moves ACRED into the phantom token, debt is untouched. The
+    // phantom balance is a min guarantee, the quota is set explicitly by the
+    // tx and must match exactly
+    const instant = preview.instantPreview as AdjustCreditAccountPreview;
+    expect(instant.operation).toBe("AdjustCreditAccount");
+    expect(instant.error).toBeUndefined();
+    expect(instant.debtChange).toBe(0n);
+    const actualPhantom = findBalance(afterRequest, PHANTOM);
+    expect(actualPhantom).toBeGreaterThanOrEqual(
+      findAsset(instant.assets, PHANTOM),
+    );
+    expectWithinBps(actualPhantom, findAsset(instant.assets, PHANTOM), 1n);
+    expect(findQuota(afterRequest, PHANTOM)).toBe(
+      findAsset(instant.quotas, PHANTOM),
+    );
+    expect(findAsset(instant.assets, ACRED)).toBe(
+      findBalance(afterRequest, ACRED),
+    );
+
+    // Delayed preview vs the actual state after the claim tx (the resume):
+    // the full withdrawal amount goes to the wallet, the claim remainder
+    // repays debt capped by the intent's debtRepaid
+    const delayed = preview.delayedPreview as AdjustCreditAccountPreview;
+    expect(delayed.operation).toBe("AdjustCreditAccount");
+    expect(delayed.error).toBeUndefined();
+    expect(delayed.collateralWithdrawn).toEqual([
+      { token: spec.withdrawToken, balance: spec.withdrawAmount },
+    ]);
+    // the wallet actually received the withdrawal, within slippage
+    expect(walletReceived.claim.token).toBe(spec.withdrawToken);
+    expectWithinBps(walletReceived.claim.amount, spec.withdrawAmount);
+    // the account ends up where the delayed preview predicted: same ACRED
+    // position (the claim doesn't touch it), debt within swap slippage of
+    // the oracle-estimated repayment, phantom token gone
+    expect(findAsset(delayed.assets, ACRED)).toBe(
+      findBalance(afterClaim, ACRED),
+    );
+    expect(findAsset(delayed.assets, PHANTOM)).toBe(0n);
+    expect(findBalance(afterClaim, PHANTOM)).toBe(0n);
+    expectWithinBps(afterClaim.debt, delayed.debt);
+    expect(delayed.debtChange).toBeLessThan(0n);
   });
-  const previewAcred =
-    (preview.instantPreview as AdjustCreditAccountPreview).assets.find(
-      t => t.token === ACRED,
-    )?.balance ?? MAX_UINT256;
-  const previewPhantom =
-    (preview.instantPreview as AdjustCreditAccountPreview).assets.find(
-      t => t.token === PHANTOM,
-    )?.balance ?? MAX_UINT256;
 
-  // Cross-check the instant preview against the actual on-chain state after
-  // the request tx (phantom balance is a min guarantee, 10 units of dust
-  // below the actual redemption amount)
-  const afterWithdraw = readAccountSnapshot("withdraw/after_withdraw.json");
-  const actualAcred = afterWithdraw.tokens.find(t => t.token === ACRED);
-  const actualPhantom = afterWithdraw.tokens.find(t => t.token === PHANTOM);
-  expect(actualAcred?.balance).toBeGreaterThanOrEqual(previewAcred);
-  expect(actualPhantom?.balance).toBeGreaterThanOrEqual(previewPhantom);
-});
+  // Tx 3: the claim with the intent's resume tail. Not a delayed operation
+  // itself: a regular adjustment whose intent is read back from the
+  // redemption logger.
+  it("previews the claim tx with the WITHDRAW_COLLATERAL resume tail", async () => {
+    const { txs, afterRequest, afterClaim } = fx();
+    const preview = (await previewOperation(
+      {
+        sdk,
+        to: txs.claim.to,
+        calldata: txs.claim.calldata,
+        sender: investor(),
+        value: 0n,
+      },
+      { creditAccount: afterRequest },
+    )) as AdjustCreditAccountPreview;
 
-// Scenario 2, steps 3-4: the withdrawal was made claimable and the claim tx
-// with the intent's resume tail was sent: claim USDC, deposit into the vault,
-// repay part of the debt, withdraw 2 ACRED to the investor.
-it("previews the claim tx with a WITHDRAW_COLLATERAL resume tail", async () => {
-  const creditAccount = readAccountSnapshot("withdraw/after_withdraw.json");
-
-  const preview = (await previewOperation(
-    {
-      sdk,
-      to: FACTORY,
-      calldata: WITHDRAW_CLAIM_TX,
-      sender: INVESTOR,
-      value: 0n,
-    },
-    { creditAccount },
-  )) as AdjustCreditAccountPreview;
-
-  // Finite decreaseDebt: a regular adjustment, not a closure
-  expect(preview).toEqual({
-    operation: "AdjustCreditAccount",
-    creditAccount: WITHDRAW_ACCOUNT,
-    creditManager: CREDIT_MANAGER,
-    // the intent recorded by the request tx, read from the redemption logger
-    intent: {
+    expect(preview.operation).toBe("AdjustCreditAccount");
+    // the intent recorded by the request tx, served by the redemption logger
+    expect(preview.intent).toMatchObject({
       type: "WITHDRAW_COLLATERAL",
-      to: INVESTOR,
-      withdrawToken: ACRED,
-      withdrawAmount: 2_000_000n,
-    },
-    collateralAdded: [],
-    collateralWithdrawn: [{ token: ACRED, balance: 2_000_000n }],
-    // The claimed 8842.883680 USDC are deposited into the vault and repay
-    // the debt
-    debt: 79_596_324_641n,
-    debtChange: -8_842_881_655n,
-    quotas: [{ token: ACRED, balance: 99_494_100_000n }],
-    quotasChange: [
-      { token: ACRED, balance: -2_210_980_000n },
-      { token: PHANTOM, balance: -7_958_590_000n },
-    ],
-    assets: [
-      {
-        balance: 90009381n,
-        token: ACRED,
-      },
-    ],
-    assetsChange: [
-      {
-        balance: -2000000n,
-        token: ACRED,
-      },
-      {
-        balance: -8842883680n,
-        token: PHANTOM,
-      },
-    ],
-    totalValue: 99504477686n,
+      to: investor(),
+      withdrawToken: spec.withdrawToken,
+      withdrawAmount: spec.withdrawAmount,
+      sourceToken: ACRED,
+    });
+
+    // the withdrawal leaves with the exact calldata amount (min guarantee
+    // for the RLUSD swap), within slippage of the requested 2000
+    expect(preview.collateralWithdrawn).toHaveLength(1);
+    expect(preview.collateralWithdrawn[0].token).toBe(spec.withdrawToken);
+    expectWithinBps(
+      preview.collateralWithdrawn[0].balance,
+      spec.withdrawAmount,
+    );
+
+    // Cross-check against the actual state after the claim tx: the debt may
+    // only grow by the interest accrued between the snapshots, the ACRED
+    // quota is untouched by the claim and must match exactly
+    expect(afterClaim.debt).toBeGreaterThanOrEqual(preview.debt);
+    expectWithinBps(afterClaim.debt, preview.debt, 1n);
+    expect(findQuota(afterClaim, ACRED)).toBe(findAsset(preview.quotas, ACRED));
+    expect(findBalance(afterClaim, ACRED)).toBe(
+      findAsset(preview.assets, ACRED),
+    );
   });
-  const acredBalance =
-    preview.assets.find(t => t.token === ACRED)?.balance ?? MAX_UINT256;
-  const acredQuota =
-    preview.quotas.find(t => t.token === ACRED)?.balance ?? MAX_UINT256;
 
-  // Cross-check against the actual on-chain state after the claim tx: exact
-  // quota match, debt within the interest accrued between the snapshots
-  const afterClaim = readAccountSnapshot("withdraw/after_claim.json");
-  expect(afterClaim.debt).toBeGreaterThanOrEqual(preview.debt);
-  const actualAcredBalance = afterClaim.tokens.find(
-    t => t.token === ACRED,
-  )?.balance;
-  const actualAcredQuota = afterClaim.tokens.find(
-    t => t.token === ACRED,
-  )?.quota;
+  // Tx 4: delayed close request: all remaining ACRED goes to redemption
+  // with a CLOSE_ACCOUNT intent, the ACRED quota is zeroed.
+  it("previews the delayed close request and its resume", async () => {
+    const { txs, afterClaim, afterCloseRequest, walletReceived } = fx();
+    const preview = (await previewOperation(
+      {
+        sdk,
+        to: txs.closeRequest.to,
+        calldata: txs.closeRequest.calldata,
+        sender: investor(),
+        value: 0n,
+      },
+      { creditAccount: afterClaim },
+    )) as DelayedCreditAccountOperationPreview;
 
-  expect(actualAcredBalance).toBeGreaterThanOrEqual(acredBalance);
-  expect(actualAcredQuota).toBe(acredQuota);
+    expect(preview.operation).toBe("DelayedCreditAccountOperation");
+    expect(preview.intent).toEqual({ type: "CLOSE_ACCOUNT", to: investor() });
+
+    // Instant preview vs the actual state after the request: ACRED fully
+    // redeemed, phantom quota set explicitly
+    const instant = preview.instantPreview as AdjustCreditAccountPreview;
+    expect(instant.error).toBeUndefined();
+    expect(findAsset(instant.assets, ACRED)).toBe(0n);
+    expect(findBalance(afterCloseRequest, ACRED)).toBeLessThanOrEqual(1n);
+    const actualPhantom = findBalance(afterCloseRequest, PHANTOM);
+    expect(actualPhantom).toBeGreaterThanOrEqual(
+      findAsset(instant.assets, PHANTOM),
+    );
+    expect(findQuota(afterCloseRequest, PHANTOM)).toBe(
+      findAsset(instant.quotas, PHANTOM),
+    );
+
+    // Delayed preview: a closure that pays the wallet the leftover after
+    // the full debt repayment, denominated in the unwrapped underlying
+    const delayed = preview.delayedPreview as CloseCreditAccountPreview;
+    expect(delayed.operation).toBe("CloseCreditAccount");
+    expect(delayed.error).toBeUndefined();
+    expect(delayed.receivedAmount.token).toBe(spec.withdrawToken);
+    // the wallet actually received the predicted leftover, within slippage
+    expect(walletReceived.close.token).toBe(spec.withdrawToken);
+    expectWithinBps(
+      walletReceived.close.amount,
+      delayed.receivedAmount.balance,
+    );
+  });
+
+  // Tx 5: the final claim + close: claim USDC, sweep everything into the
+  // underlying, repay the whole debt and withdraw the leftover.
+  it("previews the final claim tx as a closure", async () => {
+    const { txs, afterCloseRequest, afterClose, walletReceived } = fx();
+    const preview = (await previewOperation(
+      {
+        sdk,
+        to: txs.close.to,
+        calldata: txs.close.calldata,
+        sender: investor(),
+        value: 0n,
+      },
+      { creditAccount: afterCloseRequest },
+    )) as CloseCreditAccountPreview;
+
+    // decreaseDebt(MAX) + withdrawCollateral(MAX) and no new withdrawal
+    // request: a zero-debt closure (the account stays open but empty)
+    expect(preview.operation).toBe("CloseCreditAccount");
+    // the intent recorded by the close request, from the redemption logger
+    expect(preview.intent).toEqual({ type: "CLOSE_ACCOUNT", to: investor() });
+    expect(preview.receivedAmount.token).toBe(spec.withdrawToken);
+    // this preview replays the actual calldata, whose router bracket carries
+    // slippage-adjusted minimum amounts: the prediction is a min guarantee
+    // below the actual wallet delta (slippage + the vault NAV round trip)
+    expect(walletReceived.close.amount).toBeGreaterThanOrEqual(
+      preview.receivedAmount.balance,
+    );
+    expectWithinBps(
+      walletReceived.close.amount,
+      preview.receivedAmount.balance,
+      300n,
+    );
+
+    // the account is actually empty after the close tx
+    expect(afterClose.debt).toBe(0n);
+    for (const t of afterClose.tokens) {
+      expect(t.balance).toBeLessThanOrEqual(1n);
+    }
+  });
 });

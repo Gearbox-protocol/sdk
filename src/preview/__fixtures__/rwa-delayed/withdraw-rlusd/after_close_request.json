@@ -1,57 +1,57 @@
 {
-  "creditAccount": "0xdE4B908BE5ca3CFc4885277C6967F01217621259",
-  "creditManager": "0x025512D771f778fad99aB30b7A7363E7C8DE078D",
-  "creditFacade": "0xA36f204ae8a3Ea2E02425960C627771FB180B315",
-  "underlying": "0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D",
-  "owner": "0xe57606Db26B06d40138483F649Fc8e3fD8fE788d",
+  "creditAccount": "0xB218fBD30Bd02250EEE61dB3AC82392dd38517Ea",
+  "creditManager": "0x328BD41b79D23569071DcE7573EfFbb9d046D640",
+  "creditFacade": "0x35EBA7F9D52a2639CD3172E40f4365FFC8045fc5",
+  "underlying": "0x239223dA253006f9cc5737D315FdeD6F84E8240C",
+  "owner": "0xdaA90Df185660C46155E6aD7861789fbecAC7eEE",
   "expirationDate": 0,
   "enabledTokensMask": {
     "__type": "bigint",
-    "__value": "13"
+    "__value": "17"
   },
   "debt": {
     "__type": "bigint",
-    "__value": "88439206296"
+    "__value": "72024008590686903134150"
   },
   "accruedInterest": {
     "__type": "bigint",
-    "__value": "1350"
+    "__value": "1099679716701243"
   },
   "accruedFees": {
     "__type": "bigint",
-    "__value": "675"
+    "__value": "549839858350621"
   },
   "totalDebtUSD": {
     "__type": "bigint",
-    "__value": "8842883882382"
+    "__value": "7202924494527"
   },
   "totalValueUSD": {
     "__type": "bigint",
-    "__value": "11054537855934"
+    "__value": "9000287708720"
   },
   "twvUSD": {
     "__type": "bigint",
-    "__value": "9949083539211"
+    "__value": "8100578945427"
   },
   "totalValue": {
     "__type": "bigint",
-    "__value": "110558341524"
+    "__value": "89996336153488364465670"
   },
   "healthFactor": {
     "__type": "bigint",
-    "__value": "1125094897947593987"
+    "__value": "1124623609699374888"
   },
   "success": true,
   "tokens": [
     {
-      "token": "0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D",
+      "token": "0x239223dA253006f9cc5737D315FdeD6F84E8240C",
       "mask": {
         "__type": "bigint",
         "__value": "1"
       },
       "balance": {
         "__type": "bigint",
-        "__value": "1"
+        "__value": "39998040516422271851"
       },
       "quota": {
         "__type": "bigint",
@@ -60,18 +60,18 @@
       "success": true
     },
     {
-      "token": "0x17418038ecF73BA4026c4f428547BF099706F27B",
+      "token": "0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD",
       "mask": {
         "__type": "bigint",
-        "__value": "4"
+        "__value": "2"
       },
       "balance": {
         "__type": "bigint",
-        "__value": "92009381"
+        "__value": "9996713445610902323"
       },
       "quota": {
         "__type": "bigint",
-        "__value": "101705080000"
+        "__value": "0"
       },
       "success": true
     },
@@ -79,18 +79,18 @@
       "token": "0xe4a38b653B2580C9D72a50F190Ddd6E2d2D2a412",
       "mask": {
         "__type": "bigint",
-        "__value": "8"
+        "__value": "16"
       },
       "balance": {
         "__type": "bigint",
-        "__value": "8842883680"
+        "__value": "89974766305"
       },
       "quota": {
         "__type": "bigint",
-        "__value": "7958590000"
+        "__value": "80960704301680868650000"
       },
       "success": true
     }
   ],
-  "investor": "0x4D1698eD96Bdf0070AB6C399B340bacD50a78ccc"
+  "investor": "0x695AB745C1A9f9977a5160114886B4C1933B5A03"
 }

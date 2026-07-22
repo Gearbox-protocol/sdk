@@ -6,7 +6,7 @@ import type { DelayedIntent } from "./types.js";
  * Current version of the delayed intent encoding schema.
  * Bump when the layout of any intent type changes.
  **/
-export const DELAYED_INTENT_VERSION = 1;
+export const DELAYED_INTENT_VERSION = 2;
 
 /**
  * Stable uint8 discriminants for intent types.
@@ -34,6 +34,8 @@ const WITHDRAW_COLLATERAL_PARAMS = [
   ...TO_PARAMS,
   { type: "address", name: "withdrawToken" },
   { type: "uint256", name: "withdrawAmount" },
+  { type: "address", name: "sourceToken" },
+  { type: "uint256", name: "debtRepaid" },
 ] as const;
 
 /**
@@ -56,6 +58,8 @@ export function encodeDelayedIntent(intent: DelayedIntent): Hex {
         intent.to,
         intent.withdrawToken,
         intent.withdrawAmount,
+        intent.sourceToken,
+        intent.debtRepaid,
       ]);
     case "DEPOSIT":
     case "DEPOSIT_AND_INCREASE_LEVERAGE":
@@ -89,15 +93,15 @@ export function decodeDelayedIntent(data: Hex): DelayedIntent {
     case DELAYED_INTENT_TYPES.DEPOSIT_AND_INCREASE_LEVERAGE:
       return { type: "DEPOSIT_AND_INCREASE_LEVERAGE" };
     case DELAYED_INTENT_TYPES.WITHDRAW_COLLATERAL: {
-      const [, , to, withdrawToken, withdrawAmount] = decodeAbiParameters(
-        WITHDRAW_COLLATERAL_PARAMS,
-        data,
-      );
+      const [, , to, withdrawToken, withdrawAmount, sourceToken, debtRepaid] =
+        decodeAbiParameters(WITHDRAW_COLLATERAL_PARAMS, data);
       return {
         type: "WITHDRAW_COLLATERAL",
         to,
         withdrawToken,
         withdrawAmount,
+        sourceToken,
+        debtRepaid,
       };
     }
     case DELAYED_INTENT_TYPES.CLOSE_ACCOUNT: {

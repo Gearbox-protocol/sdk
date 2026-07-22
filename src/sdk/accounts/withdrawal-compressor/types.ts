@@ -35,8 +35,9 @@ export interface DelayedDepositAndIncreaseLeverageIntent {
 
 /**
  * App: 2.1 Withdraw — withdraw selected token at fixed leverage.
- * Swap token into `underlying` -> [decrease debt with `underlying` ->
- * withdraw token to wallet].
+ * Primary goal is `withdrawAmount` of `withdrawToken` (W of T). Debt cut is
+ * residual from the claim/path after reserving W. `sourceToken` (S) funds the
+ * delayed path; `debtRepaid` is 0 when debt was already repaid on start.
  **/
 export interface DelayedWithdrawCollateralIntent {
   type: "WITHDRAW_COLLATERAL";
@@ -50,9 +51,18 @@ export interface DelayedWithdrawCollateralIntent {
    **/
   withdrawToken: Address;
   /**
-   * Amount of `withdrawToken` to withdraw to the wallet after the claim
+   * Amount of `withdrawToken` to withdraw to the wallet after the claim (W)
    **/
   withdrawAmount: bigint;
+  /**
+   * Token that funds the delayed path / debt conversion (S)
+   **/
+  sourceToken: Address;
+  /**
+   * Desired debt decrease in underlying units remaining for resume.
+   * `0n` when debt was already repaid on the delayed-start branch.
+   **/
+  debtRepaid: bigint;
 }
 
 /**
