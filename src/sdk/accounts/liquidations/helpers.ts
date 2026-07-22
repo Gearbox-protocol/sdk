@@ -1,7 +1,10 @@
 import type { Address } from "viem";
 import type { CreditAccountData } from "../../base/index.js";
+import type { NetworkType } from "../../chain/index.js";
 import { PERCENTAGE_FACTOR } from "../../constants/index.js";
 import { hexEq } from "../../utils/index.js";
+import type { CurrentWithdrawals } from "../withdrawal-compressor/index.js";
+import type { LiquidatorWithdrawal } from "./types.js";
 
 /**
  * Token balances at or below this threshold are treated as dust and ignored,
@@ -73,4 +76,41 @@ export function pickMainAsset(
     }
   }
   return bestToken;
+}
+
+/**
+ * Flattens delayed withdrawals of a liquidator into per-output rows:
+ * claimable outputs have no `claimableAt` (claimable now), pending outputs
+ * carry the estimated claim timestamp.
+ *
+ * @param current - Claimable and pending withdrawals from the withdrawal compressor
+ * @param network - Network the withdrawals live on
+ **/
+export function toLiquidatorWithdrawals(
+  current: CurrentWithdrawals,
+  network: NetworkType,
+): LiquidatorWithdrawal[] {
+  const rows: LiquidatorWithdrawal[] = [];
+  for (const w of current.claimable) {
+    for (const o of w.outputs) {
+      rows.push({
+        network,
+        sourceToken: w.token,
+        token: o.token,
+        amount: o.amount,
+      });
+    }
+  }
+  for (const w of current.pending) {
+    for (const o of w.expectedOutputs) {
+      rows.push({
+        network,
+        sourceToken: w.token,
+        token: o.token,
+        amount: o.amount,
+        claimableAt: w.claimableAt,
+      });
+    }
+  }
+  return rows;
 }

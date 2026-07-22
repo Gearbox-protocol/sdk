@@ -143,6 +143,55 @@ export interface DelayedReceivedAsset {
 export type ReceivedAsset = InstantReceivedAsset | DelayedReceivedAsset;
 
 /**
+ * Props for {@link ILiquidationsService.getLiquidatorWithdrawals}.
+ **/
+export interface GetLiquidatorWithdrawalsProps {
+  /**
+   * Networks to query. On {@link MultichainLiquidationsService} selects which
+   * chains to query; a single-chain service returns an empty list when its
+   * own network is excluded.
+   **/
+  networks?: NetworkType[];
+  /**
+   * Liquidator wallet that owns the redemption receipts (redeemer contracts
+   * received as a result of liquidations).
+   **/
+  liquidator: Address;
+}
+
+/**
+ * A single delayed-withdrawal position owned by the liquidator.
+ *
+ * The redeemer contract address is not included: it is not part of the
+ * on-chain withdrawal structs returned by the withdrawal compressor. It can
+ * be surfaced later if the compressor structs are extended.
+ **/
+export interface LiquidatorWithdrawal {
+  /**
+   * Network the withdrawal lives on.
+   **/
+  network: NetworkType;
+  /**
+   * Source asset spent by the delayed withdrawal (e.g. ACRED).
+   **/
+  sourceToken: Address;
+  /**
+   * Receivable asset (e.g. USDC).
+   **/
+  token: Address;
+  /**
+   * Amount of `token` receivable: exact for claimable withdrawals, estimated
+   * for pending ones.
+   **/
+  amount: bigint;
+  /**
+   * Estimated unix timestamp (in seconds) when a pending withdrawal becomes
+   * claimable. `undefined` means the withdrawal is claimable now.
+   **/
+  claimableAt?: bigint;
+}
+
+/**
  * Detailed information about a liquidatable credit account, extending the
  * list row with the full breakdown of assets the liquidator receives.
  **/
@@ -181,4 +230,14 @@ export interface ILiquidationsService {
   getLiquidationDetails(
     props: GetLiquidationDetailsProps,
   ): Promise<LiquidationDetails>;
+  /**
+   * Returns the status of delayed-withdrawal positions (redemption receipts)
+   * owned by a liquidator wallet: what is receivable, how much, and when it
+   * becomes claimable.
+   *
+   * @param props - See {@link GetLiquidatorWithdrawalsProps}
+   **/
+  getLiquidatorWithdrawals(
+    props: GetLiquidatorWithdrawalsProps,
+  ): Promise<LiquidatorWithdrawal[]>;
 }

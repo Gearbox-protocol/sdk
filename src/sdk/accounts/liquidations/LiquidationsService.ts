@@ -8,13 +8,16 @@ import {
   calcRepaymentAmount,
   DUST_THRESHOLD,
   pickMainAsset,
+  toLiquidatorWithdrawals,
 } from "./helpers.js";
 import type {
   GetLiquidatableAccountsProps,
   GetLiquidationDetailsProps,
+  GetLiquidatorWithdrawalsProps,
   ILiquidationsService,
   LiquidatableAccount,
   LiquidationDetails,
+  LiquidatorWithdrawal,
   ReceivedAsset,
 } from "./types.js";
 
@@ -144,6 +147,32 @@ export class LiquidationsService
     }
 
     return { ...account, receivedAssets };
+  }
+
+  /**
+   * {@inheritDoc ILiquidationsService.getLiquidatorWithdrawals}
+   **/
+  public async getLiquidatorWithdrawals(
+    props: GetLiquidatorWithdrawalsProps,
+  ): Promise<LiquidatorWithdrawal[]> {
+    if (props.networks && !props.networks.includes(this.sdk.networkType)) {
+      return [];
+    }
+    const compressor = this.sdk.withdrawalCompressor;
+    if (!compressor) {
+      return [];
+    }
+    await compressor.loadWithdrawableAssets();
+    // the same phantom token can be configured in several credit managers;
+    // duplicates would double-count redeemers in the compressor's loop
+    const phantomTokens = new AddressSet(
+      compressor.getWithdrawableAssets().map(a => a.withdrawalPhantomToken),
+    );
+    const current = await compressor.getExternalAccountCurrentWithdrawals(
+      props.liquidator,
+      ...phantomTokens.asArray(),
+    );
+    return toLiquidatorWithdrawals(current, this.sdk.networkType);
   }
 
   /**

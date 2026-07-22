@@ -3,9 +3,11 @@ import type { PluginsMap } from "../../plugins/index.js";
 import type {
   GetLiquidatableAccountsProps,
   GetLiquidationDetailsProps,
+  GetLiquidatorWithdrawalsProps,
   ILiquidationsService,
   LiquidatableAccount,
   LiquidationDetails,
+  LiquidatorWithdrawal,
 } from "./types.js";
 
 /**
@@ -64,5 +66,34 @@ export class MultichainLiquidationsService<
     return this.#sdk
       .chain(props.network)
       .liquidations.getLiquidationDetails(props);
+  }
+
+  /**
+   * {@inheritDoc ILiquidationsService.getLiquidatorWithdrawals}
+   **/
+  public async getLiquidatorWithdrawals(
+    props: GetLiquidatorWithdrawalsProps,
+  ): Promise<LiquidatorWithdrawal[]> {
+    const chains = [...this.#sdk.chains.entries()].filter(
+      ([network]) => !props.networks || props.networks.includes(network),
+    );
+    const results = await Promise.allSettled(
+      chains.map(([, chainSdk]) =>
+        chainSdk.liquidations.getLiquidatorWithdrawals(props),
+      ),
+    );
+    const withdrawals: LiquidatorWithdrawal[] = [];
+    results.forEach((result, i) => {
+      const [network, chainSdk] = chains[i];
+      if (result.status === "fulfilled") {
+        withdrawals.push(...result.value);
+      } else {
+        chainSdk.logger?.warn(
+          result.reason,
+          `failed to get liquidator withdrawals on ${network}`,
+        );
+      }
+    });
+    return withdrawals;
   }
 }
