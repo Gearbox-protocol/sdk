@@ -6,6 +6,7 @@ on:
       - "master"
       - "next"
       - "*.x"
+      - "test"
 
 permissions:
   contents: read
