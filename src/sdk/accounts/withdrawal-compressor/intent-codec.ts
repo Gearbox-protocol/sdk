@@ -6,7 +6,7 @@ import type { DelayedIntent } from "./types.js";
  * Current version of the delayed intent encoding schema.
  * Bump when the layout of any intent type changes.
  **/
-export const DELAYED_INTENT_VERSION = 2;
+export const DELAYED_INTENT_VERSION = 3;
 
 /**
  * Stable uint8 discriminants for intent types.
@@ -48,7 +48,6 @@ export function encodeDelayedIntent(intent: DelayedIntent): Hex {
   const version = DELAYED_INTENT_VERSION;
   const intentType = DELAYED_INTENT_TYPES[intent.type];
   switch (intent.type) {
-    case "INCREASE_LEVERAGE":
     case "CLOSE_ACCOUNT":
       return encodeAbiParameters(TO_PARAMS, [version, intentType, intent.to]);
     case "WITHDRAW_COLLATERAL":
@@ -61,6 +60,7 @@ export function encodeDelayedIntent(intent: DelayedIntent): Hex {
         intent.sourceToken,
         intent.debtRepaid,
       ]);
+    case "INCREASE_LEVERAGE":
     case "DEPOSIT":
     case "DEPOSIT_AND_INCREASE_LEVERAGE":
     case "ADD_COLLATERAL":
@@ -84,10 +84,8 @@ export function decodeDelayedIntent(data: Hex): DelayedIntent {
     throw new Error(`unsupported delayed intent version: ${version}`);
   }
   switch (intentType) {
-    case DELAYED_INTENT_TYPES.INCREASE_LEVERAGE: {
-      const [, , to] = decodeAbiParameters(TO_PARAMS, data);
-      return { type: "INCREASE_LEVERAGE", to };
-    }
+    case DELAYED_INTENT_TYPES.INCREASE_LEVERAGE:
+      return { type: "INCREASE_LEVERAGE" };
     case DELAYED_INTENT_TYPES.DEPOSIT:
       return { type: "DEPOSIT" };
     case DELAYED_INTENT_TYPES.DEPOSIT_AND_INCREASE_LEVERAGE:
