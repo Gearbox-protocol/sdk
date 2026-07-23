@@ -27,7 +27,7 @@ import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
 /**
  * Any parsed operation that fully closes or repays a credit account: the
  * facade `closeCreditAccount` entry point (permanent closure) or a plain
- * multicall detected by `isCloseOrRepay` (zero-debt closure/repay).
+ * multicall detected by `isCloseOrRepay` (`decreaseDebt(MAX)`).
  */
 export type CloseOrRepayOperation =
   | CloseCreditAccountOperation

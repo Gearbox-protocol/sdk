@@ -87,6 +87,15 @@ describe("isCloseOrRepay", () => {
     expect(isCloseOrRepay(repayShaped)).toBe(true);
   });
 
+  it("detects full debt repayment that keeps positions", () => {
+    expect(
+      isCloseOrRepay([
+        addCollateral(UNDERLYING, 1000n),
+        decreaseDebt(MAX_UINT256),
+      ]),
+    ).toBe(true);
+  });
+
   it("rejects an ordinary adjustment with explicit amounts", () => {
     expect(
       isCloseOrRepay([
@@ -94,15 +103,6 @@ describe("isCloseOrRepay", () => {
         decreaseDebt(500n),
         withdraw(COLLATERAL, 100n),
         disableQuota(COLLATERAL),
-      ]),
-    ).toBe(false);
-  });
-
-  it("rejects full debt repayment that keeps positions", () => {
-    expect(
-      isCloseOrRepay([
-        addCollateral(UNDERLYING, 1000n),
-        decreaseDebt(MAX_UINT256),
       ]),
     ).toBe(false);
   });
@@ -190,6 +190,21 @@ describe("classifyCloseOrRepay", () => {
         ],
         [dcUSDC, USDC],
       ),
+    ).toBe("repay");
+  });
+
+  it("classifies wallet-funded repay without withdrawals as repay", () => {
+    expect(
+      classifyCloseOrRepay(
+        [addCollateral(UNDERLYING, 1000n), decreaseDebt(MAX_UINT256)],
+        [UNDERLYING],
+      ),
+    ).toBe("repay");
+  });
+
+  it("classifies decreaseDebt(MAX) alone as repay", () => {
+    expect(
+      classifyCloseOrRepay([decreaseDebt(MAX_UINT256)], [UNDERLYING]),
     ).toBe("repay");
   });
 });

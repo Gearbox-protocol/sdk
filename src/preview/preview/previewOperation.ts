@@ -111,8 +111,8 @@ async function previewMulticallOperation<P extends PluginsMap>(
 ): Promise<OperationPreview> {
   const { sdk } = input;
 
-  // A multicall that fully repays the debt and withdraws everything is a
-  // zero-debt closure/repay: the account stays open but is emptied.
+  // A multicall that fully repays the debt (`decreaseDebt(MAX)`) is a
+  // zero-debt closure/repay: the account stays open but debt is cleared.
   const instantPreview = isCloseOrRepay(operation.multicall)
     ? await previewCloseOrRepayCreditAccount(input, operation, false, options)
     : await previewAdjustCreditAccount(input, operation, options);
