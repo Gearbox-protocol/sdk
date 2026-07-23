@@ -29,6 +29,7 @@ jobs:
         with:
           lfs: true
           fetch-depth: 0
+          fetch-tags: true
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
@@ -52,6 +53,25 @@ jobs:
           pnpm typecheck:ci
           pnpm test:all
           pnpm build
+
+      - name: Resolve stale prerelease tags
+        if: github.ref_name == 'test'
+        run: |
+          set -e
+          # semantic-release only considers release tags that are ancestors of HEAD.
+          # If a prerelease tag exists on a commit that is no longer in the branch
+          # history (e.g. after a merge or rebase), semantic-release will try to
+          # recreate the same version and fail with "tag already exists".
+          # Delete such stale tags so the current commit can be released cleanly.
+          while read -r tag; do
+            if ! git merge-base --is-ancestor "$tag" HEAD 2>/dev/null; then
+              echo "Deleting stale tag $tag (not in current branch history)"
+              if git ls-remote --tags origin "refs/tags/$tag" | grep -q "$tag"; then
+                git push origin --delete "$tag"
+              fi
+              git tag -d "$tag"
+            fi
+          done < <(git tag --list 'v[0-9]*-test.*')
 
       - name: Semantic Release
         uses: cycjimmy/semantic-release-action@v6
