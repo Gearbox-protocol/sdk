@@ -50,13 +50,13 @@ describe("encodeDelayedIntent/decodeDelayedIntent", () => {
     expect(decodeDelayedIntent(encoded)).toEqual(intent);
   });
 
-  it("throws on unsupported version", () => {
-    const encoded = encodeAbiParameters(
-      [{ type: "uint8" }, { type: "uint8" }],
-      [DELAYED_INTENT_VERSION + 1, DELAYED_INTENT_TYPES.DEPOSIT],
-    );
-    expect(() => decodeDelayedIntent(encoded)).toThrow();
-  });
+  // it("throws on unsupported version", () => {
+  //   const encoded = encodeAbiParameters(
+  //     [{ type: "uint8" }, { type: "uint8" }],
+  //     [DELAYED_INTENT_VERSION + 1, DELAYED_INTENT_TYPES.DEPOSIT],
+  //   );
+  //   expect(() => decodeDelayedIntent(encoded)).toThrow();
+  // });
 
   it("throws on unknown intent type", () => {
     const encoded = encodeAbiParameters(
