@@ -1,12 +1,12 @@
 import { writeFile } from "node:fs/promises";
 import { pino } from "pino";
 import YAML from "yaml";
-import { getAlchemyUrl } from "../../src/dev/providers.js";
-import { AccountsPlugin } from "../../src/plugins/accounts/index.js";
-import { AdaptersPlugin } from "../../src/plugins/adapters/AdaptersPlugin.js";
-import { BotsPlugin } from "../../src/plugins/bots/index.js";
-import { DegenDistributorsPlugin } from "../../src/plugins/degen-distributors/index.js";
-import { json_stringify, MultichainSDK } from "../../src/sdk/index.js";
+import { getAlchemyUrl } from "../src/dev/providers.js";
+import { AccountsPlugin } from "../src/plugins/accounts/index.js";
+import { AdaptersPlugin } from "../src/plugins/adapters/AdaptersPlugin.js";
+import { BotsPlugin } from "../src/plugins/bots/index.js";
+import { DegenDistributorsPlugin } from "../src/plugins/degen-distributors/index.js";
+import { json_stringify, MultichainSDK } from "../src/sdk/index.js";
 
 const logger = pino({
   level: process.env.LOG_LEVEL ?? "debug",
