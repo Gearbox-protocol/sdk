@@ -276,7 +276,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       symbol: "USDT0",
     },
     firstBlock: 34650262n,
-    gasLimit: 200_000_000n,
+    gasLimit: 150_000_000n,
   }),
   Berachain: withPublicNode(
     {
