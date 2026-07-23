@@ -38,7 +38,8 @@ export type Curator =
   | "UltraYield"
   | "TelosC"
   | "Gami Labs"
-  | "Securitize";
+  | "Securitize"
+  | "Testnet Curator"; // without governor, for midas
 
 /**
  * Extended viem {@link Chain} with Gearbox-specific metadata.
@@ -152,6 +153,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       testMarketConfigurators: {
         "0x99df7330bf42d596af2e9d9836d4fc2077c574aa": "M11 Credit",
         "0x610627d8d01a413bdd9b0a0b60070da7dd1e54ad": "Securitize",
+        "0xa770ce584adb6491a2138da6eaec33243bdcd248": "Testnet Curator", // without governor, for midas
       },
       rwaFactories: [] as Address[],
       isPublic: true,
