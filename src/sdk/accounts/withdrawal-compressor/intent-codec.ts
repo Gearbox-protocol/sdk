@@ -79,10 +79,10 @@ export function encodeDelayedIntent(intent: DelayedIntent): Hex {
  * or an unknown intent type
  **/
 export function decodeDelayedIntent(data: Hex): DelayedIntent {
-  const [_version, intentType] = decodeAbiParameters(HEADER_PARAMS, data);
-  // if (version !== DELAYED_INTENT_VERSION) {
-  //   throw new Error(`unsupported delayed intent version: ${version}`);
-  // }
+  const [version, intentType] = decodeAbiParameters(HEADER_PARAMS, data);
+  if (version !== DELAYED_INTENT_VERSION) {
+    throw new Error(`unsupported delayed intent version: ${version}`);
+  }
   switch (intentType) {
     case DELAYED_INTENT_TYPES.INCREASE_LEVERAGE:
       return { type: "INCREASE_LEVERAGE" };
