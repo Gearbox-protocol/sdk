@@ -155,7 +155,9 @@ export const chains: Record<NetworkType, GearboxChain> = {
         "0x610627d8d01a413bdd9b0a0b60070da7dd1e54ad": "Securitize",
         "0xa770ce584adb6491a2138da6eaec33243bdcd248": "Testnet Curator", // without governor, for midas
       },
-      rwaFactories: [] as Address[],
+      rwaFactories: [
+        "0xc6f7b95f6fb8394541d9ac8b0abc94bf6e84f703", // Securitize
+      ],
       isPublic: true,
       wellKnownToken: {
         address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
