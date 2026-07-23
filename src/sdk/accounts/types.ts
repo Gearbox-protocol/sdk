@@ -294,13 +294,22 @@ export interface RepayCreditAccountProps
   operation: CloseOptions;
 }
 
+/**
+ * Quota `Asset.balance` values are denominated in **pool underlying token
+ * units**, not in the quoted token's own units.
+ **/
 export interface PrepareUpdateQuotasProps {
   /**
-   * average quota for desired token
+   * Average quota for desired token, in pool underlying units
+   * (see {@link PrepareUpdateQuotasProps})
    */
   averageQuota: Array<Asset>;
   /**
-   * minimum quota for desired token
+   * Minimum quota for desired token, in pool underlying units.
+   * The credit facade rounds quota changes down to a multiple of
+   * `PERCENTAGE_FACTOR`; the min quota bound must not exceed the rounded
+   * value, otherwise the quota keeper reverts with
+   * `QuotaIsOutOfBoundsException`.
    */
   minQuota: Array<Asset>;
 }

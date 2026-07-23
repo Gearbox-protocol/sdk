@@ -190,8 +190,10 @@ export interface FindBestClosePathProps {
 export interface ClosePathBalances {
   /**
    * List of all credit account balances nominated in their respective tokens.
-   * Current balances or expected balances after some actions (add/withdraw collateral, for example),
-   * if these actions are before router calls
+   * Current balances or expected balances after some actions (e.g. add/withdraw collateral),
+   * if these actions are before router calls — including balances of tokens
+   * not yet on the account (e.g. a claim token about to be received), which
+   * are absent from `creditAccount.tokens` and must be added here explicitly.
    */
   expectedBalances: Array<Asset>;
   /**
@@ -210,10 +212,27 @@ export interface ClosePathBalances {
  * On-chain router contract that finds optimal multi-hop swap paths
  * for credit-account operations: single-token swaps, open-strategy
  * collateral conversion, reward claiming, and full account closure.
+ *
+ * Which finder to use:
+ *
+ * - {@link findOneTokenPath} — full spend of a single token. The on-chain
+ *   `routeOneToOne` reads leftovers from the **live** account balances:
+ *   a full spend emits `leftover=1` diff encodings, while pre-existing dust
+ *   of intermediate tokens is preserved as leftover.
+ * - {@link findOpenStrategyPath} — partial spend: swap a token while keeping
+ *   an exact remainder on the account. `expectedBalances` is the total amount
+ *   available at execution time (may differ from the live balance, e.g. when
+ *   the input token arrives in the same multicall from a delayed-withdrawal
+ *   claim), `leftoverBalances` is the amount to keep; the router swaps the
+ *   difference.
+ * - {@link findBestClosePath} account closure: converts all remaining assets
+ *   (including dust) into underlying.
  **/
 export interface IRouterContract extends IBaseContract {
   /**
    * Find the best path to swap one token into another.
+   * Use for full spends of a single token; to keep an exact remainder
+   * on the account, use {@link findOpenStrategyPath} instead.
    *
    * @param props - {@link FindOneTokenPathProps}
    * @returns The optimal swap result including amount, slippage-adjusted
@@ -224,6 +243,8 @@ export interface IRouterContract extends IBaseContract {
   /**
    * Find the best path for opening a credit account by converting all
    * collateral (except leftovers) into a single target token.
+   * Also the right choice for any partial spend that must keep an exact
+   * remainder on the account (see {@link IRouterContract}).
    *
    * @param props - {@link FindOpenStrategyPathProps}
    * @returns Swap result with projected post-open balances.
@@ -245,7 +266,7 @@ export interface IRouterContract extends IBaseContract {
 
   /**
    * Find the best path to swap all credit-account assets into the
-   * underlying token. Used for account closure and liquidation.
+   * underlying token. Used for account closure and liquidation
    *
    * @param props - {@link FindBestClosePathProps}
    * @returns Swap result including the total underlying balance

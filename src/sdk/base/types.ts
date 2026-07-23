@@ -175,8 +175,9 @@ export interface CreditAccountDataPayload {
    **/
   underlying: Address;
   /**
-   * Credit account's owner (contract address for RWA accounts, EOA for
-   * normal accounts).
+   * Credit account's owner: for RWA accounts, the per-account vault proxy
+   * created by the RWA factory (use `investor` for the EOA); EOA for
+   * normal accounts.
    **/
   owner: Address;
   /**
@@ -226,6 +227,7 @@ export interface CreditAccountDataPayload {
   success: boolean;
   /**
    * Info on credit account's enabled tokens and tokens with non-zero balance.
+   * Nothing else is present.
    **/
   tokens: readonly TokenInfo[];
 }
@@ -247,8 +249,10 @@ export type CreditAccountData<WithInvestor extends boolean = false> =
   WithInvestor extends true
     ? CreditAccountDataPayload & {
         /**
-         * Investor EOA address (the real person behind the account).
-         * - RWA accounts: resolved from RWA factory, always defined.
+         * Investor EOA address (the real person behind the account) —
+         * the tx sender and delayed-intent recipient.
+         * - RWA accounts: resolved from RWA factory, always defined
+         *   (`owner` is the per-account vault proxy, not the EOA).
          * - Normal accounts: `undefined` (owner IS the investor).
          **/
         investor: Address | undefined;
