@@ -16,7 +16,7 @@
     {
       "name": "test",
       "channel": "test",
-      "prerelease": true
+      "prerelease": "test"
     },
     {
       "name": "+([0-9])?(.{+([0-9]),x}).x"
