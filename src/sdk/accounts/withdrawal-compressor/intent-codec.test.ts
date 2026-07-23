@@ -25,7 +25,7 @@ function getEnvelope(data: Hex): { version: number; intentType: number } {
 
 describe("encodeDelayedIntent/decodeDelayedIntent", () => {
   const cases: DelayedIntent[] = [
-    { type: "INCREASE_LEVERAGE", to: TO },
+    { type: "INCREASE_LEVERAGE" },
     { type: "DEPOSIT" },
     { type: "DEPOSIT_AND_INCREASE_LEVERAGE" },
     {

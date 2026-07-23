@@ -3,16 +3,11 @@ import type { IBaseContract } from "../../base/index.js";
 import type { MultiCall } from "../../types/index.js";
 
 /**
- * App: 1.1 Deposit and 4.1 Adjust leverage — raise leverage at fixed TVL.
- * Borrow `underlying` -> swap `underlying` into `targetToken` -> [withdraw to wallet].
+ * App: 1.1 Deposit and 4.1 Adjust leverage — raise leverage at fixed collateral.
+ * Borrow `underlying` -> swap `underlying` into `targetToken` (kept on CA).
  **/
 export interface DelayedIncreaseLeverageIntent {
   type: "INCREASE_LEVERAGE";
-  /**
-   * Wallet address that receives tokens withdrawn from the credit account
-   * when the flow is resumed after the claim
-   **/
-  to: Address;
 }
 
 /**
@@ -86,8 +81,8 @@ export interface DelayedAddCollateralIntent {
 }
 
 /**
- * App: 4.2 Adjust leverage — lower leverage at fixed TVL.
- * Swap collateral into `underlying` -> [decrease debt with `underlying`].
+ * App: 4.2 Adjust leverage — lower leverage at fixed collateral.
+ * Swap source token into `underlying` -> decrease debt.
  **/
 export interface DelayedDecreaseLeverageIntent {
   type: "DECREASE_LEVERAGE";
