@@ -6,7 +6,7 @@ import type { DelayedIntent } from "./types.js";
  * Current version of the delayed intent encoding schema.
  * Bump when the layout of any intent type changes.
  **/
-export const DELAYED_INTENT_VERSION = 3;
+export const DELAYED_INTENT_VERSION = 1;
 
 /**
  * Stable uint8 discriminants for intent types.
