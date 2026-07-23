@@ -44,7 +44,7 @@ const RLUSD: Address = "0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD";
 // shared by both markets
 const PHANTOM: Address = "0xe4a38b653B2580C9D72a50F190Ddd6E2d2D2a412";
 
-const STATE_FIXTURE = resolve(FIXTURES, "Mainnet-25590929-securitize.json");
+const STATE_FIXTURE = resolve(FIXTURES, "Mainnet-25597035-securitize.json");
 
 interface ScenarioSpec {
   name: "withdraw-usdc" | "withdraw-rlusd";
@@ -85,6 +85,40 @@ interface SavedTxs {
   close: SavedTx;
 }
 
+/**
+ * TxDump JSON shape written by `generate-rwa-delayed-fixtures.ts`
+ * (see `dev/txdiff/types.ts`).
+ */
+interface TxDumpFile {
+  description?: string;
+  chainId?: number;
+  transactions: Array<{ label: string; to: Address; data: Hex }>;
+}
+
+function loadSavedTxs(scenario: string): SavedTxs {
+  const dump = readScenarioJson<TxDumpFile>(scenario, "txs.json");
+  const byLabel = new Map(
+    dump.transactions.map(t => [
+      t.label,
+      { to: t.to, calldata: t.data } satisfies SavedTx,
+    ]),
+  );
+  const requireTx = (label: keyof SavedTxs): SavedTx => {
+    const tx = byLabel.get(label);
+    if (!tx) {
+      throw new Error(`txs.json for ${scenario} is missing label "${label}"`);
+    }
+    return tx;
+  };
+  return {
+    open: requireTx("open"),
+    request: requireTx("request"),
+    claim: requireTx("claim"),
+    closeRequest: requireTx("closeRequest"),
+    close: requireTx("close"),
+  };
+}
+
 interface WalletReceivedEntry {
   token: Address;
   amount: bigint;
@@ -122,7 +156,7 @@ function readScenarioJson<T>(scenario: string, file: string): T {
 
 function loadScenario(scenario: string): ScenarioFixtures {
   return {
-    txs: readScenarioJson<SavedTxs>(scenario, "txs.json"),
+    txs: loadSavedTxs(scenario),
     afterOpen: readScenarioJson<CreditAccountData<true>>(
       scenario,
       "after_open.json",

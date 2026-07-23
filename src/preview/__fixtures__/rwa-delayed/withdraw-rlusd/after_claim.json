@@ -3,7 +3,7 @@
   "creditManager": "0x328BD41b79D23569071DcE7573EfFbb9d046D640",
   "creditFacade": "0x35EBA7F9D52a2639CD3172E40f4365FFC8045fc5",
   "underlying": "0x239223dA253006f9cc5737D315FdeD6F84E8240C",
-  "owner": "0xdaA90Df185660C46155E6aD7861789fbecAC7eEE",
+  "owner": "0x398B2287113c0D910292724732aE9a383837f610",
   "expirationDate": 0,
   "enabledTokensMask": {
     "__type": "bigint",
@@ -11,7 +11,7 @@
   },
   "debt": {
     "__type": "bigint",
-    "__value": "72024008590686903134150"
+    "__value": "72030007381521705091948"
   },
   "accruedInterest": {
     "__type": "bigint",
@@ -23,23 +23,23 @@
   },
   "totalDebtUSD": {
     "__type": "bigint",
-    "__value": "7202924329563"
+    "__value": "7203237284696"
   },
   "totalValueUSD": {
     "__type": "bigint",
-    "__value": "9001476725291"
+    "__value": "9003341460086"
   },
   "twvUSD": {
     "__type": "bigint",
-    "__value": "8101649060341"
+    "__value": "8103327240420"
   },
   "totalValue": {
     "__type": "bigint",
-    "__value": "90008225455083924500367"
+    "__value": "90030458000619259663512"
   },
   "healthFactor": {
     "__type": "bigint",
-    "__value": "1124772202185903770"
+    "__value": "1124956310634987879"
   },
   "success": true,
   "tokens": [
@@ -51,7 +51,7 @@
       },
       "balance": {
         "__type": "bigint",
-        "__value": "39998040516422271851"
+        "__value": "39989479790218051084"
       },
       "quota": {
         "__type": "bigint",
@@ -67,7 +67,7 @@
       },
       "balance": {
         "__type": "bigint",
-        "__value": "9996713445610902323"
+        "__value": "9995823603202931471"
       },
       "quota": {
         "__type": "bigint",
@@ -83,14 +83,14 @@
       },
       "balance": {
         "__type": "bigint",
-        "__value": "81398575"
+        "__value": "81432472"
       },
       "quota": {
         "__type": "bigint",
-        "__value": "89979518633944884890000"
+        "__value": "89984888361431610590000"
       },
       "success": true
     }
   ],
-  "investor": "0x695AB745C1A9f9977a5160114886B4C1933B5A03"
+  "investor": "0xDe6e7562a3e0201D8f23C9Af8A689a93eDeB00D8"
 }

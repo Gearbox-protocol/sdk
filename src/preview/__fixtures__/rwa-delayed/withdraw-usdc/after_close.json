@@ -3,7 +3,7 @@
   "creditManager": "0x025512D771f778fad99aB30b7A7363E7C8DE078D",
   "creditFacade": "0xA36f204ae8a3Ea2E02425960C627771FB180B315",
   "underlying": "0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D",
-  "owner": "0x167fC664B501D310E94C84F8d1737cf268a7b15F",
+  "owner": "0xBCBc5262DD0E651B5D9567D520a7659d05bc3dc5",
   "expirationDate": 0,
   "enabledTokensMask": {
     "__type": "bigint",
@@ -60,5 +60,5 @@
       "success": true
     }
   ],
-  "investor": "0x695AB745C1A9f9977a5160114886B4C1933B5A03"
+  "investor": "0xDe6e7562a3e0201D8f23C9Af8A689a93eDeB00D8"
 }

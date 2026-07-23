@@ -3,7 +3,7 @@
   "creditManager": "0x025512D771f778fad99aB30b7A7363E7C8DE078D",
   "creditFacade": "0xA36f204ae8a3Ea2E02425960C627771FB180B315",
   "underlying": "0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D",
-  "owner": "0x167fC664B501D310E94C84F8d1737cf268a7b15F",
+  "owner": "0xBCBc5262DD0E651B5D9567D520a7659d05bc3dc5",
   "expirationDate": 0,
   "enabledTokensMask": {
     "__type": "bigint",
@@ -23,23 +23,23 @@
   },
   "totalDebtUSD": {
     "__type": "bigint",
-    "__value": "7998942982875"
+    "__value": "7999053862878"
   },
   "totalValueUSD": {
     "__type": "bigint",
-    "__value": "9999867858166"
+    "__value": "9999881698470"
   },
   "twvUSD": {
     "__type": "bigint",
-    "__value": "8999881014474"
+    "__value": "8999893014712"
   },
   "totalValue": {
     "__type": "bigint",
-    "__value": "100011895153"
+    "__value": "100010647244"
   },
   "healthFactor": {
     "__type": "bigint",
-    "__value": "1125133787519415516"
+    "__value": "1125119691527355902"
   },
   "success": true,
   "tokens": [
@@ -67,7 +67,7 @@
       },
       "balance": {
         "__type": "bigint",
-        "__value": "81422599"
+        "__value": "81439493"
       },
       "quota": {
         "__type": "bigint",
@@ -83,14 +83,14 @@
       },
       "balance": {
         "__type": "bigint",
-        "__value": "9998678421"
+        "__value": "9998816822"
       },
       "quota": {
         "__type": "bigint",
-        "__value": "8998810000"
+        "__value": "8998930000"
       },
       "success": true
     }
   ],
-  "investor": "0x695AB745C1A9f9977a5160114886B4C1933B5A03"
+  "investor": "0xDe6e7562a3e0201D8f23C9Af8A689a93eDeB00D8"
 }

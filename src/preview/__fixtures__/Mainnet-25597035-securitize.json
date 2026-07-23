@@ -4,11 +4,11 @@
   "chainId": 1,
   "currentBlock": {
     "__type": "bigint",
-    "__value": "25590929"
+    "__value": "25597035"
   },
   "timestamp": {
     "__type": "bigint",
-    "__value": "1784751121"
+    "__value": "1784824711"
   },
   "addressProvider": {
     "baseParams": {
@@ -151,11 +151,11 @@
         },
         "expectedLiquidity": {
           "__type": "bigint",
-          "__value": "1000000189020"
+          "__value": "1000000556801"
         },
         "baseInterestIndex": {
           "__type": "bigint",
-          "__value": "1000000443937087772704211060"
+          "__value": "1000002278031456113647894469"
         },
         "baseInterestRate": {
           "__type": "bigint",
@@ -163,11 +163,11 @@
         },
         "dieselRate": {
           "__type": "bigint",
-          "__value": "1000000089019991098000890199"
+          "__value": "1000000456800954319904568009"
         },
         "supplyRate": {
           "__type": "bigint",
-          "__value": "8020998483870866578728799"
+          "__value": "8020995533901665728018620"
         },
         "withdrawFee": {
           "__type": "bigint",
@@ -225,8 +225,8 @@
           "__type": "bigint",
           "__value": "21000000"
         },
-        "lastBaseInterestUpdate": 1784750771,
-        "lastQuotaRevenueUpdate": 1784750771,
+        "lastBaseInterestUpdate": 1784822915,
+        "lastQuotaRevenueUpdate": 1784822915,
         "isPaused": false
       },
       "quotaKeeper": {
@@ -336,7 +336,7 @@
           "0x025512D771f778fad99aB30b7A7363E7C8DE078D",
           "0x4bbF1aAa78858086d88164182fd87f5a774197D4"
         ],
-        "lastQuotaRateUpdate": 1784750771
+        "lastQuotaRateUpdate": 1784822915
       },
       "interestRateModel": {
         "baseParams": {
@@ -480,11 +480,11 @@
             "answer": {
               "price": {
                 "__type": "bigint",
-                "__value": "99986785"
+                "__value": "99988171"
               },
               "updatedAt": {
                 "__type": "bigint",
-                "__value": "1784707211"
+                "__value": "1784793623"
               },
               "success": true
             }
@@ -508,11 +508,11 @@
             "answer": {
               "price": {
                 "__type": "bigint",
-                "__value": "110536046000"
+                "__value": "110512946000"
               },
               "updatedAt": {
                 "__type": "bigint",
-                "__value": "1784671283"
+                "__value": "1784752979"
               },
               "success": true
             }
@@ -536,11 +536,11 @@
             "answer": {
               "price": {
                 "__type": "bigint",
-                "__value": "102472769700"
+                "__value": "102480944500"
               },
               "updatedAt": {
                 "__type": "bigint",
-                "__value": "1784669351"
+                "__value": "1784755415"
               },
               "success": true
             }
@@ -897,11 +897,11 @@
         },
         "expectedLiquidity": {
           "__type": "bigint",
-          "__value": "200000189020"
+          "__value": "200000556801"
         },
         "baseInterestIndex": {
           "__type": "bigint",
-          "__value": "1000000443937087772704211060"
+          "__value": "1000002278031456113647894469"
         },
         "baseInterestRate": {
           "__type": "bigint",
@@ -909,11 +909,11 @@
         },
         "dieselRate": {
           "__type": "bigint",
-          "__value": "1000000445099777450111274944"
+          "__value": "1000002284003857998071000964"
         },
         "supplyRate": {
           "__type": "bigint",
-          "__value": "40104962096800322314015381"
+          "__value": "40104888347790315310023225"
         },
         "withdrawFee": {
           "__type": "bigint",
@@ -971,8 +971,8 @@
           "__type": "bigint",
           "__value": "21000000"
         },
-        "lastBaseInterestUpdate": 1784750771,
-        "lastQuotaRevenueUpdate": 1784750771,
+        "lastBaseInterestUpdate": 1784822915,
+        "lastQuotaRevenueUpdate": 1784822915,
         "isPaused": false
       },
       "quotaKeeper": {
@@ -1082,7 +1082,7 @@
           "0x48E2De8258fFFdd200d629eE1543745669E51e7a",
           "0x108E26961E59B7018e90E677Bb88e049D8a7e9Fb"
         ],
-        "lastQuotaRateUpdate": 1784750771
+        "lastQuotaRateUpdate": 1784822915
       },
       "interestRateModel": {
         "baseParams": {
@@ -1226,11 +1226,11 @@
             "answer": {
               "price": {
                 "__type": "bigint",
-                "__value": "99986785"
+                "__value": "99988171"
               },
               "updatedAt": {
                 "__type": "bigint",
-                "__value": "1784707211"
+                "__value": "1784793623"
               },
               "success": true
             }
@@ -1254,11 +1254,11 @@
             "answer": {
               "price": {
                 "__type": "bigint",
-                "__value": "110536046000"
+                "__value": "110512946000"
               },
               "updatedAt": {
                 "__type": "bigint",
-                "__value": "1784671283"
+                "__value": "1784752979"
               },
               "success": true
             }
@@ -1282,11 +1282,11 @@
             "answer": {
               "price": {
                 "__type": "bigint",
-                "__value": "102472769700"
+                "__value": "102480944500"
               },
               "updatedAt": {
                 "__type": "bigint",
-                "__value": "1784669351"
+                "__value": "1784755415"
               },
               "success": true
             }
@@ -1643,11 +1643,11 @@
         },
         "expectedLiquidity": {
           "__type": "bigint",
-          "__value": "1000000089020484525721511"
+          "__value": "1000000456802257737289243"
         },
         "baseInterestIndex": {
           "__type": "bigint",
-          "__value": "1000000443937087772704211060"
+          "__value": "1000002278031456113647894469"
         },
         "baseInterestRate": {
           "__type": "bigint",
@@ -1655,11 +1655,11 @@
         },
         "dieselRate": {
           "__type": "bigint",
-          "__value": "1000000089020484525621510991"
+          "__value": "1000000456802257737189242954"
         },
         "supplyRate": {
           "__type": "bigint",
-          "__value": "8020999285966757182773003"
+          "__value": "8020996335990764416894166"
         },
         "withdrawFee": {
           "__type": "bigint",
@@ -1717,8 +1717,8 @@
           "__type": "bigint",
           "__value": "21000000000000000000"
         },
-        "lastBaseInterestUpdate": 1784750771,
-        "lastQuotaRevenueUpdate": 1784750771,
+        "lastBaseInterestUpdate": 1784822915,
+        "lastQuotaRevenueUpdate": 1784822915,
         "isPaused": false
       },
       "quotaKeeper": {
@@ -1846,7 +1846,7 @@
           "0x328BD41b79D23569071DcE7573EfFbb9d046D640",
           "0x38533Db7c1CFC46E8a70625c269dE286FC412589"
         ],
-        "lastQuotaRateUpdate": 1784750771
+        "lastQuotaRateUpdate": 1784822915
       },
       "interestRateModel": {
         "baseParams": {
@@ -2006,11 +2006,11 @@
             "answer": {
               "price": {
                 "__type": "bigint",
-                "__value": "100007268"
+                "__value": "100003284"
               },
               "updatedAt": {
                 "__type": "bigint",
-                "__value": "1784693915"
+                "__value": "1784780351"
               },
               "success": true
             }
@@ -2034,11 +2034,11 @@
             "answer": {
               "price": {
                 "__type": "bigint",
-                "__value": "99986785"
+                "__value": "99988171"
               },
               "updatedAt": {
                 "__type": "bigint",
-                "__value": "1784707211"
+                "__value": "1784793623"
               },
               "success": true
             }
@@ -2062,11 +2062,11 @@
             "answer": {
               "price": {
                 "__type": "bigint",
-                "__value": "110536046000"
+                "__value": "110512946000"
               },
               "updatedAt": {
                 "__type": "bigint",
-                "__value": "1784671283"
+                "__value": "1784752979"
               },
               "success": true
             }
@@ -2090,11 +2090,11 @@
             "answer": {
               "price": {
                 "__type": "bigint",
-                "__value": "102472769700"
+                "__value": "102480944500"
               },
               "updatedAt": {
                 "__type": "bigint",
-                "__value": "1784669351"
+                "__value": "1784755415"
               },
               "success": true
             }
@@ -2540,7 +2540,7 @@
         },
         "asset": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
         "factory": "0xc6f7B95f6fb8394541D9Ac8B0Abc94Bf6E84F703",
-        "extraDetails": "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000008b92e9d511fcf3b9e853a7374420affce87dbc8600000000000000000000000000000000000000000000000000000000000001364f4e5f44454d414e445f4c503a3a4d4f4e4f504f4c495a45440000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000120000000000000000000000000610627d8d01a413bdd9b0a0b60070da7dd1e54ad00000000000000000000000015d34aaf54267db7d7c367839aaf71a00a2c6a650000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000100000000000000000000000099f6be465624f2cdf7fe436697cebd4be7baf56b00000000000000000000000003f919ca79c4e0a3ae48ac330445189156826873000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000000000000000000000000000000000ba43b740000000000000000000000000000000000000000000000000000000002e90ef2bbb"
+        "extraDetails": "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000008b92e9d511fcf3b9e853a7374420affce87dbc8600000000000000000000000000000000000000000000000000000000000001364f4e5f44454d414e445f4c503a3a4d4f4e4f504f4c495a45440000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000120000000000000000000000000610627d8d01a413bdd9b0a0b60070da7dd1e54ad00000000000000000000000015d34aaf54267db7d7c367839aaf71a00a2c6a650000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000100000000000000000000000099f6be465624f2cdf7fe436697cebd4be7baf56b00000000000000000000000003f919ca79c4e0a3ae48ac330445189156826873000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000000000000000000000000000000000ba43b740000000000000000000000000000000000000000000000000000000002e90f4c860"
       },
       {
         "baseParams": {

@@ -10,17 +10,17 @@
           "isDelayed": false,
           "amount": {
             "__type": "bigint",
-            "__value": "90001321485"
+            "__value": "90001182921"
           }
         }
       ],
       "claimableAt": {
         "__type": "bigint",
-        "__value": "1792527284"
+        "__value": "1792600831"
       },
       "intent": {
         "type": "CLOSE_ACCOUNT",
-        "to": "0x695AB745C1A9f9977a5160114886B4C1933B5A03",
+        "to": "0xDe6e7562a3e0201D8f23C9Af8A689a93eDeB00D8",
         "creditManager": "0x025512D771f778fad99aB30b7A7363E7C8DE078D"
       }
     }

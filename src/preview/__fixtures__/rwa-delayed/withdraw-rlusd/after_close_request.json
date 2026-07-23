@@ -3,7 +3,7 @@
   "creditManager": "0x328BD41b79D23569071DcE7573EfFbb9d046D640",
   "creditFacade": "0x35EBA7F9D52a2639CD3172E40f4365FFC8045fc5",
   "underlying": "0x239223dA253006f9cc5737D315FdeD6F84E8240C",
-  "owner": "0xdaA90Df185660C46155E6aD7861789fbecAC7eEE",
+  "owner": "0x398B2287113c0D910292724732aE9a383837f610",
   "expirationDate": 0,
   "enabledTokensMask": {
     "__type": "bigint",
@@ -11,35 +11,35 @@
   },
   "debt": {
     "__type": "bigint",
-    "__value": "72024008590686903134150"
+    "__value": "72030007381521705091948"
   },
   "accruedInterest": {
     "__type": "bigint",
-    "__value": "1099679716701243"
+    "__value": "1099771226825345"
   },
   "accruedFees": {
     "__type": "bigint",
-    "__value": "549839858350621"
+    "__value": "549885613412672"
   },
   "totalDebtUSD": {
     "__type": "bigint",
-    "__value": "7202924494527"
+    "__value": "7203237449667"
   },
   "totalValueUSD": {
     "__type": "bigint",
-    "__value": "9000287708720"
+    "__value": "9002276927793"
   },
   "twvUSD": {
     "__type": "bigint",
-    "__value": "8100578945427"
+    "__value": "8102369161357"
   },
   "totalValue": {
     "__type": "bigint",
-    "__value": "89996336153488364465670"
+    "__value": "90019813027270184447142"
   },
   "healthFactor": {
     "__type": "bigint",
-    "__value": "1124623609699374888"
+    "__value": "1124823278140243197"
   },
   "success": true,
   "tokens": [
@@ -51,7 +51,7 @@
       },
       "balance": {
         "__type": "bigint",
-        "__value": "39998040516422271851"
+        "__value": "39989479790218051084"
       },
       "quota": {
         "__type": "bigint",
@@ -67,7 +67,7 @@
       },
       "balance": {
         "__type": "bigint",
-        "__value": "9996713445610902323"
+        "__value": "9995823603202931471"
       },
       "quota": {
         "__type": "bigint",
@@ -83,14 +83,14 @@
       },
       "balance": {
         "__type": "bigint",
-        "__value": "89974766305"
+        "__value": "89993423807"
       },
       "quota": {
         "__type": "bigint",
-        "__value": "80960704301680868650000"
+        "__value": "80981841192743313280000"
       },
       "success": true
     }
   ],
-  "investor": "0x695AB745C1A9f9977a5160114886B4C1933B5A03"
+  "investor": "0xDe6e7562a3e0201D8f23C9Af8A689a93eDeB00D8"
 }

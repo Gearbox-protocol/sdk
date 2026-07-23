@@ -10,17 +10,17 @@
           "isDelayed": false,
           "amount": {
             "__type": "bigint",
-            "__value": "10000726654"
+            "__value": "10000327534"
           }
         }
       ],
       "claimableAt": {
         "__type": "bigint",
-        "__value": "1792527332"
+        "__value": "1792600879"
       },
       "intent": {
         "type": "WITHDRAW_COLLATERAL",
-        "to": "0x695AB745C1A9f9977a5160114886B4C1933B5A03",
+        "to": "0xDe6e7562a3e0201D8f23C9Af8A689a93eDeB00D8",
         "withdrawToken": "0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD",
         "withdrawAmount": {
           "__type": "bigint",
