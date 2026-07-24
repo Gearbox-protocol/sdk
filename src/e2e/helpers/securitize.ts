@@ -23,7 +23,7 @@ import {
   type SecuritizeRegisterVaultMessage,
 } from "../../sdk/index.js";
 
-export const RWA_RPC_URL = "https://anvil.gearbox.foundation/rpc/Securitize";
+export const RWA_RPC_URL = "https://anvil.gearbox.foundation/rpc/RWA";
 export const RWA_MARKET_CONFIGURATOR: Address =
   "0x610627d8d01a413bdd9b0a0b60070da7dd1e54ad";
 export const RWA_FACTORY: Address =

@@ -14,7 +14,8 @@ Internal workflow for regenerating and verifying fixtures under
 
 - Regenerating RWA delayed / preview / e2e fixtures
 - Comparing script output to frontend-assembled transactions
-- Debugging fixture-generator reverts on the Securitize anvil fork
+- Debugging fixture-generator reverts on the RWA anvil fork (Securitize +
+  Midas markets)
 
 ## Choose the workflow
 
@@ -30,9 +31,11 @@ Use this when the generator already models the intended transactions.
    stay quiet for a long time while redirected — silence alone is not a hang.
    Never pipe through `head` / `tail`.
 5. After regenerate:
-   - Point the consuming test’s hardcoded `STATE_FIXTURE` at the new
-     `Mainnet-{block}-securitize.json` if the block changed.
-   - Remove obsolete `Mainnet-*-securitize.json` files once nothing references
+   - Point the consuming tests’ hardcoded `STATE_FIXTURE` at the new
+     `Mainnet-{block}-rwa.json` if the block changed (both
+     `previewRWADelayedOperation.test.ts` and the wallet-funded repay part of
+     `previewCloseOrRepay.test.ts` hydrate it).
+   - Remove obsolete `Mainnet-*-rwa.json` files once nothing references
      them.
 6. Run the consuming tests and inspect the fixture git diff. Large numeric /
    address churn is expected; call labels/order should stay the same.
@@ -64,7 +67,7 @@ changed.
 ## Commands
 
 ```bash
-# Generate RWA delayed fixtures (requires live Securitize testnet)
+# Generate RWA delayed fixtures (requires live RWA testnet)
 pnpm exec tsx dev/scripts/generate-rwa-delayed-fixtures.ts > /tmp/rwa-gen.log 2>&1
 
 # Decode a TxDump or raw calldata
@@ -82,11 +85,11 @@ Other generators: `dev/scripts/generate-e2e-fixtures.ts`,
 
 ## Operational rules
 
-1. **Ask the user to reset the Securitize testnet** before a full regenerate.
+1. **Ask the user to reset the RWA testnet** before a full regenerate.
    Do not assume the fork is clean.
 2. **Redirect generator output to a log file.** Never pipe through `head` /
    `tail` directly — SIGPIPE kills `tsx` mid-run and truncates fixtures.
-   Do not treat a quiet log as a hang; the Securitize run is long-lived.
+   Do not treat a quiet log as a hang; the run is long-lived.
 3. For routine regeneration, verify by running the consuming tests and
    reviewing the fixture diff. Use `pnpm tx:diff` only if a reference TxDump
    exists (frontend dump or a self-baseline copy from before the run).

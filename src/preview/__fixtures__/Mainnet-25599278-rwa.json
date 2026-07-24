@@ -4,11 +4,11 @@
   "chainId": 1,
   "currentBlock": {
     "__type": "bigint",
-    "__value": "25597035"
+    "__value": "25599278"
   },
   "timestamp": {
     "__type": "bigint",
-    "__value": "1784824711"
+    "__value": "1784851576"
   },
   "addressProvider": {
     "baseParams": {
@@ -140,22 +140,22 @@
         "decimals": 6,
         "totalSupply": {
           "__type": "bigint",
-          "__value": "1000000100000"
+          "__value": "1999999814401"
         },
         "quotaKeeper": "0x7d24554115069794E05CDCb263f120f7a292D05A",
         "interestRateModel": "0xA21eA7d0125485608425a1b46b29FD5a16071CF8",
         "underlying": "0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D",
         "availableLiquidity": {
           "__type": "bigint",
-          "__value": "800000100000"
+          "__value": "1800000106959"
         },
         "expectedLiquidity": {
           "__type": "bigint",
-          "__value": "1000000556801"
+          "__value": "2000000529420"
         },
         "baseInterestIndex": {
           "__type": "bigint",
-          "__value": "1000002278031456113647894469"
+          "__value": "1000002106799628253895081440"
         },
         "baseInterestRate": {
           "__type": "bigint",
@@ -163,11 +163,11 @@
         },
         "dieselRate": {
           "__type": "bigint",
-          "__value": "1000000456800954319904568009"
+          "__value": "1000000357509533176705924031"
         },
         "supplyRate": {
           "__type": "bigint",
-          "__value": "8020995533901665728018620"
+          "__value": "4010498938380826021211543"
         },
         "withdrawFee": {
           "__type": "bigint",
@@ -194,7 +194,7 @@
             },
             "available": {
               "__type": "bigint",
-              "__value": "800000100000"
+              "__value": "900000000000"
             }
           },
           {
@@ -209,24 +209,24 @@
             },
             "available": {
               "__type": "bigint",
-              "__value": "800000100000"
+              "__value": "900000000000"
             }
           }
         ],
         "baseInterestIndexLU": {
           "__type": "bigint",
-          "__value": "1000000000000000000000000000"
+          "__value": "1000001588026607575454571090"
         },
         "expectedLiquidityLU": {
           "__type": "bigint",
-          "__value": "1000000100000"
+          "__value": "2000000425394"
         },
         "quotaRevenue": {
           "__type": "bigint",
           "__value": "21000000"
         },
-        "lastBaseInterestUpdate": 1784822915,
-        "lastQuotaRevenueUpdate": 1784822915,
+        "lastBaseInterestUpdate": 1784851167,
+        "lastQuotaRevenueUpdate": 1784851167,
         "isPaused": false
       },
       "quotaKeeper": {
@@ -336,7 +336,7 @@
           "0x025512D771f778fad99aB30b7A7363E7C8DE078D",
           "0x4bbF1aAa78858086d88164182fd87f5a774197D4"
         ],
-        "lastQuotaRateUpdate": 1784822915
+        "lastQuotaRateUpdate": 1784849915
       },
       "interestRateModel": {
         "baseParams": {
@@ -512,7 +512,7 @@
               },
               "updatedAt": {
                 "__type": "bigint",
-                "__value": "1784752979"
+                "__value": "1784839391"
               },
               "success": true
             }
@@ -536,11 +536,11 @@
             "answer": {
               "price": {
                 "__type": "bigint",
-                "__value": "102480944500"
+                "__value": "102501960300"
               },
               "updatedAt": {
                 "__type": "bigint",
-                "__value": "1784755415"
+                "__value": "1784841647"
               },
               "success": true
             }
@@ -897,11 +897,11 @@
         },
         "expectedLiquidity": {
           "__type": "bigint",
-          "__value": "200000556801"
+          "__value": "200000522465"
         },
         "baseInterestIndex": {
           "__type": "bigint",
-          "__value": "1000002278031456113647894469"
+          "__value": "1000002106798579401319127346"
         },
         "baseInterestRate": {
           "__type": "bigint",
@@ -909,11 +909,11 @@
         },
         "dieselRate": {
           "__type": "bigint",
-          "__value": "1000002284003857998071000964"
+          "__value": "1000002112323943838028080985"
         },
         "supplyRate": {
           "__type": "bigint",
-          "__value": "40104888347790315310023225"
+          "__value": "40104895232979560506669599"
         },
         "withdrawFee": {
           "__type": "bigint",
@@ -971,8 +971,8 @@
           "__type": "bigint",
           "__value": "21000000"
         },
-        "lastBaseInterestUpdate": 1784822915,
-        "lastQuotaRevenueUpdate": 1784822915,
+        "lastBaseInterestUpdate": 1784849915,
+        "lastQuotaRevenueUpdate": 1784849915,
         "isPaused": false
       },
       "quotaKeeper": {
@@ -1082,7 +1082,7 @@
           "0x48E2De8258fFFdd200d629eE1543745669E51e7a",
           "0x108E26961E59B7018e90E677Bb88e049D8a7e9Fb"
         ],
-        "lastQuotaRateUpdate": 1784822915
+        "lastQuotaRateUpdate": 1784849915
       },
       "interestRateModel": {
         "baseParams": {
@@ -1258,7 +1258,7 @@
               },
               "updatedAt": {
                 "__type": "bigint",
-                "__value": "1784752979"
+                "__value": "1784839391"
               },
               "success": true
             }
@@ -1282,11 +1282,11 @@
             "answer": {
               "price": {
                 "__type": "bigint",
-                "__value": "102480944500"
+                "__value": "102501960300"
               },
               "updatedAt": {
                 "__type": "bigint",
-                "__value": "1784755415"
+                "__value": "1784841647"
               },
               "success": true
             }
@@ -1632,22 +1632,22 @@
         "decimals": 18,
         "totalSupply": {
           "__type": "bigint",
-          "__value": "1000000000000000000100000"
+          "__value": "1999999708955424946706537"
         },
         "quotaKeeper": "0x9014fFA601A5e17B4aB12f2b725C12Ca3ba17522",
         "interestRateModel": "0x73eC1Bd045e2e698EF46Fd13fc63A37551F7F6A0",
         "underlying": "0x239223dA253006f9cc5737D315FdeD6F84E8240C",
         "availableLiquidity": {
           "__type": "bigint",
-          "__value": "800000000000000000100000"
+          "__value": "1800000008931847856023634"
         },
         "expectedLiquidity": {
           "__type": "bigint",
-          "__value": "1000000456802257737289243"
+          "__value": "2000000431397632990473150"
         },
         "baseInterestIndex": {
           "__type": "bigint",
-          "__value": "1000002278031456113647894469"
+          "__value": "1000002106799626168904910027"
         },
         "baseInterestRate": {
           "__type": "bigint",
@@ -1655,11 +1655,11 @@
         },
         "dieselRate": {
           "__type": "bigint",
-          "__value": "1000000456802257737189242954"
+          "__value": "1000000361221156587612316150"
         },
         "supplyRate": {
           "__type": "bigint",
-          "__value": "8020996335990764416894166"
+          "__value": "4010499134940083038254002"
         },
         "withdrawFee": {
           "__type": "bigint",
@@ -1686,7 +1686,7 @@
             },
             "available": {
               "__type": "bigint",
-              "__value": "800000000000000000100000"
+              "__value": "900000000000000000000000"
             }
           },
           {
@@ -1701,24 +1701,24 @@
             },
             "available": {
               "__type": "bigint",
-              "__value": "800000000000000000100000"
+              "__value": "900000000000000000000000"
             }
           }
         ],
         "baseInterestIndexLU": {
           "__type": "bigint",
-          "__value": "1000000000000000000000000000"
+          "__value": "1000001695840025138757592731"
         },
         "expectedLiquidityLU": {
           "__type": "bigint",
-          "__value": "1000000000000000000100000"
+          "__value": "2000000348990098743897808"
         },
         "quotaRevenue": {
           "__type": "bigint",
           "__value": "21000000000000000000"
         },
-        "lastBaseInterestUpdate": 1784822915,
-        "lastQuotaRevenueUpdate": 1784822915,
+        "lastBaseInterestUpdate": 1784851252,
+        "lastQuotaRevenueUpdate": 1784851252,
         "isPaused": false
       },
       "quotaKeeper": {
@@ -1846,7 +1846,7 @@
           "0x328BD41b79D23569071DcE7573EfFbb9d046D640",
           "0x38533Db7c1CFC46E8a70625c269dE286FC412589"
         ],
-        "lastQuotaRateUpdate": 1784822915
+        "lastQuotaRateUpdate": 1784849915
       },
       "interestRateModel": {
         "baseParams": {
@@ -2066,7 +2066,7 @@
               },
               "updatedAt": {
                 "__type": "bigint",
-                "__value": "1784752979"
+                "__value": "1784839391"
               },
               "success": true
             }
@@ -2090,11 +2090,11 @@
             "answer": {
               "price": {
                 "__type": "bigint",
-                "__value": "102480944500"
+                "__value": "102501960300"
               },
               "updatedAt": {
                 "__type": "bigint",
-                "__value": "1784755415"
+                "__value": "1784841647"
               },
               "success": true
             }
@@ -2458,6 +2458,454 @@
       "pausableAdmins": ["0x610627d8D01a413BDD9B0a0b60070Da7dd1e54aD"],
       "unpausableAdmins": ["0x610627d8D01a413BDD9B0a0b60070Da7dd1e54aD"],
       "emergencyLiquidators": []
+    },
+    {
+      "acl": "0xB897afF9c5D429C2999E0ca29DCd6F7cD07d0bfb",
+      "contractsRegister": "0xA3e70879da3Bd5464F2330a614AD23Ee158f7F15",
+      "treasury": "0x3D1C8BEE4c34Ce6A24a0eF5e2d344E2f13bc19Fa",
+      "pool": {
+        "baseParams": {
+          "addr": "0x34D0fD28083BcF4D1Cc71A5843F9298A4fbD2F13",
+          "version": {
+            "__type": "bigint",
+            "__value": "310"
+          },
+          "contractType": "0x504f4f4c00000000000000000000000000000000000000000000000000000000",
+          "serializedParams": "0x"
+        },
+        "symbol": "dUSDC",
+        "name": "USDC",
+        "decimals": 6,
+        "totalSupply": {
+          "__type": "bigint",
+          "__value": "1499999612778"
+        },
+        "quotaKeeper": "0x1824a860009911718C2FbE4A0522160Cb5582301",
+        "interestRateModel": "0x2698a83c29665844525A192976550c16D36E97dB",
+        "underlying": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        "availableLiquidity": {
+          "__type": "bigint",
+          "__value": "1120000000000"
+        },
+        "expectedLiquidity": {
+          "__type": "bigint",
+          "__value": "1500000230188"
+        },
+        "baseInterestIndex": {
+          "__type": "bigint",
+          "__value": "1000000743096437233868801568"
+        },
+        "baseInterestRate": {
+          "__type": "bigint",
+          "__value": "7238098134165956028571428"
+        },
+        "dieselRate": {
+          "__type": "bigint",
+          "__value": "1000000411606772922131882969"
+        },
+        "supplyRate": {
+          "__type": "bigint",
+          "__value": "1861251171030252489163588"
+        },
+        "withdrawFee": {
+          "__type": "bigint",
+          "__value": "0"
+        },
+        "totalBorrowed": {
+          "__type": "bigint",
+          "__value": "380000000000"
+        },
+        "totalDebtLimit": {
+          "__type": "bigint",
+          "__value": "1000000000000000"
+        },
+        "creditManagerDebtParams": [
+          {
+            "creditManager": "0x7161c4a5099d6bDCaC05c8baB893d2215bB7BE42",
+            "borrowed": {
+              "__type": "bigint",
+              "__value": "380000000000"
+            },
+            "limit": {
+              "__type": "bigint",
+              "__value": "1000000000000000"
+            },
+            "available": {
+              "__type": "bigint",
+              "__value": "969999976981"
+            }
+          }
+        ],
+        "baseInterestIndexLU": {
+          "__type": "bigint",
+          "__value": "1000000674240814950886108427"
+        },
+        "expectedLiquidityLU": {
+          "__type": "bigint",
+          "__value": "1500000203645"
+        },
+        "quotaRevenue": {
+          "__type": "bigint",
+          "__value": "41399894"
+        },
+        "lastBaseInterestUpdate": 1784851276,
+        "lastQuotaRevenueUpdate": 1784851288,
+        "isPaused": false
+      },
+      "quotaKeeper": {
+        "baseParams": {
+          "addr": "0x1824a860009911718C2FbE4A0522160Cb5582301",
+          "version": {
+            "__type": "bigint",
+            "__value": "310"
+          },
+          "contractType": "0x504f4f4c5f51554f54415f4b4545504552000000000000000000000000000000",
+          "serializedParams": "0x"
+        },
+        "rateKeeper": "0x07B9D904fB9cad29ee9b1bf4dE35De4CEacB7665",
+        "quotas": [
+          {
+            "token": "0x238a700eD6165261Cf8b2e544ba797BC11e466Ba",
+            "rate": 1,
+            "cumulativeIndexLU": {
+              "__type": "bigint",
+              "__value": "1"
+            },
+            "quotaIncreaseFee": 0,
+            "totalQuoted": {
+              "__type": "bigint",
+              "__value": "90000010000"
+            },
+            "limit": {
+              "__type": "bigint",
+              "__value": "10000000000000"
+            },
+            "isActive": true
+          },
+          {
+            "token": "0x04E30f28e1769E971BE6dC8d53E812126665eaBB",
+            "rate": 1,
+            "cumulativeIndexLU": {
+              "__type": "bigint",
+              "__value": "1"
+            },
+            "quotaIncreaseFee": 0,
+            "totalQuoted": {
+              "__type": "bigint",
+              "__value": "323998930000"
+            },
+            "limit": {
+              "__type": "bigint",
+              "__value": "10000000000000"
+            },
+            "isActive": true
+          }
+        ],
+        "creditManagers": ["0x7161c4a5099d6bDCaC05c8baB893d2215bB7BE42"],
+        "lastQuotaRateUpdate": 1784849915
+      },
+      "interestRateModel": {
+        "baseParams": {
+          "addr": "0x2698a83c29665844525A192976550c16D36E97dB",
+          "version": {
+            "__type": "bigint",
+            "__value": "310"
+          },
+          "contractType": "0x49524d3a3a4c494e454152000000000000000000000000000000000000000000",
+          "serializedParams": "0x0000000000000000000000000000000000000000000000000000000000001b580000000000000000000000000000000000000000000000000000000000002328000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c800000000000000000000000000000000000000000000000000000000000001f400000000000000000000000000000000000000000000000000000000000008fc0000000000000000000000000000000000000000000000000000000000000001"
+        }
+      },
+      "rateKeeper": {
+        "baseParams": {
+          "addr": "0x07B9D904fB9cad29ee9b1bf4dE35De4CEacB7665",
+          "version": {
+            "__type": "bigint",
+            "__value": "310"
+          },
+          "contractType": "0x524154455f4b45455045523a3a54554d424c4552000000000000000000000000",
+          "serializedParams": "0x0000000000000000000000000000000000000000000000000000000000000064000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000c00000000000000000000000000000000000000000000000000000000000000002000000000000000000000000238a700ed6165261cf8b2e544ba797bc11e466ba00000000000000000000000004e30f28e1769e971be6dc8d53e812126665eabb000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001"
+        },
+        "rates": [
+          {
+            "token": "0x238a700eD6165261Cf8b2e544ba797BC11e466Ba",
+            "rate": 1
+          },
+          {
+            "token": "0x04E30f28e1769E971BE6dC8d53E812126665eaBB",
+            "rate": 1
+          }
+        ]
+      },
+      "priceOracle": {
+        "baseParams": {
+          "addr": "0x6987b6e38c11D6FBd0B163964790d0a5065052Cc",
+          "version": {
+            "__type": "bigint",
+            "__value": "310"
+          },
+          "contractType": "0x50524943455f4f5241434c450000000000000000000000000000000000000000",
+          "serializedParams": "0x"
+        },
+        "priceFeedMap": [
+          {
+            "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "reserve": false,
+            "priceFeed": "0xb8087b4cEe6bD4AD1b5dEAD85DD27614d96c965a",
+            "stalenessPeriod": 0
+          },
+          {
+            "token": "0x238a700eD6165261Cf8b2e544ba797BC11e466Ba",
+            "reserve": false,
+            "priceFeed": "0x8D51DBC85cEef637c97D02bdaAbb5E274850e68C",
+            "stalenessPeriod": 873000
+          },
+          {
+            "token": "0x04E30f28e1769E971BE6dC8d53E812126665eaBB",
+            "reserve": false,
+            "priceFeed": "0xb8087b4cEe6bD4AD1b5dEAD85DD27614d96c965a",
+            "stalenessPeriod": 0
+          },
+          {
+            "token": "0x238a700eD6165261Cf8b2e544ba797BC11e466Ba",
+            "reserve": true,
+            "priceFeed": "0x8D51DBC85cEef637c97D02bdaAbb5E274850e68C",
+            "stalenessPeriod": 873000
+          },
+          {
+            "token": "0x04E30f28e1769E971BE6dC8d53E812126665eaBB",
+            "reserve": true,
+            "priceFeed": "0xb8087b4cEe6bD4AD1b5dEAD85DD27614d96c965a",
+            "stalenessPeriod": 0
+          }
+        ],
+        "priceFeedTree": [
+          {
+            "baseParams": {
+              "addr": "0xb8087b4cEe6bD4AD1b5dEAD85DD27614d96c965a",
+              "version": {
+                "__type": "bigint",
+                "__value": "310"
+              },
+              "contractType": "0x50524943455f464545443a3a424f554e44454400000000000000000000000000",
+              "serializedParams": "0x000000000000000000000000000000000000000000000000000000000632ea00"
+            },
+            "description": "USDC / USD bounded price feed bounded price feed",
+            "decimals": 8,
+            "skipCheck": true,
+            "updatable": false,
+            "underlyingFeeds": ["0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6"],
+            "underlyingStalenessPeriods": [87300],
+            "answer": {
+              "price": {
+                "__type": "bigint",
+                "__value": "99988171"
+              },
+              "updatedAt": {
+                "__type": "bigint",
+                "__value": "0"
+              },
+              "success": true
+            }
+          },
+          {
+            "baseParams": {
+              "addr": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
+              "version": {
+                "__type": "bigint",
+                "__value": "6"
+              },
+              "contractType": "0x50524943455f464545443a3a45585445524e414c000000000000000000000000",
+              "serializedParams": "0x"
+            },
+            "description": "USDC / USD",
+            "decimals": 8,
+            "skipCheck": false,
+            "updatable": false,
+            "underlyingFeeds": [],
+            "underlyingStalenessPeriods": [],
+            "answer": {
+              "price": {
+                "__type": "bigint",
+                "__value": "99988171"
+              },
+              "updatedAt": {
+                "__type": "bigint",
+                "__value": "1784793623"
+              },
+              "success": true
+            }
+          },
+          {
+            "baseParams": {
+              "addr": "0x8D51DBC85cEef637c97D02bdaAbb5E274850e68C",
+              "version": {
+                "__type": "bigint",
+                "__value": "1"
+              },
+              "contractType": "0x50524943455f464545443a3a45585445524e414c000000000000000000000000",
+              "serializedParams": "0x"
+            },
+            "description": "mF-ONE/USD",
+            "decimals": 8,
+            "skipCheck": false,
+            "updatable": false,
+            "underlyingFeeds": [],
+            "underlyingStalenessPeriods": [],
+            "answer": {
+              "price": {
+                "__type": "bigint",
+                "__value": "110939640"
+              },
+              "updatedAt": {
+                "__type": "bigint",
+                "__value": "1784828735"
+              },
+              "success": true
+            }
+          }
+        ]
+      },
+      "lossPolicy": {
+        "baseParams": {
+          "addr": "0x252a366f3Ce3781baB59F33FbcCB1D4b407d1c6C",
+          "version": {
+            "__type": "bigint",
+            "__value": "310"
+          },
+          "contractType": "0x4c4f53535f504f4c4943593a3a414c4941534544000000000000000000000000",
+          "serializedParams": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        }
+      },
+      "tokens": [
+        {
+          "addr": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin",
+          "decimals": 6
+        },
+        {
+          "addr": "0x238a700eD6165261Cf8b2e544ba797BC11e466Ba",
+          "symbol": "mF-ONE",
+          "name": "Midas Fasanara ONE",
+          "decimals": 18
+        },
+        {
+          "addr": "0x04E30f28e1769E971BE6dC8d53E812126665eaBB",
+          "symbol": "mF-ONErdUSDC",
+          "name": "mF-ONE redeemed to USD Coin",
+          "decimals": 6
+        }
+      ],
+      "creditManagers": [
+        {
+          "creditFacade": {
+            "baseParams": {
+              "addr": "0xdd7Af77550Fc3381DB8c025aA346F688a74f8bC1",
+              "version": {
+                "__type": "bigint",
+                "__value": "310"
+              },
+              "contractType": "0x4352454449545f46414341444500000000000000000000000000000000000000",
+              "serializedParams": "0x"
+            },
+            "degenNFT": "0x0000000000000000000000000000000000000000",
+            "botList": "0x0Bc03983Da93021a374C964A22b73865220Ce962",
+            "expirable": false,
+            "expirationDate": 0,
+            "maxDebtPerBlockMultiplier": 2,
+            "minDebt": {
+              "__type": "bigint",
+              "__value": "10000000000"
+            },
+            "maxDebt": {
+              "__type": "bigint",
+              "__value": "500000000000"
+            },
+            "forbiddenTokensMask": {
+              "__type": "bigint",
+              "__value": "0"
+            },
+            "isPaused": false
+          },
+          "creditManager": {
+            "baseParams": {
+              "addr": "0x7161c4a5099d6bDCaC05c8baB893d2215bB7BE42",
+              "version": {
+                "__type": "bigint",
+                "__value": "310"
+              },
+              "contractType": "0x4352454449545f4d414e41474552000000000000000000000000000000000000",
+              "serializedParams": "0x"
+            },
+            "name": "USDC Midas Gateway Tier 1",
+            "accountFactory": "0x5792C9dD7fE9D98be47cDCbC5A72A617A87fb06b",
+            "underlying": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "pool": "0x34D0fD28083BcF4D1Cc71A5843F9298A4fbD2F13",
+            "creditFacade": "0xdd7Af77550Fc3381DB8c025aA346F688a74f8bC1",
+            "creditConfigurator": "0x65166eE8cc9b846E2ebC7e7e6Cf90C876F76d7d8",
+            "maxEnabledTokens": 2,
+            "collateralTokens": [
+              {
+                "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                "liquidationThreshold": 9690
+              },
+              {
+                "token": "0x04E30f28e1769E971BE6dC8d53E812126665eaBB",
+                "liquidationThreshold": 9000
+              },
+              {
+                "token": "0x238a700eD6165261Cf8b2e544ba797BC11e466Ba",
+                "liquidationThreshold": 9000
+              }
+            ],
+            "feeInterest": 2500,
+            "feeLiquidation": 10,
+            "liquidationDiscount": 9700,
+            "feeLiquidationExpired": 10,
+            "liquidationDiscountExpired": 9700
+          },
+          "creditConfigurator": {
+            "baseParams": {
+              "addr": "0x65166eE8cc9b846E2ebC7e7e6Cf90C876F76d7d8",
+              "version": {
+                "__type": "bigint",
+                "__value": "310"
+              },
+              "contractType": "0x4352454449545f434f4e464947555241544f5200000000000000000000000000",
+              "serializedParams": "0x"
+            }
+          },
+          "accountFactory": {
+            "baseParams": {
+              "addr": "0x5792C9dD7fE9D98be47cDCbC5A72A617A87fb06b",
+              "version": {
+                "__type": "bigint",
+                "__value": "310"
+              },
+              "contractType": "0x4143434f554e545f464143544f52593a3a44454641554c540000000000000000",
+              "serializedParams": "0x"
+            }
+          },
+          "adapters": [
+            {
+              "baseParams": {
+                "addr": "0x08a0007E830a2e9AE04EfaF2bfF2e791CE832ae1",
+                "version": {
+                  "__type": "bigint",
+                  "__value": "311"
+                },
+                "contractType": "0x414441505445523a3a4d494441535f4741544557415900000000000000000000",
+                "serializedParams": "0x0000000000000000000000007161c4a5099d6bdcac05c8bab893d2215bb7be4200000000000000000000000073c54fb5af714087d555ce0aefe872312184705e00000000000000000000000073c54fb5af714087d555ce0aefe872312184705e000000000000000000000000238a700ed6165261cf8b2e544ba797bc11e466ba000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000004e30f28e1769e971be6dc8d53e812126665eabb0000000000000000000000000000000000000000000000000000000000000000"
+              },
+              "targetContract": "0x73C54fb5aF714087d555cE0aEfe872312184705e"
+            }
+          ]
+        }
+      ],
+      "configurator": "0xA770Ce584ADB6491A2138DA6EaeC33243bdcd248",
+      "pausableAdmins": ["0xA770Ce584ADB6491A2138DA6EaeC33243bdcd248"],
+      "unpausableAdmins": ["0xA770Ce584ADB6491A2138DA6EaeC33243bdcd248"],
+      "emergencyLiquidators": []
     }
   ],
   "zappers": [
@@ -2540,7 +2988,7 @@
         },
         "asset": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
         "factory": "0xc6f7B95f6fb8394541D9Ac8B0Abc94Bf6E84F703",
-        "extraDetails": "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000008b92e9d511fcf3b9e853a7374420affce87dbc8600000000000000000000000000000000000000000000000000000000000001364f4e5f44454d414e445f4c503a3a4d4f4e4f504f4c495a45440000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000120000000000000000000000000610627d8d01a413bdd9b0a0b60070da7dd1e54ad00000000000000000000000015d34aaf54267db7d7c367839aaf71a00a2c6a650000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000100000000000000000000000099f6be465624f2cdf7fe436697cebd4be7baf56b00000000000000000000000003f919ca79c4e0a3ae48ac330445189156826873000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000000000000000000000000000000000ba43b740000000000000000000000000000000000000000000000000000000002e90f4c860"
+        "extraDetails": "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000008b92e9d511fcf3b9e853a7374420affce87dbc8600000000000000000000000000000000000000000000000000000000000001364f4e5f44454d414e445f4c503a3a4d4f4e4f504f4c495a45440000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000120000000000000000000000000610627d8d01a413bdd9b0a0b60070da7dd1e54ad00000000000000000000000015d34aaf54267db7d7c367839aaf71a00a2c6a650000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000100000000000000000000000099f6be465624f2cdf7fe436697cebd4be7baf56b00000000000000000000000003f919ca79c4e0a3ae48ac330445189156826873000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000000000000000000000000000000000ba43b740000000000000000000000000000000000000000000000000000000002e90f44240"
       },
       {
         "baseParams": {
@@ -2677,6 +3125,22 @@
           "withdrawalLength": {
             "__type": "bigint",
             "__value": "7776000"
+          },
+          "maxWithdrawals": {
+            "__type": "bigint",
+            "__value": "10"
+          }
+        }
+      ],
+      "0x7161c4a5099d6bDCaC05c8baB893d2215bB7BE42": [
+        {
+          "creditManager": "0x7161c4a5099d6bDCaC05c8baB893d2215bB7BE42",
+          "token": "0x238a700eD6165261Cf8b2e544ba797BC11e466Ba",
+          "withdrawalPhantomToken": "0x04E30f28e1769E971BE6dC8d53E812126665eaBB",
+          "underlying": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "withdrawalLength": {
+            "__type": "bigint",
+            "__value": "3024000"
           },
           "maxWithdrawals": {
             "__type": "bigint",

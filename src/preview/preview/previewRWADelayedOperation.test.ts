@@ -20,34 +20,55 @@ import {
   PREVIEW_DUST,
 } from "./types.js";
 
-// Integration-style tests for delayed RWA operations: two 5-transaction
-// scenarios executed against the Securitize anvil Mainnet fork by
-// `generate-rwa-delayed-fixtures.ts`, with credit account snapshots
-// taken between the transactions (see __fixtures__/rwa-delayed).
+// Integration-style tests for delayed RWA operations: three 5-transaction
+// scenarios executed against the RWA anvil Mainnet fork (Securitize + Midas
+// markets) by `generate-rwa-delayed-fixtures.ts`, with credit account
+// snapshots taken between the transactions (see __fixtures__/rwa-delayed).
 //
-// Each scenario opens an account with 20k USDC at 5x leverage (buys ACRED),
-// then runs a delayed withdrawal of 2000 units of the withdraw token at
-// fixed leverage (WITHDRAW_COLLATERAL intent -> claim with the resume tail),
-// then a delayed close (CLOSE_ACCOUNT intent -> final claim + close):
-// 1. "withdraw-usdc":  dcUSDC credit manager, withdraws USDC;
-// 2. "withdraw-rlusd": dcRLUSD credit manager, withdraws RLUSD (the claim
-//    proceeds are in USDC and are partially swapped into RLUSD).
+// Each scenario opens an account with 20k USDC at 5x leverage (buys the RWA
+// collateral), then runs a delayed withdrawal of 2000 units of the withdraw
+// token at fixed leverage (WITHDRAW_COLLATERAL intent -> claim with the
+// resume tail), then a delayed close (CLOSE_ACCOUNT intent -> final claim +
+// close):
+// 1. "withdraw-usdc":  Securitize dcUSDC credit manager, buys ACRED,
+//    withdraws USDC;
+// 2. "withdraw-rlusd": Securitize dcRLUSD credit manager, buys ACRED,
+//    withdraws RLUSD (the claim proceeds are in USDC and are partially
+//    swapped into RLUSD);
+// 3. "midas":          Midas USDC credit manager (no RWA factory: the
+//    investor EOA owns the account directly), buys mF-ONE, withdraws USDC.
+//    The pool underlying is plain USDC, so the claim and close txs carry no
+//    router swaps.
 //
 // The SDK state fixture is a `dehydrate` snapshot of the same fork.
 const FIXTURES = resolve(import.meta.dirname, "../__fixtures__");
 
-// Securitize DSToken collateral of both markets
+// Securitize DSToken collateral of both Securitize markets
 const ACRED: Address = "0x17418038ecF73BA4026c4f428547BF099706F27B";
+// Midas mF-ONE collateral of the Midas market
+const MFONE: Address = "0x238a700eD6165261Cf8b2e544ba797BC11e466Ba";
 const USDC: Address = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
 const RLUSD: Address = "0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD";
-// Delayed-withdrawal phantom token of the redemption gateway (srpACRED_USDC),
-// shared by both markets
-const PHANTOM: Address = "0xe4a38b653B2580C9D72a50F190Ddd6E2d2D2a412";
+// Delayed-withdrawal phantom token of the Securitize redemption gateway
+// (srpACRED_USDC), shared by both Securitize markets
+const SECURITIZE_PHANTOM: Address =
+  "0xe4a38b653B2580C9D72a50F190Ddd6E2d2D2a412";
+// Delayed-withdrawal phantom token of the Midas redemption vault
+const MIDAS_PHANTOM: Address = "0x04E30f28e1769E971BE6dC8d53E812126665eaBB";
 
-const STATE_FIXTURE = resolve(FIXTURES, "Mainnet-25597035-securitize.json");
+const STATE_FIXTURE = resolve(FIXTURES, "Mainnet-25599278-rwa.json");
 
 interface ScenarioSpec {
-  name: "withdraw-usdc" | "withdraw-rlusd";
+  name: "withdraw-usdc" | "withdraw-rlusd" | "midas";
+  /**
+   * RWA collateral bought at open time and redeemed by the delayed
+   * withdrawals (ACRED for Securitize, mF-ONE for Midas)
+   */
+  collateralToken: Address;
+  /**
+   * Delayed-withdrawal phantom token minted by the withdrawal requests
+   */
+  phantomToken: Address;
   /**
    * Token withdrawn to the wallet by the WITHDRAW_COLLATERAL flow, and
    * received by the wallet when the account is closed
@@ -57,18 +78,38 @@ interface ScenarioSpec {
    * 2000 units of `withdrawToken`
    */
   withdrawAmount: bigint;
+  /**
+   * Securitize accounts are opened through the RWA factory
+   * (RWAOpenCreditAccount); Midas accounts directly through the credit
+   * facade (OpenCreditAccount)
+   */
+  openOperation: "RWAOpenCreditAccount" | "OpenCreditAccount";
 }
 
 const SCENARIOS: ScenarioSpec[] = [
   {
     name: "withdraw-usdc",
+    collateralToken: ACRED,
+    phantomToken: SECURITIZE_PHANTOM,
     withdrawToken: USDC,
     withdrawAmount: 2000n * 10n ** 6n,
+    openOperation: "RWAOpenCreditAccount",
   },
   {
     name: "withdraw-rlusd",
+    collateralToken: ACRED,
+    phantomToken: SECURITIZE_PHANTOM,
     withdrawToken: RLUSD,
     withdrawAmount: 2000n * 10n ** 18n,
+    openOperation: "RWAOpenCreditAccount",
+  },
+  {
+    name: "midas",
+    collateralToken: MFONE,
+    phantomToken: MIDAS_PHANTOM,
+    withdrawToken: USDC,
+    withdrawAmount: 2000n * 10n ** 6n,
+    openOperation: "OpenCreditAccount",
   },
 ];
 
@@ -265,6 +306,7 @@ function untouchedAssets(ca: CreditAccountData, touched: Address[]): Asset[] {
 }
 
 describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
+  const { collateralToken: COLLATERAL, phantomToken: PHANTOM } = spec;
   const {
     txs,
     afterOpen,
@@ -273,12 +315,11 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
     afterCloseRequest,
     walletReceived,
   } = FIXTURES_BY_SCENARIO[spec.name];
-  // RWA accounts are owned by a per-account proxy vault: the actual EOA
-  // behind the account (the tx sender and the intents' `to`) is `investor`
-  const investor = afterOpen.investor as Address;
+  // Securitize owner is intermediate wallet, midas owner - EOA
+  const investor = (afterOpen.investor ?? afterOpen.owner) as Address;
 
   // Tx 1: open with 20k USDC collateral at 5x leverage; the router swaps
-  // the collateral and the borrowed vault shares into ACRED.
+  // the collateral and the borrowed funds into the RWA collateral.
   it("previews the account opening with 20k USDC at 5x leverage", async () => {
     const preview = (await previewOperation({
       sdk,
@@ -289,41 +330,43 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
     })) as OpenCreditAccountPreview;
 
     expect(preview).toMatchObject({
-      operation: "RWAOpenCreditAccount",
+      operation: spec.openOperation,
       error: undefined,
       collateral: [{ token: USDC, balance: 20_000_000000n }],
       collateralValue: expect.toBeWithinBps(
         afterOpen.totalValue - afterOpen.debt,
       ),
       debt: afterOpen.debt,
-      // the desired ACRED quota carries a safety buffer above the position
-      // value and does not match the on-chain quota exactly
+      // the desired collateral quota carries a safety buffer above the
+      // position value and does not match the on-chain quota exactly
       quotas: [
         {
-          token: ACRED,
-          balance: expect.toBeWithinBps(findQuota(afterOpen, ACRED), 500n),
+          token: COLLATERAL,
+          balance: expect.toBeWithinBps(findQuota(afterOpen, COLLATERAL), 500n),
         },
       ],
-      // the min guaranteed post-open assets: the ACRED position only
+      // the min guaranteed post-open assets: the collateral position only
       assets: [
         {
-          token: ACRED,
-          balance: expect.toBeWithinBpsBelow(findBalance(afterOpen, ACRED)),
+          token: COLLATERAL,
+          balance: expect.toBeWithinBpsBelow(
+            findBalance(afterOpen, COLLATERAL),
+          ),
         },
       ],
-      // The min guaranteed ACRED position must not exceed the actual
+      // The min guaranteed collateral position must not exceed the actual
       // on-chain result, and must be within slippage of it
       target: {
-        token: ACRED,
-        balance: expect.toBeWithinBpsBelow(findBalance(afterOpen, ACRED)),
+        token: COLLATERAL,
+        balance: expect.toBeWithinBpsBelow(findBalance(afterOpen, COLLATERAL)),
       },
     });
   });
 
   // Tx 2: delayed withdrawal request carrying the WITHDRAW_COLLATERAL
-  // intent: enough ACRED to fund the withdrawal plus the leverage-keeping
-  // debt repayment is sent to redemption (phantom token minted), debt is
-  // untouched until the withdrawal is claimed.
+  // intent: enough collateral to fund the withdrawal plus the
+  // leverage-keeping debt repayment is sent to redemption (phantom token
+  // minted), debt is untouched until the withdrawal is claimed.
   it("previews the delayed withdrawal request and its resume", async () => {
     const preview = (await previewOperation(
       {
@@ -344,13 +387,13 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         to: investor,
         withdrawToken: spec.withdrawToken,
         withdrawAmount: spec.withdrawAmount,
-        sourceToken: ACRED,
+        sourceToken: COLLATERAL,
         debtRepaid: expect.toSatisfy((v: bigint) => v > 0n),
       },
       // Instant preview vs the actual state after the request tx: the
-      // request only moves ACRED into the phantom token, debt is untouched.
-      // The phantom balance is a min guarantee, the quota is set explicitly
-      // by the tx and must match exactly
+      // request only moves collateral into the phantom token, debt is
+      // untouched. The phantom balance is a min guarantee, the quota is set
+      // explicitly by the tx and must match exactly
       instantPreview: {
         operation: "AdjustCreditAccount",
         error: undefined,
@@ -369,21 +412,21 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
               findBalance(afterRequest, PHANTOM),
             ),
           },
-          { token: ACRED, balance: findBalance(afterRequest, ACRED) },
+          { token: COLLATERAL, balance: findBalance(afterRequest, COLLATERAL) },
         ]),
         quotas: expect.toEqualUnordered([
           { token: PHANTOM, balance: findQuota(afterRequest, PHANTOM) },
-          // the desired ACRED quota carries a safety buffer and does not
-          // match the on-chain value exactly
-          { token: ACRED, balance: expect.anything() },
+          // the desired collateral quota carries a safety buffer and does
+          // not match the on-chain value exactly
+          { token: COLLATERAL, balance: expect.anything() },
         ]),
       },
       // Delayed preview vs the actual state after the claim tx (the
       // resume): the full withdrawal amount goes to the wallet, the claim
       // remainder repays debt capped by the intent's debtRepaid. The account
-      // ends up where the delayed preview predicted: same ACRED position
-      // (the claim doesn't touch it), debt within swap slippage of the
-      // oracle-estimated repayment, phantom token gone
+      // ends up where the delayed preview predicted: same collateral
+      // position (the claim doesn't touch it), debt within swap slippage of
+      // the oracle-estimated repayment, phantom token gone
       delayedPreview: {
         operation: "AdjustCreditAccount",
         error: undefined,
@@ -398,12 +441,12 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         debt: expect.toBeWithinBps(afterClaim.debt),
         debtChange: expect.toSatisfy((v: bigint) => v < 0n),
         // the claim zeroes the phantom quota: only the (buffered, see
-        // instantPreview) ACRED quota is left
+        // instantPreview) collateral quota is left
         quotas: expect.toEqualUnordered([
-          { token: ACRED, balance: expect.anything() },
+          { token: COLLATERAL, balance: expect.anything() },
         ]),
         assets: expect.toEqualUnordered([
-          { token: ACRED, balance: findBalance(afterClaim, ACRED) },
+          { token: COLLATERAL, balance: findBalance(afterClaim, COLLATERAL) },
         ]),
       },
     });
@@ -438,7 +481,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         to: investor,
         withdrawToken: spec.withdrawToken,
         withdrawAmount: spec.withdrawAmount,
-        sourceToken: ACRED,
+        sourceToken: COLLATERAL,
         debtRepaid: expect.toSatisfy((v: bigint) => v > 0n),
       },
       // the claim adds nothing from the wallet
@@ -453,23 +496,23 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
       ],
       // Cross-check against the actual state after the claim tx: the debt
       // may only grow by the interest accrued between the snapshots, the
-      // ACRED quota is untouched by the claim and must match exactly
+      // collateral quota is untouched by the claim and must match exactly
       debt: expect.toBeWithinBpsBelow(afterClaim.debt, 1n),
       // the claim remainder repays debt
       debtChange: expect.toSatisfy((v: bigint) => v < 0n),
       // min guaranteed account value vs the actual post-claim state
       totalValue: expect.toBeWithinBps(afterClaim.totalValue),
       quotas: expect.toEqualUnordered([
-        { token: ACRED, balance: findQuota(afterClaim, ACRED) },
+        { token: COLLATERAL, balance: findQuota(afterClaim, COLLATERAL) },
       ]),
       assets: expect.toEqualUnordered([
-        { token: ACRED, balance: findBalance(afterClaim, ACRED) },
+        { token: COLLATERAL, balance: findBalance(afterClaim, COLLATERAL) },
       ]),
     });
   });
 
-  // Tx 4: delayed close request: all remaining ACRED goes to redemption
-  // with a CLOSE_ACCOUNT intent, the ACRED quota is zeroed.
+  // Tx 4: delayed close request: all remaining collateral goes to
+  // redemption with a CLOSE_ACCOUNT intent, the collateral quota is zeroed.
   it("previews the delayed close request and its resume", async () => {
     const preview = (await previewOperation(
       {
@@ -485,9 +528,9 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
     expect(preview).toMatchObject({
       operation: "DelayedCreditAccountOperation",
       intent: { type: "CLOSE_ACCOUNT", to: investor },
-      // Instant preview vs the actual state after the request: ACRED fully
-      // redeemed, the phantom balance is a min guarantee, the phantom quota
-      // is set explicitly by the tx and must match exactly
+      // Instant preview vs the actual state after the request: collateral
+      // fully redeemed, the phantom balance is a min guarantee, the phantom
+      // quota is set explicitly by the tx and must match exactly
       instantPreview: {
         operation: "AdjustCreditAccount",
         error: undefined,
@@ -499,8 +542,8 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         debtChange: 0n,
         // min guaranteed account value vs the actual post-request state
         totalValue: expect.toBeWithinBps(afterCloseRequest.totalValue),
-        // ACRED fully redeemed into the phantom token, the residues left by
-        // the claim tx are untouched
+        // collateral fully redeemed into the phantom token, the residues
+        // left by the claim tx are untouched
         assets: expect.toEqualUnordered([
           {
             token: PHANTOM,
@@ -508,7 +551,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
               findBalance(afterCloseRequest, PHANTOM),
             ),
           },
-          ...untouchedAssets(afterClaim, [ACRED, PHANTOM]),
+          ...untouchedAssets(afterClaim, [COLLATERAL, PHANTOM]),
         ]),
         quotas: expect.toEqualUnordered([
           { token: PHANTOM, balance: findQuota(afterCloseRequest, PHANTOM) },
@@ -559,13 +602,9 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
       permanent: false,
       // the intent recorded by the close request, from the redemption logger
       intent: { type: "CLOSE_ACCOUNT", to: investor },
-      // this preview replays the actual calldata, whose router bracket
-      // carries slippage-adjusted minimum amounts: the prediction is a min
-      // guarantee below the actual wallet delta (slippage + the vault NAV
-      // round trip)
       receivedAmount: {
         token: spec.withdrawToken,
-        balance: expect.toBeWithinBpsBelow(walletReceived.close.amount, 300n),
+        balance: expect.toBeWithinBps(walletReceived.close.amount, 300n),
       },
     });
   });

@@ -1,9 +1,9 @@
 {
-  "creditAccount": "0xB218fBD30Bd02250EEE61dB3AC82392dd38517Ea",
+  "creditAccount": "0x80F4789A078c5FEf74F9b0b3725557baF819491A",
   "creditManager": "0x328BD41b79D23569071DcE7573EfFbb9d046D640",
   "creditFacade": "0x35EBA7F9D52a2639CD3172E40f4365FFC8045fc5",
   "underlying": "0x239223dA253006f9cc5737D315FdeD6F84E8240C",
-  "owner": "0x398B2287113c0D910292724732aE9a383837f610",
+  "owner": "0x3AE90241f4039CdDC858bbd3E0e827012E3B7549",
   "expirationDate": 0,
   "enabledTokensMask": {
     "__type": "bigint",
@@ -27,19 +27,19 @@
   },
   "totalValueUSD": {
     "__type": "bigint",
-    "__value": "9999375134265"
+    "__value": "9999175437372"
   },
   "twvUSD": {
     "__type": "bigint",
-    "__value": "8999437620838"
+    "__value": "8999257893634"
   },
   "totalValue": {
     "__type": "bigint",
-    "__value": "99990467655692187068576"
+    "__value": "99988470752340493138205"
   },
   "healthFactor": {
     "__type": "bigint",
-    "__value": "1125062786281879916"
+    "__value": "1125040317723574151"
   },
   "success": true,
   "tokens": [
@@ -67,7 +67,7 @@
       },
       "balance": {
         "__type": "bigint",
-        "__value": "90481482"
+        "__value": "90479675"
       },
       "quota": {
         "__type": "bigint",
@@ -76,5 +76,5 @@
       "success": true
     }
   ],
-  "investor": "0xDe6e7562a3e0201D8f23C9Af8A689a93eDeB00D8"
+  "investor": "0xD39D3eBcC8149eF92d54c71ae11D646a54EDE40d"
 }

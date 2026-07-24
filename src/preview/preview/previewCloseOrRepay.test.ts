@@ -175,7 +175,7 @@ function loadWalletFundedRepayFixtures(
 describe.each(
   WALLET_FUNDED_REPAY_SCENARIOS,
 )("wallet-funded full repay without withdrawals ($name)", spec => {
-  const STATE_FIXTURE = resolve(FIXTURES, "Mainnet-25597035-securitize.json");
+  const STATE_FIXTURE = resolve(FIXTURES, "Mainnet-25599278-rwa.json");
   const { repay, afterOpen } = loadWalletFundedRepayFixtures(spec.name);
   const investor = afterOpen.investor as Address;
 

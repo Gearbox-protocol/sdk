@@ -243,7 +243,7 @@ async function fulfillMidasWithdrawal(
       address: MIDAS_VAULT_ADMIN,
       value: parseEther("100"),
     });
-    await anvil.writeContract({
+    const hash = await anvil.writeContract({
       chain: anvil.chain,
       address: midasRedemptionVault,
       account: MIDAS_VAULT_ADMIN,
@@ -251,6 +251,15 @@ async function fulfillMidasWithdrawal(
       functionName: "safeApproveRequest",
       args: [requestId, mTokenRate],
     });
+    // the shared fork may mine on an interval: without waiting, subsequent
+    // withdrawal reads race ahead of the approval and still see it pending
+    const receipt = await anvil.waitForTransactionReceipt({
+      hash,
+      pollingInterval: 100,
+    });
+    if (receipt.status !== "success") {
+      throw new Error(`midas: safeApproveRequest tx ${hash} reverted`);
+    }
     await anvil.stopImpersonatingAccount({ address: MIDAS_VAULT_ADMIN });
   }
 }

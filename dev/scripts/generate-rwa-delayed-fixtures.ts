@@ -1,12 +1,17 @@
 /**
- * Generates fixtures for delayed RWA (Securitize) operation preview tests
- * (see previewRWADelayedOperation.test.ts) by replaying two scenarios on the
- * public Securitize anvil Mainnet fork:
+ * Generates fixtures for delayed RWA operation preview tests
+ * (see previewRWADelayedOperation.test.ts) by replaying three scenarios on
+ * the public RWA anvil Mainnet fork (Securitize + Midas markets):
  *
- * 1. "withdraw-usdc":  on the dcUSDC credit manager, open a credit account
- *                      with 20k USDC collateral at 5x leverage (buys ACRED);
- * 2. "withdraw-rlusd": same but on the dcRLUSD credit manager, withdrawing
- *                      RLUSD instead of USDC.
+ * 1. "withdraw-usdc":  on the Securitize dcUSDC credit manager, open a credit
+ *                      account with 20k USDC collateral at 5x leverage (buys
+ *                      ACRED via the RWA factory proxy vault);
+ * 2. "withdraw-rlusd": same but on the Securitize dcRLUSD credit manager,
+ *                      withdrawing RLUSD instead of USDC;
+ * 3. "midas":          on the Midas USDC credit manager (no RWA factory, the
+ *                      investor EOA owns the account directly), buys mF-ONE,
+ *                      withdraws USDC. The pool underlying is plain USDC, so
+ *                      the claim and close txs carry no router swaps.
  *
  * Each scenario is a 5-transaction flow that mirrors the frontend:
  *
@@ -34,8 +39,9 @@
  * branch), full-amount swaps use findOneTokenPath.
  *
  * Produces, under src/preview/__fixtures__:
- * - Mainnet-{block}-securitize.json: serialized `sdk.state` snapshot
- *   (including withdrawable assets of the withdrawal compressor);
+ * - Mainnet-{block}-rwa.json: serialized `sdk.state` snapshot covering both
+ *   market configurators (including withdrawable assets of the withdrawal
+ *   compressor);
  * - rwa-delayed/{scenario}/after_*.json: credit account snapshots taken
  *   between the transactions (after_open / after_request / after_claim /
  *   after_close_request / after_close);
@@ -50,7 +56,7 @@
  *   deltas of the withdrawn asset across the claim and close transactions,
  *   for cross-checking `receivedAmount` previews.
  *
- * The Securitize anvil RPC is public and the registry admin key is a
+ * The RWA anvil RPC is public and the Securitize registry admin key is a
  * well-known anvil key, so no env vars are required.
  *
  * Usage:
@@ -75,6 +81,7 @@ import {
   type Hex,
   http,
   type PrivateKeyAccount,
+  parseAbi,
   parseEventLogs,
   parseUnits,
   type TransactionReceipt,
@@ -90,6 +97,7 @@ import {
 import { makePendingWithdrawalsClaimable } from "../../src/dev/withdrawalUtils.js";
 import {
   createInvestorWallet,
+  POOL_LIQUIDITY_USDC,
   seedSecuritizePoolLiquidity,
   signRegisterVaultMessages,
 } from "../../src/e2e/helpers/securitize.js";
@@ -116,9 +124,13 @@ import {
   sendRawTx,
 } from "../../src/sdk/index.js";
 
-const RPC_URL = "https://anvil.gearbox.foundation/rpc/Securitize";
-const MARKET_CONFIGURATOR: Address =
-  "0x610627d8d01a413bdd9b0a0b60070da7dd1e54ad";
+const RPC_URL = "https://anvil.gearbox.foundation/rpc/RWA";
+const MARKET_CONFIGURATORS: Address[] = [
+  // Securitize
+  "0x610627d8d01a413bdd9b0a0b60070da7dd1e54ad",
+  // Testnet curator (Midas market, no governor)
+  "0xa770ce584adb6491a2138da6eaec33243bdcd248",
+];
 const RWA_FACTORY: Address = "0xc6f7b95f6fb8394541d9ac8b0abc94bf6e84f703";
 // CreditManagerV310 (Mock dcUSDC, ACRED) of the Securitize RWA factory
 const CREDIT_MANAGER_DCUSDC: Address =
@@ -126,8 +138,14 @@ const CREDIT_MANAGER_DCUSDC: Address =
 // CreditManagerV310 (Mock dcRLUSD, ACRED) of the Securitize RWA factory
 const CREDIT_MANAGER_DCRLUSD: Address =
   "0x328BD41b79D23569071DcE7573EfFbb9d046D640";
-// Securitize DSToken collateral of both markets (6 decimals)
+// CreditManagerV310 (USDC, mF-ONE) of the Midas market - plain USDC
+// underlying, no RWA factory
+const CREDIT_MANAGER_MIDAS: Address =
+  "0x7161c4a5099d6bDCaC05c8baB893d2215bB7BE42";
+// Securitize DSToken collateral of both Securitize markets (6 decimals)
 const ACRED: Address = "0x17418038ecF73BA4026c4f428547BF099706F27B";
+// Midas mF-ONE collateral of the Midas market (18 decimals)
+const MFONE: Address = "0x238a700eD6165261Cf8b2e544ba797BC11e466Ba";
 const USDC: Address = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
 const RLUSD: Address = "0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD";
 // Well-known anvil key used as the Securitize registry admin on the fork
@@ -145,11 +163,16 @@ const SLIPPAGE = 50;
 
 type SecuritizeSDK = OnchainSDK<{ adapters: AdaptersPlugin }>;
 type InvestorWallet = WalletClient<Transport, Chain, PrivateKeyAccount>;
-type ScenarioName = "withdraw-usdc" | "withdraw-rlusd";
+type ScenarioName = "withdraw-usdc" | "withdraw-rlusd" | "midas";
 
 interface ScenarioConfig {
   name: ScenarioName;
   creditManager: Address;
+  /**
+   * RWA collateral bought at open time and redeemed by the delayed
+   * withdrawals (ACRED for Securitize, mF-ONE for Midas)
+   */
+  collateralToken: Address;
   /**
    * Token the investor withdraws to the wallet at claim time (W)
    */
@@ -164,14 +187,23 @@ const SCENARIOS: ScenarioConfig[] = [
   {
     name: "withdraw-usdc",
     creditManager: CREDIT_MANAGER_DCUSDC,
+    collateralToken: ACRED,
     withdrawToken: USDC,
     withdrawAmount: parseUnits("2000", 6),
   },
   {
     name: "withdraw-rlusd",
     creditManager: CREDIT_MANAGER_DCRLUSD,
+    collateralToken: ACRED,
     withdrawToken: RLUSD,
     withdrawAmount: parseUnits("2000", 18),
+  },
+  {
+    name: "midas",
+    creditManager: CREDIT_MANAGER_MIDAS,
+    collateralToken: MFONE,
+    withdrawToken: USDC,
+    withdrawAmount: parseUnits("2000", 6),
   },
 ];
 
@@ -247,7 +279,11 @@ interface RequestDelayedWithdrawalProps {
    */
   creditAccount: CreditAccountData<true>;
   /**
-   * Amount of ACRED to send to redemption
+   * RWA collateral token to send to redemption (ACRED / mF-ONE)
+   */
+  collateralToken: Address;
+  /**
+   * Amount of `collateralToken` to send to redemption
    */
   amount: bigint;
   intent: DelayedIntent;
@@ -305,8 +341,9 @@ function minBigint(a: bigint, b: bigint): bigint {
 }
 
 /**
- * Attaches the SDK to the Securitize anvil fork, loads withdrawable assets
- * (so they end up in the state snapshot) and dumps `sdk.state` to DEST_DIR.
+ * Attaches the SDK to the RWA anvil fork (Securitize + Midas market
+ * configurators), loads withdrawable assets (so they end up in the state
+ * snapshot) and dumps `sdk.state` to DEST_DIR.
  */
 async function setupSdk(): Promise<SetupSdkResult> {
   const sdk: SecuritizeSDK = new OnchainSDK(
@@ -315,7 +352,7 @@ async function setupSdk(): Promise<SetupSdkResult> {
     { plugins: { adapters: new AdaptersPlugin(true) } },
   );
   await sdk.attach({
-    marketConfigurators: [MARKET_CONFIGURATOR],
+    marketConfigurators: MARKET_CONFIGURATORS,
     rwaFactories: [RWA_FACTORY],
     ignoreUpdateablePrices: true,
     loadZappers: true,
@@ -328,7 +365,7 @@ async function setupSdk(): Promise<SetupSdkResult> {
 
   const block = sdk.currentBlock;
   mkdirSync(DEST_DIR, { recursive: true });
-  const statePath = resolve(DEST_DIR, `Mainnet-${block}-securitize.json`);
+  const statePath = resolve(DEST_DIR, `Mainnet-${block}-rwa.json`);
   writeFileSync(statePath, json_stringify(sdk.state));
   console.log(`SDK state snapshot (block ${block}): ${statePath}`);
 
@@ -344,7 +381,8 @@ async function setupSdk(): Promise<SetupSdkResult> {
 /**
  * Creates a fresh investor wallet with 1 ETH for gas, registers it in the
  * Securitize registry (fake KYC, no minting - ACRED is bought via the
- * router) and deals it enough USDC for both scenarios.
+ * router; the Midas market needs no investor registration) and deals it
+ * enough USDC for all scenarios.
  */
 async function setupInvestor(
   sdk: SecuritizeSDK,
@@ -358,11 +396,11 @@ async function setupInvestor(
     adminPrivateKey: SECURITIZE_ADMIN_PRIVATE_KEY,
     token: ACRED,
   });
-  // 50k USDC covers 20k collateral in both scenarios
+  // 100k USDC covers 20k collateral in all three scenarios
   await anvil.deal({
     erc20: USDC,
     account: investor,
-    amount: parseUnits("50000", 6),
+    amount: parseUnits("100000", 6),
   });
   console.log(`investor: ${investor}`);
   return { wallet, investor };
@@ -448,11 +486,13 @@ async function walletBalance(
 
 /**
  * Opens a credit account with 20k USDC collateral at 5x leverage: borrows
- * vault shares worth 80k USDC and swaps everything into ACRED via the
- * router open-strategy path. The router emits the unwrap of the borrowed
- * vault shares (redeemDiff), an optional swap into USDC (dcRLUSD market)
- * and the ACRED buy inside its slippage-checked block, matching the
- * multicall composition the frontend generates.
+ * 80k USDC worth of the underlying and swaps everything into the RWA
+ * collateral via the router open-strategy path. On Securitize markets the
+ * underlying is a vault share: the router emits its unwrap (redeemDiff), an
+ * optional swap into USDC (dcRLUSD market) and the ACRED buy inside its
+ * slippage-checked block; on the Midas market the underlying is plain USDC
+ * and the router emits the mF-ONE buy only. Either way the multicall
+ * composition matches what the frontend generates.
  */
 async function openLeveragedAccount({
   sdk,
@@ -478,10 +518,12 @@ async function openLeveragedAccount({
     pollingInterval: 100,
   });
 
+  // Returns undefined for markets without an RWA factory (Midas): the
+  // account is opened directly through the credit facade
   const requirements = await sdk.accounts.getOpenAccountRequirements(
     investor,
     cfg.creditManager,
-    { tokenOutAddress: ACRED },
+    { tokenOutAddress: cfg.collateralToken },
   );
   const rwaOptions: SecuritizeOperationArgs | undefined = requirements
     ? {
@@ -494,32 +536,40 @@ async function openLeveragedAccount({
       }
     : undefined;
 
-  // Debt in vault shares worth 80k USDC. The borrowed amount is passed to
-  // the router in the vault-share token, the same way the frontend does:
-  // the router itself emits the unwrap (redeemDiff) and any USDC conversion
-  // inside the storeExpectedBalances/compareBalances block
+  // Debt worth 80k USDC, denominated in the underlying. On Securitize
+  // markets the borrowed amount is passed to the router in the vault-share
+  // token, the same way the frontend does: the router itself emits the
+  // unwrap (redeemDiff) and any USDC conversion inside the
+  // storeExpectedBalances/compareBalances block
   const debt = market.priceOracle.convert(
     USDC,
     cm.underlying,
     COLLATERAL_USDC * (LEVERAGE - 1n),
   );
 
+  // Collateral and debt merged by token: on the Midas market both are plain
+  // USDC and the router expects a single entry per token
+  const expectedBalances: Asset[] =
+    cm.underlying === USDC
+      ? [{ token: USDC, balance: COLLATERAL_USDC + debt }]
+      : [
+          { token: USDC, balance: COLLATERAL_USDC },
+          { token: cm.underlying, balance: debt },
+        ];
+
   const strategy = await sdk.routerFor(cm).findOpenStrategyPath({
     creditManager: cm.creditManager,
-    expectedBalances: [
-      { token: USDC, balance: COLLATERAL_USDC },
-      { token: cm.underlying, balance: debt },
-    ],
+    expectedBalances,
     leftoverBalances: [],
     slippage: SLIPPAGE,
-    target: ACRED,
+    target: cfg.collateralToken,
   });
 
   // Quota for the whole 100k USDC position, denominated in the underlying
   const quota = roundQuota(
     market.priceOracle.convert(USDC, cm.underlying, COLLATERAL_USDC * LEVERAGE),
   );
-  const quotas = [{ token: ACRED, balance: quota }];
+  const quotas = [{ token: cfg.collateralToken, balance: quota }];
 
   const { tx } = await sdk.accounts.openCA({
     creditManager: cfg.creditManager,
@@ -553,12 +603,13 @@ async function openLeveragedAccount({
 /**
  * Builds and sends a delayed withdrawal request tx: the intent is
  * abi-encoded into the request's `extraData`, quota deltas move the redeemed
- * ACRED value to the withdrawal phantom token.
+ * collateral value to the withdrawal phantom token.
  */
 async function requestDelayedWithdrawal({
   sdk,
   wallet,
   creditAccount,
+  collateralToken,
   amount,
   intent,
 }: RequestDelayedWithdrawalProps): Promise<SavedTx> {
@@ -569,7 +620,7 @@ async function requestDelayedWithdrawal({
 
   const preview = await sdk.accounts.previewDelayedWithdrawal({
     creditAccount: creditAccount.creditAccount,
-    token: ACRED,
+    token: collateralToken,
     amount,
     intent,
   });
@@ -581,28 +632,32 @@ async function requestDelayedWithdrawal({
   const phantomToken = phantomOutputs[0].token;
   const phantomOut = phantomOutputs.reduce((sum, o) => sum + o.amount, 0n);
 
-  // Quota deltas: move the redeemed value from ACRED to the phantom token.
-  // Quotas are denominated in the pool underlying, so the phantom output
-  // (USDC-scale for Securitize) must be converted via the oracle - the
+  // Quota deltas: move the redeemed value from the collateral to the
+  // phantom token. Quotas are denominated in the pool underlying, so the
+  // phantom output (USDC-scale) must be converted via the oracle - the
   // scales differ on the dcRLUSD market. The phantom quota is set slightly
   // below the expected output (the preview itself is a min guarantee); the
-  // ACRED quota is reduced by the redeemed value, or removed entirely when
-  // closing
+  // collateral quota is reduced by the redeemed value, or removed entirely
+  // when closing
   const phantomOutInUnderlying = market.priceOracle.convert(
     phantomToken,
     cm.underlying,
     phantomOut,
   );
-  const acredQuotaDelta =
+  const collateralQuotaDelta =
     intent.type === "CLOSE_ACCOUNT"
       ? MIN_INT96
-      : -market.priceOracle.convert(ACRED, cm.underlying, preview.amountIn);
+      : -market.priceOracle.convert(
+          collateralToken,
+          cm.underlying,
+          preview.amountIn,
+        );
   const quotas = [
     {
       token: phantomToken,
       balance: roundQuota((phantomOutInUnderlying * 90n) / 100n),
     },
-    { token: ACRED, balance: acredQuotaDelta },
+    { token: collateralToken, balance: collateralQuotaDelta },
   ];
 
   const { tx } = await sdk.accounts.startDelayedWithdrawal({
@@ -719,23 +774,33 @@ async function claimWithResume({
           cfg.withdrawAmount,
         );
 
-  // Swap the claimed USDC into the underlying, reserving the withdrawal
-  // leftover on the account. Same call as the frontend's
-  // RouterIntentQuoteSource leftover branch: open-strategy path with
-  // explicit leftoverBalances so the router emits diff calls with the
-  // correct leftover encoding
-  const debtSwap = await sdk.routerFor(cm).findOpenStrategyPath({
-    creditManager: cm.creditManager,
-    expectedBalances: [{ token: claimToken, balance: claimedAmount }],
-    leftoverBalances: [{ token: claimToken, balance: withdrawInClaimToken }],
-    slippage: SLIPPAGE,
-    target: cm.underlying,
+  const operations: EncodableCreditAccountOperation[] = [];
+  let repayAvailable: bigint;
+  if (claimToken === cm.underlying) {
+    // Midas market: the claim pays out in the pool underlying (USDC), so
+    // the claim proceeds minus the reserved withdrawal repay debt directly,
+    // without any router swap - same composition as the frontend
+    repayAvailable = claimedAmount - withdrawInClaimToken;
+  } else {
+    // Swap the claimed USDC into the underlying, reserving the withdrawal
+    // leftover on the account. Same call as the frontend's
+    // RouterIntentQuoteSource leftover branch: open-strategy path with
+    // explicit leftoverBalances so the router emits diff calls with the
+    // correct leftover encoding
+    const debtSwap = await sdk.routerFor(cm).findOpenStrategyPath({
+      creditManager: cm.creditManager,
+      expectedBalances: [{ token: claimToken, balance: claimedAmount }],
+      leftoverBalances: [{ token: claimToken, balance: withdrawInClaimToken }],
+      slippage: SLIPPAGE,
+      target: cm.underlying,
+    });
+    operations.push({ type: "swap", calls: debtSwap.calls });
+    repayAvailable = debtSwap.minAmount;
+  }
+  operations.push({
+    type: "decreaseDebt",
+    amount: minBigint(repayAvailable, debtRepaid),
   });
-
-  const operations: EncodableCreditAccountOperation[] = [
-    { type: "swap", calls: debtSwap.calls },
-    { type: "decreaseDebt", amount: minBigint(debtSwap.minAmount, debtRepaid) },
-  ];
 
   let withdrawAmount = cfg.withdrawAmount;
   if (cfg.withdrawToken !== claimToken) {
@@ -857,16 +922,24 @@ async function finalClaimClose({
     ],
   };
 
-  const closePath = await sdk.routerFor(cm).findBestClosePath({
-    creditAccount: caWithClaim,
-    creditManager: cm.creditManager,
-    slippage: SLIPPAGE,
-    balances: {
-      expectedBalances,
-      leftoverBalances: [],
-      tokensToClaim: [],
-    },
-  });
+  // When every predicted post-claim balance is already in the underlying
+  // (Midas: the claim pays plain USDC), there is nothing to swap and the
+  // frontend emits no router bracket at all
+  const needsRouter = expectedBalances.some(a => a.token !== cm.underlying);
+  const routerCalls = needsRouter
+    ? (
+        await sdk.routerFor(cm).findBestClosePath({
+          creditAccount: caWithClaim,
+          creditManager: cm.creditManager,
+          slippage: SLIPPAGE,
+          balances: {
+            expectedBalances,
+            leftoverBalances: [],
+            tokensToClaim: [],
+          },
+        })
+      ).calls
+    : [];
 
   // The asset ultimately received by the wallet: the RWA asset of the
   // credit manager's underlying (USDC for dcUSDC, RLUSD for dcRLUSD)
@@ -875,12 +948,13 @@ async function finalClaimClose({
     ? meta.asset
     : cm.underlying;
 
-  // Router swap bracket -> disable remaining quotas (the phantom; ACRED was
-  // already zeroed by the close request) -> decreaseDebt(MAX) ->
-  // redeemDiff(1) leftover vault shares -> withdrawCollateral(MAX)
+  // [Router swap bracket] -> disable remaining quotas (the phantom; the
+  // collateral was already zeroed by the close request) -> decreaseDebt(MAX)
+  // -> [redeemDiff(1) leftover vault shares, RWA underlyings only] ->
+  // withdrawCollateral(MAX)
   const closeCalls = await sdk.accounts.assembleCloseCreditAccountCalls({
     creditAccount: caWithClaim,
-    routerCalls: closePath.calls,
+    routerCalls,
     assetsToWithdraw: [receivedAsset],
     to: investor,
   });
@@ -900,6 +974,53 @@ async function finalClaimClose({
     redeemer,
     received: { token: receivedAsset, amount: balanceAfter - balanceBefore },
   };
+}
+
+/**
+ * Seeds liquidity for a plain (non-RWA) pool, e.g. the Midas USDC pool:
+ * a fresh wallet is funded with the underlying and deposits directly via
+ * the pool's ERC4626 entry point.
+ */
+async function seedPlainPoolLiquidity(
+  sdk: SecuritizeSDK,
+  anvil: AnvilClient,
+  pool: Address,
+): Promise<void> {
+  const market = sdk.marketRegister.findByPool(pool);
+  const underlying = market.pool.underlying;
+  const wallet = await createInvestorWallet(anvil, sdk.chain);
+  const depositor = wallet.account.address;
+
+  await anvil.deal({
+    erc20: underlying,
+    account: depositor,
+    amount: POOL_LIQUIDITY_USDC,
+  });
+  const approveHash = await wallet.writeContract({
+    address: underlying,
+    abi: erc20Abi,
+    functionName: "approve",
+    args: [pool, MAX_UINT256],
+  });
+  await sdk.client.waitForTransactionReceipt({
+    hash: approveHash,
+    pollingInterval: 100,
+  });
+  const depositHash = await wallet.writeContract({
+    address: pool,
+    abi: parseAbi([
+      "function deposit(uint256 assets, address receiver) returns (uint256)",
+    ]),
+    functionName: "deposit",
+    args: [POOL_LIQUIDITY_USDC, depositor],
+  });
+  await sdk.client.waitForTransactionReceipt({
+    hash: depositHash,
+    pollingInterval: 100,
+  });
+  console.log(
+    `seeded ${POOL_LIQUIDITY_USDC} of ${underlying} into pool ${pool}`,
+  );
 }
 
 async function saveRedemptionLog(
@@ -946,17 +1067,17 @@ async function runScenario(
 
   // Tx 2: delayed withdrawal request carrying the WITHDRAW_COLLATERAL
   // intent. Withdrawing W at fixed leverage L shrinks the position by W*L:
-  // W goes to the wallet at claim time, W*(L-1) worth of ACRED is redeemed
-  // and its proceeds repay debt
+  // W goes to the wallet at claim time, W*(L-1) worth of the collateral is
+  // redeemed and its proceeds repay debt
   const withdrawInUnderlying = market.priceOracle.convert(
     cfg.withdrawToken,
     cm.underlying,
     cfg.withdrawAmount,
   );
   const debtRepaid = withdrawInUnderlying * (LEVERAGE - 1n);
-  const redeemAcred = market.priceOracle.convert(
+  const redeemAmount = market.priceOracle.convert(
     cm.underlying,
-    ACRED,
+    cfg.collateralToken,
     withdrawInUnderlying + debtRepaid,
   );
   const withdrawIntent: DelayedIntent = {
@@ -964,14 +1085,15 @@ async function runScenario(
     to: investor,
     withdrawToken: cfg.withdrawToken,
     withdrawAmount: cfg.withdrawAmount,
-    sourceToken: ACRED,
+    sourceToken: cfg.collateralToken,
     debtRepaid,
   };
   const requestTx = await requestDelayedWithdrawal({
     sdk,
     wallet,
     creditAccount: afterOpen,
-    amount: redeemAcred,
+    collateralToken: cfg.collateralToken,
+    amount: redeemAmount,
     intent: withdrawIntent,
   });
   const afterRequest = await snapshotAccount(
@@ -1016,18 +1138,19 @@ async function runScenario(
     resolve(dir, "redemption_log_withdraw.json"),
   );
 
-  // Tx 4: delayed close request for all remaining ACRED
-  const acredBalance =
-    afterClaim.tokens.find(t => t.token === ACRED)?.balance ?? 0n;
-  if (acredBalance <= 1n) {
-    throw new Error("no ACRED left on the credit account after the claim");
+  // Tx 4: delayed close request for all remaining collateral
+  const collateralBalance =
+    afterClaim.tokens.find(t => t.token === cfg.collateralToken)?.balance ?? 0n;
+  if (collateralBalance <= 1n) {
+    throw new Error("no collateral left on the credit account after the claim");
   }
   const closeIntent: DelayedIntent = { type: "CLOSE_ACCOUNT", to: investor };
   const closeRequestTx = await requestDelayedWithdrawal({
     sdk,
     wallet,
     creditAccount: afterClaim,
-    amount: acredBalance,
+    collateralToken: cfg.collateralToken,
+    amount: collateralBalance,
     intent: closeIntent,
   });
   const afterCloseRequest = await snapshotAccount(
@@ -1101,11 +1224,13 @@ async function main(): Promise<void> {
     const market = setup.sdk.marketRegister.findByCreditManager(
       cfg.creditManager,
     );
-    await seedSecuritizePoolLiquidity(
-      setup.sdk,
-      setup.anvil,
-      market.pool.pool.address,
-    );
+    const pool = market.pool.pool.address;
+    const meta = setup.sdk.tokensMeta.mustGet(market.pool.underlying);
+    if (setup.sdk.tokensMeta.isRWAUnderlying(meta)) {
+      await seedSecuritizePoolLiquidity(setup.sdk, setup.anvil, pool);
+    } else {
+      await seedPlainPoolLiquidity(setup.sdk, setup.anvil, pool);
+    }
   }
 
   for (const cfg of SCENARIOS) {

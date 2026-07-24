@@ -1,11 +1,11 @@
 {
   "claimable": [
     {
-      "token": "0x17418038ecF73BA4026c4f428547BF099706F27B",
-      "withdrawalPhantomToken": "0xe4a38b653B2580C9D72a50F190Ddd6E2d2D2a412",
+      "token": "0x238a700eD6165261Cf8b2e544ba797BC11e466Ba",
+      "withdrawalPhantomToken": "0x04E30f28e1769E971BE6dC8d53E812126665eaBB",
       "withdrawalTokenSpent": {
         "__type": "bigint",
-        "__value": "9998816822"
+        "__value": "9998817099"
       },
       "outputs": [
         {
@@ -13,14 +13,14 @@
           "isDelayed": false,
           "amount": {
             "__type": "bigint",
-            "__value": "9998816822"
+            "__value": "9998817099"
           }
         }
       ],
       "claimCalls": [
         {
-          "target": "0x6A589123A24E2792311AbCF4C84ABA2Fb9CC5ef2",
-          "callData": "0x318d9e5d00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000001000000000000000000000000b4dad8f54e60dcfb5583f0852a9e12484f91135a"
+          "target": "0x08a0007E830a2e9AE04EfaF2bfF2e791CE832ae1",
+          "callData": "0xef4a60df00000000000000000000000062d017fdbd368b08507c3d8da764419951e27dbd0000000000000000000000000000000000000000000000000000000253f9d74b"
         }
       ],
       "intent": {
@@ -31,12 +31,12 @@
           "__type": "bigint",
           "__value": "2000000000"
         },
-        "sourceToken": "0x17418038ecF73BA4026c4f428547BF099706F27B",
+        "sourceToken": "0x238a700eD6165261Cf8b2e544ba797BC11e466Ba",
         "debtRepaid": {
           "__type": "bigint",
           "__value": "8000000000"
         },
-        "creditManager": "0x025512D771f778fad99aB30b7A7363E7C8DE078D"
+        "creditManager": "0x7161c4a5099d6bDCaC05c8baB893d2215bB7BE42"
       }
     }
   ],
