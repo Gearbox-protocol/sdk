@@ -21,9 +21,9 @@ export const midasGatewayAbi = [
         internalType: "address",
       },
       {
-        name: "_isAccessControlled",
-        type: "bool",
-        internalType: "bool",
+        name: "_mode",
+        type: "uint8",
+        internalType: "enum MidasMode",
       },
       {
         name: "_allowedMarketConfigurator",
@@ -31,24 +31,19 @@ export const midasGatewayAbi = [
         internalType: "address",
       },
       {
-        name: "_checkBorrowerGreenlist",
-        type: "bool",
-        internalType: "bool",
-      },
-      {
         name: "_expectedRedemptionDuration",
         type: "uint256",
         internalType: "uint256",
       },
       {
-        name: "_redemptionLogger",
-        type: "address",
-        internalType: "address",
-      },
-      {
         name: "_withDelayedWithdrawals",
         type: "bool",
         internalType: "bool",
+      },
+      {
+        name: "_addressProvider",
+        type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "nonpayable",
@@ -75,19 +70,6 @@ export const midasGatewayAbi = [
         name: "",
         type: "address",
         internalType: "address",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "checkBorrowerGreenlist",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "bool",
-        internalType: "bool",
       },
     ],
     stateMutability: "view",
@@ -143,6 +125,25 @@ export const midasGatewayAbi = [
   },
   {
     type: "function",
+    name: "isEligibleAccountOwner",
+    inputs: [
+      {
+        name: "account",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "mToken",
     inputs: [],
     outputs: [
@@ -189,6 +190,19 @@ export const midasGatewayAbi = [
         name: "",
         type: "address",
         internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "mode",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint8",
+        internalType: "enum MidasMode",
       },
     ],
     stateMutability: "view",
@@ -393,6 +407,11 @@ export const midasGatewayAbi = [
   },
   {
     type: "error",
+    name: "ArbitraryCAAllowedInPermissionedModeException",
+    inputs: [],
+  },
+  {
+    type: "error",
     name: "CreditAccountNotEligibleException",
     inputs: [],
   },
@@ -465,7 +484,7 @@ export const midasRedeemerAbi = [
   },
   {
     type: "function",
-    name: "alreadyRedeemed",
+    name: "alreadyRequested",
     inputs: [],
     outputs: [
       {
@@ -491,19 +510,6 @@ export const midasRedeemerAbi = [
   },
   {
     type: "function",
-    name: "clearCancelledRequest",
-    inputs: [
-      {
-        name: "amount",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
     name: "gateway",
     inputs: [],
     outputs: [
@@ -511,19 +517,6 @@ export const midasRedeemerAbi = [
         name: "",
         type: "address",
         internalType: "address",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "isManuallyCleared",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "bool",
-        internalType: "bool",
       },
     ],
     stateMutability: "view",
@@ -660,12 +653,7 @@ export const midasRedeemerAbi = [
   },
   {
     type: "error",
-    name: "AlreadyRedeemedException",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "AmountIsLessThanRequiredException",
+    name: "AlreadyRequestedException",
     inputs: [],
   },
   {
@@ -676,11 +664,6 @@ export const midasRedeemerAbi = [
   {
     type: "error",
     name: "InsufficientBalanceException",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "RequestNotCancelledOrManuallyClearedException",
     inputs: [],
   },
 ] as const;
@@ -1033,6 +1016,19 @@ export const iMidasDataFeedAbi = [
 export const iMidasRedemptionVaultAbi = [
   {
     type: "function",
+    name: "accessControl",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "currentRequestId",
     inputs: [],
     outputs: [
@@ -1141,7 +1137,7 @@ export const iMidasRedemptionVaultAbi = [
       {
         name: "status",
         type: "uint8",
-        internalType: "uint8",
+        internalType: "enum RedemptionStatus",
       },
       {
         name: "amountMTokenIn",
@@ -1203,7 +1199,7 @@ export const securitizeRedemptionGatewayAbi = [
         internalType: "address",
       },
       {
-        name: "_redemptionLogger",
+        name: "_addressProvider",
         type: "address",
         internalType: "address",
       },
@@ -1308,6 +1304,25 @@ export const securitizeRedemptionGatewayAbi = [
   },
   {
     type: "function",
+    name: "isEligibleAccountOwner",
+    inputs: [
+      {
+        name: "account",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "masterRedeemer",
     inputs: [],
     outputs: [
@@ -1322,6 +1337,19 @@ export const securitizeRedemptionGatewayAbi = [
   {
     type: "function",
     name: "navProvider",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "phantomToken",
     inputs: [],
     outputs: [
       {
@@ -1487,6 +1515,16 @@ export const securitizeRedemptionPhantomTokenAbi = [
     inputs: [
       {
         name: "_redemptionGateway",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "_dsToken",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "_stableCoinToken",
         type: "address",
         internalType: "address",
       },
