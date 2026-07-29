@@ -12,10 +12,8 @@ import {
   MissingSerializedParamsError,
   type OnchainSDK,
 } from "../../../sdk/index.js";
-import {
-  iMidasGatewayAdapterV311Abi,
-  iMidasGatewayV311Abi,
-} from "../abi/adapters/index.js";
+import { iMidasGatewayAdapterV311Abi } from "../abi/adapters/index.js";
+import { iMidasGatewayV311Abi } from "../abi/index.js";
 import type {
   DelayedWithdrawalClaim,
   DelayedWithdrawalRequest,
