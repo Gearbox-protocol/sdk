@@ -1,16 +1,25 @@
 import type { Address } from "viem";
+import { iLiquidationCompressorV313Abi } from "../../../abi/ILiquidationCompressorV313.js";
 import type { CreditAccountData } from "../../base/index.js";
 import { SDKConstruct } from "../../base/index.js";
-import { WAD } from "../../constants/index.js";
-import { AddressSet } from "../../utils/index.js";
+import type { NetworkType } from "../../chain/index.js";
+import { ADDRESS_0X0, WAD } from "../../constants/index.js";
+import type { RawTx } from "../../types/index.js";
+import { AddressSet, hexEq } from "../../utils/index.js";
+import { LIQUIDATION_COMPRESSOR_V313_ADDRESS } from "./constants.js";
+import type { OnchainLiquidationData } from "./helpers.js";
 import {
   calcEstimatedProfit,
   calcRepaymentAmount,
   DUST_THRESHOLD,
+  liquidationCallToRawTx,
   pickMainAsset,
+  toLiquidationApproval,
   toLiquidatorWithdrawals,
+  toReceivedAssets,
 } from "./helpers.js";
 import type {
+  BuildLiquidationTxProps,
   GetLiquidatableAccountsProps,
   GetLiquidationDetailsProps,
   GetLiquidatorWithdrawalsProps,
@@ -18,7 +27,6 @@ import type {
   LiquidatableAccount,
   LiquidationDetails,
   LiquidatorWithdrawal,
-  ReceivedAsset,
 } from "./types.js";
 
 /**
@@ -86,67 +94,60 @@ export class LiquidationsService
   public async getLiquidationDetails(
     props: GetLiquidationDetailsProps,
   ): Promise<LiquidationDetails> {
-    const { network, creditAccount } = props;
-    if (network !== this.sdk.networkType) {
-      throw new Error(
-        `network mismatch: this SDK is attached to ${this.sdk.networkType}, requested ${network}`,
-      );
-    }
-    const ca = await this.sdk.accounts.getCreditAccountData(creditAccount);
-    if (!ca) {
-      throw new Error(`credit account ${creditAccount} not found`);
-    }
-    if (!ca.success) {
-      throw new Error(
-        `cannot compute liquidation details for ${creditAccount}: collateral computation failed`,
-      );
-    }
+    const { network, creditAccount, liquidator, ignoreReservePrices } = props;
+    this.#assertNetwork(network);
+    const ca = await this.#getCreditAccountData(creditAccount);
 
-    const compressor = this.sdk.withdrawalCompressor;
-    await compressor?.loadWithdrawableAssets();
+    await this.sdk.withdrawalCompressor?.loadWithdrawableAssets();
     const account = this.#buildAccount(ca);
+    const data = await this.#getLiquidationData(
+      ca,
+      liquidator,
+      ignoreReservePrices,
+    );
+    const suite = this.sdk.marketRegister.findCreditManager(ca.creditManager);
 
-    const receivedAssets: ReceivedAsset[] = [];
-    for (const t of ca.tokens) {
-      if (
-        t.balance > DUST_THRESHOLD &&
-        !compressor?.getWithdrawalSourceToken(t.token)
-      ) {
-        receivedAssets.push({
-          isDelayed: false,
-          token: t.token,
-          amount: t.balance,
-        });
-      }
-    }
+    return {
+      ...account,
+      // the compressor reports the exact amounts of the liquidation path it
+      // selected, which supersede the estimates of the list row
+      repaymentAmount: {
+        token: account.totalValue.token,
+        balance: data.requiredUnderlyingAmount,
+      },
+      isDelayed: data.expectedOutputs.some(o => o.delayed),
+      receivedAssets: toReceivedAssets(data.expectedOutputs),
+      isLiquidatorEligible: data.isLiquidatorEligible,
+      kycProtocol: data.kycProtocol || undefined,
+      kycToken: hexEq(data.kycToken, ADDRESS_0X0) ? undefined : data.kycToken,
+      approve: toLiquidationApproval({
+        target: data.liquidationCall.target,
+        creditFacade: suite.creditFacade.address,
+        creditManager: ca.creditManager,
+        token: suite.underlying,
+        amount: data.requiredUnderlyingAmount,
+      }),
+    };
+  }
 
-    if (account.isDelayed && compressor) {
-      const { claimable, pending } =
-        await compressor.getCurrentWithdrawals(creditAccount);
-      for (const w of claimable) {
-        for (const o of w.outputs) {
-          receivedAssets.push({
-            isDelayed: true,
-            token: o.token,
-            amount: o.amount,
-            sourceToken: w.token,
-          });
-        }
-      }
-      for (const w of pending) {
-        for (const o of w.expectedOutputs) {
-          receivedAssets.push({
-            isDelayed: true,
-            token: o.token,
-            amount: o.amount,
-            sourceToken: w.token,
-            claimableAt: w.claimableAt,
-          });
-        }
-      }
-    }
-
-    return { ...account, receivedAssets };
+  /**
+   * {@inheritDoc ILiquidationsService.buildLiquidationTx}
+   **/
+  public async buildLiquidationTx(
+    props: BuildLiquidationTxProps,
+  ): Promise<RawTx> {
+    const { network, creditAccount, liquidator, ignoreReservePrices } = props;
+    this.#assertNetwork(network);
+    const ca = await this.#getCreditAccountData(creditAccount);
+    const data = await this.#getLiquidationData(
+      ca,
+      liquidator,
+      ignoreReservePrices,
+    );
+    return liquidationCallToRawTx(
+      data.liquidationCall,
+      `liquidate credit account ${this.labelAddress(creditAccount)} to ${this.labelAddress(liquidator)}`,
+    );
   }
 
   /**
@@ -173,6 +174,55 @@ export class LiquidationsService
       ...phantomTokens.asArray(),
     );
     return toLiquidatorWithdrawals(current, this.sdk.networkType);
+  }
+
+  #assertNetwork(network: NetworkType): void {
+    if (network !== this.sdk.networkType) {
+      throw new Error(
+        `network mismatch: this SDK is attached to ${this.sdk.networkType}, requested ${network}`,
+      );
+    }
+  }
+
+  async #getCreditAccountData(
+    creditAccount: Address,
+  ): Promise<CreditAccountData> {
+    const ca = await this.sdk.accounts.getCreditAccountData(creditAccount);
+    if (!ca) {
+      throw new Error(`credit account ${creditAccount} not found`);
+    }
+    if (!ca.success) {
+      throw new Error(
+        `cannot compute liquidation details for ${creditAccount}: collateral computation failed`,
+      );
+    }
+    return ca;
+  }
+
+  /**
+   * Previews the liquidation via the liquidation compressor.
+   *
+   * @param ca - Credit account to liquidate
+   * @param liquidator - Liquidator wallet, zero address when not known: it only
+   * affects the KYC eligibility fields and the receiver encoded into the calls
+   * @param ignoreReservePrices - Exclude reserve price feeds from the updates
+   **/
+  async #getLiquidationData(
+    ca: CreditAccountData,
+    liquidator: Address = ADDRESS_0X0,
+    ignoreReservePrices?: boolean,
+  ): Promise<OnchainLiquidationData> {
+    const priceUpdates = await this.sdk.accounts.getOnDemandPriceUpdates(
+      ca,
+      ignoreReservePrices,
+    );
+    const { result } = await this.client.simulateContract({
+      address: LIQUIDATION_COMPRESSOR_V313_ADDRESS,
+      abi: iLiquidationCompressorV313Abi,
+      functionName: "getLiquidationData",
+      args: [liquidator, ca.creditAccount, priceUpdates],
+    });
+    return result;
   }
 
   /**

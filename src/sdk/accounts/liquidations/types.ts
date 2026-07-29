@@ -1,6 +1,7 @@
 import type { Address } from "viem";
 import type { Asset } from "../../base/index.js";
 import type { NetworkType } from "../../chain/index.js";
+import type { RawTx } from "../../types/index.js";
 
 /**
  * Filters for {@link ILiquidationsService.getLiquidatableAccounts}.
@@ -90,10 +91,42 @@ export interface GetLiquidationDetailsProps {
    **/
   creditAccount: Address;
   /**
-   * Liquidator wallet address. Reserved for future RWA KYC gating;
-   * accepted but not checked yet.
+   * Liquidator wallet address, used by the liquidation compressor to check
+   * KYC eligibility. When omitted, the zero address is used: amounts and
+   * received assets are unaffected, but {@link LiquidationDetails.isLiquidatorEligible}
+   * then only tells whether the liquidation is KYC-gated at all
+   * (see {@link LiquidationDetails.kycProtocol}).
    **/
   liquidator?: Address;
+  /**
+   * If true, reserve price feed updates are excluded from the price updates
+   * applied by the compressor before computing amounts.
+   **/
+  ignoreReservePrices?: boolean;
+}
+
+/**
+ * Props for {@link ILiquidationsService.buildLiquidationTx}.
+ **/
+export interface BuildLiquidationTxProps {
+  /**
+   * Network the credit account lives on.
+   **/
+  network: NetworkType;
+  /**
+   * Credit account to liquidate.
+   **/
+  creditAccount: Address;
+  /**
+   * Liquidator wallet address. Required: it is encoded into the transaction
+   * as the receiver of the liquidated collateral.
+   **/
+  liquidator: Address;
+  /**
+   * If true, reserve price feed updates are excluded from the price updates
+   * applied by the compressor before building the transaction.
+   **/
+  ignoreReservePrices?: boolean;
 }
 
 /**
@@ -127,9 +160,10 @@ export interface DelayedReceivedAsset {
    **/
   amount: bigint;
   /**
-   * Source asset spent by the delayed withdrawal (e.g. ACRED).
+   * Redeemer contract transferred to the liquidator, from which `token`
+   * becomes claimable. `undefined` when the compressor does not report one.
    **/
-  sourceToken: Address;
+  redeemerAddress?: Address;
   /**
    * Estimated unix timestamp (in seconds) when a pending withdrawal becomes
    * claimable. `undefined` means the withdrawal is claimable now.
@@ -192,8 +226,37 @@ export interface LiquidatorWithdrawal {
 }
 
 /**
- * Detailed information about a liquidatable credit account, extending the
- * list row with the full breakdown of assets the liquidator receives.
+ * ERC-20 approval the liquidator must grant before sending the liquidation
+ * transaction.
+ **/
+export interface LiquidationApproval {
+  /**
+   * Address to approve: the credit manager when the liquidation goes directly
+   * through the credit facade (the facade forwards `msg.sender` as the payer
+   * and the credit manager executes the transfer), or the dedicated liquidator
+   * contract (Midas / Securitize) when the liquidation goes through one, since
+   * such contracts pull the token to themselves first.
+   **/
+  spender: Address;
+  /**
+   * Token pulled from the liquidator: the credit manager underlying.
+   **/
+  // TODO: for RWA markets this is the wrapped underlying (e.g. dcUSDC), while
+  // `LiquidatableAccount.repaymentAmount` is denominated in the unwrapped asset
+  // (USDC); revisit when deciding whether the liquidation path should wrap.
+  token: Address;
+  /**
+   * Amount to approve, equal to the amount the liquidation transaction pulls.
+   * The Securitize liquidator recomputes it on-chain, so approving with some
+   * headroom is advisable in case prices move.
+   **/
+  amount: bigint;
+}
+
+/**
+ * Detailed information about a liquidatable credit account, including
+ * the full breakdown of assets the liquidator receives.
+ *
  **/
 export interface LiquidationDetails extends LiquidatableAccount {
   /**
@@ -202,6 +265,29 @@ export interface LiquidationDetails extends LiquidatableAccount {
    * pending).
    **/
   receivedAssets: ReceivedAsset[];
+  /**
+   * Whether the liquidator passes the KYC checks of the liquidated assets.
+   * When {@link GetLiquidationDetailsProps.liquidator} was not provided,
+   * `false` only means that the liquidation is KYC-gated, not that a
+   * particular wallet was rejected.
+   **/
+  isLiquidatorEligible: boolean;
+  /**
+   * Name of the KYC protocol the liquidator must be whitelisted in
+   * (e.g. `"securitize"`). `undefined` when the liquidation is not KYC-gated.
+   **/
+  kycProtocol?: string;
+  /**
+   * Token the liquidator must be whitelisted for in {@link kycProtocol}.
+   * `undefined` when the liquidation is not KYC-gated.
+   **/
+  kycToken?: Address;
+  /**
+   * ERC-20 approval required before sending the liquidation transaction.
+   * `undefined` when the selected liquidation path needs no capital from the
+   * liquidator, i.e. {@link repaymentAmount} is zero.
+   **/
+  approve?: LiquidationApproval;
 }
 
 /**
@@ -230,6 +316,13 @@ export interface ILiquidationsService {
   getLiquidationDetails(
     props: GetLiquidationDetailsProps,
   ): Promise<LiquidationDetails>;
+  /**
+   * Builds the transaction that fully liquidates a credit account, repaying
+   * the debt from own funds and receiving the collateral from the credit account.
+   *
+   * @param props - See {@link BuildLiquidationTxProps}
+   **/
+  buildLiquidationTx(props: BuildLiquidationTxProps): Promise<RawTx>;
   /**
    * Returns the status of delayed-withdrawal positions (redemption receipts)
    * owned by a liquidator wallet: what is receivable, how much, and when it
