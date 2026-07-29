@@ -2,7 +2,6 @@ import type { Address } from "viem";
 import { iLiquidationCompressorV313Abi } from "../../../abi/ILiquidationCompressorV313.js";
 import type { CreditAccountData } from "../../base/index.js";
 import { SDKConstruct } from "../../base/index.js";
-import type { NetworkType } from "../../chain/index.js";
 import { ADDRESS_0X0, WAD } from "../../constants/index.js";
 import type { RawTx } from "../../types/index.js";
 import { AddressSet, hexEq } from "../../utils/index.js";
@@ -46,10 +45,6 @@ export class LiquidationsService
   public async getLiquidatableAccounts(
     props?: GetLiquidatableAccountsProps,
   ): Promise<LiquidatableAccount[]> {
-    if (props?.networks && !props.networks.includes(this.sdk.networkType)) {
-      return [];
-    }
-
     await this.sdk.withdrawalCompressor?.loadWithdrawableAssets();
 
     const accounts = await this.sdk.accounts.getCreditAccounts({
@@ -94,8 +89,7 @@ export class LiquidationsService
   public async getLiquidationDetails(
     props: GetLiquidationDetailsProps,
   ): Promise<LiquidationDetails> {
-    const { network, creditAccount, liquidator, ignoreReservePrices } = props;
-    this.#assertNetwork(network);
+    const { creditAccount, liquidator, ignoreReservePrices } = props;
     const ca = await this.#getCreditAccountData(creditAccount);
 
     await this.sdk.withdrawalCompressor?.loadWithdrawableAssets();
@@ -136,8 +130,7 @@ export class LiquidationsService
   public async buildLiquidationTx(
     props: BuildLiquidationTxProps,
   ): Promise<RawTx> {
-    const { network, creditAccount, liquidator, ignoreReservePrices } = props;
-    this.#assertNetwork(network);
+    const { creditAccount, liquidator, ignoreReservePrices } = props;
     const ca = await this.#getCreditAccountData(creditAccount);
     const data = await this.#getLiquidationData(
       ca,
@@ -156,9 +149,6 @@ export class LiquidationsService
   public async getLiquidatorWithdrawals(
     props: GetLiquidatorWithdrawalsProps,
   ): Promise<LiquidatorWithdrawal[]> {
-    if (props.networks && !props.networks.includes(this.sdk.networkType)) {
-      return [];
-    }
     const compressor = this.sdk.withdrawalCompressor;
     if (!compressor) {
       return [];
@@ -174,14 +164,6 @@ export class LiquidationsService
       ...phantomTokens.asArray(),
     );
     return toLiquidatorWithdrawals(current, this.sdk.networkType);
-  }
-
-  #assertNetwork(network: NetworkType): void {
-    if (network !== this.sdk.networkType) {
-      throw new Error(
-        `network mismatch: this SDK is attached to ${this.sdk.networkType}, requested ${network}`,
-      );
-    }
   }
 
   async #getCreditAccountData(

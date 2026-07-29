@@ -17,12 +17,12 @@ import type {
  *
  * Aggregates liquidatable accounts over all chains configured in
  * {@link MultichainSDK} (optionally restricted via
- * {@link GetLiquidatableAccountsProps.networks}). A failed chain is logged as
+ * {@link MultichainNetworksProps.networks}). A failed chain is logged as
  * a warning and skipped, so one dead RPC does not empty the whole list.
  **/
 export class MultichainLiquidationsService<
   const Plugins extends PluginsMap = {},
-> implements ILiquidationsService
+> implements ILiquidationsService<true>
 {
   readonly #sdk: MultichainSDK<Plugins>;
 
@@ -34,7 +34,7 @@ export class MultichainLiquidationsService<
    * {@inheritDoc ILiquidationsService.getLiquidatableAccounts}
    **/
   public async getLiquidatableAccounts(
-    props?: GetLiquidatableAccountsProps,
+    props?: GetLiquidatableAccountsProps<true>,
   ): Promise<LiquidatableAccount[]> {
     const chains = [...this.#sdk.chains.entries()].filter(
       ([network]) => !props?.networks || props.networks.includes(network),
@@ -63,7 +63,7 @@ export class MultichainLiquidationsService<
    * {@inheritDoc ILiquidationsService.getLiquidationDetails}
    **/
   public async getLiquidationDetails(
-    props: GetLiquidationDetailsProps,
+    props: GetLiquidationDetailsProps<true>,
   ): Promise<LiquidationDetails> {
     return this.#sdk
       .chain(props.network)
@@ -74,7 +74,7 @@ export class MultichainLiquidationsService<
    * {@inheritDoc ILiquidationsService.buildLiquidationTx}
    **/
   public async buildLiquidationTx(
-    props: BuildLiquidationTxProps,
+    props: BuildLiquidationTxProps<true>,
   ): Promise<RawTx> {
     return this.#sdk
       .chain(props.network)
@@ -85,7 +85,7 @@ export class MultichainLiquidationsService<
    * {@inheritDoc ILiquidationsService.getLiquidatorWithdrawals}
    **/
   public async getLiquidatorWithdrawals(
-    props: GetLiquidatorWithdrawalsProps,
+    props: GetLiquidatorWithdrawalsProps<true>,
   ): Promise<LiquidatorWithdrawal[]> {
     const chains = [...this.#sdk.chains.entries()].filter(
       ([network]) => !props.networks || props.networks.includes(network),
