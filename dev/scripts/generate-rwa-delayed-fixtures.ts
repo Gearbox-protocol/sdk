@@ -89,11 +89,11 @@ import {
   type WalletClient,
 } from "viem";
 import { iCreditFacadeV310Abi } from "../../src/abi/310/generated.js";
-import { registerInvestor } from "../../src/dev/claimDSToken.js";
 import {
   type AnvilClient,
   createAnvilClient,
 } from "../../src/dev/createAnvilClient.js";
+import { registerSecuritizeInvestor } from "../../src/dev/kycUtils.js";
 import { makePendingWithdrawalsClaimable } from "../../src/dev/withdrawalUtils.js";
 import {
   createInvestorWallet,
@@ -390,7 +390,7 @@ async function setupInvestor(
 ): Promise<InvestorContext> {
   const wallet = await createInvestorWallet(anvil, sdk.chain);
   const investor = wallet.account.address;
-  await registerInvestor({
+  await registerSecuritizeInvestor({
     anvil,
     claimer: investor,
     adminPrivateKey: SECURITIZE_ADMIN_PRIVATE_KEY,

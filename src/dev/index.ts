@@ -10,6 +10,7 @@ export * from "./EthCallSpy.js";
 export * from "./isOutOfSyncError.js";
 export * from "./isRateLimitError.js";
 export * from "./isTransientError.js";
+export * from "./kycUtils.js";
 export {
   isRangeError,
   type LogSplitterTransportOptions,

@@ -6,28 +6,10 @@ import {
   type Transport,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { iDSRegistryServiceAbi } from "../abi/rwa/iDSRegistryService.js";
 import { iDSTokenAbi } from "../abi/rwa/iDSToken.js";
-import {
-  type GearboxChain,
-  type ILogger,
-  MAX_UINT256,
-  OnchainSDK,
-} from "../sdk/index.js";
+import { type GearboxChain, type ILogger, OnchainSDK } from "../sdk/index.js";
 import type { AnvilClient } from "./createAnvilClient.js";
-
-async function writeAndWait(
-  anvil: AnvilClient,
-  params: Parameters<AnvilClient["writeContract"]>[0],
-): Promise<Hex> {
-  const hash = await anvil.writeContract(params);
-  await anvil.mine({ blocks: 1 });
-  await anvil.waitForTransactionReceipt({
-    hash,
-    pollingInterval: 100,
-  });
-  return hash;
-}
+import { registerSecuritizeInvestor, writeAndWait } from "./kycUtils.js";
 
 interface ClaimDSTokenProps {
   anvil: AnvilClient;
@@ -49,115 +31,6 @@ interface ClaimDSTokenProps {
 type ClaimDSTokensProps = Omit<ClaimDSTokenProps, "token"> & {
   tokens: Address[];
 };
-
-export async function registerInvestor(
-  props: ClaimDSTokenProps,
-): Promise<void> {
-  const { claimer, anvil, token, adminPrivateKey, logger } = props;
-  const account = privateKeyToAccount(adminPrivateKey);
-
-  const registryServiceId = await anvil.readContract({
-    address: token,
-    abi: iDSTokenAbi,
-    functionName: "REGISTRY_SERVICE",
-  });
-
-  const registryService = await anvil.readContract({
-    address: token,
-    abi: iDSTokenAbi,
-    functionName: "getDSService",
-    args: [registryServiceId],
-  });
-  logger?.debug(`Registry service: ${registryService} (${registryServiceId})`);
-  const [isRegistered, ACCREDITED, APPROVED] = await anvil.multicall({
-    contracts: [
-      {
-        address: registryService,
-        abi: iDSRegistryServiceAbi,
-        functionName: "isWallet",
-        args: [claimer],
-      },
-      {
-        address: registryService,
-        abi: iDSRegistryServiceAbi,
-        functionName: "ACCREDITED",
-        args: [],
-      },
-      {
-        address: registryService,
-        abi: iDSRegistryServiceAbi,
-        functionName: "APPROVED",
-        args: [],
-      },
-    ],
-    allowFailure: false,
-  });
-  if (!isRegistered) {
-    logger?.debug(
-      `Claimer ${claimer} is not a registered wallet, registering...`,
-    );
-    const investorId = `investor-${claimer.toLowerCase()}`;
-    const investorExists = await anvil.readContract({
-      address: registryService,
-      abi: iDSRegistryServiceAbi,
-      functionName: "isInvestor",
-      args: [investorId],
-    });
-    if (!investorExists) {
-      await writeAndWait(anvil, {
-        account,
-        chain: anvil.chain,
-        address: registryService,
-        abi: iDSRegistryServiceAbi,
-        functionName: "registerInvestor",
-        args: [investorId, investorId],
-      });
-      logger?.debug(`Registered investor "${investorId}"`);
-    }
-    await writeAndWait(anvil, {
-      account,
-      chain: anvil.chain,
-      address: registryService,
-      abi: iDSRegistryServiceAbi,
-      functionName: "addWallet",
-      args: [claimer, investorId],
-    });
-    logger?.debug(`Added wallet ${claimer} for investor "${investorId}"`);
-
-    try {
-      await writeAndWait(anvil, {
-        account,
-        chain: anvil.chain,
-        address: registryService,
-        abi: iDSRegistryServiceAbi,
-        functionName: "setCountry",
-        args: [investorId, "US"],
-      });
-      logger?.debug(`Set country for investor "${investorId}" to "US"`);
-
-      await writeAndWait(anvil, {
-        account,
-        chain: anvil.chain,
-        address: registryService,
-        abi: iDSRegistryServiceAbi,
-        functionName: "setAttribute",
-        args: [
-          investorId,
-          ACCREDITED,
-          BigInt(APPROVED),
-          MAX_UINT256,
-          "fake proof",
-        ],
-      });
-      logger?.debug(`Set attributes for investor "${investorId}"`);
-    } catch (e) {
-      // is not implemented on mock tokens
-      logger?.error(e);
-    }
-  } else {
-    logger?.debug(`Claimer ${claimer} is already a registered wallet`);
-  }
-}
 
 export async function claimDSToken(props: ClaimDSTokenProps): Promise<void> {
   const {
@@ -196,7 +69,7 @@ export async function claimDSToken(props: ClaimDSTokenProps): Promise<void> {
   }
   logger?.debug(`${usdAmountProp} USD === ${amount} ${symbol}`);
 
-  await registerInvestor({ ...props, logger });
+  await registerSecuritizeInvestor({ ...props, logger });
 
   logger?.debug(`Issuing ${amount} tokens to ${claimer}...`);
   const mintHash = await writeAndWait(anvil, {
