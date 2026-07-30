@@ -1,10 +1,37 @@
-import type { Address } from "viem";
+import type { Address, ContractFunctionReturnType } from "viem";
+import { slice } from "viem";
+import type { iLiquidationCompressorV313Abi } from "../../../abi/ILiquidationCompressorV313.js";
 import type { CreditAccountData } from "../../base/index.js";
 import type { NetworkType } from "../../chain/index.js";
-import { PERCENTAGE_FACTOR } from "../../constants/index.js";
+import { ADDRESS_0X0, PERCENTAGE_FACTOR } from "../../constants/index.js";
+import type { RawTx } from "../../types/index.js";
 import { hexEq } from "../../utils/index.js";
 import type { CurrentWithdrawals } from "../withdrawal-compressor/index.js";
-import type { LiquidatorWithdrawal } from "./types.js";
+import type {
+  LiquidationApproval,
+  LiquidatorWithdrawal,
+  ReceivedAsset,
+} from "./types.js";
+
+/**
+ * Raw `LiquidationData` returned by `LiquidationCompressor.getLiquidationData`.
+ **/
+export type OnchainLiquidationData = ContractFunctionReturnType<
+  typeof iLiquidationCompressorV313Abi,
+  "nonpayable",
+  "getLiquidationData"
+>;
+
+/**
+ * Single element of {@link OnchainLiquidationData.expectedOutputs}.
+ **/
+export type OnchainLiquidationOutput =
+  OnchainLiquidationData["expectedOutputs"][number];
+
+/**
+ * Single call built by the liquidation compressor.
+ **/
+export type OnchainLiquidationCall = OnchainLiquidationData["liquidationCall"];
 
 /**
  * Token balances at or below this threshold are treated as dust and ignored,
@@ -113,4 +140,111 @@ export function toLiquidatorWithdrawals(
     }
   }
   return rows;
+}
+
+/**
+ * Normalizes the liquidation compressor outputs into assets the liquidator
+ * receives. Zero `redeemerAddress` and `claimableAt` (used by the contracts
+ * for "not applicable") become `undefined`.
+ *
+ * @param outputs - `expectedOutputs` of the compressor's liquidation data
+ **/
+export function toReceivedAssets(
+  outputs: readonly OnchainLiquidationOutput[],
+): ReceivedAsset[] {
+  return outputs.map(o => {
+    if (!o.delayed) {
+      return { isDelayed: false, token: o.token, amount: o.amount };
+    }
+    return {
+      isDelayed: true,
+      token: o.token,
+      amount: o.amount,
+      redeemerAddress: hexEq(o.redeemerAddress, ADDRESS_0X0)
+        ? undefined
+        : o.redeemerAddress,
+      claimableAt: o.claimableAt === 0n ? undefined : o.claimableAt,
+    };
+  });
+}
+
+/**
+ * Props for {@link toLiquidationApproval}.
+ **/
+export interface ToLiquidationApprovalProps {
+  /**
+   * Target of the compressor's `liquidationCall`.
+   **/
+  target: Address;
+  /**
+   * Credit facade of the liquidated account's credit manager.
+   **/
+  creditFacade: Address;
+  /**
+   * Credit manager of the liquidated account.
+   **/
+  creditManager: Address;
+  /**
+   * Token the liquidation transaction pulls from the liquidator.
+   **/
+  token: Address;
+  /**
+   * Amount of `token` the liquidation transaction pulls.
+   **/
+  amount: bigint;
+}
+
+/**
+ * Resolves the approval the liquidator must grant for the liquidation call.
+ *
+ * A call targeting the credit facade is paid by `msg.sender` but transferred by
+ * the credit manager, so the latter is the spender. Any other target is a
+ * dedicated liquidator contract (Midas / Securitize) that pulls the token to
+ * itself and re-approves the credit manager, so it is the spender itself.
+ *
+ * @param props - See {@link ToLiquidationApprovalProps}
+ * @returns The approval, or `undefined` when the call pulls nothing
+ **/
+export function toLiquidationApproval(
+  props: ToLiquidationApprovalProps,
+): LiquidationApproval | undefined {
+  const { target, creditFacade, creditManager, token, amount } = props;
+  if (amount === 0n) {
+    return undefined;
+  }
+  return {
+    spender: hexEq(target, creditFacade) ? creditManager : target,
+    token,
+    amount,
+  };
+}
+
+/**
+ * Converts the compressor's liquidation call into a raw transaction.
+ *
+ * The calldata is passed through as-is: depending on the liquidated assets,
+ * the target is either the credit facade or a dedicated liquidator contract
+ * (with its own function signature), so it cannot be re-encoded from a single
+ * known ABI.
+ *
+ * @param call - `liquidationCall` of the compressor's liquidation data
+ * @param description - Optional human-readable description
+ **/
+export function liquidationCallToRawTx(
+  call: OnchainLiquidationCall,
+  description?: string,
+): RawTx {
+  return {
+    to: call.target,
+    value: "0",
+    signature: "",
+    callData: call.callData,
+    contractMethod: {
+      name: slice(call.callData, 0, 4),
+      inputs: [],
+      payable: false,
+    },
+    contractInputsValues: {},
+    description,
+  };
 }

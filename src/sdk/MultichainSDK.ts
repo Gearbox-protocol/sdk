@@ -139,7 +139,7 @@ export class MultichainSDK<const Plugins extends PluginsMap = {}> {
    * Namespace for liquidatable credit accounts discovery across all
    * configured chains.
    */
-  public readonly liquidations: ILiquidationsService;
+  public readonly liquidations: ILiquidationsService<true>;
 
   constructor(options: MultichainSDKOptions<Plugins>) {
     this.#chains = new Map();

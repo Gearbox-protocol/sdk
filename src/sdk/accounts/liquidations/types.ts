@@ -1,18 +1,42 @@
 import type { Address } from "viem";
 import type { Asset } from "../../base/index.js";
 import type { NetworkType } from "../../chain/index.js";
+import type { RawTx } from "../../types/index.js";
 
 /**
- * Filters for {@link ILiquidationsService.getLiquidatableAccounts}.
- * All filters are optional and applied after liquidatable accounts are fetched.
+ * Selects the chain for single-account methods of a multichain service.
  **/
-export interface GetLiquidatableAccountsProps {
+export interface MultichainNetworkProps {
   /**
-   * Networks to query. On {@link MultichainLiquidationsService} selects which
-   * chains to query; a single-chain service returns an empty list when its
-   * own network is excluded.
+   * Network the credit account lives on.
+   **/
+  network: NetworkType;
+}
+
+/**
+ * Restricts which chains a multichain list method queries.
+ **/
+export interface MultichainNetworksProps {
+  /**
+   * Networks to query. All chains configured in {@link MultichainSDK} when
+   * omitted.
    **/
   networks?: NetworkType[];
+}
+
+/**
+ * Adds chain-scoping props `T` only when the service spans multiple chains.
+ **/
+export type WithMultichain<
+  Multichain extends boolean,
+  T extends object,
+> = Multichain extends true ? T : {};
+
+/**
+ * Chain-independent part of {@link GetLiquidatableAccountsProps}.
+ * All filters are optional and applied after liquidatable accounts are fetched.
+ **/
+export interface GetLiquidatableAccountsPropsBase {
   /**
    * Only return accounts whose main liquidated {@link LiquidatableAccount.asset}
    * is one of these tokens.
@@ -24,6 +48,13 @@ export interface GetLiquidatableAccountsProps {
    **/
   delayed?: boolean;
 }
+
+/**
+ * Props for {@link ILiquidationsService.getLiquidatableAccounts}.
+ **/
+export type GetLiquidatableAccountsProps<Multichain extends boolean = false> =
+  GetLiquidatableAccountsPropsBase &
+    WithMultichain<Multichain, MultichainNetworksProps>;
 
 /**
  * A credit account that can be liquidated, with amounts precomputed for
@@ -78,23 +109,61 @@ export interface LiquidatableAccount {
 }
 
 /**
- * Props for {@link ILiquidationsService.getLiquidationDetails}.
+ * Chain-independent part of {@link GetLiquidationDetailsProps}.
  **/
-export interface GetLiquidationDetailsProps {
-  /**
-   * Network the credit account lives on.
-   **/
-  network: NetworkType;
+export interface GetLiquidationDetailsPropsBase {
   /**
    * Credit account to get liquidation details for.
    **/
   creditAccount: Address;
   /**
-   * Liquidator wallet address. Reserved for future RWA KYC gating;
-   * accepted but not checked yet.
+   * Liquidator wallet address, used by the liquidation compressor to check
+   * KYC eligibility. When omitted, the zero address is used: amounts and
+   * received assets are unaffected, but {@link LiquidationDetails.isLiquidatorEligible}
+   * then only tells whether the liquidation is KYC-gated at all
+   * (see {@link LiquidationDetails.kycProtocol}).
    **/
   liquidator?: Address;
+  /**
+   * If true, reserve price feed updates are excluded from the price updates
+   * applied by the compressor before computing amounts.
+   **/
+  ignoreReservePrices?: boolean;
 }
+
+/**
+ * Props for {@link ILiquidationsService.getLiquidationDetails}.
+ **/
+export type GetLiquidationDetailsProps<Multichain extends boolean = false> =
+  GetLiquidationDetailsPropsBase &
+    WithMultichain<Multichain, MultichainNetworkProps>;
+
+/**
+ * Chain-independent part of {@link BuildLiquidationTxProps}.
+ **/
+export interface BuildLiquidationTxPropsBase {
+  /**
+   * Credit account to liquidate.
+   **/
+  creditAccount: Address;
+  /**
+   * Liquidator wallet address. Required: it is encoded into the transaction
+   * as the receiver of the liquidated collateral.
+   **/
+  liquidator: Address;
+  /**
+   * If true, reserve price feed updates are excluded from the price updates
+   * applied by the compressor before building the transaction.
+   **/
+  ignoreReservePrices?: boolean;
+}
+
+/**
+ * Props for {@link ILiquidationsService.buildLiquidationTx}.
+ **/
+export type BuildLiquidationTxProps<Multichain extends boolean = false> =
+  BuildLiquidationTxPropsBase &
+    WithMultichain<Multichain, MultichainNetworkProps>;
 
 /**
  * A token received directly from the credit account balance upon liquidation.
@@ -127,9 +196,10 @@ export interface DelayedReceivedAsset {
    **/
   amount: bigint;
   /**
-   * Source asset spent by the delayed withdrawal (e.g. ACRED).
+   * Redeemer contract transferred to the liquidator, from which `token`
+   * becomes claimable. `undefined` when the compressor does not report one.
    **/
-  sourceToken: Address;
+  redeemerAddress?: Address;
   /**
    * Estimated unix timestamp (in seconds) when a pending withdrawal becomes
    * claimable. `undefined` means the withdrawal is claimable now.
@@ -143,21 +213,22 @@ export interface DelayedReceivedAsset {
 export type ReceivedAsset = InstantReceivedAsset | DelayedReceivedAsset;
 
 /**
- * Props for {@link ILiquidationsService.getLiquidatorWithdrawals}.
+ * Chain-independent part of {@link GetLiquidatorWithdrawalsProps}.
  **/
-export interface GetLiquidatorWithdrawalsProps {
-  /**
-   * Networks to query. On {@link MultichainLiquidationsService} selects which
-   * chains to query; a single-chain service returns an empty list when its
-   * own network is excluded.
-   **/
-  networks?: NetworkType[];
+export interface GetLiquidatorWithdrawalsPropsBase {
   /**
    * Liquidator wallet that owns the redemption receipts (redeemer contracts
    * received as a result of liquidations).
    **/
   liquidator: Address;
 }
+
+/**
+ * Props for {@link ILiquidationsService.getLiquidatorWithdrawals}.
+ **/
+export type GetLiquidatorWithdrawalsProps<Multichain extends boolean = false> =
+  GetLiquidatorWithdrawalsPropsBase &
+    WithMultichain<Multichain, MultichainNetworksProps>;
 
 /**
  * A single delayed-withdrawal position owned by the liquidator.
@@ -192,8 +263,37 @@ export interface LiquidatorWithdrawal {
 }
 
 /**
- * Detailed information about a liquidatable credit account, extending the
- * list row with the full breakdown of assets the liquidator receives.
+ * ERC-20 approval the liquidator must grant before sending the liquidation
+ * transaction.
+ **/
+export interface LiquidationApproval {
+  /**
+   * Address to approve: the credit manager when the liquidation goes directly
+   * through the credit facade (the facade forwards `msg.sender` as the payer
+   * and the credit manager executes the transfer), or the dedicated liquidator
+   * contract (Midas / Securitize) when the liquidation goes through one, since
+   * such contracts pull the token to themselves first.
+   **/
+  spender: Address;
+  /**
+   * Token pulled from the liquidator: the credit manager underlying.
+   **/
+  // TODO: for RWA markets this is the wrapped underlying (e.g. dcUSDC), while
+  // `LiquidatableAccount.repaymentAmount` is denominated in the unwrapped asset
+  // (USDC); revisit when deciding whether the liquidation path should wrap.
+  token: Address;
+  /**
+   * Amount to approve, equal to the amount the liquidation transaction pulls.
+   * The Securitize liquidator recomputes it on-chain, so approving with some
+   * headroom is advisable in case prices move.
+   **/
+  amount: bigint;
+}
+
+/**
+ * Detailed information about a liquidatable credit account, including
+ * the full breakdown of assets the liquidator receives.
+ *
  **/
 export interface LiquidationDetails extends LiquidatableAccount {
   /**
@@ -202,14 +302,42 @@ export interface LiquidationDetails extends LiquidatableAccount {
    * pending).
    **/
   receivedAssets: ReceivedAsset[];
+  /**
+   * Whether the liquidator passes the KYC checks of the liquidated assets.
+   * When {@link GetLiquidationDetailsPropsBase.liquidator} was not provided,
+   * `false` only means that the liquidation is KYC-gated, not that a
+   * particular wallet was rejected.
+   **/
+  isLiquidatorEligible: boolean;
+  /**
+   * Name of the KYC protocol the liquidator must be whitelisted in
+   * (e.g. `"securitize"`). `undefined` when the liquidation is not KYC-gated.
+   **/
+  kycProtocol?: string;
+  /**
+   * Token the liquidator must be whitelisted for in {@link kycProtocol}.
+   * `undefined` when the liquidation is not KYC-gated.
+   **/
+  kycToken?: Address;
+  /**
+   * ERC-20 approval required before sending the liquidation transaction.
+   * `undefined` when the selected liquidation path needs no capital from the
+   * liquidator, i.e. {@link repaymentAmount} is zero.
+   **/
+  approve?: LiquidationApproval;
 }
 
 /**
  * Service for discovering liquidatable credit accounts and previewing manual
  * liquidations. Implemented per-chain by {@link LiquidationsService} and
  * across all configured chains by {@link MultichainLiquidationsService}.
+ *
+ * @typeParam Multichain - When `true`, props select the chain to operate on:
+ * {@link MultichainNetworkProps} for single-account methods and
+ * {@link MultichainNetworksProps} for list methods. A per-chain service
+ * operates on the network its SDK is attached to and takes no network props.
  **/
-export interface ILiquidationsService {
+export interface ILiquidationsService<Multichain extends boolean = false> {
   /**
    * Returns all liquidatable credit accounts: accounts with health factor
    * below 1 plus accounts of expired credit managers with outstanding debt.
@@ -218,7 +346,7 @@ export interface ILiquidationsService {
    * @param props - Optional filters, see {@link GetLiquidatableAccountsProps}
    **/
   getLiquidatableAccounts(
-    props?: GetLiquidatableAccountsProps,
+    props?: GetLiquidatableAccountsProps<Multichain>,
   ): Promise<LiquidatableAccount[]>;
   /**
    * Returns detailed information about a liquidatable credit account,
@@ -228,8 +356,17 @@ export interface ILiquidationsService {
    * @throws When the account is not found or its collateral computation fails.
    **/
   getLiquidationDetails(
-    props: GetLiquidationDetailsProps,
+    props: GetLiquidationDetailsProps<Multichain>,
   ): Promise<LiquidationDetails>;
+  /**
+   * Builds the transaction that fully liquidates a credit account, repaying
+   * the debt from own funds and receiving the collateral from the credit account.
+   *
+   * @param props - See {@link BuildLiquidationTxProps}
+   **/
+  buildLiquidationTx(
+    props: BuildLiquidationTxProps<Multichain>,
+  ): Promise<RawTx>;
   /**
    * Returns the status of delayed-withdrawal positions (redemption receipts)
    * owned by a liquidator wallet: what is receivable, how much, and when it
@@ -238,6 +375,6 @@ export interface ILiquidationsService {
    * @param props - See {@link GetLiquidatorWithdrawalsProps}
    **/
   getLiquidatorWithdrawals(
-    props: GetLiquidatorWithdrawalsProps,
+    props: GetLiquidatorWithdrawalsProps<Multichain>,
   ): Promise<LiquidatorWithdrawal[]>;
 }
