@@ -12,6 +12,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { iDSRegistryServiceAbi } from "../abi/rwa/iDSRegistryService.js";
 import { iDSTokenAbi } from "../abi/rwa/iDSToken.js";
 import {
+  AddressSet,
   type GearboxChain,
   type ILogger,
   MAX_UINT256,
@@ -41,7 +42,7 @@ export interface RegisterSecuritizeInvestorProps {
   /**
    * Wallet to register in the Securitize DS registry
    */
-  claimer: Address;
+  investor: Address;
   adminPrivateKey: Hex;
   /**
    * DSToken address
@@ -58,7 +59,7 @@ export interface RegisterSecuritizeInvestorProps {
 export async function registerSecuritizeInvestor(
   props: RegisterSecuritizeInvestorProps,
 ): Promise<void> {
-  const { claimer, anvil, token, adminPrivateKey, logger } = props;
+  const { investor, anvil, token, adminPrivateKey, logger } = props;
   const account = privateKeyToAccount(adminPrivateKey);
 
   const registryServiceId = await anvil.readContract({
@@ -80,7 +81,7 @@ export async function registerSecuritizeInvestor(
         address: registryService,
         abi: iDSRegistryServiceAbi,
         functionName: "isWallet",
-        args: [claimer],
+        args: [investor],
       },
       {
         address: registryService,
@@ -99,9 +100,9 @@ export async function registerSecuritizeInvestor(
   });
   if (!isRegistered) {
     logger?.debug(
-      `Claimer ${claimer} is not a registered wallet, registering...`,
+      `Investor ${investor} is not a registered wallet, registering...`,
     );
-    const investorId = `investor-${claimer.toLowerCase()}`;
+    const investorId = `investor-${investor.toLowerCase()}`;
     const investorExists = await anvil.readContract({
       address: registryService,
       abi: iDSRegistryServiceAbi,
@@ -125,9 +126,9 @@ export async function registerSecuritizeInvestor(
       address: registryService,
       abi: iDSRegistryServiceAbi,
       functionName: "addWallet",
-      args: [claimer, investorId],
+      args: [investor, investorId],
     });
-    logger?.debug(`Added wallet ${claimer} for investor "${investorId}"`);
+    logger?.debug(`Added wallet ${investor} for investor "${investorId}"`);
 
     try {
       await writeAndWait(anvil, {
@@ -160,7 +161,7 @@ export async function registerSecuritizeInvestor(
       logger?.error(e);
     }
   } else {
-    logger?.debug(`Claimer ${claimer} is already a registered wallet`);
+    logger?.debug(`Investor ${investor} is already a registered wallet`);
   }
 }
 
@@ -188,7 +189,7 @@ export interface RegisterMidasInvestorProps {
   /**
    * Investor EOA to greenlist
    */
-  claimer: Address;
+  investor: Address;
   /**
    * Midas access control admin, impersonated on the fork
    * (MIDAS_ACL_ADMIN in periphery-v3/router-v3 foundry tests)
@@ -217,9 +218,38 @@ export interface RegisterMidasInvestorProps {
 export async function registerMidasInvestor(
   props: RegisterMidasInvestorProps,
 ): Promise<void> {
-  const { anvil, claimer, admin, logger } = props;
+  const { anvil, investor, admin, logger } = props;
 
   const gateway = await findMidasGateway(props);
+  await greenlistMidasGateway({ anvil, investor, admin, gateway, logger });
+}
+
+export interface GreenlistMidasGatewayProps {
+  anvil: AnvilClient;
+  /**
+   * Investor EOA to greenlist
+   */
+  investor: Address;
+  /**
+   * Midas access control admin, impersonated on the fork
+   * (MIDAS_ACL_ADMIN in periphery-v3/router-v3 foundry tests)
+   */
+  admin: Address;
+  /**
+   * Midas gateway address
+   */
+  gateway: Address;
+  logger?: ILogger;
+}
+
+/**
+ * Greenlists an investor in the access control of a single Midas gateway
+ */
+export async function greenlistMidasGateway(
+  props: GreenlistMidasGatewayProps,
+): Promise<void> {
+  const { anvil, investor, admin, gateway, logger } = props;
+
   const [accessControl, mode, greenlistedRole] = await anvil.multicall({
     allowFailure: false,
     contracts: [
@@ -263,7 +293,7 @@ export async function registerMidasInvestor(
   if (mode === MIDAS_MODE_PERMISSIONED) {
     // admin holds the admin role of the operator role, but must hold the
     // operator role itself to grant the greenlist
-    grants.push([operatorRole, admin], [greenlistedRole, claimer]);
+    grants.push([operatorRole, admin], [greenlistedRole, investor]);
   } else {
     logger?.debug(
       `midas: gateway ${gateway} does not require greenlisted borrowers, only granting the operator role to the gateway`,
@@ -307,12 +337,12 @@ export async function registerMidasInvestor(
       address: accessControl,
       abi: iMidasAccessControlAbi,
       functionName: "hasRole",
-      args: [greenlistedRole, claimer],
+      args: [greenlistedRole, investor],
     });
     if (!isGreenlisted) {
-      throw new Error(`midas: failed to greenlist claimer ${claimer}`);
+      throw new Error(`midas: failed to greenlist investor ${investor}`);
     }
-    logger?.debug(`midas: claimer ${claimer} is greenlisted`);
+    logger?.debug(`midas: investor ${investor} is greenlisted`);
   }
 }
 
@@ -335,19 +365,11 @@ async function findMidasGateway(
     await sdk.attach({ marketConfigurators });
   }
 
-  const gateways = new Set<Address>();
-  for (const cm of sdk.marketRegister.creditManagers) {
-    for (const adapter of cm.creditManager.adapters.values()) {
-      if (adapter.contractType === "ADAPTER::MIDAS_GATEWAY") {
-        gateways.add(adapter.targetContract);
-      }
-    }
-  }
-  if (gateways.size === 0) {
+  const candidates = collectMidasGateways(sdk);
+  if (candidates.length === 0) {
     throw new Error("no midas gateway adapters found in loaded markets");
   }
 
-  const candidates = Array.from(gateways);
   const mTokens = await anvil.multicall({
     allowFailure: false,
     contracts: candidates.map(address => ({
@@ -362,4 +384,135 @@ async function findMidasGateway(
   }
   logger?.debug(`midas: gateway for ${token} is ${candidates[index]}`);
   return candidates[index];
+}
+
+/**
+ * Collects the target contracts of all Midas gateway adapters of the loaded
+ * credit managers, same as the foundry tests do with
+ * `ICreditConfiguratorV3.allowedAdapters`
+ */
+function collectMidasGateways(sdk: OnchainSDK): Address[] {
+  const gateways = new AddressSet();
+  for (const cm of sdk.marketRegister.creditManagers) {
+    for (const adapter of cm.creditManager.adapters.values()) {
+      if (adapter.contractType === "ADAPTER::MIDAS_GATEWAY") {
+        gateways.add(adapter.targetContract);
+      }
+    }
+  }
+  return gateways.asArray();
+}
+
+export interface RegisterRWAInvestorProps {
+  anvil: AnvilClient;
+  /**
+   * Attached SDK, markets and RWA factories are read from it
+   */
+  sdk: OnchainSDK;
+  /**
+   * Wallet to pass the KYC of every RWA token
+   */
+  investor: Address;
+  /**
+   * Securitize registry admin, DSTokens are skipped when omitted
+   */
+  adminPrivateKey?: Hex;
+  /**
+   * Midas access control admin, Midas gateways are skipped when omitted
+   */
+  midasAdmin?: Address;
+  logger?: ILogger;
+}
+
+export interface RWAKycFailure {
+  /**
+   * DSToken or Midas gateway that failed
+   */
+  target: Address;
+  error: unknown;
+}
+
+export interface RegisterRWAInvestorResult {
+  /**
+   * DSTokens the investor was registered in
+   */
+  securitizeTokens: Address[];
+  /**
+   * Midas gateways the investor was greenlisted in
+   */
+  midasGateways: Address[];
+  failed: RWAKycFailure[];
+}
+
+/**
+ * Registers a wallet as an investor (fake KYC) in every Securitize DSToken and
+ * every Midas gateway of the markets loaded by `sdk`.
+ *
+ * Failures of a single token or gateway are collected and reported in the
+ * result instead of aborting the whole run.
+ */
+export async function registerRWAInvestor(
+  props: RegisterRWAInvestorProps,
+): Promise<RegisterRWAInvestorResult> {
+  const { anvil, sdk, investor, adminPrivateKey, midasAdmin, logger } = props;
+
+  const securitizeTokens: Address[] = [];
+  const midasGateways: Address[] = [];
+  const failed: RWAKycFailure[] = [];
+
+  const dsTokens = new AddressSet(
+    sdk.rwa.factories.flatMap(factory => factory.getTokens()),
+  );
+  if (adminPrivateKey) {
+    // sequential: every write mines a block on the same anvil
+    for (const token of dsTokens) {
+      try {
+        await registerSecuritizeInvestor({
+          anvil,
+          investor: investor,
+          adminPrivateKey,
+          token,
+          logger,
+        });
+        securitizeTokens.push(token);
+      } catch (e) {
+        logger?.error(`securitize: failed to register ${investor} in ${token}`);
+        logger?.error(e);
+        failed.push({ target: token, error: e });
+      }
+    }
+  } else if (dsTokens.size > 0) {
+    logger?.warn(
+      `securitize: no admin private key, skipping ${dsTokens.size} DSToken(s)`,
+    );
+  }
+
+  const gateways = collectMidasGateways(sdk);
+  if (midasAdmin) {
+    for (const gateway of gateways) {
+      try {
+        await greenlistMidasGateway({
+          anvil,
+          investor: investor,
+          admin: midasAdmin,
+          gateway,
+          logger,
+        });
+        midasGateways.push(gateway);
+      } catch (e) {
+        logger?.error(`midas: failed to greenlist ${investor} in ${gateway}`);
+        logger?.error(e);
+        failed.push({ target: gateway, error: e });
+      }
+    }
+  } else if (gateways.length > 0) {
+    logger?.warn(
+      `midas: no access control admin, skipping ${gateways.length} gateway(s)`,
+    );
+  }
+
+  logger?.debug(
+    `${investor} passed KYC on ${securitizeTokens.length} DSToken(s) and ${midasGateways.length} midas gateway(s), ${failed.length} failure(s)`,
+  );
+  return { securitizeTokens, midasGateways, failed };
 }

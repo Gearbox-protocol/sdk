@@ -104,7 +104,7 @@ describe.skipIf(!!process.env.CI)("rwa credit account (securitize)", () => {
 
       await claimDSToken({
         anvil: anvil as unknown as AnvilClient,
-        claimer: investor,
+        investor: investor,
         adminPrivateKey,
         token: dsToken,
         usdAmount: "60000",
@@ -199,7 +199,7 @@ describe.skipIf(!!process.env.CI)("rwa credit account (securitize)", () => {
 
       await registerSecuritizeInvestor({
         anvil: anvil as unknown as AnvilClient,
-        claimer: investor,
+        investor: investor,
         adminPrivateKey,
         token: dsToken,
       });

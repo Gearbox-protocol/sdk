@@ -13,7 +13,7 @@ import { registerSecuritizeInvestor, writeAndWait } from "./kycUtils.js";
 
 interface ClaimDSTokenProps {
   anvil: AnvilClient;
-  claimer: Address;
+  investor: Address;
   adminPrivateKey: Hex;
   /**
    * DSToken addresses
@@ -35,7 +35,7 @@ type ClaimDSTokensProps = Omit<ClaimDSTokenProps, "token"> & {
 export async function claimDSToken(props: ClaimDSTokenProps): Promise<void> {
   const {
     anvil,
-    claimer,
+    investor,
     adminPrivateKey,
     token,
     marketConfigurators,
@@ -71,24 +71,24 @@ export async function claimDSToken(props: ClaimDSTokenProps): Promise<void> {
 
   await registerSecuritizeInvestor({ ...props, logger });
 
-  logger?.debug(`Issuing ${amount} tokens to ${claimer}...`);
+  logger?.debug(`Issuing ${amount} tokens to ${investor}...`);
   const mintHash = await writeAndWait(anvil, {
     account,
     chain: anvil.chain,
     address: token,
     abi: iDSTokenAbi,
     functionName: "issueTokens",
-    args: [claimer, amount],
+    args: [investor, amount],
   });
   logger?.debug(`Done! tx: ${mintHash}`);
   const balance = await anvil.readContract({
     address: token,
     abi: erc20Abi,
     functionName: "balanceOf",
-    args: [claimer],
+    args: [investor],
   });
   logger?.debug(
-    `Balance of ${claimer}: ${sdk.tokensMeta.formatBN(token, balance)}`,
+    `Balance of ${investor}: ${sdk.tokensMeta.formatBN(token, balance)}`,
   );
 }
 
@@ -97,7 +97,7 @@ export async function claimDSToken(props: ClaimDSTokenProps): Promise<void> {
  * Works both for MockDStoken and real DSToken connected by securitize-deploy script
  * @param forkStatus
  * @param publicClient
- * @param claimer
+ * @param investor
  * @returns
  */
 export async function claimDSTokens(props: ClaimDSTokensProps): Promise<void> {

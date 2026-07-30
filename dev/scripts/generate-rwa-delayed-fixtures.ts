@@ -392,7 +392,7 @@ async function setupInvestor(
   const investor = wallet.account.address;
   await registerSecuritizeInvestor({
     anvil,
-    claimer: investor,
+    investor: investor,
     adminPrivateKey: SECURITIZE_ADMIN_PRIVATE_KEY,
     token: ACRED,
   });
