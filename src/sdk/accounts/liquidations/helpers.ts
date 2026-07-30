@@ -40,6 +40,13 @@ export type OnchainLiquidationCall = OnchainLiquidationData["liquidationCall"];
 export const DUST_THRESHOLD = 10n;
 
 /**
+ * Headroom (in bps) added on top of the amount the liquidation pulls when
+ * building the liquidator's approval, so that the transaction does not revert
+ * when prices move between the preview and the execution.
+ **/
+export const LIQUIDATION_APPROVAL_BUFFER = 50n;
+
+/**
  * Estimated amount (in underlying) the liquidator pays to fully liquidate an
  * account: the part of total value used to repay debt and protocol fees.
  *
@@ -202,6 +209,9 @@ export interface ToLiquidationApprovalProps {
  * dedicated liquidator contract (Midas / Securitize) that pulls the token to
  * itself and re-approves the credit manager, so it is the spender itself.
  *
+ * The approved amount includes {@link LIQUIDATION_APPROVAL_BUFFER} of headroom
+ * over the pulled amount to tolerate price movements.
+ *
  * @param props - See {@link ToLiquidationApprovalProps}
  * @returns The approval, or `undefined` when the call pulls nothing
  **/
@@ -215,7 +225,9 @@ export function toLiquidationApproval(
   return {
     spender: hexEq(target, creditFacade) ? creditManager : target,
     token,
-    amount,
+    amount:
+      (amount * (PERCENTAGE_FACTOR + LIQUIDATION_APPROVAL_BUFFER)) /
+      PERCENTAGE_FACTOR,
   };
 }
 

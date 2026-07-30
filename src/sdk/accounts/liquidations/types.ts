@@ -283,9 +283,9 @@ export interface LiquidationApproval {
   // (USDC); revisit when deciding whether the liquidation path should wrap.
   token: Address;
   /**
-   * Amount to approve, equal to the amount the liquidation transaction pulls.
-   * The Securitize liquidator recomputes it on-chain, so approving with some
-   * headroom is advisable in case prices move.
+   * Amount to approve: the amount the liquidation transaction pulls plus 0.5%
+   * of headroom. The Securitize liquidator recomputes the amount on-chain, so
+   * the approval must survive price movements after the preview.
    **/
   amount: bigint;
 }

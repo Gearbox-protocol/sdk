@@ -187,7 +187,7 @@ describe("toLiquidationApproval", () => {
     expect(toLiquidationApproval({ ...props, target: CREDIT_FACADE })).toEqual({
       spender: CREDIT_MANAGER,
       token: UNDERLYING,
-      amount: 1_000n,
+      amount: 1_005n,
     });
   });
 
@@ -197,8 +197,17 @@ describe("toLiquidationApproval", () => {
     ).toEqual({
       spender: LIQUIDATOR_CONTRACT,
       token: UNDERLYING,
-      amount: 1_000n,
+      amount: 1_005n,
     });
+  });
+
+  it("adds 0.5% of headroom to the pulled amount", () => {
+    const approval = toLiquidationApproval({
+      ...props,
+      target: CREDIT_FACADE,
+      amount: 1_000_000_000n,
+    });
+    expect(approval?.amount).toBe(1_005_000_000n);
   });
 
   it("returns undefined when the liquidation pulls nothing", () => {
