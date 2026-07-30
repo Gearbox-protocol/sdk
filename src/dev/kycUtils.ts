@@ -2,6 +2,7 @@ import {
   type Address,
   type Hex,
   isAddressEqual,
+  type PrivateKeyAccount,
   type PublicClient,
   parseAbi,
   parseEther,
@@ -43,12 +44,57 @@ export interface RegisterSecuritizeInvestorProps {
    * Wallet to register in the Securitize DS registry
    */
   investor: Address;
-  adminPrivateKey: Hex;
+  /**
+   * Private key of the DS registry admin, signs the registry writes
+   */
+  adminPrivateKey?: Hex;
+  /**
+   * DS registry admin, impersonated on the fork when no private key is given
+   */
+  admin?: Address;
   /**
    * DSToken address
    */
   token: Address;
   logger?: ILogger;
+}
+
+interface SecuritizeAdminSigner {
+  /**
+   * Account to pass to the registry writes
+   */
+  account: Address | PrivateKeyAccount;
+  release: () => Promise<void>;
+}
+
+/**
+ * Resolves the account that performs the DS registry writes: either the admin
+ * private key, or the admin address impersonated on the fork
+ */
+async function useSecuritizeAdmin(
+  props: RegisterSecuritizeInvestorProps,
+): Promise<SecuritizeAdminSigner> {
+  const { anvil, adminPrivateKey, admin, logger } = props;
+  if (adminPrivateKey) {
+    return {
+      account: privateKeyToAccount(adminPrivateKey),
+      release: async () => {},
+    };
+  }
+  if (!admin) {
+    throw new Error(
+      "securitize: either adminPrivateKey or admin address is required",
+    );
+  }
+  await anvil.impersonateAccount({ address: admin });
+  await anvil.setBalance({ address: admin, value: parseEther("100") });
+  logger?.debug(`securitize: impersonating registry admin ${admin}`);
+  return {
+    account: admin,
+    release: async () => {
+      await anvil.stopImpersonatingAccount({ address: admin });
+    },
+  };
 }
 
 /**
@@ -59,8 +105,7 @@ export interface RegisterSecuritizeInvestorProps {
 export async function registerSecuritizeInvestor(
   props: RegisterSecuritizeInvestorProps,
 ): Promise<void> {
-  const { investor, anvil, token, adminPrivateKey, logger } = props;
-  const account = privateKeyToAccount(adminPrivateKey);
+  const { investor, anvil, token, logger } = props;
 
   const registryServiceId = await anvil.readContract({
     address: token,
@@ -109,56 +154,61 @@ export async function registerSecuritizeInvestor(
       functionName: "isInvestor",
       args: [investorId],
     });
-    if (!investorExists) {
-      await writeAndWait(anvil, {
-        account,
-        chain: anvil.chain,
-        address: registryService,
-        abi: iDSRegistryServiceAbi,
-        functionName: "registerInvestor",
-        args: [investorId, investorId],
-      });
-      logger?.debug(`Registered investor "${investorId}"`);
-    }
-    await writeAndWait(anvil, {
-      account,
-      chain: anvil.chain,
-      address: registryService,
-      abi: iDSRegistryServiceAbi,
-      functionName: "addWallet",
-      args: [investor, investorId],
-    });
-    logger?.debug(`Added wallet ${investor} for investor "${investorId}"`);
-
+    const { account, release } = await useSecuritizeAdmin(props);
     try {
+      if (!investorExists) {
+        await writeAndWait(anvil, {
+          account,
+          chain: anvil.chain,
+          address: registryService,
+          abi: iDSRegistryServiceAbi,
+          functionName: "registerInvestor",
+          args: [investorId, investorId],
+        });
+        logger?.debug(`Registered investor "${investorId}"`);
+      }
       await writeAndWait(anvil, {
         account,
         chain: anvil.chain,
         address: registryService,
         abi: iDSRegistryServiceAbi,
-        functionName: "setCountry",
-        args: [investorId, "US"],
+        functionName: "addWallet",
+        args: [investor, investorId],
       });
-      logger?.debug(`Set country for investor "${investorId}" to "US"`);
+      logger?.debug(`Added wallet ${investor} for investor "${investorId}"`);
 
-      await writeAndWait(anvil, {
-        account,
-        chain: anvil.chain,
-        address: registryService,
-        abi: iDSRegistryServiceAbi,
-        functionName: "setAttribute",
-        args: [
-          investorId,
-          ACCREDITED,
-          BigInt(APPROVED),
-          MAX_UINT256,
-          "fake proof",
-        ],
-      });
-      logger?.debug(`Set attributes for investor "${investorId}"`);
-    } catch (e) {
-      // is not implemented on mock tokens
-      logger?.error(e);
+      try {
+        await writeAndWait(anvil, {
+          account,
+          chain: anvil.chain,
+          address: registryService,
+          abi: iDSRegistryServiceAbi,
+          functionName: "setCountry",
+          args: [investorId, "US"],
+        });
+        logger?.debug(`Set country for investor "${investorId}" to "US"`);
+
+        await writeAndWait(anvil, {
+          account,
+          chain: anvil.chain,
+          address: registryService,
+          abi: iDSRegistryServiceAbi,
+          functionName: "setAttribute",
+          args: [
+            investorId,
+            ACCREDITED,
+            BigInt(APPROVED),
+            MAX_UINT256,
+            "fake proof",
+          ],
+        });
+        logger?.debug(`Set attributes for investor "${investorId}"`);
+      } catch (e) {
+        // is not implemented on mock tokens
+        logger?.error(e);
+      }
+    } finally {
+      await release();
     }
   } else {
     logger?.debug(`Investor ${investor} is already a registered wallet`);
@@ -414,9 +464,14 @@ export interface RegisterRWAInvestorProps {
    */
   investor: Address;
   /**
-   * Securitize registry admin, DSTokens are skipped when omitted
+   * Private key of the Securitize registry admin, DSTokens are skipped when
+   * neither this nor `securitizeAdmin` is set
    */
   adminPrivateKey?: Hex;
+  /**
+   * Securitize registry admin, impersonated on the fork
+   */
+  securitizeAdmin?: Address;
   /**
    * Midas access control admin, Midas gateways are skipped when omitted
    */
@@ -454,7 +509,15 @@ export interface RegisterRWAInvestorResult {
 export async function registerRWAInvestor(
   props: RegisterRWAInvestorProps,
 ): Promise<RegisterRWAInvestorResult> {
-  const { anvil, sdk, investor, adminPrivateKey, midasAdmin, logger } = props;
+  const {
+    anvil,
+    sdk,
+    investor,
+    adminPrivateKey,
+    securitizeAdmin,
+    midasAdmin,
+    logger,
+  } = props;
 
   const securitizeTokens: Address[] = [];
   const midasGateways: Address[] = [];
@@ -463,7 +526,7 @@ export async function registerRWAInvestor(
   const dsTokens = new AddressSet(
     sdk.rwa.factories.flatMap(factory => factory.getTokens()),
   );
-  if (adminPrivateKey) {
+  if (adminPrivateKey || securitizeAdmin) {
     // sequential: every write mines a block on the same anvil
     for (const token of dsTokens) {
       try {
@@ -471,6 +534,7 @@ export async function registerRWAInvestor(
           anvil,
           investor: investor,
           adminPrivateKey,
+          admin: securitizeAdmin,
           token,
           logger,
         });
@@ -483,7 +547,7 @@ export async function registerRWAInvestor(
     }
   } else if (dsTokens.size > 0) {
     logger?.warn(
-      `securitize: no admin private key, skipping ${dsTokens.size} DSToken(s)`,
+      `securitize: no registry admin, skipping ${dsTokens.size} DSToken(s)`,
     );
   }
 
