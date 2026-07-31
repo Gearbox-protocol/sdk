@@ -473,7 +473,7 @@ export interface RegisterRWAInvestorProps {
    */
   securitizeAdmin?: Address;
   /**
-   * Midas access control admin, Midas gateways are skipped when omitted
+   * Override midas access control admin address
    */
   midasAdmin?: Address;
   logger?: ILogger;
@@ -515,7 +515,7 @@ export async function registerRWAInvestor(
     investor,
     adminPrivateKey,
     securitizeAdmin,
-    midasAdmin,
+    midasAdmin = "0xd4195CF4df289a4748C1A7B6dDBE770e27bA1227",
     logger,
   } = props;
 
@@ -552,27 +552,21 @@ export async function registerRWAInvestor(
   }
 
   const gateways = collectMidasGateways(sdk);
-  if (midasAdmin) {
-    for (const gateway of gateways) {
-      try {
-        await greenlistMidasGateway({
-          anvil,
-          investor: investor,
-          admin: midasAdmin,
-          gateway,
-          logger,
-        });
-        midasGateways.push(gateway);
-      } catch (e) {
-        logger?.error(`midas: failed to greenlist ${investor} in ${gateway}`);
-        logger?.error(e);
-        failed.push({ target: gateway, error: e });
-      }
+  for (const gateway of gateways) {
+    try {
+      await greenlistMidasGateway({
+        anvil,
+        investor: investor,
+        admin: midasAdmin,
+        gateway,
+        logger,
+      });
+      midasGateways.push(gateway);
+    } catch (e) {
+      logger?.error(`midas: failed to greenlist ${investor} in ${gateway}`);
+      logger?.error(e);
+      failed.push({ target: gateway, error: e });
     }
-  } else if (gateways.length > 0) {
-    logger?.warn(
-      `midas: no access control admin, skipping ${gateways.length} gateway(s)`,
-    );
   }
 
   logger?.debug(
