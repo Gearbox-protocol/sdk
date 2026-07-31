@@ -78,7 +78,7 @@ export class CreditFacadeV310BaseContract extends BaseContract<abi> {
         const [onBehalfOf, calls, referralCode] = params.args;
         return [
           this.labelAddress(onBehalfOf),
-          this.register.parseMultiCall([...calls]).join(","),
+          this.register.stringifyMultiCall([...calls]).join(", "),
           `${referralCode}`,
         ];
       }
@@ -86,7 +86,7 @@ export class CreditFacadeV310BaseContract extends BaseContract<abi> {
         const [creditAccount, calls] = params.args;
         return [
           this.labelAddress(creditAccount),
-          this.register.parseMultiCall([...calls]).join(","),
+          this.register.stringifyMultiCall([...calls]).join(", "),
         ];
       }
       case "liquidateCreditAccount": {
@@ -94,7 +94,7 @@ export class CreditFacadeV310BaseContract extends BaseContract<abi> {
         return [
           this.labelAddress(creditAccount),
           this.labelAddress(to),
-          this.register.parseMultiCall([...calls]).join(","),
+          this.register.stringifyMultiCall([...calls]).join(", "),
         ];
       }
       default:
