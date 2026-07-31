@@ -10,7 +10,7 @@ import {
   type TokensMeta,
   toBN,
 } from "../../sdk/index.js";
-import type { PoolPointsInfo } from "../index.js";
+import type { PoolPointsInfo } from "../apy/output-details.js";
 import type { TokenData } from "./common.js";
 
 export interface GetPointsByPoolProps {

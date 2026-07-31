@@ -2,8 +2,8 @@ import type { Address, PublicClient } from "viem";
 
 import type { NetworkType } from "../chain/index.js";
 import { SdkAlreadyAttachedError, SdkNotAttachedError } from "../core/index.js";
-import type { ILogger } from "../index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
+import type { ILogger } from "../types/logger.js";
 
 /**
  * Convenience base class for {@link IOnchainSDKPlugin} implementations.

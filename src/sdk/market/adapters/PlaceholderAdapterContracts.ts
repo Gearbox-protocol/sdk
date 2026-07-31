@@ -5,7 +5,7 @@ import {
   MissingSerializedParamsError,
   PlaceholderContract,
 } from "../../base/index.js";
-import type { RelaxedBaseParams } from "../../index.js";
+import type { RelaxedBaseParams } from "../../base/types.js";
 import type { IAdapterContract } from "./types.js";
 
 export interface PlaceholderAdapterContractOptions {

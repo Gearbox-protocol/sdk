@@ -14,8 +14,8 @@ import type {
 } from "../../types/index.js";
 import type { AddressMap } from "../../utils/index.js";
 import type { IAdapterContract } from "../adapters/index.js";
-import type { RampEvent } from "../index.js";
 import type { PriceUpdate } from "../pricefeeds/index.js";
+import type { RampEvent } from "./CreditConfiguratorV310Contract.js";
 
 export interface ICreditConfiguratorContract extends IBaseContract {
   isPaused: boolean;

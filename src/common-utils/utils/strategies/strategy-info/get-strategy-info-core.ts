@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import { getSingleQuotaBorrowRate } from "../../index.js";
+import { getSingleQuotaBorrowRate } from "../../apy/get-single-quota-borrow-rate.js";
 import { PriceUtils } from "../../price-math.js";
 import { getFactorFromLeverage } from "../leverage/index.js";
 import { getStrategyPoints } from "../points/get-strategy-points.js";

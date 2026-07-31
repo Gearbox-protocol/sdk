@@ -29,13 +29,13 @@ import {
   parseRateKeeperDeployParams,
 } from "../plugins/index.js";
 import { handleSalt } from "../utils/create2.js";
-import { convertPercent } from "../utils/index.js";
+import { convertPercent } from "../utils/format.js";
+import { AddressProviderContract } from "./address-provider.js";
 import { CreditFactory } from "./factory/credit-factory.js";
 import { LossPolicyFactory } from "./factory/loss-policy-factory.js";
 import { PoolFactory } from "./factory/pool-factory.js";
 import { PriceOracleFactory } from "./factory/price-oracle-factory.js";
 import { RateKeeperFactory } from "./factory/rate-keeper-factory.js";
-import { AddressProviderContract } from "./index.js";
 import type {
   AddAssetParams,
   AllowTokenParams,

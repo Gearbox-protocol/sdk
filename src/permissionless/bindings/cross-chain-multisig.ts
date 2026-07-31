@@ -24,8 +24,8 @@ import type {
   Signature,
 } from "../core/proposal.js";
 import { Addresses } from "../deployment/addresses.js";
-import { normalizeSignature } from "../utils/index.js";
 import { CROSS_CHAIN_MULTISIG } from "../utils/literals.js";
+import { normalizeSignature } from "../utils/signature.js";
 import { InstanceManagerContract } from "./instance-manager.js";
 import { MarketConfiguratorFactoryContract } from "./market-configurator-factory.js";
 

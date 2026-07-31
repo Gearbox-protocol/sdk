@@ -6,11 +6,8 @@ import {
 } from "viem";
 import { json_stringify } from "../../../sdk/index.js";
 import { AdapterType } from "../types.js";
-import {
-  adapterActionAbi,
-  adapterActionSelectors,
-  adapterConstructorAbi,
-} from "./index.js";
+import { adapterActionAbi, adapterActionSelectors } from "./actionAbi.js";
+import { adapterConstructorAbi } from "./conctructorAbi.js";
 
 /**
  * Converts a string to AdapterType if valid, otherwise returns null

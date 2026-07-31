@@ -8,7 +8,7 @@ import {
   toFunctionSelector,
   toFunctionSignature,
 } from "viem";
-import { json_stringify } from "../../sdk/utils/index.js";
+import { json_stringify } from "./json.js";
 
 /**
  * Given an ABI and calldata (or 4-byte selector), returns the function

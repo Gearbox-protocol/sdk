@@ -1,6 +1,6 @@
 import type { BaseState } from "../../base/index.js";
-import { bytes32ToString } from "../../index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
+import { bytes32ToString } from "../../utils/bytes32ToString.js";
 import { AliasLossPolicyV310Contract } from "./AliasLossPolicyV310Contract.js";
 import { LOSS_POLICY_ALIASED, LOSS_POLICY_DEFAULT } from "./constants.js";
 import { LossPolicyContract } from "./LossPolicyContract.js";

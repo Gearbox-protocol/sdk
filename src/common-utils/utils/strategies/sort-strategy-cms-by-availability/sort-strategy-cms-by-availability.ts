@@ -1,13 +1,13 @@
 import type { Address } from "viem";
 
 import { amountAbcComparator } from "../../creditAccount/sort.js";
-import {
-  type APYListSlice,
-  type CreditManagerSlice,
-  cmAvailabilityCondition,
-  getStrategyMaxAPY,
-  type PoolSlice,
-} from "../strategy-info/index.js";
+import { cmAvailabilityCondition } from "../strategy-info/cm-availability-condition.js";
+import { getStrategyMaxAPY } from "../strategy-info/get-strategy-max-apy.js";
+import type {
+  APYListSlice,
+  CreditManagerSlice,
+  PoolSlice,
+} from "../strategy-info/types.js";
 
 export interface SortStrategyCMsByAvailabilityProps {
   targetToken: Address;

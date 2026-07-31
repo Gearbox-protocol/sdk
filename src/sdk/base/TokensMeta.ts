@@ -8,7 +8,6 @@ import type {
 } from "viem";
 import { iStateSerializerAbi } from "../../abi/iStateSerializer.js";
 import { iVersionAbi } from "../../abi/iVersion.js";
-import type { Asset } from "../index.js";
 import type { ILogger } from "../types/logger.js";
 import {
   AddressMap,
@@ -21,6 +20,7 @@ import type {
   RWATokenMeta,
   TokenMetaData,
 } from "./token-types.js";
+import type { Asset } from "./types.js";
 
 /**
  * Options for {@link TokensMeta.formatBN}.

@@ -7,9 +7,10 @@ import {
   mockToken1,
 } from "../../../test-utils/index.js";
 import { amountAbcComparator } from "../../creditAccount/sort.js";
-import type { APYListSlice, PoolSlice } from "../strategy-info/index.js";
-import * as StrategyInfoModule from "../strategy-info/index.js";
-import { sortStrategyCMsByAvailability } from "./index.js";
+import * as CmAvailabilityConditionModule from "../strategy-info/cm-availability-condition.js";
+import * as GetStrategyMaxAPYModule from "../strategy-info/get-strategy-max-apy.js";
+import type { APYListSlice, PoolSlice } from "../strategy-info/types.js";
+import { sortStrategyCMsByAvailability } from "./sort-strategy-cms-by-availability.js";
 
 vi.mock("../../creditAccount/sort", async importOriginal => {
   const actual = await importOriginal<Record<string, unknown>>();
@@ -20,7 +21,10 @@ vi.mock("../../creditAccount/sort", async importOriginal => {
   };
 });
 
-const mockGetStrategyMaxAPY = vi.spyOn(StrategyInfoModule, "getStrategyMaxAPY");
+const mockGetStrategyMaxAPY = vi.spyOn(
+  GetStrategyMaxAPYModule,
+  "getStrategyMaxAPY",
+);
 
 describe("getBestCMForToken", () => {
   const mockAPYListByNetwork: Record<number, APYListSlice> = {
@@ -63,7 +67,10 @@ describe("getBestCMForToken", () => {
       address: "0x2222",
     });
 
-    vi.spyOn(StrategyInfoModule, "cmAvailabilityCondition").mockImplementation(
+    vi.spyOn(
+      CmAvailabilityConditionModule,
+      "cmAvailabilityCondition",
+    ).mockImplementation(
       // eslint-disable-next-line max-nested-callbacks
       (_targetToken, cmA) => {
         if (cmA?.address === mockCM1.address) {
@@ -101,23 +108,26 @@ describe("getBestCMForToken", () => {
       address: "0x333",
     });
 
-    vi.spyOn(StrategyInfoModule, "cmAvailabilityCondition").mockReturnValue(0);
+    vi.spyOn(
+      CmAvailabilityConditionModule,
+      "cmAvailabilityCondition",
+    ).mockReturnValue(0);
     mockGetStrategyMaxAPY.mockImplementation(
       // eslint-disable-next-line max-nested-callbacks
       (_targetToken, cm) => {
         if (cm?.address === mockCM1.address) {
           return { totalMaxApy: 0.1 } as unknown as ReturnType<
-            typeof StrategyInfoModule.getStrategyMaxAPY
+            typeof GetStrategyMaxAPYModule.getStrategyMaxAPY
           >;
         }
         if (cm?.address === mockCM2.address) {
           return { totalMaxApy: 0.5 } as unknown as ReturnType<
-            typeof StrategyInfoModule.getStrategyMaxAPY
+            typeof GetStrategyMaxAPYModule.getStrategyMaxAPY
           >;
         }
         if (cm?.address === mockCM3.address) {
           return { totalMaxApy: 0.2 } as unknown as ReturnType<
-            typeof StrategyInfoModule.getStrategyMaxAPY
+            typeof GetStrategyMaxAPYModule.getStrategyMaxAPY
           >;
         }
       },
@@ -148,7 +158,10 @@ describe("getBestCMForToken", () => {
       address: "0x333",
     });
 
-    vi.spyOn(StrategyInfoModule, "cmAvailabilityCondition").mockReturnValue(0);
+    vi.spyOn(
+      CmAvailabilityConditionModule,
+      "cmAvailabilityCondition",
+    ).mockReturnValue(0);
     mockGetStrategyMaxAPY.mockImplementation(
       // eslint-disable-next-line max-nested-callbacks
       (_targetToken, cm) => {
@@ -160,7 +173,7 @@ describe("getBestCMForToken", () => {
         }
         if (cm?.address === mockCM3.address) {
           return { totalMaxApy: 0.00001 } as unknown as ReturnType<
-            typeof StrategyInfoModule.getStrategyMaxAPY
+            typeof GetStrategyMaxAPYModule.getStrategyMaxAPY
           >;
         }
       },
@@ -188,18 +201,21 @@ describe("getBestCMForToken", () => {
       address: "0x2222",
     });
 
-    vi.spyOn(StrategyInfoModule, "cmAvailabilityCondition").mockReturnValue(0);
+    vi.spyOn(
+      CmAvailabilityConditionModule,
+      "cmAvailabilityCondition",
+    ).mockReturnValue(0);
     mockGetStrategyMaxAPY.mockImplementation(
       // eslint-disable-next-line max-nested-callbacks
       (_targetToken, cm) => {
         if (cm?.address === mockCM1.address) {
           return { totalBorrowRate: 20 } as unknown as ReturnType<
-            typeof StrategyInfoModule.getStrategyMaxAPY
+            typeof GetStrategyMaxAPYModule.getStrategyMaxAPY
           >;
         }
         if (cm?.address === mockCM2.address) {
           return { totalBorrowRate: 10 } as unknown as ReturnType<
-            typeof StrategyInfoModule.getStrategyMaxAPY
+            typeof GetStrategyMaxAPYModule.getStrategyMaxAPY
           >;
         }
       },
@@ -229,11 +245,16 @@ describe("getBestCMForToken", () => {
       maxDebt: 2_000n,
     });
 
-    vi.spyOn(StrategyInfoModule, "cmAvailabilityCondition").mockReturnValue(0);
+    vi.spyOn(
+      CmAvailabilityConditionModule,
+      "cmAvailabilityCondition",
+    ).mockReturnValue(0);
     mockGetStrategyMaxAPY.mockReturnValue({
       totalBorrowRate: 0,
       totalMaxApy: 0,
-    } as unknown as ReturnType<typeof StrategyInfoModule.getStrategyMaxAPY>);
+    } as unknown as ReturnType<
+      typeof GetStrategyMaxAPYModule.getStrategyMaxAPY
+    >);
     vi.mocked(amountAbcComparator).mockReturnValue(-1);
 
     const [first] = sortStrategyCMsByAvailability({

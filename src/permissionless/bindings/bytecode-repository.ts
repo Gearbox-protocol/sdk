@@ -22,8 +22,8 @@ import type {
   Bytecode,
   DeploymentExtended,
 } from "../core/bytecode.js";
-import { normalizeSignature } from "../utils/index.js";
 import { BYTECODE_REPOSITORY } from "../utils/literals.js";
+import { normalizeSignature } from "../utils/signature.js";
 
 const abi = iBytecodeRepositoryAbi;
 

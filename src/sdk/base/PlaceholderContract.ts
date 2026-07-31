@@ -1,6 +1,6 @@
 import type { BaseContractArgs } from "./BaseContract.js";
 import { BaseContract } from "./BaseContract.js";
-import type { ConstructOptions } from "./index.js";
+import type { ConstructOptions } from "./Construct.js";
 
 const abi = [] as unknown[];
 type abi = typeof abi;
