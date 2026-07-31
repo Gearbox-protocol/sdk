@@ -1,8 +1,4 @@
 import type { Address } from "viem";
-import { ADDRESS_0X0 } from "../../constants/index.js";
 
-/**
- * TODO: the contract is not deployed yet, replace with the real address
- * (per-network lookup if it ends up being deployed on several chains).
- **/
-export const LIQUIDATION_COMPRESSOR_V313_ADDRESS: Address = ADDRESS_0X0;
+export const LIQUIDATION_COMPRESSOR_V313_ADDRESS: Address =
+  "0x04c5c47c3b9e29ce98fdd27103fbb6a0815b1712";
