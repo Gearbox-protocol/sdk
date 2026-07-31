@@ -50,9 +50,11 @@ export const adapterActionSignatures: PartialRecord<
   },
   [AdapterType.MIDAS_ISSUANCE_VAULT]: {
     310: "function setTokenAllowedStatusBatch(address[],bool[])",
+    311: "function setInputTokenStatusBatch(address[],bool[])",
   },
   [AdapterType.MIDAS_REDEMPTION_VAULT]: {
     310: "function setTokenAllowedStatusBatch((address,address,bool)[])",
+    311: "function setOutputTokenStatusBatch(address[],bool[])",
   },
   [AdapterType.PENDLE_ROUTER]: {
     310: "function setPairStatusBatch((address,address,address,uint8)[])",
