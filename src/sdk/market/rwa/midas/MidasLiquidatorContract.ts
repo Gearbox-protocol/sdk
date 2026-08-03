@@ -7,7 +7,7 @@ import { RWA_LIQUIDATOR_MIDAS } from "./constants.js";
 const abi = iMidasLiquidatorV311Abi;
 type abi = typeof abi;
 
-export class MidasLiquidator extends BaseContract<abi> {
+export class MidasLiquidatorContract extends BaseContract<abi> {
   constructor(options: ConstructOptions, address: Address) {
     super(options, {
       addr: address,

@@ -1,8 +1,18 @@
 import type { Address } from "viem";
 import { iLiquidationCompressorV313Abi } from "../../../abi/ILiquidationCompressorV313.js";
-import type { CreditAccountData } from "../../base/index.js";
+import { iPhantomTokenAbi } from "../../../abi/iPhantomToken.js";
+import { iRWAGatewayAbi } from "../../../abi/rwa/iRWAGateway.js";
+import type { CreditAccountData, PhantomTokenMeta } from "../../base/index.js";
 import { SDKConstruct } from "../../base/index.js";
 import { ADDRESS_0X0, WAD } from "../../constants/index.js";
+import {
+  MidasLiquidatorContract,
+  PHANTOM_TOKEN_MIDAS_REDEMPTION,
+} from "../../market/rwa/midas/index.js";
+import {
+  PHANTOM_TOKEN_SECURITIZE_REDEMPTION,
+  SecuritizeLiquidatorContract,
+} from "../../market/rwa/securitize/index.js";
 import type { RawTx } from "../../types/index.js";
 import { AddressSet, hexEq } from "../../utils/index.js";
 import { LIQUIDATION_COMPRESSOR_V313_ADDRESS } from "./constants.js";
@@ -27,6 +37,20 @@ import type {
   LiquidationDetails,
   LiquidatorWithdrawal,
 } from "./types.js";
+
+/**
+ * A discovered RWA liquidator contract.
+ **/
+interface RWALiquidatorRef {
+  /**
+   * Liquidator address: the transfer master of the RWA gateway.
+   **/
+  liquidator: Address;
+  /**
+   * Contract type of the phantom token, which selects the contract class.
+   **/
+  contractType: string;
+}
 
 /**
  * Per-chain implementation of {@link ILiquidationsService}.
@@ -164,6 +188,86 @@ export class LiquidationsService
       ...phantomTokens.asArray(),
     );
     return toLiquidatorWithdrawals(current, this.sdk.networkType);
+  }
+
+  /**
+   * {@inheritDoc ILiquidationsService.loadRWALiquidators}
+   **/
+  public async loadRWALiquidators(): Promise<void> {
+    // phantom token contract types are loaded lazily and cached by the SDK
+    await this.sdk.tokensMeta.loadTokenData();
+    const phantomTokens: PhantomTokenMeta[] = [];
+    for (const meta of this.sdk.tokensMeta.phantomTokens.values()) {
+      switch (meta.contractType) {
+        case PHANTOM_TOKEN_SECURITIZE_REDEMPTION:
+        case PHANTOM_TOKEN_MIDAS_REDEMPTION:
+          phantomTokens.push(meta);
+          break;
+      }
+    }
+    if (phantomTokens.length === 0) {
+      return;
+    }
+
+    const ptResp = await this.client.multicall({
+      contracts: phantomTokens.map(
+        ({ addr }) =>
+          ({
+            address: addr,
+            abi: iPhantomTokenAbi,
+            functionName: "getPhantomTokenInfo",
+          }) as const,
+      ),
+      allowFailure: false,
+      batchSize: 0,
+    });
+    const gateways = phantomTokens.map(({ contractType }, i) => ({
+      gateway: ptResp[i][0],
+      contractType,
+    }));
+
+    const gwResp = await this.client.multicall({
+      contracts: gateways.map(
+        ({ gateway }) =>
+          ({
+            address: gateway,
+            abi: iRWAGatewayAbi,
+            functionName: "transferMaster",
+          }) as const,
+      ),
+      allowFailure: false,
+      batchSize: 0,
+    });
+    const refs = gateways.map(({ contractType }, i) => ({
+      liquidator: gwResp[i],
+      contractType,
+    }));
+
+    for (const ref of refs) {
+      this.#createRWALiquidator(ref);
+    }
+  }
+
+  /**
+   * Instantiates the liquidator contract, which registers it and labels its
+   * address (see `BaseContract`).
+   *
+   * @param ref - Discovered liquidator address and its phantom token type
+   **/
+  #createRWALiquidator(ref: RWALiquidatorRef): void {
+    const { liquidator, contractType } = ref;
+    const existing = this.sdk.getContract(liquidator);
+    if (existing) {
+      return;
+    }
+    switch (contractType) {
+      case PHANTOM_TOKEN_SECURITIZE_REDEMPTION:
+        new SecuritizeLiquidatorContract(this.sdk, liquidator);
+        return;
+      case PHANTOM_TOKEN_MIDAS_REDEMPTION:
+        new MidasLiquidatorContract(this.sdk, liquidator);
+        return;
+    }
   }
 
   async #getCreditAccountData(

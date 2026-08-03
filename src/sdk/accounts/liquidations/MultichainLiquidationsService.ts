@@ -10,6 +10,7 @@ import type {
   LiquidatableAccount,
   LiquidationDetails,
   LiquidatorWithdrawal,
+  LoadRWALiquidatorsProps,
 } from "./types.js";
 
 /**
@@ -108,5 +109,28 @@ export class MultichainLiquidationsService<
       }
     });
     return withdrawals;
+  }
+
+  /**
+   * {@inheritDoc ILiquidationsService.loadRWALiquidators}
+   **/
+  public async loadRWALiquidators(
+    props?: LoadRWALiquidatorsProps<true>,
+  ): Promise<void> {
+    const chains = [...this.#sdk.chains.entries()].filter(
+      ([network]) => !props?.networks || props.networks.includes(network),
+    );
+    const results = await Promise.allSettled(
+      chains.map(([, chainSdk]) => chainSdk.liquidations.loadRWALiquidators()),
+    );
+    results.forEach((result, i) => {
+      const [network, chainSdk] = chains[i];
+      if (result.status === "rejected") {
+        chainSdk.logger?.warn(
+          result.reason,
+          `failed to load RWA liquidators on ${network}`,
+        );
+      }
+    });
   }
 }

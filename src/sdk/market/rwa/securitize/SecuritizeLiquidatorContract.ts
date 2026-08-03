@@ -7,7 +7,7 @@ import { RWA_LIQUIDATOR_SECURITIZE } from "./constants.js";
 const abi = iSecuritizeLiquidatorV311Abi;
 type abi = typeof abi;
 
-export class SecuritizeLiquidator extends BaseContract<abi> {
+export class SecuritizeLiquidatorContract extends BaseContract<abi> {
   constructor(options: ConstructOptions, address: Address) {
     super(options, {
       addr: address,

@@ -1,2 +1,2 @@
 export * from "./constants.js";
-export * from "./MidasLiquidator.js";
+export * from "./MidasLiquidatorContract.js";

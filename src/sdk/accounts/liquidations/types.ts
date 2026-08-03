@@ -231,6 +231,12 @@ export type GetLiquidatorWithdrawalsProps<Multichain extends boolean = false> =
     WithMultichain<Multichain, MultichainNetworksProps>;
 
 /**
+ * Props for {@link ILiquidationsService.loadRWALiquidators}.
+ **/
+export type LoadRWALiquidatorsProps<Multichain extends boolean = false> =
+  WithMultichain<Multichain, MultichainNetworksProps>;
+
+/**
  * A single delayed-withdrawal position owned by the liquidator.
  *
  * The redeemer contract address is not included: it is not part of the
@@ -377,4 +383,14 @@ export interface ILiquidationsService<Multichain extends boolean = false> {
   getLiquidatorWithdrawals(
     props: GetLiquidatorWithdrawalsProps<Multichain>,
   ): Promise<LiquidatorWithdrawal[]>;
+  /**
+   * Discovers the dedicated RWA liquidator contracts (Securitize, Midas)
+   * deployed for the markets of the chain and registers them in the SDK
+   * contracts register.
+   *
+   * @param props - See {@link LoadRWALiquidatorsProps}
+   **/
+  loadRWALiquidators(
+    props?: LoadRWALiquidatorsProps<Multichain>,
+  ): Promise<void>;
 }
