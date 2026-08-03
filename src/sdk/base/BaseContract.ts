@@ -35,6 +35,8 @@ import {
   getFunctionSignature,
   json_stringify,
 } from "../utils/index.js";
+import type { SimulateCallOptions } from "../utils/viem/simulateCall.js";
+import { simulateCall } from "../utils/viem/simulateCall.js";
 import { Construct, type ConstructOptions } from "./Construct.js";
 import type {
   IBaseContract,
@@ -438,6 +440,31 @@ export class BaseContract<abi extends Abi | readonly unknown[]>
     tx.description = argsDescription || this.stringifyFunctionData(tx.callData);
 
     return tx;
+  }
+
+  /**
+   * Simulates calldata against this contract with `eth_call`, returning the raw response.
+   *
+   * Nothing is encoded or decoded on success: pass calldata that already exists (e.g. from
+   * {@link createRawTx}) instead of decoding it into a function name and arguments first.
+   * On revert, this contract's abi and the shared exception abis are used to decode the error.
+   *
+   * @param callData - Encoded calldata, passed to the node as-is.
+   * @param options - Call options, plus any extra `abis` needed to decode custom errors.
+   * @throws {@link SimulationError} when the call reverts or the request fails.
+   */
+  public async simulateCall(
+    callData: Hex,
+    options: SimulateCallOptions<Chain> = {},
+  ): Promise<Hex> {
+    const { abis = [], ...rest } = options;
+    const { data } = await simulateCall(this.client, {
+      ...rest,
+      to: this.address,
+      data: callData,
+      abis: [this.abi, errorAbis, ...abis],
+    });
+    return data;
   }
 
   /**

@@ -3,6 +3,8 @@ import { NOT_DEPLOYED } from "../constants/addresses.js";
 import type { MultiCall } from "../types/index.js";
 import type { ILogger } from "../types/logger.js";
 import { AddressMap } from "../utils/AddressMap.js";
+import type { SimulateCallOptions } from "../utils/viem/simulateCall.js";
+import { simulateCall } from "../utils/viem/simulateCall.js";
 import type { BaseContract } from "./BaseContract.js";
 import { TokensMeta } from "./TokensMeta.js";
 import type { ParsedCall, ParsedCallV2 } from "./types.js";
@@ -148,6 +150,36 @@ export class ChainContractsRegister {
     return contract
       ? contract.stringifyFunctionData(calldata)
       : `unknown: ${address}.${calldata.slice(0, 10)}`;
+  }
+
+  /**
+   * Simulates a transaction with `eth_call`, without encoding or decoding anything on success.
+   *
+   * When the target is a known contract, its abi and the shared exception abis are used to decode
+   * a revert. For an unknown target only `options.abis` are used, so pass the exception abis you
+   * care about when simulating contracts the SDK does not know.
+   *
+   * @param target - Target address.
+   * @param callData - Calldata to simulate.
+   * @param options - Call options, plus any extra `abis` needed to decode custom errors.
+   * @returns Raw bytes returned by the call, `0x` when the function returns nothing.
+   * @throws {@link SimulationError} when the call reverts or the request fails.
+   */
+  public async simulateCall(
+    target: Address,
+    callData: Hex,
+    options: SimulateCallOptions<Chain> = {},
+  ): Promise<Hex> {
+    const contract = this.contracts.get(target);
+    if (contract) {
+      return contract.simulateCall(callData, options);
+    }
+    const { data } = await simulateCall(this.client, {
+      ...options,
+      to: target,
+      data: callData,
+    });
+    return data;
   }
 
   /**
