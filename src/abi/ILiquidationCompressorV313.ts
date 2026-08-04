@@ -32,11 +32,8 @@ export const iLiquidationCompressorV313Abi = [
         type: "tuple",
         internalType: "struct LiquidationData",
         components: [
-          {
-            name: "requiredUnderlyingAmount",
-            type: "uint256",
-            internalType: "uint256",
-          },
+          { name: "requiredToken", type: "address", internalType: "address" },
+          { name: "requiredAmount", type: "uint256", internalType: "uint256" },
           {
             name: "expectedOutputs",
             type: "tuple[]",
@@ -63,12 +60,37 @@ export const iLiquidationCompressorV313Abi = [
             ],
           },
           { name: "isLiquidatorEligible", type: "bool", internalType: "bool" },
+          { name: "isCreditAccountFrozen", type: "bool", internalType: "bool" },
           { name: "kycProtocol", type: "string", internalType: "string" },
           { name: "kycToken", type: "address", internalType: "address" },
         ],
       },
     ],
     stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "getRWALiquidators",
+    inputs: [
+      { name: "marketConfigurator", type: "address", internalType: "address" },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "tuple[]",
+        internalType: "struct RWALiquidatorInfo[]",
+        components: [
+          { name: "gateway", type: "address", internalType: "address" },
+          {
+            name: "liquidatorAddress",
+            type: "address",
+            internalType: "address",
+          },
+          { name: "contractType", type: "bytes32", internalType: "bytes32" },
+        ],
+      },
+    ],
+    stateMutability: "view",
   },
   {
     type: "function",

@@ -205,6 +205,11 @@ export interface ClaimableWithdrawal {
    **/
   claimCalls: MultiCall[];
   /**
+   * Redeemer contract the withdrawal is claimed from. `undefined` on
+   * compressor versions below 313, which do not report it
+   **/
+  redeemer?: Address;
+  /**
    * Delayed intent decoded from the withdrawal's `extraData`, enriched with
    * the credit manager of the credit account. `undefined` on compressor
    * versions below 313, and on v313+ when the withdrawal was requested
@@ -234,6 +239,11 @@ export interface PendingWithdrawal {
    * Unix timestamp (in seconds) when the withdrawal becomes claimable
    **/
   claimableAt: bigint;
+  /**
+   * Redeemer contract the withdrawal will be claimed from. `undefined` on
+   * compressor versions below 313, which do not report it
+   **/
+  redeemer?: Address;
   /**
    * Delayed intent decoded from the withdrawal's `extraData`, enriched with
    * the credit manager of the credit account. `undefined` on compressor

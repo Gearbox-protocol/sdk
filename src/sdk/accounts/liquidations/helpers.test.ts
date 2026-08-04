@@ -6,7 +6,6 @@ import {
   calcEstimatedProfit,
   calcRepaymentAmount,
   DUST_THRESHOLD,
-  liquidationCallToRawTx,
   pickMainAsset,
   toLiquidationApproval,
   toReceivedAssets,

@@ -106,6 +106,11 @@ export interface LiquidatableAccount {
    * liquidator's ownership instead of instantly receivable tokens.
    **/
   isDelayed: boolean;
+  /**
+   * `true` when the credit manager's facade is paused. Liquidations of such
+   * accounts only succeed for emergency liquidators approved in the market.
+   **/
+  paused: boolean;
 }
 
 /**
@@ -238,10 +243,6 @@ export type LoadRWALiquidatorsProps<Multichain extends boolean = false> =
 
 /**
  * A single delayed-withdrawal position owned by the liquidator.
- *
- * The redeemer contract address is not included: it is not part of the
- * on-chain withdrawal structs returned by the withdrawal compressor. It can
- * be surfaced later if the compressor structs are extended.
  **/
 export interface LiquidatorWithdrawal {
   /**
@@ -266,6 +267,11 @@ export interface LiquidatorWithdrawal {
    * claimable. `undefined` means the withdrawal is claimable now.
    **/
   claimableAt?: bigint;
+  /**
+   * Redeemer contract the withdrawal is claimed from, owned by the liquidator.
+   * `undefined` on compressor versions below 313, which do not report it.
+   **/
+  redeemer?: Address;
 }
 
 /**
@@ -282,11 +288,10 @@ export interface LiquidationApproval {
    **/
   spender: Address;
   /**
-   * Token pulled from the liquidator: the credit manager underlying.
+   * Token pulled from the liquidator, as reported by the compressor for the
+   * liquidation path it selected: the credit manager underlying for standard
+   * liquidations, the unwrapped stablecoin (e.g. USDC) for RWA ones.
    **/
-  // TODO: for RWA markets this is the wrapped underlying (e.g. dcUSDC), while
-  // `LiquidatableAccount.repaymentAmount` is denominated in the unwrapped asset
-  // (USDC); revisit when deciding whether the liquidation path should wrap.
   token: Address;
   /**
    * Amount to approve: the amount the liquidation transaction pulls plus 0.5%
@@ -303,6 +308,14 @@ export interface LiquidationApproval {
  **/
 export interface LiquidationDetails extends LiquidatableAccount {
   /**
+   * Exact amount the liquidator pays for the liquidation path the compressor
+   * selected, superseding the estimate of {@link LiquidatableAccount}. The
+   * token is {@link LiquidationApproval.token}, which for RWA markets is the
+   * unwrapped stablecoin rather than {@link LiquidatableAccount.totalValue}'s
+   * token; it falls back to the latter when nothing is pulled.
+   **/
+  repaymentAmount: Asset;
+  /**
    * Assets the liquidator receives upon full liquidation: direct credit
    * account balances plus outputs of delayed withdrawals (claimable and
    * pending).
@@ -315,6 +328,12 @@ export interface LiquidationDetails extends LiquidatableAccount {
    * particular wallet was rejected.
    **/
   isLiquidatorEligible: boolean;
+  /**
+   * `true` when the credit account is frozen by the RWA factory
+   * (`isFrozen`) and cannot move its RWA collateral. Always `false` for
+   * non-RWA liquidation paths.
+   **/
+  isCreditAccountFrozen: boolean;
   /**
    * Name of the KYC protocol the liquidator must be whitelisted in
    * (e.g. `"securitize"`). `undefined` when the liquidation is not KYC-gated.

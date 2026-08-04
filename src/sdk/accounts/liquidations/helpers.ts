@@ -34,6 +34,18 @@ export type OnchainLiquidationOutput =
 export type OnchainLiquidationCall = OnchainLiquidationData["liquidationCall"];
 
 /**
+ * A dedicated RWA liquidator contract (Midas / Securitize) discovered by
+ * `LiquidationCompressor.getRWALiquidators`. `contractType` is the bytes32
+ * contract type of the liquidator itself (e.g. `RWA_LIQUIDATOR::MIDAS`),
+ * not of the phantom token it was found through.
+ **/
+export type RWALiquidatorInfo = ContractFunctionReturnType<
+  typeof iLiquidationCompressorV313Abi,
+  "view",
+  "getRWALiquidators"
+>[number];
+
+/**
  * Token balances at or below this threshold are treated as dust and ignored,
  * consistent with the rest of the SDK (see `filterDust`).
  **/
@@ -132,6 +144,7 @@ export function toLiquidatorWithdrawals(
         sourceToken: w.token,
         token: o.token,
         amount: o.amount,
+        redeemer: w.redeemer,
       });
     }
   }
@@ -143,6 +156,7 @@ export function toLiquidatorWithdrawals(
         token: o.token,
         amount: o.amount,
         claimableAt: w.claimableAt,
+        redeemer: w.redeemer,
       });
     }
   }

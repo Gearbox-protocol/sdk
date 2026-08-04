@@ -11,8 +11,9 @@ import { isAddressEqual } from "viem";
 import type { iWithdrawalCompressorV313Abi } from "../../../abi/IWithdrawalCompressorV313.js";
 import type { BaseContractArgs } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
+import { ADDRESS_0X0 } from "../../constants/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
-import { AddressMap } from "../../utils/index.js";
+import { AddressMap, hexEq } from "../../utils/index.js";
 import { decodeDelayedIntent } from "./intent-codec.js";
 import type {
   ClaimableWithdrawal,
@@ -41,9 +42,9 @@ const MAP_LABEL = "withdrawableAssets";
 
 /**
  * v313 ABI is a type-level superset of v310/v311 for the read methods used
- * here. Fields missing in older versions (`maxWithdrawals`, `extraData`) are
- * required in the inferred types but absent at runtime on v310/v311, so the
- * normalization helpers must not assume their presence.
+ * here. Fields missing in older versions (`maxWithdrawals`, `redeemer`,
+ * `extraData`) are required in the inferred types but absent at runtime on
+ * v310/v311, so the normalization helpers must not assume their presence.
  **/
 type CommonAbi = typeof iWithdrawalCompressorV313Abi;
 type CommonContract = GetContractReturnType<
@@ -353,6 +354,14 @@ export function toRequestableWithdrawal(
 }
 
 /**
+ * Normalizes the redeemer of a withdrawal: legacy compressors do not report
+ * one, and v313+ uses the zero address for "not applicable".
+ **/
+function toRedeemer(redeemer: Address | undefined): Address | undefined {
+  return !redeemer || hexEq(redeemer, ADDRESS_0X0) ? undefined : redeemer;
+}
+
+/**
  * Normalizes a claimable withdrawal. The intent is decoded from `extraData`
  * only when `creditManager` is provided (it is required to build
  * {@link DelayedIntentExtended} and is only meaningful for credit account
@@ -372,6 +381,7 @@ export function toClaimableWithdrawal(
     withdrawalTokenSpent: w.withdrawalTokenSpent,
     outputs: [...w.outputs],
     claimCalls: [...w.claimCalls],
+    redeemer: toRedeemer(w.redeemer),
     intent,
   };
 }
@@ -393,6 +403,7 @@ export function toPendingWithdrawal(
     withdrawalPhantomToken: w.withdrawalPhantomToken,
     expectedOutputs: [...w.expectedOutputs],
     claimableAt: w.claimableAt,
+    redeemer: toRedeemer(w.redeemer),
     intent,
   };
 }
