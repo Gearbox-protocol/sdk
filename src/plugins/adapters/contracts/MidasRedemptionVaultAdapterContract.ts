@@ -25,36 +25,59 @@ export class MidasRedemptionVaultAdapterContract extends AbstractAdapterContract
   abi,
   protocolAbi
 > {
+  #version?: number;
+
   #gateway?: Address;
   #mToken?: Address;
-  #allowedTokens?: { token: Address; phantomToken: Address }[];
+  #allowedTokens?: { token: Address; phantomToken: Address }[] | Address[];
 
   constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
     super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
-      const decoded = decodeAbiParameters(
-        [
-          { type: "address", name: "creditManager" },
-          { type: "address", name: "targetContract" },
-          { type: "address", name: "gateway" },
-          { type: "address", name: "mToken" },
-          { type: "address[]", name: "allowedTokens" },
-          { type: "address[]", name: "allowedPhantomTokens" },
-        ],
-        args.baseParams.serializedParams,
-      );
+      const version = Number(args.baseParams.version);
+      this.#version = version;
+      if (version <= 310) {
+        const decoded = decodeAbiParameters(
+          [
+            { type: "address", name: "creditManager" },
+            { type: "address", name: "targetContract" },
+            { type: "address", name: "gateway" },
+            { type: "address", name: "mToken" },
+            { type: "address[]", name: "allowedTokens" },
+            { type: "address[]", name: "allowedPhantomTokens" },
+          ],
+          args.baseParams.serializedParams,
+        );
 
-      this.#gateway = decoded[2];
-      this.#mToken = decoded[3];
-      this.#allowedTokens = decoded[4].map((token, index) => ({
-        token,
-        phantomToken: decoded[5][index],
-      }));
+        this.#gateway = decoded[2];
+        this.#mToken = decoded[3];
+        this.#allowedTokens = decoded[4].map((token, index) => ({
+          token,
+          phantomToken: decoded[5][index],
+        }));
+      } else {
+        const decoded = decodeAbiParameters(
+          [
+            { type: "address", name: "creditManager" },
+            { type: "address", name: "targetContract" },
+            { type: "address", name: "mToken" },
+            { type: "address[]", name: "supportedInputTokens" },
+          ],
+          args.baseParams.serializedParams,
+        );
+
+        this.#mToken = decoded[2];
+        this.#allowedTokens = [...decoded[3]];
+      }
     }
   }
 
-  get gateway(): Address {
+  get gateway(): Address | undefined {
+    if (!this.#version) throw new MissingSerializedParamsError("version");
+
+    if (this.#version > 310) return undefined;
+
     if (!this.#gateway) throw new MissingSerializedParamsError("gateway");
     return this.#gateway;
   }
@@ -64,7 +87,9 @@ export class MidasRedemptionVaultAdapterContract extends AbstractAdapterContract
     return this.#mToken;
   }
 
-  get allowedTokens(): { token: Address; phantomToken: Address }[] {
+  get allowedTokens():
+    | { token: Address; phantomToken?: Address }[]
+    | Address[] {
     if (!this.#allowedTokens)
       throw new MissingSerializedParamsError("allowedTokens");
     return this.#allowedTokens;
@@ -75,10 +100,17 @@ export class MidasRedemptionVaultAdapterContract extends AbstractAdapterContract
       ...super.stateHuman(raw),
       gateway: this.#gateway ? this.labelAddress(this.#gateway) : undefined,
       mToken: this.#mToken ? this.labelAddress(this.#mToken) : undefined,
-      allowedTokens: this.#allowedTokens?.map(t => ({
-        token: this.labelAddress(t.token),
-        phantomToken: this.labelAddress(t.phantomToken),
-      })),
+      allowedTokens: this.#allowedTokens?.map(t => {
+        if (typeof t === "object") {
+          return {
+            token: this.labelAddress(t.token),
+            phantomToken: this.labelAddress(t.phantomToken),
+          };
+        }
+        return {
+          token: this.labelAddress(t),
+        };
+      }),
     };
   }
 
