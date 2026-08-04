@@ -167,14 +167,14 @@ export const rwaCompressorAbi = [
   },
   {
     type: "error",
-    name: "InvalidRWAFactoryException",
-    inputs: [{ name: "factory", type: "address", internalType: "address" }],
-  },
-  {
-    type: "error",
     name: "InvalidMarketConfiguratorException",
     inputs: [
       { name: "marketConfigurator", type: "address", internalType: "address" },
     ],
+  },
+  {
+    type: "error",
+    name: "InvalidRWAFactoryException",
+    inputs: [{ name: "factory", type: "address", internalType: "address" }],
   },
 ] as const;
