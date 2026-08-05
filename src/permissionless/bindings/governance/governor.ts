@@ -19,6 +19,8 @@ import {
   formatTimestamp,
   json_stringify,
 } from "../../../sdk/index.js";
+import { Addresses } from "../../deployment/addresses.js";
+import { BytecodeRepositoryContract } from "../bytecode-repository.js";
 import { MarketConfiguratorContract } from "../market-configurator.js";
 import { TreasurySplitterContract } from "../treasury-splitter.js";
 import { BatchesChainContract } from "./batches-chain.js";
@@ -28,12 +30,17 @@ const abi = governorAbi;
 
 export class GovernorContract extends BaseContract<typeof abi> {
   public readonly batchesChainContract: BatchesChainContract;
+  public readonly bcr: BytecodeRepositoryContract;
 
   constructor(addr: Address, client: PublicClient<Transport, Chain>) {
     super({ client }, { abi, addr, name: "Governor" });
 
     this.batchesChainContract = new BatchesChainContract(
       "0x59b2fd348e4Ade84ffEfDaf5fcdDa7276c8C5041",
+      client,
+    );
+    this.bcr = new BytecodeRepositoryContract(
+      Addresses.BYTECODE_REPOSITORY,
       client,
     );
   }
@@ -173,6 +180,9 @@ export class GovernorContract extends BaseContract<typeof abi> {
       }
       case this.batchesChainContract.address.toLowerCase(): {
         return this.batchesChainContract.parseFunctionData(calldata);
+      }
+      case this.bcr.address.toLowerCase(): {
+        return this.bcr.parseFunctionData(calldata);
       }
       default: {
         try {
