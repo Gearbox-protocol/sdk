@@ -17,6 +17,7 @@ export {
   logSplitterTransport,
 } from "./logSplitterTransport.js";
 export * from "./ltUtils.js";
+export * from "./midasUtils.js";
 export * from "./migrateFaucet.js";
 export * from "./mint/index.js";
 export * from "./providers.js";
