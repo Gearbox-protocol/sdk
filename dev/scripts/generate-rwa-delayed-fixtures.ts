@@ -1108,10 +1108,7 @@ async function runScenario(
   );
 
   // Make the pending withdrawal claimable via anvil cheatcodes.
-  // No time warp: warping the shared fork ~90 days forward makes RedStone
-  // feeds permanently stale and breaks the whole testnet. Dealing stablecoins
-  // to the redeemer is enough for the Securitize flow.
-  await makePendingWithdrawalsClaimable(anvil, creditAccount, {});
+  await makePendingWithdrawalsClaimable(anvil, creditAccount);
   await snapshotCurrentWithdrawals(
     sdk,
     creditAccount,
@@ -1164,7 +1161,7 @@ async function runScenario(
     resolve(dir, "withdrawals_pending_close.json"),
   );
 
-  await makePendingWithdrawalsClaimable(anvil, creditAccount, {});
+  await makePendingWithdrawalsClaimable(anvil, creditAccount);
   await snapshotCurrentWithdrawals(
     sdk,
     creditAccount,

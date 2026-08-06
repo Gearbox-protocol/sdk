@@ -8,12 +8,12 @@ import {
 } from "viem";
 import { beforeAll, describe, expect, it } from "vitest";
 import { iCreditFacadeV310Abi } from "../../abi/310/generated.js";
-import { claimDSToken } from "../../dev/claimDSToken.js";
 import {
   type AnvilClient,
   createAnvilClient,
 } from "../../dev/createAnvilClient.js";
 import { registerSecuritizeInvestor } from "../../dev/kycUtils.js";
+import { claimDSToken } from "../../dev/securitizeUtils.js";
 import {
   chains,
   MAX_UINT256,

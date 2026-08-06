@@ -250,23 +250,28 @@ export interface LiquidatorWithdrawal {
    **/
   network: NetworkType;
   /**
+   * Chain id the withdrawal lives on.
+   **/
+  chainId: number;
+  /**
    * Source asset spent by the delayed withdrawal (e.g. ACRED).
    **/
   sourceToken: Address;
   /**
-   * Receivable asset (e.g. USDC).
+   * Receivable asset (e.g. USDC) and its amount: exact for claimable
+   * withdrawals, estimated for pending ones.
    **/
-  token: Address;
-  /**
-   * Amount of `token` receivable: exact for claimable withdrawals, estimated
-   * for pending ones.
-   **/
-  amount: bigint;
+  output: Asset;
   /**
    * Estimated unix timestamp (in seconds) when a pending withdrawal becomes
    * claimable. `undefined` means the withdrawal is claimable now.
    **/
   claimableAt?: bigint;
+  /**
+   * Transaction that claims the withdrawal. `undefined` for pending
+   * withdrawals and when the compressor reports no claim call.
+   **/
+  claimTx?: RawTx;
   /**
    * Redeemer contract the withdrawal is claimed from, owned by the liquidator.
    * `undefined` on compressor versions below 313, which do not report it.

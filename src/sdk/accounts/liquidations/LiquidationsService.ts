@@ -175,7 +175,12 @@ export class LiquidationsService
       props.liquidator,
       ...phantomTokens.asArray(),
     );
-    return toLiquidatorWithdrawals(current, this.sdk.networkType);
+
+    return toLiquidatorWithdrawals(
+      current,
+      this.sdk.networkType,
+      this.sdk.chainId,
+    );
   }
 
   /**

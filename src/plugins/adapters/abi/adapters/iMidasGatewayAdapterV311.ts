@@ -156,6 +156,19 @@ export const iMidasGatewayAdapterV311Abi = [
   },
   {
     type: "function",
+    name: "receiveGreenlist",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "redeemInstant",
     inputs: [
       {
