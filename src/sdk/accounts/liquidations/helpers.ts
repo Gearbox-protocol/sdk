@@ -1,12 +1,15 @@
 import type { Address, ContractFunctionReturnType } from "viem";
 import { slice } from "viem";
 import type { iLiquidationCompressorV313Abi } from "../../../abi/ILiquidationCompressorV313.js";
-import type { CreditAccountData } from "../../base/index.js";
+import type { Asset, CreditAccountData } from "../../base/index.js";
 import type { NetworkType } from "../../chain/index.js";
 import { ADDRESS_0X0, PERCENTAGE_FACTOR } from "../../constants/index.js";
-import type { RawTx } from "../../types/index.js";
+import type { MultiCall, RawTx } from "../../types/index.js";
 import { hexEq } from "../../utils/index.js";
-import type { CurrentWithdrawals } from "../withdrawal-compressor/index.js";
+import type {
+  CurrentWithdrawals,
+  WithdrawalOutput,
+} from "../withdrawal-compressor/index.js";
 import type {
   LiquidationApproval,
   LiquidatorWithdrawal,
@@ -125,9 +128,49 @@ export function pickMainAsset(
 }
 
 /**
- * Flattens delayed withdrawals of a liquidator into per-output rows:
- * claimable outputs have no `claimableAt` (claimable now), pending outputs
- * carry the estimated claim timestamp.
+ * Converts the single output of a liquidator's delayed withdrawal into an asset.
+ *
+ * @param outputs - `outputs` or `expectedOutputs` of a withdrawal
+ * @param sourceToken - Source token of the withdrawal, for error reporting
+ **/
+function toWithdrawalOutputAsset(
+  outputs: readonly WithdrawalOutput[],
+  sourceToken: Address,
+): Asset {
+  const [output] = outputs;
+  if (outputs.length !== 1 || !output) {
+    throw new Error(
+      `expected exactly one output for withdrawal of ${sourceToken}, got ${outputs.length}`,
+    );
+  }
+  return { balance: output.amount, token: output.token };
+}
+
+/**
+ * Converts the claim calls of a liquidator's delayed withdrawal into a
+ * transaction.
+ *
+ * @param claimCalls - `claimCalls` of a claimable withdrawal
+ * @param sourceToken - Source token of the withdrawal, for error reporting
+ * @returns The claim transaction, or `undefined` when there is no claim call
+ **/
+function toWithdrawalClaimTx(
+  claimCalls: readonly MultiCall[],
+  sourceToken: Address,
+): RawTx | undefined {
+  if (claimCalls.length > 1) {
+    throw new Error(
+      `expected at most one claim call for withdrawal of ${sourceToken}, got ${claimCalls.length}`,
+    );
+  }
+  const [call] = claimCalls;
+  return call ? liquidationCallToRawTx(call) : undefined;
+}
+
+/**
+ * Flattens delayed withdrawals of a liquidator into rows: claimable
+ * withdrawals have no `claimableAt` (claimable now) and carry a `claimTx`,
+ * pending ones carry the estimated claim timestamp.
  *
  * @param current - Claimable and pending withdrawals from the withdrawal compressor
  * @param network - Network the withdrawals live on
@@ -144,14 +187,9 @@ export function toLiquidatorWithdrawals(
       chainId,
 
       sourceToken: w.token,
-      outputs: w.outputs.map(o => {
-        return {
-          balance: o.amount,
-          token: o.token,
-        };
-      }),
+      output: toWithdrawalOutputAsset(w.outputs, w.token),
 
-      claimCalls: w.claimCalls,
+      claimTx: toWithdrawalClaimTx(w.claimCalls, w.token),
       redeemer: w.redeemer,
     });
   }
@@ -161,12 +199,7 @@ export function toLiquidatorWithdrawals(
       chainId,
 
       sourceToken: w.token,
-      outputs: w.expectedOutputs.map(o => {
-        return {
-          balance: o.amount,
-          token: o.token,
-        };
-      }),
+      output: toWithdrawalOutputAsset(w.expectedOutputs, w.token),
 
       claimableAt: w.claimableAt,
       redeemer: w.redeemer,

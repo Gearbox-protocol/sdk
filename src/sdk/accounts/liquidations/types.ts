@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 import type { Asset } from "../../base/index.js";
 import type { NetworkType } from "../../chain/index.js";
-import type { MultiCall, RawTx } from "../../types/index.js";
+import type { RawTx } from "../../types/index.js";
 
 /**
  * Selects the chain for single-account methods of a multichain service.
@@ -258,23 +258,20 @@ export interface LiquidatorWithdrawal {
    **/
   sourceToken: Address;
   /**
-   * Receivable asset (e.g. USDC).
+   * Receivable asset (e.g. USDC) and its amount: exact for claimable
+   * withdrawals, estimated for pending ones.
    **/
-  /**
-   * Amount of `token` receivable: exact for claimable withdrawals, estimated
-   * for pending ones.
-   **/
-  outputs: Array<Asset>;
+  output: Asset;
   /**
    * Estimated unix timestamp (in seconds) when a pending withdrawal becomes
    * claimable. `undefined` means the withdrawal is claimable now.
    **/
   claimableAt?: bigint;
   /**
-   * Estimated unix timestamp (in seconds) when a pending withdrawal becomes
-   * claimable. `undefined` means the withdrawal is claimable now.
+   * Transaction that claims the withdrawal. `undefined` for pending
+   * withdrawals and when the compressor reports no claim call.
    **/
-  claimCalls?: Array<MultiCall>;
+  claimTx?: RawTx;
   /**
    * Redeemer contract the withdrawal is claimed from, owned by the liquidator.
    * `undefined` on compressor versions below 313, which do not report it.
