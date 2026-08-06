@@ -40,8 +40,8 @@ export type BlockNumber = bigint;
  * decimals are repeated here. Exactness lives in the write model.
  */
 export interface Amount {
-  value: number;
-  usd: number | null;
+  value: bigint;
+  valueUsd: number | null;
 }
 
 /** Exact signed token delta. Write models only. */
@@ -54,13 +54,13 @@ export interface SignedAmount {
 }
 
 /** The single token type, shared by read models and prepared operations. */
+// @sdk satisfy TokenData
 export interface Token {
   chainId: ChainId;
   address: Address;
   symbol: string;
+  name: string;
   decimals: number;
-  /** May be an absolute URL or an application-owned asset path. */
-  iconUrl: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -106,15 +106,8 @@ export interface ReadResult<T> {
 // ---------------------------------------------------------------------------
 
 export type OpportunityKind = "pool" | "strategy";
-export type AssetClass = "stable" | "eth" | "btc" | "other";
-export type Lifecycle = "active" | "paused" | "shutdown";
-
-/** Drives the disabled row style and the "show all" toggle. */
-export interface OpportunityStatus {
-  lifecycle: Lifecycle;
-  canDeposit: boolean;
-  isDefaultVisible: boolean;
-}
+export type OpportunityStatus = "active" | "paused" | "?";
+export type OpportunityClass = "stable" | "eth" | "btc" | "other";
 
 export interface Curator {
   address: Address;
@@ -122,132 +115,106 @@ export interface Curator {
   url: string | null;
 }
 
-/** Feeds the detail page title. */
-export interface OpportunityMarket {
-  configuratorAddress: Address | null;
-  curator: Curator | null;
-}
+// ---------------------------------------------------------------------------
+// Opportunity rows
+// ---------------------------------------------------------------------------
 
-export interface PoolFeatures {
-  isRwa: boolean;
-  hasDelayedWithdrawal: boolean;
-}
+// {
+//   ("id");
+//   : "0x...",
+//   "loanAsset": "address": "0x...", "symbol": "USDC" ,
+//   "collateralAsset": "address": "0x...", "symbol": "WETH" ,
+//   "lltvPct": "86",
+//   "borrowApyPct": "3.12",
+//   "supplyApyPct": "2.10",
+//   "utilizationPct": "75",
+//   "totalSupply":    "symbol": "USDC", "value": "5000000" ,
+//   "totalBorrow":    "symbol": "USDC", "value": "3500000" ,
+//   "totalCollateral": "symbol": "WETH", "value": "1500" ,
+//   "totalLiquidity": "symbol": "USDC", "value": "1500000" ,
+//   "supplyAssetsUsd": "5000000.00",
+//   "borrowAssetsUsd": "3500000.00",
+//   "collateralAssetsUsd": "4200000.00",
+//   "liquidityAssetsUsd": "1500000.00",
+//   "rewards": [
+// {
+//   ("asset");
+//   : "address": "0x...", "symbol": "MORPHO" ,
+//     "supplyAprPct": "1.20"
+// }
+// ]
 
-export interface StrategyFeatures extends PoolFeatures {
-  /** Presence is the zero-slippage signal; there is no separate boolean. */
-  zeroSlippageToken: Token | null;
-  hasDeleverageBot: boolean;
-}
+// }
 
-/**
- * For strategies, `supplied`/`borrowed` describe the borrowing pool and the
- * selected credit manager's debt. The strategy hero TVL binds to `supplied`.
- */
-export interface Liquidity {
-  supplied: Amount;
-  borrowed: Amount;
-  available: Amount;
-  utilization: Ratio;
-}
-
-export interface RewardTokenYield {
+interface TokenRewards {
+  kind: "token";
   token: Token;
-  apr: Rate;
+  supplyAprPct?: number;
+  borrowAprPct?: number;
 }
 
 export interface PointsProgram {
   id: string;
   name: string;
   multiplier: number | null;
-  isPending: boolean;
 }
 
-/** Everything the APY cell and its rewards tooltip render, already fee-adjusted. */
-export interface OpportunityYield {
-  totalApy: Rate;
-  baseApy: Rate;
-  rewardApr: Rate;
-  rewards: RewardTokenYield[];
+interface PointRewards {
+  kind: "point";
   points: PointsProgram[];
 }
 
-export interface ProjectedPoints {
-  id: string;
-  name: string;
-  amount: number;
+type Rewards = TokenRewards | PointRewards;
+
+interface ApyBreakdown {
+  totalApyPct: number;
+  organicApyPct: number;
+  rewards: Rewards[];
 }
 
-/**
- * Owner-scoped earnings estimate for the `/earn` earnings banner, the
- * eligible-only filter and best-strategy selection. Both adapters must prepare
- * it owner-aware; selecting over prepared estimates in React is allowed,
- * arithmetic is not.
- */
-export interface StrategyWalletEstimate {
-  eligible: boolean;
-  inputValueUsd: number;
-  annualEarningsUsd: number | null;
-  projectedPoints: ProjectedPoints[];
-}
-
-// ---------------------------------------------------------------------------
-// Opportunity rows
-// ---------------------------------------------------------------------------
-
-interface EarnOpportunityRowBase {
+interface OpportunityBase {
   chainId: ChainId;
   title: string;
+  curator: Curator;
   underlyingToken: Token;
-  assetClass: AssetClass;
-  status: OpportunityStatus;
-  market: OpportunityMarket;
-  liquidity: Liquidity;
-  yield: OpportunityYield;
+  totalSupply: Amount;
+  totalBorrow: Amount;
+  utilizationPct: number;
+  supplyApy: ApyBreakdown;
   collateralTokens: Token[];
+  // rwa: boolean;
+  // delayedWithdrawals: boolean;
+  // status: OpportunityStatus;
 }
 
-export interface PoolOpportunityRow extends EarnOpportunityRowBase {
+export interface PoolOpportunityBase extends OpportunityBase {
   kind: "pool";
-  id: PoolId;
   poolAddress: Address;
-  /** Final label appended to the title, e.g. "v3". */
-  version: string;
-  features: PoolFeatures;
 }
 
-export interface StrategyOpportunityRow extends EarnOpportunityRowBase {
+export interface StrategyOpportunityBase extends OpportunityBase {
   kind: "strategy";
-  id: StrategyId;
   creditManagerAddress: Address;
   targetCollateral: Token;
-  maxLeverage: number | null;
-  features: StrategyFeatures;
-  /** Null when `listOpportunities` was called without an owner. */
-  walletEstimate: StrategyWalletEstimate | null;
+  liquidationThresholdPct: number;
+  liquidationPenaltyPct: number;
+  collateralApy: ApyBreakdown;
+  borrowApyPct: number;
+  additionalBorrowApyPct: number;
+  maxBorrowAmount: Amount;
+  maxLeverage: number;
 }
 
-export type EarnOpportunityRow = PoolOpportunityRow | StrategyOpportunityRow;
+export type Opportunity = PoolOpportunityBase | StrategyOpportunityBase;
 
 // ---------------------------------------------------------------------------
 // Detail-only groups
 // ---------------------------------------------------------------------------
 
-export interface AverageApy {
-  oneDay: Rate;
-  sevenDays: Rate;
-  thirtyDays: Rate;
-}
-
-/** Source-prepared averages; the application never averages history points. */
-export interface PoolPerformance {
-  averageApy: AverageApy;
-  apySevenDaysAgo: Rate | null;
-}
-
 export interface RateCurvePoint {
   utilization: Ratio;
-  supplyApy: Rate;
-  borrowApy: Rate;
+  supplyApyPct: Rate;
+  borrowApyPct: Rate;
 }
 
 /**
@@ -265,7 +232,6 @@ export interface QuotaAsset {
   quotaRate: Rate;
   limit: Amount;
   used: Amount | null;
-  isActive: boolean;
 }
 
 export interface CuratorActionChange {
@@ -283,67 +249,48 @@ export interface PendingCuratorAction {
   changes: CuratorActionChange[];
 }
 
-/** The three rows of the strategy APY breakdown table, already fee-adjusted. */
-export interface StrategyApyBreakdown {
-  collateralApy: Rate;
-  baseBorrowApy: Rate;
-  additionalBorrowApy: Rate;
-}
-
-/** The four final percentages of the liquidation params table. */
-export interface LiquidationSummary {
-  threshold: Ratio;
-  premium: Rate;
-  fee: Rate;
-  penalty: Rate;
-}
-
 export type OraclePair =
   | "collateral/underlying"
   | "collateral/usd"
   | "underlying/usd";
-export type OracleKind = "fundamental" | "market" | "hardcoded" | "derived";
 
 export interface OracleDependency {
   label: string;
   address: Address;
 }
 
-export interface OracleRow {
+export interface OracleData {
   pair: OraclePair;
   price: number;
-  kind: OracleKind;
-  /** Final "depends on" summary text. */
-  dependsOn: string;
   feedAddress: Address | null;
   /** Flat dependency summary; null means unavailable. */
   dependencies: OracleDependency[] | null;
 }
 
-export interface OracleSummary {
+export interface OracleDataSummary {
   address: Address | null;
-  rows: OracleRow[];
+  data: OracleData[];
 }
 
 // ---------------------------------------------------------------------------
 // Opportunity details
 // ---------------------------------------------------------------------------
 
-export interface PoolOpportunityDetail extends PoolOpportunityRow {
-  performance: PoolPerformance;
+export interface PoolOpportunityDetail extends PoolOpportunityBase {
+  apy1d: number;
+  apy7d: number;
+  apy30d: number;
   rateCurve: RateCurve;
   quotaAssets: QuotaAsset[];
-  pendingCuratorActions: PendingCuratorAction[];
+  // pendingCuratorActions: PendingCuratorAction[];
 }
 
-export interface StrategyOpportunityDetail extends StrategyOpportunityRow {
-  apyBreakdown: StrategyApyBreakdown;
+export interface StrategyOpportunityDetail extends StrategyOpportunityBase {
   rateCurve: RateCurve;
-  liquidation: LiquidationSummary;
-  oracle: OracleSummary;
+  oracle: OracleDataSummary;
 }
 
-export type EarnOpportunityDetail =
+export type OpportunityDetail =
   | PoolOpportunityDetail
   | StrategyOpportunityDetail;
 
@@ -387,124 +334,124 @@ export interface HistorySeries {
   points: HistoryPoint[];
 }
 
-// ---------------------------------------------------------------------------
-// Source contract
-// ---------------------------------------------------------------------------
+// // ---------------------------------------------------------------------------
+// // Source contract
+// // ---------------------------------------------------------------------------
 
-/**
- * Read contract implemented by the backend adapter and the Gearbox SDK adapter.
- *
- * Every method resolves with `{ data, meta }` or throws. The facade tries the
- * backend first and, on a transport error or schema-validation failure, falls
- * back to the SDK for the whole root result — never field by field — so
- * `meta.source` stays honest. Error classification (retry vs contract drift) is
- * internal to the facade.
- *
- * `listOpportunities` returns the full list: the screen filters and sorts
- * client-side over final values, so there is no filtering, paging or sorting
- * in this contract.
- * Passing an `owner` is what populates
- * {@link StrategyOpportunityRow.walletEstimate}.
- */
-export interface EarnDataSource {
-  listOpportunities(owner?: Address): Promise<ReadResult<EarnOpportunityRow[]>>;
-  getPool(id: PoolId): Promise<ReadResult<PoolOpportunityDetail>>;
-  getStrategy(id: StrategyId): Promise<ReadResult<StrategyOpportunityDetail>>;
-  getHistory(
-    id: OpportunityId,
-    range: HistoryRange,
-    metrics: HistoryMetric[],
-  ): Promise<ReadResult<HistorySeries[]>>;
-}
+// /**
+//  * Read contract implemented by the backend adapter and the Gearbox SDK adapter.
+//  *
+//  * Every method resolves with `{ data, meta }` or throws. The facade tries the
+//  * backend first and, on a transport error or schema-validation failure, falls
+//  * back to the SDK for the whole root result — never field by field — so
+//  * `meta.source` stays honest. Error classification (retry vs contract drift) is
+//  * internal to the facade.
+//  *
+//  * `listOpportunities` returns the full list: the screen filters and sorts
+//  * client-side over final values, so there is no filtering, paging or sorting
+//  * in this contract.
+//  * Passing an `owner` is what populates
+//  * {@link StrategyOpportunityRow.walletEstimate}.
+//  */
+// export interface EarnDataSource {
+//   listOpportunities(owner?: Address): Promise<ReadResult<EarnOpportunityRow[]>>;
+//   getPool(id: PoolId): Promise<ReadResult<PoolOpportunityDetail>>;
+//   getStrategy(id: StrategyId): Promise<ReadResult<StrategyOpportunityDetail>>;
+//   getHistory(
+//     id: OpportunityId,
+//     range: HistoryRange,
+//     metrics: HistoryMetric[],
+//   ): Promise<ReadResult<HistorySeries[]>>;
+// }
 
-// ---------------------------------------------------------------------------
-// Prepared operations (write model)
-// ---------------------------------------------------------------------------
+// // ---------------------------------------------------------------------------
+// // Prepared operations (write model)
+// // ---------------------------------------------------------------------------
 
-export type PoolOperationKind =
-  | "pool-deposit"
-  | "pool-withdraw"
-  | "pool-redeem";
-export type StrategyOperationKind =
-  | "strategy-open"
-  | "strategy-adjust"
-  | "strategy-close";
-export type OperationKind = PoolOperationKind | StrategyOperationKind;
+// export type PoolOperationKind =
+//   | "pool-deposit"
+//   | "pool-withdraw"
+//   | "pool-redeem";
+// export type StrategyOperationKind =
+//   | "strategy-open"
+//   | "strategy-adjust"
+//   | "strategy-close";
+// export type OperationKind = PoolOperationKind | StrategyOperationKind;
 
-export interface PoolOperationIntent {
-  kind: PoolOperationKind;
-  opportunityId: PoolId;
-  parametersHash: Hex | null;
-}
+// export interface PoolOperationIntent {
+//   kind: PoolOperationKind;
+//   opportunityId: PoolId;
+//   parametersHash: Hex | null;
+// }
 
-export interface StrategyOperationIntent {
-  kind: StrategyOperationKind;
-  opportunityId: StrategyId;
-  parametersHash: Hex | null;
-}
+// export interface StrategyOperationIntent {
+//   kind: StrategyOperationKind;
+//   opportunityId: StrategyId;
+//   parametersHash: Hex | null;
+// }
 
-export type OperationIntent = PoolOperationIntent | StrategyOperationIntent;
+// export type OperationIntent = PoolOperationIntent | StrategyOperationIntent;
 
-export interface ApprovalRequirement {
-  token: Token;
-  spender: Address;
-  requiredRaw: NonNegativeIntegerString;
-  currentAllowanceRaw: NonNegativeIntegerString;
-}
+// export interface ApprovalRequirement {
+//   token: Token;
+//   spender: Address;
+//   requiredRaw: NonNegativeIntegerString;
+//   currentAllowanceRaw: NonNegativeIntegerString;
+// }
 
-export interface PreparedTransaction {
-  kind: "approval" | "operation";
-  to: Address;
-  data: Hex;
-  valueRaw: NonNegativeIntegerString;
-  description: string;
-}
+// export interface PreparedTransaction {
+//   kind: "approval" | "operation";
+//   to: Address;
+//   data: Hex;
+//   valueRaw: NonNegativeIntegerString;
+//   description: string;
+// }
 
-export interface AssetDelta {
-  token: Token;
-  amount: SignedAmount;
-}
+// export interface AssetDelta {
+//   token: Token;
+//   amount: SignedAmount;
+// }
 
-export type SimulationStatus = "success" | "failed" | "unsupported";
+// export type SimulationStatus = "success" | "failed" | "unsupported";
 
-export interface Simulation {
-  status: SimulationStatus;
-  error: string | null;
-  assetDeltas: AssetDelta[] | null;
-}
+// export interface Simulation {
+//   status: SimulationStatus;
+//   error: string | null;
+//   assetDeltas: AssetDelta[] | null;
+// }
 
-export type OperationWarningSeverity = "info" | "warning" | "blocking";
+// export type OperationWarningSeverity = "info" | "warning" | "blocking";
 
-export interface OperationWarning {
-  code: string;
-  severity: OperationWarningSeverity;
-  message: string;
-}
+// export interface OperationWarning {
+//   code: string;
+//   severity: OperationWarningSeverity;
+//   message: string;
+// }
 
-export interface PreparedOperation {
-  id: string;
-  intent: OperationIntent;
-  chainId: ChainId;
-  account: Address;
-  stateBlock: BlockNumber;
-  preparedAt: Timestamp;
-  expiresAt: Timestamp;
-  approvals: ApprovalRequirement[];
-  transactions: PreparedTransaction[];
-  simulation: Simulation;
-  warnings: OperationWarning[];
-}
+// export interface PreparedOperation {
+//   id: string;
+//   intent: OperationIntent;
+//   chainId: ChainId;
+//   account: Address;
+//   stateBlock: BlockNumber;
+//   preparedAt: Timestamp;
+//   expiresAt: Timestamp;
+//   approvals: ApprovalRequirement[];
+//   transactions: PreparedTransaction[];
+//   simulation: Simulation;
+//   warnings: OperationWarning[];
+// }
 
-export interface PrepareContext {
-  account: Address;
-  chainId: ChainId;
-  /** Public RPC access only. Wallet signing remains in the application. */
-  publicClient: PublicClient;
-}
+// export interface PrepareContext {
+//   account: Address;
+//   chainId: ChainId;
+//   /** Public RPC access only. Wallet signing remains in the application. */
+//   publicClient: PublicClient;
+// }
 
-export interface EarnOperations {
-  prepare(
-    intent: OperationIntent,
-    context: PrepareContext,
-  ): Promise<PreparedOperation>;
-}
+// export interface EarnOperations {
+//   prepare(
+//     intent: OperationIntent,
+//     context: PrepareContext,
+//   ): Promise<PreparedOperation>;
+// }
