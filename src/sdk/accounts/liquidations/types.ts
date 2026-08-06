@@ -1,36 +1,12 @@
 import type { Address } from "viem";
 import type { Asset } from "../../base/index.js";
 import type { NetworkType } from "../../chain/index.js";
-import type { RawTx } from "../../types/index.js";
-
-/**
- * Selects the chain for single-account methods of a multichain service.
- **/
-export interface MultichainNetworkProps {
-  /**
-   * Network the credit account lives on.
-   **/
-  network: NetworkType;
-}
-
-/**
- * Restricts which chains a multichain list method queries.
- **/
-export interface MultichainNetworksProps {
-  /**
-   * Networks to query. All chains configured in {@link MultichainSDK} when
-   * omitted.
-   **/
-  networks?: NetworkType[];
-}
-
-/**
- * Adds chain-scoping props `T` only when the service spans multiple chains.
- **/
-export type WithMultichain<
-  Multichain extends boolean,
-  T extends object,
-> = Multichain extends true ? T : {};
+import type {
+  MultichainNetworkProps,
+  MultichainNetworksProps,
+  RawTx,
+  WithMultichain,
+} from "../../types/index.js";
 
 /**
  * Chain-independent part of {@link GetLiquidatableAccountsProps}.
@@ -50,7 +26,7 @@ export interface GetLiquidatableAccountsPropsBase {
 }
 
 /**
- * Props for {@link ILiquidationsService.getLiquidatableAccounts}.
+ * Props for {@link LiquidationsService.getLiquidatableAccounts}.
  **/
 export type GetLiquidatableAccountsProps<Multichain extends boolean = false> =
   GetLiquidatableAccountsPropsBase &
@@ -137,7 +113,7 @@ export interface GetLiquidationDetailsPropsBase {
 }
 
 /**
- * Props for {@link ILiquidationsService.getLiquidationDetails}.
+ * Props for {@link LiquidationsService.getLiquidationDetails}.
  **/
 export type GetLiquidationDetailsProps<Multichain extends boolean = false> =
   GetLiquidationDetailsPropsBase &
@@ -164,7 +140,7 @@ export interface BuildLiquidationTxPropsBase {
 }
 
 /**
- * Props for {@link ILiquidationsService.buildLiquidationTx}.
+ * Props for {@link LiquidationsService.buildLiquidationTx}.
  **/
 export type BuildLiquidationTxProps<Multichain extends boolean = false> =
   BuildLiquidationTxPropsBase &
@@ -229,14 +205,15 @@ export interface GetLiquidatorWithdrawalsPropsBase {
 }
 
 /**
- * Props for {@link ILiquidationsService.getLiquidatorWithdrawals}.
+ * Props for {@link LiquidationsService.getLiquidatorWithdrawals}.
  **/
 export type GetLiquidatorWithdrawalsProps<Multichain extends boolean = false> =
   GetLiquidatorWithdrawalsPropsBase &
     WithMultichain<Multichain, MultichainNetworksProps>;
 
 /**
- * Props for {@link ILiquidationsService.loadRWALiquidators}.
+ * Props for {@link MultichainLiquidationsService.loadRWALiquidators}. The
+ * per-chain {@link LiquidationsService.loadRWALiquidators} takes no props.
  **/
 export type LoadRWALiquidatorsProps<Multichain extends boolean = false> =
   WithMultichain<Multichain, MultichainNetworksProps>;
@@ -355,66 +332,4 @@ export interface LiquidationDetails extends LiquidatableAccount {
    * liquidator, i.e. {@link repaymentAmount} is zero.
    **/
   approve?: LiquidationApproval;
-}
-
-/**
- * Service for discovering liquidatable credit accounts and previewing manual
- * liquidations. Implemented per-chain by {@link LiquidationsService} and
- * across all configured chains by {@link MultichainLiquidationsService}.
- *
- * @typeParam Multichain - When `true`, props select the chain to operate on:
- * {@link MultichainNetworkProps} for single-account methods and
- * {@link MultichainNetworksProps} for list methods. A per-chain service
- * operates on the network its SDK is attached to and takes no network props.
- **/
-export interface ILiquidationsService<Multichain extends boolean = false> {
-  /**
-   * Returns all liquidatable credit accounts: accounts with health factor
-   * below 1 plus accounts of expired credit managers with outstanding debt.
-   * Accounts whose collateral computation failed are excluded.
-   *
-   * @param props - Optional filters, see {@link GetLiquidatableAccountsProps}
-   **/
-  getLiquidatableAccounts(
-    props?: GetLiquidatableAccountsProps<Multichain>,
-  ): Promise<LiquidatableAccount[]>;
-  /**
-   * Returns detailed information about a liquidatable credit account,
-   * including the full list of assets the liquidator receives.
-   *
-   * @param props - See {@link GetLiquidationDetailsProps}
-   * @throws When the account is not found or its collateral computation fails.
-   **/
-  getLiquidationDetails(
-    props: GetLiquidationDetailsProps<Multichain>,
-  ): Promise<LiquidationDetails>;
-  /**
-   * Builds the transaction that fully liquidates a credit account, repaying
-   * the debt from own funds and receiving the collateral from the credit account.
-   *
-   * @param props - See {@link BuildLiquidationTxProps}
-   **/
-  buildLiquidationTx(
-    props: BuildLiquidationTxProps<Multichain>,
-  ): Promise<RawTx>;
-  /**
-   * Returns the status of delayed-withdrawal positions (redemption receipts)
-   * owned by a liquidator wallet: what is receivable, how much, and when it
-   * becomes claimable.
-   *
-   * @param props - See {@link GetLiquidatorWithdrawalsProps}
-   **/
-  getLiquidatorWithdrawals(
-    props: GetLiquidatorWithdrawalsProps<Multichain>,
-  ): Promise<LiquidatorWithdrawal[]>;
-  /**
-   * Discovers the dedicated RWA liquidator contracts (Securitize, Midas)
-   * deployed for the markets of the chain and registers them in the SDK
-   * contracts register.
-   *
-   * @param props - See {@link LoadRWALiquidatorsProps}
-   **/
-  loadRWALiquidators(
-    props?: LoadRWALiquidatorsProps<Multichain>,
-  ): Promise<void>;
 }

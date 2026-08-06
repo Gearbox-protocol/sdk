@@ -1,12 +1,11 @@
-import type { MultichainSDK } from "../../MultichainSDK.js";
+import { MultichainConstruct } from "../../base/index.js";
 import type { PluginsMap } from "../../plugins/index.js";
-import type { RawTx } from "../../types/index.js";
+import type { MultichainResult, RawTx } from "../../types/index.js";
 import type {
   BuildLiquidationTxProps,
   GetLiquidatableAccountsProps,
   GetLiquidationDetailsProps,
   GetLiquidatorWithdrawalsProps,
-  ILiquidationsService,
   LiquidatableAccount,
   LiquidationDetails,
   LiquidatorWithdrawal,
@@ -14,123 +13,76 @@ import type {
 } from "./types.js";
 
 /**
- * Cross-chain implementation of {@link ILiquidationsService}.
+ * Cross-chain counterpart of {@link LiquidationsService}.
  *
- * Aggregates liquidatable accounts over all chains configured in
- * {@link MultichainSDK} (optionally restricted via
- * {@link MultichainNetworksProps.networks}). A failed chain is logged as
- * a warning and skipped, so one dead RPC does not empty the whole list.
+ * Fans out over all chains configured in {@link MultichainSDK} (optionally
+ * restricted via {@link MultichainNetworksProps.networks}). A failed chain is
+ * logged as a warning and skipped, so one dead RPC does not empty the whole
+ * list; its failure is reported in {@link MultichainResult.meta}. Networks that
+ * are not configured in the SDK are reported there the same way.
  **/
 export class MultichainLiquidationsService<
   const Plugins extends PluginsMap = {},
-> implements ILiquidationsService<true>
-{
-  readonly #sdk: MultichainSDK<Plugins>;
-
-  constructor(sdk: MultichainSDK<Plugins>) {
-    this.#sdk = sdk;
-  }
-
+> extends MultichainConstruct<Plugins> {
   /**
-   * {@inheritDoc ILiquidationsService.getLiquidatableAccounts}
+   * Accounts of all queried chains, see
+   * {@link LiquidationsService.getLiquidatableAccounts}.
    **/
   public async getLiquidatableAccounts(
     props?: GetLiquidatableAccountsProps<true>,
-  ): Promise<LiquidatableAccount[]> {
-    const chains = [...this.#sdk.chains.entries()].filter(
-      ([network]) => !props?.networks || props.networks.includes(network),
-    );
-    const results = await Promise.allSettled(
-      chains.map(([, chainSdk]) =>
-        chainSdk.liquidations.getLiquidatableAccounts(props),
-      ),
-    );
-    const accounts: LiquidatableAccount[] = [];
-    results.forEach((result, i) => {
-      const [network, chainSdk] = chains[i];
-      if (result.status === "fulfilled") {
-        accounts.push(...result.value);
-      } else {
-        chainSdk.logger?.warn(
-          result.reason,
-          `failed to get liquidatable accounts on ${network}`,
-        );
-      }
+  ): Promise<MultichainResult<LiquidatableAccount[]>> {
+    return this.queryChains({
+      networks: props?.networks,
+      label: "get liquidatable accounts",
+      run: sdk => sdk.liquidations.getLiquidatableAccounts(props),
     });
-    return accounts;
   }
 
   /**
-   * {@inheritDoc ILiquidationsService.getLiquidationDetails}
+   * {@inheritDoc LiquidationsService.getLiquidationDetails}
    **/
   public async getLiquidationDetails(
     props: GetLiquidationDetailsProps<true>,
   ): Promise<LiquidationDetails> {
-    return this.#sdk
+    return this.sdk
       .chain(props.network)
       .liquidations.getLiquidationDetails(props);
   }
 
   /**
-   * {@inheritDoc ILiquidationsService.buildLiquidationTx}
+   * {@inheritDoc LiquidationsService.buildLiquidationTx}
    **/
   public async buildLiquidationTx(
     props: BuildLiquidationTxProps<true>,
   ): Promise<RawTx> {
-    return this.#sdk
-      .chain(props.network)
-      .liquidations.buildLiquidationTx(props);
+    return this.sdk.chain(props.network).liquidations.buildLiquidationTx(props);
   }
 
   /**
-   * {@inheritDoc ILiquidationsService.getLiquidatorWithdrawals}
+   * Withdrawals of all queried chains, see
+   * {@link LiquidationsService.getLiquidatorWithdrawals}.
    **/
   public async getLiquidatorWithdrawals(
     props: GetLiquidatorWithdrawalsProps<true>,
-  ): Promise<LiquidatorWithdrawal[]> {
-    const chains = [...this.#sdk.chains.entries()].filter(
-      ([network]) => !props.networks || props.networks.includes(network),
-    );
-    const results = await Promise.allSettled(
-      chains.map(([, chainSdk]) =>
-        chainSdk.liquidations.getLiquidatorWithdrawals(props),
-      ),
-    );
-    const withdrawals: LiquidatorWithdrawal[] = [];
-    results.forEach((result, i) => {
-      const [network, chainSdk] = chains[i];
-      if (result.status === "fulfilled") {
-        withdrawals.push(...result.value);
-      } else {
-        chainSdk.logger?.warn(
-          result.reason,
-          `failed to get liquidator withdrawals on ${network}`,
-        );
-      }
+  ): Promise<MultichainResult<LiquidatorWithdrawal[]>> {
+    return this.queryChains({
+      networks: props.networks,
+      label: "get liquidator withdrawals",
+      run: sdk => sdk.liquidations.getLiquidatorWithdrawals(props),
     });
-    return withdrawals;
   }
 
   /**
-   * {@inheritDoc ILiquidationsService.loadRWALiquidators}
+   * Loads the liquidators of all queried chains, see
+   * {@link LiquidationsService.loadRWALiquidators}.
    **/
   public async loadRWALiquidators(
     props?: LoadRWALiquidatorsProps<true>,
-  ): Promise<void> {
-    const chains = [...this.#sdk.chains.entries()].filter(
-      ([network]) => !props?.networks || props.networks.includes(network),
-    );
-    const results = await Promise.allSettled(
-      chains.map(([, chainSdk]) => chainSdk.liquidations.loadRWALiquidators()),
-    );
-    results.forEach((result, i) => {
-      const [network, chainSdk] = chains[i];
-      if (result.status === "rejected") {
-        chainSdk.logger?.warn(
-          result.reason,
-          `failed to load RWA liquidators on ${network}`,
-        );
-      }
+  ): Promise<MultichainResult<void>> {
+    return this.runChains({
+      networks: props?.networks,
+      label: "load RWA liquidators",
+      run: sdk => sdk.liquidations.loadRWALiquidators(),
     });
   }
 }

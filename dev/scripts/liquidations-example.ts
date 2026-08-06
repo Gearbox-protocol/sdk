@@ -33,8 +33,9 @@ async function example(): Promise<void> {
   });
   await sdk.attach();
 
-  const accounts = await sdk.liquidations.getLiquidatableAccounts();
-  logger.info(`found ${accounts.length} liquidatable accounts`);
+  const { result: accounts, meta } =
+    await sdk.liquidations.getLiquidatableAccounts();
+  logger.info(meta, `found ${accounts.length} liquidatable accounts`);
   console.info(json_stringify(accounts));
 
   const first = accounts[0];

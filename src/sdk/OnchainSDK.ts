@@ -13,7 +13,6 @@ import {
   createRedemptionLogger,
   createWithdrawalCompressor,
   type ICreditAccountsService,
-  type ILiquidationsService,
   type IRedemptionLoggerContract,
   type IWithdrawalCompressorContract,
   LiquidationsService,
@@ -295,7 +294,7 @@ export class OnchainSDK<
   /**
    * Namespace for liquidatable credit accounts discovery.
    */
-  public readonly liquidations: ILiquidationsService;
+  public readonly liquidations: LiquidationsService;
 
   /**
    * @param network - Gearbox network type (e.g. `"Mainnet"`, `"Monad"`).

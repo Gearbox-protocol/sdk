@@ -30,25 +30,22 @@ import type {
   GetLiquidatableAccountsProps,
   GetLiquidationDetailsProps,
   GetLiquidatorWithdrawalsProps,
-  ILiquidationsService,
   LiquidatableAccount,
   LiquidationDetails,
   LiquidatorWithdrawal,
 } from "./types.js";
 
 /**
- * Per-chain implementation of {@link ILiquidationsService}.
- *
- * Discovers liquidatable credit accounts (health factor below 1 plus accounts
- * of expired credit managers with outstanding debt) and previews what a
- * manual liquidation pays and receives.
+ * Service for discovering liquidatable credit accounts and previewing manual
+ * liquidations.
  **/
-export class LiquidationsService
-  extends SDKConstruct
-  implements ILiquidationsService
-{
+export class LiquidationsService extends SDKConstruct {
   /**
-   * {@inheritDoc ILiquidationsService.getLiquidatableAccounts}
+   * Returns all liquidatable credit accounts: accounts with health factor
+   * below 1 plus accounts of expired credit managers with outstanding debt.
+   * Accounts whose collateral computation failed are excluded.
+   *
+   * @param props - Optional filters, see {@link GetLiquidatableAccountsProps}
    **/
   public async getLiquidatableAccounts(
     props?: GetLiquidatableAccountsProps,
@@ -92,7 +89,11 @@ export class LiquidationsService
   }
 
   /**
-   * {@inheritDoc ILiquidationsService.getLiquidationDetails}
+   * Returns detailed information about a liquidatable credit account,
+   * including the full list of assets the liquidator receives.
+   *
+   * @param props - See {@link GetLiquidationDetailsProps}
+   * @throws When the account is not found or its collateral computation fails.
    **/
   public async getLiquidationDetails(
     props: GetLiquidationDetailsProps,
@@ -137,7 +138,10 @@ export class LiquidationsService
   }
 
   /**
-   * {@inheritDoc ILiquidationsService.buildLiquidationTx}
+   * Builds the transaction that fully liquidates a credit account, repaying
+   * the debt from own funds and receiving the collateral from the credit account.
+   *
+   * @param props - See {@link BuildLiquidationTxProps}
    **/
   public async buildLiquidationTx(
     props: BuildLiquidationTxProps,
@@ -156,7 +160,11 @@ export class LiquidationsService
   }
 
   /**
-   * {@inheritDoc ILiquidationsService.getLiquidatorWithdrawals}
+   * Returns the status of delayed-withdrawal positions (redemption receipts)
+   * owned by a liquidator wallet: what is receivable, how much, and when it
+   * becomes claimable.
+   *
+   * @param props - See {@link GetLiquidatorWithdrawalsProps}
    **/
   public async getLiquidatorWithdrawals(
     props: GetLiquidatorWithdrawalsProps,
@@ -184,7 +192,9 @@ export class LiquidationsService
   }
 
   /**
-   * {@inheritDoc ILiquidationsService.loadRWALiquidators}
+   * Discovers the dedicated RWA liquidator contracts (Securitize, Midas)
+   * deployed for the markets of the chain and registers them in the SDK
+   * contracts register.
    **/
   public async loadRWALiquidators(): Promise<void> {
     const configurators = this.sdk.marketRegister.marketConfigurators;
