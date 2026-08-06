@@ -40,17 +40,8 @@ export type BlockNumber = bigint;
  * decimals are repeated here. Exactness lives in the write model.
  */
 export interface Amount {
-  value: bigint;
+  value: bigint; // in underlying token units
   valueUsd: number | null;
-}
-
-/** Exact signed token delta. Write models only. */
-export interface SignedAmount {
-  /** Exact signed token delta in base units. */
-  raw: SignedIntegerString;
-  decimals: number;
-  value: number;
-  usd: number | null;
 }
 
 /** The single token type, shared by read models and prepared operations. */
@@ -61,44 +52,6 @@ export interface Token {
   symbol: string;
   name: string;
   decimals: number;
-}
-
-// ---------------------------------------------------------------------------
-// Identity
-// ---------------------------------------------------------------------------
-
-/**
- * Route/key encoding of a pool opportunity: `${chainId}:${poolAddress}`.
- * Matches `/earn/lender/:chainId/:address`.
- */
-export type PoolId = `${number}:${Address}`;
-/**
- * Route/key encoding of a strategy opportunity. Strategy identity is
- * creditManager + targetCollateral; this string is only its encoding.
- */
-export type StrategyId = `${number}:${Address}:${Address}`;
-export type OpportunityId = PoolId | StrategyId;
-
-// ---------------------------------------------------------------------------
-// Data quality
-// ---------------------------------------------------------------------------
-
-export type DataSource = "backend" | "sdk";
-
-/**
- * The only fallback signal any scoped screen consumes: it drives the
- * "live data unavailable, showing on-chain fallback" hint. Per-field absence is
- * carried by `null` at the canonical field, so no freshness, block or
- * partial-ness metadata ships here. Block pinning belongs to
- * {@link PreparedOperation.stateBlock}.
- */
-export interface DataMeta {
-  source: DataSource;
-}
-
-export interface ReadResult<T> {
-  data: T;
-  meta: DataMeta;
 }
 
 // ---------------------------------------------------------------------------
@@ -172,6 +125,9 @@ interface ApyBreakdown {
   rewards: Rewards[];
 }
 
+// Strategy defined as
+// (chainId, creditManager, tragetToken = lt != 0 && quotaLimit != 0)
+
 interface OpportunityBase {
   chainId: ChainId;
   title: string;
@@ -180,29 +136,33 @@ interface OpportunityBase {
   totalSupply: Amount;
   totalBorrow: Amount;
   utilizationPct: number;
-  supplyApy: ApyBreakdown;
+  supplyApy?: ApyBreakdown; // if kind=strategy -> apy on maxLeverage
   collateralTokens: Token[];
   // rwa: boolean;
+  // opprtunityClass: OpportunityClass
   // delayedWithdrawals: boolean;
   // status: OpportunityStatus;
 }
 
+// id = (chainId, poolAddress)
 export interface PoolOpportunityBase extends OpportunityBase {
   kind: "pool";
   poolAddress: Address;
 }
 
+// id = (chainId, creditManagerAddress, targetCollateralAddress)
 export interface StrategyOpportunityBase extends OpportunityBase {
   kind: "strategy";
   creditManagerAddress: Address;
   targetCollateral: Token;
-  liquidationThresholdPct: number;
-  liquidationPenaltyPct: number;
-  collateralApy: ApyBreakdown;
+  liquidationThresholdPct: number; // lt of
+  liquidationPremiumPct: number;
+  liquidationFeePct: number;
+  collateralApy?: ApyBreakdown;
   borrowApyPct: number;
-  additionalBorrowApyPct: number;
-  maxBorrowAmount: Amount;
-  maxLeverage: number;
+  additionalBorrowApyPct: number; // quotaRate * (maxLeverage - 1) (?)
+  maxBorrowAmount: Amount; // min(debtLimit, availableLiquidity)
+  maxLeverage: number; // 1 / (1 - lt)
 }
 
 export type Opportunity = PoolOpportunityBase | StrategyOpportunityBase;
@@ -231,7 +191,7 @@ export interface QuotaAsset {
   token: Token;
   quotaRate: Rate;
   limit: Amount;
-  used: Amount | null;
+  used: Amount;
 }
 
 export interface CuratorActionChange {
@@ -249,37 +209,26 @@ export interface PendingCuratorAction {
   changes: CuratorActionChange[];
 }
 
-export type OraclePair =
-  | "collateral/underlying"
-  | "collateral/usd"
-  | "underlying/usd";
-
-export interface OracleDependency {
-  label: string;
-  address: Address;
+export interface PriceFeedData {
+  name: string;
+  type: string; // contractType or External
+  feedAddress: Address;
+  dependencies: PriceFeedData[];
 }
 
-export interface OracleData {
-  pair: OraclePair;
-  price: number;
-  feedAddress: Address | null;
-  /** Flat dependency summary; null means unavailable. */
-  dependencies: OracleDependency[] | null;
-}
-
-export interface OracleDataSummary {
-  address: Address | null;
-  data: OracleData[];
-}
+export type PriceFeedSummary = {
+  underlyingPriceInUsd: number;
+  collateralPriceInUsd: number;
+  collateralPriceInUnderlying: number;
+  underlyingFeed: PriceFeedData;
+  collateralFeed: PriceFeedData; // main feed only
+};
 
 // ---------------------------------------------------------------------------
 // Opportunity details
 // ---------------------------------------------------------------------------
 
 export interface PoolOpportunityDetail extends PoolOpportunityBase {
-  apy1d: number;
-  apy7d: number;
-  apy30d: number;
   rateCurve: RateCurve;
   quotaAssets: QuotaAsset[];
   // pendingCuratorActions: PendingCuratorAction[];
@@ -287,7 +236,7 @@ export interface PoolOpportunityDetail extends PoolOpportunityBase {
 
 export interface StrategyOpportunityDetail extends StrategyOpportunityBase {
   rateCurve: RateCurve;
-  oracle: OracleDataSummary;
+  priceFeeds: PriceFeedSummary;
 }
 
 export type OpportunityDetail =
@@ -353,9 +302,17 @@ export interface HistorySeries {
 //  * Passing an `owner` is what populates
 //  * {@link StrategyOpportunityRow.walletEstimate}.
 //  */
+
+type OpprtunityQueryFilter = {
+  kind?: OpportunityKind;
+  chainId?: ChainId[];
+  underlyingToken?: Token[];
+  // opprtunityClass?: OpportunityClass;
+};
+
 // export interface EarnDataSource {
-//   listOpportunities(owner?: Address): Promise<ReadResult<EarnOpportunityRow[]>>;
-//   getPool(id: PoolId): Promise<ReadResult<PoolOpportunityDetail>>;
+//   listOpportunities();
+//   getPool(chain): Promise<ReadResult<PoolOpportunityDetail>>;
 //   getStrategy(id: StrategyId): Promise<ReadResult<StrategyOpportunityDetail>>;
 //   getHistory(
 //     id: OpportunityId,
