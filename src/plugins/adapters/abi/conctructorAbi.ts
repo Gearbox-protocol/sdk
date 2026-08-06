@@ -59,6 +59,9 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
   [AdapterType.LIDO_WSTETH_V1]: {
     310: BASIC_ADAPTER_ABI,
   },
+  [AdapterType.MIDAS_GATEWAY]: {
+    311: REFERER_ID_ADAPTER_ABI,
+  },
   [AdapterType.MIDAS_REDEMPTION_VAULT]: {
     310: BASIC_ADAPTER_ABI,
     311: BASIC_ADAPTER_ABI,
@@ -198,13 +201,8 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
     311: STAKING_REWARDS_ADAPTER_ABI,
     312: STAKING_REWARDS_ADAPTER_ABI,
   },
-
   [AdapterType.MIDAS_ISSUANCE_VAULT]: {
     310: REFERER_ID_ADAPTER_ABI,
-    311: REFERER_ID_ADAPTER_ABI,
-  },
-
-  [AdapterType.MIDAS_GATEWAY]: {
     311: REFERER_ID_ADAPTER_ABI,
   },
 } as const;
