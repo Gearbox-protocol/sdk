@@ -11,7 +11,12 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { iDSTokenAbi } from "../abi/rwa/iDSToken.js";
-import { type GearboxChain, type ILogger, OnchainSDK } from "../sdk/index.js";
+import {
+  AddressSet,
+  type GearboxChain,
+  type ILogger,
+  OnchainSDK,
+} from "../sdk/index.js";
 import type { AnvilClient } from "./createAnvilClient.js";
 import { registerSecuritizeInvestor, writeAndWait } from "./kycUtils.js";
 
@@ -25,6 +30,8 @@ const iDSComplianceConfigurationServiceAbi = parseAbi([
   "function getNonUSLockPeriod() external view returns (uint256)",
   "function setUSLockPeriod(uint256) external",
   "function setNonUSLockPeriod(uint256) external",
+  "function getDisallowBackDating() external view returns (bool)",
+  "function setDisallowBackDating(bool) external",
 ]);
 
 interface ClaimDSTokenProps {
@@ -57,7 +64,7 @@ interface IssueDSTokensProps {
   logger?: ILogger;
 }
 
-export interface DisableDSTokenLockPeriodsProps {
+export interface EnableDSTokenBackDatingProps {
   anvil: AnvilClient;
   /**
    * Securitize DS admin with sufficient trust to call compliance setters
@@ -65,11 +72,22 @@ export interface DisableDSTokenLockPeriodsProps {
    */
   adminPrivateKey: Hex;
   /**
-   * DSToken addresses whose compliance lock periods should be zeroed
+   * DSToken addresses whose compliance configuration should allow back-dating
    */
   tokens: Address[];
   logger?: ILogger;
 }
+
+/**
+ * Restores `disallowBackDating` to its previous value on every compliance
+ * configuration service that was changed. Safe to call more than once.
+ */
+export type RestoreDSTokenBackDating = () => Promise<void>;
+
+type GetComplianceConfigurationServicesProps = Pick<
+  EnableDSTokenBackDatingProps,
+  "anvil" | "tokens" | "logger"
+>;
 
 /**
  * Returns the longest of US and non-US compliance lock periods, or `undefined`
@@ -131,7 +149,7 @@ async function issueDSTokens(props: IssueDSTokensProps): Promise<Hex> {
     const { timestamp } = await anvil.getBlock();
     const issuanceTime = timestamp - lockPeriod - 1n;
     try {
-      await writeAndWait(anvil, {
+      const hash = await writeAndWait(anvil, {
         account,
         chain: anvil.chain,
         address: token,
@@ -143,6 +161,7 @@ async function issueDSTokens(props: IssueDSTokensProps): Promise<Hex> {
         { issuanceTime, investor, amount },
         "issueTokensCustom successful",
       );
+      return hash;
     } catch (e) {
       logger?.debug(`issueTokensCustom failed: ${e}`);
     }
@@ -156,6 +175,111 @@ async function issueDSTokens(props: IssueDSTokensProps): Promise<Hex> {
     functionName: "issueTokens",
     args: [investor, amount],
   });
+}
+
+/**
+ * Resolves unique compliance configuration services of `tokens`: several
+ * DSTokens can share one service, and it's the service that holds the flags.
+ * Tokens without one (e.g. MockDSToken) are skipped
+ */
+async function getComplianceConfigurationServices({
+  anvil,
+  tokens,
+  logger,
+}: GetComplianceConfigurationServicesProps): Promise<Address[]> {
+  const services = new AddressSet();
+  for (const token of new AddressSet(tokens)) {
+    try {
+      const service = await anvil.readContract({
+        address: token,
+        abi: iDSTokenAbi,
+        functionName: "getDSService",
+        args: [COMPLIANCE_CONFIGURATION_SERVICE],
+      });
+      if (isAddressEqual(service, zeroAddress)) {
+        logger?.debug(`${token} has no compliance configuration service`);
+        continue;
+      }
+      services.add(service);
+    } catch (e) {
+      logger?.debug(
+        `Failed to get compliance configuration service of ${token}: ${e}`,
+      );
+    }
+  }
+  return [...services];
+}
+
+/**
+ * Sets `disallowBackDating` to false on compliance configuration services of
+ * `tokens`, so that the issuance time passed to `issueTokensCustom` is
+ * honoured: DS protocol silently replaces it with `block.timestamp` otherwise,
+ * and freshly minted tokens stay under lock-up.
+ *
+ * Must be signed by a DS admin with sufficient trust (same key as
+ * `issueTokens` / registerInvestor); Ownable `owner()` alone is not enough.
+ *
+ * The flag is only read while tokens are issued, so restoring it does not
+ * re-lock tokens minted in the meantime.
+ */
+export async function enableDSTokenBackDating(
+  props: EnableDSTokenBackDatingProps,
+): Promise<RestoreDSTokenBackDating> {
+  const { anvil, adminPrivateKey, logger } = props;
+  const account = privateKeyToAccount(adminPrivateKey);
+  const services = await getComplianceConfigurationServices(props);
+
+  let toRestore: Address[] = [];
+  for (const service of services) {
+    let disallowBackDating: boolean;
+    try {
+      disallowBackDating = await anvil.readContract({
+        address: service,
+        abi: iDSComplianceConfigurationServiceAbi,
+        functionName: "getDisallowBackDating",
+      });
+    } catch (e) {
+      logger?.debug(`Failed to read disallowBackDating of ${service}: ${e}`);
+      continue;
+    }
+    if (!disallowBackDating) {
+      logger?.debug(`Back-dating is already allowed by ${service}`);
+      continue;
+    }
+    logger?.info(`Allowing back-dating on ${service}`);
+    await writeAndWait(anvil, {
+      account,
+      chain: anvil.chain,
+      address: service,
+      abi: iDSComplianceConfigurationServiceAbi,
+      functionName: "setDisallowBackDating",
+      args: [false],
+    });
+    toRestore.push(service);
+  }
+
+  return async () => {
+    const services = toRestore;
+    toRestore = [];
+    for (const service of services) {
+      logger?.info(`Disallowing back-dating on ${service}`);
+      try {
+        await writeAndWait(anvil, {
+          account,
+          chain: anvil.chain,
+          address: service,
+          abi: iDSComplianceConfigurationServiceAbi,
+          functionName: "setDisallowBackDating",
+          args: [true],
+        });
+      } catch (e) {
+        // never mask the error that interrupted the bracketed work
+        logger?.warn(
+          `Failed to restore disallowBackDating on ${service}: ${e}`,
+        );
+      }
+    }
+  };
 }
 
 export async function claimDSToken(props: ClaimDSTokenProps): Promise<void> {
