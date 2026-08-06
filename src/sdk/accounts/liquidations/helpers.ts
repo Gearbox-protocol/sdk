@@ -135,30 +135,42 @@ export function pickMainAsset(
 export function toLiquidatorWithdrawals(
   current: CurrentWithdrawals,
   network: NetworkType,
+  chainId: number,
 ): LiquidatorWithdrawal[] {
   const rows: LiquidatorWithdrawal[] = [];
   for (const w of current.claimable) {
-    for (const o of w.outputs) {
-      rows.push({
-        network,
-        sourceToken: w.token,
-        token: o.token,
-        amount: o.amount,
-        redeemer: w.redeemer,
-      });
-    }
+    rows.push({
+      network,
+      chainId,
+
+      sourceToken: w.token,
+      outputs: w.outputs.map(o => {
+        return {
+          balance: o.amount,
+          token: o.token,
+        };
+      }),
+
+      claimCalls: w.claimCalls,
+      redeemer: w.redeemer,
+    });
   }
   for (const w of current.pending) {
-    for (const o of w.expectedOutputs) {
-      rows.push({
-        network,
-        sourceToken: w.token,
-        token: o.token,
-        amount: o.amount,
-        claimableAt: w.claimableAt,
-        redeemer: w.redeemer,
-      });
-    }
+    rows.push({
+      network,
+      chainId,
+
+      sourceToken: w.token,
+      outputs: w.expectedOutputs.map(o => {
+        return {
+          balance: o.amount,
+          token: o.token,
+        };
+      }),
+
+      claimableAt: w.claimableAt,
+      redeemer: w.redeemer,
+    });
   }
   return rows;
 }
