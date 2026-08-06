@@ -11,12 +11,7 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { iDSTokenAbi } from "../abi/rwa/iDSToken.js";
-import {
-  AddressSet,
-  type GearboxChain,
-  type ILogger,
-  OnchainSDK,
-} from "../sdk/index.js";
+import { type GearboxChain, type ILogger, OnchainSDK } from "../sdk/index.js";
 import type { AnvilClient } from "./createAnvilClient.js";
 import { registerSecuritizeInvestor, writeAndWait } from "./kycUtils.js";
 
@@ -77,11 +72,10 @@ export interface DisableDSTokenLockPeriodsProps {
 }
 
 /**
- * Returns issuance time that is old enough for the issued tokens to be past
- * both US and non-US compliance lock periods, or `undefined` when the token
- * has no compliance configuration service (e.g. MockDSToken)
+ * Returns the longest of US and non-US compliance lock periods, or `undefined`
+ * when the token has no compliance configuration service (e.g. MockDSToken)
  */
-async function getUnlockedIssuanceTime({
+async function getLockPeriod({
   anvil,
   token,
   logger,
@@ -113,13 +107,10 @@ async function getUnlockedIssuanceTime({
       ],
       allowFailure: false,
     });
-    const lockPeriod =
-      usLockPeriod > nonUSLockPeriod ? usLockPeriod : nonUSLockPeriod;
-    const { timestamp } = await anvil.getBlock();
     logger?.debug(
       `Lock periods: US ${usLockPeriod}, non-US ${nonUSLockPeriod} (compliance configuration service ${complianceConfiguration})`,
     );
-    return timestamp > lockPeriod ? timestamp - lockPeriod : 0n;
+    return usLockPeriod > nonUSLockPeriod ? usLockPeriod : nonUSLockPeriod;
   } catch (e) {
     logger?.debug(`Failed to get compliance lock periods: ${e}`);
     return undefined;
@@ -135,10 +126,12 @@ async function getUnlockedIssuanceTime({
  */
 async function issueDSTokens(props: IssueDSTokensProps): Promise<Hex> {
   const { anvil, account, token, investor, amount, logger } = props;
-  const issuanceTime = await getUnlockedIssuanceTime(props);
-  if (issuanceTime !== undefined) {
+  const lockPeriod = await getLockPeriod(props);
+  if (lockPeriod !== undefined) {
+    const { timestamp } = await anvil.getBlock();
+    const issuanceTime = timestamp - lockPeriod - 1n;
     try {
-      return await writeAndWait(anvil, {
+      await writeAndWait(anvil, {
         account,
         chain: anvil.chain,
         address: token,
@@ -146,11 +139,15 @@ async function issueDSTokens(props: IssueDSTokensProps): Promise<Hex> {
         functionName: "issueTokensCustom",
         args: [investor, amount, issuanceTime, 0n, "", 0n],
       });
+      logger?.debug(
+        { issuanceTime, investor, amount },
+        "issueTokensCustom successful",
+      );
     } catch (e) {
       logger?.debug(`issueTokensCustom failed: ${e}`);
     }
   }
-  logger?.debug("Falling back to issueTokens");
+  logger?.debug({ investor, amount }, "Falling back to issueTokens");
   return writeAndWait(anvil, {
     account,
     chain: anvil.chain,
@@ -159,112 +156,6 @@ async function issueDSTokens(props: IssueDSTokensProps): Promise<Hex> {
     functionName: "issueTokens",
     args: [investor, amount],
   });
-}
-
-/**
- * Zeros US and non-US compliance lock periods on each DSToken's compliance
- * configuration service so collateral can be transferred during testnet
- * liquidations (e.g. STAC). No-ops for tokens without a compliance service
- * (MockDSToken) or when both periods are already 0.
- *
- * Must be signed by a DS admin with sufficient trust (same key as
- * `issueTokens` / registerInvestor); Ownable `owner()` alone is not enough.
- */
-export async function disableDSTokenLockPeriods(
-  props: DisableDSTokenLockPeriodsProps,
-): Promise<void> {
-  const { anvil, adminPrivateKey, logger } = props;
-  const account = privateKeyToAccount(adminPrivateKey);
-  const tokens = [...new AddressSet(props.tokens)];
-
-  for (const token of tokens) {
-    const symbol = await anvil
-      .readContract({
-        address: token,
-        abi: erc20Abi,
-        functionName: "symbol",
-        args: [],
-      })
-      .catch(() => token);
-    const tokenLogger = logger?.child?.({ symbol }) ?? logger;
-
-    let complianceConfiguration: Address;
-    try {
-      complianceConfiguration = await anvil.readContract({
-        address: token,
-        abi: iDSTokenAbi,
-        functionName: "getDSService",
-        args: [COMPLIANCE_CONFIGURATION_SERVICE],
-      });
-    } catch (e) {
-      tokenLogger?.debug(
-        `Skipping lock-period disable for ${symbol}: no compliance service (${e})`,
-      );
-      continue;
-    }
-    if (isAddressEqual(complianceConfiguration, zeroAddress)) {
-      tokenLogger?.debug(
-        `Skipping lock-period disable for ${symbol}: compliance configuration service is zero`,
-      );
-      continue;
-    }
-
-    let usLockPeriod: bigint;
-    let nonUSLockPeriod: bigint;
-    try {
-      [usLockPeriod, nonUSLockPeriod] = await anvil.multicall({
-        contracts: [
-          {
-            address: complianceConfiguration,
-            abi: iDSComplianceConfigurationServiceAbi,
-            functionName: "getUSLockPeriod",
-          },
-          {
-            address: complianceConfiguration,
-            abi: iDSComplianceConfigurationServiceAbi,
-            functionName: "getNonUSLockPeriod",
-          },
-        ],
-        allowFailure: false,
-      });
-    } catch (e) {
-      tokenLogger?.debug(
-        `Skipping lock-period disable for ${symbol}: failed to read lock periods (${e})`,
-      );
-      continue;
-    }
-
-    if (usLockPeriod === 0n && nonUSLockPeriod === 0n) {
-      tokenLogger?.debug(
-        `Lock periods already 0 for ${symbol} (${complianceConfiguration})`,
-      );
-      continue;
-    }
-
-    tokenLogger?.info(
-      `Zeroing lock periods for ${symbol}: US ${usLockPeriod} → 0, non-US ${nonUSLockPeriod} → 0 (${complianceConfiguration})`,
-    );
-    if (usLockPeriod !== 0n) {
-      await writeAndWait(anvil, {
-        account,
-        chain: anvil.chain,
-        address: complianceConfiguration,
-        abi: iDSComplianceConfigurationServiceAbi,
-        functionName: "setUSLockPeriod",
-        args: [0n],
-      });
-    }
-    if (nonUSLockPeriod !== 0n) {
-      await writeAndWait(anvil, {
-        account,
-        chain: anvil.chain,
-        address: complianceConfiguration,
-        abi: iDSComplianceConfigurationServiceAbi,
-        functionName: "setNonUSLockPeriod",
-        args: [0n],
-      });
-    }
-  }
 }
 
 export async function claimDSToken(props: ClaimDSTokenProps): Promise<void> {
