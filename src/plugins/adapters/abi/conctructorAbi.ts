@@ -60,7 +60,7 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
     310: BASIC_ADAPTER_ABI,
   },
   [AdapterType.MIDAS_GATEWAY]: {
-    311: REFERER_ID_ADAPTER_ABI,
+    311: BASIC_ADAPTER_ABI,
   },
   [AdapterType.MIDAS_REDEMPTION_VAULT]: {
     310: BASIC_ADAPTER_ABI,
