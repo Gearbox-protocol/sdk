@@ -1,5 +1,6 @@
 import type { Abi, RequiredBy, UnionOmit } from "viem";
 
+import type { PriceFeedData } from "../../../model/index.js";
 import type {
   ConstructOptions,
   PriceFeedAnswer,
@@ -151,5 +152,25 @@ export abstract class AbstractPriceFeedContract<
       f.priceFeed.updatableDependencies(),
     );
     return isUpdatablePriceFeed(this) ? [this, ...underlying] : underlying;
+  }
+
+  /**
+   * {@inheritDoc IPriceFeedContract.describe}
+   */
+  public describe(): PriceFeedData {
+    let dependencies: PriceFeedData[] = [];
+    try {
+      dependencies = this.underlyingPriceFeeds.map(ref =>
+        ref.priceFeed.describe(),
+      );
+    } catch {
+      dependencies = [];
+    }
+    return {
+      name: this.name,
+      type: this.contractType,
+      feedAddress: this.address,
+      dependencies,
+    };
   }
 }

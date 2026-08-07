@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 
+import type { Bps, RateCurve } from "../../../model/index.js";
 import type { MarketData } from "../../base/index.js";
 import { SDKConstruct } from "../../base/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
@@ -133,6 +134,38 @@ export class PoolSuite extends SDKConstruct {
    */
   public get underlying(): Address {
     return this.pool.underlying;
+  }
+
+  /**
+   * {@inheritDoc IPoolContract.unwrappedUnderlying}
+   */
+  public get unwrappedUnderlying(): Address {
+    return this.pool.unwrappedUnderlying;
+  }
+
+  /**
+   * {@inheritDoc IPoolContract.utilization}
+   */
+  public get utilization(): Bps {
+    return this.pool.utilization;
+  }
+
+  /**
+   * Whether the pool is paused, which blocks borrowing across every connected
+   * credit suite.
+   */
+  public get isPaused(): boolean {
+    return this.pool.isPaused;
+  }
+
+  /**
+   * Interest rate curve of the pool's rate model.
+   *
+   * @throws If the market uses an interest-rate model that is not linear, and
+   * therefore has no curve the SDK can evaluate.
+   */
+  public get rateCurve(): RateCurve {
+    return this.linearModel.rateCurve();
   }
 
   /**

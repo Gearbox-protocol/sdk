@@ -1,6 +1,6 @@
+export * from "../../sdk/utils/bigint-math.js";
 export * from "./apy/index.js";
 export * from "./assets-math.js";
-export * from "./bigint-math.js";
 export * from "./constants.js";
 export * from "./creditAccount/index.js";
 export * from "./price-math.js";

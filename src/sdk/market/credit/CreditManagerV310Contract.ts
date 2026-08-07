@@ -1,13 +1,21 @@
-import type { Address, ContractEventName, Log } from "viem";
+import {
+  type Address,
+  type ContractEventName,
+  isAddressEqual,
+  type Log,
+} from "viem";
 
 import { iCreditManagerV310Abi } from "../../../abi/310/generated.js";
+import type { Bps, Leverage } from "../../../model/index.js";
 import type { CreditManagerState, CreditSuiteState } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
+import { PERCENTAGE_FACTOR } from "../../constants/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import type { CreditManagerStateHuman } from "../../types/index.js";
 import { AddressMap, fmtBinaryMask, percentFmt } from "../../utils/index.js";
 import type { IAdapterContract } from "../adapters/index.js";
 import { createAdapter } from "../adapters/index.js";
+import { maxLeverage } from "../math.js";
 import type { ICreditManagerContract } from "./types.js";
 
 const abi = iCreditManagerV310Abi;
@@ -101,6 +109,33 @@ export class CreditManagerV310Contract
 
   public get collateralTokens(): Address[] {
     return this.liquidationThresholds.keys();
+  }
+
+  /**
+   * {@inheritDoc ICreditManagerContract.leverageableCollaterals}
+   */
+  public get leverageableCollaterals(): Address[] {
+    return this.collateralTokens.filter(token => {
+      if (isAddressEqual(token, this.underlying)) {
+        return false;
+      }
+      const lt = this.liquidationThresholds.get(token);
+      return !!lt && lt > 0 && lt < Number(PERCENTAGE_FACTOR);
+    });
+  }
+
+  /**
+   * {@inheritDoc ICreditManagerContract.maxLeverage}
+   */
+  public maxLeverage(collateral: Address): Leverage {
+    return maxLeverage(this.liquidationThresholds.mustGet(collateral));
+  }
+
+  /**
+   * {@inheritDoc ICreditManagerContract.liquidationPremium}
+   */
+  public get liquidationPremium(): Bps {
+    return Number(PERCENTAGE_FACTOR) - this.liquidationDiscount;
   }
 
   public override processLog(

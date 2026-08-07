@@ -6,8 +6,10 @@ import {
 } from "viem";
 
 import { iMarketConfiguratorV310Abi } from "../../abi/310/generated.js";
+import type { Curator } from "../../model/index.js";
 import type { ConstructOptions } from "../base/Construct.js";
 import { BaseContract } from "../base/index.js";
+import { getCuratorName } from "../chain/chains.js";
 import type { PeripheryContract } from "../constants/index.js";
 import { AP_MARKET_CONFIGURATOR } from "../constants/index.js";
 
@@ -36,6 +38,24 @@ export class MarketConfiguratorContract extends BaseContract<abi> {
       this.address,
       `Market configurator ${this.#curatorName}`,
     );
+  }
+
+  /**
+   * The entity operating this configurator, as the shared read model describes
+   * it. The curated per-chain table wins over the name the contract reports,
+   * because the two sources must agree across services and only the table is
+   * shared with the backend.
+   */
+  public get curator(): Curator {
+    return {
+      address: this.address,
+      name:
+        getCuratorName(this.address, this.networkType) ??
+        this.#curatorName ??
+        "Unknown",
+      // the chain knows no URLs
+      url: null,
+    };
   }
 
   public static async getPeripheryContractBatch(

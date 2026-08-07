@@ -1,12 +1,25 @@
 import type { Address } from "viem";
-
+import type {
+  Amount,
+  StrategyOpportunity,
+  StrategyOpportunityDetail,
+  Timestamp,
+} from "../../../model/index.js";
 import type { CreditSuiteState } from "../../base/index.js";
 import { SDKConstruct } from "../../base/index.js";
+import { isSunsetStrategy } from "../../chain/chains.js";
+import { MAX_UINT256 } from "../../constants/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import type { IRouterContract } from "../../router/index.js";
 import type { CreditSuiteStateHuman } from "../../types/index.js";
+import { BigIntMath } from "../../utils/bigint-math.js";
 import type { MarketConfiguratorContract } from "../MarketConfiguratorContract.js";
 import type { MarketSuite } from "../MarketSuite.js";
+import {
+  additionalBorrowApyBps,
+  borrowApyBps,
+  utilizationBps,
+} from "../math.js";
 import createCreditConfigurator from "./createCreditConfigurator.js";
 import createCreditFacade from "./createCreditFacade.js";
 import createCreditManager from "./createCreditManager.js";
@@ -124,6 +137,126 @@ export class CreditSuite extends SDKConstruct {
       this.creditFacade.expirationDate > 0 &&
       this.creditFacade.expirationDate < this.sdk.timestamp
     );
+  }
+
+  /**
+   * Moment the facade expires, after which positions can no longer be opened
+   * and open ones become liquidatable, or `null` when it is not expirable.
+   *
+   * @remarks
+   * The facade stores `0` for a non-expirable suite, which as a timestamp
+   * would read as 1970 rather than as "never".
+   */
+  public get expirationDate(): Timestamp | null {
+    const { expirationDate } = this.creditFacade;
+    return expirationDate > 0 ? expirationDate : null;
+  }
+
+  /**
+   * Whether this suite can be used right now. A paused pool blocks borrowing,
+   * so the suite is unusable even when its own facade is live.
+   */
+  public get isPaused(): boolean {
+    return this.creditFacade.isPaused || this.market.pool.isPaused;
+  }
+
+  /**
+   * Collateral tokens a leveraged position can be built around in this suite:
+   * the ones the credit manager can lever up, narrowed to those the market
+   * still accepts quota for.
+   */
+  public get strategyCollaterals(): Address[] {
+    const { pqk } = this.market.pool;
+    return this.creditManager.leverageableCollaterals.filter(token =>
+      pqk.hasActiveQuota(token),
+    );
+  }
+
+  /**
+   * Largest debt a single new position can take on right now: the tightest of
+   * this manager's remaining debt limit, the pool's free liquidity and the
+   * facade's per-account maximum.
+   */
+  public get maxBorrowAmount(): bigint {
+    const { pool } = this.market.pool;
+    const debtParams = pool.creditManagerDebtParams.get(
+      this.creditManager.address,
+    );
+    return BigIntMath.min(
+      debtParams?.available ?? MAX_UINT256,
+      pool.availableLiquidity,
+      this.creditFacade.maxDebt,
+    );
+  }
+
+  /**
+   * Describes a leveraged position built on one collateral token as the shared
+   * read model does.
+   *
+   * @param collateral - Target collateral of the position.
+   * @param totalSupply - Summed worth of the credit accounts backing it, which
+   * only a credit-account query can establish. Defaults to zero, so a caller
+   * that does not care about size can omit it.
+   * @throws If the credit manager does not value the collateral.
+   */
+  public strategyOpportunity(
+    collateral: Address,
+    totalSupply_?: Amount,
+  ): StrategyOpportunity {
+    const totalSupply = totalSupply_ ?? { value: 0n, valueUsd: 0 };
+    const { market, creditManager: cm } = this;
+    const { pool } = market.pool;
+    const oracle = market.priceOracle;
+
+    const liquidationThreshold = cm.liquidationThresholds.mustGet(collateral);
+    const maxLeverage = cm.maxLeverage(collateral);
+    const borrowed =
+      pool.creditManagerDebtParams.get(cm.address)?.borrowed ?? 0n;
+
+    return {
+      kind: "strategy",
+      chainId: this.chainId,
+      creditManagerAddress: cm.address,
+      targetCollateral: this.tokensMeta.token(collateral),
+      title: `${this.tokensMeta.symbol(collateral)} / ${market.underlyingToken.symbol}`,
+      curator: market.curator,
+      underlyingToken: market.underlyingToken,
+      totalSupply,
+      totalBorrow: oracle.toAmount(pool.underlying, borrowed),
+      utilization: utilizationBps(borrowed, totalSupply.value),
+      collateralTokens: market.collateralTokens,
+      paused: this.isPaused,
+      rwa: market.rwa,
+      sunset: isSunsetStrategy(cm.address, collateral, this.sdk.networkType),
+      liquidationThreshold,
+      liquidationPremium: cm.liquidationPremium,
+      liquidationFee: cm.feeLiquidation,
+      expirationDate: this.expirationDate,
+      borrowApy: borrowApyBps(pool.baseInterestRate, cm.feeInterest),
+      additionalBorrowApy: additionalBorrowApyBps(
+        market.pool.pqk.quotaRate(collateral),
+        maxLeverage,
+      ),
+      maxBorrowAmount: oracle.toAmount(pool.underlying, this.maxBorrowAmount),
+      maxLeverage,
+    };
+  }
+
+  /**
+   * {@link strategyOpportunity} plus the data only its detail screen needs.
+   *
+   * @param collateral - Target collateral of the position.
+   * @param totalSupply - Summed worth of the credit accounts backing it.
+   */
+  public strategyOpportunityDetail(
+    collateral: Address,
+    totalSupply?: Amount,
+  ): StrategyOpportunityDetail {
+    return {
+      ...this.strategyOpportunity(collateral, totalSupply),
+      rateCurve: this.market.pool.rateCurve,
+      priceFeeds: this.market.priceFeedSummary(collateral),
+    };
   }
 
   /**

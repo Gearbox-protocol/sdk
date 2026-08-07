@@ -20,6 +20,7 @@ import {
   type OnchainSDKOptions,
   STATE_VERSION,
 } from "./OnchainSDK.js";
+import { MultichainOpportunitiesService } from "./opportunities/index.js";
 import type { PluginFactoriesMap, PluginsMap } from "./plugins/index.js";
 import type {
   ILogger,
@@ -141,6 +142,12 @@ export class MultichainSDK<const Plugins extends PluginsMap = {}> {
    */
   public readonly liquidations: MultichainLiquidationsService<Plugins>;
 
+  /**
+   * Namespace for the pool and strategy opportunities of all configured
+   * chains.
+   */
+  public readonly opportunities: MultichainOpportunitiesService<Plugins>;
+
   constructor(options: MultichainSDKOptions<Plugins>) {
     this.#chains = new Map();
     this.#logger = options.logger;
@@ -173,6 +180,7 @@ export class MultichainSDK<const Plugins extends PluginsMap = {}> {
       this.#chains.set(network as NetworkType, sdk);
     }
     this.liquidations = new MultichainLiquidationsService(this);
+    this.opportunities = new MultichainOpportunitiesService(this);
   }
 
   /**

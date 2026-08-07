@@ -1,4 +1,9 @@
 import type { Address } from "viem";
+import type {
+  Amount,
+  PriceFeedData,
+  PriceFeedSummary,
+} from "../../../model/index.js";
 import type { IBaseContract } from "../../base/index.js";
 import type { MultiCall, PriceOracleStateHuman } from "../../types/index.js";
 import type { AddressMap } from "../../utils/index.js";
@@ -137,6 +142,42 @@ export interface IPriceOracleContract extends IBaseContract {
    * @param reserve - Use reserve feeds instead of main.
    **/
   convertFromUSD: (to: Address, amount: bigint, reserve?: boolean) => bigint;
+  /**
+   * USD value of a token amount as the read model expresses it: plain dollars
+   * rather than {@link convertToUSD}'s 8-decimal fixed point, and `null`
+   * instead of a throw when the token cannot be priced.
+   *
+   * A dead or not-yet-updated feed must degrade one field, not fail a whole
+   * list, which is why {@link Amount.valueUsd} is nullable.
+   *
+   * @param token - Token address.
+   * @param amount - Amount in token decimals.
+   **/
+  safeUsdValue: (token: Address, amount: bigint) => number | null;
+  /**
+   * Pairs a token amount with its USD value, using {@link safeUsdValue}.
+   * @param token - Token address.
+   * @param value - Amount in token decimals.
+   **/
+  toAmount: (token: Address, value: bigint) => Amount;
+  /**
+   * Describes a token's main price feed and everything it reads from.
+   * Reserve feeds are not included.
+   * @param token - Token address.
+   * @throws If the token has no main feed in this oracle.
+   **/
+  priceFeedData: (token: Address) => PriceFeedData;
+  /**
+   * Prices and feeds of a collateral token against an underlying, i.e.
+   * everything a liquidation-price chart needs.
+   * @param underlying - Token the collateral is priced against.
+   * @param collateral - Token being priced.
+   * @throws If either token has no main feed in this oracle.
+   **/
+  priceFeedSummary: (
+    underlying: Address,
+    collateral: Address,
+  ) => PriceFeedSummary;
   /**
    * Unlike {@link convert}, this method will update the price feeds before converting,
    * and conversion will be peformed onchain using main price feeds

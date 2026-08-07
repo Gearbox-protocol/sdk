@@ -7,9 +7,9 @@ serves the same read model from onchain data (`MultichainSDK`) and from the back
 idea, not as reference code: its capability manifest, entity classes and attach-time
 snapshots are explicitly rejected below.
 
-The first namespace to be implemented is `opportunities`. Its read model lives in
-`tmp/new-types/types.ts`. This document is namespace-agnostic — it records the rules
-every namespace follows.
+The first namespace to be implemented is `opportunities`. Its read model started as a
+sketch in `tmp/new-types/types.ts` and now lives in `src/model`. This document is
+namespace-agnostic — it records the rules every namespace follows.
 
 ---
 
@@ -131,8 +131,13 @@ interface SourceMeta {
 - Block numbers and `updatedAt` are deliberately **not** in meta for now (see
   §10). Meta is expected to grow — treat it as an open object, do not destructure it
   exhaustively.
-- Nothing in `src/sdk` changes. Existing services keep returning bare values or
-  `MultichainResult`; the namespace wraps them.
+- The envelope itself is confined to `src/new-sdk`. Services in `src/sdk` keep returning
+  bare values or `MultichainResult`; the namespace wraps them.
+- **Amended.** The rule above is about the envelope, not about `src/sdk` being frozen.
+  Product read services that speak the shared read model belong beside the existing ones:
+  `OpportunitiesService` sits in `src/sdk/opportunities` and hangs off `OnchainSDK` and
+  `MultichainSDK` exactly like `LiquidationsService` does, and is usable without the
+  facade. `src/new-sdk` holds only routing and merging.
 
 ## 6. Failure handling
 
@@ -146,11 +151,23 @@ interface SourceMeta {
 ## 7. Onchain source
 
 - **Strictly RPC.** No HTTP sources.
-- **APY is offchain-only.** Every yield figure — pool rates, collateral yield, points, Merkl
-  rewards — comes from the backend and is simply absent in `onchain` mode.
+- **APY is offchain-only, with named exceptions.** Every yield figure that folds in
+  incentives, points, smoothing or history — supply APY, collateral APY, Merkl rewards —
+  comes from the backend and is simply absent in `onchain` mode.
+- **Amended: the borrow side is onchain-capable.** The cost of debt is read straight off the
+  contracts with no estimation involved, so these are filled from the chain:
+  - `borrowApy` — the pool's `baseInterestRate` scaled by the credit manager's `feeInterest`;
+  - `additionalBorrowApy` — the quota rate scaled to the debt a maximally leveraged position
+    carries;
+  - `RateCurve` — the linear interest rate model's own parameters (`U1`, `U2`, `Rbase`,
+    `Rslope*`) evaluated into points, i.e. the model itself rather than a fit to it.
+
+  The line is not "borrow versus supply" but "read versus estimated": anything the chain
+  states outright may be served from it, anything that needs a time series or an incentive
+  feed may not. Adding to this list requires the same justification.
 - Consequence: `onchain` mode is a real but reduced surface, exposing liquidity, limits,
-  thresholds and leverage but no yield. It targets bots, liquidators and self-hosted
-  deployments.
+  thresholds, leverage and the cost of debt, but no earned yield. It targets bots,
+  liquidators and self-hosted deployments.
 - Freshness is decided **per method**: serve the attached SDK state when it holds the
   data, issue RPC calls otherwise (as `LiquidationsService` already does).
 - `ApyPlugin` and `common-utils/utils/strategies` stay where they are, but the new
@@ -169,14 +186,27 @@ interface SourceMeta {
 
 ## 9. Layout, lifecycle, packaging
 
-- `src/new-sdk` — `GearboxSDK` (combined entry point) and its namespaces.
+- `src/new-sdk` — `GearboxSDK` (combined entry point) and its namespaces: routing, the
+  `both`-mode merge policy, and the response envelope. No protocol knowledge.
+- Within it, `AbstractNamespace` owns everything a namespace does not decide: turning
+  per-chain and backend failures into meta, the envelope, and the all-sources-failed rule.
+  A namespace subclasses it and supplies only its reads and its merge policy (`mergeOne`,
+  `mergeList`), which is where §4 is implemented per namespace.
+- **A namespace is handed its sources, not a way to look them up.** It holds a
+  `MultichainSDK` and a `GearboxAPI` directly, and never asks whether they are ready:
+  readiness belongs to whoever owns the source, and a source that cannot answer yet fails
+  the read like a source that is down.
+- `src/sdk/<namespace>` — the onchain read service for a namespace, wired onto `OnchainSDK`
+  and `MultichainSDK` beside `liquidations` (see the amendment in §5). All protocol
+  knowledge of the onchain source lives here, and works without the facade.
 - `src/offchain` — `GearboxAPI`, the backend client.
 - `src/model` — shared read-model types and their zod schemas; the contract the backend
   imports.
 - **All three are exported as subpaths**; the existing main entry is untouched. The backend
   depends on the `src/model` subpath alone.
-- The facade constructor stores options only and constructs the onchain SDK **inside
-  `attach()`**.
+- **Amended: the facade constructs the onchain SDK in its own constructor**, and `attach()`
+  only attaches it. Building a `MultichainSDK` does no I/O, so there is nothing to defer,
+  and it is what lets a namespace hold the instance instead of a way to find it later.
 - The facade accepts **either** onchain options (it constructs and attaches) **or** an
   already-attached `MultichainSDK` (client-v3 has one; two instances would double RPC load
   and memory). When injected, `attach()` must not re-attach it.
@@ -197,7 +227,7 @@ interface SourceMeta {
 | `OffchainSDK` snapshot loaded during `attach()` | same |
 | Entity classes with navigation getters | not serialisable, hard to merge, hard to fixture |
 | Mode as an array of sources | combinations grow as 2^n; a 3-value union is enough today |
-| Constructing `MultichainSDK` in the facade constructor | prevents injecting an already-attached instance |
+| ~~Constructing `MultichainSDK` in the facade constructor~~ | reinstated in §9: it does not prevent injection, since the onchain option is a union and only the options branch constructs |
 
 ---
 
@@ -205,11 +235,14 @@ interface SourceMeta {
 
 - **First paint in `both` mode.** If every read blocks on the onchain attach — which loads
   all markets on all chains — the frontend is slower than it is today. The fix falls out of
-  decisions already made: before attach completes, treat the onchain source as unavailable
-  and serve offchain-only with meta saying so, exactly like backend degradation. This only
-  works if the facade allows calls before `attach()` resolves, so it must be a deliberate
-  design rule rather than something discovered later. See the startup item under *Requires
-  discussion*.
+  decisions already made: a read issued before attach completes is still served, from the
+  backend alone, with meta saying so. It gets there by asking the chain and having it fail
+  with `SdkNotAttachedError` per chain, which is the same path as an RPC being down — the
+  facade does not special-case its own startup. This only works if the facade allows calls
+  before `attach()` resolves, so it must be a deliberate design rule rather than something
+  discovered later. Note the consequence in `onchain` mode: such a read has no source left
+  and raises `AllSourcesFailedError` instead of answering with an empty list. See the
+  startup item under *Requires discussion*.
 - **Backend-only rows look live.** With a union list and no per-item provenance, a row that
   exists only in the backend is indistinguishable from a freshly merged one. Adding an
   optional provenance field later is non-breaking, so the bet is reversible, but it will
@@ -222,6 +255,25 @@ interface SourceMeta {
   `paused` flags, price-update transactions. Each one is either added to the backend too, or
   left in the low-level `src/sdk` services. It must not end up in the shared read model as a
   third kind of field.
+  **Resolved for `paused`:** it is a required field of `OpportunityBase`, so the first branch
+  applies — the backend has to serve it. The same applies to `expirationDate`, which is
+  nullable rather than optional precisely so that the chain's "not expirable" survives the
+  merge instead of being filled in from the backend.
+- **Curated classification tables are a second cross-service contract.** `AssetType`,
+  `rwa` and `sunset` are not read from the chain: they come from `underlyingAssetTypes`,
+  `rwaTokens`, `sunsetPools` and `sunsetStrategies` on `GearboxChain` in
+  `src/sdk/chain/chains.ts`, with lookup helpers next to `getCuratorName`. That file is the
+  single source both sides must read, which means the backend imports it from the main
+  entry rather than from the `./model` subpath — a deliberate exception to §9, taken because
+  duplicating the tables in two deployables is the worse failure mode. Editing them is a
+  data change, not a code change, and the two sides drift silently if only one is updated.
+- **RWA opportunities are reported in the unwrapped underlying.** An RWA market borrows a
+  compliance wrapper of an ordinary token (`dcUSDC` for `USDC`), and `underlyingToken` — plus
+  the `title` built from it, plus the `underlyingType` lookup in `underlyingAssetTypes` — is
+  the token that wrapper holds, not the wrapper. The wrapper converts one-for-one, so the
+  amounts denominated in it stay exact and no conversion is involved. Both sides must unwrap
+  the same way: the merge is group-wise, so a backend that reports the wrapper would hand the
+  same row two different underlyings depending on which source filled the field.
 - **Cross-source consistency of USD values.** In `both` mode USD figures come from onchain
   prices; in `offchain` mode from backend prices. The same screen can show different numbers
   depending on mode. Acceptable, but it must be documented, and it is another reason the
@@ -250,8 +302,9 @@ interface SourceMeta {
   alerting path on top of that is undecided: logger, a dedicated error subtype, metrics.
   Related: whether the model carries an explicit contract version so skew is detectable
   before a field-level mismatch happens.
-- **Whether the facade takes a `Plugins` type parameter** to type `sdk.onchain` precisely, or
-  exposes it as `MultichainSDK<{}>` and lets injectors keep their own typed reference.
+- ~~**Whether the facade takes a `Plugins` type parameter**~~ — settled for now: `sdk.onchain`
+  is `MultichainSDK<{}>`, and a consumer that injects a plugin-typed instance keeps its own
+  reference to it. Revisit if a namespace ever needs a plugin.
 - **Per-item provenance** — deferred, revisit if stale-data triage becomes painful.
 - **Startup speed and first paint.** The onchain attach is expensive, so `both` mode needs a
   story for what is available immediately. Options include backend snapshots that cover the
