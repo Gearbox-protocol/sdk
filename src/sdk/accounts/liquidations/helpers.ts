@@ -12,7 +12,7 @@ import type {
 } from "../withdrawal-compressor/index.js";
 import type {
   LiquidationApproval,
-  LiquidatorWithdrawal,
+  LiquidationPosition,
   ReceivedAsset,
 } from "./types.js";
 
@@ -90,6 +90,26 @@ export function calcEstimatedProfit(
     (totalValue * (PERCENTAGE_FACTOR - BigInt(liquidationDiscount))) /
     PERCENTAGE_FACTOR
   );
+}
+
+/**
+ * USD value of a part of an account's total value. Since every amount derived
+ * from total value is denominated in the same token, its USD value is a
+ * proportion of the account's total value in USD rather than a price lookup.
+ *
+ * @param totalValueUSD - Account total value in USD (8 decimals)
+ * @param totalValue - Account total value in underlying
+ * @param partValue - Part of `totalValue` to price, in the same token
+ **/
+export function calcProportionalUSD(
+  totalValueUSD: bigint,
+  totalValue: bigint,
+  partValue: bigint,
+): bigint {
+  if (totalValue <= 0n) {
+    return 0n;
+  }
+  return (totalValueUSD * partValue) / totalValue;
 }
 
 /**
@@ -175,12 +195,12 @@ function toWithdrawalClaimTx(
  * @param current - Claimable and pending withdrawals from the withdrawal compressor
  * @param network - Network the withdrawals live on
  **/
-export function toLiquidatorWithdrawals(
+export function toLiquidationPositions(
   current: CurrentWithdrawals,
   network: NetworkType,
   chainId: number,
-): LiquidatorWithdrawal[] {
-  const rows: LiquidatorWithdrawal[] = [];
+): LiquidationPosition[] {
+  const rows: LiquidationPosition[] = [];
   for (const w of current.claimable) {
     rows.push({
       network,

@@ -5,10 +5,10 @@ import type {
   BuildLiquidationTxProps,
   GetLiquidatableAccountsProps,
   GetLiquidationDetailsProps,
-  GetLiquidatorWithdrawalsProps,
+  GetLiquidationPositionsProps,
   LiquidatableAccount,
   LiquidationDetails,
-  LiquidatorWithdrawal,
+  LiquidationPosition,
   LoadRWALiquidatorsProps,
 } from "./types.js";
 
@@ -59,16 +59,16 @@ export class MultichainLiquidationsService<
   }
 
   /**
-   * Withdrawals of all queried chains, see
-   * {@link LiquidationsService.getLiquidatorWithdrawals}.
+   * Liquidation positions of all queried chains, see
+   * {@link LiquidationsService.getLiquidationPositions}.
    **/
-  public async getLiquidatorWithdrawals(
-    props: GetLiquidatorWithdrawalsProps<true>,
-  ): Promise<MultichainResult<LiquidatorWithdrawal[]>> {
+  public async getLiquidationPositions(
+    props: GetLiquidationPositionsProps<true>,
+  ): Promise<MultichainResult<LiquidationPosition[]>> {
     return this.queryChains({
       networks: props.networks,
-      label: "get liquidator withdrawals",
-      run: sdk => sdk.liquidations.getLiquidatorWithdrawals(props),
+      label: "get liquidation positions",
+      run: sdk => sdk.liquidations.getLiquidationPositions(props),
     });
   }
 

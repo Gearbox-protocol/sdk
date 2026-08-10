@@ -77,6 +77,11 @@ export interface LiquidatableAccount {
    **/
   estimatedProfit: Asset;
   /**
+   * {@link estimatedProfit} in USD (8 decimals): the same share of
+   * {@link totalValueUSD} that it is of {@link totalValue}.
+   **/
+  estimatedProfitUSD: bigint;
+  /**
    * `true` when the account holds a delayed-withdrawal phantom token above
    * dust, i.e. the liquidation transfers withdrawal redeemers into the
    * liquidator's ownership instead of instantly receivable tokens.
@@ -194,9 +199,9 @@ export interface DelayedReceivedAsset {
 export type ReceivedAsset = InstantReceivedAsset | DelayedReceivedAsset;
 
 /**
- * Chain-independent part of {@link GetLiquidatorWithdrawalsProps}.
+ * Chain-independent part of {@link GetLiquidationPositionsProps}.
  **/
-export interface GetLiquidatorWithdrawalsPropsBase {
+export interface GetLiquidationPositionsPropsBase {
   /**
    * Liquidator wallet that owns the redemption receipts (redeemer contracts
    * received as a result of liquidations).
@@ -205,10 +210,10 @@ export interface GetLiquidatorWithdrawalsPropsBase {
 }
 
 /**
- * Props for {@link LiquidationsService.getLiquidatorWithdrawals}.
+ * Props for {@link LiquidationsService.getLiquidationPositions}.
  **/
-export type GetLiquidatorWithdrawalsProps<Multichain extends boolean = false> =
-  GetLiquidatorWithdrawalsPropsBase &
+export type GetLiquidationPositionsProps<Multichain extends boolean = false> =
+  GetLiquidationPositionsPropsBase &
     WithMultichain<Multichain, MultichainNetworksProps>;
 
 /**
@@ -221,7 +226,7 @@ export type LoadRWALiquidatorsProps<Multichain extends boolean = false> =
 /**
  * A single delayed-withdrawal position owned by the liquidator.
  **/
-export interface LiquidatorWithdrawal {
+export interface LiquidationPosition {
   /**
    * Network the withdrawal lives on.
    **/

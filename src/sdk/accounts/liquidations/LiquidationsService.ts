@@ -17,22 +17,23 @@ import { LIQUIDATION_COMPRESSOR_V313_ADDRESS } from "./constants.js";
 import type { OnchainLiquidationData, RWALiquidatorInfo } from "./helpers.js";
 import {
   calcEstimatedProfit,
+  calcProportionalUSD,
   calcRepaymentAmount,
   DUST_THRESHOLD,
   liquidationCallToRawTx,
   pickMainAsset,
   toLiquidationApproval,
-  toLiquidatorWithdrawals,
+  toLiquidationPositions,
   toReceivedAssets,
 } from "./helpers.js";
 import type {
   BuildLiquidationTxProps,
   GetLiquidatableAccountsProps,
   GetLiquidationDetailsProps,
-  GetLiquidatorWithdrawalsProps,
+  GetLiquidationPositionsProps,
   LiquidatableAccount,
   LiquidationDetails,
-  LiquidatorWithdrawal,
+  LiquidationPosition,
 } from "./types.js";
 
 /**
@@ -164,11 +165,11 @@ export class LiquidationsService extends SDKConstruct {
    * owned by a liquidator wallet: what is receivable, how much, and when it
    * becomes claimable.
    *
-   * @param props - See {@link GetLiquidatorWithdrawalsProps}
+   * @param props - See {@link GetLiquidationPositionsProps}
    **/
-  public async getLiquidatorWithdrawals(
-    props: GetLiquidatorWithdrawalsProps,
-  ): Promise<LiquidatorWithdrawal[]> {
+  public async getLiquidationPositions(
+    props: GetLiquidationPositionsProps,
+  ): Promise<LiquidationPosition[]> {
     const compressor = this.sdk.withdrawalCompressor;
     if (!compressor) {
       return [];
@@ -184,7 +185,7 @@ export class LiquidationsService extends SDKConstruct {
       ...phantomTokens.asArray(),
     );
 
-    return toLiquidatorWithdrawals(
+    return toLiquidationPositions(
       current,
       this.sdk.networkType,
       this.sdk.chainId,
@@ -359,6 +360,11 @@ export class LiquidationsService extends SDKConstruct {
       asset = unwrappedUnderlying;
     }
 
+    const estimatedProfit = calcEstimatedProfit(
+      ca.totalValue,
+      liquidationDiscount,
+    );
+
     return {
       creditAccount: ca.creditAccount,
       creditManager: ca.creditManager,
@@ -375,8 +381,13 @@ export class LiquidationsService extends SDKConstruct {
       },
       estimatedProfit: {
         token: unwrappedUnderlying,
-        balance: calcEstimatedProfit(ca.totalValue, liquidationDiscount),
+        balance: estimatedProfit,
       },
+      estimatedProfitUSD: calcProportionalUSD(
+        ca.totalValueUSD,
+        ca.totalValue,
+        estimatedProfit,
+      ),
       isDelayed: ca.tokens.some(
         t =>
           t.balance > DUST_THRESHOLD &&
