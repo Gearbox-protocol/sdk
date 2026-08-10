@@ -1,8 +1,8 @@
-import type { ILiquidationsService } from "./accounts/index.js";
 import { MultichainLiquidationsService } from "./accounts/index.js";
 import type { NetworkType } from "./chain/chains.js";
 import { getNetworkType } from "./chain/chains.js";
 import {
+  ChainNotConfiguredError,
   SdkMissingChainStateError,
   SdkStateVersionMismatchError,
   SdkSyncFailedError,
@@ -20,6 +20,7 @@ import {
   type OnchainSDKOptions,
   STATE_VERSION,
 } from "./OnchainSDK.js";
+import { MultichainOpportunitiesService } from "./opportunities/index.js";
 import type { PluginFactoriesMap, PluginsMap } from "./plugins/index.js";
 import type {
   ILogger,
@@ -139,7 +140,13 @@ export class MultichainSDK<const Plugins extends PluginsMap = {}> {
    * Namespace for liquidatable credit accounts discovery across all
    * configured chains.
    */
-  public readonly liquidations: ILiquidationsService<true>;
+  public readonly liquidations: MultichainLiquidationsService<Plugins>;
+
+  /**
+   * Namespace for the pool and strategy opportunities of all configured
+   * chains.
+   */
+  public readonly opportunities: MultichainOpportunitiesService<Plugins>;
 
   constructor(options: MultichainSDKOptions<Plugins>) {
     this.#chains = new Map();
@@ -173,6 +180,7 @@ export class MultichainSDK<const Plugins extends PluginsMap = {}> {
       this.#chains.set(network as NetworkType, sdk);
     }
     this.liquidations = new MultichainLiquidationsService(this);
+    this.opportunities = new MultichainOpportunitiesService(this);
   }
 
   /**
@@ -289,9 +297,7 @@ export class MultichainSDK<const Plugins extends PluginsMap = {}> {
     }
     const sdk = this.#chains.get(network);
     if (!sdk) {
-      throw new Error(
-        `Chain ${String(networkOrChainId)} is not configured in this MultichainSDK`,
-      );
+      throw new ChainNotConfiguredError(networkOrChainId);
     }
     return sdk;
   }
@@ -301,6 +307,15 @@ export class MultichainSDK<const Plugins extends PluginsMap = {}> {
    **/
   public get chains(): ReadonlyMap<NetworkType, OnchainSDK<Plugins>> {
     return this.#chains;
+  }
+
+  /**
+   * Shared logger, used for messages that are not attributable to a single
+   * chain. Per-chain messages should use the logger of the corresponding
+   * {@link OnchainSDK}.
+   **/
+  public get logger(): ILogger | undefined {
+    return this.#logger;
   }
 
   /**

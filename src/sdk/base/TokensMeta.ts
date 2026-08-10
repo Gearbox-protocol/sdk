@@ -8,6 +8,9 @@ import type {
 } from "viem";
 import { iStateSerializerAbi } from "../../abi/iStateSerializer.js";
 import { iVersionAbi } from "../../abi/iVersion.js";
+import type { Token } from "../../model/primitives.js";
+import { getAssetType } from "../chain/chains.js";
+import type { GearboxChain, NetworkType } from "../chain/index.js";
 import type { ILogger } from "../types/logger.js";
 import {
   AddressMap,
@@ -147,6 +150,68 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
       }
     }
     return result;
+  }
+
+  /**
+   * Describes a token the way the shared read model does.
+   *
+   * @param address - Token address.
+   * @throws If the token is not in the registry.
+   */
+  public mustGetToken(address: Address): Token {
+    const meta = this.mustGet(address);
+    return {
+      chainId: this.#client.chain.id,
+      address: meta.addr,
+      symbol: meta.symbol,
+      name: meta.name,
+      decimals: meta.decimals,
+      // the table only holds underlyings, so collateral tokens stay
+      // unclassified
+      assetType: getAssetType(meta.addr, this.#networkType),
+    };
+  }
+
+  /**
+   * Like {@link mustGetToken}, but returns `undefined` instead of throwing when the
+   * token is not in the registry.
+   *
+   * @param address - Token address.
+   */
+  public getToken(address: Address): Token | undefined {
+    return this.get(address) ? this.mustGetToken(address) : undefined;
+  }
+
+  /**
+   * The token an RWA wrapper holds, or the token itself when it is not one.
+   *
+   * An RWA market borrows a compliance wrapper (e.g. `dcUSDC`) that converts
+   * one-for-one with the token behind it (`USDC`), and only that token means
+   * anything to a reader. Pricing still goes through the wrapper, which is what
+   * a market's oracle knows.
+   *
+   * @param token - Token address, wrapper or not.
+   */
+  public unwrapRWA(token: Address): Address {
+    const meta = this.get(token);
+    if (!meta || !this.isRWAUnderlying(meta)) {
+      return token;
+    }
+    if (!this.has(meta.asset)) {
+      this.#logger?.debug(
+        `no token meta for ${meta.asset} wrapped by ${token}, reporting the wrapper instead`,
+      );
+      return token;
+    }
+    return meta.asset;
+  }
+
+  get #networkType(): NetworkType {
+    const { chain } = this.#client;
+    if ("network" in chain) {
+      return (chain as GearboxChain).network;
+    }
+    throw new Error(`chain ${chain.id} is not a Gearbox SDK chain`);
   }
 
   /**

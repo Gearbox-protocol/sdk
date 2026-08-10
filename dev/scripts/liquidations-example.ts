@@ -1,7 +1,11 @@
 import { pino } from "pino";
 import { getAlchemyUrl } from "../../src/dev/providers.js";
 import type { NetworkType } from "../../src/sdk/index.js";
-import { json_stringify, MultichainSDK } from "../../src/sdk/index.js";
+import {
+  getNetworkType,
+  json_stringify,
+  MultichainSDK,
+} from "../../src/sdk/index.js";
 
 const logger = pino({
   level: process.env.LOG_LEVEL ?? "debug",
@@ -33,14 +37,15 @@ async function example(): Promise<void> {
   });
   await sdk.attach();
 
-  const accounts = await sdk.liquidations.getLiquidatableAccounts();
-  logger.info(`found ${accounts.length} liquidatable accounts`);
+  const { result: accounts, meta } =
+    await sdk.liquidations.getLiquidatableAccounts();
+  logger.info(meta, `found ${accounts.length} liquidatable accounts`);
   console.info(json_stringify(accounts));
 
   const first = accounts[0];
   if (first) {
     const details = await sdk.liquidations.getLiquidationDetails({
-      network: first.network,
+      network: getNetworkType(first.chainId),
       creditAccount: first.creditAccount,
     });
     console.info(json_stringify(details));

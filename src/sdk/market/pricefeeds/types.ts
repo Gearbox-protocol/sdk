@@ -1,4 +1,5 @@
 import type { Address, Hex, UnionOmit } from "viem";
+import type { PriceFeedData } from "../../../model/index.js";
 import type { IBaseContract, PriceFeedAnswer } from "../../base/index.js";
 import type {
   IPriceUpdateTx,
@@ -102,6 +103,15 @@ export interface IPriceFeedContract extends IBaseContract {
    * including this feed itself when it is updatable.
    **/
   updatableDependencies: () => IUpdatablePriceFeedContract[];
+
+  /**
+   * Describes this feed and the feeds it reads from the way the shared read
+   * model does.
+   *
+   * A feed whose dependencies were never loaded is described as a leaf rather
+   * than throwing: the tree decorates a detail screen, nobody computes with it.
+   **/
+  describe: () => PriceFeedData;
 }
 
 /**

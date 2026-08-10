@@ -13,7 +13,6 @@ import {
   createRedemptionLogger,
   createWithdrawalCompressor,
   type ICreditAccountsService,
-  type ILiquidationsService,
   type IRedemptionLoggerContract,
   type IWithdrawalCompressorContract,
   LiquidationsService,
@@ -47,6 +46,7 @@ import type {
   PythOptions,
   RedstoneOptions,
 } from "./market/pricefeeds/updates/index.js";
+import { OpportunitiesService } from "./opportunities/index.js";
 import type { PluginStatesMap, PluginsMap } from "./plugins/index.js";
 import { PluginStateVersionError } from "./plugins/index.js";
 import { type IPoolsService, PoolService } from "./pools/index.js";
@@ -295,7 +295,11 @@ export class OnchainSDK<
   /**
    * Namespace for liquidatable credit accounts discovery.
    */
-  public readonly liquidations: ILiquidationsService;
+  public readonly liquidations: LiquidationsService;
+  /**
+   * Namespace for the pool and strategy opportunities of this chain.
+   */
+  public readonly opportunities: OpportunitiesService;
 
   /**
    * @param network - Gearbox network type (e.g. `"Mainnet"`, `"Monad"`).
@@ -332,6 +336,7 @@ export class OnchainSDK<
     this.accounts = new CreditAccountsServiceV310(this);
     this.pools = new PoolService(this);
     this.liquidations = new LiquidationsService(this);
+    this.opportunities = new OpportunitiesService(this);
     this.#withdrawalCompressor = createWithdrawalCompressor(this);
   }
 

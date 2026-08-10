@@ -13,3 +13,4 @@ example-state.json
 /.cursor/plans/
 /.vscode/mise-tools/
 *.local.toml
+.pnpm-store/

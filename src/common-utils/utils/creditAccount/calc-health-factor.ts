@@ -4,7 +4,7 @@ import {
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS,
 } from "../../../sdk/index.js";
-import { BigIntMath } from "../bigint-math.js";
+import { BigIntMath } from "../../../sdk/utils/bigint-math.js";
 import { PriceUtils } from "../price-math.js";
 import type { QuotaInfoIsActiveSlice, TokenDataSlice } from "./types.js";
 

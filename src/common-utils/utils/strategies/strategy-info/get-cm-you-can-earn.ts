@@ -4,13 +4,13 @@ import {
   WAD_DECIMALS_POW,
 } from "../../../../sdk/constants/math.js";
 import type { Asset } from "../../../../sdk/index.js";
+import { BigIntMath } from "../../../../sdk/utils/bigint-math.js";
 import { formatBN, toBigInt, toBN } from "../../../../sdk/utils/formatter.js";
 import { calculateEarnings } from "../../apy/calculate-earnings.js";
 import { calculateEffectiveBorrowRate } from "../../apy/calculate-effective-borrow-rate.js";
 import { getComplexAPYList } from "../../apy/get-complex-apy-list.js";
 import { getSafeBaseBorrowRate } from "../../apy/get-safe-base-borrow-rate.js";
 import { AssetUtils } from "../../assets-math.js";
-import { BigIntMath } from "../../bigint-math.js";
 import { EMPTY_ADDRESS, EMPTY_OBJECT } from "../../constants.js";
 import { calcHealthFactor } from "../../creditAccount/calc-health-factor.js";
 import { calcQuotaUpdate } from "../../creditAccount/quota-utils.js";

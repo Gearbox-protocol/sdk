@@ -1,4 +1,5 @@
 import type { Address } from "viem";
+import type { Bps } from "../../../model/index.js";
 import type {
   AssertAssignable,
   CreditManagerDebtParams,
@@ -131,6 +132,31 @@ export interface IPoolContract extends IBaseContract {
    * is an RWA token. `undefined` for regular ERC-20 underlyings.
    */
   readonly rwaFactory: IRWAFactory | undefined;
+
+  /**
+   * Liquidity currently drawn by credit managers, i.e. the part of the
+   * expected liquidity that is not sitting in the pool. Never negative.
+   */
+  readonly borrowed: bigint;
+
+  /**
+   * Underlying the pool's shares are worth, converted at the current share
+   * rate. Unlike {@link totalSupply}, this is denominated in the underlying.
+   */
+  readonly totalAssets: bigint;
+
+  /**
+   * Share of the pool's capital currently borrowed, in basis points.
+   */
+  readonly utilization: Bps;
+
+  /**
+   * The token the pool's underlying wraps, or the underlying itself when it
+   * wraps nothing. An RWA market borrows a compliance wrapper that converts
+   * one-for-one with an ordinary token, and only that token means anything to
+   * a reader.
+   */
+  readonly unwrappedUnderlying: Address;
 
   stateHuman: (raw?: boolean) => PoolStateHuman;
 

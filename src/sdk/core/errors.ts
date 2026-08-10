@@ -63,6 +63,21 @@ export class SdkMissingChainStateError extends BaseError {
 }
 
 /**
+ * Thrown when a chain that is not configured in {@link MultichainSDK} is
+ * requested.
+ */
+export class ChainNotConfiguredError extends BaseError {
+  override name = "ChainNotConfiguredError";
+
+  readonly network: NetworkType | number;
+
+  constructor(network: NetworkType | number) {
+    super(`Chain ${String(network)} is not configured in this MultichainSDK`);
+    this.network = network;
+  }
+}
+
+/**
  * Thrown by {@link MultichainSDK.syncState} when one or more per-chain syncs
  * fail. Wraps the individual errors keyed by network.
  */

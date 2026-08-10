@@ -6,6 +6,7 @@ export * from "./core/index.js";
 export * from "./MultichainSDK.js";
 export * from "./market/index.js";
 export * from "./OnchainSDK.js";
+export * from "./opportunities/index.js";
 export * from "./options.js";
 export * from "./plugins/index.js";
 export * from "./pools/index.js";

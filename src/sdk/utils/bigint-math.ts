@@ -17,21 +17,21 @@ export class BigIntMath {
 
   /**
    * Returns the greater of two bigint values.
-   *
-   * @param a First candidate value.
-   * @param b Second candidate value.
-   * @returns The larger value between `a` and `b`.
+   * @param values - The values to find the maximum of.
+   * @returns The maximum value.
    */
-  static max = (a: bigint, b: bigint) => (a > b ? a : b);
+  static max = (...values: bigint[]): bigint => {
+    return values.reduce((max, v) => (v > max ? v : max));
+  };
 
   /**
    * Returns the smaller of two bigint values.
-   *
-   * @param a First candidate value.
-   * @param b Second candidate value.
-   * @returns The smaller value between `a` and `b`.
+   * @param values - The values to find the minimum of.
+   * @returns The minimum value.
    */
-  static min = (a: bigint, b: bigint) => (a < b ? a : b);
+  static min = (...values: bigint[]): bigint => {
+    return values.reduce((min, v) => (v < min ? v : min));
+  };
 
   /**
    * Returns the negative form of a bigint if it is currently positive.

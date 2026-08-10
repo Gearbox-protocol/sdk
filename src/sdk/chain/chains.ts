@@ -1,5 +1,5 @@
 import type { Address, Chain } from "viem";
-import { defineChain } from "viem";
+import { defineChain, isAddressEqual } from "viem";
 import {
   arbitrum,
   avalanche,
@@ -19,6 +19,7 @@ import {
   worldchain,
 } from "viem/chains";
 import { z } from "zod/v4";
+import type { AssetType } from "../../model/primitives.js";
 import { TypedObjectUtils } from "../utils/mappers.js";
 
 /**
@@ -40,6 +41,15 @@ export type Curator =
   | "Gami Labs"
   | "Securitize"
   | "Testnet Curator"; // without governor, for midas
+
+/**
+ * One strategy of the sunset list, identified the same way a strategy
+ * opportunity is: the credit manager plus the collateral it is built around.
+ **/
+export interface SunsetStrategy {
+  creditManager: Address;
+  collateral: Address;
+}
 
 /**
  * Extended viem {@link Chain} with Gearbox-specific metadata.
@@ -64,6 +74,30 @@ export interface GearboxChain extends Chain {
    * Market configurators used in test/staging environments.
    **/
   testMarketConfigurators?: Record<Address, Curator>;
+  /**
+   * Denomination class of the market underlyings on this chain.
+   *
+   * Nothing on-chain says what a token is denominated in, so this is a manually
+   * curated table. It only covers underlyings — there are few of them — and a
+   * token missing from it is simply unclassified. An RWA market's compliance
+   * wrapper does not belong here: it is unwrapped before the lookup, so the
+   * token it holds is what needs an entry.
+   **/
+  underlyingAssetTypes?: Record<Address, AssetType>;
+  /**
+   * Tokens on this chain that represent a real-world asset. A market that
+   * accepts one of them as collateral is reported as an RWA opportunity.
+   **/
+  rwaTokens?: Address[];
+  /**
+   * Pools being wound down. Curated, and unrelated to any on-chain flag.
+   **/
+  sunsetPools?: Address[];
+  /**
+   * Strategies being wound down. Curated, and unrelated to the credit facade's
+   * expiration date.
+   **/
+  sunsetStrategies?: SunsetStrategy[];
   /**
    * Whether this chain is production-ready
    **/
@@ -156,6 +190,19 @@ export const chains: Record<NetworkType, GearboxChain> = {
         "0xa770ce584adb6491a2138da6eaec33243bdcd248": "Testnet Curator", // without governor, for midas
       },
       rwaFactories: [] as Address[],
+      underlyingAssetTypes: {
+        "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0": "ETH", // [wstETH]
+        "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2": "ETH", //[WETH]
+        "0x18084fbA666a33d37592fA2633fD49a74DD93a88": "BTC", // [tBTC]
+        "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "Stable", // [USDC]
+        "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599": "BTC", // [WBTC]
+      },
+      rwaTokens: [
+        "0x17418038ecF73BA4026c4f428547BF099706F27B", // ACRED, Securitize
+        "0x51C2d74017390CbBd30550179A16A1c28F7210fc", // STAC, Securitize
+        "0x238a700eD6165261Cf8b2e544ba797BC11e466Ba", // mF-ONE, Midas
+        "0x7433806912Eae67919e66aea853d46Fa0aef98A8", // mGLOBAL, Midas
+      ],
       isPublic: true,
       wellKnownToken: {
         address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
@@ -269,6 +316,12 @@ export const chains: Record<NetworkType, GearboxChain> = {
       "0x16956912813ab9a38d95730b52a8cf53e860a7c5": "Tulipa",
       "0x7c6ee1bf9c1eb3ee55bdbdc1e8d0317aab718e0a": "UltraYield",
     },
+    underlyingAssetTypes: {
+      "0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A": "ETH", // [WMON]
+      "0x754704Bc059F8C67012fEd69BC8A327a5aafb603": "Stable", // [USDC]
+      "0xe7cd86e13AC4309349F30B3435a9d337750fC82D": "Stable", // [USDT0]
+      "0x00000000eFE302BEAA2b3e6e1b18d08D69a9012a": "Stable", // [AUSD]
+    },
     rwaFactories: [] as Address[],
     isPublic: true,
     wellKnownToken: {
@@ -354,6 +407,9 @@ export const chains: Record<NetworkType, GearboxChain> = {
     defaultMarketConfigurators: {
       "0x577424f0e6f50db668cc1bc76babb87e36732291": "Re7",
     },
+    underlyingAssetTypes: {
+      "0x796Ea11Fa2dD751eD01b53C372fFDB4AAa8f00F9": "Stable", // [USDC]
+    },
     rwaFactories: [] as Address[],
     isPublic: true,
     wellKnownToken: {
@@ -406,6 +462,10 @@ export const chains: Record<NetworkType, GearboxChain> = {
       "0xce1cf71a28837daaa7b92d00ca4ef2fd649c2a67": "Hyperithm",
       "0x9655f82b585b11cee8a05576ed8efcf755cec04b": "TelosC",
     },
+    underlyingAssetTypes: {
+      "0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb": "Stable", // [USDT0]
+      "0x5d3a1Ff2b6BAb83b63cd9AD0787074081a52ef34": "Stable", // [USDe]
+    },
     rwaFactories: [] as Address[],
     isPublic: true,
     wellKnownToken: {
@@ -432,6 +492,10 @@ export const chains: Record<NetworkType, GearboxChain> = {
     network: "Somnia",
     defaultMarketConfigurators: {
       "0x1ca8b92aa7233a9f8f7ba031ac45c878141adff0": "Invariant Group",
+    },
+    underlyingAssetTypes: {
+      "0x28BEc7E30E6faee657a03e19Bf1128AaD7632A00": "Stable", // [USDC.e]
+      "0x046EDe9564A72571df6F5e44d0405360c0f4dCab": "ETH", // [WSOMI]
     },
     rwaFactories: [] as Address[],
     isPublic: true,
@@ -560,4 +624,70 @@ export function findCuratorMarketConfigurator(
     }
   }
   return undefined;
+}
+
+/**
+ * Looks up the {@link AssetType} of a token in hardcoded classifier.
+ * Not all tokens are classified, only underlyings, so the default answer is `undefined`.
+ *
+ * @param token - Token address
+ * @param network - Network the token lives on.
+ * @returns The asset type, or `undefined` when the token is not classified
+ **/
+export function getAssetType(
+  token: Address,
+  network: NetworkType,
+): AssetType | undefined {
+  const table = chains[network].underlyingAssetTypes;
+  if (!table) {
+    return undefined;
+  }
+  for (const [a, assetType] of TypedObjectUtils.entries(table)) {
+    if (isAddressEqual(a, token)) {
+      return assetType;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Checks whether a token represents a real-world asset, per the curated list of
+ * a network.
+ *
+ * @param token - Token address.
+ * @param network - Network the token lives on.
+ **/
+export function isRWAToken(token: Address, network: NetworkType): boolean {
+  return !!chains[network].rwaTokens?.some(t => isAddressEqual(t, token));
+}
+
+/**
+ * Checks whether a pool is on the sunset list of a network.
+ *
+ * @param pool - Pool address.
+ * @param network - Network the pool lives on.
+ **/
+export function isSunsetPool(pool: Address, network: NetworkType): boolean {
+  return !!chains[network].sunsetPools?.some(p => isAddressEqual(p, pool));
+}
+
+/**
+ * Checks whether a strategy is on the sunset list of a network. Both halves of
+ * the strategy key must match: a credit manager can wind down one collateral
+ * and keep the rest.
+ *
+ * @param creditManager - Credit manager address.
+ * @param collateral - Target collateral of the strategy.
+ * @param network - Network the strategy lives on.
+ **/
+export function isSunsetStrategy(
+  creditManager: Address,
+  collateral: Address,
+  network: NetworkType,
+): boolean {
+  return !!chains[network].sunsetStrategies?.some(
+    s =>
+      isAddressEqual(s.creditManager, creditManager) &&
+      isAddressEqual(s.collateral, collateral),
+  );
 }

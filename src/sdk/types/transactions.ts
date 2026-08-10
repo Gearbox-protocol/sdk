@@ -6,6 +6,9 @@ export interface ContractMethod {
   payable: boolean;
 }
 
+/**
+ * A transaction plus the ABI metadata needed to render and replay it.
+ */
 export interface RawTx {
   to: Address;
   value: string;
