@@ -1,4 +1,4 @@
-import type { Address } from "viem";
+import type { Address, Hex } from "viem";
 
 /**
  * EVM chain id.
@@ -141,6 +141,37 @@ export interface Token {
    * leaves this unset. Absence means "unknown", never "neither of the three".
    **/
   assetType?: AssetType;
+}
+
+/**
+ * An {@link Amount} that names its own token.
+ **/
+export interface TokenAmount extends Amount {
+  /**
+   * Token {@link Amount.value} is denominated in.
+   **/
+  token: Token;
+}
+
+/**
+ * The minimal transaction the read model hands out: enough to sign and send,
+ * with no ABI metadata attached.
+ **/
+export interface TxCall {
+  /**
+   * Contract the transaction is sent to.
+   **/
+  to: Address;
+  /**
+   * Encoded calldata.
+   **/
+  callData: Hex;
+  /**
+   * Wei to send along. Omitted for a plain contract call.
+   *
+   * @example `1_000_000_000_000_000_000n` for 1 ETH
+   **/
+  value?: bigint;
 }
 
 /**

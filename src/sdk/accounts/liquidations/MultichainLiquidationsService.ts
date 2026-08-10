@@ -1,14 +1,17 @@
+import type {
+  LiquidatableAccount,
+  LiquidationDetails,
+  LiquidationPosition,
+  TxCall,
+} from "../../../model/index.js";
 import { MultichainConstruct } from "../../base/index.js";
 import type { PluginsMap } from "../../plugins/index.js";
-import type { MultichainResult, RawTx } from "../../types/index.js";
+import type { MultichainResult } from "../../types/index.js";
 import type {
   BuildLiquidationTxProps,
   GetLiquidatableAccountsProps,
   GetLiquidationDetailsProps,
   GetLiquidationPositionsProps,
-  LiquidatableAccount,
-  LiquidationDetails,
-  LiquidationPosition,
   LoadRWALiquidatorsProps,
 } from "./types.js";
 
@@ -54,7 +57,7 @@ export class MultichainLiquidationsService<
    **/
   public async buildLiquidationTx(
     props: BuildLiquidationTxProps<true>,
-  ): Promise<RawTx> {
+  ): Promise<TxCall> {
     return this.sdk.chain(props.network).liquidations.buildLiquidationTx(props);
   }
 

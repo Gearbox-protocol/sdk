@@ -158,7 +158,7 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
    * @param address - Token address.
    * @throws If the token is not in the registry.
    */
-  public token(address: Address): Token {
+  public mustGetToken(address: Address): Token {
     const meta = this.mustGet(address);
     return {
       chainId: this.#client.chain.id,
@@ -170,6 +170,16 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
       // unclassified
       assetType: getAssetType(meta.addr, this.#networkType),
     };
+  }
+
+  /**
+   * Like {@link mustGetToken}, but returns `undefined` instead of throwing when the
+   * token is not in the registry.
+   *
+   * @param address - Token address.
+   */
+  public getToken(address: Address): Token | undefined {
+    return this.get(address) ? this.mustGetToken(address) : undefined;
   }
 
   /**

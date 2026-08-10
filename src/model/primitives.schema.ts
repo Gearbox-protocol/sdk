@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { ZodAddress } from "../sdk/utils/zod.js";
+import { ZodAddress, ZodHex } from "../sdk/utils/zod.js";
 
 /**
  * Runtime schemas for {@link ./primitives.js}.
@@ -57,6 +57,22 @@ export const tokenSchema = z.object({
   name: z.string(),
   decimals: z.number().int().nonnegative(),
   assetType: assetTypeSchema.optional(),
+});
+
+/**
+ * {@link TokenAmount}
+ **/
+export const tokenAmountSchema = amountSchema.extend({
+  token: tokenSchema,
+});
+
+/**
+ * {@link TxCall}
+ **/
+export const txCallSchema = z.object({
+  to: ZodAddress(),
+  callData: ZodHex(),
+  value: z.bigint().optional(),
 });
 
 /**

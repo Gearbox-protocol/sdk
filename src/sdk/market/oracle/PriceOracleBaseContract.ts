@@ -11,6 +11,7 @@ import type {
   Amount,
   PriceFeedData,
   PriceFeedSummary,
+  TokenAmount,
 } from "../../../model/index.js";
 import type { BaseContractArgs } from "../../base/BaseContract.js";
 import type {
@@ -211,12 +212,24 @@ export abstract class PriceOracleBaseContract<
     }
   }
 
+  // bound fields, not methods: the read-model mappers are meant to be handed
+  // to code that maps a list of amounts and does not know the oracle
   /**
    * {@inheritDoc IPriceOracleContract.toAmount}
    **/
-  public toAmount(token: Address, value: bigint): Amount {
+  public toAmount = (token: Address, value: bigint): Amount => {
     return { value, valueUsd: this.safeUsdValue(token, value) };
-  }
+  };
+
+  /**
+   * {@inheritDoc IPriceOracleContract.toTokenAmount}
+   **/
+  public toTokenAmount = (token: Address, value: bigint): TokenAmount => {
+    return {
+      token: this.tokensMeta.mustGetToken(token),
+      ...this.toAmount(token, value),
+    };
+  };
 
   /**
    * {@inheritDoc IPriceOracleContract.priceFeedData}

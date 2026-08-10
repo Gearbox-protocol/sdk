@@ -1,7 +1,11 @@
 import { pino } from "pino";
 import { getAlchemyUrl } from "../../src/dev/providers.js";
 import type { NetworkType } from "../../src/sdk/index.js";
-import { json_stringify, MultichainSDK } from "../../src/sdk/index.js";
+import {
+  getNetworkType,
+  json_stringify,
+  MultichainSDK,
+} from "../../src/sdk/index.js";
 
 const logger = pino({
   level: process.env.LOG_LEVEL ?? "debug",
@@ -41,7 +45,7 @@ async function example(): Promise<void> {
   const first = accounts[0];
   if (first) {
     const details = await sdk.liquidations.getLiquidationDetails({
-      network: first.network,
+      network: getNetworkType(first.chainId),
       creditAccount: first.creditAccount,
     });
     console.info(json_stringify(details));

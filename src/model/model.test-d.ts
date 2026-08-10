@@ -21,6 +21,26 @@ import type {
   strategyHistoryMetricSchema,
 } from "./history.schema.js";
 import type {
+  DelayedReceivedAsset,
+  InstantReceivedAsset,
+  LiquidatableAccount,
+  LiquidatableAccountFilter,
+  LiquidationApproval,
+  LiquidationDetails,
+  LiquidationPosition,
+  ReceivedAsset,
+} from "./liquidations.js";
+import type {
+  delayedReceivedAssetSchema,
+  instantReceivedAssetSchema,
+  liquidatableAccountFilterSchema,
+  liquidatableAccountSchema,
+  liquidationApprovalSchema,
+  liquidationDetailsSchema,
+  liquidationPositionSchema,
+  receivedAssetSchema,
+} from "./liquidations.schema.js";
+import type {
   ApyBreakdown,
   Opportunity,
   OpportunityBase,
@@ -68,12 +88,21 @@ import type {
   strategyOpportunitySchema,
   tokenRewardsSchema,
 } from "./opportunities.schema.js";
-import type { Amount, AssetType, Curator, Token } from "./primitives.js";
+import type {
+  Amount,
+  AssetType,
+  Curator,
+  Token,
+  TokenAmount,
+  TxCall,
+} from "./primitives.js";
 import type {
   amountSchema,
   assetTypeSchema,
   curatorSchema,
+  tokenAmountSchema,
   tokenSchema,
+  txCallSchema,
 } from "./primitives.schema.js";
 
 /**
@@ -92,6 +121,10 @@ describe("model schemas match model types", () => {
     expectTypeOf<z.infer<typeof amountSchema>>().toEqualTypeOf<Amount>();
     expectTypeOf<z.infer<typeof assetTypeSchema>>().toEqualTypeOf<AssetType>();
     expectTypeOf<z.infer<typeof tokenSchema>>().toEqualTypeOf<Token>();
+    expectTypeOf<
+      z.infer<typeof tokenAmountSchema>
+    >().toEqualTypeOf<TokenAmount>();
+    expectTypeOf<z.infer<typeof txCallSchema>>().toEqualTypeOf<TxCall>();
     expectTypeOf<z.infer<typeof curatorSchema>>().toEqualTypeOf<Curator>();
   });
 
@@ -191,6 +224,33 @@ describe("model schemas match model types", () => {
     expectTypeOf<
       z.infer<typeof opportunityHistoryQuerySchema>
     >().toEqualTypeOf<OpportunityHistoryQuery>();
+  });
+
+  it("liquidations", () => {
+    expectTypeOf<
+      z.infer<typeof liquidatableAccountFilterSchema>
+    >().toEqualTypeOf<LiquidatableAccountFilter>();
+    expectTypeOf<
+      z.infer<typeof liquidatableAccountSchema>
+    >().toEqualTypeOf<LiquidatableAccount>();
+    expectTypeOf<
+      z.infer<typeof instantReceivedAssetSchema>
+    >().toEqualTypeOf<InstantReceivedAsset>();
+    expectTypeOf<
+      z.infer<typeof delayedReceivedAssetSchema>
+    >().toEqualTypeOf<DelayedReceivedAsset>();
+    expectTypeOf<
+      z.infer<typeof receivedAssetSchema>
+    >().toEqualTypeOf<ReceivedAsset>();
+    expectTypeOf<
+      z.infer<typeof liquidationApprovalSchema>
+    >().toEqualTypeOf<LiquidationApproval>();
+    expectTypeOf<
+      z.infer<typeof liquidationPositionSchema>
+    >().toEqualTypeOf<LiquidationPosition>();
+    expectTypeOf<
+      z.infer<typeof liquidationDetailsSchema>
+    >().toEqualTypeOf<LiquidationDetails>();
   });
 
   it("metric lists enumerate their union exhaustively", () => {

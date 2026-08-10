@@ -217,7 +217,7 @@ export class CreditSuite extends SDKConstruct {
       kind: "strategy",
       chainId: this.chainId,
       creditManagerAddress: cm.address,
-      targetCollateral: this.tokensMeta.token(collateral),
+      targetCollateral: this.tokensMeta.mustGetToken(collateral),
       title: `${this.tokensMeta.symbol(collateral)} / ${market.underlyingToken.symbol}`,
       curator: market.curator,
       underlyingToken: market.underlyingToken,

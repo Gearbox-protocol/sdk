@@ -3,6 +3,7 @@ import type {
   Amount,
   PriceFeedData,
   PriceFeedSummary,
+  TokenAmount,
 } from "../../../model/index.js";
 import type { IBaseContract } from "../../base/index.js";
 import type { MultiCall, PriceOracleStateHuman } from "../../types/index.js";
@@ -156,10 +157,20 @@ export interface IPriceOracleContract extends IBaseContract {
   safeUsdValue: (token: Address, amount: bigint) => number | null;
   /**
    * Pairs a token amount with its USD value, using {@link safeUsdValue}.
+   * Syntactic sugar for high-level sdk.
    * @param token - Token address.
    * @param value - Amount in token decimals.
    **/
   toAmount: (token: Address, value: bigint) => Amount;
+  /**
+   * Like {@link toAmount}, but also names the token, for the fields where the
+   * owning group does not.
+   * Syntactic sugar for high-level sdk.
+   * @param token - Token address.
+   * @param value - Amount in token decimals.
+   * @throws If the token is not in the registry.
+   **/
+  toTokenAmount: (token: Address, value: bigint) => TokenAmount;
   /**
    * Describes a token's main price feed and everything it reads from.
    * Reserve feeds are not included.

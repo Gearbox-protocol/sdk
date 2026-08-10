@@ -7,6 +7,8 @@
  **/
 export * from "./history.js";
 export * from "./history.schema.js";
+export * from "./liquidations.js";
+export * from "./liquidations.schema.js";
 export * from "./opportunities.js";
 export * from "./opportunities.schema.js";
 export * from "./primitives.js";

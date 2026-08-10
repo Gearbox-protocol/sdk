@@ -172,7 +172,7 @@ export class MarketSuite extends SDKConstruct {
    * wrapper converts one-for-one, so amounts denominated in it stay exact.
    */
   public get underlyingToken(): Token {
-    return this.tokensMeta.token(this.unwrappedUnderlying);
+    return this.tokensMeta.mustGetToken(this.unwrappedUnderlying);
   }
 
   /**
@@ -199,7 +199,7 @@ export class MarketSuite extends SDKConstruct {
   public get collateralTokens(): Token[] {
     const seen = new AddressMap<Token>(undefined, "collateralTokens");
     for (const { collateral } of this.strategies) {
-      seen.upsert(collateral, this.tokensMeta.token(collateral));
+      seen.upsert(collateral, this.tokensMeta.mustGetToken(collateral));
     }
     return seen.values();
   }
@@ -231,7 +231,7 @@ export class MarketSuite extends SDKConstruct {
     const { underlying } = this;
 
     return this.pool.pqk.quotas.entries().map(([token, quota]) => ({
-      token: this.tokensMeta.token(token),
+      token: this.tokensMeta.mustGetToken(token),
       quotaRate: quota.rate,
       // quota limits are denominated in the market's underlying, not in the
       // quoted token itself
