@@ -6,8 +6,10 @@ import type {
 } from "viem";
 import { iPoolV310Abi } from "../../../abi/310/generated.js";
 import { iPausableAbi } from "../../../abi/iPausable.js";
+import type { Bps } from "../../../model/index.js";
 import type { CreditManagerDebtParams, PoolState } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
+import { RAY } from "../../constants/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import type { PoolStateHuman, RawTx } from "../../types/index.js";
 import {
@@ -16,6 +18,7 @@ import {
   formatBNvalue,
   percentFmt,
 } from "../../utils/index.js";
+import { utilizationBps } from "../math.js";
 import type { IRWAFactory } from "../rwa/types.js";
 import type { IPoolContract } from "./types.js";
 
@@ -64,6 +67,36 @@ export class PoolV310Contract
       return this.#sdk.mustGetContract<IRWAFactory>(meta.rwaFactory);
     }
     return undefined;
+  }
+
+  /**
+   * {@inheritDoc IPoolContract.borrowed}
+   */
+  public get borrowed(): bigint {
+    return this.expectedLiquidity > this.availableLiquidity
+      ? this.expectedLiquidity - this.availableLiquidity
+      : 0n;
+  }
+
+  /**
+   * {@inheritDoc IPoolContract.totalAssets}
+   */
+  public get totalAssets(): bigint {
+    return (this.totalSupply * this.dieselRate) / RAY;
+  }
+
+  /**
+   * {@inheritDoc IPoolContract.utilization}
+   */
+  public get utilization(): Bps {
+    return utilizationBps(this.borrowed, this.expectedLiquidity);
+  }
+
+  /**
+   * {@inheritDoc IPoolContract.unwrappedUnderlying}
+   */
+  public get unwrappedUnderlying(): Address {
+    return this.tokensMeta.unwrapRWA(this.underlying);
   }
 
   public override stateHuman(raw = true): PoolStateHuman {

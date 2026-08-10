@@ -29,6 +29,21 @@
       "import": "./dist/esm/history/index.js",
       "default": "./dist/cjs/history/index.js"
     },
+    "./model": {
+      "types": "./dist/types/model/index.d.ts",
+      "import": "./dist/esm/model/index.js",
+      "default": "./dist/cjs/model/index.js"
+    },
+    "./new-sdk": {
+      "types": "./dist/types/new-sdk/index.d.ts",
+      "import": "./dist/esm/new-sdk/index.js",
+      "default": "./dist/cjs/new-sdk/index.js"
+    },
+    "./offchain": {
+      "types": "./dist/types/offchain/index.d.ts",
+      "import": "./dist/esm/offchain/index.js",
+      "default": "./dist/cjs/offchain/index.js"
+    },
     "./plugins/*": {
       "types": "./dist/types/plugins/*/index.d.ts",
       "import": "./dist/esm/plugins/*/index.js",

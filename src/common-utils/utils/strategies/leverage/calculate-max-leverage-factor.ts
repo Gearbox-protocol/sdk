@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 import { PERCENTAGE_FACTOR } from "../../../../sdk/index.js";
 
-import { BigIntMath } from "../../bigint-math.js";
+import { BigIntMath } from "../../../../sdk/utils/bigint-math.js";
 import { calculateLossCoefficient } from "./calculate-loss-coefficient.js";
 import type { LeverageFactor } from "./get-factor-from-leverage.js";
 import { maxLeverage } from "./max-leverage.js";

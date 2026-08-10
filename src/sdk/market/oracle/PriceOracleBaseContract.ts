@@ -7,6 +7,12 @@ import type {
 } from "viem";
 import { stringToHex } from "viem";
 import { priceFeedCompressorAbi } from "../../../abi/compressors/priceFeedCompressor.js";
+import type {
+  Amount,
+  PriceFeedData,
+  PriceFeedSummary,
+  TokenAmount,
+} from "../../../model/index.js";
 import type { BaseContractArgs } from "../../base/BaseContract.js";
 import type {
   PriceFeedMapEntry,
@@ -23,6 +29,7 @@ import type { OnchainSDK } from "../../OnchainSDK.js";
 import type { PriceOracleStateHuman } from "../../types/index.js";
 import { AddressMap, formatBN } from "../../utils/index.js";
 import type { DelegatedMulticall } from "../../utils/viem/index.js";
+import { usdToNumber } from "../math.js";
 import type {
   IPriceFeedContract,
   PriceFeedUsageType,
@@ -191,6 +198,71 @@ export abstract class PriceOracleBaseContract<
     const price = reserve ? this.reservePrice(to) : this.mainPrice(to);
     const scale = 10n ** BigInt(this.tokensMeta.decimals(to));
     return (amount * scale) / price;
+  }
+
+  /**
+   * {@inheritDoc IPriceOracleContract.safeUsdValue}
+   **/
+  public safeUsdValue(token: Address, amount: bigint): number | null {
+    try {
+      return usdToNumber(this.convertToUSD(token, amount));
+    } catch (e) {
+      this.logger?.debug(`cannot price ${this.labelAddress(token)}: ${e}`);
+      return null;
+    }
+  }
+
+  // bound fields, not methods: the read-model mappers are meant to be handed
+  // to code that maps a list of amounts and does not know the oracle
+  /**
+   * {@inheritDoc IPriceOracleContract.toAmount}
+   **/
+  public toAmount = (token: Address, value: bigint): Amount => {
+    return { value, valueUsd: this.safeUsdValue(token, value) };
+  };
+
+  /**
+   * {@inheritDoc IPriceOracleContract.toTokenAmount}
+   **/
+  public toTokenAmount = (token: Address, value: bigint): TokenAmount => {
+    return {
+      token: this.tokensMeta.mustGetToken(token),
+      ...this.toAmount(token, value),
+    };
+  };
+
+  /**
+   * {@inheritDoc IPriceOracleContract.priceFeedData}
+   **/
+  public priceFeedData(token: Address): PriceFeedData {
+    const ref = this.mainPriceFeeds.get(token);
+    if (!ref) {
+      throw new Error(
+        `no main price feed for ${this.labelAddress(token)} in oracle ${this.labelAddress(this.address)}`,
+      );
+    }
+    return ref.priceFeed.describe();
+  }
+
+  /**
+   * {@inheritDoc IPriceOracleContract.priceFeedSummary}
+   **/
+  public priceFeedSummary(
+    underlying: Address,
+    collateral: Address,
+  ): PriceFeedSummary {
+    const collateralUnit = 10n ** BigInt(this.tokensMeta.decimals(collateral));
+    const underlyingUnit = 10n ** BigInt(this.tokensMeta.decimals(underlying));
+
+    return {
+      underlyingPriceInUsd: usdToNumber(this.mainPrice(underlying)),
+      collateralPriceInUsd: usdToNumber(this.mainPrice(collateral)),
+      collateralPriceInUnderlying:
+        Number(this.convert(collateral, underlying, collateralUnit)) /
+        Number(underlyingUnit),
+      underlyingFeed: this.priceFeedData(underlying),
+      collateralFeed: this.priceFeedData(collateral),
+    };
   }
 
   /**

@@ -1,6 +1,7 @@
-import type { ContractEventName, Log } from "viem";
+import type { Address, ContractEventName, Log } from "viem";
 
 import { iPoolQuotaKeeperV310Abi } from "../../../abi/310/generated.js";
+import type { Bps } from "../../../model/index.js";
 import type {
   ConstructOptions,
   IBaseContract,
@@ -41,6 +42,35 @@ export class PoolQuotaKeeperV310Contract
       }),
       "quotas",
     );
+  }
+
+  /**
+   * Whether the market still accepts quota for a token: a token whose quota is
+   * inactive or whose limit is exhausted can no longer back a new position.
+   *
+   * @param token - Token address.
+   */
+  public hasActiveQuota(token: Address): boolean {
+    const quota = this.quotas.get(token);
+    return !!quota?.isActive && quota.limit > 0n;
+  }
+
+  /**
+   * Every token the market still accepts quota for, see
+   * {@link hasActiveQuota}.
+   */
+  public get activeQuotaTokens(): Address[] {
+    return this.quotas.keys().filter(token => this.hasActiveQuota(token));
+  }
+
+  /**
+   * Annual quota rate paid on a quoted token, in basis points, or `0` when the
+   * market does not quote it.
+   *
+   * @param token - Quoted token address.
+   */
+  public quotaRate(token: Address): Bps {
+    return this.quotas.get(token)?.rate ?? 0;
   }
 
   public override stateHuman(raw = true): PoolQuotaKeeperStateHuman {

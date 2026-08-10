@@ -1,9 +1,16 @@
 import { decodeAbiParameters } from "viem";
 import { iLinearInterestRateModelV310Abi } from "../../../abi/310/iLinearInterestRateModelV310.js";
+import type { RateCurve } from "../../../model/index.js";
 import type { BaseState, ConstructOptions } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
 import type { LinearInterestRateModelStateHuman } from "../../types/index.js";
 import { percentFmt } from "../../utils/index.js";
+import type { RateModelParams } from "./math.js";
+import {
+  borrowRateAtUtilization,
+  rateCurveUtilizations,
+  supplyRateAtUtilization,
+} from "./math.js";
 import type { IInterestRateModelContract } from "./types.js";
 
 const abi = iLinearInterestRateModelV310Abi;
@@ -56,6 +63,39 @@ export class LinearInterestRateModelContract
     this.Rslope2 = Rslope2;
     this.Rslope3 = Rslope3;
     this.isBorrowingMoreU2Forbidden = isBorrowingMoreU2Forbidden;
+  }
+
+  /**
+   * The model's own parameters, gathered for the rate math.
+   */
+  public get params(): RateModelParams {
+    return {
+      U1: this.U1,
+      U2: this.U2,
+      Rbase: this.Rbase,
+      Rslope1: this.Rslope1,
+      Rslope2: this.Rslope2,
+      Rslope3: this.Rslope3,
+      isBorrowingMoreU2Forbidden: this.isBorrowingMoreU2Forbidden,
+    };
+  }
+
+  /**
+   * The model evaluated into chart-ready points, so that no consumer has to
+   * reimplement it.
+   */
+  public rateCurve(): RateCurve {
+    const { params } = this;
+    return {
+      points: rateCurveUtilizations(params).map(utilization => ({
+        utilization,
+        supplyApy: supplyRateAtUtilization(utilization, params),
+        borrowApy: borrowRateAtUtilization(utilization, params),
+      })),
+      borrowingLimitUtilization: params.isBorrowingMoreU2Forbidden
+        ? params.U2
+        : null,
+    };
   }
 
   public override stateHuman(raw?: boolean): LinearInterestRateModelStateHuman {

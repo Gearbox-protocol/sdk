@@ -2,7 +2,7 @@ import {
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
 } from "../../../sdk/constants/math.js";
-import { BigIntMath } from "../../utils/bigint-math.js";
+import { BigIntMath } from "../../../sdk/utils/bigint-math.js";
 import type {
   CreditManagerSlice,
   PoolSlice,
