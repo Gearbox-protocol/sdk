@@ -90,6 +90,16 @@ export interface HistoryPoint {
 }
 
 /**
+ * Annotations the backend ships alongside a series, e.g. what a chart drawn
+ * from it should say beyond the points themselves.
+ *
+ * TODO: the backend has not specified this payload yet. It stays empty until
+ * it does, so that filling it in later is additive rather than a rename.
+ **/
+// biome-ignore lint/suspicious/noEmptyInterface: placeholder, see doc comment
+export interface HistoryChartMetadata {}
+
+/**
  * A named series of samples ordered by ascending timestamp.
  *
  * @typeParam M - Metric the series carries.
@@ -104,6 +114,10 @@ export interface HistorySeries<M extends string = HistoryMetric> {
    * Samples, oldest first.
    **/
   points: HistoryPoint[];
+  /**
+   * What the backend says about the series, see {@link HistoryChartMetadata}.
+   **/
+  metadata: HistoryChartMetadata;
 }
 
 /**

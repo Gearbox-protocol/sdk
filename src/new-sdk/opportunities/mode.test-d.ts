@@ -1,12 +1,13 @@
 import { describe, expectTypeOf, it } from "vitest";
 import type {
-  HistoryRange,
-  HistorySeries,
+  PoolHistoryMetric,
   PoolOpportunityRef,
+  StrategyHistoryMetric,
   StrategyOpportunityRef,
 } from "../../model/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
-import type { Mode, ReadResult } from "../types.js";
+import type { Mode } from "../types.js";
+import type { Chart } from "../utils/index.js";
 import type { Opportunities } from "./types.js";
 
 /**
@@ -39,34 +40,39 @@ describe("mode gates method existence", () => {
   });
 });
 
-describe("the opportunity kind gates which series it has", () => {
+describe("the opportunity kind gates which charts it has", () => {
   const opportunities = {} as Opportunities<"both">;
   const pool = {} as PoolOpportunityRef;
   const strategy = {} as StrategyOpportunityRef;
 
-  it("serves the metrics of the kind the key names", () => {
-    expectTypeOf(opportunities.history(pool)).toHaveProperty("depositApy");
-    expectTypeOf(opportunities.history(strategy)).toHaveProperty("netApy");
+  it("takes the metrics of the kind the key names", () => {
+    expectTypeOf(opportunities.history(pool).chart)
+      .parameter(0)
+      .toEqualTypeOf<PoolHistoryMetric>();
+    expectTypeOf(opportunities.history(strategy).chart)
+      .parameter(0)
+      .toEqualTypeOf<StrategyHistoryMetric>();
+    expectTypeOf(opportunities.history(pool).chart).toBeCallableWith(
+      "depositApy",
+      "1m",
+    );
+    expectTypeOf(opportunities.history(strategy).chart).toBeCallableWith(
+      "tvl",
+      "1y",
+    );
   });
 
-  it("has no method for a metric the other kind owns", () => {
-    expectTypeOf(opportunities.history(pool)).not.toHaveProperty(
-      "underlyingUsdPrice",
-    );
-    expectTypeOf(opportunities.history(strategy)).not.toHaveProperty(
-      "dieselRate",
-    );
+  it("rejects a metric the other kind owns", () => {
+    // @ts-expect-error `tvl` is a strategy metric
+    opportunities.history(pool).chart("tvl", "1y");
+    // @ts-expect-error `dieselRate` is a pool metric
+    opportunities.history(strategy).chart("dieselRate", "1m");
   });
 
-  it("types a series with the metric its method named", () => {
-    // the point of the method bag: the result is not the whole metric union
+  it("answers with the points to draw and what annotates them", () => {
     expectTypeOf(
-      opportunities.history(strategy).underlyingUsdPrice,
-    ).toEqualTypeOf<
-      (
-        range: HistoryRange,
-      ) => Promise<ReadResult<HistorySeries<"underlyingUsdPrice">>>
-    >();
+      opportunities.history(strategy).chart,
+    ).returns.resolves.toEqualTypeOf<Chart>();
   });
 });
 

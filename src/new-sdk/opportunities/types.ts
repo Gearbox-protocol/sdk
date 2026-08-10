@@ -11,7 +11,7 @@ import type {
   StrategyOpportunityRef,
 } from "../../model/index.js";
 import type { Mode, ReadResult } from "../types.js";
-import type { HistoryMethods } from "../utils/history.js";
+import type { HistoryReader } from "../utils/history.js";
 
 /**
  * Reads every mode supports, because either source alone can answer them.
@@ -41,8 +41,8 @@ export interface OpportunitiesBase {
  **/
 export interface OpportunitiesOffchainOnly {
   /**
-   * Historical series of one opportunity, one method per metric:
-   * `history(key).depositApy("1m")`.
+   * Historical charts of one opportunity, one metric and one range at a time:
+   * `history(key).chart("depositApy", "1m")`.
    *
    * The key's kind decides which metrics exist, so asking a pool for a
    * strategy series does not compile.
@@ -50,8 +50,8 @@ export interface OpportunitiesOffchainOnly {
    * Absent in `onchain` mode: the chain serves the present, and rebuilding a
    * series from it would mean an archive read per point.
    **/
-  history(key: PoolOpportunityRef): HistoryMethods<PoolHistoryMetric>;
-  history(key: StrategyOpportunityRef): HistoryMethods<StrategyHistoryMetric>;
+  history(key: PoolOpportunityRef): HistoryReader<PoolHistoryMetric>;
+  history(key: StrategyOpportunityRef): HistoryReader<StrategyHistoryMetric>;
 }
 
 /**

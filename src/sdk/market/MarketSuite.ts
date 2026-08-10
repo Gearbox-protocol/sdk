@@ -295,7 +295,7 @@ export class MarketSuite extends SDKConstruct {
     return {
       kind: "pool",
       chainId: this.chainId,
-      poolAddress: pool.address,
+      pool: pool.address,
       title: `${this.underlyingToken.symbol} Pool`,
       curator: this.curator,
       underlyingToken: this.underlyingToken,

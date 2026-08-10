@@ -1,5 +1,6 @@
 import type {
   HistoryMetric,
+  HistoryRange,
   Opportunity,
   OpportunityFilter,
   OpportunityId,
@@ -13,18 +14,13 @@ import type {
   StrategyOpportunityKey,
   StrategyOpportunityRef,
 } from "../../model/index.js";
-import {
-  opportunityId,
-  POOL_HISTORY_METRICS,
-  STRATEGY_HISTORY_METRICS,
-} from "../../model/index.js";
+import { opportunityId } from "../../model/index.js";
 import type { GearboxAPI } from "../../offchain/index.js";
 import type { MultichainSDK } from "../../sdk/index.js";
 import type { ILogger } from "../../sdk/types/logger.js";
 import { AbstractNamespace } from "../AbstractNamespace.js";
 import type { ReadResult } from "../types.js";
-import type { HistoryMethods } from "../utils/index.js";
-import { createHistoryMethods } from "../utils/index.js";
+import type { Chart, HistoryReader } from "../utils/index.js";
 import type { OpportunitiesBase, OpportunitiesOffchainOnly } from "./types.js";
 
 /**
@@ -110,37 +106,41 @@ export class OpportunitiesNamespace
   /**
    * {@inheritDoc OpportunitiesOffchainOnly.history}
    **/
-  public history(key: PoolOpportunityRef): HistoryMethods<PoolHistoryMetric>;
+  public history(key: PoolOpportunityRef): HistoryReader<PoolHistoryMetric>;
   public history(
     key: StrategyOpportunityRef,
-  ): HistoryMethods<StrategyHistoryMetric>;
+  ): HistoryReader<StrategyHistoryMetric>;
   public history(
     key: OpportunityKey,
-  ): HistoryMethods<PoolHistoryMetric> | HistoryMethods<StrategyHistoryMetric> {
-    return key.kind === "pool"
-      ? this.#history(key, POOL_HISTORY_METRICS)
-      : this.#history(key, STRATEGY_HISTORY_METRICS);
+  ): HistoryReader<PoolHistoryMetric> | HistoryReader<StrategyHistoryMetric> {
+    // nothing is fetched here: the reader is a view over the backend read, so
+    // each chart is requested on its own, when it is asked for
+    return {
+      chart: (metric: HistoryMetric, range: HistoryRange) =>
+        this.#chart(key, metric, range),
+    };
   }
 
   /**
-   * Binds the metrics of one opportunity kind to the backend read.
+   * Reads one chart of one opportunity from the backend.
    *
-   * Nothing is fetched here: the bag is a view over
-   * {@link AbstractNamespace.readOffchain}, so an unused method costs nothing
-   * and each series is requested on its own.
+   * The metric a caller may name is gated by the reader's type, so the kind of
+   * the key is not re-checked here.
    **/
-  #history<M extends HistoryMetric>(
+  async #chart(
     key: OpportunityKey,
-    metrics: readonly M[],
-  ): HistoryMethods<M> {
-    return createHistoryMethods(metrics, (metric, range) =>
-      this.readOffchain(
-        `get ${metric} history`,
-        api =>
-          api.opportunities.getHistory({ opportunity: key, range, metric }),
-        { metric, points: [] },
-      ),
+    metric: HistoryMetric,
+    range: HistoryRange,
+  ): Promise<Chart> {
+    const { result, meta } = await this.readOffchain(
+      `get ${metric} history`,
+      api => api.opportunities.getHistory({ opportunity: key, range, metric }),
+      { metric, points: [], metadata: {} },
     );
+    return {
+      data: result.points,
+      metadata: { ...result.metadata, source: meta },
+    };
   }
 
   /**

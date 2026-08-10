@@ -61,9 +61,7 @@ export class OpportunitiesService extends SDKConstruct {
   public async getPool(
     key: PoolOpportunityKey,
   ): Promise<PoolOpportunityDetail> {
-    return this.sdk.marketRegister
-      .findByPool(key.poolAddress)
-      .poolOpportunityDetail();
+    return this.sdk.marketRegister.findByPool(key.pool).poolOpportunityDetail();
   }
 
   /**
@@ -77,18 +75,18 @@ export class OpportunitiesService extends SDKConstruct {
     key: StrategyOpportunityKey,
   ): Promise<StrategyOpportunityDetail> {
     const market = this.sdk.marketRegister.findByCreditManager(
-      key.creditManagerAddress,
+      key.creditManager,
     );
     // rejects an unknown key before the credit-account query rather than after
     const { suite } = market.mustFindStrategy(
-      key.creditManagerAddress,
+      key.creditManager,
       key.targetCollateral,
     );
 
     const totals = await this.#strategyTotals([market]);
     return suite.strategyOpportunityDetail(
       key.targetCollateral,
-      totals(key.creditManagerAddress, key.targetCollateral),
+      totals(key.creditManager, key.targetCollateral),
     );
   }
 

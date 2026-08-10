@@ -1,40 +1,48 @@
-import type { HistoryRange, HistorySeries } from "../../model/index.js";
-import type { ReadResult } from "../types.js";
+import type {
+  HistoryChartMetadata,
+  HistoryMetric,
+  HistoryPoint,
+  HistoryRange,
+} from "../../model/index.js";
+import type { SourceMeta } from "../types.js";
 
 /**
- * One method per metric, each reading that metric's series for a range.
+ * Everything that annotates a chart: what the backend said about the series,
+ * plus which sources produced it.
+ **/
+export interface ChartMetadata extends HistoryChartMetadata {
+  /**
+   * Which sources answered, see {@link SourceMeta}. A chart is backend-only,
+   * so this reports the backend alone.
+   **/
+  source: SourceMeta;
+}
+
+/**
+ * One chart: the points to draw and everything that annotates them.
+ **/
+export interface Chart {
+  /**
+   * Samples, oldest first.
+   **/
+  data: HistoryPoint[];
+  /**
+   * Annotations of the series, see {@link ChartMetadata}.
+   **/
+  metadata: ChartMetadata;
+}
+
+/**
+ * Reads the charts of one subject, one metric and one range at a time.
  *
  * @typeParam Metric - Metrics the subject has.
  **/
-export type HistoryMethods<Metric extends string> = {
-  [M in Metric]: (range: HistoryRange) => Promise<ReadResult<HistorySeries<M>>>;
-};
-
-/**
- * How a namespace reads one series, given the metric the caller named.
- *
- * @typeParam Metric - Metrics the subject has.
- **/
-export type FetchHistorySeries<Metric extends string> = (
-  metric: Metric,
-  range: HistoryRange,
-) => Promise<ReadResult<HistorySeries<Metric>>>;
-
-/**
- * Builds the {@link HistoryMethods} bag of a subject from its metric list.
- *
- * @typeParam Metric - Metrics the subject has.
- * @param metrics - Metrics to expose, one method each.
- * @param fetch - Reads one series, see {@link FetchHistorySeries}.
- **/
-export function createHistoryMethods<Metric extends string>(
-  metrics: readonly Metric[],
-  fetch: FetchHistorySeries<Metric>,
-): HistoryMethods<Metric> {
-  return Object.fromEntries(
-    metrics.map(metric => [
-      metric,
-      (range: HistoryRange) => fetch(metric, range),
-    ]),
-  ) as HistoryMethods<Metric>;
+export interface HistoryReader<Metric extends HistoryMetric> {
+  /**
+   * Historical chart of one metric over one window.
+   *
+   * A metric the subject does not have is a compile error rather than an empty
+   * chart.
+   **/
+  chart(metric: Metric, range: HistoryRange): Promise<Chart>;
 }

@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import type { HistoryChartMetadata } from "./history.js";
 import { opportunityKeySchema } from "./opportunities.schema.js";
 import { timestampSchema } from "./primitives.schema.js";
 
@@ -60,11 +61,20 @@ export const historyPointSchema = z.object({
 });
 
 /**
+ * {@link HistoryChartMetadata}
+ *
+ * TODO: empty until the backend specifies the payload.
+ **/
+export const historyChartMetadataSchema: z.ZodType<HistoryChartMetadata> =
+  z.object({});
+
+/**
  * {@link HistorySeries}
  **/
 export const historySeriesSchema = z.object({
   metric: historyMetricSchema,
   points: z.array(historyPointSchema),
+  metadata: historyChartMetadataSchema,
 });
 
 /**

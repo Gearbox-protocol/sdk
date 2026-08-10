@@ -192,14 +192,14 @@ export interface OpportunityBase {
 /**
  * Passive lending into a Gearbox pool.
  *
- * Identified by `(chainId, poolAddress)`, see {@link poolOpportunityId}.
+ * Identified by `(chainId, pool)`, see {@link poolOpportunityId}.
  **/
 export interface PoolOpportunity extends OpportunityBase {
   kind: "pool";
   /**
    * Address of the ERC-4626 pool contract.
    **/
-  poolAddress: Address;
+  pool: Address;
 }
 
 /**
@@ -207,7 +207,7 @@ export interface PoolOpportunity extends OpportunityBase {
  * A credit manager that accepts five collateral tokens therefore produces five
  * strategies.
  *
- * Identified by `(chainId, creditManagerAddress, targetCollateral.address)`,
+ * Identified by `(chainId, creditManager, targetCollateral.address)`,
  * see {@link strategyOpportunityId}.
  **/
 export interface StrategyOpportunity extends OpportunityBase {
@@ -215,7 +215,7 @@ export interface StrategyOpportunity extends OpportunityBase {
   /**
    * Address of the credit manager the position is opened in.
    **/
-  creditManagerAddress: Address;
+  creditManager: Address;
   /**
    * Collateral token the position is built around.
    **/
@@ -306,9 +306,9 @@ export type OpportunityId = string;
  **/
 export function poolOpportunityId(
   chainId: ChainId,
-  poolAddress: Address,
+  pool: Address,
 ): OpportunityId {
-  return `${chainId}:${poolAddress.toLowerCase()}`;
+  return `${chainId}:${pool.toLowerCase()}`;
 }
 
 /**
@@ -321,10 +321,10 @@ export function poolOpportunityId(
  **/
 export function strategyOpportunityId(
   chainId: ChainId,
-  creditManagerAddress: Address,
+  creditManager: Address,
   targetCollateral: Address,
 ): OpportunityId {
-  return `${chainId}:${creditManagerAddress.toLowerCase()}:${targetCollateral.toLowerCase()}`;
+  return `${chainId}:${creditManager.toLowerCase()}:${targetCollateral.toLowerCase()}`;
 }
 
 /**
@@ -332,10 +332,10 @@ export function strategyOpportunityId(
  **/
 export function opportunityId(opportunity: Opportunity): OpportunityId {
   return opportunity.kind === "pool"
-    ? poolOpportunityId(opportunity.chainId, opportunity.poolAddress)
+    ? poolOpportunityId(opportunity.chainId, opportunity.pool)
     : strategyOpportunityId(
         opportunity.chainId,
-        opportunity.creditManagerAddress,
+        opportunity.creditManager,
         opportunity.targetCollateral.address,
       );
 }
@@ -591,7 +591,7 @@ export type OpportunityDetail =
  **/
 export interface PoolOpportunityKey {
   chainId: ChainId;
-  poolAddress: Address;
+  pool: Address;
 }
 
 /**
@@ -599,7 +599,7 @@ export interface PoolOpportunityKey {
  **/
 export interface StrategyOpportunityKey {
   chainId: ChainId;
-  creditManagerAddress: Address;
+  creditManager: Address;
   /**
    * Address of the target collateral token.
    **/

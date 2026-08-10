@@ -117,7 +117,7 @@ export class OffchainOpportunities {
       "offchain opportunities history is not implemented, serving empty series",
     );
     return {
-      result: { metric: query.metric, points: [] },
+      result: { metric: query.metric, points: [], metadata: {} },
       meta: { status: "success" },
     };
   }

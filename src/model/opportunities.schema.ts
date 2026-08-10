@@ -92,7 +92,7 @@ export const opportunityBaseSchema = z.object({
 export const poolOpportunitySchema = z.object({
   ...opportunityBaseSchema.shape,
   kind: z.literal("pool"),
-  poolAddress: ZodAddress(),
+  pool: ZodAddress(),
 });
 
 /**
@@ -101,7 +101,7 @@ export const poolOpportunitySchema = z.object({
 export const strategyOpportunitySchema = z.object({
   ...opportunityBaseSchema.shape,
   kind: z.literal("strategy"),
-  creditManagerAddress: ZodAddress(),
+  creditManager: ZodAddress(),
   targetCollateral: tokenSchema,
   liquidationThreshold: bpsSchema,
   liquidationPremium: bpsSchema,
@@ -215,7 +215,7 @@ export const opportunityDetailSchema = z.discriminatedUnion("kind", [
  **/
 export const poolOpportunityKeySchema = z.object({
   chainId: chainIdSchema,
-  poolAddress: ZodAddress(),
+  pool: ZodAddress(),
 });
 
 /**
@@ -223,7 +223,7 @@ export const poolOpportunityKeySchema = z.object({
  **/
 export const strategyOpportunityKeySchema = z.object({
   chainId: chainIdSchema,
-  creditManagerAddress: ZodAddress(),
+  creditManager: ZodAddress(),
   targetCollateral: ZodAddress(),
 });
 
