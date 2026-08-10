@@ -79,6 +79,7 @@ export const liquidationApprovalSchema = tokenAmountSchema.extend({
  **/
 export const liquidationPositionSchema = z.object({
   kind: z.literal("liquidation"),
+  name: z.string(),
   chainId: chainIdSchema,
   sourceToken: tokenSchema,
   output: tokenAmountSchema,

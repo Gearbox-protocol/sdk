@@ -269,7 +269,7 @@ interface SourceMeta {
   data change, not a code change, and the two sides drift silently if only one is updated.
 - **RWA opportunities are reported in the unwrapped underlying.** An RWA market borrows a
   compliance wrapper of an ordinary token (`dcUSDC` for `USDC`), and `underlyingToken` — plus
-  the `title` built from it, plus the `underlyingType` lookup in `underlyingAssetTypes` — is
+  the `name` built from it, plus the `underlyingType` lookup in `underlyingAssetTypes` — is
   the token that wrapper holds, not the wrapper. The wrapper converts one-for-one, so the
   amounts denominated in it stay exact and no conversion is involved. Both sides must unwrap
   the same way: the merge is group-wise, so a backend that reports the wrapper would hand the

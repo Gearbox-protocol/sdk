@@ -1,7 +1,6 @@
 import { type Address, isAddressEqual } from "viem";
 
 import type {
-  Amount,
   Curator,
   Opportunity,
   OpportunityFilter,
@@ -25,6 +24,7 @@ import {
   type ILossPolicyContract,
 } from "./loss-policy/index.js";
 import { MarketConfiguratorContract } from "./MarketConfiguratorContract.js";
+import { rayToBps } from "./math.js";
 import type { IPriceOracleContract } from "./oracle/index.js";
 import { createPriceOracle } from "./oracle/index.js";
 import { PoolSuite } from "./pool/index.js";
@@ -38,18 +38,6 @@ export interface StrategyRef {
   suite: CreditSuite;
   collateral: Address;
 }
-
-/**
- * Resolves the summed worth of the credit accounts backing one strategy.
- *
- * Passed into the market rather than computed by it: establishing it takes a
- * credit-account query that spans every market of a chain, so doing it per
- * market would turn one query into many.
- */
-export type StrategyTotalsLookup = (
-  creditManager: Address,
-  collateral: Address,
-) => Amount | undefined;
 
 /**
  * Aggregates all SDK wrappers that make up one Gearbox market.
@@ -256,29 +244,19 @@ export class MarketSuite extends SDKConstruct {
    * Every opportunity this market offers: its pool, plus one row per
    * `(credit manager, target collateral)` pair.
    *
-   * @param totals - Resolves the summed worth of the credit accounts backing a
-   * strategy, which only a credit-account query can establish.
    * @param filter - Optional narrowing. A filter naming a kind skips building
    * the other kind entirely; every built row is then checked in full by
    * {@link matchesOpportunityFilter}, so there is one definition of what each
    * criterion means.
    */
-  public opportunities(
-    totals: StrategyTotalsLookup,
-    filter?: OpportunityFilter,
-  ): Opportunity[] {
+  public opportunities(filter?: OpportunityFilter): Opportunity[] {
     const rows: Opportunity[] = [];
     if (filter?.kind !== "strategy") {
       rows.push(this.poolOpportunity());
     }
     if (filter?.kind !== "pool") {
       for (const { suite, collateral } of this.strategies) {
-        rows.push(
-          suite.strategyOpportunity(
-            collateral,
-            totals(suite.creditManager.address, collateral),
-          ),
-        );
+        rows.push(suite.strategyOpportunity(collateral));
       }
     }
     return rows.filter(row => matchesOpportunityFilter(row, filter));
@@ -296,17 +274,15 @@ export class MarketSuite extends SDKConstruct {
       kind: "pool",
       chainId: this.chainId,
       pool: pool.address,
-      title: `${this.underlyingToken.symbol} Pool`,
+      name: `${this.underlyingToken.symbol} Pool`,
       curator: this.curator,
       underlyingToken: this.underlyingToken,
-      totalSupply: {
-        value: pool.totalSupply,
-        // the share token is not the underlying, so its dollar value goes
-        // through the share/underlying rate before reaching the oracle
-        valueUsd: oracle.safeUsdValue(pool.underlying, pool.totalAssets),
-      },
+      // the shares are worth this much underlying at the current rate, which is
+      // what makes the size comparable with the debt drawn against it
+      totalSupply: oracle.toAmount(pool.underlying, pool.totalAssets),
       totalBorrow: oracle.toAmount(pool.underlying, pool.totalBorrowed),
       utilization: pool.utilization,
+      supplyApy: { organicApy: rayToBps(pool.supplyRate) },
       collateralTokens: this.collateralTokens,
       paused: pool.isPaused,
       rwa: this.rwa,
@@ -355,18 +331,16 @@ export class MarketSuite extends SDKConstruct {
    *
    * @param creditManager - Credit manager the position is opened in.
    * @param collateral - Target collateral of the position.
-   * @param totalSupply - Summed worth of the credit accounts backing it.
    * @throws If this market has no such strategy, see {@link mustFindStrategy}.
    */
   public strategyOpportunityDetail(
     creditManager: Address,
     collateral: Address,
-    totalSupply?: Amount,
   ): StrategyOpportunityDetail {
     return this.mustFindStrategy(
       creditManager,
       collateral,
-    ).suite.strategyOpportunityDetail(collateral, totalSupply);
+    ).suite.strategyOpportunityDetail(collateral);
   }
 
   /**

@@ -193,6 +193,10 @@ export interface LiquidationPosition {
    **/
   kind: "liquidation";
   /**
+   * Display name of the position.
+   **/
+  name: string;
+  /**
    * Chain the withdrawal lives on.
    **/
   chainId: ChainId;

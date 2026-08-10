@@ -63,9 +63,9 @@ export const rewardsSchema = z.discriminatedUnion("kind", [
  * {@link ApyBreakdown}
  **/
 export const apyBreakdownSchema = z.object({
-  totalApy: bpsSchema,
+  totalApy: bpsSchema.optional(),
   organicApy: bpsSchema,
-  rewards: z.array(rewardsSchema),
+  rewards: z.array(rewardsSchema).optional(),
 });
 
 /**
@@ -73,13 +73,10 @@ export const apyBreakdownSchema = z.object({
  **/
 export const opportunityBaseSchema = z.object({
   chainId: chainIdSchema,
-  title: z.string(),
+  name: z.string(),
   curator: curatorSchema,
   underlyingToken: tokenSchema,
-  totalSupply: amountSchema,
   totalBorrow: amountSchema,
-  utilization: bpsSchema,
-  supplyApy: apyBreakdownSchema.optional(),
   collateralTokens: z.array(tokenSchema),
   paused: z.boolean(),
   rwa: z.boolean(),
@@ -93,6 +90,9 @@ export const poolOpportunitySchema = z.object({
   ...opportunityBaseSchema.shape,
   kind: z.literal("pool"),
   pool: ZodAddress(),
+  totalSupply: amountSchema,
+  utilization: bpsSchema,
+  supplyApy: apyBreakdownSchema,
 });
 
 /**
@@ -108,8 +108,11 @@ export const strategyOpportunitySchema = z.object({
   liquidationFee: bpsSchema,
   expirationDate: timestampSchema.nullable(),
   collateralApy: apyBreakdownSchema.optional(),
+  maxLeverageApy: apyBreakdownSchema.optional(),
   borrowApy: bpsSchema.optional(),
   additionalBorrowApy: bpsSchema.optional(),
+  totalValue: amountSchema.optional(),
+  utilization: bpsSchema.optional(),
   maxBorrowAmount: amountSchema,
   maxLeverage: leverageSchema,
 });
