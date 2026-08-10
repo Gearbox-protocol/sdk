@@ -68,10 +68,10 @@ export const historySeriesSchema = z.object({
 });
 
 /**
- * {@link HistoryQuery}
+ * {@link OpportunityHistoryQuery}
  **/
-export const historyQuerySchema = z.object({
+export const opportunityHistoryQuerySchema = z.object({
   opportunity: opportunityKeySchema,
   range: historyRangeSchema,
-  metrics: z.array(historyMetricSchema),
+  metric: historyMetricSchema,
 });

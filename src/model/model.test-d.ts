@@ -3,18 +3,20 @@ import type { z } from "zod/v4";
 import type {
   HistoryMetric,
   HistoryPoint,
-  HistoryQuery,
   HistoryRange,
   HistorySeries,
+  OpportunityHistoryQuery,
+  POOL_HISTORY_METRICS,
   PoolHistoryMetric,
+  STRATEGY_HISTORY_METRICS,
   StrategyHistoryMetric,
 } from "./history.js";
 import type {
   historyMetricSchema,
   historyPointSchema,
-  historyQuerySchema,
   historyRangeSchema,
   historySeriesSchema,
+  opportunityHistoryQuerySchema,
   poolHistoryMetricSchema,
   strategyHistoryMetricSchema,
 } from "./history.schema.js";
@@ -187,7 +189,18 @@ describe("model schemas match model types", () => {
       z.infer<typeof historySeriesSchema>
     >().toEqualTypeOf<HistorySeries>();
     expectTypeOf<
-      z.infer<typeof historyQuerySchema>
-    >().toEqualTypeOf<HistoryQuery>();
+      z.infer<typeof opportunityHistoryQuerySchema>
+    >().toEqualTypeOf<OpportunityHistoryQuery>();
+  });
+
+  it("metric lists enumerate their union exhaustively", () => {
+    // the lists are what generate one method per metric, so a metric missing
+    // from one of them is a silently missing method rather than a type error
+    expectTypeOf<
+      (typeof POOL_HISTORY_METRICS)[number]
+    >().toEqualTypeOf<PoolHistoryMetric>();
+    expectTypeOf<
+      (typeof STRATEGY_HISTORY_METRICS)[number]
+    >().toEqualTypeOf<StrategyHistoryMetric>();
   });
 });

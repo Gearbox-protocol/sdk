@@ -1,4 +1,8 @@
-import type { HistoryQuery, HistorySeries } from "../../model/history.js";
+import type {
+  HistoryMetric,
+  HistorySeries,
+  OpportunityHistoryQuery,
+} from "../../model/history.js";
 import type {
   Opportunity,
   OpportunityFilter,
@@ -95,18 +99,26 @@ export class OffchainOpportunities {
   }
 
   /**
-   * Historical series of one opportunity. History exists only here: rebuilding
-   * it from the chain would mean an archive read per point.
+   * One historical series of one opportunity. History exists only here:
+   * rebuilding it from the chain would mean an archive read per point.
    *
-   * @returns An empty list until the backend client is implemented.
+   * The requested metric types the response, so a caller asking for one metric
+   * does not have to narrow the union back down. When the transport lands,
+   * validation is what upholds it: a response carrying a different metric than
+   * the one asked for is a version-skew error like any other.
+   *
+   * @returns An empty series until the backend client is implemented.
    **/
-  public async getHistory(
-    query: HistoryQuery,
-  ): Promise<OffchainResult<HistorySeries[]>> {
+  public async getHistory<M extends HistoryMetric>(
+    query: OpportunityHistoryQuery<M>,
+  ): Promise<OffchainResult<HistorySeries<M>>> {
     this.#logger?.debug(
       { query },
-      "offchain opportunities history is not implemented, serving empty list",
+      "offchain opportunities history is not implemented, serving empty series",
     );
-    return { result: [], meta: { status: "success" } };
+    return {
+      result: { metric: query.metric, points: [] },
+      meta: { status: "success" },
+    };
   }
 }

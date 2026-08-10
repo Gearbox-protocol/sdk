@@ -27,6 +27,18 @@ export type PoolHistoryMetric =
   | "availableLiquidity";
 
 /**
+ * Every {@link PoolHistoryMetric}, for callers that enumerate them.
+ **/
+export const POOL_HISTORY_METRICS = [
+  "depositApy",
+  "borrowApy",
+  "dieselRate",
+  "supplied",
+  "borrowed",
+  "availableLiquidity",
+] as const satisfies readonly PoolHistoryMetric[];
+
+/**
  * Series available for a strategy opportunity.
  *
  * `collateralPrice` is the collateral/underlying series a liquidation-price
@@ -40,6 +52,19 @@ export type StrategyHistoryMetric =
   | "collateralPrice"
   | "collateralUsdPrice"
   | "underlyingUsdPrice";
+
+/**
+ * Every {@link StrategyHistoryMetric}, for callers that enumerate them.
+ **/
+export const STRATEGY_HISTORY_METRICS = [
+  "netApy",
+  "borrowApy",
+  "collateralApy",
+  "tvl",
+  "collateralPrice",
+  "collateralUsdPrice",
+  "underlyingUsdPrice",
+] as const satisfies readonly StrategyHistoryMetric[];
 
 /**
  * Any series the read model can return.
@@ -66,13 +91,15 @@ export interface HistoryPoint {
 
 /**
  * A named series of samples ordered by ascending timestamp.
+ *
+ * @typeParam M - Metric the series carries.
  **/
-export interface HistorySeries {
+export interface HistorySeries<M extends string = HistoryMetric> {
   /**
    * Metric the samples belong to; it also defines their unit, so no separate
    * unit field ships.
    **/
-  metric: HistoryMetric;
+  metric: M;
   /**
    * Samples, oldest first.
    **/
@@ -80,11 +107,15 @@ export interface HistorySeries {
 }
 
 /**
- * A request for one or more series of a single opportunity.
+ * A request for one series of a single opportunity.
+ *
+ * @typeParam M - Metric requested.
  **/
-export interface HistoryQuery {
+export interface OpportunityHistoryQuery<
+  M extends HistoryMetric = HistoryMetric,
+> {
   /**
-   * Opportunity the series belong to.
+   * Opportunity the series belongs to.
    **/
   opportunity: OpportunityKey;
   /**
@@ -92,8 +123,8 @@ export interface HistoryQuery {
    **/
   range: HistoryRange;
   /**
-   * Metrics to return, one {@link HistorySeries} each. Metrics that do not
-   * apply to the opportunity's kind are not returned.
+   * Metric to return. A metric that does not apply to the opportunity's kind
+   * has no series.
    **/
-  metrics: HistoryMetric[];
+  metric: M;
 }

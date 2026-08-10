@@ -1,20 +1,30 @@
 import type {
-  HistoryQuery,
-  HistorySeries,
+  HistoryMetric,
   Opportunity,
   OpportunityFilter,
   OpportunityId,
+  OpportunityKey,
+  PoolHistoryMetric,
   PoolOpportunityDetail,
   PoolOpportunityKey,
+  PoolOpportunityRef,
+  StrategyHistoryMetric,
   StrategyOpportunityDetail,
   StrategyOpportunityKey,
+  StrategyOpportunityRef,
 } from "../../model/index.js";
-import { opportunityId } from "../../model/index.js";
+import {
+  opportunityId,
+  POOL_HISTORY_METRICS,
+  STRATEGY_HISTORY_METRICS,
+} from "../../model/index.js";
 import type { GearboxAPI } from "../../offchain/index.js";
 import type { MultichainSDK } from "../../sdk/index.js";
 import type { ILogger } from "../../sdk/types/logger.js";
 import { AbstractNamespace } from "../AbstractNamespace.js";
 import type { ReadResult } from "../types.js";
+import type { HistoryMethods } from "../utils/index.js";
+import { createHistoryMethods } from "../utils/index.js";
 import type { OpportunitiesBase, OpportunitiesOffchainOnly } from "./types.js";
 
 /**
@@ -98,15 +108,38 @@ export class OpportunitiesNamespace
   }
 
   /**
-   * {@inheritDoc OpportunitiesOffchainOnly.getHistory}
+   * {@inheritDoc OpportunitiesOffchainOnly.history}
    **/
-  public async getHistory(
-    query: HistoryQuery,
-  ): Promise<ReadResult<HistorySeries[]>> {
-    return this.readOffchain(
-      "get opportunity history",
-      api => api.opportunities.getHistory(query),
-      [],
+  public history(key: PoolOpportunityRef): HistoryMethods<PoolHistoryMetric>;
+  public history(
+    key: StrategyOpportunityRef,
+  ): HistoryMethods<StrategyHistoryMetric>;
+  public history(
+    key: OpportunityKey,
+  ): HistoryMethods<PoolHistoryMetric> | HistoryMethods<StrategyHistoryMetric> {
+    return key.kind === "pool"
+      ? this.#history(key, POOL_HISTORY_METRICS)
+      : this.#history(key, STRATEGY_HISTORY_METRICS);
+  }
+
+  /**
+   * Binds the metrics of one opportunity kind to the backend read.
+   *
+   * Nothing is fetched here: the bag is a view over
+   * {@link AbstractNamespace.readOffchain}, so an unused method costs nothing
+   * and each series is requested on its own.
+   **/
+  #history<M extends HistoryMetric>(
+    key: OpportunityKey,
+    metrics: readonly M[],
+  ): HistoryMethods<M> {
+    return createHistoryMethods(metrics, (metric, range) =>
+      this.readOffchain(
+        `get ${metric} history`,
+        api =>
+          api.opportunities.getHistory({ opportunity: key, range, metric }),
+        { metric, points: [] },
+      ),
     );
   }
 

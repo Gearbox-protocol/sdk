@@ -1,6 +1,12 @@
 import { describe, expectTypeOf, it } from "vitest";
+import type {
+  HistoryRange,
+  HistorySeries,
+  PoolOpportunityRef,
+  StrategyOpportunityRef,
+} from "../../model/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
-import type { Mode } from "../types.js";
+import type { Mode, ReadResult } from "../types.js";
 import type { Opportunities } from "./types.js";
 
 /**
@@ -20,16 +26,47 @@ describe("mode gates method existence", () => {
   });
 
   it("history exists only where a backend does", () => {
-    expectTypeOf<Opportunities<"offchain">>().toHaveProperty("getHistory");
-    expectTypeOf<Opportunities<"both">>().toHaveProperty("getHistory");
-    expectTypeOf<Opportunities<"onchain">>().not.toHaveProperty("getHistory");
+    expectTypeOf<Opportunities<"offchain">>().toHaveProperty("history");
+    expectTypeOf<Opportunities<"both">>().toHaveProperty("history");
+    expectTypeOf<Opportunities<"onchain">>().not.toHaveProperty("history");
   });
 
   it("a widened mode degrades to the base reads rather than to everything", () => {
     // consumers whose config object widens `mode` to `Mode` lose the gated
     // methods; they must not silently gain them
     expectTypeOf<Opportunities<Mode>>().toHaveProperty("list");
-    expectTypeOf<Opportunities<Mode>>().not.toHaveProperty("getHistory");
+    expectTypeOf<Opportunities<Mode>>().not.toHaveProperty("history");
+  });
+});
+
+describe("the opportunity kind gates which series it has", () => {
+  const opportunities = {} as Opportunities<"both">;
+  const pool = {} as PoolOpportunityRef;
+  const strategy = {} as StrategyOpportunityRef;
+
+  it("serves the metrics of the kind the key names", () => {
+    expectTypeOf(opportunities.history(pool)).toHaveProperty("depositApy");
+    expectTypeOf(opportunities.history(strategy)).toHaveProperty("netApy");
+  });
+
+  it("has no method for a metric the other kind owns", () => {
+    expectTypeOf(opportunities.history(pool)).not.toHaveProperty(
+      "underlyingUsdPrice",
+    );
+    expectTypeOf(opportunities.history(strategy)).not.toHaveProperty(
+      "dieselRate",
+    );
+  });
+
+  it("types a series with the metric its method named", () => {
+    // the point of the method bag: the result is not the whole metric union
+    expectTypeOf(
+      opportunities.history(strategy).underlyingUsdPrice,
+    ).toEqualTypeOf<
+      (
+        range: HistoryRange,
+      ) => Promise<ReadResult<HistorySeries<"underlyingUsdPrice">>>
+    >();
   });
 });
 
