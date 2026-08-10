@@ -442,28 +442,31 @@ export interface PnlBreakdown {
   rewards: RewardsPnL;
 }
 
-export interface UserCollateral {
+export interface PositionCollateral {
   collateral: Token;
   balance: Amount;
   quota: number;
   /** Epoch seconds */
-  expectedWithdrawalTimestamp?: number;
+  // expectedWithdrawalTimestamp?: number;
+  // withdrawals?: [];
 }
 
-export interface UserPoolPosition {
+// export type UserPositionBase = {};
+
+export interface PoolPosition {
   chainId: number;
   poolAddress: Address;
 
-  supply: Amount;
+  netValue: Amount;
 
   /** Current rates the position is earning. */
-  supplyApy: ApyBreakdown;
+  apy: ApyBreakdown;
 
   /** Accumulated earnings. */
   pnl: PnlBreakdown;
 }
 
-export interface UserStrategyPosition {
+export interface StrategyPosition {
   /**
    * Human label `"<underlying> / <target collateral>"` (e.g. `"WETH / wstETH"`);
    * the target is the dominant non-underlying collateral at the session's
@@ -472,7 +475,6 @@ export interface UserStrategyPosition {
    */
   name: string;
   chainId: number;
-  poolAddress: Address;
   creditManagerAddress: Address;
   creditAccountAddress: Address;
   /**
@@ -493,7 +495,7 @@ export interface UserStrategyPosition {
   /** Current borrow rate. Decimal fraction. */
   borrowApy: number;
   /** Current net APY for the whole position. Decimal fraction. */
-  netApy: ApyBreakdown;
+  netApy?: ApyBreakdown;
 
   debt: Amount;
   /** Total account value (all collateral) in the pool's underlying asset. */
@@ -502,7 +504,7 @@ export interface UserStrategyPosition {
   healthFactor: number;
 
   /** Accumulated earnings. */
-  pnl: PnlBreakdown;
+  pnl?: PnlBreakdown;
 
-  collaterals: UserCollateral[];
+  collaterals: PositionCollateral[];
 }
