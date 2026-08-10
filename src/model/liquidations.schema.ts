@@ -55,7 +55,7 @@ export const instantReceivedAssetSchema = z.object({
 export const delayedReceivedAssetSchema = z.object({
   ...tokenAmountSchema.shape,
   isDelayed: z.literal(true),
-  redeemerAddress: ZodAddress().optional(),
+  redeemer: ZodAddress().optional(),
   claimableAt: timestampSchema.optional(),
 });
 
@@ -78,6 +78,7 @@ export const liquidationApprovalSchema = tokenAmountSchema.extend({
  * {@link LiquidationPosition}
  **/
 export const liquidationPositionSchema = z.object({
+  kind: z.literal("liquidation"),
   chainId: chainIdSchema,
   sourceToken: tokenSchema,
   output: tokenAmountSchema,

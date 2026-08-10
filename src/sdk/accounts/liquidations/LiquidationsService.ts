@@ -178,6 +178,7 @@ export class LiquidationsService extends SDKConstruct {
 
     return [
       ...claimable.map(w => ({
+        kind: "liquidation" as const,
         chainId,
         sourceToken: this.sdk.tokensMeta.mustGetToken(w.token),
         output: this.#withdrawalOutput(w.outputs, w.token),
@@ -185,6 +186,7 @@ export class LiquidationsService extends SDKConstruct {
         redeemer: w.redeemer,
       })),
       ...pending.map(w => ({
+        kind: "liquidation" as const,
         chainId,
         sourceToken: this.sdk.tokensMeta.mustGetToken(w.token),
         output: this.#withdrawalOutput(w.expectedOutputs, w.token),
@@ -286,7 +288,7 @@ export class LiquidationsService extends SDKConstruct {
     outputs: readonly OnchainLiquidationOutput[],
     priceOracle: IPriceOracleContract,
   ): ReceivedAsset[] {
-    return outputs.map(o => {
+    return outputs.map((o): ReceivedAsset => {
       const amount = priceOracle.toTokenAmount(o.token, o.amount);
       if (!o.delayed) {
         return { isDelayed: false, ...amount };
@@ -295,7 +297,7 @@ export class LiquidationsService extends SDKConstruct {
         isDelayed: true,
         ...amount,
         // the contracts use zero for "not applicable"
-        redeemerAddress: hexEq(o.redeemerAddress, ADDRESS_0X0)
+        redeemer: hexEq(o.redeemerAddress, ADDRESS_0X0)
           ? undefined
           : o.redeemerAddress,
         claimableAt: o.claimableAt === 0n ? undefined : Number(o.claimableAt),
