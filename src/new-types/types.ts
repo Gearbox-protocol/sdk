@@ -1,4 +1,5 @@
 import type { Address, Hex, PublicClient } from "viem";
+import { SdkAlreadyAttachedError } from "../sdk/index.js";
 
 export type { Address, Hex } from "viem";
 
@@ -412,3 +413,96 @@ type OpprtunityQueryFilter = {
 //     context: PrepareContext,
 //   ): Promise<PreparedOperation>;
 // }
+
+// ═══════════════════════════════════════════════════════════════
+// Positions
+// ═══════════════════════════════════════════════════════════════
+
+interface TokenRewardsPnL {
+  kind: "token";
+  token: Token;
+  value: Amount;
+}
+
+interface PointsProgramPnL extends PointsProgram {
+  value: number;
+}
+
+interface PointRewardsPnL {
+  kind: "point";
+  points: PointsProgramPnL[];
+}
+
+type RewardsPnL = TokenRewardsPnL | PointRewardsPnL;
+
+export interface PnlBreakdown {
+  /** PnL in the underlying asset (organic interest + price moves). */
+  organic: Amount;
+  total: Amount;
+  rewards: RewardsPnL;
+}
+
+export interface UserCollateral {
+  collateral: Token;
+  balance: Amount;
+  quota: number;
+  /** Epoch seconds */
+  expectedWithdrawalTimestamp?: number;
+}
+
+export interface UserPoolPosition {
+  chainId: number;
+  poolAddress: Address;
+
+  supply: Amount;
+
+  /** Current rates the position is earning. */
+  supplyApy: ApyBreakdown;
+
+  /** Accumulated earnings. */
+  pnl: PnlBreakdown;
+}
+
+export interface UserStrategyPosition {
+  /**
+   * Human label `"<underlying> / <target collateral>"` (e.g. `"WETH / wstETH"`);
+   * the target is the dominant non-underlying collateral at the session's
+   * opening block. Just the underlying symbol when the opening snapshot holds
+   * no other collateral.
+   */
+  name: string;
+  chainId: number;
+  poolAddress: Address;
+  creditManagerAddress: Address;
+  creditAccountAddress: Address;
+  /**
+   * The account's dominant non-underlying collateral at the session's opening
+   * block (greatest opening-block USD value) — the asset the position was
+   * initially leveraged into. `null` when the opening snapshot holds only the
+   * underlying.
+   */
+  targetCollateralAddress: Address | null;
+
+  /**
+   * Debt/equity ratio: `debt / equity` (`equity = totalValue − debt`). `0` =
+   * unleveraged; `0` if underwater. Same notation as the opportunity
+   * `maxLeverage`, and bounded by it.
+   */
+  leverage: number;
+
+  /** Current borrow rate. Decimal fraction. */
+  borrowApy: number;
+  /** Current net APY for the whole position. Decimal fraction. */
+  netApy: ApyBreakdown;
+
+  debt: Amount;
+  /** Total account value (all collateral) in the pool's underlying asset. */
+  totalValue: Amount;
+  /** Decimal fraction; < 1.0 means the position is liquidatable. */
+  healthFactor: number;
+
+  /** Accumulated earnings. */
+  pnl: PnlBreakdown;
+
+  collaterals: UserCollateral[];
+}
