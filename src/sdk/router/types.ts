@@ -122,6 +122,33 @@ export interface FindOneTokenPathProps {
   slippage: number | bigint;
 }
 
+export interface FindManyToOnePathProps {
+  /**
+   * Minimal credit account data on which operation is performed.
+   */
+  creditAccount: RouterCASlice;
+  /**
+   * Minimal credit manager data on which operation is performed.
+   */
+  creditManager: RouterCMSlice;
+  /**
+   * Balances available at execution time.
+   */
+  expectedBalances: Array<Asset>;
+  /**
+   * Balances that must remain on the account after routing.
+   */
+  leftoverBalances: Array<Asset>;
+  /**
+   * Address of desired token to swap into.
+   */
+  target: Address;
+  /**
+   * Slippage in PERCENTAGE_FORMAT (100% = 10_000) per operation.
+   */
+  slippage: number | bigint;
+}
+
 export interface FindOpenStrategyPathProps {
   /**
    * Minimal credit manager data on which operation is performed
@@ -239,6 +266,15 @@ export interface IRouterContract extends IBaseContract {
    *   minimum, and the multi-call sequence to execute.
    **/
   findOneTokenPath: (props: FindOneTokenPathProps) => Promise<RouterResult>;
+
+  /**
+   * Find the best path for swapping one or more balances on an existing
+   * credit account into a target token while preserving explicit leftovers.
+   *
+   * @param props - {@link FindManyToOnePathProps}
+   * @returns The optimal swap result including amount, minimum and calls.
+   */
+  findManyToOnePath: (props: FindManyToOnePathProps) => Promise<RouterResult>;
 
   /**
    * Find the best path for opening a credit account by converting all

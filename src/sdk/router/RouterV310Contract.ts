@@ -10,6 +10,7 @@ import { limitLeftover } from "./helpers.js";
 import type {
   FindBestClosePathProps,
   FindClaimAllRewardsProps,
+  FindManyToOnePathProps,
   FindOneTokenPathProps,
   FindOpenStrategyPathProps,
   IRouterContract,
@@ -90,6 +91,56 @@ export class RouterV310Contract
       BigInt(slippage),
       numSplits,
     ]);
+
+    return {
+      amount: result.amount,
+      minAmount: result.minAmount,
+      calls: [...result.calls],
+    };
+  }
+
+  /**
+   * {@inheritDoc IRouterContract.findManyToOnePath}
+   **/
+  async findManyToOnePath(
+    props: FindManyToOnePathProps,
+  ): Promise<RouterResult> {
+    const {
+      creditAccount,
+      creditManager,
+      expectedBalances,
+      leftoverBalances,
+      target,
+      slippage,
+    } = props;
+    const expectedMap = new AssetsMap(expectedBalances);
+    const leftoverMap = new AssetsMap(leftoverBalances);
+    const getNumSplits = this.#numSplitsGetter(creditManager, expectedBalances);
+    const tData = creditManager.collateralTokens.map(
+      (token): TokenData => ({
+        token,
+        balance: expectedMap.get(token) ?? 0n,
+        leftoverBalance: limitLeftover(leftoverMap.get(token), token) ?? 0n,
+        numSplits: getNumSplits(token),
+        claimRewards: false,
+      }),
+    );
+
+    this.logger?.debug(
+      {
+        creditAccount: creditAccount.creditAccount,
+        creditManager: this.labelAddress(creditManager.address),
+        target: this.labelAddress(target),
+        slippage,
+        tData: this.#debugTokenData(tData),
+      },
+      "calling routeManyToOne",
+    );
+
+    const { result } = await this.contract.simulate.routeManyToOne(
+      [creditAccount.creditAccount, target, BigInt(slippage), tData],
+      { gas: this.sdk.gasLimit },
+    );
 
     return {
       amount: result.amount,
