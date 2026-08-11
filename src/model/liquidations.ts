@@ -155,7 +155,7 @@ export interface DelayedReceivedAsset extends TokenAmount {
    * Redeemer contract transferred to the liquidator, from which the token
    * becomes claimable. `undefined` when the compressor does not report one.
    **/
-  redeemerAddress?: Address;
+  redeemer?: Address;
   /**
    * Estimated moment a pending withdrawal becomes claimable. `undefined`
    * means the withdrawal is claimable now.
@@ -188,6 +188,14 @@ export interface LiquidationApproval extends TokenAmount {
  * A single delayed-withdrawal position owned by the liquidator.
  **/
 export interface LiquidationPosition {
+  /**
+   * Discriminates this position from the other kinds a wallet can hold.
+   **/
+  kind: "liquidation";
+  /**
+   * Display name of the position.
+   **/
+  name: string;
   /**
    * Chain the withdrawal lives on.
    **/

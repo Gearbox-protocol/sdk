@@ -11,5 +11,7 @@ export * from "./liquidations.js";
 export * from "./liquidations.schema.js";
 export * from "./opportunities.js";
 export * from "./opportunities.schema.js";
+export * from "./positions.js";
+export * from "./positions.schema.js";
 export * from "./primitives.js";
 export * from "./primitives.schema.js";

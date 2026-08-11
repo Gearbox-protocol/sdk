@@ -89,6 +89,32 @@ import type {
   tokenRewardsSchema,
 } from "./opportunities.schema.js";
 import type {
+  PnlBreakdown,
+  PointsProgramPnL,
+  PointsRewardsPnL,
+  PoolPosition,
+  Position,
+  PositionCollateral,
+  PositionFilter,
+  PositionKind,
+  RewardsPnL,
+  StrategyPosition,
+  TokenRewardsPnL,
+} from "./positions.js";
+import type {
+  pnlBreakdownSchema,
+  pointsProgramPnLSchema,
+  pointsRewardsPnLSchema,
+  poolPositionSchema,
+  positionCollateralSchema,
+  positionFilterSchema,
+  positionKindSchema,
+  positionSchema,
+  rewardsPnLSchema,
+  strategyPositionSchema,
+  tokenRewardsPnLSchema,
+} from "./positions.schema.js";
+import type {
   Amount,
   AssetType,
   Curator,
@@ -251,6 +277,40 @@ describe("model schemas match model types", () => {
     expectTypeOf<
       z.infer<typeof liquidationDetailsSchema>
     >().toEqualTypeOf<LiquidationDetails>();
+  });
+
+  it("positions", () => {
+    expectTypeOf<
+      z.infer<typeof positionKindSchema>
+    >().toEqualTypeOf<PositionKind>();
+    expectTypeOf<
+      z.infer<typeof tokenRewardsPnLSchema>
+    >().toEqualTypeOf<TokenRewardsPnL>();
+    expectTypeOf<
+      z.infer<typeof pointsProgramPnLSchema>
+    >().toEqualTypeOf<PointsProgramPnL>();
+    expectTypeOf<
+      z.infer<typeof pointsRewardsPnLSchema>
+    >().toEqualTypeOf<PointsRewardsPnL>();
+    expectTypeOf<
+      z.infer<typeof rewardsPnLSchema>
+    >().toEqualTypeOf<RewardsPnL>();
+    expectTypeOf<
+      z.infer<typeof pnlBreakdownSchema>
+    >().toEqualTypeOf<PnlBreakdown>();
+    expectTypeOf<
+      z.infer<typeof positionCollateralSchema>
+    >().toEqualTypeOf<PositionCollateral>();
+    expectTypeOf<
+      z.infer<typeof poolPositionSchema>
+    >().toEqualTypeOf<PoolPosition>();
+    expectTypeOf<
+      z.infer<typeof strategyPositionSchema>
+    >().toEqualTypeOf<StrategyPosition>();
+    expectTypeOf<z.infer<typeof positionSchema>>().toEqualTypeOf<Position>();
+    expectTypeOf<
+      z.infer<typeof positionFilterSchema>
+    >().toEqualTypeOf<PositionFilter>();
   });
 
   it("metric lists enumerate their union exhaustively", () => {

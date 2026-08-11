@@ -56,11 +56,12 @@ export type AssetType = "Stable" | "ETH" | "BTC";
 
 /**
  * Leverage as a plain multiplier, not a percentage and not in basis points.
+ * Floating point number.
  *
  * @example
  * ```ts
- * const x10: Leverage = 10; // 10x, the maximum at a 90% liquidation threshold
- * const x1: Leverage = 1; // unleveraged
+ * const leveraged: Leverage = 5.5;
+ * const unleveraged: Leverage = 1;
  * ```
  **/
 export type Leverage = number;

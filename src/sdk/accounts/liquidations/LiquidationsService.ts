@@ -174,20 +174,14 @@ export class LiquidationsService extends SDKConstruct {
         props.liquidator,
         ...phantomTokens.asArray(),
       );
-    const chainId = this.sdk.chainId;
-
     return [
       ...claimable.map(w => ({
-        chainId,
-        sourceToken: this.sdk.tokensMeta.mustGetToken(w.token),
-        output: this.#withdrawalOutput(w.outputs, w.token),
+        ...this.#liquidationPosition(w.token, w.outputs),
         claimTx: this.#claimTx(w.claimCalls, w.token),
         redeemer: w.redeemer,
       })),
       ...pending.map(w => ({
-        chainId,
-        sourceToken: this.sdk.tokensMeta.mustGetToken(w.token),
-        output: this.#withdrawalOutput(w.expectedOutputs, w.token),
+        ...this.#liquidationPosition(w.token, w.expectedOutputs),
         claimableAt: Number(w.claimableAt),
         redeemer: w.redeemer,
       })),
@@ -256,6 +250,26 @@ export class LiquidationsService extends SDKConstruct {
     return { token: meta, value, valueUsd: null };
   }
 
+  /**
+   * The part a claimable and a pending withdrawal describe the same way. What
+   * separates them — the claim transaction and the moment it becomes
+   * available — is added by the caller.
+   **/
+  #liquidationPosition(
+    token: Address,
+    outputs: readonly WithdrawalOutput[],
+  ): LiquidationPosition {
+    const sourceToken = this.sdk.tokensMeta.mustGetToken(token);
+    const output = this.#withdrawalOutput(outputs, token);
+    return {
+      kind: "liquidation",
+      name: `${sourceToken.symbol} → ${output.token.symbol}`,
+      chainId: this.sdk.chainId,
+      sourceToken,
+      output,
+    };
+  }
+
   #withdrawalOutput(
     outputs: readonly WithdrawalOutput[],
     sourceToken: Address,
@@ -286,7 +300,7 @@ export class LiquidationsService extends SDKConstruct {
     outputs: readonly OnchainLiquidationOutput[],
     priceOracle: IPriceOracleContract,
   ): ReceivedAsset[] {
-    return outputs.map(o => {
+    return outputs.map((o): ReceivedAsset => {
       const amount = priceOracle.toTokenAmount(o.token, o.amount);
       if (!o.delayed) {
         return { isDelayed: false, ...amount };
@@ -295,7 +309,7 @@ export class LiquidationsService extends SDKConstruct {
         isDelayed: true,
         ...amount,
         // the contracts use zero for "not applicable"
-        redeemerAddress: hexEq(o.redeemerAddress, ADDRESS_0X0)
+        redeemer: hexEq(o.redeemerAddress, ADDRESS_0X0)
           ? undefined
           : o.redeemerAddress,
         claimableAt: o.claimableAt === 0n ? undefined : Number(o.claimableAt),

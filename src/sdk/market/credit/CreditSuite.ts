@@ -1,6 +1,5 @@
 import type { Address } from "viem";
 import type {
-  Amount,
   StrategyOpportunity,
   StrategyOpportunityDetail,
   Timestamp,
@@ -15,11 +14,7 @@ import type { CreditSuiteStateHuman } from "../../types/index.js";
 import { BigIntMath } from "../../utils/bigint-math.js";
 import type { MarketConfiguratorContract } from "../MarketConfiguratorContract.js";
 import type { MarketSuite } from "../MarketSuite.js";
-import {
-  additionalBorrowApyBps,
-  borrowApyBps,
-  utilizationBps,
-} from "../math.js";
+import { additionalBorrowApyBps, borrowApyBps } from "../math.js";
 import createCreditConfigurator from "./createCreditConfigurator.js";
 import createCreditFacade from "./createCreditFacade.js";
 import createCreditManager from "./createCreditManager.js";
@@ -194,16 +189,9 @@ export class CreditSuite extends SDKConstruct {
    * read model does.
    *
    * @param collateral - Target collateral of the position.
-   * @param totalSupply - Summed worth of the credit accounts backing it, which
-   * only a credit-account query can establish. Defaults to zero, so a caller
-   * that does not care about size can omit it.
    * @throws If the credit manager does not value the collateral.
    */
-  public strategyOpportunity(
-    collateral: Address,
-    totalSupply_?: Amount,
-  ): StrategyOpportunity {
-    const totalSupply = totalSupply_ ?? { value: 0n, valueUsd: 0 };
+  public strategyOpportunity(collateral: Address): StrategyOpportunity {
     const { market, creditManager: cm } = this;
     const { pool } = market.pool;
     const oracle = market.priceOracle;
@@ -218,12 +206,10 @@ export class CreditSuite extends SDKConstruct {
       chainId: this.chainId,
       creditManager: cm.address,
       targetCollateral: this.tokensMeta.mustGetToken(collateral),
-      title: `${this.tokensMeta.symbol(collateral)} / ${market.underlyingToken.symbol}`,
+      name: `${this.tokensMeta.symbol(collateral)} / ${market.underlyingToken.symbol}`,
       curator: market.curator,
       underlyingToken: market.underlyingToken,
-      totalSupply,
       totalBorrow: oracle.toAmount(pool.underlying, borrowed),
-      utilization: utilizationBps(borrowed, totalSupply.value),
       collateralTokens: market.collateralTokens,
       paused: this.isPaused,
       rwa: market.rwa,
@@ -246,14 +232,12 @@ export class CreditSuite extends SDKConstruct {
    * {@link strategyOpportunity} plus the data only its detail screen needs.
    *
    * @param collateral - Target collateral of the position.
-   * @param totalSupply - Summed worth of the credit accounts backing it.
    */
   public strategyOpportunityDetail(
     collateral: Address,
-    totalSupply?: Amount,
   ): StrategyOpportunityDetail {
     return {
-      ...this.strategyOpportunity(collateral, totalSupply),
+      ...this.strategyOpportunity(collateral),
       rateCurve: this.market.pool.rateCurve,
       priceFeeds: this.market.priceFeedSummary(collateral),
     };
