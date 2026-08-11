@@ -63,28 +63,28 @@ export class CreditAccountOperationsService extends SDKConstruct {
 
     switch (intent.type) {
       case "ADD_COLLATERAL": {
-        return this.finishAddCollateralIntent({ ...props, intent });
+        return this.#finishAddCollateralIntent({ ...props, intent });
       }
       case "INCREASE_LEVERAGE": {
-        return this.finishIncreaseLeverageIntent({ ...props, intent });
+        return this.#finishIncreaseLeverageIntent({ ...props, intent });
       }
       case "DEPOSIT": {
-        return this.finishDepositIntent({ ...props, intent });
+        return this.#finishDepositIntent({ ...props, intent });
       }
       case "DEPOSIT_AND_INCREASE_LEVERAGE": {
-        return this.finishDepositAndIncreaseLeverageIntent({
+        return this.#finishDepositAndIncreaseLeverageIntent({
           ...props,
           intent,
         });
       }
       case "CLOSE_ACCOUNT": {
-        return this.finishCloseAccountIntent({ ...props, intent });
+        return this.#finishCloseAccountIntent({ ...props, intent });
       }
       case "WITHDRAW_COLLATERAL": {
-        return this.finishWithdrawCollateralIntent({ ...props, intent });
+        return this.#finishWithdrawCollateralIntent({ ...props, intent });
       }
       case "DECREASE_LEVERAGE": {
-        return this.finishDecreaseLeverageIntent({ ...props, intent });
+        return this.#finishDecreaseLeverageIntent({ ...props, intent });
       }
       default: {
         throw new Error(`${props.intent.type} - not implemented`);
@@ -138,6 +138,9 @@ export class CreditAccountOperationsService extends SDKConstruct {
     const operations = getOperationsWithQuotaUpdate({
       operations: baseOperations,
       state,
+      creditAccount: props.creditAccount,
+      sdk: this.sdk,
+      options,
     });
 
     return {
@@ -175,6 +178,9 @@ export class CreditAccountOperationsService extends SDKConstruct {
     const operations = getOperationsWithQuotaUpdate({
       operations: baseOperations,
       state,
+      creditAccount: props.creditAccount,
+      sdk: this.sdk,
+      options,
     });
 
     const calls = await assembleOperationCalls({
@@ -199,16 +205,16 @@ export class CreditAccountOperationsService extends SDKConstruct {
     };
   }
 
-  finishAddCollateralIntent = this.#finishClaimOnlyIntent(
+  #finishAddCollateralIntent = this.#finishClaimOnlyIntent(
     buildResumeAddCollateralOperations,
   );
-  finishIncreaseLeverageIntent = this.#finishClaimOnlyIntent(
+  #finishIncreaseLeverageIntent = this.#finishClaimOnlyIntent(
     buildResumeIncreaseLeverageOperations,
   );
-  finishDepositIntent = this.#finishClaimOnlyIntent(
+  #finishDepositIntent = this.#finishClaimOnlyIntent(
     buildResumeDepositOperations,
   );
-  finishDepositAndIncreaseLeverageIntent = this.#finishClaimOnlyIntent(
+  #finishDepositAndIncreaseLeverageIntent = this.#finishClaimOnlyIntent(
     buildResumeDepositOperations,
   );
 
@@ -217,7 +223,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
    * Offchain quotes equity by oracle prices, onchain — router close path.
    * Router miss soft-fails to the oracle quote with `calls: []` (legacy parity).
    */
-  async finishCloseAccountIntent({
+  async #finishCloseAccountIntent({
     options,
     ...props
   }: ResumeCloseAccountProps): Promise<IntentPreviewResult> {
@@ -331,7 +337,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
    * withdrawCollateral + trailing changeQuota. Offchain prices swaps by
    * oracle, onchain — router swap paths (leftover-aware).
    */
-  async finishWithdrawCollateralIntent({
+  async #finishWithdrawCollateralIntent({
     options,
     ...props
   }: ResumeWithdrawCollateralProps): Promise<IntentPreviewResult> {
@@ -381,6 +387,9 @@ export class CreditAccountOperationsService extends SDKConstruct {
     const operations = getOperationsWithQuotaUpdate({
       operations: baseOperations,
       state,
+      creditAccount: props.creditAccount,
+      sdk: this.sdk,
+      options,
     });
 
     return {
@@ -423,6 +432,9 @@ export class CreditAccountOperationsService extends SDKConstruct {
     const operations = getOperationsWithQuotaUpdate({
       operations: baseOperations,
       state,
+      creditAccount: props.creditAccount,
+      sdk: this.sdk,
+      options,
     });
 
     const calls = await assembleOperationCalls({
@@ -452,7 +464,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
    * trailing changeQuota. Offchain prices swaps by oracle, onchain — router
    * swap paths. Router miss soft-fails to the oracle quote (legacy parity).
    */
-  async finishDecreaseLeverageIntent({
+  async #finishDecreaseLeverageIntent({
     options,
     ...props
   }: ResumeDecreaseLeverageProps): Promise<IntentPreviewResult> {
@@ -502,6 +514,9 @@ export class CreditAccountOperationsService extends SDKConstruct {
     const operations = getOperationsWithQuotaUpdate({
       operations: baseOperations,
       state,
+      creditAccount: props.creditAccount,
+      sdk: this.sdk,
+      options,
     });
 
     return {
@@ -544,6 +559,9 @@ export class CreditAccountOperationsService extends SDKConstruct {
     const operations = getOperationsWithQuotaUpdate({
       operations: baseOperations,
       state,
+      creditAccount: props.creditAccount,
+      sdk: this.sdk,
+      options,
     });
 
     const calls = await assembleOperationCalls({

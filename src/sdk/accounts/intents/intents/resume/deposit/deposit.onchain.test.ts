@@ -4,6 +4,7 @@ import { CreditAccountOperationsService } from "../../../index.js";
 import {
   assetBalance,
   expectAdjustResumePreview,
+  withOnchainOpCalls,
 } from "../../../testing/expect.js";
 import type { ResumeCase } from "../../../testing/resume.js";
 import {
@@ -31,7 +32,7 @@ const RESUME_NAMESPACES = [
     finish: (
       service: CreditAccountOperationsService,
       props: DepositResumeProps,
-    ) => service.finishDepositIntent({ ...props, intent: { type: "DEPOSIT" } }),
+    ) => service.finishIntent({ ...props, intent: { type: "DEPOSIT" } }),
   },
   {
     name: "depositAndIncreaseLeverage",
@@ -42,7 +43,7 @@ const RESUME_NAMESPACES = [
       service: CreditAccountOperationsService,
       props: DepositResumeProps,
     ) =>
-      service.finishDepositAndIncreaseLeverageIntent({
+      service.finishIntent({
         ...props,
         intent: { type: "DEPOSIT_AND_INCREASE_LEVERAGE" },
       }),
@@ -69,7 +70,7 @@ describe("deposit-like.resume onchain — quota-only after claim", () => {
         const state = expectAdjustResumePreview(result, {
           totalValue: case_b_und_any.postClaimTotalValue,
           accountDebt: case_b_und_any.postClaimDebt,
-          expectedOps: [...case_b_und_any.resumeOps],
+          expectedOps: withOnchainOpCalls([...case_b_und_any.resumeOps]),
           expectedCalls: [MOCK_CLAIM_CALL, CA_OP_CALLS.changeQuota],
         });
 
@@ -86,7 +87,7 @@ describe("deposit-like.resume onchain — quota-only after claim", () => {
         const state = expectAdjustResumePreview(result, {
           totalValue: case_b_und_rwa.postClaimTotalValue,
           accountDebt: case_b_und_rwa.postClaimDebt,
-          expectedOps: [...case_b_und_rwa.resumeOps],
+          expectedOps: withOnchainOpCalls([...case_b_und_rwa.resumeOps]),
           expectedCalls: [MOCK_CLAIM_CALL, CA_OP_CALLS.changeQuota],
         });
 
@@ -103,7 +104,7 @@ describe("deposit-like.resume onchain — quota-only after claim", () => {
         const state = expectAdjustResumePreview(result, {
           totalValue: case_claimed_und.postClaimTotalValue,
           accountDebt: case_claimed_und.postClaimDebt,
-          expectedOps: [...case_claimed_und.resumeOps],
+          expectedOps: withOnchainOpCalls([...case_claimed_und.resumeOps]),
           expectedCalls: [MOCK_CLAIM_CALL],
         });
 

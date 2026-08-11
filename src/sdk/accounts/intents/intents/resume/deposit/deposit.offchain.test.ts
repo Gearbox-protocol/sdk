@@ -30,7 +30,7 @@ const RESUME_NAMESPACES = [
     finish: (
       service: CreditAccountOperationsService,
       props: DepositResumeProps,
-    ) => service.finishDepositIntent({ ...props, intent: { type: "DEPOSIT" } }),
+    ) => service.finishIntent({ ...props, intent: { type: "DEPOSIT" } }),
   },
   {
     name: "depositAndIncreaseLeverage",
@@ -41,7 +41,7 @@ const RESUME_NAMESPACES = [
       service: CreditAccountOperationsService,
       props: DepositResumeProps,
     ) =>
-      service.finishDepositAndIncreaseLeverageIntent({
+      service.finishIntent({
         ...props,
         intent: { type: "DEPOSIT_AND_INCREASE_LEVERAGE" },
       }),

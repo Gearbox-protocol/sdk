@@ -57,16 +57,22 @@ function swapOp(
 }
 
 function decreaseDebtOp(amount: bigint): ExpectedFlowOp {
-  return { type: "decreaseDebt", amount };
+  return { type: "decreaseDebt", amount, calls: [] };
 }
 
 function withdrawOp(token: Address, amount: bigint): ExpectedFlowOp {
-  return { type: "withdrawCollateral", token, amount, to: WITHDRAW_TO };
+  return {
+    type: "withdrawCollateral",
+    token,
+    amount,
+    to: WITHDRAW_TO,
+    calls: [],
+  };
 }
 
 async function runWithdraw(props: WithdrawProps): Promise<IntentPreviewResult> {
   const service = new CreditAccountOperationsService(props.sdk as OnchainSDK);
-  return service.finishWithdrawCollateralIntent(props);
+  return service.finishIntent(props);
 }
 
 function resumeProps(args: {

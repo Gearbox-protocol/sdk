@@ -7,28 +7,29 @@ export interface CloseCreditAccountOperation extends CloseQuote {
 }
 
 export async function buildCloseCreditAccountOperation(
-  quote: CloseQuote,
+  input: {
+    quote: CloseQuote;
+    sdk: OnchainSDK;
+  },
   option:
     | {
         kind: "offchain";
-        to?: Address;
-        creditAccount?: RouterCASlice;
-        sdk?: OnchainSDK;
       }
     | {
         kind: "onchain";
         to: Address;
         creditAccount: RouterCASlice;
-        sdk: OnchainSDK;
       },
 ): Promise<CloseCreditAccountOperation> {
+  const { quote } = input;
+
   if (option.kind === "onchain") {
-    const rwaConfig = option.sdk.tokensMeta.rwaUnderlyings.get(
+    const rwaConfig = input.sdk.tokensMeta.rwaUnderlyings.get(
       option.creditAccount.underlying,
     );
 
-    const closeCalls =
-      await option.sdk.accounts.assembleCloseCreditAccountCalls({
+    const closeCalls = await input.sdk.accounts.assembleCloseCreditAccountCalls(
+      {
         creditAccount: option.creditAccount,
         routerCalls: quote.calls,
         assetsToWithdraw: [
@@ -37,10 +38,11 @@ export async function buildCloseCreditAccountOperation(
           ).toLowerCase() as Address,
         ],
         to: option.to,
-      });
+      },
+    );
 
     return { ...quote, calls: closeCalls, type: "closeCreditAccount" };
   }
 
-  return { ...quote, type: "closeCreditAccount" };
+  return { ...quote, calls: [], type: "closeCreditAccount" };
 }

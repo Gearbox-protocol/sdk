@@ -15,7 +15,7 @@ export function buildResumeIncreaseLeverageOperations(
   sdk: OnchainSDK,
 ): Array<AccountCalculatorOperation> {
   const operations: Array<AccountCalculatorOperation> = [
-    buildClaimDelayedWithdrawalOperation(creditAccount, options, sdk),
+    buildClaimDelayedWithdrawalOperation({ creditAccount, sdk }, options),
   ];
 
   return operations;

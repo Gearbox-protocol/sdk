@@ -42,7 +42,7 @@ function claimOp(token: Address, amount: bigint): ExpectedFlowOp {
     withdrawalPhantomToken: PHANTOM,
     withdrawalTokenSpent: amount,
     outputs: [{ token, amount, isDelayed: false }],
-    calls: [],
+    calls: [MOCK_CLAIM_CALL],
   };
 }
 
@@ -71,7 +71,7 @@ function routerMocksOf(sdk: OnchainSDK) {
 
 async function runWithdraw(props: WithdrawProps): Promise<IntentPreviewResult> {
   const service = new CreditAccountOperationsService(props.sdk as OnchainSDK);
-  return service.finishWithdrawCollateralIntent(props);
+  return service.finishIntent(props);
 }
 
 function resumeProps(args: {
@@ -134,6 +134,7 @@ describe("withdraw resume S/T matrix (onchain)", () => {
           token: UND,
           amount: WITHDRAW_UND,
           to: WITHDRAW_TO,
+          calls: [CA_OP_CALLS.withdrawCollateral],
         },
       ],
       expectedCalls: [
@@ -173,7 +174,11 @@ describe("withdraw resume S/T matrix (onchain)", () => {
         // debt leg: mock router echoes the spent amount
         swapOp(ANY, claimed - wInClaim, UND, claimed - wInClaim),
         // min(echoed 2000e18, dD=4000e8)
-        { type: "decreaseDebt", amount: DEBT_DELTA },
+        {
+          type: "decreaseDebt",
+          amount: DEBT_DELTA,
+          calls: [CA_OP_CALLS.decreaseDebt],
+        },
         swapOp(ANY, wInClaim, RWA, wInClaim),
         // min(W=1000e8, echoed 2000e18)
         {
@@ -181,12 +186,14 @@ describe("withdraw resume S/T matrix (onchain)", () => {
           token: RWA,
           amount: withdrawW,
           to: WITHDRAW_TO,
+          calls: [CA_OP_CALLS.withdrawCollateral],
         },
         {
           type: "changeQuota",
           quotaIncrease: [{ token: RWA, balance: 30_000_000_000_000n }],
           quotaDecrease: [],
           desiredQuota: {},
+          calls: [CA_OP_CALLS.changeQuota],
         },
       ],
       expectedCalls: [

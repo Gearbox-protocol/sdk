@@ -6,6 +6,7 @@ import { CreditAccountOperationsService } from "../../../index.js";
 import {
   expectCallsArrayExact,
   expectOpsArrayExact,
+  withOnchainOpCalls,
 } from "../../../testing/expect.js";
 import {
   ANY,
@@ -61,7 +62,7 @@ describe("closeAccount.resume onchain — close after claim", () => {
     const { findBestClosePath } = mocksOf(sdk);
     const service = new CreditAccountOperationsService(sdk);
 
-    const result = await service.finishCloseAccountIntent(
+    const result = await service.finishIntent(
       buildCloseResumeProps({
         sdk,
         options: buildOnchainOptions({
@@ -111,7 +112,7 @@ describe("closeAccount.resume onchain — close after claim", () => {
     const { assembleClose } = mocksOf(sdk);
     const service = new CreditAccountOperationsService(sdk);
 
-    const result = await service.finishCloseAccountIntent(
+    const result = await service.finishIntent(
       buildCloseResumeProps({
         sdk,
         options: buildOnchainOptions({
@@ -125,16 +126,19 @@ describe("closeAccount.resume onchain — close after claim", () => {
     if (!result.ok || !result.instant) {
       throw new Error("expected ok instant close preview");
     }
-    expectOpsArrayExact(result.instant.operations, [
-      closeResumeOps[0],
-      {
-        type: "closeCreditAccount",
-        amount: CLOSE_EQUITY,
-        minAmount: CLOSE_EQUITY,
-        underlyingBalance: CLOSE_EQUITY,
-        calls: [MOCK_CLOSE_CALL],
-      },
-    ]);
+    expectOpsArrayExact(
+      result.instant.operations,
+      withOnchainOpCalls([
+        closeResumeOps[0],
+        {
+          type: "closeCreditAccount",
+          amount: CLOSE_EQUITY,
+          minAmount: CLOSE_EQUITY,
+          underlyingBalance: CLOSE_EQUITY,
+          calls: [MOCK_CLOSE_CALL],
+        },
+      ]),
+    );
     expectCallsArrayExact(result.instant.calls, [
       MOCK_CLAIM_CALL,
       MOCK_CLOSE_CALL,
@@ -174,7 +178,7 @@ describe("closeAccount.resume onchain — close after claim", () => {
     const { findBestClosePath, assembleClose } = mocksOf(sdk);
     const service = new CreditAccountOperationsService(sdk);
 
-    const result = await service.finishCloseAccountIntent(
+    const result = await service.finishIntent(
       buildCloseResumeProps({
         sdk,
         options: buildOnchainOptions({
@@ -197,7 +201,7 @@ describe("closeAccount.resume onchain — close after claim", () => {
         withdrawalPhantomToken: RESUME_FIXTURE_PHANTOM,
         withdrawalTokenSpent: CLAIMED,
         outputs: [{ token: RWA_ASSET, amount: CLAIMED, isDelayed: false }],
-        calls: [],
+        calls: [MOCK_CLAIM_CALL],
       },
       {
         type: "closeCreditAccount",
@@ -250,7 +254,7 @@ describe("closeAccount.resume onchain — close after claim", () => {
     const { findBestClosePath, assembleClose } = mocksOf(sdk);
     const service = new CreditAccountOperationsService(sdk);
 
-    const result = await service.finishCloseAccountIntent(
+    const result = await service.finishIntent(
       buildCloseResumeProps({
         sdk,
         options: buildOnchainOptions({
@@ -282,7 +286,7 @@ describe("closeAccount.resume onchain — close after claim", () => {
         withdrawalPhantomToken: RESUME_FIXTURE_PHANTOM,
         withdrawalTokenSpent: CLAIMED,
         outputs: [{ token: ANY, amount: CLAIMED, isDelayed: false }],
-        calls: [],
+        calls: [MOCK_CLAIM_CALL],
       },
       {
         type: "closeCreditAccount",
@@ -330,7 +334,7 @@ describe("closeAccount.resume onchain — close after claim", () => {
     const { assembleClose } = mocksOf(sdk);
     const service = new CreditAccountOperationsService(sdk);
 
-    const result = await service.finishCloseAccountIntent(
+    const result = await service.finishIntent(
       buildCloseResumeProps({
         sdk,
         options: buildOnchainOptions({

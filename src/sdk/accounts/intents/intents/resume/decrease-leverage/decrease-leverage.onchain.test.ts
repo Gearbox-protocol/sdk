@@ -39,7 +39,7 @@ function claimOp(token: Address, amount: bigint): ExpectedFlowOp {
     withdrawalPhantomToken: PHANTOM,
     withdrawalTokenSpent: amount,
     outputs: [{ token, amount, isDelayed: false }],
-    calls: [],
+    calls: [MOCK_CLAIM_CALL],
   };
 }
 
@@ -59,7 +59,11 @@ function swapOp(
 }
 
 function decreaseDebtOp(amount: bigint): ExpectedFlowOp {
-  return { type: "decreaseDebt", amount };
+  return {
+    type: "decreaseDebt",
+    amount,
+    calls: [CA_OP_CALLS.decreaseDebt],
+  };
 }
 
 function wrapOp(
@@ -87,8 +91,7 @@ function routerMocksOf(sdk: OnchainSDK) {
 
 async function runDecrease(props: DecreaseProps) {
   const service = new CreditAccountOperationsService(props.sdk as OnchainSDK);
-  const result: IntentPreviewResult =
-    await service.finishDecreaseLeverageIntent(props);
+  const result: IntentPreviewResult = await service.finishIntent(props);
   return result;
 }
 

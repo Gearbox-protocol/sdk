@@ -1,6 +1,7 @@
 import type { Address } from "viem";
 import type { MultiCall, OnchainSDK } from "../../../../index.js";
 import type { CreditAccountSlice } from "../../types.js";
+import type { OperationBuilderOption } from "../types.js";
 
 export interface UnwrapRwaCollateralOperation {
   type: "unwrapRwaCollateral";
@@ -22,17 +23,15 @@ export async function buildUnwrapRwaCollateralOperation(
     amountIn: bigint;
     tokenOut: Address;
     amountOut: bigint;
-  },
-  option: {
-    kind: "onchain" | "offchain";
     creditAccount: CreditAccountSlice;
     sdk: OnchainSDK;
   },
+  option: OperationBuilderOption,
 ): Promise<UnwrapRwaCollateralOperation> {
   if (option.kind === "onchain") {
-    const calls = await option.sdk.accounts.getRWAUnwrapCalls(
+    const calls = await input.sdk.accounts.getRWAUnwrapCalls(
       input.amountIn,
-      option.creditAccount.creditManager,
+      input.creditAccount.creditManager,
     );
     if (!calls) {
       throw new Error("unwrapRwaCollateral: no wrap calls found");

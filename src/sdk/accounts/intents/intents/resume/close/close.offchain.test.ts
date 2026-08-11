@@ -29,7 +29,7 @@ function runResume(args?: {
   const claimedAmount = args?.claimedAmount ?? 0n;
   const sdk = buildCloseSdk({ claimedToken });
   const service = new CreditAccountOperationsService(sdk);
-  return service.finishCloseAccountIntent(
+  return service.finishIntent(
     buildCloseResumeProps({
       sdk,
       options: buildOffchainOptions({ claimedToken, claimedAmount }),

@@ -915,7 +915,7 @@ export class CreditAccountsServiceV310
       ...this.#prepareDecreaseDebt(ca),
       ...unwrapCalls,
       ...assetsToWithdraw.map(t =>
-        this.#prepareWithdrawToken(ca.creditFacade, t, MAX_UINT256, to),
+        this.prepareWithdrawToken(ca.creditFacade, t, MAX_UINT256, to),
       ),
     ];
   }
@@ -932,7 +932,7 @@ export class CreditAccountsServiceV310
       creditAccount.creditManager,
     );
 
-    const operationCalls = this.#prepareUpdateQuotas(
+    const operationCalls = this.prepareUpdateQuotas(
       creditAccount.creditFacade,
       { minQuota, averageQuota },
     );
@@ -964,12 +964,12 @@ export class CreditAccountsServiceV310
     );
 
     const operationCalls: Array<MultiCall> = [
-      ...this.#prepareAddCollateral(
+      ...this.prepareAddCollateral(
         creditAccount.creditFacade,
         [asset],
         permit ? { [asset.token]: permit } : {},
       ),
-      ...this.#prepareUpdateQuotas(creditAccount.creditFacade, {
+      ...this.prepareUpdateQuotas(creditAccount.creditFacade, {
         minQuota,
         averageQuota,
       }),
@@ -1007,7 +1007,7 @@ export class CreditAccountsServiceV310
 
     const addCollateralCalls =
       collateral && isDecrease
-        ? this.#prepareAddCollateral(
+        ? this.prepareAddCollateral(
             creditAccount.creditFacade,
             [
               {
@@ -1040,7 +1040,7 @@ export class CreditAccountsServiceV310
     const operationCalls: Array<MultiCall> = [
       ...addCollateralCalls,
       ...unwrapCalls,
-      this.#prepareChangeDebt(creditAccount.creditFacade, change, isDecrease),
+      this.prepareChangeDebt(creditAccount.creditFacade, change, isDecrease),
     ];
 
     const calls = await this.#prependPriceUpdates(
@@ -1070,7 +1070,7 @@ export class CreditAccountsServiceV310
 
     const operationCalls: Array<MultiCall> = [
       ...swapCalls,
-      ...this.#prepareUpdateQuotas(creditAccount.creditFacade, {
+      ...this.prepareUpdateQuotas(creditAccount.creditFacade, {
         minQuota,
         averageQuota,
       }),
@@ -1140,7 +1140,7 @@ export class CreditAccountsServiceV310
         creditFacade: cm.creditFacade.address,
         preview,
       }),
-      ...this.#prepareUpdateQuotas(cm.creditFacade.address, {
+      ...this.prepareUpdateQuotas(cm.creditFacade.address, {
         minQuota,
         averageQuota,
       }),
@@ -1223,7 +1223,7 @@ export class CreditAccountsServiceV310
 
     const quotaCalls = zeroDebt
       ? []
-      : this.#prepareUpdateQuotas(cm.creditFacade.address, {
+      : this.prepareUpdateQuotas(cm.creditFacade.address, {
           minQuota,
           averageQuota,
         });
@@ -1370,12 +1370,12 @@ export class CreditAccountsServiceV310
     }
 
     const operationCalls = [
-      this.#prepareIncreaseDebt(cm.creditFacade, debt),
-      ...this.#prepareAddCollateral(cm.creditFacade, collateral, permits),
+      this.prepareIncreaseDebt(cm.creditFacade, debt),
+      ...this.prepareAddCollateral(cm.creditFacade, collateral, permits),
       ...openPathCalls, // path from underlying to withdrawal token
       ...(tokenToWithdraw
         ? [
-            this.#prepareWithdrawToken(
+            this.prepareWithdrawToken(
               cm.creditFacade,
               tokenToWithdraw,
               MAX_UINT256,
@@ -1383,7 +1383,7 @@ export class CreditAccountsServiceV310
             ),
           ]
         : []),
-      ...this.#prepareUpdateQuotas(cm.creditFacade, {
+      ...this.prepareUpdateQuotas(cm.creditFacade, {
         minQuota,
         averageQuota,
       }),
@@ -1739,14 +1739,14 @@ export class CreditAccountsServiceV310
 
     const operationCalls: Array<MultiCall> = [
       ...assetsToWithdraw.map(a =>
-        this.#prepareWithdrawToken(
+        this.prepareWithdrawToken(
           cm.creditFacade.address,
           a.token,
           a.balance,
           to,
         ),
       ),
-      ...this.#prepareUpdateQuotas(cm.creditFacade.address, {
+      ...this.prepareUpdateQuotas(cm.creditFacade.address, {
         minQuota,
         averageQuota,
       }),
@@ -1812,14 +1812,14 @@ export class CreditAccountsServiceV310
     });
 
     const operationCalls: Array<MultiCall> = [
-      ...this.#prepareAddCollateral(ca.creditFacade, addCollateral, permits),
+      ...this.prepareAddCollateral(ca.creditFacade, addCollateral, permits),
       ...wrapCalls,
       ...this.#prepareDisableQuotas(ca),
       ...this.#prepareDecreaseDebt(ca),
       ...unwrapCalls,
       ...claimPath.calls,
       ...assetsToWithdraw.map(t =>
-        this.#prepareWithdrawToken(ca.creditFacade, t.token, MAX_UINT256, to),
+        this.prepareWithdrawToken(ca.creditFacade, t.token, MAX_UINT256, to),
       ),
     ];
 
@@ -1851,11 +1851,11 @@ export class CreditAccountsServiceV310
     const addCollateral = collateralAssets.filter(a => a.balance > 0);
 
     const operationCalls: Array<MultiCall> = [
-      ...this.#prepareAddCollateral(ca.creditFacade, addCollateral, permits),
+      ...this.prepareAddCollateral(ca.creditFacade, addCollateral, permits),
       ...claimPath.calls,
       ...wrapCalls,
       ...assetsToWithdraw.map(t =>
-        this.#prepareWithdrawToken(ca.creditFacade, t.token, MAX_UINT256, to),
+        this.prepareWithdrawToken(ca.creditFacade, t.token, MAX_UINT256, to),
       ),
     ];
 
@@ -1900,7 +1900,7 @@ export class CreditAccountsServiceV310
 
     const operationCalls = [
       ...claimPath.calls,
-      ...this.#prepareUpdateQuotas(ca.creditFacade, { minQuota, averageQuota }),
+      ...this.prepareUpdateQuotas(ca.creditFacade, { minQuota, averageQuota }),
     ];
 
     const calls = await this.#prependPriceUpdates(
@@ -2117,16 +2117,16 @@ export class CreditAccountsServiceV310
     for (const op of operations) {
       switch (op.type) {
         case "increaseDebt":
-          calls.push(this.#prepareIncreaseDebt(creditFacade, op.amount));
+          calls.push(this.prepareIncreaseDebt(creditFacade, op.amount));
           break;
 
         case "decreaseDebt":
-          calls.push(this.#prepareChangeDebt(creditFacade, op.amount, true));
+          calls.push(this.prepareChangeDebt(creditFacade, op.amount, true));
           break;
 
         case "addCollateral":
           calls.push(
-            ...this.#prepareAddCollateral(
+            ...this.prepareAddCollateral(
               creditFacade,
               [{ token: op.token, balance: op.amount }],
               {},
@@ -2136,12 +2136,7 @@ export class CreditAccountsServiceV310
 
         case "withdrawCollateral":
           calls.push(
-            this.#prepareWithdrawToken(
-              creditFacade,
-              op.token,
-              op.amount,
-              op.to,
-            ),
+            this.prepareWithdrawToken(creditFacade, op.token, op.amount, op.to),
           );
           break;
 
@@ -2157,7 +2152,7 @@ export class CreditAccountsServiceV310
             break;
           }
           calls.push(
-            ...this.#prepareUpdateQuotas(creditFacade, {
+            ...this.prepareUpdateQuotas(creditFacade, {
               averageQuota: quotaAssets,
               minQuota: quotaAssets,
             }),
@@ -2224,7 +2219,10 @@ export class CreditAccountsServiceV310
     return calls;
   }
 
-  #prepareUpdateQuotas(
+  /**
+   * {@inheritDoc ICreditAccountsService.prepareUpdateQuotas}
+   */
+  public prepareUpdateQuotas(
     creditFacade: Address,
     { averageQuota, minQuota }: PrepareUpdateQuotasProps,
   ): Array<MultiCall> {
@@ -2263,7 +2261,10 @@ export class CreditAccountsServiceV310
     return [];
   }
 
-  #prepareWithdrawToken(
+  /**
+   * {@inheritDoc ICreditAccountsService.prepareWithdrawToken}
+   */
+  public prepareWithdrawToken(
     creditFacade: Address,
     token: Address,
     amount: bigint,
@@ -2279,7 +2280,10 @@ export class CreditAccountsServiceV310
     };
   }
 
-  #prepareIncreaseDebt(creditFacade: Address, debt: bigint): MultiCall {
+  /**
+   * {@inheritDoc ICreditAccountsService.prepareIncreaseDebt}
+   */
+  public prepareIncreaseDebt(creditFacade: Address, debt: bigint): MultiCall {
     return {
       target: creditFacade,
       callData: encodeFunctionData({
@@ -2290,7 +2294,10 @@ export class CreditAccountsServiceV310
     };
   }
 
-  #prepareChangeDebt(
+  /**
+   * {@inheritDoc ICreditAccountsService.prepareChangeDebt}
+   */
+  public prepareChangeDebt(
     creditFacade: Address,
     change: bigint,
     isDecrease: boolean,
@@ -2305,7 +2312,10 @@ export class CreditAccountsServiceV310
     };
   }
 
-  #prepareAddCollateral(
+  /**
+   * {@inheritDoc ICreditAccountsService.prepareAddCollateral}
+   */
+  public prepareAddCollateral(
     creditFacade: Address,
     assets: Array<Asset>,
     permits: Record<string, PermitResult>,

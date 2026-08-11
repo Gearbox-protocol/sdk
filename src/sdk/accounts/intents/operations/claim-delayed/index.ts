@@ -47,13 +47,12 @@ export type ClaimDelayedWithdrawalOperation = {
  * Stores balances for raw call
  */
 export function buildClaimDelayedWithdrawalOperation(
-  creditAccount: CreditAccountSlice,
+  input: { creditAccount: CreditAccountSlice; sdk: OnchainSDK },
   option: ClaimDelayedOption,
-  sdk: OnchainSDK,
 ): ClaimDelayedWithdrawalOperation {
   if (option.kind === "onchain") {
-    const calls = sdk.accounts.assembleClaimDelayedCalls({
-      creditFacade: creditAccount.creditFacade,
+    const calls = input.sdk.accounts.assembleClaimDelayedCalls({
+      creditFacade: input.creditAccount.creditFacade,
       claimableNow: option.claimableWithdrawal,
     });
 
@@ -83,7 +82,7 @@ export function buildClaimDelayedWithdrawalOperation(
           option.phantomSpent,
           option.withdrawalConfig.withdrawalPhantomToken,
           option.withdrawalConfig.underlying,
-          sdk,
+          input.sdk,
         ),
         isDelayed: false,
       },

@@ -272,6 +272,11 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
         ({ operations }: { operations: EncodableCreditAccountOperation[] }) =>
           operations.flatMap(echoEncodableOpCalls),
       ),
+      prepareIncreaseDebt: vi.fn(() => CA_OP_CALLS.increaseDebt),
+      prepareChangeDebt: vi.fn(() => CA_OP_CALLS.decreaseDebt),
+      prepareAddCollateral: vi.fn(() => [CA_OP_CALLS.addCollateral]),
+      prepareWithdrawToken: vi.fn(() => CA_OP_CALLS.withdrawCollateral),
+      prepareUpdateQuotas: vi.fn(() => [CA_OP_CALLS.changeQuota]),
       assembleClaimDelayedCalls: vi.fn(
         ({ claimableNow }: { claimableNow: { claimCalls: MultiCall[] } }) => [
           ...claimableNow.claimCalls,

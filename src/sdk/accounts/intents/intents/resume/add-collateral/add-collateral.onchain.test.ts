@@ -4,6 +4,7 @@ import { CreditAccountOperationsService } from "../../../index.js";
 import {
   assetBalance,
   expectAdjustResumePreview,
+  withOnchainOpCalls,
 } from "../../../testing/expect.js";
 import { CA_OP_CALLS, MOCK_CLAIM_CALL } from "../../../testing/sdk-mock.js";
 import {
@@ -24,7 +25,7 @@ function runResume(c: ResumeCase) {
     sdk,
     options: buildOnchainOptions(c),
   });
-  return service.finishAddCollateralIntent(props);
+  return service.finishIntent(props);
 }
 
 describe("addCollateral.resume onchain — quota-only after claim", () => {
@@ -33,7 +34,7 @@ describe("addCollateral.resume onchain — quota-only after claim", () => {
     const state = expectAdjustResumePreview(result, {
       totalValue: case_1_2_und_any.postClaimTotalValue,
       accountDebt: case_1_2_und_any.postClaimDebt,
-      expectedOps: [...case_1_2_und_any.resumeOps],
+      expectedOps: withOnchainOpCalls([...case_1_2_und_any.resumeOps]),
       expectedCalls: [MOCK_CLAIM_CALL, CA_OP_CALLS.changeQuota],
     });
 
@@ -50,7 +51,7 @@ describe("addCollateral.resume onchain — quota-only after claim", () => {
     const state = expectAdjustResumePreview(result, {
       totalValue: case_1_7_any_rwa.postClaimTotalValue,
       accountDebt: case_1_7_any_rwa.postClaimDebt,
-      expectedOps: [...case_1_7_any_rwa.resumeOps],
+      expectedOps: withOnchainOpCalls([...case_1_7_any_rwa.resumeOps]),
       expectedCalls: [MOCK_CLAIM_CALL, CA_OP_CALLS.changeQuota],
     });
 
@@ -67,7 +68,7 @@ describe("addCollateral.resume onchain — quota-only after claim", () => {
     const state = expectAdjustResumePreview(result, {
       totalValue: case_claimed_und.postClaimTotalValue,
       accountDebt: case_claimed_und.postClaimDebt,
-      expectedOps: [...case_claimed_und.resumeOps],
+      expectedOps: withOnchainOpCalls([...case_claimed_und.resumeOps]),
       expectedCalls: [MOCK_CLAIM_CALL],
     });
 

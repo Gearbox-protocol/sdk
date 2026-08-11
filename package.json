@@ -73,11 +73,6 @@
       "types": "./dist/types/rewards/index.d.ts",
       "import": "./dist/esm/rewards/index.js",
       "default": "./dist/cjs/rewards/index.js"
-    },
-    "./new-types": {
-      "types": "./dist/types/new-types/index.d.ts",
-      "import": "./dist/esm/new-types/index.js",
-      "default": "./dist/cjs/new-types/index.js"
     }
   },
   "files": [

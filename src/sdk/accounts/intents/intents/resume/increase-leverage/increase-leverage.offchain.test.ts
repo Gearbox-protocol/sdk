@@ -26,7 +26,7 @@ function runResume(c: ResumeCase) {
     sdk,
     options: buildOffchainOptions(c),
   });
-  return service.finishIncreaseLeverageIntent(props);
+  return service.finishIntent(props);
 }
 
 describe("increaseLeverage.resume offchain — claim keeps proceeds on CA", () => {

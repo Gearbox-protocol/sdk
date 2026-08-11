@@ -33,7 +33,7 @@ export async function buildResumeCloseOperations(
   const { options, creditAccount, sdk, intent } = props;
 
   const operations: Array<AccountCalculatorOperation> = [
-    buildClaimDelayedWithdrawalOperation(creditAccount, options, sdk),
+    buildClaimDelayedWithdrawalOperation({ creditAccount, sdk }, options),
   ];
 
   const convert = convertAmount(sdk, creditAccount.creditManager);
@@ -53,15 +53,19 @@ export async function buildResumeCloseOperations(
 
   if (options.kind === "onchain") {
     operations.push(
-      await buildCloseCreditAccountOperation(quote, {
-        ...options,
-        to: intent.to,
-        creditAccount: toRouterCaSlice(creditAccount, assetsAfterClaim),
-        sdk,
-      }),
+      await buildCloseCreditAccountOperation(
+        { quote, sdk },
+        {
+          ...options,
+          to: intent.to,
+          creditAccount: toRouterCaSlice(creditAccount, assetsAfterClaim),
+        },
+      ),
     );
   } else {
-    operations.push(await buildCloseCreditAccountOperation(quote, options));
+    operations.push(
+      await buildCloseCreditAccountOperation({ quote, sdk }, options),
+    );
   }
 
   return { operations, quote };

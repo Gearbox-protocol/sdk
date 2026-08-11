@@ -50,7 +50,7 @@ function swapOp(
 }
 
 function decreaseDebtOp(amount: bigint): ExpectedFlowOp {
-  return { type: "decreaseDebt", amount };
+  return { type: "decreaseDebt", amount, calls: [] };
 }
 
 function wrapOp(
@@ -71,8 +71,7 @@ function wrapOp(
 
 async function runDecrease(props: DecreaseProps) {
   const service = new CreditAccountOperationsService(props.sdk as OnchainSDK);
-  const result: IntentPreviewResult =
-    await service.finishDecreaseLeverageIntent(props);
+  const result: IntentPreviewResult = await service.finishIntent(props);
   return result;
 }
 

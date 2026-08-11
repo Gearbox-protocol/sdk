@@ -4,6 +4,7 @@ import { CreditAccountOperationsService } from "../../../index.js";
 import {
   assetBalance,
   expectAdjustResumePreview,
+  withOnchainOpCalls,
 } from "../../../testing/expect.js";
 import type { ResumeCase } from "../../../testing/resume.js";
 import {
@@ -27,7 +28,7 @@ function runResume(c: ResumeCase) {
     sdk,
     options: buildOnchainOptions(c),
   });
-  return service.finishIncreaseLeverageIntent(props);
+  return service.finishIntent(props);
 }
 
 describe("increaseLeverage.resume onchain — claim keeps proceeds on CA", () => {
@@ -37,7 +38,7 @@ describe("increaseLeverage.resume onchain — claim keeps proceeds on CA", () =>
     const state = expectAdjustResumePreview(result, {
       totalValue: INCREASE_POST_T,
       accountDebt: INCREASE_POST_D,
-      expectedOps: [...case_2_1_any.resumeOps],
+      expectedOps: withOnchainOpCalls([...case_2_1_any.resumeOps]),
       expectedCalls: [MOCK_CLAIM_CALL, CA_OP_CALLS.changeQuota],
     });
 
@@ -52,7 +53,7 @@ describe("increaseLeverage.resume onchain — claim keeps proceeds on CA", () =>
     const state = expectAdjustResumePreview(result, {
       totalValue: INCREASE_POST_T,
       accountDebt: INCREASE_POST_D,
-      expectedOps: [...case_1_2_asset_rwa.resumeOps],
+      expectedOps: withOnchainOpCalls([...case_1_2_asset_rwa.resumeOps]),
       expectedCalls: [MOCK_CLAIM_CALL, CA_OP_CALLS.changeQuota],
     });
 

@@ -59,9 +59,8 @@ export async function buildResumeWithdrawOperations(
   }
 
   const claimOp = buildClaimDelayedWithdrawalOperation(
-    creditAccount,
+    { creditAccount, sdk },
     options,
-    sdk,
   );
   const primary = primaryInstantOutput(claimOp.outputs);
 
@@ -96,33 +95,42 @@ export async function buildResumeWithdrawOperations(
       tokenInBalance,
     });
     operations.push(
-      buildSwapOperation({
-        tokenIn,
-        amountIn,
-        tokenOut,
-        amountOut: quote.minAmount,
-        calls: quote.calls,
-      }),
+      buildSwapOperation(
+        {
+          tokenIn,
+          amountIn,
+          tokenOut,
+          amountOut: quote.minAmount,
+          calls: quote.calls,
+          creditAccount,
+          sdk,
+        },
+        options,
+      ),
     );
     return quote;
   };
 
   const decreaseDebt = (amount: bigint): void => {
     if (amount > 0n) {
-      operations.push(buildDecreaseDebtOperation(amount));
+      operations.push(
+        buildDecreaseDebtOperation({ amount, creditAccount, sdk }, options),
+      );
     }
   };
 
   const withdrawCollateral = async (amount: bigint) => {
-    const withdrawOperations = await buildWithdrawCollateralOperation({
-      token: intent.withdrawToken,
-      amount,
-      to: intent.to,
-      underlying,
-      sdk,
-      creditAccount,
-      kind: options.kind,
-    });
+    const withdrawOperations = await buildWithdrawCollateralOperation(
+      {
+        token: intent.withdrawToken,
+        amount,
+        to: intent.to,
+        underlying,
+        creditAccount,
+        sdk,
+      },
+      options,
+    );
     operations.push(...withdrawOperations);
   };
 

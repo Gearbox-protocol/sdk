@@ -37,9 +37,8 @@ export async function buildResumeDecreaseLeverageOperations(
   const rwaMeta = sdk.tokensMeta.rwaUnderlyings.get(underlying);
 
   const claimOp = buildClaimDelayedWithdrawalOperation(
-    creditAccount,
+    { creditAccount, sdk },
     options,
-    sdk,
   );
   const primary = primaryInstantOutput(claimOp.outputs);
 
@@ -51,7 +50,9 @@ export async function buildResumeDecreaseLeverageOperations(
 
   const decreaseDebt = (amount: bigint): void => {
     if (amount > 0n) {
-      operations.push(buildDecreaseDebtOperation(amount));
+      operations.push(
+        buildDecreaseDebtOperation({ amount, creditAccount, sdk }, options),
+      );
     }
   };
 
@@ -76,12 +77,10 @@ export async function buildResumeDecreaseLeverageOperations(
           amountIn: primary.amount,
           tokenOut: underlying,
           amountOut,
-        },
-        {
-          ...options,
           creditAccount,
           sdk,
         },
+        options,
       ),
     );
 
@@ -104,13 +103,18 @@ export async function buildResumeDecreaseLeverageOperations(
     });
 
     operations.push(
-      buildSwapOperation({
-        tokenIn: primary.token,
-        amountIn: primary.amount,
-        tokenOut: underlying,
-        amountOut: quote.minAmount,
-        calls: quote.calls,
-      }),
+      buildSwapOperation(
+        {
+          tokenIn: primary.token,
+          amountIn: primary.amount,
+          tokenOut: underlying,
+          amountOut: quote.minAmount,
+          calls: quote.calls,
+          creditAccount,
+          sdk,
+        },
+        options,
+      ),
     );
     decreaseDebt(quote.minAmount);
 

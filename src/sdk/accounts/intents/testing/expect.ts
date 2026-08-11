@@ -9,14 +9,27 @@ import type {
   QuotaUpdateOperation,
 } from "../operations/index.js";
 import type { AdjustState, IntentPreviewResult } from "../types.js";
+import {
+  CA_OP_CALLS,
+  MOCK_CLAIM_CALL,
+  MOCK_CLOSE_CALL,
+  MOCK_ROUTER_CALL,
+  MOCK_RWA_UNWRAP_CALL,
+  MOCK_RWA_WRAP_CALL,
+} from "./sdk-mock.js";
 
 /**
- * Spec expectation: exact op count + type + tokens + amounts.
+ * Spec expectation: exact op count + type + tokens + amounts + calls.
  * Ported from intent-calculator `expectOpsExact`, reduced to the op types the
- * resume flows produce. `claimDelayedWithdrawal.claimCalls` is intentionally
- * not compared (call payload is asserted via `result.calls`).
+ * resume flows produce. Shared offchain fixtures may omit `calls` (treated as
+ * `[]`); onchain expectations should set sentinel calls via
+ * {@link withOnchainOpCalls}.
  */
-export type ExpectedFlowOp =
+type CallsOptional<T> = T extends { calls: MultiCall[] }
+  ? Omit<T, "calls"> & { calls?: MultiCall[] }
+  : T;
+
+export type ExpectedFlowOp = CallsOptional<
   | ClaimDelayedWithdrawalOperation
   | QuotaUpdateOperation
   | CloseCreditAccountOperation
@@ -30,7 +43,53 @@ export type ExpectedFlowOp =
           | "unwrapRwaCollateral"
           | "wrapRwaCollateral";
       }
-    >;
+    >
+>;
+
+function expectedCalls(expected: ExpectedFlowOp): MultiCall[] {
+  return expected.calls ?? [];
+}
+
+/**
+ * Fills sentinel `calls` for onchain resume expectations. Shared fixtures keep
+ * `calls: []` for offchain; onchain tests map through this helper.
+ */
+export function withOnchainOpCalls(ops: ExpectedFlowOp[]): ExpectedFlowOp[] {
+  return ops.map(op => {
+    switch (op.type) {
+      case "claimDelayedWithdrawal":
+        return { ...op, calls: [MOCK_CLAIM_CALL] };
+      case "changeQuota":
+        return { ...op, calls: [CA_OP_CALLS.changeQuota] };
+      case "decreaseDebt":
+        return { ...op, calls: [CA_OP_CALLS.decreaseDebt] };
+      case "withdrawCollateral":
+        return { ...op, calls: [CA_OP_CALLS.withdrawCollateral] };
+      case "swap":
+        return {
+          ...op,
+          calls: op.calls?.length ? op.calls : [MOCK_ROUTER_CALL],
+        };
+      case "wrapRwaCollateral":
+        return {
+          ...op,
+          calls: op.calls?.length ? op.calls : [MOCK_RWA_WRAP_CALL],
+        };
+      case "unwrapRwaCollateral":
+        return {
+          ...op,
+          calls: op.calls?.length ? op.calls : [MOCK_RWA_UNWRAP_CALL],
+        };
+      case "closeCreditAccount":
+        return {
+          ...op,
+          calls: op.calls?.length ? op.calls : [MOCK_CLOSE_CALL],
+        };
+      default:
+        return op;
+    }
+  });
+}
 
 function matchOp(
   actual: AccountCalculatorOperation,
@@ -54,6 +113,9 @@ function matchOp(
         `op[${index}].withdrawalTokenSpent`,
       ).toBe(expected.withdrawalTokenSpent);
       expect(actual.outputs, `op[${index}].outputs`).toEqual(expected.outputs);
+      expect(actual.calls, `op[${index}].calls`).toEqual(
+        expectedCalls(expected),
+      );
       break;
     case "changeQuota":
       if (actual.type !== "changeQuota") {
@@ -64,6 +126,9 @@ function matchOp(
       );
       expect(actual.quotaDecrease, `op[${index}].quotaDecrease`).toEqual(
         expected.quotaDecrease,
+      );
+      expect(actual.calls, `op[${index}].calls`).toEqual(
+        expectedCalls(expected),
       );
       break;
     case "closeCreditAccount":
@@ -77,7 +142,9 @@ function matchOp(
       expect(actual.underlyingBalance, `op[${index}].underlyingBalance`).toBe(
         expected.underlyingBalance,
       );
-      expect(actual.calls, `op[${index}].routerCalls`).toEqual(expected.calls);
+      expect(actual.calls, `op[${index}].calls`).toEqual(
+        expectedCalls(expected),
+      );
       break;
     case "swap":
       if (actual.type !== "swap") {
@@ -88,13 +155,18 @@ function matchOp(
       expect(actual.amountOut, `op[${index}].amountOut`).toBe(
         expected.amountOut,
       );
-      expect(actual.calls, `op[${index}].calls`).toEqual(expected.calls);
+      expect(actual.calls, `op[${index}].calls`).toEqual(
+        expectedCalls(expected),
+      );
       break;
     case "decreaseDebt":
       if (actual.type !== "decreaseDebt") {
         return;
       }
       expect(actual.amount, `op[${index}].amount`).toBe(expected.amount);
+      expect(actual.calls, `op[${index}].calls`).toEqual(
+        expectedCalls(expected),
+      );
       break;
     case "withdrawCollateral":
       if (actual.type !== "withdrawCollateral") {
@@ -103,6 +175,9 @@ function matchOp(
       expect(actual.token, `op[${index}].token`).toBe(expected.token);
       expect(actual.amount, `op[${index}].amount`).toBe(expected.amount);
       expect(actual.to, `op[${index}].to`).toBe(expected.to);
+      expect(actual.calls, `op[${index}].calls`).toEqual(
+        expectedCalls(expected),
+      );
       break;
     case "unwrapRwaCollateral":
       if (actual.type !== "unwrapRwaCollateral") {
@@ -114,7 +189,9 @@ function matchOp(
       expect(actual.amountOut, `op[${index}].amountOut`).toBe(
         expected.amountOut,
       );
-      expect(actual.calls, `op[${index}].calls`).toEqual(expected.calls);
+      expect(actual.calls, `op[${index}].calls`).toEqual(
+        expectedCalls(expected),
+      );
       break;
     case "wrapRwaCollateral":
       if (actual.type !== "wrapRwaCollateral") {
@@ -126,7 +203,9 @@ function matchOp(
       expect(actual.amountOut, `op[${index}].amountOut`).toBe(
         expected.amountOut,
       );
-      expect(actual.calls, `op[${index}].calls`).toEqual(expected.calls);
+      expect(actual.calls, `op[${index}].calls`).toEqual(
+        expectedCalls(expected),
+      );
       break;
   }
 }

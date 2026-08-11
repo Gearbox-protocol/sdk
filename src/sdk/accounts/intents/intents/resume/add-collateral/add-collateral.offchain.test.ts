@@ -23,7 +23,7 @@ function runResume(c: ResumeCase) {
     sdk,
     options: buildOffchainOptions(c),
   });
-  return service.finishAddCollateralIntent(props);
+  return service.finishIntent(props);
 }
 
 describe("addCollateral.resume offchain — quota-only after claim", () => {
