@@ -6,4 +6,5 @@
  **/
 export * from "./GearboxAPI.js";
 export * from "./opportunities/index.js";
+export * from "./positions/index.js";
 export * from "./types.js";

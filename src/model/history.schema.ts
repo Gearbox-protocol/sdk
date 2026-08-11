@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
 import type { HistoryChartMetadata } from "./history.js";
 import { opportunityKeySchema } from "./opportunities.schema.js";
+import { positionKeySchema } from "./positions.schema.js";
 import { timestampSchema } from "./primitives.schema.js";
 
 /**
@@ -45,11 +46,45 @@ export const strategyHistoryMetricSchema = z.union([
 ]);
 
 /**
+ * {@link PoolPositionHistoryMetric}
+ **/
+export const poolPositionHistoryMetricSchema = z.union([
+  z.literal("depositApy"),
+  z.literal("borrowApy"),
+  z.literal("dieselRate"),
+  z.literal("supplied"),
+  z.literal("borrowed"),
+  z.literal("availableLiquidity"),
+]);
+
+/**
+ * {@link StrategyPositionHistoryMetric}
+ **/
+export const strategyPositionHistoryMetricSchema = z.union([
+  z.literal("netApy"),
+  z.literal("borrowApy"),
+  z.literal("collateralApy"),
+  z.literal("tvl"),
+  z.literal("collateralPrice"),
+  z.literal("collateralUsdPrice"),
+  z.literal("underlyingUsdPrice"),
+]);
+
+/**
+ * {@link PositionHistoryMetric}
+ **/
+export const positionHistoryMetricSchema = z.union([
+  poolPositionHistoryMetricSchema,
+  strategyPositionHistoryMetricSchema,
+]);
+
+/**
  * {@link HistoryMetric}
  **/
 export const historyMetricSchema = z.union([
   poolHistoryMetricSchema,
   strategyHistoryMetricSchema,
+  positionHistoryMetricSchema,
 ]);
 
 /**
@@ -84,4 +119,13 @@ export const opportunityHistoryQuerySchema = z.object({
   opportunity: opportunityKeySchema,
   range: historyRangeSchema,
   metric: historyMetricSchema,
+});
+
+/**
+ * {@link PositionHistoryQuery}
+ **/
+export const positionHistoryQuerySchema = z.object({
+  position: positionKeySchema,
+  range: historyRangeSchema,
+  metric: positionHistoryMetricSchema,
 });

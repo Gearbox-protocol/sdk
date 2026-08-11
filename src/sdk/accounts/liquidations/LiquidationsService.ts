@@ -29,6 +29,7 @@ import {
 } from "../../market/rwa/securitize/index.js";
 import type { MultiCall } from "../../types/index.js";
 import { AddressSet, bytes32ToString, hexEq } from "../../utils/index.js";
+import { dominantCollateral } from "../dominantCollateral.js";
 import type { WithdrawalOutput } from "../withdrawal-compressor/index.js";
 import {
   DUST_THRESHOLD,
@@ -473,30 +474,14 @@ export class LiquidationsService extends SDKConstruct {
     };
   }
 
-  // the most valuable enabled non-underlying collateral above dust, reported
-  // as its source asset for withdrawal phantom tokens
+  // the account's dominant collateral, reported as its source asset for
+  // withdrawal phantom tokens
   #mainAsset(
     ca: CreditAccountData,
     market: MarketSuite,
     fallback: Address,
   ): Address {
-    let bestValue = 0;
-    let asset: Address | undefined;
-    for (const t of ca.tokens) {
-      if (
-        hexEq(t.token, ca.underlying) ||
-        (t.mask & ca.enabledTokensMask) === 0n ||
-        t.balance <= DUST_THRESHOLD
-      ) {
-        continue;
-      }
-      // a token the oracle cannot price does not win the comparison
-      const value = market.priceOracle.safeUsdValue(t.token, t.balance) ?? 0;
-      if (value > bestValue) {
-        bestValue = value;
-        asset = t.token;
-      }
-    }
+    const asset = dominantCollateral(ca, market);
     if (!asset) {
       return fallback;
     }

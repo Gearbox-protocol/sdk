@@ -236,6 +236,79 @@ export interface StrategyPosition {
 export type Position = PoolPosition | StrategyPosition | LiquidationPosition;
 
 /**
+ * Canonical id of a position: the string used to match a row read from the
+ * chain with the same row served by the backend.
+ *
+ * A position list is always scoped to one wallet, so the wallet is not part of
+ * the id.
+ **/
+export type PositionId = string;
+
+/**
+ * Builds the canonical id of a pool position.
+ *
+ * @example
+ * ```ts
+ * poolPositionId(1, "0xda00...") // "1:pool:0xda00..."
+ * ```
+ **/
+export function poolPositionId(chainId: ChainId, pool: Address): PositionId {
+  return `${chainId}:pool:${pool.toLowerCase()}`;
+}
+
+/**
+ * Builds the canonical id of a strategy position. The credit account address
+ * identifies it on its own, the credit manager is not part of the id.
+ *
+ * @example
+ * ```ts
+ * strategyPositionId(1, "0x9c4c...") // "1:strategy:0x9c4c..."
+ * ```
+ **/
+export function strategyPositionId(
+  chainId: ChainId,
+  creditAccount: Address,
+): PositionId {
+  return `${chainId}:strategy:${creditAccount.toLowerCase()}`;
+}
+
+/**
+ * Builds the canonical id of a liquidation position.
+ *
+ * The redeemer is the withdrawal's own contract and therefore identifies it,
+ * but compressor versions below 313 do not report one; those fall back to the
+ * source token plus the moment the withdrawal becomes claimable, which is what
+ * distinguishes two withdrawals of the same asset.
+ **/
+export function liquidationPositionId(
+  chainId: ChainId,
+  position: Pick<
+    LiquidationPosition,
+    "redeemer" | "sourceToken" | "claimableAt"
+  >,
+): PositionId {
+  const { redeemer, sourceToken, claimableAt } = position;
+  const key = redeemer
+    ? redeemer.toLowerCase()
+    : `${sourceToken.address.toLowerCase()}:${claimableAt ?? "claimable"}`;
+  return `${chainId}:liquidation:${key}`;
+}
+
+/**
+ * Canonical id of any position, dispatching on {@link Position.kind}.
+ **/
+export function positionId(position: Position): PositionId {
+  switch (position.kind) {
+    case "pool":
+      return poolPositionId(position.chainId, position.pool);
+    case "strategy":
+      return strategyPositionId(position.chainId, position.creditAccount);
+    case "liquidation":
+      return liquidationPositionId(position.chainId, position);
+  }
+}
+
+/**
  * Optional narrowing of a positions list.
  *
  * Every criterion is optional and an omitted one matches any value, so an empty
@@ -263,3 +336,110 @@ export interface PositionFilter {
    **/
   underlyingType?: AssetType;
 }
+
+/**
+ * Whether a position satisfies every criterion of a filter.
+ *
+ * This is the single definition of what each criterion means: every source
+ * builds its rows first and runs them through here, so the chain and the
+ * backend cannot disagree on what a filter selects.
+ *
+ * A criterion that does not apply to a position's kind keeps the row rather
+ * than dropping it: `isZeroDebt` says nothing about a pool position, and
+ * `underlyingType` says nothing about a liquidation position, which is
+ * denominated in whatever its withdrawal pays out.
+ *
+ * @param position - Row to test.
+ * @param filter - Criteria to test against. An absent filter matches anything.
+ **/
+export function matchesPositionFilter(
+  position: Position,
+  filter?: PositionFilter,
+): boolean {
+  if (!filter) {
+    return true;
+  }
+  if (filter.kind && position.kind !== filter.kind) {
+    return false;
+  }
+  if (filter.chainIds && !filter.chainIds.includes(position.chainId)) {
+    return false;
+  }
+  if (
+    filter.isZeroDebt !== undefined &&
+    position.kind === "strategy" &&
+    (position.totalDebt.value === 0n) !== filter.isZeroDebt
+  ) {
+    return false;
+  }
+  if (filter.underlyingType) {
+    const underlying = positionUnderlying(position);
+    if (underlying && underlying.assetType !== filter.underlyingType) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * Token a position's headline amount is denominated in, or `undefined` for a
+ * kind that has no single underlying.
+ **/
+function positionUnderlying(position: Position): Token | undefined {
+  switch (position.kind) {
+    case "pool":
+      return position.netValue.token;
+    case "strategy":
+      return position.totalValue.token;
+    case "liquidation":
+      return undefined;
+  }
+}
+
+/**
+ * Identifies a pool position in a detail or history request.
+ **/
+export interface PoolPositionKey {
+  chainId: ChainId;
+  /**
+   * Address of the ERC-4626 pool contract.
+   **/
+  pool: Address;
+  /**
+   * Wallet holding the shares. Unlike an opportunity, a position exists only
+   * relative to its holder.
+   **/
+  wallet: Address;
+}
+
+/**
+ * Identifies a strategy position in a detail or history request. The credit
+ * account address identifies it on its own.
+ **/
+export interface StrategyPositionKey {
+  chainId: ChainId;
+  creditAccount: Address;
+}
+
+/**
+ * {@link PoolPositionKey} tagged with its kind, for requests that accept both
+ * kinds.
+ **/
+export interface PoolPositionRef extends PoolPositionKey {
+  kind: "pool";
+}
+
+/**
+ * {@link StrategyPositionKey} tagged with its kind, for requests that accept
+ * both kinds.
+ **/
+export interface StrategyPositionRef extends StrategyPositionKey {
+  kind: "strategy";
+}
+
+/**
+ * Identifies any position that has a history, for requests that accept both
+ * kinds. Liquidation positions have none: a delayed withdrawal is a single
+ * event rather than a series.
+ **/
+export type PositionKey = PoolPositionRef | StrategyPositionRef;

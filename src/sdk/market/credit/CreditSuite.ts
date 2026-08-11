@@ -185,6 +185,16 @@ export class CreditSuite extends SDKConstruct {
   }
 
   /**
+   * Display name of a leveraged position built on one collateral token, e.g.
+   * `"wstETH / WETH"`.
+   *
+   * @param collateral - Target collateral of the position.
+   */
+  public strategyName(collateral: Address): string {
+    return `${this.tokensMeta.symbol(collateral)} / ${this.market.underlyingToken.symbol}`;
+  }
+
+  /**
    * Describes a leveraged position built on one collateral token as the shared
    * read model does.
    *
@@ -206,7 +216,7 @@ export class CreditSuite extends SDKConstruct {
       chainId: this.chainId,
       creditManager: cm.address,
       targetCollateral: this.tokensMeta.mustGetToken(collateral),
-      name: `${this.tokensMeta.symbol(collateral)} / ${market.underlyingToken.symbol}`,
+      name: this.strategyName(collateral),
       curator: market.curator,
       underlyingToken: market.underlyingToken,
       totalBorrow: oracle.toAmount(pool.underlying, borrowed),

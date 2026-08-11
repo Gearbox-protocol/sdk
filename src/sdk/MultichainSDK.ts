@@ -22,6 +22,7 @@ import {
 } from "./OnchainSDK.js";
 import { MultichainOpportunitiesService } from "./opportunities/index.js";
 import type { PluginFactoriesMap, PluginsMap } from "./plugins/index.js";
+import { MultichainPositionsService } from "./positions/index.js";
 import type {
   ILogger,
   MultichainState,
@@ -148,6 +149,11 @@ export class MultichainSDK<const Plugins extends PluginsMap = {}> {
    */
   public readonly opportunities: MultichainOpportunitiesService<Plugins>;
 
+  /**
+   * Namespace for the positions a wallet holds on all configured chains.
+   */
+  public readonly positions: MultichainPositionsService<Plugins>;
+
   constructor(options: MultichainSDKOptions<Plugins>) {
     this.#chains = new Map();
     this.#logger = options.logger;
@@ -181,6 +187,7 @@ export class MultichainSDK<const Plugins extends PluginsMap = {}> {
     }
     this.liquidations = new MultichainLiquidationsService(this);
     this.opportunities = new MultichainOpportunitiesService(this);
+    this.positions = new MultichainPositionsService(this);
   }
 
   /**

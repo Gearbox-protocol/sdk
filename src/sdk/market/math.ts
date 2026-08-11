@@ -1,5 +1,11 @@
 import type { Bps, Leverage } from "../../model/index.js";
-import { PERCENTAGE_FACTOR, PRICE_DECIMALS, RAY } from "../constants/math.js";
+import {
+  MAX_UINT256,
+  PERCENTAGE_FACTOR,
+  PRICE_DECIMALS,
+  RAY,
+  WAD,
+} from "../constants/math.js";
 
 /**
  * Conversions between the units the protocol stores and the basis points the
@@ -93,6 +99,50 @@ export function borrowApyBps(
 export function maxLeverage(liquidationThreshold: Bps): Leverage {
   const equity = FULL - liquidationThreshold;
   return equity > 0 ? FULL / equity : Number.POSITIVE_INFINITY;
+}
+
+/**
+ * Converts a credit account's health factor from the 18-decimal fixed point the
+ * contracts store to basis points.
+ *
+ * An account with no debt return MAX_UINT256 from contract, here we return 0
+ *
+ * @example
+ * ```ts
+ * healthFactorBps(1_250_000_000_000_000_000n) // 12500, i.e. 1.25
+ * ```
+ **/
+export function healthFactorBps(healthFactor: bigint): Bps {
+  if (healthFactor === MAX_UINT256) {
+    return 0;
+  }
+  return Number((healthFactor * PERCENTAGE_FACTOR) / WAD);
+}
+
+/**
+ * Leverage of an open position: `totalDebt / equity`, where equity is what is
+ * left of the position's value once its debt is repaid.
+ *
+ * Returns `0` for a position that carries no debt and for one that is
+ * underwater, where there is no equity to lever.
+ *
+ * @param totalDebt - Debt principal plus accrued interest and fees.
+ * @param totalValue - Total value of the position, in the same token.
+ *
+ * @example
+ * ```ts
+ * positionLeverage(800n, 1000n) // 4, i.e. 4x debt per unit of equity
+ * ```
+ **/
+export function positionLeverage(
+  totalDebt: bigint,
+  totalValue: bigint,
+): Leverage {
+  const equity = totalValue - totalDebt;
+  if (equity <= 0n || totalDebt <= 0n) {
+    return 0;
+  }
+  return Number(totalDebt) / Number(equity);
 }
 
 /**

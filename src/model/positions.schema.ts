@@ -132,3 +132,28 @@ export const positionFilterSchema = z.object({
   chainIds: z.array(chainIdSchema).optional(),
   underlyingType: assetTypeSchema.optional(),
 });
+
+/**
+ * {@link PoolPositionKey}
+ **/
+export const poolPositionKeySchema = z.object({
+  chainId: chainIdSchema,
+  pool: ZodAddress(),
+  wallet: ZodAddress(),
+});
+
+/**
+ * {@link StrategyPositionKey}
+ **/
+export const strategyPositionKeySchema = z.object({
+  chainId: chainIdSchema,
+  creditAccount: ZodAddress(),
+});
+
+/**
+ * {@link PositionKey}
+ **/
+export const positionKeySchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("pool"), ...poolPositionKeySchema.shape }),
+  z.object({ kind: z.literal("strategy"), ...strategyPositionKeySchema.shape }),
+]);

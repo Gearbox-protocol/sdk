@@ -50,6 +50,7 @@ import { OpportunitiesService } from "./opportunities/index.js";
 import type { PluginStatesMap, PluginsMap } from "./plugins/index.js";
 import { PluginStateVersionError } from "./plugins/index.js";
 import { type IPoolsService, PoolService } from "./pools/index.js";
+import { PositionsService } from "./positions/index.js";
 import { createRouter, type IRouterContract } from "./router/index.js";
 import type {
   GearboxState,
@@ -300,6 +301,10 @@ export class OnchainSDK<
    * Namespace for the pool and strategy opportunities of this chain.
    */
   public readonly opportunities: OpportunitiesService;
+  /**
+   * Namespace for the positions a wallet holds on this chain.
+   */
+  public readonly positions: PositionsService;
 
   /**
    * @param network - Gearbox network type (e.g. `"Mainnet"`, `"Monad"`).
@@ -337,6 +342,7 @@ export class OnchainSDK<
     this.pools = new PoolService(this);
     this.liquidations = new LiquidationsService(this);
     this.opportunities = new OpportunitiesService(this);
+    this.positions = new PositionsService(this);
     this.#withdrawalCompressor = createWithdrawalCompressor(this);
   }
 

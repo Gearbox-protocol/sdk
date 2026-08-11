@@ -7,9 +7,15 @@ import type {
   HistorySeries,
   OpportunityHistoryQuery,
   POOL_HISTORY_METRICS,
+  POOL_POSITION_HISTORY_METRICS,
   PoolHistoryMetric,
+  PoolPositionHistoryMetric,
+  PositionHistoryMetric,
+  PositionHistoryQuery,
   STRATEGY_HISTORY_METRICS,
+  STRATEGY_POSITION_HISTORY_METRICS,
   StrategyHistoryMetric,
+  StrategyPositionHistoryMetric,
 } from "./history.js";
 import type {
   historyMetricSchema,
@@ -18,7 +24,11 @@ import type {
   historySeriesSchema,
   opportunityHistoryQuerySchema,
   poolHistoryMetricSchema,
+  poolPositionHistoryMetricSchema,
+  positionHistoryMetricSchema,
+  positionHistoryQuerySchema,
   strategyHistoryMetricSchema,
+  strategyPositionHistoryMetricSchema,
 } from "./history.schema.js";
 import type {
   DelayedReceivedAsset,
@@ -93,24 +103,30 @@ import type {
   PointsProgramPnL,
   PointsRewardsPnL,
   PoolPosition,
+  PoolPositionKey,
   Position,
   PositionCollateral,
   PositionFilter,
+  PositionKey,
   PositionKind,
   RewardsPnL,
   StrategyPosition,
+  StrategyPositionKey,
   TokenRewardsPnL,
 } from "./positions.js";
 import type {
   pnlBreakdownSchema,
   pointsProgramPnLSchema,
   pointsRewardsPnLSchema,
+  poolPositionKeySchema,
   poolPositionSchema,
   positionCollateralSchema,
   positionFilterSchema,
+  positionKeySchema,
   positionKindSchema,
   positionSchema,
   rewardsPnLSchema,
+  strategyPositionKeySchema,
   strategyPositionSchema,
   tokenRewardsPnLSchema,
 } from "./positions.schema.js";
@@ -252,6 +268,21 @@ describe("model schemas match model types", () => {
     >().toEqualTypeOf<OpportunityHistoryQuery>();
   });
 
+  it("position history", () => {
+    expectTypeOf<
+      z.infer<typeof poolPositionHistoryMetricSchema>
+    >().toEqualTypeOf<PoolPositionHistoryMetric>();
+    expectTypeOf<
+      z.infer<typeof strategyPositionHistoryMetricSchema>
+    >().toEqualTypeOf<StrategyPositionHistoryMetric>();
+    expectTypeOf<
+      z.infer<typeof positionHistoryMetricSchema>
+    >().toEqualTypeOf<PositionHistoryMetric>();
+    expectTypeOf<
+      z.infer<typeof positionHistoryQuerySchema>
+    >().toEqualTypeOf<PositionHistoryQuery>();
+  });
+
   it("liquidations", () => {
     expectTypeOf<
       z.infer<typeof liquidatableAccountFilterSchema>
@@ -311,6 +342,15 @@ describe("model schemas match model types", () => {
     expectTypeOf<
       z.infer<typeof positionFilterSchema>
     >().toEqualTypeOf<PositionFilter>();
+    expectTypeOf<
+      z.infer<typeof poolPositionKeySchema>
+    >().toEqualTypeOf<PoolPositionKey>();
+    expectTypeOf<
+      z.infer<typeof strategyPositionKeySchema>
+    >().toEqualTypeOf<StrategyPositionKey>();
+    expectTypeOf<
+      z.infer<typeof positionKeySchema>
+    >().toEqualTypeOf<PositionKey>();
   });
 
   it("metric lists enumerate their union exhaustively", () => {
@@ -322,5 +362,11 @@ describe("model schemas match model types", () => {
     expectTypeOf<
       (typeof STRATEGY_HISTORY_METRICS)[number]
     >().toEqualTypeOf<StrategyHistoryMetric>();
+    expectTypeOf<
+      (typeof POOL_POSITION_HISTORY_METRICS)[number]
+    >().toEqualTypeOf<PoolPositionHistoryMetric>();
+    expectTypeOf<
+      (typeof STRATEGY_POSITION_HISTORY_METRICS)[number]
+    >().toEqualTypeOf<StrategyPositionHistoryMetric>();
   });
 });

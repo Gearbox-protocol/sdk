@@ -13,18 +13,7 @@ import type {
 } from "../../model/opportunities.js";
 import type { ILogger } from "../../sdk/types/logger.js";
 import type { GearboxAPIOptions, OffchainResult } from "../types.js";
-
-/**
- * Thrown by the endpoints that have no stub answer, so that a caller in
- * `offchain` mode fails loudly instead of reading an empty detail page as a
- * missing opportunity.
- **/
-export class OffchainNotImplementedError extends Error {
-  constructor(endpoint: string) {
-    super(`GearboxAPI: ${endpoint} is not implemented yet`);
-    this.name = "OffchainNotImplementedError";
-  }
-}
+import { OffchainNotImplementedError } from "../types.js";
 
 /**
  * Backend counterpart of the `opportunities` namespace.

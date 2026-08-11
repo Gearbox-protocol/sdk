@@ -3,6 +3,8 @@ import type { MultichainAttachOptions, NetworkType } from "../sdk/index.js";
 import { MultichainSDK } from "../sdk/index.js";
 import type { Opportunities } from "./opportunities/index.js";
 import { OpportunitiesNamespace } from "./opportunities/index.js";
+import type { Positions } from "./positions/index.js";
+import { PositionsNamespace } from "./positions/index.js";
 import type {
   GearboxSDKOptions,
   Mode,
@@ -50,6 +52,10 @@ export class GearboxSDK<const M extends Mode = Mode> {
    * Namespace for pool and strategy opportunities.
    **/
   public readonly opportunities: Opportunities<M>;
+  /**
+   * Namespace for the positions a wallet holds.
+   **/
+  public readonly positions: Positions<M>;
 
   readonly #attachOptions?: MultichainAttachOptions;
   readonly #onchain?: MultichainSDK;
@@ -114,6 +120,11 @@ export class GearboxSDK<const M extends Mode = Mode> {
       this.#offchain,
       logger,
     ) as Opportunities<M>;
+    this.positions = new PositionsNamespace(
+      this.#onchain,
+      this.#offchain,
+      logger,
+    ) as Positions<M>;
   }
 
   /**

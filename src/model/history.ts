@@ -1,4 +1,5 @@
 import type { OpportunityKey } from "./opportunities.js";
+import type { PositionKey } from "./positions.js";
 import type { Timestamp } from "./primitives.js";
 
 /**
@@ -67,9 +68,74 @@ export const STRATEGY_HISTORY_METRICS = [
 ] as const satisfies readonly StrategyHistoryMetric[];
 
 /**
+ * Series available for a pool position.
+ *
+ * Spelled out rather than aliased to {@link PoolHistoryMetric}: an opportunity
+ * and a position are separate contracts with the backend, and the position
+ * series are expected to grow their own members (PnL above all) without that
+ * change reaching the opportunity charts.
+ **/
+export type PoolPositionHistoryMetric =
+  | "depositApy"
+  | "borrowApy"
+  | "dieselRate"
+  | "supplied"
+  | "borrowed"
+  | "availableLiquidity";
+
+/**
+ * Every {@link PoolPositionHistoryMetric}, for callers that enumerate them.
+ **/
+export const POOL_POSITION_HISTORY_METRICS = [
+  "depositApy",
+  "borrowApy",
+  "dieselRate",
+  "supplied",
+  "borrowed",
+  "availableLiquidity",
+] as const satisfies readonly PoolPositionHistoryMetric[];
+
+/**
+ * Series available for a strategy position, see the note on
+ * {@link PoolPositionHistoryMetric} for why these are spelled out separately
+ * from {@link StrategyHistoryMetric}.
+ **/
+export type StrategyPositionHistoryMetric =
+  | "netApy"
+  | "borrowApy"
+  | "collateralApy"
+  | "tvl"
+  | "collateralPrice"
+  | "collateralUsdPrice"
+  | "underlyingUsdPrice";
+
+/**
+ * Every {@link StrategyPositionHistoryMetric}, for callers that enumerate them.
+ **/
+export const STRATEGY_POSITION_HISTORY_METRICS = [
+  "netApy",
+  "borrowApy",
+  "collateralApy",
+  "tvl",
+  "collateralPrice",
+  "collateralUsdPrice",
+  "underlyingUsdPrice",
+] as const satisfies readonly StrategyPositionHistoryMetric[];
+
+/**
+ * Any series a position can return.
+ **/
+export type PositionHistoryMetric =
+  | PoolPositionHistoryMetric
+  | StrategyPositionHistoryMetric;
+
+/**
  * Any series the read model can return.
  **/
-export type HistoryMetric = PoolHistoryMetric | StrategyHistoryMetric;
+export type HistoryMetric =
+  | PoolHistoryMetric
+  | StrategyHistoryMetric
+  | PositionHistoryMetric;
 
 /**
  * One sample of a series.
@@ -139,6 +205,29 @@ export interface OpportunityHistoryQuery<
   /**
    * Metric to return. A metric that does not apply to the opportunity's kind
    * has no series.
+   **/
+  metric: M;
+}
+
+/**
+ * A request for one series of a single position.
+ *
+ * @typeParam M - Metric requested.
+ **/
+export interface PositionHistoryQuery<
+  M extends PositionHistoryMetric = PositionHistoryMetric,
+> {
+  /**
+   * Position the series belongs to.
+   **/
+  position: PositionKey;
+  /**
+   * Window to cover.
+   **/
+  range: HistoryRange;
+  /**
+   * Metric to return. A metric that does not apply to the position's kind has
+   * no series.
    **/
   metric: M;
 }

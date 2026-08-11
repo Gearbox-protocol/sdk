@@ -1,4 +1,5 @@
 import { OffchainOpportunities } from "./opportunities/index.js";
+import { OffchainPositions } from "./positions/index.js";
 import type { GearboxAPIOptions } from "./types.js";
 
 /**
@@ -16,16 +17,21 @@ import type { GearboxAPIOptions } from "./types.js";
  * return those types directly, so there is no wire DTO layer here — only
  * transport and schema validation.
  *
- * The transport is not implemented yet; see {@link OffchainOpportunities} for
- * what each stubbed endpoint currently answers.
+ * The transport is not implemented yet; see {@link OffchainOpportunities} and
+ * {@link OffchainPositions} for what each stubbed endpoint currently answers.
  **/
 export class GearboxAPI {
   /**
    * Namespace for pool and strategy opportunities.
    **/
   public readonly opportunities: OffchainOpportunities;
+  /**
+   * Namespace for the positions a wallet holds.
+   **/
+  public readonly positions: OffchainPositions;
 
   constructor(options?: GearboxAPIOptions) {
     this.opportunities = new OffchainOpportunities(options);
+    this.positions = new OffchainPositions(options);
   }
 }

@@ -4,6 +4,7 @@ import type {
   ContractFunctionArgs,
   ContractFunctionName,
 } from "viem";
+import type { PoolPosition } from "../../model/index.js";
 import type { Asset } from "../base/index.js";
 import type { IZapperContract } from "../market/index.js";
 import type { MultiCall, RawTx } from "../types/transactions.js";
@@ -128,9 +129,26 @@ export interface WithdrawalMetadata {
 }
 
 /**
+ * Props for {@link IPoolsService.listPositions}.
+ **/
+export interface ListPoolPositionsProps {
+  /**
+   * Wallet whose pool shares to describe.
+   **/
+  wallet: Address;
+}
+
+/**
  * Service interface for pool liquidity operations.
  **/
 export interface IPoolsService {
+  /**
+   * Lists all pool positions a wallet holds.
+   *
+   * @param props - {@link ListPoolPositionsProps}
+   **/
+  listPositions(props: ListPoolPositionsProps): Promise<PoolPosition[]>;
+
   /**
    * Returns list of tokens that can be deposited to a pool
    * @param pool

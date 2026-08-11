@@ -1,0 +1,48 @@
+import type { Position, PositionKind } from "../../model/index.js";
+import { matchesPositionFilter } from "../../model/index.js";
+import { SDKConstruct } from "../base/index.js";
+import type { ListPositionsProps } from "./types.js";
+
+/**
+ * The `positions` read model of one chain: everything a wallet holds in the
+ * protocol — pool shares, open credit accounts, and delayed withdrawals it
+ * took over by liquidating.
+ **/
+export class PositionsService extends SDKConstruct {
+  /**
+   * Every position of a wallet on this chain, optionally narrowed by
+   * {@link PositionFilter} (see {@link matchesPositionFilter} for what each
+   * criterion selects). Reads live chain state, so rows reflect the moment of
+   * the call rather than the SDK's loaded snapshot.
+   **/
+  public async list(props: ListPositionsProps): Promise<Position[]> {
+    const { wallet, filter } = props;
+    if (filter?.chainIds && !filter.chainIds.includes(this.chainId)) {
+      return [];
+    }
+
+    const wanted = (kind: PositionKind): boolean =>
+      !filter?.kind || filter.kind === kind;
+
+    const [pool, strategy, liquidation] = await Promise.all([
+      wanted("pool")
+        ? this.sdk.pools.listPositions({ wallet })
+        : Promise.resolve([]),
+      wanted("strategy")
+        ? this.sdk.accounts.listPositions({
+            owner: wallet,
+            // a filter that asks for accounts with debt narrows the account
+            // query itself; anything else needs them all
+            includeZeroDebt: filter?.isZeroDebt !== false,
+          })
+        : Promise.resolve([]),
+      wanted("liquidation")
+        ? this.sdk.liquidations.getLiquidationPositions({ liquidator: wallet })
+        : Promise.resolve([]),
+    ]);
+
+    return [...pool, ...strategy, ...liquidation].filter(row =>
+      matchesPositionFilter(row, filter),
+    );
+  }
+}

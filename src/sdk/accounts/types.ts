@@ -1,5 +1,6 @@
 import type { Address, ContractFunctionArgs, Hex } from "viem";
 import type { creditAccountCompressorAbi } from "../../abi/compressors/creditAccountCompressor.js";
+import type { StrategyPosition } from "../../model/index.js";
 import type {
   Asset,
   ConnectedBotData,
@@ -117,6 +118,21 @@ export interface GetCreditAccountsOptions {
    * If true, exclude reserve price feed updates from the query.
    **/
   ignoreReservePrices?: boolean;
+}
+
+/**
+ * Props for {@link ICreditAccountsService.listPositions}.
+ **/
+export interface ListStrategyPositionsProps {
+  /**
+   * Wallet whose credit accounts to describe. RWA accounts are resolved from
+   * the investor EOA, see {@link ICreditAccountsService.getBorrowerCreditAccounts}.
+   **/
+  owner: Address;
+  /**
+   * Whether to include accounts that carry no debt.
+   **/
+  includeZeroDebt: boolean;
 }
 
 /**
@@ -893,6 +909,16 @@ export interface ICreditAccountsService extends Construct {
     options?: GetCreditAccountsOptions,
     blockNumber?: bigint,
   ): Promise<Array<CreditAccountData<true>>>;
+
+  /**
+   * Describes the open credit accounts of a wallet as the shared read model's
+   * strategy positions.
+   *
+   * @param props - {@link ListStrategyPositionsProps}
+   * @returns One row per open account. Accounts whose collateral computation
+   * failed are excluded, because none of their amounts can be computed.
+   */
+  listPositions(props: ListStrategyPositionsProps): Promise<StrategyPosition[]>;
 
   /**
    * Method to get all claimable rewards for credit account (ex. stkUSDS SKY rewards).

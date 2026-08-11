@@ -164,6 +164,13 @@ export class MarketSuite extends SDKConstruct {
   }
 
   /**
+   * Display name of this market's pool, e.g. `"USDC Pool"`.
+   */
+  public get poolName(): string {
+    return `${this.underlyingToken.symbol} Pool`;
+  }
+
+  /**
    * {@inheritDoc MarketConfiguratorContract.curator}
    */
   public get curator(): Curator {
@@ -274,7 +281,7 @@ export class MarketSuite extends SDKConstruct {
       kind: "pool",
       chainId: this.chainId,
       pool: pool.address,
-      name: `${this.underlyingToken.symbol} Pool`,
+      name: this.poolName,
       curator: this.curator,
       underlyingToken: this.underlyingToken,
       // the shares are worth this much underlying at the current rate, which is

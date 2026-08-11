@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 import { ierc20Abi } from "../../abi/iERC20.js";
+import type { PoolPosition } from "../../model/index.js";
 import {
   BaseContract,
   RWA_UNDERLYING_DEFAULT,
@@ -7,17 +8,20 @@ import {
   SDKConstruct,
   type TokenMetaData,
 } from "../base/index.js";
-import { NATIVE_ADDRESS } from "../constants/index.js";
+import { NATIVE_ADDRESS, RAY } from "../constants/index.js";
 import {
   IERC20ZapperContract,
   IETHZapperContract,
   type IZapperContract,
+  type MarketSuite,
 } from "../market/index.js";
+import { rayToBps } from "../market/math.js";
 import { AddressSet, hexEq } from "../utils/index.js";
 import type {
   AddLiquidityProps,
   DepositMetadata,
   IPoolsService,
+  ListPoolPositionsProps,
   PoolServiceCallResult,
   RemoveLiquidityProps,
   WithdrawalMetadata,
@@ -278,6 +282,37 @@ export class PoolService extends SDKConstruct implements IPoolsService {
   }
 
   /**
+   * {@inheritDoc IPoolsService.listPositions}
+   */
+  public async listPositions(
+    props: ListPoolPositionsProps,
+  ): Promise<PoolPosition[]> {
+    const { markets } = this.sdk.marketRegister;
+    if (markets.length === 0) {
+      return [];
+    }
+    const balances = await this.client.multicall({
+      contracts: markets.map(
+        market =>
+          ({
+            // the pool contract is its own share (diesel) token
+            address: market.pool.pool.address,
+            abi: ierc20Abi,
+            functionName: "balanceOf",
+            args: [props.wallet],
+          }) as const,
+      ),
+      allowFailure: false,
+      batchSize: 0,
+    });
+
+    return markets.flatMap((market, i) => {
+      const shares = balances[i] ?? 0n;
+      return shares > 0n ? [this.#poolPosition(market, shares)] : [];
+    });
+  }
+
+  /**
    * Returns non-migration zappers available for the pool.
    */
   #getDepositZappers(poolAddr: Address) {
@@ -534,5 +569,26 @@ export class PoolService extends SDKConstruct implements IPoolsService {
   #describeUnderlying(pool: Address): TokenMetaData {
     const market = this.sdk.marketRegister.findByPool(pool);
     return this.sdk.tokensMeta.mustGet(market.underlying);
+  }
+
+  #poolPosition(market: MarketSuite, shares: bigint): PoolPosition {
+    const { pool } = market.pool;
+    return {
+      kind: "pool",
+      name: market.poolName,
+      chainId: this.chainId,
+      pool: pool.address,
+      netValue: {
+        // for RWA markets the shares are worth the unwrapped asset (e.g. USDC
+        // instead of dcUSDC), which the wrapper converts to one-for-one; the
+        // oracle only knows the wrapper, so that is what prices the amount
+        token: this.sdk.tokensMeta.mustGetToken(market.unwrappedUnderlying),
+        ...market.priceOracle.toAmount(
+          market.underlying,
+          (shares * pool.dieselRate) / RAY,
+        ),
+      },
+      apy: { organicApy: rayToBps(pool.supplyRate) },
+    };
   }
 }

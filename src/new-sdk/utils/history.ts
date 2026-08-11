@@ -1,6 +1,5 @@
 import type {
   HistoryChartMetadata,
-  HistoryMetric,
   HistoryPoint,
   HistoryRange,
 } from "../../model/index.js";
@@ -35,9 +34,13 @@ export interface Chart {
 /**
  * Reads the charts of one subject, one metric and one range at a time.
  *
+ * The constraint is `string` rather than {@link HistoryMetric}, matching
+ * {@link HistorySeries}: opportunities and positions carry their own metric
+ * unions, and those are free to drift apart.
+ *
  * @typeParam Metric - Metrics the subject has.
  **/
-export interface HistoryReader<Metric extends HistoryMetric> {
+export interface HistoryReader<Metric extends string> {
   /**
    * Historical chart of one metric over one window.
    *
