@@ -1,9 +1,7 @@
 import type { Address } from "viem";
-import {
-  PERCENTAGE_DECIMALS,
-  TypedObjectUtils,
-  toBigInt,
-} from "../../sdk/index.js";
+import { PERCENTAGE_DECIMALS } from "../../sdk/constants/math.js";
+import { toBigInt } from "../../sdk/utils/formatter.js";
+import { TypedObjectUtils } from "../../sdk/utils/mappers.js";
 import type { AssetWithView } from "../utils/assets-math.js";
 import type {
   CreditSessionFilteredPayload,

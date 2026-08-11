@@ -26,6 +26,9 @@
             "forceJsExtensions": true
           }
         }
+      },
+      "a11y": {
+        "noSvgWithoutTitle": "off"
       }
     }
   }

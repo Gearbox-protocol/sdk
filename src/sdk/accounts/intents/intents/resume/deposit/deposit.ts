@@ -1,0 +1,22 @@
+import type { OnchainSDK } from "../../../../../index.js";
+import {
+  type AccountCalculatorOperation,
+  buildClaimDelayedWithdrawalOperation,
+  type ClaimDelayedOption,
+} from "../../../operations/index.js";
+import type { CreditAccountSlice } from "../../../types.js";
+
+/**
+ * Shared by DEPOSIT and DEPOSIT_AND_INCREASE_LEVERAGE resume
+ */
+export function buildResumeDepositOperations(
+  creditAccount: CreditAccountSlice,
+  options: ClaimDelayedOption,
+  sdk: OnchainSDK,
+): Array<AccountCalculatorOperation> {
+  const operations: Array<AccountCalculatorOperation> = [
+    buildClaimDelayedWithdrawalOperation({ creditAccount, sdk }, options),
+  ];
+
+  return operations;
+}

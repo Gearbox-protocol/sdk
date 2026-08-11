@@ -1217,6 +1217,47 @@ export interface ICreditAccountsService extends Construct {
   assembleCaOperations(props: AssembleCaOperationsProps): Array<MultiCall>;
 
   /**
+   * Encodes a facade `increaseDebt` multicall entry.
+   */
+  prepareIncreaseDebt(creditFacade: Address, debt: bigint): MultiCall;
+
+  /**
+   * Encodes a facade `increaseDebt` or `decreaseDebt` multicall entry.
+   */
+  prepareChangeDebt(
+    creditFacade: Address,
+    change: bigint,
+    isDecrease: boolean,
+  ): MultiCall;
+
+  /**
+   * Encodes facade `addCollateral` / `addCollateralWithPermit` multicall entries.
+   */
+  prepareAddCollateral(
+    creditFacade: Address,
+    assets: Array<Asset>,
+    permits: Record<string, PermitResult>,
+  ): Array<MultiCall>;
+
+  /**
+   * Encodes a facade `withdrawCollateral` multicall entry.
+   */
+  prepareWithdrawToken(
+    creditFacade: Address,
+    token: Address,
+    amount: bigint,
+    to: Address,
+  ): MultiCall;
+
+  /**
+   * Encodes facade `updateQuota` multicall entries from average/min quota assets.
+   */
+  prepareUpdateQuotas(
+    creditFacade: Address,
+    props: PrepareUpdateQuotasProps,
+  ): Array<MultiCall>;
+
+  /**
    * Executes a credit account update: prepends price feed updates and builds the raw
    * multicall transaction. Uses the RWA factory when applicable.
    *
