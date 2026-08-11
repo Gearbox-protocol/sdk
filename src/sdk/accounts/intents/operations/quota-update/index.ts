@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import type { calcQuotaUpdate } from "../../../../../common-utils/index.js";
+import type { calcQuotaUpdate } from "../../../../../common-utils/utils/creditAccount/quota-utils.js";
 import type { Asset, MultiCall, OnchainSDK } from "../../../../index.js";
 import type { CreditAccountSlice } from "../../types.js";
 import type { OperationBuilderOption } from "../types.js";

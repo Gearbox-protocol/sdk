@@ -1,10 +1,6 @@
 import type { Address } from "viem";
-import {
-  AddressMap,
-  type Asset,
-  type OnchainSDK,
-  type RouterCASlice,
-} from "../../../index.js";
+import type { Asset, OnchainSDK, RouterCASlice } from "../../../index.js";
+import { AddressMap } from "../../../utils/AddressMap.js";
 import type { CreditAccountSlice } from "../types.js";
 
 /** Case-insensitive address equality. */

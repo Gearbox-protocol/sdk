@@ -1,11 +1,11 @@
-import {
-  type DelayedCloseAccountIntent,
-  type DelayedDecreaseLeverageIntent,
-  type DelayedIntent,
-  type DelayedWithdrawCollateralIntent,
-  type OnchainSDK,
-  SDKConstruct,
-} from "../../index.js";
+import { SDKConstruct } from "../../base/SDKConstruct.js";
+import type { OnchainSDK } from "../../OnchainSDK.js";
+import type {
+  DelayedCloseAccountIntent,
+  DelayedDecreaseLeverageIntent,
+  DelayedIntent,
+  DelayedWithdrawCollateralIntent,
+} from "../withdrawal-compressor/types.js";
 import {
   buildResumeAddCollateralOperations,
   buildResumeCloseOperations,

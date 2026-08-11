@@ -3,7 +3,7 @@ import type {
   DelayedWithdrawCollateralIntent,
   OnchainSDK,
 } from "../../../../../index.js";
-import { BigIntMath } from "../../../../../index.js";
+import { BigIntMath } from "../../../../../utils/bigint-math.js";
 import {
   type AccountCalculatorOperation,
   buildClaimDelayedWithdrawalOperation,

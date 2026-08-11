@@ -1,10 +1,6 @@
 import type { Address } from "viem";
-import {
-  type Asset,
-  BigIntMath,
-  type MultiCall,
-  type OnchainSDK,
-} from "../../../index.js";
+import type { Asset, MultiCall, OnchainSDK } from "../../../index.js";
+import { BigIntMath } from "../../../utils/bigint-math.js";
 import type { CreditAccountSlice } from "../types.js";
 import { convertAmount, eq, toRouterCaSlice } from "../utils/index.js";
 

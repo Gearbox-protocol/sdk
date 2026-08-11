@@ -1,15 +1,10 @@
 import type { Address } from "viem";
 import {
-  AssetUtils,
-  type AssetWithAmountInTarget,
+  type CalcQuotaUpdateProps,
   calcQuotaUpdate,
-  type QuotaSlice,
-} from "../../../../common-utils/index.js";
-import {
-  type AddressMap,
-  type Asset,
-  TypedObjectUtils,
-} from "../../../index.js";
+} from "../../../../common-utils/utils/creditAccount/quota-utils.js";
+import type { AddressMap, Asset } from "../../../index.js";
+import { TypedObjectUtils } from "../../../utils/mappers.js";
 import type { QuotaUpdateState } from "../operations/index.js";
 import type { ConvertFn } from "./simulate-assets.js";
 
@@ -77,21 +72,23 @@ export function getQuotasForUpdate({
   );
 
   const quotas = TypedObjectUtils.fromEntries(
-    quotasMap.values().map((q): [Address, QuotaSlice] => {
-      const token = q.token.toLowerCase() as Address;
+    quotasMap
+      .values()
+      .map((q): [Address, CalcQuotaUpdateProps["quotas"][Address]] => {
+        const token = q.token.toLowerCase() as Address;
 
-      return [
-        token,
-        {
+        return [
           token,
-          rate: BigInt(q.rate),
-          quotaIncreaseFee: BigInt(q.quotaIncreaseFee),
-          totalQuoted: q.totalQuoted,
-          limit: q.limit,
-          isActive: q.isActive,
-        },
-      ];
-    }),
+          {
+            token,
+            rate: BigInt(q.rate),
+            quotaIncreaseFee: BigInt(q.quotaIncreaseFee),
+            totalQuoted: q.totalQuoted,
+            limit: q.limit,
+            isActive: q.isActive,
+          },
+        ];
+      }),
   );
 
   const fullAssetsAfter = getBalancesAfterWithFullySpent(
@@ -101,7 +98,11 @@ export function getQuotasForUpdate({
   );
 
   const assetsWithAmountInTarget = fullAssetsAfter.map(
-    (a): AssetWithAmountInTarget => {
+    (
+      a,
+    ): Asset & {
+      amountInTarget: bigint;
+    } => {
       return {
         ...a,
         amountInTarget: convert(a.token, underlyingTokenLc, a.balance),
@@ -112,11 +113,9 @@ export function getQuotasForUpdate({
   const quotaResult = calcQuotaUpdate({
     quotas,
     initialQuotas: initialQuotasRecord,
-    assetsAfterUpdate: AssetUtils.constructAssetRecord(
-      assetsWithAmountInTarget,
-    ),
-    allowedToObtain: AssetUtils.constructAssetRecord(obtain),
-    allowedToSpend: AssetUtils.constructAssetRecord(spend),
+    assetsAfterUpdate: constructAssetRecord(assetsWithAmountInTarget),
+    allowedToObtain: constructAssetRecord(obtain),
+    allowedToSpend: constructAssetRecord(spend),
     quotaReserve: BigInt(quotaReserve),
     maxDebt,
     liquidationThresholds,
@@ -214,4 +213,12 @@ function filterQuotaUpdates(
     quotaIncrease: quotaIncrease.filter(a => allowed.has(a.token)),
     quotaDecrease: quotaDecrease.filter(a => allowed.has(a.token)),
   };
+}
+
+function constructAssetRecord<A extends Asset>(a: Array<A>) {
+  const record = a.reduce<Record<Address, A>>((acc, asset) => {
+    acc[asset.token] = asset;
+    return acc;
+  }, {});
+  return record;
 }

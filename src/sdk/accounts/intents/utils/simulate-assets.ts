@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import type { Asset } from "../../../index.js";
-import { BigIntMath } from "../../../index.js";
+import { BigIntMath } from "../../../utils/bigint-math.js";
 import type { AccountCalculatorOperation } from "../operations/types.js";
 
 export type ConvertFn = (token: Address, to: Address, amount: bigint) => bigint;
