@@ -33,6 +33,9 @@ import {
   simulateState,
 } from "./utils/index.js";
 
+export { primaryInstantOutput } from "./operations/index.js";
+export type { CreditAccountSlice, IntentPreviewResult };
+
 type ResumeGenericProps<T extends DelayedIntent> = {
   intent: T;
   creditAccount: CreditAccountSlice;
