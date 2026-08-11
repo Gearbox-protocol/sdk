@@ -882,6 +882,7 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
                 )[0],
               },
             },
+            creditFacadeParams: json_stringify(decoded[1]),
           }),
         };
       }
