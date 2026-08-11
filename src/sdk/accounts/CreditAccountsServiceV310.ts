@@ -1122,6 +1122,41 @@ export class CreditAccountsServiceV310
   }
 
   /**
+   * {@inheritDoc ICreditAccountsService.startDelayedWithdrawal}
+   **/
+  public async startDelayedWithdrawal({
+    creditAccount,
+    minQuota,
+    averageQuota,
+
+    preview,
+  }: StartDelayedWithdrawalProps): Promise<CreditAccountOperationResult> {
+    const cm = this.sdk.marketRegister.findCreditManager(
+      creditAccount.creditManager,
+    );
+
+    const operationCalls: Array<MultiCall> = [
+      ...this.assembleStartDelayedWithdrawalCalls({
+        creditFacade: cm.creditFacade.address,
+        preview,
+      }),
+      ...this.#prepareUpdateQuotas(cm.creditFacade.address, {
+        minQuota,
+        averageQuota,
+      }),
+    ];
+
+    const calls = await this.#prependPriceUpdates(
+      creditAccount.creditManager,
+      operationCalls,
+      creditAccount,
+    );
+    const tx = await this.#multicallTx(cm, creditAccount.creditAccount, calls);
+
+    return { tx, calls, creditFacade: cm.creditFacade };
+  }
+
+  /**
    * {@inheritDoc ICreditAccountsService.assembleStartDelayedWithdrawalCalls}
    **/
   public assembleStartDelayedWithdrawalCalls({
@@ -1168,6 +1203,50 @@ export class CreditAccountsServiceV310
     };
 
     return [storeExpectedBalances, ...preview.requestCalls, compareBalances];
+  }
+
+  /**
+   * {@inheritDoc ICreditAccountsService.claimDelayed}
+   **/
+  public async claimDelayed({
+    creditAccount,
+    minQuota,
+    averageQuota,
+
+    claimableNow,
+  }: ClaimDelayedProps): Promise<CreditAccountOperationResult> {
+    const zeroDebt = creditAccount.debt === 0n;
+
+    const cm = this.sdk.marketRegister.findCreditManager(
+      creditAccount.creditManager,
+    );
+
+    const quotaCalls = zeroDebt
+      ? []
+      : this.#prepareUpdateQuotas(cm.creditFacade.address, {
+          minQuota,
+          averageQuota,
+        });
+
+    const operationCalls: Array<MultiCall> = [
+      ...this.assembleClaimDelayedCalls({
+        creditFacade: cm.creditFacade.address,
+        claimableNow,
+      }),
+      ...quotaCalls,
+    ];
+
+    const calls = zeroDebt
+      ? operationCalls
+      : await this.#prependPriceUpdates(
+          creditAccount.creditManager,
+          operationCalls,
+          creditAccount,
+        );
+
+    const tx = await this.#multicallTx(cm, creditAccount.creditAccount, calls);
+
+    return { tx, calls, creditFacade: cm.creditFacade };
   }
 
   /**
@@ -1222,85 +1301,6 @@ export class CreditAccountsServiceV310
     };
 
     return [storeExpectedBalances, ...claimableNow.claimCalls, compareBalances];
-  }
-
-  /**
-   * {@inheritDoc ICreditAccountsService.startDelayedWithdrawal}
-   **/
-  public async startDelayedWithdrawal({
-    creditAccount,
-    minQuota,
-    averageQuota,
-
-    preview,
-  }: StartDelayedWithdrawalProps): Promise<CreditAccountOperationResult> {
-    const cm = this.sdk.marketRegister.findCreditManager(
-      creditAccount.creditManager,
-    );
-
-    const operationCalls: Array<MultiCall> = [
-      ...this.assembleStartDelayedWithdrawalCalls({
-        creditFacade: cm.creditFacade.address,
-        preview,
-      }),
-      ...this.#prepareUpdateQuotas(cm.creditFacade.address, {
-        minQuota,
-        averageQuota,
-      }),
-    ];
-
-    const calls = await this.#prependPriceUpdates(
-      creditAccount.creditManager,
-      operationCalls,
-      creditAccount,
-    );
-    const tx = await this.#multicallTx(cm, creditAccount.creditAccount, calls);
-
-    return { tx, calls, creditFacade: cm.creditFacade };
-  }
-
-  /**
-   * {@inheritDoc ICreditAccountsService.claimDelayed}
-   **/
-  public async claimDelayed({
-    creditAccount,
-    minQuota,
-    averageQuota,
-
-    claimableNow,
-  }: ClaimDelayedProps): Promise<CreditAccountOperationResult> {
-    const zeroDebt = creditAccount.debt === 0n;
-
-    const cm = this.sdk.marketRegister.findCreditManager(
-      creditAccount.creditManager,
-    );
-
-    const quotaCalls = zeroDebt
-      ? []
-      : this.#prepareUpdateQuotas(cm.creditFacade.address, {
-          minQuota,
-          averageQuota,
-        });
-
-    const operationCalls: Array<MultiCall> = [
-      ...this.assembleClaimDelayedCalls({
-        creditFacade: cm.creditFacade.address,
-        claimableNow,
-      }),
-      ...quotaCalls,
-    ];
-
-    const calls = zeroDebt
-      ? operationCalls
-      : await this.#prependPriceUpdates(
-          creditAccount.creditManager,
-          operationCalls,
-          creditAccount,
-        );
-
-    const tx = await this.#multicallTx(cm, creditAccount.creditAccount, calls);
-
-    return { tx, calls, creditFacade: cm.creditFacade };
   }
 
   /**

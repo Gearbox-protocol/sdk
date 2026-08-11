@@ -84,16 +84,15 @@ const httpCases: Array<{
   },
 ];
 
-it.each(httpCases)("isTransientError - $name", async ({
-  status,
-  body,
-  headers,
-}) => {
-  const client = makeClient(mockFetchResponse(status, body, headers));
-  await expect(callSymbol(client)).rejects.toSatisfy((e: Error) =>
-    isTransientError(e),
-  );
-});
+it.each(httpCases)(
+  "isTransientError - $name",
+  async ({ status, body, headers }) => {
+    const client = makeClient(mockFetchResponse(status, body, headers));
+    await expect(callSymbol(client)).rejects.toSatisfy((e: Error) =>
+      isTransientError(e),
+    );
+  },
+);
 
 // --- Timeout case ---
 

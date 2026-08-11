@@ -172,57 +172,60 @@ function loadWalletFundedRepayFixtures(
   };
 }
 
-describe.each(
-  WALLET_FUNDED_REPAY_SCENARIOS,
-)("wallet-funded full repay without withdrawals ($name)", spec => {
-  const STATE_FIXTURE = resolve(FIXTURES, "Mainnet-25599278-rwa.json");
-  const { repay, afterOpen } = loadWalletFundedRepayFixtures(spec.name);
-  const investor = afterOpen.investor as Address;
+describe.each(WALLET_FUNDED_REPAY_SCENARIOS)(
+  "wallet-funded full repay without withdrawals ($name)",
+  spec => {
+    const STATE_FIXTURE = resolve(FIXTURES, "Mainnet-25599278-rwa.json");
+    const { repay, afterOpen } = loadWalletFundedRepayFixtures(spec.name);
+    const investor = afterOpen.investor as Address;
 
-  let sdk: OnchainSDK<{ adapters: AdaptersPlugin }>;
+    let sdk: OnchainSDK<{ adapters: AdaptersPlugin }>;
 
-  beforeAll(() => {
-    sdk = new OnchainSDK(
-      "Mainnet",
-      {
-        transport: custom({
-          request: async ({ method }) => {
-            throw new Error(
-              `offline: unexpected RPC request ${method} in wallet-funded repay preview test`,
-            );
-          },
-        }),
-      },
-      { plugins: { adapters: new AdaptersPlugin(true) } },
-    );
-    sdk.hydrate(json_parse(readFileSync(STATE_FIXTURE, "utf-8")));
-  });
-
-  it("previews the full repay as RepayCreditAccount", async () => {
-    const preview = await previewOperation(
-      {
-        sdk,
-        to: repay.to,
-        calldata: repay.calldata,
-        sender: investor,
-        value: 0n,
-      },
-      { creditAccount: afterOpen },
-    );
-
-    expect(preview).toMatchObject({
-      operation: "RepayCreditAccount",
-      permanent: false,
-      error: undefined,
-      creditManager: afterOpen.creditManager,
-      creditAccount: afterOpen.creditAccount,
-      // exact calldata amount transferred from the wallet
-      collateralAdded: [{ token: spec.repayToken, balance: spec.repayAmount }],
-      // nothing is withdrawn to the wallet; leftover unwrap stays on the CA
-      collateralWithdrawn: [],
-      // interest accrues on top of the snapshot principal between open and
-      // repay, so debtRepaid is within a small tolerance of afterOpen.debt
-      debtRepaid: expect.toBeWithinBps(afterOpen.debt),
+    beforeAll(() => {
+      sdk = new OnchainSDK(
+        "Mainnet",
+        {
+          transport: custom({
+            request: async ({ method }) => {
+              throw new Error(
+                `offline: unexpected RPC request ${method} in wallet-funded repay preview test`,
+              );
+            },
+          }),
+        },
+        { plugins: { adapters: new AdaptersPlugin(true) } },
+      );
+      sdk.hydrate(json_parse(readFileSync(STATE_FIXTURE, "utf-8")));
     });
-  });
-});
+
+    it("previews the full repay as RepayCreditAccount", async () => {
+      const preview = await previewOperation(
+        {
+          sdk,
+          to: repay.to,
+          calldata: repay.calldata,
+          sender: investor,
+          value: 0n,
+        },
+        { creditAccount: afterOpen },
+      );
+
+      expect(preview).toMatchObject({
+        operation: "RepayCreditAccount",
+        permanent: false,
+        error: undefined,
+        creditManager: afterOpen.creditManager,
+        creditAccount: afterOpen.creditAccount,
+        // exact calldata amount transferred from the wallet
+        collateralAdded: [
+          { token: spec.repayToken, balance: spec.repayAmount },
+        ],
+        // nothing is withdrawn to the wallet; leftover unwrap stays on the CA
+        collateralWithdrawn: [],
+        // interest accrues on top of the snapshot principal between open and
+        // repay, so debtRepaid is within a small tolerance of afterOpen.debt
+        debtRepaid: expect.toBeWithinBps(afterOpen.debt),
+      });
+    });
+  },
+);
