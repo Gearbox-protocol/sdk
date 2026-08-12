@@ -91,7 +91,7 @@ describe("open credit account", () => {
       target: TARGET_TOKEN,
     });
 
-    const { tx } = await sdk.accounts.openCA({
+    const tx = await sdk.accounts.openCA({
       creditManager: cm.creditManager.address,
       averageQuota: [{ token: TARGET_TOKEN, balance: 1050000000n }],
       minQuota: [{ token: TARGET_TOKEN, balance: 1050000000n }],
@@ -154,7 +154,7 @@ describe("open credit account", () => {
         { type: "addCollateral", token: PMUSD, amount: pmUsdAmount },
       ],
     });
-    const { tx: addCollateralTx } = await sdk.accounts.executeCaUpdate(
+    const addCollateralTx = await sdk.accounts.executeCaUpdate(
       caData,
       addCollateralCalls,
     );

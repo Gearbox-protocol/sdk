@@ -1217,9 +1217,7 @@ export class CreditAccountsServiceV310
   /**
    * {@inheritDoc ICreditAccountsService.openCA}
    **/
-  public async openCA(
-    props: OpenCAProps,
-  ): Promise<CreditAccountOperationResult> {
+  public async openCA(props: OpenCAProps): Promise<RawTx> {
     const {
       ethAmount,
       creditManager,
@@ -1283,7 +1281,7 @@ export class CreditAccountsServiceV310
     }
     tx.value = ethAmount.toString(10);
 
-    return { calls, tx, creditFacade: cmSuite.creditFacade };
+    return tx;
   }
 
   /**
@@ -1649,7 +1647,7 @@ export class CreditAccountsServiceV310
     minQuota,
     averageQuota,
     tokensToClaim,
-  }: ClaimFarmRewardsProps): Promise<CreditAccountOperationResult> {
+  }: ClaimFarmRewardsProps): Promise<RawTx> {
     const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
 
     const router = this.sdk.routerFor(ca);
@@ -1676,7 +1674,7 @@ export class CreditAccountsServiceV310
     );
     const tx = await this.#multicallTx(cm, ca.creditAccount, calls);
 
-    return { tx, calls, creditFacade: cm.creditFacade };
+    return tx;
   }
 
   /**
@@ -1899,7 +1897,7 @@ export class CreditAccountsServiceV310
     creditAccount: RouterCASlice,
     calls: MultiCall[],
     options?: { ignoreReservePrices?: boolean; ethAmount?: bigint },
-  ): Promise<{ tx: RawTx; calls: MultiCall[] }> {
+  ): Promise<RawTx> {
     const cm = this.sdk.marketRegister.findCreditManager(
       creditAccount.creditManager,
     );
@@ -1919,7 +1917,7 @@ export class CreditAccountsServiceV310
       tx.value = options.ethAmount.toString(10);
     }
 
-    return { tx, calls: callsWithPrices };
+    return tx;
   }
 
   #prepareDisableQuotas(ca: RouterCASlice): Array<MultiCall> {

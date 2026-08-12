@@ -477,7 +477,7 @@ export class AccountOpener extends SDKConstruct {
       minQuota.push({ token, balance: DIRECT_TRANSFERS_QUOTA });
     }
     logger?.debug({ averageQuota, minQuota }, "calculated quotas");
-    const { tx, calls } = await this.#service.openCA({
+    const tx = await this.#service.openCA({
       creditManager: cm.creditManager.address,
       averageQuota,
       minQuota,
@@ -489,12 +489,9 @@ export class AccountOpener extends SDKConstruct {
       to: borrower.address,
       referralCode: 0n,
     });
-    for (let i = 0; i < calls.length; i++) {
-      const call = calls[i];
-      logger?.debug(
-        `call #${i + 1}: ${this.sdk.parseFunctionData(call.target, call.callData)}`,
-      );
-    }
+    logger?.debug(
+      `open account tx: ${this.sdk.stringifyFunctionData(tx.to, tx.callData)}`,
+    );
     logger?.debug("prepared open account transaction");
     return {
       tx,

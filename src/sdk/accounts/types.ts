@@ -916,9 +916,9 @@ export interface ICreditAccountsService extends Construct {
    * - Strategy/trading: price update -> increase debt -> add collateral -> update quotas -> execute swap path
    * - In strategy is possible situation when collateral is added, but not swapped; the only swapped value in this case will be debt
    * @param props - {@link OpenCAProps}
-   * @returns All necessary data to execute the transaction (call, credit facade)
+   * @returns Raw transaction ready to be signed and sent
    */
-  openCA(props: OpenCAProps): Promise<CreditAccountOperationResult>;
+  openCA(props: OpenCAProps): Promise<RawTx>;
 
   /**
    * Returns borrow rate with 4 digits precision (10000 = 100%)
@@ -1024,13 +1024,13 @@ export interface ICreditAccountsService extends Construct {
    * @param creditAccount - Credit account to update
    * @param calls - Operation calls to execute
    * @param options - Optional price update and ETH value settings
-   * @returns Raw transaction and the final multicall payload
+   * @returns Raw transaction ready to be signed and sent
    */
   executeCaUpdate(
     creditAccount: RouterCASlice,
     calls: Array<MultiCall>,
     options?: { ignoreReservePrices?: boolean; ethAmount?: bigint },
-  ): Promise<{ tx: RawTx; calls: Array<MultiCall> }>;
+  ): Promise<RawTx>;
 
   /**
    * Returns multicall entries to redeem (unwrap) RWA ERC-4626 vault shares into underlying for the given credit manager.
@@ -1102,9 +1102,7 @@ export interface ICreditAccountsService extends Construct {
    *  - Claim rewards is executed in the following order: price update -> execute claim calls ->
    *   -> (optionally: update quotas)
    * @param props - {@link ClaimFarmRewardsProps}
-   * @return All necessary data to execute the transaction (call, credit facade)
+   * @return Raw transaction ready to be signed and sent
    */
-  claimFarmRewards(
-    props: ClaimFarmRewardsProps,
-  ): Promise<CreditAccountOperationResult>;
+  claimFarmRewards(props: ClaimFarmRewardsProps): Promise<RawTx>;
 }

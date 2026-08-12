@@ -151,7 +151,7 @@ describe.skipIf(!!process.env.CI)("rwa credit account (securitize)", () => {
         throw new Error(`getRWAUnwrapCalls returned undefined for ${label}`);
       }
 
-      const { tx } = await sdk.accounts.openCA({
+      const tx = await sdk.accounts.openCA({
         creditManager,
         collateral: [{ token: dsToken, balance: dsAmount }],
         debt,
@@ -258,7 +258,7 @@ describe.skipIf(!!process.env.CI)("rwa credit account (securitize)", () => {
         target: dsToken,
       });
 
-      const { tx } = await sdk.accounts.openCA({
+      const tx = await sdk.accounts.openCA({
         creditManager,
         collateral: [{ token: USDC, balance: usdcAmount }],
         debt,

@@ -571,7 +571,7 @@ async function openLeveragedAccount({
   );
   const quotas = [{ token: cfg.collateralToken, balance: quota }];
 
-  const { tx } = await sdk.accounts.openCA({
+  const tx = await sdk.accounts.openCA({
     creditManager: cfg.creditManager,
     collateral: [{ token: USDC, balance: COLLATERAL_USDC }],
     debt,
@@ -670,10 +670,7 @@ async function requestDelayedWithdrawal({
       averageQuota: quotas,
     }),
   ];
-  const { tx } = await sdk.accounts.executeCaUpdate(
-    creditAccount,
-    requestCalls,
-  );
+  const tx = await sdk.accounts.executeCaUpdate(creditAccount, requestCalls);
   await sendTx(sdk, wallet, tx, intent.type.toLowerCase());
 
   return { to: tx.to, calldata: tx.callData };
@@ -847,7 +844,7 @@ async function claimWithResume({
     creditFacade: cm.creditFacade.address,
   });
 
-  const { tx } = await sdk.accounts.executeCaUpdate(creditAccount, [
+  const tx = await sdk.accounts.executeCaUpdate(creditAccount, [
     ...claimCalls,
     ...tailCalls,
   ]);
@@ -967,7 +964,7 @@ async function finalClaimClose({
     to: investor,
   });
 
-  const { tx } = await sdk.accounts.executeCaUpdate(creditAccount, [
+  const tx = await sdk.accounts.executeCaUpdate(creditAccount, [
     ...claimCalls,
     ...closeCalls,
   ]);
