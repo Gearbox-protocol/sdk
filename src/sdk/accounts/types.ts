@@ -1040,7 +1040,7 @@ export interface ICreditAccountsService extends Construct {
    * @param creditManager - Credit manager address
    * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not RWA or no adapter is configured
    */
-  getRWAUnwrapCalls(
+  assembleRWAUnwrapCalls(
     amount: bigint,
     creditManager: Address,
   ): Promise<Array<MultiCall> | undefined>;
@@ -1053,7 +1053,7 @@ export interface ICreditAccountsService extends Construct {
    * @param creditManager - Credit manager address
    * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not RWA or no adapter is configured
    */
-  getRWAWrapCalls(
+  assembleRWAWrapCalls(
     amount: bigint,
     creditManager: Address,
   ): Promise<Array<MultiCall> | undefined>;
@@ -1066,7 +1066,7 @@ export interface ICreditAccountsService extends Construct {
    * @param creditManager - Credit manager address
    * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not RWA or no adapter is configured
    */
-  getRedeemDiffCalls(
+  assembleRedeemDiffCalls(
     amount: bigint,
     creditManager: Address,
   ): Promise<Array<MultiCall> | undefined>;
@@ -1079,7 +1079,7 @@ export interface ICreditAccountsService extends Construct {
    * @param creditManager - Credit manager address
    * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not RWA or no adapter is configured
    */
-  getDepositDiffCalls(
+  assembleDepositDiffCalls(
     amount: bigint,
     creditManager: Address,
   ): Promise<Array<MultiCall> | undefined>;

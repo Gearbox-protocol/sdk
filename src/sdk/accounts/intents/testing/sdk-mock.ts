@@ -283,8 +283,8 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
         ],
       ),
       assembleCloseCreditAccountCalls: vi.fn(async () => [MOCK_CLOSE_CALL]),
-      getRWAWrapCalls: vi.fn(async () => [MOCK_RWA_WRAP_CALL]),
-      getRWAUnwrapCalls: vi.fn(async () => [MOCK_RWA_UNWRAP_CALL]),
+      assembleRWAWrapCalls: vi.fn(async () => [MOCK_RWA_WRAP_CALL]),
+      assembleRWAUnwrapCalls: vi.fn(async () => [MOCK_RWA_UNWRAP_CALL]),
     },
   } as unknown as OnchainSDK;
 }

@@ -143,7 +143,7 @@ describe.skipIf(!!process.env.CI)("rwa credit account (securitize)", () => {
       );
 
       const debt = parseUnits("50000", 6);
-      const unwrapCalls = await sdk.accounts.getRWAUnwrapCalls(
+      const unwrapCalls = await sdk.accounts.assembleRWAUnwrapCalls(
         debt,
         creditManager,
       );
@@ -242,7 +242,7 @@ describe.skipIf(!!process.env.CI)("rwa credit account (securitize)", () => {
       );
 
       const debt = parseUnits("50000", 6);
-      const unwrapCalls = await sdk.accounts.getRWAUnwrapCalls(
+      const unwrapCalls = await sdk.accounts.assembleRWAUnwrapCalls(
         debt,
         creditManager,
       );

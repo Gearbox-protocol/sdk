@@ -29,7 +29,7 @@ export async function buildWrapRwaCollateralOperation(
   option: OperationBuilderOption,
 ): Promise<WrapRwaCollateralOperation> {
   if (option.kind === "onchain") {
-    const calls = await input.sdk.accounts.getRWAWrapCalls(
+    const calls = await input.sdk.accounts.assembleRWAWrapCalls(
       input.amountIn,
       input.creditAccount.creditManager,
     );

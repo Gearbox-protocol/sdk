@@ -1030,7 +1030,7 @@ export class CreditAccountsServiceV310
   }: AssembleCloseCreditAccountCallsProps): Promise<Array<MultiCall>> {
     // RWA: after debt repay, redeem leftover vault shares so withdraw can take rwa.asset
     const unwrapCalls =
-      (await this.getRedeemDiffCalls(1n, ca.creditManager)) ?? [];
+      (await this.assembleRedeemDiffCalls(1n, ca.creditManager)) ?? [];
 
     return [
       ...routerCalls,
@@ -1394,7 +1394,7 @@ export class CreditAccountsServiceV310
    * @param creditManager - Credit manager address
    * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not RWA or no adapter is configured
    */
-  public async getRWAUnwrapCalls(
+  public async assembleRWAUnwrapCalls(
     amount: bigint,
     creditManager: Address,
   ): Promise<Array<MultiCall> | undefined> {
@@ -1432,7 +1432,7 @@ export class CreditAccountsServiceV310
    * @param creditManager - Credit manager address
    * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not RWA or no adapter is configured
    */
-  public async getRWAWrapCalls(
+  public async assembleRWAWrapCalls(
     amount: bigint,
     creditManager: Address,
   ): Promise<Array<MultiCall> | undefined> {
@@ -1471,7 +1471,7 @@ export class CreditAccountsServiceV310
    * @param creditManager - Credit manager address
    * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not RWA or no adapter is configured
    */
-  public async getRedeemDiffCalls(
+  public async assembleRedeemDiffCalls(
     amount: bigint,
     creditManager: Address,
   ): Promise<Array<MultiCall> | undefined> {
@@ -1510,7 +1510,7 @@ export class CreditAccountsServiceV310
    * @param creditManager - Credit manager address
    * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not RWA or no adapter is configured
    */
-  public async getDepositDiffCalls(
+  public async assembleDepositDiffCalls(
     amount: bigint,
     creditManager: Address,
   ): Promise<Array<MultiCall> | undefined> {
@@ -1603,7 +1603,7 @@ export class CreditAccountsServiceV310
   /**
    * {@inheritDoc ICreditAccountsService.assembleRepayCreditAccountCalls}
    */
-  async assembleRepayCreditAccountCalls({
+  public async assembleRepayCreditAccountCalls({
     collateralAssets,
     assetsToWithdraw,
     creditAccount: ca,
@@ -1617,7 +1617,7 @@ export class CreditAccountsServiceV310
     const router = this.sdk.routerFor(ca);
 
     const unwrapCalls =
-      (await this.getRedeemDiffCalls(1n, ca.creditManager)) ?? [];
+      (await this.assembleRedeemDiffCalls(1n, ca.creditManager)) ?? [];
 
     const claimPath = await router.findClaimAllRewards({
       tokensToClaim,
@@ -1642,7 +1642,7 @@ export class CreditAccountsServiceV310
   /**
    * {@inheritDoc ICreditAccountsService.claimFarmRewards}
    */
-  async claimFarmRewards({
+  public async claimFarmRewards({
     calls: externalCalls,
     creditAccount: ca,
 
