@@ -161,7 +161,7 @@ errors exist, cross-reference against the quick-reference below.
 | Pre-14.10                                             | v14.10+                                                             |
 | ----------------------------------------------------- | ------------------------------------------------------------------- |
 | `createCreditAccountService(sdk, 310)`                | `sdk.accounts`                                                      |
-| `createCreditAccountService(sdk, 310, { batchSize })` | `sdk.accounts` + `sdk.accounts.setBatchSize(n)`                     |
+| `createCreditAccountService(sdk, 310, { batchSize })` | `sdk.accounts` — compressor reads are no longer batched by the service |
 | `new PoolService(sdk)`                                | `sdk.pools`                                                         |
 | `CreditAccountServiceV310`                            | `CreditAccountsServiceV310` (plural)                                |
 | `AbstractCreditAccountService`                        | Removed — extend `CreditAccountsServiceV310` or wrap `sdk.accounts` |

@@ -1,21 +1,15 @@
 import type { Address, Hex } from "viem";
 import { encodeFunctionData, getContract } from "viem";
 import { iBotListV310Abi } from "../../abi/310/generated.js";
-import { creditAccountCompressorAbi } from "../../abi/compressors/creditAccountCompressor.js";
 import { peripheryCompressorAbi } from "../../abi/compressors/peripheryCompressor.js";
 import { rewardsCompressorAbi } from "../../abi/compressors/rewardsCompressor.js";
 import { iBaseRewardPoolAbi } from "../../abi/iBaseRewardPool.js";
 import { ierc4626AdapterAbi } from "../../abi/ierc4626Adapter.js";
-import { iRWAFactoryAbi } from "../../abi/rwa/iRWAFactory.js";
-import type {
-  DelayedReceivedAsset,
-  StrategyPosition,
-} from "../../model/index.js";
+import type { StrategyPosition } from "../../model/index.js";
 import type { Asset, CreditAccountData } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
 import {
   ADDRESS_0X0,
-  AP_CREDIT_ACCOUNT_COMPRESSOR,
   AP_PERIPHERY_COMPRESSOR,
   AP_REWARDS_COMPRESSOR,
   DUST_THRESHOLD,
@@ -28,25 +22,22 @@ import type {
   RWAOperationArgs,
 } from "../market/index.js";
 import {
-  dominantCollateral,
   getRawPriceUpdates,
   type IPriceFeedContract,
   type PriceUpdate,
-  type UpdatePriceFeedsResult,
 } from "../market/index.js";
-import {
-  borrowApyBps,
-  healthFactorBps,
-  positionLeverage,
-  usdToNumber,
-} from "../market/math.js";
 import type { RWAOpenAccountRequirements } from "../market/rwa/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
 import type { RouterCASlice } from "../router/index.js";
 import type { RouterRewardsResult } from "../router/types.js";
-import type { IPriceUpdateTx, MultiCall, RawTx } from "../types/index.js";
-import { AddressMap, AddressSet, hexEq } from "../utils/index.js";
-import { simulateWithPriceUpdates } from "../utils/viem/index.js";
+import type { MultiCall, RawTx } from "../types/index.js";
+import { AddressSet } from "../utils/index.js";
+import {
+  CreditAccountCompressor,
+  type GetCreditAccountsOptions,
+  type ListStrategyPositionsProps,
+} from "./credit-account-compressor/index.js";
+import { getAccountPriceUpdateTxs } from "./getAccountPriceUpdateTxs.js";
 import {
   extractPriceUpdates,
   extractQuotaTokens,
@@ -60,23 +51,18 @@ import type {
   AssembleRepayCreditAccountCallsProps,
   AssembleStartDelayedWithdrawalCallsProps,
   ClaimFarmRewardsProps,
-  CreditAccountFilter,
   CreditAccountOperationResult,
   CreditAccountTokensSlice,
-  CreditManagerFilter,
   CreditManagerOperationResult,
   FullyLiquidateProps,
   FullyLiquidateResult,
   GetApprovalAddressProps,
   GetConnectedBotsResult,
   GetConnectedMigrationBotsResult,
-  GetCreditAccountsArgs,
-  GetCreditAccountsOptions,
   GetOpenAccountRequirementsProps,
   GetPendingWithdrawalsProps,
   GetPendingWithdrawalsResult,
   ICreditAccountsService,
-  ListStrategyPositionsProps,
   OpenCAProps,
   PartiallyLiquidateProps,
   PermitResult,
@@ -86,11 +72,8 @@ import type {
   SetBotProps,
 } from "./types.js";
 import type {
-  ClaimableWithdrawal,
   IWithdrawalCompressorContract,
-  PendingWithdrawal,
   RequestableWithdrawal,
-  WithdrawalOutput,
 } from "./withdrawal-compressor/index.js";
 
 type MulticallWithFailure<T> = (
@@ -124,19 +107,6 @@ type BotsDirectResponse = MulticallWithFailure<
   readonly [bigint, boolean, boolean] | readonly [bigint, boolean]
 >;
 
-type CompressorAbi = typeof creditAccountCompressorAbi;
-
-/**
- * Options for configuring the credit account service.
- **/
-export interface CreditAccountServiceOptions {
-  /**
-   * Maximum number of credit accounts to fetch per compressor call.
-   * When set, accounts are loaded in batches of this size until all are fetched.
-   **/
-  batchSize?: number;
-}
-
 /**
  * Service for querying and operating on Gearbox credit accounts.
  *
@@ -150,18 +120,12 @@ export class CreditAccountsServiceV310
   extends SDKConstruct
   implements ICreditAccountsService
 {
-  #compressor?: Address;
-  #batchSize?: number;
+  readonly #compressor: CreditAccountCompressor;
 
-  constructor(sdk: OnchainSDK, options?: CreditAccountServiceOptions) {
+  constructor(sdk: OnchainSDK) {
     super(sdk);
-    this.#batchSize = options?.batchSize;
+    this.#compressor = new CreditAccountCompressor(sdk);
   }
-
-  public setBatchSize(batchSize: number) {
-    this.#batchSize = batchSize;
-  }
-
   /**
    * {@inheritDoc ICreditAccountsService.getCreditAccountData}
    **/
@@ -169,59 +133,7 @@ export class CreditAccountsServiceV310
     account: Address,
     blockNumber?: bigint,
   ): Promise<CreditAccountData<true> | undefined> {
-    let raw: CreditAccountData;
-    try {
-      raw = await this.client.readContract({
-        abi: creditAccountCompressorAbi,
-        address: this.compressor,
-        functionName: "getCreditAccountData",
-        args: [account],
-        blockNumber,
-        // @ts-expect-error
-        gas: this.sdk.gasLimit,
-      });
-    } catch (_e) {
-      // TODO: reverts if account is not found, how to handle other revert reasons?
-      return undefined;
-    }
-    const marketSuite = this.sdk.marketRegister.findByCreditManager(
-      raw.creditManager,
-    );
-    const factory = marketSuite.rwaFactory;
-
-    let ca: CreditAccountData;
-    let investor: Address | undefined;
-    if (raw.success) {
-      ca = raw;
-      investor = await factory?.getInvestor(raw.creditAccount, false);
-    } else {
-      const { txs: priceUpdateTxs } = await this.#getUpdateForAccount(raw);
-      [ca, investor] = (await simulateWithPriceUpdates(this.client, {
-        priceUpdates: priceUpdateTxs,
-        contracts: [
-          {
-            abi: creditAccountCompressorAbi,
-            address: this.compressor,
-            functionName: "getCreditAccountData",
-            args: [account],
-          },
-          ...(factory
-            ? [
-                {
-                  abi: iRWAFactoryAbi,
-                  address: factory.address,
-                  functionName: "getInvestor",
-                  args: [raw.creditAccount],
-                },
-              ]
-            : []),
-        ] as any,
-        blockNumber,
-        gas: this.sdk.gasLimit,
-      })) as [CreditAccountData, Address | undefined];
-    }
-
-    return { ...ca, investor };
+    return this.#compressor.getCreditAccountData(account, blockNumber);
   }
 
   /**
@@ -231,67 +143,7 @@ export class CreditAccountsServiceV310
     options?: GetCreditAccountsOptions,
     blockNumber?: bigint,
   ): Promise<Array<CreditAccountData>> {
-    const {
-      creditManager,
-      includeZeroDebt = false,
-      maxHealthFactor = MAX_UINT256,
-      minHealthFactor = 0n,
-      owner = ADDRESS_0X0,
-      ignoreReservePrices = false,
-    } = options ?? {};
-    // either credit manager or all attached markets
-    const arg0 =
-      creditManager ??
-      ({
-        configurators: this.marketConfigurators,
-        creditManagers: [],
-        pools: [],
-        underlying: ADDRESS_0X0,
-      } as CreditManagerFilter);
-    const caFilter: CreditAccountFilter = {
-      owner,
-      includeZeroDebt,
-      minHealthFactor,
-      maxHealthFactor,
-      reverting: false,
-    };
-
-    const { txs: priceUpdateTxs } =
-      await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(
-        ignoreReservePrices ? { main: true } : undefined,
-      );
-
-    const allCAs: Array<CreditAccountData> = [];
-    let revertingOffset = 0;
-    // reverting filter is exclusive, we need both options to get all accounts
-    for (const reverting of [false, true]) {
-      let offset = 0n;
-      revertingOffset = allCAs.length;
-      do {
-        const [accounts, newOffset] = await this.#getCreditAccounts(
-          this.#batchSize
-            ? [
-                arg0,
-                { ...caFilter, reverting },
-                offset,
-                BigInt(this.#batchSize), // limit
-              ]
-            : [arg0, { ...caFilter, reverting }, offset],
-          priceUpdateTxs,
-          blockNumber,
-        );
-        allCAs.push(...accounts);
-        offset = newOffset;
-      } while (offset !== 0n);
-    }
-    this.logger?.debug(
-      `loaded ${allCAs.length} credit accounts (${
-        allCAs.length - revertingOffset
-      } reverting)`,
-    );
-
-    // sort by health factor ascending
-    return allCAs.sort((a, b) => Number(a.healthFactor - b.healthFactor));
+    return this.#compressor.getCreditAccounts(options, blockNumber);
   }
 
   /**
@@ -302,124 +154,11 @@ export class CreditAccountsServiceV310
     options?: GetCreditAccountsOptions,
     blockNumber?: bigint,
   ): Promise<Array<CreditAccountData<true>>> {
-    const {
-      creditManager,
-      includeZeroDebt = false,
-      maxHealthFactor = MAX_UINT256,
-      minHealthFactor = 0n,
-      ignoreReservePrices = false,
-    } = options ?? {};
-
-    const { txs: priceUpdateTxs } =
-      await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(
-        ignoreReservePrices ? { main: true } : undefined,
-      );
-
-    // 1. Discover RWA credit accounts for this borrower across all factories
-    const investorDataList = await this.sdk.rwa.getInvestorData(borrower);
-    const rwaAccountAddresses: Address[] = investorDataList.flatMap(d =>
-      d.creditAccounts.map(ca => ca.creditAccount),
-    );
-
-    // 2. Build a single multicall:
-    //    - getCreditAccountData for each RWA account
-    //    - getCreditAccounts(borrower, reverting=false)
-    //    - getCreditAccounts(borrower, reverting=true)
-    const cmFilter: CreditManagerFilter = creditManager
-      ? {
-          configurators: [],
-          creditManagers: [creditManager],
-          pools: [],
-          underlying: ADDRESS_0X0,
-        }
-      : {
-          configurators: this.marketConfigurators,
-          creditManagers: [],
-          pools: [],
-          underlying: ADDRESS_0X0,
-        };
-
-    const permissiveFilter: CreditAccountFilter = {
-      owner: borrower,
-      includeZeroDebt: true,
-      minHealthFactor: 0n,
-      maxHealthFactor: MAX_UINT256,
-      reverting: false,
-    };
-
-    const rwaContracts = rwaAccountAddresses.map(
-      account =>
-        ({
-          abi: creditAccountCompressorAbi,
-          address: this.compressor,
-          functionName: "getCreditAccountData" as const,
-          args: [account],
-        }) as const,
-    );
-
-    const getCreditAccountsContracts = [false, true].map(
-      reverting =>
-        ({
-          abi: creditAccountCompressorAbi,
-          address: this.compressor,
-          functionName: "getCreditAccounts" as const,
-          args: [cmFilter, { ...permissiveFilter, reverting }, 0n],
-        }) as const,
-    );
-
-    const allContracts = [...rwaContracts, ...getCreditAccountsContracts];
-
-    const results = await simulateWithPriceUpdates(this.client, {
-      priceUpdates: priceUpdateTxs,
-      contracts: allContracts,
+    return this.#compressor.getBorrowerCreditAccounts(
+      borrower,
+      options,
       blockNumber,
-      gas: this.sdk.gasLimit,
-    });
-
-    // 3. Split results back
-    const rwaResults = results.slice(
-      0,
-      rwaAccountAddresses.length,
-    ) as Array<CreditAccountData>;
-    const normalResults = results.slice(rwaAccountAddresses.length) as Array<
-      [CreditAccountData[], bigint]
-    >;
-
-    // 4. Assemble with investor
-    const seen = new AddressSet();
-    const allCAs: Array<CreditAccountData<true>> = [];
-
-    for (const ca of rwaResults) {
-      if (!seen.has(ca.creditAccount)) {
-        seen.add(ca.creditAccount);
-        allCAs.push({ ...ca, investor: borrower });
-      }
-    }
-
-    for (const [accounts] of normalResults) {
-      for (const ca of accounts) {
-        if (!seen.has(ca.creditAccount)) {
-          seen.add(ca.creditAccount);
-          allCAs.push({ ...ca, investor: undefined });
-        }
-      }
-    }
-
-    // 5. Apply remaining TS-side filters
-    const filtered = allCAs.filter(ca => {
-      if (!includeZeroDebt && ca.debt === 0n) return false;
-      if (ca.healthFactor < minHealthFactor) return false;
-      if (ca.healthFactor > maxHealthFactor) return false;
-      if (creditManager && !hexEq(ca.creditManager, creditManager))
-        return false;
-      return true;
-    });
-
-    this.logger?.debug(
-      `loaded ${allCAs.length} borrower credit accounts (${rwaResults.length} RWA, ${filtered.length} after filter)`,
     );
-
-    return filtered.sort((a, b) => Number(a.healthFactor - b.healthFactor));
   }
 
   /**
@@ -428,159 +167,7 @@ export class CreditAccountsServiceV310
   public async listPositions(
     props: ListStrategyPositionsProps,
   ): Promise<StrategyPosition[]> {
-    const { owner, includeZeroDebt } = props;
-    const [accounts] = await Promise.all([
-      this.getBorrowerCreditAccounts(owner, { includeZeroDebt }),
-      // phantom token lookups below are sync, so the cache has to be warm
-      this.sdk.withdrawalCompressor?.loadWithdrawableAssets(),
-    ]);
-
-    const describable = accounts.filter(ca => {
-      // collateral computation reverted (e.g. dead price feed) — none of the
-      // account's amounts can be computed, so it is left out of the list
-      if (!ca.success) {
-        this.logger?.warn(
-          `cannot describe position of ${this.labelAddress(ca.creditAccount)}: collateral computation failed`,
-        );
-      }
-      return ca.success;
-    });
-
-    const withdrawals = await Promise.all(
-      describable.map(ca => this.#accountWithdrawals(ca)),
-    );
-
-    return describable.map((ca, i) =>
-      this.#strategyPosition(ca, withdrawals[i] ?? new AddressMap()),
-    );
-  }
-
-  /**
-   * Builds one strategy position from an account snapshot.
-   *
-   * @param withdrawals - Delayed withdrawals of the account, keyed by the
-   * phantom token that represents them on it.
-   **/
-  #strategyPosition(
-    ca: CreditAccountData,
-    withdrawals: AddressMap<DelayedReceivedAsset[]>,
-  ): StrategyPosition {
-    const suite = this.sdk.marketRegister.findCreditManager(ca.creditManager);
-    const { market } = suite;
-    const { priceOracle } = market;
-    const { pool } = market.pool;
-
-    // for RWA markets, amounts are denominated in the unwrapped asset
-    // (e.g. USDC instead of dcUSDC); the wrapped underlying converts 1:1
-    const token = this.sdk.tokensMeta.mustGetToken(market.unwrappedUnderlying);
-    const totalDebtValue = ca.debt + ca.accruedInterest + ca.accruedFees;
-    const collateral = dominantCollateral(ca, market);
-
-    return {
-      kind: "strategy",
-      chainId: this.sdk.chainId,
-      creditManager: ca.creditManager,
-      creditAccount: ca.creditAccount,
-      name: collateral ? suite.strategyName(collateral) : token.symbol,
-      // the read model asks for the collateral the position was opened into,
-      // which needs its history; the chain can only tell what it holds now
-      targetCollateral: collateral
-        ? this.sdk.tokensMeta.mustGetToken(collateral)
-        : null,
-      leverage: positionLeverage(totalDebtValue, ca.totalValue),
-      borrowApy: borrowApyBps(
-        pool.baseInterestRate,
-        suite.creditManager.feeInterest,
-      ),
-      // the compressor prices the whole account in one pass, so the USD values
-      // of the two totals come from it rather than from a second price lookup
-      totalDebt: {
-        token,
-        value: totalDebtValue,
-        valueUsd: usdToNumber(ca.totalDebtUSD),
-      },
-      totalValue: {
-        token,
-        value: ca.totalValue,
-        valueUsd: usdToNumber(ca.totalValueUSD),
-      },
-      healthFactor: healthFactorBps(ca.healthFactor),
-      collaterals: ca.tokens.flatMap(t => {
-        if (
-          (t.mask & ca.enabledTokensMask) === 0n ||
-          t.balance <= DUST_THRESHOLD
-        ) {
-          return [];
-        }
-        return [
-          {
-            // phantom tokens are reported as themselves, the asset they
-            // redeem into shows up in `withdrawals`
-            collateral: priceOracle.toTokenAmount(t.token, t.balance),
-            quota: priceOracle.toTokenAmount(market.underlying, t.quota),
-            withdrawals: withdrawals.get(t.token) ?? [],
-          },
-        ];
-      }),
-    };
-  }
-
-  /**
-   * Delayed withdrawals of one account, keyed by the phantom token that
-   * represents them on it, so that each collateral row can pick up its own.
-   **/
-  async #accountWithdrawals(
-    ca: CreditAccountData,
-  ): Promise<AddressMap<DelayedReceivedAsset[]>> {
-    const compressor = this.sdk.withdrawalCompressor;
-    const byPhantomToken = new AddressMap<DelayedReceivedAsset[]>(
-      undefined,
-      "accountWithdrawals",
-    );
-    // an account with no phantom token balance has nothing on its way out, and
-    // asking the compressor about it would be one RPC call per such account
-    const holdsPhantomToken = ca.tokens.some(
-      t =>
-        t.balance > DUST_THRESHOLD &&
-        compressor?.getWithdrawalSourceToken(t.token) !== undefined,
-    );
-    if (!compressor || !holdsPhantomToken) {
-      return byPhantomToken;
-    }
-    const { priceOracle } = this.sdk.marketRegister.findByCreditManager(
-      ca.creditManager,
-    );
-    const { claimable, pending } = await compressor.getCurrentWithdrawals(
-      ca.creditAccount,
-    );
-
-    const add = (
-      w: ClaimableWithdrawal | PendingWithdrawal,
-      outputs: readonly WithdrawalOutput[],
-      claimableAt?: bigint,
-    ): void => {
-      const assets = outputs.map(
-        (o): DelayedReceivedAsset => ({
-          isDelayed: true,
-          ...priceOracle.toTokenAmount(o.token, o.amount),
-          redeemer: w.redeemer,
-          claimableAt:
-            claimableAt === undefined ? undefined : Number(claimableAt),
-        }),
-      );
-      byPhantomToken.upsert(w.withdrawalPhantomToken, [
-        ...(byPhantomToken.get(w.withdrawalPhantomToken) ?? []),
-        ...assets,
-      ]);
-    };
-
-    for (const w of claimable) {
-      add(w, w.outputs);
-    }
-    for (const w of pending) {
-      add(w, w.expectedOutputs, w.claimableAt);
-    }
-    return byPhantomToken;
+    return this.#compressor.listPositions(props);
   }
 
   /**
@@ -1103,64 +690,6 @@ export class CreditAccountsServiceV310
   }
 
   /**
-   * Internal wrapper for CreditAccountCompressor.getCreditAccounts + price updates wrapped into multicall
-   * @param args
-   * @param priceUpdateTxs
-   * @param blockNumber
-   * @returns
-   */
-  async #getCreditAccounts(
-    args: GetCreditAccountsArgs,
-    priceUpdateTxs?: IPriceUpdateTx[],
-    blockNumber?: bigint,
-  ): Promise<[accounts: Array<CreditAccountData>, newOffset: bigint]> {
-    // this.#logger?.debug(
-    //   { args: stringifyGetCreditAccountsArgs(args) },
-    //   "getting credit accounts",
-    // );
-    let resp: [CreditAccountData[], bigint];
-    if (priceUpdateTxs?.length) {
-      [resp] = await simulateWithPriceUpdates(this.client, {
-        priceUpdates: priceUpdateTxs,
-        contracts: [
-          {
-            abi: creditAccountCompressorAbi,
-            address: this.compressor,
-            functionName: "getCreditAccounts",
-            args,
-          },
-        ],
-        blockNumber,
-        gas: this.sdk.gasLimit,
-      });
-    } else {
-      resp = await this.client.readContract<
-        CompressorAbi,
-        "getCreditAccounts",
-        GetCreditAccountsArgs
-      >({
-        abi: creditAccountCompressorAbi,
-        address: this.compressor,
-        functionName: "getCreditAccounts",
-        args,
-        blockNumber,
-        // @ts-expect-error
-        gas: this.sdk.gasLimit,
-      });
-    }
-
-    this.logger?.debug(
-      {
-        accounts: resp[0]?.length ?? 0,
-        nextOffset: Number(resp[1]),
-      },
-      "got credit accounts",
-    );
-
-    return resp;
-  }
-
-  /**
    * Encodes one ERC-4626 adapter call for an RWA market's underlying vault.
    *
    * @param functionName - Adapter function to call
@@ -1402,7 +931,8 @@ export class CreditAccountsServiceV310
   ): Promise<PriceUpdate[]> {
     const { creditManager, creditAccount } = account;
     const cm = this.sdk.marketRegister.findCreditManager(creditManager);
-    const update = await this.#getUpdateForAccount(
+    const update = await getAccountPriceUpdateTxs(
+      this.sdk,
       account,
       ignoreReservePrices,
     );
@@ -1446,7 +976,7 @@ export class CreditAccountsServiceV310
     if (ca) {
       for (const t of ca.tokens) {
         const isEnabled = (t.mask & ca.enabledTokensMask) !== 0n;
-        if (t.balance > 10n && isEnabled) {
+        if (t.balance > DUST_THRESHOLD && isEnabled) {
           tokens.add(t.token);
         }
       }
@@ -1478,40 +1008,6 @@ export class CreditAccountsServiceV310
       suite.creditFacade.prepareOnDemandPriceUpdates(merged),
       ...remainingCalls,
     ];
-  }
-
-  async #getUpdateForAccount(
-    account: CreditAccountTokensSlice,
-    ignoreReservePrices?: boolean,
-  ): Promise<UpdatePriceFeedsResult> {
-    const { creditManager, creditAccount, enabledTokensMask } = account;
-    const market = this.sdk.marketRegister.findByCreditManager(creditManager);
-    const cm =
-      this.sdk.marketRegister.findCreditManager(creditManager).creditManager;
-
-    // underlying - always included
-    const tokens = new AddressSet([cm.underlying]);
-
-    // enabled tokens with non-zero balance
-    for (const t of account.tokens) {
-      const isEnabled = (t.mask & enabledTokensMask) !== 0n;
-      if (t.balance > 10n && isEnabled) {
-        tokens.add(t.token);
-      }
-    }
-
-    const priceFeeds: Array<IPriceFeedContract> =
-      market.priceOracle.priceFeedsForTokens(Array.from(tokens), {
-        main: true,
-        reserve: !ignoreReservePrices,
-      });
-    const tStr = tokens.map(t => this.labelAddress(t)).join(", ");
-    const remark = ignoreReservePrices ? " main" : "";
-    this.logger?.debug(
-      { account: creditAccount, manager: cm.name },
-      `generating price feed updates for ${tStr} from ${priceFeeds.length}${remark} price feeds`,
-    );
-    return this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(priceFeeds);
   }
 
   /**
@@ -1689,13 +1185,6 @@ export class CreditAccountsServiceV310
       .prepareAddCollateral(assets, permits);
   }
 
-  /**
-   * Returns addresses of market configurators
-   */
-  private get marketConfigurators(): Array<Address> {
-    return this.sdk.marketRegister.marketConfigurators.map(mc => mc.address);
-  }
-
   private get rewardCompressor(): Address {
     return this.sdk.addressProvider.mustGetLatest(
       AP_REWARDS_COMPRESSOR,
@@ -1708,19 +1197,6 @@ export class CreditAccountsServiceV310
       AP_PERIPHERY_COMPRESSOR,
       VERSION_RANGE_310,
     )[0];
-  }
-
-  private get compressor(): Address {
-    if (!this.#compressor) {
-      [this.#compressor] = this.sdk.addressProvider.mustGetLatest(
-        AP_CREDIT_ACCOUNT_COMPRESSOR,
-        VERSION_RANGE_310,
-      );
-      this.logger?.debug(
-        `credit account compressor address: ${this.#compressor}`,
-      );
-    }
-    return this.#compressor;
   }
 
   /**

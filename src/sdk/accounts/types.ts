@@ -1,5 +1,4 @@
-import type { Address, ContractFunctionArgs, Hex } from "viem";
-import type { creditAccountCompressorAbi } from "../../abi/compressors/creditAccountCompressor.js";
+import type { Address, Hex } from "viem";
 import type { StrategyPosition } from "../../model/index.js";
 import type {
   Asset,
@@ -18,123 +17,15 @@ import type { OnchainSDK } from "../OnchainSDK.js";
 import type { RouterCASlice, RouterCloseResult } from "../router/index.js";
 import type { MultiCall, RawTx } from "../types/index.js";
 import type {
+  GetCreditAccountsOptions,
+  ListStrategyPositionsProps,
+} from "./credit-account-compressor/index.js";
+import type {
   ClaimableWithdrawal,
   DelayedIntent,
   PendingWithdrawal,
   RequestableWithdrawal,
 } from "./withdrawal-compressor/index.js";
-
-/**
- * @internal
- * Arguments tuple for the credit account compressor's `getCreditAccounts` view method.
- **/
-export type GetCreditAccountsArgs = ContractFunctionArgs<
-  typeof creditAccountCompressorAbi,
-  "pure" | "view",
-  "getCreditAccounts"
->;
-
-/**
- * @internal
- * Filtering criteria applied to individual credit accounts when querying the compressor.
- **/
-export interface CreditAccountFilter {
-  /**
-   * Filter by account owner address.
-   **/
-  owner: Address;
-  /**
-   * Whether to include accounts with zero outstanding debt.
-   **/
-  includeZeroDebt: boolean;
-  /**
-   * Minimum health factor threshold (inclusive).
-   * 18 digits precision (10^18 = 1)
-   **/
-  minHealthFactor: bigint;
-  /**
-   * Maximum health factor threshold (inclusive).
-   * 18 digits precision (10^18 = 1)
-   **/
-  maxHealthFactor: bigint;
-  /**
-   * Whether to return only accounts whose health computation reverts.
-   **/
-  reverting: boolean;
-}
-
-/**
- * @internal
- * Filtering criteria to select which credit managers to query.
- **/
-export interface CreditManagerFilter {
-  /**
-   * Only include credit managers owned by these market configurators.
-   **/
-  configurators: readonly Address[];
-  /**
-   * Only include these specific credit manager addresses.
-   **/
-  creditManagers: readonly Address[];
-  /**
-   * Only include credit managers linked to these pool addresses.
-   **/
-  pools: readonly Address[];
-  /**
-   * Only include credit managers with this underlying token.
-   **/
-  underlying: Address;
-}
-
-/**
- * Options for fetching credit accounts, allowing filtering by credit manager, owner, and health factor range.
- **/
-export interface GetCreditAccountsOptions {
-  /**
-   * If set, only return accounts from this credit manager; otherwise query all attached markets.
-   **/
-  creditManager?: Address;
-  /**
-   * If set, only return accounts owned by this address.
-   **/
-  owner?: Address;
-  /**
-   * Whether to include accounts with zero outstanding debt.
-   * @default false
-   **/
-  includeZeroDebt?: boolean;
-  /**
-   * Minimum health factor threshold (inclusive).
-   * 18 digits precision (10^18 = 1)
-   * @default 0n
-   **/
-  minHealthFactor?: bigint;
-  /**
-   * Maximum health factor threshold (inclusive).
-   * 18 digits precision (10^18 = 1)
-   * @default MAX_UINT256
-   **/
-  maxHealthFactor?: bigint;
-  /**
-   * If true, exclude reserve price feed updates from the query.
-   **/
-  ignoreReservePrices?: boolean;
-}
-
-/**
- * Props for {@link ICreditAccountsService.listPositions}.
- **/
-export interface ListStrategyPositionsProps {
-  /**
-   * Wallet whose credit accounts to describe. RWA accounts are resolved from
-   * the investor EOA, see {@link ICreditAccountsService.getBorrowerCreditAccounts}.
-   **/
-  owner: Address;
-  /**
-   * Whether to include accounts that carry no debt.
-   **/
-  includeZeroDebt: boolean;
-}
 
 /**
  * Lightweight slice of credit-account data containing only token
