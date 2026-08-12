@@ -148,14 +148,16 @@ describe("open credit account", () => {
     });
     await sdk.client.waitForTransactionReceipt({ hash, pollingInterval: 100 });
 
-    const { tx: addCollateralTx } = await sdk.accounts.addCollateral({
-      creditAccount: caData,
-      asset: { token: PMUSD, balance: pmUsdAmount },
-      permit: undefined,
-      ethAmount: 0n,
-      averageQuota: [],
-      minQuota: [],
+    const addCollateralCalls = sdk.accounts.assembleCaOperations({
+      creditFacade: caData.creditFacade,
+      operations: [
+        { type: "addCollateral", token: PMUSD, amount: pmUsdAmount },
+      ],
     });
+    const { tx: addCollateralTx } = await sdk.accounts.executeCaUpdate(
+      caData,
+      addCollateralCalls,
+    );
     hash = await sendRawTx(wallet, { tx: addCollateralTx });
     const addCollateralReceipt = await sdk.client.waitForTransactionReceipt({
       hash,
@@ -175,14 +177,16 @@ describe("open credit account", () => {
       slippage: 50,
     });
 
-    const { tx: closeTx } = await sdk.accounts.closeCreditAccount({
-      operation: "close",
+    const closeCalls = await sdk.accounts.assembleCloseCreditAccountCalls({
       creditAccount: refreshedCaData,
+      routerCalls: closePath.calls,
       assetsToWithdraw: [cm.underlying],
       to: borrower.address,
-      slippage: 50n,
-      closePath,
     });
+    const closeTx = cm.creditFacade.closeCreditAccount(
+      creditAccount,
+      closeCalls,
+    );
     hash = await sendRawTx(wallet, { tx: closeTx, gas: 2_000_000n });
     const closeReceipt = await sdk.client.waitForTransactionReceipt({
       hash,

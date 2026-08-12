@@ -56,25 +56,18 @@ import {
 } from "./multicall-utils.js";
 import type {
   AccountToCheck,
-  AddCollateralProps,
   AssembleCaOperationsProps,
   AssembleClaimDelayedCallsProps,
   AssembleCloseCreditAccountCallsProps,
   AssembleRepayCreditAccountCallsProps,
   AssembleStartDelayedWithdrawalCallsProps,
-  ChangeDeptProps,
-  ClaimDelayedProps,
   ClaimFarmRewardsProps,
-  CloseCreditAccountProps,
-  CloseCreditAccountResult,
-  CloseOptions,
   CreditAccountFilter,
   CreditAccountOperationResult,
   CreditAccountTokensSlice,
   CreditManagerFilter,
   CreditManagerOperationResult,
   DefaultPartialLiquidationParams,
-  ExecuteSwapProps,
   FullyLiquidateProps,
   FullyLiquidateResult,
   GetApprovalAddressProps,
@@ -92,13 +85,8 @@ import type {
   PermitResult,
   PrepareUpdateQuotasProps,
   PreviewDelayedWithdrawalProps,
-  RepayAndLiquidateCreditAccountProps,
-  RepayCreditAccountProps,
   Rewards,
   SetBotProps,
-  StartDelayedWithdrawalProps,
-  UpdateQuotasProps,
-  WithdrawCollateralProps,
 } from "./types.js";
 import type {
   ClaimableWithdrawal,
@@ -1032,48 +1020,6 @@ export class CreditAccountsServiceV310
   }
 
   /**
-   * {@inheritDoc ICreditAccountsService.closeCreditAccount}
-   **/
-  public async closeCreditAccount({
-    operation,
-    assetsToWithdraw,
-    creditAccount: ca,
-    to,
-    slippage = 50n,
-    closePath,
-  }: CloseCreditAccountProps): Promise<CloseCreditAccountResult> {
-    const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
-
-    const routerCloseResult =
-      closePath ||
-      (await this.sdk.routerFor(ca).findBestClosePath({
-        creditAccount: ca,
-        creditManager: cm.creditManager,
-        slippage,
-      }));
-
-    const operationCalls = await this.assembleCloseCreditAccountCalls({
-      creditAccount: ca,
-      routerCalls: routerCloseResult.calls,
-      assetsToWithdraw,
-      to,
-    });
-
-    const calls =
-      operation === "close"
-        ? operationCalls
-        : await this.#prependPriceUpdates(ca.creditManager, operationCalls, ca);
-    const tx = await this.#closeCreditAccountTx(
-      cm,
-      ca.creditAccount,
-      calls,
-      operation,
-    );
-
-    return { tx, calls, routerCloseResult, creditFacade: cm.creditFacade };
-  }
-
-  /**
    * {@inheritDoc ICreditAccountsService.assembleCloseCreditAccountCalls}
    */
   public async assembleCloseCreditAccountCalls({
@@ -1095,172 +1041,6 @@ export class CreditAccountsServiceV310
         this.prepareWithdrawToken(ca.creditFacade, t, MAX_UINT256, to),
       ),
     ];
-  }
-
-  /**
-   * {@inheritDoc ICreditAccountsService.updateQuotas}
-   **/
-  public async updateQuotas({
-    minQuota,
-    averageQuota,
-    creditAccount,
-  }: UpdateQuotasProps): Promise<CreditAccountOperationResult> {
-    const cm = this.sdk.marketRegister.findCreditManager(
-      creditAccount.creditManager,
-    );
-
-    const operationCalls = this.prepareUpdateQuotas(
-      creditAccount.creditFacade,
-      { minQuota, averageQuota },
-    );
-
-    const calls = await this.#prependPriceUpdates(
-      creditAccount.creditManager,
-      operationCalls,
-      creditAccount,
-    );
-
-    const tx = await this.#multicallTx(cm, creditAccount.creditAccount, calls);
-
-    return { tx, calls, creditFacade: cm.creditFacade };
-  }
-
-  /**
-   * {@inheritDoc ICreditAccountsService.addCollateral}
-   **/
-  public async addCollateral({
-    creditAccount,
-    asset,
-    permit,
-    ethAmount,
-    minQuota,
-    averageQuota,
-  }: AddCollateralProps): Promise<CreditAccountOperationResult> {
-    const cm = this.sdk.marketRegister.findCreditManager(
-      creditAccount.creditManager,
-    );
-
-    const operationCalls: Array<MultiCall> = [
-      ...this.prepareAddCollateral(
-        creditAccount.creditFacade,
-        [asset],
-        permit ? { [asset.token]: permit } : {},
-      ),
-      ...this.prepareUpdateQuotas(creditAccount.creditFacade, {
-        minQuota,
-        averageQuota,
-      }),
-    ];
-
-    const calls = await this.#prependPriceUpdates(
-      creditAccount.creditManager,
-      operationCalls,
-      creditAccount,
-    );
-
-    const tx = await this.#multicallTx(cm, creditAccount.creditAccount, calls);
-    tx.value = ethAmount.toString(10);
-
-    return { tx, calls, creditFacade: cm.creditFacade };
-  }
-
-  /**
-   * {@inheritDoc ICreditAccountsService.changeDebt}
-   **/
-  public async changeDebt({
-    creditAccount,
-    amount,
-    collateral,
-  }: ChangeDeptProps): Promise<CreditAccountOperationResult> {
-    if (amount === 0n) {
-      throw new Error("debt increase or decrease must be non-zero");
-    }
-    const isDecrease = amount < 0n;
-    const change = amount > 0n ? amount : -amount;
-
-    const cm = this.sdk.marketRegister.findCreditManager(
-      creditAccount.creditManager,
-    );
-
-    const addCollateralCalls =
-      collateral && isDecrease
-        ? this.prepareAddCollateral(
-            creditAccount.creditFacade,
-            [
-              {
-                token: collateral[0].token,
-                balance: collateral[0].balance,
-              },
-            ],
-            {},
-          )
-        : [];
-    const unwrapCalls =
-      collateral && isDecrease
-        ? (await this.getRWAUnwrapCalls(
-            collateral[0].balance,
-            creditAccount.creditManager,
-          )) || []
-        : [];
-
-    if (
-      addCollateralCalls.length > 0 &&
-      unwrapCalls.length === 0 &&
-      collateral &&
-      collateral?.[0].token !== creditAccount.underlying
-    ) {
-      throw new Error(
-        "Can't use collateral other than underlying for non RWA market",
-      );
-    }
-
-    const operationCalls: Array<MultiCall> = [
-      ...addCollateralCalls,
-      ...unwrapCalls,
-      this.prepareChangeDebt(creditAccount.creditFacade, change, isDecrease),
-    ];
-
-    const calls = await this.#prependPriceUpdates(
-      creditAccount.creditManager,
-      operationCalls,
-      creditAccount,
-    );
-    const tx = await this.#multicallTx(cm, creditAccount.creditAccount, calls);
-
-    return { tx, calls, creditFacade: cm.creditFacade };
-  }
-
-  /**
-   * {@inheritDoc ICreditAccountsService.executeSwap}
-   **/
-  public async executeSwap({
-    creditAccount,
-    calls: swapCalls,
-    minQuota,
-    averageQuota,
-  }: ExecuteSwapProps): Promise<CreditAccountOperationResult> {
-    if (swapCalls.length === 0) throw new Error("No path to execute");
-
-    const cm = this.sdk.marketRegister.findCreditManager(
-      creditAccount.creditManager,
-    );
-
-    const operationCalls: Array<MultiCall> = [
-      ...swapCalls,
-      ...this.prepareUpdateQuotas(creditAccount.creditFacade, {
-        minQuota,
-        averageQuota,
-      }),
-    ];
-
-    const calls = await this.#prependPriceUpdates(
-      creditAccount.creditManager,
-      operationCalls,
-      creditAccount,
-    );
-    const tx = await this.#multicallTx(cm, creditAccount.creditAccount, calls);
-
-    return { tx, calls, creditFacade: cm.creditFacade };
   }
 
   /**
@@ -1296,41 +1076,6 @@ export class CreditAccountsServiceV310
       claimableNow: claimable,
       pending,
     };
-  }
-
-  /**
-   * {@inheritDoc ICreditAccountsService.startDelayedWithdrawal}
-   **/
-  public async startDelayedWithdrawal({
-    creditAccount,
-    minQuota,
-    averageQuota,
-
-    preview,
-  }: StartDelayedWithdrawalProps): Promise<CreditAccountOperationResult> {
-    const cm = this.sdk.marketRegister.findCreditManager(
-      creditAccount.creditManager,
-    );
-
-    const operationCalls: Array<MultiCall> = [
-      ...this.assembleStartDelayedWithdrawalCalls({
-        creditFacade: cm.creditFacade.address,
-        preview,
-      }),
-      ...this.prepareUpdateQuotas(cm.creditFacade.address, {
-        minQuota,
-        averageQuota,
-      }),
-    ];
-
-    const calls = await this.#prependPriceUpdates(
-      creditAccount.creditManager,
-      operationCalls,
-      creditAccount,
-    );
-    const tx = await this.#multicallTx(cm, creditAccount.creditAccount, calls);
-
-    return { tx, calls, creditFacade: cm.creditFacade };
   }
 
   /**
@@ -1380,50 +1125,6 @@ export class CreditAccountsServiceV310
     };
 
     return [storeExpectedBalances, ...preview.requestCalls, compareBalances];
-  }
-
-  /**
-   * {@inheritDoc ICreditAccountsService.claimDelayed}
-   **/
-  public async claimDelayed({
-    creditAccount,
-    minQuota,
-    averageQuota,
-
-    claimableNow,
-  }: ClaimDelayedProps): Promise<CreditAccountOperationResult> {
-    const zeroDebt = creditAccount.debt === 0n;
-
-    const cm = this.sdk.marketRegister.findCreditManager(
-      creditAccount.creditManager,
-    );
-
-    const quotaCalls = zeroDebt
-      ? []
-      : this.prepareUpdateQuotas(cm.creditFacade.address, {
-          minQuota,
-          averageQuota,
-        });
-
-    const operationCalls: Array<MultiCall> = [
-      ...this.assembleClaimDelayedCalls({
-        creditFacade: cm.creditFacade.address,
-        claimableNow,
-      }),
-      ...quotaCalls,
-    ];
-
-    const calls = zeroDebt
-      ? operationCalls
-      : await this.#prependPriceUpdates(
-          creditAccount.creditManager,
-          operationCalls,
-          creditAccount,
-        );
-
-    const tx = await this.#multicallTx(cm, creditAccount.creditAccount, calls);
-
-    return { tx, calls, creditFacade: cm.creditFacade };
   }
 
   /**
@@ -1900,71 +1601,6 @@ export class CreditAccountsServiceV310
   }
 
   /**
-   * {@inheritDoc ICreditAccountsService.withdrawCollateral}
-   */
-  public async withdrawCollateral({
-    creditAccount,
-    assetsToWithdraw,
-    to,
-
-    minQuota,
-    averageQuota,
-  }: WithdrawCollateralProps): Promise<CreditAccountOperationResult> {
-    const cm = this.sdk.marketRegister.findCreditManager(
-      creditAccount.creditManager,
-    );
-
-    const operationCalls: Array<MultiCall> = [
-      ...assetsToWithdraw.map(a =>
-        this.prepareWithdrawToken(
-          cm.creditFacade.address,
-          a.token,
-          a.balance,
-          to,
-        ),
-      ),
-      ...this.prepareUpdateQuotas(cm.creditFacade.address, {
-        minQuota,
-        averageQuota,
-      }),
-    ];
-
-    const calls = await this.#prependPriceUpdates(
-      creditAccount.creditManager,
-      operationCalls,
-      creditAccount,
-    );
-    const tx = await this.#multicallTx(cm, creditAccount.creditAccount, calls);
-
-    return { tx, calls, creditFacade: cm.creditFacade };
-  }
-
-  /**
-   * {@inheritDoc ICreditAccountsService.repayCreditAccount}
-   */
-  async repayCreditAccount(
-    props: RepayCreditAccountProps,
-  ): Promise<CreditAccountOperationResult> {
-    const { operation, creditAccount: ca } = props;
-    const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
-
-    const operationCalls = await this.assembleRepayCreditAccountCalls(props);
-
-    const calls =
-      operation === "close"
-        ? operationCalls
-        : await this.#prependPriceUpdates(ca.creditManager, operationCalls, ca);
-    const tx = await this.#closeCreditAccountTx(
-      cm,
-      ca.creditAccount,
-      calls,
-      operation,
-    );
-
-    return { tx, calls, creditFacade: cm.creditFacade };
-  }
-
-  /**
    * {@inheritDoc ICreditAccountsService.assembleRepayCreditAccountCalls}
    */
   async assembleRepayCreditAccountCalls({
@@ -2001,53 +1637,6 @@ export class CreditAccountsServiceV310
     ];
 
     return operationCalls;
-  }
-
-  /**
-   * {@inheritDoc ICreditAccountsService.repayAndLiquidateCreditAccount}
-   */
-  async repayAndLiquidateCreditAccount({
-    collateralAssets,
-    assetsToWithdraw,
-    creditAccount: ca,
-    permits,
-    to,
-    tokensToClaim,
-  }: RepayAndLiquidateCreditAccountProps): Promise<CreditAccountOperationResult> {
-    const cm = this.sdk.marketRegister.findCreditManager(ca.creditManager);
-
-    const router = this.sdk.routerFor(ca);
-    const claimPath = await router.findClaimAllRewards({
-      tokensToClaim,
-      creditAccount: ca,
-    });
-
-    const wrapCalls =
-      (await this.getDepositDiffCalls(1n, ca.creditManager)) ?? [];
-
-    const addCollateral = collateralAssets.filter(a => a.balance > 0);
-
-    const operationCalls: Array<MultiCall> = [
-      ...this.prepareAddCollateral(ca.creditFacade, addCollateral, permits),
-      ...claimPath.calls,
-      ...wrapCalls,
-      ...assetsToWithdraw.map(t =>
-        this.prepareWithdrawToken(ca.creditFacade, t.token, MAX_UINT256, to),
-      ),
-    ];
-
-    const calls = await this.#prependPriceUpdates(
-      ca.creditManager,
-      operationCalls,
-      ca,
-    );
-
-    const tx = cm.creditFacade.liquidateCreditAccount(
-      ca.creditAccount,
-      to,
-      calls,
-    );
-    return { tx, calls, creditFacade: cm.creditFacade };
   }
 
   /**
@@ -2217,52 +1806,6 @@ export class CreditAccountsServiceV310
       `generating price feed updates for ${tStr} from ${priceFeeds.length}${remark} price feeds`,
     );
     return this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(priceFeeds);
-  }
-
-  /**
-   * {@inheritDoc ICreditAccountsService.multicall}
-   */
-  public async multicall(
-    creditAccount: RouterCASlice,
-    calls: MultiCall[],
-    options?: { ignoreReservePrices?: boolean },
-  ): Promise<RawTx> {
-    const cm = this.sdk.marketRegister.findCreditManager(
-      creditAccount.creditManager,
-    );
-    const callsWithPrices = await this.#prependPriceUpdates(
-      creditAccount.creditManager,
-      calls,
-      creditAccount,
-      options,
-    );
-    return cm.creditFacade.multicall(
-      creditAccount.creditAccount,
-      callsWithPrices,
-    );
-  }
-
-  /**
-   * {@inheritDoc ICreditAccountsService.botMulticall}
-   */
-  public async botMulticall(
-    creditAccount: RouterCASlice,
-    calls: MultiCall[],
-    options?: { ignoreReservePrices?: boolean },
-  ): Promise<RawTx> {
-    const cm = this.sdk.marketRegister.findCreditManager(
-      creditAccount.creditManager,
-    );
-    const callsWithPrices = await this.#prependPriceUpdates(
-      creditAccount.creditManager,
-      calls,
-      creditAccount,
-      options,
-    );
-    return cm.creditFacade.botMulticall(
-      creditAccount.creditAccount,
-      callsWithPrices,
-    );
   }
 
   /**
@@ -2606,43 +2149,6 @@ export class CreditAccountsServiceV310
       suite.creditManager.address,
     );
     const factory = marketSuite.rwaFactory;
-
-    if (factory) {
-      return factory.multicall(creditAccount, calls, rwaOptions);
-    }
-
-    return suite.creditFacade.multicall(creditAccount, calls);
-  }
-
-  /**
-   * Wrapper that selects between credit facade and RWA factory
-   * @param suite
-   * @param creditAccount
-   * @param calls
-   * @param operation
-   * @param rwaOptions
-   * @returns
-   */
-  async #closeCreditAccountTx(
-    suite: CreditSuite,
-    creditAccount: Address,
-    calls: MultiCall[],
-    operation: CloseOptions,
-    rwaOptions?: RWAOperationArgs,
-  ): Promise<RawTx> {
-    const marketSuite = this.sdk.marketRegister.findByCreditManager(
-      suite.creditManager.address,
-    );
-    const factory = marketSuite.rwaFactory;
-
-    if (operation === "close") {
-      if (factory) {
-        throw new Error(
-          "CloseOptions=close is not supported for RWA underlying credit accounts",
-        );
-      }
-      return suite.creditFacade.closeCreditAccount(creditAccount, calls);
-    }
 
     if (factory) {
       return factory.multicall(creditAccount, calls, rwaOptions);

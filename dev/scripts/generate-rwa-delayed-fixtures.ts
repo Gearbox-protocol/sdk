@@ -660,12 +660,20 @@ async function requestDelayedWithdrawal({
     { token: collateralToken, balance: collateralQuotaDelta },
   ];
 
-  const { tx } = await sdk.accounts.startDelayedWithdrawal({
+  const requestCalls = [
+    ...sdk.accounts.assembleStartDelayedWithdrawalCalls({
+      creditFacade: cm.creditFacade.address,
+      preview,
+    }),
+    ...sdk.accounts.prepareUpdateQuotas(cm.creditFacade.address, {
+      minQuota: quotas,
+      averageQuota: quotas,
+    }),
+  ];
+  const { tx } = await sdk.accounts.executeCaUpdate(
     creditAccount,
-    preview,
-    minQuota: quotas,
-    averageQuota: quotas,
-  });
+    requestCalls,
+  );
   await sendTx(sdk, wallet, tx, intent.type.toLowerCase());
 
   return { to: tx.to, calldata: tx.callData };

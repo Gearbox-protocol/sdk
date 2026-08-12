@@ -197,41 +197,6 @@ export interface CreditManagerOperationResult {
 }
 
 /**
- * Close operation type: `"close"` fully closes the account, `"zeroDebt"` repays all debt but keeps the account open.
- **/
-export type CloseOptions = "close" | "zeroDebt";
-
-export interface CloseCreditAccountProps {
-  /**
-   * Close or zeroDebt
-   */
-  operation: CloseOptions;
-  /**
-   * Minimal credit account data on which operation is performed
-   */
-  creditAccount: RouterCASlice;
-  /**
-   * Tokens to withdraw from credit account.
-   * For credit account closing this is the underlying token, because during the closure,
-   * all tokens on account are swapped into the underlying,
-   * and only the underlying token will remain on the credit account
-   */
-  assetsToWithdraw: Array<Address>;
-  /**
-   * Wallet address to withdraw underlying to
-   */
-  to: Address;
-  /**
-   * Slippage in PERCENTAGE_FORMAT (100% = 10_000) per operation
-   */
-  slippage?: bigint;
-  /**
-   * Result of findBestClosePath method from router; if omited, calls marketRegister.findCreditManager {@link RouterCloseResult}
-   */
-  closePath?: RouterCloseResult;
-}
-
-/**
  * Input for {@link ICreditAccountsService.assembleCloseCreditAccountCalls}.
  */
 export type AssembleCloseCreditAccountCallsProps = {
@@ -253,35 +218,6 @@ export type AssembleCloseCreditAccountCallsProps = {
   to: Address;
 };
 
-export interface RepayAndLiquidateCreditAccountProps {
-  /**
-   * Tokens to repay debt.
-   * In the current implementation, this is the (debt+interest+fees) * buffer,
-   * where buffer refers to amount of tokens which will exceed current debt
-   * in order to cover possible debt increase over tx execution.
-   */
-  collateralAssets: Array<Asset>;
-  /**
-   * tokens to withdraw from credit account. 
-      Typically all non zero ca assets (including unclaimed rewards) 
-      plus underlying token (to withdraw any exceeding underlying token after repay)
-   */
-  assetsToWithdraw: Array<Asset>;
-  /**
-   * Minimal credit account data on which operation is performed.
-   */
-  creditAccount: RouterCASlice;
-  /**
-   * Wallet address to withdraw underlying to
-   */
-  to: Address;
-  /**
-   * Permits of tokens to withdraw (if any permittable token is present).
-   */
-  permits: Record<string, PermitResult>;
-  tokensToClaim: Asset[];
-}
-
 /**
  * Input for {@link ICreditAccountsService.assembleRepayCreditAccountCalls}.
  */
@@ -297,18 +233,6 @@ export type AssembleRepayCreditAccountCallsProps = {
    */
   calls?: Array<MultiCall>;
 };
-
-export interface RepayCreditAccountProps
-  extends RepayAndLiquidateCreditAccountProps {
-  /**
-   * RWA wrap multicall entries (from getRWAWrapCalls).
-   */
-  calls?: Array<MultiCall>;
-  /**
-   * close or zeroDebt
-   */
-  operation: CloseOptions;
-}
 
 /**
  * Quota `Asset.balance` values are denominated in **pool underlying token
@@ -330,47 +254,6 @@ export interface PrepareUpdateQuotasProps {
   minQuota: Array<Asset>;
 }
 
-export interface UpdateQuotasProps extends PrepareUpdateQuotasProps {
-  /**
-   * Minimal credit account data on which operation is performed
-   */
-  creditAccount: RouterCASlice;
-}
-
-export interface AddCollateralProps extends PrepareUpdateQuotasProps {
-  /**
-   * Asset to add as collateral
-   */
-  asset: Asset;
-  /**
-   * Native token amount to attach to tx
-   */
-  ethAmount: bigint;
-  /**
-   * Permit of collateral asset if it is permittable
-   */
-  permit: PermitResult | undefined;
-  /**
-   * Minimal credit account data on which operation is performed
-   */
-  creditAccount: RouterCASlice;
-}
-
-export interface WithdrawCollateralProps extends PrepareUpdateQuotasProps {
-  /**
-   * list of assets which should be withdrawn
-   */
-  assetsToWithdraw: Array<Asset>;
-  /**
-   * Wallet address to withdraw token to
-   */
-  to: Address;
-  /**
-   * minimal credit account data on which operation is performed
-   */
-  creditAccount: RouterCASlice;
-}
-
 /**
  * Credit account and credit manager address pair, used for batch queries such as connected bot lookups.
  **/
@@ -384,17 +267,6 @@ export type AccountToCheck = {
    **/
   creditManager: Address;
 };
-
-export interface ExecuteSwapProps extends PrepareUpdateQuotasProps {
-  /**
-   * Array of MultiCall from router methods getSingleSwap or getAllSwaps
-   */
-  calls: Array<MultiCall>;
-  /**
-   * Minimal credit account data on which operation is performed
-   */
-  creditAccount: RouterCASlice;
-}
 
 export interface PreviewDelayedWithdrawalProps {
   /**
@@ -476,28 +348,6 @@ export type AssembleClaimDelayedCallsProps = {
   >;
 };
 
-export interface StartDelayedWithdrawalProps extends PrepareUpdateQuotasProps {
-  /**
-   * Withdrawal preview
-   */
-  preview: RequestableWithdrawal;
-  /**
-   * Minimal credit account data on which operation is performed
-   */
-  creditAccount: RouterCASlice;
-}
-
-export interface ClaimDelayedProps extends PrepareUpdateQuotasProps {
-  /**
-   * assets claimable now from getPendingWithdrawals
-   */
-  claimableNow: GetPendingWithdrawalsResult["claimableNow"][number];
-  /**
-   * Minimal credit account data on which operation is performed
-   */
-  creditAccount: RouterCASlice;
-}
-
 export interface ClaimFarmRewardsProps extends PrepareUpdateQuotasProps {
   /**
     * Legacy property, v3.1 only enables token when quota is bought and when quota is bought token cannot be disabled. 
@@ -578,28 +428,6 @@ export interface OpenCAProps extends PrepareUpdateQuotasProps {
    * It means that no RWA actions are required (e.g. when we open second credit account)
    */
   rwaOptions?: RWAOperationArgs;
-}
-
-export interface ChangeDeptProps {
-  /**
-   * Minimal credit account data on which operation is performed
-   */
-  creditAccount: RouterCASlice;
-  /**
-   * Amount to change debt by
-   * 0 - prohibited value;
-   * negative value for debt decrease;
-   * positive value for debt increase.
-   */
-  amount: bigint;
-  /**
-   * Assets to add as collateral
-   */
-  collateral?: [Asset];
-  /**
-   * Assets to wrap
-   */
-  wrapAsset?: [Asset];
 }
 
 export interface FullyLiquidateProps {
@@ -984,11 +812,9 @@ export interface ICreditAccountsService extends Construct {
   partiallyLiquidate(props: PartiallyLiquidateProps): Promise<RawTx>;
 
   /**
-   * Builds close multicall calls without price feed updates.
-   *
-   * Same operation sequence as {@link closeCreditAccount} (close path swaps,
-   * disable quotas, decrease debt, withdraw assets), but does not prepend
-   * price updates and does not build the facade transaction.
+   * Builds close multicall calls without price feed updates: close path swaps,
+   * disable quotas, decrease debt, withdraw assets. Does not prepend price
+   * updates and does not build the facade transaction.
    *
    * @param props - {@link AssembleCloseCreditAccountCallsProps}
    * @returns Raw facade multicall payload for close (before price feed updates)
@@ -998,65 +824,10 @@ export interface ICreditAccountsService extends Construct {
   ): Promise<Array<MultiCall>>;
 
   /**
-   * Closes credit account or closes credit account and keeps it open with zero debt.
-   * - Ca is closed in the following order: price update -> close path to swap all tokens into underlying ->
-   * -> disable quotas of exiting tokens -> decrease debt -> disable exiting tokens -> withdraw underlying tokens
-   * @param props - {@link CloseCreditAccountProps}
-   * @returns All necessary data to execute the transaction (call, credit facade)
-   */
-  closeCreditAccount(
-    props: CloseCreditAccountProps,
-  ): Promise<CloseCreditAccountResult>;
-
-  /**
-   * Updates quota of credit account.
-   * CA quota updated in the following order: price update -> update quotas
-   * @param props - {@link UpdateQuotasProps}
-   * @returns All necessary data to execute the transaction (call, credit facade)
-   */
-  updateQuotas(props: UpdateQuotasProps): Promise<CreditAccountOperationResult>;
-
-  /**
-   * Adds a single collateral to credit account and updates quotas
-   * Collateral is added in the following order: price update -> add collateral (with permit) -> update quotas
-   * @param props - {@link AddCollateralProps}
-   * @returns All necessary data to execute the transaction (call, credit facade)
-   */
-  addCollateral(
-    props: AddCollateralProps,
-  ): Promise<CreditAccountOperationResult>;
-
-  /**
-   * Increases or decreases debt of credit account; debt decrease uses token ON CREDIT ACCOUNT
-   * Debt is changed in the following order: price update -> (enables underlying if it was disabled) -> change debt
-   * @param props - {@link ChangeDeptProps}
-   * @returns All necessary data to execute the transaction (call, credit facade)
-   */
-  changeDebt(props: ChangeDeptProps): Promise<CreditAccountOperationResult>;
-
-  /**
-   * Executes swap specified by given calls, update quotas of affected tokens
-   * Swap is executed in the following order: price update -> execute swap path -> update quotas
-   * @param props - {@link ExecuteSwapProps}
-   * @returns All necessary data to execute the transaction (call, credit facade)
-   */
-  executeSwap(props: ExecuteSwapProps): Promise<CreditAccountOperationResult>;
-
-  /**
-   * Start delayed withdrawal for given token
-     - Withdrawal is executed in the following order: price update -> execute withdraw calls -> update quotas
-   * @param props - {@link StartDelayedWithdrawalProps}
-   * @returns All necessary data to execute the transaction (call, credit facade)
-   */
-  startDelayedWithdrawal(
-    props: StartDelayedWithdrawalProps,
-  ): Promise<CreditAccountOperationResult>;
-
-  /**
    * Builds start-delayed-withdrawal multicall calls without price feed updates
    * or quota updates.
    *
-   * Same balance bracket as {@link startDelayedWithdrawal}:
+   * Balance bracket:
    * `storeExpectedBalances` → `preview.requestCalls` → `compareBalances`.
    *
    * Besides the positive output deltas, the bracket carries a negative delta
@@ -1077,7 +848,7 @@ export interface ICreditAccountsService extends Construct {
    * Builds claim-delayed-withdrawal multicall calls without price feed updates
    * or quota updates.
    *
-   * Same balance bracket as {@link claimDelayed}:
+   * Balance bracket:
    * `storeExpectedBalances` → `claimableNow.claimCalls` → `compareBalances`.
    *
    * Besides the positive output deltas, the bracket carries a negative delta
@@ -1113,13 +884,6 @@ export interface ICreditAccountsService extends Construct {
   getPendingWithdrawals(
     props: GetPendingWithdrawalsProps,
   ): Promise<GetPendingWithdrawalsResult>;
-  /**
-   * Claim tokens with delayed withdrawal
-     - Claim is executed in the following order: price update -> execute claim calls -> update quotas
-   * @param props - {@link ClaimDelayedProps}
-   * @returns
-  */
-  claimDelayed(props: ClaimDelayedProps): Promise<CreditAccountOperationResult>;
 
   /**
    * Returns address to which approval should be given on collateral token
@@ -1179,36 +943,6 @@ export interface ICreditAccountsService extends Construct {
     account: CreditAccountTokensSlice,
     ignoreReservePrices?: boolean,
   ): Promise<PriceUpdate[]>;
-
-  /**
-   * Executes a multicall on a credit account, automatically prepending
-   * necessary on-demand price feed updates.
-   *
-   * @param creditAccount - Credit account to execute multicall on
-   * @param calls - Array of multicall operations (price updates will be inferred)
-   * @param options - Optional settings for price update generation
-   * @returns Raw transaction ready to be signed and sent
-   */
-  multicall(
-    creditAccount: RouterCASlice,
-    calls: Array<MultiCall>,
-    options?: { ignoreReservePrices?: boolean },
-  ): Promise<RawTx>;
-
-  /**
-   * Executes a bot multicall on a credit account, automatically prepending
-   * necessary on-demand price feed updates.
-   *
-   * @param creditAccount - Credit account to execute bot multicall on
-   * @param calls - Array of multicall operations (price updates will be inferred)
-   * @param options - Optional settings for price update generation
-   * @returns Raw transaction ready to be signed and sent
-   */
-  botMulticall(
-    creditAccount: RouterCASlice,
-    calls: Array<MultiCall>,
-    options?: { ignoreReservePrices?: boolean },
-  ): Promise<RawTx>;
 
   /**
    * Analyzes a multicall array and prepends necessary on-demand price feed updates.
@@ -1351,22 +1085,10 @@ export interface ICreditAccountsService extends Construct {
   ): Promise<Array<MultiCall> | undefined>;
 
   /**
-   * Withdraws a single collateral from credit account to wallet to and updates quotas;
-   * technically can withdraw several tokens at once
-   *   - Collateral is withdrawn in the following order: price update -> withdraw token -> update quotas for affected tokens
-   * @param props - {@link WithdrawCollateralProps}
-   * @return All necessary data to execute the transaction (call, credit facade)
-   */
-  withdrawCollateral(
-    props: WithdrawCollateralProps,
-  ): Promise<CreditAccountOperationResult>;
-
-  /**
-   * Builds repay multicall calls without price feed updates.
-   *
-   * Same operation sequence as {@link repayCreditAccount} (add collateral, wrap calls,
-   * disable quotas, decrease debt, redeem/unwrap, claim rewards, withdraw assets),
-   * but does not prepend price updates and does not build the facade transaction.
+   * Builds repay multicall calls without price feed updates: add collateral,
+   * wrap calls, disable quotas, decrease debt, redeem/unwrap, claim rewards,
+   * withdraw assets. Does not prepend price updates and does not build the
+   * facade transaction.
    *
    * @param props - {@link AssembleRepayCreditAccountCallsProps}
    * @returns Raw facade multicall payload for repay (before price feed updates)
@@ -1374,28 +1096,6 @@ export interface ICreditAccountsService extends Construct {
   assembleRepayCreditAccountCalls(
     props: AssembleRepayCreditAccountCallsProps,
   ): Promise<Array<MultiCall>>;
-
-  /**
-   * Fully repays credit account or repays credit account and keeps it open with zero debt
-   * - Repays in the following order: price update -> add collateral to cover the debt ->
-   *   -> disable quotas for all tokens -> decrease debt -> disable tokens all tokens -> withdraw all tokens
-   * @param props - {@link RepayCreditAccountProps}
-   * @return All necessary data to execute the transaction (call, credit facade)
-   */
-  repayCreditAccount(
-    props: RepayCreditAccountProps,
-  ): Promise<CreditAccountOperationResult>;
-
-  /**
-   * Fully repays liquidatable account
-   * - Repay and liquidate is executed in the following order: price update -> add collateral to cover the debt ->
-   *   withdraw all tokens from credit account
-   * @param props - {@link RepayAndLiquidateCreditAccountProps}
-   * @return All necessary data to execute the transaction (call, credit facade)
-   */
-  repayAndLiquidateCreditAccount(
-    props: RepayAndLiquidateCreditAccountProps,
-  ): Promise<CreditAccountOperationResult>;
 
   /**
    * Claims farm rewards and optionally updates quotas
