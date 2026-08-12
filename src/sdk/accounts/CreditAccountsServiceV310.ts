@@ -1161,158 +1161,97 @@ export class CreditAccountsServiceV310
   }
 
   /**
-   * Returns multicall entries to redeem (unwrap) RWA ERC-4626 vault shares into underlying for the given credit manager.
-   * Used when withdrawing debt from a RWA market: redeems adapter vault shares so the underlying can be withdrawn.
-   * Only applies when the credit manager's underlying is RWA-gated and has an ERC-4626 adapter configured.
-   * @param amount - Number of vault shares (adapter tokens) to redeem
+   * Encodes one ERC-4626 adapter call for an RWA market's underlying vault.
+   *
+   * @param functionName - Adapter function to call
+   * @param amount - Amount passed to the adapter, in the units the function expects
    * @param creditManager - Credit manager address
-   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not RWA or no adapter is configured
+   * @returns Array of MultiCall to pass to credit facade multicall, or undefined
+   * if the underlying is not RWA-gated or no adapter is configured for it
+   */
+  #rwaVaultCalls(
+    functionName: "deposit" | "redeem" | "depositDiff" | "redeemDiff",
+    amount: bigint,
+    creditManager: Address,
+  ): Array<MultiCall> | undefined {
+    const suite = this.sdk.marketRegister.findCreditManager(creditManager);
+    const meta = this.sdk.tokensMeta.mustGet(suite.underlying);
+    if (!this.sdk.tokensMeta.isRWAUnderlying(meta)) {
+      return undefined;
+    }
+
+    const target = suite.creditManager.adapters.get(meta.addr)?.address;
+    if (!target) {
+      return undefined;
+    }
+
+    let callData: Hex;
+    switch (functionName) {
+      case "deposit":
+        callData = encodeFunctionData({
+          abi: ierc4626AdapterAbi,
+          functionName,
+          // receiver is ignored by the adapter
+          args: [amount, ADDRESS_0X0],
+        });
+        break;
+      case "redeem":
+        callData = encodeFunctionData({
+          abi: ierc4626AdapterAbi,
+          functionName,
+          // receiver and owner are ignored by the adapter
+          args: [amount, ADDRESS_0X0, ADDRESS_0X0],
+        });
+        break;
+      default:
+        callData = encodeFunctionData({
+          abi: ierc4626AdapterAbi,
+          functionName,
+          args: [amount],
+        });
+    }
+
+    return [{ target, callData }];
+  }
+
+  /**
+   * {@inheritDoc ICreditAccountsService.assembleRWAUnwrapCalls}
    */
   public async assembleRWAUnwrapCalls(
     amount: bigint,
     creditManager: Address,
   ): Promise<Array<MultiCall> | undefined> {
-    const suite = this.sdk.marketRegister.findCreditManager(creditManager);
-    const meta = this.sdk.tokensMeta.mustGet(suite.underlying);
-    if (!this.sdk.tokensMeta.isRWAUnderlying(meta)) {
-      return undefined;
-    }
-
-    const adapter = suite.creditManager.adapters.get(meta.addr);
-    const adapterAddress = adapter?.address;
-
-    if (!adapterAddress) {
-      return undefined;
-    }
-
-    const mc: Array<MultiCall> = [
-      {
-        target: adapterAddress,
-        callData: encodeFunctionData({
-          abi: ierc4626AdapterAbi,
-          functionName: "redeem",
-          args: [amount, ADDRESS_0X0, ADDRESS_0X0],
-        }),
-      },
-    ];
-
-    return mc;
+    return this.#rwaVaultCalls("redeem", amount, creditManager);
   }
+
   /**
-   * Returns multicall entries to deposit (wrap) underlying into RWA ERC-4626 vault shares for the given credit manager.
-   * Used when adding debt on a RWA market: deposits underlying into the adapter vault so shares are minted on the account.
-   * Only applies when the credit manager's underlying is RWA-gated and has an ERC-4626 adapter configured.
-   * @param amount - Amount of underlying assets to deposit into the vault (in underlying decimals)
-   * @param creditManager - Credit manager address
-   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not RWA or no adapter is configured
+   * {@inheritDoc ICreditAccountsService.assembleRWAWrapCalls}
    */
   public async assembleRWAWrapCalls(
     amount: bigint,
     creditManager: Address,
   ): Promise<Array<MultiCall> | undefined> {
-    const suite = this.sdk.marketRegister.findCreditManager(creditManager);
-    const meta = this.sdk.tokensMeta.mustGet(suite.underlying);
-    if (!this.sdk.tokensMeta.isRWAUnderlying(meta)) {
-      return undefined;
-    }
-
-    const adapter = suite.creditManager.adapters.get(meta.addr);
-    const adapterAddress = adapter?.address;
-
-    if (!adapterAddress) {
-      return undefined;
-    }
-
-    const mc: Array<MultiCall> = [
-      {
-        target: adapterAddress,
-        callData: encodeFunctionData({
-          abi: ierc4626AdapterAbi,
-          functionName: "deposit",
-          args: [amount, ADDRESS_0X0],
-        }),
-      },
-    ];
-
-    return mc;
+    return this.#rwaVaultCalls("deposit", amount, creditManager);
   }
 
   /**
-   * Returns multicall entries to call redeemDiff on the RWA ERC-4626 adapter for the given credit manager.
-   * Redeems the leftover vault shares (e.g. after repaying debt) so the account does not hold excess RWA vault tokens.
-   * Only applies when the credit manager's underlying is RWA-gated and has an ERC-4626 adapter configured.
-   * @param amount - Leftover vault share amount to redeem (in adapter/vault decimals)
-   * @param creditManager - Credit manager address
-   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not RWA or no adapter is configured
+   * {@inheritDoc ICreditAccountsService.assembleRedeemDiffCalls}
    */
   public async assembleRedeemDiffCalls(
     amount: bigint,
     creditManager: Address,
   ): Promise<Array<MultiCall> | undefined> {
-    const suite = this.sdk.marketRegister.findCreditManager(creditManager);
-    const meta = this.sdk.tokensMeta.mustGet(suite.underlying);
-    if (!this.sdk.tokensMeta.isRWAUnderlying(meta)) {
-      return undefined;
-    }
-
-    const adapter = suite.creditManager.adapters.get(meta.addr);
-    const adapterAddress = adapter?.address;
-
-    if (!adapterAddress) {
-      return undefined;
-    }
-
-    const mc: Array<MultiCall> = [
-      {
-        target: adapterAddress,
-        callData: encodeFunctionData({
-          abi: ierc4626AdapterAbi,
-          functionName: "redeemDiff",
-          args: [amount],
-        }),
-      },
-    ];
-
-    return mc;
+    return this.#rwaVaultCalls("redeemDiff", amount, creditManager);
   }
 
   /**
-   * Returns multicall entries to call depositDiff on the RWA ERC-4626 adapter for the given credit manager.
-   * Deposits the leftover underlying (e.g. after decreasing debt) into the vault so the account does not hold excess underlying.
-   * Only applies when the credit manager's underlying is RWA-gated and has an ERC-4626 adapter configured.
-   * @param amount - Leftover underlying amount to deposit into the vault (in underlying decimals)
-   * @param creditManager - Credit manager address
-   * @returns Array of MultiCall to pass to credit facade multicall, or undefined if underlying is not RWA or no adapter is configured
+   * {@inheritDoc ICreditAccountsService.assembleDepositDiffCalls}
    */
   public async assembleDepositDiffCalls(
     amount: bigint,
     creditManager: Address,
   ): Promise<Array<MultiCall> | undefined> {
-    const suite = this.sdk.marketRegister.findCreditManager(creditManager);
-    const meta = this.sdk.tokensMeta.mustGet(suite.underlying);
-    if (!this.sdk.tokensMeta.isRWAUnderlying(meta)) {
-      return undefined;
-    }
-
-    const adapter = suite.creditManager.adapters.get(meta.addr);
-    const adapterAddress = adapter?.address;
-
-    if (!adapterAddress) {
-      return undefined;
-    }
-
-    const mc: Array<MultiCall> = [
-      {
-        target: adapterAddress,
-        callData: encodeFunctionData({
-          abi: ierc4626AdapterAbi,
-          functionName: "depositDiff",
-          args: [amount],
-        }),
-      },
-    ];
-
-    return mc;
+    return this.#rwaVaultCalls("depositDiff", amount, creditManager);
   }
 
   /**
