@@ -1,8 +1,8 @@
 import type { Address } from "viem";
-import type { CreditAccountData } from "../base/index.js";
-import type { MarketSuite } from "../market/index.js";
-import { hexEq } from "../utils/index.js";
-import { DUST_THRESHOLD } from "./constants.js";
+import type { CreditAccountData } from "../../base/index.js";
+import { DUST_THRESHOLD } from "../../constants/index.js";
+import { hexEq } from "../../utils/index.js";
+import type { MarketSuite } from "../MarketSuite.js";
 
 /**
  * The account's dominant collateral: the most valuable enabled non-underlying
@@ -39,4 +39,24 @@ export function dominantCollateral(
     }
   }
   return dominant;
+}
+
+/**
+ * {@link dominantCollateral}, for callers that cannot proceed without one, such
+ * as picking the collateral a partial liquidation seizes.
+ *
+ * @throws If the account holds no enabled non-underlying collateral the oracle
+ * can price.
+ **/
+export function mustGetDominantCollateral(
+  account: CreditAccountData,
+  market: MarketSuite,
+): Address {
+  const collateral = dominantCollateral(account, market);
+  if (!collateral) {
+    throw new Error(
+      `cannot determine tokenOut for partial liquidation of ${market.sdk.labelAddress(account.creditAccount)}: no enabled non-underlying collateral with value`,
+    );
+  }
+  return collateral;
 }

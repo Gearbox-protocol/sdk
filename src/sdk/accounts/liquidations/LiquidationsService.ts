@@ -12,12 +12,18 @@ import type {
 import { matchesLiquidatableAccountFilter } from "../../../model/index.js";
 import type { CreditAccountData } from "../../base/index.js";
 import { SDKConstruct } from "../../base/index.js";
-import { ADDRESS_0X0, PERCENTAGE_FACTOR, WAD } from "../../constants/index.js";
+import {
+  ADDRESS_0X0,
+  DUST_THRESHOLD,
+  PERCENTAGE_FACTOR,
+  WAD,
+} from "../../constants/index.js";
 import type {
   CreditSuite,
   IPriceOracleContract,
   MarketSuite,
 } from "../../market/index.js";
+import { dominantCollateral } from "../../market/index.js";
 import { usdToNumber } from "../../market/math.js";
 import {
   MidasLiquidatorContract,
@@ -29,10 +35,8 @@ import {
 } from "../../market/rwa/securitize/index.js";
 import type { MultiCall } from "../../types/index.js";
 import { AddressSet, bytes32ToString, hexEq } from "../../utils/index.js";
-import { dominantCollateral } from "../dominantCollateral.js";
 import type { WithdrawalOutput } from "../withdrawal-compressor/index.js";
 import {
-  DUST_THRESHOLD,
   LIQUIDATION_APPROVAL_BUFFER,
   LIQUIDATION_COMPRESSOR_V313_ADDRESS,
 } from "./constants.js";

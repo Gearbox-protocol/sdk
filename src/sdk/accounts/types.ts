@@ -9,6 +9,7 @@ import type {
 } from "../base/index.js";
 import type {
   CreditSuite,
+  PartialLiquidationParams,
   PriceUpdate,
   RWAOperationArgs,
 } from "../market/index.js";
@@ -461,26 +462,7 @@ export interface FullyLiquidateProps {
   debtOnly?: boolean;
 }
 
-export interface DefaultPartialLiquidationParams {
-  /**
-   * {@link PartiallyLiquidateProps.tokenOut}
-   */
-  tokenOut: Address;
-  /**
-   * {@link PartiallyLiquidateProps.repaidAmount}
-   */
-  repaidAmount: bigint;
-  /**
-   * {@link PartiallyLiquidateProps.minSeizedAmount}
-   */
-  minSeizedAmount: bigint;
-  /**
-   * {@link PartiallyLiquidateProps.optimalHF}
-   */
-  optimalHF: bigint;
-}
-
-export interface PartiallyLiquidateProps {
+export interface PartiallyLiquidateProps extends PartialLiquidationParams {
   /**
    * Credit account to liquidate
    */
@@ -489,30 +471,6 @@ export interface PartiallyLiquidateProps {
    * Address to transfer underlying left after liquidation
    */
   to: Address;
-  /**
-   * Collateral token to seize.
-   * If omitted, the most valuable enabled non-underlying collateral token
-   * (by oracle)
-   */
-  tokenOut?: Address;
-  /**
-   * Amount of underlying token to repay.
-   * If omitted, computed internally
-   */
-  repaidAmount?: bigint;
-  /**
-   * Minimum amount of `token` to seize from `creditAccount`.
-   * If `token` is a phantom token, it's withdrawn first, and its `depositedToken` is then sent to the liquidator.
-   * In this case, `minSeizedAmount` is denominated in `depositedToken`.
-   * If omitted, computed internally.
-   */
-  minSeizedAmount?: bigint;
-  /**
-   * Target health factor for partial liquidation (4 digits precision, 10000 = 100%).
-   * If omitted, defaults to {@link ICreditAccountsService.getOptimalHFForPartialLiquidation}.
-   * Only used when `repaidAmount` is not explicitly provided.
-   */
-  optimalHF?: bigint;
 }
 
 /**
@@ -790,15 +748,6 @@ export interface ICreditAccountsService extends Construct {
   fullyLiquidate(props: FullyLiquidateProps): Promise<FullyLiquidateResult>;
 
   /**
-   * Calculates default partial liquidation parameters for a credit account
-   * These parameters are used as defaults for the {@link partiallyLiquidate} method.
-   * @param ca - Credit account to partially liquidate
-   */
-  defaultPartialLiquidationParams(
-    ca: CreditAccountData,
-  ): DefaultPartialLiquidationParams;
-
-  /**
    * Generates transaction to partially liquidate credit account;
    *
    * Transaction partially liquidates credit account's debt in exchange for discounted collateral
@@ -921,19 +870,6 @@ export interface ICreditAccountsService extends Construct {
    * @returns Raw transaction ready to be signed and sent
    */
   openCA(props: OpenCAProps): Promise<RawTx>;
-
-  /**
-   * Returns borrow rate with 4 digits precision (10000 = 100%)
-   * @param ca
-   * @returns
-   */
-  getBorrowRate(ca: CreditAccountData): bigint;
-
-  /**
-   * Returns optimal HF for partial liquidation with 4 digits precision (10000 = 100%)
-   * @param ca
-   */
-  getOptimalHFForPartialLiquidation(ca: CreditAccountData): bigint;
 
   /**
    * Returns account price updates that can be used in credit facade multicall or liquidator calls

@@ -31,6 +31,16 @@ export interface ICreditConfiguratorContract extends IBaseContract {
 }
 
 /**
+ * Fee parameters of a liquidation, with the suite's expiration already resolved.
+ **/
+export interface LiquidationFees {
+  /** Protocol's cut of the liquidated collateral, in basis points. */
+  feeLiquidation: Bps;
+  /** Price the liquidator pays for collateral, in basis points. */
+  liquidationDiscount: Bps;
+}
+
+/**
  * Expected balance change of one token, as the facade's `storeExpectedBalances`
  * takes it. Negative amounts mark tokens the multicall spends.
  */
@@ -307,6 +317,42 @@ export interface ICreditFacadeContract extends IBaseContract {
    * Encodes a `compareBalances` multicall entry.
    */
   prepareCompareBalances(): MultiCall;
+}
+
+/**
+ * Partial liquidation parameters a caller wants to pin down instead of letting
+ * {@link CreditSuite.partialLiquidationParams} derive them.
+ *
+ * @remarks
+ * The defaults are derived in order - `optimalHF` feeds `repaidAmount`, which
+ * feeds `minSeizedAmount` - so overriding one still lets the ones after it
+ * follow from the override.
+ **/
+export interface PartialLiquidationParams {
+  /**
+   * Collateral token to seize.
+   * If omitted, the most valuable enabled non-underlying collateral token
+   * (by oracle)
+   */
+  tokenOut?: Address;
+  /**
+   * Amount of underlying token to repay.
+   * If omitted, computed internally
+   */
+  repaidAmount?: bigint;
+  /**
+   * Minimum amount of `token` to seize from `creditAccount`.
+   * If `token` is a phantom token, it's withdrawn first, and its `depositedToken` is then sent to the liquidator.
+   * In this case, `minSeizedAmount` is denominated in `depositedToken`.
+   * If omitted, computed internally.
+   */
+  minSeizedAmount?: bigint;
+  /**
+   * Target health factor for partial liquidation (4 digits precision, 10000 = 100%).
+   * If omitted, defaults to {@link CreditSuite.optimalHFForPartialLiquidation}.
+   * Only used when `repaidAmount` is not explicitly provided.
+   */
+  optimalHF?: bigint;
 }
 
 // Compile-time check: ICreditManagerContract covers every abi-inferred

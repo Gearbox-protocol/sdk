@@ -18,9 +18,8 @@ import {
   AP_CREDIT_ACCOUNT_COMPRESSOR,
   AP_PERIPHERY_COMPRESSOR,
   AP_REWARDS_COMPRESSOR,
+  DUST_THRESHOLD,
   MAX_UINT256,
-  PERCENTAGE_FACTOR,
-  RAY,
   VERSION_RANGE_310,
 } from "../constants/index.js";
 import type {
@@ -29,6 +28,7 @@ import type {
   RWAOperationArgs,
 } from "../market/index.js";
 import {
+  dominantCollateral,
   getRawPriceUpdates,
   type IPriceFeedContract,
   type PriceUpdate,
@@ -47,8 +47,6 @@ import type { RouterRewardsResult } from "../router/types.js";
 import type { IPriceUpdateTx, MultiCall, RawTx } from "../types/index.js";
 import { AddressMap, AddressSet, hexEq } from "../utils/index.js";
 import { simulateWithPriceUpdates } from "../utils/viem/index.js";
-import { DUST_THRESHOLD } from "./constants.js";
-import { dominantCollateral } from "./dominantCollateral.js";
 import {
   extractPriceUpdates,
   extractQuotaTokens,
@@ -67,7 +65,6 @@ import type {
   CreditAccountTokensSlice,
   CreditManagerFilter,
   CreditManagerOperationResult,
-  DefaultPartialLiquidationParams,
   FullyLiquidateProps,
   FullyLiquidateResult,
   GetApprovalAddressProps,
@@ -842,42 +839,18 @@ export class CreditAccountsServiceV310
   }
 
   /**
-   * {@inheritDoc ICreditAccountsService.defaultPartialLiquidationParams}
-   */
-  public defaultPartialLiquidationParams(
-    ca: CreditAccountData,
-  ): DefaultPartialLiquidationParams {
-    const tokenOut = this.#getBestTokenOut(ca);
-    const optimalHF = this.getOptimalHFForPartialLiquidation(ca);
-    const repaidAmount = this.#calcOptimalRepaidAmount(ca, tokenOut, optimalHF);
-    const minSeizedAmount = this.#calcMinSeizedAmount(
-      ca,
-      tokenOut,
-      repaidAmount,
-    );
-    return { tokenOut, optimalHF, repaidAmount, minSeizedAmount };
-  }
-
-  /**
    * {@inheritDoc ICreditAccountsService.partiallyLiquidate}
    */
   public async partiallyLiquidate(
     props: PartiallyLiquidateProps,
   ): Promise<RawTx> {
     const { account, to } = props;
-    const tokenOut = props.tokenOut ?? this.#getBestTokenOut(account);
-    const optimalHF =
-      props.optimalHF ?? this.getOptimalHFForPartialLiquidation(account);
-    const repaidAmount =
-      props.repaidAmount ??
-      this.#calcOptimalRepaidAmount(account, tokenOut, optimalHF);
-    const minSeizedAmount =
-      props.minSeizedAmount ??
-      this.#calcMinSeizedAmount(account, tokenOut, repaidAmount);
-
     const cm = this.sdk.marketRegister.findCreditManager(account.creditManager);
+    const { tokenOut, repaidAmount, minSeizedAmount } =
+      cm.partialLiquidationParams(account, props);
+
     const updates = await this.getOnDemandPriceUpdates(account, true);
-    const tx = cm.creditFacade.partiallyLiquidateCreditAccount(
+    return cm.creditFacade.partiallyLiquidateCreditAccount(
       account.creditAccount,
       tokenOut,
       repaidAmount,
@@ -885,138 +858,6 @@ export class CreditAccountsServiceV310
       to,
       updates,
     );
-    return tx;
-  }
-
-  /**
-   * Picks the most valuable enabled non-underlying collateral token on the
-   * credit account (by oracle value in underlying).
-   *
-   * Ported from solidity:
-   * https://github.com/Gearbox-protocol/router-v3/blob/main/contracts/liquidation/AbstractLiquidator.sol#L270
-   */
-  #getBestTokenOut(account: CreditAccountData): Address {
-    const market = this.sdk.marketRegister.findByCreditManager(
-      account.creditManager,
-    );
-    const underlying = market.underlying;
-
-    let bestVal = 0n;
-    let bestToken: Address | undefined;
-    for (const t of account.tokens) {
-      if (t.token === underlying) continue;
-      if ((t.mask & account.enabledTokensMask) === 0n) continue;
-      if (t.balance === 0n) continue;
-      const val = market.priceOracle.convert(t.token, underlying, t.balance);
-      if (val > bestVal) {
-        bestVal = val;
-        bestToken = t.token;
-      }
-    }
-
-    if (!bestToken) {
-      throw new Error(
-        `cannot determine tokenOut for partial liquidation of ${this.sdk.labelAddress(account.creditAccount)}: no enabled non-underlying collateral with value`,
-      );
-    }
-    return bestToken;
-  }
-
-  /**
-   * Returns the minimum amount of `token` collateral that must be seized when
-   * repaying `repaidAmount` of underlying. Mirrors the on-chain liquidation
-   * discount math, expired-aware.
-   */
-  #calcMinSeizedAmount(
-    account: CreditAccountData,
-    token: Address,
-    repaidAmount: bigint,
-  ): bigint {
-    const market = this.sdk.marketRegister.findByCreditManager(
-      account.creditManager,
-    );
-    const suite = this.sdk.marketRegister.findCreditManager(
-      account.creditManager,
-    );
-    const fee = suite.isExpired
-      ? suite.creditManager.liquidationDiscountExpired
-      : suite.creditManager.liquidationDiscount;
-
-    const tokenAmount = market.priceOracle.convert(
-      market.underlying,
-      token,
-      repaidAmount,
-    );
-    return (tokenAmount * 9990n) / BigInt(fee);
-  }
-
-  /**
-   * Computes the optimal `repaidAmount` (in underlying) that brings the credit
-   * account's health factor close to `optimalHF` after partial liquidation.
-   *
-   * Ported from solidity:
-   * https://github.com/Gearbox-protocol/router-v3/blob/56e2d515ec6d9bb1e324e71c3708e59710779b24/contracts/liquidation/AbstractLiquidator.sol#L292
-   */
-  #calcOptimalRepaidAmount(
-    account: CreditAccountData,
-    token: Address,
-    optimalHF: bigint,
-  ): bigint {
-    const suite = this.sdk.marketRegister.findCreditManager(
-      account.creditManager,
-    );
-    const market = this.sdk.marketRegister.findByCreditManager(
-      account.creditManager,
-    );
-    const cm = suite.creditManager;
-
-    const feeLiquidation = suite.isExpired
-      ? cm.feeLiquidationExpired
-      : cm.feeLiquidation;
-    const liquidationDiscount = suite.isExpired
-      ? cm.liquidationDiscountExpired
-      : cm.liquidationDiscount;
-    const discount = BigInt(liquidationDiscount) - BigInt(feeLiquidation);
-
-    const ltTokenOut = cm.liquidationThresholds.get(token);
-    if (ltTokenOut === undefined) {
-      throw new Error(
-        `token ${this.sdk.labelAddress(token)} is not a collateral token in credit manager ${this.sdk.labelAddress(account.creditManager)}`,
-      );
-    }
-
-    const totalDebt =
-      account.debt + account.accruedInterest + account.accruedFees;
-    const twvUnderlying = market.priceOracle.convertFromUSD(
-      market.underlying,
-      account.twvUSD,
-    );
-
-    const denominator =
-      (discount * optimalHF) / PERCENTAGE_FACTOR - BigInt(ltTokenOut);
-    if (denominator <= 0n) {
-      throw new Error(
-        "cannot compute optimal repaid amount: invalid liquidation parameters (discount * hfOptimal <= ltTokenOut)",
-      );
-    }
-    const numerator = totalDebt * optimalHF - twvUnderlying * PERCENTAGE_FACTOR;
-    if (numerator <= 0n) {
-      // Account is already healthy enough; nothing to repay.
-      return 0n;
-    }
-    const optimalValueSeized = numerator / denominator;
-
-    let repaidAmount = (optimalValueSeized * discount) / PERCENTAGE_FACTOR;
-
-    const minDebt = suite.creditFacade.minDebt;
-    if (totalDebt < minDebt) {
-      return 0n;
-    }
-    const surplusDebt = totalDebt - minDebt;
-    if (repaidAmount > surplusDebt) {
-      repaidAmount = (surplusDebt * 999n) / 1000n;
-    }
-    return repaidAmount;
   }
 
   /**
@@ -1259,48 +1100,6 @@ export class CreditAccountsServiceV310
     tx.value = ethAmount.toString(10);
 
     return tx;
-  }
-
-  /**
-   * {@inheritDoc ICreditAccountsService.getBorrowRate}
-   **/
-  public getBorrowRate(ca: CreditAccountData): bigint {
-    // R = Debt * baserate with fee / (total value or debt)
-    // Qr = sum(quota rate * quota amount) * (1+fee) / (total value or debt)
-    // Total = r+qr
-    const { creditManager } = this.sdk.marketRegister.findCreditManager(
-      ca.creditManager,
-    );
-    const { pool } = this.sdk.marketRegister.findByCreditManager(
-      ca.creditManager,
-    );
-    const { feeInterest } = creditManager;
-    const { baseInterestRate } = pool.pool;
-    const baseRateWithFee =
-      baseInterestRate * (BigInt(feeInterest) + PERCENTAGE_FACTOR);
-    const totalDebt = ca.debt + ca.accruedInterest + ca.accruedFees;
-    const r = (ca.debt * baseRateWithFee) / (totalDebt * RAY);
-
-    const caTokens = new AddressMap(ca.tokens.map(t => [t.token, t]));
-    let qr = 0n;
-
-    for (const t of creditManager.collateralTokens) {
-      const b = caTokens.get(t);
-      if (b) {
-        qr += b.quota * BigInt(pool.pqk.quotas.get(t)?.rate ?? 0);
-      }
-    }
-    qr = (qr * (BigInt(feeInterest) + PERCENTAGE_FACTOR)) / PERCENTAGE_FACTOR;
-    qr /= totalDebt;
-    return r + qr;
-  }
-
-  /**
-   * {@inheritDoc ICreditAccountsService.getOptimalHFForPartialLiquidation}
-   **/
-  public getOptimalHFForPartialLiquidation(ca: CreditAccountData): bigint {
-    const borrowRate = this.getBorrowRate(ca);
-    return PERCENTAGE_FACTOR + (borrowRate < 100n ? borrowRate : 100n);
   }
 
   /**

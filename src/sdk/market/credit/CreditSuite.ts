@@ -1,27 +1,38 @@
 import type { Address } from "viem";
 import type {
+  Bps,
   StrategyOpportunity,
   StrategyOpportunityDetail,
   Timestamp,
 } from "../../../model/index.js";
-import type { CreditSuiteState } from "../../base/index.js";
+import type { CreditAccountData, CreditSuiteState } from "../../base/index.js";
 import { SDKConstruct } from "../../base/index.js";
 import { isSunsetStrategy } from "../../chain/chains.js";
-import { MAX_UINT256 } from "../../constants/index.js";
+import { MAX_UINT256, PERCENTAGE_FACTOR, RAY } from "../../constants/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import type { IRouterContract } from "../../router/index.js";
 import type { CreditSuiteStateHuman } from "../../types/index.js";
 import { BigIntMath } from "../../utils/bigint-math.js";
+import { AddressMap } from "../../utils/index.js";
 import type { MarketConfiguratorContract } from "../MarketConfiguratorContract.js";
 import type { MarketSuite } from "../MarketSuite.js";
-import { additionalBorrowApyBps, borrowApyBps } from "../math.js";
+import {
+  additionalBorrowApyBps,
+  borrowApyBps,
+  minSeizedAmount,
+  optimalHFForPartialLiquidation,
+  optimalRepaidAmount,
+} from "../math.js";
 import createCreditConfigurator from "./createCreditConfigurator.js";
 import createCreditFacade from "./createCreditFacade.js";
 import createCreditManager from "./createCreditManager.js";
+import { mustGetDominantCollateral } from "./dominantCollateral.js";
 import type {
   ICreditConfiguratorContract,
   ICreditFacadeContract,
   ICreditManagerContract,
+  LiquidationFees,
+  PartialLiquidationParams,
 } from "./types.js";
 
 /**
@@ -148,6 +159,23 @@ export class CreditSuite extends SDKConstruct {
   }
 
   /**
+   * Liquidation fee pair in effect right now, resolving {@link isExpired} once
+   * for both.
+   */
+  public liquidationFees(): LiquidationFees {
+    const cm = this.creditManager;
+    return this.isExpired
+      ? {
+          feeLiquidation: cm.feeLiquidationExpired,
+          liquidationDiscount: cm.liquidationDiscountExpired,
+        }
+      : {
+          feeLiquidation: cm.feeLiquidation,
+          liquidationDiscount: cm.liquidationDiscount,
+        };
+  }
+
+  /**
    * Whether this suite can be used right now. A paused pool blocks borrowing,
    * so the suite is unusable even when its own facade is live.
    */
@@ -251,6 +279,133 @@ export class CreditSuite extends SDKConstruct {
       rateCurve: this.market.pool.rateCurve,
       priceFeeds: this.market.priceFeedSummary(collateral),
     };
+  }
+
+  /**
+   * Everything a partial liquidation of credit account needs, with any parameter the
+   * caller pinned down taken as given and the rest derived from current state.
+   *
+   * @param ca - Credit account to partially liquidate.
+   * @param overrides - Parameters to use instead of the derived defaults.
+   * @throws If a derived `tokenOut` cannot be picked, or if the seized token is
+   * not a collateral token of this credit manager.
+   */
+  public partialLiquidationParams(
+    ca: CreditAccountData,
+    overrides: PartialLiquidationParams = {},
+  ): Required<PartialLiquidationParams> {
+    const tokenOut = overrides.tokenOut ?? this.#bestTokenOut(ca);
+    const optimalHF =
+      overrides.optimalHF ?? this.optimalHFForPartialLiquidation(ca);
+    const repaidAmount =
+      overrides.repaidAmount ??
+      this.#optimalRepaidAmount(ca, tokenOut, optimalHF);
+    const minSeizedAmount =
+      overrides.minSeizedAmount ??
+      this.#minSeizedAmount(tokenOut, repaidAmount);
+    return { tokenOut, optimalHF, repaidAmount, minSeizedAmount };
+  }
+
+  /**
+   * Health factor a partial liquidation of `ca` should target, in basis points.
+   *
+   * @param ca - Credit account to partially liquidate.
+   */
+  public optimalHFForPartialLiquidation(ca: CreditAccountData): bigint {
+    return optimalHFForPartialLiquidation(this.#borrowRate(ca));
+  }
+
+  /**
+   * Collateral token a partial liquidation seizes by default.
+   *
+   * Ported from solidity:
+   * https://github.com/Gearbox-protocol/router-v3/blob/main/contracts/liquidation/AbstractLiquidator.sol#L270
+   */
+  #bestTokenOut(ca: CreditAccountData): Address {
+    return mustGetDominantCollateral(ca, this.market);
+  }
+
+  /**
+   * Minimum amount of `token` that must be seized when repaying `repaidAmount`
+   * of underlying.
+   */
+  #minSeizedAmount(token: Address, repaidAmount: bigint): bigint {
+    const { market } = this;
+    const tokenAmount = market.priceOracle.convert(
+      market.underlying,
+      token,
+      repaidAmount,
+    );
+    return minSeizedAmount(
+      tokenAmount,
+      this.liquidationFees().liquidationDiscount,
+    );
+  }
+
+  /**
+   * Amount of underlying to repay to bring `ca`'s health factor close to
+   * `optimalHF` by seizing `token`.
+   *
+   * @throws If `token` is not a collateral token of this credit manager.
+   */
+  #optimalRepaidAmount(
+    ca: CreditAccountData,
+    token: Address,
+    optimalHF: bigint,
+  ): bigint {
+    const { creditManager: cm, market } = this;
+    const { feeLiquidation, liquidationDiscount } = this.liquidationFees();
+
+    const ltTokenOut = cm.liquidationThresholds.get(token);
+    if (ltTokenOut === undefined) {
+      throw new Error(
+        `token ${this.labelAddress(token)} is not a collateral token in credit manager ${this.labelAddress(cm.address)}`,
+      );
+    }
+
+    return optimalRepaidAmount({
+      totalDebt: ca.debt + ca.accruedInterest + ca.accruedFees,
+      twvUnderlying: market.priceOracle.convertFromUSD(
+        market.underlying,
+        ca.twvUSD,
+      ),
+      minDebt: this.creditFacade.minDebt,
+      optimalHF,
+      discount: BigInt(liquidationDiscount) - BigInt(feeLiquidation),
+      ltTokenOut: BigInt(ltTokenOut),
+    });
+  }
+
+  /**
+   * Blended annual cost of credit account's debt, in basis points: base interest weighted
+   * by the account's share of its own total debt, plus the quota rates of the
+   * collaterals it actually holds, both marked up by the interest fee.
+   */
+  #borrowRate(ca: CreditAccountData): bigint {
+    // R = Debt * baserate with fee / (total value or debt)
+    // Qr = sum(quota rate * quota amount) * (1+fee) / (total value or debt)
+    // Total = r+qr
+    const { creditManager } = this;
+    const { pool } = this.market;
+    const { feeInterest } = creditManager;
+    const { baseInterestRate } = pool.pool;
+    const baseRateWithFee =
+      baseInterestRate * (BigInt(feeInterest) + PERCENTAGE_FACTOR);
+    const totalDebt = ca.debt + ca.accruedInterest + ca.accruedFees;
+    const r = (ca.debt * baseRateWithFee) / (totalDebt * RAY);
+
+    const caTokens = new AddressMap(ca.tokens.map(t => [t.token, t]));
+    let qr = 0n;
+
+    for (const t of creditManager.collateralTokens) {
+      const b = caTokens.get(t);
+      if (b) {
+        qr += b.quota * BigInt(pool.pqk.quotas.get(t)?.rate ?? 0);
+      }
+    }
+    qr = (qr * (BigInt(feeInterest) + PERCENTAGE_FACTOR)) / PERCENTAGE_FACTOR;
+    qr /= totalDebt;
+    return r + qr;
   }
 
   /**

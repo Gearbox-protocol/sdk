@@ -22,3 +22,8 @@ export const PERCENTAGE_FACTOR = 10000n;
 export const PERCENTAGE_FACTOR_1KK = PERCENTAGE_FACTOR * PERCENTAGE_DECIMALS;
 export const LEVERAGE_DECIMALS = 100n;
 export const SLIPPAGE_DECIMALS = 100n;
+
+/**
+ * Token balances at or below this threshold are treated as dust and ignored.
+ **/
+export const DUST_THRESHOLD = 10n;

@@ -165,3 +165,107 @@ export function additionalBorrowApyBps(
   }
   return Math.round(quotaRate * Math.max(leverage - 1, 0));
 }
+
+/**
+ * {@link PERCENTAGE_FACTOR} less a 0.1% safety buffer.
+ *
+ * Partial liquidation amounts are computed off prices that can drift between
+ * quoting and execution, so both the seized and the repaid amount are pulled
+ * this far away from the boundary the contracts would revert on.
+ **/
+export const PARTIAL_LIQUIDATION_BUFFER_BPS = 9990n;
+
+/**
+ * Minimum collateral a partial liquidation must seize for a given repayment,
+ * derived from the liquidation discount and buffered by
+ * {@link PARTIAL_LIQUIDATION_BUFFER_BPS}.
+ *
+ * @param tokenAmount - Repaid amount converted from underlying into the seized
+ * token by the oracle.
+ * @param liquidationDiscount - Discount in effect for this account, in basis
+ * points (the expired variant once the credit manager has expired).
+ **/
+export function minSeizedAmount(
+  tokenAmount: bigint,
+  liquidationDiscount: Bps,
+): bigint {
+  return (
+    (tokenAmount * PARTIAL_LIQUIDATION_BUFFER_BPS) / BigInt(liquidationDiscount)
+  );
+}
+
+/**
+ * Inputs of {@link optimalRepaidAmount}, all resolved against the account's
+ * market and credit manager by the caller.
+ **/
+export interface OptimalRepaidAmountProps {
+  /** Debt principal plus accrued interest and fees, in underlying. */
+  totalDebt: bigint;
+  /** Threshold-weighted value of the account, converted to underlying. */
+  twvUnderlying: bigint;
+  /** Credit facade's minimum debt, in underlying. */
+  minDebt: bigint;
+  /** Health factor to aim for, in basis points. */
+  optimalHF: bigint;
+  /** `liquidationDiscount - feeLiquidation`, in basis points. */
+  discount: bigint;
+  /** Liquidation threshold of the seized token, in basis points. */
+  ltTokenOut: bigint;
+}
+
+/**
+ * Amount of underlying whose repayment brings the account's health factor close
+ * to `optimalHF`, capped so the account keeps at least `minDebt` of debt.
+ *
+ * Ported from solidity:
+ * https://github.com/Gearbox-protocol/router-v3/blob/56e2d515ec6d9bb1e324e71c3708e59710779b24/contracts/liquidation/AbstractLiquidator.sol#L292
+ *
+ * @returns The repaid amount, or `0n` when the account is already healthy
+ * enough or carries less than the minimum debt.
+ * @throws If the discounted target health factor does not exceed the seized
+ * token's liquidation threshold, in which case no repayment improves the
+ * account.
+ **/
+export function optimalRepaidAmount({
+  totalDebt,
+  twvUnderlying,
+  minDebt,
+  optimalHF,
+  discount,
+  ltTokenOut,
+}: OptimalRepaidAmountProps): bigint {
+  const denominator = (discount * optimalHF) / PERCENTAGE_FACTOR - ltTokenOut;
+  if (denominator <= 0n) {
+    throw new Error(
+      "cannot compute optimal repaid amount: invalid liquidation parameters (discount * hfOptimal <= ltTokenOut)",
+    );
+  }
+  const numerator = totalDebt * optimalHF - twvUnderlying * PERCENTAGE_FACTOR;
+  if (numerator <= 0n) {
+    // Account is already healthy enough; nothing to repay.
+    return 0n;
+  }
+  const optimalValueSeized = numerator / denominator;
+
+  const repaidAmount = (optimalValueSeized * discount) / PERCENTAGE_FACTOR;
+
+  if (totalDebt < minDebt) {
+    return 0n;
+  }
+  const surplusDebt = totalDebt - minDebt;
+  if (repaidAmount > surplusDebt) {
+    return (surplusDebt * PARTIAL_LIQUIDATION_BUFFER_BPS) / PERCENTAGE_FACTOR;
+  }
+  return repaidAmount;
+}
+
+/**
+ * Health factor a partial liquidation should target, in basis points: just
+ * above 1, by enough to cover up to 1% of borrow cost so the account does not
+ * fall back under water immediately.
+ *
+ * @param borrowRate - Blended borrow rate of the account, in basis points.
+ **/
+export function optimalHFForPartialLiquidation(borrowRate: bigint): bigint {
+  return PERCENTAGE_FACTOR + (borrowRate < 100n ? borrowRate : 100n);
+}
