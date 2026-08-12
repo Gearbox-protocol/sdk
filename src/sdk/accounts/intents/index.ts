@@ -61,7 +61,7 @@ type BuildResumeOperations = (
 ) => Array<AccountCalculatorOperation>;
 
 export class CreditAccountOperationsService extends SDKConstruct {
-  async finishIntent(props: ResumeProps) {
+  async finishIntent(props: ResumeProps): Promise<IntentPreviewResult> {
     const intent = props.intent;
 
     switch (intent.type) {
