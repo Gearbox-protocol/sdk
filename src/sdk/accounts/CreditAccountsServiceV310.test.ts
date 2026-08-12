@@ -2,18 +2,25 @@ import type { Address } from "viem";
 import { decodeFunctionData } from "viem";
 import { describe, expect, it } from "vitest";
 import { iCreditFacadeMulticallV310Abi } from "../../abi/310/generated.js";
+import {
+  TEST_FACADE_ADDRESS as FACADE,
+  makeTestFacade,
+} from "../market/credit/CreditFacadeV310Contract.mock.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
 import type { MultiCall } from "../types/index.js";
 import { CreditAccountsServiceV310 } from "./CreditAccountsServiceV310.js";
 import type { AssembleCaOperationsProps } from "./types.js";
 
-const FACADE: Address = "0xC78CF21A0f92929aC34ee86Cf94C15c9EE224adE";
 const TOKEN_A: Address = "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0";
 const TOKEN_B: Address = "0xB908c9FE885369643adB5FBA4407d52bD726c72d";
 const TO: Address = "0x1234567890123456789012345678901234567890";
 
-function makeService() {
-  return new CreditAccountsServiceV310({} as unknown as OnchainSDK);
+function makeService(): CreditAccountsServiceV310 {
+  const facade = makeTestFacade();
+  const sdk = {
+    marketRegister: { findCreditFacade: () => facade },
+  } as unknown as OnchainSDK;
+  return new CreditAccountsServiceV310(sdk);
 }
 
 function decode(call: MultiCall) {

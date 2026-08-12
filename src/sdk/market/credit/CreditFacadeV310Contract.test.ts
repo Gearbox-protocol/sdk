@@ -6,14 +6,11 @@ import type {
   Hex,
 } from "viem";
 import {
-  createPublicClient,
-  custom,
+  decodeFunctionData,
   encodeFunctionData,
   getAddress,
   parseAbi,
-  stringToHex,
 } from "viem";
-import { mainnet } from "viem/chains";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -21,25 +18,20 @@ import {
   iCreditFacadeV310Abi,
 } from "../../../abi/310/generated.js";
 import { iPausableAbi } from "../../../abi/iPausable.js";
-import type { CreditSuiteState } from "../../base/index.js";
-import { BaseContract, ChainContractsRegister } from "../../base/index.js";
-import { ADDRESS_0X0 } from "../../constants/index.js";
-import { CreditFacadeV310Contract } from "./CreditFacadeV310Contract.js";
+import type { PermitResult } from "../../accounts/types.js";
+import { BaseContract } from "../../base/index.js";
+import { MIN_INT96 } from "../../constants/index.js";
+import type { MultiCall } from "../../types/index.js";
+import type { CreditFacadeV310Contract } from "./CreditFacadeV310Contract.js";
+import {
+  TEST_FACADE_ADDRESS as FACADE_ADDR,
+  makeTestFacade,
+  testContractsRegister as register,
+  TEST_UNDERLYING_ADDRESS as TOKEN_ADDR,
+} from "./CreditFacadeV310Contract.mock.js";
 
-const client = createPublicClient({
-  chain: mainnet,
-  transport: custom({
-    request: async () => {
-      throw new Error("not implemented");
-    },
-  }),
-});
-const register = new ChainContractsRegister(client);
-
-const FACADE_ADDR = getAddress("0xFACADE0000000000000000000000000000000310");
 const ADAPTER_ADDR = getAddress("0xADAD000000000000000000000000000000000001");
 const CREDIT_ACCOUNT = getAddress("0xCCA0000000000000000000000000000000000001");
-const TOKEN_ADDR = getAddress("0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB");
 const UNKNOWN_ADDR = getAddress("0xDEAD000000000000000000000000000000000000");
 const ON_BEHALF_OF = getAddress("0x1111111111111111111111111111111111111111");
 const LIQUIDATOR = getAddress("0x2222222222222222222222222222222222222222");
@@ -69,30 +61,39 @@ function encodeInnerCall<
 
 const FACADE_NAME = "CreditFacadeV310(TestCM)";
 
-function makeFacadeAndAdapter() {
-  const facade = new CreditFacadeV310Contract({ register }, {
-    creditFacade: {
-      baseParams: {
-        addr: FACADE_ADDR,
-        version: 310n,
-        contractType: stringToHex("CF", { size: 32 }),
-        serializedParams: "0x",
-      },
-      degenNFT: ADDRESS_0X0,
-      botList: ADDRESS_0X0,
-      expirable: false,
-      expirationDate: 0,
-      maxDebtPerBlockMultiplier: 4,
-      minDebt: 0n,
-      maxDebt: 0n,
-      forbiddenTokensMask: 0n,
-      isPaused: false,
-    },
-    creditManager: {
-      name: "TestCM",
-      underlying: TOKEN_ADDR,
-    },
-  } as unknown as CreditSuiteState);
+// `PermitResult` types both signature halves as `Address`, but the facade
+// expects bytes32
+const PERMIT_R = `0x${"11".repeat(32)}` as Address;
+const PERMIT_S = `0x${"22".repeat(32)}` as Address;
+
+function decodeMulticall(call: MultiCall) {
+  return decodeFunctionData({
+    abi: iCreditFacadeMulticallV310Abi,
+    data: call.callData,
+  });
+}
+
+function makePermit(token: Address): PermitResult {
+  return {
+    token,
+    owner: ON_BEHALF_OF,
+    spender: FACADE_ADDR,
+    value: 1n,
+    deadline: 1234n,
+    nonce: 0n,
+    v: 27,
+    r: PERMIT_R,
+    s: PERMIT_S,
+  };
+}
+
+interface FacadeAndAdapter {
+  facade: CreditFacadeV310Contract;
+  adapter: BaseContract<typeof adapterAbi>;
+}
+
+function makeFacadeAndAdapter(): FacadeAndAdapter {
+  const facade = makeTestFacade();
 
   const adapter = new BaseContract(
     { register },
@@ -369,5 +370,81 @@ describe("parseFunctionDataV2", () => {
         amount: 999n,
       }),
     );
+  });
+});
+
+describe("prepareAddCollateral", () => {
+  it("uses addCollateralWithPermit only for tokens with a permit", () => {
+    const { facade } = makeFacadeAndAdapter();
+
+    const calls = facade.prepareAddCollateral(
+      [
+        { token: TOKEN_ADDR, balance: 100n },
+        { token: ADAPTER_ADDR, balance: 200n },
+      ],
+      { [TOKEN_ADDR]: makePermit(TOKEN_ADDR) },
+    );
+
+    expect(decodeMulticall(calls[0])).toMatchObject({
+      functionName: "addCollateralWithPermit",
+      args: [TOKEN_ADDR, 100n, 1234n, 27, PERMIT_R, PERMIT_S],
+    });
+    expect(decodeMulticall(calls[1])).toMatchObject({
+      functionName: "addCollateral",
+      args: [ADAPTER_ADDR, 200n],
+    });
+  });
+});
+
+describe("prepareUpdateQuotas", () => {
+  it("resolves min quota per token and falls back to zero", () => {
+    const { facade } = makeFacadeAndAdapter();
+
+    const calls = facade.prepareUpdateQuotas({
+      averageQuota: [
+        { token: TOKEN_ADDR, balance: 1000n },
+        { token: ADAPTER_ADDR, balance: 2000n },
+        { token: UNKNOWN_ADDR, balance: 3000n },
+      ],
+      minQuota: [
+        { token: TOKEN_ADDR, balance: 900n },
+        // non-positive min is treated as absent
+        { token: ADAPTER_ADDR, balance: 0n },
+      ],
+    });
+
+    expect(calls.map(c => decodeMulticall(c).args)).toEqual([
+      [TOKEN_ADDR, 1000n, 900n],
+      [ADAPTER_ADDR, 2000n, 0n],
+      [UNKNOWN_ADDR, 3000n, 0n],
+    ]);
+  });
+
+  it("matches min quota tokens case-insensitively", () => {
+    const { facade } = makeFacadeAndAdapter();
+
+    const [call] = facade.prepareUpdateQuotas({
+      averageQuota: [{ token: TOKEN_ADDR, balance: 1000n }],
+      minQuota: [{ token: TOKEN_ADDR.toLowerCase() as Address, balance: 700n }],
+    });
+
+    expect(decodeMulticall(call).args).toEqual([TOKEN_ADDR, 1000n, 700n]);
+  });
+});
+
+describe("prepareDisableQuotas", () => {
+  it("skips tokens without a quota", () => {
+    const { facade } = makeFacadeAndAdapter();
+
+    const calls = facade.prepareDisableQuotas([
+      { token: TOKEN_ADDR, quota: 5n },
+      { token: ADAPTER_ADDR, quota: 0n },
+    ]);
+
+    expect(calls).toHaveLength(1);
+    expect(decodeMulticall(calls[0])).toMatchObject({
+      functionName: "updateQuota",
+      args: [TOKEN_ADDR, MIN_INT96, 0n],
+    });
   });
 });

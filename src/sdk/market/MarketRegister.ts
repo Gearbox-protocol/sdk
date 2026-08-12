@@ -1,4 +1,4 @@
-import type { Address } from "viem";
+import { type Address, isAddressEqual } from "viem";
 import { marketCompressorAbi } from "../../abi/compressors/marketCompressor.js";
 import type { MarketData, MarketFilter } from "../base/index.js";
 import {
@@ -17,7 +17,7 @@ import {
   type DelegatedMulticall,
   executeDelegatedMulticalls,
 } from "../utils/viem/index.js";
-import type { CreditSuite } from "./credit/index.js";
+import type { CreditSuite, ICreditFacadeContract } from "./credit/index.js";
 import { MarketConfiguratorContract } from "./MarketConfiguratorContract.js";
 import { MarketSuite } from "./MarketSuite.js";
 import type { IPriceOracleContract } from "./oracle/index.js";
@@ -272,6 +272,20 @@ export class MarketRegister extends ZapperRegister {
       }
     }
     throw new Error(`cannot find credit manager ${creditManager}`);
+  }
+
+  /**
+   * Finds a credit facade by its on-chain address.
+   * @param creditFacade - Credit facade contract address.
+   * @throws If no loaded market contains the given credit facade.
+   **/
+  public findCreditFacade(creditFacade: Address): ICreditFacadeContract {
+    for (const cm of this.creditManagers) {
+      if (isAddressEqual(cm.creditFacade.address, creditFacade)) {
+        return cm.creditFacade;
+      }
+    }
+    throw new Error(`cannot find credit facade ${creditFacade}`);
   }
 
   /**

@@ -1,7 +1,12 @@
 import type { Address, Hex } from "viem";
 import type { Bps, Leverage } from "../../../model/index.js";
 import type {
+  PermitResult,
+  PrepareUpdateQuotasProps,
+} from "../../accounts/types.js";
+import type {
   AssertAssignable,
+  Asset,
   CreditFacadeState,
   CreditManagerState,
   IBaseContract,
@@ -23,6 +28,27 @@ export interface ICreditConfiguratorContract extends IBaseContract {
 
   checkRamps: () => Promise<RampEvent[]>;
   stateHuman: (raw?: boolean) => CreditConfiguratorStateHuman;
+}
+
+/**
+ * Expected balance change of one token, as the facade's `storeExpectedBalances`
+ * takes it. Negative amounts mark tokens the multicall spends.
+ */
+export interface BalanceDelta {
+  token: Address;
+  /**
+   * Signed balance change, `int256` on-chain.
+   */
+  amount: bigint;
+}
+
+/**
+ * Quota a credit account currently holds for one token, in pool underlying
+ * units. Enough to decide whether the quota needs a disabling call.
+ */
+export interface CreditAccountTokenQuota {
+  token: Address;
+  quota: bigint;
 }
 
 /**
@@ -217,6 +243,70 @@ export interface ICreditFacadeContract extends IBaseContract {
     calls: MultiCall[],
     referralCode: bigint,
   ): RawTx;
+
+  /**
+   * Encodes an `increaseDebt` multicall entry.
+   */
+  prepareIncreaseDebt(amount: bigint): MultiCall;
+
+  /**
+   * Encodes an `increaseDebt` or `decreaseDebt` multicall entry.
+   */
+  prepareChangeDebt(change: bigint, isDecrease: boolean): MultiCall;
+
+  /**
+   * Encodes a `decreaseDebt` multicall entry that repays the whole debt.
+   */
+  prepareDecreaseDebtFull(): MultiCall;
+
+  /**
+   * Encodes a `withdrawCollateral` multicall entry.
+   */
+  prepareWithdrawCollateral(
+    token: Address,
+    amount: bigint,
+    to: Address,
+  ): MultiCall;
+
+  /**
+   * Encodes `addCollateral` / `addCollateralWithPermit` multicall entries, one
+   * per asset, using the permit when one is available for the asset's token.
+   */
+  prepareAddCollateral(
+    assets: Asset[],
+    permits: Record<string, PermitResult>,
+  ): MultiCall[];
+
+  /**
+   * Encodes `updateQuota` multicall entries from average and min quota assets.
+   */
+  prepareUpdateQuotas(props: PrepareUpdateQuotasProps): MultiCall[];
+
+  /**
+   * Encodes `updateQuota` multicall entries that zero out the quotas the
+   * account currently holds.
+   */
+  prepareDisableQuotas(tokens: CreditAccountTokenQuota[]): MultiCall[];
+
+  /**
+   * Encodes a `setBotPermissions` multicall entry.
+   */
+  prepareSetBotPermissions(bot: Address, permissions: bigint): MultiCall;
+
+  /**
+   * Encodes an `onDemandPriceUpdates` multicall entry.
+   */
+  prepareOnDemandPriceUpdates(updates: PriceUpdate[]): MultiCall;
+
+  /**
+   * Encodes a `storeExpectedBalances` multicall entry.
+   */
+  prepareStoreExpectedBalances(deltas: BalanceDelta[]): MultiCall;
+
+  /**
+   * Encodes a `compareBalances` multicall entry.
+   */
+  prepareCompareBalances(): MultiCall;
 }
 
 // Compile-time check: ICreditManagerContract covers every abi-inferred

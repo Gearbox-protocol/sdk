@@ -839,6 +839,7 @@ export interface ICreditAccountsService extends Construct {
    *
    * @param props - {@link AssembleStartDelayedWithdrawalCallsProps}
    * @returns Raw facade multicall payload for the delayed-withdrawal request
+   * @throws If `props.creditFacade` does not belong to a loaded market.
    */
   assembleStartDelayedWithdrawalCalls(
     props: AssembleStartDelayedWithdrawalCallsProps,
@@ -863,6 +864,7 @@ export interface ICreditAccountsService extends Construct {
    *
    * @param props - {@link AssembleClaimDelayedCallsProps}
    * @returns Raw facade multicall payload for the claim
+   * @throws If `props.creditFacade` does not belong to a loaded market.
    */
   assembleClaimDelayedCalls(
     props: AssembleClaimDelayedCallsProps,
@@ -973,16 +975,23 @@ export interface ICreditAccountsService extends Construct {
    *
    * @param props - Encodable operations and account context
    * @returns Array of facade / adapter multicall calls (without price feed updates)
+   * @throws If `props.creditFacade` does not belong to a loaded market.
    */
   assembleCaOperations(props: AssembleCaOperationsProps): Array<MultiCall>;
 
   /**
    * Encodes a facade `increaseDebt` multicall entry.
+   *
+   * @throws If `creditFacade` does not belong to a loaded market.
+   * @deprecated Use `creditSuite.creditFacade.prepareIncreaseDebt(debt)`.
    */
   prepareIncreaseDebt(creditFacade: Address, debt: bigint): MultiCall;
 
   /**
    * Encodes a facade `increaseDebt` or `decreaseDebt` multicall entry.
+   *
+   * @throws If `creditFacade` does not belong to a loaded market.
+   * @deprecated Use `creditSuite.creditFacade.prepareChangeDebt(change, isDecrease)`.
    */
   prepareChangeDebt(
     creditFacade: Address,
@@ -992,6 +1001,9 @@ export interface ICreditAccountsService extends Construct {
 
   /**
    * Encodes facade `addCollateral` / `addCollateralWithPermit` multicall entries.
+   *
+   * @throws If `creditFacade` does not belong to a loaded market.
+   * @deprecated Use `creditSuite.creditFacade.prepareAddCollateral(assets, permits)`.
    */
   prepareAddCollateral(
     creditFacade: Address,
@@ -1001,6 +1013,9 @@ export interface ICreditAccountsService extends Construct {
 
   /**
    * Encodes a facade `withdrawCollateral` multicall entry.
+   *
+   * @throws If `creditFacade` does not belong to a loaded market.
+   * @deprecated Use `creditSuite.creditFacade.prepareWithdrawCollateral(token, amount, to)`.
    */
   prepareWithdrawToken(
     creditFacade: Address,
@@ -1011,6 +1026,9 @@ export interface ICreditAccountsService extends Construct {
 
   /**
    * Encodes facade `updateQuota` multicall entries from average/min quota assets.
+   *
+   * @throws If `creditFacade` does not belong to a loaded market.
+   * @deprecated Use `creditSuite.creditFacade.prepareUpdateQuotas(props)`.
    */
   prepareUpdateQuotas(
     creditFacade: Address,

@@ -1,13 +1,5 @@
-import {
-  type Address,
-  type ContractEventName,
-  encodeFunctionData,
-  type Log,
-} from "viem";
-import {
-  iCreditFacadeMulticallV310Abi,
-  iPriceOracleV310Abi,
-} from "../../../abi/310/generated.js";
+import type { Address, ContractEventName, Log } from "viem";
+import { iPriceOracleV310Abi } from "../../../abi/310/generated.js";
 import type { PriceOracleData } from "../../base/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import { simulateWithPriceUpdates } from "../../utils/viem/simulateWithPriceUpdates.js";
@@ -39,6 +31,7 @@ export class PriceOracleV310Contract extends PriceOracleBaseContract<abi> {
    * @param creditFacade
    * @param updates
    * @returns
+   * @throws If `creditFacade` does not belong to a loaded market.
    */
   public onDemandPriceUpdates(
     creditFacade: Address,
@@ -52,14 +45,9 @@ export class PriceOracleV310Contract extends PriceOracleBaseContract<abi> {
     return {
       raw,
       multicall: [
-        {
-          target: creditFacade,
-          callData: encodeFunctionData({
-            abi: iCreditFacadeMulticallV310Abi,
-            functionName: "onDemandPriceUpdates",
-            args: [raw],
-          }),
-        },
+        this.sdk.marketRegister
+          .findCreditFacade(creditFacade)
+          .prepareOnDemandPriceUpdates(raw),
       ],
     };
   }

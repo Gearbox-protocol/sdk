@@ -1,9 +1,6 @@
 import type { Address, Hex } from "viem";
 import { encodeFunctionData, getContract } from "viem";
-import {
-  iBotListV310Abi,
-  iCreditFacadeMulticallV310Abi,
-} from "../../abi/310/generated.js";
+import { iBotListV310Abi } from "../../abi/310/generated.js";
 import { creditAccountCompressorAbi } from "../../abi/compressors/creditAccountCompressor.js";
 import { peripheryCompressorAbi } from "../../abi/compressors/peripheryCompressor.js";
 import { rewardsCompressorAbi } from "../../abi/compressors/rewardsCompressor.js";
@@ -22,12 +19,15 @@ import {
   AP_PERIPHERY_COMPRESSOR,
   AP_REWARDS_COMPRESSOR,
   MAX_UINT256,
-  MIN_INT96,
   PERCENTAGE_FACTOR,
   RAY,
   VERSION_RANGE_310,
 } from "../constants/index.js";
-import type { CreditSuite, RWAOperationArgs } from "../market/index.js";
+import type {
+  BalanceDelta,
+  CreditSuite,
+  RWAOperationArgs,
+} from "../market/index.js";
 import {
   getRawPriceUpdates,
   type IPriceFeedContract,
@@ -45,7 +45,7 @@ import type { OnchainSDK } from "../OnchainSDK.js";
 import type { RouterCASlice } from "../router/index.js";
 import type { RouterRewardsResult } from "../router/types.js";
 import type { IPriceUpdateTx, MultiCall, RawTx } from "../types/index.js";
-import { AddressMap, AddressSet, AssetsMap, hexEq } from "../utils/index.js";
+import { AddressMap, AddressSet, hexEq } from "../utils/index.js";
 import { simulateWithPriceUpdates } from "../utils/viem/index.js";
 import { DUST_THRESHOLD } from "./constants.js";
 import { dominantCollateral } from "./dominantCollateral.js";
@@ -1031,14 +1031,17 @@ export class CreditAccountsServiceV310
     // RWA: after debt repay, redeem leftover vault shares so withdraw can take rwa.asset
     const unwrapCalls =
       (await this.assembleRedeemDiffCalls(1n, ca.creditManager)) ?? [];
+    const { creditFacade } = this.sdk.marketRegister.findCreditManager(
+      ca.creditManager,
+    );
 
     return [
       ...routerCalls,
-      ...this.#prepareDisableQuotas(ca),
-      ...this.#prepareDecreaseDebt(ca),
+      ...creditFacade.prepareDisableQuotas([...ca.tokens]),
+      ...(ca.debt > 0n ? [creditFacade.prepareDecreaseDebtFull()] : []),
       ...unwrapCalls,
       ...assetsToWithdraw.map(t =>
-        this.prepareWithdrawToken(ca.creditFacade, t, MAX_UINT256, to),
+        creditFacade.prepareWithdrawCollateral(t, MAX_UINT256, to),
       ),
     ];
   }
@@ -1092,12 +1095,10 @@ export class CreditAccountsServiceV310
     }, {});
     const balances = Object.entries(record).filter(([, a]) => a > 10n);
 
-    const deltas: Array<{ token: Address; amount: bigint }> = balances.map(
-      ([token, amount]) => ({
-        token: token as Address,
-        amount: amount > 10n ? amount - 10n : 0n,
-      }),
-    );
+    const deltas: Array<BalanceDelta> = balances.map(([token, amount]) => ({
+      token: token as Address,
+      amount: amount > 10n ? amount - 10n : 0n,
+    }));
     // The negative delta of the spent source token makes the input-side
     // balance decrease previewable from the multicall calldata alone; without
     // it, adapter previewBalanceChanges handlers would need RPC calls to
@@ -1107,24 +1108,13 @@ export class CreditAccountsServiceV310
       deltas.push({ token: preview.token, amount: -preview.amountIn });
     }
 
-    const storeExpectedBalances: MultiCall = {
-      target: creditFacade,
-      callData: encodeFunctionData({
-        abi: iCreditFacadeMulticallV310Abi,
-        functionName: "storeExpectedBalances",
-        args: [deltas],
-      }),
-    };
-    const compareBalances: MultiCall = {
-      target: creditFacade,
-      callData: encodeFunctionData({
-        abi: iCreditFacadeMulticallV310Abi,
-        functionName: "compareBalances",
-        args: [],
-      }),
-    };
+    const facade = this.sdk.marketRegister.findCreditFacade(creditFacade);
 
-    return [storeExpectedBalances, ...preview.requestCalls, compareBalances];
+    return [
+      facade.prepareStoreExpectedBalances(deltas),
+      ...preview.requestCalls,
+      facade.prepareCompareBalances(),
+    ];
   }
 
   /**
@@ -1144,12 +1134,10 @@ export class CreditAccountsServiceV310
     );
     const balances = Object.entries(record).filter(([, a]) => a > 10n);
 
-    const deltas: Array<{ token: Address; amount: bigint }> = balances.map(
-      ([token, amount]) => ({
-        token: token as Address,
-        amount: amount > 10n ? amount - 10n : 0n,
-      }),
-    );
+    const deltas: Array<BalanceDelta> = balances.map(([token, amount]) => ({
+      token: token as Address,
+      amount: amount > 10n ? amount - 10n : 0n,
+    }));
     // The negative delta of the burned withdrawal phantom token makes the
     // input-side balance decrease previewable from the multicall calldata
     // alone; without it, adapter previewBalanceChanges handlers would need
@@ -1161,24 +1149,13 @@ export class CreditAccountsServiceV310
       });
     }
 
-    const storeExpectedBalances: MultiCall = {
-      target: creditFacade,
-      callData: encodeFunctionData({
-        abi: iCreditFacadeMulticallV310Abi,
-        functionName: "storeExpectedBalances",
-        args: [deltas],
-      }),
-    };
-    const compareBalances: MultiCall = {
-      target: creditFacade,
-      callData: encodeFunctionData({
-        abi: iCreditFacadeMulticallV310Abi,
-        functionName: "compareBalances",
-        args: [],
-      }),
-    };
+    const facade = this.sdk.marketRegister.findCreditFacade(creditFacade);
 
-    return [storeExpectedBalances, ...claimableNow.claimCalls, compareBalances];
+    return [
+      facade.prepareStoreExpectedBalances(deltas),
+      ...claimableNow.claimCalls,
+      facade.prepareCompareBalances(),
+    ];
   }
 
   /**
@@ -1245,21 +1222,21 @@ export class CreditAccountsServiceV310
       tokenToWithdraw = withdrawToken;
     }
 
+    const { creditFacade } = cmSuite;
     const operationCalls = [
-      this.prepareIncreaseDebt(cm.creditFacade, debt),
-      ...this.prepareAddCollateral(cm.creditFacade, collateral, permits),
+      creditFacade.prepareIncreaseDebt(debt),
+      ...creditFacade.prepareAddCollateral(collateral, permits),
       ...openPathCalls, // path from underlying to withdrawal token
       ...(tokenToWithdraw
         ? [
-            this.prepareWithdrawToken(
-              cm.creditFacade,
+            creditFacade.prepareWithdrawCollateral(
               tokenToWithdraw,
               MAX_UINT256,
               to,
             ),
           ]
         : []),
-      ...this.prepareUpdateQuotas(cm.creditFacade, {
+      ...creditFacade.prepareUpdateQuotas({
         minQuota,
         averageQuota,
       }),
@@ -1572,14 +1549,10 @@ export class CreditAccountsServiceV310
               },
             ],
           }).read.requiredPermissions();
-    const addBotCall: MultiCall = {
-      target: cm.creditFacade.address,
-      callData: encodeFunctionData({
-        abi: iCreditFacadeMulticallV310Abi,
-        functionName: "setBotPermissions",
-        args: [botAddress, permissions],
-      }),
-    };
+    const addBotCall = cm.creditFacade.prepareSetBotPermissions(
+      botAddress,
+      permissions,
+    );
 
     const calls =
       targetContract.type === "creditAccount"
@@ -1622,15 +1595,19 @@ export class CreditAccountsServiceV310
       creditAccount: ca,
     });
 
+    const { creditFacade } = this.sdk.marketRegister.findCreditManager(
+      ca.creditManager,
+    );
+
     const operationCalls: Array<MultiCall> = [
-      ...this.prepareAddCollateral(ca.creditFacade, addCollateral, permits),
+      ...creditFacade.prepareAddCollateral(addCollateral, permits),
       ...wrapCalls,
-      ...this.#prepareDisableQuotas(ca),
-      ...this.#prepareDecreaseDebt(ca),
+      ...creditFacade.prepareDisableQuotas([...ca.tokens]),
+      ...(ca.debt > 0n ? [creditFacade.prepareDecreaseDebtFull()] : []),
       ...unwrapCalls,
       ...claimPath.calls,
       ...assetsToWithdraw.map(t =>
-        this.prepareWithdrawToken(ca.creditFacade, t.token, MAX_UINT256, to),
+        creditFacade.prepareWithdrawCollateral(t.token, MAX_UINT256, to),
       ),
     ];
 
@@ -1664,7 +1641,7 @@ export class CreditAccountsServiceV310
 
     const operationCalls = [
       ...claimPath.calls,
-      ...this.prepareUpdateQuotas(ca.creditFacade, { minQuota, averageQuota }),
+      ...cm.creditFacade.prepareUpdateQuotas({ minQuota, averageQuota }),
     ];
 
     const calls = await this.#prependPriceUpdates(
@@ -1716,8 +1693,8 @@ export class CreditAccountsServiceV310
     options?: { ignoreReservePrices?: boolean },
   ): Promise<MultiCall[]> {
     const market = this.sdk.marketRegister.findByCreditManager(creditManager);
-    const cm =
-      this.sdk.marketRegister.findCreditManager(creditManager).creditManager;
+    const suite = this.sdk.marketRegister.findCreditManager(creditManager);
+    const cm = suite.creditManager;
 
     const { priceUpdates: existingUpdates, remainingCalls } =
       extractPriceUpdates(calls);
@@ -1760,14 +1737,7 @@ export class CreditAccountsServiceV310
     }
 
     return [
-      {
-        target: cm.creditFacade,
-        callData: encodeFunctionData({
-          abi: iCreditFacadeMulticallV310Abi,
-          functionName: "onDemandPriceUpdates",
-          args: [merged],
-        }),
-      },
+      suite.creditFacade.prepareOnDemandPriceUpdates(merged),
       ...remainingCalls,
     ];
   }
@@ -1830,22 +1800,22 @@ export class CreditAccountsServiceV310
     operations,
     creditFacade,
   }: AssembleCaOperationsProps): MultiCall[] {
+    const facade = this.sdk.marketRegister.findCreditFacade(creditFacade);
     const calls: MultiCall[] = [];
 
     for (const op of operations) {
       switch (op.type) {
         case "increaseDebt":
-          calls.push(this.prepareIncreaseDebt(creditFacade, op.amount));
+          calls.push(facade.prepareIncreaseDebt(op.amount));
           break;
 
         case "decreaseDebt":
-          calls.push(this.prepareChangeDebt(creditFacade, op.amount, true));
+          calls.push(facade.prepareChangeDebt(op.amount, true));
           break;
 
         case "addCollateral":
           calls.push(
-            ...this.prepareAddCollateral(
-              creditFacade,
+            ...facade.prepareAddCollateral(
               [{ token: op.token, balance: op.amount }],
               {},
             ),
@@ -1854,7 +1824,7 @@ export class CreditAccountsServiceV310
 
         case "withdrawCollateral":
           calls.push(
-            this.prepareWithdrawToken(creditFacade, op.token, op.amount, op.to),
+            facade.prepareWithdrawCollateral(op.token, op.amount, op.to),
           );
           break;
 
@@ -1870,7 +1840,7 @@ export class CreditAccountsServiceV310
             break;
           }
           calls.push(
-            ...this.prepareUpdateQuotas(creditFacade, {
+            ...facade.prepareUpdateQuotas({
               averageQuota: quotaAssets,
               minQuota: quotaAssets,
             }),
@@ -1920,63 +1890,16 @@ export class CreditAccountsServiceV310
     return tx;
   }
 
-  #prepareDisableQuotas(ca: RouterCASlice): Array<MultiCall> {
-    const calls: Array<MultiCall> = [];
-    for (const { token, quota } of ca.tokens) {
-      if (quota > 0n) {
-        calls.push({
-          target: ca.creditFacade,
-          callData: encodeFunctionData({
-            abi: iCreditFacadeMulticallV310Abi,
-            functionName: "updateQuota",
-            args: [token, MIN_INT96, 0n],
-          }),
-        });
-      }
-    }
-    return calls;
-  }
-
   /**
    * {@inheritDoc ICreditAccountsService.prepareUpdateQuotas}
    */
   public prepareUpdateQuotas(
     creditFacade: Address,
-    { averageQuota, minQuota }: PrepareUpdateQuotasProps,
+    props: PrepareUpdateQuotasProps,
   ): Array<MultiCall> {
-    const minRecord = new AssetsMap(minQuota);
-
-    const calls: Array<MultiCall> = averageQuota.map(q => {
-      const minBalance = minRecord.get(q.token);
-      const min = minBalance && minBalance > 0n ? minBalance : 0n;
-
-      return {
-        target: creditFacade,
-        callData: encodeFunctionData({
-          abi: iCreditFacadeMulticallV310Abi,
-          functionName: "updateQuota",
-          args: [q.token, q.balance, min],
-        }),
-      };
-    });
-
-    return calls;
-  }
-
-  #prepareDecreaseDebt(ca: RouterCASlice): Array<MultiCall> {
-    if (ca.debt > 0n) {
-      return [
-        {
-          target: ca.creditFacade,
-          callData: encodeFunctionData({
-            abi: iCreditFacadeMulticallV310Abi,
-            functionName: "decreaseDebt",
-            args: [MAX_UINT256],
-          }),
-        },
-      ];
-    }
-    return [];
+    return this.sdk.marketRegister
+      .findCreditFacade(creditFacade)
+      .prepareUpdateQuotas(props);
   }
 
   /**
@@ -1988,28 +1911,18 @@ export class CreditAccountsServiceV310
     amount: bigint,
     to: Address,
   ): MultiCall {
-    return {
-      target: creditFacade,
-      callData: encodeFunctionData({
-        abi: iCreditFacadeMulticallV310Abi,
-        functionName: "withdrawCollateral",
-        args: [token, amount, to],
-      }),
-    };
+    return this.sdk.marketRegister
+      .findCreditFacade(creditFacade)
+      .prepareWithdrawCollateral(token, amount, to);
   }
 
   /**
    * {@inheritDoc ICreditAccountsService.prepareIncreaseDebt}
    */
   public prepareIncreaseDebt(creditFacade: Address, debt: bigint): MultiCall {
-    return {
-      target: creditFacade,
-      callData: encodeFunctionData({
-        abi: iCreditFacadeMulticallV310Abi,
-        functionName: "increaseDebt",
-        args: [debt],
-      }),
-    };
+    return this.sdk.marketRegister
+      .findCreditFacade(creditFacade)
+      .prepareIncreaseDebt(debt);
   }
 
   /**
@@ -2020,14 +1933,9 @@ export class CreditAccountsServiceV310
     change: bigint,
     isDecrease: boolean,
   ): MultiCall {
-    return {
-      target: creditFacade,
-      callData: encodeFunctionData({
-        abi: iCreditFacadeMulticallV310Abi,
-        functionName: isDecrease ? "decreaseDebt" : "increaseDebt",
-        args: [change],
-      }),
-    };
+    return this.sdk.marketRegister
+      .findCreditFacade(creditFacade)
+      .prepareChangeDebt(change, isDecrease);
   }
 
   /**
@@ -2038,31 +1946,9 @@ export class CreditAccountsServiceV310
     assets: Array<Asset>,
     permits: Record<string, PermitResult>,
   ): Array<MultiCall> {
-    const calls = assets.map(({ token, balance }) => {
-      const p = permits[token];
-
-      if (p) {
-        return {
-          target: creditFacade,
-          callData: encodeFunctionData({
-            abi: iCreditFacadeMulticallV310Abi,
-            functionName: "addCollateralWithPermit",
-            args: [token, balance, p.deadline, p.v, p.r, p.s],
-          }),
-        };
-      }
-
-      return {
-        target: creditFacade,
-        callData: encodeFunctionData({
-          abi: iCreditFacadeMulticallV310Abi,
-          functionName: "addCollateral",
-          args: [token, balance],
-        }),
-      };
-    });
-
-    return calls;
+    return this.sdk.marketRegister
+      .findCreditFacade(creditFacade)
+      .prepareAddCollateral(assets, permits);
   }
 
   /**
