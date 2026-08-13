@@ -6,6 +6,7 @@ import type {
   StrategyOpportunityDetail,
   StrategyOpportunityKey,
 } from "../../model/index.js";
+import { isFilterSet } from "../../model/index.js";
 import { MultichainConstruct } from "../base/index.js";
 import { getNetworkType } from "../chain/chains.js";
 import type { NetworkType } from "../chain/index.js";
@@ -66,11 +67,12 @@ export class MultichainOpportunitiesService<
    * a filter naming them is a narrowing, not a request.
    **/
   #networksOf(filter?: OpportunityFilter): NetworkType[] | undefined {
-    if (!filter?.chainIds) {
+    const chainIds = filter?.chainIds;
+    if (!isFilterSet(chainIds)) {
       return undefined;
     }
     const networks: NetworkType[] = [];
-    for (const chainId of filter.chainIds) {
+    for (const chainId of chainIds) {
       try {
         networks.push(getNetworkType(chainId));
       } catch {

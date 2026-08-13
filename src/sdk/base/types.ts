@@ -68,7 +68,7 @@ export interface BaseState {
 }
 
 /**
- * Filter criteria for querying markets.
+ * Filter conditions for querying markets.
  **/
 export type MarketFilter = AbiParametersToPrimitiveTypes<
   ExtractAbiFunction<typeof marketCompressorAbi, "getMarkets">["inputs"]

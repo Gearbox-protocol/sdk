@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { ZodAddress } from "../sdk/utils/zod.js";
+import { filterable } from "./filters.schema.js";
 import {
   assetTypeSchema,
   chainIdSchema,
@@ -18,11 +19,11 @@ import {
  * {@link LiquidatableAccountFilter}
  **/
 export const liquidatableAccountFilterSchema = z.object({
-  chainIds: z.array(chainIdSchema).optional(),
-  underlyingType: assetTypeSchema.optional(),
-  paused: z.boolean().optional(),
-  rwa: z.boolean().optional(),
-  delayed: z.boolean().optional(),
+  chainIds: filterable(z.array(chainIdSchema)).optional(),
+  underlyingType: filterable(assetTypeSchema).optional(),
+  paused: filterable(z.boolean()).optional(),
+  rwa: filterable(z.boolean()).optional(),
+  delayed: filterable(z.boolean()).optional(),
 });
 
 /**

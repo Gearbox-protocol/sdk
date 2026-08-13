@@ -7,6 +7,8 @@
  **/
 export * from "./curators.js";
 export * from "./curators.schema.js";
+export * from "./filters.js";
+export * from "./filters.schema.js";
 export * from "./history.js";
 export * from "./history.schema.js";
 export * from "./liquidations.js";

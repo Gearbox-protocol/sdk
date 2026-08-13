@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { ZodAddress } from "../sdk/utils/zod.js";
+import { filterable } from "./filters.schema.js";
 import {
   delayedReceivedAssetSchema,
   liquidationPositionSchema,
@@ -127,10 +128,10 @@ export const positionSchema = z.discriminatedUnion("kind", [
  * {@link PositionFilter}
  **/
 export const positionFilterSchema = z.object({
-  kind: positionKindSchema.optional(),
-  isZeroDebt: z.boolean().optional(),
-  chainIds: z.array(chainIdSchema).optional(),
-  underlyingType: assetTypeSchema.optional(),
+  kind: filterable(positionKindSchema).optional(),
+  isZeroDebt: filterable(z.boolean()).optional(),
+  chainIds: filterable(z.array(chainIdSchema)).optional(),
+  underlyingType: filterable(assetTypeSchema).optional(),
 });
 
 /**

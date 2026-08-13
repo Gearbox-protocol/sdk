@@ -1,5 +1,7 @@
 import type { Address } from "viem";
 import type { Curator } from "./curators.js";
+import type { Filterable } from "./filters.js";
+import { isFilterSet } from "./filters.js";
 import type {
   Amount,
   AssetType,
@@ -391,49 +393,52 @@ export function opportunityId(opportunity: Opportunity): OpportunityId {
  * The list is filtered in memory over final values, so there is no paging and
  * no sorting: a screen sorts what it got.
  *
- * Every criterion is optional and an omitted one matches any value, so an empty
- * filter is the same as no filter at all. Criteria combine with AND.
+ * Every condition is optional and an omitted one matches any value, so an
+ * empty filter is the same as no filter at all. A condition can also be set to
+ * `"all"` to say the same thing explicitly, which is what a UI whose state has
+ * an "any" option holds, see {@link Filterable}. Conditions combine with AND.
  **/
 export interface OpportunityFilter {
   /**
    * Keep only pools or only strategies.
    **/
-  kind?: OpportunityKind;
+  kind?: Filterable<OpportunityKind>;
   /**
    * Keep only opportunities on these chains.
    **/
-  chainIds?: ChainId[];
+  chainIds?: Filterable<ChainId[]>;
   /**
    * Keep only opportunities whose {@link OpportunityBase.underlyingToken} is of
    * this class, which for an RWA market means the class of the token its
    * wrapper holds. An underlying that is not in the hardcoded table never
    * matches, so a set filter also drops unclassified rows.
    **/
-  underlyingType?: AssetType;
+  underlyingType?: Filterable<AssetType>;
   /**
    * Keep only paused opportunities, or only unpaused ones.
    **/
-  paused?: boolean;
+  paused?: Filterable<boolean>;
   /**
    * Keep only opportunities being wound down, or only the ones that are not.
    **/
-  sunset?: boolean;
+  sunset?: Filterable<boolean>;
   /**
    * Keep only opportunities that accept RWA collateral, or only the ones that
    * do not.
    **/
-  rwa?: boolean;
+  rwa?: Filterable<boolean>;
 }
 
 /**
- * Whether an opportunity satisfies every criterion of a filter.
+ * Whether an opportunity satisfies every condition of a filter.
  *
- * This is the single definition of what each criterion means: every source
+ * This is the single definition of what each condition means: every source
  * builds its rows first and runs them through here, so the chain and the
  * backend cannot disagree on what a filter selects.
  *
  * @param opportunity - Row to test.
- * @param filter - Criteria to test against. An absent filter matches anything.
+ * @param filter - Conditions to test against. An absent filter matches
+ * anything.
  **/
 export function matchesOpportunityFilter(
   opportunity: Opportunity,
@@ -442,25 +447,28 @@ export function matchesOpportunityFilter(
   if (!filter) {
     return true;
   }
-  if (filter.kind && opportunity.kind !== filter.kind) {
-    return false;
-  }
-  if (filter.chainIds && !filter.chainIds.includes(opportunity.chainId)) {
+  if (isFilterSet(filter.kind) && opportunity.kind !== filter.kind) {
     return false;
   }
   if (
-    filter.underlyingType &&
+    isFilterSet(filter.chainIds) &&
+    !filter.chainIds.includes(opportunity.chainId)
+  ) {
+    return false;
+  }
+  if (
+    isFilterSet(filter.underlyingType) &&
     opportunity.underlyingToken.assetType !== filter.underlyingType
   ) {
     return false;
   }
-  if (filter.paused !== undefined && opportunity.paused !== filter.paused) {
+  if (isFilterSet(filter.paused) && opportunity.paused !== filter.paused) {
     return false;
   }
-  if (filter.sunset !== undefined && opportunity.sunset !== filter.sunset) {
+  if (isFilterSet(filter.sunset) && opportunity.sunset !== filter.sunset) {
     return false;
   }
-  if (filter.rwa !== undefined && opportunity.rwa !== filter.rwa) {
+  if (isFilterSet(filter.rwa) && opportunity.rwa !== filter.rwa) {
     return false;
   }
   return true;

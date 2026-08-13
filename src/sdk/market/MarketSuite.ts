@@ -11,7 +11,7 @@ import type {
   StrategyOpportunityDetail,
   Token,
 } from "../../model/index.js";
-import { matchesOpportunityFilter } from "../../model/index.js";
+import { isFilterSet, matchesOpportunityFilter } from "../../model/index.js";
 import type { MarketData } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
 import { isRWAToken, isSunsetPool } from "../chain/chains.js";
@@ -254,14 +254,15 @@ export class MarketSuite extends SDKConstruct {
    * @param filter - Optional narrowing. A filter naming a kind skips building
    * the other kind entirely; every built row is then checked in full by
    * {@link matchesOpportunityFilter}, so there is one definition of what each
-   * criterion means.
+   * condition means.
    */
   public opportunities(filter?: OpportunityFilter): Opportunity[] {
     const rows: Opportunity[] = [];
-    if (filter?.kind !== "strategy") {
+    const kind = filter?.kind;
+    if (!isFilterSet(kind) || kind === "pool") {
       rows.push(this.poolOpportunity());
     }
-    if (filter?.kind !== "pool") {
+    if (!isFilterSet(kind) || kind === "strategy") {
       for (const { suite, collateral } of this.strategies) {
         rows.push(suite.strategyOpportunity(collateral));
       }

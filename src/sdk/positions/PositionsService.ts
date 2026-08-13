@@ -1,5 +1,5 @@
 import type { Position, PositionKind } from "../../model/index.js";
-import { matchesPositionFilter } from "../../model/index.js";
+import { isFilterSet, matchesPositionFilter } from "../../model/index.js";
 import { SDKConstruct } from "../base/index.js";
 import type { ListPositionsProps } from "./types.js";
 
@@ -12,18 +12,21 @@ export class PositionsService extends SDKConstruct {
   /**
    * Every position of a wallet on this chain, optionally narrowed by
    * {@link PositionFilter} (see {@link matchesPositionFilter} for what each
-   * criterion selects). Reads live chain state, so rows reflect the moment of
+   * condition selects). Reads live chain state, so rows reflect the moment of
    * the call rather than the SDK's loaded snapshot.
    **/
   public async list(props: ListPositionsProps): Promise<Position[]> {
     const { wallet, filter } = props;
-    if (filter?.chainIds && !filter.chainIds.includes(this.chainId)) {
+    const chainIds = filter?.chainIds;
+    if (isFilterSet(chainIds) && !chainIds.includes(this.chainId)) {
       return [];
     }
 
+    const wantedKind = filter?.kind;
     const wanted = (kind: PositionKind): boolean =>
-      !filter?.kind || filter.kind === kind;
+      !isFilterSet(wantedKind) || wantedKind === kind;
 
+    const isZeroDebt = filter?.isZeroDebt;
     const [pool, strategy, liquidation] = await Promise.all([
       wanted("pool")
         ? this.sdk.pools.listPositions({ wallet })
@@ -33,7 +36,7 @@ export class PositionsService extends SDKConstruct {
             owner: wallet,
             // a filter that asks for accounts with debt narrows the account
             // query itself; anything else needs them all
-            includeZeroDebt: filter?.isZeroDebt !== false,
+            includeZeroDebt: !isFilterSet(isZeroDebt) || isZeroDebt,
           })
         : Promise.resolve([]),
       wanted("liquidation")

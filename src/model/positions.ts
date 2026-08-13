@@ -1,4 +1,6 @@
 import type { Address } from "viem";
+import type { Filterable } from "./filters.js";
+import { isFilterSet } from "./filters.js";
 import type {
   DelayedReceivedAsset,
   LiquidationPosition,
@@ -311,46 +313,49 @@ export function positionId(position: Position): PositionId {
 /**
  * Optional narrowing of a positions list.
  *
- * Every criterion is optional and an omitted one matches any value, so an empty
- * filter is the same as no filter at all. Criteria combine with AND.
+ * Every condition is optional and an omitted one matches any value, so an
+ * empty filter is the same as no filter at all. A condition can also be set to
+ * `"all"` to say the same thing explicitly, which is what a UI whose state has
+ * an "any" option holds, see {@link Filterable}. Conditions combine with AND.
  **/
 export interface PositionFilter {
   /**
    * Keep only positions of this kind.
    **/
-  kind?: PositionKind;
+  kind?: Filterable<PositionKind>;
   /**
    * Keep only credit accounts that carry no debt, or only the ones that do.
    * Applicable only to {@link StrategyPosition}
    **/
-  isZeroDebt?: boolean;
+  isZeroDebt?: Filterable<boolean>;
   /**
    * Keep only positions on these chains.
    **/
-  chainIds?: ChainId[];
+  chainIds?: Filterable<ChainId[]>;
   /**
    * Keep only positions whose underlying is of this class, which for an RWA
    * market means the class of the token its wrapper holds.
    *
    * Not applicable to {@link LiquidationPosition}
    **/
-  underlyingType?: AssetType;
+  underlyingType?: Filterable<AssetType>;
 }
 
 /**
- * Whether a position satisfies every criterion of a filter.
+ * Whether a position satisfies every condition of a filter.
  *
- * This is the single definition of what each criterion means: every source
+ * This is the single definition of what each condition means: every source
  * builds its rows first and runs them through here, so the chain and the
  * backend cannot disagree on what a filter selects.
  *
- * A criterion that does not apply to a position's kind keeps the row rather
+ * A condition that does not apply to a position's kind keeps the row rather
  * than dropping it: `isZeroDebt` says nothing about a pool position, and
  * `underlyingType` says nothing about a liquidation position, which is
  * denominated in whatever its withdrawal pays out.
  *
  * @param position - Row to test.
- * @param filter - Criteria to test against. An absent filter matches anything.
+ * @param filter - Conditions to test against. An absent filter matches
+ * anything.
  **/
 export function matchesPositionFilter(
   position: Position,
@@ -359,20 +364,23 @@ export function matchesPositionFilter(
   if (!filter) {
     return true;
   }
-  if (filter.kind && position.kind !== filter.kind) {
-    return false;
-  }
-  if (filter.chainIds && !filter.chainIds.includes(position.chainId)) {
+  if (isFilterSet(filter.kind) && position.kind !== filter.kind) {
     return false;
   }
   if (
-    filter.isZeroDebt !== undefined &&
+    isFilterSet(filter.chainIds) &&
+    !filter.chainIds.includes(position.chainId)
+  ) {
+    return false;
+  }
+  if (
+    isFilterSet(filter.isZeroDebt) &&
     position.kind === "strategy" &&
     (position.totalDebt.value === 0n) !== filter.isZeroDebt
   ) {
     return false;
   }
-  if (filter.underlyingType) {
+  if (isFilterSet(filter.underlyingType)) {
     const underlying = positionUnderlying(position);
     if (underlying && underlying.assetType !== filter.underlyingType) {
       return false;

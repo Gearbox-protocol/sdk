@@ -40,7 +40,7 @@ export type CreditAccountsCall = ContractFunctionParameters<
 
 /**
  * @internal
- * Filtering criteria applied to individual credit accounts when querying the compressor.
+ * Filtering conditions applied to individual credit accounts when querying the compressor.
  **/
 export interface CreditAccountFilter {
   /**
@@ -69,7 +69,7 @@ export interface CreditAccountFilter {
 
 /**
  * @internal
- * Filtering criteria to select which credit managers to query.
+ * Filtering conditions to select which credit managers to query.
  **/
 export interface CreditManagerFilter {
   /**
@@ -99,7 +99,7 @@ export type CreditAccountsTarget = Address | CreditManagerFilter;
 
 /**
  * @internal
- * Account-level criteria of a compressor query, without `reverting`: the
+ * Account-level conditions of a compressor query, without `reverting`: the
  * compressor treats that flag as exclusive, so a full query has to run both
  * passes and callers do not choose one.
  **/

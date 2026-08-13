@@ -43,7 +43,7 @@ export type RWALiquidatorInfo = ContractFunctionReturnType<
  * Chain-independent part of {@link GetLiquidatableAccountsProps}.
  *
  * The filter itself lives in the read model, so the chain and the backend
- * cannot disagree on what a criterion selects. Chain scoping is expressed as
+ * cannot disagree on what a condition selects. Chain scoping is expressed as
  * `networks` by {@link MultichainNetworksProps} rather than as the model's
  * `chainIds`, which is why it is omitted here.
  **/

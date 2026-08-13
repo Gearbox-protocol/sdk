@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
 import { ZodAddress } from "../sdk/utils/zod.js";
 import { curatorSchema } from "./curators.schema.js";
+import { filterable } from "./filters.schema.js";
 import {
   amountSchema,
   assetTypeSchema,
@@ -130,12 +131,12 @@ export const opportunitySchema = z.discriminatedUnion("kind", [
  * {@link OpportunityFilter}
  **/
 export const opportunityFilterSchema = z.object({
-  kind: opportunityKindSchema.optional(),
-  chainIds: z.array(chainIdSchema).optional(),
-  underlyingType: assetTypeSchema.optional(),
-  paused: z.boolean().optional(),
-  sunset: z.boolean().optional(),
-  rwa: z.boolean().optional(),
+  kind: filterable(opportunityKindSchema).optional(),
+  chainIds: filterable(z.array(chainIdSchema)).optional(),
+  underlyingType: filterable(assetTypeSchema).optional(),
+  paused: filterable(z.boolean()).optional(),
+  sunset: filterable(z.boolean()).optional(),
+  rwa: filterable(z.boolean()).optional(),
 });
 
 /**

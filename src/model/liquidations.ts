@@ -1,4 +1,6 @@
 import type { Address } from "viem";
+import type { Filterable } from "./filters.js";
+import { isFilterSet } from "./filters.js";
 import type {
   AssetType,
   ChainId,
@@ -11,33 +13,35 @@ import type {
 /**
  * Optional narrowing of a liquidatable accounts list.
  *
- * Every criterion is optional and an omitted one matches any value, so an empty
- * filter is the same as no filter at all. Criteria combine with AND.
+ * Every condition is optional and an omitted one matches any value, so an
+ * empty filter is the same as no filter at all. A condition can also be set to
+ * `"all"` to say the same thing explicitly, which is what a UI whose state has
+ * an "any" option holds, see {@link Filterable}. Conditions combine with AND.
  **/
 export interface LiquidatableAccountFilter {
   /**
    * Keep only accounts on these chains.
    **/
-  chainIds?: ChainId[];
+  chainIds?: Filterable<ChainId[]>;
   /**
    * Keep only accounts whose underlying — the token of
    * {@link LiquidatableAccount.totalValue} — is of this class.
    **/
-  underlyingType?: AssetType;
+  underlyingType?: Filterable<AssetType>;
   /**
    * Keep only accounts of paused credit facades, or only of unpaused ones.
    **/
-  paused?: boolean;
+  paused?: Filterable<boolean>;
   /**
    * Keep only accounts in markets that accept RWA collateral, or only the ones
    * outside them.
    **/
-  rwa?: boolean;
+  rwa?: Filterable<boolean>;
   /**
    * Keep only accounts with (`true`) or without (`false`) delayed
    * (phantom-token) withdrawals.
    **/
-  delayed?: boolean;
+  delayed?: Filterable<boolean>;
 }
 
 /**
@@ -99,14 +103,15 @@ export interface LiquidatableAccount {
 }
 
 /**
- * Whether a liquidatable account satisfies every criterion of a filter.
+ * Whether a liquidatable account satisfies every condition of a filter.
  *
- * This is the single definition of what each criterion means: every source
+ * This is the single definition of what each condition means: every source
  * builds its rows first and runs them through here, so the chain and the
  * backend cannot disagree on what a filter selects.
  *
  * @param account - Row to test.
- * @param filter - Criteria to test against. An absent filter matches anything.
+ * @param filter - Conditions to test against. An absent filter matches
+ * anything.
  **/
 export function matchesLiquidatableAccountFilter(
   account: LiquidatableAccount,
@@ -115,22 +120,25 @@ export function matchesLiquidatableAccountFilter(
   if (!filter) {
     return true;
   }
-  if (filter.chainIds && !filter.chainIds.includes(account.chainId)) {
+  if (
+    isFilterSet(filter.chainIds) &&
+    !filter.chainIds.includes(account.chainId)
+  ) {
     return false;
   }
   if (
-    filter.underlyingType &&
+    isFilterSet(filter.underlyingType) &&
     account.totalValue.token.assetType !== filter.underlyingType
   ) {
     return false;
   }
-  if (filter.paused !== undefined && account.paused !== filter.paused) {
+  if (isFilterSet(filter.paused) && account.paused !== filter.paused) {
     return false;
   }
-  if (filter.rwa !== undefined && account.rwa !== filter.rwa) {
+  if (isFilterSet(filter.rwa) && account.rwa !== filter.rwa) {
     return false;
   }
-  if (filter.delayed !== undefined && account.isDelayed !== filter.delayed) {
+  if (isFilterSet(filter.delayed) && account.isDelayed !== filter.delayed) {
     return false;
   }
   return true;
