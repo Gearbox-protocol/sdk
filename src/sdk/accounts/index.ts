@@ -1,6 +1,5 @@
 export * from "./CreditAccountsServiceV310.js";
 export * from "./credit-account-compressor/index.js";
-export * from "./getAccountPriceUpdateTxs.js";
 export * from "./intents/index.js";
 export * from "./liquidations/index.js";
 export * from "./types.js";

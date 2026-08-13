@@ -5,8 +5,11 @@ import type {
   PriceFeedSummary,
   TokenAmount,
 } from "../../../model/index.js";
-import type { IBaseContract } from "../../base/index.js";
-import type { MultiCall, PriceOracleStateHuman } from "../../types/index.js";
+import type {
+  CreditAccountTokensSlice,
+  IBaseContract,
+} from "../../base/index.js";
+import type { PriceOracleStateHuman } from "../../types/index.js";
 import type { AddressMap } from "../../utils/index.js";
 import type { DelegatedMulticall } from "../../utils/viem/index.js";
 import type {
@@ -35,12 +38,16 @@ export interface PriceFeedsForTokensOptions {
 }
 
 /**
- * On demand price updates acceptable by both credit facade multicall and
- * as raw PriceUpdate in liquidator calls.
- */
-export interface OnDemandPriceUpdates {
-  raw: PriceUpdate[];
-  multicall: MultiCall[];
+ * Filter and extra inputs controlling which feeds to update for a credit
+ * account.
+ **/
+export interface PriceFeedsForAccountOptions
+  extends PriceFeedsForTokensOptions {
+  /**
+   * Extra tokens to price alongside the account's underlying and its enabled
+   * non-dust balances.
+   **/
+  extraTokens?: Address[];
 }
 
 /**
@@ -107,15 +114,35 @@ export interface IPriceOracleContract extends IBaseContract {
     opts?: PriceFeedsForTokensOptions,
   ) => IPriceFeedContract[];
   /**
-   * Converts previously obtained price updates into CreditFacade
-   * multicall entries and raw `PriceUpdateV310` structures.
-   * @param creditFacade - Address of the credit facade that will receive the multicall.
-   * @param updates - Price update result to convert. When omitted, uses latest cached updates.
+   * Generates the price feed update transactions an account needs to be
+   * valued: one per feed of its underlying, of every enabled token it holds a
+   * non-dust balance of, and of any `extraTokens`.
+   * @param account - Account whose tokens to cover.
+   * @param opts - Feed type filter and extra tokens to price.
    **/
-  onDemandPriceUpdates: (
-    creditFacade: Address,
-    updates?: UpdatePriceFeedsResult,
-  ) => OnDemandPriceUpdates;
+  priceUpdateTxsForAccount: (
+    account: CreditAccountTokensSlice,
+    opts?: PriceFeedsForAccountOptions,
+  ) => Promise<UpdatePriceFeedsResult>;
+  /**
+   * Same as {@link priceUpdateTxsForAccount}, but returns raw price update
+   * structures instead of transactions.
+   * @param account - Account whose tokens to cover.
+   * @param opts - Feed type filter and extra tokens to price.
+   **/
+  priceUpdatesForAccount: (
+    account: CreditAccountTokensSlice,
+    opts?: PriceFeedsForAccountOptions,
+  ) => Promise<PriceUpdate[]>;
+  /**
+   * Raw price update structures for the feeds of the given tokens.
+   * @param tokens - Token addresses to price.
+   * @param opts - Feed type filter.
+   **/
+  priceUpdatesForTokens: (
+    tokens: Address[],
+    opts?: PriceFeedsForTokensOptions,
+  ) => Promise<PriceUpdate[]>;
   /**
    * Converts an amount from one token to another using latest known prices.
    * @param from - Source token address.

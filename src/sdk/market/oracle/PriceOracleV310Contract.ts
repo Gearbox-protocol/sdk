@@ -3,12 +3,7 @@ import { iPriceOracleV310Abi } from "../../../abi/310/generated.js";
 import type { PriceOracleData } from "../../base/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import { simulateWithPriceUpdates } from "../../utils/viem/simulateWithPriceUpdates.js";
-import {
-  getRawPriceUpdates,
-  type UpdatePriceFeedsResult,
-} from "../pricefeeds/index.js";
 import { PriceOracleBaseContract } from "./PriceOracleBaseContract.js";
-import type { OnDemandPriceUpdates } from "./types.js";
 
 const abi = iPriceOracleV310Abi;
 type abi = typeof abi;
@@ -24,32 +19,6 @@ export class PriceOracleV310Contract extends PriceOracleBaseContract<abi> {
       },
       data,
     );
-  }
-
-  /**
-   * Converts previously obtained price updates into CreditFacade multicall entry
-   * @param creditFacade
-   * @param updates
-   * @returns
-   * @throws If `creditFacade` does not belong to a loaded market.
-   */
-  public onDemandPriceUpdates(
-    creditFacade: Address,
-    updates?: UpdatePriceFeedsResult,
-  ): OnDemandPriceUpdates {
-    if (!updates) {
-      this.logger?.debug("empty updates list");
-      return { multicall: [], raw: [] };
-    }
-    const raw = getRawPriceUpdates(updates);
-    return {
-      raw,
-      multicall: [
-        this.sdk.marketRegister
-          .findCreditFacade(creditFacade)
-          .prepareOnDemandPriceUpdates(raw),
-      ],
-    };
   }
 
   /**

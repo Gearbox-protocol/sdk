@@ -15,6 +15,7 @@ import type {
 } from "../../../model/index.js";
 import type { BaseContractArgs } from "../../base/BaseContract.js";
 import type {
+  CreditAccountTokensSlice,
   PriceFeedMapEntry,
   PriceFeedTreeNode,
   PriceOracleData,
@@ -23,23 +24,25 @@ import { BaseContract } from "../../base/index.js";
 import type { PriceFeedAnswer } from "../../base/types.js";
 import {
   AP_PRICE_FEED_COMPRESSOR,
+  DUST_THRESHOLD,
   VERSION_RANGE_310,
 } from "../../constants/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import type { PriceOracleStateHuman } from "../../types/index.js";
-import { AddressMap, formatBN } from "../../utils/index.js";
+import { AddressMap, AddressSet, formatBN } from "../../utils/index.js";
 import type { DelegatedMulticall } from "../../utils/viem/index.js";
 import { usdToNumber } from "../math.js";
 import type {
   IPriceFeedContract,
   PriceFeedUsageType,
+  PriceUpdate,
   UpdatePriceFeedsResult,
 } from "../pricefeeds/index.js";
-import { PriceFeedRef } from "../pricefeeds/index.js";
+import { getRawPriceUpdates, PriceFeedRef } from "../pricefeeds/index.js";
 import PriceFeedAnswerMap from "./PriceFeedAnswerMap.js";
 import type {
   IPriceOracleContract,
-  OnDemandPriceUpdates,
+  PriceFeedsForAccountOptions,
   PriceFeedsForTokensOptions,
 } from "./types.js";
 
@@ -120,10 +123,55 @@ export abstract class PriceOracleBaseContract<
       .filter((f): f is IPriceFeedContract => !!f);
   }
 
-  public abstract onDemandPriceUpdates(
-    creditFacade: Address,
-    updates?: UpdatePriceFeedsResult,
-  ): OnDemandPriceUpdates;
+  /**
+   * {@inheritDoc IPriceOracleContract.priceUpdateTxsForAccount}
+   **/
+  public async priceUpdateTxsForAccount(
+    account: CreditAccountTokensSlice,
+    opts?: PriceFeedsForAccountOptions,
+  ): Promise<UpdatePriceFeedsResult> {
+    return this.#priceUpdateTxsForTokens(
+      getAccountTokens(account, opts?.extraTokens),
+      opts,
+    );
+  }
+
+  /**
+   * {@inheritDoc IPriceOracleContract.priceUpdatesForAccount}
+   **/
+  public async priceUpdatesForAccount(
+    account: CreditAccountTokensSlice,
+    opts?: PriceFeedsForAccountOptions,
+  ): Promise<PriceUpdate[]> {
+    return getRawPriceUpdates(
+      await this.priceUpdateTxsForAccount(account, opts),
+    );
+  }
+
+  /**
+   * {@inheritDoc IPriceOracleContract.priceUpdatesForTokens}
+   **/
+  public async priceUpdatesForTokens(
+    tokens: Address[],
+    opts?: PriceFeedsForTokensOptions,
+  ): Promise<PriceUpdate[]> {
+    return getRawPriceUpdates(
+      await this.#priceUpdateTxsForTokens(tokens, opts),
+    );
+  }
+
+  async #priceUpdateTxsForTokens(
+    tokens: Address[],
+    opts?: PriceFeedsForTokensOptions,
+  ): Promise<UpdatePriceFeedsResult> {
+    const priceFeeds = this.priceFeedsForTokens(tokens, opts);
+    const tStr = tokens.map(t => this.labelAddress(t)).join(", ");
+    const remark = opts?.reserve === false ? " main" : "";
+    this.logger?.debug(
+      `generating price feed updates for ${tStr} from ${priceFeeds.length}${remark} price feeds`,
+    );
+    return this.sdk.priceFeeds.generatePriceFeedsUpdateTxs(priceFeeds);
+  }
 
   /**
    * {@inheritDoc IPriceOracleContract.mainPrice}
@@ -430,6 +478,24 @@ export abstract class PriceOracleBaseContract<
       this.logger?.warn(`failed to get answer for price feed ${label}${upd}`);
     }
   }
+}
+
+/**
+ * Tokens of an account that have to be priced: its underlying, every enabled
+ * token it holds a non-dust balance of, and any extra tokens the caller adds.
+ **/
+function getAccountTokens(
+  account: CreditAccountTokensSlice,
+  extraTokens?: Address[],
+): Address[] {
+  const tokens = new AddressSet([account.underlying, ...(extraTokens ?? [])]);
+  for (const t of account.tokens) {
+    const isEnabled = (t.mask & account.enabledTokensMask) !== 0n;
+    if (t.balance > DUST_THRESHOLD && isEnabled) {
+      tokens.add(t.token);
+    }
+  }
+  return tokens.asArray();
 }
 
 function formatAnswer(

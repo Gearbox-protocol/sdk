@@ -22,7 +22,6 @@ import {
 } from "../../market/math.js";
 import { AddressMap, AddressSet, hexEq } from "../../utils/index.js";
 import { simulateWithPriceUpdates } from "../../utils/viem/index.js";
-import { getAccountPriceUpdateTxs } from "../getAccountPriceUpdateTxs.js";
 import type {
   ClaimableWithdrawal,
   PendingWithdrawal,
@@ -77,10 +76,8 @@ export class CreditAccountCompressor extends SDKConstruct {
       ca = raw;
       investor = await factory?.getInvestor(raw.creditAccount, false);
     } else {
-      const { txs: priceUpdateTxs } = await getAccountPriceUpdateTxs(
-        this.sdk,
-        raw,
-      );
+      const { txs: priceUpdateTxs } =
+        await marketSuite.priceOracle.priceUpdateTxsForAccount(raw);
       [ca, investor] = (await simulateWithPriceUpdates(this.client, {
         priceUpdates: priceUpdateTxs,
         contracts: [

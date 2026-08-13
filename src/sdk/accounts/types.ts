@@ -5,6 +5,7 @@ import type {
   ConnectedBotData,
   Construct,
   CreditAccountData,
+  CreditAccountTokensSlice,
 } from "../base/index.js";
 import type {
   CreditSuite,
@@ -26,15 +27,6 @@ import type {
   PendingWithdrawal,
   RequestableWithdrawal,
 } from "./withdrawal-compressor/index.js";
-
-/**
- * Lightweight slice of credit-account data containing only token
- * balances and the enabled-tokens bitmask.
- **/
-export type CreditAccountTokensSlice = Pick<
-  CreditAccountData,
-  "creditManager" | "creditAccount" | "tokens" | "enabledTokensMask"
->;
 
 /**
  * Result of closing or liquidating a credit account, including the router's optimal close path.

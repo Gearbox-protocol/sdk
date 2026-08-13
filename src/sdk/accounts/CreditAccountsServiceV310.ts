@@ -6,38 +6,35 @@ import { rewardsCompressorAbi } from "../../abi/compressors/rewardsCompressor.js
 import { iBaseRewardPoolAbi } from "../../abi/iBaseRewardPool.js";
 import { ierc4626AdapterAbi } from "../../abi/ierc4626Adapter.js";
 import type { StrategyPosition } from "../../model/index.js";
-import type { Asset, CreditAccountData } from "../base/index.js";
+import type {
+  Asset,
+  CreditAccountData,
+  CreditAccountTokensSlice,
+} from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
 import {
   ADDRESS_0X0,
   AP_PERIPHERY_COMPRESSOR,
   AP_REWARDS_COMPRESSOR,
-  DUST_THRESHOLD,
   MAX_UINT256,
   VERSION_RANGE_310,
 } from "../constants/index.js";
 import type {
   BalanceDelta,
   CreditSuite,
+  PriceUpdate,
   RWAOperationArgs,
-} from "../market/index.js";
-import {
-  getRawPriceUpdates,
-  type IPriceFeedContract,
-  type PriceUpdate,
 } from "../market/index.js";
 import type { RWAOpenAccountRequirements } from "../market/rwa/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
 import type { RouterCASlice } from "../router/index.js";
 import type { RouterRewardsResult } from "../router/types.js";
 import type { MultiCall, RawTx } from "../types/index.js";
-import { AddressSet } from "../utils/index.js";
 import {
   CreditAccountCompressor,
   type GetCreditAccountsOptions,
   type ListStrategyPositionsProps,
 } from "./credit-account-compressor/index.js";
-import { getAccountPriceUpdateTxs } from "./getAccountPriceUpdateTxs.js";
 import {
   extractPriceUpdates,
   extractQuotaTokens,
@@ -52,7 +49,6 @@ import type {
   AssembleStartDelayedWithdrawalCallsProps,
   ClaimFarmRewardsProps,
   CreditAccountOperationResult,
-  CreditAccountTokensSlice,
   CreditManagerOperationResult,
   FullyLiquidateProps,
   FullyLiquidateResult,
@@ -392,7 +388,7 @@ export class CreditAccountsServiceV310
         keepAssets,
         debtOnly,
       });
-    const calls = await this.#prependPriceUpdates(
+    const calls = await this.prependPriceUpdates(
       account.creditManager,
       routerCloseResult.calls,
       account,
@@ -671,7 +667,7 @@ export class CreditAccountsServiceV310
       ...(callsAfter ?? []),
     ];
 
-    const calls = await this.#prependPriceUpdates(cm.address, operationCalls);
+    const calls = await this.prependPriceUpdates(cm.address, operationCalls);
     let tx: RawTx;
     if (reopenCreditAccount) {
       tx = await this.#multicallTx(cmSuite, reopenCreditAccount, calls);
@@ -823,7 +819,7 @@ export class CreditAccountsServiceV310
 
     const calls =
       targetContract.type === "creditAccount"
-        ? await this.#prependPriceUpdates(
+        ? await this.prependPriceUpdates(
             targetContract.creditManager,
             [addBotCall],
             targetContract,
@@ -911,7 +907,7 @@ export class CreditAccountsServiceV310
       ...cm.creditFacade.prepareUpdateQuotas({ minQuota, averageQuota }),
     ];
 
-    const calls = await this.#prependPriceUpdates(
+    const calls = await this.prependPriceUpdates(
       ca.creditManager,
       operationCalls,
       ca,
@@ -929,75 +925,41 @@ export class CreditAccountsServiceV310
     account: CreditAccountTokensSlice,
     ignoreReservePrices?: boolean,
   ): Promise<PriceUpdate[]> {
-    const { creditManager, creditAccount } = account;
-    const cm = this.sdk.marketRegister.findCreditManager(creditManager);
-    const update = await getAccountPriceUpdateTxs(
-      this.sdk,
-      account,
-      ignoreReservePrices,
+    const { priceOracle } = this.sdk.marketRegister.findByCreditManager(
+      account.creditManager,
     );
-    this.logger?.debug(
-      { account: creditAccount, manager: cm.name },
-      `getting on demand price updates from ${update.txs.length} txs`,
-    );
-    return getRawPriceUpdates(update);
+    return priceOracle.priceUpdatesForAccount(account, {
+      reserve: !ignoreReservePrices,
+    });
   }
   /**
-   * Analyzes a multicall array and prepends necessary on-demand price feed updates.
-   *
-   * Deduplicates existing `onDemandPriceUpdates` calls
-   *
-   * @param creditManager - Address of the credit manager
-   * @param calls - The multicall array to prepend price updates to
-   * @param ca - Credit account slice, undefined when opening a new account
-   * @param options - Optional settings for price update generation
-   * @returns A new array with a single consolidated price update call prepended,
-   *          followed by the non-price-update calls in their original order
+   * {@inheritDoc ICreditAccountsService.prependPriceUpdates}
    */
-  async #prependPriceUpdates(
+  public async prependPriceUpdates(
     creditManager: Address,
     calls: MultiCall[],
-    ca?: RouterCASlice,
+    creditAccount?: RouterCASlice,
     options?: { ignoreReservePrices?: boolean },
   ): Promise<MultiCall[]> {
-    const market = this.sdk.marketRegister.findByCreditManager(creditManager);
+    const { priceOracle } =
+      this.sdk.marketRegister.findByCreditManager(creditManager);
     const suite = this.sdk.marketRegister.findCreditManager(creditManager);
-    const cm = suite.creditManager;
 
     const { priceUpdates: existingUpdates, remainingCalls } =
       extractPriceUpdates(calls);
-    // Token to update
-    const tokens = new AddressSet([
-      cm.underlying, // underlying - always included
-      ...extractQuotaTokens(calls), // tokens from `updateQuota` calls
-    ]);
-
-    // enabled tokens with non-zero balance
-    if (ca) {
-      for (const t of ca.tokens) {
-        const isEnabled = (t.mask & ca.enabledTokensMask) !== 0n;
-        if (t.balance > DUST_THRESHOLD && isEnabled) {
-          tokens.add(t.token);
-        }
-      }
-    }
-
-    const ignoreReservePrices = options?.ignoreReservePrices;
-    const priceFeeds: IPriceFeedContract[] =
-      market.priceOracle.priceFeedsForTokens(Array.from(tokens), {
-        main: true,
-        reserve: !ignoreReservePrices,
-      });
-
-    const tStr = tokens.map(t => this.labelAddress(t)).join(", ");
-    const remark = ignoreReservePrices ? " main" : "";
-    this.logger?.debug(
-      { account: ca?.creditAccount, manager: cm.name },
-      `prependPriceUpdates for ${tStr} from ${priceFeeds.length}${remark} price feeds`,
-    );
-
-    const generatedUpdates =
-      await this.sdk.priceFeeds.generatePriceFeedsUpdates(priceFeeds);
+    // tokens from `updateQuota` calls
+    const extraTokens = extractQuotaTokens(calls).asArray();
+    const opts = {
+      reserve: !options?.ignoreReservePrices,
+      extraTokens,
+    };
+    // there's no account when opening one, or when setting a bot on the credit manager
+    const generatedUpdates = creditAccount
+      ? await priceOracle.priceUpdatesForAccount(creditAccount, opts)
+      : await priceOracle.priceUpdatesForTokens(
+          [suite.creditManager.underlying, ...extraTokens],
+          opts,
+        );
 
     const merged = mergePriceUpdates(existingUpdates, generatedUpdates);
     if (merged.length === 0) {
@@ -1008,23 +970,6 @@ export class CreditAccountsServiceV310
       suite.creditFacade.prepareOnDemandPriceUpdates(merged),
       ...remainingCalls,
     ];
-  }
-
-  /**
-   * {@inheritDoc ICreditAccountsService.prependPriceUpdates}
-   */
-  public async prependPriceUpdates(
-    creditManager: Address,
-    calls: MultiCall[],
-    creditAccount?: RouterCASlice,
-    options?: { ignoreReservePrices?: boolean },
-  ): Promise<MultiCall[]> {
-    return this.#prependPriceUpdates(
-      creditManager,
-      calls,
-      creditAccount,
-      options,
-    );
   }
 
   /**
@@ -1105,7 +1050,7 @@ export class CreditAccountsServiceV310
     const cm = this.sdk.marketRegister.findCreditManager(
       creditAccount.creditManager,
     );
-    const callsWithPrices = await this.#prependPriceUpdates(
+    const callsWithPrices = await this.prependPriceUpdates(
       creditAccount.creditManager,
       calls,
       creditAccount,

@@ -260,6 +260,19 @@ export type CreditAccountData<WithInvestor extends boolean = false> =
     : CreditAccountDataPayload;
 
 /**
+ * Lightweight slice of credit-account data: everything needed to tell which
+ * tokens of an account have to be priced.
+ **/
+export type CreditAccountTokensSlice = Pick<
+  CreditAccountDataPayload,
+  | "creditManager"
+  | "creditAccount"
+  | "underlying"
+  | "tokens"
+  | "enabledTokensMask"
+>;
+
+/**
  * Reward distribution details for a single reward token.
  **/
 export type RewardInfo = Unarray<
