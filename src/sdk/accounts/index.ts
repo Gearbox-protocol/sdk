@@ -1,3 +1,4 @@
+export * from "./bots/index.js";
 export * from "./CreditAccountsServiceV310.js";
 export * from "./credit-account-compressor/index.js";
 export * from "./intents/index.js";

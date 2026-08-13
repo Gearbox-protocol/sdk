@@ -11,7 +11,11 @@ import { isSunsetStrategy } from "../../chain/chains.js";
 import { MAX_UINT256, PERCENTAGE_FACTOR, RAY } from "../../constants/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import type { IRouterContract } from "../../router/index.js";
-import type { CreditSuiteStateHuman } from "../../types/index.js";
+import type {
+  CreditSuiteStateHuman,
+  MultiCall,
+  RawTx,
+} from "../../types/index.js";
 import { BigIntMath } from "../../utils/bigint-math.js";
 import { AddressMap } from "../../utils/index.js";
 import type { MarketConfiguratorContract } from "../MarketConfiguratorContract.js";
@@ -23,6 +27,7 @@ import {
   optimalHFForPartialLiquidation,
   optimalRepaidAmount,
 } from "../math.js";
+import type { IRWAFactory, RWAOperationArgs } from "../rwa/types.js";
 import createCreditConfigurator from "./createCreditConfigurator.js";
 import createCreditFacade from "./createCreditFacade.js";
 import createCreditManager from "./createCreditManager.js";
@@ -120,6 +125,57 @@ export class CreditSuite extends SDKConstruct {
    */
   public get marketConfigurator(): MarketConfiguratorContract {
     return this.market.configurator;
+  }
+
+  /**
+   * Factory that opens and manages the accounts of this suite, defined only
+   * for RWA markets.
+   */
+  public get rwaFactory(): IRWAFactory | undefined {
+    return this.market.rwaFactory;
+  }
+
+  /**
+   * Builds a transaction that executes a multicall on one of this suite's
+   * credit accounts.
+   *
+   * @param creditAccount - Account to operate on.
+   * @param calls - Multicall body.
+   * @param rwaOptions - Factory-specific args, ignored on non-RWA markets.
+   */
+  public multicallTx(
+    creditAccount: Address,
+    calls: MultiCall[],
+    rwaOptions?: RWAOperationArgs,
+  ): RawTx {
+    const { rwaFactory } = this;
+    return rwaFactory
+      ? rwaFactory.multicall(creditAccount, calls, rwaOptions)
+      : this.creditFacade.multicall(creditAccount, calls);
+  }
+
+  /**
+   * Builds a transaction that opens a new credit account in this suite.
+   *
+   * @param to - Owner of the new account.
+   * @param calls - Multicall body executed on the new account.
+   * @param referralCode - Referral code, facade path only.
+   * @param rwaOptions - Factory-specific args, ignored on non-RWA markets.
+   */
+  public openCreditAccountTx(
+    to: Address,
+    calls: MultiCall[],
+    referralCode?: bigint,
+    rwaOptions?: RWAOperationArgs,
+  ): RawTx {
+    const { rwaFactory } = this;
+    return rwaFactory
+      ? rwaFactory.openCreditAccount(
+          this.creditManager.address,
+          calls,
+          rwaOptions,
+        )
+      : this.creditFacade.openCreditAccount(to, calls, referralCode ?? 0n);
   }
 
   /**

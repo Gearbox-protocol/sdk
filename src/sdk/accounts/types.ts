@@ -2,7 +2,6 @@ import type { Address, Hex } from "viem";
 import type { StrategyPosition } from "../../model/index.js";
 import type {
   Asset,
-  ConnectedBotData,
   Construct,
   CreditAccountData,
   CreditAccountTokensSlice,
@@ -17,6 +16,7 @@ import type { RWAOpenAccountRequirements } from "../market/rwa/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
 import type { RouterCASlice, RouterCloseResult } from "../router/index.js";
 import type { MultiCall, RawTx } from "../types/index.js";
+import type { AccountBotsService } from "./bots/index.js";
 import type {
   GetCreditAccountsOptions,
   ListStrategyPositionsProps,
@@ -137,20 +137,6 @@ export interface PrepareUpdateQuotasProps {
    */
   minQuota: Array<Asset>;
 }
-
-/**
- * Credit account and credit manager address pair, used for batch queries such as connected bot lookups.
- **/
-export type AccountToCheck = {
-  /**
-   * Address of the credit account.
-   **/
-  creditAccount: Address;
-  /**
-   * Address of the credit manager that manages this account.
-   **/
-  creditManager: Address;
-};
 
 export interface PreviewDelayedWithdrawalProps {
   /**
@@ -434,68 +420,6 @@ export interface GetOpenAccountRequirementsProps {
   tokenOutAddress: Address;
 }
 
-interface CMSlice {
-  creditManager: Address;
-  creditFacade: Address;
-  type: "creditManager";
-}
-
-export interface SetBotProps {
-  /**
-   * Address of a bot that is being updated
-   */
-  botAddress: Address;
-  /**
-   * Permissions to set for the bot
-   */
-  permissions: bigint | null;
-  /**
-   * Minimal credit account data {@link RouterCASlice} on which operation is performed; if omitted, credit manager data is used
-   * Minimal credit manager data {@link CMSlice} on which operation is performed; used only if credit account is omitted
-   * At least one of credit account or credit manager must be provided
-   */
-  targetContract: (RouterCASlice & { type: "creditAccount" }) | CMSlice;
-}
-
-/**
- * Multicall result of querying connected bots across multiple credit accounts.
- **/
-export type GetConnectedBotsResult = Array<
-  | {
-      error?: undefined;
-      result: readonly ConnectedBotData[];
-      status: "success";
-    }
-  | {
-      error: Error;
-      result?: undefined;
-      status: "failure";
-    }
->;
-
-/**
- * Result of querying a migration bot's status across credit accounts, or `undefined` if no migration bot was provided.
- **/
-export type GetConnectedMigrationBotsResult =
-  | {
-      result: (
-        | {
-            error: Error;
-            result?: undefined;
-            status: "failure";
-          }
-        | {
-            error?: undefined;
-            result:
-              | readonly [bigint, boolean, boolean]
-              | readonly [bigint, boolean];
-            status: "success";
-          }
-      )[];
-      botAddress: Address;
-    }
-  | undefined;
-
 /**
  * Options to get approval address for collateral token
  */
@@ -538,6 +462,13 @@ export type AssembleCaOperationsProps = {
 
 export interface ICreditAccountsService extends Construct {
   sdk: OnchainSDK;
+
+  /**
+   * Bots connected to credit accounts: which ones are active, with which
+   * permissions, and how to connect or disconnect them.
+   */
+  readonly bots: AccountBotsService;
+
   /**
    * Returns single credit account data with investor resolved, or undefined
    * if the account is not found.
@@ -596,32 +527,6 @@ export interface ICreditAccountsService extends Construct {
    * @returns {Array<Rewards>} list of {@link Rewards} that can be claimed
    */
   getRewards(creditAccount: Address): Promise<Array<Rewards>>;
-  /**
-   * Method to get all connected bots for credit account
-   * @param {Array<AccountToCheck>} accountsToCheck - list of credit accounts
-   * @param {Address | undefined} legacyMigrationBot - address of the bot to check connected bots on
-   * and their credit managers to check connected bots on
-   * @returns call result of getConnectedBots for each credit account
-   */
-  getConnectedBots(
-    accountsToCheck: Array<AccountToCheck>,
-    legacyMigrationBot: Address | undefined,
-    additionalBots: Array<Address>,
-  ): Promise<{
-    legacy: GetConnectedBotsResult;
-    legacyMigration: GetConnectedMigrationBotsResult;
-    additionalBots: Array<
-      Omit<NonNullable<GetConnectedMigrationBotsResult>, "botAddress">
-    >;
-  }>;
-  /**
-   * Connects/disables a bot and updates prices
-   * @param props - {@link SetBotProps}
-   * @return All necessary data to execute the transaction (call, credit facade)
-   */
-  setBot: (
-    props: SetBotProps,
-  ) => Promise<CreditAccountOperationResult | CreditManagerOperationResult>;
 
   /**
    * Generates transaction to liquidate credit account

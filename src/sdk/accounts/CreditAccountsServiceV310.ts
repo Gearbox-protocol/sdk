@@ -1,7 +1,5 @@
 import type { Address, Hex } from "viem";
-import { encodeFunctionData, getContract } from "viem";
-import { iBotListV310Abi } from "../../abi/310/generated.js";
-import { peripheryCompressorAbi } from "../../abi/compressors/peripheryCompressor.js";
+import { encodeFunctionData } from "viem";
 import { rewardsCompressorAbi } from "../../abi/compressors/rewardsCompressor.js";
 import { iBaseRewardPoolAbi } from "../../abi/iBaseRewardPool.js";
 import { ierc4626AdapterAbi } from "../../abi/ierc4626Adapter.js";
@@ -14,22 +12,17 @@ import type {
 import { SDKConstruct } from "../base/index.js";
 import {
   ADDRESS_0X0,
-  AP_PERIPHERY_COMPRESSOR,
   AP_REWARDS_COMPRESSOR,
   MAX_UINT256,
   VERSION_RANGE_310,
 } from "../constants/index.js";
-import type {
-  BalanceDelta,
-  CreditSuite,
-  PriceUpdate,
-  RWAOperationArgs,
-} from "../market/index.js";
+import type { BalanceDelta, PriceUpdate } from "../market/index.js";
 import type { RWAOpenAccountRequirements } from "../market/rwa/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
 import type { RouterCASlice } from "../router/index.js";
 import type { RouterRewardsResult } from "../router/types.js";
 import type { MultiCall, RawTx } from "../types/index.js";
+import { AccountBotsService } from "./bots/index.js";
 import {
   CreditAccountCompressor,
   type GetCreditAccountsOptions,
@@ -41,20 +34,15 @@ import {
   mergePriceUpdates,
 } from "./multicall-utils.js";
 import type {
-  AccountToCheck,
   AssembleCaOperationsProps,
   AssembleClaimDelayedCallsProps,
   AssembleCloseCreditAccountCallsProps,
   AssembleRepayCreditAccountCallsProps,
   AssembleStartDelayedWithdrawalCallsProps,
   ClaimFarmRewardsProps,
-  CreditAccountOperationResult,
-  CreditManagerOperationResult,
   FullyLiquidateProps,
   FullyLiquidateResult,
   GetApprovalAddressProps,
-  GetConnectedBotsResult,
-  GetConnectedMigrationBotsResult,
   GetOpenAccountRequirementsProps,
   GetPendingWithdrawalsProps,
   GetPendingWithdrawalsResult,
@@ -65,43 +53,11 @@ import type {
   PrepareUpdateQuotasProps,
   PreviewDelayedWithdrawalProps,
   Rewards,
-  SetBotProps,
 } from "./types.js";
 import type {
   IWithdrawalCompressorContract,
   RequestableWithdrawal,
 } from "./withdrawal-compressor/index.js";
-
-type MulticallWithFailure<T> = (
-  | {
-      error?: undefined;
-      result: T;
-      status: "success";
-    }
-  | {
-      error: Error;
-      result?: undefined;
-      status: "failure";
-    }
-)[];
-
-type BotResponseCompressor = MulticallWithFailure<
-  readonly {
-    baseParams: {
-      addr: `0x${string}`;
-      version: bigint;
-      contractType: `0x${string}`;
-      serializedParams: `0x${string}`;
-    };
-    requiredPermissions: bigint;
-    creditAccount: `0x${string}`;
-    permissions: bigint;
-    forbidden: boolean;
-  }[]
->;
-type BotsDirectResponse = MulticallWithFailure<
-  readonly [bigint, boolean, boolean] | readonly [bigint, boolean]
->;
 
 /**
  * Service for querying and operating on Gearbox credit accounts.
@@ -118,9 +74,15 @@ export class CreditAccountsServiceV310
 {
   readonly #compressor: CreditAccountCompressor;
 
+  /**
+   * {@inheritDoc ICreditAccountsService.bots}
+   **/
+  public readonly bots: AccountBotsService;
+
   constructor(sdk: OnchainSDK) {
     super(sdk);
     this.#compressor = new CreditAccountCompressor(sdk);
+    this.bots = new AccountBotsService(sdk);
   }
   /**
    * {@inheritDoc ICreditAccountsService.getCreditAccountData}
@@ -216,151 +178,6 @@ export class CreditAccountsServiceV310
     }, {});
 
     return Object.values(r);
-  }
-
-  /**
-   * {@inheritDoc ICreditAccountsService.getConnectedBots}
-   **/
-  public async getConnectedBots(
-    accountsToCheck: Array<AccountToCheck>,
-    legacyMigrationBot: Address | undefined,
-    additionalBots: Array<Address>,
-  ): Promise<{
-    legacy: GetConnectedBotsResult;
-    legacyMigration: GetConnectedMigrationBotsResult;
-    additionalBots: Array<
-      Omit<NonNullable<GetConnectedMigrationBotsResult>, "botAddress">
-    >;
-  }> {
-    const allResp = await this.client.multicall({
-      contracts: [
-        ...accountsToCheck.map(o => {
-          const pool = this.sdk.marketRegister.findByCreditManager(
-            o.creditManager,
-          );
-
-          return {
-            abi: peripheryCompressorAbi,
-            address: this.peripheryCompressor,
-            functionName: "getConnectedBots",
-            args: [pool.configurator.address, o.creditAccount],
-          } as const;
-        }),
-        ...(legacyMigrationBot
-          ? accountsToCheck.map(ca => {
-              const cm = this.sdk.marketRegister.findCreditManager(
-                ca.creditManager,
-              );
-
-              return {
-                abi: iBotListV310Abi,
-                address: cm.creditFacade.botList,
-                functionName: "getBotStatus",
-                args: [legacyMigrationBot, ca.creditAccount],
-              } as const;
-            })
-          : []),
-        ...accountsToCheck.flatMap(ca => {
-          const cm = this.sdk.marketRegister.findCreditManager(
-            ca.creditManager,
-          );
-
-          return additionalBots.map(bot => {
-            return {
-              abi: iBotListV310Abi,
-              address: cm.creditFacade.botList,
-              functionName: "getBotStatus",
-              args: [bot, ca.creditAccount],
-            } as const;
-          });
-        }),
-      ],
-      allowFailure: true,
-      batchSize: 0,
-    });
-
-    const legacyStart = 0;
-    const legacyEnd = accountsToCheck.length;
-    const legacy: BotResponseCompressor = allResp.slice(
-      legacyStart,
-      legacyEnd,
-    ) as BotResponseCompressor;
-
-    const migrationStart = legacyEnd;
-    const migrationEnd = legacyMigrationBot
-      ? migrationStart + accountsToCheck.length
-      : migrationStart;
-    const migrationResp: BotsDirectResponse = allResp.slice(
-      migrationStart,
-      migrationEnd,
-    ) as BotsDirectResponse;
-
-    const additionalStart = migrationEnd;
-    const additionalResp: BotsDirectResponse = allResp.slice(
-      additionalStart,
-    ) as BotsDirectResponse;
-
-    return {
-      legacy,
-      additionalBots: this.#getActiveBots(
-        accountsToCheck,
-        additionalBots,
-        additionalResp,
-      ),
-      legacyMigration: this.#getActiveMigrationBots(
-        accountsToCheck,
-        legacyMigrationBot,
-        migrationResp,
-      ),
-    };
-  }
-
-  #getActiveBots(
-    accountsToCheck: Array<AccountToCheck>,
-    bots: Array<Address>,
-    result: BotsDirectResponse,
-  ) {
-    if (result.length !== bots.length * accountsToCheck.length) {
-      console.error(
-        "result length mismatch",
-        result.length,
-        bots.length * accountsToCheck.length,
-      );
-    }
-
-    const botsByCAIndex = accountsToCheck.reduce<
-      Array<Omit<NonNullable<GetConnectedMigrationBotsResult>, "botAddress">>
-    >((acc, _, index) => {
-      const r = result.slice(index * bots.length, (index + 1) * bots.length);
-
-      acc.push({
-        result: r,
-      });
-
-      return acc;
-    }, []);
-
-    return botsByCAIndex;
-  }
-
-  #getActiveMigrationBots(
-    accountsToCheck: Array<{ creditAccount: Address; creditManager: Address }>,
-    bot: Address | undefined,
-    result: BotsDirectResponse,
-  ) {
-    if (bot) {
-      if (result.length !== accountsToCheck.length) {
-        console.error(
-          "result length mismatch for migration bots",
-          result.length,
-          accountsToCheck.length,
-        );
-      }
-
-      return { result, botAddress: bot };
-    }
-
-    return undefined;
   }
 
   /**
@@ -590,13 +407,10 @@ export class CreditAccountsServiceV310
   ): Promise<Address> {
     const { creditManager } = options;
     const suite = this.sdk.marketRegister.findCreditManager(creditManager);
-    const marketSuite = this.sdk.marketRegister.findByPool(suite.pool);
-    const factory = marketSuite.rwaFactory;
 
-    if (factory) {
-      return factory.getApprovalAddress(options);
-    }
-    return suite.creditManager.address;
+    return suite.rwaFactory
+      ? suite.rwaFactory.getApprovalAddress(options)
+      : suite.creditManager.address;
   }
 
   /**
@@ -608,7 +422,7 @@ export class CreditAccountsServiceV310
     props: GetOpenAccountRequirementsProps,
   ): Promise<RWAOpenAccountRequirements | undefined> {
     const { rwaFactory } =
-      this.sdk.marketRegister.findByCreditManager(creditManager);
+      this.sdk.marketRegister.findCreditManager(creditManager);
     if (!rwaFactory) {
       return undefined;
     }
@@ -668,18 +482,9 @@ export class CreditAccountsServiceV310
     ];
 
     const calls = await this.prependPriceUpdates(cm.address, operationCalls);
-    let tx: RawTx;
-    if (reopenCreditAccount) {
-      tx = await this.#multicallTx(cmSuite, reopenCreditAccount, calls);
-    } else {
-      tx = await this.#openCreditAccountTx(
-        cmSuite,
-        to,
-        calls,
-        referralCode,
-        rwaOptions,
-      );
-    }
+    const tx: RawTx = reopenCreditAccount
+      ? cmSuite.multicallTx(reopenCreditAccount, calls)
+      : cmSuite.openCreditAccountTx(to, calls, referralCode, rwaOptions);
     tx.value = ethAmount.toString(10);
 
     return tx;
@@ -780,61 +585,6 @@ export class CreditAccountsServiceV310
   }
 
   /**
-   * {@inheritDoc ICreditAccountsService.setBot}
-   */
-  public async setBot({
-    botAddress,
-    permissions: defaultPermissions,
-
-    targetContract,
-  }: SetBotProps): Promise<
-    CreditAccountOperationResult | CreditManagerOperationResult
-  > {
-    const cm = this.sdk.marketRegister.findCreditManager(
-      targetContract.creditManager,
-    );
-
-    const permissions =
-      defaultPermissions !== null
-        ? defaultPermissions
-        : await getContract({
-            address: botAddress,
-            client: this.sdk.client,
-            abi: [
-              {
-                type: "function",
-                name: "requiredPermissions",
-                inputs: [],
-                outputs: [
-                  { name: "", type: "uint192", internalType: "uint192" },
-                ],
-                stateMutability: "view",
-              },
-            ],
-          }).read.requiredPermissions();
-    const addBotCall = cm.creditFacade.prepareSetBotPermissions(
-      botAddress,
-      permissions,
-    );
-
-    const calls =
-      targetContract.type === "creditAccount"
-        ? await this.prependPriceUpdates(
-            targetContract.creditManager,
-            [addBotCall],
-            targetContract,
-          )
-        : [addBotCall];
-
-    const tx =
-      targetContract.type === "creditAccount"
-        ? await this.#multicallTx(cm, targetContract.creditAccount, calls)
-        : undefined;
-
-    return { tx, calls, creditFacade: cm.creditFacade };
-  }
-
-  /**
    * {@inheritDoc ICreditAccountsService.assembleRepayCreditAccountCalls}
    */
   public async assembleRepayCreditAccountCalls({
@@ -912,9 +662,8 @@ export class CreditAccountsServiceV310
       operationCalls,
       ca,
     );
-    const tx = await this.#multicallTx(cm, ca.creditAccount, calls);
 
-    return tx;
+    return cm.multicallTx(ca.creditAccount, calls);
   }
 
   /**
@@ -1056,11 +805,7 @@ export class CreditAccountsServiceV310
       creditAccount,
       { ignoreReservePrices: options?.ignoreReservePrices },
     );
-    const tx = await this.#multicallTx(
-      cm,
-      creditAccount.creditAccount,
-      callsWithPrices,
-    );
+    const tx = cm.multicallTx(creditAccount.creditAccount, callsWithPrices);
 
     if (options?.ethAmount && options.ethAmount > 0n) {
       tx.value = options.ethAmount.toString(10);
@@ -1135,69 +880,6 @@ export class CreditAccountsServiceV310
       AP_REWARDS_COMPRESSOR,
       VERSION_RANGE_310,
     )[0];
-  }
-
-  private get peripheryCompressor(): Address {
-    return this.sdk.addressProvider.mustGetLatest(
-      AP_PERIPHERY_COMPRESSOR,
-      VERSION_RANGE_310,
-    )[0];
-  }
-
-  /**
-   * Wrapper that selects between credit facade and RWA factory
-   * @param suite
-   * @param to
-   * @param calls
-   * @param referralCode
-   * @param rwaOptions
-   * @returns
-   */
-  async #openCreditAccountTx(
-    suite: CreditSuite,
-    to: Address,
-    calls: MultiCall[],
-    referralCode?: bigint,
-    rwaOptions?: RWAOperationArgs,
-  ): Promise<RawTx> {
-    const marketSuite = this.sdk.marketRegister.findByPool(suite.pool);
-    const factory = marketSuite.rwaFactory;
-
-    if (factory) {
-      return factory.openCreditAccount(
-        suite.creditManager.address,
-        calls,
-        rwaOptions,
-      );
-    }
-
-    return suite.creditFacade.openCreditAccount(to, calls, referralCode ?? 0n);
-  }
-
-  /**
-   * Wrapper that selects between credit facade and RWA factory
-   * @param suite
-   * @param creditAccount
-   * @param calls
-   * @param rwaOptions
-   * @returns
-   */
-  async #multicallTx(
-    suite: CreditSuite,
-    creditAccount: Address,
-    calls: MultiCall[],
-    rwaOptions?: RWAOperationArgs,
-  ): Promise<RawTx> {
-    const marketSuite = this.sdk.marketRegister.findByCreditManager(
-      suite.creditManager.address,
-    );
-    const factory = marketSuite.rwaFactory;
-
-    if (factory) {
-      return factory.multicall(creditAccount, calls, rwaOptions);
-    }
-
-    return suite.creditFacade.multicall(creditAccount, calls);
   }
 
   /**
