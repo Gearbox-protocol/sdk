@@ -4,6 +4,7 @@
  * Exported as its own subpath so a consumer that only talks to the backend
  * does not pull in the on-chain SDK.
  **/
+export * from "./AbstractOffchainNamespace.js";
 export * from "./GearboxAPI.js";
 export * from "./opportunities/index.js";
 export * from "./positions/index.js";

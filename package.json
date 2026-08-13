@@ -83,6 +83,7 @@
     "build": "tsdown",
     "dev": "tsdown --watch",
     "example": "tsx scripts/example.ts | pino-pretty",
+    "list-opportunities": "tsx scripts/list-opportunities.ts",
     "test:watch": "vitest --project unit",
     "test:unit": "vitest run --project unit",
     "test:e2e": "vitest run --project e2e",

@@ -1,3 +1,4 @@
+import { z } from "zod/v4";
 import type {
   HistoryMetric,
   HistorySeries,
@@ -6,108 +7,94 @@ import type {
 import type {
   Opportunity,
   OpportunityFilter,
+  OpportunityKey,
   PoolOpportunityDetail,
   PoolOpportunityKey,
   StrategyOpportunityDetail,
   StrategyOpportunityKey,
 } from "../../model/opportunities.js";
-import type { ILogger } from "../../sdk/types/logger.js";
+import {
+  opportunityFilterQuerySchema,
+  opportunitySchema,
+  poolOpportunityDetailSchema,
+  strategyOpportunityDetailSchema,
+} from "../../model/opportunities.schema.js";
+import { AbstractOffchainNamespace } from "../AbstractOffchainNamespace.js";
 import type { GearboxAPIOptions, OffchainResult } from "../types.js";
-import { OffchainNotImplementedError } from "../types.js";
 
 /**
  * Backend counterpart of the `opportunities` namespace.
- *
- * This is a stub: the HTTP client is not written yet, so list reads answer with
- * an empty list and detail reads throw. Every signature is already the final
- * one, because the backend returns the read model types directly — there is no
- * wire DTO and no mapper between the two.
- *
- * When the transport lands, each method will validate the response against the
- * matching schema from `src/model` before returning it. A validation failure is
- * a version-skew error and is handled exactly like a transport error: the
- * combined SDK drops the backend's contribution in `both` mode and rethrows in
- * `offchain` mode.
  **/
-export class OffchainOpportunities {
-  readonly #baseUrl?: string;
-  readonly #logger?: ILogger;
+export class OffchainOpportunities extends AbstractOffchainNamespace {
+  readonly #root = "/v2/opportunities";
 
   constructor(options?: GearboxAPIOptions) {
-    this.#baseUrl = options?.baseUrl;
-    this.#logger = options?.logger?.child?.({ name: "OffchainOpportunities" });
-  }
-
-  /**
-   * Base URL the client will call once the transport is implemented.
-   **/
-  public get baseUrl(): string | undefined {
-    return this.#baseUrl;
+    super("OffchainOpportunities", options);
   }
 
   /**
    * All opportunities the backend knows about, optionally narrowed by
    * {@link OpportunityFilter}.
-   *
-   * @returns An empty list until the backend client is implemented.
    **/
   public async list(
     filter?: OpportunityFilter,
   ): Promise<OffchainResult<Opportunity[]>> {
-    this.#logger?.debug(
-      { filter },
-      "offchain opportunities list is not implemented, serving empty list",
-    );
-    return { result: [], meta: { status: "success" } };
+    return this.get({
+      path: this.#root,
+      // the encode direction of the same codec the backend validates with
+      query: filter
+        ? z.encode(opportunityFilterQuerySchema, filter)
+        : undefined,
+      schema: z.array(opportunitySchema),
+    });
   }
 
   /**
    * Detailed view of one pool opportunity.
-   *
-   * @throws {@link OffchainNotImplementedError} until the backend client is
-   * implemented.
    **/
   public async getPool(
     key: PoolOpportunityKey,
   ): Promise<OffchainResult<PoolOpportunityDetail>> {
-    void key;
-    throw new OffchainNotImplementedError("opportunities.getPool");
+    return this.get({
+      path: this.#poolPath(key),
+      schema: poolOpportunityDetailSchema,
+    });
   }
 
   /**
    * Detailed view of one strategy opportunity.
-   *
-   * @throws {@link OffchainNotImplementedError} until the backend client is
-   * implemented.
    **/
   public async getStrategy(
     key: StrategyOpportunityKey,
   ): Promise<OffchainResult<StrategyOpportunityDetail>> {
-    void key;
-    throw new OffchainNotImplementedError("opportunities.getStrategy");
+    return this.get({
+      path: this.#strategyPath(key),
+      schema: strategyOpportunityDetailSchema,
+    });
   }
 
   /**
-   * One historical series of one opportunity. History exists only here:
-   * rebuilding it from the chain would mean an archive read per point.
-   *
-   * The requested metric types the response, so a caller asking for one metric
-   * does not have to narrow the union back down. When the transport lands,
-   * validation is what upholds it: a response carrying a different metric than
-   * the one asked for is a version-skew error like any other.
-   *
-   * @returns An empty series until the backend client is implemented.
+   * One historical series of one opportunity
    **/
   public async getHistory<M extends HistoryMetric>(
     query: OpportunityHistoryQuery<M>,
   ): Promise<OffchainResult<HistorySeries<M>>> {
-    this.#logger?.debug(
-      { query },
-      "offchain opportunities history is not implemented, serving empty series",
-    );
-    return {
-      result: { metric: query.metric, points: [], metadata: {} },
-      meta: { status: "success" },
-    };
+    return this.readHistory({
+      path: `${this.#historyRoot(query.opportunity)}/history/${query.metric}`,
+      metric: query.metric,
+      range: query.range,
+    });
+  }
+
+  #poolPath(key: PoolOpportunityKey): string {
+    return `${this.#root}/pools/${key.chainId}/${key.pool}`;
+  }
+
+  #strategyPath(key: StrategyOpportunityKey): string {
+    return `${this.#root}/strategies/${key.chainId}/${key.creditManager}/${key.targetCollateral}`;
+  }
+
+  #historyRoot(key: OpportunityKey): string {
+    return key.kind === "pool" ? this.#poolPath(key) : this.#strategyPath(key);
   }
 }

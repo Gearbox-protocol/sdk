@@ -80,6 +80,7 @@ import type {
   apyBreakdownSchema,
   opportunityBaseSchema,
   opportunityDetailSchema,
+  opportunityFilterQuerySchema,
   opportunityFilterSchema,
   opportunityKeySchema,
   opportunityKindSchema,
@@ -228,6 +229,9 @@ describe("model schemas match model types", () => {
     >().toEqualTypeOf<Opportunity>();
     expectTypeOf<
       z.infer<typeof opportunityFilterSchema>
+    >().toEqualTypeOf<OpportunityFilter>();
+    expectTypeOf<
+      z.infer<typeof opportunityFilterQuerySchema>
     >().toEqualTypeOf<OpportunityFilter>();
   });
 

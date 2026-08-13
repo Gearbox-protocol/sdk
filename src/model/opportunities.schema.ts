@@ -1,7 +1,11 @@
 import { z } from "zod/v4";
 import { ZodAddress } from "../sdk/utils/zod.js";
 import { curatorSchema } from "./curators.schema.js";
-import { filterable } from "./filters.schema.js";
+import type { Filterable } from "./filters.js";
+import { isFilterSet } from "./filters.js";
+import { booleanParamSchema, filterable } from "./filters.schema.js";
+import type { OpportunityFilter } from "./opportunities.js";
+import type { ChainId } from "./primitives.js";
 import {
   amountSchema,
   assetTypeSchema,
@@ -138,6 +142,83 @@ export const opportunityFilterSchema = z.object({
   sunset: filterable(z.boolean()).optional(),
   rwa: filterable(z.boolean()).optional(),
 });
+
+/**
+ * {@link OpportunityFilter} as a URL can carry it: every condition is a string,
+ * and a condition that does not narrow is absent rather than empty.
+ **/
+export const opportunityFilterQueryParamsSchema = z.object({
+  kind: opportunityKindSchema.optional(),
+  chainIds: z
+    .string()
+    .regex(/^$|^\d+(,\d+)*$/)
+    .optional(),
+  underlyingType: assetTypeSchema.optional(),
+  paused: booleanParamSchema.optional(),
+  sunset: booleanParamSchema.optional(),
+  rwa: booleanParamSchema.optional(),
+});
+
+/**
+ * Code for {@link OpportunityFilter} to encode/decode to/from url query parameters.
+ **/
+export const opportunityFilterQuerySchema = z.codec(
+  opportunityFilterQueryParamsSchema,
+  opportunityFilterSchema,
+  {
+    decode: (params): OpportunityFilter => {
+      const filter: OpportunityFilter = {};
+      if (params.kind !== undefined) {
+        filter.kind = params.kind;
+      }
+      if (params.chainIds !== undefined) {
+        filter.chainIds = decodeChainIds(params.chainIds);
+      }
+      if (params.underlyingType !== undefined) {
+        filter.underlyingType = params.underlyingType;
+      }
+      if (params.paused !== undefined) {
+        filter.paused = params.paused === "true";
+      }
+      if (params.sunset !== undefined) {
+        filter.sunset = params.sunset === "true";
+      }
+      if (params.rwa !== undefined) {
+        filter.rwa = params.rwa === "true";
+      }
+      return filter;
+    },
+    encode: (filter): OpportunityFilterQueryParams => ({
+      kind: isFilterSet(filter.kind) ? filter.kind : undefined,
+      chainIds: isFilterSet(filter.chainIds)
+        ? filter.chainIds.join(",")
+        : undefined,
+      underlyingType: isFilterSet(filter.underlyingType)
+        ? filter.underlyingType
+        : undefined,
+      paused: encodeFlag(filter.paused),
+      sunset: encodeFlag(filter.sunset),
+      rwa: encodeFlag(filter.rwa),
+    }),
+  },
+);
+
+type OpportunityFilterQueryParams = z.input<
+  typeof opportunityFilterQueryParamsSchema
+>;
+
+function decodeChainIds(param: string): ChainId[] {
+  return param === "" ? [] : param.split(",").map(Number);
+}
+
+function encodeFlag(
+  condition: Filterable<boolean> | undefined,
+): "true" | "false" | undefined {
+  if (!isFilterSet(condition)) {
+    return undefined;
+  }
+  return condition ? "true" : "false";
+}
 
 /**
  * {@link RateCurvePoint}

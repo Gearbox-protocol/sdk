@@ -19,3 +19,5 @@ export function filterable<T extends z.ZodType>(
 ): z.ZodUnion<[T, typeof filterAllSchema]> {
   return z.union([schema, filterAllSchema]);
 }
+
+export const booleanParamSchema = z.enum(["true", "false"]);
