@@ -91,6 +91,7 @@ export const poolOpportunitySchema = z.object({
   kind: z.literal("pool"),
   pool: ZodAddress(),
   totalSupply: amountSchema,
+  availableLiquidity: amountSchema,
   utilization: bpsSchema,
   supplyApy: apyBreakdownSchema,
 });

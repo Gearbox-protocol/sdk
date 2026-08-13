@@ -195,6 +195,10 @@ export interface PoolOpportunity extends OpportunityBase {
    **/
   totalSupply: Amount;
   /**
+   * Pool available liquidity. Denominated in the underlying.
+   **/
+  availableLiquidity: Amount;
+  /**
    * How much of the pool's capital is currently borrowed, in basis points.
    *
    * @example `7500` for 75% utilization
