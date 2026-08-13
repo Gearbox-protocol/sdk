@@ -19,28 +19,9 @@ import {
   worldchain,
 } from "viem/chains";
 import { z } from "zod/v4";
+import type { CuratorName } from "../../model/curators.js";
 import type { AssetType } from "../../model/primitives.js";
 import { TypedObjectUtils } from "../utils/mappers.js";
-
-/**
- * Known curator names that manage Gearbox markets.
- *
- **/
-export type Curator =
-  | "Chaos Labs"
-  | "K3"
-  | "cp0x"
-  | "Re7"
-  | "Invariant Group"
-  | "Tulipa"
-  | "M11 Credit"
-  | "KPK"
-  | "Hyperithm"
-  | "UltraYield"
-  | "TelosC"
-  | "Gami Labs"
-  | "Securitize"
-  | "Testnet Curator"; // without governor, for midas
 
 /**
  * One strategy of the sunset list, identified the same way a strategy
@@ -65,7 +46,7 @@ export interface GearboxChain extends Chain {
   /**
    * Market configurator addresses operated by known curators on this chain.
    **/
-  defaultMarketConfigurators: Record<Address, Curator>;
+  defaultMarketConfigurators: Record<Address, CuratorName>;
   /**
    * Known RWA factory addresses on this chain
    */
@@ -73,7 +54,7 @@ export interface GearboxChain extends Chain {
   /**
    * Market configurators used in test/staging environments.
    **/
-  testMarketConfigurators?: Record<Address, Curator>;
+  testMarketConfigurators?: Record<Address, CuratorName>;
   /**
    * Denomination class of the market underlyings on this chain.
    *
@@ -576,7 +557,7 @@ export function isPublicNetwork(
 }
 
 /**
- * Looks up the {@link Curator} name for a market configurator address.
+ * Looks up the {@link CuratorName} name for a market configurator address.
  *
  * Searches default and test market configurators across all chains, or
  * a single network if provided.
@@ -588,7 +569,7 @@ export function isPublicNetwork(
 export function getCuratorName(
   marketConfigurator: Address,
   network?: NetworkType,
-): Curator | undefined {
+): CuratorName | undefined {
   const chainz = network ? [chains[network]] : Object.values(chains);
   for (const c of chainz) {
     for (const [a, curator] of TypedObjectUtils.entries({
@@ -612,7 +593,7 @@ export function getCuratorName(
  *   has no configurator on this network.
  **/
 export function findCuratorMarketConfigurator(
-  curator: Curator,
+  curator: CuratorName,
   network: NetworkType,
 ): Address | undefined {
   const { defaultMarketConfigurators, testMarketConfigurators } =

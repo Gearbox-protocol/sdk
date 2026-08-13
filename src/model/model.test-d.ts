@@ -1,5 +1,7 @@
 import { describe, expectTypeOf, it } from "vitest";
 import type { z } from "zod/v4";
+import type { Curator, CuratorName } from "./curators.js";
+import type { curatorNameSchema, curatorSchema } from "./curators.schema.js";
 import type {
   HistoryMetric,
   HistoryPoint,
@@ -133,7 +135,6 @@ import type {
 import type {
   Amount,
   AssetType,
-  Curator,
   Token,
   TokenAmount,
   TxCall,
@@ -141,7 +142,6 @@ import type {
 import type {
   amountSchema,
   assetTypeSchema,
-  curatorSchema,
   tokenAmountSchema,
   tokenSchema,
   txCallSchema,
@@ -167,6 +167,12 @@ describe("model schemas match model types", () => {
       z.infer<typeof tokenAmountSchema>
     >().toEqualTypeOf<TokenAmount>();
     expectTypeOf<z.infer<typeof txCallSchema>>().toEqualTypeOf<TxCall>();
+  });
+
+  it("curators", () => {
+    expectTypeOf<
+      z.infer<typeof curatorNameSchema>
+    >().toEqualTypeOf<CuratorName>();
     expectTypeOf<z.infer<typeof curatorSchema>>().toEqualTypeOf<Curator>();
   });
 

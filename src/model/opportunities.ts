@@ -1,10 +1,10 @@
 import type { Address } from "viem";
+import type { Curator } from "./curators.js";
 import type {
   Amount,
   AssetType,
   Bps,
   ChainId,
-  Curator,
   Leverage,
   Timestamp,
   Token,

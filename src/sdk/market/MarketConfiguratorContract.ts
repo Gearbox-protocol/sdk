@@ -17,8 +17,6 @@ const abi = iMarketConfiguratorV310Abi;
 type abi = typeof abi;
 
 export class MarketConfiguratorContract extends BaseContract<abi> {
-  #curatorName?: string;
-
   constructor(options: ConstructOptions, address: Address) {
     super(options, {
       abi,
@@ -28,31 +26,13 @@ export class MarketConfiguratorContract extends BaseContract<abi> {
     });
   }
 
-  public async loadCuratorName(): Promise<void> {
-    this.#curatorName = await this.client.readContract({
-      address: this.address,
-      abi: this.abi,
-      functionName: "curatorName",
-    });
-    this.register.setAddressLabel(
-      this.address,
-      `Market configurator ${this.#curatorName}`,
-    );
-  }
-
   /**
-   * The entity operating this configurator, as the shared read model describes
-   * it. The curated per-chain table wins over the name the contract reports,
-   * because the two sources must agree across services and only the table is
-   * shared with the backend.
+   * The entity operating this configurator
    */
   public get curator(): Curator {
     return {
       address: this.address,
-      name:
-        getCuratorName(this.address, this.networkType) ??
-        this.#curatorName ??
-        "Unknown",
+      name: getCuratorName(this.address, this.networkType),
       // the chain knows no URLs
       url: null,
     };

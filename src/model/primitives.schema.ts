@@ -74,12 +74,3 @@ export const txCallSchema = z.object({
   callData: ZodHex(),
   value: z.bigint().optional(),
 });
-
-/**
- * {@link Curator}
- **/
-export const curatorSchema = z.object({
-  address: ZodAddress(),
-  name: z.string(),
-  url: z.string().nullable(),
-});

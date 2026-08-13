@@ -1,11 +1,11 @@
 import { z } from "zod/v4";
 import { ZodAddress } from "../sdk/utils/zod.js";
+import { curatorSchema } from "./curators.schema.js";
 import {
   amountSchema,
   assetTypeSchema,
   bpsSchema,
   chainIdSchema,
-  curatorSchema,
   leverageSchema,
   timestampSchema,
   tokenSchema,
