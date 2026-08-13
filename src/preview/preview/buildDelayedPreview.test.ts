@@ -523,7 +523,7 @@ describe("buildDelayedPreview unpriceable tokens", () => {
     const account = makeAccount({
       balances: new AssetsMap([
         { token: PHANTOM, balance: 1000n },
-        // must exceed PREVIEW_DUST to be priced at all
+        // must exceed DUST_THRESHOLD to be priced at all
         { token: UNPRICEABLE, balance: 50n },
       ]),
     });

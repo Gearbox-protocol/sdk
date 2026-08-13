@@ -83,3 +83,57 @@ describe("CreditAccountsServiceV310.assembleCaOperations", () => {
     expect(calls).toEqual([wrapCall, unwrapCall, swapCall]);
   });
 });
+
+describe("CreditAccountsServiceV310 delayed withdrawal assemblers", () => {
+  const bodyCall: MultiCall = { target: TOKEN_B, callData: "0xfeed" };
+
+  it("brackets the request calls between storeExpectedBalances and compareBalances", () => {
+    const calls = makeService().assembleStartDelayedWithdrawalCalls({
+      creditFacade: FACADE,
+      preview: {
+        token: TOKEN_A,
+        amountIn: 500n,
+        outputs: [{ token: TOKEN_B, amount: 1000n, isDelayed: true }],
+        requestCalls: [bodyCall],
+      },
+    });
+
+    expect(calls).toHaveLength(3);
+    expect(decode(calls[0])).toMatchObject({
+      functionName: "storeExpectedBalances",
+      args: [
+        [
+          { token: TOKEN_B, amount: 990n },
+          { token: TOKEN_A, amount: -500n },
+        ],
+      ],
+    });
+    expect(calls[1]).toEqual(bodyCall);
+    expect(decode(calls[2]).functionName).toBe("compareBalances");
+  });
+
+  it("brackets the claim calls and declares the phantom token burn", () => {
+    const calls = makeService().assembleClaimDelayedCalls({
+      creditFacade: FACADE,
+      claimableNow: {
+        withdrawalPhantomToken: TOKEN_A,
+        withdrawalTokenSpent: 300n,
+        outputs: [{ token: TOKEN_B, amount: 1000n, isDelayed: false }],
+        claimCalls: [bodyCall],
+      },
+    });
+
+    expect(calls).toHaveLength(3);
+    expect(decode(calls[0])).toMatchObject({
+      functionName: "storeExpectedBalances",
+      args: [
+        [
+          { token: TOKEN_B, amount: 990n },
+          { token: TOKEN_A, amount: -300n },
+        ],
+      ],
+    });
+    expect(calls[1]).toEqual(bodyCall);
+    expect(decode(calls[2]).functionName).toBe("compareBalances");
+  });
+});

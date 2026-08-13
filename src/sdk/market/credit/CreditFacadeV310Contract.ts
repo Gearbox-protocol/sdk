@@ -359,4 +359,18 @@ export class CreditFacadeV310Contract
       }),
     };
   }
+
+  /**
+   * {@inheritDoc ICreditFacadeContract.prepareWithBalanceCheck}
+   */
+  public prepareWithBalanceCheck(
+    deltas: BalanceDelta[],
+    calls: MultiCall[],
+  ): MultiCall[] {
+    return [
+      this.prepareStoreExpectedBalances(deltas),
+      ...calls,
+      this.prepareCompareBalances(),
+    ];
+  }
 }

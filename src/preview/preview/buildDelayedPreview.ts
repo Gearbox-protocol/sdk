@@ -4,6 +4,7 @@ import type { DelayedWithdrawalRequest } from "../../plugins/adapters/index.js";
 import {
   AssetsMap,
   type DelayedWithdrawCollateralIntent,
+  DUST_THRESHOLD,
 } from "../../sdk/index.js";
 import type { CreditAccountState } from "./CreditAccountState.js";
 import type { DetectedDelayedOperation } from "./detectDelayedOperation.js";
@@ -13,7 +14,6 @@ import {
   ERROR_UNPRICEABLE_TOKEN,
   type InstantOperationPreview,
   type OperationPreviewError,
-  PREVIEW_DUST,
 } from "./types.js";
 
 /**
@@ -287,7 +287,7 @@ function buildAdjustPreview(
   const totalValue = totalValueInUnderlying(
     post,
     converter.convert,
-    PREVIEW_DUST,
+    DUST_THRESHOLD,
   );
   return {
     operation: "AdjustCreditAccount",
@@ -303,10 +303,10 @@ function buildAdjustPreview(
     debtChange: post.debt - before.debt,
     quotas: post.quotas.toAssets(0n),
     quotasChange: post.quotas.difference(before.quotas).toAssets(),
-    assets: post.balances.toAssets(PREVIEW_DUST),
+    assets: post.balances.toAssets(DUST_THRESHOLD),
     assetsChange: post.balances
       .difference(before.balances)
-      .toAssets(PREVIEW_DUST),
+      .toAssets(DUST_THRESHOLD),
     error: converter.error,
   };
 }

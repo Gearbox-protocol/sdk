@@ -43,22 +43,6 @@ export const ERROR_INVALID_TRANSACTION_VALUE = 1006;
 export const ERROR_UNPRICEABLE_TOKEN = 2001;
 
 /**
- * Dust threshold for replayed preview balances and balance changes.
- *
- * Multicalls assembled by `CreditAccountsServiceV310` subtract a 10-unit
- * safety buffer from every expected output token in their
- * `storeExpectedBalances` deltas (`amount - 10n` in
- * `assembleStartDelayedWithdrawalCalls`/`assembleClaimDelayedCalls`), while
- * subsequent calls in the same multicall spend exact on-chain amounts. A
- * replay that credits only the min-guarantee can therefore be off by up to
- * 10 units per token, including small negative residues that are impossible
- * on-chain. Amounts within this threshold (in absolute value) are filtered
- * from preview outputs; anything beyond it is a genuine discrepancy and is
- * reported.
- */
-export const PREVIEW_DUST = 10n;
-
-/**
  * Non-throwing preview failure. When set on a preview, all fields are still
  * computed best-effort, but some of them may be unreliable.
  */

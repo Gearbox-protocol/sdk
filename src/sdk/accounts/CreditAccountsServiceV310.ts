@@ -16,7 +16,7 @@ import {
   MAX_UINT256,
   VERSION_RANGE_310,
 } from "../constants/index.js";
-import type { BalanceDelta, PriceUpdate } from "../market/index.js";
+import { expectedBalanceDeltas, type PriceUpdate } from "../market/index.js";
 import type { RWAOpenAccountRequirements } from "../market/rwa/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
 import type { RouterCASlice } from "../router/index.js";
@@ -329,33 +329,16 @@ export class CreditAccountsServiceV310
     creditFacade,
     preview,
   }: AssembleStartDelayedWithdrawalCallsProps): Array<MultiCall> {
-    const record = preview.outputs.reduce<Record<Address, bigint>>((acc, o) => {
-      const token = o.token.toLowerCase() as Address;
-      acc[token] = (acc[token] || 0n) + o.amount;
-      return acc;
-    }, {});
-    const balances = Object.entries(record).filter(([, a]) => a > 10n);
-
-    const deltas: Array<BalanceDelta> = balances.map(([token, amount]) => ({
-      token: token as Address,
-      amount: amount > 10n ? amount - 10n : 0n,
-    }));
-    // The negative delta of the spent source token makes the input-side
-    // balance decrease previewable from the multicall calldata alone; without
-    // it, adapter previewBalanceChanges handlers would need RPC calls to
-    // recover the spent token/amount, since the calldata does not carry
-    // sufficient info.
-    if (preview.amountIn > 0n) {
-      deltas.push({ token: preview.token, amount: -preview.amountIn });
-    }
-
-    const facade = this.sdk.marketRegister.findCreditFacade(creditFacade);
-
-    return [
-      facade.prepareStoreExpectedBalances(deltas),
-      ...preview.requestCalls,
-      facade.prepareCompareBalances(),
-    ];
+    return this.sdk.marketRegister
+      .findCreditFacade(creditFacade)
+      .prepareWithBalanceCheck(
+        expectedBalanceDeltas({
+          outputs: preview.outputs,
+          spentToken: preview.token,
+          spentAmount: preview.amountIn,
+        }),
+        preview.requestCalls,
+      );
   }
 
   /**
@@ -365,38 +348,16 @@ export class CreditAccountsServiceV310
     creditFacade,
     claimableNow,
   }: AssembleClaimDelayedCallsProps): Array<MultiCall> {
-    const record = claimableNow.outputs.reduce<Record<Address, bigint>>(
-      (acc, o) => {
-        const token = o.token.toLowerCase() as Address;
-        acc[token] = (acc[token] || 0n) + o.amount;
-        return acc;
-      },
-      {},
-    );
-    const balances = Object.entries(record).filter(([, a]) => a > 10n);
-
-    const deltas: Array<BalanceDelta> = balances.map(([token, amount]) => ({
-      token: token as Address,
-      amount: amount > 10n ? amount - 10n : 0n,
-    }));
-    // The negative delta of the burned withdrawal phantom token makes the
-    // input-side balance decrease previewable from the multicall calldata
-    // alone; without it, adapter previewBalanceChanges handlers would need
-    // RPC calls to recover the burned amount
-    if (claimableNow.withdrawalTokenSpent > 0n) {
-      deltas.push({
-        token: claimableNow.withdrawalPhantomToken,
-        amount: -claimableNow.withdrawalTokenSpent,
-      });
-    }
-
-    const facade = this.sdk.marketRegister.findCreditFacade(creditFacade);
-
-    return [
-      facade.prepareStoreExpectedBalances(deltas),
-      ...claimableNow.claimCalls,
-      facade.prepareCompareBalances(),
-    ];
+    return this.sdk.marketRegister
+      .findCreditFacade(creditFacade)
+      .prepareWithBalanceCheck(
+        expectedBalanceDeltas({
+          outputs: claimableNow.outputs,
+          spentToken: claimableNow.withdrawalPhantomToken,
+          spentAmount: claimableNow.withdrawalTokenSpent,
+        }),
+        claimableNow.claimCalls,
+      );
   }
 
   /**

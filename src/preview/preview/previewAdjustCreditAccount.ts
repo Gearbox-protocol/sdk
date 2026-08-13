@@ -1,4 +1,9 @@
-import { AP_WETH_TOKEN, NO_VERSION, type PluginsMap } from "../../sdk/index.js";
+import {
+  AP_WETH_TOKEN,
+  DUST_THRESHOLD,
+  NO_VERSION,
+  type PluginsMap,
+} from "../../sdk/index.js";
 import type {
   MulticallOperation,
   RWAMulticallOperation,
@@ -11,7 +16,6 @@ import { replayMulticall } from "./replayMulticall.js";
 import {
   type AdjustCreditAccountPreview,
   ERROR_UNPRICEABLE_TOKEN,
-  PREVIEW_DUST,
 } from "./types.js";
 import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
 
@@ -50,14 +54,14 @@ export async function previewAdjustCreditAccount<P extends PluginsMap>(
 
   // On a malformed multicall the replayed balances are best-effort and may
   // be unreliable.
-  const assets = account.balances.toAssets(PREVIEW_DUST);
+  const assets = account.balances.toAssets(DUST_THRESHOLD);
 
   // The replayed state is seeded with all initial tokens and entries are
   // never deleted, so its keys are the union of tokens present before or
   // after
   const assetsChange = account.balances
     .difference(before.balances)
-    .toAssets(PREVIEW_DUST);
+    .toAssets(DUST_THRESHOLD);
 
   // estimated post-operation account value: minimal guaranteed assets
   // converted to underlying and summed. Best-effort: tokens the oracle

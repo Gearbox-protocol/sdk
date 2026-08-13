@@ -6,18 +6,18 @@ import { AdaptersPlugin } from "../../plugins/adapters/index.js";
 import {
   type Asset,
   type CreditAccountData,
+  DUST_THRESHOLD,
   json_parse,
   OnchainSDK,
   type RedemptionLog,
   RedemptionLoggerV310Contract,
 } from "../../sdk/index.js";
 import { previewOperation } from "./previewOperation.js";
-import {
-  type AdjustCreditAccountPreview,
-  type CloseCreditAccountPreview,
-  type DelayedCreditAccountOperationPreview,
-  type OpenCreditAccountPreview,
-  PREVIEW_DUST,
+import type {
+  AdjustCreditAccountPreview,
+  CloseCreditAccountPreview,
+  DelayedCreditAccountOperationPreview,
+  OpenCreditAccountPreview,
 } from "./types.js";
 
 // Integration-style tests for delayed RWA operations: three 5-transaction
@@ -301,7 +301,7 @@ function findQuota(ca: CreditAccountData, token: Address): bigint {
  */
 function untouchedAssets(ca: CreditAccountData, touched: Address[]): Asset[] {
   return ca.tokens
-    .filter(t => !touched.includes(t.token) && t.balance > PREVIEW_DUST)
+    .filter(t => !touched.includes(t.token) && t.balance > DUST_THRESHOLD)
     .map(({ token, balance }) => ({ token, balance }));
 }
 

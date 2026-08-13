@@ -317,6 +317,15 @@ export interface ICreditFacadeContract extends IBaseContract {
    * Encodes a `compareBalances` multicall entry.
    */
   prepareCompareBalances(): MultiCall;
+
+  /**
+   * Wraps `calls` in a `storeExpectedBalances` / `compareBalances` bracket, so
+   * that the facade asserts the multicall produced at least `deltas`.
+   */
+  prepareWithBalanceCheck(
+    deltas: BalanceDelta[],
+    calls: MultiCall[],
+  ): MultiCall[];
 }
 
 /**
