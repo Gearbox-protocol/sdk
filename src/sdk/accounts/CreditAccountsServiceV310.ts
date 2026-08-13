@@ -8,6 +8,7 @@ import type {
   Asset,
   CreditAccountData,
   CreditAccountTokensSlice,
+  PermitResult,
 } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
 import {
@@ -16,8 +17,15 @@ import {
   MAX_UINT256,
   VERSION_RANGE_310,
 } from "../constants/index.js";
-import { expectedBalanceDeltas, type PriceUpdate } from "../market/index.js";
-import type { RWAOpenAccountRequirements } from "../market/rwa/index.js";
+import {
+  expectedBalanceDeltas,
+  type PrepareUpdateQuotasProps,
+  type PriceUpdate,
+} from "../market/index.js";
+import type {
+  GetOpenAccountRequirementsProps,
+  RWAOpenAccountRequirements,
+} from "../market/rwa/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
 import type { RouterCASlice } from "../router/index.js";
 import type { RouterRewardsResult } from "../router/types.js";
@@ -43,14 +51,11 @@ import type {
   FullyLiquidateProps,
   FullyLiquidateResult,
   GetApprovalAddressProps,
-  GetOpenAccountRequirementsProps,
   GetPendingWithdrawalsProps,
   GetPendingWithdrawalsResult,
   ICreditAccountsService,
   OpenCAProps,
   PartiallyLiquidateProps,
-  PermitResult,
-  PrepareUpdateQuotasProps,
   PreviewDelayedWithdrawalProps,
   Rewards,
 } from "./types.js";

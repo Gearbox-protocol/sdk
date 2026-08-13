@@ -1,15 +1,12 @@
 import type { Address, Hex } from "viem";
 import type { Bps, Leverage } from "../../../model/index.js";
 import type {
-  PermitResult,
-  PrepareUpdateQuotasProps,
-} from "../../accounts/types.js";
-import type {
   AssertAssignable,
   Asset,
   CreditFacadeState,
   CreditManagerState,
   IBaseContract,
+  PermitResult,
 } from "../../base/index.js";
 import type {
   CreditConfiguratorStateHuman,
@@ -59,6 +56,26 @@ export interface BalanceDelta {
 export interface CreditAccountTokenQuota {
   token: Address;
   quota: bigint;
+}
+
+/**
+ * Quota `Asset.balance` values are denominated in **pool underlying token
+ * units**, not in the quoted token's own units.
+ **/
+export interface PrepareUpdateQuotasProps {
+  /**
+   * Average quota for desired token, in pool underlying units
+   * (see {@link PrepareUpdateQuotasProps})
+   */
+  averageQuota: Array<Asset>;
+  /**
+   * Minimum quota for desired token, in pool underlying units.
+   * The credit facade rounds quota changes down to a multiple of
+   * `PERCENTAGE_FACTOR`; the min quota bound must not exceed the rounded
+   * value, otherwise the quota keeper reverts with
+   * `QuotaIsOutOfBoundsException`.
+   */
+  minQuota: Array<Asset>;
 }
 
 /**

@@ -136,6 +136,50 @@ export interface Asset {
 }
 
 /**
+ * EIP-2612 permit signature data for a token, enabling gasless approval for credit account operations.
+ **/
+export interface PermitResult {
+  /**
+   * ECDSA signature `r` component.
+   **/
+  r: Address;
+  /**
+   * ECDSA signature `s` component.
+   **/
+  s: Address;
+  /**
+   * ECDSA signature `v` component.
+   **/
+  v: number;
+
+  /**
+   * Token address the permit is for.
+   **/
+  token: Address;
+  /**
+   * Address of the token holder granting the permit.
+   **/
+  owner: Address;
+  /**
+   * Address authorized to spend the tokens.
+   **/
+  spender: Address;
+  /**
+   * Amount of tokens approved.
+   **/
+  value: bigint;
+
+  /**
+   * Timestamp after which the permit expires.
+   **/
+  deadline: bigint;
+  /**
+   * Owner's current permit nonce.
+   **/
+  nonce: bigint;
+}
+
+/**
  * Compile-time assertion: `U` must be assignable to `T`.
  *
  * Used to verify that hand-written interfaces stay structurally compatible

@@ -4,7 +4,6 @@ import type {
 } from "abitype";
 import type { Address, ContractFunctionParameters } from "viem";
 import type { iRWACompressorAbi } from "../../../abi/rwa/iRWACompressor.js";
-import type { GetOpenAccountRequirementsProps } from "../../accounts/types.js";
 import type { IBaseContract, Unarray } from "../../base/index.js";
 import type { MultiCall, RawTx } from "../../types/index.js";
 import type {
@@ -130,6 +129,17 @@ export type RWAFactoryStateHuman =
 export interface RWAStateHuman {
   /** State of each loaded RWA factory. */
   factories: RWAFactoryStateHuman[];
+}
+
+/**
+ * Options to get open account requirements
+ * Compatible with StrategyConfigPayload
+ */
+export interface GetOpenAccountRequirementsProps {
+  /**
+   * Token address of the strategy
+   */
+  tokenOutAddress: Address;
 }
 
 /**

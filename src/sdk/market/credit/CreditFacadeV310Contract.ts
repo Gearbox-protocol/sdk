@@ -2,14 +2,11 @@ import type { Address, ContractEventName, Hex, Log } from "viem";
 import { encodeFunctionData } from "viem";
 
 import type {
-  PermitResult,
-  PrepareUpdateQuotasProps,
-} from "../../accounts/types.js";
-import type {
   Asset,
   ConstructOptions,
   CreditFacadeState,
   CreditSuiteState,
+  PermitResult,
 } from "../../base/index.js";
 import { ADDRESS_0X0, MAX_UINT256, MIN_INT96 } from "../../constants/index.js";
 import type {
@@ -30,6 +27,7 @@ import type {
   BalanceDelta,
   CreditAccountTokenQuota,
   ICreditFacadeContract,
+  PrepareUpdateQuotasProps,
 } from "./types.js";
 
 type abi = CreditFacadeV310Abi;

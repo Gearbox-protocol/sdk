@@ -5,23 +5,9 @@ import type {
   ContractFunctionName,
 } from "viem";
 import type { PoolPosition } from "../../model/index.js";
-import type { Asset } from "../base/index.js";
+import type { Asset, PermitResult } from "../base/index.js";
 import type { IZapperContract } from "../market/index.js";
 import type { MultiCall, RawTx } from "../types/transactions.js";
-
-interface PermitResult {
-  r: Address;
-  s: Address;
-  v: number;
-
-  token: Address;
-  owner: Address;
-  spender: Address;
-  value: bigint;
-
-  deadline: bigint;
-  nonce: bigint;
-}
 
 export type PoolServiceCall<
   abi extends Abi | readonly unknown[] = Abi,

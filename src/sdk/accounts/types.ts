@@ -5,14 +5,19 @@ import type {
   Construct,
   CreditAccountData,
   CreditAccountTokensSlice,
+  PermitResult,
 } from "../base/index.js";
 import type {
   CreditSuite,
   PartialLiquidationParams,
+  PrepareUpdateQuotasProps,
   PriceUpdate,
   RWAOperationArgs,
 } from "../market/index.js";
-import type { RWAOpenAccountRequirements } from "../market/rwa/index.js";
+import type {
+  GetOpenAccountRequirementsProps,
+  RWAOpenAccountRequirements,
+} from "../market/rwa/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
 import type { RouterCASlice, RouterCloseResult } from "../router/index.js";
 import type { MultiCall, RawTx } from "../types/index.js";
@@ -117,26 +122,6 @@ export type AssembleRepayCreditAccountCallsProps = {
    */
   calls?: Array<MultiCall>;
 };
-
-/**
- * Quota `Asset.balance` values are denominated in **pool underlying token
- * units**, not in the quoted token's own units.
- **/
-export interface PrepareUpdateQuotasProps {
-  /**
-   * Average quota for desired token, in pool underlying units
-   * (see {@link PrepareUpdateQuotasProps})
-   */
-  averageQuota: Array<Asset>;
-  /**
-   * Minimum quota for desired token, in pool underlying units.
-   * The credit facade rounds quota changes down to a multiple of
-   * `PERCENTAGE_FACTOR`; the min quota bound must not exceed the rounded
-   * value, otherwise the quota keeper reverts with
-   * `QuotaIsOutOfBoundsException`.
-   */
-  minQuota: Array<Asset>;
-}
 
 export interface PreviewDelayedWithdrawalProps {
   /**
@@ -343,50 +328,6 @@ export interface PartiallyLiquidateProps extends PartialLiquidationParams {
 }
 
 /**
- * EIP-2612 permit signature data for a token, enabling gasless approval for credit account operations.
- **/
-export interface PermitResult {
-  /**
-   * ECDSA signature `r` component.
-   **/
-  r: Address;
-  /**
-   * ECDSA signature `s` component.
-   **/
-  s: Address;
-  /**
-   * ECDSA signature `v` component.
-   **/
-  v: number;
-
-  /**
-   * Token address the permit is for.
-   **/
-  token: Address;
-  /**
-   * Address of the token holder granting the permit.
-   **/
-  owner: Address;
-  /**
-   * Address authorized to spend the tokens.
-   **/
-  spender: Address;
-  /**
-   * Amount of tokens approved.
-   **/
-  value: bigint;
-
-  /**
-   * Timestamp after which the permit expires.
-   **/
-  deadline: bigint;
-  /**
-   * Owner's current permit nonce.
-   **/
-  nonce: bigint;
-}
-
-/**
  * Claimable reward tokens associated with a single staking adapter and phantom token pair.
  **/
 export interface Rewards {
@@ -407,17 +348,6 @@ export interface Rewards {
    * List of reward token amounts claimable from this adapter.
    **/
   rewards: Array<Asset>;
-}
-
-/**
- * Options to get open account requirements
- * Compatible with StrategyConfigPayload
- */
-export interface GetOpenAccountRequirementsProps {
-  /**
-   * Token address of the strategy
-   */
-  tokenOutAddress: Address;
 }
 
 /**

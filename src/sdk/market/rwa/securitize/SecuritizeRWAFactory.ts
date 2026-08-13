@@ -4,12 +4,12 @@ import {
   decodeAbiParameters,
 } from "viem";
 import { iSecuritizeRWAFactoryAbi } from "../../../../abi/rwa/iSecuritizeRWAFactory.js";
-import type { GetOpenAccountRequirementsProps } from "../../../accounts/types.js";
 import { BaseContract } from "../../../base/index.js";
 import type { OnchainSDK } from "../../../OnchainSDK.js";
 import type { MultiCall, RawTx } from "../../../types/index.js";
 import { AddressMap, AddressSet } from "../../../utils/index.js";
 import type {
+  GetOpenAccountRequirementsProps,
   IRWAFactory,
   RWACompressorInvestorData,
   RWAFactoryData,

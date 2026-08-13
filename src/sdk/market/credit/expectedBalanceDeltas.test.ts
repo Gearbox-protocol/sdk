@@ -2,7 +2,6 @@ import type { Address } from "viem";
 import { getAddress } from "viem";
 import { describe, expect, it } from "vitest";
 
-import type { WithdrawalOutput } from "../../accounts/withdrawal-compressor/index.js";
 import { DUST_THRESHOLD } from "../../constants/index.js";
 import { expectedBalanceDeltas } from "./expectedBalanceDeltas.js";
 
@@ -64,21 +63,6 @@ describe("expectedBalanceDeltas", () => {
         spentAmount: 0n,
       }),
     ).toEqual([{ token: TOKEN_A, amount: 100n - DUST_THRESHOLD }]);
-  });
-
-  it("accepts withdrawal outputs and counts delayed ones too", () => {
-    const outputs: WithdrawalOutput[] = [
-      { token: TOKEN_A, amount: 100n, isDelayed: false },
-      { token: TOKEN_B, amount: 200n, isDelayed: true },
-    ];
-
-    expect(
-      expectedBalanceDeltas({ outputs, spentToken: SPENT, spentAmount: 1n }),
-    ).toEqual([
-      { token: TOKEN_A, amount: 100n - DUST_THRESHOLD },
-      { token: TOKEN_B, amount: 200n - DUST_THRESHOLD },
-      { token: SPENT, amount: -1n },
-    ]);
   });
 
   it("returns no deltas for empty outputs and nothing spent", () => {

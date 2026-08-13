@@ -18,7 +18,7 @@ import {
   iCreditFacadeV310Abi,
 } from "../../../abi/310/generated.js";
 import { iPausableAbi } from "../../../abi/iPausable.js";
-import type { PermitResult } from "../../accounts/types.js";
+import type { PermitResult } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
 import { MIN_INT96 } from "../../constants/index.js";
 import type { MultiCall } from "../../types/index.js";
