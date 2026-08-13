@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { ZodAddress, ZodHex } from "../sdk/utils/zod.js";
+import { ZodAddress, ZodBigInt, ZodHex } from "../sdk/utils/zod.js";
 
 /**
  * Runtime schemas for {@link ./primitives.js}.
@@ -35,15 +35,16 @@ export const assetTypeSchema = z.union([
 ]);
 
 /**
- * {@link Leverage}
+ * {@link Leverage}. Nonnegative rather than positive: `0` is the backend's
+ * encoding of "leverage unavailable".
  **/
-export const leverageSchema = z.number().positive();
+export const leverageSchema = z.number().nonnegative();
 
 /**
  * {@link Amount}
  **/
 export const amountSchema = z.object({
-  value: z.bigint(),
+  value: ZodBigInt(),
   valueUsd: z.number().nullable(),
 });
 
@@ -72,5 +73,5 @@ export const tokenAmountSchema = amountSchema.extend({
 export const txCallSchema = z.object({
   to: ZodAddress(),
   callData: ZodHex(),
-  value: z.bigint().optional(),
+  value: ZodBigInt().optional(),
 });

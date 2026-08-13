@@ -169,6 +169,24 @@ describe("model schemas match model types", () => {
     expectTypeOf<z.infer<typeof txCallSchema>>().toEqualTypeOf<TxCall>();
   });
 
+  it("bigints decode from either the wire or the chain", () => {
+    // `z.infer` above is the decoded side; this pins the accepted side, so the
+    // codec cannot be narrowed back to bigint-only without failing here. It is
+    // deliberately wider than the backend's `Wire<T>`, whose `value` is only
+    // ever the string: the wire form is a subset of what decode accepts, which
+    // is what lets one schema validate both a JSON response and a value the
+    // SDK built from the chain. For the same reason there is no whole-model
+    // `Wire<T>` mirror here — `Wire<Address>` stays the template-literal
+    // `Address` where a codec input is a plain `string`.
+    expectTypeOf<z.input<typeof amountSchema>>().toEqualTypeOf<{
+      value: string | bigint;
+      valueUsd: number | null;
+    }>();
+    expectTypeOf<z.input<typeof txCallSchema>["value"]>().toEqualTypeOf<
+      string | bigint | undefined
+    >();
+  });
+
   it("curators", () => {
     expectTypeOf<
       z.infer<typeof curatorNameSchema>

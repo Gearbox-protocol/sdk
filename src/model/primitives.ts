@@ -62,6 +62,7 @@ export type AssetType = "Stable" | "ETH" | "BTC";
  * ```ts
  * const leveraged: Leverage = 5.5;
  * const unleveraged: Leverage = 1;
+ * const unavailable: Leverage = 0;
  * ```
  **/
 export type Leverage = number;
