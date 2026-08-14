@@ -95,9 +95,9 @@ export abstract class AbstractOffchainNamespace {
   /**
    * Reads one endpoint and decodes its payload.
    *
-   * The envelope is built here rather than by the caller: the status is
-   * `"success"` whenever this returns at all, because anything else has
-   * already thrown.
+   * A 2xx body is a {@link DataResponse}. Timeouts, non-2xx, and schema skew
+   * throw — they are not a backend envelope, and this layer is what wraps
+   * them, because the request may never have reached the backend.
    **/
   protected async get<S extends z.ZodType>(
     request: OffchainGetRequest<S>,
