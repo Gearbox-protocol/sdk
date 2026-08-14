@@ -28,7 +28,7 @@ export class MultichainPositionsService<
    * would be discarded are never queried and never appear in the meta.
    **/
   public async list(
-    props: ListPositionsProps,
+    props: ListPositionsProps<true>,
   ): Promise<MultichainResult<Position[]>> {
     return this.queryChains({
       networks: this.#networksOf(props.filter),

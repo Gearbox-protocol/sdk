@@ -45,6 +45,7 @@ import type {
   GetLiquidatableAccountsProps,
   GetLiquidationDetailsProps,
   GetLiquidationPositionsProps,
+  LoadRWALiquidatorsProps,
   OnchainLiquidationData,
   OnchainLiquidationOutput,
   RWALiquidatorInfo,
@@ -63,14 +64,20 @@ export class LiquidationsService extends SDKConstruct {
   public async getLiquidatableAccounts(
     props?: GetLiquidatableAccountsProps,
   ): Promise<LiquidatableAccount[]> {
-    await this.sdk.withdrawalCompressor?.loadWithdrawableAssets();
+    await this.sdk.withdrawalCompressor?.loadWithdrawableAssets(
+      undefined,
+      props?.blockNumber,
+    );
 
-    const unhealthy = await this.sdk.accounts.getCreditAccounts({
-      maxHealthFactor: WAD - 1n,
-      includeZeroDebt: false,
-    });
+    const unhealthy = await this.sdk.accounts.getCreditAccounts(
+      {
+        maxHealthFactor: WAD - 1n,
+        includeZeroDebt: false,
+      },
+      props?.blockNumber,
+    );
     const seen = new AddressSet(unhealthy.map(ca => ca.creditAccount));
-    let expired = await this.#getExpiredCreditAccounts();
+    let expired = await this.#getExpiredCreditAccounts(props?.blockNumber);
     expired = expired.filter(ca => !seen.has(ca.creditAccount));
 
     return [...unhealthy, ...expired]
@@ -97,17 +104,22 @@ export class LiquidationsService extends SDKConstruct {
   public async getLiquidationDetails(
     props: GetLiquidationDetailsProps,
   ): Promise<LiquidationDetails> {
-    const { creditAccount, liquidator, ignoreReservePrices } = props;
-    const ca = await this.#getCreditAccountData(creditAccount);
+    const { creditAccount, liquidator, ignoreReservePrices, blockNumber } =
+      props;
+    const ca = await this.#getCreditAccountData(creditAccount, blockNumber);
     const suite = this.sdk.marketRegister.findCreditManager(ca.creditManager);
     const { priceOracle } = suite.market;
 
-    await this.sdk.withdrawalCompressor?.loadWithdrawableAssets();
+    await this.sdk.withdrawalCompressor?.loadWithdrawableAssets(
+      undefined,
+      blockNumber,
+    );
     const account = this.#buildAccount(ca, suite);
     const data = await this.#getLiquidationData(
       ca,
       liquidator,
       ignoreReservePrices,
+      blockNumber,
     );
 
     return {
@@ -140,12 +152,14 @@ export class LiquidationsService extends SDKConstruct {
   public async buildLiquidationTx(
     props: BuildLiquidationTxProps,
   ): Promise<TxCall> {
-    const { creditAccount, liquidator, ignoreReservePrices } = props;
-    const ca = await this.#getCreditAccountData(creditAccount);
+    const { creditAccount, liquidator, ignoreReservePrices, blockNumber } =
+      props;
+    const ca = await this.#getCreditAccountData(creditAccount, blockNumber);
     const { liquidationCall } = await this.#getLiquidationData(
       ca,
       liquidator,
       ignoreReservePrices,
+      blockNumber,
     );
     this.logger?.debug(
       `built tx to liquidate credit account ${this.labelAddress(creditAccount)} to ${this.labelAddress(liquidator)}`,
@@ -168,17 +182,18 @@ export class LiquidationsService extends SDKConstruct {
     if (!compressor) {
       return [];
     }
-    await compressor.loadWithdrawableAssets();
+    await compressor.loadWithdrawableAssets(undefined, props.blockNumber);
     // the same phantom token can be configured in several credit managers;
     // duplicates would double-count redeemers in the compressor's loop
     const phantomTokens = new AddressSet(
       compressor.getWithdrawableAssets().map(a => a.withdrawalPhantomToken),
     );
     const { claimable, pending } =
-      await compressor.getExternalAccountCurrentWithdrawals(
-        props.liquidator,
-        ...phantomTokens.asArray(),
-      );
+      await compressor.getExternalAccountCurrentWithdrawals({
+        account: props.liquidator,
+        withdrawalTokens: phantomTokens.asArray(),
+        blockNumber: props.blockNumber,
+      });
     return [
       ...claimable.map(w => ({
         ...this.#liquidationPosition(w.token, w.outputs),
@@ -198,7 +213,9 @@ export class LiquidationsService extends SDKConstruct {
    * deployed for the markets of the chain and registers them in the SDK
    * contracts register.
    **/
-  public async loadRWALiquidators(): Promise<void> {
+  public async loadRWALiquidators(
+    props?: LoadRWALiquidatorsProps,
+  ): Promise<void> {
     const configurators = this.sdk.marketRegister.marketConfigurators;
     if (configurators.length === 0) {
       return;
@@ -215,6 +232,7 @@ export class LiquidationsService extends SDKConstruct {
       ),
       allowFailure: false,
       batchSize: 0,
+      blockNumber: props?.blockNumber,
     });
     for (const info of resp.flat()) {
       this.#createRWALiquidator(info);
@@ -350,8 +368,12 @@ export class LiquidationsService extends SDKConstruct {
 
   async #getCreditAccountData(
     creditAccount: Address,
+    blockNumber?: bigint,
   ): Promise<CreditAccountData> {
-    const ca = await this.sdk.accounts.getCreditAccountData(creditAccount);
+    const ca = await this.sdk.accounts.getCreditAccountData(
+      creditAccount,
+      blockNumber,
+    );
     if (!ca) {
       throw new Error(`credit account ${creditAccount} not found`);
     }
@@ -369,6 +391,7 @@ export class LiquidationsService extends SDKConstruct {
     ca: CreditAccountData,
     liquidator: Address = ADDRESS_0X0,
     ignoreReservePrices?: boolean,
+    blockNumber?: bigint,
   ): Promise<OnchainLiquidationData> {
     const priceUpdates = await this.sdk.accounts.getOnDemandPriceUpdates(
       ca,
@@ -379,13 +402,16 @@ export class LiquidationsService extends SDKConstruct {
       abi: iLiquidationCompressorV313Abi,
       functionName: "getLiquidationData",
       args: [liquidator, ca.creditAccount, priceUpdates],
+      blockNumber,
     });
     return result;
   }
 
   // accounts of expired credit managers with outstanding debt are liquidatable
   // regardless of their health factor
-  async #getExpiredCreditAccounts(): Promise<CreditAccountData[]> {
+  async #getExpiredCreditAccounts(
+    blockNumber?: bigint,
+  ): Promise<CreditAccountData[]> {
     const expiredCMs: Address[] = [];
     for (const market of this.sdk.marketRegister.markets) {
       // nothing borrowed === no accounts
@@ -409,10 +435,13 @@ export class LiquidationsService extends SDKConstruct {
     );
     const accounts = await Promise.all(
       expiredCMs.map(creditManager =>
-        this.sdk.accounts.getCreditAccounts({
-          creditManager,
-          includeZeroDebt: false,
-        }),
+        this.sdk.accounts.getCreditAccounts(
+          {
+            creditManager,
+            includeZeroDebt: false,
+          },
+          blockNumber,
+        ),
       ),
     );
     return accounts.flat();

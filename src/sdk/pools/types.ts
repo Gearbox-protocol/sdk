@@ -122,6 +122,10 @@ export interface ListPoolPositionsProps {
    * Wallet whose pool shares to describe.
    **/
   wallet: Address;
+  /**
+   * Block to read at. Defaults to the latest block.
+   **/
+  blockNumber?: bigint;
 }
 
 /**

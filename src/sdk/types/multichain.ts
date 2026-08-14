@@ -30,6 +30,25 @@ export type WithMultichain<
 > = Multichain extends true ? T : {};
 
 /**
+ * Pins a live read to a block. Only meaningful on one chain: a height is not
+ * a shared moment across networks.
+ **/
+export interface BlockNumberProps {
+  /**
+   * Block to read at. Defaults to the latest block.
+   **/
+  blockNumber?: bigint;
+}
+
+/**
+ * Adds {@link BlockNumberProps} only for a single-chain call. Fan-out methods
+ * omit it so a caller cannot pass one height to every network.
+ **/
+export type WithBlock<Multichain extends boolean> = Multichain extends true
+  ? {}
+  : BlockNumberProps;
+
+/**
  * Outcome of a fan-out request on a single chain.
  **/
 export interface MultichainNetworkMeta {

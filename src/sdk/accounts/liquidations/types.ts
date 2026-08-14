@@ -2,8 +2,10 @@ import type { Address, ContractFunctionReturnType } from "viem";
 import type { iLiquidationCompressorV313Abi } from "../../../abi/ILiquidationCompressorV313.js";
 import type { LiquidatableAccountFilter } from "../../../model/index.js";
 import type {
+  BlockNumberProps,
   MultichainNetworkProps,
   MultichainNetworksProps,
+  WithBlock,
   WithMultichain,
 } from "../../types/index.js";
 
@@ -54,9 +56,13 @@ export type GetLiquidatableAccountsPropsBase = Omit<
 
 /**
  * Props for {@link LiquidationsService.getLiquidatableAccounts}.
+ *
+ * {@link BlockNumberProps.blockNumber} is only on the single-chain form: a
+ * height is not shared across the networks of the fan-out.
  **/
 export type GetLiquidatableAccountsProps<Multichain extends boolean = false> =
   GetLiquidatableAccountsPropsBase &
+    WithBlock<Multichain> &
     WithMultichain<Multichain, MultichainNetworksProps>;
 
 /**
@@ -80,10 +86,17 @@ export interface GetLiquidationDetailsPropsBase {
    * applied by the compressor before computing amounts.
    **/
   ignoreReservePrices?: boolean;
+  /**
+   * Block to read at. Defaults to the latest block.
+   **/
+  blockNumber?: bigint;
 }
 
 /**
  * Props for {@link LiquidationsService.getLiquidationDetails}.
+ *
+ * {@link BlockNumberProps.blockNumber} is kept on the multichain form because
+ * the method already targets a single {@link MultichainNetworkProps.network}.
  **/
 export type GetLiquidationDetailsProps<Multichain extends boolean = false> =
   GetLiquidationDetailsPropsBase &
@@ -107,10 +120,17 @@ export interface BuildLiquidationTxPropsBase {
    * applied by the compressor before building the transaction.
    **/
   ignoreReservePrices?: boolean;
+  /**
+   * Block to read at. Defaults to the latest block.
+   **/
+  blockNumber?: bigint;
 }
 
 /**
  * Props for {@link LiquidationsService.buildLiquidationTx}.
+ *
+ * {@link BlockNumberProps.blockNumber} is kept on the multichain form because
+ * the method already targets a single {@link MultichainNetworkProps.network}.
  **/
 export type BuildLiquidationTxProps<Multichain extends boolean = false> =
   BuildLiquidationTxPropsBase &
@@ -129,14 +149,20 @@ export interface GetLiquidationPositionsPropsBase {
 
 /**
  * Props for {@link LiquidationsService.getLiquidationPositions}.
+ *
+ * {@link BlockNumberProps.blockNumber} is only on the single-chain form: a
+ * height is not shared across the networks of the fan-out.
  **/
 export type GetLiquidationPositionsProps<Multichain extends boolean = false> =
   GetLiquidationPositionsPropsBase &
+    WithBlock<Multichain> &
     WithMultichain<Multichain, MultichainNetworksProps>;
 
 /**
- * Props for {@link MultichainLiquidationsService.loadRWALiquidators}. The
- * per-chain {@link LiquidationsService.loadRWALiquidators} takes no props.
+ * Props for {@link LiquidationsService.loadRWALiquidators}.
+ *
+ * {@link BlockNumberProps.blockNumber} is only on the single-chain form: a
+ * height is not shared across the networks of the fan-out.
  **/
 export type LoadRWALiquidatorsProps<Multichain extends boolean = false> =
-  WithMultichain<Multichain, MultichainNetworksProps>;
+  WithBlock<Multichain> & WithMultichain<Multichain, MultichainNetworksProps>;

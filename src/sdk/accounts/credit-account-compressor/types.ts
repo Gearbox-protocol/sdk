@@ -184,4 +184,8 @@ export interface ListStrategyPositionsProps {
    * Whether to include accounts that carry no debt.
    **/
   includeZeroDebt: boolean;
+  /**
+   * Block to read at. Defaults to the latest block.
+   **/
+  blockNumber?: bigint;
 }
