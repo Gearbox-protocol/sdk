@@ -23,12 +23,12 @@ import { SDKConstruct } from "../base/index.js";
  * state. This service only picks the markets and applies the filter.
  **/
 export class OpportunitiesService extends SDKConstruct {
-  /**s
+  /**
    * Every pool and strategy of every loaded market on this chain.
    *
    * @param filter - Optional narrowing, applied to the built rows.
    **/
-  public list(filter?: OpportunityFilter): Opportunity[] {
+  public async list(filter?: OpportunityFilter): Promise<Opportunity[]> {
     const chainIds = filter?.chainIds;
     if (isFilterSet(chainIds) && !chainIds.includes(this.chainId)) {
       return [];
@@ -44,7 +44,9 @@ export class OpportunitiesService extends SDKConstruct {
    *
    * @throws If no loaded market has this pool.
    **/
-  public getPool(key: PoolOpportunityKey): PoolOpportunityDetail {
+  public async getPool(
+    key: PoolOpportunityKey,
+  ): Promise<PoolOpportunityDetail> {
     return this.sdk.marketRegister.findByPool(key.pool).poolOpportunityDetail();
   }
 
@@ -55,7 +57,9 @@ export class OpportunitiesService extends SDKConstruct {
    * @throws If the credit manager is unknown, or does not accept the requested
    * collateral as a strategy.
    **/
-  public getStrategy(key: StrategyOpportunityKey): StrategyOpportunityDetail {
+  public async getStrategy(
+    key: StrategyOpportunityKey,
+  ): Promise<StrategyOpportunityDetail> {
     return this.sdk.marketRegister
       .findByCreditManager(key.creditManager)
       .strategyOpportunityDetail(key.creditManager, key.targetCollateral);
