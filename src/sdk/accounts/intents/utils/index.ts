@@ -1,4 +1,3 @@
-export * from "./assemble-operation-calls.js";
 export * from "./borrowed-amount-plus-interest-and-fees.js";
 export * from "./common.js";
 export * from "./convert-amount.js";
@@ -7,5 +6,3 @@ export * from "./ledger.js";
 export * from "./pick-token.js";
 export * from "./quotas-for-update.js";
 export * from "./router-path.js";
-export * from "./simulate-adjust-state.js";
-export * from "./with-quota-update.js";

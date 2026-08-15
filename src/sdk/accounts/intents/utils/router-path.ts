@@ -43,16 +43,10 @@ export interface RouterPaths {
     amount: bigint;
     keep?: bigint;
   }): Promise<SwapLeg>;
-  /** Spends `expectedBalances` minus `leftoverBalances` into `target`. */
-  swapManyToOne(input: {
-    expectedBalances: Asset[];
-    leftoverBalances: Asset[];
-    target: Address;
-  }): Promise<SwapLeg>;
   /**
-   * Same partial spend as {@link swapManyToOne}, but also projects the balances
-   * left on the account. Used when opening, where there is no live account state
-   * to diff the result against.
+   * Spends `expectedBalances` minus `leftoverBalances` into `target` and also
+   * projects the balances left on the account. Used when opening, where there
+   * is no live account state to diff the result against.
    */
   openStrategy(input: {
     expectedBalances: Asset[];
@@ -125,17 +119,6 @@ export function createRouterPaths(args: {
         tokenIn,
         tokenOut,
         amount,
-        slippage,
-      });
-    },
-
-    async swapManyToOne({ expectedBalances, leftoverBalances, target }) {
-      return router.findManyToOnePath({
-        creditAccount: toRouterCaSlice(creditAccount, expectedBalances),
-        creditManager: cmSlice,
-        expectedBalances,
-        leftoverBalances,
-        target,
         slippage,
       });
     },

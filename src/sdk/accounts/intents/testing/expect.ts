@@ -1,13 +1,12 @@
 import type { Address } from "viem";
 import { expect } from "vitest";
 import type { MultiCall } from "../../../index.js";
-
 import type {
   AccountCalculatorOperation,
   ClaimDelayedWithdrawalOperation,
   CloseCreditAccountOperation,
   QuotaUpdateOperation,
-} from "../operations/index.js";
+} from "../operations.js";
 import type { AdjustState, IntentPreviewResult } from "../types.js";
 import {
   CA_OP_CALLS,

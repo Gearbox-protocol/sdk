@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 import type { Asset } from "../../../index.js";
 import { BigIntMath } from "../../../utils/bigint-math.js";
-import type { AccountCalculatorOperation } from "../operations/types.js";
+import type { AccountCalculatorOperation } from "../operations.js";
 
 export type ConvertFn = (token: Address, to: Address, amount: bigint) => bigint;
 
@@ -147,26 +147,4 @@ export class OperationLedger {
       this.#balances.set(key, balance);
     }
   }
-}
-
-interface SimulateOperationAssetsProps {
-  initialAssets: readonly Asset[] | Asset[];
-  operations: AccountCalculatorOperation[];
-  underlyingToken: Address;
-  debt: bigint;
-  convert: ConvertFn;
-}
-
-/** Post-chain state of an operation list, for callers that hold no ledger. */
-export function simulateOperationAssets(
-  props: SimulateOperationAssetsProps,
-): LedgerSnapshot {
-  return new OperationLedger({
-    initialAssets: props.initialAssets,
-    underlying: props.underlyingToken,
-    debt: props.debt,
-    convert: props.convert,
-  })
-    .applyAll(props.operations)
-    .snapshot();
 }
