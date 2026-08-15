@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import type { Filterable } from "./filters.js";
+import type { ChainScopedFilter, Filterable } from "./filters.js";
 import { isFilterSet } from "./filters.js";
 import type {
   DelayedReceivedAsset,
@@ -318,7 +318,7 @@ export function positionId(position: Position): PositionId {
  * `"all"` to say the same thing explicitly, which is what a UI whose state has
  * an "any" option holds, see {@link Filterable}. Conditions combine with AND.
  **/
-export interface PositionFilter {
+export interface PositionFilter extends ChainScopedFilter {
   /**
    * Keep only positions of this kind.
    **/
@@ -328,10 +328,6 @@ export interface PositionFilter {
    * Applicable only to {@link StrategyPosition}
    **/
   isZeroDebt?: Filterable<boolean>;
-  /**
-   * Keep only positions on these chains.
-   **/
-  chainIds?: Filterable<ChainId[]>;
   /**
    * Keep only positions whose underlying is of this class, which for an RWA
    * market means the class of the token its wrapper holds.
@@ -367,10 +363,7 @@ export function matchesPositionFilter(
   if (isFilterSet(filter.kind) && position.kind !== filter.kind) {
     return false;
   }
-  if (
-    isFilterSet(filter.chainIds) &&
-    !filter.chainIds.includes(position.chainId)
-  ) {
+  if (filter.chainIds && !filter.chainIds.includes(position.chainId)) {
     return false;
   }
   if (

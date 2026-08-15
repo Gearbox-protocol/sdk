@@ -1,4 +1,5 @@
 import type {
+  DataResponse,
   LiquidatableAccount,
   LiquidationDetails,
   LiquidationPosition,
@@ -6,7 +7,6 @@ import type {
 } from "../../../model/index.js";
 import { MultichainConstruct } from "../../base/index.js";
 import type { PluginsMap } from "../../plugins/index.js";
-import type { MultichainResult } from "../../types/index.js";
 import type {
   BuildLiquidationTxProps,
   GetLiquidatableAccountsProps,
@@ -18,11 +18,14 @@ import type {
 /**
  * Cross-chain counterpart of {@link LiquidationsService}.
  *
- * Fans out over all chains configured in {@link MultichainSDK} (optionally
- * restricted via {@link MultichainNetworksProps.networks}). A failed chain is
+ * Fans out over all chains configured in {@link MultichainSDK}, optionally
+ * restricted via {@link MultichainChainIdsProps.chainIds}. A failed chain is
  * logged as a warning and skipped, so one dead RPC does not empty the whole
- * list; its failure is reported in {@link MultichainResult.meta}. Networks that
- * are not configured in the SDK are reported there the same way.
+ * list; its failure is reported in `meta.chains`.
+ *
+ * These reads are live compressor and multicall work rather than a walk over
+ * loaded state, so each chain is pinned to its own freshly fetched head and
+ * reports that block.
  **/
 export class MultichainLiquidationsService<
   const Plugins extends PluginsMap = {},
@@ -33,32 +36,61 @@ export class MultichainLiquidationsService<
    **/
   public async getLiquidatableAccounts(
     props?: GetLiquidatableAccountsProps<true>,
-  ): Promise<MultichainResult<LiquidatableAccount[]>> {
+  ): Promise<DataResponse<LiquidatableAccount[]>> {
     return this.queryChains({
-      networks: props?.networks,
+      chainIds: props?.chainIds,
       label: "get liquidatable accounts",
-      run: sdk => sdk.liquidations.getLiquidatableAccounts(props),
+      block: "latest",
+      run: (sdk, block) =>
+        sdk.liquidations.getLiquidatableAccounts({
+          ...props,
+          blockNumber: block.blockNumber,
+        }),
     });
   }
 
   /**
    * {@inheritDoc LiquidationsService.getLiquidationDetails}
+   *
+   * Throws when the chain cannot answer: one account's liquidation has no
+   * partial stand-in.
    **/
   public async getLiquidationDetails(
     props: GetLiquidationDetailsProps<true>,
-  ): Promise<LiquidationDetails> {
-    return this.sdk
-      .chain(props.network)
-      .liquidations.getLiquidationDetails(props);
+  ): Promise<DataResponse<LiquidationDetails>> {
+    return this.queryChain({
+      network: props.network,
+      label: "get liquidation details",
+      // a caller that pinned the read keeps its own height, and metadata
+      // reports that block rather than a newer one
+      block: props.blockNumber ?? "latest",
+      run: (sdk, block) =>
+        sdk.liquidations.getLiquidationDetails({
+          ...props,
+          blockNumber: block.blockNumber,
+        }),
+    });
   }
 
   /**
    * {@inheritDoc LiquidationsService.buildLiquidationTx}
+   *
+   * The reported block is the one the transaction was built against, which is
+   * what tells a caller whether it is still worth sending.
    **/
   public async buildLiquidationTx(
     props: BuildLiquidationTxProps<true>,
-  ): Promise<TxCall> {
-    return this.sdk.chain(props.network).liquidations.buildLiquidationTx(props);
+  ): Promise<DataResponse<TxCall>> {
+    return this.queryChain({
+      network: props.network,
+      label: "build liquidation tx",
+      block: props.blockNumber ?? "latest",
+      run: (sdk, block) =>
+        sdk.liquidations.buildLiquidationTx({
+          ...props,
+          blockNumber: block.blockNumber,
+        }),
+    });
   }
 
   /**
@@ -67,23 +99,32 @@ export class MultichainLiquidationsService<
    **/
   public async getLiquidationPositions(
     props: GetLiquidationPositionsProps<true>,
-  ): Promise<MultichainResult<LiquidationPosition[]>> {
+  ): Promise<DataResponse<LiquidationPosition[]>> {
     return this.queryChains({
-      networks: props.networks,
+      chainIds: props.chainIds,
       label: "get liquidation positions",
-      run: sdk => sdk.liquidations.getLiquidationPositions(props),
+      block: "latest",
+      run: (sdk, block) =>
+        sdk.liquidations.getLiquidationPositions({
+          ...props,
+          blockNumber: block.blockNumber,
+        }),
     });
   }
 
   /**
    * Loads the liquidators of all queried chains, see
    * {@link LiquidationsService.loadRWALiquidators}.
+   *
+   * Nothing consumes the block of a cache warm-up, so this one is left on the
+   * loaded snapshot; pin it per chain with
+   * `sdk.chain(network).liquidations.loadRWALiquidators({ blockNumber })`.
    **/
   public async loadRWALiquidators(
     props?: LoadRWALiquidatorsProps<true>,
-  ): Promise<MultichainResult<void>> {
+  ): Promise<DataResponse<void>> {
     return this.runChains({
-      networks: props?.networks,
+      chainIds: props?.chainIds,
       label: "load RWA liquidators",
       run: sdk => sdk.liquidations.loadRWALiquidators(),
     });

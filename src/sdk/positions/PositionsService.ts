@@ -17,8 +17,7 @@ export class PositionsService extends SDKConstruct {
    **/
   public async list(props: ListPositionsProps): Promise<Position[]> {
     const { wallet, filter, blockNumber } = props;
-    const chainIds = filter?.chainIds;
-    if (isFilterSet(chainIds) && !chainIds.includes(this.chainId)) {
+    if (filter?.chainIds && !filter.chainIds.includes(this.chainId)) {
       return [];
     }
 

@@ -1,14 +1,16 @@
 import { pino } from "pino";
 import { getAlchemyUrl } from "../src/dev/providers.js";
-import type { Bps, Opportunity } from "../src/model/index.js";
+import type { Bps, ChainMetadata, Opportunity } from "../src/model/index.js";
 import { GearboxSDK } from "../src/new-sdk/GearboxSDK.js";
 import type { NetworkType } from "../src/sdk/index.js";
 import { chains } from "../src/sdk/index.js";
 
 /**
- * Lists every opportunity of one chain in `both` mode, so each row is the
- * chain's view of a market merged with what only the backend knows — the yield
- * figures above all, which no amount of reading the chain produces.
+ * Lists every opportunity of one chain in `both` mode, so the list is served by
+ * the backend while it is no more than a couple of minutes behind, and by the
+ * chain when it falls further behind or fails. The read is scoped to the chains
+ * the SDK was configured for, so the backend is never asked for the rest of what
+ * it knows.
  *
  * ```sh
  * RPC_URL=https://... pnpm list-opportunities
@@ -50,27 +52,28 @@ async function listOpportunities(): Promise<void> {
     logger.warn(e, `could not attach to ${network}, reading the backend alone`);
   }
 
-  // without this the backend would answer for every chain it knows while the
-  // chain leg only covers this one, and the two halves of the list would not
-  // be about the same thing
-  const { result, meta } = await sdk.opportunities.list({
-    chainIds: [chains[network].id],
-  });
+  const { data, meta } = await sdk.opportunities.list();
 
-  for (const opportunity of sortByName(result)) {
+  for (const opportunity of sortByName(data)) {
     console.log(describe(opportunity));
   }
 
-  // a read is served by whatever answered, so the outcome per source is part
-  // of the result rather than a detail of how it was obtained
-  console.log(`\n${result.length} opportunities on ${network}`);
+  // each chain is served by one source, so which one won it — and how far behind
+  // the block it answered at is — is part of the result rather than a detail of
+  // how it was obtained
+  console.log(`\n${data.length} opportunities on ${network}`);
   for (const chain of meta.chains) {
-    console.log(`  ${chain.network}: ${chain.status}`);
+    console.log(`  ${chain.chainId}: ${describeChain(chain)}`);
   }
-  console.log(`  ${BACKEND_URL}: ${meta.offchain?.status ?? "not asked"}`);
-  if (meta.offchain?.status === "error") {
-    console.log(`    ${meta.offchain.error}`);
+}
+
+function describeChain(chain: ChainMetadata): string {
+  if (chain.status === "error") {
+    return `error from the ${chain.source ?? "only"} source: ${chain.error}`;
   }
+  const at =
+    chain.blockNumber === undefined ? "" : ` at block ${chain.blockNumber}`;
+  return `served by ${chain.source}${at}`;
 }
 
 function describe(opportunity: Opportunity): string {

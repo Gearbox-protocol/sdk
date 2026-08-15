@@ -130,7 +130,7 @@ export const positionSchema = z.discriminatedUnion("kind", [
 export const positionFilterSchema = z.object({
   kind: filterable(positionKindSchema).optional(),
   isZeroDebt: filterable(z.boolean()).optional(),
-  chainIds: filterable(z.array(chainIdSchema)).optional(),
+  chainIds: z.array(chainIdSchema).optional(),
   underlyingType: filterable(assetTypeSchema).optional(),
 });
 

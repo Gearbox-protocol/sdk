@@ -1,4 +1,5 @@
 import type {
+  DataResponse,
   Opportunity,
   OpportunityFilter,
   PoolOpportunityDetail,
@@ -6,19 +7,18 @@ import type {
   StrategyOpportunityDetail,
   StrategyOpportunityKey,
 } from "../../model/index.js";
-import { isFilterSet } from "../../model/index.js";
 import { MultichainConstruct } from "../base/index.js";
-import { getNetworkType } from "../chain/chains.js";
-import type { NetworkType } from "../chain/index.js";
 import type { PluginsMap } from "../plugins/index.js";
-import type { MultichainResult } from "../types/index.js";
 
 /**
  * Cross-chain counterpart of {@link OpportunitiesService}.
  *
  * Fans out over every chain configured in {@link MultichainSDK}. A chain that
  * fails is logged and skipped so one dead RPC does not empty the list; its
- * failure is reported in {@link MultichainResult.meta}.
+ * failure is reported in `meta.chains`.
+ *
+ * Every read walks loaded market state, so the block it reports is the SDK's
+ * snapshot rather than a freshly fetched head.
  *
  * Detail reads need no fan-out: an opportunity key names its chain.
  *
@@ -35,9 +35,9 @@ export class MultichainOpportunitiesService<
    **/
   public async list(
     filter?: OpportunityFilter,
-  ): Promise<MultichainResult<Opportunity[]>> {
+  ): Promise<DataResponse<Opportunity[]>> {
     return this.queryChains({
-      networks: this.#networksOf(filter),
+      chainIds: filter?.chainIds,
       label: "list opportunities",
       run: sdk => sdk.opportunities.list(filter),
     });
@@ -45,42 +45,33 @@ export class MultichainOpportunitiesService<
 
   /**
    * {@inheritDoc OpportunitiesService.getPool}
+   *
+   * Throws when the chain cannot answer: there is no partial stand-in for one
+   * opportunity, so only a caller with a second source can degrade this.
    **/
   public async getPool(
     key: PoolOpportunityKey,
-  ): Promise<PoolOpportunityDetail> {
-    return this.sdk.chain(key.chainId).opportunities.getPool(key);
+  ): Promise<DataResponse<PoolOpportunityDetail>> {
+    return this.queryChain({
+      network: key.chainId,
+      label: "get pool opportunity",
+      run: sdk => sdk.opportunities.getPool(key),
+    });
   }
 
   /**
    * {@inheritDoc OpportunitiesService.getStrategy}
+   *
+   * Throws when the chain cannot answer, see
+   * {@link MultichainOpportunitiesService.getPool}.
    **/
   public async getStrategy(
     key: StrategyOpportunityKey,
-  ): Promise<StrategyOpportunityDetail> {
-    return this.sdk.chain(key.chainId).opportunities.getStrategy(key);
-  }
-
-  /**
-   * Chains named by the filter, or `undefined` to query all of them. Chain ids
-   * the SDK does not support are dropped here rather than reported as failures:
-   * a filter naming them is a narrowing, not a request.
-   **/
-  #networksOf(filter?: OpportunityFilter): NetworkType[] | undefined {
-    const chainIds = filter?.chainIds;
-    if (!isFilterSet(chainIds)) {
-      return undefined;
-    }
-    const networks: NetworkType[] = [];
-    for (const chainId of chainIds) {
-      try {
-        networks.push(getNetworkType(chainId));
-      } catch {
-        this.sdk.logger?.debug(
-          `ignoring unsupported chain ${chainId} in opportunities filter`,
-        );
-      }
-    }
-    return networks;
+  ): Promise<DataResponse<StrategyOpportunityDetail>> {
+    return this.queryChain({
+      network: key.chainId,
+      label: "get strategy opportunity",
+      run: sdk => sdk.opportunities.getStrategy(key),
+    });
   }
 }

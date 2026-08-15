@@ -1,38 +1,6 @@
 import type { z } from "zod/v4";
+import type { ChainId } from "../model/primitives.js";
 import type { ILogger } from "../sdk/types/logger.js";
-
-/**
- * Outcome of the single request that serves a backend read. Unlike the
- * on-chain source there is no per-chain breakdown here: one HTTP call covers
- * every chain, so splitting it per chain would be fabricated.
- **/
-export interface OffchainSourceMeta {
-  /**
-   * Whether the backend served the request.
-   **/
-  status: "success" | "error";
-  /**
-   * Rejection reason. Only set when {@link status} is `"error"`.
-   **/
-  error?: unknown;
-}
-
-/**
- * What every {@link GearboxAPI} read returns: the payload plus the outcome of
- * the request that produced it, in the same shape the combined SDK exposes.
- *
- * @typeParam T - Payload type.
- **/
-export interface OffchainResult<T> {
-  /**
-   * Requested payload.
-   **/
-  result: T;
-  /**
-   * Outcome of the backend request.
-   **/
-  meta: OffchainSourceMeta;
-}
 
 /**
  * Thrown by the endpoints that have no stub answer, so that a caller in
@@ -117,6 +85,14 @@ export class OffchainValidationError extends Error {
  * Options for creating a {@link GearboxAPI} instance.
  **/
 export interface GearboxAPIOptions {
+  /**
+   * Chains this client reads. Every request names them, so the backend is
+   * never asked for a chain the caller does not cover — it knows chains this
+   * client has no business showing.
+   *
+   * A caller who thinks in network labels converts with {@link toChainIds}.
+   **/
+  chainIds: ChainId[];
   /**
    * Base URL of the Gearbox backend, without a trailing slash.
    *

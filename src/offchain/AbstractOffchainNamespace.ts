@@ -1,12 +1,16 @@
 import { z } from "zod/v4";
+import type { ChainScopedFilter } from "../model/filters.js";
 import type {
   HistoryMetric,
   HistoryRange,
   HistorySeries,
 } from "../model/history.js";
 import { historySeriesSchema } from "../model/history.schema.js";
+import type { ChainId } from "../model/primitives.js";
+import type { DataResponse } from "../model/response.js";
+import { responseSchema } from "../model/response.schema.js";
 import type { ILogger } from "../sdk/types/logger.js";
-import type { GearboxAPIOptions, OffchainResult } from "./types.js";
+import type { GearboxAPIOptions } from "./types.js";
 import {
   OffchainNotConfiguredError,
   OffchainTransportError,
@@ -76,13 +80,15 @@ export abstract class AbstractOffchainNamespace {
   protected readonly logger?: ILogger;
 
   readonly #baseUrl?: string;
+  readonly #chainIds: ChainId[];
   readonly #timeout: number;
 
-  protected constructor(name: string, options?: GearboxAPIOptions) {
+  protected constructor(name: string, options: GearboxAPIOptions) {
     // a trailing slash would produce a double one in every path below
-    this.#baseUrl = options?.baseUrl?.replace(/\/+$/, "");
-    this.#timeout = options?.timeout ?? DEFAULT_TIMEOUT;
-    this.logger = options?.logger?.child?.({ name }) ?? options?.logger;
+    this.#baseUrl = options.baseUrl?.replace(/\/+$/, "");
+    this.#chainIds = [...options.chainIds];
+    this.#timeout = options.timeout ?? DEFAULT_TIMEOUT;
+    this.logger = options.logger?.child?.({ name }) ?? options.logger;
   }
 
   /**
@@ -90,6 +96,22 @@ export abstract class AbstractOffchainNamespace {
    **/
   public get baseUrl(): string | undefined {
     return this.#baseUrl;
+  }
+
+  /**
+   * Chains one read covers: the configured ones, narrowed by the filter when
+   * it names any.
+   *
+   * Every list endpoint scopes its request with this, which is what keeps the
+   * backend from answering for a chain this client does not cover. A filter
+   * that names a chain we do not have narrows nothing, since a filter narrows
+   * a read rather than extending it.
+   **/
+  protected scopedChainIds(filter?: ChainScopedFilter): ChainId[] {
+    const wanted = filter?.chainIds;
+    return wanted
+      ? this.#chainIds.filter(chainId => wanted.includes(chainId))
+      : [...this.#chainIds];
   }
 
   /**
@@ -101,7 +123,7 @@ export abstract class AbstractOffchainNamespace {
    **/
   protected async get<S extends z.ZodType>(
     request: OffchainGetRequest<S>,
-  ): Promise<OffchainResult<z.output<S>>> {
+  ): Promise<DataResponse<z.output<S>>> {
     const url = this.#url(request.path, request.query);
     this.logger?.debug(`reading ${url}`);
 
@@ -109,7 +131,7 @@ export abstract class AbstractOffchainNamespace {
 
     // the decode direction: amounts arrive as decimal strings and addresses
     // unchecksummed, and the model's codecs are what turn them into values
-    const parsed = request.schema.safeParse(payload);
+    const parsed = responseSchema(request.schema).safeParse(payload);
     if (!parsed.success) {
       this.logger?.error(
         { url, issues: parsed.error.issues },
@@ -118,7 +140,15 @@ export abstract class AbstractOffchainNamespace {
       throw new OffchainValidationError(url, parsed.error.issues);
     }
 
-    return { result: parsed.data, meta: { status: "success" } };
+    const { data, meta } = parsed.data;
+    // the backend does not have to send `source`: everything it reports came
+    // from it, and stamping it here is what lets a merged envelope name the
+    // side that served each chain
+    const chains = meta.chains.map(chain => ({
+      ...chain,
+      source: "offchain" as const,
+    }));
+    return { data, meta: { chains } };
   }
 
   /**
@@ -131,7 +161,7 @@ export abstract class AbstractOffchainNamespace {
    **/
   protected async readHistory<M extends HistoryMetric>(
     request: OffchainHistoryRequest<M>,
-  ): Promise<OffchainResult<HistorySeries<M>>> {
+  ): Promise<DataResponse<HistorySeries<M>>> {
     return this.get({
       path: request.path,
       query: { range: request.range },

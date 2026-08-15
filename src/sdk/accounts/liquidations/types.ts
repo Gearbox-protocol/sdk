@@ -3,8 +3,8 @@ import type { iLiquidationCompressorV313Abi } from "../../../abi/ILiquidationCom
 import type { LiquidatableAccountFilter } from "../../../model/index.js";
 import type {
   BlockNumberProps,
+  MultichainChainIdsProps,
   MultichainNetworkProps,
-  MultichainNetworksProps,
   WithBlock,
   WithMultichain,
 } from "../../types/index.js";
@@ -42,28 +42,18 @@ export type RWALiquidatorInfo = ContractFunctionReturnType<
 >[number];
 
 /**
- * Chain-independent part of {@link GetLiquidatableAccountsProps}.
+ * Props for {@link LiquidationsService.getLiquidatableAccounts}: the read
+ * model's own filter, which the chain and the backend cannot disagree on.
  *
- * The filter itself lives in the read model, so the chain and the backend
- * cannot disagree on what a condition selects. Chain scoping is expressed as
- * `networks` by {@link MultichainNetworksProps} rather than as the model's
- * `chainIds`, which is why it is omitted here.
- **/
-export type GetLiquidatableAccountsPropsBase = Omit<
-  LiquidatableAccountFilter,
-  "chainIds"
->;
-
-/**
- * Props for {@link LiquidationsService.getLiquidatableAccounts}.
+ * Chain scoping is its {@link ChainScopedFilter.chainIds} — on the fan-out it
+ * narrows which chains are queried, on one chain it is checked per row like
+ * every other condition.
  *
  * {@link BlockNumberProps.blockNumber} is only on the single-chain form: a
  * height is not shared across the networks of the fan-out.
  **/
 export type GetLiquidatableAccountsProps<Multichain extends boolean = false> =
-  GetLiquidatableAccountsPropsBase &
-    WithBlock<Multichain> &
-    WithMultichain<Multichain, MultichainNetworksProps>;
+  LiquidatableAccountFilter & WithBlock<Multichain>;
 
 /**
  * Chain-independent part of {@link GetLiquidationDetailsProps}.
@@ -156,7 +146,7 @@ export interface GetLiquidationPositionsPropsBase {
 export type GetLiquidationPositionsProps<Multichain extends boolean = false> =
   GetLiquidationPositionsPropsBase &
     WithBlock<Multichain> &
-    WithMultichain<Multichain, MultichainNetworksProps>;
+    WithMultichain<Multichain, MultichainChainIdsProps>;
 
 /**
  * Props for {@link LiquidationsService.loadRWALiquidators}.
@@ -165,4 +155,4 @@ export type GetLiquidationPositionsProps<Multichain extends boolean = false> =
  * height is not shared across the networks of the fan-out.
  **/
 export type LoadRWALiquidatorsProps<Multichain extends boolean = false> =
-  WithBlock<Multichain> & WithMultichain<Multichain, MultichainNetworksProps>;
+  WithBlock<Multichain> & WithMultichain<Multichain, MultichainChainIdsProps>;

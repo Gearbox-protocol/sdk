@@ -1,13 +1,17 @@
 import { describe, expectTypeOf, it } from "vitest";
 import type {
+  DataResponse,
+  HistorySeries,
+  Opportunity,
   PoolHistoryMetric,
   PoolOpportunityRef,
   StrategyHistoryMetric,
   StrategyOpportunityRef,
 } from "../../model/index.js";
+import type { OffchainOpportunities } from "../../offchain/index.js";
+import type { MultichainOpportunitiesService } from "../../sdk/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import type { Mode } from "../types.js";
-import type { Chart } from "../utils/index.js";
 import type { Opportunities } from "./types.js";
 
 /**
@@ -37,6 +41,58 @@ describe("mode gates method existence", () => {
     // methods; they must not silently gain them
     expectTypeOf<Opportunities<Mode>>().toHaveProperty("list");
     expectTypeOf<Opportunities<Mode>>().not.toHaveProperty("history");
+    expectTypeOf<Opportunities<Mode>>().not.toHaveProperty("merge");
+  });
+
+  it("filtering an already-read list exists in every mode", () => {
+    expectTypeOf<Opportunities<"onchain">>().toHaveProperty("filter");
+    expectTypeOf<Opportunities<"offchain">>().toHaveProperty("filter");
+    expectTypeOf<Opportunities<"both">>().toHaveProperty("filter");
+  });
+});
+
+describe("mode gates the source branches", () => {
+  it("offers the branch of every source the mode reads", () => {
+    expectTypeOf<
+      Opportunities<"onchain">["onchain"]
+    >().toEqualTypeOf<MultichainOpportunitiesService>();
+    expectTypeOf<
+      Opportunities<"offchain">["offchain"]
+    >().toEqualTypeOf<OffchainOpportunities>();
+    expectTypeOf<
+      Opportunities<"both">["onchain"]
+    >().toEqualTypeOf<MultichainOpportunitiesService>();
+    expectTypeOf<
+      Opportunities<"both">["offchain"]
+    >().toEqualTypeOf<OffchainOpportunities>();
+  });
+
+  it("hides the branch of a source the mode does not read", () => {
+    expectTypeOf<Opportunities<"onchain">>().not.toHaveProperty("offchain");
+    expectTypeOf<Opportunities<"offchain">>().not.toHaveProperty("onchain");
+  });
+
+  it("merging exists only where there are two sources to merge", () => {
+    expectTypeOf<Opportunities<"both">>().toHaveProperty("merge");
+    expectTypeOf<Opportunities<"onchain">>().not.toHaveProperty("merge");
+    expectTypeOf<Opportunities<"offchain">>().not.toHaveProperty("merge");
+  });
+
+  it("merges what the branches return, in either order of arrival", () => {
+    const opportunities = {} as Opportunities<"both">;
+    // a source still in flight is `undefined`, which is what keeps a merged
+    // read pending rather than making it look empty
+    expectTypeOf(opportunities.merge.list).toBeCallableWith(
+      undefined,
+      {} as DataResponse<Opportunity[]>,
+    );
+    expectTypeOf(opportunities.merge.list).toBeCallableWith(
+      {} as DataResponse<Opportunity[]>,
+      undefined,
+    );
+    expectTypeOf(opportunities.merge.list).returns.toEqualTypeOf<
+      DataResponse<Opportunity[]> | undefined
+    >();
   });
 });
 
@@ -69,10 +125,12 @@ describe("the opportunity kind gates which charts it has", () => {
     opportunities.history(strategy).chart("dieselRate", "1m");
   });
 
-  it("answers with the points to draw and what annotates them", () => {
+  it("answers with the series in the envelope every read uses", () => {
     expectTypeOf(
       opportunities.history(strategy).chart,
-    ).returns.resolves.toEqualTypeOf<Chart>();
+    ).returns.resolves.toEqualTypeOf<
+      DataResponse<HistorySeries<StrategyHistoryMetric>>
+    >();
   });
 });
 

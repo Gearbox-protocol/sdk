@@ -82,7 +82,7 @@ export interface ChainFailed {
    **/
   source?: DataSource;
   /**
-   * Rejection reason. A `string` in JSON responses, an `Error` (or an
+   * Rejection reason. A `string` in a JSON response, an `Error` (or an
    * `AggregateError` when both sources failed) when produced locally.
    *
    * Serialises to `{}` if an envelope carrying a real `Error` is put into
