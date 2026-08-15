@@ -3,10 +3,8 @@ import type {
   ClaimableWithdrawal,
   DelayedDecreaseLeverageIntent,
   OnchainSDK,
-  WithdrawableAsset,
 } from "../../../../../index.js";
 
-import type { ClaimDelayedOption } from "../../../operations/index.js";
 import {
   ANY,
   buildResumeSdk,
@@ -55,49 +53,29 @@ export function buildDecreaseSdk(args: {
   );
 }
 
-export function buildDecreaseOffchainOptions(args: {
+/** The matured withdrawal these fixtures claim. */
+export function buildDecreaseClaimable(args: {
   claimedToken: Address;
   claimedAmount: bigint;
-}): ClaimDelayedOption {
+}): ClaimableWithdrawal {
   return {
-    kind: "offchain",
-    phantomSpent: args.claimedAmount,
-    withdrawalConfig: {
-      creditManager: CREDIT_MANAGER,
-      token: args.claimedToken,
-      withdrawalPhantomToken: PHANTOM,
-      underlying: args.claimedToken,
-      withdrawalLength: 0n,
-    } as WithdrawableAsset,
-  };
-}
-
-export function buildDecreaseOnchainOptions(args: {
-  claimedToken: Address;
-  claimedAmount: bigint;
-}): ClaimDelayedOption {
-  return {
-    kind: "onchain",
-    claimableWithdrawal: {
-      token: args.claimedToken,
-      withdrawalPhantomToken: PHANTOM,
-      withdrawalTokenSpent: args.claimedAmount,
-      outputs: [
-        {
-          token: args.claimedToken,
-          amount: args.claimedAmount,
-          isDelayed: false,
-        },
-      ],
-      claimCalls: [MOCK_CLAIM_CALL],
-    } as ClaimableWithdrawal,
-  };
+    token: args.claimedToken,
+    withdrawalPhantomToken: PHANTOM,
+    withdrawalTokenSpent: args.claimedAmount,
+    outputs: [
+      {
+        token: args.claimedToken,
+        amount: args.claimedAmount,
+        isDelayed: false,
+      },
+    ],
+    claimCalls: [MOCK_CLAIM_CALL],
+  } as ClaimableWithdrawal;
 }
 
 export function buildDecreaseResumeProps(args: {
   claimedToken: Address;
   claimedAmount: bigint;
-  options: ClaimDelayedOption;
   sdk: OnchainSDK;
   slippage?: number;
   /**
@@ -145,30 +123,12 @@ export function buildDecreaseResumeProps(args: {
     creditAccount,
     sdk: args.sdk,
     quotaReserve: undefined,
-    options: args.options,
+    claimable: buildDecreaseClaimable(args),
     slippage: args.slippage ?? 50,
   };
 }
 
-/** Convenience: offchain props for a claimed token/amount. */
-export function buildDecreaseOffchainResumeProps(args: {
-  claimedToken: Address;
-  claimedAmount: bigint;
-  rwaAssets?: Record<Address, Address>;
-}) {
-  const sdk = buildDecreaseSdk({
-    claimedToken: args.claimedToken,
-    rwaAssets: args.rwaAssets,
-  });
-  return buildDecreaseResumeProps({
-    claimedToken: args.claimedToken,
-    claimedAmount: args.claimedAmount,
-    options: buildDecreaseOffchainOptions(args),
-    sdk,
-  });
-}
-
-/** Convenience: onchain props for a claimed token/amount. */
+/** Convenience: props for a claimed token/amount. */
 export function buildDecreaseOnchainResumeProps(args: {
   claimedToken: Address;
   claimedAmount: bigint;
@@ -182,7 +142,6 @@ export function buildDecreaseOnchainResumeProps(args: {
   return buildDecreaseResumeProps({
     claimedToken: args.claimedToken,
     claimedAmount: args.claimedAmount,
-    options: buildDecreaseOnchainOptions(args),
     sdk,
     slippage: args.slippage,
   });

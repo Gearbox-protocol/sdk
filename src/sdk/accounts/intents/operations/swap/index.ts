@@ -1,7 +1,5 @@
 import type { Address } from "viem";
-import type { Asset, MultiCall, OnchainSDK } from "../../../../index.js";
-import type { CreditAccountSlice } from "../../types.js";
-import type { OperationBuilderOption } from "../types.js";
+import type { Asset, MultiCall } from "../../../../index.js";
 
 /** Single-in swap (one token in, one token out). */
 export interface SwapOperation {
@@ -12,20 +10,15 @@ export interface SwapOperation {
   calls: MultiCall[];
 }
 
-/** One-to-one swap op (withdraw resume conversion legs). */
-export function buildSwapOperation(
-  input: {
-    tokenIn: Address;
-    amountIn: bigint;
-    tokenOut: Address;
-    amountOut: bigint;
-    calls: MultiCall[];
-    creditAccount: CreditAccountSlice;
-    sdk: OnchainSDK;
-  },
-  option: OperationBuilderOption,
-): SwapOperation {
-  if (option.kind === "onchain" && input.calls.length === 0) {
+/** One routed leg, with the amounts it was quoted at. */
+export function buildSwapOperation(input: {
+  tokenIn: Address;
+  amountIn: bigint;
+  tokenOut: Address;
+  amountOut: bigint;
+  calls: MultiCall[];
+}): SwapOperation {
+  if (input.calls.length === 0) {
     throw new Error("swap: missing router calls");
   }
   return {

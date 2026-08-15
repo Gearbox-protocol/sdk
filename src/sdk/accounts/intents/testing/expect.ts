@@ -38,6 +38,8 @@ export type ExpectedFlowOp = CallsOptional<
       {
         type:
           | "swap"
+          | "addCollateral"
+          | "increaseDebt"
           | "decreaseDebt"
           | "withdrawCollateral"
           | "unwrapRwaCollateral"
@@ -61,6 +63,10 @@ export function withOnchainOpCalls(ops: ExpectedFlowOp[]): ExpectedFlowOp[] {
         return { ...op, calls: [MOCK_CLAIM_CALL] };
       case "changeQuota":
         return { ...op, calls: [CA_OP_CALLS.changeQuota] };
+      case "addCollateral":
+        return { ...op, calls: [CA_OP_CALLS.addCollateral] };
+      case "increaseDebt":
+        return { ...op, calls: [CA_OP_CALLS.increaseDebt] };
       case "decreaseDebt":
         return { ...op, calls: [CA_OP_CALLS.decreaseDebt] };
       case "withdrawCollateral":
@@ -168,6 +174,26 @@ function matchOp(
         expectedCalls(expected),
       );
       break;
+    case "increaseDebt":
+      if (actual.type !== "increaseDebt") {
+        return;
+      }
+      expect(actual.amount, `op[${index}].amount`).toBe(expected.amount);
+      expect(actual.calls, `op[${index}].calls`).toEqual(
+        expectedCalls(expected),
+      );
+      break;
+    case "addCollateral":
+      if (actual.type !== "addCollateral") {
+        return;
+      }
+      expect(actual.token, `op[${index}].token`).toBe(expected.token);
+      expect(actual.amount, `op[${index}].amount`).toBe(expected.amount);
+      expect(actual.value, `op[${index}].value`).toBe(expected.value);
+      expect(actual.calls, `op[${index}].calls`).toEqual(
+        expectedCalls(expected),
+      );
+      break;
     case "withdrawCollateral":
       if (actual.type !== "withdrawCollateral") {
         return;
@@ -247,12 +273,12 @@ export function expectCallsArrayExact(
 }
 
 /**
- * Asserts a successful adjust-style resume preview: ok, instant branch present,
- * exact calls (empty unless `expectedCalls` is provided), metrics from the
- * post-claim CA, and exact operations (incl. changeQuota).
+ * Asserts a successful adjust-style preview: ok, instant branch present, exact
+ * calls (empty unless `expectedCalls` is provided), post-operation metrics, and
+ * exact operations (incl. the trailing changeQuota).
  * Returns the adjust preview state for further asset/quota assertions.
  */
-export function expectAdjustResumePreview(
+export function expectAdjustPreview(
   result: IntentPreviewResult,
   args: {
     totalValue: bigint;
@@ -287,6 +313,21 @@ export function expectAdjustResumePreview(
   expect(state.accountDebt).toBe(args.accountDebt);
   expectOpsArrayExact(result.instant.operations, args.expectedOps);
   return state;
+}
+
+/** {@link expectAdjustPreview} under the name the resume specs already use. */
+export const expectAdjustResumePreview = expectAdjustPreview;
+
+/** Asserts the preview failed for a specific reason. */
+export function expectPreviewError(
+  result: IntentPreviewResult,
+  reason: Extract<IntentPreviewResult, { ok: false }>["reason"],
+): void {
+  expect(result.ok, "preview should fail").toBe(false);
+  if (result.ok) {
+    return;
+  }
+  expect(result.reason, "failure reason").toBe(reason);
 }
 
 export function assetBalance(

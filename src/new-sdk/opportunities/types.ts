@@ -10,6 +10,7 @@ import type {
   StrategyOpportunityKey,
   StrategyOpportunityRef,
 } from "../../model/index.js";
+import type { OpportunitiesSimulate } from "../simulate/index.js";
 import type { Mode, ReadResult } from "../types.js";
 import type { HistoryReader } from "../utils/history.js";
 
@@ -55,11 +56,18 @@ export interface OpportunitiesOffchainOnly {
 }
 
 /**
- * Reads only the chain can answer. Empty for now — every on-chain read the
- * namespace exposes has a backend counterpart.
+ * Reads only the chain can answer.
  **/
-// biome-ignore lint/suspicious/noEmptyInterface: reserved slot, see doc comment
-export interface OpportunitiesOnchainOnly {}
+export interface OpportunitiesOnchainOnly {
+  /**
+   * Simulations of what a deposit, withdrawal or leverage change would do.
+   *
+   * Absent in `offchain` mode: every one of them reads live account and pool
+   * state, and the strategy flows additionally need the pathfinder for real swap
+   * paths, so there is nothing the backend could answer with.
+   **/
+  simulate: OpportunitiesSimulate;
+}
 
 /**
  * Which methods the `opportunities` namespace has in each mode.

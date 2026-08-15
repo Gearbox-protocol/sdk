@@ -1,7 +1,6 @@
 import type { Address } from "viem";
 import type { MultiCall, OnchainSDK } from "../../../../index.js";
 import type { CreditAccountSlice } from "../../types.js";
-import type { OperationBuilderOption } from "../types.js";
 
 export interface WrapRwaCollateralOperation {
   type: "wrapRwaCollateral";
@@ -16,35 +15,21 @@ export interface WrapRwaCollateralOperation {
   calls: MultiCall[];
 }
 
-/** One-to-one wrap op (decrease-leverage resume repay from rwa.asset). */
-export async function buildWrapRwaCollateralOperation(
-  input: {
-    tokenIn: Address;
-    amountIn: bigint;
-    tokenOut: Address;
-    amountOut: bigint;
-    creditAccount: CreditAccountSlice;
-    sdk: OnchainSDK;
-  },
-  option: OperationBuilderOption,
-): Promise<WrapRwaCollateralOperation> {
-  if (option.kind === "onchain") {
-    const calls = await input.sdk.accounts.assembleRWAWrapCalls(
-      input.amountIn,
-      input.creditAccount.creditManager,
-    );
-    if (!calls) {
-      throw new Error("wrapRwaCollateral: no wrap calls found");
-    }
-
-    return {
-      type: "wrapRwaCollateral",
-      tokenIn: input.tokenIn,
-      amount: input.amountIn,
-      tokenOut: input.tokenOut,
-      amountOut: input.amountOut,
-      calls,
-    };
+/** Wraps an RWA asset into the market underlying. */
+export async function buildWrapRwaCollateralOperation(input: {
+  tokenIn: Address;
+  amountIn: bigint;
+  tokenOut: Address;
+  amountOut: bigint;
+  creditAccount: CreditAccountSlice;
+  sdk: OnchainSDK;
+}): Promise<WrapRwaCollateralOperation> {
+  const calls = await input.sdk.accounts.assembleRWAWrapCalls(
+    input.amountIn,
+    input.creditAccount.creditManager,
+  );
+  if (!calls) {
+    throw new Error("wrapRwaCollateral: no wrap calls found");
   }
 
   return {
@@ -53,6 +38,6 @@ export async function buildWrapRwaCollateralOperation(
     amount: input.amountIn,
     tokenOut: input.tokenOut,
     amountOut: input.amountOut,
-    calls: [],
+    calls,
   };
 }

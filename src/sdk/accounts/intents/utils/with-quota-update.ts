@@ -1,9 +1,6 @@
 import type { OnchainSDK } from "../../../index.js";
 import { buildQuotaUpdateOperation } from "../operations/index.js";
-import type {
-  AccountCalculatorOperation,
-  OperationBuilderOption,
-} from "../operations/types.js";
+import type { AccountCalculatorOperation } from "../operations/types.js";
 import type { CreditAccountSlice } from "../types.js";
 import type { SimulateStateReturn } from "./simulate-adjust-state.js";
 
@@ -12,7 +9,6 @@ interface Props {
   state: SimulateStateReturn;
   creditAccount: CreditAccountSlice;
   sdk: OnchainSDK;
-  options: OperationBuilderOption;
 }
 
 export function getOperationsWithQuotaUpdate({
@@ -20,7 +16,6 @@ export function getOperationsWithQuotaUpdate({
   state,
   creditAccount,
   sdk,
-  options,
 }: Props) {
   const total =
     state.quotaResult.quotaIncrease.length +
@@ -30,10 +25,11 @@ export function getOperationsWithQuotaUpdate({
       ? coreOps
       : [
           ...coreOps,
-          buildQuotaUpdateOperation(
-            { update: state.quotaResult, creditAccount, sdk },
-            options,
-          ),
+          buildQuotaUpdateOperation({
+            update: state.quotaResult,
+            creditAccount,
+            sdk,
+          }),
         ];
 
   return operations;

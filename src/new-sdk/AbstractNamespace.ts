@@ -162,6 +162,32 @@ export abstract class AbstractNamespace<ListRow extends object> {
   }
 
   /**
+   * Reads something only the chain can answer.
+   *
+   * Unlike {@link AbstractNamespace.readOne} there is no second source to fall
+   * back to, so an absent on-chain source or a chain the SDK does not cover
+   * throws: an empty answer would be indistinguishable from a real one.
+   **/
+  protected async readOnchain<T>(
+    action: string,
+    chainId: ChainId,
+    fromChain: (sdk: MultichainSDK) => Promise<T>,
+  ): Promise<ReadResult<T>> {
+    const network = this.networkOf(chainId);
+    const onchain = await this.fromChain(async sdk =>
+      network
+        ? this.onOneChain(action, network, () => fromChain(sdk))
+        : { chains: [] },
+    );
+
+    const meta = toMeta(onchain, {});
+    if (onchain.value === undefined) {
+      throw new AllSourcesFailedError(action, meta);
+    }
+    return { result: onchain.value, meta };
+  }
+
+  /**
    * Reads something only the backend can answer.
    *
    * The fallback stands in for a backend that answered with nothing, which is

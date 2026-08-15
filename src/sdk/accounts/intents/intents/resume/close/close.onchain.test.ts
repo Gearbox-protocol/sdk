@@ -10,7 +10,6 @@ import {
 } from "../../../testing/expect.js";
 import {
   ANY,
-  buildOnchainOptions,
   CREDIT_FACADE,
   RESUME_FIXTURE_PHANTOM,
   RWA_ASSET,
@@ -65,10 +64,6 @@ describe("closeAccount.resume onchain — close after claim", () => {
     const result = await service.finishIntent(
       buildCloseResumeProps({
         sdk,
-        options: buildOnchainOptions({
-          claimedToken: UND,
-          claimedAmount: CLAIMED,
-        }),
         claimedToken: UND,
         claimedAmount: CLAIMED,
         tokens: [
@@ -115,10 +110,6 @@ describe("closeAccount.resume onchain — close after claim", () => {
     const result = await service.finishIntent(
       buildCloseResumeProps({
         sdk,
-        options: buildOnchainOptions({
-          claimedToken: UND,
-          claimedAmount: 0n,
-        }),
       }),
     );
 
@@ -181,10 +172,6 @@ describe("closeAccount.resume onchain — close after claim", () => {
     const result = await service.finishIntent(
       buildCloseResumeProps({
         sdk,
-        options: buildOnchainOptions({
-          claimedToken: RWA_ASSET,
-          claimedAmount: CLAIMED,
-        }),
         claimedToken: RWA_ASSET,
         claimedAmount: CLAIMED,
       }),
@@ -257,10 +244,6 @@ describe("closeAccount.resume onchain — close after claim", () => {
     const result = await service.finishIntent(
       buildCloseResumeProps({
         sdk,
-        options: buildOnchainOptions({
-          claimedToken: ANY,
-          claimedAmount: CLAIMED,
-        }),
         claimedToken: ANY,
         claimedAmount: CLAIMED,
         tokens: [
@@ -337,10 +320,6 @@ describe("closeAccount.resume onchain — close after claim", () => {
     const result = await service.finishIntent(
       buildCloseResumeProps({
         sdk,
-        options: buildOnchainOptions({
-          claimedToken: UND,
-          claimedAmount: CLAIMED,
-        }),
         claimedToken: UND,
         claimedAmount: CLAIMED,
         tokens: [

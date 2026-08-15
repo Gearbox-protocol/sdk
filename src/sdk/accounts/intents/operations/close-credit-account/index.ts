@@ -1,48 +1,44 @@
 import type { Address } from "viem";
-import type { OnchainSDK, RouterCASlice } from "../../../../index.js";
-import type { CloseQuote } from "../../quoters/index.js";
+import type {
+  MultiCall,
+  OnchainSDK,
+  RouterCASlice,
+} from "../../../../index.js";
 
-export interface CloseCreditAccountOperation extends CloseQuote {
+export interface CloseCreditAccountOperation {
   type: "closeCreditAccount";
+  /** Underlying the account holds once every balance is converted. */
+  underlyingBalance: bigint;
+  /** Expected proceeds of the conversion. */
+  amount: bigint;
+  /** Floor proceeds after slippage. */
+  minAmount: bigint;
+  calls: MultiCall[];
 }
 
-export async function buildCloseCreditAccountOperation(
-  input: {
-    quote: CloseQuote;
-    sdk: OnchainSDK;
-  },
-  option:
-    | {
-        kind: "offchain";
-      }
-    | {
-        kind: "onchain";
-        to: Address;
-        creditAccount: RouterCASlice;
-      },
-): Promise<CloseCreditAccountOperation> {
-  const { quote } = input;
+export async function buildCloseCreditAccountOperation(input: {
+  leg: { amount: bigint; minAmount: bigint; calls: MultiCall[] };
+  underlyingBalance: bigint;
+  to: Address;
+  creditAccount: RouterCASlice;
+  sdk: OnchainSDK;
+}): Promise<CloseCreditAccountOperation> {
+  const { leg, creditAccount, sdk } = input;
 
-  if (option.kind === "onchain") {
-    const rwaConfig = input.sdk.tokensMeta.rwaUnderlyings.get(
-      option.creditAccount.underlying,
-    );
+  const rwaConfig = sdk.tokensMeta.rwaUnderlyings.get(creditAccount.underlying);
 
-    const closeCalls = await input.sdk.accounts.assembleCloseCreditAccountCalls(
-      {
-        creditAccount: option.creditAccount,
-        routerCalls: quote.calls,
-        assetsToWithdraw: [
-          (
-            rwaConfig?.asset ?? option.creditAccount.underlying
-          ).toLowerCase() as Address,
-        ],
-        to: option.to,
-      },
-    );
-
-    return { ...quote, calls: closeCalls, type: "closeCreditAccount" };
-  }
-
-  return { ...quote, calls: [], type: "closeCreditAccount" };
+  return {
+    type: "closeCreditAccount",
+    underlyingBalance: input.underlyingBalance,
+    amount: leg.amount,
+    minAmount: leg.minAmount,
+    calls: await sdk.accounts.assembleCloseCreditAccountCalls({
+      creditAccount,
+      routerCalls: leg.calls,
+      assetsToWithdraw: [
+        (rwaConfig?.asset ?? creditAccount.underlying).toLowerCase() as Address,
+      ],
+      to: input.to,
+    }),
+  };
 }

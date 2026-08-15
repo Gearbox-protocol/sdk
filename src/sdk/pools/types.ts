@@ -115,6 +115,59 @@ export interface WithdrawalMetadata {
 }
 
 /**
+ * Props shared by {@link IPoolsService.simulateDeposit} and
+ * {@link IPoolsService.simulateWithdraw}.
+ **/
+export interface SimulatePoolOperationProps {
+  /**
+   * Address of the Gearbox lending pool.
+   **/
+  pool: Address;
+  /**
+   * Amount of `tokenIn` the user parts with.
+   **/
+  amount: bigint;
+  /**
+   * Token the user parts with. Defaults to the pool underlying for deposits and
+   * to the pool shares (diesel token) for withdrawals.
+   **/
+  tokenIn?: Address;
+  /**
+   * Token the user receives. Defaults to the only route available for `tokenIn`;
+   * required when several routes exist.
+   **/
+  tokenOut?: Address;
+}
+
+/**
+ * Both sides of a simulated pool operation, converted at the pool's current
+ * share rate.
+ **/
+export interface PoolSimulation {
+  /**
+   * Token and amount leaving the wallet — exactly what was asked for.
+   **/
+  tokenIn: Asset;
+  /**
+   * Token and amount arriving in the wallet at the rate the pool state implies.
+   **/
+  tokenOut: Asset;
+  /**
+   * Zapper the operation would be routed through; unset for direct pool
+   * operations.
+   **/
+  zapper?: Address;
+  /**
+   * Withdrawals only: underlying the pool can actually pay out right now,
+   * shaved by a hair so a withdrawal sized against it does not fail on rounding.
+   *
+   * The conversion is a rate, not a promise that the pool is liquid enough, so
+   * compare `tokenOut.balance` against this to see if the withdrawal fits.
+   **/
+  availableLiquidity?: bigint;
+}
+
+/**
  * Props for {@link IPoolsService.listPositions}.
  **/
 export interface ListPoolPositionsProps {
@@ -190,6 +243,38 @@ export interface IPoolsService {
     tokenIn: Address,
     tokenOut?: Address,
   ): WithdrawalMetadata;
+
+  /**
+   * Simulates a deposit and reports what the wallet would receive.
+   *
+   * The ERC-4626 conversion of the pool, computed from the state the SDK already
+   * holds rather than read back from the chain, so the answer is synchronous and
+   * as fresh as the loaded market. Nothing is executed, so balances and
+   * allowances are irrelevant.
+   *
+   * A zapper leg converts one-for-one — every zapper wraps rather than trades —
+   * so a routed deposit reports the same amount as a direct one.
+   *
+   * @param props - {@link SimulatePoolOperationProps}
+   * @returns {@link PoolSimulation}
+   * @throws If the token pair has no route, or if `tokenOut` is omitted while
+   * several routes exist (RWA on-demand markets have no rate at all).
+   **/
+  simulateDeposit(props: SimulatePoolOperationProps): PoolSimulation;
+
+  /**
+   * Simulates a withdrawal and reports what the wallet would receive.
+   *
+   * The mirror of {@link simulateDeposit}: `amount` is the shares to burn, and
+   * the result is the underlying they convert to, less the pool's withdrawal
+   * fee.
+   *
+   * @param props - {@link SimulatePoolOperationProps}
+   * @returns {@link PoolSimulation}
+   * @throws If the token pair has no route, or if `tokenOut` is omitted while
+   * several routes exist.
+   **/
+  simulateWithdraw(props: SimulatePoolOperationProps): PoolSimulation;
 
   /**
    * Returns contract call parameters for adding liquidity to a pool

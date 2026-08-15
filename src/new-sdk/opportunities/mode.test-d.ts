@@ -1,11 +1,14 @@
 import { describe, expectTypeOf, it } from "vitest";
 import type {
   PoolHistoryMetric,
+  PoolOpportunity,
   PoolOpportunityRef,
   StrategyHistoryMetric,
   StrategyOpportunityRef,
+  StrategyPosition,
 } from "../../model/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
+import type { LpSimulate, StrategySimulate } from "../simulate/index.js";
 import type { Mode } from "../types.js";
 import type { Chart } from "../utils/index.js";
 import type { Opportunities } from "./types.js";
@@ -32,11 +35,58 @@ describe("mode gates method existence", () => {
     expectTypeOf<Opportunities<"onchain">>().not.toHaveProperty("history");
   });
 
+  it("simulate exists only where a chain does", () => {
+    expectTypeOf<Opportunities<"onchain">>().toHaveProperty("simulate");
+    expectTypeOf<Opportunities<"both">>().toHaveProperty("simulate");
+    expectTypeOf<Opportunities<"offchain">>().not.toHaveProperty("simulate");
+  });
+
   it("a widened mode degrades to the base reads rather than to everything", () => {
     // consumers whose config object widens `mode` to `Mode` lose the gated
     // methods; they must not silently gain them
     expectTypeOf<Opportunities<Mode>>().toHaveProperty("list");
     expectTypeOf<Opportunities<Mode>>().not.toHaveProperty("history");
+    expectTypeOf<Opportunities<Mode>>().not.toHaveProperty("simulate");
+  });
+});
+
+describe("simulate covers the eight flows", () => {
+  const simulate = {} as Opportunities<"onchain">["simulate"];
+
+  it("has one method per flow", () => {
+    expectTypeOf(simulate).toHaveProperty("deposit");
+    expectTypeOf(simulate).toHaveProperty("withdraw");
+    expectTypeOf(simulate).toHaveProperty("openNewStrategy");
+    expectTypeOf(simulate).toHaveProperty("depositStrategy");
+    expectTypeOf(simulate).toHaveProperty("withdrawStrategy");
+    expectTypeOf(simulate).toHaveProperty("adjustLeverage");
+    expectTypeOf(simulate).toHaveProperty("addCollateral");
+    expectTypeOf(simulate).toHaveProperty("withdrawCollateral");
+  });
+
+  it("takes a pool opportunity and a bare amount for the LP flows", () => {
+    const pool = {} as PoolOpportunity;
+    expectTypeOf(simulate.deposit).toBeCallableWith(pool, 1_000n);
+    expectTypeOf(simulate.withdraw).toBeCallableWith(pool, 1_000n);
+  });
+
+  it("answers the LP flows outright, with no promise to await", () => {
+    const pool = {} as PoolOpportunity;
+    expectTypeOf(simulate.deposit(pool, 1_000n)).toEqualTypeOf<LpSimulate>();
+    expectTypeOf(simulate.withdraw(pool, 1_000n)).toEqualTypeOf<LpSimulate>();
+  });
+
+  it("takes a position from positions.list() for the account flows", () => {
+    const position = {} as StrategyPosition;
+    expectTypeOf(simulate.adjustLeverage).toBeCallableWith(position, {
+      targetLeverage: 300n,
+    });
+  });
+
+  it("reports why a request is not viable instead of throwing", () => {
+    expectTypeOf<
+      Awaited<ReturnType<typeof simulate.adjustLeverage>>["result"]
+    >().toEqualTypeOf<StrategySimulate>();
   });
 });
 

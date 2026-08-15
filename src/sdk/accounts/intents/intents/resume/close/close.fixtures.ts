@@ -5,12 +5,10 @@ import type {
 } from "../../../../../index.js";
 import { toBN } from "../../../../../index.js";
 
-import type { ClaimDelayedOption } from "../../../operations/index.js";
 import type { ExpectedFlowOp } from "../../../testing/expect.js";
 import {
   ANY,
-  buildOffchainOptions,
-  buildOnchainOptions,
+  buildClaimable,
   buildResumeSdk,
   CREDIT_ACCOUNT,
   CREDIT_FACADE,
@@ -72,7 +70,7 @@ export const closePreviewState: CloseState = {
   underlyingBalance: CLOSE_EQUITY,
 };
 
-export { buildOffchainOptions, buildOnchainOptions, CREDIT_ACCOUNT };
+export { buildClaimable, CREDIT_ACCOUNT };
 
 export function buildCloseSdk(args: {
   claimedToken: Address;
@@ -92,7 +90,6 @@ export function buildCloseSdk(args: {
 
 /** Pre-claim CA for resume: phantom balance; claim op credits claimed token then close. */
 export function buildCloseResumeProps(args: {
-  options: ClaimDelayedOption;
   sdk: OnchainSDK;
   claimedToken?: Address;
   claimedAmount?: bigint;
@@ -142,7 +139,7 @@ export function buildCloseResumeProps(args: {
     creditAccount,
     sdk: args.sdk,
     quotaReserve: undefined,
-    options: args.options,
+    claimable: buildClaimable({ claimedToken, claimedAmount }),
     slippage: args.slippage ?? 50,
   };
 }

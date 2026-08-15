@@ -71,16 +71,21 @@ type InstantErrorReason = "pathNotFound";
 
 // General return types
 
+/** Why a preview could not be produced at all (no branch is viable). */
+export type PreviewErrorReason =
+  | "unsupportedFieldPair"
+  | "debtOutOfRange"
+  | "leverageOutOfRange"
+  | "multipleDelayedWithdrawals"
+  | "unsupportedMixedDelayedWithdrawal"
+  | "unsupportedCloseClaimOutput"
+  | "insufficientSourceBalance"
+  /** Input token is not accepted by the flow (e.g. deposit of a non-underlying). */
+  | "unsupportedCollateralToken";
+
 type PreviewErrorResult = {
   ok: false;
-  reason:
-    | "unsupportedFieldPair"
-    | "debtOutOfRange"
-    | "leverageOutOfRange"
-    | "multipleDelayedWithdrawals"
-    | "unsupportedMixedDelayedWithdrawal"
-    | "unsupportedCloseClaimOutput"
-    | "insufficientSourceBalance";
+  reason: PreviewErrorReason;
 };
 
 interface IntentPreviewSuccessResult {

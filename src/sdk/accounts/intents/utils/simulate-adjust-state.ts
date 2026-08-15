@@ -2,8 +2,8 @@ import type { OnchainSDK } from "../../../index.js";
 import type { QuotaUpdateState } from "../operations/quota-update/index.js";
 import type { AccountCalculatorOperation } from "../operations/types.js";
 import type { AdjustState, CreditAccountSlice } from "../types.js";
+import { type ConvertFn, simulateOperationAssets } from "./ledger.js";
 import { getQuotasForUpdate } from "./quotas-for-update.js";
-import { type ConvertFn, simulateOperationAssets } from "./simulate-assets.js";
 
 interface Props {
   operations: AccountCalculatorOperation[];

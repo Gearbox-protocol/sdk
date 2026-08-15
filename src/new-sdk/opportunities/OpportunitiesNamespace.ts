@@ -19,9 +19,15 @@ import type { GearboxAPI } from "../../offchain/index.js";
 import type { MultichainSDK } from "../../sdk/index.js";
 import type { ILogger } from "../../sdk/types/logger.js";
 import { AbstractNamespace } from "../AbstractNamespace.js";
+import type { OpportunitiesSimulate } from "../simulate/index.js";
+import { SimulateApi } from "../simulate/index.js";
 import type { ReadResult } from "../types.js";
 import type { Chart, HistoryReader } from "../utils/index.js";
-import type { OpportunitiesBase, OpportunitiesOffchainOnly } from "./types.js";
+import type {
+  OpportunitiesBase,
+  OpportunitiesOffchainOnly,
+  OpportunitiesOnchainOnly,
+} from "./types.js";
 
 /**
  * Fields the backend owns even when the chain also fills them.
@@ -49,14 +55,38 @@ const OFFCHAIN_OWNED_FIELDS: ReadonlySet<string> = new Set([
  **/
 export class OpportunitiesNamespace
   extends AbstractNamespace<Opportunity>
-  implements OpportunitiesBase, OpportunitiesOffchainOnly
+  implements
+    OpportunitiesBase,
+    OpportunitiesOffchainOnly,
+    OpportunitiesOnchainOnly
 {
+  /**
+   * {@inheritDoc OpportunitiesOnchainOnly.simulate}
+   **/
+  public readonly simulate: OpportunitiesSimulate;
+
   constructor(
     onchain: MultichainSDK | undefined,
     offchain: GearboxAPI | undefined,
     logger?: ILogger,
   ) {
     super("Opportunities", onchain, offchain, logger);
+    // the simulations own no sources of their own: they route through this
+    // namespace's on-chain read, so failures and metadata are reported alike.
+    // The LP ones bypass it — they only convert at a rate the chain's SDK
+    // already holds, so there is nothing to await and nothing to report
+    this.simulate = new SimulateApi(
+      (action, chainId, fromChain) =>
+        this.readOnchain(action, chainId, fromChain),
+      chainId => {
+        if (!onchain) {
+          throw new Error(
+            "simulations need the onchain source, which this SDK was built without",
+          );
+        }
+        return onchain.chain(chainId);
+      },
+    );
   }
 
   /**

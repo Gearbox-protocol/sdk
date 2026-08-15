@@ -1,123 +1,85 @@
-import type {
-  DelayedDecreaseLeverageIntent,
-  OnchainSDK,
-} from "../../../../../index.js";
 import {
   type AccountCalculatorOperation,
-  buildClaimDelayedWithdrawalOperation,
   buildDecreaseDebtOperation,
   buildSwapOperation,
   buildWrapRwaCollateralOperation,
-  type ClaimDelayedOption,
-  primaryInstantOutput,
 } from "../../../operations/index.js";
-import type { SwapQuoter } from "../../../quoters/index.js";
-import type { CreditAccountSlice } from "../../../types.js";
-import { eq, simulateState, toTargetDecimals } from "../../../utils/index.js";
+import { eq, toTargetDecimals } from "../../../utils/index.js";
+import { claimedOutput, type ResumeContext } from "../types.js";
 
 /**
- * Resume decrease-leverage — linear op chain:
- * claim → (wrapRwa | swap)? → decreaseDebt.
- * All claimed proceeds fund debt repay (legacy
- * `buildDecreaseLeverageResumeLogicalOps` + `buildResumeRepayFromClaimOps`).
- * Conversion legs go through the given quoter; wrap is 1:1 decimals rescale.
+ * Resume decrease-leverage — `claim → (wrapRwa | swap)? → decreaseDebt`.
+ *
+ * Everything claimed funds the repayment, since the whole point of the delayed
+ * leg was to raise underlying with which to shrink the debt. The conversion is a
+ * 1:1 wrap when the claim landed in the market's RWA asset, and a routed swap
+ * otherwise.
  */
 export async function buildResumeDecreaseLeverageOperations(
-  props: {
-    intent: DelayedDecreaseLeverageIntent;
-    options: ClaimDelayedOption;
-    creditAccount: CreditAccountSlice;
-    sdk: OnchainSDK;
-    quotaReserve: number | undefined;
-  },
-  quoter: SwapQuoter,
+  ctx: ResumeContext,
 ): Promise<AccountCalculatorOperation[]> {
-  const { options, creditAccount, sdk } = props;
-  const underlying = creditAccount.underlying;
-  const rwaMeta = sdk.tokensMeta.rwaUnderlyings.get(underlying);
+  const { creditAccount, sdk, push, paths } = ctx;
+  const { underlying } = creditAccount;
+  const claimed = claimedOutput(ctx);
 
-  const claimOp = buildClaimDelayedWithdrawalOperation(
-    { creditAccount, sdk },
-    options,
-  );
-  const primary = primaryInstantOutput(claimOp.outputs);
-
-  if (!primary || primary.amount <= 0n) {
-    throw new Error("No claimable assets");
+  if (eq(claimed.token, underlying)) {
+    return push(
+      buildDecreaseDebtOperation({
+        amount: claimed.amount,
+        creditAccount,
+        sdk,
+      }),
+    );
   }
 
-  const operations: Array<AccountCalculatorOperation> = [claimOp];
+  const rwaAsset = sdk.tokensMeta.rwaUnderlyings.get(underlying)?.asset;
 
-  const decreaseDebt = (amount: bigint): void => {
-    if (amount > 0n) {
-      operations.push(
-        buildDecreaseDebtOperation({ amount, creditAccount, sdk }, options),
-      );
-    }
-  };
-
-  if (eq(primary.token, underlying)) {
-    decreaseDebt(primary.amount);
-    return operations;
-  }
-
-  const rwaAsset = rwaMeta?.asset;
-  if (rwaAsset != null && eq(primary.token, rwaAsset)) {
+  if (rwaAsset != null && eq(claimed.token, rwaAsset)) {
     const amountOut = toTargetDecimals(
-      primary.amount,
-      primary.token,
+      claimed.amount,
+      claimed.token,
       underlying,
       sdk,
     );
 
-    operations.push(
-      await buildWrapRwaCollateralOperation(
-        {
-          tokenIn: primary.token,
-          amountIn: primary.amount,
-          tokenOut: underlying,
-          amountOut,
-          creditAccount,
-          sdk,
-        },
-        options,
-      ),
+    push(
+      await buildWrapRwaCollateralOperation({
+        tokenIn: claimed.token,
+        amountIn: claimed.amount,
+        tokenOut: underlying,
+        amountOut,
+        creditAccount,
+        sdk,
+      }),
     );
 
-    decreaseDebt(amountOut);
-    return operations;
-  } else {
-    const { state } = simulateState({
-      operations,
+    return push(
+      buildDecreaseDebtOperation({ amount: amountOut, creditAccount, sdk }),
+    );
+  }
+
+  const leg = await paths.swap({
+    tokenIn: claimed.token,
+    tokenOut: underlying,
+    amount: claimed.amount,
+    keep: ctx.ledger.balanceOf(claimed.token) - claimed.amount,
+  });
+
+  push(
+    buildSwapOperation({
+      tokenIn: claimed.token,
+      amountIn: claimed.amount,
+      tokenOut: underlying,
+      amountOut: leg.minAmount,
+      calls: leg.calls,
+    }),
+  );
+
+  return push(
+    buildDecreaseDebtOperation({
+      amount: leg.minAmount,
       creditAccount,
       sdk,
-      quotaReserve: props.quotaReserve,
-    });
-    const tokenInBalance =
-      state.assets.find(asset => eq(asset.token, primary.token))?.balance ?? 0n;
-
-    const quote = await quoter({
-      from: [{ token: primary.token, balance: primary.amount }],
-      tokenOut: underlying,
-      tokenInBalance,
-    });
-
-    operations.push(
-      buildSwapOperation(
-        {
-          tokenIn: primary.token,
-          amountIn: primary.amount,
-          tokenOut: underlying,
-          amountOut: quote.minAmount,
-          calls: quote.calls,
-          creditAccount,
-          sdk,
-        },
-        options,
-      ),
-    );
-    decreaseDebt(quote.minAmount);
-
-    return operations;
-  }
+    }),
+  );
 }

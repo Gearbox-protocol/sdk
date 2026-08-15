@@ -6,7 +6,7 @@ import {
 import type { AddressMap, Asset } from "../../../index.js";
 import { TypedObjectUtils } from "../../../utils/mappers.js";
 import type { QuotaUpdateState } from "../operations/index.js";
-import type { ConvertFn } from "./simulate-assets.js";
+import type { ConvertFn } from "./ledger.js";
 
 interface InitialQuota {
   token: Address;

@@ -2,7 +2,6 @@ import type { Address } from "viem";
 import type { MultiCall, OnchainSDK } from "../../../../index.js";
 import type { CreditAccountSlice } from "../../types.js";
 import { eq, toTargetDecimals } from "../../utils/index.js";
-import type { OperationBuilderOption } from "../types.js";
 import {
   buildUnwrapRwaCollateralOperation,
   type UnwrapRwaCollateralOperation,
@@ -12,11 +11,8 @@ export interface WithdrawCollateralOperation {
   type: "withdrawCollateral";
   token: Address;
   amount: bigint;
-  /**
-   * Wallet recipient for withdrawn tokens — never a token address.
-   * Set when known; may be undefined for disconnected preview (no assemble).
-   */
-  to?: Address;
+  /** Wallet recipient for withdrawn tokens — never a token address. */
+  to: Address;
   calls: MultiCall[];
 }
 
@@ -27,17 +23,14 @@ export interface WithdrawCollateralOperation {
  * and withdraws the unwrapped asset instead — even if the intent asked for
  * underlying (mirrors legacy `resolveRwaForcedUnwrapWithdraw`).
  */
-export async function buildWithdrawCollateralOperation(
-  input: {
-    token: Address;
-    amount: bigint;
-    to: Address | undefined;
-    underlying: Address;
-    creditAccount: CreditAccountSlice;
-    sdk: OnchainSDK;
-  },
-  option: OperationBuilderOption,
-): Promise<
+export async function buildWithdrawCollateralOperation(input: {
+  token: Address;
+  amount: bigint;
+  to: Address;
+  underlying: Address;
+  creditAccount: CreditAccountSlice;
+  sdk: OnchainSDK;
+}): Promise<
   | [WithdrawCollateralOperation]
   | [UnwrapRwaCollateralOperation, WithdrawCollateralOperation]
 > {
@@ -49,29 +42,20 @@ export async function buildWithdrawCollateralOperation(
   const buildWithdraw = (
     withdrawToken: Address,
     withdrawAmount: bigint,
-  ): WithdrawCollateralOperation => {
-    let calls: MultiCall[] = [];
-    if (option.kind === "onchain") {
-      if (to === undefined) {
-        throw new Error("withdrawCollateral.to is required for onchain calls");
-      }
-      calls = [
-        sdk.accounts.prepareWithdrawToken(
-          creditAccount.creditFacade,
-          withdrawToken,
-          withdrawAmount,
-          to,
-        ),
-      ];
-    }
-    return {
-      type: "withdrawCollateral",
-      token: withdrawToken,
-      amount: withdrawAmount,
-      to,
-      calls,
-    };
-  };
+  ): WithdrawCollateralOperation => ({
+    type: "withdrawCollateral",
+    token: withdrawToken,
+    amount: withdrawAmount,
+    to,
+    calls: [
+      sdk.accounts.prepareWithdrawToken(
+        creditAccount.creditFacade,
+        withdrawToken,
+        withdrawAmount,
+        to,
+      ),
+    ],
+  });
 
   const rwa = eq(token, underlying)
     ? sdk.tokensMeta.rwaUnderlyings.get(underlying)
@@ -84,17 +68,14 @@ export async function buildWithdrawCollateralOperation(
   const amountOut = toTargetDecimals(amount, underlying, rwa.asset, sdk);
 
   return [
-    await buildUnwrapRwaCollateralOperation(
-      {
-        amountIn: amount,
-        tokenIn: underlying,
-        tokenOut: rwa.asset,
-        amountOut,
-        creditAccount,
-        sdk,
-      },
-      option,
-    ),
+    await buildUnwrapRwaCollateralOperation({
+      amountIn: amount,
+      tokenIn: underlying,
+      tokenOut: rwa.asset,
+      amountOut,
+      creditAccount,
+      sdk,
+    }),
     buildWithdraw(rwa.asset, amountOut),
   ];
 }

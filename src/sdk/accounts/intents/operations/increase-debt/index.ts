@@ -1,6 +1,5 @@
 import type { MultiCall, OnchainSDK } from "../../../../index.js";
 import type { CreditAccountSlice } from "../../types.js";
-import type { OperationBuilderOption } from "../types.js";
 
 export interface IncreaseDebtOperation {
   type: "increaseDebt";
@@ -8,23 +7,19 @@ export interface IncreaseDebtOperation {
   calls: MultiCall[];
 }
 
-export function buildIncreaseDebtOperation(
-  input: { amount: bigint; creditAccount: CreditAccountSlice; sdk: OnchainSDK },
-  option: OperationBuilderOption,
-): IncreaseDebtOperation {
-  const calls =
-    option.kind === "onchain"
-      ? [
-          input.sdk.accounts.prepareIncreaseDebt(
-            input.creditAccount.creditFacade,
-            input.amount,
-          ),
-        ]
-      : [];
-
+export function buildIncreaseDebtOperation(input: {
+  amount: bigint;
+  creditAccount: CreditAccountSlice;
+  sdk: OnchainSDK;
+}): IncreaseDebtOperation {
   return {
     type: "increaseDebt",
     amount: input.amount,
-    calls,
+    calls: [
+      input.sdk.accounts.prepareIncreaseDebt(
+        input.creditAccount.creditFacade,
+        input.amount,
+      ),
+    ],
   };
 }

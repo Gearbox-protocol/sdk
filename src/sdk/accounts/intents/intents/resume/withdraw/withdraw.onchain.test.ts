@@ -21,7 +21,6 @@ import {
 import type { IntentPreviewResult } from "../../../types.js";
 import {
   A0,
-  buildWithdrawOnchainOptions,
   buildWithdrawResumeProps,
   buildWithdrawSdk,
   DEBT_DELTA,
@@ -94,10 +93,6 @@ function resumeProps(args: {
     claimedAmount: args.claimedAmount,
     debtRepaid: args.debtRepaid,
     withdrawAmount: args.withdrawAmount,
-    options: buildWithdrawOnchainOptions({
-      claimedToken: args.claimedToken,
-      claimedAmount: args.claimedAmount,
-    }),
     sdk,
   });
 }

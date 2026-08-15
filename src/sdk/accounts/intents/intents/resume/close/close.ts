@@ -1,72 +1,38 @@
-import type {
-  DelayedCloseAccountIntent,
-  OnchainSDK,
-} from "../../../../../index.js";
+import type { DelayedCloseAccountIntent } from "../../../../../index.js";
 import {
   type AccountCalculatorOperation,
-  buildClaimDelayedWithdrawalOperation,
   buildCloseCreditAccountOperation,
-  type ClaimDelayedOption,
+  type CloseCreditAccountOperation,
 } from "../../../operations/index.js";
-import type { CloseQuote, CloseQuoter } from "../../../quoters/index.js";
-import type { CreditAccountSlice } from "../../../types.js";
-import {
-  convertAmount,
-  simulateOperationAssets,
-  toRouterCaSlice,
-} from "../../../utils/index.js";
+import { toRouterCaSlice } from "../../../utils/index.js";
+import type { ResumeContext } from "../types.js";
 
 /**
- * Resume close — linear op chain: claim, then close against the quoted
- * post-claim balances. Quota zeroing and debt/withdraw live inside
- * assembleCloseCreditAccountCalls — no separate changeQuota / wrap ops.
+ * Resume close — `claim → closeCreditAccount`.
+ *
+ * Debt settlement, quota zeroing and the payout all happen inside
+ * `assembleCloseCreditAccountCalls`, so the tail adds no `changeQuota` or
+ * `decreaseDebt` of its own: it only has to convert the post-claim balances,
+ * the claimed token included, into the underlying.
  */
 export async function buildResumeCloseOperations(
-  props: {
-    intent: DelayedCloseAccountIntent;
-    options: ClaimDelayedOption;
-    creditAccount: CreditAccountSlice;
-    sdk: OnchainSDK;
-  },
-  quoter: CloseQuoter,
-): Promise<{ operations: AccountCalculatorOperation[]; quote: CloseQuote }> {
-  const { options, creditAccount, sdk, intent } = props;
+  ctx: ResumeContext<DelayedCloseAccountIntent>,
+): Promise<{
+  operations: AccountCalculatorOperation[];
+  close: CloseCreditAccountOperation;
+}> {
+  const { creditAccount, sdk, intent, ledger, push, paths } = ctx;
 
-  const operations: Array<AccountCalculatorOperation> = [
-    buildClaimDelayedWithdrawalOperation({ creditAccount, sdk }, options),
-  ];
+  const { assets } = ledger.snapshot();
+  const leg = await paths.close({ assets });
 
-  const convert = convertAmount(sdk, creditAccount.creditManager);
-
-  const { assets: assetsAfterClaim, debt } = simulateOperationAssets({
-    initialAssets: creditAccount.tokens,
-    operations,
-    underlyingToken: creditAccount.underlying,
-    debt: creditAccount.accountDebt,
-    convert,
+  const close = await buildCloseCreditAccountOperation({
+    leg,
+    underlyingBalance: leg.underlyingBalance,
+    to: intent.to,
+    creditAccount: toRouterCaSlice(creditAccount, assets),
+    sdk,
   });
 
-  const quote = await quoter({
-    assets: assetsAfterClaim,
-    debt,
-  });
-
-  if (options.kind === "onchain") {
-    operations.push(
-      await buildCloseCreditAccountOperation(
-        { quote, sdk },
-        {
-          ...options,
-          to: intent.to,
-          creditAccount: toRouterCaSlice(creditAccount, assetsAfterClaim),
-        },
-      ),
-    );
-  } else {
-    operations.push(
-      await buildCloseCreditAccountOperation({ quote, sdk }, options),
-    );
-  }
-
-  return { operations, quote };
+  return { operations: push(close), close };
 }

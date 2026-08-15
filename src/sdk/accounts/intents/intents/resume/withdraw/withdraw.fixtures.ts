@@ -3,11 +3,9 @@ import type {
   ClaimableWithdrawal,
   DelayedWithdrawCollateralIntent,
   OnchainSDK,
-  WithdrawableAsset,
 } from "../../../../../index.js";
 import { toBN } from "../../../../../index.js";
 
-import type { ClaimDelayedOption } from "../../../operations/index.js";
 import {
   ANY,
   ANY2,
@@ -72,43 +70,24 @@ export function buildWithdrawSdk(args: {
   );
 }
 
-export function buildWithdrawOffchainOptions(args: {
+/** The matured withdrawal these fixtures claim. */
+export function buildWithdrawClaimable(args: {
   claimedToken: Address;
   claimedAmount: bigint;
-}): ClaimDelayedOption {
+}): ClaimableWithdrawal {
   return {
-    kind: "offchain",
-    phantomSpent: args.claimedAmount,
-    withdrawalConfig: {
-      creditManager: CREDIT_MANAGER,
-      token: args.claimedToken,
-      withdrawalPhantomToken: PHANTOM,
-      underlying: args.claimedToken,
-      withdrawalLength: 0n,
-    } as WithdrawableAsset,
-  };
-}
-
-export function buildWithdrawOnchainOptions(args: {
-  claimedToken: Address;
-  claimedAmount: bigint;
-}): ClaimDelayedOption {
-  return {
-    kind: "onchain",
-    claimableWithdrawal: {
-      token: args.claimedToken,
-      withdrawalPhantomToken: PHANTOM,
-      withdrawalTokenSpent: args.claimedAmount,
-      outputs: [
-        {
-          token: args.claimedToken,
-          amount: args.claimedAmount,
-          isDelayed: false,
-        },
-      ],
-      claimCalls: [MOCK_CLAIM_CALL],
-    } as ClaimableWithdrawal,
-  };
+    token: args.claimedToken,
+    withdrawalPhantomToken: PHANTOM,
+    withdrawalTokenSpent: args.claimedAmount,
+    outputs: [
+      {
+        token: args.claimedToken,
+        amount: args.claimedAmount,
+        isDelayed: false,
+      },
+    ],
+    claimCalls: [MOCK_CLAIM_CALL],
+  } as ClaimableWithdrawal;
 }
 
 export function buildWithdrawResumeProps(args: {
@@ -117,7 +96,6 @@ export function buildWithdrawResumeProps(args: {
   claimedToken: Address;
   claimedAmount: bigint;
   debtRepaid: bigint;
-  options: ClaimDelayedOption;
   sdk: OnchainSDK;
   /** Overrides `withdrawAmountFor(withdrawToken)` when set. */
   withdrawAmount?: bigint;
@@ -154,7 +132,7 @@ export function buildWithdrawResumeProps(args: {
     creditAccount,
     sdk: args.sdk,
     quotaReserve: undefined,
-    options: args.options,
+    claimable: buildWithdrawClaimable(args),
     slippage: args.slippage ?? 50,
   };
 }

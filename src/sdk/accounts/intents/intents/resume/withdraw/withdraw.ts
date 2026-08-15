@@ -1,247 +1,155 @@
 import type { Address } from "viem";
-import type {
-  DelayedWithdrawCollateralIntent,
-  OnchainSDK,
-} from "../../../../../index.js";
+import type { DelayedWithdrawCollateralIntent } from "../../../../../index.js";
 import { BigIntMath } from "../../../../../utils/bigint-math.js";
 import {
   type AccountCalculatorOperation,
-  buildClaimDelayedWithdrawalOperation,
   buildDecreaseDebtOperation,
   buildSwapOperation,
   buildWithdrawCollateralOperation,
-  type ClaimDelayedOption,
-  primaryInstantOutput,
 } from "../../../operations/index.js";
-import type { SwapQuote, SwapQuoter } from "../../../quoters/index.js";
-import type { CreditAccountSlice } from "../../../types.js";
-import { convertAmount, eq, simulateState } from "../../../utils/index.js";
-
-const ZERO_QUOTE: SwapQuote = {
-  amount: 0n,
-  minAmount: 0n,
-  calls: [],
-};
+import { convertAmount, eq } from "../../../utils/index.js";
+import { claimedOutput, type ResumeContext } from "../types.js";
 
 /**
- * Resume withdraw — linear op chain following the W-first matrix:
- * claim → (swap?) → decreaseDebt? → (unwrapRwa?) → withdrawCollateral.
- * Only the underlying token (or the unwrapped rwa.asset on RWA markets) can
- * be withdrawn (enforced below).
- * The delayed lean intent records debt already paid at start; only its
- * residual `debtRepaid` may consume claimed proceeds.
+ * Resume withdraw — `claim → (swap?) → decreaseDebt? → (unwrapRwa?) → withdraw`.
  *
- * Matrix arithmetic (split sizing) is oracle-priced; emitted swap legs go
- * through the given quoter (`amountOut` on the op, `minAmountOut` caps the
- * debt repay funded by the leg). Mirrors legacy
- * `buildWithdrawResumeLogicalOps` + `resolveSwapBranches` (simplified: no
- * min/avg op branches).
+ * The claim can land in any token the delayed leg happened to produce, while the
+ * payout must be the market underlying (or its RWA asset), so the tail splits
+ * the claim between two competing uses: the promised payout `W`, and the debt
+ * the start leg deferred (`intent.debtRepaid`). The five branches below are that
+ * split, by how the claimed token relates to the payout token and the
+ * underlying; the payout is always served first, and the debt gets what is left,
+ * so a routing shortfall shows up as leverage slightly above target rather than
+ * as a payout the user was promised and did not get.
  */
 export async function buildResumeWithdrawOperations(
-  props: {
-    intent: DelayedWithdrawCollateralIntent;
-    options: ClaimDelayedOption;
-    creditAccount: CreditAccountSlice;
-    sdk: OnchainSDK;
-    quotaReserve: number | undefined;
-  },
-  quoter: SwapQuoter,
+  ctx: ResumeContext<DelayedWithdrawCollateralIntent>,
 ): Promise<AccountCalculatorOperation[]> {
-  const { intent, options, creditAccount, sdk } = props;
-  const underlying = creditAccount.underlying;
-  const rwaMeta = sdk.tokensMeta.rwaUnderlyings.get(underlying);
+  const { intent, creditAccount, sdk, push, paths, ledger } = ctx;
+  const { underlying } = creditAccount;
+  const claimed = claimedOutput(ctx);
+  const rwaAsset = sdk.tokensMeta.rwaUnderlyings.get(underlying)?.asset;
 
   if (
     !eq(intent.withdrawToken, underlying) &&
-    !eq(intent.withdrawToken, rwaMeta?.asset ?? ("" as Address))
+    (rwaAsset == null || !eq(intent.withdrawToken, rwaAsset))
   ) {
     throw new Error("Withdraw intent should withdraw underlying token only");
   }
 
-  const claimOp = buildClaimDelayedWithdrawalOperation(
-    { creditAccount, sdk },
-    options,
-  );
-  const primary = primaryInstantOutput(claimOp.outputs);
-
-  if (!primary || primary.amount <= 0n) {
-    throw new Error("No claimable assets");
-  }
-
   const convert = convertAmount(sdk, creditAccount.creditManager);
 
-  const operations: Array<AccountCalculatorOperation> = [claimOp];
-
+  /** Routes `amountIn` of `tokenIn`, leaving the rest of its balance alone. */
   const swap = async (
     tokenIn: Address,
     amountIn: bigint,
     tokenOut: Address,
-  ): Promise<SwapQuote> => {
+  ): Promise<bigint> => {
     if (amountIn <= 0n) {
-      return ZERO_QUOTE;
+      return 0n;
     }
-
-    const { state } = simulateState({
-      operations,
-      creditAccount,
-      sdk,
-      quotaReserve: props.quotaReserve,
-    });
-    const tokenInBalance =
-      state.assets.find(asset => eq(asset.token, tokenIn))?.balance ?? 0n;
-    const quote = await quoter({
-      from: [{ token: tokenIn, balance: amountIn }],
+    const leg = await paths.swap({
+      tokenIn,
       tokenOut,
-      tokenInBalance,
+      amount: amountIn,
+      keep: ledger.balanceOf(tokenIn) - amountIn,
     });
-    operations.push(
-      buildSwapOperation(
-        {
-          tokenIn,
-          amountIn,
-          tokenOut,
-          amountOut: quote.minAmount,
-          calls: quote.calls,
-          creditAccount,
-          sdk,
-        },
-        options,
-      ),
+    push(
+      buildSwapOperation({
+        tokenIn,
+        amountIn,
+        tokenOut,
+        amountOut: leg.minAmount,
+        calls: leg.calls,
+      }),
     );
-    return quote;
+    return leg.minAmount;
   };
 
   const decreaseDebt = (amount: bigint): void => {
     if (amount > 0n) {
-      operations.push(
-        buildDecreaseDebtOperation({ amount, creditAccount, sdk }, options),
-      );
+      push(buildDecreaseDebtOperation({ amount, creditAccount, sdk }));
     }
   };
 
-  const withdrawCollateral = async (amount: bigint) => {
-    const withdrawOperations = await buildWithdrawCollateralOperation(
-      {
+  const withdraw = async (amount: bigint) =>
+    push(
+      ...(await buildWithdrawCollateralOperation({
         token: intent.withdrawToken,
         amount,
         to: intent.to,
         underlying,
         creditAccount,
         sdk,
-      },
-      options,
+      })),
     );
-    operations.push(...withdrawOperations);
-  };
 
+  // 2.2.x — the start leg already repaid the debt, so the whole claim is payout.
   if (intent.debtRepaid === 0n) {
-    /**
-     * 2.2.x: debtRepaid === 0n means that debt was repayed on withdrawal start,
-     * So all claimed amount should be withdrawn
-     */
-    const available = eq(primary.token, intent.withdrawToken)
-      ? primary.amount
-      : (await swap(primary.token, primary.amount, intent.withdrawToken))
-          .minAmount;
-    await withdrawCollateral(BigIntMath.min(intent.withdrawAmount, available));
-  } else if (eq(intent.sourceToken, intent.withdrawToken)) {
-    /**
-     * 2.5.x: This can happen when source=target and source has delayedConfig.
-     * In this case claimed amount should be used only to repay debt
-     * and withdrawAmount can be withdrawn as is
-     */
-    const undQuote = eq(primary.token, underlying)
-      ? ({
-          ...ZERO_QUOTE,
-          amount: primary.amount,
-          minAmount: primary.amount,
-        } satisfies SwapQuote)
-      : await swap(primary.token, primary.amount, underlying);
-    decreaseDebt(BigIntMath.min(undQuote.minAmount, intent.debtRepaid));
-    await withdrawCollateral(intent.withdrawAmount);
-  } else if (eq(intent.withdrawToken, underlying)) {
-    /**
-     * 2.3.x: Special case - withdrawToken = underlying,
-     * so the full claim amount can be swapped int underlying;
-     * reserve W from the U result, then repay from the remainder.
-     */
-    const undQuote = eq(primary.token, underlying)
-      ? ({
-          ...ZERO_QUOTE,
-          amount: primary.amount,
-          minAmount: primary.amount,
-        } satisfies SwapQuote)
-      : await swap(primary.token, primary.amount, underlying);
-    const withdrawn = BigIntMath.min(intent.withdrawAmount, undQuote.minAmount);
-    decreaseDebt(
-      BigIntMath.min(
-        BigIntMath.max(undQuote.minAmount - withdrawn, 0n),
-        intent.debtRepaid,
-      ),
-    );
-    withdrawCollateral(withdrawn);
-  } else if (eq(primary.token, intent.withdrawToken)) {
-    /**
-     * 2.4.2: Special case - withdrawToken = claimedToken,
-     * so we can take part of claimed amount without conversion and swap the rest into underlying;
-     * reserve claimed T for W; only the remainder funds debt.
-     */
-    const withdrawn = BigIntMath.min(intent.withdrawAmount, primary.amount);
-    const undQuote = await swap(
-      primary.token,
-      primary.amount - withdrawn,
-      underlying,
-    );
-    decreaseDebt(BigIntMath.min(undQuote.minAmount, intent.debtRepaid));
-    withdrawCollateral(withdrawn);
-  } else if (eq(primary.token, underlying)) {
-    /**
-     * 2.4.1: Special case - underlying = claimedToken,
-     * so we can decrease debt using part of claimed amount and swap the rest into target;
-     * reserve U equivalent of W, repay with the rest, then swap W.
-     */
-    const withdrawInUnderlying = BigIntMath.min(
-      convert(intent.withdrawToken, primary.token, intent.withdrawAmount),
-      primary.amount,
-    );
-    decreaseDebt(
-      BigIntMath.min(primary.amount - withdrawInUnderlying, intent.debtRepaid),
-    );
-    const withdrawQuote = await swap(
-      primary.token,
-      withdrawInUnderlying,
-      intent.withdrawToken,
-    );
-    withdrawCollateral(
-      BigIntMath.min(intent.withdrawAmount, withdrawQuote.minAmount),
-    );
-  } else {
-    /**
-     * 2.4.3: Common case - both target and claimed token are independent tokens;
-     * Here we should reserve part of claimed amount for withdrawal and
-     * use the rest for debt repayment.
-     * split a third-token claim into independent debt and W legs.
-     */
-    const withdrawInClaim = BigIntMath.min(
-      convert(intent.withdrawToken, primary.token, intent.withdrawAmount),
-      primary.amount,
-    );
-
-    const debtQuote = await swap(
-      primary.token,
-      BigIntMath.max(primary.amount - withdrawInClaim, 0n),
-      underlying,
-    );
-    decreaseDebt(BigIntMath.min(debtQuote.minAmount, intent.debtRepaid));
-    const withdrawQuote = await swap(
-      primary.token,
-      withdrawInClaim,
-      intent.withdrawToken,
-    );
-    withdrawCollateral(
-      BigIntMath.min(intent.withdrawAmount, withdrawQuote.minAmount),
-    );
+    const available = eq(claimed.token, intent.withdrawToken)
+      ? claimed.amount
+      : await swap(claimed.token, claimed.amount, intent.withdrawToken);
+    return withdraw(BigIntMath.min(intent.withdrawAmount, available));
   }
 
-  return operations;
+  // 2.5.x — source and payout token coincide, which only happens when the source
+  // itself was the delayed asset: the payout is already on the account, so the
+  // claim exists purely to repay.
+  if (eq(intent.sourceToken, intent.withdrawToken)) {
+    const raised = eq(claimed.token, underlying)
+      ? claimed.amount
+      : await swap(claimed.token, claimed.amount, underlying);
+    decreaseDebt(BigIntMath.min(raised, intent.debtRepaid));
+    return withdraw(intent.withdrawAmount);
+  }
+
+  // 2.3.x — payout is the underlying, so both uses want the same token: convert
+  // everything, reserve the payout, repay from the remainder.
+  if (eq(intent.withdrawToken, underlying)) {
+    const raised = eq(claimed.token, underlying)
+      ? claimed.amount
+      : await swap(claimed.token, claimed.amount, underlying);
+    const payout = BigIntMath.min(intent.withdrawAmount, raised);
+    decreaseDebt(BigIntMath.min(raised - payout, intent.debtRepaid));
+    return withdraw(payout);
+  }
+
+  // 2.4.2 — the claim is already the payout token: hand over what is owed and
+  // route only the surplus into debt.
+  if (eq(claimed.token, intent.withdrawToken)) {
+    const payout = BigIntMath.min(intent.withdrawAmount, claimed.amount);
+    const raised = await swap(
+      claimed.token,
+      claimed.amount - payout,
+      underlying,
+    );
+    decreaseDebt(BigIntMath.min(raised, intent.debtRepaid));
+    return withdraw(payout);
+  }
+
+  // 2.4.1 — the claim is the underlying: repay from it directly, then buy the
+  // payout token with the part reserved for it.
+  if (eq(claimed.token, underlying)) {
+    const reserved = BigIntMath.min(
+      convert(intent.withdrawToken, claimed.token, intent.withdrawAmount),
+      claimed.amount,
+    );
+    decreaseDebt(BigIntMath.min(claimed.amount - reserved, intent.debtRepaid));
+    const bought = await swap(claimed.token, reserved, intent.withdrawToken);
+    return withdraw(BigIntMath.min(intent.withdrawAmount, bought));
+  }
+
+  // 2.4.3 — a third token: two independent legs out of one claim.
+  const reserved = BigIntMath.min(
+    convert(intent.withdrawToken, claimed.token, intent.withdrawAmount),
+    claimed.amount,
+  );
+  const raised = await swap(
+    claimed.token,
+    claimed.amount - reserved,
+    underlying,
+  );
+  decreaseDebt(BigIntMath.min(raised, intent.debtRepaid));
+  const bought = await swap(claimed.token, reserved, intent.withdrawToken);
+  return withdraw(BigIntMath.min(intent.withdrawAmount, bought));
 }

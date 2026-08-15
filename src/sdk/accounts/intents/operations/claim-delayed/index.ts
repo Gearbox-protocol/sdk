@@ -3,24 +3,10 @@ import type {
   ClaimableWithdrawal,
   MultiCall,
   OnchainSDK,
-  WithdrawableAsset,
   WithdrawalOutput,
 } from "../../../../index.js";
 import type { CreditAccountSlice } from "../../types.js";
-import { eq, toTargetDecimals } from "../../utils/index.js";
-
-export interface OnchainOption {
-  kind: "onchain";
-  claimableWithdrawal: ClaimableWithdrawal;
-}
-
-export interface OffchainOption {
-  kind: "offchain";
-  phantomSpent: bigint;
-  withdrawalConfig: WithdrawableAsset;
-}
-
-export type ClaimDelayedOption = OnchainOption | OffchainOption;
+import { eq } from "../../utils/index.js";
 
 /**
  * Logical claim op for resume previews.
@@ -34,60 +20,35 @@ export type ClaimDelayedWithdrawalOperation = {
   withdrawalTokenSpent: bigint;
   /** Claim outputs as returned by the compressor (incl. `isDelayed`). */
   outputs: WithdrawalOutput[];
-  /**
-   * Compressor claimCalls. Empty for instant-only / fixture simulation when
-   * the full claimable payload is unavailable — refined then keeps calls: [].
-   */
+  /** Compressor claimCalls. */
   calls: MultiCall[];
 };
 
 /**
- * Build the claim op from a matured claimable, or a simulation-only op from
- * resume claimedToken/amount when claimable is not attached.
- * Stores balances for raw call
+ * The claim op for a matured claimable: burns the phantom and credits the
+ * outputs the compressor reports.
  */
-export function buildClaimDelayedWithdrawalOperation(
-  input: { creditAccount: CreditAccountSlice; sdk: OnchainSDK },
-  option: ClaimDelayedOption,
-): ClaimDelayedWithdrawalOperation {
-  if (option.kind === "onchain") {
-    const calls = input.sdk.accounts.assembleClaimDelayedCalls({
-      creditFacade: input.creditAccount.creditFacade,
-      claimableNow: option.claimableWithdrawal,
-    });
-
-    return {
-      type: "claimDelayedWithdrawal",
-      token: option.claimableWithdrawal.token.toLowerCase() as Address,
-      withdrawalPhantomToken:
-        option.claimableWithdrawal.withdrawalPhantomToken.toLowerCase() as Address,
-      withdrawalTokenSpent: option.claimableWithdrawal.withdrawalTokenSpent,
-      outputs: option.claimableWithdrawal.outputs.map(o => ({
-        ...o,
-        token: o.token.toLowerCase() as Address,
-      })),
-      calls,
-    };
-  }
+export function buildClaimDelayedWithdrawalOperation(input: {
+  claimable: ClaimableWithdrawal;
+  creditAccount: CreditAccountSlice;
+  sdk: OnchainSDK;
+}): ClaimDelayedWithdrawalOperation {
+  const { claimable } = input;
 
   return {
     type: "claimDelayedWithdrawal",
-    token: option.withdrawalConfig.token,
-    withdrawalPhantomToken: option.withdrawalConfig.withdrawalPhantomToken,
-    withdrawalTokenSpent: option.phantomSpent,
-    outputs: [
-      {
-        token: option.withdrawalConfig.underlying,
-        amount: toTargetDecimals(
-          option.phantomSpent,
-          option.withdrawalConfig.withdrawalPhantomToken,
-          option.withdrawalConfig.underlying,
-          input.sdk,
-        ),
-        isDelayed: false,
-      },
-    ],
-    calls: [],
+    token: claimable.token.toLowerCase() as Address,
+    withdrawalPhantomToken:
+      claimable.withdrawalPhantomToken.toLowerCase() as Address,
+    withdrawalTokenSpent: claimable.withdrawalTokenSpent,
+    outputs: claimable.outputs.map(o => ({
+      ...o,
+      token: o.token.toLowerCase() as Address,
+    })),
+    calls: input.sdk.accounts.assembleClaimDelayedCalls({
+      creditFacade: input.creditAccount.creditFacade,
+      claimableNow: claimable,
+    }),
   };
 }
 
