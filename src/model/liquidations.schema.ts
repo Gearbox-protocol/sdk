@@ -19,7 +19,7 @@ import {
  * {@link LiquidatableAccountFilter}
  **/
 export const liquidatableAccountFilterSchema = z.object({
-  chainIds: z.array(chainIdSchema).optional(),
+  chainIds: filterable(z.array(chainIdSchema)).optional(),
   underlyingType: filterable(assetTypeSchema).optional(),
   paused: filterable(z.boolean()).optional(),
   rwa: filterable(z.boolean()).optional(),

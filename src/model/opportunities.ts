@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import type { Curator } from "./curators.js";
-import type { ChainScopedFilter, Filterable } from "./filters.js";
+import type { Filterable } from "./filters.js";
 import { isFilterSet } from "./filters.js";
 import type {
   Amount,
@@ -398,11 +398,15 @@ export function opportunityId(opportunity: Opportunity): OpportunityId {
  * `"all"` to say the same thing explicitly, which is what a UI whose state has
  * an "any" option holds, see {@link Filterable}. Conditions combine with AND.
  **/
-export interface OpportunityFilter extends ChainScopedFilter {
+export interface OpportunityFilter {
   /**
    * Keep only pools or only strategies.
    **/
   kind?: Filterable<OpportunityKind>;
+  /**
+   * Keep only opportunities on these chains.
+   **/
+  chainIds?: Filterable<ChainId[]>;
   /**
    * Keep only opportunities whose {@link OpportunityBase.underlyingToken} is of
    * this class, which for an RWA market means the class of the token its
@@ -446,7 +450,10 @@ export function matchesOpportunityFilter(
   if (isFilterSet(filter.kind) && opportunity.kind !== filter.kind) {
     return false;
   }
-  if (filter.chainIds && !filter.chainIds.includes(opportunity.chainId)) {
+  if (
+    isFilterSet(filter.chainIds) &&
+    !filter.chainIds.includes(opportunity.chainId)
+  ) {
     return false;
   }
   if (

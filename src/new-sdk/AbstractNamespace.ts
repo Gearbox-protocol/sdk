@@ -1,287 +1,266 @@
+import type { ChainId } from "../model/index.js";
+import type { GearboxAPI, OffchainResult } from "../offchain/index.js";
+import { getNetworkType } from "../sdk/chain/chains.js";
 import type {
-  ChainId,
-  ChainMetadata,
-  DataResponse,
-  DataSource,
-  ResponseMetadata,
-} from "../model/index.js";
+  MultichainNetworkMeta,
+  MultichainSDK,
+  NetworkType,
+} from "../sdk/index.js";
 import type { ILogger } from "../sdk/types/logger.js";
-import type { SourceMerger } from "./merge/index.js";
-import { noSourceServed } from "./merge/index.js";
-import type { NamespaceOptions } from "./types.js";
+import type { OffchainSourceStatus, ReadResult, SourceMeta } from "./types.js";
 import { AllSourcesFailedError } from "./types.js";
 
 /**
- * One read of a combined namespace, expressed once per source plus the policy
- * that turns the two answers into one.
+ * What the on-chain source contributed, after per-chain failures have been
+ * turned into metadata.
  *
- * @typeParam Onchain - On-chain source namespace.
- * @typeParam Offchain - Backend source namespace.
- * @typeParam T - Payload type of the read.
+ * @internal
  **/
-export interface MergedQuery<Onchain, Offchain, T> {
-  /**
-   * The read, against the chain.
-   **/
-  fromChain(source: Onchain): Promise<DataResponse<T>>;
-  /**
-   * The same read, against the backend.
-   **/
-  fromBackend(source: Offchain): Promise<DataResponse<T>>;
-  /**
-   * How the two answers become one, see {@link SourceMerger}.
-   **/
-  merge: SourceMerger<T>;
-  /**
-   * Chains the read narrows itself to, if it narrows at all. Each source scopes
-   * its own request, so this is only what a total failure is reported over,
-   * intersected with the chains the namespace covers.
-   **/
-  scope?: ChainId[];
+export interface OnchainContribution<T> {
+  value?: T;
+  chains: MultichainNetworkMeta[];
 }
 
 /**
- * What one source contributed, after a rejection has been caught.
+ * What the off-chain source contributed, after a rejection has been turned into
+ * metadata.
+ *
+ * @internal
  **/
-interface SourceOutcome<T> {
-  /**
-   * Envelope the source answered with. Absent when it was not asked, or was
-   * asked and threw.
-   **/
-  response?: DataResponse<T>;
-  /**
-   * Why the read threw, when it did.
-   **/
-  error?: unknown;
+export interface OffchainContribution<T> {
+  value?: T;
+  status?: OffchainSourceStatus;
 }
+
+/**
+ * How a read turns the two contributions into one payload. Either side is
+ * absent when its source was not asked, or was asked and failed.
+ *
+ * @internal
+ **/
+export type CombineSources<T> = (
+  onchain: T | undefined,
+  offchain: T | undefined,
+) => T;
 
 /**
  * Shared machinery of every {@link GearboxSDK} namespace.
  *
- * A namespace is a stateless router over two source namespaces. It exposes each
- * of them directly, so a consumer can read them one at a time and merge later,
- * and it runs both at once for the merged reads. Merging itself is a pure
- * function the subclass names, see {@link SourceMerger}.
+ * A namespace is a stateless router: it asks the sources its mode allows, in
+ * parallel, merges what came back and reports what did not. This class owns
+ * that routing — per-chain failure capture, backend degradation, the response
+ * envelope and the all-sources-failed rule — so a namespace holds nothing but
+ * its reads and its merge policy.
  *
  * The sources are whatever it was handed, and their readiness is their owner's
  * business: a source that is not ready to answer fails the read it was given,
  * and that failure is reported like any other.
  *
- * All protocol knowledge lives in the sources. None of it is repeated here or
- * in a subclass.
+ * All protocol knowledge lives in the sources: `MultichainSDK` for the chain,
+ * `GearboxAPI` for the backend. None of it is repeated here or in a subclass.
  *
- * @typeParam Onchain - On-chain source namespace, e.g.
- *   `MultichainOpportunitiesService`.
- * @typeParam Offchain - Backend source namespace, e.g. `OffchainOpportunities`.
+ * @typeParam ListRow - Row type of the namespace's list read.
  **/
-export abstract class AbstractNamespace<Onchain, Offchain> {
-  /**
-   * How far the backend may lag the chain, for the mergers a subclass names.
-   **/
-  protected readonly maxOffchainLagSeconds: number;
+export abstract class AbstractNamespace<ListRow extends object> {
   protected readonly logger?: ILogger;
 
-  readonly #chainIds: ChainId[];
-  readonly #onchain?: Onchain;
-  readonly #offchain?: Offchain;
+  readonly #onchain?: MultichainSDK;
+  readonly #offchain?: GearboxAPI;
 
   protected constructor(
     name: string,
-    onchain: Onchain | undefined,
-    offchain: Offchain | undefined,
-    options: NamespaceOptions,
+    onchain: MultichainSDK | undefined,
+    offchain: GearboxAPI | undefined,
+    logger?: ILogger,
   ) {
     this.#onchain = onchain;
     this.#offchain = offchain;
-    this.#chainIds = [...options.chainIds];
-    this.maxOffchainLagSeconds = options.maxOffchainLagSeconds;
-    this.logger = options.logger?.child?.({ name }) ?? options.logger;
+    this.logger = logger?.child?.({ name }) ?? logger;
   }
 
   /**
-   * This namespace on the chain alone, unmerged and unfiltered.
-   *
-   * The same instance as `sdk.onchain.<namespace>`, so the two spellings cannot
-   * drift apart. `undefined` in `offchain` mode, where the type of the facade
-   * does not offer it.
+   * Per-field source policy for one row of this namespace.
    **/
-  public get onchain(): Onchain {
-    return this.#onchain as Onchain;
-  }
+  protected abstract mergeOne<T extends object>(onchain: T, offchain: T): T;
 
   /**
-   * This namespace on the backend alone, unmerged.
-   *
-   * The same instance as `sdk.offchain.<namespace>`. `undefined` in `onchain`
-   * mode, where the type of the facade does not offer it.
+   * Union policy for this namespace's list read.
    **/
-  public get offchain(): Offchain {
-    return this.#offchain as Offchain;
-  }
+  protected abstract mergeList(
+    onchain: ListRow[],
+    offchain: ListRow[],
+  ): ListRow[];
 
   /**
-   * Asks both sources at once and merges what came back.
+   * Asks both sources in parallel and combines whatever answered.
    *
-   * A source that throws is logged and dropped, so one dead source degrades a
-   * `both`-mode read rather than failing it. The read only fails when nothing
-   * usable is left: every chain it covers errored, or neither source produced
-   * anything at all.
-   *
-   * The action name is used in diagnostics and in that error.
+   * The action name is only used in diagnostics and in the error raised when
+   * every source the read had failed.
    **/
-  protected async merged<T>(
+  protected async read<T>(
     action: string,
-    query: MergedQuery<Onchain, Offchain, T>,
-  ): Promise<DataResponse<T>> {
-    const onchain = this.#onchain;
-    const offchain = this.#offchain;
-    const [fromChain, fromBackend] = await Promise.all([
-      this.#ask(action, "onchain", onchain && (() => query.fromChain(onchain))),
-      this.#ask(
-        action,
-        "offchain",
-        offchain && (() => query.fromBackend(offchain)),
-      ),
+    fromChain: (sdk: MultichainSDK) => Promise<OnchainContribution<T>>,
+    fromBackend: (api: GearboxAPI) => Promise<OffchainResult<T>>,
+    combine: CombineSources<T>,
+  ): Promise<ReadResult<T>> {
+    const [onchain, offchain] = await Promise.all([
+      this.fromChain(fromChain),
+      this.fromBackend(fromBackend),
     ]);
 
-    const merged = query.merge(fromChain.response, fromBackend.response);
-    if (!merged) {
-      // with one source there is nothing to have chosen between, so its own
-      // error is the answer rather than a wrapper saying every source failed
-      const sole = soleFailure(fromChain, fromBackend);
-      if (sole !== undefined) {
-        throw sole;
-      }
-      // a source that threw said nothing about any chain, so the failure is
-      // reported over the chains the read covered: the namespace's own, as far
-      // as the read narrowed them
-      const { scope } = query;
-      const covered = scope
-        ? this.#chainIds.filter(chainId => scope.includes(chainId))
-        : this.#chainIds;
-      throw new AllSourcesFailedError(
-        action,
-        failureMeta(covered, fromChain, fromBackend),
-      );
-    }
-    if (
-      merged.meta.chains.length > 0 &&
-      merged.meta.chains.every(chain => chain.status === "error")
-    ) {
-      throw new AllSourcesFailedError(action, merged.meta);
-    }
+    const meta = toMeta(onchain, offchain);
+    this.assertAnySourceSucceeded(action, meta);
 
-    this.#logDiscarded(merged, fromChain, fromBackend);
-    return merged;
+    return { result: combine(onchain.value, offchain.value), meta };
   }
 
   /**
-   * Runs one source's leg of a read, turning a rejection into an outcome so
-   * that the other source is still merged.
+   * Reads the namespace's list from both sources, unioned by
+   * {@link AbstractNamespace.mergeList}.
    **/
-  async #ask<T>(
+  protected async readList(
     action: string,
-    source: DataSource,
-    run: (() => Promise<DataResponse<T>>) | undefined,
-  ): Promise<SourceOutcome<T>> {
-    if (!run) {
+    fromChain: (sdk: MultichainSDK) => Promise<OnchainContribution<ListRow[]>>,
+    fromBackend: (api: GearboxAPI) => Promise<OffchainResult<ListRow[]>>,
+  ): Promise<ReadResult<ListRow[]>> {
+    // a source that answered with nothing still contributes an empty list,
+    // which is a different thing from a source that failed and was dropped
+    return this.read(action, fromChain, fromBackend, (onchain, offchain) =>
+      this.mergeList(onchain ?? [], offchain ?? []),
+    );
+  }
+
+  /**
+   * Reads one row from both sources and merges them under
+   * {@link AbstractNamespace.mergeOne}. The key names the chain, so the
+   * on-chain leg queries exactly one.
+   **/
+  protected async readOne<T extends object>(
+    action: string,
+    chainId: ChainId,
+    fromChain: (sdk: MultichainSDK) => Promise<T>,
+    fromBackend: (api: GearboxAPI) => Promise<OffchainResult<T>>,
+  ): Promise<ReadResult<T>> {
+    return this.read(
+      action,
+      async sdk => {
+        const network = this.networkOf(chainId);
+        if (!network) {
+          return { chains: [] };
+        }
+        return this.onOneChain(action, network, () => fromChain(sdk));
+      },
+      fromBackend,
+      (onchain, offchain) => {
+        if (onchain && offchain) {
+          return this.mergeOne(onchain, offchain);
+        }
+        // the all-sources-failed rule guarantees one of the two is set
+        return (onchain ?? offchain) as T;
+      },
+    );
+  }
+
+  /**
+   * Reads something only the backend can answer.
+   *
+   * The fallback stands in for a backend that answered with nothing, which is
+   * a different thing from a backend that failed and was dropped.
+   **/
+  protected async readOffchain<T>(
+    action: string,
+    fromBackend: (api: GearboxAPI) => Promise<OffchainResult<T>>,
+    fallback: T,
+  ): Promise<ReadResult<T>> {
+    const offchain = await this.fromBackend(fromBackend);
+    const meta = toMeta({ chains: [] }, offchain);
+    this.assertAnySourceSucceeded(action, meta);
+    return { result: offchain.value ?? fallback, meta };
+  }
+
+  /**
+   * Runs a read against the chain, or reports the chain as absent when the
+   * namespace has no on-chain source at all.
+   **/
+  protected async fromChain<T>(
+    run: (sdk: MultichainSDK) => Promise<OnchainContribution<T>>,
+  ): Promise<OnchainContribution<T>> {
+    return this.#onchain ? run(this.#onchain) : { chains: [] };
+  }
+
+  /**
+   * Runs a read against the backend, turning any rejection into metadata so
+   * that a dead backend degrades a `both`-mode read instead of failing it.
+   **/
+  protected async fromBackend<T>(
+    run: (api: GearboxAPI) => Promise<OffchainResult<T>>,
+  ): Promise<OffchainContribution<T>> {
+    if (!this.#offchain) {
       return {};
     }
     try {
-      return { response: await run() };
+      const { result, meta } = await run(this.#offchain);
+      return {
+        value: meta.status === "success" ? result : undefined,
+        status: meta,
+      };
     } catch (error) {
-      this.logger?.warn(error, `failed to ${action} from the ${source} source`);
-      return { error };
+      this.logger?.warn(error, "offchain read failed");
+      return { status: { status: "error", error } };
     }
   }
 
   /**
-   * Records which source lost each chain.
-   *
-   * Only logged, never put in the envelope: to a screen, a backend that failed
-   * and a backend that was too far behind mean the same thing, and the envelope
-   * says which source it is showing.
+   * Runs a read against one chain, turning a rejection into that chain's
+   * metadata entry.
    **/
-  #logDiscarded<T>(
-    merged: DataResponse<T>,
-    fromChain: SourceOutcome<T>,
-    fromBackend: SourceOutcome<T>,
-  ): void {
-    if (!this.logger?.debug || !fromChain.response || !fromBackend.response) {
-      return;
-    }
-    for (const chain of merged.meta.chains) {
-      if (chain.status !== "success") {
-        continue;
-      }
-      const loser = chain.source === "onchain" ? fromBackend : fromChain;
-      const discarded = loser.response?.meta.chains.find(
-        other => other.chainId === chain.chainId,
-      );
-      if (!discarded) {
-        continue;
-      }
-      this.logger.debug(
-        `chain ${chain.chainId} served from the ${chain.source} source, ` +
-          `${describeDiscarded(discarded, chain.timestamp)}`,
-      );
+  protected async onOneChain<T>(
+    action: string,
+    network: NetworkType,
+    run: () => Promise<T>,
+  ): Promise<OnchainContribution<T>> {
+    try {
+      return { value: await run(), chains: [{ network, status: "success" }] };
+    } catch (error) {
+      this.logger?.warn(error, `failed to ${action} on ${network}`);
+      return { chains: [{ network, status: "error", error }] };
     }
   }
-}
 
-/**
- * The rejection of the only source that was asked, when there was just one.
- *
- * A source that was not asked contributes neither a response nor an error, which
- * is what distinguishes a single-source mode from both sources failing.
- **/
-function soleFailure(
-  fromChain: SourceOutcome<unknown>,
-  fromBackend: SourceOutcome<unknown>,
-): unknown {
-  const asked = [fromChain, fromBackend].filter(
-    outcome => outcome.response !== undefined || outcome.error !== undefined,
-  );
-  return asked.length === 1 ? asked[0]?.error : undefined;
-}
-
-/**
- * Outcome of every chain a failed read covered, keeping the reason a source
- * did give for a chain over the reason its whole leg threw.
- **/
-function failureMeta(
-  chainIds: readonly ChainId[],
-  fromChain: SourceOutcome<unknown>,
-  fromBackend: SourceOutcome<unknown>,
-): ResponseMetadata {
-  const legReasons = [fromChain.error, fromBackend.error].filter(
-    reason => reason !== undefined,
-  );
-  const chains = chainIds.map(chainId => {
-    const reported = [fromChain.response, fromBackend.response]
-      .flatMap(response => response?.meta.chains ?? [])
-      .filter(chain => chain.chainId === chainId)
-      .map(chain => (chain.status === "error" ? chain.error : undefined));
-    const reasons = [...reported, ...legReasons].filter(
-      reason => reason !== undefined,
-    );
-    return noSourceServed(chainId, reasons);
-  });
-  return { chains };
-}
-
-/**
- * Why the source that lost a chain lost it.
- **/
-function describeDiscarded(
-  discarded: ChainMetadata,
-  servedAt: number | undefined,
-): string {
-  if (discarded.status === "error") {
-    return `the ${discarded.source ?? "other"} source failed it: ${discarded.error}`;
+  /**
+   * A read that reached at least one source returns what it has; a read where
+   * every source it had failed throws, because an empty result would otherwise
+   * be indistinguishable from "there is nothing here".
+   **/
+  protected assertAnySourceSucceeded(action: string, meta: SourceMeta): void {
+    const asked = meta.chains.length > 0 || meta.offchain !== undefined;
+    const answered =
+      meta.chains.some(c => c.status === "success") ||
+      meta.offchain?.status === "success";
+    if (asked && !answered) {
+      throw new AllSourcesFailedError(action, meta);
+    }
   }
-  if (servedAt === undefined || discarded.timestamp === undefined) {
-    return `the ${discarded.source} source did not say how fresh its answer was`;
+
+  protected networkOf(chainId: ChainId): NetworkType | undefined {
+    try {
+      return getNetworkType(chainId);
+    } catch {
+      this.logger?.debug(
+        `chain ${chainId} is not a Gearbox network, skipping the onchain source`,
+      );
+      return undefined;
+    }
   }
-  return `the ${discarded.source} source was ${servedAt - discarded.timestamp}s behind`;
+}
+
+function toMeta(
+  onchain: OnchainContribution<unknown>,
+  offchain: OffchainContribution<unknown>,
+): SourceMeta {
+  const meta: SourceMeta = { chains: onchain.chains };
+  if (offchain.status) {
+    meta.offchain = offchain.status;
+  }
+  return meta;
 }

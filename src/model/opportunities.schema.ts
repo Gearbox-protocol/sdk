@@ -5,6 +5,7 @@ import type { Filterable } from "./filters.js";
 import { isFilterSet } from "./filters.js";
 import { booleanParamSchema, filterable } from "./filters.schema.js";
 import type { OpportunityFilter } from "./opportunities.js";
+import type { ChainId } from "./primitives.js";
 import {
   amountSchema,
   assetTypeSchema,
@@ -135,7 +136,7 @@ export const opportunitySchema = z.discriminatedUnion("kind", [
  **/
 export const opportunityFilterSchema = z.object({
   kind: filterable(opportunityKindSchema).optional(),
-  chainIds: z.array(chainIdSchema).optional(),
+  chainIds: filterable(z.array(chainIdSchema)).optional(),
   underlyingType: filterable(assetTypeSchema).optional(),
   paused: filterable(z.boolean()).optional(),
   sunset: filterable(z.boolean()).optional(),
@@ -171,8 +172,7 @@ export const opportunityFilterQuerySchema = z.codec(
         filter.kind = params.kind;
       }
       if (params.chainIds !== undefined) {
-        filter.chainIds =
-          params.chainIds === "" ? [] : params.chainIds.split(",").map(Number);
+        filter.chainIds = decodeChainIds(params.chainIds);
       }
       if (params.underlyingType !== undefined) {
         filter.underlyingType = params.underlyingType;
@@ -190,7 +190,9 @@ export const opportunityFilterQuerySchema = z.codec(
     },
     encode: (filter): OpportunityFilterQueryParams => ({
       kind: isFilterSet(filter.kind) ? filter.kind : undefined,
-      chainIds: filter.chainIds?.join(","),
+      chainIds: isFilterSet(filter.chainIds)
+        ? filter.chainIds.join(",")
+        : undefined,
       underlyingType: isFilterSet(filter.underlyingType)
         ? filter.underlyingType
         : undefined,
@@ -204,6 +206,10 @@ export const opportunityFilterQuerySchema = z.codec(
 type OpportunityFilterQueryParams = z.input<
   typeof opportunityFilterQueryParamsSchema
 >;
+
+function decodeChainIds(param: string): ChainId[] {
+  return param === "" ? [] : param.split(",").map(Number);
+}
 
 function encodeFlag(
   condition: Filterable<boolean> | undefined,

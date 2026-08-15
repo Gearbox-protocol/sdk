@@ -1,7 +1,7 @@
-import type { ChainId, ResponseMetadata } from "../model/index.js";
 import type { GearboxAPI, GearboxAPIOptions } from "../offchain/index.js";
 import type {
   MultichainAttachOptions,
+  MultichainNetworkMeta,
   MultichainSDK,
   MultichainSDKOptions,
   NetworkType,
@@ -16,21 +16,75 @@ import type { ILogger } from "../sdk/types/logger.js";
 export type Mode = "onchain" | "offchain" | "both";
 
 /**
- * Thrown when a read had sources to ask and none of them served a single chain.
+ * Outcome of the off-chain read behind a response.
+ **/
+export interface OffchainSourceStatus {
+  /**
+   * Whether the backend served the request.
+   **/
+  status: "success" | "error";
+  /**
+   * Rejection reason. Only set when {@link status} is `"error"`.
+   **/
+  error?: unknown;
+}
+
+/**
+ * Which sources produced a response and which of them failed.
+ *
+ * Meta is always present, in every mode. A partial answer is the normal case
+ * for a multi-chain read, so a caller that ignores this block is choosing to
+ * treat "one chain is down" as "these opportunities do not exist".
+ **/
+export interface SourceMeta {
+  /**
+   * Outcome per queried chain. Empty when the read touched no chain, either
+   * because the SDK is off-chain or because a filter selected no chain.
+   **/
+  chains: MultichainNetworkMeta[];
+  /**
+   * Outcome of the off-chain read, absent when the SDK has no backend source.
+   **/
+  offchain?: OffchainSourceStatus;
+}
+
+/**
+ * What every {@link GearboxSDK} read returns.
+ *
+ * @typeParam T - Payload type.
+ **/
+export interface ReadResult<T> {
+  /**
+   * Requested payload, built from every source that answered.
+   **/
+  result: T;
+  /**
+   * Which sources produced it, see {@link SourceMeta}.
+   **/
+  meta: SourceMeta;
+}
+
+/**
+ * Thrown when a read had sources to ask and none of them answered.
  *
  * A read that partially succeeded never throws: it returns what it has and
- * reports the rest per chain in its metadata.
+ * reports the rest in {@link SourceMeta}.
  **/
 export class AllSourcesFailedError extends Error {
   /**
-   * Outcome of every chain the failed read covered.
+   * Outcome of every source the failed read asked.
    **/
-  public readonly meta: ResponseMetadata;
+  public readonly meta: SourceMeta;
 
-  constructor(action: string, meta: ResponseMetadata) {
-    const reasons = meta.chains
-      .filter(chain => chain.status === "error")
-      .map(chain => `${chain.chainId}: ${chain.error}`);
+  constructor(action: string, meta: SourceMeta) {
+    const reasons = [
+      ...meta.chains
+        .filter(c => c.status === "error")
+        .map(c => `${c.network}: ${c.error}`),
+      ...(meta.offchain?.status === "error"
+        ? [`offchain: ${meta.offchain.error}`]
+        : []),
+    ];
     super(`cannot ${action}, every source failed (${reasons.join("; ")})`);
     this.name = "AllSourcesFailedError";
     this.meta = meta;
@@ -57,11 +111,8 @@ export type PlainMultichainSDKOptions = MultichainSDKOptions<{}>;
 /**
  * Off-chain source of a {@link GearboxSDK}: either a client to reuse or the
  * options to build one with.
- *
- * The chains are not among those options — {@link GearboxSDKOptions.networks}
- * decides them. An injected client must already cover exactly those.
  **/
-export type OffchainSource = GearboxAPI | Omit<GearboxAPIOptions, "chainIds">;
+export type OffchainSource = GearboxAPI | GearboxAPIOptions;
 
 /**
  * Options for creating a {@link GearboxSDK}.
@@ -74,11 +125,9 @@ export interface GearboxSDKOptions<M extends Mode = Mode> {
    **/
   mode: M;
   /**
-   * Chains the SDK covers, which every read of every source is scoped to.
-   *
-   * This list is authoritative: a source built here covers exactly these
-   * chains, and an injected one that covers a different set is rejected at
-   * construction rather than silently read outside its scope.
+   * Chains the SDK covers. This list is authoritative: when {@link onchain} is
+   * an already-attached instance covering a different set of chains, the
+   * mismatch is logged and this list still decides what is read.
    **/
   networks: NetworkType[];
   /**
@@ -90,40 +139,12 @@ export interface GearboxSDKOptions<M extends Mode = Mode> {
    **/
   offchain?: OffchainSource;
   /**
-   * How many seconds the backend may lag the chain and still serve a chain in
-   * `both` mode, see {@link DEFAULT_MAX_OFFCHAIN_LAG}.
-   *
-   * One value for every chain and every namespace. A read that needs its own
-   * rule passes a custom merger instead of asking for a second threshold.
-   **/
-  maxOffchainLagSeconds?: number;
-  /**
    * Options passed to {@link MultichainSDK.attach}, used only when the SDK
    * builds the on-chain source itself.
    **/
   attach?: MultichainAttachOptions;
   /**
    * Logger for source selection and degradation diagnostics.
-   **/
-  logger?: ILogger;
-}
-
-/**
- * What a {@link GearboxSDK} hands every namespace it builds.
- **/
-export interface NamespaceOptions {
-  /**
-   * Chains the SDK covers, which is what a failed read is reported over. The
-   * sources scope their own requests, so this is not passed on to them.
-   **/
-  chainIds: ChainId[];
-  /**
-   * How far the backend may lag the chain, see
-   * {@link GearboxSDKOptions.maxOffchainLagSeconds}.
-   **/
-  maxOffchainLagSeconds: number;
-  /**
-   * Logger for source selection diagnostics.
    **/
   logger?: ILogger;
 }

@@ -1,14 +1,7 @@
-import type { ChainId } from "./primitives.js";
-
 /**
- * The part of a filter that scopes it to chains, which every list filter has.
+ * The vocabulary every read-model filter is written in: how a single condition
+ * says "do not narrow", and how a predicate asks whether it narrows at all.
  **/
-export interface ChainScopedFilter {
-  /**
-   * Keep only entities from these chains.
-   **/
-  chainIds?: ChainId[];
-}
 
 /**
  * Sentinel a filter condition can be set to instead of being omitted.

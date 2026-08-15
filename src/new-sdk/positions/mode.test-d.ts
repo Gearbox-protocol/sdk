@@ -1,16 +1,12 @@
 import { describe, expectTypeOf, it } from "vitest";
 import type {
-  DataResponse,
-  HistorySeries,
   PoolPositionHistoryMetric,
   PoolPositionRef,
-  Position,
   StrategyPositionHistoryMetric,
   StrategyPositionRef,
 } from "../../model/index.js";
-import type { OffchainPositions } from "../../offchain/index.js";
-import type { MultichainPositionsService } from "../../sdk/index.js";
 import type { Mode } from "../types.js";
+import type { Chart } from "../utils/index.js";
 import type { Positions } from "./types.js";
 
 /**
@@ -38,54 +34,6 @@ describe("mode gates method existence", () => {
     // methods; they must not silently gain them
     expectTypeOf<Positions<Mode>>().toHaveProperty("list");
     expectTypeOf<Positions<Mode>>().not.toHaveProperty("history");
-    expectTypeOf<Positions<Mode>>().not.toHaveProperty("merge");
-  });
-
-  it("filtering an already-read list exists in every mode", () => {
-    expectTypeOf<Positions<"onchain">>().toHaveProperty("filter");
-    expectTypeOf<Positions<"offchain">>().toHaveProperty("filter");
-    expectTypeOf<Positions<"both">>().toHaveProperty("filter");
-  });
-});
-
-describe("mode gates the source branches", () => {
-  it("offers the branch of every source the mode reads", () => {
-    expectTypeOf<
-      Positions<"onchain">["onchain"]
-    >().toEqualTypeOf<MultichainPositionsService>();
-    expectTypeOf<
-      Positions<"offchain">["offchain"]
-    >().toEqualTypeOf<OffchainPositions>();
-    expectTypeOf<
-      Positions<"both">["onchain"]
-    >().toEqualTypeOf<MultichainPositionsService>();
-    expectTypeOf<
-      Positions<"both">["offchain"]
-    >().toEqualTypeOf<OffchainPositions>();
-  });
-
-  it("hides the branch of a source the mode does not read", () => {
-    expectTypeOf<Positions<"onchain">>().not.toHaveProperty("offchain");
-    expectTypeOf<Positions<"offchain">>().not.toHaveProperty("onchain");
-  });
-
-  it("merging exists only where there are two sources to merge", () => {
-    expectTypeOf<Positions<"both">>().toHaveProperty("merge");
-    expectTypeOf<Positions<"onchain">>().not.toHaveProperty("merge");
-    expectTypeOf<Positions<"offchain">>().not.toHaveProperty("merge");
-  });
-
-  it("merges what the branches return, in either order of arrival", () => {
-    const positions = {} as Positions<"both">;
-    // a source still in flight is `undefined`, which is what keeps a merged
-    // read pending rather than making it look empty
-    expectTypeOf(positions.merge.list).toBeCallableWith(
-      undefined,
-      {} as DataResponse<Position[]>,
-    );
-    expectTypeOf(positions.merge.list).returns.toEqualTypeOf<
-      DataResponse<Position[]> | undefined
-    >();
   });
 });
 
@@ -118,11 +66,9 @@ describe("the position kind gates which charts it has", () => {
     positions.history(strategy).chart("dieselRate", "1m");
   });
 
-  it("answers with the series in the envelope every read uses", () => {
+  it("answers with the points to draw and what annotates them", () => {
     expectTypeOf(
       positions.history(strategy).chart,
-    ).returns.resolves.toEqualTypeOf<
-      DataResponse<HistorySeries<StrategyPositionHistoryMetric>>
-    >();
+    ).returns.resolves.toEqualTypeOf<Chart>();
   });
 });

@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import type { ChainScopedFilter, Filterable } from "./filters.js";
+import type { Filterable } from "./filters.js";
 import { isFilterSet } from "./filters.js";
 import type {
   AssetType,
@@ -18,7 +18,11 @@ import type {
  * `"all"` to say the same thing explicitly, which is what a UI whose state has
  * an "any" option holds, see {@link Filterable}. Conditions combine with AND.
  **/
-export interface LiquidatableAccountFilter extends ChainScopedFilter {
+export interface LiquidatableAccountFilter {
+  /**
+   * Keep only accounts on these chains.
+   **/
+  chainIds?: Filterable<ChainId[]>;
   /**
    * Keep only accounts whose underlying — the token of
    * {@link LiquidatableAccount.totalValue} — is of this class.
@@ -116,7 +120,10 @@ export function matchesLiquidatableAccountFilter(
   if (!filter) {
     return true;
   }
-  if (filter.chainIds && !filter.chainIds.includes(account.chainId)) {
+  if (
+    isFilterSet(filter.chainIds) &&
+    !filter.chainIds.includes(account.chainId)
+  ) {
     return false;
   }
   if (

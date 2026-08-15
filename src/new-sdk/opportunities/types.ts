@@ -1,5 +1,4 @@
 import type {
-  DataResponse,
   Opportunity,
   OpportunityFilter,
   PoolHistoryMetric,
@@ -11,10 +10,7 @@ import type {
   StrategyOpportunityKey,
   StrategyOpportunityRef,
 } from "../../model/index.js";
-import type { OffchainOpportunities } from "../../offchain/index.js";
-import type { MultichainOpportunitiesService } from "../../sdk/index.js";
-import type { SourceMerger } from "../merge/index.js";
-import type { Mode } from "../types.js";
+import type { Mode, ReadResult } from "../types.js";
 import type { HistoryReader } from "../utils/history.js";
 
 /**
@@ -24,36 +20,20 @@ export interface OpportunitiesBase {
   /**
    * All pool and strategy opportunities, optionally narrowed.
    *
-   * In `both` mode both sources are asked at once and each chain is served by
-   * whichever of them is fresh enough, see
-   * {@link OpportunityMergers.list}.
+   * In `both` mode the two lists are unioned by canonical opportunity id and
+   * merged field-wise, with the chain winning any field both sources fill.
    **/
-  list(filter?: OpportunityFilter): Promise<DataResponse<Opportunity[]>>;
+  list(filter?: OpportunityFilter): Promise<ReadResult<Opportunity[]>>;
   /**
    * Detailed view of one pool opportunity.
    **/
-  getPool(
-    key: PoolOpportunityKey,
-  ): Promise<DataResponse<PoolOpportunityDetail>>;
+  getPool(key: PoolOpportunityKey): Promise<ReadResult<PoolOpportunityDetail>>;
   /**
    * Detailed view of one strategy opportunity.
    **/
   getStrategy(
     key: StrategyOpportunityKey,
-  ): Promise<DataResponse<StrategyOpportunityDetail>>;
-  /**
-   * Narrows an already-read list, for a consumer that reads the sources itself.
-   *
-   * Applies the same conditions the sources would have applied, and drops the
-   * chains the filter excludes from the metadata too — the part a consumer
-   * cannot do by filtering the rows.
-   *
-   * `undefined` passes through, so a read still in flight stays that way.
-   **/
-  filter(
-    response: DataResponse<Opportunity[]> | undefined,
-    filter?: OpportunityFilter,
-  ): DataResponse<Opportunity[]> | undefined;
+  ): Promise<ReadResult<StrategyOpportunityDetail>>;
 }
 
 /**
@@ -68,9 +48,7 @@ export interface OpportunitiesOffchainOnly {
    * strategy series does not compile.
    *
    * Absent in `onchain` mode: the chain serves the present, and rebuilding a
-   * series from it would mean an archive read per point. There is no second
-   * source to fall back to either, so a backend failure is raised rather than
-   * reported in the metadata.
+   * series from it would mean an archive read per point.
    **/
   history(key: PoolOpportunityRef): HistoryReader<PoolHistoryMetric>;
   history(key: StrategyOpportunityRef): HistoryReader<StrategyHistoryMetric>;
@@ -84,59 +62,6 @@ export interface OpportunitiesOffchainOnly {
 export interface OpportunitiesOnchainOnly {}
 
 /**
- * The chain on its own, for a consumer that shows each source as it arrives
- * instead of waiting for the slower one.
- **/
-export interface OpportunitiesOnchainBranch {
-  /**
-   * This namespace on the chain alone. The same instance as
-   * `sdk.onchain.opportunities`.
-   **/
-  readonly onchain: MultichainOpportunitiesService;
-}
-
-/**
- * The backend on its own, see {@link OpportunitiesOnchainBranch}.
- **/
-export interface OpportunitiesOffchainBranch {
-  /**
-   * This namespace on the backend alone. The same instance as
-   * `sdk.offchain.opportunities`.
-   **/
-  readonly offchain: OffchainOpportunities;
-}
-
-/**
- * Merge policy of each read, exposed so that a consumer reading the two
- * branches itself combines them exactly as `both` mode would.
- **/
-export interface OpportunityMergers {
-  /**
-   * Merges two lists chain by chain: a chain is served by the backend when it
-   * is fresh enough, and by the chain otherwise.
-   **/
-  list: SourceMerger<Opportunity[]>;
-  /**
-   * Merges two versions of one pool opportunity under the same rule.
-   **/
-  pool: SourceMerger<PoolOpportunityDetail>;
-  /**
-   * Merges two versions of one strategy opportunity under the same rule.
-   **/
-  strategy: SourceMerger<StrategyOpportunityDetail>;
-}
-
-/**
- * Merging, which only exists where there are two sources to merge.
- **/
-export interface OpportunitiesMerged {
-  /**
-   * Merge policy per read, see {@link OpportunityMergers}.
-   **/
-  readonly merge: OpportunityMergers;
-}
-
-/**
  * Which methods the `opportunities` namespace has in each mode.
  *
  * A lookup map rather than a conditional type: `both` is spelled out instead of
@@ -144,18 +69,11 @@ export interface OpportunitiesMerged {
  * modes offer rather than silently distributing into a union of everything.
  **/
 export interface OpportunitiesByMode {
-  onchain: OpportunitiesBase &
-    OpportunitiesOnchainOnly &
-    OpportunitiesOnchainBranch;
-  offchain: OpportunitiesBase &
-    OpportunitiesOffchainOnly &
-    OpportunitiesOffchainBranch;
+  onchain: OpportunitiesBase & OpportunitiesOnchainOnly;
+  offchain: OpportunitiesBase & OpportunitiesOffchainOnly;
   both: OpportunitiesBase &
     OpportunitiesOffchainOnly &
-    OpportunitiesOnchainOnly &
-    OpportunitiesOnchainBranch &
-    OpportunitiesOffchainBranch &
-    OpportunitiesMerged;
+    OpportunitiesOnchainOnly;
 }
 
 /**
