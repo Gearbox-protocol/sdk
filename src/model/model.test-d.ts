@@ -112,6 +112,8 @@ import type {
   PositionFilter,
   PositionKey,
   PositionKind,
+  PositionList,
+  PositionSummary,
   RewardsPnL,
   StrategyPosition,
   StrategyPositionKey,
@@ -127,7 +129,9 @@ import type {
   positionFilterSchema,
   positionKeySchema,
   positionKindSchema,
+  positionListSchema,
   positionSchema,
+  positionSummarySchema,
   rewardsPnLSchema,
   strategyPositionKeySchema,
   strategyPositionSchema,
@@ -383,6 +387,12 @@ describe("model schemas match model types", () => {
       z.infer<typeof strategyPositionSchema>
     >().toEqualTypeOf<StrategyPosition>();
     expectTypeOf<z.infer<typeof positionSchema>>().toEqualTypeOf<Position>();
+    expectTypeOf<
+      z.infer<typeof positionSummarySchema>
+    >().toEqualTypeOf<PositionSummary>();
+    expectTypeOf<
+      z.infer<typeof positionListSchema>
+    >().toEqualTypeOf<PositionList>();
     expectTypeOf<
       z.infer<typeof positionFilterSchema>
     >().toEqualTypeOf<PositionFilter>();

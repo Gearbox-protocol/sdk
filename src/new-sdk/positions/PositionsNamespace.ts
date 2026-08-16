@@ -8,6 +8,7 @@ import type {
   PositionHistoryMetric,
   PositionId,
   PositionKey,
+  PositionList,
   StrategyPositionHistoryMetric,
   StrategyPositionRef,
 } from "../../model/index.js";
@@ -65,14 +66,21 @@ export class PositionsNamespace
   public async list(
     wallet: Address,
     filter?: PositionFilter,
-  ): Promise<ReadResult<Position[]>> {
-    return this.readList(
+  ): Promise<ReadResult<PositionList>> {
+    return this.read<PositionList>(
       "list positions",
       async sdk => {
         const { result, meta } = await sdk.positions.list({ wallet, filter });
-        return { value: result, chains: meta };
+        return { value: { positions: result }, chains: meta };
       },
       api => api.positions.list(wallet, filter),
+      (onchain, offchain) => ({
+        positions: this.mergeList(
+          onchain?.positions ?? [],
+          offchain?.positions ?? [],
+        ),
+        ...(offchain?.summary ? { summary: offchain.summary } : {}),
+      }),
     );
   }
 

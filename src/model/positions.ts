@@ -238,6 +238,62 @@ export interface StrategyPosition {
 export type Position = PoolPosition | StrategyPosition | LiquidationPosition;
 
 /**
+ * Portfolio-level figures for the positions returned by one list read.
+ *
+ * Monetary fields are aggregated in USD because a wallet can hold positions
+ * denominated in different tokens and on different chains. Point rewards are
+ * intentionally excluded from {@link rewards}: unlike token rewards, they
+ * have no price and cannot be folded into one portfolio value.
+ **/
+export interface PositionSummary {
+  /**
+   * Current net APY of the returned positions, weighted by their USD net
+   * value, in basis points.
+   *
+   * @example `842` for 8.42% APY
+   **/
+  currentApy: Bps;
+  /**
+   * Total PnL of the returned positions in USD, including priced rewards.
+   *
+   * @example `1250.5`
+   **/
+  pnl: number;
+  /**
+   * Current net value of the returned positions in USD.
+   *
+   * @example `25000.5`
+   **/
+  netValue: number;
+  /**
+   * Part of {@link pnl} earned as priced token rewards, in USD. Points are
+   * available in each position's {@link PnlBreakdown.rewards} instead.
+   *
+   * @example `125.5`
+   **/
+  rewards: number;
+}
+
+/**
+ * Positions returned by one list read together with their aggregate figures.
+ **/
+export interface PositionList {
+  /**
+   * Every position matching the list filter.
+   **/
+  positions: Position[];
+  /**
+   * Aggregate figures for {@link positions}.
+   *
+   * Absent in `onchain` mode: PnL and the complete current APY require the
+   * position history and incentive data owned by the backend.
+   *
+   * @mode offchain
+   **/
+  summary?: PositionSummary;
+}
+
+/**
  * Canonical id of a position: the string used to match a row read from the
  * chain with the same row served by the backend.
  *

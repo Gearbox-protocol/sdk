@@ -4,7 +4,7 @@ import type {
   PositionHistoryMetric,
   PositionHistoryQuery,
 } from "../../model/history.js";
-import type { Position, PositionFilter } from "../../model/positions.js";
+import type { PositionFilter, PositionList } from "../../model/positions.js";
 import { AbstractOffchainNamespace } from "../AbstractOffchainNamespace.js";
 import type { GearboxAPIOptions, OffchainResult } from "../types.js";
 
@@ -24,12 +24,12 @@ export class OffchainPositions extends AbstractOffchainNamespace {
   public async list(
     wallet: Address,
     filter?: PositionFilter,
-  ): Promise<OffchainResult<Position[]>> {
+  ): Promise<OffchainResult<PositionList>> {
     this.logger?.debug(
       { wallet, filter },
       "offchain positions list is not implemented, serving empty list",
     );
-    return { result: [], meta: { status: "success" } };
+    return { result: { positions: [] }, meta: { status: "success" } };
   }
 
   /**
