@@ -1,3 +1,4 @@
+import type { ChainId } from "../../model/primitives.js";
 import type { NetworkType } from "../chain/chains.js";
 
 /**
@@ -13,12 +14,14 @@ export interface MultichainNetworkProps {
 /**
  * Restricts which chains a multichain list method queries.
  **/
-export interface MultichainNetworksProps {
+export interface MultichainChainIdsProps {
   /**
-   * Networks to query. All chains configured in {@link MultichainSDK} when
-   * omitted.
+   * Chains to query. All chains configured in {@link MultichainSDK} when
+   * omitted, and one the SDK is not configured for is dropped.
+   *
+   * A caller who thinks in network labels converts with {@link toChainIds}.
    **/
-  networks?: NetworkType[];
+  chainIds?: ChainId[];
 }
 
 /**
@@ -47,43 +50,3 @@ export interface BlockNumberProps {
 export type WithBlock<Multichain extends boolean> = Multichain extends true
   ? {}
   : BlockNumberProps;
-
-/**
- * Outcome of a fan-out request on a single chain.
- **/
-export interface MultichainNetworkMeta {
-  /**
-   * Network the request was sent to.
-   **/
-  network: NetworkType;
-  /**
-   * Whether the per-chain request succeeded.
-   **/
-  status: "success" | "error";
-  /**
-   * Rejection reason of the per-chain request. Only set when
-   * {@link status} is `"error"`.
-   **/
-  error?: unknown;
-}
-
-/**
- * Result of a multichain fan-out request: the combined payload of all
- * successful chains plus the outcome of every queried chain.
- *
- * Methods with no payload use `MultichainResult<void>`, i.e. `result` is
- * `undefined` and only {@link meta} carries information.
- *
- * @typeParam T - Combined payload type.
- **/
-export interface MultichainResult<T> {
-  /**
-   * Combined payload of the chains that responded successfully. Chains that
-   * failed contribute nothing and are reported in {@link meta}.
-   **/
-  result: T;
-  /**
-   * Per-chain request outcome, one entry per queried chain.
-   **/
-  meta: MultichainNetworkMeta[];
-}

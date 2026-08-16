@@ -1,21 +1,18 @@
 import { describe, expectTypeOf, it } from "vitest";
 import type {
+  DataResponse,
+  HistorySeries,
+  Opportunity,
   PoolHistoryMetric,
   PoolOpportunityRef,
   StrategyHistoryMetric,
   StrategyOpportunityRef,
 } from "../../model/index.js";
+import type { OffchainOpportunities } from "../../offchain/index.js";
+import type { MultichainOpportunitiesService } from "../../sdk/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import type { Mode } from "../types.js";
-import type { Chart } from "../utils/index.js";
 import type { Opportunities } from "./types.js";
-
-/**
- * Mode gates which methods exist, not what they return, so a call the mode
- * cannot serve has to fail at compile time. These assertions are the only thing
- * that proves it: nothing at runtime distinguishes the three shapes, because
- * one class implements all of them.
- **/
 
 describe("mode gates method existence", () => {
   it("every mode reads what both sources can produce", () => {
@@ -37,6 +34,65 @@ describe("mode gates method existence", () => {
     // methods; they must not silently gain them
     expectTypeOf<Opportunities<Mode>>().toHaveProperty("list");
     expectTypeOf<Opportunities<Mode>>().not.toHaveProperty("history");
+    // what survives widening is everything the map does not gate
+    expectTypeOf<Opportunities<Mode>>().toHaveProperty("merge");
+    expectTypeOf<Opportunities<Mode>>().toHaveProperty("onchain");
+    expectTypeOf<Opportunities<Mode>>().toHaveProperty("offchain");
+  });
+
+  it("filtering an already-read list exists in every mode", () => {
+    expectTypeOf<Opportunities<"onchain">>().toHaveProperty("filter");
+    expectTypeOf<Opportunities<"offchain">>().toHaveProperty("filter");
+    expectTypeOf<Opportunities<"both">>().toHaveProperty("filter");
+  });
+});
+
+describe("the source branches are not gated by mode", () => {
+  // they are aliases of `sdk.onchain.opportunities` and
+  // `sdk.offchain.opportunities`, which the mode already gates; the branch of a
+  // source the mode does not read throws on access instead
+  it("names both sources at their concrete types in every mode", () => {
+    expectTypeOf<
+      Opportunities<"onchain">["onchain"]
+    >().toEqualTypeOf<MultichainOpportunitiesService>();
+    expectTypeOf<
+      Opportunities<"onchain">["offchain"]
+    >().toEqualTypeOf<OffchainOpportunities>();
+    expectTypeOf<
+      Opportunities<"offchain">["onchain"]
+    >().toEqualTypeOf<MultichainOpportunitiesService>();
+    expectTypeOf<
+      Opportunities<"offchain">["offchain"]
+    >().toEqualTypeOf<OffchainOpportunities>();
+    expectTypeOf<
+      Opportunities<"both">["onchain"]
+    >().toEqualTypeOf<MultichainOpportunitiesService>();
+    expectTypeOf<
+      Opportunities<"both">["offchain"]
+    >().toEqualTypeOf<OffchainOpportunities>();
+  });
+
+  it("offers merging in every mode, since a merger is total over an absent side", () => {
+    expectTypeOf<Opportunities<"onchain">>().toHaveProperty("merge");
+    expectTypeOf<Opportunities<"offchain">>().toHaveProperty("merge");
+    expectTypeOf<Opportunities<"both">>().toHaveProperty("merge");
+  });
+
+  it("merges what the branches return, in either order of arrival", () => {
+    const opportunities = {} as Opportunities<"both">;
+    // a source still in flight is `undefined`, which is what keeps a merged
+    // read pending rather than making it look empty
+    expectTypeOf(opportunities.merge.list).toBeCallableWith(
+      undefined,
+      {} as DataResponse<Opportunity[]>,
+    );
+    expectTypeOf(opportunities.merge.list).toBeCallableWith(
+      {} as DataResponse<Opportunity[]>,
+      undefined,
+    );
+    expectTypeOf(opportunities.merge.list).returns.toEqualTypeOf<
+      DataResponse<Opportunity[]> | undefined
+    >();
   });
 });
 
@@ -69,10 +125,12 @@ describe("the opportunity kind gates which charts it has", () => {
     opportunities.history(strategy).chart("dieselRate", "1m");
   });
 
-  it("answers with the points to draw and what annotates them", () => {
+  it("answers with the series in the envelope every read uses", () => {
     expectTypeOf(
       opportunities.history(strategy).chart,
-    ).returns.resolves.toEqualTypeOf<Chart>();
+    ).returns.resolves.toEqualTypeOf<
+      DataResponse<HistorySeries<StrategyHistoryMetric>>
+    >();
   });
 });
 

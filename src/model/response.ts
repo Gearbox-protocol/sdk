@@ -40,10 +40,10 @@ export interface ResponseMetadata {
 export type DataSource = "onchain" | "offchain";
 
 /**
- * Chain that answered, and which source served it.
+ * Chain that answered, which source served it, and the block it answered from.
  *
  * Discriminated from {@link ChainFailed} on {@link status}, so a success
- * without a source is unrepresentable.
+ * without a source, or without the block it reflects, is unrepresentable.
  **/
 export interface ChainSucceeded {
   /**
@@ -58,13 +58,14 @@ export interface ChainSucceeded {
   source: DataSource;
   /**
    * Block the data reflects. A `number` here (model convention), converted
-   * from `bigint` at the onchain boundary.
+   * from `bigint` at the onchain boundary. A chain that cannot say which block
+   * it answered from is a {@link ChainFailed}.
    **/
-  blockNumber?: number;
+  blockNumber: number;
   /**
    * Unix seconds of {@link blockNumber}.
    **/
-  timestamp?: Timestamp;
+  timestamp: Timestamp;
 }
 
 /**
@@ -82,7 +83,7 @@ export interface ChainFailed {
    **/
   source?: DataSource;
   /**
-   * Rejection reason. A `string` in JSON responses, an `Error` (or an
+   * Rejection reason. A `string` in a JSON response, an `Error` (or an
    * `AggregateError` when both sources failed) when produced locally.
    *
    * Serialises to `{}` if an envelope carrying a real `Error` is put into

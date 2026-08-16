@@ -1,20 +1,17 @@
 import { describe, expectTypeOf, it } from "vitest";
 import type {
+  DataResponse,
+  HistorySeries,
   PoolPositionHistoryMetric,
   PoolPositionRef,
+  Position,
   StrategyPositionHistoryMetric,
   StrategyPositionRef,
 } from "../../model/index.js";
+import type { OffchainPositions } from "../../offchain/index.js";
+import type { MultichainPositionsService } from "../../sdk/index.js";
 import type { Mode } from "../types.js";
-import type { Chart } from "../utils/index.js";
 import type { Positions } from "./types.js";
-
-/**
- * Mode gates which methods exist, not what they return, so a call the mode
- * cannot serve has to fail at compile time. These assertions are the only thing
- * that proves it: nothing at runtime distinguishes the three shapes, because
- * one class implements all of them.
- **/
 
 describe("mode gates method existence", () => {
   it("every mode lists what both sources can produce", () => {
@@ -34,6 +31,61 @@ describe("mode gates method existence", () => {
     // methods; they must not silently gain them
     expectTypeOf<Positions<Mode>>().toHaveProperty("list");
     expectTypeOf<Positions<Mode>>().not.toHaveProperty("history");
+    // what survives widening is everything the map does not gate
+    expectTypeOf<Positions<Mode>>().toHaveProperty("merge");
+    expectTypeOf<Positions<Mode>>().toHaveProperty("onchain");
+    expectTypeOf<Positions<Mode>>().toHaveProperty("offchain");
+  });
+
+  it("filtering an already-read list exists in every mode", () => {
+    expectTypeOf<Positions<"onchain">>().toHaveProperty("filter");
+    expectTypeOf<Positions<"offchain">>().toHaveProperty("filter");
+    expectTypeOf<Positions<"both">>().toHaveProperty("filter");
+  });
+});
+
+describe("the source branches are not gated by mode", () => {
+  // they are aliases of `sdk.onchain.positions` and `sdk.offchain.positions`,
+  // which the mode already gates; the branch of a source the mode does not read
+  // throws on access instead
+  it("names both sources at their concrete types in every mode", () => {
+    expectTypeOf<
+      Positions<"onchain">["onchain"]
+    >().toEqualTypeOf<MultichainPositionsService>();
+    expectTypeOf<
+      Positions<"onchain">["offchain"]
+    >().toEqualTypeOf<OffchainPositions>();
+    expectTypeOf<
+      Positions<"offchain">["onchain"]
+    >().toEqualTypeOf<MultichainPositionsService>();
+    expectTypeOf<
+      Positions<"offchain">["offchain"]
+    >().toEqualTypeOf<OffchainPositions>();
+    expectTypeOf<
+      Positions<"both">["onchain"]
+    >().toEqualTypeOf<MultichainPositionsService>();
+    expectTypeOf<
+      Positions<"both">["offchain"]
+    >().toEqualTypeOf<OffchainPositions>();
+  });
+
+  it("offers merging in every mode, since a merger is total over an absent side", () => {
+    expectTypeOf<Positions<"onchain">>().toHaveProperty("merge");
+    expectTypeOf<Positions<"offchain">>().toHaveProperty("merge");
+    expectTypeOf<Positions<"both">>().toHaveProperty("merge");
+  });
+
+  it("merges what the branches return, in either order of arrival", () => {
+    const positions = {} as Positions<"both">;
+    // a source still in flight is `undefined`, which is what keeps a merged
+    // read pending rather than making it look empty
+    expectTypeOf(positions.merge.list).toBeCallableWith(
+      undefined,
+      {} as DataResponse<Position[]>,
+    );
+    expectTypeOf(positions.merge.list).returns.toEqualTypeOf<
+      DataResponse<Position[]> | undefined
+    >();
   });
 });
 
@@ -66,9 +118,11 @@ describe("the position kind gates which charts it has", () => {
     positions.history(strategy).chart("dieselRate", "1m");
   });
 
-  it("answers with the points to draw and what annotates them", () => {
+  it("answers with the series in the envelope every read uses", () => {
     expectTypeOf(
       positions.history(strategy).chart,
-    ).returns.resolves.toEqualTypeOf<Chart>();
+    ).returns.resolves.toEqualTypeOf<
+      DataResponse<HistorySeries<StrategyPositionHistoryMetric>>
+    >();
   });
 });

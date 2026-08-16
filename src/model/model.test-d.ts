@@ -124,6 +124,7 @@ import type {
   poolPositionKeySchema,
   poolPositionSchema,
   positionCollateralSchema,
+  positionFilterQuerySchema,
   positionFilterSchema,
   positionKeySchema,
   positionKindSchema,
@@ -385,6 +386,9 @@ describe("model schemas match model types", () => {
     expectTypeOf<z.infer<typeof positionSchema>>().toEqualTypeOf<Position>();
     expectTypeOf<
       z.infer<typeof positionFilterSchema>
+    >().toEqualTypeOf<PositionFilter>();
+    expectTypeOf<
+      z.infer<typeof positionFilterQuerySchema>
     >().toEqualTypeOf<PositionFilter>();
     expectTypeOf<
       z.infer<typeof poolPositionKeySchema>

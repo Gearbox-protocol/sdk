@@ -1,6 +1,11 @@
 import { z } from "zod/v4";
 import { ZodAddress } from "../sdk/utils/zod.js";
-import { filterable } from "./filters.schema.js";
+import { isFilterSet } from "./filters.js";
+import {
+  booleanParamSchema,
+  encodeFlag,
+  filterable,
+} from "./filters.schema.js";
 import {
   delayedReceivedAssetSchema,
   liquidationPositionSchema,
@@ -9,6 +14,7 @@ import {
   apyBreakdownSchema,
   pointsProgramSchema,
 } from "./opportunities.schema.js";
+import type { PositionFilter } from "./positions.js";
 import {
   assetTypeSchema,
   bpsSchema,
@@ -130,9 +136,62 @@ export const positionSchema = z.discriminatedUnion("kind", [
 export const positionFilterSchema = z.object({
   kind: filterable(positionKindSchema).optional(),
   isZeroDebt: filterable(z.boolean()).optional(),
-  chainIds: filterable(z.array(chainIdSchema)).optional(),
+  chainIds: z.array(chainIdSchema).optional(),
   underlyingType: filterable(assetTypeSchema).optional(),
 });
+
+/**
+ * {@link PositionFilter} as a URL can carry it: every condition is a string,
+ * and a condition that does not narrow is absent rather than empty.
+ **/
+export const positionFilterQueryParamsSchema = z.object({
+  kind: positionKindSchema.optional(),
+  isZeroDebt: booleanParamSchema.optional(),
+  chainIds: z
+    .string()
+    .regex(/^$|^\d+(,\d+)*$/)
+    .optional(),
+  underlyingType: assetTypeSchema.optional(),
+});
+
+/**
+ * Code for {@link PositionFilter} to encode/decode to/from url query parameters.
+ **/
+export const positionFilterQuerySchema = z.codec(
+  positionFilterQueryParamsSchema,
+  positionFilterSchema,
+  {
+    decode: (params): PositionFilter => {
+      const filter: PositionFilter = {};
+      if (params.kind !== undefined) {
+        filter.kind = params.kind;
+      }
+      if (params.isZeroDebt !== undefined) {
+        filter.isZeroDebt = params.isZeroDebt === "true";
+      }
+      if (params.chainIds !== undefined) {
+        filter.chainIds =
+          params.chainIds === "" ? [] : params.chainIds.split(",").map(Number);
+      }
+      if (params.underlyingType !== undefined) {
+        filter.underlyingType = params.underlyingType;
+      }
+      return filter;
+    },
+    encode: (filter): PositionFilterQueryParams => ({
+      kind: isFilterSet(filter.kind) ? filter.kind : undefined,
+      isZeroDebt: encodeFlag(filter.isZeroDebt),
+      chainIds: filter.chainIds?.join(","),
+      underlyingType: isFilterSet(filter.underlyingType)
+        ? filter.underlyingType
+        : undefined,
+    }),
+  },
+);
+
+type PositionFilterQueryParams = z.input<
+  typeof positionFilterQueryParamsSchema
+>;
 
 /**
  * {@link PoolPositionKey}

@@ -1,58 +1,59 @@
-import type { Address } from "viem";
+import { z } from "zod/v4";
 import type {
   HistorySeries,
   PositionHistoryMetric,
   PositionHistoryQuery,
 } from "../../model/history.js";
-import type { Position, PositionFilter } from "../../model/positions.js";
+import type { Position } from "../../model/positions.js";
+import {
+  positionFilterQuerySchema,
+  positionSchema,
+} from "../../model/positions.schema.js";
+import type { DataResponse } from "../../model/response.js";
+import type { ListPositionsPropsBase } from "../../sdk/positions/types.js";
 import { AbstractOffchainNamespace } from "../AbstractOffchainNamespace.js";
-import type { GearboxAPIOptions, OffchainResult } from "../types.js";
+import type { GearboxAPIOptions } from "../types.js";
 
 /**
  * Backend counterpart of the `positions` namespace.
  **/
 export class OffchainPositions extends AbstractOffchainNamespace {
-  constructor(options?: GearboxAPIOptions) {
+  readonly #root = "/v2/positions";
+
+  constructor(options: GearboxAPIOptions) {
     super("OffchainPositions", options);
   }
 
   /**
    * Everything a wallet holds, optionally narrowed by {@link PositionFilter}.
-   *
-   * @returns An empty list until the backend client is implemented.
    **/
   public async list(
-    wallet: Address,
-    filter?: PositionFilter,
-  ): Promise<OffchainResult<Position[]>> {
-    this.logger?.debug(
-      { wallet, filter },
-      "offchain positions list is not implemented, serving empty list",
-    );
-    return { result: [], meta: { status: "success" } };
+    props: ListPositionsPropsBase,
+  ): Promise<DataResponse<Position[]>> {
+    // the chains are always named, even when the filter does not: the backend
+    // serves chains this client has no business showing
+    return this.get({
+      path: `${this.#root}/${props.wallet}`,
+      // the encode direction of the same codec the backend validates with
+      query: z.encode(positionFilterQuerySchema, {
+        ...props.filter,
+        chainIds: this.scopedChainIds(props.filter),
+      }),
+      schema: z.array(positionSchema),
+    });
   }
 
   /**
-   * One historical series of one position. History exists only here: rebuilding
-   * it from the chain would mean an archive read per point.
-   *
-   * The requested metric types the response, so a caller asking for one metric
-   * does not have to narrow the union back down. When the transport lands,
-   * validation is what upholds it: a response carrying a different metric than
-   * the one asked for is a version-skew error like any other.
+   * One historical series of one position.
    *
    * @returns An empty series until the backend client is implemented.
    **/
   public async getHistory<M extends PositionHistoryMetric>(
     query: PositionHistoryQuery<M>,
-  ): Promise<OffchainResult<HistorySeries<M>>> {
-    this.logger?.debug(
-      { query },
-      "offchain positions history is not implemented, serving empty series",
-    );
+  ): Promise<DataResponse<HistorySeries<M>>> {
     return {
-      result: { metric: query.metric, points: [], metadata: {} },
-      meta: { status: "success" },
+      data: { metric: query.metric, points: [], metadata: {} },
+      meta: { chains: [] },
     };
   }
 }
