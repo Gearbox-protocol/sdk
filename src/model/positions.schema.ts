@@ -125,6 +125,24 @@ export const positionSchema = z.discriminatedUnion("kind", [
 ]);
 
 /**
+ * {@link PositionSummary}
+ **/
+export const positionSummarySchema = z.object({
+  currentApy: bpsSchema,
+  pnl: z.number(),
+  netValue: z.number(),
+  rewards: z.number(),
+});
+
+/**
+ * {@link PositionList}
+ **/
+export const positionListSchema = z.object({
+  positions: z.array(positionSchema),
+  summary: positionSummarySchema.optional(),
+});
+
+/**
  * {@link PositionFilter}
  **/
 export const positionFilterSchema = z.object({

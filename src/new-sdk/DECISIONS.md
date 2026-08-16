@@ -19,6 +19,10 @@ namespace-agnostic — it records the rules every namespace follows.
   synchronous materialized collections. This matches how the backend works (detail
   endpoints, history, per-wallet queries) and how `LiquidationsService` is already
   written.
+- **List payloads may name their rows.** A list that carries aggregate data returns a
+  serialisable wrapper rather than attaching properties to an array. Positions use
+  `PositionList` (`{ positions, summary? }`), where the backend-owned summary is absent
+  when only the chain answered.
 - **No entity classes.** POJOs plus canonical ids and explicit lookups. Entity graphs
   with navigation getters are not serialisable (Redux, SSR, `structuredClone`), are hard
   to merge two sources into, and force the whole graph to be resident.

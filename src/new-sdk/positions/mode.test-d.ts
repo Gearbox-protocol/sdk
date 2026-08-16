@@ -2,10 +2,11 @@ import { describe, expectTypeOf, it } from "vitest";
 import type {
   PoolPositionHistoryMetric,
   PoolPositionRef,
+  PositionList,
   StrategyPositionHistoryMetric,
   StrategyPositionRef,
 } from "../../model/index.js";
-import type { Mode } from "../types.js";
+import type { Mode, ReadResult } from "../types.js";
 import type { Chart } from "../utils/index.js";
 import type { Positions } from "./types.js";
 
@@ -21,6 +22,13 @@ describe("mode gates method existence", () => {
     expectTypeOf<Positions<"onchain">>().toHaveProperty("list");
     expectTypeOf<Positions<"offchain">>().toHaveProperty("list");
     expectTypeOf<Positions<"both">>().toHaveProperty("list");
+  });
+
+  it("returns positions together with their optional summary", () => {
+    const positions = {} as Positions<"both">;
+    expectTypeOf(
+      positions.list("0x0000000000000000000000000000000000000000"),
+    ).resolves.toEqualTypeOf<ReadResult<PositionList>>();
   });
 
   it("history exists only where a backend does", () => {

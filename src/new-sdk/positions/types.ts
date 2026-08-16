@@ -2,8 +2,8 @@ import type { Address } from "viem";
 import type {
   PoolPositionHistoryMetric,
   PoolPositionRef,
-  Position,
   PositionFilter,
+  PositionList,
   StrategyPositionHistoryMetric,
   StrategyPositionRef,
 } from "../../model/index.js";
@@ -16,7 +16,8 @@ import type { HistoryReader } from "../utils/history.js";
 export interface PositionsBase {
   /**
    * Everything a wallet holds: its pool shares, its credit accounts and the
-   * delayed withdrawals it took over by liquidating, optionally narrowed.
+   * delayed withdrawals it took over by liquidating, optionally narrowed,
+   * together with the backend's aggregate summary when available.
    *
    * In `both` mode the two lists are unioned by canonical position id and
    * merged field-wise, with the chain winning any field both sources fill.
@@ -24,7 +25,7 @@ export interface PositionsBase {
   list(
     wallet: Address,
     filter?: PositionFilter,
-  ): Promise<ReadResult<Position[]>>;
+  ): Promise<ReadResult<PositionList>>;
 }
 
 /**
