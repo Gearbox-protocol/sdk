@@ -12,7 +12,7 @@ import type { OffchainPositions } from "../../offchain/index.js";
 import type { MultichainPositionsService } from "../../sdk/index.js";
 import type { Mode } from "../types.js";
 import type { HistoryReader } from "../utils/history.js";
-import type { SourceMerger } from "../utils/index.js";
+import type { FilterResult, ListMerger } from "../utils/index.js";
 
 /**
  * What the `positions` namespace offers in every mode.
@@ -30,12 +30,13 @@ export interface PositionsBase {
   ): Promise<DataResponse<Position[]>>;
   /**
    * Narrows an already-read list, rows and metadata alike. `undefined` passes
-   * through, so a read still in flight stays that way.
+   * through, so a read still in flight stays that way, and a list already read
+   * narrows to a list.
    **/
-  filter(
-    response: DataResponse<Position[]> | undefined,
+  filter<R extends DataResponse<Position[]> | undefined>(
+    response: R,
     filter?: PositionFilter,
-  ): DataResponse<Position[]> | undefined;
+  ): FilterResult<R, Position>;
   /**
    * The chain on its own, for a consumer that shows each source as it arrives.
    * Throws in `offchain` mode.
@@ -80,14 +81,6 @@ export interface PositionsOffchainOnly {
 export interface PositionsOnchainOnly {}
 
 /**
- * How each read combines what the two sources returned: a chain is served by
- * the backend when it is fresh enough, and by the chain otherwise.
- **/
-export interface PositionMergers {
-  list: SourceMerger<Position[]>;
-}
-
-/**
  * Which reads the `positions` namespace has in each mode. A widened mode offers
  * what every mode has, i.e. {@link PositionsBase} alone.
  **/
@@ -108,7 +101,7 @@ export interface PositionsOffchainBranch {
  * by the backend when it is fresh enough, and by the chain otherwise.
  **/
 export interface PositionMergers {
-  list: SourceMerger<Position[]>;
+  list: ListMerger<Position[]>;
 }
 
 /**

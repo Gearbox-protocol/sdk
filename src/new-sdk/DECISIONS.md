@@ -78,9 +78,9 @@ compile error:
   `sdk.offchain.<ns>` (§9), which the mode *does* gate, so gating the alias as well would
   duplicate one decision in two mechanisms. Reading the branch of a source the mode does
   not have throws `SourceUnavailableError`, which is what stands in for the compile error.
-- **`merge`** is a member of the base interface too. A `SourceMerger` accepts `undefined`
-  on either side and returns the side it was given, so calling one in a single-source mode
-  is a no-op rather than a mistake — there is nothing to forbid.
+- **`merge`** is a member of the base interface too. A merger accepts `undefined` on either
+  side and returns the side it was given, so calling one in a single-source mode is a no-op
+  rather than a mistake — there is nothing to forbid.
 
 Consequence: each namespace owns three interfaces, and only `history`-style reads actually
 depend on the gating. That is also what a widened `M` costs, and no more.
@@ -136,8 +136,14 @@ There is no central capability manifest.
   - a chain served from the chain has no `@mode offchain` fields at all, headline APY
     included, where the old merge filled them from the backend. The freshness threshold is
     therefore a product decision, not an implementation detail.
-- A namespace that needs a different rule supplies its own `SourceMerger`; that is the
-  escape hatch, not a second threshold.
+- A namespace that needs a different rule supplies its own `ListMerger` / `EntityMerger`;
+  that is the escape hatch, not a second threshold.
+- **The two mergers differ in what they may answer with.** A `ListMerger` serves whichever
+  side arrived, so it returns `undefined` only while *both* sides are still missing, and its
+  type says so: `merge.list(onchain, offchain)` on two responses is a `DataResponse`, with no
+  `!` at the call site. An `EntityMerger` (`merge.pool`, `merge.strategy`) stays optional
+  whatever it was given, because neither source may have served the entity. `filter` follows
+  the list rule: `undefined` in, `undefined` out; an envelope in, an envelope out.
 - **All derived values come from shared pure functions** used by both adapters and by the
   merger, so the two paths cannot drift on formulas.
 - **Each source owns its chain scope.** `GearboxSDK.networks` is authoritative: the sources

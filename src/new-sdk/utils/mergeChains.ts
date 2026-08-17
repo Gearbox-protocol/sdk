@@ -7,6 +7,7 @@ import type {
   DataSource,
 } from "../../model/index.js";
 import { NoSourceServedError } from "../errors/index.js";
+import type { MergeListResult } from "./types.js";
 
 /**
  * How many seconds the backend may lag the chain and still be used.
@@ -16,8 +17,18 @@ export const DEFAULT_MAX_OFFCHAIN_LAG = 120;
 /**
  * Merges two lists chain by chain: a chain is served by the backend when it is
  * within `maxLagSeconds` of the chain, by the chain otherwise, and reported as
- * an error when neither source succeeded.
+ * an error when neither source succeeded. Answers with an envelope as soon as
+ * either side has arrived, see {@link MergeListResult}.
  **/
+export function mergeChainList<
+  T extends ChainScoped,
+  Onchain extends DataResponse<T[]> | undefined,
+  Offchain extends DataResponse<T[]> | undefined,
+>(
+  onchain: Onchain,
+  offchain: Offchain,
+  maxLagSeconds?: number,
+): MergeListResult<Onchain, Offchain, T[]>;
 export function mergeChainList<T extends ChainScoped>(
   onchain: DataResponse<T[]> | undefined,
   offchain: DataResponse<T[]> | undefined,

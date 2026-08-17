@@ -6,7 +6,7 @@ import {
   SourceUnavailableError,
 } from "./errors/index.js";
 import type { NamespaceOptions } from "./types.js";
-import type { SourceMerger } from "./utils/index.js";
+import type { EntityMerger, ListMerger } from "./utils/index.js";
 
 /**
  * One read of a combined namespace: the same query against each source, plus
@@ -19,7 +19,7 @@ import type { SourceMerger } from "./utils/index.js";
 export interface MergedQuery<Onchain, Offchain, T> {
   fromChain: (source: Onchain) => Promise<DataResponse<T>>;
   fromBackend: (source: Offchain) => Promise<DataResponse<T>>;
-  merge: SourceMerger<T>;
+  merge: ListMerger<T> | EntityMerger<T>;
 }
 
 /**

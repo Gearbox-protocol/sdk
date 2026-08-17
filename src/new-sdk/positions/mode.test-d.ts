@@ -42,6 +42,20 @@ describe("mode gates method existence", () => {
     expectTypeOf<Positions<"offchain">>().toHaveProperty("filter");
     expectTypeOf<Positions<"both">>().toHaveProperty("filter");
   });
+
+  it("narrows a list already read to a list, and a pending read to pending", () => {
+    const positions = {} as Positions<"both">;
+    const response = {} as DataResponse<Position[]>;
+    const pending = {} as DataResponse<Position[]> | undefined;
+
+    expectTypeOf(positions.filter(response)).toEqualTypeOf<
+      DataResponse<Position[]>
+    >();
+    expectTypeOf(positions.filter(undefined)).toEqualTypeOf<undefined>();
+    expectTypeOf(positions.filter(pending)).toEqualTypeOf<
+      DataResponse<Position[]> | undefined
+    >();
+  });
 });
 
 describe("the source branches are not gated by mode", () => {
@@ -83,7 +97,26 @@ describe("the source branches are not gated by mode", () => {
       undefined,
       {} as DataResponse<Position[]>,
     );
-    expectTypeOf(positions.merge.list).returns.toEqualTypeOf<
+  });
+
+  it("answers a list merge definitely once either side has arrived", () => {
+    const positions = {} as Positions<"both">;
+    const response = {} as DataResponse<Position[]>;
+    const pending = {} as DataResponse<Position[]> | undefined;
+
+    // the merge serves whichever side it was given, so a consumer holding one
+    // does not carry `?.` over a case the merge cannot produce
+    expectTypeOf(positions.merge.list(response, response)).toEqualTypeOf<
+      DataResponse<Position[]>
+    >();
+    expectTypeOf(positions.merge.list(response, undefined)).toEqualTypeOf<
+      DataResponse<Position[]>
+    >();
+    expectTypeOf(positions.merge.list(undefined, response)).toEqualTypeOf<
+      DataResponse<Position[]>
+    >();
+    // both sides may still be missing, which is the one pending case left
+    expectTypeOf(positions.merge.list(pending, pending)).toEqualTypeOf<
       DataResponse<Position[]> | undefined
     >();
   });

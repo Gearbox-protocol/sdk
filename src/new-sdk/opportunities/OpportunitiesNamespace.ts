@@ -18,7 +18,7 @@ import type { GearboxAPI } from "../../offchain/index.js";
 import type { MultichainSDK } from "../../sdk/index.js";
 import { AbstractNamespace } from "../AbstractNamespace.js";
 import type { NamespaceOptions } from "../types.js";
-import type { HistoryReader } from "../utils/index.js";
+import type { FilterResult, HistoryReader } from "../utils/index.js";
 import {
   filterResponse,
   mergeChainList,
@@ -34,9 +34,6 @@ import type {
  * The `opportunities` namespace of a {@link GearboxSDK}, see
  * {@link OpportunitiesByMode} for what each mode offers.
  **/
-// the class implements the methods of every mode; `GearboxSDK` exposes it as its
-// mode's slice of `OpportunitiesByMode`, so calling a method the mode does not
-// have is a compile error rather than a runtime one
 export class OpportunitiesNamespace
   extends AbstractNamespace<
     MultichainSDK["opportunities"],
@@ -113,10 +110,10 @@ export class OpportunitiesNamespace
   /**
    * {@inheritDoc OpportunitiesBase.filter}
    **/
-  public filter(
-    response: DataResponse<Opportunity[]> | undefined,
+  public filter<R extends DataResponse<Opportunity[]> | undefined>(
+    response: R,
     filter?: OpportunityFilter,
-  ): DataResponse<Opportunity[]> | undefined {
+  ): FilterResult<R, Opportunity> {
     return filterResponse(response, filter, matchesOpportunityFilter);
   }
 
