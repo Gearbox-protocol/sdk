@@ -18,12 +18,7 @@ import {
   type PoolServiceCallResult,
 } from "../../sdk/index.js";
 import { ANVIL_URL } from "../constants.js";
-import {
-  getAnvilWallet,
-  PYTH_API_PROXY,
-  REDSTONE_GATEWAYS,
-  useFixture,
-} from "../helpers.js";
+import { getAnvilWallet, REDSTONE_GATEWAYS, useFixture } from "../helpers.js";
 
 const BLOCK = 24_736_900n;
 
@@ -80,10 +75,6 @@ describe("pool deposit and withdraw", () => {
       redstone: {
         historicTimestamp: true,
         gateways: REDSTONE_GATEWAYS,
-      },
-      pyth: {
-        historicTimestamp: true,
-        apiProxy: PYTH_API_PROXY,
       },
     });
     await sdk.tokensMeta.loadTokenData();

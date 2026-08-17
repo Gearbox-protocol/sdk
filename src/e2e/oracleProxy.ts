@@ -30,13 +30,11 @@ interface ProxyRoute {
 export const ORACLE_PROXY_PORT = 8547;
 
 export const ORACLE_ROUTES: ProxyRoute[] = [
-  { prefix: "/pyth", target: "https://hermes.pyth.network" },
   // https://github.com/redstone-finance/redstone-oracles-monorepo/blob/42e83b381a91cbcc814e4105cf5b7d9f8a29d6fc/packages/sdk/src/data-services-urls.ts#L10
   { prefix: "/rs0", target: "https://oracle-gateway-1.a.redstone.vip" },
   { prefix: "/rs1", target: "https://oracle-gateway-2.a.redstone.finance" },
 ];
 
-export const PYTH_API_PROXY = `http://localhost:${ORACLE_PROXY_PORT}/pyth/v2/updates/price`;
 export const REDSTONE_GATEWAYS = [
   `http://localhost:${ORACLE_PROXY_PORT}/rs0`,
   `http://localhost:${ORACLE_PROXY_PORT}/rs1`,
