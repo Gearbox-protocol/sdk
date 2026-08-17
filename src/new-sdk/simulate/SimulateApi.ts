@@ -12,6 +12,7 @@ import {
   CreditAccountOperationsService,
   fetchCreditAccountSlice,
 } from "../../sdk/index.js";
+import type { EnsureFreshChains } from "../types.js";
 import type {
   AddCollateralParams,
   AdjustLeverageParams,
@@ -51,6 +52,7 @@ export type RunOnchain = <T>(
 export function onchainOnly(
   onchain: MultichainSDK | undefined,
   logger?: ILogger,
+  ensureFresh?: EnsureFreshChains,
 ): RunOnchain {
   return async <T>(
     action: string,
@@ -63,6 +65,8 @@ export function onchainOnly(
       );
     }
     try {
+      // attach on first read, revalidate by age (this chain only)
+      await ensureFresh?.([chainId]);
       const data = await fromChain(onchain);
       const chain = onchain.chain(chainId);
       return {

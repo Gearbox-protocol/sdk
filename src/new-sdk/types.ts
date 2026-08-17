@@ -1,3 +1,4 @@
+import type { ChainId } from "../model/index.js";
 import type { GearboxAPI, GearboxAPIOptions } from "../offchain/index.js";
 import type {
   MultichainAttachOptions,
@@ -61,12 +62,30 @@ export interface GearboxSDKOptions<M extends Mode = Mode> {
    **/
   maxOffchainLagSeconds?: number;
   /**
+   * How old the loaded on-chain state may be, in seconds, before a read syncs
+   * the chains it touches first, see {@link DEFAULT_MAX_STATE_AGE}. A read
+   * inside the window is served from loaded state.
+   **/
+  maxStateAgeSeconds?: number;
+  /**
    * Options passed to {@link MultichainSDK.attach}, used only when the SDK
    * builds the on-chain source itself.
    **/
   attach?: MultichainAttachOptions;
   logger?: ILogger;
 }
+
+/**
+ * What a namespace asks of the on-chain state before it reads it: attached,
+ * and no older than the SDK's `maxStateAgeSeconds` on the chains the read
+ * touches. Owned by {@link GearboxSDK}, which shares one attach and one
+ * in-flight sync per chain across every namespace.
+ *
+ * @internal
+ **/
+export type EnsureFreshChains = (
+  chainIds?: readonly ChainId[],
+) => Promise<void>;
 
 /**
  * What a {@link GearboxSDK} hands every namespace it builds.
@@ -77,6 +96,11 @@ export interface NamespaceOptions {
    * {@link GearboxSDKOptions.maxOffchainLagSeconds}.
    **/
   maxOffchainLagSeconds: number;
+  /**
+   * Awaited before every on-chain leg of an async read, see
+   * {@link EnsureFreshChains}. Absent when the SDK reads no chain.
+   **/
+  ensureFresh?: EnsureFreshChains;
   logger?: ILogger;
 }
 

@@ -96,12 +96,12 @@ export class OpportunitiesNamespace
       return onchain.chain(chainId);
     };
     this.simulate = new SimulateApi(
-      onchainOnly(onchain, options.logger),
+      onchainOnly(onchain, options.logger, options.ensureFresh),
       chainOf,
     );
     // the write side runs on the same chain resolver: what `simulate` priced,
     // `execute` encodes
-    this.execute = new ExecuteApi(chainOf);
+    this.execute = new ExecuteApi(chainOf, options.ensureFresh);
   }
 
   /**
@@ -113,6 +113,7 @@ export class OpportunitiesNamespace
     // the filter goes to both sources as it was given: each one scopes the
     // request to the chains it covers itself
     return this.merged("list opportunities", {
+      chainIds: filter?.chainIds,
       fromChain: source => source.list(filter),
       fromBackend: source => source.list(filter),
       merge: this.merge.list,
@@ -126,6 +127,7 @@ export class OpportunitiesNamespace
     key: PoolOpportunityKey,
   ): Promise<DataResponse<PoolOpportunityDetail>> {
     return this.merged("get pool opportunity", {
+      chainIds: [key.chainId],
       fromChain: source => source.getPool(key),
       fromBackend: source => source.getPool(key),
       merge: this.merge.pool,
@@ -139,6 +141,7 @@ export class OpportunitiesNamespace
     key: StrategyOpportunityKey,
   ): Promise<DataResponse<StrategyOpportunityDetail>> {
     return this.merged("get strategy opportunity", {
+      chainIds: [key.chainId],
       fromChain: source => source.getStrategy(key),
       fromBackend: source => source.getStrategy(key),
       merge: this.merge.strategy,

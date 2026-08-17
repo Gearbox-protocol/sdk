@@ -1,11 +1,11 @@
-import type { DataResponse, DataSource } from "../model/index.js";
+import type { ChainId, DataResponse, DataSource } from "../model/index.js";
 import type { ILogger } from "../sdk/types/logger.js";
 import {
   AllSourcesFailedError,
   everyChainFailed,
   SourceUnavailableError,
 } from "./errors/index.js";
-import type { NamespaceOptions } from "./types.js";
+import type { EnsureFreshChains, NamespaceOptions } from "./types.js";
 import type { SourceMerger } from "./utils/index.js";
 
 /**
@@ -20,6 +20,11 @@ export interface MergedQuery<Onchain, Offchain, T> {
   fromChain: (source: Onchain) => Promise<DataResponse<T>>;
   fromBackend: (source: Offchain) => Promise<DataResponse<T>>;
   merge: SourceMerger<T>;
+  /**
+   * Chains the on-chain leg touches, so only they are revalidated before it;
+   * omitted when the read fans out to every chain.
+   **/
+  chainIds?: readonly ChainId[];
 }
 
 /**
@@ -45,6 +50,11 @@ export abstract class AbstractNamespace<Onchain, Offchain> {
    **/
   protected readonly maxOffchainLagSeconds: number;
   protected readonly logger?: ILogger;
+  /**
+   * The SDK's loading policy, awaited before every on-chain leg: attached, and
+   * the touched chains no older than the SDK allows.
+   **/
+  protected readonly ensureFresh?: EnsureFreshChains;
 
   readonly #name: string;
   readonly #onchain?: Onchain;
@@ -60,6 +70,7 @@ export abstract class AbstractNamespace<Onchain, Offchain> {
     this.#onchain = onchain;
     this.#offchain = offchain;
     this.maxOffchainLagSeconds = options.maxOffchainLagSeconds;
+    this.ensureFresh = options.ensureFresh;
     this.logger = options.logger?.child?.({ name }) ?? options.logger;
   }
 
@@ -96,7 +107,12 @@ export abstract class AbstractNamespace<Onchain, Offchain> {
     const onchain = this.#onchain;
     const offchain = this.#offchain;
     const [fromChain, fromBackend] = await Promise.all([
-      this.#ask(action, "onchain", onchain, query.fromChain),
+      this.#ask(action, "onchain", onchain, async source => {
+        // attach on first read, revalidate by age — the SDK's, not the
+        // namespace's, so every namespace shares one attach and one sync
+        await this.ensureFresh?.(query.chainIds);
+        return query.fromChain(source);
+      }),
       this.#ask(action, "offchain", offchain, query.fromBackend),
     ]);
 

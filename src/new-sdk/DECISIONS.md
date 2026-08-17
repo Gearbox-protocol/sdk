@@ -302,6 +302,15 @@ type ChainMetadata =
 - The facade accepts **either** onchain options (it constructs and attaches) **or** an
   already-attached `MultichainSDK` (client-v3 has one; two instances would double RPC load
   and memory). When injected, `attach()` must not re-attach it.
+- **Amended (sdk-first): loading is automatic.** Every async on-chain leg awaits the
+  facade's `#ensureFresh`: the first read attaches (later reads join the one promise; a
+  rejected attach is not cached), and a read whose touched chains' loaded state is older
+  than `maxStateAgeSeconds` (default 30) syncs those chains — one in-flight `syncState`
+  per chain, shared by concurrent stale reads — before running. A failed sync serves the
+  previous state; its age tells the consumer. `attach()` stays as the opt-in warm-up. The
+  sync LP simulations do not auto-attach (they throw `SdkNotAttachedError` before it, as
+  before). Not added: `ready()`, `status`, `watch()` — reads live in the consumer's query
+  layer and suspend there.
 - **Top-level `networks` is authoritative.** The onchain chain config must name exactly
   those chains — it is not narrowed to them — and the same check covers an injected
   `MultichainSDK`, so either kind of mismatch throws at construction.
