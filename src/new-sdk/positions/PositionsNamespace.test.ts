@@ -25,10 +25,11 @@ function backend() {
 /** An attached-looking MultichainSDK with no chains, for the onchain-only mode. */
 function emptyOnchain(): MultichainSDK {
   const onchain = Object.create(MultichainSDK.prototype) as MultichainSDK;
-  Object.assign(onchain, {
-    chains: new Map(),
-    opportunities: {},
-    positions: {},
+  // `chains` is a prototype getter: define own properties, do not assign
+  Object.defineProperties(onchain, {
+    chains: { value: new Map() },
+    opportunities: { value: {} },
+    positions: { value: {} },
   });
   return onchain;
 }
