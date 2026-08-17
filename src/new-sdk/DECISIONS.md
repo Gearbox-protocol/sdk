@@ -277,13 +277,17 @@ type ChainMetadata =
   legs of a merged read, catching a source that throws, and the all-sources-failed rule. A
   namespace subclasses it and supplies only its reads and the mergers they name, which is
   where §4 is implemented per namespace.
-- **The branches are the source namespaces themselves.** `sdk.opportunities.onchain` and
-  `sdk.onchain.opportunities` are one object, so the two spellings cannot drift, and a
-  consumer that wants the backend's answer painted first and the chain's when it arrives
-  reads them separately and calls `sdk.opportunities.merge.list` — the same policy `both`
-  mode applies internally. Because they are one object, the namespace spelling is not gated
-  by mode a second time (§2); the branch of a source the mode does not read throws
-  `SourceUnavailableError` on access, raised by `AbstractNamespace`.
+- **The branches are the source namespaces themselves.** `sdk.opportunities.onchain` has
+  the type of `sdk.onchain.opportunities` and forwards every call to it, so the two
+  spellings cannot drift, and a consumer that wants the backend's answer painted first and
+  the chain's when it arrives reads them separately and calls
+  `sdk.opportunities.merge.list` — the same policy `both` mode applies internally.
+  *(Amended, sdk-first: the on-chain branch is a thin proxy over the service that awaits the
+  facade's loading policy first, so a split read attaches and revalidates like a merged one;
+  same type, forwarded calls, a different object identity.)* Because they are the source's
+  own methods, the namespace spelling is not gated by mode a second time (§2); the branch of
+  a source the mode does not read throws `SourceUnavailableError` on access, raised by
+  `AbstractNamespace`.
 - **A namespace is handed its sources, not a way to look them up.** It holds a
   `MultichainSDK` and a `GearboxAPI` directly. Readiness of the on-chain source belongs
   to the facade: every on-chain leg awaits its loading policy (`ensureFresh`, see the

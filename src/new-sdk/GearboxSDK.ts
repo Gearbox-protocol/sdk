@@ -159,8 +159,9 @@ export class GearboxSDK<const M extends Mode = Mode> {
         : undefined,
       logger,
     };
-    // the namespaces hand out the very sub-namespaces of these two sources, so
-    // `sdk.opportunities.onchain` and `sdk.onchain.opportunities` are one object
+    // the namespaces hand out these two sources' own sub-namespaces (the
+    // on-chain one behind the loading policy), so `sdk.opportunities.onchain`
+    // and `sdk.onchain.opportunities` cannot drift
     this.opportunities = new OpportunitiesNamespace(
       this.#onchain,
       this.#offchain,
