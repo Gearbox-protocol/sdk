@@ -79,3 +79,19 @@ describe("notices are read per subject", () => {
     expect(data[1]?.token?.symbol).toBe("GEAR");
   });
 });
+
+describe("the notice kind is a closed union", () => {
+  it("rejects a kind the model does not know", async () => {
+    respondWith({
+      data: [{ kind: "promo", message: "Buy now" }],
+      meta: { chains: [] },
+    });
+    await expect(
+      notices().list({
+        kind: "pool",
+        chainId: MAINNET,
+        pool: POOL,
+      } as PoolOpportunity),
+    ).rejects.toThrow(/does not match the read model/);
+  });
+});

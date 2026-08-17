@@ -170,13 +170,72 @@ describe("GearboxSDK loading", () => {
     expect(chains.get("Optimism")?.syncState).not.toHaveBeenCalled();
   });
 
+  it("an unnamed read syncs every stale chain; a chain-scoped one only its own", async () => {
+    const { sdk, chains, list } = build(["Mainnet", "Optimism"]);
+    chains.get("Mainnet")?.age(MAX_AGE + 1);
+    chains.get("Optimism")?.age(MAX_AGE + 1);
+
+    await sdk.opportunities.list();
+    expect(chains.get("Mainnet")?.syncState).toHaveBeenCalledTimes(1);
+    expect(chains.get("Optimism")?.syncState).toHaveBeenCalledTimes(1);
+
+    chains.get("Mainnet")?.syncState.mockClear();
+    chains.get("Optimism")?.syncState.mockClear();
+    await sdk.opportunities.list({ chainIds: [10] });
+    expect(chains.get("Mainnet")?.syncState).not.toHaveBeenCalled();
+    expect(chains.get("Optimism")?.syncState).toHaveBeenCalledTimes(1);
+    expect(list).toHaveBeenCalledTimes(2);
+  });
+
+  it("a simulation attaches on first use and revalidates only its chain", async () => {
+    const { sdk, attach, chains } = build(["Mainnet", "Optimism"]);
+    chains.get("Mainnet")?.age(MAX_AGE + 1);
+    chains.get("Optimism")?.age(MAX_AGE + 1);
+    const getCreditAccountData = vi.fn(async () => undefined);
+    for (const network of ["Mainnet", "Optimism"] as const) {
+      Object.defineProperty(sdk.onchain.chain(network), "accounts", {
+        value: { getCreditAccountData },
+      });
+    }
+
+    const response = await sdk.opportunities.simulate.addCollateral(
+      { chainId: 1, creditAccount: POOL },
+      { token: POOL, amount: 1n },
+    );
+
+    expect(attach).toHaveBeenCalledTimes(1);
+    expect(chains.get("Mainnet")?.syncState).toHaveBeenCalledTimes(1);
+    expect(chains.get("Optimism")?.syncState).not.toHaveBeenCalled();
+    // the account is not there: the chain's error entry, not a rejection
+    expect(response.meta.chains[0]).toMatchObject({
+      chainId: 1,
+      status: "error",
+    });
+  });
+
+  it("a sync that finds no newer block (`false`) is not an error and is not repeated within the age", async () => {
+    const { sdk, chains } = build();
+    const chain = chains.get("Mainnet");
+    if (!chain) throw new Error("unreachable");
+    chain.age(MAX_AGE + 1);
+    chain.syncState.mockResolvedValue(false);
+
+    await expect(sdk.opportunities.list()).resolves.toBeDefined();
+    expect(chain.syncState).toHaveBeenCalledTimes(1);
+  });
+
   it("a failed sync serves the previous state, with its old block and timestamp", async () => {
     const { sdk, chains, list } = build();
     const chain = chains.get("Mainnet");
     if (!chain) throw new Error("unreachable");
     chain.age(MAX_AGE + 1);
     chain.syncState.mockRejectedValue(new Error("rpc down"));
-    list.mockResolvedValue(answered(1, NOW - MAX_AGE - 1));
+    // let the real multichain service run: its meta comes from the chain's
+    // (pinned, old) block and timestamp, not from a canned answer
+    list.mockRestore();
+    Object.defineProperty(sdk.onchain.chain("Mainnet"), "opportunities", {
+      value: { list: vi.fn(async () => []) },
+    });
 
     const response = await sdk.opportunities.list();
 
@@ -215,9 +274,13 @@ describe("GearboxSDK loading", () => {
     });
     expect(sdk.attached).toBe(true);
     await sdk.opportunities.list();
-
     expect(attach).not.toHaveBeenCalled();
     expect(chain.syncState).not.toHaveBeenCalled();
+
+    // but its state is revalidated by age like a self-built one
+    chain.timestamp = BigInt(NOW - MAX_AGE - 1);
+    await sdk.opportunities.list();
+    expect(chain.syncState).toHaveBeenCalledTimes(1);
   });
 
   it("the raw `.onchain` branch attaches and revalidates too — the app's split read path", async () => {

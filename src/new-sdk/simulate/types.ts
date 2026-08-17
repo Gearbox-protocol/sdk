@@ -7,6 +7,7 @@ import type {
 } from "../../model/index.js";
 import type {
   AccountCalculatorOperation,
+  Asset,
   MultiCall,
   OpenStrategyPreview,
   OperationState,
@@ -161,7 +162,7 @@ export interface WithdrawCollateralParams extends SimulateOptions {
 
 export interface OpenStrategyParams extends SimulateOptions {
   /** Collateral coming from the wallet, in their own tokens. */
-  collateral: Array<{ token: Address; balance: bigint }>;
+  collateral: Asset[];
   /**
    * Target total leverage scaled by `LEVERAGE_DECIMALS` (300n = 3x).
    **/
@@ -172,7 +173,7 @@ export interface OpenStrategyParams extends SimulateOptions {
    **/
   targetToken?: Address;
   /** Collateral to leave unswapped; everything else is routed into the target. */
-  leftoverBalances?: Array<{ token: Address; balance: bigint }>;
+  leftoverBalances?: Asset[];
 }
 
 export interface LpParams {

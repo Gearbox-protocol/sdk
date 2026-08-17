@@ -259,3 +259,26 @@ describe("totals and transactions decode the backend's answer", () => {
     );
   });
 });
+
+describe("the transaction kind is a closed union", () => {
+  it("rejects a kind the model does not know", async () => {
+    respondWith({
+      data: [
+        {
+          txHash: `0x${"ab".repeat(32)}`,
+          timestamp: 1,
+          kind: "rebalance",
+          assets: [],
+        },
+      ],
+      meta: { chains: [] },
+    });
+    await expect(
+      positions().transactions({
+        kind: "strategy",
+        chainId: MAINNET,
+        creditAccount: CREDIT_ACCOUNT,
+      }),
+    ).rejects.toThrow(/does not match the read model/);
+  });
+});

@@ -1,5 +1,5 @@
-import type { ChainId, DataResponse, Notice } from "../model/index.js";
-import { GearboxAPI, type NoticeSubject } from "../offchain/index.js";
+import type { ChainId, NoticeSubject } from "../model/index.js";
+import { GearboxAPI } from "../offchain/index.js";
 import type {
   ILogger,
   MultichainAttachOptions,
@@ -7,11 +7,7 @@ import type {
   OnchainSDK,
 } from "../sdk/index.js";
 import { MultichainSDK, toChainIds } from "../sdk/index.js";
-import {
-  assertSameChains,
-  MissingSourceError,
-  SourceUnavailableError,
-} from "./errors/index.js";
+import { assertSameChains, MissingSourceError } from "./errors/index.js";
 import type { Opportunities } from "./opportunities/index.js";
 import { OpportunitiesNamespace } from "./opportunities/index.js";
 import type { Positions } from "./positions/index.js";
@@ -20,6 +16,7 @@ import type {
   GearboxSDKOptions,
   Mode,
   NamespaceOptions,
+  NoticesByMode,
   OffchainByMode,
   OnchainByMode,
   PlainMultichainSDKOptions,
@@ -75,6 +72,14 @@ export class GearboxSDK<const M extends Mode = Mode> {
   readonly #ownsOnchain: boolean = false;
   readonly #maxStateAgeSeconds: number;
   readonly #logger?: ILogger;
+
+  /**
+   * The banners the backend attaches to a pool opportunity or a strategy
+   * position, see {@link Notice}. Top-level because the subject is either
+   * kind of entity, so neither namespace owns it. Backend-only, hence gated
+   * by mode like every other backend read: absent in `onchain` mode.
+   **/
+  public readonly notices: NoticesByMode[M];
 
   #attached: boolean;
   /** The one attach in flight, shared by {@link attach} and every first read. */
@@ -166,14 +171,18 @@ export class GearboxSDK<const M extends Mode = Mode> {
       this.#offchain,
       namespaceOptions,
     ) as Positions<M>;
+    const backend = this.#offchain;
+    this.notices = (
+      backend
+        ? (subject: NoticeSubject) => backend.notices.list(subject)
+        : undefined
+    ) as NoticesByMode[M];
   }
 
   /**
    * Attaches the on-chain SDK when this instance owns one; a no-op in `offchain`
    * mode and when an already-attached SDK was injected.
    **/
-  // reads issued before this resolves still reach the chain and fail there, so in
-  // `both` mode they are served from the backend alone rather than blocking
   public async attach(): Promise<void> {
     return this.#ensureAttached();
   }
@@ -254,21 +263,6 @@ export class GearboxSDK<const M extends Mode = Mode> {
    **/
   public get attached(): boolean {
     return this.mode === "offchain" ? true : this.#attached;
-  }
-
-  /**
-   * The banners the backend attaches to a pool opportunity or a strategy
-   * position, see {@link Notice}. Top-level because the subject is either
-   * kind of entity, so neither namespace owns it. Backend-only: throws
-   * {@link SourceUnavailableError} in `onchain` mode.
-   **/
-  public async notices(
-    subject: NoticeSubject,
-  ): Promise<DataResponse<Notice[]>> {
-    if (!this.#offchain) {
-      throw new SourceUnavailableError("Notices", "offchain");
-    }
-    return this.#offchain.notices.list(subject);
   }
 
   /**

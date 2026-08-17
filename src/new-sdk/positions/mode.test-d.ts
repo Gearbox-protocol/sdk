@@ -31,12 +31,13 @@ describe("mode gates method existence", () => {
     expectTypeOf<Positions<"onchain">>().not.toHaveProperty("transactions");
   });
 
-  it("notices sit on the SDK itself and answer in every mode with a backend", () => {
-    // typed the same in every mode: the subject spans both namespaces, and in
-    // `onchain` mode the call throws SourceUnavailableError rather than being
-    // absent — there is no third namespace to gate
-    expectTypeOf<GearboxSDK<"offchain">>().toHaveProperty("notices");
-    expectTypeOf<GearboxSDK<"both">>().toHaveProperty("notices");
+  it("notices sit on the SDK itself and exist only where a backend does", () => {
+    // the subject spans both namespaces, so neither owns it; gated by mode
+    // like every other backend read
+    expectTypeOf<GearboxSDK<"onchain">["notices"]>().toEqualTypeOf<undefined>();
+    expectTypeOf(({} as GearboxSDK<"offchain">).notices).returns.toEqualTypeOf<
+      Promise<DataResponse<Notice[]>>
+    >();
     expectTypeOf(({} as GearboxSDK<"both">).notices).returns.toEqualTypeOf<
       Promise<DataResponse<Notice[]>>
     >();

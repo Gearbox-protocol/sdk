@@ -285,9 +285,10 @@ type ChainMetadata =
   by mode a second time (§2); the branch of a source the mode does not read throws
   `SourceUnavailableError` on access, raised by `AbstractNamespace`.
 - **A namespace is handed its sources, not a way to look them up.** It holds a
-  `MultichainSDK` and a `GearboxAPI` directly, and never asks whether they are ready:
-  readiness belongs to whoever owns the source, and a source that cannot answer yet fails
-  the read like a source that is down.
+  `MultichainSDK` and a `GearboxAPI` directly. Readiness of the on-chain source belongs
+  to the facade: every on-chain leg awaits its loading policy (`ensureFresh`, see the
+  auto-loading amendment below) rather than the namespace deciding on its own; a source
+  that then still cannot answer fails the read like a source that is down.
 - `src/sdk/<namespace>` — the onchain read service for a namespace, wired onto `OnchainSDK`
   and `MultichainSDK` beside `liquidations` (see the amendment in §5). All protocol
   knowledge of the onchain source lives here, and works without the facade.
@@ -302,6 +303,10 @@ type ChainMetadata =
 - The facade accepts **either** onchain options (it constructs and attaches) **or** an
   already-attached `MultichainSDK` (client-v3 has one; two instances would double RPC load
   and memory). When injected, `attach()` must not re-attach it.
+- **Amended (sdk-first): two more directories under `new-sdk/`** — `simulate/` and
+  `execute/` — glue from the read-model-shaped request to `src/sdk`'s
+  `CreditAccountOperationsService` / `PoolService` / `openCA` / `executeCaUpdate`; they
+  map and wrap, the protocol knowledge stays below.
 - **Amended (sdk-first): loading is automatic.** Every async on-chain leg awaits the
   facade's `#ensureFresh`: the first read attaches (later reads join the one promise; a
   rejected attach is not cached), and a read whose touched chains' loaded state is older

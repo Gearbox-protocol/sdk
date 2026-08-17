@@ -1,3 +1,5 @@
+import type { PoolOpportunity } from "./opportunities.js";
+import type { StrategyPosition } from "./positions.js";
 import type { Token } from "./primitives.js";
 
 /**
@@ -24,3 +26,9 @@ export interface Notice {
    **/
   token?: Token;
 }
+
+/**
+ * What a notice is attached to: a pool opportunity or a strategy position —
+ * the two entities a consumer shows banners for.
+ **/
+export type NoticeSubject = PoolOpportunity | StrategyPosition;

@@ -1,17 +1,9 @@
 import { z } from "zod/v4";
-import type { Notice } from "../../model/notices.js";
+import type { Notice, NoticeSubject } from "../../model/notices.js";
 import { noticeSchema } from "../../model/notices.schema.js";
-import type { PoolOpportunity } from "../../model/opportunities.js";
-import type { StrategyPosition } from "../../model/positions.js";
 import type { DataResponse } from "../../model/response.js";
 import { AbstractOffchainNamespace } from "../AbstractOffchainNamespace.js";
 import type { GearboxAPIOptions } from "../types.js";
-
-/**
- * What a notice is attached to: a pool opportunity or a strategy position —
- * the two entities the UI shows banners for.
- **/
-export type NoticeSubject = PoolOpportunity | StrategyPosition;
 
 /**
  * Backend counterpart of `sdk.notices`: banners the backend asks a consumer to

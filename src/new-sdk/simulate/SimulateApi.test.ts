@@ -13,6 +13,7 @@ import type {
   OnchainSDK,
   PreviewErrorReason,
 } from "../../sdk/index.js";
+import { CreditAccountOperationsService } from "../../sdk/index.js";
 import { SourceUnavailableError } from "../errors/index.js";
 import { onchainOnly, SimulateApi } from "./SimulateApi.js";
 import type { PositionInput } from "./types.js";
@@ -110,6 +111,8 @@ function harness(args?: {
     }),
     currentBlock: BLOCK,
     timestamp: TIMESTAMP,
+    // the LP simulations delegate to PoolService; the mock market has none
+    pools: { simulateDeposit: vi.fn(), simulateWithdraw: vi.fn() },
   } as unknown as OnchainSDK;
   const simulate = new SimulateApi(
     onchainOnly(fakeMultichain(chain)),
@@ -195,5 +198,164 @@ describe("every PreviewErrorReason is produced by the engine, not fabricated", (
   it.each(Object.entries(cases))("%s", async (reason, run) => {
     const { simulate } = harness();
     expect(await run(simulate)).toEqual({ ok: false, reason });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Each method maps its public params onto exactly one engine call
+// ---------------------------------------------------------------------------
+
+describe("every method maps its params onto the engine's call", () => {
+  const OK_PREVIEW = {
+    ok: true as const,
+    instant: { operations: [], preview: { min: {} as never }, calls: [] },
+    instantError: undefined,
+    delayedBranch: undefined,
+    delayedError: undefined,
+  };
+  const OPTIONS = { slippage: 50, quotaReserve: 100 };
+
+  const accountCases = [
+    {
+      method: "depositStrategy",
+      params: {
+        token: UND,
+        amount: 10n,
+        positionToken: POS,
+        targetLeverage: 300n,
+        ...OPTIONS,
+      },
+      intent: {
+        type: "DEPOSIT",
+        token: UND,
+        amount: 10n,
+        value: undefined,
+        positionToken: POS,
+        targetLeverage: 300n,
+      },
+    },
+    {
+      method: "withdrawStrategy",
+      params: {
+        amount: 10n,
+        to: WALLET,
+        tokenOut: UND,
+        sourceToken: POS,
+        ...OPTIONS,
+      },
+      intent: {
+        type: "WITHDRAW",
+        amount: 10n,
+        to: WALLET,
+        tokenOut: UND,
+        sourceToken: POS,
+      },
+    },
+    {
+      method: "adjustLeverage",
+      params: { targetLeverage: 300n, token: POS, ...OPTIONS },
+      intent: { type: "ADJUST_LEVERAGE", targetLeverage: 300n, token: POS },
+    },
+    {
+      method: "addCollateral",
+      params: { token: UND, amount: 10n, value: 1n, ...OPTIONS },
+      intent: { type: "ADD_COLLATERAL", token: UND, amount: 10n, value: 1n },
+    },
+    {
+      method: "withdrawCollateral",
+      params: { token: POS, amount: 10n, to: WALLET, ...OPTIONS },
+      intent: { type: "WITHDRAW_ASSET", token: POS, amount: 10n, to: WALLET },
+    },
+  ] as const;
+
+  it.each(accountCases)(
+    "$method → startIntent with the intent, the read account slice and the options",
+    async ({ method, params, intent }) => {
+      const { simulate } = harness();
+      const startIntent = vi
+        .spyOn(CreditAccountOperationsService.prototype, "startIntent")
+        .mockResolvedValue(OK_PREVIEW as never);
+
+      await (simulate[method] as (p: unknown, a: unknown) => Promise<unknown>)(
+        POSITION,
+        params,
+      );
+
+      expect(startIntent).toHaveBeenCalledTimes(1);
+      expect(startIntent.mock.calls[0]?.[0]).toMatchObject({
+        intent,
+        creditAccount: { creditAccount: CREDIT_ACCOUNT },
+        slippage: 50,
+        quotaReserve: 100,
+      });
+      startIntent.mockRestore();
+    },
+  );
+
+  it("openNewStrategy → openStrategyIntent, target defaulting to the opportunity's collateral", async () => {
+    const { simulate } = harness();
+    const open = vi
+      .spyOn(CreditAccountOperationsService.prototype, "openStrategyIntent")
+      .mockResolvedValue({ ok: true, preview: {} as never });
+
+    await simulate.openNewStrategy(
+      { chainId: CHAIN_ID, creditManager: POS, targetCollateral: POS },
+      { collateral: [{ token: UND, balance: 5n }], leverage: 200n, ...OPTIONS },
+    );
+
+    expect(open.mock.calls[0]?.[0]).toMatchObject({
+      creditManager: POS,
+      collateral: [{ token: UND, balance: 5n }],
+      targetToken: POS,
+      leverage: 200n,
+      slippage: 50,
+      quotaReserve: 100,
+    });
+    open.mockRestore();
+  });
+
+  it.each(["deposit", "withdraw"] as const)(
+    "%s → the pool service's simulation on the chain, synchronously",
+    method => {
+      const { simulate, chain } = harness();
+      const spy = vi
+        .spyOn(
+          chain.pools,
+          method === "deposit" ? "simulateDeposit" : "simulateWithdraw",
+        )
+        .mockReturnValue({} as never);
+
+      simulate[method](
+        { chainId: CHAIN_ID, pool: POS },
+        { amount: 7n, tokenIn: UND },
+      );
+
+      expect(spy).toHaveBeenCalledWith({
+        pool: POS,
+        amount: 7n,
+        tokenIn: UND,
+        tokenOut: undefined,
+      });
+    },
+  );
+
+  it("a preview without an instant branch is a bug, not a result", async () => {
+    const { simulate } = harness();
+    const startIntent = vi
+      .spyOn(CreditAccountOperationsService.prototype, "startIntent")
+      .mockResolvedValue({
+        ...OK_PREVIEW,
+        instant: undefined,
+        instantError: "pathNotFound",
+      } as never);
+
+    const response = await simulate.addCollateral(POSITION, {
+      token: UND,
+      amount: 1n,
+    });
+
+    // `onchainOnly` turns the throw into the chain's error entry
+    expect(response.meta.chains[0]).toMatchObject({ status: "error" });
+    startIntent.mockRestore();
   });
 });

@@ -80,9 +80,6 @@ export class PositionsNamespace
   }
 
   /**
-   * {@inheritDoc PositionsOffchainOnly.history}
-   **/
-  /**
    * {@inheritDoc PositionsOffchainOnly.totals}
    **/
   public async totals(wallet: Address): Promise<DataResponse<PositionsTotals>> {
@@ -98,6 +95,9 @@ export class PositionsNamespace
     return this.offchain.transactions(key);
   }
 
+  /**
+   * {@inheritDoc PositionsOffchainOnly.history}
+   **/
   public history(
     key: PoolPositionRef,
   ): HistoryReader<PoolPositionHistoryMetric>;

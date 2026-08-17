@@ -86,6 +86,14 @@ describe("math — the three formulas behind every intent", () => {
       maxProportionalWithdrawal(low, { minDebt: 50n, maxDebt: 10_000n }),
     ).toBe(509n);
 
+    // the band allows more than the collateral holds: clamped to all but the
+    // last unit (debt 1000 on 1000 collateral, minDebt 0)
+    expect(
+      maxProportionalWithdrawal(
+        { debt: 1_000n, collateral: 1_000n },
+        { minDebt: 0n, maxDebt: 10_000n },
+      ),
+    ).toBe(999n);
     // no debt: the band does not bind, everything but the last unit
     expect(
       maxProportionalWithdrawal({ debt: 0n, collateral: 1_000n }, BAND),

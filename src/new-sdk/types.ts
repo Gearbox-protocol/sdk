@@ -1,4 +1,9 @@
-import type { ChainId } from "../model/index.js";
+import type {
+  ChainId,
+  DataResponse,
+  Notice,
+  NoticeSubject,
+} from "../model/index.js";
 import type { GearboxAPI, GearboxAPIOptions } from "../offchain/index.js";
 import type {
   MultichainAttachOptions,
@@ -113,6 +118,17 @@ export interface OnchainByMode {
   onchain: MultichainSDK;
   offchain: undefined;
   both: MultichainSDK;
+}
+
+/**
+ * `sdk.notices` per mode: a backend read, absent when the SDK reads no backend.
+ *
+ * @internal
+ **/
+export interface NoticesByMode {
+  onchain: undefined;
+  offchain: (subject: NoticeSubject) => Promise<DataResponse<Notice[]>>;
+  both: (subject: NoticeSubject) => Promise<DataResponse<Notice[]>>;
 }
 
 /**
