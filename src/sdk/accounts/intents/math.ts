@@ -46,6 +46,37 @@ export function proportionalDebt(
   return (position.debt * collateralDelta) / position.collateral;
 }
 
+/**
+ * Largest withdrawal (in underlying) that {@link proportionalDebt} can still
+ * pay for: the repayment it implies leaves debt at or above `minDebt`, and
+ * strictly less than the collateral goes — the last unit closes the account
+ * rather than shrinks it. `0n` when the debt already sits below the band.
+ *
+ * Solves `floor(D0 · W / C0) ≤ D0 − minDebt` for `W`.
+ */
+export function maxProportionalWithdrawal(
+  position: Position,
+  band: DebtBand,
+): bigint {
+  const { debt, collateral } = position;
+  if (collateral <= 0n) {
+    return 0n;
+  }
+  const allButLast = collateral - 1n;
+  if (debt === 0n) {
+    return allButLast;
+  }
+  const repayable = debt - band.minDebt;
+  if (repayable < 0n) {
+    return 0n;
+  }
+  // floor(D0·W/C0) ≤ R  ⟺  W < C0·(R + 1)/D0
+  const bound = ceilDiv(collateral * (repayable + 1n), debt) - 1n;
+  return bound < allButLast ? bound : allButLast;
+}
+
+const ceilDiv = (a: bigint, b: bigint): bigint => (a + b - 1n) / b;
+
 /** Total leverage cannot drop below 1x — that would be negative debt. */
 export function assertLeverageAtLeastOne(leverage: bigint): void {
   if (leverage < LEVERAGE_DECIMALS) {

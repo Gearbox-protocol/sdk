@@ -201,6 +201,23 @@ export class SimulateApi implements OpportunitiesSimulate {
   }
 
   /**
+   * {@inheritDoc OpportunitiesSimulate.maxWithdraw}
+   **/
+  public async maxWithdraw(
+    position: PositionInput,
+  ): Promise<DataResponse<bigint>> {
+    return this.#run(
+      "compute the maximum withdrawal",
+      position.chainId,
+      async multichain => {
+        const sdk = multichain.chain(position.chainId);
+        const creditAccount = await slice(sdk, position.creditAccount);
+        return service(sdk).maxWithdraw({ creditAccount, sdk });
+      },
+    );
+  }
+
+  /**
    * {@inheritDoc OpportunitiesSimulate.adjustLeverage}
    **/
   public async adjustLeverage(

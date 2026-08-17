@@ -2,6 +2,7 @@ import { SDKConstruct } from "../../base/SDKConstruct.js";
 import type { ClaimableWithdrawal } from "../../index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import type { DelayedIntent } from "../withdrawal-compressor/types.js";
+import { maxProportionalWithdrawal } from "./math.js";
 import {
   type OpenStrategyPreview,
   type OpenStrategyProps,
@@ -129,6 +130,19 @@ export class CreditAccountOperationsService extends SDKConstruct {
         }
       }
     });
+  }
+
+  /**
+   * Largest `WITHDRAW` amount (in underlying) the account can take out while
+   * keeping leverage and staying inside the facade's debt band — the ceiling a
+   * withdraw form should offer. Closing the account is a different intent.
+   *
+   * @param props - Account slice and the SDK holding its market
+   * @returns Amount in underlying units; `0n` when nothing can leave
+   */
+  maxWithdraw(props: Pick<PreviewProps, "creditAccount" | "sdk">): bigint {
+    const view = accountView(props.creditAccount, props.sdk);
+    return maxProportionalWithdrawal(view, view.band);
   }
 
   /**

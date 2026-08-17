@@ -251,6 +251,14 @@ export interface OpportunitiesSimulate {
   ): Promise<DataResponse<StrategySimulate>>;
 
   /**
+   * Largest partial withdrawal {@link withdrawStrategy} accepts, in underlying
+   * units: the amount whose proportional repayment leaves the debt at the
+   * credit manager's `minDebt`. Taking everything out is closing the position,
+   * which is a different flow.
+   **/
+  maxWithdraw(position: PositionInput): Promise<DataResponse<bigint>>;
+
+  /**
    * Retargeting leverage at fixed collateral: debt moves, own funds do not.
    **/
   adjustLeverage(

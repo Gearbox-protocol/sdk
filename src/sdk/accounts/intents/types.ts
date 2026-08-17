@@ -1,4 +1,5 @@
 import type { Address } from "viem";
+import type { Leverage } from "../../../model/index.js";
 import type {
   Asset,
   DelayedIntent,
@@ -26,6 +27,11 @@ export type AdjustState = {
   totalValue: bigint;
   /** Account debt after operation */
   accountDebt: bigint;
+  /**
+   * Leverage after operation in the read model's convention — `debt / equity`,
+   * as `Position.leverage` reports it — not the calculator's `TVL / collateral`.
+   */
+  leverage: Leverage;
   /** Account assets after operation */
   assets: Asset[];
   /** Account quotas after operation */
@@ -72,14 +78,17 @@ type InstantErrorReason = "pathNotFound";
 
 // General return types
 
-/** Why a preview could not be produced at all (no branch is viable). */
+/**
+ * Why a preview could not be produced at all (no branch is viable). Closed over
+ * what the engine actually throws — every member has a producer under
+ * `intents/`.
+ */
 export type PreviewErrorReason =
-  | "unsupportedFieldPair"
+  /** Resulting debt leaves the credit manager's `[minDebt, maxDebt]` band. */
   | "debtOutOfRange"
+  /** Target leverage below 1x, or above what the collateral's LT allows. */
   | "leverageOutOfRange"
-  | "multipleDelayedWithdrawals"
-  | "unsupportedMixedDelayedWithdrawal"
-  | "unsupportedCloseClaimOutput"
+  /** The account holds less of the source token than the flow needs. */
   | "insufficientSourceBalance"
   /** Input token is not accepted by the flow (e.g. deposit of a non-underlying). */
   | "unsupportedCollateralToken";

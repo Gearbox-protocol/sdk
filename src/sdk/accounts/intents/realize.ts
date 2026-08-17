@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 import type { MultiCall, OnchainSDK } from "../../index.js";
+import { positionLeverage } from "../../market/math.js";
 import {
   type AccountCalculatorOperation,
   buildAddCollateralOperation,
@@ -259,6 +260,7 @@ export async function realize(
       kind: "adjust",
       totalValue,
       accountDebt: debt,
+      leverage: positionLeverage(debt, totalValue),
       assets,
       quotas: quotas.desiredQuota,
     },

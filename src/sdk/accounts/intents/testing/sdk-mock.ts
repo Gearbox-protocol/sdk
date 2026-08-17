@@ -1,10 +1,12 @@
 import type { Address } from "viem";
 import { vi } from "vitest";
 import type {
+  CreditAccountDataPayload,
   EncodableCreditAccountOperation,
   MultiCall,
   OnchainSDK,
 } from "../../../index.js";
+import type { CreditAccountSlice } from "../types.js";
 
 /**
  * Test kit for intent-service specs.
@@ -117,6 +119,12 @@ interface BuildMockSdkArgs {
   rwaAssets?: Record<Address, Address>;
   /** Tokens reported as phantoms by `tokensMeta.get(...).contractType`. */
   phantoms?: Address[];
+  /**
+   * Accounts `accounts.getCreditAccountData` knows, keyed by address. What the
+   * simulate layer reads on its own instead of taking a slice from the caller;
+   * `accountDebt` lands as the principal with no interest or fees accrued.
+   */
+  creditAccounts?: CreditAccountSlice[];
 }
 
 /**
@@ -307,6 +315,16 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
     },
     routerFor: vi.fn(() => router),
     accounts: {
+      getCreditAccountData: vi.fn(
+        async (
+          address: Address,
+        ): Promise<CreditAccountDataPayload | undefined> => {
+          const slice = args.creditAccounts?.find(
+            ca => ca.creditAccount.toLowerCase() === address.toLowerCase(),
+          );
+          return slice ? payloadOf(slice) : undefined;
+        },
+      ),
       assembleCaOperations: vi.fn(
         ({ operations }: { operations: EncodableCreditAccountOperation[] }) =>
           operations.flatMap(echoEncodableOpCalls),
@@ -326,4 +344,27 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
       assembleRWAUnwrapCalls: vi.fn(async () => [MOCK_RWA_UNWRAP_CALL]),
     },
   } as unknown as OnchainSDK;
+}
+
+/** A full account payload carrying exactly what the slice builder reads back. */
+function payloadOf(slice: CreditAccountSlice): CreditAccountDataPayload {
+  return {
+    creditAccount: slice.creditAccount,
+    creditManager: slice.creditManager,
+    creditFacade: slice.creditFacade,
+    underlying: slice.underlying,
+    owner: slice.creditAccount,
+    expirationDate: 0,
+    enabledTokensMask: slice.enabledTokensMask,
+    debt: slice.accountDebt,
+    accruedInterest: 0n,
+    accruedFees: 0n,
+    totalDebtUSD: slice.totalDebtUSD,
+    totalValueUSD: 0n,
+    twvUSD: 0n,
+    totalValue: 0n,
+    healthFactor: 0n,
+    success: true,
+    tokens: slice.tokens,
+  };
 }

@@ -121,6 +121,8 @@ export interface MarketSdkExtras {
   phantoms?: Address[];
   /** Facade `minDebt`; 0n when omitted. */
   minDebt?: bigint;
+  /** Accounts `accounts.getCreditAccountData` answers for. */
+  creditAccounts?: CreditAccountSlice[];
 }
 
 /** Mock SDK on the shared fixture market. */
@@ -138,6 +140,7 @@ export function buildMarketSdk(extras?: MarketSdkExtras): OnchainSDK {
     closePath: extras?.closePath,
     rwaAssets: extras?.rwaAssets,
     phantoms: extras?.phantoms,
+    creditAccounts: extras?.creditAccounts,
   });
 }
 

@@ -106,7 +106,7 @@ describe("the source branches are not gated by mode", () => {
   });
 });
 
-describe("simulate covers the eight flows", () => {
+describe("simulate covers the eight flows and the withdraw ceiling", () => {
   const simulate = {} as Opportunities<"onchain">["simulate"];
 
   it("has one method per flow", () => {
@@ -118,6 +118,7 @@ describe("simulate covers the eight flows", () => {
     expectTypeOf(simulate).toHaveProperty("adjustLeverage");
     expectTypeOf(simulate).toHaveProperty("addCollateral");
     expectTypeOf(simulate).toHaveProperty("withdrawCollateral");
+    expectTypeOf(simulate).toHaveProperty("maxWithdraw");
   });
 
   it("takes a pool opportunity and a bare amount for the LP flows", () => {

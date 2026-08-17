@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { positionLeverage } from "../../../market/math.js";
 import { CreditAccountOperationsService } from "../index.js";
 import {
   assetBalance,
@@ -25,6 +26,7 @@ import {
   case_increase_rwa,
   case_increase_underlying,
   case_noop,
+  DEBT_3X,
   QUOTA_1000,
   QUOTA_1500,
   TVL_2X,
@@ -60,6 +62,20 @@ describe("adjustLeverage.start — collateral fixed, debt retargeted", () => {
     expect(assetBalance(state.assets, POS)).toBe(TVL_3X);
     expect(assetBalance(state.assets, UND)).toBe(0n);
     expect(state.quotas[POS]?.balance).toBe(QUOTA_1500);
+  });
+
+  it("reports the model's leverage (debt / equity), not the calculator's total leverage", async () => {
+    // the calculator targets `TVL / collateral` (3x here); the projection must
+    // read like a `Position` — `positionLeverage(debt, totalValue)` is 2x for
+    // the same account, so a re-read position compares without a scaling fudge
+    const state = await expectCase(case_increase, [
+      CA_OP_CALLS.increaseDebt,
+      MOCK_ROUTER_CALL,
+      CA_OP_CALLS.changeQuota,
+    ])();
+
+    expect(state.leverage).toBe(positionLeverage(DEBT_3X, TVL_3X));
+    expect(state.leverage).toBe(2);
   });
 
   it("2x → 3x with underlying as the position: increaseDebt only", async () => {

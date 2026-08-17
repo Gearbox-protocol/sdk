@@ -5,6 +5,7 @@ import {
   assertDebtInBand,
   assertLeverageAtLeastOne,
   debtForLeverage,
+  maxProportionalWithdrawal,
   proportionalDebt,
 } from "./math.js";
 
@@ -63,5 +64,39 @@ describe("math — the three formulas behind every intent", () => {
     expect(() => assertDebtInBand(10_001n, BAND)).toThrowError(
       expect.objectContaining({ reason: "debtOutOfRange" }),
     );
+  });
+
+  it("[INV-10] maxProportionalWithdrawal: the largest W whose proportional repayment leaves debt ≥ minDebt", () => {
+    // 2x: 1000 collateral, 1000 debt, minDebt 100 → at most 900 of debt can go,
+    // and W < C0 always (the last unit closes rather than withdraws)
+    const twoX = { debt: 1_000n, collateral: 1_000n };
+    const w = maxProportionalWithdrawal(twoX, BAND);
+    expect(twoX.debt - proportionalDebt(twoX, w)).toBeGreaterThanOrEqual(
+      BAND.minDebt,
+    );
+    expect(twoX.debt - proportionalDebt(twoX, w + 1n)).toBeLessThan(
+      BAND.minDebt,
+    );
+    expect(w).toBe(900n);
+
+    // rounding: 100 debt on 1000 collateral, minDebt 50 → floor(100·W/1000) ≤ 50
+    // holds up to W = 509
+    const low = { debt: 100n, collateral: 1_000n };
+    expect(
+      maxProportionalWithdrawal(low, { minDebt: 50n, maxDebt: 10_000n }),
+    ).toBe(509n);
+
+    // no debt: the band does not bind, everything but the last unit
+    expect(
+      maxProportionalWithdrawal({ debt: 0n, collateral: 1_000n }, BAND),
+    ).toBe(999n);
+    // already below minDebt: nothing can leave without breaking the band further
+    expect(
+      maxProportionalWithdrawal({ debt: 50n, collateral: 1_000n }, BAND),
+    ).toBe(0n);
+    // no collateral: nothing to withdraw
+    expect(
+      maxProportionalWithdrawal({ debt: 1_000n, collateral: 0n }, BAND),
+    ).toBe(0n);
   });
 });
