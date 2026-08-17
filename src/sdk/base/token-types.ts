@@ -35,6 +35,11 @@ export interface SimpleTokenMeta extends TokenData {
    * layout of the given {@link contractType}.
    **/
   serializedParams?: Hex;
+  /**
+   * Result of the token's `isExpired()` call, when it implements it
+   * (e.g. Pendle PT tokens). Undefined for tokens without this method.
+   **/
+  isExpired?: boolean;
 }
 
 export type PhantomTokenMeta = SimpleTokenMeta & {

@@ -6,6 +6,7 @@ import type {
   PublicClient,
   Transport,
 } from "viem";
+import { iExpirableAbi } from "../../abi/iExpirable.js";
 import { iStateSerializerAbi } from "../../abi/iStateSerializer.js";
 import { iVersionAbi } from "../../abi/iVersion.js";
 import type { Token } from "../../model/primitives.js";
@@ -316,6 +317,11 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
               abi: iStateSerializerAbi,
               functionName: "serialize",
             },
+            {
+              address: t,
+              abi: iExpirableAbi,
+              functionName: "isExpired",
+            },
           ] as const,
       ),
       onResults: resps => {
@@ -323,8 +329,9 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
         for (let i = 0; i < tokensToLoad.length; i++) {
           this.#overrideTokenMeta(
             tokensToLoad[i],
-            resps[2 * i] as MulticallResponse<Hex>,
-            resps[2 * i + 1] as MulticallResponse<Hex>,
+            resps[3 * i] as MulticallResponse<Hex>,
+            resps[3 * i + 1] as MulticallResponse<Hex>,
+            resps[3 * i + 2] as MulticallResponse<boolean>,
           );
           this.#tokenDataLoaded.add(tokensToLoad[i]);
         }
@@ -380,17 +387,29 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
     token: Address,
     contractTypeResp: MulticallResponse<Hex>,
     serializeResp: MulticallResponse<Hex>,
+    isExpiredResp: MulticallResponse<boolean>,
   ): TokenMetaData {
     const meta = this.mustGet(token);
+    const update: TokenMetaData = { ...meta };
     if (contractTypeResp.status === "success") {
       const contractType = bytes32ToString(contractTypeResp.result);
-      this.upsert(token, {
-        ...meta,
-        contractType,
-        serializedParams:
-          serializeResp.status === "success" ? serializeResp.result : undefined,
-      });
+      update.contractType = contractType;
+      update.serializedParams =
+        serializeResp.status === "success" ? serializeResp.result : undefined;
       this.#logger?.debug(`token ${meta.symbol} is ${contractType}`);
+    }
+    // only expirable tokens (e.g. Pendle PTs) implement isExpired()
+    if (isExpiredResp.status === "success") {
+      update.isExpired = isExpiredResp.result;
+      this.#logger?.debug(
+        `token ${meta.symbol} is expirable, expired: ${isExpiredResp.result}`,
+      );
+    }
+    if (
+      contractTypeResp.status === "success" ||
+      isExpiredResp.status === "success"
+    ) {
+      this.upsert(token, update);
     }
     return this.mustGet(token);
   }
