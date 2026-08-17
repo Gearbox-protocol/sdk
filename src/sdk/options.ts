@@ -1,8 +1,5 @@
 import { z } from "zod/v4";
-import {
-  PythOptions,
-  RedstoneOptions,
-} from "./market/pricefeeds/updates/index.js";
+import { RedstoneOptions } from "./market/pricefeeds/updates/index.js";
 import type { PluginsMap } from "./plugins/index.js";
 import type { ILogger } from "./types/index.js";
 import { ZodAddress } from "./utils/index.js";
@@ -67,10 +64,6 @@ export const attachOptionsSchema = z.object({
    * Options for Redstone price-feed updates.
    **/
   redstone: RedstoneOptions.optional(),
-  /**
-   * Options for Pyth price-feed updates.
-   **/
-  pyth: PythOptions.optional(),
   /**
    * When `true`, automatically load zappers during attach.
    **/

@@ -22,7 +22,6 @@ import {
 import {
   ORACLE_PROXY_PORT,
   type OracleProxy,
-  PYTH_API_PROXY,
   REDSTONE_GATEWAYS,
   startOracleProxy,
 } from "../../src/e2e/oracleProxy.js";
@@ -95,10 +94,6 @@ async function main() {
         historicTimestamp: true as const,
         gateways: REDSTONE_GATEWAYS,
       },
-      pyth: {
-        historicTimestamp: true as const,
-        apiProxy: PYTH_API_PROXY,
-      },
     };
 
     const mcOpts = SINGLE_MC ? { marketConfigurators: [SINGLE_MC] } : {};
@@ -137,7 +132,7 @@ async function main() {
     });
 
     // Re-attach per individual market configurator so that oracle proxy
-    // records Pyth URLs with per-MC feed subsets (tests attach one MC at a time)
+    // records oracle URLs with per-MC feed subsets (tests attach one MC at a time)
     const allMCs = SINGLE_MC
       ? [SINGLE_MC]
       : (Object.keys(chains[NETWORK].defaultMarketConfigurators) as Address[]);

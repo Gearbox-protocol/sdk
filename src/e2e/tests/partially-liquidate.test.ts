@@ -21,12 +21,7 @@ import {
   WAD,
 } from "../../sdk/index.js";
 import { ANVIL_URL } from "../constants.js";
-import {
-  getAnvilWallet,
-  PYTH_API_PROXY,
-  REDSTONE_GATEWAYS,
-  useFixture,
-} from "../helpers.js";
+import { getAnvilWallet, REDSTONE_GATEWAYS, useFixture } from "../helpers.js";
 
 const BLOCK = 24_728_000n;
 const CREDIT_ACCOUNT: Address = "0xafaf7CfB3E97621bf7eb5b0154E6F623C3034D94";
@@ -47,10 +42,6 @@ describe("partially liquidate credit account", () => {
       redstone: {
         historicTimestamp: true,
         gateways: REDSTONE_GATEWAYS,
-      },
-      pyth: {
-        historicTimestamp: true,
-        apiProxy: PYTH_API_PROXY,
       },
     });
   });

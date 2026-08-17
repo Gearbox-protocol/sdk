@@ -23,6 +23,7 @@ import {
   type ParsedCallArgs,
 } from "../../sdk/index.js";
 import { Addresses } from "../deployment/addresses.js";
+import { BytecodeRepositoryContract } from "./bytecode-repository.js";
 import { WithdrawalCompressorContract } from "./compressors/index.js";
 import { PriceFeedStoreContract } from "./price-feed-store.js";
 import { RoutingManagerContract } from "./router/index.js";
@@ -44,6 +45,10 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
       case Addresses.PRICE_FEED_STORE.toLowerCase(): {
         const priceFeedStore = new PriceFeedStoreContract(target, this.client);
         return priceFeedStore.parseFunctionData(calldata);
+      }
+      case Addresses.BYTECODE_REPOSITORY.toLowerCase(): {
+        const bcr = new BytecodeRepositoryContract(target, this.client);
+        return bcr.parseFunctionData(calldata);
       }
       default: {
         try {

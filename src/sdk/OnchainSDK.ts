@@ -42,10 +42,7 @@ import {
 import { RWARegistry } from "./market/index.js";
 import { MarketRegister } from "./market/MarketRegister.js";
 import { PriceFeedRegister } from "./market/pricefeeds/index.js";
-import type {
-  PythOptions,
-  RedstoneOptions,
-} from "./market/pricefeeds/updates/index.js";
+import type { RedstoneOptions } from "./market/pricefeeds/updates/index.js";
 import { OpportunitiesService } from "./opportunities/index.js";
 import type { PluginStatesMap, PluginsMap } from "./plugins/index.js";
 import { PluginStateVersionError } from "./plugins/index.js";
@@ -169,10 +166,6 @@ export interface AttachOptions {
    **/
   redstone?: RedstoneOptions;
   /**
-   * Options for Pyth price-feed updates.
-   **/
-  pyth?: PythOptions;
-  /**
    * When `true`, automatically call {@link MarketRegister.loadZappers} during attach.
    **/
   loadZappers?: boolean;
@@ -190,10 +183,6 @@ export interface HydrateOptions {
    * Options for Redstone price-feed updates.
    **/
   redstone?: RedstoneOptions;
-  /**
-   * Options for Pyth price-feed updates.
-   **/
-  pyth?: PythOptions;
 }
 
 /**
@@ -363,7 +352,6 @@ export class OnchainSDK<
       ignoreMarkets,
       marketConfigurators: mcs,
       redstone,
-      pyth,
       loadZappers,
     } = options ?? {};
 
@@ -407,17 +395,8 @@ export class OnchainSDK<
         "attaching to fixed block number, but redstone historicTimestamp is not set. price updates might fail",
       );
     }
-    if (
-      blockNumber &&
-      !pyth?.historicTimestamp &&
-      time - Number(block.timestamp) * 1000 > 60 * 1000
-    ) {
-      this.logger?.warn(
-        "attaching to fixed block number, but pyth historicTimestamp is not set. price updates might fail",
-      );
-    }
 
-    this.#priceFeeds = new PriceFeedRegister(this, { redstone, pyth });
+    this.#priceFeeds = new PriceFeedRegister(this, { redstone });
 
     this.logger?.debug(
       `attach block number ${this.currentBlock} timestamp ${this.timestamp}`,
@@ -511,13 +490,13 @@ export class OnchainSDK<
       throw new SdkChainMismatchError(this.networkType, state.network);
     }
 
-    const { ignoreMarkets, redstone, pyth } = options ?? {};
+    const { ignoreMarkets, redstone } = options ?? {};
 
     this.logger?.info({ networkType: this.networkType }, "hydrating sdk state");
 
     this.#currentBlock = state.currentBlock;
     this.#timestamp = state.timestamp;
-    this.#priceFeeds = new PriceFeedRegister(this, { redstone, pyth });
+    this.#priceFeeds = new PriceFeedRegister(this, { redstone });
 
     this.#addressProvider = hydrateAddressProvider(this, state.addressProvider);
     this.logger?.debug(
@@ -624,7 +603,7 @@ export class OnchainSDK<
     let { blockNumber, timestamp, ignoreUpdateablePrices } = opts ?? {};
     if (this.priceFeeds.historical && !ignoreUpdateablePrices) {
       this.logger?.warn(
-        "syncState is not supported with redstone or pyth historicTimestamp",
+        "syncState is not supported with redstone historicTimestamp",
       );
     }
     if (!blockNumber || !timestamp) {

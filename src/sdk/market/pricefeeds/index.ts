@@ -19,9 +19,7 @@ export * from "./PythPriceFeed.js";
 export * from "./RedstonePriceFeed.js";
 export * from "./types.js";
 export {
-  type FetchPythPayloadsOptions,
   type FetchRedstonePayloadsOptions,
-  fetchPythPayloads,
   fetchRedstonePayloads,
   type TimestampedCalldata,
 } from "./updates/index.js";
