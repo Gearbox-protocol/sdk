@@ -1,4 +1,5 @@
 import type {
+  ChainId,
   DataResponse,
   HistoryRange,
   Opportunity,
@@ -15,8 +16,9 @@ import type {
 } from "../../model/index.js";
 import { matchesOpportunityFilter } from "../../model/index.js";
 import type { GearboxAPI } from "../../offchain/index.js";
-import type { MultichainSDK } from "../../sdk/index.js";
+import type { MultichainSDK, OnchainSDK } from "../../sdk/index.js";
 import { AbstractNamespace } from "../AbstractNamespace.js";
+import { ExecuteApi } from "../execute/index.js";
 import { onchainOnly, SimulateApi } from "../simulate/index.js";
 import type { NamespaceOptions } from "../types.js";
 import type { HistoryReader } from "../utils/index.js";
@@ -55,6 +57,11 @@ export class OpportunitiesNamespace
   public readonly simulate: SimulateApi;
 
   /**
+   * {@inheritDoc OpportunitiesOnchainOnly.execute}
+   **/
+  public readonly execute: ExecuteApi;
+
+  /**
    * {@inheritDoc OpportunitiesBase.merge}
    **/
   public readonly merge: OpportunityMergers = {
@@ -80,17 +87,21 @@ export class OpportunitiesNamespace
     // the simulations own no sources of their own: they run on this
     // namespace's on-chain SDK, one chain per request, and report the block
     // that chain answered from — see `onchainOnly`
+    const chainOf = (chainId: ChainId): OnchainSDK => {
+      if (!onchain) {
+        throw new Error(
+          "simulations need the onchain source, which this SDK was built without",
+        );
+      }
+      return onchain.chain(chainId);
+    };
     this.simulate = new SimulateApi(
       onchainOnly(onchain, options.logger),
-      chainId => {
-        if (!onchain) {
-          throw new Error(
-            "simulations need the onchain source, which this SDK was built without",
-          );
-        }
-        return onchain.chain(chainId);
-      },
+      chainOf,
     );
+    // the write side runs on the same chain resolver: what `simulate` priced,
+    // `execute` encodes
+    this.execute = new ExecuteApi(chainOf);
   }
 
   /**

@@ -13,6 +13,7 @@ import type {
 } from "../../model/index.js";
 import type { OffchainOpportunities } from "../../offchain/index.js";
 import type { MultichainOpportunitiesService } from "../../sdk/index.js";
+import type { OpportunitiesExecute } from "../execute/index.js";
 import type { OpportunitiesSimulate } from "../simulate/index.js";
 import type { Mode } from "../types.js";
 import type { HistoryReader } from "../utils/history.js";
@@ -92,6 +93,12 @@ export interface OpportunitiesOnchainOnly {
    * paths, so there is nothing the backend could answer with.
    **/
   simulate: OpportunitiesSimulate;
+  /**
+   * The transaction a simulate result stands for, see
+   * {@link OpportunitiesExecute.buildTx}. Absent in `offchain` mode for the
+   * same reason as {@link simulate}: it encodes against live chain state.
+   **/
+  execute: OpportunitiesExecute;
 }
 
 /**

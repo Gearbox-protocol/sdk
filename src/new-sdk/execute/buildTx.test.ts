@@ -1,0 +1,288 @@
+import type { Address } from "viem";
+import { describe, expect, it, vi } from "vitest";
+import type { OnchainSDK, RawTx } from "../../sdk/index.js";
+import type {
+  OpenStrategySimulate,
+  StrategySimulate,
+} from "../simulate/index.js";
+import { ExecuteApi } from "./ExecuteApi.js";
+
+const CHAIN_ID = 1;
+const POOL = "0x1000000000000000000000000000000000000001" as Address;
+const UNDERLYING = "0x2000000000000000000000000000000000000002" as Address;
+const DIESEL = "0x3000000000000000000000000000000000000003" as Address;
+const WALLET = "0xf0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0" as Address;
+const CREDIT_MANAGER = "0x4000000000000000000000000000000000000004" as Address;
+const CREDIT_ACCOUNT = "0x5000000000000000000000000000000000000005" as Address;
+
+const rawTx = (tag: string): RawTx => ({
+  to: POOL,
+  value: "0",
+  signature: tag,
+  callData: `0x${tag}`,
+  contractMethod: { name: tag, inputs: [], payable: false },
+  contractInputsValues: {},
+});
+
+const DEPOSIT_META = { type: "classic", zapper: undefined } as const;
+const WITHDRAW_META = { type: "classic", zapper: undefined } as const;
+const CALL = { target: POOL, callData: "0xdead" as const };
+
+function mockChain(overrides?: { addLiquidity?: unknown; account?: unknown }) {
+  const txs = {
+    deposit: rawTx("deposit"),
+    withdraw: rawTx("redeem"),
+    open: rawTx("open"),
+    update: rawTx("multicall"),
+  };
+  const account = { creditAccount: CREDIT_ACCOUNT, tokens: [] };
+  const sdk = {
+    pools: {
+      getDepositMetadata: vi.fn(() => DEPOSIT_META),
+      getWithdrawalMetadata: vi.fn(() => WITHDRAW_META),
+      addLiquidity: vi.fn(() =>
+        "addLiquidity" in (overrides ?? {})
+          ? overrides?.addLiquidity
+          : { tx: txs.deposit, calls: [CALL] },
+      ),
+      removeLiquidity: vi.fn(() => ({ tx: txs.withdraw, calls: [CALL] })),
+    },
+    accounts: {
+      openCA: vi.fn(async () => txs.open),
+      getCreditAccountData: vi.fn(async () =>
+        "account" in (overrides ?? {}) ? overrides?.account : account,
+      ),
+      executeCaUpdate: vi.fn(async () => txs.update),
+    },
+  };
+  const execute = new ExecuteApi(() => sdk as unknown as OnchainSDK);
+  return { execute, sdk, txs, account };
+}
+
+describe("buildTx — pool", () => {
+  const sim = {
+    tokenIn: { token: UNDERLYING, balance: 1_000n },
+    tokenOut: { token: DIESEL, balance: 990n },
+  };
+
+  it("deposit: metadata resolved inside, the tx is PoolService.addLiquidity's", async () => {
+    const { execute, sdk, txs } = mockChain();
+
+    const tx = await execute.buildTx({
+      kind: "pool",
+      chainId: CHAIN_ID,
+      pool: POOL,
+      wallet: WALLET,
+      op: "deposit",
+      sim,
+    });
+
+    expect(tx).toBe(txs.deposit);
+    expect(sdk.pools.getDepositMetadata).toHaveBeenCalledWith(
+      POOL,
+      UNDERLYING,
+      DIESEL,
+    );
+    expect(sdk.pools.addLiquidity).toHaveBeenCalledWith({
+      pool: POOL,
+      wallet: WALLET,
+      collateral: sim.tokenIn,
+      meta: DEPOSIT_META,
+    });
+  });
+
+  it("withdraw: the tx is PoolService.removeLiquidity's on the shares the sim priced", async () => {
+    const { execute, sdk, txs } = mockChain();
+    const withdrawSim = {
+      tokenIn: { token: DIESEL, balance: 500n },
+      tokenOut: { token: UNDERLYING, balance: 505n },
+    };
+
+    const tx = await execute.buildTx({
+      kind: "pool",
+      chainId: CHAIN_ID,
+      pool: POOL,
+      wallet: WALLET,
+      op: "withdraw",
+      sim: withdrawSim,
+    });
+
+    expect(tx).toBe(txs.withdraw);
+    expect(sdk.pools.getWithdrawalMetadata).toHaveBeenCalledWith(
+      POOL,
+      DIESEL,
+      UNDERLYING,
+    );
+    expect(sdk.pools.removeLiquidity).toHaveBeenCalledWith({
+      pool: POOL,
+      wallet: WALLET,
+      amount: 500n,
+      permit: undefined,
+      meta: WITHDRAW_META,
+    });
+  });
+
+  it("an unknown route surfaces the SDK's own metadata error, no tx", async () => {
+    const { execute, sdk } = mockChain();
+    const boom = new Error("no deposit route");
+    sdk.pools.getDepositMetadata.mockImplementation(() => {
+      throw boom;
+    });
+
+    await expect(
+      execute.buildTx({
+        kind: "pool",
+        chainId: CHAIN_ID,
+        pool: POOL,
+        wallet: WALLET,
+        op: "deposit",
+        sim,
+      }),
+    ).rejects.toBe(boom);
+    expect(sdk.pools.addLiquidity).not.toHaveBeenCalled();
+  });
+
+  it("a pool that takes no deposit transaction (RWA on-demand) throws instead of returning nothing", async () => {
+    const { execute } = mockChain({ addLiquidity: undefined });
+
+    await expect(
+      execute.buildTx({
+        kind: "pool",
+        chainId: CHAIN_ID,
+        pool: POOL,
+        wallet: WALLET,
+        op: "deposit",
+        sim,
+      }),
+    ).rejects.toThrow(/takes no deposit transaction/);
+  });
+});
+
+describe("buildTx — open", () => {
+  const preview = {
+    debt: 2_000n,
+    collateral: 1_000n,
+    totalValue: 3_000n,
+    averageAssets: [],
+    minAssets: [],
+    averageQuota: [{ token: DIESEL, balance: 3_000n }],
+    minQuota: [{ token: DIESEL, balance: 2_900n }],
+    calls: [CALL],
+  };
+  const sim: Extract<OpenStrategySimulate, { ok: true }> = {
+    ok: true,
+    preview,
+  };
+  const collateral = [{ token: UNDERLYING, balance: 1_000n }];
+
+  it("hands the preview's debt, path and quotas to openCA, with the wallet's collateral", async () => {
+    const { execute, sdk, txs } = mockChain();
+
+    const tx = await execute.buildTx({
+      kind: "open",
+      chainId: CHAIN_ID,
+      creditManager: CREDIT_MANAGER,
+      wallet: WALLET,
+      sim,
+      collateral,
+      ethAmount: 0n,
+    });
+
+    expect(tx).toBe(txs.open);
+    expect(sdk.accounts.openCA).toHaveBeenCalledWith({
+      creditManager: CREDIT_MANAGER,
+      to: WALLET,
+      collateral,
+      ethAmount: 0n,
+      debt: preview.debt,
+      calls: preview.calls,
+      averageQuota: preview.averageQuota,
+      minQuota: preview.minQuota,
+      permits: {},
+      referralCode: 0n,
+    });
+  });
+
+  it("throws on a failed simulation", async () => {
+    const { execute, sdk } = mockChain();
+
+    await expect(
+      execute.buildTx({
+        kind: "open",
+        chainId: CHAIN_ID,
+        creditManager: CREDIT_MANAGER,
+        wallet: WALLET,
+        sim: { ok: false, reason: "debtOutOfRange" } as never,
+        collateral,
+        ethAmount: 0n,
+      }),
+    ).rejects.toThrow(/failed open simulation/);
+    expect(sdk.accounts.openCA).not.toHaveBeenCalled();
+  });
+});
+
+describe("buildTx — account", () => {
+  const sim: Extract<StrategySimulate, { ok: true }> = {
+    ok: true,
+    operations: [],
+    preview: {
+      kind: "adjust",
+      totalValue: 3_000n,
+      accountDebt: 2_000n,
+      leverage: 2,
+      assets: [],
+      quotas: {},
+    },
+    calls: [CALL, { target: POOL, callData: "0xbeef" }],
+  };
+
+  it("submits the simulation's own multicall through executeCaUpdate on the re-read account", async () => {
+    const { execute, sdk, txs, account } = mockChain();
+
+    const tx = await execute.buildTx({
+      kind: "account",
+      chainId: CHAIN_ID,
+      creditAccount: CREDIT_ACCOUNT,
+      wallet: WALLET,
+      sim,
+    });
+
+    expect(tx).toBe(txs.update);
+    expect(sdk.accounts.getCreditAccountData).toHaveBeenCalledWith(
+      CREDIT_ACCOUNT,
+    );
+    expect(sdk.accounts.executeCaUpdate).toHaveBeenCalledWith(
+      account,
+      sim.calls,
+    );
+  });
+
+  it("throws when the account is gone", async () => {
+    const { execute } = mockChain({ account: undefined });
+
+    await expect(
+      execute.buildTx({
+        kind: "account",
+        chainId: CHAIN_ID,
+        creditAccount: CREDIT_ACCOUNT,
+        wallet: WALLET,
+        sim,
+      }),
+    ).rejects.toThrow(/credit account not found/);
+  });
+
+  it("throws on a failed simulation", async () => {
+    const { execute, sdk } = mockChain();
+
+    await expect(
+      execute.buildTx({
+        kind: "account",
+        chainId: CHAIN_ID,
+        creditAccount: CREDIT_ACCOUNT,
+        wallet: WALLET,
+        sim: { ok: false, reason: "debtOutOfRange" } as never,
+      }),
+    ).rejects.toThrow(/failed account simulation/);
+    expect(sdk.accounts.executeCaUpdate).not.toHaveBeenCalled();
+  });
+});

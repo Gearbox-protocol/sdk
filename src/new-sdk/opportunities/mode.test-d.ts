@@ -32,10 +32,13 @@ describe("mode gates method existence", () => {
     expectTypeOf<Opportunities<"onchain">>().not.toHaveProperty("history");
   });
 
-  it("simulate exists only where a chain does", () => {
+  it("simulate and execute exist only where a chain does", () => {
     expectTypeOf<Opportunities<"onchain">>().toHaveProperty("simulate");
     expectTypeOf<Opportunities<"both">>().toHaveProperty("simulate");
     expectTypeOf<Opportunities<"offchain">>().not.toHaveProperty("simulate");
+    expectTypeOf<Opportunities<"onchain">>().toHaveProperty("execute");
+    expectTypeOf<Opportunities<"both">>().toHaveProperty("execute");
+    expectTypeOf<Opportunities<"offchain">>().not.toHaveProperty("execute");
   });
 
   it("a widened mode degrades to the base reads rather than to everything", () => {
