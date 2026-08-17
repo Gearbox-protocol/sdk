@@ -17,6 +17,7 @@ import { matchesOpportunityFilter } from "../../model/index.js";
 import type { GearboxAPI } from "../../offchain/index.js";
 import type { MultichainSDK } from "../../sdk/index.js";
 import { AbstractNamespace } from "../AbstractNamespace.js";
+import { onchainOnly, SimulateApi } from "../simulate/index.js";
 import type { NamespaceOptions } from "../types.js";
 import type { HistoryReader } from "../utils/index.js";
 import {
@@ -27,6 +28,7 @@ import {
 import type {
   OpportunitiesBase,
   OpportunitiesOffchainOnly,
+  OpportunitiesOnchainOnly,
   OpportunityMergers,
 } from "./types.js";
 
@@ -42,8 +44,16 @@ export class OpportunitiesNamespace
     MultichainSDK["opportunities"],
     GearboxAPI["opportunities"]
   >
-  implements OpportunitiesBase, OpportunitiesOffchainOnly
+  implements
+    OpportunitiesBase,
+    OpportunitiesOffchainOnly,
+    OpportunitiesOnchainOnly
 {
+  /**
+   * {@inheritDoc OpportunitiesOnchainOnly.simulate}
+   **/
+  public readonly simulate: SimulateApi;
+
   /**
    * {@inheritDoc OpportunitiesBase.merge}
    **/
@@ -66,6 +76,20 @@ export class OpportunitiesNamespace
       onchain?.opportunities,
       offchain?.opportunities,
       options,
+    );
+    // the simulations own no sources of their own: they run on this
+    // namespace's on-chain SDK, one chain per request, and report the block
+    // that chain answered from — see `onchainOnly`
+    this.simulate = new SimulateApi(
+      onchainOnly(onchain, options.logger),
+      chainId => {
+        if (!onchain) {
+          throw new Error(
+            "simulations need the onchain source, which this SDK was built without",
+          );
+        }
+        return onchain.chain(chainId);
+      },
     );
   }
 

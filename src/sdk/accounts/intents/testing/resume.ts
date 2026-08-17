@@ -4,18 +4,32 @@ import type {
   DelayedIntent,
   MultiCall,
   OnchainSDK,
-  WithdrawableAsset,
 } from "../../../index.js";
-import { toBN } from "../../../index.js";
-
-import type { ClaimDelayedOption } from "../operations/index.js";
 import type { CreditAccountSlice } from "../types.js";
 import type { ExpectedFlowOp } from "./expect.js";
 import {
-  buildMockSdk,
-  MOCK_CLAIM_CALL,
-  type MockQuotaEntry,
-} from "./sdk-mock.js";
+  buildMarketSdk,
+  CREDIT_ACCOUNT,
+  CREDIT_FACADE,
+  CREDIT_MANAGER,
+  DECIMALS,
+  UND,
+  valueInUnd,
+} from "./market.js";
+import { MOCK_CLAIM_CALL } from "./sdk-mock.js";
+
+export {
+  ANY,
+  ANY2,
+  buildMarketSdk,
+  CREDIT_ACCOUNT,
+  CREDIT_FACADE,
+  CREDIT_MANAGER,
+  RWA_ASSET,
+  TOK_DECIMALS,
+  UND,
+  UND_DECIMALS,
+} from "./market.js";
 
 /**
  * Shared kit for claim-only resume fixtures (add collateral, increase
@@ -27,67 +41,8 @@ import {
  * in UND`, so the derived totalValue matches the legacy expectation exactly.
  */
 
-export const UND_DECIMALS = 8;
-export const TOK_DECIMALS = 18;
-
-export const UND = "0x3333333333333333333333333333333333333333" as Address;
-export const ANY = "0x1111111111111111111111111111111111111111" as Address;
-export const ANY2 = "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" as Address;
-export const RWA_ASSET =
-  "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" as Address;
 export const RESUME_FIXTURE_PHANTOM =
   "0xcccccccccccccccccccccccccccccccccccccccc" as Address;
-
-export const CREDIT_MANAGER =
-  "0xdddddddddddddddddddddddddddddddddddddddd" as Address;
-export const CREDIT_FACADE =
-  "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee" as Address;
-export const CREDIT_ACCOUNT =
-  "0xacacacacacacacacacacacacacacacacacacacac" as Address;
-
-const PRICES: Record<Address, bigint> = {
-  [UND]: toBN("2", 8),
-  [ANY]: toBN("1", 8),
-  [ANY2]: toBN("1", 8),
-  [RWA_ASSET]: toBN("2", 8),
-};
-
-const DECIMALS: Record<Address, number> = {
-  [UND]: UND_DECIMALS,
-  [ANY]: TOK_DECIMALS,
-  [ANY2]: TOK_DECIMALS,
-  [RWA_ASSET]: UND_DECIMALS,
-};
-
-const QUOTAS: Record<Address, MockQuotaEntry> = {
-  [ANY]: {
-    token: ANY,
-    rate: 500n,
-    limit: toBN("999999999999999", TOK_DECIMALS),
-    isActive: true,
-  },
-  [ANY2]: {
-    token: ANY2,
-    rate: 500n,
-    limit: toBN("999999999999999", TOK_DECIMALS),
-    isActive: true,
-  },
-  [RWA_ASSET]: {
-    token: RWA_ASSET,
-    rate: 500n,
-    limit: toBN("999999999999999", UND_DECIMALS),
-    isActive: true,
-  },
-};
-
-const LIQUIDATION_THRESHOLDS: Record<Address, number> = {
-  [UND]: 9800,
-  [ANY]: 9200,
-  [ANY2]: 9200,
-  [RWA_ASSET]: 9200,
-};
-
-const MAX_DEBT = toBN("200000", UND_DECIMALS);
 
 export interface ResumeCase {
   claimedToken: Address;
@@ -106,16 +61,12 @@ export interface ResumeCase {
 
 /** Claimed proceeds converted to UND (mirrors the mock price oracle). */
 export function claimedValueInUnd(amount: bigint, token: Address): bigint {
-  return (
-    (amount * PRICES[token] * 10n ** BigInt(UND_DECIMALS)) /
-    (PRICES[UND] * 10n ** BigInt(DECIMALS[token]))
-  );
+  return valueInUnd(amount, token);
 }
 
 /**
- * Mock sdk for a resume case. The fixture phantom token gets the claimed
- * token's decimals so the offchain `toTargetDecimals` rescale stays identity
- * (its `10n * decimals` factor is only correct for equal decimals).
+ * Mock sdk for a resume case. The fixture phantom token gets the claimed token's
+ * decimals, so any 1:1 rescale through it stays the identity.
  * `closePath` configures the router `findBestClosePath` result (close resume).
  */
 export function buildResumeSdk(
@@ -138,69 +89,41 @@ export function buildResumeSdk(
   },
 ): OnchainSDK {
   const phantom = extras?.phantom ?? RESUME_FIXTURE_PHANTOM;
-  return buildMockSdk({
-    prices: { ...PRICES, ...extras?.extraPrices },
-    decimals: {
-      ...DECIMALS,
+  return buildMarketSdk({
+    ...extras,
+    extraDecimals: {
       ...extras?.extraDecimals,
       [phantom]:
         extras?.extraDecimals?.[c.claimedToken] ?? DECIMALS[c.claimedToken],
     },
-    quotas: QUOTAS,
-    liquidationThresholds: LIQUIDATION_THRESHOLDS,
-    maxDebt: MAX_DEBT,
-    creditManager: CREDIT_MANAGER,
-    creditFacade: CREDIT_FACADE,
-    underlying: UND,
-    closePath: extras?.closePath,
-    rwaAssets: extras?.rwaAssets,
   });
 }
 
-export function buildOffchainOptions(
+/** The matured withdrawal a resume case claims. */
+export function buildClaimable(
   c: Pick<ResumeCase, "claimedToken" | "claimedAmount">,
-): ClaimDelayedOption {
+): ClaimableWithdrawal {
   return {
-    kind: "offchain",
-    phantomSpent: c.claimedAmount,
-    withdrawalConfig: {
-      creditManager: CREDIT_MANAGER,
-      token: c.claimedToken,
-      withdrawalPhantomToken: RESUME_FIXTURE_PHANTOM,
-      underlying: c.claimedToken,
-      withdrawalLength: 0n,
-    } as WithdrawableAsset,
-  };
-}
-
-export function buildOnchainOptions(
-  c: Pick<ResumeCase, "claimedToken" | "claimedAmount">,
-): ClaimDelayedOption {
-  return {
-    kind: "onchain",
-    claimableWithdrawal: {
-      token: c.claimedToken,
-      withdrawalPhantomToken: RESUME_FIXTURE_PHANTOM,
-      withdrawalTokenSpent: c.claimedAmount,
-      outputs: [
-        {
-          token: c.claimedToken,
-          amount: c.claimedAmount,
-          isDelayed: false,
-        },
-      ],
-      claimCalls: [MOCK_CLAIM_CALL],
-    } as ClaimableWithdrawal,
-  };
+    token: c.claimedToken,
+    withdrawalPhantomToken: RESUME_FIXTURE_PHANTOM,
+    withdrawalTokenSpent: c.claimedAmount,
+    outputs: [
+      {
+        token: c.claimedToken,
+        amount: c.claimedAmount,
+        isDelayed: false,
+      },
+    ],
+    claimCalls: [MOCK_CLAIM_CALL],
+  } as ClaimableWithdrawal;
 }
 
 export function buildClaimResumeProps<T extends DelayedIntent>(args: {
   intent: T;
   case: ResumeCase;
   sdk: OnchainSDK;
-  options: ClaimDelayedOption;
 }) {
-  const { intent, case: c, sdk, options } = args;
+  const { intent, case: c, sdk } = args;
 
   const creditAccount: CreditAccountSlice = {
     creditAccount: CREDIT_ACCOUNT,
@@ -237,7 +160,7 @@ export function buildClaimResumeProps<T extends DelayedIntent>(args: {
     creditAccount,
     sdk,
     quotaReserve: undefined,
-    options,
+    claimable: buildClaimable(c),
     slippage: undefined,
   };
 }

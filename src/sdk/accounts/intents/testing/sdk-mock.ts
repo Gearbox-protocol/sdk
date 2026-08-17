@@ -97,6 +97,8 @@ interface BuildMockSdkArgs {
   quotas: Record<Address, MockQuotaEntry>;
   liquidationThresholds: Record<Address, number>;
   maxDebt: bigint;
+  /** Facade `minDebt`; defaults to 0n so debt-range checks stay opt-in. */
+  minDebt?: bigint;
   creditManager: Address;
   creditFacade: Address;
   /** Market underlying token (`market.pool.underlying`). */
@@ -113,6 +115,8 @@ interface BuildMockSdkArgs {
   };
   /** RWA markets: underlying → rwa.asset (`tokensMeta.rwaUnderlyings`). */
   rwaAssets?: Record<Address, Address>;
+  /** Tokens reported as phantoms by `tokensMeta.get(...).contractType`. */
+  phantoms?: Address[];
 }
 
 /**
@@ -169,6 +173,7 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
     creditFacade: {
       address: args.creditFacade,
       maxDebt: args.maxDebt,
+      minDebt: args.minDebt ?? 0n,
     },
   };
 
@@ -234,27 +239,61 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
       async ({
         expectedBalances,
         leftoverBalances,
+        target,
       }: {
-        expectedBalances: Array<{ balance: bigint }>;
-        leftoverBalances: Array<{ balance: bigint }>;
+        expectedBalances: Array<{ token: Address; balance: bigint }>;
+        leftoverBalances: Array<{ token: Address; balance: bigint }>;
+        target: Address;
       }) => {
-        const spent =
-          expectedBalances.reduce((acc, a) => acc + a.balance, 0n) -
-          leftoverBalances.reduce((acc, a) => acc + a.balance, 0n);
+        const targetLc = target.toLowerCase() as Address;
+        const leftover = new Map(
+          leftoverBalances.map(a => [
+            a.token.toLowerCase() as Address,
+            a.balance,
+          ]),
+        );
+
+        // Mirrors `balancesAfterOpen`: everything above its leftover is routed
+        // into the target, the target's own balance is left alone, and the
+        // conversion goes through the oracle so decimals stay honest.
+        const balances: Record<Address, bigint> = {};
+        let amount = 0n;
+        for (const a of expectedBalances) {
+          const token = a.token.toLowerCase() as Address;
+          if (token === targetLc) {
+            balances[token] = (balances[token] ?? 0n) + a.balance;
+            continue;
+          }
+          const keep = leftover.get(token) ?? 0n;
+          const spend = a.balance > keep ? a.balance - keep : 0n;
+          balances[token] = a.balance - spend;
+          amount += convert(token, targetLc, spend);
+        }
+        balances[targetLc] = (balances[targetLc] ?? 0n) + amount;
+
         return {
-          amount: spent,
-          minAmount: spent,
+          amount,
+          minAmount: amount,
+          balances,
+          minBalances: { ...balances },
           calls: [MOCK_ROUTER_CALL],
-          minAssets: [],
-          averageAssets: [],
         };
       },
     ),
   };
 
+  const phantoms = new Set(
+    (args.phantoms ?? []).map(t => t.toLowerCase() as Address),
+  );
+
   return {
     tokensMeta: {
-      get: (token: Address) => ({ decimals: decimalsOf(token) }),
+      get: (token: Address) => ({
+        decimals: decimalsOf(token),
+        contractType: phantoms.has(token.toLowerCase() as Address)
+          ? "PHANTOM_TOKEN::SECURITIZE_RD"
+          : undefined,
+      }),
       rwaUnderlyings: {
         get: (token: Address) => {
           const asset = args.rwaAssets?.[token.toLowerCase() as Address];

@@ -13,6 +13,7 @@ import type {
 } from "../../model/index.js";
 import type { OffchainOpportunities } from "../../offchain/index.js";
 import type { MultichainOpportunitiesService } from "../../sdk/index.js";
+import type { OpportunitiesSimulate } from "../simulate/index.js";
 import type { Mode } from "../types.js";
 import type { HistoryReader } from "../utils/history.js";
 import type { SourceMerger } from "../utils/index.js";
@@ -80,10 +81,18 @@ export interface OpportunitiesOffchainOnly {
 }
 
 /**
- * Reads only the chain can answer. Empty for now.
+ * Reads only the chain can answer.
  **/
-// biome-ignore lint/suspicious/noEmptyInterface: reserved slot, see doc comment
-export interface OpportunitiesOnchainOnly {}
+export interface OpportunitiesOnchainOnly {
+  /**
+   * Simulations of what a deposit, withdrawal or leverage change would do.
+   *
+   * Absent in `offchain` mode: every one of them reads live account and pool
+   * state, and the strategy flows additionally need the pathfinder for real swap
+   * paths, so there is nothing the backend could answer with.
+   **/
+  simulate: OpportunitiesSimulate;
+}
 
 /**
  * How each read combines what the two sources returned: a chain is served by
