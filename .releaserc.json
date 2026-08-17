@@ -9,16 +9,6 @@
       "prerelease": "next"
     },
     {
-      "name": "kyc",
-      "channel": "kyc",
-      "prerelease": "kyc"
-    },
-    {
-      "name": "pyth",
-      "channel": "pyth",
-      "prerelease": "pyth"
-    },
-    {
       "name": "+([0-9])?(.{+([0-9]),x}).x"
     }
   ],
