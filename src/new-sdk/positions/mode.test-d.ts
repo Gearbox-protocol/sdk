@@ -2,6 +2,7 @@ import { describe, expectTypeOf, it } from "vitest";
 import type {
   DataResponse,
   HistorySeries,
+  Notice,
   PoolPositionHistoryMetric,
   PoolPositionRef,
   Position,
@@ -10,6 +11,7 @@ import type {
 } from "../../model/index.js";
 import type { OffchainPositions } from "../../offchain/index.js";
 import type { MultichainPositionsService } from "../../sdk/index.js";
+import type { GearboxSDK } from "../GearboxSDK.js";
 import type { Mode } from "../types.js";
 import type { Positions } from "./types.js";
 
@@ -18,6 +20,26 @@ describe("mode gates method existence", () => {
     expectTypeOf<Positions<"onchain">>().toHaveProperty("list");
     expectTypeOf<Positions<"offchain">>().toHaveProperty("list");
     expectTypeOf<Positions<"both">>().toHaveProperty("list");
+  });
+
+  it("totals and transactions exist only where a backend does", () => {
+    expectTypeOf<Positions<"offchain">>().toHaveProperty("totals");
+    expectTypeOf<Positions<"both">>().toHaveProperty("totals");
+    expectTypeOf<Positions<"onchain">>().not.toHaveProperty("totals");
+    expectTypeOf<Positions<"offchain">>().toHaveProperty("transactions");
+    expectTypeOf<Positions<"both">>().toHaveProperty("transactions");
+    expectTypeOf<Positions<"onchain">>().not.toHaveProperty("transactions");
+  });
+
+  it("notices sit on the SDK itself and answer in every mode with a backend", () => {
+    // typed the same in every mode: the subject spans both namespaces, and in
+    // `onchain` mode the call throws SourceUnavailableError rather than being
+    // absent — there is no third namespace to gate
+    expectTypeOf<GearboxSDK<"offchain">>().toHaveProperty("notices");
+    expectTypeOf<GearboxSDK<"both">>().toHaveProperty("notices");
+    expectTypeOf(({} as GearboxSDK<"both">).notices).returns.toEqualTypeOf<
+      Promise<DataResponse<Notice[]>>
+    >();
   });
 
   it("history exists only where a backend does", () => {

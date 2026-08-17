@@ -81,7 +81,9 @@ export type PoolPositionHistoryMetric =
   | "dieselRate"
   | "supplied"
   | "borrowed"
-  | "availableLiquidity";
+  | "availableLiquidity"
+  /** The position's own value over time, in underlying. */
+  | "balance";
 
 /**
  * Every {@link PoolPositionHistoryMetric}, for callers that enumerate them.
@@ -93,6 +95,7 @@ export const POOL_POSITION_HISTORY_METRICS = [
   "supplied",
   "borrowed",
   "availableLiquidity",
+  "balance",
 ] as const satisfies readonly PoolPositionHistoryMetric[];
 
 /**
@@ -107,7 +110,13 @@ export type StrategyPositionHistoryMetric =
   | "tvl"
   | "collateralPrice"
   | "collateralUsdPrice"
-  | "underlyingUsdPrice";
+  | "underlyingUsdPrice"
+  /** Value minus debt, in underlying. */
+  | "netValue"
+  /** Profit and loss since opening, in underlying. */
+  | "pnl"
+  /** The account's health factor, in basis points. */
+  | "healthFactor";
 
 /**
  * Every {@link StrategyPositionHistoryMetric}, for callers that enumerate them.
@@ -120,6 +129,9 @@ export const STRATEGY_POSITION_HISTORY_METRICS = [
   "collateralPrice",
   "collateralUsdPrice",
   "underlyingUsdPrice",
+  "netValue",
+  "pnl",
+  "healthFactor",
 ] as const satisfies readonly StrategyPositionHistoryMetric[];
 
 /**

@@ -7,6 +7,8 @@ import type {
   Position,
   PositionFilter,
   PositionKey,
+  PositionsTotals,
+  PositionTransaction,
   StrategyPositionHistoryMetric,
   StrategyPositionRef,
 } from "../../model/index.js";
@@ -80,6 +82,22 @@ export class PositionsNamespace
   /**
    * {@inheritDoc PositionsOffchainOnly.history}
    **/
+  /**
+   * {@inheritDoc PositionsOffchainOnly.totals}
+   **/
+  public async totals(wallet: Address): Promise<DataResponse<PositionsTotals>> {
+    return this.offchain.totals(wallet);
+  }
+
+  /**
+   * {@inheritDoc PositionsOffchainOnly.transactions}
+   **/
+  public async transactions(
+    key: PositionKey,
+  ): Promise<DataResponse<PositionTransaction[]>> {
+    return this.offchain.transactions(key);
+  }
+
   public history(
     key: PoolPositionRef,
   ): HistoryReader<PoolPositionHistoryMetric>;

@@ -1,5 +1,5 @@
-import type { ChainId } from "../model/index.js";
-import { GearboxAPI } from "../offchain/index.js";
+import type { ChainId, DataResponse, Notice } from "../model/index.js";
+import { GearboxAPI, type NoticeSubject } from "../offchain/index.js";
 import type {
   ILogger,
   MultichainAttachOptions,
@@ -7,7 +7,11 @@ import type {
   OnchainSDK,
 } from "../sdk/index.js";
 import { MultichainSDK, toChainIds } from "../sdk/index.js";
-import { assertSameChains, MissingSourceError } from "./errors/index.js";
+import {
+  assertSameChains,
+  MissingSourceError,
+  SourceUnavailableError,
+} from "./errors/index.js";
 import type { Opportunities } from "./opportunities/index.js";
 import { OpportunitiesNamespace } from "./opportunities/index.js";
 import type { Positions } from "./positions/index.js";
@@ -250,6 +254,21 @@ export class GearboxSDK<const M extends Mode = Mode> {
    **/
   public get attached(): boolean {
     return this.mode === "offchain" ? true : this.#attached;
+  }
+
+  /**
+   * The banners the backend attaches to a pool opportunity or a strategy
+   * position, see {@link Notice}. Top-level because the subject is either
+   * kind of entity, so neither namespace owns it. Backend-only: throws
+   * {@link SourceUnavailableError} in `onchain` mode.
+   **/
+  public async notices(
+    subject: NoticeSubject,
+  ): Promise<DataResponse<Notice[]>> {
+    if (!this.#offchain) {
+      throw new SourceUnavailableError("Notices", "offchain");
+    }
+    return this.#offchain.notices.list(subject);
   }
 
   /**

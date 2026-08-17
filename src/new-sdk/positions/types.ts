@@ -5,6 +5,9 @@ import type {
   PoolPositionRef,
   Position,
   PositionFilter,
+  PositionKey,
+  PositionsTotals,
+  PositionTransaction,
   StrategyPositionHistoryMetric,
   StrategyPositionRef,
 } from "../../model/index.js";
@@ -57,6 +60,17 @@ export interface PositionsBase {
  * Reads only a backend can answer.
  **/
 export interface PositionsOffchainOnly {
+  /**
+   * Aggregate over everything the wallet holds, see {@link PositionsTotals}.
+   * The backend sums it; a consumer never does. Backend-only: the chain has
+   * no yield or PnL to aggregate.
+   **/
+  totals(wallet: Address): Promise<DataResponse<PositionsTotals>>;
+  /**
+   * The transactions that made one position what it is, see
+   * {@link PositionTransaction}. Backend-only: it is indexer history.
+   **/
+  transactions(key: PositionKey): Promise<DataResponse<PositionTransaction[]>>;
   /**
    * Historical charts of one position, one metric and one range at a time:
    * `history(key).chart("netApy", "1m")`. The key's kind decides which metrics

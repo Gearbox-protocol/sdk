@@ -182,3 +182,80 @@ describe("decoding what the backend answered", () => {
     expect(response).toEqual({ data: [], meta: { chains: [] } });
   });
 });
+
+describe("totals and transactions decode the backend's answer", () => {
+  const underlying = {
+    chainId: MAINNET,
+    address: "0x6666666666666666666666666666666666666666",
+    symbol: "USDC",
+    name: "USD Coin",
+    decimals: 6,
+    assetType: "Stable",
+  };
+
+  it("totals: the wallet's aggregate, scoped to the covered chains", async () => {
+    respondWith({
+      data: {
+        currentYield: { organicApy: 420 },
+        pnl: {
+          organic: { value: "1500000", valueUsd: 1.5, token: underlying },
+          total: { value: "1500000", valueUsd: 1.5, token: underlying },
+          rewards: [],
+        },
+        netValueUsd: 1234.5,
+        claimableUsd: null,
+      },
+      meta: { chains: [] },
+    });
+
+    const { data } = await positions().totals(WALLET);
+
+    const url = requested();
+    expect(url.pathname).toBe(`/v2/positions/${WALLET}/totals`);
+    expect(url.searchParams.get("chainIds")).toBe(`${MAINNET},${PLASMA}`);
+    expect(data.currentYield).toEqual({ organicApy: 420 });
+    expect(data.pnl?.total.value).toBe(1_500_000n);
+    expect(data.netValueUsd).toBe(1234.5);
+    expect(data.claimableUsd).toBeNull();
+  });
+
+  it("transactions: the position's history, amounts as bigints", async () => {
+    respondWith({
+      data: [
+        {
+          txHash: `0x${"ab".repeat(32)}`,
+          timestamp: 1_735_000_000,
+          kind: "deposit",
+          assets: [{ value: "5000000", valueUsd: 5, token: underlying }],
+        },
+      ],
+      meta: { chains: [] },
+    });
+
+    const { data } = await positions().transactions({
+      kind: "strategy",
+      chainId: MAINNET,
+      creditAccount: CREDIT_ACCOUNT,
+    });
+
+    expect(requested().pathname).toBe(
+      `/v2/positions/strategy/${MAINNET}/${CREDIT_ACCOUNT}/transactions`,
+    );
+    expect(data).toHaveLength(1);
+    expect(data[0]?.kind).toBe("deposit");
+    expect(data[0]?.assets[0]?.value).toBe(5_000_000n);
+  });
+
+  it("transactions: a pool position is addressed by its pool and its holder", async () => {
+    await positions().transactions({
+      kind: "pool",
+      chainId: MAINNET,
+      pool: POOL,
+      wallet: WALLET,
+    });
+
+    expect(requested().pathname).toBe(
+      `/v2/positions/pool/${MAINNET}/${POOL}/${WALLET}/transactions`,
+    );
+  });
+});

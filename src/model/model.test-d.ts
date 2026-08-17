@@ -52,6 +52,8 @@ import type {
   liquidationPositionSchema,
   receivedAssetSchema,
 } from "./liquidations.schema.js";
+import type { Notice } from "./notices.js";
+import type { noticeSchema } from "./notices.schema.js";
 import type {
   ApyBreakdown,
   Opportunity,
@@ -112,6 +114,8 @@ import type {
   PositionFilter,
   PositionKey,
   PositionKind,
+  PositionsTotals,
+  PositionTransaction,
   RewardsPnL,
   StrategyPosition,
   StrategyPositionKey,
@@ -129,6 +133,8 @@ import type {
   positionKeySchema,
   positionKindSchema,
   positionSchema,
+  positionsTotalsSchema,
+  positionTransactionSchema,
   rewardsPnLSchema,
   strategyPositionKeySchema,
   strategyPositionSchema,
@@ -390,6 +396,16 @@ describe("model schemas match model types", () => {
     expectTypeOf<
       z.infer<typeof positionFilterQuerySchema>
     >().toEqualTypeOf<PositionFilter>();
+    expectTypeOf<
+      z.infer<typeof positionsTotalsSchema>
+    >().toEqualTypeOf<PositionsTotals>();
+    expectTypeOf<
+      z.infer<typeof positionTransactionSchema>
+    >().toEqualTypeOf<PositionTransaction>();
+  });
+
+  it("notices", () => {
+    expectTypeOf<z.infer<typeof noticeSchema>>().toEqualTypeOf<Notice>();
     expectTypeOf<
       z.infer<typeof poolPositionKeySchema>
     >().toEqualTypeOf<PoolPositionKey>();

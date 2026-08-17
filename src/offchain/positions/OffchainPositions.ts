@@ -1,13 +1,21 @@
+import type { Address } from "viem";
 import { z } from "zod/v4";
 import type {
   HistorySeries,
   PositionHistoryMetric,
   PositionHistoryQuery,
 } from "../../model/history.js";
-import type { Position } from "../../model/positions.js";
+import type {
+  Position,
+  PositionKey,
+  PositionsTotals,
+  PositionTransaction,
+} from "../../model/positions.js";
 import {
   positionFilterQuerySchema,
   positionSchema,
+  positionsTotalsSchema,
+  positionTransactionSchema,
 } from "../../model/positions.schema.js";
 import type { DataResponse } from "../../model/response.js";
 import type { ListPositionsPropsBase } from "../../sdk/positions/types.js";
@@ -41,6 +49,34 @@ export class OffchainPositions extends AbstractOffchainNamespace {
       }),
       schema: z.array(positionSchema),
     });
+  }
+
+  /**
+   * Aggregate over everything the wallet holds on the covered chains, see
+   * {@link PositionsTotals}. Served by the backend, never summed here.
+   **/
+  public async totals(wallet: Address): Promise<DataResponse<PositionsTotals>> {
+    return this.get({
+      path: `${this.#root}/${wallet}/totals`,
+      query: { chainIds: this.scopedChainIds().join(",") },
+      schema: positionsTotalsSchema,
+    });
+  }
+
+  /**
+   * The transactions that made one position what it is, newest first, from
+   * the backend's indexer.
+   **/
+  public async transactions(
+    key: PositionKey,
+  ): Promise<DataResponse<PositionTransaction[]>> {
+    // a pool position exists only relative to its holder; an account is its
+    // own identity
+    const path =
+      key.kind === "pool"
+        ? `${this.#root}/pool/${key.chainId}/${key.pool}/${key.wallet}/transactions`
+        : `${this.#root}/strategy/${key.chainId}/${key.creditAccount}/transactions`;
+    return this.get({ path, schema: z.array(positionTransactionSchema) });
   }
 
   /**

@@ -1,4 +1,4 @@
-import type { Address } from "viem";
+import type { Address, Hex } from "viem";
 import type { ChainScopedFilter, Filterable } from "./filters.js";
 import { isFilterSet } from "./filters.js";
 import type {
@@ -11,6 +11,7 @@ import type {
   Bps,
   ChainId,
   Leverage,
+  Timestamp,
   Token,
   TokenAmount,
 } from "./primitives.js";
@@ -444,3 +445,56 @@ export interface StrategyPositionRef extends StrategyPositionKey {
  * event rather than a series.
  **/
 export type PositionKey = PoolPositionRef | StrategyPositionRef;
+
+/**
+ * Aggregate over everything a wallet holds, served by the backend rather than
+ * summed by a consumer: the list screen's badges. `null` where the wallet
+ * holds nothing that contributes.
+ **/
+export interface PositionsTotals {
+  /**
+   * Blended rate the wallet's positions currently earn.
+   **/
+  currentYield: ApyBreakdown | null;
+  /**
+   * Profit and loss over every position, in USD terms of {@link PnlBreakdown}.
+   **/
+  pnl: PnlBreakdown | null;
+  /**
+   * Net value of every position in US dollars.
+   **/
+  netValueUsd: number | null;
+  /**
+   * What the wallet can claim right now (matured withdrawals, rewards) in US
+   * dollars.
+   **/
+  claimableUsd: number | null;
+}
+
+/**
+ * What a transaction did to a position.
+ **/
+export type PositionTransactionKind =
+  | "open"
+  | "deposit"
+  | "withdraw"
+  | "adjustLeverage"
+  | "addCollateral"
+  | "withdrawCollateral"
+  | "liquidation";
+
+/**
+ * One transaction in a position's history, from the backend's indexer.
+ **/
+export interface PositionTransaction {
+  txHash: Hex;
+  /**
+   * Unix seconds of the block the transaction was mined in.
+   **/
+  timestamp: Timestamp;
+  kind: PositionTransactionKind;
+  /**
+   * Assets the transaction moved, in the direction the kind implies.
+   **/
+  assets: TokenAmount[];
+}

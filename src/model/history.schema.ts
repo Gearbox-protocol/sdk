@@ -55,6 +55,7 @@ export const poolPositionHistoryMetricSchema = z.union([
   z.literal("supplied"),
   z.literal("borrowed"),
   z.literal("availableLiquidity"),
+  z.literal("balance"),
 ]);
 
 /**
@@ -68,6 +69,9 @@ export const strategyPositionHistoryMetricSchema = z.union([
   z.literal("collateralPrice"),
   z.literal("collateralUsdPrice"),
   z.literal("underlyingUsdPrice"),
+  z.literal("netValue"),
+  z.literal("pnl"),
+  z.literal("healthFactor"),
 ]);
 
 /**
