@@ -165,10 +165,10 @@ export abstract class AbstractNamespace<Onchain, Offchain> {
 }
 
 /**
- * The source's every method, awaiting the loading policy first. Its methods
- * are all async reads that fan out to every chain, so the policy is asked for
- * all of them; the object identity differs from the source's, its type does
- * not.
+ * The source's every method, awaiting the loading policy first. The policy is
+ * asked for every chain — an escape hatch does not tell which chains a call
+ * touches (the merged reads do, and scope it); the object identity differs
+ * from the source's, its type does not.
  **/
 function behindLoadingPolicy<S extends object>(
   source: S,

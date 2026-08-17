@@ -68,9 +68,9 @@ describe("mode gates method existence", () => {
 });
 
 describe("the source branches are not gated by mode", () => {
-  // they are aliases of `sdk.onchain.positions` and `sdk.offchain.positions`,
-  // which the mode already gates; the branch of a source the mode does not read
-  // throws on access instead
+  // they forward to `sdk.onchain.positions` (behind the loading policy) and
+  // `sdk.offchain.positions`, which the mode already gates; the branch of a
+  // source the mode does not read throws on access instead
   it("names both sources at their concrete types in every mode", () => {
     expectTypeOf<
       Positions<"onchain">["onchain"]
@@ -147,5 +147,36 @@ describe("the position kind gates which charts it has", () => {
     ).returns.resolves.toEqualTypeOf<
       DataResponse<HistorySeries<StrategyPositionHistoryMetric>>
     >();
+  });
+
+  it("a strategy position charts netValue, pnl and healthFactor", () => {
+    expectTypeOf(positions.history(strategy).chart).toBeCallableWith(
+      "netValue",
+      "1m",
+    );
+    expectTypeOf(positions.history(strategy).chart).toBeCallableWith(
+      "pnl",
+      "1y",
+    );
+    expectTypeOf(positions.history(strategy).chart).toBeCallableWith(
+      "healthFactor",
+      "1w",
+    );
+  });
+
+  it("a pool position charts its balance", () => {
+    expectTypeOf(positions.history(pool).chart).toBeCallableWith(
+      "balance",
+      "1m",
+    );
+  });
+
+  it("neither kind accepts the other's series", () => {
+    // @ts-expect-error `balance` is a pool-position metric
+    positions.history(strategy).chart("balance", "1m");
+    // @ts-expect-error `healthFactor` is a strategy-position metric
+    positions.history(pool).chart("healthFactor", "1m");
+    // @ts-expect-error `pnl` is a strategy-position metric
+    positions.history(pool).chart("pnl", "1m");
   });
 });

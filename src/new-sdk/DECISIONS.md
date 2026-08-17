@@ -311,8 +311,9 @@ type ChainMetadata =
   `execute/` — glue from the read-model-shaped request to `src/sdk`'s
   `CreditAccountOperationsService` / `PoolService` / `openCA` / `executeCaUpdate`; they
   map and wrap, the protocol knowledge stays below.
-- **Amended (sdk-first): loading is automatic.** Every async on-chain leg awaits the
-  facade's `#ensureFresh`: the first read attaches (later reads join the one promise; a
+- **Amended (sdk-first): loading is automatic.** Every async on-chain *read* awaits the
+  facade's `#ensureFresh` (`execute.buildTx` does not: it encodes what the simulate that
+  preceded it priced, and reads only what the encoders need): the first read attaches (later reads join the one promise; a
   rejected attach is not cached), and a read whose touched chains' loaded state is older
   than `maxStateAgeSeconds` (default 30) syncs those chains — one in-flight `syncState`
   per chain, shared by concurrent stale reads — before running. A failed sync serves the

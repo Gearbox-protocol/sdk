@@ -213,7 +213,7 @@ describe("GearboxSDK loading", () => {
     });
   });
 
-  it("a sync that finds no newer block (`false`) is not an error and is not repeated within the age", async () => {
+  it("a sync that finds no newer block (`false`) is not an error; a fresh state is not synced again", async () => {
     const { sdk, chains } = build();
     const chain = chains.get("Mainnet");
     if (!chain) throw new Error("unreachable");
@@ -221,6 +221,11 @@ describe("GearboxSDK loading", () => {
     chain.syncState.mockResolvedValue(false);
 
     await expect(sdk.opportunities.list()).resolves.toBeDefined();
+    expect(chain.syncState).toHaveBeenCalledTimes(1);
+
+    // once the state is inside the window again, no read syncs
+    chain.age(0);
+    await sdk.opportunities.list();
     expect(chain.syncState).toHaveBeenCalledTimes(1);
   });
 

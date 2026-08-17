@@ -61,9 +61,9 @@ describe("mode gates method existence", () => {
 });
 
 describe("the source branches are not gated by mode", () => {
-  // they are aliases of `sdk.onchain.opportunities` and
-  // `sdk.offchain.opportunities`, which the mode already gates; the branch of a
-  // source the mode does not read throws on access instead
+  // they forward to `sdk.onchain.opportunities` (behind the loading policy)
+  // and `sdk.offchain.opportunities`, which the mode already gates; the branch
+  // of a source the mode does not read throws on access instead
   it("names both sources at their concrete types in every mode", () => {
     expectTypeOf<
       Opportunities<"onchain">["onchain"]
