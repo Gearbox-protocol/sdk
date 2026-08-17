@@ -3,8 +3,6 @@ import type { MultiCall, OnchainSDK } from "../../index.js";
 import {
   type AccountCalculatorOperation,
   buildAddCollateralOperation,
-  buildClaimDelayedWithdrawalOperation,
-  buildCloseCreditAccountOperation,
   buildDecreaseDebtOperation,
   buildIncreaseDebtOperation,
   buildQuotaUpdateOperation,
@@ -12,12 +10,11 @@ import {
   buildUnwrapRwaCollateralOperation,
   buildWithdrawCollateralOperation,
   buildWrapRwaCollateralOperation,
-  primaryInstantOutput,
 } from "./operations.js";
 import type { Amount, Step } from "./plan.js";
 import type { CreditAccountSlice, OperationState } from "./types.js";
 import { IntentPreviewError } from "./types.js";
-import { eq, toRouterCaSlice, toTargetDecimals } from "./utils/common.js";
+import { eq, toTargetDecimals } from "./utils/common.js";
 import { convertAmount } from "./utils/convert-amount.js";
 import { OperationLedger } from "./utils/ledger.js";
 import { getQuotasForUpdate } from "./utils/quotas-for-update.js";
@@ -70,7 +67,7 @@ export async function realize(
     ledger.apply(op);
   };
 
-  /** Output of the last convert / claim, for `RAISED` amounts. */
+  /** Output of the last convert, for `RAISED` amounts. */
   let raised = 0n;
   const amountOf = (a: Amount): bigint =>
     typeof a === "bigint" ? a : min(raised, a.max ?? raised);
@@ -83,8 +80,6 @@ export async function realize(
       );
     }
   };
-
-  let close: OperationState | undefined;
 
   for (const step of steps) {
     switch (step.kind) {
@@ -188,47 +183,11 @@ export async function realize(
         break;
       }
 
-      case "claim":
-        push(
-          buildClaimDelayedWithdrawalOperation({
-            claimable: step.claimable,
-            creditAccount,
-            sdk,
-          }),
-        );
-        raised = primaryInstantOutput(step.claimable.outputs)?.amount ?? 0n;
-        break;
-
-      case "close": {
-        const { assets } = ledger.snapshot();
-        const leg = await paths.close({ assets });
-        const op = await buildCloseCreditAccountOperation({
-          leg,
-          underlyingBalance: leg.underlyingBalance,
-          to: step.to,
-          creditAccount: toRouterCaSlice(creditAccount, assets),
-          sdk,
-        });
-        push(op);
-        close = {
-          kind: "close",
-          amount: op.amount,
-          minAmount: op.minAmount,
-          underlyingBalance: op.underlyingBalance,
-        };
-        break;
-      }
-
       default: {
         const _exhaustive: never = step;
         void _exhaustive;
       }
     }
-  }
-
-  // Closing settles debt and quotas inside its own assembler: nothing to append.
-  if (close) {
-    return { operations, state: close, calls: callsOf(operations) };
   }
 
   const { assets, totalValue, debt } = ledger.snapshot();
@@ -256,7 +215,6 @@ export async function realize(
   return {
     operations,
     state: {
-      kind: "adjust",
       totalValue,
       accountDebt: debt,
       assets,

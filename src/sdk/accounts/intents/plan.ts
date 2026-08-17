@@ -1,5 +1,4 @@
 import type { Address } from "viem";
-import type { ClaimableWithdrawal } from "../withdrawal-compressor/types.js";
 import {
   assertDebtInBand,
   assertLeverageAtLeastOne,
@@ -36,7 +35,7 @@ import { eq } from "./utils/common.js";
 /** Amount of a step: fixed, or whatever the previous step produced. */
 export type Amount = bigint | { raised: true; max?: bigint };
 
-/** Whatever the previous convert / claim produced. */
+/** Whatever the previous convert produced. */
 export const RAISED: Amount = { raised: true };
 
 export type Step =
@@ -48,9 +47,7 @@ export type Step =
    */
   | { kind: "repay"; amount: Amount; keep?: bigint }
   | { kind: "convert"; from: Address; to: Address; amount: Amount }
-  | { kind: "withdraw"; token: Address; amount: Amount; to: Address }
-  | { kind: "claim"; claimable: ClaimableWithdrawal }
-  | { kind: "close"; to: Address };
+  | { kind: "withdraw"; token: Address; amount: Amount; to: Address };
 
 /** What a planner is allowed to know about the account. */
 export interface AccountView {
@@ -224,100 +221,6 @@ export function planWithdraw(
 }
 
 // ---------------------------------------------------------------------------
-// Resume tails — the claim first, then what the intent still owes
-// ---------------------------------------------------------------------------
-
-/** Everything claimed goes into the debt. */
-export function planResumeDecreaseLeverage(
-  claimable: ClaimableWithdrawal,
-  claimed: { token: Address; amount: bigint },
-  view: AccountView,
-): Step[] {
-  return [
-    claim(claimable),
-    convert(claimed.token, view.underlying, claimed.amount),
-    repay(RAISED),
-  ];
-}
-
-/**
- * The claim is split between the promised payout `W` and the debt the start
- * leg deferred: the payout is served first, the debt gets what is left, so a
- * routing shortfall shows as leverage a touch above target rather than as a
- * payout the wallet was promised and did not get.
- */
-export function planResumeWithdraw(
-  intent: {
-    withdrawToken: Address;
-    withdrawAmount: bigint;
-    debtRepaid: bigint;
-    sourceToken: Address;
-    to: Address;
-  },
-  claimable: ClaimableWithdrawal,
-  claimed: { token: Address; amount: bigint },
-  view: AccountView,
-): Step[] {
-  const U = view.underlying;
-  const T = intent.withdrawToken;
-  const W = intent.withdrawAmount;
-
-  if (!eq(T, U) && !(view.rwaAsset && eq(T, view.rwaAsset))) {
-    throw new Error("Withdraw intent should withdraw underlying token only");
-  }
-
-  // Nothing owed to the debt: the whole claim is payout.
-  if (intent.debtRepaid === 0n) {
-    return [
-      claim(claimable),
-      convert(claimed.token, T, claimed.amount),
-      ...payout(view, T, { raised: true, max: W }, intent.to),
-    ];
-  }
-
-  // The source itself was the delayed asset: the payout is already on the
-  // account, the claim exists purely to repay.
-  if (eq(intent.sourceToken, T)) {
-    return [
-      claim(claimable),
-      convert(claimed.token, U, claimed.amount),
-      repay({ raised: true, max: intent.debtRepaid }),
-      ...payout(view, T, W, intent.to),
-    ];
-  }
-
-  // Payout token and debt both want the underlying: convert everything, hold W
-  // back, repay from the remainder.
-  if (eq(T, U)) {
-    return [
-      claim(claimable),
-      convert(claimed.token, U, claimed.amount),
-      repay(intent.debtRepaid, W),
-      ...payout(view, U, { raised: true, max: W }, intent.to),
-    ];
-  }
-
-  // Payout is the RWA asset while the debt wants the underlying: reserve the
-  // payout's worth of the claim, repay from the rest, then convert the reserve.
-  const reserved = min(view.price(T, claimed.token, W), claimed.amount);
-  return [
-    claim(claimable),
-    convert(claimed.token, U, claimed.amount - reserved),
-    repay({ raised: true, max: intent.debtRepaid }),
-    convert(claimed.token, T, reserved),
-    ...payout(view, T, { raised: true, max: W }, intent.to),
-  ];
-}
-
-/** Everything left after the claim is swept into the underlying and closed. */
-export function planResumeClose(
-  claimable: ClaimableWithdrawal,
-  to: Address,
-): Step[] {
-  return [claim(claimable), { kind: "close", to }];
-}
-
-// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
@@ -341,10 +244,6 @@ const convert = (from: Address, to: Address, amount: Amount): Step => ({
   from,
   to,
   amount,
-});
-const claim = (claimable: ClaimableWithdrawal): Step => ({
-  kind: "claim",
-  claimable,
 });
 
 /**
@@ -396,5 +295,3 @@ function assertPositive(amount: bigint, flow: string): void {
     );
   }
 }
-
-const min = (a: bigint, b: bigint): bigint => (a < b ? a : b);

@@ -2,7 +2,6 @@ import type { Address } from "viem";
 import type { ChainId } from "../../model/index.js";
 import type {
   CreditAccountSlice,
-  IntentPreviewResult,
   MultichainSDK,
   OnchainSDK,
   StartIntent,
@@ -68,27 +67,63 @@ export class SimulateApi implements OpportunitiesSimulate {
   /**
    * {@inheritDoc OpportunitiesSimulate.deposit}
    **/
-  public deposit(pool: PoolInput, params: LpParams | bigint): LpSimulate {
-    const { amount, tokenIn, tokenOut } = lpParams(params);
-    return this.#chainOf(pool.chainId).pools.simulateDeposit({
+  public deposit(pool: PoolInput, params: LpParams): LpSimulate {
+    const sdk = this.#chainOf(pool.chainId);
+    const { pools } = sdk;
+    const tokenIn = params.tokenIn ?? pools.getDepositTokensIn(pool.pool)[0];
+    const tokenOut = resolveTokenOut(params.tokenOut, () =>
+      pools.getDepositTokensOut(pool.pool, tokenIn),
+    );
+    if (!tokenOut) {
+      return { ok: false, reason: "unsupportedTokenPair" };
+    }
+
+    const preview = pools.simulateDeposit({
       pool: pool.pool,
-      amount,
+      amount: params.amount,
       tokenIn,
       tokenOut,
     });
+    const call = pools.addLiquidity({
+      collateral: preview.tokenIn,
+      pool: pool.pool,
+      wallet: params.wallet,
+      meta: pools.getDepositMetadata(pool.pool, tokenIn, tokenOut),
+    });
+
+    return { ok: true, operations: [], preview, calls: call?.calls ?? [] };
   }
 
   /**
    * {@inheritDoc OpportunitiesSimulate.withdraw}
    **/
-  public withdraw(pool: PoolInput, params: LpParams | bigint): LpSimulate {
-    const { amount, tokenIn, tokenOut } = lpParams(params);
-    return this.#chainOf(pool.chainId).pools.simulateWithdraw({
+  public withdraw(pool: PoolInput, params: LpParams): LpSimulate {
+    const sdk = this.#chainOf(pool.chainId);
+    const { pools } = sdk;
+    // Withdrawals are paid in shares, and the share token *is* the pool.
+    const tokenIn = params.tokenIn ?? pool.pool;
+    const tokenOut = resolveTokenOut(params.tokenOut, () =>
+      pools.getWithdrawalTokensOut(pool.pool, tokenIn),
+    );
+    if (!tokenOut) {
+      return { ok: false, reason: "unsupportedTokenPair" };
+    }
+
+    const preview = pools.simulateWithdraw({
       pool: pool.pool,
-      amount,
+      amount: params.amount,
       tokenIn,
       tokenOut,
     });
+    const { calls } = pools.removeLiquidity({
+      pool: pool.pool,
+      amount: params.amount,
+      wallet: params.wallet,
+      permit: undefined,
+      meta: pools.getWithdrawalMetadata(pool.pool, tokenIn, tokenOut),
+    });
+
+    return { ok: true, operations: [], preview, calls };
   }
 
   /**
@@ -201,7 +236,7 @@ export class SimulateApi implements OpportunitiesSimulate {
 
   /**
    * Shared path of the five flows that act on an existing account: read the
-   * account, run the intent, flatten the engine's branch envelope.
+   * account, then run the intent through the engine.
    **/
   async #startIntent(
     action: string,
@@ -213,15 +248,13 @@ export class SimulateApi implements OpportunitiesSimulate {
       const sdk = multichain.chain(position.chainId);
       const creditAccount = await slice(sdk, position.creditAccount);
 
-      return toStrategySimulate(
-        await service(sdk).startIntent({
-          intent,
-          creditAccount,
-          sdk,
-          slippage: options.slippage,
-          quotaReserve: options.quotaReserve,
-        }),
-      );
+      return service(sdk).startIntent({
+        intent,
+        creditAccount,
+        sdk,
+        slippage: options.slippage,
+        quotaReserve: options.quotaReserve,
+      });
     });
   }
 }
@@ -237,32 +270,19 @@ function slice(
   return fetchCreditAccountSlice(sdk, creditAccount);
 }
 
-/** The requested amount, whether it came bare or in an options object. */
-function lpParams(params: LpParams | bigint): LpParams {
-  return typeof params === "bigint" ? { amount: params } : params;
-}
-
 /**
- * Flattens the engine's result to the public shape.
- *
- * Start intents never produce a delayed branch — no asset the SDK can start a
- * delayed withdrawal on is reachable from them — so the `instant` branch is the
- * whole answer, and a preview that succeeded without one is a bug rather than a
- * state a caller should have to handle.
+ * Resolves `tokenOut` the way the pool service would, but as a value rather
+ * than an exception: an unroutable or ambiguous pair is a request the caller
+ * can fix, so it belongs in the `ok: false` half alongside the strategy
+ * refusals.
  **/
-function toStrategySimulate(result: IntentPreviewResult): StrategySimulate {
-  if (!result.ok) {
-    return { ok: false, reason: result.reason };
+function resolveTokenOut(
+  requested: Address | undefined,
+  routes: () => Address[],
+): Address | undefined {
+  if (requested) {
+    return requested;
   }
-  if (!result.instant) {
-    throw new Error(
-      `intent preview produced no instant branch: ${result.instantError ?? "unknown"}`,
-    );
-  }
-  return {
-    ok: true,
-    operations: result.instant.operations,
-    preview: result.instant.preview.min,
-    calls: result.instant.calls,
-  };
+  const options = routes();
+  return options.length === 1 ? options[0] : undefined;
 }

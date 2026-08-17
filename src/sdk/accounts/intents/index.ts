@@ -1,23 +1,15 @@
 import { SDKConstruct } from "../../base/SDKConstruct.js";
-import type { ClaimableWithdrawal } from "../../index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
-import type { DelayedIntent } from "../withdrawal-compressor/types.js";
 import {
   type OpenStrategyPreview,
   type OpenStrategyProps,
   previewOpenStrategy,
 } from "./open-strategy.js";
-import {
-  type AccountCalculatorOperation,
-  primaryInstantOutput,
-} from "./operations.js";
+import type { AccountCalculatorOperation } from "./operations.js";
 import {
   planAddCollateral,
   planAdjustLeverage,
   planDeposit,
-  planResumeClose,
-  planResumeDecreaseLeverage,
-  planResumeWithdraw,
   planWithdraw,
   planWithdrawAsset,
   type Step,
@@ -37,12 +29,9 @@ export type {
   OpenStrategyPreview,
   OpenStrategyProps,
 } from "./open-strategy.js";
-export { primaryInstantOutput } from "./operations.js";
 export {
   type AddCollateralIntent,
   type AdjustLeverageIntent,
-  type AdjustState,
-  type CloseState,
   type DepositStrategyIntent,
   IntentPreviewError,
   type OperationState,
@@ -66,7 +55,7 @@ export type {
  *
  * Shaped like {@link IntentPreviewResult} in its error half so all previews fail
  * the same way, but the payload is its own: opening has no existing account, so
- * there is no operation chain and no delayed branch to report.
+ * there is no operation chain to report.
  */
 export type OpenStrategyPreviewResult =
   | { ok: true; preview: OpenStrategyPreview }
@@ -84,13 +73,6 @@ type StartProps<T extends StartIntent = StartIntent> = StartIntentProps & {
   intent: T;
 };
 
-/** Second half of a delayed intent: the matured withdrawal plus its tail. */
-export type ResumeProps<T extends DelayedIntent = DelayedIntent> =
-  PreviewProps & {
-    intent: T;
-    claimable: ClaimableWithdrawal;
-  };
-
 /**
  * Previews of everything a wallet can do to an existing credit account.
  *
@@ -100,12 +82,12 @@ export type ResumeProps<T extends DelayedIntent = DelayedIntent> =
  */
 export class CreditAccountOperationsService extends SDKConstruct {
   /**
-   * Previews an operation, or its leading half when the assets involved settle
-   * with a delay.
+   * Previews an operation on an existing account.
    *
    * @param props - Intent plus account slice, quota reserve and slippage
-   * @returns Preview with `instant` populated, or `{ ok: false, reason }` when
-   * the intent cannot be satisfied (e.g. the account lacks the source balance)
+   * @returns Operations, projected state and calldata, or `{ ok: false, reason }`
+   * when the intent cannot be satisfied (e.g. the account lacks the source
+   * balance)
    */
   async startIntent(props: StartProps): Promise<IntentPreviewResult> {
     return this.#preview(props, () => {
@@ -126,53 +108,6 @@ export class CreditAccountOperationsService extends SDKConstruct {
           const _exhaustive: never = intent;
           void _exhaustive;
           throw new Error(`${(intent as StartIntent).type} - not implemented`);
-        }
-      }
-    });
-  }
-
-  /**
-   * Previews the tail of a delayed intent, run once the withdrawal it started
-   * has matured: the claim, then whatever the original intent still owes.
-   *
-   * @param props - Delayed intent, account slice as it stands now, and the
-   * matured claimable
-   * @returns Preview shaped exactly like {@link startIntent}'s, so both halves
-   * of an operation are consumed the same way
-   */
-  async finishIntent(props: ResumeProps): Promise<IntentPreviewResult> {
-    return this.#preview(props, () => {
-      const { intent, claimable } = props;
-      const view = accountView(props.creditAccount, props.sdk);
-      switch (intent.type) {
-        // Nothing is owed beyond the claim itself: the tokens land on the
-        // account and only their quota has to catch up.
-        case "ADD_COLLATERAL":
-        case "INCREASE_LEVERAGE":
-        case "DEPOSIT":
-        case "DEPOSIT_AND_INCREASE_LEVERAGE":
-          return [{ kind: "claim", claimable }];
-        case "WITHDRAW_COLLATERAL":
-          return planResumeWithdraw(
-            intent,
-            claimable,
-            claimed(claimable),
-            view,
-          );
-        case "DECREASE_LEVERAGE":
-          return planResumeDecreaseLeverage(
-            claimable,
-            claimed(claimable),
-            view,
-          );
-        case "CLOSE_ACCOUNT":
-          return planResumeClose(claimable, intent.to);
-        default: {
-          const _exhaustive: never = intent;
-          void _exhaustive;
-          throw new Error(
-            `${(intent as DelayedIntent).type} - not implemented`,
-          );
         }
       }
     });
@@ -212,31 +147,11 @@ export class CreditAccountOperationsService extends SDKConstruct {
         slippage: props.slippage ?? 0,
         quotaReserve: props.quotaReserve,
       });
-      return {
-        ok: true,
-        // The SDK produces no delayed branch: the delayed half is started by
-        // the caller from the compressor's own preview.
-        instant: { operations, preview: { min: state }, calls },
-        instantError: undefined,
-        delayedBranch: undefined,
-        delayedError: undefined,
-      };
+      return { ok: true, operations, preview: state, calls };
     } catch (e) {
       return asFailure(e);
     }
   }
-}
-
-/** The claim payout a tail has to work with. */
-function claimed(claimable: ClaimableWithdrawal): {
-  token: `0x${string}`;
-  amount: bigint;
-} {
-  const out = primaryInstantOutput(claimable.outputs);
-  if (!out || out.amount <= 0n) {
-    throw new Error("No claimable assets");
-  }
-  return out;
 }
 
 /** Unviable requests are values; anything else is a genuine failure. */

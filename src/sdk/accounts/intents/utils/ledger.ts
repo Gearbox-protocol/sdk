@@ -79,18 +79,10 @@ export class OperationLedger {
     };
   }
 
-  /**
-   * Advances the state by one operation.
-   *
-   * Close and repay are terminal composites that settle debt and sweep the
-   * account inside their own assemblers, so there is no partial state worth
-   * projecting for them; quota changes move no balance at all.
-   */
+  /** Advances the state by one operation; quota changes move no balance. */
   public apply(op: AccountCalculatorOperation): this {
     switch (op.type) {
       case "changeQuota":
-      case "closeCreditAccount":
-      case "repayCreditAccount":
         break;
       case "increaseDebt":
         this.#debt += op.amount;
@@ -116,18 +108,6 @@ export class OperationLedger {
       case "unwrapRwaCollateral":
         this.#add(op.tokenIn, -op.amount);
         this.#add(op.tokenOut, op.amountOut);
-        break;
-      case "startDelayedWithdrawal":
-        this.#add(op.token, -op.amountIn);
-        for (const out of op.outputs) {
-          this.#add(out.token, out.amount);
-        }
-        break;
-      case "claimDelayedWithdrawal":
-        this.#add(op.withdrawalPhantomToken, -op.withdrawalTokenSpent);
-        for (const out of op.outputs) {
-          this.#add(out.token, out.amount);
-        }
         break;
       default: {
         const _exhaustive: never = op;

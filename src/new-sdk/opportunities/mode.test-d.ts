@@ -1,3 +1,4 @@
+import type { Address } from "viem";
 import { describe, expectTypeOf, it } from "vitest";
 import type {
   PoolHistoryMetric,
@@ -19,6 +20,8 @@ import type { Opportunities } from "./types.js";
  * that proves it: nothing at runtime distinguishes the three shapes, because
  * one class implements all of them.
  **/
+
+const WALLET = "0xf0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0" as Address;
 
 describe("mode gates method existence", () => {
   it("every mode reads what both sources can produce", () => {
@@ -64,16 +67,18 @@ describe("simulate covers the eight flows", () => {
     expectTypeOf(simulate).toHaveProperty("withdrawCollateral");
   });
 
-  it("takes a pool opportunity and a bare amount for the LP flows", () => {
+  it("takes a pool opportunity, an amount and the wallet for the LP flows", () => {
     const pool = {} as PoolOpportunity;
-    expectTypeOf(simulate.deposit).toBeCallableWith(pool, 1_000n);
-    expectTypeOf(simulate.withdraw).toBeCallableWith(pool, 1_000n);
+    const params = { amount: 1_000n, wallet: WALLET };
+    expectTypeOf(simulate.deposit).toBeCallableWith(pool, params);
+    expectTypeOf(simulate.withdraw).toBeCallableWith(pool, params);
   });
 
   it("answers the LP flows outright, with no promise to await", () => {
     const pool = {} as PoolOpportunity;
-    expectTypeOf(simulate.deposit(pool, 1_000n)).toEqualTypeOf<LpSimulate>();
-    expectTypeOf(simulate.withdraw(pool, 1_000n)).toEqualTypeOf<LpSimulate>();
+    const params = { amount: 1_000n, wallet: WALLET };
+    expectTypeOf(simulate.deposit(pool, params)).toEqualTypeOf<LpSimulate>();
+    expectTypeOf(simulate.withdraw(pool, params)).toEqualTypeOf<LpSimulate>();
   });
 
   it("takes a position from positions.list() for the account flows", () => {

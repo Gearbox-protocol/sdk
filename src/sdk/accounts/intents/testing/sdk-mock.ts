@@ -12,17 +12,11 @@ import type {
  * The service resolves all market data through `OnchainSDK`
  * (`marketRegister`, `tokensMeta`, `accounts`). `buildMockSdk` builds a mock
  * from plain records; assemble mocks ECHO recognizable sentinel calls derived
- * from their inputs, so `result.instant.calls` pins down which ops reached the
+ * from their inputs, so `result.calls` pins down which ops reached the
  * assembler and in which order.
  */
 
-/** Fixture `claimableWithdrawal.claimCalls` content; echoes through claim ops. */
-export const MOCK_CLAIM_CALL: MultiCall = {
-  target: "0x1111111111111111111111111111111111111111" as Address,
-  callData: "0x",
-};
-
-/** Recognizable router call embedded in close path results. */
+/** Recognizable router call embedded in routed leg results. */
 export const MOCK_ROUTER_CALL: MultiCall = {
   target: "0x9999999999999999999999999999999999999999" as Address,
   callData: "0x",
@@ -37,12 +31,6 @@ export const MOCK_RWA_WRAP_CALL: MultiCall = {
 /** Router-produced call for an RWA underlying → asset unwrap leg. */
 export const MOCK_RWA_UNWRAP_CALL: MultiCall = {
   target: "0x7777777777777777777777777777777777777777" as Address,
-  callData: "0x",
-};
-
-/** Returned by the `assembleCloseCreditAccountCalls` mock. */
-export const MOCK_CLOSE_CALL: MultiCall = {
-  target: "0x5555555555555555555555555555555555555555" as Address,
   callData: "0x",
 };
 
@@ -103,16 +91,6 @@ interface BuildMockSdkArgs {
   creditFacade: Address;
   /** Market underlying token (`market.pool.underlying`). */
   underlying: Address;
-  /**
-   * Close resume: router `findBestClosePath` result. When set, the mock
-   * provides `routerFor` and `assembleCloseCreditAccountCalls`.
-   */
-  closePath?: {
-    amount: bigint;
-    minAmount: bigint;
-    underlyingBalance: bigint;
-    calls: MultiCall[];
-  };
   /** RWA markets: underlying → rwa.asset (`tokensMeta.rwaUnderlyings`). */
   rwaAssets?: Record<Address, Address>;
   /** Tokens reported as phantoms by `tokensMeta.get(...).contractType`. */
@@ -193,12 +171,6 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
   };
 
   const router = {
-    findBestClosePath: vi.fn(async () => {
-      if (!args.closePath) {
-        throw new Error("mock router: closePath not configured");
-      }
-      return args.closePath;
-    }),
     findOneTokenPath: vi.fn(
       async ({
         amount,
@@ -316,12 +288,6 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
       prepareAddCollateral: vi.fn(() => [CA_OP_CALLS.addCollateral]),
       prepareWithdrawToken: vi.fn(() => CA_OP_CALLS.withdrawCollateral),
       prepareUpdateQuotas: vi.fn(() => [CA_OP_CALLS.changeQuota]),
-      assembleClaimDelayedCalls: vi.fn(
-        ({ claimableNow }: { claimableNow: { claimCalls: MultiCall[] } }) => [
-          ...claimableNow.claimCalls,
-        ],
-      ),
-      assembleCloseCreditAccountCalls: vi.fn(async () => [MOCK_CLOSE_CALL]),
       assembleRWAWrapCalls: vi.fn(async () => [MOCK_RWA_WRAP_CALL]),
       assembleRWAUnwrapCalls: vi.fn(async () => [MOCK_RWA_UNWRAP_CALL]),
     },

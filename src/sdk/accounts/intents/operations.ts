@@ -1,26 +1,16 @@
 import type { Address } from "viem";
 import type { calcQuotaUpdate } from "../../../common-utils/utils/creditAccount/quota-utils.js";
-import type {
-  Asset,
-  ClaimableWithdrawal,
-  MultiCall,
-  OnchainSDK,
-  RequestableWithdrawal,
-  RouterCASlice,
-  WithdrawalOutput,
-} from "../../index.js";
+import type { Asset, MultiCall, OnchainSDK } from "../../index.js";
 import type { EncodableCreditAccountOperation } from "../types.js";
 import type { CreditAccountSlice } from "./types.js";
-import { eq } from "./utils/common.js";
 
 /**
  * The operation vocabulary: one logical step of an intent, carrying both the
  * calldata that realises it and the amounts it was computed from.
  *
  * A superset of {@link EncodableCreditAccountOperation}: same discriminants,
- * plus the quoted amounts the preview and the tests read, plus the composite
- * steps (close, repay, start / claim delayed withdrawal) that come from their
- * own assemblers rather than from `assembleCaOperations`.
+ * plus the quoted amounts the preview and the tests read, plus the RWA legs
+ * that come from their own assemblers rather than from `assembleCaOperations`.
  */
 export type AccountCalculatorOperation =
   | AddCollateralOperation
@@ -29,12 +19,8 @@ export type AccountCalculatorOperation =
   | SwapOperation
   | WithdrawCollateralOperation
   | QuotaUpdateOperation
-  | CloseCreditAccountOperation
-  | RepayCreditAccountOperation
   | WrapRwaCollateralOperation
-  | UnwrapRwaCollateralOperation
-  | StartDelayedWithdrawalOperation
-  | ClaimDelayedWithdrawalOperation;
+  | UnwrapRwaCollateralOperation;
 
 /**
  * Compile-time proof that the engine's operations really are the SDK's own
@@ -224,7 +210,7 @@ export function buildQuotaUpdateOperation(input: {
 }
 
 // ---------------------------------------------------------------------------
-// RWA wrap / unwrap — 1:1, decimals rescale only
+// RWA wrap / unwrap — 1:1, decimals rescale only, own assemblers
 // ---------------------------------------------------------------------------
 
 export interface WrapRwaCollateralOperation {
@@ -300,118 +286,4 @@ export async function buildUnwrapRwaCollateralOperation(
     amountOut: input.amountOut,
     calls,
   };
-}
-
-// ---------------------------------------------------------------------------
-// Composites with their own assemblers
-// ---------------------------------------------------------------------------
-
-export interface CloseCreditAccountOperation {
-  type: "closeCreditAccount";
-  /** Underlying the account holds once every balance is converted. */
-  underlyingBalance: bigint;
-  /** Expected proceeds of the conversion. */
-  amount: bigint;
-  /** Floor proceeds after slippage. */
-  minAmount: bigint;
-  calls: MultiCall[];
-}
-
-export async function buildCloseCreditAccountOperation(input: {
-  leg: { amount: bigint; minAmount: bigint; calls: MultiCall[] };
-  underlyingBalance: bigint;
-  to: Address;
-  creditAccount: RouterCASlice;
-  sdk: OnchainSDK;
-}): Promise<CloseCreditAccountOperation> {
-  const { leg, creditAccount, sdk } = input;
-  const rwaConfig = sdk.tokensMeta.rwaUnderlyings.get(creditAccount.underlying);
-  return {
-    type: "closeCreditAccount",
-    underlyingBalance: input.underlyingBalance,
-    amount: leg.amount,
-    minAmount: leg.minAmount,
-    calls: await sdk.accounts.assembleCloseCreditAccountCalls({
-      creditAccount,
-      routerCalls: leg.calls,
-      assetsToWithdraw: [
-        (rwaConfig?.asset ?? creditAccount.underlying).toLowerCase() as Address,
-      ],
-      to: input.to,
-    }),
-  };
-}
-
-/** Full repay; kept in the vocabulary for callers that assemble it themselves. */
-export interface RepayCreditAccountOperation {
-  type: "repayCreditAccount";
-  expectedRepayAsset?: Asset[];
-  expectedWithdrawAssets?: Asset[];
-  value?: bigint;
-  calls: MultiCall[];
-}
-
-export interface StartDelayedWithdrawalOperation {
-  type: "startDelayedWithdrawal";
-  token: RequestableWithdrawal["token"];
-  amountIn: bigint;
-  outputs: RequestableWithdrawal["outputs"];
-  settlement: "instant" | "delayed";
-  calls: MultiCall[];
-}
-
-/**
- * The claim of a matured delayed withdrawal: burns the phantom and credits the
- * outputs the compressor reports.
- */
-export type ClaimDelayedWithdrawalOperation = {
-  type: "claimDelayedWithdrawal";
-  /** Source token the delayed withdrawal was requested from. */
-  token: Address;
-  withdrawalPhantomToken: Address;
-  withdrawalTokenSpent: bigint;
-  /** Claim outputs as returned by the compressor (incl. `isDelayed`). */
-  outputs: WithdrawalOutput[];
-  /** Compressor claimCalls. */
-  calls: MultiCall[];
-};
-
-export function buildClaimDelayedWithdrawalOperation(input: {
-  claimable: ClaimableWithdrawal;
-  creditAccount: CreditAccountSlice;
-  sdk: OnchainSDK;
-}): ClaimDelayedWithdrawalOperation {
-  const { claimable } = input;
-  return {
-    type: "claimDelayedWithdrawal",
-    token: claimable.token.toLowerCase() as Address,
-    withdrawalPhantomToken:
-      claimable.withdrawalPhantomToken.toLowerCase() as Address,
-    withdrawalTokenSpent: claimable.withdrawalTokenSpent,
-    outputs: claimable.outputs.map(o => ({
-      ...o,
-      token: o.token.toLowerCase() as Address,
-    })),
-    calls: input.sdk.accounts.assembleClaimDelayedCalls({
-      creditFacade: input.creditAccount.creditFacade,
-      claimableNow: claimable,
-    }),
-  };
-}
-
-/** First positive non-delayed output (optionally restricted to `token`). */
-export function primaryInstantOutput(
-  outputs: Array<{ token: Address; amount: bigint; isDelayed: boolean }>,
-  token?: Address,
-): { token: Address; amount: bigint } | undefined {
-  for (const out of outputs) {
-    if (out.isDelayed || out.amount <= 0n) {
-      continue;
-    }
-    if (token != null && !eq(out.token, token)) {
-      continue;
-    }
-    return { token: out.token, amount: out.amount };
-  }
-  return undefined;
 }

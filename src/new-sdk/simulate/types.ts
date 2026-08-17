@@ -17,10 +17,32 @@ import type { ReadResult } from "../types.js";
 /**
  * What a pool deposit or withdrawal would yield.
  *
- * The pool's ERC-4626 conversion applied to the amount, so it is the rate the
- * transaction would get in the block the market was loaded at.
+ * Shaped like {@link StrategySimulate} so both kinds of simulation are consumed
+ * the same way, with the pool's own numbers as the preview: the ERC-4626
+ * conversion applied to the amount, at the rate of the block the market was
+ * loaded at.
  **/
-export type LpSimulate = PoolSimulation;
+export type LpSimulate =
+  | {
+      ok: true;
+      /**
+       * Always empty: a pool operation is a single transaction, so there is no
+       * chain of steps to show. Present so callers can treat both simulations
+       * alike.
+       **/
+      operations: [];
+      /**
+       * What the wallet parts with and what it receives, plus the zapper the
+       * transaction goes through when one is involved.
+       **/
+      preview: PoolSimulation;
+      /**
+       * The transaction implementing the operation — one call, or none at all
+       * on an on-demand RWA market, where depositing needs no action.
+       **/
+      calls: MultiCall[];
+    }
+  | { ok: false; reason: PreviewErrorReason };
 
 /**
  * What an operation on an existing credit account would yield.
@@ -178,13 +200,19 @@ export interface OpenStrategyParams extends SimulateOptions {
 export interface LpParams {
   amount: bigint;
   /**
+   * Wallet funding the deposit or receiving the withdrawal. Required because it
+   * is baked into the calldata.
+   **/
+  wallet: Address;
+  /**
    * Token the user parts with. Defaults to the pool underlying on deposit and to
    * the pool shares on withdrawal.
    **/
   tokenIn?: Address;
   /**
    * Token the user receives. Defaults to the only route available for `tokenIn`;
-   * required when the pool offers several.
+   * required when the pool offers several, otherwise the simulation reports
+   * `unsupportedTokenPair`.
    **/
   tokenOut?: Address;
 }
@@ -206,7 +234,7 @@ export interface OpportunitiesSimulate {
    * Synchronous, unlike every strategy simulation below: the answer is the
    * pool's share rate applied to the amount, and that rate is already loaded.
    **/
-  deposit(pool: PoolInput, params: LpParams | bigint): LpSimulate;
+  deposit(pool: PoolInput, params: LpParams): LpSimulate;
 
   /**
    * Redeeming pool shares: shares in, underlying out.
@@ -214,7 +242,7 @@ export interface OpportunitiesSimulate {
    * The LP counterpart of {@link withdrawStrategy} / {@link withdrawCollateral},
    * which act on credit accounts.
    **/
-  withdraw(pool: PoolInput, params: LpParams | bigint): LpSimulate;
+  withdraw(pool: PoolInput, params: LpParams): LpSimulate;
 
   /**
    * Opening a leveraged position from wallet collateral.
