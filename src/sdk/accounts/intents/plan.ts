@@ -66,7 +66,7 @@ export interface AccountView {
 }
 
 // ---------------------------------------------------------------------------
-// Start intents
+// Intents
 // ---------------------------------------------------------------------------
 
 /** Intent 5: the token lands as is; debt is untouched. */

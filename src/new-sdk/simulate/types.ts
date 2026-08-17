@@ -37,8 +37,8 @@ export type LpSimulate =
        **/
       preview: PoolSimulation;
       /**
-       * The transaction implementing the operation — one call, or none at all
-       * on an on-demand RWA market, where depositing needs no action.
+       * The transaction implementing the operation: exactly one, since a pool
+       * operation is a single call on the pool or on its zapper.
        **/
       calls: MultiCall[];
     }

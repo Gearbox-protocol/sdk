@@ -9,6 +9,7 @@ import type {
 import {
   CreditAccountOperationsService,
   fetchCreditAccountSlice,
+  hexEq,
 } from "../../sdk/index.js";
 import type { ReadResult } from "../types.js";
 import type {
@@ -68,10 +69,10 @@ export class SimulateApi implements OpportunitiesSimulate {
    * {@inheritDoc OpportunitiesSimulate.deposit}
    **/
   public deposit(pool: PoolInput, params: LpParams): LpSimulate {
-    const sdk = this.#chainOf(pool.chainId);
-    const { pools } = sdk;
-    const tokenIn = params.tokenIn ?? pools.getDepositTokensIn(pool.pool)[0];
-    const tokenOut = resolveTokenOut(params.tokenOut, () =>
+    const { marketRegister, pools } = this.#chainOf(pool.chainId);
+    const tokenIn =
+      params.tokenIn ?? marketRegister.findByPool(pool.pool).pool.underlying;
+    const tokenOut = lpRoute(params.tokenOut, () =>
       pools.getDepositTokensOut(pool.pool, tokenIn),
     );
     if (!tokenOut) {
@@ -90,8 +91,13 @@ export class SimulateApi implements OpportunitiesSimulate {
       wallet: params.wallet,
       meta: pools.getDepositMetadata(pool.pool, tokenIn, tokenOut),
     });
+    // An on-demand RWA market takes deposits through its liquidity provider
+    // rather than a transaction of ours, so there is nothing to simulate.
+    if (!call) {
+      return { ok: false, reason: "unsupportedTokenPair" };
+    }
 
-    return { ok: true, operations: [], preview, calls: call?.calls ?? [] };
+    return { ok: true, operations: [], preview, calls: call.calls };
   }
 
   /**
@@ -102,7 +108,7 @@ export class SimulateApi implements OpportunitiesSimulate {
     const { pools } = sdk;
     // Withdrawals are paid in shares, and the share token *is* the pool.
     const tokenIn = params.tokenIn ?? pool.pool;
-    const tokenOut = resolveTokenOut(params.tokenOut, () =>
+    const tokenOut = lpRoute(params.tokenOut, () =>
       pools.getWithdrawalTokensOut(pool.pool, tokenIn),
     );
     if (!tokenOut) {
@@ -271,18 +277,27 @@ function slice(
 }
 
 /**
- * Resolves `tokenOut` the way the pool service would, but as a value rather
- * than an exception: an unroutable or ambiguous pair is a request the caller
- * can fix, so it belongs in the `ok: false` half alongside the strategy
- * refusals.
+ * Picks the route the operation takes out of `tokenIn`, as a value rather than
+ * an exception: an unroutable or ambiguous pair is a request the caller can
+ * fix, so it belongs in the `ok: false` half alongside the strategy refusals.
+ *
+ * A pool with no route out of the input reports it by throwing, hence the
+ * catch; a requested output is checked against the list rather than trusted,
+ * so that a wrong one fails here instead of deeper in call assembly.
  **/
-function resolveTokenOut(
+function lpRoute(
   requested: Address | undefined,
   routes: () => Address[],
 ): Address | undefined {
-  if (requested) {
-    return requested;
+  let options: Address[];
+  try {
+    options = routes();
+  } catch {
+    return undefined;
   }
-  const options = routes();
+
+  if (requested) {
+    return options.some(o => hexEq(o, requested)) ? requested : undefined;
+  }
   return options.length === 1 ? options[0] : undefined;
 }

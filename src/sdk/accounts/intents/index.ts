@@ -1,5 +1,4 @@
 import { SDKConstruct } from "../../base/SDKConstruct.js";
-import type { OnchainSDK } from "../../OnchainSDK.js";
 import {
   type OpenStrategyPreview,
   type OpenStrategyProps,
@@ -61,17 +60,8 @@ export type OpenStrategyPreviewResult =
   | { ok: true; preview: OpenStrategyPreview }
   | { ok: false; reason: PreviewErrorReason };
 
-/** Everything a preview needs besides the intent itself. */
-interface PreviewProps {
-  creditAccount: CreditAccountSlice;
-  sdk: OnchainSDK;
-  quotaReserve: number | undefined;
-  slippage: number | undefined;
-}
-
-type StartProps<T extends StartIntent = StartIntent> = StartIntentProps & {
-  intent: T;
-};
+/** An intent plus everything previewing it needs. */
+type StartProps = StartIntentProps & { intent: StartIntent };
 
 /**
  * Previews of everything a wallet can do to an existing credit account.
@@ -137,7 +127,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
 
   /** Plan → realise → wrap. Unviable requests become `{ ok: false }`. */
   async #preview(
-    props: PreviewProps,
+    props: StartIntentProps,
     plan: () => Step[],
   ): Promise<IntentPreviewResult> {
     try {
