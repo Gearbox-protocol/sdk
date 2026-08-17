@@ -1,0 +1,337 @@
+import type { Address } from "viem";
+import { describe, expect, it } from "vitest";
+import type {
+  Amount,
+  ChainId,
+  DataResponse,
+  Opportunity,
+  PoolOpportunity,
+  StrategyOpportunity,
+  Timestamp,
+  Token,
+} from "../model/index.js";
+import type { FieldDiff } from "./compareOpportunities.js";
+import { compareOpportunities } from "./compareOpportunities.js";
+
+const MAINNET: ChainId = 1;
+const POOL = "0xda00000000000000000000000000000000000001" as Address;
+const CREDIT_MANAGER = "0x3eb90000000000000000000000000000000000a1" as Address;
+const USDC = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48" as Address;
+const WSTETH = "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0" as Address;
+const TBTC = "0x18084fbA666a33d37592fA2633fD49a74DD93a88" as Address;
+const NOW = 1_700_000_000 as Timestamp;
+
+function token(address: Address, symbol: string): Token {
+  return {
+    chainId: MAINNET,
+    address,
+    symbol,
+    name: symbol,
+    decimals: 18,
+  };
+}
+
+function amount(value: bigint, valueUsd: number | null): Amount {
+  return { value, valueUsd };
+}
+
+function pool(overrides: Partial<PoolOpportunity> = {}): PoolOpportunity {
+  return {
+    kind: "pool",
+    chainId: MAINNET,
+    pool: POOL,
+    name: "USDC Pool",
+    curator: { address: POOL, name: "Re7", url: null },
+    underlyingToken: token(USDC, "USDC"),
+    totalSupply: amount(1_000n, 1_000),
+    availableLiquidity: amount(400n, 400),
+    totalBorrow: amount(600n, 600),
+    utilization: 6_000,
+    supplyApy: { organicApy: 610 },
+    collateralTokens: [token(WSTETH, "wstETH"), token(TBTC, "tBTC")],
+    paused: false,
+    rwa: false,
+    sunset: false,
+    ...overrides,
+  };
+}
+
+function strategy(
+  overrides: Partial<StrategyOpportunity> = {},
+): StrategyOpportunity {
+  return {
+    kind: "strategy",
+    chainId: MAINNET,
+    creditManager: CREDIT_MANAGER,
+    targetCollateral: token(WSTETH, "wstETH"),
+    name: "wstETH / USDC",
+    curator: { address: POOL, name: "Re7", url: null },
+    underlyingToken: token(USDC, "USDC"),
+    totalBorrow: amount(600n, 600),
+    collateralTokens: [token(WSTETH, "wstETH")],
+    paused: false,
+    rwa: false,
+    sunset: false,
+    liquidationThreshold: 9_000,
+    liquidationPremium: 400,
+    liquidationFee: 150,
+    expirationDate: null,
+    borrowApy: 520,
+    additionalBorrowApy: 90,
+    maxBorrowAmount: amount(10_000n, 10_000),
+    maxLeverage: 10,
+    ...overrides,
+  };
+}
+
+function response(rows: Opportunity[]): DataResponse<Opportunity[]> {
+  return {
+    data: rows,
+    meta: {
+      chains: [
+        {
+          chainId: MAINNET,
+          status: "success",
+          source: "onchain",
+          blockNumber: 100,
+          timestamp: NOW,
+        },
+      ],
+    },
+  };
+}
+
+function compare(
+  onchain: Opportunity[],
+  offchain: Opportunity[],
+): ReturnType<typeof compareOpportunities> {
+  return compareOpportunities({
+    onchain: response(onchain),
+    offchain: response(offchain),
+    backendUrl: "https://api.gear-dev.dev",
+    networks: ["Mainnet"],
+    generatedAt: "2026-01-01T00:00:00.000Z",
+  });
+}
+
+function diffAt(diffs: FieldDiff[], path: string): FieldDiff | undefined {
+  return diffs.find(diff => diff.path === path);
+}
+
+describe("membership", () => {
+  it("reports a row only one source lists, identified by what it is", () => {
+    const report = compare([pool(), strategy()], [pool()]);
+
+    expect(report.summary.onlyOnchain).toBe(1);
+    expect(report.summary.matched).toBe(1);
+    expect(report.onlyOnchain).toEqual([
+      {
+        id: `1:${CREDIT_MANAGER}:${WSTETH.toLowerCase()}`,
+        kind: "strategy",
+        chainId: MAINNET,
+        name: "wstETH / USDC",
+        creditManager: CREDIT_MANAGER,
+        targetCollateral: WSTETH,
+      },
+    ]);
+    expect(report.onlyOffchain).toEqual([]);
+  });
+
+  it("reports a row only the backend lists", () => {
+    const report = compare([pool()], [pool(), strategy()]);
+
+    expect(report.summary.onlyOffchain).toBe(1);
+    expect(report.onlyOffchain[0]?.kind).toBe("strategy");
+  });
+
+  it("counts each chain on its own", () => {
+    const plasma = pool({ chainId: 9745, pool: POOL });
+    const report = compare([pool(), plasma], [pool()]);
+
+    expect(report.summary.byChain).toEqual([
+      expect.objectContaining({ chainId: 1, matched: 1, onlyOnchain: 0 }),
+      expect.objectContaining({ chainId: 9745, matched: 0, onlyOnchain: 1 }),
+    ]);
+  });
+});
+
+describe("matched rows", () => {
+  it("reports nothing when the two sources agree", () => {
+    const report = compare([pool()], [pool()]);
+
+    expect(report.matched).toEqual([
+      expect.objectContaining({ identical: true, diffs: [] }),
+    ]);
+    expect(report.summary.differing).toBe(0);
+  });
+
+  it("matches a row whose addresses differ only in case", () => {
+    const report = compare(
+      [pool()],
+      [pool({ pool: POOL.toUpperCase() as Address })],
+    );
+
+    expect(report.summary.matched).toBe(1);
+    expect(report.matched[0]?.diffs).toEqual([]);
+  });
+
+  it("reports a name the two sources spell differently", () => {
+    const report = compare([pool()], [pool({ name: "USDC pool" })]);
+
+    const diff = diffAt(report.matched[0]?.diffs ?? [], "name");
+    expect(diff).toEqual({
+      path: "name",
+      onchain: "USDC Pool",
+      offchain: "USDC pool",
+      kind: "other",
+    });
+    expect(report.matched[0]?.offchainName).toBe("USDC pool");
+  });
+
+  it("separates an exact amount from the USD value derived from it", () => {
+    const report = compare(
+      [pool()],
+      [pool({ totalBorrow: amount(600n, 601.42) })],
+    );
+    const diffs = report.matched[0]?.diffs ?? [];
+
+    expect(diffAt(diffs, "totalBorrow.value")).toBeUndefined();
+    expect(diffAt(diffs, "totalBorrow.valueUsd")).toEqual({
+      path: "totalBorrow.valueUsd",
+      onchain: 600,
+      offchain: 601.42,
+      kind: "usd",
+    });
+  });
+
+  it("tags a differing figure as numeric", () => {
+    const report = compare([strategy()], [strategy({ maxLeverage: 17.9 })]);
+
+    expect(diffAt(report.matched[0]?.diffs ?? [], "maxLeverage")).toEqual({
+      path: "maxLeverage",
+      onchain: 10,
+      offchain: 17.9,
+      kind: "numeric",
+    });
+  });
+
+  it("reports a field only the backend fills as a presence diff", () => {
+    const report = compare(
+      [strategy()],
+      [strategy({ totalValue: amount(50_000n, 50_000) })],
+    );
+
+    expect(diffAt(report.matched[0]?.diffs ?? [], "totalValue")).toEqual({
+      path: "totalValue",
+      onchain: undefined,
+      offchain: { value: 50_000n, valueUsd: 50_000 },
+      kind: "presence",
+    });
+  });
+
+  it("reports a null the other source filled as a presence diff", () => {
+    const report = compare([strategy({ expirationDate: NOW })], [strategy()]);
+
+    expect(diffAt(report.matched[0]?.diffs ?? [], "expirationDate")).toEqual({
+      path: "expirationDate",
+      onchain: NOW,
+      offchain: null,
+      kind: "presence",
+    });
+  });
+});
+
+describe("collateral token lists", () => {
+  it("ignores the order the tokens came in", () => {
+    const report = compare(
+      [pool()],
+      [
+        pool({
+          collateralTokens: [token(TBTC, "tBTC"), token(WSTETH, "wstETH")],
+        }),
+      ],
+    );
+
+    expect(report.matched[0]?.diffs).toEqual([]);
+  });
+
+  it("names the token one source is missing rather than shifting the list", () => {
+    const report = compare(
+      [pool()],
+      [pool({ collateralTokens: [token(WSTETH, "wstETH")] })],
+    );
+
+    expect(report.matched[0]?.diffs).toEqual([
+      {
+        path: `collateralTokens[${TBTC.toLowerCase()}]`,
+        onchain: token(TBTC, "tBTC"),
+        offchain: undefined,
+        kind: "presence",
+      },
+    ]);
+  });
+
+  it("reports a field of one token without repeating the others", () => {
+    const report = compare(
+      [pool()],
+      [
+        pool({
+          collateralTokens: [
+            { ...token(WSTETH, "wstETH"), symbol: "WSTETH" },
+            token(TBTC, "tBTC"),
+          ],
+        }),
+      ],
+    );
+
+    expect(report.matched[0]?.diffs).toEqual([
+      {
+        path: `collateralTokens[${WSTETH.toLowerCase()}].symbol`,
+        onchain: "wstETH",
+        offchain: "WSTETH",
+        kind: "other",
+      },
+    ]);
+  });
+});
+
+describe("the report as a whole", () => {
+  it("counts how often each field differed, with array keys collapsed", () => {
+    const other = pool({
+      pool: "0xda00000000000000000000000000000000000002" as Address,
+    });
+    const report = compare(
+      [pool(), other],
+      [
+        pool({ utilization: 6_100 }),
+        pool({
+          pool: other.pool,
+          utilization: 5_900,
+          collateralTokens: [
+            { ...token(WSTETH, "wstETH"), symbol: "WSTETH" },
+            { ...token(TBTC, "tBTC"), symbol: "TBTC" },
+          ],
+        }),
+      ],
+    );
+
+    expect(report.summary.differing).toBe(2);
+    expect(report.summary.diffsByPath).toEqual([
+      { path: "collateralTokens[].symbol", kinds: ["other"], count: 2 },
+      { path: "utilization", kinds: ["numeric"], count: 2 },
+    ]);
+  });
+
+  it("carries what the run was pointed at and what each chain answered", () => {
+    const report = compare([pool()], [pool()]);
+
+    expect(report.generatedAt).toBe("2026-01-01T00:00:00.000Z");
+    expect(report.backendUrl).toBe("https://api.gear-dev.dev");
+    expect(report.networks).toEqual(["Mainnet"]);
+    expect(report.onchainChains[0]).toMatchObject({
+      chainId: 1,
+      blockNumber: 100,
+    });
+    expect(report.offchainChains).toHaveLength(1);
+  });
+});
