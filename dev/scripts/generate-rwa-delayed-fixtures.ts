@@ -355,13 +355,10 @@ async function setupSdk(): Promise<SetupSdkResult> {
     marketConfigurators: MARKET_CONFIGURATORS,
     rwaFactories: [RWA_FACTORY],
     ignoreUpdateablePrices: true,
-    loadZappers: true,
   });
-  await sdk.tokensMeta.loadTokenData();
   if (!sdk.withdrawalCompressor) {
     throw new Error("withdrawal compressor is not available");
   }
-  await sdk.withdrawalCompressor.loadWithdrawableAssets();
 
   const block = sdk.currentBlock;
   mkdirSync(DEST_DIR, { recursive: true });

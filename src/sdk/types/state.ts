@@ -1,5 +1,5 @@
 import type { WithdrawalsState } from "../accounts/withdrawal-compressor/types.js";
-import type { MarketData } from "../base/index.js";
+import type { MarketData, TokensMetaState } from "../base/index.js";
 import type { NetworkType } from "../chain/chains.js";
 import type { AddressProviderState } from "../core/index.js";
 import type { ZapperData } from "../market/index.js";
@@ -44,6 +44,11 @@ export interface GearboxState<Plugins extends PluginsMap = {}> {
    * All loaded market data.
    **/
   markets: MarketData[];
+  /**
+   * Metadata of all known tokens, including the extended data (contract types,
+   * serialized params) that has no compressor of its own.
+   **/
+  tokens?: TokensMetaState;
   /**
    * RWA compressor state snapshot, if RWA factories were loaded.
    **/

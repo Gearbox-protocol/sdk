@@ -77,8 +77,6 @@ describe("pool deposit and withdraw", () => {
         gateways: REDSTONE_GATEWAYS,
       },
     });
-    await sdk.tokensMeta.loadTokenData();
-    await sdk.marketRegister.loadZappers();
   });
 
   it("should deposit and withdraw directly from pool", async () => {

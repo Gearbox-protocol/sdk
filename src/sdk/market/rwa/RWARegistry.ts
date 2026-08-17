@@ -12,6 +12,7 @@ import {
   SDKConstruct,
   type TokenMetaData,
 } from "../../base/index.js";
+import type { GearboxChain } from "../../chain/index.js";
 import { AP_RWA_COMPRESSOR, VERSION_RANGE_310 } from "../../constants/index.js";
 import { AddressMap, bytes32ToString } from "../../utils/index.js";
 import type { DelegatedMulticall } from "../../utils/viem/index.js";
@@ -38,6 +39,11 @@ import type {
 export class RWARegistry extends SDKConstruct {
   #state?: RWAState;
   #factories = new AddressMap<SecuritizeRWAFactory>();
+  /**
+   * Factories requested during attach; `undefined` when the registry was
+   * hydrated instead, in which case the request was never made on this instance.
+   **/
+  #requestedFactories?: Address[];
 
   /**
    * @internal
@@ -52,6 +58,8 @@ export class RWARegistry extends SDKConstruct {
     configurators: Address[],
     rwaFactories: Address[] = [],
   ): DelegatedMulticall[] {
+    // remembered so that syncState can reload the same factories
+    this.#requestedFactories = rwaFactories;
     if (!rwaFactories.length) {
       return [];
     }
@@ -71,6 +79,27 @@ export class RWARegistry extends SDKConstruct {
           this.setState(resp as RWACompressorResponse),
       },
     ];
+  }
+
+  /**
+   * @internal
+   *
+   * Returns delegated multicalls that refresh the RWA state. Unlike the other
+   * warmed caches, RWA data carries values that change between blocks (e.g. the
+   * deposit allowance and claimable amount of an on-demand liquidity provider),
+   * so it is refreshed on every SDK sync.
+   *
+   * Factories are the ones requested during attach; after hydration the chain
+   * defaults are used, since the snapshot does not carry the requested list.
+   * An attach that explicitly requested no factories stays disabled.
+   **/
+  public getSyncMulticalls(): DelegatedMulticall[] {
+    const factories =
+      this.#requestedFactories ?? (this.sdk.chain as GearboxChain).rwaFactories;
+    return this.getLoadMulticalls(
+      [...this.sdk.marketRegister.marketFilter.configurators],
+      factories,
+    );
   }
 
   /**

@@ -6,7 +6,11 @@ import type { Address } from "viem";
 import type { peripheryCompressorAbi } from "../../abi/compressors/peripheryCompressor.js";
 import type { Unarray } from "../base/index.js";
 
-type CompressorZapperData = Unarray<
+/**
+ * Single zapper as reported by the periphery compressor, before the SDK
+ * attaches the pool it belongs to and its {@link ZapperData.type}.
+ **/
+export type CompressorZapperData = Unarray<
   AbiParametersToPrimitiveTypes<
     ExtractAbiFunction<typeof peripheryCompressorAbi, "getZappers">["outputs"]
   >

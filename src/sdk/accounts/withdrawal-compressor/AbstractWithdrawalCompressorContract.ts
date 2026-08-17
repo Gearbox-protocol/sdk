@@ -14,6 +14,8 @@ import { BaseContract } from "../../base/index.js";
 import { ADDRESS_0X0 } from "../../constants/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import { AddressMap, hexEq } from "../../utils/index.js";
+import type { MulticallBatch } from "../../utils/viem/index.js";
+import { executeMulticallBatches } from "../../utils/viem/index.js";
 import { decodeDelayedIntent } from "./intent-codec.js";
 import type {
   ClaimableWithdrawal,
@@ -122,7 +124,7 @@ export abstract class AbstractWithdrawalCompressorContract<abi extends Abi>
     const cache = this.#withdrawableAssets;
     if (!cache) {
       throw new Error(
-        "withdrawable assets are not loaded, call loadWithdrawableAssets first",
+        "withdrawable assets are not loaded, check if the sdk was properly attached or hydrated",
       );
     }
     if (creditManagers.length === 0) {
@@ -132,19 +134,16 @@ export abstract class AbstractWithdrawalCompressorContract<abi extends Abi>
   }
 
   /**
-   * {@inheritDoc IWithdrawalCompressorContract.loadWithdrawableAssets}
+   * {@inheritDoc IWithdrawalCompressorContract.getLoadWithdrawableAssetsMulticall}
    **/
-  public async loadWithdrawableAssets(
-    force?: boolean,
-    blockNumber?: bigint,
-  ): Promise<WithdrawableAsset[]> {
+  public getLoadWithdrawableAssetsMulticall(force?: boolean): MulticallBatch {
     if (this.#withdrawableAssets && !force) {
-      return this.getWithdrawableAssets();
+      return { contracts: [], onResults: () => {} };
     }
     const cms = this.#sdk.marketRegister.creditManagers.map(
       cm => cm.creditManager.address,
     );
-    const resp = await this.client.multicall({
+    return {
       contracts: cms.map(
         cm =>
           ({
@@ -154,27 +153,41 @@ export abstract class AbstractWithdrawalCompressorContract<abi extends Abi>
             args: [cm],
           }) as const,
       ),
-      allowFailure: true,
-      batchSize: 0,
-      blockNumber,
-    });
-    const cache = new AddressMap<WithdrawableAsset[]>(undefined, MAP_LABEL);
-    for (let i = 0; i < resp.length; i++) {
-      const r = resp[i];
-      if (r.status !== "success") {
-        this.logger?.warn(
-          `failed to get withdrawable assets of credit manager ${cms[i]}: ${r.error}`,
-        );
-        continue;
-      }
-      if (r.result.length > 0) {
-        cache.upsert(
-          cms[i],
-          r.result.map(a => toWithdrawableAsset(a, cms[i])),
-        );
-      }
-    }
-    this.#withdrawableAssets = cache;
+      onResults: resps => {
+        const cache = new AddressMap<WithdrawableAsset[]>(undefined, MAP_LABEL);
+        for (let i = 0; i < resps.length; i++) {
+          const r = resps[i];
+          if (r.status !== "success") {
+            this.logger?.warn(
+              `failed to get withdrawable assets of credit manager ${cms[i]}: ${r.error}`,
+            );
+            continue;
+          }
+          const assets = r.result as readonly OnchainWithdrawableAsset[];
+          if (assets.length > 0) {
+            cache.upsert(
+              cms[i],
+              assets.map(a => toWithdrawableAsset(a, cms[i])),
+            );
+          }
+        }
+        this.#withdrawableAssets = cache;
+      },
+    };
+  }
+
+  /**
+   * {@inheritDoc IWithdrawalCompressorContract.loadWithdrawableAssets}
+   **/
+  public async loadWithdrawableAssets(
+    force?: boolean,
+    blockNumber?: bigint,
+  ): Promise<WithdrawableAsset[]> {
+    await executeMulticallBatches(
+      this.client,
+      [this.getLoadWithdrawableAssetsMulticall(force)],
+      { blockNumber },
+    );
     return this.getWithdrawableAssets();
   }
 

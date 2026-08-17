@@ -1,5 +1,6 @@
 export * from "./cast.js";
 export * from "./executeDelegatedMulticalls.js";
+export * from "./executeMulticallBatches.js";
 export * from "./sendRawTx.js";
 export * from "./simulateCall.js";
 export * from "./simulateMulticall.js";

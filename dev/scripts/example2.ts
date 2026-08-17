@@ -23,7 +23,6 @@ async function example(): Promise<void> {
     { plugins: { adapters: new AdaptersPlugin() } },
   );
   await sdk.attach({
-    loadZappers: true,
     marketConfigurators: [
       "0x610627d8d01a413bdd9b0a0b60070da7dd1e54ad",
       "0xa770ce584adb6491a2138da6eaec33243bdcd248",

@@ -7,31 +7,52 @@ import {
 } from "../constants/index.js";
 import type { ZapperStateHuman } from "../types/index.js";
 import { AddressMap, hexEq } from "../utils/index.js";
-import type { ZapperData } from "./types.js";
+import type { MulticallBatch } from "../utils/viem/index.js";
+import { executeMulticallBatches } from "../utils/viem/index.js";
+import type { CompressorZapperData, ZapperData } from "./types.js";
 import { createZapper, type IZapperContract } from "./zapper/index.js";
 
 export class ZapperRegister extends SDKConstruct {
   /**
    * Mapping pool.address -> Zapper[]
-   * Needs to be loaded explicitly using loadZappers method
+   * Loaded during SDK attach, or restored by hydration
    */
   #zappers?: AddressMap<IZapperContract[]>;
 
   /**
-   * Load zappers for all pools using periphery compressor, adds hardcoded zappers
-   */
-  public async loadZappers(force?: boolean): Promise<void> {
+   * @internal
+   *
+   * Returns the multicall batch that loads zappers of all pools from the
+   * periphery compressor. Used by the SDK to warm this cache together with
+   * other loaders in a single multicall.
+   *
+   * Returns an empty batch when zappers are already loaded and `force` is not set.
+   *
+   * @param force - reload zappers even when they are already loaded
+   **/
+  public getLoadZappersMulticall(force?: boolean): MulticallBatch {
     if (!force && this.#zappers) {
-      return;
+      return { contracts: [], onResults: () => {} };
     }
 
-    const [pcAddr] = this.sdk.addressProvider.mustGetLatest(
+    // reset upfront, so that the registry counts as loaded (and empty) even when
+    // there is nothing to ask the compressor about
+    this.#zappers = new AddressMap<IZapperContract[]>(undefined, "zappers");
+
+    const compressor = this.sdk.addressProvider.getLatest(
       AP_PERIPHERY_COMPRESSOR,
       VERSION_RANGE_310,
     );
+    if (!compressor) {
+      this.logger?.warn(
+        "no periphery compressor on this chain, skipping zappers",
+      );
+      return { contracts: [], onResults: () => {} };
+    }
+    const [pcAddr] = compressor;
     this.logger?.debug(`loading zappers with periphery compressor ${pcAddr}`);
     const markets = this.sdk.marketRegister.markets;
-    const resp = await this.client.multicall({
+    return {
       contracts: markets.map(
         m =>
           ({
@@ -41,34 +62,45 @@ export class ZapperRegister extends SDKConstruct {
             args: [m.configurator.address, m.pool.pool.address],
           }) as const,
       ),
-      allowFailure: true,
-      batchSize: 0,
-    });
+      onResults: resps => {
+        for (let i = 0; i < resps.length; i++) {
+          const { status, result, error } = resps[i];
+          const marketConfigurator = markets[i].configurator.address;
+          const pool = markets[i].pool.pool.address;
 
-    this.#zappers = new AddressMap<IZapperContract[]>(undefined, "zappers");
-    for (let i = 0; i < resp.length; i++) {
-      const { status, result, error } = resp[i];
-      const marketConfigurator = markets[i].configurator.address;
-      const pool = markets[i].pool.pool.address;
-
-      if (status === "success") {
-        for (const z of result) {
-          this.#addZapper({ ...z, pool, type: "base" });
+          if (status === "success") {
+            for (const z of result as readonly CompressorZapperData[]) {
+              this.#addZapper({ ...z, pool, type: "base" });
+            }
+          } else {
+            this.logger?.error(
+              `failed to load zapper for market configurator ${this.labelAddress(
+                marketConfigurator,
+              )} and pool ${this.labelAddress(pool)}: ${error}`,
+            );
+          }
         }
-      } else {
-        this.logger?.error(
-          `failed to load zapper for market configurator ${this.labelAddress(
-            marketConfigurator,
-          )} and pool ${this.labelAddress(pool)}: ${error}`,
-        );
-      }
-    }
+      },
+    };
+  }
+
+  /**
+   * Load zappers for all pools using periphery compressor, adds hardcoded zappers
+   *
+   * Zappers loaded during SDK attach or restored by hydration are kept unless
+   * `force` is set, so calling this after either is a no-op.
+   */
+  public async loadZappers(force?: boolean): Promise<void> {
+    await executeMulticallBatches(this.client, [
+      this.getLoadZappersMulticall(force),
+    ]);
   }
 
   /**
    * Serializable snapshot of all loaded zappers, suitable for hydration.
-   * Returns `undefined` when zappers were never loaded (i.e. `loadZappers` was
-   * not called), so the not-loaded state round-trips cleanly.
+   * Returns `undefined` when zappers were never loaded (i.e. the SDK was
+   * attached without market configurators), so the not-loaded state round-trips
+   * cleanly.
    **/
   protected get zappersState(): ZapperData[] | undefined {
     if (!this.#zappers) {
@@ -144,7 +176,9 @@ export class ZapperRegister extends SDKConstruct {
 
   public get zappers(): AddressMap<IZapperContract[]> {
     if (!this.#zappers) {
-      throw new Error("zappers not loaded, call loadZappers first");
+      throw new Error(
+        "zappers are not loaded, check if the sdk was properly attached or hydrated",
+      );
     }
     return this.#zappers;
   }

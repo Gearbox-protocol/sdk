@@ -55,7 +55,7 @@ async function example(): Promise<void> {
     },
     logger,
   });
-  await sdk.attach({ loadZappers: true });
+  await sdk.attach();
 
   await writeFile(
     `tmp/state_multichain_human.yaml`,

@@ -143,8 +143,15 @@ export class MarketRegister extends ZapperRegister {
    * Otherwise only prices are refreshed.
    *
    * @param ignoreUpdateablePrices - When `true`, skips off-chain price updates.
+   * @param extra - Additional multicalls to execute in the same batch, so that
+   *   other registries can be synced without an extra request.
+   * @returns `true` when markets were fully reloaded, so that callers can
+   *   refresh the caches derived from the market set.
    **/
-  public async syncState(ignoreUpdateablePrices?: boolean): Promise<void> {
+  public async syncState(
+    ignoreUpdateablePrices?: boolean,
+    extra: DelegatedMulticall[] = [],
+  ): Promise<boolean> {
     // marketCompressor does not have granularity
     // if we have one market configurator with some dirty markets and another market configurator with new markets
     // we cannot just reload dirty markets in first and load new ones in second
@@ -161,7 +168,10 @@ export class MarketRegister extends ZapperRegister {
       this.logger?.debug(
         "some markets or market configurators are dirty, reloading everything",
       );
-      multicalls = this.getLoadMulticalls([...this.marketFilter.configurators]);
+      multicalls = [
+        ...this.getLoadMulticalls([...this.marketFilter.configurators]),
+        ...extra,
+      ];
       if (!ignoreUpdateablePrices) {
         const updatables =
           await this.sdk.priceFeeds.getPartialUpdatablePriceFeeds([
@@ -172,15 +182,20 @@ export class MarketRegister extends ZapperRegister {
         txs = updates.txs;
       }
     } else if (!ignoreUpdateablePrices) {
-      multicalls = this.#getOracleSyncMulticalls();
+      const oracles = this.#getOracleSyncMulticalls();
+      multicalls = [...oracles, ...extra];
       if (!multicalls.length) {
-        return;
+        return false;
       }
-      this.logger?.debug(`syncing prices on ${multicalls.length} oracles`);
-      const updates = await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs();
-      txs = updates.txs;
+      if (oracles.length) {
+        this.logger?.debug(`syncing prices on ${oracles.length} oracles`);
+        const updates = await this.sdk.priceFeeds.generatePriceFeedsUpdateTxs();
+        txs = updates.txs;
+      }
+    } else if (extra.length) {
+      multicalls = extra;
     } else {
-      return;
+      return false;
     }
 
     await executeDelegatedMulticalls(this.client, multicalls, {
@@ -188,6 +203,7 @@ export class MarketRegister extends ZapperRegister {
       blockNumber: this.sdk.currentBlock,
       gas: this.sdk.gasLimit,
     });
+    return dirty;
   }
 
   #getOracleSyncMulticalls(oracles?: Address[]): DelegatedMulticall[] {

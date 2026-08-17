@@ -1,6 +1,7 @@
 import type { Address, Hex } from "viem";
 import type { IBaseContract } from "../../base/index.js";
 import type { MultiCall } from "../../types/index.js";
+import type { MulticallBatch } from "../../utils/viem/index.js";
 
 /**
  * App: 1.1 Deposit and 4.1 Adjust leverage — raise leverage at fixed collateral.
@@ -392,10 +393,26 @@ export interface IWithdrawalCompressorContract extends IBaseContract {
    **/
   getWithdrawableAssets(...creditManagers: Address[]): WithdrawableAsset[];
   /**
+   * @internal
+   *
+   * Returns the multicall batch that loads withdrawable assets of all credit
+   * managers known to the SDK's market register. Used by the SDK to warm this
+   * cache together with other loaders in a single multicall.
+   *
+   * Returns an empty batch when the cache is already loaded and `force` is not set.
+   *
+   * @param force - Invalidate the cache and refetch even if already loaded.
+   **/
+  getLoadWithdrawableAssetsMulticall(force?: boolean): MulticallBatch;
+  /**
    * Loads withdrawable assets of all credit managers known to the SDK's
    * market register into the cache (a single multicall, only once per SDK
    * lifetime) and returns them. Failed per-manager calls are logged and
    * skipped.
+   *
+   * Assets loaded during SDK attach or restored by state hydration are kept
+   * unless `force` is set, so calling this after either is a no-op.
+   *
    * @param force - Invalidate the cache and refetch even if already loaded.
    * @param blockNumber - Block to read at. Defaults to the latest block.
    **/

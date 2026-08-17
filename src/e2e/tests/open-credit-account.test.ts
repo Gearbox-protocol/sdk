@@ -39,6 +39,38 @@ describe("open credit account", () => {
     });
   });
 
+  it("should warm synchronous caches on attach and round-trip them", () => {
+    // no extra loader calls and no flags: attach warms all of these
+    expect(sdk.marketRegister.zappers.size).toBeGreaterThan(0);
+    expect(sdk.tokensMeta.phantomTokens.size).toBeGreaterThan(0);
+    expect(
+      sdk.withdrawalCompressor?.getWithdrawableAssets().length,
+    ).toBeGreaterThan(0);
+
+    const hydrated = new OnchainSDK("Mainnet", {
+      rpcURLs: [ANVIL_URL],
+      timeout: 120_000,
+    });
+    hydrated.hydrate(sdk.state);
+
+    expect(hydrated.marketRegister.zappers.size).toBe(
+      sdk.marketRegister.zappers.size,
+    );
+    expect(hydrated.tokensMeta.phantomTokens.keys()).toEqual(
+      sdk.tokensMeta.phantomTokens.keys(),
+    );
+    expect(hydrated.withdrawalCompressor?.getWithdrawableAssets()).toEqual(
+      sdk.withdrawalCompressor?.getWithdrawableAssets(),
+    );
+    // the contract type and serialized params of a phantom token have no
+    // compressor of their own, so they only survive via the tokens state
+    const [phantom] = sdk.tokensMeta.phantomTokens.values();
+    expect(hydrated.tokensMeta.mustGet(phantom.addr)).toMatchObject({
+      contractType: phantom.contractType,
+      serializedParams: phantom.serializedParams,
+    });
+  });
+
   it("should open, add collateral and close credit account", async () => {
     const wallet = getAnvilWallet(sdk);
     const borrower = wallet.account;

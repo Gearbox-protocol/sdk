@@ -64,10 +64,6 @@ export const attachOptionsSchema = z.object({
    * Options for Redstone price-feed updates.
    **/
   redstone: RedstoneOptions.optional(),
-  /**
-   * When `true`, automatically load zappers during attach.
-   **/
-  loadZappers: z.boolean().optional(),
 });
 
 /**

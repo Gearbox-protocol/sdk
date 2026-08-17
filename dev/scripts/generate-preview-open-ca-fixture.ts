@@ -79,7 +79,6 @@ async function main(): Promise<void> {
     marketConfigurators: [...mcs],
     ignoreUpdateablePrices: true,
   });
-  await scopedSdk.tokensMeta.loadTokenData();
 
   const dir = resolve(import.meta.dirname, "../../src/preview/__fixtures__");
   const fixturePath = resolve(dir, `Mainnet-${block}-open-credit-account.json`);
