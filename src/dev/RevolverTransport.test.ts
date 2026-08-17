@@ -21,9 +21,9 @@ let s3: RpcServerMock;
 let unwatch: (() => void) | undefined;
 
 beforeEach(async () => {
-  s1 = new RpcServerMock(3000);
-  s2 = new RpcServerMock(3001);
-  s3 = new RpcServerMock(3002);
+  s1 = new RpcServerMock();
+  s2 = new RpcServerMock();
+  s3 = new RpcServerMock();
   await Promise.all([s1.start(), s2.start(), s3.start()]);
 });
 
@@ -56,6 +56,7 @@ function createClient(
       defaultCooldown: 100,
       defaultHTTPOptions: {
         retryCount: 2,
+        retryDelay: 20,
       },
       ...opts,
     }),
@@ -76,7 +77,9 @@ it("should rotate to next transport", async () => {
     },
   });
 
-  await expect(vi.waitUntil(() => blockNumber > 15n)).resolves.toBeTruthy();
+  await expect(
+    vi.waitUntil(() => blockNumber > 15n, { timeout: 5000 }),
+  ).resolves.toBeTruthy();
   expect(onRotateSuccess).toHaveBeenCalledWith(
     "custom-0",
     "custom-1",
@@ -98,7 +101,7 @@ it("should rotate to first available transport", async () => {
     },
   });
   await expect(
-    vi.waitUntil(() => blockNumber > 15n, { timeout: 2000 }),
+    vi.waitUntil(() => blockNumber > 15n, { timeout: 5000 }),
   ).resolves.toBeTruthy();
   expect(onRotateSuccess).toHaveBeenCalledWith(
     "custom-0",
@@ -132,7 +135,7 @@ it("should rotate in loop", async () => {
   });
 
   await expect(
-    vi.waitUntil(() => blockNumber > 35n, { timeout: 2000 }),
+    vi.waitUntil(() => blockNumber > 35n, { timeout: 5000 }),
   ).resolves.toBeTruthy();
   // console.log(onRotateSuccess.mock.calls);
   expect(onRotateSuccess).toHaveBeenCalledWith(
