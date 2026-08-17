@@ -262,3 +262,71 @@ describe("adjustLeverage.startDelayed — deleveraging only", () => {
     expectPreviewError(result, "noDelayedRoute");
   });
 });
+
+describe("withdraw.startDelayed — matrix 4.3 (10U/8U at 5x)", () => {
+  // Matrix baseline: 10A of position against 8U of debt; withdrawing 1U of
+  // value repays dD = D0 * W / C0 = 4U, so 5A is redeemed in total.
+  const M43_BALANCE = 1000000000n;
+  const M43_DEBT = 800000000n;
+  const M43_W = 100000000n;
+  const M43_DD = 400000000n;
+  const M43_SPEND = M43_W + M43_DD;
+  const quotaOf = (balance: bigint) => (balance * 9200n) / 10000n;
+
+  it("requests payout plus repayment, and records what the tail owes", async () => {
+    const sdk = buildSdk();
+    const service = new CreditAccountOperationsService(sdk);
+    const result = await service.startDelayedIntent({
+      intent: { type: "WITHDRAW", amount: M43_W, to: WALLET, sourceToken: POS },
+      creditAccount: buildFixtureCreditAccount({
+        accountDebt: M43_DEBT,
+        tokens: [caToken(POS, M43_BALANCE, quotaOf(M43_BALANCE))],
+      }),
+      sdk,
+      quotaReserve: undefined,
+      slippage: undefined,
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      throw new Error("expected ok delayed preview");
+    }
+
+    expect(result.delayed).toEqual({
+      record: {
+        type: "WITHDRAW_COLLATERAL",
+        to: WALLET,
+        withdrawToken: UND,
+        withdrawAmount: M43_W,
+        sourceToken: POS,
+        debtRepaid: M43_DD,
+      },
+      claimableAt: CLAIMABLE_AT,
+      settlement: "delayed",
+    });
+
+    // Nothing settled yet: T and D are unchanged, the phantom holds the value.
+    expectAdjustPreview(result, {
+      totalValue: M43_BALANCE,
+      accountDebt: M43_DEBT,
+      expectedOps: withOnchainOpCalls([
+        {
+          type: "startDelayedWithdrawal",
+          token: POS,
+          amountIn: M43_SPEND,
+          outputs: [{ token: PHANTOM, amount: M43_SPEND, isDelayed: true }],
+          settlement: "delayed",
+        },
+        {
+          type: "changeQuota",
+          quotaIncrease: [{ token: PHANTOM, balance: quotaOf(M43_SPEND) }],
+          quotaDecrease: [
+            { token: POS, balance: quotaOf(M43_SPEND) - quotaOf(M43_BALANCE) },
+          ],
+          desiredQuota: {},
+        },
+      ]),
+      expectedCalls: [MOCK_REQUEST_CALL, CA_OP_CALLS.changeQuota],
+    });
+  });
+});

@@ -1,4 +1,5 @@
 import type { Address } from "viem";
+import { MIN_INT96 } from "../../../constants/math.js";
 import type {
   ClaimableWithdrawal,
   DelayedDecreaseLeverageIntent,
@@ -7,13 +8,17 @@ import type {
 
 import {
   ANY,
+  buildMarketSdk,
   buildTailSdk,
   CREDIT_ACCOUNT,
   CREDIT_FACADE,
   CREDIT_MANAGER,
+  POS,
   RWA_ASSET,
   UND,
 } from "../testing/delayed.js";
+import type { ExpectedFlowOp } from "../testing/expect.js";
+import { POS2 } from "../testing/market.js";
 import { MOCK_CLAIM_CALL } from "../testing/sdk-mock.js";
 import type { CreditAccountSlice } from "../types.js";
 
@@ -145,4 +150,155 @@ export function buildDecreaseOnchainTailProps(args: {
     sdk,
     slippage: args.slippage,
   });
+}
+
+// ---------------------------------------------------------------------------
+// Test-matrix rows 7.2 / 7.3 tails — 10U/8U (5x) account deleveraging to 3x
+// ---------------------------------------------------------------------------
+//
+// Self-contained for the same reason as the withdraw matrix tails: the shared
+// helpers above claim through the non-quotable `PHANTOM`, which carries no
+// quota, so tails built with them never emit the changeQuota op the matrix
+// expects. These cases claim through `POS2` — 1:1 with `POS` and quotable —
+// whose quota the leading half bought: a delayed deleverage 5x → 3x redeems
+// 4A of the 10A position to repay 4U of the 8U debt.
+
+const M7_LT = 9200n;
+/** Quota the matrix cases give a balance: balance * LT / PERCENTAGE_FACTOR. */
+const m7QuotaOf = (balance: bigint) => (balance * M7_LT) / 10000n;
+
+/** Matrix baseline debt: 8U. */
+export const M7_DEBT = 800000000n;
+/** Delayed deleverage 5x → 3x repays 4U. */
+export const M7_DD = 400000000n;
+/** Position left after the leading half redeemed 4A of the 10A. */
+export const M7_POS_LEFT = 600000000n;
+/** 4U claimed in `ANY` (priced 1 against `UND` priced 2): 8 ANY. */
+export const M7_CLAIM_ANY = 8000000000000000000n;
+/** Quotable withdrawal phantom: `POS2`, 1:1 with `POS`. */
+export const M7_PHANTOM = POS2;
+
+export interface MatrixDecreaseTailCase {
+  claimedToken: Address;
+  claimedAmount: bigint;
+  totalValue: bigint;
+  ops: ExpectedFlowOp[];
+}
+
+/** The claim op every matrix tail starts with. */
+function m7ClaimOp(
+  claimedToken: Address,
+  claimedAmount: bigint,
+): ExpectedFlowOp {
+  return {
+    type: "claimDelayedWithdrawal",
+    token: POS,
+    withdrawalPhantomToken: M7_PHANTOM,
+    withdrawalTokenSpent: M7_DD,
+    outputs: [{ token: claimedToken, amount: claimedAmount, isDelayed: false }],
+  };
+}
+
+/**
+ * Quota op every matrix tail ends with: the phantom is fully spent, so its
+ * quota is reset (the `MIN_INT96` sentinel encodes "reset" in quota deltas).
+ */
+function m7PhantomQuotaResetOp(): ExpectedFlowOp {
+  return {
+    type: "changeQuota",
+    quotaIncrease: [],
+    quotaDecrease: [{ token: M7_PHANTOM, balance: MIN_INT96 }],
+    desiredQuota: {},
+  };
+}
+
+/** Matrix 7.2 tail — the claim pays `UND`; everything claimed repays the debt. */
+export const case_matrix_7_2_tail: MatrixDecreaseTailCase = {
+  claimedToken: UND,
+  claimedAmount: M7_DD,
+  totalValue: M7_POS_LEFT,
+  ops: [
+    m7ClaimOp(UND, M7_DD),
+    { type: "decreaseDebt", amount: M7_DD },
+    m7PhantomQuotaResetOp(),
+  ],
+};
+
+/**
+ * Matrix 7.3 tail — the claim pays `ANY`, swapped into `UND` before repaying.
+ * The swap output (`amountOut`) comes from the router quote, which the spec
+ * mocks to a realistic 1:1-in-value path — the echo router would otherwise
+ * repay its raw input as debt (same override as case D above).
+ */
+export const case_matrix_7_3_tail: MatrixDecreaseTailCase = {
+  claimedToken: ANY,
+  claimedAmount: M7_CLAIM_ANY,
+  totalValue: M7_POS_LEFT,
+  ops: [
+    m7ClaimOp(ANY, M7_CLAIM_ANY),
+    {
+      type: "swap",
+      from: [{ token: ANY, balance: M7_CLAIM_ANY }],
+      tokenOut: UND,
+      amountOut: M7_DD,
+    },
+    { type: "decreaseDebt", amount: M7_DD },
+    m7PhantomQuotaResetOp(),
+  ],
+};
+
+/**
+ * Props for a matrix decrease-leverage tail: the account as the delayed
+ * deleverage to 3x left it — 6A of position and 4A of phantom — plus the
+ * matured claim.
+ */
+export function buildMatrixDecreaseTailProps(c: MatrixDecreaseTailCase) {
+  const creditAccount: CreditAccountSlice = {
+    creditAccount: CREDIT_ACCOUNT,
+    creditManager: CREDIT_MANAGER,
+    creditFacade: CREDIT_FACADE,
+    underlying: UND,
+    enabledTokensMask: 0n,
+    totalDebtUSD: 0n,
+    accountDebt: M7_DEBT,
+    tokens: [
+      {
+        token: POS,
+        balance: M7_POS_LEFT,
+        quota: m7QuotaOf(M7_POS_LEFT),
+        mask: 0n,
+        success: true,
+      },
+      {
+        token: M7_PHANTOM,
+        balance: M7_DD,
+        quota: m7QuotaOf(M7_DD),
+        mask: 0n,
+        success: true,
+      },
+    ],
+  };
+
+  const intent: DelayedDecreaseLeverageIntent = {
+    type: "DECREASE_LEVERAGE",
+  };
+
+  const claimable = {
+    token: POS,
+    withdrawalPhantomToken: M7_PHANTOM,
+    withdrawalTokenSpent: M7_DD,
+    outputs: [
+      { token: c.claimedToken, amount: c.claimedAmount, isDelayed: false },
+    ],
+    claimCalls: [MOCK_CLAIM_CALL],
+  } as ClaimableWithdrawal;
+
+  return {
+    intent,
+    creditAccount,
+    sdk: buildMarketSdk({}),
+    quotaReserve: undefined,
+    claimable,
+    slippage: undefined,
+  };
 }

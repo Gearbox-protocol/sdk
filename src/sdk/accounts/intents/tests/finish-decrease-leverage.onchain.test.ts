@@ -10,6 +10,7 @@ import {
   expectAdjustPreview,
   expectCallsArrayExact,
   expectOpsArrayExact,
+  withOnchainOpCalls,
 } from "../testing/expect.js";
 import {
   CA_OP_CALLS,
@@ -21,10 +22,16 @@ import type { IntentPreviewResult } from "../types.js";
 import {
   ANY,
   buildDecreaseOnchainTailProps,
+  buildMatrixDecreaseTailProps,
+  case_matrix_7_2_tail,
+  case_matrix_7_3_tail,
   DECREASE_AMOUNT_S,
   DECREASE_POST_D,
   DECREASE_POST_T,
   DECREASE_REPAY,
+  M7_DD,
+  M7_POS_LEFT,
+  type MatrixDecreaseTailCase,
   PHANTOM,
   RWA_ASSET,
   UND,
@@ -234,5 +241,66 @@ describe("decreaseLeverage tail — claim then repay (onchain)", () => {
       MOCK_ROUTER_CALL,
       CA_OP_CALLS.decreaseDebt,
     ]);
+  });
+});
+
+/**
+ * Test-matrix decrease-leverage tails on the 10U/8U (5x) baseline,
+ * deleveraging to 3x, claiming through the quotable phantom (`POS2`) so the
+ * trailing changeQuota is observable.
+ */
+describe("decreaseLeverage tail — test-matrix rows 7.2/7.3 (onchain)", () => {
+  async function runMatrix(
+    c: MatrixDecreaseTailCase,
+  ): Promise<IntentPreviewResult> {
+    const props = buildMatrixDecreaseTailProps(c);
+    const service = new CreditAccountOperationsService(props.sdk as OnchainSDK);
+    return service.finishIntent(props);
+  }
+
+  it("matrix 7.2 tail: claim UND → decreaseDebt(claim.amount) → changeQuota", async () => {
+    const result = await runMatrix(case_matrix_7_2_tail);
+
+    const state = expectAdjustPreview(result, {
+      // T = 6U, D = 4U: collateral 2U at exactly 3x.
+      totalValue: M7_POS_LEFT,
+      accountDebt: M7_DD,
+      expectedOps: withOnchainOpCalls([...case_matrix_7_2_tail.ops]),
+      expectedCalls: [
+        MOCK_CLAIM_CALL,
+        CA_OP_CALLS.decreaseDebt,
+        CA_OP_CALLS.changeQuota,
+      ],
+    });
+
+    expect(state.totalValue - state.accountDebt).toBe(200000000n);
+  });
+
+  it("matrix 7.3 tail: claim ANY → swap → decreaseDebt(swap.minAmount) → changeQuota", async () => {
+    const props = buildMatrixDecreaseTailProps(case_matrix_7_3_tail);
+    // The claim pays an intermediate token, so the echo router would repay
+    // its raw input as debt; quote a realistic 1:1-in-value path instead
+    // (same override as case D above).
+    const { findPath } = routerMocksOf(props.sdk as OnchainSDK);
+    findPath.mockResolvedValue({
+      amount: M7_DD,
+      minAmount: M7_DD,
+      calls: [MOCK_ROUTER_CALL],
+    });
+
+    const service = new CreditAccountOperationsService(props.sdk as OnchainSDK);
+    const result = await service.finishIntent(props);
+
+    expectAdjustPreview(result, {
+      totalValue: M7_POS_LEFT,
+      accountDebt: M7_DD,
+      expectedOps: withOnchainOpCalls([...case_matrix_7_3_tail.ops]),
+      expectedCalls: [
+        MOCK_CLAIM_CALL,
+        MOCK_ROUTER_CALL,
+        CA_OP_CALLS.decreaseDebt,
+        CA_OP_CALLS.changeQuota,
+      ],
+    });
   });
 });

@@ -16,6 +16,8 @@ import {
 import {
   buildWithdrawProps,
   buildWithdrawSdk,
+  case_matrix_4_1,
+  case_matrix_4_2,
   case_pos_pos,
   case_pos_pos2,
   case_pos_und,
@@ -23,6 +25,8 @@ import {
   case_und_pos,
   case_und_und,
   DEBT_AFTER,
+  M4_SPEND,
+  M4_W,
   TVL_AFTER,
   W,
   type WithdrawCase,
@@ -162,5 +166,32 @@ describe("withdraw.start — partial exit at fixed leverage", () => {
       intent: { ...case_und_und.intent, amount: 0n },
     });
     expectPreviewError(result, "insufficientSourceBalance");
+  });
+});
+
+describe("withdraw.start — test-matrix rows 4.1/4.2 (10U/8U at 5x)", () => {
+  // MATRIX MISMATCH (see case_matrix_4_1): the engine repays before paying out.
+  it("matrix 4.1: swap → decreaseDebt → withdrawCollateral → changeQuota, leverage held at 5x", async () => {
+    const state = await expectCase(case_matrix_4_1, [
+      MOCK_ROUTER_CALL,
+      CA_OP_CALLS.decreaseDebt,
+      CA_OP_CALLS.withdrawCollateral,
+      CA_OP_CALLS.changeQuota,
+    ]);
+
+    expect(assetBalance(state.assets, POS)).toBe(M4_SPEND);
+    // TVL 5U against debt 4U leaves collateral at 1U: still 5x.
+    expect(state.totalValue - state.accountDebt).toBe(M4_W);
+  });
+
+  // MATRIX MISMATCH (see case_matrix_4_2): the engine repays before paying out.
+  it("matrix 4.2: same on an RWA market, payout unwrapped on the way out", async () => {
+    await expectCase(case_matrix_4_2, [
+      MOCK_ROUTER_CALL,
+      CA_OP_CALLS.decreaseDebt,
+      MOCK_RWA_UNWRAP_CALL,
+      CA_OP_CALLS.withdrawCollateral,
+      CA_OP_CALLS.changeQuota,
+    ]);
   });
 });

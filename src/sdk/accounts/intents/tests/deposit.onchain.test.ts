@@ -18,6 +18,7 @@ import {
   buildDepositProps,
   buildDepositSdk,
   case_fixed_leverage,
+  case_native_coin,
   case_position_is_underlying,
   case_rwa_collateral,
   case_rwa_position,
@@ -73,6 +74,18 @@ describe("deposit.start — collateral in, debt on top, converted to position", 
     expect(state.quotas[POS]?.balance).toBe(QUOTA_3000);
     // TVL 3000 on collateral 1000 is exactly 3x.
     expect(state.totalValue).toBe(P3000);
+  });
+
+  it("matrix 3.2 deposits the native coin: value rides on addCollateral", async () => {
+    const state = await expectCase(case_native_coin, [
+      CA_OP_CALLS.addCollateral,
+      CA_OP_CALLS.increaseDebt,
+      MOCK_ROUTER_CALL,
+      CA_OP_CALLS.changeQuota,
+    ]);
+
+    // TVL 15U against debt 12U leaves collateral at 3U: still 5x.
+    expect(state.totalValue - state.accountDebt).toBe(300000000n);
   });
 
   it("skips the swap when the position token is the underlying", async () => {

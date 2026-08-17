@@ -9,18 +9,30 @@ import {
   RWA_ASSET as RWA,
   UND,
 } from "../testing/delayed.js";
-import { type ExpectedFlowOp, expectAdjustPreview } from "../testing/expect.js";
+import {
+  type ExpectedFlowOp,
+  expectAdjustPreview,
+  withOnchainOpCalls,
+} from "../testing/expect.js";
 import {
   CA_OP_CALLS,
   MOCK_CLAIM_CALL,
   MOCK_ROUTER_CALL,
+  MOCK_RWA_UNWRAP_CALL,
 } from "../testing/sdk-mock.js";
 import type { IntentPreviewResult } from "../types.js";
 import {
   A0,
+  buildMatrixWithdrawTailProps,
   buildWithdrawFinishProps,
   buildWithdrawSdk,
+  case_matrix_4_3_tail,
+  case_matrix_4_4_tail,
+  case_matrix_4_5_tail,
+  case_matrix_4_6_tail,
   DEBT_DELTA,
+  M4_DD,
+  type MatrixWithdrawTailCase,
   PHANTOM,
   WITHDRAW_ANY,
   WITHDRAW_PRE_D,
@@ -215,5 +227,91 @@ describe("withdraw tail S/T matrix (onchain)", () => {
       }),
     );
     expect(findPath).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * Test-matrix withdraw tails on the 10U/8U (5x) baseline, claiming through
+ * the quotable phantom (`POS2`) so the trailing changeQuota is observable.
+ */
+describe("withdraw tail — test-matrix rows 4.3–4.6 (onchain)", () => {
+  async function runMatrix(
+    c: MatrixWithdrawTailCase,
+  ): Promise<IntentPreviewResult> {
+    const props = buildMatrixWithdrawTailProps(c);
+    const service = new CreditAccountOperationsService(props.sdk as OnchainSDK);
+    return service.finishIntent(props);
+  }
+
+  // MATRIX MISMATCH (see case_matrix_4_3_tail): the engine repays before paying out.
+  it("matrix 4.3 tail: claim UND → decreaseDebt → withdrawCollateral → changeQuota", async () => {
+    const result = await runMatrix(case_matrix_4_3_tail);
+
+    expectAdjustPreview(result, {
+      totalValue: case_matrix_4_3_tail.totalValue,
+      accountDebt: M4_DD,
+      expectedOps: withOnchainOpCalls([...case_matrix_4_3_tail.ops]),
+      expectedCalls: [
+        MOCK_CLAIM_CALL,
+        CA_OP_CALLS.decreaseDebt,
+        CA_OP_CALLS.withdrawCollateral,
+        CA_OP_CALLS.changeQuota,
+      ],
+    });
+  });
+
+  // MATRIX MISMATCH (see case_matrix_4_4_tail): the engine repays before paying out.
+  it("matrix 4.4 tail: claim ANY → swap → decreaseDebt → withdrawCollateral → changeQuota", async () => {
+    const result = await runMatrix(case_matrix_4_4_tail);
+
+    expectAdjustPreview(result, {
+      totalValue: case_matrix_4_4_tail.totalValue,
+      accountDebt: M4_DD,
+      expectedOps: withOnchainOpCalls([...case_matrix_4_4_tail.ops]),
+      expectedCalls: [
+        MOCK_CLAIM_CALL,
+        MOCK_ROUTER_CALL,
+        CA_OP_CALLS.decreaseDebt,
+        CA_OP_CALLS.withdrawCollateral,
+        CA_OP_CALLS.changeQuota,
+      ],
+    });
+  });
+
+  // MATRIX MISMATCH (see case_matrix_4_5_tail): the engine repays before paying out.
+  it("matrix 4.5 tail: claim UND → decreaseDebt → unwrap → withdrawCollateral(RWA) → changeQuota", async () => {
+    const result = await runMatrix(case_matrix_4_5_tail);
+
+    expectAdjustPreview(result, {
+      totalValue: case_matrix_4_5_tail.totalValue,
+      accountDebt: M4_DD,
+      expectedOps: withOnchainOpCalls([...case_matrix_4_5_tail.ops]),
+      expectedCalls: [
+        MOCK_CLAIM_CALL,
+        CA_OP_CALLS.decreaseDebt,
+        MOCK_RWA_UNWRAP_CALL,
+        CA_OP_CALLS.withdrawCollateral,
+        CA_OP_CALLS.changeQuota,
+      ],
+    });
+  });
+
+  // MATRIX MISMATCH (see case_matrix_4_6_tail): the engine repays before paying out.
+  it("matrix 4.6 tail: claim ANY → swap → decreaseDebt → unwrap → withdrawCollateral(RWA) → changeQuota", async () => {
+    const result = await runMatrix(case_matrix_4_6_tail);
+
+    expectAdjustPreview(result, {
+      totalValue: case_matrix_4_6_tail.totalValue,
+      accountDebt: M4_DD,
+      expectedOps: withOnchainOpCalls([...case_matrix_4_6_tail.ops]),
+      expectedCalls: [
+        MOCK_CLAIM_CALL,
+        MOCK_ROUTER_CALL,
+        CA_OP_CALLS.decreaseDebt,
+        MOCK_RWA_UNWRAP_CALL,
+        CA_OP_CALLS.withdrawCollateral,
+        CA_OP_CALLS.changeQuota,
+      ],
+    });
   });
 });
