@@ -18,6 +18,7 @@ import { matchesOpportunityFilter } from "../../model/index.js";
 import type { GearboxAPI } from "../../offchain/index.js";
 import type { MultichainSDK, OnchainSDK } from "../../sdk/index.js";
 import { AbstractNamespace } from "../AbstractNamespace.js";
+import { SourceUnavailableError } from "../errors/index.js";
 import { ExecuteApi } from "../execute/index.js";
 import { onchainOnly, SimulateApi } from "../simulate/index.js";
 import type { NamespaceOptions } from "../types.js";
@@ -89,9 +90,7 @@ export class OpportunitiesNamespace
     // that chain answered from — see `onchainOnly`
     const chainOf = (chainId: ChainId): OnchainSDK => {
       if (!onchain) {
-        throw new Error(
-          "simulations need the onchain source, which this SDK was built without",
-        );
+        throw new SourceUnavailableError("Opportunities", "onchain");
       }
       return onchain.chain(chainId);
     };
@@ -101,7 +100,7 @@ export class OpportunitiesNamespace
     );
     // the write side runs on the same chain resolver: what `simulate` priced,
     // `execute` encodes
-    this.execute = new ExecuteApi(chainOf, options.ensureFresh);
+    this.execute = new ExecuteApi(chainOf);
   }
 
   /**

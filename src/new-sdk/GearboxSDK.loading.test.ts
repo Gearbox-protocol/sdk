@@ -220,6 +220,20 @@ describe("GearboxSDK loading", () => {
     expect(chain.syncState).not.toHaveBeenCalled();
   });
 
+  it("the raw `.onchain` branch attaches and revalidates too — the app's split read path", async () => {
+    const { sdk, attach, chains, list } = build();
+    const chain = chains.get("Mainnet");
+    if (!chain) throw new Error("unreachable");
+    chain.age(MAX_AGE + 1);
+
+    const response = await sdk.opportunities.onchain.list();
+
+    expect(attach).toHaveBeenCalledTimes(1);
+    expect(chain.syncState).toHaveBeenCalledTimes(1);
+    expect(list).toHaveBeenCalledTimes(1);
+    expect(response.data).toEqual([]);
+  });
+
   it("the sync LP simulation before attach throws SdkNotAttachedError, as before", () => {
     const { sdk } = build();
     expect(() =>

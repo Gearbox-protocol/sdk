@@ -7,7 +7,6 @@ import type {
   OpenStrategySimulate,
   StrategySimulate,
 } from "../simulate/index.js";
-import type { EnsureFreshChains } from "../types.js";
 
 /**
  * A pool deposit or withdrawal, as {@link OpportunitiesSimulate.deposit} /
@@ -89,11 +88,9 @@ export interface OpportunitiesExecute {
  **/
 export class ExecuteApi implements OpportunitiesExecute {
   readonly #chainOf: ChainOf;
-  readonly #ensureFresh?: EnsureFreshChains;
 
-  constructor(chainOf: ChainOf, ensureFresh?: EnsureFreshChains) {
+  constructor(chainOf: ChainOf) {
     this.#chainOf = chainOf;
-    this.#ensureFresh = ensureFresh;
   }
 
   /**
@@ -107,9 +104,6 @@ export class ExecuteApi implements OpportunitiesExecute {
         `cannot build a transaction from a failed ${request.kind} simulation`,
       );
     }
-    // the encoders read loaded market state (metadata, quotas, price feeds):
-    // attached and no older than the SDK allows, like every other read
-    await this.#ensureFresh?.([request.chainId]);
     const sdk = this.#chainOf(request.chainId);
     switch (request.kind) {
       case "pool":

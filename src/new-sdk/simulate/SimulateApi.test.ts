@@ -13,6 +13,7 @@ import type {
   OnchainSDK,
   PreviewErrorReason,
 } from "../../sdk/index.js";
+import { SourceUnavailableError } from "../errors/index.js";
 import { onchainOnly, SimulateApi } from "./SimulateApi.js";
 import type { PositionInput } from "./types.js";
 
@@ -73,7 +74,7 @@ describe("onchainOnly", () => {
     const run = onchainOnly(undefined);
 
     await expect(run("simulate", CHAIN_ID, async () => 1)).rejects.toThrow(
-      /without an onchain source/,
+      SourceUnavailableError,
     );
   });
 });

@@ -12,6 +12,7 @@ import {
   CreditAccountOperationsService,
   fetchCreditAccountSlice,
 } from "../../sdk/index.js";
+import { SourceUnavailableError } from "../errors/index.js";
 import type { EnsureFreshChains } from "../types.js";
 import type {
   AddCollateralParams,
@@ -60,9 +61,7 @@ export function onchainOnly(
     fromChain: (sdk: MultichainSDK) => Promise<T>,
   ): Promise<DataResponse<T>> => {
     if (!onchain) {
-      throw new Error(
-        `cannot ${action}: this SDK was built without an onchain source`,
-      );
+      throw new SourceUnavailableError("Opportunities", "onchain");
     }
     try {
       // attach on first read, revalidate by age (this chain only)

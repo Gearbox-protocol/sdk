@@ -33,7 +33,7 @@ import {
 
 /**
  * The invariant the sdk-first plan rests on: what `simulate` projected is what
- * the chain does once `execute.buildTx` is sent — per field, per direction, on
+ * the chain does once `execute().buildTx` is sent — per field, per direction, on
  * a mainnet fork. `min` below is `sim.preview`, the router floor after
  * slippage `S`.
  *
@@ -95,14 +95,9 @@ describe("simulate → execute on a mainnet fork", () => {
 
   // ---- helpers ------------------------------------------------------------
 
-  const { simulate, execute } = {
-    get simulate() {
-      return gearbox.opportunities.simulate;
-    },
-    get execute() {
-      return gearbox.opportunities.execute;
-    },
-  };
+  // resolved lazily: `gearbox` exists only after `beforeAll`
+  const simulate = () => gearbox.opportunities.simulate;
+  const execute = () => gearbox.opportunities.execute;
 
   async function mined(hash: Hex) {
     const receipt = await chain.client.waitForTransactionReceipt({
@@ -136,7 +131,7 @@ describe("simulate → execute on a mainnet fork", () => {
   }
 
   async function send(request: PrepareRequest): Promise<RawTx> {
-    const tx = await execute.buildTx(request);
+    const tx = await execute().buildTx(request);
     const prerequisites = await checkPrerequisites({
       sdk: chain,
       to: tx.to,
@@ -174,15 +169,17 @@ describe("simulate → execute on a mainnet fork", () => {
     creditAccount: Address;
     before: CreditAccountDataPayload;
     preview: Extract<
-      Awaited<ReturnType<typeof simulate.openNewStrategy>>["data"],
+      Awaited<
+        ReturnType<ReturnType<typeof simulate>["openNewStrategy"]>
+      >["data"],
       { ok: true }
     >["preview"];
   }> {
     await fund();
     await sync();
-    const sim = await simulate.openNewStrategy(OPEN_KEY, OPEN_PARAMS);
+    const sim = await simulate().openNewStrategy(OPEN_KEY, OPEN_PARAMS);
     if (!sim.data.ok) throw new Error(`open sim failed: ${sim.data.reason}`);
-    const tx = await execute.buildTx({
+    const tx = await execute().buildTx({
       kind: "open",
       chainId: CHAIN_ID,
       creditManager: CREDIT_MANAGER,
@@ -237,7 +234,7 @@ describe("simulate → execute on a mainnet fork", () => {
   }
 
   function adjustPreview(
-    sim: Awaited<ReturnType<typeof simulate.adjustLeverage>>,
+    sim: Awaited<ReturnType<ReturnType<typeof simulate>["adjustLeverage"]>>,
   ) {
     if (!sim.data.ok) throw new Error(`sim failed: ${sim.data.reason}`);
     if (sim.data.preview.kind !== "adjust")
@@ -275,9 +272,9 @@ describe("simulate → execute on a mainnet fork", () => {
     it("without the allowance, checkPrerequisites reports it and the send reverts before any block", async () => {
       await anvil.deal({ erc20: USDC, account: borrower, amount: WALLET_USDC });
       await sync();
-      const sim = await simulate.openNewStrategy(OPEN_KEY, OPEN_PARAMS);
+      const sim = await simulate().openNewStrategy(OPEN_KEY, OPEN_PARAMS);
       if (!sim.data.ok) throw new Error(sim.data.reason);
-      const tx = await execute.buildTx({
+      const tx = await execute().buildTx({
         kind: "open",
         chainId: CHAIN_ID,
         creditManager: CREDIT_MANAGER,
@@ -311,7 +308,7 @@ describe("simulate → execute on a mainnet fork", () => {
       const { creditAccount } = await openPosition();
       await sync();
       const { sim, preview } = adjustPreview(
-        await simulate.depositStrategy(position(creditAccount), {
+        await simulate().depositStrategy(position(creditAccount), {
           token: USDC,
           amount: parseUnits("500", 6),
           positionToken: TARGET_TOKEN,
@@ -336,7 +333,7 @@ describe("simulate → execute on a mainnet fork", () => {
       const { creditAccount } = await openPosition();
       await sync();
       const { sim, preview } = adjustPreview(
-        await simulate.depositStrategy(position(creditAccount), {
+        await simulate().depositStrategy(position(creditAccount), {
           token: USDC,
           amount: parseUnits("500", 6),
           positionToken: TARGET_TOKEN,
@@ -360,7 +357,7 @@ describe("simulate → execute on a mainnet fork", () => {
       const { creditAccount } = await openPosition();
       await sync();
       const { sim, preview } = adjustPreview(
-        await simulate.adjustLeverage(position(creditAccount), {
+        await simulate().adjustLeverage(position(creditAccount), {
           targetLeverage: X3,
           token: TARGET_TOKEN,
           slippage: S,
@@ -384,7 +381,7 @@ describe("simulate → execute on a mainnet fork", () => {
       const { creditAccount } = await openPosition();
       await sync();
       const { sim, preview } = adjustPreview(
-        await simulate.adjustLeverage(position(creditAccount), {
+        await simulate().adjustLeverage(position(creditAccount), {
           targetLeverage: X3,
           token: TARGET_TOKEN,
           slippage: S,
@@ -411,7 +408,7 @@ describe("simulate → execute on a mainnet fork", () => {
       const { creditAccount } = await openPosition();
       await sync();
       const { sim, preview, timestamp } = adjustPreview(
-        await simulate.adjustLeverage(position(creditAccount), {
+        await simulate().adjustLeverage(position(creditAccount), {
           targetLeverage: X1_5,
           token: TARGET_TOKEN,
           slippage: S,
@@ -436,7 +433,7 @@ describe("simulate → execute on a mainnet fork", () => {
       const { creditAccount } = await openPosition();
       await sync();
       const { sim, preview, timestamp } = adjustPreview(
-        await simulate.adjustLeverage(position(creditAccount), {
+        await simulate().adjustLeverage(position(creditAccount), {
           targetLeverage: X1_5,
           token: TARGET_TOKEN,
           slippage: S,
@@ -464,7 +461,7 @@ describe("simulate → execute on a mainnet fork", () => {
       const { creditAccount } = await openPosition();
       await sync();
       const { sim, preview, timestamp } = adjustPreview(
-        await simulate.withdrawStrategy(position(creditAccount), {
+        await simulate().withdrawStrategy(position(creditAccount), {
           amount: W,
           to: borrower,
           sourceToken: TARGET_TOKEN,
@@ -490,7 +487,7 @@ describe("simulate → execute on a mainnet fork", () => {
       const { creditAccount } = await openPosition();
       await sync();
       const { sim, preview, timestamp } = adjustPreview(
-        await simulate.withdrawStrategy(position(creditAccount), {
+        await simulate().withdrawStrategy(position(creditAccount), {
           amount: W,
           to: borrower,
           sourceToken: TARGET_TOKEN,
@@ -514,10 +511,10 @@ describe("simulate → execute on a mainnet fork", () => {
     it("maxWithdraw leaves the account at the debt floor, still open", async () => {
       const { creditAccount } = await openPosition();
       await sync();
-      const max = await simulate.maxWithdraw(position(creditAccount));
+      const max = await simulate().maxWithdraw(position(creditAccount));
       expect(max.meta.chains[0]?.status).toBe("success");
       const { sim, timestamp } = adjustPreview(
-        await simulate.withdrawStrategy(position(creditAccount), {
+        await simulate().withdrawStrategy(position(creditAccount), {
           amount: max.data,
           to: borrower,
           sourceToken: TARGET_TOKEN,
@@ -554,7 +551,7 @@ describe("simulate → execute on a mainnet fork", () => {
       const { creditAccount } = await openPosition();
       await sync();
       const { sim, preview } = adjustPreview(
-        await simulate.addCollateral(position(creditAccount), {
+        await simulate().addCollateral(position(creditAccount), {
           token: underlying,
           amount: AMOUNT,
         }),
@@ -577,7 +574,7 @@ describe("simulate → execute on a mainnet fork", () => {
       const { creditAccount, before } = await openPosition();
       await sync();
       const { sim, preview } = adjustPreview(
-        await simulate.addCollateral(position(creditAccount), {
+        await simulate().addCollateral(position(creditAccount), {
           token: underlying,
           amount: AMOUNT,
         }),
@@ -605,7 +602,7 @@ describe("simulate → execute on a mainnet fork", () => {
     async function withUnderlying(creditAccount: Address) {
       await sync();
       const { sim } = adjustPreview(
-        await simulate.addCollateral(position(creditAccount), {
+        await simulate().addCollateral(position(creditAccount), {
           token: underlying,
           amount: ADDED,
         }),
@@ -624,7 +621,7 @@ describe("simulate → execute on a mainnet fork", () => {
       await withUnderlying(creditAccount);
       await sync();
       const { sim, preview } = adjustPreview(
-        await simulate.withdrawCollateral(position(creditAccount), {
+        await simulate().withdrawCollateral(position(creditAccount), {
           token: underlying,
           amount: OUT,
           to: borrower,
@@ -649,7 +646,7 @@ describe("simulate → execute on a mainnet fork", () => {
       await withUnderlying(creditAccount);
       await sync();
       const { sim, preview } = adjustPreview(
-        await simulate.withdrawCollateral(position(creditAccount), {
+        await simulate().withdrawCollateral(position(creditAccount), {
           token: underlying,
           amount: OUT,
           to: borrower,
@@ -703,7 +700,7 @@ describe("simulate → execute on a mainnet fork", () => {
       await anvil.deal({ erc20: USDC, account: borrower, amount: WALLET_USDC });
       await approve(USDC, pool);
       await sync();
-      const sim = simulate.deposit({ chainId: CHAIN_ID, pool }, COLLATERAL);
+      const sim = simulate().deposit({ chainId: CHAIN_ID, pool }, COLLATERAL);
       const before = await balance(shares);
       await send({
         kind: "pool",
@@ -723,7 +720,10 @@ describe("simulate → execute on a mainnet fork", () => {
       await anvil.deal({ erc20: USDC, account: borrower, amount: WALLET_USDC });
       await approve(USDC, pool);
       await sync();
-      const deposit = simulate.deposit({ chainId: CHAIN_ID, pool }, COLLATERAL);
+      const deposit = simulate().deposit(
+        { chainId: CHAIN_ID, pool },
+        COLLATERAL,
+      );
       await send({
         kind: "pool",
         chainId: CHAIN_ID,
@@ -734,7 +734,7 @@ describe("simulate → execute on a mainnet fork", () => {
       });
       await sync();
       const owned = await balance(shares);
-      const sim = simulate.withdraw({ chainId: CHAIN_ID, pool }, owned / 2n);
+      const sim = simulate().withdraw({ chainId: CHAIN_ID, pool }, owned / 2n);
       const before = await balance(USDC);
       await send({
         kind: "pool",
