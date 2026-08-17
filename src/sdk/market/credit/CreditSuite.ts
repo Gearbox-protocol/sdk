@@ -252,11 +252,21 @@ export class CreditSuite extends SDKConstruct {
    * - is not a phantom token, which only ever appears as the intermediate step
    *   of a withdrawal and cannot be acquired;
    * - is not an expired token, e.g. a matured Pendle PT;
+   * - has a non-zero main price in the market's oracle — a zero or failed
+   *   answer (e.g. a zero price feed) means the position cannot be valued;
    * - the market still accepts quota for, see
    *   {@link PoolQuotaKeeperContract.hasActiveQuota}.
+   *
+   * A suite where no debt can be drawn at all ({@link maxBorrowAmount} is `0`,
+   * e.g. its debt limit is exhausted or zeroed out) offers no strategies,
+   * whatever its collaterals are.
    */
   public get strategyCollaterals(): Address[] {
+    if (this.maxBorrowAmount === 0n) {
+      return [];
+    }
     const { pqk, unwrappedUnderlying } = this.market.pool;
+    const { mainPrices } = this.market.priceOracle;
     const { tokensMeta } = this;
 
     return this.creditManager.leverageableCollaterals.filter(token => {
@@ -265,6 +275,10 @@ export class CreditSuite extends SDKConstruct {
       }
       const meta = tokensMeta.mustGet(token);
       if (tokensMeta.isPhantomToken(meta) || meta.isExpired) {
+        return false;
+      }
+      const mainPrice = mainPrices.get(token);
+      if (!mainPrice?.success || mainPrice.price === 0n) {
         return false;
       }
       return pqk.hasActiveQuota(token);
