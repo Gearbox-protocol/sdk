@@ -19,8 +19,9 @@ import {
   poolOpportunityDetailSchema,
   strategyOpportunityDetailSchema,
 } from "../../model/opportunities.schema.js";
+import type { DataResponse } from "../../model/response.js";
 import { AbstractOffchainNamespace } from "../AbstractOffchainNamespace.js";
-import type { GearboxAPIOptions, OffchainResult } from "../types.js";
+import type { GearboxAPIOptions } from "../types.js";
 
 /**
  * Backend counterpart of the `opportunities` namespace.
@@ -28,23 +29,26 @@ import type { GearboxAPIOptions, OffchainResult } from "../types.js";
 export class OffchainOpportunities extends AbstractOffchainNamespace {
   readonly #root = "/v2/opportunities";
 
-  constructor(options?: GearboxAPIOptions) {
+  constructor(options: GearboxAPIOptions) {
     super("OffchainOpportunities", options);
   }
 
   /**
-   * All opportunities the backend knows about, optionally narrowed by
-   * {@link OpportunityFilter}.
+   * Opportunities of the chains this client covers, optionally narrowed further
+   * by {@link OpportunityFilter}.
    **/
+  // the chains are always named, even when the filter does not: the backend
+  // serves chains this client has no business showing
   public async list(
     filter?: OpportunityFilter,
-  ): Promise<OffchainResult<Opportunity[]>> {
+  ): Promise<DataResponse<Opportunity[]>> {
     return this.get({
       path: this.#root,
       // the encode direction of the same codec the backend validates with
-      query: filter
-        ? z.encode(opportunityFilterQuerySchema, filter)
-        : undefined,
+      query: z.encode(opportunityFilterQuerySchema, {
+        ...filter,
+        chainIds: this.scopedChainIds(filter),
+      }),
       schema: z.array(opportunitySchema),
     });
   }
@@ -54,7 +58,7 @@ export class OffchainOpportunities extends AbstractOffchainNamespace {
    **/
   public async getPool(
     key: PoolOpportunityKey,
-  ): Promise<OffchainResult<PoolOpportunityDetail>> {
+  ): Promise<DataResponse<PoolOpportunityDetail>> {
     return this.get({
       path: this.#poolPath(key),
       schema: poolOpportunityDetailSchema,
@@ -66,7 +70,7 @@ export class OffchainOpportunities extends AbstractOffchainNamespace {
    **/
   public async getStrategy(
     key: StrategyOpportunityKey,
-  ): Promise<OffchainResult<StrategyOpportunityDetail>> {
+  ): Promise<DataResponse<StrategyOpportunityDetail>> {
     return this.get({
       path: this.#strategyPath(key),
       schema: strategyOpportunityDetailSchema,
@@ -78,7 +82,7 @@ export class OffchainOpportunities extends AbstractOffchainNamespace {
    **/
   public async getHistory<M extends HistoryMetric>(
     query: OpportunityHistoryQuery<M>,
-  ): Promise<OffchainResult<HistorySeries<M>>> {
+  ): Promise<DataResponse<HistorySeries<M>>> {
     return this.readHistory({
       path: `${this.#historyRoot(query.opportunity)}/history/${query.metric}`,
       metric: query.metric,

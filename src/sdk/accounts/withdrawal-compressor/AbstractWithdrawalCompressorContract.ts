@@ -19,6 +19,7 @@ import type {
   ClaimableWithdrawal,
   CurrentWithdrawals,
   DelayedIntentExtended,
+  GetExternalAccountCurrentWithdrawalsProps,
   GetWithdrawalRequestResultProps,
   IWithdrawalCompressorContract,
   PendingWithdrawal,
@@ -135,6 +136,7 @@ export abstract class AbstractWithdrawalCompressorContract<abi extends Abi>
    **/
   public async loadWithdrawableAssets(
     force?: boolean,
+    blockNumber?: bigint,
   ): Promise<WithdrawableAsset[]> {
     if (this.#withdrawableAssets && !force) {
       return this.getWithdrawableAssets();
@@ -154,6 +156,7 @@ export abstract class AbstractWithdrawalCompressorContract<abi extends Abi>
       ),
       allowFailure: true,
       batchSize: 0,
+      blockNumber,
     });
     const cache = new AddressMap<WithdrawableAsset[]>(undefined, MAP_LABEL);
     for (let i = 0; i < resp.length; i++) {
@@ -232,6 +235,7 @@ export abstract class AbstractWithdrawalCompressorContract<abi extends Abi>
    **/
   public async getCurrentWithdrawals(
     creditAccount: Address,
+    blockNumber?: bigint,
   ): Promise<CurrentWithdrawals> {
     const [[claimable, pending], creditManager] = await this.client.multicall({
       contracts: [
@@ -249,6 +253,7 @@ export abstract class AbstractWithdrawalCompressorContract<abi extends Abi>
       ] as const,
       allowFailure: false,
       batchSize: 0,
+      blockNumber,
     });
     // intent decoding is effectively a no-op on legacy compressors:
     // their ABIs have no `extraData` field in the withdrawal structs
@@ -264,8 +269,7 @@ export abstract class AbstractWithdrawalCompressorContract<abi extends Abi>
    * {@inheritDoc IWithdrawalCompressorContract.getExternalAccountCurrentWithdrawals}
    **/
   public async getExternalAccountCurrentWithdrawals(
-    _account: Address,
-    ..._withdrawalTokens: Address[]
+    _props: GetExternalAccountCurrentWithdrawalsProps,
   ): Promise<CurrentWithdrawals> {
     this.#reportUnsupported("external account withdrawals");
     return { claimable: [], pending: [] };

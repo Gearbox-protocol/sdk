@@ -1,3 +1,4 @@
+import type { ChainId } from "../../model/primitives.js";
 import type { NetworkType } from "../chain/chains.js";
 
 /**
@@ -13,12 +14,14 @@ export interface MultichainNetworkProps {
 /**
  * Restricts which chains a multichain list method queries.
  **/
-export interface MultichainNetworksProps {
+export interface MultichainChainIdsProps {
   /**
-   * Networks to query. All chains configured in {@link MultichainSDK} when
-   * omitted.
+   * Chains to query. All chains configured in {@link MultichainSDK} when
+   * omitted, and one the SDK is not configured for is dropped.
+   *
+   * A caller who thinks in network labels converts with {@link toChainIds}.
    **/
-  networks?: NetworkType[];
+  chainIds?: ChainId[];
 }
 
 /**
@@ -30,41 +33,20 @@ export type WithMultichain<
 > = Multichain extends true ? T : {};
 
 /**
- * Outcome of a fan-out request on a single chain.
+ * Pins a live read to a block. Only meaningful on one chain: a height is not
+ * a shared moment across networks.
  **/
-export interface MultichainNetworkMeta {
+export interface BlockNumberProps {
   /**
-   * Network the request was sent to.
+   * Block to read at. Defaults to the latest block.
    **/
-  network: NetworkType;
-  /**
-   * Whether the per-chain request succeeded.
-   **/
-  status: "success" | "error";
-  /**
-   * Rejection reason of the per-chain request. Only set when
-   * {@link status} is `"error"`.
-   **/
-  error?: unknown;
+  blockNumber?: bigint;
 }
 
 /**
- * Result of a multichain fan-out request: the combined payload of all
- * successful chains plus the outcome of every queried chain.
- *
- * Methods with no payload use `MultichainResult<void>`, i.e. `result` is
- * `undefined` and only {@link meta} carries information.
- *
- * @typeParam T - Combined payload type.
+ * Adds {@link BlockNumberProps} only for a single-chain call. Fan-out methods
+ * omit it so a caller cannot pass one height to every network.
  **/
-export interface MultichainResult<T> {
-  /**
-   * Combined payload of the chains that responded successfully. Chains that
-   * failed contribute nothing and are reported in {@link meta}.
-   **/
-  result: T;
-  /**
-   * Per-chain request outcome, one entry per queried chain.
-   **/
-  meta: MultichainNetworkMeta[];
-}
+export type WithBlock<Multichain extends boolean> = Multichain extends true
+  ? {}
+  : BlockNumberProps;

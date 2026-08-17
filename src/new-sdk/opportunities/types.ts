@@ -1,4 +1,5 @@
 import type {
+  DataResponse,
   Opportunity,
   OpportunityFilter,
   PoolHistoryMetric,
@@ -10,31 +11,58 @@ import type {
   StrategyOpportunityKey,
   StrategyOpportunityRef,
 } from "../../model/index.js";
+import type { OffchainOpportunities } from "../../offchain/index.js";
+import type { MultichainOpportunitiesService } from "../../sdk/index.js";
 import type { OpportunitiesSimulate } from "../simulate/index.js";
-import type { Mode, ReadResult } from "../types.js";
+import type { Mode } from "../types.js";
 import type { HistoryReader } from "../utils/history.js";
+import type { SourceMerger } from "../utils/index.js";
 
 /**
- * Reads every mode supports, because either source alone can answer them.
+ * What the `opportunities` namespace offers in every mode.
  **/
 export interface OpportunitiesBase {
   /**
-   * All pool and strategy opportunities, optionally narrowed.
-   *
-   * In `both` mode the two lists are unioned by canonical opportunity id and
-   * merged field-wise, with the chain winning any field both sources fill.
+   * All pool and strategy opportunities, optionally narrowed. In `both` mode
+   * each chain is served by whichever source is fresh enough, see
+   * {@link OpportunityMergers}.
    **/
-  list(filter?: OpportunityFilter): Promise<ReadResult<Opportunity[]>>;
+  list(filter?: OpportunityFilter): Promise<DataResponse<Opportunity[]>>;
   /**
    * Detailed view of one pool opportunity.
    **/
-  getPool(key: PoolOpportunityKey): Promise<ReadResult<PoolOpportunityDetail>>;
+  getPool(
+    key: PoolOpportunityKey,
+  ): Promise<DataResponse<PoolOpportunityDetail>>;
   /**
    * Detailed view of one strategy opportunity.
    **/
   getStrategy(
     key: StrategyOpportunityKey,
-  ): Promise<ReadResult<StrategyOpportunityDetail>>;
+  ): Promise<DataResponse<StrategyOpportunityDetail>>;
+  /**
+   * Narrows an already-read list, rows and metadata alike. `undefined` passes
+   * through, so a read still in flight stays that way.
+   **/
+  filter(
+    response: DataResponse<Opportunity[]> | undefined,
+    filter?: OpportunityFilter,
+  ): DataResponse<Opportunity[]> | undefined;
+  /**
+   * The chain on its own, for a consumer that shows each source as it arrives.
+   * Throws in `offchain` mode.
+   **/
+  readonly onchain: MultichainOpportunitiesService;
+  /**
+   * The backend on its own, see {@link OpportunitiesBase.onchain}. Throws in
+   * `onchain` mode.
+   **/
+  readonly offchain: OffchainOpportunities;
+  /**
+   * Merge policy of each read, for a consumer combining the two branches
+   * itself, see {@link OpportunityMergers}.
+   **/
+  readonly merge: OpportunityMergers;
 }
 
 /**
@@ -43,14 +71,11 @@ export interface OpportunitiesBase {
 export interface OpportunitiesOffchainOnly {
   /**
    * Historical charts of one opportunity, one metric and one range at a time:
-   * `history(key).chart("depositApy", "1m")`.
-   *
-   * The key's kind decides which metrics exist, so asking a pool for a
-   * strategy series does not compile.
-   *
-   * Absent in `onchain` mode: the chain serves the present, and rebuilding a
-   * series from it would mean an archive read per point.
+   * `history(key).chart("depositApy", "1m")`. The key's kind decides which
+   * metrics exist, so asking a pool for a strategy series does not compile.
    **/
+  // there is no second source to fall back to, so a backend failure is raised
+  // rather than reported in the metadata
   history(key: PoolOpportunityRef): HistoryReader<PoolHistoryMetric>;
   history(key: StrategyOpportunityRef): HistoryReader<StrategyHistoryMetric>;
 }
@@ -66,22 +91,68 @@ export interface OpportunitiesOnchainOnly {
    * state, and the strategy flows additionally need the pathfinder for real swap
    * paths, so there is nothing the backend could answer with.
    **/
-  simulate: OpportunitiesSimulate;
+  readonly simulate: OpportunitiesSimulate;
+}
+
+/**
+ * How each read combines what the two sources returned: a chain is served by
+ * the backend when it is fresh enough, and by the chain otherwise.
+ **/
+export interface OpportunityMergers {
+  list: SourceMerger<Opportunity[]>;
+  pool: SourceMerger<PoolOpportunityDetail>;
+  strategy: SourceMerger<StrategyOpportunityDetail>;
+}
+
+/**
+ * Which reads the `opportunities` namespace has in each mode. A widened mode
+ * offers what every mode has, i.e. {@link OpportunitiesBase} alone.
+ **/
+export interface OpportunitiesOnchainBranch {
+  readonly onchain: MultichainOpportunitiesService;
+}
+
+/**
+ * The backend on its own, see {@link OpportunitiesOnchainBranch}.
+ **/
+export interface OpportunitiesOffchainBranch {
+  readonly offchain: OffchainOpportunities;
+}
+
+/**
+ * Merge policy of each read, exposed so that a consumer reading the two
+ * branches itself combines them exactly as `both` mode would: a chain is served
+ * by the backend when it is fresh enough, and by the chain otherwise.
+ **/
+export interface OpportunityMergers {
+  list: SourceMerger<Opportunity[]>;
+  pool: SourceMerger<PoolOpportunityDetail>;
+  strategy: SourceMerger<StrategyOpportunityDetail>;
+}
+
+/**
+ * Merging, which only exists where there are two sources to merge.
+ **/
+export interface OpportunitiesMerged {
+  readonly merge: OpportunityMergers;
 }
 
 /**
  * Which methods the `opportunities` namespace has in each mode.
- *
- * A lookup map rather than a conditional type: `both` is spelled out instead of
- * being inferred, and a widened mode degrades to the intersection of what all
- * modes offer rather than silently distributing into a union of everything.
  **/
+// a lookup map rather than a conditional type: `both` is spelled out instead of
+// being inferred, and a widened mode degrades to the intersection of what all
+// modes offer rather than silently distributing into a union of everything
 export interface OpportunitiesByMode {
-  onchain: OpportunitiesBase & OpportunitiesOnchainOnly;
-  offchain: OpportunitiesBase & OpportunitiesOffchainOnly;
-  both: OpportunitiesBase &
+  onchain: OpportunitiesBase &
+    OpportunitiesOnchainOnly &
+    OpportunitiesOnchainBranch;
+  offchain: OpportunitiesBase &
     OpportunitiesOffchainOnly &
-    OpportunitiesOnchainOnly;
+    OpportunitiesOffchainBranch;
+  both: OpportunitiesBase &
+    OpportunitiesOnchainOnly &
+    OpportunitiesOffchainOnly;
 }
 
 /**

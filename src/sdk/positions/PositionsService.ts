@@ -16,9 +16,8 @@ export class PositionsService extends SDKConstruct {
    * the call rather than the SDK's loaded snapshot.
    **/
   public async list(props: ListPositionsProps): Promise<Position[]> {
-    const { wallet, filter } = props;
-    const chainIds = filter?.chainIds;
-    if (isFilterSet(chainIds) && !chainIds.includes(this.chainId)) {
+    const { wallet, filter, blockNumber } = props;
+    if (filter?.chainIds && !filter.chainIds.includes(this.chainId)) {
       return [];
     }
 
@@ -29,7 +28,7 @@ export class PositionsService extends SDKConstruct {
     const isZeroDebt = filter?.isZeroDebt;
     const [pool, strategy, liquidation] = await Promise.all([
       wanted("pool")
-        ? this.sdk.pools.listPositions({ wallet })
+        ? this.sdk.pools.listPositions({ wallet, blockNumber })
         : Promise.resolve([]),
       wanted("strategy")
         ? this.sdk.accounts.listPositions({
@@ -37,10 +36,14 @@ export class PositionsService extends SDKConstruct {
             // a filter that asks for accounts with debt narrows the account
             // query itself; anything else needs them all
             includeZeroDebt: !isFilterSet(isZeroDebt) || isZeroDebt,
+            blockNumber,
           })
         : Promise.resolve([]),
       wanted("liquidation")
-        ? this.sdk.liquidations.getLiquidationPositions({ liquidator: wallet })
+        ? this.sdk.liquidations.getLiquidationPositions({
+            liquidator: wallet,
+            blockNumber,
+          })
         : Promise.resolve([]),
     ]);
 

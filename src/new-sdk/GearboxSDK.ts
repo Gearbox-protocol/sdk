@@ -1,6 +1,7 @@
 import { GearboxAPI } from "../offchain/index.js";
 import type { MultichainAttachOptions, NetworkType } from "../sdk/index.js";
-import { MultichainSDK } from "../sdk/index.js";
+import { MultichainSDK, toChainIds } from "../sdk/index.js";
+import { assertSameChains, MissingSourceError } from "./errors/index.js";
 import type { Opportunities } from "./opportunities/index.js";
 import { OpportunitiesNamespace } from "./opportunities/index.js";
 import type { Positions } from "./positions/index.js";
@@ -8,17 +9,17 @@ import { PositionsNamespace } from "./positions/index.js";
 import type {
   GearboxSDKOptions,
   Mode,
+  NamespaceOptions,
   OffchainByMode,
   OnchainByMode,
+  PlainMultichainSDKOptions,
 } from "./types.js";
+import { DEFAULT_MAX_OFFCHAIN_LAG } from "./utils/index.js";
 
 /**
- * Combined entry point over both sources of Gearbox data: the chain and the
- * Gearbox backend.
- *
- * The {@link Mode} is fixed at construction and decides which methods exist,
- * not what they return, so a screen written against `both` cannot silently
- * degrade to a subset when someone reconfigures the SDK:
+ * Entry point over both sources of Gearbox data: the chain and the Gearbox
+ * backend. The {@link Mode} is fixed at construction and decides which methods
+ * exist.
  *
  * ```ts
  * const sdk = new GearboxSDK({
@@ -29,12 +30,8 @@ import type {
  * });
  * await sdk.attach();
  *
- * const { result, meta } = await sdk.opportunities.list({ kind: "strategy" });
+ * const { data, meta } = await sdk.opportunities.list({ kind: "strategy" });
  * ```
- *
- * Every read answers with `{ result, meta }`: `meta` says which chains and
- * which backend answered, because a partial answer is the normal case for a
- * multi-chain read.
  *
  * @typeParam M - Mode the instance was built in.
  **/
@@ -44,8 +41,7 @@ export class GearboxSDK<const M extends Mode = Mode> {
    **/
   public readonly mode: M;
   /**
-   * Chains this instance covers. Authoritative even when an injected on-chain
-   * SDK covers a different set.
+   * Chains this instance covers, which every read is scoped to.
    **/
   public readonly networks: readonly NetworkType[];
   /**
@@ -60,15 +56,20 @@ export class GearboxSDK<const M extends Mode = Mode> {
   readonly #attachOptions?: MultichainAttachOptions;
   readonly #onchain?: MultichainSDK;
   readonly #offchain?: GearboxAPI;
-  /**
-   * Whether this instance built the on-chain SDK, and therefore attaches it.
-   **/
   readonly #ownsOnchain: boolean = false;
 
   #attached: boolean;
 
   constructor(options: GearboxSDKOptions<M>) {
-    const { mode, networks, onchain, offchain, attach, logger } = options;
+    const {
+      mode,
+      networks,
+      onchain,
+      offchain,
+      attach,
+      logger,
+      maxOffchainLagSeconds = DEFAULT_MAX_OFFCHAIN_LAG,
+    } = options;
 
     this.mode = mode;
     this.networks = [...networks];
@@ -78,10 +79,10 @@ export class GearboxSDK<const M extends Mode = Mode> {
     const needsOffchain = mode === "offchain" || mode === "both";
 
     if (needsOnchain && !onchain) {
-      throw new Error(`GearboxSDK in ${mode} mode needs an onchain source`);
+      throw new MissingSourceError(mode, "onchain");
     }
     if (needsOffchain && !offchain) {
-      throw new Error(`GearboxSDK in ${mode} mode needs an offchain source`);
+      throw new MissingSourceError(mode, "offchain");
     }
     if (!needsOnchain && onchain) {
       logger?.warn(
@@ -94,48 +95,57 @@ export class GearboxSDK<const M extends Mode = Mode> {
       );
     }
 
+    const chainIds = toChainIds(networks);
     if (needsOnchain && onchain) {
       if (onchain instanceof MultichainSDK) {
-        // an injected instance belongs to its owner: it is used as it is, and
-        // never attached or synced from here
         this.#onchain = onchain;
       } else {
-        this.#onchain = new MultichainSDK({ logger, ...onchain });
+        this.#onchain = new MultichainSDK({
+          logger,
+          ...onchain,
+          chains: chainsOf(onchain.chains, networks),
+        });
         this.#ownsOnchain = true;
       }
+      assertSameChains("onchain", networks, [...this.#onchain.chains.keys()]);
     }
     if (needsOffchain && offchain) {
-      this.#offchain =
-        offchain instanceof GearboxAPI
-          ? offchain
-          : new GearboxAPI({ logger, ...offchain });
+      if (offchain instanceof GearboxAPI) {
+        assertSameChains("offchain", chainIds, offchain.chainIds);
+        this.#offchain = offchain;
+      } else {
+        this.#offchain = new GearboxAPI({ logger, ...offchain, chainIds });
+      }
     }
 
     // an injected on-chain SDK is ready to read from; one built here is not
     // until `attach` resolves
     this.#attached = !this.#ownsOnchain;
 
+    const namespaceOptions: NamespaceOptions = {
+      maxOffchainLagSeconds,
+      logger,
+    };
+    // the namespaces hand out the very sub-namespaces of these two sources, so
+    // `sdk.opportunities.onchain` and `sdk.onchain.opportunities` are one object
     this.opportunities = new OpportunitiesNamespace(
       this.#onchain,
       this.#offchain,
-      logger,
+      namespaceOptions,
     ) as Opportunities<M>;
     this.positions = new PositionsNamespace(
       this.#onchain,
       this.#offchain,
-      logger,
+      namespaceOptions,
     ) as Positions<M>;
   }
 
   /**
-   * Attaches the on-chain SDK when this instance owns one.
-   *
-   * Reads issued before this resolves still reach the chain and fail there, so
-   * in `both` mode they are served from the backend alone and report the chain
-   * as failed in their meta, rather than blocking.
-   *
-   * A no-op in `offchain` mode and when an already-attached SDK was injected.
+   * Attaches the on-chain SDK when this instance owns one; a no-op in `offchain`
+   * mode and when an already-attached SDK was injected.
    **/
+  // reads issued before this resolves still reach the chain and fail there, so in
+  // `both` mode they are served from the backend alone rather than blocking
   public async attach(): Promise<void> {
     if (this.#attached || !this.#ownsOnchain || !this.#onchain) {
       return;
@@ -146,7 +156,7 @@ export class GearboxSDK<const M extends Mode = Mode> {
 
   /**
    * Whether the on-chain source is ready to be read from. Always `true` in
-   * `offchain` mode, where there is nothing to wait for.
+   * `offchain` mode.
    **/
   public get attached(): boolean {
     return this.mode === "offchain" ? true : this.#attached;
@@ -154,10 +164,8 @@ export class GearboxSDK<const M extends Mode = Mode> {
 
   /**
    * The underlying on-chain SDK, for everything this facade does not expose
-   * yet: markets, credit accounts, transaction building.
-   *
-   * `undefined` in `offchain` mode. Otherwise it exists from construction on,
-   * but only answers reads once {@link attach} has resolved.
+   * yet: markets, credit accounts, transaction building. `undefined` in
+   * `offchain` mode, and only answers reads once {@link attach} has resolved.
    **/
   public get onchain(): OnchainByMode[M] {
     return this.#onchain as OnchainByMode[M];
@@ -169,4 +177,27 @@ export class GearboxSDK<const M extends Mode = Mode> {
   public get offchain(): OffchainByMode[M] {
     return this.#offchain as OffchainByMode[M];
   }
+}
+
+/**
+ * Per-chain configuration of exactly the networks the SDK covers.
+ **/
+// a chain configured beyond them is left unbuilt rather than quietly read from,
+// which is what makes `sdk.opportunities.onchain.list()` scoped without anyone
+// threading a chain list into it
+function chainsOf(
+  configured: PlainMultichainSDKOptions["chains"],
+  networks: readonly NetworkType[],
+): PlainMultichainSDKOptions["chains"] {
+  const chains: PlainMultichainSDKOptions["chains"] = {};
+  for (const network of networks) {
+    const chain = configured[network];
+    if (!chain) {
+      throw new Error(
+        `GearboxSDK covers ${network}, but its onchain source has no configuration for it`,
+      );
+    }
+    chains[network] = chain;
+  }
+  return chains;
 }

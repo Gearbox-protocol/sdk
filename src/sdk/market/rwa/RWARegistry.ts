@@ -82,10 +82,12 @@ export class RWARegistry extends SDKConstruct {
    * @param investor - Investor EOA address.
    * @param factories_ - Optional subset of factory addresses to query.
    *   When omitted, all loaded factories are used.
+   * @param blockNumber - Block to read at, defaults to the latest block.
    */
   public async getInvestorData(
     investor: Address,
     factories_?: Address[],
+    blockNumber?: bigint,
   ): Promise<RWAInvestorData[]> {
     let factories = this.#factories.values();
     if (factories_?.length) {
@@ -103,6 +105,7 @@ export class RWARegistry extends SDKConstruct {
       address: rwaCompressorAddress,
       functionName: "getRWAInvestorData",
       args: [investor, factories.map(f => f.address)],
+      blockNumber,
     });
     const result: RWAInvestorData[] = [];
     for (let i = 0; i < factories.length; i++) {

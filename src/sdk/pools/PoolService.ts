@@ -363,6 +363,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
       ),
       allowFailure: false,
       batchSize: 0,
+      blockNumber: props.blockNumber,
     });
 
     return markets.flatMap((market, i) => {

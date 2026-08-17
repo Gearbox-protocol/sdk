@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 import type {
+  DataResponse,
   PoolOpportunityKey,
   StrategyOpportunityKey,
   StrategyPositionKey,
@@ -12,7 +13,6 @@ import type {
   PoolSimulation,
   PreviewErrorReason,
 } from "../../sdk/index.js";
-import type { ReadResult } from "../types.js";
 
 /**
  * What a pool deposit or withdrawal would yield.
@@ -253,7 +253,7 @@ export interface OpportunitiesSimulate {
   openNewStrategy(
     strategy: StrategyInput,
     params: OpenStrategyParams,
-  ): Promise<ReadResult<OpenStrategySimulate>>;
+  ): Promise<DataResponse<OpenStrategySimulate>>;
 
   /**
    * Growing a position: collateral in, debt drawn on top, both converted into
@@ -264,7 +264,7 @@ export interface OpportunitiesSimulate {
   depositStrategy(
     position: PositionInput,
     params: DepositStrategyParams,
-  ): Promise<ReadResult<StrategySimulate>>;
+  ): Promise<DataResponse<StrategySimulate>>;
 
   /**
    * Shrinking a position: part of its net value goes to the wallet and debt is
@@ -276,7 +276,7 @@ export interface OpportunitiesSimulate {
   withdrawStrategy(
     position: PositionInput,
     params: WithdrawStrategyParams,
-  ): Promise<ReadResult<StrategySimulate>>;
+  ): Promise<DataResponse<StrategySimulate>>;
 
   /**
    * Retargeting leverage at fixed collateral: debt moves, own funds do not.
@@ -284,7 +284,7 @@ export interface OpportunitiesSimulate {
   adjustLeverage(
     position: PositionInput,
     params: AdjustLeverageParams,
-  ): Promise<ReadResult<StrategySimulate>>;
+  ): Promise<DataResponse<StrategySimulate>>;
 
   /**
    * Putting the position token onto the account at fixed debt, which lowers
@@ -293,7 +293,7 @@ export interface OpportunitiesSimulate {
   addCollateral(
     position: PositionInput,
     params: AddCollateralParams,
-  ): Promise<ReadResult<StrategySimulate>>;
+  ): Promise<DataResponse<StrategySimulate>>;
 
   /**
    * Moving one asset that already sits on the account out to the wallet, at
@@ -305,5 +305,5 @@ export interface OpportunitiesSimulate {
   withdrawCollateral(
     position: PositionInput,
     params: WithdrawCollateralParams,
-  ): Promise<ReadResult<StrategySimulate>>;
+  ): Promise<DataResponse<StrategySimulate>>;
 }

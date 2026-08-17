@@ -124,6 +124,7 @@ import type {
   poolPositionKeySchema,
   poolPositionSchema,
   positionCollateralSchema,
+  positionFilterQuerySchema,
   positionFilterSchema,
   positionKeySchema,
   positionKindSchema,
@@ -147,6 +148,22 @@ import type {
   tokenSchema,
   txCallSchema,
 } from "./primitives.schema.js";
+import type {
+  ChainFailed,
+  ChainMetadata,
+  ChainSucceeded,
+  DataResponse,
+  DataSource,
+  ResponseMetadata,
+} from "./response.js";
+import type {
+  chainFailedSchema,
+  chainMetadataSchema,
+  chainSucceededSchema,
+  dataSourceSchema,
+  responseMetadataSchema,
+  responseSchema,
+} from "./response.schema.js";
 
 /**
  * The read model is a contract shared with a separately deployed backend: the
@@ -371,6 +388,9 @@ describe("model schemas match model types", () => {
       z.infer<typeof positionFilterSchema>
     >().toEqualTypeOf<PositionFilter>();
     expectTypeOf<
+      z.infer<typeof positionFilterQuerySchema>
+    >().toEqualTypeOf<PositionFilter>();
+    expectTypeOf<
       z.infer<typeof poolPositionKeySchema>
     >().toEqualTypeOf<PoolPositionKey>();
     expectTypeOf<
@@ -379,6 +399,27 @@ describe("model schemas match model types", () => {
     expectTypeOf<
       z.infer<typeof positionKeySchema>
     >().toEqualTypeOf<PositionKey>();
+  });
+
+  it("response envelope", () => {
+    expectTypeOf<
+      z.infer<typeof dataSourceSchema>
+    >().toEqualTypeOf<DataSource>();
+    expectTypeOf<
+      z.infer<typeof chainSucceededSchema>
+    >().toEqualTypeOf<ChainSucceeded>();
+    expectTypeOf<
+      z.infer<typeof chainFailedSchema>
+    >().toEqualTypeOf<ChainFailed>();
+    expectTypeOf<
+      z.infer<typeof chainMetadataSchema>
+    >().toEqualTypeOf<ChainMetadata>();
+    expectTypeOf<
+      z.infer<typeof responseMetadataSchema>
+    >().toEqualTypeOf<ResponseMetadata>();
+    expectTypeOf<
+      z.infer<ReturnType<typeof responseSchema<typeof tokenSchema>>>
+    >().toEqualTypeOf<DataResponse<Token>>();
   });
 
   it("metric lists enumerate their union exhaustively", () => {

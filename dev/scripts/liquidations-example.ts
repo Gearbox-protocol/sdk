@@ -37,14 +37,14 @@ async function example(): Promise<void> {
   });
   await sdk.attach();
 
-  const { result: accounts, meta } =
+  const { data: accounts, meta } =
     await sdk.liquidations.getLiquidatableAccounts();
   logger.info(meta, `found ${accounts.length} liquidatable accounts`);
   console.info(json_stringify(accounts));
 
   const first = accounts[0];
   if (first) {
-    const details = await sdk.liquidations.getLiquidationDetails({
+    const { data: details } = await sdk.liquidations.getLiquidationDetails({
       network: getNetworkType(first.chainId),
       creditAccount: first.creditAccount,
     });

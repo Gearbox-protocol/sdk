@@ -6,7 +6,6 @@ import type {
   StrategyOpportunityDetail,
   StrategyOpportunityKey,
 } from "../../model/index.js";
-import { isFilterSet } from "../../model/index.js";
 import { SDKConstruct } from "../base/index.js";
 
 /**
@@ -29,8 +28,7 @@ export class OpportunitiesService extends SDKConstruct {
    * @param filter - Optional narrowing, applied to the built rows.
    **/
   public async list(filter?: OpportunityFilter): Promise<Opportunity[]> {
-    const chainIds = filter?.chainIds;
-    if (isFilterSet(chainIds) && !chainIds.includes(this.chainId)) {
+    if (filter?.chainIds && !filter.chainIds.includes(this.chainId)) {
       return [];
     }
 

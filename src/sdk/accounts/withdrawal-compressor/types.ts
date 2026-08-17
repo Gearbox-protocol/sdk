@@ -330,6 +330,25 @@ export interface WithdrawalsState {
 }
 
 /**
+ * Props for {@link IWithdrawalCompressorContract.getExternalAccountCurrentWithdrawals}.
+ **/
+export interface GetExternalAccountCurrentWithdrawalsProps {
+  /**
+   * External address (non-credit-account, e.g. liquidator EOA) that owns
+   * the redemption receipts.
+   **/
+  account: Address;
+  /**
+   * Withdrawal phantom tokens to query. Empty or omitted returns empty lists.
+   **/
+  withdrawalTokens?: Address[];
+  /**
+   * Block to read at. Defaults to the latest block.
+   **/
+  blockNumber?: bigint;
+}
+
+/**
  * Props for {@link IWithdrawalCompressorContract.getWithdrawalRequestResult}.
  **/
 export interface GetWithdrawalRequestResultProps {
@@ -378,8 +397,12 @@ export interface IWithdrawalCompressorContract extends IBaseContract {
    * lifetime) and returns them. Failed per-manager calls are logged and
    * skipped.
    * @param force - Invalidate the cache and refetch even if already loaded.
+   * @param blockNumber - Block to read at. Defaults to the latest block.
    **/
-  loadWithdrawableAssets(force?: boolean): Promise<WithdrawableAsset[]>;
+  loadWithdrawableAssets(
+    force?: boolean,
+    blockNumber?: bigint,
+  ): Promise<WithdrawableAsset[]>;
   /**
    * Returns all withdrawal configs of a withdrawable source token
    * (e.g. a Mellow multivault share) of the given credit manager.
@@ -418,8 +441,14 @@ export interface IWithdrawalCompressorContract extends IBaseContract {
   ): Address | undefined;
   /**
    * Returns claimable and pending delayed withdrawals of the given credit account.
+   *
+   * @param creditAccount - Credit account to query.
+   * @param blockNumber - Block to read at. Defaults to the latest block.
    **/
-  getCurrentWithdrawals(creditAccount: Address): Promise<CurrentWithdrawals>;
+  getCurrentWithdrawals(
+    creditAccount: Address,
+    blockNumber?: bigint,
+  ): Promise<CurrentWithdrawals>;
   /**
    * Returns claimable and pending delayed withdrawals of an external address
    * (non-credit-account, e.g. liquidator EOA) in the given withdrawal phantom
@@ -429,8 +458,7 @@ export interface IWithdrawalCompressorContract extends IBaseContract {
    * returns empty lists.
    **/
   getExternalAccountCurrentWithdrawals(
-    account: Address,
-    ...withdrawalTokens: Address[]
+    props: GetExternalAccountCurrentWithdrawalsProps,
   ): Promise<CurrentWithdrawals>;
   /**
    * Returns statuses of the given redeemer contracts.

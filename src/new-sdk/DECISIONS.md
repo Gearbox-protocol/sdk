@@ -69,7 +69,23 @@ methods accessible.
 The same mechanism gates `sdk.onchain` / `sdk.offchain` and the namespace map on the
 root SDK.
 
-There is no central capability manifest. Each namespace owns its three interfaces.
+**The map gates reads only.** Two things that live on a namespace are deliberately left
+out of it, because gating them would widen every line of the map without buying a real
+compile error:
+
+- **The source branches** `sdk.<ns>.onchain` / `sdk.<ns>.offchain` are members of the base
+  interface, present in every mode. They are the same objects as `sdk.onchain.<ns>` and
+  `sdk.offchain.<ns>` (§9), which the mode *does* gate, so gating the alias as well would
+  duplicate one decision in two mechanisms. Reading the branch of a source the mode does
+  not have throws `SourceUnavailableError`, which is what stands in for the compile error.
+- **`merge`** is a member of the base interface too. A `SourceMerger` accepts `undefined`
+  on either side and returns the side it was given, so calling one in a single-source mode
+  is a no-op rather than a mistake — there is nothing to forbid.
+
+Consequence: each namespace owns three interfaces, and only `history`-style reads actually
+depend on the gating. That is also what a widened `M` costs, and no more.
+
+There is no central capability manifest.
 
 ## 3. Types
 
@@ -101,50 +117,114 @@ There is no central capability manifest. Each namespace owns its three interface
 
 ## 4. Merging in `both` mode
 
-- **Onchain-first by default**: onchain wins for every field it can produce, offchain
-  fills the gaps.
-- Implemented as an **explicit per-field source policy per namespace**, defaulting to
-  onchain, with a short exception list. Some values the backend computes better
-  (smoothed APY, anything derived from history); without an exception list, `both` would
-  silently return worse data than `offchain`.
-- **Merge is strictly top-level-field-wise.** A source owns a whole group including its
-  nulls. `Amount.value` and `Amount.valueUsd` can never come from different sources; the
-  same holds for `ApyBreakdown` and every other nested group. No deep merge.
-- **Lists are a union by canonical id.** An onchain-only row lacks the backend optionals;
-  a backend-only row has no live values.
+- ~~**Onchain-first by default**, as an explicit per-field source policy per namespace with
+  a short exception list.~~ **Superseded: a chain is served whole by one source.** Both
+  sources are asked for the same chains, and for each chain the backend wins when it is no
+  more than `maxOffchainLagSeconds` (default 120) behind the block the chain answered at;
+  otherwise the chain wins. `mergeChainList` / `mergeChainOne` in `src/new-sdk/utils` are
+  the implementation, and they are pure functions over the envelope, exposed as
+  `sdk.<ns>.merge.*` so a consumer reading the branches itself applies the same policy.
+  `merge` is available in every mode, not just `both` (§2): the mergers are total over an
+  absent side, so there is no misuse to gate against.
+- Field-wise merging is gone with it, and so is the exception list: a chain's data comes
+  from one source at one block, and nothing is stitched together across sources.
+- **Lists are no longer a union by canonical id.** The winning source supplies the chain
+  entirely. Two consequences, both accepted as product decisions rather than refactors:
+  - if the chain wins a chain, backend-only rows and rows of markets the SDK has not loaded
+    disappear from the list; if the backend wins it, onchain-only rows and onchain-only
+    accuracy (`paused`, live limits) go with them;
+  - a chain served from the chain has no `@mode offchain` fields at all, headline APY
+    included, where the old merge filled them from the backend. The freshness threshold is
+    therefore a product decision, not an implementation detail.
+- A namespace that needs a different rule supplies its own `SourceMerger`; that is the
+  escape hatch, not a second threshold.
 - **All derived values come from shared pure functions** used by both adapters and by the
   merger, so the two paths cannot drift on formulas.
+- **Each source owns its chain scope.** `GearboxSDK.networks` is authoritative: the sources
+  it builds cover exactly those chains, and any source covering a different set — injected
+  or built from options naming other chains — is rejected at construction. A filter's `chainIds` is passed to both sources untouched, and
+  each one intersects it with the chains it covers — the fan-out over its configured chains,
+  the backend client over the ones it was built with. So the backend is never asked for a
+  chain the SDK does not cover, including on `sdk.<ns>.offchain.list()`, and a chain missing
+  from a response cannot be confused with one that was never requested. A namespace never
+  intersects for itself: it does not know a chain list at all, which is why a read that failed
+  everywhere reports the reasons its sources gave rather than a list of chains (§6).
+- **Chains are named by id below the public surface.** `chainIds?: ChainId[]` is the one
+  representation a filter, a fan-out and a request share, with no `"all"` sentinel: an
+  absent list already means "do not narrow", and a named chain a source cannot serve is
+  dropped, because a filter narrows a read rather than extending it. A caller who thinks in
+  network labels converts once with `toChainIds`.
 
 ## 5. Response envelope
 
-Every namespace method returns `{ result, meta }`.
+Every read of every layer returns `{ data, meta }` — `DataResponse<T>` in `src/model`.
 
 ```ts
-interface SourceMeta {
-  chains: Array<{ network: NetworkType; status: "success" | "error"; error?: unknown }>;
-  offchain?: { status: "success" | "error"; error?: unknown };
+interface ResponseMetadata {
+  chains: ChainMetadata[]; // one entry per chain the read covered
 }
+
+// discriminated on `status`, so a success without a source, or without the
+// block it reflects, is unrepresentable
+type ChainMetadata =
+  | { chainId: ChainId; status: "success"; source: DataSource; blockNumber: number; timestamp: number }
+  | { chainId: ChainId; status: "error"; source?: DataSource; error?: unknown };
 ```
 
-- Per-chain entries for the onchain fan-out; a **single** offchain entry, because one HTTP
-  call covers all chains and a per-chain breakdown there would be fabricated.
-- Block numbers and `updatedAt` are deliberately **not** in meta for now (see
-  §10). Meta is expected to grow — treat it as an open object, do not destructure it
-  exhaustively.
-- The envelope itself is confined to `src/new-sdk`. Services in `src/sdk` keep returning
-  bare values or `MultichainResult`; the namespace wraps them.
-- **Amended.** The rule above is about the envelope, not about `src/sdk` being frozen.
-  Product read services that speak the shared read model belong beside the existing ones:
-  `OpportunitiesService` sits in `src/sdk/opportunities` and hangs off `OnchainSDK` and
-  `MultichainSDK` exactly like `LiquidationsService` does, and is usable without the
-  facade. `src/new-sdk` holds only routing and merging.
+- **Metadata is per chain everywhere, including offchain.** One HTTP call covers several
+  chains, but the backend indexes them separately, so it reports each one — with the block
+  and timestamp it has indexed that chain to. That is what the freshness merge compares,
+  and it is why a per-chain offchain breakdown is no longer "fabricated". A chain that is up
+  but not indexed is listed with `status: "error"` rather than omitted; omitting it would be
+  indistinguishable from not having been asked.
+- **`source` names the winner.** Each source stamps its own entries, so after merging the
+  envelope says which side served each chain. Which source *lost* a chain, and why, is
+  logged only: to a screen, a backend that failed and a backend that is too far behind mean
+  the same thing.
+- **Block and timestamp are in meta**, which settles the "Meta contents" question below.
+  Where they come from is declared per fan-out read: `"state"` for a walk over loaded market
+  state, `"latest"` for a live read, which is then pinned to that block as well as reporting
+  it.
+- **A success always names the block its data reflects.** Data that was produced came from
+  some block, so both fields are required on a success rather than optional — the same rule
+  as `source`, and the reason the freshness merge can compare two successes without a
+  "did not say" case. A chain that cannot be placed at a block, one the backend has not
+  indexed included, is an error entry; on the wire, a success missing either field fails
+  validation as version skew.
+- `DataResponse` describes a backend **2xx body only**. A non-2xx, a timeout, or a body that
+  fails validation is not an envelope — the request may never have arrived — so the offchain
+  client throws (`OffchainTransportError` — one of `OffchainRequestFailedError`,
+  `OffchainStatusError`, `OffchainInvalidJsonError` — or `OffchainValidationError`) and the
+  namespace drops that leg: no chain entry is invented for a request that said nothing about
+  any chain (§6).
+- **The envelope is no longer confined to `src/new-sdk`.** It is the return type of
+  `src/model`'s codec, of the fan-out services in `src/sdk`, and of the backend client in
+  `src/offchain`. `MultichainResult` and `OffchainResult` are gone; there is one shape, and
+  it is not re-exported under a second name per layer.
+- One envelope for lists and details alike. The difference between them is a failure rule,
+  not a shape: a list fills `data` with the rows of the chains that worked, while a detail
+  read that cannot produce its entity throws (`queryChain` wraps successes only) and the
+  facade, which has a second source, falls back to it before raising.
 
 ## 6. Failure handling
 
 - Backend transport error or schema-validation failure (i.e. version skew, §3) → **drop the
-  offchain contribution**, serve onchain-only, report the degraded source in meta.
-- **Throw an aggregate error only when no source succeeded at all.** A partial result is
-  never an exception; an empty list indistinguishable from "nothing found" is.
+  offchain contribution**, serve the chain's answer, and log the dropped source. Per §5 the
+  envelope names the source that served each chain rather than the one that failed: both
+  "the backend is down" and "the backend is behind" mean the same thing to a screen.
+- **Throw `AllSourcesFailedError` only when no source served a single chain.** A partial
+  result is never an exception; an empty list indistinguishable from "nothing found" is.
+  In a single-source mode there is nothing to degrade to, so the source's own error
+  (an `OffchainTransportError` subclass, `SdkNotAttachedError`) surfaces as it is.
+- **The error aggregates the reasons its sources gave**, as an `AggregateError`, rather than
+  carrying a per-chain envelope of its own. A source that threw its whole leg said nothing
+  about any chain, so the alternative was fabricating an entry for every chain the read
+  covered — a per-chain shape that looked like §5's metadata without being sourced like it.
+  A chain-level breakdown of a total failure is therefore not available to consumers; the
+  per-chain envelope is for reads that partially succeeded.
+- **Only errors and warnings are logged.** A dropped source is a `warn`; the freshness
+  decisions behind a merge are not logged at all, because the envelope already names the
+  source that served each chain.
 - **No caching in the facade.** Consumers own it (react-query and friends). Onchain data
   is inherently snapshot-cached by `attach`/`syncState`; offchain is fetched per call.
 
@@ -183,15 +263,27 @@ interface SourceMeta {
   incomplete data shows up there as failing rather than being submitted blindly.
 - Endpoints return the model types directly (§3). Responses are validated at the boundary
   against the model schemas as a version-skew check; failure is handled per §6.
+- **A client is built for a fixed set of chains** (`GearboxAPIOptions.chainIds`, required)
+  and every list request names them, see §4. The backend serves chains a given caller has no
+  business showing — experimental ones among them — so leaving the parameter off is not a
+  neutral "no filter".
 
 ## 9. Layout, lifecycle, packaging
 
 - `src/new-sdk` — `GearboxSDK` (combined entry point) and its namespaces: routing, the
   `both`-mode merge policy, and the response envelope. No protocol knowledge.
-- Within it, `AbstractNamespace` owns everything a namespace does not decide: turning
-  per-chain and backend failures into meta, the envelope, and the all-sources-failed rule.
-  A namespace subclasses it and supplies only its reads and its merge policy (`mergeOne`,
-  `mergeList`), which is where §4 is implemented per namespace.
+- Within it, `AbstractNamespace` owns everything a namespace does not decide: holding the
+  two source namespaces and exposing them as `.onchain` / `.offchain` branches, running both
+  legs of a merged read, catching a source that throws, and the all-sources-failed rule. A
+  namespace subclasses it and supplies only its reads and the mergers they name, which is
+  where §4 is implemented per namespace.
+- **The branches are the source namespaces themselves.** `sdk.opportunities.onchain` and
+  `sdk.onchain.opportunities` are one object, so the two spellings cannot drift, and a
+  consumer that wants the backend's answer painted first and the chain's when it arrives
+  reads them separately and calls `sdk.opportunities.merge.list` — the same policy `both`
+  mode applies internally. Because they are one object, the namespace spelling is not gated
+  by mode a second time (§2); the branch of a source the mode does not read throws
+  `SourceUnavailableError` on access, raised by `AbstractNamespace`.
 - **A namespace is handed its sources, not a way to look them up.** It holds a
   `MultichainSDK` and a `GearboxAPI` directly, and never asks whether they are ready:
   readiness belongs to whoever owns the source, and a source that cannot answer yet fails
@@ -210,13 +302,25 @@ interface SourceMeta {
 - The facade accepts **either** onchain options (it constructs and attaches) **or** an
   already-attached `MultichainSDK` (client-v3 has one; two instances would double RPC load
   and memory). When injected, `attach()` must not re-attach it.
-- **Top-level `networks` is authoritative.** The onchain chain config must cover it;
-  a mismatch warns.
+- **Top-level `networks` is authoritative.** The onchain chain config must name exactly
+  those chains — it is not narrowed to them — and the same check covers an injected
+  `MultichainSDK`, so either kind of mismatch throws at construction.
 - `sdk.onchain` (`MultichainSDK`) and `sdk.offchain` (`GearboxAPI`) are **public escape
   hatches**, gated by mode like everything else.
 - Names: `GearboxSDK` for the combined entry point (the name is currently unused in `src`),
   `GearboxAPI` for the offchain entry point, `OnchainSDK` and `MultichainSDK` keep theirs
   underneath.
+- **Errors live in an `errors/` subdirectory of the layer that throws them**, one exported
+  error per identically-named file, with the helpers that describe a failure (`errorCause`,
+  `backendMessage`, `readResponseBody`, `assertSameChains`, `everyChainFailed`) beside them
+  under the name of the function they export. A namespace holds its reads, not the wording of
+  its failures: the formatting a throw site used to do inline belongs to the constructor.
+- **Errors extend viem's `BaseError`**, as `src/sdk` already does, and use its layering:
+  `shortMessage` is one sentence and never a dump, context lines (`URL:`, `Status:`, one line
+  per validation issue) go to `metaMessages`, the peer's own words to `details`, the caught
+  error to `cause`, and structured payload to typed properties (`url`, `status`, `zodError`).
+  The exception is the two aggregates — `AllSourcesFailedError` and `NoSourceServedError` —
+  which extend `AggregateError` because §6 makes the reasons they collect the contract.
 
 ## 10. Rejected from the proof of concept
 
@@ -243,13 +347,13 @@ interface SourceMeta {
   discovered later. Note the consequence in `onchain` mode: such a read has no source left
   and raises `AllSourcesFailedError` instead of answering with an empty list. See the
   startup item under *Requires discussion*.
-- **Backend-only rows look live.** With a union list and no per-item provenance, a row that
-  exists only in the backend is indistinguishable from a freshly merged one. Adding an
-  optional provenance field later is non-breaking, so the bet is reversible, but it will
-  make "why is this number stale" reports harder to triage.
-- **Degradation removes rows, not just fields.** If the backend fails in `both` mode,
-  backend-only rows vanish from the list entirely rather than losing their optional fields.
-  Consumers must read meta to tell "no such opportunity" from "backend down".
+- ~~**Backend-only rows look live.**~~ Answered by §5: a row's provenance is its chain's
+  entry, which names the source and the block. What replaces this risk is coarser — a chain's
+  whole row set changes with the winning source (§4), so a market only one source knows about
+  appears and disappears with that chain's freshness rather than being merged in.
+- **Degradation removes rows, not just fields.** Sharpened by §4: a chain the backend loses
+  serves only what the chain knows, and vice versa. Consumers must read meta to tell "no such
+  opportunity" from "this chain was served by the other source".
 - **"Onchain data is a subset of offchain data" is a rule we enforce, not something that is
   automatically true.** Some things only the chain can give us: exact values at a known block,
   `paused` flags, price-update transactions. Each one is either added to the backend too, or
@@ -284,7 +388,9 @@ interface SourceMeta {
   not just shape drift, and doubles as the version-skew check against a live backend.
 - **Mode gating depends on literal inference.** If a consumer's config object widens `mode`
   to `Mode`, the lookup map degrades to base methods only. Confusing when it happens; needs
-  a `const` type parameter and a documented pattern.
+  a `const` type parameter and a documented pattern. Narrowed by §2: the branches and
+  `merge` are not gated, so widening costs `history` and the onchain-only group — and
+  nothing that was only ever a no-op or an alias.
 - **The read model is now a cross-service contract.** With the backend importing the SDK and
   no mapper in between, any change to a model type is a coordinated release of two separately
   deployed things, and a purely additive-looking change can still break an older peer. The
@@ -294,10 +400,10 @@ interface SourceMeta {
 
 ## Requires discussion
 
-- **Meta contents.** Block numbers (snapshot block, and whether/at which block live reads
-  happened) and backend `updatedAt` were dropped for now — needs a team decision, because it
-  determines whether the UI can show "data as of" and how honest we are about a response
-  that mixes snapshot and live reads.
+- ~~**Meta contents.**~~ Settled in §5: every chain entry carries the block and timestamp its
+  data reflects, and each fan-out read declares whether that is the loaded snapshot or a head
+  fetched for the occasion. A response no longer mixes the two silently, since the declared
+  block is also the block the read is pinned to. The UI can show "data as of" per chain.
 - **How version skew is reported.** A schema mismatch is already an error (§3, §6), but the
   alerting path on top of that is undecided: logger, a dedicated error subtype, metrics.
   Related: whether the model carries an explicit contract version so skew is detectable
@@ -305,7 +411,10 @@ interface SourceMeta {
 - ~~**Whether the facade takes a `Plugins` type parameter**~~ — settled for now: `sdk.onchain`
   is `MultichainSDK<{}>`, and a consumer that injects a plugin-typed instance keeps its own
   reference to it. Revisit if a namespace ever needs a plugin.
-- **Per-item provenance** — deferred, revisit if stale-data triage becomes painful.
+- ~~**Per-item provenance**~~ — settled at chain granularity: a chain is served whole by one
+  source (§4), and its metadata entry names that source and the block it answered at, so
+  every row of that chain has the same provenance. Per-row provenance would only be needed
+  again if a merge ever mixed sources inside one chain.
 - **Startup speed and first paint.** The onchain attach is expensive, so `both` mode needs a
   story for what is available immediately. Options include backend snapshots that cover the
   initial screens, and splitting namespace methods into two classes: those called

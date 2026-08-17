@@ -1,8 +1,7 @@
 import type { Address } from "viem";
-import type { ChainId } from "../../model/index.js";
+import type { DataResponse } from "../../model/index.js";
 import type {
   CreditAccountSlice,
-  MultichainSDK,
   OnchainSDK,
   StartIntent,
 } from "../../sdk/index.js";
@@ -10,8 +9,8 @@ import {
   CreditAccountOperationsService,
   fetchCreditAccountSlice,
   hexEq,
+  MultichainConstruct,
 } from "../../sdk/index.js";
-import type { ReadResult } from "../types.js";
 import type {
   AddCollateralParams,
   AdjustLeverageParams,
@@ -31,45 +30,27 @@ import type {
 } from "./types.js";
 
 /**
- * How a simulation reaches the chain: the namespace's own on-chain read, which
- * resolves the chain, captures failures and wraps the answer in a
- * {@link ReadResult}.
- **/
-export type RunOnchain = <T>(
-  action: string,
-  chainId: ChainId,
-  fromChain: (sdk: MultichainSDK) => Promise<T>,
-) => Promise<ReadResult<T>>;
-
-/**
- * The chain's SDK, resolved on the spot.
- *
- * The LP simulations need it synchronously, because they only do arithmetic on
- * loaded state and have nothing to await.
- **/
-export type ChainOf = (chainId: ChainId) => OnchainSDK;
-
-/**
  * {@inheritDoc OpportunitiesSimulate}
  *
- * Holds no state: it owns the mapping from the public, read-model-shaped request
- * to the engine's intent, and nothing else. All protocol knowledge stays in
- * `CreditAccountOperationsService` and `PoolService`.
+ * Holds no state of its own: it owns the mapping from the public,
+ * read-model-shaped request to the engine's intent, and nothing else. All
+ * protocol knowledge stays in `CreditAccountOperationsService` and
+ * `PoolService`.
+ *
+ * A simulation names one chain, so it reads through
+ * {@link MultichainConstruct.queryChain}: there is no second source to fall back
+ * to, hence a chain the SDK does not cover, or one that fails the read, throws
+ * rather than answering with empty metadata.
  **/
-export class SimulateApi implements OpportunitiesSimulate {
-  readonly #run: RunOnchain;
-  readonly #chainOf: ChainOf;
-
-  constructor(run: RunOnchain, chainOf: ChainOf) {
-    this.#run = run;
-    this.#chainOf = chainOf;
-  }
-
+export class SimulateApi
+  extends MultichainConstruct
+  implements OpportunitiesSimulate
+{
   /**
    * {@inheritDoc OpportunitiesSimulate.deposit}
    **/
   public deposit(pool: PoolInput, params: LpParams): LpSimulate {
-    const { marketRegister, pools } = this.#chainOf(pool.chainId);
+    const { marketRegister, pools } = this.sdk.chain(pool.chainId);
     const tokenIn =
       params.tokenIn ?? marketRegister.findByPool(pool.pool).pool.underlying;
     const tokenOut = lpRoute(params.tokenOut, () =>
@@ -104,8 +85,7 @@ export class SimulateApi implements OpportunitiesSimulate {
    * {@inheritDoc OpportunitiesSimulate.withdraw}
    **/
   public withdraw(pool: PoolInput, params: LpParams): LpSimulate {
-    const sdk = this.#chainOf(pool.chainId);
-    const { pools } = sdk;
+    const { pools } = this.sdk.chain(pool.chainId);
     // Withdrawals are paid in shares, and the share token *is* the pool.
     const tokenIn = params.tokenIn ?? pool.pool;
     const tokenOut = lpRoute(params.tokenOut, () =>
@@ -138,13 +118,11 @@ export class SimulateApi implements OpportunitiesSimulate {
   public async openNewStrategy(
     strategy: StrategyInput,
     params: OpenStrategyParams,
-  ): Promise<ReadResult<OpenStrategySimulate>> {
-    return this.#run(
-      "simulate opening a strategy",
-      strategy.chainId,
-      async multichain => {
-        const sdk = multichain.chain(strategy.chainId);
-        return service(sdk).openStrategyIntent({
+  ): Promise<DataResponse<OpenStrategySimulate>> {
+    return this.queryChain({
+      network: strategy.chainId,
+      run: sdk =>
+        service(sdk).openStrategyIntent({
           sdk,
           creditManager: strategy.creditManager,
           collateral: params.collateral,
@@ -153,9 +131,8 @@ export class SimulateApi implements OpportunitiesSimulate {
           leftoverBalances: params.leftoverBalances,
           slippage: params.slippage,
           quotaReserve: params.quotaReserve,
-        });
-      },
-    );
+        }),
+    });
   }
 
   /**
@@ -164,8 +141,8 @@ export class SimulateApi implements OpportunitiesSimulate {
   public async depositStrategy(
     position: PositionInput,
     params: DepositStrategyParams,
-  ): Promise<ReadResult<StrategySimulate>> {
-    return this.#startIntent("simulate strategy deposit", position, params, {
+  ): Promise<DataResponse<StrategySimulate>> {
+    return this.#startIntent(position, params, {
       type: "DEPOSIT",
       token: params.token,
       amount: params.amount,
@@ -181,8 +158,8 @@ export class SimulateApi implements OpportunitiesSimulate {
   public async withdrawStrategy(
     position: PositionInput,
     params: WithdrawStrategyParams,
-  ): Promise<ReadResult<StrategySimulate>> {
-    return this.#startIntent("simulate strategy withdrawal", position, params, {
+  ): Promise<DataResponse<StrategySimulate>> {
+    return this.#startIntent(position, params, {
       type: "WITHDRAW",
       amount: params.amount,
       to: params.to,
@@ -197,8 +174,8 @@ export class SimulateApi implements OpportunitiesSimulate {
   public async adjustLeverage(
     position: PositionInput,
     params: AdjustLeverageParams,
-  ): Promise<ReadResult<StrategySimulate>> {
-    return this.#startIntent("simulate leverage adjustment", position, params, {
+  ): Promise<DataResponse<StrategySimulate>> {
+    return this.#startIntent(position, params, {
       type: "ADJUST_LEVERAGE",
       targetLeverage: params.targetLeverage,
       token: params.token,
@@ -211,8 +188,8 @@ export class SimulateApi implements OpportunitiesSimulate {
   public async addCollateral(
     position: PositionInput,
     params: AddCollateralParams,
-  ): Promise<ReadResult<StrategySimulate>> {
-    return this.#startIntent("simulate adding collateral", position, params, {
+  ): Promise<DataResponse<StrategySimulate>> {
+    return this.#startIntent(position, params, {
       type: "ADD_COLLATERAL",
       token: params.token,
       amount: params.amount,
@@ -226,18 +203,13 @@ export class SimulateApi implements OpportunitiesSimulate {
   public async withdrawCollateral(
     position: PositionInput,
     params: WithdrawCollateralParams,
-  ): Promise<ReadResult<StrategySimulate>> {
-    return this.#startIntent(
-      "simulate withdrawing collateral",
-      position,
-      params,
-      {
-        type: "WITHDRAW_ASSET",
-        token: params.token,
-        amount: params.amount,
-        to: params.to,
-      },
-    );
+  ): Promise<DataResponse<StrategySimulate>> {
+    return this.#startIntent(position, params, {
+      type: "WITHDRAW_ASSET",
+      token: params.token,
+      amount: params.amount,
+      to: params.to,
+    });
   }
 
   /**
@@ -245,22 +217,23 @@ export class SimulateApi implements OpportunitiesSimulate {
    * account, then run the intent through the engine.
    **/
   async #startIntent(
-    action: string,
     position: PositionInput,
     options: SimulateOptions,
     intent: StartIntent,
-  ): Promise<ReadResult<StrategySimulate>> {
-    return this.#run(action, position.chainId, async multichain => {
-      const sdk = multichain.chain(position.chainId);
-      const creditAccount = await slice(sdk, position.creditAccount);
+  ): Promise<DataResponse<StrategySimulate>> {
+    return this.queryChain({
+      network: position.chainId,
+      run: async sdk => {
+        const creditAccount = await slice(sdk, position.creditAccount);
 
-      return service(sdk).startIntent({
-        intent,
-        creditAccount,
-        sdk,
-        slippage: options.slippage,
-        quotaReserve: options.quotaReserve,
-      });
+        return service(sdk).startIntent({
+          intent,
+          creditAccount,
+          sdk,
+          slippage: options.slippage,
+          quotaReserve: options.quotaReserve,
+        });
+      },
     });
   }
 }

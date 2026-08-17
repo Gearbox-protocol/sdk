@@ -12,6 +12,7 @@ import {
 import { encodeDelayedIntent } from "./intent-codec.js";
 import type {
   CurrentWithdrawals,
+  GetExternalAccountCurrentWithdrawalsProps,
   GetWithdrawalRequestResultProps,
   RequestableWithdrawal,
   WithdrawalStatus,
@@ -148,10 +149,11 @@ export class WithdrawalCompressorV313Contract extends AbstractWithdrawalCompress
   /**
    * {@inheritDoc IWithdrawalCompressorContract.getExternalAccountCurrentWithdrawals}
    **/
-  public override async getExternalAccountCurrentWithdrawals(
-    account: Address,
-    ...withdrawalTokens: Address[]
-  ): Promise<CurrentWithdrawals> {
+  public override async getExternalAccountCurrentWithdrawals({
+    account,
+    withdrawalTokens = [],
+    blockNumber,
+  }: GetExternalAccountCurrentWithdrawalsProps): Promise<CurrentWithdrawals> {
     if (withdrawalTokens.length === 0) {
       return { claimable: [], pending: [] };
     }
@@ -160,6 +162,7 @@ export class WithdrawalCompressorV313Contract extends AbstractWithdrawalCompress
       abi: iExternalWithdrawalsBatchAbi,
       functionName: "getExternalAccountCurrentWithdrawals",
       args: [withdrawalTokens, account],
+      blockNumber,
     });
     // intents are not decoded: they reference credit account operations,
     // which are not applicable to external accounts

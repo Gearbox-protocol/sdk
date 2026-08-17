@@ -20,7 +20,7 @@ import {
 } from "viem/chains";
 import { z } from "zod/v4";
 import type { CuratorName } from "../../model/curators.js";
-import type { AssetType } from "../../model/primitives.js";
+import type { AssetType, ChainId } from "../../model/primitives.js";
 import { TypedObjectUtils } from "../utils/mappers.js";
 
 /**
@@ -526,6 +526,17 @@ export function getNetworkType(chainId: number | bigint): NetworkType {
   const network = networkByChainId[Number(chainId)];
   if (!network) throw new Error(`Unsupported network with chainId ${chainId}`);
   return network;
+}
+
+/**
+ * Chain IDs of chains named as {@link NetworkType} labels or as IDs already,
+ * e.g. `sdk.opportunities.list({ chainIds: toChainIds(["Mainnet"]) })`.
+ *
+ * @param scope - Chains as labels, or already as IDs.
+ * @throws If any entry is not a supported network.
+ **/
+export function toChainIds(scope: NetworkType[] | ChainId[]): ChainId[] {
+  return scope.map(entry => getChain(entry).id);
 }
 
 /**

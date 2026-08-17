@@ -5,6 +5,7 @@
  * does not pull in the on-chain SDK.
  **/
 export * from "./AbstractOffchainNamespace.js";
+export * from "./errors/index.js";
 export * from "./GearboxAPI.js";
 export * from "./opportunities/index.js";
 export * from "./positions/index.js";

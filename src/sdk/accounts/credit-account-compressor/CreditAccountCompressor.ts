@@ -175,7 +175,11 @@ export class CreditAccountCompressor extends SDKConstruct {
       );
 
     // 1. Discover RWA credit accounts for this borrower across all factories
-    const investorDataList = await this.sdk.rwa.getInvestorData(borrower);
+    const investorDataList = await this.sdk.rwa.getInvestorData(
+      borrower,
+      undefined,
+      blockNumber,
+    );
     const rwaAccountAddresses: Address[] = investorDataList.flatMap(d =>
       d.creditAccounts.map(ca => ca.creditAccount),
     );
@@ -280,11 +284,14 @@ export class CreditAccountCompressor extends SDKConstruct {
   public async listPositions(
     props: ListStrategyPositionsProps,
   ): Promise<StrategyPosition[]> {
-    const { owner, includeZeroDebt } = props;
+    const { owner, includeZeroDebt, blockNumber } = props;
     const [accounts] = await Promise.all([
-      this.getBorrowerCreditAccounts(owner, { includeZeroDebt }),
+      this.getBorrowerCreditAccounts(owner, { includeZeroDebt }, blockNumber),
       // phantom token lookups below are sync, so the cache has to be warm
-      this.sdk.withdrawalCompressor?.loadWithdrawableAssets(),
+      this.sdk.withdrawalCompressor?.loadWithdrawableAssets(
+        undefined,
+        blockNumber,
+      ),
     ]);
 
     const describable = accounts.filter(ca => {
@@ -299,7 +306,7 @@ export class CreditAccountCompressor extends SDKConstruct {
     });
 
     const withdrawals = await Promise.all(
-      describable.map(ca => this.#accountWithdrawals(ca)),
+      describable.map(ca => this.#accountWithdrawals(ca, blockNumber)),
     );
 
     return describable.map((ca, i) =>
@@ -383,6 +390,7 @@ export class CreditAccountCompressor extends SDKConstruct {
    **/
   async #accountWithdrawals(
     ca: CreditAccountData,
+    blockNumber?: bigint,
   ): Promise<AddressMap<DelayedReceivedAsset[]>> {
     const compressor = this.sdk.withdrawalCompressor;
     const byPhantomToken = new AddressMap<DelayedReceivedAsset[]>(
@@ -404,6 +412,7 @@ export class CreditAccountCompressor extends SDKConstruct {
     );
     const { claimable, pending } = await compressor.getCurrentWithdrawals(
       ca.creditAccount,
+      blockNumber,
     );
 
     const add = (
