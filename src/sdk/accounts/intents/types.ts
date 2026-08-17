@@ -37,8 +37,9 @@ export interface OperationState {
  * Why a preview could not be produced.
  *
  * Every member is thrown by the engine as an {@link IntentPreviewError}, with
- * the exception of `unsupportedTokenPair`, which the pool simulations report
- * for a route the market does not offer.
+ * the exception of `unsupportedTokenPair` and `noRecordedIntent`, which the
+ * simulate namespace reports for a request it can refuse before planning: a
+ * route the market does not offer, a claim naming no operation.
  */
 export type PreviewErrorReason =
   | "debtOutOfRange"
@@ -56,7 +57,13 @@ export type PreviewErrorReason =
   /** Several redemption venues for the source, and nothing says which. */
   | "multipleDelayedWithdrawals"
   /** A redemption of the same asset is already in flight. */
-  | "withdrawalInProgress";
+  | "withdrawalInProgress"
+  /**
+   * The claim names no operation to resume: requested without an intent, read
+   * through a compressor too old to report one, or a full close, which the
+   * engine no longer previews.
+   */
+  | "noRecordedIntent";
 
 /**
  * What a preview yields: the operation chain, the state it projects, and the

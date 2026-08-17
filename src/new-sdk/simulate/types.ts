@@ -7,11 +7,14 @@ import type {
 } from "../../model/index.js";
 import type {
   AccountCalculatorOperation,
+  ClaimableWithdrawal,
+  DelayedStart,
   MultiCall,
   OpenStrategyPreview,
   OperationState,
   PoolSimulation,
   PreviewErrorReason,
+  ResumableIntent,
 } from "../../sdk/index.js";
 
 /**
@@ -70,6 +73,38 @@ export type StrategySimulate =
        * through `sdk.accounts`.
        **/
       calls: MultiCall[];
+    }
+  | { ok: false; reason: PreviewErrorReason };
+
+/**
+ * What the leading half of a delayed operation would yield: the request
+ * transaction, plus what it recorded for the tail.
+ *
+ * Shaped like {@link StrategySimulate} with one field more, so the instant and
+ * the delayed route of the same request are compared side by side.
+ **/
+export type DelayedStrategySimulate =
+  | {
+      ok: true;
+      /**
+       * {@inheritDoc StrategySimulate.operations}
+       **/
+      operations: AccountCalculatorOperation[];
+      /**
+       * State once the request executes: the source token is gone and the
+       * withdrawal position stands in its place, with debt untouched — the
+       * repayment belongs to the tail.
+       **/
+      preview: OperationState;
+      /**
+       * {@inheritDoc StrategySimulate.calls}
+       **/
+      calls: MultiCall[];
+      /**
+       * When the tail can be run, and what the request recorded for it, see
+       * {@link DelayedStart}.
+       **/
+      delayed: DelayedStart;
     }
   | { ok: false; reason: PreviewErrorReason };
 
@@ -217,6 +252,68 @@ export interface LpParams {
   tokenOut?: Address;
 }
 
+export interface FinishDelayedParams extends SimulateOptions {
+  /**
+   * The matured withdrawal to claim, from
+   * `sdk.onchain.chain(chainId).withdrawalCompressor.getCurrentWithdrawals()`.
+   **/
+  claimable: ClaimableWithdrawal;
+  /**
+   * The operation to resume. Defaults to the one the request recorded in the
+   * withdrawal's `extraData`, which is what {@link ClaimableWithdrawal.intent}
+   * decodes; pass it explicitly when the compressor is too old to report it.
+   **/
+  intent?: ResumableIntent;
+}
+
+/**
+ * The delayed route of the two operations that can take it: a source that only
+ * redeems through its issuer — a Securitize dsToken, a Mellow share — instead of
+ * through the router.
+ *
+ * Two transactions rather than one: the request, then the tail once the
+ * redemption matures, which is days later. In between, nothing has to be kept on
+ * the client — the request writes the operation into the withdrawal's
+ * `extraData`, and reading the claimable decodes it back.
+ **/
+export interface DelayedSimulate {
+  /**
+   * The delayed counterpart of {@link OpportunitiesSimulate.withdrawStrategy}.
+   *
+   * Reports `noDelayedRoute` when the account has no redemption venue for the
+   * source at all, so a caller offering both routes asks for both previews and
+   * shows whichever answered.
+   **/
+  withdrawStrategy(
+    position: PositionInput,
+    params: WithdrawStrategyParams,
+  ): Promise<DataResponse<DelayedStrategySimulate>>;
+
+  /**
+   * The delayed counterpart of {@link OpportunitiesSimulate.adjustLeverage},
+   * which only deleveraging reaches: raising leverage buys the position token
+   * and never redeems it.
+   **/
+  adjustLeverage(
+    position: PositionInput,
+    params: AdjustLeverageParams,
+  ): Promise<DataResponse<DelayedStrategySimulate>>;
+
+  /**
+   * The tail: claim the matured withdrawal, then whatever the recorded
+   * operation still owes — repaying debt and paying the wallet out for a
+   * withdrawal, repaying alone for a deleveraging, nothing beyond the claim for
+   * the rest.
+   *
+   * Answers like the instant flows, so both halves are consumed the same way.
+   * Reports `noRecordedIntent` when the claim names no operation to resume.
+   **/
+  finish(
+    position: PositionInput,
+    params: FinishDelayedParams,
+  ): Promise<DataResponse<StrategySimulate>>;
+}
+
 /**
  * Simulations of everything a wallet can do to a pool or a credit account.
  *
@@ -306,4 +403,10 @@ export interface OpportunitiesSimulate {
     position: PositionInput,
     params: WithdrawCollateralParams,
   ): Promise<DataResponse<StrategySimulate>>;
+
+  /**
+   * The same requests routed through a delayed redemption instead of the
+   * router, and the tail that finishes them, see {@link DelayedSimulate}.
+   **/
+  readonly delayed: DelayedSimulate;
 }

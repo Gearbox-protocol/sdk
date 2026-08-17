@@ -12,9 +12,16 @@ import type {
   StrategyPosition,
 } from "../../model/index.js";
 import type { OffchainOpportunities } from "../../offchain/index.js";
-import type { MultichainOpportunitiesService } from "../../sdk/index.js";
+import type {
+  ClaimableWithdrawal,
+  MultichainOpportunitiesService,
+} from "../../sdk/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
-import type { LpSimulate, StrategySimulate } from "../simulate/index.js";
+import type {
+  DelayedStrategySimulate,
+  LpSimulate,
+  StrategySimulate,
+} from "../simulate/index.js";
 import type { Mode } from "../types.js";
 import type { Opportunities } from "./types.js";
 
@@ -97,6 +104,43 @@ describe("simulate covers the eight flows", () => {
 
   it("answers in the envelope every read uses, so one chain is reported", () => {
     expectTypeOf(simulate.adjustLeverage).returns.resolves.toEqualTypeOf<
+      DataResponse<StrategySimulate>
+    >();
+  });
+});
+
+describe("the delayed route sits beside the instant one", () => {
+  const simulate = {} as Opportunities<"onchain">["simulate"];
+  const position = {} as StrategyPosition;
+
+  it("has the two flows a redemption can interrupt, plus the tail", () => {
+    expectTypeOf(simulate.delayed).toHaveProperty("withdrawStrategy");
+    expectTypeOf(simulate.delayed).toHaveProperty("adjustLeverage");
+    expectTypeOf(simulate.delayed).toHaveProperty("finish");
+  });
+
+  it("takes the request of the instant flow it mirrors, unchanged", () => {
+    // the route differs, the request does not, so a caller offers both from one
+    // set of inputs
+    expectTypeOf(simulate.delayed.withdrawStrategy).parameters.toEqualTypeOf<
+      Parameters<typeof simulate.withdrawStrategy>
+    >();
+    expectTypeOf(simulate.delayed.adjustLeverage).parameters.toEqualTypeOf<
+      Parameters<typeof simulate.adjustLeverage>
+    >();
+  });
+
+  it("reports what the request recorded for the tail", () => {
+    expectTypeOf(
+      simulate.delayed.withdrawStrategy,
+    ).returns.resolves.toEqualTypeOf<DataResponse<DelayedStrategySimulate>>();
+  });
+
+  it("finishes into the shape the instant flows answer with", () => {
+    expectTypeOf(simulate.delayed.finish).toBeCallableWith(position, {
+      claimable: {} as ClaimableWithdrawal,
+    });
+    expectTypeOf(simulate.delayed.finish).returns.resolves.toEqualTypeOf<
       DataResponse<StrategySimulate>
     >();
   });

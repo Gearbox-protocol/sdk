@@ -2,7 +2,10 @@ import type { Address } from "viem";
 import type { DataResponse } from "../../model/index.js";
 import type {
   CreditAccountSlice,
+  DelayableIntent,
+  DelayedIntentExtended,
   OnchainSDK,
+  ResumableIntent,
   StartIntent,
 } from "../../sdk/index.js";
 import {
@@ -14,6 +17,8 @@ import {
 import type {
   AddCollateralParams,
   AdjustLeverageParams,
+  DelayedSimulate,
+  DelayedStrategySimulate,
   DepositStrategyParams,
   LpParams,
   LpSimulate,
@@ -46,6 +51,46 @@ export class SimulateApi
   extends MultichainConstruct
   implements OpportunitiesSimulate
 {
+  /**
+   * {@inheritDoc OpportunitiesSimulate.delayed}
+   **/
+  public readonly delayed: DelayedSimulate = {
+    withdrawStrategy: (position, params) =>
+      this.#startDelayedIntent(position, params, {
+        type: "WITHDRAW",
+        amount: params.amount,
+        to: params.to,
+        tokenOut: params.tokenOut,
+        sourceToken: params.sourceToken,
+      }),
+
+    adjustLeverage: (position, params) =>
+      this.#startDelayedIntent(position, params, {
+        type: "ADJUST_LEVERAGE",
+        targetLeverage: params.targetLeverage,
+        token: params.token,
+      }),
+
+    finish: (position, params) =>
+      this.queryChain({
+        network: position.chainId,
+        run: async sdk => {
+          const intent = resumable(params.intent ?? params.claimable.intent);
+          if (!intent) {
+            return { ok: false, reason: "noRecordedIntent" };
+          }
+          return service(sdk).finishIntent({
+            intent,
+            claimable: params.claimable,
+            creditAccount: await slice(sdk, position.creditAccount),
+            sdk,
+            slippage: params.slippage,
+            quotaReserve: params.quotaReserve,
+          });
+        },
+      }),
+  };
+
   /**
    * {@inheritDoc OpportunitiesSimulate.deposit}
    **/
@@ -213,6 +258,28 @@ export class SimulateApi
   }
 
   /**
+   * Shared path of the two flows that have a delayed route: same account read,
+   * same intent, a planner that requests a redemption instead of swapping.
+   **/
+  async #startDelayedIntent(
+    position: PositionInput,
+    options: SimulateOptions,
+    intent: DelayableIntent,
+  ): Promise<DataResponse<DelayedStrategySimulate>> {
+    return this.queryChain({
+      network: position.chainId,
+      run: async sdk =>
+        service(sdk).startDelayedIntent({
+          intent,
+          creditAccount: await slice(sdk, position.creditAccount),
+          sdk,
+          slippage: options.slippage,
+          quotaReserve: options.quotaReserve,
+        }),
+    });
+  }
+
+  /**
    * Shared path of the five flows that act on an existing account: read the
    * account, then run the intent through the engine.
    **/
@@ -247,6 +314,20 @@ function slice(
   creditAccount: Address,
 ): Promise<CreditAccountSlice> {
   return fetchCreditAccountSlice(sdk, creditAccount);
+}
+
+/**
+ * The operation a claim resumes, or `undefined` when there is none to resume:
+ * a withdrawal requested without an intent, a compressor too old to report one,
+ * or a full close, which the engine no longer previews.
+ **/
+function resumable(
+  intent: DelayedIntentExtended | ResumableIntent | undefined,
+): ResumableIntent | undefined {
+  if (!intent || intent.type === "CLOSE_ACCOUNT") {
+    return undefined;
+  }
+  return intent;
 }
 
 /**
