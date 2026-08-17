@@ -5,7 +5,7 @@ import { BotsPlugin } from "../../plugins/bots/index.js";
 import { DegenDistributorsPlugin } from "../../plugins/degen-distributors/index.js";
 import { json_stringify, OnchainSDK } from "../../sdk/index.js";
 import { ANVIL_URL } from "../constants.js";
-import { PYTH_API_PROXY, REDSTONE_GATEWAYS, useFixture } from "../helpers.js";
+import { REDSTONE_GATEWAYS, useFixture } from "../helpers.js";
 
 const BLOCK = 24_736_900n;
 
@@ -32,10 +32,6 @@ describe("v12 parity tests", () => {
       redstone: {
         historicTimestamp: true,
         gateways: REDSTONE_GATEWAYS,
-      },
-      pyth: {
-        historicTimestamp: true,
-        apiProxy: PYTH_API_PROXY,
       },
     });
   });

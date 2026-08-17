@@ -5,6 +5,7 @@ on:
     branches:
       - "master"
       - "next"
+      - "pyth"
       - "*.x"
 
 permissions:
