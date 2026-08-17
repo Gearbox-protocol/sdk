@@ -34,6 +34,18 @@ export const MOCK_RWA_UNWRAP_CALL: MultiCall = {
   callData: "0x",
 };
 
+/** Fixture `claimableWithdrawal.claimCalls` content; echoes through claim ops. */
+export const MOCK_CLAIM_CALL: MultiCall = {
+  target: "0x1111111111111111111111111111111111111111" as Address,
+  callData: "0x",
+};
+
+/** Fixture `requestableWithdrawal.requestCalls`; echoes through request ops. */
+export const MOCK_REQUEST_CALL: MultiCall = {
+  target: "0x2222222222222222222222222222222222222222" as Address,
+  callData: "0x",
+};
+
 /** One sentinel call per plain encodable op type. */
 export const CA_OP_CALLS = {
   addCollateral: {
@@ -95,6 +107,30 @@ interface BuildMockSdkArgs {
   rwaAssets?: Record<Address, Address>;
   /** Tokens reported as phantoms by `tokensMeta.get(...).contractType`. */
   phantoms?: Address[];
+  /**
+   * Redemption venues the mock compressor reports, keyed by source token. An
+   * empty array stands for "this token has no delayed route"; several entries
+   * stand for the ambiguous config the engine refuses.
+   */
+  delayed?: Record<Address, MockDelayedVenue[]>;
+}
+
+/** One redemption venue of the mock compressor. */
+export interface MockDelayedVenue {
+  withdrawalPhantomToken: Address;
+  /** Claim target; defaults to the market underlying. */
+  underlying?: Address;
+  /**
+   * What the request produces. Defaults to the whole `amount` as a delayed
+   * output on the phantom token, i.e. a venue with no instant liquidity.
+   */
+  outputs?: (amount: bigint) => Array<{
+    token: Address;
+    amount: bigint;
+    isDelayed: boolean;
+  }>;
+  /** Unix seconds reported as `claimableAt`. */
+  claimableAt?: bigint;
 }
 
 /**
@@ -258,7 +294,59 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
     (args.phantoms ?? []).map(t => t.toLowerCase() as Address),
   );
 
+  const venuesOf = (token: Address): MockDelayedVenue[] =>
+    args.delayed?.[token.toLowerCase() as Address] ?? [];
+
+  const withdrawalCompressor = args.delayed
+    ? {
+        findWithdrawableAssets: vi.fn(
+          async (creditManager: Address, token: Address) =>
+            venuesOf(token).map(v => ({
+              creditManager,
+              token,
+              withdrawalPhantomToken: v.withdrawalPhantomToken,
+              underlying: v.underlying ?? args.underlying,
+              withdrawalLength: 172_800n,
+            })),
+        ),
+      }
+    : undefined;
+
+  const previewDelayedWithdrawal = vi.fn(
+    async ({
+      token,
+      amount,
+      withdrawalPhantomToken,
+    }: {
+      token: Address;
+      amount: bigint;
+      withdrawalPhantomToken?: Address;
+    }) => {
+      const venue =
+        venuesOf(token).find(
+          v => v.withdrawalPhantomToken === withdrawalPhantomToken,
+        ) ?? venuesOf(token)[0];
+      if (!venue) {
+        throw new Error(`mock compressor: ${token} has no delayed route`);
+      }
+      return {
+        token,
+        amountIn: amount,
+        outputs: venue.outputs?.(amount) ?? [
+          {
+            token: venue.withdrawalPhantomToken,
+            amount,
+            isDelayed: true,
+          },
+        ],
+        requestCalls: [MOCK_REQUEST_CALL],
+        claimableAt: venue.claimableAt ?? 172_800n,
+      };
+    },
+  );
+
   return {
+    withdrawalCompressor,
     tokensMeta: {
       get: (token: Address) => ({
         decimals: decimalsOf(token),
@@ -290,6 +378,17 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
       prepareUpdateQuotas: vi.fn(() => [CA_OP_CALLS.changeQuota]),
       assembleRWAWrapCalls: vi.fn(async () => [MOCK_RWA_WRAP_CALL]),
       assembleRWAUnwrapCalls: vi.fn(async () => [MOCK_RWA_UNWRAP_CALL]),
+      previewDelayedWithdrawal,
+      assembleStartDelayedWithdrawalCalls: vi.fn(
+        ({ preview }: { preview: { requestCalls: MultiCall[] } }) => [
+          ...preview.requestCalls,
+        ],
+      ),
+      assembleClaimDelayedCalls: vi.fn(
+        ({ claimableNow }: { claimableNow: { claimCalls: MultiCall[] } }) => [
+          ...claimableNow.claimCalls,
+        ],
+      ),
     },
   } as unknown as OnchainSDK;
 }

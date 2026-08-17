@@ -2,7 +2,11 @@ import type { Address } from "viem";
 import type { OnchainSDK } from "../../../index.js";
 import { toBN } from "../../../index.js";
 import type { CreditAccountSlice } from "../types.js";
-import { buildMockSdk, type MockQuotaEntry } from "./sdk-mock.js";
+import {
+  buildMockSdk,
+  type MockDelayedVenue,
+  type MockQuotaEntry,
+} from "./sdk-mock.js";
 
 /**
  * Shared market fixture — token set, prices, decimals, quotas and CM/facade
@@ -114,6 +118,8 @@ export interface MarketSdkExtras {
   phantoms?: Address[];
   /** Facade `minDebt`; 0n when omitted. */
   minDebt?: bigint;
+  /** Redemption venues per source token; omit for a market without any. */
+  delayed?: Record<Address, MockDelayedVenue[]>;
 }
 
 /** Mock SDK on the shared fixture market. */
@@ -130,6 +136,7 @@ export function buildMarketSdk(extras?: MarketSdkExtras): OnchainSDK {
     underlying: UND,
     rwaAssets: extras?.rwaAssets,
     phantoms: extras?.phantoms,
+    delayed: extras?.delayed,
   });
 }
 

@@ -5,6 +5,10 @@ import type {
   OnchainSDK,
   RouterCASlice,
 } from "../../index.js";
+import type {
+  ClaimableWithdrawal,
+  DelayedIntent,
+} from "../withdrawal-compressor/types.js";
 import type { AccountCalculatorOperation } from "./operations.js";
 
 /**
@@ -43,7 +47,16 @@ export type PreviewErrorReason =
   /** Input token is not accepted by the flow (e.g. deposit of a non-underlying). */
   | "unsupportedCollateralToken"
   /** No pool route between the requested pair, or several and none was picked. */
-  | "unsupportedTokenPair";
+  | "unsupportedTokenPair"
+  /**
+   * The intent cannot settle with a delay: the source has no redemption config,
+   * the chain has no compressor, or the payout is one the tail cannot serve.
+   */
+  | "noDelayedRoute"
+  /** Several redemption venues for the source, and nothing says which. */
+  | "multipleDelayedWithdrawals"
+  /** A redemption of the same asset is already in flight. */
+  | "withdrawalInProgress";
 
 /**
  * What a preview yields: the operation chain, the state it projects, and the
@@ -55,6 +68,39 @@ export type IntentPreviewResult =
       operations: AccountCalculatorOperation[];
       preview: OperationState;
       calls: MultiCall[];
+    }
+  | { ok: false; reason: PreviewErrorReason };
+
+/** What the request recorded, and when the tail can be run. */
+export interface DelayedStart {
+  /**
+   * The intent written into the request, and decoded back from the claimable
+   * withdrawal at claim time. Feed it to
+   * `CreditAccountOperationsService.finishIntent`.
+   */
+  record: DelayedIntent;
+  /** Unix seconds after which the delayed outputs can be claimed. */
+  claimableAt: bigint;
+  /**
+   * `instant` when the venue served the whole request on the spot, so no claim
+   * will ever arrive to carry the tail. The intent is then left half-done —
+   * nothing repaid, nothing paid out — and the caller wants `startIntent`
+   * instead, which settles all of it in one transaction.
+   */
+  settlement: "instant" | "delayed";
+}
+
+/**
+ * What the leading half of a delayed intent yields: the request transaction,
+ * plus what it recorded for the tail.
+ */
+export type DelayedStartResult =
+  | {
+      ok: true;
+      operations: AccountCalculatorOperation[];
+      preview: OperationState;
+      calls: MultiCall[];
+      delayed: DelayedStart;
     }
   | { ok: false; reason: PreviewErrorReason };
 
@@ -217,6 +263,30 @@ export type StartIntent =
   | AdjustLeverageIntent
   | DepositStrategyIntent
   | WithdrawStrategyIntent;
+
+/**
+ * The intents that can be started as a redemption rather than a swap: the two
+ * that sell a position asset. The others buy one, and buying settles at once.
+ */
+export type DelayableIntent = AdjustLeverageIntent | WithdrawStrategyIntent;
+
+/**
+ * A delayed intent this engine knows how to finish.
+ *
+ * `CLOSE_ACCOUNT` is absent on purpose: closing goes through the facade's own
+ * entry point, which this engine no longer builds.
+ */
+export type ResumableIntent = Exclude<DelayedIntent, { type: "CLOSE_ACCOUNT" }>;
+
+/** Shared inputs plus the matured withdrawal the tail is built around. */
+export type FinishIntentProps = StartIntentProps & {
+  intent: ResumableIntent;
+  /**
+   * The matured withdrawal, as reported by
+   * `sdk.accounts.getPendingWithdrawals`.
+   */
+  claimable: ClaimableWithdrawal;
+};
 
 /**
  * Validation failure that maps onto {@link PreviewErrorReason} rather than

@@ -1,18 +1,26 @@
 import type { Address } from "viem";
 import type { MultiCall, OnchainSDK } from "../../index.js";
+import type { WithdrawableAsset } from "../withdrawal-compressor/types.js";
 import {
   type AccountCalculatorOperation,
   buildAddCollateralOperation,
+  buildClaimDelayedWithdrawalOperation,
   buildDecreaseDebtOperation,
   buildIncreaseDebtOperation,
   buildQuotaUpdateOperation,
+  buildStartDelayedWithdrawalOperation,
   buildSwapOperation,
   buildUnwrapRwaCollateralOperation,
   buildWithdrawCollateralOperation,
   buildWrapRwaCollateralOperation,
+  instantOutput,
 } from "./operations.js";
 import type { Amount, Step } from "./plan.js";
-import type { CreditAccountSlice, OperationState } from "./types.js";
+import type {
+  CreditAccountSlice,
+  DelayedStart,
+  OperationState,
+} from "./types.js";
 import { IntentPreviewError } from "./types.js";
 import { eq, toTargetDecimals } from "./utils/common.js";
 import { convertAmount } from "./utils/convert-amount.js";
@@ -33,6 +41,8 @@ export interface Realized {
   operations: AccountCalculatorOperation[];
   state: OperationState;
   calls: MultiCall[];
+  /** Set when the plan started a redemption, i.e. it needs a tail. */
+  delayed: DelayedStart | undefined;
 }
 
 /**
@@ -67,8 +77,9 @@ export async function realize(
     ledger.apply(op);
   };
 
-  /** Output of the last convert, for `RAISED` amounts. */
+  /** Output of the last convert or claim, for `RAISED` amounts. */
   let raised = 0n;
+  let delayed: DelayedStart | undefined;
   const amountOf = (a: Amount): bigint =>
     typeof a === "bigint" ? a : min(raised, a.max ?? raised);
   const assertHolds = (token: Address, amount: bigint, what: string): void => {
@@ -183,6 +194,51 @@ export async function realize(
         break;
       }
 
+      case "request": {
+        const asset = await delayedConfig(sdk, creditAccount, step.token);
+        // One request at a time per asset: a phantom balance is a redemption
+        // already in flight, and its claim owns the tail that follows it.
+        if (ledger.balanceOf(asset.withdrawalPhantomToken) > 0n) {
+          throw new IntentPreviewError(
+            "withdrawalInProgress",
+            `request: ${asset.withdrawalPhantomToken} already holds a pending withdrawal`,
+          );
+        }
+        assertHolds(step.token, step.amount + step.reserve, "request");
+
+        const preview = await sdk.accounts.previewDelayedWithdrawal({
+          creditAccount: creditAccount.creditAccount,
+          token: step.token,
+          amount: step.amount,
+          withdrawalPhantomToken: asset.withdrawalPhantomToken,
+          intent: step.record,
+        });
+        push(
+          buildStartDelayedWithdrawalOperation({ preview, creditAccount, sdk }),
+        );
+        delayed = {
+          record: step.record,
+          claimableAt: preview.claimableAt,
+          settlement: preview.outputs.some(o => o.isDelayed)
+            ? "delayed"
+            : "instant",
+        };
+        raised = instantOutput(preview.outputs)?.amount ?? 0n;
+        break;
+      }
+
+      case "claim": {
+        push(
+          buildClaimDelayedWithdrawalOperation({
+            claimable: step.claimable,
+            creditAccount,
+            sdk,
+          }),
+        );
+        raised = instantOutput(step.claimable.outputs)?.amount ?? 0n;
+        break;
+      }
+
       default: {
         const _exhaustive: never = step;
         void _exhaustive;
@@ -221,7 +277,46 @@ export async function realize(
       quotas: quotas.desiredQuota,
     },
     calls: callsOf(operations),
+    delayed,
   };
+}
+
+/**
+ * The redemption config for `token`, when the credit manager offers exactly one.
+ *
+ * Several configs mean several venues with different delays and outputs, and
+ * nothing in the intent says which one was meant.
+ */
+async function delayedConfig(
+  sdk: OnchainSDK,
+  creditAccount: CreditAccountSlice,
+  token: Address,
+): Promise<WithdrawableAsset> {
+  const compressor = sdk.withdrawalCompressor;
+  if (!compressor) {
+    throw new IntentPreviewError(
+      "noDelayedRoute",
+      "request: chain has no withdrawal compressor",
+    );
+  }
+
+  const assets = await compressor.findWithdrawableAssets(
+    creditAccount.creditManager,
+    token,
+  );
+  if (assets.length === 0) {
+    throw new IntentPreviewError(
+      "noDelayedRoute",
+      `request: ${token} has no delayed withdrawal config`,
+    );
+  }
+  if (assets.length > 1) {
+    throw new IntentPreviewError(
+      "multipleDelayedWithdrawals",
+      `request: ${token} has ${assets.length} delayed withdrawal configs`,
+    );
+  }
+  return assets[0];
 }
 
 const callsOf = (operations: AccountCalculatorOperation[]): MultiCall[] =>

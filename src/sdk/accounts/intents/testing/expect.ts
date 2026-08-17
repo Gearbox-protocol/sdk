@@ -2,9 +2,15 @@ import type { Address } from "viem";
 import { expect } from "vitest";
 import type { MultiCall } from "../../../index.js";
 import type { AccountCalculatorOperation } from "../operations.js";
-import type { IntentPreviewResult, OperationState } from "../types.js";
+import type {
+  DelayedStartResult,
+  IntentPreviewResult,
+  OperationState,
+} from "../types.js";
 import {
   CA_OP_CALLS,
+  MOCK_CLAIM_CALL,
+  MOCK_REQUEST_CALL,
   MOCK_ROUTER_CALL,
   MOCK_RWA_UNWRAP_CALL,
   MOCK_RWA_WRAP_CALL,
@@ -57,6 +63,10 @@ export function withOnchainOpCalls(ops: ExpectedFlowOp[]): ExpectedFlowOp[] {
           ...op,
           calls: op.calls?.length ? op.calls : [MOCK_RWA_UNWRAP_CALL],
         };
+      case "startDelayedWithdrawal":
+        return { ...op, calls: [MOCK_REQUEST_CALL] };
+      case "claimDelayedWithdrawal":
+        return { ...op, calls: [MOCK_CLAIM_CALL] };
       default:
         return op;
     }
@@ -81,6 +91,38 @@ function matchOp(
       expect(actual.quotaDecrease, `op[${index}].quotaDecrease`).toEqual(
         expected.quotaDecrease,
       );
+      expect(actual.calls, `op[${index}].calls`).toEqual(
+        expectedCalls(expected),
+      );
+      break;
+    case "startDelayedWithdrawal":
+      if (actual.type !== "startDelayedWithdrawal") {
+        return;
+      }
+      expect(actual.token, `op[${index}].token`).toBe(expected.token);
+      expect(actual.amountIn, `op[${index}].amountIn`).toBe(expected.amountIn);
+      expect(actual.outputs, `op[${index}].outputs`).toEqual(expected.outputs);
+      expect(actual.settlement, `op[${index}].settlement`).toBe(
+        expected.settlement,
+      );
+      expect(actual.calls, `op[${index}].calls`).toEqual(
+        expectedCalls(expected),
+      );
+      break;
+    case "claimDelayedWithdrawal":
+      if (actual.type !== "claimDelayedWithdrawal") {
+        return;
+      }
+      expect(actual.token, `op[${index}].token`).toBe(expected.token);
+      expect(
+        actual.withdrawalPhantomToken,
+        `op[${index}].withdrawalPhantomToken`,
+      ).toBe(expected.withdrawalPhantomToken);
+      expect(
+        actual.withdrawalTokenSpent,
+        `op[${index}].withdrawalTokenSpent`,
+      ).toBe(expected.withdrawalTokenSpent);
+      expect(actual.outputs, `op[${index}].outputs`).toEqual(expected.outputs);
       expect(actual.calls, `op[${index}].calls`).toEqual(
         expectedCalls(expected),
       );
@@ -212,7 +254,7 @@ export function expectCallsArrayExact(
  * Returns the projected state for further asset/quota assertions.
  */
 export function expectAdjustPreview(
-  result: IntentPreviewResult,
+  result: IntentPreviewResult | DelayedStartResult,
   args: {
     totalValue: bigint;
     accountDebt: bigint;
@@ -239,7 +281,7 @@ export function expectAdjustPreview(
 
 /** Asserts the preview failed for a specific reason. */
 export function expectPreviewError(
-  result: IntentPreviewResult,
+  result: IntentPreviewResult | DelayedStartResult,
   reason: Extract<IntentPreviewResult, { ok: false }>["reason"],
 ): void {
   expect(result.ok, "preview should fail").toBe(false);

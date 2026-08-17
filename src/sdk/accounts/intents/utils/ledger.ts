@@ -109,6 +109,21 @@ export class OperationLedger {
         this.#add(op.tokenIn, -op.amount);
         this.#add(op.tokenOut, op.amountOut);
         break;
+      // Both halves of a redemption spend one token and credit the outputs the
+      // compressor reports; a delayed output credits the phantom token, which
+      // is what keeps the in-flight position on the books.
+      case "startDelayedWithdrawal":
+        this.#add(op.token, -op.amountIn);
+        for (const out of op.outputs) {
+          this.#add(out.token, out.amount);
+        }
+        break;
+      case "claimDelayedWithdrawal":
+        this.#add(op.withdrawalPhantomToken, -op.withdrawalTokenSpent);
+        for (const out of op.outputs) {
+          this.#add(out.token, out.amount);
+        }
+        break;
       default: {
         const _exhaustive: never = op;
         void _exhaustive;

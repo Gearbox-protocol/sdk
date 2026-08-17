@@ -2,6 +2,11 @@ import type { Address } from "viem";
 import type { calcQuotaUpdate } from "../../../common-utils/utils/creditAccount/quota-utils.js";
 import type { Asset, MultiCall, OnchainSDK } from "../../index.js";
 import type { EncodableCreditAccountOperation } from "../types.js";
+import type {
+  ClaimableWithdrawal,
+  RequestableWithdrawal,
+  WithdrawalOutput,
+} from "../withdrawal-compressor/types.js";
 import type { CreditAccountSlice } from "./types.js";
 
 /**
@@ -20,7 +25,9 @@ export type AccountCalculatorOperation =
   | WithdrawCollateralOperation
   | QuotaUpdateOperation
   | WrapRwaCollateralOperation
-  | UnwrapRwaCollateralOperation;
+  | UnwrapRwaCollateralOperation
+  | StartDelayedWithdrawalOperation
+  | ClaimDelayedWithdrawalOperation;
 
 /**
  * Compile-time proof that the engine's operations really are the SDK's own
@@ -286,4 +293,102 @@ export async function buildUnwrapRwaCollateralOperation(
     amountOut: input.amountOut,
     calls,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Delayed withdrawals — the two halves of a redemption that spans transactions
+// ---------------------------------------------------------------------------
+
+/**
+ * The request that starts a redemption: spends the source token and receives
+ * the phantom token standing in for the payout until it matures.
+ */
+export interface StartDelayedWithdrawalOperation {
+  type: "startDelayedWithdrawal";
+  /** Source token the redemption is requested from. */
+  token: Address;
+  /** Amount of `token` the issuer burns; capped at the account balance. */
+  amountIn: bigint;
+  /** Request outputs; a delayed one is the phantom token, not the payout. */
+  outputs: WithdrawalOutput[];
+  /** Whether anything at all has to be waited for. */
+  settlement: "instant" | "delayed";
+  calls: MultiCall[];
+}
+
+export function buildStartDelayedWithdrawalOperation(input: {
+  preview: RequestableWithdrawal;
+  creditAccount: CreditAccountSlice;
+  sdk: OnchainSDK;
+}): StartDelayedWithdrawalOperation {
+  const { preview } = input;
+  return {
+    type: "startDelayedWithdrawal",
+    token: preview.token,
+    amountIn: preview.amountIn,
+    outputs: [...preview.outputs],
+    settlement: preview.outputs.some(o => o.isDelayed) ? "delayed" : "instant",
+    calls: input.sdk.accounts.assembleStartDelayedWithdrawalCalls({
+      creditFacade: input.creditAccount.creditFacade,
+      preview,
+    }),
+  };
+}
+
+/**
+ * The claim of a matured delayed withdrawal: burns the phantom and credits the
+ * outputs the compressor reports.
+ */
+export interface ClaimDelayedWithdrawalOperation {
+  type: "claimDelayedWithdrawal";
+  /** Source token the delayed withdrawal was requested from. */
+  token: Address;
+  withdrawalPhantomToken: Address;
+  withdrawalTokenSpent: bigint;
+  /** Claim outputs as returned by the compressor (incl. `isDelayed`). */
+  outputs: WithdrawalOutput[];
+  calls: MultiCall[];
+}
+
+export function buildClaimDelayedWithdrawalOperation(input: {
+  claimable: ClaimableWithdrawal;
+  creditAccount: CreditAccountSlice;
+  sdk: OnchainSDK;
+}): ClaimDelayedWithdrawalOperation {
+  const { claimable } = input;
+  return {
+    type: "claimDelayedWithdrawal",
+    token: claimable.token.toLowerCase() as Address,
+    withdrawalPhantomToken:
+      claimable.withdrawalPhantomToken.toLowerCase() as Address,
+    withdrawalTokenSpent: claimable.withdrawalTokenSpent,
+    outputs: claimable.outputs.map(o => ({
+      ...o,
+      token: o.token.toLowerCase() as Address,
+    })),
+    calls: input.sdk.accounts.assembleClaimDelayedCalls({
+      creditFacade: input.creditAccount.creditFacade,
+      claimableNow: claimable,
+    }),
+  };
+}
+
+/**
+ * What a request or a claim puts on the account right away, as opposed to what
+ * only the phantom token represents.
+ */
+export function instantOutput(
+  outputs: WithdrawalOutput[],
+  token?: Address,
+): { token: Address; amount: bigint } | undefined {
+  for (const out of outputs) {
+    if (out.isDelayed || out.amount <= 0n) {
+      continue;
+    }
+    if (token != null && out.token.toLowerCase() !== token.toLowerCase()) {
+      continue;
+    }
+    return { token: out.token, amount: out.amount };
+  }
+  return undefined;
 }

@@ -1,24 +1,38 @@
+import type { Address } from "viem";
 import { SDKConstruct } from "../../base/SDKConstruct.js";
 import {
   type OpenStrategyPreview,
   type OpenStrategyProps,
   previewOpenStrategy,
 } from "./open-strategy.js";
-import type { AccountCalculatorOperation } from "./operations.js";
+import {
+  type AccountCalculatorOperation,
+  instantOutput,
+} from "./operations.js";
 import {
   planAddCollateral,
   planAdjustLeverage,
+  planAdjustLeverageDelayed,
   planDeposit,
+  planFinishClaimOnly,
+  planFinishDecreaseLeverage,
+  planFinishWithdraw,
   planWithdraw,
   planWithdrawAsset,
+  planWithdrawDelayed,
   type Step,
 } from "./plan.js";
 import { realize } from "./realize.js";
 import {
   type CreditAccountSlice,
+  type DelayableIntent,
+  type DelayedStart,
+  type DelayedStartResult,
+  type FinishIntentProps,
   IntentPreviewError,
   type IntentPreviewResult,
   type PreviewErrorReason,
+  type ResumableIntent,
   type StartIntent,
   type StartIntentProps,
 } from "./types.js";
@@ -31,10 +45,15 @@ export type {
 export {
   type AddCollateralIntent,
   type AdjustLeverageIntent,
+  type DelayableIntent,
+  type DelayedStart,
+  type DelayedStartResult,
   type DepositStrategyIntent,
+  type FinishIntentProps,
   IntentPreviewError,
   type OperationState,
   type PreviewErrorReason,
+  type ResumableIntent,
   type StartIntent,
   type WithdrawAssetIntent,
   type WithdrawStrategyIntent,
@@ -80,27 +99,125 @@ export class CreditAccountOperationsService extends SDKConstruct {
    * balance)
    */
   async startIntent(props: StartProps): Promise<IntentPreviewResult> {
-    return this.#preview(props, () => {
-      const { intent } = props;
+    return plain(
+      await this.#preview(props, () => {
+        const { intent } = props;
+        const view = accountView(props.creditAccount, props.sdk);
+        switch (intent.type) {
+          case "ADD_COLLATERAL":
+            return planAddCollateral(intent);
+          case "WITHDRAW_ASSET":
+            return planWithdrawAsset(intent, view);
+          case "ADJUST_LEVERAGE":
+            return planAdjustLeverage(intent, view);
+          case "DEPOSIT":
+            return planDeposit(intent, view);
+          case "WITHDRAW":
+            return planWithdraw(intent, view);
+          default: {
+            const _exhaustive: never = intent;
+            void _exhaustive;
+            throw new Error(
+              `${(intent as StartIntent).type} - not implemented`,
+            );
+          }
+        }
+      }),
+    );
+  }
+
+  /**
+   * Previews the same operation when its source only redeems through its
+   * issuer: a Securitize dsToken, a Mellow share.
+   *
+   * Sits apart from {@link startIntent} because it is a different trade route,
+   * not a different intent: the request goes to the issuer instead of the
+   * router, and the proceeds — hence the repayment and the payout — arrive days
+   * later. Callers that want to offer both routes ask for both previews.
+   *
+   * @param props - Intent plus account slice, quota reserve and slippage
+   * @returns The request transaction and what it recorded for the tail, or
+   * `{ ok: false, reason }` — `noDelayedRoute` when this route does not exist
+   * for the account at all
+   */
+  async startDelayedIntent(
+    props: StartIntentProps & { intent: DelayableIntent },
+  ): Promise<DelayedStartResult> {
+    const { intent } = props;
+    const result = await this.#preview(props, () => {
       const view = accountView(props.creditAccount, props.sdk);
       switch (intent.type) {
-        case "ADD_COLLATERAL":
-          return planAddCollateral(intent);
-        case "WITHDRAW_ASSET":
-          return planWithdrawAsset(intent, view);
         case "ADJUST_LEVERAGE":
-          return planAdjustLeverage(intent, view);
-        case "DEPOSIT":
-          return planDeposit(intent, view);
+          return planAdjustLeverageDelayed(intent, view);
         case "WITHDRAW":
-          return planWithdraw(intent, view);
+          return planWithdrawDelayed(intent, view);
         default: {
           const _exhaustive: never = intent;
           void _exhaustive;
-          throw new Error(`${(intent as StartIntent).type} - not implemented`);
+          throw new Error(
+            `${(intent as DelayableIntent).type} - cannot be delayed`,
+          );
         }
       }
     });
+    if (!result.ok) {
+      return result;
+    }
+    if (!result.delayed) {
+      throw new Error("startDelayedIntent: plan started no withdrawal");
+    }
+    return { ...result, delayed: result.delayed };
+  }
+
+  /**
+   * Previews the tail of a delayed intent, once the withdrawal it started has
+   * matured: the claim, then whatever the intent still owes.
+   *
+   * Serves the two operations that can genuinely be interrupted by a delay — a
+   * withdrawal and a deleveraging. For the rest, the claim is the whole tail:
+   * the tokens land on the account and only their quota has to catch up.
+   *
+   * @param props - The recorded intent, the account slice as it stands now, and
+   * the matured claimable
+   * @returns Shaped exactly like {@link startIntent}'s result, so both halves of
+   * an operation are consumed the same way
+   */
+  async finishIntent(props: FinishIntentProps): Promise<IntentPreviewResult> {
+    const { intent, claimable } = props;
+    return plain(
+      await this.#preview(props, () => {
+        const view = accountView(props.creditAccount, props.sdk);
+        // What the claim credits on the spot, which is what the tail spends.
+        const claimed = (): { token: Address; amount: bigint } => {
+          const output = instantOutput(claimable.outputs);
+          if (!output) {
+            throw new IntentPreviewError(
+              "insufficientSourceBalance",
+              "finishIntent: the claim credits nothing to spend",
+            );
+          }
+          return output;
+        };
+        switch (intent.type) {
+          case "WITHDRAW_COLLATERAL":
+            return planFinishWithdraw(intent, claimable, claimed(), view);
+          case "DECREASE_LEVERAGE":
+            return planFinishDecreaseLeverage(claimable, claimed(), view);
+          case "ADD_COLLATERAL":
+          case "INCREASE_LEVERAGE":
+          case "DEPOSIT":
+          case "DEPOSIT_AND_INCREASE_LEVERAGE":
+            return planFinishClaimOnly(claimable);
+          default: {
+            const _exhaustive: never = intent;
+            void _exhaustive;
+            throw new Error(
+              `${(intent as ResumableIntent).type} - not implemented`,
+            );
+          }
+        }
+      }),
+    );
   }
 
   /**
@@ -129,19 +246,38 @@ export class CreditAccountOperationsService extends SDKConstruct {
   async #preview(
     props: StartIntentProps,
     plan: () => Step[],
-  ): Promise<IntentPreviewResult> {
+  ): Promise<Previewed> {
     try {
-      const { operations, state, calls } = await realize(plan(), {
+      const { operations, state, calls, delayed } = await realize(plan(), {
         creditAccount: props.creditAccount,
         sdk: props.sdk,
         slippage: props.slippage ?? 0,
         quotaReserve: props.quotaReserve,
       });
-      return { ok: true, operations, preview: state, calls };
+      return { ok: true, operations, preview: state, calls, delayed };
     } catch (e) {
       return asFailure(e);
     }
   }
+}
+
+/**
+ * A preview before it is told apart: only a plan that requested a redemption
+ * carries `delayed`, and only `startDelayedIntent` reports it.
+ */
+type Previewed =
+  | (Extract<IntentPreviewResult, { ok: true }> & {
+      delayed: DelayedStart | undefined;
+    })
+  | { ok: false; reason: PreviewErrorReason };
+
+/** Drops the delayed half for the flows that cannot produce one. */
+function plain(result: Previewed): IntentPreviewResult {
+  if (!result.ok) {
+    return result;
+  }
+  const { operations, preview, calls } = result;
+  return { ok: true, operations, preview, calls };
 }
 
 /** Unviable requests are values; anything else is a genuine failure. */
