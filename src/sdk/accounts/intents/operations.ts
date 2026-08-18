@@ -1,26 +1,21 @@
 import type { Address } from "viem";
 import type { calcQuotaUpdate } from "../../../common-utils/utils/creditAccount/quota-utils.js";
-import type {
-  Asset,
-  ClaimableWithdrawal,
-  MultiCall,
-  OnchainSDK,
-  RequestableWithdrawal,
-  RouterCASlice,
-  WithdrawalOutput,
-} from "../../index.js";
+import type { Asset, MultiCall, OnchainSDK } from "../../index.js";
 import type { EncodableCreditAccountOperation } from "../types.js";
+import type {
+  ClaimableWithdrawal,
+  RequestableWithdrawal,
+  WithdrawalOutput,
+} from "../withdrawal-compressor/types.js";
 import type { CreditAccountSlice } from "./types.js";
-import { eq } from "./utils/common.js";
 
 /**
  * The operation vocabulary: one logical step of an intent, carrying both the
  * calldata that realises it and the amounts it was computed from.
  *
  * A superset of {@link EncodableCreditAccountOperation}: same discriminants,
- * plus the quoted amounts the preview and the tests read, plus the composite
- * steps (close, repay, start / claim delayed withdrawal) that come from their
- * own assemblers rather than from `assembleCaOperations`.
+ * plus the quoted amounts the preview and the tests read, plus the RWA legs
+ * that come from their own assemblers rather than from `assembleCaOperations`.
  */
 export type AccountCalculatorOperation =
   | AddCollateralOperation
@@ -29,8 +24,6 @@ export type AccountCalculatorOperation =
   | SwapOperation
   | WithdrawCollateralOperation
   | QuotaUpdateOperation
-  | CloseCreditAccountOperation
-  | RepayCreditAccountOperation
   | WrapRwaCollateralOperation
   | UnwrapRwaCollateralOperation
   | StartDelayedWithdrawalOperation
@@ -224,7 +217,7 @@ export function buildQuotaUpdateOperation(input: {
 }
 
 // ---------------------------------------------------------------------------
-// RWA wrap / unwrap — 1:1, decimals rescale only
+// RWA wrap / unwrap — 1:1, decimals rescale only, own assemblers
 // ---------------------------------------------------------------------------
 
 export interface WrapRwaCollateralOperation {
@@ -303,68 +296,50 @@ export async function buildUnwrapRwaCollateralOperation(
 }
 
 // ---------------------------------------------------------------------------
-// Composites with their own assemblers
+// Delayed withdrawals — the two halves of a redemption that spans transactions
 // ---------------------------------------------------------------------------
 
-export interface CloseCreditAccountOperation {
-  type: "closeCreditAccount";
-  /** Underlying the account holds once every balance is converted. */
-  underlyingBalance: bigint;
-  /** Expected proceeds of the conversion. */
-  amount: bigint;
-  /** Floor proceeds after slippage. */
-  minAmount: bigint;
-  calls: MultiCall[];
-}
-
-export async function buildCloseCreditAccountOperation(input: {
-  leg: { amount: bigint; minAmount: bigint; calls: MultiCall[] };
-  underlyingBalance: bigint;
-  to: Address;
-  creditAccount: RouterCASlice;
-  sdk: OnchainSDK;
-}): Promise<CloseCreditAccountOperation> {
-  const { leg, creditAccount, sdk } = input;
-  const rwaConfig = sdk.tokensMeta.rwaUnderlyings.get(creditAccount.underlying);
-  return {
-    type: "closeCreditAccount",
-    underlyingBalance: input.underlyingBalance,
-    amount: leg.amount,
-    minAmount: leg.minAmount,
-    calls: await sdk.accounts.assembleCloseCreditAccountCalls({
-      creditAccount,
-      routerCalls: leg.calls,
-      assetsToWithdraw: [
-        (rwaConfig?.asset ?? creditAccount.underlying).toLowerCase() as Address,
-      ],
-      to: input.to,
-    }),
-  };
-}
-
-/** Full repay; kept in the vocabulary for callers that assemble it themselves. */
-export interface RepayCreditAccountOperation {
-  type: "repayCreditAccount";
-  expectedRepayAsset?: Asset[];
-  expectedWithdrawAssets?: Asset[];
-  value?: bigint;
-  calls: MultiCall[];
-}
-
+/**
+ * The request that starts a redemption: spends the source token and receives
+ * the phantom token standing in for the payout until it matures.
+ */
 export interface StartDelayedWithdrawalOperation {
   type: "startDelayedWithdrawal";
-  token: RequestableWithdrawal["token"];
+  /** Source token the redemption is requested from. */
+  token: Address;
+  /** Amount of `token` the issuer burns; capped at the account balance. */
   amountIn: bigint;
-  outputs: RequestableWithdrawal["outputs"];
+  /** Request outputs; a delayed one is the phantom token, not the payout. */
+  outputs: WithdrawalOutput[];
+  /** Whether anything at all has to be waited for. */
   settlement: "instant" | "delayed";
   calls: MultiCall[];
+}
+
+export function buildStartDelayedWithdrawalOperation(input: {
+  preview: RequestableWithdrawal;
+  creditAccount: CreditAccountSlice;
+  sdk: OnchainSDK;
+}): StartDelayedWithdrawalOperation {
+  const { preview } = input;
+  return {
+    type: "startDelayedWithdrawal",
+    token: preview.token,
+    amountIn: preview.amountIn,
+    outputs: [...preview.outputs],
+    settlement: preview.outputs.some(o => o.isDelayed) ? "delayed" : "instant",
+    calls: input.sdk.accounts.assembleStartDelayedWithdrawalCalls({
+      creditFacade: input.creditAccount.creditFacade,
+      preview,
+    }),
+  };
 }
 
 /**
  * The claim of a matured delayed withdrawal: burns the phantom and credits the
  * outputs the compressor reports.
  */
-export type ClaimDelayedWithdrawalOperation = {
+export interface ClaimDelayedWithdrawalOperation {
   type: "claimDelayedWithdrawal";
   /** Source token the delayed withdrawal was requested from. */
   token: Address;
@@ -372,9 +347,8 @@ export type ClaimDelayedWithdrawalOperation = {
   withdrawalTokenSpent: bigint;
   /** Claim outputs as returned by the compressor (incl. `isDelayed`). */
   outputs: WithdrawalOutput[];
-  /** Compressor claimCalls. */
   calls: MultiCall[];
-};
+}
 
 export function buildClaimDelayedWithdrawalOperation(input: {
   claimable: ClaimableWithdrawal;
@@ -399,16 +373,19 @@ export function buildClaimDelayedWithdrawalOperation(input: {
   };
 }
 
-/** First positive non-delayed output (optionally restricted to `token`). */
-export function primaryInstantOutput(
-  outputs: Array<{ token: Address; amount: bigint; isDelayed: boolean }>,
+/**
+ * What a request or a claim puts on the account right away, as opposed to what
+ * only the phantom token represents.
+ */
+export function instantOutput(
+  outputs: WithdrawalOutput[],
   token?: Address,
 ): { token: Address; amount: bigint } | undefined {
   for (const out of outputs) {
     if (out.isDelayed || out.amount <= 0n) {
       continue;
     }
-    if (token != null && !eq(out.token, token)) {
+    if (token != null && out.token.toLowerCase() !== token.toLowerCase()) {
       continue;
     }
     return { token: out.token, amount: out.amount };

@@ -4,35 +4,44 @@ import type { OnchainSDK } from "../../../index.js";
 
 import { CreditAccountOperationsService } from "../index.js";
 import {
-  type ExpectedFlowOp,
-  expectAdjustResumePreview,
-} from "../testing/expect.js";
-import {
   ANY,
   CREDIT_FACADE,
   RWA_ASSET as RWA,
   UND,
-} from "../testing/resume.js";
+} from "../testing/delayed.js";
+import {
+  type ExpectedFlowOp,
+  expectAdjustPreview,
+  withOnchainOpCalls,
+} from "../testing/expect.js";
 import {
   CA_OP_CALLS,
   MOCK_CLAIM_CALL,
   MOCK_ROUTER_CALL,
+  MOCK_RWA_UNWRAP_CALL,
 } from "../testing/sdk-mock.js";
 import type { IntentPreviewResult } from "../types.js";
 import {
   A0,
-  buildWithdrawResumeProps,
+  buildMatrixWithdrawTailProps,
+  buildWithdrawFinishProps,
   buildWithdrawSdk,
+  case_matrix_4_3_tail,
+  case_matrix_4_4_tail,
+  case_matrix_4_5_tail,
+  case_matrix_4_6_tail,
   DEBT_DELTA,
+  M4_DD,
+  type MatrixWithdrawTailCase,
   PHANTOM,
   WITHDRAW_ANY,
   WITHDRAW_PRE_D,
   WITHDRAW_RWA,
   WITHDRAW_TO,
   WITHDRAW_UND,
-} from "./resume-withdraw.fixtures.js";
+} from "./finish-withdraw.fixtures.js";
 
-type WithdrawProps = ReturnType<typeof buildWithdrawResumeProps>;
+type WithdrawProps = ReturnType<typeof buildWithdrawFinishProps>;
 
 function claimOp(token: Address, amount: bigint): ExpectedFlowOp {
   return {
@@ -73,7 +82,7 @@ async function runWithdraw(props: WithdrawProps): Promise<IntentPreviewResult> {
   return service.finishIntent(props);
 }
 
-function resumeProps(args: {
+function tailProps(args: {
   sourceToken: Address;
   withdrawToken: Address;
   claimedToken: Address;
@@ -86,7 +95,7 @@ function resumeProps(args: {
     claimedToken: args.claimedToken,
     ...args.sdkExtras,
   });
-  return buildWithdrawResumeProps({
+  return buildWithdrawFinishProps({
     sourceToken: args.sourceToken,
     withdrawToken: args.withdrawToken,
     claimedToken: args.claimedToken,
@@ -98,15 +107,15 @@ function resumeProps(args: {
 }
 
 /**
- * Withdraw resume matrix after the withdraw-token constraint
+ * Withdraw tail matrix after the withdraw-token constraint
  * (W ∈ {underlying, rwa.asset}). Swap outputs echo the mock router
  * (amountOut = amountIn); withdraw/decreaseDebt clamp against them.
  */
-describe("withdraw resume S/T matrix (onchain)", () => {
+describe("withdraw tail S/T matrix (onchain)", () => {
   it("2.2.2 claims, swaps, and withdraws available W", async () => {
     const claimed = WITHDRAW_ANY / 2n;
     const result = await runWithdraw(
-      resumeProps({
+      tailProps({
         sourceToken: UND,
         withdrawToken: UND,
         claimedToken: ANY,
@@ -115,7 +124,7 @@ describe("withdraw resume S/T matrix (onchain)", () => {
       }),
     );
 
-    expectAdjustResumePreview(result, {
+    expectAdjustPreview(result, {
       // mock router echoes amountIn as UND without price conversion
       totalValue: 1_000_000_019_900_000_000_000n,
       accountDebt: WITHDRAW_PRE_D,
@@ -143,7 +152,7 @@ describe("withdraw resume S/T matrix (onchain)", () => {
   it("2.4.3 keeps W-first split call order (W = rwa.asset)", async () => {
     const claimed = 2n * WITHDRAW_ANY;
     const withdrawW = WITHDRAW_RWA / 2n;
-    const props = resumeProps({
+    const props = tailProps({
       sourceToken: ANY,
       withdrawToken: RWA,
       claimedToken: ANY,
@@ -160,7 +169,7 @@ describe("withdraw resume S/T matrix (onchain)", () => {
 
     // Oracle split: W(1000e8 RWA) → 2000e18 ANY; claim splits 50/50.
     const wInClaim = WITHDRAW_ANY;
-    expectAdjustResumePreview(result, {
+    expectAdjustPreview(result, {
       // echoed router amounts inflate TV; residual RWA after withdraw buys quota
       totalValue: 4_000_000_019_500_000_000_000n,
       accountDebt: WITHDRAW_PRE_D - DEBT_DELTA,
@@ -218,5 +227,91 @@ describe("withdraw resume S/T matrix (onchain)", () => {
       }),
     );
     expect(findPath).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * Test-matrix withdraw tails on the 10U/8U (5x) baseline, claiming through
+ * the quotable phantom (`POS2`) so the trailing changeQuota is observable.
+ */
+describe("withdraw tail — test-matrix rows 4.3–4.6 (onchain)", () => {
+  async function runMatrix(
+    c: MatrixWithdrawTailCase,
+  ): Promise<IntentPreviewResult> {
+    const props = buildMatrixWithdrawTailProps(c);
+    const service = new CreditAccountOperationsService(props.sdk as OnchainSDK);
+    return service.finishIntent(props);
+  }
+
+  // MATRIX MISMATCH (see case_matrix_4_3_tail): the engine repays before paying out.
+  it("matrix 4.3 tail: claim UND → decreaseDebt → withdrawCollateral → changeQuota", async () => {
+    const result = await runMatrix(case_matrix_4_3_tail);
+
+    expectAdjustPreview(result, {
+      totalValue: case_matrix_4_3_tail.totalValue,
+      accountDebt: M4_DD,
+      expectedOps: withOnchainOpCalls([...case_matrix_4_3_tail.ops]),
+      expectedCalls: [
+        MOCK_CLAIM_CALL,
+        CA_OP_CALLS.decreaseDebt,
+        CA_OP_CALLS.withdrawCollateral,
+        CA_OP_CALLS.changeQuota,
+      ],
+    });
+  });
+
+  // MATRIX MISMATCH (see case_matrix_4_4_tail): the engine repays before paying out.
+  it("matrix 4.4 tail: claim ANY → swap → decreaseDebt → withdrawCollateral → changeQuota", async () => {
+    const result = await runMatrix(case_matrix_4_4_tail);
+
+    expectAdjustPreview(result, {
+      totalValue: case_matrix_4_4_tail.totalValue,
+      accountDebt: M4_DD,
+      expectedOps: withOnchainOpCalls([...case_matrix_4_4_tail.ops]),
+      expectedCalls: [
+        MOCK_CLAIM_CALL,
+        MOCK_ROUTER_CALL,
+        CA_OP_CALLS.decreaseDebt,
+        CA_OP_CALLS.withdrawCollateral,
+        CA_OP_CALLS.changeQuota,
+      ],
+    });
+  });
+
+  // MATRIX MISMATCH (see case_matrix_4_5_tail): the engine repays before paying out.
+  it("matrix 4.5 tail: claim UND → decreaseDebt → unwrap → withdrawCollateral(RWA) → changeQuota", async () => {
+    const result = await runMatrix(case_matrix_4_5_tail);
+
+    expectAdjustPreview(result, {
+      totalValue: case_matrix_4_5_tail.totalValue,
+      accountDebt: M4_DD,
+      expectedOps: withOnchainOpCalls([...case_matrix_4_5_tail.ops]),
+      expectedCalls: [
+        MOCK_CLAIM_CALL,
+        CA_OP_CALLS.decreaseDebt,
+        MOCK_RWA_UNWRAP_CALL,
+        CA_OP_CALLS.withdrawCollateral,
+        CA_OP_CALLS.changeQuota,
+      ],
+    });
+  });
+
+  // MATRIX MISMATCH (see case_matrix_4_6_tail): the engine repays before paying out.
+  it("matrix 4.6 tail: claim ANY → swap → decreaseDebt → unwrap → withdrawCollateral(RWA) → changeQuota", async () => {
+    const result = await runMatrix(case_matrix_4_6_tail);
+
+    expectAdjustPreview(result, {
+      totalValue: case_matrix_4_6_tail.totalValue,
+      accountDebt: M4_DD,
+      expectedOps: withOnchainOpCalls([...case_matrix_4_6_tail.ops]),
+      expectedCalls: [
+        MOCK_CLAIM_CALL,
+        MOCK_ROUTER_CALL,
+        CA_OP_CALLS.decreaseDebt,
+        MOCK_RWA_UNWRAP_CALL,
+        CA_OP_CALLS.withdrawCollateral,
+        CA_OP_CALLS.changeQuota,
+      ],
+    });
   });
 });

@@ -2,21 +2,23 @@ import type { Address } from "viem";
 import type { ChainId, DataResponse } from "../../model/index.js";
 import type {
   CreditAccountSlice,
-  ILogger,
-  IntentPreviewResult,
-  MultichainSDK,
+  DelayableIntent,
+  DelayedIntentExtended,
   OnchainSDK,
+  ResumableIntent,
   StartIntent,
 } from "../../sdk/index.js";
 import {
   CreditAccountOperationsService,
   fetchCreditAccountSlice,
+  hexEq,
+  MultichainConstruct,
 } from "../../sdk/index.js";
-import { SourceUnavailableError } from "../errors/index.js";
-import type { EnsureFreshChains } from "../types.js";
 import type {
   AddCollateralParams,
   AdjustLeverageParams,
+  DelayedSimulate,
+  DelayedStrategySimulate,
   DepositStrategyParams,
   LpParams,
   LpSimulate,
@@ -33,115 +35,135 @@ import type {
 } from "./types.js";
 
 /**
- * How a simulation reaches the chain: one chain per request, failure captured
- * as that chain's {@link ChainFailed} entry, success wrapped in a
- * {@link DataResponse} that names the block the chain answered from.
- **/
-export type RunOnchain = <T>(
-  action: string,
-  chainId: ChainId,
-  fromChain: (sdk: MultichainSDK) => Promise<T>,
-) => Promise<DataResponse<T>>;
-
-/**
- * The single-source read every account simulation runs through. Never
- * rejects: a throwing chain becomes `meta.chains[0].status === "error"`, so a
- * caller can treat a simulation like any other read. A success carries the
- * chain's synced `currentBlock` / `timestamp` — a blockless success is not a
- * shape the envelope allows.
- **/
-export function onchainOnly(
-  onchain: MultichainSDK | undefined,
-  logger?: ILogger,
-  ensureFresh?: EnsureFreshChains,
-): RunOnchain {
-  return async <T>(
-    action: string,
-    chainId: ChainId,
-    fromChain: (sdk: MultichainSDK) => Promise<T>,
-  ): Promise<DataResponse<T>> => {
-    if (!onchain) {
-      throw new SourceUnavailableError("Opportunities", "onchain");
-    }
-    try {
-      // attach on first read, revalidate by age (this chain only)
-      await ensureFresh?.([chainId]);
-      const data = await fromChain(onchain);
-      const chain = onchain.chain(chainId);
-      return {
-        data,
-        meta: {
-          chains: [
-            {
-              chainId,
-              status: "success",
-              source: "onchain",
-              blockNumber: Number(chain.currentBlock),
-              timestamp: Number(chain.timestamp),
-            },
-          ],
-        },
-      };
-    } catch (error) {
-      logger?.warn(error, `failed to ${action} on chain ${chainId}`);
-      return {
-        data: undefined as T,
-        meta: {
-          chains: [{ chainId, status: "error", source: "onchain", error }],
-        },
-      };
-    }
-  };
-}
-
-/**
  * The chain's SDK, resolved on the spot.
  *
  * The LP simulations need it synchronously, because they only do arithmetic on
- * loaded state and have nothing to await.
+ * loaded state and have nothing to await; the execute namespace resolves its
+ * chain the same way.
  **/
 export type ChainOf = (chainId: ChainId) => OnchainSDK;
 
 /**
  * {@inheritDoc OpportunitiesSimulate}
  *
- * Holds no state: it owns the mapping from the public, read-model-shaped request
- * to the engine's intent, and nothing else. All protocol knowledge stays in
- * `CreditAccountOperationsService` and `PoolService`.
+ * Holds no state of its own: it owns the mapping from the public,
+ * read-model-shaped request to the engine's intent, and nothing else. All
+ * protocol knowledge stays in `CreditAccountOperationsService` and
+ * `PoolService`.
+ *
+ * A simulation names one chain, so it reads through
+ * {@link MultichainConstruct.queryChain}: there is no second source to fall back
+ * to, hence a chain the SDK does not cover, or one that fails the read, throws
+ * rather than answering with empty metadata.
  **/
-export class SimulateApi implements OpportunitiesSimulate {
-  readonly #run: RunOnchain;
-  readonly #chainOf: ChainOf;
+export class SimulateApi
+  extends MultichainConstruct
+  implements OpportunitiesSimulate
+{
+  /**
+   * {@inheritDoc OpportunitiesSimulate.delayed}
+   **/
+  public readonly delayed: DelayedSimulate = {
+    withdrawStrategy: (position, params) =>
+      this.#startDelayedIntent(position, params, {
+        type: "WITHDRAW",
+        amount: params.amount,
+        to: params.to,
+        tokenOut: params.tokenOut,
+        sourceToken: params.sourceToken,
+      }),
 
-  constructor(run: RunOnchain, chainOf: ChainOf) {
-    this.#run = run;
-    this.#chainOf = chainOf;
-  }
+    adjustLeverage: (position, params) =>
+      this.#startDelayedIntent(position, params, {
+        type: "ADJUST_LEVERAGE",
+        targetLeverage: params.targetLeverage,
+        token: params.token,
+      }),
+
+    finish: (position, params) =>
+      this.queryChain({
+        network: position.chainId,
+        run: async sdk => {
+          const intent = resumable(params.intent ?? params.claimable.intent);
+          if (!intent) {
+            return { ok: false, reason: "noRecordedIntent" };
+          }
+          return service(sdk).finishIntent({
+            intent,
+            claimable: params.claimable,
+            creditAccount: await slice(sdk, position.creditAccount),
+            sdk,
+            slippage: params.slippage,
+            quotaReserve: params.quotaReserve,
+          });
+        },
+      }),
+  };
 
   /**
    * {@inheritDoc OpportunitiesSimulate.deposit}
    **/
-  public deposit(pool: PoolInput, params: LpParams | bigint): LpSimulate {
-    const { amount, tokenIn, tokenOut } = lpParams(params);
-    return this.#chainOf(pool.chainId).pools.simulateDeposit({
+  public deposit(pool: PoolInput, params: LpParams): LpSimulate {
+    const { marketRegister, pools } = this.sdk.chain(pool.chainId);
+    const tokenIn =
+      params.tokenIn ?? marketRegister.findByPool(pool.pool).pool.underlying;
+    const tokenOut = lpRoute(params.tokenOut, () =>
+      pools.getDepositTokensOut(pool.pool, tokenIn),
+    );
+    if (!tokenOut) {
+      return { ok: false, reason: "unsupportedTokenPair" };
+    }
+
+    const preview = pools.simulateDeposit({
       pool: pool.pool,
-      amount,
+      amount: params.amount,
       tokenIn,
       tokenOut,
     });
+    const call = pools.addLiquidity({
+      collateral: preview.tokenIn,
+      pool: pool.pool,
+      wallet: params.wallet,
+      meta: pools.getDepositMetadata(pool.pool, tokenIn, tokenOut),
+    });
+    // An on-demand RWA market takes deposits through its liquidity provider
+    // rather than a transaction of ours, so there is nothing to simulate.
+    if (!call) {
+      return { ok: false, reason: "unsupportedTokenPair" };
+    }
+
+    return { ok: true, operations: [], preview, calls: call.calls };
   }
 
   /**
    * {@inheritDoc OpportunitiesSimulate.withdraw}
    **/
-  public withdraw(pool: PoolInput, params: LpParams | bigint): LpSimulate {
-    const { amount, tokenIn, tokenOut } = lpParams(params);
-    return this.#chainOf(pool.chainId).pools.simulateWithdraw({
+  public withdraw(pool: PoolInput, params: LpParams): LpSimulate {
+    const { pools } = this.sdk.chain(pool.chainId);
+    // Withdrawals are paid in shares, and the share token *is* the pool.
+    const tokenIn = params.tokenIn ?? pool.pool;
+    const tokenOut = lpRoute(params.tokenOut, () =>
+      pools.getWithdrawalTokensOut(pool.pool, tokenIn),
+    );
+    if (!tokenOut) {
+      return { ok: false, reason: "unsupportedTokenPair" };
+    }
+
+    const preview = pools.simulateWithdraw({
       pool: pool.pool,
-      amount,
+      amount: params.amount,
       tokenIn,
       tokenOut,
     });
+    const { calls } = pools.removeLiquidity({
+      pool: pool.pool,
+      amount: params.amount,
+      wallet: params.wallet,
+      permit: undefined,
+      meta: pools.getWithdrawalMetadata(pool.pool, tokenIn, tokenOut),
+    });
+
+    return { ok: true, operations: [], preview, calls };
   }
 
   /**
@@ -151,12 +173,10 @@ export class SimulateApi implements OpportunitiesSimulate {
     strategy: StrategyInput,
     params: OpenStrategyParams,
   ): Promise<DataResponse<OpenStrategySimulate>> {
-    return this.#run(
-      "simulate opening a strategy",
-      strategy.chainId,
-      async multichain => {
-        const sdk = multichain.chain(strategy.chainId);
-        return service(sdk).openStrategyIntent({
+    return this.queryChain({
+      network: strategy.chainId,
+      run: sdk =>
+        service(sdk).openStrategyIntent({
           sdk,
           creditManager: strategy.creditManager,
           collateral: params.collateral,
@@ -165,9 +185,8 @@ export class SimulateApi implements OpportunitiesSimulate {
           leftoverBalances: params.leftoverBalances,
           slippage: params.slippage,
           quotaReserve: params.quotaReserve,
-        });
-      },
-    );
+        }),
+    });
   }
 
   /**
@@ -177,7 +196,7 @@ export class SimulateApi implements OpportunitiesSimulate {
     position: PositionInput,
     params: DepositStrategyParams,
   ): Promise<DataResponse<StrategySimulate>> {
-    return this.#startIntent("simulate strategy deposit", position, params, {
+    return this.#startIntent(position, params, {
       type: "DEPOSIT",
       token: params.token,
       amount: params.amount,
@@ -194,7 +213,7 @@ export class SimulateApi implements OpportunitiesSimulate {
     position: PositionInput,
     params: WithdrawStrategyParams,
   ): Promise<DataResponse<StrategySimulate>> {
-    return this.#startIntent("simulate strategy withdrawal", position, params, {
+    return this.#startIntent(position, params, {
       type: "WITHDRAW",
       amount: params.amount,
       to: params.to,
@@ -209,15 +228,14 @@ export class SimulateApi implements OpportunitiesSimulate {
   public async maxWithdraw(
     position: PositionInput,
   ): Promise<DataResponse<bigint>> {
-    return this.#run(
-      "compute the maximum withdrawal",
-      position.chainId,
-      async multichain => {
-        const sdk = multichain.chain(position.chainId);
-        const creditAccount = await slice(sdk, position.creditAccount);
-        return service(sdk).maxWithdraw({ creditAccount, sdk });
-      },
-    );
+    return this.queryChain({
+      network: position.chainId,
+      run: async sdk =>
+        service(sdk).maxWithdraw({
+          creditAccount: await slice(sdk, position.creditAccount),
+          sdk,
+        }),
+    });
   }
 
   /**
@@ -227,7 +245,7 @@ export class SimulateApi implements OpportunitiesSimulate {
     position: PositionInput,
     params: AdjustLeverageParams,
   ): Promise<DataResponse<StrategySimulate>> {
-    return this.#startIntent("simulate leverage adjustment", position, params, {
+    return this.#startIntent(position, params, {
       type: "ADJUST_LEVERAGE",
       targetLeverage: params.targetLeverage,
       token: params.token,
@@ -241,7 +259,7 @@ export class SimulateApi implements OpportunitiesSimulate {
     position: PositionInput,
     params: AddCollateralParams,
   ): Promise<DataResponse<StrategySimulate>> {
-    return this.#startIntent("simulate adding collateral", position, params, {
+    return this.#startIntent(position, params, {
       type: "ADD_COLLATERAL",
       token: params.token,
       amount: params.amount,
@@ -256,42 +274,58 @@ export class SimulateApi implements OpportunitiesSimulate {
     position: PositionInput,
     params: WithdrawCollateralParams,
   ): Promise<DataResponse<StrategySimulate>> {
-    return this.#startIntent(
-      "simulate withdrawing collateral",
-      position,
-      params,
-      {
-        type: "WITHDRAW_ASSET",
-        token: params.token,
-        amount: params.amount,
-        to: params.to,
-      },
-    );
+    return this.#startIntent(position, params, {
+      type: "WITHDRAW_ASSET",
+      token: params.token,
+      amount: params.amount,
+      to: params.to,
+    });
+  }
+
+  /**
+   * Shared path of the two flows that have a delayed route: same account read,
+   * same intent, a planner that requests a redemption instead of swapping.
+   **/
+  async #startDelayedIntent(
+    position: PositionInput,
+    options: SimulateOptions,
+    intent: DelayableIntent,
+  ): Promise<DataResponse<DelayedStrategySimulate>> {
+    return this.queryChain({
+      network: position.chainId,
+      run: async sdk =>
+        service(sdk).startDelayedIntent({
+          intent,
+          creditAccount: await slice(sdk, position.creditAccount),
+          sdk,
+          slippage: options.slippage,
+          quotaReserve: options.quotaReserve,
+        }),
+    });
   }
 
   /**
    * Shared path of the five flows that act on an existing account: read the
-   * account, run the intent, flatten the engine's branch envelope.
+   * account, then run the intent through the engine.
    **/
   async #startIntent(
-    action: string,
     position: PositionInput,
     options: SimulateOptions,
     intent: StartIntent,
   ): Promise<DataResponse<StrategySimulate>> {
-    return this.#run(action, position.chainId, async multichain => {
-      const sdk = multichain.chain(position.chainId);
-      const creditAccount = await slice(sdk, position.creditAccount);
+    return this.queryChain({
+      network: position.chainId,
+      run: async sdk => {
+        const creditAccount = await slice(sdk, position.creditAccount);
 
-      return toStrategySimulate(
-        await service(sdk).startIntent({
+        return service(sdk).startIntent({
           intent,
           creditAccount,
           sdk,
           slippage: options.slippage,
           quotaReserve: options.quotaReserve,
-        }),
-      );
+        });
+      },
     });
   }
 }
@@ -307,32 +341,42 @@ function slice(
   return fetchCreditAccountSlice(sdk, creditAccount);
 }
 
-/** The requested amount, whether it came bare or in an options object. */
-function lpParams(params: LpParams | bigint): LpParams {
-  return typeof params === "bigint" ? { amount: params } : params;
+/**
+ * The operation a claim resumes, or `undefined` when there is none to resume:
+ * a withdrawal requested without an intent, a compressor too old to report one,
+ * or a full close, which the engine no longer previews.
+ **/
+function resumable(
+  intent: DelayedIntentExtended | ResumableIntent | undefined,
+): ResumableIntent | undefined {
+  if (!intent || intent.type === "CLOSE_ACCOUNT") {
+    return undefined;
+  }
+  return intent;
 }
 
 /**
- * Flattens the engine's result to the public shape.
+ * Picks the route the operation takes out of `tokenIn`, as a value rather than
+ * an exception: an unroutable or ambiguous pair is a request the caller can
+ * fix, so it belongs in the `ok: false` half alongside the strategy refusals.
  *
- * Start intents never produce a delayed branch — no asset the SDK can start a
- * delayed withdrawal on is reachable from them — so the `instant` branch is the
- * whole answer, and a preview that succeeded without one is a bug rather than a
- * state a caller should have to handle.
+ * A pool with no route out of the input reports it by throwing, hence the
+ * catch; a requested output is checked against the list rather than trusted,
+ * so that a wrong one fails here instead of deeper in call assembly.
  **/
-function toStrategySimulate(result: IntentPreviewResult): StrategySimulate {
-  if (!result.ok) {
-    return { ok: false, reason: result.reason };
+function lpRoute(
+  requested: Address | undefined,
+  routes: () => Address[],
+): Address | undefined {
+  let options: Address[];
+  try {
+    options = routes();
+  } catch {
+    return undefined;
   }
-  if (!result.instant) {
-    throw new Error(
-      `intent preview produced no instant branch: ${result.instantError ?? "unknown"}`,
-    );
+
+  if (requested) {
+    return options.some(o => hexEq(o, requested)) ? requested : undefined;
   }
-  return {
-    ok: true,
-    operations: result.instant.operations,
-    preview: result.instant.preview.min,
-    calls: result.instant.calls,
-  };
+  return options.length === 1 ? options[0] : undefined;
 }

@@ -305,7 +305,10 @@ describe("GearboxSDK loading", () => {
   it("the sync LP simulation before attach throws SdkNotAttachedError, as before", () => {
     const { sdk } = build();
     expect(() =>
-      sdk.opportunities.simulate.deposit({ chainId: 1, pool: POOL }, 1n),
+      sdk.opportunities.simulate.deposit(
+        { chainId: 1, pool: POOL },
+        { amount: 1n, wallet: POOL },
+      ),
     ).toThrow(SdkNotAttachedError);
   });
 });

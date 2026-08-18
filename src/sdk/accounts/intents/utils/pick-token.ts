@@ -31,7 +31,7 @@ export interface CandidateToken {
  * Account balances that can actually back an operation, richest first.
  *
  * Phantoms are dropped because a pending delayed withdrawal cannot be spent:
- * it has to be claimed first, which is what the `resume` flows are for.
+ * it has to be claimed first, in a transaction of its own.
  */
 export function rankAccountTokens(args: {
   creditAccount: CreditAccountSlice;

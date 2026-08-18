@@ -8,20 +8,45 @@ import type {
 import type {
   AccountCalculatorOperation,
   Asset,
+  ClaimableWithdrawal,
+  DelayedStart,
   MultiCall,
   OpenStrategyPreview,
   OperationState,
   PoolSimulation,
   PreviewErrorReason,
+  ResumableIntent,
 } from "../../sdk/index.js";
 
 /**
  * What a pool deposit or withdrawal would yield.
  *
- * The pool's ERC-4626 conversion applied to the amount, so it is the rate the
- * transaction would get in the block the market was loaded at.
+ * Shaped like {@link StrategySimulate} so both kinds of simulation are consumed
+ * the same way, with the pool's own numbers as the preview: the ERC-4626
+ * conversion applied to the amount, at the rate of the block the market was
+ * loaded at.
  **/
-export type LpSimulate = PoolSimulation;
+export type LpSimulate =
+  | {
+      ok: true;
+      /**
+       * Always empty: a pool operation is a single transaction, so there is no
+       * chain of steps to show. Present so callers can treat both simulations
+       * alike.
+       **/
+      operations: [];
+      /**
+       * What the wallet parts with and what it receives, plus the zapper the
+       * transaction goes through when one is involved.
+       **/
+      preview: PoolSimulation;
+      /**
+       * The transaction implementing the operation: exactly one, since a pool
+       * operation is a single call on the pool or on its zapper.
+       **/
+      calls: MultiCall[];
+    }
+  | { ok: false; reason: PreviewErrorReason };
 
 /**
  * What an operation on an existing credit account would yield.
@@ -49,6 +74,38 @@ export type StrategySimulate =
        * through `sdk.accounts`.
        **/
       calls: MultiCall[];
+    }
+  | { ok: false; reason: PreviewErrorReason };
+
+/**
+ * What the leading half of a delayed operation would yield: the request
+ * transaction, plus what it recorded for the tail.
+ *
+ * Shaped like {@link StrategySimulate} with one field more, so the instant and
+ * the delayed route of the same request are compared side by side.
+ **/
+export type DelayedStrategySimulate =
+  | {
+      ok: true;
+      /**
+       * {@inheritDoc StrategySimulate.operations}
+       **/
+      operations: AccountCalculatorOperation[];
+      /**
+       * State once the request executes: the source token is gone and the
+       * withdrawal position stands in its place, with debt untouched — the
+       * repayment belongs to the tail.
+       **/
+      preview: OperationState;
+      /**
+       * {@inheritDoc StrategySimulate.calls}
+       **/
+      calls: MultiCall[];
+      /**
+       * When the tail can be run, and what the request recorded for it, see
+       * {@link DelayedStart}.
+       **/
+      delayed: DelayedStart;
     }
   | { ok: false; reason: PreviewErrorReason };
 
@@ -179,15 +236,83 @@ export interface OpenStrategyParams extends SimulateOptions {
 export interface LpParams {
   amount: bigint;
   /**
+   * Wallet funding the deposit or receiving the withdrawal. Required because it
+   * is baked into the calldata.
+   **/
+  wallet: Address;
+  /**
    * Token the user parts with. Defaults to the pool underlying on deposit and to
    * the pool shares on withdrawal.
    **/
   tokenIn?: Address;
   /**
    * Token the user receives. Defaults to the only route available for `tokenIn`;
-   * required when the pool offers several.
+   * required when the pool offers several, otherwise the simulation reports
+   * `unsupportedTokenPair`.
    **/
   tokenOut?: Address;
+}
+
+export interface FinishDelayedParams extends SimulateOptions {
+  /**
+   * The matured withdrawal to claim, from
+   * `sdk.onchain.chain(chainId).withdrawalCompressor.getCurrentWithdrawals()`.
+   **/
+  claimable: ClaimableWithdrawal;
+  /**
+   * The operation to resume. Defaults to the one the request recorded in the
+   * withdrawal's `extraData`, which is what {@link ClaimableWithdrawal.intent}
+   * decodes; pass it explicitly when the compressor is too old to report it.
+   **/
+  intent?: ResumableIntent;
+}
+
+/**
+ * The delayed route of the two operations that can take it: a source that only
+ * redeems through its issuer — a Securitize dsToken, a Mellow share — instead of
+ * through the router.
+ *
+ * Two transactions rather than one: the request, then the tail once the
+ * redemption matures, which is days later. In between, nothing has to be kept on
+ * the client — the request writes the operation into the withdrawal's
+ * `extraData`, and reading the claimable decodes it back.
+ **/
+export interface DelayedSimulate {
+  /**
+   * The delayed counterpart of {@link OpportunitiesSimulate.withdrawStrategy}.
+   *
+   * Reports `noDelayedRoute` when the account has no redemption venue for the
+   * source at all, so a caller offering both routes asks for both previews and
+   * shows whichever answered.
+   **/
+  withdrawStrategy(
+    position: PositionInput,
+    params: WithdrawStrategyParams,
+  ): Promise<DataResponse<DelayedStrategySimulate>>;
+
+  /**
+   * The delayed counterpart of {@link OpportunitiesSimulate.adjustLeverage},
+   * which only deleveraging reaches: raising leverage buys the position token
+   * and never redeems it.
+   **/
+  adjustLeverage(
+    position: PositionInput,
+    params: AdjustLeverageParams,
+  ): Promise<DataResponse<DelayedStrategySimulate>>;
+
+  /**
+   * The tail: claim the matured withdrawal, then whatever the recorded
+   * operation still owes — repaying debt and paying the wallet out for a
+   * withdrawal, repaying alone for a deleveraging, nothing beyond the claim for
+   * the rest.
+   *
+   * Answers like the instant flows, so both halves are consumed the same way.
+   * Reports `noRecordedIntent` when the claim names no operation to resume.
+   **/
+  finish(
+    position: PositionInput,
+    params: FinishDelayedParams,
+  ): Promise<DataResponse<StrategySimulate>>;
 }
 
 /**
@@ -207,7 +332,7 @@ export interface OpportunitiesSimulate {
    * Synchronous, unlike every strategy simulation below: the answer is the
    * pool's share rate applied to the amount, and that rate is already loaded.
    **/
-  deposit(pool: PoolInput, params: LpParams | bigint): LpSimulate;
+  deposit(pool: PoolInput, params: LpParams): LpSimulate;
 
   /**
    * Redeeming pool shares: shares in, underlying out.
@@ -215,7 +340,7 @@ export interface OpportunitiesSimulate {
    * The LP counterpart of {@link withdrawStrategy} / {@link withdrawCollateral},
    * which act on credit accounts.
    **/
-  withdraw(pool: PoolInput, params: LpParams | bigint): LpSimulate;
+  withdraw(pool: PoolInput, params: LpParams): LpSimulate;
 
   /**
    * Opening a leveraged position from wallet collateral.
@@ -287,4 +412,10 @@ export interface OpportunitiesSimulate {
     position: PositionInput,
     params: WithdrawCollateralParams,
   ): Promise<DataResponse<StrategySimulate>>;
+
+  /**
+   * The same requests routed through a delayed redemption instead of the
+   * router, and the tail that finishes them, see {@link DelayedSimulate}.
+   **/
+  readonly delayed: DelayedSimulate;
 }

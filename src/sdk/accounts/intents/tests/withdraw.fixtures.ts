@@ -205,6 +205,98 @@ export const case_rwa_payout: WithdrawCase = {
   rwaAssets: { [UND]: RWA_ASSET },
 };
 
+// ---------------------------------------------------------------------------
+// Test-matrix rows 4.1 / 4.2 — 1U withdrawal from a 10U/8U (5x) account
+// ---------------------------------------------------------------------------
+
+/** Matrix baseline: 10A of position against 8U of debt (2U collateral at 5x). */
+export const M4_BALANCE = 1000000000n;
+export const M4_DEBT = 800000000n;
+/** Matrix payout W: 1U. */
+export const M4_W = 100000000n;
+/** Proportional repayment `dD = D0 * W / C0` = 4U. */
+export const M4_DD = 400000000n;
+/** Payout plus repayment: 5U liquidated in total. */
+export const M4_SPEND = M4_W + M4_DD;
+
+/**
+ * Matrix 4.1 — withdraw 1U, source `POS`, payout `UND`.
+ *
+ * MATRIX MISMATCH: the matrix pays out first — `swap → withdrawCollateral →
+ * decreaseDebt → changeQuota`. The engine repays before paying out
+ * (`repay(dD, keep: W)` precedes the payout leg in `planWithdraw`):
+ * `swap → decreaseDebt → withdrawCollateral → changeQuota`. Amounts are
+ * identical; only the order differs.
+ */
+export const case_matrix_4_1: WithdrawCase = {
+  intent: { type: "WITHDRAW", amount: M4_W, to: WALLET, sourceToken: POS },
+  tokens: [caToken(POS, M4_BALANCE, quotaOf(M4_BALANCE))],
+  accountDebt: M4_DEBT,
+  totalValue: M4_SPEND,
+  accountDebtAfter: M4_DD,
+  ops: [
+    {
+      type: "swap",
+      from: [{ token: POS, balance: M4_SPEND }],
+      tokenOut: UND,
+      amountOut: M4_SPEND,
+    },
+    { type: "decreaseDebt", amount: M4_DD },
+    { type: "withdrawCollateral", token: UND, amount: M4_W, to: WALLET },
+    {
+      type: "changeQuota",
+      quotaIncrease: [],
+      quotaDecrease: [
+        { token: POS, balance: quotaOf(M4_SPEND) - quotaOf(M4_BALANCE) },
+      ],
+      desiredQuota: {},
+    },
+  ],
+};
+
+/**
+ * Matrix 4.2 — 4.1 on the RWA market: the payout is unwrapped on the way out.
+ *
+ * MATRIX MISMATCH: same ordering divergence as 4.1 — the matrix expects
+ * `swap → unwrapRwaCollateral → withdrawCollateral(RWA) → decreaseDebt →
+ * changeQuota`, the engine repays first:
+ * `swap → decreaseDebt → unwrapRwaCollateral → withdrawCollateral(RWA) →
+ * changeQuota`.
+ */
+export const case_matrix_4_2: WithdrawCase = {
+  intent: { type: "WITHDRAW", amount: M4_W, to: WALLET, sourceToken: POS },
+  tokens: [caToken(POS, M4_BALANCE, quotaOf(M4_BALANCE))],
+  accountDebt: M4_DEBT,
+  totalValue: M4_SPEND,
+  accountDebtAfter: M4_DD,
+  ops: [
+    {
+      type: "swap",
+      from: [{ token: POS, balance: M4_SPEND }],
+      tokenOut: UND,
+      amountOut: M4_SPEND,
+    },
+    { type: "decreaseDebt", amount: M4_DD },
+    {
+      type: "unwrapRwaCollateral",
+      tokenIn: UND,
+      amount: M4_W,
+      tokenOut: RWA_ASSET,
+      amountOut: M4_W,
+    },
+    { type: "withdrawCollateral", token: RWA_ASSET, amount: M4_W, to: WALLET },
+    {
+      type: "changeQuota",
+      quotaIncrease: [],
+      quotaDecrease: [
+        { token: POS, balance: quotaOf(M4_SPEND) - quotaOf(M4_BALANCE) },
+      ],
+      desiredQuota: {},
+    },
+  ],
+  rwaAssets: { [UND]: RWA_ASSET },
+};
+
 export function buildWithdrawSdk(c: WithdrawCase): OnchainSDK {
   return buildMarketSdk({ rwaAssets: c.rwaAssets });
 }

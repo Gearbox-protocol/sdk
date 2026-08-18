@@ -20,7 +20,7 @@ export interface PoolPrepareRequest {
   pool: Address;
   wallet: Address;
   op: "deposit" | "withdraw";
-  sim: LpSimulate;
+  sim: Extract<LpSimulate, { ok: true }>;
 }
 
 /**
@@ -97,7 +97,7 @@ export class ExecuteApi implements OpportunitiesExecute {
    * {@inheritDoc OpportunitiesExecute.buildTx}
    **/
   public async buildTx(request: PrepareRequest): Promise<RawTx> {
-    if (request.kind !== "pool" && !request.sim.ok) {
+    if (!request.sim.ok) {
       // the types rule this out; a caller that skipped them still gets no
       // transaction out of a simulation that failed
       throw new Error(
@@ -118,34 +118,35 @@ export class ExecuteApi implements OpportunitiesExecute {
 
 function poolTx(sdk: OnchainSDK, request: PoolPrepareRequest): RawTx {
   const { pool, wallet, sim } = request;
+  const { tokenIn, tokenOut } = sim.preview;
   if (request.op === "deposit") {
     const meta = sdk.pools.getDepositMetadata(
       pool,
-      sim.tokenIn.token,
-      sim.tokenOut.token,
+      tokenIn.token,
+      tokenOut.token,
     );
     const result = sdk.pools.addLiquidity({
       pool,
       wallet,
-      collateral: sim.tokenIn,
+      collateral: tokenIn,
       meta,
     });
     if (!result) {
       throw new Error(
-        `pool ${pool} takes no deposit transaction for ${sim.tokenIn.token} (${meta.type})`,
+        `pool ${pool} takes no deposit transaction for ${tokenIn.token} (${meta.type})`,
       );
     }
     return result.tx;
   }
   const meta = sdk.pools.getWithdrawalMetadata(
     pool,
-    sim.tokenIn.token,
-    sim.tokenOut.token,
+    tokenIn.token,
+    tokenOut.token,
   );
   return sdk.pools.removeLiquidity({
     pool,
     wallet,
-    amount: sim.tokenIn.balance,
+    amount: tokenIn.balance,
     permit: undefined,
     meta,
   }).tx;

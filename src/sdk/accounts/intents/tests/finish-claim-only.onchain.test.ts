@@ -1,22 +1,22 @@
 import { describe, expect, it } from "vitest";
 
-import type { DelayedIntent } from "../../withdrawal-compressor/types.js";
 import { CreditAccountOperationsService } from "../index.js";
 import {
+  ANY,
+  buildFinishProps,
+  buildTailSdk,
+  FIXTURE_PHANTOM,
+  RWA_ASSET,
+  type TailCase,
+  UND,
+} from "../testing/delayed.js";
+import {
   assetBalance,
-  expectAdjustResumePreview,
+  expectAdjustPreview,
   withOnchainOpCalls,
 } from "../testing/expect.js";
-import {
-  ANY,
-  buildClaimResumeProps,
-  buildResumeSdk,
-  RESUME_FIXTURE_PHANTOM,
-  type ResumeCase,
-  RWA_ASSET,
-  UND,
-} from "../testing/resume.js";
 import { CA_OP_CALLS, MOCK_CLAIM_CALL } from "../testing/sdk-mock.js";
+import type { ResumableIntent } from "../types.js";
 
 /**
  * The four intents whose delayed tail is the claim and nothing else: the tokens
@@ -24,7 +24,7 @@ import { CA_OP_CALLS, MOCK_CLAIM_CALL } from "../testing/sdk-mock.js";
  * makes them count as collateral.
  *
  * Ported from the intent-calculator `addCollateral` / `increaseLeverage` /
- * `deposit` resume fixtures, which were identical case for case.
+ * `deposit` resume fixtures of the legacy calculator, which were identical case for case.
  */
 const CLAIM_ONLY_INTENTS = [
   "ADD_COLLATERAL",
@@ -43,16 +43,16 @@ const ADD_T1 = 5100000000000n;
 const ADD_D1 = 4000000000000n;
 
 /** Claim lands in a plain collateral token, which then needs a quota. */
-const claimedAny: ResumeCase = {
+const claimedAny: TailCase = {
   claimedToken: ANY,
   claimedAmount: ANY_CLAIMED,
   postClaimTotalValue: ADD_T1,
   postClaimDebt: ADD_D1,
-  resumeOps: [
+  tailOps: [
     {
       type: "claimDelayedWithdrawal",
       token: ANY,
-      withdrawalPhantomToken: RESUME_FIXTURE_PHANTOM,
+      withdrawalPhantomToken: FIXTURE_PHANTOM,
       withdrawalTokenSpent: ANY_CLAIMED,
       outputs: [{ token: ANY, amount: ANY_CLAIMED, isDelayed: false }],
       calls: [],
@@ -68,16 +68,16 @@ const claimedAny: ResumeCase = {
 };
 
 /** Same shape on an RWA market, where the claim lands in the RWA asset. */
-const claimedRwaAsset: ResumeCase = {
+const claimedRwaAsset: TailCase = {
   claimedToken: RWA_ASSET,
   claimedAmount: RWA_CLAIMED,
   postClaimTotalValue: ADD_T1,
   postClaimDebt: ADD_D1,
-  resumeOps: [
+  tailOps: [
     {
       type: "claimDelayedWithdrawal",
       token: RWA_ASSET,
-      withdrawalPhantomToken: RESUME_FIXTURE_PHANTOM,
+      withdrawalPhantomToken: FIXTURE_PHANTOM,
       withdrawalTokenSpent: RWA_CLAIMED,
       outputs: [{ token: RWA_ASSET, amount: RWA_CLAIMED, isDelayed: false }],
       calls: [],
@@ -93,7 +93,7 @@ const claimedRwaAsset: ResumeCase = {
 };
 
 /** The underlying needs no quota, so the claim is the whole tail. */
-const claimedUnderlying: ResumeCase = {
+const claimedUnderlying: TailCase = {
   claimedToken: UND,
   claimedAmount: ADD_UND,
   postClaimTotalValue: 5000000000000n,
@@ -108,11 +108,11 @@ const claimedUnderlying: ResumeCase = {
       success: true,
     },
   ],
-  resumeOps: [
+  tailOps: [
     {
       type: "claimDelayedWithdrawal",
       token: UND,
-      withdrawalPhantomToken: RESUME_FIXTURE_PHANTOM,
+      withdrawalPhantomToken: FIXTURE_PHANTOM,
       withdrawalTokenSpent: ADD_UND,
       outputs: [{ token: UND, amount: ADD_UND, isDelayed: false }],
       calls: [],
@@ -120,24 +120,24 @@ const claimedUnderlying: ResumeCase = {
   ],
 };
 
-function runResume(c: ResumeCase, type: (typeof CLAIM_ONLY_INTENTS)[number]) {
-  const sdk = buildResumeSdk(c);
+function runFinish(c: TailCase, type: (typeof CLAIM_ONLY_INTENTS)[number]) {
+  const sdk = buildTailSdk(c);
   const service = new CreditAccountOperationsService(sdk);
   return service.finishIntent(
-    buildClaimResumeProps({
-      intent: { type } as DelayedIntent,
+    buildFinishProps({
+      intent: { type } as ResumableIntent,
       case: c,
       sdk,
     }),
   );
 }
 
-describe.each(CLAIM_ONLY_INTENTS)("%s.resume — claim then quota", type => {
+describe.each(CLAIM_ONLY_INTENTS)("%s tail — claim then quota", type => {
   it("claimed collateral token → changeQuota", async () => {
-    const state = expectAdjustResumePreview(await runResume(claimedAny, type), {
+    const state = expectAdjustPreview(await runFinish(claimedAny, type), {
       totalValue: claimedAny.postClaimTotalValue,
       accountDebt: claimedAny.postClaimDebt,
-      expectedOps: withOnchainOpCalls([...claimedAny.resumeOps]),
+      expectedOps: withOnchainOpCalls([...claimedAny.tailOps]),
       expectedCalls: [MOCK_CLAIM_CALL, CA_OP_CALLS.changeQuota],
     });
 
@@ -146,27 +146,24 @@ describe.each(CLAIM_ONLY_INTENTS)("%s.resume — claim then quota", type => {
   });
 
   it("claimed RWA asset → changeQuota", async () => {
-    const state = expectAdjustResumePreview(
-      await runResume(claimedRwaAsset, type),
-      {
-        totalValue: claimedRwaAsset.postClaimTotalValue,
-        accountDebt: claimedRwaAsset.postClaimDebt,
-        expectedOps: withOnchainOpCalls([...claimedRwaAsset.resumeOps]),
-        expectedCalls: [MOCK_CLAIM_CALL, CA_OP_CALLS.changeQuota],
-      },
-    );
+    const state = expectAdjustPreview(await runFinish(claimedRwaAsset, type), {
+      totalValue: claimedRwaAsset.postClaimTotalValue,
+      accountDebt: claimedRwaAsset.postClaimDebt,
+      expectedOps: withOnchainOpCalls([...claimedRwaAsset.tailOps]),
+      expectedCalls: [MOCK_CLAIM_CALL, CA_OP_CALLS.changeQuota],
+    });
 
     expect(assetBalance(state.assets, RWA_ASSET)).toBe(RWA_CLAIMED);
     expect(state.quotas[RWA_ASSET]?.balance).toBe(QUOTA_INCREASE);
   });
 
   it("claimed underlying → claim only, no quota to buy", async () => {
-    const state = expectAdjustResumePreview(
-      await runResume(claimedUnderlying, type),
+    const state = expectAdjustPreview(
+      await runFinish(claimedUnderlying, type),
       {
         totalValue: claimedUnderlying.postClaimTotalValue,
         accountDebt: claimedUnderlying.postClaimDebt,
-        expectedOps: withOnchainOpCalls([...claimedUnderlying.resumeOps]),
+        expectedOps: withOnchainOpCalls([...claimedUnderlying.tailOps]),
         expectedCalls: [MOCK_CLAIM_CALL],
       },
     );

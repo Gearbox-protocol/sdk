@@ -1,12 +1,16 @@
 import type { Address } from "viem";
-import type { MultiCall, OnchainSDK } from "../../../index.js";
+import type { OnchainSDK } from "../../../index.js";
 import { toBN } from "../../../index.js";
 import type { CreditAccountSlice } from "../types.js";
-import { buildMockSdk, type MockQuotaEntry } from "./sdk-mock.js";
+import {
+  buildMockSdk,
+  type MockDelayedVenue,
+  type MockQuotaEntry,
+} from "./sdk-mock.js";
 
 /**
  * Shared market fixture — token set, prices, decimals, quotas and CM/facade
- * addresses — used by both resume specs and start-intent specs.
+ * addresses — used by every intent spec.
  *
  * `UND` deliberately has 8 decimals while `ANY`/`ANY2` have 18, so that any
  * decimals-rescaling bug shows up as a wrong amount rather than passing by
@@ -104,13 +108,6 @@ export const LIQUIDATION_THRESHOLDS: Record<Address, number> = {
 export const MAX_DEBT = toBN("200000", UND_DECIMALS);
 
 export interface MarketSdkExtras {
-  /** Router `findBestClosePath` result (close flows). */
-  closePath?: {
-    amount: bigint;
-    minAmount: bigint;
-    underlyingBalance: bigint;
-    calls: MultiCall[];
-  };
   /** RWA markets: underlying → rwa.asset (`tokensMeta.rwaUnderlyings`). */
   rwaAssets?: Record<Address, Address>;
   /** Additional / overriding token prices (PRICE_DECIMALS_POW-scaled). */
@@ -123,6 +120,8 @@ export interface MarketSdkExtras {
   minDebt?: bigint;
   /** Accounts `accounts.getCreditAccountData` answers for. */
   creditAccounts?: CreditAccountSlice[];
+  /** Redemption venues per source token; omit for a market without any. */
+  delayed?: Record<Address, MockDelayedVenue[]>;
 }
 
 /** Mock SDK on the shared fixture market. */
@@ -137,10 +136,10 @@ export function buildMarketSdk(extras?: MarketSdkExtras): OnchainSDK {
     creditManager: CREDIT_MANAGER,
     creditFacade: CREDIT_FACADE,
     underlying: UND,
-    closePath: extras?.closePath,
     rwaAssets: extras?.rwaAssets,
     phantoms: extras?.phantoms,
     creditAccounts: extras?.creditAccounts,
+    delayed: extras?.delayed,
   });
 }
 

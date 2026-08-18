@@ -14,17 +14,11 @@ import type { CreditAccountSlice } from "../types.js";
  * The service resolves all market data through `OnchainSDK`
  * (`marketRegister`, `tokensMeta`, `accounts`). `buildMockSdk` builds a mock
  * from plain records; assemble mocks ECHO recognizable sentinel calls derived
- * from their inputs, so `result.instant.calls` pins down which ops reached the
+ * from their inputs, so `result.calls` pins down which ops reached the
  * assembler and in which order.
  */
 
-/** Fixture `claimableWithdrawal.claimCalls` content; echoes through claim ops. */
-export const MOCK_CLAIM_CALL: MultiCall = {
-  target: "0x1111111111111111111111111111111111111111" as Address,
-  callData: "0x",
-};
-
-/** Recognizable router call embedded in close path results. */
+/** Recognizable router call embedded in routed leg results. */
 export const MOCK_ROUTER_CALL: MultiCall = {
   target: "0x9999999999999999999999999999999999999999" as Address,
   callData: "0x",
@@ -42,9 +36,15 @@ export const MOCK_RWA_UNWRAP_CALL: MultiCall = {
   callData: "0x",
 };
 
-/** Returned by the `assembleCloseCreditAccountCalls` mock. */
-export const MOCK_CLOSE_CALL: MultiCall = {
-  target: "0x5555555555555555555555555555555555555555" as Address,
+/** Fixture `claimableWithdrawal.claimCalls` content; echoes through claim ops. */
+export const MOCK_CLAIM_CALL: MultiCall = {
+  target: "0x1111111111111111111111111111111111111111" as Address,
+  callData: "0x",
+};
+
+/** Fixture `requestableWithdrawal.requestCalls`; echoes through request ops. */
+export const MOCK_REQUEST_CALL: MultiCall = {
+  target: "0x2222222222222222222222222222222222222222" as Address,
   callData: "0x",
 };
 
@@ -105,26 +105,40 @@ interface BuildMockSdkArgs {
   creditFacade: Address;
   /** Market underlying token (`market.pool.underlying`). */
   underlying: Address;
-  /**
-   * Close resume: router `findBestClosePath` result. When set, the mock
-   * provides `routerFor` and `assembleCloseCreditAccountCalls`.
-   */
-  closePath?: {
-    amount: bigint;
-    minAmount: bigint;
-    underlyingBalance: bigint;
-    calls: MultiCall[];
-  };
   /** RWA markets: underlying → rwa.asset (`tokensMeta.rwaUnderlyings`). */
   rwaAssets?: Record<Address, Address>;
   /** Tokens reported as phantoms by `tokensMeta.get(...).contractType`. */
   phantoms?: Address[];
+  /**
+   * Redemption venues the mock compressor reports, keyed by source token. An
+   * empty array stands for "this token has no delayed route"; several entries
+   * stand for the ambiguous config the engine refuses.
+   */
+  delayed?: Record<Address, MockDelayedVenue[]>;
   /**
    * Accounts `accounts.getCreditAccountData` knows, keyed by address. What the
    * simulate layer reads on its own instead of taking a slice from the caller;
    * `accountDebt` lands as the principal with no interest or fees accrued.
    */
   creditAccounts?: CreditAccountSlice[];
+}
+
+/** One redemption venue of the mock compressor. */
+export interface MockDelayedVenue {
+  withdrawalPhantomToken: Address;
+  /** Claim target; defaults to the market underlying. */
+  underlying?: Address;
+  /**
+   * What the request produces. Defaults to the whole `amount` as a delayed
+   * output on the phantom token, i.e. a venue with no instant liquidity.
+   */
+  outputs?: (amount: bigint) => Array<{
+    token: Address;
+    amount: bigint;
+    isDelayed: boolean;
+  }>;
+  /** Unix seconds reported as `claimableAt`. */
+  claimableAt?: bigint;
 }
 
 /**
@@ -201,12 +215,6 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
   };
 
   const router = {
-    findBestClosePath: vi.fn(async () => {
-      if (!args.closePath) {
-        throw new Error("mock router: closePath not configured");
-      }
-      return args.closePath;
-    }),
     findOneTokenPath: vi.fn(
       async ({
         amount,
@@ -294,7 +302,59 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
     (args.phantoms ?? []).map(t => t.toLowerCase() as Address),
   );
 
+  const venuesOf = (token: Address): MockDelayedVenue[] =>
+    args.delayed?.[token.toLowerCase() as Address] ?? [];
+
+  const withdrawalCompressor = args.delayed
+    ? {
+        findWithdrawableAssets: vi.fn(
+          async (creditManager: Address, token: Address) =>
+            venuesOf(token).map(v => ({
+              creditManager,
+              token,
+              withdrawalPhantomToken: v.withdrawalPhantomToken,
+              underlying: v.underlying ?? args.underlying,
+              withdrawalLength: 172_800n,
+            })),
+        ),
+      }
+    : undefined;
+
+  const previewDelayedWithdrawal = vi.fn(
+    async ({
+      token,
+      amount,
+      withdrawalPhantomToken,
+    }: {
+      token: Address;
+      amount: bigint;
+      withdrawalPhantomToken?: Address;
+    }) => {
+      const venue =
+        venuesOf(token).find(
+          v => v.withdrawalPhantomToken === withdrawalPhantomToken,
+        ) ?? venuesOf(token)[0];
+      if (!venue) {
+        throw new Error(`mock compressor: ${token} has no delayed route`);
+      }
+      return {
+        token,
+        amountIn: amount,
+        outputs: venue.outputs?.(amount) ?? [
+          {
+            token: venue.withdrawalPhantomToken,
+            amount,
+            isDelayed: true,
+          },
+        ],
+        requestCalls: [MOCK_REQUEST_CALL],
+        claimableAt: venue.claimableAt ?? 172_800n,
+      };
+    },
+  );
+
   return {
+    withdrawalCompressor,
     tokensMeta: {
       get: (token: Address) => ({
         decimals: decimalsOf(token),
@@ -334,14 +394,19 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
       prepareAddCollateral: vi.fn(() => [CA_OP_CALLS.addCollateral]),
       prepareWithdrawToken: vi.fn(() => CA_OP_CALLS.withdrawCollateral),
       prepareUpdateQuotas: vi.fn(() => [CA_OP_CALLS.changeQuota]),
+      assembleRWAWrapCalls: vi.fn(async () => [MOCK_RWA_WRAP_CALL]),
+      assembleRWAUnwrapCalls: vi.fn(async () => [MOCK_RWA_UNWRAP_CALL]),
+      previewDelayedWithdrawal,
+      assembleStartDelayedWithdrawalCalls: vi.fn(
+        ({ preview }: { preview: { requestCalls: MultiCall[] } }) => [
+          ...preview.requestCalls,
+        ],
+      ),
       assembleClaimDelayedCalls: vi.fn(
         ({ claimableNow }: { claimableNow: { claimCalls: MultiCall[] } }) => [
           ...claimableNow.claimCalls,
         ],
       ),
-      assembleCloseCreditAccountCalls: vi.fn(async () => [MOCK_CLOSE_CALL]),
-      assembleRWAWrapCalls: vi.fn(async () => [MOCK_RWA_WRAP_CALL]),
-      assembleRWAUnwrapCalls: vi.fn(async () => [MOCK_RWA_UNWRAP_CALL]),
     },
   } as unknown as OnchainSDK;
 }

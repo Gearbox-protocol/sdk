@@ -93,7 +93,7 @@ export interface OpportunitiesOnchainOnly {
    * state, and the strategy flows additionally need the pathfinder for real swap
    * paths, so there is nothing the backend could answer with.
    **/
-  simulate: OpportunitiesSimulate;
+  readonly simulate: OpportunitiesSimulate;
   /**
    * The transaction a simulate result stands for, see
    * {@link OpportunitiesExecute.buildTx}. Absent in `offchain` mode for the

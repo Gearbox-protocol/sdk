@@ -201,6 +201,55 @@ export const case_rwa_position: DepositCase = {
   rwaAssets: { [UND]: RWA_ASSET },
 };
 
+// ---------------------------------------------------------------------------
+// Test-matrix row 3.2 — native-coin deposit on a 10U/8U (5x) account
+// ---------------------------------------------------------------------------
+
+/** Matrix baseline: 10A of position against 8U of debt (2U collateral at 5x). */
+export const M32_BALANCE = 1000000000n;
+export const M32_DEBT = 800000000n;
+/** 1U deposited, paid in the native coin. */
+export const M32_DEP = 100000000n;
+/** Proportional debt drawn: D0 * a / C0 = 4U. */
+export const M32_DD = 400000000n;
+/** Native coin value attached to the addCollateral call (18 decimals). */
+export const NATIVE_VALUE = 1000000000000000000n;
+
+/**
+ * Matrix 3.2 — deposit 1U paid in the native coin at preserved 5x. The
+ * position token defaults to the fattest balance (`POS`); `value` rides on
+ * the addCollateral op.
+ */
+export const case_native_coin: DepositCase = {
+  intent: { type: "DEPOSIT", token: UND, amount: M32_DEP, value: NATIVE_VALUE },
+  tokens: [caToken(POS, M32_BALANCE, quotaOf(M32_BALANCE))],
+  accountDebt: M32_DEBT,
+  totalValue: M32_BALANCE + M32_DEP + M32_DD,
+  accountDebtAfter: M32_DEBT + M32_DD,
+  ops: [
+    { type: "addCollateral", token: UND, amount: M32_DEP, value: NATIVE_VALUE },
+    { type: "increaseDebt", amount: M32_DD },
+    {
+      type: "swap",
+      from: [{ token: UND, balance: M32_DEP + M32_DD }],
+      tokenOut: POS,
+      amountOut: M32_DEP + M32_DD,
+    },
+    {
+      type: "changeQuota",
+      quotaIncrease: [
+        {
+          token: POS,
+          balance:
+            quotaOf(M32_BALANCE + M32_DEP + M32_DD) - quotaOf(M32_BALANCE),
+        },
+      ],
+      quotaDecrease: [],
+      desiredQuota: {},
+    },
+  ],
+};
+
 export function buildDepositSdk(c: DepositCase): OnchainSDK {
   return buildMarketSdk({ rwaAssets: c.rwaAssets });
 }

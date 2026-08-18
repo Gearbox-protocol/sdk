@@ -2,6 +2,7 @@ import type { Address } from "viem";
 import { describe, expect, it, vi } from "vitest";
 import type { OnchainSDK, RawTx } from "../../sdk/index.js";
 import type {
+  LpSimulate,
   OpenStrategySimulate,
   StrategySimulate,
 } from "../simulate/index.js";
@@ -60,9 +61,14 @@ function mockChain(overrides?: { addLiquidity?: unknown; account?: unknown }) {
 }
 
 describe("buildTx — pool", () => {
-  const sim = {
-    tokenIn: { token: UNDERLYING, balance: 1_000n },
-    tokenOut: { token: DIESEL, balance: 990n },
+  const sim: Extract<LpSimulate, { ok: true }> = {
+    ok: true,
+    operations: [],
+    preview: {
+      tokenIn: { token: UNDERLYING, balance: 1_000n },
+      tokenOut: { token: DIESEL, balance: 990n },
+    },
+    calls: [],
   };
 
   it("deposit: metadata resolved inside, the tx is PoolService.addLiquidity's", async () => {
@@ -86,16 +92,21 @@ describe("buildTx — pool", () => {
     expect(sdk.pools.addLiquidity).toHaveBeenCalledWith({
       pool: POOL,
       wallet: WALLET,
-      collateral: sim.tokenIn,
+      collateral: sim.preview.tokenIn,
       meta: DEPOSIT_META,
     });
   });
 
   it("withdraw: the tx is PoolService.removeLiquidity's on the shares the sim priced", async () => {
     const { execute, sdk, txs } = mockChain();
-    const withdrawSim = {
-      tokenIn: { token: DIESEL, balance: 500n },
-      tokenOut: { token: UNDERLYING, balance: 505n },
+    const withdrawSim: Extract<LpSimulate, { ok: true }> = {
+      ok: true,
+      operations: [],
+      preview: {
+        tokenIn: { token: DIESEL, balance: 500n },
+        tokenOut: { token: UNDERLYING, balance: 505n },
+      },
+      calls: [],
     };
 
     const tx = await execute.buildTx({
@@ -226,7 +237,6 @@ describe("buildTx — account", () => {
     ok: true,
     operations: [],
     preview: {
-      kind: "adjust",
       totalValue: 3_000n,
       accountDebt: 2_000n,
       leverage: 2,

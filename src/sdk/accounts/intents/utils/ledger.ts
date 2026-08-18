@@ -79,18 +79,10 @@ export class OperationLedger {
     };
   }
 
-  /**
-   * Advances the state by one operation.
-   *
-   * Close and repay are terminal composites that settle debt and sweep the
-   * account inside their own assemblers, so there is no partial state worth
-   * projecting for them; quota changes move no balance at all.
-   */
+  /** Advances the state by one operation; quota changes move no balance. */
   public apply(op: AccountCalculatorOperation): this {
     switch (op.type) {
       case "changeQuota":
-      case "closeCreditAccount":
-      case "repayCreditAccount":
         break;
       case "increaseDebt":
         this.#debt += op.amount;
@@ -117,6 +109,9 @@ export class OperationLedger {
         this.#add(op.tokenIn, -op.amount);
         this.#add(op.tokenOut, op.amountOut);
         break;
+      // Both halves of a redemption spend one token and credit the outputs the
+      // compressor reports; a delayed output credits the phantom token, which
+      // is what keeps the in-flight position on the books.
       case "startDelayedWithdrawal":
         this.#add(op.token, -op.amountIn);
         for (const out of op.outputs) {

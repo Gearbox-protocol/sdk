@@ -1,5 +1,8 @@
 import type { Address } from "viem";
-import type { ClaimableWithdrawal } from "../withdrawal-compressor/types.js";
+import type {
+  ClaimableWithdrawal,
+  DelayedIntent,
+} from "../withdrawal-compressor/types.js";
 import {
   assertDebtInBand,
   assertLeverageAtLeastOne,
@@ -36,7 +39,7 @@ import { eq } from "./utils/common.js";
 /** Amount of a step: fixed, or whatever the previous step produced. */
 export type Amount = bigint | { raised: true; max?: bigint };
 
-/** Whatever the previous convert / claim produced. */
+/** Whatever the previous convert produced. */
 export const RAISED: Amount = { raised: true };
 
 export type Step =
@@ -49,8 +52,19 @@ export type Step =
   | { kind: "repay"; amount: Amount; keep?: bigint }
   | { kind: "convert"; from: Address; to: Address; amount: Amount }
   | { kind: "withdraw"; token: Address; amount: Amount; to: Address }
-  | { kind: "claim"; claimable: ClaimableWithdrawal }
-  | { kind: "close"; to: Address };
+  /**
+   * Redeems `amount` of `token` through its issuer instead of a DEX, keeping
+   * `reserve` of it on the account. `record` is written into the request and
+   * read back at claim time, which is what lets the tail be planned then.
+   */
+  | {
+      kind: "request";
+      token: Address;
+      amount: bigint;
+      reserve: bigint;
+      record: DelayedIntent;
+    }
+  | { kind: "claim"; claimable: ClaimableWithdrawal };
 
 /** What a planner is allowed to know about the account. */
 export interface AccountView {
@@ -69,7 +83,7 @@ export interface AccountView {
 }
 
 // ---------------------------------------------------------------------------
-// Start intents
+// Intents
 // ---------------------------------------------------------------------------
 
 /** Intent 5: the token lands as is; debt is untouched. */
@@ -94,25 +108,12 @@ export function planAdjustLeverage(
   intent: Omit<AdjustLeverageIntent, "type">,
   view: AccountView,
 ): Step[] {
-  assertLeverageAtLeastOne(intent.targetLeverage);
-  if (view.collateral <= 0n) {
-    throw new IntentPreviewError(
-      "insufficientSourceBalance",
-      "adjustLeverage: account has no collateral to lever",
-    );
-  }
-
-  const target = debtForLeverage(view.collateral, intent.targetLeverage);
-  assertDebtInBand(target, view.band);
-
-  const delta = target - view.debt;
+  const { U, delta } = leverageShape(intent, view);
   if (delta === 0n) {
     return [];
   }
 
-  const U = view.underlying;
   const T = intent.token ?? positionToken(view, "adjustLeverage");
-
   if (delta > 0n) {
     return [borrow(delta), convert(U, T, delta)];
   }
@@ -183,27 +184,7 @@ export function planWithdraw(
   intent: Omit<WithdrawStrategyIntent, "type">,
   view: AccountView,
 ): Step[] {
-  assertPositive(intent.amount, "withdraw");
-  const U = view.underlying;
-  const T = intent.tokenOut ?? U;
-  const S = intent.sourceToken ?? sourceToken(view);
-
-  const WU = view.price(T, U, intent.amount);
-  if (WU <= 0n) {
-    throw new IntentPreviewError(
-      "insufficientSourceBalance",
-      `withdraw: cannot price ${intent.amount} of ${T}`,
-    );
-  }
-  if (WU >= view.collateral) {
-    throw new IntentPreviewError(
-      "insufficientSourceBalance",
-      `withdraw: ${WU} exceeds withdrawable collateral ${view.collateral}`,
-    );
-  }
-
-  const dD = proportionalDebt(view, WU);
-  assertDebtInBand(view.debt - dD, view.band);
+  const { U, T, S, WU, dD } = withdrawShape(intent, view);
 
   // Payout in the underlying: both flows land in U, so one leg raises W + dD and
   // the repayment takes what is left after the payout is set aside.
@@ -224,11 +205,107 @@ export function planWithdraw(
 }
 
 // ---------------------------------------------------------------------------
-// Resume tails — the claim first, then what the intent still owes
+// Leading halves — the same intents when the source only redeems through its
+// issuer, so nothing can be settled in the same transaction
+// ---------------------------------------------------------------------------
+
+/**
+ * Intent 2.1 against a source that cannot be sold on a DEX.
+ *
+ * Some collateral only converts through its issuer — a Securitize dsToken, a
+ * Mellow share — which answers a redemption request now and pays out days
+ * later. The trade is unchanged; what changes is that the proceeds do not exist
+ * yet, so this half only requests the redemption:
+ *
+ * ```
+ * request(S, W + dD) → [days] → claim → convert → repay → withdraw
+ * ```
+ *
+ * The tail is planned at claim time by {@link planFinishWithdraw}, from the
+ * intent this request records — only then is the claimed amount, and the token
+ * it arrived in, known.
+ */
+export function planWithdrawDelayed(
+  intent: Omit<WithdrawStrategyIntent, "type">,
+  view: AccountView,
+): Step[] {
+  const { U, T, S, WU, dD } = withdrawShape(intent, view);
+
+  // The tail pays out in the underlying, or in the RWA asset it unwraps to;
+  // anything else it cannot serve, so there is no point starting.
+  if (!eq(T, U) && !(view.rwaAsset && eq(T, view.rwaAsset))) {
+    throw new IntentPreviewError(
+      "noDelayedRoute",
+      `withdraw: a delayed route cannot pay out in ${T}`,
+    );
+  }
+
+  // A payout in the source token never leaves the account, so only the debt has
+  // to be raised — but the payout has to survive the request.
+  const payoutIsSource = eq(T, S);
+  return [
+    {
+      kind: "request",
+      token: S,
+      amount: view.price(U, S, payoutIsSource ? dD : WU + dD),
+      reserve: payoutIsSource ? intent.amount : 0n,
+      record: {
+        type: "WITHDRAW_COLLATERAL",
+        to: intent.to,
+        withdrawToken: T,
+        withdrawAmount: intent.amount,
+        sourceToken: S,
+        debtRepaid: dD,
+      },
+    },
+  ];
+}
+
+/**
+ * Intent 6.2 against a position token that only redeems through its issuer.
+ *
+ * Only deleveraging can be delayed: raising leverage borrows and buys, both of
+ * which settle at once. The request covers whatever idle underlying does not
+ * already, and the tail repays from the claim.
+ */
+export function planAdjustLeverageDelayed(
+  intent: Omit<AdjustLeverageIntent, "type">,
+  view: AccountView,
+): Step[] {
+  const { U, delta } = leverageShape(intent, view);
+  if (delta >= 0n) {
+    throw new IntentPreviewError(
+      "noDelayedRoute",
+      "adjustLeverage: only deleveraging can settle with a delay",
+    );
+  }
+
+  const shortfall = -delta - view.balanceOf(U);
+  if (shortfall <= 0n) {
+    throw new IntentPreviewError(
+      "noDelayedRoute",
+      "adjustLeverage: idle underlying covers the repayment, nothing to redeem",
+    );
+  }
+
+  const T = intent.token ?? positionToken(view, "adjustLeverage");
+  return [
+    {
+      kind: "request",
+      token: T,
+      amount: view.price(U, T, shortfall),
+      reserve: 0n,
+      record: { type: "DECREASE_LEVERAGE" },
+    },
+  ];
+}
+
+// ---------------------------------------------------------------------------
+// Tails — the claim first, then what the intent still owes
 // ---------------------------------------------------------------------------
 
 /** Everything claimed goes into the debt. */
-export function planResumeDecreaseLeverage(
+export function planFinishDecreaseLeverage(
   claimable: ClaimableWithdrawal,
   claimed: { token: Address; amount: bigint },
   view: AccountView,
@@ -241,12 +318,12 @@ export function planResumeDecreaseLeverage(
 }
 
 /**
- * The claim is split between the promised payout `W` and the debt the start
- * leg deferred: the payout is served first, the debt gets what is left, so a
+ * The claim is split between the promised payout `W` and the debt the leading
+ * half deferred: the payout is served first, the debt gets what is left, so a
  * routing shortfall shows as leverage a touch above target rather than as a
  * payout the wallet was promised and did not get.
  */
-export function planResumeWithdraw(
+export function planFinishWithdraw(
   intent: {
     withdrawToken: Address;
     withdrawAmount: bigint;
@@ -263,7 +340,10 @@ export function planResumeWithdraw(
   const W = intent.withdrawAmount;
 
   if (!eq(T, U) && !(view.rwaAsset && eq(T, view.rwaAsset))) {
-    throw new Error("Withdraw intent should withdraw underlying token only");
+    throw new IntentPreviewError(
+      "noDelayedRoute",
+      `finishWithdraw: cannot pay out in ${T}`,
+    );
   }
 
   // Nothing owed to the debt: the whole claim is payout.
@@ -309,17 +389,72 @@ export function planResumeWithdraw(
   ];
 }
 
-/** Everything left after the claim is swept into the underlying and closed. */
-export function planResumeClose(
-  claimable: ClaimableWithdrawal,
-  to: Address,
-): Step[] {
-  return [claim(claimable), { kind: "close", to }];
+/** Nothing is owed beyond the claim: the tokens land and quotas catch up. */
+export function planFinishClaimOnly(claimable: ClaimableWithdrawal): Step[] {
+  return [claim(claimable)];
 }
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/**
+ * What a withdrawal comes down to: the payout `W` of `T` priced in the
+ * underlying, the debt `dD` that keeps leverage flat, and the source `S` both
+ * are funded from. Shared so that the instant and the delayed leading half
+ * cannot disagree on the amounts.
+ */
+function withdrawShape(
+  intent: Omit<WithdrawStrategyIntent, "type">,
+  view: AccountView,
+): { U: Address; T: Address; S: Address; WU: bigint; dD: bigint } {
+  assertPositive(intent.amount, "withdraw");
+  const U = view.underlying;
+  const T = intent.tokenOut ?? U;
+  const S = intent.sourceToken ?? sourceToken(view);
+
+  const WU = view.price(T, U, intent.amount);
+  if (WU <= 0n) {
+    throw new IntentPreviewError(
+      "insufficientSourceBalance",
+      `withdraw: cannot price ${intent.amount} of ${T}`,
+    );
+  }
+  if (WU >= view.collateral) {
+    throw new IntentPreviewError(
+      "insufficientSourceBalance",
+      `withdraw: ${WU} exceeds withdrawable collateral ${view.collateral}`,
+    );
+  }
+
+  const dD = proportionalDebt(view, WU);
+  assertDebtInBand(view.debt - dD, view.band);
+
+  return { U, T, S, WU, dD };
+}
+
+/**
+ * The debt move a leverage target implies. Shared by the instant and the
+ * delayed leading half; the token that funds it is resolved by the caller,
+ * once it knows the move needs one at all.
+ */
+function leverageShape(
+  intent: Omit<AdjustLeverageIntent, "type">,
+  view: AccountView,
+): { U: Address; delta: bigint } {
+  assertLeverageAtLeastOne(intent.targetLeverage);
+  if (view.collateral <= 0n) {
+    throw new IntentPreviewError(
+      "insufficientSourceBalance",
+      "adjustLeverage: account has no collateral to lever",
+    );
+  }
+
+  const target = debtForLeverage(view.collateral, intent.targetLeverage);
+  assertDebtInBand(target, view.band);
+
+  return { U: view.underlying, delta: target - view.debt };
+}
 
 const add = (
   token: Address,
@@ -346,6 +481,7 @@ const claim = (claimable: ClaimableWithdrawal): Step => ({
   kind: "claim",
   claimable,
 });
+const min = (a: bigint, b: bigint): bigint => (a < b ? a : b);
 
 /**
  * Hands `amount` of `token` to `to`. The wrapped underlying of an RWA market
@@ -396,5 +532,3 @@ function assertPositive(amount: bigint, flow: string): void {
     );
   }
 }
-
-const min = (a: bigint, b: bigint): bigint => (a < b ? a : b);

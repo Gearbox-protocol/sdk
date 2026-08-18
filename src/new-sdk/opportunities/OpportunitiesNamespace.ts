@@ -1,5 +1,4 @@
 import type {
-  ChainId,
   DataResponse,
   HistoryRange,
   Opportunity,
@@ -16,11 +15,12 @@ import type {
 } from "../../model/index.js";
 import { matchesOpportunityFilter } from "../../model/index.js";
 import type { GearboxAPI } from "../../offchain/index.js";
-import type { MultichainSDK, OnchainSDK } from "../../sdk/index.js";
+import type { MultichainSDK } from "../../sdk/index.js";
 import { AbstractNamespace } from "../AbstractNamespace.js";
 import { SourceUnavailableError } from "../errors/index.js";
-import { ExecuteApi } from "../execute/index.js";
-import { onchainOnly, SimulateApi } from "../simulate/index.js";
+import { ExecuteApi, type OpportunitiesExecute } from "../execute/index.js";
+import type { OpportunitiesSimulate } from "../simulate/index.js";
+import { SimulateApi } from "../simulate/index.js";
 import type { NamespaceOptions } from "../types.js";
 import type { FilterResult, HistoryReader } from "../utils/index.js";
 import {
@@ -50,16 +50,6 @@ export class OpportunitiesNamespace
     OpportunitiesOnchainOnly
 {
   /**
-   * {@inheritDoc OpportunitiesOnchainOnly.simulate}
-   **/
-  public readonly simulate: SimulateApi;
-
-  /**
-   * {@inheritDoc OpportunitiesOnchainOnly.execute}
-   **/
-  public readonly execute: ExecuteApi;
-
-  /**
    * {@inheritDoc OpportunitiesBase.merge}
    **/
   public readonly merge: OpportunityMergers = {
@@ -70,6 +60,13 @@ export class OpportunitiesNamespace
     strategy: (onchain, offchain) =>
       mergeChainOne(onchain, offchain, this.maxOffchainLagSeconds),
   };
+
+  // the simulations read the whole chain SDK — accounts, pools and the
+  // pathfinder — rather than the `opportunities` service this namespace merges,
+  // so they are built from the source itself and are absent without it; the
+  // write side resolves its chain the same way
+  readonly #simulate?: SimulateApi;
+  readonly #execute?: ExecuteApi;
 
   constructor(
     onchain: MultichainSDK | undefined,
@@ -82,22 +79,29 @@ export class OpportunitiesNamespace
       offchain?.opportunities,
       options,
     );
-    // the simulations own no sources of their own: they run on this
-    // namespace's on-chain SDK, one chain per request, and report the block
-    // that chain answered from — see `onchainOnly`
-    const chainOf = (chainId: ChainId): OnchainSDK => {
-      if (!onchain) {
-        throw new SourceUnavailableError("Opportunities", "onchain");
-      }
-      return onchain.chain(chainId);
-    };
-    this.simulate = new SimulateApi(
-      onchainOnly(onchain, options.logger, options.ensureFresh),
-      chainOf,
-    );
-    // the write side runs on the same chain resolver: what `simulate` priced,
-    // `execute` encodes
-    this.execute = new ExecuteApi(chainOf);
+    this.#simulate = onchain && new SimulateApi(onchain);
+    this.#execute =
+      onchain && new ExecuteApi(chainId => onchain.chain(chainId));
+  }
+
+  /**
+   * {@inheritDoc OpportunitiesOnchainOnly.simulate}
+   **/
+  public get simulate(): OpportunitiesSimulate {
+    if (!this.#simulate) {
+      throw new SourceUnavailableError("Opportunities", "onchain");
+    }
+    return this.#simulate;
+  }
+
+  /**
+   * {@inheritDoc OpportunitiesOnchainOnly.execute}
+   **/
+  public get execute(): OpportunitiesExecute {
+    if (!this.#execute) {
+      throw new SourceUnavailableError("Opportunities", "onchain");
+    }
+    return this.#execute;
   }
 
   /**

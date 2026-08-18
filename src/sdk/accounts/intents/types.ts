@@ -2,16 +2,18 @@ import type { Address } from "viem";
 import type { Leverage } from "../../../model/index.js";
 import type {
   Asset,
-  DelayedIntent,
   MultiCall,
   OnchainSDK,
-  RequestableWithdrawal,
   RouterCASlice,
 } from "../../index.js";
+import type {
+  ClaimableWithdrawal,
+  DelayedIntent,
+} from "../withdrawal-compressor/types.js";
 import type { AccountCalculatorOperation } from "./operations.js";
 
 /**
- * Minimal credit-account data needed by resume previews:
+ * Minimal credit-account data an intent is previewed against:
  * account address, CM lookup, underlying for conversion, debt, token balances
  * and initial quotas.
  */
@@ -20,9 +22,8 @@ export type CreditAccountSlice = Omit<RouterCASlice, "debt"> & {
   accountDebt: bigint;
 };
 
-/** Post-adjust CA metrics. */
-export type AdjustState = {
-  kind: "adjust";
+/** Projected account metrics once the operations execute. */
+export interface OperationState {
   /** Account TVL after operation */
   totalValue: bigint;
   /** Account debt after operation */
@@ -36,85 +37,88 @@ export type AdjustState = {
   assets: Asset[];
   /** Account quotas after operation */
   quotas: Record<Address, Asset>;
-};
-
-/** Close state result. */
-export type CloseState = {
-  kind: "close";
-  /** Received amount */
-  amount: bigint;
-  /** Conservative receive (min branch / pathfinder floor). */
-  minAmount: bigint;
-  /** Pathfinder underlying on CA after close path; 0n when unknown (instant). */
-  underlyingBalance: bigint;
-};
-
-export type OperationState = AdjustState | CloseState;
-
-// Delayed types
-
-type DelayedBranchKind = "instantSettle" | "partialSettle" | "delayedSettle";
-
-type DelayedBranchResult = {
-  kind: DelayedBranchKind;
-  operations: AccountCalculatorOperation[];
-  preview: { min: OperationState };
-  calls: MultiCall[];
-  intent: DelayedIntent;
-  request?: RequestableWithdrawal;
-};
-
-type DelayedErrorReason = "multipleDelayedWithdrawals" | "withdrawalInProgress";
-
-// Instant types
-
-type InstantBranchResult = {
-  operations: AccountCalculatorOperation[];
-  preview: { min: OperationState };
-  calls: MultiCall[];
-};
-
-type InstantErrorReason = "pathNotFound";
-
-// General return types
-
-/**
- * Why a preview could not be produced at all (no branch is viable). Closed over
- * what the engine actually throws — every member has a producer under
- * `intents/`.
- */
-export type PreviewErrorReason =
-  /** Resulting debt leaves the credit manager's `[minDebt, maxDebt]` band. */
-  | "debtOutOfRange"
-  /** Target leverage below 1x, or above what the collateral's LT allows. */
-  | "leverageOutOfRange"
-  /** The account holds less of the source token than the flow needs. */
-  | "insufficientSourceBalance"
-  /** Input token is not accepted by the flow (e.g. deposit of a non-underlying). */
-  | "unsupportedCollateralToken";
-
-type PreviewErrorResult = {
-  ok: false;
-  reason: PreviewErrorReason;
-};
-
-interface IntentPreviewSuccessResult {
-  ok: true;
-
-  instant: InstantBranchResult | undefined;
-  instantError: InstantErrorReason | undefined;
-
-  delayedBranch: DelayedBranchResult | undefined;
-  delayedError: DelayedErrorReason | undefined;
 }
 
-export type IntentPreviewResult =
-  | IntentPreviewSuccessResult
-  | PreviewErrorResult;
+/**
+ * Why a preview could not be produced.
+ *
+ * Every member is thrown by the engine as an {@link IntentPreviewError}, with
+ * the exception of `unsupportedTokenPair` and `noRecordedIntent`, which the
+ * simulate namespace reports for a request it can refuse before planning: a
+ * route the market does not offer, a claim naming no operation.
+ */
+export type PreviewErrorReason =
+  | "debtOutOfRange"
+  | "leverageOutOfRange"
+  | "insufficientSourceBalance"
+  /** Input token is not accepted by the flow (e.g. deposit of a non-underlying). */
+  | "unsupportedCollateralToken"
+  /** No pool route between the requested pair, or several and none was picked. */
+  | "unsupportedTokenPair"
+  /**
+   * The intent cannot settle with a delay: the source has no redemption config,
+   * the chain has no compressor, or the payout is one the tail cannot serve.
+   */
+  | "noDelayedRoute"
+  /** Several redemption venues for the source, and nothing says which. */
+  | "multipleDelayedWithdrawals"
+  /** A redemption of the same asset is already in flight. */
+  | "withdrawalInProgress"
+  /**
+   * The claim names no operation to resume: requested without an intent, read
+   * through a compressor too old to report one, or a full close, which the
+   * engine no longer previews.
+   */
+  | "noRecordedIntent";
 
 /**
- * Start ("full") intents: the leading half of an operation, as opposed to the
- * `resume` tails that continue a matured delayed withdrawal.
+ * What a preview yields: the operation chain, the state it projects, and the
+ * calldata that realises it — or the reason the request is not viable.
+ */
+export type IntentPreviewResult =
+  | {
+      ok: true;
+      operations: AccountCalculatorOperation[];
+      preview: OperationState;
+      calls: MultiCall[];
+    }
+  | { ok: false; reason: PreviewErrorReason };
+
+/** What the request recorded, and when the tail can be run. */
+export interface DelayedStart {
+  /**
+   * The intent written into the request, and decoded back from the claimable
+   * withdrawal at claim time. Feed it to
+   * `CreditAccountOperationsService.finishIntent`.
+   */
+  record: DelayedIntent;
+  /** Unix seconds after which the delayed outputs can be claimed. */
+  claimableAt: bigint;
+  /**
+   * `instant` when the venue served the whole request on the spot, so no claim
+   * will ever arrive to carry the tail. The intent is then left half-done —
+   * nothing repaid, nothing paid out — and the caller wants `startIntent`
+   * instead, which settles all of it in one transaction.
+   */
+  settlement: "instant" | "delayed";
+}
+
+/**
+ * What the leading half of a delayed intent yields: the request transaction,
+ * plus what it recorded for the tail.
+ */
+export type DelayedStartResult =
+  | {
+      ok: true;
+      operations: AccountCalculatorOperation[];
+      preview: OperationState;
+      calls: MultiCall[];
+      delayed: DelayedStart;
+    }
+  | { ok: false; reason: PreviewErrorReason };
+
+/**
+ * The intents the engine previews.
  *
  * Naming avoids the `withdrawCollateral` collision that exists elsewhere in the
  * repo. Mapping to the public simulate API:
@@ -272,6 +276,30 @@ export type StartIntent =
   | AdjustLeverageIntent
   | DepositStrategyIntent
   | WithdrawStrategyIntent;
+
+/**
+ * The intents that can be started as a redemption rather than a swap: the two
+ * that sell a position asset. The others buy one, and buying settles at once.
+ */
+export type DelayableIntent = AdjustLeverageIntent | WithdrawStrategyIntent;
+
+/**
+ * A delayed intent this engine knows how to finish.
+ *
+ * `CLOSE_ACCOUNT` is absent on purpose: closing goes through the facade's own
+ * entry point, which this engine no longer builds.
+ */
+export type ResumableIntent = Exclude<DelayedIntent, { type: "CLOSE_ACCOUNT" }>;
+
+/** Shared inputs plus the matured withdrawal the tail is built around. */
+export type FinishIntentProps = StartIntentProps & {
+  intent: ResumableIntent;
+  /**
+   * The matured withdrawal, as reported by
+   * `sdk.accounts.getPendingWithdrawals`.
+   */
+  claimable: ClaimableWithdrawal;
+};
 
 /**
  * Validation failure that maps onto {@link PreviewErrorReason} rather than

@@ -1,11 +1,6 @@
 import type { Address } from "viem";
-import type {
-  ClaimableWithdrawal,
-  DelayedIntent,
-  MultiCall,
-  OnchainSDK,
-} from "../../../index.js";
-import type { CreditAccountSlice } from "../types.js";
+import type { ClaimableWithdrawal, OnchainSDK } from "../../../index.js";
+import type { CreditAccountSlice, ResumableIntent } from "../types.js";
 import type { ExpectedFlowOp } from "./expect.js";
 import {
   buildMarketSdk,
@@ -13,10 +8,20 @@ import {
   CREDIT_FACADE,
   CREDIT_MANAGER,
   DECIMALS,
+  type MarketSdkExtras,
   UND,
   valueInUnd,
 } from "./market.js";
 import { MOCK_CLAIM_CALL } from "./sdk-mock.js";
+
+/**
+ * Shared kit for tail fixtures: the account as it stands after the delay, with
+ * the phantom token still on it, plus the matured withdrawal to claim.
+ *
+ * `totalValue` is not echoed from the props — the engine derives it from the
+ * account balances through the price oracle — so each case states the balances
+ * it wants and the expected total follows from them.
+ */
 
 export {
   ANY,
@@ -25,34 +30,26 @@ export {
   CREDIT_ACCOUNT,
   CREDIT_FACADE,
   CREDIT_MANAGER,
+  POS,
   RWA_ASSET,
   TOK_DECIMALS,
   UND,
   UND_DECIMALS,
 } from "./market.js";
 
-/**
- * Shared kit for claim-only resume fixtures (add collateral, increase
- * leverage, deposit, deposit+increase).
- *
- * Unlike the legacy props (which echoed `creditAccount.totalValue`), the
- * service computes totalValue from CA token balances via the price oracle.
- * Each case's base balance is therefore `postClaimTotalValue − claimed value
- * in UND`, so the derived totalValue matches the legacy expectation exactly.
- */
-
-export const RESUME_FIXTURE_PHANTOM =
+export const FIXTURE_PHANTOM =
   "0xcccccccccccccccccccccccccccccccccccccccc" as Address;
 
-export interface ResumeCase {
+export interface TailCase {
   claimedToken: Address;
   claimedAmount: bigint;
   postClaimTotalValue: bigint;
   postClaimDebt: bigint;
-  resumeOps: ExpectedFlowOp[];
+  /** The operations the tail is expected to produce. */
+  tailOps: ExpectedFlowOp[];
   expectedQuotaBalance?: bigint;
   /**
-   * Pre-existing CA balances besides the withdrawal phantom. Defaults to
+   * Pre-existing balances besides the withdrawal phantom. Defaults to
    * `postClaimTotalValue − claimed value` in UND. Cases claiming UND override
    * it with another token so the claimed balance stays distinguishable.
    */
@@ -65,30 +62,14 @@ export function claimedValueInUnd(amount: bigint, token: Address): bigint {
 }
 
 /**
- * Mock sdk for a resume case. The fixture phantom token gets the claimed token's
+ * Mock sdk for a tail case. The phantom token inherits the claimed token's
  * decimals, so any 1:1 rescale through it stays the identity.
- * `closePath` configures the router `findBestClosePath` result (close resume).
  */
-export function buildResumeSdk(
-  c: Pick<ResumeCase, "claimedToken">,
-  extras?: {
-    closePath?: {
-      amount: bigint;
-      minAmount: bigint;
-      underlyingBalance: bigint;
-      calls: MultiCall[];
-    };
-    /** RWA markets: underlying → rwa.asset (tokensMeta.rwaUnderlyings). */
-    rwaAssets?: Record<Address, Address>;
-    /** Additional / overriding token prices (PRICE_DECIMALS_POW-scaled). */
-    extraPrices?: Record<Address, bigint>;
-    /** Additional / overriding token decimals. */
-    extraDecimals?: Record<Address, number>;
-    /** Withdrawal phantom address (defaults to RESUME_FIXTURE_PHANTOM). */
-    phantom?: Address;
-  },
+export function buildTailSdk(
+  c: Pick<TailCase, "claimedToken">,
+  extras?: MarketSdkExtras & { phantom?: Address },
 ): OnchainSDK {
-  const phantom = extras?.phantom ?? RESUME_FIXTURE_PHANTOM;
+  const phantom = extras?.phantom ?? FIXTURE_PHANTOM;
   return buildMarketSdk({
     ...extras,
     extraDecimals: {
@@ -99,13 +80,13 @@ export function buildResumeSdk(
   });
 }
 
-/** The matured withdrawal a resume case claims. */
+/** The matured withdrawal a tail case claims. */
 export function buildClaimable(
-  c: Pick<ResumeCase, "claimedToken" | "claimedAmount">,
+  c: Pick<TailCase, "claimedToken" | "claimedAmount">,
 ): ClaimableWithdrawal {
   return {
     token: c.claimedToken,
-    withdrawalPhantomToken: RESUME_FIXTURE_PHANTOM,
+    withdrawalPhantomToken: FIXTURE_PHANTOM,
     withdrawalTokenSpent: c.claimedAmount,
     outputs: [
       {
@@ -118,9 +99,10 @@ export function buildClaimable(
   } as ClaimableWithdrawal;
 }
 
-export function buildClaimResumeProps<T extends DelayedIntent>(args: {
+/** Props for `finishIntent`: the account after the delay, plus the claimable. */
+export function buildFinishProps<T extends ResumableIntent>(args: {
   intent: T;
-  case: ResumeCase;
+  case: TailCase;
   sdk: OnchainSDK;
 }) {
   const { intent, case: c, sdk } = args;
@@ -135,7 +117,7 @@ export function buildClaimResumeProps<T extends DelayedIntent>(args: {
     accountDebt: c.postClaimDebt,
     tokens: [
       {
-        token: RESUME_FIXTURE_PHANTOM,
+        token: FIXTURE_PHANTOM,
         balance: c.claimedAmount,
         quota: 0n,
         mask: 0n,

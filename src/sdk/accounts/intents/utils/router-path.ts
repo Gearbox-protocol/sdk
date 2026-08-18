@@ -20,15 +20,6 @@ export interface OpenStrategyLeg extends SwapLeg {
   minBalances: Record<Address, bigint>;
 }
 
-/** Everything on the account converted to underlying, for a full close. */
-export interface CloseLeg extends SwapLeg {
-  /**
-   * Total underlying on the account after the path runs: what the swaps produced
-   * plus the underlying that was already sitting there.
-   **/
-  underlyingBalance: bigint;
-}
-
 export interface RouterPaths {
   /**
    * Spends exactly `amount` of `tokenIn`.
@@ -53,11 +44,6 @@ export interface RouterPaths {
     leftoverBalances: Asset[];
     target: Address;
   }): Promise<OpenStrategyLeg>;
-  /**
-   * Converts every balance in `assets` — dust included — into the underlying, as
-   * account closure requires.
-   */
-  close(input: { assets: Asset[] }): Promise<CloseLeg>;
 }
 
 /**
@@ -130,19 +116,6 @@ export function createRouterPaths(args: {
         leftoverBalances,
         target,
         slippage,
-      });
-    },
-
-    async close({ assets }) {
-      return router.findBestClosePath({
-        creditAccount: toRouterCaSlice(creditAccount, assets),
-        creditManager: cmSlice,
-        slippage,
-        balances: {
-          expectedBalances: assets,
-          leftoverBalances: [],
-          tokensToClaim: [],
-        },
       });
     },
   };

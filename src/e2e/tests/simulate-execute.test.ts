@@ -231,8 +231,6 @@ describe("simulate → execute on a mainnet fork", () => {
     sim: Awaited<ReturnType<ReturnType<typeof simulate>["adjustLeverage"]>>,
   ) {
     if (!sim.data.ok) throw new Error(`sim failed: ${sim.data.reason}`);
-    if (sim.data.preview.kind !== "adjust")
-      throw new Error("expected an adjust preview");
     const [meta] = sim.meta.chains;
     if (meta?.status !== "success") throw new Error("sim did not succeed");
     return {
@@ -694,7 +692,11 @@ describe("simulate → execute on a mainnet fork", () => {
       await anvil.deal({ erc20: USDC, account: borrower, amount: WALLET_USDC });
       await approve(USDC, pool);
       await sync();
-      const sim = simulate().deposit({ chainId: CHAIN_ID, pool }, COLLATERAL);
+      const sim = simulate().deposit(
+        { chainId: CHAIN_ID, pool },
+        { amount: COLLATERAL, wallet: borrower },
+      );
+      if (!sim.ok) throw new Error(`deposit sim failed: ${sim.reason}`);
       const before = await balance(shares);
       await send({
         kind: "pool",
@@ -706,7 +708,7 @@ describe("simulate → execute on a mainnet fork", () => {
       });
 
       expect((await balance(shares)) - before).toBeLessThanOrEqual(
-        sim.tokenOut.balance,
+        sim.preview.tokenOut.balance,
       );
     });
 
@@ -716,8 +718,9 @@ describe("simulate → execute on a mainnet fork", () => {
       await sync();
       const deposit = simulate().deposit(
         { chainId: CHAIN_ID, pool },
-        COLLATERAL,
+        { amount: COLLATERAL, wallet: borrower },
       );
+      if (!deposit.ok) throw new Error(`deposit sim failed: ${deposit.reason}`);
       await send({
         kind: "pool",
         chainId: CHAIN_ID,
@@ -728,7 +731,11 @@ describe("simulate → execute on a mainnet fork", () => {
       });
       await sync();
       const owned = await balance(shares);
-      const sim = simulate().withdraw({ chainId: CHAIN_ID, pool }, owned / 2n);
+      const sim = simulate().withdraw(
+        { chainId: CHAIN_ID, pool },
+        { amount: owned / 2n, wallet: borrower },
+      );
+      if (!sim.ok) throw new Error(`withdraw sim failed: ${sim.reason}`);
       const before = await balance(USDC);
       await send({
         kind: "pool",
@@ -740,7 +747,7 @@ describe("simulate → execute on a mainnet fork", () => {
       });
 
       expect((await balance(USDC)) - before).toBeGreaterThanOrEqual(
-        sim.tokenOut.balance,
+        sim.preview.tokenOut.balance,
       );
     });
   });
