@@ -144,8 +144,6 @@ export class GearboxSDK<const M extends Mode = Mode> {
    * Attaches the on-chain SDK when this instance owns one; a no-op in `offchain`
    * mode and when an already-attached SDK was injected.
    **/
-  // reads issued before this resolves still reach the chain and fail there, so in
-  // `both` mode they are served from the backend alone rather than blocking
   public async attach(): Promise<void> {
     if (this.#attached || !this.#ownsOnchain || !this.#onchain) {
       return;
@@ -182,9 +180,6 @@ export class GearboxSDK<const M extends Mode = Mode> {
 /**
  * Per-chain configuration of exactly the networks the SDK covers.
  **/
-// a chain configured beyond them is left unbuilt rather than quietly read from,
-// which is what makes `sdk.opportunities.onchain.list()` scoped without anyone
-// threading a chain list into it
 function chainsOf(
   configured: PlainMultichainSDKOptions["chains"],
   networks: readonly NetworkType[],

@@ -43,8 +43,6 @@ export class OffchainOpportunities extends AbstractOffchainNamespace {
    * Opportunities of the chains this client covers, optionally narrowed further
    * by {@link OpportunityFilter}.
    **/
-  // the chains are always named, even when the filter does not: the backend
-  // serves chains this client has no business showing
   public async list(
     filter?: OpportunityFilter,
   ): Promise<DataResponse<Opportunity[]>> {

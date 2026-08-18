@@ -78,8 +78,6 @@ export interface OpportunitiesOffchainOnly {
    * chart does not compile, and the bundle is keyed by exactly the metrics
    * named — one of them is a bundle of one, not a different call.
    **/
-  // there is no second source to fall back to, so a backend failure is raised
-  // rather than reported in the metadata
   charts<const Metrics extends readonly PoolOpportunityChartMetric[]>(
     key: PoolOpportunityRef,
     metrics: Metrics,
@@ -134,9 +132,6 @@ export interface OpportunitiesMerged {
 /**
  * Which methods the `opportunities` namespace has in each mode.
  **/
-// a lookup map rather than a conditional type: `both` is spelled out instead of
-// being inferred, and a widened mode degrades to the intersection of what all
-// modes offer rather than silently distributing into a union of everything
 export interface OpportunitiesByMode {
   onchain: OpportunitiesBase &
     OpportunitiesOnchainOnly &

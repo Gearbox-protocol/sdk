@@ -98,8 +98,6 @@ export type PoolPositionChartMetric =
  * rather than the lifetime rate and are comparable across positions of
  * different ages.
  **/
-// `collateralPrice` is deliberately absent, see the note on
-// `StrategyPositionChartMetric`
 export const STRATEGY_POSITION_CHART_METRICS = [
   "totalValueUsd",
   "totalValueUnderlying",
@@ -407,10 +405,6 @@ export interface GridSampling {
  *
  * @typeParam Metrics - Metric list the read received.
  **/
-// no `subject` field: a bundle is read through a subject-scoped reader, so the
-// caller already holds the key it passed in. Echoing it would also be
-// unverifiable — a pool position key and a pool opportunity key are the same
-// shape but for `wallet`, so a wire union of the two cannot tell them apart
 export interface ChartBundle<Metrics extends readonly ChartMetric[]> {
   window: ChartWindow;
   sampling: GridSampling;
