@@ -1,4 +1,5 @@
 import type { Address } from "viem";
+import type { PositionMetrics } from "../../model/index.js";
 import type { Asset, DelayedIntent } from "../../sdk/index.js";
 import type { PoolOperationType } from "../parse/index.js";
 
@@ -96,7 +97,7 @@ export interface PoolOperationPreview {
   error?: OperationPreviewError;
 }
 
-export interface OpenCreditAccountPreview {
+export interface OpenCreditAccountPreview extends PositionMetrics {
   operation: "OpenCreditAccount" | "RWAOpenCreditAccount";
   /**
    * Credit manager the account is opened in
@@ -140,7 +141,7 @@ export interface OpenCreditAccountPreview {
   error?: OperationPreviewError;
 }
 
-export interface AdjustCreditAccountPreview {
+export interface AdjustCreditAccountPreview extends PositionMetrics {
   operation: "AdjustCreditAccount";
   /**
    * Credit manager the account is opened in

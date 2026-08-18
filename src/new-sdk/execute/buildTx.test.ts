@@ -188,6 +188,11 @@ describe("buildTx — open", () => {
     averageQuota: [{ token: DIESEL, balance: 3_000n }],
     minQuota: [{ token: DIESEL, balance: 2_900n }],
     calls: [CALL],
+    healthFactor: 0,
+    overallApy: 0,
+    borrowRate: { total: 0, totalOnDebt: 0, base: 0, quotas: {} },
+    timeToLiquidation: null,
+    liquidationPrice: null,
   };
   const sim: Extract<OpenStrategySimulate, { ok: true }> = {
     ok: true,
@@ -328,6 +333,11 @@ describe("buildTx — account", () => {
       leverage: 2,
       assets: [],
       quotas: {},
+      healthFactor: 0,
+      overallApy: 0,
+      borrowRate: { total: 0, totalOnDebt: 0, base: 0, quotas: {} },
+      timeToLiquidation: null,
+      liquidationPrice: null,
     },
     calls: [CALL, { target: POOL, callData: "0xbeef" }],
   };

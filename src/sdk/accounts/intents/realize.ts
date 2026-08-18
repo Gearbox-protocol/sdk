@@ -1,6 +1,7 @@
 import type { Address } from "viem";
 import type { MultiCall, OnchainSDK } from "../../index.js";
 import { positionLeverage } from "../../market/math.js";
+import { positionMetrics } from "../../market/position-metrics/index.js";
 import type { WithdrawableAsset } from "../withdrawal-compressor/types.js";
 import {
   type AccountCalculatorOperation,
@@ -269,6 +270,14 @@ export async function realize(
     push(buildQuotaUpdateOperation({ update: quotas, creditAccount, sdk }));
   }
 
+  const metrics = positionMetrics(sdk, {
+    creditManager: creditAccount.creditManager,
+    assets,
+    quotas: Object.values(quotas.desiredQuota),
+    debt,
+    totalValue,
+  });
+
   return {
     operations,
     state: {
@@ -277,6 +286,7 @@ export async function realize(
       leverage: positionLeverage(debt, totalValue),
       assets,
       quotas: quotas.desiredQuota,
+      ...metrics,
     },
     calls: callsOf(operations),
     delayed,

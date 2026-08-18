@@ -152,6 +152,69 @@ export interface PoolPosition {
 }
 
 /**
+ * Cost of a position's debt broken down by source.
+ *
+ * The base rate is what the pool charges on the debt; each quoted collateral
+ * adds its own quota rate on top. Rates are reported in two normalizations:
+ * relative to the position's total value and relative to its debt.
+ **/
+export interface BorrowRateBreakdown {
+  /**
+   * Base rate plus quota rates, relative to the position's total value.
+   **/
+  total: Bps;
+  /**
+   * Base rate plus quota rates, relative to the debt. This is the rate the
+   * debt itself grows at, so it feeds {@link PositionMetrics.timeToLiquidation}.
+   **/
+  totalOnDebt: Bps;
+  /**
+   * Annual cost of the borrowed underlying itself: the pool's base rate plus
+   * the credit manager's interest fee. Same value `borrowApy` reports.
+   **/
+  base: Bps;
+  /**
+   * Per-token quota rate contribution, relative to the position's total value.
+   **/
+  quotas: Record<Address, Bps>;
+}
+
+/**
+ * Health and cost metrics of a credit account's state, actual or projected.
+ *
+ * Previews and operation states carry the whole group; on-chain positions
+ * report only the fields they lack natively, see {@link StrategyPosition}.
+ **/
+export interface PositionMetrics {
+  /**
+   * Health factor in basis points: below `10000` the account is liquidatable.
+   *
+   * @example `12500` for a health factor of 1.25
+   **/
+  healthFactor: Bps;
+  /**
+   * Net rate the whole position earns, collateral yield minus borrow cost.
+   **/
+  overallApy: Bps;
+  /**
+   * Cost of the debt, broken down by source.
+   **/
+  borrowRate: BorrowRateBreakdown;
+  /**
+   * Estimated milliseconds until the health factor decays to `10000` under
+   * the current borrow rate, or `null` when the debt carries no rate (or the
+   * account is already liquidatable).
+   **/
+  timeToLiquidation: bigint | null;
+  /**
+   * Price of the single non-underlying collateral at which the account
+   * becomes liquidatable, in the oracle's 8-decimal fixed point, or `null`
+   * when the account holds zero or several non-underlying assets.
+   **/
+  liquidationPrice: bigint | null;
+}
+
+/**
  * An open credit account of a wallet.
  **/
 export interface StrategyPosition {
@@ -220,6 +283,28 @@ export interface StrategyPosition {
    * @example `12500` for a health factor of 1.25
    **/
   healthFactor: Bps;
+  /**
+   * Cost of the debt broken down into the pool's base rate and per-token
+   * quota rates.
+   *
+   * @mode onchain
+   **/
+  borrowRate?: BorrowRateBreakdown;
+  /**
+   * Estimated milliseconds until the health factor decays to `10000` under
+   * the current borrow rate, or `null` when it cannot be estimated.
+   *
+   * @mode onchain
+   **/
+  timeToLiquidation?: bigint | null;
+  /**
+   * Price of the single non-underlying collateral at which the account
+   * becomes liquidatable, in the oracle's 8-decimal fixed point, or `null`
+   * when the account holds zero or several non-underlying assets.
+   *
+   * @mode onchain
+   **/
+  liquidationPrice?: bigint | null;
   /**
    * What the position has earned so far.
    *

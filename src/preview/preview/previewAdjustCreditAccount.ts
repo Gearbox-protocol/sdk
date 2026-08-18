@@ -3,6 +3,7 @@ import {
   DUST_THRESHOLD,
   NO_VERSION,
   type PluginsMap,
+  positionMetrics,
 } from "../../sdk/index.js";
 import type {
   MulticallOperation,
@@ -55,6 +56,7 @@ export async function previewAdjustCreditAccount<P extends PluginsMap>(
   // On a malformed multicall the replayed balances are best-effort and may
   // be unreliable.
   const assets = account.balances.toAssets(DUST_THRESHOLD);
+  const quotas = account.quotas.toAssets(0n);
 
   // The replayed state is seeded with all initial tokens and entries are
   // never deleted, so its keys are the union of tokens present before or
@@ -90,10 +92,19 @@ export async function previewAdjustCreditAccount<P extends PluginsMap>(
     totalValue,
     debt: account.debt,
     debtChange: account.debt - before.debt,
-    quotas: account.quotas.toAssets(0n),
+    quotas,
     quotasChange: account.quotas.difference(before.quotas).toAssets(),
     assets,
     assetsChange,
     error,
+    // Best-effort like the rest of the preview: tokens the oracle cannot
+    // price (ERROR_UNPRICEABLE_TOKEN) contribute nothing to the metrics.
+    ...positionMetrics(sdk, {
+      creditManager: operation.creditManager,
+      assets,
+      quotas,
+      debt: account.debt,
+      totalValue,
+    }),
   };
 }

@@ -2,8 +2,10 @@ import {
   type AddressMap,
   AP_WETH_TOKEN,
   type Asset,
+  DUST_THRESHOLD,
   NO_VERSION,
   type PluginsMap,
+  positionMetrics,
 } from "../../sdk/index.js";
 import type {
   InnerOperation,
@@ -64,7 +66,10 @@ export async function previewOpenCreditAccount<P extends PluginsMap>(
   // filter out dust, including the 1-wei leftovers of drained inputs and
   // intermediate tokens. On a malformed multicall the replayed balances are
   // best-effort and may be unreliable.
-  const assets = account.balances.toAssets(1n);
+  const assets = account.balances.toAssets(DUST_THRESHOLD);
+  // On opening, initial quotas are zero, so the folded quotas are the
+  // applied changes.
+  const quotas = account.quotas.toAssets(0n);
 
   return {
     operation: operation.operation,
@@ -73,11 +78,18 @@ export async function previewOpenCreditAccount<P extends PluginsMap>(
     collateral,
     collateralValue,
     debt: account.debt,
-    // On opening, initial quotas are zero, so the folded quotas are the
-    // applied changes.
-    quotas: account.quotas.toAssets(0n),
+    quotas,
     assets,
     error,
+    // Best-effort like the rest of the preview: tokens the oracle cannot
+    // price (ERROR_UNPRICEABLE_TOKEN) contribute nothing to the metrics.
+    ...positionMetrics(sdk, {
+      creditManager: operation.creditManager,
+      assets,
+      quotas,
+      debt: account.debt,
+      totalValue: collateralValue + account.debt,
+    }),
   };
 }
 
