@@ -15,9 +15,9 @@ import {
 } from "../../constants/index.js";
 import { dominantCollateral } from "../../market/index.js";
 import {
-  borrowApyBps,
+  calcBorrowApy,
+  calcPositionLeverage,
   healthFactorBps,
-  positionLeverage,
   usdToNumber,
 } from "../../market/math.js";
 import { AddressMap, AddressSet, hexEq } from "../../utils/index.js";
@@ -346,8 +346,8 @@ export class CreditAccountCompressor extends SDKConstruct {
       targetCollateral: collateral
         ? this.sdk.tokensMeta.mustGetToken(collateral)
         : null,
-      leverage: positionLeverage(totalDebtValue, ca.totalValue),
-      borrowApy: borrowApyBps(
+      leverage: calcPositionLeverage(ca.totalValue, totalDebtValue),
+      borrowApy: calcBorrowApy(
         pool.baseInterestRate,
         suite.creditManager.feeInterest,
       ),

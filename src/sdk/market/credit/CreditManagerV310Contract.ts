@@ -1,9 +1,4 @@
-import {
-  type Address,
-  type ContractEventName,
-  isAddressEqual,
-  type Log,
-} from "viem";
+import type { Address, ContractEventName, Log } from "viem";
 
 import { iCreditManagerV310Abi } from "../../../abi/310/generated.js";
 import type { Bps, Leverage } from "../../../model/index.js";
@@ -15,7 +10,7 @@ import type { CreditManagerStateHuman } from "../../types/index.js";
 import { AddressMap, fmtBinaryMask, percentFmt } from "../../utils/index.js";
 import type { IAdapterContract } from "../adapters/index.js";
 import { createAdapter } from "../adapters/index.js";
-import { maxLeverage } from "../math.js";
+import { calcMaxLeverage } from "../math.js";
 import type { ICreditManagerContract } from "./types.js";
 
 const abi = iCreditManagerV310Abi;
@@ -112,23 +107,10 @@ export class CreditManagerV310Contract
   }
 
   /**
-   * {@inheritDoc ICreditManagerContract.leverageableCollaterals}
-   */
-  public get leverageableCollaterals(): Address[] {
-    return this.collateralTokens.filter(token => {
-      if (isAddressEqual(token, this.underlying)) {
-        return false;
-      }
-      const lt = this.liquidationThresholds.get(token);
-      return !!lt && lt > 0 && lt < Number(PERCENTAGE_FACTOR);
-    });
-  }
-
-  /**
    * {@inheritDoc ICreditManagerContract.maxLeverage}
    */
   public maxLeverage(collateral: Address): Leverage {
-    return maxLeverage(this.liquidationThresholds.mustGet(collateral));
+    return calcMaxLeverage(this.liquidationThresholds.mustGet(collateral));
   }
 
   /**

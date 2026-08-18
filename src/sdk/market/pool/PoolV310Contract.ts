@@ -18,7 +18,7 @@ import {
   formatBNvalue,
   percentFmt,
 } from "../../utils/index.js";
-import { utilizationBps } from "../math.js";
+import { calcUtilization } from "../math.js";
 import type { IRWAFactory } from "../rwa/types.js";
 import type { IPoolContract } from "./types.js";
 
@@ -89,7 +89,7 @@ export class PoolV310Contract
    * {@inheritDoc IPoolContract.utilization}
    */
   public get utilization(): Bps {
-    return utilizationBps(this.borrowed, this.expectedLiquidity);
+    return calcUtilization(this.borrowed, this.expectedLiquidity);
   }
 
   /**
