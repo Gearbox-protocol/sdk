@@ -32,8 +32,12 @@ export const DEBT = 50000000000n;
 
 /** Half the ANY position. */
 export const OUT_ANY = 1000000000000000000000n;
-/** Half the UND balance. */
-export const OUT_UND = 50000000000n;
+/**
+ * 300 of the 1000 UND held. Not half: the underlying is weighted at 98% in this
+ * fixture, so leaving 500 against 500 of debt would end below water and the
+ * facade would refuse the withdrawal.
+ */
+export const OUT_UND = 30000000000n;
 
 export const QUOTA_ANY_BEFORE = (valueInUnd(HELD_ANY, ANY) * LT_ANY) / 10000n;
 export const QUOTA_ANY_AFTER =

@@ -7,22 +7,57 @@ import type { AccountSnapshot } from "./types.js";
 
 const MAX_UINT16 = 65535;
 
-/**
- * USD value of a token amount in the oracle's 8-decimal scale, or `0n` when
- * the feed is missing or unsuccessful — the same formula as
- * `priceOracle.convertToUSD`, with its throw swallowed so a preview can still
- * report a best-effort health factor.
- **/
-function usdValue(
-  oracle: { convertToUSD: (token: Address, amount: bigint) => bigint },
+interface Oracle {
+  convertToUSD: (token: Address, amount: bigint, reserve?: boolean) => bigint;
+}
+
+export interface HealthFactorOptions {
+  /**
+   * Value collateral at safe prices — the lower of the token's main and
+   * reserve feeds — which is what the credit manager does when the call takes
+   * funds off the account. A token with no reserve feed keeps its main price.
+   **/
+  safePrices?: boolean;
+}
+
+function convert(
+  oracle: Oracle,
   token: Address,
   amount: bigint,
-): bigint {
+  reserve: boolean,
+): bigint | undefined {
   try {
-    return oracle.convertToUSD(token, amount);
+    return oracle.convertToUSD(token, amount, reserve);
   } catch {
-    return 0n;
+    return undefined;
   }
+}
+
+/**
+ * USD value of a token amount in the oracle's 8-decimal scale, or `0n` when no
+ * feed answers — the same formula as `priceOracle.convertToUSD`, with its throw
+ * swallowed so a preview can still report a best-effort health factor.
+ *
+ * At safe prices a feed that answers alone carries the valuation, rather than
+ * dropping it to zero the way the contract does for an untrusted main feed: the
+ * SDK cannot see which feeds are trusted, and refusing a sound transaction is
+ * the worse of the two mistakes here.
+ **/
+function usdValue(
+  oracle: Oracle,
+  token: Address,
+  amount: bigint,
+  safe = false,
+): bigint {
+  const main = convert(oracle, token, amount, false);
+  if (!safe) {
+    return main ?? 0n;
+  }
+  const reserve = convert(oracle, token, amount, true);
+  if (main === undefined || reserve === undefined) {
+    return main ?? reserve ?? 0n;
+  }
+  return BigIntMath.min(main, reserve);
 }
 
 /**
@@ -35,8 +70,13 @@ function usdValue(
  *
  * @param sdk - Market data source.
  * @param snapshot - Account state to evaluate.
+ * @param options - Pricing to value the collateral at.
  **/
-export function healthFactor(sdk: OnchainSDK, snapshot: AccountSnapshot): Bps {
+export function healthFactor(
+  sdk: OnchainSDK,
+  snapshot: AccountSnapshot,
+  options?: HealthFactorOptions,
+): Bps {
   const { creditManager, assets, quotas, debt } = snapshot;
   if (debt === 0n) {
     return MAX_UINT16;
@@ -53,7 +93,8 @@ export function healthFactor(sdk: OnchainSDK, snapshot: AccountSnapshot): Bps {
     }
 
     const lt = BigInt(cm.liquidationThresholds.get(token) ?? 0);
-    const tokenLtWeighted = usdValue(priceOracle, token, balance) * lt;
+    const tokenLtWeighted =
+      usdValue(priceOracle, token, balance, options?.safePrices) * lt;
 
     const quota = quotas.find(q => isAddressEqual(q.token, token));
     const quotaBalance =

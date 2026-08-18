@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 import { SDKConstruct } from "../../base/SDKConstruct.js";
+import { assertMarketOperable } from "./guards.js";
 import { maxProportionalWithdrawal } from "./math.js";
 import {
   type OpenStrategyPreview,
@@ -18,6 +19,7 @@ import {
   planFinishClaimOnly,
   planFinishDecreaseLeverage,
   planFinishWithdraw,
+  planRepay,
   planWithdraw,
   planWithdrawAsset,
   planWithdrawDelayed,
@@ -59,6 +61,7 @@ export {
   type IntentRoutesResult,
   type OperationState,
   type PreviewErrorReason,
+  type RepayStrategyIntent,
   type ResumableIntent,
   type RouteRefusals,
   type StartIntent,
@@ -119,6 +122,8 @@ export class CreditAccountOperationsService extends SDKConstruct {
             return planAdjustLeverage(intent, view);
           case "DEPOSIT":
             return planDeposit(intent, view);
+          case "REPAY":
+            return planRepay(intent, view);
           case "WITHDRAW":
             return planWithdraw(intent, view);
           default: {
@@ -136,7 +141,8 @@ export class CreditAccountOperationsService extends SDKConstruct {
   /**
    * Largest `WITHDRAW` amount (in underlying) the account can take out while
    * keeping leverage and staying inside the facade's debt band — the ceiling a
-   * withdraw form should offer. Closing the account is a different intent.
+   * withdraw form should offer. Taking everything out is the same intent with
+   * `MAX_UINT256` for an amount, and needs none of this arithmetic.
    *
    * @param props - Account slice and the SDK holding its market
    * @returns Amount in underlying units; `0n` when nothing can leave
@@ -144,6 +150,23 @@ export class CreditAccountOperationsService extends SDKConstruct {
   maxWithdraw(props: Pick<StartIntentProps, "creditAccount" | "sdk">): bigint {
     const view = accountView(props.creditAccount, props.sdk);
     return maxProportionalWithdrawal(view, view.band);
+  }
+
+  /**
+   * Debt a `REPAY` would have to cover to settle the account, in underlying
+   * units: principal plus the interest and fees accrued as of the read.
+   *
+   * A repayment of exactly this leaves nothing behind at the block it was read
+   * at, and a little behind at any later one, since interest does not stop —
+   * so a wallet meaning to clear the account sends this with a buffer on top,
+   * which the intent caps at the debt rather than spending. `REPAY` with
+   * `MAX_UINT256` sizes that buffer itself.
+   *
+   * @param props - Account slice and the SDK holding its market
+   * @returns Amount in underlying units; `0n` on an account that owes nothing
+   */
+  maxRepay(props: Pick<StartIntentProps, "creditAccount" | "sdk">): bigint {
+    return accountView(props.creditAccount, props.sdk).debt;
   }
 
   /**
@@ -339,6 +362,11 @@ export class CreditAccountOperationsService extends SDKConstruct {
     plan: () => Step[],
   ): Promise<Previewed> {
     try {
+      assertMarketOperable(
+        props.sdk.marketRegister.findCreditManager(
+          props.creditAccount.creditManager,
+        ),
+      );
       const { operations, state, calls, delayed } = await realize(plan(), {
         creditAccount: props.creditAccount,
         sdk: props.sdk,

@@ -153,8 +153,18 @@ describe("withdraw.routes — both halves of the choice, in one call", () => {
     expect(routes.refused.instant).toBeUndefined();
   });
 
+  it("offers the instant route alone for an exit, which no redemption can start", async () => {
+    const routes = expectRoutes(
+      await run(withVenue(), withdraw({ amount: TVL_BEFORE })),
+    );
+
+    expect(routes.instant?.preview.accountDebt).toBe(0n);
+    expect(routes.delayed).toBeUndefined();
+    expect(routes.refused.delayed).toBe("noDelayedRoute");
+  });
+
   it("fails once, with the instant route's reason, when neither is viable", async () => {
-    const result = await run(withVenue(), withdraw({ amount: TVL_BEFORE }));
+    const result = await run(withVenue(), withdraw({ amount: 0n }));
 
     expect(result.ok).toBe(false);
     if (result.ok) {

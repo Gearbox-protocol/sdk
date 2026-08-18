@@ -135,10 +135,18 @@ describe("withdraw.start — partial exit at fixed leverage", () => {
     });
   });
 
-  it("rejects withdrawing the whole collateral (that is a close, not a partial)", async () => {
+  it("names the payout: a partial withdrawal cannot empty the balance", async () => {
+    const result = await run(case_und_und);
+    if (!result.ok) throw new Error(`expected a preview, got ${result.reason}`);
+
+    const paid = result.operations.find(op => op.type === "withdrawCollateral");
+    expect(paid?.type === "withdrawCollateral" && paid.all).toBeUndefined();
+  });
+
+  it("rejects an account whose net value the debt has already eaten", async () => {
     const result = await run({
       ...case_und_und,
-      intent: { ...case_und_und.intent, amount: 100000000000n },
+      accountDebt: 200000000000n,
     });
     expectPreviewError(result, "insufficientSourceBalance");
   });

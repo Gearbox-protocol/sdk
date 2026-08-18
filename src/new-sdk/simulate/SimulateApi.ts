@@ -28,6 +28,7 @@ import type {
   OpportunitiesSimulate,
   PoolInput,
   PositionInput,
+  RepayStrategyParams,
   SimulateOptions,
   StrategyInput,
   StrategyRoutesSimulate,
@@ -268,6 +269,37 @@ export class SimulateApi
       network: position.chainId,
       run: async sdk =>
         service(sdk).maxWithdraw({
+          creditAccount: await slice(sdk, position.creditAccount),
+          sdk,
+        }),
+    });
+  }
+
+  /**
+   * {@inheritDoc OpportunitiesSimulate.repayStrategy}
+   **/
+  public async repayStrategy(
+    position: PositionInput,
+    params: RepayStrategyParams,
+  ): Promise<DataResponse<StrategySimulate>> {
+    return this.#startIntent(position, params, {
+      type: "REPAY",
+      token: params.token,
+      amount: params.amount,
+      value: params.value,
+    });
+  }
+
+  /**
+   * {@inheritDoc OpportunitiesSimulate.maxRepay}
+   **/
+  public async maxRepay(
+    position: PositionInput,
+  ): Promise<DataResponse<bigint>> {
+    return this.queryChain({
+      network: position.chainId,
+      run: async sdk =>
+        service(sdk).maxRepay({
           creditAccount: await slice(sdk, position.creditAccount),
           sdk,
         }),

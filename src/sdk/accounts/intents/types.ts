@@ -69,7 +69,25 @@ export type PreviewErrorReason =
    * through a compressor too old to report one, or a full close, which the
    * engine no longer previews.
    */
-  | "noRecordedIntent";
+  | "noRecordedIntent"
+  /** The facade or the pool behind it is paused: nothing can be done at all. */
+  | "marketPaused"
+  /** The facade is past its expiration date and takes no more multicalls. */
+  | "marketExpired"
+  /**
+   * The pool cannot lend what the plan draws right now — its free liquidity,
+   * the manager's debt limit or the per-block cap stands in the way.
+   */
+  | "insufficientPoolLiquidity"
+  /** The market takes no more quota for a token the plan wants to hold. */
+  | "quotaLimitReached"
+  /** The plan would increase the balance of a token the market forbids. */
+  | "forbiddenToken"
+  /**
+   * The account would end the transaction owing more than its collateral is
+   * worth under liquidation thresholds, which the facade refuses to allow.
+   */
+  | "insufficientCollateral";
 
 /**
  * What a preview yields: the operation chain, the state it projects, and the
@@ -174,6 +192,7 @@ export type IntentRoutesResult =
  * | `ADJUST_LEVERAGE`  | `simulate.adjustLeverage`   | changes |
  * | `DEPOSIT`          | `simulate.depositStrategy`  | grows   |
  * | `WITHDRAW`         | `simulate.withdrawStrategy` | shrinks |
+ * | `REPAY`            | `simulate.repayStrategy`    | shrinks |
  */
 
 /** Shared inputs for every start intent. */
@@ -283,6 +302,40 @@ export interface DepositStrategyIntent {
 }
 
 /**
+ * Intent 3 — repay debt with funds from the wallet.
+ *
+ * The mirror of {@link DepositStrategyIntent}: money arrives from outside and
+ * nothing on the account is sold, so collateral value stands still while debt
+ * shrinks. Net value grows by what was repaid, leverage falls, and the health
+ * factor improves — this is the flow that rescues an account, and the only one
+ * that lowers debt without touching the position.
+ *
+ * Only the market underlying may be sent. Two exceptions, as for a deposit: a
+ * wrapped-native market also accepts the native coin (pass the wrapped token
+ * plus `value`), and an RWA market takes the unwrapped asset, which this flow
+ * wraps for you.
+ */
+export interface RepayStrategyIntent {
+  type: "REPAY";
+  /** Funding token: the market underlying, or `rwa.asset` on an RWA market. */
+  token: Address;
+  /**
+   * Amount of `token` taken from the wallet. More than the outstanding debt is
+   * allowed — the debt is settled in full and the excess stays on the account
+   * as collateral — which is what lets a caller cover the interest that accrues
+   * between this preview and the transaction.
+   *
+   * `MAX_UINT256` asks for exactly that settlement without naming a figure: the
+   * wallet is charged the debt plus a small margin for the interest still to
+   * come, the facade is told to repay everything outstanding, and the quotas go
+   * with the loan.
+   */
+  amount: bigint;
+  /** Native value to attach when paying with the native coin. */
+  value?: bigint;
+}
+
+/**
  * Intent 2.1 — withdraw part of the position's net value at fixed leverage.
  *
  * The requested amount leaves the account, and debt is repaid in the same
@@ -293,12 +346,26 @@ export interface DepositStrategyIntent {
  * The payout leg and the repayment leg are quoted separately and do not share a
  * pool, so a shortfall on the payout leg does not eat into the repayment.
  *
+ * Asking for the whole net value is the exit instead — there is no leverage
+ * left to hold — and the shape changes with it: the quotas are dropped, the
+ * position is sold whole in one many-to-one route, the loan is settled in full
+ * and every remaining balance goes to the wallet. The account survives it,
+ * empty and owing nothing.
+ *
  * @see WithdrawAssetIntent for moving a single asset out at fixed debt, and
  * AdjustLeverageIntent for changing leverage without withdrawing.
  */
 export interface WithdrawStrategyIntent {
   type: "WITHDRAW";
-  /** Amount the wallet receives, denominated in `tokenOut`. */
+  /**
+   * Amount the wallet receives, denominated in `tokenOut`. At or above the
+   * account's net value this is an exit, which pays out the underlying the
+   * position was sold into rather than in `tokenOut`.
+   *
+   * `MAX_UINT256` is that exit stated outright, and the amount a "close
+   * position" form sends: no net value has to be read to name it, and no
+   * rounding can turn it back into a withdrawal that leaves dust behind.
+   */
   amount: bigint;
   /** Wallet receiving the payout. */
   to: Address;
@@ -309,7 +376,8 @@ export interface WithdrawStrategyIntent {
   tokenOut?: Address;
   /**
    * Token liquidated to fund the withdrawal. Defaults to the most valuable
-   * non-phantom balance on the account.
+   * non-phantom balance on the account, and is ignored by an exit — that sells
+   * every balance there is.
    */
   sourceToken?: Address;
 }
@@ -319,6 +387,7 @@ export type StartIntent =
   | WithdrawAssetIntent
   | AdjustLeverageIntent
   | DepositStrategyIntent
+  | RepayStrategyIntent
   | WithdrawStrategyIntent;
 
 /**

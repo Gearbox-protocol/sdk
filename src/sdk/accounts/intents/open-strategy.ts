@@ -3,6 +3,13 @@ import type { PositionMetrics } from "../../../model/index.js";
 import { LEVERAGE_DECIMALS } from "../../constants/math.js";
 import type { Asset, MultiCall, OnchainSDK } from "../../index.js";
 import { positionMetrics } from "../../market/position-metrics/index.js";
+import {
+  assertCanBorrow,
+  assertCollateralised,
+  assertGrowthAllowed,
+  assertMarketOperable,
+  assertQuotaHeadroom,
+} from "./guards.js";
 import { assertDebtInBand, debtForLeverage } from "./math.js";
 import type { CreditAccountSlice } from "./types.js";
 import { IntentPreviewError } from "./types.js";
@@ -93,6 +100,7 @@ export async function previewOpenStrategy(
 
   const suite = sdk.marketRegister.findCreditManager(creditManager);
   const market = sdk.marketRegister.findByCreditManager(creditManager);
+  assertMarketOperable(suite);
   const underlying = market.pool.underlying.toLowerCase() as Address;
   const convert = convertAmount(sdk, creditManager);
 
@@ -122,6 +130,7 @@ export async function previewOpenStrategy(
     tokens: [],
   };
   assertDebtInBand(debt, suite.creditFacade);
+  assertCanBorrow(suite, debt);
 
   const paths = createRouterPaths({ sdk, creditAccount: account, slippage });
   const leg = await paths.openStrategy({
@@ -150,6 +159,21 @@ export async function previewOpenStrategy(
 
   const averageQuota = quotasFor(averageAssets);
   const minQuota = quotasFor(minAssets);
+  // The expected branch is the one the account is opened on, so it is the one
+  // the market has to have room for.
+  assertGrowthAllowed({ sdk, suite, market, before: [], after: averageAssets });
+  assertQuotaHeadroom(market, averageQuota);
+
+  // The floor branch is what the open is signed against, so it is the one that
+  // has to clear the collateral check.
+  const metrics = positionMetrics(sdk, {
+    creditManager,
+    assets: averageAssets,
+    quotas: averageQuota,
+    debt,
+    totalValue: margin + debt,
+  });
+  assertCollateralised(metrics.healthFactor);
 
   return {
     debt,
@@ -162,13 +186,7 @@ export async function previewOpenStrategy(
     calls: [...leg.calls],
     // metrics follow the expected branch, not the slippage floor; the target
     // for the liquidation price comes out of `averageAssets`
-    ...positionMetrics(sdk, {
-      creditManager,
-      assets: averageAssets,
-      quotas: averageQuota,
-      debt,
-      totalValue: margin + debt,
-    }),
+    ...metrics,
   };
 }
 

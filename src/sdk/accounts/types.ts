@@ -370,9 +370,25 @@ export type GetApprovalAddressProps =
  */
 export type EncodableCreditAccountOperation =
   | { type: "increaseDebt"; amount: bigint }
-  | { type: "decreaseDebt"; amount: bigint }
+  /**
+   * `full` settles the loan instead of shrinking it: the facade repays whatever
+   * is outstanding, so the interest accrued since `amount` was quoted is
+   * covered too and no dust is left below `minDebt`.
+   */
+  | { type: "decreaseDebt"; amount: bigint; full?: boolean }
   | { type: "addCollateral"; token: Address; amount: bigint }
-  | { type: "withdrawCollateral"; token: Address; amount: bigint; to: Address }
+  /**
+   * `all` hands over the whole balance instead of a named amount: the facade
+   * reads it at execution, so whatever a swap produced above the quote leaves
+   * with the rest. `amount` is still the figure the projection was built on.
+   */
+  | {
+      type: "withdrawCollateral";
+      token: Address;
+      amount: bigint;
+      to: Address;
+      all?: boolean;
+    }
   | { type: "swap"; calls: Array<MultiCall> }
   | { type: "wrapRwaCollateral"; calls: Array<MultiCall> }
   | { type: "unwrapRwaCollateral"; calls: Array<MultiCall> }

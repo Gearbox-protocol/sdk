@@ -112,6 +112,8 @@ export interface MarketSdkExtras {
   rwaAssets?: Record<Address, Address>;
   /** Additional / overriding token prices (PRICE_DECIMALS_POW-scaled). */
   extraPrices?: Record<Address, bigint>;
+  /** Reserve feed prices; the fixture market has none by default. */
+  reservePrices?: Record<Address, bigint>;
   /** Additional / overriding token decimals. */
   extraDecimals?: Record<Address, number>;
   /** Tokens the registry should report as phantoms. */
@@ -122,14 +124,33 @@ export interface MarketSdkExtras {
   creditAccounts?: CreditAccountSlice[];
   /** Redemption venues per source token; omit for a market without any. */
   delayed?: Record<Address, MockDelayedVenue[]>;
+  /** Quota params replacing the fixture's, e.g. a token with no room left. */
+  quotas?: Record<Address, MockQuotaEntry>;
+  /** Facade pause flag. */
+  facadePaused?: boolean;
+  /** Pool pause flag, which pauses the suite with it. */
+  poolPaused?: boolean;
+  /** Facade expiry in unix seconds; `0` means never. */
+  expirationDate?: number;
+  /** "Now" the expiry is judged against. */
+  timestamp?: number;
+  /** Free liquidity in the pool. */
+  availableLiquidity?: bigint;
+  /** What is left of this manager's debt limit. */
+  debtLimitAvailable?: bigint;
+  /** Per-block borrow cap as a multiple of `maxDebt`; `0` switches it off. */
+  maxDebtPerBlockMultiplier?: number;
+  /** Tokens the facade forbids. */
+  forbiddenTokens?: Address[];
 }
 
 /** Mock SDK on the shared fixture market. */
 export function buildMarketSdk(extras?: MarketSdkExtras): OnchainSDK {
   return buildMockSdk({
     prices: { ...PRICES, ...extras?.extraPrices },
+    reservePrices: extras?.reservePrices,
     decimals: { ...DECIMALS, ...extras?.extraDecimals },
-    quotas: QUOTAS,
+    quotas: extras?.quotas ?? QUOTAS,
     liquidationThresholds: LIQUIDATION_THRESHOLDS,
     maxDebt: MAX_DEBT,
     minDebt: extras?.minDebt,
@@ -140,6 +161,14 @@ export function buildMarketSdk(extras?: MarketSdkExtras): OnchainSDK {
     phantoms: extras?.phantoms,
     creditAccounts: extras?.creditAccounts,
     delayed: extras?.delayed,
+    facadePaused: extras?.facadePaused,
+    poolPaused: extras?.poolPaused,
+    expirationDate: extras?.expirationDate,
+    timestamp: extras?.timestamp,
+    availableLiquidity: extras?.availableLiquidity,
+    debtLimitAvailable: extras?.debtLimitAvailable,
+    maxDebtPerBlockMultiplier: extras?.maxDebtPerBlockMultiplier,
+    forbiddenTokens: extras?.forbiddenTokens,
   });
 }
 

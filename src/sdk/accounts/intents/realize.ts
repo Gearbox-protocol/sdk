@@ -1,12 +1,22 @@
 import type { Address } from "viem";
 import type { MultiCall, OnchainSDK } from "../../index.js";
 import { positionLeverage } from "../../market/math.js";
-import { positionMetrics } from "../../market/position-metrics/index.js";
+import {
+  healthFactor,
+  positionMetrics,
+} from "../../market/position-metrics/index.js";
 import type { WithdrawableAsset } from "../withdrawal-compressor/types.js";
+import {
+  assertCanBorrow,
+  assertCollateralised,
+  assertGrowthAllowed,
+  assertQuotaHeadroom,
+} from "./guards.js";
 import {
   type AccountCalculatorOperation,
   buildAddCollateralOperation,
   buildClaimDelayedWithdrawalOperation,
+  buildCloseSwapOperation,
   buildDecreaseDebtOperation,
   buildIncreaseDebtOperation,
   buildQuotaUpdateOperation,
@@ -16,6 +26,7 @@ import {
   buildWithdrawCollateralOperation,
   buildWrapRwaCollateralOperation,
   instantOutput,
+  type QuotaUpdateState,
 } from "./operations.js";
 import type { Amount, Step } from "./plan.js";
 import type {
@@ -27,7 +38,11 @@ import { IntentPreviewError } from "./types.js";
 import { eq, toTargetDecimals } from "./utils/common.js";
 import { convertAmount } from "./utils/convert-amount.js";
 import { OperationLedger } from "./utils/ledger.js";
-import { getQuotasForUpdate } from "./utils/quotas-for-update.js";
+import { isPhantomToken } from "./utils/pick-token.js";
+import {
+  clearedQuotas,
+  getQuotasForUpdate,
+} from "./utils/quotas-for-update.js";
 import { createRouterPaths } from "./utils/router-path.js";
 
 export interface RealizeProps {
@@ -66,6 +81,12 @@ export async function realize(
   const rwaAsset = sdk.tokensMeta.rwaUnderlyings.get(underlying)?.asset;
   const price = convertAmount(sdk, creditAccount.creditManager);
   const paths = createRouterPaths({ sdk, creditAccount, slippage });
+  const market = sdk.marketRegister.findByCreditManager(
+    creditAccount.creditManager,
+  );
+  const suite = sdk.marketRegister.findCreditManager(
+    creditAccount.creditManager,
+  );
 
   const ledger = new OperationLedger({
     initialAssets: creditAccount.tokens,
@@ -82,6 +103,16 @@ export async function realize(
   /** Output of the last convert or claim, for `RAISED` amounts. */
   let raised = 0n;
   let delayed: DelayedStart | undefined;
+  /**
+   * Set by a `clearQuotas` step, which settles the quotas mid-walk instead of
+   * at the end — and settles them at none, whatever the balances turn out to be.
+   */
+  let cleared: QuotaUpdateState | undefined;
+  /**
+   * Whether anything leaves the account, which is what makes the credit manager
+   * judge the closing collateral check at safe prices.
+   */
+  let paysOut = false;
   const amountOf = (a: Amount): bigint =>
     typeof a === "bigint" ? a : min(raised, a.max ?? raised);
   const assertHolds = (token: Address, amount: bigint, what: string): void => {
@@ -109,6 +140,7 @@ export async function realize(
         break;
 
       case "borrow":
+        assertCanBorrow(suite, step.amount);
         push(
           buildIncreaseDebtOperation({
             amount: step.amount,
@@ -124,7 +156,29 @@ export async function realize(
           ledger.balanceOf(underlying) - (step.keep ?? 0n),
         );
         if (amount > 0n) {
-          push(buildDecreaseDebtOperation({ amount, creditAccount, sdk }));
+          push(
+            buildDecreaseDebtOperation({
+              amount,
+              // Covering the whole debt means the intent is to owe nothing, and
+              // by the time the transaction lands the debt has grown by the
+              // interest of a few blocks — so the call asks for all of it
+              // rather than for the amount quoted here, which would leave dust
+              // the facade refuses to let stand below `minDebt`.
+              full: amount >= ledger.debt,
+              creditAccount,
+              sdk,
+            }),
+          );
+        }
+        break;
+      }
+
+      case "clearQuotas": {
+        cleared = clearedQuotas(creditAccount.tokens);
+        if (cleared.quotaDecrease.length > 0) {
+          push(
+            buildQuotaUpdateOperation({ update: cleared, creditAccount, sdk }),
+          );
         }
         break;
       }
@@ -162,11 +216,12 @@ export async function realize(
           raised = amountOut;
           break;
         }
+        const held = ledger.balanceOf(step.from);
         const leg = await paths.swap({
           tokenIn: step.from,
           tokenOut: step.to,
           amount,
-          keep: ledger.balanceOf(step.from) - amount,
+          keep: held - amount,
         });
         push(
           buildSwapOperation({
@@ -181,9 +236,44 @@ export async function realize(
         break;
       }
 
+      case "closeAll": {
+        // The underlying is already what the route targets, and a balance the
+        // router treats as dust is left where it is — both would otherwise be
+        // projected as sold and the swept amounts would not add up.
+        const balances = ledger
+          .snapshot()
+          .assets.filter(a => !eq(a.token, underlying) && a.balance > DUST);
+        // A phantom balance is a redemption still in flight: it cannot be sold
+        // and it cannot leave, so the account cannot be emptied until its claim
+        // has landed.
+        const pending = balances.find(a => isPhantomToken(sdk, a.token));
+        if (pending) {
+          throw new IntentPreviewError(
+            "withdrawalInProgress",
+            `closeAll: ${pending.token} is a pending withdrawal, claim it first`,
+          );
+        }
+        if (balances.length > 0) {
+          const leg = await paths.closeAll({ balances });
+          if (leg.calls.length > 0) {
+            push(
+              buildCloseSwapOperation({
+                from: balances,
+                tokenOut: underlying,
+                amountOut: leg.minAmount,
+                calls: leg.calls,
+              }),
+            );
+          }
+        }
+        raised = ledger.balanceOf(underlying);
+        break;
+      }
+
       case "withdraw": {
         const amount = amountOf(step.amount);
         assertHolds(step.token, amount, "withdraw");
+        paysOut = true;
         push(
           buildWithdrawCollateralOperation({
             token: step.token,
@@ -241,6 +331,42 @@ export async function realize(
         break;
       }
 
+      case "sweep": {
+        // The wrapper of an RWA market cannot leave the account, so it is
+        // unwrapped before the walk rather than during it — that way the raw
+        // asset is swept once, whatever the account already held of it.
+        paysOut = true;
+        const wrapped = ledger.balanceOf(underlying);
+        if (rwaAsset && wrapped > 0n) {
+          push(
+            await buildUnwrapRwaCollateralOperation({
+              tokenIn: underlying,
+              amountIn: wrapped,
+              tokenOut: rwaAsset,
+              amountOut: toTargetDecimals(wrapped, underlying, rwaAsset, sdk),
+              creditAccount,
+              sdk,
+            }),
+          );
+        }
+        for (const { token, balance } of ledger.snapshot().assets) {
+          push(
+            buildWithdrawCollateralOperation({
+              token,
+              amount: balance,
+              to: step.to,
+              // The account is being emptied, and what it holds by then is
+              // whatever the legs before happened to produce — so the facade
+              // reads the balance rather than trusting the quote.
+              all: true,
+              creditAccount,
+              sdk,
+            }),
+          );
+        }
+        break;
+      }
+
       default: {
         const _exhaustive: never = step;
         void _exhaustive;
@@ -249,34 +375,51 @@ export async function realize(
   }
 
   const { assets, totalValue, debt } = ledger.snapshot();
-  const market = sdk.marketRegister.findByCreditManager(
-    creditAccount.creditManager,
-  );
-  const suite = sdk.marketRegister.findCreditManager(
-    creditAccount.creditManager,
-  );
-  const quotas = getQuotasForUpdate({
-    assetsBefore: creditAccount.tokens,
-    assetsAfter: assets,
-    initialQuotas: creditAccount.tokens,
-    quotaReserve,
-    underlyingToken: underlying,
-    liquidationThresholds: suite.creditManager.liquidationThresholds,
-    quotas: market.pool.pqk.quotas,
-    maxDebt: suite.creditFacade.maxDebt,
-    convert: price,
+  assertGrowthAllowed({
+    sdk,
+    suite,
+    market,
+    before: creditAccount.tokens,
+    after: assets,
   });
-  if (quotas.quotaIncrease.length + quotas.quotaDecrease.length > 0) {
+  // Quotas the plan already settled are not sized again: it dropped them
+  // because the loan ends here, and the balances left behind do not argue.
+  const quotas =
+    cleared ??
+    getQuotasForUpdate({
+      assetsBefore: creditAccount.tokens,
+      assetsAfter: assets,
+      initialQuotas: creditAccount.tokens,
+      quotaReserve,
+      underlyingToken: underlying,
+      liquidationThresholds: suite.creditManager.liquidationThresholds,
+      quotas: market.pool.pqk.quotas,
+      maxDebt: suite.creditFacade.maxDebt,
+      convert: price,
+    });
+  if (
+    !cleared &&
+    quotas.quotaIncrease.length + quotas.quotaDecrease.length > 0
+  ) {
+    assertQuotaHeadroom(market, quotas.quotaIncrease);
     push(buildQuotaUpdateOperation({ update: quotas, creditAccount, sdk }));
   }
 
-  const metrics = positionMetrics(sdk, {
+  const snapshot = {
     creditManager: creditAccount.creditManager,
     assets,
     quotas: Object.values(quotas.desiredQuota),
     debt,
     totalValue,
-  });
+  };
+  const metrics = positionMetrics(sdk, snapshot);
+  // A call that hands funds over is checked against safe prices on-chain, so
+  // the reported health factor is not the one that decides whether it lands.
+  assertCollateralised(
+    paysOut
+      ? healthFactor(sdk, snapshot, { safePrices: true })
+      : metrics.healthFactor,
+  );
 
   return {
     operations,
@@ -335,3 +478,5 @@ const callsOf = (operations: AccountCalculatorOperation[]): MultiCall[] =>
   operations.flatMap(op => op.calls);
 
 const min = (a: bigint, b: bigint): bigint => (a < b ? a : b);
+/** Balance the router's close path refuses to route, and leaves in place. */
+const DUST = 10n;

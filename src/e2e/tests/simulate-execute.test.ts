@@ -556,6 +556,179 @@ describe("simulate → execute on a mainnet fork", () => {
       if (still?.kind !== "strategy") throw new Error("unreachable");
       expect(still.totalDebt.value).toBeGreaterThanOrEqual(minDebt);
     });
+
+    it("asking past the net value exits: debt, quotas and balances all go", async () => {
+      const { creditAccount } = await openPosition();
+      await sync();
+      // Total value is more than the account's net value by exactly the debt,
+      // so this is unambiguously the exit rather than a partial withdrawal.
+      const { totalValue } = await account(creditAccount);
+      const { sim, preview, timestamp } = routedPreview(
+        await simulate().withdrawStrategy(position(creditAccount), {
+          amount: totalValue,
+          to: borrower,
+          sourceToken: TARGET_TOKEN,
+          slippage: S,
+        }),
+      );
+      expect(preview.accountDebt).toBe(0n);
+      await pinTo(timestamp);
+      await send({
+        kind: "account",
+        chainId: CHAIN_ID,
+        creditAccount,
+        wallet: borrower,
+        sim,
+      });
+
+      const after = await account(creditAccount);
+      expect(calcBorrowedAmountPlusInterestAndFees(after)).toBe(0n);
+      expect(after.tokens.filter(t => t.quota > 0n)).toEqual([]);
+      expect(after.tokens.filter(t => t.balance > 1n)).toEqual([]);
+    });
+
+    it("MAX_UINT256 exits through one many-to-one route, and the wallet gets the underlying", async () => {
+      const { creditAccount } = await openPosition();
+      await sync();
+      const before = await chain.client.readContract({
+        address: underlying,
+        abi: erc20Abi,
+        functionName: "balanceOf",
+        args: [borrower],
+      });
+      const { sim, preview, timestamp } = routedPreview(
+        await simulate().withdrawStrategy(position(creditAccount), {
+          amount: MAX_UINT256,
+          to: borrower,
+          slippage: S,
+        }),
+      );
+      // one route for the whole position, and the payout is the underlying it
+      // was sold into
+      const swaps = sim.operations.filter(op => op.type === "swap");
+      expect(swaps).toHaveLength(1);
+      expect(swaps[0]?.from.map(a => a.token.toLowerCase())).toEqual([
+        TARGET_TOKEN.toLowerCase(),
+      ]);
+      const payouts = sim.operations.filter(
+        op => op.type === "withdrawCollateral",
+      );
+      expect(payouts.map(op => op.token.toLowerCase())).toEqual([
+        underlying.toLowerCase(),
+      ]);
+      expect(preview.accountDebt).toBe(0n);
+      await pinTo(timestamp);
+      await send({
+        kind: "account",
+        chainId: CHAIN_ID,
+        creditAccount,
+        wallet: borrower,
+        sim,
+      });
+
+      const after = await account(creditAccount);
+      expect(calcBorrowedAmountPlusInterestAndFees(after)).toBe(0n);
+      expect(after.tokens.filter(t => t.quota > 0n)).toEqual([]);
+      expect(after.tokens.filter(t => t.balance > 1n)).toEqual([]);
+      // the payout names no amount, so the wallet gets the whole balance: at
+      // least the floor the exit projected, and the slippage it beat on top
+      const paid =
+        (await chain.client.readContract({
+          address: underlying,
+          abi: erc20Abi,
+          functionName: "balanceOf",
+          args: [borrower],
+        })) - before;
+      expectValueBracket(paid, payouts[0]?.amount ?? 0n);
+    });
+  });
+
+  describe("repayStrategy — repay leg, nothing sold", () => {
+    const PART = parseUnits("300", 6);
+    /** Interest the wallet covers on top of the quote when settling. */
+    const BUFFER = parseUnits("10", 6);
+
+    it("accountDebt is exact with the send block pinned to the sim's timestamp", async () => {
+      const { creditAccount } = await openPosition();
+      await sync();
+      const { sim, preview, timestamp } = adjustPreview(
+        await simulate().repayStrategy(position(creditAccount), {
+          token: underlying,
+          amount: PART,
+        }),
+      );
+      await pinTo(timestamp);
+      await send({
+        kind: "account",
+        chainId: CHAIN_ID,
+        creditAccount,
+        wallet: borrower,
+        sim,
+      });
+
+      expect(
+        calcBorrowedAmountPlusInterestAndFees(await account(creditAccount)),
+      ).toBe(preview.accountDebt);
+    });
+
+    it("maxRepay plus a buffer clears the debt and the quotas with it", async () => {
+      const { creditAccount } = await openPosition();
+      await sync();
+      const max = await simulate().maxRepay(position(creditAccount));
+      expect(max.meta.chains[0]?.status).toBe("success");
+      const { sim, preview, timestamp } = adjustPreview(
+        await simulate().repayStrategy(position(creditAccount), {
+          token: underlying,
+          amount: max.data + BUFFER,
+        }),
+      );
+      expect(preview.accountDebt).toBe(0n);
+      await pinTo(timestamp);
+      await send({
+        kind: "account",
+        chainId: CHAIN_ID,
+        creditAccount,
+        wallet: borrower,
+        sim,
+      });
+
+      const after = await account(creditAccount);
+      expect(calcBorrowedAmountPlusInterestAndFees(after)).toBe(0n);
+      // a quota outliving its debt would keep charging an account that owes
+      // nothing, so the repayment takes them with it
+      expect(after.tokens.filter(t => t.quota > 0n)).toEqual([]);
+    });
+
+    it("MAX_UINT256 settles the debt without the caller sizing the buffer", async () => {
+      const { creditAccount } = await openPosition();
+      await sync();
+      const { sim, preview, timestamp } = adjustPreview(
+        await simulate().repayStrategy(position(creditAccount), {
+          token: underlying,
+          amount: MAX_UINT256,
+        }),
+      );
+      // the wallet is charged the debt plus the margin, and the facade is
+      // asked for everything outstanding rather than for that figure
+      const paid = sim.operations.find(op => op.type === "addCollateral");
+      expect(paid?.amount).toBeGreaterThan(preview.accountDebt);
+      expect(
+        sim.operations.find(op => op.type === "decreaseDebt"),
+      ).toMatchObject({ full: true });
+      expect(preview.accountDebt).toBe(0n);
+      await pinTo(timestamp);
+      await send({
+        kind: "account",
+        chainId: CHAIN_ID,
+        creditAccount,
+        wallet: borrower,
+        sim,
+      });
+
+      const after = await account(creditAccount);
+      expect(calcBorrowedAmountPlusInterestAndFees(after)).toBe(0n);
+      expect(after.tokens.filter(t => t.quota > 0n)).toEqual([]);
+    });
   });
 
   describe("addCollateral — debt untouched", () => {

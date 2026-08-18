@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 import { vi } from "vitest";
+import { MAX_UINT256 } from "../../../constants/index.js";
 import type {
   CreditAccountDataPayload,
   EncodableCreditAccountOperation,
@@ -21,6 +22,12 @@ import type { CreditAccountSlice } from "../types.js";
 /** Recognizable router call embedded in routed leg results. */
 export const MOCK_ROUTER_CALL: MultiCall = {
   target: "0x9999999999999999999999999999999999999999" as Address,
+  callData: "0x",
+};
+
+/** Router call of the many-to-one leg an exit routes. */
+export const MOCK_CLOSE_CALL: MultiCall = {
+  target: "0x9595959595959595959595959595959595959595" as Address,
   callData: "0x",
 };
 
@@ -93,6 +100,8 @@ export interface MockQuotaEntry {
 interface BuildMockSdkArgs {
   /** Price per token (PRICE_DECIMALS_POW-scaled), like legacy `prices`. */
   prices: Record<Address, bigint>;
+  /** Reserve feed price per token; a token omitted here has no reserve feed. */
+  reservePrices?: Record<Address, bigint>;
   /** Token decimals; used by `tokensMeta` and the price conversion. */
   decimals: Record<Address, number>;
   /** Pool quota params (AddressMap values shape). */
@@ -113,6 +122,22 @@ interface BuildMockSdkArgs {
   rwaAssets?: Record<Address, Address>;
   /** Tokens reported as phantoms by `tokensMeta.get(...).contractType`. */
   phantoms?: Address[];
+  /** Facade pause flag, which the suite reports as `isPaused`. */
+  facadePaused?: boolean;
+  /** Pool pause flag, which pauses the suite with it. */
+  poolPaused?: boolean;
+  /** Facade expiry in unix seconds; `0` (the default) means never. */
+  expirationDate?: number;
+  /** "Now" the expiry is judged against; `sdk.timestamp` in the real thing. */
+  timestamp?: number;
+  /** Free liquidity in the pool; defaults to more than any fixture borrows. */
+  availableLiquidity?: bigint;
+  /** What is left of this manager's debt limit in the pool. */
+  debtLimitAvailable?: bigint;
+  /** Per-block borrow cap as a multiple of `maxDebt`; `0` switches it off. */
+  maxDebtPerBlockMultiplier?: number;
+  /** Tokens the facade forbids, which the mock turns into its mask. */
+  forbiddenTokens?: Address[];
   /**
    * Redemption venues the mock compressor reports, keyed by source token. An
    * empty array stands for "this token has no delayed route"; several entries
@@ -171,18 +196,23 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
     );
   };
 
-  const quotas = {
-    values: () =>
-      Object.values(args.quotas).map(q => ({
-        cumulativeIndexLU: 0n,
-        totalQuoted: 0n,
-        quotaIncreaseFee: 0n,
-        ...q,
-      })),
-  };
+  const fullQuota = (q: MockQuotaEntry) => ({
+    cumulativeIndexLU: 0n,
+    totalQuoted: 0n,
+    quotaIncreaseFee: 0n,
+    ...q,
+  });
 
   const quotaOf = (token: Address): MockQuotaEntry | undefined =>
     args.quotas[token.toLowerCase() as Address] ?? args.quotas[token];
+
+  const quotas = {
+    values: () => Object.values(args.quotas).map(fullQuota),
+    get: (token: Address) => {
+      const q = quotaOf(token);
+      return q === undefined ? undefined : fullQuota(q);
+    },
+  };
 
   const priceOf = (token: Address) => {
     const price =
@@ -197,8 +227,27 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
       args.liquidationThresholds[token],
   };
 
+  // USD is the oracle's own 8-decimal scale, which the fixture prices are
+  // already quoted in. A token with no reserve feed throws on the reserve
+  // branch, the way the real oracle does.
+  const convertToUSD = (
+    token: Address,
+    amount: bigint,
+    reserve = false,
+  ): bigint => {
+    const key = token.toLowerCase() as Address;
+    const price = reserve ? args.reservePrices?.[key] : args.prices[key];
+    if (price === undefined) {
+      throw new Error(
+        `mock priceOracle: missing ${reserve ? "reserve" : "main"} price for ${token}`,
+      );
+    }
+    return (amount * price) / 10n ** BigInt(decimalsOf(token));
+  };
+
+  const poolPaused = args.poolPaused ?? false;
   const market = {
-    priceOracle: { convert, mainPrices: { get: priceOf } },
+    priceOracle: { convert, convertToUSD, mainPrices: { get: priceOf } },
     pool: {
       pqk: {
         quotas,
@@ -208,23 +257,58 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
           return !!q?.isActive && q.limit > 0n;
         },
       },
-      pool: { baseInterestRate: args.baseInterestRate ?? 0n },
+      pool: {
+        baseInterestRate: args.baseInterestRate ?? 0n,
+        isPaused: poolPaused,
+        availableLiquidity: args.availableLiquidity ?? MAX_UINT256,
+        creditManagerDebtParams: {
+          get: () => ({ available: args.debtLimitAvailable ?? MAX_UINT256 }),
+        },
+      },
+      isPaused: poolPaused,
       underlying: args.underlying,
     },
   };
 
+  // Bit `i` of the forbidden mask is `collateralTokens[i]`, so the mock needs a
+  // token order to put the flags on.
+  const collateralTokens = [
+    args.underlying.toLowerCase() as Address,
+    ...Object.keys(args.liquidationThresholds)
+      .map(t => t.toLowerCase() as Address)
+      .filter(t => t !== args.underlying.toLowerCase()),
+  ];
+  const forbidden = new Set(
+    (args.forbiddenTokens ?? []).map(t => t.toLowerCase()),
+  );
+  const forbiddenTokensMask = collateralTokens.reduce(
+    (mask, token, i) =>
+      forbidden.has(token) ? mask | (1n << BigInt(i)) : mask,
+    0n,
+  );
+
+  const facadePaused = args.facadePaused ?? false;
+  const expirationDate = args.expirationDate ?? 0;
   const creditManagerSuite = {
     creditManager: {
       address: args.creditManager,
       liquidationThresholds,
-      collateralTokens: [],
+      collateralTokens,
       feeInterest: args.feeInterest ?? 0,
     },
     creditFacade: {
       address: args.creditFacade,
       maxDebt: args.maxDebt,
       minDebt: args.minDebt ?? 0n,
+      isPaused: facadePaused,
+      expirable: expirationDate > 0,
+      expirationDate,
+      maxDebtPerBlockMultiplier: args.maxDebtPerBlockMultiplier ?? 2,
+      forbiddenTokensMask,
     },
+    market,
+    isPaused: facadePaused || poolPaused,
+    isExpired: expirationDate > 0 && expirationDate < (args.timestamp ?? 0),
   };
 
   const routeCalls = (tokenIn: Address, tokenOut: Address): MultiCall[] => {
@@ -324,6 +408,32 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
         };
       },
     ),
+    // Sells everything it is handed into the underlying, at oracle prices, and
+    // skips the balances the real router treats as dust.
+    findBestClosePath: vi.fn(
+      async ({
+        balances,
+      }: {
+        balances?: {
+          expectedBalances: Array<{ token: Address; balance: bigint }>;
+        };
+      }) => {
+        const underlying = args.underlying.toLowerCase() as Address;
+        const sold = (balances?.expectedBalances ?? []).filter(
+          a => a.token.toLowerCase() !== underlying && a.balance > 10n,
+        );
+        const amount = sold.reduce(
+          (acc, a) => acc + convert(a.token, underlying, a.balance),
+          0n,
+        );
+        return {
+          amount,
+          minAmount: amount,
+          underlyingBalance: amount,
+          calls: sold.length === 0 ? [] : [MOCK_CLOSE_CALL],
+        };
+      },
+    ),
   };
 
   const phantoms = new Set(
@@ -382,6 +492,11 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
   );
 
   return {
+    // what the multichain layer stamps a read with, and what the suite judges
+    // an expiry against
+    chainId: 1,
+    currentBlock: 1n,
+    timestamp: args.timestamp ?? 0,
     withdrawalCompressor,
     tokensMeta: {
       get: (token: Address) => ({

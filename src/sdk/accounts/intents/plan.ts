@@ -1,4 +1,5 @@
 import type { Address } from "viem";
+import { MAX_UINT256, PERCENTAGE_FACTOR } from "../../constants/index.js";
 import type {
   ClaimableWithdrawal,
   DelayedIntent,
@@ -14,6 +15,7 @@ import type {
   AddCollateralIntent,
   AdjustLeverageIntent,
   DepositStrategyIntent,
+  RepayStrategyIntent,
   WithdrawAssetIntent,
   WithdrawStrategyIntent,
 } from "./types.js";
@@ -53,6 +55,13 @@ export type Step =
   | { kind: "convert"; from: Address; to: Address; amount: Amount }
   | { kind: "withdraw"; token: Address; amount: Amount; to: Address }
   /**
+   * Sells every balance the account holds into the underlying in one
+   * many-to-one route. Only an exit asks for this: the whole position is
+   * leaving, so the router is given all of it at once rather than one leg per
+   * token, and there is nothing left to price a fixed input against.
+   */
+  | { kind: "closeAll" }
+  /**
    * Redeems `amount` of `token` through its issuer instead of a DEX, keeping
    * `reserve` of it on the account. `record` is written into the request and
    * read back at claim time, which is what lets the tail be planned then.
@@ -64,7 +73,20 @@ export type Step =
       reserve: bigint;
       record: DelayedIntent;
     }
-  | { kind: "claim"; claimable: ClaimableWithdrawal };
+  | { kind: "claim"; claimable: ClaimableWithdrawal }
+  /**
+   * Hands whatever is left on the account to `to`, each balance in the token it
+   * stands in. Only an exit asks for this: the amounts are whatever the legs
+   * before it happen to leave, which no planner can name in advance.
+   */
+  | { kind: "sweep"; to: Address }
+  /**
+   * Drops every quota the account holds, in the same transaction and before
+   * whatever follows. Only a plan that leaves no debt behind asks for this:
+   * quota fees accrue on the quota, not on the loan, so a quota outliving the
+   * debt it backed would keep charging an account that owes nothing.
+   */
+  | { kind: "clearQuotas" };
 
 /** What a planner is allowed to know about the account. */
 export interface AccountView {
@@ -177,6 +199,56 @@ export function planDeposit(
 }
 
 /**
+ * Intent 3: funding comes in from the wallet and goes straight into the debt.
+ * Collateral never moves, so the whole plan is the funding's way to `U`.
+ *
+ * `MAX_UINT256` settles the loan: the wallet is asked for the debt as it stands
+ * plus the headroom {@link SETTLE_MARGIN} allows for the interest of the blocks
+ * still to come, since the facade is told to repay everything outstanding
+ * rather than the amount quoted here.
+ */
+export function planRepay(
+  intent: Omit<RepayStrategyIntent, "type">,
+  view: AccountView,
+): Step[] {
+  assertPositive(intent.amount, "repay");
+  const U = view.underlying;
+
+  if (
+    !eq(intent.token, U) &&
+    !(view.rwaAsset && eq(intent.token, view.rwaAsset))
+  ) {
+    throw new IntentPreviewError(
+      "unsupportedCollateralToken",
+      `repay: only ${U}${view.rwaAsset ? ` or ${view.rwaAsset}` : ""} can be repaid with, got ${intent.token}`,
+    );
+  }
+  if (view.debt <= 0n) {
+    throw new IntentPreviewError(
+      "debtOutOfRange",
+      "repay: the account owes nothing",
+    );
+  }
+
+  const funding = everything(intent.amount)
+    ? view.price(U, intent.token, withMargin(view.debt))
+    : intent.amount;
+
+  // Whatever exceeds the debt is not a repayment — it stays on the account as
+  // collateral. That is what lets a caller send the debt plus a buffer and
+  // still settle it in full when interest has accrued in the meantime.
+  const repaid = min(view.price(intent.token, U, funding), view.debt);
+  assertDebtInBand(view.debt - repaid, view.band);
+
+  return [
+    add(intent.token, funding, intent.value),
+    convert(intent.token, U, funding),
+    ...(repaid === view.debt ? [clearQuotas()] : []),
+    repay(repaid),
+  ];
+}
+
+/**
  * Intent 2.1: `W` of value leaves, debt shrinks by `D0 · W / C0` so leverage
  * holds. Both are funded by the source `S`.
  */
@@ -184,7 +256,21 @@ export function planWithdraw(
   intent: Omit<WithdrawStrategyIntent, "type">,
   view: AccountView,
 ): Step[] {
-  const { U, T, S, WU, dD } = withdrawShape(intent, view);
+  const { U, T, S, WU, dD, all } = withdrawShape(intent, view);
+
+  // Asking for the whole net value is an exit, not a withdrawal at fixed
+  // leverage: there is no leverage left to hold. The position is sold whole in
+  // one many-to-one route, the loan is settled out of the proceeds, and what is
+  // left goes to the wallet — which is also the order the facade needs, since
+  // the debt has to be gone before the collateral can be.
+  if (all) {
+    return [
+      clearQuotas(),
+      { kind: "closeAll" },
+      ...(view.debt > 0n ? [repay(view.debt)] : []),
+      { kind: "sweep", to: intent.to },
+    ];
+  }
 
   // Payout in the underlying: both flows land in U, so one leg raises W + dD and
   // the repayment takes what is left after the payout is set aside.
@@ -229,7 +315,17 @@ export function planWithdrawDelayed(
   intent: Omit<WithdrawStrategyIntent, "type">,
   view: AccountView,
 ): Step[] {
-  const { U, T, S, WU, dD } = withdrawShape(intent, view);
+  const { U, T, S, WU, dD, all } = withdrawShape(intent, view);
+
+  // An exit has no fixed payout to record, and the tail is planned from what
+  // the request wrote down — so the account leaves through the router or waits
+  // for the redemption to land and exits then.
+  if (all) {
+    throw new IntentPreviewError(
+      "noDelayedRoute",
+      "withdraw: taking the whole net value cannot be started as a redemption",
+    );
+  }
 
   // The tail pays out in the underlying, or in the RWA asset it unwraps to;
   // anything else it cannot serve, so there is no point starting.
@@ -407,11 +503,27 @@ export function planFinishClaimOnly(claimable: ClaimableWithdrawal): Step[] {
 function withdrawShape(
   intent: Omit<WithdrawStrategyIntent, "type">,
   view: AccountView,
-): { U: Address; T: Address; S: Address; WU: bigint; dD: bigint } {
+): {
+  U: Address;
+  T: Address;
+  S: Address;
+  WU: bigint;
+  dD: bigint;
+  /** The request takes the whole net value, so the account ends up empty. */
+  all: boolean;
+} {
   assertPositive(intent.amount, "withdraw");
   const U = view.underlying;
   const T = intent.tokenOut ?? U;
   const S = intent.sourceToken ?? sourceToken(view);
+
+  // `MAX_UINT256` is the request every "take all of it" form sends, and it is
+  // what the facade itself takes to mean the whole balance. Nothing about it
+  // needs pricing: it is the exit by name.
+  if (everything(intent.amount)) {
+    assertHasValue(view);
+    return { U, T, S, WU: view.collateral, dD: view.debt, all: true };
+  }
 
   const WU = view.price(T, U, intent.amount);
   if (WU <= 0n) {
@@ -420,17 +532,17 @@ function withdrawShape(
       `withdraw: cannot price ${intent.amount} of ${T}`,
     );
   }
+  // Net value is all the account can hand over, so asking for more is asking
+  // for all of it rather than a request it cannot serve.
   if (WU >= view.collateral) {
-    throw new IntentPreviewError(
-      "insufficientSourceBalance",
-      `withdraw: ${WU} exceeds withdrawable collateral ${view.collateral}`,
-    );
+    assertHasValue(view);
+    return { U, T, S, WU, dD: view.debt, all: true };
   }
 
   const dD = proportionalDebt(view, WU);
   assertDebtInBand(view.debt - dD, view.band);
 
-  return { U, T, S, WU, dD };
+  return { U, T, S, WU, dD, all: false };
 }
 
 /**
@@ -481,6 +593,18 @@ const claim = (claimable: ClaimableWithdrawal): Step => ({
   kind: "claim",
   claimable,
 });
+const clearQuotas = (): Step => ({ kind: "clearQuotas" });
+/**
+ * Headroom a settlement raises on top of the debt it read, in
+ * `PERCENTAGE_FACTOR`: enough interest for the transaction to sit in the
+ * mempool for hours at any sane borrow rate, small enough not to matter to the
+ * wallet that fronts it.
+ */
+const SETTLE_MARGIN = 10n;
+const withMargin = (debt: bigint): bigint =>
+  debt + (debt * SETTLE_MARGIN) / PERCENTAGE_FACTOR;
+/** The amount that asks for all of it, whatever "all" turns out to be. */
+const everything = (amount: bigint): boolean => amount >= MAX_UINT256;
 const min = (a: bigint, b: bigint): bigint => (a < b ? a : b);
 
 /**
@@ -522,6 +646,16 @@ function sourceToken(view: AccountView): Address {
     );
   }
   return pick;
+}
+
+/** An account whose debt has eaten its collateral has nothing to hand over. */
+function assertHasValue(view: AccountView): void {
+  if (view.collateral <= 0n) {
+    throw new IntentPreviewError(
+      "insufficientSourceBalance",
+      `withdraw: nothing to withdraw, net value is ${view.collateral}`,
+    );
+  }
 }
 
 function assertPositive(amount: bigint, flow: string): void {

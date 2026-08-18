@@ -218,7 +218,11 @@ export interface DepositStrategyParams extends SimulateOptions {
 }
 
 export interface WithdrawStrategyParams extends SimulateOptions {
-  /** Amount the wallet receives, denominated in `tokenOut`. */
+  /**
+   * Amount the wallet receives, denominated in `tokenOut`. `MAX_UINT256`, or
+   * anything at or above the account's net value, turns the flow into an exit,
+   * see {@link OpportunitiesSimulate.withdrawStrategy}.
+   **/
   amount: bigint;
   /** Wallet receiving the payout. */
   to: Address;
@@ -232,6 +236,24 @@ export interface WithdrawStrategyParams extends SimulateOptions {
    * valuable non-phantom balance.
    **/
   sourceToken?: Address;
+}
+
+export interface RepayStrategyParams extends SimulateOptions {
+  /**
+   * Funding token: the market underlying, or its unwrapped asset on an RWA
+   * market (USDC rather than dcUSDC).
+   **/
+  token: Address;
+  /**
+   * Amount taken from the wallet. Anything above the outstanding debt settles
+   * it in full and stays on the account as collateral, so a caller clearing the
+   * account can add a buffer for the interest that accrues before the
+   * transaction lands, see {@link OpportunitiesSimulate.maxRepay}.
+   * `MAX_UINT256` settles the debt and sizes that buffer itself.
+   **/
+  amount: bigint;
+  /** Native value to attach when paying a wrapped-native market in the coin. */
+  value?: bigint;
 }
 
 export interface AdjustLeverageParams extends SimulateOptions {
@@ -448,6 +470,13 @@ export interface OpportunitiesSimulate {
    * the source token decides which of them exist, see
    * {@link StrategyRoutesSimulate}.
    *
+   * `MAX_UINT256` — or any amount at or above the account's net value — is an
+   * exit instead: the quotas are dropped, the position is sold whole in one
+   * many-to-one route, the debt is settled in full and every balance left goes
+   * to `to`. `tokenOut` is ignored, since the proceeds are already the
+   * underlying (unwrapped on an RWA market). The account stays open with
+   * nothing on it. An exit has no delayed route.
+   *
    * @see withdrawCollateral to move an asset out without touching debt, which
    * raises leverage instead.
    **/
@@ -459,10 +488,38 @@ export interface OpportunitiesSimulate {
   /**
    * Largest partial withdrawal {@link withdrawStrategy} accepts, in underlying
    * units: the amount whose proportional repayment leaves the debt at the
-   * credit manager's `minDebt`. Taking everything out is closing the position,
-   * which is a different flow.
+   * credit manager's `minDebt`. Between this and the account's net value the
+   * flow refuses — the leftover loan would sit below `minDebt` — and at the net
+   * value it turns into an exit.
+   *
+   * Taking everything out needs none of this arithmetic: send `MAX_UINT256` to
+   * {@link withdrawStrategy} and the exit is what runs.
    **/
   maxWithdraw(position: PositionInput): Promise<DataResponse<bigint>>;
+
+  /**
+   * Paying debt down with funds from the wallet: collateral stays where it is,
+   * so net value grows by what was repaid, leverage falls and the health factor
+   * rises. The flow to reach for when a position is close to liquidation.
+   *
+   * A repayment that covers the whole debt clears the account's quotas with it
+   * and asks the facade for the full outstanding amount, so nothing is left
+   * owing because interest moved between this simulation and the transaction.
+   * `MAX_UINT256` is how to ask for that settlement without naming a figure:
+   * the wallet is charged the debt plus a 10bps margin for the interest still
+   * to come, and whatever the facade does not take stays on the account.
+   **/
+  repayStrategy(
+    position: PositionInput,
+    params: RepayStrategyParams,
+  ): Promise<DataResponse<StrategySimulate>>;
+
+  /**
+   * Debt {@link repayStrategy} would have to cover to clear the account, in
+   * underlying units: principal, interest and fees as of this read. Interest
+   * keeps accruing, so a wallet meaning to settle sends this with a buffer.
+   **/
+  maxRepay(position: PositionInput): Promise<DataResponse<bigint>>;
 
   /**
    * Retargeting leverage at fixed collateral: debt moves, own funds do not.

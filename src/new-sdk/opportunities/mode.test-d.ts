@@ -86,7 +86,9 @@ describe("simulate covers the flows and the withdraw ceiling", () => {
     expectTypeOf(simulate).toHaveProperty("adjustLeverage");
     expectTypeOf(simulate).toHaveProperty("addCollateral");
     expectTypeOf(simulate).toHaveProperty("withdrawCollateral");
+    expectTypeOf(simulate).toHaveProperty("repayStrategy");
     expectTypeOf(simulate).toHaveProperty("maxWithdraw");
+    expectTypeOf(simulate).toHaveProperty("maxRepay");
   });
 
   it("takes a pool opportunity, an amount and the wallet for the LP flows", () => {
@@ -115,6 +117,17 @@ describe("simulate covers the flows and the withdraw ceiling", () => {
   it("answers in the envelope every read uses, so one chain is reported", () => {
     expectTypeOf(simulate.addCollateral).returns.resolves.toEqualTypeOf<
       DataResponse<StrategySimulate>
+    >();
+  });
+
+  it("serves the flow that only pays debt down with the single-route shape", () => {
+    // nothing is sold, so there is no asset whose venue could offer a second
+    // route to choose from
+    expectTypeOf(simulate.repayStrategy).returns.resolves.toEqualTypeOf<
+      DataResponse<StrategySimulate>
+    >();
+    expectTypeOf(simulate.maxRepay).returns.resolves.toEqualTypeOf<
+      DataResponse<bigint>
     >();
   });
 

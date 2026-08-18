@@ -35,6 +35,13 @@ export interface RouterPaths {
     keep?: bigint;
   }): Promise<SwapLeg>;
   /**
+   * Sells every balance in `balances` into the underlying in one route — the
+   * path the router builds for a closure, dust included. `amount` is what the
+   * swap produces, so the underlying already on the account is not counted
+   * twice; a set of balances with nothing to sell comes back with no calls.
+   */
+  closeAll(input: { balances: Asset[] }): Promise<SwapLeg>;
+  /**
    * Spends `expectedBalances` minus `leftoverBalances` into `target` and also
    * projects the balances left on the account. Used when opening, where there
    * is no live account state to diff the result against.
@@ -107,6 +114,20 @@ export function createRouterPaths(args: {
         amount,
         slippage,
       });
+    },
+
+    async closeAll({ balances }) {
+      const { amount, minAmount, calls } = await router.findBestClosePath({
+        creditAccount: toRouterCaSlice(creditAccount, balances),
+        creditManager: cmSlice,
+        balances: {
+          expectedBalances: balances,
+          leftoverBalances: [],
+          tokensToClaim: [],
+        },
+        slippage,
+      });
+      return { amount, minAmount, calls: [...calls] };
     },
 
     async openStrategy({ expectedBalances, leftoverBalances, target }) {
