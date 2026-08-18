@@ -1,13 +1,15 @@
 import type { Address } from "viem";
 import type {
+  ChartBundle,
+  ChartRange,
   DataResponse,
-  HistoryRange,
-  PoolPositionHistoryMetric,
+  PoolPositionChartMetric,
   PoolPositionRef,
   Position,
+  PositionChartMetric,
   PositionFilter,
   PositionKey,
-  StrategyPositionHistoryMetric,
+  StrategyPositionChartMetric,
   StrategyPositionRef,
 } from "../../model/index.js";
 import { matchesPositionFilter } from "../../model/index.js";
@@ -15,7 +17,7 @@ import type { GearboxAPI } from "../../offchain/index.js";
 import type { MultichainSDK } from "../../sdk/index.js";
 import { AbstractNamespace } from "../AbstractNamespace.js";
 import type { NamespaceOptions } from "../types.js";
-import type { FilterResult, HistoryReader } from "../utils/index.js";
+import type { FilterResult } from "../utils/index.js";
 import { filterResponse, mergeChainList } from "../utils/index.js";
 import type {
   PositionMergers,
@@ -74,24 +76,23 @@ export class PositionsNamespace
   }
 
   /**
-   * {@inheritDoc PositionsOffchainOnly.history}
+   * {@inheritDoc PositionsOffchainOnly.charts}
    **/
-  public history(
+  public charts<const Metrics extends readonly PoolPositionChartMetric[]>(
     key: PoolPositionRef,
-  ): HistoryReader<PoolPositionHistoryMetric>;
-  public history(
+    metrics: Metrics,
+    range: ChartRange,
+  ): Promise<DataResponse<ChartBundle<Metrics>>>;
+  public charts<const Metrics extends readonly StrategyPositionChartMetric[]>(
     key: StrategyPositionRef,
-  ): HistoryReader<StrategyPositionHistoryMetric>;
-  public history(
+    metrics: Metrics,
+    range: ChartRange,
+  ): Promise<DataResponse<ChartBundle<Metrics>>>;
+  public async charts<const Metrics extends readonly PositionChartMetric[]>(
     key: PositionKey,
-  ):
-    | HistoryReader<PoolPositionHistoryMetric>
-    | HistoryReader<StrategyPositionHistoryMetric> {
-    // nothing is fetched here: the reader is a view over the backend read, so
-    // each chart is requested on its own, when it is asked for
-    return {
-      chart: (metric: PoolPositionHistoryMetric, range: HistoryRange) =>
-        this.offchain.getHistory({ position: key, range, metric }),
-    };
+    metrics: Metrics,
+    range: ChartRange,
+  ): Promise<DataResponse<ChartBundle<Metrics>>> {
+    return this.offchain.getCharts(key, metrics, range);
   }
 }

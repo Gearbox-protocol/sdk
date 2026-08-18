@@ -1,14 +1,16 @@
 import type {
+  ChartBundle,
+  ChartMetric,
+  ChartRange,
   DataResponse,
-  HistoryRange,
   Opportunity,
   OpportunityFilter,
   OpportunityKey,
-  PoolHistoryMetric,
+  PoolChartMetric,
   PoolOpportunityDetail,
   PoolOpportunityKey,
   PoolOpportunityRef,
-  StrategyHistoryMetric,
+  StrategyChartMetric,
   StrategyOpportunityDetail,
   StrategyOpportunityKey,
   StrategyOpportunityRef,
@@ -18,7 +20,7 @@ import type { GearboxAPI } from "../../offchain/index.js";
 import type { MultichainSDK } from "../../sdk/index.js";
 import { AbstractNamespace } from "../AbstractNamespace.js";
 import type { NamespaceOptions } from "../types.js";
-import type { FilterResult, HistoryReader } from "../utils/index.js";
+import type { FilterResult } from "../utils/index.js";
 import {
   filterResponse,
   mergeChainList,
@@ -118,20 +120,23 @@ export class OpportunitiesNamespace
   }
 
   /**
-   * {@inheritDoc OpportunitiesOffchainOnly.history}
+   * {@inheritDoc OpportunitiesOffchainOnly.charts}
    **/
-  public history(key: PoolOpportunityRef): HistoryReader<PoolHistoryMetric>;
-  public history(
+  public charts<const Metrics extends readonly PoolChartMetric[]>(
+    key: PoolOpportunityRef,
+    metrics: Metrics,
+    range: ChartRange,
+  ): Promise<DataResponse<ChartBundle<Metrics>>>;
+  public charts<const Metrics extends readonly StrategyChartMetric[]>(
     key: StrategyOpportunityRef,
-  ): HistoryReader<StrategyHistoryMetric>;
-  public history(
+    metrics: Metrics,
+    range: ChartRange,
+  ): Promise<DataResponse<ChartBundle<Metrics>>>;
+  public async charts<const Metrics extends readonly ChartMetric[]>(
     key: OpportunityKey,
-  ): HistoryReader<PoolHistoryMetric> | HistoryReader<StrategyHistoryMetric> {
-    // nothing is fetched here: the reader is a view over the backend read, so
-    // each chart is requested on its own, when it is asked for
-    return {
-      chart: (metric: PoolHistoryMetric, range: HistoryRange) =>
-        this.offchain.getHistory({ opportunity: key, range, metric }),
-    };
+    metrics: Metrics,
+    range: ChartRange,
+  ): Promise<DataResponse<ChartBundle<Metrics>>> {
+    return this.offchain.getCharts(key, metrics, range);
   }
 }

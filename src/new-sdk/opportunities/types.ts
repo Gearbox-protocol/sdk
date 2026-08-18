@@ -1,12 +1,14 @@
 import type {
+  ChartBundle,
+  ChartRange,
   DataResponse,
   Opportunity,
   OpportunityFilter,
-  PoolHistoryMetric,
+  PoolChartMetric,
   PoolOpportunityDetail,
   PoolOpportunityKey,
   PoolOpportunityRef,
-  StrategyHistoryMetric,
+  StrategyChartMetric,
   StrategyOpportunityDetail,
   StrategyOpportunityKey,
   StrategyOpportunityRef,
@@ -14,7 +16,6 @@ import type {
 import type { OffchainOpportunities } from "../../offchain/index.js";
 import type { MultichainOpportunitiesService } from "../../sdk/index.js";
 import type { Mode } from "../types.js";
-import type { HistoryReader } from "../utils/history.js";
 import type { EntityMerger, FilterResult, ListMerger } from "../utils/index.js";
 
 /**
@@ -70,14 +71,25 @@ export interface OpportunitiesBase {
  **/
 export interface OpportunitiesOffchainOnly {
   /**
-   * Historical charts of one opportunity, one metric and one range at a time:
-   * `history(key).chart("depositApy", "1m")`. The key's kind decides which
-   * metrics exist, so asking a pool for a strategy series does not compile.
+   * Historical charts of one opportunity, one series per metric on a shared
+   * axis: `charts(key, ["depositApy", "borrowApy"], "1m")`.
+   *
+   * The key's kind decides which metrics exist, so asking a pool for a strategy
+   * chart does not compile, and the bundle is keyed by exactly the metrics
+   * named — one of them is a bundle of one, not a different call.
    **/
   // there is no second source to fall back to, so a backend failure is raised
   // rather than reported in the metadata
-  history(key: PoolOpportunityRef): HistoryReader<PoolHistoryMetric>;
-  history(key: StrategyOpportunityRef): HistoryReader<StrategyHistoryMetric>;
+  charts<const Metrics extends readonly PoolChartMetric[]>(
+    key: PoolOpportunityRef,
+    metrics: Metrics,
+    range: ChartRange,
+  ): Promise<DataResponse<ChartBundle<Metrics>>>;
+  charts<const Metrics extends readonly StrategyChartMetric[]>(
+    key: StrategyOpportunityRef,
+    metrics: Metrics,
+    range: ChartRange,
+  ): Promise<DataResponse<ChartBundle<Metrics>>>;
 }
 
 /**

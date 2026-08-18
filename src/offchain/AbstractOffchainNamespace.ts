@@ -1,11 +1,7 @@
-import { z } from "zod/v4";
+import type { z } from "zod/v4";
+import type { ChartBundle, ChartMetric, ChartRange } from "../model/charts.js";
+import { chartBundleSchemaFor } from "../model/charts.schema.js";
 import type { ChainScopedFilter } from "../model/filters.js";
-import type {
-  HistoryMetric,
-  HistoryRange,
-  HistorySeries,
-} from "../model/history.js";
-import { historySeriesSchema } from "../model/history.schema.js";
 import type { ChainId } from "../model/primitives.js";
 import type { DataResponse } from "../model/response.js";
 import { responseSchema } from "../model/response.schema.js";
@@ -46,23 +42,6 @@ export interface OffchainGetRequest<S extends z.ZodType> {
    * Schema the payload is decoded with.
    **/
   schema: S;
-}
-
-/**
- * One backend read of a historical series.
- *
- * @typeParam M - Metric the series carries.
- **/
-export interface OffchainHistoryRequest<M extends HistoryMetric> {
-  /**
-   * Path of the series, metric included.
-   **/
-  path: string;
-  /**
-   * Metric the response must carry.
-   **/
-  metric: M;
-  range: HistoryRange;
 }
 
 /**
@@ -136,19 +115,23 @@ export abstract class AbstractOffchainNamespace {
   }
 
   /**
-   * Reads one historical series. A response carrying a metric other than the
-   * requested one fails validation.
+   * Reads the charts of one subject: one series per metric named, onto the one
+   * grid that lets them be compared at an index.
    **/
-  // the requested metric is pinned in the schema, which is what upholds the
-  // `HistorySeries<M>` a caller gets back: a response carrying a different metric
-  // fails validation rather than being cast into the requested shape
-  protected async readHistory<M extends HistoryMetric>(
-    request: OffchainHistoryRequest<M>,
-  ): Promise<DataResponse<HistorySeries<M>>> {
+  // the requested metrics are pinned in the schema, which is what upholds the
+  // `ChartBundle<Metrics>` a caller gets back: a response answering a different
+  // question fails validation rather than being cast into the requested shape
+  protected async readCharts<const Metrics extends readonly ChartMetric[]>(
+    path: string,
+    metrics: Metrics,
+    range: ChartRange,
+  ): Promise<DataResponse<ChartBundle<Metrics>>> {
     return this.get({
-      path: request.path,
-      query: { range: request.range },
-      schema: historySeriesSchema.extend({ metric: z.literal(request.metric) }),
+      path,
+      // repeated `?metrics=` entries would be the other spelling; one comma-
+      // joined value keeps the URL, and the cache key it becomes, stable
+      query: { range, metrics: metrics.join(",") },
+      schema: chartBundleSchemaFor(metrics, range),
     });
   }
 
