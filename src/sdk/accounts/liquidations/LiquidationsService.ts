@@ -64,11 +64,6 @@ export class LiquidationsService extends SDKConstruct {
   public async getLiquidatableAccounts(
     props?: GetLiquidatableAccountsProps,
   ): Promise<LiquidatableAccount[]> {
-    await this.sdk.withdrawalCompressor?.loadWithdrawableAssets(
-      undefined,
-      props?.blockNumber,
-    );
-
     const unhealthy = await this.sdk.accounts.getCreditAccounts(
       {
         maxHealthFactor: WAD - 1n,
@@ -110,10 +105,6 @@ export class LiquidationsService extends SDKConstruct {
     const suite = this.sdk.marketRegister.findCreditManager(ca.creditManager);
     const { priceOracle } = suite.market;
 
-    await this.sdk.withdrawalCompressor?.loadWithdrawableAssets(
-      undefined,
-      blockNumber,
-    );
     const account = this.#buildAccount(ca, suite);
     const data = await this.#getLiquidationData(
       ca,
@@ -182,7 +173,6 @@ export class LiquidationsService extends SDKConstruct {
     if (!compressor) {
       return [];
     }
-    await compressor.loadWithdrawableAssets(undefined, props.blockNumber);
     // the same phantom token can be configured in several credit managers;
     // duplicates would double-count redeemers in the compressor's loop
     const phantomTokens = new AddressSet(
@@ -448,7 +438,7 @@ export class LiquidationsService extends SDKConstruct {
   }
 
   // requires the compressor's withdrawable assets cache to be loaded
-  // (see `loadWithdrawableAssets`) so that phantom token lookups are sync
+  // (by attach/hydrate) so that phantom token lookups are sync
   #buildAccount(
     ca: CreditAccountData,
     suite = this.sdk.marketRegister.findCreditManager(ca.creditManager),

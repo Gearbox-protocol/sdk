@@ -55,6 +55,7 @@ export async function previewAdjustCreditAccount<P extends PluginsMap>(
   // On a malformed multicall the replayed balances are best-effort and may
   // be unreliable.
   const assets = account.balances.toAssets(DUST_THRESHOLD);
+  const quotas = account.quotas.toAssets(0n);
 
   // The replayed state is seeded with all initial tokens and entries are
   // never deleted, so its keys are the union of tokens present before or
@@ -80,6 +81,7 @@ export async function previewAdjustCreditAccount<P extends PluginsMap>(
       return acc;
     }
   }, 0n);
+  const snap = account.toSnapshot(totalValue);
 
   return {
     operation: "AdjustCreditAccount",
@@ -90,10 +92,19 @@ export async function previewAdjustCreditAccount<P extends PluginsMap>(
     totalValue,
     debt: account.debt,
     debtChange: account.debt - before.debt,
-    quotas: account.quotas.toAssets(0n),
+    quotas,
     quotasChange: account.quotas.difference(before.quotas).toAssets(),
     assets,
     assetsChange,
     error,
+    // Best-effort like the rest of the preview: tokens the oracle cannot
+    // price (ERROR_UNPRICEABLE_TOKEN) contribute nothing to the metrics.
+    healthFactor: sdk.positions.healthFactor(snap),
+    // TODO: overall APY needs the collateral yield (lpAPY), which market
+    // state alone does not carry — wire it up together with the ApyPlugin
+    overallApy: 0,
+    borrowRate: sdk.positions.borrowRate(snap),
+    timeToLiquidation: sdk.positions.timeToLiquidation(snap),
+    liquidationPrice: sdk.positions.liquidationPrice(snap),
   };
 }

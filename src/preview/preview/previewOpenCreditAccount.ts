@@ -2,6 +2,7 @@ import {
   type AddressMap,
   AP_WETH_TOKEN,
   type Asset,
+  DUST_THRESHOLD,
   NO_VERSION,
   type PluginsMap,
 } from "../../sdk/index.js";
@@ -64,7 +65,11 @@ export async function previewOpenCreditAccount<P extends PluginsMap>(
   // filter out dust, including the 1-wei leftovers of drained inputs and
   // intermediate tokens. On a malformed multicall the replayed balances are
   // best-effort and may be unreliable.
-  const assets = account.balances.toAssets(1n);
+  const assets = account.balances.toAssets(DUST_THRESHOLD);
+  // On opening, initial quotas are zero, so the folded quotas are the
+  // applied changes.
+  const quotas = account.quotas.toAssets(0n);
+  const snap = account.toSnapshot(collateralValue + account.totalDebt);
 
   return {
     operation: operation.operation,
@@ -73,11 +78,18 @@ export async function previewOpenCreditAccount<P extends PluginsMap>(
     collateral,
     collateralValue,
     debt: account.debt,
-    // On opening, initial quotas are zero, so the folded quotas are the
-    // applied changes.
-    quotas: account.quotas.toAssets(0n),
+    quotas,
     assets,
     error,
+    // Best-effort like the rest of the preview: tokens the oracle cannot
+    // price (ERROR_UNPRICEABLE_TOKEN) contribute nothing to the metrics.
+    healthFactor: sdk.positions.healthFactor(snap),
+    // TODO: overall APY needs the collateral yield (lpAPY), which market
+    // state alone does not carry — wire it up together with the ApyPlugin
+    overallApy: 0,
+    borrowRate: sdk.positions.borrowRate(snap),
+    timeToLiquidation: sdk.positions.timeToLiquidation(snap),
+    liquidationPrice: sdk.positions.liquidationPrice(snap),
   };
 }
 

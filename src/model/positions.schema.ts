@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { ZodAddress } from "../sdk/utils/zod.js";
+import { ZodAddress, ZodBigInt, ZodHex } from "../sdk/utils/zod.js";
 import { isFilterSet } from "./filters.js";
 import {
   booleanParamSchema,
@@ -102,6 +102,16 @@ export const poolPositionSchema = z.object({
 });
 
 /**
+ * {@link BorrowRateBreakdown}
+ **/
+export const borrowRateBreakdownSchema = z.object({
+  total: bpsSchema,
+  totalOnDebt: bpsSchema,
+  base: bpsSchema,
+  quotas: z.record(ZodAddress(), bpsSchema),
+});
+
+/**
  * {@link StrategyPosition}
  **/
 export const strategyPositionSchema = z.object({
@@ -117,6 +127,9 @@ export const strategyPositionSchema = z.object({
   totalDebt: tokenAmountSchema,
   totalValue: tokenAmountSchema,
   healthFactor: bpsSchema,
+  borrowRate: borrowRateBreakdownSchema.optional(),
+  timeToLiquidation: ZodBigInt().nullable().optional(),
+  liquidationPrice: ZodBigInt().nullable().optional(),
   pnl: pnlBreakdownSchema.optional(),
   collaterals: z.array(positionCollateralSchema),
 });

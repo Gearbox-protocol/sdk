@@ -1,11 +1,6 @@
 import type { Address } from "viem";
-import {
-  type Asset,
-  PERCENTAGE_FACTOR,
-  PRICE_DECIMALS,
-} from "../../../sdk/index.js";
-import { BigIntMath } from "../../../sdk/utils/bigint-math.js";
-import { PriceUtils } from "../price-math.js";
+import type { Asset } from "../../../sdk/index.js";
+import { calcHealthFactor as calcHealthFactorFromSnapshot } from "../../../sdk/positions/calcHealthFactor.js";
 import type { QuotaInfoIsActiveSlice, TokenDataSlice } from "./types.js";
 
 export interface CalcHealthFactorProps {
@@ -20,8 +15,6 @@ export interface CalcHealthFactorProps {
   tokensList: Record<Address, TokenDataSlice>;
 }
 
-const MAX_UINT16 = 65535;
-
 /**
  * Computes account health factor in percentage-factor units.
  *
@@ -32,6 +25,9 @@ const MAX_UINT16 = 65535;
  * @param props Credit account balances, quotas, prices, thresholds, and debt context.
  * @returns Health factor as a number in `PERCENTAGE_FACTOR` scale,
  * or `65535` when debt is zero.
+ *
+ * @deprecated Use `calcHealthFactor` from `sdk/positions` instead; this
+ * wrapper only maps the legacy props onto an `AccountSnapshot`.
  */
 export function calcHealthFactor({
   assets,
@@ -45,52 +41,35 @@ export function calcHealthFactor({
   prices,
   tokensList,
 }: CalcHealthFactorProps): number {
-  if (debt === 0n) return MAX_UINT16;
+  const decimals: Record<Address, number> = {};
+  for (const [token, meta] of Object.entries(tokensList)) {
+    decimals[token as Address] = meta.decimals;
+  }
 
-  const underlyingDecimals = tokensList[underlyingToken]?.decimals || 18;
-  const underlyingPrice = prices[underlyingToken] || 0n;
+  const lts: Record<Address, number> = {};
+  for (const [token, lt] of Object.entries(liquidationThresholds)) {
+    lts[token as Address] = Number(lt);
+  }
 
-  const assetMoney = assets.reduce(
-    (acc, { token: tokenAddress, balance: amount }) => {
-      const tokenDecimals = tokensList[tokenAddress]?.decimals || 18;
+  const activeQuotas: Record<Address, boolean> = {};
+  for (const [token, info] of Object.entries(quotasInfo)) {
+    if (info?.isActive) {
+      activeQuotas[token as Address] = true;
+    }
+  }
 
-      const lt = liquidationThresholds[tokenAddress] || 0n;
-      const price = prices[tokenAddress] || 0n;
-
-      const tokenMoney = PriceUtils.calcTotalPrice(
-        price,
-        amount,
-        tokenDecimals,
-      );
-      const tokenLtMoney = (tokenMoney * lt) / PERCENTAGE_FACTOR;
-
-      const { isActive = false } = quotasInfo?.[tokenAddress] || {};
-      const quota = quotas[tokenAddress];
-      const quotaBalance = isActive ? quota?.balance || 0n : 0n;
-      const quotaMoney = PriceUtils.calcTotalPrice(
-        underlyingPrice,
-        quotaBalance,
-        underlyingDecimals,
-      );
-
-      // if quota is undefined, then it is not a quoted token
-      const money = quota
-        ? BigIntMath.min(quotaMoney, tokenLtMoney)
-        : tokenLtMoney;
-
-      return acc + money;
+  return calcHealthFactorFromSnapshot({
+    snapshot: {
+      creditManager: underlyingToken,
+      assets,
+      quotas: Object.values(quotas),
+      totalDebt: debt,
+      totalValue: 0n,
     },
-    0n,
-  );
-
-  const borrowedMoney = PriceUtils.calcTotalPrice(
-    underlyingPrice || PRICE_DECIMALS,
-    debt,
-    underlyingDecimals,
-  );
-
-  const hfInPercent =
-    borrowedMoney > 0n ? (assetMoney * PERCENTAGE_FACTOR) / borrowedMoney : 0n;
-
-  return Number(hfInPercent);
+    underlying: underlyingToken,
+    decimals,
+    prices,
+    liquidationThresholds: lts,
+    activeQuotas,
+  });
 }

@@ -1,8 +1,10 @@
 import type { Address } from "viem";
 import { zeroAddress } from "viem";
 import {
+  type AccountSnapshot,
   AssetsMap,
   type CreditAccountData,
+  DUST_THRESHOLD,
   MIN_INT96,
 } from "../../sdk/index.js";
 
@@ -105,6 +107,20 @@ export class CreditAccountState {
       debt: ca.debt,
       totalDebt: ca.debt + ca.accruedInterest + ca.accruedFees,
     });
+  }
+
+  /**
+   * Immutable snapshot of this projected state for `sdk.positions` metric
+   * methods: dust-filtered balances, all quotas, and {@link totalDebt}.
+   **/
+  public toSnapshot(totalValue: bigint): AccountSnapshot {
+    return {
+      creditManager: this.creditManager,
+      assets: this.balances.toAssets(DUST_THRESHOLD),
+      quotas: this.quotas.toAssets(0n),
+      totalDebt: this.totalDebt,
+      totalValue,
+    };
   }
 
   public clone(): CreditAccountState {

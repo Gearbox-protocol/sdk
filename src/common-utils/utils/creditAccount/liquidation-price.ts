@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import type { Asset } from "../../../sdk/index.js";
-import { PERCENTAGE_FACTOR, PRICE_DECIMALS, WAD } from "../../../sdk/index.js";
+import { calcLiquidationPriceForTarget } from "../../../sdk/positions/calcLiquidationPriceForTarget.js";
 import type { TokenDataSlice } from "./types.js";
 
 interface LiquidationPriceProps {
@@ -24,6 +24,9 @@ interface LiquidationPriceProps {
  * @param props Debt context, assets, thresholds, and token metadata.
  * @returns Target token price in `PRICE_DECIMALS` precision that corresponds
  * to liquidation boundary; returns `0n` when target balance or LT is non-positive.
+ *
+ * @deprecated Use `calcLiquidationPriceForTarget` from `sdk/positions`
+ * instead; this wrapper only maps the legacy props onto an `AccountSnapshot`.
  */
 export function liquidationPrice({
   liquidationThresholds,
@@ -34,27 +37,27 @@ export function liquidationPrice({
   assets,
   tokensList,
 }: LiquidationPriceProps) {
-  const underlyingDecimals = tokensList[underlyingToken]?.decimals || 18;
-  const { balance: underlyingBalance = 0n } = assets[underlyingToken] || {};
+  const decimals: Record<Address, number> = {};
+  for (const [token, meta] of Object.entries(tokensList)) {
+    decimals[token as Address] = meta.decimals;
+  }
 
-  // effectiveDebt = Debt - underlyingBalance*LTunderlying
-  const ltUnderlying = liquidationThresholds[underlyingToken] || 0n;
-  const effectiveDebt =
-    ((debt - (underlyingBalance * ltUnderlying) / PERCENTAGE_FACTOR) * WAD) /
-    10n ** BigInt(underlyingDecimals);
+  const lts: Record<Address, number> = {};
+  for (const [token, lt] of Object.entries(liquidationThresholds)) {
+    lts[token as Address] = Number(lt);
+  }
 
-  const targetDecimals = tokensList[targetToken]?.decimals || 18;
-  const { balance: targetBalance = 0n } = assets[targetToken] || {};
-  const effectiveTargetBalance =
-    (targetBalance * WAD) / 10n ** BigInt(targetDecimals);
-
-  const lpLT = liquidationThresholds[targetToken] || 0n;
-
-  if (targetBalance <= 0n || lpLT <= 0n) return 0n;
-
-  // priceTarget = effectiveDebt / (lpLT*targetBalance)
-  return (
-    (effectiveDebt * PRICE_DECIMALS * PERCENTAGE_FACTOR) /
-    (effectiveTargetBalance * lpLT)
-  );
+  return calcLiquidationPriceForTarget({
+    snapshot: {
+      creditManager: underlyingToken,
+      assets: Object.values(assets),
+      quotas: [],
+      totalDebt: debt,
+      totalValue: 0n,
+    },
+    targetToken,
+    underlying: underlyingToken,
+    decimals,
+    liquidationThresholds: lts,
+  });
 }

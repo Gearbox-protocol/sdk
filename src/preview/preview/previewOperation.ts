@@ -158,6 +158,7 @@ async function previewMulticallOperation<P extends PluginsMap>(
       delayed,
       convert,
       receivedToken,
+      sdk,
     ),
   };
 }
