@@ -162,7 +162,7 @@ function poolTx(sdk: OnchainSDK, request: PoolPrepareRequest): RawTx {
   return sdk.pools.removeLiquidity({
     pool,
     wallet,
-    amount: tokenIn.balance,
+    amount: tokenOut.balance,
     permit: undefined,
     meta,
   }).tx;

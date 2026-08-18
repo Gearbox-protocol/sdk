@@ -13,7 +13,6 @@ import {
   fetchCreditAccountSlice,
   hexEq,
   MultichainConstruct,
-  toShares,
 } from "../../sdk/index.js";
 import type {
   AddCollateralParams,
@@ -140,7 +139,7 @@ export class SimulateApi
    * {@inheritDoc OpportunitiesSimulate.withdraw}
    **/
   public withdraw(pool: PoolInput, params: LpParams): LpSimulate {
-    const { marketRegister, pools } = this.sdk.chain(pool.chainId);
+    const { pools } = this.sdk.chain(pool.chainId);
     // Withdrawals are paid in shares, and the share token *is* the pool.
     const tokenIn = params.tokenIn ?? pool.pool;
     const tokenOut = lpRoute(params.tokenOut, () =>
@@ -150,21 +149,17 @@ export class SimulateApi
       return { ok: false, reason: "unsupportedTokenPair" };
     }
 
-    // Amount is the tokenOut the wallet wants back; redeem burns diesel.
-    const shares = toShares(
-      marketRegister.findByPool(pool.pool).pool.pool,
-      params.amount,
-    );
-
+    // Amount is the tokenOut the wallet wants back, which is what the pool's
+    // own `withdraw` takes: the share conversion is the pool's to make.
     const preview = pools.simulateWithdraw({
       pool: pool.pool,
-      amount: shares,
+      amount: params.amount,
       tokenIn,
       tokenOut,
     });
     const { calls } = pools.removeLiquidity({
       pool: pool.pool,
-      amount: shares,
+      amount: params.amount,
       wallet: params.wallet,
       permit: undefined,
       meta: pools.getWithdrawalMetadata(pool.pool, tokenIn, tokenOut),

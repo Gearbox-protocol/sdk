@@ -36,7 +36,7 @@ function mockChain(overrides?: {
 }) {
   const txs = {
     deposit: rawTx("deposit"),
-    withdraw: rawTx("redeem"),
+    withdraw: rawTx("withdraw"),
     open: rawTx("open"),
     update: rawTx("multicall"),
   };
@@ -106,7 +106,7 @@ describe("buildTx — pool", () => {
     });
   });
 
-  it("withdraw: the tx is PoolService.removeLiquidity's on the shares the sim priced", async () => {
+  it("withdraw: the tx is PoolService.removeLiquidity's on the underlying the sim priced", async () => {
     const { execute, sdk, txs } = mockChain();
     const withdrawSim: Extract<LpSimulate, { ok: true }> = {
       ok: true,
@@ -136,7 +136,7 @@ describe("buildTx — pool", () => {
     expect(sdk.pools.removeLiquidity).toHaveBeenCalledWith({
       pool: POOL,
       wallet: WALLET,
-      amount: 500n,
+      amount: 505n,
       permit: undefined,
       meta: WITHDRAW_META,
     });

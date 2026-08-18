@@ -175,6 +175,12 @@ export interface IPoolContract extends IBaseContract {
    * the receiver.
    */
   redeem(amount: bigint, owner: Address, receiver: Address): RawTx;
+
+  /**
+   * Burns as many of the owner's shares as it takes to send `assets` of the
+   * underlying to the receiver.
+   */
+  withdraw(assets: bigint, receiver: Address, owner: Address): RawTx;
 }
 
 // Compile-time check: IPoolContract covers every abi-inferred PoolState field

@@ -243,8 +243,8 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     const { zapper } = this.getWithdrawalMetadata(poolAddr, tokenIn, tokenOut);
 
     return {
-      tokenIn: { token: tokenIn, balance: amount },
-      tokenOut: { token: tokenOut, balance: toAssets(pool.pool, amount) },
+      tokenIn: { token: tokenIn, balance:  toShares(pool.pool, amount) },
+      tokenOut: { token: tokenOut, balance: amount  },
       zapper: zapper?.baseParams.addr,
       availableLiquidity:
         (pool.pool.availableLiquidity * LIQUIDITY_SAFETY_NUM) /
@@ -278,28 +278,34 @@ export class PoolService extends SDKConstruct implements IPoolsService {
       }
     }
 
+    const poolContract = this.sdk.marketRegister.findByPool(pool).pool.pool;
+
     if (
       meta.zapper instanceof IETHZapperContract ||
       meta.zapper instanceof IERC20ZapperContract
     ) {
+      // A zapper only redeems: it takes the share-like token it minted, so the
+      // requested underlying has to be converted at the pool's own rate first.
+      const shares = toShares(poolContract, amount);
       const tx = permit
         ? meta.zapper.redeemWithPermit(
-            amount,
+            shares,
             wallet,
             permit.deadline,
             permit.v,
             permit.r,
             permit.s,
           )
-        : meta.zapper.redeem(amount, wallet);
+        : meta.zapper.redeem(shares, wallet);
       return {
         tx,
         calls: [{ target: meta.zapper.baseParams.addr, callData: tx.callData }],
       };
     }
 
-    const poolContract = this.sdk.marketRegister.findByPool(pool).pool.pool;
-    const tx = poolContract.redeem(amount, wallet, wallet);
+    // Direct withdrawal is exact on the side the caller asked about: the pool
+    // burns whatever shares `amount` of underlying costs, fee included.
+    const tx = poolContract.withdraw(amount, wallet, wallet);
     return {
       tx,
       calls: [{ target: pool, callData: tx.callData }],
@@ -692,7 +698,7 @@ export function toShares(pool: IPoolContract, assets: bigint): bigint {
   // An empty pool has no rate yet, so the first deposit sets it at one-to-one.
   return totalSupply === 0n || totalAssets === 0n
     ? assets
-    : (assets * totalSupply) / totalAssets;
+    : (assets * totalSupply + totalAssets - 1n) / totalAssets;
 }
 
 /**
@@ -707,5 +713,5 @@ function toAssets(pool: IPoolContract, shares: bigint): bigint {
       ? shares
       : (shares * totalAssets) / totalSupply;
 
-  return assets - (assets * withdrawFee) / PERCENTAGE_FACTOR;
+  return assets *  (PERCENTAGE_FACTOR - withdrawFee) / PERCENTAGE_FACTOR;
 }

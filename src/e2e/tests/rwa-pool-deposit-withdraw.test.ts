@@ -213,9 +213,12 @@ describe.skipIf(!!process.env.CI)("RWA pool deposit and withdraw", () => {
         pollingInterval: 100,
       });
 
+      // `amount` is the underlying to receive; the zapper redeems the shares it
+      // converts to at the pool's current rate.
+      const withdrawAmount = parseUnits("50", 6);
       const withdrawCall = poolService.removeLiquidity({
         pool: DEFAULT_POOL,
-        amount: sharesReceived,
+        amount: withdrawAmount,
         wallet: account,
         permit: undefined,
         meta: withdrawalMeta,
@@ -233,7 +236,8 @@ describe.skipIf(!!process.env.CI)("RWA pool deposit and withdraw", () => {
         tokenIn,
         DEFAULT_POOL,
       ]);
-      expect(afterWithdraw[DEFAULT_POOL]).toBe(0n);
+      expect(afterWithdraw[tokenIn]).toBeGreaterThan(afterDeposit[tokenIn]);
+      expect(afterWithdraw[DEFAULT_POOL]).toBeLessThan(sharesReceived);
     });
   });
 

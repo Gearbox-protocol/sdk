@@ -169,9 +169,12 @@ describe("pool deposit and withdraw", () => {
     expect(withdrawalMeta.zapper).toBeUndefined();
     expect(withdrawalMeta.approveTarget).toBeUndefined();
 
+    // `amount` is the underlying to receive; a direct withdrawal pays it out
+    // exactly and burns whatever shares that costs.
+    const withdrawAmount = parseUnits("50", 6);
     const withdrawCall = poolService.removeLiquidity({
       pool: USDC_POOL,
-      amount: sharesReceived,
+      amount: withdrawAmount,
       wallet: account,
       permit: undefined,
       meta: withdrawalMeta,
@@ -189,10 +192,9 @@ describe("pool deposit and withdraw", () => {
       USDC,
       USDC_POOL,
     ]);
-    expect(afterWithdraw).toEqual({
-      [USDC_POOL]: 0n,
-      [USDC]: 199999999n,
-    });
+    expect(afterWithdraw[USDC]).toBe(afterDeposit[USDC] + withdrawAmount);
+    expect(afterWithdraw[USDC_POOL]).toBeLessThan(sharesReceived);
+    expect(afterWithdraw[USDC_POOL]).toBeGreaterThan(0n);
   });
 
   // TODO: currently there's no zappers except for migration zappers, which are not returned by sdk
@@ -307,9 +309,14 @@ describe("pool deposit and withdraw", () => {
     );
     expect(withdrawalMeta.zapper).toBeUndefined();
 
+    const beforeWithdraw = await getBalances(sdk.client, account, [
+      WETH,
+      KPK_WETH_POOL,
+    ]);
+    const withdrawAmount = parseUnits("0.5", 18);
     const withdrawCall = poolService.removeLiquidity({
       pool: KPK_WETH_POOL,
-      amount: sharesReceived,
+      amount: withdrawAmount,
       wallet: account,
       permit: undefined,
       meta: withdrawalMeta,
@@ -332,7 +339,7 @@ describe("pool deposit and withdraw", () => {
       WETH,
       KPK_WETH_POOL,
     ]);
-    expect(afterWithdraw[KPK_WETH_POOL]).toBe(0n);
-    expect(afterWithdraw[WETH]).toBeGreaterThan(0n);
+    expect(afterWithdraw[WETH]).toBe(beforeWithdraw[WETH] + withdrawAmount);
+    expect(afterWithdraw[KPK_WETH_POOL]).toBeLessThan(sharesReceived);
   });
 });

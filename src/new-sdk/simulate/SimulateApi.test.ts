@@ -8,10 +8,6 @@ const POOL = "0x1000000000000000000000000000000000000001" as Address;
 const UNDERLYING = "0x2000000000000000000000000000000000000002" as Address;
 const WALLET = "0xf0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0" as Address;
 
-/** A share worth 1.1 underlying, so the two directions cannot be confused. */
-const TOTAL_SUPPLY = 1_000_000n;
-const TOTAL_ASSETS = 1_100_000n;
-
 function buildApi() {
   const pools = {
     getWithdrawalTokensOut: vi.fn(() => [UNDERLYING]),
@@ -26,14 +22,7 @@ function buildApi() {
     chain: () => ({
       pools,
       marketRegister: {
-        findByPool: () => ({
-          pool: {
-            pool: {
-              totalSupply: TOTAL_SUPPLY,
-              totalAssets: TOTAL_ASSETS,
-            },
-          },
-        }),
+        findByPool: () => ({ pool: { underlying: UNDERLYING } }),
       },
     }),
   } as unknown as MultichainSDK);
@@ -41,7 +30,7 @@ function buildApi() {
 }
 
 describe("SimulateApi.withdraw", () => {
-  it("converts amount from tokenOut down to shares before simulateWithdraw", () => {
+  it("passes the tokenOut amount through, leaving the share conversion to the pool", () => {
     const { api, pools } = buildApi();
 
     const result = api.withdraw(
@@ -52,12 +41,12 @@ describe("SimulateApi.withdraw", () => {
     expect(result).toMatchObject({ ok: true });
     expect(pools.simulateWithdraw).toHaveBeenCalledWith({
       pool: POOL,
-      amount: 100n,
+      amount: 110n,
       tokenIn: POOL,
       tokenOut: UNDERLYING,
     });
     expect(pools.removeLiquidity).toHaveBeenCalledWith(
-      expect.objectContaining({ amount: 100n }),
+      expect.objectContaining({ amount: 110n }),
     );
   });
 
@@ -72,7 +61,7 @@ describe("SimulateApi.withdraw", () => {
     expect(pools.getWithdrawalTokensOut).toHaveBeenCalledWith(POOL, POOL);
     expect(pools.simulateWithdraw).toHaveBeenCalledWith({
       pool: POOL,
-      amount: 100n,
+      amount: 110n,
       tokenIn: POOL,
       tokenOut: UNDERLYING,
     });

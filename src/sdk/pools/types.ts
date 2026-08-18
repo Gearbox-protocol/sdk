@@ -52,8 +52,8 @@ export interface AddLiquidityProps {
 /**
  * Parameters for withdrawing liquidity from a Gearbox lending pool.
  *
- * Withdrawals are routed through a zapper that redeems pool shares
- * (diesel tokens) for the underlying asset.
+ * A direct withdrawal goes to the pool itself; anything else is routed through
+ * a zapper that redeems the share-like token it minted.
  **/
 export interface RemoveLiquidityProps {
   /**
@@ -61,7 +61,9 @@ export interface RemoveLiquidityProps {
    **/
   pool: Address;
   /**
-   * Amount of pool shares (diesel tokens) to redeem.
+   * Amount of underlying the wallet wants back, matching
+   * {@link PoolSimulation.tokenOut}. A direct withdrawal pays it out exactly; a
+   * zapper redeems the shares it converts to at the pool's current rate.
    **/
   amount: bigint;
   wallet: Address;
@@ -124,7 +126,7 @@ export interface SimulatePoolOperationProps {
    **/
   pool: Address;
   /**
-   * Amount of `tokenIn` the user parts with.
+   * Amount of `tokenOut` the user parts with.
    **/
   amount: bigint;
   /**
@@ -269,9 +271,9 @@ export interface IPoolsService {
   /**
    * Simulates a withdrawal and reports what the wallet would receive.
    *
-   * The mirror of {@link simulateDeposit}: `amount` is the shares to burn, and
-   * the result is the underlying they convert to, less the pool's withdrawal
-   * fee.
+   * The mirror of {@link simulateDeposit}: `amount` is the underlying the
+   * wallet wants back, and the result is the shares it costs at the pool's
+   * current rate.
    *
    * @param props - {@link SimulatePoolOperationProps}
    * @returns {@link PoolSimulation}
