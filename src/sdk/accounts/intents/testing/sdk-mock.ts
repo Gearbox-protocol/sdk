@@ -97,6 +97,12 @@ interface BuildMockSdkArgs {
   quotas: Record<Address, MockQuotaEntry>;
   liquidationThresholds: Record<Address, number>;
   maxDebt: bigint;
+  /** Facade `minDebt`; defaults to 0n so debt-range checks stay opt-in. */
+  minDebt?: bigint;
+  /** Pool base rate in ray; feeds `borrowApyBps` of position metrics. */
+  baseInterestRate?: bigint;
+  /** Credit manager interest fee in Bps; feeds position metrics. */
+  feeInterest?: number;
   creditManager: Address;
   creditFacade: Address;
   /** Market underlying token (`market.pool.underlying`). */
@@ -151,13 +157,40 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
       })),
   };
 
+  const quotaOf = (token: Address): MockQuotaEntry | undefined =>
+    args.quotas[token.toLowerCase() as Address] ?? args.quotas[token];
+
   const liquidationThresholds = {
     entries: () => Object.entries(args.liquidationThresholds),
+    get: (token: Address) =>
+      args.liquidationThresholds[token.toLowerCase() as Address] ??
+      args.liquidationThresholds[token],
   };
 
   const market = {
-    priceOracle: { convert },
-    pool: { pqk: { quotas }, underlying: args.underlying },
+    priceOracle: {
+      convert,
+      convertToUSD: (token: Address, amount: bigint) => {
+        const from = token.toLowerCase() as Address;
+        const price = args.prices[from] ?? args.prices[token];
+        if (price === undefined) {
+          throw new Error(`mock priceOracle: missing price for ${from}`);
+        }
+        return (amount * price) / 10n ** BigInt(decimalsOf(from));
+      },
+    },
+    pool: {
+      pqk: {
+        quotas,
+        quotaRate: (token: Address) => Number(quotaOf(token)?.rate ?? 0n),
+        hasActiveQuota: (token: Address) => {
+          const q = quotaOf(token);
+          return !!q?.isActive && q.limit > 0n;
+        },
+      },
+      pool: { baseInterestRate: args.baseInterestRate ?? 0n },
+      underlying: args.underlying,
+    },
   };
 
   const creditManagerSuite = {
@@ -165,6 +198,7 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
       address: args.creditManager,
       liquidationThresholds,
       collateralTokens: [],
+      feeInterest: args.feeInterest ?? 0,
     },
     creditFacade: {
       address: args.creditFacade,

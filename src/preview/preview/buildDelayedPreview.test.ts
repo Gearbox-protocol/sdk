@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 import { getAddress } from "viem";
 import { describe, expect, it } from "vitest";
-import { AssetsMap } from "../../sdk/index.js";
+import { AssetsMap, type OnchainSDK } from "../../sdk/index.js";
 import { buildDelayedPreview, type ConvertFn } from "./buildDelayedPreview.js";
 import { CreditAccountState } from "./CreditAccountState.js";
 import type { DetectedDelayedOperation } from "./detectDelayedOperation.js";
@@ -16,6 +16,68 @@ const USDC = getAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48");
 const PHANTOM = getAddress("0xF126EaCAcf6B14C8985fC195768A55E886Af4208");
 const WETH = getAddress("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2");
 const OWNER = getAddress("0xC32FEB4DBd127a1993478Ad6E5250710f838b908");
+
+/**
+ * Market stub for the position metrics: USDC, the underlying and the phantom
+ * token at $1, WETH at $2000, no quota rates, no borrow rate. The tests only
+ * care that the metrics are present, not about their values.
+ */
+const metricsSdk = (() => {
+  const decimals: Record<Address, number> = {
+    [UNDERLYING]: 6,
+    [USDC]: 6,
+    [PHANTOM]: 6,
+    [WETH]: 18,
+  };
+  const prices: Record<Address, bigint> = {
+    [UNDERLYING]: 10n ** 8n,
+    [USDC]: 10n ** 8n,
+    [PHANTOM]: 10n ** 8n,
+    [WETH]: 2000n * 10n ** 8n,
+  };
+  const lts: Record<Address, number> = {
+    [UNDERLYING]: 9800,
+    [USDC]: 9800,
+    [PHANTOM]: 9200,
+    [WETH]: 8500,
+  };
+  return {
+    tokensMeta: {
+      get: (token: Address) => {
+        const d = decimals[getAddress(token)];
+        return d === undefined ? undefined : { decimals: d };
+      },
+    },
+    marketRegister: {
+      findByCreditManager: () => ({
+        pool: {
+          underlying: UNDERLYING,
+          pool: { baseInterestRate: 0n },
+          pqk: { quotaRate: () => 0, hasActiveQuota: () => false },
+        },
+        priceOracle: {
+          convertToUSD: (token: Address, amount: bigint) => {
+            const addr = getAddress(token);
+            const price = prices[addr];
+            if (price === undefined) {
+              throw new Error(`no answer found for token ${token}`);
+            }
+            const d = decimals[addr] ?? 18;
+            return (amount * price) / 10n ** BigInt(d);
+          },
+        },
+      }),
+      findCreditManager: () => ({
+        creditManager: {
+          feeInterest: 0,
+          liquidationThresholds: {
+            get: (token: Address) => lts[getAddress(token)],
+          },
+        },
+      }),
+    },
+  } as unknown as OnchainSDK;
+})();
 
 /**
  * Oracle stub: USDC and the underlying are 1:1 (dcUSDC is a USDC wrapper),
@@ -91,6 +153,7 @@ describe("buildDelayedPreview CLOSE_ACCOUNT", () => {
       detected({ type: "CLOSE_ACCOUNT", to: OWNER }),
       convert,
       USDC,
+      metricsSdk,
     );
     expect(preview).toEqual({
       operation: "CloseCreditAccount",
@@ -116,6 +179,7 @@ describe("buildDelayedPreview CLOSE_ACCOUNT", () => {
       detected({ type: "CLOSE_ACCOUNT", to: OWNER }),
       convert,
       USDC,
+      metricsSdk,
     );
     expect(preview.operation).toBe("CloseCreditAccount");
     if (preview.operation === "CloseCreditAccount") {
@@ -133,6 +197,7 @@ describe("buildDelayedPreview CLOSE_ACCOUNT", () => {
       detected({ type: "CLOSE_ACCOUNT", to: OWNER }),
       convert,
       USDC,
+      metricsSdk,
     );
     expect(account.balances.get(PHANTOM)).toBe(22070460800n);
     expect(account.quotas.get(PHANTOM)).toBe(20861060000n);
@@ -156,8 +221,12 @@ describe("buildDelayedPreview DECREASE_LEVERAGE", () => {
       detected({ type: "DECREASE_LEVERAGE" }),
       convert,
       USDC,
+      metricsSdk,
     );
-    expect(preview).toEqual({
+    // toMatchObject: the preview also carries position metrics
+    // (healthFactor, overallApy, borrowRate, timeToLiquidation,
+    // liquidationPrice), which this test does not pin down
+    expect(preview).toMatchObject({
       operation: "AdjustCreditAccount",
       creditManager: CREDIT_MANAGER,
       creditAccount: CREDIT_ACCOUNT,
@@ -190,6 +259,7 @@ describe("buildDelayedPreview DECREASE_LEVERAGE", () => {
       detected({ type: "DECREASE_LEVERAGE" }),
       convert,
       USDC,
+      metricsSdk,
     );
     expect(preview.operation).toBe("AdjustCreditAccount");
     if (preview.operation === "AdjustCreditAccount") {
@@ -222,6 +292,7 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
       }),
       convert,
       USDC,
+      metricsSdk,
     );
     expect(preview.operation).toBe("AdjustCreditAccount");
     if (preview.operation === "AdjustCreditAccount") {
@@ -256,6 +327,7 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
       }),
       convert,
       USDC,
+      metricsSdk,
     );
     expect(preview.operation).toBe("AdjustCreditAccount");
     if (preview.operation === "AdjustCreditAccount") {
@@ -290,6 +362,7 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
       }),
       convert,
       USDC,
+      metricsSdk,
     );
     expect(preview.operation).toBe("AdjustCreditAccount");
     if (preview.operation === "AdjustCreditAccount") {
@@ -316,6 +389,7 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
       }),
       convert,
       USDC,
+      metricsSdk,
     );
     expect(preview.operation).toBe("AdjustCreditAccount");
     if (preview.operation === "AdjustCreditAccount") {
@@ -350,6 +424,7 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
       }),
       convert,
       USDC,
+      metricsSdk,
     );
     expect(preview.operation).toBe("AdjustCreditAccount");
     if (preview.operation === "AdjustCreditAccount") {
@@ -394,6 +469,7 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
       }),
       convert,
       USDC,
+      metricsSdk,
     );
     expect(preview.operation).toBe("AdjustCreditAccount");
     if (preview.operation === "AdjustCreditAccount") {
@@ -440,6 +516,7 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
       }),
       convert,
       USDC,
+      metricsSdk,
     );
     expect(preview.operation).toBe("AdjustCreditAccount");
     if (preview.operation === "AdjustCreditAccount") {
@@ -499,8 +576,9 @@ describe("buildDelayedPreview claim-only", () => {
       detected({ type: "DEPOSIT" }),
       convert,
       USDC,
+      metricsSdk,
     );
-    expect(preview).toEqual(claimOnlyExpectation);
+    expect(preview).toMatchObject(claimOnlyExpectation);
   });
 
   it("applies only the claim step when the intent is undefined (Mellow, legacy txs)", () => {
@@ -510,8 +588,10 @@ describe("buildDelayedPreview claim-only", () => {
       detected(undefined),
       convert,
       USDC,
+      metricsSdk,
     );
-    expect(preview).toEqual(claimOnlyExpectation);
+    // toMatchObject: position metrics are present but not pinned down here
+    expect(preview).toMatchObject(claimOnlyExpectation);
   });
 });
 
@@ -533,6 +613,7 @@ describe("buildDelayedPreview unpriceable tokens", () => {
       detected(undefined),
       convert,
       USDC,
+      metricsSdk,
     );
     expect(preview.operation).toBe("AdjustCreditAccount");
     if (preview.operation === "AdjustCreditAccount") {

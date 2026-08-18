@@ -5,6 +5,8 @@ import {
   AssetsMap,
   type DelayedWithdrawCollateralIntent,
   DUST_THRESHOLD,
+  type OnchainSDK,
+  positionMetrics,
 } from "../../sdk/index.js";
 import type { CreditAccountState } from "./CreditAccountState.js";
 import type { DetectedDelayedOperation } from "./detectDelayedOperation.js";
@@ -40,6 +42,8 @@ export type ConvertFn = (token: Address, to: Address, amount: bigint) => bigint;
  * @param receivedToken - Token the `CLOSE_ACCOUNT` resume withdraws to the
  * user: the unwrapped underlying (vault asset) for RWA markets, the
  * underlying itself otherwise.
+ * @param sdk - Market data source for the position metrics of the resulting
+ * state; read synchronously, no network access.
  */
 export function buildDelayedPreview(
   afterInstant: CreditAccountState,
@@ -47,6 +51,7 @@ export function buildDelayedPreview(
   detected: DetectedDelayedOperation,
   convert: ConvertFn,
   receivedToken: Address,
+  sdk: OnchainSDK,
 ): InstantOperationPreview {
   const { request, intent } = detected;
 
@@ -80,7 +85,7 @@ export function buildDelayedPreview(
       break;
   }
 
-  return buildAdjustPreview(post, before, collateralWithdrawn, converter);
+  return buildAdjustPreview(post, before, collateralWithdrawn, converter, sdk);
 }
 
 /**
@@ -283,12 +288,15 @@ function buildAdjustPreview(
   before: CreditAccountState,
   collateralWithdrawn: AssetsMap,
   converter: SafeConverter,
+  sdk: OnchainSDK,
 ): AdjustCreditAccountPreview {
   const totalValue = totalValueInUnderlying(
     post,
     converter.convert,
     DUST_THRESHOLD,
   );
+  const assets = post.balances.toAssets(DUST_THRESHOLD);
+  const quotas = post.quotas.toAssets(0n);
   return {
     operation: "AdjustCreditAccount",
     creditManager: post.creditManager,
@@ -301,12 +309,19 @@ function buildAdjustPreview(
     // relative to the pre-transaction state: where the account will end up
     // compared to now, once the withdrawal is claimed and the intent resumed
     debtChange: post.debt - before.debt,
-    quotas: post.quotas.toAssets(0n),
+    quotas,
     quotasChange: post.quotas.difference(before.quotas).toAssets(),
-    assets: post.balances.toAssets(DUST_THRESHOLD),
+    assets,
     assetsChange: post.balances
       .difference(before.balances)
       .toAssets(DUST_THRESHOLD),
     error: converter.error,
+    ...positionMetrics(sdk, {
+      creditManager: post.creditManager,
+      assets,
+      quotas,
+      debt: post.debt,
+      totalValue,
+    }),
   };
 }
