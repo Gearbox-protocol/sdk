@@ -30,7 +30,7 @@ const offchainSource = {
   list: vi.fn(),
   getPool: vi.fn(),
   getStrategy: vi.fn(),
-  getHistory: vi.fn(),
+  getCharts: vi.fn(),
 };
 
 function namespace(): OpportunitiesNamespace {

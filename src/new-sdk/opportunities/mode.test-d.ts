@@ -1,12 +1,12 @@
 import { describe, expectTypeOf, it } from "vitest";
 import type {
+  ChartBundle,
+  ChartSeries,
   DataResponse,
-  HistorySeries,
   Opportunity,
-  PoolHistoryMetric,
+  PoolOpportunityChartMetric,
   PoolOpportunityDetail,
   PoolOpportunityRef,
-  StrategyHistoryMetric,
   StrategyOpportunityDetail,
   StrategyOpportunityRef,
 } from "../../model/index.js";
@@ -25,17 +25,17 @@ describe("mode gates method existence", () => {
     expectTypeOf<Opportunities<"both">>().toHaveProperty("list");
   });
 
-  it("history exists only where a backend does", () => {
-    expectTypeOf<Opportunities<"offchain">>().toHaveProperty("history");
-    expectTypeOf<Opportunities<"both">>().toHaveProperty("history");
-    expectTypeOf<Opportunities<"onchain">>().not.toHaveProperty("history");
+  it("charts exist only where a backend does", () => {
+    expectTypeOf<Opportunities<"offchain">>().toHaveProperty("charts");
+    expectTypeOf<Opportunities<"both">>().toHaveProperty("charts");
+    expectTypeOf<Opportunities<"onchain">>().not.toHaveProperty("charts");
   });
 
   it("a widened mode degrades to the base reads rather than to everything", () => {
     // consumers whose config object widens `mode` to `Mode` lose the gated
     // methods; they must not silently gain them
     expectTypeOf<Opportunities<Mode>>().toHaveProperty("list");
-    expectTypeOf<Opportunities<Mode>>().not.toHaveProperty("history");
+    expectTypeOf<Opportunities<Mode>>().not.toHaveProperty("charts");
     // what survives widening is everything the map does not gate
     expectTypeOf<Opportunities<Mode>>().toHaveProperty("merge");
     expectTypeOf<Opportunities<Mode>>().toHaveProperty("onchain");
@@ -146,44 +146,6 @@ describe("the source branches are not gated by mode", () => {
   });
 });
 
-describe("the opportunity kind gates which charts it has", () => {
-  const opportunities = {} as Opportunities<"both">;
-  const pool = {} as PoolOpportunityRef;
-  const strategy = {} as StrategyOpportunityRef;
-
-  it("takes the metrics of the kind the key names", () => {
-    expectTypeOf(opportunities.history(pool).chart)
-      .parameter(0)
-      .toEqualTypeOf<PoolHistoryMetric>();
-    expectTypeOf(opportunities.history(strategy).chart)
-      .parameter(0)
-      .toEqualTypeOf<StrategyHistoryMetric>();
-    expectTypeOf(opportunities.history(pool).chart).toBeCallableWith(
-      "depositApy",
-      "1m",
-    );
-    expectTypeOf(opportunities.history(strategy).chart).toBeCallableWith(
-      "tvl",
-      "1y",
-    );
-  });
-
-  it("rejects a metric the other kind owns", () => {
-    // @ts-expect-error `tvl` is a strategy metric
-    opportunities.history(pool).chart("tvl", "1y");
-    // @ts-expect-error `dieselRate` is a pool metric
-    opportunities.history(strategy).chart("dieselRate", "1m");
-  });
-
-  it("answers with the series in the envelope every read uses", () => {
-    expectTypeOf(
-      opportunities.history(strategy).chart,
-    ).returns.resolves.toEqualTypeOf<
-      DataResponse<HistorySeries<StrategyHistoryMetric>>
-    >();
-  });
-});
-
 describe("mode gates the source escape hatches", () => {
   it("names the source the mode reads from", () => {
     expectTypeOf<
@@ -198,5 +160,55 @@ describe("mode gates the source escape hatches", () => {
     expectTypeOf<
       GearboxSDK<"both">["offchain"]
     >().not.toEqualTypeOf<undefined>();
+  });
+});
+
+describe("the opportunity kind gates which charts it has", () => {
+  const opportunities = {} as Opportunities<"both">;
+  const backend = {} as OffchainOpportunities;
+  const pool = {} as PoolOpportunityRef;
+  const strategy = {} as StrategyOpportunityRef;
+
+  it("takes the metrics of the kind the key names", () => {
+    expectTypeOf(
+      opportunities.charts(pool, ["depositApy"], "1m"),
+    ).resolves.toExtend<DataResponse<ChartBundle<readonly ["depositApy"]>>>();
+    expectTypeOf(
+      opportunities.charts(strategy, ["tvl", "netApy"], "1y"),
+    ).resolves.toExtend<
+      DataResponse<ChartBundle<readonly ["tvl", "netApy"]>>
+    >();
+  });
+
+  it("rejects a metric the other kind owns", () => {
+    // @ts-expect-error `tvl` is a strategy metric
+    opportunities.charts(pool, ["tvl"], "1y");
+    // @ts-expect-error `dieselRate` is a pool metric
+    opportunities.charts(strategy, ["netApy", "dieselRate"], "1m");
+    // The source escape hatch preserves the same constraint.
+    // @ts-expect-error `tvl` is a strategy metric
+    backend.getCharts(pool, ["tvl"], "1y");
+  });
+
+  it("keys the bundle by the metrics that were asked for, and no others", async () => {
+    const { data } = await opportunities.charts(
+      strategy,
+      ["tvl", "netApy"],
+      "1m",
+    );
+
+    expectTypeOf(data.series.tvl).toEqualTypeOf<ChartSeries>();
+    expectTypeOf(data.series.netApy).toEqualTypeOf<ChartSeries>();
+    // @ts-expect-error the read named `tvl` and `netApy`, so nothing else is keyed
+    data.series.borrowApy;
+  });
+
+  it("makes keys optional when the metric list is dynamic", async () => {
+    const metrics: PoolOpportunityChartMetric[] = ["depositApy"];
+    const { data } = await opportunities.charts(pool, metrics, "1m");
+
+    expectTypeOf(data.series.depositApy).toEqualTypeOf<
+      ChartSeries | undefined
+    >();
   });
 });

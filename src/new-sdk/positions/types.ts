@@ -1,17 +1,18 @@
 import type { Address } from "viem";
 import type {
+  ChartBundle,
+  ChartRange,
   DataResponse,
-  PoolPositionHistoryMetric,
+  PoolPositionChartMetric,
   PoolPositionRef,
   Position,
   PositionFilter,
-  StrategyPositionHistoryMetric,
+  StrategyPositionChartMetric,
   StrategyPositionRef,
 } from "../../model/index.js";
 import type { OffchainPositions } from "../../offchain/index.js";
 import type { MultichainPositionsService } from "../../sdk/index.js";
 import type { Mode } from "../types.js";
-import type { HistoryReader } from "../utils/history.js";
 import type { FilterResult, ListMerger } from "../utils/index.js";
 
 /**
@@ -59,19 +60,26 @@ export interface PositionsBase {
  **/
 export interface PositionsOffchainOnly {
   /**
-   * Historical charts of one position, one metric and one range at a time:
-   * `history(key).chart("netApy", "1m")`. The key's kind decides which metrics
-   * exist, so asking a pool position for a strategy series does not compile.
-   * Liquidation positions have no charts: a delayed withdrawal is a single
-   * event rather than a series.
+   * Historical charts of one position, one series per metric on a shared axis:
+   * `charts(key, ["netApy", "borrowApy"], "1m")`.
+   *
+   * The key's kind decides which metrics exist, so asking a pool position for a
+   * strategy chart does not compile. Liquidation positions have no charts: a
+   * delayed withdrawal is a single event rather than a series.
    **/
   // no key names a liquidation position: a delayed withdrawal is a single event
   // rather than a series. There is no second source to fall back to either, so a
   // backend failure is raised rather than reported in the metadata
-  history(key: PoolPositionRef): HistoryReader<PoolPositionHistoryMetric>;
-  history(
+  charts<const Metrics extends readonly PoolPositionChartMetric[]>(
+    key: PoolPositionRef,
+    metrics: Metrics,
+    range: ChartRange,
+  ): Promise<DataResponse<ChartBundle<Metrics>>>;
+  charts<const Metrics extends readonly StrategyPositionChartMetric[]>(
     key: StrategyPositionRef,
-  ): HistoryReader<StrategyPositionHistoryMetric>;
+    metrics: Metrics,
+    range: ChartRange,
+  ): Promise<DataResponse<ChartBundle<Metrics>>>;
 }
 
 /**
