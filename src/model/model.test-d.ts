@@ -9,13 +9,13 @@ import type {
   ChartSeries,
   ChartValue,
   ChartWindow,
-  POOL_CHART_METRICS,
+  POOL_OPPORTUNITY_CHART_METRICS,
   POOL_POSITION_CHART_METRICS,
-  PoolChartMetric,
+  PoolOpportunityChartMetric,
   PoolPositionChartMetric,
-  STRATEGY_CHART_METRICS,
+  STRATEGY_OPPORTUNITY_CHART_METRICS,
   STRATEGY_POSITION_CHART_METRICS,
-  StrategyChartMetric,
+  StrategyOpportunityChartMetric,
   StrategyPositionChartMetric,
 } from "./charts.js";
 import type {
@@ -26,9 +26,9 @@ import type {
   chartSeriesSchema,
   chartValueSchema,
   chartWindowSchema,
-  poolChartMetricSchema,
+  poolOpportunityChartMetricSchema,
   poolPositionChartMetricSchema,
-  strategyChartMetricSchema,
+  strategyOpportunityChartMetricSchema,
   strategyPositionChartMetricSchema,
 } from "./charts.schema.js";
 import type { Curator, CuratorName } from "./curators.js";
@@ -295,11 +295,11 @@ describe("model schemas match model types", () => {
       z.infer<typeof chartRangeSchema>
     >().toEqualTypeOf<ChartRange>();
     expectTypeOf<
-      z.infer<typeof poolChartMetricSchema>
-    >().toEqualTypeOf<PoolChartMetric>();
+      z.infer<typeof poolOpportunityChartMetricSchema>
+    >().toEqualTypeOf<PoolOpportunityChartMetric>();
     expectTypeOf<
-      z.infer<typeof strategyChartMetricSchema>
-    >().toEqualTypeOf<StrategyChartMetric>();
+      z.infer<typeof strategyOpportunityChartMetricSchema>
+    >().toEqualTypeOf<StrategyOpportunityChartMetric>();
     expectTypeOf<
       z.infer<typeof poolPositionChartMetricSchema>
     >().toEqualTypeOf<PoolPositionChartMetric>();
@@ -433,11 +433,11 @@ describe("model schemas match model types", () => {
     // the lists are what generate one method per metric, so a metric missing
     // from one of them is a silently missing method rather than a type error
     expectTypeOf<
-      (typeof POOL_CHART_METRICS)[number]
-    >().toEqualTypeOf<PoolChartMetric>();
+      (typeof POOL_OPPORTUNITY_CHART_METRICS)[number]
+    >().toEqualTypeOf<PoolOpportunityChartMetric>();
     expectTypeOf<
-      (typeof STRATEGY_CHART_METRICS)[number]
-    >().toEqualTypeOf<StrategyChartMetric>();
+      (typeof STRATEGY_OPPORTUNITY_CHART_METRICS)[number]
+    >().toEqualTypeOf<StrategyOpportunityChartMetric>();
     expectTypeOf<
       (typeof POOL_POSITION_CHART_METRICS)[number]
     >().toEqualTypeOf<PoolPositionChartMetric>();

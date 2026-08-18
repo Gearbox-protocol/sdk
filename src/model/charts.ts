@@ -25,7 +25,7 @@ export type ChartRange = (typeof CHART_RANGES)[number];
 /**
  * Every metric a pool opportunity can chart.
  **/
-export const POOL_CHART_METRICS = [
+export const POOL_OPPORTUNITY_CHART_METRICS = [
   "depositApy",
   "borrowApy",
   "dieselRate",
@@ -38,7 +38,8 @@ export const POOL_CHART_METRICS = [
  * Metric a pool opportunity can chart. Derived from the runtime list that also
  * builds the backend's route enum, so the two cannot drift.
  **/
-export type PoolChartMetric = (typeof POOL_CHART_METRICS)[number];
+export type PoolOpportunityChartMetric =
+  (typeof POOL_OPPORTUNITY_CHART_METRICS)[number];
 
 /**
  * Every metric a strategy opportunity can chart.
@@ -46,7 +47,7 @@ export type PoolChartMetric = (typeof POOL_CHART_METRICS)[number];
  * `collateralPrice` is the collateral/underlying series a liquidation-price
  * chart draws; the two USD series are the same prices quoted in dollars.
  **/
-export const STRATEGY_CHART_METRICS = [
+export const STRATEGY_OPPORTUNITY_CHART_METRICS = [
   "netApy",
   "borrowApy",
   "collateralApy",
@@ -58,14 +59,15 @@ export const STRATEGY_CHART_METRICS = [
 
 /**
  * Metric a strategy opportunity can chart, derived from
- * {@link STRATEGY_CHART_METRICS}.
+ * {@link STRATEGY_OPPORTUNITY_CHART_METRICS}.
  **/
-export type StrategyChartMetric = (typeof STRATEGY_CHART_METRICS)[number];
+export type StrategyOpportunityChartMetric =
+  (typeof STRATEGY_OPPORTUNITY_CHART_METRICS)[number];
 
 /**
  * Every metric a pool position can chart.
  *
- * Nothing to do with {@link POOL_CHART_METRICS}: an opportunity charts what the
+ * Nothing to do with {@link POOL_OPPORTUNITY_CHART_METRICS}: an opportunity charts what the
  * pool did, a position charts what one wallet's deposit did in it. `mwr` and
  * `twr` are cumulative returns since the position opened — money-weighted, so
  * sensitive to when deposits and withdrawals landed, and time-weighted, which
@@ -130,7 +132,9 @@ export type StrategyPositionChartMetric =
 /**
  * Any metric an opportunity can chart.
  **/
-export type OpportunityChartMetric = PoolChartMetric | StrategyChartMetric;
+export type OpportunityChartMetric =
+  | PoolOpportunityChartMetric
+  | StrategyOpportunityChartMetric;
 
 /**
  * Any metric a position can chart.
@@ -199,12 +203,16 @@ export type ChartUnit =
    **/
   | "ratio"
   /**
-   * A plain multiple, `5.5` meaning 5.5x. Only leverage is one: the model
-   * carries it as `Leverage`, which is explicitly neither a percentage nor
-   * basis points. Health factor is not — it is `bps`, `10000` being the
-   * liquidation boundary, which is how the position row carries it.
+   * A plain number on no scale at all, plotted as it arrives: `5.5` is 5.5,
+   * which a leverage chart renders as `5.5x`.
+   *
+   * Only leverage is one. The model carries it as `Leverage`, explicitly
+   * neither a percentage nor basis points. Health factor is not — it is `bps`,
+   * `10000` being the liquidation boundary, which is how the position row
+   * quotes it, and naming this unit after a "factor" or a "multiplier" would
+   * read as though it were.
    **/
-  | "multiple";
+  | "scalar";
 
 /**
  * Unit of every metric, the one place either side decides it.
@@ -240,7 +248,7 @@ export const CHART_METRIC_UNITS = {
   totalValueUnderlying: "token",
   debt: "token",
   healthFactor: "bps",
-  leverage: "multiple",
+  leverage: "scalar",
   twrApy: "bps",
   trailingApy7d: "bps",
   trailingApy30d: "bps",
@@ -259,7 +267,7 @@ export const CHART_METRIC_UNITS = {
 export type ChartDenomination =
   | { unit: "bps" }
   | { unit: "usd" }
-  | { unit: "multiple" }
+  | { unit: "scalar" }
   | {
       unit: "token";
       /**

@@ -4,7 +4,7 @@ import type {
   ChartSeries,
   DataResponse,
   Opportunity,
-  PoolChartMetric,
+  PoolOpportunityChartMetric,
   PoolOpportunityDetail,
   PoolOpportunityRef,
   StrategyOpportunityDetail,
@@ -204,7 +204,7 @@ describe("the opportunity kind gates which charts it has", () => {
   });
 
   it("makes keys optional when the metric list is dynamic", async () => {
-    const metrics: PoolChartMetric[] = ["depositApy"];
+    const metrics: PoolOpportunityChartMetric[] = ["depositApy"];
     const { data } = await opportunities.charts(pool, metrics, "1m");
 
     expectTypeOf(data.series.depositApy).toEqualTypeOf<

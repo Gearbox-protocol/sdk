@@ -4,11 +4,11 @@ import type {
   DataResponse,
   Opportunity,
   OpportunityFilter,
-  PoolChartMetric,
+  PoolOpportunityChartMetric,
   PoolOpportunityDetail,
   PoolOpportunityKey,
   PoolOpportunityRef,
-  StrategyChartMetric,
+  StrategyOpportunityChartMetric,
   StrategyOpportunityDetail,
   StrategyOpportunityKey,
   StrategyOpportunityRef,
@@ -80,12 +80,12 @@ export interface OpportunitiesOffchainOnly {
    **/
   // there is no second source to fall back to, so a backend failure is raised
   // rather than reported in the metadata
-  charts<const Metrics extends readonly PoolChartMetric[]>(
+  charts<const Metrics extends readonly PoolOpportunityChartMetric[]>(
     key: PoolOpportunityRef,
     metrics: Metrics,
     range: ChartRange,
   ): Promise<DataResponse<ChartBundle<Metrics>>>;
-  charts<const Metrics extends readonly StrategyChartMetric[]>(
+  charts<const Metrics extends readonly StrategyOpportunityChartMetric[]>(
     key: StrategyOpportunityRef,
     metrics: Metrics,
     range: ChartRange,

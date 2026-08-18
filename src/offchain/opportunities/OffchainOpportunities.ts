@@ -2,8 +2,8 @@ import { z } from "zod/v4";
 import type {
   ChartBundle,
   ChartRange,
-  PoolChartMetric,
-  StrategyChartMetric,
+  PoolOpportunityChartMetric,
+  StrategyOpportunityChartMetric,
 } from "../../model/charts.js";
 import type {
   Opportunity,
@@ -25,8 +25,8 @@ import { AbstractOffchainNamespace } from "../AbstractOffchainNamespace.js";
 import type { GearboxAPIOptions } from "../types.js";
 
 type OpportunityChartMetricFor<K extends OpportunityKey> = {
-  pool: PoolChartMetric;
-  strategy: StrategyChartMetric;
+  pool: PoolOpportunityChartMetric;
+  strategy: StrategyOpportunityChartMetric;
 }[K["kind"]];
 
 /**

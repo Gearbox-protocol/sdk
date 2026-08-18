@@ -150,15 +150,15 @@ describe("a position charts its own metrics", () => {
     bundle({ series });
 
   it("accepts the units a strategy position carries", () => {
-    // leverage is the one plain multiple in the model; health factor is not —
-    // it is bps, the same scale the position row quotes it in
+    // leverage is the one value on no scale at all; health factor is not — it
+    // is bps, the same scale the position row quotes it in
     const schema = chartBundleSchemaFor(
       ["leverage", "healthFactor", "totalValueUsd", "debt"],
       "1d",
     );
     const { series } = schema.parse(
       positionBundle({
-        leverage: { status: "ok", unit: "multiple", values: [2.5, 2.6, 2.4] },
+        leverage: { status: "ok", unit: "scalar", values: [2.5, 2.6, 2.4] },
         healthFactor: {
           status: "ok",
           unit: "bps",
@@ -174,7 +174,7 @@ describe("a position charts its own metrics", () => {
     );
 
     expect(series.leverage.status === "ok" && series.leverage.unit).toBe(
-      "multiple",
+      "scalar",
     );
     expect(
       series.healthFactor.status === "ok" && series.healthFactor.unit,

@@ -6,11 +6,11 @@ import type {
   OpportunityChartMetric,
   OpportunityFilter,
   OpportunityKey,
-  PoolChartMetric,
+  PoolOpportunityChartMetric,
   PoolOpportunityDetail,
   PoolOpportunityKey,
   PoolOpportunityRef,
-  StrategyChartMetric,
+  StrategyOpportunityChartMetric,
   StrategyOpportunityDetail,
   StrategyOpportunityKey,
   StrategyOpportunityRef,
@@ -122,12 +122,14 @@ export class OpportunitiesNamespace
   /**
    * {@inheritDoc OpportunitiesOffchainOnly.charts}
    **/
-  public charts<const Metrics extends readonly PoolChartMetric[]>(
+  public charts<const Metrics extends readonly PoolOpportunityChartMetric[]>(
     key: PoolOpportunityRef,
     metrics: Metrics,
     range: ChartRange,
   ): Promise<DataResponse<ChartBundle<Metrics>>>;
-  public charts<const Metrics extends readonly StrategyChartMetric[]>(
+  public charts<
+    const Metrics extends readonly StrategyOpportunityChartMetric[],
+  >(
     key: StrategyOpportunityRef,
     metrics: Metrics,
     range: ChartRange,
