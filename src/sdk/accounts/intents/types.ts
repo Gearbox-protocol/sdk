@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import type { Leverage } from "../../../model/index.js";
+import type { Leverage, PositionMetrics } from "../../../model/index.js";
 import type {
   Asset,
   MultiCall,
@@ -23,7 +23,7 @@ export type CreditAccountSlice = Omit<RouterCASlice, "debt"> & {
 };
 
 /** Projected account metrics once the operations execute. */
-export interface OperationState {
+export interface OperationState extends PositionMetrics {
   /** Account TVL after operation */
   totalValue: bigint;
   /** Account debt after operation */

@@ -4,6 +4,7 @@ export * from "./MarketRegister.js";
 export * from "./MarketSuite.js";
 export * from "./oracle/index.js";
 export * from "./pool/index.js";
+export * from "./position-metrics/index.js";
 export * from "./pricefeeds/index.js";
 export * from "./rwa/index.js";
 export * from "./types.js";

@@ -73,6 +73,27 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
     expect(preview.minQuota).toEqual(preview.averageQuota);
   });
 
+  it("fills position metrics from the expected branch", async () => {
+    const preview = await expectCase(case_underlying_3x);
+
+    // stubbed until the collateral yield is wired up
+    expect(preview.overallApy).toBe(0);
+    expect(preview.healthFactor).toBeGreaterThan(10000);
+    // no base rate in the fixture market; the POS quota carries the cost
+    expect(preview.borrowRate.base).toBe(0);
+    expect(Object.keys(preview.borrowRate.quotas)).toEqual([POS]);
+    expect(preview.borrowRate.totalOnDebt).toBeGreaterThan(0);
+    expect(preview.timeToLiquidation).not.toBeNull();
+    // everything is routed into POS: a single target, so a price exists
+    expect(preview.liquidationPrice).not.toBeNull();
+  });
+
+  it("reports no liquidation price when the position holds two targets", async () => {
+    const preview = await expectCase(case_mixed_with_leftover);
+
+    expect(preview.liquidationPrice).toBeNull();
+  });
+
   it("1x draws no debt", async () => {
     const preview = await expectCase(case_underlying_1x);
 

@@ -64,6 +64,21 @@ describe("adjustLeverage.start — collateral fixed, debt retargeted", () => {
     expect(state.quotas[POS]?.balance).toBe(QUOTA_1500);
   });
 
+  it("fills position metrics on the projected state", async () => {
+    const state = await expectCase(case_increase, [
+      CA_OP_CALLS.increaseDebt,
+      MOCK_ROUTER_CALL,
+      CA_OP_CALLS.changeQuota,
+    ])();
+
+    // stubbed until the collateral yield is wired up
+    expect(state.overallApy).toBe(0);
+    expect(state.healthFactor).toBeGreaterThan(10000);
+    expect(state.borrowRate.quotas[POS]).toBeGreaterThan(0);
+    // single non-underlying asset left on the account: a price exists
+    expect(state.liquidationPrice).not.toBeNull();
+  });
+
   it("reports the model's leverage (debt / equity), not the calculator's total leverage", async () => {
     // the calculator targets `TVL / collateral` (3x here); the projection must
     // read like a `Position` — `positionLeverage(debt, totalValue)` is 2x for

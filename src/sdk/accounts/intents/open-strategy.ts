@@ -1,6 +1,8 @@
 import type { Address } from "viem";
+import type { PositionMetrics } from "../../../model/index.js";
 import { LEVERAGE_DECIMALS } from "../../constants/math.js";
 import type { Asset, MultiCall, OnchainSDK } from "../../index.js";
+import { positionMetrics } from "../../market/position-metrics/index.js";
 import { assertDebtInBand, debtForLeverage } from "./math.js";
 import type { CreditAccountSlice } from "./types.js";
 import { IntentPreviewError } from "./types.js";
@@ -38,7 +40,7 @@ export interface OpenStrategyProps {
  * hands back expected and floor balances from a single call, and `openCA` wants
  * both `minQuota` and `averageQuota`, so there is nothing to gain by dropping one.
  */
-export interface OpenStrategyPreview {
+export interface OpenStrategyPreview extends PositionMetrics {
   /** Debt drawn, in underlying. */
   debt: bigint;
   /** Collateral supplied, valued in underlying. */
@@ -146,15 +148,27 @@ export async function previewOpenStrategy(
       // `openCA` expects.
     }).quotaIncrease;
 
+  const averageQuota = quotasFor(averageAssets);
+  const minQuota = quotasFor(minAssets);
+
   return {
     debt,
     collateral: margin,
     totalValue: margin + debt,
     averageAssets,
     minAssets,
-    averageQuota: quotasFor(averageAssets),
-    minQuota: quotasFor(minAssets),
+    averageQuota,
+    minQuota,
     calls: [...leg.calls],
+    // metrics follow the expected branch, not the slippage floor; the target
+    // for the liquidation price comes out of `averageAssets`
+    ...positionMetrics(sdk, {
+      creditManager,
+      assets: averageAssets,
+      quotas: averageQuota,
+      debt,
+      totalValue: margin + debt,
+    }),
   };
 }
 

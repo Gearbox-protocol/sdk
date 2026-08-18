@@ -101,6 +101,10 @@ interface BuildMockSdkArgs {
   maxDebt: bigint;
   /** Facade `minDebt`; defaults to 0n so debt-range checks stay opt-in. */
   minDebt?: bigint;
+  /** Pool base rate in ray; feeds `borrowApyBps` of position metrics. */
+  baseInterestRate?: bigint;
+  /** Credit manager interest fee in Bps; feeds position metrics. */
+  feeInterest?: number;
   creditManager: Address;
   creditFacade: Address;
   /** Market underlying token (`market.pool.underlying`). */
@@ -177,13 +181,36 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
       })),
   };
 
+  const quotaOf = (token: Address): MockQuotaEntry | undefined =>
+    args.quotas[token.toLowerCase() as Address] ?? args.quotas[token];
+
+  const priceOf = (token: Address) => {
+    const price =
+      args.prices[token.toLowerCase() as Address] ?? args.prices[token];
+    return price === undefined ? undefined : { success: true, price };
+  };
+
   const liquidationThresholds = {
     entries: () => Object.entries(args.liquidationThresholds),
+    get: (token: Address) =>
+      args.liquidationThresholds[token.toLowerCase() as Address] ??
+      args.liquidationThresholds[token],
   };
 
   const market = {
-    priceOracle: { convert },
-    pool: { pqk: { quotas }, underlying: args.underlying },
+    priceOracle: { convert, mainPrices: { get: priceOf } },
+    pool: {
+      pqk: {
+        quotas,
+        quotaRate: (token: Address) => Number(quotaOf(token)?.rate ?? 0n),
+        hasActiveQuota: (token: Address) => {
+          const q = quotaOf(token);
+          return !!q?.isActive && q.limit > 0n;
+        },
+      },
+      pool: { baseInterestRate: args.baseInterestRate ?? 0n },
+      underlying: args.underlying,
+    },
   };
 
   const creditManagerSuite = {
@@ -191,6 +218,7 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
       address: args.creditManager,
       liquidationThresholds,
       collateralTokens: [],
+      feeInterest: args.feeInterest ?? 0,
     },
     creditFacade: {
       address: args.creditFacade,
