@@ -235,7 +235,7 @@ export interface OpenStrategyParams extends SimulateOptions {
 
 export interface LpParams {
   /**
-   * On deposit: amount of `tokenIn`. On withdrawal: amount of `tokenOut`, which
+   * On deposit: amount of `tokenIn`. On withdraw: amount of `tokenOut`, which
    * the pool's `withdraw` takes as is and prices in shares itself.
    **/
   amount: bigint;
@@ -254,6 +254,22 @@ export interface LpParams {
    * required when the pool offers several, otherwise the simulation reports
    * `unsupportedTokenPair`.
    **/
+  tokenOut?: Address;
+}
+
+/**
+ * Same shape as {@link LpParams}, but {@link OpportunitiesSimulate.redeem}
+ * treats `amount` as the pool shares to burn rather than the underlying to
+ * receive.
+ **/
+export interface LpRedeemParams {
+  /**
+   * Amount of `tokenIn` — pool shares, or the zapper token that wraps them —
+   * to redeem.
+   **/
+  amount: bigint;
+  wallet: Address;
+  tokenIn?: Address;
   tokenOut?: Address;
 }
 
@@ -346,6 +362,12 @@ export interface OpportunitiesSimulate {
    * which act on credit accounts.
    **/
   withdraw(pool: PoolInput, params: LpParams): LpSimulate;
+
+  /**
+   * Redeeming pool shares: `amount` is the `tokenIn` the wallet parts with,
+   * and the preview is the underlying it converts to.
+   **/
+  redeem(pool: PoolInput, params: LpRedeemParams): LpSimulate;
 
   /**
    * Opening a leveraged position from wallet collateral.

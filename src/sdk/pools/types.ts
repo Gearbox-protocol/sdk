@@ -62,14 +62,22 @@ export interface RemoveLiquidityProps {
   pool: Address;
   /**
    * Amount of underlying the wallet wants back, matching
-   * {@link PoolSimulation.tokenOut}. A direct withdrawal pays it out exactly; a
-   * zapper redeems the shares it converts to at the pool's current rate.
+   * {@link PoolSimulation.tokenOut} when {@link RemoveLiquidityProps.mode} is
+   * `"withdraw"`. Amount of pool shares to burn when `mode` is `"redeem"`.
    **/
   amount: bigint;
   wallet: Address;
   permit: PermitResult | undefined;
 
   meta: WithdrawalMetadata;
+
+  /**
+   * `withdraw` calls the pool's ERC-4626 `withdraw(assets, …)`; `redeem` calls
+   * `redeem(shares, …)` or the zapper's redeem with shares directly.
+   *
+   * @default "withdraw"
+   **/
+  mode?: "withdraw" | "redeem";
 }
 
 export type MarketType = "rwa-on-demand" | "rwa-default" | "classic";
@@ -117,8 +125,9 @@ export interface WithdrawalMetadata {
 }
 
 /**
- * Props shared by {@link IPoolsService.simulateDeposit} and
- * {@link IPoolsService.simulateWithdraw}.
+ * Props shared by {@link IPoolsService.simulateDeposit},
+ * {@link IPoolsService.simulateWithdraw}, and
+ * {@link IPoolsService.simulateRedeem}.
  **/
 export interface SimulatePoolOperationProps {
   /**
@@ -126,7 +135,8 @@ export interface SimulatePoolOperationProps {
    **/
   pool: Address;
   /**
-   * Amount of `tokenOut` the user parts with.
+   * Operation amount. Means `tokenIn` on deposit and redeem, `tokenOut` on
+   * withdraw — see each method's docs.
    **/
   amount: bigint;
   /**
@@ -281,6 +291,20 @@ export interface IPoolsService {
    * several routes exist.
    **/
   simulateWithdraw(props: SimulatePoolOperationProps): PoolSimulation;
+
+  /**
+   * Simulates a redemption and reports what the wallet would receive.
+   *
+   * The ERC-4626 `previewRedeem` mirror: `amount` is the shares to burn, and
+   * the result is the underlying they convert to, less the pool's withdrawal
+   * fee.
+   *
+   * @param props - {@link SimulatePoolOperationProps}
+   * @returns {@link PoolSimulation}
+   * @throws If the token pair has no route, or if `tokenOut` is omitted while
+   * several routes exist.
+   **/
+  simulateRedeem(props: SimulatePoolOperationProps): PoolSimulation;
 
   /**
    * Returns contract call parameters for adding liquidity to a pool

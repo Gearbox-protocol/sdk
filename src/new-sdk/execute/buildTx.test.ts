@@ -139,6 +139,39 @@ describe("buildTx — pool", () => {
       amount: 505n,
       permit: undefined,
       meta: WITHDRAW_META,
+      mode: "withdraw",
+    });
+  });
+
+  it("redeem: the tx is PoolService.removeLiquidity's on the shares the sim priced", async () => {
+    const { execute, sdk, txs } = mockChain();
+    const redeemSim: Extract<LpSimulate, { ok: true }> = {
+      ok: true,
+      operations: [],
+      preview: {
+        tokenIn: { token: DIESEL, balance: 500n },
+        tokenOut: { token: UNDERLYING, balance: 505n },
+      },
+      calls: [],
+    };
+
+    const tx = await execute.buildTx({
+      kind: "pool",
+      chainId: CHAIN_ID,
+      pool: POOL,
+      wallet: WALLET,
+      op: "redeem",
+      sim: redeemSim,
+    });
+
+    expect(tx).toBe(txs.withdraw);
+    expect(sdk.pools.removeLiquidity).toHaveBeenCalledWith({
+      pool: POOL,
+      wallet: WALLET,
+      amount: 500n,
+      permit: undefined,
+      meta: WITHDRAW_META,
+      mode: "redeem",
     });
   });
 

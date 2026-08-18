@@ -15,8 +15,9 @@ import type {
 } from "../simulate/index.js";
 
 /**
- * A pool deposit or withdrawal, as {@link OpportunitiesSimulate.deposit} /
- * {@link OpportunitiesSimulate.withdraw} priced it. The simulation carries the
+ * A pool deposit, withdrawal or redemption, as
+ * {@link OpportunitiesSimulate.deposit} / {@link OpportunitiesSimulate.withdraw}
+ * / {@link OpportunitiesSimulate.redeem} priced it. The simulation carries the
  * tokens on both sides and the zapper, so nothing else is needed to encode
  * the call.
  **/
@@ -25,7 +26,7 @@ export interface PoolPrepareRequest {
   chainId: ChainId;
   pool: Address;
   wallet: Address;
-  op: "deposit" | "withdraw";
+  op: "deposit" | "withdraw" | "redeem";
   sim: Extract<LpSimulate, { ok: true }>;
 }
 
@@ -162,9 +163,10 @@ function poolTx(sdk: OnchainSDK, request: PoolPrepareRequest): RawTx {
   return sdk.pools.removeLiquidity({
     pool,
     wallet,
-    amount: tokenOut.balance,
+    amount: request.op === "withdraw" ? tokenOut.balance : tokenIn.balance,
     permit: undefined,
     meta,
+    mode: request.op === "withdraw" ? "withdraw" : "redeem",
   }).tx;
 }
 

@@ -13,6 +13,10 @@ function buildApi() {
     getWithdrawalTokensOut: vi.fn(() => [UNDERLYING]),
     getWithdrawalMetadata: vi.fn(() => ({})),
     simulateWithdraw: vi.fn((props: { amount: bigint; tokenIn?: Address }) => ({
+      tokenIn: { token: props.tokenIn ?? POOL, balance: 100n },
+      tokenOut: { token: UNDERLYING, balance: props.amount },
+    })),
+    simulateRedeem: vi.fn((props: { amount: bigint; tokenIn?: Address }) => ({
       tokenIn: { token: props.tokenIn ?? POOL, balance: props.amount },
       tokenOut: { token: UNDERLYING, balance: props.amount },
     })),
@@ -30,7 +34,7 @@ function buildApi() {
 }
 
 describe("SimulateApi.withdraw", () => {
-  it("passes the tokenOut amount through, leaving the share conversion to the pool", () => {
+  it("passes the tokenOut amount through to simulateWithdraw", () => {
     const { api, pools } = buildApi();
 
     const result = api.withdraw(
@@ -46,24 +50,29 @@ describe("SimulateApi.withdraw", () => {
       tokenOut: UNDERLYING,
     });
     expect(pools.removeLiquidity).toHaveBeenCalledWith(
-      expect.objectContaining({ amount: 110n }),
+      expect.objectContaining({ amount: 110n, mode: "withdraw" }),
     );
   });
+});
 
-  it("still defaults tokenIn to the pool when only amount is named", () => {
+describe("SimulateApi.redeem", () => {
+  it("passes the share amount through to simulateRedeem", () => {
     const { api, pools } = buildApi();
 
-    api.withdraw(
+    const result = api.redeem(
       { chainId: CHAIN_ID, pool: POOL },
-      { amount: 110n, wallet: WALLET },
+      { amount: 100n, wallet: WALLET, tokenOut: UNDERLYING },
     );
 
-    expect(pools.getWithdrawalTokensOut).toHaveBeenCalledWith(POOL, POOL);
-    expect(pools.simulateWithdraw).toHaveBeenCalledWith({
+    expect(result).toMatchObject({ ok: true });
+    expect(pools.simulateRedeem).toHaveBeenCalledWith({
       pool: POOL,
-      amount: 110n,
+      amount: 100n,
       tokenIn: POOL,
       tokenOut: UNDERLYING,
     });
+    expect(pools.removeLiquidity).toHaveBeenCalledWith(
+      expect.objectContaining({ amount: 100n, mode: "redeem" }),
+    );
   });
 });

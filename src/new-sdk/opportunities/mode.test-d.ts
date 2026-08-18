@@ -78,6 +78,7 @@ describe("simulate covers the flows and the withdraw ceiling", () => {
   it("has one method per flow", () => {
     expectTypeOf(simulate).toHaveProperty("deposit");
     expectTypeOf(simulate).toHaveProperty("withdraw");
+    expectTypeOf(simulate).toHaveProperty("redeem");
     expectTypeOf(simulate).toHaveProperty("openNewStrategy");
     expectTypeOf(simulate).toHaveProperty("depositStrategy");
     expectTypeOf(simulate).toHaveProperty("withdrawStrategy");
@@ -92,6 +93,7 @@ describe("simulate covers the flows and the withdraw ceiling", () => {
     const params = { amount: 1_000n, wallet: WALLET };
     expectTypeOf(simulate.deposit).toBeCallableWith(pool, params);
     expectTypeOf(simulate.withdraw).toBeCallableWith(pool, params);
+    expectTypeOf(simulate.redeem).toBeCallableWith(pool, params);
   });
 
   it("answers the LP flows outright, with no promise to await", () => {
@@ -99,6 +101,7 @@ describe("simulate covers the flows and the withdraw ceiling", () => {
     const params = { amount: 1_000n, wallet: WALLET };
     expectTypeOf(simulate.deposit(pool, params)).toEqualTypeOf<LpSimulate>();
     expectTypeOf(simulate.withdraw(pool, params)).toEqualTypeOf<LpSimulate>();
+    expectTypeOf(simulate.redeem(pool, params)).toEqualTypeOf<LpSimulate>();
   });
 
   it("takes a position from positions.list() for the account flows", () => {

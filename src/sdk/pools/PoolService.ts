@@ -243,8 +243,33 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     const { zapper } = this.getWithdrawalMetadata(poolAddr, tokenIn, tokenOut);
 
     return {
-      tokenIn: { token: tokenIn, balance:  toShares(pool.pool, amount) },
-      tokenOut: { token: tokenOut, balance: amount  },
+      tokenIn: { token: tokenIn, balance: toShares(pool.pool, amount) },
+      tokenOut: { token: tokenOut, balance: amount },
+      zapper: zapper?.baseParams.addr,
+      availableLiquidity:
+        (pool.pool.availableLiquidity * LIQUIDITY_SAFETY_NUM) /
+        LIQUIDITY_SAFETY_DENOM,
+    };
+  }
+
+  /**
+   * {@inheritDoc IPoolsService.simulateRedeem}
+   */
+  public simulateRedeem(props: SimulatePoolOperationProps): PoolSimulation {
+    const { pool: poolAddr, amount } = props;
+    const { pool } = this.sdk.marketRegister.findByPool(poolAddr);
+
+    const tokenIn = props.tokenIn ?? poolAddr;
+    const tokenOut = this.#resolveTokenOut(
+      props.tokenOut,
+      () => this.getWithdrawalTokensOut(poolAddr, tokenIn),
+      { poolAddr, tokenIn, operation: "withdrawal" },
+    );
+    const { zapper } = this.getWithdrawalMetadata(poolAddr, tokenIn, tokenOut);
+
+    return {
+      tokenIn: { token: tokenIn, balance: amount },
+      tokenOut: { token: tokenOut, balance: toAssets(pool.pool, amount) },
       zapper: zapper?.baseParams.addr,
       availableLiquidity:
         (pool.pool.availableLiquidity * LIQUIDITY_SAFETY_NUM) /
@@ -256,7 +281,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
    * {@inheritDoc IPoolsService.removeLiquidity}
    */
   public removeLiquidity(props: RemoveLiquidityProps): PoolServiceCallResult {
-    const { pool, amount, meta, wallet, permit } = props;
+    const { pool, amount, meta, wallet, permit, mode = "withdraw" } = props;
 
     const underlying = this.#describeUnderlying(pool);
     if (this.sdk.tokensMeta.isRWAUnderlying(underlying)) {
@@ -284,9 +309,9 @@ export class PoolService extends SDKConstruct implements IPoolsService {
       meta.zapper instanceof IETHZapperContract ||
       meta.zapper instanceof IERC20ZapperContract
     ) {
-      // A zapper only redeems: it takes the share-like token it minted, so the
-      // requested underlying has to be converted at the pool's own rate first.
-      const shares = toShares(poolContract, amount);
+      // A zapper only redeems shares; a withdraw-sized request converts first.
+      const shares =
+        mode === "withdraw" ? toShares(poolContract, amount) : amount;
       const tx = permit
         ? meta.zapper.redeemWithPermit(
             shares,
@@ -303,9 +328,10 @@ export class PoolService extends SDKConstruct implements IPoolsService {
       };
     }
 
-    // Direct withdrawal is exact on the side the caller asked about: the pool
-    // burns whatever shares `amount` of underlying costs, fee included.
-    const tx = poolContract.withdraw(amount, wallet, wallet);
+    const tx =
+      mode === "withdraw"
+        ? poolContract.withdraw(amount, wallet, wallet)
+        : poolContract.redeem(amount, wallet, wallet);
     return {
       tx,
       calls: [{ target: pool, callData: tx.callData }],
@@ -695,7 +721,6 @@ export class PoolService extends SDKConstruct implements IPoolsService {
 export function toShares(pool: IPoolContract, assets: bigint): bigint {
   const { totalSupply, totalAssets } = pool;
 
-  // An empty pool has no rate yet, so the first deposit sets it at one-to-one.
   return totalSupply === 0n || totalAssets === 0n
     ? assets
     : (assets * totalSupply + totalAssets - 1n) / totalAssets;
@@ -713,5 +738,5 @@ function toAssets(pool: IPoolContract, shares: bigint): bigint {
       ? shares
       : (shares * totalAssets) / totalSupply;
 
-  return assets *  (PERCENTAGE_FACTOR - withdrawFee) / PERCENTAGE_FACTOR;
+  return (assets * (PERCENTAGE_FACTOR - withdrawFee)) / PERCENTAGE_FACTOR;
 }

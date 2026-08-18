@@ -133,31 +133,60 @@ describe("PoolService.simulateDeposit", () => {
 const LIQUIDITY = 999_990n;
 
 describe("PoolService.simulateWithdraw", () => {
-  it("defaults to pool shares and converts them back to underlying", () => {
+  it("prices the shares an exact underlying payout would cost", () => {
     expect(
       buildService().simulateWithdraw({ pool: POOL, amount: 120n }),
     ).toEqual({
-      tokenIn: { token: POOL, balance: 120n },
-      tokenOut: { token: UNDERLYING, balance: 132n },
+      tokenIn: { token: POOL, balance: 110n },
+      tokenOut: { token: UNDERLYING, balance: 120n },
       zapper: undefined,
       availableLiquidity: LIQUIDITY,
     });
   });
 
+  it("prices a zapper withdrawal in the share token it wraps", () => {
+    const service = buildService({ zappers: [UNDERLYING_TO_FARM] });
+
+    expect(
+      service.simulateWithdraw({
+        pool: POOL,
+        amount: 480n,
+        tokenIn: FARM_TOKEN,
+      }),
+    ).toEqual({
+      tokenIn: { token: FARM_TOKEN, balance: 437n },
+      tokenOut: { token: UNDERLYING, balance: 480n },
+      zapper: ZAPPER,
+      availableLiquidity: LIQUIDITY,
+    });
+  });
+});
+
+describe("PoolService.simulateRedeem", () => {
+  it("defaults to pool shares and converts them back to underlying", () => {
+    expect(buildService().simulateRedeem({ pool: POOL, amount: 120n })).toEqual(
+      {
+        tokenIn: { token: POOL, balance: 120n },
+        tokenOut: { token: UNDERLYING, balance: 132n },
+        zapper: undefined,
+        availableLiquidity: LIQUIDITY,
+      },
+    );
+  });
+
   it("takes the pool's withdrawal fee off the proceeds", () => {
-    // 1% of the 132 underlying the shares convert to
     const service = buildService({ withdrawFee: 100n });
 
     expect(
-      service.simulateWithdraw({ pool: POOL, amount: 120n }),
-    ).toMatchObject({ tokenOut: { token: UNDERLYING, balance: 131n } });
+      service.simulateRedeem({ pool: POOL, amount: 120n }),
+    ).toMatchObject({ tokenOut: { token: UNDERLYING, balance: 130n } });
   });
 
   it("burns the farm wrapper at the pool's own rate", () => {
     const service = buildService({ zappers: [UNDERLYING_TO_FARM] });
 
     expect(
-      service.simulateWithdraw({
+      service.simulateRedeem({
         pool: POOL,
         amount: 480n,
         tokenIn: FARM_TOKEN,

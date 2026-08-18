@@ -21,6 +21,7 @@ import type {
   DelayedStrategySimulate,
   DepositStrategyParams,
   LpParams,
+  LpRedeemParams,
   LpSimulate,
   OpenStrategyParams,
   OpenStrategySimulate,
@@ -163,6 +164,38 @@ export class SimulateApi
       wallet: params.wallet,
       permit: undefined,
       meta: pools.getWithdrawalMetadata(pool.pool, tokenIn, tokenOut),
+      mode: "withdraw",
+    });
+
+    return { ok: true, operations: [], preview, calls };
+  }
+
+  /**
+   * {@inheritDoc OpportunitiesSimulate.redeem}
+   **/
+  public redeem(pool: PoolInput, params: LpRedeemParams): LpSimulate {
+    const { pools } = this.sdk.chain(pool.chainId);
+    const tokenIn = params.tokenIn ?? pool.pool;
+    const tokenOut = lpRoute(params.tokenOut, () =>
+      pools.getWithdrawalTokensOut(pool.pool, tokenIn),
+    );
+    if (!tokenOut) {
+      return { ok: false, reason: "unsupportedTokenPair" };
+    }
+
+    const preview = pools.simulateRedeem({
+      pool: pool.pool,
+      amount: params.amount,
+      tokenIn,
+      tokenOut,
+    });
+    const { calls } = pools.removeLiquidity({
+      pool: pool.pool,
+      amount: params.amount,
+      wallet: params.wallet,
+      permit: undefined,
+      meta: pools.getWithdrawalMetadata(pool.pool, tokenIn, tokenOut),
+      mode: "redeem",
     });
 
     return { ok: true, operations: [], preview, calls };
