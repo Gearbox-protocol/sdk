@@ -1,6 +1,9 @@
-import type { z } from "zod/v4";
+import { z } from "zod/v4";
 import type { ChartBundle, ChartMetric, ChartRange } from "../model/charts.js";
-import { chartBundleSchemaFor } from "../model/charts.schema.js";
+import {
+  chartBundleSchemaFor,
+  chartQueryCodec,
+} from "../model/charts.schema.js";
 import type { ChainScopedFilter } from "../model/filters.js";
 import type { ChainId } from "../model/primitives.js";
 import type { DataResponse } from "../model/response.js";
@@ -128,9 +131,8 @@ export abstract class AbstractOffchainNamespace {
   ): Promise<DataResponse<ChartBundle<Metrics>>> {
     return this.get({
       path,
-      // repeated `?metrics=` entries would be the other spelling; one comma-
-      // joined value keeps the URL, and the cache key it becomes, stable
-      query: { range, metrics: metrics.join(",") },
+      // the encode direction of the same codec the backend validates with
+      query: z.encode(chartQueryCodec, { metrics, range }),
       schema: chartBundleSchemaFor(metrics, range),
     });
   }

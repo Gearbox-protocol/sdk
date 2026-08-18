@@ -149,6 +149,26 @@ export type PositionChartMetric =
 export type ChartMetric = OpportunityChartMetric | PositionChartMetric;
 
 /**
+ * What one chart read asks for, beyond the subject its route names.
+ *
+ * The request side of a chart, mirroring how a list read carries its
+ * `OpportunityFilter`: the SDK encodes it into the query string and the backend
+ * decodes the same codec, so neither side has to restate how a metric list
+ * travels in a URL.
+ **/
+export interface ChartQuery {
+  /**
+   * Metrics to chart, at least one and each named once. They become the keys of
+   * {@link ChartBundle.series}.
+   **/
+  metrics: readonly ChartMetric[];
+  /**
+   * Window to cover, echoed back in {@link ChartWindow.range}.
+   **/
+  range: ChartRange;
+}
+
+/**
  * Scale a chart's values are on.
  *
  * There is no `percent`: every percentage-like value of the read model is

@@ -4,6 +4,7 @@ import type {
   ChartBundle,
   ChartDenomination,
   ChartMetric,
+  ChartQuery,
   ChartRange,
   ChartSeries,
   ChartValue,
@@ -20,6 +21,7 @@ import type {
 import type {
   chartDenominationSchema,
   chartMetricSchema,
+  chartQuerySchema,
   chartRangeSchema,
   chartSeriesSchema,
   chartValueSchema,
@@ -319,6 +321,9 @@ describe("model schemas match model types", () => {
     expectTypeOf<
       z.infer<typeof chartWindowSchema>
     >().toEqualTypeOf<ChartWindow>();
+    expectTypeOf<
+      z.infer<typeof chartQuerySchema>
+    >().toEqualTypeOf<ChartQuery>();
   });
 
   it("a bundle keyed by more metrics answers for fewer", () => {

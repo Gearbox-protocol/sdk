@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import type {
   ChartBundle,
   ChartMetric,
+  ChartQuery,
   ChartRange,
   ChartSeries,
   ChartWindow,
@@ -67,6 +68,57 @@ export const chartMetricSchema = z.union([
   poolPositionChartMetricSchema,
   strategyPositionChartMetricSchema,
 ]);
+
+/**
+ * {@link ChartQuery}
+ **/
+export const chartQuerySchema = z.object({
+  metrics: z
+    .array(chartMetricSchema)
+    .readonly()
+    .refine(metrics => metrics.length > 0, {
+      error: "a chart read needs at least one metric",
+    })
+    .refine(metrics => new Set(metrics).size === metrics.length, {
+      error: "a chart read needs distinct metrics",
+    }),
+  range: chartRangeSchema,
+});
+
+/**
+ * {@link ChartQuery} as a URL can carry it: the metrics comma-joined, since
+ * repeated `?metrics=` entries would order differently between clients and give
+ * one request two cache keys.
+ **/
+export const chartQueryParamsSchema = z.object({
+  metrics: z.string().regex(/^\w+(,\w+)*$/),
+  range: chartRangeSchema,
+});
+
+/**
+ * Codec for {@link ChartQuery} to encode/decode to/from url query parameters.
+ *
+ * The one place the wire form of a chart request is decided. The SDK encodes
+ * with it, the backend decodes with it, and the checks that a read names at
+ * least one metric and names none of them twice ride along in both directions —
+ * so a bad request fails before it is issued, not after a round trip.
+ **/
+export const chartQueryCodec = z.codec(
+  chartQueryParamsSchema,
+  chartQuerySchema,
+  {
+    decode: (params): ChartQuery => ({
+      // members are checked by `chartQuerySchema`, which the codec applies to
+      // this result; the split can only produce strings
+      metrics: params.metrics.split(",") as ChartMetric[],
+      range: params.range,
+    }),
+    encode: (query): z.input<typeof chartQueryParamsSchema> => ({
+      metrics: query.metrics.join(","),
+      range: query.range,
+    }),
+  },
+);
 
 /**
  * {@link ChartDenomination}

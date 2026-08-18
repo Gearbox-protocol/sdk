@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { chartBundleSchemaFor } from "./charts.schema.js";
+import { z } from "zod/v4";
+import { chartBundleSchemaFor, chartQueryCodec } from "./charts.schema.js";
 
 /**
  * The wire invariants a chart read enforces. They are what a consumer is
@@ -232,5 +233,54 @@ describe("every read is sampled onto a grid", () => {
     });
 
     expect(() => schema.parse(irregular)).toThrow(/grid|seconds apart/);
+  });
+});
+
+describe("a chart request travels as one codec both sides share", () => {
+  const query = { metrics: ["debt", "leverage"], range: "1m" } as const;
+
+  it("joins the metrics into one parameter", () => {
+    // repeated `?metrics=` entries would order differently between clients and
+    // give one request two cache keys
+    expect(z.encode(chartQueryCodec, query)).toEqual({
+      metrics: "debt,leverage",
+      range: "1m",
+    });
+  });
+
+  it("decodes what it encodes", () => {
+    expect(z.decode(chartQueryCodec, z.encode(chartQueryCodec, query))).toEqual(
+      query,
+    );
+  });
+
+  it("refuses a read that names no metric", () => {
+    // caught before the request is issued rather than after a round trip
+    expect(() =>
+      z.encode(chartQueryCodec, { metrics: [], range: "1m" }),
+    ).toThrow(/at least one metric/);
+  });
+
+  it("refuses a metric named twice, from either direction", () => {
+    expect(() =>
+      z.encode(chartQueryCodec, { metrics: ["debt", "debt"], range: "1m" }),
+    ).toThrow(/distinct metrics/);
+    expect(() =>
+      z.decode(chartQueryCodec, { metrics: "debt,debt", range: "1m" }),
+    ).toThrow(/distinct metrics/);
+  });
+
+  it("refuses a metric the model does not have", () => {
+    // the backend decodes with this same codec, so an unknown metric is a 400
+    // there rather than an empty series
+    expect(() =>
+      z.decode(chartQueryCodec, { metrics: "debt,nope", range: "1m" }),
+    ).toThrow();
+  });
+
+  it("refuses a malformed metric list", () => {
+    expect(() =>
+      z.decode(chartQueryCodec, { metrics: "debt,", range: "1m" }),
+    ).toThrow();
   });
 });
