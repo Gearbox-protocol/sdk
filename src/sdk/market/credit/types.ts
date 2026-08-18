@@ -142,22 +142,14 @@ export interface ICreditManagerContract extends IBaseContract {
   collateralTokens: Address[];
 
   /**
-   * Collateral tokens a leveraged position can be built around: the underlying
-   * is excluded, because borrowing an asset against itself is not a position,
-   * and so is anything whose liquidation threshold is `0` or at least `100%`,
-   * which would mean unbounded leverage.
-   */
-  readonly leverageableCollaterals: Address[];
-
-  /**
    * Percentage of liquidated account value in bps paid to the liquidator
    * (i.e. `100% - liquidationDiscount`).
    */
   readonly liquidationPremium: Bps;
 
   /**
-   * Highest leverage a collateral's liquidation threshold allows,
-   * `1 / (1 - lt)`.
+   * Highest total-value leverage a collateral's liquidation threshold allows:
+   * `(1 − 0.05) / (1 − lt)`.
    *
    * @param collateral - Collateral token address.
    * @throws If the credit manager does not value the token.
