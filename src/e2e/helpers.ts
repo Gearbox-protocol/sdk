@@ -23,7 +23,7 @@ import {
   startOracleProxy,
 } from "./oracleProxy.js";
 
-export { PYTH_API_PROXY, REDSTONE_GATEWAYS } from "./oracleProxy.js";
+export { REDSTONE_GATEWAYS } from "./oracleProxy.js";
 
 const FIXTURES_DIR = resolve(import.meta.dirname, "fixtures");
 

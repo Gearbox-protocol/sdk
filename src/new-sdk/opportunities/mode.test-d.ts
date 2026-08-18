@@ -5,8 +5,10 @@ import type {
   Opportunity,
   PoolHistoryMetric,
   PoolOpportunity,
+  PoolOpportunityDetail,
   PoolOpportunityRef,
   StrategyHistoryMetric,
+  StrategyOpportunityDetail,
   StrategyOpportunityRef,
   StrategyPosition,
 } from "../../model/index.js";
@@ -58,6 +60,20 @@ describe("mode gates method existence", () => {
     expectTypeOf<Opportunities<"offchain">>().toHaveProperty("filter");
     expectTypeOf<Opportunities<"both">>().toHaveProperty("filter");
   });
+
+  it("narrows a list already read to a list, and a pending read to pending", () => {
+    const opportunities = {} as Opportunities<"both">;
+    const response = {} as DataResponse<Opportunity[]>;
+    const pending = {} as DataResponse<Opportunity[]> | undefined;
+
+    expectTypeOf(opportunities.filter(response)).toEqualTypeOf<
+      DataResponse<Opportunity[]>
+    >();
+    expectTypeOf(opportunities.filter(undefined)).toEqualTypeOf<undefined>();
+    expectTypeOf(opportunities.filter(pending)).toEqualTypeOf<
+      DataResponse<Opportunity[]> | undefined
+    >();
+  });
 });
 
 describe("the source branches are not gated by mode", () => {
@@ -103,9 +119,43 @@ describe("the source branches are not gated by mode", () => {
       {} as DataResponse<Opportunity[]>,
       undefined,
     );
-    expectTypeOf(opportunities.merge.list).returns.toEqualTypeOf<
+  });
+
+  it("answers a list merge definitely once either side has arrived", () => {
+    const opportunities = {} as Opportunities<"both">;
+    const response = {} as DataResponse<Opportunity[]>;
+    const pending = {} as DataResponse<Opportunity[]> | undefined;
+
+    // the merge serves whichever side it was given, so a consumer holding one
+    // does not carry `?.` over a case the merge cannot produce
+    expectTypeOf(opportunities.merge.list(response, response)).toEqualTypeOf<
+      DataResponse<Opportunity[]>
+    >();
+    expectTypeOf(opportunities.merge.list(response, undefined)).toEqualTypeOf<
+      DataResponse<Opportunity[]>
+    >();
+    expectTypeOf(opportunities.merge.list(undefined, response)).toEqualTypeOf<
+      DataResponse<Opportunity[]>
+    >();
+    // both sides may still be missing, which is the one pending case left
+    expectTypeOf(opportunities.merge.list(pending, pending)).toEqualTypeOf<
       DataResponse<Opportunity[]> | undefined
     >();
+  });
+
+  it("keeps a detail merge optional, since either source may have failed it", () => {
+    const opportunities = {} as Opportunities<"both">;
+    const pool = {} as DataResponse<PoolOpportunityDetail>;
+    const strategy = {} as DataResponse<StrategyOpportunityDetail>;
+
+    // unlike a list, one entity has nothing to fall back to when neither source
+    // served it, however it was asked
+    expectTypeOf(opportunities.merge.pool(pool, pool)).toEqualTypeOf<
+      DataResponse<PoolOpportunityDetail> | undefined
+    >();
+    expectTypeOf(
+      opportunities.merge.strategy(strategy, strategy),
+    ).toEqualTypeOf<DataResponse<StrategyOpportunityDetail> | undefined>();
   });
 });
 

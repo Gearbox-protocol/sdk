@@ -91,8 +91,6 @@ describe.skipIf(!!process.env.CI)("RWA pool deposit and withdraw", () => {
       rwaFactories: [RWA_FACTORY],
       ignoreUpdateablePrices: true,
     });
-    await sdk.tokensMeta.loadTokenData();
-    await sdk.marketRegister.loadZappers();
     await anvil.setBalance({
       address: ANVIL_ACCOUNT.address,
       value: parseEther("1000"),

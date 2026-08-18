@@ -30,9 +30,7 @@ async function main(): Promise<void> {
     marketConfigurators: ["0x610627d8d01a413bdd9b0a0b60070da7dd1e54ad"],
     rwaFactories: ["0xc6f7b95f6fb8394541d9ac8b0abc94bf6e84f703"],
     ignoreUpdateablePrices: true,
-    loadZappers: true,
   });
-  await sdk.tokensMeta.loadTokenData();
 
   const block = sdk.currentBlock;
   const dir = resolve(import.meta.dirname, "../../src/preview/__fixtures__");

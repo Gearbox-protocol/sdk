@@ -24,12 +24,7 @@ import {
   sendRawTx,
 } from "../../sdk/index.js";
 import { ANVIL_URL } from "../constants.js";
-import {
-  getAnvilWallet,
-  PYTH_API_PROXY,
-  REDSTONE_GATEWAYS,
-  useFixture,
-} from "../helpers.js";
+import { getAnvilWallet, REDSTONE_GATEWAYS, useFixture } from "../helpers.js";
 
 /**
  * The invariant the sdk-first plan rests on: what `simulate` projected is what
@@ -78,7 +73,6 @@ describe("simulate → execute on a mainnet fork", () => {
     await multichain.attach({
       perChain: { Mainnet: { blockNumber: BLOCK } },
       redstone: { historicTimestamp: true, gateways: REDSTONE_GATEWAYS },
-      pyth: { historicTimestamp: true, apiProxy: PYTH_API_PROXY },
     });
     chain = multichain.chain(CHAIN_ID);
     gearbox = new GearboxSDK({

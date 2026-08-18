@@ -43,7 +43,6 @@ async function main(): Promise<void> {
     marketConfigurators: [KPK_MC],
     ignoreUpdateablePrices: true,
   });
-  await sdk.tokensMeta.loadTokenData();
   const block = sdk.currentBlock;
 
   const ca = await sdk.accounts.getCreditAccountData(CREDIT_ACCOUNT, block);

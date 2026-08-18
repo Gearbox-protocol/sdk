@@ -42,10 +42,7 @@ import {
 import { RWARegistry } from "./market/index.js";
 import { MarketRegister } from "./market/MarketRegister.js";
 import { PriceFeedRegister } from "./market/pricefeeds/index.js";
-import type {
-  PythOptions,
-  RedstoneOptions,
-} from "./market/pricefeeds/updates/index.js";
+import type { RedstoneOptions } from "./market/pricefeeds/updates/index.js";
 import { OpportunitiesService } from "./opportunities/index.js";
 import type { PluginStatesMap, PluginsMap } from "./plugins/index.js";
 import { PluginStateVersionError } from "./plugins/index.js";
@@ -62,13 +59,14 @@ import { formatTimestamp, TypedObjectUtils, toAddress } from "./utils/index.js";
 import {
   type DelegatedMulticall,
   executeDelegatedMulticalls,
+  executeMulticallBatches,
 } from "./utils/viem/index.js";
 
 /**
  * Serialised state format version, checked during hydration to detect
  * incompatible snapshots.
  **/
-export const STATE_VERSION = 1;
+export const STATE_VERSION = 2;
 
 /**
  * Connection options for the underlying JSON-RPC provider.
@@ -168,14 +166,6 @@ export interface AttachOptions {
    * Options for Redstone price-feed updates.
    **/
   redstone?: RedstoneOptions;
-  /**
-   * Options for Pyth price-feed updates.
-   **/
-  pyth?: PythOptions;
-  /**
-   * When `true`, automatically call {@link MarketRegister.loadZappers} during attach.
-   **/
-  loadZappers?: boolean;
 }
 
 /**
@@ -190,10 +180,6 @@ export interface HydrateOptions {
    * Options for Redstone price-feed updates.
    **/
   redstone?: RedstoneOptions;
-  /**
-   * Options for Pyth price-feed updates.
-   **/
-  pyth?: PythOptions;
 }
 
 /**
@@ -363,8 +349,6 @@ export class OnchainSDK<
       ignoreMarkets,
       marketConfigurators: mcs,
       redstone,
-      pyth,
-      loadZappers,
     } = options ?? {};
 
     const marketConfigurators =
@@ -407,17 +391,8 @@ export class OnchainSDK<
         "attaching to fixed block number, but redstone historicTimestamp is not set. price updates might fail",
       );
     }
-    if (
-      blockNumber &&
-      !pyth?.historicTimestamp &&
-      time - Number(block.timestamp) * 1000 > 60 * 1000
-    ) {
-      this.logger?.warn(
-        "attaching to fixed block number, but pyth historicTimestamp is not set. price updates might fail",
-      );
-    }
 
-    this.#priceFeeds = new PriceFeedRegister(this, { redstone, pyth });
+    this.#priceFeeds = new PriceFeedRegister(this, { redstone });
 
     this.logger?.debug(
       `attach block number ${this.currentBlock} timestamp ${this.timestamp}`,
@@ -434,35 +409,33 @@ export class OnchainSDK<
         "no market configurators provided, skipping market loading",
       );
     } else {
+      // pass 0: discover updatable price feeds and fetch their off-chain
+      // payloads; these become the updatePrice calls prepended inside pass 1
+      const priceUpdates = await this.#getPriceUpdateTxs(
+        marketConfigurators,
+        ignoreUpdateablePrices,
+      );
+
+      // pass 1: one simulated multicall — markets and RWA data, priced with the
+      // updates from pass 0
+      this.logger?.debug(
+        { configurators: marketConfigurators },
+        `calling getMarkets with ${priceUpdates.length} price updates in block ${this.currentBlock}`,
+      );
       const delegated: DelegatedMulticall[] = [
         ...this.#marketRegister.getLoadMulticalls(marketConfigurators),
         ...this.#rwa.getLoadMulticalls(marketConfigurators, rwaFactories),
       ];
-
-      let txs: IPriceUpdateTx[] = [];
-      if (!ignoreUpdateablePrices) {
-        const updatables =
-          await this.#priceFeeds.getPartialUpdatablePriceFeeds(
-            marketConfigurators,
-          );
-        const updates =
-          await this.#priceFeeds.generatePriceFeedsUpdateTxs(updatables);
-        txs = updates.txs;
-      }
-      this.logger?.debug(
-        { configurators: marketConfigurators },
-        `calling getMarkets with ${txs.length} price updates in block ${this.currentBlock}`,
-      );
-
       await executeDelegatedMulticalls(this.client, delegated, {
-        priceUpdates: txs,
+        priceUpdates,
         blockNumber: this.currentBlock,
         gas: this.gasLimit,
       });
 
-      if (loadZappers) {
-        await this.#marketRegister.loadZappers();
-      }
+      // pass 2: one plain multicall — the caches read synchronously later.
+      // Their call lists are derived from the markets of pass 1, so this cannot
+      // be merged into it
+      await this.#warmup();
     }
 
     const pluginsList = TypedObjectUtils.entries(this.plugins);
@@ -491,6 +464,56 @@ export class OnchainSDK<
   }
 
   /**
+   * @internal
+   * Pass 0 of attach: resolves the price updates that the market reads of
+   * pass 1 are simulated with.
+   *
+   * @param configurators - Market configurators whose feeds are considered.
+   * @param ignoreUpdateablePrices - When `true`, no updates are fetched.
+   **/
+  async #getPriceUpdateTxs(
+    configurators: Address[],
+    ignoreUpdateablePrices?: boolean,
+  ): Promise<IPriceUpdateTx[]> {
+    if (ignoreUpdateablePrices) {
+      return [];
+    }
+    const updatables =
+      await this.priceFeeds.getPartialUpdatablePriceFeeds(configurators);
+    const { txs } =
+      await this.priceFeeds.generatePriceFeedsUpdateTxs(updatables);
+    return txs;
+  }
+
+  /**
+   * @internal
+   * Pass 2 of attach: loads the data that is read synchronously afterwards
+   * (zappers, withdrawable assets, extended token data) in a single multicall.
+   *
+   * Also re-run after a sync that reloaded the markets these caches derive from.
+   *
+   * @param force - Reload caches that are already populated.
+   **/
+  async #warmup(force = false): Promise<void> {
+    await executeMulticallBatches(
+      this.client,
+      [
+        this.marketRegister.getLoadZappersMulticall(force),
+        ...(this.#withdrawalCompressor
+          ? [
+              this.#withdrawalCompressor.getLoadWithdrawableAssetsMulticall(
+                force,
+              ),
+            ]
+          : []),
+        // only covers tokens whose data was not loaded yet
+        this.tokensMeta.getLoadTokenDataMulticall(),
+      ],
+      { blockNumber: this.currentBlock },
+    );
+  }
+
+  /**
    * Restores SDK state from a previously serialised {@link GearboxState}
    * snapshot, without making any on-chain calls.
    *
@@ -511,13 +534,13 @@ export class OnchainSDK<
       throw new SdkChainMismatchError(this.networkType, state.network);
     }
 
-    const { ignoreMarkets, redstone, pyth } = options ?? {};
+    const { ignoreMarkets, redstone } = options ?? {};
 
     this.logger?.info({ networkType: this.networkType }, "hydrating sdk state");
 
     this.#currentBlock = state.currentBlock;
     this.#timestamp = state.timestamp;
-    this.#priceFeeds = new PriceFeedRegister(this, { redstone, pyth });
+    this.#priceFeeds = new PriceFeedRegister(this, { redstone });
 
     this.#addressProvider = hydrateAddressProvider(this, state.addressProvider);
     this.logger?.debug(
@@ -532,6 +555,11 @@ export class OnchainSDK<
 
     if (state.withdrawals) {
       this.#withdrawalCompressor?.hydrate(state.withdrawals);
+    }
+
+    // applied after markets, RWA and zappers, whose entries it augments
+    if (state.tokens) {
+      this.tokensMeta.hydrate(state.tokens);
     }
 
     for (const [name, plugin] of TypedObjectUtils.entries(this.plugins)) {
@@ -601,6 +629,7 @@ export class OnchainSDK<
       timestamp: this.timestamp,
       addressProvider: this.addressProvider.state,
       ...this.marketRegister.state,
+      tokens: this.tokensMeta.state,
       rwa: this.#rwa.state,
       withdrawals: this.#withdrawalCompressor?.state,
       plugins: Object.fromEntries(
@@ -624,7 +653,7 @@ export class OnchainSDK<
     let { blockNumber, timestamp, ignoreUpdateablePrices } = opts ?? {};
     if (this.priceFeeds.historical && !ignoreUpdateablePrices) {
       this.logger?.warn(
-        "syncState is not supported with redstone or pyth historicTimestamp",
+        "syncState is not supported with redstone historicTimestamp",
       );
     }
     if (!blockNumber || !timestamp) {
@@ -681,7 +710,16 @@ export class OnchainSDK<
       this.#currentBlock = blockNumber;
       this.#timestamp = timestamp;
 
-      await this.marketRegister.syncState(ignoreUpdateablePrices);
+      // RWA data changes between blocks, so it rides along the market sync
+      // batch instead of costing a request of its own
+      const marketsReloaded = await this.marketRegister.syncState(
+        ignoreUpdateablePrices,
+        this.#rwa.getSyncMulticalls(),
+      );
+      if (marketsReloaded) {
+        // the market set changed: caches derived from it are stale
+        await this.#warmup(true);
+      }
 
       const pluginsList = TypedObjectUtils.entries(this.plugins);
       const pluginResponse = await Promise.allSettled(

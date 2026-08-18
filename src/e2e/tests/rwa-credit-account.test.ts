@@ -84,8 +84,6 @@ describe.skipIf(!!process.env.CI)("rwa credit account (securitize)", () => {
       rwaFactories: [RWA_FACTORY],
       ignoreUpdateablePrices: true,
     });
-    await sdk.tokensMeta.loadTokenData();
-    await sdk.marketRegister.loadZappers();
     await seedSecuritizePoolLiquidity(sdk, anvil, DEFAULT_POOL);
     await seedSecuritizePoolLiquidity(sdk, anvil, ON_DEMAND_POOL);
   }, 240_000);

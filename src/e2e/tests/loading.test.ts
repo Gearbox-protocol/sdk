@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { GearboxSDK } from "../../new-sdk/index.js";
 import { ANVIL_URL } from "../constants.js";
-import { PYTH_API_PROXY, REDSTONE_GATEWAYS, useFixture } from "../helpers.js";
+import { REDSTONE_GATEWAYS, useFixture } from "../helpers.js";
 
 const BLOCK = 24_728_000n;
 
@@ -23,7 +23,6 @@ describe("GearboxSDK loading (fork)", () => {
       attach: {
         perChain: { Mainnet: { blockNumber: BLOCK } },
         redstone: { historicTimestamp: true, gateways: REDSTONE_GATEWAYS },
-        pyth: { historicTimestamp: true, apiProxy: PYTH_API_PROXY },
       },
     });
     expect(sdk.attached).toBe(false);

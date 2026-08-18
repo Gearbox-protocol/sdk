@@ -1,4 +1,4 @@
-import type { Address } from "viem";
+import type { Address, Hex } from "viem";
 import type { MarketData, Unarray } from "./types.js";
 
 type TokenData = Unarray<MarketData["tokens"]>;
@@ -29,6 +29,17 @@ export type PhantomTokenContractType =
 
 export interface SimpleTokenMeta extends TokenData {
   contractType?: string;
+  /**
+   * Raw output of the token's `serialize()` call, when it implements
+   * `IStateSerializer`. Decoding is left to the consumer that knows the
+   * layout of the given {@link contractType}.
+   **/
+  serializedParams?: Hex;
+  /**
+   * Result of the token's `isExpired()` call, when it implements it
+   * (e.g. Pendle PT tokens). Undefined for tokens without this method.
+   **/
+  isExpired?: boolean;
 }
 
 export type PhantomTokenMeta = SimpleTokenMeta & {

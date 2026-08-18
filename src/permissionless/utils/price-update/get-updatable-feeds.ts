@@ -5,7 +5,6 @@ import {
   type IPriceFeedContract,
   type OnchainSDK,
   type PriceFeedTreeNode,
-  PythPriceFeed,
   RedstonePriceFeedContract,
 } from "../../../sdk/index.js";
 
@@ -26,19 +25,12 @@ export async function getUpdatablePriceFeeds(args: {
       priceFeeds,
     ])) as PriceFeedTreeNode[]
   )
-    .filter((data: PriceFeedTreeNode) =>
-      ["PRICE_FEED::PYTH", "PRICE_FEED::REDSTONE"].includes(
-        bytes32ToString(data.baseParams.contractType),
-      ),
+    .filter(
+      (data: PriceFeedTreeNode) =>
+        bytes32ToString(data.baseParams.contractType) ===
+        "PRICE_FEED::REDSTONE",
     )
-    .map((data: PriceFeedTreeNode) => {
-      if (
-        bytes32ToString(data.baseParams.contractType) === "PRICE_FEED::PYTH"
-      ) {
-        return new PythPriceFeed(sdk, data);
-      }
-      return new RedstonePriceFeedContract(sdk, data);
-    });
+    .map((data: PriceFeedTreeNode) => new RedstonePriceFeedContract(sdk, data));
 
   return updatablePriceFeeds;
 }

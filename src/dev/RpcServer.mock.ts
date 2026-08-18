@@ -4,6 +4,7 @@ import {
   type Server,
   type ServerResponse,
 } from "node:http";
+import type { AddressInfo } from "node:net";
 import { setTimeout } from "node:timers/promises";
 
 export const InternalErrorResponse = {
@@ -29,7 +30,10 @@ export class RpcServerMock {
     RpcServerMock.blockNumber = 0n;
   }
 
-  constructor(port: number) {
+  /**
+   * @param port Port to listen on, defaults to 0 (ephemeral port assigned by OS)
+   */
+  constructor(port = 0) {
     this.#port = port;
     this.#server = createServer(this.#handleRequest.bind(this));
   }
@@ -68,8 +72,11 @@ export class RpcServerMock {
   }
 
   public start(): Promise<void> {
-    return new Promise(resolve => {
-      this.#server.listen(this.#port, () => {
+    return new Promise((resolve, reject) => {
+      this.#server.once("error", reject);
+      this.#server.listen(this.#port, "127.0.0.1", () => {
+        // remember the port assigned by OS, `address()` returns null once stopped
+        this.#port = (this.#server.address() as AddressInfo).port;
         resolve();
       });
     });

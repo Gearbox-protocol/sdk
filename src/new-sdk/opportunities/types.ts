@@ -17,7 +17,7 @@ import type { OpportunitiesExecute } from "../execute/index.js";
 import type { OpportunitiesSimulate } from "../simulate/index.js";
 import type { Mode } from "../types.js";
 import type { HistoryReader } from "../utils/history.js";
-import type { SourceMerger } from "../utils/index.js";
+import type { EntityMerger, FilterResult, ListMerger } from "../utils/index.js";
 
 /**
  * What the `opportunities` namespace offers in every mode.
@@ -43,12 +43,13 @@ export interface OpportunitiesBase {
   ): Promise<DataResponse<StrategyOpportunityDetail>>;
   /**
    * Narrows an already-read list, rows and metadata alike. `undefined` passes
-   * through, so a read still in flight stays that way.
+   * through, so a read still in flight stays that way, and a list already read
+   * narrows to a list.
    **/
-  filter(
-    response: DataResponse<Opportunity[]> | undefined,
+  filter<R extends DataResponse<Opportunity[]> | undefined>(
+    response: R,
     filter?: OpportunityFilter,
-  ): DataResponse<Opportunity[]> | undefined;
+  ): FilterResult<R, Opportunity>;
   /**
    * The chain on its own, for a consumer that shows each source as it arrives.
    * Throws in `offchain` mode.
@@ -102,16 +103,6 @@ export interface OpportunitiesOnchainOnly {
 }
 
 /**
- * How each read combines what the two sources returned: a chain is served by
- * the backend when it is fresh enough, and by the chain otherwise.
- **/
-export interface OpportunityMergers {
-  list: SourceMerger<Opportunity[]>;
-  pool: SourceMerger<PoolOpportunityDetail>;
-  strategy: SourceMerger<StrategyOpportunityDetail>;
-}
-
-/**
  * Which reads the `opportunities` namespace has in each mode. A widened mode
  * offers what every mode has, i.e. {@link OpportunitiesBase} alone.
  **/
@@ -132,9 +123,9 @@ export interface OpportunitiesOffchainBranch {
  * by the backend when it is fresh enough, and by the chain otherwise.
  **/
 export interface OpportunityMergers {
-  list: SourceMerger<Opportunity[]>;
-  pool: SourceMerger<PoolOpportunityDetail>;
-  strategy: SourceMerger<StrategyOpportunityDetail>;
+  list: ListMerger<Opportunity[]>;
+  pool: EntityMerger<PoolOpportunityDetail>;
+  strategy: EntityMerger<StrategyOpportunityDetail>;
 }
 
 /**

@@ -41,10 +41,9 @@ import type {
 import type {
   IPriceUpdater,
   IPriceUpdateTask,
-  PythOptions,
   RedstoneOptions,
 } from "./updates/index.js";
-import { PythUpdater, RedstoneUpdater } from "./updates/index.js";
+import { RedstoneUpdater } from "./updates/index.js";
 import { WstETHPriceFeedContract } from "./WstETHPriceFeed.js";
 import { YearnPriceFeedContract } from "./YearnPriceFeed.js";
 import { ZeroPriceFeedContract } from "./ZeroPriceFeed.js";
@@ -64,10 +63,6 @@ export interface PriceFeedRegisterOptions {
    * Redstone price-update provider options.
    **/
   redstone?: RedstoneOptions;
-  /**
-   * Pyth price-update provider options.
-   **/
-  pyth?: PythOptions;
 }
 
 /**
@@ -91,7 +86,7 @@ export interface LatestUpdate {
  * All {@link IPriceOracleContract}s across different markets share a single
  * `PriceFeedRegister`, avoiding duplicate contract wrappers for the same
  * on-chain feed. The register also orchestrates off-chain price updates
- * (Pyth, Redstone, etc.).
+ * (Redstone, etc.).
  **/
 export class PriceFeedRegister
   extends SDKConstruct
@@ -104,10 +99,7 @@ export class PriceFeedRegister
 
   constructor(sdk: OnchainSDK, opts: PriceFeedRegisterOptions = {}) {
     super(sdk);
-    this.#updaters = [
-      new PythUpdater(sdk, opts?.pyth),
-      new RedstoneUpdater(sdk, opts?.redstone),
-    ];
+    this.#updaters = [new RedstoneUpdater(sdk, opts?.redstone)];
   }
 
   /**

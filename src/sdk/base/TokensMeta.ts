@@ -6,6 +6,7 @@ import type {
   PublicClient,
   Transport,
 } from "viem";
+import { iExpirableAbi } from "../../abi/iExpirable.js";
 import { iStateSerializerAbi } from "../../abi/iStateSerializer.js";
 import { iVersionAbi } from "../../abi/iVersion.js";
 import type { Token } from "../../model/primitives.js";
@@ -18,6 +19,8 @@ import {
   bytes32ToString,
   formatBN,
 } from "../utils/index.js";
+import type { MulticallBatch } from "../utils/viem/executeMulticallBatches.js";
+import { executeMulticallBatches } from "../utils/viem/executeMulticallBatches.js";
 import type {
   PhantomTokenMeta,
   RWATokenMeta,
@@ -37,6 +40,21 @@ export interface FormatBNOptions {
    * When `true`, appends the token symbol to the formatted string.
    **/
   symbol?: boolean;
+}
+
+/**
+ * Serializable snapshot of the token metadata registry.
+ **/
+export interface TokensMetaState {
+  /**
+   * Metadata of all known tokens.
+   **/
+  tokens: TokenMetaData[];
+  /**
+   * Tokens whose extended data (`contractType`, `serialize()`) was loaded,
+   * so that the loaded/not-loaded distinction round-trips through hydration.
+   **/
+  extendedLoaded: Address[];
 }
 
 /**
@@ -109,7 +127,7 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
   public isPhantomToken(t: TokenMetaData): t is PhantomTokenMeta {
     if (!this.#tokenDataLoaded.has(t.addr)) {
       throw new Error(
-        `extended token data not loaded for ${t.symbol} (${t.addr})`,
+        `extended token data not loaded for ${t.symbol} (${t.addr}), check if the sdk was properly attached or hydrated`,
       );
     }
     return !!t.contractType?.startsWith("PHANTOM_TOKEN::");
@@ -274,19 +292,18 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
   }
 
   /**
-   * Loads token information about phantom tokens
-   * In future other custom tokens types that do not have compressors might be handled here
+   * @internal
+   *
+   * Returns the multicall batch that loads extended token data (`contractType`
+   * and `serialize()`) for the tokens that do not have it yet. Used by the SDK
+   * to warm this cache together with other loaders in a single multicall.
    *
    * @param tokens - tokens to load data for, defaults to all tokens
-   */
-  public async loadTokenData(...tokens: Address[]): Promise<void> {
+   **/
+  public getLoadTokenDataMulticall(...tokens: Address[]): MulticallBatch {
     const tokenz = new AddressSet(tokens.length > 0 ? tokens : this.keys());
     const tokensToLoad = Array.from(tokenz.difference(this.#tokenDataLoaded));
-    if (tokensToLoad.length === 0) {
-      return;
-    }
-
-    const resp = await this.#client.multicall({
+    return {
       contracts: tokensToLoad.flatMap(
         t =>
           [
@@ -300,33 +317,99 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
               abi: iStateSerializerAbi,
               functionName: "serialize",
             },
+            {
+              address: t,
+              abi: iExpirableAbi,
+              functionName: "isExpired",
+            },
           ] as const,
       ),
-      allowFailure: true,
-      batchSize: 0,
-    });
+      onResults: resps => {
+        this.#logger?.debug(`loaded data of ${tokensToLoad.length} tokens`);
+        for (let i = 0; i < tokensToLoad.length; i++) {
+          this.#overrideTokenMeta(
+            tokensToLoad[i],
+            resps[3 * i] as MulticallResponse<Hex>,
+            resps[3 * i + 1] as MulticallResponse<Hex>,
+            resps[3 * i + 2] as MulticallResponse<boolean>,
+          );
+          this.#tokenDataLoaded.add(tokensToLoad[i]);
+        }
+      },
+    };
+  }
 
-    this.#logger?.debug(`loaded ${resp.length} contract types`);
+  /**
+   * Loads token information about phantom tokens
+   * In future other custom tokens types that do not have compressors might be handled here
+   *
+   * Tokens loaded during SDK attach or restored by {@link hydrate} are skipped,
+   * so calling this after either is a no-op.
+   *
+   * @param tokens - tokens to load data for, defaults to all tokens
+   */
+  public async loadTokenData(...tokens: Address[]): Promise<void> {
+    await executeMulticallBatches(this.#client, [
+      this.getLoadTokenDataMulticall(...tokens),
+    ]);
+  }
 
-    for (let i = 0; i < tokensToLoad.length; i++) {
-      this.#overrideTokenMeta(tokensToLoad[i], resp[2 * i], resp[2 * i + 1]);
-      this.#tokenDataLoaded.add(tokensToLoad[i]);
+  /**
+   * Serializable snapshot of all token metadata, suitable for hydration.
+   **/
+  public get state(): TokensMetaState {
+    return {
+      tokens: this.values(),
+      extendedLoaded: this.#tokenDataLoaded.asArray(),
+    };
+  }
+
+  /**
+   * Restores token metadata from a previously serialized snapshot,
+   * bypassing on-chain reads.
+   *
+   * Entries are merged into the ones already registered by markets, zappers and
+   * the RWA registry (see {@link upsert}), so the snapshot must be applied last
+   * for its augmented fields to win.
+   *
+   * @param state - Token metadata snapshot.
+   **/
+  public hydrate(state: TokensMetaState): void {
+    for (const token of state.tokens) {
+      this.upsert(token.addr, token);
+    }
+    for (const token of state.extendedLoaded) {
+      this.#tokenDataLoaded.add(token);
     }
   }
 
   #overrideTokenMeta(
     token: Address,
     contractTypeResp: MulticallResponse<Hex>,
-    _serializeResp: MulticallResponse<Hex>,
+    serializeResp: MulticallResponse<Hex>,
+    isExpiredResp: MulticallResponse<boolean>,
   ): TokenMetaData {
     const meta = this.mustGet(token);
+    const update: TokenMetaData = { ...meta };
     if (contractTypeResp.status === "success") {
       const contractType = bytes32ToString(contractTypeResp.result);
-      this.upsert(token, {
-        ...meta,
-        contractType,
-      });
+      update.contractType = contractType;
+      update.serializedParams =
+        serializeResp.status === "success" ? serializeResp.result : undefined;
       this.#logger?.debug(`token ${meta.symbol} is ${contractType}`);
+    }
+    // only expirable tokens (e.g. Pendle PTs) implement isExpired()
+    if (isExpiredResp.status === "success") {
+      update.isExpired = isExpiredResp.result;
+      this.#logger?.debug(
+        `token ${meta.symbol} is expirable, expired: ${isExpiredResp.result}`,
+      );
+    }
+    if (
+      contractTypeResp.status === "success" ||
+      isExpiredResp.status === "success"
+    ) {
+      this.upsert(token, update);
     }
     return this.mustGet(token);
   }

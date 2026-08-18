@@ -9,7 +9,6 @@ import {
 } from "./core/index.js";
 import {
   PriceUpdatesCache,
-  type PythOptions,
   type RedstoneOptions,
 } from "./market/pricefeeds/updates/index.js";
 import {
@@ -79,15 +78,6 @@ export interface MultichainAttachOptions {
    * Options for Redstone price-feed updates (shared cache across chains).
    **/
   redstone?: RedstoneOptions;
-  /**
-   * Options for Pyth price-feed updates (shared cache across chains).
-   **/
-  pyth?: PythOptions;
-  /**
-   * When `true`, automatically load zappers after markets are loaded during
-   * attach on every chain.
-   **/
-  loadZappers?: boolean;
 }
 
 /**
@@ -102,10 +92,6 @@ export interface MultichainHydrateOptions {
    * Options for Redstone price-feed updates (shared cache across chains).
    **/
   redstone?: RedstoneOptions;
-  /**
-   * Options for Pyth price-feed updates (shared cache across chains).
-   **/
-  pyth?: PythOptions;
   /**
    * When `true`, chains missing from the serialised state are silently skipped
    * instead of throwing {@link SdkMissingChainStateError}.
@@ -134,7 +120,6 @@ export interface MultichainSyncStateOptions {
 export class MultichainSDK<const Plugins extends PluginsMap = {}> {
   readonly #chains: Map<NetworkType, OnchainSDK<Plugins>>;
   #redstoneCache?: PriceUpdatesCache;
-  #pythCache?: PriceUpdatesCache;
   #logger?: ILogger;
 
   /**
@@ -202,28 +187,16 @@ export class MultichainSDK<const Plugins extends PluginsMap = {}> {
         historical: !!options.redstone.historicTimestamp,
       });
     }
-    if (options?.pyth) {
-      this.#pythCache = new PriceUpdatesCache({
-        ttl: options.pyth.cacheTTL ?? 225_000,
-        historical: !!options.pyth.historicTimestamp,
-      });
-    }
 
     await Promise.all(
       [...this.#chains.entries()].map(([network, sdk]) => {
         const perChainOpts = options?.perChain?.[network] ?? {};
         return sdk.attach({
           ...perChainOpts,
-          loadZappers: perChainOpts.loadZappers ?? options?.loadZappers,
           redstone: {
             ...options?.redstone,
             cache: this.#redstoneCache,
             ...perChainOpts.redstone,
-          },
-          pyth: {
-            ...options?.pyth,
-            cache: this.#pythCache,
-            ...perChainOpts.pyth,
           },
         });
       }),
@@ -254,12 +227,6 @@ export class MultichainSDK<const Plugins extends PluginsMap = {}> {
         historical: !!options.redstone.historicTimestamp,
       });
     }
-    if (options?.pyth) {
-      this.#pythCache = new PriceUpdatesCache({
-        ttl: options.pyth.cacheTTL ?? 225_000,
-        historical: !!options.pyth.historicTimestamp,
-      });
-    }
 
     const stateByNetwork = new Map(state.chains.map(cs => [cs.network, cs]));
 
@@ -278,11 +245,6 @@ export class MultichainSDK<const Plugins extends PluginsMap = {}> {
           ...options?.redstone,
           cache: this.#redstoneCache,
           ...perChainOpts.redstone,
-        },
-        pyth: {
-          ...options?.pyth,
-          cache: this.#pythCache,
-          ...perChainOpts.pyth,
         },
       });
     }

@@ -332,17 +332,16 @@ export class BytecodeRepositoryContract extends BaseContract<typeof abi> {
           authorSignature: uploadData.authorSignature,
         };
       }
+      case "deploy": {
+        const [contractType, version, constructorParams, salt] = params.args;
+        return {
+          contractType: hexToString(contractType, { size: 32 }),
+          version: version.toString(),
+          constructorParams,
+          salt: hexToString(salt, { size: 32 }),
+        };
+      }
       // TODO: add all functions here!
-      // case "deployContract": {
-      //   const [contractType, version, encodedParams, salt, owner] = params.args;
-      //   return this.wrapParseCall(params, {
-      //     contractType: hexToString(contractType, { size: 32 }),
-      //     version: version.toString(),
-      //     encodedParams,
-      //     salt,
-      //     owner,
-      //   });
-      // }
       // case "setContractTypeVersion": {
       //   const [contractType, version] = params.args;
       //   return this.wrapParseCall(params, {

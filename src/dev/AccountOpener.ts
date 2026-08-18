@@ -226,10 +226,6 @@ export class AccountOpener extends SDKConstruct {
       },
       "opening credit accounts",
     );
-    await Promise.all([
-      this.sdk.tokensMeta.loadTokenData(),
-      this.sdk.marketRegister.loadZappers(),
-    ]);
     let deposits: PoolDepositResult[] = [];
     if (depositIntoPools) {
       try {
