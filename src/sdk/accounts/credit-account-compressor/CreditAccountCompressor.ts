@@ -286,14 +286,12 @@ export class CreditAccountCompressor extends SDKConstruct {
     props: ListStrategyPositionsProps,
   ): Promise<StrategyPosition[]> {
     const { owner, includeZeroDebt, blockNumber } = props;
-    const [accounts] = await Promise.all([
-      this.getBorrowerCreditAccounts(owner, { includeZeroDebt }, blockNumber),
-      // phantom token lookups below are sync, so the cache has to be warm
-      this.sdk.withdrawalCompressor?.loadWithdrawableAssets(
-        undefined,
-        blockNumber,
-      ),
-    ]);
+    // phantom token lookups below are sync; the cache is populated by attach/hydrate
+    const accounts = await this.getBorrowerCreditAccounts(
+      owner,
+      { includeZeroDebt },
+      blockNumber,
+    );
 
     const describable = accounts.filter(ca => {
       // collateral computation reverted (e.g. dead price feed) — none of the
