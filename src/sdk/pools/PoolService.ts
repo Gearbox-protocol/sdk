@@ -686,7 +686,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
  * shares and assets are the same thing in two units, and the rate between them
  * is the pool's own. Rounds down, as minting does.
  */
-function toShares(pool: IPoolContract, assets: bigint): bigint {
+export function toShares(pool: IPoolContract, assets: bigint): bigint {
   const { totalSupply, totalAssets } = pool;
 
   // An empty pool has no rate yet, so the first deposit sets it at one-to-one.

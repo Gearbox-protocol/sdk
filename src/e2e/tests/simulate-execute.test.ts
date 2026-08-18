@@ -730,10 +730,9 @@ describe("simulate → execute on a mainnet fork", () => {
         sim: deposit,
       });
       await sync();
-      const owned = await balance(shares);
       const sim = simulate().withdraw(
         { chainId: CHAIN_ID, pool },
-        { amount: owned / 2n, wallet: borrower },
+        { amount: COLLATERAL / 2n, wallet: borrower },
       );
       if (!sim.ok) throw new Error(`withdraw sim failed: ${sim.reason}`);
       const before = await balance(USDC);

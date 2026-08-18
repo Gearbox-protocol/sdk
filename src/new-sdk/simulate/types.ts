@@ -234,6 +234,10 @@ export interface OpenStrategyParams extends SimulateOptions {
 }
 
 export interface LpParams {
+  /**
+   * On deposit: amount of `tokenIn`. On withdrawal: amount of `tokenOut`;
+   * converted down to the shares `redeem` burns before the call is built.
+   **/
   amount: bigint;
   /**
    * Wallet funding the deposit or receiving the withdrawal. Required because it
@@ -335,7 +339,8 @@ export interface OpportunitiesSimulate {
   deposit(pool: PoolInput, params: LpParams): LpSimulate;
 
   /**
-   * Redeeming pool shares: shares in, underlying out.
+   * Redeeming pool shares: `amount` is the `tokenOut` the wallet wants back,
+   * converted down to the shares the redeem burns.
    *
    * The LP counterpart of {@link withdrawStrategy} / {@link withdrawCollateral},
    * which act on credit accounts.
