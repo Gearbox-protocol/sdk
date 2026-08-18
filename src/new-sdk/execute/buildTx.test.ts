@@ -29,7 +29,11 @@ const DEPOSIT_META = { type: "classic", zapper: undefined } as const;
 const WITHDRAW_META = { type: "classic", zapper: undefined } as const;
 const CALL = { target: POOL, callData: "0xdead" as const };
 
-function mockChain(overrides?: { addLiquidity?: unknown; account?: unknown }) {
+function mockChain(overrides?: {
+  addLiquidity?: unknown;
+  account?: unknown;
+  requirements?: unknown;
+}) {
   const txs = {
     deposit: rawTx("deposit"),
     withdraw: rawTx("redeem"),
@@ -54,6 +58,11 @@ function mockChain(overrides?: { addLiquidity?: unknown; account?: unknown }) {
         "account" in (overrides ?? {}) ? overrides?.account : account,
       ),
       executeCaUpdate: vi.fn(async () => txs.update),
+      getOpenAccountRequirements: vi.fn(async () =>
+        "requirements" in (overrides ?? {})
+          ? overrides?.requirements
+          : undefined,
+      ),
     },
   };
   const execute = new ExecuteApi(() => sdk as unknown as OnchainSDK);
@@ -229,6 +238,83 @@ describe("buildTx — open", () => {
       }),
     ).rejects.toThrow(/failed open simulation/);
     expect(sdk.accounts.openCA).not.toHaveBeenCalled();
+  });
+
+  it("attaches RWA requirements and the caller's cached signatures when a target token is named", async () => {
+    const requirements = {
+      type: "RWA_FACTORY::SECURITIZE",
+      tokensToRegister: [DIESEL],
+      securitizeTokensToRegister: [],
+      requiredSignatures: [],
+    };
+    const { execute, sdk } = mockChain({ requirements });
+    const signature = {
+      token: DIESEL,
+      signature: { deadline: 1n, signature: "0xsign" as const },
+    };
+
+    await execute.buildTx({
+      kind: "open",
+      chainId: CHAIN_ID,
+      creditManager: CREDIT_MANAGER,
+      wallet: WALLET,
+      sim,
+      collateral,
+      ethAmount: 0n,
+      targetToken: DIESEL,
+      signaturesToCache: [signature],
+    });
+
+    expect(sdk.accounts.getOpenAccountRequirements).toHaveBeenCalledWith(
+      WALLET,
+      CREDIT_MANAGER,
+      { tokenOutAddress: DIESEL },
+    );
+    expect(sdk.accounts.openCA).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rwaOptions: {
+          type: "RWA_FACTORY::SECURITIZE",
+          tokensToRegister: [DIESEL],
+          signaturesToCache: [signature],
+        },
+      }),
+    );
+  });
+
+  it("asks for requirements but passes no rwaOptions when the market is not RWA-gated", async () => {
+    const { execute, sdk } = mockChain();
+
+    await execute.buildTx({
+      kind: "open",
+      chainId: CHAIN_ID,
+      creditManager: CREDIT_MANAGER,
+      wallet: WALLET,
+      sim,
+      collateral,
+      ethAmount: 0n,
+      targetToken: DIESEL,
+    });
+
+    expect(sdk.accounts.getOpenAccountRequirements).toHaveBeenCalled();
+    expect(sdk.accounts.openCA).toHaveBeenCalledWith(
+      expect.objectContaining({ rwaOptions: undefined }),
+    );
+  });
+
+  it("skips the requirements call without a target token", async () => {
+    const { execute, sdk } = mockChain();
+
+    await execute.buildTx({
+      kind: "open",
+      chainId: CHAIN_ID,
+      creditManager: CREDIT_MANAGER,
+      wallet: WALLET,
+      sim,
+      collateral,
+      ethAmount: 0n,
+    });
+
+    expect(sdk.accounts.getOpenAccountRequirements).not.toHaveBeenCalled();
   });
 });
 

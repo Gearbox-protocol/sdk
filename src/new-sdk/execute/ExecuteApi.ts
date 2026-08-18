@@ -1,6 +1,12 @@
 import type { Address } from "viem";
 import type { ChainId } from "../../model/index.js";
-import type { Asset, OnchainSDK, RawTx } from "../../sdk/index.js";
+import type {
+  Asset,
+  OnchainSDK,
+  RawTx,
+  RWAOperationArgs,
+  SecuritizeRegisterMessage,
+} from "../../sdk/index.js";
 import type {
   ChainOf,
   LpSimulate,
@@ -39,6 +45,16 @@ export interface OpenPrepareRequest {
   collateral: Asset[];
   /** Native value to attach when paying a wrapped-native market in the coin. */
   ethAmount: bigint;
+  /**
+   * Token the position ends up in. RWA markets resolve their open
+   * requirements against it; omitting it skips the RWA check entirely.
+   **/
+  targetToken?: Address;
+  /**
+   * EIP-712 registration signatures the wallet already signed this session,
+   * attached as `signaturesToCache` when the market is RWA-gated.
+   **/
+  signaturesToCache?: SecuritizeRegisterMessage[];
 }
 
 /**
@@ -152,7 +168,10 @@ function poolTx(sdk: OnchainSDK, request: PoolPrepareRequest): RawTx {
   }).tx;
 }
 
-function openTx(sdk: OnchainSDK, request: OpenPrepareRequest): Promise<RawTx> {
+async function openTx(
+  sdk: OnchainSDK,
+  request: OpenPrepareRequest,
+): Promise<RawTx> {
   const { creditManager, wallet, collateral, ethAmount, sim } = request;
   const { preview } = sim;
   return sdk.accounts.openCA({
@@ -166,7 +185,35 @@ function openTx(sdk: OnchainSDK, request: OpenPrepareRequest): Promise<RawTx> {
     minQuota: preview.minQuota,
     permits: {},
     referralCode: 0n,
+    rwaOptions: await openRwaOptions(sdk, request),
   });
+}
+
+/**
+ * The documented `openCA` contract: ask the market for its open requirements
+ * and hand them back as operation args, with the caller's cached signatures
+ * attached. `undefined` on non-RWA markets and when no target token is named.
+ **/
+async function openRwaOptions(
+  sdk: OnchainSDK,
+  request: OpenPrepareRequest,
+): Promise<RWAOperationArgs | undefined> {
+  if (!request.targetToken) {
+    return undefined;
+  }
+  const requirements = await sdk.accounts.getOpenAccountRequirements(
+    request.wallet,
+    request.creditManager,
+    { tokenOutAddress: request.targetToken },
+  );
+  if (!requirements) {
+    return undefined;
+  }
+  return {
+    type: requirements.type,
+    tokensToRegister: requirements.tokensToRegister,
+    signaturesToCache: request.signaturesToCache ?? [],
+  };
 }
 
 async function accountTx(
