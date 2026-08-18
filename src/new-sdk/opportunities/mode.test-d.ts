@@ -22,6 +22,7 @@ import type { GearboxSDK } from "../GearboxSDK.js";
 import type {
   DelayedStrategySimulate,
   LpSimulate,
+  StrategyRoutesSimulate,
   StrategySimulate,
 } from "../simulate/index.js";
 import type { Mode } from "../types.js";
@@ -112,8 +113,18 @@ describe("simulate covers the flows and the withdraw ceiling", () => {
   });
 
   it("answers in the envelope every read uses, so one chain is reported", () => {
-    expectTypeOf(simulate.adjustLeverage).returns.resolves.toEqualTypeOf<
+    expectTypeOf(simulate.addCollateral).returns.resolves.toEqualTypeOf<
       DataResponse<StrategySimulate>
+    >();
+  });
+
+  it("answers the two flows that sell an asset with both routes they can take", () => {
+    // the asset sold decides which of them exist, so one call quotes both
+    expectTypeOf(simulate.withdrawStrategy).returns.resolves.toEqualTypeOf<
+      DataResponse<StrategyRoutesSimulate>
+    >();
+    expectTypeOf(simulate.adjustLeverage).returns.resolves.toEqualTypeOf<
+      DataResponse<StrategyRoutesSimulate>
     >();
   });
 });

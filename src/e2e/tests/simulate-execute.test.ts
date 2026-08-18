@@ -227,8 +227,9 @@ describe("simulate → execute on a mainnet fork", () => {
     await anvil.setNextBlockTimestamp({ timestamp: BigInt(timestamp) });
   }
 
+  /** A flow with a single route: the simulation is the preview. */
   function adjustPreview(
-    sim: Awaited<ReturnType<ReturnType<typeof simulate>["adjustLeverage"]>>,
+    sim: Awaited<ReturnType<ReturnType<typeof simulate>["depositStrategy"]>>,
   ) {
     if (!sim.data.ok) throw new Error(`sim failed: ${sim.data.reason}`);
     const [meta] = sim.meta.chains;
@@ -236,6 +237,27 @@ describe("simulate → execute on a mainnet fork", () => {
     return {
       sim: sim.data,
       preview: sim.data.preview,
+      timestamp: meta.timestamp,
+    };
+  }
+
+  /**
+   * The instant route of a flow that quotes two, which is the one this market
+   * offers: nothing here redeems through an issuer.
+   */
+  function routedPreview(
+    sim: Awaited<ReturnType<ReturnType<typeof simulate>["adjustLeverage"]>>,
+  ) {
+    if (!sim.data.ok) throw new Error(`sim failed: ${sim.data.reason}`);
+    const [meta] = sim.meta.chains;
+    if (meta?.status !== "success") throw new Error("sim did not succeed");
+    const { instant } = sim.data;
+    if (!instant) {
+      throw new Error(`no instant route: ${sim.data.refused.instant}`);
+    }
+    return {
+      sim: instant,
+      preview: instant.preview,
       timestamp: meta.timestamp,
     };
   }
@@ -348,7 +370,7 @@ describe("simulate → execute on a mainnet fork", () => {
     it("totalValue lands between the floor and the pre-slippage expectation", async () => {
       const { creditAccount } = await openPosition();
       await sync();
-      const { sim, preview } = adjustPreview(
+      const { sim, preview } = routedPreview(
         await simulate().adjustLeverage(position(creditAccount), {
           targetLeverage: X3,
           token: TARGET_TOKEN,
@@ -372,7 +394,7 @@ describe("simulate → execute on a mainnet fork", () => {
     it("accountDebt is bracketed by the re-read principal and principal + interest + fees", async () => {
       const { creditAccount } = await openPosition();
       await sync();
-      const { sim, preview } = adjustPreview(
+      const { sim, preview } = routedPreview(
         await simulate().adjustLeverage(position(creditAccount), {
           targetLeverage: X3,
           token: TARGET_TOKEN,
@@ -399,7 +421,7 @@ describe("simulate → execute on a mainnet fork", () => {
     it("totalValue lands between the floor and the pre-slippage expectation", async () => {
       const { creditAccount } = await openPosition();
       await sync();
-      const { sim, preview, timestamp } = adjustPreview(
+      const { sim, preview, timestamp } = routedPreview(
         await simulate().adjustLeverage(position(creditAccount), {
           targetLeverage: X1_5,
           token: TARGET_TOKEN,
@@ -424,7 +446,7 @@ describe("simulate → execute on a mainnet fork", () => {
     it("accountDebt is exact with the send block pinned to the sim's timestamp", async () => {
       const { creditAccount } = await openPosition();
       await sync();
-      const { sim, preview, timestamp } = adjustPreview(
+      const { sim, preview, timestamp } = routedPreview(
         await simulate().adjustLeverage(position(creditAccount), {
           targetLeverage: X1_5,
           token: TARGET_TOKEN,
@@ -452,7 +474,7 @@ describe("simulate → execute on a mainnet fork", () => {
     it("totalValue lands between the floor and the pre-slippage expectation", async () => {
       const { creditAccount } = await openPosition();
       await sync();
-      const { sim, preview, timestamp } = adjustPreview(
+      const { sim, preview, timestamp } = routedPreview(
         await simulate().withdrawStrategy(position(creditAccount), {
           amount: W,
           to: borrower,
@@ -478,7 +500,7 @@ describe("simulate → execute on a mainnet fork", () => {
     it("accountDebt is exact with the send block pinned to the sim's timestamp", async () => {
       const { creditAccount } = await openPosition();
       await sync();
-      const { sim, preview, timestamp } = adjustPreview(
+      const { sim, preview, timestamp } = routedPreview(
         await simulate().withdrawStrategy(position(creditAccount), {
           amount: W,
           to: borrower,
@@ -505,7 +527,7 @@ describe("simulate → execute on a mainnet fork", () => {
       await sync();
       const max = await simulate().maxWithdraw(position(creditAccount));
       expect(max.meta.chains[0]?.status).toBe("success");
-      const { sim, timestamp } = adjustPreview(
+      const { sim, timestamp } = routedPreview(
         await simulate().withdrawStrategy(position(creditAccount), {
           amount: max.data,
           to: borrower,

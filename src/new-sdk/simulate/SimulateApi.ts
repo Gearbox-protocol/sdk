@@ -30,6 +30,7 @@ import type {
   PositionInput,
   SimulateOptions,
   StrategyInput,
+  StrategyRoutesSimulate,
   StrategySimulate,
   WithdrawCollateralParams,
   WithdrawStrategyParams,
@@ -247,8 +248,8 @@ export class SimulateApi
   public async withdrawStrategy(
     position: PositionInput,
     params: WithdrawStrategyParams,
-  ): Promise<DataResponse<StrategySimulate>> {
-    return this.#startIntent(position, params, {
+  ): Promise<DataResponse<StrategyRoutesSimulate>> {
+    return this.#startRoutes(position, params, {
       type: "WITHDRAW",
       amount: params.amount,
       to: params.to,
@@ -279,8 +280,8 @@ export class SimulateApi
   public async adjustLeverage(
     position: PositionInput,
     params: AdjustLeverageParams,
-  ): Promise<DataResponse<StrategySimulate>> {
-    return this.#startIntent(position, params, {
+  ): Promise<DataResponse<StrategyRoutesSimulate>> {
+    return this.#startRoutes(position, params, {
       type: "ADJUST_LEVERAGE",
       targetLeverage: params.targetLeverage,
       token: params.token,
@@ -318,8 +319,30 @@ export class SimulateApi
   }
 
   /**
-   * Shared path of the two flows that have a delayed route: same account read,
-   * same intent, a planner that requests a redemption instead of swapping.
+   * Shared path of the two flows that sell a position asset, and therefore have
+   * two routes to offer: one account read, one intent, both routes quoted.
+   **/
+  async #startRoutes(
+    position: PositionInput,
+    options: SimulateOptions,
+    intent: DelayableIntent,
+  ): Promise<DataResponse<StrategyRoutesSimulate>> {
+    return this.queryChain({
+      network: position.chainId,
+      run: async sdk =>
+        service(sdk).intentRoutes({
+          intent,
+          creditAccount: await slice(sdk, position.creditAccount),
+          sdk,
+          slippage: options.slippage,
+          quotaReserve: options.quotaReserve,
+        }),
+    });
+  }
+
+  /**
+   * Shared path of the same two flows when only the delayed route is asked for:
+   * a planner that requests a redemption instead of swapping.
    **/
   async #startDelayedIntent(
     position: PositionInput,

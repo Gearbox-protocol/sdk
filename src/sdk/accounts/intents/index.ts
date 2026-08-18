@@ -32,8 +32,10 @@ import {
   type FinishIntentProps,
   IntentPreviewError,
   type IntentPreviewResult,
+  type IntentRoutesResult,
   type PreviewErrorReason,
   type ResumableIntent,
+  type RouteRefusals,
   type StartIntent,
   type StartIntentProps,
 } from "./types.js";
@@ -47,14 +49,18 @@ export {
   type AddCollateralIntent,
   type AdjustLeverageIntent,
   type DelayableIntent,
+  type DelayedRoute,
   type DelayedStart,
   type DelayedStartResult,
   type DepositStrategyIntent,
   type FinishIntentProps,
+  type InstantRoute,
   IntentPreviewError,
+  type IntentRoutesResult,
   type OperationState,
   type PreviewErrorReason,
   type ResumableIntent,
+  type RouteRefusals,
   type StartIntent,
   type WithdrawAssetIntent,
   type WithdrawStrategyIntent,
@@ -147,7 +153,9 @@ export class CreditAccountOperationsService extends SDKConstruct {
    * Sits apart from {@link startIntent} because it is a different trade route,
    * not a different intent: the request goes to the issuer instead of the
    * router, and the proceeds — hence the repayment and the payout — arrive days
-   * later. Callers that want to offer both routes ask for both previews.
+   * later. Both routes of one intent are quoted together by
+   * {@link intentRoutes}; this is the one to call when the delayed route is the
+   * only one of interest.
    *
    * @param props - Intent plus account slice, quota reserve and slippage
    * @returns The request transaction and what it recorded for the tail, or
@@ -181,6 +189,75 @@ export class CreditAccountOperationsService extends SDKConstruct {
       throw new Error("startDelayedIntent: plan started no withdrawal");
     }
     return { ...result, delayed: result.delayed };
+  }
+
+  /**
+   * Previews a delayable intent both ways at once: settled by the router now,
+   * and started as a redemption that finishes days later.
+   *
+   * Which routes an account has depends on the intent and the token it sells,
+   * and a form has to know before it can offer a choice — so both are quoted
+   * from the same request and each is reported on its own. A route the account
+   * cannot take comes back `undefined` with its refusal in `refused`; only when
+   * neither answers is the whole result `{ ok: false }`.
+   *
+   * A route that could not be quoted at all — a pathfinder with no path out of
+   * the source, a read that failed — counts as missing rather than fatal, since
+   * the other route may be the one the caller wanted. With nothing left to
+   * report the failure is rethrown, as {@link startIntent} would have.
+   *
+   * @param props - A withdraw or adjust-leverage intent plus account slice,
+   * quota reserve and slippage
+   * @returns Whichever routes are viable, or `{ ok: false, reason }` when none is
+   */
+  async intentRoutes(
+    props: StartIntentProps & { intent: DelayableIntent },
+  ): Promise<IntentRoutesResult> {
+    const [instant, delayed] = await Promise.allSettled([
+      this.startIntent(props),
+      this.startDelayedIntent(props),
+    ]);
+
+    const instantRoute =
+      instant.status === "fulfilled" && instant.value.ok
+        ? instant.value
+        : undefined;
+    const delayedRoute =
+      delayed.status === "fulfilled" && delayed.value.ok
+        ? delayed.value
+        : undefined;
+    const refused: RouteRefusals = {
+      instant:
+        instant.status === "fulfilled" && !instant.value.ok
+          ? instant.value.reason
+          : undefined,
+      delayed:
+        delayed.status === "fulfilled" && !delayed.value.ok
+          ? delayed.value.reason
+          : undefined,
+    };
+
+    if (instantRoute || delayedRoute) {
+      return {
+        ok: true,
+        instant: instantRoute,
+        delayed: delayedRoute,
+        refused,
+      };
+    }
+
+    // Nothing answered. A refusal is a value the caller can act on, but a route
+    // that could not be quoted at all is a genuine failure, and there is no
+    // preview left to report it alongside.
+    const failed = [instant, delayed].find(s => s.status === "rejected");
+    if (failed?.status === "rejected") {
+      throw failed.reason;
+    }
+    const reason = refused.instant ?? refused.delayed;
+    if (reason === undefined) {
+      throw new Error("intentRoutes: a route neither answered nor refused");
+    }
+    return { ok: false, reason, refused };
   }
 
   /**

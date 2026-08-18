@@ -16,6 +16,7 @@ import type {
   PoolSimulation,
   PreviewErrorReason,
   ResumableIntent,
+  RouteRefusals,
 } from "../../sdk/index.js";
 
 /**
@@ -108,6 +109,51 @@ export type DelayedStrategySimulate =
       delayed: DelayedStart;
     }
   | { ok: false; reason: PreviewErrorReason };
+
+/**
+ * What one of the two flows that sell a position asset —
+ * {@link OpportunitiesSimulate.withdrawStrategy} and
+ * {@link OpportunitiesSimulate.adjustLeverage} — would yield each way it can be
+ * served.
+ *
+ * Whether the account can sell that asset on the router, redeem it through its
+ * issuer, or both, is not something the caller can know up front, so both routes
+ * are quoted from one request. A route the account cannot take is `undefined`
+ * with its refusal in `refused`, which is what lets a form offer exactly the
+ * routes that exist; `ok: false` means neither does.
+ **/
+export type StrategyRoutesSimulate =
+  | {
+      ok: true;
+      /**
+       * The router route: one transaction, settled on the spot. `undefined`
+       * when the asset cannot be sold, see `refused.instant`.
+       **/
+      instant: Extract<StrategySimulate, { ok: true }> | undefined;
+      /**
+       * The request half of the redemption route, which
+       * {@link DelayedSimulate.finish} completes once it matures. `undefined`
+       * when the route does not exist — no redemption venue for the asset, or a
+       * request that settles at once anyway — see `refused.delayed`.
+       **/
+      delayed: Extract<DelayedStrategySimulate, { ok: true }> | undefined;
+      /**
+       * Why a missing route was refused, see {@link RouteRefusals}.
+       **/
+      refused: RouteRefusals;
+    }
+  | {
+      ok: false;
+      /**
+       * The instant route's refusal, which is the one a caller can usually act
+       * on; the delayed route's when the instant one did not even get that far.
+       **/
+      reason: PreviewErrorReason;
+      /**
+       * {@inheritDoc StrategyRoutesSimulate.refused}
+       **/
+      refused: RouteRefusals;
+    };
 
 /**
  * What opening a new leveraged position would yield.
@@ -299,11 +345,12 @@ export interface FinishDelayedParams extends SimulateOptions {
  **/
 export interface DelayedSimulate {
   /**
-   * The delayed counterpart of {@link OpportunitiesSimulate.withdrawStrategy}.
+   * The delayed counterpart of {@link OpportunitiesSimulate.withdrawStrategy},
+   * on its own: that flow already quotes this route alongside the instant one,
+   * so reach for this when the delayed route is the only one of interest.
    *
    * Reports `noDelayedRoute` when the account has no redemption venue for the
-   * source at all, so a caller offering both routes asks for both previews and
-   * shows whichever answered.
+   * source at all.
    **/
   withdrawStrategy(
     position: PositionInput,
@@ -311,9 +358,10 @@ export interface DelayedSimulate {
   ): Promise<DataResponse<DelayedStrategySimulate>>;
 
   /**
-   * The delayed counterpart of {@link OpportunitiesSimulate.adjustLeverage},
-   * which only deleveraging reaches: raising leverage buys the position token
-   * and never redeems it.
+   * The delayed counterpart of {@link OpportunitiesSimulate.adjustLeverage} on
+   * its own, which only deleveraging reaches: raising leverage buys the position
+   * token and never redeems it. That flow already quotes this route alongside
+   * the instant one, so reach for this when it is the only one of interest.
    **/
   adjustLeverage(
     position: PositionInput,
@@ -395,13 +443,18 @@ export interface OpportunitiesSimulate {
    * Shrinking a position: part of its net value goes to the wallet and debt is
    * repaid in the same proportion, so leverage is unchanged.
    *
+   * Answers with both routes the withdrawal can take — sold through the router
+   * now, or redeemed through the source's issuer and finished days later — since
+   * the source token decides which of them exist, see
+   * {@link StrategyRoutesSimulate}.
+   *
    * @see withdrawCollateral to move an asset out without touching debt, which
    * raises leverage instead.
    **/
   withdrawStrategy(
     position: PositionInput,
     params: WithdrawStrategyParams,
-  ): Promise<DataResponse<StrategySimulate>>;
+  ): Promise<DataResponse<StrategyRoutesSimulate>>;
 
   /**
    * Largest partial withdrawal {@link withdrawStrategy} accepts, in underlying
@@ -413,11 +466,16 @@ export interface OpportunitiesSimulate {
 
   /**
    * Retargeting leverage at fixed collateral: debt moves, own funds do not.
+   *
+   * Answers with both routes, like {@link withdrawStrategy}, since deleveraging
+   * sells the position token and may only be able to redeem it. Raising leverage
+   * buys instead, so there the delayed route is always absent with
+   * `refused.delayed: "noDelayedRoute"`.
    **/
   adjustLeverage(
     position: PositionInput,
     params: AdjustLeverageParams,
-  ): Promise<DataResponse<StrategySimulate>>;
+  ): Promise<DataResponse<StrategyRoutesSimulate>>;
 
   /**
    * Putting the position token onto the account at fixed debt, which lowers

@@ -117,6 +117,50 @@ export type DelayedStartResult =
     }
   | { ok: false; reason: PreviewErrorReason };
 
+/** An intent previewed through the router: one transaction, settled now. */
+export type InstantRoute = Extract<IntentPreviewResult, { ok: true }>;
+
+/** An intent previewed as a redemption: the request now, the tail later. */
+export type DelayedRoute = Extract<DelayedStartResult, { ok: true }>;
+
+/**
+ * Why a route is missing from an {@link IntentRoutesResult}.
+ *
+ * A reason is the engine's refusal — `noDelayedRoute` for a source with no
+ * redemption venue or for a leverage move that settles at once,
+ * `insufficientSourceBalance` for a payout the account cannot fund. `undefined`
+ * next to a missing route means the route could not be quoted at all: the
+ * pathfinder found no way out of the source, or the read behind it failed.
+ */
+export interface RouteRefusals {
+  instant: PreviewErrorReason | undefined;
+  delayed: PreviewErrorReason | undefined;
+}
+
+/**
+ * Both ways one intent can be served, previewed side by side: traded through
+ * the router, which settles in a single transaction, or redeemed through the
+ * source's issuer, which answers now and pays out days later.
+ *
+ * Which of them an account can take depends on the intent and the token it
+ * sells, so both are quoted and a route it cannot take comes back `undefined`
+ * with its refusal in `refused`. Only when neither answers is the request itself
+ * unviable, and then `reason` is the instant route's refusal — the route every
+ * account is expected to have — falling back to the delayed one's.
+ */
+export type IntentRoutesResult =
+  | {
+      ok: true;
+      instant: InstantRoute | undefined;
+      delayed: DelayedRoute | undefined;
+      refused: RouteRefusals;
+    }
+  | {
+      ok: false;
+      reason: PreviewErrorReason;
+      refused: RouteRefusals;
+    };
+
 /**
  * The intents the engine previews.
  *
