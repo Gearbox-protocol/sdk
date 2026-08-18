@@ -1,15 +1,16 @@
 import { describe, expect, it } from "vitest";
 import type { OptimalRepaidAmountProps } from "./math.js";
 import {
-  additionalBorrowApyBps,
-  borrowApyBps,
-  maxLeverage,
+  calcAdditionalBorrowApy,
+  calcBorrowApy,
+  calcMaxLeverage,
+  calcPositionLeverage,
+  calcUtilization,
   minSeizedAmount,
   optimalHFForPartialLiquidation,
   optimalRepaidAmount,
   rayToBps,
   usdToNumber,
-  utilizationBps,
 } from "./math.js";
 
 const RAY_5_PERCENT = 50_000_000_000_000_000_000_000_000n;
@@ -25,50 +26,73 @@ describe("unit conversions", () => {
   });
 });
 
-describe("utilizationBps", () => {
+describe("calcUtilization", () => {
   it("is the borrowed share of the total", () => {
-    expect(utilizationBps(750n, 1000n)).toBe(7500);
+    expect(calcUtilization(750n, 1000n)).toBe(7500);
   });
 
   it("is zero when there is nothing to borrow from", () => {
-    expect(utilizationBps(750n, 0n)).toBe(0);
-    expect(utilizationBps(0n, 1000n)).toBe(0);
+    expect(calcUtilization(750n, 0n)).toBe(0);
+    expect(calcUtilization(0n, 1000n)).toBe(0);
   });
 
   it("never exceeds 100%, which accrued interest alone could push it past", () => {
-    expect(utilizationBps(1100n, 1000n)).toBe(10_000);
+    expect(calcUtilization(1100n, 1000n)).toBe(10_000);
   });
 });
 
-describe("borrowApyBps", () => {
+describe("calcBorrowApy", () => {
   it("adds the credit manager's cut to the pool's base rate", () => {
-    expect(borrowApyBps(RAY_5_PERCENT, 5000)).toBe(750);
+    expect(calcBorrowApy(RAY_5_PERCENT, 5000)).toBe(750);
   });
 
   it("is the bare base rate when the manager takes no fee", () => {
-    expect(borrowApyBps(RAY_5_PERCENT, 0)).toBe(500);
+    expect(calcBorrowApy(RAY_5_PERCENT, 0)).toBe(500);
   });
 });
 
-describe("maxLeverage", () => {
-  it("is one over the equity share the threshold leaves", () => {
-    expect(maxLeverage(9000)).toBe(10);
-    expect(maxLeverage(8000)).toBe(5);
+describe("calcMaxLeverage", () => {
+  it("is 95% over the equity share the threshold leaves", () => {
+    expect(calcMaxLeverage(9000)).toBe(9.5);
+    expect(calcMaxLeverage(8000)).toBe(4.75);
+    expect(calcMaxLeverage(9500)).toBe(19);
   });
 
   it("is unleveraged when the collateral counts for nothing", () => {
-    expect(maxLeverage(0)).toBe(1);
+    expect(calcMaxLeverage(0)).toBe(1);
+  });
+
+  it("is zero when the threshold would allow unbounded leverage", () => {
+    expect(calcMaxLeverage(10_000)).toBe(0);
   });
 });
 
-describe("additionalBorrowApyBps", () => {
-  it("scales the quota rate to the debt the position carries", () => {
-    expect(additionalBorrowApyBps(250, 5)).toBe(1000);
+describe("calcPositionLeverage", () => {
+  it("is total value over remaining equity", () => {
+    expect(calcPositionLeverage(1000n, 800n)).toBe(5);
   });
 
-  it("is zero without leverage, where no debt is quoted", () => {
-    expect(additionalBorrowApyBps(250, 1)).toBe(0);
-    expect(additionalBorrowApyBps(250, Number.POSITIVE_INFINITY)).toBe(0);
+  it("is 1x when the position carries no debt", () => {
+    expect(calcPositionLeverage(1000n, 0n)).toBe(1);
+  });
+
+  it("is zero when the position is underwater", () => {
+    expect(calcPositionLeverage(800n, 1000n)).toBe(0);
+  });
+});
+
+describe("calcAdditionalBorrowApy", () => {
+  it("scales the quota rate to the whole quoted position", () => {
+    expect(calcAdditionalBorrowApy(250, 0, 9.5)).toBe(2375);
+  });
+
+  it("includes the DAO fee on quota interest", () => {
+    expect(calcAdditionalBorrowApy(250, 2500, 9.5)).toBe(2969);
+  });
+
+  it("is zero without a finite positive leverage", () => {
+    expect(calcAdditionalBorrowApy(250, 0, 0)).toBe(0);
+    expect(calcAdditionalBorrowApy(250, 0, Number.POSITIVE_INFINITY)).toBe(0);
   });
 });
 

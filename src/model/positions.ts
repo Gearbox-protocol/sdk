@@ -182,9 +182,9 @@ export interface StrategyPosition {
    **/
   targetCollateral: Token | null;
   /**
-   * Debt/equity ratio: `totalDebt / equity` (`equity = totalValue −
-   * totalDebt`). `0` = unleveraged; `0` if underwater. Same notation as the
-   * opportunity `maxLeverage`, and bounded by it.
+   * Total-value leverage: `totalValue / (totalValue − totalDebt)`. `1` =
+   * unleveraged; `0` if underwater. Same notation as opportunity `maxLeverage`,
+   * and bounded by it.
    **/
   leverage: Leverage;
   /**

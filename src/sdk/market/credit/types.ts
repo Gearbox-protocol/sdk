@@ -156,8 +156,8 @@ export interface ICreditManagerContract extends IBaseContract {
   readonly liquidationPremium: Bps;
 
   /**
-   * Highest leverage a collateral's liquidation threshold allows,
-   * `1 / (1 - lt)`.
+   * Highest total-value leverage a collateral's liquidation threshold allows:
+   * `(1 − 0.05) / (1 − lt)`.
    *
    * @param collateral - Collateral token address.
    * @throws If the credit manager does not value the token.

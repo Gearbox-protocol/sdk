@@ -271,9 +271,8 @@ export interface StrategyOpportunity extends OpportunityBase {
   collateralApy?: ApyBreakdown;
   /**
    * Net yield at {@link maxLeverage}:
-   * `collateralApy * maxLeverage - borrowApy * (maxLeverage - 1)`, applied to
-   * {@link ApyBreakdown.totalApy}, {@link ApyBreakdown.organicApy} and
-   * {@link ApyBreakdown.rewards} alike.
+   * `collateralApy × maxLeverage − borrowApy × (maxLeverage − 1) − additionalBorrowApy`.
+   * Yield is on the whole position; borrow interest is on the borrowed part only.
    *
    * Absent in `onchain` mode: its {@link collateralApy} term is.
    *
@@ -288,9 +287,9 @@ export interface StrategyOpportunity extends OpportunityBase {
    **/
   borrowApy?: Bps;
   /**
-   * Annual cost of the quota on {@link targetCollateral}, scaled to the debt a
-   * maximally leveraged position carries, in basis points. Comes on top of
-   * {@link borrowApy}.
+   * Annual cost of the quota on {@link targetCollateral}, in basis points:
+   * `quotaRate × (1 + feeInterest) × maxLeverage`. Quota accrues on the whole
+   * quoted position and carries the same DAO fee as {@link borrowApy}.
    *
    * @example `90` for +0.9% APY
    **/
@@ -324,10 +323,11 @@ export interface StrategyOpportunity extends OpportunityBase {
    **/
   maxBorrowAmount: Amount;
   /**
-   * Highest leverage the liquidation threshold allows,
-   * `1 / (1 - liquidationThreshold)`.
+   * Highest total-value leverage the liquidation threshold allows:
+   * `(1 − 0.05) / (1 − liquidationThreshold)`. The 5% safety margin keeps a
+   * maxed position slightly above HF = 1.
    *
-   * @example `10` at a 90% threshold
+   * @example `9.5` at a 90% threshold
    **/
   maxLeverage: Leverage;
 }

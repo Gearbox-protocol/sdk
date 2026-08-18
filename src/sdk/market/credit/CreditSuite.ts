@@ -20,8 +20,8 @@ import { AddressMap } from "../../utils/index.js";
 import type { MarketConfiguratorContract } from "../MarketConfiguratorContract.js";
 import type { MarketSuite } from "../MarketSuite.js";
 import {
-  additionalBorrowApyBps,
-  borrowApyBps,
+  calcAdditionalBorrowApy,
+  calcBorrowApy,
   minSeizedAmount,
   optimalHFForPartialLiquidation,
   optimalRepaidAmount,
@@ -350,9 +350,10 @@ export class CreditSuite extends SDKConstruct {
       liquidationPremium: cm.liquidationPremium,
       liquidationFee: cm.feeLiquidation,
       expirationDate: this.expirationDate,
-      borrowApy: borrowApyBps(pool.baseInterestRate, cm.feeInterest),
-      additionalBorrowApy: additionalBorrowApyBps(
+      borrowApy: calcBorrowApy(pool.baseInterestRate, cm.feeInterest),
+      additionalBorrowApy: calcAdditionalBorrowApy(
         market.pool.pqk.quotaRate(collateral),
+        cm.feeInterest,
         maxLeverage,
       ),
       maxBorrowAmount: oracle.toAmount(pool.underlying, this.maxBorrowAmount),

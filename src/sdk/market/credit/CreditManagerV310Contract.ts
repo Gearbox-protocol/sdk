@@ -15,7 +15,7 @@ import type { CreditManagerStateHuman } from "../../types/index.js";
 import { AddressMap, fmtBinaryMask, percentFmt } from "../../utils/index.js";
 import type { IAdapterContract } from "../adapters/index.js";
 import { createAdapter } from "../adapters/index.js";
-import { maxLeverage } from "../math.js";
+import { calcMaxLeverage } from "../math.js";
 import type { ICreditManagerContract } from "./types.js";
 
 const abi = iCreditManagerV310Abi;
@@ -128,7 +128,7 @@ export class CreditManagerV310Contract
    * {@inheritDoc ICreditManagerContract.maxLeverage}
    */
   public maxLeverage(collateral: Address): Leverage {
-    return maxLeverage(this.liquidationThresholds.mustGet(collateral));
+    return calcMaxLeverage(this.liquidationThresholds.mustGet(collateral));
   }
 
   /**
