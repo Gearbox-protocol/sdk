@@ -1,6 +1,5 @@
 import { type Address, isAddressEqual } from "viem";
 import type {
-  Bps,
   StrategyOpportunity,
   StrategyOpportunityDetail,
   Timestamp,
@@ -338,7 +337,9 @@ export class CreditSuite extends SDKConstruct {
       curator: market.curator,
       underlyingToken: market.underlyingToken,
       totalBorrow: oracle.toAmount(pool.underlying, borrowed),
-      collateralTokens: market.collateralTokens,
+      collateralTokens: this.strategyCollaterals.map(t =>
+        this.tokensMeta.mustGetToken(t),
+      ),
       paused: this.isPaused,
       rwa: market.rwa,
       // a pool being wound down takes every strategy borrowing from it with it
