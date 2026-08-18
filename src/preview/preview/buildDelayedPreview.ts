@@ -6,7 +6,6 @@ import {
   type DelayedWithdrawCollateralIntent,
   DUST_THRESHOLD,
   type OnchainSDK,
-  positionMetrics,
 } from "../../sdk/index.js";
 import type { CreditAccountState } from "./CreditAccountState.js";
 import type { DetectedDelayedOperation } from "./detectDelayedOperation.js";
@@ -297,6 +296,7 @@ function buildAdjustPreview(
   );
   const assets = post.balances.toAssets(DUST_THRESHOLD);
   const quotas = post.quotas.toAssets(0n);
+  const snap = post.toSnapshot(totalValue);
   return {
     operation: "AdjustCreditAccount",
     creditManager: post.creditManager,
@@ -316,6 +316,12 @@ function buildAdjustPreview(
       .difference(before.balances)
       .toAssets(DUST_THRESHOLD),
     error: converter.error,
-    ...positionMetrics(sdk, post.toSnapshot(totalValue)),
+    healthFactor: sdk.positions.healthFactor(snap),
+    // TODO: overall APY needs the collateral yield (lpAPY), which market
+    // state alone does not carry — wire it up together with the ApyPlugin
+    overallApy: 0,
+    borrowRate: sdk.positions.borrowRate(snap),
+    timeToLiquidation: sdk.positions.timeToLiquidation(snap),
+    liquidationPrice: sdk.positions.liquidationPrice(snap),
   };
 }

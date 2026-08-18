@@ -5,7 +5,6 @@ import {
   DUST_THRESHOLD,
   NO_VERSION,
   type PluginsMap,
-  positionMetrics,
 } from "../../sdk/index.js";
 import type {
   InnerOperation,
@@ -70,6 +69,7 @@ export async function previewOpenCreditAccount<P extends PluginsMap>(
   // On opening, initial quotas are zero, so the folded quotas are the
   // applied changes.
   const quotas = account.quotas.toAssets(0n);
+  const snap = account.toSnapshot(collateralValue + account.totalDebt);
 
   return {
     operation: operation.operation,
@@ -83,10 +83,13 @@ export async function previewOpenCreditAccount<P extends PluginsMap>(
     error,
     // Best-effort like the rest of the preview: tokens the oracle cannot
     // price (ERROR_UNPRICEABLE_TOKEN) contribute nothing to the metrics.
-    ...positionMetrics(
-      sdk,
-      account.toSnapshot(collateralValue + account.totalDebt),
-    ),
+    healthFactor: sdk.positions.healthFactor(snap),
+    // TODO: overall APY needs the collateral yield (lpAPY), which market
+    // state alone does not carry — wire it up together with the ApyPlugin
+    overallApy: 0,
+    borrowRate: sdk.positions.borrowRate(snap),
+    timeToLiquidation: sdk.positions.timeToLiquidation(snap),
+    liquidationPrice: sdk.positions.liquidationPrice(snap),
   };
 }
 

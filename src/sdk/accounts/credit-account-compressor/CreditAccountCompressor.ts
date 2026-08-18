@@ -20,12 +20,9 @@ import {
   healthFactorBps,
   usdToNumber,
 } from "../../market/math.js";
+import { accountSnapshotFromCreditAccountData } from "../../positions/index.js";
 import { AddressMap, AddressSet, hexEq } from "../../utils/index.js";
 import { simulateWithPriceUpdates } from "../../utils/viem/index.js";
-import {
-  accountSnapshotFromCreditAccountData,
-  positionMetrics,
-} from "../position-metrics/index.js";
 import type {
   ClaimableWithdrawal,
   PendingWithdrawal,
@@ -341,10 +338,10 @@ export class CreditAccountCompressor extends SDKConstruct {
 
     // healthFactor / leverage / borrowApy / netApy keep their existing
     // sources; only the fields the position does not have natively are filled
-    const { borrowRate, timeToLiquidation, liquidationPrice } = positionMetrics(
-      this.sdk,
-      accountSnapshotFromCreditAccountData(ca),
-    );
+    const snapshot = accountSnapshotFromCreditAccountData(ca);
+    const borrowRate = this.sdk.positions.borrowRate(snapshot);
+    const timeToLiquidation = this.sdk.positions.timeToLiquidation(snapshot);
+    const liquidationPrice = this.sdk.positions.liquidationPrice(snapshot);
 
     return {
       kind: "strategy",

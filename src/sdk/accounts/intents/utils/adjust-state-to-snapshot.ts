@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import type { AccountSnapshot } from "../../position-metrics/index.js";
+import type { AccountSnapshot } from "../../../positions/index.js";
 import type { AdjustState } from "../types.js";
 
 /**

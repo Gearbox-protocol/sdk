@@ -11,7 +11,7 @@ export interface GetSingleQuotaBorrowRateRate extends CalcQuotaBorrowRateProps {
  * Under the hood sums up rates for all given quotas and then multiplies them by 1+feeInterest,
  * but it is expected that the ONLY quota will be passed
  *
- * @deprecated Use `borrowRate` from `sdk/accounts/position-metrics` instead.
+ * @deprecated Use `calcBorrowRate` from `sdk/positions` instead.
  */
 export function getSingleQuotaBorrowRate(
   props: GetSingleQuotaBorrowRateRate,

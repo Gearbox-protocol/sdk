@@ -1,9 +1,29 @@
 import type { Address } from "viem";
-import type { BorrowRateBreakdown, Bps } from "../../../model/index.js";
-import { DUST_THRESHOLD, PERCENTAGE_FACTOR } from "../../constants/math.js";
-import type { OnchainSDK } from "../../index.js";
-import { calcBorrowApy } from "../../market/math.js";
+import type { BorrowRateBreakdown, Bps } from "../../model/index.js";
+import { DUST_THRESHOLD, PERCENTAGE_FACTOR } from "../constants/math.js";
+import { calcBorrowApy } from "../market/math.js";
+import { AddressMap } from "../utils/AddressMap.js";
 import type { AccountSnapshot } from "./types.js";
+
+/**
+ * Inputs of {@link calcBorrowRate}.
+ **/
+export interface CalcBorrowRateProps {
+  snapshot: AccountSnapshot;
+  /**
+   * Pool base interest rate in ray.
+   **/
+  baseInterestRate: bigint;
+  /**
+   * Credit manager interest fee in basis points.
+   **/
+  feeInterest: number;
+  /**
+   * Active quota rates in basis points. Missing keys are treated as inactive
+   * (zero contribution), but a per-token entry is still reported.
+   **/
+  quotaRates: Record<Address, Bps>;
+}
 
 /**
  * Cost of an account state's debt, broken down into the pool's base rate and
@@ -16,21 +36,16 @@ import type { AccountSnapshot } from "./types.js";
  * normalized against the total value (`total`, `quotas`) and against the
  * debt (`totalOnDebt`, the rate the debt itself grows at). Formulas are in
  * parity with the frontend's `BorrowRateUtils`.
- *
- * @param sdk - Market data source.
- * @param snapshot - Account state to evaluate.
  **/
-export function borrowRate(
-  sdk: OnchainSDK,
-  snapshot: AccountSnapshot,
+export function calcBorrowRate(
+  props: CalcBorrowRateProps,
 ): BorrowRateBreakdown {
-  const { creditManager, quotas, totalDebt, totalValue } = snapshot;
-  const market = sdk.marketRegister.findByCreditManager(creditManager);
-  const cm = sdk.marketRegister.findCreditManager(creditManager).creditManager;
-  const { pqk } = market.pool;
+  const { snapshot, baseInterestRate, feeInterest, quotaRates } = props;
+  const { quotas, totalDebt, totalValue } = snapshot;
+  const rates = new AddressMap(Object.entries(quotaRates));
 
-  const base = calcBorrowApy(market.pool.pool.baseInterestRate, cm.feeInterest);
-  const fee = PERCENTAGE_FACTOR + BigInt(cm.feeInterest);
+  const base = calcBorrowApy(baseInterestRate, feeInterest);
+  const fee = PERCENTAGE_FACTOR + BigInt(feeInterest);
 
   // Σ balance * rate over active quotas, before the interest fee
   let quotaRateSum = 0n;
@@ -39,9 +54,8 @@ export function borrowRate(
     if (q.balance <= DUST_THRESHOLD) {
       continue;
     }
-    const rateBalance = pqk.hasActiveQuota(q.token)
-      ? q.balance * BigInt(pqk.quotaRate(q.token))
-      : 0n;
+    const rate = rates.get(q.token);
+    const rateBalance = rate === undefined ? 0n : q.balance * BigInt(rate);
     quotaRateSum += rateBalance;
     // per-token contributions carry the fee per token
     // (`getSingleQuotaBorrowRate` parity)

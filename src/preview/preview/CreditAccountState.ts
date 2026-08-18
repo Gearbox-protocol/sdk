@@ -110,8 +110,8 @@ export class CreditAccountState {
   }
 
   /**
-   * Immutable snapshot of this projected state for {@link positionMetrics}:
-   * dust-filtered balances, all quotas, and {@link totalDebt}.
+   * Immutable snapshot of this projected state for `sdk.positions` metric
+   * methods: dust-filtered balances, all quotas, and {@link totalDebt}.
    **/
   public toSnapshot(totalValue: bigint): AccountSnapshot {
     return {
