@@ -2,16 +2,38 @@ import type { Address } from "viem";
 import type {
   BorrowRateBreakdown,
   Bps,
+  DelayedReceivedAsset,
   Position,
   PositionKind,
+  StrategyPosition,
 } from "../../model/index.js";
 import { isFilterSet, matchesPositionFilter } from "../../model/index.js";
+import type {
+  ClaimableWithdrawal,
+  PendingWithdrawal,
+  WithdrawalOutput,
+} from "../accounts/withdrawal-compressor/index.js";
+import type { CreditAccountData } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
+import { DUST_THRESHOLD } from "../constants/index.js";
+import { dominantCollateral } from "../market/index.js";
+import {
+  calcBorrowApy,
+  calcPositionLeverage,
+  healthFactorBps,
+  usdToNumber,
+} from "../market/math.js";
+import { AddressMap } from "../utils/index.js";
 import { calcBorrowRate } from "./calcBorrowRate.js";
 import { calcHealthFactor } from "./calcHealthFactor.js";
 import { calcLiquidationPrice } from "./calcLiquidationPrice.js";
 import { calcTimeToLiquidationMs } from "./calcTimeToLiquidationMs.js";
-import type { AccountSnapshot, ListPositionsProps } from "./types.js";
+import {
+  type AccountSnapshot,
+  accountSnapshotFromCreditAccountData,
+  type ListPositionsProps,
+  type ListStrategyPositionsProps,
+} from "./types.js";
 
 /**
  * Market-side inputs collected once from the SDK for a snapshot's credit
@@ -57,7 +79,7 @@ export class PositionsService extends SDKConstruct {
         ? this.sdk.pools.listPositions({ wallet, blockNumber })
         : Promise.resolve([]),
       wanted("strategy")
-        ? this.sdk.accounts.listPositions({
+        ? this.listStrategyPositions({
             owner: wallet,
             // a filter that asks for accounts with debt narrows the account
             // query itself; anything else needs them all
@@ -75,6 +97,42 @@ export class PositionsService extends SDKConstruct {
 
     return [...pool, ...strategy, ...liquidation].filter(row =>
       matchesPositionFilter(row, filter),
+    );
+  }
+
+  /**
+   * Describes all credit accounts of a wallet as strategy positions.
+   *
+   * @param props - {@link ListStrategyPositionsProps}
+   **/
+  public async listStrategyPositions(
+    props: ListStrategyPositionsProps,
+  ): Promise<StrategyPosition[]> {
+    const { owner, includeZeroDebt, blockNumber } = props;
+    // phantom token lookups below are sync; the cache is populated by attach/hydrate
+    const accounts = await this.sdk.accounts.getBorrowerCreditAccounts(
+      owner,
+      { includeZeroDebt },
+      blockNumber,
+    );
+
+    const describable = accounts.filter(ca => {
+      // collateral computation reverted (e.g. dead price feed) — none of the
+      // account's amounts can be computed, so it is left out of the list
+      if (!ca.success) {
+        this.logger?.warn(
+          `cannot describe position of ${this.labelAddress(ca.creditAccount)}: collateral computation failed`,
+        );
+      }
+      return ca.success;
+    });
+
+    const withdrawals = await Promise.all(
+      describable.map(ca => this.#accountWithdrawals(ca, blockNumber)),
+    );
+
+    return describable.map((ca, i) =>
+      this.#toStrategyPosition(ca, withdrawals[i] ?? new AddressMap()),
     );
   }
 
@@ -147,6 +205,146 @@ export class PositionsService extends SDKConstruct {
       decimals: data.decimals,
       liquidationThresholds: data.liquidationThresholds,
     });
+  }
+
+  /**
+   * Builds one strategy position from an account snapshot.
+   *
+   * @param withdrawals - Delayed withdrawals of the account, keyed by the
+   * phantom token that represents them on it.
+   **/
+  #toStrategyPosition(
+    ca: CreditAccountData,
+    withdrawals: AddressMap<DelayedReceivedAsset[]>,
+  ): StrategyPosition {
+    const suite = this.sdk.marketRegister.findCreditManager(ca.creditManager);
+    const { market } = suite;
+    const { priceOracle } = market;
+    const { pool } = market.pool;
+
+    // for RWA markets, amounts are denominated in the unwrapped asset
+    // (e.g. USDC instead of dcUSDC); the wrapped underlying converts 1:1
+    const token = this.sdk.tokensMeta.mustGetToken(market.unwrappedUnderlying);
+    const totalDebtValue = ca.debt + ca.accruedInterest + ca.accruedFees;
+    const collateral = dominantCollateral(ca, market);
+
+    // healthFactor / leverage / borrowApy / netApy keep their existing
+    // sources; only the fields the position does not have natively are filled
+    const snapshot = accountSnapshotFromCreditAccountData(ca);
+    const borrowRate = this.borrowRate(snapshot);
+    const timeToLiquidation = this.timeToLiquidation(snapshot);
+    const liquidationPrice = this.liquidationPrice(snapshot);
+
+    return {
+      kind: "strategy",
+      chainId: this.sdk.chainId,
+      creditManager: ca.creditManager,
+      creditAccount: ca.creditAccount,
+      name: collateral ? suite.strategyName(collateral) : token.symbol,
+      // the read model asks for the collateral the position was opened into,
+      // which needs its history; the chain can only tell what it holds now
+      targetCollateral: collateral
+        ? this.sdk.tokensMeta.mustGetToken(collateral)
+        : null,
+      leverage: calcPositionLeverage(ca.totalValue, totalDebtValue),
+      borrowApy: calcBorrowApy(
+        pool.baseInterestRate,
+        suite.creditManager.feeInterest,
+      ),
+      // the compressor prices the whole account in one pass, so the USD values
+      // of the two totals come from it rather than from a second price lookup
+      totalDebt: {
+        token,
+        value: totalDebtValue,
+        valueUsd: usdToNumber(ca.totalDebtUSD),
+      },
+      totalValue: {
+        token,
+        value: ca.totalValue,
+        valueUsd: usdToNumber(ca.totalValueUSD),
+      },
+      healthFactor: healthFactorBps(ca.healthFactor),
+      borrowRate,
+      timeToLiquidation,
+      liquidationPrice,
+      collaterals: ca.tokens.flatMap(t => {
+        if (
+          (t.mask & ca.enabledTokensMask) === 0n ||
+          t.balance <= DUST_THRESHOLD
+        ) {
+          return [];
+        }
+        return [
+          {
+            // phantom tokens are reported as themselves, the asset they
+            // redeem into shows up in `withdrawals`
+            collateral: priceOracle.toTokenAmount(t.token, t.balance),
+            quota: priceOracle.toTokenAmount(market.underlying, t.quota),
+            withdrawals: withdrawals.get(t.token) ?? [],
+          },
+        ];
+      }),
+    };
+  }
+
+  /**
+   * Delayed withdrawals of one account, keyed by the phantom token that
+   * represents them on it, so that each collateral row can pick up its own.
+   **/
+  async #accountWithdrawals(
+    ca: CreditAccountData,
+    blockNumber?: bigint,
+  ): Promise<AddressMap<DelayedReceivedAsset[]>> {
+    const compressor = this.sdk.withdrawalCompressor;
+    const byPhantomToken = new AddressMap<DelayedReceivedAsset[]>(
+      undefined,
+      "accountWithdrawals",
+    );
+    // an account with no phantom token balance has nothing on its way out, and
+    // asking the compressor about it would be one RPC call per such account
+    const holdsPhantomToken = ca.tokens.some(
+      t =>
+        t.balance > DUST_THRESHOLD &&
+        compressor?.getWithdrawalSourceToken(t.token) !== undefined,
+    );
+    if (!compressor || !holdsPhantomToken) {
+      return byPhantomToken;
+    }
+    const { priceOracle } = this.sdk.marketRegister.findByCreditManager(
+      ca.creditManager,
+    );
+    const { claimable, pending } = await compressor.getCurrentWithdrawals(
+      ca.creditAccount,
+      blockNumber,
+    );
+
+    const add = (
+      w: ClaimableWithdrawal | PendingWithdrawal,
+      outputs: readonly WithdrawalOutput[],
+      claimableAt?: bigint,
+    ): void => {
+      const assets = outputs.map(
+        (o): DelayedReceivedAsset => ({
+          isDelayed: true,
+          ...priceOracle.toTokenAmount(o.token, o.amount),
+          redeemer: w.redeemer,
+          claimableAt:
+            claimableAt === undefined ? undefined : Number(claimableAt),
+        }),
+      );
+      byPhantomToken.upsert(w.withdrawalPhantomToken, [
+        ...(byPhantomToken.get(w.withdrawalPhantomToken) ?? []),
+        ...assets,
+      ]);
+    };
+
+    for (const w of claimable) {
+      add(w, w.outputs);
+    }
+    for (const w of pending) {
+      add(w, w.expectedOutputs, w.claimableAt);
+    }
+    return byPhantomToken;
   }
 
   /**

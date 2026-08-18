@@ -34,6 +34,25 @@ export type ListPositionsProps<Multichain extends boolean = false> =
   ListPositionsPropsBase & WithBlock<Multichain>;
 
 /**
+ * Props for {@link PositionsService.listStrategyPositions}.
+ **/
+export interface ListStrategyPositionsProps {
+  /**
+   * Wallet whose credit accounts to describe. RWA accounts are resolved from
+   * the investor EOA, see {@link ICreditAccountsService.getBorrowerCreditAccounts}.
+   **/
+  owner: Address;
+  /**
+   * Whether to include accounts that carry no debt.
+   **/
+  includeZeroDebt: boolean;
+  /**
+   * Block to read at. Defaults to the latest block.
+   **/
+  blockNumber?: bigint;
+}
+
+/**
  * The one input every position-metric function takes: a credit account's
  * state — its credit manager, token balances, quota holdings, total debt and
  * total value in the market's underlying — actual or projected.

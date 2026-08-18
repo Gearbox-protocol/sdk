@@ -3,7 +3,6 @@ import { encodeFunctionData } from "viem";
 import { rewardsCompressorAbi } from "../../abi/compressors/rewardsCompressor.js";
 import { iBaseRewardPoolAbi } from "../../abi/iBaseRewardPool.js";
 import { ierc4626AdapterAbi } from "../../abi/ierc4626Adapter.js";
-import type { StrategyPosition } from "../../model/index.js";
 import type {
   Asset,
   CreditAccountData,
@@ -34,7 +33,6 @@ import { AccountBotsService } from "./bots/index.js";
 import {
   CreditAccountCompressor,
   type GetCreditAccountsOptions,
-  type ListStrategyPositionsProps,
 } from "./credit-account-compressor/index.js";
 import {
   extractPriceUpdates,
@@ -122,15 +120,6 @@ export class CreditAccountsServiceV310
       options,
       blockNumber,
     );
-  }
-
-  /**
-   * {@inheritDoc ICreditAccountsService.listPositions}
-   **/
-  public async listPositions(
-    props: ListStrategyPositionsProps,
-  ): Promise<StrategyPosition[]> {
-    return this.#compressor.listPositions(props);
   }
 
   /**
