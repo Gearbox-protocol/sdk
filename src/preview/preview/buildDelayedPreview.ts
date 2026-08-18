@@ -316,12 +316,6 @@ function buildAdjustPreview(
       .difference(before.balances)
       .toAssets(DUST_THRESHOLD),
     error: converter.error,
-    ...positionMetrics(sdk, {
-      creditManager: post.creditManager,
-      assets,
-      quotas,
-      debt: post.debt,
-      totalValue,
-    }),
+    ...positionMetrics(sdk, post.toSnapshot(totalValue)),
   };
 }

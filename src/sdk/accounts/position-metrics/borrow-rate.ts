@@ -2,7 +2,7 @@ import type { Address } from "viem";
 import type { BorrowRateBreakdown, Bps } from "../../../model/index.js";
 import { DUST_THRESHOLD, PERCENTAGE_FACTOR } from "../../constants/math.js";
 import type { OnchainSDK } from "../../index.js";
-import { borrowApyBps } from "../math.js";
+import { calcBorrowApy } from "../../market/math.js";
 import type { AccountSnapshot } from "./types.js";
 
 /**
@@ -24,12 +24,12 @@ export function borrowRate(
   sdk: OnchainSDK,
   snapshot: AccountSnapshot,
 ): BorrowRateBreakdown {
-  const { creditManager, quotas, debt, totalValue } = snapshot;
+  const { creditManager, quotas, totalDebt, totalValue } = snapshot;
   const market = sdk.marketRegister.findByCreditManager(creditManager);
   const cm = sdk.marketRegister.findCreditManager(creditManager).creditManager;
   const { pqk } = market.pool;
 
-  const base = borrowApyBps(market.pool.pool.baseInterestRate, cm.feeInterest);
+  const base = calcBorrowApy(market.pool.pool.baseInterestRate, cm.feeInterest);
   const fee = PERCENTAGE_FACTOR + BigInt(cm.feeInterest);
 
   // Σ balance * rate over active quotas, before the interest fee
@@ -54,10 +54,11 @@ export function borrowRate(
 
   const total =
     totalValue > 0n
-      ? Number((debt * BigInt(base)) / totalValue) +
+      ? Number((totalDebt * BigInt(base)) / totalValue) +
         Number(quotaRateSumWithFee / totalValue)
       : 0;
-  const totalOnDebt = debt > 0n ? base + Number(quotaRateSumWithFee / debt) : 0;
+  const totalOnDebt =
+    totalDebt > 0n ? base + Number(quotaRateSumWithFee / totalDebt) : 0;
 
   return { total, totalOnDebt, base, quotas: perQuota };
 }

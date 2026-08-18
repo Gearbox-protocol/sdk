@@ -10,7 +10,10 @@ export { borrowRate } from "./borrow-rate.js";
 export { healthFactor } from "./health-factor.js";
 export { liquidationPrice } from "./liquidation-price.js";
 export { timeToLiquidation } from "./time-to-liquidation.js";
-export type { AccountSnapshot } from "./types.js";
+export {
+  type AccountSnapshot,
+  accountSnapshotFromCreditAccountData,
+} from "./types.js";
 
 /**
  * All position metrics of an account state at once: health factor, borrow

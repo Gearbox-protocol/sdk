@@ -1,6 +1,6 @@
 import type { Address } from "viem";
+import { liquidationPriceForTarget } from "../../../sdk/accounts/position-metrics/liquidation-price.js";
 import type { Asset, OnchainSDK } from "../../../sdk/index.js";
-import { liquidationPriceForTarget } from "../../../sdk/market/position-metrics/liquidation-price.js";
 import type { TokenDataSlice } from "./types.js";
 
 interface LiquidationPriceProps {
@@ -25,7 +25,7 @@ interface LiquidationPriceProps {
  * @returns Target token price in `PRICE_DECIMALS` precision that corresponds
  * to liquidation boundary; returns `0n` when target balance or LT is non-positive.
  *
- * @deprecated Use `liquidationPrice` from `sdk/market/position-metrics`
+ * @deprecated Use `liquidationPrice` from `sdk/accounts/position-metrics`
  * instead; this wrapper only maps the legacy props onto an `AccountSnapshot`
  * over a minimal sdk stub, so existing callers keep working with identical
  * results.
@@ -71,7 +71,7 @@ export function liquidationPrice({
       creditManager: underlyingToken,
       assets: Object.values(assets),
       quotas: [],
-      debt,
+      totalDebt: debt,
       totalValue: 0n,
     },
     targetToken,

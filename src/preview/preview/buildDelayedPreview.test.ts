@@ -65,6 +65,15 @@ const metricsSdk = (() => {
             const d = decimals[addr] ?? 18;
             return (amount * price) / 10n ** BigInt(d);
           },
+          safeConvertToUSD: (token: Address, amount: bigint) => {
+            const addr = getAddress(token);
+            const price = prices[addr];
+            if (price === undefined) {
+              return null;
+            }
+            const d = decimals[addr] ?? 18;
+            return (amount * price) / 10n ** BigInt(d);
+          },
         },
       }),
       findCreditManager: () => ({

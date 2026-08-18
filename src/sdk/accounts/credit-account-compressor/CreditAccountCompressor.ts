@@ -6,7 +6,6 @@ import type {
 } from "../../../model/index.js";
 import type { CreditAccountData } from "../../base/index.js";
 import { SDKConstruct } from "../../base/index.js";
-import type { Asset } from "../../base/types.js";
 import {
   ADDRESS_0X0,
   AP_CREDIT_ACCOUNT_COMPRESSOR,
@@ -21,9 +20,12 @@ import {
   healthFactorBps,
   usdToNumber,
 } from "../../market/math.js";
-import { positionMetrics } from "../../market/position-metrics/index.js";
 import { AddressMap, AddressSet, hexEq } from "../../utils/index.js";
 import { simulateWithPriceUpdates } from "../../utils/viem/index.js";
+import {
+  accountSnapshotFromCreditAccountData,
+  positionMetrics,
+} from "../position-metrics/index.js";
 import type {
   ClaimableWithdrawal,
   PendingWithdrawal,
@@ -337,30 +339,11 @@ export class CreditAccountCompressor extends SDKConstruct {
     const totalDebtValue = ca.debt + ca.accruedInterest + ca.accruedFees;
     const collateral = dominantCollateral(ca, market);
 
-    // the metrics see the same token set the collaterals list is built from
-    const metricsAssets: Asset[] = [];
-    const metricsQuotas: Asset[] = [];
-    for (const t of ca.tokens) {
-      if (
-        (t.mask & ca.enabledTokensMask) === 0n ||
-        t.balance <= DUST_THRESHOLD
-      ) {
-        continue;
-      }
-      metricsAssets.push({ token: t.token, balance: t.balance });
-      metricsQuotas.push({ token: t.token, balance: t.quota });
-    }
     // healthFactor / leverage / borrowApy / netApy keep their existing
     // sources; only the fields the position does not have natively are filled
     const { borrowRate, timeToLiquidation, liquidationPrice } = positionMetrics(
       this.sdk,
-      {
-        creditManager: ca.creditManager,
-        assets: metricsAssets,
-        quotas: metricsQuotas,
-        debt: totalDebtValue,
-        totalValue: ca.totalValue,
-      },
+      accountSnapshotFromCreditAccountData(ca),
     );
 
     return {

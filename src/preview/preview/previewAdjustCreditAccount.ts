@@ -99,12 +99,6 @@ export async function previewAdjustCreditAccount<P extends PluginsMap>(
     error,
     // Best-effort like the rest of the preview: tokens the oracle cannot
     // price (ERROR_UNPRICEABLE_TOKEN) contribute nothing to the metrics.
-    ...positionMetrics(sdk, {
-      creditManager: operation.creditManager,
-      assets,
-      quotas,
-      debt: account.debt,
-      totalValue,
-    }),
+    ...positionMetrics(sdk, account.toSnapshot(totalValue)),
   };
 }

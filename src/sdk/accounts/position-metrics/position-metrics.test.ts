@@ -55,6 +55,14 @@ function stubSdk(args: {
             const decimals = args.decimals[token] ?? 18;
             return (amount * price) / 10n ** BigInt(decimals);
           },
+          safeConvertToUSD: (token: Address, amount: bigint) => {
+            const price = args.prices[token];
+            if (price === undefined) {
+              return null;
+            }
+            const decimals = args.decimals[token] ?? 18;
+            return (amount * price) / 10n ** BigInt(decimals);
+          },
         },
       }),
       findCreditManager: () => ({
@@ -109,7 +117,7 @@ function snapshot(partial: Partial<AccountSnapshot>): AccountSnapshot {
     creditManager: DAI, // stand-in: the stub resolves the market regardless
     assets: DEFAULT_ASSETS,
     quotas: [],
-    debt: DEFAULT_DEBT,
+    totalDebt: DEFAULT_DEBT,
     totalValue: DEFAULT_DEBT,
     ...partial,
   };
@@ -122,7 +130,10 @@ describe("healthFactor", () => {
 
   it("returns MAX_UINT16 when debt is zero", () => {
     expect(
-      healthFactor(sdk, snapshot({ assets: [], debt: 0n, totalValue: 0n })),
+      healthFactor(
+        sdk,
+        snapshot({ assets: [], totalDebt: 0n, totalValue: 0n }),
+      ),
     ).toBe(65535);
   });
 
@@ -142,7 +153,7 @@ describe("healthFactor", () => {
     expect(
       healthFactor(
         sdk,
-        snapshot({ assets: afterDecrease, debt: toBN("146552", 18) }),
+        snapshot({ assets: afterDecrease, totalDebt: toBN("146552", 18) }),
       ),
     ).toBe(10308);
   });
@@ -155,7 +166,7 @@ describe("healthFactor", () => {
     expect(
       healthFactor(
         sdk,
-        snapshot({ assets: afterIncrease, debt: toBN("176552", 18) }),
+        snapshot({ assets: afterIncrease, totalDebt: toBN("176552", 18) }),
       ),
     ).toBe(10137);
   });
@@ -246,7 +257,7 @@ describe("borrowRate", () => {
     const result = borrowRate(
       brSdk,
       snapshot({
-        debt: 5n,
+        totalDebt: 5n,
         totalValue: 10n,
         quotas: [{ token: WETH, balance: 100n }],
       }),
@@ -272,7 +283,7 @@ describe("borrowRate", () => {
     const result = borrowRate(
       brSdk,
       snapshot({
-        debt: 5n,
+        totalDebt: 5n,
         totalValue: 10n,
         quotas: [{ token: WETH, balance: 100n }],
       }),
@@ -299,7 +310,7 @@ describe("borrowRate", () => {
     const result = borrowRate(
       brSdk,
       snapshot({
-        debt: 5n,
+        totalDebt: 5n,
         totalValue: 10n,
         quotas: [{ token: WETH, balance: 100n }],
       }),
@@ -322,7 +333,7 @@ describe("borrowRate", () => {
     const result = borrowRate(
       brSdk,
       snapshot({
-        debt: 5n,
+        totalDebt: 5n,
         totalValue: 10n,
         quotas: [{ token: WETH, balance: 10n }],
       }),
@@ -345,7 +356,7 @@ describe("borrowRate", () => {
     const result = borrowRate(
       brSdk,
       snapshot({
-        debt: 0n,
+        totalDebt: 0n,
         totalValue: 0n,
         quotas: [{ token: WETH, balance: 100n }],
       }),
@@ -398,7 +409,7 @@ describe("liquidationPrice", () => {
   const lpSdk = stubSdk({ underlying: USDC, decimals, prices, lts });
   const lpSnapshot = snapshot({
     assets: LP_ASSETS,
-    debt: toBN("40000", 6),
+    totalDebt: toBN("40000", 6),
     totalValue: toBN("40000", 6),
   });
 
@@ -452,7 +463,7 @@ describe("liquidationPrice", () => {
         lpSdk,
         snapshot({
           assets: [...LP_ASSETS, { token: STETH, balance: 10n }],
-          debt: lpSnapshot.debt,
+          totalDebt: lpSnapshot.totalDebt,
           totalValue: lpSnapshot.totalValue,
         }),
       ),
@@ -488,7 +499,7 @@ describe("positionMetrics", () => {
         { token: WETH, balance: toBN("25", 18) },
       ],
       quotas: [{ token: WETH, balance: toBN("43000", 6) }],
-      debt: toBN("40000", 6),
+      totalDebt: toBN("40000", 6),
       totalValue: toBN("53000", 6),
     };
 
@@ -512,7 +523,7 @@ describe("positionMetrics", () => {
         { token: STETH, balance: toBN("5", 18) },
       ],
       quotas: [],
-      debt: toBN("40000", 6),
+      totalDebt: toBN("40000", 6),
       totalValue: toBN("53000", 6),
     };
     expect(positionMetrics(sdk, snap).liquidationPrice).toBe(null);

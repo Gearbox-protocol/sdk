@@ -1,4 +1,4 @@
-import { type Address, isAddressEqual } from "viem";
+import { isAddressEqual } from "viem";
 import type { Bps } from "../../../model/index.js";
 import { DUST_THRESHOLD, PERCENTAGE_FACTOR } from "../../constants/math.js";
 import type { OnchainSDK } from "../../index.js";
@@ -8,37 +8,20 @@ import type { AccountSnapshot } from "./types.js";
 const MAX_UINT16 = 65535;
 
 /**
- * USD value of a token amount in the oracle's 8-decimal scale, or `0n` when
- * the feed is missing or unsuccessful — the same formula as
- * `priceOracle.convertToUSD`, with its throw swallowed so a preview can still
- * report a best-effort health factor.
- **/
-function usdValue(
-  oracle: { convertToUSD: (token: Address, amount: bigint) => bigint },
-  token: Address,
-  amount: bigint,
-): bigint {
-  try {
-    return oracle.convertToUSD(token, amount);
-  } catch {
-    return 0n;
-  }
-}
-
-/**
  * Health factor of an account state, in basis points (`10000` = 1.0).
  *
  * Collateral is valued under liquidation thresholds, with quoted tokens
  * capped by their quota, and compared against the debt's value. An account
  * with no debt reports `65535` (`MAX_UINT16`), the contract's own sentinel
  * scaled down. Formulas are in parity with the legacy `calcHealthFactor`.
+ * Tokens the oracle cannot price contribute nothing.
  *
  * @param sdk - Market data source.
  * @param snapshot - Account state to evaluate.
  **/
 export function healthFactor(sdk: OnchainSDK, snapshot: AccountSnapshot): Bps {
-  const { creditManager, assets, quotas, debt } = snapshot;
-  if (debt === 0n) {
+  const { creditManager, assets, quotas, totalDebt } = snapshot;
+  if (totalDebt === 0n) {
     return MAX_UINT16;
   }
 
@@ -53,13 +36,15 @@ export function healthFactor(sdk: OnchainSDK, snapshot: AccountSnapshot): Bps {
     }
 
     const lt = BigInt(cm.liquidationThresholds.get(token) ?? 0);
-    const tokenLtWeighted = usdValue(priceOracle, token, balance) * lt;
+    const tokenLtWeighted =
+      (priceOracle.safeConvertToUSD(token, balance) ?? 0n) * lt;
 
     const quota = quotas.find(q => isAddressEqual(q.token, token));
     const quotaBalance =
       quota && market.pool.pqk.hasActiveQuota(token) ? quota.balance : 0n;
     const quotaWeighted =
-      usdValue(priceOracle, underlying, quotaBalance) * PERCENTAGE_FACTOR;
+      (priceOracle.safeConvertToUSD(underlying, quotaBalance) ?? 0n) *
+      PERCENTAGE_FACTOR;
 
     // a token with no quota entry at all is not a quoted token
     const money = quota
@@ -69,7 +54,8 @@ export function healthFactor(sdk: OnchainSDK, snapshot: AccountSnapshot): Bps {
     return acc + money;
   }, 0n);
 
-  const borrowedMoney = usdValue(priceOracle, underlying, debt);
+  const borrowedMoney =
+    priceOracle.safeConvertToUSD(underlying, totalDebt) ?? 0n;
   const hf = borrowedMoney > 0n ? assetMoney / borrowedMoney : 0n;
 
   return Number(hf);

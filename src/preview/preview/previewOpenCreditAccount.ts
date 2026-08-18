@@ -83,13 +83,10 @@ export async function previewOpenCreditAccount<P extends PluginsMap>(
     error,
     // Best-effort like the rest of the preview: tokens the oracle cannot
     // price (ERROR_UNPRICEABLE_TOKEN) contribute nothing to the metrics.
-    ...positionMetrics(sdk, {
-      creditManager: operation.creditManager,
-      assets,
-      quotas,
-      debt: account.debt,
-      totalValue: collateralValue + account.debt,
-    }),
+    ...positionMetrics(
+      sdk,
+      account.toSnapshot(collateralValue + account.totalDebt),
+    ),
   };
 }
 

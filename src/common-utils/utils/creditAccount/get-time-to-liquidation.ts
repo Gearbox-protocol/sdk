@@ -1,4 +1,4 @@
-import { timeToLiquidationMs } from "../../../sdk/market/position-metrics/time-to-liquidation.js";
+import { timeToLiquidationMs } from "../../../sdk/accounts/position-metrics/time-to-liquidation.js";
 
 export interface TimeToLiquidationProps {
   totalBorrowRate_debt: bigint;
@@ -16,7 +16,7 @@ export interface TimeToLiquidationProps {
  * @returns Milliseconds to liquidation as `bigint`, or `null` when already at/under
  * liquidation threshold or when borrow-rate exposure is zero.
  *
- * @deprecated Use `timeToLiquidation` from `sdk/market/position-metrics`
+ * @deprecated Use `timeToLiquidation` from `sdk/accounts/position-metrics`
  * instead; this wrapper only forwards to the new implementation.
  */
 export function getTimeToLiquidation({

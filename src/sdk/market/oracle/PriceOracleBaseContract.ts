@@ -249,15 +249,23 @@ export abstract class PriceOracleBaseContract<
   }
 
   /**
-   * {@inheritDoc IPriceOracleContract.safeUsdValue}
+   * {@inheritDoc IPriceOracleContract.safeConvertToUSD}
    **/
-  public safeUsdValue(token: Address, amount: bigint): number | null {
+  public safeConvertToUSD(token: Address, amount: bigint): bigint | null {
     try {
-      return usdToNumber(this.convertToUSD(token, amount));
+      return this.convertToUSD(token, amount);
     } catch (e) {
       this.logger?.debug(`cannot price ${this.labelAddress(token)}: ${e}`);
       return null;
     }
+  }
+
+  /**
+   * {@inheritDoc IPriceOracleContract.safeUsdValue}
+   **/
+  public safeUsdValue(token: Address, amount: bigint): number | null {
+    const usd = this.safeConvertToUSD(token, amount);
+    return usd === null ? null : usdToNumber(usd);
   }
 
   // bound fields, not methods: the read-model mappers are meant to be handed

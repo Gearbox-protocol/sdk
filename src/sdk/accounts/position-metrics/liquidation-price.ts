@@ -61,7 +61,8 @@ export function liquidationPriceForTarget(
   // effectiveDebt = Debt - underlyingBalance*LTunderlying
   const ltUnderlying = BigInt(cm.liquidationThresholds.get(underlying) ?? 0);
   const effectiveDebt =
-    ((snapshot.debt - (underlyingBalance * ltUnderlying) / PERCENTAGE_FACTOR) *
+    ((snapshot.totalDebt -
+      (underlyingBalance * ltUnderlying) / PERCENTAGE_FACTOR) *
       WAD) /
     10n ** BigInt(underlyingDecimals);
 

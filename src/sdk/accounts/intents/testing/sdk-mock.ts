@@ -99,7 +99,7 @@ interface BuildMockSdkArgs {
   maxDebt: bigint;
   /** Facade `minDebt`; defaults to 0n so debt-range checks stay opt-in. */
   minDebt?: bigint;
-  /** Pool base rate in ray; feeds `borrowApyBps` of position metrics. */
+  /** Pool base rate in ray; feeds `calcBorrowApy` of position metrics. */
   baseInterestRate?: bigint;
   /** Credit manager interest fee in Bps; feeds position metrics. */
   feeInterest?: number;
@@ -175,6 +175,14 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
         const price = args.prices[from] ?? args.prices[token];
         if (price === undefined) {
           throw new Error(`mock priceOracle: missing price for ${from}`);
+        }
+        return (amount * price) / 10n ** BigInt(decimalsOf(from));
+      },
+      safeConvertToUSD: (token: Address, amount: bigint) => {
+        const from = token.toLowerCase() as Address;
+        const price = args.prices[from] ?? args.prices[token];
+        if (price === undefined) {
+          return null;
         }
         return (amount * price) / 10n ** BigInt(decimalsOf(from));
       },

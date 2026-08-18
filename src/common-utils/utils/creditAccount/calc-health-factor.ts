@@ -1,6 +1,6 @@
 import type { Address } from "viem";
+import { healthFactor } from "../../../sdk/accounts/position-metrics/index.js";
 import type { Asset, OnchainSDK } from "../../../sdk/index.js";
-import { healthFactor } from "../../../sdk/market/position-metrics/index.js";
 import type { QuotaInfoIsActiveSlice, TokenDataSlice } from "./types.js";
 
 export interface CalcHealthFactorProps {
@@ -26,7 +26,7 @@ export interface CalcHealthFactorProps {
  * @returns Health factor as a number in `PERCENTAGE_FACTOR` scale,
  * or `65535` when debt is zero.
  *
- * @deprecated Use `healthFactor` from `sdk/market/position-metrics` instead;
+ * @deprecated Use `healthFactor` from `sdk/accounts/position-metrics` instead;
  * this wrapper only maps the legacy props onto an `AccountSnapshot` over a
  * minimal sdk stub, so existing callers keep working with identical results.
  */
@@ -67,6 +67,14 @@ export function calcHealthFactor({
             const decimals = tokensList[token]?.decimals ?? 18;
             return (amount * price) / 10n ** BigInt(decimals);
           },
+          safeConvertToUSD: (token: Address, amount: bigint) => {
+            const price = prices[token];
+            if (price === undefined) {
+              return null;
+            }
+            const decimals = tokensList[token]?.decimals ?? 18;
+            return (amount * price) / 10n ** BigInt(decimals);
+          },
         },
       }),
       findCreditManager: () => ({
@@ -86,7 +94,7 @@ export function calcHealthFactor({
     creditManager: underlyingToken,
     assets,
     quotas: Object.values(quotas),
-    debt,
+    totalDebt: debt,
     totalValue: 0n,
   });
 }
