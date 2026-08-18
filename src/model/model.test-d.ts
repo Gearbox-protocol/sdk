@@ -9,9 +9,13 @@ import type {
   ChartValue,
   ChartWindow,
   POOL_CHART_METRICS,
+  POOL_POSITION_CHART_METRICS,
   PoolChartMetric,
+  PoolPositionChartMetric,
   STRATEGY_CHART_METRICS,
+  STRATEGY_POSITION_CHART_METRICS,
   StrategyChartMetric,
+  StrategyPositionChartMetric,
 } from "./charts.js";
 import type {
   chartDenominationSchema,
@@ -21,7 +25,9 @@ import type {
   chartValueSchema,
   chartWindowSchema,
   poolChartMetricSchema,
+  poolPositionChartMetricSchema,
   strategyChartMetricSchema,
+  strategyPositionChartMetricSchema,
 } from "./charts.schema.js";
 import type { Curator, CuratorName } from "./curators.js";
 import type { curatorNameSchema, curatorSchema } from "./curators.schema.js";
@@ -293,6 +299,12 @@ describe("model schemas match model types", () => {
       z.infer<typeof strategyChartMetricSchema>
     >().toEqualTypeOf<StrategyChartMetric>();
     expectTypeOf<
+      z.infer<typeof poolPositionChartMetricSchema>
+    >().toEqualTypeOf<PoolPositionChartMetric>();
+    expectTypeOf<
+      z.infer<typeof strategyPositionChartMetricSchema>
+    >().toEqualTypeOf<StrategyPositionChartMetric>();
+    expectTypeOf<
       z.infer<typeof chartMetricSchema>
     >().toEqualTypeOf<ChartMetric>();
     expectTypeOf<
@@ -421,5 +433,11 @@ describe("model schemas match model types", () => {
     expectTypeOf<
       (typeof STRATEGY_CHART_METRICS)[number]
     >().toEqualTypeOf<StrategyChartMetric>();
+    expectTypeOf<
+      (typeof POOL_POSITION_CHART_METRICS)[number]
+    >().toEqualTypeOf<PoolPositionChartMetric>();
+    expectTypeOf<
+      (typeof STRATEGY_POSITION_CHART_METRICS)[number]
+    >().toEqualTypeOf<StrategyPositionChartMetric>();
   });
 });

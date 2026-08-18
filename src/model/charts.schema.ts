@@ -12,7 +12,9 @@ import {
   CHART_RANGES,
   CHART_UNAVAILABLE_CODES,
   POOL_CHART_METRICS,
+  POOL_POSITION_CHART_METRICS,
   STRATEGY_CHART_METRICS,
+  STRATEGY_POSITION_CHART_METRICS,
 } from "./charts.js";
 import type { Timestamp } from "./primitives.js";
 import { timestampSchema, tokenSchema } from "./primitives.schema.js";
@@ -43,12 +45,27 @@ export const poolChartMetricSchema = z.enum(POOL_CHART_METRICS);
 export const strategyChartMetricSchema = z.enum(STRATEGY_CHART_METRICS);
 
 /**
- * {@link ChartMetric}. The position metrics have the same members, so this
- * covers a position bundle too.
+ * {@link PoolPositionChartMetric}
+ **/
+export const poolPositionChartMetricSchema = z.enum(
+  POOL_POSITION_CHART_METRICS,
+);
+
+/**
+ * {@link StrategyPositionChartMetric}
+ **/
+export const strategyPositionChartMetricSchema = z.enum(
+  STRATEGY_POSITION_CHART_METRICS,
+);
+
+/**
+ * {@link ChartMetric}, every metric either kind of subject can chart.
  **/
 export const chartMetricSchema = z.union([
   poolChartMetricSchema,
   strategyChartMetricSchema,
+  poolPositionChartMetricSchema,
+  strategyPositionChartMetricSchema,
 ]);
 
 /**
@@ -57,6 +74,7 @@ export const chartMetricSchema = z.union([
 export const chartDenominationSchema = z.discriminatedUnion("unit", [
   z.object({ unit: z.literal("bps") }),
   z.object({ unit: z.literal("usd") }),
+  z.object({ unit: z.literal("multiple") }),
   z.object({ unit: z.literal("token"), base: tokenSchema }),
   z.object({
     unit: z.literal("ratio"),

@@ -24,7 +24,7 @@ import type { DataResponse } from "../../model/response.js";
 import { AbstractOffchainNamespace } from "../AbstractOffchainNamespace.js";
 import type { GearboxAPIOptions } from "../types.js";
 
-type OpportunityChartMetric<K extends OpportunityKey> = {
+type OpportunityChartMetricFor<K extends OpportunityKey> = {
   pool: PoolChartMetric;
   strategy: StrategyChartMetric;
 }[K["kind"]];
@@ -88,7 +88,7 @@ export class OffchainOpportunities extends AbstractOffchainNamespace {
    **/
   public async getCharts<
     K extends OpportunityKey,
-    const Metrics extends readonly OpportunityChartMetric<K>[],
+    const Metrics extends readonly OpportunityChartMetricFor<K>[],
   >(
     key: K,
     metrics: Metrics,

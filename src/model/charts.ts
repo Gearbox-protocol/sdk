@@ -63,18 +63,74 @@ export const STRATEGY_CHART_METRICS = [
 export type StrategyChartMetric = (typeof STRATEGY_CHART_METRICS)[number];
 
 /**
- * Metrics a pool position can chart.
+ * Every metric a pool position can chart.
  *
- * This currently matches {@link PoolChartMetric}. Give it its own union when
- * the position endpoint gains position-only metrics.
+ * Nothing to do with {@link POOL_CHART_METRICS}: an opportunity charts what the
+ * pool did, a position charts what one wallet's deposit did in it. `mwr` and
+ * `twr` are cumulative returns since the position opened — money-weighted, so
+ * sensitive to when deposits and withdrawals landed, and time-weighted, which
+ * strips that timing out. Both are anchored at inception, so a narrow `range`
+ * only zooms the visible slice and its first point is rarely zero.
  **/
-export type PoolPositionChartMetric = PoolChartMetric;
+export const POOL_POSITION_CHART_METRICS = [
+  "value",
+  "apy",
+  "pnl",
+  "mwr",
+  "twr",
+  "underlyingPrice",
+] as const;
 
 /**
- * Metrics a strategy position can chart. This currently matches
- * {@link StrategyChartMetric}; it can diverge when the endpoint does.
+ * Metric a pool position can chart, derived from
+ * {@link POOL_POSITION_CHART_METRICS}.
  **/
-export type StrategyPositionChartMetric = StrategyChartMetric;
+export type PoolPositionChartMetric =
+  (typeof POOL_POSITION_CHART_METRICS)[number];
+
+/**
+ * Every metric a strategy position can chart.
+ *
+ * `twrApy` annualizes `twr` over the position's whole life; the two trailing
+ * APYs annualize it over a fixed window instead, so they track the current pace
+ * rather than the lifetime rate and are comparable across positions of
+ * different ages.
+ **/
+// `collateralPrice` is deliberately absent, see the note on
+// `StrategyPositionChartMetric`
+export const STRATEGY_POSITION_CHART_METRICS = [
+  "totalValueUsd",
+  "totalValueUnderlying",
+  "debt",
+  "healthFactor",
+  "leverage",
+  "borrowApy",
+  "underlyingPrice",
+  "pnl",
+  "mwr",
+  "twr",
+  "twrApy",
+  "trailingApy7d",
+  "trailingApy30d",
+] as const;
+
+/**
+ * Metric a strategy position can chart, derived from
+ * {@link STRATEGY_POSITION_CHART_METRICS}.
+ *
+ * The backend also serves a `collateralPrice` series for a strategy position,
+ * which this model cannot name yet: a position holds several collaterals, so
+ * that read answers with one series per token, while a {@link ChartBundle}
+ * carries one series per metric. Charting it needs either a key that names the
+ * token or a token argument on the read.
+ **/
+export type StrategyPositionChartMetric =
+  (typeof STRATEGY_POSITION_CHART_METRICS)[number];
+
+/**
+ * Any metric an opportunity can chart.
+ **/
+export type OpportunityChartMetric = PoolChartMetric | StrategyChartMetric;
 
 /**
  * Any metric a position can chart.
@@ -85,8 +141,12 @@ export type PositionChartMetric =
 
 /**
  * Any metric the read model can chart.
+ *
+ * The two sides overlap only where they mean the same thing — `borrowApy` is
+ * the same rate whether an opportunity or a position charts it — so one metric
+ * has one unit in {@link CHART_METRIC_UNITS} no matter who asks for it.
  **/
-export type ChartMetric = PoolChartMetric | StrategyChartMetric;
+export type ChartMetric = OpportunityChartMetric | PositionChartMetric;
 
 /**
  * Scale a chart's values are on.
@@ -117,7 +177,14 @@ export type ChartUnit =
    * How many of the denomination's `quote` one whole `base` is worth, a plain
    * float.
    **/
-  | "ratio";
+  | "ratio"
+  /**
+   * A plain multiple, `5.5` meaning 5.5x. Only leverage is one: the model
+   * carries it as `Leverage`, which is explicitly neither a percentage nor
+   * basis points. Health factor is not — it is `bps`, `10000` being the
+   * liquidation boundary, which is how the position row carries it.
+   **/
+  | "multiple";
 
 /**
  * Unit of every metric, the one place either side decides it.
@@ -127,6 +194,7 @@ export type ChartUnit =
  * table, so the backend cannot drift from it silently.
  **/
 export const CHART_METRIC_UNITS = {
+  // opportunities
   depositApy: "bps",
   borrowApy: "bps",
   netApy: "bps",
@@ -139,6 +207,23 @@ export const CHART_METRIC_UNITS = {
   collateralPrice: "ratio",
   collateralUsdPrice: "usd",
   underlyingUsdPrice: "usd",
+  // positions. A return is a rate like any other, so `mwr`, `twr`, `twrApy` and
+  // the trailing pair are `bps` — the backend's own fractions (0.05) scaled the
+  // way every rate in this model is (500)
+  value: "token",
+  apy: "bps",
+  pnl: "token",
+  mwr: "bps",
+  twr: "bps",
+  underlyingPrice: "usd",
+  totalValueUsd: "usd",
+  totalValueUnderlying: "token",
+  debt: "token",
+  healthFactor: "bps",
+  leverage: "multiple",
+  twrApy: "bps",
+  trailingApy7d: "bps",
+  trailingApy30d: "bps",
 } as const satisfies Record<ChartMetric, ChartUnit>;
 
 /**
@@ -154,6 +239,7 @@ export const CHART_METRIC_UNITS = {
 export type ChartDenomination =
   | { unit: "bps" }
   | { unit: "usd" }
+  | { unit: "multiple" }
   | {
       unit: "token";
       /**

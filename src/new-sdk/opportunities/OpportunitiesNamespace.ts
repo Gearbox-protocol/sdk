@@ -1,9 +1,9 @@
 import type {
   ChartBundle,
-  ChartMetric,
   ChartRange,
   DataResponse,
   Opportunity,
+  OpportunityChartMetric,
   OpportunityFilter,
   OpportunityKey,
   PoolChartMetric,
@@ -132,7 +132,7 @@ export class OpportunitiesNamespace
     metrics: Metrics,
     range: ChartRange,
   ): Promise<DataResponse<ChartBundle<Metrics>>>;
-  public async charts<const Metrics extends readonly ChartMetric[]>(
+  public async charts<const Metrics extends readonly OpportunityChartMetric[]>(
     key: OpportunityKey,
     metrics: Metrics,
     range: ChartRange,

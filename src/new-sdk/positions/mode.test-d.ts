@@ -130,40 +130,51 @@ describe("the position kind gates which charts it has", () => {
 
   it("takes the metrics of the kind the key names", () => {
     expectTypeOf(
-      positions.charts(pool, ["depositApy"], "1m"),
-    ).resolves.toExtend<DataResponse<ChartBundle<readonly ["depositApy"]>>>();
+      positions.charts(pool, ["value", "apy"], "1m"),
+    ).resolves.toExtend<DataResponse<ChartBundle<readonly ["value", "apy"]>>>();
     expectTypeOf(
-      positions.charts(strategy, ["tvl", "netApy"], "1y"),
+      positions.charts(strategy, ["totalValueUsd", "leverage"], "1y"),
     ).resolves.toExtend<
-      DataResponse<ChartBundle<readonly ["tvl", "netApy"]>>
+      DataResponse<ChartBundle<readonly ["totalValueUsd", "leverage"]>>
     >();
   });
 
   it("rejects a metric the other kind owns", () => {
-    // @ts-expect-error `tvl` is a strategy metric
-    positions.charts(pool, ["tvl"], "1y");
-    // @ts-expect-error `dieselRate` is a pool metric
-    positions.charts(strategy, ["netApy", "dieselRate"], "1m");
+    // @ts-expect-error `leverage` belongs to a strategy position
+    positions.charts(pool, ["leverage"], "1y");
+    // @ts-expect-error `apy` belongs to a pool position
+    positions.charts(strategy, ["totalValueUsd", "apy"], "1m");
     // The source escape hatch preserves the same constraint.
-    // @ts-expect-error `tvl` is a strategy metric
-    backend.getCharts(pool, ["tvl"], "1y");
+    // @ts-expect-error `leverage` belongs to a strategy position
+    backend.getCharts(pool, ["leverage"], "1y");
+  });
+
+  it("rejects a metric only an opportunity charts", () => {
+    // a position's metrics are its own: what the pool did is not what this
+    // wallet's deposit did in it
+    // @ts-expect-error `depositApy` is an opportunity metric
+    positions.charts(pool, ["depositApy"], "1m");
+    // @ts-expect-error `tvl` is an opportunity metric
+    positions.charts(strategy, ["tvl"], "1m");
   });
 
   it("keys the bundle by the metrics that were asked for, and no others", async () => {
-    const { data } = await positions.charts(strategy, ["tvl", "netApy"], "1m");
+    const { data } = await positions.charts(
+      strategy,
+      ["totalValueUsd", "leverage"],
+      "1m",
+    );
 
-    expectTypeOf(data.series.tvl).toEqualTypeOf<ChartSeries>();
-    expectTypeOf(data.series.netApy).toEqualTypeOf<ChartSeries>();
-    // @ts-expect-error the read named `tvl` and `netApy`, so nothing else is keyed
-    data.series.borrowApy;
+    expectTypeOf(data.series.totalValueUsd).toEqualTypeOf<ChartSeries>();
+    expectTypeOf(data.series.leverage).toEqualTypeOf<ChartSeries>();
+    // @ts-expect-error only `totalValueUsd` and `leverage` were requested
+    data.series.debt;
   });
 
   it("makes keys optional when the metric list is dynamic", async () => {
-    const metrics: PoolPositionChartMetric[] = ["depositApy"];
+    const metrics: PoolPositionChartMetric[] = ["value"];
     const { data } = await positions.charts(pool, metrics, "1m");
 
-    expectTypeOf(data.series.depositApy).toEqualTypeOf<
-      ChartSeries | undefined
-    >();
+    expectTypeOf(data.series.value).toEqualTypeOf<ChartSeries | undefined>();
   });
 });

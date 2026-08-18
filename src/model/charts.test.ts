@@ -144,6 +144,71 @@ describe("a chart read validates what a chart is allowed to assume", () => {
   });
 });
 
+describe("a position charts its own metrics", () => {
+  const positionBundle = (series: Record<string, unknown>): unknown =>
+    bundle({ series });
+
+  it("accepts the units a strategy position carries", () => {
+    // leverage is the one plain multiple in the model; health factor is not —
+    // it is bps, the same scale the position row quotes it in
+    const schema = chartBundleSchemaFor(
+      ["leverage", "healthFactor", "totalValueUsd", "debt"],
+      "1d",
+    );
+    const { series } = schema.parse(
+      positionBundle({
+        leverage: { status: "ok", unit: "multiple", values: [2.5, 2.6, 2.4] },
+        healthFactor: {
+          status: "ok",
+          unit: "bps",
+          values: [12_500, 12_000, 0],
+        },
+        totalValueUsd: {
+          status: "ok",
+          unit: "usd",
+          values: [1_000, 1_100, 900],
+        },
+        debt: { ...SUPPLIED },
+      }),
+    );
+
+    expect(series.leverage.status === "ok" && series.leverage.unit).toBe(
+      "multiple",
+    );
+    expect(
+      series.healthFactor.status === "ok" && series.healthFactor.unit,
+    ).toBe("bps");
+  });
+
+  it("rejects an opportunity metric on a position read", () => {
+    // the two sides do not share a metric list: `depositApy` is what the pool
+    // paid, `apy` is what this deposit earned
+    const schema = chartBundleSchemaFor(["apy"], "1d");
+
+    expect(() => schema.parse(positionBundle({ depositApy: APY }))).toThrow();
+  });
+
+  it("holds a return to the scale every rate in the model uses", () => {
+    // the backend sends 0.05 for +5%; a chart must carry 500, like every other
+    // rate here, or it plots 100x off against the row it decorates
+    const schema = chartBundleSchemaFor(["twr"], "1d");
+
+    expect(() =>
+      schema.parse(
+        positionBundle({
+          twr: {
+            status: "ok",
+            unit: "ratio",
+            base: USDC,
+            quote: USDC,
+            values: [1, 2, 3],
+          },
+        }),
+      ),
+    ).toThrow(/twr.. is bps, not ratio/);
+  });
+});
+
 describe("every read is sampled onto a grid", () => {
   it("answers a one-metric read the same way as a several-metric one", () => {
     // there is one sampling, so `metric` and `metrics` differ in their route
