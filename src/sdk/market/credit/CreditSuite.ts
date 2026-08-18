@@ -1,4 +1,4 @@
-import { type Address, isAddressEqual } from "viem";
+import type { Address } from "viem";
 import type {
   StrategyOpportunity,
   StrategyOpportunityDetail,
@@ -31,6 +31,7 @@ import createCreditConfigurator from "./createCreditConfigurator.js";
 import createCreditFacade from "./createCreditFacade.js";
 import createCreditManager from "./createCreditManager.js";
 import { mustGetDominantCollateral } from "./dominantCollateral.js";
+import { isStrategyCollateral } from "./isStrategyCollateral.js";
 import type {
   ICreditConfiguratorContract,
   ICreditFacadeContract,
@@ -239,22 +240,8 @@ export class CreditSuite extends SDKConstruct {
   }
 
   /**
-   * Collateral tokens a leveraged position can be built around in this suite:
-   * the ones the credit manager can lever up, narrowed to the tokens that can
-   * still be entered. A token qualifies when it
-   *
-   * - has a liquidation threshold above `0` and below `100%`, and is not the
-   *   suite's underlying, see
-   *   {@link ICreditManagerContract.leverageableCollaterals};
-   * - is not the token the market's underlying wraps, which for an RWA market
-   *   is the same exposure as the underlying itself;
-   * - is not a phantom token, which only ever appears as the intermediate step
-   *   of a withdrawal and cannot be acquired;
-   * - is not an expired token, e.g. a matured Pendle PT;
-   * - has a non-zero main price in the market's oracle — a zero or failed
-   *   answer (e.g. a zero price feed) means the position cannot be valued;
-   * - the market still accepts quota for, see
-   *   {@link PoolQuotaKeeperContract.hasActiveQuota}.
+   * Collateral tokens a leveraged position can be built around in this suite,
+   * see {@link isStrategyCollateral} for the per-token criteria.
    *
    * A suite where no debt can be drawn at all ({@link maxBorrowAmount} is `0`,
    * e.g. its debt limit is exhausted or zeroed out) offers no strategies,
@@ -266,21 +253,23 @@ export class CreditSuite extends SDKConstruct {
     }
     const { pqk, unwrappedUnderlying } = this.market.pool;
     const { mainPrices } = this.market.priceOracle;
-    const { tokensMeta } = this;
+    const { tokensMeta, creditManager } = this;
 
-    return this.creditManager.leverageableCollaterals.filter(token => {
-      if (isAddressEqual(token, unwrappedUnderlying)) {
-        return false;
-      }
+    return creditManager.collateralTokens.filter(token => {
       const meta = tokensMeta.mustGet(token);
-      if (tokensMeta.isPhantomToken(meta) || meta.isExpired) {
-        return false;
-      }
-      const mainPrice = mainPrices.get(token);
-      if (!mainPrice?.success || mainPrice.price === 0n) {
-        return false;
-      }
-      return pqk.hasActiveQuota(token);
+      return isStrategyCollateral({
+        token,
+        underlying: creditManager.underlying,
+        unwrappedUnderlying,
+        liquidationThreshold:
+          creditManager.liquidationThresholds.mustGet(token),
+        contractType: meta.contractType,
+        isExpired: meta.isExpired,
+        // PriceFeedCompressor guarantees price == 0 whenever success == false,
+        // so the success flag needs no separate check
+        mainPrice: mainPrices.get(token)?.price,
+        hasActiveQuota: pqk.hasActiveQuota(token),
+      });
     });
   }
 

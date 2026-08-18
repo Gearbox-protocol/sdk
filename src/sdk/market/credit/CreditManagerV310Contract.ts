@@ -1,9 +1,4 @@
-import {
-  type Address,
-  type ContractEventName,
-  isAddressEqual,
-  type Log,
-} from "viem";
+import type { Address, ContractEventName, Log } from "viem";
 
 import { iCreditManagerV310Abi } from "../../../abi/310/generated.js";
 import type { Bps, Leverage } from "../../../model/index.js";
@@ -109,19 +104,6 @@ export class CreditManagerV310Contract
 
   public get collateralTokens(): Address[] {
     return this.liquidationThresholds.keys();
-  }
-
-  /**
-   * {@inheritDoc ICreditManagerContract.leverageableCollaterals}
-   */
-  public get leverageableCollaterals(): Address[] {
-    return this.collateralTokens.filter(token => {
-      if (isAddressEqual(token, this.underlying)) {
-        return false;
-      }
-      const lt = this.liquidationThresholds.get(token);
-      return !!lt && lt > 0 && lt < Number(PERCENTAGE_FACTOR);
-    });
   }
 
   /**
