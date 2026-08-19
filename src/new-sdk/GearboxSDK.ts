@@ -286,9 +286,6 @@ export class GearboxSDK<const M extends Mode = Mode> {
 /**
  * Per-chain configuration of exactly the networks the SDK covers.
  **/
-// a chain configured beyond them is left unbuilt rather than quietly read from,
-// which is what makes `sdk.opportunities.onchain.list()` scoped without anyone
-// threading a chain list into it
 function chainsOf(
   configured: PlainMultichainSDKOptions["chains"],
   networks: readonly NetworkType[],

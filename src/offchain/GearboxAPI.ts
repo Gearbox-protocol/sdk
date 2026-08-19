@@ -21,9 +21,6 @@ import type { GearboxAPIOptions } from "./types.js";
  * Every read is scoped to {@link GearboxAPIOptions.chainIds}, so a client only
  * ever sees the chains it was built for even though the backend knows more.
  **/
-// the backend imports the read model from this package and its endpoints return
-// those types directly, so there is no wire DTO layer here — only transport and
-// schema validation
 export class GearboxAPI {
   /**
    * Chains every read of this client is scoped to.

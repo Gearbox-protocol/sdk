@@ -67,9 +67,6 @@ export interface PositionsOffchainOnly {
    * strategy chart does not compile. Liquidation positions have no charts: a
    * delayed withdrawal is a single event rather than a series.
    **/
-  // no key names a liquidation position: a delayed withdrawal is a single event
-  // rather than a series. There is no second source to fall back to either, so a
-  // backend failure is raised rather than reported in the metadata
   charts<const Metrics extends readonly PoolPositionChartMetric[]>(
     key: PoolPositionRef,
     metrics: Metrics,
@@ -122,9 +119,6 @@ export interface PositionsMerged {
 /**
  * Which methods the `positions` namespace has in each mode.
  **/
-// a lookup map rather than a conditional type: `both` is spelled out instead of
-// being inferred, and a widened mode degrades to the intersection of what all
-// modes offer rather than silently distributing into a union of everything
 export interface PositionsByMode {
   onchain: PositionsBase & PositionsOnchainOnly;
   offchain: PositionsBase & PositionsOffchainOnly;

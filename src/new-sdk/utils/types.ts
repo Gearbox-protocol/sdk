@@ -28,8 +28,6 @@ export type MergeListResult<Onchain, Offchain, T> =
  * @typeParam R - What the response was given as.
  * @typeParam T - Row type.
  **/
-// a naked type parameter, so a `DataResponse<T[]> | undefined` argument
-// distributes into both branches on its own
 export type FilterResult<R, T> = R extends undefined
   ? undefined
   : DataResponse<T[]>;

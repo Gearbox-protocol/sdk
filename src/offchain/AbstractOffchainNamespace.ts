@@ -121,9 +121,6 @@ export abstract class AbstractOffchainNamespace {
    * Reads the charts of one subject: one series per metric named, onto the one
    * grid that lets them be compared at an index.
    **/
-  // the requested metrics are pinned in the schema, which is what upholds the
-  // `ChartBundle<Metrics>` a caller gets back: a response answering a different
-  // question fails validation rather than being cast into the requested shape
   protected async readCharts<const Metrics extends readonly ChartMetric[]>(
     path: string,
     metrics: Metrics,
