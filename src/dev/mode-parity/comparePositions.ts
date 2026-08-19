@@ -6,8 +6,14 @@ import type {
   Position,
   PositionId,
   PositionKind,
-} from "../model/index.js";
-import { positionId } from "../model/index.js";
+} from "../../model/index.js";
+import { positionId } from "../../model/index.js";
+import { liquidationPositionSchema } from "../../model/liquidations.schema.js";
+import {
+  poolPositionSchema,
+  strategyPositionSchema,
+} from "../../model/positions.schema.js";
+import { compileCompareRules, makeTagDiff } from "./compareRules.js";
 import type {
   ChainCompareCounts,
   CompareCounts,
@@ -15,19 +21,18 @@ import type {
   FieldDiff,
 } from "./fieldDiff.js";
 import {
-  asFiniteNumber,
   countPaths,
   diffObjects,
-  isAmountWithinTolerance,
-  isBpsWithinTolerance,
   isRecord,
-  isUsdWithinTolerance,
   toCompareCounts,
-  USD_RELATIVE_EPSILON,
   union,
-  withExpected,
-  withinRelative,
 } from "./fieldDiff.js";
+
+const tagDiff = makeTagDiff({
+  pool: compileCompareRules(poolPositionSchema),
+  strategy: compileCompareRules(strategyPositionSchema),
+  liquidation: compileCompareRules(liquidationPositionSchema),
+});
 
 /**
  * Enough of a position to identify it in a report without carrying the whole
@@ -301,78 +306,6 @@ function keyOfPositionArray(path: string, value: unknown): string | undefined {
     : undefined;
 }
 
-const BPS_RATE_PATHS = new Set(["borrowApy", "apy.organicApy", "healthFactor"]);
-
-/**
- * Amount fields whose bigint `value` moves with interest accrual between the
- * backend's last sync and the current block.
- **/
-function isLagAmountPath(path: string): boolean {
-  return (
-    path === "totalDebt.value" ||
-    path === "totalValue.value" ||
-    path === "netValue.value" ||
-    path.endsWith(".collateral.value") ||
-    path.endsWith(".quota.value")
-  );
-}
-
-/**
- * Fields documented `@mode offchain` or `@mode onchain` in the model.
- **/
-function isModeScoped(path: string, kind: PositionKind): boolean {
-  if (path === "pnl" || path.startsWith("pnl.")) {
-    return true;
-  }
-  if (kind === "pool") {
-    return path === "apy.totalApy" || path.startsWith("apy.rewards");
-  }
-  if (kind === "strategy") {
-    return (
-      path === "netApy" ||
-      path.startsWith("netApy.") ||
-      path === "borrowRate" ||
-      path.startsWith("borrowRate.") ||
-      path === "timeToLiquidation" ||
-      path === "liquidationPrice"
-    );
-  }
-  return false;
-}
-
-function tagDiff(diff: FieldDiff, kind: PositionKind): FieldDiff {
-  if (isModeScoped(diff.path, kind)) {
-    return withExpected(diff, "mode-scoped");
-  }
-  if (withinTolerance(diff)) {
-    return withExpected(diff, "tolerance");
-  }
-  return diff;
-}
-
-function withinTolerance(diff: FieldDiff): boolean {
-  if (diff.kind === "usd") {
-    return isUsdWithinTolerance(diff.onchain, diff.offchain);
-  }
-  if (diff.kind !== "numeric") {
-    return false;
-  }
-  if (diff.path === "leverage") {
-    return withinRelative(
-      asFiniteNumber(diff.onchain),
-      asFiniteNumber(diff.offchain),
-      USD_RELATIVE_EPSILON,
-    );
-  }
-  if (BPS_RATE_PATHS.has(diff.path)) {
-    return isBpsWithinTolerance(diff.onchain, diff.offchain);
-  }
-  if (isLagAmountPath(diff.path)) {
-    return isAmountWithinTolerance(diff.onchain, diff.offchain);
-  }
-  return false;
-}
-
 function summarize(
   inputs: WalletPositions[],
   wallets: WalletComparison[],
@@ -435,7 +368,11 @@ function summarize(
     walletsFailed: failed,
     byChain,
     byWallet,
-    diffsByPath: countPaths(matched.flatMap(match => match.diffs)),
+    diffsByPath: countPaths(
+      matched.flatMap(match =>
+        match.diffs.map(diff => ({ id: match.id, diff })),
+      ),
+    ),
   };
 }
 

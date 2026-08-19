@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { ZodAddress } from "../sdk/utils/zod.js";
+import { offchainOnly, tolerance } from "./compare.schema.js";
 import { curatorSchema } from "./curators.schema.js";
 import { isFilterSet } from "./filters.js";
 import {
@@ -70,9 +71,9 @@ export const rewardsSchema = z.discriminatedUnion("kind", [
  * {@link ApyBreakdown}
  **/
 export const apyBreakdownSchema = z.object({
-  totalApy: bpsSchema.optional(),
-  organicApy: bpsSchema,
-  rewards: z.array(rewardsSchema).optional(),
+  totalApy: offchainOnly(bpsSchema).optional(),
+  organicApy: tolerance(bpsSchema, "bps"),
+  rewards: offchainOnly(z.array(rewardsSchema)).optional(),
 });
 
 /**
@@ -97,9 +98,9 @@ export const poolOpportunitySchema = z.object({
   ...opportunityBaseSchema.shape,
   kind: z.literal("pool"),
   pool: ZodAddress(),
-  totalSupply: amountSchema,
-  availableLiquidity: amountSchema,
-  utilization: bpsSchema,
+  totalSupply: tolerance(amountSchema, "amount"),
+  availableLiquidity: tolerance(amountSchema, "amount"),
+  utilization: tolerance(bpsSchema, "bps"),
   supplyApy: apyBreakdownSchema,
 });
 
@@ -115,12 +116,12 @@ export const strategyOpportunitySchema = z.object({
   liquidationPremium: bpsSchema,
   liquidationFee: bpsSchema,
   expirationDate: timestampSchema.nullable(),
-  collateralApy: apyBreakdownSchema.optional(),
-  maxLeverageApy: apyBreakdownSchema.optional(),
-  borrowApy: bpsSchema.optional(),
-  additionalBorrowApy: bpsSchema.optional(),
-  totalValue: amountSchema.optional(),
-  utilization: bpsSchema.optional(),
+  collateralApy: offchainOnly(apyBreakdownSchema).optional(),
+  maxLeverageApy: offchainOnly(apyBreakdownSchema).optional(),
+  borrowApy: tolerance(bpsSchema, "bps").optional(),
+  additionalBorrowApy: tolerance(bpsSchema, "bps").optional(),
+  totalValue: offchainOnly(amountSchema).optional(),
+  utilization: offchainOnly(bpsSchema).optional(),
   maxBorrowAmount: amountSchema,
   maxLeverage: leverageSchema,
 });

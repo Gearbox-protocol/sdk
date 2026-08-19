@@ -1,10 +1,15 @@
 import { mkdir, writeFile } from "node:fs/promises";
-import { pino } from "pino";
-import type { OpportunityCompareReport } from "../src/dev/compareOpportunities.js";
-import { compareOpportunities } from "../src/dev/compareOpportunities.js";
-import { getAlchemyUrl } from "../src/dev/providers.js";
+import type { OpportunityCompareReport } from "../src/dev/mode-parity/compareOpportunities.js";
+import { compareOpportunities } from "../src/dev/mode-parity/compareOpportunities.js";
+import {
+  BACKEND_URL,
+  createLogger,
+  NETWORKS,
+  printCompareSummary,
+  rpcUrls,
+  TIMEOUT,
+} from "../src/dev/mode-parity/scriptUtils.js";
 import { GearboxSDK } from "../src/new-sdk/GearboxSDK.js";
-import type { NetworkType } from "../src/sdk/index.js";
 import { json_stringify } from "../src/sdk/index.js";
 
 /**
@@ -20,55 +25,9 @@ import { json_stringify } from "../src/sdk/index.js";
  * define differently — so a disagreement is reported, never asserted on. The
  * run only fails when a source could not be read at all.
  **/
-type ComparedNetwork = "Mainnet" | "Monad" | "Plasma" | "Somnia" | "Etherlink";
-
-const NETWORKS: ComparedNetwork[] = [
-  "Mainnet",
-  "Monad",
-  "Plasma",
-  "Somnia",
-  "Etherlink",
-];
-
-const BACKEND_URL = process.env.BACKEND_URL ?? "https://api.gear-dev.dev";
 const OUT_DIR = "tmp/opportunities-compare";
-const TIMEOUT = 480_000;
 
-const logger = pino({
-  level: process.env.LOG_LEVEL ?? "info",
-  formatters: {
-    bindings: () => ({}),
-    level: label => ({ level: label }),
-  },
-});
-
-function requireEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(
-      `${name} is required to reach the chains this script reads`,
-    );
-  }
-  return value;
-}
-
-function rpcUrls(): Record<ComparedNetwork, string> {
-  const alchemyKey = requireEnv("ALCHEMY_KEY");
-  const alchemy = (network: NetworkType): string => {
-    const url = getAlchemyUrl(network, alchemyKey);
-    if (!url) {
-      throw new Error(`Alchemy serves no URL for ${network}`);
-    }
-    return url;
-  };
-  return {
-    Mainnet: alchemy("Mainnet"),
-    Monad: alchemy("Monad"),
-    Plasma: alchemy("Plasma"),
-    Somnia: requireEnv("SOMNIA_PROVIDER"),
-    Etherlink: requireEnv("ETHERLINK_PROVIDER"),
-  };
-}
+const logger = createLogger();
 
 async function compare(): Promise<void> {
   const urls = rpcUrls();
@@ -118,62 +77,11 @@ async function compare(): Promise<void> {
 
 function printSummary(report: OpportunityCompareReport): void {
   const { summary } = report;
-  console.log(`\nopportunities from ${report.backendUrl} vs the chain`);
-  console.table(
-    summary.byChain.map(chain => ({
-      chain: chain.chainId,
-      onchain: chain.onchainRows,
-      offchain: chain.offchainRows,
-      matched: chain.matched,
-      identical: chain.identical,
-      clean: chain.clean,
-      differing: chain.differing,
-      "only onchain": chain.onlyOnchain,
-      "only offchain": chain.onlyOffchain,
-    })),
-  );
-  console.log(
+  printCompareSummary("opportunities", report, [
     `total: ${summary.onchainRows} onchain, ${summary.offchainRows} offchain, ` +
       `${summary.matched} matched (${summary.identical} identical, ${summary.clean} clean, ${summary.differing} differing), ` +
       `${summary.onlyOnchain} only onchain, ${summary.onlyOffchain} only offchain`,
-  );
-
-  const unexpected = summary.diffsByPath.filter(entry => entry.unexpected > 0);
-  const expected = summary.diffsByPath.filter(
-    entry => entry.unexpected === 0 && entry.expected > 0,
-  );
-
-  if (unexpected.length) {
-    console.log("\nunexpected fields that differed most often:");
-    console.table(
-      unexpected.slice(0, 25).map(entry => ({
-        field: entry.path,
-        unexpected: entry.unexpected,
-        expected: entry.expected,
-        kinds: entry.kinds.join(", "),
-      })),
-    );
-  }
-
-  if (expected.length) {
-    console.log("\nexpected fields (mode-scoped or within tolerance):");
-    console.table(
-      expected.slice(0, 25).map(entry => ({
-        field: entry.path,
-        rows: entry.expected,
-        kinds: entry.kinds.join(", "),
-      })),
-    );
-  }
-
-  for (const chain of [...report.onchainChains, ...report.offchainChains]) {
-    if (chain.status === "error") {
-      console.log(
-        `chain ${chain.chainId} failed on ${chain.source}:`,
-        chain.error,
-      );
-    }
-  }
+  ]);
 }
 
 compare().catch(e => {

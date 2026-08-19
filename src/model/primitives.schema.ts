@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { ZodAddress, ZodBigInt, ZodHex } from "../sdk/utils/zod.js";
+import { tolerance } from "./compare.schema.js";
 
 /**
  * Runtime schemas for {@link ./primitives.js}.
@@ -45,7 +46,7 @@ export const leverageSchema = z.number().nonnegative();
  **/
 export const amountSchema = z.object({
   value: ZodBigInt(),
-  valueUsd: z.number().nullable(),
+  valueUsd: tolerance(z.number().nullable(), "usd"),
 });
 
 /**

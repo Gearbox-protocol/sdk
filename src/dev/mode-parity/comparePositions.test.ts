@@ -13,7 +13,7 @@ import type {
   Timestamp,
   Token,
   TokenAmount,
-} from "../model/index.js";
+} from "../../model/index.js";
 import { comparePositions } from "./comparePositions.js";
 import type { FieldDiff } from "./fieldDiff.js";
 
@@ -500,5 +500,37 @@ describe("the report as a whole", () => {
     });
     expect(report.summary.walletsClean).toBe(0);
     expect(report.summary.clean).toBe(0);
+  });
+
+  it("names the entity with the largest unexpected numeric gap", () => {
+    const otherAccount =
+      "0x9c4c000000000000000000000000000000000002" as Address;
+    const report = compare(
+      [
+        strategy({ leverage: 5 }),
+        strategy({ creditAccount: otherAccount, leverage: 5 }),
+      ],
+      [
+        strategy({ leverage: 6 }),
+        strategy({ creditAccount: otherAccount, leverage: 8 }),
+      ],
+    );
+
+    expect(
+      report.summary.diffsByPath.find(entry => entry.path === "leverage"),
+    ).toEqual({
+      path: "leverage",
+      kinds: ["numeric"],
+      count: 2,
+      expected: 0,
+      unexpected: 2,
+      worstUnexpected: {
+        id: `1:strategy:${otherAccount}`,
+        path: "leverage",
+        bps: (3 / 8) * 10_000,
+        onchain: 5,
+        offchain: 8,
+      },
+    });
   });
 });

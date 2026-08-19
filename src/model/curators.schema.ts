@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { ZodAddress } from "../sdk/utils/zod.js";
+import { offchainOnly } from "./compare.schema.js";
 
 /**
  * Runtime schemas for {@link ./curators.js}, see the note in
@@ -32,5 +33,5 @@ export const curatorNameSchema = z.enum([
 export const curatorSchema = z.object({
   address: ZodAddress(),
   name: curatorNameSchema.optional(),
-  url: z.string().nullable(),
+  url: offchainOnly(z.string().nullable()),
 });

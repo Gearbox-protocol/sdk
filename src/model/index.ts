@@ -7,6 +7,7 @@
  **/
 export * from "./charts.js";
 export * from "./charts.schema.js";
+export * from "./compare.schema.js";
 export * from "./curators.js";
 export * from "./curators.schema.js";
 export * from "./filters.js";

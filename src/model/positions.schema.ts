@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { ZodAddress, ZodBigInt, ZodHex } from "../sdk/utils/zod.js";
+import { offchainOnly, onchainOnly, tolerance } from "./compare.schema.js";
 import { isFilterSet } from "./filters.js";
 import {
   booleanParamSchema,
@@ -84,8 +85,8 @@ export const pnlBreakdownSchema = z.object({
  * {@link PositionCollateral}
  **/
 export const positionCollateralSchema = z.object({
-  collateral: tokenAmountSchema,
-  quota: tokenAmountSchema,
+  collateral: tolerance(tokenAmountSchema, "amount"),
+  quota: tolerance(tokenAmountSchema, "amount"),
   withdrawals: z.array(delayedReceivedAssetSchema),
 });
 
@@ -97,9 +98,9 @@ export const poolPositionSchema = z.object({
   name: z.string(),
   chainId: chainIdSchema,
   pool: ZodAddress(),
-  netValue: tokenAmountSchema,
+  netValue: tolerance(tokenAmountSchema, "amount"),
   apy: apyBreakdownSchema,
-  pnl: pnlBreakdownSchema.optional(),
+  pnl: offchainOnly(pnlBreakdownSchema).optional(),
 });
 
 /**
@@ -122,16 +123,16 @@ export const strategyPositionSchema = z.object({
   creditManager: ZodAddress(),
   creditAccount: ZodAddress(),
   targetCollateral: tokenSchema.nullable(),
-  leverage: leverageSchema,
-  borrowApy: bpsSchema,
-  netApy: apyBreakdownSchema.optional(),
-  totalDebt: tokenAmountSchema,
-  totalValue: tokenAmountSchema,
-  healthFactor: bpsSchema,
-  borrowRate: borrowRateBreakdownSchema.optional(),
-  timeToLiquidation: ZodBigInt().nullable().optional(),
-  liquidationPrice: ZodBigInt().nullable().optional(),
-  pnl: pnlBreakdownSchema.optional(),
+  leverage: tolerance(leverageSchema, "float"),
+  borrowApy: tolerance(bpsSchema, "bps"),
+  netApy: offchainOnly(apyBreakdownSchema).optional(),
+  totalDebt: tolerance(tokenAmountSchema, "amount"),
+  totalValue: tolerance(tokenAmountSchema, "amount"),
+  healthFactor: tolerance(bpsSchema, "bps"),
+  borrowRate: onchainOnly(borrowRateBreakdownSchema).optional(),
+  timeToLiquidation: onchainOnly(ZodBigInt().nullable()).optional(),
+  liquidationPrice: onchainOnly(ZodBigInt().nullable()).optional(),
+  pnl: offchainOnly(pnlBreakdownSchema).optional(),
   collaterals: z.array(positionCollateralSchema),
 });
 

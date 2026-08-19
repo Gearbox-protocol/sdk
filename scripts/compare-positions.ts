@@ -1,21 +1,25 @@
 import { mkdir, writeFile } from "node:fs/promises";
-import { pino } from "pino";
 import type { Address } from "viem";
 import { getAddress, isAddress } from "viem";
 import type {
   PositionsCompareReport,
   WalletPositions,
   WalletPositionsFailure,
-} from "../src/dev/comparePositions.js";
-import { comparePositions } from "../src/dev/comparePositions.js";
-import { getAlchemyUrl } from "../src/dev/providers.js";
-import type { DataResponse, Position } from "../src/model/index.js";
+} from "../src/dev/mode-parity/comparePositions.js";
+import { comparePositions } from "../src/dev/mode-parity/comparePositions.js";
+import {
+  BACKEND_URL,
+  createLogger,
+  errorMessage,
+  mapPool,
+  NETWORKS,
+  printCompareSummary,
+  rpcUrls,
+  TIMEOUT,
+} from "../src/dev/mode-parity/scriptUtils.js";
+import type { ChainId, DataResponse, Position } from "../src/model/index.js";
 import { GearboxSDK } from "../src/new-sdk/GearboxSDK.js";
-import type {
-  CreditAccountData,
-  NetworkType,
-  OnchainSDK,
-} from "../src/sdk/index.js";
+import type { CreditAccountData, OnchainSDK } from "../src/sdk/index.js";
 import { ADDRESS_0X0, hexEq, json_stringify } from "../src/sdk/index.js";
 
 /**
@@ -32,35 +36,17 @@ import { ADDRESS_0X0, hexEq, json_stringify } from "../src/sdk/index.js";
  * once. Differences are expected, so a disagreement is reported, never
  * asserted on. The run only fails when attach itself cannot complete.
  **/
-type ComparedNetwork = "Mainnet" | "Monad" | "Plasma" | "Somnia" | "Etherlink";
-
-const NETWORKS: ComparedNetwork[] = [
-  "Mainnet",
-  "Monad",
-  "Plasma",
-  "Somnia",
-  "Etherlink",
-];
-
-const BACKEND_URL = process.env.BACKEND_URL ?? "https://api.gear-dev.dev";
 const OUT_DIR = "tmp/positions-compare";
-const TIMEOUT = 480_000;
 const CONCURRENCY = Math.max(1, Number(process.env.CONCURRENCY ?? 4) || 4);
 
-const logger = pino({
-  level: process.env.LOG_LEVEL ?? "info",
-  formatters: {
-    bindings: () => ({}),
-    level: label => ({ level: label }),
-  },
-});
+const logger = createLogger();
 
 /**
  * One credit account found on a chain, together with the wallet that holds
  * it as a borrower.
  **/
 interface DiscoveredAccount {
-  chainId: number;
+  chainId: ChainId;
   network: string;
   creditAccount: Address;
   creditManager: Address;
@@ -73,7 +59,7 @@ interface DiscoveredAccount {
  **/
 interface ChainDiscovery {
   network: string;
-  chainId: number;
+  chainId: ChainId;
   accounts: number;
   borrowers: number;
   error?: string;
@@ -89,38 +75,18 @@ interface BorrowersDump {
 }
 
 /**
+ * One chain's discovery result, including accounts to fold into the dump.
+ **/
+interface DiscoveredChain {
+  chain: ChainDiscovery;
+  resolved: DiscoveredAccount[];
+}
+
+/**
  * Per-wallet listings dumped alongside the report.
  **/
 interface PositionListingsDump {
   [wallet: string]: DataResponse<Position[]>;
-}
-
-function requireEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(
-      `${name} is required to reach the chains this script reads`,
-    );
-  }
-  return value;
-}
-
-function rpcUrls(): Record<ComparedNetwork, string> {
-  const alchemyKey = requireEnv("ALCHEMY_KEY");
-  const alchemy = (network: NetworkType): string => {
-    const url = getAlchemyUrl(network, alchemyKey);
-    if (!url) {
-      throw new Error(`Alchemy serves no URL for ${network}`);
-    }
-    return url;
-  };
-  return {
-    Mainnet: alchemy("Mainnet"),
-    Monad: alchemy("Monad"),
-    Plasma: alchemy("Plasma"),
-    Somnia: requireEnv("SOMNIA_PROVIDER"),
-    Etherlink: requireEnv("ETHERLINK_PROVIDER"),
-  };
 }
 
 function parseWallets(): Address[] | undefined {
@@ -185,9 +151,10 @@ async function compare(): Promise<void> {
 
   await mapPool(wallets, CONCURRENCY, async wallet => {
     try {
+      const filter = { chainIds: chainIdsOf(dump, wallet) };
       const [onchainList, offchainList] = await Promise.all([
-        sdk.positions.onchain.list({ wallet }),
-        sdk.positions.offchain.list({ wallet }),
+        sdk.positions.onchain.list({ wallet, filter }),
+        sdk.positions.offchain.list({ wallet, filter }),
       ]);
       listings.push({ wallet, onchain: onchainList, offchain: offchainList });
       onchainDump[wallet] = onchainList;
@@ -221,50 +188,78 @@ async function compare(): Promise<void> {
   logger.info(`wrote ${OUT_DIR}/{borrowers,onchain,offchain,report}.json`);
 }
 
+function chainIdsOf(dump: BorrowersDump, wallet: Address): ChainId[] {
+  const chains = new Set(
+    (dump.accountsByWallet[wallet] ?? []).map(account => account.chainId),
+  );
+  return [...chains];
+}
+
 async function discoverBorrowers(
   onchain: NonNullable<GearboxSDK<"both">["onchain"]>,
 ): Promise<BorrowersDump> {
-  const byChain: ChainDiscovery[] = [];
   const accountsByWallet: Record<string, DiscoveredAccount[]> = {};
 
-  for (const [network, chainSdk] of onchain.chains) {
-    try {
-      const accounts = await chainSdk.accounts.getCreditAccounts({
-        includeZeroDebt: true,
-      });
-      const resolved = await Promise.all(
-        accounts.map(account => resolveAccount(chainSdk, network, account)),
-      );
-      const borrowers = new Set(resolved.map(account => account.borrower));
-      byChain.push({
-        network,
-        chainId: chainSdk.chainId,
-        accounts: resolved.length,
-        borrowers: borrowers.size,
-      });
-      for (const account of resolved) {
-        const list = accountsByWallet[account.borrower] ?? [];
-        list.push(account);
-        accountsByWallet[account.borrower] = list;
+  const byChain: DiscoveredChain[] = await Promise.all(
+    [...onchain.chains].map(async ([network, chainSdk]) => {
+      try {
+        const accounts = await chainSdk.accounts.getCreditAccounts({
+          includeZeroDebt: true,
+        });
+        const resolved = await Promise.all(
+          accounts.map(account => resolveAccount(chainSdk, network, account)),
+        );
+        const borrowers = new Set(resolved.map(account => account.borrower));
+        logger.info(
+          `${network}: ${resolved.length} accounts, ${borrowers.size} borrowers`,
+        );
+        return {
+          chain: chainOf(network, chainSdk.chainId, resolved),
+          resolved,
+        };
+      } catch (error) {
+        const message = errorMessage(error);
+        logger.error(
+          { network, err: message },
+          "failed to list credit accounts",
+        );
+        return {
+          chain: chainOf(network, chainSdk.chainId, [], message),
+          resolved: [],
+        };
       }
-      logger.info(
-        `${network}: ${resolved.length} accounts, ${borrowers.size} borrowers`,
-      );
-    } catch (error) {
-      const message = errorMessage(error);
-      logger.error({ network, err: message }, "failed to list credit accounts");
-      byChain.push({
-        network,
-        chainId: chainSdk.chainId,
-        accounts: 0,
-        borrowers: 0,
-        error: message,
-      });
+    }),
+  );
+
+  for (const { resolved } of byChain) {
+    for (const account of resolved) {
+      const list = accountsByWallet[account.borrower] ?? [];
+      list.push(account);
+      accountsByWallet[account.borrower] = list;
     }
   }
 
   const wallets = Object.keys(accountsByWallet).sort() as Address[];
-  return { wallets, byChain, accountsByWallet };
+  return {
+    wallets,
+    byChain: byChain.map(entry => entry.chain),
+    accountsByWallet,
+  };
+}
+
+function chainOf(
+  network: string,
+  chainId: ChainId,
+  resolved: DiscoveredAccount[],
+  error?: string,
+): ChainDiscovery {
+  return {
+    network,
+    chainId,
+    accounts: resolved.length,
+    borrowers: new Set(resolved.map(account => account.borrower)).size,
+    ...(error ? { error } : {}),
+  };
 }
 
 async function resolveAccount(
@@ -309,33 +304,6 @@ async function resolveBorrower(
   }
 }
 
-async function mapPool<T>(
-  items: readonly T[],
-  concurrency: number,
-  fn: (item: T) => Promise<void>,
-): Promise<void> {
-  let next = 0;
-  const workers = Array.from(
-    { length: Math.min(concurrency, items.length) },
-    async () => {
-      while (true) {
-        const index = next;
-        next += 1;
-        const item = items[index];
-        if (item === undefined) {
-          return;
-        }
-        await fn(item);
-      }
-    },
-  );
-  await Promise.all(workers);
-}
-
-function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
-}
-
 function printDiscovery(dump: BorrowersDump): void {
   console.log("\nborrowers discovered via getCreditAccounts");
   console.table(
@@ -352,65 +320,12 @@ function printDiscovery(dump: BorrowersDump): void {
 
 function printSummary(report: PositionsCompareReport): void {
   const { summary } = report;
-  console.log(`\npositions from ${report.backendUrl} vs the chain`);
-  console.table(
-    summary.byChain.map(chain => ({
-      chain: chain.chainId,
-      onchain: chain.onchainRows,
-      offchain: chain.offchainRows,
-      matched: chain.matched,
-      identical: chain.identical,
-      clean: chain.clean,
-      differing: chain.differing,
-      "only onchain": chain.onlyOnchain,
-      "only offchain": chain.onlyOffchain,
-    })),
-  );
-  console.log(
+  printCompareSummary("positions", report, [
     `wallets: ${summary.wallets} compared, ${summary.walletsClean} clean, ${summary.walletsFailed} failed`,
-  );
-  console.log(
     `positions: ${summary.onchainRows} onchain, ${summary.offchainRows} offchain, ` +
       `${summary.matched} matched (${summary.identical} identical, ${summary.clean} clean, ${summary.differing} differing), ` +
       `${summary.onlyOnchain} only onchain, ${summary.onlyOffchain} only offchain`,
-  );
-
-  const unexpected = summary.diffsByPath.filter(entry => entry.unexpected > 0);
-  const expected = summary.diffsByPath.filter(
-    entry => entry.unexpected === 0 && entry.expected > 0,
-  );
-
-  if (unexpected.length) {
-    console.log("\nunexpected fields that differed most often:");
-    console.table(
-      unexpected.slice(0, 25).map(entry => ({
-        field: entry.path,
-        unexpected: entry.unexpected,
-        expected: entry.expected,
-        kinds: entry.kinds.join(", "),
-      })),
-    );
-  }
-
-  if (expected.length) {
-    console.log("\nexpected fields (mode-scoped or within tolerance):");
-    console.table(
-      expected.slice(0, 25).map(entry => ({
-        field: entry.path,
-        rows: entry.expected,
-        kinds: entry.kinds.join(", "),
-      })),
-    );
-  }
-
-  for (const chain of [...report.onchainChains, ...report.offchainChains]) {
-    if (chain.status === "error") {
-      console.log(
-        `chain ${chain.chainId} failed on ${chain.source}:`,
-        chain.error,
-      );
-    }
-  }
+  ]);
 }
 
 compare().catch(e => {

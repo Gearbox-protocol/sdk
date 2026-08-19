@@ -6,8 +6,13 @@ import type {
   Opportunity,
   OpportunityId,
   OpportunityKind,
-} from "../model/index.js";
-import { opportunityId } from "../model/index.js";
+} from "../../model/index.js";
+import { opportunityId } from "../../model/index.js";
+import {
+  poolOpportunitySchema,
+  strategyOpportunitySchema,
+} from "../../model/opportunities.schema.js";
+import { compileCompareRules, makeTagDiff } from "./compareRules.js";
 import type {
   ChainCompareCounts,
   CompareCounts,
@@ -19,12 +24,8 @@ import type {
 import {
   countPaths,
   diffObjects,
-  isAmountWithinTolerance,
-  isBpsWithinTolerance,
-  isUsdWithinTolerance,
   toCompareCounts,
   union,
-  withExpected,
 } from "./fieldDiff.js";
 
 export type {
@@ -35,6 +36,11 @@ export type {
   ExpectedDiffReason,
   FieldDiff,
 };
+
+const tagDiff = makeTagDiff({
+  pool: compileCompareRules(poolOpportunitySchema),
+  strategy: compileCompareRules(strategyOpportunitySchema),
+});
 
 /**
  * Enough of an opportunity to identify it in a report without carrying the
@@ -225,88 +231,6 @@ export function diffOpportunity(
   );
 }
 
-/**
- * Paths whose values are basis-point rates that routinely differ by ±1 from
- * truncation vs rounding, plus pool `utilization` for the same reason.
- **/
-const BPS_RATE_PATHS = new Set([
-  "borrowApy",
-  "supplyApy.organicApy",
-  "additionalBorrowApy",
-  "utilization",
-]);
-
-/**
- * Amount fields whose bigint `value` moves with expected-liquidity accrual
- * between the backend's last sync and the current block. Strategy
- * `totalBorrow.value` and `maxBorrowAmount.value` are not in this set: those
- * disagreements are formula bugs, not lag.
- **/
-const LAG_AMOUNT_PATHS = new Set([
-  "totalSupply.value",
-  "availableLiquidity.value",
-]);
-
-/**
- * Fields documented `@mode offchain` in the model: the chain has nothing to
- * put there, so a presence (or nested) mismatch is expected. Strategy
- * `utilization` is in this set; pool `utilization` is not.
- **/
-function isModeScoped(path: string, kind: OpportunityKind): boolean {
-  if (path === "curator.url") {
-    return true;
-  }
-  if (path === "totalApy" || path.endsWith(".totalApy")) {
-    return true;
-  }
-  if (
-    path === "rewards" ||
-    path.startsWith("rewards[") ||
-    path.includes(".rewards[") ||
-    path.endsWith(".rewards")
-  ) {
-    return true;
-  }
-  if (kind !== "strategy") {
-    return false;
-  }
-  return (
-    path === "utilization" ||
-    path === "collateralApy" ||
-    path.startsWith("collateralApy.") ||
-    path === "maxLeverageApy" ||
-    path.startsWith("maxLeverageApy.") ||
-    path === "totalValue" ||
-    path.startsWith("totalValue.")
-  );
-}
-
-function tagDiff(diff: FieldDiff, kind: OpportunityKind): FieldDiff {
-  if (isModeScoped(diff.path, kind)) {
-    return withExpected(diff, "mode-scoped");
-  }
-  if (withinTolerance(diff)) {
-    return withExpected(diff, "tolerance");
-  }
-  return diff;
-}
-
-function withinTolerance(diff: FieldDiff): boolean {
-  if (diff.kind === "usd") {
-    return isUsdWithinTolerance(diff.onchain, diff.offchain);
-  }
-  if (diff.kind !== "numeric") {
-    return false;
-  }
-  if (BPS_RATE_PATHS.has(diff.path)) {
-    return isBpsWithinTolerance(diff.onchain, diff.offchain);
-  }
-  if (LAG_AMOUNT_PATHS.has(diff.path)) {
-    return isAmountWithinTolerance(diff.onchain, diff.offchain);
-  }
-  return false;
-}
-
 function summarize(
   onchain: Opportunity[],
   offchain: Opportunity[],
@@ -341,6 +265,10 @@ function summarize(
       matched,
     ),
     byChain,
-    diffsByPath: countPaths(matched.flatMap(match => match.diffs)),
+    diffsByPath: countPaths(
+      matched.flatMap(match =>
+        match.diffs.map(diff => ({ id: match.id, diff })),
+      ),
+    ),
   };
 }

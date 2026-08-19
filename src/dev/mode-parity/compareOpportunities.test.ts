@@ -9,7 +9,7 @@ import type {
   StrategyOpportunity,
   Timestamp,
   Token,
-} from "../model/index.js";
+} from "../../model/index.js";
 import type { FieldDiff } from "./compareOpportunities.js";
 import { compareOpportunities } from "./compareOpportunities.js";
 
@@ -333,8 +333,48 @@ describe("the report as a whole", () => {
         count: 2,
         expected: 0,
         unexpected: 2,
+        worstUnexpected: {
+          id: `1:${other.pool.toLowerCase()}`,
+          path: "utilization",
+          bps: (Math.abs(6_000 - 5_900) / 6_000) * 10_000,
+          onchain: 6_000,
+          offchain: 5_900,
+        },
       },
     ]);
+  });
+
+  it("names the entity with the largest unexpected numeric gap", () => {
+    const other = pool({
+      pool: "0xda00000000000000000000000000000000000002" as Address,
+      totalBorrow: amount(1_000n, 1_000),
+    });
+    const report = compare(
+      [pool({ totalBorrow: amount(1_000n, 1_000) }), other],
+      [
+        pool({ totalBorrow: amount(1_000n, 1_020) }),
+        pool({ pool: other.pool, totalBorrow: amount(1_000n, 1_050) }),
+      ],
+    );
+
+    expect(
+      report.summary.diffsByPath.find(
+        entry => entry.path === "totalBorrow.valueUsd",
+      ),
+    ).toEqual({
+      path: "totalBorrow.valueUsd",
+      kinds: ["usd"],
+      count: 2,
+      expected: 0,
+      unexpected: 2,
+      worstUnexpected: {
+        id: `1:${other.pool.toLowerCase()}`,
+        path: "totalBorrow.valueUsd",
+        bps: (50 / 1_050) * 10_000,
+        onchain: 1_000,
+        offchain: 1_050,
+      },
+    });
   });
 
   it("carries what the run was pointed at and what each chain answered", () => {

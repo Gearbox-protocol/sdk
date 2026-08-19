@@ -1,4 +1,4 @@
-import type { ChainId } from "../model/index.js";
+import type { ChainId } from "../../model/index.js";
 
 /**
  * What kind of disagreement a {@link FieldDiff} describes, so that a reader can
@@ -48,6 +48,35 @@ export interface FieldDiff {
 }
 
 /**
+ * The largest numeric disagreement seen for one collapsed field path, on
+ * either the unexpected or the expected side.
+ **/
+export interface WorstDiff {
+  /**
+   * Entity id (position/opportunity id) with the biggest relative difference.
+   **/
+  id: string;
+  /**
+   * Uncollapsed path, so the exact array element is named.
+   **/
+  path: string;
+  /**
+   * Relative difference in bps.
+   **/
+  bps: number;
+  onchain: unknown;
+  offchain: unknown;
+}
+
+/**
+ * One field disagreement together with the matched row it belongs to.
+ **/
+export interface EntityFieldDiff {
+  id: string;
+  diff: FieldDiff;
+}
+
+/**
  * How often one field disagreed across all matched rows, with array keys
  * collapsed, e.g. `collateralTokens[].symbol`.
  **/
@@ -57,6 +86,15 @@ export interface DiffPathCount {
   count: number;
   expected: number;
   unexpected: number;
+  /**
+   * Largest unexpected numeric disagreement, when any unexpected diff of this
+   * path yields a relative bps value.
+   **/
+  worstUnexpected?: WorstDiff;
+  /**
+   * Largest expected numeric disagreement, see {@link worstUnexpected}.
+   **/
+  worstExpected?: WorstDiff;
 }
 
 /**
@@ -183,9 +221,9 @@ export function withExpected(
  * field of a hundred collateral tokens counts as one path. Sorted so the
  * unexpected disagreements come first.
  **/
-export function countPaths(diffs: Iterable<FieldDiff>): DiffPathCount[] {
+export function countPaths(diffs: Iterable<EntityFieldDiff>): DiffPathCount[] {
   const counts = new Map<string, DiffPathCount>();
-  for (const diff of diffs) {
+  for (const { id, diff } of diffs) {
     const path = collapseArrayKeys(diff.path);
     const entry = counts.get(path) ?? {
       path,
@@ -203,6 +241,7 @@ export function countPaths(diffs: Iterable<FieldDiff>): DiffPathCount[] {
     if (!entry.kinds.includes(diff.kind)) {
       entry.kinds.push(diff.kind);
     }
+    recordWorst(entry, id, diff);
     counts.set(path, entry);
   }
   return [...counts.values()].sort(
@@ -210,6 +249,43 @@ export function countPaths(diffs: Iterable<FieldDiff>): DiffPathCount[] {
       b.unexpected - a.unexpected ||
       b.count - a.count ||
       a.path.localeCompare(b.path),
+  );
+}
+
+function recordWorst(entry: DiffPathCount, id: string, diff: FieldDiff): void {
+  const bps = relativeDiffBps(diff.onchain, diff.offchain);
+  if (bps === undefined) {
+    return;
+  }
+  const worst: WorstDiff = {
+    id,
+    path: diff.path,
+    bps,
+    onchain: diff.onchain,
+    offchain: diff.offchain,
+  };
+  if (diff.expected) {
+    if (isWorse(worst, entry.worstExpected)) {
+      entry.worstExpected = worst;
+    }
+    return;
+  }
+  if (isWorse(worst, entry.worstUnexpected)) {
+    entry.worstUnexpected = worst;
+  }
+}
+
+function isWorse(
+  candidate: WorstDiff,
+  current: WorstDiff | undefined,
+): boolean {
+  if (!current) {
+    return true;
+  }
+  return (
+    candidate.bps > current.bps ||
+    (candidate.bps === current.bps &&
+      candidate.id.localeCompare(current.id) < 0)
   );
 }
 
@@ -328,6 +404,44 @@ export function asFiniteNumber(value: unknown): number | undefined {
   return typeof value === "number" && Number.isFinite(value)
     ? value
     : undefined;
+}
+
+/**
+ * Relative difference of two numbers or bigints, in bps:
+ * `|a − b| / max(|a|, |b|) * 10_000`. `undefined` when the values are not
+ * a comparable pair of finite numbers or of bigints.
+ **/
+export function relativeDiffBps(
+  onchain: unknown,
+  offchain: unknown,
+): number | undefined {
+  if (typeof onchain === "bigint" && typeof offchain === "bigint") {
+    return relativeDiffBpsBigint(onchain, offchain);
+  }
+  const left = asFiniteNumber(onchain);
+  const right = asFiniteNumber(offchain);
+  if (left === undefined || right === undefined) {
+    return undefined;
+  }
+  const scale = Math.max(Math.abs(left), Math.abs(right));
+  return scale === 0 ? 0 : (Math.abs(left - right) / scale) * 10_000;
+}
+
+/**
+ * Same formula as {@link relativeDiffBps} for bigints, computed in integer
+ * arithmetic to milli-bps so a 1e18-scale amount does not round through
+ * `Number`.
+ **/
+function relativeDiffBpsBigint(onchain: bigint, offchain: bigint): number {
+  if (onchain === offchain) {
+    return 0;
+  }
+  const diff = onchain > offchain ? onchain - offchain : offchain - onchain;
+  const scale = abs(onchain) > abs(offchain) ? abs(onchain) : abs(offchain);
+  if (scale === 0n) {
+    return 0;
+  }
+  return Number((diff * 10_000n * 1_000n) / scale) / 1_000;
 }
 
 export function union(left: string[], right: string[]): string[] {
