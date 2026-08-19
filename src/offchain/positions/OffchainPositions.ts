@@ -56,10 +56,6 @@ export class OffchainPositions extends AbstractOffchainNamespace {
 
   /**
    * Charts of one position: one series per metric, on a shared grid.
-   *
-   * @throws {OffchainNotImplementedError} Until the backend serves it. An empty
-   * bundle would be the one answer this model exists to rule out: a chart that
-   * could not be read is not a chart with no points.
    **/
   public async getCharts<
     K extends PositionKey,

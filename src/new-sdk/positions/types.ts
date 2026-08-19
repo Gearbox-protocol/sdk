@@ -61,7 +61,7 @@ export interface PositionsBase {
 export interface PositionsOffchainOnly {
   /**
    * Historical charts of one position, one series per metric on a shared axis:
-   * `charts(key, ["netApy", "borrowApy"], "1m")`.
+   * `charts(key, ["value", "apy"], "1m")`.
    *
    * The key's kind decides which metrics exist, so asking a pool position for a
    * strategy chart does not compile. Liquidation positions have no charts: a
