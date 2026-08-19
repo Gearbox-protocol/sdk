@@ -12,7 +12,7 @@ import axios from "axios";
 
 const mockedAxiosGet = vi.mocked(axios.get);
 
-function createMockLogger() {
+function _createMockLogger() {
   return {
     debug: vi.fn(),
     error: vi.fn(),

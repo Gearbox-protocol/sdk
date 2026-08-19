@@ -3,8 +3,8 @@ import type { z } from "zod/v4";
 import type {
   ChainSucceeded,
   DataResponse,
-  poolPositionSchema,
   Position,
+  poolPositionSchema,
 } from "../../model/index.js";
 import type { MultichainSDK } from "../../sdk/index.js";
 import { describeOffchainFallback } from "../testing/fallbackHarness.js";

@@ -49,7 +49,7 @@ export function functionArgsToMap<T extends Abi | readonly unknown[]>(
     args,
   } as GetAbiItemParameters);
 
-  if (!abiItem || abiItem.type !== "function") {
+  if (abiItem?.type !== "function") {
     throw new AbiFunctionNotFoundError(functionName);
   }
 
@@ -95,7 +95,7 @@ export function functionArgsToRecord<T extends Abi | readonly unknown[]>(
     args,
   } as GetAbiItemParameters);
 
-  if (!abiItem || abiItem.type !== "function") {
+  if (abiItem?.type !== "function") {
     throw new AbiFunctionNotFoundError(functionName);
   }
 

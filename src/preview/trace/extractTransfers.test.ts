@@ -29,7 +29,7 @@ const addr = (hex: string) => getAddress(padHex(hex as Address, { size: 20 }));
 const FACADE = addr("0xFA");
 const POOL = addr("0xF0");
 const CA1 = addr("0xCA");
-const CA2 = addr("0xCB");
+const _CA2 = addr("0xCB");
 const TOKEN_A = addr("0xA1");
 const TOKEN_B = addr("0xB2");
 const SOMEONE = addr("0x55");

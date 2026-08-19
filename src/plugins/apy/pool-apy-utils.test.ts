@@ -51,7 +51,7 @@ describe("pool-apy-utils", () => {
 
     it("returns empty array when no lookup address matches", () => {
       const list: Record<Address, PoolExtraApy[]> = {
-        ["0xother"]: [extra("0x1", 1)],
+        "0xother": [extra("0x1", 1)],
       };
       expect(getPoolExtraAPY(["0xpool"], list)).toEqual([]);
     });

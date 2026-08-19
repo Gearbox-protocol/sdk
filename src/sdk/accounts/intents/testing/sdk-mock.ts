@@ -225,7 +225,7 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
   // USD is the oracle's own 8-decimal scale, which the fixture prices are
   // already quoted in. A token with no reserve feed throws on the reserve
   // branch, the way the real oracle does.
-  const convertToUSD = (
+  const _convertToUSD = (
     token: Address,
     amount: bigint,
     reserve = false,

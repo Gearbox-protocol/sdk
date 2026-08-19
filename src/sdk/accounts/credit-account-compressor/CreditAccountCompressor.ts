@@ -2,7 +2,6 @@ import type { Address } from "viem";
 import { iRWAFactoryAbi } from "../../../abi/rwa/iRWAFactory.js";
 import type { CreditAccountData } from "../../base/index.js";
 import { SDKConstruct } from "../../base/index.js";
-import type { Asset } from "../../base/types.js";
 import {
   ADDRESS_0X0,
   AP_CREDIT_ACCOUNT_COMPRESSOR,

@@ -1,7 +1,6 @@
 import {
   type Address,
   createTestClient,
-  encodeFunctionData,
   erc20Abi,
   type Hex,
   http,

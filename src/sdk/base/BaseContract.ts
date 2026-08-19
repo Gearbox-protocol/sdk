@@ -299,7 +299,7 @@ export class BaseContract<abi extends Abi | readonly unknown[]>
       args: decoded.args,
     } as GetAbiItemParameters);
 
-    if (!abiItem || abiItem.type !== "function") {
+    if (abiItem?.type !== "function") {
       return `Unknown function: ${decoded.functionName}`;
     }
 

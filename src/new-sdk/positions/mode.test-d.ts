@@ -10,7 +10,6 @@ import type {
 } from "../../model/index.js";
 import type { OffchainPositions } from "../../offchain/index.js";
 import type { MultichainPositionsService } from "../../sdk/index.js";
-import type { GearboxSDK } from "../GearboxSDK.js";
 import type { Mode } from "../types.js";
 import type { Positions } from "./types.js";
 
