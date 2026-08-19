@@ -1,5 +1,4 @@
 import type { Address, Hex } from "viem";
-import type { StrategyPosition } from "../../model/index.js";
 import type {
   Asset,
   Construct,
@@ -22,10 +21,7 @@ import type { OnchainSDK } from "../OnchainSDK.js";
 import type { RouterCASlice, RouterCloseResult } from "../router/index.js";
 import type { MultiCall, RawTx } from "../types/index.js";
 import type { AccountBotsService } from "./bots/index.js";
-import type {
-  GetCreditAccountsOptions,
-  ListStrategyPositionsProps,
-} from "./credit-account-compressor/index.js";
+import type { GetCreditAccountsOptions } from "./credit-account-compressor/index.js";
 import type {
   ClaimableWithdrawal,
   DelayedIntent,
@@ -455,16 +451,6 @@ export interface ICreditAccountsService extends Construct {
     options?: GetCreditAccountsOptions,
     blockNumber?: bigint,
   ): Promise<Array<CreditAccountData<true>>>;
-
-  /**
-   * Describes the open credit accounts of a wallet as the shared read model's
-   * strategy positions.
-   *
-   * @param props - {@link ListStrategyPositionsProps}
-   * @returns One row per open account. Accounts whose collateral computation
-   * failed are excluded, because none of their amounts can be computed.
-   */
-  listPositions(props: ListStrategyPositionsProps): Promise<StrategyPosition[]>;
 
   /**
    * Method to get all claimable rewards for credit account (ex. stkUSDS SKY rewards).

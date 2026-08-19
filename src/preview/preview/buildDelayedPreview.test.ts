@@ -2,6 +2,11 @@ import type { Address } from "viem";
 import { getAddress } from "viem";
 import { describe, expect, it } from "vitest";
 import { AssetsMap, type OnchainSDK } from "../../sdk/index.js";
+import { calcBorrowRate } from "../../sdk/positions/calcBorrowRate.js";
+import { calcHealthFactor } from "../../sdk/positions/calcHealthFactor.js";
+import { calcLiquidationPrice } from "../../sdk/positions/calcLiquidationPrice.js";
+import { calcTimeToLiquidationMs } from "../../sdk/positions/calcTimeToLiquidationMs.js";
+import type { AccountSnapshot } from "../../sdk/positions/types.js";
 import { buildDelayedPreview, type ConvertFn } from "./buildDelayedPreview.js";
 import { CreditAccountState } from "./CreditAccountState.js";
 import type { DetectedDelayedOperation } from "./detectDelayedOperation.js";
@@ -56,11 +61,23 @@ const metricsSdk = (() => {
           pqk: { quotaRate: () => 0, hasActiveQuota: () => false },
         },
         priceOracle: {
-          mainPrices: {
-            get: (token: Address) => {
-              const price = prices[getAddress(token)];
-              return price === undefined ? undefined : { success: true, price };
-            },
+          convertToUSD: (token: Address, amount: bigint) => {
+            const addr = getAddress(token);
+            const price = prices[addr];
+            if (price === undefined) {
+              throw new Error(`no answer found for token ${token}`);
+            }
+            const d = decimals[addr] ?? 18;
+            return (amount * price) / 10n ** BigInt(d);
+          },
+          safeConvertToUSD: (token: Address, amount: bigint) => {
+            const addr = getAddress(token);
+            const price = prices[addr];
+            if (price === undefined) {
+              return null;
+            }
+            const d = decimals[addr] ?? 18;
+            return (amount * price) / 10n ** BigInt(d);
           },
         },
       }),
@@ -73,6 +90,40 @@ const metricsSdk = (() => {
         },
       }),
     },
+    positions: (() => {
+      const healthFactor = (snapshot: AccountSnapshot) =>
+        calcHealthFactor({
+          snapshot,
+          underlying: UNDERLYING,
+          decimals,
+          prices,
+          liquidationThresholds: lts,
+          activeQuotas: {},
+        });
+      const borrowRate = (snapshot: AccountSnapshot) =>
+        calcBorrowRate({
+          snapshot,
+          baseInterestRate: 0n,
+          feeInterest: 0,
+          quotaRates: {},
+        });
+      return {
+        healthFactor,
+        borrowRate,
+        timeToLiquidation: (snapshot: AccountSnapshot) =>
+          calcTimeToLiquidationMs(
+            healthFactor(snapshot),
+            BigInt(borrowRate(snapshot).totalOnDebt),
+          ),
+        liquidationPrice: (snapshot: AccountSnapshot) =>
+          calcLiquidationPrice({
+            snapshot,
+            underlying: UNDERLYING,
+            decimals,
+            liquidationThresholds: lts,
+          }),
+      };
+    })(),
   } as unknown as OnchainSDK;
 })();
 

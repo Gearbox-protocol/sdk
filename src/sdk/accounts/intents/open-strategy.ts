@@ -2,7 +2,7 @@ import type { Address } from "viem";
 import type { PositionMetrics } from "../../../model/index.js";
 import { LEVERAGE_DECIMALS } from "../../constants/math.js";
 import type { Asset, MultiCall, OnchainSDK } from "../../index.js";
-import { positionMetrics } from "../../market/position-metrics/index.js";
+import type { AccountSnapshot } from "../../positions/types.js";
 import {
   assertCanBorrow,
   assertCollateralised,
@@ -166,13 +166,22 @@ export async function previewOpenStrategy(
 
   // The floor branch is what the open is signed against, so it is the one that
   // has to clear the collateral check.
-  const metrics = positionMetrics(sdk, {
+  const snapshot: AccountSnapshot = {
     creditManager,
     assets: averageAssets,
     quotas: averageQuota,
-    debt,
+    totalDebt: debt,
     totalValue: margin + debt,
-  });
+  };
+  const metrics = {
+    healthFactor: sdk.positions.healthFactor(snapshot),
+    // TODO: overall APY needs the collateral yield (lpAPY), which market
+    // state alone does not carry — wire it up together with the ApyPlugin
+    overallApy: 0,
+    borrowRate: sdk.positions.borrowRate(snapshot),
+    timeToLiquidation: sdk.positions.timeToLiquidation(snapshot),
+    liquidationPrice: sdk.positions.liquidationPrice(snapshot),
+  };
   assertCollateralised(metrics.healthFactor);
 
   return {

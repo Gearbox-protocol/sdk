@@ -3,7 +3,6 @@ import {
   DUST_THRESHOLD,
   NO_VERSION,
   type PluginsMap,
-  positionMetrics,
 } from "../../sdk/index.js";
 import type {
   MulticallOperation,
@@ -82,6 +81,7 @@ export async function previewAdjustCreditAccount<P extends PluginsMap>(
       return acc;
     }
   }, 0n);
+  const snap = account.toSnapshot(totalValue);
 
   return {
     operation: "AdjustCreditAccount",
@@ -99,12 +99,12 @@ export async function previewAdjustCreditAccount<P extends PluginsMap>(
     error,
     // Best-effort like the rest of the preview: tokens the oracle cannot
     // price (ERROR_UNPRICEABLE_TOKEN) contribute nothing to the metrics.
-    ...positionMetrics(sdk, {
-      creditManager: operation.creditManager,
-      assets,
-      quotas,
-      debt: account.debt,
-      totalValue,
-    }),
+    healthFactor: sdk.positions.healthFactor(snap),
+    // TODO: overall APY needs the collateral yield (lpAPY), which market
+    // state alone does not carry — wire it up together with the ApyPlugin
+    overallApy: 0,
+    borrowRate: sdk.positions.borrowRate(snap),
+    timeToLiquidation: sdk.positions.timeToLiquidation(snap),
+    liquidationPrice: sdk.positions.liquidationPrice(snap),
   };
 }

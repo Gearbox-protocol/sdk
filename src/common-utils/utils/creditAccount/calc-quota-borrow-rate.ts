@@ -16,6 +16,8 @@ export interface CalcQuotaBorrowRateProps {
  *
  * @param props Quota balances and per-token quota rates.
  * @returns Sum of `balance * rate` terms in percentage-factor scale.
+ *
+ * @deprecated Use `calcBorrowRate` from `sdk/positions` instead.
  */
 export function calcQuotaBorrowRate({
   quotas,

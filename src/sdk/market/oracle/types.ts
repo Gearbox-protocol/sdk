@@ -164,6 +164,14 @@ export interface IPriceOracleContract extends IBaseContract {
    **/
   convertToUSD: (from: Address, amount: bigint, reserve?: boolean) => bigint;
   /**
+   * Like {@link convertToUSD}, but returns `null` instead of throwing when
+   * the token cannot be priced (missing or unsuccessful feed).
+   *
+   * @param token - Token address.
+   * @param amount - Amount in token decimals.
+   **/
+  safeConvertToUSD: (token: Address, amount: bigint) => bigint | null;
+  /**
    * Converts a USD amount to a token amount using latest known prices.
    * @param to - Token address.
    * @param amount - Amount in USD (8 decimals).

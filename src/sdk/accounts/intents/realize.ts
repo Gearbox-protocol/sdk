@@ -1,10 +1,7 @@
 import type { Address } from "viem";
 import type { MultiCall, OnchainSDK } from "../../index.js";
-import { positionLeverage } from "../../market/math.js";
-import {
-  healthFactor,
-  positionMetrics,
-} from "../../market/position-metrics/index.js";
+import { calcPositionLeverage } from "../../market/math.js";
+import type { AccountSnapshot } from "../../positions/types.js";
 import type { WithdrawableAsset } from "../withdrawal-compressor/types.js";
 import {
   assertCanBorrow,
@@ -405,19 +402,27 @@ export async function realize(
     push(buildQuotaUpdateOperation({ update: quotas, creditAccount, sdk }));
   }
 
-  const snapshot = {
+  const snapshot: AccountSnapshot = {
     creditManager: creditAccount.creditManager,
     assets,
     quotas: Object.values(quotas.desiredQuota),
-    debt,
+    totalDebt: debt,
     totalValue,
   };
-  const metrics = positionMetrics(sdk, snapshot);
+  const metrics = {
+    healthFactor: sdk.positions.healthFactor(snapshot),
+    // TODO: overall APY needs the collateral yield (lpAPY), which market
+    // state alone does not carry — wire it up together with the ApyPlugin
+    overallApy: 0,
+    borrowRate: sdk.positions.borrowRate(snapshot),
+    timeToLiquidation: sdk.positions.timeToLiquidation(snapshot),
+    liquidationPrice: sdk.positions.liquidationPrice(snapshot),
+  };
   // A call that hands funds over is checked against safe prices on-chain, so
   // the reported health factor is not the one that decides whether it lands.
   assertCollateralised(
     paysOut
-      ? healthFactor(sdk, snapshot, { safePrices: true })
+      ? sdk.positions.healthFactor(snapshot, { safePrices: true })
       : metrics.healthFactor,
   );
 
@@ -426,7 +431,7 @@ export async function realize(
     state: {
       totalValue,
       accountDebt: debt,
-      leverage: positionLeverage(debt, totalValue),
+      leverage: calcPositionLeverage(totalValue, debt),
       assets,
       quotas: quotas.desiredQuota,
       ...metrics,

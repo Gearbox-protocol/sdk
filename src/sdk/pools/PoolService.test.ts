@@ -177,9 +177,9 @@ describe("PoolService.simulateRedeem", () => {
   it("takes the pool's withdrawal fee off the proceeds", () => {
     const service = buildService({ withdrawFee: 100n });
 
-    expect(
-      service.simulateRedeem({ pool: POOL, amount: 120n }),
-    ).toMatchObject({ tokenOut: { token: UNDERLYING, balance: 130n } });
+    expect(service.simulateRedeem({ pool: POOL, amount: 120n })).toMatchObject({
+      tokenOut: { token: UNDERLYING, balance: 130n },
+    });
   });
 
   it("burns the farm wrapper at the pool's own rate", () => {

@@ -7,6 +7,7 @@ import type {
   MultiCall,
   OnchainSDK,
 } from "../../../index.js";
+import { PositionsService } from "../../../positions/PositionsService.js";
 import type { CreditAccountSlice } from "../types.js";
 
 /**
@@ -110,7 +111,7 @@ interface BuildMockSdkArgs {
   maxDebt: bigint;
   /** Facade `minDebt`; defaults to 0n so debt-range checks stay opt-in. */
   minDebt?: bigint;
-  /** Pool base rate in ray; feeds `borrowApyBps` of position metrics. */
+  /** Pool base rate in ray; feeds `calcBorrowApy` of position metrics. */
   baseInterestRate?: bigint;
   /** Credit manager interest fee in Bps; feeds position metrics. */
   feeInterest?: number;
@@ -214,12 +215,6 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
     },
   };
 
-  const priceOf = (token: Address) => {
-    const price =
-      args.prices[token.toLowerCase() as Address] ?? args.prices[token];
-    return price === undefined ? undefined : { success: true, price };
-  };
-
   const liquidationThresholds = {
     entries: () => Object.entries(args.liquidationThresholds),
     get: (token: Address) =>
@@ -245,9 +240,47 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
     return (amount * price) / 10n ** BigInt(decimalsOf(token));
   };
 
+  const mainPriceOf = (token: Address): bigint => {
+    const key = token.toLowerCase() as Address;
+    const price = args.prices[key] ?? args.prices[token];
+    if (price === undefined) {
+      throw new Error(`mock priceOracle: missing main price for ${token}`);
+    }
+    return price;
+  };
+
+  const reservePriceOf = (token: Address): bigint => {
+    const key = token.toLowerCase() as Address;
+    const price = args.reservePrices?.[key] ?? args.reservePrices?.[token];
+    if (price === undefined) {
+      throw new Error(`mock priceOracle: missing reserve price for ${token}`);
+    }
+    return price;
+  };
+
   const poolPaused = args.poolPaused ?? false;
   const market = {
-    priceOracle: { convert, convertToUSD, mainPrices: { get: priceOf } },
+    priceOracle: {
+      convert,
+      mainPrice: mainPriceOf,
+      reservePrice: reservePriceOf,
+      convertToUSD: (token: Address, amount: bigint) => {
+        const from = token.toLowerCase() as Address;
+        const price = args.prices[from] ?? args.prices[token];
+        if (price === undefined) {
+          throw new Error(`mock priceOracle: missing price for ${from}`);
+        }
+        return (amount * price) / 10n ** BigInt(decimalsOf(from));
+      },
+      safeConvertToUSD: (token: Address, amount: bigint) => {
+        const from = token.toLowerCase() as Address;
+        const price = args.prices[from] ?? args.prices[token];
+        if (price === undefined) {
+          return null;
+        }
+        return (amount * price) / 10n ** BigInt(decimalsOf(from));
+      },
+    },
     pool: {
       pqk: {
         quotas,
@@ -491,7 +524,7 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
     },
   );
 
-  return {
+  const sdk = {
     // what the multichain layer stamps a read with, and what the suite judges
     // an expiry against
     chainId: 1,
@@ -552,6 +585,9 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
       ),
     },
   } as unknown as OnchainSDK;
+
+  Object.assign(sdk, { positions: new PositionsService(sdk) });
+  return sdk;
 }
 
 /** A full account payload carrying exactly what the slice builder reads back. */

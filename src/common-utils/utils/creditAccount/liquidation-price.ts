@@ -1,6 +1,6 @@
 import type { Address } from "viem";
-import type { Asset, OnchainSDK } from "../../../sdk/index.js";
-import { liquidationPriceForTarget } from "../../../sdk/market/position-metrics/liquidation-price.js";
+import type { Asset } from "../../../sdk/index.js";
+import { calcLiquidationPriceForTarget } from "../../../sdk/positions/calcLiquidationPriceForTarget.js";
 import type { TokenDataSlice } from "./types.js";
 
 interface LiquidationPriceProps {
@@ -25,10 +25,8 @@ interface LiquidationPriceProps {
  * @returns Target token price in `PRICE_DECIMALS` precision that corresponds
  * to liquidation boundary; returns `0n` when target balance or LT is non-positive.
  *
- * @deprecated Use `liquidationPrice` from `sdk/market/position-metrics`
- * instead; this wrapper only maps the legacy props onto an `AccountSnapshot`
- * over a minimal sdk stub, so existing callers keep working with identical
- * results.
+ * @deprecated Use `calcLiquidationPriceForTarget` from `sdk/positions`
+ * instead; this wrapper only maps the legacy props onto an `AccountSnapshot`.
  */
 export function liquidationPrice({
   liquidationThresholds,
@@ -39,41 +37,27 @@ export function liquidationPrice({
   assets,
   tokensList,
 }: LiquidationPriceProps) {
-  const sdk = {
-    tokensMeta: {
-      get: (token: Address) => {
-        const meta = tokensList[token];
-        return meta ? { decimals: meta.decimals } : undefined;
-      },
-    },
-    marketRegister: {
-      findByCreditManager: () => ({
-        pool: {
-          underlying: underlyingToken,
-        },
-      }),
-      findCreditManager: () => ({
-        creditManager: {
-          liquidationThresholds: {
-            get: (token: Address) => {
-              const lt = liquidationThresholds[token];
-              return lt === undefined ? undefined : Number(lt);
-            },
-          },
-        },
-      }),
-    },
-  } as unknown as OnchainSDK;
+  const decimals: Record<Address, number> = {};
+  for (const [token, meta] of Object.entries(tokensList)) {
+    decimals[token as Address] = meta.decimals;
+  }
 
-  return liquidationPriceForTarget(
-    sdk,
-    {
+  const lts: Record<Address, number> = {};
+  for (const [token, lt] of Object.entries(liquidationThresholds)) {
+    lts[token as Address] = Number(lt);
+  }
+
+  return calcLiquidationPriceForTarget({
+    snapshot: {
       creditManager: underlyingToken,
       assets: Object.values(assets),
       quotas: [],
-      debt,
+      totalDebt: debt,
       totalValue: 0n,
     },
     targetToken,
-  );
+    underlying: underlyingToken,
+    decimals,
+    liquidationThresholds: lts,
+  });
 }

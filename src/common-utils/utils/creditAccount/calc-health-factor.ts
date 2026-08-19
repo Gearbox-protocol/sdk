@@ -1,6 +1,6 @@
 import type { Address } from "viem";
-import type { Asset, OnchainSDK } from "../../../sdk/index.js";
-import { healthFactor } from "../../../sdk/market/position-metrics/index.js";
+import type { Asset } from "../../../sdk/index.js";
+import { calcHealthFactor as calcHealthFactorFromSnapshot } from "../../../sdk/positions/calcHealthFactor.js";
 import type { QuotaInfoIsActiveSlice, TokenDataSlice } from "./types.js";
 
 export interface CalcHealthFactorProps {
@@ -26,9 +26,8 @@ export interface CalcHealthFactorProps {
  * @returns Health factor as a number in `PERCENTAGE_FACTOR` scale,
  * or `65535` when debt is zero.
  *
- * @deprecated Use `healthFactor` from `sdk/market/position-metrics` instead;
- * this wrapper only maps the legacy props onto an `AccountSnapshot` over a
- * minimal sdk stub, so existing callers keep working with identical results.
+ * @deprecated Use `calcHealthFactor` from `sdk/positions` instead; this
+ * wrapper only maps the legacy props onto an `AccountSnapshot`.
  */
 export function calcHealthFactor({
   assets,
@@ -42,51 +41,35 @@ export function calcHealthFactor({
   prices,
   tokensList,
 }: CalcHealthFactorProps): number {
-  const sdk = {
-    tokensMeta: {
-      get: (token: Address) => {
-        const meta = tokensList[token];
-        return meta ? { decimals: meta.decimals } : undefined;
-      },
-    },
-    marketRegister: {
-      findByCreditManager: () => ({
-        pool: {
-          underlying: underlyingToken,
-          pqk: {
-            hasActiveQuota: (token: Address) =>
-              quotasInfo?.[token]?.isActive ?? false,
-          },
-        },
-        priceOracle: {
-          convertToUSD: (token: Address, amount: bigint) => {
-            const price = prices[token];
-            if (price === undefined) {
-              throw new Error(`no answer found for token ${token}`);
-            }
-            const decimals = tokensList[token]?.decimals ?? 18;
-            return (amount * price) / 10n ** BigInt(decimals);
-          },
-        },
-      }),
-      findCreditManager: () => ({
-        creditManager: {
-          liquidationThresholds: {
-            get: (token: Address) => {
-              const lt = liquidationThresholds[token];
-              return lt === undefined ? undefined : Number(lt);
-            },
-          },
-        },
-      }),
-    },
-  } as unknown as OnchainSDK;
+  const decimals: Record<Address, number> = {};
+  for (const [token, meta] of Object.entries(tokensList)) {
+    decimals[token as Address] = meta.decimals;
+  }
 
-  return healthFactor(sdk, {
-    creditManager: underlyingToken,
-    assets,
-    quotas: Object.values(quotas),
-    debt,
-    totalValue: 0n,
+  const lts: Record<Address, number> = {};
+  for (const [token, lt] of Object.entries(liquidationThresholds)) {
+    lts[token as Address] = Number(lt);
+  }
+
+  const activeQuotas: Record<Address, boolean> = {};
+  for (const [token, info] of Object.entries(quotasInfo)) {
+    if (info?.isActive) {
+      activeQuotas[token as Address] = true;
+    }
+  }
+
+  return calcHealthFactorFromSnapshot({
+    snapshot: {
+      creditManager: underlyingToken,
+      assets,
+      quotas: Object.values(quotas),
+      totalDebt: debt,
+      totalValue: 0n,
+    },
+    underlying: underlyingToken,
+    decimals,
+    prices,
+    liquidationThresholds: lts,
+    activeQuotas,
   });
 }

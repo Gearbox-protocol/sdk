@@ -170,22 +170,3 @@ export interface GetCreditAccountsOptions {
    **/
   ignoreReservePrices?: boolean;
 }
-
-/**
- * Props for {@link CreditAccountCompressor.listPositions}.
- **/
-export interface ListStrategyPositionsProps {
-  /**
-   * Wallet whose credit accounts to describe. RWA accounts are resolved from
-   * the investor EOA, see {@link CreditAccountCompressor.getBorrowerCreditAccounts}.
-   **/
-  owner: Address;
-  /**
-   * Whether to include accounts that carry no debt.
-   **/
-  includeZeroDebt: boolean;
-  /**
-   * Block to read at. Defaults to the latest block.
-   **/
-  blockNumber?: bigint;
-}
