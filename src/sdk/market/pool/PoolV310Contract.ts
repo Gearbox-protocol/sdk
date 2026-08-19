@@ -211,6 +211,17 @@ export class PoolV310Contract
     });
   }
 
+  /**
+   * Burns as many of the owner's shares as it takes to send `assets` of the
+   * underlying to the receiver.
+   */
+  public withdraw(assets: bigint, receiver: Address, owner: Address): RawTx {
+    return this.createRawTx({
+      functionName: "withdraw",
+      args: [assets, receiver, owner],
+    });
+  }
+
   protected override stringifyFunctionParams(
     params: DecodeFunctionDataReturnType<abi>,
   ): string[] {

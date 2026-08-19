@@ -8,10 +8,11 @@ import {
   SDKConstruct,
   type TokenMetaData,
 } from "../base/index.js";
-import { NATIVE_ADDRESS, RAY } from "../constants/index.js";
+import { NATIVE_ADDRESS, PERCENTAGE_FACTOR, RAY } from "../constants/index.js";
 import {
   IERC20ZapperContract,
   IETHZapperContract,
+  type IPoolContract,
   type IZapperContract,
   type MarketSuite,
 } from "../market/index.js";
@@ -23,9 +24,18 @@ import type {
   IPoolsService,
   ListPoolPositionsProps,
   PoolServiceCallResult,
+  PoolSimulation,
   RemoveLiquidityProps,
+  SimulatePoolOperationProps,
   WithdrawalMetadata,
 } from "./types.js";
+
+/**
+ * Haircut on reported pool liquidity, so a withdrawal sized against the reported
+ * figure is not defeated by rounding in the share conversion.
+ */
+const LIQUIDITY_SAFETY_NUM = 99_999n;
+const LIQUIDITY_SAFETY_DENOM = 100_000n;
 
 export class PoolService extends SDKConstruct implements IPoolsService {
   /**
@@ -194,10 +204,84 @@ export class PoolService extends SDKConstruct implements IPoolsService {
   }
 
   /**
+   * {@inheritDoc IPoolsService.simulateDeposit}
+   */
+  public simulateDeposit(props: SimulatePoolOperationProps): PoolSimulation {
+    const { pool: poolAddr, amount } = props;
+    const { pool } = this.sdk.marketRegister.findByPool(poolAddr);
+
+    const tokenIn = props.tokenIn ?? pool.underlying;
+    const tokenOut = this.#resolveTokenOut(
+      props.tokenOut,
+      () => this.getDepositTokensOut(poolAddr, tokenIn),
+      { poolAddr, tokenIn, operation: "deposit" },
+    );
+    const { zapper } = this.getDepositMetadata(poolAddr, tokenIn, tokenOut);
+
+    return {
+      tokenIn: { token: tokenIn, balance: amount },
+      tokenOut: { token: tokenOut, balance: toShares(pool.pool, amount) },
+      zapper: zapper?.baseParams.addr,
+    };
+  }
+
+  /**
+   * {@inheritDoc IPoolsService.simulateWithdraw}
+   */
+  public simulateWithdraw(props: SimulatePoolOperationProps): PoolSimulation {
+    const { pool: poolAddr, amount } = props;
+    const { pool } = this.sdk.marketRegister.findByPool(poolAddr);
+
+    // Withdrawals are paid in shares, and for a direct redemption the share
+    // token *is* the pool contract.
+    const tokenIn = props.tokenIn ?? poolAddr;
+    const tokenOut = this.#resolveTokenOut(
+      props.tokenOut,
+      () => this.getWithdrawalTokensOut(poolAddr, tokenIn),
+      { poolAddr, tokenIn, operation: "withdrawal" },
+    );
+    const { zapper } = this.getWithdrawalMetadata(poolAddr, tokenIn, tokenOut);
+
+    return {
+      tokenIn: { token: tokenIn, balance: toSharesUp(pool.pool, amount) },
+      tokenOut: { token: tokenOut, balance: amount },
+      zapper: zapper?.baseParams.addr,
+      availableLiquidity:
+        (pool.pool.availableLiquidity * LIQUIDITY_SAFETY_NUM) /
+        LIQUIDITY_SAFETY_DENOM,
+    };
+  }
+
+  /**
+   * {@inheritDoc IPoolsService.simulateRedeem}
+   */
+  public simulateRedeem(props: SimulatePoolOperationProps): PoolSimulation {
+    const { pool: poolAddr, amount } = props;
+    const { pool } = this.sdk.marketRegister.findByPool(poolAddr);
+
+    const tokenIn = props.tokenIn ?? poolAddr;
+    const tokenOut = this.#resolveTokenOut(
+      props.tokenOut,
+      () => this.getWithdrawalTokensOut(poolAddr, tokenIn),
+      { poolAddr, tokenIn, operation: "withdrawal" },
+    );
+    const { zapper } = this.getWithdrawalMetadata(poolAddr, tokenIn, tokenOut);
+
+    return {
+      tokenIn: { token: tokenIn, balance: amount },
+      tokenOut: { token: tokenOut, balance: toAssets(pool.pool, amount) },
+      zapper: zapper?.baseParams.addr,
+      availableLiquidity:
+        (pool.pool.availableLiquidity * LIQUIDITY_SAFETY_NUM) /
+        LIQUIDITY_SAFETY_DENOM,
+    };
+  }
+
+  /**
    * {@inheritDoc IPoolsService.removeLiquidity}
    */
   public removeLiquidity(props: RemoveLiquidityProps): PoolServiceCallResult {
-    const { pool, amount, meta, wallet, permit } = props;
+    const { pool, amount, meta, wallet, permit, mode = "withdraw" } = props;
 
     const underlying = this.#describeUnderlying(pool);
     if (this.sdk.tokensMeta.isRWAUnderlying(underlying)) {
@@ -219,28 +303,35 @@ export class PoolService extends SDKConstruct implements IPoolsService {
       }
     }
 
+    const poolContract = this.sdk.marketRegister.findByPool(pool).pool.pool;
+
     if (
       meta.zapper instanceof IETHZapperContract ||
       meta.zapper instanceof IERC20ZapperContract
     ) {
+      // A zapper only redeems shares; a withdraw-sized request converts first.
+      const shares =
+        mode === "withdraw" ? toSharesUp(poolContract, amount) : amount;
       const tx = permit
         ? meta.zapper.redeemWithPermit(
-            amount,
+            shares,
             wallet,
             permit.deadline,
             permit.v,
             permit.r,
             permit.s,
           )
-        : meta.zapper.redeem(amount, wallet);
+        : meta.zapper.redeem(shares, wallet);
       return {
         tx,
         calls: [{ target: meta.zapper.baseParams.addr, callData: tx.callData }],
       };
     }
 
-    const poolContract = this.sdk.marketRegister.findByPool(pool).pool.pool;
-    const tx = poolContract.redeem(amount, wallet, wallet);
+    const tx =
+      mode === "withdraw"
+        ? poolContract.withdraw(amount, wallet, wallet)
+        : poolContract.redeem(amount, wallet, wallet);
     return {
       tx,
       calls: [{ target: pool, callData: tx.callData }],
@@ -567,6 +658,32 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     };
   }
 
+  /**
+   * Picks the route output when the caller left it open.
+   *
+   * Only an unambiguous single route can be defaulted: with several outputs the
+   * choice is the caller's, and with none there is no route to preview.
+   */
+  #resolveTokenOut(
+    requested: Address | undefined,
+    candidates: () => Address[],
+    ctx: { poolAddr: Address; tokenIn: Address; operation: string },
+  ): Address {
+    if (requested) {
+      return requested;
+    }
+
+    const options = candidates();
+    if (options.length !== 1) {
+      throw new Error(
+        `tokenOut is required: ${options.length} ${ctx.operation} routes from ${this.labelAddress(
+          ctx.tokenIn,
+        )} on pool ${this.labelAddress(ctx.poolAddr)}`,
+      );
+    }
+    return options[0];
+  }
+
   #describeUnderlying(pool: Address): TokenMetaData {
     const market = this.sdk.marketRegister.findByPool(pool);
     return this.sdk.tokensMeta.mustGet(market.underlying);
@@ -592,4 +709,44 @@ export class PoolService extends SDKConstruct implements IPoolsService {
       apy: { organicApy: rayToBps(pool.supplyRate) },
     };
   }
+}
+
+/**
+ * Shares minted for `assets`, as `previewDeposit` would report them.
+ *
+ * Both directions convert through the diesel rate — underlying per RAY of
+ * shares — because that is the rate the pool itself divides by, and the only
+ * exact one the SDK holds: `totalAssets` is this rate multiplied out, so
+ * converting back through it costs a wei on large amounts. Rounds down, as
+ * minting does.
+ */
+export function toShares(pool: IPoolContract, assets: bigint): bigint {
+  const { dieselRate } = pool;
+
+  return dieselRate === 0n ? assets : (assets * RAY) / dieselRate;
+}
+
+/**
+ * Shares a withdrawal of `assets` burns, as `previewWithdraw` would report
+ * them: {@link toShares} rounded the other way, since the burn has to cover
+ * the payout the caller asked for.
+ */
+export function toSharesUp(pool: IPoolContract, assets: bigint): bigint {
+  const { dieselRate } = pool;
+
+  return dieselRate === 0n
+    ? assets
+    : (assets * RAY + dieselRate - 1n) / dieselRate;
+}
+
+/**
+ * Underlying paid out for `shares`, as `previewRedeem` would report it:
+ * {@link toShares} run backwards, less the pool's withdrawal fee.
+ */
+function toAssets(pool: IPoolContract, shares: bigint): bigint {
+  const { dieselRate, withdrawFee } = pool;
+
+  const assets = dieselRate === 0n ? shares : (shares * dieselRate) / RAY;
+
+  return (assets * (PERCENTAGE_FACTOR - withdrawFee)) / PERCENTAGE_FACTOR;
 }

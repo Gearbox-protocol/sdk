@@ -26,7 +26,7 @@ const USDC = getAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48");
  * logger; mutated per test.
  */
 let redemptionLog: RedemptionLog;
-let ethCallCount = 0;
+let _ethCallCount = 0;
 
 beforeEach(() => {
   redemptionLog = {
@@ -34,7 +34,7 @@ beforeEach(() => {
     redeemer: zeroAddress,
     extraData: "0x",
   };
-  ethCallCount = 0;
+  _ethCallCount = 0;
 });
 
 /**
@@ -45,7 +45,7 @@ const baseSdk = new OnchainSDK("Mainnet", {
   transport: custom({
     request: async ({ method }: { method: string }) => {
       if (method === "eth_call") {
-        ethCallCount++;
+        _ethCallCount++;
         return encodeFunctionResult({
           abi: iRedemptionLoggerV310Abi,
           functionName: "redemptionLogs",

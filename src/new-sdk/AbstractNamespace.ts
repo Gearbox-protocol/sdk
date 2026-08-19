@@ -1,11 +1,11 @@
-import type { DataResponse, DataSource } from "../model/index.js";
+import type { ChainId, DataResponse, DataSource } from "../model/index.js";
 import type { ILogger } from "../sdk/types/logger.js";
 import {
   AllSourcesFailedError,
   everyChainFailed,
   SourceUnavailableError,
 } from "./errors/index.js";
-import type { NamespaceOptions } from "./types.js";
+import type { EnsureFreshChains, NamespaceOptions } from "./types.js";
 import type { EntityMerger, ListMerger } from "./utils/index.js";
 
 /**
@@ -20,6 +20,11 @@ export interface MergedQuery<Onchain, Offchain, T> {
   fromChain: (source: Onchain) => Promise<DataResponse<T>>;
   fromBackend: (source: Offchain) => Promise<DataResponse<T>>;
   merge: ListMerger<T> | EntityMerger<T>;
+  /**
+   * Chains the on-chain leg touches, so only they are revalidated before it;
+   * omitted when the read fans out to every chain.
+   **/
+  chainIds?: readonly ChainId[];
 }
 
 /**
@@ -45,10 +50,17 @@ export abstract class AbstractNamespace<Onchain, Offchain> {
    **/
   protected readonly maxOffchainLagSeconds: number;
   protected readonly logger?: ILogger;
+  /**
+   * The SDK's loading policy, awaited before every on-chain leg: attached, and
+   * the touched chains no older than the SDK allows.
+   **/
+  protected readonly ensureFresh?: EnsureFreshChains;
 
   readonly #name: string;
   readonly #onchain?: Onchain;
   readonly #offchain?: Offchain;
+  /** {@link onchain}, built once: the source's methods behind the loading policy. */
+  readonly #onchainView?: Onchain;
 
   protected constructor(
     name: string,
@@ -60,18 +72,25 @@ export abstract class AbstractNamespace<Onchain, Offchain> {
     this.#onchain = onchain;
     this.#offchain = offchain;
     this.maxOffchainLagSeconds = options.maxOffchainLagSeconds;
+    this.ensureFresh = options.ensureFresh;
     this.logger = options.logger?.child?.({ name }) ?? options.logger;
+    this.#onchainView =
+      onchain && options.ensureFresh
+        ? behindLoadingPolicy(onchain, options.ensureFresh)
+        : onchain;
   }
 
   /**
-   * The on-chain source namespace on its own. Throws
+   * The on-chain source namespace on its own — every read of it attaches and
+   * revalidates like a merged read does, so a consumer showing the two sources
+   * separately still gets the SDK's loading policy. Throws
    * {@link SourceUnavailableError} in `offchain` mode.
    **/
   public get onchain(): Onchain {
-    if (!this.#onchain) {
+    if (!this.#onchainView) {
       throw new SourceUnavailableError(this.#name, "onchain");
     }
-    return this.#onchain;
+    return this.#onchainView;
   }
 
   /**
@@ -96,7 +115,12 @@ export abstract class AbstractNamespace<Onchain, Offchain> {
     const onchain = this.#onchain;
     const offchain = this.#offchain;
     const [fromChain, fromBackend] = await Promise.all([
-      this.#ask(action, "onchain", onchain, query.fromChain),
+      this.#ask(action, "onchain", onchain, async source => {
+        // attach on first read, revalidate by age — the SDK's, not the
+        // namespace's, so every namespace shares one attach and one sync
+        await this.ensureFresh?.(query.chainIds);
+        return query.fromChain(source);
+      }),
       this.#ask(action, "offchain", offchain, query.fromBackend),
     ]);
 
@@ -138,4 +162,28 @@ export abstract class AbstractNamespace<Onchain, Offchain> {
       return { error };
     }
   }
+}
+
+/**
+ * The source's every method, awaiting the loading policy first. The policy is
+ * asked for every chain — an escape hatch does not tell which chains a call
+ * touches (the merged reads do, and scope it); the object identity differs
+ * from the source's, its type does not.
+ **/
+function behindLoadingPolicy<S extends object>(
+  source: S,
+  ensureFresh: EnsureFreshChains,
+): S {
+  return new Proxy(source, {
+    get(target, property, receiver) {
+      const value = Reflect.get(target, property, receiver);
+      if (typeof value !== "function") {
+        return value;
+      }
+      return async (...args: unknown[]) => {
+        await ensureFresh();
+        return Reflect.apply(value, target, args);
+      };
+    },
+  });
 }

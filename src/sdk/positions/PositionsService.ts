@@ -44,6 +44,7 @@ interface PositionMetricMarketData {
   underlying: Address;
   decimals: Record<Address, number>;
   prices: Record<Address, bigint>;
+  reservePrices: Record<Address, bigint>;
   liquidationThresholds: Record<Address, Bps>;
   activeQuotas: Record<Address, boolean>;
   quotaRates: Record<Address, Bps>;
@@ -139,13 +140,18 @@ export class PositionsService extends SDKConstruct {
   /**
    * Health factor of an account state, in basis points (`10000` = 1.0).
    **/
-  public healthFactor(snapshot: AccountSnapshot): Bps {
+  public healthFactor(
+    snapshot: AccountSnapshot,
+    options?: { safePrices?: boolean },
+  ): Bps {
     const data = this.#marketData(snapshot);
     return calcHealthFactor({
       snapshot,
       underlying: data.underlying,
       decimals: data.decimals,
       prices: data.prices,
+      reservePrices: data.reservePrices,
+      safePrices: options?.safePrices,
       liquidationThresholds: data.liquidationThresholds,
       activeQuotas: data.activeQuotas,
     });
@@ -372,6 +378,7 @@ export class PositionsService extends SDKConstruct {
 
     const decimals: Record<Address, number> = {};
     const prices: Record<Address, bigint> = {};
+    const reservePrices: Record<Address, bigint> = {};
     const liquidationThresholds: Record<Address, Bps> = {};
     const activeQuotas: Record<Address, boolean> = {};
     const quotaRates: Record<Address, Bps> = {};
@@ -386,6 +393,12 @@ export class PositionsService extends SDKConstruct {
         prices[token] = priceOracle.mainPrice(token);
       } catch {
         // unpriceable: omitted so the calc treats the token as contributing nothing
+      }
+
+      try {
+        reservePrices[token] = priceOracle.reservePrice(token);
+      } catch {
+        // no reserve feed
       }
 
       const lt = cm.liquidationThresholds.get(token);
@@ -403,6 +416,7 @@ export class PositionsService extends SDKConstruct {
       underlying,
       decimals,
       prices,
+      reservePrices,
       liquidationThresholds,
       activeQuotas,
       quotaRates,

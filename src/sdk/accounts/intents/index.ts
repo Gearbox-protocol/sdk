@@ -1,591 +1,408 @@
+import type { Address } from "viem";
 import { SDKConstruct } from "../../base/SDKConstruct.js";
-import type { OnchainSDK } from "../../OnchainSDK.js";
-import type {
-  DelayedCloseAccountIntent,
-  DelayedDecreaseLeverageIntent,
-  DelayedIntent,
-  DelayedWithdrawCollateralIntent,
-} from "../withdrawal-compressor/types.js";
+import { assertMarketOperable } from "./guards.js";
+import { maxProportionalWithdrawal } from "./math.js";
 import {
-  buildResumeAddCollateralOperations,
-  buildResumeCloseOperations,
-  buildResumeDecreaseLeverageOperations,
-  buildResumeDepositOperations,
-  buildResumeIncreaseLeverageOperations,
-  buildResumeWithdrawOperations,
-} from "./intents/resume/index.js";
-import type {
+  type OpenStrategyPreview,
+  type OpenStrategyProps,
+  previewOpenStrategy,
+} from "./open-strategy.js";
+import {
+  type AccountCalculatorOperation,
+  instantOutput,
+} from "./operations.js";
+import {
+  planAddCollateral,
+  planAdjustLeverage,
+  planAdjustLeverageDelayed,
+  planDeposit,
+  planFinishClaimOnly,
+  planFinishDecreaseLeverage,
+  planFinishWithdraw,
+  planRepay,
+  planWithdraw,
+  planWithdrawAsset,
+  planWithdrawDelayed,
+  type Step,
+} from "./plan.js";
+import { realize } from "./realize.js";
+import {
+  type CreditAccountSlice,
+  type DelayableIntent,
+  type DelayedStart,
+  type DelayedStartResult,
+  type FinishIntentProps,
+  IntentPreviewError,
+  type IntentPreviewResult,
+  type IntentRoutesResult,
+  type PreviewErrorReason,
+  type ResumableIntent,
+  type RouteRefusals,
+  type StartIntent,
+  type StartIntentProps,
+} from "./types.js";
+import { accountView } from "./view.js";
+
+export type {
+  OpenStrategyPreview,
+  OpenStrategyProps,
+} from "./open-strategy.js";
+export {
+  type AddCollateralIntent,
+  type AdjustLeverageIntent,
+  type DelayableIntent,
+  type DelayedRoute,
+  type DelayedStart,
+  type DelayedStartResult,
+  type DepositStrategyIntent,
+  type FinishIntentProps,
+  type InstantRoute,
+  IntentPreviewError,
+  type IntentRoutesResult,
+  type OperationState,
+  type PreviewErrorReason,
+  type RepayStrategyIntent,
+  type ResumableIntent,
+  type RouteRefusals,
+  type StartIntent,
+  type WithdrawAssetIntent,
+  type WithdrawStrategyIntent,
+} from "./types.js";
+export {
+  fetchCreditAccountSlice,
+  toCreditAccountSlice,
+} from "./utils/credit-account-slice.js";
+export type {
   AccountCalculatorOperation,
-  ClaimDelayedOption,
-  OffchainOption,
-  OnchainOption,
-} from "./operations/index.js";
-import {
-  createCloseOracleQuoter,
-  createOracleSwapQuoter,
-  createRouterCloseQuoter,
-  createRouterSwapQuoter,
-} from "./quoters/index.js";
-import type { CreditAccountSlice, IntentPreviewResult } from "./types.js";
-import {
-  assembleOperationCalls,
-  getOperationsWithQuotaUpdate,
-  simulateState,
-} from "./utils/index.js";
-
-export { primaryInstantOutput } from "./operations/index.js";
-export type { CreditAccountSlice, IntentPreviewResult };
-
-type ResumeGenericProps<T extends DelayedIntent> = {
-  intent: T;
-  creditAccount: CreditAccountSlice;
-  sdk: OnchainSDK;
-  quotaReserve: number | undefined;
-  options: ClaimDelayedOption;
-  slippage: number | undefined;
+  CreditAccountSlice,
+  IntentPreviewResult,
 };
 
-type ResumeProps = ResumeGenericProps<DelayedIntent>;
-type ResumeShortProps = Omit<ResumeGenericProps<DelayedIntent>, "options">;
+/**
+ * Open-strategy preview outcome.
+ *
+ * Shaped like {@link IntentPreviewResult} in its error half so all previews fail
+ * the same way, but the payload is its own: opening has no existing account, so
+ * there is no operation chain to report.
+ */
+export type OpenStrategyPreviewResult =
+  | { ok: true; preview: OpenStrategyPreview }
+  | { ok: false; reason: PreviewErrorReason };
 
-type ResumeCloseAccountProps = ResumeGenericProps<DelayedCloseAccountIntent>;
-type ResumeWithdrawCollateralProps =
-  ResumeGenericProps<DelayedWithdrawCollateralIntent>;
-type ResumeDecreaseLeverageProps =
-  ResumeGenericProps<DelayedDecreaseLeverageIntent>;
+/** An intent plus everything previewing it needs. */
+type StartProps = StartIntentProps & { intent: StartIntent };
 
-type BuildResumeOperations = (
-  creditAccount: CreditAccountSlice,
-  options: ClaimDelayedOption,
-  sdk: OnchainSDK,
-) => Array<AccountCalculatorOperation>;
-
+/**
+ * Previews of everything a wallet can do to an existing credit account.
+ *
+ * Two halves, deliberately kept apart: `plan.ts` turns an intent into a few
+ * steps with pure arithmetic, `realize.ts` turns the steps into router-backed
+ * operations. This class only picks the planner and wraps the outcome.
+ */
 export class CreditAccountOperationsService extends SDKConstruct {
-  async finishIntent(props: ResumeProps): Promise<IntentPreviewResult> {
-    const intent = props.intent;
-
-    switch (intent.type) {
-      case "ADD_COLLATERAL": {
-        return this.#finishAddCollateralIntent({ ...props, intent });
-      }
-      case "INCREASE_LEVERAGE": {
-        return this.#finishIncreaseLeverageIntent({ ...props, intent });
-      }
-      case "DEPOSIT": {
-        return this.#finishDepositIntent({ ...props, intent });
-      }
-      case "DEPOSIT_AND_INCREASE_LEVERAGE": {
-        return this.#finishDepositAndIncreaseLeverageIntent({
-          ...props,
-          intent,
-        });
-      }
-      case "CLOSE_ACCOUNT": {
-        return this.#finishCloseAccountIntent({ ...props, intent });
-      }
-      case "WITHDRAW_COLLATERAL": {
-        return this.#finishWithdrawCollateralIntent({ ...props, intent });
-      }
-      case "DECREASE_LEVERAGE": {
-        return this.#finishDecreaseLeverageIntent({ ...props, intent });
-      }
-      default: {
-        throw new Error(`${props.intent.type} - not implemented`);
-      }
-    }
+  /**
+   * Previews an operation on an existing account.
+   *
+   * @param props - Intent plus account slice, quota reserve and slippage
+   * @returns Operations, projected state and calldata, or `{ ok: false, reason }`
+   * when the intent cannot be satisfied (e.g. the account lacks the source
+   * balance)
+   */
+  async startIntent(props: StartProps): Promise<IntentPreviewResult> {
+    return plain(
+      await this.#preview(props, () => {
+        const { intent } = props;
+        const view = accountView(props.creditAccount, props.sdk);
+        switch (intent.type) {
+          case "ADD_COLLATERAL":
+            return planAddCollateral(intent);
+          case "WITHDRAW_ASSET":
+            return planWithdrawAsset(intent, view);
+          case "ADJUST_LEVERAGE":
+            return planAdjustLeverage(intent, view);
+          case "DEPOSIT":
+            return planDeposit(intent, view);
+          case "REPAY":
+            return planRepay(intent, view);
+          case "WITHDRAW":
+            return planWithdraw(intent, view);
+          default: {
+            const _exhaustive: never = intent;
+            void _exhaustive;
+            throw new Error(
+              `${(intent as StartIntent).type} - not implemented`,
+            );
+          }
+        }
+      }),
+    );
   }
 
   /**
-   * Shared resume flow for claim-only intents (add collateral, increase
-   * leverage, deposit, deposit+increase): claim op + trailing changeQuota.
-   * If any implementations change, respective handler should be implemented separately
+   * Largest `WITHDRAW` amount (in underlying) the account can take out while
+   * keeping leverage and staying inside the facade's debt band — the ceiling a
+   * withdraw form should offer. Taking everything out is the same intent with
+   * `MAX_UINT256` for an amount, and needs none of this arithmetic.
+   *
+   * @param props - Account slice and the SDK holding its market
+   * @returns Amount in underlying units; `0n` when nothing can leave
    */
-  #finishClaimOnlyIntent =
-    (buildOperations: BuildResumeOperations) =>
-    async (props: ResumeProps): Promise<IntentPreviewResult> => {
-      switch (props.options.kind) {
-        case "offchain": {
-          return this.#finishClaimOnlyIntentOffchain(
-            props,
-            props.options,
-            buildOperations,
-          );
-        }
+  maxWithdraw(props: Pick<StartIntentProps, "creditAccount" | "sdk">): bigint {
+    const view = accountView(props.creditAccount, props.sdk);
+    return maxProportionalWithdrawal(view, view.band);
+  }
 
+  /**
+   * Debt a `REPAY` would have to cover to settle the account, in underlying
+   * units: principal plus the interest and fees accrued as of the read.
+   *
+   * A repayment of exactly this leaves nothing behind at the block it was read
+   * at, and a little behind at any later one, since interest does not stop —
+   * so a wallet meaning to clear the account sends this with a buffer on top,
+   * which the intent caps at the debt rather than spending. `REPAY` with
+   * `MAX_UINT256` sizes that buffer itself.
+   *
+   * @param props - Account slice and the SDK holding its market
+   * @returns Amount in underlying units; `0n` on an account that owes nothing
+   */
+  maxRepay(props: Pick<StartIntentProps, "creditAccount" | "sdk">): bigint {
+    return accountView(props.creditAccount, props.sdk).debt;
+  }
+
+  /**
+   * Previews the same operation when its source only redeems through its
+   * issuer: a Securitize dsToken, a Mellow share.
+   *
+   * Sits apart from {@link startIntent} because it is a different trade route,
+   * not a different intent: the request goes to the issuer instead of the
+   * router, and the proceeds — hence the repayment and the payout — arrive days
+   * later. Both routes of one intent are quoted together by
+   * {@link intentRoutes}; this is the one to call when the delayed route is the
+   * only one of interest.
+   *
+   * @param props - Intent plus account slice, quota reserve and slippage
+   * @returns The request transaction and what it recorded for the tail, or
+   * `{ ok: false, reason }` — `noDelayedRoute` when this route does not exist
+   * for the account at all
+   */
+  async startDelayedIntent(
+    props: StartIntentProps & { intent: DelayableIntent },
+  ): Promise<DelayedStartResult> {
+    const { intent } = props;
+    const result = await this.#preview(props, () => {
+      const view = accountView(props.creditAccount, props.sdk);
+      switch (intent.type) {
+        case "ADJUST_LEVERAGE":
+          return planAdjustLeverageDelayed(intent, view);
+        case "WITHDRAW":
+          return planWithdrawDelayed(intent, view);
         default: {
-          return this.#finishClaimOnlyIntentOnchain(
-            props,
-            props.options,
-            buildOperations,
+          const _exhaustive: never = intent;
+          void _exhaustive;
+          throw new Error(
+            `${(intent as DelayableIntent).type} - cannot be delayed`,
           );
         }
       }
-    };
-
-  #finishClaimOnlyIntentOffchain(
-    props: ResumeShortProps,
-    options: OffchainOption,
-    buildOperations: BuildResumeOperations,
-  ): IntentPreviewResult {
-    const baseOperations = buildOperations(
-      props.creditAccount,
-      options,
-      this.sdk,
-    );
-
-    const state = simulateState({
-      ...props,
-      operations: baseOperations,
     });
-
-    const operations = getOperationsWithQuotaUpdate({
-      operations: baseOperations,
-      state,
-      creditAccount: props.creditAccount,
-      sdk: this.sdk,
-      options,
-    });
-
-    return {
-      ok: true,
-
-      instant: {
-        operations,
-        preview: {
-          min: state.state,
-        },
-        calls: [],
-      },
-      instantError: undefined,
-
-      delayedBranch: undefined,
-      delayedError: undefined,
-    };
-  }
-  async #finishClaimOnlyIntentOnchain(
-    props: ResumeShortProps,
-    options: OnchainOption,
-    buildOperations: BuildResumeOperations,
-  ): Promise<IntentPreviewResult> {
-    const baseOperations = buildOperations(
-      props.creditAccount,
-      options,
-      this.sdk,
-    );
-
-    const state = simulateState({
-      ...props,
-      operations: baseOperations,
-    });
-
-    const operations = getOperationsWithQuotaUpdate({
-      operations: baseOperations,
-      state,
-      creditAccount: props.creditAccount,
-      sdk: this.sdk,
-      options,
-    });
-
-    const calls = await assembleOperationCalls({
-      ...props,
-      operations,
-    });
-
-    return {
-      ok: true,
-
-      instant: {
-        operations,
-        preview: {
-          min: state.state,
-        },
-        calls,
-      },
-      instantError: undefined,
-
-      delayedBranch: undefined,
-      delayedError: undefined,
-    };
-  }
-
-  #finishAddCollateralIntent = this.#finishClaimOnlyIntent(
-    buildResumeAddCollateralOperations,
-  );
-  #finishIncreaseLeverageIntent = this.#finishClaimOnlyIntent(
-    buildResumeIncreaseLeverageOperations,
-  );
-  #finishDepositIntent = this.#finishClaimOnlyIntent(
-    buildResumeDepositOperations,
-  );
-  #finishDepositAndIncreaseLeverageIntent = this.#finishClaimOnlyIntent(
-    buildResumeDepositOperations,
-  );
-
-  /**
-   * Resume close: claim, then close against quoted post-claim balances.
-   * Offchain quotes equity by oracle prices, onchain — router close path.
-   * Router miss soft-fails to the oracle quote with `calls: []` (legacy parity).
-   */
-  async #finishCloseAccountIntent({
-    options,
-    ...props
-  }: ResumeCloseAccountProps): Promise<IntentPreviewResult> {
-    switch (options.kind) {
-      case "offchain": {
-        return this.#finishCloseAccountIntentOffchain({
-          ...props,
-          options,
-        });
-      }
-
-      default: {
-        try {
-          const r = await this.#finishCloseAccountIntentOnchain({
-            ...props,
-            options,
-          });
-
-          return r;
-        } catch {
-          const r = this.#finishCloseAccountIntentOffchain({
-            ...props,
-            options,
-          });
-
-          return r;
-        }
-      }
+    if (!result.ok) {
+      return result;
     }
-  }
-  async #finishCloseAccountIntentOffchain({
-    options,
-    ...props
-  }: ResumeCloseAccountProps): Promise<IntentPreviewResult> {
-    const quoter = createCloseOracleQuoter({
-      sdk: this.sdk,
-      creditAccount: props.creditAccount,
-    });
-
-    const { operations, quote } = await buildResumeCloseOperations(
-      { ...props, options },
-      quoter,
-    );
-
-    return {
-      ok: true,
-
-      instant: {
-        operations,
-        preview: {
-          min: {
-            kind: "close",
-            amount: quote.amount,
-            minAmount: quote.minAmount,
-            underlyingBalance: quote.underlyingBalance,
-          },
-        },
-        calls: [],
-      },
-      instantError: undefined,
-
-      delayedBranch: undefined,
-      delayedError: undefined,
-    };
-  }
-  async #finishCloseAccountIntentOnchain({
-    options,
-    slippage = 0,
-    ...props
-  }: ResumeCloseAccountProps): Promise<IntentPreviewResult> {
-    const quoter = createRouterCloseQuoter({
-      sdk: this.sdk,
-      creditAccount: props.creditAccount,
-      slippage,
-    });
-
-    const { operations, quote } = await buildResumeCloseOperations(
-      { ...props, options },
-      quoter,
-    );
-
-    const calls = await assembleOperationCalls({
-      ...props,
-      operations,
-    });
-
-    return {
-      ok: true,
-
-      instant: {
-        operations,
-        preview: {
-          min: {
-            kind: "close",
-            amount: quote.amount,
-            minAmount: quote.minAmount,
-            underlyingBalance: quote.underlyingBalance,
-          },
-        },
-        calls,
-      },
-      instantError: undefined,
-
-      delayedBranch: undefined,
-      delayedError: undefined,
-    };
+    if (!result.delayed) {
+      throw new Error("startDelayedIntent: plan started no withdrawal");
+    }
+    return { ...result, delayed: result.delayed };
   }
 
   /**
-   * Resume withdraw: claim → (swap?) → decreaseDebt? → (unwrapRwa?) →
-   * withdrawCollateral + trailing changeQuota. Offchain prices swaps by
-   * oracle, onchain — router swap paths (leftover-aware).
+   * Previews a delayable intent both ways at once: settled by the router now,
+   * and started as a redemption that finishes days later.
+   *
+   * Which routes an account has depends on the intent and the token it sells,
+   * and a form has to know before it can offer a choice — so both are quoted
+   * from the same request and each is reported on its own. A route the account
+   * cannot take comes back `undefined` with its refusal in `refused`; only when
+   * neither answers is the whole result `{ ok: false }`.
+   *
+   * A route that could not be quoted at all — a pathfinder with no path out of
+   * the source, a read that failed — counts as missing rather than fatal, since
+   * the other route may be the one the caller wanted. With nothing left to
+   * report the failure is rethrown, as {@link startIntent} would have.
+   *
+   * @param props - A withdraw or adjust-leverage intent plus account slice,
+   * quota reserve and slippage
+   * @returns Whichever routes are viable, or `{ ok: false, reason }` when none is
    */
-  async #finishWithdrawCollateralIntent({
-    options,
-    ...props
-  }: ResumeWithdrawCollateralProps): Promise<IntentPreviewResult> {
-    switch (options.kind) {
-      case "offchain": {
-        return this.#finishWithdrawCollateralIntentOffchain({
-          ...props,
-          options,
-        });
-      }
+  async intentRoutes(
+    props: StartIntentProps & { intent: DelayableIntent },
+  ): Promise<IntentRoutesResult> {
+    const [instant, delayed] = await Promise.allSettled([
+      this.startIntent(props),
+      this.startDelayedIntent(props),
+    ]);
 
-      default: {
-        try {
-          const r = await this.#finishWithdrawCollateralIntentOnchain({
-            ...props,
-            options,
-          });
-          return r;
-        } catch {
-          return this.#finishWithdrawCollateralIntentOffchain({
-            ...props,
-            options,
-          });
-        }
-      }
+    const instantRoute =
+      instant.status === "fulfilled" && instant.value.ok
+        ? instant.value
+        : undefined;
+    const delayedRoute =
+      delayed.status === "fulfilled" && delayed.value.ok
+        ? delayed.value
+        : undefined;
+    const refused: RouteRefusals = {
+      instant:
+        instant.status === "fulfilled" && !instant.value.ok
+          ? instant.value.reason
+          : undefined,
+      delayed:
+        delayed.status === "fulfilled" && !delayed.value.ok
+          ? delayed.value.reason
+          : undefined,
+    };
+
+    if (instantRoute || delayedRoute) {
+      return {
+        ok: true,
+        instant: instantRoute,
+        delayed: delayedRoute,
+        refused,
+      };
     }
-  }
-  async #finishWithdrawCollateralIntentOffchain({
-    options,
-    ...props
-  }: ResumeWithdrawCollateralProps): Promise<IntentPreviewResult> {
-    const quoter = createOracleSwapQuoter({
-      sdk: this.sdk,
-      creditAccount: props.creditAccount,
-    });
 
-    const baseOperations = await buildResumeWithdrawOperations(
-      { ...props, options },
-      quoter,
-    );
-
-    const state = simulateState({
-      ...props,
-      operations: baseOperations,
-    });
-
-    const operations = getOperationsWithQuotaUpdate({
-      operations: baseOperations,
-      state,
-      creditAccount: props.creditAccount,
-      sdk: this.sdk,
-      options,
-    });
-
-    return {
-      ok: true,
-
-      instant: {
-        operations,
-        preview: {
-          min: state.state,
-        },
-        calls: [],
-      },
-      instantError: undefined,
-
-      delayedBranch: undefined,
-      delayedError: undefined,
-    };
-  }
-  async #finishWithdrawCollateralIntentOnchain({
-    options,
-    slippage = 0,
-    ...props
-  }: ResumeWithdrawCollateralProps): Promise<IntentPreviewResult> {
-    const quoter = createRouterSwapQuoter({
-      sdk: this.sdk,
-      creditAccount: props.creditAccount,
-      slippage,
-    });
-
-    const baseOperations = await buildResumeWithdrawOperations(
-      { ...props, options },
-      quoter,
-    );
-
-    const state = simulateState({
-      ...props,
-      operations: baseOperations,
-    });
-
-    const operations = getOperationsWithQuotaUpdate({
-      operations: baseOperations,
-      state,
-      creditAccount: props.creditAccount,
-      sdk: this.sdk,
-      options,
-    });
-
-    const calls = await assembleOperationCalls({
-      ...props,
-      operations,
-    });
-
-    return {
-      ok: true,
-
-      instant: {
-        operations,
-        preview: {
-          min: state.state,
-        },
-        calls,
-      },
-      instantError: undefined,
-
-      delayedBranch: undefined,
-      delayedError: undefined,
-    };
+    // Nothing answered. A refusal is a value the caller can act on, but a route
+    // that could not be quoted at all is a genuine failure, and there is no
+    // preview left to report it alongside.
+    const failed = [instant, delayed].find(s => s.status === "rejected");
+    if (failed?.status === "rejected") {
+      throw failed.reason;
+    }
+    const reason = refused.instant ?? refused.delayed;
+    if (reason === undefined) {
+      throw new Error("intentRoutes: a route neither answered nor refused");
+    }
+    return { ok: false, reason, refused };
   }
 
   /**
-   * Resume decrease leverage: claim → (wrapRwa | swap)? → decreaseDebt +
-   * trailing changeQuota. Offchain prices swaps by oracle, onchain — router
-   * swap paths. Router miss soft-fails to the oracle quote (legacy parity).
+   * Previews the tail of a delayed intent, once the withdrawal it started has
+   * matured: the claim, then whatever the intent still owes.
+   *
+   * Serves the two operations that can genuinely be interrupted by a delay — a
+   * withdrawal and a deleveraging. For the rest, the claim is the whole tail:
+   * the tokens land on the account and only their quota has to catch up.
+   *
+   * @param props - The recorded intent, the account slice as it stands now, and
+   * the matured claimable
+   * @returns Shaped exactly like {@link startIntent}'s result, so both halves of
+   * an operation are consumed the same way
    */
-  async #finishDecreaseLeverageIntent({
-    options,
-    ...props
-  }: ResumeDecreaseLeverageProps): Promise<IntentPreviewResult> {
-    switch (options.kind) {
-      case "offchain": {
-        return this.#finishDecreaseLeverageIntentOffchain({
-          ...props,
-          options,
-        });
-      }
-
-      default: {
-        try {
-          const r = await this.#finishDecreaseLeverageIntentOnchain({
-            ...props,
-            options,
-          });
-          return r;
-        } catch {
-          return this.#finishDecreaseLeverageIntentOffchain({
-            ...props,
-            options,
-          });
+  async finishIntent(props: FinishIntentProps): Promise<IntentPreviewResult> {
+    const { intent, claimable } = props;
+    return plain(
+      await this.#preview(props, () => {
+        const view = accountView(props.creditAccount, props.sdk);
+        // What the claim credits on the spot, which is what the tail spends.
+        const claimed = (): { token: Address; amount: bigint } => {
+          const output = instantOutput(claimable.outputs);
+          if (!output) {
+            throw new IntentPreviewError(
+              "insufficientSourceBalance",
+              "finishIntent: the claim credits nothing to spend",
+            );
+          }
+          return output;
+        };
+        switch (intent.type) {
+          case "WITHDRAW_COLLATERAL":
+            return planFinishWithdraw(intent, claimable, claimed(), view);
+          case "DECREASE_LEVERAGE":
+            return planFinishDecreaseLeverage(claimable, claimed(), view);
+          case "ADD_COLLATERAL":
+          case "INCREASE_LEVERAGE":
+          case "DEPOSIT":
+          case "DEPOSIT_AND_INCREASE_LEVERAGE":
+            return planFinishClaimOnly(claimable);
+          default: {
+            const _exhaustive: never = intent;
+            void _exhaustive;
+            throw new Error(
+              `${(intent as ResumableIntent).type} - not implemented`,
+            );
+          }
         }
-      }
+      }),
+    );
+  }
+
+  /**
+   * Previews opening a brand-new leveraged position.
+   *
+   * Sits apart from {@link startIntent} because there is no account yet: nothing
+   * can be projected from existing balances, and the output feeds
+   * `sdk.accounts.openCA` rather than a facade multicall assembled here.
+   *
+   * @param props - Credit manager, wallet collateral, target token and leverage
+   * @returns Debt, position size, projected balances and quotas for both the
+   * expected and the floor branch, or `{ ok: false, reason }` when the requested
+   * leverage or the resulting debt is not viable
+   */
+  async openStrategyIntent(
+    props: OpenStrategyProps,
+  ): Promise<OpenStrategyPreviewResult> {
+    try {
+      return { ok: true, preview: await previewOpenStrategy(props) };
+    } catch (e) {
+      return asFailure(e);
     }
   }
-  async #finishDecreaseLeverageIntentOffchain({
-    options,
-    ...props
-  }: ResumeDecreaseLeverageProps): Promise<IntentPreviewResult> {
-    const quoter = createOracleSwapQuoter({
-      sdk: this.sdk,
-      creditAccount: props.creditAccount,
-    });
 
-    const baseOperations = await buildResumeDecreaseLeverageOperations(
-      { ...props, options },
-      quoter,
-    );
-
-    const state = simulateState({
-      ...props,
-      operations: baseOperations,
-    });
-
-    const operations = getOperationsWithQuotaUpdate({
-      operations: baseOperations,
-      state,
-      creditAccount: props.creditAccount,
-      sdk: this.sdk,
-      options,
-    });
-
-    return {
-      ok: true,
-
-      instant: {
-        operations,
-        preview: {
-          min: state.state,
-        },
-        calls: [],
-      },
-      instantError: undefined,
-
-      delayedBranch: undefined,
-      delayedError: undefined,
-    };
+  /** Plan → realise → wrap. Unviable requests become `{ ok: false }`. */
+  async #preview(
+    props: StartIntentProps,
+    plan: () => Step[],
+  ): Promise<Previewed> {
+    try {
+      assertMarketOperable(
+        props.sdk.marketRegister.findCreditManager(
+          props.creditAccount.creditManager,
+        ),
+      );
+      const { operations, state, calls, delayed } = await realize(plan(), {
+        creditAccount: props.creditAccount,
+        sdk: props.sdk,
+        slippage: props.slippage ?? 0,
+        quotaReserve: props.quotaReserve,
+      });
+      return { ok: true, operations, preview: state, calls, delayed };
+    } catch (e) {
+      return asFailure(e);
+    }
   }
-  async #finishDecreaseLeverageIntentOnchain({
-    options,
-    slippage = 0,
-    ...props
-  }: ResumeDecreaseLeverageProps): Promise<IntentPreviewResult> {
-    const quoter = createRouterSwapQuoter({
-      sdk: this.sdk,
-      creditAccount: props.creditAccount,
-      slippage,
-    });
+}
 
-    const baseOperations = await buildResumeDecreaseLeverageOperations(
-      { ...props, options },
-      quoter,
-    );
+/**
+ * A preview before it is told apart: only a plan that requested a redemption
+ * carries `delayed`, and only `startDelayedIntent` reports it.
+ */
+type Previewed =
+  | (Extract<IntentPreviewResult, { ok: true }> & {
+      delayed: DelayedStart | undefined;
+    })
+  | { ok: false; reason: PreviewErrorReason };
 
-    const state = simulateState({
-      ...props,
-      operations: baseOperations,
-    });
-
-    const operations = getOperationsWithQuotaUpdate({
-      operations: baseOperations,
-      state,
-      creditAccount: props.creditAccount,
-      sdk: this.sdk,
-      options,
-    });
-
-    const calls = await assembleOperationCalls({
-      ...props,
-      operations,
-    });
-
-    return {
-      ok: true,
-
-      instant: {
-        operations,
-        preview: {
-          min: state.state,
-        },
-        calls,
-      },
-      instantError: undefined,
-
-      delayedBranch: undefined,
-      delayedError: undefined,
-    };
+/** Drops the delayed half for the flows that cannot produce one. */
+function plain(result: Previewed): IntentPreviewResult {
+  if (!result.ok) {
+    return result;
   }
+  const { operations, preview, calls } = result;
+  return { ok: true, operations, preview, calls };
+}
+
+/** Unviable requests are values; anything else is a genuine failure. */
+function asFailure(e: unknown): { ok: false; reason: PreviewErrorReason } {
+  if (e instanceof IntentPreviewError) {
+    return { ok: false, reason: e.reason };
+  }
+  throw e;
 }

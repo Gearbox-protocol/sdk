@@ -3,7 +3,7 @@ import type { Asset } from "../../../sdk/base/types.js";
 import { MIN_INT96, PERCENTAGE_FACTOR } from "../../../sdk/constants/math.js";
 import { BigIntMath } from "../../../sdk/utils/bigint-math.js";
 import type { QuotaSlice } from "../strategies/strategy-info/types.js";
-import type { AssetWithAmountInTarget, QuotaInfoTokenSlice } from "./types.js";
+import type { AssetWithAmountInTarget } from "./types.js";
 
 export interface CalcDefaultQuotaProps {
   amount: bigint;

@@ -1,3 +1,4 @@
+import type { Address } from "viem";
 import { describe, expectTypeOf, it } from "vitest";
 import type {
   ChartBundle,
@@ -9,12 +10,24 @@ import type {
   PoolOpportunityRef,
   StrategyOpportunityDetail,
   StrategyOpportunityRef,
+  StrategyPosition,
 } from "../../model/index.js";
 import type { OffchainOpportunities } from "../../offchain/index.js";
-import type { MultichainOpportunitiesService } from "../../sdk/index.js";
+import type {
+  ClaimableWithdrawal,
+  MultichainOpportunitiesService,
+} from "../../sdk/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
+import type {
+  DelayedStrategySimulate,
+  LpSimulate,
+  StrategyRoutesSimulate,
+  StrategySimulate,
+} from "../simulate/index.js";
 import type { Mode } from "../types.js";
 import type { Opportunities } from "./types.js";
+
+const WALLET = "0xf0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0" as Address;
 
 describe("mode gates method existence", () => {
   it("every mode reads what both sources can produce", () => {
@@ -31,10 +44,21 @@ describe("mode gates method existence", () => {
     expectTypeOf<Opportunities<"onchain">>().not.toHaveProperty("charts");
   });
 
+  it("simulate and execute exist only where a chain does", () => {
+    expectTypeOf<Opportunities<"onchain">>().toHaveProperty("simulate");
+    expectTypeOf<Opportunities<"both">>().toHaveProperty("simulate");
+    expectTypeOf<Opportunities<"offchain">>().not.toHaveProperty("simulate");
+    expectTypeOf<Opportunities<"onchain">>().toHaveProperty("execute");
+    expectTypeOf<Opportunities<"both">>().toHaveProperty("execute");
+    expectTypeOf<Opportunities<"offchain">>().not.toHaveProperty("execute");
+  });
+
   it("a widened mode degrades to the base reads rather than to everything", () => {
     // consumers whose config object widens `mode` to `Mode` lose the gated
     // methods; they must not silently gain them
     expectTypeOf<Opportunities<Mode>>().toHaveProperty("list");
+    expectTypeOf<Opportunities<Mode>>().not.toHaveProperty("history");
+    expectTypeOf<Opportunities<Mode>>().not.toHaveProperty("simulate");
     expectTypeOf<Opportunities<Mode>>().not.toHaveProperty("charts");
     // what survives widening is everything the map does not gate
     expectTypeOf<Opportunities<Mode>>().toHaveProperty("merge");
@@ -46,6 +70,112 @@ describe("mode gates method existence", () => {
     expectTypeOf<Opportunities<"onchain">>().toHaveProperty("filter");
     expectTypeOf<Opportunities<"offchain">>().toHaveProperty("filter");
     expectTypeOf<Opportunities<"both">>().toHaveProperty("filter");
+  });
+});
+
+describe("simulate covers the flows and the withdraw ceiling", () => {
+  const simulate = {} as Opportunities<"onchain">["simulate"];
+
+  it("has one method per flow", () => {
+    expectTypeOf(simulate).toHaveProperty("deposit");
+    expectTypeOf(simulate).toHaveProperty("withdraw");
+    expectTypeOf(simulate).toHaveProperty("redeem");
+    expectTypeOf(simulate).toHaveProperty("openNewStrategy");
+    expectTypeOf(simulate).toHaveProperty("depositStrategy");
+    expectTypeOf(simulate).toHaveProperty("withdrawStrategy");
+    expectTypeOf(simulate).toHaveProperty("adjustLeverage");
+    expectTypeOf(simulate).toHaveProperty("addCollateral");
+    expectTypeOf(simulate).toHaveProperty("withdrawCollateral");
+    expectTypeOf(simulate).toHaveProperty("repayStrategy");
+    expectTypeOf(simulate).toHaveProperty("maxWithdraw");
+    expectTypeOf(simulate).toHaveProperty("maxRepay");
+  });
+
+  it("takes a pool opportunity, an amount and the wallet for the LP flows", () => {
+    const pool = {} as PoolOpportunityRef;
+    const params = { amount: 1_000n, wallet: WALLET };
+    expectTypeOf(simulate.deposit).toBeCallableWith(pool, params);
+    expectTypeOf(simulate.withdraw).toBeCallableWith(pool, params);
+    expectTypeOf(simulate.redeem).toBeCallableWith(pool, params);
+  });
+
+  it("answers the LP flows outright, with no promise to await", () => {
+    const pool = {} as PoolOpportunityRef;
+    const params = { amount: 1_000n, wallet: WALLET };
+    expectTypeOf(simulate.deposit(pool, params)).toEqualTypeOf<LpSimulate>();
+    expectTypeOf(simulate.withdraw(pool, params)).toEqualTypeOf<LpSimulate>();
+    expectTypeOf(simulate.redeem(pool, params)).toEqualTypeOf<LpSimulate>();
+  });
+
+  it("takes a position from positions.list() for the account flows", () => {
+    const position = {} as StrategyPosition;
+    expectTypeOf(simulate.adjustLeverage).toBeCallableWith(position, {
+      targetLeverage: 300n,
+    });
+  });
+
+  it("answers in the envelope every read uses, so one chain is reported", () => {
+    expectTypeOf(simulate.addCollateral).returns.resolves.toEqualTypeOf<
+      DataResponse<StrategySimulate>
+    >();
+  });
+
+  it("serves the flow that only pays debt down with the single-route shape", () => {
+    // nothing is sold, so there is no asset whose venue could offer a second
+    // route to choose from
+    expectTypeOf(simulate.repayStrategy).returns.resolves.toEqualTypeOf<
+      DataResponse<StrategySimulate>
+    >();
+    expectTypeOf(simulate.maxRepay).returns.resolves.toEqualTypeOf<
+      DataResponse<bigint>
+    >();
+  });
+
+  it("answers the two flows that sell an asset with both routes they can take", () => {
+    // the asset sold decides which of them exist, so one call quotes both
+    expectTypeOf(simulate.withdrawStrategy).returns.resolves.toEqualTypeOf<
+      DataResponse<StrategyRoutesSimulate>
+    >();
+    expectTypeOf(simulate.adjustLeverage).returns.resolves.toEqualTypeOf<
+      DataResponse<StrategyRoutesSimulate>
+    >();
+  });
+});
+
+describe("the delayed route sits beside the instant one", () => {
+  const simulate = {} as Opportunities<"onchain">["simulate"];
+  const position = {} as StrategyPosition;
+
+  it("has the two flows a redemption can interrupt, plus the tail", () => {
+    expectTypeOf(simulate.delayed).toHaveProperty("withdrawStrategy");
+    expectTypeOf(simulate.delayed).toHaveProperty("adjustLeverage");
+    expectTypeOf(simulate.delayed).toHaveProperty("finish");
+  });
+
+  it("takes the request of the instant flow it mirrors, unchanged", () => {
+    // the route differs, the request does not, so a caller offers both from one
+    // set of inputs
+    expectTypeOf(simulate.delayed.withdrawStrategy).parameters.toEqualTypeOf<
+      Parameters<typeof simulate.withdrawStrategy>
+    >();
+    expectTypeOf(simulate.delayed.adjustLeverage).parameters.toEqualTypeOf<
+      Parameters<typeof simulate.adjustLeverage>
+    >();
+  });
+
+  it("reports what the request recorded for the tail", () => {
+    expectTypeOf(
+      simulate.delayed.withdrawStrategy,
+    ).returns.resolves.toEqualTypeOf<DataResponse<DelayedStrategySimulate>>();
+  });
+
+  it("finishes into the shape the instant flows answer with", () => {
+    expectTypeOf(simulate.delayed.finish).toBeCallableWith(position, {
+      claimable: {} as ClaimableWithdrawal,
+    });
+    expectTypeOf(simulate.delayed.finish).returns.resolves.toEqualTypeOf<
+      DataResponse<StrategySimulate>
+    >();
   });
 
   it("narrows a list already read to a list, and a pending read to pending", () => {
@@ -64,9 +194,9 @@ describe("mode gates method existence", () => {
 });
 
 describe("the source branches are not gated by mode", () => {
-  // they are aliases of `sdk.onchain.opportunities` and
-  // `sdk.offchain.opportunities`, which the mode already gates; the branch of a
-  // source the mode does not read throws on access instead
+  // they forward to `sdk.onchain.opportunities` (behind the loading policy)
+  // and `sdk.offchain.opportunities`, which the mode already gates; the branch
+  // of a source the mode does not read throws on access instead
   it("names both sources at their concrete types in every mode", () => {
     expectTypeOf<
       Opportunities<"onchain">["onchain"]

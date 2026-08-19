@@ -1,5 +1,11 @@
+import type { ChainId, NoticeSubject } from "../model/index.js";
 import { GearboxAPI } from "../offchain/index.js";
-import type { MultichainAttachOptions, NetworkType } from "../sdk/index.js";
+import type {
+  ILogger,
+  MultichainAttachOptions,
+  NetworkType,
+  OnchainSDK,
+} from "../sdk/index.js";
 import { MultichainSDK, toChainIds } from "../sdk/index.js";
 import { assertSameChains, MissingSourceError } from "./errors/index.js";
 import type { Opportunities } from "./opportunities/index.js";
@@ -10,11 +16,18 @@ import type {
   GearboxSDKOptions,
   Mode,
   NamespaceOptions,
+  NoticesByMode,
   OffchainByMode,
   OnchainByMode,
   PlainMultichainSDKOptions,
 } from "./types.js";
 import { DEFAULT_MAX_OFFCHAIN_LAG } from "./utils/index.js";
+
+/**
+ * Default {@link GearboxSDKOptions.maxStateAgeSeconds}: the fastest poll an
+ * app runs, so a 30 s tick sees state no older than itself.
+ **/
+export const DEFAULT_MAX_STATE_AGE = 30;
 
 /**
  * Entry point over both sources of Gearbox data: the chain and the Gearbox
@@ -57,8 +70,22 @@ export class GearboxSDK<const M extends Mode = Mode> {
   readonly #onchain?: MultichainSDK;
   readonly #offchain?: GearboxAPI;
   readonly #ownsOnchain: boolean = false;
+  readonly #maxStateAgeSeconds: number;
+  readonly #logger?: ILogger;
+
+  /**
+   * The banners the backend attaches to a pool opportunity or a strategy
+   * position, see {@link Notice}. Top-level because the subject is either
+   * kind of entity, so neither namespace owns it. Backend-only, hence gated
+   * by mode like every other backend read: absent in `onchain` mode.
+   **/
+  public readonly notices: NoticesByMode[M];
 
   #attached: boolean;
+  /** The one attach in flight, shared by {@link attach} and every first read. */
+  #attaching?: Promise<void>;
+  /** One sync in flight per chain: concurrent stale reads join it. */
+  readonly #syncing = new Map<ChainId, Promise<void>>();
 
   constructor(options: GearboxSDKOptions<M>) {
     const {
@@ -69,11 +96,14 @@ export class GearboxSDK<const M extends Mode = Mode> {
       attach,
       logger,
       maxOffchainLagSeconds = DEFAULT_MAX_OFFCHAIN_LAG,
+      maxStateAgeSeconds = DEFAULT_MAX_STATE_AGE,
     } = options;
 
     this.mode = mode;
     this.networks = [...networks];
     this.#attachOptions = attach;
+    this.#maxStateAgeSeconds = maxStateAgeSeconds;
+    this.#logger = logger;
 
     const needsOnchain = mode === "onchain" || mode === "both";
     const needsOffchain = mode === "offchain" || mode === "both";
@@ -124,10 +154,14 @@ export class GearboxSDK<const M extends Mode = Mode> {
 
     const namespaceOptions: NamespaceOptions = {
       maxOffchainLagSeconds,
+      ensureFresh: this.#onchain
+        ? chainIds => this.#ensureFresh(chainIds)
+        : undefined,
       logger,
     };
-    // the namespaces hand out the very sub-namespaces of these two sources, so
-    // `sdk.opportunities.onchain` and `sdk.onchain.opportunities` are one object
+    // the namespaces hand out these two sources' own sub-namespaces (the
+    // on-chain one behind the loading policy), so `sdk.opportunities.onchain`
+    // and `sdk.onchain.opportunities` cannot drift
     this.opportunities = new OpportunitiesNamespace(
       this.#onchain,
       this.#offchain,
@@ -138,6 +172,12 @@ export class GearboxSDK<const M extends Mode = Mode> {
       this.#offchain,
       namespaceOptions,
     ) as Positions<M>;
+    const backend = this.#offchain;
+    this.notices = (
+      backend
+        ? (subject: NoticeSubject) => backend.notices.list(subject)
+        : undefined
+    ) as NoticesByMode[M];
   }
 
   /**
@@ -145,11 +185,77 @@ export class GearboxSDK<const M extends Mode = Mode> {
    * mode and when an already-attached SDK was injected.
    **/
   public async attach(): Promise<void> {
+    return this.#ensureAttached();
+  }
+
+  /**
+   * The attach every async read awaits: the first caller starts it, later
+   * ones join the same promise; a rejected attach is not cached, so the next
+   * read retries.
+   **/
+  async #ensureAttached(): Promise<void> {
     if (this.#attached || !this.#ownsOnchain || !this.#onchain) {
       return;
     }
-    await this.#onchain.attach(this.#attachOptions);
-    this.#attached = true;
+    if (!this.#attaching) {
+      const onchain = this.#onchain;
+      this.#attaching = onchain
+        .attach(this.#attachOptions)
+        .then(() => {
+          this.#attached = true;
+        })
+        .finally(() => {
+          this.#attaching = undefined;
+        });
+    }
+    return this.#attaching;
+  }
+
+  /**
+   * What every on-chain leg of an async read awaits: the source attached, and
+   * the chains the read touches (all of them when unnamed) synced when their
+   * loaded state is older than `maxStateAgeSeconds`. A sync that fails leaves
+   * the previous state to be served — its age tells the consumer it is stale.
+   **/
+  async #ensureFresh(chainIds?: readonly ChainId[]): Promise<void> {
+    await this.#ensureAttached();
+    const onchain = this.#onchain;
+    if (!onchain) {
+      return;
+    }
+    const wanted = chainIds && new Set(chainIds);
+    const stale: OnchainSDK[] = [];
+    const now = Math.floor(Date.now() / 1000);
+    for (const chain of onchain.chains.values()) {
+      if (wanted && !wanted.has(chain.chainId)) {
+        continue;
+      }
+      if (now - Number(chain.timestamp) > this.#maxStateAgeSeconds) {
+        stale.push(chain);
+      }
+    }
+    await Promise.all(stale.map(chain => this.#sync(chain)));
+  }
+
+  #sync(chain: OnchainSDK): Promise<void> {
+    const inFlight = this.#syncing.get(chain.chainId);
+    if (inFlight) {
+      return inFlight;
+    }
+    const sync = chain
+      .syncState()
+      .then(() => undefined)
+      .catch(error => {
+        this.#logger?.warn(
+          error,
+          `failed to sync chain ${chain.chainId}; serving state of block ${chain.currentBlock}`,
+        );
+      })
+      .finally(() => {
+        this.#syncing.delete(chain.chainId);
+      });
+    this.#syncing.set(chain.chainId, sync);
+    return sync;
   }
 
   /**

@@ -59,9 +59,9 @@ describe("mode gates method existence", () => {
 });
 
 describe("the source branches are not gated by mode", () => {
-  // they are aliases of `sdk.onchain.positions` and `sdk.offchain.positions`,
-  // which the mode already gates; the branch of a source the mode does not read
-  // throws on access instead
+  // they forward to `sdk.onchain.positions` (behind the loading policy) and
+  // `sdk.offchain.positions`, which the mode already gates; the branch of a
+  // source the mode does not read throws on access instead
   it("names both sources at their concrete types in every mode", () => {
     expectTypeOf<
       Positions<"onchain">["onchain"]
@@ -176,5 +176,40 @@ describe("the position kind gates which charts it has", () => {
     const { data } = await positions.charts(pool, metrics, "1m");
 
     expectTypeOf(data.series.value).toEqualTypeOf<ChartSeries | undefined>();
+  });
+
+  it("a strategy position charts pnl, healthFactor and totalValueUsd", () => {
+    expectTypeOf(
+      positions.charts(
+        strategy,
+        ["totalValueUsd", "pnl", "healthFactor"],
+        "1m",
+      ),
+    ).resolves.toExtend<
+      DataResponse<
+        ChartBundle<readonly ["totalValueUsd", "pnl", "healthFactor"]>
+      >
+    >();
+    expectTypeOf(positions.charts(strategy, ["pnl"], "1y")).resolves.toExtend<
+      DataResponse<ChartBundle<readonly ["pnl"]>>
+    >();
+    expectTypeOf(
+      positions.charts(strategy, ["healthFactor"], "1w"),
+    ).resolves.toExtend<DataResponse<ChartBundle<readonly ["healthFactor"]>>>();
+  });
+
+  it("a pool position charts its value", () => {
+    expectTypeOf(positions.charts(pool, ["value"], "1m")).resolves.toExtend<
+      DataResponse<ChartBundle<readonly ["value"]>>
+    >();
+  });
+
+  it("neither kind accepts the other's series", () => {
+    // @ts-expect-error `value` is a pool-position metric
+    positions.charts(strategy, ["value"], "1m");
+    // @ts-expect-error `healthFactor` is a strategy-position metric
+    positions.charts(pool, ["healthFactor"], "1m");
+    // @ts-expect-error `leverage` is a strategy-position metric
+    positions.charts(pool, ["leverage"], "1m");
   });
 });

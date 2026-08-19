@@ -283,17 +283,22 @@ type ChainMetadata =
   legs of a merged read, catching a source that throws, and the all-sources-failed rule. A
   namespace subclasses it and supplies only its reads and the mergers they name, which is
   where §4 is implemented per namespace.
-- **The branches are the source namespaces themselves.** `sdk.opportunities.onchain` and
-  `sdk.onchain.opportunities` are one object, so the two spellings cannot drift, and a
-  consumer that wants the backend's answer painted first and the chain's when it arrives
-  reads them separately and calls `sdk.opportunities.merge.list` — the same policy `both`
-  mode applies internally. Because they are one object, the namespace spelling is not gated
-  by mode a second time (§2); the branch of a source the mode does not read throws
-  `SourceUnavailableError` on access, raised by `AbstractNamespace`.
+- **The branches are the source namespaces themselves.** `sdk.opportunities.onchain` has
+  the type of `sdk.onchain.opportunities` and forwards every call to it, so the two
+  spellings cannot drift, and a consumer that wants the backend's answer painted first and
+  the chain's when it arrives reads them separately and calls
+  `sdk.opportunities.merge.list` — the same policy `both` mode applies internally.
+  *(Amended, sdk-first: the on-chain branch is a thin proxy over the service that awaits the
+  facade's loading policy first, so a split read attaches and revalidates like a merged one;
+  same type, forwarded calls, a different object identity.)* Because they are the source's
+  own methods, the namespace spelling is not gated by mode a second time (§2); the branch of
+  a source the mode does not read throws `SourceUnavailableError` on access, raised by
+  `AbstractNamespace`.
 - **A namespace is handed its sources, not a way to look them up.** It holds a
-  `MultichainSDK` and a `GearboxAPI` directly, and never asks whether they are ready:
-  readiness belongs to whoever owns the source, and a source that cannot answer yet fails
-  the read like a source that is down.
+  `MultichainSDK` and a `GearboxAPI` directly. Readiness of the on-chain source belongs
+  to the facade: every on-chain leg awaits its loading policy (`ensureFresh`, see the
+  auto-loading amendment below) rather than the namespace deciding on its own; a source
+  that then still cannot answer fails the read like a source that is down.
 - `src/sdk/<namespace>` — the onchain read service for a namespace, wired onto `OnchainSDK`
   and `MultichainSDK` beside `liquidations` (see the amendment in §5). All protocol
   knowledge of the onchain source lives here, and works without the facade.
@@ -308,6 +313,20 @@ type ChainMetadata =
 - The facade accepts **either** onchain options (it constructs and attaches) **or** an
   already-attached `MultichainSDK` (client-v3 has one; two instances would double RPC load
   and memory). When injected, `attach()` must not re-attach it.
+- **Amended (sdk-first): two more directories under `new-sdk/`** — `simulate/` and
+  `execute/` — glue from the read-model-shaped request to `src/sdk`'s
+  `CreditAccountOperationsService` / `PoolService` / `openCA` / `executeCaUpdate`; they
+  map and wrap, the protocol knowledge stays below.
+- **Amended (sdk-first): loading is automatic.** Every async on-chain *read* awaits the
+  facade's `#ensureFresh` (`execute.buildTx` does not: it encodes what the simulate that
+  preceded it priced, and reads only what the encoders need): the first read attaches (later reads join the one promise; a
+  rejected attach is not cached), and a read whose touched chains' loaded state is older
+  than `maxStateAgeSeconds` (default 30) syncs those chains — one in-flight `syncState`
+  per chain, shared by concurrent stale reads — before running. A failed sync serves the
+  previous state; its age tells the consumer. `attach()` stays as the opt-in warm-up. The
+  sync LP simulations do not auto-attach (they throw `SdkNotAttachedError` before it, as
+  before). Not added: `ready()`, `status`, `watch()` — reads live in the consumer's query
+  layer and suspend there.
 - **Top-level `networks` is authoritative.** The onchain chain config must name exactly
   those chains — it is not narrowed to them — and the same check covers an injected
   `MultichainSDK`, so either kind of mismatch throws at construction.

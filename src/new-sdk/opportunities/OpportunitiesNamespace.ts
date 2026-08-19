@@ -19,6 +19,10 @@ import { matchesOpportunityFilter } from "../../model/index.js";
 import type { GearboxAPI } from "../../offchain/index.js";
 import type { MultichainSDK } from "../../sdk/index.js";
 import { AbstractNamespace } from "../AbstractNamespace.js";
+import { SourceUnavailableError } from "../errors/index.js";
+import { ExecuteApi, type OpportunitiesExecute } from "../execute/index.js";
+import type { OpportunitiesSimulate } from "../simulate/index.js";
+import { SimulateApi } from "../simulate/index.js";
 import type { NamespaceOptions } from "../types.js";
 import type { FilterResult } from "../utils/index.js";
 import {
@@ -29,6 +33,7 @@ import {
 import type {
   OpportunitiesBase,
   OpportunitiesOffchainOnly,
+  OpportunitiesOnchainOnly,
   OpportunityMergers,
 } from "./types.js";
 
@@ -41,7 +46,10 @@ export class OpportunitiesNamespace
     MultichainSDK["opportunities"],
     GearboxAPI["opportunities"]
   >
-  implements OpportunitiesBase, OpportunitiesOffchainOnly
+  implements
+    OpportunitiesBase,
+    OpportunitiesOffchainOnly,
+    OpportunitiesOnchainOnly
 {
   /**
    * {@inheritDoc OpportunitiesBase.merge}
@@ -55,6 +63,13 @@ export class OpportunitiesNamespace
       mergeChainOne(onchain, offchain, this.maxOffchainLagSeconds),
   };
 
+  // the simulations read the whole chain SDK — accounts, pools and the
+  // pathfinder — rather than the `opportunities` service this namespace merges,
+  // so they are built from the source itself and are absent without it; the
+  // write side resolves its chain the same way
+  readonly #simulate?: SimulateApi;
+  readonly #execute?: ExecuteApi;
+
   constructor(
     onchain: MultichainSDK | undefined,
     offchain: GearboxAPI | undefined,
@@ -66,6 +81,29 @@ export class OpportunitiesNamespace
       offchain?.opportunities,
       options,
     );
+    this.#simulate = onchain && new SimulateApi(onchain, options.ensureFresh);
+    this.#execute =
+      onchain && new ExecuteApi(chainId => onchain.chain(chainId));
+  }
+
+  /**
+   * {@inheritDoc OpportunitiesOnchainOnly.simulate}
+   **/
+  public get simulate(): OpportunitiesSimulate {
+    if (!this.#simulate) {
+      throw new SourceUnavailableError("Opportunities", "onchain");
+    }
+    return this.#simulate;
+  }
+
+  /**
+   * {@inheritDoc OpportunitiesOnchainOnly.execute}
+   **/
+  public get execute(): OpportunitiesExecute {
+    if (!this.#execute) {
+      throw new SourceUnavailableError("Opportunities", "onchain");
+    }
+    return this.#execute;
   }
 
   /**
@@ -77,6 +115,7 @@ export class OpportunitiesNamespace
     // the filter goes to both sources as it was given: each one scopes the
     // request to the chains it covers itself
     return this.merged("list opportunities", {
+      chainIds: filter?.chainIds,
       fromChain: source => source.list(filter),
       fromBackend: source => source.list(filter),
       merge: this.merge.list,
@@ -90,6 +129,7 @@ export class OpportunitiesNamespace
     key: PoolOpportunityKey,
   ): Promise<DataResponse<PoolOpportunityDetail>> {
     return this.merged("get pool opportunity", {
+      chainIds: [key.chainId],
       fromChain: source => source.getPool(key),
       fromBackend: source => source.getPool(key),
       merge: this.merge.pool,
@@ -103,6 +143,7 @@ export class OpportunitiesNamespace
     key: StrategyOpportunityKey,
   ): Promise<DataResponse<StrategyOpportunityDetail>> {
     return this.merged("get strategy opportunity", {
+      chainIds: [key.chainId],
       fromChain: source => source.getStrategy(key),
       fromBackend: source => source.getStrategy(key),
       merge: this.merge.strategy,

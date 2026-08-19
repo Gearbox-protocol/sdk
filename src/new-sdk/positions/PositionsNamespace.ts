@@ -59,6 +59,7 @@ export class PositionsNamespace
     // the filter goes to both sources as it was given: each one scopes the
     // request to the chains it covers itself
     return this.merged("list positions", {
+      chainIds: filter?.chainIds,
       fromChain: source => source.list({ wallet, filter }),
       fromBackend: source => source.list({ wallet, filter }),
       merge: this.merge.list,

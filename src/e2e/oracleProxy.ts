@@ -61,7 +61,7 @@ function resolveOriginalUrl(
 ): { route: ProxyRoute; originalUrl: string } | undefined {
   for (const route of routes) {
     if (
-      requestUrl.startsWith(route.prefix + "/") ||
+      requestUrl.startsWith(`${route.prefix}/`) ||
       requestUrl === route.prefix
     ) {
       const rest = requestUrl.slice(route.prefix.length);
@@ -138,7 +138,7 @@ export async function startOracleProxy(
           const filename = `${hashUrl(originalUrl)}.json`;
           writeFileSync(
             resolve(recordingsDir, filename),
-            JSON.stringify(rec, null, 2) + "\n",
+            `${JSON.stringify(rec, null, 2)}\n`,
           );
           requestCount++;
           console.log(

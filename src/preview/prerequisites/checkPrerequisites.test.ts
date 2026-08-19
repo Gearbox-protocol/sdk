@@ -5,7 +5,6 @@ import {
   custom,
   decodeFunctionData,
   encodeFunctionData,
-  getAddress,
   type Hex,
 } from "viem";
 import { beforeAll, expect, it, vi } from "vitest";

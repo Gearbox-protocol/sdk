@@ -1,9 +1,7 @@
 import { pino } from "pino";
 import { getAlchemyUrl } from "../src/dev/providers.js";
-import type { Bps, ChainMetadata, Opportunity } from "../src/model/index.js";
 import { GearboxSDK } from "../src/new-sdk/GearboxSDK.js";
-import type { NetworkType } from "../src/sdk/index.js";
-import { chains, toChainIds } from "../src/sdk/index.js";
+import { toChainIds } from "../src/sdk/index.js";
 
 /**
  * Lists every opportunity of one chain in `both` mode.

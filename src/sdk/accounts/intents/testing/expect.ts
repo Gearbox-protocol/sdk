@@ -1,18 +1,16 @@
 import type { Address } from "viem";
 import { expect } from "vitest";
 import type { MultiCall } from "../../../index.js";
-
+import type { AccountCalculatorOperation } from "../operations.js";
 import type {
-  AccountCalculatorOperation,
-  ClaimDelayedWithdrawalOperation,
-  CloseCreditAccountOperation,
-  QuotaUpdateOperation,
-} from "../operations/index.js";
-import type { AdjustState, IntentPreviewResult } from "../types.js";
+  DelayedStartResult,
+  IntentPreviewResult,
+  OperationState,
+} from "../types.js";
 import {
   CA_OP_CALLS,
   MOCK_CLAIM_CALL,
-  MOCK_CLOSE_CALL,
+  MOCK_REQUEST_CALL,
   MOCK_ROUTER_CALL,
   MOCK_RWA_UNWRAP_CALL,
   MOCK_RWA_WRAP_CALL,
@@ -20,47 +18,32 @@ import {
 
 /**
  * Spec expectation: exact op count + type + tokens + amounts + calls.
- * Ported from intent-calculator `expectOpsExact`, reduced to the op types the
- * resume flows produce. Shared offchain fixtures may omit `calls` (treated as
- * `[]`); onchain expectations should set sentinel calls via
- * {@link withOnchainOpCalls}.
+ * Shared offchain fixtures may omit `calls` (treated as `[]`); onchain
+ * expectations should set sentinel calls via {@link withOnchainOpCalls}.
  */
 type CallsOptional<T> = T extends { calls: MultiCall[] }
   ? Omit<T, "calls"> & { calls?: MultiCall[] }
   : T;
 
-export type ExpectedFlowOp = CallsOptional<
-  | ClaimDelayedWithdrawalOperation
-  | QuotaUpdateOperation
-  | CloseCreditAccountOperation
-  | Extract<
-      AccountCalculatorOperation,
-      {
-        type:
-          | "swap"
-          | "decreaseDebt"
-          | "withdrawCollateral"
-          | "unwrapRwaCollateral"
-          | "wrapRwaCollateral";
-      }
-    >
->;
+export type ExpectedFlowOp = CallsOptional<AccountCalculatorOperation>;
 
 function expectedCalls(expected: ExpectedFlowOp): MultiCall[] {
   return expected.calls ?? [];
 }
 
 /**
- * Fills sentinel `calls` for onchain resume expectations. Shared fixtures keep
+ * Fills sentinel `calls` for onchain expectations. Shared fixtures keep
  * `calls: []` for offchain; onchain tests map through this helper.
  */
 export function withOnchainOpCalls(ops: ExpectedFlowOp[]): ExpectedFlowOp[] {
   return ops.map(op => {
     switch (op.type) {
-      case "claimDelayedWithdrawal":
-        return { ...op, calls: [MOCK_CLAIM_CALL] };
       case "changeQuota":
         return { ...op, calls: [CA_OP_CALLS.changeQuota] };
+      case "addCollateral":
+        return { ...op, calls: [CA_OP_CALLS.addCollateral] };
+      case "increaseDebt":
+        return { ...op, calls: [CA_OP_CALLS.increaseDebt] };
       case "decreaseDebt":
         return { ...op, calls: [CA_OP_CALLS.decreaseDebt] };
       case "withdrawCollateral":
@@ -80,11 +63,10 @@ export function withOnchainOpCalls(ops: ExpectedFlowOp[]): ExpectedFlowOp[] {
           ...op,
           calls: op.calls?.length ? op.calls : [MOCK_RWA_UNWRAP_CALL],
         };
-      case "closeCreditAccount":
-        return {
-          ...op,
-          calls: op.calls?.length ? op.calls : [MOCK_CLOSE_CALL],
-        };
+      case "startDelayedWithdrawal":
+        return { ...op, calls: [MOCK_REQUEST_CALL] };
+      case "claimDelayedWithdrawal":
+        return { ...op, calls: [MOCK_CLAIM_CALL] };
       default:
         return op;
     }
@@ -99,24 +81,6 @@ function matchOp(
   expect(actual.type, `op[${index}].type`).toBe(expected.type);
 
   switch (expected.type) {
-    case "claimDelayedWithdrawal":
-      if (actual.type !== "claimDelayedWithdrawal") {
-        return;
-      }
-      expect(actual.token, `op[${index}].token`).toBe(expected.token);
-      expect(
-        actual.withdrawalPhantomToken,
-        `op[${index}].withdrawalPhantomToken`,
-      ).toBe(expected.withdrawalPhantomToken);
-      expect(
-        actual.withdrawalTokenSpent,
-        `op[${index}].withdrawalTokenSpent`,
-      ).toBe(expected.withdrawalTokenSpent);
-      expect(actual.outputs, `op[${index}].outputs`).toEqual(expected.outputs);
-      expect(actual.calls, `op[${index}].calls`).toEqual(
-        expectedCalls(expected),
-      );
-      break;
     case "changeQuota":
       if (actual.type !== "changeQuota") {
         return;
@@ -131,17 +95,34 @@ function matchOp(
         expectedCalls(expected),
       );
       break;
-    case "closeCreditAccount":
-      if (actual.type !== "closeCreditAccount") {
+    case "startDelayedWithdrawal":
+      if (actual.type !== "startDelayedWithdrawal") {
         return;
       }
-      expect(actual.amount, `op[${index}].amount`).toBe(expected.amount);
-      expect(actual.minAmount, `op[${index}].minAmount`).toBe(
-        expected.minAmount,
+      expect(actual.token, `op[${index}].token`).toBe(expected.token);
+      expect(actual.amountIn, `op[${index}].amountIn`).toBe(expected.amountIn);
+      expect(actual.outputs, `op[${index}].outputs`).toEqual(expected.outputs);
+      expect(actual.settlement, `op[${index}].settlement`).toBe(
+        expected.settlement,
       );
-      expect(actual.underlyingBalance, `op[${index}].underlyingBalance`).toBe(
-        expected.underlyingBalance,
+      expect(actual.calls, `op[${index}].calls`).toEqual(
+        expectedCalls(expected),
       );
+      break;
+    case "claimDelayedWithdrawal":
+      if (actual.type !== "claimDelayedWithdrawal") {
+        return;
+      }
+      expect(actual.token, `op[${index}].token`).toBe(expected.token);
+      expect(
+        actual.withdrawalPhantomToken,
+        `op[${index}].withdrawalPhantomToken`,
+      ).toBe(expected.withdrawalPhantomToken);
+      expect(
+        actual.withdrawalTokenSpent,
+        `op[${index}].withdrawalTokenSpent`,
+      ).toBe(expected.withdrawalTokenSpent);
+      expect(actual.outputs, `op[${index}].outputs`).toEqual(expected.outputs);
       expect(actual.calls, `op[${index}].calls`).toEqual(
         expectedCalls(expected),
       );
@@ -164,6 +145,26 @@ function matchOp(
         return;
       }
       expect(actual.amount, `op[${index}].amount`).toBe(expected.amount);
+      expect(actual.calls, `op[${index}].calls`).toEqual(
+        expectedCalls(expected),
+      );
+      break;
+    case "increaseDebt":
+      if (actual.type !== "increaseDebt") {
+        return;
+      }
+      expect(actual.amount, `op[${index}].amount`).toBe(expected.amount);
+      expect(actual.calls, `op[${index}].calls`).toEqual(
+        expectedCalls(expected),
+      );
+      break;
+    case "addCollateral":
+      if (actual.type !== "addCollateral") {
+        return;
+      }
+      expect(actual.token, `op[${index}].token`).toBe(expected.token);
+      expect(actual.amount, `op[${index}].amount`).toBe(expected.amount);
+      expect(actual.value, `op[${index}].value`).toBe(expected.value);
       expect(actual.calls, `op[${index}].calls`).toEqual(
         expectedCalls(expected),
       );
@@ -247,46 +248,47 @@ export function expectCallsArrayExact(
 }
 
 /**
- * Asserts a successful adjust-style resume preview: ok, instant branch present,
- * exact calls (empty unless `expectedCalls` is provided), metrics from the
- * post-claim CA, and exact operations (incl. changeQuota).
- * Returns the adjust preview state for further asset/quota assertions.
+ * Asserts a successful preview: ok, exact calls (empty unless `expectedCalls`
+ * is provided), post-operation metrics, and exact operations (incl. the
+ * trailing changeQuota).
+ * Returns the projected state for further asset/quota assertions.
  */
-export function expectAdjustResumePreview(
-  result: IntentPreviewResult,
+export function expectAdjustPreview(
+  result: IntentPreviewResult | DelayedStartResult,
   args: {
     totalValue: bigint;
     accountDebt: bigint;
     expectedOps: ExpectedFlowOp[];
     expectedCalls?: MultiCall[];
   },
-): AdjustState {
+): OperationState {
   expect(result.ok).toBe(true);
   if (!result.ok) {
-    throw new Error("expected ok resume preview");
-  }
-
-  expect(result.instant, "instant branch").toBeDefined();
-  if (!result.instant) {
-    throw new Error("expected instant branch");
+    throw new Error("expected ok preview");
   }
 
   if (args.expectedCalls) {
-    expectCallsArrayExact(result.instant.calls, args.expectedCalls);
+    expectCallsArrayExact(result.calls, args.expectedCalls);
   } else {
-    expect(result.instant.calls).toEqual([]);
+    expect(result.calls).toEqual([]);
   }
 
-  const state = result.instant.preview.min;
-  expect(state.kind).toBe("adjust");
-  if (state.kind !== "adjust") {
-    throw new Error("expected adjust preview state");
-  }
+  expect(result.preview.totalValue).toBe(args.totalValue);
+  expect(result.preview.accountDebt).toBe(args.accountDebt);
+  expectOpsArrayExact(result.operations, args.expectedOps);
+  return result.preview;
+}
 
-  expect(state.totalValue).toBe(args.totalValue);
-  expect(state.accountDebt).toBe(args.accountDebt);
-  expectOpsArrayExact(result.instant.operations, args.expectedOps);
-  return state;
+/** Asserts the preview failed for a specific reason. */
+export function expectPreviewError(
+  result: IntentPreviewResult | DelayedStartResult,
+  reason: Extract<IntentPreviewResult, { ok: false }>["reason"],
+): void {
+  expect(result.ok, "preview should fail").toBe(false);
+  if (result.ok) {
+    return;
+  }
+  expect(result.reason, "failure reason").toBe(reason);
 }
 
 export function assetBalance(

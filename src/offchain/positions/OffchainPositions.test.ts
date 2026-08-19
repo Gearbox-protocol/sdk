@@ -1,6 +1,7 @@
 import type { Address } from "viem";
 import type { MockInstance } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { CHART_METRIC_UNITS, type ChartMetric } from "../../model/charts.js";
 import { chains } from "../../sdk/index.js";
 import { OffchainPositions } from "./OffchainPositions.js";
 
@@ -180,5 +181,101 @@ describe("decoding what the backend answered", () => {
     });
 
     expect(response).toEqual({ data: [], meta: { chains: [] } });
+  });
+});
+
+describe("a chart request names its subject, its metrics and its window", () => {
+  const pool = {
+    kind: "pool",
+    chainId: MAINNET,
+    pool: POOL,
+    wallet: WALLET,
+  } as const;
+  const strategy = {
+    kind: "strategy",
+    chainId: MAINNET,
+    creditAccount: CREDIT_ACCOUNT,
+  } as const;
+
+  /**
+   * Answers the next read with a bundle the model accepts.
+   **/
+  function answerWithBundle(metrics: ChartMetric[], range = "1m"): void {
+    const timestamps = [1_719_792_000, 1_719_795_600];
+    const underlying = {
+      chainId: MAINNET,
+      address: USDC,
+      symbol: "USDC",
+      name: "USD Coin",
+      decimals: 6,
+      assetType: "Stable",
+    };
+    const seriesFor = (metric: ChartMetric) => {
+      const values = [512, 530];
+      const unit = CHART_METRIC_UNITS[metric];
+      switch (unit) {
+        case "bps":
+          return { status: "ok" as const, unit, values };
+        case "usd":
+          return { status: "ok" as const, unit, values };
+        case "scalar":
+          return { status: "ok" as const, unit, values };
+        case "token":
+          return { status: "ok" as const, unit, base: underlying, values };
+        case "ratio":
+          return {
+            status: "ok" as const,
+            unit,
+            base: underlying,
+            quote: underlying,
+            values,
+          };
+      }
+    };
+    respondWith({
+      data: {
+        window: { range, from: timestamps[0], to: timestamps[1] },
+        timestamps,
+        sampling: { kind: "grid", intervalSeconds: 3_600 },
+        series: Object.fromEntries(
+          metrics.map(metric => [metric, seriesFor(metric)]),
+        ),
+      },
+      meta: { chains: [] },
+    });
+  }
+
+  it("names one metric in the query, not in the path", async () => {
+    answerWithBundle(["value"]);
+
+    await positions().getCharts(pool, ["value"], "1m");
+
+    expect(requested().pathname).toBe(
+      `/v2/positions/pool/${MAINNET}/${POOL}/${WALLET}/charts`,
+    );
+    expect(requested().searchParams.get("metrics")).toBe("value");
+    expect(requested().searchParams.get("range")).toBe("1m");
+  });
+
+  it("asks for several metrics of one strategy position in one request", async () => {
+    answerWithBundle(["totalValueUsd", "leverage"], "1y");
+
+    await positions().getCharts(strategy, ["totalValueUsd", "leverage"], "1y");
+
+    expect(requested().pathname).toBe(
+      `/v2/positions/strategy/${MAINNET}/${CREDIT_ACCOUNT}/charts`,
+    );
+    expect(requested().searchParams.get("metrics")).toBe(
+      "totalValueUsd,leverage",
+    );
+    expect(requested().searchParams.get("range")).toBe("1y");
+  });
+
+  it("rejects a bundle that answers a question it was not asked", async () => {
+    answerWithBundle(["leverage"]);
+
+    await expect(
+      positions().getCharts(strategy, ["totalValueUsd"], "1m"),
+    ).rejects.toThrow(/read model/);
   });
 });

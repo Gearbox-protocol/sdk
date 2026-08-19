@@ -60,6 +60,8 @@ describe("my scenario", () => {
 - Always pass `gateways: REDSTONE_GATEWAYS` and `apiProxy: PYTH_API_PROXY`
 - Always use `historicTimestamp: true` -- makes oracle URLs deterministic per pinned block
 - Always pass `pollingInterval: 100` to `waitForTransactionReceipt` -- viem default is 4s
+- Always pass `gas: GAS_LIMIT` (from `constants.ts`) when sending transactions -- skips anvil's slow `eth_estimateGas` binary search, and estimates carry no buffer so a tx mined a second later than its estimate can run out of gas (exception: tests that expect the send itself to throw rely on estimation)
+- `useFixture` sets `setBlockTimestampInterval(1)` -- block timestamps are deterministic, not wall-clock
 - Use `marketConfigurators: [...]` to limit scope and speed up attach when possible
 - Combine assertions into fewer `it()` blocks -- e2e setup is slow
 - Put SDK attach in `beforeAll`, not `beforeEach`
@@ -69,6 +71,16 @@ describe("my scenario", () => {
 
 Run `yarn generate:e2e` (needs `RPC_URL` in `.env`). Regenerate when pinning to a new block or adding new market configurators/oracle feeds.
 
+Fixtures are git LFS objects; an old version can be recovered with `git show <commit>:<path> | git lfs smudge`.
+
+## Anvil Fixture Format and Foundry Version Coupling
+
+- The expected Foundry version is pinned in the `foundryVersion` field of `package.json` (currently `1.7.1`). `startAnvil` (test runs) warns on mismatch; `startAnvilFork` (fixture generation) refuses to run. Install with `foundryup -i <version>`.
+- Anvil reuses a fork RPC cache only if its `meta` header matches exactly what the local Anvil computes. Foundry versions differ in this meta (e.g. `blob_gasprice` calculation, presence of `slot_num`), so a fixture generated on a different Foundry version is **silently discarded** -- no error, tests just crawl because every account/slot is fetched live from `RPC_URL`.
+- Everyone regenerating fixtures must use the same Foundry version. A fixture committed from a mismatched version breaks e2e for the whole team invisibly.
+- Diagnosis: after a suspiciously slow run, check `~/.foundry/cache/rpc/mainnet/{block}/storage.json`. A few-KB file means the fixture was rejected and Anvil flushed only what it fetched live; a multi-MB file means the fixture loaded. Anvil >= 1.7 flushes zstd-compressed (magic bytes `28 b5 2f fd`) but still reads plain JSON.
+- Recovery without a full regenerate: patch only the fixture's `meta` header to what the local Anvil writes (take the reference meta from any cache file Anvil itself flushed for that block, `zstd -d -c` to read it); the account/storage data stays valid.
+
 ## Warming RPC Cache for Transaction-Heavy Tests
 
 Fixture generation only runs `OnchainSDK.attach()`. Tests that execute transactions (router, openCreditAccount) touch extra storage slots not in the cache, making Anvil fetch them live (slow).
@@ -77,5 +89,10 @@ To warm the cache:
 1. Comment out `evm_revert` in `afterAll` of `helpers.ts`
 2. Run the slow test once
 3. Add a 5s sleep before `stopAnvil` so Anvil flushes cache to disk
-4. Copy `~/.foundry/cache/rpc/mainnet/{block}/storage.json` to `src/e2e/fixtures/`
+4. Copy the flushed cache back, decompressing to the repo's plain-JSON convention:
+   `zstd -d -c ~/.foundry/cache/rpc/mainnet/{block}/storage.json > src/e2e/fixtures/{Net}-{block}-rpc-cache.json`
 5. Revert temporary changes
+
+Notes:
+- The flushed cache is the loaded fixture **plus** new entries (a superset of upstream data at the pinned block, local writes are not included), so it is safe to copy over a fixture shared by other tests on the same block.
+- Warming cannot fix router pathfinding `eth_call`s (e.g. a WETH -> wstETH open): those cost ~10s+ of pure EVM compute inside Anvil. That time is inherent, not cache misses.

@@ -5,7 +5,12 @@ import type {
   PoolPositionChartMetric,
   StrategyPositionChartMetric,
 } from "../../model/charts.js";
-import type { Position, PositionKey } from "../../model/positions.js";
+import type {
+  PoolPositionKey,
+  Position,
+  PositionKey,
+  StrategyPositionKey,
+} from "../../model/positions.js";
 import {
   positionFilterQuerySchema,
   positionSchema,
@@ -13,7 +18,6 @@ import {
 import type { DataResponse } from "../../model/response.js";
 import type { ListPositionsPropsBase } from "../../sdk/positions/types.js";
 import { AbstractOffchainNamespace } from "../AbstractOffchainNamespace.js";
-import { OffchainNotImplementedError } from "../errors/index.js";
 import type { GearboxAPIOptions } from "../types.js";
 
 type PositionChartMetricFor<K extends PositionKey> = {
@@ -52,21 +56,27 @@ export class OffchainPositions extends AbstractOffchainNamespace {
 
   /**
    * Charts of one position: one series per metric, on a shared grid.
-   *
-   * @throws {OffchainNotImplementedError} Until the backend serves it. An empty
-   * bundle would be the one answer this model exists to rule out: a chart that
-   * could not be read is not a chart with no points.
    **/
   public async getCharts<
     K extends PositionKey,
     const Metrics extends readonly PositionChartMetricFor<K>[],
   >(
     key: K,
-    _metrics: Metrics,
-    _range: ChartRange,
+    metrics: Metrics,
+    range: ChartRange,
   ): Promise<DataResponse<ChartBundle<Metrics>>> {
-    throw new OffchainNotImplementedError(
-      `${this.#root}/${key.chainId}/charts`,
-    );
+    return this.readCharts(`${this.#chartRoot(key)}/charts`, metrics, range);
+  }
+
+  #poolPath(key: PoolPositionKey): string {
+    return `${this.#root}/pool/${key.chainId}/${key.pool}/${key.wallet}`;
+  }
+
+  #strategyPath(key: StrategyPositionKey): string {
+    return `${this.#root}/strategy/${key.chainId}/${key.creditAccount}`;
+  }
+
+  #chartRoot(key: PositionKey): string {
+    return key.kind === "pool" ? this.#poolPath(key) : this.#strategyPath(key);
   }
 }

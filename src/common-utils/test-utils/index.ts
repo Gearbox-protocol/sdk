@@ -1,10 +1,7 @@
 import type { Address } from "viem";
 
 import { TokenData } from "../charts/token-data.js";
-import type {
-  CreditManagerSlice,
-  PoolSlice,
-} from "../utils/strategies/strategy-info/types.js";
+import type { CreditManagerSlice } from "../utils/strategies/strategy-info/types.js";
 
 export const mockToken1 =
   "0x1111111111111111111111111111111111111111" as Address;

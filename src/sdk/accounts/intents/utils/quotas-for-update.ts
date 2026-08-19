@@ -3,10 +3,11 @@ import {
   type CalcQuotaUpdateProps,
   calcQuotaUpdate,
 } from "../../../../common-utils/utils/creditAccount/quota-utils.js";
+import { MIN_INT96 } from "../../../constants/math.js";
 import type { AddressMap, Asset } from "../../../index.js";
 import { TypedObjectUtils } from "../../../utils/mappers.js";
-import type { QuotaUpdateState } from "../operations/index.js";
-import type { ConvertFn } from "./simulate-assets.js";
+import type { QuotaUpdateState } from "../operations.js";
+import type { ConvertFn } from "./ledger.js";
 
 interface InitialQuota {
   token: Address;
@@ -132,6 +133,35 @@ export function getQuotasForUpdate({
   );
 
   return quotaResultFiltered;
+}
+
+/**
+ * The update that leaves the account holding no quota at all.
+ *
+ * Sits beside {@link getQuotasForUpdate} rather than inside it because the two
+ * answer different questions: that one sizes quotas to the balances an
+ * operation leaves behind, this one is asked for by a plan that ends the loan,
+ * where the right size is none whatever the balances are.
+ *
+ * `MIN_INT96` is the protocol's "reset" sentinel, which is how a decrease says
+ * "all of it" instead of naming an amount that interest may have moved.
+ */
+export function clearedQuotas(
+  initialQuotas: Array<InitialQuota> | readonly InitialQuota[],
+): QuotaUpdateState {
+  const quoted = initialQuotas
+    .filter(q => q.quota > 0n)
+    .map(q => q.token.toLowerCase() as Address);
+
+  return {
+    desiredQuota: TypedObjectUtils.fromEntries(
+      quoted.map((token): [Address, Asset] => [token, { token, balance: 0n }]),
+    ),
+    quotaIncrease: [],
+    quotaDecrease: quoted.map(
+      (token): Asset => ({ token, balance: MIN_INT96 }),
+    ),
+  };
 }
 
 function collectQuotaChange(

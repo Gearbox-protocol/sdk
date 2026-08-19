@@ -1,15 +1,15 @@
 import type { Address } from "viem";
 import type { AccountSnapshot } from "../../../positions/index.js";
-import type { AdjustState } from "../types.js";
+import type { OperationState } from "../types.js";
 
 /**
- * Maps an intents {@link AdjustState} onto the {@link AccountSnapshot} that
+ * Maps an intents {@link OperationState} onto the {@link AccountSnapshot} that
  * position-metric functions take. `accountDebt` is treated as total debt
  * (principal plus accrued interest and fees).
  **/
 export function adjustStateToSnapshot(
   creditManager: Address,
-  state: AdjustState,
+  state: OperationState,
 ): AccountSnapshot {
   return {
     creditManager,

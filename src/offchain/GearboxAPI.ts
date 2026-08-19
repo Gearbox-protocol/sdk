@@ -1,4 +1,5 @@
 import type { ChainId } from "../model/primitives.js";
+import { OffchainNotices } from "./notices/index.js";
 import { OffchainOpportunities } from "./opportunities/index.js";
 import { OffchainPositions } from "./positions/index.js";
 import type { GearboxAPIOptions } from "./types.js";
@@ -33,10 +34,15 @@ export class GearboxAPI {
    * Namespace for the positions a wallet holds.
    **/
   public readonly positions: OffchainPositions;
+  /**
+   * Namespace for the notices the backend attaches to entities.
+   **/
+  public readonly notices: OffchainNotices;
 
   constructor(options: GearboxAPIOptions) {
     this.chainIds = [...options.chainIds];
     this.opportunities = new OffchainOpportunities(options);
     this.positions = new OffchainPositions(options);
+    this.notices = new OffchainNotices(options);
   }
 }

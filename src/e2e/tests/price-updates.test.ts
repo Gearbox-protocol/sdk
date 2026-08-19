@@ -6,7 +6,7 @@ import {
   sendRawTx,
   type UpdatePriceFeedsResult,
 } from "../../sdk/index.js";
-import { ANVIL_URL } from "../constants.js";
+import { ANVIL_URL, GAS_LIMIT } from "../constants.js";
 import { getAnvilWallet, REDSTONE_GATEWAYS, useFixture } from "../helpers.js";
 
 const BLOCK = 24_728_000n;
@@ -81,6 +81,7 @@ describe("price feed updates", () => {
         callData: tx.raw.callData,
         value: tx.raw.value,
       },
+      gas: GAS_LIMIT,
     });
     const receipt = await sdk.client.waitForTransactionReceipt({ hash });
     expect(receipt.status).toBe("success");

@@ -693,7 +693,11 @@ export class CreditAccountsServiceV310
           break;
 
         case "decreaseDebt":
-          calls.push(facade.prepareChangeDebt(op.amount, true));
+          calls.push(
+            op.full
+              ? facade.prepareDecreaseDebtFull()
+              : facade.prepareChangeDebt(op.amount, true),
+          );
           break;
 
         case "addCollateral":
@@ -707,7 +711,11 @@ export class CreditAccountsServiceV310
 
         case "withdrawCollateral":
           calls.push(
-            facade.prepareWithdrawCollateral(op.token, op.amount, op.to),
+            facade.prepareWithdrawCollateral(
+              op.token,
+              op.all ? MAX_UINT256 : op.amount,
+              op.to,
+            ),
           );
           break;
 

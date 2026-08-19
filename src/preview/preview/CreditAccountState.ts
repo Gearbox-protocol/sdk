@@ -1,12 +1,11 @@
-import type { Address } from "viem";
-import { zeroAddress } from "viem";
+import { type Address, zeroAddress } from "viem";
 import {
-  type AccountSnapshot,
   AssetsMap,
   type CreditAccountData,
   DUST_THRESHOLD,
   MIN_INT96,
 } from "../../sdk/index.js";
+import type { AccountSnapshot } from "../../sdk/positions/types.js";
 
 /**
  * Constructor properties of {@link CreditAccountState}.

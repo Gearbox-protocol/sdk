@@ -1,20 +1,14 @@
 import type { Address } from "viem";
-import { describe, expect, it } from "vitest";
 import type { z } from "zod/v4";
 import type {
   ChainSucceeded,
   DataResponse,
-  poolPositionSchema,
   Position,
+  poolPositionSchema,
 } from "../../model/index.js";
-import {
-  GearboxAPI,
-  OffchainNotImplementedError,
-} from "../../offchain/index.js";
 import type { MultichainSDK } from "../../sdk/index.js";
 import { describeOffchainFallback } from "../testing/fallbackHarness.js";
 import {
-  OFFCHAIN_TIMEOUT_MS,
   offchainSuccess,
   TEST_BLOCK,
   TEST_CHAIN_A,
@@ -50,29 +44,17 @@ describeOffchainFallback({
         },
       },
     },
+    {
+      method: "charts",
+      kind: "offchainOnly",
+      invoke: ns =>
+        ns.charts(
+          { kind: "pool", chainId: TEST_CHAIN_A, pool: POOL, wallet: WALLET },
+          ["apy"],
+          "1m",
+        ),
+    },
   ],
-});
-
-describe("charts", () => {
-  it("throws OffchainNotImplementedError until the backend serves it", async () => {
-    const ns = new PositionsNamespace(
-      { positions: {} } as unknown as MultichainSDK,
-      new GearboxAPI({
-        baseUrl: "https://api.gearbox.fi",
-        chainIds: [TEST_CHAIN_A, TEST_CHAIN_B],
-        timeout: OFFCHAIN_TIMEOUT_MS,
-      }),
-      { maxOffchainLagSeconds: 120 },
-    );
-
-    await expect(
-      ns.charts(
-        { kind: "pool", chainId: TEST_CHAIN_A, pool: POOL, wallet: WALLET },
-        ["apy"],
-        "1m",
-      ),
-    ).rejects.toBeInstanceOf(OffchainNotImplementedError);
-  });
 });
 
 /**

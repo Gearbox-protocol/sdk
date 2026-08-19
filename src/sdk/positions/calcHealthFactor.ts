@@ -23,10 +23,20 @@ export interface CalcHealthFactorProps {
    **/
   decimals: Record<Address, number>;
   /**
-   * Oracle prices in 8-decimal (`PRICE_DECIMALS`) fixed point. A missing key
-   * is an unpriceable token and contributes nothing.
+   * Oracle main-feed prices in 8-decimal (`PRICE_DECIMALS`) fixed point. A
+   * missing key is an unpriceable token and contributes nothing.
    **/
   prices: Record<Address, bigint>;
+  /**
+   * Oracle reserve-feed prices, when available. Used with {@link safePrices}
+   * to value collateral at the lower of the two feeds.
+   **/
+  reservePrices?: Record<Address, bigint>;
+  /**
+   * Value collateral at safe prices — the lower of each token's main and
+   * reserve feeds. Debt and quota balances always use the main feed.
+   **/
+  safePrices?: boolean;
   /**
    * Liquidation thresholds in basis points. Missing keys are treated as 0.
    **/
@@ -53,6 +63,8 @@ export function calcHealthFactor(props: CalcHealthFactorProps): Bps {
     underlying,
     decimals,
     prices,
+    reservePrices = {},
+    safePrices = false,
     liquidationThresholds,
     activeQuotas,
   } = props;
@@ -62,11 +74,31 @@ export function calcHealthFactor(props: CalcHealthFactorProps): Bps {
 
   const decimalsByToken = new AddressMap(Object.entries(decimals));
   const pricesByToken = new AddressMap(Object.entries(prices));
+  const reservePricesByToken = new AddressMap(Object.entries(reservePrices));
   const lts = new AddressMap(Object.entries(liquidationThresholds));
   const active = new AddressMap(Object.entries(activeQuotas));
 
-  const convertToUSD = (token: Address, amount: bigint): bigint | null => {
-    const price = pricesByToken.get(token);
+  const priceOf = (
+    token: Address,
+    forCollateral: boolean,
+  ): bigint | undefined => {
+    const main = pricesByToken.get(token);
+    if (!safePrices || !forCollateral) {
+      return main;
+    }
+    const reserve = reservePricesByToken.get(token);
+    if (main !== undefined && reserve !== undefined) {
+      return BigIntMath.min(main, reserve);
+    }
+    return main ?? reserve;
+  };
+
+  const convertToUSD = (
+    token: Address,
+    amount: bigint,
+    forCollateral = false,
+  ): bigint | null => {
+    const price = priceOf(token, forCollateral);
     if (price === undefined) {
       return null;
     }
@@ -80,7 +112,7 @@ export function calcHealthFactor(props: CalcHealthFactorProps): Bps {
     }
 
     const lt = BigInt(lts.get(token) ?? 0);
-    const tokenLtWeighted = (convertToUSD(token, balance) ?? 0n) * lt;
+    const tokenLtWeighted = (convertToUSD(token, balance, true) ?? 0n) * lt;
 
     const quota = snapshot.quotas.find(q => isAddressEqual(q.token, token));
     const quotaBalance =

@@ -1,4 +1,4 @@
-import type { AccountCalculatorOperation } from "../operations/types.js";
+import type { AccountCalculatorOperation } from "../operations.js";
 
 interface Props {
   operations: AccountCalculatorOperation[];

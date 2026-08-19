@@ -20,6 +20,7 @@ import {
   bpsSchema,
   chainIdSchema,
   leverageSchema,
+  timestampSchema,
   tokenAmountSchema,
   tokenSchema,
 } from "./primitives.schema.js";
@@ -230,3 +231,36 @@ export const positionKeySchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("pool"), ...poolPositionKeySchema.shape }),
   z.object({ kind: z.literal("strategy"), ...strategyPositionKeySchema.shape }),
 ]);
+
+/**
+ * {@link PositionsTotals}
+ **/
+export const positionsTotalsSchema = z.object({
+  currentYield: apyBreakdownSchema.nullable(),
+  pnl: pnlBreakdownSchema.nullable(),
+  netValueUsd: z.number().nullable(),
+  claimableUsd: z.number().nullable(),
+});
+
+/**
+ * {@link PositionTransactionKind}
+ **/
+export const positionTransactionKindSchema = z.union([
+  z.literal("open"),
+  z.literal("deposit"),
+  z.literal("withdraw"),
+  z.literal("adjustLeverage"),
+  z.literal("addCollateral"),
+  z.literal("withdrawCollateral"),
+  z.literal("liquidation"),
+]);
+
+/**
+ * {@link PositionTransaction}
+ **/
+export const positionTransactionSchema = z.object({
+  txHash: ZodHex(),
+  timestamp: timestampSchema,
+  kind: positionTransactionKindSchema,
+  assets: z.array(tokenAmountSchema),
+});

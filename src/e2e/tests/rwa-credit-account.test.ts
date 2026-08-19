@@ -21,6 +21,7 @@ import {
   RWA_FACTORY_SECURITIZE,
   sendRawTx,
 } from "../../sdk/index.js";
+import { GAS_LIMIT } from "../constants.js";
 import {
   createInvestorWallet,
   RWA_FACTORY,
@@ -167,7 +168,7 @@ describe.skipIf(!!process.env.CI)("rwa credit account (securitize)", () => {
           signaturesToCache,
         },
       });
-      hash = await sendRawTx(wallet, { tx });
+      hash = await sendRawTx(wallet, { tx, gas: GAS_LIMIT });
       const receipt = await sdk.client.waitForTransactionReceipt({
         hash,
         pollingInterval: 100,
@@ -273,7 +274,7 @@ describe.skipIf(!!process.env.CI)("rwa credit account (securitize)", () => {
           signaturesToCache,
         },
       });
-      hash = await sendRawTx(wallet, { tx });
+      hash = await sendRawTx(wallet, { tx, gas: GAS_LIMIT });
       const receipt = await sdk.client.waitForTransactionReceipt({
         hash,
         pollingInterval: 100,

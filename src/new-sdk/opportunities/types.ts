@@ -15,6 +15,8 @@ import type {
 } from "../../model/index.js";
 import type { OffchainOpportunities } from "../../offchain/index.js";
 import type { MultichainOpportunitiesService } from "../../sdk/index.js";
+import type { OpportunitiesExecute } from "../execute/index.js";
+import type { OpportunitiesSimulate } from "../simulate/index.js";
 import type { Mode } from "../types.js";
 import type { EntityMerger, FilterResult, ListMerger } from "../utils/index.js";
 
@@ -91,10 +93,24 @@ export interface OpportunitiesOffchainOnly {
 }
 
 /**
- * Reads only the chain can answer. Empty for now.
+ * Reads only the chain can answer.
  **/
-// biome-ignore lint/suspicious/noEmptyInterface: reserved slot, see doc comment
-export interface OpportunitiesOnchainOnly {}
+export interface OpportunitiesOnchainOnly {
+  /**
+   * Simulations of what a deposit, withdrawal or leverage change would do.
+   *
+   * Absent in `offchain` mode: every one of them reads live account and pool
+   * state, and the strategy flows additionally need the pathfinder for real swap
+   * paths, so there is nothing the backend could answer with.
+   **/
+  readonly simulate: OpportunitiesSimulate;
+  /**
+   * The transaction a simulate result stands for, see
+   * {@link OpportunitiesExecute.buildTx}. Absent in `offchain` mode for the
+   * same reason as {@link simulate}: it encodes against live chain state.
+   **/
+  execute: OpportunitiesExecute;
+}
 
 /**
  * Which reads the `opportunities` namespace has in each mode. A widened mode
