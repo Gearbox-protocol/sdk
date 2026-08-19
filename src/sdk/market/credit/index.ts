@@ -5,4 +5,5 @@ export * from "./CreditManagerV310Contract.js";
 export * from "./CreditSuite.js";
 export * from "./dominantCollateral.js";
 export * from "./expectedBalanceDeltas.js";
+export * from "./isStrategyCollateral.js";
 export * from "./types.js";

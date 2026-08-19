@@ -24,7 +24,8 @@ const FULL = Number(PERCENTAGE_FACTOR);
  *
  * @example
  * ```ts
- * rayToBps(50_000_000_000_000_000_000_000_000n) // 500, i.e. 5%
+ * // ray: 5% (0.05 × 10²⁷)
+ * rayToBps(50_000_000_000_000_000_000_000_000n) // 500 bps = 5%
  * ```
  **/
 export function rayToBps(ray: bigint): Bps {
@@ -36,6 +37,7 @@ export function rayToBps(ray: bigint): Bps {
  *
  * @example
  * ```ts
+ * // usd: $1500.50 in 8-decimal fixed point
  * usdToNumber(150_050_000_000n) // 1500.5
  * ```
  **/
@@ -49,10 +51,11 @@ export function usdToNumber(usd: bigint): number {
  *
  * @example
  * ```ts
- * utilizationBps(750n, 1000n) // 7500, i.e. 75%
+ * // borrowed: 750, total: 1000
+ * calcUtilization(750n, 1000n) // 750 / 1000 = 7500 bps = 75%
  * ```
  **/
-export function utilizationBps(borrowed: bigint, total: bigint): Bps {
+export function calcUtilization(borrowed: bigint, total: bigint): Bps {
   if (total <= 0n || borrowed <= 0n) {
     return 0;
   }
@@ -61,19 +64,20 @@ export function utilizationBps(borrowed: bigint, total: bigint): Bps {
 }
 
 /**
- * Annual cost of debt for a credit manager, in basis points: the pool's base
- * rate plus the protocol's cut of the accrued interest.
+ * Annual cost of debt for a credit manager, in basis points:
+ * `baseInterestRate × (1 + feeInterest)` — the pool's base rate plus the
+ * protocol's cut of the accrued interest.
  *
  * @param baseInterestRate - Pool base rate in ray.
  * @param feeInterest - Credit manager interest fee in basis points.
  *
  * @example
  * ```ts
- * // 5% base rate, 50% interest fee
- * borrowApyBps(50_000_000_000_000_000_000_000_000n, 5000) // 750, i.e. 7.5%
+ * // baseInterestRate: 5% in ray, feeInterest: 5000 bps = 50%
+ * calcBorrowApy(50_000_000_000_000_000_000_000_000n, 5000) // 5% × 1.5 = 750 bps = 7.5%
  * ```
  **/
-export function borrowApyBps(
+export function calcBorrowApy(
   baseInterestRate: bigint,
   feeInterest: number,
 ): Bps {
@@ -84,32 +88,44 @@ export function borrowApyBps(
 }
 
 /**
- * Highest leverage a liquidation threshold allows: `1 / (1 - lt)`.
- *
- * A threshold of 100% or more would allow unbounded leverage; such tokens are
- * not strategies and are filtered out before this is called, so the guard here
- * only exists to keep the function total.
+ * 5% safety margin subtracted from 100% in {@link calcMaxLeverage}, so a
+ * maxed position opens with HF slightly above 1.
+ **/
+export const MAX_LEVERAGE_BUFFER_BPS = 500;
+
+/**
+ * Highest total-value leverage a liquidation threshold allows:
+ * `(100% − buffer) / (100% − liquidationThreshold)`. At HF = 1, debt is
+ * `liquidationThreshold × totalValue`, leaving `1 − liquidationThreshold` of
+ * equity per unit of exposure; the {@link MAX_LEVERAGE_BUFFER_BPS} buffer
+ * keeps the maxed position slightly away from that boundary.
  *
  * @example
  * ```ts
- * maxLeverage(9000) // 10
- * maxLeverage(8000) // 5
+ * // liquidationThreshold: 9000 bps = 90%
+ * calcMaxLeverage(9000) // (1 − 0.05) / (1 − 0.9) = 9.5x total exposure
  * ```
  **/
-export function maxLeverage(liquidationThreshold: Bps): Leverage {
-  const equity = FULL - liquidationThreshold;
-  return equity > 0 ? FULL / equity : Number.POSITIVE_INFINITY;
+export function calcMaxLeverage(liquidationThreshold: Bps): Leverage {
+  if (liquidationThreshold >= FULL) {
+    return 0;
+  }
+  const leverage =
+    (FULL - MAX_LEVERAGE_BUFFER_BPS) / (FULL - liquidationThreshold);
+  return Math.max(leverage, 1);
 }
 
 /**
  * Converts a credit account's health factor from the 18-decimal fixed point the
  * contracts store to basis points.
  *
- * An account with no debt return MAX_UINT256 from contract, here we return 0
+ * Accounts with no debt store `MAX_UINT256` on-chain; for those this
+ * returns `0`.
  *
  * @example
  * ```ts
- * healthFactorBps(1_250_000_000_000_000_000n) // 12500, i.e. 1.25
+ * // healthFactor: 1.25 in 18-decimal fixed point
+ * healthFactorBps(1_250_000_000_000_000_000n) // 12500 bps = 1.25
  * ```
  **/
 export function healthFactorBps(healthFactor: bigint): Bps {
@@ -120,50 +136,53 @@ export function healthFactorBps(healthFactor: bigint): Bps {
 }
 
 /**
- * Leverage of an open position: `totalDebt / equity`, where equity is what is
- * left of the position's value once its debt is repaid.
+ * Total-value leverage of an open position:
+ * `totalValue / (totalValue − totalDebt)`. `1` when unleveraged, `0` when
+ * underwater.
  *
- * Returns `0` for a position that carries no debt and for one that is
- * underwater, where there is no equity to lever.
- *
- * @param totalDebt - Debt principal plus accrued interest and fees.
- * @param totalValue - Total value of the position, in the same token.
+ * @param totalValue - Total value of the position.
+ * @param totalDebt - Debt principal plus accrued interest and fees, same token.
  *
  * @example
  * ```ts
- * positionLeverage(800n, 1000n) // 4, i.e. 4x debt per unit of equity
+ * // totalValue: 100k, totalDebt: 80k → equity: 100k − 80k = 20k
+ * calcPositionLeverage(100_000n, 80_000n) // 100k / 20k = 5x
  * ```
  **/
-export function positionLeverage(
-  totalDebt: bigint,
+export function calcPositionLeverage(
   totalValue: bigint,
+  totalDebt: bigint,
 ): Leverage {
   const equity = totalValue - totalDebt;
-  if (equity <= 0n || totalDebt <= 0n) {
+  if (totalValue <= 0n || equity <= 0n) {
     return 0;
   }
-  return Number(totalDebt) / Number(equity);
+  if (totalDebt <= 0n) {
+    return 1;
+  }
+  return Number(totalValue) / Number(equity);
 }
 
 /**
- * Annual quota cost scaled to the debt a maximally leveraged position carries,
- * in basis points. Every unit of own capital carries `maxLeverage - 1` units of
- * debt, and the quota is paid on the whole quoted position.
+ * Annual quota cost on equity, in basis points:
+ * `quotaRate × (1 + feeInterest) × leverage`. Quota accrues on the whole
+ * quoted position, and the DAO takes `feeInterest` of it as with base interest.
  *
  * @example
  * ```ts
- * // 2.5% quota rate at 5x leverage
- * additionalBorrowApyBps(250, 5) // 1000, i.e. 10%
+ * // quotaRate: 200 bps = 2%, feeInterest: 2500 bps = 25%, leverage: 9.5x
+ * calcAdditionalBorrowApy(200, 2500, 9.5) // 2% × 1.25 × 9.5 = 2375 bps = 23.75%
  * ```
  **/
-export function additionalBorrowApyBps(
+export function calcAdditionalBorrowApy(
   quotaRate: Bps,
+  feeInterest: Bps,
   leverage: Leverage,
 ): Bps {
-  if (!Number.isFinite(leverage)) {
+  if (!Number.isFinite(leverage) || leverage <= 0) {
     return 0;
   }
-  return Math.round(quotaRate * Math.max(leverage - 1, 0));
+  return Math.round(quotaRate * (1 + feeInterest / FULL) * leverage);
 }
 
 /**
