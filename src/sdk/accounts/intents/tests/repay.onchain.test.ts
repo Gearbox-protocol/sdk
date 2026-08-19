@@ -272,6 +272,26 @@ describe("repay.start — debt down, position untouched", () => {
     });
   });
 
+  it("RWA market: the underlying itself is taken as it is, nothing wrapped", async () => {
+    const sdk = buildMarketSdk({ rwaAssets: { [UND]: RWA_ASSET } });
+    const result = await run(repay(UND, PART), { sdk });
+
+    const state = expectAdjustPreview(result, {
+      totalValue: HELD_POS,
+      accountDebt: DEBT - PART,
+      expectedOps: withOnchainOpCalls([
+        { type: "addCollateral", token: UND, amount: PART, value: undefined },
+        { type: "decreaseDebt", amount: PART },
+      ]),
+      expectedCalls: [CA_OP_CALLS.addCollateral, CA_OP_CALLS.decreaseDebt],
+    });
+
+    // the wrap is the raw asset's way in; funding already denominated in the
+    // underlying has nowhere to go, and the quotas back a loan that survives
+    expect(state.quotas).toEqual({});
+    expect(assetBalance(state.assets, RWA_ASSET)).toBe(0n);
+  });
+
   it("rejects a payment in anything but the underlying", async () => {
     expectPreviewError(
       await run(repay(POS, PART)),

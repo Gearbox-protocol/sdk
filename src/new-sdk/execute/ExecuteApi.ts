@@ -1,6 +1,7 @@
 import type { Address } from "viem";
 import type { ChainId } from "../../model/index.js";
 import type {
+  AccountCalculatorOperation,
   Asset,
   OnchainSDK,
   RawTx,
@@ -228,5 +229,21 @@ async function accountTx(
   if (!account) {
     throw new Error(`credit account not found: ${request.creditAccount}`);
   }
-  return sdk.accounts.executeCaUpdate(account, request.sim.calls);
+  return sdk.accounts.executeCaUpdate(account, request.sim.calls, {
+    ethAmount: nativeValue(request.sim.operations),
+  });
+}
+
+/**
+ * The coin the simulation asked the wallet for, which the facade wraps out of
+ * `msg.value` before running the multicall. Taken off the collateral step that
+ * recorded it rather than from the caller, so it cannot disagree with what was
+ * simulated.
+ **/
+function nativeValue(operations: AccountCalculatorOperation[]): bigint {
+  return operations.reduce(
+    (total, op) =>
+      total + (op.type === "addCollateral" ? (op.value ?? 0n) : 0n),
+    0n,
+  );
 }

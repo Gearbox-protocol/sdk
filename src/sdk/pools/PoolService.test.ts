@@ -1,6 +1,8 @@
 import type { Address } from "viem";
 import { describe, expect, it } from "vitest";
 
+import { RAY } from "../constants/index.js";
+
 import type { OnchainSDK } from "../OnchainSDK.js";
 import { PoolService } from "./PoolService.js";
 
@@ -47,6 +49,12 @@ const TOTAL_SUPPLY = 1_000_000n;
 const TOTAL_ASSETS = 1_100_000n;
 
 function buildService(args: MockPool = {}) {
+  const totalSupply = args.totalSupply ?? TOTAL_SUPPLY;
+  const totalAssets = args.totalAssets ?? TOTAL_ASSETS;
+  // the rate the pool converts by, derived as the pool derives it
+  const dieselRate =
+    totalSupply === 0n ? RAY : (totalAssets * RAY) / totalSupply;
+
   const zappers = (args.zappers ?? []).map(z => ({
     type: "zapper",
     baseParams: { addr: z.addr },
@@ -69,8 +77,9 @@ function buildService(args: MockPool = {}) {
           pool: {
             address: POOL,
             availableLiquidity: 1_000_000n,
-            totalSupply: args.totalSupply ?? TOTAL_SUPPLY,
-            totalAssets: args.totalAssets ?? TOTAL_ASSETS,
+            totalSupply,
+            totalAssets,
+            dieselRate,
             withdrawFee: args.withdrawFee ?? 0n,
           },
         },
@@ -93,7 +102,7 @@ describe("PoolService.simulateDeposit", () => {
       buildService().simulateDeposit({ pool: POOL, amount: 100n }),
     ).toEqual({
       tokenIn: { token: UNDERLYING, balance: 100n },
-      tokenOut: { token: POOL, balance: 91n },
+      tokenOut: { token: POOL, balance: 90n },
       zapper: undefined,
     });
   });
@@ -105,7 +114,7 @@ describe("PoolService.simulateDeposit", () => {
       service.simulateDeposit({ pool: POOL, amount: 1_000n, tokenIn: USDC }),
     ).toEqual({
       tokenIn: { token: USDC, balance: 1_000n },
-      tokenOut: { token: POOL, balance: 910n },
+      tokenOut: { token: POOL, balance: 909n },
       zapper: ZAPPER,
     });
   });

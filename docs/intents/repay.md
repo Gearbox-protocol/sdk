@@ -7,6 +7,12 @@ Funding comes in from the wallet and goes straight into the debt. The collateral
 never moves, so the whole plan is the funding's way to the underlying — and
 leverage falls because the debt does.
 
+A loan is denominated in the underlying, so funding sent in it has no way to
+travel: it lands and is repaid, two calls, no router and no quota touched. The
+one other accepted token is the unwrapped asset behind an RWA underlying (USDC
+rather than dcUSDC), and the way there is the wrapper's own 1:1 conversion, not a
+swap. Anything else is refused.
+
 ## Math
 
 ```text
@@ -38,8 +44,8 @@ flowchart TD
   rep["repaid = min(fundingᵤ, D)"]
   full{"repaid == D?"}
   band{"D − repaid in band?"}
-  p1["steps: add, convert(token → U), clearQuotas, repay"]
-  p2["steps: add, convert(token → U), repay"]
+  p1["steps: add, wrap if token ≠ U, clearQuotas, repay"]
+  p2["steps: add, wrap if token ≠ U, repay"]
 
   in --> pos
   pos -->|"no"| e1["insufficientSourceBalance"]
@@ -76,14 +82,25 @@ flowchart TD
 the interest of the blocks between the quote and the transaction is repaid too
 rather than left as dust below `minDebt`.
 
-The identity convert of a repayment in `U` is dropped by the realiser, which is
-why case (a) is two calls.
+Quotas move in exactly one of these cases, the settlement, and they move before
+the debt does. Both halves of that are forced, from opposite sides: a loan cannot
+go to zero while its quotas are alive (`DebtToZeroWithActiveQuotasException`), and
+a quota cannot be touched once the loan is gone
+(`UpdateQuotaOnZeroDebtAccountException`). So `updateQuota` has exactly one place
+to stand — after the funding lands, before `decreaseDebt` — which is also the
+only order in which a quota never outlives the debt it backed and goes on
+charging an account that owes nothing. A payment the loan survives leaves the
+quotas where they are.
+
+Case (a) is two calls because funding in `U` is planned without a conversion step
+at all, and case (b) is three because the wrapper's 1:1 conversion is a real
+call.
 
 ## Guards on the way out
 
 | Check                                        | Refusal                    |
 | -------------------------------------------- | -------------------------- |
-| the account holds what the convert spends    | `insufficientSourceBalance`|
+| the account holds what the wrap spends (RWA funding only) | `insufficientSourceBalance`|
 | nothing forbidden or unquotable grew         | `forbiddenToken`, `quotaLimitReached` |
 | HF of the projected state (main prices — nothing leaves) | `insufficientCollateral` |
 

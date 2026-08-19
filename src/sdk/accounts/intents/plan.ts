@@ -202,6 +202,10 @@ export function planDeposit(
  * Intent 3: funding comes in from the wallet and goes straight into the debt.
  * Collateral never moves, so the whole plan is the funding's way to `U`.
  *
+ * Funding in `U` needs no way there: it lands and is repaid, which is the whole
+ * plan. An RWA market also takes the raw asset behind its underlying, and that
+ * one is wrapped on the way in.
+ *
  * `MAX_UINT256` settles the loan: the wallet is asked for the debt as it stands
  * plus the headroom {@link SETTLE_MARGIN} allows for the interest of the blocks
  * still to come, since the facade is told to repay everything outstanding
@@ -213,11 +217,9 @@ export function planRepay(
 ): Step[] {
   assertPositive(intent.amount, "repay");
   const U = view.underlying;
+  const fundsInU = eq(intent.token, U);
 
-  if (
-    !eq(intent.token, U) &&
-    !(view.rwaAsset && eq(intent.token, view.rwaAsset))
-  ) {
+  if (!fundsInU && !(view.rwaAsset && eq(intent.token, view.rwaAsset))) {
     throw new IntentPreviewError(
       "unsupportedCollateralToken",
       `repay: only ${U}${view.rwaAsset ? ` or ${view.rwaAsset}` : ""} can be repaid with, got ${intent.token}`,
@@ -242,7 +244,9 @@ export function planRepay(
 
   return [
     add(intent.token, funding, intent.value),
-    convert(intent.token, U, funding),
+    ...(fundsInU ? [] : [convert(intent.token, U, funding)]),
+    // The facade refuses to bring a loan to zero while its quotas are alive
+    // (`DebtToZeroWithActiveQuotasException`), so a settlement drops them.
     ...(repaid === view.debt ? [clearQuotas()] : []),
     repay(repaid),
   ];

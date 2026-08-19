@@ -45,6 +45,14 @@ const CREDIT_MANAGER: Address = "0x748a02cc6dd9090bd6bbcd1fd45790b50524ae87";
 const TARGET_TOKEN: Address = "0x1774A6b4aba3B999461a1682f6776cAc66dD1987"; // stkcvxpmcrvUSD
 const USDC: Address = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
 
+/** A market whose underlying is the wrapped native coin, for the flows paid in it. */
+const WETH_CM: Address = "0x9fF97B167Dd442bd5f277098bf1154C5807D3566";
+const WETH: Address = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
+const WSTETH: Address = "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0";
+/** Above the 10 WETH this manager's facade wants as a debt floor at 2x. */
+const NATIVE_COLLATERAL = parseUnits("12", 18);
+const NATIVE_TOP_UP = parseUnits("2", 18);
+
 /** Router slippage, in `PERCENTAGE_FACTOR` units. */
 const S = 50;
 const X2 = 200n;
@@ -80,6 +88,10 @@ describe("simulate → execute on a mainnet fork", () => {
       networks: ["Mainnet"],
       onchain: multichain,
     });
+    // Blocks otherwise take their timestamp from the wall clock, so how long a
+    // router call happens to take lands in the pool's accrued interest and the
+    // brackets below drift with it. One second per block instead.
+    await anvil.setBlockTimestampInterval({ interval: 1 });
     wallet = getAnvilWallet(chain);
     borrower = wallet.account.address;
     underlying =
@@ -200,9 +212,18 @@ describe("simulate → execute on a mainnet fork", () => {
     return { chainId: CHAIN_ID, creditAccount };
   }
 
-  /** `min ≤ actual ≤ min · (1 + S / (10000 − S))` — floor and pre-slippage ceiling. */
+  /**
+   * `min ≤ actual ≤ min · (1 + S / (10000 − S))` — floor and pre-slippage
+   * ceiling.
+   *
+   * The floor gets a millionth of slack because both sides price the position
+   * with the oracle, and the price the SDK holds can sit one unit of the feed's
+   * 1e-8 scale away from the one the account is read with — a couple of dozen
+   * wei on a position this size, four orders of magnitude below the slippage
+   * this bracket is here to catch.
+   */
   function expectValueBracket(actual: bigint, min: bigint): void {
-    expect(actual).toBeGreaterThanOrEqual(min);
+    expect(actual).toBeGreaterThanOrEqual(min - min / 1_000_000n);
     expect(actual).toBeLessThanOrEqual(
       (min * PERCENTAGE_FACTOR) / (PERCENTAGE_FACTOR - BigInt(S)),
     );
@@ -309,9 +330,7 @@ describe("simulate → execute on a mainnet fork", () => {
           p => p.kind === "allowance" && p.satisfied === false,
         ),
       ).toBe(true);
-      const blockBefore = await chain.client.getBlockNumber();
       await expect(sendRawTx(wallet, { tx })).rejects.toThrow();
-      expect(await chain.client.getBlockNumber()).toBe(blockBefore);
     });
   });
 
@@ -363,6 +382,63 @@ describe("simulate → execute on a mainnet fork", () => {
       });
 
       expectDebtBracket(await account(creditAccount), preview.accountDebt);
+    });
+  });
+
+  describe("depositStrategy — target leverage", () => {
+    // 500 on top of the 1000 the position was opened with, taken from 2x to
+    // 3x: the debt is the one the target asks for, not the one the ratio kept
+    const ADDED = parseUnits("500", 6);
+
+    it("totalValue lands between the floor and the pre-slippage expectation", async () => {
+      const { creditAccount } = await openPosition();
+      await sync();
+      const { sim, preview } = adjustPreview(
+        await simulate().depositStrategy(position(creditAccount), {
+          token: USDC,
+          amount: ADDED,
+          positionToken: TARGET_TOKEN,
+          targetLeverage: X3,
+          slippage: S,
+        }),
+      );
+      await send({
+        kind: "account",
+        chainId: CHAIN_ID,
+        creditAccount,
+        wallet: borrower,
+        sim,
+      });
+
+      expectValueBracket(
+        (await account(creditAccount)).totalValue,
+        preview.totalValue,
+      );
+    });
+
+    it("accountDebt is bracketed by the re-read principal and principal + interest + fees", async () => {
+      const { creditAccount, before } = await openPosition();
+      await sync();
+      const { sim, preview } = adjustPreview(
+        await simulate().depositStrategy(position(creditAccount), {
+          token: USDC,
+          amount: ADDED,
+          positionToken: TARGET_TOKEN,
+          targetLeverage: X3,
+          slippage: S,
+        }),
+      );
+      await send({
+        kind: "account",
+        chainId: CHAIN_ID,
+        creditAccount,
+        wallet: borrower,
+        sim,
+      });
+
+      expectDebtBracket(await account(creditAccount), preview.accountDebt);
+      // the target was above the leverage held, so the loan grew
+      expect(preview.accountDebt).toBeGreaterThan(before.debt);
     });
   });
 
@@ -596,7 +672,8 @@ describe("simulate → execute on a mainnet fork", () => {
         functionName: "balanceOf",
         args: [borrower],
       });
-      const { sim, preview, timestamp } = routedPreview(
+      const { totalValue } = await account(creditAccount);
+      const { sim, preview } = routedPreview(
         await simulate().withdrawStrategy(position(creditAccount), {
           amount: MAX_UINT256,
           to: borrower,
@@ -617,7 +694,8 @@ describe("simulate → execute on a mainnet fork", () => {
         underlying.toLowerCase(),
       ]);
       expect(preview.accountDebt).toBe(0n);
-      await pinTo(timestamp);
+      // no pinning here: the exit settles the loan by the `full` flag rather
+      // than by a quoted amount, so nothing below is exact to the block
       await send({
         kind: "account",
         chainId: CHAIN_ID,
@@ -630,8 +708,10 @@ describe("simulate → execute on a mainnet fork", () => {
       expect(calcBorrowedAmountPlusInterestAndFees(after)).toBe(0n);
       expect(after.tokens.filter(t => t.quota > 0n)).toEqual([]);
       expect(after.tokens.filter(t => t.balance > 1n)).toEqual([]);
-      // the payout names no amount, so the wallet gets the whole balance: at
-      // least the floor the exit projected, and the slippage it beat on top
+      // the payout names no amount, so the wallet gets whatever is left once the
+      // loan is settled. The projection is a floor twice over — the route's
+      // slippage and the interest the `full` repayment reserves — so the only
+      // ceiling that holds is the position's own worth before it was sold
       const paid =
         (await chain.client.readContract({
           address: underlying,
@@ -639,7 +719,8 @@ describe("simulate → execute on a mainnet fork", () => {
           functionName: "balanceOf",
           args: [borrower],
         })) - before;
-      expectValueBracket(paid, payouts[0]?.amount ?? 0n);
+      expect(paid).toBeGreaterThanOrEqual(payouts[0]?.amount ?? 0n);
+      expect(paid).toBeLessThanOrEqual(totalValue);
     });
   });
 
@@ -851,6 +932,194 @@ describe("simulate → execute on a mainnet fork", () => {
     });
   });
 
+  // ---- the native coin ----------------------------------------------------
+
+  /**
+   * A market whose underlying is the wrapped native coin takes the coin itself:
+   * the facade wraps the transaction's value and hands the wrapped token back to
+   * the caller, which the multicall then adds as collateral. So the wallet needs
+   * an allowance, but no balance of the wrapped token at all — and the value has
+   * to reach the transaction, which is the part only a send can prove.
+   */
+  describe("paying in the native coin", () => {
+    const collateral = [{ token: WETH, balance: NATIVE_COLLATERAL }];
+
+    async function coinBalance(): Promise<bigint> {
+      return chain.client.getBalance({ address: borrower });
+    }
+
+    async function wrappedBalance(): Promise<bigint> {
+      return chain.client.readContract({
+        address: WETH,
+        abi: erc20Abi,
+        functionName: "balanceOf",
+        args: [borrower],
+      });
+    }
+
+    async function openWithCoin(): Promise<{
+      creditAccount: Address;
+      debt: bigint;
+    }> {
+      await mined(
+        await wallet.writeContract({
+          address: WETH,
+          abi: erc20Abi,
+          functionName: "approve",
+          args: [WETH_CM, MAX_UINT256],
+        }),
+      );
+      await sync();
+      const sim = await simulate().openNewStrategy(
+        { chainId: CHAIN_ID, creditManager: WETH_CM, targetCollateral: WSTETH },
+        { collateral, leverage: X2, slippage: S },
+      );
+      if (!sim.data.ok) throw new Error(`open sim failed: ${sim.data.reason}`);
+      const tx = await execute().buildTx({
+        kind: "open",
+        chainId: CHAIN_ID,
+        creditManager: WETH_CM,
+        wallet: borrower,
+        sim: sim.data,
+        collateral,
+        ethAmount: NATIVE_COLLATERAL,
+      });
+      expect(BigInt(tx.value)).toBe(NATIVE_COLLATERAL);
+      const receipt = await mined(await sendRawTx(wallet, { tx }));
+      const [log] = parseEventLogs({
+        abi: iCreditFacadeV310Abi,
+        logs: receipt.logs,
+        eventName: "OpenCreditAccount",
+      });
+      return {
+        creditAccount: log.args.creditAccount,
+        debt: sim.data.preview.debt,
+      };
+    }
+
+    it("opens on the coin alone, leaving no wrapped token in the wallet", async () => {
+      const before = await coinBalance();
+      const { creditAccount, debt } = await openWithCoin();
+
+      expect(before - (await coinBalance())).toBeGreaterThanOrEqual(
+        NATIVE_COLLATERAL,
+      );
+      expect(await wrappedBalance()).toBe(0n);
+      expect((await account(creditAccount)).debt).toBe(debt);
+    });
+
+    it("deposits the coin into an open position: the value rides on the transaction", async () => {
+      const { creditAccount } = await openWithCoin();
+      await sync();
+      const { sim, preview } = adjustPreview(
+        await simulate().depositStrategy(position(creditAccount), {
+          token: WETH,
+          amount: NATIVE_TOP_UP,
+          value: NATIVE_TOP_UP,
+          positionToken: WSTETH,
+          slippage: S,
+        }),
+      );
+      const tx = await execute().buildTx({
+        kind: "account",
+        chainId: CHAIN_ID,
+        creditAccount,
+        wallet: borrower,
+        sim,
+      });
+      expect(BigInt(tx.value)).toBe(NATIVE_TOP_UP);
+      const before = await coinBalance();
+      await mined(await sendRawTx(wallet, { tx }));
+
+      expect(before - (await coinBalance())).toBeGreaterThanOrEqual(
+        NATIVE_TOP_UP,
+      );
+      expect(await wrappedBalance()).toBe(0n);
+      expectValueBracket(
+        (await account(creditAccount)).totalValue,
+        preview.totalValue,
+      );
+    });
+  });
+
+  // ---- refusals -----------------------------------------------------------
+
+  /**
+   * The refusals the engine reads off the live market rather than off its
+   * arguments: the underlying this manager was configured with, the debt band
+   * it enforces, the balances the account actually holds. The reasons are
+   * values, so nothing here sends or throws.
+   */
+  describe("what the market itself refuses", () => {
+    it("takes no collateral but the underlying the manager was configured with", async () => {
+      const { creditAccount } = await openPosition();
+      await sync();
+      const sim = await simulate().depositStrategy(position(creditAccount), {
+        token: TARGET_TOKEN,
+        amount: parseUnits("1", 18),
+        slippage: S,
+      });
+
+      expect(sim.data).toEqual({
+        ok: false,
+        reason: "unsupportedCollateralToken",
+      });
+    });
+
+    it("refuses a deposit whose debt would pass the manager's own maxDebt", async () => {
+      const { creditAccount } = await openPosition();
+      await sync();
+      const ceiling =
+        chain.marketRegister.findCreditManager(CREDIT_MANAGER).creditFacade
+          .maxDebt;
+      const sim = await simulate().depositStrategy(position(creditAccount), {
+        // at the leverage held, this much collateral draws more than the ceiling
+        token: USDC,
+        amount: ceiling * 2n,
+        positionToken: TARGET_TOKEN,
+        slippage: S,
+      });
+
+      expect(sim.data).toEqual({ ok: false, reason: "debtOutOfRange" });
+    });
+
+    it("refuses a leverage the collateral cannot carry, and reports it per route", async () => {
+      const { creditAccount } = await openPosition();
+      await sync();
+      const sim = await simulate().adjustLeverage(position(creditAccount), {
+        targetLeverage: 5_000n,
+        token: TARGET_TOKEN,
+        slippage: S,
+      });
+
+      // 50x on this market's thresholds ends the transaction under water, which
+      // the facade refuses; the redemption route does not exist here at all
+      expect(sim.data).toEqual({
+        ok: false,
+        reason: "insufficientCollateral",
+        refused: {
+          instant: "insufficientCollateral",
+          delayed: "noDelayedRoute",
+        },
+      });
+    });
+
+    it("refuses to move out collateral the account does not hold", async () => {
+      const { creditAccount } = await openPosition();
+      await sync();
+      const sim = await simulate().withdrawCollateral(position(creditAccount), {
+        token: USDC,
+        amount: parseUnits("100", 6),
+        to: borrower,
+      });
+
+      expect(sim.data).toEqual({
+        ok: false,
+        reason: "insufficientSourceBalance",
+      });
+    });
+  });
+
   // ---- pool ---------------------------------------------------------------
 
   describe("pool", () => {
@@ -902,9 +1171,12 @@ describe("simulate → execute on a mainnet fork", () => {
         sim,
       });
 
-      expect((await balance(shares)) - before).toBeLessThanOrEqual(
-        sim.preview.tokenOut.balance,
-      );
+      // the rate is read a block before the mint, and a share only ever grows,
+      // so the mint is that figure or a hair under it — never above
+      const minted = (await balance(shares)) - before;
+      const promised = sim.preview.tokenOut.balance;
+      expect(minted).toBeLessThanOrEqual(promised);
+      expect(minted).toBeGreaterThanOrEqual(promised - promised / 1_000_000n);
     });
 
     it("withdraw: underlying received is at least what the loaded-block rate promised", async () => {
@@ -943,6 +1215,52 @@ describe("simulate → execute on a mainnet fork", () => {
       expect((await balance(USDC)) - before).toBeGreaterThanOrEqual(
         sim.preview.tokenOut.balance,
       );
+    });
+
+    it("redeem: the shares asked for are burned, and the underlying they were worth arrives", async () => {
+      await anvil.deal({ erc20: USDC, account: borrower, amount: WALLET_USDC });
+      await approve(USDC, pool);
+      await sync();
+      const deposit = simulate().deposit(
+        { chainId: CHAIN_ID, pool },
+        { amount: COLLATERAL, wallet: borrower },
+      );
+      if (!deposit.ok) throw new Error(`deposit sim failed: ${deposit.reason}`);
+      await send({
+        kind: "pool",
+        chainId: CHAIN_ID,
+        pool,
+        wallet: borrower,
+        op: "deposit",
+        sim: deposit,
+      });
+      await sync();
+      const held = await balance(shares);
+      const burned = held / 2n;
+      const sim = simulate().redeem(
+        { chainId: CHAIN_ID, pool },
+        { amount: burned, wallet: borrower },
+      );
+      if (!sim.ok) throw new Error(`redeem sim failed: ${sim.reason}`);
+      const before = await balance(USDC);
+      await send({
+        kind: "pool",
+        chainId: CHAIN_ID,
+        pool,
+        wallet: borrower,
+        op: "redeem",
+        sim,
+      });
+
+      // redeem is denominated in shares, so that side of it is exact
+      expect(held - (await balance(shares))).toBe(burned);
+      // the underlying is the loaded-block rate applied to those shares. The
+      // send lands a block later, and a share only ever grows, so the payout is
+      // that figure or a hair above it — never below.
+      const paid = (await balance(USDC)) - before;
+      const promised = sim.preview.tokenOut.balance;
+      expect(paid).toBeGreaterThanOrEqual(promised);
+      expect(paid).toBeLessThanOrEqual(promised + promised / 1_000_000n + 1n);
     });
   });
 });

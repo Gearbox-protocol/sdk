@@ -178,10 +178,9 @@ describe("planDeposit — collateral grows, debt follows", () => {
 });
 
 describe("planRepay — funding in, debt down, position untouched", () => {
-  it("[INV-9] a partial payment is one leg into the debt", () => {
+  it("[INV-9] funding already in U is repaid where it lands: no leg between", () => {
     expect(planRepay({ token: U, amount: 400n }, twoX)).toEqual([
       { kind: "add", token: U, amount: 400n, value: undefined },
-      { kind: "convert", from: U, to: U, amount: 400n },
       { kind: "repay", amount: 400n },
     ]);
   });
@@ -189,7 +188,6 @@ describe("planRepay — funding in, debt down, position untouched", () => {
   it("[INV-9] a payment that clears the loan drops the quotas before it", () => {
     expect(planRepay({ token: U, amount: 1_000n }, twoX)).toEqual([
       { kind: "add", token: U, amount: 1_000n, value: undefined },
-      { kind: "convert", from: U, to: U, amount: 1_000n },
       { kind: "clearQuotas" },
       { kind: "repay", amount: 1_000n },
     ]);
@@ -198,11 +196,10 @@ describe("planRepay — funding in, debt down, position untouched", () => {
   it("[INV-9] the part above the debt is not repaid: it stays as collateral", () => {
     expect(kinds(planRepay({ token: U, amount: 1_500n }, twoX))).toEqual([
       "add",
-      "convert",
       "clearQuotas",
       "repay",
     ]);
-    expect(planRepay({ token: U, amount: 1_500n }, twoX)[3]).toEqual({
+    expect(planRepay({ token: U, amount: 1_500n }, twoX)[2]).toEqual({
       kind: "repay",
       amount: 1_000n,
     });
@@ -213,9 +210,16 @@ describe("planRepay — funding in, debt down, position untouched", () => {
       // 10bps over the 1000 of debt, for the blocks between here and the
       // transaction; the facade still repays whatever it finds outstanding
       { kind: "add", token: U, amount: 1_001n, value: undefined },
-      { kind: "convert", from: U, to: U, amount: 1_001n },
       { kind: "clearQuotas" },
       { kind: "repay", amount: 1_000n },
+    ]);
+  });
+
+  it("[INV-6] the underlying of an RWA market is taken as it is", () => {
+    const v = view({ debt: 1_000n, balances: { [T]: 2_000n }, rwaAsset: RWA });
+    expect(planRepay({ token: U, amount: 400n }, v)).toEqual([
+      { kind: "add", token: U, amount: 400n, value: undefined },
+      { kind: "repay", amount: 400n },
     ]);
   });
 

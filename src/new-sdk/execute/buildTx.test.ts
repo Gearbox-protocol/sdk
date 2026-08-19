@@ -393,6 +393,36 @@ describe("buildTx — account", () => {
     expect(sdk.accounts.executeCaUpdate).toHaveBeenCalledWith(
       account,
       sim.calls,
+      { ethAmount: 0n },
+    );
+  });
+
+  it("attaches the native value the collateral step recorded", async () => {
+    const { execute, sdk, account } = mockChain();
+
+    await execute.buildTx({
+      kind: "account",
+      chainId: CHAIN_ID,
+      creditAccount: CREDIT_ACCOUNT,
+      wallet: WALLET,
+      sim: {
+        ...sim,
+        operations: [
+          {
+            type: "addCollateral",
+            token: POOL,
+            amount: 1_000n,
+            value: 1_000n,
+            calls: [CALL],
+          },
+        ],
+      },
+    });
+
+    expect(sdk.accounts.executeCaUpdate).toHaveBeenCalledWith(
+      account,
+      sim.calls,
+      { ethAmount: 1_000n },
     );
   });
 

@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 import type { OnchainSDK } from "../../../index.js";
+import { NON_STRATEGY_PHANTOM_TOKEN_TYPES } from "../../../market/credit/isStrategyCollateral.js";
 import type { CreditAccountSlice } from "../types.js";
 import { eq } from "./common.js";
 import { convertAmount } from "./convert-amount.js";
@@ -18,6 +19,26 @@ const PHANTOM_TOKEN_PREFIX = "PHANTOM_TOKEN::";
 export function isPhantomToken(sdk: OnchainSDK, token: Address): boolean {
   const meta = sdk.tokensMeta.get(token);
   return !!meta?.contractType?.startsWith(PHANTOM_TOKEN_PREFIX);
+}
+
+const REDEMPTION_PHANTOM_TOKEN_TYPES: ReadonlySet<string> = new Set(
+  NON_STRATEGY_PHANTOM_TOKEN_TYPES,
+);
+
+/**
+ * Whether `token` is the phantom of a redemption in flight, rather than one of
+ * the phantoms a position is simply held in (Convex, Infrared, staking
+ * rewards), which the router sells like any other balance.
+ *
+ * Only the former stands between an account and being emptied: it cannot be
+ * sold and it cannot leave until its claim has landed.
+ */
+export function isRedemptionPhantomToken(
+  sdk: OnchainSDK,
+  token: Address,
+): boolean {
+  const contractType = sdk.tokensMeta.get(token)?.contractType;
+  return !!contractType && REDEMPTION_PHANTOM_TOKEN_TYPES.has(contractType);
 }
 
 export interface CandidateToken {

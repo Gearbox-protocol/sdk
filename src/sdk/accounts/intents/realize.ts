@@ -35,7 +35,7 @@ import { IntentPreviewError } from "./types.js";
 import { eq, toTargetDecimals } from "./utils/common.js";
 import { convertAmount } from "./utils/convert-amount.js";
 import { OperationLedger } from "./utils/ledger.js";
-import { isPhantomToken } from "./utils/pick-token.js";
+import { isRedemptionPhantomToken } from "./utils/pick-token.js";
 import {
   clearedQuotas,
   getQuotasForUpdate,
@@ -240,10 +240,13 @@ export async function realize(
         const balances = ledger
           .snapshot()
           .assets.filter(a => !eq(a.token, underlying) && a.balance > DUST);
-        // A phantom balance is a redemption still in flight: it cannot be sold
-        // and it cannot leave, so the account cannot be emptied until its claim
-        // has landed.
-        const pending = balances.find(a => isPhantomToken(sdk, a.token));
+        // A redemption phantom is a withdrawal still in flight: it cannot be
+        // sold and it cannot leave, so the account cannot be emptied until its
+        // claim has landed. The phantoms a position is held in (Convex and
+        // friends) are sold by the route like any other balance.
+        const pending = balances.find(a =>
+          isRedemptionPhantomToken(sdk, a.token),
+        );
         if (pending) {
           throw new IntentPreviewError(
             "withdrawalInProgress",

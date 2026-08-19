@@ -243,7 +243,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     const { zapper } = this.getWithdrawalMetadata(poolAddr, tokenIn, tokenOut);
 
     return {
-      tokenIn: { token: tokenIn, balance: toShares(pool.pool, amount) },
+      tokenIn: { token: tokenIn, balance: toSharesUp(pool.pool, amount) },
       tokenOut: { token: tokenOut, balance: amount },
       zapper: zapper?.baseParams.addr,
       availableLiquidity:
@@ -311,7 +311,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     ) {
       // A zapper only redeems shares; a withdraw-sized request converts first.
       const shares =
-        mode === "withdraw" ? toShares(poolContract, amount) : amount;
+        mode === "withdraw" ? toSharesUp(poolContract, amount) : amount;
       const tx = permit
         ? meta.zapper.redeemWithPermit(
             shares,
@@ -714,16 +714,29 @@ export class PoolService extends SDKConstruct implements IPoolsService {
 /**
  * Shares minted for `assets`, as `previewDeposit` would report them.
  *
- * The ERC-4626 conversion, computed from the pool state the SDK already holds:
- * shares and assets are the same thing in two units, and the rate between them
- * is the pool's own. Rounds down, as minting does.
+ * Both directions convert through the diesel rate — underlying per RAY of
+ * shares — because that is the rate the pool itself divides by, and the only
+ * exact one the SDK holds: `totalAssets` is this rate multiplied out, so
+ * converting back through it costs a wei on large amounts. Rounds down, as
+ * minting does.
  */
 export function toShares(pool: IPoolContract, assets: bigint): bigint {
-  const { totalSupply, totalAssets } = pool;
+  const { dieselRate } = pool;
 
-  return totalSupply === 0n || totalAssets === 0n
+  return dieselRate === 0n ? assets : (assets * RAY) / dieselRate;
+}
+
+/**
+ * Shares a withdrawal of `assets` burns, as `previewWithdraw` would report
+ * them: {@link toShares} rounded the other way, since the burn has to cover
+ * the payout the caller asked for.
+ */
+export function toSharesUp(pool: IPoolContract, assets: bigint): bigint {
+  const { dieselRate } = pool;
+
+  return dieselRate === 0n
     ? assets
-    : (assets * totalSupply + totalAssets - 1n) / totalAssets;
+    : (assets * RAY + dieselRate - 1n) / dieselRate;
 }
 
 /**
@@ -731,12 +744,9 @@ export function toShares(pool: IPoolContract, assets: bigint): bigint {
  * {@link toShares} run backwards, less the pool's withdrawal fee.
  */
 function toAssets(pool: IPoolContract, shares: bigint): bigint {
-  const { totalSupply, totalAssets, withdrawFee } = pool;
+  const { dieselRate, withdrawFee } = pool;
 
-  const assets =
-    totalSupply === 0n || totalAssets === 0n
-      ? shares
-      : (shares * totalAssets) / totalSupply;
+  const assets = dieselRate === 0n ? shares : (shares * dieselRate) / RAY;
 
   return (assets * (PERCENTAGE_FACTOR - withdrawFee)) / PERCENTAGE_FACTOR;
 }

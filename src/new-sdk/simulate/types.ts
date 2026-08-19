@@ -240,8 +240,9 @@ export interface WithdrawStrategyParams extends SimulateOptions {
 
 export interface RepayStrategyParams extends SimulateOptions {
   /**
-   * Funding token: the market underlying, or its unwrapped asset on an RWA
-   * market (USDC rather than dcUSDC).
+   * Funding token: the market underlying, which needs no conversion and is
+   * repaid where it lands, or — on an RWA market — the unwrapped asset behind
+   * it (USDC rather than dcUSDC), which this flow wraps on the way in.
    **/
   token: Address;
   /**
@@ -502,12 +503,16 @@ export interface OpportunitiesSimulate {
    * so net value grows by what was repaid, leverage falls and the health factor
    * rises. The flow to reach for when a position is close to liquidation.
    *
-   * A repayment that covers the whole debt clears the account's quotas with it
-   * and asks the facade for the full outstanding amount, so nothing is left
-   * owing because interest moved between this simulation and the transaction.
-   * `MAX_UINT256` is how to ask for that settlement without naming a figure:
-   * the wallet is charged the debt plus a 10bps margin for the interest still
-   * to come, and whatever the facade does not take stays on the account.
+   * A partial repayment is two calls and nothing else: the funding lands and
+   * the debt shrinks, quotas untouched — they still back a loan.
+   *
+   * A repayment that covers the whole debt clears the account's quotas with it,
+   * which the facade requires of a loan going to zero, and asks for the full
+   * outstanding amount, so nothing is left owing because interest moved between
+   * this simulation and the transaction. `MAX_UINT256` is how to ask for that
+   * settlement without naming a figure: the wallet is charged the debt plus a
+   * 10bps margin for the interest still to come, and whatever the facade does
+   * not take stays on the account.
    **/
   repayStrategy(
     position: PositionInput,

@@ -310,10 +310,11 @@ export interface DepositStrategyIntent {
  * factor improves — this is the flow that rescues an account, and the only one
  * that lowers debt without touching the position.
  *
- * Only the market underlying may be sent. Two exceptions, as for a deposit: a
- * wrapped-native market also accepts the native coin (pass the wrapped token
- * plus `value`), and an RWA market takes the unwrapped asset, which this flow
- * wraps for you.
+ * The market underlying is what a loan is denominated in, so sending it needs
+ * no conversion: it lands and is repaid. Two more forms are accepted, as for a
+ * deposit: a wrapped-native market also takes the native coin (pass the wrapped
+ * token plus `value`), and an RWA market takes the unwrapped asset behind its
+ * underlying, which this flow wraps for you.
  */
 export interface RepayStrategyIntent {
   type: "REPAY";
