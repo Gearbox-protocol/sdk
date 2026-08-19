@@ -12,7 +12,9 @@ export interface TimeToLiquidationProps {
  * and returns a millisecond duration until `healthFactor` decays to `1.0`
  * (`PERCENTAGE_FACTOR` in internal scale).
  *
- * @param props Current health factor and `totalBorrowRate * debt` term.
+ * @param props Current health factor and `totalBorrowRate_debt`, both `Bps`
+ * (`10000` = 100%) — not the legacy `PERCENTAGE_FACTOR_1KK` (`1_000_000` =
+ * 100%) scale the pre-rewrite frontend fed this under the same name.
  * @returns Milliseconds to liquidation as `bigint`, or `null` when already at/under
  * liquidation threshold or when borrow-rate exposure is zero.
  *

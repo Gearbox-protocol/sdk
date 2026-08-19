@@ -1980,9 +1980,10 @@ describe("CreditAccount getTimeToLiquidation test", () => {
     expect(result).toEqual(null);
   });
   it("should calculate time to liquidation correctly", () => {
+    // HF 1.375, 20% APR in Bps (10000 = 100%)
     const result = getTimeToLiquidation({
       healthFactor: 13750,
-      totalBorrowRate_debt: 20n * 10000n,
+      totalBorrowRate_debt: 2000n,
     });
 
     // 59_130_000
