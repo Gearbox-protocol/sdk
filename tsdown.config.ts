@@ -33,6 +33,7 @@ export default defineConfig(inlineConfig => {
       "!src/**/*.test.ts",
       "!src/**/*.test-d.ts",
       "!src/**/*.mock.ts",
+      "!src/**/testing/**",
       "!src/e2e/**",
     ],
     root: "./src",
