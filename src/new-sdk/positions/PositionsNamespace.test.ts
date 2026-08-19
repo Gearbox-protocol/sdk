@@ -12,8 +12,14 @@ const envelope = <T>(data: T) => ({ data, meta: { chains: [] } });
 
 function backend() {
   const positions = {
-    totals: vi.fn(async () => envelope({ netValueUsd: 1 })),
-    transactions: vi.fn(async () => envelope([{ kind: "deposit" }])),
+    getCharts: vi.fn(async () =>
+      envelope({
+        window: { range: "1m", from: 0, to: 1 },
+        timestamps: [0, 1],
+        sampling: { kind: "grid", intervalSeconds: 3600 },
+        series: {},
+      }),
+    ),
   };
   const notices = { list: vi.fn(async () => envelope([{ kind: "expired" }])) };
   // a real GearboxAPI's prototype, so the SDK's `instanceof` injection seam holds
@@ -34,22 +40,29 @@ function emptyOnchain(): MultichainSDK {
   return onchain;
 }
 
-/** S-SDK-5: the backend-only reads delegate to the backend, and only exist with one. */
-describe("positions.totals / positions.transactions", () => {
-  it("delegate to the backend namespace, passing the key through", async () => {
+/** S-SDK-5: chart reads delegate to the backend, and only exist with one. */
+describe("positions.charts", () => {
+  it("delegates to the backend namespace, passing the key through", async () => {
     const { api, positions } = backend();
     const namespace = new PositionsNamespace(undefined, api, {
       maxOffchainLagSeconds: 120,
     });
 
-    await expect(namespace.totals(WALLET)).resolves.toEqual(
-      envelope({ netValueUsd: 1 }),
+    await expect(
+      namespace.charts(KEY, ["totalValueUsd", "leverage"], "1m"),
+    ).resolves.toEqual(
+      envelope({
+        window: { range: "1m", from: 0, to: 1 },
+        timestamps: [0, 1],
+        sampling: { kind: "grid", intervalSeconds: 3600 },
+        series: {},
+      }),
     );
-    await expect(namespace.transactions(KEY)).resolves.toEqual(
-      envelope([{ kind: "deposit" }]),
+    expect(positions.getCharts).toHaveBeenCalledWith(
+      KEY,
+      ["totalValueUsd", "leverage"],
+      "1m",
     );
-    expect(positions.totals).toHaveBeenCalledWith(WALLET);
-    expect(positions.transactions).toHaveBeenCalledWith(KEY);
   });
 
   it("without a backend they throw SourceUnavailableError, like every offchain read", async () => {
@@ -58,12 +71,9 @@ describe("positions.totals / positions.transactions", () => {
       maxOffchainLagSeconds: 120,
     });
 
-    await expect(namespace.totals(WALLET)).rejects.toThrow(
-      SourceUnavailableError,
-    );
-    await expect(namespace.transactions(KEY)).rejects.toThrow(
-      SourceUnavailableError,
-    );
+    await expect(
+      namespace.charts(KEY, ["totalValueUsd"], "1m"),
+    ).rejects.toThrow(SourceUnavailableError);
   });
 });
 

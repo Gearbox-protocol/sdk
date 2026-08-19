@@ -1,14 +1,16 @@
 import type {
+  ChartBundle,
+  ChartRange,
   DataResponse,
-  HistoryRange,
   Opportunity,
+  OpportunityChartMetric,
   OpportunityFilter,
   OpportunityKey,
-  PoolHistoryMetric,
+  PoolOpportunityChartMetric,
   PoolOpportunityDetail,
   PoolOpportunityKey,
   PoolOpportunityRef,
-  StrategyHistoryMetric,
+  StrategyOpportunityChartMetric,
   StrategyOpportunityDetail,
   StrategyOpportunityKey,
   StrategyOpportunityRef,
@@ -22,7 +24,7 @@ import { ExecuteApi, type OpportunitiesExecute } from "../execute/index.js";
 import type { OpportunitiesSimulate } from "../simulate/index.js";
 import { SimulateApi } from "../simulate/index.js";
 import type { NamespaceOptions } from "../types.js";
-import type { FilterResult, HistoryReader } from "../utils/index.js";
+import type { FilterResult } from "../utils/index.js";
 import {
   filterResponse,
   mergeChainList,
@@ -79,7 +81,7 @@ export class OpportunitiesNamespace
       offchain?.opportunities,
       options,
     );
-    this.#simulate = onchain && new SimulateApi(onchain);
+    this.#simulate = onchain && new SimulateApi(onchain, options.ensureFresh);
     this.#execute =
       onchain && new ExecuteApi(chainId => onchain.chain(chainId));
   }
@@ -159,20 +161,25 @@ export class OpportunitiesNamespace
   }
 
   /**
-   * {@inheritDoc OpportunitiesOffchainOnly.history}
+   * {@inheritDoc OpportunitiesOffchainOnly.charts}
    **/
-  public history(key: PoolOpportunityRef): HistoryReader<PoolHistoryMetric>;
-  public history(
+  public charts<const Metrics extends readonly PoolOpportunityChartMetric[]>(
+    key: PoolOpportunityRef,
+    metrics: Metrics,
+    range: ChartRange,
+  ): Promise<DataResponse<ChartBundle<Metrics>>>;
+  public charts<
+    const Metrics extends readonly StrategyOpportunityChartMetric[],
+  >(
     key: StrategyOpportunityRef,
-  ): HistoryReader<StrategyHistoryMetric>;
-  public history(
+    metrics: Metrics,
+    range: ChartRange,
+  ): Promise<DataResponse<ChartBundle<Metrics>>>;
+  public async charts<const Metrics extends readonly OpportunityChartMetric[]>(
     key: OpportunityKey,
-  ): HistoryReader<PoolHistoryMetric> | HistoryReader<StrategyHistoryMetric> {
-    // nothing is fetched here: the reader is a view over the backend read, so
-    // each chart is requested on its own, when it is asked for
-    return {
-      chart: (metric: PoolHistoryMetric, range: HistoryRange) =>
-        this.offchain.getHistory({ opportunity: key, range, metric }),
-    };
+    metrics: Metrics,
+    range: ChartRange,
+  ): Promise<DataResponse<ChartBundle<Metrics>>> {
+    return this.offchain.getCharts(key, metrics, range);
   }
 }

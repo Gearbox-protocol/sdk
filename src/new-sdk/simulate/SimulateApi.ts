@@ -9,11 +9,14 @@ import type {
   StartIntent,
 } from "../../sdk/index.js";
 import {
+  type ChainQueryOneProps,
   CreditAccountOperationsService,
   fetchCreditAccountSlice,
   hexEq,
   MultichainConstruct,
+  type MultichainSDK,
 } from "../../sdk/index.js";
+import type { EnsureFreshChains } from "../types.js";
 import type {
   AddCollateralParams,
   AdjustLeverageParams,
@@ -63,6 +66,20 @@ export class SimulateApi
   extends MultichainConstruct
   implements OpportunitiesSimulate
 {
+  readonly #ensureFresh?: EnsureFreshChains;
+
+  constructor(sdk: MultichainSDK, ensureFresh?: EnsureFreshChains) {
+    super(sdk);
+    this.#ensureFresh = ensureFresh;
+  }
+
+  protected override async queryChain<T>(
+    props: ChainQueryOneProps<T>,
+  ): Promise<DataResponse<T>> {
+    await this.#ensureFresh?.([this.sdk.chain(props.network).chainId]);
+    return super.queryChain(props);
+  }
+
   /**
    * {@inheritDoc OpportunitiesSimulate.delayed}
    **/

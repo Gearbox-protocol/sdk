@@ -1,26 +1,29 @@
-import type { Address } from "viem";
 import { z } from "zod/v4";
 import type {
-  HistorySeries,
-  PositionHistoryMetric,
-  PositionHistoryQuery,
-} from "../../model/history.js";
+  ChartBundle,
+  ChartRange,
+  PoolPositionChartMetric,
+  StrategyPositionChartMetric,
+} from "../../model/charts.js";
 import type {
+  PoolPositionKey,
   Position,
   PositionKey,
-  PositionsTotals,
-  PositionTransaction,
+  StrategyPositionKey,
 } from "../../model/positions.js";
 import {
   positionFilterQuerySchema,
   positionSchema,
-  positionsTotalsSchema,
-  positionTransactionSchema,
 } from "../../model/positions.schema.js";
 import type { DataResponse } from "../../model/response.js";
 import type { ListPositionsPropsBase } from "../../sdk/positions/types.js";
 import { AbstractOffchainNamespace } from "../AbstractOffchainNamespace.js";
 import type { GearboxAPIOptions } from "../types.js";
+
+type PositionChartMetricFor<K extends PositionKey> = {
+  pool: PoolPositionChartMetric;
+  strategy: StrategyPositionChartMetric;
+}[K["kind"]];
 
 /**
  * Backend counterpart of the `positions` namespace.
@@ -52,44 +55,32 @@ export class OffchainPositions extends AbstractOffchainNamespace {
   }
 
   /**
-   * Aggregate over everything the wallet holds on the covered chains, see
-   * {@link PositionsTotals}. Served by the backend, never summed here.
-   **/
-  public async totals(wallet: Address): Promise<DataResponse<PositionsTotals>> {
-    return this.get({
-      path: `${this.#root}/${wallet}/totals`,
-      query: { chainIds: this.scopedChainIds().join(",") },
-      schema: positionsTotalsSchema,
-    });
-  }
-
-  /**
-   * The transactions that made one position what it is, newest first, from
-   * the backend's indexer.
-   **/
-  public async transactions(
-    key: PositionKey,
-  ): Promise<DataResponse<PositionTransaction[]>> {
-    // a pool position exists only relative to its holder; an account is its
-    // own identity
-    const path =
-      key.kind === "pool"
-        ? `${this.#root}/pool/${key.chainId}/${key.pool}/${key.wallet}/transactions`
-        : `${this.#root}/strategy/${key.chainId}/${key.creditAccount}/transactions`;
-    return this.get({ path, schema: z.array(positionTransactionSchema) });
-  }
-
-  /**
-   * One historical series of one position.
+   * Charts of one position: one series per metric, on a shared grid.
    *
-   * @returns An empty series until the backend client is implemented.
+   * @throws {OffchainNotImplementedError} Until the backend serves it. An empty
+   * bundle would be the one answer this model exists to rule out: a chart that
+   * could not be read is not a chart with no points.
    **/
-  public async getHistory<M extends PositionHistoryMetric>(
-    query: PositionHistoryQuery<M>,
-  ): Promise<DataResponse<HistorySeries<M>>> {
-    return {
-      data: { metric: query.metric, points: [], metadata: {} },
-      meta: { chains: [] },
-    };
+  public async getCharts<
+    K extends PositionKey,
+    const Metrics extends readonly PositionChartMetricFor<K>[],
+  >(
+    key: K,
+    metrics: Metrics,
+    range: ChartRange,
+  ): Promise<DataResponse<ChartBundle<Metrics>>> {
+    return this.readCharts(`${this.#chartRoot(key)}/charts`, metrics, range);
+  }
+
+  #poolPath(key: PoolPositionKey): string {
+    return `${this.#root}/pool/${key.chainId}/${key.pool}/${key.wallet}`;
+  }
+
+  #strategyPath(key: StrategyPositionKey): string {
+    return `${this.#root}/strategy/${key.chainId}/${key.creditAccount}`;
+  }
+
+  #chartRoot(key: PositionKey): string {
+    return key.kind === "pool" ? this.#poolPath(key) : this.#strategyPath(key);
   }
 }

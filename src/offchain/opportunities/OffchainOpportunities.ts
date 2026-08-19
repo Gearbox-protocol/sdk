@@ -1,9 +1,10 @@
 import { z } from "zod/v4";
 import type {
-  HistoryMetric,
-  HistorySeries,
-  OpportunityHistoryQuery,
-} from "../../model/history.js";
+  ChartBundle,
+  ChartRange,
+  PoolOpportunityChartMetric,
+  StrategyOpportunityChartMetric,
+} from "../../model/charts.js";
 import type {
   Opportunity,
   OpportunityFilter,
@@ -22,6 +23,11 @@ import {
 import type { DataResponse } from "../../model/response.js";
 import { AbstractOffchainNamespace } from "../AbstractOffchainNamespace.js";
 import type { GearboxAPIOptions } from "../types.js";
+
+type OpportunityChartMetricFor<K extends OpportunityKey> = {
+  pool: PoolOpportunityChartMetric;
+  strategy: StrategyOpportunityChartMetric;
+}[K["kind"]];
 
 /**
  * Backend counterpart of the `opportunities` namespace.
@@ -78,16 +84,17 @@ export class OffchainOpportunities extends AbstractOffchainNamespace {
   }
 
   /**
-   * One historical series of one opportunity
+   * Charts of one opportunity: one series per metric, on a shared grid.
    **/
-  public async getHistory<M extends HistoryMetric>(
-    query: OpportunityHistoryQuery<M>,
-  ): Promise<DataResponse<HistorySeries<M>>> {
-    return this.readHistory({
-      path: `${this.#historyRoot(query.opportunity)}/history/${query.metric}`,
-      metric: query.metric,
-      range: query.range,
-    });
+  public async getCharts<
+    K extends OpportunityKey,
+    const Metrics extends readonly OpportunityChartMetricFor<K>[],
+  >(
+    key: K,
+    metrics: Metrics,
+    range: ChartRange,
+  ): Promise<DataResponse<ChartBundle<Metrics>>> {
+    return this.readCharts(`${this.#chartRoot(key)}/charts`, metrics, range);
   }
 
   #poolPath(key: PoolOpportunityKey): string {
@@ -98,7 +105,7 @@ export class OffchainOpportunities extends AbstractOffchainNamespace {
     return `${this.#root}/strategies/${key.chainId}/${key.creditManager}/${key.targetCollateral}`;
   }
 
-  #historyRoot(key: OpportunityKey): string {
+  #chartRoot(key: OpportunityKey): string {
     return key.kind === "pool" ? this.#poolPath(key) : this.#strategyPath(key);
   }
 }

@@ -198,19 +198,16 @@ describe("GearboxSDK loading", () => {
       });
     }
 
-    const response = await sdk.opportunities.simulate.addCollateral(
-      { chainId: 1, creditAccount: POOL },
-      { token: POOL, amount: 1n },
-    );
+    await expect(
+      sdk.opportunities.simulate.addCollateral(
+        { chainId: 1, creditAccount: POOL },
+        { token: POOL, amount: 1n },
+      ),
+    ).rejects.toThrow(/credit account not found/);
 
     expect(attach).toHaveBeenCalledTimes(1);
     expect(chains.get("Mainnet")?.syncState).toHaveBeenCalledTimes(1);
     expect(chains.get("Optimism")?.syncState).not.toHaveBeenCalled();
-    // the account is not there: the chain's error entry, not a rejection
-    expect(response.meta.chains[0]).toMatchObject({
-      chainId: 1,
-      status: "error",
-    });
   });
 
   it("a sync that finds no newer block (`false`) is not an error; a fresh state is not synced again", async () => {

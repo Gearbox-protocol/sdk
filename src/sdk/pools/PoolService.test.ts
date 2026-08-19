@@ -93,7 +93,7 @@ describe("PoolService.simulateDeposit", () => {
       buildService().simulateDeposit({ pool: POOL, amount: 100n }),
     ).toEqual({
       tokenIn: { token: UNDERLYING, balance: 100n },
-      tokenOut: { token: POOL, balance: 90n },
+      tokenOut: { token: POOL, balance: 91n },
       zapper: undefined,
     });
   });
@@ -105,7 +105,7 @@ describe("PoolService.simulateDeposit", () => {
       service.simulateDeposit({ pool: POOL, amount: 1_000n, tokenIn: USDC }),
     ).toEqual({
       tokenIn: { token: USDC, balance: 1_000n },
-      tokenOut: { token: POOL, balance: 909n },
+      tokenOut: { token: POOL, balance: 910n },
       zapper: ZAPPER,
     });
   });

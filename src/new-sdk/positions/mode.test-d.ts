@@ -1,12 +1,11 @@
 import { describe, expectTypeOf, it } from "vitest";
 import type {
+  ChartBundle,
+  ChartSeries,
   DataResponse,
-  HistorySeries,
-  Notice,
-  PoolPositionHistoryMetric,
+  PoolPositionChartMetric,
   PoolPositionRef,
   Position,
-  StrategyPositionHistoryMetric,
   StrategyPositionRef,
 } from "../../model/index.js";
 import type { OffchainPositions } from "../../offchain/index.js";
@@ -22,38 +21,17 @@ describe("mode gates method existence", () => {
     expectTypeOf<Positions<"both">>().toHaveProperty("list");
   });
 
-  it("totals and transactions exist only where a backend does", () => {
-    expectTypeOf<Positions<"offchain">>().toHaveProperty("totals");
-    expectTypeOf<Positions<"both">>().toHaveProperty("totals");
-    expectTypeOf<Positions<"onchain">>().not.toHaveProperty("totals");
-    expectTypeOf<Positions<"offchain">>().toHaveProperty("transactions");
-    expectTypeOf<Positions<"both">>().toHaveProperty("transactions");
-    expectTypeOf<Positions<"onchain">>().not.toHaveProperty("transactions");
-  });
-
-  it("notices sit on the SDK itself and exist only where a backend does", () => {
-    // the subject spans both namespaces, so neither owns it; gated by mode
-    // like every other backend read
-    expectTypeOf<GearboxSDK<"onchain">["notices"]>().toEqualTypeOf<undefined>();
-    expectTypeOf(({} as GearboxSDK<"offchain">).notices).returns.toEqualTypeOf<
-      Promise<DataResponse<Notice[]>>
-    >();
-    expectTypeOf(({} as GearboxSDK<"both">).notices).returns.toEqualTypeOf<
-      Promise<DataResponse<Notice[]>>
-    >();
-  });
-
-  it("history exists only where a backend does", () => {
-    expectTypeOf<Positions<"offchain">>().toHaveProperty("history");
-    expectTypeOf<Positions<"both">>().toHaveProperty("history");
-    expectTypeOf<Positions<"onchain">>().not.toHaveProperty("history");
+  it("charts exist only where a backend does", () => {
+    expectTypeOf<Positions<"offchain">>().toHaveProperty("charts");
+    expectTypeOf<Positions<"both">>().toHaveProperty("charts");
+    expectTypeOf<Positions<"onchain">>().not.toHaveProperty("charts");
   });
 
   it("a widened mode degrades to the base reads rather than to everything", () => {
     // consumers whose config object widens `mode` to `Mode` lose the gated
     // methods; they must not silently gain them
     expectTypeOf<Positions<Mode>>().toHaveProperty("list");
-    expectTypeOf<Positions<Mode>>().not.toHaveProperty("history");
+    expectTypeOf<Positions<Mode>>().not.toHaveProperty("charts");
     // what survives widening is everything the map does not gate
     expectTypeOf<Positions<Mode>>().toHaveProperty("merge");
     expectTypeOf<Positions<Mode>>().toHaveProperty("onchain");
@@ -147,69 +125,92 @@ describe("the source branches are not gated by mode", () => {
 
 describe("the position kind gates which charts it has", () => {
   const positions = {} as Positions<"both">;
+  const backend = {} as OffchainPositions;
   const pool = {} as PoolPositionRef;
   const strategy = {} as StrategyPositionRef;
 
   it("takes the metrics of the kind the key names", () => {
-    expectTypeOf(positions.history(pool).chart)
-      .parameter(0)
-      .toEqualTypeOf<PoolPositionHistoryMetric>();
-    expectTypeOf(positions.history(strategy).chart)
-      .parameter(0)
-      .toEqualTypeOf<StrategyPositionHistoryMetric>();
-    expectTypeOf(positions.history(pool).chart).toBeCallableWith(
-      "depositApy",
-      "1m",
-    );
-    expectTypeOf(positions.history(strategy).chart).toBeCallableWith(
-      "tvl",
-      "1y",
-    );
-  });
-
-  it("rejects a metric the other kind owns", () => {
-    // @ts-expect-error `tvl` is a strategy metric
-    positions.history(pool).chart("tvl", "1y");
-    // @ts-expect-error `dieselRate` is a pool metric
-    positions.history(strategy).chart("dieselRate", "1m");
-  });
-
-  it("answers with the series in the envelope every read uses", () => {
     expectTypeOf(
-      positions.history(strategy).chart,
-    ).returns.resolves.toEqualTypeOf<
-      DataResponse<HistorySeries<StrategyPositionHistoryMetric>>
+      positions.charts(pool, ["value", "apy"], "1m"),
+    ).resolves.toExtend<DataResponse<ChartBundle<readonly ["value", "apy"]>>>();
+    expectTypeOf(
+      positions.charts(strategy, ["totalValueUsd", "leverage"], "1y"),
+    ).resolves.toExtend<
+      DataResponse<ChartBundle<readonly ["totalValueUsd", "leverage"]>>
     >();
   });
 
-  it("a strategy position charts netValue, pnl and healthFactor", () => {
-    expectTypeOf(positions.history(strategy).chart).toBeCallableWith(
-      "netValue",
-      "1m",
-    );
-    expectTypeOf(positions.history(strategy).chart).toBeCallableWith(
-      "pnl",
-      "1y",
-    );
-    expectTypeOf(positions.history(strategy).chart).toBeCallableWith(
-      "healthFactor",
-      "1w",
-    );
+  it("rejects a metric the other kind owns", () => {
+    // @ts-expect-error `leverage` belongs to a strategy position
+    positions.charts(pool, ["leverage"], "1y");
+    // @ts-expect-error `apy` belongs to a pool position
+    positions.charts(strategy, ["totalValueUsd", "apy"], "1m");
+    // The source escape hatch preserves the same constraint.
+    // @ts-expect-error `leverage` belongs to a strategy position
+    backend.getCharts(pool, ["leverage"], "1y");
   });
 
-  it("a pool position charts its balance", () => {
-    expectTypeOf(positions.history(pool).chart).toBeCallableWith(
-      "balance",
+  it("rejects a metric only an opportunity charts", () => {
+    // a position's metrics are its own: what the pool did is not what this
+    // wallet's deposit did in it
+    // @ts-expect-error `depositApy` is an opportunity metric
+    positions.charts(pool, ["depositApy"], "1m");
+    // @ts-expect-error `tvl` is an opportunity metric
+    positions.charts(strategy, ["tvl"], "1m");
+  });
+
+  it("keys the bundle by the metrics that were asked for, and no others", async () => {
+    const { data } = await positions.charts(
+      strategy,
+      ["totalValueUsd", "leverage"],
       "1m",
     );
+
+    expectTypeOf(data.series.totalValueUsd).toEqualTypeOf<ChartSeries>();
+    expectTypeOf(data.series.leverage).toEqualTypeOf<ChartSeries>();
+    // @ts-expect-error only `totalValueUsd` and `leverage` were requested
+    data.series.debt;
+  });
+
+  it("makes keys optional when the metric list is dynamic", async () => {
+    const metrics: PoolPositionChartMetric[] = ["value"];
+    const { data } = await positions.charts(pool, metrics, "1m");
+
+    expectTypeOf(data.series.value).toEqualTypeOf<ChartSeries | undefined>();
+  });
+
+  it("a strategy position charts pnl, healthFactor and totalValueUsd", () => {
+    expectTypeOf(
+      positions.charts(
+        strategy,
+        ["totalValueUsd", "pnl", "healthFactor"],
+        "1m",
+      ),
+    ).resolves.toExtend<
+      DataResponse<
+        ChartBundle<readonly ["totalValueUsd", "pnl", "healthFactor"]>
+      >
+    >();
+    expectTypeOf(positions.charts(strategy, ["pnl"], "1y")).resolves.toExtend<
+      DataResponse<ChartBundle<readonly ["pnl"]>>
+    >();
+    expectTypeOf(
+      positions.charts(strategy, ["healthFactor"], "1w"),
+    ).resolves.toExtend<DataResponse<ChartBundle<readonly ["healthFactor"]>>>();
+  });
+
+  it("a pool position charts its value", () => {
+    expectTypeOf(positions.charts(pool, ["value"], "1m")).resolves.toExtend<
+      DataResponse<ChartBundle<readonly ["value"]>>
+    >();
   });
 
   it("neither kind accepts the other's series", () => {
-    // @ts-expect-error `balance` is a pool-position metric
-    positions.history(strategy).chart("balance", "1m");
+    // @ts-expect-error `value` is a pool-position metric
+    positions.charts(strategy, ["value"], "1m");
     // @ts-expect-error `healthFactor` is a strategy-position metric
-    positions.history(pool).chart("healthFactor", "1m");
-    // @ts-expect-error `pnl` is a strategy-position metric
-    positions.history(pool).chart("pnl", "1m");
+    positions.charts(pool, ["healthFactor"], "1m");
+    // @ts-expect-error `leverage` is a strategy-position metric
+    positions.charts(pool, ["leverage"], "1m");
   });
 });

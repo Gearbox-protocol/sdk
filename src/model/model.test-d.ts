@@ -1,37 +1,38 @@
 import { describe, expectTypeOf, it } from "vitest";
 import type { z } from "zod/v4";
+import type {
+  ChartBundle,
+  ChartDenomination,
+  ChartMetric,
+  ChartQuery,
+  ChartRange,
+  ChartSeries,
+  ChartValue,
+  ChartWindow,
+  POOL_OPPORTUNITY_CHART_METRICS,
+  POOL_POSITION_CHART_METRICS,
+  PoolOpportunityChartMetric,
+  PoolPositionChartMetric,
+  STRATEGY_OPPORTUNITY_CHART_METRICS,
+  STRATEGY_POSITION_CHART_METRICS,
+  StrategyOpportunityChartMetric,
+  StrategyPositionChartMetric,
+} from "./charts.js";
+import type {
+  chartDenominationSchema,
+  chartMetricSchema,
+  chartQuerySchema,
+  chartRangeSchema,
+  chartSeriesSchema,
+  chartValueSchema,
+  chartWindowSchema,
+  poolOpportunityChartMetricSchema,
+  poolPositionChartMetricSchema,
+  strategyOpportunityChartMetricSchema,
+  strategyPositionChartMetricSchema,
+} from "./charts.schema.js";
 import type { Curator, CuratorName } from "./curators.js";
 import type { curatorNameSchema, curatorSchema } from "./curators.schema.js";
-import type {
-  HistoryMetric,
-  HistoryPoint,
-  HistoryRange,
-  HistorySeries,
-  OpportunityHistoryQuery,
-  POOL_HISTORY_METRICS,
-  POOL_POSITION_HISTORY_METRICS,
-  PoolHistoryMetric,
-  PoolPositionHistoryMetric,
-  PositionHistoryMetric,
-  PositionHistoryQuery,
-  STRATEGY_HISTORY_METRICS,
-  STRATEGY_POSITION_HISTORY_METRICS,
-  StrategyHistoryMetric,
-  StrategyPositionHistoryMetric,
-} from "./history.js";
-import type {
-  historyMetricSchema,
-  historyPointSchema,
-  historyRangeSchema,
-  historySeriesSchema,
-  opportunityHistoryQuerySchema,
-  poolHistoryMetricSchema,
-  poolPositionHistoryMetricSchema,
-  positionHistoryMetricSchema,
-  positionHistoryQuerySchema,
-  strategyHistoryMetricSchema,
-  strategyPositionHistoryMetricSchema,
-} from "./history.schema.js";
 import type {
   DelayedReceivedAsset,
   InstantReceivedAsset,
@@ -295,43 +296,49 @@ describe("model schemas match model types", () => {
     >().toEqualTypeOf<OpportunityKey>();
   });
 
-  it("history", () => {
+  it("charts", () => {
     expectTypeOf<
-      z.infer<typeof historyRangeSchema>
-    >().toEqualTypeOf<HistoryRange>();
+      z.infer<typeof chartRangeSchema>
+    >().toEqualTypeOf<ChartRange>();
     expectTypeOf<
-      z.infer<typeof poolHistoryMetricSchema>
-    >().toEqualTypeOf<PoolHistoryMetric>();
+      z.infer<typeof poolOpportunityChartMetricSchema>
+    >().toEqualTypeOf<PoolOpportunityChartMetric>();
     expectTypeOf<
-      z.infer<typeof strategyHistoryMetricSchema>
-    >().toEqualTypeOf<StrategyHistoryMetric>();
+      z.infer<typeof strategyOpportunityChartMetricSchema>
+    >().toEqualTypeOf<StrategyOpportunityChartMetric>();
     expectTypeOf<
-      z.infer<typeof historyMetricSchema>
-    >().toEqualTypeOf<HistoryMetric>();
+      z.infer<typeof poolPositionChartMetricSchema>
+    >().toEqualTypeOf<PoolPositionChartMetric>();
     expectTypeOf<
-      z.infer<typeof historyPointSchema>
-    >().toEqualTypeOf<HistoryPoint>();
+      z.infer<typeof strategyPositionChartMetricSchema>
+    >().toEqualTypeOf<StrategyPositionChartMetric>();
     expectTypeOf<
-      z.infer<typeof historySeriesSchema>
-    >().toEqualTypeOf<HistorySeries>();
+      z.infer<typeof chartMetricSchema>
+    >().toEqualTypeOf<ChartMetric>();
     expectTypeOf<
-      z.infer<typeof opportunityHistoryQuerySchema>
-    >().toEqualTypeOf<OpportunityHistoryQuery>();
+      z.infer<typeof chartDenominationSchema>
+    >().toEqualTypeOf<ChartDenomination>();
+    expectTypeOf<
+      z.infer<typeof chartValueSchema>
+    >().toEqualTypeOf<ChartValue>();
+    expectTypeOf<
+      z.infer<typeof chartSeriesSchema>
+    >().toEqualTypeOf<ChartSeries>();
+    expectTypeOf<
+      z.infer<typeof chartWindowSchema>
+    >().toEqualTypeOf<ChartWindow>();
+    expectTypeOf<
+      z.infer<typeof chartQuerySchema>
+    >().toEqualTypeOf<ChartQuery>();
   });
 
-  it("position history", () => {
-    expectTypeOf<
-      z.infer<typeof poolPositionHistoryMetricSchema>
-    >().toEqualTypeOf<PoolPositionHistoryMetric>();
-    expectTypeOf<
-      z.infer<typeof strategyPositionHistoryMetricSchema>
-    >().toEqualTypeOf<StrategyPositionHistoryMetric>();
-    expectTypeOf<
-      z.infer<typeof positionHistoryMetricSchema>
-    >().toEqualTypeOf<PositionHistoryMetric>();
-    expectTypeOf<
-      z.infer<typeof positionHistoryQuerySchema>
-    >().toEqualTypeOf<PositionHistoryQuery>();
+  it("a bundle keyed by more metrics answers for fewer", () => {
+    // keying the series by metric decides the variance: a bundle carrying both
+    // satisfies a consumer that needs one of them, while a one-metric bundle is
+    // not a two-metric one
+    expectTypeOf<ChartBundle<readonly ["depositApy", "supplied"]>>().toExtend<
+      ChartBundle<readonly ["depositApy"]>
+    >();
   });
 
   it("liquidations", () => {
@@ -442,16 +449,16 @@ describe("model schemas match model types", () => {
     // the lists are what generate one method per metric, so a metric missing
     // from one of them is a silently missing method rather than a type error
     expectTypeOf<
-      (typeof POOL_HISTORY_METRICS)[number]
-    >().toEqualTypeOf<PoolHistoryMetric>();
+      (typeof POOL_OPPORTUNITY_CHART_METRICS)[number]
+    >().toEqualTypeOf<PoolOpportunityChartMetric>();
     expectTypeOf<
-      (typeof STRATEGY_HISTORY_METRICS)[number]
-    >().toEqualTypeOf<StrategyHistoryMetric>();
+      (typeof STRATEGY_OPPORTUNITY_CHART_METRICS)[number]
+    >().toEqualTypeOf<StrategyOpportunityChartMetric>();
     expectTypeOf<
-      (typeof POOL_POSITION_HISTORY_METRICS)[number]
-    >().toEqualTypeOf<PoolPositionHistoryMetric>();
+      (typeof POOL_POSITION_CHART_METRICS)[number]
+    >().toEqualTypeOf<PoolPositionChartMetric>();
     expectTypeOf<
-      (typeof STRATEGY_POSITION_HISTORY_METRICS)[number]
-    >().toEqualTypeOf<StrategyPositionHistoryMetric>();
+      (typeof STRATEGY_POSITION_CHART_METRICS)[number]
+    >().toEqualTypeOf<StrategyPositionChartMetric>();
   });
 });

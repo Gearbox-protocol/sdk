@@ -1,6 +1,7 @@
 import type { Address } from "viem";
 import type { MockInstance } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { CHART_METRIC_UNITS, type ChartMetric } from "../../model/charts.js";
 import { chains } from "../../sdk/index.js";
 import { OffchainPositions } from "./OffchainPositions.js";
 
@@ -183,102 +184,98 @@ describe("decoding what the backend answered", () => {
   });
 });
 
-describe("totals and transactions decode the backend's answer", () => {
-  const underlying = {
+describe("a chart request names its subject, its metrics and its window", () => {
+  const pool = {
+    kind: "pool",
     chainId: MAINNET,
-    address: "0x6666666666666666666666666666666666666666",
-    symbol: "USDC",
-    name: "USD Coin",
-    decimals: 6,
-    assetType: "Stable",
-  };
+    pool: POOL,
+    wallet: WALLET,
+  } as const;
+  const strategy = {
+    kind: "strategy",
+    chainId: MAINNET,
+    creditAccount: CREDIT_ACCOUNT,
+  } as const;
 
-  it("totals: the wallet's aggregate, scoped to the covered chains", async () => {
+  /**
+   * Answers the next read with a bundle the model accepts.
+   **/
+  function answerWithBundle(metrics: ChartMetric[], range = "1m"): void {
+    const timestamps = [1_719_792_000, 1_719_795_600];
+    const underlying = {
+      chainId: MAINNET,
+      address: USDC,
+      symbol: "USDC",
+      name: "USD Coin",
+      decimals: 6,
+      assetType: "Stable",
+    };
+    const seriesFor = (metric: ChartMetric) => {
+      const values = [512, 530];
+      const unit = CHART_METRIC_UNITS[metric];
+      switch (unit) {
+        case "bps":
+          return { status: "ok" as const, unit, values };
+        case "usd":
+          return { status: "ok" as const, unit, values };
+        case "scalar":
+          return { status: "ok" as const, unit, values };
+        case "token":
+          return { status: "ok" as const, unit, base: underlying, values };
+        case "ratio":
+          return {
+            status: "ok" as const,
+            unit,
+            base: underlying,
+            quote: underlying,
+            values,
+          };
+      }
+    };
     respondWith({
       data: {
-        currentYield: { organicApy: 420 },
-        pnl: {
-          organic: { value: "1500000", valueUsd: 1.5, token: underlying },
-          total: { value: "1500000", valueUsd: 1.5, token: underlying },
-          rewards: [],
-        },
-        netValueUsd: 1234.5,
-        claimableUsd: null,
+        window: { range, from: timestamps[0], to: timestamps[1] },
+        timestamps,
+        sampling: { kind: "grid", intervalSeconds: 3_600 },
+        series: Object.fromEntries(
+          metrics.map(metric => [metric, seriesFor(metric)]),
+        ),
       },
       meta: { chains: [] },
     });
+  }
 
-    const { data } = await positions().totals(WALLET);
+  it("names one metric in the query, not in the path", async () => {
+    answerWithBundle(["value"]);
 
-    const url = requested();
-    expect(url.pathname).toBe(`/v2/positions/${WALLET}/totals`);
-    expect(url.searchParams.get("chainIds")).toBe(`${MAINNET},${PLASMA}`);
-    expect(data.currentYield).toEqual({ organicApy: 420 });
-    expect(data.pnl?.total.value).toBe(1_500_000n);
-    expect(data.netValueUsd).toBe(1234.5);
-    expect(data.claimableUsd).toBeNull();
-  });
-
-  it("transactions: the position's history, amounts as bigints", async () => {
-    respondWith({
-      data: [
-        {
-          txHash: `0x${"ab".repeat(32)}`,
-          timestamp: 1_735_000_000,
-          kind: "deposit",
-          assets: [{ value: "5000000", valueUsd: 5, token: underlying }],
-        },
-      ],
-      meta: { chains: [] },
-    });
-
-    const { data } = await positions().transactions({
-      kind: "strategy",
-      chainId: MAINNET,
-      creditAccount: CREDIT_ACCOUNT,
-    });
+    await positions().getCharts(pool, ["value"], "1m");
 
     expect(requested().pathname).toBe(
-      `/v2/positions/strategy/${MAINNET}/${CREDIT_ACCOUNT}/transactions`,
+      `/v2/positions/pool/${MAINNET}/${POOL}/${WALLET}/charts`,
     );
-    expect(data).toHaveLength(1);
-    expect(data[0]?.kind).toBe("deposit");
-    expect(data[0]?.assets[0]?.value).toBe(5_000_000n);
+    expect(requested().searchParams.get("metrics")).toBe("value");
+    expect(requested().searchParams.get("range")).toBe("1m");
   });
 
-  it("transactions: a pool position is addressed by its pool and its holder", async () => {
-    await positions().transactions({
-      kind: "pool",
-      chainId: MAINNET,
-      pool: POOL,
-      wallet: WALLET,
-    });
+  it("asks for several metrics of one strategy position in one request", async () => {
+    answerWithBundle(["totalValueUsd", "leverage"], "1y");
+
+    await positions().getCharts(strategy, ["totalValueUsd", "leverage"], "1y");
 
     expect(requested().pathname).toBe(
-      `/v2/positions/pool/${MAINNET}/${POOL}/${WALLET}/transactions`,
+      `/v2/positions/strategy/${MAINNET}/${CREDIT_ACCOUNT}/charts`,
     );
+    expect(requested().searchParams.get("metrics")).toBe(
+      "totalValueUsd,leverage",
+    );
+    expect(requested().searchParams.get("range")).toBe("1y");
   });
-});
 
-describe("the transaction kind is a closed union", () => {
-  it("rejects a kind the model does not know", async () => {
-    respondWith({
-      data: [
-        {
-          txHash: `0x${"ab".repeat(32)}`,
-          timestamp: 1,
-          kind: "rebalance",
-          assets: [],
-        },
-      ],
-      meta: { chains: [] },
-    });
+  it("rejects a bundle that answers a question it was not asked", async () => {
+    answerWithBundle(["leverage"]);
+
     await expect(
-      positions().transactions({
-        kind: "strategy",
-        chainId: MAINNET,
-        creditAccount: CREDIT_ACCOUNT,
-      }),
-    ).rejects.toThrow(/does not match the read model/);
+      positions().getCharts(strategy, ["totalValueUsd"], "1m"),
+    ).rejects.toThrow(/read model/);
   });
 });

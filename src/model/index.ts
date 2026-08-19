@@ -5,12 +5,12 @@
  * This module is owned by neither source. It has no dependency on the on-chain
  * SDK, so the backend can import it alone.
  **/
+export * from "./charts.js";
+export * from "./charts.schema.js";
 export * from "./curators.js";
 export * from "./curators.schema.js";
 export * from "./filters.js";
 export * from "./filters.schema.js";
-export * from "./history.js";
-export * from "./history.schema.js";
 export * from "./liquidations.js";
 export * from "./liquidations.schema.js";
 export * from "./notices.js";
