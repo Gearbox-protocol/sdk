@@ -7,7 +7,7 @@ import {
 } from "viem";
 import { beforeAll, describe, expect, it } from "vitest";
 import { OnchainSDK } from "../../sdk/index.js";
-import { ANVIL_URL } from "../constants.js";
+import { ANVIL_URL, GAS_LIMIT } from "../constants.js";
 import { useFixture } from "../helpers.js";
 
 // Gami Labs MC -- first CreateMarket at block 24485133, no updatable feeds.
@@ -58,7 +58,7 @@ describe("syncState detects creation of first market", () => {
       to: ORIGINAL_TO,
       data: ORIGINAL_CALLDATA,
       value: 0n,
-      gas: 30_000_000n,
+      gas: GAS_LIMIT,
     });
     const receipt = await sdk.client.waitForTransactionReceipt({
       hash,

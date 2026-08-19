@@ -147,5 +147,6 @@
       "biome check --no-errors-on-unmatched --write"
     ]
   },
+  "foundryVersion": "1.7.1",
   "packageManager": "pnpm@11.7.0"
 }

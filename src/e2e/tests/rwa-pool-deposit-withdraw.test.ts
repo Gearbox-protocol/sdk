@@ -22,6 +22,7 @@ import {
   type RWADefaultTokenMeta,
   type RWAOnDemandTokenMeta,
 } from "../../sdk/index.js";
+import { GAS_LIMIT } from "../constants.js";
 
 const RWA_RPC_URL = "https://anvil.gearbox.foundation/rpc/Securitize";
 
@@ -168,7 +169,7 @@ describe.skipIf(!!process.env.CI)("RWA pool deposit and withdraw", () => {
       }
 
       const encoded = encodePoolCall(depositCall);
-      hash = await wallet.sendTransaction(encoded);
+      hash = await wallet.sendTransaction({ ...encoded, gas: GAS_LIMIT });
       const depositReceipt = await sdk.client.waitForTransactionReceipt({
         hash,
         pollingInterval: 100,
@@ -225,7 +226,10 @@ describe.skipIf(!!process.env.CI)("RWA pool deposit and withdraw", () => {
       });
 
       const withdrawEncoded = encodePoolCall(withdrawCall);
-      hash = await wallet.sendTransaction(withdrawEncoded);
+      hash = await wallet.sendTransaction({
+        ...withdrawEncoded,
+        gas: GAS_LIMIT,
+      });
       const withdrawReceipt = await sdk.client.waitForTransactionReceipt({
         hash,
         pollingInterval: 100,

@@ -23,7 +23,7 @@ import {
   type RawTx,
   sendRawTx,
 } from "../../sdk/index.js";
-import { ANVIL_URL } from "../constants.js";
+import { ANVIL_URL, GAS_LIMIT } from "../constants.js";
 import { getAnvilWallet, REDSTONE_GATEWAYS, useFixture } from "../helpers.js";
 
 /**
@@ -88,10 +88,6 @@ describe("simulate → execute on a mainnet fork", () => {
       networks: ["Mainnet"],
       onchain: multichain,
     });
-    // Blocks otherwise take their timestamp from the wall clock, so how long a
-    // router call happens to take lands in the pool's accrued interest and the
-    // brackets below drift with it. One second per block instead.
-    await anvil.setBlockTimestampInterval({ interval: 1 });
     wallet = getAnvilWallet(chain);
     borrower = wallet.account.address;
     underlying =
@@ -149,7 +145,7 @@ describe("simulate → execute on a mainnet fork", () => {
       prerequisites.filter(p => p.satisfied !== true),
       "prerequisites the send still needs",
     ).toEqual([]);
-    await mined(await sendRawTx(wallet, { tx }));
+    await mined(await sendRawTx(wallet, { tx, gas: GAS_LIMIT }));
     return tx;
   }
 
@@ -194,7 +190,9 @@ describe("simulate → execute on a mainnet fork", () => {
       collateral: OPEN_PARAMS.collateral,
       ethAmount: 0n,
     });
-    const receipt = await mined(await sendRawTx(wallet, { tx }));
+    const receipt = await mined(
+      await sendRawTx(wallet, { tx, gas: GAS_LIMIT }),
+    );
     const [log] = parseEventLogs({
       abi: iCreditFacadeV310Abi,
       logs: receipt.logs,
@@ -985,7 +983,9 @@ describe("simulate → execute on a mainnet fork", () => {
         ethAmount: NATIVE_COLLATERAL,
       });
       expect(BigInt(tx.value)).toBe(NATIVE_COLLATERAL);
-      const receipt = await mined(await sendRawTx(wallet, { tx }));
+      const receipt = await mined(
+        await sendRawTx(wallet, { tx, gas: GAS_LIMIT }),
+      );
       const [log] = parseEventLogs({
         abi: iCreditFacadeV310Abi,
         logs: receipt.logs,
@@ -1029,7 +1029,7 @@ describe("simulate → execute on a mainnet fork", () => {
       });
       expect(BigInt(tx.value)).toBe(NATIVE_TOP_UP);
       const before = await coinBalance();
-      await mined(await sendRawTx(wallet, { tx }));
+      await mined(await sendRawTx(wallet, { tx, gas: GAS_LIMIT }));
 
       expect(before - (await coinBalance())).toBeGreaterThanOrEqual(
         NATIVE_TOP_UP,

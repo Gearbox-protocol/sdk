@@ -16,7 +16,7 @@ import {
   PoolService,
   type PoolServiceCallResult,
 } from "../../sdk/index.js";
-import { ANVIL_URL } from "../constants.js";
+import { ANVIL_URL, GAS_LIMIT } from "../constants.js";
 import { getAnvilWallet, REDSTONE_GATEWAYS, useFixture } from "../helpers.js";
 
 const BLOCK = 24_736_900n;
@@ -140,7 +140,7 @@ describe("pool deposit and withdraw", () => {
     expect(depositCall).toBeDefined();
 
     const encoded = encodePoolCall(depositCall!);
-    hash = await wallet.sendTransaction(encoded);
+    hash = await wallet.sendTransaction({ ...encoded, gas: GAS_LIMIT });
     const depositReceipt = await sdk.client.waitForTransactionReceipt({
       hash,
       pollingInterval: 100,
@@ -180,7 +180,10 @@ describe("pool deposit and withdraw", () => {
     });
 
     const withdrawEncoded = encodePoolCall(withdrawCall);
-    hash = await wallet.sendTransaction(withdrawEncoded);
+    hash = await wallet.sendTransaction({
+      ...withdrawEncoded,
+      gas: GAS_LIMIT,
+    });
     const withdrawReceipt = await sdk.client.waitForTransactionReceipt({
       hash,
       pollingInterval: 100,
@@ -281,6 +284,7 @@ describe("pool deposit and withdraw", () => {
       to: encoded.to,
       data: encoded.data,
       value: encoded.value,
+      gas: GAS_LIMIT,
     });
     const depositReceipt = await sdk.client.waitForTransactionReceipt({
       hash,
@@ -326,7 +330,7 @@ describe("pool deposit and withdraw", () => {
       to: withdrawEncoded.to,
       data: withdrawEncoded.data,
       value: withdrawEncoded.value,
-      gas: 2_000_000n,
+      gas: GAS_LIMIT,
     });
     const withdrawReceipt = await sdk.client.waitForTransactionReceipt({
       hash,

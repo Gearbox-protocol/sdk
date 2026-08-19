@@ -10,7 +10,7 @@ import { dealActions } from "viem-deal";
 import { beforeAll, describe, expect, it } from "vitest";
 import { iCreditFacadeV310Abi } from "../../abi/310/generated.js";
 import { MAX_UINT256, OnchainSDK, sendRawTx } from "../../sdk/index.js";
-import { ANVIL_URL } from "../constants.js";
+import { ANVIL_URL, GAS_LIMIT } from "../constants.js";
 import { getAnvilWallet, REDSTONE_GATEWAYS, useFixture } from "../helpers.js";
 
 const BLOCK = 24_728_000n;
@@ -94,7 +94,7 @@ describe("open credit account", () => {
       to: borrower.address,
       referralCode: 0n,
     });
-    hash = await sendRawTx(wallet, { tx });
+    hash = await sendRawTx(wallet, { tx, gas: GAS_LIMIT });
     const receipt = await sdk.client.waitForTransactionReceipt({
       hash,
       pollingInterval: 100,
@@ -149,7 +149,7 @@ describe("open credit account", () => {
       caData,
       addCollateralCalls,
     );
-    hash = await sendRawTx(wallet, { tx: addCollateralTx });
+    hash = await sendRawTx(wallet, { tx: addCollateralTx, gas: GAS_LIMIT });
     const addCollateralReceipt = await sdk.client.waitForTransactionReceipt({
       hash,
       pollingInterval: 100,
@@ -178,7 +178,7 @@ describe("open credit account", () => {
       creditAccount,
       closeCalls,
     );
-    hash = await sendRawTx(wallet, { tx: closeTx, gas: 2_000_000n });
+    hash = await sendRawTx(wallet, { tx: closeTx, gas: GAS_LIMIT });
     const closeReceipt = await sdk.client.waitForTransactionReceipt({
       hash,
       pollingInterval: 100,
