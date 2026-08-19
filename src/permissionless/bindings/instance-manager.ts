@@ -231,16 +231,16 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
       case "setGlobalAddress": {
         const [key, address, saveVersion] = params.args;
         return {
-          key,
-          address: hexToString(address, { size: 32 }),
+          key: hexToString(key, { size: 32 }),
+          address,
           saveVersion: saveVersion ? "true" : "false",
         };
       }
       case "setLocalAddress": {
         const [key, address, saveVersion] = params.args;
         return {
-          key,
-          address: hexToString(address, { size: 32 }),
+          key: hexToString(key, { size: 32 }),
+          address,
           saveVersion: saveVersion ? "true" : "false",
         };
       }
