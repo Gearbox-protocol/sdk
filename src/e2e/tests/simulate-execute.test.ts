@@ -53,6 +53,17 @@ const WSTETH: Address = "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0";
 const NATIVE_COLLATERAL = parseUnits("12", 18);
 const NATIVE_TOP_UP = parseUnits("2", 18);
 
+/**
+ * Gas handed to every send below, in place of an estimate.
+ *
+ * `eth_estimateGas` costs four seconds a call here — anvil binary-searches the
+ * limit, re-executing a multicall that routes through Curve and Convex a few
+ * dozen times, while the send that follows takes two milliseconds. Naming the
+ * block's own limit skips the search: nothing here is measuring gas, and a
+ * revert still surfaces as a failed receipt.
+ */
+const GAS = 30_000_000n;
+
 /** Router slippage, in `PERCENTAGE_FACTOR` units. */
 const S = 50;
 const X2 = 200n;
@@ -149,7 +160,7 @@ describe("simulate → execute on a mainnet fork", () => {
       prerequisites.filter(p => p.satisfied !== true),
       "prerequisites the send still needs",
     ).toEqual([]);
-    await mined(await sendRawTx(wallet, { tx }));
+    await mined(await sendRawTx(wallet, { tx, gas: GAS }));
     return tx;
   }
 
@@ -194,7 +205,7 @@ describe("simulate → execute on a mainnet fork", () => {
       collateral: OPEN_PARAMS.collateral,
       ethAmount: 0n,
     });
-    const receipt = await mined(await sendRawTx(wallet, { tx }));
+    const receipt = await mined(await sendRawTx(wallet, { tx, gas: GAS }));
     const [log] = parseEventLogs({
       abi: iCreditFacadeV310Abi,
       logs: receipt.logs,

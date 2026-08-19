@@ -17,6 +17,7 @@ import {
 import { chains, type NetworkType, type OnchainSDK } from "../sdk/index.js";
 import { type AnvilInstance, startAnvil, stopAnvil } from "./anvil.js";
 import { ANVIL_PORT, ANVIL_URL } from "./constants.js";
+import { FORK_PROXY_PORT, type ForkProxy, startForkProxy } from "./forkProxy.js";
 import {
   ORACLE_PROXY_PORT,
   type OracleProxy,
@@ -27,12 +28,16 @@ export { REDSTONE_GATEWAYS } from "./oracleProxy.js";
 
 const FIXTURES_DIR = resolve(import.meta.dirname, "fixtures");
 
-function requireRpcUrl(): string {
+/**
+ * The upstream node, needed only for what neither fixture answers: the fork
+ * proxy's cache covers a run that has been made before.
+ */
+function rpcUrl(forkCacheFile: string): string | undefined {
   const url = process.env.RPC_URL;
-  if (!url) {
+  if (!url && !existsSync(forkCacheFile)) {
     throw new Error(
       "RPC_URL environment variable is required for e2e tests.\n" +
-        "Anvil needs it to fetch the fork block header on startup.",
+        "Anvil needs it to fetch the state a run touches for the first time.",
     );
   }
   return url;
@@ -44,20 +49,23 @@ export interface UseFixtureOptions {
 }
 
 /**
- * Manages Anvil + oracle proxy as an atomic pair for a describe block.
+ * Manages Anvil + oracle proxy + fork proxy as an atomic set for a describe
+ * block.
  *
- * - beforeAll: starts oracle proxy in playback mode, starts Anvil from fork
- *   RPC cache fixture, takes evm_snapshot
+ * - beforeAll: starts oracle proxy in playback mode and the fork proxy over its
+ *   cache, starts Anvil from the fork RPC cache fixture, takes evm_snapshot
  * - beforeEach: evm_revert + re-snapshot
- * - afterAll: evm_revert, stops Anvil, stops oracle proxy
+ * - afterAll: evm_revert, stops Anvil, stops both proxies
  */
 export function useFixture(options: UseFixtureOptions): void {
   const baseName = `${options.network}-${options.block}`;
   const cacheFile = resolve(FIXTURES_DIR, `${baseName}-rpc-cache.json`);
+  const forkCacheFile = resolve(FIXTURES_DIR, `${baseName}-fork-rpc.json`);
   const httpDir = resolve(FIXTURES_DIR, `${baseName}-http`);
 
   let anvil: AnvilInstance;
   let proxy: OracleProxy;
+  let fork: ForkProxy;
   let client: AnvilClient;
   let snapshotId: Hex;
 
@@ -75,9 +83,15 @@ export function useFixture(options: UseFixtureOptions): void {
       recordingsDir: httpDir,
     });
 
+    fork = await startForkProxy({
+      port: FORK_PROXY_PORT,
+      upstream: rpcUrl(forkCacheFile),
+      cacheFile: forkCacheFile,
+    });
+
     anvil = await startAnvil({
       cacheFilePath: cacheFile,
-      forkUrl: requireRpcUrl(),
+      forkUrl: fork.url,
       forkBlockNumber: options.block,
       chainId: chains[options.network].id,
       port: ANVIL_PORT,
@@ -100,6 +114,7 @@ export function useFixture(options: UseFixtureOptions): void {
     }
     await stopAnvil(anvil);
     await proxy.close();
+    await fork.close();
   });
 }
 
