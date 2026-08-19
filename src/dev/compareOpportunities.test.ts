@@ -160,9 +160,10 @@ describe("matched rows", () => {
     const report = compare([pool()], [pool()]);
 
     expect(report.matched).toEqual([
-      expect.objectContaining({ identical: true, diffs: [] }),
+      expect.objectContaining({ identical: true, clean: true, diffs: [] }),
     ]);
     expect(report.summary.differing).toBe(0);
+    expect(report.summary.clean).toBe(1);
   });
 
   it("matches a row whose addresses differ only in case", () => {
@@ -226,6 +227,8 @@ describe("matched rows", () => {
       onchain: undefined,
       offchain: { value: 50_000n, valueUsd: 50_000 },
       kind: "presence",
+      expected: true,
+      reason: "mode-scoped",
     });
   });
 
@@ -317,8 +320,20 @@ describe("the report as a whole", () => {
 
     expect(report.summary.differing).toBe(2);
     expect(report.summary.diffsByPath).toEqual([
-      { path: "collateralTokens[].symbol", kinds: ["other"], count: 2 },
-      { path: "utilization", kinds: ["numeric"], count: 2 },
+      {
+        path: "collateralTokens[].symbol",
+        kinds: ["other"],
+        count: 2,
+        expected: 0,
+        unexpected: 2,
+      },
+      {
+        path: "utilization",
+        kinds: ["numeric"],
+        count: 2,
+        expected: 0,
+        unexpected: 2,
+      },
     ]);
   });
 
@@ -333,5 +348,162 @@ describe("the report as a whole", () => {
       blockNumber: 100,
     });
     expect(report.offchainChains).toHaveLength(1);
+  });
+});
+
+describe("expected diffs", () => {
+  it("marks a documented offchain-only field as expected, not identical", () => {
+    const report = compare(
+      [strategy()],
+      [
+        strategy({
+          curator: { address: POOL, name: "Re7", url: "https://re7" },
+        }),
+      ],
+    );
+    const match = report.matched[0];
+
+    expect(diffAt(match?.diffs ?? [], "curator.url")).toEqual({
+      path: "curator.url",
+      onchain: null,
+      offchain: "https://re7",
+      kind: "presence",
+      expected: true,
+      reason: "mode-scoped",
+    });
+    expect(match?.identical).toBe(false);
+    expect(match?.clean).toBe(true);
+    expect(report.summary.identical).toBe(0);
+    expect(report.summary.clean).toBe(1);
+  });
+
+  it("treats strategy utilization as mode-scoped but pool utilization as real", () => {
+    const report = compare(
+      [pool(), strategy()],
+      [pool({ utilization: 6_100 }), strategy({ utilization: 7_500 })],
+    );
+    const poolMatch = report.matched.find(match => match.kind === "pool");
+    const strategyMatch = report.matched.find(
+      match => match.kind === "strategy",
+    );
+
+    expect(diffAt(poolMatch?.diffs ?? [], "utilization")).toEqual({
+      path: "utilization",
+      onchain: 6_000,
+      offchain: 6_100,
+      kind: "numeric",
+    });
+    expect(diffAt(strategyMatch?.diffs ?? [], "utilization")).toEqual({
+      path: "utilization",
+      onchain: undefined,
+      offchain: 7_500,
+      kind: "presence",
+      expected: true,
+      reason: "mode-scoped",
+    });
+    expect(poolMatch?.clean).toBe(false);
+    expect(strategyMatch?.clean).toBe(true);
+  });
+
+  it("tolerates a USD float inside 0.1% and flags one outside it", () => {
+    const inside = compare(
+      [pool()],
+      [pool({ totalBorrow: amount(600n, 600.4) })],
+    );
+    const outside = compare(
+      [pool()],
+      [pool({ totalBorrow: amount(600n, 601.42) })],
+    );
+
+    expect(
+      diffAt(inside.matched[0]?.diffs ?? [], "totalBorrow.valueUsd"),
+    ).toEqual({
+      path: "totalBorrow.valueUsd",
+      onchain: 600,
+      offchain: 600.4,
+      kind: "usd",
+      expected: true,
+      reason: "tolerance",
+    });
+    expect(inside.matched[0]?.clean).toBe(true);
+    expect(
+      diffAt(outside.matched[0]?.diffs ?? [], "totalBorrow.valueUsd"),
+    ).toEqual({
+      path: "totalBorrow.valueUsd",
+      onchain: 600,
+      offchain: 601.42,
+      kind: "usd",
+    });
+    expect(outside.matched[0]?.clean).toBe(false);
+  });
+
+  it("tolerates a ±1 bps rate and a lag-bounded amount, not a larger gap", () => {
+    const rate = compare([strategy()], [strategy({ borrowApy: 521 })]);
+    const amountLag = compare(
+      [pool({ totalSupply: amount(1_000_000n, 1_000) })],
+      [pool({ totalSupply: amount(1_000_400n, 1_000) })],
+    );
+    const amountGap = compare(
+      [pool({ totalSupply: amount(1_000_000n, 1_000) })],
+      [pool({ totalSupply: amount(1_010_000n, 1_000) })],
+    );
+
+    expect(diffAt(rate.matched[0]?.diffs ?? [], "borrowApy")).toEqual({
+      path: "borrowApy",
+      onchain: 520,
+      offchain: 521,
+      kind: "numeric",
+      expected: true,
+      reason: "tolerance",
+    });
+    expect(rate.matched[0]?.clean).toBe(true);
+    expect(
+      diffAt(amountLag.matched[0]?.diffs ?? [], "totalSupply.value"),
+    ).toEqual({
+      path: "totalSupply.value",
+      onchain: 1_000_000n,
+      offchain: 1_000_400n,
+      kind: "numeric",
+      expected: true,
+      reason: "tolerance",
+    });
+    expect(amountLag.matched[0]?.clean).toBe(true);
+    expect(
+      diffAt(amountGap.matched[0]?.diffs ?? [], "totalSupply.value"),
+    ).toEqual({
+      path: "totalSupply.value",
+      onchain: 1_000_000n,
+      offchain: 1_010_000n,
+      kind: "numeric",
+    });
+    expect(amountGap.matched[0]?.clean).toBe(false);
+  });
+
+  it("does not treat a pool supplyApy.totalApy presence as unexpected", () => {
+    const report = compare(
+      [pool()],
+      [pool({ supplyApy: { organicApy: 610, totalApy: 842 } })],
+    );
+
+    expect(
+      diffAt(report.matched[0]?.diffs ?? [], "supplyApy.totalApy"),
+    ).toEqual({
+      path: "supplyApy.totalApy",
+      onchain: undefined,
+      offchain: 842,
+      kind: "presence",
+      expected: true,
+      reason: "mode-scoped",
+    });
+    expect(report.matched[0]?.clean).toBe(true);
+    expect(report.summary.diffsByPath).toEqual([
+      {
+        path: "supplyApy.totalApy",
+        kinds: ["presence"],
+        count: 1,
+        expected: 1,
+        unexpected: 0,
+      },
+    ]);
   });
 });

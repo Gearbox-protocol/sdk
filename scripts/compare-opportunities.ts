@@ -126,6 +126,7 @@ function printSummary(report: OpportunityCompareReport): void {
       offchain: chain.offchainRows,
       matched: chain.matched,
       identical: chain.identical,
+      clean: chain.clean,
       differing: chain.differing,
       "only onchain": chain.onlyOnchain,
       "only offchain": chain.onlyOffchain,
@@ -133,16 +134,33 @@ function printSummary(report: OpportunityCompareReport): void {
   );
   console.log(
     `total: ${summary.onchainRows} onchain, ${summary.offchainRows} offchain, ` +
-      `${summary.matched} matched (${summary.identical} identical, ${summary.differing} differing), ` +
+      `${summary.matched} matched (${summary.identical} identical, ${summary.clean} clean, ${summary.differing} differing), ` +
       `${summary.onlyOnchain} only onchain, ${summary.onlyOffchain} only offchain`,
   );
 
-  if (summary.diffsByPath.length) {
-    console.log("\nfields that differed most often:");
+  const unexpected = summary.diffsByPath.filter(entry => entry.unexpected > 0);
+  const expected = summary.diffsByPath.filter(
+    entry => entry.unexpected === 0 && entry.expected > 0,
+  );
+
+  if (unexpected.length) {
+    console.log("\nunexpected fields that differed most often:");
     console.table(
-      summary.diffsByPath.slice(0, 25).map(entry => ({
+      unexpected.slice(0, 25).map(entry => ({
         field: entry.path,
-        rows: entry.count,
+        unexpected: entry.unexpected,
+        expected: entry.expected,
+        kinds: entry.kinds.join(", "),
+      })),
+    );
+  }
+
+  if (expected.length) {
+    console.log("\nexpected fields (mode-scoped or within tolerance):");
+    console.table(
+      expected.slice(0, 25).map(entry => ({
+        field: entry.path,
+        rows: entry.expected,
         kinds: entry.kinds.join(", "),
       })),
     );
