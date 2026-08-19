@@ -693,7 +693,9 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     const { pool } = market.pool;
     return {
       kind: "pool",
-      name: market.poolName,
+      // the pool contract's ERC20 name, not the synthesized `"USDC Pool"`
+      // opportunities use. Backend positions read the same token-table name.
+      name: this.sdk.tokensMeta.mustGetToken(pool.address).name,
       chainId: this.chainId,
       pool: pool.address,
       netValue: {

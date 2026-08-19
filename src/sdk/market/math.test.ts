@@ -24,6 +24,12 @@ describe("unit conversions", () => {
   it("converts oracle USD to a float", () => {
     expect(usdToNumber(150_050_000_000n)).toBe(1500.5);
   });
+
+  it("clamps compressor leftover dust to zero", () => {
+    expect(usdToNumber(99n)).toBe(0);
+    expect(usdToNumber(999n)).toBe(0);
+    expect(usdToNumber(1_000n)).toBe(0.00001);
+  });
 });
 
 describe("calcUtilization", () => {

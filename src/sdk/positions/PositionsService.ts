@@ -23,7 +23,7 @@ import {
   healthFactorBps,
   usdToNumber,
 } from "../market/math.js";
-import { AddressMap } from "../utils/index.js";
+import { AddressMap, hexEq } from "../utils/index.js";
 import { calcBorrowRate } from "./calcBorrowRate.js";
 import { calcHealthFactor } from "./calcHealthFactor.js";
 import { calcLiquidationPrice } from "./calcLiquidationPrice.js";
@@ -232,7 +232,17 @@ export class PositionsService extends SDKConstruct {
     // (e.g. USDC instead of dcUSDC); the wrapped underlying converts 1:1
     const token = this.sdk.tokensMeta.mustGetToken(market.unwrappedUnderlying);
     const totalDebtValue = ca.debt + ca.accruedInterest + ca.accruedFees;
-    const collateral = dominantCollateral(ca, market);
+    // current dominant collateral, with delayed-withdrawal phantoms reported
+    // as the asset they redeem into (same convention as LiquidationsService)
+    let collateral = dominantCollateral(ca, market);
+    if (collateral) {
+      const source =
+        this.sdk.withdrawalCompressor?.getWithdrawalSourceToken(collateral);
+      if (source) {
+        // a withdrawal back into the underlying is not a target collateral
+        collateral = hexEq(source, market.underlying) ? undefined : source;
+      }
+    }
 
     // healthFactor / leverage / borrowApy / netApy keep their existing
     // sources; only the fields the position does not have natively are filled

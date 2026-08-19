@@ -33,7 +33,15 @@ export function rayToBps(ray: bigint): Bps {
 }
 
 /**
+ * Raw 8-decimal USD values below this are compressor leftover dust (typically
+ * 1-wei balances on empty accounts) and report as `0`.
+ **/
+const USD_DUST_THRESHOLD = 1_000n; // $0.00001
+
+/**
  * Converts a USD value in the oracle's 8-decimal fixed point to a float.
+ *
+ * Values below {@link USD_DUST_THRESHOLD} report as `0`.
  *
  * @example
  * ```ts
@@ -42,7 +50,7 @@ export function rayToBps(ray: bigint): Bps {
  * ```
  **/
 export function usdToNumber(usd: bigint): number {
-  return Number(usd) / Number(PRICE_DECIMALS);
+  return usd < USD_DUST_THRESHOLD ? 0 : Number(usd) / Number(PRICE_DECIMALS);
 }
 
 /**
