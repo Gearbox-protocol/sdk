@@ -17,7 +17,11 @@ import {
 import { chains, type NetworkType, type OnchainSDK } from "../sdk/index.js";
 import { type AnvilInstance, startAnvil, stopAnvil } from "./anvil.js";
 import { ANVIL_PORT, ANVIL_URL } from "./constants.js";
-import { FORK_PROXY_PORT, type ForkProxy, startForkProxy } from "./forkProxy.js";
+import {
+  FORK_PROXY_PORT,
+  type ForkProxy,
+  startForkProxy,
+} from "./forkProxy.js";
 import {
   ORACLE_PROXY_PORT,
   type OracleProxy,
