@@ -8,6 +8,8 @@ import type {
 } from "../sdk/index.js";
 import { MultichainSDK, toChainIds } from "../sdk/index.js";
 import { assertSameChains, MissingSourceError } from "./errors/index.js";
+import type { LiquidationsByMode } from "./liquidations/index.js";
+import { LiquidationsNamespace } from "./liquidations/index.js";
 import type { Opportunities } from "./opportunities/index.js";
 import { OpportunitiesNamespace } from "./opportunities/index.js";
 import type { Positions } from "./positions/index.js";
@@ -67,6 +69,12 @@ export class GearboxSDK<const M extends Mode = Mode> {
    * Namespace for the positions a wallet holds.
    **/
   public readonly positions: Positions<M>;
+  /**
+   * Namespace for liquidatable credit accounts and delayed-withdrawal
+   * positions a liquidator holds. Onchain-only, hence gated by mode like
+   * every other chain read: absent in `offchain` mode.
+   **/
+  public readonly liquidations: LiquidationsByMode[M];
   /**
    * Namespace for on-chain previews of raw operation calldata. Onchain-only,
    * hence gated by mode like every other chain read: absent in `offchain`
@@ -179,6 +187,11 @@ export class GearboxSDK<const M extends Mode = Mode> {
       this.#offchain,
       namespaceOptions,
     ) as Positions<M>;
+    this.liquidations = (
+      this.#onchain
+        ? new LiquidationsNamespace(this.#onchain, namespaceOptions)
+        : undefined
+    ) as LiquidationsByMode[M];
     this.preview = (
       this.#onchain
         ? new PreviewNamespace(this.#onchain, namespaceOptions)
