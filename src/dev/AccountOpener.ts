@@ -34,7 +34,6 @@ import {
 import { iDegenNftv2Abi } from "./abi.js";
 import { claimFromFaucet } from "./claimFromFaucet.js";
 import { type AnvilClient, extendAnvilClient } from "./createAnvilClient.js";
-import { prependMidasReceiveGreenlist } from "./midasUtils.js";
 import { createMinter } from "./mint/index.js";
 
 const DIRECT_TRANSFERS_QUOTA = 10_000n;
@@ -447,12 +446,6 @@ export class AccountOpener extends SDKConstruct {
       target,
     });
     logger?.debug(strategy, "found open strategy");
-    const strategyCalls = await prependMidasReceiveGreenlist({
-      cm,
-      client: this.#anvil,
-      calls: strategy.calls,
-      logger,
-    });
     const debt = (minDebt * (leverage - PERCENTAGE_FACTOR)) / PERCENTAGE_FACTOR;
     const averageQuota = this.#getCollateralQuota(
       cm,
@@ -479,7 +472,7 @@ export class AccountOpener extends SDKConstruct {
       minQuota,
       collateral: [{ token: underlying, balance: minDebt }],
       debt,
-      calls: strategyCalls,
+      calls: strategy.calls,
       ethAmount: 0n,
       permits: {},
       to: borrower.address,

@@ -1,7 +1,6 @@
 import {
   type Address,
   type DecodeFunctionDataReturnType,
-  decodeAbiParameters,
   decodeFunctionData,
   type Hex,
   isAddressEqual,
@@ -9,8 +8,10 @@ import {
 } from "viem";
 import {
   type AssetsMap,
+  type IMidasAdapter,
   MissingSerializedParamsError,
   type OnchainSDK,
+  PlaceholderMidasGatewayAdapterContract,
 } from "../../../sdk/index.js";
 import { iMidasGatewayAdapterV311Abi } from "../abi/adapters/index.js";
 import { iMidasGatewayV311Abi } from "../abi/index.js";
@@ -27,10 +28,10 @@ type abi = typeof abi;
 const protocolAbi = iMidasGatewayV311Abi;
 type protocolAbi = typeof protocolAbi;
 
-export class MidasGatewayAdapterContract extends AbstractAdapterContract<
-  abi,
-  protocolAbi
-> {
+export class MidasGatewayAdapterContract
+  extends AbstractAdapterContract<abi, protocolAbi>
+  implements IMidasAdapter
+{
   #gateway?: Address;
   #mToken?: Address;
   #quoteToken?: Address;
@@ -41,24 +42,16 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
     super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
-      const decoded = decodeAbiParameters(
-        [
-          { type: "address", name: "creditManager" },
-          { type: "address", name: "targetContract" },
-          { type: "address", name: "gateway" },
-          { type: "address", name: "mToken" },
-          { type: "address", name: "quoteToken" },
-          { type: "address", name: "phantomToken" },
-          { type: "bytes32", name: "referrerId" },
-        ],
-        args.baseParams.serializedParams,
-      );
+      const decoded =
+        PlaceholderMidasGatewayAdapterContract.decodeSerializedParams(
+          args.baseParams.serializedParams,
+        );
 
-      this.#gateway = decoded[2];
-      this.#mToken = decoded[3];
-      this.#quoteToken = decoded[4];
-      this.#phantomToken = decoded[5];
-      this.#referrerId = decoded[6];
+      this.#gateway = decoded.gateway;
+      this.#mToken = decoded.mToken;
+      this.#quoteToken = decoded.quoteToken;
+      this.#phantomToken = decoded.phantomToken;
+      this.#referrerId = decoded.referrerId;
     }
   }
 

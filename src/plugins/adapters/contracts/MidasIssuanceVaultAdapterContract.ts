@@ -1,12 +1,10 @@
-import {
-  type Address,
-  type DecodeFunctionDataReturnType,
-  decodeAbiParameters,
-} from "viem";
+import type { Address, DecodeFunctionDataReturnType } from "viem";
 import {
   type AssetsMap,
+  type IMidasAdapter,
   MissingSerializedParamsError,
   type OnchainSDK,
+  PlaceholderMidasIssuanceVaultAdapterContract,
 } from "../../../sdk/index.js";
 import { iMidasIssuanceVaultAdapterV310Abi } from "../abi/adapters/index.js";
 import { iMidasIssuanceVaultV310Abi } from "../abi/targetContractAbi.js";
@@ -19,10 +17,10 @@ type abi = typeof abi;
 const protocolAbi = iMidasIssuanceVaultV310Abi;
 type protocolAbi = typeof protocolAbi;
 
-export class MidasIssuanceVaultAdapterContract extends AbstractAdapterContract<
-  abi,
-  protocolAbi
-> {
+export class MidasIssuanceVaultAdapterContract
+  extends AbstractAdapterContract<abi, protocolAbi>
+  implements IMidasAdapter
+{
   #mToken?: Address;
   #referrerId?: string;
   #allowedTokens?: Address[];
@@ -31,20 +29,14 @@ export class MidasIssuanceVaultAdapterContract extends AbstractAdapterContract<
     super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
-      const decoded = decodeAbiParameters(
-        [
-          { type: "address", name: "creditManager" },
-          { type: "address", name: "targetContract" },
-          { type: "address", name: "mToken" },
-          { type: "bytes32", name: "referrerId" },
-          { type: "address[]", name: "allowedTokens" },
-        ],
-        args.baseParams.serializedParams,
-      );
+      const decoded =
+        PlaceholderMidasIssuanceVaultAdapterContract.decodeSerializedParams(
+          args.baseParams.serializedParams,
+        );
 
-      this.#mToken = decoded[2];
-      this.#referrerId = decoded[3];
-      this.#allowedTokens = [...decoded[4]];
+      this.#mToken = decoded.mToken;
+      this.#referrerId = decoded.referrerId;
+      this.#allowedTokens = decoded.allowedTokens;
     }
   }
 
