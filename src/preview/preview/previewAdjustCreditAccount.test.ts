@@ -26,6 +26,10 @@ import { ERROR_UNPRICEABLE_TOKEN } from "./types.js";
 // data fixture is the pre-state of the credit account targeted by all sample
 // multicalls, captured at the same block; it is passed to previews via
 // `options.creditAccount` so they don't hit the credit account compressor.
+//
+// The account owes 40 WETH of principal with 122187064668312 wei of interest
+// and fees accrued on top, and `debt` is the whole of it — which is why the
+// expectations below are 40 WETH plus that tail rather than round numbers.
 // Regenerate both with `tsx scripts/generate-preview-adjust-ca-fixture.ts`.
 const STATE_FIXTURE = resolve(
   import.meta.dirname,
@@ -87,7 +91,7 @@ it("previews raising leverage to 6", async () => {
     collateralWithdrawn: [
       { token: CBETH, balance: 1_387_859_676_487_610_985n },
     ],
-    debt: 41_574_314_141_387_831_008n,
+    debt: 41_574_436_328_452_499_320n,
     debtChange: 1_574_314_141_387_831_008n,
     quotas: [{ token: CBETH, balance: 46_360_419_898_114_650_000n }],
     quotasChange: [{ token: CBETH, balance: -2_356_436_935_552_180_000n }],
@@ -109,7 +113,7 @@ it("previews depositing 1 WETH collateral", async () => {
     creditAccount: CREDIT_ACCOUNT,
     collateralAdded: [{ token: WETH, balance: parseEther("1") }],
     collateralWithdrawn: [],
-    debt: 43_992_309_953_971_869_727n,
+    debt: 43_992_432_141_036_538_039n,
     debtChange: 3_992_309_953_971_869_727n,
     quotas: [{ token: CBETH, balance: 50_318_692_608_187_300_000n }],
     quotasChange: [{ token: CBETH, balance: 1_601_835_774_520_470_000n }],
@@ -129,7 +133,7 @@ it("previews raising leverage 5.03 -> 5.2 while adding 1 WETH collateral", async
     creditAccount: CREDIT_ACCOUNT,
     collateralAdded: [{ token: WETH, balance: parseEther("1") }],
     collateralWithdrawn: [],
-    debt: 45_734_485_831_247_124_208n,
+    debt: 45_734_608_018_311_792_520n,
     debtChange: 5_734_485_831_247_124_208n,
     quotas: [{ token: CBETH, balance: 50_318_692_647_376_930_000n }],
     quotasChange: [{ token: CBETH, balance: 1_601_835_813_710_100_000n }],
@@ -149,7 +153,7 @@ it("previews adding 1 WETH collateral, then raising leverage 5.04 -> 5.2", async
     creditAccount: CREDIT_ACCOUNT,
     collateralAdded: [{ token: WETH, balance: parseEther("1") }],
     collateralWithdrawn: [],
-    debt: 45_734_471_867_011_162_116n,
+    debt: 45_734_594_054_075_830_428n,
     debtChange: 5_734_471_867_011_162_116n,
     quotas: [{ token: CBETH, balance: 50_318_692_647_376_840_000n }],
     quotasChange: [{ token: CBETH, balance: 1_601_835_813_710_010_000n }],
@@ -170,7 +174,7 @@ it("previews adding 1 WETH collateral", async () => {
     creditAccount: CREDIT_ACCOUNT,
     collateralAdded: [{ token: WETH, balance: parseEther("1") }],
     collateralWithdrawn: [],
-    debt: parseEther("40"),
+    debt: 40_000_122_187_064_668_312n,
     debtChange: 0n,
     quotas: [{ token: CBETH, balance: 48_716_856_833_666_830_000n }],
     quotasChange: [],
@@ -193,7 +197,7 @@ it("previews withdrawing 1 cbETH", async () => {
     collateralAdded: [],
     collateralWithdrawn: [{ token: CBETH, balance: 999_999_999_999_999_999n }],
     debt: 35_369_517_375_080_970_375n,
-    debtChange: -4_630_482_624_919_029_625n,
+    debtChange: -4_630_604_811_983_697_937n,
     quotas: [{ token: CBETH, balance: 41_035_601_537_003_630_000n }],
     quotasChange: [{ token: CBETH, balance: -7_681_255_296_663_200_000n }],
     assets: [
@@ -222,7 +226,7 @@ it("previews adjusting leverage to 7", async () => {
     collateralWithdrawn: [
       { token: CBETH, balance: 2_434_993_499_242_269_892n },
     ],
-    debt: 42_762_127_011_101_157_453n,
+    debt: 42_762_249_198_165_825_765n,
     debtChange: 2_762_127_011_101_157_453n,
     quotas: [{ token: CBETH, balance: 46_328_353_161_910_640_000n }],
     quotasChange: [{ token: CBETH, balance: -2_388_503_671_756_190_000n }],
@@ -244,7 +248,7 @@ it("previews adjusting leverage to 4", async () => {
     collateralAdded: [{ token: WETH, balance: 2_583_152_250_476_607_142n }],
     collateralWithdrawn: [],
     debt: 37_416_969_936_588_061_170n,
-    debtChange: -2_583_030_063_411_938_830n,
+    debtChange: -2_583_152_250_476_607_142n,
     quotas: [{ token: CBETH, balance: 48_716_856_833_666_830_000n }],
     quotasChange: [],
     assets: [{ token: CBETH, balance: 43_980_602_426_604_052_631n }],
@@ -283,7 +287,7 @@ it("reports an unpriceable-token error and keeps the best-effort preview", async
     creditManager: CREDIT_MANAGER,
     creditAccount: CREDIT_ACCOUNT,
     collateralAdded: [{ token: UNKNOWN, balance: amount }],
-    debt: parseEther("40"),
+    debt: 40_000_122_187_064_668_312n,
     debtChange: 0n,
     // best-effort: the unknown token still appears in assets, but only the
     // priceable pre-state cbETH contributes to totalValue (see the

@@ -39,6 +39,7 @@ import { isRedemptionPhantomToken } from "./utils/pick-token.js";
 import {
   clearedQuotas,
   getQuotasForUpdate,
+  quotasAfterUpdate,
 } from "./utils/quotas-for-update.js";
 import { createRouterPaths } from "./utils/router-path.js";
 
@@ -405,10 +406,19 @@ export async function realize(
     push(buildQuotaUpdateOperation({ update: quotas, creditAccount, sdk }));
   }
 
+  // The update names only the tokens the plan touched, so what the account is
+  // quoted at afterwards is it laid over the quotas the account came with —
+  // which is both what the metrics below are judged on and what the caller is
+  // shown.
+  const quotasAfter = quotasAfterUpdate(
+    creditAccount.tokens,
+    quotas.desiredQuota,
+  );
+
   const snapshot: AccountSnapshot = {
     creditManager: creditAccount.creditManager,
     assets,
-    quotas: Object.values(quotas.desiredQuota),
+    quotas: Object.values(quotasAfter),
     totalDebt: debt,
     totalValue,
   };
@@ -436,7 +446,7 @@ export async function realize(
       accountDebt: debt,
       leverage: calcPositionLeverage(totalValue, debt),
       assets,
-      quotas: quotas.desiredQuota,
+      quotas: quotasAfter,
       ...metrics,
     },
     calls: callsOf(operations),

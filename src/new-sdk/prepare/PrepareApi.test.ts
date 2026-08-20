@@ -215,7 +215,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     ).toMatchObject({ token: UND, amount: TVL - DEBT, to: WALLET });
     expect(exit.preview.accountDebt).toBe(0n);
     expect(exit.preview.assets).toEqual([]);
-    expect(exit.preview.quotas[POS]?.balance).toBe(0n);
+    expect(exit.preview.quotas).toEqual({});
     // an exit is the router's business; the issuer cannot serve one
     expect(data.refused.delayed).toBe("noDelayedRoute");
   });
@@ -238,7 +238,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       data.operations.find(op => op.type === "decreaseDebt"),
     ).toMatchObject({ amount: DEBT, full: true });
     expect(data.preview.accountDebt).toBe(0n);
-    expect(data.preview.quotas[POS]?.balance).toBe(0n);
+    expect(data.preview.quotas).toEqual({});
   });
 
   it("adjustLeverage retargets the debt and quotes both routes", async () => {

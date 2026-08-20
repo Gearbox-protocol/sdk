@@ -56,7 +56,11 @@ export interface OperationState {
   liquidationPrice: bigint | null;
   /** Account TVL after operation */
   totalValue: bigint;
-  /** Account debt after operation */
+  /**
+   * Account debt after operation: principal plus accrued interest and fees,
+   * the amount it would take to settle the loan — the same quantity the
+   * preview module reports as `debt`.
+   */
   accountDebt: bigint;
   /**
    * Leverage after operation in the read model's convention — `debt / equity`,
@@ -65,7 +69,11 @@ export interface OperationState {
   leverage: Leverage;
   /** Account assets after operation */
   assets: Asset[];
-  /** Account quotas after operation */
+  /**
+   * Every quota the account stands at after the operation: the ones the plan
+   * resized as well as the ones it left alone. Tokens it leaves unquoted are
+   * absent rather than present at zero.
+   */
   quotas: Record<Address, Asset>;
 }
 

@@ -220,11 +220,15 @@ export interface AdjustCreditAccountPreview {
    */
   totalValue: bigint;
   /**
-   * Borrowed amount in underlying
+   * What the account owes in underlying once the operation lands: principal
+   * plus accrued interest and fees, which is the amount it would take to
+   * settle the loan — the same quantity `prepare` projects as `accountDebt`.
    */
   debt: bigint;
   /**
-   * Debt after minus debt before
+   * Debt after minus debt before. A repayment settles interest and fees
+   * before principal, so this is the payment itself rather than the part of
+   * it the principal happened to absorb.
    */
   debtChange: bigint;
   /**

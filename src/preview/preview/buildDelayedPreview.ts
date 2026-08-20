@@ -305,10 +305,10 @@ function buildAdjustPreview(
     collateralAdded: [],
     collateralWithdrawn: collateralWithdrawn.toAssets(),
     totalValue,
-    debt: post.debt,
+    debt: post.totalDebt,
     // relative to the pre-transaction state: where the account will end up
     // compared to now, once the withdrawal is claimed and the intent resumed
-    debtChange: post.debt - before.debt,
+    debtChange: post.totalDebt - before.totalDebt,
     quotas,
     quotasChange: post.quotas.difference(before.quotas).toAssets(),
     assets,

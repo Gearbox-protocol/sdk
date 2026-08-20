@@ -114,7 +114,7 @@ describe("withdraw.start — everything out, account left open", () => {
     );
 
     expect(state.assets).toEqual([]);
-    expect(state.quotas[POS]?.balance).toBe(0n);
+    expect(state.quotas).toEqual({});
   });
 
   it("gives the router every token at once, and pays out in one", async () => {
@@ -174,8 +174,8 @@ describe("withdraw.start — everything out, account left open", () => {
         { token: POS2, balance: MIN_INT96 },
       ],
     });
-    expect(result.preview.quotas[POS]?.balance).toBe(0n);
-    expect(result.preview.quotas[POS2]?.balance).toBe(0n);
+    // nothing is left quoted, whatever it was quoted at before
+    expect(result.preview.quotas).toEqual({});
   });
 
   it("RWA market: the wrapper is unwrapped before anything leaves", async () => {

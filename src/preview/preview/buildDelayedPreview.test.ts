@@ -290,7 +290,7 @@ describe("buildDelayedPreview DECREASE_LEVERAGE", () => {
       // 1000 claimed - 600 repaid
       totalValue: 400n,
       debt: 0n,
-      debtChange: -500n,
+      debtChange: -600n,
       quotas: [],
       // relative to the pre-transaction state: the transient phantom token
       // (minted by the instant part, burned by the claim) nets out to nothing
@@ -318,9 +318,10 @@ describe("buildDelayedPreview DECREASE_LEVERAGE", () => {
     );
     expect(preview.operation).toBe("AdjustCreditAccount");
     if (preview.operation === "AdjustCreditAccount") {
-      // 100 repays accrued interest/fees first, principal is unchanged
-      expect(preview.debt).toBe(1000n);
-      expect(preview.debtChange).toBe(0n);
+      // 100 goes to the accrued interest and fees, which the principal sits
+      // behind: the loan shrinks by the payment, the principal by nothing
+      expect(preview.debt).toBe(1400n);
+      expect(preview.debtChange).toBe(-100n);
       expect(preview.assets).toEqual([]);
     }
   });
@@ -356,7 +357,7 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
       ]);
       // 700 remaining claim repays 600 total debt, 100 underlying is left
       expect(preview.debt).toBe(0n);
-      expect(preview.debtChange).toBe(-500n);
+      expect(preview.debtChange).toBe(-600n);
       expect(preview.assets).toEqual([{ token: UNDERLYING, balance: 100n }]);
     }
   });
@@ -391,7 +392,7 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
       ]);
       // 200 repays interest/fees (100) then principal (100)
       expect(preview.debt).toBe(400n);
-      expect(preview.debtChange).toBe(-100n);
+      expect(preview.debtChange).toBe(-200n);
       // 700 swept into underlying, 200 spent on the repayment
       expect(preview.assets).toEqual([{ token: UNDERLYING, balance: 500n }]);
     }
@@ -421,7 +422,7 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
     );
     expect(preview.operation).toBe("AdjustCreditAccount");
     if (preview.operation === "AdjustCreditAccount") {
-      expect(preview.debt).toBe(500n);
+      expect(preview.debt).toBe(600n);
       expect(preview.debtChange).toBe(0n);
       expect(preview.assets).toEqual([{ token: UNDERLYING, balance: 700n }]);
     }
@@ -489,7 +490,7 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
       // 100_000 claimed - 20_000 spent on the withdrawal = 80_000 swept
       // into the underlying; 60_000 repays the total debt in full
       expect(preview.debt).toBe(0n);
-      expect(preview.debtChange).toBe(-50_000n);
+      expect(preview.debtChange).toBe(-60_000n);
       expect(preview.assets).toEqual([{ token: UNDERLYING, balance: 20_000n }]);
     }
   });
@@ -611,7 +612,7 @@ describe("buildDelayedPreview claim-only", () => {
     collateralAdded: [],
     collateralWithdrawn: [],
     totalValue: 1200n,
-    debt: 500n,
+    debt: 600n,
     debtChange: 0n,
     quotas: [],
     // the phantom token round trip nets out to nothing vs the pre-state

@@ -164,6 +164,34 @@ export function clearedQuotas(
   };
 }
 
+/**
+ * The quotas the account stands at once an update lands: the ones it came with,
+ * with the ones the update names written over them.
+ *
+ * An update only names the tokens its operation touched — see
+ * {@link filterQuotaUpdates} — and the quotas of everything else keep standing,
+ * so the update alone is not the account's quota set. Quotas that end at zero
+ * are dropped: a token with no quota is a token the account is not quoted for.
+ */
+export function quotasAfterUpdate(
+  initialQuotas: Array<InitialQuota> | readonly InitialQuota[],
+  desiredQuota: Record<Address, Asset>,
+): Record<Address, Asset> {
+  const after: Record<Address, Asset> = {};
+  for (const q of initialQuotas) {
+    const token = q.token.toLowerCase() as Address;
+    if (q.quota > 0n) after[token] = { token, balance: q.quota };
+  }
+  for (const [token, quota] of TypedObjectUtils.entries(desiredQuota)) {
+    if (quota.balance > 0n) {
+      after[token] = quota;
+    } else {
+      delete after[token];
+    }
+  }
+  return after;
+}
+
 function collectQuotaChange(
   assetsBefore: Asset[],
   assetsAfter: Asset[],

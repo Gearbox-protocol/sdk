@@ -91,9 +91,10 @@ describe("repay.start — debt down, position untouched", () => {
       expectedCalls: [CA_OP_CALLS.addCollateral, CA_OP_CALLS.decreaseDebt],
     });
 
-    // The position keeps the quota it had — it still backs a loan — and an
-    // untouched quota is one the preview does not report.
-    expect(state.quotas).toEqual({});
+    // The position keeps the quota it had: it still backs a loan.
+    expect(state.quotas).toEqual({
+      [POS]: { token: POS, balance: QUOTA_POS },
+    });
     expect(assetBalance(state.assets, UND)).toBe(0n);
   });
 
@@ -119,7 +120,8 @@ describe("repay.start — debt down, position untouched", () => {
       ],
     });
 
-    expect(state.quotas[POS]?.balance).toBe(0n);
+    // nothing is quoted once the loan is gone
+    expect(state.quotas).toEqual({});
   });
 
   it("asks the facade for all of it, so accrued interest cannot leave dust", async () => {
@@ -199,7 +201,7 @@ describe("repay.start — debt down, position untouched", () => {
     expect(
       expectOk(result).operations.find(op => op.type === "decreaseDebt"),
     ).toMatchObject({ amount: DEBT, full: true });
-    expect(state.quotas[POS]?.balance).toBe(0n);
+    expect(state.quotas).toEqual({});
     expect(assetBalance(state.assets, UND)).toBe(MARGIN);
   });
 
@@ -288,7 +290,9 @@ describe("repay.start — debt down, position untouched", () => {
 
     // the wrap is the raw asset's way in; funding already denominated in the
     // underlying has nowhere to go, and the quotas back a loan that survives
-    expect(state.quotas).toEqual({});
+    expect(state.quotas).toEqual({
+      [POS]: { token: POS, balance: QUOTA_POS },
+    });
     expect(assetBalance(state.assets, RWA_ASSET)).toBe(0n);
   });
 
