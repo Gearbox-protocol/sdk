@@ -119,5 +119,6 @@ function poolPosition(chainId: number): PoolPositionBody {
       },
     },
     apy: { organicApy: 500 },
+    apyAvg7D: { organicApy: 475 },
   };
 }

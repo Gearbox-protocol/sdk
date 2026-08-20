@@ -127,6 +127,7 @@ describe("decoding what the backend answered", () => {
           pool: POOL,
           netValue: { value: "1000000", valueUsd: 1, token: underlying },
           apy: { organicApy: 500 },
+          apyAvg7D: { organicApy: 475 },
         },
         {
           kind: "strategy",
@@ -137,6 +138,14 @@ describe("decoding what the backend answered", () => {
           targetCollateral: null,
           leverage: 3.5,
           borrowApy: 520,
+          borrowApyAvg7D: 500,
+          netApyAvg7D: { organicApy: 650 },
+          borrowRateAvg7D: {
+            total: 450,
+            totalOnDebt: 500,
+            base: 400,
+            quotas: [],
+          },
           totalDebt: { value: "7000000", valueUsd: 7, token: underlying },
           totalValue: { value: "9000000", valueUsd: 9, token: underlying },
           healthFactor: 12_500,
@@ -159,11 +168,25 @@ describe("decoding what the backend answered", () => {
 
     expect(data).toHaveLength(2);
     const [pool, strategy] = data;
-    expect(pool).toMatchObject({ kind: "pool", name: "USDC Pool" });
+    expect(pool).toMatchObject({
+      kind: "pool",
+      name: "USDC Pool",
+      apyAvg7D: { organicApy: 475 },
+    });
     expect(pool?.kind === "pool" && pool.netValue.value).toBe(1_000_000n);
     expect(strategy?.kind === "strategy" && strategy.totalDebt.value).toBe(
       7_000_000n,
     );
+    expect(strategy).toMatchObject({
+      borrowApyAvg7D: 500,
+      netApyAvg7D: { organicApy: 650 },
+      borrowRateAvg7D: {
+        total: 450,
+        totalOnDebt: 500,
+        base: 400,
+        quotas: [],
+      },
+    });
     // the backend does not have to send `source`, so the client stamps it
     expect(meta.chains[0]).toMatchObject({
       chainId: MAINNET,

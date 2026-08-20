@@ -186,6 +186,7 @@ function poolOpportunity(chainId: number): PoolOpportunityBody {
     availableLiquidity: AMOUNT,
     utilization: 5000,
     supplyApy: { organicApy: 500 },
+    supplyApyAvg7D: { organicApy: 475 },
   };
 }
 
@@ -218,6 +219,10 @@ function strategyOpportunityDetail(
     liquidationPremium: 500,
     liquidationFee: 100,
     expirationDate: null,
+    collateralApyAvg7D: { organicApy: 450 },
+    maxLeverageApyAvg7D: { organicApy: 700 },
+    borrowApyAvg7D: 425,
+    additionalBorrowApyAvg7D: 75,
     availableLiquidity: AMOUNT,
     minDebt: AMOUNT,
     totalDebtLimit: AMOUNT,

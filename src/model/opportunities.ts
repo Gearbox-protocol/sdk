@@ -214,6 +214,14 @@ export interface PoolOpportunity extends OpportunityBase {
    * so this group is present in `onchain` mode too, with only that part filled.
    **/
   supplyApy: ApyBreakdown;
+  /**
+   * Average {@link supplyApy} over the trailing seven days.
+   *
+   * Absent in `onchain` mode: calculating it requires historical data.
+   *
+   * @mode offchain
+   **/
+  supplyApyAvg7D?: ApyBreakdown;
 }
 
 /**
@@ -270,6 +278,12 @@ export interface StrategyOpportunity extends OpportunityBase {
    **/
   collateralApy?: ApyBreakdown;
   /**
+   * Average {@link collateralApy} over the trailing seven days.
+   *
+   * @mode offchain
+   **/
+  collateralApyAvg7D?: ApyBreakdown;
+  /**
    * Net yield at {@link maxLeverage}:
    * `collateralApy × maxLeverage − borrowApy × (maxLeverage − 1) − additionalBorrowApy`.
    * Yield is on the whole position; borrow interest is on the borrowed part only.
@@ -280,12 +294,26 @@ export interface StrategyOpportunity extends OpportunityBase {
    **/
   maxLeverageApy?: ApyBreakdown;
   /**
+   * Average {@link maxLeverageApy} over the trailing seven days.
+   *
+   * @mode offchain
+   **/
+  maxLeverageApyAvg7D?: ApyBreakdown;
+  /**
    * Annual cost of the borrowed underlying, in basis points, including the
    * protocol's interest fee.
    *
    * @example `520` for 5.2% APY
    **/
   borrowApy?: Bps;
+  /**
+   * Average {@link borrowApy} over the trailing seven days, in basis points.
+   *
+   * Absent in `onchain` mode: calculating it requires historical data.
+   *
+   * @mode offchain
+   **/
+  borrowApyAvg7D?: Bps;
   /**
    * Annual cost of the quota on {@link targetCollateral}, in basis points:
    * `quotaRate × (1 + feeInterest) × maxLeverage`. Quota accrues on the whole
@@ -294,6 +322,15 @@ export interface StrategyOpportunity extends OpportunityBase {
    * @example `90` for +0.9% APY
    **/
   additionalBorrowApy?: Bps;
+  /**
+   * Average {@link additionalBorrowApy} over the trailing seven days, in basis
+   * points.
+   *
+   * Absent in `onchain` mode: calculating it requires historical data.
+   *
+   * @mode offchain
+   **/
+  additionalBorrowApyAvg7D?: Bps;
   /**
    * Size of the strategy: the summed total value of the credit accounts
    * holding {@link targetCollateral}. An account that holds several strategy
