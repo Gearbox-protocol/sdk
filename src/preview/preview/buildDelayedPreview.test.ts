@@ -106,6 +106,13 @@ const metricsSdk = (() => {
           baseInterestRate: 0n,
           feeInterest: 0,
           quotaRates: {},
+          resolveToken: address => ({
+            chainId: 1,
+            address,
+            symbol: "TOKEN",
+            name: "TOKEN",
+            decimals: 18,
+          }),
         });
       return {
         healthFactor,

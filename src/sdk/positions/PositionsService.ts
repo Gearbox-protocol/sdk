@@ -168,6 +168,7 @@ export class PositionsService extends SDKConstruct {
       baseInterestRate: data.baseInterestRate,
       feeInterest: data.feeInterest,
       quotaRates: data.quotaRates,
+      resolveToken: address => this.sdk.tokensMeta.mustGetToken(address),
     });
   }
 
@@ -193,6 +194,7 @@ export class PositionsService extends SDKConstruct {
           baseInterestRate: data.baseInterestRate,
           feeInterest: data.feeInterest,
           quotaRates: data.quotaRates,
+          resolveToken: address => this.sdk.tokensMeta.mustGetToken(address),
         }).totalOnDebt,
       ),
     );

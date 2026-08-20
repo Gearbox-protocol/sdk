@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 import { describe, expect, it } from "vitest";
+import type { Token } from "../../model/index.js";
 import { calcBorrowRate } from "./calcBorrowRate.js";
 import type { AccountSnapshot } from "./types.js";
 
@@ -10,6 +11,16 @@ const DAI =
 
 // 2% base rate in ray
 const baseInterestRate = 2n * 10n ** 25n;
+
+function resolveToken(address: Address): Token {
+  return {
+    chainId: 1,
+    address,
+    symbol: "TOKEN",
+    name: "TOKEN",
+    decimals: 18,
+  };
+}
 
 function snapshot(partial: Partial<AccountSnapshot>): AccountSnapshot {
   return {
@@ -33,11 +44,14 @@ describe("calcBorrowRate", () => {
       baseInterestRate,
       feeInterest: 0,
       quotaRates: { [WETH]: 5 },
+      resolveToken,
     });
 
     expect(result.base).toBe(200);
     // quota: 100 * 5 = 500; total = 5*200/10 + 500/10; totalOnDebt = 200 + 500/5
-    expect(result.quotas).toEqual({ [WETH]: 50 });
+    expect(result.quotas).toEqual([
+      { token: expect.objectContaining({ address: WETH }), rate: 50 },
+    ]);
     expect(result.total).toBe(150);
     expect(result.totalOnDebt).toBe(300);
   });
@@ -52,12 +66,15 @@ describe("calcBorrowRate", () => {
       baseInterestRate,
       feeInterest: 500,
       quotaRates: { [WETH]: 333 },
+      resolveToken,
     });
 
     // base = 200 * 1.05 = 210
     expect(result.base).toBe(210);
     // rateBalance = 100 * 333 = 33300; with fee: 33300 * 1.05 = 34965
-    expect(result.quotas).toEqual({ [WETH]: 3496 });
+    expect(result.quotas).toEqual([
+      { token: expect.objectContaining({ address: WETH }), rate: 3496 },
+    ]);
     // total = 5*210/10 + 34965/10; totalOnDebt = 210 + 34965/5
     expect(result.total).toBe(105 + 3496);
     expect(result.totalOnDebt).toBe(210 + 6993);
@@ -73,9 +90,12 @@ describe("calcBorrowRate", () => {
       baseInterestRate,
       feeInterest: 0,
       quotaRates: {},
+      resolveToken,
     });
 
-    expect(result.quotas).toEqual({ [WETH]: 0 });
+    expect(result.quotas).toEqual([
+      { token: expect.objectContaining({ address: WETH }), rate: 0 },
+    ]);
     expect(result.total).toBe(100);
     expect(result.totalOnDebt).toBe(200);
   });
@@ -90,9 +110,10 @@ describe("calcBorrowRate", () => {
       baseInterestRate,
       feeInterest: 0,
       quotaRates: { [WETH]: 5 },
+      resolveToken,
     });
 
-    expect(result.quotas).toEqual({});
+    expect(result.quotas).toEqual([]);
     expect(result.total).toBe(100);
     expect(result.totalOnDebt).toBe(200);
   });
@@ -107,13 +128,14 @@ describe("calcBorrowRate", () => {
       baseInterestRate,
       feeInterest: 0,
       quotaRates: { [WETH]: 5 },
+      resolveToken,
     });
 
     expect(result).toEqual({
       total: 0,
       totalOnDebt: 0,
       base: 200,
-      quotas: { [WETH]: 0 },
+      quotas: [{ token: expect.objectContaining({ address: WETH }), rate: 0 }],
     });
   });
 });

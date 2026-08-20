@@ -81,7 +81,7 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
     expect(preview.healthFactor).toBeGreaterThan(10000);
     // no base rate in the fixture market; the POS quota carries the cost
     expect(preview.borrowRate.base).toBe(0);
-    expect(Object.keys(preview.borrowRate.quotas)).toEqual([POS]);
+    expect(preview.borrowRate.quotas.map(q => q.token.address)).toEqual([POS]);
     expect(preview.borrowRate.totalOnDebt).toBeGreaterThan(0);
     expect(preview.timeToLiquidation).not.toBeNull();
     // everything is routed into POS: a single target, so a price exists

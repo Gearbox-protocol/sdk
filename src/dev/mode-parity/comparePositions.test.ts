@@ -74,7 +74,7 @@ function borrowRate(): BorrowRateBreakdown {
     total: 400,
     totalOnDebt: 520,
     base: 520,
-    quotas: {},
+    quotas: [],
   };
 }
 

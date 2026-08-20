@@ -1,5 +1,10 @@
 import type { Address } from "viem";
-import type { BorrowRateBreakdown, Bps } from "../../model/index.js";
+import type {
+  BorrowRateBreakdown,
+  Bps,
+  Token,
+  TokenQuotaRate,
+} from "../../model/index.js";
 import { DUST_THRESHOLD, PERCENTAGE_FACTOR } from "../constants/math.js";
 import { calcBorrowApy } from "../market/math.js";
 import { AddressMap } from "../utils/AddressMap.js";
@@ -23,6 +28,10 @@ export interface CalcBorrowRateProps {
    * (zero contribution), but a per-token entry is still reported.
    **/
   quotaRates: Record<Address, Bps>;
+  /**
+   * Resolves full token metadata for a quota token address.
+   **/
+  resolveToken: (address: Address) => Token;
 }
 
 /**
@@ -40,7 +49,8 @@ export interface CalcBorrowRateProps {
 export function calcBorrowRate(
   props: CalcBorrowRateProps,
 ): BorrowRateBreakdown {
-  const { snapshot, baseInterestRate, feeInterest, quotaRates } = props;
+  const { snapshot, baseInterestRate, feeInterest, quotaRates, resolveToken } =
+    props;
   const { quotas, totalDebt, totalValue } = snapshot;
   const rates = new AddressMap(Object.entries(quotaRates));
 
@@ -49,7 +59,7 @@ export function calcBorrowRate(
 
   // Σ balance * rate over active quotas, before the interest fee
   let quotaRateSum = 0n;
-  const perQuota: Record<Address, Bps> = {};
+  const perQuota: TokenQuotaRate[] = [];
   for (const q of quotas) {
     if (q.balance <= DUST_THRESHOLD) {
       continue;
@@ -60,7 +70,10 @@ export function calcBorrowRate(
     // per-token contributions carry the fee per token
     // (`getSingleQuotaBorrowRate` parity)
     const withFee = (rateBalance * fee) / PERCENTAGE_FACTOR;
-    perQuota[q.token] = totalValue > 0n ? Number(withFee / totalValue) : 0;
+    perQuota.push({
+      token: resolveToken(q.token),
+      rate: totalValue > 0n ? Number(withFee / totalValue) : 0,
+    });
   }
   // the aggregate terms carry the fee once, on the sum
   // (`getAverageQuotaBorrowRate` parity)

@@ -223,7 +223,7 @@ describe("buildTx — open", () => {
     calls: [CALL],
     healthFactor: 0,
     overallApy: 0,
-    borrowRate: { total: 0, totalOnDebt: 0, base: 0, quotas: {} },
+    borrowRate: { total: 0, totalOnDebt: 0, base: 0, quotas: [] },
     timeToLiquidation: null,
     liquidationPrice: null,
   };
@@ -368,7 +368,7 @@ describe("buildTx — account", () => {
       quotas: {},
       healthFactor: 0,
       overallApy: 0,
-      borrowRate: { total: 0, totalOnDebt: 0, base: 0, quotas: {} },
+      borrowRate: { total: 0, totalOnDebt: 0, base: 0, quotas: [] },
       timeToLiquidation: null,
       liquidationPrice: null,
     },

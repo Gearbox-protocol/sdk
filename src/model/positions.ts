@@ -152,6 +152,15 @@ export interface PoolPosition {
 }
 
 /**
+ * Per-token quota rate contribution of one collateral token, relative to the
+ * position's total value.
+ **/
+export interface TokenQuotaRate {
+  token: Token;
+  rate: Bps;
+}
+
+/**
  * Cost of a position's debt broken down by source.
  *
  * The base rate is what the pool charges on the debt; each quoted collateral
@@ -176,7 +185,7 @@ export interface BorrowRateBreakdown {
   /**
    * Per-token quota rate contribution, relative to the position's total value.
    **/
-  quotas: Record<Address, Bps>;
+  quotas: TokenQuotaRate[];
 }
 
 /**

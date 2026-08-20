@@ -70,6 +70,13 @@ describe("calcTimeToLiquidationMs composed with calcHealthFactor + calcBorrowRat
       baseInterestRate: 5n * 10n ** 25n, // 5% base APR in ray
       feeInterest: 1000, // 10% protocol fee
       quotaRates: { [WETH]: 200 }, // 2% quota rate
+      resolveToken: address => ({
+        chainId: 1,
+        address,
+        symbol: "TOKEN",
+        name: "TOKEN",
+        decimals: 18,
+      }),
     });
 
     expect(hf).toBe(10244); // HF 1.0244 — barely above liquidation

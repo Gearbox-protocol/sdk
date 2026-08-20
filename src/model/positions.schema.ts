@@ -104,13 +104,21 @@ export const poolPositionSchema = z.object({
 });
 
 /**
+ * {@link TokenQuotaRate}
+ **/
+export const tokenQuotaRateSchema = z.object({
+  token: tokenSchema,
+  rate: bpsSchema,
+});
+
+/**
  * {@link BorrowRateBreakdown}
  **/
 export const borrowRateBreakdownSchema = z.object({
   total: bpsSchema,
   totalOnDebt: bpsSchema,
   base: bpsSchema,
-  quotas: z.record(ZodAddress(), bpsSchema),
+  quotas: z.array(tokenQuotaRateSchema),
 });
 
 /**
