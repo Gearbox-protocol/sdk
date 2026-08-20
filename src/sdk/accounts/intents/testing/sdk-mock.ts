@@ -538,6 +538,13 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
           ? "PHANTOM_TOKEN::SECURITIZE_RD"
           : undefined,
       }),
+      mustGetToken: (token: Address) => ({
+        chainId: 1,
+        address: token,
+        symbol: "TOKEN",
+        name: "TOKEN",
+        decimals: decimalsOf(token),
+      }),
       rwaUnderlyings: {
         get: (token: Address) => {
           const asset = args.rwaAssets?.[token.toLowerCase() as Address];
