@@ -22,11 +22,11 @@ const POOL = "0x2222222222222222222222222222222222222222" as Address;
 const TOKEN = "0x3333333333333333333333333333333333333333" as Address;
 
 describeOffchainFallback({
-  makeNamespace: (onchainStub, api) =>
+  makeNamespace: (onchainStub, api, options) =>
     new PositionsNamespace(
       { positions: onchainStub } as unknown as MultichainSDK,
       api,
-      { maxOffchainLagSeconds: 120 },
+      options,
     ),
   cases: [
     {
@@ -45,6 +45,17 @@ describeOffchainFallback({
       },
     },
     {
+      method: "list",
+      kind: "merged",
+      invoke: ns => ns.list(WALLET, { chainIds: [TEST_CHAIN_B] }),
+      expectedChainIds: [TEST_CHAIN_B],
+      onchainResponse: listOnchain(TEST_CHAIN_B),
+      offchainPayload: {
+        data: [poolPosition(TEST_CHAIN_B)],
+        meta: { chains: [offchainSuccess(TEST_CHAIN_B)] },
+      },
+    },
+    {
       method: "charts",
       kind: "offchainOnly",
       invoke: ns =>
@@ -60,15 +71,17 @@ describeOffchainFallback({
 /**
  * On-chain list the merge can pick rows from by `chainId`.
  **/
-function listOnchain(): DataResponse<Position[]> {
+function listOnchain(...chainIds: number[]): DataResponse<Position[]> {
+  const ids = chainIds.length > 0 ? chainIds : [TEST_CHAIN_A, TEST_CHAIN_B];
   return {
-    data: [
-      { chainId: TEST_CHAIN_A, name: "onchain A" } as Position,
-      { chainId: TEST_CHAIN_B, name: "onchain B" } as Position,
-    ],
-    meta: {
-      chains: [onchainSuccess(TEST_CHAIN_A), onchainSuccess(TEST_CHAIN_B)],
-    },
+    data: ids.map(
+      chainId =>
+        ({
+          chainId,
+          name: chainId === TEST_CHAIN_A ? "onchain A" : "onchain B",
+        }) as Position,
+    ),
+    meta: { chains: ids.map(onchainSuccess) },
   };
 }
 

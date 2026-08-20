@@ -4,6 +4,7 @@ import type { DataResponse, Opportunity } from "../model/index.js";
 import type { NetworkType, OnchainSDK } from "../sdk/index.js";
 import { MultichainSDK, SdkNotAttachedError } from "../sdk/index.js";
 import { GearboxSDK } from "./GearboxSDK.js";
+import { jsonResponse, offchainSuccess } from "./testing/offchainFailures.js";
 
 /**
  * The SDK's loading policy (plan §3.1): attach on the first async read,
@@ -67,6 +68,39 @@ function build(networks: NetworkType[] = ["Mainnet"]) {
     .mockResolvedValue(answered(1, NOW));
   const getPool = vi.spyOn(sdk.opportunities.onchain, "getPool");
   return { sdk, attach, chains, list, getPool };
+}
+
+/**
+ * Same on-chain stubbing as {@link build}, plus a healthy backend the merge
+ * can fall back to.
+ **/
+function buildBoth(networks: NetworkType[] = ["Mainnet"]) {
+  const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+    jsonResponse({
+      data: [],
+      meta: { chains: [offchainSuccess(1)] },
+    }),
+  );
+  const sdk = new GearboxSDK({
+    mode: "both",
+    networks,
+    onchain: {
+      chains: Object.fromEntries(
+        networks.map(n => [n, { rpcURLs: [RPC], timeout: 1_000 }]),
+      ),
+    },
+    offchain: { baseUrl: "https://api.gearbox.fi" },
+    maxStateAgeSeconds: MAX_AGE,
+  });
+  const attach = vi.spyOn(sdk.onchain, "attach").mockResolvedValue(undefined);
+  const chains = new Map<NetworkType, ReturnType<typeof stubChain>>();
+  for (const network of networks) {
+    chains.set(network, stubChain(sdk.onchain.chain(network)));
+  }
+  const list = vi
+    .spyOn(sdk.opportunities.onchain, "list")
+    .mockResolvedValue(answered(1, NOW));
+  return { sdk, attach, chains, list, fetchMock };
 }
 
 /** Pins a chain's loaded state at `NOW` and turns its sync into a spy. */
@@ -297,6 +331,41 @@ describe("GearboxSDK loading", () => {
     expect(chain.syncState).toHaveBeenCalledTimes(1);
     expect(list).toHaveBeenCalledTimes(1);
     expect(response.data).toEqual([]);
+  });
+
+  it("in both mode a rejected attach falls back to a healthy backend", async () => {
+    const { sdk, attach } = buildBoth();
+    attach.mockRejectedValue(new Error("rpc down"));
+
+    const response = await sdk.opportunities.list();
+
+    expect(
+      response.meta.chains.every(chain => chain.source === "offchain"),
+    ).toBe(true);
+    expect(sdk.attached).toBe(false);
+  });
+
+  it("in both mode a failed sync serves the previous on-chain state when the backend is down", async () => {
+    const { sdk, chains, list, fetchMock } = buildBoth();
+    const chain = chains.get("Mainnet");
+    if (!chain) throw new Error("unreachable");
+    chain.age(MAX_AGE + 1);
+    chain.syncState.mockRejectedValue(new Error("rpc down"));
+    fetchMock.mockRejectedValue(new TypeError("fetch failed"));
+    list.mockRestore();
+    Object.defineProperty(sdk.onchain.chain("Mainnet"), "opportunities", {
+      value: { list: vi.fn(async () => []) },
+    });
+
+    const response = await sdk.opportunities.list();
+
+    expect(chain.syncState).toHaveBeenCalledTimes(1);
+    expect(response.meta.chains[0]).toMatchObject({
+      status: "success",
+      source: "onchain",
+      blockNumber: 100,
+      timestamp: NOW - MAX_AGE - 1,
+    });
   });
 
   it("the sync LP simulation before attach throws SdkNotAttachedError, as before", () => {

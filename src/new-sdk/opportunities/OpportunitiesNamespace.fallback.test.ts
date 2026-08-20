@@ -62,11 +62,11 @@ const CURATOR_BODY = {
 };
 
 describeOffchainFallback({
-  makeNamespace: (onchainStub, api) =>
+  makeNamespace: (onchainStub, api, options) =>
     new OpportunitiesNamespace(
       { opportunities: onchainStub } as unknown as MultichainSDK,
       api,
-      { maxOffchainLagSeconds: 120 },
+      options,
     ),
   cases: [
     {
@@ -88,6 +88,7 @@ describeOffchainFallback({
       method: "getPool",
       kind: "merged",
       invoke: ns => ns.getPool({ chainId: TEST_CHAIN_A, pool: POOL }),
+      expectedChainIds: [TEST_CHAIN_A],
       onchainResponse: poolOnchain(),
       offchainPayload: {
         data: poolOpportunityDetail(TEST_CHAIN_A),
@@ -103,6 +104,7 @@ describeOffchainFallback({
           creditManager: CREDIT_MANAGER,
           targetCollateral: TOKEN,
         }),
+      expectedChainIds: [TEST_CHAIN_A],
       onchainResponse: strategyOnchain(),
       offchainPayload: {
         data: strategyOpportunityDetail(TEST_CHAIN_A),
