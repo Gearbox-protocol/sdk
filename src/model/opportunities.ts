@@ -317,6 +317,22 @@ export interface StrategyOpportunity extends OpportunityBase {
    **/
   utilization?: Bps;
   /**
+   * Free liquidity of the pool the strategy borrows from, denominated in the
+   * underlying. Same value the market's {@link PoolOpportunity} reports.
+   **/
+  availableLiquidity: Amount;
+  /**
+   * Smallest debt a position in this credit manager may hold, denominated in
+   * the underlying (`creditFacade.minDebt`).
+   **/
+  minDebt: Amount;
+  /**
+   * Cap on the total debt this credit manager may draw from the pool, shared
+   * by all of its accounts and denominated in the underlying
+   * (`creditManagerDebtParams.limit`).
+   **/
+  totalDebtLimit: Amount;
+  /**
    * Largest debt a single new position can take on right now: the tightest of
    * the credit manager's remaining debt limit, the pool's free liquidity and
    * the facade's per-account maximum.

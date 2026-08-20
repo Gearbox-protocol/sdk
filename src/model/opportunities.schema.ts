@@ -122,6 +122,9 @@ export const strategyOpportunitySchema = z.object({
   additionalBorrowApy: tolerance(bpsSchema, "bps").optional(),
   totalValue: offchainOnly(amountSchema).optional(),
   utilization: offchainOnly(bpsSchema).optional(),
+  availableLiquidity: tolerance(amountSchema, "amount"),
+  minDebt: amountSchema,
+  totalDebtLimit: amountSchema,
   maxBorrowAmount: amountSchema,
   maxLeverage: leverageSchema,
 });

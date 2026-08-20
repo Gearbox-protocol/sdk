@@ -314,8 +314,8 @@ export class CreditSuite extends SDKConstruct {
 
     const liquidationThreshold = cm.liquidationThresholds.mustGet(collateral);
     const maxLeverage = cm.maxLeverage(collateral);
-    const borrowed =
-      pool.creditManagerDebtParams.get(cm.address)?.borrowed ?? 0n;
+    const debtParams = pool.creditManagerDebtParams.get(cm.address);
+    const borrowed = debtParams?.borrowed ?? 0n;
 
     return {
       kind: "strategy",
@@ -345,6 +345,12 @@ export class CreditSuite extends SDKConstruct {
         cm.feeInterest,
         maxLeverage,
       ),
+      availableLiquidity: oracle.toAmount(
+        pool.underlying,
+        pool.availableLiquidity,
+      ),
+      minDebt: oracle.toAmount(pool.underlying, this.creditFacade.minDebt),
+      totalDebtLimit: oracle.toAmount(pool.underlying, debtParams?.limit ?? 0n),
       maxBorrowAmount: oracle.toAmount(pool.underlying, this.maxBorrowAmount),
       maxLeverage,
     };
