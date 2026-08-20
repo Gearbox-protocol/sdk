@@ -1,0 +1,72 @@
+import {
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import { MissingSerializedParamsError } from "../../../base/index.js";
+import type { OnchainSDK } from "../../../OnchainSDK.js";
+import type { AssetsMap } from "../../../utils/index.js";
+import {
+  iKelpLrtDepositPoolAdapterAbi,
+  iKelpLrtDepositPoolGatewayAbi,
+} from "../abi/adapters/index.js";
+import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
+import { AbstractAdapterContract } from "./AbstractAdapter.js";
+
+const abi = iKelpLrtDepositPoolAdapterAbi;
+type abi = typeof abi;
+
+const protocolAbi = iKelpLrtDepositPoolGatewayAbi;
+type protocolAbi = typeof protocolAbi;
+
+export class KelpLRTDepositPoolAdapterContract extends AbstractAdapterContract<
+  abi,
+  protocolAbi
+> {
+  #allowedAssets?: Address[];
+
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
+
+    if (args.baseParams.serializedParams) {
+      const decoded = decodeAbiParameters(
+        [
+          { type: "address", name: "creditManager" },
+          { type: "address", name: "targetContract" },
+          { type: "address[]", name: "allowedAssets" },
+        ],
+        args.baseParams.serializedParams,
+      );
+
+      this.#allowedAssets = [...decoded[2]];
+    }
+  }
+
+  get allowedAssets(): Address[] {
+    if (!this.#allowedAssets)
+      throw new MissingSerializedParamsError("allowedAssets");
+    return this.#allowedAssets;
+  }
+
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      allowedAssets: this.#allowedAssets?.map(a => this.labelAddress(a)),
+    };
+  }
+
+  protected override async applyBalanceChanges(
+    balances: AssetsMap,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): Promise<void> {
+    switch (decoded.functionName) {
+      case "depositAssetDiff": {
+        const [tokenIn, leftoverAmount] = decoded.args;
+        this.setLeftover(balances, tokenIn, leftoverAmount);
+        break;
+      }
+      default:
+        await super.applyBalanceChanges(balances, decoded);
+    }
+  }
+}

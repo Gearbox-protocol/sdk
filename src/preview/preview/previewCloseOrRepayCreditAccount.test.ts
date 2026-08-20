@@ -2,7 +2,6 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { type Address, custom, getAddress, type Hex, parseEther } from "viem";
 import { beforeAll, expect, it } from "vitest";
-import { AdaptersPlugin } from "../../plugins/adapters/index.js";
 import { json_parse, NATIVE_ADDRESS, OnchainSDK } from "../../sdk/index.js";
 import { previewOperation } from "./previewOperation.js";
 
@@ -35,22 +34,18 @@ interface Tx {
   value: bigint;
 }
 
-let sdk: OnchainSDK<{ adapters: AdaptersPlugin }>;
+let sdk: OnchainSDK;
 
 beforeAll(() => {
   // Default client throws on any RPC request: hydration, calldata parsing
   // and previewing are fully offline.
-  sdk = new OnchainSDK(
-    "Mainnet",
-    {
-      transport: custom({
-        request: async () => {
-          throw new Error("offline: preview test must not hit RPC");
-        },
-      }),
-    },
-    { plugins: { adapters: new AdaptersPlugin(true) } },
-  );
+  sdk = new OnchainSDK("Mainnet", {
+    transport: custom({
+      request: async () => {
+        throw new Error("offline: preview test must not hit RPC");
+      },
+    }),
+  });
   sdk.hydrate(json_parse(readFileSync(FIXTURE, "utf-8")));
 });
 

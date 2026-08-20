@@ -2,7 +2,6 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { type Address, custom, type Hex } from "viem";
 import { beforeAll, describe, expect, it } from "vitest";
-import { AdaptersPlugin } from "../../plugins/adapters/index.js";
 import {
   type CreditAccountData,
   json_parse,
@@ -31,21 +30,17 @@ describe("close/repay with withdrawals (WETH strategy)", () => {
   const WETH: Address = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
   const WEETH: Address = "0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee";
 
-  let sdk: OnchainSDK<{ adapters: AdaptersPlugin }>;
+  let sdk: OnchainSDK;
   let creditAccount: CreditAccountData;
 
   beforeAll(() => {
-    sdk = new OnchainSDK(
-      "Mainnet",
-      {
-        transport: custom({
-          request: async () => {
-            throw new Error("offline: preview test must not hit RPC");
-          },
-        }),
-      },
-      { plugins: { adapters: new AdaptersPlugin(true) } },
-    );
+    sdk = new OnchainSDK("Mainnet", {
+      transport: custom({
+        request: async () => {
+          throw new Error("offline: preview test must not hit RPC");
+        },
+      }),
+    });
     sdk.hydrate(json_parse(readFileSync(STATE_FIXTURE, "utf-8")));
     creditAccount = json_parse(readFileSync(ACCOUNT_FIXTURE, "utf-8"));
   });
@@ -179,22 +174,18 @@ describe.each(WALLET_FUNDED_REPAY_SCENARIOS)(
     const { repay, afterOpen } = loadWalletFundedRepayFixtures(spec.name);
     const investor = afterOpen.investor as Address;
 
-    let sdk: OnchainSDK<{ adapters: AdaptersPlugin }>;
+    let sdk: OnchainSDK;
 
     beforeAll(() => {
-      sdk = new OnchainSDK(
-        "Mainnet",
-        {
-          transport: custom({
-            request: async ({ method }) => {
-              throw new Error(
-                `offline: unexpected RPC request ${method} in wallet-funded repay preview test`,
-              );
-            },
-          }),
-        },
-        { plugins: { adapters: new AdaptersPlugin(true) } },
-      );
+      sdk = new OnchainSDK("Mainnet", {
+        transport: custom({
+          request: async ({ method }) => {
+            throw new Error(
+              `offline: unexpected RPC request ${method} in wallet-funded repay preview test`,
+            );
+          },
+        }),
+      });
       sdk.hydrate(json_parse(readFileSync(STATE_FIXTURE, "utf-8")));
     });
 

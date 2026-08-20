@@ -1,6 +1,9 @@
 import type { Address, Hex } from "viem";
-import type { SdkWithAdapters } from "../plugins/adapters/index.js";
-import type { CreditAccountData, PluginsMap } from "../sdk/index.js";
+import type {
+  CreditAccountData,
+  OnchainSDK,
+  PluginsMap,
+} from "../sdk/index.js";
 import type { ILogger } from "../sdk/types/logger.js";
 
 /**
@@ -10,10 +13,8 @@ import type { ILogger } from "../sdk/types/logger.js";
 export interface PreviewOperationInput<P extends PluginsMap = PluginsMap> {
   /**
    * Already-attached SDK; chain, RPC and block are baked in at attach time.
-   * Must be created with the adapters plugin (enforced at compile time) so
-   * adapter contracts resolve during multicall classification.
    */
-  sdk: SdkWithAdapters<P>;
+  sdk: OnchainSDK<P>;
   /**
    * Contract address that was called
    */

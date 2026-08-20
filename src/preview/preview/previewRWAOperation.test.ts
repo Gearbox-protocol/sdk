@@ -5,7 +5,6 @@ import { beforeAll, expect, it } from "vitest";
 import { iCreditFacadeMulticallV310Abi } from "../../abi/310/generated.js";
 import { ierc4626AdapterAbi } from "../../abi/ierc4626Adapter.js";
 import { iSecuritizeRWAFactoryAbi } from "../../abi/rwa/iSecuritizeRWAFactory.js";
-import { AdaptersPlugin } from "../../plugins/adapters/index.js";
 import {
   type CreditAccountData,
   json_parse,
@@ -38,24 +37,20 @@ const DS_TOKEN: Address = "0x17418038ecF73BA4026c4f428547BF099706F27B";
 
 const CREDIT_ACCOUNT: Address = "0x1234123412341234123412341234123412341234";
 
-let sdk: OnchainSDK<{ adapters: AdaptersPlugin }>;
+let sdk: OnchainSDK;
 let creditFacade: Address;
 
 beforeAll(() => {
   // The preview must run fully offline: any RPC request is a test failure.
-  sdk = new OnchainSDK(
-    "Mainnet",
-    {
-      transport: custom({
-        request: async ({ method }) => {
-          throw new Error(
-            `offline: unexpected RPC request ${method} in RWA preview test`,
-          );
-        },
-      }),
-    },
-    { plugins: { adapters: new AdaptersPlugin(true) } },
-  );
+  sdk = new OnchainSDK("Mainnet", {
+    transport: custom({
+      request: async ({ method }) => {
+        throw new Error(
+          `offline: unexpected RPC request ${method} in RWA preview test`,
+        );
+      },
+    }),
+  });
   sdk.hydrate(json_parse(readFileSync(FIXTURE, "utf-8")));
   creditFacade =
     sdk.marketRegister.findCreditManager(CREDIT_MANAGER).creditFacade.address;

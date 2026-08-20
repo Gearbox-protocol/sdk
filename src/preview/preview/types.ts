@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import type { Bps, BorrowRateBreakdown } from "../../model/index.js";
+import type { BorrowRateBreakdown, Bps } from "../../model/index.js";
 import type { Asset, DelayedIntent } from "../../sdk/index.js";
 import type { PoolOperationType } from "../parse/index.js";
 

@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import type { Bps, BorrowRateBreakdown } from "../../../model/index.js";
+import type { BorrowRateBreakdown, Bps } from "../../../model/index.js";
 import { LEVERAGE_DECIMALS } from "../../constants/math.js";
 import type { Asset, MultiCall, OnchainSDK } from "../../index.js";
 import type { AccountSnapshot } from "../../positions/types.js";

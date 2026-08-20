@@ -2,7 +2,6 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { type Address, custom, type Hex } from "viem";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { AdaptersPlugin } from "../../plugins/adapters/index.js";
 import {
   type Asset,
   type CreditAccountData,
@@ -244,7 +243,7 @@ const REDEMPTION_LOGS: Record<string, RedemptionLog> = Object.fromEntries(
     .map(log => [log.redeemer.toLowerCase(), log]),
 );
 
-let sdk: OnchainSDK<{ adapters: AdaptersPlugin }>;
+let sdk: OnchainSDK;
 
 beforeAll(() => {
   // Claim previews read the recorded intent through the redemption logger
@@ -266,19 +265,15 @@ beforeAll(() => {
   });
 
   // The preview must run fully offline: any RPC request is a test failure
-  sdk = new OnchainSDK(
-    "Mainnet",
-    {
-      transport: custom({
-        request: async ({ method }) => {
-          throw new Error(
-            `offline: unexpected RPC request ${method} in RWA delayed preview test`,
-          );
-        },
-      }),
-    },
-    { plugins: { adapters: new AdaptersPlugin(true) } },
-  );
+  sdk = new OnchainSDK("Mainnet", {
+    transport: custom({
+      request: async ({ method }) => {
+        throw new Error(
+          `offline: unexpected RPC request ${method} in RWA delayed preview test`,
+        );
+      },
+    }),
+  });
   sdk.hydrate(json_parse(readFileSync(STATE_FIXTURE, "utf-8")));
 });
 

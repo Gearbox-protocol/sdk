@@ -1,14 +1,12 @@
 import { isAddressEqual } from "viem";
 import {
   AbstractAdapterContract,
-  type DelayedWithdrawalRequest,
-  type SdkWithAdapters,
-} from "../../plugins/adapters/index.js";
-import {
   type Asset,
   type DelayedIntent,
+  type DelayedWithdrawalRequest,
   decodeDelayedIntent,
   InvalidDelayedIntentError,
+  type OnchainSDK,
   type PluginsMap,
 } from "../../sdk/index.js";
 import type { InnerOperation } from "../parse/index.js";
@@ -32,7 +30,7 @@ export interface DetectedDelayedOperation {
 /**
  * Scans a credit-facade multicall for a delayed-withdrawal request.
  *
- * @param sdk - SDK with the adapters plugin attached.
+ * @param sdk - Attached SDK.
  * @param multicall - Parsed inner operations of the multicall.
  * @returns The detected request, or `undefined` when
  * the multicall contains no delayed-withdrawal request.
@@ -40,7 +38,7 @@ export interface DetectedDelayedOperation {
  * `extraData` that cannot be decoded as a `DelayedIntent`.
  */
 export function detectDelayedOperation<P extends PluginsMap>(
-  sdk: SdkWithAdapters<P>,
+  sdk: OnchainSDK<P>,
   multicall: InnerOperation[],
 ): DetectedDelayedOperation | undefined {
   // Deltas of the current storeExpectedBalances/compareBalances bracket

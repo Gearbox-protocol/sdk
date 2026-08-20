@@ -12,7 +12,6 @@ import {
   iCreditFacadeMulticallV310Abi,
   iCreditFacadeV310Abi,
 } from "../../abi/310/generated.js";
-import { AdaptersPlugin } from "../../plugins/adapters/index.js";
 import {
   type CreditAccountData,
   json_parse,
@@ -49,21 +48,17 @@ const OWNER: Address = "0xC32FEB4DBd127a1993478Ad6E5250710f838b908";
 const WETH: Address = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
 const CBETH: Address = "0xBe9895146f7AF43049ca1c1AE358B0541Ea49704";
 
-let sdk: OnchainSDK<{ adapters: AdaptersPlugin }>;
+let sdk: OnchainSDK;
 let creditAccount: CreditAccountData;
 
 beforeAll(() => {
-  sdk = new OnchainSDK(
-    "Mainnet",
-    {
-      transport: custom({
-        request: async () => {
-          throw new Error("offline: preview test must not hit RPC");
-        },
-      }),
-    },
-    { plugins: { adapters: new AdaptersPlugin(true) } },
-  );
+  sdk = new OnchainSDK("Mainnet", {
+    transport: custom({
+      request: async () => {
+        throw new Error("offline: preview test must not hit RPC");
+      },
+    }),
+  });
   sdk.hydrate(json_parse(readFileSync(STATE_FIXTURE, "utf-8")));
   creditAccount = json_parse(readFileSync(ACCOUNT_FIXTURE, "utf-8"));
 });

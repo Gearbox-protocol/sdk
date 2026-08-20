@@ -4,10 +4,12 @@ import { describe, expect, it } from "vitest";
 import { ierc4626AdapterAbi } from "../../abi/ierc4626Adapter.js";
 import {
   AbstractAdapterContract,
+  type Asset,
+  type AssetsMap,
   ERC4626AdapterContract,
-  type SdkWithAdapters,
-} from "../../plugins/adapters/index.js";
-import { type Asset, type AssetsMap, MAX_UINT256 } from "../../sdk/index.js";
+  MAX_UINT256,
+  type OnchainSDK,
+} from "../../sdk/index.js";
 import type { InnerOperation } from "../parse/index.js";
 import { CreditAccountState } from "./CreditAccountState.js";
 import {
@@ -84,7 +86,7 @@ function stubRWAAdapter(asset: Address, share: Address) {
 function stubSdk(
   contracts: Record<Address, unknown> = {},
   rwaUnderlyings: Address[] = [],
-): SdkWithAdapters {
+): OnchainSDK {
   return {
     getContract: (address: Address) => contracts[address],
     tokensMeta: {
@@ -92,7 +94,7 @@ function stubSdk(
         rwaUnderlyings.includes(address) ? { addr: address } : undefined,
       isRWAUnderlying: () => true,
     },
-  } as unknown as SdkWithAdapters;
+  } as unknown as OnchainSDK;
 }
 
 function execute(
@@ -129,7 +131,7 @@ interface ApplyResult {
 async function apply(
   multicall: InnerOperation[],
   state: ReplayState = zeroState(),
-  sdk: SdkWithAdapters = stubSdk(),
+  sdk: OnchainSDK = stubSdk(),
 ): Promise<ApplyResult> {
   const error = await replayInnerOperations(sdk, multicall, state);
   return { state, error };

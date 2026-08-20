@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 import type {
-  Bps,
   BorrowRateBreakdown,
+  Bps,
   Leverage,
 } from "../../../model/index.js";
 import type {

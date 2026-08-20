@@ -1,9 +1,13 @@
-import type { PublicClient } from "viem";
+import type { Address, PublicClient } from "viem";
 import { encodeFunctionData, isAddressEqual, parseAbi } from "viem";
-import type { IMidasAdapter } from "../../market/adapters/index.js";
+import type { IAdapterContract } from "../../market/adapters/index.js";
 import type { CreditSuite } from "../../market/credit/CreditSuite.js";
 import type { ILogger, MultiCall } from "../../types/index.js";
 import { AddressMap } from "../../utils/AddressMap.js";
+
+interface IMidasAdapter extends IAdapterContract {
+  mToken: Address;
+}
 
 const ADAPTER_MIDAS_GATEWAY = "ADAPTER::MIDAS_GATEWAY";
 const ADAPTER_MIDAS_ISSUANCE_VAULT = "ADAPTER::MIDAS_ISSUANCE_VAULT";

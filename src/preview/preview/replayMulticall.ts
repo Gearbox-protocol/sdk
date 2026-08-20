@@ -1,6 +1,5 @@
 import type { Address } from "viem";
-import type { SdkWithAdapters } from "../../plugins/adapters/index.js";
-import type { PluginsMap } from "../../sdk/index.js";
+import type { OnchainSDK, PluginsMap } from "../../sdk/index.js";
 import type { InnerOperation } from "../parse/index.js";
 import type { PreviewOperationOptions } from "../types.js";
 import { CreditAccountState } from "./CreditAccountState.js";
@@ -43,7 +42,7 @@ export interface ReplayMulticallResult {
  * pre-state (`options.creditAccount`) via {@link replayInnerOperations}.
  */
 export async function replayMulticall<P extends PluginsMap>(
-  sdk: SdkWithAdapters<P>,
+  sdk: OnchainSDK<P>,
   operation: ReplayableOperation,
   options: PreviewOperationOptions<true>,
 ): Promise<ReplayMulticallResult> {

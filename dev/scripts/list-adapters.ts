@@ -1,6 +1,5 @@
 import { pino } from "pino";
 import { getAlchemyUrl } from "../../src/dev/providers.js";
-import { AdaptersPlugin } from "../../src/plugins/adapters/AdaptersPlugin.js";
 import { MultichainSDK, type NetworkType } from "../../src/sdk/index.js";
 
 const logger = pino({
@@ -35,9 +34,6 @@ async function listAdapters(): Promise<void> {
         { rpcURLs: [url], timeout: 480_000 },
       ]),
     ),
-    plugins: {
-      adapters: () => new AdaptersPlugin(true),
-    },
     logger,
   });
   await sdk.attach({

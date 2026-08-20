@@ -1,7 +1,6 @@
 import { type Address, decodeFunctionData, type Hex } from "viem";
 import { ierc4626AdapterAbi } from "../../abi/ierc4626Adapter.js";
-import type { ERC4626AdapterContract } from "../../plugins/adapters/index.js";
-import type { AssetsMap } from "../../sdk/index.js";
+import type { AssetsMap, ERC4626AdapterContract } from "../../sdk/index.js";
 
 /** Resolved conversion: `amountIn` of `tokenIn` into `tokenOut`. */
 interface WrapUnwrap {

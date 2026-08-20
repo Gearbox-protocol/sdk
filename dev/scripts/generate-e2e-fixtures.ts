@@ -26,7 +26,6 @@ import {
   startOracleProxy,
 } from "../../src/e2e/oracleProxy.js";
 import { AccountsPlugin } from "../../src/plugins/accounts/AccountsPlugin.js";
-import { AdaptersPlugin } from "../../src/plugins/adapters/AdaptersPlugin.js";
 import { ApyPlugin } from "../../src/plugins/apy/index.js";
 import { BotsPlugin } from "../../src/plugins/bots/index.js";
 import { DegenDistributorsPlugin } from "../../src/plugins/degen-distributors/index.js";
@@ -106,7 +105,6 @@ async function main() {
         logger: console,
         ...(!SINGLE_MC && {
           plugins: {
-            adapters: new AdaptersPlugin(true),
             bots: new BotsPlugin(true),
             degen: new DegenDistributorsPlugin(true),
             accounts: new AccountsPlugin({ includeZeroDebt: true }, true),
@@ -118,7 +116,6 @@ async function main() {
       blockNumber: BLOCK,
       ...(!SINGLE_MC && {
         plugins: {
-          adapters: new AdaptersPlugin(true),
           bots: new BotsPlugin(true),
           degen: new DegenDistributorsPlugin(true),
           apy: new ApyPlugin(true),

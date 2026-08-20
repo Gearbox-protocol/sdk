@@ -1,6 +1,6 @@
 import { type Address, isAddressEqual } from "viem";
 import { BigIntMath } from "../../common-utils/index.js";
-import type { DelayedWithdrawalRequest } from "../../plugins/adapters/index.js";
+import type { DelayedWithdrawalRequest } from "../../sdk/index.js";
 import {
   AssetsMap,
   type DelayedWithdrawCollateralIntent,

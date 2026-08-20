@@ -1,10 +1,5 @@
 import { type Address, isAddressEqual } from "viem";
 import type { CallTrace } from "../common-utils/utils/trace.js";
-import {
-  AbstractAdapterContract,
-  swapFromTransfers,
-  toNetTransfers,
-} from "../plugins/adapters/index.js";
 import type { TokenTransfer } from "../preview/parse/index.js";
 import {
   TransferAlignmentError,
@@ -16,6 +11,11 @@ import type {
   AddressMap,
   ChainContractsRegister,
   ParsedCallV2,
+} from "../sdk/index.js";
+import {
+  AbstractAdapterContract,
+  swapFromTransfers,
+  toNetTransfers,
 } from "../sdk/index.js";
 import type {
   AdapterOperation,

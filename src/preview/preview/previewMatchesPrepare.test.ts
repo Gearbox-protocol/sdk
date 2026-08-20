@@ -3,7 +3,6 @@ import { resolve } from "node:path";
 import { type Address, custom, encodeFunctionData, parseEther } from "viem";
 import { beforeAll, describe, expect, it } from "vitest";
 import { iCreditFacadeV310Abi } from "../../abi/310/generated.js";
-import { AdaptersPlugin } from "../../plugins/adapters/index.js";
 import { CreditAccountOperationsService } from "../../sdk/accounts/intents/index.js";
 import type {
   OperationState,
@@ -63,21 +62,17 @@ const DUST_VALUE = 1n;
 /** Router slippage in `PERCENTAGE_FACTOR` units; unused while nothing routes. */
 const SLIPPAGE = 50;
 
-let sdk: OnchainSDK<{ adapters: AdaptersPlugin }>;
+let sdk: OnchainSDK;
 let creditAccount: CreditAccountData;
 
 beforeAll(() => {
-  sdk = new OnchainSDK(
-    "Mainnet",
-    {
-      transport: custom({
-        request: async () => {
-          throw new Error("offline: preview test must not hit RPC");
-        },
-      }),
-    },
-    { plugins: { adapters: new AdaptersPlugin(true) } },
-  );
+  sdk = new OnchainSDK("Mainnet", {
+    transport: custom({
+      request: async () => {
+        throw new Error("offline: preview test must not hit RPC");
+      },
+    }),
+  });
   sdk.hydrate(json_parse(readFileSync(STATE_FIXTURE, "utf-8")));
   creditAccount = json_parse(readFileSync(ACCOUNT_FIXTURE, "utf-8"));
 });

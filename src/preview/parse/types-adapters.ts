@@ -1,11 +1,11 @@
 import type { Address, Hex } from "viem";
-import type { AdapterProtocolOperation } from "../../plugins/adapters/index.js";
+import type { AdapterProtocolOperation } from "../../sdk/index.js";
 
 /**
  * A single ERC-20 Transfer event captured between Execute boundaries.
  *
- * Canonical, public definition owned by the `preview` module; `plugins/adapters`
- * keeps a structurally identical internal copy for its legacy helpers.
+ * Canonical, public definition owned by the `preview` module; adapter legacy
+ * helpers keep a structurally identical internal copy.
  */
 export interface TokenTransfer {
   token: Address;

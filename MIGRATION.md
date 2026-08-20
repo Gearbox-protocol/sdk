@@ -105,7 +105,6 @@ const sdk = await GearboxSDK.attach({
   logger,
   blockNumber: 24736900,
   plugins: {
-    adapters: new AdaptersPlugin(),
     bots: new BotsPlugin(),
   },
 });
@@ -120,7 +119,6 @@ const sdk = new OnchainSDK(
   {                                              // SDK options
     logger,
     plugins: {
-      adapters: new AdaptersPlugin(),
       bots: new BotsPlugin(),
     },
   },

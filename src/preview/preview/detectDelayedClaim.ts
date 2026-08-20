@@ -1,9 +1,10 @@
 import type { Address } from "viem";
 import {
   AbstractAdapterContract,
-  type SdkWithAdapters,
-} from "../../plugins/adapters/index.js";
-import type { DelayedIntent, PluginsMap } from "../../sdk/index.js";
+  type DelayedIntent,
+  type OnchainSDK,
+  type PluginsMap,
+} from "../../sdk/index.js";
 import type { InnerOperation } from "../parse/index.js";
 
 /**
@@ -27,13 +28,13 @@ export interface DetectedDelayedClaim {
 /**
  * Scans a credit-facade multicall for a delayed-withdrawal claim call.
  *
- * @param sdk - SDK with the adapters plugin attached.
+ * @param sdk - Attached SDK.
  * @param multicall - Parsed inner operations of the multicall.
  * @returns The detected claim, or `undefined` when the multicall contains no
  * delayed-withdrawal claim call.
  */
 export function detectDelayedClaim<P extends PluginsMap>(
-  sdk: SdkWithAdapters<P>,
+  sdk: OnchainSDK<P>,
   multicall: InnerOperation[],
 ): DetectedDelayedClaim | undefined {
   for (const op of multicall) {
@@ -57,7 +58,7 @@ export function detectDelayedClaim<P extends PluginsMap>(
  * the claim call and reads the recorded intent of the claimed redeemer from
  * the `RedemptionLogger` contract.
  *
- * @param sdk - SDK with the adapters plugin attached.
+ * @param sdk - Attached SDK.
  * @param multicall - Parsed inner operations of the multicall.
  * @param blockNumber - Optional block number to read the log at.
  * @returns The decoded intent, or `undefined` when the multicall claims
@@ -67,7 +68,7 @@ export function detectDelayedClaim<P extends PluginsMap>(
  * but cannot be decoded as a `DelayedIntent`.
  */
 export async function resolveDelayedClaimIntent<P extends PluginsMap>(
-  sdk: SdkWithAdapters<P>,
+  sdk: OnchainSDK<P>,
   multicall: InnerOperation[],
   blockNumber?: bigint,
 ): Promise<DelayedIntent | undefined> {

@@ -4,7 +4,6 @@ import YAML from "yaml";
 import { getAlchemyUrl } from "../src/dev/providers.js";
 import { GearboxSDK } from "../src/new-sdk/GearboxSDK.js";
 import { AccountsPlugin } from "../src/plugins/accounts/index.js";
-import { AdaptersPlugin } from "../src/plugins/adapters/AdaptersPlugin.js";
 import { BotsPlugin } from "../src/plugins/bots/index.js";
 import { DegenDistributorsPlugin } from "../src/plugins/degen-distributors/index.js";
 import { AddressSet, json_stringify, MultichainSDK } from "../src/sdk/index.js";
@@ -48,7 +47,6 @@ async function example(): Promise<void> {
       },
     },
     plugins: {
-      adapters: () => new AdaptersPlugin(true),
       bots: () => new BotsPlugin(true),
       degen: () => new DegenDistributorsPlugin(true),
       accounts: () => new AccountsPlugin({ includeZeroDebt: true }, true),

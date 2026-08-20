@@ -61,7 +61,6 @@ const config: Config = {
           "../src/rewards/index.ts",
           "../src/plugins/accounts/index.ts",
           "../src/plugins/accounts-counter/index.ts",
-          "../src/plugins/adapters/index.ts",
           "../src/plugins/bots/index.ts",
           "../src/plugins/degen-distributors/index.ts",
           "../src/plugins/delayed-withdrawal/index.ts",

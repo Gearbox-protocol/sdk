@@ -3,13 +3,11 @@ import { getAddress } from "viem";
 import { describe, expect, it } from "vitest";
 import {
   AbstractAdapterContract,
-  type DelayedWithdrawalRequest,
-  type SdkWithAdapters,
-} from "../../plugins/adapters/index.js";
-import {
   type Asset,
+  type DelayedWithdrawalRequest,
   encodeDelayedIntent,
   InvalidDelayedIntentError,
+  type OnchainSDK,
 } from "../../sdk/index.js";
 import type { InnerOperation } from "../parse/index.js";
 import { detectDelayedOperation } from "./detectDelayedOperation.js";
@@ -33,10 +31,10 @@ function stubAdapter(request?: DelayedWithdrawalRequest) {
   return adapter;
 }
 
-function stubSdk(contracts: Record<Address, unknown> = {}): SdkWithAdapters {
+function stubSdk(contracts: Record<Address, unknown> = {}): OnchainSDK {
   return {
     getContract: (address: Address) => contracts[address],
-  } as unknown as SdkWithAdapters;
+  } as unknown as OnchainSDK;
 }
 
 function execute(

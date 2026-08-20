@@ -65,14 +65,6 @@ export class GearboxSDK<const M extends Mode = Mode> {
    * Namespace for the positions a wallet holds.
    **/
   public readonly positions: Positions<M>;
-
-  readonly #attachOptions?: MultichainAttachOptions;
-  readonly #onchain?: MultichainSDK;
-  readonly #offchain?: GearboxAPI;
-  readonly #ownsOnchain: boolean = false;
-  readonly #maxStateAgeSeconds: number;
-  readonly #logger?: ILogger;
-
   /**
    * The banners the backend attaches to a pool opportunity or a strategy
    * position, see {@link Notice}. Top-level because the subject is either
@@ -80,6 +72,13 @@ export class GearboxSDK<const M extends Mode = Mode> {
    * by mode like every other backend read: absent in `onchain` mode.
    **/
   public readonly notices: NoticesByMode[M];
+
+  readonly #attachOptions?: MultichainAttachOptions;
+  readonly #onchain?: MultichainSDK;
+  readonly #offchain?: GearboxAPI;
+  readonly #ownsOnchain: boolean = false;
+  readonly #maxStateAgeSeconds: number;
+  readonly #logger?: ILogger;
 
   #attached: boolean;
   /** The one attach in flight, shared by {@link attach} and every first read. */
