@@ -1,3 +1,7 @@
+import type {
+  CloseCreditAccountPreview,
+  RepayCreditAccountPreview,
+} from "../../model/index.js";
 import {
   AP_WETH_TOKEN,
   MAX_UINT256,
@@ -18,10 +22,6 @@ import {
   type ReplayMulticallResult,
   replayMulticall,
 } from "./replayMulticall.js";
-import type {
-  CloseCreditAccountPreview,
-  RepayCreditAccountPreview,
-} from "./types.js";
 import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
 
 /**
@@ -92,13 +92,14 @@ function previewCloseCreditAccount<P extends PluginsMap>(
     operation: "CloseCreditAccount",
     permanent,
     creditManager: operation.creditManager,
+    name: sdk.marketRegister.findCreditManager(operation.creditManager).name,
     creditAccount: operation.creditAccount,
     // On a malformed multicall the withdrawn amount depends on best-effort
     // replayed balances and may be unreliable
-    receivedAmount: {
-      token: receivedToken,
-      balance: after.collateralWithdrawn.getOrZero(receivedToken),
-    },
+    receivedAmount: market.priceOracle.toTokenAmount(
+      receivedToken,
+      after.collateralWithdrawn.getOrZero(receivedToken),
+    ),
     error,
   };
 }
@@ -115,6 +116,9 @@ function previewRepayCreditAccount<P extends PluginsMap>(
   replay: ReplayMulticallResult,
 ): RepayCreditAccountPreview {
   const { sdk, value = 0n } = input;
+  const market = sdk.marketRegister.findByCreditManager(
+    operation.creditManager,
+  );
 
   const { before, after, error: replayError } = replay;
 
@@ -130,12 +134,17 @@ function previewRepayCreditAccount<P extends PluginsMap>(
     operation: "RepayCreditAccount",
     permanent,
     creditManager: operation.creditManager,
+    name: sdk.marketRegister.findCreditManager(operation.creditManager).name,
     creditAccount: operation.creditAccount,
-    collateralAdded,
+    collateralAdded: collateralAdded.map(a =>
+      market.priceOracle.toTokenAmount(a.token, a.balance),
+    ),
     debtRepaid: before.totalDebt - after.account.totalDebt,
     // On a malformed multicall the MAX_UINT256 withdrawal sentinel resolves
     // against best-effort replayed balances and may be unreliable
-    collateralWithdrawn: after.collateralWithdrawn.toAssets(),
+    collateralWithdrawn: after.collateralWithdrawn
+      .toAssets()
+      .map(a => market.priceOracle.toTokenAmount(a.token, a.balance)),
     error,
   };
 }

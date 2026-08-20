@@ -1,4 +1,12 @@
 import {
+  ERROR_ADAPTER_CALL_OUTSIDE_BRACKET,
+  ERROR_MALFORMED_BRACKET,
+  ERROR_NON_ADAPTER_CALL_IN_BRACKET,
+  ERROR_UNPREVIEWABLE_ADAPTER_CALL,
+  ERROR_UNPREVIEWABLE_RWA_WRAP_UNWRAP,
+  type OperationPreviewError,
+} from "../../model/index.js";
+import {
   AbstractAdapterContract,
   AssetsMap,
   ERC4626AdapterContract,
@@ -14,14 +22,6 @@ import type {
 } from "../parse/index.js";
 import { applyRWAWrapUnwrap } from "./applyRWAWrapUnwrap.js";
 import type { CreditAccountState } from "./CreditAccountState.js";
-import {
-  ERROR_ADAPTER_CALL_OUTSIDE_BRACKET,
-  ERROR_MALFORMED_BRACKET,
-  ERROR_NON_ADAPTER_CALL_IN_BRACKET,
-  ERROR_UNPREVIEWABLE_ADAPTER_CALL,
-  ERROR_UNPREVIEWABLE_RWA_WRAP_UNWRAP,
-  type OperationPreviewError,
-} from "./types.js";
 
 /**
  * Running state threaded through a credit-facade multicall by

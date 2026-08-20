@@ -1,10 +1,7 @@
 import type { Address } from "viem";
+import type { DelayedDecreaseLeverageIntent } from "../../../../model/index.js";
 import { MIN_INT96 } from "../../../constants/math.js";
-import type {
-  ClaimableWithdrawal,
-  DelayedDecreaseLeverageIntent,
-  OnchainSDK,
-} from "../../../index.js";
+import type { ClaimableWithdrawal, OnchainSDK } from "../../../index.js";
 
 import {
   ANY,

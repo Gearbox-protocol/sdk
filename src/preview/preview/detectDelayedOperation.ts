@@ -1,8 +1,8 @@
 import { isAddressEqual } from "viem";
+import type { DelayedIntent } from "../../model/index.js";
 import {
   AbstractAdapterContract,
   type Asset,
-  type DelayedIntent,
   type DelayedWithdrawalRequest,
   decodeDelayedIntent,
   InvalidDelayedIntentError,

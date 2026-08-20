@@ -101,13 +101,13 @@ import {
   seedSecuritizePoolLiquidity,
   signRegisterVaultMessages,
 } from "../../src/e2e/helpers/securitize.js";
+import type { DelayedIntent } from "../../src/model/index.js";
 import {
   AbstractAdapterContract,
   type Asset,
   type ClaimableWithdrawal,
   type CreditAccountData,
   type CreditSuite,
-  type DelayedIntent,
   type EncodableCreditAccountOperation,
   json_stringify,
   MAX_UINT256,

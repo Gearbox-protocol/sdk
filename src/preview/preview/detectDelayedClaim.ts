@@ -1,7 +1,7 @@
 import type { Address } from "viem";
+import type { DelayedIntent } from "../../model/index.js";
 import {
   AbstractAdapterContract,
-  type DelayedIntent,
   type OnchainSDK,
   type PluginsMap,
 } from "../../sdk/index.js";

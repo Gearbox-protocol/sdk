@@ -122,10 +122,28 @@ it("previews RWA account opening with an unwrap call", async () => {
     operation: "RWAOpenCreditAccount",
     creditManager: CREDIT_MANAGER,
     debt,
-    collateral: [{ token: DS_TOKEN, balance: dsAmount }],
-    quotas: [{ token: DS_TOKEN, balance: 55_000_000_000n }],
-    target: { token: DS_TOKEN, balance: dsAmount },
-    assets: [{ token: DS_TOKEN, balance: dsAmount }],
+    collateral: [
+      {
+        token: expect.objectContaining({ address: DS_TOKEN }),
+        value: dsAmount,
+      },
+    ],
+    quotas: [
+      {
+        token: expect.objectContaining({ address: DS_TOKEN }),
+        value: 55_000_000_000n,
+      },
+    ],
+    target: {
+      token: expect.objectContaining({ address: DS_TOKEN }),
+      value: dsAmount,
+    },
+    assets: [
+      {
+        token: expect.objectContaining({ address: DS_TOKEN }),
+        value: dsAmount,
+      },
+    ],
   });
 });
 
@@ -174,9 +192,13 @@ it("previews an unwrap-and-withdraw multicall on an existing RWA account", async
     creditAccount: CREDIT_ACCOUNT,
     collateralAdded: [],
     // The withdrawn USDC comes entirely from the 1:1 unwrap.
-    collateralWithdrawn: [{ token: USDC, balance: shares }],
+    collateralWithdrawn: [
+      { token: expect.objectContaining({ address: USDC }), value: shares },
+    ],
     debt: 5_000_000_000n,
     debtChange: 0n,
-    assetsChange: [{ token: VAULT, balance: -shares }],
+    assetsChange: [
+      { token: expect.objectContaining({ address: VAULT }), value: -shares },
+    ],
   });
 });

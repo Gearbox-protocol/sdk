@@ -1,7 +1,13 @@
 import {
+  ERROR_UNPRICEABLE_TOKEN,
+  type OpenCreditAccountPreview,
+  type OperationPreviewError,
+} from "../../model/index.js";
+import {
   type AddressMap,
   AP_WETH_TOKEN,
   type Asset,
+  calcPositionLeverage,
   DUST_THRESHOLD,
   NO_VERSION,
   type PluginsMap,
@@ -17,11 +23,6 @@ import {
   makeReplayState,
   replayInnerOperations,
 } from "./replayInnerOperations.js";
-import {
-  ERROR_UNPRICEABLE_TOKEN,
-  type OpenCreditAccountPreview,
-  type OperationPreviewError,
-} from "./types.js";
 import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
 
 export async function previewOpenCreditAccount<P extends PluginsMap>(
@@ -32,6 +33,7 @@ export async function previewOpenCreditAccount<P extends PluginsMap>(
   const market = sdk.marketRegister.findByCreditManager(
     operation.creditManager,
   );
+  const oracle = market.priceOracle;
 
   // Since we open an account, initial balances, debt and quotas are all zero.
   const state = makeReplayState(
@@ -46,7 +48,7 @@ export async function previewOpenCreditAccount<P extends PluginsMap>(
   let priceError: OperationPreviewError | undefined;
   const collateralValue = state.collateralAdded.sum((token, balance) => {
     try {
-      return market.priceOracle.convert(token, market.underlying, balance);
+      return oracle.convert(token, market.underlying, balance);
     } catch {
       priceError ??= {
         code: ERROR_UNPRICEABLE_TOKEN,
@@ -69,17 +71,27 @@ export async function previewOpenCreditAccount<P extends PluginsMap>(
   // On opening, initial quotas are zero, so the folded quotas are the
   // applied changes.
   const quotas = account.quotas.toAssets(0n);
-  const snap = account.toSnapshot(collateralValue + account.totalDebt);
+  const totalValue = collateralValue + account.totalDebt;
+  const snap = account.toSnapshot(totalValue);
+  const targetAsset = inferTargetAsset(operation.multicall, account.balances);
 
   return {
     operation: operation.operation,
     creditManager: operation.creditManager,
-    target: inferTargetAsset(operation.multicall, account.balances),
-    collateral,
+    name: sdk.marketRegister.findCreditManager(operation.creditManager).name,
+    target: targetAsset
+      ? oracle.toTokenAmount(targetAsset.token, targetAsset.balance)
+      : undefined,
+    collateral: collateral.map(a => oracle.toTokenAmount(a.token, a.balance)),
     collateralValue,
+    totalValue,
     debt: account.debt,
-    quotas,
-    assets,
+    // WARNING: quota values are underlying-denominated
+    quotas: quotas.map(q => ({
+      token: sdk.tokensMeta.mustGetToken(q.token),
+      ...oracle.toAmount(market.underlying, q.balance),
+    })),
+    assets: assets.map(a => oracle.toTokenAmount(a.token, a.balance)),
     error,
     // Best-effort like the rest of the preview: tokens the oracle cannot
     // price (ERROR_UNPRICEABLE_TOKEN) contribute nothing to the metrics.
@@ -90,6 +102,7 @@ export async function previewOpenCreditAccount<P extends PluginsMap>(
     borrowRate: sdk.positions.borrowRate(snap),
     timeToLiquidation: sdk.positions.timeToLiquidation(snap),
     liquidationPrice: sdk.positions.liquidationPrice(snap),
+    leverage: calcPositionLeverage(totalValue, account.totalDebt),
   };
 }
 

@@ -68,6 +68,21 @@ export type AssetType = "Stable" | "ETH" | "BTC";
 export type Leverage = number;
 
 /**
+ * A token address paired with a balance, used throughout the SDK to
+ * represent holdings, collateral inputs, and leftover targets.
+ **/
+export interface Asset {
+  /**
+   * ERC-20 token address.
+   **/
+  token: Address;
+  /**
+   * Token amount in the token's native decimals.
+   **/
+  balance: bigint;
+}
+
+/**
  * A token amount together with its USD valuation.
  *
  * The group that owns the field names the token (e.g. `totalBorrow` of an

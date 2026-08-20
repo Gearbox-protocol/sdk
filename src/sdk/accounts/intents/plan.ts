@@ -1,9 +1,7 @@
 import type { Address } from "viem";
+import type { DelayedIntent } from "../../../model/index.js";
 import { MAX_UINT256, PERCENTAGE_FACTOR } from "../../constants/index.js";
-import type {
-  ClaimableWithdrawal,
-  DelayedIntent,
-} from "../withdrawal-compressor/types.js";
+import type { ClaimableWithdrawal } from "../withdrawal-compressor/types.js";
 import {
   assertDebtInBand,
   assertLeverageAtLeastOne,

@@ -145,6 +145,10 @@ export interface IPriceOracleContract extends IBaseContract {
   ) => Promise<PriceUpdate[]>;
   /**
    * Converts an amount from one token to another using latest known prices.
+   *
+   * `NATIVE_ADDRESS` is priced through WETH and throws if WETH is not
+   * registered.
+   *
    * @param from - Source token address.
    * @param to - Destination token address.
    * @param amount - Amount in source-token decimals.
@@ -158,6 +162,10 @@ export interface IPriceOracleContract extends IBaseContract {
   ) => bigint;
   /**
    * Converts a token amount to its USD value using latest known prices.
+   *
+   * `NATIVE_ADDRESS` is priced through WETH and throws if WETH is not
+   * registered.
+   *
    * @param from - Token address.
    * @param amount - Amount in token decimals.
    * @param reserve - Use reserve feeds instead of main.
@@ -173,6 +181,10 @@ export interface IPriceOracleContract extends IBaseContract {
   safeConvertToUSD: (token: Address, amount: bigint) => bigint | null;
   /**
    * Converts a USD amount to a token amount using latest known prices.
+   *
+   * `NATIVE_ADDRESS` is priced through WETH and throws if WETH is not
+   * registered.
+   *
    * @param to - Token address.
    * @param amount - Amount in USD (8 decimals).
    * @param reserve - Use reserve feeds instead of main.
@@ -201,9 +213,13 @@ export interface IPriceOracleContract extends IBaseContract {
    * Like {@link toAmount}, but also names the token, for the fields where the
    * owning group does not.
    * Syntactic sugar for high-level sdk.
+   *
+   * `NATIVE_ADDRESS` is not in the token registry: it is synthesized from the
+   * chain's native currency. Pricing is delegated to {@link convertToUSD}.
+   *
    * @param token - Token address.
    * @param value - Amount in token decimals.
-   * @throws If the token is not in the registry.
+   * @throws If the token is not in the registry (other than `NATIVE_ADDRESS`).
    **/
   toTokenAmount: (token: Address, value: bigint) => TokenAmount;
   /**

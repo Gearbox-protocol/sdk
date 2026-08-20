@@ -1,14 +1,11 @@
 import type { Address } from "viem";
 import { iRedemptionLoggerV310Abi } from "../../../abi/iRedemptionLoggerV310.js";
+import type { DelayedIntent } from "../../../model/index.js";
 import { BaseContract } from "../../base/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import { InvalidDelayedIntentError } from "./errors.js";
 import { decodeDelayedIntent } from "./intent-codec.js";
-import type {
-  DelayedIntent,
-  IRedemptionLoggerContract,
-  RedemptionLog,
-} from "./types.js";
+import type { IRedemptionLoggerContract, RedemptionLog } from "./types.js";
 
 const abi = iRedemptionLoggerV310Abi;
 type abi = typeof abi;

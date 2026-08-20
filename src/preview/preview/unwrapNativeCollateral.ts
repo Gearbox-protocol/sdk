@@ -1,9 +1,9 @@
 import type { Address } from "viem";
-import { type Asset, AssetsMap, NATIVE_ADDRESS } from "../../sdk/index.js";
 import {
   ERROR_INVALID_TRANSACTION_VALUE,
   type OperationPreviewError,
-} from "./types.js";
+} from "../../model/index.js";
+import { type Asset, AssetsMap, NATIVE_ADDRESS } from "../../sdk/index.js";
 
 export interface UnwrapNativeCollateralResult {
   /**

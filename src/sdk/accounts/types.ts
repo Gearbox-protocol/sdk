@@ -1,4 +1,5 @@
 import type { Address, Hex } from "viem";
+import type { DelayedIntent } from "../../model/index.js";
 import type {
   Asset,
   Construct,
@@ -24,7 +25,6 @@ import type { AccountBotsService } from "./bots/index.js";
 import type { GetCreditAccountsOptions } from "./credit-account-compressor/index.js";
 import type {
   ClaimableWithdrawal,
-  DelayedIntent,
   PendingWithdrawal,
   RequestableWithdrawal,
 } from "./withdrawal-compressor/index.js";

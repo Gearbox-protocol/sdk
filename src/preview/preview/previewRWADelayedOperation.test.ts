@@ -2,8 +2,13 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { type Address, custom, type Hex } from "viem";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import type {
+  AdjustCreditAccountPreview,
+  CloseCreditAccountPreview,
+  DelayedCreditAccountOperationPreview,
+  OpenCreditAccountPreview,
+} from "../../model/index.js";
 import {
-  type Asset,
   type CreditAccountData,
   DUST_THRESHOLD,
   json_parse,
@@ -12,12 +17,6 @@ import {
   RedemptionLoggerV310Contract,
 } from "../../sdk/index.js";
 import { previewOperation } from "./previewOperation.js";
-import type {
-  AdjustCreditAccountPreview,
-  CloseCreditAccountPreview,
-  DelayedCreditAccountOperationPreview,
-  OpenCreditAccountPreview,
-} from "./types.js";
 
 // Integration-style tests for delayed RWA operations: three 5-transaction
 // scenarios executed against the RWA anvil Mainnet fork (Securitize + Midas
@@ -281,6 +280,13 @@ afterAll(() => {
   vi.restoreAllMocks();
 });
 
+function amt(token: Address, value: unknown) {
+  return expect.objectContaining({
+    token: expect.objectContaining({ address: token }),
+    value,
+  });
+}
+
 function findBalance(ca: CreditAccountData, token: Address): bigint {
   return ca.tokens.find(t => t.token === token)?.balance ?? 0n;
 }
@@ -294,10 +300,13 @@ function findQuota(ca: CreditAccountData, token: Address): bigint {
  * everything except `touched`, dust filtered out. Untouched tokens keep
  * their exact input balances in preview outputs.
  */
-function untouchedAssets(ca: CreditAccountData, touched: Address[]): Asset[] {
+function untouchedAssets(
+  ca: CreditAccountData,
+  touched: Address[],
+): ReturnType<typeof amt>[] {
   return ca.tokens
     .filter(t => !touched.includes(t.token) && t.balance > DUST_THRESHOLD)
-    .map(({ token, balance }) => ({ token, balance }));
+    .map(({ token, balance }) => amt(token, balance));
 }
 
 describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
@@ -327,7 +336,12 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
     expect(preview).toMatchObject({
       operation: spec.openOperation,
       error: undefined,
-      collateral: [{ token: USDC, balance: 20_000_000000n }],
+      collateral: [
+        {
+          token: expect.objectContaining({ address: USDC }),
+          value: 20_000_000000n,
+        },
+      ],
       collateralValue: expect.toBeWithinBps(
         afterOpen.totalValue - afterOpen.debt,
       ),
@@ -336,24 +350,22 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
       // position value and does not match the on-chain quota exactly
       quotas: [
         {
-          token: COLLATERAL,
-          balance: expect.toBeWithinBps(findQuota(afterOpen, COLLATERAL), 500n),
+          token: expect.objectContaining({ address: COLLATERAL }),
+          value: expect.toBeWithinBps(findQuota(afterOpen, COLLATERAL), 500n),
         },
       ],
       // the min guaranteed post-open assets: the collateral position only
       assets: [
         {
-          token: COLLATERAL,
-          balance: expect.toBeWithinBpsBelow(
-            findBalance(afterOpen, COLLATERAL),
-          ),
+          token: expect.objectContaining({ address: COLLATERAL }),
+          value: expect.toBeWithinBpsBelow(findBalance(afterOpen, COLLATERAL)),
         },
       ],
       // The min guaranteed collateral position must not exceed the actual
       // on-chain result, and must be within slippage of it
       target: {
-        token: COLLATERAL,
-        balance: expect.toBeWithinBpsBelow(findBalance(afterOpen, COLLATERAL)),
+        token: expect.objectContaining({ address: COLLATERAL }),
+        value: expect.toBeWithinBpsBelow(findBalance(afterOpen, COLLATERAL)),
       },
     });
   });
@@ -376,6 +388,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
 
     expect(preview).toMatchObject({
       operation: "DelayedCreditAccountOperation",
+      name: expect.any(String),
       // The decoded intent carries the new sourceToken/debtRepaid fields
       intent: {
         type: "WITHDRAW_COLLATERAL",
@@ -401,19 +414,17 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         // min guaranteed account value vs the actual post-request state
         totalValue: expect.toBeWithinBps(afterRequest.totalValue),
         assets: expect.toEqualUnordered([
-          {
-            token: PHANTOM,
-            balance: expect.toBeWithinBpsBelow(
-              findBalance(afterRequest, PHANTOM),
-            ),
-          },
-          { token: COLLATERAL, balance: findBalance(afterRequest, COLLATERAL) },
+          amt(
+            PHANTOM,
+            expect.toBeWithinBpsBelow(findBalance(afterRequest, PHANTOM)),
+          ),
+          amt(COLLATERAL, findBalance(afterRequest, COLLATERAL)),
         ]),
         quotas: expect.toEqualUnordered([
-          { token: PHANTOM, balance: findQuota(afterRequest, PHANTOM) },
+          amt(PHANTOM, findQuota(afterRequest, PHANTOM)),
           // the desired collateral quota carries a safety buffer and does
           // not match the on-chain value exactly
-          { token: COLLATERAL, balance: expect.anything() },
+          amt(COLLATERAL, expect.anything()),
         ]),
       },
       // Delayed preview vs the actual state after the claim tx (the
@@ -427,9 +438,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         error: undefined,
         // the resume adds nothing from the wallet
         collateralAdded: [],
-        collateralWithdrawn: [
-          { token: spec.withdrawToken, balance: spec.withdrawAmount },
-        ],
+        collateralWithdrawn: [amt(spec.withdrawToken, spec.withdrawAmount)],
         // oracle estimate of the post-claim account value vs the actual
         // state after the claim tx
         totalValue: expect.toBeWithinBps(afterClaim.totalValue),
@@ -437,11 +446,9 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         debtChange: expect.toSatisfy((v: bigint) => v < 0n),
         // the claim zeroes the phantom quota: only the (buffered, see
         // instantPreview) collateral quota is left
-        quotas: expect.toEqualUnordered([
-          { token: COLLATERAL, balance: expect.anything() },
-        ]),
+        quotas: expect.toEqualUnordered([amt(COLLATERAL, expect.anything())]),
         assets: expect.toEqualUnordered([
-          { token: COLLATERAL, balance: findBalance(afterClaim, COLLATERAL) },
+          amt(COLLATERAL, findBalance(afterClaim, COLLATERAL)),
         ]),
       },
     });
@@ -485,8 +492,8 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
       // for the RLUSD swap), within slippage of the requested 2000
       collateralWithdrawn: [
         {
-          token: spec.withdrawToken,
-          balance: expect.toBeWithinBps(spec.withdrawAmount),
+          token: expect.objectContaining({ address: spec.withdrawToken }),
+          value: expect.toBeWithinBps(spec.withdrawAmount),
         },
       ],
       // Cross-check against the actual state after the claim tx: the debt
@@ -498,10 +505,10 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
       // min guaranteed account value vs the actual post-claim state
       totalValue: expect.toBeWithinBps(afterClaim.totalValue),
       quotas: expect.toEqualUnordered([
-        { token: COLLATERAL, balance: findQuota(afterClaim, COLLATERAL) },
+        amt(COLLATERAL, findQuota(afterClaim, COLLATERAL)),
       ]),
       assets: expect.toEqualUnordered([
-        { token: COLLATERAL, balance: findBalance(afterClaim, COLLATERAL) },
+        amt(COLLATERAL, findBalance(afterClaim, COLLATERAL)),
       ]),
     });
   });
@@ -522,6 +529,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
 
     expect(preview).toMatchObject({
       operation: "DelayedCreditAccountOperation",
+      name: expect.any(String),
       intent: { type: "CLOSE_ACCOUNT", to: investor },
       // Instant preview vs the actual state after the request: collateral
       // fully redeemed, the phantom balance is a min guarantee, the phantom
@@ -540,16 +548,14 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         // collateral fully redeemed into the phantom token, the residues
         // left by the claim tx are untouched
         assets: expect.toEqualUnordered([
-          {
-            token: PHANTOM,
-            balance: expect.toBeWithinBpsBelow(
-              findBalance(afterCloseRequest, PHANTOM),
-            ),
-          },
+          amt(
+            PHANTOM,
+            expect.toBeWithinBpsBelow(findBalance(afterCloseRequest, PHANTOM)),
+          ),
           ...untouchedAssets(afterClaim, [COLLATERAL, PHANTOM]),
         ]),
         quotas: expect.toEqualUnordered([
-          { token: PHANTOM, balance: findQuota(afterCloseRequest, PHANTOM) },
+          amt(PHANTOM, findQuota(afterCloseRequest, PHANTOM)),
         ]),
       },
       // Delayed preview: a closure that pays the wallet the leftover after
@@ -561,8 +567,8 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         // a zero-debt closure: the account stays open but is emptied
         permanent: false,
         receivedAmount: {
-          token: spec.withdrawToken,
-          balance: expect.toBeWithinBps(walletReceived.close.amount),
+          token: expect.objectContaining({ address: spec.withdrawToken }),
+          value: expect.toBeWithinBps(walletReceived.close.amount),
         },
       },
     });
@@ -598,8 +604,8 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
       // the intent recorded by the close request, from the redemption logger
       intent: { type: "CLOSE_ACCOUNT", to: investor },
       receivedAmount: {
-        token: spec.withdrawToken,
-        balance: expect.toBeWithinBps(walletReceived.close.amount, 300n),
+        token: expect.objectContaining({ address: spec.withdrawToken }),
+        value: expect.toBeWithinBps(walletReceived.close.amount, 300n),
       },
     });
   });

@@ -1,13 +1,13 @@
 import type { Address, Hex } from "viem";
 import { encodeAbiParameters, hexToNumber, slice } from "viem";
 import { describe, expect, it } from "vitest";
+import type { DelayedIntent } from "../../../model/index.js";
 import {
   DELAYED_INTENT_TYPES,
   DELAYED_INTENT_VERSION,
   decodeDelayedIntent,
   encodeDelayedIntent,
 } from "./intent-codec.js";
-import type { DelayedIntent } from "./types.js";
 
 const TO: Address = "0xC78CF21A0f92929aC34ee86Cf94C15c9EE224adE";
 const TOKEN: Address = "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0";

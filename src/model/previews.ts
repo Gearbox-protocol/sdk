@@ -1,7 +1,50 @@
-import type { Address } from "viem";
-import type { BorrowRateBreakdown, Bps } from "../../model/index.js";
-import type { Asset, DelayedIntent } from "../../sdk/index.js";
-import type { PoolOperationType } from "../parse/index.js";
+import type { Address, Hex } from "viem";
+import type { DelayedIntent } from "./delayed-intents.js";
+import type { BorrowRateBreakdown } from "./positions.js";
+import type { Bps, ChainId, Leverage, TokenAmount } from "./primitives.js";
+
+/**
+ * ERC4626 pool operation kind, as surfaced on a {@link PoolOperationPreview}.
+ **/
+export type PoolOperationType = "Deposit" | "Mint" | "Withdraw" | "Redeem";
+
+/**
+ * Raw-calldata operation to preview: the chain and the transaction fields.
+ * The on-chain SDK is resolved from {@link chainId} by the caller.
+ **/
+export interface PreviewOperationInput {
+  /**
+   * Chain the transaction is sent on.
+   **/
+  chainId: ChainId;
+  /**
+   * Contract address that was called.
+   **/
+  to: Address;
+  /**
+   * Raw calldata of the operation.
+   **/
+  calldata: Hex;
+  /**
+   * Transaction sender.
+   **/
+  sender: Address;
+  /**
+   * Transaction `msg.value`, required for native-token zapper deposits.
+   **/
+  value?: bigint;
+}
+
+/**
+ * Options for previewing a raw operation.
+ **/
+export interface PreviewOperationOptions {
+  /**
+   * Block to read/simulate at; defaults to latest. Only set for testnet
+   * forks.
+   **/
+  blockNumber?: bigint;
+}
 
 // 1xxx errors: the transaction is malformed and would not execute correctly
 // on-chain.
@@ -71,6 +114,10 @@ export interface PoolOperationPreview {
    */
   pool: Address;
   /**
+   * Human-readable pool name
+   */
+  name: string;
+  /**
    * Token that goes from user to pool
    * In case of deposit, underlying for direct deposit, zapper input for zapper-routed deposit
    * In case of withdraw, pool shares (diesel token) for direct withdraw or zapper token out
@@ -79,7 +126,7 @@ export interface PoolOperationPreview {
    * transaction calldata alone and requires an additional async call
    * (previewMint/previewWithdraw).
    */
-  tokenIn: Asset;
+  tokenIn: TokenAmount;
   /**
    * Token that goes from pool to user
    * In case of deposit, pool shares (diesel token) for direct deposit or zapper token out
@@ -89,7 +136,12 @@ export interface PoolOperationPreview {
    * transaction calldata alone and requires an additional async call
    * (previewDeposit/previewRedeem).
    */
-  tokenOut: Asset;
+  tokenOut: TokenAmount;
+  /**
+   * Diesel rate of the pool: underlying per 1 diesel share, RAY-scaled
+   * (`1e27`).
+   */
+  shareRate: bigint;
   /**
    * Set when preview encountered non-fatal errors, all fields are
    * still computed best-effort
@@ -126,14 +178,23 @@ export interface OpenCreditAccountPreview {
    **/
   liquidationPrice: bigint | null;
   /**
+   * Total-value leverage: `totalValue / (totalValue − totalDebt)`. `1` =
+   * unleveraged; `0` if underwater.
+   **/
+  leverage: Leverage;
+  /**
    * Credit manager the account is opened in
    */
   creditManager: Address;
   /**
+   * Human-readable credit manager name
+   */
+  name: string;
+  /**
    * Target token of strategy: the first quoted token, with its balance taken
    * from `assets`. Undefined when nothing is quoted.
    */
-  target?: Asset;
+  target?: TokenAmount;
   /**
    * Tokens that were added as collateral during account opening.
    *
@@ -141,24 +202,34 @@ export interface OpenCreditAccountPreview {
    * `NATIVE_ADDRESS` entry, with the wrapped native token amount reduced
    * accordingly (omitted entirely when it reaches zero).
    */
-  collateral: Asset[];
+  collateral: TokenAmount[];
   /**
    * Sum of collateral tokens in underlying
    */
   collateralValue: bigint;
   /**
+   * Total account value after opening: collateral plus borrowed amount, in
+   * underlying.
+   */
+  totalValue: bigint;
+  /**
    * Borrowed amount in underlying
    */
   debt: bigint;
   /**
+   * WARNING: unlike every other `TokenAmount` in this model, `value` is
+   * denominated in the market underlying, NOT in `token`. `token` only
+   * identifies which collateral the quota applies to; `valueUsd` prices the
+   * underlying amount.
+   *
    * Desired quotas
    */
-  quotas: Asset[];
+  quotas: TokenAmount[];
   /**
    * Minimum amount of assets on credit account after it's opened,
    * as estimated by router
    */
-  assets: Asset[];
+  assets: TokenAmount[];
   /**
    * Set when preview encountered non-fatal errors, all fields are
    * still computed best-effort, but derived fields (`assets`, `target`,
@@ -196,9 +267,18 @@ export interface AdjustCreditAccountPreview {
    **/
   liquidationPrice: bigint | null;
   /**
+   * Total-value leverage: `totalValue / (totalValue − totalDebt)`. `1` =
+   * unleveraged; `0` if underwater.
+   **/
+  leverage: Leverage;
+  /**
    * Credit manager the account is opened in
    */
   creditManager: Address;
+  /**
+   * Human-readable credit manager name
+   */
+  name: string;
   /**
    * Credit account that is being adjusted
    */
@@ -210,11 +290,11 @@ export interface AdjustCreditAccountPreview {
    * `NATIVE_ADDRESS` entry, with the wrapped native token amount reduced
    * accordingly (omitted entirely when it reaches zero).
    */
-  collateralAdded: Asset[];
+  collateralAdded: TokenAmount[];
   /**
    * Tokens that were withdrawn as collateral during account adjustment.
    */
-  collateralWithdrawn: Asset[];
+  collateralWithdrawn: TokenAmount[];
   /**
    * Sum of collateral tokens in underlying
    */
@@ -232,22 +312,32 @@ export interface AdjustCreditAccountPreview {
    */
   debtChange: bigint;
   /**
+   * WARNING: unlike every other `TokenAmount` in this model, `value` is
+   * denominated in the market underlying, NOT in `token`. `token` only
+   * identifies which collateral the quota applies to; `valueUsd` prices the
+   * underlying amount.
+   *
    * Desired quotas
    */
-  quotas: Asset[];
+  quotas: TokenAmount[];
   /**
+   * WARNING: unlike every other `TokenAmount` in this model, `value` is
+   * denominated in the market underlying, NOT in `token`. `token` only
+   * identifies which collateral the quota applies to; `valueUsd` prices the
+   * underlying amount.
+   *
    * Quotas after minus quotas before
    */
-  quotasChange: Asset[];
+  quotasChange: TokenAmount[];
   /**
    * Minimum amount of assets on credit account after the operation,
    * as estimated by router
    */
-  assets: Asset[];
+  assets: TokenAmount[];
   /**
    * Assets after minus assets before
    */
-  assetsChange: Asset[];
+  assetsChange: TokenAmount[];
   /**
    * Intent of the delayed withdrawal this transaction claims; set when the
    * multicall claims a delayed withdrawal
@@ -274,6 +364,10 @@ export interface CloseCreditAccountPreview {
    */
   creditManager: Address;
   /**
+   * Human-readable credit manager name
+   */
+  name: string;
+  /**
    * Credit account that is being closed
    */
   creditAccount: Address;
@@ -284,7 +378,7 @@ export interface CloseCreditAccountPreview {
    * markets, the unwrapped RWA underlying (the ERC4626 vault asset the
    * underlying share converts 1:1 into)
    */
-  receivedAmount: Asset;
+  receivedAmount: TokenAmount;
   /**
    * Intent of the delayed withdrawal this transaction claims; set when the
    * multicall claims a delayed withdrawal
@@ -311,6 +405,10 @@ export interface RepayCreditAccountPreview {
    */
   creditManager: Address;
   /**
+   * Human-readable credit manager name
+   */
+  name: string;
+  /**
    * Credit account that is being repaid
    */
   creditAccount: Address;
@@ -321,12 +419,12 @@ export interface RepayCreditAccountPreview {
    * `NATIVE_ADDRESS` entry, with the wrapped native token amount reduced
    * accordingly (omitted entirely when it reaches zero).
    */
-  collateralAdded: Asset[];
+  collateralAdded: TokenAmount[];
   /**
    * Tokens returned to the user in-kind (`withdrawCollateral` calls, with the
    * MAX_UINT256 sentinel resolved against replayed balances)
    */
-  collateralWithdrawn: Asset[];
+  collateralWithdrawn: TokenAmount[];
   /**
    * Total debt repaid: principal + accrued interest + fees, in underlying
    */
@@ -370,6 +468,10 @@ export interface DelayedCreditAccountOperationPreview {
    * Credit manager the account belongs to
    */
   creditManager: Address;
+  /**
+   * Human-readable credit manager name
+   */
+  name: string;
   /**
    * Decoded from the withdrawal request's extraData; undefined when the
    * request carries no intent (e.g. Mellow)

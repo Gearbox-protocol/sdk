@@ -5,7 +5,7 @@ import type {
   ContractFunctionArgs,
   ContractFunctionReturnType,
 } from "viem";
-import { stringToHex } from "viem";
+import { isAddressEqual, stringToHex } from "viem";
 import { priceFeedCompressorAbi } from "../../../abi/compressors/priceFeedCompressor.js";
 import type {
   Amount,
@@ -24,7 +24,10 @@ import { BaseContract } from "../../base/index.js";
 import type { PriceFeedAnswer } from "../../base/types.js";
 import {
   AP_PRICE_FEED_COMPRESSOR,
+  AP_WETH_TOKEN,
   DUST_THRESHOLD,
+  NATIVE_ADDRESS,
+  NO_VERSION,
   VERSION_RANGE_310,
 } from "../../constants/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
@@ -216,10 +219,16 @@ export abstract class PriceOracleBaseContract<
     if (from === to) {
       return amount;
     }
-    const fromPrice = reserve ? this.reservePrice(from) : this.mainPrice(from);
-    const fromScale = 10n ** BigInt(this.tokensMeta.decimals(from));
-    const toPrice = reserve ? this.reservePrice(to) : this.mainPrice(to);
-    const toScale = 10n ** BigInt(this.tokensMeta.decimals(to));
+    const fromToken = this.#priceableToken(from);
+    const toToken = this.#priceableToken(to);
+    const fromPrice = reserve
+      ? this.reservePrice(fromToken)
+      : this.mainPrice(fromToken);
+    const fromScale = 10n ** BigInt(this.tokensMeta.decimals(fromToken));
+    const toPrice = reserve
+      ? this.reservePrice(toToken)
+      : this.mainPrice(toToken);
+    const toScale = 10n ** BigInt(this.tokensMeta.decimals(toToken));
 
     return (amount * fromPrice * toScale) / (toPrice * fromScale);
   }
@@ -231,8 +240,9 @@ export abstract class PriceOracleBaseContract<
     if (amount === 0n) {
       return 0n;
     }
-    const price = reserve ? this.reservePrice(from) : this.mainPrice(from);
-    const scale = 10n ** BigInt(this.tokensMeta.decimals(from));
+    const token = this.#priceableToken(from);
+    const price = reserve ? this.reservePrice(token) : this.mainPrice(token);
+    const scale = 10n ** BigInt(this.tokensMeta.decimals(token));
     return (amount * price) / scale;
   }
 
@@ -243,8 +253,9 @@ export abstract class PriceOracleBaseContract<
     if (amount === 0n) {
       return 0n;
     }
-    const price = reserve ? this.reservePrice(to) : this.mainPrice(to);
-    const scale = 10n ** BigInt(this.tokensMeta.decimals(to));
+    const token = this.#priceableToken(to);
+    const price = reserve ? this.reservePrice(token) : this.mainPrice(token);
+    const scale = 10n ** BigInt(this.tokensMeta.decimals(token));
     return (amount * scale) / price;
   }
 
@@ -281,11 +292,34 @@ export abstract class PriceOracleBaseContract<
    * {@inheritDoc IPriceOracleContract.toTokenAmount}
    **/
   public toTokenAmount = (token: Address, value: bigint): TokenAmount => {
+    if (isAddressEqual(token, NATIVE_ADDRESS)) {
+      const { symbol, name, decimals } = this.sdk.chain.nativeCurrency;
+      return {
+        token: {
+          chainId: this.sdk.chainId,
+          address: NATIVE_ADDRESS,
+          symbol,
+          name,
+          decimals,
+        },
+        ...this.toAmount(token, value),
+      };
+    }
     return {
       token: this.tokensMeta.mustGetToken(token),
       ...this.toAmount(token, value),
     };
   };
+
+  /**
+   * The native pseudo-address has no feed of its own; it is priced through
+   * WETH. All other tokens price as themselves.
+   **/
+  #priceableToken(token: Address): Address {
+    return isAddressEqual(token, NATIVE_ADDRESS)
+      ? this.sdk.addressProvider.getAddress(AP_WETH_TOKEN, NO_VERSION)
+      : token;
+  }
 
   /**
    * {@inheritDoc IPriceOracleContract.priceFeedData}

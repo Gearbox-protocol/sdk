@@ -1,3 +1,4 @@
+import type { PoolOperationPreview } from "../../model/index.js";
 import type { PluginsMap } from "../../sdk/index.js";
 import type { PoolOperation } from "../parse/index.js";
 import { simulatePoolOperation } from "../simulate/index.js";
@@ -5,7 +6,6 @@ import type {
   PreviewOperationInput,
   PreviewOperationOptions,
 } from "../types.js";
-import type { PoolOperationPreview } from "./types.js";
 
 export async function previewPoolOperation<P extends PluginsMap>(
   input: PreviewOperationInput<P>,
@@ -14,6 +14,7 @@ export async function previewPoolOperation<P extends PluginsMap>(
 ): Promise<PoolOperationPreview> {
   const { sdk, to, calldata } = input;
   const { tokenIn, tokenOut } = operation;
+  const market = sdk.marketRegister.findByPool(operation.pool);
   const sim = await simulatePoolOperation(
     { sdk, operation, to, calldata },
     options,
@@ -22,7 +23,9 @@ export async function previewPoolOperation<P extends PluginsMap>(
   return {
     operation: operation.operation,
     pool: operation.pool,
-    tokenIn: { token: tokenIn, balance: sim.amountIn },
-    tokenOut: { token: tokenOut, balance: sim.amountOut },
+    name: sdk.tokensMeta.mustGetToken(operation.pool).name,
+    shareRate: market.pool.pool.dieselRate,
+    tokenIn: market.priceOracle.toTokenAmount(tokenIn, sim.amountIn),
+    tokenOut: market.priceOracle.toTokenAmount(tokenOut, sim.amountOut),
   };
 }

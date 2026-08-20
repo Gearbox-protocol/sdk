@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { type Address, custom, encodeFunctionData, parseEther } from "viem";
 import { beforeAll, describe, expect, it } from "vitest";
 import { iCreditFacadeV310Abi } from "../../abi/310/generated.js";
+import type { AdjustCreditAccountPreview, Token } from "../../model/index.js";
 import { CreditAccountOperationsService } from "../../sdk/accounts/intents/index.js";
 import type {
   OperationState,
@@ -18,7 +19,6 @@ import {
   OnchainSDK,
 } from "../../sdk/index.js";
 import { previewOperation } from "./previewOperation.js";
-import type { AdjustCreditAccountPreview } from "./types.js";
 
 // The two halves of the SDK's account story, checked against each other.
 // `prepare` goes forward — a request becomes facade calls plus the state they
@@ -107,30 +107,34 @@ async function roundTrip(intent: StartIntent) {
 }
 
 /**
+ * A token/amount pair as either an {@link Asset} (`token` is an address,
+ * amount is `balance`) or a {@link TokenAmount} (`token` is a {@link Token},
+ * amount is `value`).
+ */
+interface TokenBalance {
+  token: Address | Token;
+  balance?: bigint;
+  value?: bigint;
+}
+
+/**
  * Balances keyed by token, dust and zeroes dropped: the two sides answer with a
  * list and a map, each in whatever order it built, and only one of them filters.
  */
 function byToken(
-  assets: Asset[] | Record<Address, Asset>,
+  assets: TokenBalance[] | Record<Address, Asset>,
 ): Record<string, bigint> {
-  const list = Array.isArray(assets) ? assets : Object.values(assets);
+  const list: TokenBalance[] = Array.isArray(assets)
+    ? assets
+    : Object.values(assets);
   const out: Record<string, bigint> = {};
-  for (const { token, balance } of list) {
-    if (balance > DUST_THRESHOLD) out[token.toLowerCase()] = balance;
+  for (const item of list) {
+    const token =
+      typeof item.token === "string" ? item.token : item.token.address;
+    const amount = item.value ?? item.balance ?? 0n;
+    if (amount > DUST_THRESHOLD) out[token.toLowerCase()] = amount;
   }
   return out;
-}
-
-/**
- * A borrow rate with its per-quota keys cased alike: the projection lowercases
- * every address it handles, the preview spells them as the market does.
- */
-function sameCase<R extends { quotas: Record<string, unknown> }>(rate: R): R {
-  const quotas: Record<string, unknown> = {};
-  for (const [token, perQuota] of Object.entries(rate.quotas)) {
-    quotas[token.toLowerCase()] = perQuota;
-  }
-  return { ...rate, quotas };
 }
 
 /** Asserts everything the two sides say about the account after the operation. */
@@ -146,7 +150,7 @@ function expectAgreement(
   // the same functions — but only most of it: each side assembles the snapshot
   // it feeds them on its own.
   expect(preview.healthFactor).toBe(projected.healthFactor);
-  expect(sameCase(preview.borrowRate)).toEqual(sameCase(projected.borrowRate));
+  expect(preview.borrowRate).toEqual(projected.borrowRate);
   expect(preview.timeToLiquidation).toBe(projected.timeToLiquidation);
   expect(preview.liquidationPrice).toBe(projected.liquidationPrice);
 }
@@ -165,8 +169,11 @@ describe("the preview of what prepare built agrees with what prepare projected",
     expectAgreement(preview, projected);
     // the payment is what the wallet parts with, and the preview reads it back
     // out of the addCollateral call rather than being told
-    expect(preview.collateralAdded).toEqual([
-      { token: WETH, balance: parseEther("5") },
+    expect(preview.collateralAdded).toMatchObject([
+      {
+        token: expect.objectContaining({ address: WETH }),
+        value: parseEther("5"),
+      },
     ]);
     // the whole payment goes into the loan, interest and fees first
     expect(preview.debtChange).toBe(-parseEther("5"));
@@ -185,11 +192,17 @@ describe("the preview of what prepare built agrees with what prepare projected",
     }
 
     expectAgreement(preview, projected);
-    expect(preview.collateralAdded).toEqual([
-      { token: CBETH, balance: parseEther("1") },
+    expect(preview.collateralAdded).toMatchObject([
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: parseEther("1"),
+      },
     ]);
-    expect(preview.assetsChange).toEqual([
-      { token: CBETH, balance: parseEther("1") },
+    expect(preview.assetsChange).toMatchObject([
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: parseEther("1"),
+      },
     ]);
     expect(preview.debtChange).toBe(0n);
     // the standing quota already covers the grown balance, so the plan writes
@@ -209,12 +222,15 @@ describe("the preview of what prepare built agrees with what prepare projected",
     }
 
     expectAgreement(preview, projected);
-    expect(preview.collateralWithdrawn).toEqual([
-      { token: CBETH, balance: parseEther("1") },
+    expect(preview.collateralWithdrawn).toMatchObject([
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: parseEther("1"),
+      },
     ]);
     expect(preview.debtChange).toBe(0n);
     // the quota is resized down to the balance that is left
-    expect(preview.quotasChange[0]?.balance).toBeLessThan(0n);
+    expect(preview.quotasChange[0]?.value).toBeLessThan(0n);
   });
 
   it("settling the loan: the preview reads back the debt the projection cleared", async () => {
@@ -237,8 +253,8 @@ describe("the preview of what prepare built agrees with what prepare projected",
     expect(preview.permanent).toBe(false);
     expect(preview.collateralWithdrawn).toEqual([]);
     // the wallet is charged the debt plus the margin the interest may grow by
-    expect(preview.collateralAdded[0]?.token).toBe(WETH);
-    expect(preview.collateralAdded[0]?.balance).toBeGreaterThan(
+    expect(preview.collateralAdded[0]?.token.address).toBe(WETH);
+    expect(preview.collateralAdded[0]?.value).toBeGreaterThan(
       preview.debtRepaid,
     );
   });

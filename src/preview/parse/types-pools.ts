@@ -1,4 +1,6 @@
 import type { Address } from "viem";
+import type { PoolOperationType } from "../../model/index.js";
+import type { AssertAssignable } from "../../sdk/index.js";
 
 /**
  * ERC4626 `deposit` into a Gearbox pool.
@@ -150,4 +152,8 @@ export type PoolOperation =
   | PoolWithdrawOperation
   | PoolRedeemOperation;
 
-export type PoolOperationType = PoolOperation["operation"];
+type _AssertPoolOperationType = AssertAssignable<
+  PoolOperationType,
+  PoolOperation["operation"]
+> &
+  AssertAssignable<PoolOperation["operation"], PoolOperationType>;

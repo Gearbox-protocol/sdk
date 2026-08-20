@@ -12,13 +12,13 @@ import {
   iCreditFacadeMulticallV310Abi,
   iCreditFacadeV310Abi,
 } from "../../abi/310/generated.js";
+import { ERROR_UNPRICEABLE_TOKEN } from "../../model/index.js";
 import {
   type CreditAccountData,
   json_parse,
   OnchainSDK,
 } from "../../sdk/index.js";
 import { previewOperation } from "./previewOperation.js";
-import { ERROR_UNPRICEABLE_TOKEN } from "./types.js";
 
 // Scoped (KPK market configurator only) snapshot of the Gearbox anvil Mainnet
 // fork, replayed via `hydrate` so the test runs fully offline. The account
@@ -82,16 +82,41 @@ it("previews raising leverage to 6", async () => {
     operation: "AdjustCreditAccount",
     creditManager: CREDIT_MANAGER,
     creditAccount: CREDIT_ACCOUNT,
+    name: expect.any(String),
+    leverage: expect.any(Number),
     collateralAdded: [],
     collateralWithdrawn: [
-      { token: CBETH, balance: 1_387_859_676_487_610_985n },
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: 1_387_859_676_487_610_985n,
+      },
     ],
     debt: 41_574_436_328_452_499_320n,
     debtChange: 1_574_314_141_387_831_008n,
-    quotas: [{ token: CBETH, balance: 46_360_419_898_114_650_000n }],
-    quotasChange: [{ token: CBETH, balance: -2_356_436_935_552_180_000n }],
-    assets: [{ token: CBETH, balance: 43_945_921_284_867_266_790n }],
-    assetsChange: [{ token: CBETH, balance: -34_681_141_736_785_841n }],
+    quotas: [
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: 46_360_419_898_114_650_000n,
+      },
+    ],
+    quotasChange: [
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: -2_356_436_935_552_180_000n,
+      },
+    ],
+    assets: [
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: 43_945_921_284_867_266_790n,
+      },
+    ],
+    assetsChange: [
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: -34_681_141_736_785_841n,
+      },
+    ],
     totalValue: 49_849_913_868_940_488_429n,
   });
 });
@@ -106,14 +131,39 @@ it("previews depositing 1 WETH collateral", async () => {
     operation: "AdjustCreditAccount",
     creditManager: CREDIT_MANAGER,
     creditAccount: CREDIT_ACCOUNT,
-    collateralAdded: [{ token: WETH, balance: parseEther("1") }],
+    collateralAdded: [
+      {
+        token: expect.objectContaining({ address: WETH }),
+        value: parseEther("1"),
+      },
+    ],
     collateralWithdrawn: [],
     debt: 43_992_432_141_036_538_039n,
     debtChange: 3_992_309_953_971_869_727n,
-    quotas: [{ token: CBETH, balance: 50_318_692_608_187_300_000n }],
-    quotasChange: [{ token: CBETH, balance: 1_601_835_774_520_470_000n }],
-    assets: [{ token: CBETH, balance: 47_698_043_058_638_453_746n }],
-    assetsChange: [{ token: CBETH, balance: 3_717_440_632_034_401_115n }],
+    quotas: [
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: 50_318_692_608_187_300_000n,
+      },
+    ],
+    quotasChange: [
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: 1_601_835_774_520_470_000n,
+      },
+    ],
+    assets: [
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: 47_698_043_058_638_453_746n,
+      },
+    ],
+    assetsChange: [
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: 3_717_440_632_034_401_115n,
+      },
+    ],
     totalValue: 54_106_121_084_072_372_049n,
   });
 });
@@ -126,14 +176,39 @@ it("previews raising leverage 5.03 -> 5.2 while adding 1 WETH collateral", async
     operation: "AdjustCreditAccount",
     creditManager: CREDIT_MANAGER,
     creditAccount: CREDIT_ACCOUNT,
-    collateralAdded: [{ token: WETH, balance: parseEther("1") }],
+    collateralAdded: [
+      {
+        token: expect.objectContaining({ address: WETH }),
+        value: parseEther("1"),
+      },
+    ],
     collateralWithdrawn: [],
     debt: 45_734_608_018_311_792_520n,
     debtChange: 5_734_485_831_247_124_208n,
-    quotas: [{ token: CBETH, balance: 50_318_692_647_376_930_000n }],
-    quotasChange: [{ token: CBETH, balance: 1_601_835_813_710_100_000n }],
-    assets: [{ token: CBETH, balance: 47_698_043_095_787_045_420n }],
-    assetsChange: [{ token: CBETH, balance: 3_717_440_669_182_992_789n }],
+    quotas: [
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: 50_318_692_647_376_930_000n,
+      },
+    ],
+    quotasChange: [
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: 1_601_835_813_710_100_000n,
+      },
+    ],
+    assets: [
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: 47_698_043_095_787_045_420n,
+      },
+    ],
+    assetsChange: [
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: 3_717_440_669_182_992_789n,
+      },
+    ],
     totalValue: 54_106_121_126_211_757_028n,
   });
 });
@@ -146,14 +221,39 @@ it("previews adding 1 WETH collateral, then raising leverage 5.04 -> 5.2", async
     operation: "AdjustCreditAccount",
     creditManager: CREDIT_MANAGER,
     creditAccount: CREDIT_ACCOUNT,
-    collateralAdded: [{ token: WETH, balance: parseEther("1") }],
+    collateralAdded: [
+      {
+        token: expect.objectContaining({ address: WETH }),
+        value: parseEther("1"),
+      },
+    ],
     collateralWithdrawn: [],
     debt: 45_734_594_054_075_830_428n,
     debtChange: 5_734_471_867_011_162_116n,
-    quotas: [{ token: CBETH, balance: 50_318_692_647_376_840_000n }],
-    quotasChange: [{ token: CBETH, balance: 1_601_835_813_710_010_000n }],
-    assets: [{ token: CBETH, balance: 47_698_043_095_786_964_542n }],
-    assetsChange: [{ token: CBETH, balance: 3_717_440_669_182_911_911n }],
+    quotas: [
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: 50_318_692_647_376_840_000n,
+      },
+    ],
+    quotasChange: [
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: 1_601_835_813_710_010_000n,
+      },
+    ],
+    assets: [
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: 47_698_043_095_786_964_542n,
+      },
+    ],
+    assetsChange: [
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: 3_717_440_669_182_911_911n,
+      },
+    ],
     totalValue: 54_106_121_126_211_665_285n,
   });
 });
@@ -167,14 +267,34 @@ it("previews adding 1 WETH collateral", async () => {
     operation: "AdjustCreditAccount",
     creditManager: CREDIT_MANAGER,
     creditAccount: CREDIT_ACCOUNT,
-    collateralAdded: [{ token: WETH, balance: parseEther("1") }],
+    collateralAdded: [
+      {
+        token: expect.objectContaining({ address: WETH }),
+        value: parseEther("1"),
+      },
+    ],
     collateralWithdrawn: [],
     debt: 40_000_122_187_064_668_312n,
     debtChange: 0n,
-    quotas: [{ token: CBETH, balance: 48_716_856_833_666_830_000n }],
+    quotas: [
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: 48_716_856_833_666_830_000n,
+      },
+    ],
     quotasChange: [],
-    assets: [{ token: CBETH, balance: 44_840_880_098_796_798_693n }],
-    assetsChange: [{ token: CBETH, balance: 860_277_672_192_746_062n }],
+    assets: [
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: 44_840_880_098_796_798_693n,
+      },
+    ],
+    assetsChange: [
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: 860_277_672_192_746_062n,
+      },
+    ],
     totalValue: 50_865_107_508_901_768_679n,
   });
 });
@@ -190,18 +310,45 @@ it("previews withdrawing 1 cbETH", async () => {
     creditManager: CREDIT_MANAGER,
     creditAccount: CREDIT_ACCOUNT,
     collateralAdded: [],
-    collateralWithdrawn: [{ token: CBETH, balance: 999_999_999_999_999_999n }],
+    collateralWithdrawn: [
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: 999_999_999_999_999_999n,
+      },
+    ],
     debt: 35_369_517_375_080_970_375n,
     debtChange: -4_630_604_811_983_697_937n,
-    quotas: [{ token: CBETH, balance: 41_035_601_537_003_630_000n }],
-    quotasChange: [{ token: CBETH, balance: -7_681_255_296_663_200_000n }],
+    quotas: [
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: 41_035_601_537_003_630_000n,
+      },
+    ],
+    quotasChange: [
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: -7_681_255_296_663_200_000n,
+      },
+    ],
     assets: [
-      { token: CBETH, balance: 38_898_424_970_816_037_377n },
-      { token: WETH, balance: 59_823_460_339_788_484n },
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: 38_898_424_970_816_037_377n,
+      },
+      {
+        token: expect.objectContaining({ address: WETH }),
+        value: 59_823_460_339_788_484n,
+      },
     ],
     assetsChange: [
-      { token: CBETH, balance: -5_082_177_455_788_015_254n },
-      { token: WETH, balance: 59_823_460_339_788_484n },
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: -5_082_177_455_788_015_254n,
+      },
+      {
+        token: expect.objectContaining({ address: WETH }),
+        value: 59_823_460_339_788_484n,
+      },
     ],
     totalValue: 44_184_126_188_300_681_109n,
   });
@@ -219,14 +366,37 @@ it("previews adjusting leverage to 7", async () => {
     creditAccount: CREDIT_ACCOUNT,
     collateralAdded: [],
     collateralWithdrawn: [
-      { token: CBETH, balance: 2_434_993_499_242_269_892n },
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: 2_434_993_499_242_269_892n,
+      },
     ],
     debt: 42_762_249_198_165_825_765n,
     debtChange: 2_762_127_011_101_157_453n,
-    quotas: [{ token: CBETH, balance: 46_328_353_161_910_640_000n }],
-    quotasChange: [{ token: CBETH, balance: -2_388_503_671_756_190_000n }],
-    assets: [{ token: CBETH, balance: 43_915_524_617_447_497_132n }],
-    assetsChange: [{ token: CBETH, balance: -65_077_809_156_555_499n }],
+    quotas: [
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: 46_328_353_161_910_640_000n,
+      },
+    ],
+    quotasChange: [
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: -2_388_503_671_756_190_000n,
+      },
+    ],
+    assets: [
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: 43_915_524_617_447_497_132n,
+      },
+    ],
+    assetsChange: [
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: -65_077_809_156_555_499n,
+      },
+    ],
     totalValue: 49_815_433_507_430_804_274n,
   });
 });
@@ -240,23 +410,45 @@ it("previews adjusting leverage to 4", async () => {
     operation: "AdjustCreditAccount",
     creditManager: CREDIT_MANAGER,
     creditAccount: CREDIT_ACCOUNT,
-    collateralAdded: [{ token: WETH, balance: 2_583_152_250_476_607_142n }],
+    collateralAdded: [
+      {
+        token: expect.objectContaining({ address: WETH }),
+        value: 2_583_152_250_476_607_142n,
+      },
+    ],
     collateralWithdrawn: [],
     debt: 37_416_969_936_588_061_170n,
     debtChange: -2_583_152_250_476_607_142n,
-    quotas: [{ token: CBETH, balance: 48_716_856_833_666_830_000n }],
+    quotas: [
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: 48_716_856_833_666_830_000n,
+      },
+    ],
     quotasChange: [],
-    assets: [{ token: CBETH, balance: 43_980_602_426_604_052_631n }],
+    assets: [
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: 43_980_602_426_604_052_631n,
+      },
+    ],
     assetsChange: [],
     totalValue: 49_889_254_310_053_293_583n,
   });
 });
 
 it("reports an unpriceable-token error and keeps the best-effort preview", async () => {
-  // Hand-crafted multicall adding collateral in a token the oracle cannot
-  // price: the preview is still computed, the unknown token contributes
-  // nothing to totalValue and a 2xxx preview-limitation error is reported.
+  // Hand-crafted multicall adding collateral in a registered token the
+  // oracle cannot price: the preview is still computed, the token
+  // contributes nothing to totalValue and a 2xxx preview-limitation error
+  // is reported.
   const UNKNOWN: Address = "0x1111111111111111111111111111111111111111";
+  sdk.tokensMeta.upsert(UNKNOWN, {
+    addr: UNKNOWN,
+    decimals: 18,
+    name: "Unknown",
+    symbol: "UNK",
+  });
   const amount = parseEther("1");
   const calldata = encodeFunctionData({
     abi: iCreditFacadeV310Abi,
@@ -281,13 +473,20 @@ it("reports an unpriceable-token error and keeps the best-effort preview", async
     operation: "AdjustCreditAccount",
     creditManager: CREDIT_MANAGER,
     creditAccount: CREDIT_ACCOUNT,
-    collateralAdded: [{ token: UNKNOWN, balance: amount }],
+    collateralAdded: [
+      { token: expect.objectContaining({ address: UNKNOWN }), value: amount },
+    ],
     debt: 40_000_122_187_064_668_312n,
     debtChange: 0n,
     // best-effort: the unknown token still appears in assets, but only the
     // priceable pre-state cbETH contributes to totalValue (see the
     // "adjusting leverage to 4" case above for the cbETH-only value)
-    assets: expect.arrayContaining([{ token: UNKNOWN, balance: amount }]),
+    assets: expect.arrayContaining([
+      expect.objectContaining({
+        token: expect.objectContaining({ address: UNKNOWN }),
+        value: amount,
+      }),
+    ]),
     totalValue: 49_889_254_310_053_293_583n,
     error: { code: ERROR_UNPRICEABLE_TOKEN, message: expect.any(String) },
   });

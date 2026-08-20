@@ -1,5 +1,10 @@
 import {
+  type AdjustCreditAccountPreview,
+  ERROR_UNPRICEABLE_TOKEN,
+} from "../../model/index.js";
+import {
   AP_WETH_TOKEN,
+  calcPositionLeverage,
   DUST_THRESHOLD,
   NO_VERSION,
   type PluginsMap,
@@ -13,10 +18,6 @@ import type {
   PreviewOperationOptions,
 } from "../types.js";
 import { replayMulticall } from "./replayMulticall.js";
-import {
-  type AdjustCreditAccountPreview,
-  ERROR_UNPRICEABLE_TOKEN,
-} from "./types.js";
 import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
 
 /**
@@ -35,6 +36,7 @@ export async function previewAdjustCreditAccount<P extends PluginsMap>(
   const market = sdk.marketRegister.findByCreditManager(
     operation.creditManager,
   );
+  const oracle = market.priceOracle;
 
   const {
     before,
@@ -70,9 +72,7 @@ export async function previewAdjustCreditAccount<P extends PluginsMap>(
   // recorded above take precedence over this preview limitation (2xxx).
   const totalValue = assets.reduce((acc, { token, balance }) => {
     try {
-      return (
-        acc + market.priceOracle.convert(token, market.underlying, balance)
-      );
+      return acc + oracle.convert(token, market.underlying, balance);
     } catch {
       error ??= {
         code: ERROR_UNPRICEABLE_TOKEN,
@@ -86,16 +86,33 @@ export async function previewAdjustCreditAccount<P extends PluginsMap>(
   return {
     operation: "AdjustCreditAccount",
     creditManager: operation.creditManager,
+    name: sdk.marketRegister.findCreditManager(operation.creditManager).name,
     creditAccount: operation.creditAccount,
-    collateralAdded,
-    collateralWithdrawn: after.collateralWithdrawn.toAssets(),
+    collateralAdded: collateralAdded.map(a =>
+      oracle.toTokenAmount(a.token, a.balance),
+    ),
+    collateralWithdrawn: after.collateralWithdrawn
+      .toAssets()
+      .map(a => oracle.toTokenAmount(a.token, a.balance)),
     totalValue,
     debt: account.totalDebt,
     debtChange: account.totalDebt - before.totalDebt,
-    quotas,
-    quotasChange: account.quotas.difference(before.quotas).toAssets(),
-    assets,
-    assetsChange,
+    // WARNING: quota values are underlying-denominated
+    quotas: quotas.map(q => ({
+      token: sdk.tokensMeta.mustGetToken(q.token),
+      ...oracle.toAmount(market.underlying, q.balance),
+    })),
+    quotasChange: account.quotas
+      .difference(before.quotas)
+      .toAssets()
+      .map(q => ({
+        token: sdk.tokensMeta.mustGetToken(q.token),
+        ...oracle.toAmount(market.underlying, q.balance),
+      })),
+    assets: assets.map(a => oracle.toTokenAmount(a.token, a.balance)),
+    assetsChange: assetsChange.map(a =>
+      oracle.toTokenAmount(a.token, a.balance),
+    ),
     error,
     // Best-effort like the rest of the preview: tokens the oracle cannot
     // price (ERROR_UNPRICEABLE_TOKEN) contribute nothing to the metrics.
@@ -106,5 +123,6 @@ export async function previewAdjustCreditAccount<P extends PluginsMap>(
     borrowRate: sdk.positions.borrowRate(snap),
     timeToLiquidation: sdk.positions.timeToLiquidation(snap),
     liquidationPrice: sdk.positions.liquidationPrice(snap),
+    leverage: calcPositionLeverage(totalValue, account.totalDebt),
   };
 }
