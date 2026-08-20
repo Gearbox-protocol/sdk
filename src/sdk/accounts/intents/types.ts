@@ -1,5 +1,9 @@
 import type { Address } from "viem";
-import type { Leverage, PositionMetrics } from "../../../model/index.js";
+import type {
+  Bps,
+  BorrowRateBreakdown,
+  Leverage,
+} from "../../../model/index.js";
 import type {
   Asset,
   MultiCall,
@@ -23,7 +27,33 @@ export type CreditAccountSlice = Omit<RouterCASlice, "debt"> & {
 };
 
 /** Projected account metrics once the operations execute. */
-export interface OperationState extends PositionMetrics {
+export interface OperationState {
+  /**
+   * Health factor in basis points: below `10000` the account is liquidatable.
+   *
+   * @example `12500` for a health factor of 1.25
+   **/
+  healthFactor: Bps;
+  /**
+   * Net rate the whole position earns, collateral yield minus borrow cost.
+   **/
+  overallApy: Bps;
+  /**
+   * Cost of the debt, broken down by source.
+   **/
+  borrowRate: BorrowRateBreakdown;
+  /**
+   * Estimated milliseconds until the health factor decays to `10000` under
+   * the current borrow rate, or `null` when the debt carries no rate (or the
+   * account is already liquidatable).
+   **/
+  timeToLiquidation: bigint | null;
+  /**
+   * Price of the single non-underlying collateral at which the account
+   * becomes liquidatable, in the oracle's 8-decimal fixed point, or `null`
+   * when the account holds zero or several non-underlying assets.
+   **/
+  liquidationPrice: bigint | null;
   /** Account TVL after operation */
   totalValue: bigint;
   /** Account debt after operation */

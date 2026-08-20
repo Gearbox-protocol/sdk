@@ -174,7 +174,7 @@ export interface BorrowRateBreakdown {
   total: Bps;
   /**
    * Base rate plus quota rates, relative to the debt. This is the rate the
-   * debt itself grows at, so it feeds {@link PositionMetrics.timeToLiquidation}.
+   * debt itself grows at, so it feeds `timeToLiquidation`.
    **/
   totalOnDebt: Bps;
   /**
@@ -186,41 +186,6 @@ export interface BorrowRateBreakdown {
    * Per-token quota rate contribution, relative to the position's total value.
    **/
   quotas: TokenQuotaRate[];
-}
-
-/**
- * Health and cost metrics of a credit account's state, actual or projected.
- *
- * Previews and operation states carry the whole group; on-chain positions
- * report only the fields they lack natively, see {@link StrategyPosition}.
- **/
-export interface PositionMetrics {
-  /**
-   * Health factor in basis points: below `10000` the account is liquidatable.
-   *
-   * @example `12500` for a health factor of 1.25
-   **/
-  healthFactor: Bps;
-  /**
-   * Net rate the whole position earns, collateral yield minus borrow cost.
-   **/
-  overallApy: Bps;
-  /**
-   * Cost of the debt, broken down by source.
-   **/
-  borrowRate: BorrowRateBreakdown;
-  /**
-   * Estimated milliseconds until the health factor decays to `10000` under
-   * the current borrow rate, or `null` when the debt carries no rate (or the
-   * account is already liquidatable).
-   **/
-  timeToLiquidation: bigint | null;
-  /**
-   * Price of the single non-underlying collateral at which the account
-   * becomes liquidatable, in the oracle's 8-decimal fixed point, or `null`
-   * when the account holds zero or several non-underlying assets.
-   **/
-  liquidationPrice: bigint | null;
 }
 
 /**

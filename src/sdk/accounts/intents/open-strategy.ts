@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import type { PositionMetrics } from "../../../model/index.js";
+import type { Bps, BorrowRateBreakdown } from "../../../model/index.js";
 import { LEVERAGE_DECIMALS } from "../../constants/math.js";
 import type { Asset, MultiCall, OnchainSDK } from "../../index.js";
 import type { AccountSnapshot } from "../../positions/types.js";
@@ -47,7 +47,33 @@ export interface OpenStrategyProps {
  * hands back expected and floor balances from a single call, and `openCA` wants
  * both `minQuota` and `averageQuota`, so there is nothing to gain by dropping one.
  */
-export interface OpenStrategyPreview extends PositionMetrics {
+export interface OpenStrategyPreview {
+  /**
+   * Health factor in basis points: below `10000` the account is liquidatable.
+   *
+   * @example `12500` for a health factor of 1.25
+   **/
+  healthFactor: Bps;
+  /**
+   * Net rate the whole position earns, collateral yield minus borrow cost.
+   **/
+  overallApy: Bps;
+  /**
+   * Cost of the debt, broken down by source.
+   **/
+  borrowRate: BorrowRateBreakdown;
+  /**
+   * Estimated milliseconds until the health factor decays to `10000` under
+   * the current borrow rate, or `null` when the debt carries no rate (or the
+   * account is already liquidatable).
+   **/
+  timeToLiquidation: bigint | null;
+  /**
+   * Price of the single non-underlying collateral at which the account
+   * becomes liquidatable, in the oracle's 8-decimal fixed point, or `null`
+   * when the account holds zero or several non-underlying assets.
+   **/
+  liquidationPrice: bigint | null;
   /** Debt drawn, in underlying. */
   debt: bigint;
   /** Collateral supplied, valued in underlying. */
