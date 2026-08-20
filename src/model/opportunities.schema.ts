@@ -102,6 +102,7 @@ export const poolOpportunitySchema = z.object({
   availableLiquidity: tolerance(amountSchema, "amount"),
   utilization: tolerance(bpsSchema, "bps"),
   supplyApy: apyBreakdownSchema,
+  supplyApyAvg7D: offchainOnly(apyBreakdownSchema).optional(),
 });
 
 /**
@@ -117,9 +118,13 @@ export const strategyOpportunitySchema = z.object({
   liquidationFee: bpsSchema,
   expirationDate: timestampSchema.nullable(),
   collateralApy: offchainOnly(apyBreakdownSchema).optional(),
+  collateralApyAvg7D: offchainOnly(apyBreakdownSchema).optional(),
   maxLeverageApy: offchainOnly(apyBreakdownSchema).optional(),
+  maxLeverageApyAvg7D: offchainOnly(apyBreakdownSchema).optional(),
   borrowApy: tolerance(bpsSchema, "bps").optional(),
+  borrowApyAvg7D: offchainOnly(bpsSchema).optional(),
   additionalBorrowApy: tolerance(bpsSchema, "bps").optional(),
+  additionalBorrowApyAvg7D: offchainOnly(bpsSchema).optional(),
   totalValue: offchainOnly(amountSchema).optional(),
   utilization: offchainOnly(bpsSchema).optional(),
   availableLiquidity: tolerance(amountSchema, "amount"),

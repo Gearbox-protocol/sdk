@@ -17,6 +17,7 @@ describe("compileCompareRules", () => {
     expect(rules.get("supplyApy.totalApy")).toBe("offchainOnly");
     expect(rules.get("supplyApy.rewards")).toBe("offchainOnly");
     expect(rules.get("supplyApy.organicApy")).toEqual({ tolerance: "bps" });
+    expect(rules.get("supplyApyAvg7D")).toBe("offchainOnly");
     expect(rules.get("utilization")).toEqual({ tolerance: "bps" });
     expect(rules.get("totalSupply.value")).toEqual({ tolerance: "amount" });
     expect(rules.get("totalSupply.valueUsd")).toEqual({ tolerance: "usd" });
@@ -30,7 +31,11 @@ describe("compileCompareRules", () => {
     expect(pool.get("utilization")).toEqual({ tolerance: "bps" });
     expect(strategy.get("utilization")).toBe("offchainOnly");
     expect(strategy.get("collateralApy")).toBe("offchainOnly");
+    expect(strategy.get("collateralApyAvg7D")).toBe("offchainOnly");
+    expect(strategy.get("maxLeverageApyAvg7D")).toBe("offchainOnly");
     expect(strategy.get("borrowApy")).toEqual({ tolerance: "bps" });
+    expect(strategy.get("borrowApyAvg7D")).toBe("offchainOnly");
+    expect(strategy.get("additionalBorrowApyAvg7D")).toBe("offchainOnly");
   });
 
   it("records position tags, including nested collateral amounts", () => {
