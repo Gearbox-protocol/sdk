@@ -144,6 +144,14 @@ export interface PoolPosition {
    **/
   apy: ApyBreakdown;
   /**
+   * Average {@link apy} over the trailing seven days.
+   *
+   * Absent in `onchain` mode: calculating it requires historical data.
+   *
+   * @mode offchain
+   **/
+  apyAvg7D?: ApyBreakdown;
+  /**
    * What the position has earned so far.
    *
    * @mode offchain
@@ -234,6 +242,14 @@ export interface StrategyPosition {
    **/
   borrowApy: Bps;
   /**
+   * Average {@link borrowApy} over the trailing seven days, in basis points.
+   *
+   * Absent in `onchain` mode: calculating it requires historical data.
+   *
+   * @mode offchain
+   **/
+  borrowApyAvg7D?: Bps;
+  /**
    * Net rate the whole position is currently earning, i.e. the collateral's
    * yield at this {@link leverage} minus the cost of the debt carrying it.
    *
@@ -242,6 +258,12 @@ export interface StrategyPosition {
    * @mode offchain
    **/
   netApy?: ApyBreakdown;
+  /**
+   * Average {@link netApy} over the trailing seven days.
+   *
+   * @mode offchain
+   **/
+  netApyAvg7D?: ApyBreakdown;
   /**
    * Debt principal plus accrued interest and fees.
    **/
@@ -264,6 +286,14 @@ export interface StrategyPosition {
    * @mode onchain
    **/
   borrowRate?: BorrowRateBreakdown;
+  /**
+   * Average {@link borrowRate} over the trailing seven days.
+   *
+   * Absent in `onchain` mode: calculating it requires historical data.
+   *
+   * @mode offchain
+   **/
+  borrowRateAvg7D?: BorrowRateBreakdown;
   /**
    * Estimated milliseconds until the health factor decays to `10000` under
    * the current borrow rate, or `null` when it cannot be estimated.

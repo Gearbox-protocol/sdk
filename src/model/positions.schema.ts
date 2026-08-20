@@ -100,6 +100,7 @@ export const poolPositionSchema = z.object({
   pool: ZodAddress(),
   netValue: tolerance(tokenAmountSchema, "amount"),
   apy: apyBreakdownSchema,
+  apyAvg7D: offchainOnly(apyBreakdownSchema).optional(),
   pnl: offchainOnly(pnlBreakdownSchema).optional(),
 });
 
@@ -133,11 +134,14 @@ export const strategyPositionSchema = z.object({
   targetCollateral: tokenSchema.nullable(),
   leverage: tolerance(leverageSchema, "float"),
   borrowApy: tolerance(bpsSchema, "bps"),
+  borrowApyAvg7D: offchainOnly(bpsSchema).optional(),
   netApy: offchainOnly(apyBreakdownSchema).optional(),
+  netApyAvg7D: offchainOnly(apyBreakdownSchema).optional(),
   totalDebt: tolerance(tokenAmountSchema, "amount"),
   totalValue: tolerance(tokenAmountSchema, "amount"),
   healthFactor: tolerance(bpsSchema, "bps"),
   borrowRate: onchainOnly(borrowRateBreakdownSchema).optional(),
+  borrowRateAvg7D: offchainOnly(borrowRateBreakdownSchema).optional(),
   timeToLiquidation: onchainOnly(ZodBigInt().nullable()).optional(),
   liquidationPrice: onchainOnly(ZodBigInt().nullable()).optional(),
   pnl: offchainOnly(pnlBreakdownSchema).optional(),
