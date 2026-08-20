@@ -1,10 +1,7 @@
 import type { Address } from "viem";
+import type { DelayedWithdrawCollateralIntent } from "../../../../model/index.js";
 import { MIN_INT96 } from "../../../constants/math.js";
-import type {
-  ClaimableWithdrawal,
-  DelayedWithdrawCollateralIntent,
-  OnchainSDK,
-} from "../../../index.js";
+import type { ClaimableWithdrawal, OnchainSDK } from "../../../index.js";
 import { toBN } from "../../../index.js";
 
 import {

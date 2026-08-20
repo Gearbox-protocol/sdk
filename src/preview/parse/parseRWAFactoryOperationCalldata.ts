@@ -1,6 +1,6 @@
 import type { Address, Hex } from "viem";
-import { AbstractAdapterContract } from "../../plugins/adapters/index.js";
 import {
+  AbstractAdapterContract,
   CreditFacadeV310Contract,
   type CreditSuite,
   hexEq,

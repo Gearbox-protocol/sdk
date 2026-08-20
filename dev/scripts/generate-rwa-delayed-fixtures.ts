@@ -101,16 +101,13 @@ import {
   seedSecuritizePoolLiquidity,
   signRegisterVaultMessages,
 } from "../../src/e2e/helpers/securitize.js";
+import type { DelayedIntent } from "../../src/model/index.js";
 import {
   AbstractAdapterContract,
-  AdaptersPlugin,
-} from "../../src/plugins/adapters/index.js";
-import {
   type Asset,
   type ClaimableWithdrawal,
   type CreditAccountData,
   type CreditSuite,
-  type DelayedIntent,
   type EncodableCreditAccountOperation,
   json_stringify,
   MAX_UINT256,
@@ -161,7 +158,7 @@ const COLLATERAL_USDC = parseUnits("20000", 6);
 const LEVERAGE = 5n;
 const SLIPPAGE = 50;
 
-type SecuritizeSDK = OnchainSDK<{ adapters: AdaptersPlugin }>;
+type SecuritizeSDK = OnchainSDK;
 type InvestorWallet = WalletClient<Transport, Chain, PrivateKeyAccount>;
 type ScenarioName = "withdraw-usdc" | "withdraw-rlusd" | "midas";
 
@@ -346,11 +343,10 @@ function minBigint(a: bigint, b: bigint): bigint {
  * snapshot) and dumps `sdk.state` to DEST_DIR.
  */
 async function setupSdk(): Promise<SetupSdkResult> {
-  const sdk: SecuritizeSDK = new OnchainSDK(
-    "Mainnet",
-    { rpcURLs: [RPC_URL], timeout: 120_000 },
-    { plugins: { adapters: new AdaptersPlugin(true) } },
-  );
+  const sdk: SecuritizeSDK = new OnchainSDK("Mainnet", {
+    rpcURLs: [RPC_URL],
+    timeout: 120_000,
+  });
   await sdk.attach({
     marketConfigurators: MARKET_CONFIGURATORS,
     rwaFactories: [RWA_FACTORY],

@@ -1,6 +1,6 @@
 import type { Hex } from "viem";
 import { decodeAbiParameters, encodeAbiParameters } from "viem";
-import type { DelayedIntent } from "./types.js";
+import type { DelayedIntent } from "../../../model/index.js";
 
 /**
  * Current version of the delayed intent encoding schema.

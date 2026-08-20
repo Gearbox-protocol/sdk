@@ -11,18 +11,16 @@ import {
   type CallTrace,
   EXECUTE_BYTES_SELECTOR,
 } from "../common-utils/utils/trace.js";
-import {
-  Curve2AssetsAdapterContract,
-  UniswapV3AdapterContract,
-  WstETHV1AdapterContract,
-} from "../plugins/adapters/index.js";
 import type { TokenTransfer } from "../preview/parse/index.js";
 import {
   AddressMap,
   type ChainContractsRegister,
   CreditFacadeV310BaseContract,
+  Curve2AssetsAdapterContract,
   OnchainSDK,
   type ParsedCallV2,
+  UniswapV3AdapterContract,
+  WstETHV1AdapterContract,
 } from "../sdk/index.js";
 import { classifyMulticallOperations } from "./classifyMulticallOperations.js";
 

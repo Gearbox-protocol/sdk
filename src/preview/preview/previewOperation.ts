@@ -1,3 +1,4 @@
+import type { OperationPreview } from "../../model/index.js";
 import type { PluginsMap } from "../../sdk/index.js";
 import {
   isPoolOperation,
@@ -22,7 +23,6 @@ import {
   type ReplayableOperation,
   replayMulticall,
 } from "./replayMulticall.js";
-import type { OperationPreview } from "./types.js";
 
 /**
  * Previews a raw operation calldata: decodes it into a typed operation and
@@ -150,6 +150,7 @@ async function previewMulticallOperation<P extends PluginsMap>(
     operation: "DelayedCreditAccountOperation",
     creditAccount: operation.creditAccount,
     creditManager: operation.creditManager,
+    name: sdk.marketRegister.findCreditManager(operation.creditManager).name,
     intent: delayed.intent,
     instantPreview,
     delayedPreview: buildDelayedPreview(

@@ -5,7 +5,6 @@ import { beforeAll, expect, it } from "vitest";
 import { iCreditFacadeMulticallV310Abi } from "../../abi/310/generated.js";
 import { ierc4626AdapterAbi } from "../../abi/ierc4626Adapter.js";
 import { iSecuritizeRWAFactoryAbi } from "../../abi/rwa/iSecuritizeRWAFactory.js";
-import { AdaptersPlugin } from "../../plugins/adapters/index.js";
 import {
   type CreditAccountData,
   json_parse,
@@ -38,24 +37,20 @@ const DS_TOKEN: Address = "0x17418038ecF73BA4026c4f428547BF099706F27B";
 
 const CREDIT_ACCOUNT: Address = "0x1234123412341234123412341234123412341234";
 
-let sdk: OnchainSDK<{ adapters: AdaptersPlugin }>;
+let sdk: OnchainSDK;
 let creditFacade: Address;
 
 beforeAll(() => {
   // The preview must run fully offline: any RPC request is a test failure.
-  sdk = new OnchainSDK(
-    "Mainnet",
-    {
-      transport: custom({
-        request: async ({ method }) => {
-          throw new Error(
-            `offline: unexpected RPC request ${method} in RWA preview test`,
-          );
-        },
-      }),
-    },
-    { plugins: { adapters: new AdaptersPlugin(true) } },
-  );
+  sdk = new OnchainSDK("Mainnet", {
+    transport: custom({
+      request: async ({ method }) => {
+        throw new Error(
+          `offline: unexpected RPC request ${method} in RWA preview test`,
+        );
+      },
+    }),
+  });
   sdk.hydrate(json_parse(readFileSync(FIXTURE, "utf-8")));
   creditFacade =
     sdk.marketRegister.findCreditManager(CREDIT_MANAGER).creditFacade.address;
@@ -127,10 +122,28 @@ it("previews RWA account opening with an unwrap call", async () => {
     operation: "RWAOpenCreditAccount",
     creditManager: CREDIT_MANAGER,
     debt,
-    collateral: [{ token: DS_TOKEN, balance: dsAmount }],
-    quotas: [{ token: DS_TOKEN, balance: 55_000_000_000n }],
-    target: { token: DS_TOKEN, balance: dsAmount },
-    assets: [{ token: DS_TOKEN, balance: dsAmount }],
+    collateral: [
+      {
+        token: expect.objectContaining({ address: DS_TOKEN }),
+        value: dsAmount,
+      },
+    ],
+    quotas: [
+      {
+        token: expect.objectContaining({ address: DS_TOKEN }),
+        value: 55_000_000_000n,
+      },
+    ],
+    target: {
+      token: expect.objectContaining({ address: DS_TOKEN }),
+      value: dsAmount,
+    },
+    assets: [
+      {
+        token: expect.objectContaining({ address: DS_TOKEN }),
+        value: dsAmount,
+      },
+    ],
   });
 });
 
@@ -179,9 +192,13 @@ it("previews an unwrap-and-withdraw multicall on an existing RWA account", async
     creditAccount: CREDIT_ACCOUNT,
     collateralAdded: [],
     // The withdrawn USDC comes entirely from the 1:1 unwrap.
-    collateralWithdrawn: [{ token: USDC, balance: shares }],
+    collateralWithdrawn: [
+      { token: expect.objectContaining({ address: USDC }), value: shares },
+    ],
     debt: 5_000_000_000n,
     debtChange: 0n,
-    assetsChange: [{ token: VAULT, balance: -shares }],
+    assetsChange: [
+      { token: expect.objectContaining({ address: VAULT }), value: -shares },
+    ],
   });
 });

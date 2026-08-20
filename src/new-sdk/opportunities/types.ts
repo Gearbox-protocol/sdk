@@ -109,7 +109,7 @@ export interface OpportunitiesOnchainOnly {
    * {@link OpportunitiesExecute.buildTx}. Absent in `offchain` mode for the
    * same reason as {@link prepare}: it encodes against live chain state.
    **/
-  execute: OpportunitiesExecute;
+  readonly execute: OpportunitiesExecute;
 }
 
 /**

@@ -5,9 +5,6 @@ import { iRedemptionLoggerV310Abi } from "../../abi/iRedemptionLoggerV310.js";
 import {
   AbstractAdapterContract,
   type DelayedWithdrawalClaim,
-  type SdkWithAdapters,
-} from "../../plugins/adapters/index.js";
-import {
   OnchainSDK,
   type RedemptionLog,
   RedemptionLoggerV310Contract,
@@ -76,14 +73,14 @@ interface StubSdkOptions {
   logger?: boolean;
 }
 
-function stubSdk({ contracts = {}, logger }: StubSdkOptions): SdkWithAdapters {
+function stubSdk({ contracts = {}, logger }: StubSdkOptions): OnchainSDK {
   return {
     client: baseSdk.client,
     getContract: (address: Address) => contracts[address],
     redemptionLogger: logger
       ? new RedemptionLoggerV310Contract(baseSdk, LOGGER, 310)
       : undefined,
-  } as unknown as SdkWithAdapters;
+  } as unknown as OnchainSDK;
 }
 
 function execute(

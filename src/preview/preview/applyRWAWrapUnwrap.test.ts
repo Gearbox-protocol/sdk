@@ -1,7 +1,7 @@
 import { type Address, encodeFunctionData, type Hex, zeroAddress } from "viem";
 import { expect, it } from "vitest";
 import { ierc4626AdapterAbi } from "../../abi/ierc4626Adapter.js";
-import type { ERC4626AdapterContract } from "../../plugins/adapters/index.js";
+import type { ERC4626AdapterContract } from "../../sdk/index.js";
 import { type Asset, AssetsMap } from "../../sdk/index.js";
 import { applyRWAWrapUnwrap } from "./applyRWAWrapUnwrap.js";
 

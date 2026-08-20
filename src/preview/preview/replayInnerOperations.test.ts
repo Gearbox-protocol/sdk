@@ -3,11 +3,21 @@ import { encodeFunctionData, getAddress, zeroAddress } from "viem";
 import { describe, expect, it } from "vitest";
 import { ierc4626AdapterAbi } from "../../abi/ierc4626Adapter.js";
 import {
+  ERROR_ADAPTER_CALL_OUTSIDE_BRACKET,
+  ERROR_MALFORMED_BRACKET,
+  ERROR_NON_ADAPTER_CALL_IN_BRACKET,
+  ERROR_UNPREVIEWABLE_ADAPTER_CALL,
+  ERROR_UNPREVIEWABLE_RWA_WRAP_UNWRAP,
+  type OperationPreviewError,
+} from "../../model/index.js";
+import {
   AbstractAdapterContract,
+  type Asset,
+  type AssetsMap,
   ERC4626AdapterContract,
-  type SdkWithAdapters,
-} from "../../plugins/adapters/index.js";
-import { type Asset, type AssetsMap, MAX_UINT256 } from "../../sdk/index.js";
+  MAX_UINT256,
+  type OnchainSDK,
+} from "../../sdk/index.js";
 import type { InnerOperation } from "../parse/index.js";
 import { CreditAccountState } from "./CreditAccountState.js";
 import {
@@ -15,14 +25,6 @@ import {
   type ReplayState,
   replayInnerOperations,
 } from "./replayInnerOperations.js";
-import {
-  ERROR_ADAPTER_CALL_OUTSIDE_BRACKET,
-  ERROR_MALFORMED_BRACKET,
-  ERROR_NON_ADAPTER_CALL_IN_BRACKET,
-  ERROR_UNPREVIEWABLE_ADAPTER_CALL,
-  ERROR_UNPREVIEWABLE_RWA_WRAP_UNWRAP,
-  type OperationPreviewError,
-} from "./types.js";
 
 const USDC = getAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48");
 const WETH = getAddress("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2");
@@ -84,7 +86,7 @@ function stubRWAAdapter(asset: Address, share: Address) {
 function stubSdk(
   contracts: Record<Address, unknown> = {},
   rwaUnderlyings: Address[] = [],
-): SdkWithAdapters {
+): OnchainSDK {
   return {
     getContract: (address: Address) => contracts[address],
     tokensMeta: {
@@ -92,7 +94,7 @@ function stubSdk(
         rwaUnderlyings.includes(address) ? { addr: address } : undefined,
       isRWAUnderlying: () => true,
     },
-  } as unknown as SdkWithAdapters;
+  } as unknown as OnchainSDK;
 }
 
 function execute(
@@ -129,7 +131,7 @@ interface ApplyResult {
 async function apply(
   multicall: InnerOperation[],
   state: ReplayState = zeroState(),
-  sdk: SdkWithAdapters = stubSdk(),
+  sdk: OnchainSDK = stubSdk(),
 ): Promise<ApplyResult> {
   const error = await replayInnerOperations(sdk, multicall, state);
   return { state, error };

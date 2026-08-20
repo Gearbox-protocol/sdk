@@ -1,9 +1,19 @@
 import {
+  ERROR_ADAPTER_CALL_OUTSIDE_BRACKET,
+  ERROR_MALFORMED_BRACKET,
+  ERROR_NON_ADAPTER_CALL_IN_BRACKET,
+  ERROR_UNPREVIEWABLE_ADAPTER_CALL,
+  ERROR_UNPREVIEWABLE_RWA_WRAP_UNWRAP,
+  type OperationPreviewError,
+} from "../../model/index.js";
+import {
   AbstractAdapterContract,
+  AssetsMap,
   ERC4626AdapterContract,
-  type SdkWithAdapters,
-} from "../../plugins/adapters/index.js";
-import { AssetsMap, MAX_UINT256, type PluginsMap } from "../../sdk/index.js";
+  MAX_UINT256,
+  type OnchainSDK,
+  type PluginsMap,
+} from "../../sdk/index.js";
 import type {
   AdapterOperation,
   AddCollateralOp,
@@ -12,14 +22,6 @@ import type {
 } from "../parse/index.js";
 import { applyRWAWrapUnwrap } from "./applyRWAWrapUnwrap.js";
 import type { CreditAccountState } from "./CreditAccountState.js";
-import {
-  ERROR_ADAPTER_CALL_OUTSIDE_BRACKET,
-  ERROR_MALFORMED_BRACKET,
-  ERROR_NON_ADAPTER_CALL_IN_BRACKET,
-  ERROR_UNPREVIEWABLE_ADAPTER_CALL,
-  ERROR_UNPREVIEWABLE_RWA_WRAP_UNWRAP,
-  type OperationPreviewError,
-} from "./types.js";
 
 /**
  * Running state threaded through a credit-facade multicall by
@@ -68,7 +70,7 @@ export function makeReplayState(account: CreditAccountState): ReplayState {
  * @returns `undefined` on success, the error on a malformed multicall.
  */
 export async function replayInnerOperations<P extends PluginsMap>(
-  sdk: SdkWithAdapters<P>,
+  sdk: OnchainSDK<P>,
   multicall: InnerOperation[],
   state: ReplayState,
 ): Promise<OperationPreviewError | undefined> {
@@ -173,7 +175,7 @@ function applyWithdrawCollateral(
  * on-chain, so its effect on balances cannot be previewed.
  */
 async function applyExecute<P extends PluginsMap>(
-  sdk: SdkWithAdapters<P>,
+  sdk: OnchainSDK<P>,
   op: AdapterOperation,
   inBracket: boolean,
   balances: AssetsMap,
@@ -225,7 +227,7 @@ async function applyExecute<P extends PluginsMap>(
  * adapter.
  */
 function isRWAShare<P extends PluginsMap>(
-  sdk: SdkWithAdapters<P>,
+  sdk: OnchainSDK<P>,
   adapter: unknown,
 ): adapter is ERC4626AdapterContract {
   if (adapter instanceof ERC4626AdapterContract) {

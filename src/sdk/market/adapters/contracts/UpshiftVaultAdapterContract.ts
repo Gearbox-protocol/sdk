@@ -1,0 +1,97 @@
+import {
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import { MissingSerializedParamsError } from "../../../base/index.js";
+import type { OnchainSDK } from "../../../OnchainSDK.js";
+import type { AssetsMap } from "../../../utils/index.js";
+import {
+  iUpshiftVaultAdapterAbi,
+  iUpshiftVaultGatewayAbi,
+} from "../abi/adapters/index.js";
+import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
+import { AbstractAdapterContract } from "./AbstractAdapter.js";
+
+const abi = iUpshiftVaultAdapterAbi;
+type abi = typeof abi;
+
+const protocolAbi = iUpshiftVaultGatewayAbi;
+type protocolAbi = typeof protocolAbi;
+
+export class UpshiftVaultAdapterContract extends AbstractAdapterContract<
+  abi,
+  protocolAbi
+> {
+  #vault?: Address;
+  #asset?: Address;
+  #stakedPhantomToken?: Address;
+
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
+
+    if (args.baseParams.serializedParams) {
+      const decoded = decodeAbiParameters(
+        [
+          { type: "address", name: "creditManager" },
+          { type: "address", name: "targetContract" },
+          { type: "address", name: "vault" },
+          { type: "address", name: "asset" },
+          { type: "address", name: "stakedPhantomToken" },
+        ],
+        args.baseParams.serializedParams,
+      );
+
+      this.#vault = decoded[2];
+      this.#asset = decoded[3];
+      this.#stakedPhantomToken = decoded[4];
+    }
+  }
+
+  get vault(): Address {
+    if (!this.#vault) throw new MissingSerializedParamsError("vault");
+    return this.#vault;
+  }
+
+  get asset(): Address {
+    if (!this.#asset) throw new MissingSerializedParamsError("asset");
+    return this.#asset;
+  }
+
+  get stakedPhantomToken(): Address {
+    if (!this.#stakedPhantomToken)
+      throw new MissingSerializedParamsError("stakedPhantomToken");
+    return this.#stakedPhantomToken;
+  }
+
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      vault: this.#vault ? this.labelAddress(this.#vault) : undefined,
+      asset: this.#asset ? this.labelAddress(this.#asset) : undefined,
+      stakedPhantomToken: this.#stakedPhantomToken
+        ? this.labelAddress(this.#stakedPhantomToken)
+        : undefined,
+    };
+  }
+
+  protected override async applyBalanceChanges(
+    balances: AssetsMap,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): Promise<void> {
+    switch (decoded.functionName) {
+      case "depositDiff": {
+        const [leftoverAmount] = decoded.args;
+        this.setLeftover(balances, this.asset, leftoverAmount);
+        break;
+      }
+      case "redeemDiff": {
+        const [leftoverAmount] = decoded.args;
+        this.setLeftover(balances, this.vault, leftoverAmount);
+        break;
+      }
+      default:
+        await super.applyBalanceChanges(balances, decoded);
+    }
+  }
+}

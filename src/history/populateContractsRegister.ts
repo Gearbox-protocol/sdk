@@ -6,11 +6,11 @@ import {
   type PublicClient,
   type Transport,
 } from "viem";
-import { createAdapter } from "../plugins/adapters/createAdapter.js";
 import {
   bytes32ToString,
   type ChainContractsRegister,
   CreditFacadeV310BaseContract,
+  createAdapter,
   getNetworkType,
   type ILogger,
   isV310,

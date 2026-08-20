@@ -19,7 +19,6 @@
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { Address } from "viem";
-import { AdaptersPlugin } from "../../src/plugins/adapters/AdaptersPlugin.js";
 import { json_stringify, OnchainSDK } from "../../src/sdk/index.js";
 
 const RPC_URL = process.env.RPC_URL ?? "";
@@ -39,13 +38,11 @@ const FACADES: Address[] = [
   "0x9515AB9BB73A9642F1a93Ba7C2790e9d08227f9a",
 ];
 
-function makeSdk(): OnchainSDK<{
-  adapters: AdaptersPlugin;
-}> {
+function makeSdk(): OnchainSDK {
   return new OnchainSDK(
     "Mainnet",
     { rpcURLs: [RPC_URL], timeout: 480_000 },
-    { plugins: { adapters: new AdaptersPlugin(true) }, logger: console },
+    { logger: console },
   );
 }
 

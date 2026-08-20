@@ -1,0 +1,191 @@
+import {
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+  decodeFunctionData,
+  type Hex,
+} from "viem";
+import type { ParsedCallV2 } from "../../../base/index.js";
+import { MissingSerializedParamsError } from "../../../base/index.js";
+import type { OnchainSDK } from "../../../OnchainSDK.js";
+import type { AssetsMap } from "../../../utils/index.js";
+import { iMellow4626VaultAdapterAbi } from "../abi/adapters/index.js";
+import { iERC4626Abi } from "../abi/targetContractAbi.js";
+import type {
+  LegacyAdapterOperation,
+  Transfers,
+} from "../legacyAdapterOperations.js";
+import { fnSigToName, swapFromTransfers } from "../transferHelpers.js";
+import type { DelayedWithdrawalRequest } from "../types.js";
+import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
+import { AbstractAdapterContract } from "./AbstractAdapter.js";
+
+const abi = iMellow4626VaultAdapterAbi;
+type abi = typeof abi;
+
+const protocolAbi = iERC4626Abi;
+type protocolAbi = typeof protocolAbi;
+
+export class MellowERC4626VaultAdapterContract extends AbstractAdapterContract<
+  abi,
+  protocolAbi
+> {
+  #vault?: Address;
+  #asset?: Address;
+  #stakedPhantomToken?: Address;
+
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
+
+    if (args.baseParams.serializedParams) {
+      const version = Number(args.baseParams.version);
+      if (version <= 310) {
+        const decoded = decodeAbiParameters(
+          [
+            { type: "address", name: "creditManager" },
+            { type: "address", name: "targetContract" },
+            { type: "address", name: "asset" },
+          ],
+          args.baseParams.serializedParams,
+        );
+
+        this.#asset = decoded[2];
+      } else if (version === 311) {
+        const decoded = decodeAbiParameters(
+          [
+            { type: "address", name: "creditManager" },
+            { type: "address", name: "targetContract" },
+            { type: "address", name: "asset" },
+            { type: "address", name: "stakedPhantomToken" },
+          ],
+          args.baseParams.serializedParams,
+        );
+
+        this.#asset = decoded[2];
+        this.#stakedPhantomToken = decoded[3];
+      } else {
+        // v312+: inherits ERC4626Adapter serialize = (creditManager, targetContract, vault, asset)
+        const decoded = decodeAbiParameters(
+          [
+            { type: "address", name: "creditManager" },
+            { type: "address", name: "targetContract" },
+            { type: "address", name: "vault" },
+            { type: "address", name: "asset" },
+          ],
+          args.baseParams.serializedParams,
+        );
+
+        this.#vault = decoded[2];
+        this.#asset = decoded[3];
+      }
+    }
+  }
+
+  get vault(): Address {
+    if (!this.#vault) throw new MissingSerializedParamsError("vault");
+    return this.#vault;
+  }
+
+  get asset(): Address {
+    if (!this.#asset) throw new MissingSerializedParamsError("asset");
+    return this.#asset;
+  }
+
+  get stakedPhantomToken(): Address {
+    if (!this.#stakedPhantomToken)
+      throw new MissingSerializedParamsError("stakedPhantomToken");
+    return this.#stakedPhantomToken;
+  }
+
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      vault: this.#vault ? this.labelAddress(this.#vault) : undefined,
+      asset: this.#asset ? this.labelAddress(this.#asset) : undefined,
+      stakedPhantomToken: this.#stakedPhantomToken
+        ? this.labelAddress(this.#stakedPhantomToken)
+        : undefined,
+    };
+  }
+
+  /**
+   * Charts_server maps `redeem(uint256,address,address)` → MakerRedeem.
+   * Diff variants (`redeemDiff`) should also map to MakerRedeem.
+   *
+   * @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type_v3.go#L32-L38
+   */
+  public override classifyLegacyOperation(
+    parsed: ParsedCallV2,
+    transfers: Transfers,
+  ): LegacyAdapterOperation {
+    const fn = fnSigToName(parsed.functionName);
+    if (fn === "redeem" || fn === "redeemDiff") {
+      return { operation: "MakerRedeem", ...swapFromTransfers(transfers) };
+    }
+    return super.classifyLegacyOperation(parsed, transfers);
+  }
+
+  /**
+   * Plain `redeem` on a Mellow multivault is a delayed-withdrawal request:
+   * it is only emitted by the withdrawal compressor (the router uses
+   * `redeemDiff`), spends the multivault shares and mints the withdrawal
+   * phantom token for the illiquid part. Mellow request calls cannot carry
+   * an intent, so `extraData` is always undefined.
+   *
+   * The withdrawal phantom token is only serialized by v311 adapters;
+   * on other versions it cannot be resolved offline and the request is not
+   * reported.
+   */
+  public override parseDelayedWithdrawalRequest(
+    calldata: Hex,
+  ): DelayedWithdrawalRequest | undefined {
+    if (!this.#stakedPhantomToken || !this.#asset) {
+      return undefined;
+    }
+    const decoded = decodeFunctionData({ abi: this.abi, data: calldata });
+    if (decoded.functionName !== "redeem") {
+      return undefined;
+    }
+    return {
+      phantomToken: this.#stakedPhantomToken,
+      claimToken: this.#asset,
+      extraData: undefined,
+    };
+  }
+
+  protected override async applyBalanceChanges(
+    balances: AssetsMap,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): Promise<void> {
+    // for v<=311 the adapter targets the vault directly and no separate vault
+    // address is serialized
+    const share = this.#vault ?? this.targetContract;
+    switch (decoded.functionName) {
+      case "depositDiff": {
+        const [leftoverAmount] = decoded.args;
+        this.setLeftover(balances, this.asset, leftoverAmount);
+        break;
+      }
+      case "redeemDiff": {
+        const [leftoverAmount] = decoded.args;
+        this.setLeftover(balances, share, leftoverAmount);
+        break;
+      }
+      // no-op:
+      // the only in-bracket producer of plain `redeem` is the
+      // withdrawal compressor, and sdk now encodes the spent
+      // shares as a negative storeExpectedBalances delta. The router never
+      // emits plain `redeem` — its workers use `redeemDiff` only. If the
+      // router (or another assembler) ever starts emitting in-bracket plain
+      // `redeem` without the negative delta, this case must decrease `share`
+      // by `shares` again (see commented-out lines).
+      case "redeem": {
+        // const [shares] = decoded.args;
+        // this.spendExact(balances, share, shares);
+        break;
+      }
+      default:
+        await super.applyBalanceChanges(balances, decoded);
+    }
+  }
+}

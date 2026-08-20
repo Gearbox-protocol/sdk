@@ -11,7 +11,6 @@ import { iCreditFacadeV310Abi } from "../../abi/310/generated.js";
 import { createAnvilClient } from "../../dev/createAnvilClient.js";
 import type { PrepareRequest } from "../../new-sdk/index.js";
 import { GearboxSDK } from "../../new-sdk/index.js";
-import { AdaptersPlugin } from "../../plugins/adapters/AdaptersPlugin.js";
 import { checkPrerequisites } from "../../preview/index.js";
 import { calcBorrowedAmountPlusInterestAndFees } from "../../sdk/accounts/intents/utils/borrowed-amount-plus-interest-and-fees.js";
 import {
@@ -60,12 +59,10 @@ const X3 = 300n;
 const COLLATERAL = parseUnits("1000", 6);
 const WALLET_USDC = parseUnits("5000", 6);
 
-type Plugins = { adapters: AdaptersPlugin };
-
 describe("prepare → execute on a mainnet fork", () => {
-  let multichain: MultichainSDK<Plugins>;
+  let multichain: MultichainSDK;
   let gearbox: GearboxSDK<"onchain">;
-  let chain: OnchainSDK<Plugins>;
+  let chain: OnchainSDK;
   let wallet: ReturnType<typeof getAnvilWallet>;
   let borrower: Address;
   let underlying: Address;
@@ -74,9 +71,8 @@ describe("prepare → execute on a mainnet fork", () => {
   useFixture({ network: "Mainnet", block: BLOCK });
 
   beforeAll(async () => {
-    multichain = new MultichainSDK<Plugins>({
+    multichain = new MultichainSDK({
       chains: { Mainnet: { rpcURLs: [ANVIL_URL], timeout: 120_000 } },
-      plugins: { adapters: () => new AdaptersPlugin(true) },
     });
     await multichain.attach({
       perChain: { Mainnet: { blockNumber: BLOCK } },

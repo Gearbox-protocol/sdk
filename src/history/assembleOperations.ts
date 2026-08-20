@@ -1,5 +1,4 @@
 import type { Address } from "viem";
-import { AbstractAdapterContract } from "../plugins/adapters/index.js";
 import type { TokenTransfer } from "../preview/parse/index.js";
 import {
   extractAdapterCallTraces,
@@ -11,6 +10,7 @@ import type {
   ChainContractsRegister,
   ParsedCallV2,
 } from "../sdk/index.js";
+import { AbstractAdapterContract } from "../sdk/index.js";
 import { classifyMulticallOperations } from "./classifyMulticallOperations.js";
 import type {
   HistoryFacadeMetadata,

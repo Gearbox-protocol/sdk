@@ -82,9 +82,9 @@ export interface IOnchainSDKPlugin<
    **/
   syncState?: () => Promise<void>;
   /**
-   * Factory hook called by the SDK to create auxiliary contracts
-   * (e.g. zappers, adapters). If not implemented, the SDK falls back to
-   * generic {@link BaseContract} instances.
+   * Factory hook called by the SDK to create auxiliary contracts.
+   * If not implemented, the SDK falls back to generic {@link BaseContract}
+   * instances.
    *
    * @param params - On-chain identification parameters for the contract.
    * @returns A contract instance, or `undefined` to let the SDK use the default.

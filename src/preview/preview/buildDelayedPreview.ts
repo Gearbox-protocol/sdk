@@ -1,21 +1,22 @@
 import { type Address, isAddressEqual } from "viem";
 import { BigIntMath } from "../../common-utils/index.js";
-import type { DelayedWithdrawalRequest } from "../../plugins/adapters/index.js";
+import type {
+  AdjustCreditAccountPreview,
+  CloseCreditAccountPreview,
+  DelayedWithdrawCollateralIntent,
+  InstantOperationPreview,
+  OperationPreviewError,
+} from "../../model/index.js";
+import { ERROR_UNPRICEABLE_TOKEN } from "../../model/index.js";
+import type { DelayedWithdrawalRequest } from "../../sdk/index.js";
 import {
   AssetsMap,
-  type DelayedWithdrawCollateralIntent,
+  calcPositionLeverage,
   DUST_THRESHOLD,
   type OnchainSDK,
 } from "../../sdk/index.js";
 import type { CreditAccountState } from "./CreditAccountState.js";
 import type { DetectedDelayedOperation } from "./detectDelayedOperation.js";
-import {
-  type AdjustCreditAccountPreview,
-  type CloseCreditAccountPreview,
-  ERROR_UNPRICEABLE_TOKEN,
-  type InstantOperationPreview,
-  type OperationPreviewError,
-} from "./types.js";
 
 /**
  * Oracle conversion, injected so unit tests don't need a market
@@ -61,7 +62,7 @@ export function buildDelayedPreview(
 
   switch (intent?.type) {
     case "CLOSE_ACCOUNT":
-      return buildClosePreview(post, converter, receivedToken);
+      return buildClosePreview(post, converter, receivedToken, sdk);
 
     case "DECREASE_LEVERAGE":
       repayFromClaim(post, request.claimToken, converter.convert, claimed);
@@ -265,19 +266,24 @@ function buildClosePreview(
   post: CreditAccountState,
   converter: SafeConverter,
   receivedToken: Address,
+  sdk: OnchainSDK,
 ): CloseCreditAccountPreview {
   const totalValue = totalValueInUnderlying(post, converter.convert, 0n);
+  const oracle = sdk.marketRegister.findByCreditManager(
+    post.creditManager,
+  ).priceOracle;
   return {
     operation: "CloseCreditAccount",
     permanent: false,
     creditManager: post.creditManager,
+    name: sdk.marketRegister.findCreditManager(post.creditManager).name,
     creditAccount: post.creditAccount,
     // Oracle estimate computed in the underlying; RWA underlyings convert
     // 1:1 with their vault asset, so the amount holds for `receivedToken`
-    receivedAmount: {
-      token: receivedToken,
-      balance: BigIntMath.max(totalValue - post.totalDebt, 0n),
-    },
+    receivedAmount: oracle.toTokenAmount(
+      receivedToken,
+      BigIntMath.max(totalValue - post.totalDebt, 0n),
+    ),
     error: converter.error,
   };
 }
@@ -297,24 +303,40 @@ function buildAdjustPreview(
   const assets = post.balances.toAssets(DUST_THRESHOLD);
   const quotas = post.quotas.toAssets(0n);
   const snap = post.toSnapshot(totalValue);
+  const market = sdk.marketRegister.findByCreditManager(post.creditManager);
+  const oracle = market.priceOracle;
   return {
     operation: "AdjustCreditAccount",
     creditManager: post.creditManager,
+    name: sdk.marketRegister.findCreditManager(post.creditManager).name,
     creditAccount: post.creditAccount,
     // the resume flow adds nothing from the wallet
     collateralAdded: [],
-    collateralWithdrawn: collateralWithdrawn.toAssets(),
+    collateralWithdrawn: collateralWithdrawn
+      .toAssets()
+      .map(a => oracle.toTokenAmount(a.token, a.balance)),
     totalValue,
     debt: post.totalDebt,
     // relative to the pre-transaction state: where the account will end up
     // compared to now, once the withdrawal is claimed and the intent resumed
     debtChange: post.totalDebt - before.totalDebt,
-    quotas,
-    quotasChange: post.quotas.difference(before.quotas).toAssets(),
-    assets,
+    // WARNING: quota values are underlying-denominated
+    quotas: quotas.map(q => ({
+      token: sdk.tokensMeta.mustGetToken(q.token),
+      ...oracle.toAmount(market.underlying, q.balance),
+    })),
+    quotasChange: post.quotas
+      .difference(before.quotas)
+      .toAssets()
+      .map(q => ({
+        token: sdk.tokensMeta.mustGetToken(q.token),
+        ...oracle.toAmount(market.underlying, q.balance),
+      })),
+    assets: assets.map(a => oracle.toTokenAmount(a.token, a.balance)),
     assetsChange: post.balances
       .difference(before.balances)
-      .toAssets(DUST_THRESHOLD),
+      .toAssets(DUST_THRESHOLD)
+      .map(a => oracle.toTokenAmount(a.token, a.balance)),
     error: converter.error,
     healthFactor: sdk.positions.healthFactor(snap),
     // TODO: overall APY needs the collateral yield (lpAPY), which market
@@ -323,5 +345,6 @@ function buildAdjustPreview(
     borrowRate: sdk.positions.borrowRate(snap),
     timeToLiquidation: sdk.positions.timeToLiquidation(snap),
     liquidationPrice: sdk.positions.liquidationPrice(snap),
+    leverage: calcPositionLeverage(totalValue, post.totalDebt),
   };
 }

@@ -437,14 +437,8 @@ export class CreditAccountsServiceV310
       ...(callsAfter ?? []),
     ];
 
-    calls = await this.#prependMidasReceiveGreenlist(
-      cm.address,
-      calls,
-    );
-    calls = await this.prependPriceUpdates(
-      cm.address,
-      calls,
-    );
+    calls = await this.#prependMidasReceiveGreenlist(cm.address, calls);
+    calls = await this.prependPriceUpdates(cm.address, calls);
     const tx: RawTx = reopenCreditAccount
       ? cmSuite.multicallTx(reopenCreditAccount, calls)
       : cmSuite.openCreditAccountTx(to, calls, referralCode, rwaOptions);
@@ -684,7 +678,6 @@ export class CreditAccountsServiceV310
     ];
   }
 
-
   /**
    * {@inheritDoc ICreditAccountsService.assembleCaOperations}
    */
@@ -853,7 +846,6 @@ export class CreditAccountsServiceV310
       VERSION_RANGE_310,
     )[0];
   }
-
 
   /**
    * {@inheritDoc ICreditAccountsService.prependMidasReceiveGreenlist}

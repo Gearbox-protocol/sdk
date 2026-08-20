@@ -1,5 +1,4 @@
 import { pino } from "pino";
-import { AdaptersPlugin } from "../../src/plugins/adapters/index.js";
 import { json_stringify, OnchainSDK } from "../../src/sdk/index.js";
 
 const logger = pino({
@@ -15,13 +14,9 @@ const logger = pino({
 });
 
 async function example(): Promise<void> {
-  const sdk = new OnchainSDK(
-    "Mainnet",
-    {
-      rpcURLs: ["https://anvil.gearbox.foundation/rpc/RWA"],
-    },
-    { plugins: { adapters: new AdaptersPlugin() } },
-  );
+  const sdk = new OnchainSDK("Mainnet", {
+    rpcURLs: ["https://anvil.gearbox.foundation/rpc/RWA"],
+  });
   await sdk.attach({
     marketConfigurators: [
       "0x610627d8d01a413bdd9b0a0b60070da7dd1e54ad",

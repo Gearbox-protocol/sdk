@@ -20,7 +20,6 @@
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { Address } from "viem";
-import { AdaptersPlugin } from "../../src/plugins/adapters/AdaptersPlugin.js";
 import { json_stringify, OnchainSDK } from "../../src/sdk/index.js";
 
 const RPC_URL = "https://anvil.gearbox.foundation/rpc/Mainnet";
@@ -37,7 +36,7 @@ async function main(): Promise<void> {
   const sdk = new OnchainSDK(
     "Mainnet",
     { rpcURLs: [RPC_URL], timeout: 480_000 },
-    { plugins: { adapters: new AdaptersPlugin(true) }, logger: console },
+    { logger: console },
   );
   await sdk.attach({
     marketConfigurators: [KPK_MC],

@@ -2,6 +2,9 @@
 
 Date: 2026-07-09
 
+> Note: adapters later moved from `src/plugins/adapters/` into
+> `src/sdk/market/adapters/` as a built-in part of the core SDK.
+
 ## Summary
 
 The SDK no longer depends on the `@gearbox-protocol/integrations-v3` npm package. All adapter ABIs

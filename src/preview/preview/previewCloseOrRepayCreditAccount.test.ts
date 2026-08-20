@@ -2,7 +2,6 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { type Address, custom, getAddress, type Hex, parseEther } from "viem";
 import { beforeAll, expect, it } from "vitest";
-import { AdaptersPlugin } from "../../plugins/adapters/index.js";
 import { json_parse, NATIVE_ADDRESS, OnchainSDK } from "../../sdk/index.js";
 import { previewOperation } from "./previewOperation.js";
 
@@ -35,22 +34,18 @@ interface Tx {
   value: bigint;
 }
 
-let sdk: OnchainSDK<{ adapters: AdaptersPlugin }>;
+let sdk: OnchainSDK;
 
 beforeAll(() => {
   // Default client throws on any RPC request: hydration, calldata parsing
   // and previewing are fully offline.
-  sdk = new OnchainSDK(
-    "Mainnet",
-    {
-      transport: custom({
-        request: async () => {
-          throw new Error("offline: preview test must not hit RPC");
-        },
-      }),
-    },
-    { plugins: { adapters: new AdaptersPlugin(true) } },
-  );
+  sdk = new OnchainSDK("Mainnet", {
+    transport: custom({
+      request: async () => {
+        throw new Error("offline: preview test must not hit RPC");
+      },
+    }),
+  });
   sdk.hydrate(json_parse(readFileSync(FIXTURE, "utf-8")));
 });
 
@@ -75,12 +70,24 @@ it("previews plain account: USDC collateral, USDC debt, no swap", async () => {
   await expect(preview(PLAIN_USDC)).resolves.toMatchObject({
     operation: "OpenCreditAccount",
     creditManager: CM_PLAIN,
+    name: expect.any(String),
+    leverage: expect.any(Number),
     target: undefined,
-    collateral: [{ token: USDC, balance: 1_000_000_000n }],
+    collateral: [
+      {
+        token: expect.objectContaining({ address: USDC }),
+        value: 1_000_000_000n,
+      },
+    ],
     collateralValue: 1_000_000_000n,
     debt: 7_000_000_000n,
     quotas: [],
-    assets: [{ token: USDC, balance: 8_000_000_000n }],
+    assets: [
+      {
+        token: expect.objectContaining({ address: USDC }),
+        value: 8_000_000_000n,
+      },
+    ],
   });
 });
 
@@ -94,14 +101,30 @@ it("previews lending: native ETH collateral stays on the account, wstETH debt is
   await expect(preview(LENDING_ETH_WSTETH)).resolves.toMatchObject({
     operation: "OpenCreditAccount",
     creditManager: CM_LENDING,
-    target: { token: WETH, balance: 100_893_608_181_830_735_543n },
+    target: {
+      token: expect.objectContaining({ address: WETH }),
+      value: 100_893_608_181_830_735_543n,
+    },
     collateral: [
-      { token: NATIVE_ADDRESS, balance: 100_893_608_181_830_735_543n },
+      {
+        token: expect.objectContaining({ address: NATIVE_ADDRESS }),
+        value: 100_893_608_181_830_735_543n,
+      },
     ],
     collateralValue: 81_462_650_139_176_631_035n,
     debt: parseEther("75"),
-    quotas: [{ token: WETH, balance: 79_553_249_999_999_990_000n }],
-    assets: [{ token: WETH, balance: 100_893_608_181_830_735_543n }],
+    quotas: [
+      {
+        token: expect.objectContaining({ address: WETH }),
+        value: 79_553_249_999_999_990_000n,
+      },
+    ],
+    assets: [
+      {
+        token: expect.objectContaining({ address: WETH }),
+        value: 100_893_608_181_830_735_543n,
+      },
+    ],
   });
 });
 
@@ -115,12 +138,30 @@ it("previews strategy 1: ETH collateral and WETH debt swapped into weETH target"
   await expect(preview(STRATEGY_ETH_TO_WEETH)).resolves.toMatchObject({
     operation: "OpenCreditAccount",
     creditManager: CM_STRATEGY,
-    target: { token: WEETH, balance: 88_711_008_598_339_891_555n },
-    collateral: [{ token: NATIVE_ADDRESS, balance: parseEther("10") }],
+    target: {
+      token: expect.objectContaining({ address: WEETH }),
+      value: 88_711_008_598_339_891_555n,
+    },
+    collateral: [
+      {
+        token: expect.objectContaining({ address: NATIVE_ADDRESS }),
+        value: parseEther("10"),
+      },
+    ],
     collateralValue: parseEther("10"),
     debt: parseEther("87.5"),
-    quotas: [{ token: WEETH, balance: 95_186_632_231_615_560_000n }],
-    assets: [{ token: WEETH, balance: 88_711_008_598_339_891_555n }],
+    quotas: [
+      {
+        token: expect.objectContaining({ address: WEETH }),
+        value: 95_186_632_231_615_560_000n,
+      },
+    ],
+    assets: [
+      {
+        token: expect.objectContaining({ address: WEETH }),
+        value: 88_711_008_598_339_891_555n,
+      },
+    ],
   });
 });
 
@@ -134,12 +175,30 @@ it("previews strategy 2: wstETH collateral already in target, WETH debt swapped"
   await expect(preview(STRATEGY_WSTETH_TARGET)).resolves.toMatchObject({
     operation: "OpenCreditAccount",
     creditManager: CM_STRATEGY,
-    target: { token: WSTETH, balance: 67_539_176_884_849_002_897n },
-    collateral: [{ token: WSTETH, balance: 5_000_000_000_000_000_000n }],
+    target: {
+      token: expect.objectContaining({ address: WSTETH }),
+      value: 67_539_176_884_849_002_897n,
+    },
+    collateral: [
+      {
+        token: expect.objectContaining({ address: WSTETH }),
+        value: 5_000_000_000_000_000_000n,
+      },
+    ],
     collateralValue: 6_192_629_874_516_533_829n,
     debt: 77_526_880_236_650_455_507n,
-    quotas: [{ token: WSTETH, balance: 83_512_022_535_704_630_000n }],
-    assets: [{ token: WSTETH, balance: 67_539_176_884_849_002_897n }],
+    quotas: [
+      {
+        token: expect.objectContaining({ address: WSTETH }),
+        value: 83_512_022_535_704_630_000n,
+      },
+    ],
+    assets: [
+      {
+        token: expect.objectContaining({ address: WSTETH }),
+        value: 67_539_176_884_849_002_897n,
+      },
+    ],
   });
 });
 
@@ -153,17 +212,37 @@ it("previews strategy 3: wstETH collateral deliberately not swapped, WETH debt s
   await expect(preview(STRATEGY_KEEP_WSTETH_CBETH)).resolves.toMatchObject({
     operation: "OpenCreditAccount",
     creditManager: CM_STRATEGY,
-    target: { token: CBETH, balance: 37_140_380_298_847_597_770n },
-    collateral: [{ token: WSTETH, balance: parseEther("10") }],
+    target: {
+      token: expect.objectContaining({ address: CBETH }),
+      value: 37_140_380_298_847_597_770n,
+    },
+    collateral: [
+      {
+        token: expect.objectContaining({ address: WSTETH }),
+        value: parseEther("10"),
+      },
+    ],
     collateralValue: 12_385_259_749_033_067_658n,
     debt: 49_544_083_514_075_663_524n,
     quotas: [
-      { token: CBETH, balance: 41_171_998_928_026_680_000n },
-      { token: WSTETH, balance: 12_355_055_826_322_610_000n },
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: 41_171_998_928_026_680_000n,
+      },
+      {
+        token: expect.objectContaining({ address: WSTETH }),
+        value: 12_355_055_826_322_610_000n,
+      },
     ],
     assets: [
-      { token: WSTETH, balance: parseEther("10") },
-      { token: CBETH, balance: 37_140_380_298_847_597_770n },
+      {
+        token: expect.objectContaining({ address: WSTETH }),
+        value: parseEther("10"),
+      },
+      {
+        token: expect.objectContaining({ address: CBETH }),
+        value: 37_140_380_298_847_597_770n,
+      },
     ],
   });
 });

@@ -12,6 +12,8 @@ import type { Opportunities } from "./opportunities/index.js";
 import { OpportunitiesNamespace } from "./opportunities/index.js";
 import type { Positions } from "./positions/index.js";
 import { PositionsNamespace } from "./positions/index.js";
+import type { PreviewByMode } from "./preview/index.js";
+import { PreviewNamespace } from "./preview/index.js";
 import type {
   GearboxSDKOptions,
   Mode,
@@ -65,14 +67,12 @@ export class GearboxSDK<const M extends Mode = Mode> {
    * Namespace for the positions a wallet holds.
    **/
   public readonly positions: Positions<M>;
-
-  readonly #attachOptions?: MultichainAttachOptions;
-  readonly #onchain?: MultichainSDK;
-  readonly #offchain?: GearboxAPI;
-  readonly #ownsOnchain: boolean = false;
-  readonly #maxStateAgeSeconds: number;
-  readonly #logger?: ILogger;
-
+  /**
+   * Namespace for on-chain previews of raw operation calldata. Onchain-only,
+   * hence gated by mode like every other chain read: absent in `offchain`
+   * mode.
+   **/
+  public readonly preview: PreviewByMode[M];
   /**
    * The banners the backend attaches to a pool opportunity or a strategy
    * position, see {@link Notice}. Top-level because the subject is either
@@ -80,6 +80,13 @@ export class GearboxSDK<const M extends Mode = Mode> {
    * by mode like every other backend read: absent in `onchain` mode.
    **/
   public readonly notices: NoticesByMode[M];
+
+  readonly #attachOptions?: MultichainAttachOptions;
+  readonly #onchain?: MultichainSDK;
+  readonly #offchain?: GearboxAPI;
+  readonly #ownsOnchain: boolean = false;
+  readonly #maxStateAgeSeconds: number;
+  readonly #logger?: ILogger;
 
   #attached: boolean;
   /** The one attach in flight, shared by {@link attach} and every first read. */
@@ -172,6 +179,11 @@ export class GearboxSDK<const M extends Mode = Mode> {
       this.#offchain,
       namespaceOptions,
     ) as Positions<M>;
+    this.preview = (
+      this.#onchain
+        ? new PreviewNamespace(this.#onchain, namespaceOptions)
+        : undefined
+    ) as PreviewByMode[M];
     const backend = this.#offchain;
     this.notices = (
       backend

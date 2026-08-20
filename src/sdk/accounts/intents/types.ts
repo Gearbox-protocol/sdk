@@ -1,7 +1,8 @@
 import type { Address } from "viem";
 import type {
-  Bps,
   BorrowRateBreakdown,
+  Bps,
+  DelayedIntent,
   Leverage,
 } from "../../../model/index.js";
 import type {
@@ -10,10 +11,7 @@ import type {
   OnchainSDK,
   RouterCASlice,
 } from "../../index.js";
-import type {
-  ClaimableWithdrawal,
-  DelayedIntent,
-} from "../withdrawal-compressor/types.js";
+import type { ClaimableWithdrawal } from "../withdrawal-compressor/types.js";
 import type { AccountCalculatorOperation } from "./operations.js";
 
 /**

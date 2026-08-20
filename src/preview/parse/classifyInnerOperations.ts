@@ -1,6 +1,6 @@
 import type { Address } from "viem";
-import { AbstractAdapterContract } from "../../plugins/adapters/index.js";
 import type { OnchainSDK, ParsedCallV2 } from "../../sdk/index.js";
+import { AbstractAdapterContract } from "../../sdk/index.js";
 import type {
   AdapterOperation,
   InnerFacadeOperation,

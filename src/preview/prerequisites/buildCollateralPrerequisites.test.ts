@@ -16,7 +16,6 @@ import {
   iCreditFacadeMulticallV310Abi,
   iCreditFacadeV310Abi,
 } from "../../abi/310/generated.js";
-import { AdaptersPlugin } from "../../plugins/adapters/index.js";
 import { json_parse, NATIVE_ADDRESS, OnchainSDK } from "../../sdk/index.js";
 import { checkPrerequisites } from "./checkPrerequisites.js";
 
@@ -50,37 +49,33 @@ interface OnchainState {
   allowance: bigint;
 }
 
-let sdk: OnchainSDK<{ adapters: AdaptersPlugin }>;
+let sdk: OnchainSDK;
 let onchain: OnchainState;
 
 beforeAll(() => {
   // The transport answers only the reads issued by balance/allowance
   // prerequisites; everything else (hydration, calldata parsing, prerequisite
   // building) must stay offline.
-  sdk = new OnchainSDK(
-    "Mainnet",
-    {
-      transport: custom({
-        request: async ({ method, params }) => {
-          if (method === "eth_getBalance") {
-            return numberToHex(onchain.native);
+  sdk = new OnchainSDK("Mainnet", {
+    transport: custom({
+      request: async ({ method, params }) => {
+        if (method === "eth_getBalance") {
+          return numberToHex(onchain.native);
+        }
+        if (method === "eth_call") {
+          const [call] = params as [{ to: Address; data: Hex }];
+          const selector = call.data.slice(0, 10).toLowerCase();
+          if (selector === BALANCE_OF_SELECTOR) {
+            return toHex(onchain.erc20, { size: 32 });
           }
-          if (method === "eth_call") {
-            const [call] = params as [{ to: Address; data: Hex }];
-            const selector = call.data.slice(0, 10).toLowerCase();
-            if (selector === BALANCE_OF_SELECTOR) {
-              return toHex(onchain.erc20, { size: 32 });
-            }
-            if (selector === ALLOWANCE_SELECTOR) {
-              return toHex(onchain.allowance, { size: 32 });
-            }
+          if (selector === ALLOWANCE_SELECTOR) {
+            return toHex(onchain.allowance, { size: 32 });
           }
-          throw new Error(`offline: unexpected RPC request ${method}`);
-        },
-      }),
-    },
-    { plugins: { adapters: new AdaptersPlugin(true) } },
-  );
+        }
+        throw new Error(`offline: unexpected RPC request ${method}`);
+      },
+    }),
+  });
   sdk.hydrate(json_parse(readFileSync(STATE_FIXTURE, "utf-8")));
   vi.spyOn(sdk.accounts, "getApprovalAddress").mockResolvedValue(SPENDER);
 });
