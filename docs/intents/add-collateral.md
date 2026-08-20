@@ -1,6 +1,6 @@
 # Add collateral
 
-`simulate.addCollateral` → `startIntent({ type: "ADD_COLLATERAL" })` →
+`prepare.addCollateral` → `startIntent({ type: "ADD_COLLATERAL" })` →
 `planAddCollateral` ([`plan.ts`](../../src/sdk/accounts/intents/plan.ts)).
 
 The simplest intent there is: the token lands on the account as it comes and the

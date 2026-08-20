@@ -44,7 +44,7 @@ export interface OperationState extends PositionMetrics {
  *
  * Every member is thrown by the engine as an {@link IntentPreviewError}, with
  * the exception of `unsupportedTokenPair` and `noRecordedIntent`, which the
- * simulate namespace reports for a request it can refuse before planning: a
+ * prepare namespace reports for a request it can refuse before planning: a
  * route the market does not offer, a claim naming no operation.
  */
 export type PreviewErrorReason =
@@ -106,8 +106,8 @@ export type IntentPreviewResult =
 export interface DelayedStart {
   /**
    * The intent written into the request, and decoded back from the claimable
-   * withdrawal at claim time. Feed it to
-   * `CreditAccountOperationsService.finishIntent`.
+   * withdrawal at claim time. `prepare.finalize` picks it up from there, and
+   * `CreditAccountOperationsService.finishIntent` is what it feeds.
    */
   record: DelayedIntent;
   /** Unix seconds after which the delayed outputs can be claimed. */
@@ -183,16 +183,16 @@ export type IntentRoutesResult =
  * The intents the engine previews.
  *
  * Naming avoids the `withdrawCollateral` collision that exists elsewhere in the
- * repo. Mapping to the public simulate API:
+ * repo. Mapping to the public prepare API:
  *
- * | Intent type        | Public name                | Debt    |
- * | ------------------ | -------------------------- | ------- |
- * | `ADD_COLLATERAL`   | `simulate.addCollateral`    | fixed   |
- * | `WITHDRAW_ASSET`   | `simulate.withdrawCollateral` | fixed |
- * | `ADJUST_LEVERAGE`  | `simulate.adjustLeverage`   | changes |
- * | `DEPOSIT`          | `simulate.depositStrategy`  | grows   |
- * | `WITHDRAW`         | `simulate.withdrawStrategy` | shrinks |
- * | `REPAY`            | `simulate.repayStrategy`    | shrinks |
+ * | Intent type        | Public name                  | Debt    |
+ * | ------------------ | ---------------------------- | ------- |
+ * | `ADD_COLLATERAL`   | `prepare.addCollateral`      | fixed   |
+ * | `WITHDRAW_ASSET`   | `prepare.withdrawCollateral` | fixed   |
+ * | `ADJUST_LEVERAGE`  | `prepare.adjustLeverage`     | changes |
+ * | `DEPOSIT`          | `prepare.depositStrategy`    | grows   |
+ * | `WITHDRAW`         | `prepare.withdrawStrategy`   | shrinks |
+ * | `REPAY`            | `prepare.repayStrategy`      | shrinks |
  */
 
 /** Shared inputs for every start intent. */

@@ -233,7 +233,7 @@ describe("GearboxSDK loading", () => {
     }
 
     await expect(
-      sdk.opportunities.simulate.addCollateral(
+      sdk.opportunities.prepare.addCollateral(
         { chainId: 1, creditAccount: POOL },
         { token: POOL, amount: 1n },
       ),
@@ -371,7 +371,7 @@ describe("GearboxSDK loading", () => {
   it("the sync LP simulation before attach throws SdkNotAttachedError, as before", () => {
     const { sdk } = build();
     expect(() =>
-      sdk.opportunities.simulate.deposit(
+      sdk.opportunities.prepare.deposit(
         { chainId: 1, pool: POOL },
         { amount: 1n, wallet: POOL },
       ),

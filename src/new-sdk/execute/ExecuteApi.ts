@@ -13,12 +13,12 @@ import type {
   LpSimulate,
   OpenStrategySimulate,
   StrategySimulate,
-} from "../simulate/index.js";
+} from "../prepare/index.js";
 
 /**
  * A pool deposit, withdrawal or redemption, as
- * {@link OpportunitiesSimulate.deposit} / {@link OpportunitiesSimulate.withdraw}
- * / {@link OpportunitiesSimulate.redeem} priced it. The simulation carries the
+ * {@link OpportunitiesPrepare.deposit} / {@link OpportunitiesPrepare.withdraw}
+ * / {@link OpportunitiesPrepare.redeem} priced it. The simulation carries the
  * tokens on both sides and the zapper, so nothing else is needed to encode
  * the call.
  **/
@@ -33,7 +33,7 @@ export interface PoolPrepareRequest {
 
 /**
  * Opening a new position, from a viable
- * {@link OpportunitiesSimulate.openNewStrategy} result. The preview values
+ * {@link OpportunitiesPrepare.openNewStrategy} result. The preview values
  * collateral in underlying only, so the wallet's actual collateral assets and
  * the native value to attach come from the caller.
  **/
@@ -73,7 +73,7 @@ export interface AccountPrepareRequest {
 
 /**
  * What {@link OpportunitiesExecute.buildTx} turns into a transaction: a
- * simulate result plus the few facts about the wallet the simulation does not
+ * `prepare` result plus the few facts about the wallet the simulation does not
  * carry.
  **/
 export type PrepareRequest =
@@ -82,14 +82,14 @@ export type PrepareRequest =
   | AccountPrepareRequest;
 
 /**
- * The write side of the opportunities namespace: turns what `simulate`
+ * The write side of the opportunities namespace: turns what `prepare`
  * answered into the transaction to sign. Sending, and whatever the wallet has
  * to do first (allowances, permits, RWA signatures), stays with the caller —
  * `checkPrerequisites` reports the former on the built transaction.
  **/
 export interface OpportunitiesExecute {
   /**
-   * The transaction to sign, from a simulate result. No second round of math:
+   * The transaction to sign, from a `prepare` result. No second round of math:
    * `account` requests submit the simulation's own multicall, `open` requests
    * hand the preview's router path and quotas to `openCA`, `pool` requests
    * encode the deposit / redeem the simulation priced.

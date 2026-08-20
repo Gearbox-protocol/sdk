@@ -1,6 +1,6 @@
 # Withdraw one asset
 
-`simulate.withdrawCollateral` → `startIntent({ type: "WITHDRAW_ASSET" })` →
+`prepare.withdrawCollateral` → `startIntent({ type: "WITHDRAW_ASSET" })` →
 `planWithdrawAsset` ([`plan.ts`](../../src/sdk/accounts/intents/plan.ts)).
 
 A balance already on the account leaves it, in the token it stands in. No swap,

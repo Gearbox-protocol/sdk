@@ -1,6 +1,6 @@
 # Deposit into a strategy
 
-`simulate.depositStrategy` → `startIntent({ type: "DEPOSIT" })` → `planDeposit`
+`prepare.depositStrategy` → `startIntent({ type: "DEPOSIT" })` → `planDeposit`
 ([`plan.ts`](../../src/sdk/accounts/intents/plan.ts)).
 
 Collateral comes in from the wallet and the debt grows with it — at the

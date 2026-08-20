@@ -1,6 +1,6 @@
 # Repay a strategy
 
-`simulate.repayStrategy` → `startIntent({ type: "REPAY" })` → `planRepay`
+`prepare.repayStrategy` → `startIntent({ type: "REPAY" })` → `planRepay`
 ([`plan.ts`](../../src/sdk/accounts/intents/plan.ts)).
 
 Funding comes in from the wallet and goes straight into the debt. The collateral

@@ -16,7 +16,7 @@ import type {
 import type { OffchainOpportunities } from "../../offchain/index.js";
 import type { MultichainOpportunitiesService } from "../../sdk/index.js";
 import type { OpportunitiesExecute } from "../execute/index.js";
-import type { OpportunitiesSimulate } from "../simulate/index.js";
+import type { OpportunitiesPrepare } from "../prepare/index.js";
 import type { Mode } from "../types.js";
 import type { EntityMerger, FilterResult, ListMerger } from "../utils/index.js";
 
@@ -103,11 +103,11 @@ export interface OpportunitiesOnchainOnly {
    * state, and the strategy flows additionally need the pathfinder for real swap
    * paths, so there is nothing the backend could answer with.
    **/
-  readonly simulate: OpportunitiesSimulate;
+  readonly prepare: OpportunitiesPrepare;
   /**
-   * The transaction a simulate result stands for, see
+   * The transaction a prepared operation stands for, see
    * {@link OpportunitiesExecute.buildTx}. Absent in `offchain` mode for the
-   * same reason as {@link simulate}: it encodes against live chain state.
+   * same reason as {@link prepare}: it encodes against live chain state.
    **/
   execute: OpportunitiesExecute;
 }

@@ -1,6 +1,6 @@
 # Adjust leverage
 
-`simulate.adjustLeverage` → `intentRoutes({ type: "ADJUST_LEVERAGE" })` →
+`prepare.adjustLeverage` → `intentRoutes({ type: "ADJUST_LEVERAGE" })` →
 `planAdjustLeverage` ([`plan.ts`](../../src/sdk/accounts/intents/plan.ts)).
 
 The collateral stays where it is and the debt is retargeted around it: borrow and

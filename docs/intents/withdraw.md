@@ -1,6 +1,6 @@
 # Withdraw from a strategy
 
-`simulate.withdrawStrategy` → `intentRoutes({ type: "WITHDRAW" })` →
+`prepare.withdrawStrategy` → `intentRoutes({ type: "WITHDRAW" })` →
 `planWithdraw` ([`plan.ts`](../../src/sdk/accounts/intents/plan.ts)).
 
 Value leaves the account and the debt shrinks in proportion, so leverage holds —

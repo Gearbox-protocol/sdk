@@ -20,19 +20,18 @@ import type { EnsureFreshChains } from "../types.js";
 import type {
   AddCollateralParams,
   AdjustLeverageParams,
-  DelayedSimulate,
-  DelayedStrategySimulate,
   DepositStrategyParams,
+  FinalizeParams,
   LpParams,
   LpRedeemParams,
   LpSimulate,
   OpenStrategyParams,
   OpenStrategySimulate,
-  OpportunitiesSimulate,
+  OpportunitiesPrepare,
   PoolInput,
   PositionInput,
+  PrepareOptions,
   RepayStrategyParams,
-  SimulateOptions,
   StrategyInput,
   StrategyRoutesSimulate,
   StrategySimulate,
@@ -50,7 +49,7 @@ import type {
 export type ChainOf = (chainId: ChainId) => OnchainSDK;
 
 /**
- * {@inheritDoc OpportunitiesSimulate}
+ * {@inheritDoc OpportunitiesPrepare}
  *
  * Holds no state of its own: it owns the mapping from the public,
  * read-model-shaped request to the engine's intent, and nothing else. All
@@ -62,9 +61,9 @@ export type ChainOf = (chainId: ChainId) => OnchainSDK;
  * to, hence a chain the SDK does not cover, or one that fails the read, throws
  * rather than answering with empty metadata.
  **/
-export class SimulateApi
+export class PrepareApi
   extends MultichainConstruct
-  implements OpportunitiesSimulate
+  implements OpportunitiesPrepare
 {
   readonly #ensureFresh?: EnsureFreshChains;
 
@@ -81,47 +80,33 @@ export class SimulateApi
   }
 
   /**
-   * {@inheritDoc OpportunitiesSimulate.delayed}
+   * {@inheritDoc OpportunitiesPrepare.finalize}
    **/
-  public readonly delayed: DelayedSimulate = {
-    withdrawStrategy: (position, params) =>
-      this.#startDelayedIntent(position, params, {
-        type: "WITHDRAW",
-        amount: params.amount,
-        to: params.to,
-        tokenOut: params.tokenOut,
-        sourceToken: params.sourceToken,
-      }),
-
-    adjustLeverage: (position, params) =>
-      this.#startDelayedIntent(position, params, {
-        type: "ADJUST_LEVERAGE",
-        targetLeverage: params.targetLeverage,
-        token: params.token,
-      }),
-
-    finish: (position, params) =>
-      this.queryChain({
-        network: position.chainId,
-        run: async sdk => {
-          const intent = resumable(params.intent ?? params.claimable.intent);
-          if (!intent) {
-            return { ok: false, reason: "noRecordedIntent" };
-          }
-          return service(sdk).finishIntent({
-            intent,
-            claimable: params.claimable,
-            creditAccount: await slice(sdk, position.creditAccount),
-            sdk,
-            slippage: params.slippage,
-            quotaReserve: params.quotaReserve,
-          });
-        },
-      }),
-  };
+  public async finalize(
+    position: PositionInput,
+    params: FinalizeParams,
+  ): Promise<DataResponse<StrategySimulate>> {
+    return this.queryChain({
+      network: position.chainId,
+      run: async sdk => {
+        const intent = resumable(params.intent ?? params.claimable.intent);
+        if (!intent) {
+          return { ok: false, reason: "noRecordedIntent" };
+        }
+        return service(sdk).finishIntent({
+          intent,
+          claimable: params.claimable,
+          creditAccount: await slice(sdk, position.creditAccount),
+          sdk,
+          slippage: params.slippage,
+          quotaReserve: params.quotaReserve,
+        });
+      },
+    });
+  }
 
   /**
-   * {@inheritDoc OpportunitiesSimulate.deposit}
+   * {@inheritDoc OpportunitiesPrepare.deposit}
    **/
   public deposit(pool: PoolInput, params: LpParams): LpSimulate {
     const { marketRegister, pools } = this.sdk.chain(pool.chainId);
@@ -156,7 +141,7 @@ export class SimulateApi
   }
 
   /**
-   * {@inheritDoc OpportunitiesSimulate.withdraw}
+   * {@inheritDoc OpportunitiesPrepare.withdraw}
    **/
   public withdraw(pool: PoolInput, params: LpParams): LpSimulate {
     const { pools } = this.sdk.chain(pool.chainId);
@@ -190,7 +175,7 @@ export class SimulateApi
   }
 
   /**
-   * {@inheritDoc OpportunitiesSimulate.redeem}
+   * {@inheritDoc OpportunitiesPrepare.redeem}
    **/
   public redeem(pool: PoolInput, params: LpRedeemParams): LpSimulate {
     const { pools } = this.sdk.chain(pool.chainId);
@@ -221,7 +206,7 @@ export class SimulateApi
   }
 
   /**
-   * {@inheritDoc OpportunitiesSimulate.openNewStrategy}
+   * {@inheritDoc OpportunitiesPrepare.openNewStrategy}
    **/
   public async openNewStrategy(
     strategy: StrategyInput,
@@ -244,7 +229,7 @@ export class SimulateApi
   }
 
   /**
-   * {@inheritDoc OpportunitiesSimulate.depositStrategy}
+   * {@inheritDoc OpportunitiesPrepare.depositStrategy}
    **/
   public async depositStrategy(
     position: PositionInput,
@@ -261,7 +246,7 @@ export class SimulateApi
   }
 
   /**
-   * {@inheritDoc OpportunitiesSimulate.withdrawStrategy}
+   * {@inheritDoc OpportunitiesPrepare.withdrawStrategy}
    **/
   public async withdrawStrategy(
     position: PositionInput,
@@ -277,7 +262,7 @@ export class SimulateApi
   }
 
   /**
-   * {@inheritDoc OpportunitiesSimulate.maxWithdraw}
+   * {@inheritDoc OpportunitiesPrepare.maxWithdraw}
    **/
   public async maxWithdraw(
     position: PositionInput,
@@ -293,7 +278,7 @@ export class SimulateApi
   }
 
   /**
-   * {@inheritDoc OpportunitiesSimulate.repayStrategy}
+   * {@inheritDoc OpportunitiesPrepare.repayStrategy}
    **/
   public async repayStrategy(
     position: PositionInput,
@@ -308,7 +293,7 @@ export class SimulateApi
   }
 
   /**
-   * {@inheritDoc OpportunitiesSimulate.maxRepay}
+   * {@inheritDoc OpportunitiesPrepare.maxRepay}
    **/
   public async maxRepay(
     position: PositionInput,
@@ -324,7 +309,7 @@ export class SimulateApi
   }
 
   /**
-   * {@inheritDoc OpportunitiesSimulate.adjustLeverage}
+   * {@inheritDoc OpportunitiesPrepare.adjustLeverage}
    **/
   public async adjustLeverage(
     position: PositionInput,
@@ -338,7 +323,7 @@ export class SimulateApi
   }
 
   /**
-   * {@inheritDoc OpportunitiesSimulate.addCollateral}
+   * {@inheritDoc OpportunitiesPrepare.addCollateral}
    **/
   public async addCollateral(
     position: PositionInput,
@@ -353,7 +338,7 @@ export class SimulateApi
   }
 
   /**
-   * {@inheritDoc OpportunitiesSimulate.withdrawCollateral}
+   * {@inheritDoc OpportunitiesPrepare.withdrawCollateral}
    **/
   public async withdrawCollateral(
     position: PositionInput,
@@ -373,7 +358,7 @@ export class SimulateApi
    **/
   async #startRoutes(
     position: PositionInput,
-    options: SimulateOptions,
+    options: PrepareOptions,
     intent: DelayableIntent,
   ): Promise<DataResponse<StrategyRoutesSimulate>> {
     return this.queryChain({
@@ -390,34 +375,12 @@ export class SimulateApi
   }
 
   /**
-   * Shared path of the same two flows when only the delayed route is asked for:
-   * a planner that requests a redemption instead of swapping.
-   **/
-  async #startDelayedIntent(
-    position: PositionInput,
-    options: SimulateOptions,
-    intent: DelayableIntent,
-  ): Promise<DataResponse<DelayedStrategySimulate>> {
-    return this.queryChain({
-      network: position.chainId,
-      run: async sdk =>
-        service(sdk).startDelayedIntent({
-          intent,
-          creditAccount: await slice(sdk, position.creditAccount),
-          sdk,
-          slippage: options.slippage,
-          quotaReserve: options.quotaReserve,
-        }),
-    });
-  }
-
-  /**
    * Shared path of the five flows that act on an existing account: read the
    * account, then run the intent through the engine.
    **/
   async #startIntent(
     position: PositionInput,
-    options: SimulateOptions,
+    options: PrepareOptions,
     intent: StartIntent,
   ): Promise<DataResponse<StrategySimulate>> {
     return this.queryChain({

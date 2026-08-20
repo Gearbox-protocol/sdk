@@ -5,7 +5,7 @@ import type {
   LpSimulate,
   OpenStrategySimulate,
   StrategySimulate,
-} from "../simulate/index.js";
+} from "../prepare/index.js";
 import { ExecuteApi } from "./ExecuteApi.js";
 
 const CHAIN_ID = 1;

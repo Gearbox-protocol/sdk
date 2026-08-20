@@ -23,7 +23,7 @@ import type {
   LpSimulate,
   StrategyRoutesSimulate,
   StrategySimulate,
-} from "../simulate/index.js";
+} from "../prepare/index.js";
 import type { Mode } from "../types.js";
 import type { Opportunities } from "./types.js";
 
@@ -44,10 +44,10 @@ describe("mode gates method existence", () => {
     expectTypeOf<Opportunities<"onchain">>().not.toHaveProperty("charts");
   });
 
-  it("simulate and execute exist only where a chain does", () => {
-    expectTypeOf<Opportunities<"onchain">>().toHaveProperty("simulate");
-    expectTypeOf<Opportunities<"both">>().toHaveProperty("simulate");
-    expectTypeOf<Opportunities<"offchain">>().not.toHaveProperty("simulate");
+  it("prepare and execute exist only where a chain does", () => {
+    expectTypeOf<Opportunities<"onchain">>().toHaveProperty("prepare");
+    expectTypeOf<Opportunities<"both">>().toHaveProperty("prepare");
+    expectTypeOf<Opportunities<"offchain">>().not.toHaveProperty("prepare");
     expectTypeOf<Opportunities<"onchain">>().toHaveProperty("execute");
     expectTypeOf<Opportunities<"both">>().toHaveProperty("execute");
     expectTypeOf<Opportunities<"offchain">>().not.toHaveProperty("execute");
@@ -58,7 +58,7 @@ describe("mode gates method existence", () => {
     // methods; they must not silently gain them
     expectTypeOf<Opportunities<Mode>>().toHaveProperty("list");
     expectTypeOf<Opportunities<Mode>>().not.toHaveProperty("history");
-    expectTypeOf<Opportunities<Mode>>().not.toHaveProperty("simulate");
+    expectTypeOf<Opportunities<Mode>>().not.toHaveProperty("prepare");
     expectTypeOf<Opportunities<Mode>>().not.toHaveProperty("charts");
     // what survives widening is everything the map does not gate
     expectTypeOf<Opportunities<Mode>>().toHaveProperty("merge");
@@ -73,49 +73,49 @@ describe("mode gates method existence", () => {
   });
 });
 
-describe("simulate covers the flows and the withdraw ceiling", () => {
-  const simulate = {} as Opportunities<"onchain">["simulate"];
+describe("prepare covers the flows and the withdraw ceiling", () => {
+  const prepare = {} as Opportunities<"onchain">["prepare"];
 
   it("has one method per flow", () => {
-    expectTypeOf(simulate).toHaveProperty("deposit");
-    expectTypeOf(simulate).toHaveProperty("withdraw");
-    expectTypeOf(simulate).toHaveProperty("redeem");
-    expectTypeOf(simulate).toHaveProperty("openNewStrategy");
-    expectTypeOf(simulate).toHaveProperty("depositStrategy");
-    expectTypeOf(simulate).toHaveProperty("withdrawStrategy");
-    expectTypeOf(simulate).toHaveProperty("adjustLeverage");
-    expectTypeOf(simulate).toHaveProperty("addCollateral");
-    expectTypeOf(simulate).toHaveProperty("withdrawCollateral");
-    expectTypeOf(simulate).toHaveProperty("repayStrategy");
-    expectTypeOf(simulate).toHaveProperty("maxWithdraw");
-    expectTypeOf(simulate).toHaveProperty("maxRepay");
+    expectTypeOf(prepare).toHaveProperty("deposit");
+    expectTypeOf(prepare).toHaveProperty("withdraw");
+    expectTypeOf(prepare).toHaveProperty("redeem");
+    expectTypeOf(prepare).toHaveProperty("openNewStrategy");
+    expectTypeOf(prepare).toHaveProperty("depositStrategy");
+    expectTypeOf(prepare).toHaveProperty("withdrawStrategy");
+    expectTypeOf(prepare).toHaveProperty("adjustLeverage");
+    expectTypeOf(prepare).toHaveProperty("addCollateral");
+    expectTypeOf(prepare).toHaveProperty("withdrawCollateral");
+    expectTypeOf(prepare).toHaveProperty("repayStrategy");
+    expectTypeOf(prepare).toHaveProperty("maxWithdraw");
+    expectTypeOf(prepare).toHaveProperty("maxRepay");
   });
 
   it("takes a pool opportunity, an amount and the wallet for the LP flows", () => {
     const pool = {} as PoolOpportunityRef;
     const params = { amount: 1_000n, wallet: WALLET };
-    expectTypeOf(simulate.deposit).toBeCallableWith(pool, params);
-    expectTypeOf(simulate.withdraw).toBeCallableWith(pool, params);
-    expectTypeOf(simulate.redeem).toBeCallableWith(pool, params);
+    expectTypeOf(prepare.deposit).toBeCallableWith(pool, params);
+    expectTypeOf(prepare.withdraw).toBeCallableWith(pool, params);
+    expectTypeOf(prepare.redeem).toBeCallableWith(pool, params);
   });
 
   it("answers the LP flows outright, with no promise to await", () => {
     const pool = {} as PoolOpportunityRef;
     const params = { amount: 1_000n, wallet: WALLET };
-    expectTypeOf(simulate.deposit(pool, params)).toEqualTypeOf<LpSimulate>();
-    expectTypeOf(simulate.withdraw(pool, params)).toEqualTypeOf<LpSimulate>();
-    expectTypeOf(simulate.redeem(pool, params)).toEqualTypeOf<LpSimulate>();
+    expectTypeOf(prepare.deposit(pool, params)).toEqualTypeOf<LpSimulate>();
+    expectTypeOf(prepare.withdraw(pool, params)).toEqualTypeOf<LpSimulate>();
+    expectTypeOf(prepare.redeem(pool, params)).toEqualTypeOf<LpSimulate>();
   });
 
   it("takes a position from positions.list() for the account flows", () => {
     const position = {} as StrategyPosition;
-    expectTypeOf(simulate.adjustLeverage).toBeCallableWith(position, {
+    expectTypeOf(prepare.adjustLeverage).toBeCallableWith(position, {
       targetLeverage: 300n,
     });
   });
 
   it("answers in the envelope every read uses, so one chain is reported", () => {
-    expectTypeOf(simulate.addCollateral).returns.resolves.toEqualTypeOf<
+    expectTypeOf(prepare.addCollateral).returns.resolves.toEqualTypeOf<
       DataResponse<StrategySimulate>
     >();
   });
@@ -123,57 +123,44 @@ describe("simulate covers the flows and the withdraw ceiling", () => {
   it("serves the flow that only pays debt down with the single-route shape", () => {
     // nothing is sold, so there is no asset whose venue could offer a second
     // route to choose from
-    expectTypeOf(simulate.repayStrategy).returns.resolves.toEqualTypeOf<
+    expectTypeOf(prepare.repayStrategy).returns.resolves.toEqualTypeOf<
       DataResponse<StrategySimulate>
     >();
-    expectTypeOf(simulate.maxRepay).returns.resolves.toEqualTypeOf<
+    expectTypeOf(prepare.maxRepay).returns.resolves.toEqualTypeOf<
       DataResponse<bigint>
     >();
   });
 
   it("answers the two flows that sell an asset with both routes they can take", () => {
     // the asset sold decides which of them exist, so one call quotes both
-    expectTypeOf(simulate.withdrawStrategy).returns.resolves.toEqualTypeOf<
+    expectTypeOf(prepare.withdrawStrategy).returns.resolves.toEqualTypeOf<
       DataResponse<StrategyRoutesSimulate>
     >();
-    expectTypeOf(simulate.adjustLeverage).returns.resolves.toEqualTypeOf<
+    expectTypeOf(prepare.adjustLeverage).returns.resolves.toEqualTypeOf<
       DataResponse<StrategyRoutesSimulate>
     >();
   });
 });
 
-describe("the delayed route sits beside the instant one", () => {
-  const simulate = {} as Opportunities<"onchain">["simulate"];
+describe("the delayed route is quoted with the instant one, and finished apart", () => {
+  const prepare = {} as Opportunities<"onchain">["prepare"];
   const position = {} as StrategyPosition;
 
-  it("has the two flows a redemption can interrupt, plus the tail", () => {
-    expectTypeOf(simulate.delayed).toHaveProperty("withdrawStrategy");
-    expectTypeOf(simulate.delayed).toHaveProperty("adjustLeverage");
-    expectTypeOf(simulate.delayed).toHaveProperty("finish");
-  });
-
-  it("takes the request of the instant flow it mirrors, unchanged", () => {
-    // the route differs, the request does not, so a caller offers both from one
-    // set of inputs
-    expectTypeOf(simulate.delayed.withdrawStrategy).parameters.toEqualTypeOf<
-      Parameters<typeof simulate.withdrawStrategy>
+  it("carries the request half in the flow that can be interrupted", () => {
+    // one call quotes both routes, so the delayed request is a branch of the
+    // answer rather than a method of its own
+    expectTypeOf<
+      Extract<StrategyRoutesSimulate, { ok: true }>["delayed"]
+    >().toEqualTypeOf<
+      Extract<DelayedStrategySimulate, { ok: true }> | undefined
     >();
-    expectTypeOf(simulate.delayed.adjustLeverage).parameters.toEqualTypeOf<
-      Parameters<typeof simulate.adjustLeverage>
-    >();
-  });
-
-  it("reports what the request recorded for the tail", () => {
-    expectTypeOf(
-      simulate.delayed.withdrawStrategy,
-    ).returns.resolves.toEqualTypeOf<DataResponse<DelayedStrategySimulate>>();
   });
 
   it("finishes into the shape the instant flows answer with", () => {
-    expectTypeOf(simulate.delayed.finish).toBeCallableWith(position, {
+    expectTypeOf(prepare.finalize).toBeCallableWith(position, {
       claimable: {} as ClaimableWithdrawal,
     });
-    expectTypeOf(simulate.delayed.finish).returns.resolves.toEqualTypeOf<
+    expectTypeOf(prepare.finalize).returns.resolves.toEqualTypeOf<
       DataResponse<StrategySimulate>
     >();
   });

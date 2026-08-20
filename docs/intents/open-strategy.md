@@ -1,6 +1,6 @@
 # Open a new strategy
 
-`simulate.openNewStrategy` → `openStrategyIntent` → `previewOpenStrategy`
+`prepare.openNewStrategy` → `openStrategyIntent` → `previewOpenStrategy`
 ([`open-strategy.ts`](../../src/sdk/accounts/intents/open-strategy.ts)).
 
 The one flow with no account to plan against: there is nothing on chain until

@@ -5,19 +5,19 @@ a graph: the cases a request splits into, the facade calls each case assembles,
 and the arithmetic the amounts come from.
 
 Code: [`src/sdk/accounts/intents`](../../src/sdk/accounts/intents). Public
-surface: `sdk.opportunities.simulate` (see
-[`src/new-sdk/simulate`](../../src/new-sdk/simulate)).
+surface: `sdk.opportunities.prepare` (see
+[`src/new-sdk/prepare`](../../src/new-sdk/prepare)).
 
 | Intent            | Public API                     | Planner                  | Debt    | Graph                                     |
 | ----------------- | ------------------------------ | ------------------------ | ------- | ----------------------------------------- |
-| —                 | `simulate.openNewStrategy`     | `previewOpenStrategy`    | drawn   | [open-strategy.md](./open-strategy.md)     |
-| `DEPOSIT`         | `simulate.depositStrategy`     | `planDeposit`            | grows   | [deposit.md](./deposit.md)                 |
-| `WITHDRAW`        | `simulate.withdrawStrategy`    | `planWithdraw`           | shrinks | [withdraw.md](./withdraw.md)               |
-| `REPAY`           | `simulate.repayStrategy`       | `planRepay`              | shrinks | [repay.md](./repay.md)                     |
-| `ADJUST_LEVERAGE` | `simulate.adjustLeverage`      | `planAdjustLeverage`     | changes | [adjust-leverage.md](./adjust-leverage.md) |
-| `ADD_COLLATERAL`  | `simulate.addCollateral`       | `planAddCollateral`      | fixed   | [add-collateral.md](./add-collateral.md)   |
-| `WITHDRAW_ASSET`  | `simulate.withdrawCollateral`  | `planWithdrawAsset`      | fixed   | [withdraw-asset.md](./withdraw-asset.md)   |
-| delayed halves    | `simulate.delayed.*`           | `plan*Delayed`, `planFinish*` | varies | [delayed.md](./delayed.md)            |
+| —                 | `prepare.openNewStrategy`     | `previewOpenStrategy`    | drawn   | [open-strategy.md](./open-strategy.md)     |
+| `DEPOSIT`         | `prepare.depositStrategy`     | `planDeposit`            | grows   | [deposit.md](./deposit.md)                 |
+| `WITHDRAW`        | `prepare.withdrawStrategy`    | `planWithdraw`           | shrinks | [withdraw.md](./withdraw.md)               |
+| `REPAY`           | `prepare.repayStrategy`       | `planRepay`              | shrinks | [repay.md](./repay.md)                     |
+| `ADJUST_LEVERAGE` | `prepare.adjustLeverage`      | `planAdjustLeverage`     | changes | [adjust-leverage.md](./adjust-leverage.md) |
+| `ADD_COLLATERAL`  | `prepare.addCollateral`       | `planAddCollateral`      | fixed   | [add-collateral.md](./add-collateral.md)   |
+| `WITHDRAW_ASSET`  | `prepare.withdrawCollateral`  | `planWithdrawAsset`      | fixed   | [withdraw-asset.md](./withdraw-asset.md)   |
+| delayed halves    | the `delayed` branch of the two above, then `prepare.finalize` | `plan*Delayed`, `planFinish*` | varies | [delayed.md](./delayed.md) |
 
 ## The pipeline every intent walks
 
@@ -133,7 +133,7 @@ flowchart LR
 | `leverageOutOfRange`        | target below 1x, or a deposit target that would require repaying            |
 | `insufficientSourceBalance` | non-positive amount, nothing to sell, net value already eaten by the debt   |
 | `unsupportedCollateralToken`| deposit or repayment in a token the flow does not take                      |
-| `unsupportedTokenPair`      | the simulate layer finds no pool route for the requested pair               |
+| `unsupportedTokenPair`      | the prepare layer finds no pool route for the requested pair                |
 | `noDelayedRoute`            | no redemption venue, a leverage move that settles at once, an exit          |
 | `multipleDelayedWithdrawals`| several venues for the source and nothing says which                        |
 | `withdrawalInProgress`      | a redemption of the asset is already in flight                              |

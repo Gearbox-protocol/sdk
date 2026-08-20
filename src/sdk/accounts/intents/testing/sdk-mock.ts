@@ -147,7 +147,7 @@ interface BuildMockSdkArgs {
   delayed?: Record<Address, MockDelayedVenue[]>;
   /**
    * Accounts `accounts.getCreditAccountData` knows, keyed by address. What the
-   * simulate layer reads on its own instead of taking a slice from the caller;
+   * prepare layer reads on its own instead of taking a slice from the caller;
    * `accountDebt` lands as the principal with no interest or fees accrued.
    */
   creditAccounts?: CreditAccountSlice[];

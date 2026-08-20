@@ -9,13 +9,13 @@ Two transactions rather than one, and nothing has to be kept on the client in
 between: the request writes the operation into the withdrawal's `extraData`, and
 reading the claimable decodes it back.
 
-- `simulate.delayed.withdrawStrategy` → `planWithdrawDelayed`
-- `simulate.delayed.adjustLeverage` → `planAdjustLeverageDelayed`
-- `simulate.delayed.finish` → `planFinishWithdraw` / `planFinishDecreaseLeverage` / `planFinishClaimOnly`
+- the request half → `planWithdrawDelayed` / `planAdjustLeverageDelayed`
+- `prepare.finalize` → `planFinishWithdraw` / `planFinishDecreaseLeverage` / `planFinishClaimOnly`
 
-`simulate.withdrawStrategy` and `simulate.adjustLeverage` already quote this
-route alongside the instant one; the `delayed.*` entry points are for when it is
-the only one of interest.
+There is no separate entry point for the request: `prepare.withdrawStrategy` and
+`prepare.adjustLeverage` quote this route alongside the instant one, in the
+`delayed` field of their answer, and which routes exist is what the caller wanted
+to know in the first place.
 
 ## The two halves
 
@@ -38,7 +38,7 @@ routes cannot disagree on the amounts — and then a single `request` step.
 
 ```mermaid
 flowchart TD
-  in["delayed.withdrawStrategy: amount W, to, tokenOut T?, sourceToken S?"]
+  in["withdrawStrategy, delayed branch: amount W, to, tokenOut T?, sourceToken S?"]
   shape["withdrawShape: Wᵤ, dD = D0 · Wᵤ / C0, exit?"]
   all{"exit? (W == MAX_UINT256 or Wᵤ >= C0)"}
   pay{"T is U, or the RWA asset behind U?"}
@@ -78,7 +78,7 @@ already cover.
 
 ```mermaid
 flowchart TD
-  in["delayed.adjustLeverage: targetLeverage L1, token T?"]
+  in["adjustLeverage, delayed branch: targetLeverage L1, token T?"]
   shape["leverageShape: target = C0 · (L1 − 1), delta = target − D0"]
   up{"delta < 0?"}
   short{"shortfall = −delta − balance(U) > 0?"}
@@ -94,13 +94,13 @@ flowchart TD
 
 ## Tails
 
-`finish` claims the matured withdrawal and then plans whatever the recorded
+`finalize` claims the matured withdrawal and then plans whatever the recorded
 operation still owes, against the account **as it stands now** — not as it stood
 when the request was signed.
 
 ```mermaid
 flowchart TD
-  in["delayed.finish: claimable, intent?"]
+  in["prepare.finalize: claimable, intent?"]
   rec{"which operation was recorded?"}
   w["WITHDRAW_COLLATERAL"]
   d["DECREASE_LEVERAGE"]

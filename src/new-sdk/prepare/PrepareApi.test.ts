@@ -13,7 +13,7 @@ import {
 } from "../../sdk/accounts/intents/testing/market.js";
 import { MAX_UINT256 } from "../../sdk/constants/math.js";
 import type { ClaimableWithdrawal, MultichainSDK } from "../../sdk/index.js";
-import { SimulateApi } from "./SimulateApi.js";
+import { PrepareApi } from "./PrepareApi.js";
 
 const CHAIN_ID = 1;
 const POOL = "0x1000000000000000000000000000000000000001" as Address;
@@ -34,7 +34,7 @@ function buildApi() {
     })),
     removeLiquidity: vi.fn(() => ({ calls: [], tx: {} })),
   };
-  const api = new SimulateApi({
+  const api = new PrepareApi({
     chain: () => ({
       pools,
       marketRegister: {
@@ -45,7 +45,7 @@ function buildApi() {
   return { api, pools };
 }
 
-describe("SimulateApi.withdraw", () => {
+describe("PrepareApi.withdraw", () => {
   it("passes the tokenOut amount through to simulateWithdraw", () => {
     const { api, pools } = buildApi();
 
@@ -93,7 +93,7 @@ function buildStrategyApi(extras?: MarketSdkExtras) {
     ],
     ...extras,
   });
-  const api = new SimulateApi({
+  const api = new PrepareApi({
     chain: () => sdk,
   } as unknown as MultichainSDK);
   return {
@@ -107,7 +107,7 @@ function buildStrategyApi(extras?: MarketSdkExtras) {
   };
 }
 
-describe("SimulateApi — strategy flows reach the engine", () => {
+describe("PrepareApi — strategy flows reach the engine", () => {
   it("openNewStrategy leverages the wallet's margin into the target", async () => {
     const { api, strategy } = buildStrategyApi();
 
@@ -285,7 +285,7 @@ describe("SimulateApi — strategy flows reach the engine", () => {
         }),
       ],
     });
-    const api = new SimulateApi({
+    const api = new PrepareApi({
       chain: () => sdk,
     } as unknown as MultichainSDK);
 
@@ -298,7 +298,7 @@ describe("SimulateApi — strategy flows reach the engine", () => {
   });
 });
 
-describe("SimulateApi.delayed — the two-transaction route", () => {
+describe("PrepareApi — the two-transaction route", () => {
   /** The fixture market with a redemption venue for the position token. */
   const venue: MarketSdkExtras = {
     delayed: { [POS]: [{ withdrawalPhantomToken: POS2, claimableAt: 1n }] },
@@ -307,13 +307,16 @@ describe("SimulateApi.delayed — the two-transaction route", () => {
   it("withdrawStrategy requests the redemption and records the tail", async () => {
     const { api, position } = buildStrategyApi(venue);
 
-    const { data } = await api.delayed.withdrawStrategy(position, {
+    const { data } = await api.withdrawStrategy(position, {
       amount: 10000000000n,
       to: WALLET,
     });
 
     if (!data.ok) throw new Error(`simulate refused: ${data.reason}`);
-    expect(data.delayed).toMatchObject({
+    const start = data.delayed;
+    if (!start) throw new Error(`no delayed route: ${data.refused.delayed}`);
+
+    expect(start.delayed).toMatchObject({
       record: {
         type: "WITHDRAW_COLLATERAL",
         to: WALLET,
@@ -324,24 +327,24 @@ describe("SimulateApi.delayed — the two-transaction route", () => {
       claimableAt: 1n,
     });
     // nothing has settled yet, so the debt stands where it was
-    expect(data.preview.accountDebt).toBe(DEBT);
+    expect(start.preview.accountDebt).toBe(DEBT);
   });
 
   it("adjustLeverage takes the same route down", async () => {
     const { api, position } = buildStrategyApi(venue);
 
-    const { data } = await api.delayed.adjustLeverage(position, {
+    const { data } = await api.adjustLeverage(position, {
       targetLeverage: 150n,
     });
 
     if (!data.ok) throw new Error(`simulate refused: ${data.reason}`);
-    expect(data.delayed.record).toEqual({ type: "DECREASE_LEVERAGE" });
+    expect(data.delayed?.delayed.record).toEqual({ type: "DECREASE_LEVERAGE" });
   });
 
-  it("finish refuses a claim that names nothing to resume", async () => {
+  it("finalize refuses a claim that names nothing to resume", async () => {
     const { api, position } = buildStrategyApi(venue);
 
-    const { data } = await api.delayed.finish(position, {
+    const { data } = await api.finalize(position, {
       claimable: {
         token: POS,
         withdrawalPhantomToken: POS2,
@@ -356,7 +359,7 @@ describe("SimulateApi.delayed — the two-transaction route", () => {
   });
 });
 
-describe("SimulateApi.redeem", () => {
+describe("PrepareApi.redeem", () => {
   it("passes the share amount through to simulateRedeem", () => {
     const { api, pools } = buildApi();
 

@@ -112,8 +112,8 @@ export type DelayedStrategySimulate =
 
 /**
  * What one of the two flows that sell a position asset —
- * {@link OpportunitiesSimulate.withdrawStrategy} and
- * {@link OpportunitiesSimulate.adjustLeverage} — would yield each way it can be
+ * {@link OpportunitiesPrepare.withdrawStrategy} and
+ * {@link OpportunitiesPrepare.adjustLeverage} — would yield each way it can be
  * served.
  *
  * Whether the account can sell that asset on the router, redeem it through its
@@ -132,9 +132,9 @@ export type StrategyRoutesSimulate =
       instant: Extract<StrategySimulate, { ok: true }> | undefined;
       /**
        * The request half of the redemption route, which
-       * {@link DelayedSimulate.finish} completes once it matures. `undefined`
-       * when the route does not exist — no redemption venue for the asset, or a
-       * request that settles at once anyway — see `refused.delayed`.
+       * {@link OpportunitiesPrepare.finalize} completes once it matures.
+       * `undefined` when the route does not exist — no redemption venue for the
+       * asset, or a request that settles at once anyway — see `refused.delayed`.
        **/
       delayed: Extract<DelayedStrategySimulate, { ok: true }> | undefined;
       /**
@@ -168,7 +168,7 @@ export type OpenStrategySimulate =
 /**
  * Shared knobs. Both default to the SDK's own defaults when omitted.
  **/
-export interface SimulateOptions {
+export interface PrepareOptions {
   /** Router slippage in PERCENTAGE_FORMAT (100% = 10_000). */
   slippage?: number;
   /**
@@ -196,7 +196,7 @@ export type PoolInput = PoolOpportunityKey;
  **/
 export type StrategyInput = StrategyOpportunityKey;
 
-export interface DepositStrategyParams extends SimulateOptions {
+export interface DepositStrategyParams extends PrepareOptions {
   /**
    * Collateral to add: the market underlying, or its unwrapped asset on an RWA
    * market (USDC rather than dcUSDC).
@@ -217,11 +217,11 @@ export interface DepositStrategyParams extends SimulateOptions {
   targetLeverage?: bigint;
 }
 
-export interface WithdrawStrategyParams extends SimulateOptions {
+export interface WithdrawStrategyParams extends PrepareOptions {
   /**
    * Amount the wallet receives, denominated in `tokenOut`. `MAX_UINT256`, or
    * anything at or above the account's net value, turns the flow into an exit,
-   * see {@link OpportunitiesSimulate.withdrawStrategy}.
+   * see {@link OpportunitiesPrepare.withdrawStrategy}.
    **/
   amount: bigint;
   /** Wallet receiving the payout. */
@@ -238,7 +238,7 @@ export interface WithdrawStrategyParams extends SimulateOptions {
   sourceToken?: Address;
 }
 
-export interface RepayStrategyParams extends SimulateOptions {
+export interface RepayStrategyParams extends PrepareOptions {
   /**
    * Funding token: the market underlying, which needs no conversion and is
    * repaid where it lands, or — on an RWA market — the unwrapped asset behind
@@ -249,7 +249,7 @@ export interface RepayStrategyParams extends SimulateOptions {
    * Amount taken from the wallet. Anything above the outstanding debt settles
    * it in full and stays on the account as collateral, so a caller clearing the
    * account can add a buffer for the interest that accrues before the
-   * transaction lands, see {@link OpportunitiesSimulate.maxRepay}.
+   * transaction lands, see {@link OpportunitiesPrepare.maxRepay}.
    * `MAX_UINT256` settles the debt and sizes that buffer itself.
    **/
   amount: bigint;
@@ -257,7 +257,7 @@ export interface RepayStrategyParams extends SimulateOptions {
   value?: bigint;
 }
 
-export interface AdjustLeverageParams extends SimulateOptions {
+export interface AdjustLeverageParams extends PrepareOptions {
   /**
    * Target total leverage scaled by `LEVERAGE_DECIMALS` (300n = 3x); 100n means
    * no debt.
@@ -270,7 +270,7 @@ export interface AdjustLeverageParams extends SimulateOptions {
   token?: Address;
 }
 
-export interface AddCollateralParams extends SimulateOptions {
+export interface AddCollateralParams extends PrepareOptions {
   /** Position token to deposit; nothing else is accepted. */
   token: Address;
   amount: bigint;
@@ -278,7 +278,7 @@ export interface AddCollateralParams extends SimulateOptions {
   value?: bigint;
 }
 
-export interface WithdrawCollateralParams extends SimulateOptions {
+export interface WithdrawCollateralParams extends PrepareOptions {
   /** Token to move out; must already sit on the account. */
   token: Address;
   amount: bigint;
@@ -286,7 +286,7 @@ export interface WithdrawCollateralParams extends SimulateOptions {
   to: Address;
 }
 
-export interface OpenStrategyParams extends SimulateOptions {
+export interface OpenStrategyParams extends PrepareOptions {
   /** Collateral coming from the wallet, in their own tokens. */
   collateral: Asset[];
   /**
@@ -327,7 +327,7 @@ export interface LpParams {
 }
 
 /**
- * Same shape as {@link LpParams}, but {@link OpportunitiesSimulate.redeem}
+ * Same shape as {@link LpParams}, but {@link OpportunitiesPrepare.redeem}
  * treats `amount` as the pool shares to burn rather than the underlying to
  * receive.
  **/
@@ -342,7 +342,7 @@ export interface LpRedeemParams {
   tokenOut?: Address;
 }
 
-export interface FinishDelayedParams extends SimulateOptions {
+export interface FinalizeParams extends PrepareOptions {
   /**
    * The matured withdrawal to claim, from
    * `sdk.onchain.chain(chainId).withdrawalCompressor.getCurrentWithdrawals()`.
@@ -357,56 +357,6 @@ export interface FinishDelayedParams extends SimulateOptions {
 }
 
 /**
- * The delayed route of the two operations that can take it: a source that only
- * redeems through its issuer — a Securitize dsToken, a Mellow share — instead of
- * through the router.
- *
- * Two transactions rather than one: the request, then the tail once the
- * redemption matures, which is days later. In between, nothing has to be kept on
- * the client — the request writes the operation into the withdrawal's
- * `extraData`, and reading the claimable decodes it back.
- **/
-export interface DelayedSimulate {
-  /**
-   * The delayed counterpart of {@link OpportunitiesSimulate.withdrawStrategy},
-   * on its own: that flow already quotes this route alongside the instant one,
-   * so reach for this when the delayed route is the only one of interest.
-   *
-   * Reports `noDelayedRoute` when the account has no redemption venue for the
-   * source at all.
-   **/
-  withdrawStrategy(
-    position: PositionInput,
-    params: WithdrawStrategyParams,
-  ): Promise<DataResponse<DelayedStrategySimulate>>;
-
-  /**
-   * The delayed counterpart of {@link OpportunitiesSimulate.adjustLeverage} on
-   * its own, which only deleveraging reaches: raising leverage buys the position
-   * token and never redeems it. That flow already quotes this route alongside
-   * the instant one, so reach for this when it is the only one of interest.
-   **/
-  adjustLeverage(
-    position: PositionInput,
-    params: AdjustLeverageParams,
-  ): Promise<DataResponse<DelayedStrategySimulate>>;
-
-  /**
-   * The tail: claim the matured withdrawal, then whatever the recorded
-   * operation still owes — repaying debt and paying the wallet out for a
-   * withdrawal, repaying alone for a deleveraging, nothing beyond the claim for
-   * the rest.
-   *
-   * Answers like the instant flows, so both halves are consumed the same way.
-   * Reports `noRecordedIntent` when the claim names no operation to resume.
-   **/
-  finish(
-    position: PositionInput,
-    params: FinishDelayedParams,
-  ): Promise<DataResponse<StrategySimulate>>;
-}
-
-/**
  * Simulations of everything a wallet can do to a pool or a credit account.
  *
  * On-chain only: every method reads live state and, for strategies, asks the
@@ -416,7 +366,7 @@ export interface DelayedSimulate {
  * Not to be confused with `src/preview/simulate`, which goes the other way: it
  * takes calldata that already exists and reports what it would do.
  **/
-export interface OpportunitiesSimulate {
+export interface OpportunitiesPrepare {
   /**
    * Depositing into a pool: underlying in, shares out.
    *
@@ -561,8 +511,23 @@ export interface OpportunitiesSimulate {
   ): Promise<DataResponse<StrategySimulate>>;
 
   /**
-   * The same requests routed through a delayed redemption instead of the
-   * router, and the tail that finishes them, see {@link DelayedSimulate}.
+   * The tail of a delayed route: claim the matured withdrawal, then whatever the
+   * operation that requested it still owes — repaying debt and paying the wallet
+   * out for a withdrawal, repaying alone for a deleveraging, nothing beyond the
+   * claim for the rest.
+   *
+   * The route is requested by {@link withdrawStrategy} or
+   * {@link adjustLeverage}, whose `delayed` branch is the transaction that
+   * starts it; days later the redemption matures and this finishes it. Nothing
+   * has to be kept on the client in between: the request writes the operation
+   * into the withdrawal's `extraData`, and reading the claimable decodes it
+   * back.
+   *
+   * Answers like the instant flows, so both halves are consumed the same way.
+   * Reports `noRecordedIntent` when the claim names no operation to resume.
    **/
-  readonly delayed: DelayedSimulate;
+  finalize(
+    position: PositionInput,
+    params: FinalizeParams,
+  ): Promise<DataResponse<StrategySimulate>>;
 }
