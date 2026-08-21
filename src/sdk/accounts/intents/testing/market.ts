@@ -169,6 +169,7 @@ export function buildMarketSdk(extras?: MarketSdkExtras): OnchainSDK {
     debtLimitAvailable: extras?.debtLimitAvailable,
     maxDebtPerBlockMultiplier: extras?.maxDebtPerBlockMultiplier,
     forbiddenTokens: extras?.forbiddenTokens,
+    strategyTargetCollateral: POS,
   });
 }
 

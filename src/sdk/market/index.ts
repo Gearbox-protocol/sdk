@@ -7,5 +7,6 @@ export * from "./oracle/index.js";
 export * from "./pool/index.js";
 export * from "./pricefeeds/index.js";
 export * from "./rwa/index.js";
+export * from "./strategyName.js";
 export * from "./types.js";
 export * from "./zapper/index.js";

@@ -1,4 +1,4 @@
-import { type Address, isAddressEqual } from "viem";
+import type { Address } from "viem";
 
 import type {
   Curator,
@@ -8,7 +8,6 @@ import type {
   PoolOpportunityDetail,
   PriceFeedSummary,
   QuotaAsset,
-  StrategyOpportunityDetail,
   Token,
 } from "../../model/index.js";
 import { isFilterSet, matchesOpportunityFilter } from "../../model/index.js";
@@ -29,15 +28,6 @@ import type { IPriceOracleContract } from "./oracle/index.js";
 import { createPriceOracle } from "./oracle/index.js";
 import { PoolSuite } from "./pool/index.js";
 import type { IRWAFactory } from "./rwa/types.js";
-
-/**
- * One `(credit suite, target collateral)` pair that qualifies as a leveraged
- * position.
- */
-export interface StrategyRef {
-  suite: CreditSuite;
-  collateral: Address;
-}
 
 /**
  * Aggregates all SDK wrappers that make up one Gearbox market.
@@ -178,23 +168,15 @@ export class MarketSuite extends SDKConstruct {
   }
 
   /**
-   * Every `(credit suite, collateral)` pair of this market that qualifies as a
-   * leveraged position.
-   */
-  public get strategies(): StrategyRef[] {
-    return this.creditManagers.flatMap(suite =>
-      suite.strategyCollaterals.map(collateral => ({ suite, collateral })),
-    );
-  }
-
-  /**
    * Tokens a position can actually be built on in this market, deduplicated
    * across its credit suites.
    */
   public get collateralTokens(): Token[] {
     const seen = new AddressMap<Token>(undefined, "collateralTokens");
-    for (const { collateral } of this.strategies) {
-      seen.upsert(collateral, this.tokensMeta.mustGetToken(collateral));
+    for (const suite of this.creditManagers) {
+      for (const collateral of suite.strategyCollaterals) {
+        seen.upsert(collateral, this.tokensMeta.mustGetToken(collateral));
+      }
     }
     return seen.values();
   }
@@ -204,8 +186,8 @@ export class MarketSuite extends SDKConstruct {
    * token. Read from a hardcoded per-chain list rather than from the chain.
    */
   public get rwa(): boolean {
-    return this.strategies.some(({ collateral }) =>
-      isRWAToken(collateral, this.sdk.networkType),
+    return this.collateralTokens.some(token =>
+      isRWAToken(token.address, this.sdk.networkType),
     );
   }
 
@@ -248,8 +230,8 @@ export class MarketSuite extends SDKConstruct {
   }
 
   /**
-   * Every opportunity this market offers: its pool, plus one row per
-   * `(credit manager, target collateral)` pair.
+   * Every opportunity this market offers: its pool, plus one row per credit
+   * manager that qualifies as a strategy.
    *
    * @param filter - Optional narrowing. A filter naming a kind skips building
    * the other kind entirely; every built row is then checked in full by
@@ -263,8 +245,11 @@ export class MarketSuite extends SDKConstruct {
       rows.push(this.poolOpportunity());
     }
     if (!isFilterSet(kind) || kind === "strategy") {
-      for (const { suite, collateral } of this.strategies) {
-        rows.push(suite.strategyOpportunity(collateral));
+      for (const suite of this.creditManagers) {
+        const opportunity = suite.strategyOpportunity();
+        if (opportunity) {
+          rows.push(opportunity);
+        }
       }
     }
     return rows.filter(row => matchesOpportunityFilter(row, filter));
@@ -311,48 +296,6 @@ export class MarketSuite extends SDKConstruct {
       rateCurve: this.pool.rateCurve,
       quotaAssets: this.quotaAssets(),
     };
-  }
-
-  /**
-   * Resolves a strategy of this market by its two halves.
-   *
-   * @param creditManager - Credit manager the position is opened in.
-   * @param collateral - Target collateral of the position.
-   * @throws If this market has no such credit manager, or if that manager does
-   * not accept the collateral as a strategy.
-   */
-  public mustFindStrategy(
-    creditManager: Address,
-    collateral: Address,
-  ): StrategyRef {
-    const strategy = this.strategies.find(
-      s =>
-        isAddressEqual(s.suite.creditManager.address, creditManager) &&
-        isAddressEqual(s.collateral, collateral),
-    );
-    if (!strategy) {
-      throw new Error(
-        `${this.labelAddress(collateral)} is not a strategy collateral of credit manager ${this.labelAddress(creditManager)}`,
-      );
-    }
-    return strategy;
-  }
-
-  /**
-   * Detailed view of one leveraged position of this market.
-   *
-   * @param creditManager - Credit manager the position is opened in.
-   * @param collateral - Target collateral of the position.
-   * @throws If this market has no such strategy, see {@link mustFindStrategy}.
-   */
-  public strategyOpportunityDetail(
-    creditManager: Address,
-    collateral: Address,
-  ): StrategyOpportunityDetail {
-    return this.mustFindStrategy(
-      creditManager,
-      collateral,
-    ).suite.strategyOpportunityDetail(collateral);
   }
 
   /**

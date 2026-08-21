@@ -13,8 +13,9 @@ import type { MergeListResult } from "../utils/types.js";
  * `name` onto every strategy row the backend has — even when that chain was
  * served from on-chain data because the backend was stale.
  *
- * The backend records the collateral the strategy was opened into; the chain
- * can only guess from current holdings. `name` is derived from that collateral,
+ * The chain resolves `targetCollateral` from a per-account override or the
+ * credit manager's single target token. The backend's historical value is
+ * still preferred when it has the row. `name` is derived from that collateral,
  * so it follows the same override.
  **/
 export function mergePositionList<

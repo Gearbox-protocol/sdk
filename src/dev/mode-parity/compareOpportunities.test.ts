@@ -129,7 +129,7 @@ describe("membership", () => {
     expect(report.summary.matched).toBe(1);
     expect(report.onlyOnchain).toEqual([
       {
-        id: `1:${CREDIT_MANAGER}:${WSTETH.toLowerCase()}`,
+        id: `1:${CREDIT_MANAGER.toLowerCase()}`,
         kind: "strategy",
         chainId: MAINNET,
         name: "wstETH / USDC",

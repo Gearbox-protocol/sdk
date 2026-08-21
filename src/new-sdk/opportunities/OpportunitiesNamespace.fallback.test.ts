@@ -102,7 +102,6 @@ describeOffchainFallback({
         ns.getStrategy({
           chainId: TEST_CHAIN_A,
           creditManager: CREDIT_MANAGER,
-          targetCollateral: TOKEN,
         }),
       expectedChainIds: [TEST_CHAIN_A],
       onchainResponse: strategyOnchain(),

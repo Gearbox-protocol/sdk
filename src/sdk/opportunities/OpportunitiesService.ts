@@ -52,14 +52,20 @@ export class OpportunitiesService extends SDKConstruct {
    * A single strategy opportunity plus the rate curve of the pool it borrows
    * from and the price feeds its liquidation price depends on.
    *
-   * @throws If the credit manager is unknown, or does not accept the requested
-   * collateral as a strategy.
+   * @throws If the credit manager is unknown, or does not currently offer a
+   * strategy.
    **/
   public async getStrategy(
     key: StrategyOpportunityKey,
   ): Promise<StrategyOpportunityDetail> {
-    return this.sdk.marketRegister
-      .findByCreditManager(key.creditManager)
-      .strategyOpportunityDetail(key.creditManager, key.targetCollateral);
+    const detail = this.sdk.marketRegister
+      .findCreditManager(key.creditManager)
+      .strategyOpportunityDetail();
+    if (!detail) {
+      throw new Error(
+        `credit manager ${key.creditManager} does not currently offer a strategy`,
+      );
+    }
+    return detail;
   }
 }

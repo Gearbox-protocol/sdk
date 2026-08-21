@@ -7,10 +7,11 @@ import {
   RWA_UNDERLYING_ON_DEMAND,
 } from "../../base/token-types.js";
 import {
-  type IsStrategyCollateralProps,
   isStrategyCollateral,
   NON_STRATEGY_PHANTOM_TOKEN_TYPES,
-} from "./isStrategyCollateral.js";
+  pickStrategyTargetCollateral,
+  type StrategyCollateralProps,
+} from "./collateralUtils.js";
 
 const TOKEN = getAddress("0xaaaa000000000000000000000000000000000001");
 const UNDERLYING = getAddress("0xbbbb000000000000000000000000000000000002");
@@ -18,7 +19,7 @@ const UNWRAPPED = getAddress("0xcccc000000000000000000000000000000000003");
 
 const lower = (a: Address) => a.toLowerCase() as Address;
 
-const baseline: IsStrategyCollateralProps = {
+const baseline: StrategyCollateralProps = {
   token: TOKEN,
   underlying: UNDERLYING,
   unwrappedUnderlying: UNWRAPPED,
@@ -32,6 +33,7 @@ const baseline: IsStrategyCollateralProps = {
 describe("isStrategyCollateral", () => {
   it("accepts a token that passes every check", () => {
     expect(isStrategyCollateral(baseline)).toBe(true);
+    expect(isStrategyCollateral(baseline, true)).toBe(true);
   });
 
   it("accepts a token with no contractType and no isExpired", () => {
@@ -119,9 +121,64 @@ describe("isStrategyCollateral", () => {
     expect(isStrategyCollateral({ ...baseline, mainPrice: 0n })).toBe(false);
   });
 
-  it("rejects a token without active quota", () => {
-    expect(isStrategyCollateral({ ...baseline, hasActiveQuota: false })).toBe(
-      false,
-    );
+  it("ignores quota unless requireQuota is true", () => {
+    const props = { ...baseline, hasActiveQuota: false };
+    expect(isStrategyCollateral(props)).toBe(true);
+    expect(isStrategyCollateral(props, true)).toBe(false);
+  });
+});
+
+describe("pickStrategyTargetCollateral", () => {
+  const A = getAddress("0xaaaa00000000000000000000000000000000000a");
+  const B = getAddress("0xbbbb00000000000000000000000000000000000b");
+  const C = getAddress("0xcccc00000000000000000000000000000000000c");
+
+  const props = (
+    token: Address,
+    overrides: Partial<StrategyCollateralProps> = {},
+  ): StrategyCollateralProps => ({
+    ...baseline,
+    token,
+    ...overrides,
+  });
+
+  it("returns the biggest-index token that is a candidate with active quota", () => {
+    expect(
+      pickStrategyTargetCollateral([
+        props(A),
+        props(B),
+        props(C, { hasActiveQuota: false }),
+      ]),
+    ).toBe(B);
+  });
+
+  it("falls back to the biggest-index candidate when none has an active quota", () => {
+    expect(
+      pickStrategyTargetCollateral([
+        props(A, { hasActiveQuota: false }),
+        props(B, { hasActiveQuota: false }),
+        props(C, { liquidationThreshold: 0, hasActiveQuota: false }),
+      ]),
+    ).toBe(B);
+  });
+
+  it("returns undefined when nothing is a candidate", () => {
+    expect(
+      pickStrategyTargetCollateral([
+        props(A, { liquidationThreshold: 0 }),
+        props(B, { liquidationThreshold: 0 }),
+        props(C, { liquidationThreshold: 0 }),
+      ]),
+    ).toBeUndefined();
+  });
+
+  it("skips a later token that is not a candidate in favour of an earlier full match", () => {
+    expect(
+      pickStrategyTargetCollateral([
+        props(A),
+        props(B, { liquidationThreshold: 0 }),
+        props(C, { liquidationThreshold: 0 }),
+      ]),
+    ).toBe(A);
   });
 });

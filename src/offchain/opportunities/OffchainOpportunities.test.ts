@@ -78,7 +78,6 @@ describe("a chart request names its subject, its metrics and its window", () => 
     kind: "strategy",
     chainId: MAINNET,
     creditManager: "0x3eb9000000000000000000000000000000000000",
-    targetCollateral: "0x7f39000000000000000000000000000000000000",
   } as const;
 
   it("names one metric in the query, not in the path", async () => {
@@ -102,7 +101,7 @@ describe("a chart request names its subject, its metrics and its window", () => 
     await opportunities().getCharts(strategy, ["netApy", "borrowApy"], "1y");
 
     expect(requestedPath()).toBe(
-      `/v2/opportunities/strategies/${MAINNET}/${strategy.creditManager}/${strategy.targetCollateral}/charts`,
+      `/v2/opportunities/strategies/${MAINNET}/${strategy.creditManager}/charts`,
     );
     expect(requested().get("metrics")).toBe("netApy,borrowApy");
     expect(requested().get("range")).toBe("1y");
