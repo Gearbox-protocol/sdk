@@ -24,15 +24,6 @@ import type { AssetType, ChainId } from "../../model/primitives.js";
 import { TypedObjectUtils } from "../utils/mappers.js";
 
 /**
- * One strategy of the sunset list, identified the same way a strategy
- * opportunity is: the credit manager plus the collateral it is built around.
- **/
-export interface SunsetStrategy {
-  creditManager: Address;
-  collateral: Address;
-}
-
-/**
  * Extended viem {@link Chain} with Gearbox-specific metadata.
  *
  * Every supported network is represented by a `GearboxChain` instance in
@@ -75,10 +66,10 @@ export interface GearboxChain extends Chain {
    **/
   sunsetPools?: Address[];
   /**
-   * Strategies being wound down. Curated, and unrelated to the credit facade's
-   * expiration date.
+   * Credit managers whose strategies are being wound down. Curated, and
+   * unrelated to the credit facade's expiration date.
    **/
-  sunsetStrategies?: SunsetStrategy[];
+  sunsetStrategies?: Address[];
   /**
    * Whether this chain is production-ready
    **/
@@ -664,22 +655,16 @@ export function isSunsetPool(pool: Address, network: NetworkType): boolean {
 }
 
 /**
- * Checks whether a strategy is on the sunset list of a network. Both halves of
- * the strategy key must match: a credit manager can wind down one collateral
- * and keep the rest.
+ * Checks whether a credit manager is on the sunset list of a network.
  *
  * @param creditManager - Credit manager address.
- * @param collateral - Target collateral of the strategy.
- * @param network - Network the strategy lives on.
+ * @param network - Network the credit manager lives on.
  **/
 export function isSunsetStrategy(
   creditManager: Address,
-  collateral: Address,
   network: NetworkType,
 ): boolean {
-  return !!chains[network].sunsetStrategies?.some(
-    s =>
-      isAddressEqual(s.creditManager, creditManager) &&
-      isAddressEqual(s.collateral, collateral),
+  return !!chains[network].sunsetStrategies?.some(s =>
+    isAddressEqual(s, creditManager),
   );
 }

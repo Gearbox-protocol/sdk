@@ -334,7 +334,7 @@ export class CreditSuite extends SDKConstruct {
       // a pool being wound down takes every strategy borrowing from it with it
       sunset:
         market.sunset ||
-        isSunsetStrategy(cm.address, collateral, this.sdk.networkType),
+        isSunsetStrategy(cm.address, this.sdk.networkType),
       liquidationThreshold,
       liquidationPremium: cm.liquidationPremium,
       liquidationFee: cm.feeLiquidation,
