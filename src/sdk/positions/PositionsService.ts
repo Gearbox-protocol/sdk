@@ -15,15 +15,16 @@ import type {
 } from "../accounts/withdrawal-compressor/index.js";
 import type { CreditAccountData } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
+import { getAccountTargetCollateral } from "../chain/chains.js";
 import { DUST_THRESHOLD } from "../constants/index.js";
-import { dominantCollateral } from "../market/index.js";
 import {
   calcBorrowApy,
   calcPositionLeverage,
   healthFactorBps,
   usdToNumber,
 } from "../market/math.js";
-import { AddressMap, hexEq } from "../utils/index.js";
+import { strategyName } from "../market/strategyName.js";
+import { AddressMap } from "../utils/index.js";
 import { calcBorrowRate } from "./calcBorrowRate.js";
 import { calcHealthFactor } from "./calcHealthFactor.js";
 import { calcLiquidationPrice } from "./calcLiquidationPrice.js";
@@ -234,17 +235,9 @@ export class PositionsService extends SDKConstruct {
     // (e.g. USDC instead of dcUSDC); the wrapped underlying converts 1:1
     const token = this.sdk.tokensMeta.mustGetToken(market.unwrappedUnderlying);
     const totalDebtValue = ca.debt + ca.accruedInterest + ca.accruedFees;
-    // current dominant collateral, with delayed-withdrawal phantoms reported
-    // as the asset they redeem into (same convention as LiquidationsService)
-    let collateral = dominantCollateral(ca, market);
-    if (collateral) {
-      const source =
-        this.sdk.withdrawalCompressor?.getWithdrawalSourceToken(collateral);
-      if (source) {
-        // a withdrawal back into the underlying is not a target collateral
-        collateral = hexEq(source, market.underlying) ? undefined : source;
-      }
-    }
+    const target =
+      getAccountTargetCollateral(ca.creditAccount, this.sdk.chainId) ??
+      suite.strategyTargetCollateral;
 
     // healthFactor / leverage / borrowApy / netApy keep their existing
     // sources; only the fields the position does not have natively are filled
@@ -258,11 +251,15 @@ export class PositionsService extends SDKConstruct {
       chainId: this.sdk.chainId,
       creditManager: ca.creditManager,
       creditAccount: ca.creditAccount,
-      name: collateral ? suite.strategyName(collateral) : token.symbol,
-      // the read model asks for the collateral the position was opened into,
-      // which needs its history; the chain can only tell what it holds now
-      targetCollateral: collateral
-        ? this.sdk.tokensMeta.mustGetToken(collateral)
+      name: target
+        ? strategyName(
+            this.sdk.tokensMeta.mustGetToken(target),
+            token,
+            this.sdk.chainId,
+          )
+        : token.symbol,
+      targetCollateral: target
+        ? this.sdk.tokensMeta.mustGetToken(target)
         : null,
       leverage: calcPositionLeverage(ca.totalValue, totalDebtValue),
       borrowApy: calcBorrowApy(

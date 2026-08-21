@@ -353,9 +353,7 @@ export class OnchainSDK<
 
     const marketConfigurators =
       mcs ??
-      TypedObjectUtils.keys(
-        (this.client.chain as GearboxChain).defaultMarketConfigurators,
-      );
+      (this.client.chain as GearboxChain).defaultMarketConfigurators.keys();
     const rwaFactories =
       options?.rwaFactories ?? (this.client.chain as GearboxChain).rwaFactories;
 

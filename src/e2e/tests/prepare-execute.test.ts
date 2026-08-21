@@ -154,12 +154,12 @@ describe("prepare → execute on a mainnet fork", () => {
   const OPEN_KEY = {
     chainId: CHAIN_ID,
     creditManager: CREDIT_MANAGER,
-    targetCollateral: TARGET_TOKEN,
   };
   const OPEN_PARAMS = {
     collateral: [{ token: USDC, balance: COLLATERAL }],
     leverage: X2,
     slippage: S,
+    targetToken: TARGET_TOKEN,
   };
 
   /** Simulates the 2x open on the synced state and sends it. */
@@ -965,8 +965,8 @@ describe("prepare → execute on a mainnet fork", () => {
       );
       await sync();
       const sim = await prepare().openNewStrategy(
-        { chainId: CHAIN_ID, creditManager: WETH_CM, targetCollateral: WSTETH },
-        { collateral, leverage: X2, slippage: S },
+        { chainId: CHAIN_ID, creditManager: WETH_CM },
+        { collateral, leverage: X2, slippage: S, targetToken: WSTETH },
       );
       if (!sim.data.ok) throw new Error(`open sim failed: ${sim.data.reason}`);
       const tx = await execute().buildTx({

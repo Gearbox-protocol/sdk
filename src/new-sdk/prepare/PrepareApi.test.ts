@@ -102,7 +102,6 @@ function buildStrategyApi(extras?: MarketSdkExtras) {
     strategy: {
       chainId: CHAIN_ID,
       creditManager: CREDIT_MANAGER,
-      targetCollateral: POS,
     },
   };
 }
@@ -118,7 +117,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
 
     expect(meta.chains[0]?.status).toBe("success");
     if (!data.ok) throw new Error(`simulate refused: ${data.reason}`);
-    // the key's targetCollateral stands in for an unnamed target token
+    // the credit manager's strategyTargetCollateral stands in for an unnamed target token
     expect(data.preview.debt).toBe(40000000000n);
     expect(data.preview.averageAssets).toEqual([
       { token: POS, balance: 60000000000n },

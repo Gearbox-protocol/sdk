@@ -127,7 +127,7 @@ describe("mergePositionList overlays backend targetCollateral and name", () => {
     ]);
   });
 
-  it("lets a backend null targetCollateral override an onchain guess", () => {
+  it("lets a backend null targetCollateral override an onchain value", () => {
     const onchainRow = strategy({
       name: "wstETH / USDC",
       targetCollateral: token(WSTETH, "wstETH"),

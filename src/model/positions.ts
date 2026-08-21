@@ -206,8 +206,7 @@ export interface StrategyPosition {
   kind: "strategy";
   /**
    * Human-readable strategy name, e.g. `"wstETH / WETH"`. Derived from
-   * {@link targetCollateral}, so in `both` mode it follows the same backend
-   * override as that field.
+   * {@link targetCollateral}.
    **/
   name: string;
   /**
@@ -223,14 +222,7 @@ export interface StrategyPosition {
    **/
   creditAccount: Address;
   /**
-   * The account's dominant non-underlying collateral at the session's opening
-   * block (greatest opening-block USD value) — the asset the position was
-   * initially leveraged into. `null` when the opening snapshot holds only the
-   * underlying.
-   *
-   * In `both` mode the backend's value is always preferred when it has the
-   * row, even if the chain wins the freshness race: the chain can only guess
-   * from current holdings.
+   * Collateral token this position is a strategy in.
    **/
   targetCollateral: Token | null;
   /**

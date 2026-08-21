@@ -225,12 +225,9 @@ export interface PoolOpportunity extends OpportunityBase {
 }
 
 /**
- * A leveraged position: one credit manager plus one target collateral token.
- * A credit manager that accepts five collateral tokens therefore produces five
- * strategies.
- *
- * Identified by `(chainId, creditManager, targetCollateral.address)`,
- * see {@link strategyOpportunityId}.
+ * A leveraged position: one credit manager plus the single target collateral
+ * token that manager is configured around. Identified by
+ * `(chainId, creditManager)`, see {@link strategyOpportunityId}.
  **/
 export interface StrategyOpportunity extends OpportunityBase {
   kind: "strategy";
@@ -333,8 +330,7 @@ export interface StrategyOpportunity extends OpportunityBase {
   additionalBorrowApyAvg7D?: Bps;
   /**
    * Size of the strategy: the summed total value of the credit accounts
-   * holding {@link targetCollateral}. An account that holds several strategy
-   * collaterals counts in full towards each of them.
+   * opened in this credit manager.
    *
    * Absent in `onchain` mode.
    *
@@ -416,15 +412,14 @@ export function poolOpportunityId(
  *
  * @example
  * ```ts
- * strategyOpportunityId(1, "0x3eb9...", "0x7f39...") // "1:0x3eb9...:0x7f39..."
+ * strategyOpportunityId(1, "0x3eb9...") // "1:0x3eb9..."
  * ```
  **/
 export function strategyOpportunityId(
   chainId: ChainId,
   creditManager: Address,
-  targetCollateral: Address,
 ): OpportunityId {
-  return `${chainId}:${creditManager.toLowerCase()}:${targetCollateral.toLowerCase()}`;
+  return `${chainId}:${creditManager.toLowerCase()}`;
 }
 
 /**
@@ -433,11 +428,7 @@ export function strategyOpportunityId(
 export function opportunityId(opportunity: Opportunity): OpportunityId {
   return opportunity.kind === "pool"
     ? poolOpportunityId(opportunity.chainId, opportunity.pool)
-    : strategyOpportunityId(
-        opportunity.chainId,
-        opportunity.creditManager,
-        opportunity.targetCollateral.address,
-      );
+    : strategyOpportunityId(opportunity.chainId, opportunity.creditManager);
 }
 
 /**
@@ -694,15 +685,12 @@ export interface PoolOpportunityKey {
 }
 
 /**
- * Identifies a strategy opportunity in a detail request.
+ * Identifies a strategy opportunity in a detail request. The credit manager
+ * identifies it on its own: each manager has exactly one target collateral.
  **/
 export interface StrategyOpportunityKey {
   chainId: ChainId;
   creditManager: Address;
-  /**
-   * Address of the target collateral token.
-   **/
-  targetCollateral: Address;
 }
 
 /**

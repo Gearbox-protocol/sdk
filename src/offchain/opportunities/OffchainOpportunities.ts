@@ -100,7 +100,7 @@ export class OffchainOpportunities extends AbstractOffchainNamespace {
   }
 
   #strategyPath(key: StrategyOpportunityKey): string {
-    return `${this.#root}/strategies/${key.chainId}/${key.creditManager}/${key.targetCollateral}`;
+    return `${this.#root}/strategies/${key.chainId}/${key.creditManager}`;
   }
 
   #chartRoot(key: OpportunityKey): string {

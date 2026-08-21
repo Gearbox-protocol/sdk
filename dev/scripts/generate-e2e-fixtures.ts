@@ -132,9 +132,9 @@ async function main() {
     // records oracle URLs with per-MC feed subsets (tests attach one MC at a time)
     const allMCs = SINGLE_MC
       ? [SINGLE_MC]
-      : (Object.keys(chains[NETWORK].defaultMarketConfigurators) as Address[]);
+      : chains[NETWORK].defaultMarketConfigurators.keys();
     for (const mc of allMCs) {
-      const curator = chains[NETWORK].defaultMarketConfigurators[mc] ?? mc;
+      const curator = chains[NETWORK].defaultMarketConfigurators.get(mc) ?? mc;
       console.log(
         `[sdk] Recording per-MC oracle fixtures for ${curator} (${mc})...`,
       );
