@@ -20,7 +20,8 @@ import {
 } from "viem/chains";
 import { z } from "zod/v4";
 import type { AssetType, ChainId, CuratorName } from "../../model/index.js";
-import { AddressMap, AddressSet } from "../utils/index.js";
+import { AddressMap } from "../utils/AddressMap.js";
+import { AddressSet } from "../utils/AddressSet.js";
 
 /**
  * Extended viem {@link Chain} with Gearbox-specific metadata.

@@ -9,7 +9,7 @@ import { SDKConstruct } from "../../base/index.js";
 import {
   getLegacyStrategyTarget,
   isSunsetStrategy,
-} from "../../chain/index.js";
+} from "../../chain/chains.js";
 import { MAX_UINT256, PERCENTAGE_FACTOR, RAY } from "../../constants/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import type { IRouterContract } from "../../router/index.js";
@@ -270,7 +270,9 @@ export class CreditSuite extends SDKConstruct {
    * none can be resolved.
    *
    * Resolution, in order:
-   * 1. a hardcoded legacy mapping for this credit manager;
+   * 1. a hardcoded legacy mapping for this credit manager, when that token is
+   *    still a collateral of the manager (it may be absent on an older
+   *    snapshot, or after it was delisted);
    * 2. the collateral with the biggest index in
    *    {@link ICreditManagerContract.collateralTokens} that
    *    {@link isStrategyCollateral} accepts with quota required;
@@ -282,7 +284,7 @@ export class CreditSuite extends SDKConstruct {
       this.creditManager.address,
       this.chainId,
     );
-    if (legacy) {
+    if (legacy && this.creditManager.liquidationThresholds.has(legacy)) {
       return legacy;
     }
 
