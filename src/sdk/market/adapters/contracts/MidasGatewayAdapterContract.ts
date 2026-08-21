@@ -1,8 +1,8 @@
 import {
   type Address,
-  type DecodeFunctionDataReturnType,
   decodeAbiParameters,
   decodeFunctionData,
+  type DecodeFunctionDataReturnType,
   type Hex,
   isAddressEqual,
   zeroAddress,
@@ -29,6 +29,8 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
   abi,
   protocolAbi
 > {
+  #version?: number;
+
   #gateway?: Address;
   #mToken?: Address;
   #quoteToken?: Address;
@@ -39,24 +41,45 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
     super(sdk, { ...args, abi, protocolAbi });
 
     if (args.baseParams.serializedParams) {
-      const decoded = decodeAbiParameters(
-        [
-          { type: "address", name: "creditManager" },
-          { type: "address", name: "targetContract" },
-          { type: "address", name: "gateway" },
-          { type: "address", name: "mToken" },
-          { type: "address", name: "quoteToken" },
-          { type: "address", name: "phantomToken" },
-          { type: "bytes32", name: "referrerId" },
-        ],
-        args.baseParams.serializedParams,
-      );
-
-      this.#gateway = decoded[2];
-      this.#mToken = decoded[3];
-      this.#quoteToken = decoded[4];
-      this.#phantomToken = decoded[5];
-      this.#referrerId = decoded[6];
+      const version = Number(args.baseParams.version);
+      this.#version = version;
+      if (version <= 310) {
+        const decoded = decodeAbiParameters(
+          [
+            { type: "address", name: "creditManager" },
+            { type: "address", name: "targetContract" },
+            { type: "address", name: "gateway" },
+            { type: "address", name: "mToken" },
+            { type: "address", name: "quoteToken" },
+            { type: "address", name: "phantomToken" },
+            { type: "bytes32", name: "referrerId" },
+          ],
+          args.baseParams.serializedParams,
+        );
+  
+        this.#gateway = decoded[2];
+        this.#mToken = decoded[3];
+        this.#quoteToken = decoded[4];
+        this.#phantomToken = decoded[5];
+        this.#referrerId = decoded[6];
+      } else {
+        const decoded = decodeAbiParameters(
+          [
+            { type: "address", name: "creditManager" },
+            { type: "address", name: "targetContract" },
+            { type: "address", name: "gateway" },
+            { type: "address", name: "mToken" },
+            { type: "address", name: "quoteToken" },
+            { type: "address", name: "phantomToken" },
+          ],
+          args.baseParams.serializedParams,
+        );
+  
+        this.#gateway = decoded[2];
+        this.#mToken = decoded[3];
+        this.#quoteToken = decoded[4];
+        this.#phantomToken = decoded[5];
+      }
     }
   }
 
@@ -85,7 +108,11 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
     return this.#phantomToken;
   }
 
-  get referrerId(): string {
+  get referrerId(): string | undefined {
+    if (!this.#version) throw new MissingSerializedParamsError("version");
+
+    if (this.#version > 310) return undefined;
+
     if (this.#referrerId === undefined)
       throw new MissingSerializedParamsError("referrerId");
     return this.#referrerId;
