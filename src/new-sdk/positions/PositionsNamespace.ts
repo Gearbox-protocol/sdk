@@ -18,7 +18,8 @@ import type { MultichainSDK } from "../../sdk/index.js";
 import { AbstractNamespace } from "../AbstractNamespace.js";
 import type { NamespaceOptions } from "../types.js";
 import type { FilterResult } from "../utils/index.js";
-import { filterResponse, mergeChainList } from "../utils/index.js";
+import { filterResponse } from "../utils/index.js";
+import { mergePositionList } from "./mergePositionList.js";
 import type {
   PositionMergers,
   PositionsBase,
@@ -38,7 +39,7 @@ export class PositionsNamespace
    **/
   public readonly merge: PositionMergers = {
     list: (onchain, offchain) =>
-      mergeChainList(onchain, offchain, this.maxOffchainLagSeconds),
+      mergePositionList(onchain, offchain, this.maxOffchainLagSeconds),
   };
 
   constructor(

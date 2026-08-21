@@ -102,18 +102,10 @@ export interface PositionsOffchainBranch {
 
 /**
  * Merge policy of each read, exposed so that a consumer reading the two
- * branches itself combines them exactly as `both` mode would: a chain is served
- * by the backend when it is fresh enough, and by the chain otherwise.
+ * branches itself combines them exactly as `both` mode would.
  **/
 export interface PositionMergers {
   list: ListMerger<Position[]>;
-}
-
-/**
- * Merging, which only exists where there are two sources to merge.
- **/
-export interface PositionsMerged {
-  readonly merge: PositionMergers;
 }
 
 /**
