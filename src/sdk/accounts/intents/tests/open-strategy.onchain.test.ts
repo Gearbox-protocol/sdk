@@ -76,8 +76,6 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
   it("fills position metrics from the expected branch", async () => {
     const preview = await expectCase(case_underlying_3x);
 
-    // stubbed until the collateral yield is wired up
-    expect(preview.overallApy).toBe(0);
     expect(preview.healthFactor).toBeGreaterThan(10000);
     // no base rate in the fixture market; the POS quota carries the cost
     expect(preview.borrowRate.base).toBe(0);

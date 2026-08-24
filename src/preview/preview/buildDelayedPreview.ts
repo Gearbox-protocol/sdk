@@ -339,9 +339,6 @@ function buildAdjustPreview(
       .map(a => oracle.toTokenAmount(a.token, a.balance)),
     error: converter.error,
     healthFactor: sdk.positions.healthFactor(snap),
-    // TODO: overall APY needs the collateral yield (lpAPY), which market
-    // state alone does not carry — wire it up together with the ApyPlugin
-    overallApy: 0,
     // debt taken on leaves the pool, debt repaid returns to it
     borrowRate: sdk.positions.borrowRate(snap, {
       availableLiquidityChange: before.totalDebt - post.totalDebt,

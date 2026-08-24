@@ -428,9 +428,6 @@ export async function realize(
   };
   const metrics = {
     healthFactor: sdk.positions.healthFactor(snapshot),
-    // TODO: overall APY needs the collateral yield (lpAPY), which market
-    // state alone does not carry — wire it up together with the ApyPlugin
-    overallApy: 0,
     borrowRate: sdk.positions.borrowRate(snapshot, projectedPool),
     timeToLiquidation: sdk.positions.timeToLiquidation(snapshot, projectedPool),
     liquidationPrice: sdk.positions.liquidationPrice(snapshot),

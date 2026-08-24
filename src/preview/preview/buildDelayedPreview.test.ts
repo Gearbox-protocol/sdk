@@ -329,7 +329,7 @@ describe("buildDelayedPreview DECREASE_LEVERAGE", () => {
       metricsSdk,
     );
     // toMatchObject: the preview also carries position metrics
-    // (healthFactor, overallApy, borrowRate, timeToLiquidation,
+    // (healthFactor, borrowRate, timeToLiquidation,
     // liquidationPrice), which this test does not pin down
     expect(preview).toMatchObject({
       operation: "AdjustCreditAccount",

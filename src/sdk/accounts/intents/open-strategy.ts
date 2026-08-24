@@ -55,10 +55,6 @@ export interface OpenStrategyPreview {
    **/
   healthFactor: Bps;
   /**
-   * Net rate the whole position earns, collateral yield minus borrow cost.
-   **/
-  overallApy: Bps;
-  /**
    * Cost of the debt, broken down by source.
    **/
   borrowRate: BorrowRateBreakdown;
@@ -203,9 +199,6 @@ export async function previewOpenStrategy(
   const projectedPool = { availableLiquidityChange: -debt };
   const metrics = {
     healthFactor: sdk.positions.healthFactor(snapshot),
-    // TODO: overall APY needs the collateral yield (lpAPY), which market
-    // state alone does not carry — wire it up together with the ApyPlugin
-    overallApy: 0,
     borrowRate: sdk.positions.borrowRate(snapshot, projectedPool),
     timeToLiquidation: sdk.positions.timeToLiquidation(snapshot, projectedPool),
     liquidationPrice: sdk.positions.liquidationPrice(snapshot),

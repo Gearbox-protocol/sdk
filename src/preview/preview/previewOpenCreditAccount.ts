@@ -96,9 +96,6 @@ export async function previewOpenCreditAccount<P extends PluginsMap>(
     // Best-effort like the rest of the preview: tokens the oracle cannot
     // price (ERROR_UNPRICEABLE_TOKEN) contribute nothing to the metrics.
     healthFactor: sdk.positions.healthFactor(snap),
-    // TODO: overall APY needs the collateral yield (lpAPY), which market
-    // state alone does not carry — wire it up together with the ApyPlugin
-    overallApy: 0,
     // opening borrows the whole debt from the pool
     borrowRate: sdk.positions.borrowRate(snap, {
       availableLiquidityChange: -account.totalDebt,

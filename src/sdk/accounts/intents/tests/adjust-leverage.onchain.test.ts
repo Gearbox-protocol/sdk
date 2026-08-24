@@ -71,8 +71,6 @@ describe("adjustLeverage.start — collateral fixed, debt retargeted", () => {
       CA_OP_CALLS.changeQuota,
     ])();
 
-    // stubbed until the collateral yield is wired up
-    expect(state.overallApy).toBe(0);
     expect(state.healthFactor).toBeGreaterThan(10000);
     expect(
       state.borrowRate.quotas.find(q => q.token.address === POS)?.rate,

@@ -33,10 +33,6 @@ export interface OperationState {
    **/
   healthFactor: Bps;
   /**
-   * Net rate the whole position earns, collateral yield minus borrow cost.
-   **/
-  overallApy: Bps;
-  /**
    * Cost of the debt, broken down by source.
    **/
   borrowRate: BorrowRateBreakdown;
