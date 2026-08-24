@@ -33,6 +33,7 @@ describe("compileCompareRules", () => {
     });
     expect(rules.get("quotaAssets[].limit.value")).toBeUndefined();
     expect(rules.get("maxBorrowAmount")).toBeUndefined();
+    expect(rules.get("maxBorrowAmount.value")).toBeUndefined();
   });
 
   it("scopes strategy utilization as offchain-only, unlike the pool", () => {
@@ -47,6 +48,9 @@ describe("compileCompareRules", () => {
     expect(strategy.get("borrowApyAvg7D")).toBe("offchainOnly");
     expect(strategy.get("quotaRate")).toEqual({ tolerance: "bps" });
     expect(strategy.get("quotaRateAvg7D")).toBe("offchainOnly");
+    expect(strategy.get("maxBorrowAmount.value")).toEqual({
+      tolerance: "amount",
+    });
   });
 
   it("records position tags, including nested collateral amounts", () => {

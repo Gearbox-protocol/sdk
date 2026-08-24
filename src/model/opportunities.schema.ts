@@ -141,7 +141,7 @@ export const strategyOpportunitySchema = z.object({
   availableLiquidity: tolerance(amountSchema, "amount"),
   minDebt: amountSchema,
   totalDebtLimit: amountSchema,
-  maxBorrowAmount: amountSchema,
+  maxBorrowAmount: tolerance(amountSchema, "amount"),
   maxLeverage: leverageSchema,
 });
 

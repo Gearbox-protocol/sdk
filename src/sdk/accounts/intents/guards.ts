@@ -1,4 +1,3 @@
-import type { Address } from "viem";
 import { PERCENTAGE_FACTOR } from "../../constants/index.js";
 import type { Asset, OnchainSDK } from "../../index.js";
 import type { CreditSuite } from "../../market/credit/CreditSuite.js";
@@ -90,7 +89,7 @@ export function assertGrowthAllowed(args: {
   after: readonly Asset[];
 }): void {
   const { sdk, suite, market, before, after } = args;
-  const forbidden = forbiddenTokens(suite);
+  const forbidden = suite.forbiddenTokens;
   const underlying = market.pool.underlying;
 
   for (const { token, balance } of after) {
@@ -114,17 +113,6 @@ export function assertGrowthAllowed(args: {
       );
     }
   }
-}
-
-/** Tokens the facade's mask flags, which is indexed by collateral position. */
-function forbiddenTokens(suite: CreditSuite): Address[] {
-  const mask = suite.creditFacade.forbiddenTokensMask;
-  if (mask === 0n) {
-    return [];
-  }
-  return suite.creditManager.collateralTokens.filter(
-    (_, i) => (mask & (1n << BigInt(i))) !== 0n,
-  );
 }
 
 /**

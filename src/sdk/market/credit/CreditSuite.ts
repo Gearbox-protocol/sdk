@@ -256,7 +256,9 @@ export class CreditSuite extends SDKConstruct {
 
   /**
    * Collateral tokens a leveraged position can be built around in this suite,
-   * see {@link isStrategyCollateral} for the per-token criteria.
+   * see {@link isStrategyCollateral} for the per-token criteria. Tokens the
+   * facade has forbidden are excluded — they cannot be taken on — even when
+   * they still pass the shared eligibility rule used for target selection.
    */
   public get strategyCollaterals(): Address[] {
     // The amount seeded into each pool at market creation to protect from inflation attacks
@@ -264,8 +266,24 @@ export class CreditSuite extends SDKConstruct {
       return [];
     }
 
-    return this.creditManager.collateralTokens.filter(token =>
-      isStrategyCollateral(this.#strategyCollateralProps(token), true),
+    const forbidden = new Set(this.forbiddenTokens);
+    return this.creditManager.collateralTokens.filter(
+      token =>
+        !forbidden.has(token) &&
+        isStrategyCollateral(this.#strategyCollateralProps(token), true),
+    );
+  }
+
+  /**
+   * Tokens forbidden by the facade.
+   */
+  public get forbiddenTokens(): Address[] {
+    const mask = this.creditFacade.forbiddenTokensMask;
+    if (mask === 0n) {
+      return [];
+    }
+    return this.creditManager.collateralTokens.filter(
+      (_, i) => (mask & (1n << BigInt(i))) !== 0n,
     );
   }
 
