@@ -222,6 +222,10 @@ export interface PoolOpportunity extends OpportunityBase {
    * @mode offchain
    **/
   supplyApyAvg7D?: ApyBreakdown;
+  /**
+   * Quota configuration of every collateral token of the market.
+   **/
+  quotaAssets: QuotaAsset[];
 }
 
 /**
@@ -564,6 +568,20 @@ export interface QuotaAsset {
    * Amount currently quoted, denominated in the market's underlying.
    **/
   used: Amount;
+  /**
+   * This token's share of the pool's used quota, in basis points:
+   * `used / Σ used` over every quota asset of the pool. Zero when nothing is
+   * quoted.
+   *
+   * @example `2500` for 25% of the quoted amount
+   **/
+  allocationShare: Bps;
+  /**
+   * Estimate of how much of the pool's {@link OpportunityBase.totalBorrow}
+   * backs this collateral: {@link allocationShare} applied to the pool's
+   * total borrowed amount, denominated in the underlying.
+   **/
+  allocatedDebt: Amount;
 }
 
 /**
@@ -633,10 +651,6 @@ export interface PoolOpportunityDetail extends PoolOpportunity {
    * Interest rate curve of the pool.
    **/
   rateCurve: RateCurve;
-  /**
-   * Quota configuration of every collateral token of the market.
-   **/
-  quotaAssets: QuotaAsset[];
 }
 
 /**

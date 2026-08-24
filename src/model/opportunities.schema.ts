@@ -92,6 +92,18 @@ export const opportunityBaseSchema = z.object({
 });
 
 /**
+ * {@link QuotaAsset}
+ **/
+export const quotaAssetSchema = z.object({
+  token: tokenSchema,
+  quotaRate: tolerance(bpsSchema, "bps"),
+  limit: amountSchema,
+  used: tolerance(amountSchema, "amount"),
+  allocationShare: tolerance(bpsSchema, "bps"),
+  allocatedDebt: tolerance(amountSchema, "amount"),
+});
+
+/**
  * {@link PoolOpportunity}
  **/
 export const poolOpportunitySchema = z.object({
@@ -103,6 +115,7 @@ export const poolOpportunitySchema = z.object({
   utilization: tolerance(bpsSchema, "bps"),
   supplyApy: apyBreakdownSchema,
   supplyApyAvg7D: offchainOnly(apyBreakdownSchema).optional(),
+  quotaAssets: z.array(quotaAssetSchema),
 });
 
 /**
@@ -233,16 +246,6 @@ export const rateCurveSchema = z.object({
 });
 
 /**
- * {@link QuotaAsset}
- **/
-export const quotaAssetSchema = z.object({
-  token: tokenSchema,
-  quotaRate: bpsSchema,
-  limit: amountSchema,
-  used: amountSchema,
-});
-
-/**
  * {@link PriceFeedData}. Recursive: a composite feed lists the feeds it reads.
  **/
 export const priceFeedDataSchema = z.object({
@@ -271,7 +274,6 @@ export const priceFeedSummarySchema = z.object({
 export const poolOpportunityDetailSchema = z.object({
   ...poolOpportunitySchema.shape,
   rateCurve: rateCurveSchema,
-  quotaAssets: z.array(quotaAssetSchema),
 });
 
 /**

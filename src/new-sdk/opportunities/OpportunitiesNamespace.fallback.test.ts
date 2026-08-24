@@ -186,6 +186,7 @@ function poolOpportunity(chainId: number): PoolOpportunityBody {
     utilization: 5000,
     supplyApy: { organicApy: 500 },
     supplyApyAvg7D: { organicApy: 475 },
+    quotaAssets: [],
   };
 }
 
@@ -193,7 +194,6 @@ function poolOpportunityDetail(chainId: number): PoolOpportunityDetailBody {
   return {
     ...poolOpportunity(chainId),
     rateCurve: { points: [], borrowingLimitUtilization: null },
-    quotaAssets: [],
   };
 }
 

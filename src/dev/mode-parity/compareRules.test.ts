@@ -21,6 +21,17 @@ describe("compileCompareRules", () => {
     expect(rules.get("utilization")).toEqual({ tolerance: "bps" });
     expect(rules.get("totalSupply.value")).toEqual({ tolerance: "amount" });
     expect(rules.get("totalSupply.valueUsd")).toEqual({ tolerance: "usd" });
+    expect(rules.get("quotaAssets[].quotaRate")).toEqual({ tolerance: "bps" });
+    expect(rules.get("quotaAssets[].used.value")).toEqual({
+      tolerance: "amount",
+    });
+    expect(rules.get("quotaAssets[].allocationShare")).toEqual({
+      tolerance: "bps",
+    });
+    expect(rules.get("quotaAssets[].allocatedDebt.value")).toEqual({
+      tolerance: "amount",
+    });
+    expect(rules.get("quotaAssets[].limit.value")).toBeUndefined();
     expect(rules.get("maxBorrowAmount")).toBeUndefined();
   });
 

@@ -6,6 +6,7 @@ import type {
   DataResponse,
   Opportunity,
   PoolOpportunity,
+  QuotaAsset,
   StrategyOpportunity,
   Timestamp,
   Token,
@@ -35,6 +36,22 @@ function amount(value: bigint, valueUsd: number | null): Amount {
   return { value, valueUsd };
 }
 
+function quotaAsset(
+  address: Address,
+  symbol: string,
+  overrides: Partial<QuotaAsset> = {},
+): QuotaAsset {
+  return {
+    token: token(address, symbol),
+    quotaRate: 90,
+    limit: amount(10_000n, 10_000),
+    used: amount(1_000_000n, 1_000),
+    allocationShare: 5_000,
+    allocatedDebt: amount(300n, 300),
+    ...overrides,
+  };
+}
+
 function pool(overrides: Partial<PoolOpportunity> = {}): PoolOpportunity {
   return {
     kind: "pool",
@@ -52,6 +69,7 @@ function pool(overrides: Partial<PoolOpportunity> = {}): PoolOpportunity {
     paused: false,
     rwa: false,
     sunset: false,
+    quotaAssets: [],
     ...overrides,
   };
 }
@@ -298,6 +316,171 @@ describe("collateral token lists", () => {
         kind: "other",
       },
     ]);
+  });
+});
+
+describe("quota assets", () => {
+  it("ignores the order the quotas came in", () => {
+    const report = compare(
+      [
+        pool({
+          quotaAssets: [quotaAsset(WSTETH, "wstETH"), quotaAsset(TBTC, "tBTC")],
+        }),
+      ],
+      [
+        pool({
+          quotaAssets: [quotaAsset(TBTC, "tBTC"), quotaAsset(WSTETH, "wstETH")],
+        }),
+      ],
+    );
+
+    expect(report.matched[0]?.diffs).toEqual([]);
+  });
+
+  it("names the quota one source is missing rather than shifting the list", () => {
+    const report = compare(
+      [
+        pool({
+          quotaAssets: [quotaAsset(WSTETH, "wstETH"), quotaAsset(TBTC, "tBTC")],
+        }),
+      ],
+      [pool({ quotaAssets: [quotaAsset(WSTETH, "wstETH")] })],
+    );
+
+    expect(report.matched[0]?.diffs).toEqual([
+      {
+        path: `quotaAssets[${TBTC.toLowerCase()}]`,
+        onchain: quotaAsset(TBTC, "tBTC"),
+        offchain: undefined,
+        kind: "presence",
+      },
+    ]);
+  });
+
+  it("tolerates lag on used.value and flags a larger gap", () => {
+    const inside = compare(
+      [pool({ quotaAssets: [quotaAsset(WSTETH, "wstETH")] })],
+      [
+        pool({
+          quotaAssets: [
+            quotaAsset(WSTETH, "wstETH", { used: amount(1_000_400n, 1_000) }),
+          ],
+        }),
+      ],
+    );
+    const outside = compare(
+      [pool({ quotaAssets: [quotaAsset(WSTETH, "wstETH")] })],
+      [
+        pool({
+          quotaAssets: [
+            quotaAsset(WSTETH, "wstETH", { used: amount(1_010_000n, 1_000) }),
+          ],
+        }),
+      ],
+    );
+
+    expect(
+      diffAt(
+        inside.matched[0]?.diffs ?? [],
+        `quotaAssets[${WSTETH.toLowerCase()}].used.value`,
+      ),
+    ).toEqual({
+      path: `quotaAssets[${WSTETH.toLowerCase()}].used.value`,
+      onchain: 1_000_000n,
+      offchain: 1_000_400n,
+      kind: "numeric",
+      expected: true,
+      reason: "tolerance",
+    });
+    expect(inside.matched[0]?.clean).toBe(true);
+    expect(
+      diffAt(
+        outside.matched[0]?.diffs ?? [],
+        `quotaAssets[${WSTETH.toLowerCase()}].used.value`,
+      ),
+    ).toEqual({
+      path: `quotaAssets[${WSTETH.toLowerCase()}].used.value`,
+      onchain: 1_000_000n,
+      offchain: 1_010_000n,
+      kind: "numeric",
+    });
+    expect(outside.matched[0]?.clean).toBe(false);
+  });
+
+  it("tolerates a ±1 bps allocationShare and flags a larger gap", () => {
+    const inside = compare(
+      [pool({ quotaAssets: [quotaAsset(WSTETH, "wstETH")] })],
+      [
+        pool({
+          quotaAssets: [
+            quotaAsset(WSTETH, "wstETH", { allocationShare: 5_001 }),
+          ],
+        }),
+      ],
+    );
+    const outside = compare(
+      [pool({ quotaAssets: [quotaAsset(WSTETH, "wstETH")] })],
+      [
+        pool({
+          quotaAssets: [
+            quotaAsset(WSTETH, "wstETH", { allocationShare: 5_010 }),
+          ],
+        }),
+      ],
+    );
+
+    expect(
+      diffAt(
+        inside.matched[0]?.diffs ?? [],
+        `quotaAssets[${WSTETH.toLowerCase()}].allocationShare`,
+      ),
+    ).toEqual({
+      path: `quotaAssets[${WSTETH.toLowerCase()}].allocationShare`,
+      onchain: 5_000,
+      offchain: 5_001,
+      kind: "numeric",
+      expected: true,
+      reason: "tolerance",
+    });
+    expect(inside.matched[0]?.clean).toBe(true);
+    expect(
+      diffAt(
+        outside.matched[0]?.diffs ?? [],
+        `quotaAssets[${WSTETH.toLowerCase()}].allocationShare`,
+      ),
+    ).toEqual({
+      path: `quotaAssets[${WSTETH.toLowerCase()}].allocationShare`,
+      onchain: 5_000,
+      offchain: 5_010,
+      kind: "numeric",
+    });
+    expect(outside.matched[0]?.clean).toBe(false);
+  });
+
+  it("treats a limit.value disagreement as unexpected", () => {
+    const report = compare(
+      [pool({ quotaAssets: [quotaAsset(WSTETH, "wstETH")] })],
+      [
+        pool({
+          quotaAssets: [
+            quotaAsset(WSTETH, "wstETH", { limit: amount(10_001n, 10_000) }),
+          ],
+        }),
+      ],
+    );
+
+    expect(
+      diffAt(
+        report.matched[0]?.diffs ?? [],
+        `quotaAssets[${WSTETH.toLowerCase()}].limit.value`,
+      ),
+    ).toEqual({
+      path: `quotaAssets[${WSTETH.toLowerCase()}].limit.value`,
+      onchain: 10_000n,
+      offchain: 10_001n,
+      kind: "numeric",
+    });
+    expect(report.matched[0]?.clean).toBe(false);
   });
 });
 
