@@ -291,9 +291,9 @@ describe("the opportunity kind gates which charts it has", () => {
       opportunities.charts(pool, ["depositApy"], "1m"),
     ).resolves.toExtend<DataResponse<ChartBundle<readonly ["depositApy"]>>>();
     expectTypeOf(
-      opportunities.charts(strategy, ["tvl", "netApy"], "1y"),
+      opportunities.charts(strategy, ["tvl", "quotaRate"], "1y"),
     ).resolves.toExtend<
-      DataResponse<ChartBundle<readonly ["tvl", "netApy"]>>
+      DataResponse<ChartBundle<readonly ["tvl", "quotaRate"]>>
     >();
   });
 
@@ -301,7 +301,7 @@ describe("the opportunity kind gates which charts it has", () => {
     // @ts-expect-error `tvl` is a strategy metric
     opportunities.charts(pool, ["tvl"], "1y");
     // @ts-expect-error `dieselRate` is a pool metric
-    opportunities.charts(strategy, ["netApy", "dieselRate"], "1m");
+    opportunities.charts(strategy, ["quotaRate", "dieselRate"], "1m");
     // The source escape hatch preserves the same constraint.
     // @ts-expect-error `tvl` is a strategy metric
     backend.getCharts(pool, ["tvl"], "1y");
@@ -310,13 +310,13 @@ describe("the opportunity kind gates which charts it has", () => {
   it("keys the bundle by the metrics that were asked for, and no others", async () => {
     const { data } = await opportunities.charts(
       strategy,
-      ["tvl", "netApy"],
+      ["tvl", "quotaRate"],
       "1m",
     );
 
     expectTypeOf(data.series.tvl).toEqualTypeOf<ChartSeries>();
-    expectTypeOf(data.series.netApy).toEqualTypeOf<ChartSeries>();
-    // @ts-expect-error the read named `tvl` and `netApy`, so nothing else is keyed
+    expectTypeOf(data.series.quotaRate).toEqualTypeOf<ChartSeries>();
+    // @ts-expect-error the read named `tvl` and `quotaRate`, so nothing else is keyed
     data.series.borrowApy;
   });
 

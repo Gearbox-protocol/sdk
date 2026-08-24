@@ -150,35 +150,30 @@ describe("a position charts its own metrics", () => {
     bundle({ series });
 
   it("accepts the units a strategy position carries", () => {
-    // leverage is the one value on no scale at all; health factor is not — it
-    // is bps, the same scale the position row quotes it in
     const schema = chartBundleSchemaFor(
-      ["leverage", "healthFactor", "totalValueUsd", "debt"],
+      ["healthFactor", "totalValueUnderlying", "debt", "borrowApyAvg7d"],
       "1d",
     );
     const { series } = schema.parse(
       positionBundle({
-        leverage: { status: "ok", unit: "scalar", values: [2.5, 2.6, 2.4] },
         healthFactor: {
           status: "ok",
           unit: "bps",
           values: [12_500, 12_000, 0],
         },
-        totalValueUsd: {
-          status: "ok",
-          unit: "usd",
-          values: [1_000, 1_100, 900],
-        },
+        totalValueUnderlying: { ...SUPPLIED },
         debt: { ...SUPPLIED },
+        borrowApyAvg7d: APY,
       }),
     );
 
-    expect(series.leverage.status === "ok" && series.leverage.unit).toBe(
-      "scalar",
-    );
     expect(
       series.healthFactor.status === "ok" && series.healthFactor.unit,
     ).toBe("bps");
+    expect(
+      series.totalValueUnderlying.status === "ok" &&
+        series.totalValueUnderlying.unit,
+    ).toBe("token");
   });
 
   it("rejects an opportunity metric on a position read", () => {
@@ -192,12 +187,12 @@ describe("a position charts its own metrics", () => {
   it("holds a return to the scale every rate in the model uses", () => {
     // the backend sends 0.05 for +5%; a chart must carry 500, like every other
     // rate here, or it plots 100x off against the row it decorates
-    const schema = chartBundleSchemaFor(["twr"], "1d");
+    const schema = chartBundleSchemaFor(["mwr"], "1d");
 
     expect(() =>
       schema.parse(
         positionBundle({
-          twr: {
+          mwr: {
             status: "ok",
             unit: "ratio",
             base: USDC,
@@ -206,7 +201,7 @@ describe("a position charts its own metrics", () => {
           },
         }),
       ),
-    ).toThrow(/twr.. is bps, not ratio/);
+    ).toThrow(/mwr.. is bps, not ratio/);
   });
 });
 
@@ -237,13 +232,13 @@ describe("every read is sampled onto a grid", () => {
 });
 
 describe("a chart request travels as one codec both sides share", () => {
-  const query = { metrics: ["debt", "leverage"], range: "1m" } as const;
+  const query = { metrics: ["debt", "healthFactor"], range: "1m" } as const;
 
   it("joins the metrics into one parameter", () => {
     // repeated `?metrics=` entries would order differently between clients and
     // give one request two cache keys
     expect(z.encode(chartQueryCodec, query)).toEqual({
-      metrics: "debt,leverage",
+      metrics: "debt,healthFactor",
       range: "1m",
     });
   });

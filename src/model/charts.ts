@@ -27,11 +27,10 @@ export type ChartRange = (typeof CHART_RANGES)[number];
  **/
 export const POOL_OPPORTUNITY_CHART_METRICS = [
   "depositApy",
-  "borrowApy",
+  "depositApyAvg7d",
   "dieselRate",
   "supplied",
   "borrowed",
-  "availableLiquidity",
 ] as const;
 
 /**
@@ -48,8 +47,10 @@ export type PoolOpportunityChartMetric =
  * chart draws; the two USD series are the same prices quoted in dollars.
  **/
 export const STRATEGY_OPPORTUNITY_CHART_METRICS = [
-  "netApy",
   "borrowApy",
+  "borrowApyAvg7d",
+  "quotaRate",
+  "liquidationThreshold",
   "collateralApy",
   "tvl",
   "collateralPrice",
@@ -68,20 +69,12 @@ export type StrategyOpportunityChartMetric =
  * Every metric a pool position can chart.
  *
  * Nothing to do with {@link POOL_OPPORTUNITY_CHART_METRICS}: an opportunity charts what the
- * pool did, a position charts what one wallet's deposit did in it. `mwr` and
- * `twr` are cumulative returns since the position opened — money-weighted, so
- * sensitive to when deposits and withdrawals landed, and time-weighted, which
- * strips that timing out. Both are anchored at inception, so a narrow `range`
- * only zooms the visible slice and its first point is rarely zero.
+ * pool did, a position charts what one wallet's deposit did in it. `mwr` is the
+ * money-weighted return since the position opened, so it is sensitive to when
+ * deposits and withdrawals landed. It is anchored at inception, so a narrow
+ * `range` only zooms the visible slice and its first point is rarely zero.
  **/
-export const POOL_POSITION_CHART_METRICS = [
-  "value",
-  "apy",
-  "pnl",
-  "mwr",
-  "twr",
-  "underlyingPrice",
-] as const;
+export const POOL_POSITION_CHART_METRICS = ["apy", "pnl", "mwr"] as const;
 
 /**
  * Metric a pool position can chart, derived from
@@ -93,25 +86,19 @@ export type PoolPositionChartMetric =
 /**
  * Every metric a strategy position can chart.
  *
- * `twrApy` annualizes `twr` over the position's whole life; the two trailing
- * APYs annualize it over a fixed window instead, so they track the current pace
- * rather than the lifetime rate and are comparable across positions of
- * different ages.
+ * `netApy7d` is the trailing seven-day net yield, so it tracks the position's
+ * recent pace rather than its lifetime return and is comparable across
+ * positions of different ages.
  **/
 export const STRATEGY_POSITION_CHART_METRICS = [
-  "totalValueUsd",
   "totalValueUnderlying",
   "debt",
   "healthFactor",
-  "leverage",
   "borrowApy",
-  "underlyingPrice",
+  "borrowApyAvg7d",
   "pnl",
   "mwr",
-  "twr",
-  "twrApy",
-  "trailingApy7d",
-  "trailingApy30d",
+  "netApy7d",
 ] as const;
 
 /**
@@ -222,34 +209,29 @@ export type ChartUnit =
 export const CHART_METRIC_UNITS = {
   // opportunities
   depositApy: "bps",
+  depositApyAvg7d: "bps",
   borrowApy: "bps",
-  netApy: "bps",
+  borrowApyAvg7d: "bps",
+  quotaRate: "bps",
+  liquidationThreshold: "bps",
   collateralApy: "bps",
   supplied: "token",
   borrowed: "token",
-  availableLiquidity: "token",
   tvl: "token",
   dieselRate: "ratio",
   collateralPrice: "ratio",
   collateralUsdPrice: "usd",
   underlyingUsdPrice: "usd",
-  // positions. A return is a rate like any other, so `mwr`, `twr`, `twrApy` and
-  // the trailing pair are `bps` — the backend's own fractions (0.05) scaled the
-  // way every rate in this model is (500)
-  value: "token",
+  // positions. A return is a rate like any other, so `mwr` and `netApy7d` are
+  // `bps` — the backend's own fractions (0.05) scaled the way every rate in
+  // this model is (500)
   apy: "bps",
   pnl: "token",
   mwr: "bps",
-  twr: "bps",
-  underlyingPrice: "usd",
-  totalValueUsd: "usd",
   totalValueUnderlying: "token",
   debt: "token",
   healthFactor: "bps",
-  leverage: "scalar",
-  twrApy: "bps",
-  trailingApy7d: "bps",
-  trailingApy30d: "bps",
+  netApy7d: "bps",
 } as const satisfies Record<ChartMetric, ChartUnit>;
 
 /**

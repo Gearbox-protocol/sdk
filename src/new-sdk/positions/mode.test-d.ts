@@ -130,23 +130,29 @@ describe("the position kind gates which charts it has", () => {
 
   it("takes the metrics of the kind the key names", () => {
     expectTypeOf(
-      positions.charts(pool, ["value", "apy"], "1m"),
-    ).resolves.toExtend<DataResponse<ChartBundle<readonly ["value", "apy"]>>>();
+      positions.charts(pool, ["apy", "mwr"], "1m"),
+    ).resolves.toExtend<DataResponse<ChartBundle<readonly ["apy", "mwr"]>>>();
     expectTypeOf(
-      positions.charts(strategy, ["totalValueUsd", "leverage"], "1y"),
+      positions.charts(
+        strategy,
+        ["totalValueUnderlying", "borrowApyAvg7d"],
+        "1y",
+      ),
     ).resolves.toExtend<
-      DataResponse<ChartBundle<readonly ["totalValueUsd", "leverage"]>>
+      DataResponse<
+        ChartBundle<readonly ["totalValueUnderlying", "borrowApyAvg7d"]>
+      >
     >();
   });
 
   it("rejects a metric the other kind owns", () => {
-    // @ts-expect-error `leverage` belongs to a strategy position
-    positions.charts(pool, ["leverage"], "1y");
+    // @ts-expect-error `healthFactor` belongs to a strategy position
+    positions.charts(pool, ["healthFactor"], "1y");
     // @ts-expect-error `apy` belongs to a pool position
-    positions.charts(strategy, ["totalValueUsd", "apy"], "1m");
+    positions.charts(strategy, ["totalValueUnderlying", "apy"], "1m");
     // The source escape hatch preserves the same constraint.
-    // @ts-expect-error `leverage` belongs to a strategy position
-    backend.getCharts(pool, ["leverage"], "1y");
+    // @ts-expect-error `healthFactor` belongs to a strategy position
+    backend.getCharts(pool, ["healthFactor"], "1y");
   });
 
   it("rejects a metric only an opportunity charts", () => {
@@ -161,33 +167,33 @@ describe("the position kind gates which charts it has", () => {
   it("keys the bundle by the metrics that were asked for, and no others", async () => {
     const { data } = await positions.charts(
       strategy,
-      ["totalValueUsd", "leverage"],
+      ["totalValueUnderlying", "borrowApyAvg7d"],
       "1m",
     );
 
-    expectTypeOf(data.series.totalValueUsd).toEqualTypeOf<ChartSeries>();
-    expectTypeOf(data.series.leverage).toEqualTypeOf<ChartSeries>();
-    // @ts-expect-error only `totalValueUsd` and `leverage` were requested
+    expectTypeOf(data.series.totalValueUnderlying).toEqualTypeOf<ChartSeries>();
+    expectTypeOf(data.series.borrowApyAvg7d).toEqualTypeOf<ChartSeries>();
+    // @ts-expect-error only `totalValueUnderlying` and `borrowApyAvg7d` were requested
     data.series.debt;
   });
 
   it("makes keys optional when the metric list is dynamic", async () => {
-    const metrics: PoolPositionChartMetric[] = ["value"];
+    const metrics: PoolPositionChartMetric[] = ["apy"];
     const { data } = await positions.charts(pool, metrics, "1m");
 
-    expectTypeOf(data.series.value).toEqualTypeOf<ChartSeries | undefined>();
+    expectTypeOf(data.series.apy).toEqualTypeOf<ChartSeries | undefined>();
   });
 
-  it("a strategy position charts pnl, healthFactor and totalValueUsd", () => {
+  it("a strategy position charts pnl, healthFactor and totalValueUnderlying", () => {
     expectTypeOf(
       positions.charts(
         strategy,
-        ["totalValueUsd", "pnl", "healthFactor"],
+        ["totalValueUnderlying", "pnl", "healthFactor"],
         "1m",
       ),
     ).resolves.toExtend<
       DataResponse<
-        ChartBundle<readonly ["totalValueUsd", "pnl", "healthFactor"]>
+        ChartBundle<readonly ["totalValueUnderlying", "pnl", "healthFactor"]>
       >
     >();
     expectTypeOf(positions.charts(strategy, ["pnl"], "1y")).resolves.toExtend<
@@ -198,18 +204,18 @@ describe("the position kind gates which charts it has", () => {
     ).resolves.toExtend<DataResponse<ChartBundle<readonly ["healthFactor"]>>>();
   });
 
-  it("a pool position charts its value", () => {
-    expectTypeOf(positions.charts(pool, ["value"], "1m")).resolves.toExtend<
-      DataResponse<ChartBundle<readonly ["value"]>>
+  it("a pool position charts its money-weighted return", () => {
+    expectTypeOf(positions.charts(pool, ["mwr"], "1m")).resolves.toExtend<
+      DataResponse<ChartBundle<readonly ["mwr"]>>
     >();
   });
 
   it("neither kind accepts the other's series", () => {
-    // @ts-expect-error `value` is a pool-position metric
-    positions.charts(strategy, ["value"], "1m");
+    // @ts-expect-error `apy` is a pool-position metric
+    positions.charts(strategy, ["apy"], "1m");
     // @ts-expect-error `healthFactor` is a strategy-position metric
     positions.charts(pool, ["healthFactor"], "1m");
-    // @ts-expect-error `leverage` is a strategy-position metric
-    positions.charts(pool, ["leverage"], "1m");
+    // @ts-expect-error `netApy7d` is a strategy-position metric
+    positions.charts(pool, ["netApy7d"], "1m");
   });
 });

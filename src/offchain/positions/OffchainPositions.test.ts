@@ -241,8 +241,6 @@ describe("a chart request names its subject, its metrics and its window", () => 
           return { status: "ok" as const, unit, values };
         case "usd":
           return { status: "ok" as const, unit, values };
-        case "scalar":
-          return { status: "ok" as const, unit, values };
         case "token":
           return { status: "ok" as const, unit, base: underlying, values };
         case "ratio":
@@ -269,36 +267,40 @@ describe("a chart request names its subject, its metrics and its window", () => 
   }
 
   it("names one metric in the query, not in the path", async () => {
-    answerWithBundle(["value"]);
+    answerWithBundle(["apy"]);
 
-    await positions().getCharts(pool, ["value"], "1m");
+    await positions().getCharts(pool, ["apy"], "1m");
 
     expect(requested().pathname).toBe(
       `/v2/positions/pool/${MAINNET}/${POOL}/${WALLET}/charts`,
     );
-    expect(requested().searchParams.get("metrics")).toBe("value");
+    expect(requested().searchParams.get("metrics")).toBe("apy");
     expect(requested().searchParams.get("range")).toBe("1m");
   });
 
   it("asks for several metrics of one strategy position in one request", async () => {
-    answerWithBundle(["totalValueUsd", "leverage"], "1y");
+    answerWithBundle(["totalValueUnderlying", "borrowApyAvg7d"], "1y");
 
-    await positions().getCharts(strategy, ["totalValueUsd", "leverage"], "1y");
+    await positions().getCharts(
+      strategy,
+      ["totalValueUnderlying", "borrowApyAvg7d"],
+      "1y",
+    );
 
     expect(requested().pathname).toBe(
       `/v2/positions/strategy/${MAINNET}/${CREDIT_ACCOUNT}/charts`,
     );
     expect(requested().searchParams.get("metrics")).toBe(
-      "totalValueUsd,leverage",
+      "totalValueUnderlying,borrowApyAvg7d",
     );
     expect(requested().searchParams.get("range")).toBe("1y");
   });
 
   it("rejects a bundle that answers a question it was not asked", async () => {
-    answerWithBundle(["leverage"]);
+    answerWithBundle(["borrowApy"]);
 
     await expect(
-      positions().getCharts(strategy, ["totalValueUsd"], "1m"),
+      positions().getCharts(strategy, ["totalValueUnderlying"], "1m"),
     ).rejects.toThrow(/read model/);
   });
 });
