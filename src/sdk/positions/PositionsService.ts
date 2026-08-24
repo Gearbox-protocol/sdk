@@ -4,6 +4,7 @@ import type {
   Bps,
   DelayedReceivedAsset,
   Position,
+  PositionCollateral,
   PositionKind,
   StrategyPosition,
 } from "../../model/index.js";
@@ -246,6 +247,33 @@ export class PositionsService extends SDKConstruct {
     const timeToLiquidation = this.timeToLiquidation(snapshot);
     const liquidationPrice = this.liquidationPrice(snapshot);
 
+    // compressor totals only cover enabled tokens; after a full repay the
+    // remaining collateral is disabled, so zero-debt totals are summed from
+    // oracle prices over every above-dust balance instead
+    const zeroDebt = ca.debt === 0n;
+    const collaterals: PositionCollateral[] = [];
+    let totalValue = zeroDebt ? 0n : ca.totalValue;
+    let totalValueUSD = zeroDebt ? 0n : ca.totalValueUSD;
+    for (const t of ca.tokens) {
+      if (t.balance <= DUST_THRESHOLD) {
+        continue;
+      }
+      collaterals.push({
+        // phantom tokens are reported as themselves, the asset they
+        // redeem into shows up in `withdrawals`
+        collateral: priceOracle.toTokenAmount(t.token, t.balance),
+        quota: priceOracle.toTokenAmount(market.underlying, t.quota),
+        withdrawals: withdrawals.get(t.token) ?? [],
+      });
+      if (zeroDebt) {
+        const value =
+          priceOracle.safeConvert(t.token, market.underlying, t.balance) || 0n;
+        totalValue += value;
+        const usd = priceOracle.safeConvertToUSD(t.token, t.balance) || 0n;
+        totalValueUSD += usd;
+      }
+    }
+
     return {
       kind: "strategy",
       chainId: this.sdk.chainId,
@@ -261,13 +289,14 @@ export class PositionsService extends SDKConstruct {
       targetCollateral: target
         ? this.sdk.tokensMeta.mustGetToken(target)
         : null,
-      leverage: calcPositionLeverage(ca.totalValue, totalDebtValue),
+      leverage: calcPositionLeverage(totalValue, totalDebtValue),
       borrowApy: calcBorrowApy(
         pool.baseInterestRate,
         suite.creditManager.feeInterest,
       ),
       // the compressor prices the whole account in one pass, so the USD values
       // of the two totals come from it rather than from a second price lookup
+      // — except zero-debt accounts, whose totals are summed above
       totalDebt: {
         token,
         value: totalDebtValue,
@@ -275,27 +304,14 @@ export class PositionsService extends SDKConstruct {
       },
       totalValue: {
         token,
-        value: ca.totalValue,
-        valueUsd: usdToNumber(ca.totalValueUSD),
+        value: totalValue,
+        valueUsd: usdToNumber(totalValueUSD),
       },
       healthFactor: healthFactorBps(ca.healthFactor),
       borrowRate,
       timeToLiquidation,
       liquidationPrice,
-      collaterals: ca.tokens.flatMap(t => {
-        if (t.balance <= DUST_THRESHOLD) {
-          return [];
-        }
-        return [
-          {
-            // phantom tokens are reported as themselves, the asset they
-            // redeem into shows up in `withdrawals`
-            collateral: priceOracle.toTokenAmount(t.token, t.balance),
-            quota: priceOracle.toTokenAmount(market.underlying, t.quota),
-            withdrawals: withdrawals.get(t.token) ?? [],
-          },
-        ];
-      }),
+      collaterals,
     };
   }
 
