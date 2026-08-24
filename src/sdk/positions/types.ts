@@ -85,9 +85,7 @@ export interface AccountSnapshot {
 }
 
 /**
- * Builds an {@link AccountSnapshot} from on-chain credit account data: the
- * enabled, above-dust tokens become assets and quotas, and `totalDebt` is
- * principal plus accrued interest and fees.
+ * Builds an {@link AccountSnapshot} from on-chain credit account data
  **/
 export function accountSnapshotFromCreditAccountData(
   ca: CreditAccountData,
@@ -95,7 +93,7 @@ export function accountSnapshotFromCreditAccountData(
   const assets: Asset[] = [];
   const quotas: Asset[] = [];
   for (const t of ca.tokens) {
-    if ((t.mask & ca.enabledTokensMask) === 0n || t.balance <= DUST_THRESHOLD) {
+    if (t.balance <= DUST_THRESHOLD) {
       continue;
     }
     assets.push({ token: t.token, balance: t.balance });

@@ -283,10 +283,7 @@ export class PositionsService extends SDKConstruct {
       timeToLiquidation,
       liquidationPrice,
       collaterals: ca.tokens.flatMap(t => {
-        if (
-          (t.mask & ca.enabledTokensMask) === 0n ||
-          t.balance <= DUST_THRESHOLD
-        ) {
+        if (t.balance <= DUST_THRESHOLD) {
           return [];
         }
         return [
