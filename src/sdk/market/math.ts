@@ -33,6 +33,19 @@ export function rayToBps(ray: bigint): Bps {
 }
 
 /**
+ * Inverse of {@link rayToBps}, exact: a rate in basis points is a whole number
+ * of the `10 ** 23` steps a ray is made of.
+ *
+ * @example
+ * ```ts
+ * bpsToRay(500) // 5% = 0.05 × 10²⁷
+ * ```
+ **/
+export function bpsToRay(bps: Bps): bigint {
+  return (BigInt(bps) * RAY) / PERCENTAGE_FACTOR;
+}
+
+/**
  * Raw 8-decimal USD values below this are compressor leftover dust (typically
  * 1-wei balances on empty accounts) and report as `0`.
  **/

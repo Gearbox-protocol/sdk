@@ -99,8 +99,13 @@ export async function previewOpenCreditAccount<P extends PluginsMap>(
     // TODO: overall APY needs the collateral yield (lpAPY), which market
     // state alone does not carry — wire it up together with the ApyPlugin
     overallApy: 0,
-    borrowRate: sdk.positions.borrowRate(snap),
-    timeToLiquidation: sdk.positions.timeToLiquidation(snap),
+    // opening borrows the whole debt from the pool
+    borrowRate: sdk.positions.borrowRate(snap, {
+      availableLiquidityChange: -account.totalDebt,
+    }),
+    timeToLiquidation: sdk.positions.timeToLiquidation(snap, {
+      availableLiquidityChange: -account.totalDebt,
+    }),
     liquidationPrice: sdk.positions.liquidationPrice(snap),
     leverage: calcPositionLeverage(totalValue, account.totalDebt),
   };

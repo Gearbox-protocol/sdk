@@ -1,6 +1,7 @@
 import type { Address } from "viem";
 import { describe, expect, it } from "vitest";
 import type { Token } from "../../model/index.js";
+import { bpsToRay } from "../market/math.js";
 import { calcBorrowRate } from "./calcBorrowRate.js";
 import type { AccountSnapshot } from "./types.js";
 
@@ -137,5 +138,21 @@ describe("calcBorrowRate", () => {
       base: 200,
       quotas: [{ token: expect.objectContaining({ address: WETH }), rate: 0 }],
     });
+  });
+
+  it("charges the interest fee on whichever base rate it is handed", () => {
+    // a projection hands over the rate its post-operation utilization implies,
+    // in the same ray the pool reports its own in — there is no second path
+    const result = calcBorrowRate({
+      snapshot: snapshot({ totalDebt: 100n, totalValue: 200n }),
+      baseInterestRate: bpsToRay(400),
+      feeInterest: 5000,
+      quotaRates: {},
+      resolveToken,
+    });
+
+    // 4% × 1.5
+    expect(result.base).toBe(600);
+    expect(result.totalOnDebt).toBe(600);
   });
 });

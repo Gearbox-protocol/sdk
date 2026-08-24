@@ -342,8 +342,13 @@ function buildAdjustPreview(
     // TODO: overall APY needs the collateral yield (lpAPY), which market
     // state alone does not carry — wire it up together with the ApyPlugin
     overallApy: 0,
-    borrowRate: sdk.positions.borrowRate(snap),
-    timeToLiquidation: sdk.positions.timeToLiquidation(snap),
+    // debt taken on leaves the pool, debt repaid returns to it
+    borrowRate: sdk.positions.borrowRate(snap, {
+      availableLiquidityChange: before.totalDebt - post.totalDebt,
+    }),
+    timeToLiquidation: sdk.positions.timeToLiquidation(snap, {
+      availableLiquidityChange: before.totalDebt - post.totalDebt,
+    }),
     liquidationPrice: sdk.positions.liquidationPrice(snap),
     leverage: calcPositionLeverage(totalValue, post.totalDebt),
   };

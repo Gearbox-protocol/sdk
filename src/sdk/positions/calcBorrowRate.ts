@@ -16,7 +16,8 @@ import type { AccountSnapshot } from "./types.js";
 export interface CalcBorrowRateProps {
   snapshot: AccountSnapshot;
   /**
-   * Pool base interest rate in ray.
+   * Pool base interest rate in ray — the pool's current one, or the rate the
+   * interest model quotes at a projected utilization.
    **/
   baseInterestRate: bigint;
   /**
@@ -38,9 +39,10 @@ export interface CalcBorrowRateProps {
  * Cost of an account state's debt, broken down into the pool's base rate and
  * per-token quota rates.
  *
- * The base rate is the market's current borrow APY (the pool's base rate plus
- * the credit manager's interest fee) — the same value `borrowApy` reports on
- * a position; it is not recomputed for the projected pool liquidity. Quota
+ * The base rate is the market's borrow APY: whatever `baseInterestRate` the
+ * caller hands over, plus the credit manager's interest fee — the same value
+ * `borrowApy` reports on a position, and the same arithmetic when a projection
+ * hands over the rate its post-operation utilization implies. Quota
  * contributions are `quotaBalance * quotaRate` with the interest fee on top,
  * normalized against the total value (`total`, `quotas`) and against the
  * debt (`totalOnDebt`, the rate the debt itself grows at). Formulas are in

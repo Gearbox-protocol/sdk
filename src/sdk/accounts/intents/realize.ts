@@ -422,13 +422,17 @@ export async function realize(
     totalDebt: debt,
     totalValue,
   };
+  // debt taken on leaves the pool, debt repaid returns to it
+  const projectedPool = {
+    availableLiquidityChange: creditAccount.accountDebt - debt,
+  };
   const metrics = {
     healthFactor: sdk.positions.healthFactor(snapshot),
     // TODO: overall APY needs the collateral yield (lpAPY), which market
     // state alone does not carry — wire it up together with the ApyPlugin
     overallApy: 0,
-    borrowRate: sdk.positions.borrowRate(snapshot),
-    timeToLiquidation: sdk.positions.timeToLiquidation(snapshot),
+    borrowRate: sdk.positions.borrowRate(snapshot, projectedPool),
+    timeToLiquidation: sdk.positions.timeToLiquidation(snapshot, projectedPool),
     liquidationPrice: sdk.positions.liquidationPrice(snapshot),
   };
   // A call that hands funds over is checked against safe prices on-chain, so

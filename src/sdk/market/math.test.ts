@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { OptimalRepaidAmountProps } from "./math.js";
 import {
+  bpsToRay,
   calcAdditionalBorrowApy,
   calcBorrowApy,
   calcMaxLeverage,
@@ -19,6 +20,16 @@ describe("unit conversions", () => {
   it("converts ray rates to basis points", () => {
     expect(rayToBps(RAY_5_PERCENT)).toBe(500);
     expect(rayToBps(0n)).toBe(0);
+  });
+
+  it("converts basis points back to ray, exactly", () => {
+    expect(bpsToRay(500)).toBe(RAY_5_PERCENT);
+    expect(bpsToRay(0)).toBe(0n);
+    // a projected rate is quoted in bps and spent as ray, so the round trip
+    // has to be lossless at every step of the curve
+    for (const bps of [1, 137, 2_500, 10_000, 45_000]) {
+      expect(rayToBps(bpsToRay(bps))).toBe(bps);
+    }
   });
 
   it("converts oracle USD to a float", () => {

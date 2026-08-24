@@ -1,5 +1,6 @@
 import type { Bps } from "../../../model/index.js";
 import { PERCENTAGE_FACTOR } from "../../constants/math.js";
+import { calcUtilization } from "../math.js";
 
 /**
  * Interest rate model parameters, all in basis points except the flag.
@@ -65,6 +66,25 @@ export function borrowRateAtUtilization(
   return Math.round(
     Rbase + Rslope1 + Rslope2 + (Rslope3 * (u - U2)) / Math.max(FULL - U2, 1),
   );
+}
+
+/**
+ * Pool utilization after a change in available liquidity, in basis points.
+ *
+ * Borrowing takes liquidity out (`availableLiquidityChange < 0`, utilization
+ * rises), repaying puts it back (`> 0`, utilization falls). Expected liquidity
+ * is treated as unchanged, which is what a borrow does to it; a repayment
+ * settles accrued interest the pool had already counted, so the same holds
+ * there to within the fees.
+ **/
+export function utilizationAfterLiquidityChange(
+  expectedLiquidity: bigint,
+  availableLiquidity: bigint,
+  availableLiquidityChange: bigint,
+): Bps {
+  const available = availableLiquidity + availableLiquidityChange;
+  const borrowed = expectedLiquidity - available;
+  return calcUtilization(borrowed, expectedLiquidity);
 }
 
 /**

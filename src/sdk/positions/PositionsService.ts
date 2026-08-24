@@ -18,11 +18,17 @@ import { SDKConstruct } from "../base/index.js";
 import { DUST_THRESHOLD } from "../constants/index.js";
 import { dominantCollateral } from "../market/index.js";
 import {
+  bpsToRay,
   calcBorrowApy,
   calcPositionLeverage,
   healthFactorBps,
   usdToNumber,
 } from "../market/math.js";
+import {
+  borrowRateAtUtilization,
+  type RateModelParams,
+  utilizationAfterLiquidityChange,
+} from "../market/pool/math.js";
 import { AddressMap, hexEq } from "../utils/index.js";
 import { calcBorrowRate } from "./calcBorrowRate.js";
 import { calcHealthFactor } from "./calcHealthFactor.js";
@@ -50,6 +56,22 @@ interface PositionMetricMarketData {
   quotaRates: Record<Address, Bps>;
   baseInterestRate: bigint;
   feeInterest: number;
+}
+
+/**
+ * Options of the projection-aware position metrics: {@link PositionsService.borrowRate}
+ * and {@link PositionsService.timeToLiquidation}.
+ **/
+export interface ProjectedPoolOptions {
+  /**
+   * Change the operation makes to the pool's available liquidity, in
+   * underlying units: `oldDebt − newDebt`. Negative when the operation borrows
+   * more (liquidity leaves the pool, utilization and the base rate rise),
+   * positive when it repays. When set, the base borrow rate is re-quoted from
+   * the interest rate model at the projected utilization instead of the pool's
+   * current rate.
+   **/
+  availableLiquidityChange?: bigint;
 }
 
 /**
@@ -159,13 +181,18 @@ export class PositionsService extends SDKConstruct {
 
   /**
    * Cost of an account state's debt, broken down into the pool's base rate
-   * and per-token quota rates.
+   * and per-token quota rates. A projection passes the operation's liquidity
+   * delta via {@link ProjectedPoolOptions} to have the base rate re-quoted at
+   * the post-operation pool utilization.
    **/
-  public borrowRate(snapshot: AccountSnapshot): BorrowRateBreakdown {
+  public borrowRate(
+    snapshot: AccountSnapshot,
+    options?: ProjectedPoolOptions,
+  ): BorrowRateBreakdown {
     const data = this.#marketData(snapshot);
     return calcBorrowRate({
       snapshot,
-      baseInterestRate: data.baseInterestRate,
+      baseInterestRate: this.#baseInterestRate(snapshot, data, options),
       feeInterest: data.feeInterest,
       quotaRates: data.quotaRates,
       resolveToken: address => this.sdk.tokensMeta.mustGetToken(address),
@@ -175,9 +202,14 @@ export class PositionsService extends SDKConstruct {
   /**
    * Estimated milliseconds until the account's health factor decays to
    * `10000` under its current borrow rate, or `null` when the debt carries
-   * no rate (or the account is already liquidatable).
+   * no rate (or the account is already liquidatable). Takes the same
+   * projection options as {@link PositionsService.borrowRate}, so a projected
+   * state decays at the projected rate.
    **/
-  public timeToLiquidation(snapshot: AccountSnapshot): bigint | null {
+  public timeToLiquidation(
+    snapshot: AccountSnapshot,
+    options?: ProjectedPoolOptions,
+  ): bigint | null {
     const data = this.#marketData(snapshot);
     return calcTimeToLiquidationMs(
       calcHealthFactor({
@@ -191,11 +223,54 @@ export class PositionsService extends SDKConstruct {
       BigInt(
         calcBorrowRate({
           snapshot,
-          baseInterestRate: data.baseInterestRate,
+          baseInterestRate: this.#baseInterestRate(snapshot, data, options),
           feeInterest: data.feeInterest,
           quotaRates: data.quotaRates,
           resolveToken: address => this.sdk.tokensMeta.mustGetToken(address),
         }).totalOnDebt,
+      ),
+    );
+  }
+
+  /**
+   * The base rate a metric is computed at, in ray: the pool's own, or — for a
+   * projection carrying a liquidity delta — the rate the interest model quotes
+   * at the utilization that delta leaves behind. A market whose rate model is
+   * not the linear one has nothing to re-quote from, and keeps the current
+   * rate.
+   *
+   * Callers pass the operation's total-debt change. On a borrow that is the
+   * principal leaving the pool; on a repayment it is the whole transfer back,
+   * interest and fees included. Either way it is the pool's own liquidity
+   * move, to within the share of a repayment the fees take.
+   **/
+  #baseInterestRate(
+    snapshot: AccountSnapshot,
+    data: PositionMetricMarketData,
+    options?: ProjectedPoolOptions,
+  ): bigint {
+    const delta = options?.availableLiquidityChange;
+    if (!delta) {
+      return data.baseInterestRate;
+    }
+    const suite = this.sdk.marketRegister.findByCreditManager(
+      snapshot.creditManager,
+    ).pool;
+    let params: RateModelParams;
+    try {
+      params = suite.linearModel.params;
+    } catch {
+      return data.baseInterestRate;
+    }
+    const { pool } = suite;
+    return bpsToRay(
+      borrowRateAtUtilization(
+        utilizationAfterLiquidityChange(
+          pool.expectedLiquidity,
+          pool.availableLiquidity,
+          delta,
+        ),
+        params,
       ),
     );
   }

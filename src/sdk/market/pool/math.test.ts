@@ -4,6 +4,7 @@ import {
   type RateModelParams,
   rateCurveUtilizations,
   supplyRateAtUtilization,
+  utilizationAfterLiquidityChange,
 } from "./math.js";
 
 /**
@@ -71,5 +72,65 @@ describe("rateCurveUtilizations", () => {
   it("does not repeat a kink that falls on the grid", () => {
     const onGrid = rateCurveUtilizations({ ...model, U1: 500, U2: 9000 });
     expect(new Set(onGrid).size).toBe(onGrid.length);
+  });
+});
+
+describe("utilizationAfterLiquidityChange", () => {
+  // 1000 expected, 400 available: 600 borrowed = 60%
+  const expectedLiquidity = 1000n;
+  const availableLiquidity = 400n;
+
+  it("reports the current utilization when nothing moves", () => {
+    expect(
+      utilizationAfterLiquidityChange(
+        expectedLiquidity,
+        availableLiquidity,
+        0n,
+      ),
+    ).toBe(6000);
+  });
+
+  it("rises when an operation borrows liquidity out of the pool", () => {
+    expect(
+      utilizationAfterLiquidityChange(
+        expectedLiquidity,
+        availableLiquidity,
+        -200n,
+      ),
+    ).toBe(8000);
+  });
+
+  it("falls when an operation repays liquidity back into the pool", () => {
+    expect(
+      utilizationAfterLiquidityChange(
+        expectedLiquidity,
+        availableLiquidity,
+        200n,
+      ),
+    ).toBe(4000);
+  });
+
+  it("clamps a borrow that would drain the pool to full utilization", () => {
+    expect(
+      utilizationAfterLiquidityChange(
+        expectedLiquidity,
+        availableLiquidity,
+        -900n,
+      ),
+    ).toBe(10_000);
+  });
+
+  it("floors a repayment larger than the debt at zero", () => {
+    expect(
+      utilizationAfterLiquidityChange(
+        expectedLiquidity,
+        availableLiquidity,
+        900n,
+      ),
+    ).toBe(0);
+  });
+
+  it("reports zero for a pool with no liquidity at all", () => {
+    expect(utilizationAfterLiquidityChange(0n, 0n, -100n)).toBe(0);
   });
 });
