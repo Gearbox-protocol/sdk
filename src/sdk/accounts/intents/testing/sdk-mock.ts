@@ -264,14 +264,7 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
       convert,
       mainPrice: mainPriceOf,
       reservePrice: reservePriceOf,
-      convertToUSD: (token: Address, amount: bigint) => {
-        const from = token.toLowerCase() as Address;
-        const price = args.prices[from] ?? args.prices[token];
-        if (price === undefined) {
-          throw new Error(`mock priceOracle: missing price for ${from}`);
-        }
-        return (amount * price) / 10n ** BigInt(decimalsOf(from));
-      },
+      convertToUSD: _convertToUSD,
       safeConvertToUSD: (token: Address, amount: bigint) => {
         const from = token.toLowerCase() as Address;
         const price = args.prices[from] ?? args.prices[token];
