@@ -133,8 +133,8 @@ flowchart LR
 | `leverageOutOfRange`        | target below 1x, or a deposit target that would require repaying            |
 | `insufficientSourceBalance` | non-positive amount, nothing to sell, net value already eaten by the debt   |
 | `unsupportedCollateralToken`| deposit or repayment in a token the flow does not take                      |
-| `unsupportedTokenPair`      | the prepare layer finds no pool route for the requested pair                |
-| `noDelayedRoute`            | no redemption venue, a leverage move that settles at once, an exit          |
+| `unsupportedTokenPair`      | no pool route for the requested pair, or the pathfinder found no path        |
+| `noDelayedRoute`            | no redemption venue, a leverage move that settles at once, a payout the tail cannot serve |
 | `multipleDelayedWithdrawals`| several venues for the source and nothing says which                        |
 | `withdrawalInProgress`      | a redemption of the asset is already in flight                              |
 | `noRecordedIntent`          | a claim naming no operation to resume                                       |
@@ -150,6 +150,9 @@ flowchart LR
 redeem through their issuer — a Securitize dsToken, a Mellow share — which
 answers now and pays out days later. `intentRoutes` quotes both from one
 request; a route the account cannot take comes back `undefined` with its refusal.
+The pathfinder reverts rather than answering when it finds no path, and that
+revert is read as `unsupportedTokenPair` — otherwise an asset no pool trades
+would take the working route down with the one that does not exist.
 
 ```mermaid
 flowchart TD

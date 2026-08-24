@@ -80,10 +80,12 @@ export type StrategySimulate =
 
 /**
  * What the leading half of a delayed operation would yield: the request
- * transaction, plus what it recorded for the tail.
+ * transaction, plus what it recorded for the tail and where that tail leads.
  *
  * Shaped like {@link StrategySimulate} with one field more, so the instant and
- * the delayed route of the same request are compared side by side.
+ * the delayed route of the same request are compared side by side — and they
+ * are meant to be compared on the same footing, so `preview` is the end of the
+ * operation in both, not the end of the transaction.
  **/
 export type DelayedStrategySimulate =
   | {
@@ -93,9 +95,14 @@ export type DelayedStrategySimulate =
        **/
       operations: AccountCalculatorOperation[];
       /**
-       * State once the request executes: the source token is gone and the
-       * withdrawal position stands in its place, with debt untouched — the
-       * repayment belongs to the tail.
+       * Where the operation ends: the account once the redemption has matured,
+       * been claimed and the tail has run — the same place the instant route
+       * reaches in one transaction, which is what makes the two comparable.
+       *
+       * The tail's half of it is an estimate priced by the oracle: the funds it
+       * trades do not exist yet, so no route can be quoted for them. The state
+       * the request alone lands in — source spent, withdrawal position in its
+       * place, debt untouched — is `delayed.afterRequest`.
        **/
       preview: OperationState;
       /**
@@ -426,7 +433,13 @@ export interface OpportunitiesPrepare {
    * many-to-one route, the debt is settled in full and every balance left goes
    * to `to`. `tokenOut` is ignored, since the proceeds are already the
    * underlying (unwrapped on an RWA market). The account stays open with
-   * nothing on it. An exit has no delayed route.
+   * nothing on it.
+   *
+   * An exit has both routes as well, which is what lets an account whose
+   * position only redeems through its issuer leave at all: the delayed route
+   * redeems `sourceToken` whole and records the exit, and {@link finalize}
+   * rebuilds it against the account the claim finds — the debt as it stands by
+   * then, whatever else is on the account, everything sold in one route.
    *
    * @see withdrawCollateral to move an asset out without touching debt, which
    * raises leverage instead.
@@ -513,8 +526,9 @@ export interface OpportunitiesPrepare {
   /**
    * The tail of a delayed route: claim the matured withdrawal, then whatever the
    * operation that requested it still owes — repaying debt and paying the wallet
-   * out for a withdrawal, repaying alone for a deleveraging, nothing beyond the
-   * claim for the rest.
+   * out for a withdrawal, repaying alone for a deleveraging, selling the rest of
+   * the account and settling the loan for an exit, nothing beyond the claim for
+   * the rest.
    *
    * The route is requested by {@link withdrawStrategy} or
    * {@link adjustLeverage}, whose `delayed` branch is the transaction that

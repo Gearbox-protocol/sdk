@@ -39,7 +39,13 @@ import {
  * debt, `POS` 1:1 with `UND` — so the amounts read against them directly: what
  * the instant flow would have swapped is what the request redeems. `POS2` plays
  * the withdrawal phantom token, being 1:1 with `POS` and already quotable, so
- * the in-flight position keeps its value in the projected state.
+ * the in-flight position keeps its value while it is in flight.
+ *
+ * Two states are checked throughout, because the request is half an operation:
+ * `delayed.afterRequest` is what the transaction on offer lands in — the source
+ * spent, the phantom in its place, nothing repaid — and `preview` is where the
+ * intent ends, once the redemption has been claimed and the tail has run. The
+ * instant specs land in the latter in one go, so the two agree by design.
  */
 
 const PHANTOM = POS2;
@@ -102,7 +108,7 @@ describe("withdraw.startDelayed — request now, settle after the delay", () => 
       amountIn: 2n * W,
       settlement: "delayed",
     });
-    expect(result.delayed).toEqual({
+    expect(result.delayed).toMatchObject({
       record: {
         type: "WITHDRAW_COLLATERAL",
         to: WALLET,
@@ -113,10 +119,18 @@ describe("withdraw.startDelayed — request now, settle after the delay", () => 
       },
       claimableAt: CLAIMABLE_AT,
       settlement: "delayed",
+      // What the venue will pay for the redeemed source, 1:1 here.
+      claim: { token: UND, amount: 2n * W },
     });
 
-    // Nothing is repaid and nothing leaves yet: the proceeds do not exist.
-    expect(result.preview.accountDebt).toBe(DEBT_BEFORE);
+    // The transaction itself repays nothing and hands nothing over: the
+    // proceeds do not exist yet.
+    expect(result.delayed.afterRequest.accountDebt).toBe(DEBT_BEFORE);
+    expect(result.delayed.afterRequest.totalValue).toBe(TVL_BEFORE);
+    // Where the intent ends, though, is with the payout made and the debt down
+    // by the dD the tail repays out of the claim.
+    expect(result.preview.accountDebt).toBe(DEBT_BEFORE - W);
+    expect(result.preview.totalValue).toBe(TVL_BEFORE - 2n * W);
     expect(result.calls[0]).toEqual(MOCK_REQUEST_CALL);
   });
 
@@ -142,32 +156,42 @@ describe("withdraw.startDelayed — request now, settle after the delay", () => 
   });
 
   it("moves the phantom onto the account, and buys it a quota", async () => {
-    const state = expectAdjustPreview(
-      await run({ type: "WITHDRAW", amount: W, to: WALLET }, buildSdk()),
-      {
-        totalValue: TVL_BEFORE,
-        accountDebt: DEBT_BEFORE,
-        expectedOps: withOnchainOpCalls([
-          {
-            type: "startDelayedWithdrawal",
-            token: POS,
-            amountIn: 2n * W,
-            outputs: [{ token: PHANTOM, amount: 2n * W, isDelayed: true }],
-            settlement: "delayed",
-          },
-          {
-            type: "changeQuota",
-            quotaIncrease: [{ token: PHANTOM, balance: 18400000000n }],
-            quotaDecrease: [{ token: POS, balance: -18400000000n }],
-            desiredQuota: {},
-          },
-        ]),
-        expectedCalls: [MOCK_REQUEST_CALL, CA_OP_CALLS.changeQuota],
-      },
+    const result = await run(
+      { type: "WITHDRAW", amount: W, to: WALLET },
+      buildSdk(),
     );
+    expectAdjustPreview(result, {
+      totalValue: TVL_BEFORE - 2n * W,
+      accountDebt: DEBT_BEFORE - W,
+      expectedOps: withOnchainOpCalls([
+        {
+          type: "startDelayedWithdrawal",
+          token: POS,
+          amountIn: 2n * W,
+          outputs: [{ token: PHANTOM, amount: 2n * W, isDelayed: true }],
+          settlement: "delayed",
+        },
+        {
+          type: "changeQuota",
+          quotaIncrease: [{ token: PHANTOM, balance: 18400000000n }],
+          quotaDecrease: [{ token: POS, balance: -18400000000n }],
+          desiredQuota: {},
+        },
+      ]),
+      expectedCalls: [MOCK_REQUEST_CALL, CA_OP_CALLS.changeQuota],
+    });
+    if (!result.ok) {
+      throw new Error("expected ok delayed preview");
+    }
 
-    expect(assetBalance(state.assets, POS)).toBe(TVL_BEFORE - 2n * W);
-    expect(assetBalance(state.assets, PHANTOM)).toBe(2n * W);
+    // Between the two transactions the redeemed value sits in the phantom.
+    const { assets } = result.delayed.afterRequest;
+    expect(assetBalance(assets, POS)).toBe(TVL_BEFORE - 2n * W);
+    expect(assetBalance(assets, PHANTOM)).toBe(2n * W);
+    // And once the claim lands, neither is left: what it brought paid the
+    // wallet and the loan.
+    expect(assetBalance(result.preview.assets, PHANTOM)).toBe(0n);
+    expect(assetBalance(result.preview.assets, POS)).toBe(TVL_BEFORE - 2n * W);
   });
 
   it("still needs a tail when the venue serves only part on the spot", async () => {
@@ -181,8 +205,13 @@ describe("withdraw.startDelayed — request now, settle after the delay", () => 
       throw new Error("expected ok delayed preview");
     }
     expect(result.delayed.settlement).toBe("delayed");
-    expect(assetBalance(result.preview.assets, UND)).toBe(W);
-    expect(assetBalance(result.preview.assets, PHANTOM)).toBe(W);
+    // Half the redemption lands at once, half waits on the phantom.
+    const { assets } = result.delayed.afterRequest;
+    expect(assetBalance(assets, UND)).toBe(W);
+    expect(assetBalance(assets, PHANTOM)).toBe(W);
+    // The tail spends both: W to the wallet, W into the debt.
+    expect(result.preview.accountDebt).toBe(DEBT_BEFORE - W);
+    expect(assetBalance(result.preview.assets, PHANTOM)).toBe(0n);
   });
 
   it("refuses a payout the tail cannot serve", async () => {
@@ -292,7 +321,7 @@ describe("withdraw.startDelayed — matrix 4.3 (10U/8U at 5x)", () => {
       throw new Error("expected ok delayed preview");
     }
 
-    expect(result.delayed).toEqual({
+    expect(result.delayed).toMatchObject({
       record: {
         type: "WITHDRAW_COLLATERAL",
         to: WALLET,
@@ -303,12 +332,17 @@ describe("withdraw.startDelayed — matrix 4.3 (10U/8U at 5x)", () => {
       },
       claimableAt: CLAIMABLE_AT,
       settlement: "delayed",
+      claim: { token: UND, amount: M43_SPEND },
     });
 
-    // Nothing settled yet: T and D are unchanged, the phantom holds the value.
+    // Nothing settled by the transaction: T and D are unchanged and the
+    // phantom holds the value in flight.
+    expect(result.delayed.afterRequest.totalValue).toBe(M43_BALANCE);
+    expect(result.delayed.afterRequest.accountDebt).toBe(M43_DEBT);
+    // The matrix's end state: 1U of value paid out and 4U of debt repaid.
     expectAdjustPreview(result, {
-      totalValue: M43_BALANCE,
-      accountDebt: M43_DEBT,
+      totalValue: M43_BALANCE - M43_SPEND,
+      accountDebt: M43_DEBT - M43_DD,
       expectedOps: withOnchainOpCalls([
         {
           type: "startDelayedWithdrawal",

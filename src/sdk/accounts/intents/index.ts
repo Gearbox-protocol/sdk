@@ -1,4 +1,3 @@
-import type { Address } from "viem";
 import { SDKConstruct } from "../../base/SDKConstruct.js";
 import { assertMarketOperable } from "./guards.js";
 import { maxProportionalWithdrawal } from "./math.js";
@@ -7,18 +6,15 @@ import {
   type OpenStrategyProps,
   previewOpenStrategy,
 } from "./open-strategy.js";
-import {
-  type AccountCalculatorOperation,
-  instantOutput,
+import type {
+  AccountCalculatorOperation,
+  StartDelayedWithdrawalOperation,
 } from "./operations.js";
 import {
   planAddCollateral,
   planAdjustLeverage,
   planAdjustLeverageDelayed,
   planDeposit,
-  planFinishClaimOnly,
-  planFinishDecreaseLeverage,
-  planFinishWithdraw,
   planRepay,
   planWithdraw,
   planWithdrawAsset,
@@ -26,6 +22,7 @@ import {
   type Step,
 } from "./plan.js";
 import { realize } from "./realize.js";
+import { planTail, projectTail } from "./tail.js";
 import {
   type CreditAccountSlice,
   type DelayableIntent,
@@ -36,7 +33,6 @@ import {
   type IntentPreviewResult,
   type IntentRoutesResult,
   type PreviewErrorReason,
-  type ResumableIntent,
   type RouteRefusals,
   type StartIntent,
   type StartIntentProps,
@@ -180,10 +176,16 @@ export class CreditAccountOperationsService extends SDKConstruct {
    * {@link intentRoutes}; this is the one to call when the delayed route is the
    * only one of interest.
    *
+   * `preview` is where the intent ends — the account once the redemption has
+   * matured, been claimed and the tail has run — because that is what the
+   * caller asked for; the half-way state the request itself lands in is
+   * `delayed.afterRequest`. Both are validated, so a request whose tail could
+   * not be completed is refused instead of started.
+   *
    * @param props - Intent plus account slice, quota reserve and slippage
-   * @returns The request transaction and what it recorded for the tail, or
-   * `{ ok: false, reason }` — `noDelayedRoute` when this route does not exist
-   * for the account at all
+   * @returns The request transaction, the state it ends in and what it recorded
+   * for the tail, or `{ ok: false, reason }` — `noDelayedRoute` when this route
+   * does not exist for the account at all
    */
   async startDelayedIntent(
     props: StartIntentProps & { intent: DelayableIntent },
@@ -208,10 +210,39 @@ export class CreditAccountOperationsService extends SDKConstruct {
     if (!result.ok) {
       return result;
     }
-    if (!result.delayed) {
+    const { delayed } = result;
+    if (!delayed) {
       throw new Error("startDelayedIntent: plan started no withdrawal");
     }
-    return { ...result, delayed: result.delayed };
+
+    // A request that the venue served on the spot has no tail to project: no
+    // claim is coming, so the state it landed in is the last one there is.
+    if (delayed.settlement === "instant") {
+      return { ...result, delayed };
+    }
+
+    const request = result.operations.find(
+      (op): op is StartDelayedWithdrawalOperation =>
+        op.type === "startDelayedWithdrawal",
+    );
+    if (!request) {
+      throw new Error("startDelayedIntent: no request among the operations");
+    }
+
+    try {
+      const tail = await projectTail({
+        request,
+        delayed,
+        creditAccount: props.creditAccount,
+        sdk: props.sdk,
+        quotaReserve: props.quotaReserve,
+      });
+      return { ...result, preview: tail.state, delayed };
+    } catch (e) {
+      // A tail that cannot be walked is a request that would strand the
+      // account, so it is refused here rather than started and regretted.
+      return asFailure(e);
+    }
   }
 
   /**
@@ -287,9 +318,10 @@ export class CreditAccountOperationsService extends SDKConstruct {
    * Previews the tail of a delayed intent, once the withdrawal it started has
    * matured: the claim, then whatever the intent still owes.
    *
-   * Serves the two operations that can genuinely be interrupted by a delay — a
-   * withdrawal and a deleveraging. For the rest, the claim is the whole tail:
-   * the tokens land on the account and only their quota has to catch up.
+   * Serves the three operations that can genuinely be interrupted by a delay —
+   * a withdrawal, a deleveraging and an exit. For the rest, the claim is the
+   * whole tail: the tokens land on the account and only their quota has to
+   * catch up.
    *
    * @param props - The recorded intent, the account slice as it stands now, and
    * the matured claimable
@@ -297,40 +329,14 @@ export class CreditAccountOperationsService extends SDKConstruct {
    * an operation are consumed the same way
    */
   async finishIntent(props: FinishIntentProps): Promise<IntentPreviewResult> {
-    const { intent, claimable } = props;
     return plain(
-      await this.#preview(props, () => {
-        const view = accountView(props.creditAccount, props.sdk);
-        // What the claim credits on the spot, which is what the tail spends.
-        const claimed = (): { token: Address; amount: bigint } => {
-          const output = instantOutput(claimable.outputs);
-          if (!output) {
-            throw new IntentPreviewError(
-              "insufficientSourceBalance",
-              "finishIntent: the claim credits nothing to spend",
-            );
-          }
-          return output;
-        };
-        switch (intent.type) {
-          case "WITHDRAW_COLLATERAL":
-            return planFinishWithdraw(intent, claimable, claimed(), view);
-          case "DECREASE_LEVERAGE":
-            return planFinishDecreaseLeverage(claimable, claimed(), view);
-          case "ADD_COLLATERAL":
-          case "INCREASE_LEVERAGE":
-          case "DEPOSIT":
-          case "DEPOSIT_AND_INCREASE_LEVERAGE":
-            return planFinishClaimOnly(claimable);
-          default: {
-            const _exhaustive: never = intent;
-            void _exhaustive;
-            throw new Error(
-              `${(intent as ResumableIntent).type} - not implemented`,
-            );
-          }
-        }
-      }),
+      await this.#preview(props, () =>
+        planTail({
+          intent: props.intent,
+          claimable: props.claimable,
+          view: accountView(props.creditAccount, props.sdk),
+        }),
+      ),
     );
   }
 
@@ -404,5 +410,25 @@ function asFailure(e: unknown): { ok: false; reason: PreviewErrorReason } {
   if (e instanceof IntentPreviewError) {
     return { ok: false, reason: e.reason };
   }
+  if (isUnroutable(e)) {
+    return { ok: false, reason: "unsupportedTokenPair" };
+  }
   throw e;
+}
+
+/**
+ * How the pathfinder says there is no route: it reverts instead of answering
+ * with an empty path, so viem raises a contract error where the rest of the
+ * engine raises an {@link IntentPreviewError}. Nothing is wrong — the trade
+ * asked for cannot be made, which is a refusal the caller can act on, and one
+ * `intentRoutes` in particular must keep as a value so the other route can
+ * still be offered.
+ */
+function isUnroutable(e: unknown): boolean {
+  for (let cause: unknown = e; cause instanceof Error; cause = cause.cause) {
+    if (cause.message.includes("no optimal edge found")) {
+      return true;
+    }
+  }
+  return false;
 }

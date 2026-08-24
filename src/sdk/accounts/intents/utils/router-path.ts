@@ -2,6 +2,7 @@ import type { Address } from "viem";
 import type { Asset, MultiCall, OnchainSDK } from "../../../index.js";
 import type { CreditAccountSlice } from "../types.js";
 import { toRouterCaSlice } from "./common.js";
+import { convertAmount } from "./convert-amount.js";
 
 /** One routed conversion leg. */
 export interface SwapLeg {
@@ -138,6 +139,48 @@ export function createRouterPaths(args: {
         target,
         slippage,
       });
+    },
+  };
+}
+
+/**
+ * The same door, priced by the oracle and opening onto no calldata.
+ *
+ * For a leg that cannot be quoted yet: the tail of a redemption trades funds
+ * that do not exist, along a route the pathfinder will only be able to build
+ * once they do. Asking it now would price a swap of nothing, so the amounts
+ * come from the oracle instead — an estimate with no slippage floor, which is
+ * all a projection days out can honestly be — and the walk yields a state
+ * rather than a transaction.
+ */
+export function createOraclePaths(args: {
+  sdk: OnchainSDK;
+  creditAccount: CreditAccountSlice;
+}): RouterPaths {
+  const { sdk, creditAccount } = args;
+  const price = convertAmount(sdk, creditAccount.creditManager);
+  const estimate = (amount: bigint): SwapLeg => ({
+    amount,
+    minAmount: amount,
+    calls: [],
+  });
+
+  return {
+    async swap({ tokenIn, tokenOut, amount }) {
+      return estimate(amount > 0n ? price(tokenIn, tokenOut, amount) : 0n);
+    },
+
+    async closeAll({ balances }) {
+      return estimate(
+        balances.reduce(
+          (sum, b) => sum + price(b.token, creditAccount.underlying, b.balance),
+          0n,
+        ),
+      );
+    },
+
+    async openStrategy() {
+      throw new Error("oracle paths: opening a position is never projected");
     },
   };
 }

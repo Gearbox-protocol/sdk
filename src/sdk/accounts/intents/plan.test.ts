@@ -359,10 +359,29 @@ describe("planWithdraw — payout leaves, debt shrinks in proportion", () => {
     );
   });
 
-  it("[INV-3] the exit is instant-only: a redemption has no payout to record", () => {
-    expect(() =>
+  it("[INV-3] the exit can be redeemed too: the whole source, no payout named", () => {
+    expect(
       planWithdrawDelayed({ amount: 1_000n, to: WALLET, sourceToken: T }, twoX),
-    ).toThrowError(expect.objectContaining({ reason: "noDelayedRoute" }));
+    ).toEqual([
+      {
+        kind: "request",
+        token: T,
+        amount: 2_000n,
+        reserve: 0n,
+        record: { type: "CLOSE_ACCOUNT", to: WALLET },
+      },
+    ]);
+  });
+
+  it("[INV-3] a source the account does not hold cannot start that exit", () => {
+    expect(() =>
+      planWithdrawDelayed(
+        { amount: MAX_UINT256, to: WALLET, sourceToken: T2 },
+        twoX,
+      ),
+    ).toThrowError(
+      expect.objectContaining({ reason: "insufficientSourceBalance" }),
+    );
   });
 });
 
