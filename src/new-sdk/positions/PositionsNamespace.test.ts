@@ -49,7 +49,7 @@ describe("positions.charts", () => {
     });
 
     await expect(
-      namespace.charts(KEY, ["totalValueUsd", "leverage"], "1m"),
+      namespace.charts(KEY, ["totalValueUnderlying", "borrowApyAvg7d"], "1m"),
     ).resolves.toEqual(
       envelope({
         window: { range: "1m", from: 0, to: 1 },
@@ -60,7 +60,7 @@ describe("positions.charts", () => {
     );
     expect(positions.getCharts).toHaveBeenCalledWith(
       KEY,
-      ["totalValueUsd", "leverage"],
+      ["totalValueUnderlying", "borrowApyAvg7d"],
       "1m",
     );
   });
@@ -71,9 +71,9 @@ describe("positions.charts", () => {
       maxOffchainLagSeconds: 120,
     });
 
-    await expect(
-      namespace.charts(KEY, ["totalValueUsd"], "1m"),
-    ).rejects.toThrow(SourceUnavailableError);
+    await expect(namespace.charts(KEY, ["healthFactor"], "1m")).rejects.toThrow(
+      SourceUnavailableError,
+    );
   });
 });
 

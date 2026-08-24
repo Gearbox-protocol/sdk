@@ -74,7 +74,7 @@ export interface OpportunitiesBase {
 export interface OpportunitiesOffchainOnly {
   /**
    * Historical charts of one opportunity, one series per metric on a shared
-   * axis: `charts(key, ["depositApy", "borrowApy"], "1m")`.
+   * axis: `charts(key, ["depositApy", "depositApyAvg7d"], "1m")`.
    *
    * The key's kind decides which metrics exist, so asking a pool for a strategy
    * chart does not compile, and the bundle is keyed by exactly the metrics
