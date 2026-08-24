@@ -17,14 +17,8 @@ function token(address: Token["address"], symbol: string): Token {
 }
 
 describe("strategyName", () => {
-  it("uses the target ticker when no pretty name is configured", () => {
-    expect(
-      strategyName(token(WSTETH, "wstETH"), token(WETH, "WETH"), "Mainnet"),
-    ).toBe("wstETH / WETH");
-  });
-
-  it("accepts a numeric chain id for the same lookup", () => {
-    expect(strategyName(token(WSTETH, "wstETH"), token(WETH, "WETH"), 1)).toBe(
+  it("joins the target and underlying display symbols", () => {
+    expect(strategyName(token(WSTETH, "wstETH"), token(WETH, "WETH"))).toBe(
       "wstETH / WETH",
     );
   });

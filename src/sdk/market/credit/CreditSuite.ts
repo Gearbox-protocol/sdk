@@ -328,7 +328,6 @@ export class CreditSuite extends SDKConstruct {
     return formatStrategyName(
       this.tokensMeta.mustGetToken(collateral),
       this.market.underlyingToken,
-      this.chainId,
     );
   }
 

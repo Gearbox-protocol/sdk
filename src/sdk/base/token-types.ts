@@ -27,6 +27,26 @@ export type RWAOnDemandLpContractType = typeof RWA_ON_DEMAND_LP_MONOPOLIZED;
 export type PhantomTokenContractType =
   (typeof PHANTOM_TOKEN_CONTRACT_TYPES)[number];
 
+/**
+ * Withdrawal and redemption phantom tokens that can never be acquired as a
+ * strategy target. Other `PHANTOM_TOKEN::*` types (Convex, Infrared, staking
+ * rewards) can.
+ */
+export const NON_STRATEGY_PHANTOM_TOKEN_TYPES = [
+  "PHANTOM_TOKEN::INFINIFI_UNWIND",
+  "PHANTOM_TOKEN::MELLOW_WITHDRAWAL",
+  "PHANTOM_TOKEN::MIDAS_REDEMPTION",
+  "PHANTOM_TOKEN::SECURITIZE_RD",
+  "PHANTOM_TOKEN::UPSHIFT_WITHDRAW",
+] as const satisfies readonly PhantomTokenContractType[];
+
+/**
+ * Token metadata stored in {@link TokensMeta}.
+ *
+ * `symbol` is a display ticker. The SDK may rewrite it (curated pretty names,
+ * `"source -> target"` for redemption phantom tokens) and it is not guaranteed
+ * to match the ERC-20 `symbol()` on chain.
+ */
 export interface SimpleTokenMeta extends TokenData {
   contractType?: string;
   /**

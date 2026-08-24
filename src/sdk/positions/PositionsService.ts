@@ -280,11 +280,7 @@ export class PositionsService extends SDKConstruct {
       creditManager: ca.creditManager,
       creditAccount: ca.creditAccount,
       name: target
-        ? strategyName(
-            this.sdk.tokensMeta.mustGetToken(target),
-            token,
-            this.sdk.chainId,
-          )
+        ? strategyName(this.sdk.tokensMeta.mustGetToken(target), token)
         : token.symbol,
       targetCollateral: target
         ? this.sdk.tokensMeta.mustGetToken(target)

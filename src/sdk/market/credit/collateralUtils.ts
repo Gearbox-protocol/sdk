@@ -1,23 +1,8 @@
 import { type Address, isAddressEqual } from "viem";
-import type {
-  CreditAccountData,
-  PhantomTokenContractType,
-} from "../../base/index.js";
+import type { CreditAccountData } from "../../base/index.js";
+import { NON_STRATEGY_PHANTOM_TOKEN_TYPES } from "../../base/token-types.js";
 import { DUST_THRESHOLD, PERCENTAGE_FACTOR } from "../../constants/index.js";
 import type { MarketSuite } from "../MarketSuite.js";
-
-/**
- * Withdrawal and redemption phantom tokens that can never be acquired as a
- * strategy target. Other `PHANTOM_TOKEN::*` types (Convex, Infrared, staking
- * rewards) can.
- */
-export const NON_STRATEGY_PHANTOM_TOKEN_TYPES = [
-  "PHANTOM_TOKEN::INFINIFI_UNWIND",
-  "PHANTOM_TOKEN::MELLOW_WITHDRAWAL",
-  "PHANTOM_TOKEN::MIDAS_REDEMPTION",
-  "PHANTOM_TOKEN::SECURITIZE_RD",
-  "PHANTOM_TOKEN::UPSHIFT_WITHDRAW",
-] as const satisfies readonly PhantomTokenContractType[];
 
 const NON_STRATEGY_PHANTOM_TOKEN_TYPE_SET: ReadonlySet<string> = new Set(
   NON_STRATEGY_PHANTOM_TOKEN_TYPES,

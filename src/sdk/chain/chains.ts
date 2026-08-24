@@ -82,8 +82,8 @@ export interface GearboxChain extends Chain {
    **/
   accountTargetCollaterals?: AddressMap<Address>;
   /**
-   * Display names for tokens whose ticker is not what a strategy row should
-   * show, e.g. a Pendle PT symbol rewritten as `"PT-sUSDe"`.
+   * Display names that replace the on-chain ticker in {@link TokensMeta},
+   * e.g. a Beefy vault rewritten as `"Beefy WBTC/cbBTC/hemiBTC"`.
    **/
   tokenPrettyNames?: AddressMap<string>;
   /**
@@ -810,18 +810,4 @@ export function getAccountTargetCollateral(
   network: number | bigint | NetworkType,
 ): Address | undefined {
   return getChain(network).accountTargetCollaterals?.get(creditAccount);
-}
-
-/**
- * Curated display name of a token, or `undefined` when the token has none and
- * its ticker symbol should be used instead.
- *
- * @param token - Token address.
- * @param network - Chain id or {@link NetworkType} label.
- **/
-export function getTokenPrettyName(
-  token: Address,
-  network: number | bigint | NetworkType,
-): string | undefined {
-  return getChain(network).tokenPrettyNames?.get(token);
 }
