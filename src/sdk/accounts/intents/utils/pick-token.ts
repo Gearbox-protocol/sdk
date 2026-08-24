@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import type { OnchainSDK } from "../../../index.js";
-import { NON_STRATEGY_PHANTOM_TOKEN_TYPES } from "../../../market/credit/isStrategyCollateral.js";
+import { NON_STRATEGY_PHANTOM_TOKEN_TYPES } from "../../../market/credit/collateralUtils.js";
 import type { CreditAccountSlice } from "../types.js";
 import { eq } from "./common.js";
 import { convertAmount } from "./convert-amount.js";

@@ -140,6 +140,11 @@ interface BuildMockSdkArgs {
   /** Tokens the facade forbids, which the mock turns into its mask. */
   forbiddenTokens?: Address[];
   /**
+   * Single strategy target of this mock credit manager. Defaults to the first
+   * non-underlying collateral so the 1-to-1 CM rule has something to read.
+   */
+  strategyTargetCollateral?: Address;
+  /**
    * Redemption venues the mock compressor reports, keyed by source token. An
    * empty array stands for "this token has no delayed route"; several entries
    * stand for the ambiguous config the engine refuses.
@@ -334,6 +339,9 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
     },
     market,
     isPaused: facadePaused || poolPaused,
+    strategyTargetCollateral:
+      args.strategyTargetCollateral ??
+      collateralTokens.find(t => t !== args.underlying.toLowerCase()),
     isExpired: expirationDate > 0 && expirationDate < (args.timestamp ?? 0),
   };
 

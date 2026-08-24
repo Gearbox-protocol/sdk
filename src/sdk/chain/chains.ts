@@ -1,5 +1,5 @@
 import type { Address, Chain } from "viem";
-import { defineChain, isAddressEqual } from "viem";
+import { defineChain } from "viem";
 import {
   arbitrum,
   avalanche,
@@ -19,9 +19,9 @@ import {
   worldchain,
 } from "viem/chains";
 import { z } from "zod/v4";
-import type { CuratorName } from "../../model/curators.js";
-import type { AssetType, ChainId } from "../../model/primitives.js";
-import { TypedObjectUtils } from "../utils/mappers.js";
+import type { AssetType, ChainId, CuratorName } from "../../model/index.js";
+import { AddressMap } from "../utils/AddressMap.js";
+import { AddressSet } from "../utils/AddressSet.js";
 
 /**
  * Extended viem {@link Chain} with Gearbox-specific metadata.
@@ -37,7 +37,7 @@ export interface GearboxChain extends Chain {
   /**
    * Market configurator addresses operated by known curators on this chain.
    **/
-  defaultMarketConfigurators: Record<Address, CuratorName>;
+  defaultMarketConfigurators: AddressMap<CuratorName>;
   /**
    * Known RWA factory addresses on this chain
    */
@@ -45,7 +45,7 @@ export interface GearboxChain extends Chain {
   /**
    * Market configurators used in test/staging environments.
    **/
-  testMarketConfigurators?: Record<Address, CuratorName>;
+  testMarketConfigurators?: AddressMap<CuratorName>;
   /**
    * Denomination class of the market underlyings on this chain.
    *
@@ -55,21 +55,37 @@ export interface GearboxChain extends Chain {
    * wrapper does not belong here: it is unwrapped before the lookup, so the
    * token it holds is what needs an entry.
    **/
-  underlyingAssetTypes?: Record<Address, AssetType>;
+  underlyingAssetTypes?: AddressMap<AssetType>;
   /**
    * Tokens on this chain that represent a real-world asset. A market that
    * accepts one of them as collateral is reported as an RWA opportunity.
    **/
-  rwaTokens?: Address[];
+  rwaTokens?: AddressSet;
   /**
    * Pools being wound down. Curated, and unrelated to any on-chain flag.
    **/
-  sunsetPools?: Address[];
+  sunsetPools?: AddressSet;
   /**
    * Credit managers whose strategies are being wound down. Curated, and
    * unrelated to the credit facade's expiration date.
    **/
-  sunsetStrategies?: Address[];
+  sunsetStrategies?: AddressSet;
+  /**
+   * Legacy credit managers whose target collateral cannot be inferred from
+   * the collateral list. Maps credit manager → target collateral.
+   **/
+  legacyStrategyTargets?: AddressMap<Address>;
+  /**
+   * Existing credit accounts whose target collateral must stay pinned, even
+   * when the credit manager's current target would say otherwise. Maps credit
+   * account → target collateral.
+   **/
+  accountTargetCollaterals?: AddressMap<Address>;
+  /**
+   * Display names for tokens whose ticker is not what a strategy row should
+   * show, e.g. a Pendle PT symbol rewritten as `"PT-sUSDe"`.
+   **/
+  tokenPrettyNames?: AddressMap<string>;
   /**
    * Whether this chain is production-ready
    **/
@@ -147,7 +163,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
     {
       ...mainnet,
       network: "Mainnet",
-      defaultMarketConfigurators: {
+      defaultMarketConfigurators: AddressMap.fromRecord<CuratorName>({
         "0xc168343c791d56dd1da4b4b8b0cc1c1ec1a16e6b": "cp0x",
         "0x3b56538833fc02f4f0e75609390f26ded0c32e42": "Re7",
         "0x7a133fbd01736fd076158307c9476cc3877f1af5": "Invariant Group",
@@ -155,31 +171,91 @@ export const chains: Record<NetworkType, GearboxChain> = {
         "0x1b265b97eb169fb6668e3258007c3b0242c7bdbe": "KPK",
         "0x9dddd1b9ce0ac8aa0c80e4ec141600b9bf0101c3": "UltraYield",
         "0x601067eba24bb5b558a184fc082525637e96a42d": "Gami Labs",
-      },
-      testMarketConfigurators: {
+      }),
+      testMarketConfigurators: AddressMap.fromRecord<CuratorName>({
         "0x99df7330bf42d596af2e9d9836d4fc2077c574aa": "M11 Credit",
         "0x610627d8d01a413bdd9b0a0b60070da7dd1e54ad": "Securitize",
         "0xa770ce584adb6491a2138da6eaec33243bdcd248": "Testnet Curator", // without governor, for midas
-      },
+      }),
       rwaFactories: [] as Address[],
-      underlyingAssetTypes: {
+      underlyingAssetTypes: AddressMap.fromRecord<AssetType>({
         "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0": "ETH", // [wstETH]
         "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2": "ETH", //[WETH]
         "0x18084fbA666a33d37592fA2633fD49a74DD93a88": "BTC", // [tBTC]
         "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "Stable", // [USDC]
         "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599": "BTC", // [WBTC]
-      },
-      rwaTokens: [
+      }),
+      rwaTokens: new AddressSet([
         "0x17418038ecF73BA4026c4f428547BF099706F27B", // ACRED, Securitize
         "0x51C2d74017390CbBd30550179A16A1c28F7210fc", // STAC, Securitize
         "0x238a700eD6165261Cf8b2e544ba797BC11e466Ba", // mF-ONE, Midas
         "0x7433806912Eae67919e66aea853d46Fa0aef98A8", // mGLOBAL, Midas
-      ],
+      ]),
+      legacyStrategyTargets: AddressMap.fromRecord<Address>({
+        "0x1293a69e4ad4a93293a06b6303104be35bdd83af":
+          "0x1a711a5bc48b5c1352c1882fa65dc14b5b9e829d",
+        "0x29350a3c2627fb78c7e915cd59af754edf8998c5":
+          "0xe1d9b789da5b5375eacf66f036022b019a2af307",
+        "0x79c6c1ce5b12abcc3e407ce8c160ee1160250921":
+          "0x02a4cceed3c400b5ba9fd22ad6ec18d8f7a3d48e",
+        "0x9a0fdf7cdab4604fc27ebeab4b3d57bd825e8ebe":
+          "0xcd5fe23c85820f7b72d0926fc9b05b43e359b7ee",
+        "0x9fb5493deb601a0329ad8bff43cd182a61321ca7":
+          "0x02a4cceed3c400b5ba9fd22ad6ec18d8f7a3d48e",
+        "0x68df4deeff1d9007063395cc190a486dceb05920":
+          "0x31454faa1daa04cacf59a6bd37681da9160d092a",
+        "0x0f4e4432977bbf3962322996f1c9aefdbc62256d":
+          "0xda06ee2dacf9245aa80072a4407debdea0d7e341",
+        "0xfc896a605da98f3df6da47beb29cb59ae382351d":
+          "0x924d24c238db7ecae2aa3a19430239ed684bde4a",
+        "0x52b27889f67887fc9b98a59304037570e7d7e556":
+          "0x4956b52ae2ff65d74ca2d61207523288e4528f96",
+        "0xa64d5e7567c5e8f494549dbff60c77846e059706":
+          "0x4956b52ae2ff65d74ca2d61207523288e4528f96",
+        "0x0af1324369e3fd78325fab0cb62eea19f3e4ebf0":
+          "0xb908c9fe885369643adb5fba4407d52bd726c72d",
+        "0x0fafa30cd35bc6a48ff2b40694d4a73d4f4bcc92":
+          "0xb908c9fe885369643adb5fba4407d52bd726c72d",
+      }),
+      accountTargetCollaterals: AddressMap.fromRecord<Address>({
+        "0x56631dcb1ea548d2629e82e01375090ed1f81b7e":
+          "0x1a711a5bc48b5c1352c1882fa65dc14b5b9e829d",
+        "0x89014edc549ffa5c5b6e859b1496731bd035c247":
+          "0x31454faa1daa04cacf59a6bd37681da9160d092a",
+        "0x3b7ab1f4fee570933b24b202de90ffda82f6cae0":
+          "0x31454faa1daa04cacf59a6bd37681da9160d092a",
+        "0x721798d8ccf31ae75c12db82fa72b3806759cbc9":
+          "0x31454faa1daa04cacf59a6bd37681da9160d092a",
+        "0xd7273d9594ac88f993eda9773041e621633acea0":
+          "0x1a711a5bc48b5c1352c1882fa65dc14b5b9e829d",
+        "0x34442ca47435e90b80d835aab9737166e76d9962":
+          "0x403cc0d2694ec2639101f32b146b90d766461ce9",
+      }),
+      sunsetPools: new AddressSet([
+        "0xF791Ecc5F2472637eac9DFe3f7894C0B32C32bDf",
+        "0xC155444481854c60e7a29f4150373f479988F32D",
+        "0xF0795C47fA58d00f5F77F4D5c01F31eE891E21B4",
+        "0x119f75D5AC5739Ae49ffC46117a20654793A9b18",
+        "0xb46edf298989F0F106EDD80E4ae8f59a13531dB4",
+        "0xd98e31C67c7C21f233C37c9AC9Ae656dcb0d5d25",
+      ]),
+      sunsetStrategies: new AddressSet([
+        "0x9fF97B167Dd442bd5f277098bf1154C5807D3566",
+        "0x187C5022002d45107dB72B0b59E72111f69Bd513",
+      ]),
       isPublic: true,
       wellKnownToken: {
         address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
         symbol: "USDC",
       },
+      tokenPrettyNames: AddressMap.fromRecord<string>({
+        "0x924d24c238db7ecae2aa3a19430239ed684bde4a":
+          "Beefy WBTC/cbBTC/hemiBTC",
+        "0x403cc0d2694ec2639101f32b146b90d766461ce9": "Beefy wstETH/tETH",
+        "0x02a4cceed3c400b5ba9fd22ad6ec18d8f7a3d48e": "Beefy ETH+/WETH",
+        "0x31454faa1daa04cacf59a6bd37681da9160d092a": "Beefy rETH/WETH",
+        "0x1a711a5bc48b5c1352c1882fa65dc14b5b9e829d": "Beefy osETH/WETH",
+      }),
       firstBlock: 22358644n,
       gasLimit: 550_000_000n,
     },
@@ -189,9 +265,9 @@ export const chains: Record<NetworkType, GearboxChain> = {
     {
       ...arbitrum,
       network: "Arbitrum",
-      defaultMarketConfigurators: {
+      defaultMarketConfigurators: AddressMap.fromRecord<CuratorName>({
         "0x01023850b360b88de0d0f84015bbba1eba57fe7e": "Chaos Labs",
-      },
+      }),
       rwaFactories: [] as Address[],
       isPublic: true,
       wellKnownToken: {
@@ -207,10 +283,10 @@ export const chains: Record<NetworkType, GearboxChain> = {
     {
       ...optimism,
       network: "Optimism",
-      defaultMarketConfigurators: {
+      defaultMarketConfigurators: AddressMap.fromRecord<CuratorName>({
         "0x2a15969CE5320868eb609680751cF8896DD92De5": "Chaos Labs",
         "0x9dddd1b9ce0ac8aa0c80e4ec141600b9bf0101c3": "UltraYield",
-      },
+      }),
       rwaFactories: [] as Address[],
       isPublic: true,
       wellKnownToken: {
@@ -226,7 +302,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
     {
       ...base,
       network: "Base",
-      defaultMarketConfigurators: {},
+      defaultMarketConfigurators: new AddressMap<CuratorName>(),
       rwaFactories: [] as Address[],
       isPublic: false,
       wellKnownToken: {
@@ -241,9 +317,9 @@ export const chains: Record<NetworkType, GearboxChain> = {
     defineChain({
       ...sonic,
       network: "Sonic",
-      defaultMarketConfigurators: {
+      defaultMarketConfigurators: AddressMap.fromRecord<CuratorName>({
         "0x8FFDd1F1433674516f83645a768E8900A2A5D076": "Chaos Labs",
-      },
+      }),
       rwaFactories: [] as Address[],
       isPublic: true,
       blockExplorers: {
@@ -265,7 +341,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
   MegaETH: defineChain({
     ...megaeth,
     network: "MegaETH",
-    defaultMarketConfigurators: {},
+    defaultMarketConfigurators: new AddressMap<CuratorName>(),
     rwaFactories: [] as Address[],
     isPublic: false,
     wellKnownToken: {
@@ -284,22 +360,46 @@ export const chains: Record<NetworkType, GearboxChain> = {
       },
     },
     network: "Monad",
-    defaultMarketConfigurators: {
+    defaultMarketConfigurators: AddressMap.fromRecord<CuratorName>({
       "0x16956912813ab9a38d95730b52a8cf53e860a7c5": "Tulipa",
       "0x7c6ee1bf9c1eb3ee55bdbdc1e8d0317aab718e0a": "UltraYield",
-    },
-    underlyingAssetTypes: {
+    }),
+    underlyingAssetTypes: AddressMap.fromRecord<AssetType>({
       "0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A": "ETH", // [WMON]
       "0x754704Bc059F8C67012fEd69BC8A327a5aafb603": "Stable", // [USDC]
       "0xe7cd86e13AC4309349F30B3435a9d337750fC82D": "Stable", // [USDT0]
       "0x00000000eFE302BEAA2b3e6e1b18d08D69a9012a": "Stable", // [AUSD]
-    },
+    }),
+    legacyStrategyTargets: AddressMap.fromRecord<Address>({
+      "0xd9b000e3f14ea2dd27be07859ab3ab9e0ef62dfa":
+        "0x1c8ee940b654bfced403f2a44c1603d5be0f50fa",
+      "0x01b3b3c03269e2fdf654676f2e57a9e325a55e51":
+        "0x1c8ee940b654bfced403f2a44c1603d5be0f50fa",
+    }),
+    sunsetPools: new AddressSet([
+      "0x09cA6b76276eC0682adb896418b99CB7E44a58A0",
+      "0x34752948B0dc28969485Df2066fFE86D5dc36689",
+      "0x164A35F31e4E0F6c45D500962a6978D2cbD5a16b",
+    ]),
+    sunsetStrategies: new AddressSet([
+      "0xA1F05494Dab74Eb9C352C3A042836579fE168aa7",
+      "0xb8C7D72CDD00F44390aDF6f0756AB11fd19723B5",
+      "0xE01FEeBC233ee715592D056B0a53A4F316a62d1A",
+      "0x5b5b351d70A67d18300cD89Db04089Aa37b271d2",
+      "0xb21f766c193541305C18cE146DCD3Fdf642b40eF",
+      "0x04620081bb818B8CD3996943D0A4a37Dbf296cF4",
+      "0x5452971Fc17d025a1AFFDd5F7a44CCDD1BF0524C",
+      "0x7ea06087C63568f1071c6BEA3AeB51e070ec68B9",
+    ]),
     rwaFactories: [] as Address[],
     isPublic: true,
     wellKnownToken: {
       address: "0xe7cd86e13AC4309349F30B3435a9d337750fC82D",
       symbol: "USDT0",
     },
+    tokenPrettyNames: AddressMap.fromRecord<string>({
+      "0x942644106b073e30d72c2c5d7529d5c296ea91ab": "Curve AUSD/USDC/USDT0",
+    }),
     firstBlock: 34650262n,
     gasLimit: 150_000_000n,
   }),
@@ -307,7 +407,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
     {
       ...berachain,
       network: "Berachain",
-      defaultMarketConfigurators: {},
+      defaultMarketConfigurators: new AddressMap<CuratorName>(),
       rwaFactories: [] as Address[],
       isPublic: false,
       blockExplorers: {
@@ -329,7 +429,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
     {
       ...avalanche,
       network: "Avalanche",
-      defaultMarketConfigurators: {},
+      defaultMarketConfigurators: new AddressMap<CuratorName>(),
       rwaFactories: [] as Address[],
       isPublic: false,
       wellKnownToken: {
@@ -344,11 +444,11 @@ export const chains: Record<NetworkType, GearboxChain> = {
     {
       ...bsc,
       network: "BNB",
-      defaultMarketConfigurators: {
+      defaultMarketConfigurators: AddressMap.fromRecord<CuratorName>({
         "0x19037a281025b83fa37e3264b77af523ff87a3a4": "Chaos Labs",
         "0x92dc4ee43e9b207e16fbf3fd1a6933563c0a0d35": "Re7",
-      },
-      testMarketConfigurators: {},
+      }),
+      testMarketConfigurators: new AddressMap<CuratorName>(),
       rwaFactories: [] as Address[],
       isPublic: true,
       wellKnownToken: {
@@ -363,7 +463,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
   WorldChain: defineChain({
     ...worldchain,
     network: "WorldChain",
-    defaultMarketConfigurators: {},
+    defaultMarketConfigurators: new AddressMap<CuratorName>(),
     rwaFactories: [] as Address[],
     isPublic: false,
     wellKnownToken: {
@@ -376,27 +476,34 @@ export const chains: Record<NetworkType, GearboxChain> = {
   Etherlink: defineChain({
     ...etherlink,
     network: "Etherlink",
-    defaultMarketConfigurators: {
+    defaultMarketConfigurators: AddressMap.fromRecord<CuratorName>({
       "0x577424f0e6f50db668cc1bc76babb87e36732291": "Re7",
-    },
-    underlyingAssetTypes: {
+    }),
+    underlyingAssetTypes: AddressMap.fromRecord<AssetType>({
       "0x796Ea11Fa2dD751eD01b53C372fFDB4AAa8f00F9": "Stable", // [USDC]
-    },
+    }),
+    legacyStrategyTargets: AddressMap.fromRecord<Address>({
+      "0xf6f9bb0be5128bf6d02de00bba9c34b132c2c8ee":
+        "0x2247b5a46bb79421a314ab0f0b67ffd11dd37ee4",
+    }),
     rwaFactories: [] as Address[],
     isPublic: true,
     wellKnownToken: {
       address: "0x796Ea11Fa2dD751eD01b53C372fFDB4AAa8f00F9",
       symbol: "USDC",
     },
+    tokenPrettyNames: AddressMap.fromRecord<string>({
+      "0x5d37f9b272ca7cda2a05245b9a503746eefac88f": "Curve mRe7Yield/USDC",
+    }),
     firstBlock: 16672963n,
     gasLimit: 550_000_000n,
   }),
   Hemi: defineChain({
     ...hemi,
     network: "Hemi",
-    defaultMarketConfigurators: {
+    defaultMarketConfigurators: AddressMap.fromRecord<CuratorName>({
       "0xc9961b8a0c763779690577f2c76962c086af2fe3": "Invariant Group",
-    },
+    }),
     rwaFactories: [] as Address[],
     isPublic: true,
     wellKnownToken: {
@@ -414,9 +521,9 @@ export const chains: Record<NetworkType, GearboxChain> = {
   Lisk: defineChain({
     ...lisk,
     network: "Lisk",
-    defaultMarketConfigurators: {
+    defaultMarketConfigurators: AddressMap.fromRecord<CuratorName>({
       "0x25778dbf0e56b7feb8358c4aa2f6f9e19a1c145a": "Re7",
-    },
+    }),
     rwaFactories: [] as Address[],
     isPublic: true,
     wellKnownToken: {
@@ -428,16 +535,23 @@ export const chains: Record<NetworkType, GearboxChain> = {
   Plasma: defineChain({
     ...plasma,
     network: "Plasma",
-    defaultMarketConfigurators: {
+    defaultMarketConfigurators: AddressMap.fromRecord<CuratorName>({
       "0x7a133fbd01736fd076158307c9476cc3877f1af5": "Invariant Group",
       "0x4bce62622be621ce036691de98afcab0e41a77a3": "UltraYield",
       "0xce1cf71a28837daaa7b92d00ca4ef2fd649c2a67": "Hyperithm",
       "0x9655f82b585b11cee8a05576ed8efcf755cec04b": "TelosC",
-    },
-    underlyingAssetTypes: {
+    }),
+    underlyingAssetTypes: AddressMap.fromRecord<AssetType>({
       "0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb": "Stable", // [USDT0]
       "0x5d3a1Ff2b6BAb83b63cd9AD0787074081a52ef34": "Stable", // [USDe]
-    },
+    }),
+    sunsetPools: new AddressSet([
+      "0x76309A9a56309104518847BbA321c261B7B4a43f",
+      "0x4273EEa5ffF61d8ee0C397cCcFCc8cF4B518221f",
+      "0x53E4e9b8766969c43895839CC9c673bb6bC8Ac97",
+      "0xB74760FD26400030620027DD29D19d74D514700e",
+      "0xBa21b2807fcF136F1d61F40341d6Fb8F2535615F",
+    ]),
     rwaFactories: [] as Address[],
     isPublic: true,
     wellKnownToken: {
@@ -462,14 +576,18 @@ export const chains: Record<NetworkType, GearboxChain> = {
     },
     blockTime: 200,
     network: "Somnia",
-    defaultMarketConfigurators: {
+    defaultMarketConfigurators: AddressMap.fromRecord<CuratorName>({
       "0x1ca8b92aa7233a9f8f7ba031ac45c878141adff0": "Invariant Group",
-    },
-    underlyingAssetTypes: {
+    }),
+    underlyingAssetTypes: AddressMap.fromRecord<AssetType>({
       "0x28BEc7E30E6faee657a03e19Bf1128AaD7632A00": "Stable", // [USDC.e]
       "0x046EDe9564A72571df6F5e44d0405360c0f4dCab": "ETH", // [WSOMI]
-    },
+    }),
     rwaFactories: [] as Address[],
+    sunsetPools: new AddressSet([
+      "0xa561d6D554fB3637F590c4D73527fe19525d596b",
+      "0x6f652fbCfC2107ef9C99456311B5650cd52D6419",
+    ]),
     isPublic: true,
     wellKnownToken: {
       address: "0x67B302E35Aef5EEE8c32D934F5856869EF428330",
@@ -574,13 +692,11 @@ export function getCuratorName(
 ): CuratorName | undefined {
   const chainz = network ? [chains[network]] : Object.values(chains);
   for (const c of chainz) {
-    for (const [a, curator] of TypedObjectUtils.entries({
-      ...c.defaultMarketConfigurators,
-      ...c.testMarketConfigurators,
-    })) {
-      if (a.toLowerCase() === marketConfigurator.toLowerCase()) {
-        return curator;
-      }
+    const name =
+      c.defaultMarketConfigurators.get(marketConfigurator) ??
+      c.testMarketConfigurators?.get(marketConfigurator);
+    if (name) {
+      return name;
     }
   }
   return undefined;
@@ -600,10 +716,14 @@ export function findCuratorMarketConfigurator(
 ): Address | undefined {
   const { defaultMarketConfigurators, testMarketConfigurators } =
     chains[network];
-  const all = { ...defaultMarketConfigurators, ...testMarketConfigurators };
-  for (const [a, c] of TypedObjectUtils.entries(all)) {
-    if (c === curator) {
-      return a;
+  for (const [address, name] of defaultMarketConfigurators.entries()) {
+    if (name === curator) {
+      return address;
+    }
+  }
+  for (const [address, name] of testMarketConfigurators?.entries() ?? []) {
+    if (name === curator) {
+      return address;
     }
   }
   return undefined;
@@ -621,16 +741,7 @@ export function getAssetType(
   token: Address,
   network: NetworkType,
 ): AssetType | undefined {
-  const table = chains[network].underlyingAssetTypes;
-  if (!table) {
-    return undefined;
-  }
-  for (const [a, assetType] of TypedObjectUtils.entries(table)) {
-    if (isAddressEqual(a, token)) {
-      return assetType;
-    }
-  }
-  return undefined;
+  return chains[network].underlyingAssetTypes?.get(token);
 }
 
 /**
@@ -641,7 +752,7 @@ export function getAssetType(
  * @param network - Network the token lives on.
  **/
 export function isRWAToken(token: Address, network: NetworkType): boolean {
-  return !!chains[network].rwaTokens?.some(t => isAddressEqual(t, token));
+  return !!chains[network].rwaTokens?.has(token);
 }
 
 /**
@@ -651,7 +762,7 @@ export function isRWAToken(token: Address, network: NetworkType): boolean {
  * @param network - Network the pool lives on.
  **/
 export function isSunsetPool(pool: Address, network: NetworkType): boolean {
-  return !!chains[network].sunsetPools?.some(p => isAddressEqual(p, pool));
+  return !!chains[network].sunsetPools?.has(pool);
 }
 
 /**
@@ -664,7 +775,48 @@ export function isSunsetStrategy(
   creditManager: Address,
   network: NetworkType,
 ): boolean {
-  return !!chains[network].sunsetStrategies?.some(s =>
-    isAddressEqual(s, creditManager),
-  );
+  return !!chains[network].sunsetStrategies?.has(creditManager);
+}
+
+/**
+ * Hardcoded target collateral of a legacy credit manager, or `undefined` when
+ * the manager is not in the table and the on-chain rule should apply.
+ *
+ * @param creditManager - Credit manager address.
+ * @param network - Chain id or {@link NetworkType} label.
+ **/
+export function getLegacyStrategyTarget(
+  creditManager: Address,
+  network: number | bigint | NetworkType,
+): Address | undefined {
+  return getChain(network).legacyStrategyTargets?.get(creditManager);
+}
+
+/**
+ * Hardcoded target collateral of an already-existing credit account, or
+ * `undefined` when the account is not in the table and the credit manager's
+ * target should apply.
+ *
+ * @param creditAccount - Credit account address.
+ * @param network - Chain id or {@link NetworkType} label.
+ **/
+export function getAccountTargetCollateral(
+  creditAccount: Address,
+  network: number | bigint | NetworkType,
+): Address | undefined {
+  return getChain(network).accountTargetCollaterals?.get(creditAccount);
+}
+
+/**
+ * Curated display name of a token, or `undefined` when the token has none and
+ * its ticker symbol should be used instead.
+ *
+ * @param token - Token address.
+ * @param network - Chain id or {@link NetworkType} label.
+ **/
+export function getTokenPrettyName(
+  token: Address,
+  network: number | bigint | NetworkType,
+): string | undefined {
+  return getChain(network).tokenPrettyNames?.get(token);
 }

@@ -205,7 +205,8 @@ export interface StrategyPosition {
    **/
   kind: "strategy";
   /**
-   * Human-readable strategy name, e.g. `"wstETH / WETH"`.
+   * Human-readable strategy name, e.g. `"wstETH / WETH"`. Derived from
+   * {@link targetCollateral}.
    **/
   name: string;
   /**
@@ -221,10 +222,7 @@ export interface StrategyPosition {
    **/
   creditAccount: Address;
   /**
-   * The account's dominant non-underlying collateral at the session's opening
-   * block (greatest opening-block USD value) — the asset the position was
-   * initially leveraged into. `null` when the opening snapshot holds only the
-   * underlying.
+   * Collateral token this position is a strategy in.
    **/
   targetCollateral: Token | null;
   /**

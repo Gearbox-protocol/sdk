@@ -129,20 +129,12 @@ export interface OpportunitiesOffchainBranch {
 
 /**
  * Merge policy of each read, exposed so that a consumer reading the two
- * branches itself combines them exactly as `both` mode would: a chain is served
- * by the backend when it is fresh enough, and by the chain otherwise.
+ * branches itself combines them exactly as `both` mode would.
  **/
 export interface OpportunityMergers {
   list: ListMerger<Opportunity[]>;
   pool: EntityMerger<PoolOpportunityDetail>;
   strategy: EntityMerger<StrategyOpportunityDetail>;
-}
-
-/**
- * Merging, which only exists where there are two sources to merge.
- **/
-export interface OpportunitiesMerged {
-  readonly merge: OpportunityMergers;
 }
 
 /**

@@ -214,17 +214,27 @@ export class PrepareApi
   ): Promise<DataResponse<OpenStrategySimulate>> {
     return this.queryChain({
       network: strategy.chainId,
-      run: sdk =>
-        service(sdk).openStrategyIntent({
+      run: sdk => {
+        const targetToken =
+          params.targetToken ??
+          sdk.marketRegister.findCreditManager(strategy.creditManager)
+            .strategyTargetCollateral;
+        if (!targetToken) {
+          throw new Error(
+            `credit manager ${strategy.creditManager} has no strategy target collateral`,
+          );
+        }
+        return service(sdk).openStrategyIntent({
           sdk,
           creditManager: strategy.creditManager,
           collateral: params.collateral,
-          targetToken: params.targetToken ?? strategy.targetCollateral,
+          targetToken,
           leverage: params.leverage,
           leftoverBalances: params.leftoverBalances,
           slippage: params.slippage,
           quotaReserve: params.quotaReserve,
-        }),
+        });
+      },
     });
   }
 

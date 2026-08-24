@@ -307,7 +307,6 @@ export const poolOpportunityKeySchema = z.object({
 export const strategyOpportunityKeySchema = z.object({
   chainId: chainIdSchema,
   creditManager: ZodAddress(),
-  targetCollateral: ZodAddress(),
 });
 
 /**

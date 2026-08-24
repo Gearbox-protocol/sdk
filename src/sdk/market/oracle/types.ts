@@ -161,6 +161,15 @@ export interface IPriceOracleContract extends IBaseContract {
     reserve?: boolean,
   ) => bigint;
   /**
+   * Like {@link convert}, but returns `null` instead of throwing when either
+   * token cannot be priced (missing or unsuccessful feed).
+   *
+   * @param from - Source token address.
+   * @param to - Destination token address.
+   * @param amount - Amount in source-token decimals.
+   **/
+  safeConvert: (from: Address, to: Address, amount: bigint) => bigint | null;
+  /**
    * Converts a token amount to its USD value using latest known prices.
    *
    * `NATIVE_ADDRESS` is priced through WETH and throws if WETH is not

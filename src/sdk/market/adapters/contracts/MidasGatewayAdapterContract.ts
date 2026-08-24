@@ -1,8 +1,8 @@
 import {
   type Address,
+  type DecodeFunctionDataReturnType,
   decodeAbiParameters,
   decodeFunctionData,
-  type DecodeFunctionDataReturnType,
   type Hex,
   isAddressEqual,
   zeroAddress,
@@ -56,7 +56,7 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
           ],
           args.baseParams.serializedParams,
         );
-  
+
         this.#gateway = decoded[2];
         this.#mToken = decoded[3];
         this.#quoteToken = decoded[4];
@@ -74,7 +74,7 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
           ],
           args.baseParams.serializedParams,
         );
-  
+
         this.#gateway = decoded[2];
         this.#mToken = decoded[3];
         this.#quoteToken = decoded[4];

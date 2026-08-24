@@ -6,7 +6,10 @@ import type {
 } from "../../../model/index.js";
 import type { CreditAccountData, CreditSuiteState } from "../../base/index.js";
 import { SDKConstruct } from "../../base/index.js";
-import { isSunsetStrategy } from "../../chain/chains.js";
+import {
+  getLegacyStrategyTarget,
+  isSunsetStrategy,
+} from "../../chain/chains.js";
 import { MAX_UINT256, PERCENTAGE_FACTOR, RAY } from "../../constants/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import type { IRouterContract } from "../../router/index.js";
@@ -27,11 +30,16 @@ import {
   optimalRepaidAmount,
 } from "../math.js";
 import type { IRWAFactory, RWAOperationArgs } from "../rwa/types.js";
+import { strategyName as formatStrategyName } from "../strategyName.js";
+import {
+  dominantCollateral,
+  isStrategyCollateral,
+  pickStrategyTargetCollateral,
+  type StrategyCollateralProps,
+} from "./collateralUtils.js";
 import createCreditConfigurator from "./createCreditConfigurator.js";
 import createCreditFacade from "./createCreditFacade.js";
 import createCreditManager from "./createCreditManager.js";
-import { mustGetDominantCollateral } from "./dominantCollateral.js";
-import { isStrategyCollateral } from "./isStrategyCollateral.js";
 import type {
   ICreditConfiguratorContract,
   ICreditFacadeContract,
@@ -251,26 +259,40 @@ export class CreditSuite extends SDKConstruct {
     if (this.maxBorrowAmount === 0n) {
       return [];
     }
-    const { pqk, unwrappedUnderlying } = this.market.pool;
-    const { mainPrices } = this.market.priceOracle;
-    const { tokensMeta, creditManager } = this;
 
-    return creditManager.collateralTokens.filter(token => {
-      const meta = tokensMeta.mustGet(token);
-      return isStrategyCollateral({
-        token,
-        underlying: creditManager.underlying,
-        unwrappedUnderlying,
-        liquidationThreshold:
-          creditManager.liquidationThresholds.mustGet(token),
-        contractType: meta.contractType,
-        isExpired: meta.isExpired,
-        // PriceFeedCompressor guarantees price == 0 whenever success == false,
-        // so the success flag needs no separate check
-        mainPrice: mainPrices.get(token)?.price,
-        hasActiveQuota: pqk.hasActiveQuota(token),
-      });
-    });
+    return this.creditManager.collateralTokens.filter(token =>
+      isStrategyCollateral(this.#strategyCollateralProps(token), true),
+    );
+  }
+
+  /**
+   * The single target collateral of this suite's strategy, or `undefined` when
+   * none can be resolved.
+   *
+   * Resolution, in order:
+   * 1. a hardcoded legacy mapping for this credit manager, when that token is
+   *    still a collateral of the manager (it may be absent on an older
+   *    snapshot, or after it was delisted);
+   * 2. the collateral with the biggest index in
+   *    {@link ICreditManagerContract.collateralTokens} that
+   *    {@link isStrategyCollateral} accepts with quota required;
+   * 3. the biggest-index collateral that {@link isStrategyCollateral} accepts
+   *    without quota.
+   */
+  public get strategyTargetCollateral(): Address | undefined {
+    const legacy = getLegacyStrategyTarget(
+      this.creditManager.address,
+      this.chainId,
+    );
+    if (legacy && this.creditManager.liquidationThresholds.has(legacy)) {
+      return legacy;
+    }
+
+    return pickStrategyTargetCollateral(
+      this.creditManager.collateralTokens.map(token =>
+        this.#strategyCollateralProps(token),
+      ),
+    );
   }
 
   /**
@@ -291,23 +313,36 @@ export class CreditSuite extends SDKConstruct {
   }
 
   /**
-   * Display name of a leveraged position built on one collateral token, e.g.
-   * `"wstETH / WETH"`.
-   *
-   * @param collateral - Target collateral of the position.
+   * Display name of this suite's leveraged strategy, e.g. `"wstETH / WETH"`,
+   * or `undefined` when {@link strategyTargetCollateral} cannot be resolved.
    */
-  public strategyName(collateral: Address): string {
-    return `${this.tokensMeta.symbol(collateral)} / ${this.market.underlyingToken.symbol}`;
+  public get strategyName(): string | undefined {
+    const collateral = this.strategyTargetCollateral;
+    if (!collateral) {
+      return undefined;
+    }
+    return formatStrategyName(
+      this.tokensMeta.mustGetToken(collateral),
+      this.market.underlyingToken,
+      this.chainId,
+    );
   }
 
   /**
-   * Describes a leveraged position built on one collateral token as the shared
-   * read model does.
-   *
-   * @param collateral - Target collateral of the position.
-   * @throws If the credit manager does not value the collateral.
+   * Describes this suite's leveraged strategy as the shared read model does,
+   * or `undefined` when {@link strategyTargetCollateral} cannot be resolved or
+   * {@link maxBorrowAmount} is `0`.
    */
-  public strategyOpportunity(collateral: Address): StrategyOpportunity {
+  public strategyOpportunity(): StrategyOpportunity | undefined {
+    if (this.maxBorrowAmount === 0n) {
+      return undefined;
+    }
+
+    const collateral = this.strategyTargetCollateral;
+    if (!collateral) {
+      return undefined;
+    }
+
     const { market, creditManager: cm } = this;
     const { pool } = market.pool;
     const oracle = market.priceOracle;
@@ -322,7 +357,7 @@ export class CreditSuite extends SDKConstruct {
       chainId: this.chainId,
       creditManager: cm.address,
       targetCollateral: this.tokensMeta.mustGetToken(collateral),
-      name: this.strategyName(collateral),
+      name: this.strategyName ?? this.market.underlyingToken.symbol,
       curator: market.curator,
       underlyingToken: market.underlyingToken,
       totalBorrow: oracle.toAmount(pool.underlying, borrowed),
@@ -333,8 +368,7 @@ export class CreditSuite extends SDKConstruct {
       rwa: market.rwa,
       // a pool being wound down takes every strategy borrowing from it with it
       sunset:
-        market.sunset ||
-        isSunsetStrategy(cm.address, this.sdk.networkType),
+        market.sunset || isSunsetStrategy(cm.address, this.sdk.networkType),
       liquidationThreshold,
       liquidationPremium: cm.liquidationPremium,
       liquidationFee: cm.feeLiquidation,
@@ -358,16 +392,18 @@ export class CreditSuite extends SDKConstruct {
 
   /**
    * {@link strategyOpportunity} plus the data only its detail screen needs.
-   *
-   * @param collateral - Target collateral of the position.
    */
-  public strategyOpportunityDetail(
-    collateral: Address,
-  ): StrategyOpportunityDetail {
+  public strategyOpportunityDetail(): StrategyOpportunityDetail | undefined {
+    const opportunity = this.strategyOpportunity();
+    if (!opportunity) {
+      return undefined;
+    }
     return {
-      ...this.strategyOpportunity(collateral),
+      ...opportunity,
       rateCurve: this.market.pool.rateCurve,
-      priceFeeds: this.market.priceFeedSummary(collateral),
+      priceFeeds: this.market.priceFeedSummary(
+        opportunity.targetCollateral.address,
+      ),
     };
   }
 
@@ -412,7 +448,34 @@ export class CreditSuite extends SDKConstruct {
    * https://github.com/Gearbox-protocol/router-v3/blob/main/contracts/liquidation/AbstractLiquidator.sol#L270
    */
   #bestTokenOut(ca: CreditAccountData): Address {
-    return mustGetDominantCollateral(ca, this.market);
+    const collateral = dominantCollateral(ca, this.market);
+    if (!collateral) {
+      throw new Error(
+        `cannot determine tokenOut for partial liquidation of ${this.labelAddress(ca.creditAccount)}: no enabled non-underlying collateral with value`,
+      );
+    }
+    return collateral;
+  }
+
+  /**
+   * Shared inputs of {@link isStrategyCollateral} for one of this suite's
+   * collateral tokens.
+   */
+  #strategyCollateralProps(token: Address): StrategyCollateralProps {
+    const meta = this.tokensMeta.mustGet(token);
+    return {
+      token,
+      underlying: this.creditManager.underlying,
+      unwrappedUnderlying: this.market.pool.unwrappedUnderlying,
+      liquidationThreshold:
+        this.creditManager.liquidationThresholds.mustGet(token),
+      contractType: meta.contractType,
+      isExpired: meta.isExpired,
+      // PriceFeedCompressor guarantees price == 0 whenever success == false,
+      // so the success flag needs no separate check
+      mainPrice: this.market.priceOracle.mainPrices.get(token)?.price,
+      hasActiveQuota: this.market.pool.pqk.hasActiveQuota(token),
+    };
   }
 
   /**

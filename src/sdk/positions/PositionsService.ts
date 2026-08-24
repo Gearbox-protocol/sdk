@@ -4,6 +4,7 @@ import type {
   Bps,
   DelayedReceivedAsset,
   Position,
+  PositionCollateral,
   PositionKind,
   StrategyPosition,
 } from "../../model/index.js";
@@ -15,8 +16,8 @@ import type {
 } from "../accounts/withdrawal-compressor/index.js";
 import type { CreditAccountData } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
+import { getAccountTargetCollateral } from "../chain/chains.js";
 import { DUST_THRESHOLD } from "../constants/index.js";
-import { dominantCollateral } from "../market/index.js";
 import {
   bpsToRay,
   calcBorrowApy,
@@ -29,7 +30,8 @@ import {
   type RateModelParams,
   utilizationAfterLiquidityChange,
 } from "../market/pool/math.js";
-import { AddressMap, hexEq } from "../utils/index.js";
+import { strategyName } from "../market/strategyName.js";
+import { AddressMap } from "../utils/index.js";
 import { calcBorrowRate } from "./calcBorrowRate.js";
 import { calcHealthFactor } from "./calcHealthFactor.js";
 import { calcLiquidationPrice } from "./calcLiquidationPrice.js";
@@ -309,17 +311,9 @@ export class PositionsService extends SDKConstruct {
     // (e.g. USDC instead of dcUSDC); the wrapped underlying converts 1:1
     const token = this.sdk.tokensMeta.mustGetToken(market.unwrappedUnderlying);
     const totalDebtValue = ca.debt + ca.accruedInterest + ca.accruedFees;
-    // current dominant collateral, with delayed-withdrawal phantoms reported
-    // as the asset they redeem into (same convention as LiquidationsService)
-    let collateral = dominantCollateral(ca, market);
-    if (collateral) {
-      const source =
-        this.sdk.withdrawalCompressor?.getWithdrawalSourceToken(collateral);
-      if (source) {
-        // a withdrawal back into the underlying is not a target collateral
-        collateral = hexEq(source, market.underlying) ? undefined : source;
-      }
-    }
+    const target =
+      getAccountTargetCollateral(ca.creditAccount, this.sdk.chainId) ??
+      suite.strategyTargetCollateral;
 
     // healthFactor / leverage / borrowApy / netApy keep their existing
     // sources; only the fields the position does not have natively are filled
@@ -328,24 +322,56 @@ export class PositionsService extends SDKConstruct {
     const timeToLiquidation = this.timeToLiquidation(snapshot);
     const liquidationPrice = this.liquidationPrice(snapshot);
 
+    // compressor totals only cover enabled tokens; after a full repay the
+    // remaining collateral is disabled, so zero-debt totals are summed from
+    // oracle prices over every above-dust balance instead
+    const zeroDebt = ca.debt === 0n;
+    const collaterals: PositionCollateral[] = [];
+    let totalValue = zeroDebt ? 0n : ca.totalValue;
+    let totalValueUSD = zeroDebt ? 0n : ca.totalValueUSD;
+    for (const t of ca.tokens) {
+      if (t.balance <= DUST_THRESHOLD) {
+        continue;
+      }
+      collaterals.push({
+        // phantom tokens are reported as themselves, the asset they
+        // redeem into shows up in `withdrawals`
+        collateral: priceOracle.toTokenAmount(t.token, t.balance),
+        quota: priceOracle.toTokenAmount(market.underlying, t.quota),
+        withdrawals: withdrawals.get(t.token) ?? [],
+      });
+      if (zeroDebt) {
+        const value =
+          priceOracle.safeConvert(t.token, market.underlying, t.balance) || 0n;
+        totalValue += value;
+        const usd = priceOracle.safeConvertToUSD(t.token, t.balance) || 0n;
+        totalValueUSD += usd;
+      }
+    }
+
     return {
       kind: "strategy",
       chainId: this.sdk.chainId,
       creditManager: ca.creditManager,
       creditAccount: ca.creditAccount,
-      name: collateral ? suite.strategyName(collateral) : token.symbol,
-      // the read model asks for the collateral the position was opened into,
-      // which needs its history; the chain can only tell what it holds now
-      targetCollateral: collateral
-        ? this.sdk.tokensMeta.mustGetToken(collateral)
+      name: target
+        ? strategyName(
+            this.sdk.tokensMeta.mustGetToken(target),
+            token,
+            this.sdk.chainId,
+          )
+        : token.symbol,
+      targetCollateral: target
+        ? this.sdk.tokensMeta.mustGetToken(target)
         : null,
-      leverage: calcPositionLeverage(ca.totalValue, totalDebtValue),
+      leverage: calcPositionLeverage(totalValue, totalDebtValue),
       borrowApy: calcBorrowApy(
         pool.baseInterestRate,
         suite.creditManager.feeInterest,
       ),
       // the compressor prices the whole account in one pass, so the USD values
       // of the two totals come from it rather than from a second price lookup
+      // — except zero-debt accounts, whose totals are summed above
       totalDebt: {
         token,
         value: totalDebtValue,
@@ -353,30 +379,14 @@ export class PositionsService extends SDKConstruct {
       },
       totalValue: {
         token,
-        value: ca.totalValue,
-        valueUsd: usdToNumber(ca.totalValueUSD),
+        value: totalValue,
+        valueUsd: usdToNumber(totalValueUSD),
       },
       healthFactor: healthFactorBps(ca.healthFactor),
       borrowRate,
       timeToLiquidation,
       liquidationPrice,
-      collaterals: ca.tokens.flatMap(t => {
-        if (
-          (t.mask & ca.enabledTokensMask) === 0n ||
-          t.balance <= DUST_THRESHOLD
-        ) {
-          return [];
-        }
-        return [
-          {
-            // phantom tokens are reported as themselves, the asset they
-            // redeem into shows up in `withdrawals`
-            collateral: priceOracle.toTokenAmount(t.token, t.balance),
-            quota: priceOracle.toTokenAmount(market.underlying, t.quota),
-            withdrawals: withdrawals.get(t.token) ?? [],
-          },
-        ];
-      }),
+      collaterals,
     };
   }
 

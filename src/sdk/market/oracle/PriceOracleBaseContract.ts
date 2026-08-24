@@ -260,6 +260,24 @@ export abstract class PriceOracleBaseContract<
   }
 
   /**
+   * {@inheritDoc IPriceOracleContract.safeConvert}
+   **/
+  public safeConvert(
+    from: Address,
+    to: Address,
+    amount: bigint,
+  ): bigint | null {
+    try {
+      return this.convert(from, to, amount);
+    } catch (e) {
+      this.logger?.debug(
+        `cannot convert ${this.labelAddress(from)} to ${this.labelAddress(to)}: ${e}`,
+      );
+      return null;
+    }
+  }
+
+  /**
    * {@inheritDoc IPriceOracleContract.safeConvertToUSD}
    **/
   public safeConvertToUSD(token: Address, amount: bigint): bigint | null {
