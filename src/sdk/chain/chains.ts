@@ -248,6 +248,14 @@ export const chains: Record<NetworkType, GearboxChain> = {
         address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
         symbol: "USDC",
       },
+      tokenPrettyNames: AddressMap.fromRecord<string>({
+        "0x924d24c238db7ecae2aa3a19430239ed684bde4a":
+          "Beefy WBTC/cbBTC/hemiBTC",
+        "0x403cc0d2694ec2639101f32b146b90d766461ce9": "Beefy wstETH/tETH",
+        "0x02a4cceed3c400b5ba9fd22ad6ec18d8f7a3d48e": "Beefy ETH+/WETH",
+        "0x31454faa1daa04cacf59a6bd37681da9160d092a": "Beefy rETH/WETH",
+        "0x1a711a5bc48b5c1352c1882fa65dc14b5b9e829d": "Beefy osETH/WETH",
+      }),
       firstBlock: 22358644n,
       gasLimit: 550_000_000n,
     },
@@ -389,6 +397,9 @@ export const chains: Record<NetworkType, GearboxChain> = {
       address: "0xe7cd86e13AC4309349F30B3435a9d337750fC82D",
       symbol: "USDT0",
     },
+    tokenPrettyNames: AddressMap.fromRecord<string>({
+      "0x942644106b073e30d72c2c5d7529d5c296ea91ab": "Curve AUSD/USDC/USDT0",
+    }),
     firstBlock: 34650262n,
     gasLimit: 150_000_000n,
   }),
@@ -481,6 +492,9 @@ export const chains: Record<NetworkType, GearboxChain> = {
       address: "0x796Ea11Fa2dD751eD01b53C372fFDB4AAa8f00F9",
       symbol: "USDC",
     },
+    tokenPrettyNames: AddressMap.fromRecord<string>({
+      "0x5d37f9b272ca7cda2a05245b9a503746eefac88f": "Curve mRe7Yield/USDC",
+    }),
     firstBlock: 16672963n,
     gasLimit: 550_000_000n,
   }),
