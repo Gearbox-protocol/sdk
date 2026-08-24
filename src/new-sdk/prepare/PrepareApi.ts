@@ -353,6 +353,24 @@ export class PrepareApi
   }
 
   /**
+   * {@inheritDoc OpportunitiesPrepare.maxWithdrawCollateral}
+   **/
+  public async maxWithdrawCollateral(
+    position: PositionInput,
+    token: Address,
+  ): Promise<DataResponse<bigint>> {
+    return this.queryChain({
+      network: position.chainId,
+      run: async sdk =>
+        service(sdk).maxWithdrawCollateral({
+          creditAccount: await slice(sdk, position.creditAccount),
+          sdk,
+          token,
+        }),
+    });
+  }
+
+  /**
    * Shared path of the two flows that sell a position asset, and therefore have
    * two routes to offer: one account read, one intent, both routes quoted.
    **/

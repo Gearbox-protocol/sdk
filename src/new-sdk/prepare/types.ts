@@ -511,6 +511,19 @@ export interface OpportunitiesPrepare {
   ): Promise<DataResponse<StrategySimulate>>;
 
   /**
+   * Largest amount of one collateral {@link withdrawCollateral} can move out
+   * while the account stays safely collateralised, in the token's units: the
+   * remaining assets are weighed by their liquidation thresholds (quoted ones
+   * capped by their quotas) and the target keeps covering what the debt still
+   * requires. Zero debt frees the whole balance — the ceiling a
+   * withdraw-collateral form should offer.
+   **/
+  maxWithdrawCollateral(
+    position: PositionInput,
+    token: Address,
+  ): Promise<DataResponse<bigint>>;
+
+  /**
    * The tail of a delayed route: claim the matured withdrawal, then whatever the
    * operation that requested it still owes — repaying debt and paying the wallet
    * out for a withdrawal, repaying alone for a deleveraging, nothing beyond the

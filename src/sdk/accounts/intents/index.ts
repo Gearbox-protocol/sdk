@@ -1,7 +1,9 @@
 import type { Address } from "viem";
+import { MIN_HF_LIMITED } from "../../../common-utils/utils/validation/validate-hf.js";
 import { SDKConstruct } from "../../base/SDKConstruct.js";
 import { assertMarketOperable } from "./guards.js";
 import { maxProportionalWithdrawal } from "./math.js";
+import { maxWithdrawCollateral } from "./maxWithdrawCollateral.js";
 import {
   type OpenStrategyPreview,
   type OpenStrategyProps,
@@ -167,6 +169,28 @@ export class CreditAccountOperationsService extends SDKConstruct {
    */
   maxRepay(props: Pick<StartIntentProps, "creditAccount" | "sdk">): bigint {
     return accountView(props.creditAccount, props.sdk).debt;
+  }
+
+  /**
+   * Largest `WITHDRAW_ASSET` amount of one token the account can take out
+   * while its health factor stays at {@link MIN_HF_LIMITED} plus a basis
+   * point — the ceiling a withdraw-collateral form should offer. Thresholds,
+   * prices and quota activity come from the account's market, valued the way
+   * the facade values a call that pays out; zero debt frees the whole balance.
+   *
+   * @param props - Account slice, the SDK holding its market, and the
+   * collateral to withdraw
+   * @returns Amount in the token's units; `0n` when nothing can leave
+   */
+  maxWithdrawCollateral(
+    props: Pick<StartIntentProps, "creditAccount" | "sdk"> & { token: Address },
+  ): bigint {
+    return maxWithdrawCollateral({
+      ...props,
+      // one basis point of room above the bar `validateHF` holds the account
+      // to, so the answer does not sit exactly on it
+      targetHF: MIN_HF_LIMITED + 2n,
+    });
   }
 
   /**

@@ -105,6 +105,7 @@ debt including accrued interest and fees, `L` total leverage scaled by
 | `debt == 0` or `minDebt ≤ debt ≤ maxDebt`              | every debt move                      | `assertDebtInBand`              |
 | `quota = floor(balanceInUnderlying · LT · (1 + reserve))`, rounded down to a `PERCENTAGE_FACTOR` step, increases capped by `2 · maxDebt` minus quota already bought | closing quota update | `calcQuotaUpdate`, `getQuotasForUpdate` |
 | `HF = Σ min(quotaᵤ, valueᵤ · LT) / debtᵤ`, balances at or below `DUST_THRESHOLD` ignored, `65535` when there is no debt | the collateral guard | `healthFactor` |
+| `A_max`: largest `A` with `HF` at or above `MIN_HF_LIMITED + 2` once `A` of one token leaves — the same `HF` above, at safe prices, solved for that balance | `maxWithdrawCollateral` | `calcMaxWithdrawCollateral` |
 
 Prices come from the market oracle, RWA-aware (a wrapper and its asset convert
 1:1 up to decimals). A call that hands funds over is judged at **safe prices** —

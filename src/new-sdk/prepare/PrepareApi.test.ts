@@ -161,6 +161,22 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     await expect(api.maxRepay(position)).resolves.toMatchObject({ data: DEBT });
   });
 
+  it("maxWithdrawCollateral answers in the token, and withdrawCollateral takes it", async () => {
+    const { api, position } = buildStrategyApi();
+
+    const { data: max } = await api.maxWithdrawCollateral(position, POS);
+    expect(max).toBeGreaterThan(0n);
+    // the ceiling is the account's, not the whole balance it happens to hold
+    expect(max).toBeLessThan(TVL);
+
+    const { data } = await api.withdrawCollateral(position, {
+      token: POS,
+      amount: max,
+      to: WALLET,
+    });
+    if (!data.ok) throw new Error(`simulate refused: ${data.reason}`);
+  });
+
   it("maxWithdraw answers in underlying, and withdrawStrategy takes it", async () => {
     const { api, position } = buildStrategyApi();
 
