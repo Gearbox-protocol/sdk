@@ -243,8 +243,8 @@ type ChainMetadata =
 - **Amended: the borrow side is onchain-capable.** The cost of debt is read straight off the
   contracts with no estimation involved, so these are filled from the chain:
   - `borrowApy` — the pool's `baseInterestRate` scaled by the credit manager's `feeInterest`;
-  - `additionalBorrowApy` — the quota rate scaled to the debt a maximally leveraged position
-    carries;
+  - `quotaRate` — the pool quota keeper rate of the target collateral, scaled by the same
+    `feeInterest`;
   - `RateCurve` — the linear interest rate model's own parameters (`U1`, `U2`, `Rbase`,
     `Rslope*`) evaluated into points, i.e. the model itself rather than a fit to it.
 

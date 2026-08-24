@@ -23,8 +23,8 @@ import { AddressMap } from "../../utils/index.js";
 import type { MarketConfiguratorContract } from "../MarketConfiguratorContract.js";
 import type { MarketSuite } from "../MarketSuite.js";
 import {
-  calcAdditionalBorrowApy,
   calcBorrowApy,
+  calcQuotaRate,
   minSeizedAmount,
   optimalHFForPartialLiquidation,
   optimalRepaidAmount,
@@ -47,6 +47,13 @@ import type {
   LiquidationFees,
   PartialLiquidationParams,
 } from "./types.js";
+
+/**
+ * Amount of underlying seeded into each pool at market creation to protect
+ * from inflation attacks, in raw token units. A suite whose remaining borrow
+ * capacity is at or below this is treated as having nothing left to lend.
+ **/
+const MIN_STRATEGY_BORROW_AMOUNT = 100_000n;
 
 /**
  * SDK aggregate for one credit-manager branch inside a market.
@@ -250,13 +257,10 @@ export class CreditSuite extends SDKConstruct {
   /**
    * Collateral tokens a leveraged position can be built around in this suite,
    * see {@link isStrategyCollateral} for the per-token criteria.
-   *
-   * A suite where no debt can be drawn at all ({@link maxBorrowAmount} is `0`,
-   * e.g. its debt limit is exhausted or zeroed out) offers no strategies,
-   * whatever its collaterals are.
    */
   public get strategyCollaterals(): Address[] {
-    if (this.maxBorrowAmount === 0n) {
+    // The amount seeded into each pool at market creation to protect from inflation attacks
+    if (this.maxBorrowAmount <= MIN_STRATEGY_BORROW_AMOUNT) {
       return [];
     }
 
@@ -331,10 +335,10 @@ export class CreditSuite extends SDKConstruct {
   /**
    * Describes this suite's leveraged strategy as the shared read model does,
    * or `undefined` when {@link strategyTargetCollateral} cannot be resolved or
-   * {@link maxBorrowAmount} is `0`.
+   * {@link maxBorrowAmount} is at or below {@link MIN_STRATEGY_BORROW_AMOUNT}.
    */
   public strategyOpportunity(): StrategyOpportunity | undefined {
-    if (this.maxBorrowAmount === 0n) {
+    if (this.maxBorrowAmount <= MIN_STRATEGY_BORROW_AMOUNT) {
       return undefined;
     }
 
@@ -374,10 +378,9 @@ export class CreditSuite extends SDKConstruct {
       liquidationFee: cm.feeLiquidation,
       expirationDate: this.expirationDate,
       borrowApy: calcBorrowApy(pool.baseInterestRate, cm.feeInterest),
-      additionalBorrowApy: calcAdditionalBorrowApy(
+      quotaRate: calcQuotaRate(
         market.pool.pqk.quotaRate(collateral),
         cm.feeInterest,
-        maxLeverage,
       ),
       availableLiquidity: oracle.toAmount(
         pool.underlying,

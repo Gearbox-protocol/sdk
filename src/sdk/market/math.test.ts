@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { OptimalRepaidAmountProps } from "./math.js";
 import {
-  calcAdditionalBorrowApy,
   calcBorrowApy,
+  calcEffectiveBorrowApy,
   calcMaxLeverage,
+  calcNetStrategyApy,
   calcPositionLeverage,
+  calcQuotaRate,
   calcUtilization,
   minSeizedAmount,
   optimalHFForPartialLiquidation,
@@ -68,8 +70,10 @@ describe("calcMaxLeverage", () => {
     expect(calcMaxLeverage(0)).toBe(1);
   });
 
-  it("is zero when the threshold would allow unbounded leverage", () => {
-    expect(calcMaxLeverage(10_000)).toBe(0);
+  it("throws when the threshold would allow unbounded leverage", () => {
+    expect(() => calcMaxLeverage(10_000)).toThrow(
+      "cannot compute max leverage: liquidation threshold is 100% or more",
+    );
   });
 });
 
@@ -87,18 +91,54 @@ describe("calcPositionLeverage", () => {
   });
 });
 
-describe("calcAdditionalBorrowApy", () => {
-  it("scales the quota rate to the whole quoted position", () => {
-    expect(calcAdditionalBorrowApy(250, 0, 9.5)).toBe(2375);
+describe("calcQuotaRate", () => {
+  it("adds the credit manager's cut to the quoted rate", () => {
+    expect(calcQuotaRate(200, 2500)).toBe(250);
   });
 
-  it("includes the DAO fee on quota interest", () => {
-    expect(calcAdditionalBorrowApy(250, 2500, 9.5)).toBe(2969);
+  it("is the bare quoted rate when the manager takes no fee", () => {
+    expect(calcQuotaRate(200, 0)).toBe(200);
+  });
+});
+
+describe("calcEffectiveBorrowApy", () => {
+  const opportunity = {
+    borrowApy: 520,
+    quotaRate: 90,
+    liquidationThreshold: 9000,
+  };
+
+  it("charges base interest on the debt and quota on the LT-weighted position in safe mode", () => {
+    // 5.2% × 8.5 + 0.9% × (9.5 × 0.9) = 4420 + 769.5 → 5190 bps
+    expect(calcEffectiveBorrowApy(opportunity, 9.5)).toBe(5190);
   });
 
-  it("is zero without a finite positive leverage", () => {
-    expect(calcAdditionalBorrowApy(250, 0, 0)).toBe(0);
-    expect(calcAdditionalBorrowApy(250, 0, Number.POSITIVE_INFINITY)).toBe(0);
+  it("quotes quota equal to the debt in min mode", () => {
+    // 5.2% × 8.5 + 0.9% × 8.5 = 4420 + 765 = 5185 bps
+    expect(calcEffectiveBorrowApy(opportunity, 9.5, "min")).toBe(5185);
+  });
+
+  it("quotes a 5% buffer over the debt in aggressive mode", () => {
+    // 5.2% × 8.5 + 0.9% × (1.05 × 8.5) = 4420 + 803.25 → 5223 bps
+    expect(calcEffectiveBorrowApy(opportunity, 9.5, "aggressive")).toBe(5223);
+  });
+});
+
+describe("calcNetStrategyApy", () => {
+  const opportunity = {
+    borrowApy: 520,
+    quotaRate: 90,
+    liquidationThreshold: 9000,
+  };
+
+  it("is collateral yield on the whole position minus the effective borrow cost", () => {
+    // 9.5 × 8% − 51.90% = 2410 bps
+    expect(calcNetStrategyApy(opportunity, 800, 9.5)).toBe(2410);
+  });
+
+  it("uses the same quota mode as the borrow cost", () => {
+    // 9.5 × 8% − 51.85% = 2415 bps
+    expect(calcNetStrategyApy(opportunity, 800, 9.5, "min")).toBe(2415);
   });
 });
 

@@ -77,7 +77,7 @@ function strategy(
     liquidationFee: 150,
     expirationDate: null,
     borrowApy: 520,
-    additionalBorrowApy: 90,
+    quotaRate: 90,
     availableLiquidity: amount(400n, 400),
     minDebt: amount(1_000n, 1_000),
     totalDebtLimit: amount(50_000n, 50_000),

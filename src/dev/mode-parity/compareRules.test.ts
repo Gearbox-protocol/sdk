@@ -32,10 +32,10 @@ describe("compileCompareRules", () => {
     expect(strategy.get("utilization")).toBe("offchainOnly");
     expect(strategy.get("collateralApy")).toBe("offchainOnly");
     expect(strategy.get("collateralApyAvg7D")).toBe("offchainOnly");
-    expect(strategy.get("maxLeverageApyAvg7D")).toBe("offchainOnly");
     expect(strategy.get("borrowApy")).toEqual({ tolerance: "bps" });
     expect(strategy.get("borrowApyAvg7D")).toBe("offchainOnly");
-    expect(strategy.get("additionalBorrowApyAvg7D")).toBe("offchainOnly");
+    expect(strategy.get("quotaRate")).toEqual({ tolerance: "bps" });
+    expect(strategy.get("quotaRateAvg7D")).toBe("offchainOnly");
   });
 
   it("records position tags, including nested collateral amounts", () => {

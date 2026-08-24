@@ -1,4 +1,4 @@
-import type { Bps, Leverage } from "../../model/index.js";
+import type { Bps, Leverage, StrategyOpportunity } from "../../model/index.js";
 import {
   MAX_UINT256,
   PERCENTAGE_FACTOR,
@@ -96,6 +96,116 @@ export function calcBorrowApy(
 }
 
 /**
+ * Annual quota cost of a collateral, in basis points:
+ * `quotaRate × (1 + feeInterest)` — the quoted rate plus the protocol's cut of
+ * the accrued quota interest, matching {@link calcBorrowApy}.
+ *
+ * @param quotaRate - Pool quota keeper rate in basis points, without the fee.
+ * @param feeInterest - Credit manager interest fee in basis points.
+ *
+ * @example
+ * ```ts
+ * // quotaRate: 200 bps = 2%, feeInterest: 2500 bps = 25%
+ * calcQuotaRate(200, 2500) // 2% × 1.25 = 250 bps = 2.5%
+ * ```
+ **/
+export function calcQuotaRate(quotaRate: Bps, feeInterest: Bps): Bps {
+  return Math.round((quotaRate * (FULL + feeInterest)) / FULL);
+}
+
+/**
+ * Extra quota, as a fraction of equity, that an aggressive position quotes
+ * above the debt it actually owes. Matches {@link MAX_LEVERAGE_BUFFER_BPS}.
+ **/
+export const DEFAULT_QUOTA_BUFFER_BPS = 500;
+
+/**
+ * How much quota a leveraged position quotes, relative to the debt it needs.
+ *
+ * - `"min"` — quota covers exactly the borrowed amount (`leverage − 1`).
+ * - `"safe"` — quota covers the full LT-weighted position (`leverage × LT`),
+ *   so a price drop to the liquidation threshold still leaves enough quota.
+ * - `"aggressive"` — quota covers the debt plus {@link DEFAULT_QUOTA_BUFFER_BPS}.
+ **/
+export type QuotaMode = "min" | "safe" | "aggressive";
+
+/**
+ * Rates {@link calcEffectiveBorrowApy} and {@link calcNetStrategyApy} need
+ * from a {@link StrategyOpportunity}.
+ **/
+export type StrategyRateInputs = Pick<
+  StrategyOpportunity,
+  "borrowApy" | "quotaRate" | "liquidationThreshold"
+>;
+
+/**
+ * Quoted amount per unit of equity at the given leverage and quota mode.
+ * Dimensionless: `1` means the quota equals the user's equity.
+ **/
+function calcQuotaMultiplier(
+  leverage: Leverage,
+  lt: Bps,
+  quotaMode: QuotaMode = "safe",
+): number {
+  switch (quotaMode) {
+    case "min":
+      return leverage - 1;
+    case "safe":
+      return (leverage * lt) / FULL;
+    case "aggressive":
+      return (1 + DEFAULT_QUOTA_BUFFER_BPS / FULL) * (leverage - 1);
+  }
+}
+
+/**
+ * Annual cost of credit on the user's equity, in basis points, at a given
+ * leverage and quota mode: base interest on the borrowed part plus quota
+ * interest on the quoted amount. Both rates already include the protocol's
+ * interest fee.
+ *
+ * @param opportunity - Borrow APY, quota rate, and liquidation threshold.
+ * @param leverage - Total-value leverage, same scale as {@link Leverage}.
+ * @param mode - How much quota the position quotes, see {@link QuotaMode}.
+ **/
+export function calcEffectiveBorrowApy(
+  opportunity: StrategyRateInputs,
+  leverage: Leverage,
+  mode: QuotaMode = "safe",
+): Bps {
+  const { borrowApy, quotaRate, liquidationThreshold } = opportunity;
+  return Math.round(
+    borrowApy * (leverage - 1) +
+      quotaRate * calcQuotaMultiplier(leverage, liquidationThreshold, mode),
+  );
+}
+
+/**
+ * Net yield of a strategy on the user's equity, in basis points, at a given
+ * leverage and quota mode:
+ * `leverage × totalCollateralApy − effectiveBorrowApy`. Collateral yield is
+ * on the whole position; borrow and quota interest are those of
+ * {@link calcEffectiveBorrowApy}.
+ *
+ * @param opportunity - Borrow APY, quota rate, and liquidation threshold.
+ * @param totalCollateralApy - Collateral yield the caller chose, typically
+ * `totalApy` of {@link StrategyOpportunity.collateralApy} or
+ * {@link StrategyOpportunity.collateralApyAvg7D}.
+ * @param leverage - Total-value leverage, same scale as {@link Leverage}.
+ * @param mode - How much quota the position quotes, see {@link QuotaMode}.
+ **/
+export function calcNetStrategyApy(
+  opportunity: StrategyRateInputs,
+  totalCollateralApy: Bps,
+  leverage: Leverage,
+  mode: QuotaMode = "safe",
+): Bps {
+  return Math.round(
+    leverage * totalCollateralApy -
+      calcEffectiveBorrowApy(opportunity, leverage, mode),
+  );
+}
+
+/**
  * 5% safety margin subtracted from 100% in {@link calcMaxLeverage}, so a
  * maxed position opens with HF slightly above 1.
  **/
@@ -113,10 +223,14 @@ export const MAX_LEVERAGE_BUFFER_BPS = 500;
  * // liquidationThreshold: 9000 bps = 90%
  * calcMaxLeverage(9000) // (1 − 0.05) / (1 − 0.9) = 9.5x total exposure
  * ```
+ * @throws If `liquidationThreshold` is 100% or more, which would make
+ * leverage unbounded.
  **/
 export function calcMaxLeverage(liquidationThreshold: Bps): Leverage {
   if (liquidationThreshold >= FULL) {
-    return 0;
+    throw new Error(
+      "cannot compute max leverage: liquidation threshold is 100% or more",
+    );
   }
   const leverage =
     (FULL - MAX_LEVERAGE_BUFFER_BPS) / (FULL - liquidationThreshold);
@@ -169,28 +283,6 @@ export function calcPositionLeverage(
     return 1;
   }
   return Number(totalValue) / Number(equity);
-}
-
-/**
- * Annual quota cost on equity, in basis points:
- * `quotaRate × (1 + feeInterest) × leverage`. Quota accrues on the whole
- * quoted position, and the DAO takes `feeInterest` of it as with base interest.
- *
- * @example
- * ```ts
- * // quotaRate: 200 bps = 2%, feeInterest: 2500 bps = 25%, leverage: 9.5x
- * calcAdditionalBorrowApy(200, 2500, 9.5) // 2% × 1.25 × 9.5 = 2375 bps = 23.75%
- * ```
- **/
-export function calcAdditionalBorrowApy(
-  quotaRate: Bps,
-  feeInterest: Bps,
-  leverage: Leverage,
-): Bps {
-  if (!Number.isFinite(leverage) || leverage <= 0) {
-    return 0;
-  }
-  return Math.round(quotaRate * (1 + feeInterest / FULL) * leverage);
 }
 
 /**
