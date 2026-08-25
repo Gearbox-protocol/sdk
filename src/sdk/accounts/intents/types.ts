@@ -4,6 +4,7 @@ import type {
   Bps,
   DelayedIntent,
   Leverage,
+  TokenAmount,
 } from "../../../model/index.js";
 import type {
   Asset,
@@ -61,8 +62,12 @@ export interface OperationState {
    * as `Position.leverage` reports it — not the calculator's `TVL / collateral`.
    */
   leverage: Leverage;
-  /** Account assets after operation */
-  assets: Asset[];
+  /**
+   * What the account holds after the operation, priced: the same shape the
+   * read model and the transaction previews report holdings in, so a caller
+   * showing them needs no registry or oracle of its own.
+   */
+  assets: TokenAmount[];
   /**
    * Every quota the account stands at after the operation: the ones the plan
    * resized as well as the ones it left alone. Tokens it leaves unquoted are

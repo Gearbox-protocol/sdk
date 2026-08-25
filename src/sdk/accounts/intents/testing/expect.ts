@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 import { expect } from "vitest";
+import type { TokenAmount } from "../../../../model/index.js";
 import type { MultiCall } from "../../../index.js";
 import type { AccountCalculatorOperation } from "../operations.js";
 import type {
@@ -291,9 +292,13 @@ export function expectPreviewError(
   expect(result.reason, "failure reason").toBe(reason);
 }
 
+/** What a priced holdings list says the account holds of `token`. */
 export function assetBalance(
-  assets: Array<{ token: Address; balance: bigint }>,
+  assets: Array<TokenAmount>,
   token: Address,
 ): bigint {
-  return assets.find(a => a.token === token)?.balance ?? 0n;
+  return (
+    assets.find(a => a.token.address.toLowerCase() === token.toLowerCase())
+      ?.value ?? 0n
+  );
 }

@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 import { vi } from "vitest";
+import type { Token, TokenAmount } from "../../../../model/index.js";
 import { MAX_UINT256 } from "../../../constants/index.js";
 import type {
   CreditAccountDataPayload,
@@ -7,6 +8,7 @@ import type {
   MultiCall,
   OnchainSDK,
 } from "../../../index.js";
+import { usdToNumber } from "../../../market/math.js";
 import { PositionsService } from "../../../positions/PositionsService.js";
 import type { CreditAccountSlice } from "../types.js";
 
@@ -245,6 +247,23 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
     return (amount * price) / 10n ** BigInt(decimalsOf(token));
   };
 
+  const safeUsd = (token: Address, amount: bigint): bigint | null => {
+    const from = token.toLowerCase() as Address;
+    const price = args.prices[from] ?? args.prices[token];
+    if (price === undefined) {
+      return null;
+    }
+    return (amount * price) / 10n ** BigInt(decimalsOf(from));
+  };
+
+  const tokenOf = (token: Address): Token => ({
+    chainId: 1,
+    address: token,
+    symbol: "TOKEN",
+    name: "TOKEN",
+    decimals: decimalsOf(token),
+  });
+
   const mainPriceOf = (token: Address): bigint => {
     const key = token.toLowerCase() as Address;
     const price = args.prices[key] ?? args.prices[token];
@@ -270,14 +289,16 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
       mainPrice: mainPriceOf,
       reservePrice: reservePriceOf,
       convertToUSD: _convertToUSD,
-      safeConvertToUSD: (token: Address, amount: bigint) => {
-        const from = token.toLowerCase() as Address;
-        const price = args.prices[from] ?? args.prices[token];
-        if (price === undefined) {
-          return null;
-        }
-        return (amount * price) / 10n ** BigInt(decimalsOf(from));
+      // the read-model mapper the calculator hands its holdings to
+      toTokenAmount: (token: Address, value: bigint): TokenAmount => {
+        const usd = safeUsd(token, value);
+        return {
+          token: tokenOf(token),
+          value,
+          valueUsd: usd === null ? null : usdToNumber(usd),
+        };
       },
+      safeConvertToUSD: safeUsd,
     },
     pool: {
       pqk: {
@@ -539,13 +560,7 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
           ? "PHANTOM_TOKEN::SECURITIZE_RD"
           : undefined,
       }),
-      mustGetToken: (token: Address) => ({
-        chainId: 1,
-        address: token,
-        symbol: "TOKEN",
-        name: "TOKEN",
-        decimals: decimalsOf(token),
-      }),
+      mustGetToken: tokenOf,
       rwaUnderlyings: {
         get: (token: Address) => {
           const asset = args.rwaAssets?.[token.toLowerCase() as Address];

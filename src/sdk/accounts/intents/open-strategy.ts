@@ -1,5 +1,9 @@
 import type { Address } from "viem";
-import type { BorrowRateBreakdown, Bps } from "../../../model/index.js";
+import type {
+  BorrowRateBreakdown,
+  Bps,
+  TokenAmount,
+} from "../../../model/index.js";
 import { LEVERAGE_DECIMALS } from "../../constants/math.js";
 import type { Asset, MultiCall, OnchainSDK } from "../../index.js";
 import type { AccountSnapshot } from "../../positions/types.js";
@@ -77,9 +81,9 @@ export interface OpenStrategyPreview {
   /** Position size — collateral plus debt, in underlying. */
   totalValue: bigint;
   /** Expected post-open balances. */
-  averageAssets: Asset[];
+  averageAssets: TokenAmount[];
   /** Floor post-open balances after slippage. */
-  minAssets: Asset[];
+  minAssets: TokenAmount[];
   /** Quotas to buy against `averageAssets`; feeds `openCA.averageQuota`. */
   averageQuota: Asset[];
   /** Quotas to buy against `minAssets`; feeds `openCA.minQuota`. */
@@ -161,6 +165,9 @@ export async function previewOpenStrategy(
     target: targetToken,
   });
 
+  const priced = ({ token, balance }: Asset): TokenAmount =>
+    market.priceOracle.toTokenAmount(token, balance);
+
   const averageAssets = toAssets(leg.balances);
   const minAssets = toAssets(leg.minBalances);
 
@@ -209,8 +216,8 @@ export async function previewOpenStrategy(
     debt,
     collateral: margin,
     totalValue: margin + debt,
-    averageAssets,
-    minAssets,
+    averageAssets: averageAssets.map(priced),
+    minAssets: minAssets.map(priced),
     averageQuota,
     minQuota,
     calls: [...leg.calls],

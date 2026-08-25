@@ -13,7 +13,11 @@ export function adjustStateToSnapshot(
 ): AccountSnapshot {
   return {
     creditManager,
-    assets: state.assets,
+    // the state prices its holdings; a snapshot names them
+    assets: state.assets.map(a => ({
+      token: a.token.address,
+      balance: a.value,
+    })),
     quotas: Object.values(state.quotas),
     totalDebt: state.accountDebt,
     totalValue: state.totalValue,

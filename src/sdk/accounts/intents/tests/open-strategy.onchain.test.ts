@@ -43,9 +43,12 @@ async function expectCase(c: OpenStrategyCase) {
   expect(preview.collateral).toBe(c.expectedCollateral);
   expect(preview.debt).toBe(c.expectedDebt);
   expect(preview.totalValue).toBe(c.expectedCollateral + c.expectedDebt);
-  expect(preview.averageAssets).toEqual(c.expectedAssets);
+  // the preview prices its holdings; the cases name them
+  const held = (assets: typeof preview.averageAssets) =>
+    assets.map(a => ({ token: a.token.address, balance: a.value }));
+  expect(held(preview.averageAssets)).toEqual(c.expectedAssets);
   // The mock router applies no slippage, so the floor branch matches expected.
-  expect(preview.minAssets).toEqual(c.expectedAssets);
+  expect(held(preview.minAssets)).toEqual(c.expectedAssets);
   expect(preview.calls).toEqual([MOCK_ROUTER_CALL]);
 
   const findOpen = vi.mocked(

@@ -291,7 +291,8 @@ describe("prepare → execute on a mainnet fork", () => {
       const { priceOracle } =
         chain.marketRegister.findByCreditManager(CREDIT_MANAGER);
       const floor = preview.minAssets.reduce(
-        (sum, a) => sum + priceOracle.convert(a.token, underlying, a.balance),
+        (sum, a) =>
+          sum + priceOracle.convert(a.token.address, underlying, a.value),
         0n,
       );
 

@@ -1,4 +1,5 @@
 import type { Address } from "viem";
+import type { TokenAmount } from "../../../model/index.js";
 import type { MultiCall, OnchainSDK } from "../../index.js";
 import { calcPositionLeverage } from "../../market/math.js";
 import type { AccountSnapshot } from "../../positions/types.js";
@@ -446,7 +447,9 @@ export async function realize(
       totalValue,
       accountDebt: debt,
       leverage: calcPositionLeverage(totalValue, debt),
-      assets,
+      assets: assets.map(a =>
+        market.priceOracle.toTokenAmount(a.token, a.balance),
+      ),
       quotas: quotasAfter,
       ...metrics,
     },
