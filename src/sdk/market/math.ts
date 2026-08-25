@@ -225,8 +225,8 @@ export function calcNetStrategyApy(
 export const MAX_LEVERAGE_BUFFER_BPS = 500;
 
 /**
- * Highest total-value leverage a liquidation threshold allows:
- * `(100% − buffer) / (100% − liquidationThreshold)`. At HF = 1, debt is
+ * Highest total-value leverage a liquidation threshold allows, floored:
+ * `floor((100% − buffer) / (100% − liquidationThreshold))`. At HF = 1, debt is
  * `liquidationThreshold × totalValue`, leaving `1 − liquidationThreshold` of
  * equity per unit of exposure; the {@link MAX_LEVERAGE_BUFFER_BPS} buffer
  * keeps the maxed position slightly away from that boundary.
@@ -234,7 +234,7 @@ export const MAX_LEVERAGE_BUFFER_BPS = 500;
  * @example
  * ```ts
  * // liquidationThreshold: 9000 bps = 90%
- * calcMaxLeverage(9000) // (1 − 0.05) / (1 − 0.9) = 9.5x total exposure
+ * calcMaxLeverage(9000) // floor((1 − 0.05) / (1 − 0.9)) = 9x total exposure
  * ```
  * @throws If `liquidationThreshold` is 100% or more, which would make
  * leverage unbounded.
@@ -245,8 +245,9 @@ export function calcMaxLeverage(liquidationThreshold: Bps): Leverage {
       "cannot compute max leverage: liquidation threshold is 100% or more",
     );
   }
-  const leverage =
-    (FULL - MAX_LEVERAGE_BUFFER_BPS) / (FULL - liquidationThreshold);
+  const leverage = Math.floor(
+    (FULL - MAX_LEVERAGE_BUFFER_BPS) / (FULL - liquidationThreshold),
+  );
   return Math.max(leverage, 1);
 }
 
