@@ -44,4 +44,14 @@ export class BigIntMath {
    * @returns A non-positive bigint representation of `a`.
    */
   static neg = (a: bigint) => (a > 0 ? a * -1n : a);
+
+  /**
+   * Divides rounding toward positive infinity.
+   *
+   * @param a - Dividend; must not be negative.
+   * @param b - Divisor; must be positive — zero throws, negative returns
+   * nonsense rather than the ceiling.
+   * @returns The smallest integer that is at least `a / b`.
+   **/
+  static ceilDiv = (a: bigint, b: bigint): bigint => (a + b - 1n) / b;
 }

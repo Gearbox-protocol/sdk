@@ -115,8 +115,8 @@ export function maxWithdrawCollateral(
   // USD is linear in the balance, so what has to stay is the same share of the
   // balance as it is of its value. Both steps round up: a wei too many stays
   // behind rather than being offered.
-  const keptUsd = ceilDiv(shortfall, targetLt);
-  const kept = ceilDiv(target.balance * keptUsd, targetUsd);
+  const keptUsd = BigIntMath.ceilDiv(shortfall, targetLt);
+  const kept = BigIntMath.ceilDiv(target.balance * keptUsd, targetUsd);
 
   return kept >= target.balance ? 0n : target.balance - kept;
 }
@@ -152,8 +152,4 @@ function safeUsd(
   } catch {
     return main;
   }
-}
-
-function ceilDiv(a: bigint, b: bigint): bigint {
-  return (a + b - 1n) / b;
 }

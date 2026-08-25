@@ -1,4 +1,5 @@
 import { LEVERAGE_DECIMALS } from "../../constants/math.js";
+import { BigIntMath } from "../../utils/bigint-math.js";
 import { IntentPreviewError } from "./types.js";
 
 /**
@@ -71,11 +72,9 @@ export function maxProportionalWithdrawal(
     return 0n;
   }
   // floor(D0·W/C0) ≤ R  ⟺  W < C0·(R + 1)/D0
-  const bound = ceilDiv(collateral * (repayable + 1n), debt) - 1n;
+  const bound = BigIntMath.ceilDiv(collateral * (repayable + 1n), debt) - 1n;
   return bound < allButLast ? bound : allButLast;
 }
-
-const ceilDiv = (a: bigint, b: bigint): bigint => (a + b - 1n) / b;
 
 /** Total leverage cannot drop below 1x — that would be negative debt. */
 export function assertLeverageAtLeastOne(leverage: bigint): void {

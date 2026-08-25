@@ -5,10 +5,7 @@ import { describe, expect, it } from "vitest";
 import { chains } from "../chain/chains.js";
 import { SdkRWADataNotLoadedError } from "../core/errors.js";
 import { TokensMeta } from "./TokensMeta.js";
-import {
-  RWA_UNDERLYING_DEFAULT,
-  type TokenMetaData,
-} from "./token-types.js";
+import { RWA_UNDERLYING_DEFAULT, type TokenMetaData } from "./token-types.js";
 
 const BEEFY_WBTC = getAddress("0x924d24c238db7ecae2aa3a19430239ed684bde4a");
 const SOURCE = getAddress("0x7433806912Eae67919e66aea853d46Fa0aef98A8");
