@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 import { describe, expect, it, vi } from "vitest";
+import type { DelayedIntent } from "../../model/index.js";
 import type { MarketSdkExtras } from "../../sdk/accounts/intents/testing/market.js";
 import {
   buildFixtureCreditAccount,
@@ -322,6 +323,19 @@ describe("PrepareApi — the two-transaction route", () => {
     delayed: { [POS]: [{ withdrawalPhantomToken: POS2, claimableAt: 1n }] },
   };
 
+  /** A matured redemption of `POS`, carrying the intent it was requested for. */
+  const claimableOf = (
+    intent: DelayedIntent | undefined,
+  ): ClaimableWithdrawal =>
+    ({
+      token: POS,
+      withdrawalPhantomToken: POS2,
+      withdrawalTokenSpent: 10000000000n,
+      outputs: [{ token: UND, amount: 10000000000n, isDelayed: false }],
+      claimCalls: [],
+      intent,
+    }) as unknown as ClaimableWithdrawal;
+
   it("withdrawStrategy requests the redemption and records the tail", async () => {
     const { api, position } = buildStrategyApi(venue);
 
@@ -344,8 +358,10 @@ describe("PrepareApi — the two-transaction route", () => {
       },
       claimableAt: 1n,
     });
-    // nothing has settled yet, so the debt stands where it was
-    expect(start.preview.accountDebt).toBe(DEBT);
+    // the transaction on offer settles nothing, so the debt stands where it was
+    expect(start.delayed.afterRequest.accountDebt).toBe(DEBT);
+    // the preview is where the withdrawal ends: dD repaid out of the claim
+    expect(start.preview.accountDebt).toBe(DEBT - 10000000000n);
   });
 
   it("adjustLeverage takes the same route down", async () => {
@@ -363,17 +379,33 @@ describe("PrepareApi — the two-transaction route", () => {
     const { api, position } = buildStrategyApi(venue);
 
     const { data } = await api.finalize(position, {
-      claimable: {
-        token: POS,
-        withdrawalPhantomToken: POS2,
-        withdrawalTokenSpent: 10000000000n,
-        outputs: [{ token: UND, amount: 10000000000n, isDelayed: false }],
-        claimCalls: [],
-        intent: { type: "CLOSE_ACCOUNT" },
-      } as unknown as ClaimableWithdrawal,
+      // A withdrawal requested without an intent, or read through a compressor
+      // too old to report one: nothing says what it was part of.
+      claimable: claimableOf(undefined),
     });
 
     expect(data).toEqual({ ok: false, reason: "noRecordedIntent" });
+  });
+
+  it("finalize completes an exit from the claim it recorded", async () => {
+    const { api, position } = buildStrategyApi(venue);
+
+    const { data } = await api.finalize(position, {
+      claimable: claimableOf({ type: "CLOSE_ACCOUNT", to: WALLET }),
+    });
+
+    if (!data.ok) throw new Error(`finalize refused: ${data.reason}`);
+    // Everything left is sold, the loan is settled and the rest handed over.
+    expect(data.preview.accountDebt).toBe(0n);
+    expect(data.preview.totalValue).toBe(0n);
+    expect(data.preview.assets).toEqual([]);
+    expect(data.operations.map(o => o.type)).toEqual([
+      "claimDelayedWithdrawal",
+      "changeQuota",
+      "swap",
+      "decreaseDebt",
+      "withdrawCollateral",
+    ]);
   });
 });
 

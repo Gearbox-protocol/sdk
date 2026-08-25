@@ -441,16 +441,14 @@ function slice(
 
 /**
  * The operation a claim resumes, or `undefined` when there is none to resume:
- * a withdrawal requested without an intent, a compressor too old to report one,
- * or a full close, which the engine no longer previews.
+ * a withdrawal requested without an intent, or one read through a compressor
+ * too old to report it. Every intent the engine records can be finished,
+ * `CLOSE_ACCOUNT` included.
  **/
 function resumable(
   intent: DelayedIntentExtended | ResumableIntent | undefined,
 ): ResumableIntent | undefined {
-  if (!intent || intent.type === "CLOSE_ACCOUNT") {
-    return undefined;
-  }
-  return intent;
+  return intent ?? undefined;
 }
 
 /**

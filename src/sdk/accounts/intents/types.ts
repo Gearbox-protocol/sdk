@@ -90,7 +90,11 @@ export type PreviewErrorReason =
   | "insufficientSourceBalance"
   /** Input token is not accepted by the flow (e.g. deposit of a non-underlying). */
   | "unsupportedCollateralToken"
-  /** No pool route between the requested pair, or several and none was picked. */
+  /**
+   * No route for the trade the plan needs: no pool pair between the tokens
+   * requested, several and none was picked, or the pathfinder itself found no
+   * path for the amounts involved.
+   */
   | "unsupportedTokenPair"
   /**
    * The intent cannot settle with a delay: the source has no redemption config,
@@ -102,9 +106,8 @@ export type PreviewErrorReason =
   /** A redemption of the same asset is already in flight. */
   | "withdrawalInProgress"
   /**
-   * The claim names no operation to resume: requested without an intent, read
-   * through a compressor too old to report one, or a full close, which the
-   * engine no longer previews.
+   * The claim names no operation to resume: requested without an intent, or
+   * read through a compressor too old to report one.
    */
   | "noRecordedIntent"
   /** The facade or the pool behind it is paused: nothing can be done at all. */
@@ -156,11 +159,42 @@ export interface DelayedStart {
    * instead, which settles all of it in one transaction.
    */
   settlement: "instant" | "delayed";
+  /**
+   * What the claim is expected to credit the account with once the redemption
+   * matures: the venue's payout token and the amount the request queued.
+   * `undefined` when the request settled on the spot and nothing is coming.
+   *
+   * An estimate, not a quote — the issuer prices the redemption when it pays
+   * out, and the state the intent is previewed against was read now.
+   */
+  claim: { token: Address; amount: bigint } | undefined;
+  /**
+   * The account as the request transaction alone leaves it: the source spent,
+   * the phantom of the in-flight redemption in its place, the debt untouched.
+   *
+   * This is the state the facade judges when the transaction lands, so it is
+   * the one the engine's guards are applied to — while the `preview` beside it
+   * is where the intent ends up, tail included, which is what a caller asking
+   * "what does this do to my position" means.
+   */
+  afterRequest: OperationState;
 }
 
 /**
  * What the leading half of a delayed intent yields: the request transaction,
  * plus what it recorded for the tail.
+ *
+ * `operations` and `calls` are the request and nothing else — that is the only
+ * transaction there is to send now. `preview`, though, is where the intent
+ * ends: the state the account reaches once the redemption matures, is claimed
+ * and the tail runs, since that is what the caller asked for when they asked
+ * to withdraw. The half-way state the request itself lands in is
+ * {@link DelayedStart.afterRequest}, and both are validated before either is
+ * reported.
+ *
+ * The tail is projected from oracle prices rather than from a route — the funds
+ * it trades do not exist yet — so its half of the numbers is an estimate. What
+ * the transaction on offer does is not.
  */
 export type DelayedStartResult =
   | {
@@ -435,12 +469,13 @@ export type StartIntent =
 export type DelayableIntent = AdjustLeverageIntent | WithdrawStrategyIntent;
 
 /**
- * A delayed intent this engine knows how to finish.
+ * A delayed intent this engine knows how to finish — every one of them.
  *
- * `CLOSE_ACCOUNT` is absent on purpose: closing goes through the facade's own
- * entry point, which this engine no longer builds.
+ * `CLOSE_ACCOUNT` included: an exit is a plain multicall like any other
+ * operation here (sell everything, settle the loan, hand the rest over), not
+ * the facade's own close entry point, so the engine can build its tail too.
  */
-export type ResumableIntent = Exclude<DelayedIntent, { type: "CLOSE_ACCOUNT" }>;
+export type ResumableIntent = DelayedIntent;
 
 /** Shared inputs plus the matured withdrawal the tail is built around. */
 export type FinishIntentProps = StartIntentProps & {

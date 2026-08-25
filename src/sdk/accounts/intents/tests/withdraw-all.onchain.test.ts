@@ -1,3 +1,4 @@
+import type { Address } from "viem";
 import { describe, expect, it } from "vitest";
 import { MAX_UINT256, MIN_INT96 } from "../../../constants/math.js";
 import type { OnchainSDK } from "../../../index.js";
@@ -8,6 +9,7 @@ import {
   withOnchainOpCalls,
 } from "../testing/expect.js";
 import {
+  ANY,
   buildFixtureCreditAccount,
   buildMarketSdk,
   caToken,
@@ -20,6 +22,7 @@ import {
 import {
   CA_OP_CALLS,
   MOCK_CLOSE_CALL,
+  MOCK_REQUEST_CALL,
   MOCK_RWA_UNWRAP_CALL,
 } from "../testing/sdk-mock.js";
 import type { IntentPreviewResult } from "../types.js";
@@ -272,28 +275,72 @@ describe("withdraw.start — everything out, account left open", () => {
     );
   });
 
-  it("cannot be started as a redemption: the tail has no payout to record", async () => {
-    const sdk = buildMarketSdk({
-      delayed: { [POS]: [{ withdrawalPhantomToken: POS2 }] },
-    });
-    const result = await new CreditAccountOperationsService(
-      sdk,
-    ).startDelayedIntent({
-      intent: {
-        type: "WITHDRAW",
-        amount: MAX_UINT256,
-        to: WALLET,
-        sourceToken: POS,
-      },
-      creditAccount: buildFixtureCreditAccount({
-        accountDebt: DEBT_BEFORE,
-        tokens: [caToken(POS, TVL_BEFORE, QUOTA_BEFORE)],
-      }),
-      sdk,
-      quotaReserve: undefined,
-      slippage: undefined,
-    });
+  it("can be started as a redemption: the whole source, nothing named", async () => {
+    // The account's only asset redeems through its issuer, so the router has
+    // nothing to sell — the exit has to begin as a request. It takes all of
+    // POS and writes down only where the leftovers go; there is no payout to
+    // record, because at claim time the exit is rebuilt from the account.
+    const result = await runDelayed();
 
-    expectPreviewError(result, "noDelayedRoute");
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      throw new Error("expected ok delayed preview");
+    }
+    // The request and the quota that follows the value into the phantom: the
+    // exit itself is not part of this transaction.
+    expect(result.operations).toHaveLength(2);
+    expect(result.operations[0]).toMatchObject({
+      type: "startDelayedWithdrawal",
+      token: POS,
+      amountIn: TVL_BEFORE,
+      settlement: "delayed",
+    });
+    expect(result.operations[1]).toMatchObject({ type: "changeQuota" });
+    expect(result.delayed.record).toEqual({
+      type: "CLOSE_ACCOUNT",
+      to: WALLET,
+    });
+    expect(result.calls).toEqual([MOCK_REQUEST_CALL, CA_OP_CALLS.changeQuota]);
+
+    // The request alone settles nothing: the position sits in the phantom and
+    // the loan still stands.
+    expect(result.delayed.afterRequest.accountDebt).toBe(DEBT_BEFORE);
+    expect(result.delayed.afterRequest.totalValue).toBe(TVL_BEFORE);
+    // Where it ends is the same place the instant exit reaches: sold, settled,
+    // handed over, the account empty and owing nothing.
+    expect(result.preview.accountDebt).toBe(0n);
+    expect(result.preview.totalValue).toBe(0n);
+    expect(result.preview.assets).toEqual([]);
+    expect(result.preview.quotas).toEqual({});
+  });
+
+  it("refuses the redemption of a source the account does not hold", async () => {
+    expectPreviewError(await runDelayed(ANY), "insufficientSourceBalance");
   });
 });
+
+/**
+ * The exit asked for as a redemption. `POS` is the account's whole position and
+ * redeems through its issuer; `POS2` stands in for the withdrawal phantom, 1:1
+ * with `POS` so the value in flight is unchanged by the request.
+ */
+function runDelayed(sourceToken: Address = POS) {
+  const sdk = buildMarketSdk({
+    delayed: { [POS]: [{ withdrawalPhantomToken: POS2 }] },
+  });
+  return new CreditAccountOperationsService(sdk).startDelayedIntent({
+    intent: {
+      type: "WITHDRAW",
+      amount: MAX_UINT256,
+      to: WALLET,
+      sourceToken,
+    },
+    creditAccount: buildFixtureCreditAccount({
+      accountDebt: DEBT_BEFORE,
+      tokens: [caToken(POS, TVL_BEFORE, QUOTA_BEFORE)],
+    }),
+    sdk,
+    quotaReserve: undefined,
+    slippage: undefined,
+  });
+}

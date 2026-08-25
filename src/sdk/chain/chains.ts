@@ -82,8 +82,8 @@ export interface GearboxChain extends Chain {
    **/
   accountTargetCollaterals?: AddressMap<Address>;
   /**
-   * Display names for tokens whose ticker is not what a strategy row should
-   * show, e.g. a Pendle PT symbol rewritten as `"PT-sUSDe"`.
+   * Display names that replace the on-chain ticker in {@link TokensMeta},
+   * e.g. a Beefy vault rewritten as `"Beefy WBTC/cbBTC/hemiBTC"`.
    **/
   tokenPrettyNames?: AddressMap<string>;
   /**
@@ -240,8 +240,13 @@ export const chains: Record<NetworkType, GearboxChain> = {
         "0xd98e31C67c7C21f233C37c9AC9Ae656dcb0d5d25",
       ]),
       sunsetStrategies: new AddressSet([
-        "0x9fF97B167Dd442bd5f277098bf1154C5807D3566",
+        "0x1840056a2bdbe949e017a3716e3fdd4a0d327bf0",
         "0x187C5022002d45107dB72B0b59E72111f69Bd513",
+        "0x9fF97B167Dd442bd5f277098bf1154C5807D3566",
+        "0xa4c644f3180d10cd3b2121d455a2a88e1bda2928",
+        "0xb79d6544839d169869476589d2e54014a074317b",
+        "0xc307a074bd5aec2d6ad1d9b74465c24a59b490fd",
+        "0xf5edc34204e67e592bdcb84114571c9e4bd0bdf7",
       ]),
       isPublic: true,
       wellKnownToken: {
@@ -805,18 +810,4 @@ export function getAccountTargetCollateral(
   network: number | bigint | NetworkType,
 ): Address | undefined {
   return getChain(network).accountTargetCollaterals?.get(creditAccount);
-}
-
-/**
- * Curated display name of a token, or `undefined` when the token has none and
- * its ticker symbol should be used instead.
- *
- * @param token - Token address.
- * @param network - Chain id or {@link NetworkType} label.
- **/
-export function getTokenPrettyName(
-  token: Address,
-  network: number | bigint | NetworkType,
-): string | undefined {
-  return getChain(network).tokenPrettyNames?.get(token);
 }

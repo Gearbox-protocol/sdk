@@ -360,6 +360,7 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
     },
     market,
     isPaused: facadePaused || poolPaused,
+    forbiddenTokens: [...forbidden] as Address[],
     strategyTargetCollateral:
       args.strategyTargetCollateral ??
       collateralTokens.find(t => t !== args.underlying.toLowerCase()),

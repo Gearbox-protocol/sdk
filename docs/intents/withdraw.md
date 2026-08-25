@@ -146,6 +146,12 @@ Why the sentinels rather than the quoted amounts:
 `tokenOut` and `sourceToken` are ignored by an exit: everything is sold, and the
 payout is whatever the route produced.
 
+An exit has a delayed route too, and for a position that only redeems through
+its issuer it is the only one — no route exists for the whole account, so this
+plan cannot be quoted at all. The request redeems `sourceToken` whole and
+records `CLOSE_ACCOUNT`; `prepare.finalize` then runs this same plan against the
+account the claim finds, see [delayed.md](./delayed.md).
+
 Balances at or below 10 wei are left where they are — the router's close path
 will not route them, and projecting them as sold would make the swept amounts
 disagree with reality.

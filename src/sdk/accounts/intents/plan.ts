@@ -311,7 +311,8 @@ export function planWithdraw(
  *
  * The tail is planned at claim time by {@link planFinishWithdraw}, from the
  * intent this request records — only then is the claimed amount, and the token
- * it arrived in, known.
+ * it arrived in, known. An exit records {@link planFinishCloseAccount}'s intent
+ * instead, and rebuilds itself from the account rather than from the request.
  */
 export function planWithdrawDelayed(
   intent: Omit<WithdrawStrategyIntent, "type">,
@@ -319,14 +320,28 @@ export function planWithdrawDelayed(
 ): Step[] {
   const { U, T, S, WU, dD, all } = withdrawShape(intent, view);
 
-  // An exit has no fixed payout to record, and the tail is planned from what
-  // the request wrote down — so the account leaves through the router or waits
-  // for the redemption to land and exits then.
+  // An exit names no payout, so the request has none to record: it redeems the
+  // whole source and writes down only where the leftovers go. The tail derives
+  // the exit from the account as it stands when the claim lands, which is the
+  // only honest reading of "sell all of it" days in advance — the debt will
+  // have grown by then, and the balances are whatever the claim brought.
   if (all) {
-    throw new IntentPreviewError(
-      "noDelayedRoute",
-      "withdraw: taking the whole net value cannot be started as a redemption",
-    );
+    const held = view.balanceOf(S);
+    if (held <= 0n) {
+      throw new IntentPreviewError(
+        "insufficientSourceBalance",
+        `withdraw: account holds no ${S} to redeem`,
+      );
+    }
+    return [
+      {
+        kind: "request",
+        token: S,
+        amount: held,
+        reserve: 0n,
+        record: { type: "CLOSE_ACCOUNT", to: intent.to },
+      },
+    ];
   }
 
   // The tail pays out in the underlying, or in the RWA asset it unwraps to;
@@ -484,6 +499,45 @@ export function planFinishWithdraw(
     repay({ raised: true, max: intent.debtRepaid }),
     convert(claimed.token, T, reserved),
     ...payout(view, T, { raised: true, max: W }, intent.to),
+  ];
+}
+
+/**
+ * The tail of an exit: the claim lands, everything the account holds is sold
+ * into the underlying, the loan is settled out of the proceeds and the rest
+ * goes to the wallet. The account survives it, empty and owing nothing.
+ *
+ * Nothing is quoted from the request — the same shape {@link planWithdraw}
+ * builds for an instant exit is rebuilt here against the account as it stands
+ * now, which is the only state that can name these amounts.
+ */
+export function planFinishCloseAccount(
+  intent: { to: Address },
+  claimable: ClaimableWithdrawal,
+  claimed: { token: Address; amount: bigint },
+  view: AccountView,
+): Step[] {
+  // The claim of an RWA redemption pays out the market's raw asset, which the
+  // loan is not denominated in — so that one leg is named, and everything else
+  // is left to the single route `closeAll` builds.
+  const wrap =
+    view.rwaAsset && eq(claimed.token, view.rwaAsset)
+      ? [
+          convert(
+            claimed.token,
+            view.underlying,
+            view.balanceOf(claimed.token) + claimed.amount,
+          ),
+        ]
+      : [];
+
+  return [
+    claim(claimable),
+    ...wrap,
+    clearQuotas(),
+    { kind: "closeAll" },
+    ...(view.debt > 0n ? [repay(view.debt)] : []),
+    { kind: "sweep", to: intent.to },
   ];
 }
 

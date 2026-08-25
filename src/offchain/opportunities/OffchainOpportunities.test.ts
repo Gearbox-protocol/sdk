@@ -96,14 +96,18 @@ describe("a chart request names its subject, its metrics and its window", () => 
   it("asks for several metrics of one subject in one request", async () => {
     // one read, one grid: the alignment the bundle promises is only meaningful
     // if the series were produced together
-    answerWithBundle(["netApy", "borrowApy"], "1y");
+    answerWithBundle(["quotaRate", "borrowApyAvg7d"], "1y");
 
-    await opportunities().getCharts(strategy, ["netApy", "borrowApy"], "1y");
+    await opportunities().getCharts(
+      strategy,
+      ["quotaRate", "borrowApyAvg7d"],
+      "1y",
+    );
 
     expect(requestedPath()).toBe(
       `/v2/opportunities/strategies/${MAINNET}/${strategy.creditManager}/charts`,
     );
-    expect(requested().get("metrics")).toBe("netApy,borrowApy");
+    expect(requested().get("metrics")).toBe("quotaRate,borrowApyAvg7d");
     expect(requested().get("range")).toBe("1y");
   });
 

@@ -14,6 +14,7 @@ import { isFilterSet, matchesOpportunityFilter } from "../../model/index.js";
 import type { MarketData } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
 import { isRWAToken, isSunsetPool } from "../chain/chains.js";
+import { PERCENTAGE_FACTOR } from "../constants/math.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
 import type { MarketStateHuman } from "../types/index.js";
 import { AddressMap } from "../utils/index.js";
@@ -206,14 +207,28 @@ export class MarketSuite extends SDKConstruct {
   public quotaAssets(): QuotaAsset[] {
     const oracle = this.priceOracle;
     const { underlying } = this;
+    const quotas = this.pool.pqk.quotas.entries();
+    const sumUsed = quotas.reduce(
+      (sum, [, quota]) => sum + quota.totalQuoted,
+      0n,
+    );
+    const { totalBorrowed } = this.pool.pool;
 
-    return this.pool.pqk.quotas.entries().map(([token, quota]) => ({
+    return quotas.map(([token, quota]) => ({
       token: this.tokensMeta.mustGetToken(token),
       quotaRate: quota.rate,
       // quota limits are denominated in the market's underlying, not in the
       // quoted token itself
       limit: oracle.toAmount(underlying, quota.limit),
       used: oracle.toAmount(underlying, quota.totalQuoted),
+      allocationShare:
+        sumUsed === 0n
+          ? 0
+          : Number((quota.totalQuoted * PERCENTAGE_FACTOR) / sumUsed),
+      allocatedDebt: oracle.toAmount(
+        underlying,
+        sumUsed === 0n ? 0n : (totalBorrowed * quota.totalQuoted) / sumUsed,
+      ),
     }));
   }
 
@@ -284,6 +299,7 @@ export class MarketSuite extends SDKConstruct {
       paused: pool.isPaused,
       rwa: this.rwa,
       sunset: this.sunset,
+      quotaAssets: this.quotaAssets(),
     };
   }
 
@@ -294,7 +310,6 @@ export class MarketSuite extends SDKConstruct {
     return {
       ...this.poolOpportunity(),
       rateCurve: this.pool.rateCurve,
-      quotaAssets: this.quotaAssets(),
     };
   }
 

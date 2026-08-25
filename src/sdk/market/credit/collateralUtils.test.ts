@@ -3,12 +3,12 @@ import { getAddress } from "viem";
 import { describe, expect, it } from "vitest";
 
 import {
+  NON_STRATEGY_PHANTOM_TOKEN_TYPES,
   RWA_UNDERLYING_DEFAULT,
   RWA_UNDERLYING_ON_DEMAND,
 } from "../../base/token-types.js";
 import {
   isStrategyCollateral,
-  NON_STRATEGY_PHANTOM_TOKEN_TYPES,
   pickStrategyTargetCollateral,
   type StrategyCollateralProps,
 } from "./collateralUtils.js";

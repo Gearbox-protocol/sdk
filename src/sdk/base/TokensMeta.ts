@@ -43,6 +43,25 @@ export interface FormatBNOptions {
 }
 
 /**
+ * Source, target, and phantom token of a delayed redemption, used to rewrite
+ * the phantom's display symbol as `"source -> target"`.
+ **/
+export interface RedemptionPhantomRename {
+  /**
+   * Redemption phantom token whose symbol is rewritten.
+   **/
+  phantom: Address;
+  /**
+   * Token being redeemed (e.g. mGLOBAL, ACRED).
+   **/
+  source: Address;
+  /**
+   * Token received when the redemption is claimed (e.g. USDC).
+   **/
+  target: Address;
+}
+
+/**
  * Serializable snapshot of the token metadata registry.
  **/
 export interface TokensMetaState {
@@ -98,11 +117,21 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
         ...v,
       };
     }
+    if (v) {
+      const pretty = this.#prettyName(address);
+      if (pretty) {
+        v = { ...v, symbol: pretty };
+      }
+    }
     super.upsert(address, v);
   }
 
   /**
-   * Returns the symbol string for a token.
+   * Returns the display symbol for a token.
+   *
+   * This is not always the on-chain ERC-20 `symbol()`: curated pretty names
+   * and redemption phantom tokens (`"source -> target"`) replace it.
+   *
    * @param token - Token address.
    * @throws If the token is not in the registry.
    */
@@ -224,12 +253,39 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
     return meta.asset;
   }
 
+  /**
+   * Rewrites display symbols of redemption phantom tokens to
+   * `"${source} -> ${target}"`.
+   *
+   * @param renames - Phantom / source / target address triples.
+   **/
+  public renameRedemptionPhantoms(renames: RedemptionPhantomRename[]): void {
+    for (const { phantom, source, target } of renames) {
+      const meta = this.get(phantom);
+      if (!meta || !this.has(source) || !this.has(target)) {
+        continue;
+      }
+      this.upsert(phantom, {
+        ...meta,
+        symbol: `${this.symbol(source)} -> ${this.symbol(target)}`,
+      });
+    }
+  }
+
   get #networkType(): NetworkType {
     const { chain } = this.#client;
     if ("network" in chain) {
       return (chain as GearboxChain).network;
     }
     throw new Error(`chain ${chain.id} is not a Gearbox SDK chain`);
+  }
+
+  #prettyName(token: string): string | undefined {
+    const { chain } = this.#client;
+    if (!("network" in chain)) {
+      return undefined;
+    }
+    return (chain as GearboxChain).tokenPrettyNames?.get(token);
   }
 
   /**

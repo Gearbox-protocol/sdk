@@ -10,7 +10,8 @@ between: the request writes the operation into the withdrawal's `extraData`, and
 reading the claimable decodes it back.
 
 - the request half → `planWithdrawDelayed` / `planAdjustLeverageDelayed`
-- `prepare.finalize` → `planFinishWithdraw` / `planFinishDecreaseLeverage` / `planFinishClaimOnly`
+- `prepare.finalize` → `planFinishWithdraw` / `planFinishDecreaseLeverage` /
+  `planFinishCloseAccount` / `planFinishClaimOnly`
 
 There is no separate entry point for the request: `prepare.withdrawStrategy` and
 `prepare.adjustLeverage` quote this route alongside the instant one, in the
@@ -29,7 +30,27 @@ flowchart LR
 
 While the phantom balance sits on the account it is neither sellable nor
 withdrawable, so a second request for the same asset is refused
-(`withdrawalInProgress`), and so is an exit.
+(`withdrawalInProgress`), and so is an instant exit.
+
+## What the preview reports
+
+The request is half an operation, so the state it lands in is not an answer to
+"what does this do to my position": the debt still stands, nothing has been paid
+out, and the position sits in the phantom token. So `preview` is the far side —
+the account once the redemption has matured, been claimed and the tail has run —
+which is the same place the instant route reaches in one transaction, and what
+makes the two routes comparable at all.
+
+The half-way state is still reported, as `delayed.afterRequest`: that is what
+the facade judges when the transaction lands, so it is the one the engine's
+guards are applied to. Both are validated, so a request whose tail could not be
+completed is refused rather than started.
+
+The tail is walked by the same realiser as everything else (`realize`), with one
+substitution: routed legs are priced by the oracle instead of the pathfinder,
+because the funds they trade do not exist yet and no calldata is being produced.
+Its half of the numbers is therefore an estimate; `operations` and `calls` are
+the request alone, and those are exact.
 
 ## Leading half: withdraw
 
@@ -48,11 +69,11 @@ flowchart TD
   cfg{"exactly one redemption venue for S?"}
   ph{"phantom balance already held?"}
   holds{"account holds amount + reserve of S?"}
-  op["startDelayedWithdrawal + record<br/>WITHDRAW_COLLATERAL: to, T, W, S, dD"]
+  op["startDelayedWithdrawal + record<br/>WITHDRAW_COLLATERAL: to, T, W, S, dD<br/>(CLOSE_ACCOUNT: to, for the exit)"]
   out["delayed: claimableAt, settlement"]
 
   in --> shape --> all
-  all -->|"yes"| e1["noDelayedRoute<br/>an exit records no fixed payout"]
+  all -->|"yes"| ex["request(S, balance(S)), reserve = 0<br/>record CLOSE_ACCOUNT: to<br/>the whole position is redeemed, nothing else is named"] --> cfg
   all --> pay
   pay -->|"no"| e2["noDelayedRoute<br/>the tail cannot pay out in T"]
   pay --> src
@@ -104,21 +125,26 @@ flowchart TD
   rec{"which operation was recorded?"}
   w["WITHDRAW_COLLATERAL"]
   d["DECREASE_LEVERAGE"]
+  x["CLOSE_ACCOUNT"]
   c["ADD_COLLATERAL / INCREASE_LEVERAGE<br/>DEPOSIT / DEPOSIT_AND_INCREASE_LEVERAGE"]
   n["nothing recorded"]
 
   in --> rec
   rec --> w
   rec --> d
+  rec --> x
   rec --> c
   rec --> n
   n --> e1["noRecordedIntent"]
   w --> wq{"claim credits something now?"}
   d --> dq{"claim credits something now?"}
+  x --> xq{"claim credits something now?"}
   wq -->|"no"| e2["insufficientSourceBalance"]
   dq -->|"no"| e2
+  xq -->|"no"| e2
   wq --> wp["planFinishWithdraw: four shapes"]
   dq --> dp["claim, convert(claimed → U, all), repay(raised)"]
+  xq --> xp["planFinishCloseAccount: the instant exit, over again"]
   c --> cp["claim only — the tokens land, quotas catch up"]
 ```
 
@@ -158,6 +184,27 @@ flowchart LR
 Everything claimed goes into the debt: the request only ever asked for the
 shortfall, so there is nothing to hand back.
 
+### `CLOSE_ACCOUNT`
+
+The leading half redeemed the position and could name nothing else: how much the
+redemption pays, what the debt has grown to and what else is on the account by
+then are all unknowable days in advance. So this half is the
+[instant exit](./withdraw.md) over again, run against the account the claim
+finds.
+
+```mermaid
+flowchart TD
+  a["claimDelayedWithdrawal"] --> w{"claim paid the RWA asset?"}
+  w -->|"yes"| b["wrap claimed → U, all of it"] --> q
+  w --> q["updateQuota(each, −) — the loan is going to zero"]
+  q --> r["closeAll: everything left → U in one many-to-one route<br/>(skipped when the claim was all there was)"]
+  r --> d["decreaseDebt(debt) — skipped on an account that owes nothing"]
+  d --> s["sweep: every balance left → to, unwrapped to the RWA asset on an RWA market"]
+```
+
+This is what lets a position that only redeems through its issuer leave at all:
+the instant exit needs a route for the whole account, and there is none.
+
 ### Claim only
 
 ```mermaid
@@ -172,7 +219,8 @@ account and only their quota has to catch up.
 ## Notes
 
 - The tail is planned at claim time, not stored: only then are the claimed amount
-  and the token it arrived in known.
+  and the token it arrived in known. The projection behind `preview` plans the
+  same tail from the claim the request implies, so the two cannot drift apart.
 - `intent` can be passed explicitly for a compressor too old to report what the
   request recorded.
 - Requests and claims carry calldata the compressor produces; the intent engine
@@ -180,4 +228,5 @@ account and only their quota has to catch up.
 - Tests: [`start-delayed.onchain.test.ts`](../../src/sdk/accounts/intents/tests/start-delayed.onchain.test.ts),
   [`finish-withdraw.onchain.test.ts`](../../src/sdk/accounts/intents/tests/finish-withdraw.onchain.test.ts),
   [`finish-decrease-leverage.onchain.test.ts`](../../src/sdk/accounts/intents/tests/finish-decrease-leverage.onchain.test.ts),
-  [`finish-claim-only.onchain.test.ts`](../../src/sdk/accounts/intents/tests/finish-claim-only.onchain.test.ts).
+  [`finish-claim-only.onchain.test.ts`](../../src/sdk/accounts/intents/tests/finish-claim-only.onchain.test.ts),
+  [`finish-close-account.onchain.test.ts`](../../src/sdk/accounts/intents/tests/finish-close-account.onchain.test.ts).

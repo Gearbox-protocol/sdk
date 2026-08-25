@@ -509,6 +509,26 @@ export class OnchainSDK<
       ],
       { blockNumber: this.currentBlock },
     );
+    this.#renameRedemptionPhantoms();
+  }
+
+  /**
+   * Rewrites redemption phantom display symbols from the withdrawal
+   * compressor's source/target mapping. No-op when the compressor is missing
+   * or its assets cache has not been loaded.
+   **/
+  #renameRedemptionPhantoms(): void {
+    const compressor = this.#withdrawalCompressor;
+    if (!compressor?.state) {
+      return;
+    }
+    this.tokensMeta.renameRedemptionPhantoms(
+      compressor.getWithdrawableAssets().map(a => ({
+        phantom: a.withdrawalPhantomToken,
+        source: a.token,
+        target: a.underlying,
+      })),
+    );
   }
 
   /**
@@ -559,6 +579,7 @@ export class OnchainSDK<
     if (state.tokens) {
       this.tokensMeta.hydrate(state.tokens);
     }
+    this.#renameRedemptionPhantoms();
 
     for (const [name, plugin] of TypedObjectUtils.entries(this.plugins)) {
       const pluginState = state.plugins[name];

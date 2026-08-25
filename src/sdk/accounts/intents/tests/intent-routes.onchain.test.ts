@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { MAX_UINT256 } from "../../../constants/math.js";
 import type { OnchainSDK } from "../../../index.js";
 import { CreditAccountOperationsService } from "../index.js";
 import {
@@ -96,6 +97,23 @@ function withoutRouter(sdk: OnchainSDK): OnchainSDK {
   return sdk;
 }
 
+/**
+ * A market where the exit's many-to-one route cannot be found, in the words the
+ * pathfinder actually reverts with — an RWA position, whose collateral no pool
+ * trades.
+ */
+function withoutClosePath(sdk: OnchainSDK): OnchainSDK {
+  const router = sdk.routerFor({ creditFacade: CREDIT_FACADE });
+  vi.mocked(router.findBestClosePath).mockRejectedValue(
+    new Error(
+      'The contract function "routeManyToOne" reverted with the following reason:\n' +
+        "Error: no optimal edge found for token. The swapped amount may be too " +
+        "small to yield a positive output",
+    ),
+  );
+  return sdk;
+}
+
 describe("withdraw.routes — both halves of the choice, in one call", () => {
   it("returns both when the source can be sold and redeemed", async () => {
     const routes = expectRoutes(await run(withVenue(), withdraw()));
@@ -110,9 +128,13 @@ describe("withdraw.routes — both halves of the choice, in one call", () => {
       token: POS,
       amountIn: SPEND,
     });
-    // Only the route holding the proceeds repays; the other defers it to a tail.
+    // Both land in the same place — the payout made, the debt down by dD —
+    // which is what makes them a choice rather than two operations. They part
+    // on when: only the instant route has repaid anything by the time its
+    // transaction is done.
     expect(routes.instant?.preview.accountDebt).toBe(DEBT_BEFORE - W);
-    expect(routes.delayed?.preview.accountDebt).toBe(DEBT_BEFORE);
+    expect(routes.delayed?.preview.accountDebt).toBe(DEBT_BEFORE - W);
+    expect(routes.delayed?.delayed.afterRequest.accountDebt).toBe(DEBT_BEFORE);
     expect(routes.delayed?.delayed.record).toMatchObject({
       type: "WITHDRAW_COLLATERAL",
       debtRepaid: W,
@@ -153,14 +175,63 @@ describe("withdraw.routes — both halves of the choice, in one call", () => {
     expect(routes.refused.instant).toBeUndefined();
   });
 
-  it("offers the instant route alone for an exit, which no redemption can start", async () => {
+  it("offers both for an exit: sold whole, or redeemed and then sold", async () => {
     const routes = expectRoutes(
       await run(withVenue(), withdraw({ amount: TVL_BEFORE })),
     );
 
+    // The exit records itself rather than a payout: the tail is rebuilt from
+    // the account it finds, so there is nothing to name in advance.
+    expect(routes.delayed?.delayed.record).toEqual({
+      type: "CLOSE_ACCOUNT",
+      to: WALLET,
+    });
+    // Only the request and the quota that follows the value into the phantom.
+    expect(routes.delayed?.operations.map(o => o.type)).toEqual([
+      "startDelayedWithdrawal",
+      "changeQuota",
+    ]);
+    // Either way the account ends up empty and owing nothing.
     expect(routes.instant?.preview.accountDebt).toBe(0n);
-    expect(routes.delayed).toBeUndefined();
-    expect(routes.refused.delayed).toBe("noDelayedRoute");
+    expect(routes.delayed?.preview.accountDebt).toBe(0n);
+    expect(routes.delayed?.preview.assets).toEqual([]);
+    // The request itself settles none of it.
+    expect(routes.delayed?.delayed.afterRequest.accountDebt).toBe(DEBT_BEFORE);
+    expect(routes.refused).toEqual({ instant: undefined, delayed: undefined });
+  });
+
+  it("reads the pathfinder's revert as a refusal, and the exit keeps its second route", async () => {
+    const routes = expectRoutes(
+      await run(
+        withoutClosePath(withVenue()),
+        withdraw({ amount: MAX_UINT256 }),
+      ),
+    );
+
+    // The revert is the pathfinder saying no, so it is reported as a reason
+    // rather than raised — otherwise the route that does work is lost with it.
+    expect(routes.instant).toBeUndefined();
+    expect(routes.refused.instant).toBe("unsupportedTokenPair");
+    expect(routes.delayed?.delayed.record).toEqual({
+      type: "CLOSE_ACCOUNT",
+      to: WALLET,
+    });
+  });
+
+  it("refuses rather than throws when the exit cannot be routed at all", async () => {
+    const result = await run(
+      withoutClosePath(buildMarketSdk()),
+      withdraw({ amount: MAX_UINT256 }),
+    );
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error("expected no route");
+    }
+    expect(result.refused).toEqual({
+      instant: "unsupportedTokenPair",
+      delayed: "noDelayedRoute",
+    });
   });
 
   it("fails once, with the instant route's reason, when neither is viable", async () => {
@@ -204,8 +275,10 @@ describe("adjustLeverage.routes — only deleveraging has a second route", () =>
       token: POS,
       amountIn: DEBT_BEFORE / 2n,
     });
+    // Both reach 1.5x; only the instant route is there already.
     expect(routes.instant?.preview.accountDebt).toBe(DEBT_BEFORE / 2n);
-    expect(routes.delayed?.preview.accountDebt).toBe(DEBT_BEFORE);
+    expect(routes.delayed?.preview.accountDebt).toBe(DEBT_BEFORE / 2n);
+    expect(routes.delayed?.delayed.afterRequest.accountDebt).toBe(DEBT_BEFORE);
     expect(routes.delayed?.delayed.record).toEqual({
       type: "DECREASE_LEVERAGE",
     });

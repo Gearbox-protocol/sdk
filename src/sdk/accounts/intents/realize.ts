@@ -42,7 +42,7 @@ import {
   getQuotasForUpdate,
   quotasAfterUpdate,
 } from "./utils/quotas-for-update.js";
-import { createRouterPaths } from "./utils/router-path.js";
+import { createRouterPaths, type RouterPaths } from "./utils/router-path.js";
 
 export interface RealizeProps {
   creditAccount: CreditAccountSlice;
@@ -51,6 +51,12 @@ export interface RealizeProps {
   slippage: number;
   /** Extra quota headroom in PERCENTAGE_FORMAT. */
   quotaReserve: number | undefined;
+  /**
+   * Where routed legs are quoted. Defaults to the pathfinder, which is what
+   * anything that will be sent needs; a walk that only projects a state passes
+   * `createOraclePaths` instead.
+   */
+  paths?: RouterPaths;
 }
 
 export interface Realized {
@@ -79,7 +85,8 @@ export async function realize(
   const { underlying } = creditAccount;
   const rwaAsset = sdk.tokensMeta.rwaUnderlyings.get(underlying)?.asset;
   const price = convertAmount(sdk, creditAccount.creditManager);
-  const paths = createRouterPaths({ sdk, creditAccount, slippage });
+  const paths =
+    props.paths ?? createRouterPaths({ sdk, creditAccount, slippage });
   const market = sdk.marketRegister.findByCreditManager(
     creditAccount.creditManager,
   );
@@ -101,7 +108,8 @@ export async function realize(
 
   /** Output of the last convert or claim, for `RAISED` amounts. */
   let raised = 0n;
-  let delayed: DelayedStart | undefined;
+  /** The request, before the walk's end state can be attached to it. */
+  let delayed: Omit<DelayedStart, "afterRequest"> | undefined;
   /**
    * Set by a `clearQuotas` step, which settles the quotas mid-walk instead of
    * at the end — and settles them at none, whatever the balances turn out to be.
@@ -257,7 +265,9 @@ export async function realize(
         }
         if (balances.length > 0) {
           const leg = await paths.closeAll({ balances });
-          if (leg.calls.length > 0) {
+          // Nothing to sell comes back empty on both counts; a projection comes
+          // back with an amount and no calls, and still has to move the ledger.
+          if (leg.calls.length > 0 || leg.minAmount > 0n) {
             push(
               buildCloseSwapOperation({
                 from: balances,
@@ -310,12 +320,25 @@ export async function realize(
         push(
           buildStartDelayedWithdrawalOperation({ preview, creditAccount, sdk }),
         );
+        // What the venue will hand over when the claim lands: the queued amount,
+        // in the token this config redeems into. The phantom stands in for that
+        // payout one for one, so only the decimals have to be reconciled.
+        const queued = preview.outputs.find(o => o.isDelayed);
         delayed = {
           record: step.record,
           claimableAt: preview.claimableAt,
-          settlement: preview.outputs.some(o => o.isDelayed)
-            ? "delayed"
-            : "instant",
+          settlement: queued ? "delayed" : "instant",
+          claim: queued
+            ? {
+                token: asset.underlying.toLowerCase() as Address,
+                amount: toTargetDecimals(
+                  queued.amount,
+                  queued.token,
+                  asset.underlying,
+                  sdk,
+                ),
+              }
+            : undefined,
         };
         raised = instantOutput(preview.outputs)?.amount ?? 0n;
         break;
@@ -441,20 +464,22 @@ export async function realize(
       : metrics.healthFactor,
   );
 
+  const state: OperationState = {
+    totalValue,
+    accountDebt: debt,
+    leverage: calcPositionLeverage(totalValue, debt),
+    assets: assets.map(a =>
+      market.priceOracle.toTokenAmount(a.token, a.balance),
+    ),
+    quotas: quotasAfter,
+    ...metrics,
+  };
+
   return {
     operations,
-    state: {
-      totalValue,
-      accountDebt: debt,
-      leverage: calcPositionLeverage(totalValue, debt),
-      assets: assets.map(a =>
-        market.priceOracle.toTokenAmount(a.token, a.balance),
-      ),
-      quotas: quotasAfter,
-      ...metrics,
-    },
+    state,
     calls: callsOf(operations),
-    delayed,
+    delayed: delayed && { ...delayed, afterRequest: state },
   };
 }
 

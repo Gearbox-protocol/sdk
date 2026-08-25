@@ -222,6 +222,10 @@ export interface PoolOpportunity extends OpportunityBase {
    * @mode offchain
    **/
   supplyApyAvg7D?: ApyBreakdown;
+  /**
+   * Quota configuration of every collateral token of the market.
+   **/
+  quotaAssets: QuotaAsset[];
 }
 
 /**
@@ -281,28 +285,12 @@ export interface StrategyOpportunity extends OpportunityBase {
    **/
   collateralApyAvg7D?: ApyBreakdown;
   /**
-   * Net yield at {@link maxLeverage}:
-   * `collateralApy × maxLeverage − borrowApy × (maxLeverage − 1) − additionalBorrowApy`.
-   * Yield is on the whole position; borrow interest is on the borrowed part only.
-   *
-   * Absent in `onchain` mode: its {@link collateralApy} term is.
-   *
-   * @mode offchain
-   **/
-  maxLeverageApy?: ApyBreakdown;
-  /**
-   * Average {@link maxLeverageApy} over the trailing seven days.
-   *
-   * @mode offchain
-   **/
-  maxLeverageApyAvg7D?: ApyBreakdown;
-  /**
    * Annual cost of the borrowed underlying, in basis points, including the
    * protocol's interest fee.
    *
    * @example `520` for 5.2% APY
    **/
-  borrowApy?: Bps;
+  borrowApy: Bps;
   /**
    * Average {@link borrowApy} over the trailing seven days, in basis points.
    *
@@ -312,22 +300,22 @@ export interface StrategyOpportunity extends OpportunityBase {
    **/
   borrowApyAvg7D?: Bps;
   /**
-   * Annual cost of the quota on {@link targetCollateral}, in basis points:
-   * `quotaRate × (1 + feeInterest) × maxLeverage`. Quota accrues on the whole
-   * quoted position and carries the same DAO fee as {@link borrowApy}.
+   * Annual quota cost of {@link targetCollateral}, in basis points, including
+   * the protocol's interest fee: `pqk.quotaRate × (1 + feeInterest)`. Quota
+   * accrues on the quoted amount and carries the same DAO fee as
+   * {@link borrowApy}.
    *
-   * @example `90` for +0.9% APY
+   * @example `90` for 0.9% APY
    **/
-  additionalBorrowApy?: Bps;
+  quotaRate: Bps;
   /**
-   * Average {@link additionalBorrowApy} over the trailing seven days, in basis
-   * points.
+   * Average {@link quotaRate} over the trailing seven days, in basis points.
    *
    * Absent in `onchain` mode: calculating it requires historical data.
    *
    * @mode offchain
    **/
-  additionalBorrowApyAvg7D?: Bps;
+  quotaRateAvg7D?: Bps;
   /**
    * Size of the strategy: the summed total value of the credit accounts
    * opened in this credit manager.
@@ -580,6 +568,20 @@ export interface QuotaAsset {
    * Amount currently quoted, denominated in the market's underlying.
    **/
   used: Amount;
+  /**
+   * This token's share of the pool's used quota, in basis points:
+   * `used / Σ used` over every quota asset of the pool. Zero when nothing is
+   * quoted.
+   *
+   * @example `2500` for 25% of the quoted amount
+   **/
+  allocationShare: Bps;
+  /**
+   * Estimate of how much of the pool's {@link OpportunityBase.totalBorrow}
+   * backs this collateral: {@link allocationShare} applied to the pool's
+   * total borrowed amount, denominated in the underlying.
+   **/
+  allocatedDebt: Amount;
 }
 
 /**
@@ -649,10 +651,6 @@ export interface PoolOpportunityDetail extends PoolOpportunity {
    * Interest rate curve of the pool.
    **/
   rateCurve: RateCurve;
-  /**
-   * Quota configuration of every collateral token of the market.
-   **/
-  quotaAssets: QuotaAsset[];
 }
 
 /**
