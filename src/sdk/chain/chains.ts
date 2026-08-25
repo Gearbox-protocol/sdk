@@ -174,7 +174,12 @@ export const chains: Record<NetworkType, GearboxChain> = {
       }),
       testMarketConfigurators: AddressMap.fromRecord<CuratorName>({
         "0x99df7330bf42d596af2e9d9836d4fc2077c574aa": "M11 Credit",
-        "0x610627d8d01a413bdd9b0a0b60070da7dd1e54ad": "Securitize",
+        // No code at this address, on mainnet or on the forks made from it.
+        // The market compressor calls every configurator it is filtered by, so
+        // one that is not deployed reverts the read of *all* markets — which is
+        // what it did until it was commented out. Restore it with an address
+        // that exists.
+        // "0x610627d8d01a413bdd9b0a0b60070da7dd1e54ad": "Securitize",
         "0xa770ce584adb6491a2138da6eaec33243bdcd248": "Testnet Curator", // without governor, for midas
       }),
       rwaFactories: [] as Address[],
