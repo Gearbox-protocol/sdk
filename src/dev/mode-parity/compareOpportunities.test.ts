@@ -60,8 +60,7 @@ function pool(overrides: Partial<PoolOpportunity> = {}): PoolOpportunity {
     underlyingToken: token(USDC, "USDC"),
     totalSupply: amount(1_000n, 1_000),
     availableLiquidity: amount(400n, 400),
-    totalBorrow: amount(600n, 600),
-    utilization: 6_000,
+    totalBorrowedWithInterest: amount(600n, 600),
     supplyApy: { organicApy: 610 },
     allowedDepositTokens: [token(WSTETH, "wstETH"), token(TBTC, "tBTC")],
     paused: false,
@@ -83,7 +82,7 @@ function strategy(
     name: "wstETH / USDC",
     curator: { address: POOL, name: "Re7", url: null },
     underlyingToken: token(USDC, "USDC"),
-    totalBorrow: amount(600n, 600),
+    totalBorrowed: amount(600n, 600),
     allowedDepositTokens: [token(WSTETH, "wstETH")],
     paused: false,
     rwa: false,
@@ -211,13 +210,13 @@ describe("matched rows", () => {
   it("separates an exact amount from the USD value derived from it", () => {
     const report = compare(
       [pool()],
-      [pool({ totalBorrow: amount(600n, 601.42) })],
+      [pool({ totalBorrowedWithInterest: amount(600n, 601.42) })],
     );
     const diffs = report.matched[0]?.diffs ?? [];
 
-    expect(diffAt(diffs, "totalBorrow.value")).toBeUndefined();
-    expect(diffAt(diffs, "totalBorrow.valueUsd")).toEqual({
-      path: "totalBorrow.valueUsd",
+    expect(diffAt(diffs, "totalBorrowedWithInterest.value")).toBeUndefined();
+    expect(diffAt(diffs, "totalBorrowedWithInterest.valueUsd")).toEqual({
+      path: "totalBorrowedWithInterest.valueUsd",
       onchain: 600,
       offchain: 601.42,
       kind: "usd",
@@ -421,7 +420,12 @@ describe("quota assets", () => {
     );
     const match = report.matched[0];
 
-    expect(diffAt(match?.diffs ?? [], `quotaAssets[${WSTETH.toLowerCase()}].allocationShare`)).toEqual({
+    expect(
+      diffAt(
+        match?.diffs ?? [],
+        `quotaAssets[${WSTETH.toLowerCase()}].allocationShare`,
+      ),
+    ).toEqual({
       path: `quotaAssets[${WSTETH.toLowerCase()}].allocationShare`,
       onchain: undefined,
       offchain: 5_000,
@@ -429,7 +433,12 @@ describe("quota assets", () => {
       expected: true,
       reason: "mode-scoped",
     });
-    expect(diffAt(match?.diffs ?? [], `quotaAssets[${WSTETH.toLowerCase()}].allocatedDebt`)).toEqual({
+    expect(
+      diffAt(
+        match?.diffs ?? [],
+        `quotaAssets[${WSTETH.toLowerCase()}].allocatedDebt`,
+      ),
+    ).toEqual({
       path: `quotaAssets[${WSTETH.toLowerCase()}].allocatedDebt`,
       onchain: undefined,
       offchain: amount(300n, 300),
@@ -475,10 +484,10 @@ describe("the report as a whole", () => {
     const report = compare(
       [pool(), other],
       [
-        pool({ utilization: 6_100 }),
+        pool({ supplyApy: { organicApy: 710 } }),
         pool({
           pool: other.pool,
-          utilization: 5_900,
+          supplyApy: { organicApy: 510 },
           allowedDepositTokens: [
             { ...token(WSTETH, "wstETH"), symbol: "WSTETH" },
             { ...token(TBTC, "tBTC"), symbol: "TBTC" },
@@ -497,17 +506,17 @@ describe("the report as a whole", () => {
         unexpected: 2,
       },
       {
-        path: "utilization",
+        path: "supplyApy.organicApy",
         kinds: ["numeric"],
         count: 2,
         expected: 0,
         unexpected: 2,
         worstUnexpected: {
           id: `1:${other.pool.toLowerCase()}`,
-          path: "utilization",
-          bps: (Math.abs(6_000 - 5_900) / 6_000) * 10_000,
-          onchain: 6_000,
-          offchain: 5_900,
+          path: "supplyApy.organicApy",
+          bps: (Math.abs(610 - 510) / 610) * 10_000,
+          onchain: 610,
+          offchain: 510,
         },
       },
     ]);
@@ -516,29 +525,32 @@ describe("the report as a whole", () => {
   it("names the entity with the largest unexpected numeric gap", () => {
     const other = pool({
       pool: "0xda00000000000000000000000000000000000002" as Address,
-      totalBorrow: amount(1_000n, 1_000),
+      totalBorrowedWithInterest: amount(1_000n, 1_000),
     });
     const report = compare(
-      [pool({ totalBorrow: amount(1_000n, 1_000) }), other],
+      [pool({ totalBorrowedWithInterest: amount(1_000n, 1_000) }), other],
       [
-        pool({ totalBorrow: amount(1_000n, 1_020) }),
-        pool({ pool: other.pool, totalBorrow: amount(1_000n, 1_050) }),
+        pool({ totalBorrowedWithInterest: amount(1_000n, 1_020) }),
+        pool({
+          pool: other.pool,
+          totalBorrowedWithInterest: amount(1_000n, 1_050),
+        }),
       ],
     );
 
     expect(
       report.summary.diffsByPath.find(
-        entry => entry.path === "totalBorrow.valueUsd",
+        entry => entry.path === "totalBorrowedWithInterest.valueUsd",
       ),
     ).toEqual({
-      path: "totalBorrow.valueUsd",
+      path: "totalBorrowedWithInterest.valueUsd",
       kinds: ["usd"],
       count: 2,
       expected: 0,
       unexpected: 2,
       worstUnexpected: {
         id: `1:${other.pool.toLowerCase()}`,
-        path: "totalBorrow.valueUsd",
+        path: "totalBorrowedWithInterest.valueUsd",
         bps: (50 / 1_050) * 10_000,
         onchain: 1_000,
         offchain: 1_050,
@@ -586,22 +598,10 @@ describe("expected diffs", () => {
     expect(report.summary.clean).toBe(1);
   });
 
-  it("treats strategy utilization as mode-scoped but pool utilization as real", () => {
-    const report = compare(
-      [pool(), strategy()],
-      [pool({ utilization: 6_100 }), strategy({ utilization: 7_500 })],
-    );
-    const poolMatch = report.matched.find(match => match.kind === "pool");
-    const strategyMatch = report.matched.find(
-      match => match.kind === "strategy",
-    );
+  it("treats strategy utilization as mode-scoped", () => {
+    const report = compare([strategy()], [strategy({ utilization: 7_500 })]);
+    const strategyMatch = report.matched[0];
 
-    expect(diffAt(poolMatch?.diffs ?? [], "utilization")).toEqual({
-      path: "utilization",
-      onchain: 6_000,
-      offchain: 6_100,
-      kind: "numeric",
-    });
     expect(diffAt(strategyMatch?.diffs ?? [], "utilization")).toEqual({
       path: "utilization",
       onchain: undefined,
@@ -610,24 +610,26 @@ describe("expected diffs", () => {
       expected: true,
       reason: "mode-scoped",
     });
-    expect(poolMatch?.clean).toBe(false);
     expect(strategyMatch?.clean).toBe(true);
   });
 
   it("tolerates a USD float inside 0.1% and flags one outside it", () => {
     const inside = compare(
       [pool()],
-      [pool({ totalBorrow: amount(600n, 600.4) })],
+      [pool({ totalBorrowedWithInterest: amount(600n, 600.4) })],
     );
     const outside = compare(
       [pool()],
-      [pool({ totalBorrow: amount(600n, 601.42) })],
+      [pool({ totalBorrowedWithInterest: amount(600n, 601.42) })],
     );
 
     expect(
-      diffAt(inside.matched[0]?.diffs ?? [], "totalBorrow.valueUsd"),
+      diffAt(
+        inside.matched[0]?.diffs ?? [],
+        "totalBorrowedWithInterest.valueUsd",
+      ),
     ).toEqual({
-      path: "totalBorrow.valueUsd",
+      path: "totalBorrowedWithInterest.valueUsd",
       onchain: 600,
       offchain: 600.4,
       kind: "usd",
@@ -636,9 +638,12 @@ describe("expected diffs", () => {
     });
     expect(inside.matched[0]?.clean).toBe(true);
     expect(
-      diffAt(outside.matched[0]?.diffs ?? [], "totalBorrow.valueUsd"),
+      diffAt(
+        outside.matched[0]?.diffs ?? [],
+        "totalBorrowedWithInterest.valueUsd",
+      ),
     ).toEqual({
-      path: "totalBorrow.valueUsd",
+      path: "totalBorrowedWithInterest.valueUsd",
       onchain: 600,
       offchain: 601.42,
       kind: "usd",

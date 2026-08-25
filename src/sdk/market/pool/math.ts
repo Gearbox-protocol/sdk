@@ -1,6 +1,6 @@
 import type { Bps } from "../../../model/index.js";
 import { PERCENTAGE_FACTOR } from "../../constants/math.js";
-import { calcUtilization } from "../math.js";
+import { calcUtilizationRaw } from "../math.js";
 
 /**
  * Interest rate model parameters, all in basis points except the flag.
@@ -84,7 +84,7 @@ export function utilizationAfterLiquidityChange(
 ): Bps {
   const available = availableLiquidity + availableLiquidityChange;
   const borrowed = expectedLiquidity - available;
-  return calcUtilization(borrowed, expectedLiquidity);
+  return calcUtilizationRaw(borrowed, expectedLiquidity);
 }
 
 /**

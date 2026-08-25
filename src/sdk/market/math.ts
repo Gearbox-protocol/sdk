@@ -1,4 +1,9 @@
-import type { Bps, Leverage, StrategyOpportunity } from "../../model/index.js";
+import type {
+  Bps,
+  Leverage,
+  PoolOpportunity,
+  StrategyOpportunity,
+} from "../../model/index.js";
 import {
   MAX_UINT256,
   PERCENTAGE_FACTOR,
@@ -73,15 +78,26 @@ export function usdToNumber(usd: bigint): number {
  * @example
  * ```ts
  * // borrowed: 750, total: 1000
- * calcUtilization(750n, 1000n) // 750 / 1000 = 7500 bps = 75%
+ * calcUtilizationRaw(750n, 1000n) // 750 / 1000 = 7500 bps = 75%
  * ```
  **/
-export function calcUtilization(borrowed: bigint, total: bigint): Bps {
+export function calcUtilizationRaw(borrowed: bigint, total: bigint): Bps {
   if (total <= 0n || borrowed <= 0n) {
     return 0;
   }
   const utilization = Number((borrowed * PERCENTAGE_FACTOR) / total);
   return Math.min(utilization, FULL);
+}
+
+/**
+ * Pool utilization: {@link PoolOpportunity.totalBorrowedWithInterest} as a
+ * share of {@link PoolOpportunity.totalSupply}, in basis points.
+ **/
+export function calcUtilization(poolOpportunity: PoolOpportunity): Bps {
+  return calcUtilizationRaw(
+    poolOpportunity.totalBorrowedWithInterest.value,
+    poolOpportunity.totalSupply.value,
+  );
 }
 
 /**

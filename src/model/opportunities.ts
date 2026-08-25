@@ -147,13 +147,6 @@ export interface OpportunityBase {
    **/
   underlyingToken: Token;
   /**
-   * Debt principal drawn against the opportunity: everything the pool has lent
-   * out for a {@link PoolOpportunity} (`pool.totalBorrowed()`), only what the
-   * strategy's credit manager has drawn for a {@link StrategyOpportunity}
-   * (`pool.creditManagerBorrowed(creditManager)`).
-   **/
-  totalBorrow: Amount;
-  /**
    * Tokens a user can transfer from their wallet to deposit into a pool
    * position or to use when opening a credit account. They are not necessarily
    * the pool underlying or credit-account collateral tokens.
@@ -191,10 +184,9 @@ export interface PoolOpportunity extends OpportunityBase {
    **/
   pool: Address;
   /**
-   * Size of the pool: the underlying its shares are worth, converted at the
-   * current share rate, i.e. `pool.totalAssets()`. Denominated in the
-   * underlying rather than in shares, so it is comparable with
-   * {@link OpportunityBase.totalBorrow}.
+   * Size of the pool: deposits plus accrued interest, i.e.
+   * `pool.expectedLiquidity`. Denominated in the underlying rather than in
+   * shares, so it is comparable with {@link totalBorrowedWithInterest}.
    **/
   totalSupply: Amount;
   /**
@@ -202,11 +194,11 @@ export interface PoolOpportunity extends OpportunityBase {
    **/
   availableLiquidity: Amount;
   /**
-   * How much of the pool's capital is currently borrowed, in basis points.
-   *
-   * @example `7500` for 75% utilization
+   * Everything the pool has lent out plus accrued interest:
+   * `pool.expectedLiquidity - pool.availableLiquidity`. Denominated in the
+   * underlying.
    **/
-  utilization: Bps;
+  totalBorrowedWithInterest: Amount;
   /**
    * Yield earned by supplying to the pool.
    *
@@ -244,6 +236,12 @@ export interface StrategyOpportunity extends OpportunityBase {
    * Collateral token the position is built around.
    **/
   targetCollateral: Token;
+  /**
+   * Debt principal this credit manager has drawn from the pool
+   * (`pool.creditManagerBorrowed(creditManager)`). Denominated in the
+   * underlying.
+   **/
+  totalBorrowed: Amount;
   /**
    * Liquidation threshold of {@link targetCollateral} in this credit manager,
    * in basis points: the share of the collateral value that counts towards
@@ -328,7 +326,7 @@ export interface StrategyOpportunity extends OpportunityBase {
   totalValue?: Amount;
   /**
    * Share of {@link totalValue} that is borrowed, in basis points:
-   * `totalBorrow / totalValue`.
+   * `totalBorrowed / totalValue`.
    *
    * Absent in `onchain` mode, because its denominator is, see
    * {@link totalValue}.

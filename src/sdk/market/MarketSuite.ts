@@ -282,15 +282,16 @@ export class MarketSuite extends SDKConstruct {
       name: this.poolName,
       curator: this.curator,
       underlyingToken: this.underlyingToken,
-      // the shares are worth this much underlying at the current rate, which is
-      // what makes the size comparable with the debt drawn against it
-      totalSupply: oracle.toAmount(pool.underlying, pool.totalAssets),
+      // deposits plus accrued interest, comparable with borrowed-with-interest
+      totalSupply: oracle.toAmount(pool.underlying, pool.expectedLiquidity),
       availableLiquidity: oracle.toAmount(
         pool.underlying,
         pool.availableLiquidity,
       ),
-      totalBorrow: oracle.toAmount(pool.underlying, pool.totalBorrowed),
-      utilization: pool.utilization,
+      totalBorrowedWithInterest: oracle.toAmount(
+        pool.underlying,
+        pool.borrowed,
+      ),
       supplyApy: { organicApy: rayToBps(pool.supplyRate) },
       allowedDepositTokens: this.allowedDepositTokens,
       paused: pool.isPaused,

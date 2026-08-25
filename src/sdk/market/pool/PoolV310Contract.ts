@@ -6,7 +6,6 @@ import type {
 } from "viem";
 import { iPoolV310Abi } from "../../../abi/310/generated.js";
 import { iPausableAbi } from "../../../abi/iPausable.js";
-import type { Bps } from "../../../model/index.js";
 import type { CreditManagerDebtParams, PoolState } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
 import { RAY } from "../../constants/index.js";
@@ -18,7 +17,6 @@ import {
   formatBNvalue,
   percentFmt,
 } from "../../utils/index.js";
-import { calcUtilization } from "../math.js";
 import type { IRWAFactory } from "../rwa/types.js";
 import type { IPoolContract } from "./types.js";
 
@@ -83,13 +81,6 @@ export class PoolV310Contract
    */
   public get totalAssets(): bigint {
     return (this.totalSupply * this.dieselRate) / RAY;
-  }
-
-  /**
-   * {@inheritDoc IPoolContract.utilization}
-   */
-  public get utilization(): Bps {
-    return calcUtilization(this.borrowed, this.expectedLiquidity);
   }
 
   /**

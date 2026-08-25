@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { PoolOpportunity } from "../../model/index.js";
 import type { OptimalRepaidAmountProps } from "./math.js";
 import {
   bpsToRay,
@@ -9,6 +10,7 @@ import {
   calcPositionLeverage,
   calcQuotaRate,
   calcUtilization,
+  calcUtilizationRaw,
   minSeizedAmount,
   optimalHFForPartialLiquidation,
   optimalRepaidAmount,
@@ -45,18 +47,40 @@ describe("unit conversions", () => {
   });
 });
 
-describe("calcUtilization", () => {
+describe("calcUtilizationRaw", () => {
   it("is the borrowed share of the total", () => {
-    expect(calcUtilization(750n, 1000n)).toBe(7500);
+    expect(calcUtilizationRaw(750n, 1000n)).toBe(7500);
   });
 
   it("is zero when there is nothing to borrow from", () => {
-    expect(calcUtilization(750n, 0n)).toBe(0);
-    expect(calcUtilization(0n, 1000n)).toBe(0);
+    expect(calcUtilizationRaw(750n, 0n)).toBe(0);
+    expect(calcUtilizationRaw(0n, 1000n)).toBe(0);
   });
 
   it("never exceeds 100%, which accrued interest alone could push it past", () => {
-    expect(calcUtilization(1100n, 1000n)).toBe(10_000);
+    expect(calcUtilizationRaw(1100n, 1000n)).toBe(10_000);
+  });
+});
+
+function poolOpportunity(borrowed: bigint, supply: bigint): PoolOpportunity {
+  return {
+    totalBorrowedWithInterest: { value: borrowed, valueUsd: null },
+    totalSupply: { value: supply, valueUsd: null },
+  } as PoolOpportunity;
+}
+
+describe("calcUtilization", () => {
+  it("is the borrowed-with-interest share of total supply", () => {
+    expect(calcUtilization(poolOpportunity(750n, 1000n))).toBe(7500);
+  });
+
+  it("is zero when there is nothing to borrow from", () => {
+    expect(calcUtilization(poolOpportunity(750n, 0n))).toBe(0);
+    expect(calcUtilization(poolOpportunity(0n, 1000n))).toBe(0);
+  });
+
+  it("never exceeds 100%, which accrued interest alone could push it past", () => {
+    expect(calcUtilization(poolOpportunity(1100n, 1000n))).toBe(10_000);
   });
 });
 

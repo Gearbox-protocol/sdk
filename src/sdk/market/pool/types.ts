@@ -1,5 +1,4 @@
 import type { Address } from "viem";
-import type { Bps } from "../../../model/index.js";
 import type {
   AssertAssignable,
   CreditManagerDebtParams,
@@ -144,11 +143,6 @@ export interface IPoolContract extends IBaseContract {
    * rate. Unlike {@link totalSupply}, this is denominated in the underlying.
    */
   readonly totalAssets: bigint;
-
-  /**
-   * Share of the pool's capital currently borrowed, in basis points.
-   */
-  readonly utilization: Bps;
 
   /**
    * The token the pool's underlying wraps, or the underlying itself when it

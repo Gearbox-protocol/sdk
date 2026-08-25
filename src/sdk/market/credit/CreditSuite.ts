@@ -362,7 +362,7 @@ export class CreditSuite extends SDKConstruct {
       name: this.strategyName ?? this.market.underlyingToken.symbol,
       curator: market.curator,
       underlyingToken: market.underlyingToken,
-      totalBorrow: oracle.toAmount(pool.underlying, borrowed),
+      totalBorrowed: oracle.toAmount(pool.underlying, borrowed),
       allowedDepositTokens: this.#allowedDepositTokens(collateral),
       paused: this.isPaused,
       rwa: market.rwa,

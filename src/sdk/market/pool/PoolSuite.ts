@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-import type { Bps, RateCurve } from "../../../model/index.js";
+import type { RateCurve } from "../../../model/index.js";
 import type { MarketData } from "../../base/index.js";
 import { SDKConstruct } from "../../base/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
@@ -141,13 +141,6 @@ export class PoolSuite extends SDKConstruct {
    */
   public get unwrappedUnderlying(): Address {
     return this.pool.unwrappedUnderlying;
-  }
-
-  /**
-   * {@inheritDoc IPoolContract.utilization}
-   */
-  public get utilization(): Bps {
-    return this.pool.utilization;
   }
 
   /**

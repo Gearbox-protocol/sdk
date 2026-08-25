@@ -18,7 +18,9 @@ describe("compileCompareRules", () => {
     expect(rules.get("supplyApy.rewards")).toBe("offchainOnly");
     expect(rules.get("supplyApy.organicApy")).toEqual({ tolerance: "bps" });
     expect(rules.get("supplyApyAvg7D")).toBe("offchainOnly");
-    expect(rules.get("utilization")).toEqual({ tolerance: "bps" });
+    expect(rules.get("totalBorrowedWithInterest.value")).toEqual({
+      tolerance: "amount",
+    });
     expect(rules.get("totalSupply.value")).toEqual({ tolerance: "amount" });
     expect(rules.get("totalSupply.valueUsd")).toEqual({ tolerance: "usd" });
     expect(rules.get("quotaAssets[].quotaRate")).toEqual({ tolerance: "bps" });
@@ -32,11 +34,11 @@ describe("compileCompareRules", () => {
     expect(rules.get("maxBorrowAmount.value")).toBeUndefined();
   });
 
-  it("scopes strategy utilization as offchain-only, unlike the pool", () => {
+  it("scopes strategy utilization as offchain-only", () => {
     const pool = compileCompareRules(poolOpportunitySchema);
     const strategy = compileCompareRules(strategyOpportunitySchema);
 
-    expect(pool.get("utilization")).toEqual({ tolerance: "bps" });
+    expect(pool.get("utilization")).toBeUndefined();
     expect(strategy.get("utilization")).toBe("offchainOnly");
     expect(strategy.get("collateralApy")).toBe("offchainOnly");
     expect(strategy.get("collateralApyAvg7D")).toBe("offchainOnly");

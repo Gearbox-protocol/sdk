@@ -85,7 +85,7 @@ export interface Asset {
 /**
  * A token amount together with its USD valuation.
  *
- * The group that owns the field names the token (e.g. `totalBorrow` of an
+ * The group that owns the field names the token (e.g. `totalSupply` of a pool
  * opportunity is denominated in its `underlyingToken`), so neither the symbol
  * nor the decimals are repeated here.
  *
