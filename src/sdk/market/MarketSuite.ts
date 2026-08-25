@@ -1,4 +1,4 @@
-import type { Address } from "viem";
+import { type Address, isAddressEqual } from "viem";
 
 import type {
   Curator,
@@ -169,27 +169,38 @@ export class MarketSuite extends SDKConstruct {
   }
 
   /**
-   * Tokens a position can actually be built on in this market, deduplicated
-   * across its credit suites.
+   * Tokens a user can transfer from their wallet to deposit into this pool.
+   *
+   * 1. unwrapped underlying
+   * 2. tokenIn of every zapper (order does not matter), skipping the wrapped
+   *    and unwrapped underlying
    */
-  public get collateralTokens(): Token[] {
-    const seen = new AddressMap<Token>(undefined, "collateralTokens");
-    for (const suite of this.creditManagers) {
-      for (const collateral of suite.strategyCollaterals) {
-        seen.upsert(collateral, this.tokensMeta.mustGetToken(collateral));
+  public get allowedDepositTokens(): Token[] {
+    const seen = new AddressMap<Token>(undefined, "allowedDepositTokens");
+    seen.upsert(this.unwrappedUnderlying, this.underlyingToken);
+    for (const zapper of this.sdk.marketRegister.poolZappers(
+      this.pool.pool.address,
+    )) {
+      const tokenIn = zapper.tokenIn.addr;
+      if (
+        isAddressEqual(tokenIn, this.pool.underlying) ||
+        isAddressEqual(tokenIn, this.unwrappedUnderlying)
+      ) {
+        continue;
       }
+      seen.upsert(tokenIn, this.tokensMeta.mustGetToken(tokenIn));
     }
     return seen.values();
   }
 
   /**
-   * Whether at least one of {@link collateralTokens} is a real-world-asset
-   * token. Read from a hardcoded per-chain list rather than from the chain.
+   * Whether one of the market's quoted tokens is a real-world-asset token.
+   * Read from a hardcoded per-chain list rather than from the chain.
    */
   public get rwa(): boolean {
-    return this.collateralTokens.some(token =>
-      isRWAToken(token.address, this.sdk.networkType),
-    );
+    return this.pool.pqk.quotas
+      .keys()
+      .some(token => isRWAToken(token, this.sdk.networkType));
   }
 
   /**
@@ -295,7 +306,7 @@ export class MarketSuite extends SDKConstruct {
       totalBorrow: oracle.toAmount(pool.underlying, pool.totalBorrowed),
       utilization: pool.utilization,
       supplyApy: { organicApy: rayToBps(pool.supplyRate) },
-      collateralTokens: this.collateralTokens,
+      allowedDepositTokens: this.allowedDepositTokens,
       paused: pool.isPaused,
       rwa: this.rwa,
       sunset: this.sunset,

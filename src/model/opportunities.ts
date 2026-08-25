@@ -154,10 +154,11 @@ export interface OpportunityBase {
    **/
   totalBorrow: Amount;
   /**
-   * Tokens accepted as collateral, i.e. the tokens that have both a non-zero
-   * liquidation threshold and a non-zero quota limit.
+   * Tokens a user can transfer from their wallet to deposit into a pool
+   * position or to use when opening a credit account. They are not necessarily
+   * the pool underlying or credit-account collateral tokens.
    **/
-  collateralTokens: Token[];
+  allowedDepositTokens: Token[];
   /**
    * The contract's own pause flag: the pool for a {@link PoolOpportunity}, the
    * credit facade or the pool it borrows from for a
@@ -165,8 +166,8 @@ export interface OpportunityBase {
    **/
   paused: boolean;
   /**
-   * Whether at least one of {@link collateralTokens} is a real-world-asset
-   * token. Read from a hardcoded per-chain list rather than from the chain.
+   * Whether one of the market's quoted tokens is a real-world-asset token.
+   * Read from a hardcoded per-chain list rather than from the chain.
    **/
   rwa: boolean;
   /**

@@ -1,8 +1,9 @@
-import type { Address } from "viem";
+import { type Address, isAddressEqual } from "viem";
 import type {
   StrategyOpportunity,
   StrategyOpportunityDetail,
   Timestamp,
+  Token,
 } from "../../../model/index.js";
 import type { CreditAccountData, CreditSuiteState } from "../../base/index.js";
 import { SDKConstruct } from "../../base/index.js";
@@ -255,26 +256,6 @@ export class CreditSuite extends SDKConstruct {
   }
 
   /**
-   * Collateral tokens a leveraged position can be built around in this suite,
-   * see {@link isStrategyCollateral} for the per-token criteria. Tokens the
-   * facade has forbidden are excluded — they cannot be taken on — even when
-   * they still pass the shared eligibility rule used for target selection.
-   */
-  public get strategyCollaterals(): Address[] {
-    // The amount seeded into each pool at market creation to protect from inflation attacks
-    if (this.maxBorrowAmount <= MIN_STRATEGY_BORROW_AMOUNT) {
-      return [];
-    }
-
-    const forbidden = new Set(this.forbiddenTokens);
-    return this.creditManager.collateralTokens.filter(
-      token =>
-        !forbidden.has(token) &&
-        isStrategyCollateral(this.#strategyCollateralProps(token), true),
-    );
-  }
-
-  /**
    * Tokens forbidden by the facade.
    */
   public get forbiddenTokens(): Address[] {
@@ -382,9 +363,7 @@ export class CreditSuite extends SDKConstruct {
       curator: market.curator,
       underlyingToken: market.underlyingToken,
       totalBorrow: oracle.toAmount(pool.underlying, borrowed),
-      collateralTokens: this.strategyCollaterals.map(t =>
-        this.tokensMeta.mustGetToken(t),
-      ),
+      allowedDepositTokens: this.#allowedDepositTokens(collateral),
       paused: this.isPaused,
       rwa: market.rwa,
       // a pool being wound down takes every strategy borrowing from it with it
@@ -475,6 +454,32 @@ export class CreditSuite extends SDKConstruct {
       );
     }
     return collateral;
+  }
+
+  /**
+   * Tokens a user can transfer from their wallet when opening an account in
+   * this suite:
+   *
+   * 1. unwrapped underlying (USDC, never dcUSDC)
+   * 2. target collateral
+   * 3. remaining CM collaterals in manager order, no phantoms
+   */
+  #allowedDepositTokens(targetCollateral: Address): Token[] {
+    const unwrappedUnderlying = this.market.unwrappedUnderlying;
+    const contractUnderlying = this.underlying;
+    const skip = (token: Address) =>
+      isAddressEqual(token, unwrappedUnderlying) ||
+      isAddressEqual(token, contractUnderlying) ||
+      isAddressEqual(token, targetCollateral);
+
+    const rest = this.creditManager.collateralTokens.filter(token => {
+      const contractType = this.tokensMeta.mustGet(token).contractType;
+      return !skip(token) && !contractType?.startsWith("PHANTOM_TOKEN::");
+    });
+
+    return [unwrappedUnderlying, targetCollateral, ...rest].map(token =>
+      this.tokensMeta.mustGetToken(token),
+    );
   }
 
   /**

@@ -65,7 +65,7 @@ function pool(overrides: Partial<PoolOpportunity> = {}): PoolOpportunity {
     totalBorrow: amount(600n, 600),
     utilization: 6_000,
     supplyApy: { organicApy: 610 },
-    collateralTokens: [token(WSTETH, "wstETH"), token(TBTC, "tBTC")],
+    allowedDepositTokens: [token(WSTETH, "wstETH"), token(TBTC, "tBTC")],
     paused: false,
     rwa: false,
     sunset: false,
@@ -86,7 +86,7 @@ function strategy(
     curator: { address: POOL, name: "Re7", url: null },
     underlyingToken: token(USDC, "USDC"),
     totalBorrow: amount(600n, 600),
-    collateralTokens: [token(WSTETH, "wstETH")],
+    allowedDepositTokens: [token(WSTETH, "wstETH")],
     paused: false,
     rwa: false,
     sunset: false,
@@ -265,13 +265,13 @@ describe("matched rows", () => {
   });
 });
 
-describe("collateral token lists", () => {
+describe("allowed deposit token lists", () => {
   it("ignores the order the tokens came in", () => {
     const report = compare(
       [pool()],
       [
         pool({
-          collateralTokens: [token(TBTC, "tBTC"), token(WSTETH, "wstETH")],
+          allowedDepositTokens: [token(TBTC, "tBTC"), token(WSTETH, "wstETH")],
         }),
       ],
     );
@@ -282,12 +282,12 @@ describe("collateral token lists", () => {
   it("names the token one source is missing rather than shifting the list", () => {
     const report = compare(
       [pool()],
-      [pool({ collateralTokens: [token(WSTETH, "wstETH")] })],
+      [pool({ allowedDepositTokens: [token(WSTETH, "wstETH")] })],
     );
 
     expect(report.matched[0]?.diffs).toEqual([
       {
-        path: `collateralTokens[${TBTC.toLowerCase()}]`,
+        path: `allowedDepositTokens[${TBTC.toLowerCase()}]`,
         onchain: token(TBTC, "tBTC"),
         offchain: undefined,
         kind: "presence",
@@ -300,7 +300,7 @@ describe("collateral token lists", () => {
       [pool()],
       [
         pool({
-          collateralTokens: [
+          allowedDepositTokens: [
             { ...token(WSTETH, "wstETH"), symbol: "WSTETH" },
             token(TBTC, "tBTC"),
           ],
@@ -310,7 +310,7 @@ describe("collateral token lists", () => {
 
     expect(report.matched[0]?.diffs).toEqual([
       {
-        path: `collateralTokens[${WSTETH.toLowerCase()}].symbol`,
+        path: `allowedDepositTokens[${WSTETH.toLowerCase()}].symbol`,
         onchain: "wstETH",
         offchain: "WSTETH",
         kind: "other",
@@ -496,7 +496,7 @@ describe("the report as a whole", () => {
         pool({
           pool: other.pool,
           utilization: 5_900,
-          collateralTokens: [
+          allowedDepositTokens: [
             { ...token(WSTETH, "wstETH"), symbol: "WSTETH" },
             { ...token(TBTC, "tBTC"), symbol: "TBTC" },
           ],
@@ -507,7 +507,7 @@ describe("the report as a whole", () => {
     expect(report.summary.differing).toBe(2);
     expect(report.summary.diffsByPath).toEqual([
       {
-        path: "collateralTokens[].symbol",
+        path: "allowedDepositTokens[].symbol",
         kinds: ["other"],
         count: 2,
         expected: 0,

@@ -85,7 +85,7 @@ export const opportunityBaseSchema = z.object({
   curator: curatorSchema,
   underlyingToken: tokenSchema,
   totalBorrow: amountSchema,
-  collateralTokens: z.array(tokenSchema),
+  allowedDepositTokens: z.array(tokenSchema),
   paused: z.boolean(),
   rwa: z.boolean(),
   sunset: z.boolean(),

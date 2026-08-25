@@ -27,7 +27,7 @@ export type ExpectedDiffReason = "mode-scoped" | "tolerance";
 export interface FieldDiff {
   /**
    * Dotted path into the row, with array elements keyed by their own identity
-   * rather than by index, e.g. `collateralTokens[0xa0b8...].symbol`.
+   * rather than by index, e.g. `allowedDepositTokens[0xa0b8...].symbol`.
    **/
   path: string;
   /**
@@ -78,7 +78,7 @@ export interface EntityFieldDiff {
 
 /**
  * How often one field disagreed across all matched rows, with array keys
- * collapsed, e.g. `collateralTokens[].symbol`.
+ * collapsed, e.g. `allowedDepositTokens[].symbol`.
  **/
 export interface DiffPathCount {
   path: string;
@@ -290,7 +290,7 @@ function isWorse(
 }
 
 /**
- * Collapse `collateralTokens[0xa0b8...].symbol` to `collateralTokens[].symbol`.
+ * Collapse `allowedDepositTokens[0xa0b8...].symbol` to `allowedDepositTokens[].symbol`.
  **/
 export function collapseArrayKeys(path: string): string {
   return path.replace(/\[[^\]]*\]/g, "[]");
