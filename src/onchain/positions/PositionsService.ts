@@ -309,7 +309,7 @@ export class PositionsService extends SDKConstruct {
 
     // for RWA markets, amounts are denominated in the unwrapped asset
     // (e.g. USDC instead of dcUSDC); the wrapped underlying converts 1:1
-    const token = this.sdk.tokensMeta.mustGetToken(market.unwrappedUnderlying);
+    const token = market.underlyingToken;
     const totalDebtValue = ca.debt + ca.accruedInterest + ca.accruedFees;
     const target =
       getAccountTargetCollateral(ca.creditAccount, this.sdk.chainId) ??
@@ -354,6 +354,7 @@ export class PositionsService extends SDKConstruct {
       chainId: this.sdk.chainId,
       creditManager: ca.creditManager,
       creditAccount: ca.creditAccount,
+      underlyingToken: token,
       name: target
         ? strategyName(this.sdk.tokensMeta.mustGetToken(target), token)
         : token.symbol,

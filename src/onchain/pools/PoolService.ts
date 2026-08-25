@@ -698,6 +698,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
       name: this.sdk.tokensMeta.mustGetToken(pool.address).name,
       chainId: this.chainId,
       pool: pool.address,
+      underlyingToken: market.underlyingToken,
       netValue: {
         // for RWA markets the shares are worth the unwrapped asset (e.g. USDC
         // instead of dcUSDC), which the wrapper converts to one-for-one; the

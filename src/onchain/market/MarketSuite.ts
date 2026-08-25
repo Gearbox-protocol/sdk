@@ -9,6 +9,7 @@ import type {
   PriceFeedSummary,
   QuotaAsset,
   Token,
+  UnderlyingToken,
 } from "../../model/index.js";
 import { isFilterSet, matchesOpportunityFilter } from "../../model/index.js";
 import type { MarketData } from "../base/index.js";
@@ -121,7 +122,8 @@ export class MarketSuite extends SDKConstruct {
   }
 
   /**
-   * Underlying token of the market pool.
+   * Underlying token of the market pool, as returned by contract.
+   * For RWA markets this is a wrapped token (e.g. dcUSDC, rather than USDC)
    */
   public get underlying(): Address {
     return this.pool.underlying;
@@ -146,11 +148,15 @@ export class MarketSuite extends SDKConstruct {
    * The market's underlying as the shared read model describes it.
    *
    * For an RWA market this is the token the underlying wraps rather than the
-   * wrapper itself, because only that token means anything to a reader. The
-   * wrapper converts one-for-one, so amounts denominated in it stay exact.
+   * wrapper itself, e.g. USDC rather than dcUSDC (which will be "wrappedAddress" in this case)
    */
-  public get underlyingToken(): Token {
-    return this.tokensMeta.mustGetToken(this.unwrappedUnderlying);
+  public get underlyingToken(): UnderlyingToken {
+    return {
+      ...this.tokensMeta.mustGetToken(this.unwrappedUnderlying),
+      wrappedAddress: isAddressEqual(this.underlying, this.unwrappedUnderlying)
+        ? null
+        : this.underlying,
+    };
   }
 
   /**

@@ -147,6 +147,7 @@ import type {
   Token,
   TokenAmount,
   TxCall,
+  UnderlyingToken,
 } from "./primitives.js";
 import type {
   amountSchema,
@@ -154,6 +155,7 @@ import type {
   tokenAmountSchema,
   tokenSchema,
   txCallSchema,
+  underlyingTokenSchema,
 } from "./primitives.schema.js";
 import type {
   ChainFailed,
@@ -188,6 +190,9 @@ describe("model schemas match model types", () => {
     expectTypeOf<z.infer<typeof amountSchema>>().toEqualTypeOf<Amount>();
     expectTypeOf<z.infer<typeof assetTypeSchema>>().toEqualTypeOf<AssetType>();
     expectTypeOf<z.infer<typeof tokenSchema>>().toEqualTypeOf<Token>();
+    expectTypeOf<
+      z.infer<typeof underlyingTokenSchema>
+    >().toEqualTypeOf<UnderlyingToken>();
     expectTypeOf<
       z.infer<typeof tokenAmountSchema>
     >().toEqualTypeOf<TokenAmount>();

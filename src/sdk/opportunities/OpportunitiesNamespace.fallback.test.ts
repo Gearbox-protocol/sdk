@@ -51,6 +51,7 @@ const TOKEN_BODY = {
   name: "USD Coin",
   decimals: 6,
   assetType: "Stable" as const,
+  wrappedAddress: null,
 };
 
 const AMOUNT = { value: "1000", valueUsd: 1 };

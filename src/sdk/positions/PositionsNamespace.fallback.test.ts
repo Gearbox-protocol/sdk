@@ -106,6 +106,15 @@ function poolPosition(chainId: number): PoolPositionBody {
     name: `USDC Pool ${chainId}`,
     chainId,
     pool: POOL,
+    underlyingToken: {
+      chainId,
+      address: TOKEN,
+      symbol: "USDC",
+      name: "USD Coin",
+      decimals: 6,
+      assetType: "Stable",
+      wrappedAddress: null,
+    },
     netValue: {
       value: "1000000",
       valueUsd: 1,

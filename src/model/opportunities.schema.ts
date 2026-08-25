@@ -17,6 +17,7 @@ import {
   leverageSchema,
   timestampSchema,
   tokenSchema,
+  underlyingTokenSchema,
 } from "./primitives.schema.js";
 
 /**
@@ -83,7 +84,7 @@ export const opportunityBaseSchema = z.object({
   chainId: chainIdSchema,
   name: z.string(),
   curator: curatorSchema,
-  underlyingToken: tokenSchema,
+  underlyingToken: underlyingTokenSchema,
   allowedDepositTokens: z.array(tokenSchema),
   paused: z.boolean(),
   rwa: z.boolean(),

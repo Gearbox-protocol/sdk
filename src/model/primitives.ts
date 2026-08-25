@@ -165,6 +165,23 @@ export interface Token {
 }
 
 /**
+ * A market's underlying as the shared read model describes it.
+ *
+ * For an RWA market this is the token the wrapper holds (e.g. USDC) rather
+ * than the wrapper itself (e.g. dcUSDC). The wrapper converts one-for-one, so
+ * amounts denominated in it stay exact; {@link wrappedAddress} names the
+ * wrapper when there is one.
+ **/
+export interface UnderlyingToken extends Token {
+  /**
+   * Address of the compliance wrapper the pool actually holds (e.g. dcUSDC)
+   * when the market underlying is an RWA wrapper, or `null` when the
+   * underlying is the token itself.
+   **/
+  wrappedAddress: Address | null;
+}
+
+/**
  * An {@link Amount} that names its own token.
  **/
 export interface TokenAmount extends Amount {

@@ -24,6 +24,7 @@ import {
   timestampSchema,
   tokenAmountSchema,
   tokenSchema,
+  underlyingTokenSchema,
 } from "./primitives.schema.js";
 
 /**
@@ -98,6 +99,7 @@ export const poolPositionSchema = z.object({
   name: z.string(),
   chainId: chainIdSchema,
   pool: ZodAddress(),
+  underlyingToken: underlyingTokenSchema,
   netValue: tolerance(tokenAmountSchema, "amount"),
   apy: apyBreakdownSchema,
   apyAvg7D: offchainOnly(apyBreakdownSchema).optional(),
@@ -131,6 +133,7 @@ export const strategyPositionSchema = z.object({
   chainId: chainIdSchema,
   creditManager: ZodAddress(),
   creditAccount: ZodAddress(),
+  underlyingToken: underlyingTokenSchema,
   targetCollateral: tokenSchema.nullable(),
   leverage: tolerance(leverageSchema, "float"),
   borrowApy: tolerance(bpsSchema, "bps"),

@@ -10,6 +10,7 @@ import type {
   Leverage,
   Timestamp,
   Token,
+  UnderlyingToken,
 } from "./primitives.js";
 
 /**
@@ -142,10 +143,10 @@ export interface OpportunityBase {
    * Token that is supplied to the pool and borrowed by credit accounts. All
    * amounts of the opportunity are denominated in it.
    *
-   * For RWA markets it's an unwrapped, e.g. — `USDC`, not `dcUSDC` (pool underlying according to contract).
-   * The wrapper converts one-for-one, so every amount stays exact.
+   * For RWA markets this is the unwrapped asset, e.g. USDC rather than
+   * dcUSDC (the pool's on-chain underlying).
    **/
-  underlyingToken: Token;
+  underlyingToken: UnderlyingToken;
   /**
    * Tokens a user can transfer from their wallet to deposit into a pool
    * position or to use when opening a credit account. They are not necessarily

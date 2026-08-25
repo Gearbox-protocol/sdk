@@ -14,6 +14,7 @@ import type {
   Timestamp,
   Token,
   TokenAmount,
+  UnderlyingToken,
 } from "./primitives.js";
 
 /**
@@ -133,6 +134,13 @@ export interface PoolPosition {
    **/
   pool: Address;
   /**
+   * Pool underlying token.
+   *
+   * For RWA markets this is the unwrapped asset, e.g. USDC rather than
+   * dcUSDC (the pool's on-chain underlying).
+   **/
+  underlyingToken: UnderlyingToken;
+  /**
    * Underlying the held shares are worth at the current share rate, i.e.
    * `pool.convertToAssets(pool.balanceOf(wallet))`.
    **/
@@ -221,6 +229,13 @@ export interface StrategyPosition {
    * Credit account address.
    **/
   creditAccount: Address;
+  /**
+   * Pool underlying token.
+   *
+   * For RWA markets this is the unwrapped asset, e.g. USDC rather than
+   * dcUSDC (the pool's on-chain underlying).
+   **/
+  underlyingToken: UnderlyingToken;
   /**
    * Collateral token this position is a strategy in.
    **/
@@ -477,9 +492,8 @@ export function matchesPositionFilter(
 function positionUnderlying(position: Position): Token | undefined {
   switch (position.kind) {
     case "pool":
-      return position.netValue.token;
     case "strategy":
-      return position.totalValue.token;
+      return position.underlyingToken;
     case "liquidation":
       return undefined;
   }

@@ -129,8 +129,8 @@ export class PoolSuite extends SDKConstruct {
   }
 
   /**
-   * Underlying asset deposited into the pool and borrowed by connected credit
-   * suites.
+   * Underlying token of the market pool, as returned by contract.
+   * For RWA markets this is a wrapped token (e.g. dcUSDC, rather than USDC)
    */
   public get underlying(): Address {
     return this.pool.underlying;

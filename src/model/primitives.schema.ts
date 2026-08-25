@@ -62,6 +62,14 @@ export const tokenSchema = z.object({
 });
 
 /**
+ * {@link UnderlyingToken}
+ **/
+export const underlyingTokenSchema = z.object({
+  ...tokenSchema.shape,
+  wrappedAddress: ZodAddress().nullable(),
+});
+
+/**
  * {@link TokenAmount}
  **/
 export const tokenAmountSchema = amountSchema.extend({

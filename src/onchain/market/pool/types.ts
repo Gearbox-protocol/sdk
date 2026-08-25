@@ -55,6 +55,7 @@ export interface IPoolContract extends IBaseContract {
   interestRateModel: Address;
   /**
    * Pool's underlying token, same as `asset()`.
+   * For RWA markets this is a wrapped token (e.g. dcUSDC, rather than USDC)
    */
   underlying: Address;
   /**
