@@ -11,9 +11,7 @@
       "**",
       "!node_modules",
       "!dist",
-      "!tmp",
-      "!website/build",
-      "!website/.docusaurus"
+      "!tmp"
     ],
     "ignoreUnknown": true
   },

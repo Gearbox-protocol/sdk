@@ -1,9 +1,4 @@
-packages:
-  - "website"
 allowBuilds:
-  "@swc/core": true
-  core-js: true
-  core-js-pure: true
   esbuild: true
   secp256k1: true
 

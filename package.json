@@ -95,10 +95,7 @@
     "prepare": "husky",
     "check": "biome check --write",
     "check:ci": "biome check --diagnostic-level=error",
-    "typecheck:ci": "tsc --noEmit",
-    "docs": "NODE_OPTIONS='--max-old-space-size=8192' pnpm --filter @gearbox-protocol/sdk-docs build",
-    "docs:dev": "pnpm --filter @gearbox-protocol/sdk-docs start",
-    "docs:serve": "pnpm --filter @gearbox-protocol/sdk-docs serve"
+    "typecheck:ci": "tsc --noEmit"
   },
   "dependencies": {
     "@redstone-finance/evm-connector": "^0.9.0",
