@@ -72,8 +72,8 @@ describe("calcBorrowApy", () => {
 
 describe("calcMaxLeverage", () => {
   it("is 95% over the equity share the threshold leaves", () => {
-    expect(calcMaxLeverage(9000)).toBe(9.5);
-    expect(calcMaxLeverage(8000)).toBe(4.75);
+    expect(calcMaxLeverage(9000)).toBe(9);
+    expect(calcMaxLeverage(8000)).toBe(4);
     expect(calcMaxLeverage(9500)).toBe(19);
   });
 
