@@ -9,6 +9,7 @@ import { iPausableAbi } from "../../../abi/iPausable.js";
 import type { CreditManagerDebtParams, PoolState } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
 import { RAY } from "../../constants/index.js";
+import { SdkRWADataNotLoadedError } from "../../core/errors.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import type { PoolStateHuman, RawTx } from "../../types/index.js";
 import {
@@ -62,6 +63,13 @@ export class PoolV310Contract
   public get rwaFactory(): IRWAFactory | undefined {
     const meta = this.#sdk.tokensMeta.mustGet(this.underlying);
     if (this.#sdk.tokensMeta.isRWAUnderlying(meta)) {
+      if (!meta.rwaFactory) {
+        throw new SdkRWADataNotLoadedError(
+          this.underlying,
+          meta.symbol,
+          meta.contractType,
+        );
+      }
       return this.#sdk.mustGetContract<IRWAFactory>(meta.rwaFactory);
     }
     return undefined;

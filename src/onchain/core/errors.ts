@@ -1,4 +1,4 @@
-import { BaseError } from "viem";
+import { type Address, BaseError } from "viem";
 
 import type { NetworkType } from "../chain/chains.js";
 
@@ -90,5 +90,27 @@ export class SdkSyncFailedError extends BaseError {
     const chains = Object.keys(perChainErrors).join(", ");
     super(`syncState failed for chains: ${chains}`);
     this.perChainErrors = perChainErrors;
+  }
+}
+
+/**
+ * Thrown when a token is an RWA underlying (`RWA_UNDERLYING::*`) but compressor
+ * fields such as `asset` / `rwaFactory` were never loaded. Typical cause:
+ * attaching markets that include RWA pools without passing `rwaFactories`.
+ */
+export class SdkRWADataNotLoadedError extends BaseError {
+  override name = "SdkRWADataNotLoadedError";
+
+  readonly token: Address;
+  readonly symbol: string;
+  readonly contractType: string;
+
+  constructor(token: Address, symbol: string, contractType: string) {
+    super(
+      `token ${symbol} (${token}) has contract type ${contractType} but RWA compressor data was not loaded — pass \`rwaFactories\` to attach options`,
+    );
+    this.token = token;
+    this.symbol = symbol;
+    this.contractType = contractType;
   }
 }

@@ -12,6 +12,7 @@ import { iVersionAbi } from "../../abi/iVersion.js";
 import type { Token } from "../../model/primitives.js";
 import { getAssetType } from "../chain/chains.js";
 import type { GearboxChain, NetworkType } from "../chain/index.js";
+import { SdkRWADataNotLoadedError } from "../core/errors.js";
 import type { ILogger } from "../types/logger.js";
 import {
   AddressMap,
@@ -244,6 +245,9 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
     if (!meta || !this.isRWAUnderlying(meta)) {
       return token;
     }
+    if (!meta.asset) {
+      throw new SdkRWADataNotLoadedError(token, meta.symbol, meta.contractType);
+    }
     if (!this.has(meta.asset)) {
       this.#logger?.debug(
         `no token meta for ${meta.asset} wrapped by ${token}, reporting the wrapper instead`,
@@ -453,6 +457,14 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
       update.serializedParams =
         serializeResp.status === "success" ? serializeResp.result : undefined;
       this.#logger?.debug(`token ${meta.symbol} is ${contractType}`);
+      if (
+        contractType.startsWith("RWA_UNDERLYING::") &&
+        !("asset" in update && update.asset)
+      ) {
+        this.#logger?.warn(
+          `token ${meta.symbol} (${token}) is ${contractType} but RWA compressor data was not loaded — pass \`rwaFactories\` to attach options`,
+        );
+      }
     }
     // only expirable tokens (e.g. Pendle PTs) implement isExpired()
     if (isExpiredResp.status === "success") {
