@@ -25,12 +25,8 @@ describe("compileCompareRules", () => {
     expect(rules.get("quotaAssets[].used.value")).toEqual({
       tolerance: "amount",
     });
-    expect(rules.get("quotaAssets[].allocationShare")).toEqual({
-      tolerance: "bps",
-    });
-    expect(rules.get("quotaAssets[].allocatedDebt.value")).toEqual({
-      tolerance: "amount",
-    });
+    expect(rules.get("quotaAssets[].allocationShare")).toBe("offchainOnly");
+    expect(rules.get("quotaAssets[].allocatedDebt")).toBe("offchainOnly");
     expect(rules.get("quotaAssets[].limit.value")).toBeUndefined();
     expect(rules.get("maxBorrowAmount")).toBeUndefined();
     expect(rules.get("maxBorrowAmount.value")).toBeUndefined();

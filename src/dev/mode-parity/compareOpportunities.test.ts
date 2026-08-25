@@ -46,8 +46,6 @@ function quotaAsset(
     quotaRate: 90,
     limit: amount(10_000n, 10_000),
     used: amount(1_000_000n, 1_000),
-    allocationShare: 5_000,
-    allocatedDebt: amount(300n, 300),
     ...overrides,
   };
 }
@@ -407,54 +405,39 @@ describe("quota assets", () => {
     expect(outside.matched[0]?.clean).toBe(false);
   });
 
-  it("tolerates a ±1 bps allocationShare and flags a larger gap", () => {
-    const inside = compare(
+  it("marks quota allocation fields as mode-scoped", () => {
+    const report = compare(
       [pool({ quotaAssets: [quotaAsset(WSTETH, "wstETH")] })],
       [
         pool({
           quotaAssets: [
-            quotaAsset(WSTETH, "wstETH", { allocationShare: 5_001 }),
+            quotaAsset(WSTETH, "wstETH", {
+              allocationShare: 5_000,
+              allocatedDebt: amount(300n, 300),
+            }),
           ],
         }),
       ],
     );
-    const outside = compare(
-      [pool({ quotaAssets: [quotaAsset(WSTETH, "wstETH")] })],
-      [
-        pool({
-          quotaAssets: [
-            quotaAsset(WSTETH, "wstETH", { allocationShare: 5_010 }),
-          ],
-        }),
-      ],
-    );
+    const match = report.matched[0];
 
-    expect(
-      diffAt(
-        inside.matched[0]?.diffs ?? [],
-        `quotaAssets[${WSTETH.toLowerCase()}].allocationShare`,
-      ),
-    ).toEqual({
+    expect(diffAt(match?.diffs ?? [], `quotaAssets[${WSTETH.toLowerCase()}].allocationShare`)).toEqual({
       path: `quotaAssets[${WSTETH.toLowerCase()}].allocationShare`,
-      onchain: 5_000,
-      offchain: 5_001,
-      kind: "numeric",
+      onchain: undefined,
+      offchain: 5_000,
+      kind: "presence",
       expected: true,
-      reason: "tolerance",
+      reason: "mode-scoped",
     });
-    expect(inside.matched[0]?.clean).toBe(true);
-    expect(
-      diffAt(
-        outside.matched[0]?.diffs ?? [],
-        `quotaAssets[${WSTETH.toLowerCase()}].allocationShare`,
-      ),
-    ).toEqual({
-      path: `quotaAssets[${WSTETH.toLowerCase()}].allocationShare`,
-      onchain: 5_000,
-      offchain: 5_010,
-      kind: "numeric",
+    expect(diffAt(match?.diffs ?? [], `quotaAssets[${WSTETH.toLowerCase()}].allocatedDebt`)).toEqual({
+      path: `quotaAssets[${WSTETH.toLowerCase()}].allocatedDebt`,
+      onchain: undefined,
+      offchain: amount(300n, 300),
+      kind: "presence",
+      expected: true,
+      reason: "mode-scoped",
     });
-    expect(outside.matched[0]?.clean).toBe(false);
+    expect(match?.clean).toBe(true);
   });
 
   it("treats a limit.value disagreement as unexpected", () => {

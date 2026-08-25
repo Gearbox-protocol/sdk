@@ -99,8 +99,8 @@ export const quotaAssetSchema = z.object({
   quotaRate: tolerance(bpsSchema, "bps"),
   limit: amountSchema,
   used: tolerance(amountSchema, "amount"),
-  allocationShare: tolerance(bpsSchema, "bps"),
-  allocatedDebt: tolerance(amountSchema, "amount"),
+  allocationShare: offchainOnly(bpsSchema).optional(),
+  allocatedDebt: offchainOnly(amountSchema).optional(),
 });
 
 /**
