@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import type { PoolOperationType } from "../../model/index.js";
-import type { AssertAssignable } from "../../sdk/index.js";
+import type { AssertAssignable } from "../../onchain/index.js";
 
 /**
  * ERC4626 `deposit` into a Gearbox pool.

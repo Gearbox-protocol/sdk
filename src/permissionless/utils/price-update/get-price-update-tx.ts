@@ -5,12 +5,12 @@ import {
   type PublicClient,
   type Transport,
 } from "viem";
-import type { GearboxChain, RawTx } from "../../../sdk/index.js";
+import type { GearboxChain, RawTx } from "../../../onchain/index.js";
 import {
   createRawTx,
   getRawPriceUpdates,
   OnchainSDK,
-} from "../../../sdk/index.js";
+} from "../../../onchain/index.js";
 import { PriceFeedStoreContract } from "../../bindings/index.js";
 import { Addresses } from "../../deployment/addresses.js";
 

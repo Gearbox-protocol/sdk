@@ -17,7 +17,7 @@ import {
   ERC4626AdapterContract,
   MAX_UINT256,
   type OnchainSDK,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 import type { InnerOperation } from "../parse/index.js";
 import { CreditAccountState } from "./CreditAccountState.js";
 import {

@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-import { TypedObjectUtils } from "../../../../sdk/utils/mappers.js";
+import { TypedObjectUtils } from "../../../../onchain/utils/mappers.js";
 import { isUsableToken } from "../tokens/index.js";
 import type {
   CuratorFilter,

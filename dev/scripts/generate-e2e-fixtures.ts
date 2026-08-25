@@ -25,11 +25,15 @@ import {
   REDSTONE_GATEWAYS,
   startOracleProxy,
 } from "../../src/e2e/oracleProxy.js";
+import {
+  chains,
+  type NetworkType,
+  OnchainSDK,
+} from "../../src/onchain/index.js";
 import { AccountsPlugin } from "../../src/plugins/accounts/AccountsPlugin.js";
 import { ApyPlugin } from "../../src/plugins/apy/index.js";
 import { BotsPlugin } from "../../src/plugins/bots/index.js";
 import { DegenDistributorsPlugin } from "../../src/plugins/degen-distributors/index.js";
-import { chains, type NetworkType, OnchainSDK } from "../../src/sdk/index.js";
 
 // ─── Configuration ──────────────────────────────────────────────────────────
 const NETWORK: NetworkType = "Mainnet";

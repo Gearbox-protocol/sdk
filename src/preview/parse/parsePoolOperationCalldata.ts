@@ -1,5 +1,5 @@
 import type { Address, Hex } from "viem";
-import type { OnchainSDK, PoolV310Contract } from "../../sdk/index.js";
+import type { OnchainSDK, PoolV310Contract } from "../../onchain/index.js";
 import { UnsupportedPoolFunctionError } from "./errors.js";
 import type { PoolOperation } from "./types.js";
 

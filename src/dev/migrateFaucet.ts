@@ -2,7 +2,7 @@ import type { Address } from "viem";
 import { formatEther, parseEther, stringToHex } from "viem";
 
 import { iAddressProviderV310Abi } from "../abi/310/generated.js";
-import type { OnchainSDK } from "../sdk/index.js";
+import type { OnchainSDK } from "../onchain/index.js";
 import { extendAnvilClient } from "./createAnvilClient.js";
 
 /**

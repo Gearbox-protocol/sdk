@@ -1,7 +1,7 @@
 import { pino } from "pino";
 import { getAlchemyUrl } from "../src/dev/providers.js";
-import { GearboxSDK } from "../src/new-sdk/GearboxSDK.js";
-import { toChainIds } from "../src/sdk/index.js";
+import { toChainIds } from "../src/onchain/index.js";
+import { GearboxSDK } from "../src/sdk/GearboxSDK.js";
 
 /**
  * Lists every opportunity of one chain in `both` mode.

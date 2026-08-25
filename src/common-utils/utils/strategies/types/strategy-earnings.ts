@@ -1,4 +1,4 @@
-import type { Asset } from "../../../../sdk/index.js";
+import type { Asset } from "../../../../onchain/index.js";
 import type { calculateEarnings } from "../../apy/calculate-earnings.js";
 import type { Strategy } from "../../strategies/types/strategy.js";
 import type { calculateTotalAPY } from "../strategy-info/calculate-total-apy.js";

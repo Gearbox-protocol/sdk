@@ -4,12 +4,12 @@ import { type Address, custom, encodeFunctionData, parseEther } from "viem";
 import { beforeAll, describe, expect, it } from "vitest";
 import { iCreditFacadeV310Abi } from "../../abi/310/generated.js";
 import type { AdjustCreditAccountPreview, Token } from "../../model/index.js";
-import { CreditAccountOperationsService } from "../../sdk/accounts/intents/index.js";
+import { CreditAccountOperationsService } from "../../onchain/accounts/intents/index.js";
 import type {
   OperationState,
   StartIntent,
-} from "../../sdk/accounts/intents/types.js";
-import { toCreditAccountSlice } from "../../sdk/accounts/intents/utils/credit-account-slice.js";
+} from "../../onchain/accounts/intents/types.js";
+import { toCreditAccountSlice } from "../../onchain/accounts/intents/utils/credit-account-slice.js";
 import {
   type Asset,
   type CreditAccountData,
@@ -17,7 +17,7 @@ import {
   json_parse,
   MAX_UINT256,
   OnchainSDK,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 import { previewOperation } from "./previewOperation.js";
 
 // The two halves of the SDK's account story, checked against each other.

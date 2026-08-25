@@ -53,7 +53,7 @@ const config: Config = {
       "docusaurus-plugin-typedoc",
       {
         entryPoints: [
-          "../src/sdk/index.ts",
+          "../src/onchain/index.ts",
           "../src/dev/index.ts",
           "../src/history/index.ts",
           "../src/permissionless/index.ts",

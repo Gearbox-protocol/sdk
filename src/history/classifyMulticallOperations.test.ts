@@ -11,7 +11,6 @@ import {
   type CallTrace,
   EXECUTE_BYTES_SELECTOR,
 } from "../common-utils/utils/trace.js";
-import type { TokenTransfer } from "../preview/parse/index.js";
 import {
   AddressMap,
   type ChainContractsRegister,
@@ -21,7 +20,8 @@ import {
   type ParsedCallV2,
   UniswapV3AdapterContract,
   WstETHV1AdapterContract,
-} from "../sdk/index.js";
+} from "../onchain/index.js";
+import type { TokenTransfer } from "../preview/parse/index.js";
 import { classifyMulticallOperations } from "./classifyMulticallOperations.js";
 
 const addr = (hex: string) => getAddress(padHex(hex as Address, { size: 20 }));

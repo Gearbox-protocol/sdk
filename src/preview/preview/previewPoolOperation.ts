@@ -1,5 +1,5 @@
 import type { PoolOperationPreview } from "../../model/index.js";
-import type { PluginsMap } from "../../sdk/index.js";
+import type { PluginsMap } from "../../onchain/index.js";
 import type { PoolOperation } from "../parse/index.js";
 import { simulatePoolOperation } from "../simulate/index.js";
 import type {

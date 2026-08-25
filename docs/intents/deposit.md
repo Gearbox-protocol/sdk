@@ -1,7 +1,7 @@
 # Deposit into a strategy
 
 `prepare.depositStrategy` → `startIntent({ type: "DEPOSIT" })` → `planDeposit`
-([`plan.ts`](../../src/sdk/accounts/intents/plan.ts)).
+([`plan.ts`](../../src/onchain/accounts/intents/plan.ts)).
 
 Collateral comes in from the wallet and the debt grows with it — at the
 account's current leverage by default, or to a target the caller names.

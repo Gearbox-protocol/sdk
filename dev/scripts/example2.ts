@@ -1,5 +1,5 @@
 import { pino } from "pino";
-import { json_stringify, OnchainSDK } from "../../src/sdk/index.js";
+import { json_stringify, OnchainSDK } from "../../src/onchain/index.js";
 
 const logger = pino({
   level: process.env.LOG_LEVEL ?? "debug",

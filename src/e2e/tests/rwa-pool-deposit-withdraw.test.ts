@@ -21,7 +21,7 @@ import {
   type PoolServiceCallResult,
   type RWADefaultTokenMeta,
   type RWAOnDemandTokenMeta,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 import { GAS_LIMIT } from "../constants.js";
 
 const RWA_RPC_URL = "https://anvil.gearbox.foundation/rpc/Securitize";

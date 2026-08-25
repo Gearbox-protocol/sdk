@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import type { OperationPreviewError } from "../../model/index.js";
-import type { OnchainSDK, PluginsMap } from "../../sdk/index.js";
+import type { OnchainSDK, PluginsMap } from "../../onchain/index.js";
 import type { InnerOperation } from "../parse/index.js";
 import type { PreviewOperationOptions } from "../types.js";
 import { CreditAccountState } from "./CreditAccountState.js";

@@ -1,11 +1,11 @@
 import type { Address } from "viem";
 import { erc20Abi, hexToString, parseAbi, parseEther } from "viem";
 import { iWithdrawalCompressorV313Abi } from "../abi/IWithdrawalCompressorV313.js";
-import type { ILogger } from "../sdk/index.js";
+import type { ILogger } from "../onchain/index.js";
 import {
   getNetworkType,
   getWithdrawalCompressorAddress,
-} from "../sdk/index.js";
+} from "../onchain/index.js";
 import type { AnvilClient } from "./createAnvilClient.js";
 import {
   iMidasDataFeedAbi,

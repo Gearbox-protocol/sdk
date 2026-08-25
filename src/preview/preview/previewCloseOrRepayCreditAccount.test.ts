@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { type Address, custom, getAddress, type Hex, parseEther } from "viem";
 import { beforeAll, expect, it } from "vitest";
-import { json_parse, NATIVE_ADDRESS, OnchainSDK } from "../../sdk/index.js";
+import { json_parse, NATIVE_ADDRESS, OnchainSDK } from "../../onchain/index.js";
 import { previewOperation } from "./previewOperation.js";
 
 // Scoped (minimal market configurator set) snapshot, replayed via `hydrate`

@@ -2,10 +2,14 @@ import type { Address } from "viem";
 import {
   LEVERAGE_DECIMALS,
   WAD_DECIMALS_POW,
-} from "../../../../sdk/constants/math.js";
-import type { Asset } from "../../../../sdk/index.js";
-import { BigIntMath } from "../../../../sdk/utils/bigint-math.js";
-import { formatBN, toBigInt, toBN } from "../../../../sdk/utils/formatter.js";
+} from "../../../../onchain/constants/math.js";
+import type { Asset } from "../../../../onchain/index.js";
+import { BigIntMath } from "../../../../onchain/utils/bigint-math.js";
+import {
+  formatBN,
+  toBigInt,
+  toBN,
+} from "../../../../onchain/utils/formatter.js";
 import { calculateEarnings } from "../../apy/calculate-earnings.js";
 import { calculateEffectiveBorrowRate } from "../../apy/calculate-effective-borrow-rate.js";
 import { getComplexAPYList } from "../../apy/get-complex-apy-list.js";

@@ -1,6 +1,6 @@
 import type { Address, Chain, Hash, PublicClient, Transport } from "viem";
 import { batchesChainAbi } from "../../../abi/governance/batchesChain.js";
-import { BaseContract, type RawTx } from "../../../sdk/index.js";
+import { BaseContract, type RawTx } from "../../../onchain/index.js";
 
 const abi = batchesChainAbi;
 

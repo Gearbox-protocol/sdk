@@ -1,6 +1,6 @@
 import { type Logger, pino } from "pino";
 import type { ChainMetadata } from "../../model/index.js";
-import type { NetworkType } from "../../sdk/index.js";
+import type { NetworkType } from "../../onchain/index.js";
 import { getAlchemyUrl } from "../providers.js";
 import type {
   ChainCompareCounts,

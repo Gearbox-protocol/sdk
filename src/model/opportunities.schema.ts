@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { ZodAddress } from "../sdk/utils/zod.js";
+import { ZodAddress } from "../onchain/utils/zod.js";
 import { offchainOnly, tolerance } from "./compare.schema.js";
 import { curatorSchema } from "./curators.schema.js";
 import { isFilterSet } from "./filters.js";

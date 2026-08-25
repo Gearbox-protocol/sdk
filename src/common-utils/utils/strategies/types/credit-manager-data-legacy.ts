@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import type { NetworkType } from "../../../../sdk/index.js";
+import type { NetworkType } from "../../../../onchain/index.js";
 import type { QuotaSlice } from "../strategy-info/types.js";
 import type { StrategyCreditManagerView } from "./strategy-data-source.js";
 

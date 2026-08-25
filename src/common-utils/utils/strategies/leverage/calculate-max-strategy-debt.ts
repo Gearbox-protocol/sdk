@@ -2,8 +2,8 @@ import type { Address } from "viem";
 import {
   LEVERAGE_DECIMALS,
   PERCENTAGE_FACTOR,
-} from "../../../../sdk/constants/math.js";
-import { BigIntMath } from "../../../../sdk/utils/bigint-math.js";
+} from "../../../../onchain/constants/math.js";
+import { BigIntMath } from "../../../../onchain/utils/bigint-math.js";
 import type { CreditManagerSlice } from "../strategy-info/types.js";
 import { calculateLossCoefficient } from "./calculate-loss-coefficient.js";
 import { maxLeverage } from "./max-leverage.js";

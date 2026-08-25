@@ -2,7 +2,7 @@ import type { Address } from "viem";
 import type { MockInstance } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CHART_METRIC_UNITS, type ChartMetric } from "../../model/charts.js";
-import { chains } from "../../sdk/index.js";
+import { chains } from "../../onchain/index.js";
 import { OffchainPositions } from "./OffchainPositions.js";
 
 const MAINNET = chains.Mainnet.id;

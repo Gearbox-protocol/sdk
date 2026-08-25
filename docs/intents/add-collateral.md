@@ -1,7 +1,7 @@
 # Add collateral
 
 `prepare.addCollateral` → `startIntent({ type: "ADD_COLLATERAL" })` →
-`planAddCollateral` ([`plan.ts`](../../src/sdk/accounts/intents/plan.ts)).
+`planAddCollateral` ([`plan.ts`](../../src/onchain/accounts/intents/plan.ts)).
 
 The simplest intent there is: the token lands on the account as it comes and the
 debt is untouched. Nothing is routed, nothing is borrowed, so leverage falls —
@@ -73,4 +73,4 @@ flowchart LR
 - On an RWA market the raw asset is **not** wrapped here — that is the deposit
   flow. Adding the raw asset leaves it sitting as its own balance.
 - `value` rides along for a wrapped-native market paid in the coin.
-- Tests: [`add-collateral.onchain.test.ts`](../../src/sdk/accounts/intents/tests/add-collateral.onchain.test.ts).
+- Tests: [`add-collateral.onchain.test.ts`](../../src/onchain/accounts/intents/tests/add-collateral.onchain.test.ts).

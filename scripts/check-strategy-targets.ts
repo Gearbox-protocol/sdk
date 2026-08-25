@@ -12,7 +12,7 @@ import {
   isStrategyCollateral,
   MultichainSDK,
   type StrategyCollateralProps,
-} from "../src/sdk/index.js";
+} from "../src/onchain/index.js";
 
 const logger = pino({
   level: process.env.LOG_LEVEL ?? "info",

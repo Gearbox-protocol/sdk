@@ -1,4 +1,4 @@
-import { PERCENTAGE_FACTOR } from "../../../sdk/constants/math.js";
+import { PERCENTAGE_FACTOR } from "../../../onchain/constants/math.js";
 import type { LinearModel } from "../strategies/strategy-info/types.js";
 export function calculateBorrowRateFromUtilization(
   util: bigint,

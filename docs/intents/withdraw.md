@@ -1,7 +1,7 @@
 # Withdraw from a strategy
 
 `prepare.withdrawStrategy` → `intentRoutes({ type: "WITHDRAW" })` →
-`planWithdraw` ([`plan.ts`](../../src/sdk/accounts/intents/plan.ts)).
+`planWithdraw` ([`plan.ts`](../../src/onchain/accounts/intents/plan.ts)).
 
 Value leaves the account and the debt shrinks in proportion, so leverage holds —
 unless the request is for everything, which is an exit and has no leverage left
@@ -174,6 +174,6 @@ sentinel and the check is trivially satisfied.
   them to the balances left behind, with `quotaReserve` on top.
 - Between `maxWithdraw` and the net value the flow refuses rather than clamping:
   the caller gets a reason it can show, not a number it did not ask for.
-- Tests: [`withdraw.onchain.test.ts`](../../src/sdk/accounts/intents/tests/withdraw.onchain.test.ts),
-  [`withdraw-all.onchain.test.ts`](../../src/sdk/accounts/intents/tests/withdraw-all.onchain.test.ts),
-  [`plan.test.ts`](../../src/sdk/accounts/intents/plan.test.ts).
+- Tests: [`withdraw.onchain.test.ts`](../../src/onchain/accounts/intents/tests/withdraw.onchain.test.ts),
+  [`withdraw-all.onchain.test.ts`](../../src/onchain/accounts/intents/tests/withdraw-all.onchain.test.ts),
+  [`plan.test.ts`](../../src/onchain/accounts/intents/plan.test.ts).

@@ -1,5 +1,5 @@
 import type { Address, Hex } from "viem";
-import type { ContractMethod } from "../../../sdk/index.js";
+import type { ContractMethod } from "../../../onchain/index.js";
 
 // @note Safe txs and bathes types
 export interface SafeTx {

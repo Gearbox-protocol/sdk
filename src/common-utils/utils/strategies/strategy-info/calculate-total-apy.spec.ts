@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { PERCENTAGE_FACTOR } from "../../../../sdk/constants/math.js";
+import { PERCENTAGE_FACTOR } from "../../../../onchain/constants/math.js";
 import {
   mockPrices,
   mockToken1,

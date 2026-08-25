@@ -1,4 +1,4 @@
-import { PERCENTAGE_FACTOR } from "../../../../sdk/constants/math.js";
+import { PERCENTAGE_FACTOR } from "../../../../onchain/constants/math.js";
 export function getCollateralByDebt(
   debt: bigint,
   lt: bigint, // 1

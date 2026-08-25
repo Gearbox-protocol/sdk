@@ -1,4 +1,4 @@
-import { LEVERAGE_DECIMALS } from "../../../sdk/index.js";
+import { LEVERAGE_DECIMALS } from "../../../onchain/index.js";
 
 import { getFactorFromLeverage } from "../strategies/leverage/index.js";
 

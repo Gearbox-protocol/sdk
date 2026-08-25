@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 import { describe, expect, it } from "vitest";
 
-import { MAX_UINT256, MIN_INT96 } from "../../sdk/index.js";
+import { MAX_UINT256, MIN_INT96 } from "../../onchain/index.js";
 import type { InnerOperation } from "../parse/index.js";
 import { classifyCloseOrRepay, isCloseOrRepay } from "./detectCloseOrRepay.js";
 

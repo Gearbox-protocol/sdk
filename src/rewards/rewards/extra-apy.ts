@@ -9,7 +9,7 @@ import {
   PERCENTAGE_FACTOR,
   type TokensMeta,
   toBN,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 import type { PoolPointsInfo } from "../apy/output-details.js";
 import type { TokenData } from "./common.js";
 

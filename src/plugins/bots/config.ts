@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import { BotPermissions, type NetworkType } from "../../sdk/index.js";
+import { BotPermissions, type NetworkType } from "../../onchain/index.js";
 import type { BotBaseType, BotParameters, MigrationBotState } from "./types.js";
 
 export const PARTIAL_LIQUIDATION_BOT_CONFIGS: Partial<

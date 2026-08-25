@@ -8,7 +8,7 @@ import {
   OnchainSDK,
   type RedemptionLog,
   RedemptionLoggerV310Contract,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 import type { InnerOperation } from "../parse/index.js";
 import { detectDelayedClaim } from "./detectDelayedClaim.js";
 

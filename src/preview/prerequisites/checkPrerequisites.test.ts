@@ -17,7 +17,7 @@ import {
   SECURITIZE_REGISTER_VAULT_TYPES,
   type SecuritizeInvestorData,
   type SecuritizeRegisterVaultMessage,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 import { checkPrerequisites } from "./checkPrerequisites.js";
 import type { RWAOpenRequirementsResult } from "./RWAOpenRequirementsPrerequisite.js";
 

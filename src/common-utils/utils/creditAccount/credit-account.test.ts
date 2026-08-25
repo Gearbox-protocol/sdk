@@ -6,7 +6,7 @@ import {
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS_POW,
   toBN,
-} from "../../../sdk/index.js";
+} from "../../../onchain/index.js";
 import { AssetUtils } from "../assets-math.js";
 import { PriceUtils } from "../price-math.js";
 import {

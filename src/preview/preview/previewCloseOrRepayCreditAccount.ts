@@ -7,7 +7,7 @@ import {
   MAX_UINT256,
   NO_VERSION,
   type PluginsMap,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 import type {
   CloseCreditAccountOperation,
   MulticallOperation,

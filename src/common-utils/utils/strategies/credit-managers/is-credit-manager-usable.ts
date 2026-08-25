@@ -1,4 +1,4 @@
-import { isV310 } from "../../../../sdk/index.js";
+import { isV310 } from "../../../../onchain/index.js";
 
 import type { StrategyCreditManagerView } from "../types.js";
 

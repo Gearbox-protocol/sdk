@@ -1,7 +1,7 @@
 # Open a new strategy
 
 `prepare.openNewStrategy` → `openStrategyIntent` → `previewOpenStrategy`
-([`open-strategy.ts`](../../src/sdk/accounts/intents/open-strategy.ts)).
+([`open-strategy.ts`](../../src/onchain/accounts/intents/open-strategy.ts)).
 
 The one flow with no account to plan against: there is nothing on chain until
 the transaction lands, so it emits no steps and no operation chain. The output

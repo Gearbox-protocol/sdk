@@ -1,5 +1,5 @@
 import type { OperationPreview } from "../../model/index.js";
-import type { PluginsMap } from "../../sdk/index.js";
+import type { PluginsMap } from "../../onchain/index.js";
 import {
   isPoolOperation,
   type MulticallOperation,

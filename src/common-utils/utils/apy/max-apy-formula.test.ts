@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { LEVERAGE_DECIMALS } from "../../../sdk/index.js";
+import { LEVERAGE_DECIMALS } from "../../../onchain/index.js";
 import { maxAPYFormula } from "./max-apy-formula.js";
 
 describe("maxAPYFormula", () => {

@@ -6,7 +6,7 @@ import {
   NATIVE_ADDRESS,
   NO_VERSION,
   type OnchainSDK,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 import type { InnerOperation } from "../parse/index.js";
 import { AllowancePrerequisite } from "./AllowancePrerequisite.js";
 import { BalancePrerequisite } from "./BalancePrerequisite.js";

@@ -1,6 +1,6 @@
 import { encodeAbiParameters, stringToHex } from "viem";
 import { iBytecodeRepositoryAbi } from "../../abi/310/iBytecodeRepository.js";
-import type { IOnchainSDKPlugin } from "../../sdk/index.js";
+import type { IOnchainSDKPlugin } from "../../onchain/index.js";
 import {
   AddressMap,
   AP_BYTECODE_REPOSITORY,
@@ -8,7 +8,7 @@ import {
   BasePlugin,
   chains as CHAINS,
   hexEq,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 import { iPartialLiquidationBotV310Abi } from "./abi/iPartialLiquidationBotV310.js";
 import {
   LEGACY_MIGRATION_BOT,

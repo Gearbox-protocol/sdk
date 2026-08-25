@@ -5,7 +5,7 @@ import {
   type Hex,
   slice,
 } from "viem";
-import { json_stringify } from "../../src/sdk/index.js";
+import { json_stringify } from "../../src/onchain/index.js";
 import { INNER_ABIS, OUTER_ABIS } from "./abiRegistry.js";
 import type { DecodedCall, DecodedTx, TxDumpTransaction } from "./types.js";
 

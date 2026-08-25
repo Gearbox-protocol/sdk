@@ -1,3 +1,3 @@
-import type { NetworkType } from "../../../../sdk/index.js";
+import type { NetworkType } from "../../../../onchain/index.js";
 
 export type AppChains = Record<number, NetworkType>;

@@ -9,8 +9,8 @@ import {
   rpcUrls,
   TIMEOUT,
 } from "../src/dev/mode-parity/scriptUtils.js";
-import { GearboxSDK } from "../src/new-sdk/GearboxSDK.js";
-import { json_stringify } from "../src/sdk/index.js";
+import { json_stringify } from "../src/onchain/index.js";
+import { GearboxSDK } from "../src/sdk/GearboxSDK.js";
 
 /**
  * Lists opportunities from both sources against live data and writes down

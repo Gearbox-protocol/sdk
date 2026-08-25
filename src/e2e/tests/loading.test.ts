@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { GearboxSDK } from "../../new-sdk/index.js";
+import { GearboxSDK } from "../../sdk/index.js";
 import { ANVIL_URL } from "../constants.js";
 import { REDSTONE_GATEWAYS, useFixture } from "../helpers.js";
 
@@ -8,7 +8,7 @@ const BLOCK = 24_728_000n;
 /**
  * Smoke of the loading policy on a fork: a read issued before `attach`
  * resolves attaches the SDK's own on-chain source and answers. Everything
- * else about loading is `new-sdk/GearboxSDK.loading.test.ts`.
+ * else about loading is `sdk/GearboxSDK.loading.test.ts`.
  */
 describe("GearboxSDK loading (fork)", () => {
   useFixture({ network: "Mainnet", block: BLOCK });

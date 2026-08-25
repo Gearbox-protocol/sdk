@@ -3,8 +3,8 @@ import type {
   CreditAccountData,
   OnchainSDK,
   PluginsMap,
-} from "../sdk/index.js";
-import type { ILogger } from "../sdk/types/logger.js";
+} from "../onchain/index.js";
+import type { ILogger } from "../onchain/types/logger.js";
 
 /**
  * Raw-calldata operation input shared by `parseOperationCalldata`,

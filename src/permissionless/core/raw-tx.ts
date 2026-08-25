@@ -4,7 +4,7 @@ import type {
   EncodeFunctionDataParameters,
   Hex,
 } from "viem";
-import { createRawTx } from "../../sdk/index.js";
+import { createRawTx } from "../../onchain/index.js";
 
 export function createCallData<
   abi extends Abi | readonly unknown[],

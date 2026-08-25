@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import { describe, expect, it, vi } from "vitest";
-import { toBN } from "../../../../sdk/index.js";
+import { toBN } from "../../../../onchain/index.js";
 import {
   buildCreditManager,
   buildPool,

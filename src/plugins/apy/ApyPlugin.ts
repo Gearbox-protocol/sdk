@@ -12,9 +12,7 @@ import type {
   Strategy,
   StrategyCreditManagerView,
 } from "../../common-utils/utils/strategies/types.js";
-import type { Output } from "../../rewards/apy/index.js";
-import { PoolPointsAPI } from "../../rewards/rewards/extra-apy.js";
-import type { Asset, ILogger, IOnchainSDKPlugin } from "../../sdk/index.js";
+import type { Asset, ILogger, IOnchainSDKPlugin } from "../../onchain/index.js";
 import {
   AddressMap,
   AP_MARKET_COMPRESSOR,
@@ -22,9 +20,11 @@ import {
   BLOCKS_PER_WEEK_BY_NETWORK,
   PERCENTAGE_DECIMALS,
   VERSION_RANGE_310,
-} from "../../sdk/index.js";
-import { rayToNumber } from "../../sdk/utils/formatter.js";
-import { hexEq } from "../../sdk/utils/hex.js";
+} from "../../onchain/index.js";
+import { rayToNumber } from "../../onchain/utils/formatter.js";
+import { hexEq } from "../../onchain/utils/hex.js";
+import type { Output } from "../../rewards/apy/index.js";
+import { PoolPointsAPI } from "../../rewards/rewards/extra-apy.js";
 import { parseGearStats, parseNetworkApy } from "./apy-parser.js";
 import { APY_STATE_CACHE_URL, DEFAULT_APY_INTERVAL_MS } from "./constants.js";
 import type { GetPoolsAPYResult } from "./pool-apy-types.js";

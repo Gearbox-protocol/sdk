@@ -14,14 +14,14 @@ import { mellow4626WorkerAbi } from "../../abi/router/mellow4626Worker.js";
 import { pendleRouterWorkerAbi } from "../../abi/router/pendleRouterWorker.js";
 import { uniswapV3WorkerAbi } from "../../abi/router/uniswapV3Worker.js";
 import { uniswapV4WorkerAbi } from "../../abi/router/uniswapV4Worker.js";
-import type { RawTx } from "../../sdk/index.js";
+import type { RawTx } from "../../onchain/index.js";
 import {
   BaseContract,
   type ChainContractsRegister,
   json_stringify,
   type ParsedCall,
   type ParsedCallArgs,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 import { Addresses } from "../deployment/addresses.js";
 import { BytecodeRepositoryContract } from "./bytecode-repository.js";
 import { WithdrawalCompressorContract } from "./compressors/index.js";

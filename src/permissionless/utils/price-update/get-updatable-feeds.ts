@@ -6,7 +6,7 @@ import {
   type OnchainSDK,
   type PriceFeedTreeNode,
   RedstonePriceFeedContract,
-} from "../../../sdk/index.js";
+} from "../../../onchain/index.js";
 
 export async function getUpdatablePriceFeeds(args: {
   sdk: OnchainSDK;

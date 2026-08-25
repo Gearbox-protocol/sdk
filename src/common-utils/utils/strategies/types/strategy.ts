@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import type { NetworkType } from "../../../../sdk/index.js";
+import type { NetworkType } from "../../../../onchain/index.js";
 import type { StrategyConfigPayload } from "../../../static/strategy.js";
 
 export type ExtraCollateralConfig = { token: Address; cm: Address } | Address;

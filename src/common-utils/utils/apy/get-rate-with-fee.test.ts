@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PERCENTAGE_FACTOR } from "../../../sdk/index.js";
+import { PERCENTAGE_FACTOR } from "../../../onchain/index.js";
 import { getRateWithFee } from "./get-rate-with-fee.js";
 
 describe("getRateWithFee", () => {

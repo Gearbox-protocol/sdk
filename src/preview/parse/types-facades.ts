@@ -1,6 +1,6 @@
 import type { Address, Hex } from "viem";
 
-import type { Asset } from "../../sdk/index.js";
+import type { Asset } from "../../onchain/index.js";
 import type { AdapterOperation } from "./types-adapters.js";
 
 /**

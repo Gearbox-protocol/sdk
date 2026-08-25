@@ -4,7 +4,7 @@ import {
   PERCENTAGE_FACTOR,
   RAY,
   toBigInt,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 import type { ChartsCreditManagerPayload } from "./credit-manager-payload.js";
 
 export class ChartsCreditManagerData {

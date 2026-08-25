@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import { describe, expect, it } from "vitest";
-import { toBN } from "../../../../sdk/utils/formatter.js";
+import { toBN } from "../../../../onchain/utils/formatter.js";
 import type { TokenData } from "../../../charts/token-data.js";
 import {
   buildCreditManager,

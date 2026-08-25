@@ -7,7 +7,7 @@ import {
   json_parse,
   OnchainSDK,
   type PoolV310Contract,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 import { parsePoolOperationCalldata } from "./parsePoolOperationCalldata.js";
 
 // Scoped (single market configurator) snapshot, replayed via `hydrate` so the

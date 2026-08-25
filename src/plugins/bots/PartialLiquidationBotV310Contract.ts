@@ -1,5 +1,9 @@
 import { type Address, decodeAbiParameters, type Hex, stringToHex } from "viem";
-import { BaseContract, type OnchainSDK, percentFmt } from "../../sdk/index.js";
+import {
+  BaseContract,
+  type OnchainSDK,
+  percentFmt,
+} from "../../onchain/index.js";
 import { iPartialLiquidationBotV310Abi } from "./abi/index.js";
 import { BOT_PARAMS_ABI, type BotStateV310Human } from "./types.js";
 

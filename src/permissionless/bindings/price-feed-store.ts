@@ -12,12 +12,12 @@ import {
   type Transport,
 } from "viem";
 import { iPriceFeedStoreAbi } from "../../abi/310/iPriceFeedStore.js";
-import type { PriceUpdate, RawTx } from "../../sdk/index.js";
+import type { PriceUpdate, RawTx } from "../../onchain/index.js";
 import {
   BaseContract,
   json_stringify,
   type ParsedCallArgs,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 import type {
   InputValueParams,
   PriceFeed,

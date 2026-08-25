@@ -3,7 +3,7 @@
 Date: 2026-07-09
 
 > Note: adapters later moved from `src/plugins/adapters/` into
-> `src/sdk/market/adapters/` as a built-in part of the core SDK.
+> `src/onchain/market/adapters/` as a built-in part of the core SDK.
 
 ## Summary
 
@@ -215,7 +215,7 @@ The diff by `contractType` found **no missing adapters** — every concrete adap
   core `src/abi/` because `CreditAccountsServiceV310` (core SDK) uses it too; the adapters plugin
   imports it from there.
 - **Rewrote imports** in all 34 remaining `src/plugins/adapters/contracts/*.ts` files and
-  `src/sdk/accounts/CreditAccountsServiceV310.ts` from `@gearbox-protocol/integrations-v3` to local paths.
+  `src/onchain/accounts/CreditAccountsServiceV310.ts` from `@gearbox-protocol/integrations-v3` to local paths.
 - **Deleted** 4 adapter classes (see "Dropped") and their entries in
   [createAdapter.ts](src/plugins/adapters/createAdapter.ts),
   [contracts/index.ts](src/plugins/adapters/contracts/index.ts),

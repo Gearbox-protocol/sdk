@@ -1,11 +1,11 @@
 import { pino } from "pino";
 import { getAlchemyUrl } from "../../src/dev/providers.js";
-import type { NetworkType } from "../../src/sdk/index.js";
+import type { NetworkType } from "../../src/onchain/index.js";
 import {
   getNetworkType,
   json_stringify,
   MultichainSDK,
-} from "../../src/sdk/index.js";
+} from "../../src/onchain/index.js";
 
 const logger = pino({
   level: process.env.LOG_LEVEL ?? "debug",

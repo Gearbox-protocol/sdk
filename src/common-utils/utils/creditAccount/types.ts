@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import type { Asset } from "../../../sdk/index.js";
+import type { Asset } from "../../../onchain/index.js";
 
 export interface TokenDataSlice {
   symbol: string;

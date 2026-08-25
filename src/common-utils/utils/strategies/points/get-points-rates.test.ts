@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { LEVERAGE_DECIMALS } from "../../../../sdk/constants/math.js";
+import { LEVERAGE_DECIMALS } from "../../../../onchain/constants/math.js";
 import type { LocalPointsReward } from "../types.js";
 import { getPointsRates } from "./get-points-rates.js";
 

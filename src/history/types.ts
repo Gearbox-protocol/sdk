@@ -1,3 +1,4 @@
+import type { LegacyAdapterOperation } from "../onchain/index.js";
 import type {
   AdapterOperation as BaseAdapterOperation,
   CloseCreditAccountOperation as BaseCloseCreditAccountOperation,
@@ -11,7 +12,6 @@ import type {
   OperationMetadata,
   TraceAdapterExt,
 } from "../preview/parse/index.js";
-import type { LegacyAdapterOperation } from "../sdk/index.js";
 
 // Non-generic shared operation types are re-exported from `preview` unchanged
 // so the `history` entry point keeps exposing them.

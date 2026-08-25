@@ -9,10 +9,7 @@ import {
 import { beforeAll, describe, expect, it } from "vitest";
 import { iCreditFacadeV310Abi } from "../../abi/310/generated.js";
 import { createAnvilClient } from "../../dev/createAnvilClient.js";
-import type { PrepareRequest } from "../../new-sdk/index.js";
-import { GearboxSDK } from "../../new-sdk/index.js";
-import { checkPrerequisites } from "../../preview/index.js";
-import { calcBorrowedAmountPlusInterestAndFees } from "../../sdk/accounts/intents/utils/borrowed-amount-plus-interest-and-fees.js";
+import { calcBorrowedAmountPlusInterestAndFees } from "../../onchain/accounts/intents/utils/borrowed-amount-plus-interest-and-fees.js";
 import {
   type CreditAccountDataPayload,
   MAX_UINT256,
@@ -21,7 +18,10 @@ import {
   PERCENTAGE_FACTOR,
   type RawTx,
   sendRawTx,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
+import { checkPrerequisites } from "../../preview/index.js";
+import type { PrepareRequest } from "../../sdk/index.js";
+import { GearboxSDK } from "../../sdk/index.js";
 import { ANVIL_URL, GAS_LIMIT } from "../constants.js";
 import { getAnvilWallet, REDSTONE_GATEWAYS, useFixture } from "../helpers.js";
 

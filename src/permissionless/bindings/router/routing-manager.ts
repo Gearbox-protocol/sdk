@@ -7,7 +7,7 @@ import {
   type Transport,
 } from "viem";
 import { routingManagerAbi } from "../../../abi/router/routingManager.js";
-import { BaseContract, type ParsedCallArgs } from "../../../sdk/index.js";
+import { BaseContract, type ParsedCallArgs } from "../../../onchain/index.js";
 
 const abi = routingManagerAbi;
 

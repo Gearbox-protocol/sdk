@@ -1,7 +1,7 @@
 # Adjust leverage
 
 `prepare.adjustLeverage` → `intentRoutes({ type: "ADJUST_LEVERAGE" })` →
-`planAdjustLeverage` ([`plan.ts`](../../src/sdk/accounts/intents/plan.ts)).
+`planAdjustLeverage` ([`plan.ts`](../../src/onchain/accounts/intents/plan.ts)).
 
 The collateral stays where it is and the debt is retargeted around it: borrow and
 buy to lever up, sell and repay to lever down. Nothing enters or leaves the
@@ -116,5 +116,5 @@ liquidation threshold and its quota.
   preview reports uses the read model's `debt / equity`.
 - A `delta == 0` request is answered rather than refused — the account is already
   where it was asked to be, and a form can say so.
-- Tests: [`adjust-leverage.onchain.test.ts`](../../src/sdk/accounts/intents/tests/adjust-leverage.onchain.test.ts),
-  [`intent-routes.onchain.test.ts`](../../src/sdk/accounts/intents/tests/intent-routes.onchain.test.ts).
+- Tests: [`adjust-leverage.onchain.test.ts`](../../src/onchain/accounts/intents/tests/adjust-leverage.onchain.test.ts),
+  [`intent-routes.onchain.test.ts`](../../src/onchain/accounts/intents/tests/intent-routes.onchain.test.ts).

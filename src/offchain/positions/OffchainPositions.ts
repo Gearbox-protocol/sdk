@@ -16,7 +16,7 @@ import {
   positionSchema,
 } from "../../model/positions.schema.js";
 import type { DataResponse } from "../../model/response.js";
-import type { ListPositionsPropsBase } from "../../sdk/positions/types.js";
+import type { ListPositionsPropsBase } from "../../onchain/positions/types.js";
 import { AbstractOffchainNamespace } from "../AbstractOffchainNamespace.js";
 import type { GearboxAPIOptions } from "../types.js";
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Asset } from "../../../sdk/index.js";
+import type { Asset } from "../../../onchain/index.js";
 import { mockToken1, mockToken2 } from "../../test-utils/index.js";
 import { validateBalances } from "./validate-balances.js";
 

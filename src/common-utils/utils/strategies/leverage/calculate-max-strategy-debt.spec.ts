@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   LEVERAGE_DECIMALS,
   PERCENTAGE_FACTOR,
-} from "../../../../sdk/constants/math.js";
+} from "../../../../onchain/constants/math.js";
 import { buildCreditManager, mockToken1 } from "../../../test-utils/index.js";
 import { calculateLossCoefficient } from "./calculate-loss-coefficient.js";
 import { calculateMaxStrategyDebt } from "./calculate-max-strategy-debt.js";

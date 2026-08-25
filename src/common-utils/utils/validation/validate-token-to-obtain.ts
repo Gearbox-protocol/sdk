@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-import type { Asset } from "../../../sdk/index.js";
+import type { Asset } from "../../../onchain/index.js";
 export interface ValidateTokenToObtainProps {
   targetToken: Address | Array<Asset> | null;
   creditManager: { forbiddenTokens: Record<Address, boolean> };

@@ -4,8 +4,8 @@ import type {
   CreditAccountData,
   GetCreditAccountsOptions,
   IOnchainSDKPlugin,
-} from "../../sdk/index.js";
-import { AddressMap, BasePlugin } from "../../sdk/index.js";
+} from "../../onchain/index.js";
+import { AddressMap, BasePlugin } from "../../onchain/index.js";
 
 export interface AccountsPluginState {
   /**

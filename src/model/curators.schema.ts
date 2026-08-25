@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { ZodAddress } from "../sdk/utils/zod.js";
+import { ZodAddress } from "../onchain/utils/zod.js";
 import { offchainOnly } from "./compare.schema.js";
 
 /**

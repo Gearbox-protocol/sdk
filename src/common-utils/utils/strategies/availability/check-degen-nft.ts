@@ -1,4 +1,4 @@
-import { ADDRESS_0X0 } from "../../../../sdk/index.js";
+import { ADDRESS_0X0 } from "../../../../onchain/index.js";
 
 import type { CreditManagerSlice } from "../strategy-info/types.js";
 

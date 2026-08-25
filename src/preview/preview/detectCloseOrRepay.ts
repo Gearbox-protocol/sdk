@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 import { isAddressEqual } from "viem";
 
-import { MAX_UINT256 } from "../../sdk/index.js";
+import { MAX_UINT256 } from "../../onchain/index.js";
 import type { InnerOperation } from "../parse/index.js";
 
 /**

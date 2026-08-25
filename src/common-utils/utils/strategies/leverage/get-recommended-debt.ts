@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import { LEVERAGE_DECIMALS } from "../../../../sdk/constants/math.js";
+import { LEVERAGE_DECIMALS } from "../../../../onchain/constants/math.js";
 import type { CreditManagerSlice } from "../strategy-info/types.js";
 import { calculateMaxLeverageFactor } from "./calculate-max-leverage-factor.js";
 import { calculateMaxStrategyDebt } from "./calculate-max-strategy-debt.js";

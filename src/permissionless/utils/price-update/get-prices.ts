@@ -4,8 +4,8 @@ import {
   type PublicClient,
   type Transport,
 } from "viem";
-import type { GearboxChain } from "../../../sdk/index.js";
-import { OnchainSDK, simulateMulticall } from "../../../sdk/index.js";
+import type { GearboxChain } from "../../../onchain/index.js";
+import { OnchainSDK, simulateMulticall } from "../../../onchain/index.js";
 
 const latestRoundDataAbi = [
   {

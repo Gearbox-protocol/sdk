@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import type { OnchainSDK } from "../../sdk/index.js";
+import type { OnchainSDK } from "../../onchain/index.js";
 import type { AnvilClient } from "../createAnvilClient.js";
 import AbstractMinter from "./AbstractMinter.js";
 import type { IMinter } from "./types.js";

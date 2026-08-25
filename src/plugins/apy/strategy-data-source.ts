@@ -14,10 +14,10 @@ import {
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   RAY,
-} from "../../sdk/index.js";
-import type { CreditSuite } from "../../sdk/market/credit/CreditSuite.js";
-import type { MarketSuite } from "../../sdk/market/MarketSuite.js";
-import type { PoolSuite } from "../../sdk/market/pool/PoolSuite.js";
+} from "../../onchain/index.js";
+import type { CreditSuite } from "../../onchain/market/credit/CreditSuite.js";
+import type { MarketSuite } from "../../onchain/market/MarketSuite.js";
+import type { PoolSuite } from "../../onchain/market/pool/PoolSuite.js";
 
 const lc = (address: Address): Address => address.toLowerCase() as Address;
 

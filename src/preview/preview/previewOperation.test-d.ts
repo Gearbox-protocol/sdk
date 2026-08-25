@@ -1,7 +1,7 @@
 import type { Address, Hex } from "viem";
 import { describe, it } from "vitest";
+import { type ClientOptions, OnchainSDK } from "../../onchain/index.js";
 import { BotsPlugin } from "../../plugins/bots/index.js";
-import { type ClientOptions, OnchainSDK } from "../../sdk/index.js";
 import { previewOperation } from "./previewOperation.js";
 
 const to: Address = "0x0000000000000000000000000000000000000001";

@@ -8,7 +8,7 @@ import {
   type Transport,
 } from "viem";
 import { tokenCompressorAbi } from "../../../abi/compressors/tokenCompressor.js";
-import { BaseContract } from "../../../sdk/index.js";
+import { BaseContract } from "../../../onchain/index.js";
 
 const abi = tokenCompressorAbi;
 

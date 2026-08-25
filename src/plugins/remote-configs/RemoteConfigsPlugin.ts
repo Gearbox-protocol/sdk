@@ -10,7 +10,7 @@ import {
   BasePlugin,
   type IOnchainSDKPlugin,
   TypedObjectUtils,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 import { RemoteConfigSource } from "./RemoteConfigSource.js";
 import type {
   ConfigSource,

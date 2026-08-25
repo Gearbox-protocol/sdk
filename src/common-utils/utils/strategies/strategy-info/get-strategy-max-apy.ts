@@ -3,7 +3,7 @@ import {
   LEVERAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   toBigInt,
-} from "../../../../sdk/index.js";
+} from "../../../../onchain/index.js";
 
 import { BONUS_APY_FROM_POINTS } from "../../apy/bonus-apy-from-points.js";
 import { calculateEffectiveBorrowRate } from "../../apy/calculate-effective-borrow-rate.js";

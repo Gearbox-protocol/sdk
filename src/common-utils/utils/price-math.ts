@@ -1,4 +1,4 @@
-import { PRICE_DECIMALS, WAD } from "../../sdk/index.js";
+import { PRICE_DECIMALS, WAD } from "../../onchain/index.js";
 
 interface Target {
   price: bigint;

@@ -1,12 +1,12 @@
 import type { Address } from "viem";
 import { describe, expect, it } from "vitest";
+import { RAY } from "../../onchain/constants/index.js";
+import type { TokensMeta } from "../../onchain/index.js";
 import type {
   ExternalApy,
   PoolExtraApy,
   PoolPointsInfo,
 } from "../../rewards/index.js";
-import { RAY } from "../../sdk/constants/index.js";
-import type { TokensMeta } from "../../sdk/index.js";
 import type { PoolFullAPY } from "./pool-apy-types.js";
 import {
   calculatePoolFullAPY,

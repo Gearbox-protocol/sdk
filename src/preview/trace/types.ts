@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import type { CallTrace } from "../../common-utils/utils/trace.js";
-import type { ParsedCallV2 } from "../../sdk/index.js";
+import type { ParsedCallV2 } from "../../onchain/index.js";
 
 /**
  * The set of credit facade entry-point functions that produce history operations.

@@ -9,7 +9,7 @@ import {
 import { dealActions } from "viem-deal";
 import { beforeAll, describe, expect, it } from "vitest";
 import { iCreditFacadeV310Abi } from "../../abi/310/generated.js";
-import { MAX_UINT256, OnchainSDK, sendRawTx } from "../../sdk/index.js";
+import { MAX_UINT256, OnchainSDK, sendRawTx } from "../../onchain/index.js";
 import { ANVIL_URL, GAS_LIMIT } from "../constants.js";
 import { getAnvilWallet, REDSTONE_GATEWAYS, useFixture } from "../helpers.js";
 

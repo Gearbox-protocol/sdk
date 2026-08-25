@@ -1,16 +1,16 @@
 import type { Address } from "viem";
+import type {
+  AddressMap,
+  ChainContractsRegister,
+  ParsedCallV2,
+} from "../onchain/index.js";
+import { AbstractAdapterContract } from "../onchain/index.js";
 import type { TokenTransfer } from "../preview/parse/index.js";
 import {
   extractAdapterCallTraces,
   type FacadeParsedCall,
   type WithdrawCollateralEventInfo,
 } from "../preview/trace/index.js";
-import type {
-  AddressMap,
-  ChainContractsRegister,
-  ParsedCallV2,
-} from "../sdk/index.js";
-import { AbstractAdapterContract } from "../sdk/index.js";
 import { classifyMulticallOperations } from "./classifyMulticallOperations.js";
 import type {
   HistoryFacadeMetadata,

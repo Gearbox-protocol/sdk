@@ -11,7 +11,7 @@ import {
   DUST_THRESHOLD,
   NO_VERSION,
   type PluginsMap,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 import type {
   InnerOperation,
   OpenCreditAccountOperation,

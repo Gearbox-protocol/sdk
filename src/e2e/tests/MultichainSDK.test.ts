@@ -1,6 +1,6 @@
 import { beforeAll, expect, it } from "vitest";
 import { getAlchemyUrl } from "../../dev/providers.js";
-import { MultichainSDK, type NetworkType } from "../../sdk/index.js";
+import { MultichainSDK, type NetworkType } from "../../onchain/index.js";
 
 function requireUrl(network: NetworkType): string {
   const url = getAlchemyUrl(network, process.env.ALCHEMY_KEY);

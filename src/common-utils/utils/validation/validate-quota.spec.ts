@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Asset } from "../../../sdk/index.js";
+import type { Asset } from "../../../onchain/index.js";
 import {
   buildCreditManager,
   buildQuota,

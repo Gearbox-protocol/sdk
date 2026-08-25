@@ -4,9 +4,9 @@ Every operation the intent calculator can preview on a credit account, drawn as
 a graph: the cases a request splits into, the facade calls each case assembles,
 and the arithmetic the amounts come from.
 
-Code: [`src/sdk/accounts/intents`](../../src/sdk/accounts/intents). Public
+Code: [`src/onchain/accounts/intents`](../../src/onchain/accounts/intents). Public
 surface: `sdk.opportunities.prepare` (see
-[`src/new-sdk/prepare`](../../src/new-sdk/prepare)).
+[`src/sdk/prepare`](../../src/sdk/prepare)).
 
 | Intent            | Public API                     | Planner                  | Debt    | Graph                                     |
 | ----------------- | ------------------------------ | ------------------------ | ------- | ----------------------------------------- |

@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 import { getAddress } from "viem";
 import { BigIntMath } from "../../common-utils/index.js";
-import { chains, type NetworkType, toBigInt } from "../../sdk/index.js";
+import { chains, type NetworkType, toBigInt } from "../../onchain/index.js";
 import {
   MerkleXYZApi,
   type MerkleXYZUserRewardsV4Response,

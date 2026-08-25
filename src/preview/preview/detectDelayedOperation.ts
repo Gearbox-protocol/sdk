@@ -8,7 +8,7 @@ import {
   InvalidDelayedIntentError,
   type OnchainSDK,
   type PluginsMap,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 import type { InnerOperation } from "../parse/index.js";
 
 /**

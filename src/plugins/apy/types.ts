@@ -9,6 +9,10 @@ import type {
   StrategyRecord,
 } from "../../common-utils/utils/strategies/types.js";
 import type {
+  BaseContractStateHuman,
+  PartialRecord,
+} from "../../onchain/index.js";
+import type {
   ExternalApy,
   ExtraCollateralAPY,
   GearAPYDetails,
@@ -16,7 +20,6 @@ import type {
   PoolExtraApy,
   PoolPointsInfo,
 } from "../../rewards/apy/index.js";
-import type { BaseContractStateHuman, PartialRecord } from "../../sdk/index.js";
 
 export interface Pool7DAgoState {
   pool: Address;

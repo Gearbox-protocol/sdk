@@ -1,7 +1,7 @@
 import { type Address, getAddress, padHex, parseEther } from "viem";
 import { describe, expect, it } from "vitest";
 import { ERROR_INVALID_TRANSACTION_VALUE } from "../../model/index.js";
-import { NATIVE_ADDRESS } from "../../sdk/index.js";
+import { NATIVE_ADDRESS } from "../../onchain/index.js";
 import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
 
 const addr = (hex: string) => getAddress(padHex(hex as Address, { size: 20 }));

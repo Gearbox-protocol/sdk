@@ -119,7 +119,7 @@ import {
   RWA_FACTORY_SECURITIZE,
   type SecuritizeOperationArgs,
   sendRawTx,
-} from "../../src/sdk/index.js";
+} from "../../src/onchain/index.js";
 
 const RPC_URL = "https://anvil.gearbox.foundation/rpc/RWA";
 const MARKET_CONFIGURATORS: Address[] = [

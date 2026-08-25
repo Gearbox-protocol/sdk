@@ -4,7 +4,7 @@ import {
   PERCENTAGE_FACTOR,
   rayToNumber,
   toBigInt,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 import type { ChartsPoolDataPayload, UserPoolPayload } from "./pool-payload.js";
 
 export class ChartsPoolData {

@@ -16,7 +16,7 @@ import {
   iCreditFacadeMulticallV310Abi,
   iCreditFacadeV310Abi,
 } from "../../abi/310/generated.js";
-import { json_parse, NATIVE_ADDRESS, OnchainSDK } from "../../sdk/index.js";
+import { json_parse, NATIVE_ADDRESS, OnchainSDK } from "../../onchain/index.js";
 import { checkPrerequisites } from "./checkPrerequisites.js";
 
 // Scoped (KPK market configurator only) snapshot of the Gearbox anvil Mainnet

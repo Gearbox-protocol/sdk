@@ -1,7 +1,7 @@
 # Withdraw one asset
 
 `prepare.withdrawCollateral` → `startIntent({ type: "WITHDRAW_ASSET" })` →
-`planWithdrawAsset` ([`plan.ts`](../../src/sdk/accounts/intents/plan.ts)).
+`planWithdrawAsset` ([`plan.ts`](../../src/onchain/accounts/intents/plan.ts)).
 
 A balance already on the account leaves it, in the token it stands in. No swap,
 no repayment — the mirror of [add collateral](./add-collateral.md), and the
@@ -79,4 +79,4 @@ flow that pays a wallet goes through.
   here.
 - A quota is dropped to `MIN_INT96` only when the whole balance goes; a partial
   withdrawal shrinks it to fit what is left.
-- Tests: [`withdraw-asset.onchain.test.ts`](../../src/sdk/accounts/intents/tests/withdraw-asset.onchain.test.ts).
+- Tests: [`withdraw-asset.onchain.test.ts`](../../src/onchain/accounts/intents/tests/withdraw-asset.onchain.test.ts).

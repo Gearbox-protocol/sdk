@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { LEVERAGE_DECIMALS } from "../../../../sdk/constants/math.js";
+import { LEVERAGE_DECIMALS } from "../../../../onchain/constants/math.js";
 import { buildCreditManager, mockToken1 } from "../../../test-utils/index.js";
 import { calculateMaxLeverageFactor } from "./calculate-max-leverage-factor.js";
 import { calculateMaxStrategyDebt } from "./calculate-max-strategy-debt.js";

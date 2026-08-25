@@ -13,7 +13,7 @@ import {
   MAX_UINT256,
   type OnchainSDK,
   type PluginsMap,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 import type {
   AdapterOperation,
   AddCollateralOp,

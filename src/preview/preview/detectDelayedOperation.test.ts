@@ -8,7 +8,7 @@ import {
   encodeDelayedIntent,
   InvalidDelayedIntentError,
   type OnchainSDK,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 import type { InnerOperation } from "../parse/index.js";
 import { detectDelayedOperation } from "./detectDelayedOperation.js";
 

@@ -10,7 +10,7 @@ import {
   json_parse,
   MAX_UINT256,
   OnchainSDK,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 import { previewOperation } from "./previewOperation.js";
 
 // Scoped snapshot of the Securitize anvil Mainnet fork (RWA markets only),

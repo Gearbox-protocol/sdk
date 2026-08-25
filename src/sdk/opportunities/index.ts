@@ -1,2 +1,2 @@
-export * from "./MultichainOpportunitiesService.js";
-export * from "./OpportunitiesService.js";
+export * from "./OpportunitiesNamespace.js";
+export * from "./types.js";

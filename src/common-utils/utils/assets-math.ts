@@ -1,6 +1,6 @@
 import type { Address } from "viem";
-import type { Asset } from "../../sdk/index.js";
-import { BigIntMath } from "../../sdk/utils/bigint-math.js";
+import type { Asset } from "../../onchain/index.js";
+import { BigIntMath } from "../../onchain/utils/bigint-math.js";
 import { sortBalances } from "./creditAccount/sort.js";
 import { PriceUtils } from "./price-math.js";
 

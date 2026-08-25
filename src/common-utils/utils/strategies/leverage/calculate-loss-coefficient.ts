@@ -1,4 +1,4 @@
-import { SLIPPAGE_DECIMALS, toBigInt } from "../../../../sdk/index.js";
+import { SLIPPAGE_DECIMALS, toBigInt } from "../../../../onchain/index.js";
 
 export function calculateLossCoefficient(
   slippage: number,

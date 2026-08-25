@@ -2,11 +2,15 @@ import { writeFile } from "node:fs/promises";
 import { pino } from "pino";
 import YAML from "yaml";
 import { getAlchemyUrl } from "../src/dev/providers.js";
-import { GearboxSDK } from "../src/new-sdk/GearboxSDK.js";
+import {
+  AddressSet,
+  json_stringify,
+  MultichainSDK,
+} from "../src/onchain/index.js";
 import { AccountsPlugin } from "../src/plugins/accounts/index.js";
 import { BotsPlugin } from "../src/plugins/bots/index.js";
 import { DegenDistributorsPlugin } from "../src/plugins/degen-distributors/index.js";
-import { AddressSet, json_stringify, MultichainSDK } from "../src/sdk/index.js";
+import { GearboxSDK } from "../src/sdk/GearboxSDK.js";
 
 const logger = pino({
   level: process.env.LOG_LEVEL ?? "debug",

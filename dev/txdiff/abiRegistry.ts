@@ -6,8 +6,8 @@ import {
 } from "../../src/abi/310/generated.js";
 import * as errorAbis from "../../src/abi/errors.js";
 import { iSecuritizeRWAFactoryAbi } from "../../src/abi/rwa/iSecuritizeRWAFactory.js";
-import * as adapterAbis from "../../src/sdk/market/adapters/abi/adapters/index.js";
-import * as securitizeAbis from "../../src/sdk/market/adapters/abi/securitize/index.js";
+import * as adapterAbis from "../../src/onchain/market/adapters/abi/adapters/index.js";
+import * as securitizeAbis from "../../src/onchain/market/adapters/abi/securitize/index.js";
 
 /**
  * Collects every exported ABI array from a namespace module.

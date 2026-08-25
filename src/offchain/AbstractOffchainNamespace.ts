@@ -8,7 +8,7 @@ import type { ChainScopedFilter } from "../model/filters.js";
 import type { ChainId } from "../model/primitives.js";
 import type { DataResponse } from "../model/response.js";
 import { responseSchema } from "../model/response.schema.js";
-import type { ILogger } from "../sdk/types/logger.js";
+import type { ILogger } from "../onchain/types/logger.js";
 import {
   OffchainInvalidJsonError,
   OffchainNotConfiguredError,

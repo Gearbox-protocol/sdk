@@ -1,5 +1,5 @@
 import type { Address, Hex } from "viem";
-import type { OnchainSDK } from "../../sdk/index.js";
+import type { OnchainSDK } from "../../onchain/index.js";
 import type { Operation } from "../parse/index.js";
 
 /**

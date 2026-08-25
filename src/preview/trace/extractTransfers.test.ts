@@ -19,7 +19,7 @@ import {
 import { describe, expect, it } from "vitest";
 import { iCreditFacadeV310Abi } from "../../abi/310/generated.js";
 import { ierc20Abi } from "../../abi/iERC20.js";
-import { AddressMap } from "../../sdk/index.js";
+import { AddressMap } from "../../onchain/index.js";
 import { extractTransfers } from "./extractTransfers.js";
 
 const FIXTURES_DIR = path.resolve(__dirname, "../../history/__fixtures__");

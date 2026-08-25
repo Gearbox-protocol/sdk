@@ -34,10 +34,10 @@
       "import": "./dist/esm/model/index.js",
       "default": "./dist/cjs/model/index.js"
     },
-    "./new-sdk": {
-      "types": "./dist/types/new-sdk/index.d.ts",
-      "import": "./dist/esm/new-sdk/index.js",
-      "default": "./dist/cjs/new-sdk/index.js"
+    "./onchain": {
+      "types": "./dist/types/onchain/index.d.ts",
+      "import": "./dist/esm/onchain/index.js",
+      "default": "./dist/cjs/onchain/index.js"
     },
     "./offchain": {
       "types": "./dist/types/offchain/index.d.ts",

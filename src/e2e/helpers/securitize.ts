@@ -21,7 +21,7 @@ import {
   type RWAOnDemandTokenMeta,
   type SecuritizeRegisterMessage,
   type SecuritizeRegisterVaultMessage,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 
 export const RWA_RPC_URL = "https://anvil.gearbox.foundation/rpc/RWA";
 export const RWA_MARKET_CONFIGURATOR: Address =

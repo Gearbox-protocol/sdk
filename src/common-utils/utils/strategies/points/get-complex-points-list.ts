@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import { TypedObjectUtils } from "../../../../sdk/utils/mappers.js";
+import { TypedObjectUtils } from "../../../../onchain/utils/mappers.js";
 
 import type { LocalPointsInfo } from "../types.js";
 

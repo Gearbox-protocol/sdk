@@ -4,8 +4,8 @@ import {
   type CreditAccountData,
   DUST_THRESHOLD,
   MIN_INT96,
-} from "../../sdk/index.js";
-import type { AccountSnapshot } from "../../sdk/positions/types.js";
+} from "../../onchain/index.js";
+import type { AccountSnapshot } from "../../onchain/positions/types.js";
 
 /**
  * Constructor properties of {@link CreditAccountState}.

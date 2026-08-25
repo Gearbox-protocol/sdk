@@ -20,7 +20,7 @@
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { Address } from "viem";
-import { json_stringify, OnchainSDK } from "../../src/sdk/index.js";
+import { json_stringify, OnchainSDK } from "../../src/onchain/index.js";
 
 const RPC_URL = "https://anvil.gearbox.foundation/rpc/Mainnet";
 

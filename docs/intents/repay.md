@@ -1,7 +1,7 @@
 # Repay a strategy
 
 `prepare.repayStrategy` → `startIntent({ type: "REPAY" })` → `planRepay`
-([`plan.ts`](../../src/sdk/accounts/intents/plan.ts)).
+([`plan.ts`](../../src/onchain/accounts/intents/plan.ts)).
 
 Funding comes in from the wallet and goes straight into the debt. The collateral
 never moves, so the whole plan is the funding's way to the underlying — and
@@ -116,4 +116,4 @@ transaction is refused if it does not finish above 1.0.
   coin.
 - The position itself is not sold to pay the debt — that is
   [adjust-leverage](./adjust-leverage.md), which deleverages out of collateral.
-- Tests: [`repay.onchain.test.ts`](../../src/sdk/accounts/intents/tests/repay.onchain.test.ts).
+- Tests: [`repay.onchain.test.ts`](../../src/onchain/accounts/intents/tests/repay.onchain.test.ts).

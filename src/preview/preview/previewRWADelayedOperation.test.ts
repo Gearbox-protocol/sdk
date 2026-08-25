@@ -15,7 +15,7 @@ import {
   OnchainSDK,
   type RedemptionLog,
   RedemptionLoggerV310Contract,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 import { previewOperation } from "./previewOperation.js";
 
 // Integration-style tests for delayed RWA operations: three 5-transaction

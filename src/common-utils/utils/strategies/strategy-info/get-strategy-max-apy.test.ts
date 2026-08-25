@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { PERCENTAGE_FACTOR, toBigInt } from "../../../../sdk/index.js";
+import { PERCENTAGE_FACTOR, toBigInt } from "../../../../onchain/index.js";
 import { buildCreditManager, mockToken1 } from "../../../test-utils/index.js";
 import { calculateEffectiveBorrowRate } from "../../apy/calculate-effective-borrow-rate.js";
 import { getComplexAPYList } from "../../apy/get-complex-apy-list.js";

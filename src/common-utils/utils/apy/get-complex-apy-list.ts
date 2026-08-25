@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import { TypedObjectUtils } from "../../../sdk/index.js";
+import { TypedObjectUtils } from "../../../onchain/index.js";
 
 export function getComplexAPYList<T extends Address | undefined = undefined>(
   baseAPYList: Record<Address, number> | undefined,

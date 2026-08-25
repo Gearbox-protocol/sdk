@@ -4,7 +4,7 @@ import type {
   RWAMissingOpenAccountRequirements,
   RWAOpenAccountRequirements,
   RWAOperationArgs,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 import { Prerequisite } from "./Prerequisite.js";
 import type {
   PrerequisiteContext,

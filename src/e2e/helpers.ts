@@ -14,7 +14,7 @@ import {
   type AnvilClient,
   createAnvilClient,
 } from "../dev/createAnvilClient.js";
-import { chains, type NetworkType, type OnchainSDK } from "../sdk/index.js";
+import { chains, type NetworkType, type OnchainSDK } from "../onchain/index.js";
 import { type AnvilInstance, startAnvil, stopAnvil } from "./anvil.js";
 import { ANVIL_PORT, ANVIL_URL } from "./constants.js";
 import {

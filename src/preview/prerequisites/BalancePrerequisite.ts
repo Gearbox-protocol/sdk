@@ -1,6 +1,6 @@
 import { type Address, erc20Abi } from "viem";
 
-import { hexEq, NATIVE_ADDRESS } from "../../sdk/index.js";
+import { hexEq, NATIVE_ADDRESS } from "../../onchain/index.js";
 import { Prerequisite } from "./Prerequisite.js";
 import type {
   PrerequisiteContext,

@@ -1,7 +1,7 @@
 import { AxiosCache } from "../../common-utils/axios-cache/index.js";
 import type { PoolConfigPayload } from "../../common-utils/static/pool-config.js";
 import type { StrategyConfigPayload } from "../../common-utils/static/strategy.js";
-import type { ILogger } from "../../sdk/index.js";
+import type { ILogger } from "../../onchain/index.js";
 import type { ConfigSource } from "./types.js";
 
 const DEFAULT_POOLS_URL =

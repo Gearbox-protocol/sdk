@@ -9,7 +9,10 @@ import {
   type CallTrace,
   collectTraces,
 } from "../../common-utils/utils/trace.js";
-import type { ChainContractsRegister, ParsedCallV2 } from "../../sdk/index.js";
+import type {
+  ChainContractsRegister,
+  ParsedCallV2,
+} from "../../onchain/index.js";
 import { UnknownFacadeCallError } from "./errors.js";
 import type { FacadeCallType, FacadeParsedCall } from "./types.js";
 

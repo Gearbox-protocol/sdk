@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-import type { PartialRecord } from "../../../../sdk/index.js";
+import type { PartialRecord } from "../../../../onchain/index.js";
 import type { Strategy } from "./strategy.js";
 import type { StrategyCreditManagerView } from "./strategy-data-source.js";
 

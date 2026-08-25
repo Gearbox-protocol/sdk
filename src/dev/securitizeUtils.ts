@@ -16,7 +16,7 @@ import {
   type GearboxChain,
   type ILogger,
   OnchainSDK,
-} from "../sdk/index.js";
+} from "../onchain/index.js";
 import type { AnvilClient } from "./createAnvilClient.js";
 import { registerSecuritizeInvestor, writeAndWait } from "./kycUtils.js";
 

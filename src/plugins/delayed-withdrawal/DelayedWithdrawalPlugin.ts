@@ -1,6 +1,6 @@
 import type { Address } from "viem";
-import type { IOnchainSDKPlugin } from "../../sdk/index.js";
-import { AddressMap, BasePlugin } from "../../sdk/index.js";
+import type { IOnchainSDKPlugin } from "../../onchain/index.js";
+import { AddressMap, BasePlugin } from "../../onchain/index.js";
 import type {
   WithdrawableAsset,
   WithdrawableAssetStateHuman,

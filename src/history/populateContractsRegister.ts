@@ -17,7 +17,7 @@ import {
   OnchainSDK,
   type TokenMetaData,
   TokensMeta,
-} from "../sdk/index.js";
+} from "../onchain/index.js";
 
 export type DeploymentLike = {
   address: Address;

@@ -16,7 +16,7 @@ import {
 import { mainnet } from "viem/chains";
 import type { HttpRpcClientOptions } from "viem/utils";
 import { z } from "zod/v4";
-import type { ILogger } from "../sdk/index.js";
+import type { ILogger } from "../onchain/index.js";
 import { httpTransportOptionsSchema } from "./transports.js";
 
 export const providerConfigSchema = z.object({

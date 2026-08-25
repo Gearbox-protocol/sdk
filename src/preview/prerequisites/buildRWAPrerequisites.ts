@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-import { AddressSet, type RWAOperationArgs } from "../../sdk/index.js";
+import { AddressSet, type RWAOperationArgs } from "../../onchain/index.js";
 import type { InnerOperation } from "../parse/index.js";
 import type { Prerequisite } from "./Prerequisite.js";
 import { RWAOpenRequirementsPrerequisite } from "./RWAOpenRequirementsPrerequisite.js";

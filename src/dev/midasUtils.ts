@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import { parseAbi, parseEther } from "viem";
-import type { ILogger } from "../sdk/index.js";
+import type { ILogger } from "../onchain/index.js";
 import type { AnvilClient } from "./createAnvilClient.js";
 import { writeAndWait } from "./kycUtils.js";
 

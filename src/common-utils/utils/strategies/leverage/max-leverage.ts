@@ -1,5 +1,8 @@
 import type { Address } from "viem";
-import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR } from "../../../../sdk/index.js";
+import {
+  LEVERAGE_DECIMALS,
+  PERCENTAGE_FACTOR,
+} from "../../../../onchain/index.js";
 
 import { getFactorFromLeverage } from "./get-factor-from-leverage.js";
 import { maxLeverageThreshold } from "./max-leverage-threshold.js";

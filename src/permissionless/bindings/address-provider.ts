@@ -5,7 +5,7 @@ import {
   stringToHex,
   type Transport,
 } from "viem";
-import { AddressProviderV310Contract } from "../../sdk/index.js";
+import { AddressProviderV310Contract } from "../../onchain/index.js";
 
 export class AddressProviderContract extends AddressProviderV310Contract {
   constructor(addr: Address, client: PublicClient<Transport, Chain>) {

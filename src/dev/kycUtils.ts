@@ -18,7 +18,7 @@ import {
   type ILogger,
   MAX_UINT256,
   OnchainSDK,
-} from "../sdk/index.js";
+} from "../onchain/index.js";
 import type { AnvilClient } from "./createAnvilClient.js";
 import { midasGatewayAbi } from "./withdrawalAbi.js";
 

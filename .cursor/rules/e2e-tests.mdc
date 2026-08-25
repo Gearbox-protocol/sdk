@@ -20,7 +20,7 @@ MSW was replaced because it intercepts ALL HTTP traffic (including RPC to Anvil)
 
 ```typescript
 import { beforeAll, describe, expect, it } from "vitest";
-import { OnchainSDK } from "../../sdk/index.js";
+import { OnchainSDK } from "../../onchain/index.js";
 import { ANVIL_URL } from "../constants.js";
 import { PYTH_API_PROXY, REDSTONE_GATEWAYS, useFixture } from "../helpers.js";
 

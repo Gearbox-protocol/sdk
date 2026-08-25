@@ -1,4 +1,5 @@
 import type { Address } from "viem";
+import { PERCENTAGE_FACTOR } from "../../onchain/index.js";
 import type {
   DataResult,
   ExternalApy,
@@ -10,7 +11,6 @@ import type {
   PoolPointsInfo,
   TokenOutputDetails,
 } from "../../rewards/apy/index.js";
-import { PERCENTAGE_FACTOR } from "../../sdk/index.js";
 import type { FarmRewardInfo, GearStats, NetworkApyData } from "./types.js";
 
 export function numberToAPY(baseApy: number): number {

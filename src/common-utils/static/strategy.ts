@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import type { PartialRecord } from "../../sdk/index.js";
+import type { PartialRecord } from "../../onchain/index.js";
 
 export type TokenTypeStrategy =
   | "eth"

@@ -3,9 +3,9 @@ import {
   LEVERAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS,
-} from "../../../../sdk/constants/math.js";
-import type { Asset } from "../../../../sdk/index.js";
-import { BigIntMath } from "../../../../sdk/utils/bigint-math.js";
+} from "../../../../onchain/constants/math.js";
+import type { Asset } from "../../../../onchain/index.js";
+import { BigIntMath } from "../../../../onchain/utils/bigint-math.js";
 import { PriceUtils } from "../../price-math.js";
 import { getPointsRates } from "../points/get-points-rates.js";
 import type {

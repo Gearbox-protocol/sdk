@@ -12,7 +12,7 @@ import {
   PERCENTAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   RAY,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 import { ApyPlugin } from "./ApyPlugin.js";
 import type { ApySnapshotState, GetStrategyInfoSnapshotArgs } from "./types.js";
 

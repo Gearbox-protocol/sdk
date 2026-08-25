@@ -1,6 +1,6 @@
 import { type Address, isAddressEqual } from "viem";
 
-import { NATIVE_ADDRESS } from "../../sdk/index.js";
+import { NATIVE_ADDRESS } from "../../onchain/index.js";
 import type { PoolOperation } from "../parse/index.js";
 import { AllowancePrerequisite } from "./AllowancePrerequisite.js";
 import { BalancePrerequisite } from "./BalancePrerequisite.js";

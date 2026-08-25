@@ -3,7 +3,7 @@ import {
   ERROR_INVALID_TRANSACTION_VALUE,
   type OperationPreviewError,
 } from "../../model/index.js";
-import { type Asset, AssetsMap, NATIVE_ADDRESS } from "../../sdk/index.js";
+import { type Asset, AssetsMap, NATIVE_ADDRESS } from "../../onchain/index.js";
 
 export interface UnwrapNativeCollateralResult {
   /**

@@ -1,5 +1,5 @@
 import type { Address, Hex } from "viem";
-import type { AdapterProtocolOperation } from "../../sdk/index.js";
+import type { AdapterProtocolOperation } from "../../onchain/index.js";
 
 /**
  * A single ERC-20 Transfer event captured between Execute boundaries.

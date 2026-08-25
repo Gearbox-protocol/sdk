@@ -1,4 +1,4 @@
-export * from "../../sdk/utils/bigint-math.js";
+export * from "../../onchain/utils/bigint-math.js";
 export * from "./apy/index.js";
 export * from "./assets-math.js";
 export * from "./constants.js";

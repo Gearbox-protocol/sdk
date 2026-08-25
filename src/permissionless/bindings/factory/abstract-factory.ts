@@ -5,7 +5,7 @@ import {
   type EncodeFunctionDataParameters,
   type Hex,
 } from "viem";
-import { functionArgsToMap } from "../../../sdk/index.js";
+import { functionArgsToMap } from "../../../onchain/index.js";
 import { createCallData } from "../../core/raw-tx.js";
 
 export class AbstractFactory<const abi extends Abi | readonly unknown[]> {

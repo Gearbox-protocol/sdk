@@ -6,7 +6,7 @@ import {
   type CreditAccountData,
   json_parse,
   OnchainSDK,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 import { previewOperation } from "./previewOperation.js";
 
 const FIXTURES = resolve(import.meta.dirname, "../__fixtures__");

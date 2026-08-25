@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   LEVERAGE_DECIMALS,
   PRICE_DECIMALS,
-} from "../../../../sdk/constants/math.js";
+} from "../../../../onchain/constants/math.js";
 import {
   mockCMAddress,
   mockPrices,

@@ -3,7 +3,7 @@ import {
   type Asset,
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS,
-} from "../../../sdk/index.js";
+} from "../../../onchain/index.js";
 import { PriceUtils } from "../price-math.js";
 import type { QuotaInfoSlice, TokenDataSlice } from "./types.js";
 

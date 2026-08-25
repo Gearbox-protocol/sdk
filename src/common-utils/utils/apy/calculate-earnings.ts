@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import { PERCENTAGE_FACTOR_1KK } from "../../../sdk/constants/math.js";
+import { PERCENTAGE_FACTOR_1KK } from "../../../onchain/constants/math.js";
 import { PriceUtils } from "../../utils/price-math.js";
 import type { TokenSlice } from "../strategies/strategy-info/types.js";
 export interface CalculateEarningsProps {

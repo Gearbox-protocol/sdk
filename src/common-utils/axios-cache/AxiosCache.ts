@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import type { ILogger } from "../../sdk/index.js";
+import type { ILogger } from "../../onchain/index.js";
 
 interface CacheEntry<T> {
   data: T;

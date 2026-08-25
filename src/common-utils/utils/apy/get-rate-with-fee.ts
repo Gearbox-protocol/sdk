@@ -1,4 +1,4 @@
-import { PERCENTAGE_FACTOR, toBigInt } from "../../../sdk/index.js";
+import { PERCENTAGE_FACTOR, toBigInt } from "../../../onchain/index.js";
 
 /**
  * Adds fee interest to a rate

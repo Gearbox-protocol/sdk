@@ -8,13 +8,13 @@ import type {
   OperationPreviewError,
 } from "../../model/index.js";
 import { ERROR_UNPRICEABLE_TOKEN } from "../../model/index.js";
-import type { DelayedWithdrawalRequest } from "../../sdk/index.js";
+import type { DelayedWithdrawalRequest } from "../../onchain/index.js";
 import {
   AssetsMap,
   calcPositionLeverage,
   DUST_THRESHOLD,
   type OnchainSDK,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 import type { CreditAccountState } from "./CreditAccountState.js";
 import type { DetectedDelayedOperation } from "./detectDelayedOperation.js";
 

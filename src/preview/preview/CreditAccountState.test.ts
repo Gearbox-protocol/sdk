@@ -4,7 +4,7 @@ import {
   AssetsMap,
   type CreditAccountData,
   MIN_INT96,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 import { CreditAccountState } from "./CreditAccountState.js";
 
 const CREDIT_ACCOUNT = getAddress("0x4444444444444444444444444444444444444444");

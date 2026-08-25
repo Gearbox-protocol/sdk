@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { chains, getChain, type NetworkType } from "../sdk/index.js";
+import { chains, getChain, type NetworkType } from "../onchain/index.js";
 
 export const SUPPORTED_RPC_PROVIDERS = [
   "alchemy",

@@ -1,4 +1,4 @@
-import { calcTimeToLiquidationMs } from "../../../sdk/positions/calcTimeToLiquidationMs.js";
+import { calcTimeToLiquidationMs } from "../../../onchain/positions/calcTimeToLiquidationMs.js";
 
 export interface TimeToLiquidationProps {
   totalBorrowRate_debt: bigint;

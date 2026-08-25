@@ -1,6 +1,6 @@
 import type { Address } from "viem";
-import { PERCENTAGE_FACTOR } from "../../../../sdk/constants/math.js";
-import type { Asset } from "../../../../sdk/index.js";
+import { PERCENTAGE_FACTOR } from "../../../../onchain/constants/math.js";
+import type { Asset } from "../../../../onchain/index.js";
 import { EMPTY_ADDRESS } from "../../constants.js";
 import { calcOverallAPY } from "../../creditAccount/calc-overall-apy.js";
 import { isApyWithPointsException } from "../tokens/is-apy-with-points-exception.js";

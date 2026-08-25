@@ -11,7 +11,7 @@ import {
   RWA_FACTORY_SECURITIZE,
   type RWAOperationArgs,
   type SecuritizeRegisterMessage,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 import { classifyInnerOperations } from "./classifyInnerOperations.js";
 import type { RWAOperation, RWAOperationMetadata } from "./types-rwa.js";
 

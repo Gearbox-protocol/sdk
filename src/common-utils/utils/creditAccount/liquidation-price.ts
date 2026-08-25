@@ -1,6 +1,6 @@
 import type { Address } from "viem";
-import type { Asset } from "../../../sdk/index.js";
-import { calcLiquidationPriceForTarget } from "../../../sdk/positions/calcLiquidationPriceForTarget.js";
+import type { Asset } from "../../../onchain/index.js";
+import { calcLiquidationPriceForTarget } from "../../../onchain/positions/calcLiquidationPriceForTarget.js";
 import type { TokenDataSlice } from "./types.js";
 
 interface LiquidationPriceProps {

@@ -1,8 +1,8 @@
 import { type Address, encodeFunctionData, type Hex, zeroAddress } from "viem";
 import { expect, it } from "vitest";
 import { ierc4626AdapterAbi } from "../../abi/ierc4626Adapter.js";
-import type { ERC4626AdapterContract } from "../../sdk/index.js";
-import { type Asset, AssetsMap } from "../../sdk/index.js";
+import type { ERC4626AdapterContract } from "../../onchain/index.js";
+import { type Asset, AssetsMap } from "../../onchain/index.js";
 import { applyRWAWrapUnwrap } from "./applyRWAWrapUnwrap.js";
 
 // RWA vault share token (the market underlying) and its ERC4626 asset.

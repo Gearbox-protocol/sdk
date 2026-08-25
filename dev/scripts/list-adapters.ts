@@ -1,6 +1,6 @@
 import { pino } from "pino";
 import { getAlchemyUrl } from "../../src/dev/providers.js";
-import { MultichainSDK, type NetworkType } from "../../src/sdk/index.js";
+import { MultichainSDK, type NetworkType } from "../../src/onchain/index.js";
 
 const logger = pino({
   level: process.env.LOG_LEVEL ?? "info",

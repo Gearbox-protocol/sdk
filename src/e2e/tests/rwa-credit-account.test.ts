@@ -20,7 +20,7 @@ import {
   OnchainSDK,
   RWA_FACTORY_SECURITIZE,
   sendRawTx,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 import { GAS_LIMIT } from "../constants.js";
 import {
   createInvestorWallet,

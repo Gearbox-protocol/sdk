@@ -1,10 +1,10 @@
 import type { Address, Chain, PublicClient, Transport } from "viem";
-import type { GearboxChain } from "../../../sdk/index.js";
+import type { GearboxChain } from "../../../onchain/index.js";
 import {
   AP_PRICE_FEED_COMPRESSOR,
   OnchainSDK,
   type ParsedCall,
-} from "../../../sdk/index.js";
+} from "../../../onchain/index.js";
 import { AddressProviderContract } from "../../bindings/index.js";
 import { Addresses } from "../../deployment/addresses.js";
 import { deepJsonParse } from "../format.js";

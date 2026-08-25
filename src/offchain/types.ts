@@ -1,5 +1,5 @@
 import type { ChainId } from "../model/primitives.js";
-import type { ILogger } from "../sdk/types/logger.js";
+import type { ILogger } from "../onchain/types/logger.js";
 
 /**
  * Options for creating a {@link GearboxAPI} instance.

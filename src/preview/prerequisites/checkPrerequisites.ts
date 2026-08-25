@@ -1,4 +1,4 @@
-import type { PluginsMap } from "../../sdk/index.js";
+import type { PluginsMap } from "../../onchain/index.js";
 import { type Operation, parseOperationCalldata } from "../parse/index.js";
 import type {
   PreviewOperationInput,

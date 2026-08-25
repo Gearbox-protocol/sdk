@@ -4,7 +4,7 @@ Status: DONE (2026-08-15). Decisions: scope is the SDK only — the frontend
 (`client-v3`) is not migrated; the public `IntentPreviewResult` envelope is unchanged;
 `repay` / `close` as start intents are out of scope.
 
-Radical simplification of `src/sdk/accounts/intents` (the SDK intent calculator, successor
+Radical simplification of `src/onchain/accounts/intents` (the SDK intent calculator, successor
 of `client-v3/src/core/creditAccounts/intent-calculator`, ~700 KB / 11k lines of logic).
 
 ## 1. Starting point
@@ -19,7 +19,7 @@ of `client-v3/src/core/creditAccounts/intent-calculator`, ~700 KB / 11k lines of
 | `testing/*` (sdk / market / expect mocks) | 1 018 | — |
 | **Total** | **~4 700** | **~3 600** |
 
-External contract that **must survive** (consumed by `src/new-sdk/simulate/SimulateApi.ts`):
+External contract that **must survive** (consumed by `src/sdk/simulate/SimulateApi.ts`):
 
 - `service.startIntent({intent, creditAccount, sdk, slippage, quotaReserve}) → IntentPreviewResult`
 - `service.finishIntent({intent: DelayedIntent, claimable, …}) → IntentPreviewResult`
@@ -214,14 +214,14 @@ Each is a RED test on plain numbers (no sdk mock) in `plan.test.ts` / `math.test
 
 ## 8. Verification
 
-- `vitest --project unit src/sdk/accounts/intents src/new-sdk/simulate` — new unit tests +
+- `vitest --project unit src/onchain/accounts/intents src/sdk/simulate` — new unit tests +
   every existing onchain suite.
 - `tsc --noEmit` / biome — repo config.
-- `SimulateApi` tests (`src/new-sdk/simulate`) with unchanged expectations.
+- `SimulateApi` tests (`src/sdk/simulate`) with unchanged expectations.
 
 ## 9. Result (2026-08-15)
 
-Final layout of `src/sdk/accounts/intents/`:
+Final layout of `src/onchain/accounts/intents/`:
 
 | File | Lines | Role |
 | --- | ---: | --- |

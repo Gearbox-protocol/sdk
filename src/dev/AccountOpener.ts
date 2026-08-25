@@ -18,7 +18,7 @@ import type {
   IPoolContract,
   IPoolsService,
   RawTx,
-} from "../sdk/index.js";
+} from "../onchain/index.js";
 import {
   ADDRESS_0X0,
   AddressMap,
@@ -30,7 +30,7 @@ import {
   PoolService,
   SDKConstruct,
   sendRawTx,
-} from "../sdk/index.js";
+} from "../onchain/index.js";
 import { iDegenNftv2Abi } from "./abi.js";
 import { claimFromFaucet } from "./claimFromFaucet.js";
 import { type AnvilClient, extendAnvilClient } from "./createAnvilClient.js";

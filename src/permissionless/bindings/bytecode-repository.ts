@@ -14,8 +14,8 @@ import {
   type WalletClient,
 } from "viem";
 import { iBytecodeRepositoryAbi } from "../../abi/310/iBytecodeRepository.js";
-import type { RawTx } from "../../sdk/index.js";
-import { BaseContract, type ParsedCallArgs } from "../../sdk/index.js";
+import type { RawTx } from "../../onchain/index.js";
+import { BaseContract, type ParsedCallArgs } from "../../onchain/index.js";
 import type { Auditor } from "../core/auditor.js";
 import type {
   AuditEvent,

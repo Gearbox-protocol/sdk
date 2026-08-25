@@ -1,6 +1,6 @@
 import type { Address } from "viem";
-import type { Asset } from "../../../sdk/index.js";
-import { calcHealthFactor as calcHealthFactorFromSnapshot } from "../../../sdk/positions/calcHealthFactor.js";
+import type { Asset } from "../../../onchain/index.js";
+import { calcHealthFactor as calcHealthFactorFromSnapshot } from "../../../onchain/positions/calcHealthFactor.js";
 import type { QuotaInfoIsActiveSlice, TokenDataSlice } from "./types.js";
 
 export interface CalcHealthFactorProps {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { PERCENTAGE_FACTOR_1KK } from "../../../sdk/constants/math.js";
-import { toBN } from "../../../sdk/utils/formatter.js";
+import { PERCENTAGE_FACTOR_1KK } from "../../../onchain/constants/math.js";
+import { toBN } from "../../../onchain/utils/formatter.js";
 import {
   mockPrices,
   mockToken1,

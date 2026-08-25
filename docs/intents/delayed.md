@@ -225,8 +225,8 @@ account and only their quota has to catch up.
   request recorded.
 - Requests and claims carry calldata the compressor produces; the intent engine
   does not build those calls itself.
-- Tests: [`start-delayed.onchain.test.ts`](../../src/sdk/accounts/intents/tests/start-delayed.onchain.test.ts),
-  [`finish-withdraw.onchain.test.ts`](../../src/sdk/accounts/intents/tests/finish-withdraw.onchain.test.ts),
-  [`finish-decrease-leverage.onchain.test.ts`](../../src/sdk/accounts/intents/tests/finish-decrease-leverage.onchain.test.ts),
-  [`finish-claim-only.onchain.test.ts`](../../src/sdk/accounts/intents/tests/finish-claim-only.onchain.test.ts),
-  [`finish-close-account.onchain.test.ts`](../../src/sdk/accounts/intents/tests/finish-close-account.onchain.test.ts).
+- Tests: [`start-delayed.onchain.test.ts`](../../src/onchain/accounts/intents/tests/start-delayed.onchain.test.ts),
+  [`finish-withdraw.onchain.test.ts`](../../src/onchain/accounts/intents/tests/finish-withdraw.onchain.test.ts),
+  [`finish-decrease-leverage.onchain.test.ts`](../../src/onchain/accounts/intents/tests/finish-decrease-leverage.onchain.test.ts),
+  [`finish-claim-only.onchain.test.ts`](../../src/onchain/accounts/intents/tests/finish-claim-only.onchain.test.ts),
+  [`finish-close-account.onchain.test.ts`](../../src/onchain/accounts/intents/tests/finish-close-account.onchain.test.ts).

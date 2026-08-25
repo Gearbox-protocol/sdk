@@ -4,7 +4,10 @@ import { createPublicClient, custom } from "viem";
 import { mainnet } from "viem/chains";
 import { beforeAll, describe, expect, it } from "vitest";
 
-import type { ChainContractsRegister, TokenMetaData } from "../sdk/index.js";
+import type {
+  ChainContractsRegister,
+  TokenMetaData,
+} from "../onchain/index.js";
 import { parseCreditAccountTransaction } from "./parseCreditAccountTransaction.js";
 import {
   type DeploymentLike,

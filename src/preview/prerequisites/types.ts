@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-import type { OnchainSDK } from "../../sdk/index.js";
+import type { OnchainSDK } from "../../onchain/index.js";
 import type { AllowanceResult } from "./AllowancePrerequisite.js";
 import type { BalanceResult } from "./BalancePrerequisite.js";
 import type { RWAOpenRequirementsResult } from "./RWAOpenRequirementsPrerequisite.js";

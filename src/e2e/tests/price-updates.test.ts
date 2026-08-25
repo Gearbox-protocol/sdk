@@ -5,7 +5,7 @@ import {
   OnchainSDK,
   sendRawTx,
   type UpdatePriceFeedsResult,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 import { ANVIL_URL, GAS_LIMIT } from "../constants.js";
 import { getAnvilWallet, REDSTONE_GATEWAYS, useFixture } from "../helpers.js";
 

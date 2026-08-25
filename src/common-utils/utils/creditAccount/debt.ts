@@ -4,8 +4,8 @@ import {
   PERCENTAGE_FACTOR,
   PRICE_DECIMALS_POW,
   WAD_DECIMALS_POW,
-} from "../../../sdk/index.js";
-import { BigIntMath } from "../../../sdk/utils/bigint-math.js";
+} from "../../../onchain/index.js";
+import { BigIntMath } from "../../../onchain/utils/bigint-math.js";
 import { PriceUtils } from "../price-math.js";
 import type { TokenDataSlice } from "./types.js";
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { PERCENTAGE_FACTOR, WAD } from "../../../../sdk/constants/math.js";
-import { toBN } from "../../../../sdk/utils/formatter.js";
+import { PERCENTAGE_FACTOR, WAD } from "../../../../onchain/constants/math.js";
+import { toBN } from "../../../../onchain/utils/formatter.js";
 import { getCollateralByDebt } from "./get-collateral-by-debt.js";
 
 describe("getCollateralByDebt", () => {

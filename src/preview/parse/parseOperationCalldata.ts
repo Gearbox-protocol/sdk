@@ -4,7 +4,7 @@ import {
   type PluginsMap,
   PoolV310Contract,
   ZapperContract,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 import type { PreviewOperationInput } from "../types.js";
 import { UnsupportedTargetError } from "./errors.js";
 import { parseFacadeOperationCalldata } from "./parseFacadeOperationCalldata.js";

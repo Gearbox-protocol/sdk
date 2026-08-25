@@ -18,9 +18,9 @@ import {
   TIMEOUT,
 } from "../src/dev/mode-parity/scriptUtils.js";
 import type { ChainId, DataResponse, Position } from "../src/model/index.js";
-import { GearboxSDK } from "../src/new-sdk/GearboxSDK.js";
-import type { CreditAccountData, OnchainSDK } from "../src/sdk/index.js";
-import { ADDRESS_0X0, hexEq, json_stringify } from "../src/sdk/index.js";
+import type { CreditAccountData, OnchainSDK } from "../src/onchain/index.js";
+import { ADDRESS_0X0, hexEq, json_stringify } from "../src/onchain/index.js";
+import { GearboxSDK } from "../src/sdk/GearboxSDK.js";
 
 /**
  * Discovers every borrower via the credit account compressor, then lists

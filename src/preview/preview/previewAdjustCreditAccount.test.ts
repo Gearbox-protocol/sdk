@@ -17,7 +17,7 @@ import {
   type CreditAccountData,
   json_parse,
   OnchainSDK,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 import { previewOperation } from "./previewOperation.js";
 
 // Scoped (KPK market configurator only) snapshot of the Gearbox anvil Mainnet
