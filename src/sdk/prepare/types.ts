@@ -169,9 +169,7 @@ export type StrategyRoutesSimulate =
     }
   /**
    * The instant route's refusal, which is the one a caller can usually act on;
-   * the delayed route's when the instant one did not even get that far. Any
-   * `preview` on it belongs to that same route — the numbers and the reason
-   * always come from one walk.
+   * the delayed route's when the instant one did not even get that far.
    **/
   | (PreviewRefusal & {
       /**
