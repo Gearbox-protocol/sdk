@@ -1121,7 +1121,15 @@ describe("prepare → execute on a mainnet fork", () => {
       if (sim.data.ok || sim.data.reason !== "insufficientSourceBalance") {
         throw new Error("expected insufficientSourceBalance");
       }
-      expect(sim.data.detail).toBeUndefined();
+      // The detail is optional on this reason because most of its sites refuse
+      // before there is a balance to compare. This one is the ledger walk, so
+      // it names both sides; `held` is whatever dust the open left behind.
+      expect(sim.data.detail?.required).toEqual({
+        token: USDC,
+        balance: parseUnits("100", 6),
+      });
+      expect(sim.data.detail?.held.token).toBe(USDC);
+      expect(sim.data.detail?.held.balance).toBeLessThan(parseUnits("100", 6));
     });
   });
 
