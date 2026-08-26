@@ -564,9 +564,9 @@ export interface PositionsTotals {
    **/
   currentYield: ApyBreakdown | null;
   /**
-   * Profit and loss over every position, in USD terms of {@link PnlBreakdown}.
+   * Profit and loss over every position in USD.
    **/
-  pnl: PnlBreakdown | null;
+  pnlUsd: number | null;
   /**
    * Net value of every position in US dollars.
    **/

@@ -1,6 +1,11 @@
 import { z } from "zod/v4";
 import { ZodAddress, ZodBigInt, ZodHex } from "../onchain/utils/zod.js";
-import { backendPreferred, offchainOnly, onchainOnly, tolerance } from "./compare.schema.js";
+import {
+  backendPreferred,
+  offchainOnly,
+  onchainOnly,
+  tolerance,
+} from "./compare.schema.js";
 import { isFilterSet } from "./filters.js";
 import {
   booleanParamSchema,
@@ -253,7 +258,7 @@ export const positionKeySchema = z.discriminatedUnion("kind", [
  **/
 export const positionsTotalsSchema = z.object({
   currentYield: apyBreakdownSchema.nullable(),
-  pnl: pnlBreakdownSchema.nullable(),
+  pnlUsd: z.number().nullable(),
   netValueUsd: z.number().nullable(),
   claimableUsd: z.number().nullable(),
 });
