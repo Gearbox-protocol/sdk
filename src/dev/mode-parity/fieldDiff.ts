@@ -16,10 +16,15 @@ export type DiffKind = "presence" | "usd" | "numeric" | "other";
  *
  * - `"mode-scoped"` — a field documented `@mode offchain` or `@mode onchain`,
  *   so the other source has nothing to put there.
+ * - `"backend-preferred"` — both sources fill the field, but both-mode merge
+ *   overlays the backend value.
  * - `"tolerance"` — snapshot lag or float-path noise within the thresholds
  *   below, not a formula or membership mismatch.
  **/
-export type ExpectedDiffReason = "mode-scoped" | "tolerance";
+export type ExpectedDiffReason =
+  | "mode-scoped"
+  | "backend-preferred"
+  | "tolerance";
 
 /**
  * One field of one row where the two sources disagree.

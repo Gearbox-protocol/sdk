@@ -69,7 +69,8 @@ export interface PositionMatch {
    **/
   identical: boolean;
   /**
-   * No unexpected diffs: every disagreement is mode-scoped or within tolerance.
+   * No unexpected diffs: every disagreement is mode-scoped, backend-preferred,
+   * or within tolerance.
    **/
   clean: boolean;
   diffs: FieldDiff[];
@@ -173,8 +174,9 @@ export interface ComparePositionsInput {
  * Matches two position listings per wallet by {@link positionId} and reports
  * every field the two sources disagree on.
  *
- * Nothing is filtered out. A field only one mode can fill, or a USD value that
- * drifted within snapshot-lag noise, is still reported — tagged
+ * Nothing is filtered out. A field only one mode can fill, a strategy field
+ * both-mode merge overlays from the backend, or a USD value that drifted
+ * within snapshot-lag noise, is still reported — tagged
  * {@link FieldDiff.expected} so that {@link CompareCounts.clean} can ignore it
  * while {@link CompareCounts.identical} stays strict.
  **/

@@ -60,6 +60,9 @@ export function makeTagDiff(rulesByKind: CompareRulesByKind): TagDiff {
     if (isModeScoped(path, rules)) {
       return withExpected(diff, "mode-scoped");
     }
+    if (isBackendPreferred(path, rules)) {
+      return withExpected(diff, "backend-preferred");
+    }
     const tag = rules.get(path);
     if (
       tag &&
@@ -72,16 +75,32 @@ export function makeTagDiff(rulesByKind: CompareRulesByKind): TagDiff {
   };
 }
 
+function pathMatchesRule(path: string, rulePath: string): boolean {
+  return (
+    path === rulePath ||
+    path.startsWith(`${rulePath}.`) ||
+    path.startsWith(`${rulePath}[`)
+  );
+}
+
 function isModeScoped(path: string, rules: CompareRuleMap): boolean {
   for (const [rulePath, tag] of rules) {
     if (tag !== "offchainOnly" && tag !== "onchainOnly") {
       continue;
     }
-    if (
-      path === rulePath ||
-      path.startsWith(`${rulePath}.`) ||
-      path.startsWith(`${rulePath}[`)
-    ) {
+    if (pathMatchesRule(path, rulePath)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isBackendPreferred(path: string, rules: CompareRuleMap): boolean {
+  for (const [rulePath, tag] of rules) {
+    if (tag !== "backendPreferred") {
+      continue;
+    }
+    if (pathMatchesRule(path, rulePath)) {
       return true;
     }
   }

@@ -26,10 +26,16 @@ export interface ToleranceCompareTag {
  *
  * - `"offchainOnly"` / `"onchainOnly"` — the other source typically leaves
  *   the field empty, so a disagreement is expected.
+ * - `"backendPreferred"` — both sources fill the field, but both-mode merge
+ *   overlays the backend value, so a disagreement is expected.
  * - {@link ToleranceCompareTag} — a numeric disagreement within the named
  *   formula is expected snapshot noise.
  **/
-export type CompareTag = "offchainOnly" | "onchainOnly" | ToleranceCompareTag;
+export type CompareTag =
+  | "offchainOnly"
+  | "onchainOnly"
+  | "backendPreferred"
+  | ToleranceCompareTag;
 
 /**
  * Marks a field that only the backend fills.
@@ -43,6 +49,14 @@ export function offchainOnly<S extends z.ZodType>(schema: S): S {
  **/
 export function onchainOnly<S extends z.ZodType>(schema: S): S {
   return schema.meta({ compare: "onchainOnly" satisfies CompareTag });
+}
+
+/**
+ * Marks a field whose backend value both-mode merge overlays onto the chain
+ * row, so a source disagreement is expected.
+ **/
+export function backendPreferred<S extends z.ZodType>(schema: S): S {
+  return schema.meta({ compare: "backendPreferred" satisfies CompareTag });
 }
 
 /**

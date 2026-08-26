@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 import { ZodAddress, ZodBigInt, ZodHex } from "../onchain/utils/zod.js";
-import { offchainOnly, onchainOnly, tolerance } from "./compare.schema.js";
+import { backendPreferred, offchainOnly, onchainOnly, tolerance } from "./compare.schema.js";
 import { isFilterSet } from "./filters.js";
 import {
   booleanParamSchema,
@@ -129,12 +129,12 @@ export const borrowRateBreakdownSchema = z.object({
  **/
 export const strategyPositionSchema = z.object({
   kind: z.literal("strategy"),
-  name: z.string(),
+  name: backendPreferred(z.string()),
   chainId: chainIdSchema,
   creditManager: ZodAddress(),
   creditAccount: ZodAddress(),
   underlyingToken: underlyingTokenSchema,
-  targetCollateral: tokenSchema.nullable(),
+  targetCollateral: backendPreferred(tokenSchema.nullable()),
   leverage: tolerance(leverageSchema, "float"),
   borrowApy: tolerance(bpsSchema, "bps"),
   borrowApyAvg7D: offchainOnly(bpsSchema).optional(),

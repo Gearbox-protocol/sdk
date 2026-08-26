@@ -215,6 +215,9 @@ export interface StrategyPosition {
   /**
    * Human-readable strategy name, e.g. `"wstETH / WETH"`. Derived from
    * {@link targetCollateral}.
+   *
+   * In both-mode merge the backend value overlays the chain row, so a
+   * source disagreement is expected.
    **/
   name: string;
   /**
@@ -238,6 +241,9 @@ export interface StrategyPosition {
   underlyingToken: UnderlyingToken;
   /**
    * Collateral token this position is a strategy in.
+   *
+   * In both-mode merge the backend value overlays the chain row, so a
+   * source disagreement is expected.
    **/
   targetCollateral: Token | null;
   /**

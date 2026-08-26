@@ -57,7 +57,10 @@ describe("compileCompareRules", () => {
 
     expect(pool.get("pnl")).toBe("offchainOnly");
     expect(pool.get("apyAvg7D")).toBe("offchainOnly");
+    expect(pool.get("name")).toBeUndefined();
     expect(pool.get("netValue.value")).toEqual({ tolerance: "amount" });
+    expect(strategy.get("name")).toBe("backendPreferred");
+    expect(strategy.get("targetCollateral")).toBe("backendPreferred");
     expect(strategy.get("netApy")).toBe("offchainOnly");
     expect(strategy.get("netApyAvg7D")).toBe("offchainOnly");
     expect(strategy.get("borrowApyAvg7D")).toBe("offchainOnly");

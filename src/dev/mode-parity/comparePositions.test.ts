@@ -423,6 +423,64 @@ describe("expected diffs", () => {
       reason: "tolerance",
     });
   });
+
+  it("tolerates strategy name and targetCollateral disagreements", () => {
+    const report = compare(
+      [
+        strategy({
+          name: "tBTC / USDC",
+          targetCollateral: token(TBTC, "tBTC"),
+        }),
+      ],
+      [
+        strategy({
+          name: "wstETH / USDC",
+          targetCollateral: token(WSTETH, "wstETH"),
+        }),
+      ],
+    );
+    const match = walletOf(report)?.matched[0];
+
+    expect(diffAt(match?.diffs ?? [], "name")).toEqual({
+      path: "name",
+      onchain: "tBTC / USDC",
+      offchain: "wstETH / USDC",
+      kind: "other",
+      expected: true,
+      reason: "backend-preferred",
+    });
+    expect(
+      diffAt(match?.diffs ?? [], "targetCollateral.address"),
+    ).toEqual({
+      path: "targetCollateral.address",
+      onchain: TBTC,
+      offchain: WSTETH,
+      kind: "other",
+      expected: true,
+      reason: "backend-preferred",
+    });
+    expect(match?.identical).toBe(false);
+    expect(match?.clean).toBe(true);
+    expect(report.summary.walletsClean).toBe(1);
+  });
+
+  it("tolerates a backend null targetCollateral against an onchain token", () => {
+    const report = compare(
+      [strategy({ name: "wstETH / USDC", targetCollateral: token(WSTETH, "wstETH") })],
+      [strategy({ name: "USDC", targetCollateral: null })],
+    );
+    const match = walletOf(report)?.matched[0];
+
+    expect(diffAt(match?.diffs ?? [], "targetCollateral")).toEqual({
+      path: "targetCollateral",
+      onchain: token(WSTETH, "wstETH"),
+      offchain: null,
+      kind: "presence",
+      expected: true,
+      reason: "backend-preferred",
+    });
+    expect(match?.clean).toBe(true);
+  });
 });
 
 describe("collateral lists", () => {
@@ -491,7 +549,7 @@ describe("the report as a whole", () => {
     });
   });
 
-  it("does not count a wallet as clean when a name disagrees", () => {
+  it("does not count a wallet as clean when a pool name disagrees", () => {
     const report = compare([pool()], [pool({ name: "USDC pool" })]);
 
     expect(diffAt(walletOf(report)?.matched[0]?.diffs ?? [], "name")).toEqual({
