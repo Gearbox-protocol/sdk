@@ -3,13 +3,12 @@ import {
   ERROR_MALFORMED_BRACKET,
   ERROR_NON_ADAPTER_CALL_IN_BRACKET,
   ERROR_UNPREVIEWABLE_ADAPTER_CALL,
-  ERROR_UNPREVIEWABLE_RWA_WRAP_UNWRAP,
+  ERROR_UNSUPPORTED_OUT_OF_BRACKET_CALL,
   type OperationPreviewError,
 } from "../../model/index.js";
 import {
   AbstractAdapterContract,
   AssetsMap,
-  ERC4626AdapterContract,
   MAX_UINT256,
   type OnchainSDK,
   type PluginsMap,
@@ -20,7 +19,6 @@ import type {
   InnerOperation,
   WithdrawCollateralOp,
 } from "../parse/index.js";
-import { applyRWAWrapUnwrap } from "./applyRWAWrapUnwrap.js";
 import type { CreditAccountState } from "./CreditAccountState.js";
 
 /**
@@ -170,9 +168,9 @@ function applyWithdrawCollateral(
  *
  * Inside a bracket, the adapter's balance changes are previewed via
  * {@link AbstractAdapterContract.previewBalanceChanges}. Outside a bracket,
- * only RWA wrap/unwrap calls are allowed (see {@link applyRWAWrapUnwrap});
- * nothing enforces the outcome of any other out-of-bracket adapter call
- * on-chain, so its effect on balances cannot be previewed.
+ * only calls that {@link AbstractAdapterContract.replayOutOfBracketCall}
+ * accepts are allowed; nothing enforces the outcome of any other out-of-bracket
+ * adapter call on-chain, so its effect on balances cannot be previewed.
  */
 async function applyExecute<P extends PluginsMap>(
   sdk: OnchainSDK<P>,
@@ -183,23 +181,22 @@ async function applyExecute<P extends PluginsMap>(
   const adapter = sdk.getContract(op.adapter);
 
   if (!inBracket) {
-    if (!isRWAShare(sdk, adapter)) {
-      return {
-        code: ERROR_ADAPTER_CALL_OUTSIDE_BRACKET,
-        message: `call to ${op.adapter} outside of a storeExpectedBalances/compareBalances bracket`,
-      };
+    if (adapter instanceof AbstractAdapterContract) {
+      try {
+        if (adapter.replayOutOfBracketCall(balances, op.calldata)) {
+          return undefined;
+        }
+      } catch (e) {
+        return {
+          code: ERROR_UNSUPPORTED_OUT_OF_BRACKET_CALL,
+          message: e instanceof Error ? e.message : String(e),
+        };
+      }
     }
-    try {
-      applyRWAWrapUnwrap(adapter, op.calldata, balances);
-      return undefined;
-    } catch (e) {
-      // decodeFunctionData throws on calldata that doesn't match the
-      // ERC4626 adapter ABI
-      return {
-        code: ERROR_UNPREVIEWABLE_RWA_WRAP_UNWRAP,
-        message: e instanceof Error ? e.message : String(e),
-      };
-    }
+    return {
+      code: ERROR_ADAPTER_CALL_OUTSIDE_BRACKET,
+      message: `call to ${op.adapter} outside of a storeExpectedBalances/compareBalances bracket`,
+    };
   }
 
   // unknown adapter or Execute call to some contract that is genuinely not an adapter
@@ -219,20 +216,4 @@ async function applyExecute<P extends PluginsMap>(
       message: e instanceof Error ? e.message : String(e),
     };
   }
-}
-
-/**
- * True when the ERC4626 adapter converts an RWA underlying, i.e. it is the
- * wrap/unwrap adapter of an RWA market rather than a regular vault strategy
- * adapter.
- */
-function isRWAShare<P extends PluginsMap>(
-  sdk: OnchainSDK<P>,
-  adapter: unknown,
-): adapter is ERC4626AdapterContract {
-  if (adapter instanceof ERC4626AdapterContract) {
-    const meta = sdk.tokensMeta.get(adapter.share);
-    return !!meta && sdk.tokensMeta.isRWAUnderlying(meta);
-  }
-  return false;
 }

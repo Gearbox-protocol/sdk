@@ -3,6 +3,7 @@ import {
   type DecodeFunctionDataReturnType,
   decodeAbiParameters,
   decodeFunctionData,
+  encodeFunctionData,
   type Hex,
   isAddressEqual,
   zeroAddress,
@@ -24,6 +25,11 @@ type abi = typeof abi;
 
 const protocolAbi = iMidasGatewayV311Abi;
 type protocolAbi = typeof protocolAbi;
+
+const receiveGreenlistCalldata = encodeFunctionData({
+  abi,
+  functionName: "receiveGreenlist",
+});
 
 export class MidasGatewayAdapterContract extends AbstractAdapterContract<
   abi,
@@ -170,6 +176,19 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
     }
     const [redeemer] = decoded.args;
     return { redeemer };
+  }
+
+  /**
+   * `receiveGreenlist()` is prepended by `prependMidasReceiveGreenlist`
+   * before the balance bracket when the multicall mints a permissioned
+   * mToken: it only greenlists the credit account and is balance-neutral,
+   * so it is legal outside a bracket and leaves balances untouched.
+   */
+  public override replayOutOfBracketCall(
+    _balances: AssetsMap,
+    calldata: Hex,
+  ): boolean {
+    return calldata === receiveGreenlistCalldata;
   }
 
   protected override async applyBalanceChanges(
