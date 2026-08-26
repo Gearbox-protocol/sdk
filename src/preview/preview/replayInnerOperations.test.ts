@@ -7,7 +7,6 @@ import {
 } from "viem";
 import { describe, expect, it } from "vitest";
 import { ierc4626AdapterAbi } from "../../abi/ierc4626Adapter.js";
-import { iMidasGatewayAdapterV311Abi } from "../../onchain/market/adapters/abi/adapters/iMidasGatewayAdapterV311.js";
 import {
   ERROR_ADAPTER_CALL_OUTSIDE_BRACKET,
   ERROR_MALFORMED_BRACKET,
@@ -25,6 +24,7 @@ import {
   MidasGatewayAdapterContract,
   type OnchainSDK,
 } from "../../onchain/index.js";
+import { iMidasGatewayAdapterV311Abi } from "../../onchain/market/adapters/abi/adapters/iMidasGatewayAdapterV311.js";
 import type { InnerOperation } from "../parse/index.js";
 import { CreditAccountState } from "./CreditAccountState.js";
 import {

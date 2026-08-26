@@ -7,14 +7,13 @@ import {
 } from "viem";
 import { describe, expect, it } from "vitest";
 import { ierc4626AdapterAbi } from "../../../../abi/ierc4626Adapter.js";
-import type { OnchainSDK } from "../../../OnchainSDK.js";
 import type { Asset } from "../../../base/types.js";
+import type { OnchainSDK } from "../../../OnchainSDK.js";
 import { AssetsMap } from "../../../utils/index.js";
 import { ERC4626AdapterContract } from "./ERC4626AdapterContract.js";
 
 const ADAPTER = "0x1111111111111111111111111111111111111111" as Address;
-const CREDIT_MANAGER =
-  "0x5555555555555555555555555555555555555555" as Address;
+const CREDIT_MANAGER = "0x5555555555555555555555555555555555555555" as Address;
 const SHARE = "0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D" as Address;
 const ASSET = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48" as Address;
 
@@ -148,9 +147,9 @@ describe("ERC4626AdapterContract.replayOutOfBracketCall", () => {
   it("returns false for a non-RWA underlying share", () => {
     const adapter = stubRWAAdapter(stubSdk([]));
     const balances = new AssetsMap([{ token: ASSET, balance: 500n }]);
-    expect(adapter.replayOutOfBracketCall(balances, encode("deposit", 100n))).toBe(
-      false,
-    );
+    expect(
+      adapter.replayOutOfBracketCall(balances, encode("deposit", 100n)),
+    ).toBe(false);
     expect(balances.get(ASSET)).toBe(500n);
   });
 });
