@@ -259,7 +259,7 @@ export const positionKeySchema = z.discriminatedUnion("kind", [
  **/
 export const positionsTotalsSchema = z.object({
   currentYield: apyBreakdownSchema.nullable(),
-  pnl: pnlBreakdownSchema.nullable(),
+  pnlUsd: z.number().nullable(),
   netValueUsd: z.number().nullable(),
   claimableUsd: z.number().nullable(),
 });

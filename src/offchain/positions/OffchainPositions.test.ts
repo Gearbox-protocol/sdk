@@ -214,7 +214,7 @@ describe("a totals request names the wallet in its path", () => {
     respondWith({
       data: {
         currentYield: { organicApy: 500 },
-        pnl: null,
+        pnlUsd: -420,
         netValueUsd: 12_345,
         claimableUsd: 67,
       },
@@ -227,7 +227,7 @@ describe("a totals request names the wallet in its path", () => {
     expect(requested().searchParams.has("chainIds")).toBe(false);
     expect(data).toEqual({
       currentYield: { organicApy: 500 },
-      pnl: null,
+      pnlUsd: -420,
       netValueUsd: 12_345,
       claimableUsd: 67,
     });
