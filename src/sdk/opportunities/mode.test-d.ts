@@ -44,6 +44,12 @@ describe("mode gates method existence", () => {
     expectTypeOf<Opportunities<"onchain">>().not.toHaveProperty("charts");
   });
 
+  it("totals exist only where a backend does", () => {
+    expectTypeOf<Opportunities<"offchain">>().toHaveProperty("totals");
+    expectTypeOf<Opportunities<"both">>().toHaveProperty("totals");
+    expectTypeOf<Opportunities<"onchain">>().not.toHaveProperty("totals");
+  });
+
   it("prepare and execute exist only where a chain does", () => {
     expectTypeOf<Opportunities<"onchain">>().toHaveProperty("prepare");
     expectTypeOf<Opportunities<"both">>().toHaveProperty("prepare");

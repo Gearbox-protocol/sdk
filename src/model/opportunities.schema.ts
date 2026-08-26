@@ -320,3 +320,12 @@ export const opportunityKeySchema = z.discriminatedUnion("kind", [
     ...strategyOpportunityKeySchema.shape,
   }),
 ]);
+
+/**
+ * {@link OpportunityTotals}
+ **/
+export const opportunityTotalsSchema = z.object({
+  tvl: z.number(),
+  totalBorrowed: z.number(),
+  totalSupply: z.number(),
+});

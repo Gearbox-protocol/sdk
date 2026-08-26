@@ -9,6 +9,7 @@ import type {
   PositionChartMetric,
   PositionFilter,
   PositionKey,
+  PositionsTotals,
   StrategyPositionChartMetric,
   StrategyPositionRef,
 } from "../../model/index.js";
@@ -75,6 +76,13 @@ export class PositionsNamespace
     filter?: PositionFilter,
   ): FilterResult<R, Position> {
     return filterResponse(response, filter, matchesPositionFilter);
+  }
+
+  /**
+   * {@inheritDoc PositionsOffchainOnly.totals}
+   **/
+  public async totals(wallet: Address): Promise<DataResponse<PositionsTotals>> {
+    return this.offchain.getTotals(wallet);
   }
 
   /**

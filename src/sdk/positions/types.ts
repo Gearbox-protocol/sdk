@@ -7,6 +7,7 @@ import type {
   PoolPositionRef,
   Position,
   PositionFilter,
+  PositionsTotals,
   StrategyPositionChartMetric,
   StrategyPositionRef,
 } from "../../model/index.js";
@@ -59,6 +60,14 @@ export interface PositionsBase {
  * Reads only a backend can answer.
  **/
 export interface PositionsOffchainOnly {
+  /**
+   * Aggregate over everything a wallet holds: the list screen's badges, see
+   * {@link PositionsTotals}.
+   *
+   * Absent in `onchain` mode: it is served by the backend rather than summed
+   * from the chain.
+   **/
+  totals(wallet: Address): Promise<DataResponse<PositionsTotals>>;
   /**
    * Historical charts of one position, one series per metric on a shared axis:
    * `charts(key, ["apy", "mwr"], "1m")`.
