@@ -10,6 +10,7 @@ import type {
   Asset,
   ClaimableWithdrawal,
   DelayedStart,
+  LeverageBand,
   MultiCall,
   OpenStrategyPreview,
   OperationState,
@@ -31,6 +32,7 @@ import type {
  * read one of these.
  **/
 export type {
+  LeverageBand,
   OperationState,
   PreviewErrorDetails,
   PreviewErrorReason,
@@ -538,6 +540,32 @@ export interface OpportunitiesPrepare {
     position: PositionInput,
     params: WithdrawCollateralParams,
   ): Promise<DataResponse<StrategySimulate>>;
+
+  /**
+   * The leverages a deposit of a given size can reach in this market: the
+   * range a leverage slider should mark as available.
+   *
+   * `maxLeverage` on the opportunity is the ceiling the liquidation threshold
+   * allows, and it is the same number whatever the deposit. What a given
+   * deposit reaches is decided by the debt it implies —
+   * `debt = netValue x (leverage - 1)` — and by the band the market puts that
+   * debt in.
+   *
+   * Synchronous, unlike the ceilings above it: those read the account from the
+   * chain, this one only needs loaded market state, so a form can ask on every
+   * keystroke. Hand over the collateral as it stands and the SDK values it —
+   * opening takes the tokens being deposited, adjusting the position's own net
+   * value in the underlying.
+   *
+   * Nothing at all when the market has no band to offer: a deposit too small
+   * to carry `minDebt` at any leverage the threshold allows, or a manager with
+   * no borrowing room left. Not the same answer as "every leverage works", and
+   * a caller must not mark a range for it.
+   **/
+  leverageBand(
+    strategy: StrategyInput,
+    collateral: readonly Asset[],
+  ): LeverageBand | undefined;
 
   /**
    * Largest amount of one collateral {@link withdrawCollateral} can move out

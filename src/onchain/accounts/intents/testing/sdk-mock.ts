@@ -8,7 +8,7 @@ import type {
   MultiCall,
   OnchainSDK,
 } from "../../../index.js";
-import { usdToNumber } from "../../../market/math.js";
+import { calcMaxLeverage, usdToNumber } from "../../../market/math.js";
 import { PositionsService } from "../../../positions/PositionsService.js";
 import type { CreditAccountSlice } from "../types.js";
 
@@ -347,6 +347,8 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
       liquidationThresholds,
       collateralTokens,
       feeInterest: args.feeInterest ?? 0,
+      maxLeverage: (collateral: Address) =>
+        calcMaxLeverage(liquidationThresholds.get(collateral) ?? 0),
     },
     creditFacade: {
       address: args.creditFacade,

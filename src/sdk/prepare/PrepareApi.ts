@@ -1,9 +1,11 @@
 import type { Address } from "viem";
 import type { ChainId, DataResponse } from "../../model/index.js";
 import type {
+  Asset,
   CreditAccountSlice,
   DelayableIntent,
   DelayedIntentExtended,
+  LeverageBand,
   OnchainSDK,
   ResumableIntent,
   StartIntent,
@@ -360,6 +362,24 @@ export class PrepareApi
       token: params.token,
       amount: params.amount,
       to: params.to,
+    });
+  }
+
+  /**
+   * {@inheritDoc OpportunitiesPrepare.leverageBand}
+   **/
+  public leverageBand(
+    strategy: StrategyInput,
+    collateral: readonly Asset[],
+  ): LeverageBand | undefined {
+    // No `queryChain`: there is nothing to read and nothing to await, and
+    // wrapping arithmetic in a response would cost the caller the very
+    // immediacy this answer exists to give.
+    const sdk = this.sdk.chain(strategy.chainId);
+    return service(sdk).leverageBand({
+      sdk,
+      creditManager: strategy.creditManager,
+      collateral,
     });
   }
 

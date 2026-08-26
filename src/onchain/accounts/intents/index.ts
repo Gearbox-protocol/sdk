@@ -2,6 +2,11 @@ import type { Address } from "viem";
 import { MIN_HF_LIMITED } from "../../../common-utils/utils/validation/validate-hf.js";
 import { SDKConstruct } from "../../base/SDKConstruct.js";
 import { assertMarketOperable } from "./guards.js";
+import {
+  calcLeverageBand,
+  type LeverageBand,
+  type LeverageBandProps,
+} from "./leverage-band.js";
 import { maxProportionalWithdrawal } from "./math.js";
 import { maxWithdrawCollateral } from "./maxWithdrawCollateral.js";
 import {
@@ -41,6 +46,7 @@ import type {
 } from "./types.js";
 import { accountView } from "./view.js";
 
+export type { LeverageBand } from "./leverage-band.js";
 export type {
   OpenStrategyPreview,
   OpenStrategyProps,
@@ -170,6 +176,26 @@ export class CreditAccountOperationsService extends SDKConstruct {
    */
   maxRepay(props: Pick<StartIntentProps, "creditAccount" | "sdk">): bigint {
     return accountView(props.creditAccount, props.sdk).debt;
+  }
+
+  /**
+   * The leverages a position of a given size can be opened at, or moved to.
+   *
+   * A credit manager's `maxLeverage` follows from the liquidation threshold
+   * alone, so it is the same for a hundred dollars and for a million. What a
+   * given deposit reaches is decided by the debt it implies and by the band
+   * the market puts that debt in — the range a leverage slider should offer.
+   *
+   * Unlike the other ceilings here this one reads no account: opening has none
+   * yet, and adjusting measures against the net value the caller already
+   * holds. Nothing is fetched, so a form can ask on every keystroke.
+   *
+   * @param props - The manager, the SDK holding its market, and what stands
+   * behind the position
+   * @returns The band, or nothing when the market has none to offer
+   */
+  leverageBand(props: LeverageBandProps): LeverageBand | undefined {
+    return calcLeverageBand(props);
   }
 
   /**
