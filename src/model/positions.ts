@@ -205,6 +205,13 @@ export interface BorrowRateBreakdown {
 }
 
 /**
+ * Set on {@link StrategyPosition.error} when the account could not be fully
+ * valued (e.g. a dead price feed).
+ **/
+export const STRATEGY_POSITION_COLLATERAL_ERROR =
+  "collateral computation failed";
+
+/**
  * An open credit account of a wallet.
  **/
 export interface StrategyPosition {
@@ -339,6 +346,13 @@ export interface StrategyPosition {
    * withdrawals.
    **/
   collaterals: PositionCollateral[];
+  /**
+   * Present when the account could not be fully valued (e.g. a dead price
+   * feed). Identity, balances, and debt principal are still filled; valued
+   * fields are best-effort. Set by either the chain compressor path or the
+   * backend.
+   **/
+  error?: string;
 }
 
 /**

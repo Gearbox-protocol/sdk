@@ -154,6 +154,7 @@ export const strategyPositionSchema = z.object({
   liquidationPrice: onchainOnly(ZodBigInt().nullable()).optional(),
   pnl: offchainOnly(pnlBreakdownSchema).optional(),
   collaterals: z.array(positionCollateralSchema),
+  error: z.string().optional(),
 });
 
 /**
