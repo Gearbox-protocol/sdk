@@ -709,3 +709,22 @@ export interface StrategyOpportunityRef extends StrategyOpportunityKey {
  * Identifies any opportunity, for requests that accept both kinds.
  **/
 export type OpportunityKey = PoolOpportunityRef | StrategyOpportunityRef;
+
+/**
+ * Protocol-wide aggregate over every opportunity, served by the backend rather
+ * than summed by a consumer: the landing page's headline figures.
+ **/
+export interface OpportunityTotals {
+  /**
+   * Total value locked in Gearbox Protocol
+   **/
+  tvl: number;
+  /**
+   * Total borrowed from pools in Gearbox Protocol
+   **/
+  totalBorrowed: number;
+  /**
+   * Total supplied to pools in Gearbox Protocol
+   **/
+  totalSupply: number;
+}

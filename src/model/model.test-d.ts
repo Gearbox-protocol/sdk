@@ -63,6 +63,7 @@ import type {
   OpportunityFilter,
   OpportunityKey,
   OpportunityKind,
+  OpportunityTotals,
   PointRewards,
   PointsProgram,
   PoolOpportunity,
@@ -88,6 +89,7 @@ import type {
   opportunityKeySchema,
   opportunityKindSchema,
   opportunitySchema,
+  opportunityTotalsSchema,
   pointRewardsSchema,
   pointsProgramSchema,
   poolOpportunityDetailSchema,
@@ -299,6 +301,9 @@ describe("model schemas match model types", () => {
     expectTypeOf<
       z.infer<typeof opportunityKeySchema>
     >().toEqualTypeOf<OpportunityKey>();
+    expectTypeOf<
+      z.infer<typeof opportunityTotalsSchema>
+    >().toEqualTypeOf<OpportunityTotals>();
   });
 
   it("charts", () => {

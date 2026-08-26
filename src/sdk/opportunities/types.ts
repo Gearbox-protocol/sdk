@@ -4,6 +4,7 @@ import type {
   DataResponse,
   Opportunity,
   OpportunityFilter,
+  OpportunityTotals,
   PoolOpportunityChartMetric,
   PoolOpportunityDetail,
   PoolOpportunityKey,
@@ -72,6 +73,14 @@ export interface OpportunitiesBase {
  * Reads only a backend can answer.
  **/
 export interface OpportunitiesOffchainOnly {
+  /**
+   * Protocol-wide totals across every opportunity: the TVL, total borrowed and
+   * total supplied the landing page shows.
+   *
+   * Absent in `onchain` mode: it is served by the backend rather than summed
+   * from the chain.
+   **/
+  totals(): Promise<DataResponse<OpportunityTotals>>;
   /**
    * Historical charts of one opportunity, one series per metric on a shared
    * axis: `charts(key, ["depositApy", "depositApyAvg7d"], "1m")`.
