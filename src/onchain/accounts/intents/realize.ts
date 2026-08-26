@@ -27,12 +27,12 @@ import {
   type QuotaUpdateState,
 } from "./operations.js";
 import type { Amount, Step } from "./plan.js";
+import { IntentPreviewError } from "./refusal.js";
 import type {
   CreditAccountSlice,
   DelayedStart,
   OperationState,
 } from "./types.js";
-import { IntentPreviewError } from "./types.js";
 import { eq, toTargetDecimals } from "./utils/common.js";
 import { convertAmount } from "./utils/convert-amount.js";
 import { OperationLedger } from "./utils/ledger.js";
@@ -127,6 +127,10 @@ export async function realize(
     if (amount <= 0n || held < amount) {
       throw new IntentPreviewError(
         "insufficientSourceBalance",
+        {
+          required: { token, balance: amount },
+          held: { token, balance: held },
+        },
         `${what}: needs ${amount} of ${token}, account holds ${held}`,
       );
     }
@@ -260,6 +264,7 @@ export async function realize(
         if (pending) {
           throw new IntentPreviewError(
             "withdrawalInProgress",
+            { inFlight: pending },
             `closeAll: ${pending.token} is a pending withdrawal, claim it first`,
           );
         }
@@ -305,6 +310,12 @@ export async function realize(
         if (ledger.balanceOf(asset.withdrawalPhantomToken) > 0n) {
           throw new IntentPreviewError(
             "withdrawalInProgress",
+            {
+              inFlight: {
+                token: asset.withdrawalPhantomToken,
+                balance: ledger.balanceOf(asset.withdrawalPhantomToken),
+              },
+            },
             `request: ${asset.withdrawalPhantomToken} already holds a pending withdrawal`,
           );
         }
@@ -462,6 +473,7 @@ export async function realize(
     paysOut
       ? sdk.positions.healthFactor(snapshot, { safePrices: true })
       : metrics.healthFactor,
+    paysOut,
   );
 
   const state: OperationState = {
@@ -498,6 +510,7 @@ async function delayedConfig(
   if (!compressor) {
     throw new IntentPreviewError(
       "noDelayedRoute",
+      { token },
       "request: chain has no withdrawal compressor",
     );
   }
@@ -509,12 +522,14 @@ async function delayedConfig(
   if (assets.length === 0) {
     throw new IntentPreviewError(
       "noDelayedRoute",
+      { token },
       `request: ${token} has no delayed withdrawal config`,
     );
   }
   if (assets.length > 1) {
     throw new IntentPreviewError(
       "multipleDelayedWithdrawals",
+      { token, venues: assets.length },
       `request: ${token} has ${assets.length} delayed withdrawal configs`,
     );
   }

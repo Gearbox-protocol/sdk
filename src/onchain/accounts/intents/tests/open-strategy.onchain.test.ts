@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-
+import { LEVERAGE_DECIMALS } from "../../../constants/math.js";
 import type { OnchainSDK } from "../../../index.js";
 import { toBN } from "../../../index.js";
 import { CreditAccountOperationsService } from "../index.js";
@@ -114,34 +114,44 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
     ]);
   });
 
+  /** Each refusal carries the numbers a form would otherwise re-derive. */
   it("rejects leverage below 1x", async () => {
     const { result } = run({ ...case_underlying_3x, leverage: 50n });
-    await expect(result).resolves.toEqual({
-      ok: false,
-      reason: "leverageOutOfRange",
-    });
+    const refusal = await result;
+
+    if (refusal.ok || refusal.reason !== "leverageOutOfRange") {
+      throw new Error("expected leverageOutOfRange");
+    }
+    expect(refusal.detail).toEqual({ requested: 50n, min: LEVERAGE_DECIMALS });
   });
 
   it("rejects collateral that is worth nothing in underlying", async () => {
     const { result } = run({ ...case_underlying_3x, collateral: [] });
-    await expect(result).resolves.toEqual({
-      ok: false,
-      reason: "insufficientSourceBalance",
-    });
+    const refusal = await result;
+
+    if (refusal.ok || refusal.reason !== "insufficientSourceBalance") {
+      throw new Error("expected insufficientSourceBalance");
+    }
+    // Nothing was supplied, so there is no amount to name.
+    expect(refusal.detail).toBeUndefined();
   });
 
-  it("rejects a debt above the facade maxDebt", async () => {
+  it("rejects a debt above the facade maxDebt, and says what the ceiling is", async () => {
     const { result } = run({
       ...case_underlying_3x,
       collateral: [{ token: UND, balance: MAX_DEBT }],
     });
-    await expect(result).resolves.toEqual({
-      ok: false,
-      reason: "debtOutOfRange",
-    });
+    const refusal = await result;
+
+    if (refusal.ok || refusal.reason !== "debtOutOfRange") {
+      throw new Error("expected debtOutOfRange");
+    }
+    expect(refusal.detail.maxDebt).toEqual({ token: UND, balance: MAX_DEBT });
+    expect(refusal.detail.requested.token).toBe(UND);
+    expect(refusal.detail.requested.balance).toBeGreaterThan(MAX_DEBT);
   });
 
-  it("rejects a debt below the facade minDebt", async () => {
+  it("rejects a debt below the facade minDebt, and says what the floor is", async () => {
     const { result } = run(
       {
         ...case_underlying_3x,
@@ -149,9 +159,15 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
       },
       buildOpenStrategySdk({ minDebt: MARGIN_UND }),
     );
-    await expect(result).resolves.toEqual({
-      ok: false,
-      reason: "debtOutOfRange",
+    const refusal = await result;
+
+    if (refusal.ok || refusal.reason !== "debtOutOfRange") {
+      throw new Error("expected debtOutOfRange");
+    }
+    expect(refusal.detail.minDebt).toEqual({
+      token: UND,
+      balance: MARGIN_UND,
     });
+    expect(refusal.detail.requested.balance).toBeLessThan(MARGIN_UND);
   });
 });

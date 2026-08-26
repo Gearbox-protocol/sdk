@@ -14,9 +14,27 @@ import type {
   OpenStrategyPreview,
   OperationState,
   PoolSimulation,
-  PreviewErrorReason,
+  PreviewRefusal,
   ResumableIntent,
   RouteRefusals,
+} from "../../onchain/index.js";
+
+/**
+ * The vocabulary the failure half of everything below is written in.
+ *
+ * Published here because these are the types of the fields on the results this
+ * module hands out: a caller switching on `reason` or reading `detail` should
+ * not have to reach into `@gearbox-protocol/sdk/onchain` for the names to do
+ * it with. They are defined in the intents engine and have no second home
+ * here. `reason` is the discriminant — narrowing it narrows `detail` and
+ * settles whether there is a `preview` — so no runtime guard is needed to
+ * read one of these.
+ **/
+export type {
+  OperationState,
+  PreviewErrorDetails,
+  PreviewErrorReason,
+  PreviewRefusal,
 } from "../../onchain/index.js";
 
 /**
@@ -47,7 +65,7 @@ export type LpSimulate =
        **/
       calls: MultiCall[];
     }
-  | { ok: false; reason: PreviewErrorReason };
+  | PreviewRefusal;
 
 /**
  * What an operation on an existing credit account would yield.
@@ -76,7 +94,7 @@ export type StrategySimulate =
        **/
       calls: MultiCall[];
     }
-  | { ok: false; reason: PreviewErrorReason };
+  | PreviewRefusal;
 
 /**
  * What the leading half of a delayed operation would yield: the request
@@ -115,7 +133,7 @@ export type DelayedStrategySimulate =
        **/
       delayed: DelayedStart;
     }
-  | { ok: false; reason: PreviewErrorReason };
+  | PreviewRefusal;
 
 /**
  * What one of the two flows that sell a position asset —
@@ -149,18 +167,18 @@ export type StrategyRoutesSimulate =
        **/
       refused: RouteRefusals;
     }
-  | {
-      ok: false;
-      /**
-       * The instant route's refusal, which is the one a caller can usually act
-       * on; the delayed route's when the instant one did not even get that far.
-       **/
-      reason: PreviewErrorReason;
+  /**
+   * The instant route's refusal, which is the one a caller can usually act on;
+   * the delayed route's when the instant one did not even get that far. Any
+   * `preview` on it belongs to that same route — the numbers and the reason
+   * always come from one walk.
+   **/
+  | (PreviewRefusal & {
       /**
        * {@inheritDoc StrategyRoutesSimulate.refused}
        **/
       refused: RouteRefusals;
-    };
+    });
 
 /**
  * What opening a new leveraged position would yield.
@@ -170,7 +188,7 @@ export type StrategyRoutesSimulate =
  **/
 export type OpenStrategySimulate =
   | { ok: true; preview: OpenStrategyPreview }
-  | { ok: false; reason: PreviewErrorReason };
+  | PreviewRefusal;
 
 /**
  * Shared knobs. Both default to the SDK's own defaults when omitted.

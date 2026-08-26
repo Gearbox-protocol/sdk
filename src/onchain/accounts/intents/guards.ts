@@ -2,7 +2,7 @@ import { PERCENTAGE_FACTOR } from "../../constants/index.js";
 import type { Asset, OnchainSDK } from "../../index.js";
 import type { CreditSuite } from "../../market/credit/CreditSuite.js";
 import type { MarketSuite } from "../../market/MarketSuite.js";
-import { IntentPreviewError } from "./types.js";
+import { IntentPreviewError } from "./refusal.js";
 import { eq } from "./utils/common.js";
 import { isPhantomToken } from "./utils/pick-token.js";
 
@@ -14,6 +14,11 @@ import { isPhantomToken } from "./utils/pick-token.js";
  * pool has run out of what it lends. On-chain those come back as a reverted
  * multicall with a selector no form can explain, so they are read from the
  * loaded market and reported as refusals instead.
+ *
+ * Every guard here refuses something the market decides rather than something
+ * the arithmetic cannot do, which is why all six of their reasons are
+ * `blocking`: the walk that hit one still reached an end state, and a caller
+ * gets that state alongside the refusal.
  */
 
 /**
@@ -21,16 +26,19 @@ import { isPhantomToken } from "./utils/pick-token.js";
  * every intent the engine previews would revert on arrival.
  */
 export function assertMarketOperable(suite: CreditSuite): void {
+  const creditManager = suite.creditManager.address;
   if (suite.isPaused) {
     throw new IntentPreviewError(
       "marketPaused",
-      `${suite.creditManager.address} is paused`,
+      { creditManager },
+      `${creditManager} is paused`,
     );
   }
   if (suite.isExpired) {
     throw new IntentPreviewError(
       "marketExpired",
-      `${suite.creditManager.address} expired at ${suite.creditFacade.expirationDate}`,
+      { creditManager, expirationDate: suite.creditFacade.expirationDate },
+      `${creditManager} expired at ${suite.creditFacade.expirationDate}`,
     );
   }
 }
@@ -62,8 +70,14 @@ export function borrowable(suite: CreditSuite): bigint {
 export function assertCanBorrow(suite: CreditSuite, amount: bigint): void {
   const limit = borrowable(suite);
   if (amount > limit) {
+    // The same underlying `borrowable` counts in, read the same way.
+    const token = suite.market.pool.underlying;
     throw new IntentPreviewError(
       "insufficientPoolLiquidity",
+      {
+        requested: { token, balance: amount },
+        available: { token, balance: limit },
+      },
       `borrow: ${amount} exceeds what the pool can lend now (${limit})`,
     );
   }
@@ -100,6 +114,7 @@ export function assertGrowthAllowed(args: {
     if (forbidden.some(f => eq(f, token))) {
       throw new IntentPreviewError(
         "forbiddenToken",
+        { token },
         `${token} is forbidden in this market and the plan buys more of it`,
       );
     }
@@ -109,6 +124,13 @@ export function assertGrowthAllowed(args: {
     if (!market.pool.pqk.hasActiveQuota(token)) {
       throw new IntentPreviewError(
         "quotaLimitReached",
+        // No ceiling was measured: the market opened none for this token, so
+        // there is nothing the plan's appetite could be weighed against.
+        {
+          token,
+          requested: undefined,
+          available: { token: underlying, balance: 0n },
+        },
         `${token} takes no quota in this market, so it counts as no collateral`,
       );
     }
@@ -120,10 +142,23 @@ export function assertGrowthAllowed(args: {
  * and reverts if the collateral does not cover it, so a plan that lands the
  * account below water is refused here.
  *
- * The bar is the health factor of the state the plan projects: collateral under
- * liquidation thresholds, capped by quota, against the debt. Note that a
- * position already underwater cannot be nursed back one step at a time — the
- * check is on where the transaction ends, not on whether it improved things.
+ * The bar is the facade's own `1.0`, because this guard answers one question:
+ * would the transaction revert. It is deliberately not `MIN_HF_LIMITED`, and
+ * the three bars in this codebase are three different jobs:
+ *
+ * - here, `1.0` — what the facade enforces, so what a plan must clear to land;
+ * - `maxWithdrawCollateral` sizes at `MIN_HF_LIMITED + 2` — a *sizing* helper
+ *   leaving headroom, which is not the same as a validity check;
+ * - `validateHF` refuses at or below `MIN_HF_LIMITED` — a form's own caution.
+ *
+ * Raising this one to `MIN_HF_LIMITED` was tried and reverted: it made
+ * `maxWithdraw` hand back a ceiling this guard then refused, and it blocked
+ * small top-ups of an account sitting in `[1.0, 1.01)` — the very operations
+ * that rescue it. A form wanting the stricter bar has `validateHF`.
+ *
+ * Note that a position already underwater cannot be nursed back one step at a
+ * time — the check is on where the transaction ends, not on whether it
+ * improved things.
  *
  * @remarks
  * The caller decides the pricing the factor was computed at: main prices, or
@@ -131,11 +166,16 @@ export function assertGrowthAllowed(args: {
  * whose reserve feed the SDK cannot read keeps its main price, so a plan can
  * still be refused on-chain after passing here.
  */
-export function assertCollateralised(healthFactorBps: number): void {
-  if (healthFactorBps < Number(PERCENTAGE_FACTOR)) {
+export function assertCollateralised(
+  healthFactorBps: number,
+  safePrices: boolean,
+): void {
+  const required = Number(PERCENTAGE_FACTOR);
+  if (healthFactorBps < required) {
     throw new IntentPreviewError(
       "insufficientCollateral",
-      `the account would end at a health factor of ${healthFactorBps}, below 1.0`,
+      { healthFactor: healthFactorBps, required, safePrices },
+      `the account would end at a health factor of ${healthFactorBps}, below ${required}`,
     );
   }
 }
@@ -148,6 +188,7 @@ export function assertQuotaHeadroom(
   market: MarketSuite,
   increases: readonly Asset[],
 ): void {
+  const underlying = market.pool.underlying;
   for (const { token, balance } of increases) {
     if (balance <= 0n) {
       continue;
@@ -160,6 +201,13 @@ export function assertQuotaHeadroom(
     if (balance > left) {
       throw new IntentPreviewError(
         "quotaLimitReached",
+        // A quota is denominated in the underlying, not in the token it is
+        // held against, so `token` and the two amounts name different things.
+        {
+          token,
+          requested: { token: underlying, balance },
+          available: { token: underlying, balance: left },
+        },
         `${token} has ${left} of quota left, the plan needs ${balance}`,
       );
     }

@@ -9,6 +9,7 @@ import {
   debtForLeverage,
   proportionalDebt,
 } from "./math.js";
+import { IntentPreviewError } from "./refusal.js";
 import type {
   AddCollateralIntent,
   AdjustLeverageIntent,
@@ -17,7 +18,6 @@ import type {
   WithdrawAssetIntent,
   WithdrawStrategyIntent,
 } from "./types.js";
-import { IntentPreviewError } from "./types.js";
 import { eq } from "./utils/common.js";
 
 /**
@@ -143,6 +143,10 @@ export function planAdjustLeverage(
   if (shortfall > 0n && eq(T, U)) {
     throw new IntentPreviewError(
       "insufficientSourceBalance",
+      {
+        required: { token: U, balance: -delta },
+        held: { token: U, balance: view.balanceOf(U) },
+      },
       `adjustLeverage: needs ${-delta} underlying, account holds ${view.balanceOf(U)}`,
     );
   }
@@ -166,6 +170,7 @@ export function planDeposit(
   ) {
     throw new IntentPreviewError(
       "unsupportedCollateralToken",
+      { token: intent.token },
       `deposit: only ${U}${view.rwaAsset ? ` or ${view.rwaAsset}` : ""} can be deposited, got ${intent.token}`,
     );
   }
@@ -179,10 +184,13 @@ export function planDeposit(
   if (debtDelta < 0n) {
     throw new IntentPreviewError(
       "leverageOutOfRange",
+      // The floor is whatever leverage the deposit alone would land on, which
+      // this branch never computes — there is no fixed minimum to report.
+      undefined,
       `deposit: target leverage ${intent.targetLeverage} would require repaying debt`,
     );
   }
-  assertDebtInBand(view.debt + debtDelta, view.band);
+  assertDebtInBand(view.debt + debtDelta, view.band, U);
 
   const T = intent.positionToken ?? positionToken(view, "deposit");
   // The deposit is already the position token: convert only what is borrowed.
@@ -220,12 +228,20 @@ export function planRepay(
   if (!fundsInU && !(view.rwaAsset && eq(intent.token, view.rwaAsset))) {
     throw new IntentPreviewError(
       "unsupportedCollateralToken",
+      { token: intent.token },
       `repay: only ${U}${view.rwaAsset ? ` or ${view.rwaAsset}` : ""} can be repaid with, got ${intent.token}`,
     );
   }
   if (view.debt <= 0n) {
     throw new IntentPreviewError(
       "debtOutOfRange",
+      // Zero debt against a band whose floor is above it: the reading a caller
+      // needs is that there is no loan here, not that one is mis-sized.
+      {
+        requested: { token: U, balance: view.debt },
+        minDebt: { token: U, balance: view.band.minDebt },
+        maxDebt: { token: U, balance: view.band.maxDebt },
+      },
       "repay: the account owes nothing",
     );
   }
@@ -238,7 +254,7 @@ export function planRepay(
   // collateral. That is what lets a caller send the debt plus a buffer and
   // still settle it in full when interest has accrued in the meantime.
   const repaid = min(view.price(intent.token, U, funding), view.debt);
-  assertDebtInBand(view.debt - repaid, view.band);
+  assertDebtInBand(view.debt - repaid, view.band, U);
 
   return [
     add(intent.token, funding, intent.value),
@@ -330,6 +346,7 @@ export function planWithdrawDelayed(
     if (held <= 0n) {
       throw new IntentPreviewError(
         "insufficientSourceBalance",
+        undefined,
         `withdraw: account holds no ${S} to redeem`,
       );
     }
@@ -349,6 +366,7 @@ export function planWithdrawDelayed(
   if (!eq(T, U) && !(view.rwaAsset && eq(T, view.rwaAsset))) {
     throw new IntentPreviewError(
       "noDelayedRoute",
+      { token: T },
       `withdraw: a delayed route cannot pay out in ${T}`,
     );
   }
@@ -389,6 +407,7 @@ export function planAdjustLeverageDelayed(
   if (delta >= 0n) {
     throw new IntentPreviewError(
       "noDelayedRoute",
+      undefined,
       "adjustLeverage: only deleveraging can settle with a delay",
     );
   }
@@ -397,6 +416,7 @@ export function planAdjustLeverageDelayed(
   if (shortfall <= 0n) {
     throw new IntentPreviewError(
       "noDelayedRoute",
+      undefined,
       "adjustLeverage: idle underlying covers the repayment, nothing to redeem",
     );
   }
@@ -455,6 +475,7 @@ export function planFinishWithdraw(
   if (!eq(T, U) && !(view.rwaAsset && eq(T, view.rwaAsset))) {
     throw new IntentPreviewError(
       "noDelayedRoute",
+      { token: T },
       `finishWithdraw: cannot pay out in ${T}`,
     );
   }
@@ -585,6 +606,7 @@ function withdrawShape(
   if (WU <= 0n) {
     throw new IntentPreviewError(
       "insufficientSourceBalance",
+      undefined,
       `withdraw: cannot price ${intent.amount} of ${T}`,
     );
   }
@@ -596,7 +618,7 @@ function withdrawShape(
   }
 
   const dD = proportionalDebt(view, WU);
-  assertDebtInBand(view.debt - dD, view.band);
+  assertDebtInBand(view.debt - dD, view.band, U);
 
   return { U, T, S, WU, dD, all: false };
 }
@@ -614,12 +636,13 @@ function leverageShape(
   if (view.collateral <= 0n) {
     throw new IntentPreviewError(
       "insufficientSourceBalance",
+      undefined,
       "adjustLeverage: account has no collateral to lever",
     );
   }
 
   const target = debtForLeverage(view.collateral, intent.targetLeverage);
-  assertDebtInBand(target, view.band);
+  assertDebtInBand(target, view.band, view.underlying);
 
   return { U: view.underlying, delta: target - view.debt };
 }
@@ -687,6 +710,7 @@ function positionToken(view: AccountView, flow: string): Address {
   if (!pick) {
     throw new IntentPreviewError(
       "insufficientSourceBalance",
+      undefined,
       `${flow}: no position token on the account`,
     );
   }
@@ -698,6 +722,7 @@ function sourceToken(view: AccountView): Address {
   if (!pick) {
     throw new IntentPreviewError(
       "insufficientSourceBalance",
+      undefined,
       "withdraw: account has no spendable balance",
     );
   }
@@ -709,6 +734,7 @@ function assertHasValue(view: AccountView): void {
   if (view.collateral <= 0n) {
     throw new IntentPreviewError(
       "insufficientSourceBalance",
+      undefined,
       `withdraw: nothing to withdraw, net value is ${view.collateral}`,
     );
   }
@@ -718,6 +744,7 @@ function assertPositive(amount: bigint, flow: string): void {
   if (amount <= 0n) {
     throw new IntentPreviewError(
       "insufficientSourceBalance",
+      undefined,
       `${flow}: amount must be positive`,
     );
   }

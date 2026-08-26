@@ -1,6 +1,7 @@
+import type { Address } from "viem";
 import { LEVERAGE_DECIMALS } from "../../constants/math.js";
 import { BigIntMath } from "../../utils/bigint-math.js";
-import { IntentPreviewError } from "./types.js";
+import { IntentPreviewError } from "./refusal.js";
 
 /**
  * The whole arithmetic behind every intent, in underlying units.
@@ -41,6 +42,8 @@ export function proportionalDebt(
   if (position.collateral <= 0n) {
     throw new IntentPreviewError(
       "insufficientSourceBalance",
+      // There is no amount to name: the account has nothing to lever at all.
+      undefined,
       "cannot preserve leverage on an account with no collateral",
     );
   }
@@ -81,6 +84,7 @@ export function assertLeverageAtLeastOne(leverage: bigint): void {
   if (leverage < LEVERAGE_DECIMALS) {
     throw new IntentPreviewError(
       "leverageOutOfRange",
+      { requested: leverage, min: LEVERAGE_DECIMALS },
       `target leverage ${leverage} is below 1x`,
     );
   }
@@ -90,16 +94,27 @@ export function assertLeverageAtLeastOne(leverage: bigint): void {
  * Rejects a debt the facade would revert on: zero is always fine (no loan at
  * all), anything else has to sit inside `[minDebt, maxDebt]`.
  */
-export function assertDebtInBand(debt: bigint, band: DebtBand): void {
+export function assertDebtInBand(
+  debt: bigint,
+  band: DebtBand,
+  underlying: Address,
+): void {
+  const detail = {
+    requested: { token: underlying, balance: debt },
+    minDebt: { token: underlying, balance: band.minDebt },
+    maxDebt: { token: underlying, balance: band.maxDebt },
+  };
   if (debt > band.maxDebt) {
     throw new IntentPreviewError(
       "debtOutOfRange",
+      detail,
       `debt ${debt} exceeds maxDebt ${band.maxDebt}`,
     );
   }
   if (debt > 0n && debt < band.minDebt) {
     throw new IntentPreviewError(
       "debtOutOfRange",
+      detail,
       `debt ${debt} is below minDebt ${band.minDebt}`,
     );
   }

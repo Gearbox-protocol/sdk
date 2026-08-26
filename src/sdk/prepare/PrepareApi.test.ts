@@ -316,7 +316,11 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       { token: UND, amount: 20000000000n },
     );
 
-    expect(data).toEqual({ ok: false, reason: "marketPaused" });
+    expect(data).toEqual({
+      ok: false,
+      reason: "marketPaused",
+      detail: { creditManager: CREDIT_MANAGER },
+    });
   });
 });
 
@@ -387,7 +391,11 @@ describe("PrepareApi — the two-transaction route", () => {
       claimable: claimableOf(undefined),
     });
 
-    expect(data).toEqual({ ok: false, reason: "noRecordedIntent" });
+    expect(data).toEqual({
+      ok: false,
+      reason: "noRecordedIntent",
+      detail: undefined,
+    });
   });
 
   it("finalize completes an exit from the claim it recorded", async () => {

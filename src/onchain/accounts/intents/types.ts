@@ -14,6 +14,7 @@ import type {
 } from "../../index.js";
 import type { ClaimableWithdrawal } from "../withdrawal-compressor/types.js";
 import type { AccountCalculatorOperation } from "./operations.js";
+import type { PreviewErrorReason, PreviewRefusal } from "./refusal.js";
 
 /**
  * Minimal credit-account data an intent is previewed against:
@@ -77,59 +78,6 @@ export interface OperationState {
 }
 
 /**
- * Why a preview could not be produced.
- *
- * Every member is thrown by the engine as an {@link IntentPreviewError}, with
- * the exception of `unsupportedTokenPair` and `noRecordedIntent`, which the
- * prepare namespace reports for a request it can refuse before planning: a
- * route the market does not offer, a claim naming no operation.
- */
-export type PreviewErrorReason =
-  | "debtOutOfRange"
-  | "leverageOutOfRange"
-  | "insufficientSourceBalance"
-  /** Input token is not accepted by the flow (e.g. deposit of a non-underlying). */
-  | "unsupportedCollateralToken"
-  /**
-   * No route for the trade the plan needs: no pool pair between the tokens
-   * requested, several and none was picked, or the pathfinder itself found no
-   * path for the amounts involved.
-   */
-  | "unsupportedTokenPair"
-  /**
-   * The intent cannot settle with a delay: the source has no redemption config,
-   * the chain has no compressor, or the payout is one the tail cannot serve.
-   */
-  | "noDelayedRoute"
-  /** Several redemption venues for the source, and nothing says which. */
-  | "multipleDelayedWithdrawals"
-  /** A redemption of the same asset is already in flight. */
-  | "withdrawalInProgress"
-  /**
-   * The claim names no operation to resume: requested without an intent, or
-   * read through a compressor too old to report one.
-   */
-  | "noRecordedIntent"
-  /** The facade or the pool behind it is paused: nothing can be done at all. */
-  | "marketPaused"
-  /** The facade is past its expiration date and takes no more multicalls. */
-  | "marketExpired"
-  /**
-   * The pool cannot lend what the plan draws right now — its free liquidity,
-   * the manager's debt limit or the per-block cap stands in the way.
-   */
-  | "insufficientPoolLiquidity"
-  /** The market takes no more quota for a token the plan wants to hold. */
-  | "quotaLimitReached"
-  /** The plan would increase the balance of a token the market forbids. */
-  | "forbiddenToken"
-  /**
-   * The account would end the transaction owing more than its collateral is
-   * worth under liquidation thresholds, which the facade refuses to allow.
-   */
-  | "insufficientCollateral";
-
-/**
  * What a preview yields: the operation chain, the state it projects, and the
  * calldata that realises it — or the reason the request is not viable.
  */
@@ -140,7 +88,7 @@ export type IntentPreviewResult =
       preview: OperationState;
       calls: MultiCall[];
     }
-  | { ok: false; reason: PreviewErrorReason };
+  | PreviewRefusal;
 
 /** What the request recorded, and when the tail can be run. */
 export interface DelayedStart {
@@ -204,7 +152,7 @@ export type DelayedStartResult =
       calls: MultiCall[];
       delayed: DelayedStart;
     }
-  | { ok: false; reason: PreviewErrorReason };
+  | PreviewRefusal;
 
 /** An intent previewed through the router: one transaction, settled now. */
 export type InstantRoute = Extract<IntentPreviewResult, { ok: true }>;
@@ -244,11 +192,10 @@ export type IntentRoutesResult =
       delayed: DelayedRoute | undefined;
       refused: RouteRefusals;
     }
-  | {
-      ok: false;
-      reason: PreviewErrorReason;
+  | (PreviewRefusal & {
+      /** {@inheritDoc IntentRoutesResult.refused} */
       refused: RouteRefusals;
-    };
+    });
 
 /**
  * The intents the engine previews.
@@ -486,18 +433,3 @@ export type FinishIntentProps = StartIntentProps & {
    */
   claimable: ClaimableWithdrawal;
 };
-
-/**
- * Validation failure that maps onto {@link PreviewErrorReason} rather than
- * crashing the caller: thrown by builders, converted to `{ ok: false }` by
- * `CreditAccountOperationsService.startIntent`.
- */
-export class IntentPreviewError extends Error {
-  readonly reason: PreviewErrorReason;
-
-  constructor(reason: PreviewErrorReason, message?: string) {
-    super(message ?? reason);
-    this.name = "IntentPreviewError";
-    this.reason = reason;
-  }
-}

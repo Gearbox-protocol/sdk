@@ -128,22 +128,31 @@ flowchart LR
 
 ## Refusal reasons
 
-| Reason                      | Raised when                                                                 |
-| --------------------------- | --------------------------------------------------------------------------- |
-| `debtOutOfRange`            | the resulting debt would sit outside `[minDebt, maxDebt]` and is not zero    |
-| `leverageOutOfRange`        | target below 1x, or a deposit target that would require repaying            |
-| `insufficientSourceBalance` | non-positive amount, nothing to sell, net value already eaten by the debt   |
-| `unsupportedCollateralToken`| deposit or repayment in a token the flow does not take                      |
-| `unsupportedTokenPair`      | no pool route for the requested pair, or the pathfinder found no path        |
-| `noDelayedRoute`            | no redemption venue, a leverage move that settles at once, a payout the tail cannot serve |
-| `multipleDelayedWithdrawals`| several venues for the source and nothing says which                        |
-| `withdrawalInProgress`      | a redemption of the asset is already in flight                              |
-| `noRecordedIntent`          | a claim naming no operation to resume                                       |
-| `marketPaused` / `marketExpired` | the facade takes no multicall at all                                   |
-| `insufficientPoolLiquidity` | the pool cannot lend what the plan draws in this block                      |
-| `quotaLimitReached`         | no quota left for a token the plan wants to hold, or the token takes none    |
-| `forbiddenToken`            | the plan would grow the balance of a forbidden token                        |
-| `insufficientCollateral`    | the projected health factor lands below 1.0                                 |
+Every refusal carries a `detail` with the numbers behind it, so a caller reads
+the limit that was missed instead of re-deriving it. Anything with a token and
+an amount is an `Asset`; `undefined` marks a reason raised from several places,
+only some of which hold the numbers.
+
+| Reason                      | Raised when                                                                 | Detail |
+| --------------------------- | --------------------------------------------------------------------------- | ------ |
+| `debtOutOfRange`            | the resulting debt would sit outside `[minDebt, maxDebt]` and is not zero    | `requested`, `minDebt`, `maxDebt`, in underlying |
+| `leverageOutOfRange`        | target below 1x, or a deposit target that would require repaying            | `requested`, `min`, scaled by `LEVERAGE_DECIMALS` |
+| `insufficientSourceBalance` | non-positive amount, nothing to sell, net value already eaten by the debt   | `required`, `held` where both are known |
+| `unsupportedCollateralToken`| deposit or repayment in a token the flow does not take                      | `token`, `accepted` |
+| `unsupportedTokenPair`      | no pool route for the requested pair, or the pathfinder found no path        | `from`, `to` where the market named one |
+| `noDelayedRoute`            | no redemption venue, a leverage move that settles at once, a payout the tail cannot serve | `token` |
+| `multipleDelayedWithdrawals`| several venues for the source and nothing says which                        | `token`, `venues` |
+| `withdrawalInProgress`      | a redemption of the asset is already in flight                              | `inFlight` |
+| `noRecordedIntent`          | a claim naming no operation to resume                                       | — |
+| `marketPaused` / `marketExpired` | the facade takes no multicall at all                                   | `creditManager`, plus `expirationDate` |
+| `insufficientPoolLiquidity` | the pool cannot lend what the plan draws in this block                      | `requested`, `available`, in underlying |
+| `quotaLimitReached`         | no quota left for a token the plan wants to hold, or the token takes none    | `token`, plus `requested`/`available` **in underlying** — a quota is measured there, not in the token it is held against |
+| `forbiddenToken`            | the plan would grow the balance of a forbidden token                        | `token` |
+| `insufficientCollateral`    | the projected health factor lands below 1.0                                 | `healthFactor`, `required`, `safePrices` |
+
+`insufficientCollateral`'s `healthFactor` is the factor the check compared, and
+a call that hands funds over is compared at safe prices while a preview reports
+main ones. `safePrices` says which, so the two differing is not a contradiction.
 
 ## Two routes for the flows that sell
 

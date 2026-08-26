@@ -15,6 +15,7 @@ import {
   hexEq,
   MultichainConstruct,
   type MultichainSDK,
+  refuse,
 } from "../../onchain/index.js";
 import type { EnsureFreshChains } from "../types.js";
 import type {
@@ -91,7 +92,7 @@ export class PrepareApi
       run: async sdk => {
         const intent = resumable(params.intent ?? params.claimable.intent);
         if (!intent) {
-          return { ok: false, reason: "noRecordedIntent" };
+          return refuse("noRecordedIntent", undefined);
         }
         return service(sdk).finishIntent({
           intent,
@@ -116,7 +117,7 @@ export class PrepareApi
       pools.getDepositTokensOut(pool.pool, tokenIn),
     );
     if (!tokenOut) {
-      return { ok: false, reason: "unsupportedTokenPair" };
+      return unroutable(tokenIn, undefined);
     }
 
     const preview = pools.simulateDeposit({
@@ -134,7 +135,7 @@ export class PrepareApi
     // An on-demand RWA market takes deposits through its liquidity provider
     // rather than a transaction of ours, so there is nothing to simulate.
     if (!call) {
-      return { ok: false, reason: "unsupportedTokenPair" };
+      return unroutable(tokenIn, tokenOut);
     }
 
     return { ok: true, operations: [], preview, calls: call.calls };
@@ -151,7 +152,7 @@ export class PrepareApi
       pools.getWithdrawalTokensOut(pool.pool, tokenIn),
     );
     if (!tokenOut) {
-      return { ok: false, reason: "unsupportedTokenPair" };
+      return unroutable(tokenIn, undefined);
     }
 
     // Amount is the tokenOut the wallet wants back, which is what the pool's
@@ -184,7 +185,7 @@ export class PrepareApi
       pools.getWithdrawalTokensOut(pool.pool, tokenIn),
     );
     if (!tokenOut) {
-      return { ok: false, reason: "unsupportedTokenPair" };
+      return unroutable(tokenIn, undefined);
     }
 
     const preview = pools.simulateRedeem({
@@ -449,6 +450,17 @@ function resumable(
   intent: DelayedIntentExtended | ResumableIntent | undefined,
 ): ResumableIntent | undefined {
   return intent ?? undefined;
+}
+
+/**
+ * A pool route the market does not offer, as the refusal a caller reads.
+ *
+ * `to` is absent where {@link lpRoute} found no output to name at all, which
+ * is the usual way of it; both are present where a pair exists but nothing of
+ * ours implements it.
+ **/
+function unroutable(from: Address, to: Address | undefined): LpSimulate {
+  return refuse("unsupportedTokenPair", { from, to });
 }
 
 /**

@@ -1,3 +1,4 @@
+import type { Address } from "viem";
 import { describe, expect, it } from "vitest";
 
 import { LEVERAGE_DECIMALS } from "../../constants/math.js";
@@ -8,6 +9,20 @@ import {
   maxProportionalWithdrawal,
   proportionalDebt,
 } from "./math.js";
+import type { IntentPreviewError } from "./refusal.js";
+
+/** Stand-in underlying: the band's amounts are denominated in it. */
+const UND = "0x0000000000000000000000000000000000000001" as Address;
+
+/** The detail of the refusal `debt` draws, for a debt that draws one. */
+function inBandDetail(debt: bigint): unknown {
+  try {
+    assertDebtInBand(debt, BAND, UND);
+  } catch (e) {
+    return (e as IntentPreviewError).detail;
+  }
+  throw new Error(`assertDebtInBand accepted ${debt}`);
+}
 
 const X1 = LEVERAGE_DECIMALS;
 const X2 = 2n * LEVERAGE_DECIMALS;
@@ -55,15 +70,32 @@ describe("math — the three formulas behind every intent", () => {
   });
 
   it("[INV-9] debt must be zero or inside [minDebt, maxDebt]", () => {
-    expect(() => assertDebtInBand(0n, BAND)).not.toThrow();
-    expect(() => assertDebtInBand(100n, BAND)).not.toThrow();
-    expect(() => assertDebtInBand(10_000n, BAND)).not.toThrow();
-    expect(() => assertDebtInBand(99n, BAND)).toThrowError(
+    const inBand = (debt: bigint) => () => assertDebtInBand(debt, BAND, UND);
+    expect(inBand(0n)).not.toThrow();
+    expect(inBand(100n)).not.toThrow();
+    expect(inBand(10_000n)).not.toThrow();
+    expect(inBand(99n)).toThrowError(
       expect.objectContaining({ reason: "debtOutOfRange" }),
     );
-    expect(() => assertDebtInBand(10_001n, BAND)).toThrowError(
+    expect(inBand(10_001n)).toThrowError(
       expect.objectContaining({ reason: "debtOutOfRange" }),
     );
+  });
+
+  it("[INV-9] a debt outside the band reports the band it missed", () => {
+    // The whole point of the detail: a slider that overshot gets the ceiling
+    // to clamp to without a second call to find out what it is.
+    expect(inBandDetail(10_001n)).toEqual({
+      requested: { token: UND, balance: 10_001n },
+      minDebt: { token: UND, balance: BAND.minDebt },
+      maxDebt: { token: UND, balance: BAND.maxDebt },
+    });
+    // Under the floor the same three numbers say which end was missed.
+    expect(inBandDetail(99n)).toEqual({
+      requested: { token: UND, balance: 99n },
+      minDebt: { token: UND, balance: BAND.minDebt },
+      maxDebt: { token: UND, balance: BAND.maxDebt },
+    });
   });
 
   it("[INV-10] maxProportionalWithdrawal: the largest W whose proportional repayment leaves debt ≥ minDebt", () => {

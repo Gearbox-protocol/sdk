@@ -364,3 +364,43 @@ describe("withdraw.startDelayed — matrix 4.3 (10U/8U at 5x)", () => {
     });
   });
 });
+
+/** Each refusal carries the numbers a form would otherwise re-derive. */
+describe("withdraw.startDelayed — what each refusal names", () => {
+  it("a payout the tail cannot serve names the token asked for", async () => {
+    const result = await run(
+      { type: "WITHDRAW", amount: W, to: WALLET, tokenOut: POS },
+      buildSdk(),
+    );
+
+    if (result.ok || result.reason !== "noDelayedRoute") {
+      throw new Error("expected noDelayedRoute");
+    }
+    expect(result.detail).toEqual({ token: POS });
+  });
+
+  it("an ambiguous redemption names the source and how many venues", async () => {
+    const result = await run(
+      { type: "WITHDRAW", amount: W, to: WALLET },
+      buildSdk({ [POS]: [queued, { withdrawalPhantomToken: UND }] }),
+    );
+
+    if (result.ok || result.reason !== "multipleDelayedWithdrawals") {
+      throw new Error("expected multipleDelayedWithdrawals");
+    }
+    expect(result.detail).toEqual({ token: POS, venues: 2 });
+  });
+
+  it("a redemption in flight names the phantom holding it", async () => {
+    const result = await run(
+      { type: "WITHDRAW", amount: W, to: WALLET },
+      buildSdk(),
+      [caToken(POS, TVL_BEFORE, QUOTA_BEFORE), caToken(PHANTOM, W)],
+    );
+
+    if (result.ok || result.reason !== "withdrawalInProgress") {
+      throw new Error("expected withdrawalInProgress");
+    }
+    expect(result.detail).toEqual({ inFlight: { token: PHANTOM, balance: W } });
+  });
+});

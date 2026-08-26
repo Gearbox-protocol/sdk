@@ -25,20 +25,19 @@ import {
   type Step,
 } from "./plan.js";
 import { realize } from "./realize.js";
+import { IntentPreviewError, type PreviewRefusal, refuse } from "./refusal.js";
 import { planTail, projectTail } from "./tail.js";
-import {
-  type CreditAccountSlice,
-  type DelayableIntent,
-  type DelayedStart,
-  type DelayedStartResult,
-  type FinishIntentProps,
-  IntentPreviewError,
-  type IntentPreviewResult,
-  type IntentRoutesResult,
-  type PreviewErrorReason,
-  type RouteRefusals,
-  type StartIntent,
-  type StartIntentProps,
+import type {
+  CreditAccountSlice,
+  DelayableIntent,
+  DelayedStart,
+  DelayedStartResult,
+  FinishIntentProps,
+  IntentPreviewResult,
+  IntentRoutesResult,
+  RouteRefusals,
+  StartIntent,
+  StartIntentProps,
 } from "./types.js";
 import { accountView } from "./view.js";
 
@@ -47,25 +46,30 @@ export type {
   OpenStrategyProps,
 } from "./open-strategy.js";
 export {
-  type AddCollateralIntent,
-  type AdjustLeverageIntent,
-  type DelayableIntent,
-  type DelayedRoute,
-  type DelayedStart,
-  type DelayedStartResult,
-  type DepositStrategyIntent,
-  type FinishIntentProps,
-  type InstantRoute,
   IntentPreviewError,
-  type IntentRoutesResult,
-  type OperationState,
+  type PreviewErrorDetails,
   type PreviewErrorReason,
-  type RepayStrategyIntent,
-  type ResumableIntent,
-  type RouteRefusals,
-  type StartIntent,
-  type WithdrawAssetIntent,
-  type WithdrawStrategyIntent,
+  type PreviewRefusal,
+  refuse,
+} from "./refusal.js";
+export type {
+  AddCollateralIntent,
+  AdjustLeverageIntent,
+  DelayableIntent,
+  DelayedRoute,
+  DelayedStart,
+  DelayedStartResult,
+  DepositStrategyIntent,
+  FinishIntentProps,
+  InstantRoute,
+  IntentRoutesResult,
+  OperationState,
+  RepayStrategyIntent,
+  ResumableIntent,
+  RouteRefusals,
+  StartIntent,
+  WithdrawAssetIntent,
+  WithdrawStrategyIntent,
 } from "./types.js";
 export {
   fetchCreditAccountSlice,
@@ -86,7 +90,7 @@ export type {
  */
 export type OpenStrategyPreviewResult =
   | { ok: true; preview: OpenStrategyPreview }
-  | { ok: false; reason: PreviewErrorReason };
+  | PreviewRefusal;
 
 /** An intent plus everything previewing it needs. */
 type StartProps = StartIntentProps & { intent: StartIntent };
@@ -305,15 +309,17 @@ export class CreditAccountOperationsService extends SDKConstruct {
       delayed.status === "fulfilled" && delayed.value.ok
         ? delayed.value
         : undefined;
+    const instantRefusal =
+      instant.status === "fulfilled" && !instant.value.ok
+        ? instant.value
+        : undefined;
+    const delayedRefusal =
+      delayed.status === "fulfilled" && !delayed.value.ok
+        ? delayed.value
+        : undefined;
     const refused: RouteRefusals = {
-      instant:
-        instant.status === "fulfilled" && !instant.value.ok
-          ? instant.value.reason
-          : undefined,
-      delayed:
-        delayed.status === "fulfilled" && !delayed.value.ok
-          ? delayed.value.reason
-          : undefined,
+      instant: instantRefusal?.reason,
+      delayed: delayedRefusal?.reason,
     };
 
     if (instantRoute || delayedRoute) {
@@ -332,11 +338,11 @@ export class CreditAccountOperationsService extends SDKConstruct {
     if (failed?.status === "rejected") {
       throw failed.reason;
     }
-    const reason = refused.instant ?? refused.delayed;
-    if (reason === undefined) {
+    const chosen = instantRefusal ?? delayedRefusal;
+    if (chosen === undefined) {
       throw new Error("intentRoutes: a route neither answered nor refused");
     }
-    return { ok: false, reason, refused };
+    return { ...chosen, refused };
   }
 
   /**
@@ -419,7 +425,7 @@ type Previewed =
   | (Extract<IntentPreviewResult, { ok: true }> & {
       delayed: DelayedStart | undefined;
     })
-  | { ok: false; reason: PreviewErrorReason };
+  | PreviewRefusal;
 
 /** Drops the delayed half for the flows that cannot produce one. */
 function plain(result: Previewed): IntentPreviewResult {
@@ -431,12 +437,13 @@ function plain(result: Previewed): IntentPreviewResult {
 }
 
 /** Unviable requests are values; anything else is a genuine failure. */
-function asFailure(e: unknown): { ok: false; reason: PreviewErrorReason } {
+function asFailure(e: unknown): PreviewRefusal {
   if (e instanceof IntentPreviewError) {
-    return { ok: false, reason: e.reason };
+    return refuse(e.reason, e.detail);
   }
   if (isUnroutable(e)) {
-    return { ok: false, reason: "unsupportedTokenPair" };
+    // The revert names no pair: the leg that asked for one is frames away.
+    return refuse("unsupportedTokenPair", undefined);
   }
   throw e;
 }

@@ -1057,10 +1057,10 @@ describe("prepare → execute on a mainnet fork", () => {
         slippage: S,
       });
 
-      expect(sim.data).toEqual({
-        ok: false,
-        reason: "unsupportedCollateralToken",
-      });
+      if (sim.data.ok || sim.data.reason !== "unsupportedCollateralToken") {
+        throw new Error("expected unsupportedCollateralToken");
+      }
+      expect(sim.data.detail.token).toBe(TARGET_TOKEN);
     });
 
     it("refuses a deposit whose debt would pass the manager's own maxDebt", async () => {
@@ -1077,7 +1077,13 @@ describe("prepare → execute on a mainnet fork", () => {
         slippage: S,
       });
 
-      expect(sim.data).toEqual({ ok: false, reason: "debtOutOfRange" });
+      if (sim.data.ok || sim.data.reason !== "debtOutOfRange") {
+        throw new Error("expected debtOutOfRange");
+      }
+      // The ceiling comes back with the refusal, so a form can clamp to it
+      // instead of asking again to find out where it is.
+      expect(sim.data.detail.maxDebt.balance).toBe(ceiling);
+      expect(sim.data.detail.requested.balance).toBeGreaterThan(ceiling);
     });
 
     it("refuses a leverage the collateral cannot carry, and reports it per route", async () => {
@@ -1091,14 +1097,16 @@ describe("prepare → execute on a mainnet fork", () => {
 
       // 50x on this market's thresholds ends the transaction under water, which
       // the facade refuses; the redemption route does not exist here at all
-      expect(sim.data).toEqual({
-        ok: false,
-        reason: "insufficientCollateral",
-        refused: {
-          instant: "insufficientCollateral",
-          delayed: "noDelayedRoute",
-        },
+      if (sim.data.ok || sim.data.reason !== "insufficientCollateral") {
+        throw new Error("expected insufficientCollateral");
+      }
+      expect(sim.data.refused).toEqual({
+        instant: "insufficientCollateral",
+        delayed: "noDelayedRoute",
       });
+      expect(sim.data.detail.healthFactor).toBeLessThan(
+        sim.data.detail.required,
+      );
     });
 
     it("refuses to move out collateral the account does not hold", async () => {
@@ -1110,10 +1118,10 @@ describe("prepare → execute on a mainnet fork", () => {
         to: borrower,
       });
 
-      expect(sim.data).toEqual({
-        ok: false,
-        reason: "insufficientSourceBalance",
-      });
+      if (sim.data.ok || sim.data.reason !== "insufficientSourceBalance") {
+        throw new Error("expected insufficientSourceBalance");
+      }
+      expect(sim.data.detail).toBeUndefined();
     });
   });
 

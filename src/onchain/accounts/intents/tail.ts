@@ -15,13 +15,13 @@ import {
   type Step,
 } from "./plan.js";
 import { realize } from "./realize.js";
+import { IntentPreviewError } from "./refusal.js";
 import type {
   CreditAccountSlice,
   DelayedStart,
   OperationState,
   ResumableIntent,
 } from "./types.js";
-import { IntentPreviewError } from "./types.js";
 import { createOraclePaths } from "./utils/router-path.js";
 import { accountView } from "./view.js";
 
@@ -46,6 +46,7 @@ export function planTail(args: {
     if (!output) {
       throw new IntentPreviewError(
         "insufficientSourceBalance",
+        undefined,
         "finishIntent: the claim credits nothing to spend",
       );
     }

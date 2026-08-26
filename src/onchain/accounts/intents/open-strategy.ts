@@ -4,7 +4,6 @@ import type {
   Bps,
   TokenAmount,
 } from "../../../model/index.js";
-import { LEVERAGE_DECIMALS } from "../../constants/math.js";
 import type { Asset, MultiCall, OnchainSDK } from "../../index.js";
 import type { AccountSnapshot } from "../../positions/types.js";
 import {
@@ -14,9 +13,13 @@ import {
   assertMarketOperable,
   assertQuotaHeadroom,
 } from "./guards.js";
-import { assertDebtInBand, debtForLeverage } from "./math.js";
+import {
+  assertDebtInBand,
+  assertLeverageAtLeastOne,
+  debtForLeverage,
+} from "./math.js";
+import { IntentPreviewError } from "./refusal.js";
 import type { CreditAccountSlice } from "./types.js";
-import { IntentPreviewError } from "./types.js";
 import {
   convertAmount,
   createRouterPaths,
@@ -117,12 +120,7 @@ export async function previewOpenStrategy(
     leftoverBalances = [],
   } = props;
 
-  if (leverage < LEVERAGE_DECIMALS) {
-    throw new IntentPreviewError(
-      "leverageOutOfRange",
-      `openStrategy: leverage ${leverage} is below 1x`,
-    );
-  }
+  assertLeverageAtLeastOne(leverage);
 
   const suite = sdk.marketRegister.findCreditManager(creditManager);
   const market = sdk.marketRegister.findByCreditManager(creditManager);
@@ -137,6 +135,7 @@ export async function previewOpenStrategy(
   if (margin <= 0n) {
     throw new IntentPreviewError(
       "insufficientSourceBalance",
+      undefined,
       "openStrategy: collateral is worth nothing in underlying",
     );
   }
@@ -155,7 +154,7 @@ export async function previewOpenStrategy(
     accountDebt: 0n,
     tokens: [],
   };
-  assertDebtInBand(debt, suite.creditFacade);
+  assertDebtInBand(debt, suite.creditFacade, underlying);
   assertCanBorrow(suite, debt);
 
   const paths = createRouterPaths({ sdk, creditAccount: account, slippage });
@@ -210,7 +209,7 @@ export async function previewOpenStrategy(
     timeToLiquidation: sdk.positions.timeToLiquidation(snapshot, projectedPool),
     liquidationPrice: sdk.positions.liquidationPrice(snapshot),
   };
-  assertCollateralised(metrics.healthFactor);
+  assertCollateralised(metrics.healthFactor, false);
 
   return {
     debt,
