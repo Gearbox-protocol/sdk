@@ -6,6 +6,8 @@ import type {
 } from "../../../model/index.js";
 import type { Asset, MultiCall, OnchainSDK } from "../../index.js";
 import type { AccountSnapshot } from "../../positions/types.js";
+import { IntentPreviewError } from "../../validation/refusal.js";
+import { toToken } from "../../validation/token.js";
 import {
   assertCanBorrow,
   assertCollateralised,
@@ -18,7 +20,6 @@ import {
   assertLeverageAtLeastOne,
   debtForLeverage,
 } from "./math.js";
-import { IntentPreviewError } from "./refusal.js";
 import type { CreditAccountSlice, PathLossRate } from "./types.js";
 import {
   collectPriceImpact,
@@ -157,8 +158,8 @@ export async function previewOpenStrategy(
     accountDebt: 0n,
     tokens: [],
   };
-  assertDebtInBand(debt, suite.creditFacade, underlying);
-  assertCanBorrow(suite, debt);
+  assertDebtInBand(sdk, debt, suite.creditFacade, underlying);
+  assertCanBorrow(sdk, suite, debt);
 
   const paths = createRouterPaths({ sdk, creditAccount: account, slippage });
   const expectedBalances = mergeExpectedBalances(collateral, underlying, debt);
@@ -194,7 +195,7 @@ export async function previewOpenStrategy(
   // The expected branch is the one the account is opened on, so it is the one
   // the market has to have room for.
   assertGrowthAllowed({ sdk, suite, market, before: [], after: averageAssets });
-  assertQuotaHeadroom(market, averageQuota);
+  assertQuotaHeadroom(sdk, market, averageQuota);
 
   // The floor branch is what the open is signed against, so it is the one that
   // has to clear the collateral check.

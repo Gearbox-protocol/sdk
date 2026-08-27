@@ -1,8 +1,17 @@
-import { PERCENTAGE_FACTOR } from "../../constants/index.js";
 import type { Asset, OnchainSDK } from "../../index.js";
 import type { CreditSuite } from "../../market/credit/CreditSuite.js";
 import type { MarketSuite } from "../../market/MarketSuite.js";
-import { IntentPreviewError } from "./refusal.js";
+import {
+  checkBorrowLimit,
+  checkCollateralised,
+  checkCreditManagerPaused,
+  checkForbiddenToken,
+  checkMarketExpired,
+  checkQuotaLimit,
+  MIN_HEALTH_FACTOR_FACADE,
+} from "../../validation/checks.js";
+import { type BorrowLimitBinding, raise } from "../../validation/refusal.js";
+import { toToken } from "../../validation/token.js";
 import { eq } from "./utils/common.js";
 import { isPhantomToken } from "./utils/pick-token.js";
 
@@ -27,20 +36,18 @@ import { isPhantomToken } from "./utils/pick-token.js";
  */
 export function assertMarketOperable(suite: CreditSuite): void {
   const creditManager = suite.creditManager.address;
-  if (suite.isPaused) {
-    throw new IntentPreviewError(
-      "marketPaused",
-      { creditManager },
-      `${creditManager} is paused`,
-    );
-  }
-  if (suite.isExpired) {
-    throw new IntentPreviewError(
-      "marketExpired",
-      { creditManager, expirationDate: suite.creditFacade.expirationDate },
-      `${creditManager} expired at ${suite.creditFacade.expirationDate}`,
-    );
-  }
+  raise(
+    checkCreditManagerPaused({ isPaused: suite.isPaused, creditManager }),
+    `${creditManager} is paused`,
+  );
+  raise(
+    checkMarketExpired({
+      isExpired: suite.isExpired,
+      creditManager,
+      expirationDate: suite.creditFacade.expirationDate,
+    }),
+    `${creditManager} expired at ${suite.creditFacade.expirationDate}`,
+  );
 }
 
 /**
@@ -49,38 +56,55 @@ export function assertMarketOperable(suite: CreditSuite): void {
  * facade puts on a single borrow. A zero multiplier switches borrowing off
  * outright, which reads here as nothing being available.
  */
-export function borrowable(suite: CreditSuite): bigint {
+export function borrowable(suite: CreditSuite): {
+  limit: bigint;
+  binding: BorrowLimitBinding;
+} {
   const { pool } = suite.market.pool;
   const { maxDebtPerBlockMultiplier, maxDebt } = suite.creditFacade;
   if (maxDebtPerBlockMultiplier === 0) {
-    return 0n;
+    // Borrowing is switched off at the facade, so the cap is what stands in
+    // the way even though no amount was weighed.
+    return { limit: 0n, binding: "facadePerBlockCap" };
   }
   const available = pool.creditManagerDebtParams.get(
     suite.creditManager.address,
   )?.available;
 
-  return [
-    pool.availableLiquidity,
-    maxDebt * BigInt(maxDebtPerBlockMultiplier),
-    ...(available === undefined ? [] : [available]),
-  ].reduce((a, b) => (a < b ? a : b));
+  // Ties keep the earlier term, as the previous `reduce` did.
+  const terms: Array<{ limit: bigint; binding: BorrowLimitBinding }> = [
+    { limit: pool.availableLiquidity, binding: "poolAvailableLiquidity" },
+    {
+      limit: maxDebt * BigInt(maxDebtPerBlockMultiplier),
+      binding: "facadePerBlockCap",
+    },
+    ...(available === undefined
+      ? []
+      : [{ limit: available, binding: "managerDebtAvailable" as const }]),
+  ];
+
+  return terms.reduce((a, b) => (b.limit < a.limit ? b : a));
 }
 
 /** The pool has to be able to lend what the plan means to draw. */
-export function assertCanBorrow(suite: CreditSuite, amount: bigint): void {
-  const limit = borrowable(suite);
-  if (amount > limit) {
-    // The same underlying `borrowable` counts in, read the same way.
-    const token = suite.market.pool.underlying;
-    throw new IntentPreviewError(
-      "insufficientPoolLiquidity",
-      {
-        requested: { token, balance: amount },
-        available: { token, balance: limit },
-      },
-      `borrow: ${amount} exceeds what the pool can lend now (${limit})`,
-    );
-  }
+export function assertCanBorrow(
+  sdk: OnchainSDK,
+  suite: CreditSuite,
+  amount: bigint,
+): void {
+  // The tightest ceiling is the one reported: `borrowable` already weighed them
+  // against each other, and the number a caller can act on is the smallest.
+  const { limit, binding } = borrowable(suite);
+  raise(
+    checkBorrowLimit({
+      requested: amount,
+      available: limit,
+      binding,
+      // The same underlying `borrowable` counts in, read the same way.
+      underlying: toToken(sdk, suite.market.pool.underlying),
+    }),
+    `borrow: ${amount} exceeds what the pool can lend now (${limit})`,
+  );
 }
 
 /**
@@ -111,26 +135,26 @@ export function assertGrowthAllowed(args: {
     if (balance <= held) {
       continue;
     }
-    if (forbidden.some(f => eq(f, token))) {
-      throw new IntentPreviewError(
-        "forbiddenToken",
-        { token },
-        `${token} is forbidden in this market and the plan buys more of it`,
-      );
-    }
+    raise(
+      checkForbiddenToken({
+        token: toToken(sdk, token),
+        isForbidden: forbidden.some(f => eq(f, token)),
+      }),
+      `${token} is forbidden in this market and the plan buys more of it`,
+    );
     if (eq(token, underlying) || isPhantomToken(sdk, token)) {
       continue;
     }
     if (!market.pool.pqk.hasActiveQuota(token)) {
-      throw new IntentPreviewError(
-        "quotaLimitReached",
-        // No ceiling was measured: the market opened none for this token, so
-        // there is nothing the plan's appetite could be weighed against.
-        {
-          token,
+      // No ceiling was measured: the market opened none for this token, so
+      // there is nothing the plan's appetite could be weighed against.
+      raise(
+        checkQuotaLimit({
+          token: toToken(sdk, token),
           requested: undefined,
-          available: { token: underlying, balance: 0n },
-        },
+          available: 0n,
+          underlying: toToken(sdk, underlying),
+        }),
         `${token} takes no quota in this market, so it counts as no collateral`,
       );
     }
@@ -149,7 +173,7 @@ export function assertGrowthAllowed(args: {
  * - here, `1.0` — what the facade enforces, so what a plan must clear to land;
  * - `maxWithdrawCollateral` sizes at `MIN_HF_LIMITED + 2` — a *sizing* helper
  *   leaving headroom, which is not the same as a validity check;
- * - `validateHF` refuses at or below `MIN_HF_LIMITED` — a form's own caution.
+ * - a form refuses at or below `MIN_HF_LIMITED` (`MIN_HEALTH_FACTOR_FORM`).
  *
  * Raising this one to `MIN_HF_LIMITED` was tried and reverted: it made
  * `maxWithdraw` hand back a ceiling this guard then refused, and it blocked
@@ -170,14 +194,15 @@ export function assertCollateralised(
   healthFactorBps: number,
   safePrices: boolean,
 ): void {
-  const required = Number(PERCENTAGE_FACTOR);
-  if (healthFactorBps < required) {
-    throw new IntentPreviewError(
-      "insufficientCollateral",
-      { healthFactor: healthFactorBps, required, safePrices },
-      `the account would end at a health factor of ${healthFactorBps}, below ${required}`,
-    );
-  }
+  const required = MIN_HEALTH_FACTOR_FACADE;
+  raise(
+    checkCollateralised({
+      healthFactor: healthFactorBps,
+      required,
+      safePrices,
+    }),
+    `the account would end at a health factor of ${healthFactorBps}, below ${required}`,
+  );
 }
 
 /**
@@ -185,6 +210,7 @@ export function assertCollateralised(
  * token's limit the keeper takes nothing more, whoever is asking.
  */
 export function assertQuotaHeadroom(
+  sdk: OnchainSDK,
   market: MarketSuite,
   increases: readonly Asset[],
 ): void {
@@ -198,18 +224,16 @@ export function assertQuotaHeadroom(
       continue;
     }
     const left = quota.limit - quota.totalQuoted;
-    if (balance > left) {
-      throw new IntentPreviewError(
-        "quotaLimitReached",
-        // A quota is denominated in the underlying, not in the token it is
-        // held against, so `token` and the two amounts name different things.
-        {
-          token,
-          requested: { token: underlying, balance },
-          available: { token: underlying, balance: left },
-        },
-        `${token} has ${left} of quota left, the plan needs ${balance}`,
-      );
-    }
+    // A quota is denominated in the underlying, not in the token it is held
+    // against, so `token` and the two amounts name different things.
+    raise(
+      checkQuotaLimit({
+        token: toToken(sdk, token),
+        requested: balance,
+        available: left,
+        underlying: toToken(sdk, underlying),
+      }),
+      `${token} has ${left} of quota left, the plan needs ${balance}`,
+    );
   }
 }

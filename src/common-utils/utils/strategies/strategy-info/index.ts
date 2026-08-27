@@ -1,6 +1,7 @@
 export * from "./calculate-total-apy.js";
 export * from "./calculate-total-points.js";
 export * from "./cm-availability-condition.js";
+export * from "./credit-manager-issues.js";
 export * from "./get-cm-you-can-earn.js";
 export * from "./get-strategy-info.js";
 export * from "./get-strategy-info-core.js";

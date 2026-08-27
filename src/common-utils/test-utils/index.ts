@@ -65,6 +65,8 @@ export function buildCreditManager(
   const underlyingToken = (overrides.underlyingToken ??
     mockUnderlyingToken) as Address;
   const quotas = (overrides.quotas ?? {}) as CreditManagerSlice["quotas"];
+  const forbiddenTokens = (overrides.forbiddenTokens ??
+    {}) as CreditManagerSlice["forbiddenTokens"];
 
   return {
     address,
@@ -73,7 +75,6 @@ export function buildCreditManager(
     pool,
     isPaused: overrides.isPaused ?? false,
     collateralTokens: overrides.collateralTokens ?? [],
-    forbiddenTokens: overrides.forbiddenTokens ?? {},
     supportedTokens: overrides.supportedTokens ?? {},
     quotas,
     liquidationThresholds: overrides.liquidationThresholds ?? {},
@@ -91,8 +92,12 @@ export function buildCreditManager(
       overrides.degenNFT ??
       ("0x0000000000000000000000000000000000000000" as Address),
     isQuoted: overrides.isQuoted ?? (() => false),
-    isForbidden: overrides.isForbidden ?? (() => false),
     ...overrides,
+    forbiddenTokens,
+    // After the spread: a fixture that names forbidden tokens gets a predicate
+    // that reads them, without having to write one.
+    isForbidden:
+      overrides.isForbidden ?? ((token: Address) => !!forbiddenTokens[token]),
   };
 }
 

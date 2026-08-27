@@ -1,5 +1,6 @@
 import { describe, expectTypeOf, it } from "vitest";
 
+import type { Token } from "../../model/index.js";
 import type {
   PreviewErrorDetails,
   PreviewErrorReason,
@@ -17,7 +18,7 @@ describe("refusal shape — reason decides what detail comes with it", () => {
     expectTypeOf<{
       ok: false;
       reason: "forbiddenToken";
-      detail: { token: `0x${string}` };
+      detail: { token: Token };
     }>().toExtend<PreviewRefusal>();
 
     expectTypeOf<{

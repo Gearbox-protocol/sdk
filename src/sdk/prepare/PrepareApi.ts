@@ -18,6 +18,7 @@ import {
   MultichainConstruct,
   type MultichainSDK,
   refuse,
+  toToken,
 } from "../../onchain/index.js";
 import type { EnsureFreshChains } from "../types.js";
 import type {
@@ -112,14 +113,15 @@ export class PrepareApi
    * {@inheritDoc OpportunitiesPrepare.deposit}
    **/
   public deposit(pool: PoolInput, params: LpParams): LpSimulate {
-    const { marketRegister, pools } = this.sdk.chain(pool.chainId);
+    const chain = this.sdk.chain(pool.chainId);
+    const { marketRegister, pools } = chain;
     const tokenIn =
       params.tokenIn ?? marketRegister.findByPool(pool.pool).pool.underlying;
     const tokenOut = lpRoute(params.tokenOut, () =>
       pools.getDepositTokensOut(pool.pool, tokenIn),
     );
     if (!tokenOut) {
-      return unroutable(tokenIn, undefined);
+      return unroutable(chain, tokenIn, undefined);
     }
 
     const preview = pools.simulateDeposit({
@@ -137,7 +139,7 @@ export class PrepareApi
     // An on-demand RWA market takes deposits through its liquidity provider
     // rather than a transaction of ours, so there is nothing to simulate.
     if (!call) {
-      return unroutable(tokenIn, tokenOut);
+      return unroutable(chain, tokenIn, tokenOut);
     }
 
     return { ok: true, operations: [], preview, calls: call.calls };
@@ -147,14 +149,15 @@ export class PrepareApi
    * {@inheritDoc OpportunitiesPrepare.withdraw}
    **/
   public withdraw(pool: PoolInput, params: LpParams): LpSimulate {
-    const { pools } = this.sdk.chain(pool.chainId);
+    const chain = this.sdk.chain(pool.chainId);
+    const { pools } = chain;
     // Withdrawals are paid in shares, and the share token *is* the pool.
     const tokenIn = params.tokenIn ?? pool.pool;
     const tokenOut = lpRoute(params.tokenOut, () =>
       pools.getWithdrawalTokensOut(pool.pool, tokenIn),
     );
     if (!tokenOut) {
-      return unroutable(tokenIn, undefined);
+      return unroutable(chain, tokenIn, undefined);
     }
 
     // Amount is the tokenOut the wallet wants back, which is what the pool's
@@ -181,13 +184,14 @@ export class PrepareApi
    * {@inheritDoc OpportunitiesPrepare.redeem}
    **/
   public redeem(pool: PoolInput, params: LpRedeemParams): LpSimulate {
-    const { pools } = this.sdk.chain(pool.chainId);
+    const chain = this.sdk.chain(pool.chainId);
+    const { pools } = chain;
     const tokenIn = params.tokenIn ?? pool.pool;
     const tokenOut = lpRoute(params.tokenOut, () =>
       pools.getWithdrawalTokensOut(pool.pool, tokenIn),
     );
     if (!tokenOut) {
-      return unroutable(tokenIn, undefined);
+      return unroutable(chain, tokenIn, undefined);
     }
 
     const preview = pools.simulateRedeem({
@@ -483,8 +487,15 @@ function resumable(
  * is the usual way of it; both are present where a pair exists but nothing of
  * ours implements it.
  **/
-function unroutable(from: Address, to: Address | undefined): LpSimulate {
-  return refuse("unsupportedTokenPair", { from, to });
+function unroutable(
+  sdk: OnchainSDK,
+  from: Address,
+  to: Address | undefined,
+): LpSimulate {
+  return refuse("unsupportedTokenPair", {
+    from: toToken(sdk, from),
+    to: to === undefined ? undefined : toToken(sdk, to),
+  });
 }
 
 /**

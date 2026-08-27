@@ -21,6 +21,11 @@ import type {
   RouteRefusals,
 } from "../../onchain/index.js";
 
+export type {
+  LeverageBand,
+  OperationState,
+  PathLossRate,
+} from "../../onchain/index.js";
 /**
  * The vocabulary the failure half of everything below is written in.
  *
@@ -32,14 +37,7 @@ import type {
  * settles whether there is a `preview` — so no runtime guard is needed to
  * read one of these.
  **/
-export type {
-  LeverageBand,
-  OperationState,
-  PathLossRate,
-  PreviewErrorDetails,
-  PreviewErrorReason,
-  PreviewRefusal,
-} from "../../onchain/index.js";
+export * from "../../onchain/validation/refusal.js";
 
 /**
  * What a pool deposit or withdrawal would yield.

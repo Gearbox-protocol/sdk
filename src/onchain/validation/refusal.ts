@@ -1,6 +1,5 @@
 import type { Address } from "viem";
-import type { Bps } from "../../../model/index.js";
-import type { Asset } from "../../index.js";
+import type { Bps, Token, TokenAmount } from "../../model/index.js";
 
 /**
  * Why a preview could not be produced.
@@ -55,19 +54,35 @@ export type PreviewErrorReason =
    * The account would end the transaction owing more than its collateral is
    * worth under liquidation thresholds, which the facade refuses to allow.
    */
-  | "insufficientCollateral";
+  | "insufficientCollateral"
+  /** The pool is winding down: it still pays out, but takes no more deposits. */
+  | "poolSunset"
+  /**
+   * The account would end up with more quoted tokens than the facade enables
+   * at once. A count, not an amount — unlike `quotaLimitReached`.
+   */
+  | "quotaCountExceeded"
+  /**
+   * The transaction could not be replayed: it is malformed, and every field
+   * derived from replayed balances is guesswork.
+   */
+  | "malformedTransaction";
 
 /**
  * The numbers behind each refusal, so a caller reads the limit that was missed
  * instead of re-deriving it.
  *
- * Anything with a token and an amount is an {@link Asset}; ratios carry no
- * token. `undefined` marks a reason raised from several places, only some of
+ * Anything with a token and an amount is a {@link TokenAmount}; ratios carry
+ * no token. `undefined` marks a reason raised from several places, only some of
  * which hold the numbers.
  */
 export interface PreviewErrorDetails {
   /** All three in the market's underlying. */
-  debtOutOfRange: { requested: Asset; minDebt: Asset; maxDebt: Asset };
+  debtOutOfRange: {
+    requested: TokenAmount;
+    minDebt: TokenAmount;
+    maxDebt: TokenAmount;
+  };
   /**
    * Scaled by `LEVERAGE_DECIMALS` (`100n` = 1x), as the intent states it — not
    * the read model's `Leverage`. `undefined` where the floor is not fixed: the
@@ -75,23 +90,39 @@ export interface PreviewErrorDetails {
    */
   leverageOutOfRange: { requested: bigint; min: bigint } | undefined;
   /** `undefined` where the request never got as far as naming an amount. */
-  insufficientSourceBalance: { required: Asset; held: Asset } | undefined;
-  unsupportedCollateralToken: { token: Address };
+  insufficientSourceBalance:
+    | { required: TokenAmount; held: TokenAmount }
+    | undefined;
+  unsupportedCollateralToken: { token: Token };
   /**
    * `to` is absent where the market named no output for `from`. The whole
    * detail is absent only when the pathfinder reverted rather than answered.
    */
-  unsupportedTokenPair: { from: Address; to: Address | undefined } | undefined;
-  noDelayedRoute: { token: Address } | undefined;
-  multipleDelayedWithdrawals: { token: Address; venues: number };
+  unsupportedTokenPair: { from: Token; to: Token | undefined } | undefined;
+  noDelayedRoute: { token: Token } | undefined;
+  multipleDelayedWithdrawals: { token: Token; venues: number };
   /** The phantom token standing for the redemption already in flight. */
-  withdrawalInProgress: { inFlight: Asset };
+  withdrawalInProgress: { inFlight: TokenAmount };
   noRecordedIntent: undefined;
-  marketPaused: { creditManager: Address };
+  /**
+   * Which contract is paused. A credit account operation names the manager, an
+   * LP operation the pool — the two are never both present.
+   */
+  marketPaused: { creditManager: Address } | { pool: Address };
   /** `expirationDate` is unix seconds, as the facade reports it. */
   marketExpired: { creditManager: Address; expirationDate: number };
-  /** Both in the market's underlying. */
-  insufficientPoolLiquidity: { requested: Asset; available: Asset };
+  /**
+   * Both in the market's underlying. `binding` names which of the four ceilings
+   * ran out first, so a caller can say what would fix it — waiting for lenders
+   * and asking governance are opposite answers. `solutionAmount` is the largest
+   * position still openable, absent when even the minimum debt does not fit.
+   */
+  insufficientPoolLiquidity: {
+    requested: TokenAmount;
+    available: TokenAmount;
+    binding: BorrowLimitBinding;
+    solutionAmount?: TokenAmount;
+  };
   /**
    * `token` is the one whose quota is asked for; the amounts are in the
    * **underlying**, which is what a quota is measured in. `requested` is absent
@@ -99,14 +130,16 @@ export interface PreviewErrorDetails {
    * against a limit.
    */
   quotaLimitReached: {
-    token: Address;
-    requested: Asset | undefined;
-    available: Asset;
+    token: Token;
+    requested: TokenAmount | undefined;
+    available: TokenAmount;
   };
-  forbiddenToken: { token: Address };
+  forbiddenToken: { token: Token };
   /**
-   * `required` is the facade's bar. `healthFactor` is the factor the check
-   * compared, which for a call that hands funds over is the safe-price one —
+   * `required` is the bar the factor was weighed against — the facade's own
+   * `1.0` for a check that asks whether the transaction lands, a form's higher
+   * bar for one that asks whether it is wise. `healthFactor` is the factor
+   * compared, which for a call that hands funds over is the safe-price one;
    * `safePrices` says which, since a preview always reports main prices.
    */
   insufficientCollateral: {
@@ -114,7 +147,34 @@ export interface PreviewErrorDetails {
     required: Bps;
     safePrices: boolean;
   };
+  poolSunset: { pool: Address };
+  /** How many quoted tokens the account would end with, against the cap. */
+  quotaCountExceeded: { count: number; max: number };
+  /**
+   * The SDK's own preview error code (the `ERROR_*` 1xxx constants) and its
+   * human-readable detail.
+   */
+  malformedTransaction: { code: number; message: string };
 }
+
+/**
+ * Which ceiling ran out when a borrow could not be served.
+ *
+ * The names are the expressions, not the legacy labels, because the two do not
+ * line up: the legacy `insufficientDebtLimit` was the manager's own headroom
+ * (`managerDebtAvailable`), `insufficientPoolDebtLimit` was `poolDebtLimit`,
+ * and `insufficientPoolLiquidity` was what the manager could still draw
+ * (`poolAvailableLiquidity`).
+ *
+ * `borrowable()` weighs only three of these — the pool's free liquidity, the
+ * manager's remaining allowance and the facade's per-block cap. `poolDebtLimit`
+ * is read by the account-opening path alone, which is why it is not among them.
+ */
+export type BorrowLimitBinding =
+  | "poolAvailableLiquidity"
+  | "poolDebtLimit"
+  | "managerDebtAvailable"
+  | "facadePerBlockCap";
 
 /**
  * The failure half every simulation shares.
@@ -122,13 +182,18 @@ export interface PreviewErrorDetails {
  * Distributed over the reasons rather than written as `{ reason; detail }`, so
  * that narrowing on `reason` narrows `detail` with it.
  */
-export type PreviewRefusal = {
+export type PreviewIssue = {
   [R in PreviewErrorReason]: {
-    ok: false;
     reason: R;
     detail: PreviewErrorDetails[R];
   };
 }[PreviewErrorReason];
+
+/**
+ * The failure half every simulation shares: an issue, plus the `ok: false`
+ * that tells it apart from a preview.
+ */
+export type PreviewRefusal = { ok: false } & PreviewIssue;
 
 /** Builds the refusal a caller sees. */
 export function refuse<R extends PreviewErrorReason>(
@@ -156,5 +221,18 @@ export class IntentPreviewError<
     this.name = "IntentPreviewError";
     this.reason = reason;
     this.detail = detail;
+  }
+}
+
+/**
+ * Throws the issue a check found, with the sentence the engine logs for it.
+ *
+ * Returns normally when there is nothing to raise, so it cannot narrow a type
+ * the way a bare `throw` does — a site that guards a value for the code below
+ * it keeps throwing directly.
+ */
+export function raise(issue: PreviewIssue | null, message: string): void {
+  if (issue) {
+    throw new IntentPreviewError(issue.reason, issue.detail, message);
   }
 }

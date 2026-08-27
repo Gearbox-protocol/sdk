@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 import type { OnchainSDK } from "../../index.js";
+import { IntentPreviewError } from "../../validation/refusal.js";
 import type { ClaimableWithdrawal } from "../withdrawal-compressor/types.js";
 import {
   type AccountCalculatorOperation,
@@ -15,7 +16,6 @@ import {
   type Step,
 } from "./plan.js";
 import { realize } from "./realize.js";
-import { IntentPreviewError } from "./refusal.js";
 import type {
   CreditAccountSlice,
   DelayedStart,

@@ -1060,7 +1060,7 @@ describe("prepare → execute on a mainnet fork", () => {
       if (sim.data.ok || sim.data.reason !== "unsupportedCollateralToken") {
         throw new Error("expected unsupportedCollateralToken");
       }
-      expect(sim.data.detail.token).toBe(TARGET_TOKEN);
+      expect(sim.data.detail.token.address).toBe(TARGET_TOKEN);
     });
 
     it("refuses a deposit whose debt would pass the manager's own maxDebt", async () => {
@@ -1082,8 +1082,8 @@ describe("prepare → execute on a mainnet fork", () => {
       }
       // The ceiling comes back with the refusal, so a form can clamp to it
       // instead of asking again to find out where it is.
-      expect(sim.data.detail.maxDebt.balance).toBe(ceiling);
-      expect(sim.data.detail.requested.balance).toBeGreaterThan(ceiling);
+      expect(sim.data.detail.maxDebt.value).toBe(ceiling);
+      expect(sim.data.detail.requested.value).toBeGreaterThan(ceiling);
     });
 
     it("refuses a leverage the collateral cannot carry, and reports it per route", async () => {
@@ -1125,11 +1125,12 @@ describe("prepare → execute on a mainnet fork", () => {
       // before there is a balance to compare. This one is the ledger walk, so
       // it names both sides; `held` is whatever dust the open left behind.
       expect(sim.data.detail?.required).toEqual({
-        token: USDC,
-        balance: parseUnits("100", 6),
+        token: expect.objectContaining({ address: USDC }),
+        value: parseUnits("100", 6),
+        valueUsd: null,
       });
-      expect(sim.data.detail?.held.token).toBe(USDC);
-      expect(sim.data.detail?.held.balance).toBeLessThan(parseUnits("100", 6));
+      expect(sim.data.detail?.held.token.address).toBe(USDC);
+      expect(sim.data.detail?.held.value).toBeLessThan(parseUnits("100", 6));
     });
   });
 

@@ -2,6 +2,8 @@ import type { Address } from "viem";
 import type { MultiCall, OnchainSDK } from "../../index.js";
 import { calcPositionLeverage } from "../../market/math.js";
 import type { AccountSnapshot } from "../../positions/types.js";
+import { IntentPreviewError } from "../../validation/refusal.js";
+import { toToken, toTokenAmount } from "../../validation/token.js";
 import type { WithdrawableAsset } from "../withdrawal-compressor/types.js";
 import {
   assertCanBorrow,
@@ -26,7 +28,6 @@ import {
   type QuotaUpdateState,
 } from "./operations.js";
 import type { Amount, Step } from "./plan.js";
-import { IntentPreviewError } from "./refusal.js";
 import type {
   CreditAccountSlice,
   DelayedStart,
@@ -131,8 +132,8 @@ export async function realize(
       throw new IntentPreviewError(
         "insufficientSourceBalance",
         {
-          required: { token, balance: amount },
-          held: { token, balance: held },
+          required: toTokenAmount(sdk, token, amount),
+          held: toTokenAmount(sdk, token, held),
         },
         `${what}: needs ${amount} of ${token}, account holds ${held}`,
       );
@@ -154,7 +155,7 @@ export async function realize(
         break;
 
       case "borrow":
-        assertCanBorrow(suite, step.amount);
+        assertCanBorrow(sdk, suite, step.amount);
         push(
           buildIncreaseDebtOperation({
             amount: step.amount,
@@ -270,7 +271,7 @@ export async function realize(
         if (pending) {
           throw new IntentPreviewError(
             "withdrawalInProgress",
-            { inFlight: pending },
+            { inFlight: toTokenAmount(sdk, pending.token, pending.balance) },
             `closeAll: ${pending.token} is a pending withdrawal, claim it first`,
           );
         }
@@ -320,10 +321,11 @@ export async function realize(
           throw new IntentPreviewError(
             "withdrawalInProgress",
             {
-              inFlight: {
-                token: asset.withdrawalPhantomToken,
-                balance: ledger.balanceOf(asset.withdrawalPhantomToken),
-              },
+              inFlight: toTokenAmount(
+                sdk,
+                asset.withdrawalPhantomToken,
+                ledger.balanceOf(asset.withdrawalPhantomToken),
+              ),
             },
             `request: ${asset.withdrawalPhantomToken} already holds a pending withdrawal`,
           );
@@ -446,7 +448,7 @@ export async function realize(
     !cleared &&
     quotas.quotaIncrease.length + quotas.quotaDecrease.length > 0
   ) {
-    assertQuotaHeadroom(market, quotas.quotaIncrease);
+    assertQuotaHeadroom(sdk, market, quotas.quotaIncrease);
     push(buildQuotaUpdateOperation({ update: quotas, creditAccount, sdk }));
   }
 
@@ -472,6 +474,11 @@ export async function realize(
   };
   const metrics = {
     healthFactor: sdk.positions.healthFactor(snapshot),
+    // Reported only where the walk had reason to weigh it, which is the same
+    // condition the guard below reads it under.
+    safeHealthFactor: paysOut
+      ? sdk.positions.healthFactor(snapshot, { safePrices: true })
+      : undefined,
     borrowRate: sdk.positions.borrowRate(snapshot, projectedPool),
     timeToLiquidation: sdk.positions.timeToLiquidation(snapshot, projectedPool),
     liquidationPrice: sdk.positions.liquidationPrice(snapshot),
@@ -527,7 +534,7 @@ async function delayedConfig(
   if (!compressor) {
     throw new IntentPreviewError(
       "noDelayedRoute",
-      { token },
+      { token: toToken(sdk, token) },
       "request: chain has no withdrawal compressor",
     );
   }
@@ -539,14 +546,14 @@ async function delayedConfig(
   if (assets.length === 0) {
     throw new IntentPreviewError(
       "noDelayedRoute",
-      { token },
+      { token: toToken(sdk, token) },
       `request: ${token} has no delayed withdrawal config`,
     );
   }
   if (assets.length > 1) {
     throw new IntentPreviewError(
       "multipleDelayedWithdrawals",
-      { token, venues: assets.length },
+      { token: toToken(sdk, token), venues: assets.length },
       `request: ${token} has ${assets.length} delayed withdrawal configs`,
     );
   }

@@ -4,6 +4,7 @@ import {
   WAD_DECIMALS_POW,
 } from "../../../../onchain/constants/math.js";
 import type { Asset } from "../../../../onchain/index.js";
+import { isZeroBalance } from "../../../../onchain/index.js";
 import { BigIntMath } from "../../../../onchain/utils/bigint-math.js";
 import {
   formatBN,
@@ -19,13 +20,6 @@ import { EMPTY_ADDRESS, EMPTY_OBJECT } from "../../constants.js";
 import { calcHealthFactor } from "../../creditAccount/calc-health-factor.js";
 import { calcQuotaUpdate } from "../../creditAccount/quota-utils.js";
 import { PriceUtils } from "../../price-math.js";
-import { isZeroBalance } from "../../validation/is-zero-balance.js";
-import { validateBalances } from "../../validation/validate-balances.js";
-import { validateCreditManager } from "../../validation/validate-credit-manager.js";
-import { validateHF } from "../../validation/validate-hf.js";
-import { validateOpenAccount } from "../../validation/validate-open-account.js";
-import { validateOpenAccountPoolStatus } from "../../validation/validate-open-account-pool-status.js";
-import { validateTokenToObtain } from "../../validation/validate-token-to-obtain.js";
 import { getCMAllowedCollaterals } from "../credit-managers/get-cm-allowed-collaterals.js";
 import { getWalletBalancesAllowedOnCM } from "../credit-managers/get-wallet-balances-allowed-on-cm.js";
 import { getCollateralByDebt } from "../leverage/get-collateral-by-debt.js";
@@ -45,6 +39,7 @@ import type { APYList, PricesRecord } from "../types/strategy-data.js";
 import type { StrategyCMEarningsInfo } from "../types/strategy-earnings.js";
 import { calculateTotalAPY } from "./calculate-total-apy.js";
 import { calculateTotalPoints } from "./calculate-total-points.js";
+import { checkCreditManagerUsable } from "./credit-manager-issues.js";
 
 export function getCMYouCanEarn<CM extends CreditManagerSlice>({
   allPrices,
@@ -290,34 +285,30 @@ export function getCMYouCanEarn<CM extends CreditManagerSlice>({
 
   const pool = pools?.[creditManager.pool];
 
-  const error =
-    validateCreditManager({ creditManager }) ||
-    validateOpenAccountPoolStatus({
-      pool,
-      creditManager,
-      debt,
-      targetToken: targetTokenAddress,
-    }) ||
-    validateTokenToObtain({
-      targetToken: strategy.tokenOutAddress,
-      creditManager,
-    }) ||
-    validateBalances({
-      balances: walletBalances,
-      assets: collateral,
-    }) ||
-    validateOpenAccount({
-      desiredQuota: desiredQuota,
-      quotaUpdate: quotaUpdate,
-      debt,
-      creditManager,
-      loading: false,
-    }) ||
-    validateHF({ hf });
+  // A collateral that rounds down to dust is not a position worth listing. The
+  // deleted balance validator refused it as part of the funding check; it is a
+  // list's own filter rather than a verdict the protocol passes, so it lives
+  // beside the amount it judges.
+  const dustCollateral = collateral.some(a => isZeroBalance(a.balance));
+
+  const error = dustCollateral
+    ? ({ reason: "insufficientSourceBalance" } as const)
+    : checkCreditManagerUsable({
+        creditManager,
+        pool,
+        debt,
+        healthFactor: hf,
+        targetToken: targetTokenAddress,
+        tokenToObtain: strategy.tokenOutAddress,
+        collateral,
+        balances: walletBalances,
+        desiredQuota,
+        quotaUpdate,
+      });
   if (error) {
     return {
       status: "error",
-      description: `Resulting CA did not pass validation: ${error.message}`,
+      description: `Resulting CA did not pass validation: ${error.reason}`,
       otherInfo: {
         ...baseInfo,
 
