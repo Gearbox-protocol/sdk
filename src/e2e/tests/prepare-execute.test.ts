@@ -1060,7 +1060,7 @@ describe("prepare → execute on a mainnet fork", () => {
       if (sim.data.ok || sim.data.reason !== "unsupportedCollateralToken") {
         throw new Error("expected unsupportedCollateralToken");
       }
-      expect(sim.data.detail.token).toBe(TARGET_TOKEN);
+      expect(sim.data.detail.token.address).toBe(TARGET_TOKEN);
     });
 
     it("refuses a deposit whose debt would pass the manager's own maxDebt", async () => {

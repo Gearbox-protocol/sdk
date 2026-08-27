@@ -4,6 +4,7 @@ import { type Address, custom } from "viem";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import type {
   AdjustCreditAccountPreview,
+  OpenCreditAccountPreview,
   PoolOperationPreview,
 } from "../../model/index.js";
 import {
@@ -71,8 +72,32 @@ function adjust(
   } as AdjustCreditAccountPreview;
 }
 
+/** The same account at the moment it is opened, as the preview reports one. */
+function open(
+  over: Partial<OpenCreditAccountPreview> = {},
+): OpenCreditAccountPreview {
+  return {
+    operation: "OpenCreditAccount",
+    name: "KPK WETH",
+    creditManager: CREDIT_MANAGER,
+    collateral: [],
+    collateralValue: 10n ** 19n,
+    totalValue: 10n ** 20n,
+    debt: 41_574_436_328_452_499_320n,
+    assets: [],
+    quotas: [],
+    healthFactor: 12_500,
+    safeHealthFactor: 11_800,
+    borrowRate: { total: 300, totalOnDebt: 320, base: 250, quotas: [] },
+    timeToLiquidation: 86_400_000n,
+    liquidationPrice: null,
+    leverage: 2,
+    ...over,
+  } as OpenCreditAccountPreview;
+}
+
 const check = (
-  preview: AdjustCreditAccountPreview,
+  preview: AdjustCreditAccountPreview | OpenCreditAccountPreview,
   options: Parameters<typeof checkOperation>[1] = {},
 ) => checkOperation({ sdk, preview }, options);
 
@@ -150,6 +175,30 @@ describe("checkOperation", () => {
       reason: "insufficientCollateral",
       detail: { healthFactor: 9_000, required: 10_000, safePrices: true },
     });
+  });
+
+  /**
+   * An account being opened is weighed on the safe factor too. It was not
+   * before: the legacy gate reached only the adjust flow, and the omission was
+   * invisible while nothing reported the safe factor.
+   */
+  it("weighs the safe-price factor on an account being opened as well", () => {
+    expect(
+      check(open({ healthFactor: 12_500, safeHealthFactor: 9_000 }), {
+        minHealthFactor: 10_000,
+        minSafeHealthFactor: 10_000,
+      }),
+    ).toEqual({
+      reason: "insufficientCollateral",
+      detail: { healthFactor: 9_000, required: 10_000, safePrices: true },
+    });
+
+    expect(
+      check(open(), {
+        minHealthFactor: 10_101,
+        minSafeHealthFactor: 10_001,
+      }),
+    ).toBeNull();
   });
 
   it("leaves a loan-free account alone at every bar", () => {
