@@ -1,6 +1,7 @@
 import type { Address } from "viem";
 import type { MultiCall, OnchainSDK } from "../../index.js";
 import { calcPositionLeverage } from "../../market/math.js";
+import type { ConvertFn } from "../../market/oracle/types.js";
 import type { AccountSnapshot } from "../../positions/types.js";
 import { IntentPreviewError } from "../../validation/refusal.js";
 import { toToken, toTokenAmount } from "../../validation/token.js";
@@ -34,7 +35,6 @@ import type {
   OperationState,
 } from "./types.js";
 import { eq, toTargetDecimals } from "./utils/common.js";
-import { convertAmount } from "./utils/convert-amount.js";
 import { OperationLedger } from "./utils/ledger.js";
 import { isRedemptionPhantomToken } from "./utils/pick-token.js";
 import { collectPriceImpact, type LegProbe } from "./utils/price-impact.js";
@@ -85,12 +85,13 @@ export async function realize(
   const { creditAccount, sdk, slippage, quotaReserve } = props;
   const { underlying } = creditAccount;
   const rwaAsset = sdk.tokensMeta.rwaUnderlyings.get(underlying)?.asset;
-  const price = convertAmount(sdk, creditAccount.creditManager);
   const paths =
     props.paths ?? createRouterPaths({ sdk, creditAccount, slippage });
   const market = sdk.marketRegister.findByCreditManager(
     creditAccount.creditManager,
   );
+  const price: ConvertFn = (from, to, amount) =>
+    market.priceOracle.safeConvert(from, to, amount) ?? 0n;
   const suite = sdk.marketRegister.findCreditManager(
     creditAccount.creditManager,
   );

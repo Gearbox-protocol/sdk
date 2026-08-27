@@ -51,6 +51,13 @@ export interface PriceFeedsForAccountOptions
 }
 
 /**
+ * Token-to-token conversion at latest known prices, result in `to`-token
+ * decimals. Whether an unpriceable token throws (raw `convert`) or coerces
+ * to 0n (`safeConvert(...) ?? 0n`) is the implementation's contract.
+ */
+export type ConvertFn = (from: Address, to: Address, amount: bigint) => bigint;
+
+/**
  * Public interface for a Gearbox price oracle contract.
  *
  * Each Gearbox market has one price oracle that aggregates USD-denominated

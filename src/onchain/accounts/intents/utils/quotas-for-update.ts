@@ -5,9 +5,9 @@ import {
 } from "../../../../common-utils/utils/creditAccount/quota-utils.js";
 import { MIN_INT96 } from "../../../constants/math.js";
 import type { AddressMap, Asset } from "../../../index.js";
+import type { ConvertFn } from "../../../market/oracle/types.js";
 import { TypedObjectUtils } from "../../../utils/mappers.js";
 import type { QuotaUpdateState } from "../operations.js";
-import type { ConvertFn } from "./ledger.js";
 
 interface InitialQuota {
   token: Address;

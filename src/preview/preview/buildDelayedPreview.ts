@@ -11,17 +11,13 @@ import { ERROR_UNPRICEABLE_TOKEN } from "../../model/index.js";
 import type { DelayedWithdrawalRequest } from "../../onchain/index.js";
 import {
   AssetsMap,
+  type ConvertFn,
   calcPositionLeverage,
   DUST_THRESHOLD,
   type OnchainSDK,
 } from "../../onchain/index.js";
 import type { CreditAccountState } from "./CreditAccountState.js";
 import type { DetectedDelayedOperation } from "./detectDelayedOperation.js";
-
-/**
- * Oracle conversion, injected so unit tests don't need a market
- */
-export type ConvertFn = (token: Address, to: Address, amount: bigint) => bigint;
 
 /**
  * Builds the best-effort preview of the account state after the detected

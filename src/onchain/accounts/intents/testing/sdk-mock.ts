@@ -198,6 +198,9 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
   const convert = (token: Address, to: Address, amount: bigint): bigint => {
     const from = token.toLowerCase() as Address;
     const target = to.toLowerCase() as Address;
+    if (from === target) {
+      return amount;
+    }
     const fromPrice = args.prices[from];
     const toPrice = args.prices[target];
     if (fromPrice === undefined || toPrice === undefined) {
@@ -209,6 +212,18 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
       (amount * fromPrice * 10n ** BigInt(decimalsOf(target))) /
       (toPrice * 10n ** BigInt(decimalsOf(from)))
     );
+  };
+
+  const safeConvert = (
+    token: Address,
+    to: Address,
+    amount: bigint,
+  ): bigint | null => {
+    try {
+      return convert(token, to, amount);
+    } catch {
+      return null;
+    }
   };
 
   const fullQuota = (q: MockQuotaEntry) => ({
@@ -293,6 +308,7 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
   const market = {
     priceOracle: {
       convert,
+      safeConvert,
       mainPrice: mainPriceOf,
       reservePrice: reservePriceOf,
       convertToUSD: _convertToUSD,

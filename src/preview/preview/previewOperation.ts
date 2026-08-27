@@ -1,5 +1,5 @@
 import type { OperationPreview } from "../../model/index.js";
-import type { PluginsMap } from "../../onchain/index.js";
+import type { ConvertFn, PluginsMap } from "../../onchain/index.js";
 import {
   isPoolOperation,
   type MulticallOperation,
@@ -10,7 +10,7 @@ import type {
   PreviewOperationInput,
   PreviewOperationOptions,
 } from "../types.js";
-import { buildDelayedPreview, type ConvertFn } from "./buildDelayedPreview.js";
+import { buildDelayedPreview } from "./buildDelayedPreview.js";
 import { isCloseOrRepay } from "./detectCloseOrRepay.js";
 import { resolveDelayedClaimIntent } from "./detectDelayedClaim.js";
 import { detectDelayedOperation } from "./detectDelayedOperation.js";

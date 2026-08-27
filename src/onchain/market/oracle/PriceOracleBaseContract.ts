@@ -216,7 +216,7 @@ export abstract class PriceOracleBaseContract<
     amount: bigint,
     reserve = false,
   ): bigint {
-    if (from === to) {
+    if (isAddressEqual(from, to)) {
       return amount;
     }
     const fromToken = this.#priceableToken(from);

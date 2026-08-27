@@ -1,9 +1,9 @@
 import type { Address } from "viem";
 import { NON_STRATEGY_PHANTOM_TOKEN_TYPES } from "../../../base/token-types.js";
 import type { OnchainSDK } from "../../../index.js";
+import type { ConvertFn } from "../../../market/oracle/types.js";
 import type { CreditAccountSlice } from "../types.js";
 import { eq } from "./common.js";
-import { convertAmount } from "./convert-amount.js";
 
 /** Prefix marking every phantom-token contract type in the registry. */
 const PHANTOM_TOKEN_PREFIX = "PHANTOM_TOKEN::";
@@ -61,7 +61,11 @@ export function rankAccountTokens(args: {
   exclude?: Address[];
 }): CandidateToken[] {
   const { creditAccount, sdk, exclude = [] } = args;
-  const convert = convertAmount(sdk, creditAccount.creditManager);
+  const oracle = sdk.marketRegister.findByCreditManager(
+    creditAccount.creditManager,
+  ).priceOracle;
+  const convert: ConvertFn = (from, to, amount) =>
+    oracle.safeConvert(from, to, amount) ?? 0n;
 
   const candidates: CandidateToken[] = [];
   for (const t of creditAccount.tokens) {

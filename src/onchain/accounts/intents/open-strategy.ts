@@ -5,9 +5,9 @@ import type {
   TokenAmount,
 } from "../../../model/index.js";
 import type { Asset, MultiCall, OnchainSDK } from "../../index.js";
+import type { ConvertFn } from "../../market/oracle/types.js";
 import type { AccountSnapshot } from "../../positions/types.js";
 import { IntentPreviewError } from "../../validation/refusal.js";
-import { toToken } from "../../validation/token.js";
 import {
   assertCanBorrow,
   assertCollateralised,
@@ -23,7 +23,6 @@ import {
 import type { CreditAccountSlice, PathLossRate } from "./types.js";
 import {
   collectPriceImpact,
-  convertAmount,
   createRouterPaths,
   getQuotasForUpdate,
 } from "./utils/index.js";
@@ -130,7 +129,8 @@ export async function previewOpenStrategy(
   const market = sdk.marketRegister.findByCreditManager(creditManager);
   assertMarketOperable(suite);
   const underlying = market.pool.underlying.toLowerCase() as Address;
-  const convert = convertAmount(sdk, creditManager);
+  const convert: ConvertFn = (from, to, amount) =>
+    market.priceOracle.safeConvert(from, to, amount) ?? 0n;
 
   const margin = collateral.reduce(
     (acc, a) => acc + convert(a.token, underlying, a.balance),

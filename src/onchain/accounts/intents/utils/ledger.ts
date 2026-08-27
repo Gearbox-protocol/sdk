@@ -1,9 +1,8 @@
 import type { Address } from "viem";
 import type { Asset } from "../../../index.js";
+import type { ConvertFn } from "../../../market/oracle/types.js";
 import { BigIntMath } from "../../../utils/bigint-math.js";
 import type { AccountCalculatorOperation } from "../operations.js";
-
-export type ConvertFn = (token: Address, to: Address, amount: bigint) => bigint;
 
 /** Account state at one point in an operation chain. */
 export interface LedgerSnapshot {

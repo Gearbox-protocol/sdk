@@ -2,13 +2,17 @@ import type { Address } from "viem";
 import { getAddress } from "viem";
 import { describe, expect, it } from "vitest";
 import { ERROR_UNPRICEABLE_TOKEN } from "../../model/index.js";
-import { AssetsMap, type OnchainSDK } from "../../onchain/index.js";
+import {
+  AssetsMap,
+  type ConvertFn,
+  type OnchainSDK,
+} from "../../onchain/index.js";
 import { calcBorrowRate } from "../../onchain/positions/calcBorrowRate.js";
 import { calcHealthFactor } from "../../onchain/positions/calcHealthFactor.js";
 import { calcLiquidationPrice } from "../../onchain/positions/calcLiquidationPrice.js";
 import { calcTimeToLiquidationMs } from "../../onchain/positions/calcTimeToLiquidationMs.js";
 import type { AccountSnapshot } from "../../onchain/positions/types.js";
-import { buildDelayedPreview, type ConvertFn } from "./buildDelayedPreview.js";
+import { buildDelayedPreview } from "./buildDelayedPreview.js";
 import { CreditAccountState } from "./CreditAccountState.js";
 import type { DetectedDelayedOperation } from "./detectDelayedOperation.js";
 
