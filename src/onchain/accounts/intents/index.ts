@@ -7,6 +7,9 @@ import {
   refuse,
 } from "../../validation/refusal.js";
 import { assertMarketOperable } from "./guards.js";
+
+export { borrowable } from "./guards.js";
+
 import {
   calcLeverageBand,
   type LeverageBand,

@@ -210,6 +210,62 @@ describe("checkOperation", () => {
     ).toBeNull();
   });
 
+  /**
+   * The engine holds every simulation to the market's lending ceiling; a parsed
+   * transaction was never simulated, so this is the only thing between a pasted
+   * calldata and a revert.
+   */
+  describe("what the market can lend right now", () => {
+    /** The fixture's pool, with its lendable amount forced. */
+    const withLiquidity = (available: bigint) => {
+      const suite = sdk.marketRegister.findCreditManager(CREDIT_MANAGER);
+      return vi
+        .spyOn(suite.market.pool.pool, "availableLiquidity", "get")
+        .mockReturnValue(available);
+    };
+
+    it("refuses a draw the pool cannot cover", () => {
+      const spy = withLiquidity(1n);
+      try {
+        const issue = check(adjust({ debtChange: 10n ** 20n }));
+        expect(issue?.reason).toBe("insufficientPoolLiquidity");
+      } finally {
+        spy.mockRestore();
+      }
+    });
+
+    it("weighs the whole debt of an account being opened", () => {
+      const spy = withLiquidity(1n);
+      try {
+        expect(check(open())?.reason).toBe("insufficientPoolLiquidity");
+      } finally {
+        spy.mockRestore();
+      }
+    });
+
+    /** Repaying, or leaving the debt alone, can never exceed a ceiling. */
+    it.each([0n, -(10n ** 20n)])(
+      "leaves a debtChange of %s alone however dry the pool is",
+      change => {
+        const spy = withLiquidity(0n);
+        try {
+          expect(check(adjust({ debtChange: change }))).toBeNull();
+        } finally {
+          spy.mockRestore();
+        }
+      },
+    );
+
+    it("serves a draw the pool covers", () => {
+      const spy = withLiquidity(10n ** 30n);
+      try {
+        expect(check(adjust({ debtChange: 10n ** 18n }))).toBeNull();
+      } finally {
+        spy.mockRestore();
+      }
+    });
+  });
+
   it("refuses a debt outside the facade's band", () => {
     const issues = check(adjust({ debt: 10n ** 30n }));
     expect(issues?.reason).toBe("debtOutOfRange");

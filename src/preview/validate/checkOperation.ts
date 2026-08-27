@@ -15,6 +15,8 @@ import type {
   PreviewIssue,
 } from "../../onchain/index.js";
 import {
+  borrowable,
+  checkBorrowLimit,
   checkCollateralised,
   checkCreditManagerPaused,
   checkDebtInBand,
@@ -163,6 +165,7 @@ function creditIssues(
       underlying,
       allowZero: !isOpening,
     }) ||
+    borrowIssue(suite, preview, underlying) ||
     forbiddenIssue(suite, preview) ||
     checkQuotaCount({
       count: preview.quotas.filter(q => q.value > 0n).length,
@@ -174,6 +177,39 @@ function creditIssues(
     (preview.debt === 0n ? null : collateralIssue(preview, options)) ||
     fundingIssue(options, collateralOf(preview))
   );
+}
+
+/**
+ * What the transaction draws, against what the market can lend right now.
+ *
+ * Only a draw is weighed: repaying, or leaving the debt alone, can never exceed
+ * a ceiling. Opening borrows the whole debt; adjusting borrows `debtChange`.
+ *
+ * The engine holds every simulation to this already (`assertCanBorrow`), so
+ * this is here for the transactions it never saw — a pasted calldata reaches
+ * the confirm screen with nothing else standing between it and a revert.
+ */
+function borrowIssue(
+  suite: CreditSuite,
+  preview: CreditPreview,
+  underlying: Token,
+): PreviewIssue | null {
+  const drawn =
+    preview.operation === "AdjustCreditAccount"
+      ? preview.debtChange
+      : preview.debt;
+  if (drawn <= 0n) {
+    return null;
+  }
+  // The tightest of the three ceilings, which is the only one a caller can act
+  // on — the same reading the engine takes.
+  const { limit, binding } = borrowable(suite);
+  return checkBorrowLimit({
+    requested: drawn,
+    available: limit,
+    binding,
+    underlying,
+  });
 }
 
 /** The account against whichever bars the caller holds it to. */
