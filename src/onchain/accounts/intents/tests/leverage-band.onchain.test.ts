@@ -21,11 +21,13 @@ const und = (whole: string) => toBN(whole, UND_DECIMALS);
 function band(
   extras: { minDebt?: bigint; debtLimitAvailable?: bigint },
   collateral: { token: `0x${string}`; balance: bigint }[],
+  targetHF?: number,
 ) {
   return calcLeverageBand({
     sdk: buildMarketSdk(extras),
     creditManager: CREDIT_MANAGER,
     collateral,
+    targetHF,
   });
 }
 
@@ -36,6 +38,18 @@ describe("calcLeverageBand", () => {
     expect(
       band({ minDebt: und("1000") }, [{ token: UND, balance: und("10000") }]),
     ).toEqual({ min: 1.1, max: THRESHOLD_CEILING });
+  });
+
+  it("takes the ceiling from a named target health factor", () => {
+    // 9200 bps gives 11x at 1.01 as well, so only a target that moves the
+    // answer proves it is read at all
+    expect(
+      band(
+        { minDebt: und("1000") },
+        [{ token: UND, balance: und("10000") }],
+        12_000,
+      ),
+    ).toEqual({ min: 1.1, max: 4 });
   });
 
   it("stays quiet about a market it cannot resolve yet", () => {

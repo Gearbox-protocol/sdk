@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 import type {
+  Bps,
   DataResponse,
   PoolOpportunityKey,
   StrategyOpportunityKey,
@@ -566,6 +567,7 @@ export interface OpportunitiesPrepare {
   leverageBand(
     strategy: StrategyInput,
     collateral: readonly Asset[],
+    targetHF?: Bps,
   ): LeverageBand | undefined;
 
   /**
@@ -575,10 +577,14 @@ export interface OpportunitiesPrepare {
    * capped by their quotas) and the target keeps covering what the debt still
    * requires. Zero debt frees the whole balance — the ceiling a
    * withdraw-collateral form should offer.
+   *
+   * `targetHF` names the health factor to leave the account at, in basis
+   * points; omitted, the SDK holds it to the bar a form would.
    **/
   maxWithdrawCollateral(
     position: PositionInput,
     token: Address,
+    targetHF?: bigint,
   ): Promise<DataResponse<bigint>>;
 
   /**

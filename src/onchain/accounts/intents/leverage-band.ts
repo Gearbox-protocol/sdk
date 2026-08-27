@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import type { Leverage } from "../../../model/index.js";
+import type { Bps, Leverage } from "../../../model/index.js";
 import { LEVERAGE_DECIMALS } from "../../constants/math.js";
 import type { Asset, OnchainSDK } from "../../index.js";
 import { BigIntMath } from "../../utils/bigint-math.js";
@@ -21,6 +21,11 @@ export interface LeverageBandProps {
    * underlying here, so a caller hands over amounts and no exchange rates.
    **/
   readonly collateral: readonly Asset[];
+  /**
+   * Health factor the maxed leverage should leave the position at, in basis
+   * points. Omitted keeps `calcMaxLeverage` on its flat buffer.
+   **/
+  readonly targetHF?: Bps;
 }
 
 /**
@@ -54,6 +59,7 @@ export function calcLeverageBand({
   sdk,
   creditManager,
   collateral,
+  targetHF,
 }: LeverageBandProps): LeverageBand | undefined {
   // The register throws for a manager it does not know, and a form asks this
   // on every keystroke — including before the SDK has finished attaching. A
@@ -68,7 +74,7 @@ export function calcLeverageBand({
   if (!target) {
     return undefined;
   }
-  const ceiling = suite.creditManager.maxLeverage(target);
+  const ceiling = suite.creditManager.maxLeverage(target, targetHF);
   const underlying = market.pool.underlying;
   const convert = convertAmount(sdk, creditManager);
   const netValue = collateral.reduce(

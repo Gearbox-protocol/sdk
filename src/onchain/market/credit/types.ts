@@ -148,13 +148,14 @@ export interface ICreditManagerContract extends IBaseContract {
   readonly liquidationPremium: Bps;
 
   /**
-   * Highest total-value leverage a collateral's liquidation threshold allows:
-   * `(1 − 0.05) / (1 − lt)`.
+   * Highest total-value leverage a collateral's liquidation threshold allows.
    *
    * @param collateral - Collateral token address.
+   * @param targetHF - Health factor the maxed position should leave, in basis
+   * points. Omitted keeps the flat buffer.
    * @throws If the credit manager does not value the token.
    */
-  maxLeverage: (collateral: Address) => Leverage;
+  maxLeverage: (collateral: Address, targetHF?: Bps) => Leverage;
 
   stateHuman: (raw?: boolean) => CreditManagerStateHuman;
 }

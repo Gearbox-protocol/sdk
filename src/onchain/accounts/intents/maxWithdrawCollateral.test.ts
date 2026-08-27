@@ -1,6 +1,8 @@
 import type { Address } from "viem";
 import { describe, expect, it } from "vitest";
+import { MIN_HF_LIMITED } from "../../../common-utils/index.js";
 import type { AccountSnapshot } from "../../positions/types.js";
+import { CreditAccountOperationsService } from "./index.js";
 import { maxWithdrawCollateral } from "./maxWithdrawCollateral.js";
 import {
   buildFixtureCreditAccount,
@@ -167,6 +169,20 @@ describe("maxWithdrawCollateral", () => {
     expect(ceiling(ca, UND)).toBe(0n);
   });
 
+  it("gives back less the higher the target is set", () => {
+    const ca = account(
+      [caToken(POS, toBN("100", 8), toBN("1000", 8))],
+      toBN("50", 8),
+    );
+    const sdk = buildMarketSdk({ creditAccounts: [ca] });
+
+    const at = (targetHF: bigint) =>
+      maxWithdrawCollateral({ creditAccount: ca, sdk, token: POS, targetHF });
+
+    expect(at(12_000n)).toBeLessThan(at(TARGET_HF));
+    expect(at(TARGET_HF)).toBeLessThan(at(10_000n));
+  });
+
   it("matches the target whatever case the caller spells it in", () => {
     const ca = account(
       [caToken(POS, toBN("100", 8), toBN("1000", 8))],
@@ -175,6 +191,53 @@ describe("maxWithdrawCollateral", () => {
 
     expect(ceiling(ca, POS.toUpperCase().replace("0X", "0x") as Address)).toBe(
       ceiling(ca, POS),
+    );
+  });
+});
+
+describe("CreditAccountOperationsService.maxWithdrawCollateral", () => {
+  const ca = () =>
+    account([caToken(POS, toBN("100", 8), toBN("1000", 8))], toBN("50", 8));
+
+  it("holds the account to MIN_HF_LIMITED when no target is named", () => {
+    const creditAccount = ca();
+    const sdk = buildMarketSdk({ creditAccounts: [creditAccount] });
+
+    // the service adds two basis points of headroom to the bar it is given
+    expect(
+      new CreditAccountOperationsService(sdk).maxWithdrawCollateral({
+        creditAccount,
+        sdk,
+        token: POS,
+      }),
+    ).toBe(
+      maxWithdrawCollateral({
+        creditAccount,
+        sdk,
+        token: POS,
+        targetHF: MIN_HF_LIMITED + 2n,
+      }),
+    );
+  });
+
+  it("carries a named target down to the arithmetic", () => {
+    const creditAccount = ca();
+    const sdk = buildMarketSdk({ creditAccounts: [creditAccount] });
+
+    expect(
+      new CreditAccountOperationsService(sdk).maxWithdrawCollateral({
+        creditAccount,
+        sdk,
+        token: POS,
+        targetHF: 12_000n,
+      }),
+    ).toBe(
+      maxWithdrawCollateral({
+        creditAccount,
+        sdk,
+        token: POS,
+        targetHF: 12_002n,
+      }),
     );
   });
 });

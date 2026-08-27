@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import { vi } from "vitest";
-import type { Token, TokenAmount } from "../../../../model/index.js";
+import type { Bps, Token, TokenAmount } from "../../../../model/index.js";
 import { MAX_UINT256 } from "../../../constants/index.js";
 import type {
   CreditAccountDataPayload,
@@ -354,8 +354,8 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
       liquidationThresholds,
       collateralTokens,
       feeInterest: args.feeInterest ?? 0,
-      maxLeverage: (collateral: Address) =>
-        calcMaxLeverage(liquidationThresholds.get(collateral) ?? 0),
+      maxLeverage: (collateral: Address, targetHF?: Bps) =>
+        calcMaxLeverage(liquidationThresholds.get(collateral) ?? 0, targetHF),
     },
     creditFacade: {
       address: args.creditFacade,

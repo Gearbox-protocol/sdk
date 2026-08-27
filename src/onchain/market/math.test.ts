@@ -101,6 +101,29 @@ describe("calcMaxLeverage", () => {
     expect(calcMaxLeverage(9500)).toBe(19);
   });
 
+  it("solves the named health factor instead of the flat buffer", () => {
+    // the flat buffer and a 1.01 target agree up to 92%, and part company
+    // above it, where the buffer stops being worth 1%
+    expect(calcMaxLeverage(9000, 10_100)).toBe(9);
+    expect(calcMaxLeverage(9200, 10_100)).toBe(11);
+    expect(calcMaxLeverage(9500, 10_100)).toBe(16);
+  });
+
+  it("reads a higher target as a tighter ceiling", () => {
+    expect(calcMaxLeverage(9000, 11_000)).toBeLessThan(
+      calcMaxLeverage(9000, 10_100),
+    );
+  });
+
+  it("throws when the threshold reaches the target", () => {
+    expect(() => calcMaxLeverage(10_100, 10_100)).toThrow(
+      "cannot compute max leverage: liquidation threshold is 100% or more",
+    );
+    expect(() => calcMaxLeverage(9500, 9500)).toThrow(
+      "cannot compute max leverage: liquidation threshold reaches the target health factor",
+    );
+  });
+
   it("is unleveraged when the collateral counts for nothing", () => {
     expect(calcMaxLeverage(0)).toBe(1);
   });

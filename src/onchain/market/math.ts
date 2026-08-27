@@ -241,30 +241,54 @@ export function calcNetStrategyApy(
 export const MAX_LEVERAGE_BUFFER_BPS = 500;
 
 /**
- * Highest total-value leverage a liquidation threshold allows, floored:
- * `floor((100% − buffer) / (100% − liquidationThreshold))`. At HF = 1, debt is
- * `liquidationThreshold × totalValue`, leaving `1 − liquidationThreshold` of
- * equity per unit of exposure; the {@link MAX_LEVERAGE_BUFFER_BPS} buffer
- * keeps the maxed position slightly away from that boundary.
+ * Highest total-value leverage a liquidation threshold allows, floored.
+ *
+ * At HF = 1, debt is `liquidationThreshold × totalValue`, leaving
+ * `1 − liquidationThreshold` of equity per unit of exposure; a maxed position
+ * has to stay some way off that boundary. Given a `targetHF`, that distance is
+ * solved for — `HF = liquidationThreshold × L / (L − 1)` inverts to
+ * `L = targetHF / (targetHF − liquidationThreshold)`.
+ *
+ * Without one it falls back on a flat {@link MAX_LEVERAGE_BUFFER_BPS}, which
+ * under-buffers as the threshold rises — at 95% it allows 19x, or HF ≈ 1.0028.
+ * That branch is scaffolding, kept so this parameter moves no number before
+ * the callers name a target, and goes away with the constant.
+ *
+ * @param targetHF - Health factor the maxed position should leave, in basis
+ * points. Omitted keeps the legacy buffer.
  *
  * @example
  * ```ts
  * // liquidationThreshold: 9000 bps = 90%
- * calcMaxLeverage(9000) // floor((1 − 0.05) / (1 − 0.9)) = 9x total exposure
+ * calcMaxLeverage(9000)        // floor((1 − 0.05) / (1 − 0.9)) = 9x
+ * calcMaxLeverage(9000, 10100) // floor(1.01 / (1.01 − 0.9))    = 9x
  * ```
- * @throws If `liquidationThreshold` is 100% or more, which would make
- * leverage unbounded.
+ * @throws If `liquidationThreshold` is 100% or more, or reaches a named
+ * `targetHF` — either way no leverage clears the bar.
  **/
-export function calcMaxLeverage(liquidationThreshold: Bps): Leverage {
+export function calcMaxLeverage(
+  liquidationThreshold: Bps,
+  targetHF?: Bps,
+): Leverage {
   if (liquidationThreshold >= FULL) {
     throw new Error(
       "cannot compute max leverage: liquidation threshold is 100% or more",
     );
   }
-  const leverage = Math.floor(
-    (FULL - MAX_LEVERAGE_BUFFER_BPS) / (FULL - liquidationThreshold),
-  );
-  return Math.max(leverage, 1);
+  if (targetHF === undefined) {
+    return Math.max(
+      Math.floor(
+        (FULL - MAX_LEVERAGE_BUFFER_BPS) / (FULL - liquidationThreshold),
+      ),
+      1,
+    );
+  }
+  if (liquidationThreshold >= targetHF) {
+    throw new Error(
+      "cannot compute max leverage: liquidation threshold reaches the target health factor",
+    );
+  }
+  return Math.max(Math.floor(targetHF / (targetHF - liquidationThreshold)), 1);
 }
 
 /**

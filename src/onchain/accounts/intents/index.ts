@@ -154,6 +154,10 @@ export class CreditAccountOperationsService extends SDKConstruct {
    * withdraw form should offer. Taking everything out is the same intent with
    * `MAX_UINT256` for an amount, and needs none of this arithmetic.
    *
+   * Takes no target health factor, unlike {@link maxWithdrawCollateral}: a
+   * proportional withdrawal leaves the factor where it found it, and the
+   * facade's `minDebt` is what bounds it.
+   *
    * @param props - Account slice and the SDK holding its market
    * @returns Amount in underlying units; `0n` when nothing can leave
    */
@@ -191,8 +195,9 @@ export class CreditAccountOperationsService extends SDKConstruct {
    * yet, and adjusting measures against the net value the caller already
    * holds. Nothing is fetched, so a form can ask on every keystroke.
    *
-   * @param props - The manager, the SDK holding its market, and what stands
-   * behind the position
+   * @param props - The manager, the SDK holding its market, what stands
+   * behind the position, and optionally the health factor the ceiling should
+   * leave
    * @returns The band, or nothing when the market has none to offer
    */
   leverageBand(props: LeverageBandProps): LeverageBand | undefined {
@@ -201,23 +206,30 @@ export class CreditAccountOperationsService extends SDKConstruct {
 
   /**
    * Largest `WITHDRAW_ASSET` amount of one token the account can take out
-   * while its health factor stays at {@link MIN_HF_LIMITED} plus a basis
-   * point — the ceiling a withdraw-collateral form should offer. Thresholds,
-   * prices and quota activity come from the account's market, valued the way
-   * the facade values a call that pays out; zero debt frees the whole balance.
+   * while its health factor stays at `targetHF` — the ceiling a
+   * withdraw-collateral form should offer. Thresholds, prices and quota
+   * activity come from the account's market, valued the way the facade values
+   * a call that pays out; zero debt frees the whole balance.
    *
-   * @param props - Account slice, the SDK holding its market, and the
-   * collateral to withdraw
+   * The default is {@link MIN_HF_LIMITED}, the bar `validateHF` holds an
+   * account to.
+   *
+   * @param props - Account slice, the SDK holding its market, the collateral
+   * to withdraw, and optionally the health factor to leave behind
    * @returns Amount in the token's units; `0n` when nothing can leave
    */
   maxWithdrawCollateral(
-    props: Pick<StartIntentProps, "creditAccount" | "sdk"> & { token: Address },
+    props: Pick<StartIntentProps, "creditAccount" | "sdk"> & {
+      token: Address;
+      targetHF?: bigint;
+    },
   ): bigint {
+    const { targetHF = MIN_HF_LIMITED, ...rest } = props;
     return maxWithdrawCollateral({
-      ...props,
-      // one basis point of room above the bar `validateHF` holds the account
-      // to, so the answer does not sit exactly on it
-      targetHF: MIN_HF_LIMITED + 2n,
+      ...rest,
+      // two basis points clear of the bar: a ceiling equal to it would make a
+      // Max button produce an amount the form then refuses
+      targetHF: targetHF + 2n,
     });
   }
 

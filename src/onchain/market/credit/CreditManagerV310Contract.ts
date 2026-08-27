@@ -109,8 +109,11 @@ export class CreditManagerV310Contract
   /**
    * {@inheritDoc ICreditManagerContract.maxLeverage}
    */
-  public maxLeverage(collateral: Address): Leverage {
-    return calcMaxLeverage(this.liquidationThresholds.mustGet(collateral));
+  public maxLeverage(collateral: Address, targetHF?: Bps): Leverage {
+    return calcMaxLeverage(
+      this.liquidationThresholds.mustGet(collateral),
+      targetHF,
+    );
   }
 
   /**

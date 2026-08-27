@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import type { ChainId, DataResponse } from "../../model/index.js";
+import type { Bps, ChainId, DataResponse } from "../../model/index.js";
 import type {
   Asset,
   CreditAccountSlice,
@@ -371,6 +371,7 @@ export class PrepareApi
   public leverageBand(
     strategy: StrategyInput,
     collateral: readonly Asset[],
+    targetHF?: Bps,
   ): LeverageBand | undefined {
     // No `queryChain`: there is nothing to read and nothing to await, and
     // wrapping arithmetic in a response would cost the caller the very
@@ -380,6 +381,7 @@ export class PrepareApi
       sdk,
       creditManager: strategy.creditManager,
       collateral,
+      targetHF,
     });
   }
 
@@ -389,6 +391,7 @@ export class PrepareApi
   public async maxWithdrawCollateral(
     position: PositionInput,
     token: Address,
+    targetHF?: bigint,
   ): Promise<DataResponse<bigint>> {
     return this.queryChain({
       network: position.chainId,
@@ -397,6 +400,7 @@ export class PrepareApi
           creditAccount: await slice(sdk, position.creditAccount),
           sdk,
           token,
+          targetHF,
         }),
     });
   }
