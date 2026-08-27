@@ -1,10 +1,5 @@
 import { z } from "zod/v4";
-import type {
-  ChartBundle,
-  ChartRange,
-  PoolOpportunityChartMetric,
-  StrategyOpportunityChartMetric,
-} from "../../model/charts.js";
+import type { ChartBundle, ChartRange } from "../../model/charts.js";
 import type {
   Opportunity,
   OpportunityFilter,
@@ -25,16 +20,18 @@ import {
 import type { DataResponse } from "../../model/response.js";
 import { AbstractOffchainNamespace } from "../AbstractOffchainNamespace.js";
 import type { GearboxAPIOptions } from "../types.js";
-
-type OpportunityChartMetricFor<K extends OpportunityKey> = {
-  pool: PoolOpportunityChartMetric;
-  strategy: StrategyOpportunityChartMetric;
-}[K["kind"]];
+import type {
+  IOffchainOpportunities,
+  OpportunityChartMetricFor,
+} from "./types.js";
 
 /**
  * Backend counterpart of the `opportunities` namespace.
  **/
-export class OffchainOpportunities extends AbstractOffchainNamespace {
+export class OffchainOpportunities
+  extends AbstractOffchainNamespace
+  implements IOffchainOpportunities
+{
   readonly #root = "/v2/opportunities";
 
   constructor(options: GearboxAPIOptions) {
@@ -42,8 +39,7 @@ export class OffchainOpportunities extends AbstractOffchainNamespace {
   }
 
   /**
-   * Opportunities of the chains this client covers, optionally narrowed further
-   * by {@link OpportunityFilter}.
+   * {@inheritDoc IOffchainOpportunities.list}
    **/
   public async list(
     filter?: OpportunityFilter,
@@ -60,7 +56,7 @@ export class OffchainOpportunities extends AbstractOffchainNamespace {
   }
 
   /**
-   * Detailed view of one pool opportunity.
+   * {@inheritDoc IOffchainOpportunities.getPool}
    **/
   public async getPool(
     key: PoolOpportunityKey,
@@ -72,7 +68,7 @@ export class OffchainOpportunities extends AbstractOffchainNamespace {
   }
 
   /**
-   * Detailed view of one strategy opportunity.
+   * {@inheritDoc IOffchainOpportunities.getStrategy}
    **/
   public async getStrategy(
     key: StrategyOpportunityKey,
@@ -84,7 +80,7 @@ export class OffchainOpportunities extends AbstractOffchainNamespace {
   }
 
   /**
-   * Protocol-wide totals across every opportunity the backend serves.
+   * {@inheritDoc IOffchainOpportunities.getTotals}
    **/
   public async getTotals(): Promise<DataResponse<OpportunityTotals>> {
     return this.get({
@@ -94,7 +90,7 @@ export class OffchainOpportunities extends AbstractOffchainNamespace {
   }
 
   /**
-   * Charts of one opportunity: one series per metric, on a shared grid.
+   * {@inheritDoc IOffchainOpportunities.getCharts}
    **/
   public async getCharts<
     K extends OpportunityKey,

@@ -1,5 +1,9 @@
 import type { Address } from "viem";
-import type { PositionFilter } from "../../model/index.js";
+import type {
+  DataResponse,
+  Position,
+  PositionFilter,
+} from "../../model/index.js";
 import type { Asset, CreditAccountData } from "../base/index.js";
 import { DUST_THRESHOLD } from "../constants/math.js";
 import type { BlockNumberProps, WithBlock } from "../types/index.js";
@@ -32,6 +36,16 @@ export interface ListPositionsPropsBase {
  **/
 export type ListPositionsProps<Multichain extends boolean = false> =
   ListPositionsPropsBase & WithBlock<Multichain>;
+
+/**
+ * Cross-chain reads of the positions namespace: everything a wallet holds.
+ **/
+export interface IMultichainPositionsService {
+  /**
+   * Positions of a wallet on all queried chains.
+   **/
+  list(props: ListPositionsProps<true>): Promise<DataResponse<Position[]>>;
+}
 
 /**
  * Props for {@link PositionsService.listStrategyPositions}.

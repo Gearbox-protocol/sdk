@@ -9,6 +9,7 @@ import type {
 } from "../../model/index.js";
 import { MultichainConstruct } from "../base/index.js";
 import type { PluginsMap } from "../plugins/index.js";
+import type { IMultichainOpportunitiesService } from "./types.js";
 
 /**
  * Cross-chain counterpart of {@link OpportunitiesService}. Every read walks
@@ -17,8 +18,11 @@ import type { PluginsMap } from "../plugins/index.js";
  * @typeParam Plugins - Map of attached plugin types.
  **/
 export class MultichainOpportunitiesService<
-  const Plugins extends PluginsMap = {},
-> extends MultichainConstruct<Plugins> {
+    const Plugins extends PluginsMap = {},
+  >
+  extends MultichainConstruct<Plugins>
+  implements IMultichainOpportunitiesService
+{
   /**
    * Opportunities of all queried chains, see {@link OpportunitiesService.list}.
    * A filter that names chains narrows the fan-out itself, so a chain whose

@@ -12,6 +12,10 @@ import type {
   NetworkType,
 } from "../onchain/index.js";
 import type { ILogger } from "../onchain/types/logger.js";
+import type { ILiquidationsByMode } from "./liquidations/types.js";
+import type { IOpportunities } from "./opportunities/types.js";
+import type { IPositions } from "./positions/types.js";
+import type { IPreviewByMode } from "./preview/types.js";
 
 /**
  * Which sources a {@link GearboxSDK} reads from, and therefore which of its
@@ -121,14 +125,71 @@ export interface OnchainByMode {
 }
 
 /**
- * `sdk.notices` per mode: a backend read, absent when the SDK reads no backend.
- *
- * @internal
+ * The banners the backend attaches to a pool opportunity or a strategy
+ * position, see {@link Notice}.
  **/
-export interface NoticesByMode {
+export interface INotices {
+  (subject: NoticeSubject): Promise<DataResponse<Notice[]>>;
+}
+
+/**
+ * `sdk.notices` per mode: a backend read, absent when the SDK reads no backend.
+ **/
+export interface INoticesByMode {
   onchain: undefined;
-  offchain: (subject: NoticeSubject) => Promise<DataResponse<Notice[]>>;
-  both: (subject: NoticeSubject) => Promise<DataResponse<Notice[]>>;
+  offchain: INotices;
+  both: INotices;
+}
+
+/**
+ * Public contract of {@link GearboxSDK}: every namespace and sub-construction,
+ * gated by {@link Mode}. Escape hatches `onchain` and `offchain` are not part
+ * of this surface.
+ *
+ * @typeParam M - Mode the instance was built in.
+ **/
+export interface IGearboxSDK<M extends Mode = Mode> {
+  /**
+   * Sources this instance reads from.
+   **/
+  readonly mode: M;
+  /**
+   * Chains this instance covers, which every read is scoped to.
+   **/
+  readonly networks: readonly NetworkType[];
+  /**
+   * Whether the on-chain source is ready to be read from. Always `true` in
+   * `offchain` mode.
+   **/
+  readonly attached: boolean;
+  /**
+   * Attaches the on-chain SDK when this instance owns one; a no-op in
+   * `offchain` mode and when an already-attached SDK was injected.
+   **/
+  attach(): Promise<void>;
+  /**
+   * Namespace for pool and strategy opportunities.
+   **/
+  readonly opportunities: IOpportunities<M>;
+  /**
+   * Namespace for the positions a wallet holds.
+   **/
+  readonly positions: IPositions<M>;
+  /**
+   * Namespace for liquidatable credit accounts and delayed-withdrawal
+   * positions a liquidator holds. Absent in `offchain` mode.
+   **/
+  readonly liquidations: ILiquidationsByMode[M];
+  /**
+   * Namespace for on-chain previews of raw operation calldata. Absent in
+   * `offchain` mode.
+   **/
+  readonly preview: IPreviewByMode[M];
+  /**
+   * The banners the backend attaches to a pool opportunity or a strategy
+   * position, see {@link Notice}. Absent in `onchain` mode.
+   **/
+  readonly notices: INoticesByMode[M];
 }
 
 /**

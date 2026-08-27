@@ -139,8 +139,8 @@ export type DelayedStrategySimulate =
 
 /**
  * What one of the two flows that sell a position asset —
- * {@link OpportunitiesPrepare.withdrawStrategy} and
- * {@link OpportunitiesPrepare.adjustLeverage} — would yield each way it can be
+ * {@link IOpportunitiesPrepare.withdrawStrategy} and
+ * {@link IOpportunitiesPrepare.adjustLeverage} — would yield each way it can be
  * served.
  *
  * Whether the account can sell that asset on the router, redeem it through its
@@ -159,7 +159,7 @@ export type StrategyRoutesSimulate =
       instant: Extract<StrategySimulate, { ok: true }> | undefined;
       /**
        * The request half of the redemption route, which
-       * {@link OpportunitiesPrepare.finalize} completes once it matures.
+       * {@link IOpportunitiesPrepare.finalize} completes once it matures.
        * `undefined` when the route does not exist — no redemption venue for the
        * asset, or a request that settles at once anyway — see `refused.delayed`.
        **/
@@ -246,7 +246,7 @@ export interface WithdrawStrategyParams extends PrepareOptions {
   /**
    * Amount the wallet receives, denominated in `tokenOut`. `MAX_UINT256`, or
    * anything at or above the account's net value, turns the flow into an exit,
-   * see {@link OpportunitiesPrepare.withdrawStrategy}.
+   * see {@link IOpportunitiesPrepare.withdrawStrategy}.
    **/
   amount: bigint;
   /** Wallet receiving the payout. */
@@ -274,7 +274,7 @@ export interface RepayStrategyParams extends PrepareOptions {
    * Amount taken from the wallet. Anything above the outstanding debt settles
    * it in full and stays on the account as collateral, so a caller clearing the
    * account can add a buffer for the interest that accrues before the
-   * transaction lands, see {@link OpportunitiesPrepare.maxRepay}.
+   * transaction lands, see {@link IOpportunitiesPrepare.maxRepay}.
    * `MAX_UINT256` settles the debt and sizes that buffer itself.
    **/
   amount: bigint;
@@ -352,7 +352,7 @@ export interface LpParams {
 }
 
 /**
- * Same shape as {@link LpParams}, but {@link OpportunitiesPrepare.redeem}
+ * Same shape as {@link LpParams}, but {@link IOpportunitiesPrepare.redeem}
  * treats `amount` as the pool shares to burn rather than the underlying to
  * receive.
  **/
@@ -391,7 +391,7 @@ export interface FinalizeParams extends PrepareOptions {
  * Not to be confused with `src/preview/simulate`, which goes the other way: it
  * takes calldata that already exists and reports what it would do.
  **/
-export interface OpportunitiesPrepare {
+export interface IOpportunitiesPrepare {
   /**
    * Depositing into a pool: underlying in, shares out.
    *

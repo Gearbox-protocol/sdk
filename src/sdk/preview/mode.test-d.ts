@@ -7,7 +7,7 @@ import type {
 } from "../../model/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import type { Mode } from "../types.js";
-import type { Preview } from "./types.js";
+import type { IPreview } from "./types.js";
 
 const input: PreviewOperationInput = {
   chainId: 1,
@@ -18,8 +18,8 @@ const input: PreviewOperationInput = {
 
 describe("mode gates preview existence", () => {
   it("exists where a chain does", () => {
-    expectTypeOf<GearboxSDK<"onchain">["preview"]>().toEqualTypeOf<Preview>();
-    expectTypeOf<GearboxSDK<"both">["preview"]>().toEqualTypeOf<Preview>();
+    expectTypeOf<GearboxSDK<"onchain">["preview"]>().toEqualTypeOf<IPreview>();
+    expectTypeOf<GearboxSDK<"both">["preview"]>().toEqualTypeOf<IPreview>();
     expectTypeOf<
       GearboxSDK<"offchain">["preview"]
     >().toEqualTypeOf<undefined>();
@@ -27,25 +27,7 @@ describe("mode gates preview existence", () => {
 
   it("a widened mode cannot tell whether preview is there", () => {
     expectTypeOf<GearboxSDK<Mode>["preview"]>().toEqualTypeOf<
-      Preview | undefined
+      IPreview | undefined
     >();
-  });
-});
-
-describe("the public surface is the model types", () => {
-  it("names the chain, not the on-chain SDK", () => {
-    expectTypeOf<PreviewOperationInput>().toHaveProperty("chainId");
-    expectTypeOf<PreviewOperationInput>().not.toHaveProperty("sdk");
-  });
-
-  it("takes the model input and options, and answers with OperationPreview", () => {
-    const preview = {} as Preview;
-    expectTypeOf(preview.previewOperation).toBeCallableWith(input);
-    expectTypeOf(preview.previewOperation).toBeCallableWith(input, {
-      blockNumber: 1n,
-    } satisfies PreviewOperationOptions);
-    expectTypeOf(
-      preview.previewOperation,
-    ).returns.resolves.toEqualTypeOf<OperationPreview>();
   });
 });

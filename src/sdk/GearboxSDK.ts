@@ -8,19 +8,20 @@ import type {
 } from "../onchain/index.js";
 import { MultichainSDK, toChainIds } from "../onchain/index.js";
 import { assertSameChains, MissingSourceError } from "./errors/index.js";
-import type { LiquidationsByMode } from "./liquidations/index.js";
+import type { ILiquidationsByMode } from "./liquidations/index.js";
 import { LiquidationsNamespace } from "./liquidations/index.js";
-import type { Opportunities } from "./opportunities/index.js";
+import type { IOpportunities } from "./opportunities/index.js";
 import { OpportunitiesNamespace } from "./opportunities/index.js";
-import type { Positions } from "./positions/index.js";
+import type { IPositions } from "./positions/index.js";
 import { PositionsNamespace } from "./positions/index.js";
-import type { PreviewByMode } from "./preview/index.js";
+import type { IPreviewByMode } from "./preview/index.js";
 import { PreviewNamespace } from "./preview/index.js";
 import type {
   GearboxSDKOptions,
+  IGearboxSDK,
+  INoticesByMode,
   Mode,
   NamespaceOptions,
-  NoticesByMode,
   OffchainByMode,
   OnchainByMode,
   PlainMultichainSDKOptions,
@@ -52,7 +53,7 @@ export const DEFAULT_MAX_STATE_AGE = 30;
  *
  * @typeParam M - Mode the instance was built in.
  **/
-export class GearboxSDK<const M extends Mode = Mode> {
+export class GearboxSDK<const M extends Mode = Mode> implements IGearboxSDK<M> {
   /**
    * Sources this instance reads from.
    **/
@@ -64,30 +65,30 @@ export class GearboxSDK<const M extends Mode = Mode> {
   /**
    * Namespace for pool and strategy opportunities.
    **/
-  public readonly opportunities: Opportunities<M>;
+  public readonly opportunities: IOpportunities<M>;
   /**
    * Namespace for the positions a wallet holds.
    **/
-  public readonly positions: Positions<M>;
+  public readonly positions: IPositions<M>;
   /**
    * Namespace for liquidatable credit accounts and delayed-withdrawal
    * positions a liquidator holds. Onchain-only, hence gated by mode like
    * every other chain read: absent in `offchain` mode.
    **/
-  public readonly liquidations: LiquidationsByMode[M];
+  public readonly liquidations: ILiquidationsByMode[M];
   /**
    * Namespace for on-chain previews of raw operation calldata. Onchain-only,
    * hence gated by mode like every other chain read: absent in `offchain`
    * mode.
    **/
-  public readonly preview: PreviewByMode[M];
+  public readonly preview: IPreviewByMode[M];
   /**
    * The banners the backend attaches to a pool opportunity or a strategy
    * position, see {@link Notice}. Top-level because the subject is either
    * kind of entity, so neither namespace owns it. Backend-only, hence gated
    * by mode like every other backend read: absent in `onchain` mode.
    **/
-  public readonly notices: NoticesByMode[M];
+  public readonly notices: INoticesByMode[M];
 
   readonly #attachOptions?: MultichainAttachOptions;
   readonly #onchain?: MultichainSDK;
@@ -181,28 +182,28 @@ export class GearboxSDK<const M extends Mode = Mode> {
       this.#onchain,
       this.#offchain,
       namespaceOptions,
-    ) as Opportunities<M>;
+    ) as IOpportunities<M>;
     this.positions = new PositionsNamespace(
       this.#onchain,
       this.#offchain,
       namespaceOptions,
-    ) as Positions<M>;
+    ) as IPositions<M>;
     this.liquidations = (
       this.#onchain
         ? new LiquidationsNamespace(this.#onchain, namespaceOptions)
         : undefined
-    ) as LiquidationsByMode[M];
+    ) as ILiquidationsByMode[M];
     this.preview = (
       this.#onchain
         ? new PreviewNamespace(this.#onchain, namespaceOptions)
         : undefined
-    ) as PreviewByMode[M];
+    ) as IPreviewByMode[M];
     const backend = this.#offchain;
     this.notices = (
       backend
         ? (subject: NoticeSubject) => backend.notices.list(subject)
         : undefined
-    ) as NoticesByMode[M];
+    ) as INoticesByMode[M];
   }
 
   /**

@@ -1,11 +1,6 @@
 import type { Address } from "viem";
 import { z } from "zod/v4";
-import type {
-  ChartBundle,
-  ChartRange,
-  PoolPositionChartMetric,
-  StrategyPositionChartMetric,
-} from "../../model/charts.js";
+import type { ChartBundle, ChartRange } from "../../model/charts.js";
 import type {
   PoolPositionKey,
   Position,
@@ -22,16 +17,15 @@ import type { DataResponse } from "../../model/response.js";
 import type { ListPositionsPropsBase } from "../../onchain/positions/types.js";
 import { AbstractOffchainNamespace } from "../AbstractOffchainNamespace.js";
 import type { GearboxAPIOptions } from "../types.js";
-
-type PositionChartMetricFor<K extends PositionKey> = {
-  pool: PoolPositionChartMetric;
-  strategy: StrategyPositionChartMetric;
-}[K["kind"]];
+import type { IOffchainPositions, PositionChartMetricFor } from "./types.js";
 
 /**
  * Backend counterpart of the `positions` namespace.
  **/
-export class OffchainPositions extends AbstractOffchainNamespace {
+export class OffchainPositions
+  extends AbstractOffchainNamespace
+  implements IOffchainPositions
+{
   readonly #root = "/v2/positions";
 
   constructor(options: GearboxAPIOptions) {
@@ -39,7 +33,7 @@ export class OffchainPositions extends AbstractOffchainNamespace {
   }
 
   /**
-   * Everything a wallet holds, optionally narrowed by {@link PositionFilter}.
+   * {@inheritDoc IOffchainPositions.list}
    **/
   public async list(
     props: ListPositionsPropsBase,
@@ -58,7 +52,7 @@ export class OffchainPositions extends AbstractOffchainNamespace {
   }
 
   /**
-   * Aggregate over everything a wallet holds, see {@link PositionsTotals}.
+   * {@inheritDoc IOffchainPositions.getTotals}
    **/
   public async getTotals(
     wallet: Address,
@@ -70,7 +64,7 @@ export class OffchainPositions extends AbstractOffchainNamespace {
   }
 
   /**
-   * Charts of one position: one series per metric, on a shared grid.
+   * {@inheritDoc IOffchainPositions.getCharts}
    **/
   public async getCharts<
     K extends PositionKey,

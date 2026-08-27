@@ -1,110 +1,22 @@
-import type { Address } from "viem";
-import type { ChainId } from "../../model/index.js";
 import type {
   AccountCalculatorOperation,
-  Asset,
   OnchainSDK,
   RawTx,
   RWAOperationArgs,
-  SecuritizeRegisterMessage,
 } from "../../onchain/index.js";
+import type { ChainOf } from "../prepare/index.js";
 import type {
-  ChainOf,
-  LpSimulate,
-  OpenStrategySimulate,
-  StrategySimulate,
-} from "../prepare/index.js";
+  AccountPrepareRequest,
+  IOpportunitiesExecute,
+  OpenPrepareRequest,
+  PoolPrepareRequest,
+  PrepareRequest,
+} from "./types.js";
 
 /**
- * A pool deposit, withdrawal or redemption, as
- * {@link OpportunitiesPrepare.deposit} / {@link OpportunitiesPrepare.withdraw}
- * / {@link OpportunitiesPrepare.redeem} priced it. The simulation carries the
- * tokens on both sides and the zapper, so nothing else is needed to encode
- * the call.
+ * {@inheritDoc IOpportunitiesExecute}
  **/
-export interface PoolPrepareRequest {
-  kind: "pool";
-  chainId: ChainId;
-  pool: Address;
-  wallet: Address;
-  op: "deposit" | "withdraw" | "redeem";
-  sim: Extract<LpSimulate, { ok: true }>;
-}
-
-/**
- * Opening a new position, from a viable
- * {@link OpportunitiesPrepare.openNewStrategy} result. The preview values
- * collateral in underlying only, so the wallet's actual collateral assets and
- * the native value to attach come from the caller.
- **/
-export interface OpenPrepareRequest {
-  kind: "open";
-  chainId: ChainId;
-  creditManager: Address;
-  wallet: Address;
-  sim: Extract<OpenStrategySimulate, { ok: true }>;
-  /** What leaves the wallet, token by token. */
-  collateral: Asset[];
-  /** Native value to attach when paying a wrapped-native market in the coin. */
-  ethAmount: bigint;
-  /**
-   * Token the position ends up in. RWA markets resolve their open
-   * requirements against it; omitting it skips the RWA check entirely.
-   **/
-  targetToken?: Address;
-  /**
-   * EIP-712 registration signatures the wallet already signed this session,
-   * attached as `signaturesToCache` when the market is RWA-gated.
-   **/
-  signaturesToCache?: SecuritizeRegisterMessage[];
-}
-
-/**
- * Any of the five operations on an existing account, from a viable
- * {@link StrategySimulate}: the facade multicall is the simulation's `calls`.
- **/
-export interface AccountPrepareRequest {
-  kind: "account";
-  chainId: ChainId;
-  creditAccount: Address;
-  wallet: Address;
-  sim: Extract<StrategySimulate, { ok: true }>;
-}
-
-/**
- * What {@link OpportunitiesExecute.buildTx} turns into a transaction: a
- * `prepare` result plus the few facts about the wallet the simulation does not
- * carry.
- **/
-export type PrepareRequest =
-  | PoolPrepareRequest
-  | OpenPrepareRequest
-  | AccountPrepareRequest;
-
-/**
- * The write side of the opportunities namespace: turns what `prepare`
- * answered into the transaction to sign. Sending, and whatever the wallet has
- * to do first (allowances, permits, RWA signatures), stays with the caller —
- * `checkPrerequisites` reports the former on the built transaction.
- **/
-export interface OpportunitiesExecute {
-  /**
-   * The transaction to sign, from a `prepare` result. No second round of math:
-   * `account` requests submit the simulation's own multicall, `open` requests
-   * hand the preview's router path and quotas to `openCA`, `pool` requests
-   * encode the deposit / redeem the simulation priced.
-   *
-   * @throws on a simulation that is not `ok`; when a `pool` request names a
-   * route the pool has no metadata for, or one the pool does not accept a
-   * transaction for (RWA on-demand deposits)
-   **/
-  buildTx(request: PrepareRequest): Promise<RawTx>;
-}
-
-/**
- * {@inheritDoc OpportunitiesExecute}
- **/
-export class ExecuteApi implements OpportunitiesExecute {
+export class ExecuteApi implements IOpportunitiesExecute {
   readonly #chainOf: ChainOf;
 
   constructor(chainOf: ChainOf) {
@@ -112,7 +24,7 @@ export class ExecuteApi implements OpportunitiesExecute {
   }
 
   /**
-   * {@inheritDoc OpportunitiesExecute.buildTx}
+   * {@inheritDoc IOpportunitiesExecute.buildTx}
    **/
   public async buildTx(request: PrepareRequest): Promise<RawTx> {
     if (!request.sim.ok) {

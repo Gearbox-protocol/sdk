@@ -7,7 +7,7 @@ import type {
 /**
  * On-chain preview of a raw operation calldata.
  **/
-export interface Preview {
+export interface IPreview {
   /**
    * Decodes a raw operation and assembles an operation-specific,
    * human-displayable preview. Throws when the operation is unsupported or
@@ -21,11 +21,9 @@ export interface Preview {
 
 /**
  * `sdk.preview` per mode: an on-chain read, absent when the SDK reads no chain.
- *
- * @internal
  **/
-export interface PreviewByMode {
-  onchain: Preview;
+export interface IPreviewByMode {
+  onchain: IPreview;
   offchain: undefined;
-  both: Preview;
+  both: IPreview;
 }

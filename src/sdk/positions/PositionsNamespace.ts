@@ -22,23 +22,29 @@ import type { FilterResult } from "../utils/index.js";
 import { filterResponse } from "../utils/index.js";
 import { mergePositionList } from "./mergePositionList.js";
 import type {
-  PositionMergers,
-  PositionsBase,
-  PositionsOffchainOnly,
+  IPositionMergers,
+  IPositionsBase,
+  IPositionsOffchainBranch,
+  IPositionsOffchainOnly,
+  IPositionsOnchainBranch,
 } from "./types.js";
 
 /**
  * The `positions` namespace of a {@link GearboxSDK}, see
- * {@link PositionsByMode} for what each mode offers.
+ * {@link IPositionsByMode} for what each mode offers.
  **/
 export class PositionsNamespace
   extends AbstractNamespace<MultichainSDK["positions"], GearboxAPI["positions"]>
-  implements PositionsBase, PositionsOffchainOnly
+  implements
+    IPositionsBase,
+    IPositionsOffchainOnly,
+    IPositionsOnchainBranch,
+    IPositionsOffchainBranch
 {
   /**
-   * {@inheritDoc PositionsBase.merge}
+   * {@inheritDoc IPositionsBase.merge}
    **/
-  public readonly merge: PositionMergers = {
+  public readonly merge: IPositionMergers = {
     list: (onchain, offchain) =>
       mergePositionList(onchain, offchain, this.maxOffchainLagSeconds),
   };
@@ -52,7 +58,7 @@ export class PositionsNamespace
   }
 
   /**
-   * {@inheritDoc PositionsBase.list}
+   * {@inheritDoc IPositionsBase.list}
    **/
   public async list(
     wallet: Address,
@@ -69,7 +75,7 @@ export class PositionsNamespace
   }
 
   /**
-   * {@inheritDoc PositionsBase.filter}
+   * {@inheritDoc IPositionsBase.filter}
    **/
   public filter<R extends DataResponse<Position[]> | undefined>(
     response: R,
@@ -79,14 +85,14 @@ export class PositionsNamespace
   }
 
   /**
-   * {@inheritDoc PositionsOffchainOnly.totals}
+   * {@inheritDoc IPositionsOffchainOnly.totals}
    **/
   public async totals(wallet: Address): Promise<DataResponse<PositionsTotals>> {
     return this.offchain.getTotals(wallet);
   }
 
   /**
-   * {@inheritDoc PositionsOffchainOnly.charts}
+   * {@inheritDoc IPositionsOffchainOnly.charts}
    **/
   public charts<const Metrics extends readonly PoolPositionChartMetric[]>(
     key: PoolPositionRef,

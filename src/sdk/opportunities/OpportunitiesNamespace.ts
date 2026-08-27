@@ -21,8 +21,8 @@ import type { GearboxAPI } from "../../offchain/index.js";
 import type { MultichainSDK } from "../../onchain/index.js";
 import { AbstractNamespace } from "../AbstractNamespace.js";
 import { SourceUnavailableError } from "../errors/index.js";
-import { ExecuteApi, type OpportunitiesExecute } from "../execute/index.js";
-import type { OpportunitiesPrepare } from "../prepare/index.js";
+import { ExecuteApi, type IOpportunitiesExecute } from "../execute/index.js";
+import type { IOpportunitiesPrepare } from "../prepare/index.js";
 import { PrepareApi } from "../prepare/index.js";
 import type { NamespaceOptions } from "../types.js";
 import type { FilterResult } from "../utils/index.js";
@@ -32,15 +32,17 @@ import {
   mergeChainOne,
 } from "../utils/index.js";
 import type {
-  OpportunitiesBase,
-  OpportunitiesOffchainOnly,
-  OpportunitiesOnchainOnly,
-  OpportunityMergers,
+  IOpportunitiesBase,
+  IOpportunitiesOffchainBranch,
+  IOpportunitiesOffchainOnly,
+  IOpportunitiesOnchainBranch,
+  IOpportunitiesOnchainOnly,
+  IOpportunityMergers,
 } from "./types.js";
 
 /**
  * The `opportunities` namespace of a {@link GearboxSDK}, see
- * {@link OpportunitiesByMode} for what each mode offers.
+ * {@link IOpportunitiesByMode} for what each mode offers.
  **/
 export class OpportunitiesNamespace
   extends AbstractNamespace<
@@ -48,14 +50,16 @@ export class OpportunitiesNamespace
     GearboxAPI["opportunities"]
   >
   implements
-    OpportunitiesBase,
-    OpportunitiesOffchainOnly,
-    OpportunitiesOnchainOnly
+    IOpportunitiesBase,
+    IOpportunitiesOffchainOnly,
+    IOpportunitiesOnchainOnly,
+    IOpportunitiesOnchainBranch,
+    IOpportunitiesOffchainBranch
 {
   /**
-   * {@inheritDoc OpportunitiesBase.merge}
+   * {@inheritDoc IOpportunitiesBase.merge}
    **/
-  public readonly merge: OpportunityMergers = {
+  public readonly merge: IOpportunityMergers = {
     list: (onchain, offchain) =>
       mergeChainList(onchain, offchain, this.maxOffchainLagSeconds),
     pool: (onchain, offchain) =>
@@ -88,9 +92,9 @@ export class OpportunitiesNamespace
   }
 
   /**
-   * {@inheritDoc OpportunitiesOnchainOnly.prepare}
+   * {@inheritDoc IOpportunitiesOnchainOnly.prepare}
    **/
-  public get prepare(): OpportunitiesPrepare {
+  public get prepare(): IOpportunitiesPrepare {
     if (!this.#prepare) {
       throw new SourceUnavailableError("Opportunities", "onchain");
     }
@@ -98,9 +102,9 @@ export class OpportunitiesNamespace
   }
 
   /**
-   * {@inheritDoc OpportunitiesOnchainOnly.execute}
+   * {@inheritDoc IOpportunitiesOnchainOnly.execute}
    **/
-  public get execute(): OpportunitiesExecute {
+  public get execute(): IOpportunitiesExecute {
     if (!this.#execute) {
       throw new SourceUnavailableError("Opportunities", "onchain");
     }
@@ -108,7 +112,7 @@ export class OpportunitiesNamespace
   }
 
   /**
-   * {@inheritDoc OpportunitiesBase.list}
+   * {@inheritDoc IOpportunitiesBase.list}
    **/
   public async list(
     filter?: OpportunityFilter,
@@ -124,7 +128,7 @@ export class OpportunitiesNamespace
   }
 
   /**
-   * {@inheritDoc OpportunitiesBase.getPool}
+   * {@inheritDoc IOpportunitiesBase.getPool}
    **/
   public async getPool(
     key: PoolOpportunityKey,
@@ -138,7 +142,7 @@ export class OpportunitiesNamespace
   }
 
   /**
-   * {@inheritDoc OpportunitiesBase.getStrategy}
+   * {@inheritDoc IOpportunitiesBase.getStrategy}
    **/
   public async getStrategy(
     key: StrategyOpportunityKey,
@@ -152,7 +156,7 @@ export class OpportunitiesNamespace
   }
 
   /**
-   * {@inheritDoc OpportunitiesBase.filter}
+   * {@inheritDoc IOpportunitiesBase.filter}
    **/
   public filter<R extends DataResponse<Opportunity[]> | undefined>(
     response: R,
@@ -162,14 +166,14 @@ export class OpportunitiesNamespace
   }
 
   /**
-   * {@inheritDoc OpportunitiesOffchainOnly.totals}
+   * {@inheritDoc IOpportunitiesOffchainOnly.totals}
    **/
   public async totals(): Promise<DataResponse<OpportunityTotals>> {
     return this.offchain.getTotals();
   }
 
   /**
-   * {@inheritDoc OpportunitiesOffchainOnly.charts}
+   * {@inheritDoc IOpportunitiesOffchainOnly.charts}
    **/
   public charts<const Metrics extends readonly PoolOpportunityChartMetric[]>(
     key: PoolOpportunityRef,

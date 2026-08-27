@@ -7,12 +7,12 @@ import type { MultichainSDK } from "../../onchain/index.js";
 import type { ILogger } from "../../onchain/types/logger.js";
 import { previewOperation } from "../../preview/index.js";
 import type { EnsureFreshChains, NamespaceOptions } from "../types.js";
-import type { Preview } from "./types.js";
+import type { IPreview } from "./types.js";
 
 /**
- * {@inheritDoc Preview}
+ * {@inheritDoc IPreview}
  **/
-export class PreviewNamespace implements Preview {
+export class PreviewNamespace implements IPreview {
   readonly #onchain: MultichainSDK;
   readonly #ensureFresh?: EnsureFreshChains;
   readonly #logger?: ILogger;
@@ -25,7 +25,7 @@ export class PreviewNamespace implements Preview {
   }
 
   /**
-   * {@inheritDoc Preview.previewOperation}
+   * {@inheritDoc IPreview.previewOperation}
    **/
   public async previewOperation(
     input: PreviewOperationInput,

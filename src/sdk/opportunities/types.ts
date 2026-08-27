@@ -14,21 +14,21 @@ import type {
   StrategyOpportunityKey,
   StrategyOpportunityRef,
 } from "../../model/index.js";
-import type { OffchainOpportunities } from "../../offchain/index.js";
-import type { MultichainOpportunitiesService } from "../../onchain/index.js";
-import type { OpportunitiesExecute } from "../execute/index.js";
-import type { OpportunitiesPrepare } from "../prepare/index.js";
+import type { IOffchainOpportunities } from "../../offchain/index.js";
+import type { IMultichainOpportunitiesService } from "../../onchain/index.js";
+import type { IOpportunitiesExecute } from "../execute/index.js";
+import type { IOpportunitiesPrepare } from "../prepare/index.js";
 import type { Mode } from "../types.js";
 import type { EntityMerger, FilterResult, ListMerger } from "../utils/index.js";
 
 /**
  * What the `opportunities` namespace offers in every mode.
  **/
-export interface OpportunitiesBase {
+export interface IOpportunitiesBase {
   /**
    * All pool and strategy opportunities, optionally narrowed. In `both` mode
    * each chain is served by whichever source is fresh enough, see
-   * {@link OpportunityMergers}.
+   * {@link IOpportunityMergers}.
    **/
   list(filter?: OpportunityFilter): Promise<DataResponse<Opportunity[]>>;
   /**
@@ -53,26 +53,16 @@ export interface OpportunitiesBase {
     filter?: OpportunityFilter,
   ): FilterResult<R, Opportunity>;
   /**
-   * The chain on its own, for a consumer that shows each source as it arrives.
-   * Throws in `offchain` mode.
-   **/
-  readonly onchain: MultichainOpportunitiesService;
-  /**
-   * The backend on its own, see {@link OpportunitiesBase.onchain}. Throws in
-   * `onchain` mode.
-   **/
-  readonly offchain: OffchainOpportunities;
-  /**
    * Merge policy of each read, for a consumer combining the two branches
-   * itself, see {@link OpportunityMergers}.
+   * itself, see {@link IOpportunityMergers}.
    **/
-  readonly merge: OpportunityMergers;
+  readonly merge: IOpportunityMergers;
 }
 
 /**
  * Reads only a backend can answer.
  **/
-export interface OpportunitiesOffchainOnly {
+export interface IOpportunitiesOffchainOnly {
   /**
    * Protocol-wide totals across every opportunity: the TVL, total borrowed and
    * total supplied the landing page shows.
@@ -104,7 +94,7 @@ export interface OpportunitiesOffchainOnly {
 /**
  * Reads only the chain can answer.
  **/
-export interface OpportunitiesOnchainOnly {
+export interface IOpportunitiesOnchainOnly {
   /**
    * Simulations of what a deposit, withdrawal or leverage change would do.
    *
@@ -112,35 +102,36 @@ export interface OpportunitiesOnchainOnly {
    * state, and the strategy flows additionally need the pathfinder for real swap
    * paths, so there is nothing the backend could answer with.
    **/
-  readonly prepare: OpportunitiesPrepare;
+  readonly prepare: IOpportunitiesPrepare;
   /**
    * The transaction a prepared operation stands for, see
-   * {@link OpportunitiesExecute.buildTx}. Absent in `offchain` mode for the
+   * {@link IOpportunitiesExecute.buildTx}. Absent in `offchain` mode for the
    * same reason as {@link prepare}: it encodes against live chain state.
    **/
-  readonly execute: OpportunitiesExecute;
+  readonly execute: IOpportunitiesExecute;
 }
 
 /**
- * Which reads the `opportunities` namespace has in each mode. A widened mode
- * offers what every mode has, i.e. {@link OpportunitiesBase} alone.
+ * The chain on its own, for a consumer that shows each source as it arrives.
+ * Absent in `offchain` mode.
  **/
-export interface OpportunitiesOnchainBranch {
-  readonly onchain: MultichainOpportunitiesService;
+export interface IOpportunitiesOnchainBranch {
+  readonly onchain: IMultichainOpportunitiesService;
 }
 
 /**
- * The backend on its own, see {@link OpportunitiesOnchainBranch}.
+ * The backend on its own, see {@link IOpportunitiesOnchainBranch}. Absent in
+ * `onchain` mode.
  **/
-export interface OpportunitiesOffchainBranch {
-  readonly offchain: OffchainOpportunities;
+export interface IOpportunitiesOffchainBranch {
+  readonly offchain: IOffchainOpportunities;
 }
 
 /**
  * Merge policy of each read, exposed so that a consumer reading the two
  * branches itself combines them exactly as `both` mode would.
  **/
-export interface OpportunityMergers {
+export interface IOpportunityMergers {
   list: ListMerger<Opportunity[]>;
   pool: EntityMerger<PoolOpportunityDetail>;
   strategy: EntityMerger<StrategyOpportunityDetail>;
@@ -149,19 +140,21 @@ export interface OpportunityMergers {
 /**
  * Which methods the `opportunities` namespace has in each mode.
  **/
-export interface OpportunitiesByMode {
-  onchain: OpportunitiesBase &
-    OpportunitiesOnchainOnly &
-    OpportunitiesOnchainBranch;
-  offchain: OpportunitiesBase &
-    OpportunitiesOffchainOnly &
-    OpportunitiesOffchainBranch;
-  both: OpportunitiesBase &
-    OpportunitiesOnchainOnly &
-    OpportunitiesOffchainOnly;
+export interface IOpportunitiesByMode {
+  onchain: IOpportunitiesBase &
+    IOpportunitiesOnchainOnly &
+    IOpportunitiesOnchainBranch;
+  offchain: IOpportunitiesBase &
+    IOpportunitiesOffchainOnly &
+    IOpportunitiesOffchainBranch;
+  both: IOpportunitiesBase &
+    IOpportunitiesOnchainOnly &
+    IOpportunitiesOffchainOnly &
+    IOpportunitiesOnchainBranch &
+    IOpportunitiesOffchainBranch;
 }
 
 /**
  * The `opportunities` namespace of a {@link GearboxSDK} in mode `M`.
  **/
-export type Opportunities<M extends Mode = Mode> = OpportunitiesByMode[M];
+export type IOpportunities<M extends Mode = Mode> = IOpportunitiesByMode[M];

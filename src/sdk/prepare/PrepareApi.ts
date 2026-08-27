@@ -26,12 +26,12 @@ import type {
   AdjustLeverageParams,
   DepositStrategyParams,
   FinalizeParams,
+  IOpportunitiesPrepare,
   LpParams,
   LpRedeemParams,
   LpSimulate,
   OpenStrategyParams,
   OpenStrategySimulate,
-  OpportunitiesPrepare,
   PoolInput,
   PositionInput,
   PrepareOptions,
@@ -53,7 +53,7 @@ import type {
 export type ChainOf = (chainId: ChainId) => OnchainSDK;
 
 /**
- * {@inheritDoc OpportunitiesPrepare}
+ * {@inheritDoc IOpportunitiesPrepare}
  *
  * Holds no state of its own: it owns the mapping from the public,
  * read-model-shaped request to the engine's intent, and nothing else. All
@@ -67,7 +67,7 @@ export type ChainOf = (chainId: ChainId) => OnchainSDK;
  **/
 export class PrepareApi
   extends MultichainConstruct
-  implements OpportunitiesPrepare
+  implements IOpportunitiesPrepare
 {
   readonly #ensureFresh?: EnsureFreshChains;
 
@@ -84,7 +84,7 @@ export class PrepareApi
   }
 
   /**
-   * {@inheritDoc OpportunitiesPrepare.finalize}
+   * {@inheritDoc IOpportunitiesPrepare.finalize}
    **/
   public async finalize(
     position: PositionInput,
@@ -110,7 +110,7 @@ export class PrepareApi
   }
 
   /**
-   * {@inheritDoc OpportunitiesPrepare.deposit}
+   * {@inheritDoc IOpportunitiesPrepare.deposit}
    **/
   public deposit(pool: PoolInput, params: LpParams): LpSimulate {
     const chain = this.sdk.chain(pool.chainId);
@@ -146,7 +146,7 @@ export class PrepareApi
   }
 
   /**
-   * {@inheritDoc OpportunitiesPrepare.withdraw}
+   * {@inheritDoc IOpportunitiesPrepare.withdraw}
    **/
   public withdraw(pool: PoolInput, params: LpParams): LpSimulate {
     const chain = this.sdk.chain(pool.chainId);
@@ -181,7 +181,7 @@ export class PrepareApi
   }
 
   /**
-   * {@inheritDoc OpportunitiesPrepare.redeem}
+   * {@inheritDoc IOpportunitiesPrepare.redeem}
    **/
   public redeem(pool: PoolInput, params: LpRedeemParams): LpSimulate {
     const chain = this.sdk.chain(pool.chainId);
@@ -213,7 +213,7 @@ export class PrepareApi
   }
 
   /**
-   * {@inheritDoc OpportunitiesPrepare.openNewStrategy}
+   * {@inheritDoc IOpportunitiesPrepare.openNewStrategy}
    **/
   public async openNewStrategy(
     strategy: StrategyInput,
@@ -246,7 +246,7 @@ export class PrepareApi
   }
 
   /**
-   * {@inheritDoc OpportunitiesPrepare.depositStrategy}
+   * {@inheritDoc IOpportunitiesPrepare.depositStrategy}
    **/
   public async depositStrategy(
     position: PositionInput,
@@ -263,7 +263,7 @@ export class PrepareApi
   }
 
   /**
-   * {@inheritDoc OpportunitiesPrepare.withdrawStrategy}
+   * {@inheritDoc IOpportunitiesPrepare.withdrawStrategy}
    **/
   public async withdrawStrategy(
     position: PositionInput,
@@ -279,7 +279,7 @@ export class PrepareApi
   }
 
   /**
-   * {@inheritDoc OpportunitiesPrepare.maxWithdraw}
+   * {@inheritDoc IOpportunitiesPrepare.maxWithdraw}
    **/
   public async maxWithdraw(
     position: PositionInput,
@@ -295,7 +295,7 @@ export class PrepareApi
   }
 
   /**
-   * {@inheritDoc OpportunitiesPrepare.repayStrategy}
+   * {@inheritDoc IOpportunitiesPrepare.repayStrategy}
    **/
   public async repayStrategy(
     position: PositionInput,
@@ -310,7 +310,7 @@ export class PrepareApi
   }
 
   /**
-   * {@inheritDoc OpportunitiesPrepare.maxRepay}
+   * {@inheritDoc IOpportunitiesPrepare.maxRepay}
    **/
   public async maxRepay(
     position: PositionInput,
@@ -326,7 +326,7 @@ export class PrepareApi
   }
 
   /**
-   * {@inheritDoc OpportunitiesPrepare.adjustLeverage}
+   * {@inheritDoc IOpportunitiesPrepare.adjustLeverage}
    **/
   public async adjustLeverage(
     position: PositionInput,
@@ -340,7 +340,7 @@ export class PrepareApi
   }
 
   /**
-   * {@inheritDoc OpportunitiesPrepare.addCollateral}
+   * {@inheritDoc IOpportunitiesPrepare.addCollateral}
    **/
   public async addCollateral(
     position: PositionInput,
@@ -355,7 +355,7 @@ export class PrepareApi
   }
 
   /**
-   * {@inheritDoc OpportunitiesPrepare.withdrawCollateral}
+   * {@inheritDoc IOpportunitiesPrepare.withdrawCollateral}
    **/
   public async withdrawCollateral(
     position: PositionInput,
@@ -370,7 +370,7 @@ export class PrepareApi
   }
 
   /**
-   * {@inheritDoc OpportunitiesPrepare.leverageBand}
+   * {@inheritDoc IOpportunitiesPrepare.leverageBand}
    **/
   public leverageBand(
     strategy: StrategyInput,
@@ -390,7 +390,7 @@ export class PrepareApi
   }
 
   /**
-   * {@inheritDoc OpportunitiesPrepare.maxWithdrawCollateral}
+   * {@inheritDoc IOpportunitiesPrepare.maxWithdrawCollateral}
    **/
   public async maxWithdrawCollateral(
     position: PositionInput,

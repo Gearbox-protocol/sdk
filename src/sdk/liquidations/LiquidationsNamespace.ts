@@ -14,12 +14,12 @@ import type {
 } from "../../onchain/index.js";
 import { toChainIds } from "../../onchain/index.js";
 import type { EnsureFreshChains, NamespaceOptions } from "../types.js";
-import type { Liquidations } from "./types.js";
+import type { ILiquidations } from "./types.js";
 
 /**
- * {@inheritDoc Liquidations}
+ * {@inheritDoc ILiquidations}
  **/
-export class LiquidationsNamespace implements Liquidations {
+export class LiquidationsNamespace implements ILiquidations {
   readonly #onchain: MultichainSDK;
   readonly #ensureFresh?: EnsureFreshChains;
 
@@ -29,7 +29,7 @@ export class LiquidationsNamespace implements Liquidations {
   }
 
   /**
-   * {@inheritDoc Liquidations.getLiquidatableAccounts}
+   * {@inheritDoc ILiquidations.getLiquidatableAccounts}
    **/
   public async getLiquidatableAccounts(
     props?: GetLiquidatableAccountsProps<true>,
@@ -39,7 +39,7 @@ export class LiquidationsNamespace implements Liquidations {
   }
 
   /**
-   * {@inheritDoc Liquidations.getLiquidationDetails}
+   * {@inheritDoc ILiquidations.getLiquidationDetails}
    **/
   public async getLiquidationDetails(
     props: GetLiquidationDetailsProps<true>,
@@ -49,7 +49,7 @@ export class LiquidationsNamespace implements Liquidations {
   }
 
   /**
-   * {@inheritDoc Liquidations.buildLiquidationTx}
+   * {@inheritDoc ILiquidations.buildLiquidationTx}
    **/
   public async buildLiquidationTx(
     props: BuildLiquidationTxProps<true>,
@@ -59,7 +59,7 @@ export class LiquidationsNamespace implements Liquidations {
   }
 
   /**
-   * {@inheritDoc Liquidations.getLiquidationPositions}
+   * {@inheritDoc ILiquidations.getLiquidationPositions}
    **/
   public async getLiquidationPositions(
     props: GetLiquidationPositionsProps<true>,

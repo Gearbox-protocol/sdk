@@ -16,7 +16,7 @@ import type {
  * On-chain discovery of liquidatable credit accounts and delayed-withdrawal
  * positions a liquidator wallet holds.
  **/
-export interface Liquidations {
+export interface ILiquidations {
   /**
    * All liquidatable credit accounts: health factor below 1 plus accounts of
    * expired credit managers with outstanding debt. Optionally narrowed.
@@ -50,11 +50,9 @@ export interface Liquidations {
 /**
  * `sdk.liquidations` per mode: an on-chain read, absent when the SDK reads no
  * chain.
- *
- * @internal
  **/
-export interface LiquidationsByMode {
-  onchain: Liquidations;
+export interface ILiquidationsByMode {
+  onchain: ILiquidations;
   offchain: undefined;
-  both: Liquidations;
+  both: ILiquidations;
 }
