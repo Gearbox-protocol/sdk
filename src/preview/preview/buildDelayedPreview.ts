@@ -339,6 +339,7 @@ function buildAdjustPreview(
       .map(a => oracle.toTokenAmount(a.token, a.balance)),
     error: converter.error,
     healthFactor: sdk.positions.healthFactor(snap),
+    safeHealthFactor: sdk.positions.healthFactor(snap, { safePrices: true }),
     // debt taken on leaves the pool, debt repaid returns to it
     borrowRate: sdk.positions.borrowRate(snap, {
       availableLiquidityChange: before.totalDebt - post.totalDebt,

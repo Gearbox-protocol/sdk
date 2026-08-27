@@ -1,6 +1,11 @@
 import type { Address } from "viem";
-import { MIN_HF_LIMITED } from "../../../common-utils/utils/validation/validate-hf.js";
 import { SDKConstruct } from "../../base/SDKConstruct.js";
+import { MIN_HF_LIMITED } from "../../validation/checks.js";
+import {
+  IntentPreviewError,
+  type PreviewRefusal,
+  refuse,
+} from "../../validation/refusal.js";
 import { assertMarketOperable } from "./guards.js";
 import {
   calcLeverageBand,
@@ -30,7 +35,6 @@ import {
   type Step,
 } from "./plan.js";
 import { realize } from "./realize.js";
-import { IntentPreviewError, type PreviewRefusal, refuse } from "./refusal.js";
 import { planTail, projectTail } from "./tail.js";
 import type {
   CreditAccountSlice,
@@ -51,13 +55,6 @@ export type {
   OpenStrategyPreview,
   OpenStrategyProps,
 } from "./open-strategy.js";
-export {
-  IntentPreviewError,
-  type PreviewErrorDetails,
-  type PreviewErrorReason,
-  type PreviewRefusal,
-  refuse,
-} from "./refusal.js";
 export type {
   AddCollateralIntent,
   AdjustLeverageIntent,
@@ -211,7 +208,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
    * activity come from the account's market, valued the way the facade values
    * a call that pays out; zero debt frees the whole balance.
    *
-   * The default is {@link MIN_HF_LIMITED}, the bar `validateHF` holds an
+   * The default is {@link MIN_HF_LIMITED}, the bar a form holds an
    * account to.
    *
    * @param props - Account slice, the SDK holding its market, the collateral

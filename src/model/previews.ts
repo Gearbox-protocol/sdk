@@ -159,6 +159,17 @@ export interface OpenCreditAccountPreview {
    **/
   healthFactor: Bps;
   /**
+   * The same factor with collateral valued at safe prices — the lower of each
+   * token's main and reserve oracle feeds, which is what the credit manager
+   * switches to for a call that hands funds over.
+   *
+   * Always reported, so a caller that needs the stricter reading does not have
+   * to recompute it; whether to hold the account to it is the caller's call.
+   *
+   * @example `11800` where `healthFactor` is `12500`
+   **/
+  safeHealthFactor: Bps;
+  /**
    * Cost of the debt, broken down by source.
    **/
   borrowRate: BorrowRateBreakdown;
@@ -243,6 +254,17 @@ export interface AdjustCreditAccountPreview {
    * @example `12500` for a health factor of 1.25
    **/
   healthFactor: Bps;
+  /**
+   * The same factor with collateral valued at safe prices — the lower of each
+   * token's main and reserve oracle feeds, which is what the credit manager
+   * switches to for a call that hands funds over.
+   *
+   * Always reported, so a caller that needs the stricter reading does not have
+   * to recompute it; whether to hold the account to it is the caller's call.
+   *
+   * @example `11800` where `healthFactor` is `12500`
+   **/
+  safeHealthFactor: Bps;
   /**
    * Cost of the debt, broken down by source.
    **/

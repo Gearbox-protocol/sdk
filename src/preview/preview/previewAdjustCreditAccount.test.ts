@@ -491,3 +491,19 @@ it("reports an unpriceable-token error and keeps the best-effort preview", async
     error: { code: ERROR_UNPRICEABLE_TOKEN, message: expect.any(String) },
   });
 });
+
+it("reports the health factor at both pricings", async () => {
+  // The safe factor values collateral at the lower of each token's main and
+  // reserve feeds, so it can never read better than the main-price one — and
+  // it is what the credit manager weighs a call that hands funds over against.
+  const OP: Hex =
+    "0xebe4107c000000000000000000000000e22ced1808c22455747f366cf94d45b3201302d30000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000200000000000000000000000009515ab9bb73a9642f1a93ba7c2790e9d08227f9a000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000242b7c7b1100000000000000000000000000000000000000000000000015d9165eda4bb6e000000000000000000000000000000000000000000000000000000000";
+
+  const result = await preview(OP);
+  if (result.operation !== "AdjustCreditAccount") {
+    throw new Error("expected AdjustCreditAccount");
+  }
+
+  expect(result.safeHealthFactor).toEqual(expect.any(Number));
+  expect(result.safeHealthFactor).toBeLessThanOrEqual(result.healthFactor);
+});

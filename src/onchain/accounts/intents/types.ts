@@ -12,9 +12,12 @@ import type {
   OnchainSDK,
   RouterCASlice,
 } from "../../index.js";
+import type {
+  PreviewErrorReason,
+  PreviewRefusal,
+} from "../../validation/refusal.js";
 import type { ClaimableWithdrawal } from "../withdrawal-compressor/types.js";
 import type { AccountCalculatorOperation } from "./operations.js";
-import type { PreviewErrorReason, PreviewRefusal } from "./refusal.js";
 
 /**
  * Minimal credit-account data an intent is previewed against:

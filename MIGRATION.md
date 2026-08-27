@@ -196,3 +196,124 @@ An agent skill ships with this repo at
 ```bash
 npx skills add Gearbox-protocol/sdk --skill gearbox-sdk-v13-to-v14
 ```
+
+---
+
+## v16.0.0-next.x → next
+
+### Summary of changes
+
+- **One validation parc.** The flat validators under `@gearbox-protocol/sdk/common-utils` are **removed**. Their checks now live in `@gearbox-protocol/sdk/onchain` as `check*` functions returning the same `reason` + `detail` shape the intents engine already refuses with, so a caller reads one error model instead of two.
+
+| Removed from `/common-utils` | Replacement | Where |
+| --- | --- | --- |
+| `validateHF` | `checkCollateralised` | `/onchain` |
+| `validateCreditManager` | `checkCreditManagerPaused` | `/onchain` |
+| `validateTokenToObtain` (address form) | `checkForbiddenToken` | `/onchain` |
+| `validateTokenToObtain` (`Asset[]` form) | — dropped, no caller | — |
+| `validateBalance` / `validateBalances` | `checkFunding` | `/onchain` |
+| `validateQuota` (`insufficientQuota`) | `checkQuotaLimit` | `/onchain` |
+| `validateQuota` (`maxQuotasLengthReached`) | `checkQuotaCount` | `/onchain` |
+| `validateQuota` (`quotaShouldBeUpdated`) | — dropped, no caller | — |
+| `validateOpenAccount` (debt band) | `checkDebtInBand` | `/onchain` |
+| `validateOpenAccount` (`loading`) | — dropped: a caller's own state, not a verdict | — |
+| `validateOpenAccountPoolStatus` | `checkOpenAccountCeilings` | `/common-utils` (`strategies`) |
+| `validateOpenAccountPoolQuotaStatus` | folded into `checkOpenAccountCeilings` | `/common-utils` |
+| the six-validator chain in `getCMYouCanEarn` | `checkCreditManagerUsable` | `/common-utils` |
+| `isZeroBalance` | **moved**, unchanged | `/onchain`, beside `DUST_THRESHOLD` |
+| `MIN_HF_LIMITED` | **moved**, unchanged | `/onchain` |
+| `FlattenUnion` | — dropped with the flat results it flattened | — |
+
+`validateBalance`'s `zeroBalance` / `enterAmount` / `unknownToken` have no successor reason: they describe a form's own state rather than something the protocol refuses. The one caller that relied on the dust floor (`getCMYouCanEarn`) keeps it as its own filter.
+
+`getCMYouCanEarn`'s error string changed with them: it renders `error.reason` where it rendered `error.message`, and the three debt-limit messages collapsed into one `insufficientPoolLiquidity` reason discriminated by `detail.binding`.
+- **`checkOperation`** joins `previewOperation` and `checkPrerequisites` in `@gearbox-protocol/sdk/preview`: it validates a parsed operation synchronously and reports the most fundamental issue it finds, or `null`.
+- **Refusal details inline their tokens.** `PreviewErrorDetails` now carries `Token` and `TokenAmount` where it carried `Address` and `Asset`, so a row is renderable without a token dictionary.
+- **`marketPaused` covers pools**, `insufficientPoolLiquidity` names which ceiling bound, and three reasons are new: `poolSunset`, `quotaCountExceeded`, `malformedTransaction`.
+- **`checkOperation` weighs a pool payout** against the liquidity the pool holds, refusing at equality as the legacy withdrawal validator did. It does **not** check whether a deposit has a route — that belongs to the simulator, which refuses such a deposit before there is calldata to preview.
+- **Previews report `safeHealthFactor`** beside `healthFactor`.
+
+### Replace the flat validators with the checks
+
+The checks take the numbers they compare rather than an aggregate, and the bar
+is a parameter — there is no single right health-factor limit, so the caller
+states the one it holds the account to.
+
+**Before:**
+
+```typescript
+import { validateHF, MIN_HF_LIMITED } from "@gearbox-protocol/sdk/common-utils";
+
+const error = validateHF({ hf }); // { message: "hfTooLow" } | null
+```
+
+**After:**
+
+```typescript
+import {
+  checkCollateralised,
+  MIN_HEALTH_FACTOR_FORM,
+} from "@gearbox-protocol/sdk/onchain";
+
+// `required` is the lowest acceptable factor: a factor equal to it passes,
+// which is why the form's bar is a step above `MIN_HF_LIMITED`.
+const issue = checkCollateralised({
+  healthFactor: hf,
+  required: MIN_HEALTH_FACTOR_FORM,
+  safePrices: false,
+});
+// { reason: "insufficientCollateral", detail: { healthFactor, required, safePrices } } | null
+```
+
+`isZeroBalance` and `MIN_HF_LIMITED` moved rather than changed — the same
+values, imported from `@gearbox-protocol/sdk/onchain`.
+
+### Read details through the token, not the address
+
+**Before:**
+
+```typescript
+if (refusal.reason === "forbiddenToken") {
+  const symbol = sdk.tokensMeta.getToken(refusal.detail.token)?.symbol;
+}
+if (refusal.reason === "debtOutOfRange") {
+  format(refusal.detail.maxDebt.balance);
+}
+```
+
+**After:**
+
+```typescript
+if (refusal.reason === "forbiddenToken") {
+  const { symbol } = refusal.detail.token;
+}
+if (refusal.reason === "debtOutOfRange") {
+  format(refusal.detail.maxDebt.value, refusal.detail.maxDebt.token.decimals);
+}
+```
+
+`marketPaused` now narrows: `"pool" in detail` tells an LP refusal from a credit
+one.
+
+### Validate a parsed transaction
+
+```typescript
+import { AddressMap, MIN_HEALTH_FACTOR_FORM } from "@gearbox-protocol/sdk/onchain";
+import { checkOperation, previewOperation } from "@gearbox-protocol/sdk/preview";
+
+const preview = await previewOperation({ sdk, to, calldata, sender });
+
+// Every bar is optional; omitting one switches its check off.
+const issues = checkOperation(
+  { sdk, preview },
+  {
+    minHealthFactor: MIN_HEALTH_FACTOR_FORM,
+    balances: new AddressMap<bigint>([[usdc, 1_000_000n]]),
+  },
+);
+```
+
+The most fundamental issue is reported and the rest are not weighed; `null`
+means nothing refuses the transaction. A 2xxx preview error is not an issue — the transaction
+is fine and only the SDK's evaluation was incomplete, so it stays on
+`preview.error` for the caller to surface as a caveat.

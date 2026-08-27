@@ -1,6 +1,6 @@
 import type { Address } from "viem";
-import { validateOpenAccountPoolStatus } from "../../validation/validate-open-account-pool-status.js";
 import { checkBoolean, checkDegenNFT } from "../availability/index.js";
+import { checkOpenAccountCeilings } from "./credit-manager-issues.js";
 import type { CreditManagerSlice, PoolSlice } from "./types.js";
 
 export function cmAvailabilityCondition(
@@ -9,13 +9,13 @@ export function cmAvailabilityCondition(
   cmB: CreditManagerSlice,
   pools: Record<Address, PoolSlice> | null | undefined,
 ): number {
-  const aHasMinError = validateOpenAccountPoolStatus({
+  const aHasMinError = checkOpenAccountCeilings({
     pool: pools?.[cmA.pool],
     debt: cmA.minDebt,
     creditManager: cmA,
     targetToken,
   });
-  const bHasMinError = validateOpenAccountPoolStatus({
+  const bHasMinError = checkOpenAccountCeilings({
     pool: pools?.[cmB.pool],
     debt: cmB.minDebt,
     creditManager: cmB,
@@ -33,13 +33,13 @@ export function cmAvailabilityCondition(
   if (nftSort !== 0) return nftSort;
 
   // check if max debt cn be opened
-  const aHasMaxError = validateOpenAccountPoolStatus({
+  const aHasMaxError = checkOpenAccountCeilings({
     pool: pools?.[cmA.pool],
     debt: cmA.maxDebt,
     creditManager: cmA,
     targetToken,
   });
-  const bHasMaxError = validateOpenAccountPoolStatus({
+  const bHasMaxError = checkOpenAccountCeilings({
     pool: pools?.[cmB.pool],
     debt: cmB.maxDebt,
     creditManager: cmB,

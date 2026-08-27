@@ -573,6 +573,7 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
           ? "PHANTOM_TOKEN::SECURITIZE_RD"
           : undefined,
       }),
+      getToken: tokenOf,
       mustGetToken: tokenOf,
       rwaUnderlyings: {
         get: (token: Address) => {

@@ -283,7 +283,7 @@ describe("openStrategy — the same market, read before there is an account", ()
     expect(await open({ forbiddenTokens: [POS] })).toMatchObject({
       ok: false,
       reason: "forbiddenToken",
-      detail: { token: POS },
+      detail: { token: { address: POS } },
     });
   });
 
@@ -318,9 +318,14 @@ describe("refusal details", () => {
     if (result.ok || result.reason !== "insufficientPoolLiquidity") {
       throw new Error("expected insufficientPoolLiquidity");
     }
-    expect(result.detail.available).toEqual({ token: UND, balance: 0n });
-    expect(result.detail.requested.token).toBe(UND);
-    expect(result.detail.requested.balance).toBeGreaterThan(0n);
+    expect(result.detail.available).toEqual({
+      token: expect.objectContaining({ address: UND }),
+      value: 0n,
+      valueUsd: null,
+    });
+    expect(result.detail.requested.token.address).toBe(UND);
+    expect(result.detail.requested.value).toBeGreaterThan(0n);
+    expect(result.detail.binding).toBe("facadePerBlockCap");
   });
 
   it("a spent quota names the token, and the room in underlying", async () => {
@@ -336,9 +341,13 @@ describe("refusal details", () => {
     }
     // The quoted token and the amounts are different tokens: a quota is
     // measured in the underlying.
-    expect(result.detail.token).toBe(POS);
-    expect(result.detail.available).toEqual({ token: UND, balance: 0n });
-    expect(result.detail.requested?.token).toBe(UND);
+    expect(result.detail.token.address).toBe(POS);
+    expect(result.detail.available).toEqual({
+      token: expect.objectContaining({ address: UND }),
+      value: 0n,
+      valueUsd: null,
+    });
+    expect(result.detail.requested?.token.address).toBe(UND);
   });
 
   it("a token the market quotes nothing for reports no ceiling at all", async () => {
@@ -350,7 +359,11 @@ describe("refusal details", () => {
       throw new Error("expected quotaLimitReached");
     }
     expect(result.detail.requested).toBeUndefined();
-    expect(result.detail.available).toEqual({ token: UND, balance: 0n });
+    expect(result.detail.available).toEqual({
+      token: expect.objectContaining({ address: UND }),
+      value: 0n,
+      valueUsd: null,
+    });
   });
 
   it("a forbidden token names itself", async () => {
@@ -359,7 +372,9 @@ describe("refusal details", () => {
     if (result.ok || result.reason !== "forbiddenToken") {
       throw new Error("expected forbiddenToken");
     }
-    expect(result.detail).toEqual({ token: POS });
+    expect(result.detail).toEqual({
+      token: expect.objectContaining({ address: POS }),
+    });
   });
 
   it("an uncovered debt names the factor reached, and which feed it came from", async () => {

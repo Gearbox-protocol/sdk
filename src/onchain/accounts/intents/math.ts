@@ -1,7 +1,13 @@
 import type { Address } from "viem";
 import { LEVERAGE_DECIMALS } from "../../constants/math.js";
+import type { OnchainSDK } from "../../OnchainSDK.js";
 import { BigIntMath } from "../../utils/bigint-math.js";
-import { IntentPreviewError } from "./refusal.js";
+import {
+  checkDebtInBand,
+  checkLeverageAtLeastOne,
+} from "../../validation/checks.js";
+import { IntentPreviewError, raise } from "../../validation/refusal.js";
+import { toToken } from "../../validation/token.js";
 
 /**
  * The whole arithmetic behind every intent, in underlying units.
@@ -81,13 +87,10 @@ export function maxProportionalWithdrawal(
 
 /** Total leverage cannot drop below 1x — that would be negative debt. */
 export function assertLeverageAtLeastOne(leverage: bigint): void {
-  if (leverage < LEVERAGE_DECIMALS) {
-    throw new IntentPreviewError(
-      "leverageOutOfRange",
-      { requested: leverage, min: LEVERAGE_DECIMALS },
-      `target leverage ${leverage} is below 1x`,
-    );
-  }
+  raise(
+    checkLeverageAtLeastOne({ leverage, min: LEVERAGE_DECIMALS }),
+    `target leverage ${leverage} is below 1x`,
+  );
 }
 
 /**
@@ -95,27 +98,23 @@ export function assertLeverageAtLeastOne(leverage: bigint): void {
  * all), anything else has to sit inside `[minDebt, maxDebt]`.
  */
 export function assertDebtInBand(
+  sdk: OnchainSDK,
   debt: bigint,
   band: DebtBand,
   underlying: Address,
 ): void {
-  const detail = {
-    requested: { token: underlying, balance: debt },
-    minDebt: { token: underlying, balance: band.minDebt },
-    maxDebt: { token: underlying, balance: band.maxDebt },
-  };
-  if (debt > band.maxDebt) {
-    throw new IntentPreviewError(
-      "debtOutOfRange",
-      detail,
-      `debt ${debt} exceeds maxDebt ${band.maxDebt}`,
-    );
-  }
-  if (debt > 0n && debt < band.minDebt) {
-    throw new IntentPreviewError(
-      "debtOutOfRange",
-      detail,
-      `debt ${debt} is below minDebt ${band.minDebt}`,
-    );
-  }
+  // An account being adjusted may end owing nothing; the facade only weighs a
+  // loan that exists.
+  raise(
+    checkDebtInBand({
+      debt,
+      minDebt: band.minDebt,
+      maxDebt: band.maxDebt,
+      underlying: toToken(sdk, underlying),
+      allowZero: true,
+    }),
+    debt > band.maxDebt
+      ? `debt ${debt} exceeds maxDebt ${band.maxDebt}`
+      : `debt ${debt} is below minDebt ${band.minDebt}`,
+  );
 }

@@ -28,6 +28,7 @@ export function accountView(
 
   return {
     underlying,
+    sdk,
     rwaAsset: sdk.tokensMeta.rwaUnderlyings.get(underlying)?.asset,
     debt: creditAccount.accountDebt,
     collateral: totalValue - creditAccount.accountDebt,

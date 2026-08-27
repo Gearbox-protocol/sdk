@@ -1,6 +1,9 @@
 import type { Address } from "viem";
 import type { DelayedIntent } from "../../../model/index.js";
 import { MAX_UINT256, PERCENTAGE_FACTOR } from "../../constants/index.js";
+import type { OnchainSDK } from "../../OnchainSDK.js";
+import { IntentPreviewError } from "../../validation/refusal.js";
+import { toToken, toTokenAmount } from "../../validation/token.js";
 import type { ClaimableWithdrawal } from "../withdrawal-compressor/types.js";
 import {
   assertDebtInBand,
@@ -9,7 +12,6 @@ import {
   debtForLeverage,
   proportionalDebt,
 } from "./math.js";
-import { IntentPreviewError } from "./refusal.js";
 import type {
   AddCollateralIntent,
   AdjustLeverageIntent,
@@ -89,6 +91,8 @@ export type Step =
 /** What a planner is allowed to know about the account. */
 export interface AccountView {
   underlying: Address;
+  /** The attached SDK, for the guards that inline a token into a refusal. */
+  sdk: OnchainSDK;
   /** Raw asset of an RWA market (e.g. USDC behind dcUSDC); undefined otherwise. */
   rwaAsset: Address | undefined;
   debt: bigint;
@@ -144,8 +148,8 @@ export function planAdjustLeverage(
     throw new IntentPreviewError(
       "insufficientSourceBalance",
       {
-        required: { token: U, balance: -delta },
-        held: { token: U, balance: view.balanceOf(U) },
+        required: toTokenAmount(view.sdk, U, -delta),
+        held: toTokenAmount(view.sdk, U, view.balanceOf(U)),
       },
       `adjustLeverage: needs ${-delta} underlying, account holds ${view.balanceOf(U)}`,
     );
@@ -170,7 +174,7 @@ export function planDeposit(
   ) {
     throw new IntentPreviewError(
       "unsupportedCollateralToken",
-      { token: intent.token },
+      { token: toToken(view.sdk, intent.token) },
       `deposit: only ${U}${view.rwaAsset ? ` or ${view.rwaAsset}` : ""} can be deposited, got ${intent.token}`,
     );
   }
@@ -190,7 +194,7 @@ export function planDeposit(
       `deposit: target leverage ${intent.targetLeverage} would require repaying debt`,
     );
   }
-  assertDebtInBand(view.debt + debtDelta, view.band, U);
+  assertDebtInBand(view.sdk, view.debt + debtDelta, view.band, U);
 
   const T = intent.positionToken ?? positionToken(view, "deposit");
   // The deposit is already the position token: convert only what is borrowed.
@@ -228,7 +232,7 @@ export function planRepay(
   if (!fundsInU && !(view.rwaAsset && eq(intent.token, view.rwaAsset))) {
     throw new IntentPreviewError(
       "unsupportedCollateralToken",
-      { token: intent.token },
+      { token: toToken(view.sdk, intent.token) },
       `repay: only ${U}${view.rwaAsset ? ` or ${view.rwaAsset}` : ""} can be repaid with, got ${intent.token}`,
     );
   }
@@ -238,9 +242,9 @@ export function planRepay(
       // Zero debt against a band whose floor is above it: the reading a caller
       // needs is that there is no loan here, not that one is mis-sized.
       {
-        requested: { token: U, balance: view.debt },
-        minDebt: { token: U, balance: view.band.minDebt },
-        maxDebt: { token: U, balance: view.band.maxDebt },
+        requested: toTokenAmount(view.sdk, U, view.debt),
+        minDebt: toTokenAmount(view.sdk, U, view.band.minDebt),
+        maxDebt: toTokenAmount(view.sdk, U, view.band.maxDebt),
       },
       "repay: the account owes nothing",
     );
@@ -254,7 +258,7 @@ export function planRepay(
   // collateral. That is what lets a caller send the debt plus a buffer and
   // still settle it in full when interest has accrued in the meantime.
   const repaid = min(view.price(intent.token, U, funding), view.debt);
-  assertDebtInBand(view.debt - repaid, view.band, U);
+  assertDebtInBand(view.sdk, view.debt - repaid, view.band, view.underlying);
 
   return [
     add(intent.token, funding, intent.value),
@@ -366,7 +370,7 @@ export function planWithdrawDelayed(
   if (!eq(T, U) && !(view.rwaAsset && eq(T, view.rwaAsset))) {
     throw new IntentPreviewError(
       "noDelayedRoute",
-      { token: T },
+      { token: toToken(view.sdk, T) },
       `withdraw: a delayed route cannot pay out in ${T}`,
     );
   }
@@ -475,7 +479,7 @@ export function planFinishWithdraw(
   if (!eq(T, U) && !(view.rwaAsset && eq(T, view.rwaAsset))) {
     throw new IntentPreviewError(
       "noDelayedRoute",
-      { token: T },
+      { token: toToken(view.sdk, T) },
       `finishWithdraw: cannot pay out in ${T}`,
     );
   }
@@ -618,7 +622,7 @@ function withdrawShape(
   }
 
   const dD = proportionalDebt(view, WU);
-  assertDebtInBand(view.debt - dD, view.band, U);
+  assertDebtInBand(view.sdk, view.debt - dD, view.band, view.underlying);
 
   return { U, T, S, WU, dD, all: false };
 }
@@ -642,7 +646,7 @@ function leverageShape(
   }
 
   const target = debtForLeverage(view.collateral, intent.targetLeverage);
-  assertDebtInBand(target, view.band, view.underlying);
+  assertDebtInBand(view.sdk, target, view.band, view.underlying);
 
   return { U: view.underlying, delta: target - view.debt };
 }

@@ -1,7 +1,9 @@
 import type { Address } from "viem";
 import { describe, expect, it } from "vitest";
+import type { Token } from "../../../model/index.js";
 
 import { LEVERAGE_DECIMALS } from "../../constants/math.js";
+import type { IntentPreviewError } from "../../validation/refusal.js";
 import {
   assertDebtInBand,
   assertLeverageAtLeastOne,
@@ -9,15 +11,32 @@ import {
   maxProportionalWithdrawal,
   proportionalDebt,
 } from "./math.js";
-import type { IntentPreviewError } from "./refusal.js";
 
 /** Stand-in underlying: the band's amounts are denominated in it. */
 const UND = "0x0000000000000000000000000000000000000001" as Address;
 
+/** What the registry hands back for it, which the refusal inlines. */
+const UND_TOKEN: Token = {
+  chainId: 1,
+  address: UND,
+  symbol: "UND",
+  name: "Underlying",
+  decimals: 18,
+};
+
+/** The band check inlines the token itself, so it is given a registry. */
+const SDK = {
+  chainId: 1,
+  tokensMeta: { getToken: () => UND_TOKEN },
+} as unknown as Parameters<typeof assertDebtInBand>[0];
+
+/** The amount shape a refusal reports: the token inlined, no price attached. */
+const und = (value: bigint) => ({ token: UND_TOKEN, value, valueUsd: null });
+
 /** The detail of the refusal `debt` draws, for a debt that draws one. */
 function inBandDetail(debt: bigint): unknown {
   try {
-    assertDebtInBand(debt, BAND, UND);
+    assertDebtInBand(SDK, debt, BAND, UND);
   } catch (e) {
     return (e as IntentPreviewError).detail;
   }
@@ -70,7 +89,8 @@ describe("math — the three formulas behind every intent", () => {
   });
 
   it("[INV-9] debt must be zero or inside [minDebt, maxDebt]", () => {
-    const inBand = (debt: bigint) => () => assertDebtInBand(debt, BAND, UND);
+    const inBand = (debt: bigint) => () =>
+      assertDebtInBand(SDK, debt, BAND, UND);
     expect(inBand(0n)).not.toThrow();
     expect(inBand(100n)).not.toThrow();
     expect(inBand(10_000n)).not.toThrow();
@@ -86,15 +106,15 @@ describe("math — the three formulas behind every intent", () => {
     // The whole point of the detail: a slider that overshot gets the ceiling
     // to clamp to without a second call to find out what it is.
     expect(inBandDetail(10_001n)).toEqual({
-      requested: { token: UND, balance: 10_001n },
-      minDebt: { token: UND, balance: BAND.minDebt },
-      maxDebt: { token: UND, balance: BAND.maxDebt },
+      requested: und(10_001n),
+      minDebt: und(BAND.minDebt),
+      maxDebt: und(BAND.maxDebt),
     });
     // Under the floor the same three numbers say which end was missed.
     expect(inBandDetail(99n)).toEqual({
-      requested: { token: UND, balance: 99n },
-      minDebt: { token: UND, balance: BAND.minDebt },
-      maxDebt: { token: UND, balance: BAND.maxDebt },
+      requested: und(99n),
+      minDebt: und(BAND.minDebt),
+      maxDebt: und(BAND.maxDebt),
     });
   });
 
@@ -138,5 +158,11 @@ describe("math — the three formulas behind every intent", () => {
     expect(
       maxProportionalWithdrawal({ debt: 1_000n, collateral: 0n }, BAND),
     ).toBe(0n);
+  });
+
+  it("refuses a negative debt, which the old band check let through", () => {
+    // The previous rule was `debt > 0n && debt < minDebt`, so anything below
+    // zero slipped past it. A withdrawal that over-repays can produce one.
+    expect(() => assertDebtInBand(SDK, -1n, BAND, UND)).toThrowError();
   });
 });

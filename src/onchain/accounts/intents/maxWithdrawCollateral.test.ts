@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 import { describe, expect, it } from "vitest";
-import { MIN_HF_LIMITED } from "../../../common-utils/index.js";
 import type { AccountSnapshot } from "../../positions/types.js";
+import { MIN_HF_LIMITED } from "../../validation/checks.js";
 import { CreditAccountOperationsService } from "./index.js";
 import { maxWithdrawCollateral } from "./maxWithdrawCollateral.js";
 import {

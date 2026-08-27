@@ -96,6 +96,7 @@ export async function previewOpenCreditAccount<P extends PluginsMap>(
     // Best-effort like the rest of the preview: tokens the oracle cannot
     // price (ERROR_UNPRICEABLE_TOKEN) contribute nothing to the metrics.
     healthFactor: sdk.positions.healthFactor(snap),
+    safeHealthFactor: sdk.positions.healthFactor(snap, { safePrices: true }),
     // opening borrows the whole debt from the pool
     borrowRate: sdk.positions.borrowRate(snap, {
       availableLiquidityChange: -account.totalDebt,

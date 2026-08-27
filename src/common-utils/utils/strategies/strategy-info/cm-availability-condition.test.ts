@@ -1,180 +1,78 @@
 import type { Address } from "viem";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ADDRESS_0X0, toBN } from "../../../../onchain/index.js";
-
+import { describe, expect, it } from "vitest";
+import { toBN } from "../../../../onchain/index.js";
 import {
   buildCreditManager,
   buildPool,
   mockToken1,
 } from "../../../test-utils/index.js";
-import { validateOpenAccountPoolStatus } from "../../validation/validate-open-account-pool-status.js";
-import type * as CheckDegenNftModule from "../availability/check-degen-nft.js";
-import { checkDegenNFT } from "../availability/check-degen-nft.js";
 import { cmAvailabilityCondition } from "./cm-availability-condition.js";
 import type { PoolSlice } from "./types.js";
 
-// Mock dependencies
-vi.mock("../creditManagers");
-vi.mock("../strategies");
-vi.mock("../availability/check-degen-nft.js", async importOriginal => {
-  const actual = await importOriginal<typeof CheckDegenNftModule>();
+/**
+ * Ordering is judged on what the managers actually are, not on a mocked check:
+ * the ladder these fixtures run through is the real one, so a change in what it
+ * refuses shows up here as a reordering rather than as a passing mock.
+ */
 
-  return {
-    ...actual,
-    checkDegenNFT: vi.fn(),
-  };
-});
-vi.mock("../../validation/validate-open-account-pool-status.js", () => ({
-  validateOpenAccountPoolStatus: vi.fn(),
-}));
-vi.mock("@gearbox-protocol/ui-kit", () => ({
-  getAvailableRanges: vi.fn(),
-}));
+const ROOM = toBN("1000000", 18);
 
-const mockCheckDegenNFT = vi.mocked(checkDegenNFT);
-
-const mockValidateOpenAccountPoolStatus = vi.mocked(
-  validateOpenAccountPoolStatus,
-);
-
-describe("cmAvailabilityCondition", () => {
-  const mockCMA = buildCreditManager({
-    address: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+/** A manager the market has room for at both ends of its band. */
+const openable = (address: string, over: Record<string, unknown> = {}) =>
+  buildCreditManager({
+    address,
     minDebt: toBN("100", 18),
     maxDebt: toBN("10000", 18),
+    totalDebtLimit: ROOM,
+    totalDebt: 0n,
+    availableToBorrow: ROOM,
+    ...over,
   });
 
-  const mockCMB = buildCreditManager({
-    address: "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-    minDebt: toBN("200", 18),
-    maxDebt: toBN("20000", 18),
+const A = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+const B = "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+const DEGEN_NFT = "0xdddddddddddddddddddddddddddddddddddddddd" as Address;
+
+const pool = buildPool({
+  totalDebtLimit: ROOM,
+  totalBorrowed: 0n,
+});
+const pools: Record<Address, PoolSlice> = { [pool.address]: pool };
+
+const order = (
+  cmA: ReturnType<typeof openable>,
+  cmB: ReturnType<typeof openable>,
+  withPools: Record<Address, PoolSlice> | null = pools,
+) => cmAvailabilityCondition(mockToken1, cmA, cmB, withPools);
+
+describe("cmAvailabilityCondition", () => {
+  it("keeps the order when both managers are equally open", () => {
+    expect(order(openable(A), openable(B))).toBe(0);
   });
 
-  const mockPool = buildPool({
-    totalDebtLimit: toBN("1000000", 18),
-    totalBorrowed: toBN("500000", 18),
-  });
-  const mockPools: Record<Address, PoolSlice> = {
-    [mockPool.address]: mockPool,
-  };
+  it("puts the manager that can open its minimum first", () => {
+    // B's own debt limit is already spent, so even its minimum does not fit.
+    const spent = openable(B, { totalDebt: ROOM });
 
-  beforeEach(() => {
-    mockValidateOpenAccountPoolStatus.mockReturnValue(null);
-    mockCheckDegenNFT.mockReturnValue({
-      nftAddress: ADDRESS_0X0,
-      freeOfNFT: true,
-    });
+    expect(order(openable(A), spent)).toBe(-1);
+    expect(order(spent, openable(A))).toBe(1);
   });
 
-  it("should return 0 when both CMs have same availability", () => {
-    mockValidateOpenAccountPoolStatus.mockReturnValue(null);
+  it("prefers a manager with no degen NFT when both can be opened", () => {
+    const gated = openable(A, { isDegenMode: true, degenNFT: DEGEN_NFT });
 
-    const result = cmAvailabilityCondition(
-      mockToken1,
-      mockCMA,
-      mockCMB,
-      mockPools,
-    );
-
-    expect(result).toBe(0);
+    expect(order(gated, openable(B))).toBe(1);
+    expect(order(openable(B), gated)).toBe(-1);
   });
 
-  it("should return -1 when CMA has no min debt error and CMB has error", () => {
-    mockValidateOpenAccountPoolStatus
-      .mockReturnValueOnce(null) // CMA min debt check
-      .mockReturnValueOnce({
-        message: "insufficientDebtLimit",
-        amount: 0n,
-        solutionAmount: undefined,
-      }) // CMB min debt check
-      .mockReturnValueOnce(null) // CMA max debt check
-      .mockReturnValueOnce(null); // CMB max debt check
+  it("falls through to the maximum debt when everything else ties", () => {
+    // Both can open their minimum; only A's maximum runs past what is left.
+    const narrow = openable(A, { totalDebtLimit: toBN("1000", 18) });
 
-    const result = cmAvailabilityCondition(
-      mockToken1,
-      mockCMA,
-      mockCMB,
-      mockPools,
-    );
-
-    expect(result).toBe(-1);
+    expect(order(narrow, openable(B))).toBe(1);
   });
 
-  it("should return 1 when CMA has min debt error and CMB has no error", () => {
-    mockValidateOpenAccountPoolStatus
-      .mockReturnValueOnce({
-        message: "insufficientDebtLimit",
-        amount: 0n,
-        solutionAmount: undefined,
-      }) // CMA min debt check
-      .mockReturnValueOnce(null) // CMB min debt check
-      .mockReturnValueOnce(null) // CMA max debt check
-      .mockReturnValueOnce(null); // CMB max debt check
-
-    const result = cmAvailabilityCondition(
-      mockToken1,
-      mockCMA,
-      mockCMB,
-      mockPools,
-    );
-
-    expect(result).toBe(1);
-  });
-
-  it("should prioritize NFT-free CMs when min debt availability is same", () => {
-    mockValidateOpenAccountPoolStatus.mockReturnValue(null);
-    mockCheckDegenNFT
-      .mockReturnValueOnce({ nftAddress: ADDRESS_0X0, freeOfNFT: false }) // CMA
-      .mockReturnValueOnce({ nftAddress: ADDRESS_0X0, freeOfNFT: true }); // CMB
-
-    const result = cmAvailabilityCondition(
-      mockToken1,
-      mockCMA,
-      mockCMB,
-      mockPools,
-    );
-
-    expect(result).toBe(1); // CMB should be preferred
-  });
-
-  it("should check max debt when min debt and NFT status are same", () => {
-    mockValidateOpenAccountPoolStatus
-      .mockReturnValueOnce(null) // CMA min debt
-      .mockReturnValueOnce(null) // CMB min debt
-      .mockReturnValueOnce({
-        message: "insufficientDebtLimit",
-        amount: 0n,
-        solutionAmount: undefined,
-      }) // CMA max debt
-      .mockReturnValueOnce(null); // CMB max debt
-
-    const result = cmAvailabilityCondition(
-      mockToken1,
-      mockCMA,
-      mockCMB,
-      mockPools,
-    );
-
-    expect(result).toBe(1); // CMB should be preferred
-  });
-
-  it("should call validateOpenAccountPoolStatus with correct parameters", () => {
-    mockValidateOpenAccountPoolStatus.mockReturnValue(null);
-
-    cmAvailabilityCondition(mockToken1, mockCMA, mockCMB, null);
-
-    expect(mockValidateOpenAccountPoolStatus).toHaveBeenCalledWith({
-      pool: undefined,
-      debt: mockCMA.minDebt,
-      creditManager: mockCMA,
-      targetToken: mockToken1,
-    });
-
-    expect(mockValidateOpenAccountPoolStatus).toHaveBeenCalledWith({
-      pool: undefined,
-      debt: mockCMB.minDebt,
-      creditManager: mockCMB,
-      targetToken: mockToken1,
-    });
+  it("reads a missing pool as no pool limit rather than as a refusal", () => {
+    expect(order(openable(A), openable(B), null)).toBe(0);
   });
 });

@@ -391,7 +391,9 @@ describe("withdraw.startDelayed — what each refusal names", () => {
     if (result.ok || result.reason !== "noDelayedRoute") {
       throw new Error("expected noDelayedRoute");
     }
-    expect(result.detail).toEqual({ token: POS });
+    expect(result.detail).toEqual({
+      token: expect.objectContaining({ address: POS }),
+    });
   });
 
   it("an ambiguous redemption names the source and how many venues", async () => {
@@ -403,7 +405,10 @@ describe("withdraw.startDelayed — what each refusal names", () => {
     if (result.ok || result.reason !== "multipleDelayedWithdrawals") {
       throw new Error("expected multipleDelayedWithdrawals");
     }
-    expect(result.detail).toEqual({ token: POS, venues: 2 });
+    expect(result.detail).toEqual({
+      token: expect.objectContaining({ address: POS }),
+      venues: 2,
+    });
   });
 
   it("a redemption in flight names the phantom holding it", async () => {
@@ -416,6 +421,12 @@ describe("withdraw.startDelayed — what each refusal names", () => {
     if (result.ok || result.reason !== "withdrawalInProgress") {
       throw new Error("expected withdrawalInProgress");
     }
-    expect(result.detail).toEqual({ inFlight: { token: PHANTOM, balance: W } });
+    expect(result.detail).toEqual({
+      inFlight: {
+        token: expect.objectContaining({ address: PHANTOM }),
+        value: W,
+        valueUsd: null,
+      },
+    });
   });
 });

@@ -27,3 +27,14 @@ export const SLIPPAGE_DECIMALS = 100n;
  * Token balances at or below this threshold are treated as dust and ignored.
  **/
 export const DUST_THRESHOLD = 10n;
+
+/**
+ * Whether a balance is nothing worth acting on.
+ *
+ * The threshold is a dust floor, not a zero test: rounding leaves amounts that
+ * are technically non-zero and worthless, and a form that offered to spend one
+ * would build a transaction nobody wants.
+ */
+export function isZeroBalance(balance: bigint | undefined): boolean {
+  return (balance ?? 0n) <= DUST_THRESHOLD;
+}

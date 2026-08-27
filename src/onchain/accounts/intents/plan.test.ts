@@ -40,6 +40,12 @@ function view(args: {
   }
   return {
     underlying: U,
+    // The planners only inline a token into a refusal, so a registry that
+    // names one by its own address is enough to read the refusal back.
+    sdk: {
+      chainId: 1,
+      tokensMeta: { getToken: () => undefined },
+    } as unknown as AccountView["sdk"],
     rwaAsset: args.rwaAsset,
     debt: args.debt,
     collateral: totalValue - args.debt,

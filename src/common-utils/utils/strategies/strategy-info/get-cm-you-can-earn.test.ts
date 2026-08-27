@@ -40,6 +40,10 @@ describe("getCMYouCanEarn", () => {
 
   const creditManager = buildCreditManager({
     address: creditManagerAddress,
+    // The builder defaults this to 0, which refuses any quoted position at all
+    // — the reason this file never went green while it was named `.spec.ts`
+    // and therefore never ran.
+    maxEnabledTokensLength: 4,
     pool: poolAddress,
     underlyingToken: underlyingTokenAddress,
     collateralTokens: [

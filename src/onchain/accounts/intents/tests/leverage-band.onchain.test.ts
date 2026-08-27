@@ -170,7 +170,7 @@ describe("calcLeverageBand", () => {
         if (!reachable) continue;
         for (const leverage of [reachable.min, reachable.max]) {
           const debt = debtForLeverage(netValue, scaleLeverage(leverage));
-          expect(() => assertDebtInBand(debt, facade, UND)).not.toThrow();
+          expect(() => assertDebtInBand(sdk, debt, facade, UND)).not.toThrow();
           checked += 1;
         }
       }
