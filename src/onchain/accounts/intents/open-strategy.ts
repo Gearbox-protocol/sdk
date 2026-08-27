@@ -19,8 +19,9 @@ import {
   debtForLeverage,
 } from "./math.js";
 import { IntentPreviewError } from "./refusal.js";
-import type { CreditAccountSlice } from "./types.js";
+import type { CreditAccountSlice, PathLossRate } from "./types.js";
 import {
+  collectPriceImpact,
   convertAmount,
   createRouterPaths,
   getQuotasForUpdate,
@@ -83,6 +84,8 @@ export interface OpenStrategyPreview {
   collateral: bigint;
   /** Position size — collateral plus debt, in underlying. */
   totalValue: bigint;
+  /** What the routed leg lost to market depth; `undefined` if not measured. */
+  priceImpact: PathLossRate | undefined;
   /** Expected post-open balances. */
   averageAssets: TokenAmount[];
   /** Floor post-open balances after slippage. */
@@ -158,8 +161,9 @@ export async function previewOpenStrategy(
   assertCanBorrow(suite, debt);
 
   const paths = createRouterPaths({ sdk, creditAccount: account, slippage });
+  const expectedBalances = mergeExpectedBalances(collateral, underlying, debt);
   const leg = await paths.openStrategy({
-    expectedBalances: mergeExpectedBalances(collateral, underlying, debt),
+    expectedBalances,
     leftoverBalances,
     target: targetToken,
   });
@@ -211,10 +215,18 @@ export async function previewOpenStrategy(
   };
   assertCollateralised(metrics.healthFactor, false);
 
+  const priceImpact = await collectPriceImpact(leg.probe ? [leg.probe] : [], {
+    totalValue: margin + debt,
+    // Opening borrows the rest, so the margin is the equity.
+    netValue: margin,
+    toUnderlying: (from, amount) => convert(from, underlying, amount),
+  });
+
   return {
     debt,
     collateral: margin,
     totalValue: margin + debt,
+    priceImpact,
     averageAssets: averageAssets.map(priced),
     minAssets: minAssets.map(priced),
     averageQuota,

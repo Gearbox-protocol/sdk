@@ -142,6 +142,8 @@ export interface MarketSdkExtras {
   maxDebtPerBlockMultiplier?: number;
   /** Tokens the facade forbids. */
   forbiddenTokens?: Address[];
+  /** What a routed swap returns; linear when omitted. */
+  routeQuote?: (amount: bigint) => bigint;
 }
 
 /** Mock SDK on the shared fixture market. */
@@ -157,6 +159,7 @@ export function buildMarketSdk(extras?: MarketSdkExtras): OnchainSDK {
     creditManager: CREDIT_MANAGER,
     creditFacade: CREDIT_FACADE,
     underlying: UND,
+    routeQuote: extras?.routeQuote,
     rwaAssets: extras?.rwaAssets,
     phantoms: extras?.phantoms,
     creditAccounts: extras?.creditAccounts,

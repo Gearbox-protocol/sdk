@@ -70,6 +70,7 @@ export type {
   InstantRoute,
   IntentRoutesResult,
   OperationState,
+  PathLossRate,
   RepayStrategyIntent,
   ResumableIntent,
   RouteRefusals,

@@ -26,6 +26,18 @@ export type CreditAccountSlice = Omit<RouterCASlice, "debt"> & {
   accountDebt: bigint;
 };
 
+/**
+ * Price impact against three bases: the routed output, net value, total value.
+ *
+ * In `PERCENTAGE_FACTOR_1KK` (1_000_000 = 100%), negative for a loss — the
+ * legacy 1e6 scale, not the `Bps` the rest of this module speaks.
+ */
+export interface PathLossRate {
+  pathPriceImpact: bigint;
+  netValuePriceImpact: bigint;
+  totalValuePriceImpact: bigint;
+}
+
 /** Projected account metrics once the operations execute. */
 export interface OperationState {
   /**
@@ -75,6 +87,11 @@ export interface OperationState {
    * absent rather than present at zero.
    */
   quotas: Record<Address, Asset>;
+  /**
+   * What the routed legs lost to market depth. `undefined` where nothing was
+   * routed or nothing could be measured — never a manufactured zero.
+   */
+  priceImpact: PathLossRate | undefined;
 }
 
 /**

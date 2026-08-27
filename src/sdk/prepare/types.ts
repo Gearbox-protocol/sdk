@@ -34,6 +34,7 @@ import type {
 export type {
   LeverageBand,
   OperationState,
+  PathLossRate,
   PreviewErrorDetails,
   PreviewErrorReason,
   PreviewRefusal,

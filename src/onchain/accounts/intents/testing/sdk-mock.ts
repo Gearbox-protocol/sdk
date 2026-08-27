@@ -158,6 +158,13 @@ interface BuildMockSdkArgs {
    * `accountDebt` lands as the principal with no interest or fees accrued.
    */
   creditAccounts?: CreditAccountSlice[];
+  /**
+   * What a routed swap returns for a given input, so a case can quote a market
+   * with depth. The default is linear — every route returns its input — which
+   * reports no price impact at all, since the probe scales down in exactly the
+   * same proportion.
+   */
+  routeQuote?: (amount: bigint) => bigint;
 }
 
 /** One redemption venue of the mock compressor. */
@@ -384,6 +391,9 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
     return [MOCK_ROUTER_CALL];
   };
 
+  /** Linear unless the case says otherwise — see `routeQuote`. */
+  const quote = args.routeQuote ?? ((amount: bigint) => amount);
+
   const router = {
     findOneTokenPath: vi.fn(
       async ({
@@ -395,8 +405,8 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
         tokenIn: Address;
         tokenOut: Address;
       }) => ({
-        amount,
-        minAmount: amount,
+        amount: quote(amount),
+        minAmount: quote(amount),
         calls: routeCalls(tokenIn, tokenOut),
       }),
     ),
@@ -415,8 +425,8 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
           leftoverBalances.reduce((acc, a) => acc + a.balance, 0n);
         const tokenIn = expectedBalances[0]?.token ?? target;
         return {
-          amount: spent,
-          minAmount: spent,
+          amount: quote(spent),
+          minAmount: quote(spent),
           calls: routeCalls(tokenIn, target),
         };
       },

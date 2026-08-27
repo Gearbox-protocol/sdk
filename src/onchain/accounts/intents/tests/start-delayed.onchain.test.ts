@@ -134,6 +134,21 @@ describe("withdraw.startDelayed — request now, settle after the delay", () => 
     expect(result.calls[0]).toEqual(MOCK_REQUEST_CALL);
   });
 
+  it("reports no price impact: a request routes nothing and its tail is oracle-priced", async () => {
+    const result = await run(
+      { type: "WITHDRAW", amount: W, to: WALLET },
+      buildSdk(),
+    );
+    if (!result.ok) {
+      throw new Error("expected ok delayed preview");
+    }
+
+    // `undefined`, not zero. The oracle quoter this walk uses has no depth to
+    // discover, and a zero here would read as a measurement that was taken.
+    expect(result.preview.priceImpact).toBeUndefined();
+    expect(result.delayed.afterRequest.priceImpact).toBeUndefined();
+  });
+
   it("holds the payout back when the source is the payout token", async () => {
     const result = await run(
       { type: "WITHDRAW", amount: W, to: WALLET, sourceToken: UND },

@@ -30,8 +30,8 @@ import {
   QUOTA_3000,
 } from "./deposit.fixtures.js";
 
-function run(c: DepositCase) {
-  const sdk = buildDepositSdk(c);
+function run(c: DepositCase, routeQuote?: (amount: bigint) => bigint) {
+  const sdk = buildDepositSdk(c, routeQuote);
   const service = new CreditAccountOperationsService(sdk);
   return service.startIntent(buildDepositProps(c, sdk));
 }
@@ -144,5 +144,58 @@ describe("deposit.start — collateral in, debt on top, converted to position", 
       intent: { ...case_fixed_leverage.intent, amount: 0n },
     });
     expectPreviewError(result, "insufficientSourceBalance");
+  });
+});
+
+describe("deposit.start — price impact of the routed leg", () => {
+  /**
+   * A market with depth: every route gives up a hundredth of a percent per
+   * `SIZE` swapped. A probe is orders of magnitude smaller, so it clears at
+   * very nearly the marginal price and the real leg's shortfall is the impact.
+   */
+  const SIZE = 100_000_000_000n;
+  const withDepth = (amount: bigint): bigint =>
+    amount - (amount * amount) / (SIZE * 10_000n);
+
+  it("reports what the route gave up to depth", async () => {
+    const result = await run(case_fixed_leverage, withDepth);
+    if (!result.ok) throw new Error("expected a preview");
+    const { priceImpact } = result.preview;
+
+    expect(priceImpact).toBeDefined();
+    if (!priceImpact) return;
+    // A loss, never a gain
+    expect(priceImpact.pathPriceImpact).toBeLessThan(0n);
+    // and small: this is depth, not a broken measurement
+    expect(priceImpact.pathPriceImpact).toBeGreaterThan(-100_000n);
+  });
+
+  it("states the same loss against equity and against position size", async () => {
+    const result = await run(case_fixed_leverage, withDepth);
+    if (!result.ok) throw new Error("expected a preview");
+    const { priceImpact, totalValue, accountDebt } = result.preview;
+    if (!priceImpact) throw new Error("expected a measurement");
+
+    // The same absolute loss over two different bases, so the ratio of the two
+    // rates is the ratio of the bases. Catches a swapped denominator, which no
+    // single-rate assertion can.
+    const netValue = totalValue - accountDebt;
+    expect(
+      priceImpact.netValuePriceImpact * netValue -
+        priceImpact.totalValuePriceImpact * totalValue,
+    ).toBeLessThanOrEqual(totalValue / 1_000n);
+    // Equity is the smaller base, so the same loss reads worse against it.
+    expect(priceImpact.netValuePriceImpact).toBeLessThan(
+      priceImpact.totalValuePriceImpact,
+    );
+  });
+
+  it("measures nothing on a market with no depth to give up", async () => {
+    const result = await run(case_fixed_leverage);
+    if (!result.ok) throw new Error("expected a preview");
+
+    // The mock's default route is linear, and a probe scales down in exactly
+    // the same proportion, so there is nothing to find.
+    expect(result.preview.priceImpact?.pathPriceImpact).toBe(0n);
   });
 });

@@ -226,7 +226,11 @@ describe("withdraw tail S/T matrix (onchain)", () => {
         target: RWA,
       }),
     );
-    expect(findPath).not.toHaveBeenCalled();
+    // Both real legs keep part of their balance, so they go through the
+    // many-to-one door asserted above. The one-token door is reached only by
+    // their price-impact probes, which spend their whole scaled basket and so
+    // have no leftover to declare.
+    expect(findPath).toHaveBeenCalledTimes(2);
   });
 });
 

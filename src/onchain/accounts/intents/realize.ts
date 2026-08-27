@@ -1,5 +1,4 @@
 import type { Address } from "viem";
-import type { TokenAmount } from "../../../model/index.js";
 import type { MultiCall, OnchainSDK } from "../../index.js";
 import { calcPositionLeverage } from "../../market/math.js";
 import type { AccountSnapshot } from "../../positions/types.js";
@@ -37,6 +36,7 @@ import { eq, toTargetDecimals } from "./utils/common.js";
 import { convertAmount } from "./utils/convert-amount.js";
 import { OperationLedger } from "./utils/ledger.js";
 import { isRedemptionPhantomToken } from "./utils/pick-token.js";
+import { collectPriceImpact, type LegProbe } from "./utils/price-impact.js";
 import {
   clearedQuotas,
   getQuotasForUpdate,
@@ -105,6 +105,9 @@ export async function realize(
     operations.push(op);
     ledger.apply(op);
   };
+
+  /** One per routed leg, each already awaiting its quote; folded after the guards. */
+  const probes: LegProbe[] = [];
 
   /** Output of the last convert or claim, for `RAISED` amounts. */
   let raised = 0n;
@@ -234,6 +237,9 @@ export async function realize(
           amount,
           keep: held - amount,
         });
+        if (leg.probe) {
+          probes.push(leg.probe);
+        }
         push(
           buildSwapOperation({
             tokenIn: step.from,
@@ -270,6 +276,9 @@ export async function realize(
         }
         if (balances.length > 0) {
           const leg = await paths.closeAll({ balances });
+          if (leg.probe) {
+            probes.push(leg.probe);
+          }
           // Nothing to sell comes back empty on both counts; a projection comes
           // back with an amount and no calls, and still has to move the ledger.
           if (leg.calls.length > 0 || leg.minAmount > 0n) {
@@ -476,6 +485,13 @@ export async function realize(
     paysOut,
   );
 
+  // After the guards, so a refusal never waits on a measurement it will not report.
+  const priceImpact = await collectPriceImpact(probes, {
+    totalValue,
+    netValue: totalValue - debt,
+    toUnderlying: (from, amount) => price(from, underlying, amount),
+  });
+
   const state: OperationState = {
     totalValue,
     accountDebt: debt,
@@ -484,6 +500,7 @@ export async function realize(
       market.priceOracle.toTokenAmount(a.token, a.balance),
     ),
     quotas: quotasAfter,
+    priceImpact,
     ...metrics,
   };
 

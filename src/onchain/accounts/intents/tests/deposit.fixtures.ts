@@ -250,8 +250,11 @@ export const case_native_coin: DepositCase = {
   ],
 };
 
-export function buildDepositSdk(c: DepositCase): OnchainSDK {
-  return buildMarketSdk({ rwaAssets: c.rwaAssets });
+export function buildDepositSdk(
+  c: DepositCase,
+  routeQuote?: (amount: bigint) => bigint,
+): OnchainSDK {
+  return buildMarketSdk({ rwaAssets: c.rwaAssets, routeQuote });
 }
 
 export function buildDepositProps(c: DepositCase, sdk: OnchainSDK) {

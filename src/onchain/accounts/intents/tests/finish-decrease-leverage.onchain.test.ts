@@ -203,7 +203,9 @@ describe("decreaseLeverage tail — claim then repay (onchain)", () => {
     });
 
     expect(assetBalance(state.assets, ANY)).toBe(0n);
-    expect(findPath).toHaveBeenCalledTimes(1);
+    // Twice: the leg that will be sent, and the marginal-price probe behind
+    // the reported price impact.
+    expect(findPath).toHaveBeenCalledTimes(2);
   });
 
   it("D.slippage: decreaseDebt and swap use swap minOut", async () => {

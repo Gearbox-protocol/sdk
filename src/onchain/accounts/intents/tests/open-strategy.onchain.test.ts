@@ -54,7 +54,14 @@ async function expectCase(c: OpenStrategyCase) {
   const findOpen = vi.mocked(
     sdk.routerFor({ creditFacade: CREDIT_FACADE }).findOpenStrategyPath,
   );
-  expect(findOpen).toHaveBeenCalledTimes(1);
+  // Twice: the route that will be sent, and the marginal-price probe the
+  // price impact is measured against. `Nth(1, …)` so this still pins the real
+  // one rather than whichever came back first.
+  // Twice: the route that will be sent, and the marginal-price probe the price
+  // impact is measured against. The probe goes first — it is fired before the
+  // real leg is awaited — and carries a scaled-down basket, so matching on the
+  // real balances still identifies the real call without pinning an order.
+  expect(findOpen).toHaveBeenCalledTimes(2);
   expect(findOpen).toHaveBeenCalledWith(
     expect.objectContaining({
       expectedBalances: c.expectedRouterBalances,

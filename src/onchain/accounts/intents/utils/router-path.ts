@@ -3,6 +3,7 @@ import type { Asset, MultiCall, OnchainSDK } from "../../../index.js";
 import type { CreditAccountSlice } from "../types.js";
 import { toRouterCaSlice } from "./common.js";
 import { convertAmount } from "./convert-amount.js";
+import { type LegProbe, startProbe } from "./price-impact.js";
 
 /** One routed conversion leg. */
 export interface SwapLeg {
@@ -11,6 +12,14 @@ export interface SwapLeg {
   /** Conservative output — the pathfinder floor after slippage. */
   minAmount: bigint;
   calls: MultiCall[];
+  /**
+   * The marginal-price quote this leg is measured against, already in flight.
+   *
+   * Produced here, not by the caller, so the basket cannot drift from the trade
+   * it prices and the quote is always fired before the leg is awaited.
+   * `undefined` where there is nothing to measure.
+   */
+  probe: LegProbe | undefined;
 }
 
 /** A routed leg that also projects the balances it leaves behind. */
@@ -81,11 +90,72 @@ export function createRouterPaths(args: {
   const router = sdk.routerFor({
     creditFacade: suite.creditFacade.address,
   });
+  const { priceOracle } = sdk.marketRegister.findByCreditManager(
+    creditAccount.creditManager,
+  );
+
+  // Asking the router, without probing. The probe below reuses these, so a
+  // quote and the quote it is measured against can never drift apart — and a
+  // probe is then literally the same call, smaller and keeping nothing back.
+  const quoteSwap = (input: {
+    tokenIn: Address;
+    tokenOut: Address;
+    amount: bigint;
+    keep: bigint;
+  }) => {
+    // What the router sees of `tokenIn`: the whole balance when part of it has
+    // to survive, and just the spend when none does.
+    const spending = [
+      { token: input.tokenIn, balance: input.amount + input.keep },
+    ];
+    return input.keep > 0n
+      ? router.findManyToOnePath({
+          creditAccount: toRouterCaSlice(creditAccount, spending),
+          creditManager: cmSlice,
+          expectedBalances: spending,
+          leftoverBalances: [{ token: input.tokenIn, balance: input.keep }],
+          target: input.tokenOut,
+          slippage,
+        })
+      : router.findOneTokenPath({
+          creditAccount: toRouterCaSlice(creditAccount, spending),
+          creditManager: cmSlice,
+          tokenIn: input.tokenIn,
+          tokenOut: input.tokenOut,
+          amount: input.amount,
+          slippage,
+        });
+  };
+
+  const quoteClose = (balances: Asset[]) =>
+    router.findBestClosePath({
+      creditAccount: toRouterCaSlice(creditAccount, balances),
+      creditManager: cmSlice,
+      balances: {
+        expectedBalances: balances,
+        leftoverBalances: [],
+        tokensToClaim: [],
+      },
+      slippage,
+    });
+
+  const quoteOpen = (
+    expectedBalances: Asset[],
+    leftoverBalances: Asset[],
+    target: Address,
+  ) =>
+    router.findOpenStrategyPath({
+      creditManager: cmSlice,
+      expectedBalances,
+      leftoverBalances,
+      target,
+      slippage,
+    });
 
   return {
     async swap({ tokenIn, tokenOut, amount, keep = 0n }) {
       if (amount <= 0n) {
-        return { amount: 0n, minAmount: 0n, calls: [] };
+        return { amount: 0n, minAmount: 0n, calls: [], probe: undefined };
       }
       if (keep < 0n) {
         throw new Error(
@@ -93,52 +163,57 @@ export function createRouterPaths(args: {
         );
       }
 
-      if (keep > 0n) {
-        const expectedBalances = [{ token: tokenIn, balance: amount + keep }];
-        return router.findManyToOnePath({
-          creditAccount: toRouterCaSlice(creditAccount, expectedBalances),
-          creditManager: cmSlice,
-          expectedBalances,
-          leftoverBalances: [{ token: tokenIn, balance: keep }],
-          target: tokenOut,
-          slippage,
-        });
-      }
-
-      return router.findOneTokenPath({
-        creditAccount: toRouterCaSlice(creditAccount, [
-          { token: tokenIn, balance: amount },
-        ]),
-        creditManager: cmSlice,
-        tokenIn,
+      // The same swap at a size that cannot move a pool, keeping nothing back.
+      // That size also drops it to a single split, which is what a marginal
+      // price is — do not "fix" that to match the real leg.
+      const probe = startProbe({
+        basket: [{ token: tokenIn, balance: amount }],
         tokenOut,
-        amount,
-        slippage,
+        oracle: priceOracle,
+        route: async ([only]) => {
+          if (!only) {
+            return 0n;
+          }
+          const quote = await quoteSwap({
+            tokenIn: only.token,
+            tokenOut,
+            amount: only.balance,
+            keep: 0n,
+          });
+          return quote.amount;
+        },
       });
+
+      const leg = await quoteSwap({ tokenIn, tokenOut, amount, keep });
+
+      return { ...leg, probe: probe && { ...probe, realAmount: leg.amount } };
     },
 
     async closeAll({ balances }) {
-      const { amount, minAmount, calls } = await router.findBestClosePath({
-        creditAccount: toRouterCaSlice(creditAccount, balances),
-        creditManager: cmSlice,
-        balances: {
-          expectedBalances: balances,
-          leftoverBalances: [],
-          tokensToClaim: [],
-        },
-        slippage,
+      const probe = startProbe({
+        basket: balances,
+        tokenOut: creditAccount.underlying,
+        oracle: priceOracle,
+        route: async quoted => (await quoteClose(quoted)).amount,
       });
-      return { amount, minAmount, calls: [...calls] };
+
+      const { amount, minAmount, calls } = await quoteClose(balances);
+      const leg = { amount, minAmount, calls: [...calls] };
+      return { ...leg, probe: probe && { ...probe, realAmount: leg.amount } };
     },
 
     async openStrategy({ expectedBalances, leftoverBalances, target }) {
-      return router.findOpenStrategyPath({
-        creditManager: cmSlice,
-        expectedBalances,
-        leftoverBalances,
-        target,
-        slippage,
+      // Nothing kept back: a probe spends its whole basket.
+      const probe = startProbe({
+        basket: expectedBalances,
+        tokenOut: target,
+        oracle: priceOracle,
+        route: async balances => (await quoteOpen(balances, [], target)).amount,
       });
+
+      const leg = await quoteOpen(expectedBalances, leftoverBalances, target);
+
+      return { ...leg, probe: probe && { ...probe, realAmount: leg.amount } };
     },
   };
 }
@@ -159,10 +234,13 @@ export function createOraclePaths(args: {
 }): RouterPaths {
   const { sdk, creditAccount } = args;
   const price = convertAmount(sdk, creditAccount.creditManager);
+  // Linear by construction, so probing it would compare a number against
+  // itself. No probe says "not measured", which is the honest answer.
   const estimate = (amount: bigint): SwapLeg => ({
     amount,
     minAmount: amount,
     calls: [],
+    probe: undefined,
   });
 
   return {
