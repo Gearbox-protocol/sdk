@@ -50,6 +50,12 @@ export interface OperationState {
    **/
   healthFactor: Bps;
   /**
+   * The same factor with collateral valued at safe prices, present only where
+   * the walk had reason to compute it — a call that hands funds over, which is
+   * the one the credit manager weighs at safe prices on-chain.
+   **/
+  safeHealthFactor?: Bps;
+  /**
    * Cost of the debt, broken down by source.
    **/
   borrowRate: BorrowRateBreakdown;

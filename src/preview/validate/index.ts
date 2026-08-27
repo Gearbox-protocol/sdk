@@ -1,2 +1,2 @@
-export type { CheckOperationOptions } from "./checkOperation.js";
-export { checkOperation } from "./checkOperation.js";
+export * from "./checkOperation.js";
+export * from "./checkSimulation.js";

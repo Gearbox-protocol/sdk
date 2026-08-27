@@ -474,6 +474,11 @@ export async function realize(
   };
   const metrics = {
     healthFactor: sdk.positions.healthFactor(snapshot),
+    // Reported only where the walk had reason to weigh it, which is the same
+    // condition the guard below reads it under.
+    safeHealthFactor: paysOut
+      ? sdk.positions.healthFactor(snapshot, { safePrices: true })
+      : undefined,
     borrowRate: sdk.positions.borrowRate(snapshot, projectedPool),
     timeToLiquidation: sdk.positions.timeToLiquidation(snapshot, projectedPool),
     liquidationPrice: sdk.positions.liquidationPrice(snapshot),

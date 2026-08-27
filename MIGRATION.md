@@ -231,7 +231,8 @@ npx skills add Gearbox-protocol/sdk --skill gearbox-sdk-v13-to-v14
 - **Refusal details inline their tokens.** `PreviewErrorDetails` now carries `Token` and `TokenAmount` where it carried `Address` and `Asset`, so a row is renderable without a token dictionary.
 - **`marketPaused` covers pools**, `insufficientPoolLiquidity` names which ceiling bound, and three reasons are new: `poolSunset`, `quotaCountExceeded`, `malformedTransaction`.
 - **`checkOperation` weighs a pool payout** against the liquidity the pool holds, refusing at equality as the legacy withdrawal validator did. It does **not** check whether a deposit has a route — that belongs to the simulator, which refuses such a deposit before there is calldata to preview.
-- **Previews report `safeHealthFactor`** beside `healthFactor`.
+- **Previews report `safeHealthFactor`** beside `healthFactor`; a simulation reports it too (`OperationState.safeHealthFactor`), but only where the walk had reason to compute it — an operation that hands funds over.
+- **`checkSimulation`** applies a caller's stricter bars to a simulation the engine already accepted, and `checkOperation`/`checkCollateralised` take `currentHealthFactor`/`improvesFrom`, so an operation that raises the factor is not refused from under the bar.
 
 ### Replace the flat validators with the checks
 

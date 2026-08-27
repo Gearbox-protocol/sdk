@@ -201,6 +201,43 @@ describe("checkCollateralised", () => {
     expect(at(65_535, MIN_HEALTH_FACTOR_FORM)).toBeNull();
   });
 
+  it("lets an operation that raises the factor through from under the bar", () => {
+    // The account is already below; the top-up that rescues it must not be
+    // refused by the check meant to protect it.
+    expect(
+      checkCollateralised({
+        healthFactor: 10_080,
+        required: MIN_HEALTH_FACTOR_FORM,
+        safePrices: false,
+        improvesFrom: 10_050,
+      }),
+    ).toBeNull();
+  });
+
+  it("still refuses when the operation does not raise it", () => {
+    const at = (improvesFrom: number) =>
+      checkCollateralised({
+        healthFactor: 10_080,
+        required: MIN_HEALTH_FACTOR_FORM,
+        safePrices: false,
+        improvesFrom,
+      });
+
+    expect(at(10_080)?.reason).toBe("insufficientCollateral");
+    expect(at(10_090)?.reason).toBe("insufficientCollateral");
+  });
+
+  it("refuses an unread factor whatever the account stands at", () => {
+    expect(
+      checkCollateralised({
+        healthFactor: undefined,
+        required: MIN_HEALTH_FACTOR_FORM,
+        safePrices: false,
+        improvesFrom: 1,
+      })?.reason,
+    ).toBe("insufficientCollateral");
+  });
+
   it("records which pricing the factor was read at", () => {
     const issue = checkCollateralised({
       healthFactor: 1,

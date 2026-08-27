@@ -23,6 +23,12 @@ export const MIN_HEALTH_FACTOR_FORM = 10_101;
 /** The bar the facade itself enforces: an account may end exactly at 1.0. */
 export const MIN_HEALTH_FACTOR_FACADE = 10_000;
 
+/**
+ * The safe-price bar a form holds an account to. A step above the facade's,
+ * because a factor of exactly 1.0 at safe prices is already a refusal.
+ */
+export const MIN_SAFE_HEALTH_FACTOR_FORM = 10_001;
+
 /** A refusal names what a limit was measured in, never what it is worth. */
 export function amountOf(token: Token, value: bigint): TokenAmount {
   return { token, value, valueUsd: null };
@@ -194,14 +200,29 @@ export function checkCollateralised(args: {
   /** The lowest acceptable factor — a factor equal to it passes. */
   required: Bps;
   safePrices: boolean;
+  /**
+   * The factor the account stands at now. Given, an operation that raises it
+   * passes even from under the bar: an account already below is rescued by
+   * exactly the top-ups a flat bar would refuse.
+   */
+  improvesFrom?: Bps;
 }): PreviewIssue | null {
-  const { healthFactor, required, safePrices } = args;
-  if (healthFactor !== undefined && healthFactor >= required) {
+  const { healthFactor, required, safePrices, improvesFrom } = args;
+  if (healthFactor === undefined) {
+    return {
+      reason: "insufficientCollateral",
+      detail: { healthFactor: 0, required, safePrices },
+    };
+  }
+  if (
+    healthFactor >= required ||
+    (improvesFrom !== undefined && healthFactor > improvesFrom)
+  ) {
     return null;
   }
   return {
     reason: "insufficientCollateral",
-    detail: { healthFactor: healthFactor ?? 0, required, safePrices },
+    detail: { healthFactor, required, safePrices },
   };
 }
 

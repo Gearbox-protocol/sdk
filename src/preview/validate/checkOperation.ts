@@ -41,6 +41,12 @@ export interface CheckOperationOptions {
    * is checked offline; omitted, funding is left to `checkPrerequisites`.
    */
   balances?: AddressMap<bigint>;
+  /**
+   * The factor the account stands at now. Given, an operation that raises it
+   * passes even from under the bar — the top-ups that rescue a position would
+   * otherwise be refused by the very check meant to protect it.
+   */
+  currentHealthFactor?: Bps;
 }
 
 /**
@@ -175,22 +181,12 @@ function collateralIssue(
   preview: CreditPreview,
   options: CheckOperationOptions,
 ): PreviewIssue | null {
-  const { minHealthFactor, minSafeHealthFactor } = options;
-  return (
-    (minHealthFactor === undefined
-      ? null
-      : checkCollateralised({
-          healthFactor: preview.healthFactor,
-          required: minHealthFactor,
-          safePrices: false,
-        })) ||
-    (minSafeHealthFactor === undefined
-      ? null
-      : checkCollateralised({
-          healthFactor: preview.safeHealthFactor,
-          required: minSafeHealthFactor,
-          safePrices: true,
-        }))
+  return collateralIssuesOf(
+    {
+      healthFactor: preview.healthFactor,
+      safeHealthFactor: preview.safeHealthFactor,
+    },
+    options,
   );
 }
 
@@ -289,4 +285,29 @@ function quotaIssue(
     }
   }
   return null;
+}
+
+/** The two collateral bars, shared by the preview and the simulation paths. */
+export function collateralIssuesOf(
+  factors: { healthFactor: Bps | undefined; safeHealthFactor: Bps | undefined },
+  options: CheckOperationOptions,
+): PreviewIssue | null {
+  const { minHealthFactor, minSafeHealthFactor, currentHealthFactor } = options;
+  return (
+    (minHealthFactor === undefined
+      ? null
+      : checkCollateralised({
+          healthFactor: factors.healthFactor,
+          required: minHealthFactor,
+          safePrices: false,
+          improvesFrom: currentHealthFactor,
+        })) ||
+    (minSafeHealthFactor === undefined || factors.safeHealthFactor === undefined
+      ? null
+      : checkCollateralised({
+          healthFactor: factors.safeHealthFactor,
+          required: minSafeHealthFactor,
+          safePrices: true,
+        }))
+  );
 }

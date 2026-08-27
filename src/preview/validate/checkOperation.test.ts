@@ -117,6 +117,25 @@ describe("checkOperation", () => {
     });
   });
 
+  it("lets a rescue through: an account under the bar being topped up", () => {
+    // Broken today: the form passes it (the engine holds only the facade's 1.0)
+    // and the confirm screen refuses it, so a position cannot be rescued
+    // through the interface at all.
+    expect(
+      check(adjust({ healthFactor: 10_080 }), {
+        minHealthFactor: 10_101,
+        currentHealthFactor: 10_050,
+      }),
+    ).toBeNull();
+
+    expect(
+      check(adjust({ healthFactor: 10_080 }), {
+        minHealthFactor: 10_101,
+        currentHealthFactor: 10_090,
+      })?.reason,
+    ).toBe("insufficientCollateral");
+  });
+
   it("weighs the safe-price factor against its own bar", () => {
     // Main prices clear 10_000, the safe ones do not: only the safe check fires.
     const issues = check(
