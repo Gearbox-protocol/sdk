@@ -26,6 +26,12 @@ describe("mode gates method existence", () => {
     expectTypeOf<Positions<"onchain">>().not.toHaveProperty("charts");
   });
 
+  it("totals exist only where a backend does", () => {
+    expectTypeOf<Positions<"offchain">>().toHaveProperty("totals");
+    expectTypeOf<Positions<"both">>().toHaveProperty("totals");
+    expectTypeOf<Positions<"onchain">>().not.toHaveProperty("totals");
+  });
+
   it("a widened mode degrades to the base reads rather than to everything", () => {
     // consumers whose config object widens `mode` to `Mode` lose the gated
     // methods; they must not silently gain them

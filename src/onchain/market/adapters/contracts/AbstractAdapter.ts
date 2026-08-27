@@ -205,6 +205,21 @@ export class AbstractAdapterContract<
   }
 
   /**
+   * Replays this adapter call when it appears outside a
+   * storeExpectedBalances/compareBalances bracket, mutating `balances` in
+   * place, and returns `true` when the call is legal there.
+   *
+   * Base implementation returns `false`: nothing enforces the outcome of an
+   * out-of-bracket adapter call on-chain, so it cannot be previewed.
+   *
+   * @throws when the call is allowed outside a bracket but its calldata
+   * cannot be decoded
+   */
+  public replayOutOfBracketCall(_balances: AssetsMap, _calldata: Hex): boolean {
+    return false;
+  }
+
+  /**
    * Applies the balance changes of a decoded adapter call to the running
    * balances, mutating them in place. Overrides should express changes via
    * {@link setLeftover} (diff-style calls) and {@link spendExact}

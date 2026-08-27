@@ -201,7 +201,9 @@ export function printCompareSummary(
   }
 
   if (expected.length) {
-    console.log("\nexpected fields (mode-scoped, backend-preferred, or within tolerance):");
+    console.log(
+      "\nexpected fields (mode-scoped, backend-preferred, or within tolerance):",
+    );
     console.table(
       expected.slice(0, 25).map(entry => ({
         field: entry.path,

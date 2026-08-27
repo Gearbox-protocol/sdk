@@ -9,6 +9,7 @@ import type {
   Opportunity,
   OpportunityFilter,
   OpportunityKey,
+  OpportunityTotals,
   PoolOpportunityDetail,
   PoolOpportunityKey,
   StrategyOpportunityDetail,
@@ -17,6 +18,7 @@ import type {
 import {
   opportunityFilterQuerySchema,
   opportunitySchema,
+  opportunityTotalsSchema,
   poolOpportunityDetailSchema,
   strategyOpportunityDetailSchema,
 } from "../../model/opportunities.schema.js";
@@ -78,6 +80,16 @@ export class OffchainOpportunities extends AbstractOffchainNamespace {
     return this.get({
       path: this.#strategyPath(key),
       schema: strategyOpportunityDetailSchema,
+    });
+  }
+
+  /**
+   * Protocol-wide totals across every opportunity the backend serves.
+   **/
+  public async getTotals(): Promise<DataResponse<OpportunityTotals>> {
+    return this.get({
+      path: `${this.#root}/totals`,
+      schema: opportunityTotalsSchema,
     });
   }
 

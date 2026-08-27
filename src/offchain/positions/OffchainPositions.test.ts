@@ -209,6 +209,31 @@ describe("decoding what the backend answered", () => {
   });
 });
 
+describe("a totals request names the wallet in its path", () => {
+  it("puts the wallet in the path and reads the aggregate back", async () => {
+    respondWith({
+      data: {
+        currentYield: { organicApy: 500 },
+        pnlUsd: -420,
+        netValueUsd: 12_345,
+        claimableUsd: 67,
+      },
+      meta: { chains: [] },
+    });
+
+    const { data } = await positions().getTotals(WALLET);
+
+    expect(requested().pathname).toBe(`/v2/positions/${WALLET}/totals`);
+    expect(requested().searchParams.has("chainIds")).toBe(false);
+    expect(data).toEqual({
+      currentYield: { organicApy: 500 },
+      pnlUsd: -420,
+      netValueUsd: 12_345,
+      claimableUsd: 67,
+    });
+  });
+});
+
 describe("a chart request names its subject, its metrics and its window", () => {
   const pool = {
     kind: "pool",

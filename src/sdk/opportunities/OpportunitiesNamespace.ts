@@ -6,6 +6,7 @@ import type {
   OpportunityChartMetric,
   OpportunityFilter,
   OpportunityKey,
+  OpportunityTotals,
   PoolOpportunityChartMetric,
   PoolOpportunityDetail,
   PoolOpportunityKey,
@@ -158,6 +159,13 @@ export class OpportunitiesNamespace
     filter?: OpportunityFilter,
   ): FilterResult<R, Opportunity> {
     return filterResponse(response, filter, matchesOpportunityFilter);
+  }
+
+  /**
+   * {@inheritDoc OpportunitiesOffchainOnly.totals}
+   **/
+  public async totals(): Promise<DataResponse<OpportunityTotals>> {
+    return this.offchain.getTotals();
   }
 
   /**

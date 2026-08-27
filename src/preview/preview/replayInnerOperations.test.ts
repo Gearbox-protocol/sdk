@@ -1,5 +1,10 @@
 import type { Address, Hex } from "viem";
-import { encodeFunctionData, getAddress, zeroAddress } from "viem";
+import {
+  encodeAbiParameters,
+  encodeFunctionData,
+  getAddress,
+  zeroAddress,
+} from "viem";
 import { describe, expect, it } from "vitest";
 import { ierc4626AdapterAbi } from "../../abi/ierc4626Adapter.js";
 import {
@@ -7,7 +12,7 @@ import {
   ERROR_MALFORMED_BRACKET,
   ERROR_NON_ADAPTER_CALL_IN_BRACKET,
   ERROR_UNPREVIEWABLE_ADAPTER_CALL,
-  ERROR_UNPREVIEWABLE_RWA_WRAP_UNWRAP,
+  ERROR_UNSUPPORTED_OUT_OF_BRACKET_CALL,
   type OperationPreviewError,
 } from "../../model/index.js";
 import {
@@ -16,8 +21,10 @@ import {
   type AssetsMap,
   ERC4626AdapterContract,
   MAX_UINT256,
+  MidasGatewayAdapterContract,
   type OnchainSDK,
 } from "../../onchain/index.js";
+import { iMidasGatewayAdapterV311Abi } from "../../onchain/market/adapters/abi/adapters/iMidasGatewayAdapterV311.js";
 import type { InnerOperation } from "../parse/index.js";
 import { CreditAccountState } from "./CreditAccountState.js";
 import {
@@ -30,6 +37,13 @@ const USDC = getAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48");
 const WETH = getAddress("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2");
 const WSTETH = getAddress("0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0");
 const ADAPTER = getAddress("0x1111111111111111111111111111111111111111");
+const MIDAS_GATEWAY_ADAPTER = getAddress(
+  "0x27792659F19d15bd6e48e6f4649585E9e49E68D6",
+);
+const RECEIVE_GREENLIST_CALLDATA = encodeFunctionData({
+  abi: iMidasGatewayAdapterV311Abi,
+  functionName: "receiveGreenlist",
+});
 const RECEIVER = getAddress("0x2222222222222222222222222222222222222222");
 const CREDIT_ACCOUNT = getAddress("0x4444444444444444444444444444444444444444");
 const CREDIT_MANAGER = getAddress("0x5555555555555555555555555555555555555555");
@@ -70,17 +84,49 @@ function stubThrowingAdapter(message: string) {
 }
 
 /**
- * Stub ERC4626 adapter created via the prototype so `instanceof
- * ERC4626AdapterContract` holds. `asset`/`share` are prototype getters backed
- * by private fields, so they are shadowed with own properties.
+ * Stub ERC4626 adapter backed by a real instance so
+ * {@link ERC4626AdapterContract.replayOutOfBracketCall} can read `sdk`.
  */
-function stubRWAAdapter(asset: Address, share: Address) {
-  const adapter: ERC4626AdapterContract = Object.create(
-    ERC4626AdapterContract.prototype,
-  );
-  Object.defineProperty(adapter, "asset", { value: asset });
-  Object.defineProperty(adapter, "share", { value: share });
-  return adapter;
+function stubRWAAdapter(
+  sdk: OnchainSDK,
+  asset: Address,
+  share: Address,
+  adapter: Address = ADAPTER,
+): ERC4626AdapterContract {
+  return new ERC4626AdapterContract(sdk, {
+    baseParams: {
+      addr: adapter,
+      version: 310n,
+      contractType: "ADAPTER::ERC4626" as `0x${string}`,
+      serializedParams: encodeAbiParameters(
+        [{ type: "address" }, { type: "address" }, { type: "address" }],
+        [CREDIT_MANAGER, share, asset],
+      ),
+    },
+  });
+}
+
+function stubMidasGatewayAdapter(): MidasGatewayAdapterContract {
+  return Object.create(MidasGatewayAdapterContract.prototype);
+}
+
+function stubSdkWithRWAAdapter(
+  asset: Address,
+  share: Address,
+  adapter: Address = ADAPTER,
+): OnchainSDK {
+  const tokensMeta = {
+    get: (address: Address) =>
+      address === share ? { addr: address } : undefined,
+    isRWAUnderlying: () => true,
+  };
+  const sdk = { tokensMeta } as unknown as OnchainSDK;
+  const rwaAdapter = stubRWAAdapter(sdk, asset, share, adapter);
+  return {
+    tokensMeta,
+    getContract: (address: Address) =>
+      address === adapter ? rwaAdapter : undefined,
+  } as unknown as OnchainSDK;
 }
 
 function stubSdk(
@@ -437,9 +483,7 @@ describe("replayInnerOperations on malformed multicalls", () => {
   });
 
   it("does not report an error on an out-of-bracket RWA wrap/unwrap call", async () => {
-    const sdk = stubSdk({ [ADAPTER]: stubRWAAdapter(USDC, RWA_SHARE) }, [
-      RWA_SHARE,
-    ]);
+    const sdk = stubSdkWithRWAAdapter(USDC, RWA_SHARE);
     const calldata = encodeFunctionData({
       abi: ierc4626AdapterAbi,
       functionName: "deposit",
@@ -460,17 +504,43 @@ describe("replayInnerOperations on malformed multicalls", () => {
   });
 
   it("reports an error on an out-of-bracket RWA wrap/unwrap call with undecodable calldata", async () => {
-    const sdk = stubSdk({ [ADAPTER]: stubRWAAdapter(USDC, RWA_SHARE) }, [
-      RWA_SHARE,
-    ]);
+    const sdk = stubSdkWithRWAAdapter(USDC, RWA_SHARE);
     const { error } = await apply(
       [execute(ADAPTER, "0xdeadbeef")],
       zeroState(),
       sdk,
     );
     expect(error).toEqual({
-      code: ERROR_UNPREVIEWABLE_RWA_WRAP_UNWRAP,
+      code: ERROR_UNSUPPORTED_OUT_OF_BRACKET_CALL,
       message: expect.any(String),
+    });
+  });
+
+  it("does not report an error on an out-of-bracket Midas receiveGreenlist call", async () => {
+    const sdk = stubSdk({
+      [MIDAS_GATEWAY_ADAPTER]: stubMidasGatewayAdapter(),
+    });
+    const { state, error } = await apply(
+      [execute(MIDAS_GATEWAY_ADAPTER, RECEIVE_GREENLIST_CALLDATA)],
+      zeroState(),
+      sdk,
+    );
+    expect(error).toBeUndefined();
+    expect(state.account.balances.size).toBe(0);
+  });
+
+  it("reports an error on an out-of-bracket Midas gateway call that is not receiveGreenlist", async () => {
+    const sdk = stubSdk({
+      [MIDAS_GATEWAY_ADAPTER]: stubMidasGatewayAdapter(),
+    });
+    const { error } = await apply(
+      [execute(MIDAS_GATEWAY_ADAPTER, "0xdeadbeef")],
+      zeroState(),
+      sdk,
+    );
+    expect(error).toEqual({
+      code: ERROR_ADAPTER_CALL_OUTSIDE_BRACKET,
+      message: expect.stringContaining("outside of"),
     });
   });
 

@@ -31,6 +31,7 @@ export const POOL_OPPORTUNITY_CHART_METRICS = [
   "dieselRate",
   "supplied",
   "borrowed",
+  "utilization",
 ] as const;
 
 /**
@@ -74,7 +75,12 @@ export type StrategyOpportunityChartMetric =
  * deposits and withdrawals landed. It is anchored at inception, so a narrow
  * `range` only zooms the visible slice and its first point is rarely zero.
  **/
-export const POOL_POSITION_CHART_METRICS = ["apy", "pnl", "mwr"] as const;
+export const POOL_POSITION_CHART_METRICS = [
+  "apy",
+  "apyAvg7d",
+  "pnl",
+  "mwr",
+] as const;
 
 /**
  * Metric a pool position can chart, derived from
@@ -218,6 +224,7 @@ export const CHART_METRIC_UNITS = {
   supplied: "token",
   borrowed: "token",
   tvl: "token",
+  utilization: "bps",
   dieselRate: "ratio",
   collateralPrice: "ratio",
   collateralUsdPrice: "usd",
@@ -226,6 +233,7 @@ export const CHART_METRIC_UNITS = {
   // `bps` — the backend's own fractions (0.05) scaled the way every rate in
   // this model is (500)
   apy: "bps",
+  apyAvg7d: "bps",
   pnl: "token",
   mwr: "bps",
   totalValueUnderlying: "token",

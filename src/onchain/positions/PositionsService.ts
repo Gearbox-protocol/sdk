@@ -8,7 +8,11 @@ import type {
   PositionKind,
   StrategyPosition,
 } from "../../model/index.js";
-import { isFilterSet, matchesPositionFilter } from "../../model/index.js";
+import {
+  isFilterSet,
+  matchesPositionFilter,
+  STRATEGY_POSITION_COLLATERAL_ERROR,
+} from "../../model/index.js";
 import type {
   ClaimableWithdrawal,
   PendingWithdrawal,
@@ -141,22 +145,11 @@ export class PositionsService extends SDKConstruct {
       blockNumber,
     );
 
-    const describable = accounts.filter(ca => {
-      // collateral computation reverted (e.g. dead price feed) — none of the
-      // account's amounts can be computed, so it is left out of the list
-      if (!ca.success) {
-        this.logger?.warn(
-          `cannot describe position of ${this.labelAddress(ca.creditAccount)}: collateral computation failed`,
-        );
-      }
-      return ca.success;
-    });
-
     const withdrawals = await Promise.all(
-      describable.map(ca => this.#accountWithdrawals(ca, blockNumber)),
+      accounts.map(ca => this.#accountWithdrawals(ca, blockNumber)),
     );
 
-    return describable.map((ca, i) =>
+    return accounts.map((ca, i) =>
       this.#toStrategyPosition(ca, withdrawals[i] ?? new AddressMap()),
     );
   }
@@ -315,20 +308,15 @@ export class PositionsService extends SDKConstruct {
       getAccountTargetCollateral(ca.creditAccount, this.sdk.chainId) ??
       suite.strategyTargetCollateral;
 
-    // healthFactor / leverage / borrowApy / netApy keep their existing
-    // sources; only the fields the position does not have natively are filled
-    const snapshot = accountSnapshotFromCreditAccountData(ca);
-    const borrowRate = this.borrowRate(snapshot);
-    const timeToLiquidation = this.timeToLiquidation(snapshot);
-    const liquidationPrice = this.liquidationPrice(snapshot);
-
     // compressor totals only cover enabled tokens; after a full repay the
     // remaining collateral is disabled, so zero-debt totals are summed from
-    // oracle prices over every above-dust balance instead
-    const zeroDebt = ca.debt === 0n;
+    // oracle prices over every above-dust balance instead. The same fallback
+    // is used when the compressor could not value the account.
+    const priceFailed = !ca.success;
+    const recomputeTotals = ca.debt === 0n || priceFailed;
     const collaterals: PositionCollateral[] = [];
-    let totalValue = zeroDebt ? 0n : ca.totalValue;
-    let totalValueUSD = zeroDebt ? 0n : ca.totalValueUSD;
+    let totalValue = recomputeTotals ? 0n : ca.totalValue;
+    let totalValueUSD = recomputeTotals ? 0n : ca.totalValueUSD;
     for (const t of ca.tokens) {
       if (t.balance <= DUST_THRESHOLD) {
         continue;
@@ -340,7 +328,7 @@ export class PositionsService extends SDKConstruct {
         quota: priceOracle.toTokenAmount(market.underlying, t.quota),
         withdrawals: withdrawals.get(t.token) ?? [],
       });
-      if (zeroDebt) {
+      if (recomputeTotals) {
         const value =
           priceOracle.safeConvert(t.token, market.underlying, t.balance) || 0n;
         totalValue += value;
@@ -348,6 +336,19 @@ export class PositionsService extends SDKConstruct {
         totalValueUSD += usd;
       }
     }
+
+    // healthFactor / leverage / borrowApy / netApy keep their existing
+    // sources; only the fields the position does not have natively are filled
+    const snapshot = {
+      ...accountSnapshotFromCreditAccountData(ca),
+      totalValue,
+    };
+    const borrowRate = this.borrowRate(snapshot);
+    const timeToLiquidation = this.timeToLiquidation(snapshot);
+    const liquidationPrice = this.liquidationPrice(snapshot);
+    const totalDebtUSD = priceFailed
+      ? (priceOracle.safeConvertToUSD(market.underlying, totalDebtValue) ?? 0n)
+      : ca.totalDebtUSD;
 
     return {
       kind: "strategy",
@@ -368,22 +369,26 @@ export class PositionsService extends SDKConstruct {
       ),
       // the compressor prices the whole account in one pass, so the USD values
       // of the two totals come from it rather than from a second price lookup
-      // — except zero-debt accounts, whose totals are summed above
+      // — except zero-debt and unpriceable accounts, whose totals are summed
+      // above
       totalDebt: {
         token,
         value: totalDebtValue,
-        valueUsd: usdToNumber(ca.totalDebtUSD),
+        valueUsd: usdToNumber(totalDebtUSD),
       },
       totalValue: {
         token,
         value: totalValue,
         valueUsd: usdToNumber(totalValueUSD),
       },
-      healthFactor: healthFactorBps(ca.healthFactor),
+      healthFactor: priceFailed
+        ? this.healthFactor(snapshot)
+        : healthFactorBps(ca.healthFactor),
       borrowRate,
       timeToLiquidation,
       liquidationPrice,
       collaterals,
+      ...(priceFailed ? { error: STRATEGY_POSITION_COLLATERAL_ERROR } : {}),
     };
   }
 

@@ -449,9 +449,7 @@ describe("expected diffs", () => {
       expected: true,
       reason: "backend-preferred",
     });
-    expect(
-      diffAt(match?.diffs ?? [], "targetCollateral.address"),
-    ).toEqual({
+    expect(diffAt(match?.diffs ?? [], "targetCollateral.address")).toEqual({
       path: "targetCollateral.address",
       onchain: TBTC,
       offchain: WSTETH,
@@ -466,7 +464,12 @@ describe("expected diffs", () => {
 
   it("tolerates a backend null targetCollateral against an onchain token", () => {
     const report = compare(
-      [strategy({ name: "wstETH / USDC", targetCollateral: token(WSTETH, "wstETH") })],
+      [
+        strategy({
+          name: "wstETH / USDC",
+          targetCollateral: token(WSTETH, "wstETH"),
+        }),
+      ],
       [strategy({ name: "USDC", targetCollateral: null })],
     );
     const match = walletOf(report)?.matched[0];

@@ -2,6 +2,8 @@ import {
   type Address,
   type DecodeFunctionDataReturnType,
   decodeAbiParameters,
+  decodeFunctionData,
+  type Hex,
   zeroAddress,
 } from "viem";
 import { ierc4626AdapterAbi } from "../../../../abi/ierc4626Adapter.js";
@@ -23,6 +25,13 @@ type abi = typeof abi;
 
 const protocolAbi = iERC4626Abi;
 type protocolAbi = typeof protocolAbi;
+
+/** Resolved conversion: `amountIn` of `tokenIn` into `tokenOut`. */
+interface WrapUnwrap {
+  tokenIn: Address;
+  tokenOut: Address;
+  amountIn: bigint;
+}
 
 export class ERC4626AdapterContract extends AbstractAdapterContract<
   abi,
@@ -112,6 +121,62 @@ export class ERC4626AdapterContract extends AbstractAdapterContract<
     return super.classifyLegacyOperation(parsed, transfers);
   }
 
+  /**
+   * Out-of-bracket calls are legal only on the RWA wrap/unwrap adapter (the
+   * share converts 1:1 with the vault asset, so no on-chain preview or
+   * slippage bracket is needed); a regular vault-strategy ERC4626 adapter
+   * keeps the base behavior and returns false.
+   */
+  public override replayOutOfBracketCall(
+    balances: AssetsMap,
+    calldata: Hex,
+  ): boolean {
+    const meta = this.sdk.tokensMeta.get(this.share);
+    if (!meta || !this.sdk.tokensMeta.isRWAUnderlying(meta)) {
+      return false;
+    }
+    const resolved = this.#resolveWrapUnwrap(calldata, balances);
+    if (resolved && resolved.amountIn > 0n) {
+      balances.dec(resolved.tokenIn, resolved.amountIn);
+      balances.inc(resolved.tokenOut, resolved.amountIn);
+    }
+    return true;
+  }
+
+  #resolveWrapUnwrap(
+    calldata: Hex,
+    balances: AssetsMap,
+  ): WrapUnwrap | undefined {
+    const decoded = decodeFunctionData({ abi, data: calldata });
+    const { asset, share } = this;
+    switch (decoded.functionName) {
+      case "deposit":
+        return { tokenIn: asset, tokenOut: share, amountIn: decoded.args[0] };
+      case "depositDiff": {
+        const [leftoverAmount] = decoded.args;
+        const running = balances.getOrZero(asset);
+        return {
+          tokenIn: asset,
+          tokenOut: share,
+          amountIn: running > leftoverAmount ? running - leftoverAmount : 0n,
+        };
+      }
+      case "redeem":
+        return { tokenIn: share, tokenOut: asset, amountIn: decoded.args[0] };
+      case "redeemDiff": {
+        const [leftoverAmount] = decoded.args;
+        const running = balances.getOrZero(share);
+        return {
+          tokenIn: share,
+          tokenOut: asset,
+          amountIn: running > leftoverAmount ? running - leftoverAmount : 0n,
+        };
+      }
+      default:
+        return undefined;
+    }
+  }
+
   protected override async applyBalanceChanges(
     balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
@@ -135,7 +200,7 @@ export class ERC4626AdapterContract extends AbstractAdapterContract<
       // router (or another assembler) ever starts emitting in-bracket plain
       // `redeem` without the negative delta, this case must decrease `share`
       // by `shares` again (see commented-out lines). Out-of-bracket RWA
-      // wrap/unwrap `redeem` goes through applyRWAWrapUnwrap, not here.
+      // wrap/unwrap `redeem` goes through replayOutOfBracketCall, not here.
       case "redeem": {
         // const [shares] = decoded.args;
         // this.spendExact(balances, this.share, shares);

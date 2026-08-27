@@ -142,3 +142,23 @@ describe("every list request names the chains the client covers", () => {
     expect(requested().get("chainIds")).toBe(`${PLASMA}`);
   });
 });
+
+describe("protocol-wide totals", () => {
+  it("reads them from a single route", async () => {
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          data: { tvl: 1_234, totalBorrowed: 567, totalSupply: 890 },
+          meta: { chains: [] },
+        }),
+        { headers: { "content-type": "application/json" } },
+      ),
+    );
+
+    const { data } = await opportunities().getTotals();
+
+    expect(requestedPath()).toBe("/v2/opportunities/totals");
+    expect(requested().has("chainIds")).toBe(false);
+    expect(data).toEqual({ tvl: 1_234, totalBorrowed: 567, totalSupply: 890 });
+  });
+});

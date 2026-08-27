@@ -1,3 +1,4 @@
+import type { Address } from "viem";
 import { z } from "zod/v4";
 import type {
   ChartBundle,
@@ -9,11 +10,13 @@ import type {
   PoolPositionKey,
   Position,
   PositionKey,
+  PositionsTotals,
   StrategyPositionKey,
 } from "../../model/positions.js";
 import {
   positionFilterQuerySchema,
   positionSchema,
+  positionsTotalsSchema,
 } from "../../model/positions.schema.js";
 import type { DataResponse } from "../../model/response.js";
 import type { ListPositionsPropsBase } from "../../onchain/positions/types.js";
@@ -51,6 +54,18 @@ export class OffchainPositions extends AbstractOffchainNamespace {
         chainIds: this.scopedChainIds(props.filter),
       }),
       schema: z.array(positionSchema),
+    });
+  }
+
+  /**
+   * Aggregate over everything a wallet holds, see {@link PositionsTotals}.
+   **/
+  public async getTotals(
+    wallet: Address,
+  ): Promise<DataResponse<PositionsTotals>> {
+    return this.get({
+      path: `${this.#root}/${wallet}/totals`,
+      schema: positionsTotalsSchema,
     });
   }
 

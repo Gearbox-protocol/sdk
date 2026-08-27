@@ -70,9 +70,10 @@ export const ERROR_NON_ADAPTER_CALL_IN_BRACKET = 1003;
  **/
 export const ERROR_UNPREVIEWABLE_ADAPTER_CALL = 1004;
 /**
- * Out-of-bracket RWA wrap/unwrap calldata cannot be decoded
+ * An out-of-bracket adapter call that is allowed there (e.g. RWA wrap/unwrap)
+ * could not be decoded or replayed
  **/
-export const ERROR_UNPREVIEWABLE_RWA_WRAP_UNWRAP = 1005;
+export const ERROR_UNSUPPORTED_OUT_OF_BRACKET_CALL = 1005;
 /**
  * `msg.value` does not fit into the declared WETH collateral
  * Transactions can have arbitrary value, but the ones that we create
