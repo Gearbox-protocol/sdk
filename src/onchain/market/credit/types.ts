@@ -53,6 +53,16 @@ export interface BalanceDelta {
  * Quota a credit account currently holds for one token, in pool underlying
  * units. Enough to decide whether the quota needs a disabling call.
  */
+/** A quota keeper's parameters for one token, as a quota calculation reads them. */
+export interface QuotaSlice {
+  token: Address;
+  rate: bigint;
+  quotaIncreaseFee: bigint;
+  totalQuoted: bigint;
+  limit: bigint;
+  isActive: boolean;
+}
+
 export interface CreditAccountTokenQuota {
   token: Address;
   quota: bigint;

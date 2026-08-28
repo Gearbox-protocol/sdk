@@ -5,14 +5,11 @@ import {
   isAddressEqual,
 } from "viem";
 import { iCreditFacadeV310Abi } from "../../abi/310/generated.js";
-import {
-  type CallTrace,
-  collectTraces,
-} from "../../common-utils/utils/trace.js";
 import type {
   ChainContractsRegister,
   ParsedCallV2,
 } from "../../onchain/index.js";
+import { type CallTrace, collectTraces } from "../../onchain/utils/trace.js";
 import { UnknownFacadeCallError } from "./errors.js";
 import type { FacadeCallType, FacadeParsedCall } from "./types.js";
 

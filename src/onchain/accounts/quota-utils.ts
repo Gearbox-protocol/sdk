@@ -1,12 +1,8 @@
 import type { Address } from "viem";
-import type { Asset } from "../../../onchain/base/types.js";
-import {
-  MIN_INT96,
-  PERCENTAGE_FACTOR,
-} from "../../../onchain/constants/math.js";
-import { BigIntMath } from "../../../onchain/utils/bigint-math.js";
-import type { QuotaSlice } from "../strategies/strategy-info/types.js";
-import type { AssetWithAmountInTarget } from "./types.js";
+import type { Asset, AssetWithAmountInTarget } from "../base/types.js";
+import { MIN_INT96, PERCENTAGE_FACTOR } from "../constants/math.js";
+import type { QuotaSlice } from "../market/credit/types.js";
+import { BigIntMath } from "../utils/bigint-math.js";
 
 export interface CalcDefaultQuotaProps {
   amount: bigint;

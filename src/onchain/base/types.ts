@@ -124,6 +124,11 @@ export interface TokenInfo {
  * A token address paired with a balance, used throughout the SDK to
  * represent holdings, collateral inputs, and leftover targets.
  **/
+/** An {@link Asset} priced into a target token's units. */
+export interface AssetWithAmountInTarget extends Asset {
+  amountInTarget: bigint;
+}
+
 export interface Asset {
   /**
    * ERC-20 token address.

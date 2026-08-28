@@ -8,10 +8,6 @@ import {
 } from "viem";
 import { describe, expect, it } from "vitest";
 import {
-  type CallTrace,
-  EXECUTE_BYTES_SELECTOR,
-} from "../common-utils/utils/trace.js";
-import {
   AddressMap,
   type ChainContractsRegister,
   CreditFacadeV310BaseContract,
@@ -21,6 +17,10 @@ import {
   UniswapV3AdapterContract,
   WstETHV1AdapterContract,
 } from "../onchain/index.js";
+import {
+  type CallTrace,
+  EXECUTE_BYTES_SELECTOR,
+} from "../onchain/utils/trace.js";
 import type { TokenTransfer } from "../preview/parse/index.js";
 import { classifyMulticallOperations } from "./classifyMulticallOperations.js";
 

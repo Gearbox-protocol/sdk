@@ -1,5 +1,4 @@
 import { type Address, isAddressEqual } from "viem";
-import type { CallTrace } from "../common-utils/utils/trace.js";
 import type {
   AddressMap,
   ChainContractsRegister,
@@ -10,6 +9,7 @@ import {
   swapFromTransfers,
   toNetTransfers,
 } from "../onchain/index.js";
+import type { CallTrace } from "../onchain/utils/trace.js";
 import type { TokenTransfer } from "../preview/parse/index.js";
 import {
   TransferAlignmentError,

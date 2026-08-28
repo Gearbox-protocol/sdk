@@ -8,7 +8,7 @@ import {
   findCallWithInput,
   findExecuteBytes,
   resolveProtocolCall,
-} from "../../common-utils/utils/trace.js";
+} from "../../onchain/utils/trace.js";
 import { extractAdapterCallTraces } from "./extractAdapterCallTraces.js";
 
 const FIXTURES_DIR = path.resolve(__dirname, "../../history/__fixtures__");

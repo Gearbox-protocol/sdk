@@ -31,7 +31,6 @@ import {
   OnchainSDK,
 } from "../../src/onchain/index.js";
 import { AccountsPlugin } from "../../src/plugins/accounts/AccountsPlugin.js";
-import { ApyPlugin } from "../../src/plugins/apy/index.js";
 import { BotsPlugin } from "../../src/plugins/bots/index.js";
 import { DegenDistributorsPlugin } from "../../src/plugins/degen-distributors/index.js";
 
@@ -122,7 +121,6 @@ async function main() {
         plugins: {
           bots: new BotsPlugin(true),
           degen: new DegenDistributorsPlugin(true),
-          apy: new ApyPlugin(true),
           accounts: new AccountsPlugin({ includeZeroDebt: true }, true),
         },
       }),

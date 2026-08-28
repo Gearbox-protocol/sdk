@@ -1,6 +1,5 @@
 import axios from "axios";
 import type { Address } from "viem";
-import { BigIntMath } from "../../common-utils/index.js";
 import {
   type Asset,
   chains,
@@ -10,6 +9,7 @@ import {
   type TokensMeta,
   toBN,
 } from "../../onchain/index.js";
+import { BigIntMath } from "../../onchain/utils/bigint-math.js";
 import type { PoolPointsInfo } from "../apy/output-details.js";
 import type { TokenData } from "./common.js";
 
