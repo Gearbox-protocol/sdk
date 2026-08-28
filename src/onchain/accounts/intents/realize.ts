@@ -502,8 +502,11 @@ export async function realize(
 
   const oracle = market.priceOracle;
   const state: OperationState = {
+    creditManager: creditAccount.creditManager,
+    name: suite.name,
     totalValue: market.toUnderlyingAmount(totalValue),
     totalDebt: market.toUnderlyingAmount(debt),
+    netValue: market.toUnderlyingAmount(totalValue - debt),
     leverage: calcPositionLeverage(totalValue, debt),
     assets: assets.map(a => oracle.toTokenAmount(a.token, a.balance)),
     // a quota is bought in underlying, so only the token it applies to comes

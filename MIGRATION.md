@@ -428,3 +428,30 @@ only ones carrying it; `totalDebtChange` and `debtRepaid` would have joined them
 The threshold now weighs the magnitude, so a repayment reports a negative
 `valueUsd` rather than zero.
 
+
+### The projection names its own market
+
+`AccountProjection` gained three fields, so every producer of one — the two
+credit previews, `OperationState` and `OpenStrategyPreview` — now carries them:
+
+| Field | Type | Was |
+| --- | --- | --- |
+| `creditManager` | `Address` | on the previews only; a simulation made the caller carry it |
+| `name` | `string` | on the previews only |
+| `netValue` | `TokenAmount` | on `OpenCreditAccountPreview` and `OpenStrategyPreview` only; elsewhere the caller subtracted |
+
+`netValue` is `totalValue − totalDebt`, the position's own funds. The read model
+leaves a strategy caller to do that subtraction; a projection reports it, so an
+"own funds" row reads the same wherever it appears rather than being derived on
+some screens and read on others.
+
+**`checkSimulation` lost its `creditManager` input.** It takes the market off
+the state now, which is what makes it the same call shape as `checkOperation`:
+
+```diff
+- checkSimulation({ sdk, state, creditManager }, { minHealthFactor })
++ checkSimulation({ sdk, state }, { minHealthFactor })
+```
+
+Nothing else changed for a caller that only reads a projection: these are added
+fields. Code that *builds* one — a test fixture, a stub — has to fill them.

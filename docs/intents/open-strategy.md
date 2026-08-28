@@ -37,7 +37,7 @@ flowchart TD
   grow{"every bought token quotable and not forbidden?"}
   head{"market quota headroom >= averageQuota?"}
   hf{"HF(averageAssets, averageQuota, D) >= 1.0?"}
-  out["preview: totalDebt, netValue, totalValue, leverage,<br/>priceImpact, averageAssets / minAssets,<br/>averageQuota / minQuota, calls"]
+  out["preview: creditManager, name, totalDebt, netValue,<br/>totalValue, leverage, priceImpact,<br/>averageAssets / minAssets,<br/>averageQuota / minQuota, calls"]
 
   in --> lev
   lev -->|"no"| e1["leverageOutOfRange"]

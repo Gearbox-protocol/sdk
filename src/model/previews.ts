@@ -161,6 +161,16 @@ export interface PoolOperationPreview {
  **/
 export interface AccountProjection {
   /**
+   * Credit manager the account belongs to. Carried on the projection itself so
+   * a caller weighing one — `checkSimulation` among them — needs nothing beside
+   * it to find the market.
+   */
+  creditManager: Address;
+  /**
+   * Human-readable credit manager name.
+   */
+  name: string;
+  /**
    * Health factor in basis points: below `10000` the account is liquidatable.
    *
    * @example `12500` for a health factor of 1.25
@@ -210,6 +220,13 @@ export interface AccountProjection {
    **/
   totalDebt: TokenAmount;
   /**
+   * Own funds in the position: `totalValue` less `totalDebt`, in the market's
+   * underlying. The read model leaves a strategy caller to subtract these two
+   * itself; a projection reports the figure so an "own funds" row reads the
+   * same on every screen that shows one.
+   **/
+  netValue: TokenAmount;
+  /**
    * What the account holds, token by token.
    **/
   assets: TokenAmount[];
@@ -225,14 +242,6 @@ export interface AccountProjection {
 export interface OpenCreditAccountPreview extends AccountProjection {
   operation: "OpenCreditAccount" | "RWAOpenCreditAccount";
   /**
-   * Credit manager the account is opened in
-   */
-  creditManager: Address;
-  /**
-   * Human-readable credit manager name
-   */
-  name: string;
-  /**
    * Collateral token this position is a strategy in: the first quoted token,
    * with its balance taken from `assets`. Undefined when nothing is quoted.
    */
@@ -246,11 +255,6 @@ export interface OpenCreditAccountPreview extends AccountProjection {
    */
   collateralAdded: TokenAmount[];
   /**
-   * Own funds in the position: what the wallet put in, valued in underlying.
-   * `totalValue` is this plus the borrowed amount.
-   */
-  netValue: TokenAmount;
-  /**
    * Set when preview encountered non-fatal errors, all fields are
    * still computed best-effort, but derived fields (`assets`,
    * `targetCollateral`, `netValue`) may be unreliable in that case.
@@ -260,14 +264,6 @@ export interface OpenCreditAccountPreview extends AccountProjection {
 
 export interface AdjustCreditAccountPreview extends AccountProjection {
   operation: "AdjustCreditAccount";
-  /**
-   * Credit manager the account is opened in
-   */
-  creditManager: Address;
-  /**
-   * Human-readable credit manager name
-   */
-  name: string;
   /**
    * Credit account that is being adjusted
    */

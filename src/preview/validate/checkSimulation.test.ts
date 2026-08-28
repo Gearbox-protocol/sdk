@@ -53,8 +53,11 @@ function state(over: Partial<OperationState> = {}): OperationState {
     borrowRate: { total: 300, totalOnDebt: 320, base: 250, quotas: [] },
     timeToLiquidation: 86_400_000n,
     liquidationPrice: null,
+    creditManager: CREDIT_MANAGER,
+    name: "KPK WETH",
     totalValue: und(10n ** 20n),
     totalDebt: und(41_574_436_328_452_499_320n),
+    netValue: und(10n ** 20n - 41_574_436_328_452_499_320n),
     leverage: 2,
     assets: [],
     quotas: [],
@@ -66,11 +69,7 @@ function state(over: Partial<OperationState> = {}): OperationState {
 const check = (
   over: Partial<OperationState> = {},
   options: Parameters<typeof checkSimulation>[1] = {},
-) =>
-  checkSimulation(
-    { sdk, state: state(over), creditManager: CREDIT_MANAGER },
-    options,
-  );
+) => checkSimulation({ sdk, state: state(over) }, options);
 
 describe("checkSimulation", () => {
   it("finds nothing wrong with a simulation the engine accepted", () => {

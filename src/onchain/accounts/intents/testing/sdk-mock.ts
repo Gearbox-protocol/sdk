@@ -389,6 +389,7 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
   const facadePaused = args.facadePaused ?? false;
   const expirationDate = args.expirationDate ?? 0;
   const creditManagerSuite = {
+    name: "TestCreditManager",
     creditManager: {
       address: args.creditManager,
       liquidationThresholds,

@@ -313,6 +313,7 @@ function buildAdjustPreview(
       .map(a => oracle.toTokenAmount(a.token, a.balance)),
     totalValue: market.toUnderlyingAmount(totalValue),
     totalDebt: market.toUnderlyingAmount(post.totalDebt),
+    netValue: market.toUnderlyingAmount(totalValue - post.totalDebt),
     // relative to the pre-transaction state: where the account will end up
     // compared to now, once the withdrawal is claimed and the intent resumed
     totalDebtChange: market.toUnderlyingAmount(

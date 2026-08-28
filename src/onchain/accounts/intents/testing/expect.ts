@@ -8,6 +8,7 @@ import type {
   IntentPreviewResult,
   OperationState,
 } from "../types.js";
+import { CREDIT_MANAGER } from "./market.js";
 import {
   CA_OP_CALLS,
   MOCK_CLAIM_CALL,
@@ -276,6 +277,12 @@ export function expectAdjustPreview(
 
   expect(result.preview.totalValue.value).toBe(args.totalValue);
   expect(result.preview.totalDebt.value).toBe(args.totalDebt);
+  // Own funds are reported rather than left to the caller to subtract.
+  expect(result.preview.netValue.value).toBe(args.totalValue - args.totalDebt);
+  // The projection names the market it was walked against, which is what lets
+  // `checkSimulation` take nothing but the state.
+  expect(result.preview.creditManager).toBe(CREDIT_MANAGER);
+  expect(result.preview.name).toBe("TestCreditManager");
   expectOpsArrayExact(result.operations, args.expectedOps);
   return result.preview;
 }

@@ -230,6 +230,8 @@ describe("buildTx — pool", () => {
 
 describe("buildTx — open", () => {
   const preview = {
+    creditManager: CREDIT_MANAGER,
+    name: "Test CM",
     totalDebt: amount(UNDERLYING, 2_000n),
     netValue: amount(UNDERLYING, 1_000n),
     totalValue: amount(UNDERLYING, 3_000n),
@@ -380,8 +382,11 @@ describe("buildTx — account", () => {
     ok: true,
     operations: [],
     preview: {
+      creditManager: CREDIT_MANAGER,
+      name: "Test CM",
       totalValue: amount(UNDERLYING, 3_000n),
       totalDebt: amount(UNDERLYING, 2_000n),
+      netValue: amount(UNDERLYING, 1_000n),
       leverage: 2,
       assets: [],
       quotas: [],

@@ -64,8 +64,6 @@ export interface OpenStrategyPreview
    * opening always hands the pool's funds over.
    **/
   safeHealthFactor: Bps;
-  /** Own funds put in, valued in underlying. */
-  netValue: TokenAmount;
   /** What the routed leg lost to market depth; `undefined` if not measured. */
   priceImpact: PathLossRate | undefined;
   /** Expected post-open balances. */
@@ -215,6 +213,8 @@ export async function previewOpenStrategy(
   });
 
   return {
+    creditManager,
+    name: suite.name,
     totalDebt: market.toUnderlyingAmount(debt),
     netValue: market.toUnderlyingAmount(margin),
     totalValue: market.toUnderlyingAmount(margin + debt),

@@ -1,4 +1,3 @@
-import type { Address } from "viem";
 import type { OperationState, PreviewIssue } from "../../onchain/index.js";
 import { checkDebtInBand, toToken } from "../../onchain/index.js";
 import type { OnchainSDK } from "../../onchain/OnchainSDK.js";
@@ -30,11 +29,11 @@ import {
  * came back `ok` has already passed them.
  */
 export function checkSimulation(
-  input: { sdk: OnchainSDK; state: OperationState; creditManager: Address },
+  input: { sdk: OnchainSDK; state: OperationState },
   options: CheckOperationOptions = {},
 ): PreviewIssue | null {
-  const { sdk, state, creditManager } = input;
-  const suite = sdk.marketRegister.findCreditManager(creditManager);
+  const { sdk, state } = input;
+  const suite = sdk.marketRegister.findCreditManager(state.creditManager);
 
   return (
     marketIssues(suite) ||

@@ -96,6 +96,7 @@ export async function previewAdjustCreditAccount<P extends PluginsMap>(
       .map(a => oracle.toTokenAmount(a.token, a.balance)),
     totalValue: market.toUnderlyingAmount(totalValue),
     totalDebt: market.toUnderlyingAmount(account.totalDebt),
+    netValue: market.toUnderlyingAmount(totalValue - account.totalDebt),
     totalDebtChange: market.toUnderlyingAmount(
       account.totalDebt - before.totalDebt,
     ),
