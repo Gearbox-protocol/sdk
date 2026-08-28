@@ -29,9 +29,9 @@ export interface PoolPrepareRequest {
 
 /**
  * Opening a new position, from a viable
- * {@link IOpportunitiesPrepare.openNewStrategy} result. The preview values
- * collateral in underlying only, so the wallet's actual collateral assets and
- * the native value to attach come from the caller.
+ * {@link IOpportunitiesPrepare.openNewStrategy} result. The simulated state
+ * values collateral in underlying only, so the wallet's actual collateral
+ * assets and the native value to attach come from the caller.
  **/
 export interface OpenPrepareRequest {
   kind: "open";
@@ -87,7 +87,7 @@ export interface IOpportunitiesExecute {
   /**
    * The transaction to sign, from a `prepare` result. No second round of math:
    * `account` requests submit the simulation's own multicall, `open` requests
-   * hand the preview's router path and quotas to `openCA`, `pool` requests
+   * hand the state's router path and quotas to `openCA`, `pool` requests
    * encode the deposit / redeem the simulation priced.
    *
    * @throws on a simulation that is not `ok`; when a `pool` request names a

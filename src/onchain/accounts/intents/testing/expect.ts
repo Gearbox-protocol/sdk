@@ -275,16 +275,16 @@ export function expectAdjustPreview(
     expect(result.calls).toEqual([]);
   }
 
-  expect(result.preview.totalValue.value).toBe(args.totalValue);
-  expect(result.preview.totalDebt.value).toBe(args.totalDebt);
+  expect(result.state.totalValue.value).toBe(args.totalValue);
+  expect(result.state.totalDebt.value).toBe(args.totalDebt);
   // Own funds are reported rather than left to the caller to subtract.
-  expect(result.preview.netValue.value).toBe(args.totalValue - args.totalDebt);
+  expect(result.state.netValue.value).toBe(args.totalValue - args.totalDebt);
   // The projection names the market it was walked against, which is what lets
   // `checkSimulation` take nothing but the state.
-  expect(result.preview.creditManager).toBe(CREDIT_MANAGER);
-  expect(result.preview.name).toBe("TestCreditManager");
+  expect(result.state.creditManager).toBe(CREDIT_MANAGER);
+  expect(result.state.name).toBe("TestCreditManager");
   expectOpsArrayExact(result.operations, args.expectedOps);
-  return result.preview;
+  return result.state;
 }
 
 /** Asserts the preview failed for a specific reason. */

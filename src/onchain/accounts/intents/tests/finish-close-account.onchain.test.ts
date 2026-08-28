@@ -160,7 +160,7 @@ describe("finish.closeAccount — the claim lands, the account empties", () => {
       "decreaseDebt",
       "withdrawCollateral",
     ]);
-    expect(result.preview.assets).toEqual([]);
+    expect(result.state.assets).toEqual([]);
   });
 
   it("an account that owes nothing skips the repayment", async () => {

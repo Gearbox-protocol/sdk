@@ -31,30 +31,30 @@ function run(c: OpenStrategyCase, sdk: OnchainSDK = buildOpenStrategySdk()) {
   };
 }
 
-/** Asserts everything a case pins down, and returns the preview for extras. */
+/** Asserts everything a case pins down, and returns the state for extras. */
 async function expectCase(c: OpenStrategyCase) {
   const { sdk, result } = run(c);
   const outcome = await result;
   if (!outcome.ok) {
-    throw new Error(`expected a preview, got error: ${outcome.reason}`);
+    throw new Error(`expected a state, got error: ${outcome.reason}`);
   }
-  const { preview } = outcome;
+  const { state } = outcome;
 
-  expect(preview.netValue.value).toBe(c.expectedCollateral);
-  expect(preview.totalDebt.value).toBe(c.expectedDebt);
-  expect(preview.totalValue.value).toBe(c.expectedCollateral + c.expectedDebt);
+  expect(state.netValue.value).toBe(c.expectedCollateral);
+  expect(state.totalDebt.value).toBe(c.expectedDebt);
+  expect(state.totalValue.value).toBe(c.expectedCollateral + c.expectedDebt);
   // the read model's plain multiplier, not the LEVERAGE_DECIMALS-scaled figure
   // the request was made with
-  expect(preview.leverage).toBeCloseTo(
+  expect(state.leverage).toBeCloseTo(
     Number(c.leverage) / Number(LEVERAGE_DECIMALS),
   );
-  // the preview prices its holdings; the cases name them
-  const held = (assets: typeof preview.averageAssets) =>
+  // the state prices its holdings; the cases name them
+  const held = (assets: typeof state.averageAssets) =>
     assets.map(a => ({ token: a.token.address, balance: a.value }));
-  expect(held(preview.averageAssets)).toEqual(c.expectedAssets);
+  expect(held(state.averageAssets)).toEqual(c.expectedAssets);
   // The mock router applies no slippage, so the floor branch matches expected.
-  expect(held(preview.minAssets)).toEqual(c.expectedAssets);
-  expect(preview.calls).toEqual([MOCK_ROUTER_CALL]);
+  expect(held(state.minAssets)).toEqual(c.expectedAssets);
+  expect(state.calls).toEqual([MOCK_ROUTER_CALL]);
 
   const findOpen = vi.mocked(
     sdk.routerFor({ creditFacade: CREDIT_FACADE }).findOpenStrategyPath,
@@ -75,30 +75,30 @@ async function expectCase(c: OpenStrategyCase) {
     }),
   );
 
-  return preview;
+  return state;
 }
 
 describe("openStrategy — leverage on wallet collateral, no account yet", () => {
   it("3x on underlying margin: debt is 2x the margin, all of it routed", async () => {
-    const preview = await expectCase(case_underlying_3x);
+    const state = await expectCase(case_underlying_3x);
 
-    expect(preview.averageQuota).toEqual([
+    expect(state.averageQuota).toEqual([
       { token: POS, balance: quotaFor(MARGIN_UND * 3n, POS) },
     ]);
-    expect(preview.minQuota).toEqual(preview.averageQuota);
+    expect(state.minQuota).toEqual(state.averageQuota);
   });
 
   it("fills position metrics from the expected branch", async () => {
-    const preview = await expectCase(case_underlying_3x);
+    const state = await expectCase(case_underlying_3x);
 
-    expect(preview.healthFactor).toBeGreaterThan(10000);
+    expect(state.healthFactor).toBeGreaterThan(10000);
     // no base rate in the fixture market; the POS quota carries the cost
-    expect(preview.borrowRate.base).toBe(0);
-    expect(preview.borrowRate.quotas.map(q => q.token.address)).toEqual([POS]);
-    expect(preview.borrowRate.totalOnDebt).toBeGreaterThan(0);
-    expect(preview.timeToLiquidation).not.toBeNull();
+    expect(state.borrowRate.base).toBe(0);
+    expect(state.borrowRate.quotas.map(q => q.token.address)).toEqual([POS]);
+    expect(state.borrowRate.totalOnDebt).toBeGreaterThan(0);
+    expect(state.timeToLiquidation).not.toBeNull();
     // everything is routed into POS: a single target, so a price exists
-    expect(preview.liquidationPrice).not.toBeNull();
+    expect(state.liquidationPrice).not.toBeNull();
   });
 
   it("weighs the safe-price factor at the reserve feed, not the main one", async () => {
@@ -113,34 +113,34 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
     );
     const outcome = await result;
     if (!outcome.ok) {
-      throw new Error(`expected a preview, got error: ${outcome.reason}`);
+      throw new Error(`expected a state, got error: ${outcome.reason}`);
     }
 
-    expect(outcome.preview.safeHealthFactor).toBeLessThan(
-      outcome.preview.healthFactor,
+    expect(outcome.state.safeHealthFactor).toBeLessThan(
+      outcome.state.healthFactor,
     );
   });
 
   it("reports no liquidation price when the position holds two targets", async () => {
-    const preview = await expectCase(case_mixed_with_leftover);
+    const state = await expectCase(case_mixed_with_leftover);
 
-    expect(preview.liquidationPrice).toBeNull();
+    expect(state.liquidationPrice).toBeNull();
   });
 
   it("1x draws no debt", async () => {
-    const preview = await expectCase(case_underlying_1x);
+    const state = await expectCase(case_underlying_1x);
 
-    expect(preview.totalDebt.value).toBe(0n);
-    expect(preview.averageQuota).toEqual([
+    expect(state.totalDebt.value).toBe(0n);
+    expect(state.averageQuota).toEqual([
       { token: POS, balance: quotaFor(MARGIN_UND, POS) },
     ]);
   });
 
   it("mixed margin: the leftover stays put and gets a quota of its own", async () => {
-    const preview = await expectCase(case_mixed_with_leftover);
+    const state = await expectCase(case_mixed_with_leftover);
 
     const [keptAny, target] = case_mixed_with_leftover.expectedAssets;
-    expect(preview.averageQuota).toEqual([
+    expect(state.averageQuota).toEqual([
       { token: ANY, balance: quotaFor(keptAny.balance, ANY) },
       { token: POS, balance: quotaFor(target.balance, POS) },
     ]);

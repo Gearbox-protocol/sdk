@@ -51,7 +51,7 @@ export interface OpenStrategyProps {
  * hands back expected and floor balances from a single call, and `openCA` wants
  * both `minQuota` and `averageQuota`, so there is nothing to gain by dropping one.
  */
-export interface OpenStrategyPreview
+export interface OpenStrategyState
   extends Omit<AccountProjection, "assets" | "quotas">,
     SimulationPrices {
   /** Expected post-open balances. */
@@ -73,7 +73,8 @@ export interface OpenStrategyPreview
 }
 
 /**
- * Previews opening a leveraged position out of wallet collateral.
+ * Builds the state opening a leveraged position out of wallet collateral would
+ * land in.
  *
  * Debt follows from the target leverage against the supplied margin
  * (`debt = margin * (L - 1)`, `totalValue = margin * L`); the collateral and the
@@ -83,9 +84,9 @@ export interface OpenStrategyPreview
  * no operation list — the caller passes the numbers and calls straight to
  * `sdk.accounts.openCA`.
  */
-export async function previewOpenStrategy(
+export async function buildOpenStrategyState(
   props: OpenStrategyProps,
-): Promise<OpenStrategyPreview> {
+): Promise<OpenStrategyState> {
   const {
     sdk,
     creditManager,

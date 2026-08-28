@@ -15,7 +15,7 @@ import type {
   DelayedStart,
   LeverageBand,
   MultiCall,
-  OpenStrategyPreview,
+  OpenStrategyState,
   OperationState,
   PoolSimulation,
   PreviewRefusal,
@@ -36,7 +36,7 @@ export type {
  * not have to reach into `@gearbox-protocol/sdk/onchain` for the names to do
  * it with. They are defined in the intents engine and have no second home
  * here. `reason` is the discriminant — narrowing it narrows `detail` and
- * settles whether there is a `preview` — so no runtime guard is needed to
+ * settles whether there is a `state` — so no runtime guard is needed to
  * read one of these.
  **/
 export * from "../../onchain/validation/refusal.js";
@@ -45,7 +45,7 @@ export * from "../../onchain/validation/refusal.js";
  * What a pool deposit or withdrawal would yield.
  *
  * Shaped like {@link StrategySimulate} so both kinds of simulation are consumed
- * the same way, with the pool's own numbers as the preview: the ERC-4626
+ * the same way, with the pool's own numbers as the state: the ERC-4626
  * conversion applied to the amount, at the rate of the block the market was
  * loaded at.
  **/
@@ -62,7 +62,7 @@ export type LpSimulate =
        * What the wallet parts with and what it receives, plus the zapper the
        * transaction goes through when one is involved.
        **/
-      preview: PoolSimulation;
+      state: PoolSimulation;
       /**
        * The transaction implementing the operation: exactly one, since a pool
        * operation is a single call on the pool or on its zapper.
@@ -91,7 +91,7 @@ export type StrategySimulate =
        * Projected account state once the operations execute: TVL, debt,
        * balances and quotas.
        **/
-      preview: OperationState;
+      state: OperationState;
       /**
        * Credit-facade multicall implementing the operations, ready to be sent
        * through `sdk.accounts`.
@@ -106,7 +106,7 @@ export type StrategySimulate =
  *
  * Shaped like {@link StrategySimulate} with one field more, so the instant and
  * the delayed route of the same request are compared side by side — and they
- * are meant to be compared on the same footing, so `preview` is the end of the
+ * are meant to be compared on the same footing, so `state` is the end of the
  * operation in both, not the end of the transaction.
  **/
 export type DelayedStrategySimulate =
@@ -126,7 +126,7 @@ export type DelayedStrategySimulate =
        * the request alone lands in — source spent, withdrawal position in its
        * place, debt untouched — is `delayed.afterRequest`.
        **/
-      preview: OperationState;
+      state: OperationState;
       /**
        * {@inheritDoc StrategySimulate.calls}
        **/
@@ -189,7 +189,7 @@ export type StrategyRoutesSimulate =
  * takes both from a single pathfinder call, and `openCA` consumes both.
  **/
 export type OpenStrategySimulate =
-  | { ok: true; preview: OpenStrategyPreview }
+  | { ok: true; state: OpenStrategyState }
   | PreviewRefusal;
 
 /**
@@ -413,7 +413,7 @@ export interface IOpportunitiesPrepare {
 
   /**
    * Redeeming pool shares: `amount` is the `tokenIn` the wallet parts with,
-   * and the preview is the underlying it converts to.
+   * and the reported state is the underlying it converts to.
    **/
   redeem(pool: PoolInput, params: LpRedeemParams): LpSimulate;
 

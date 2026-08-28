@@ -138,7 +138,7 @@ describe("withdraw.start — everything out, account left open", () => {
         .filter(op => op.type === "withdrawCollateral")
         .map(op => op.token),
     ).toEqual([UND]);
-    expect(result.preview.assets).toEqual([]);
+    expect(result.state.assets).toEqual([]);
   });
 
   it("settles the loan in full, so accrued interest cannot leave dust", async () => {
@@ -178,7 +178,7 @@ describe("withdraw.start — everything out, account left open", () => {
       ],
     });
     // nothing is left quoted, whatever it was quoted at before
-    expect(result.preview.quotas).toEqual([]);
+    expect(result.state.quotas).toEqual([]);
   });
 
   it("RWA market: the wrapper is unwrapped before anything leaves", async () => {
@@ -308,10 +308,10 @@ describe("withdraw.start — everything out, account left open", () => {
     expect(result.delayed.afterRequest.totalValue.value).toBe(TVL_BEFORE);
     // Where it ends is the same place the instant exit reaches: sold, settled,
     // handed over, the account empty and owing nothing.
-    expect(result.preview.totalDebt.value).toBe(0n);
-    expect(result.preview.totalValue.value).toBe(0n);
-    expect(result.preview.assets).toEqual([]);
-    expect(result.preview.quotas).toEqual([]);
+    expect(result.state.totalDebt.value).toBe(0n);
+    expect(result.state.totalValue.value).toBe(0n);
+    expect(result.state.assets).toEqual([]);
+    expect(result.state.quotas).toEqual([]);
   });
 
   it("refuses the redemption of a source the account does not hold", async () => {

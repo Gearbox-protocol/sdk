@@ -32,11 +32,11 @@ While the phantom balance sits on the account it is neither sellable nor
 withdrawable, so a second request for the same asset is refused
 (`withdrawalInProgress`), and so is an instant exit.
 
-## What the preview reports
+## What the simulation reports
 
 The request is half an operation, so the state it lands in is not an answer to
 "what does this do to my position": the debt still stands, nothing has been paid
-out, and the position sits in the phantom token. So `preview` is the far side —
+out, and the position sits in the phantom token. So `state` is the far side —
 the account once the redemption has matured, been claimed and the tail has run —
 which is the same place the instant route reaches in one transaction, and what
 makes the two routes comparable at all.
@@ -219,7 +219,7 @@ account and only their quota has to catch up.
 ## Notes
 
 - The tail is planned at claim time, not stored: only then are the claimed amount
-  and the token it arrived in known. The projection behind `preview` plans the
+  and the token it arrived in known. The projection behind `state` plans the
   same tail from the claim the request implies, so the two cannot drift apart.
 - `intent` can be passed explicitly for a compressor too old to report what the
   request recorded.

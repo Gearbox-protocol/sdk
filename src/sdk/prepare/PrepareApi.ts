@@ -131,7 +131,7 @@ export class PrepareApi
       return unroutable(chain, tokenIn, undefined);
     }
 
-    const preview = pools.simulateDeposit({
+    const state = pools.simulateDeposit({
       pool: pool.pool,
       amount: params.amount,
       tokenIn,
@@ -139,8 +139,8 @@ export class PrepareApi
     });
     const call = pools.addLiquidity({
       collateral: {
-        token: preview.tokenIn.token.address,
-        balance: preview.tokenIn.value,
+        token: state.tokenIn.token.address,
+        balance: state.tokenIn.value,
       },
       pool: pool.pool,
       wallet: params.wallet,
@@ -152,7 +152,7 @@ export class PrepareApi
       return unroutable(chain, tokenIn, tokenOut);
     }
 
-    return { ok: true, operations: [], preview, calls: call.calls };
+    return { ok: true, operations: [], state, calls: call.calls };
   }
 
   /**
@@ -172,7 +172,7 @@ export class PrepareApi
 
     // Amount is the tokenOut the wallet wants back, which is what the pool's
     // own `withdraw` takes: the share conversion is the pool's to make.
-    const preview = pools.simulateWithdraw({
+    const state = pools.simulateWithdraw({
       pool: pool.pool,
       amount: params.amount,
       tokenIn,
@@ -187,7 +187,7 @@ export class PrepareApi
       mode: "withdraw",
     });
 
-    return { ok: true, operations: [], preview, calls };
+    return { ok: true, operations: [], state, calls };
   }
 
   /**
@@ -204,7 +204,7 @@ export class PrepareApi
       return unroutable(chain, tokenIn, undefined);
     }
 
-    const preview = pools.simulateRedeem({
+    const state = pools.simulateRedeem({
       pool: pool.pool,
       amount: params.amount,
       tokenIn,
@@ -219,7 +219,7 @@ export class PrepareApi
       mode: "redeem",
     });
 
-    return { ok: true, operations: [], preview, calls };
+    return { ok: true, operations: [], state, calls };
   }
 
   /**

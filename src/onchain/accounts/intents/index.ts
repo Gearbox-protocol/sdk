@@ -18,9 +18,9 @@ import {
 import { maxProportionalWithdrawal } from "./math.js";
 import { maxWithdrawCollateral } from "./maxWithdrawCollateral.js";
 import {
-  type OpenStrategyPreview,
+  buildOpenStrategyState,
   type OpenStrategyProps,
-  previewOpenStrategy,
+  type OpenStrategyState,
 } from "./open-strategy.js";
 import type {
   AccountCalculatorOperation,
@@ -55,8 +55,8 @@ import { accountView } from "./view.js";
 
 export type { LeverageBand } from "./leverage-band.js";
 export type {
-  OpenStrategyPreview,
   OpenStrategyProps,
+  OpenStrategyState,
 } from "./open-strategy.js";
 export type {
   AddCollateralIntent,
@@ -97,7 +97,7 @@ export type {
  * there is no operation chain to report.
  */
 export type OpenStrategyPreviewResult =
-  | { ok: true; preview: OpenStrategyPreview }
+  | { ok: true; state: OpenStrategyState }
   | PreviewRefusal;
 
 /** An intent plus everything previewing it needs. */
@@ -306,7 +306,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
         sdk: props.sdk,
         quotaReserve: props.quotaReserve,
       });
-      return { ...result, preview: tail.state, delayed };
+      return { ...result, state: tail.state, delayed };
     } catch (e) {
       // A tail that cannot be walked is a request that would strand the
       // account, so it is refused here rather than started and regretted.
@@ -427,7 +427,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
     props: OpenStrategyProps,
   ): Promise<OpenStrategyPreviewResult> {
     try {
-      return { ok: true, preview: await previewOpenStrategy(props) };
+      return { ok: true, state: await buildOpenStrategyState(props) };
     } catch (e) {
       return asFailure(e);
     }
@@ -450,7 +450,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
         slippage: props.slippage ?? 0,
         quotaReserve: props.quotaReserve,
       });
-      return { ok: true, operations, preview: state, calls, delayed };
+      return { ok: true, operations, state, calls, delayed };
     } catch (e) {
       return asFailure(e);
     }
@@ -472,8 +472,8 @@ function plain(result: Previewed): IntentPreviewResult {
   if (!result.ok) {
     return result;
   }
-  const { operations, preview, calls } = result;
-  return { ok: true, operations, preview, calls };
+  const { operations, state, calls } = result;
+  return { ok: true, operations, state, calls };
 }
 
 /** Unviable requests are values; anything else is a genuine failure. */

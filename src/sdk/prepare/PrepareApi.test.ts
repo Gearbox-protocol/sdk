@@ -140,9 +140,9 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     expect(meta.chains[0]?.status).toBe("success");
     if (!data.ok) throw new Error(`simulate refused: ${data.reason}`);
     // the credit manager's strategyTargetCollateral stands in for an unnamed target token
-    expect(data.preview.totalDebt.value).toBe(40000000000n);
+    expect(data.state.totalDebt.value).toBe(40000000000n);
     expect(
-      data.preview.averageAssets.map(a => ({
+      data.state.averageAssets.map(a => ({
         token: a.token.address,
         balance: a.value,
       })),
@@ -159,7 +159,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
 
     if (!data.ok) throw new Error(`simulate refused: ${data.reason}`);
     // 100 UND of margin at the account's 2x borrows another 100
-    expect(data.preview.totalDebt.value).toBe(DEBT + 10000000000n);
+    expect(data.state.totalDebt.value).toBe(DEBT + 10000000000n);
   });
 
   it("repayStrategy pays the debt down with wallet funds", async () => {
@@ -172,7 +172,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
 
     expect(meta.chains[0]?.status).toBe("success");
     if (!data.ok) throw new Error(`simulate refused: ${data.reason}`);
-    expect(data.preview.totalDebt.value).toBe(DEBT - 20000000000n);
+    expect(data.state.totalDebt.value).toBe(DEBT - 20000000000n);
     expect(data.operations.map(op => op.type)).toEqual([
       "addCollateral",
       "decreaseDebt",
@@ -225,8 +225,8 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       to: WALLET,
     });
     if (!data.ok) throw new Error(`simulate refused: ${data.reason}`);
-    expect(data.instant?.preview.totalDebt.value).toBe(0n);
-    expect(data.instant?.preview.assets).toEqual([]);
+    expect(data.instant?.state.totalDebt.value).toBe(0n);
+    expect(data.instant?.state.assets).toEqual([]);
   });
 
   it("withdrawStrategy with MAX_UINT256 sells the position and empties the account", async () => {
@@ -253,9 +253,9 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     expect(
       exit.operations.find(op => op.type === "withdrawCollateral"),
     ).toMatchObject({ token: UND, amount: TVL - DEBT, to: WALLET });
-    expect(exit.preview.totalDebt.value).toBe(0n);
-    expect(exit.preview.assets).toEqual([]);
-    expect(exit.preview.quotas).toEqual([]);
+    expect(exit.state.totalDebt.value).toBe(0n);
+    expect(exit.state.assets).toEqual([]);
+    expect(exit.state.quotas).toEqual([]);
     // an exit is the router's business; the issuer cannot serve one
     expect(data.refused.delayed).toBe("noDelayedRoute");
   });
@@ -277,8 +277,8 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     expect(
       data.operations.find(op => op.type === "decreaseDebt"),
     ).toMatchObject({ amount: DEBT, full: true });
-    expect(data.preview.totalDebt.value).toBe(0n);
-    expect(data.preview.quotas).toEqual([]);
+    expect(data.state.totalDebt.value).toBe(0n);
+    expect(data.state.quotas).toEqual([]);
   });
 
   it("adjustLeverage retargets the debt and quotes both routes", async () => {
@@ -290,7 +290,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     });
     if (!data.ok) throw new Error(`simulate refused: ${data.reason}`);
     // collateral is the invariant: 500 of it at 3x is 1000 of debt
-    expect(data.instant?.preview.totalDebt.value).toBe(TVL);
+    expect(data.instant?.state.totalDebt.value).toBe(TVL);
   });
 
   it("addCollateral and withdrawCollateral leave the debt where it was", async () => {
@@ -309,10 +309,10 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     if (!added.data.ok || !taken.data.ok) {
       throw new Error("simulate refused a flow that leaves debt alone");
     }
-    expect(added.data.preview.totalDebt.value).toBe(DEBT);
-    expect(taken.data.preview.totalDebt.value).toBe(DEBT);
-    expect(added.data.preview.totalValue.value).toBe(TVL + 10000000000n);
-    expect(taken.data.preview.totalValue.value).toBe(TVL - 10000000000n);
+    expect(added.data.state.totalDebt.value).toBe(DEBT);
+    expect(taken.data.state.totalDebt.value).toBe(DEBT);
+    expect(added.data.state.totalValue.value).toBe(TVL + 10000000000n);
+    expect(taken.data.state.totalValue.value).toBe(TVL - 10000000000n);
   });
 
   it("reports the market's refusal rather than throwing it", async () => {
@@ -385,8 +385,8 @@ describe("PrepareApi — the two-transaction route", () => {
     });
     // the transaction on offer settles nothing, so the debt stands where it was
     expect(start.delayed.afterRequest.totalDebt.value).toBe(DEBT);
-    // the preview is where the withdrawal ends: dD repaid out of the claim
-    expect(start.preview.totalDebt.value).toBe(DEBT - 10000000000n);
+    // the state is where the withdrawal ends: dD repaid out of the claim
+    expect(start.state.totalDebt.value).toBe(DEBT - 10000000000n);
   });
 
   it("adjustLeverage takes the same route down", async () => {
@@ -425,9 +425,9 @@ describe("PrepareApi — the two-transaction route", () => {
 
     if (!data.ok) throw new Error(`finalize refused: ${data.reason}`);
     // Everything left is sold, the loan is settled and the rest handed over.
-    expect(data.preview.totalDebt.value).toBe(0n);
-    expect(data.preview.totalValue.value).toBe(0n);
-    expect(data.preview.assets).toEqual([]);
+    expect(data.state.totalDebt.value).toBe(0n);
+    expect(data.state.totalValue.value).toBe(0n);
+    expect(data.state.assets).toEqual([]);
     expect(data.operations.map(o => o.type)).toEqual([
       "claimDelayedWithdrawal",
       "changeQuota",

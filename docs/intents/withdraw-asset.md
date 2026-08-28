@@ -34,7 +34,7 @@ flowchart TD
   holds{"account holds the amount?"}
   q["updateQuota(token, −) sized to what is left"]
   hf{"HF >= 1.0 at safe prices? — funds leave"}
-  out["preview: TVL down, debt flat, leverage up"]
+  out["state: TVL down, debt flat, leverage up"]
 
   in --> pos
   pos -->|"no"| e1["insufficientSourceBalance"]

@@ -162,7 +162,7 @@ describe("deposit.start — price impact of the routed leg", () => {
   it("reports what the route gave up to depth", async () => {
     const result = await run(case_fixed_leverage, withDepth);
     if (!result.ok) throw new Error("expected a preview");
-    const { priceImpact } = result.preview;
+    const { priceImpact } = result.state;
 
     expect(priceImpact).toBeDefined();
     if (!priceImpact) return;
@@ -175,7 +175,7 @@ describe("deposit.start — price impact of the routed leg", () => {
   it("states the same loss against equity and against position size", async () => {
     const result = await run(case_fixed_leverage, withDepth);
     if (!result.ok) throw new Error("expected a preview");
-    const { priceImpact, totalValue, totalDebt } = result.preview;
+    const { priceImpact, totalValue, totalDebt } = result.state;
     if (!priceImpact) throw new Error("expected a measurement");
 
     // The same absolute loss over two different bases, so the ratio of the two
@@ -198,6 +198,6 @@ describe("deposit.start — price impact of the routed leg", () => {
 
     // The mock's default route is linear, and a probe scales down in exactly
     // the same proportion, so there is nothing to find.
-    expect(result.preview.priceImpact?.pathPriceImpact).toBe(0n);
+    expect(result.state.priceImpact?.pathPriceImpact).toBe(0n);
   });
 });

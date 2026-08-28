@@ -233,6 +233,7 @@ npx skills add Gearbox-protocol/sdk --skill gearbox-sdk-v13-to-v14
 - **`checkOperation` weighs a pool payout** against the liquidity the pool holds, refusing at equality as the legacy withdrawal validator did. It does **not** check whether a deposit has a route — that belongs to the simulator, which refuses such a deposit before there is calldata to preview.
 - **Previews report the safe factor** beside the main one (`estSafeHealthFactor` beside `estHealthFactor`), and so does a simulation (`OperationState.safeHealthFactor`); both are always filled in, whether or not the operation hands funds over. On the `est` prefix, see [Two amounts per swap](#two-amounts-per-swap-est-on-what-only-the-floor-is-known-for).
 - **`checkSimulation`** applies a caller's stricter bars to a simulation the engine already accepted, and `checkOperation`/`checkCollateralised` take `currentHealthFactor`/`improvesFrom`, so an operation that raises the factor is not refused from under the bar.
+- **A `prepare` result's `preview` is now `state`**, on every simulation shape, and the open-strategy walk is `buildOpenStrategyState` returning an `OpenStrategyState`. See [A `prepare` result reports a `state`](#a-prepare-result-reports-a-state-not-a-preview).
 
 ### Replace the flat validators with the checks
 
@@ -345,6 +346,28 @@ Both sides fill a projection from one builder, `sdk.positions.projection`
 cross-check that holds them to each other is
 `src/preview/preview/previewMatchesPrepare.test.ts`.
 
+### A `prepare` result reports a `state`, not a `preview`
+
+`preview` was the field's name while the whole engine was called a preview. It
+now sits next to a module of that name that means the other direction, so the
+field says what it holds — the state the operation lands the account in:
+
+```typescript
+const sim = await sdk.opportunities.prepare.depositStrategy(position, params);
+if (sim.data.ok) {
+  sim.data.state.totalDebt; // was sim.data.preview.totalDebt
+}
+```
+
+Renamed on every `prepare` result — `LpSimulate`, `StrategySimulate`,
+`DelayedStrategySimulate`, `OpenStrategySimulate` — and on the engine's own
+`IntentPreviewResult` and `DelayedStartResult`. `delayed.afterRequest` is
+untouched: it was already named for the state it describes.
+
+The open-strategy walk is renamed with it, since it is the one flow whose result
+is not an account state anyone previewed: **`previewOpenStrategy` →
+`buildOpenStrategyState`**, and **`OpenStrategyState` → `OpenStrategyState`**.
+
 ### Two amounts per swap: `est` on what only the floor is known for
 
 A routed leg is quoted twice — the amount the pathfinder expects to return, and
@@ -419,8 +442,8 @@ suffix is there because `prepare` already owns the plain names.
 | --- | --- | --- |
 | `OperationState` | `accountDebt` | `totalDebt` |
 | `CreditAccountSlice` | `accountDebt` | `totalDebt` |
-| `OpenStrategyPreview` | `debt` | `totalDebt` |
-| `OpenStrategyPreview` | `collateral` | `netValue` |
+| `OpenStrategyState` | `debt` | `totalDebt` |
+| `OpenStrategyState` | `collateral` | `netValue` |
 | `PreviewOpenStrategyVerify` | `debt` | `totalDebt` |
 | `PreviewOpenStrategyVerify` | `collateralValue` | `estNetValue` |
 | `PreviewOpenStrategyVerify` | `collateral` | `collateralAdded` |
@@ -446,7 +469,7 @@ unchanged; only the field's meaning is now what its name says.
 | `PreviewOpenStrategyVerify` | `estNetValue` | `bigint` | `TokenAmount` |
 | `PreviewAdjustStrategyVerify` | `totalDebtChange` | `bigint` | `TokenAmount` |
 | `PreviewRepayStrategyVerify` | `debtRepaid` | `bigint` | `TokenAmount` |
-| `OpenStrategyPreview` | `totalDebt`, `netValue`, `totalValue` | `bigint` | `TokenAmount` |
+| `OpenStrategyState` | `totalDebt`, `netValue`, `totalValue` | `bigint` | `TokenAmount` |
 | `OperationState` | `quotas` | `Record<Address, Asset>` | `TokenAmount[]` |
 | `PoolSimulation` | `tokenIn`, `tokenOut` | `Asset` | `TokenAmount` |
 | `PoolSimulation` | `availableLiquidity` | `bigint` | `Amount` |
@@ -469,7 +492,7 @@ factor and everything else by the main one.
 
 **New fields**
 
-`OpenStrategyPreview` gains `leverage` (the read model's plain multiplier, not
+`OpenStrategyState` gains `leverage` (the read model's plain multiplier, not
 the `LEVERAGE_DECIMALS`-scaled figure the request asks for) and
 `safeHealthFactor`, so it carries the same metrics as every other credit
 surface.
@@ -517,7 +540,7 @@ The threshold now weighs the magnitude, so a repayment reports a negative
 ### Every credit result names its own market
 
 `AccountProjection` gained four fields, so every producer of one — the two
-credit previews, `OperationState` and `OpenStrategyPreview` — now carries them:
+credit previews, `OperationState` and `OpenStrategyState` — now carries them:
 
 | Field | Type | Was |
 | --- | --- | --- |
@@ -525,7 +548,7 @@ credit previews, `OperationState` and `OpenStrategyPreview` — now carries them
 | `name` | `string` | on the previews only |
 | `curator` | `Curator` | read off the market configurator by the caller |
 | `liquidationDiscount` | `Bps` | read off the credit manager's fees by the caller |
-| `netValue` | `TokenAmount` | on `PreviewOpenStrategyVerify` and `OpenStrategyPreview` only; elsewhere the caller subtracted |
+| `netValue` | `TokenAmount` | on `PreviewOpenStrategyVerify` and `OpenStrategyState` only; elsewhere the caller subtracted |
 
 The four market fields are **`CreditOperationMarket`**, exported beside
 `AccountProjection` and filled from one place (`creditOperationMarket(suite)`),
@@ -556,7 +579,7 @@ leaves a strategy caller to do that subtraction; a projection reports it, so an
 "own funds" row reads the same wherever it appears rather than being derived on
 some screens and read on others.
 
-Beyond the projection, `OperationState` and `OpenStrategyPreview` carry the two
+Beyond the projection, `OperationState` and `OpenStrategyState` carry the two
 prices only a planned walk can quote, as one interface — **`SimulationPrices`**:
 `priceImpact`, what the routed legs lost to market depth, and **`currentPrice`**,
 what the position's collateral costs in the underlying right now. The latter is

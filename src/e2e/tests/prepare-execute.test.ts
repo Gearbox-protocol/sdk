@@ -171,7 +171,7 @@ describe("prepare → execute on a mainnet fork", () => {
         ReturnType<ReturnType<typeof prepare>["openNewStrategy"]>
       >["data"],
       { ok: true }
-    >["preview"];
+    >["state"];
   }> {
     await fund();
     await sync();
@@ -198,7 +198,7 @@ describe("prepare → execute on a mainnet fork", () => {
     return {
       creditAccount,
       before: await account(creditAccount),
-      preview: sim.data.preview,
+      preview: sim.data.state,
     };
   }
 
@@ -251,7 +251,7 @@ describe("prepare → execute on a mainnet fork", () => {
     if (meta?.status !== "success") throw new Error("sim did not succeed");
     return {
       sim: sim.data,
-      preview: sim.data.preview,
+      preview: sim.data.state,
       timestamp: meta.timestamp,
     };
   }
@@ -272,7 +272,7 @@ describe("prepare → execute on a mainnet fork", () => {
     }
     return {
       sim: instant,
-      preview: instant.preview,
+      preview: instant.state,
       timestamp: meta.timestamp,
     };
   }
@@ -990,7 +990,7 @@ describe("prepare → execute on a mainnet fork", () => {
       });
       return {
         creditAccount: log.args.creditAccount,
-        debt: sim.data.preview.totalDebt.value,
+        debt: sim.data.state.totalDebt.value,
       };
     }
 
@@ -1188,7 +1188,7 @@ describe("prepare → execute on a mainnet fork", () => {
       // the rate is read a block before the mint, and a share only ever grows,
       // so the mint is that figure or a hair under it — never above
       const minted = (await balance(shares)) - before;
-      const promised = sim.preview.tokenOut.value;
+      const promised = sim.state.tokenOut.value;
       expect(minted).toBeLessThanOrEqual(promised);
       expect(minted).toBeGreaterThanOrEqual(promised - promised / 1_000_000n);
     });
@@ -1227,7 +1227,7 @@ describe("prepare → execute on a mainnet fork", () => {
       });
 
       expect((await balance(USDC)) - before).toBeGreaterThanOrEqual(
-        sim.preview.tokenOut.value,
+        sim.state.tokenOut.value,
       );
     });
 
@@ -1272,7 +1272,7 @@ describe("prepare → execute on a mainnet fork", () => {
       // send lands a block later, and a share only ever grows, so the payout is
       // that figure or a hair above it — never below.
       const paid = (await balance(USDC)) - before;
-      const promised = sim.preview.tokenOut.value;
+      const promised = sim.state.tokenOut.value;
       expect(paid).toBeGreaterThanOrEqual(promised);
       expect(paid).toBeLessThanOrEqual(promised + promised / 1_000_000n + 1n);
     });

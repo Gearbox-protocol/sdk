@@ -103,7 +103,7 @@ describe("a routed leg's two amounts — the floor signs, the expectation is rep
 
     // The state: the position at the full 2000 the route expects to deliver, not
     // at the 1990 it guarantees.
-    const state = result.preview;
+    const state = result.state;
     expect(assetBalance(state.assets, POS)).toBe(2n * P1000);
     expect(state.totalValue.value).toBe(2n * P1000);
     expect(state.netValue.value).toBe(P1000);

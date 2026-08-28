@@ -92,7 +92,7 @@ describe("buildTx — pool", () => {
   const sim: Extract<LpSimulate, { ok: true }> = {
     ok: true,
     operations: [],
-    preview: {
+    state: {
       tokenIn: amount(UNDERLYING, 1_000n),
       tokenOut: amount(DIESEL, 990n),
     },
@@ -121,8 +121,8 @@ describe("buildTx — pool", () => {
       pool: POOL,
       wallet: WALLET,
       collateral: {
-        token: sim.preview.tokenIn.token.address,
-        balance: sim.preview.tokenIn.value,
+        token: sim.state.tokenIn.token.address,
+        balance: sim.state.tokenIn.value,
       },
       meta: DEPOSIT_META,
     });
@@ -133,7 +133,7 @@ describe("buildTx — pool", () => {
     const withdrawSim: Extract<LpSimulate, { ok: true }> = {
       ok: true,
       operations: [],
-      preview: {
+      state: {
         tokenIn: amount(DIESEL, 500n),
         tokenOut: amount(UNDERLYING, 505n),
       },
@@ -170,7 +170,7 @@ describe("buildTx — pool", () => {
     const redeemSim: Extract<LpSimulate, { ok: true }> = {
       ok: true,
       operations: [],
-      preview: {
+      state: {
         tokenIn: amount(DIESEL, 500n),
         tokenOut: amount(UNDERLYING, 505n),
       },
@@ -234,7 +234,7 @@ describe("buildTx — pool", () => {
 });
 
 describe("buildTx — open", () => {
-  const preview = {
+  const state = {
     creditManager: CREDIT_MANAGER,
     name: "Test CM",
     totalDebt: amount(UNDERLYING, 2_000n),
@@ -258,11 +258,11 @@ describe("buildTx — open", () => {
   };
   const sim: Extract<OpenStrategySimulate, { ok: true }> = {
     ok: true,
-    preview,
+    state,
   };
   const collateral = [{ token: UNDERLYING, balance: 1_000n }];
 
-  it("hands the preview's debt, path and quotas to openCA, with the wallet's collateral", async () => {
+  it("hands the state's debt, path and quotas to openCA, with the wallet's collateral", async () => {
     const { execute, sdk, txs } = mockChain();
 
     const tx = await execute.buildTx({
@@ -281,10 +281,10 @@ describe("buildTx — open", () => {
       to: WALLET,
       collateral,
       ethAmount: 0n,
-      debt: preview.totalDebt.value,
-      calls: preview.calls,
-      averageQuota: preview.averageQuota,
-      minQuota: preview.minQuota,
+      debt: state.totalDebt.value,
+      calls: state.calls,
+      averageQuota: state.averageQuota,
+      minQuota: state.minQuota,
       permits: {},
       referralCode: 0n,
     });
@@ -389,7 +389,7 @@ describe("buildTx — account", () => {
   const sim: Extract<StrategySimulate, { ok: true }> = {
     ok: true,
     operations: [],
-    preview: {
+    state: {
       creditManager: CREDIT_MANAGER,
       name: "Test CM",
       curator: CURATOR,

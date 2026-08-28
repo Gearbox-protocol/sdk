@@ -48,7 +48,7 @@ export class ExecuteApi implements IOpportunitiesExecute {
 
 function poolTx(sdk: OnchainSDK, request: PoolPrepareRequest): RawTx {
   const { pool, wallet, sim } = request;
-  const { tokenIn, tokenOut } = sim.preview;
+  const { tokenIn, tokenOut } = sim.state;
   if (request.op === "deposit") {
     const meta = sdk.pools.getDepositMetadata(
       pool,
@@ -88,16 +88,16 @@ async function openTx(
   request: OpenPrepareRequest,
 ): Promise<RawTx> {
   const { creditManager, wallet, collateral, ethAmount, sim } = request;
-  const { preview } = sim;
+  const { state } = sim;
   return sdk.accounts.openCA({
     creditManager,
     to: wallet,
     collateral,
     ethAmount,
-    debt: preview.totalDebt.value,
-    calls: preview.calls,
-    averageQuota: preview.averageQuota,
-    minQuota: preview.minQuota,
+    debt: state.totalDebt.value,
+    calls: state.calls,
+    averageQuota: state.averageQuota,
+    minQuota: state.minQuota,
     permits: {},
     referralCode: 0n,
     rwaOptions: await openRwaOptions(sdk, request),

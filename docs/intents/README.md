@@ -10,7 +10,7 @@ surface: `sdk.opportunities.prepare` (see
 
 | Intent            | Public API                     | Planner                  | Debt    | Graph                                     |
 | ----------------- | ------------------------------ | ------------------------ | ------- | ----------------------------------------- |
-| —                 | `prepare.openNewStrategy`     | `previewOpenStrategy`    | drawn   | [open-strategy.md](./open-strategy.md)     |
+| —                 | `prepare.openNewStrategy`     | `buildOpenStrategyState` | drawn   | [open-strategy.md](./open-strategy.md)     |
 | `DEPOSIT`         | `prepare.depositStrategy`     | `planDeposit`            | grows   | [deposit.md](./deposit.md)                 |
 | `WITHDRAW`        | `prepare.withdrawStrategy`    | `planWithdraw`           | shrinks | [withdraw.md](./withdraw.md)               |
 | `REPAY`           | `prepare.repayStrategy`       | `planRepay`              | shrinks | [repay.md](./repay.md)                     |

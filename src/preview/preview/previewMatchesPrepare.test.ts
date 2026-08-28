@@ -10,7 +10,7 @@ import type {
   TokenAmount,
 } from "../../model/index.js";
 import { CreditAccountOperationsService } from "../../onchain/accounts/intents/index.js";
-import type { OpenStrategyPreview } from "../../onchain/accounts/intents/open-strategy.js";
+import type { OpenStrategyState } from "../../onchain/accounts/intents/open-strategy.js";
 import type {
   OperationState,
   StartIntent,
@@ -161,13 +161,13 @@ async function roundTrip(
     { creditAccount: account },
   );
 
-  return { projected: result.preview, preview };
+  return { projected: result.state, preview };
 }
 
 /**
  * Opening, with the one call this setting cannot make stood in for.
  *
- * `previewOpenStrategy` always asks the pathfinder, even when the answer is
+ * `buildOpenStrategyState` always asks the pathfinder, even when the answer is
  * "nothing to do": there is no account yet, so there are no balances to notice
  * the target is already what the collateral is. The stub is that answer —
  * every balance handed over comes back untouched, no calls, no slippage — which
@@ -199,7 +199,7 @@ async function openRoundTrip(margin: bigint, leverage: bigint) {
     .spyOn(sdk, "routerFor")
     .mockReturnValue(identity as never);
 
-  let projected: OpenStrategyPreview;
+  let projected: OpenStrategyState;
   try {
     const result = await new CreditAccountOperationsService(
       sdk,
@@ -214,7 +214,7 @@ async function openRoundTrip(margin: bigint, leverage: bigint) {
     });
     if (!result.ok)
       throw new Error(`prepare refused the opening: ${result.reason}`);
-    projected = result.preview;
+    projected = result.state;
   } finally {
     routerFor.mockRestore();
   }

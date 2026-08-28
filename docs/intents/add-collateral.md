@@ -33,7 +33,7 @@ flowchart TD
   q["updateQuota(token, +) sized to the new balance<br/>quota = balanceᵤ · LT · (1 + reserve)"]
   head{"market quota headroom?"}
   hf{"HF >= 1.0? — main prices, nothing leaves"}
-  out["preview: TVL up, debt flat, leverage down"]
+  out["state: TVL up, debt flat, leverage down"]
 
   in --> pos
   pos -->|"no"| e1["insufficientSourceBalance"]

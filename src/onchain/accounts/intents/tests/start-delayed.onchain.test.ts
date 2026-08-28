@@ -43,7 +43,7 @@ import {
  *
  * Two states are checked throughout, because the request is half an operation:
  * `delayed.afterRequest` is what the transaction on offer lands in — the source
- * spent, the phantom in its place, nothing repaid — and `preview` is where the
+ * spent, the phantom in its place, nothing repaid — and `state` is where the
  * intent ends, once the redemption has been claimed and the tail has run. The
  * instant specs land in the latter in one go, so the two agree by design.
  */
@@ -129,8 +129,8 @@ describe("withdraw.startDelayed — request now, settle after the delay", () => 
     expect(result.delayed.afterRequest.totalValue.value).toBe(TVL_BEFORE);
     // Where the intent ends, though, is with the payout made and the debt down
     // by the dD the tail repays out of the claim.
-    expect(result.preview.totalDebt.value).toBe(DEBT_BEFORE - W);
-    expect(result.preview.totalValue.value).toBe(TVL_BEFORE - 2n * W);
+    expect(result.state.totalDebt.value).toBe(DEBT_BEFORE - W);
+    expect(result.state.totalValue.value).toBe(TVL_BEFORE - 2n * W);
     expect(result.calls[0]).toEqual(MOCK_REQUEST_CALL);
   });
 
@@ -145,7 +145,7 @@ describe("withdraw.startDelayed — request now, settle after the delay", () => 
 
     // `undefined`, not zero. The oracle quoter this walk uses has no depth to
     // discover, and a zero here would read as a measurement that was taken.
-    expect(result.preview.priceImpact).toBeUndefined();
+    expect(result.state.priceImpact).toBeUndefined();
     expect(result.delayed.afterRequest.priceImpact).toBeUndefined();
   });
 
@@ -205,8 +205,8 @@ describe("withdraw.startDelayed — request now, settle after the delay", () => 
     expect(assetBalance(assets, PHANTOM)).toBe(2n * W);
     // And once the claim lands, neither is left: what it brought paid the
     // wallet and the loan.
-    expect(assetBalance(result.preview.assets, PHANTOM)).toBe(0n);
-    expect(assetBalance(result.preview.assets, POS)).toBe(TVL_BEFORE - 2n * W);
+    expect(assetBalance(result.state.assets, PHANTOM)).toBe(0n);
+    expect(assetBalance(result.state.assets, POS)).toBe(TVL_BEFORE - 2n * W);
   });
 
   it("still needs a tail when the venue serves only part on the spot", async () => {
@@ -225,8 +225,8 @@ describe("withdraw.startDelayed — request now, settle after the delay", () => 
     expect(assetBalance(assets, UND)).toBe(W);
     expect(assetBalance(assets, PHANTOM)).toBe(W);
     // The tail spends both: W to the wallet, W into the debt.
-    expect(result.preview.totalDebt.value).toBe(DEBT_BEFORE - W);
-    expect(assetBalance(result.preview.assets, PHANTOM)).toBe(0n);
+    expect(result.state.totalDebt.value).toBe(DEBT_BEFORE - W);
+    expect(assetBalance(result.state.assets, PHANTOM)).toBe(0n);
   });
 
   it("refuses a payout the tail cannot serve", async () => {
