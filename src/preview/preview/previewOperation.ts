@@ -151,12 +151,14 @@ async function previewMulticallOperation<P extends PluginsMap>(
       ? meta.asset
       : market.underlying;
 
+  const suite = sdk.marketRegister.findCreditManager(operation.creditManager);
+
   return {
     operation: "DelayedCreditAccountOperation",
     creditAccount: operation.creditAccount,
-    ...creditOperationMarket(
-      sdk.marketRegister.findCreditManager(operation.creditManager),
-    ),
+    ...creditOperationMarket(suite),
+    name: suite.accountStrategyName(operation.creditAccount),
+    targetCollateral: suite.accountTargetCollateral(operation.creditAccount),
     intent: delayed.intent,
     estClaimableAt: estimateClaimableAt(sdk, delayed.request.phantomToken),
     instantPreview,

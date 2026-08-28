@@ -78,6 +78,7 @@ function previewCloseCreditAccount<P extends PluginsMap>(
   );
 
   const { after, error } = replay;
+  const suite = sdk.marketRegister.findCreditManager(operation.creditManager);
 
   // in case of RWA markets, withdrawn token might be underlying (dcUSDC)
   // or unwrapped underlying (USDC)
@@ -92,10 +93,10 @@ function previewCloseCreditAccount<P extends PluginsMap>(
   return {
     operation: "CloseCreditAccount",
     permanent,
-    ...creditOperationMarket(
-      sdk.marketRegister.findCreditManager(operation.creditManager),
-    ),
+    ...creditOperationMarket(suite),
     creditAccount: operation.creditAccount,
+    name: suite.accountStrategyName(operation.creditAccount),
+    targetCollateral: suite.accountTargetCollateral(operation.creditAccount),
     // On a malformed multicall the withdrawn amount depends on best-effort
     // replayed balances and may be unreliable
     receivedAmount: market.priceOracle.toTokenAmount(
@@ -131,14 +132,15 @@ function previewRepayCreditAccount<P extends PluginsMap>(
       sdk.addressProvider.getAddress(AP_WETH_TOKEN, NO_VERSION),
     );
   const error = replayError ?? unwrapError;
+  const suite = sdk.marketRegister.findCreditManager(operation.creditManager);
 
   return {
     operation: "RepayCreditAccount",
     permanent,
-    ...creditOperationMarket(
-      sdk.marketRegister.findCreditManager(operation.creditManager),
-    ),
+    ...creditOperationMarket(suite),
     creditAccount: operation.creditAccount,
+    name: suite.accountStrategyName(operation.creditAccount),
+    targetCollateral: suite.accountTargetCollateral(operation.creditAccount),
     collateralAdded: collateralAdded.map(a =>
       market.priceOracle.toTokenAmount(a.token, a.balance),
     ),

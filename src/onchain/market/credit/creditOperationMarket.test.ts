@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import { describe, expect, it } from "vitest";
-import type { Curator } from "../../../model/index.js";
+import type { Curator, UnderlyingToken } from "../../../model/index.js";
 import type { CreditSuite } from "./CreditSuite.js";
 import {
   creditOperationMarket,
@@ -14,6 +14,14 @@ const CURATOR: Curator = {
   name: "Chaos Labs",
   url: null,
 };
+const WETH: UnderlyingToken = {
+  chainId: 1,
+  address: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2" as Address,
+  symbol: "WETH",
+  name: "Wrapped Ether",
+  decimals: 18,
+  wrappedAddress: null,
+};
 
 /**
  * The three getters the market half is read off. `liquidationFees` is the pair
@@ -22,7 +30,9 @@ const CURATOR: Curator = {
  */
 function suiteWith(fees: LiquidationFees): CreditSuite {
   return {
-    name: "wstETH / WETH",
+    name: "KPK WETH",
+    strategyName: "wstETH / WETH",
+    underlyingToken: WETH,
     creditManager: { address: CREDIT_MANAGER },
     market: { curator: CURATOR },
     liquidationFees: () => fees,
@@ -68,8 +78,21 @@ describe("creditOperationMarket", () => {
     ).toEqual({
       creditManager: CREDIT_MANAGER,
       name: "wstETH / WETH",
+      underlyingToken: WETH,
       curator: CURATOR,
       liquidationDiscount: 450,
+    });
+  });
+
+  it("falls back to the underlying symbol when the suite has no strategy", () => {
+    expect(
+      creditOperationMarket({
+        ...suiteWith({ liquidationDiscount: 9700, feeLiquidation: 150 }),
+        strategyName: undefined,
+      } as unknown as CreditSuite),
+    ).toMatchObject({
+      name: "WETH",
+      underlyingToken: WETH,
     });
   });
 });

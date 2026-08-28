@@ -4,10 +4,12 @@ import type {
   StrategyOpportunityDetail,
   Timestamp,
   Token,
+  UnderlyingToken,
 } from "../../../model/index.js";
 import type { CreditAccountData, CreditSuiteState } from "../../base/index.js";
 import { SDKConstruct } from "../../base/index.js";
 import {
+  getAccountTargetCollateral,
   getLegacyStrategyTarget,
   isSunsetStrategy,
 } from "../../chain/chains.js";
@@ -125,6 +127,17 @@ export class CreditSuite extends SDKConstruct {
    */
   public get underlying(): Address {
     return this.creditManager.underlying;
+  }
+
+  /**
+   * Pool underlying token as the shared read model describes it.
+   *
+   * For RWA markets this is the unwrapped asset, e.g. USDC rather than
+   * dcUSDC (the pool's on-chain underlying). Same as
+   * {@link MarketSuite.underlyingToken}.
+   */
+  public get underlyingToken(): UnderlyingToken {
+    return this.market.underlyingToken;
   }
 
   /**
@@ -326,8 +339,38 @@ export class CreditSuite extends SDKConstruct {
     }
     return formatStrategyName(
       this.tokensMeta.mustGetToken(collateral),
-      this.market.underlyingToken,
+      this.underlyingToken,
     );
+  }
+
+  /**
+   * Collateral token an existing credit account in this suite is a strategy
+   * in. Same as {@link StrategyPosition.targetCollateral}.
+   *
+   * Resolution, in order:
+   * 1. a hardcoded per-account override, when present;
+   * 2. {@link strategyTargetCollateral};
+   * 3. `null` when neither can be resolved.
+   */
+  public accountTargetCollateral(creditAccount: Address): Token | null {
+    const addr =
+      getAccountTargetCollateral(creditAccount, this.chainId) ??
+      this.strategyTargetCollateral;
+    return addr ? this.tokensMeta.mustGetToken(addr) : null;
+  }
+
+  /**
+   * Display name of an existing credit account in this suite, e.g.
+   * `"wstETH / WETH"`. Same as {@link StrategyPosition.name}.
+   *
+   * {@link accountTargetCollateral} over the underlying, or the underlying
+   * symbol when no target can be resolved.
+   */
+  public accountStrategyName(creditAccount: Address): string {
+    const target = this.accountTargetCollateral(creditAccount);
+    return target
+      ? formatStrategyName(target, this.underlyingToken)
+      : this.underlyingToken.symbol;
   }
 
   /**
@@ -359,9 +402,9 @@ export class CreditSuite extends SDKConstruct {
       chainId: this.chainId,
       creditManager: cm.address,
       targetCollateral: this.tokensMeta.mustGetToken(collateral),
-      name: this.strategyName ?? this.market.underlyingToken.symbol,
+      name: this.strategyName ?? this.underlyingToken.symbol,
       curator: market.curator,
-      underlyingToken: market.underlyingToken,
+      underlyingToken: this.underlyingToken,
       totalBorrowed: oracle.toAmount(pool.underlying, borrowed),
       allowedDepositTokens: this.#allowedDepositTokens(collateral),
       paused: this.isPaused,

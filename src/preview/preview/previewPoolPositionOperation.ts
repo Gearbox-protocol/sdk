@@ -24,6 +24,7 @@ export async function previewPoolPositionOperation<P extends PluginsMap>(
     operation: operation.operation,
     pool: operation.pool,
     name: sdk.tokensMeta.mustGetToken(operation.pool).name,
+    underlyingToken: market.underlyingToken,
     shareRate: market.pool.pool.dieselRate,
     tokenIn: market.priceOracle.toTokenAmount(tokenIn, sim.amountIn),
     tokenOut: market.priceOracle.toTokenAmount(tokenOut, sim.amountOut),

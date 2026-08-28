@@ -268,13 +268,14 @@ function buildClosePreview(
   const oracle = sdk.marketRegister.findByCreditManager(
     post.creditManager,
   ).priceOracle;
+  const suite = sdk.marketRegister.findCreditManager(post.creditManager);
   return {
     operation: "CloseCreditAccount",
     permanent: false,
-    ...creditOperationMarket(
-      sdk.marketRegister.findCreditManager(post.creditManager),
-    ),
+    ...creditOperationMarket(suite),
     creditAccount: post.creditAccount,
+    name: suite.accountStrategyName(post.creditAccount),
+    targetCollateral: suite.accountTargetCollateral(post.creditAccount),
     // Oracle estimate computed in the underlying; RWA underlyings convert
     // 1:1 with their vault asset, so the amount holds for `receivedToken`
     receivedAmount: oracle.toTokenAmount(
@@ -296,6 +297,7 @@ function buildAdjustPreview(
     totalValueInUnderlying(post, converter.convert, DUST_THRESHOLD),
   );
   const market = sdk.marketRegister.findByCreditManager(post.creditManager);
+  const suite = sdk.marketRegister.findCreditManager(post.creditManager);
   const oracle = market.priceOracle;
   return {
     operation: "AdjustCreditAccount",
@@ -313,6 +315,8 @@ function buildAdjustPreview(
       }),
     ),
     creditAccount: post.creditAccount,
+    name: suite.accountStrategyName(post.creditAccount),
+    targetCollateral: suite.accountTargetCollateral(post.creditAccount),
     // the resume flow adds nothing from the wallet
     collateralAdded: [],
     collateralWithdrawn: collateralWithdrawn

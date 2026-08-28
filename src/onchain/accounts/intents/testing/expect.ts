@@ -282,7 +282,7 @@ export function expectAdjustPreview(
   // The projection names the market it was walked against, which is what lets
   // `checkSimulation` take nothing but the state.
   expect(result.state.creditManager).toBe(CREDIT_MANAGER);
-  expect(result.state.name).toBe("TestCreditManager");
+  expect(result.state.name).toBe("TOKEN / TOKEN");
   expectOpsArrayExact(result.operations, args.expectedOps);
   return result.state;
 }

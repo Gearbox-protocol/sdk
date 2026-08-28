@@ -31,6 +31,14 @@ const preview: OperationPreview = {
   operation: "Deposit",
   pool: TO,
   name: "Test Pool",
+  underlyingToken: {
+    chainId: 1,
+    address: TO,
+    symbol: "USDC",
+    name: "USD Coin",
+    decimals: 6,
+    wrappedAddress: null,
+  },
   shareRate: 10n ** 27n,
   tokenIn: {
     token: {

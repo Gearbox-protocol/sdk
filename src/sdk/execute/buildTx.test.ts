@@ -237,6 +237,7 @@ describe("buildTx — open", () => {
   const state = {
     creditManager: CREDIT_MANAGER,
     name: "Test CM",
+    underlyingToken: { ...amount(UNDERLYING, 0n).token, wrappedAddress: null },
     totalDebt: amount(UNDERLYING, 2_000n),
     netValue: amount(UNDERLYING, 1_000n),
     totalValue: amount(UNDERLYING, 3_000n),
@@ -392,6 +393,10 @@ describe("buildTx — account", () => {
     state: {
       creditManager: CREDIT_MANAGER,
       name: "Test CM",
+      underlyingToken: {
+        ...amount(UNDERLYING, 0n).token,
+        wrappedAddress: null,
+      },
       curator: CURATOR,
       liquidationDiscount: 0,
       currentPrice: null,

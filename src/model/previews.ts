@@ -7,7 +7,9 @@ import type {
   ChainId,
   Leverage,
   Timestamp,
+  Token,
   TokenAmount,
+  UnderlyingToken,
 } from "./primitives.js";
 
 /**
@@ -131,6 +133,13 @@ export interface PoolPositionOperationPreview {
    */
   name: string;
   /**
+   * Pool underlying token.
+   *
+   * For RWA markets this is the unwrapped asset, e.g. USDC rather than
+   * dcUSDC (the pool's on-chain underlying). Same as {@link PoolPosition.underlyingToken}.
+   */
+  underlyingToken: UnderlyingToken;
+  /**
    * Token that goes from user to pool
    * In case of deposit, underlying for direct deposit, zapper input for zapper-routed deposit
    * In case of withdraw, pool shares (diesel token) for direct withdraw or zapper token out
@@ -176,9 +185,18 @@ export interface CreditOperationMarket {
    */
   creditManager: Address;
   /**
-   * Human-readable credit manager name.
+   * Human-readable strategy name, e.g. `"wstETH / WETH"`. Same as
+   * {@link StrategyPosition.name}
    */
   name: string;
+  /**
+   * Pool underlying token.
+   *
+   * For RWA markets this is the unwrapped asset, e.g. USDC rather than
+   * dcUSDC (the pool's on-chain underlying). Same as
+   * {@link StrategyPosition.underlyingToken}.
+   */
+  underlyingToken: UnderlyingToken;
   /**
    * Curator of the market {@link creditManager} belongs to, in the same shape
    * {@link StrategyOpportunity} reports it: the market configurator's address,
@@ -475,6 +493,11 @@ export interface AdjustStrategyPositionPreview
    */
   creditAccount: Address;
   /**
+   * Collateral token this position is a strategy in. Same as
+   * {@link StrategyPosition.targetCollateral}
+   */
+  targetCollateral: Token | null;
+  /**
    * Tokens that were added as collateral during account opening.
    *
    * When the transaction has native value attached, it is represented as a
@@ -521,6 +544,11 @@ export interface ExitStrategyPositionPreview extends CreditOperationMarket {
    */
   creditAccount: Address;
   /**
+   * Collateral token this position is a strategy in. Same as
+   * {@link StrategyPosition.targetCollateral}
+   */
+  targetCollateral: Token | null;
+  /**
    * Token withdrawn to the user and its minimal guaranteed amount, from the
    * multicall replay (all collateral is swapped into the received token
    * before withdrawal). The token is the market underlying or, on RWA
@@ -561,6 +589,11 @@ export interface RepayStrategyPositionPreview extends CreditOperationMarket {
    * Credit account that is being repaid
    */
   creditAccount: Address;
+  /**
+   * Collateral token this position is a strategy in. Same as
+   * {@link StrategyPosition.targetCollateral}
+   */
+  targetCollateral: Token | null;
   /**
    * Tokens added from the wallet to cover the debt (`addCollateral` calls).
    *
@@ -618,6 +651,11 @@ export interface DelayedStrategyPositionOperationPreview
    * Credit account the operation is performed on
    */
   creditAccount: Address;
+  /**
+   * Collateral token this position is a strategy in. Same as
+   * {@link StrategyPosition.targetCollateral}
+   */
+  targetCollateral: Token | null;
   /**
    * Decoded from the withdrawal request's extraData; undefined when the
    * request carries no intent (e.g. Mellow)

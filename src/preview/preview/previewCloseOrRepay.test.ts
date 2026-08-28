@@ -67,6 +67,10 @@ describe("close/repay with withdrawals (WETH strategy)", () => {
       creditManager: CREDIT_MANAGER,
       creditAccount: CREDIT_ACCOUNT,
       name: expect.any(String),
+      underlyingToken: expect.objectContaining({ address: WETH }),
+      targetCollateral: expect.objectContaining({
+        address: expect.stringMatching(/^0x/i),
+      }),
       receivedAmount: {
         token: expect.objectContaining({ address: WETH }),
         value: 9_944_275_431_253_841_336n, // ~49.9 WETH - 40 weETH
@@ -87,6 +91,10 @@ describe("close/repay with withdrawals (WETH strategy)", () => {
       permanent: false,
       creditManager: CREDIT_MANAGER,
       creditAccount: CREDIT_ACCOUNT,
+      underlyingToken: expect.objectContaining({ address: WETH }),
+      targetCollateral: expect.objectContaining({
+        address: expect.stringMatching(/^0x/i),
+      }),
       collateralAdded: [
         {
           token: expect.objectContaining({ address: WETH }),
@@ -225,6 +233,13 @@ describe.each(WALLET_FUNDED_REPAY_SCENARIOS)(
         error: undefined,
         creditManager: afterOpen.creditManager,
         creditAccount: afterOpen.creditAccount,
+        name: expect.any(String),
+        underlyingToken: expect.objectContaining({
+          address: spec.repayToken,
+        }),
+        targetCollateral: expect.objectContaining({
+          address: expect.stringMatching(/^0x/i),
+        }),
         // exact calldata amount transferred from the wallet
         collateralAdded: [
           {

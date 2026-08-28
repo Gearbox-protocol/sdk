@@ -350,6 +350,10 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
     expect(preview).toMatchObject({
       operation: spec.openOperation,
       error: undefined,
+      name: expect.any(String),
+      underlyingToken: expect.objectContaining({
+        address: expect.any(String),
+      }),
       collateralAdded: [
         {
           token: expect.objectContaining({ address: USDC }),
@@ -403,6 +407,12 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
     expect(preview).toMatchObject({
       operation: "DelayedCreditAccountOperation",
       name: expect.any(String),
+      underlyingToken: expect.objectContaining({
+        address: expect.any(String),
+      }),
+      targetCollateral: expect.objectContaining({
+        address: expect.stringMatching(/^0x/i),
+      }),
       // The decoded intent carries the new sourceToken/debtRepaid fields
       intent: {
         type: "WITHDRAW_COLLATERAL",
@@ -492,6 +502,13 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
 
     expect(preview).toMatchObject({
       operation: "AdjustCreditAccount",
+      name: expect.any(String),
+      underlyingToken: expect.objectContaining({
+        address: expect.any(String),
+      }),
+      targetCollateral: expect.objectContaining({
+        address: expect.stringMatching(/^0x/i),
+      }),
       // the intent recorded by the request tx, served by the redemption
       // logger
       intent: {
@@ -546,6 +563,12 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
     expect(preview).toMatchObject({
       operation: "DelayedCreditAccountOperation",
       name: expect.any(String),
+      underlyingToken: expect.objectContaining({
+        address: expect.any(String),
+      }),
+      targetCollateral: expect.objectContaining({
+        address: expect.stringMatching(/^0x/i),
+      }),
       intent: { type: "CLOSE_ACCOUNT", to: investor },
       estClaimableAt: estimateClaimableAt(sdk, PHANTOM),
       // Instant preview vs the actual state after the request: collateral
@@ -616,6 +639,13 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
     expect(preview).toMatchObject({
       operation: "CloseCreditAccount",
       error: undefined,
+      name: expect.any(String),
+      underlyingToken: expect.objectContaining({
+        address: expect.any(String),
+      }),
+      targetCollateral: expect.objectContaining({
+        address: expect.stringMatching(/^0x/i),
+      }),
       // zero-debt closure via a plain multicall, not the facade
       // closeCreditAccount entry point
       permanent: false,

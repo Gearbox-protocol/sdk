@@ -36,6 +36,7 @@ export function previewAdjustStrategyPosition<P extends PluginsMap>(
   const market = sdk.marketRegister.findByCreditManager(
     operation.creditManager,
   );
+  const suite = sdk.marketRegister.findCreditManager(operation.creditManager);
   const oracle = market.priceOracle;
 
   const {
@@ -100,6 +101,8 @@ export function previewAdjustStrategyPosition<P extends PluginsMap>(
       }),
     ),
     creditAccount: operation.creditAccount,
+    name: suite.accountStrategyName(operation.creditAccount),
+    targetCollateral: suite.accountTargetCollateral(operation.creditAccount),
     collateralAdded: collateralAdded.map(a =>
       oracle.toTokenAmount(a.token, a.balance),
     ),

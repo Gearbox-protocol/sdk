@@ -19,7 +19,7 @@ export function totalLiquidationDiscount(suite: CreditSuite): Bps {
 /**
  * The market half of every credit operation result, read off the suite that
  * serves it: a preview, a projection, the open-strategy walk and a
- * liquidatable-account row all spread it, so the four fields are filled in one
+ * liquidatable-account row all spread it, so the five fields are filled in one
  * place and cannot drift apart between the halves of the SDK.
  *
  * The curator comes from the same getter {@link CreditSuite.strategyOpportunity}
@@ -30,7 +30,8 @@ export function creditOperationMarket(
 ): CreditOperationMarket {
   return {
     creditManager: suite.creditManager.address,
-    name: suite.name,
+    name: suite.strategyName ?? suite.underlyingToken.symbol,
+    underlyingToken: suite.underlyingToken,
     curator: suite.market.curator,
     liquidationDiscount: totalLiquidationDiscount(suite),
   };

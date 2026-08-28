@@ -93,6 +93,10 @@ it("previews raising leverage to 6", async () => {
     creditManager: CREDIT_MANAGER,
     creditAccount: CREDIT_ACCOUNT,
     name: expect.any(String),
+    underlyingToken: expect.objectContaining({ address: WETH }),
+    targetCollateral: expect.objectContaining({
+      address: expect.stringMatching(/^0x/i),
+    }),
     estLeverage: expect.any(Number),
     collateralAdded: [],
     collateralWithdrawn: [

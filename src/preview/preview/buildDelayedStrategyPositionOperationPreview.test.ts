@@ -168,7 +168,14 @@ const metricsSdk = (() => {
         },
       }),
       findCreditManager: () => ({
-        name: "TestCreditManager",
+        name: "TOKEN / TOKEN",
+        strategyName: "TOKEN / TOKEN",
+        underlyingToken: {
+          ...mustGetToken(USDC),
+          wrappedAddress: UNDERLYING,
+        },
+        accountTargetCollateral: () => mustGetToken(PHANTOM),
+        accountStrategyName: () => "TOKEN / TOKEN",
         market: { curator: CURATOR },
         liquidationFees: () => ({
           feeLiquidation: 150,
@@ -279,7 +286,9 @@ describe("buildDelayedStrategyPositionOperationPreview CLOSE_ACCOUNT", () => {
       permanent: false,
       creditManager: CREDIT_MANAGER,
       creditAccount: CREDIT_ACCOUNT,
-      name: "TestCreditManager",
+      name: "TOKEN / TOKEN",
+      targetCollateral: expect.objectContaining({ address: PHANTOM }),
+      underlyingToken: expect.objectContaining({ address: USDC }),
       // total value (underlying + claimed USDC at 1:1) minus total debt,
       // denominated in the unwrapped underlying (1:1 with the vault share)
       receivedAmount: amt(USDC, 88300811096n + 22070460800n - 88300819164n),
@@ -344,7 +353,9 @@ describe("buildDelayedStrategyPositionOperationPreview DECREASE_LEVERAGE", () =>
       operation: "AdjustCreditAccount",
       creditManager: CREDIT_MANAGER,
       creditAccount: CREDIT_ACCOUNT,
-      name: "TestCreditManager",
+      name: "TOKEN / TOKEN",
+      targetCollateral: expect.objectContaining({ address: PHANTOM }),
+      underlyingToken: expect.objectContaining({ address: USDC }),
       estLeverage: expect.any(Number),
       collateralAdded: [],
       collateralWithdrawn: [],

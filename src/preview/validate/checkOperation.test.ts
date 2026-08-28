@@ -65,8 +65,10 @@ function adjust(
   return {
     operation: "AdjustCreditAccount",
     name: "KPK WETH",
+    underlyingToken: { ...und(0n).token, wrappedAddress: null },
     creditManager: CREDIT_MANAGER,
     creditAccount: CREDIT_ACCOUNT,
+    targetCollateral: null,
     collateralAdded: [],
     collateralWithdrawn: [],
     estTotalValue: und(10n ** 20n),
@@ -93,6 +95,7 @@ function open(
   return {
     operation: "OpenCreditAccount",
     name: "KPK WETH",
+    underlyingToken: { ...und(0n).token, wrappedAddress: null },
     creditManager: CREDIT_MANAGER,
     collateralAdded: [],
     estNetValue: und(10n ** 19n),
@@ -337,6 +340,7 @@ describe("checkOperation", () => {
       preview: {
         operation: "DelayedCreditAccountOperation",
         name: "KPK WETH",
+        underlyingToken: { ...und(0n).token, wrappedAddress: null },
         creditManager: CREDIT_MANAGER,
         creditAccount: CREDIT_ACCOUNT,
         instantPreview: adjust({ totalDebt: und(10n ** 30n) }),
@@ -438,6 +442,7 @@ describe("checkOperation", () => {
         preview: {
           operation: "CloseCreditAccount",
           name: "KPK WETH",
+          underlyingToken: { ...und(0n).token, wrappedAddress: null },
           creditManager: CREDIT_MANAGER,
           creditAccount: CREDIT_ACCOUNT,
           permanent: true,
@@ -458,6 +463,15 @@ describe("checkOperation — pool operations", () => {
       operation: "Deposit",
       pool: POOL,
       name: "wstETH pool",
+      underlyingToken: {
+        chainId: 1,
+        address: WSTETH,
+        symbol: "wstETH",
+        name: "Wrapped liquid staked Ether 2.0",
+        decimals: 18,
+        wrappedAddress: null,
+      },
+      shareRate: 10n ** 27n,
       tokenIn: {
         token: toToken(sdk, WSTETH),
         value: 10n ** 18n,

@@ -121,6 +121,7 @@ it("previews RWA account opening with an unwrap call", async () => {
   expect(preview).toMatchObject({
     operation: "RWAOpenCreditAccount",
     creditManager: CREDIT_MANAGER,
+    underlyingToken: expect.objectContaining({ address: USDC }),
     totalDebt: {
       token: expect.objectContaining({ address: USDC }),
       value: debt,
@@ -193,6 +194,11 @@ it("previews an unwrap-and-withdraw multicall on an existing RWA account", async
     operation: "AdjustCreditAccount",
     creditManager: CREDIT_MANAGER,
     creditAccount: CREDIT_ACCOUNT,
+    name: expect.any(String),
+    underlyingToken: expect.objectContaining({ address: USDC }),
+    targetCollateral: expect.objectContaining({
+      address: expect.stringMatching(/^0x/i),
+    }),
     collateralAdded: [],
     // The withdrawn USDC comes entirely from the 1:1 unwrap.
     collateralWithdrawn: [

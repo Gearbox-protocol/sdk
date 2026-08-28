@@ -81,6 +81,7 @@ it("previews plain account: USDC collateral, USDC debt, no swap", async () => {
     operation: "OpenCreditAccount",
     creditManager: CM_PLAIN,
     name: expect.any(String),
+    underlyingToken: expect.objectContaining({ address: USDC }),
     estLeverage: expect.any(Number),
     targetCollateral: undefined,
     collateralAdded: [
@@ -111,6 +112,8 @@ it("previews lending: native ETH collateral stays on the account, wstETH debt is
   await expect(preview(LENDING_ETH_WSTETH)).resolves.toMatchObject({
     operation: "OpenCreditAccount",
     creditManager: CM_LENDING,
+    name: expect.any(String),
+    underlyingToken: expect.objectContaining({ address: WSTETH }),
     targetCollateral: {
       token: expect.objectContaining({ address: WETH }),
       value: 100_893_608_181_830_735_543n,
@@ -148,6 +151,8 @@ it("previews strategy 1: ETH collateral and WETH debt swapped into weETH target"
   await expect(preview(STRATEGY_ETH_TO_WEETH)).resolves.toMatchObject({
     operation: "OpenCreditAccount",
     creditManager: CM_STRATEGY,
+    name: expect.any(String),
+    underlyingToken: expect.objectContaining({ address: WETH }),
     targetCollateral: {
       token: expect.objectContaining({ address: WEETH }),
       value: 88_711_008_598_339_891_555n,
@@ -185,6 +190,8 @@ it("previews strategy 2: wstETH collateral already in target, WETH debt swapped"
   await expect(preview(STRATEGY_WSTETH_TARGET)).resolves.toMatchObject({
     operation: "OpenCreditAccount",
     creditManager: CM_STRATEGY,
+    name: expect.any(String),
+    underlyingToken: expect.objectContaining({ address: WETH }),
     targetCollateral: {
       token: expect.objectContaining({ address: WSTETH }),
       value: 67_539_176_884_849_002_897n,
@@ -222,6 +229,8 @@ it("previews strategy 3: wstETH collateral deliberately not swapped, WETH debt s
   await expect(preview(STRATEGY_KEEP_WSTETH_CBETH)).resolves.toMatchObject({
     operation: "OpenCreditAccount",
     creditManager: CM_STRATEGY,
+    name: expect.any(String),
+    underlyingToken: expect.objectContaining({ address: WETH }),
     targetCollateral: {
       token: expect.objectContaining({ address: CBETH }),
       value: 37_140_380_298_847_597_770n,

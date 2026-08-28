@@ -27,7 +27,6 @@ import type {
 } from "../accounts/withdrawal-compressor/index.js";
 import type { CreditAccountData } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
-import { getAccountTargetCollateral } from "../chain/chains.js";
 import { DUST_THRESHOLD } from "../constants/index.js";
 import { creditOperationMarket } from "../market/credit/creditOperationMarket.js";
 import {
@@ -44,7 +43,6 @@ import {
   type RateModelParams,
   utilizationAfterLiquidityChange,
 } from "../market/pool/math.js";
-import { strategyName } from "../market/strategyName.js";
 import type { MultiCall } from "../types/index.js";
 import { AddressMap } from "../utils/index.js";
 import { calcBorrowRate } from "./calcBorrowRate.js";
@@ -469,11 +467,8 @@ export class PositionsService extends SDKConstruct {
 
     // for RWA markets, amounts are denominated in the unwrapped asset
     // (e.g. USDC instead of dcUSDC); the wrapped underlying converts 1:1
-    const token = market.underlyingToken;
+    const token = suite.underlyingToken;
     const totalDebtValue = ca.debt + ca.accruedInterest + ca.accruedFees;
-    const target =
-      getAccountTargetCollateral(ca.creditAccount, this.sdk.chainId) ??
-      suite.strategyTargetCollateral;
 
     // compressor totals only cover enabled tokens; after a full repay the
     // remaining collateral is disabled, so zero-debt totals are summed from
@@ -523,12 +518,8 @@ export class PositionsService extends SDKConstruct {
       creditManager: ca.creditManager,
       creditAccount: ca.creditAccount,
       underlyingToken: token,
-      name: target
-        ? strategyName(this.sdk.tokensMeta.mustGetToken(target), token)
-        : token.symbol,
-      targetCollateral: target
-        ? this.sdk.tokensMeta.mustGetToken(target)
-        : null,
+      name: suite.accountStrategyName(ca.creditAccount),
+      targetCollateral: suite.accountTargetCollateral(ca.creditAccount),
       leverage: calcPositionLeverage(totalValue, totalDebtValue),
       borrowApy: calcBorrowApy(
         pool.baseInterestRate,
