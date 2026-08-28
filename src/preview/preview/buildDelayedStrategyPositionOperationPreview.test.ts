@@ -8,6 +8,7 @@ import {
   type ConvertFn,
   type OnchainSDK,
 } from "../../onchain/index.js";
+import { CreditSuite } from "../../onchain/market/credit/CreditSuite.js";
 import { PositionsService } from "../../onchain/positions/PositionsService.js";
 import { buildDelayedStrategyPositionOperationPreview } from "./buildDelayedStrategyPositionOperationPreview.js";
 import { CreditAccountState } from "./CreditAccountState.js";
@@ -181,6 +182,8 @@ const metricsSdk = (() => {
           feeLiquidation: 150,
           liquidationDiscount: 9700,
         }),
+        totalLiquidationDiscount: CreditSuite.prototype.totalLiquidationDiscount,
+        creditOperationMarket: CreditSuite.prototype.creditOperationMarket,
         creditManager: {
           address: CREDIT_MANAGER,
           feeInterest: 0,

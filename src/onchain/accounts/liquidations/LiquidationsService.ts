@@ -23,10 +23,7 @@ import type {
   IPriceOracleContract,
   MarketSuite,
 } from "../../market/index.js";
-import {
-  creditOperationMarket,
-  dominantCollateral,
-} from "../../market/index.js";
+import { dominantCollateral } from "../../market/index.js";
 import { usdToNumber } from "../../market/math.js";
 import {
   MidasLiquidatorContract,
@@ -472,7 +469,7 @@ export class LiquidationsService extends SDKConstruct {
         : 0;
 
     return {
-      ...creditOperationMarket(suite),
+      ...suite.creditOperationMarket(),
       chainId: this.sdk.chainId,
       creditAccount: ca.creditAccount,
       asset: this.sdk.tokensMeta.mustGetToken(

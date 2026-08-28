@@ -14,6 +14,7 @@ import type {
   MultiCall,
   OnchainSDK,
 } from "../../../index.js";
+import { CreditSuite } from "../../../market/credit/CreditSuite.js";
 import { calcMaxLeverage, usdToNumber } from "../../../market/math.js";
 import { PositionsService } from "../../../positions/PositionsService.js";
 import type { CreditAccountSlice } from "../types.js";
@@ -445,6 +446,8 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
       strategyTargetCollateral ? tokenOf(strategyTargetCollateral) : null,
     accountStrategyName: () => strategyName ?? underlyingToken.symbol,
     liquidationFees: () => MOCK_LIQUIDATION_FEES,
+    totalLiquidationDiscount: CreditSuite.prototype.totalLiquidationDiscount,
+    creditOperationMarket: CreditSuite.prototype.creditOperationMarket,
     creditManager: {
       address: args.creditManager,
       liquidationThresholds,

@@ -11,7 +11,6 @@ import type { DelayedWithdrawalRequest } from "../../onchain/index.js";
 import {
   AssetsMap,
   type ConvertFn,
-  creditOperationMarket,
   DUST_THRESHOLD,
   type OnchainSDK,
 } from "../../onchain/index.js";
@@ -272,7 +271,7 @@ function buildClosePreview(
   return {
     operation: "CloseCreditAccount",
     permanent: false,
-    ...creditOperationMarket(suite),
+    ...suite.creditOperationMarket(),
     creditAccount: post.creditAccount,
     name: suite.accountStrategyName(post.creditAccount),
     targetCollateral: suite.accountTargetCollateral(post.creditAccount),

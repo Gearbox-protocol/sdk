@@ -28,7 +28,6 @@ import type {
 import type { CreditAccountData } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
 import { DUST_THRESHOLD } from "../constants/index.js";
-import { creditOperationMarket } from "../market/credit/creditOperationMarket.js";
 import {
   bpsToRay,
   calcBorrowApy,
@@ -431,9 +430,9 @@ export class PositionsService extends SDKConstruct {
     const { priceOracle } = market;
 
     return {
-      ...creditOperationMarket(
-        this.sdk.marketRegister.findCreditManager(creditManager),
-      ),
+      ...this.sdk.marketRegister
+        .findCreditManager(creditManager)
+        .creditOperationMarket(),
       totalValue: market.toUnderlyingAmount(totalValue),
       totalDebt: market.toUnderlyingAmount(totalDebt),
       netValue: market.toUnderlyingAmount(totalValue - totalDebt),

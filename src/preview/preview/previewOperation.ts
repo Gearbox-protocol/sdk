@@ -1,9 +1,5 @@
 import type { OperationPreview } from "../../model/index.js";
-import {
-  type ConvertFn,
-  creditOperationMarket,
-  type PluginsMap,
-} from "../../onchain/index.js";
+import type { ConvertFn, PluginsMap } from "../../onchain/index.js";
 import {
   isPoolOperation,
   type MulticallOperation,
@@ -156,7 +152,7 @@ async function previewMulticallOperation<P extends PluginsMap>(
   return {
     operation: "DelayedCreditAccountOperation",
     creditAccount: operation.creditAccount,
-    ...creditOperationMarket(suite),
+    ...suite.creditOperationMarket(),
     name: suite.accountStrategyName(operation.creditAccount),
     targetCollateral: suite.accountTargetCollateral(operation.creditAccount),
     intent: delayed.intent,

@@ -4,7 +4,6 @@ import type {
 } from "../../model/index.js";
 import {
   AP_WETH_TOKEN,
-  creditOperationMarket,
   MAX_UINT256,
   NO_VERSION,
   type PluginsMap,
@@ -93,7 +92,7 @@ function previewCloseCreditAccount<P extends PluginsMap>(
   return {
     operation: "CloseCreditAccount",
     permanent,
-    ...creditOperationMarket(suite),
+    ...suite.creditOperationMarket(),
     creditAccount: operation.creditAccount,
     name: suite.accountStrategyName(operation.creditAccount),
     targetCollateral: suite.accountTargetCollateral(operation.creditAccount),
@@ -137,7 +136,7 @@ function previewRepayCreditAccount<P extends PluginsMap>(
   return {
     operation: "RepayCreditAccount",
     permanent,
-    ...creditOperationMarket(suite),
+    ...suite.creditOperationMarket(),
     creditAccount: operation.creditAccount,
     name: suite.accountStrategyName(operation.creditAccount),
     targetCollateral: suite.accountTargetCollateral(operation.creditAccount),
