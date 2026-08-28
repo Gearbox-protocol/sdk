@@ -77,6 +77,37 @@ describe("positions.charts", () => {
   });
 });
 
+describe("positions.getCurrentWithdrawals", () => {
+  it("delegates to the onchain namespace", async () => {
+    const getCurrentWithdrawals = vi.fn(async () =>
+      envelope({ claimable: [], pending: [] }),
+    );
+    const onchain = {
+      positions: { getCurrentWithdrawals },
+    } as unknown as MultichainSDK;
+    const namespace = new PositionsNamespace(onchain, undefined, {
+      maxOffchainLagSeconds: 120,
+    });
+
+    const props = { chainId: 1, creditAccount: WALLET };
+    await expect(namespace.getCurrentWithdrawals(props)).resolves.toEqual(
+      envelope({ claimable: [], pending: [] }),
+    );
+    expect(getCurrentWithdrawals).toHaveBeenCalledWith(props);
+  });
+
+  it("without a chain they throw SourceUnavailableError, like every onchain read", async () => {
+    const { api } = backend();
+    const namespace = new PositionsNamespace(undefined, api, {
+      maxOffchainLagSeconds: 120,
+    });
+
+    await expect(
+      namespace.getCurrentWithdrawals({ chainId: 1, creditAccount: WALLET }),
+    ).rejects.toThrow(SourceUnavailableError);
+  });
+});
+
 describe("sdk.notices", () => {
   it("delegates to the backend's notices namespace", async () => {
     const { api, notices } = backend();

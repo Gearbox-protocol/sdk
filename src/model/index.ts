@@ -19,3 +19,5 @@ export * from "./primitives.js";
 export * from "./primitives.schema.js";
 export * from "./response.js";
 export * from "./response.schema.js";
+export * from "./withdrawals.js";
+export * from "./withdrawals.schema.js";

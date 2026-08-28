@@ -415,7 +415,8 @@ export type FinishIntentProps = StartIntentProps & {
   intent: ResumableIntent;
   /**
    * The matured withdrawal, as reported by
-   * `sdk.accounts.getPendingWithdrawals`.
+   * `sdk.positions.getCurrentWithdrawals` (mapped back to the compressor
+   * shape at `prepare.finalize`).
    */
   claimable: ClaimableWithdrawal;
 };

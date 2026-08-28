@@ -49,8 +49,6 @@ import type {
   FullyLiquidateProps,
   FullyLiquidateResult,
   GetApprovalAddressProps,
-  GetPendingWithdrawalsProps,
-  GetPendingWithdrawalsResult,
   ICreditAccountsService,
   OpenCAProps,
   PartiallyLiquidateProps,
@@ -299,22 +297,6 @@ export class CreditAccountsServiceV310
       withdrawalPhantomToken,
       intent,
     });
-  }
-
-  /**
-   * {@inheritDoc ICreditAccountsService.getPendingWithdrawals}
-   **/
-  public async getPendingWithdrawals({
-    creditAccount,
-  }: GetPendingWithdrawalsProps): Promise<GetPendingWithdrawalsResult> {
-    // TODO: return multiple configs
-    const { claimable, pending } =
-      await this.#withdrawalCompressor.getCurrentWithdrawals(creditAccount);
-
-    return {
-      claimableNow: claimable,
-      pending,
-    };
   }
 
   /**

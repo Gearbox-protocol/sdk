@@ -10,12 +10,16 @@ import type {
   PositionFilter,
   PositionKey,
   PositionsTotals,
+  PositionWithdrawals,
   StrategyPositionChartMetric,
   StrategyPositionRef,
 } from "../../model/index.js";
 import { matchesPositionFilter } from "../../model/index.js";
 import type { GearboxAPI } from "../../offchain/index.js";
-import type { MultichainSDK } from "../../onchain/index.js";
+import type {
+  GetCurrentWithdrawalsProps,
+  MultichainSDK,
+} from "../../onchain/index.js";
 import { AbstractNamespace } from "../AbstractNamespace.js";
 import type { NamespaceOptions } from "../types.js";
 import type { FilterResult } from "../utils/index.js";
@@ -27,6 +31,7 @@ import type {
   IPositionsOffchainBranch,
   IPositionsOffchainOnly,
   IPositionsOnchainBranch,
+  IPositionsOnchainOnly,
 } from "./types.js";
 
 /**
@@ -38,6 +43,7 @@ export class PositionsNamespace
   implements
     IPositionsBase,
     IPositionsOffchainOnly,
+    IPositionsOnchainOnly,
     IPositionsOnchainBranch,
     IPositionsOffchainBranch
 {
@@ -110,5 +116,14 @@ export class PositionsNamespace
     range: ChartRange,
   ): Promise<DataResponse<ChartBundle<Metrics>>> {
     return this.offchain.getCharts(key, metrics, range);
+  }
+
+  /**
+   * {@inheritDoc IPositionsOnchainOnly.getCurrentWithdrawals}
+   **/
+  public async getCurrentWithdrawals(
+    props: GetCurrentWithdrawalsProps<true>,
+  ): Promise<DataResponse<PositionWithdrawals>> {
+    return this.onchain.getCurrentWithdrawals(props);
   }
 }

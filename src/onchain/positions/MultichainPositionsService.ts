@@ -1,7 +1,12 @@
-import type { DataResponse, Position } from "../../model/index.js";
+import type {
+  DataResponse,
+  Position,
+  PositionWithdrawals,
+} from "../../model/index.js";
 import { MultichainConstruct } from "../base/index.js";
 import type { PluginsMap } from "../plugins/index.js";
 import type {
+  GetCurrentWithdrawalsProps,
   IMultichainPositionsService,
   ListPositionsProps,
 } from "./types.js";
@@ -28,6 +33,24 @@ export class MultichainPositionsService<const Plugins extends PluginsMap = {}>
       block: "latest",
       run: (sdk, block) =>
         sdk.positions.list({ ...props, blockNumber: block.blockNumber }),
+    });
+  }
+
+  /**
+   * Delayed withdrawals of one credit account, see
+   * {@link PositionsService.getCurrentWithdrawals}.
+   **/
+  public async getCurrentWithdrawals(
+    props: GetCurrentWithdrawalsProps<true>,
+  ): Promise<DataResponse<PositionWithdrawals>> {
+    return this.queryChain({
+      network: props.chainId,
+      block: props.blockNumber ?? "latest",
+      run: (sdk, block) =>
+        sdk.positions.getCurrentWithdrawals({
+          creditAccount: props.creditAccount,
+          blockNumber: block.blockNumber,
+        }),
     });
   }
 }

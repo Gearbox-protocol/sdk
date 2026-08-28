@@ -25,7 +25,6 @@ import type { AccountBotsService } from "./bots/index.js";
 import type { GetCreditAccountsOptions } from "./credit-account-compressor/index.js";
 import type {
   ClaimableWithdrawal,
-  PendingWithdrawal,
   RequestableWithdrawal,
 } from "./withdrawal-compressor/index.js";
 
@@ -139,27 +138,6 @@ export interface PreviewDelayedWithdrawalProps {
    */
   withdrawalPhantomToken?: Address;
   intent?: DelayedIntent;
-}
-
-export interface GetPendingWithdrawalsProps {
-  /**
-   * Minimal credit account data on which operation is performed
-   */
-  creditAccount: Address;
-}
-
-/**
- * Aggregated delayed withdrawal status, split into immediately claimable and still-pending entries.
- **/
-export interface GetPendingWithdrawalsResult {
-  /**
-   * Withdrawals that have matured and can be claimed now.
-   **/
-  claimableNow: Array<ClaimableWithdrawal>;
-  /**
-   * Withdrawals that are still in their delay period.
-   **/
-  pending: Array<PendingWithdrawal>;
 }
 
 /**
@@ -547,14 +525,6 @@ export interface ICreditAccountsService extends Construct {
   previewDelayedWithdrawal(
     props: PreviewDelayedWithdrawalProps,
   ): Promise<RequestableWithdrawal>;
-  /**
-   * Get claimable and pending withdrawals of an account
-   * @param props - {@link GetPendingWithdrawalsProps}
-   * @returns
-   */
-  getPendingWithdrawals(
-    props: GetPendingWithdrawalsProps,
-  ): Promise<GetPendingWithdrawalsResult>;
 
   /**
    * Returns address to which approval should be given on collateral token

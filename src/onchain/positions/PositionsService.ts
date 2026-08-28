@@ -6,9 +6,13 @@ import type {
   Bps,
   DelayedReceivedAsset,
   Position,
+  PositionClaimableWithdrawal,
   PositionCollateral,
   PositionKind,
+  PositionPendingWithdrawal,
+  PositionWithdrawals,
   StrategyPosition,
+  TxCall,
 } from "../../model/index.js";
 import {
   isFilterSet,
@@ -17,6 +21,7 @@ import {
 } from "../../model/index.js";
 import type {
   ClaimableWithdrawal,
+  CurrentWithdrawals,
   PendingWithdrawal,
   WithdrawalOutput,
 } from "../accounts/withdrawal-compressor/index.js";
@@ -33,12 +38,14 @@ import {
   usdToNumber,
 } from "../market/math.js";
 import { collateralPriceInUnderlying } from "../market/oracle/collateralPriceInUnderlying.js";
+import type { IPriceOracleContract } from "../market/oracle/index.js";
 import {
   borrowRateAtUtilization,
   type RateModelParams,
   utilizationAfterLiquidityChange,
 } from "../market/pool/math.js";
 import { strategyName } from "../market/strategyName.js";
+import type { MultiCall } from "../types/index.js";
 import { AddressMap } from "../utils/index.js";
 import { calcBorrowRate } from "./calcBorrowRate.js";
 import { calcHealthFactor } from "./calcHealthFactor.js";
@@ -50,6 +57,7 @@ import { calcTimeToLiquidationMs } from "./calcTimeToLiquidationMs.js";
 import {
   type AccountSnapshot,
   accountSnapshotFromCreditAccountData,
+  type GetCurrentWithdrawalsProps,
   type ListPositionsProps,
   type ListStrategyPositionsProps,
 } from "./types.js";
@@ -158,6 +166,37 @@ export class PositionsService extends SDKConstruct {
 
     return accounts.map((ca, i) =>
       this.#toStrategyPosition(ca, withdrawals[i] ?? new AddressMap()),
+    );
+  }
+
+  /**
+   * Returns delayed withdrawals of a strategy position
+   *
+   * Empty when this chain has no withdrawal compressor, or the account does
+   * not exist.
+   **/
+  public async getCurrentWithdrawals(
+    props: GetCurrentWithdrawalsProps,
+  ): Promise<PositionWithdrawals> {
+    const { creditAccount, blockNumber } = props;
+    const empty: PositionWithdrawals = { claimable: [], pending: [] };
+    const compressor = this.sdk.withdrawalCompressor;
+    if (!compressor) {
+      return empty;
+    }
+    const ca = await this.sdk.accounts.getCreditAccountData(
+      creditAccount,
+      blockNumber,
+    );
+    if (!ca) {
+      return empty;
+    }
+    const { priceOracle } = this.sdk.marketRegister.findByCreditManager(
+      ca.creditManager,
+    );
+    return this.#toPositionWithdrawals(
+      await compressor.getCurrentWithdrawals(creditAccount, blockNumber),
+      priceOracle,
     );
   }
 
@@ -578,6 +617,72 @@ export class PositionsService extends SDKConstruct {
       add(w, w.expectedOutputs, w.claimableAt);
     }
     return byPhantomToken;
+  }
+
+  /**
+   * Maps compressor withdrawals into the read model's vocabulary.
+   **/
+  #toPositionWithdrawals(
+    raw: CurrentWithdrawals,
+    priceOracle: IPriceOracleContract,
+  ): PositionWithdrawals {
+    return {
+      claimable: raw.claimable.map(w =>
+        this.#toPositionClaimableWithdrawal(w, priceOracle),
+      ),
+      pending: raw.pending.map(w =>
+        this.#toPositionPendingWithdrawal(w, priceOracle),
+      ),
+    };
+  }
+
+  #toPositionClaimableWithdrawal(
+    w: ClaimableWithdrawal,
+    priceOracle: IPriceOracleContract,
+  ): PositionClaimableWithdrawal {
+    return {
+      sourceToken: this.sdk.tokensMeta.mustGetToken(w.token),
+      withdrawalPhantomToken: priceOracle.toTokenAmount(
+        w.withdrawalPhantomToken,
+        w.withdrawalTokenSpent,
+      ),
+      outputs: w.outputs.map(o => priceOracle.toTokenAmount(o.token, o.amount)),
+      claimCall: this.#claimTx(w.claimCalls, w.token),
+      redeemer: w.redeemer,
+      intent: w.intent,
+    };
+  }
+
+  #toPositionPendingWithdrawal(
+    w: PendingWithdrawal,
+    priceOracle: IPriceOracleContract,
+  ): PositionPendingWithdrawal {
+    return {
+      sourceToken: this.sdk.tokensMeta.mustGetToken(w.token),
+      withdrawalPhantomToken: this.sdk.tokensMeta.mustGetToken(
+        w.withdrawalPhantomToken,
+      ),
+      expectedOutputs: w.expectedOutputs.map(o =>
+        priceOracle.toTokenAmount(o.token, o.amount),
+      ),
+      claimableAt: Number(w.claimableAt),
+      redeemer: w.redeemer,
+      intent: w.intent,
+    };
+  }
+
+  /**
+   * Subcompressors always report exactly one adapter call per claimable
+   * withdrawal.
+   **/
+  #claimTx(claimCalls: readonly MultiCall[], sourceToken: Address): TxCall {
+    const call = claimCalls[0];
+    if (claimCalls.length !== 1 || !call) {
+      throw new Error(
+        `expected exactly one claim call for withdrawal of ${sourceToken}, got ${claimCalls.length}`,
+      );
+    }
+    return { to: call.target, callData: call.callData };
   }
 
   /**

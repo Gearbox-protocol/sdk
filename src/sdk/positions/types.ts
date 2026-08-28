@@ -8,11 +8,15 @@ import type {
   Position,
   PositionFilter,
   PositionsTotals,
+  PositionWithdrawals,
   StrategyPositionChartMetric,
   StrategyPositionRef,
 } from "../../model/index.js";
 import type { IOffchainPositions } from "../../offchain/index.js";
-import type { IMultichainPositionsService } from "../../onchain/index.js";
+import type {
+  GetCurrentWithdrawalsProps,
+  IMultichainPositionsService,
+} from "../../onchain/index.js";
 import type { Mode } from "../types.js";
 import type { FilterResult, ListMerger } from "../utils/index.js";
 
@@ -79,10 +83,18 @@ export interface IPositionsOffchainOnly {
 }
 
 /**
- * Reads only the chain can answer. Empty for now.
+ * Reads only the chain can answer.
  **/
-// biome-ignore lint/suspicious/noEmptyInterface: reserved slot, see doc comment
-export interface IPositionsOnchainOnly {}
+export interface IPositionsOnchainOnly {
+  /**
+   * Delayed withdrawals of one credit account: claimable rows carry the
+   * adapter call and recorded intent a claim is built from; pending rows
+   * name when they mature. Absent in `offchain` mode.
+   **/
+  getCurrentWithdrawals(
+    props: GetCurrentWithdrawalsProps<true>,
+  ): Promise<DataResponse<PositionWithdrawals>>;
+}
 
 /**
  * The chain on its own, for a consumer that shows each source as it arrives.

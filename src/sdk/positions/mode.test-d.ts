@@ -18,10 +18,23 @@ describe("mode gates method existence", () => {
     // methods; they must not silently gain them
     expectTypeOf<IPositions<Mode>>().toHaveProperty("list");
     expectTypeOf<IPositions<Mode>>().not.toHaveProperty("charts");
+    expectTypeOf<IPositions<Mode>>().not.toHaveProperty(
+      "getCurrentWithdrawals",
+    );
     // what survives widening is everything the map does not gate
     expectTypeOf<IPositions<Mode>>().toHaveProperty("merge");
     expectTypeOf<IPositions<Mode>>().not.toHaveProperty("onchain");
     expectTypeOf<IPositions<Mode>>().not.toHaveProperty("offchain");
+  });
+
+  it("onchain-only reads exist with a chain and not without one", () => {
+    expectTypeOf<IPositions<"onchain">>().toHaveProperty(
+      "getCurrentWithdrawals",
+    );
+    expectTypeOf<IPositions<"both">>().toHaveProperty("getCurrentWithdrawals");
+    expectTypeOf<IPositions<"offchain">>().not.toHaveProperty(
+      "getCurrentWithdrawals",
+    );
   });
 });
 

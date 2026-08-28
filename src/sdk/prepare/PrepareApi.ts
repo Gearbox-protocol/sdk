@@ -3,11 +3,13 @@ import type {
   Bps,
   ChainId,
   DataResponse,
+  PositionClaimableWithdrawal,
   PositionCollateral,
   StrategyPosition,
 } from "../../model/index.js";
 import type {
   Asset,
+  ClaimableWithdrawal,
   CreditAccountSlice,
   DelayableIntent,
   DelayedIntentExtended,
@@ -106,7 +108,7 @@ export class PrepareApi
         }
         return service(sdk).finishIntent({
           intent,
-          claimable: params.claimable,
+          claimable: toClaimableWithdrawal(params.claimable),
           creditAccount: await slice(sdk, position.creditAccount),
           sdk,
           slippage: params.slippage,
@@ -500,6 +502,32 @@ function resumable(
   intent: DelayedIntentExtended | ResumableIntent | undefined,
 ): ResumableIntent | undefined {
   return intent ?? undefined;
+}
+
+/**
+ * Unwraps a read-model claimable withdrawal into the compressor shape the
+ * intents engine plans from.
+ **/
+function toClaimableWithdrawal(
+  claimable: PositionClaimableWithdrawal,
+): ClaimableWithdrawal {
+  return {
+    token: claimable.sourceToken.address,
+    withdrawalPhantomToken: claimable.withdrawalPhantomToken.token.address,
+    withdrawalTokenSpent: claimable.withdrawalPhantomToken.value,
+    outputs: claimable.outputs.map(o => ({
+      token: o.token.address,
+      amount: o.value,
+      isDelayed: false,
+    })),
+    claimCalls: [
+      {
+        target: claimable.claimCall.to,
+        callData: claimable.claimCall.callData,
+      },
+    ],
+    redeemer: claimable.redeemer,
+  };
 }
 
 /**

@@ -711,9 +711,13 @@ async function getClaimableContext(
   creditAccount: CreditAccountData<true>,
 ): Promise<ClaimableContext> {
   const cm = sdk.marketRegister.findCreditManager(creditAccount.creditManager);
-  const { claimableNow } = await sdk.accounts.getPendingWithdrawals({
-    creditAccount: creditAccount.creditAccount,
-  });
+  const compressor = sdk.withdrawalCompressor;
+  if (!compressor) {
+    throw new Error("withdrawal compressor is not deployed on this chain");
+  }
+  const { claimable: claimableNow } = await compressor.getCurrentWithdrawals(
+    creditAccount.creditAccount,
+  );
   if (claimableNow.length !== 1) {
     throw new Error(
       `expected exactly 1 claimable withdrawal, got ${claimableNow.length}`,

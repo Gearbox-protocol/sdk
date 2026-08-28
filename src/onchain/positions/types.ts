@@ -1,12 +1,18 @@
 import type { Address } from "viem";
 import type {
+  ChainId,
   DataResponse,
   Position,
   PositionFilter,
+  PositionWithdrawals,
 } from "../../model/index.js";
 import type { Asset, CreditAccountData } from "../base/index.js";
 import { DUST_THRESHOLD } from "../constants/math.js";
-import type { BlockNumberProps, WithBlock } from "../types/index.js";
+import type {
+  BlockNumberProps,
+  WithBlock,
+  WithMultichain,
+} from "../types/index.js";
 
 /**
  * Chain-independent part of {@link ListPositionsProps}.
@@ -38,6 +44,30 @@ export type ListPositionsProps<Multichain extends boolean = false> =
   ListPositionsPropsBase & WithBlock<Multichain>;
 
 /**
+ * Chain-independent part of {@link GetCurrentWithdrawalsProps}.
+ *
+ * {@link GetCurrentWithdrawalsPropsBase.blockNumber} is kept on the
+ * multichain form because the method already targets a single chain.
+ **/
+export interface GetCurrentWithdrawalsPropsBase {
+  /**
+   * Credit account whose delayed withdrawals to read.
+   **/
+  creditAccount: Address;
+  /**
+   * Block to read at. Defaults to the latest block.
+   **/
+  blockNumber?: bigint;
+}
+
+/**
+ * Props for {@link PositionsService.getCurrentWithdrawals}.
+ **/
+export type GetCurrentWithdrawalsProps<Multichain extends boolean = false> =
+  GetCurrentWithdrawalsPropsBase &
+    WithMultichain<Multichain, { chainId: ChainId }>;
+
+/**
  * Cross-chain reads of the positions namespace: everything a wallet holds.
  **/
 export interface IMultichainPositionsService {
@@ -45,6 +75,13 @@ export interface IMultichainPositionsService {
    * Positions of a wallet on all queried chains.
    **/
   list(props: ListPositionsProps<true>): Promise<DataResponse<Position[]>>;
+  /**
+   * Delayed withdrawals of one credit account, see
+   * {@link PositionsService.getCurrentWithdrawals}.
+   **/
+  getCurrentWithdrawals(
+    props: GetCurrentWithdrawalsProps<true>,
+  ): Promise<DataResponse<PositionWithdrawals>>;
 }
 
 /**

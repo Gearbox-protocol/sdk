@@ -3,6 +3,7 @@ import type {
   Bps,
   DataResponse,
   PoolOpportunityKey,
+  PositionClaimableWithdrawal,
   PositionCollateral,
   StrategyOpportunityKey,
   StrategyPosition,
@@ -11,7 +12,6 @@ import type {
 import type {
   AccountCalculatorOperation,
   Asset,
-  ClaimableWithdrawal,
   DelayedStart,
   LeverageBand,
   MultiCall,
@@ -372,13 +372,14 @@ export interface LpRedeemParams {
 export interface FinalizeParams extends PrepareOptions {
   /**
    * The matured withdrawal to claim, from
-   * `sdk.onchain.chain(chainId).withdrawalCompressor.getCurrentWithdrawals()`.
+   * `sdk.positions.getCurrentWithdrawals()`.
    **/
-  claimable: ClaimableWithdrawal;
+  claimable: PositionClaimableWithdrawal;
   /**
    * The operation to resume. Defaults to the one the request recorded in the
-   * withdrawal's `extraData`, which is what {@link ClaimableWithdrawal.intent}
-   * decodes; pass it explicitly when the compressor is too old to report it.
+   * withdrawal's `extraData`, which is what
+   * {@link PositionClaimableWithdrawal.intent} decodes; pass it explicitly
+   * when the compressor is too old to report it.
    **/
   intent?: ResumableIntent;
 }

@@ -33,6 +33,8 @@ import type {
 } from "./charts.schema.js";
 import type { Curator, CuratorName } from "./curators.js";
 import type { curatorNameSchema, curatorSchema } from "./curators.schema.js";
+import type { delayedIntentSchema } from "./delayed-intent.schema.js";
+import type { DelayedIntent } from "./delayed-intents.js";
 import type {
   DelayedReceivedAsset,
   InstantReceivedAsset,
@@ -175,6 +177,16 @@ import type {
   responseMetadataSchema,
   responseSchema,
 } from "./response.schema.js";
+import type {
+  PositionClaimableWithdrawal,
+  PositionPendingWithdrawal,
+  PositionWithdrawals,
+} from "./withdrawals.js";
+import type {
+  positionClaimableWithdrawalSchema,
+  positionPendingWithdrawalSchema,
+  positionWithdrawalsSchema,
+} from "./withdrawals.schema.js";
 
 /**
  * The read model is a contract shared with a separately deployed backend: the
@@ -419,6 +431,21 @@ describe("model schemas match model types", () => {
     expectTypeOf<
       z.infer<typeof positionTransactionSchema>
     >().toEqualTypeOf<PositionTransaction>();
+  });
+
+  it("withdrawals", () => {
+    expectTypeOf<
+      z.infer<typeof delayedIntentSchema>
+    >().toEqualTypeOf<DelayedIntent>();
+    expectTypeOf<
+      z.infer<typeof positionClaimableWithdrawalSchema>
+    >().toEqualTypeOf<PositionClaimableWithdrawal>();
+    expectTypeOf<
+      z.infer<typeof positionPendingWithdrawalSchema>
+    >().toEqualTypeOf<PositionPendingWithdrawal>();
+    expectTypeOf<
+      z.infer<typeof positionWithdrawalsSchema>
+    >().toEqualTypeOf<PositionWithdrawals>();
   });
 
   it("notices", () => {

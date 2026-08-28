@@ -1,6 +1,10 @@
 import type { Address } from "viem";
 import { describe, expect, it, vi } from "vitest";
-import type { DelayedIntent, TokenAmount } from "../../model/index.js";
+import type {
+  DelayedIntent,
+  PositionClaimableWithdrawal,
+  TokenAmount,
+} from "../../model/index.js";
 import type { MarketSdkExtras } from "../../onchain/accounts/intents/testing/market.js";
 import {
   buildFixtureCreditAccount,
@@ -13,10 +17,7 @@ import {
   UND,
 } from "../../onchain/accounts/intents/testing/market.js";
 import { MAX_UINT256 } from "../../onchain/constants/math.js";
-import type {
-  ClaimableWithdrawal,
-  MultichainSDK,
-} from "../../onchain/index.js";
+import type { MultichainSDK } from "../../onchain/index.js";
 import type { PoolSimulation } from "../../onchain/pools/types.js";
 import { PrepareApi } from "./PrepareApi.js";
 
@@ -351,15 +352,13 @@ describe("PrepareApi — the two-transaction route", () => {
   /** A matured redemption of `POS`, carrying the intent it was requested for. */
   const claimableOf = (
     intent: DelayedIntent | undefined,
-  ): ClaimableWithdrawal =>
-    ({
-      token: POS,
-      withdrawalPhantomToken: POS2,
-      withdrawalTokenSpent: 10000000000n,
-      outputs: [{ token: UND, amount: 10000000000n, isDelayed: false }],
-      claimCalls: [],
-      intent,
-    }) as unknown as ClaimableWithdrawal;
+  ): PositionClaimableWithdrawal => ({
+    sourceToken: amount(POS, 0n).token,
+    withdrawalPhantomToken: amount(POS2, 10000000000n),
+    outputs: [amount(UND, 10000000000n)],
+    claimCall: { to: POS, callData: "0x" },
+    intent,
+  });
 
   it("withdrawStrategy requests the redemption and records the tail", async () => {
     const { api, position } = buildStrategyApi(venue);
