@@ -14,6 +14,9 @@ import type { DetectedDelayedOperation } from "./detectDelayedOperation.js";
 
 const CREDIT_ACCOUNT = getAddress("0x82900e2Ab20B6F60C159F1A141A6f2d3D810C4fA");
 const CREDIT_MANAGER = getAddress("0x025512D771f778fad99aB30b7A7363E7C8DE078D");
+const MARKET_CONFIGURATOR = getAddress(
+  "0x00000000000000000000000000000000000C0F16",
+);
 // dcUSDC, the credit manager underlying (RWA vault share over USDC)
 const UNDERLYING = getAddress("0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D");
 const USDC = getAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48");
@@ -163,7 +166,13 @@ const metricsSdk = (() => {
       }),
       findCreditManager: () => ({
         name: "TestCreditManager",
+        marketConfigurator: { address: MARKET_CONFIGURATOR },
+        liquidationFees: () => ({
+          feeLiquidation: 150,
+          liquidationDiscount: 9700,
+        }),
         creditManager: {
+          address: CREDIT_MANAGER,
           feeInterest: 0,
           liquidationThresholds: {
             get: (token: Address) => lts[getAddress(token)],

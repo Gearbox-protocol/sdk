@@ -5,6 +5,7 @@ import { beforeAll, describe, expect, it, vi } from "vitest";
 import { iCreditFacadeV310Abi } from "../../abi/310/generated.js";
 import type {
   AccountMetrics,
+  CreditOperationMarket,
   EstimatedProjection,
   TokenAmount,
 } from "../../model/index.js";
@@ -304,13 +305,36 @@ function expectMetrics(
   }
 }
 
+/**
+ * Which market this happened in, in the words both sides use for it — every
+ * result carries a {@link CreditOperationMarket}, including the ones that carry
+ * no projection at all.
+ *
+ * The credit manager is compared case-blind: each side carries through the
+ * casing it was handed — checksummed off the parsed calldata on the preview
+ * side, lowercased off the account slice on the other — and neither normalises
+ * it. The curator comes from the market configurator and is read off the same
+ * suite by both, so it is compared as given.
+ */
+function expectSameMarket(
+  preview: CreditOperationMarket,
+  projected: CreditOperationMarket,
+): void {
+  expect(preview.creditManager.toLowerCase()).toBe(
+    projected.creditManager.toLowerCase(),
+  );
+  expect(preview.name).toBe(projected.name);
+  expect(preview.curator).toBe(projected.curator);
+  expect(preview.liquidationDiscount).toBe(projected.liquidationDiscount);
+  // Not vacuously: a side that stopped carrying the market half would otherwise
+  // agree with the other's `undefined`.
+  expect(preview.curator).toMatch(/^0x[0-9a-fA-F]{40}$/);
+  expect(preview.liquidationDiscount).toBeGreaterThan(0);
+}
+
 /** Asserts everything the two sides say about the account after the operation. */
 function expectAgreement(
-  preview: EstimatedProjection & {
-    creditManager: Address;
-    name: string;
-    error?: unknown;
-  },
+  preview: EstimatedProjection & { error?: unknown },
   projected: OperationState,
   dust: bigint,
 ): void {
@@ -319,14 +343,7 @@ function expectAgreement(
   // would not be agreement, so it is checked for first.
   expect(preview.error).toBeUndefined();
 
-  // Whose account it is, in the words both sides use for it. The address is
-  // compared case-blind: each side carries through the casing it was handed —
-  // checksummed off the parsed calldata here, lowercased off the account slice
-  // there — and neither normalises it.
-  expect(preview.creditManager.toLowerCase()).toBe(
-    projected.creditManager.toLowerCase(),
-  );
-  expect(preview.name).toBe(projected.name);
+  expectSameMarket(preview, projected);
 
   // What it holds. The dust is the one licensed disagreement, and it lands on
   // the two sums that are taken over the balances.
@@ -429,6 +446,7 @@ describe("the preview of what prepare built agrees with what prepare projected",
       throw new Error(`expected a repayment, got ${preview.operation}`);
     }
 
+    expectSameMarket(preview, projected);
     expect(projected.totalDebt.value).toBe(0n);
     expect(preview.debtRepaid.value).toBe(
       toCreditAccountSlice(creditAccount).totalDebt,
@@ -598,6 +616,7 @@ describe("the preview of what prepare built agrees with what prepare projected",
     }
 
     expect(preview.error).toBeUndefined();
+    expectSameMarket(preview, projected);
     expect(projected.totalDebt.value).toBe(0n);
     expect(byToken(projected.assets)).toEqual({});
     // the account is emptied but not closed: the facade's own entry point is
@@ -618,10 +637,7 @@ describe("the preview of what prepare built agrees with what prepare projected",
     }
 
     expect(preview.error).toBeUndefined();
-    expect(preview.creditManager.toLowerCase()).toBe(
-      projected.creditManager.toLowerCase(),
-    );
-    expect(preview.name).toBe(projected.name);
+    expectSameMarket(preview, projected);
 
     // 3x on 10 of margin: 20 borrowed, 30 held, and with the route standing
     // still the floor branch is the expected one

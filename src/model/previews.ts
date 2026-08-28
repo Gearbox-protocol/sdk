@@ -156,6 +156,41 @@ export interface PreviewLpVerify {
 }
 
 /**
+ * The market a credit operation acts on, reported the same way by every half of
+ * the SDK: the calldata previews, the intents engine's projections and the
+ * open-strategy walk all carry it, so a screen naming the market needs nothing
+ * beside the result it already holds.
+ **/
+export interface CreditOperationMarket {
+  /**
+   * Credit manager the account belongs to. Carried on the result itself so a
+   * caller weighing one — `checkSimulation` among them — needs nothing beside
+   * it to find the market.
+   */
+  creditManager: Address;
+  /**
+   * Human-readable credit manager name.
+   */
+  name: string;
+  /**
+   * Market configurator of the market {@link creditManager} belongs to — the
+   * on-chain identity of the curator, which is what a curator link and a
+   * curator name resolve from. Not a personal wallet.
+   */
+  curator: Address;
+  /**
+   * What a liquidation takes off the account, in basis points: the premium the
+   * liquidator keeps plus the protocol's own fee.
+   *
+   * Not the credit manager's `liquidationDiscount`, which is the complement of
+   * the premium alone (`100% - liquidationPremium`) and says what share of the
+   * collateral repays the debt. This is the figure a position screen labels
+   * "Liquidation Discount": `liquidationPremium + feeLiquidation`.
+   */
+  liquidationDiscount: Bps;
+}
+
+/**
  * What an account is worth and what it is made of, once an operation has run.
  *
  * The measured half of a {@link AccountProjection}: read off the balances the
@@ -265,18 +300,10 @@ export interface AccountMetrics {
  * what they mean on a {@link StrategyPosition}, down to the token an amount
  * names — an RWA market reports USDC, not the dcUSDC wrapper the pool holds.
  **/
-export interface AccountProjection extends AccountHoldings, AccountMetrics {
-  /**
-   * Credit manager the account belongs to. Carried on the projection itself so
-   * a caller weighing one — `checkSimulation` among them — needs nothing beside
-   * it to find the market.
-   */
-  creditManager: Address;
-  /**
-   * Human-readable credit manager name.
-   */
-  name: string;
-}
+export interface AccountProjection
+  extends CreditOperationMarket,
+    AccountHoldings,
+    AccountMetrics {}
 
 /**
  * The fields of an {@link AccountProjection} a routed leg's outcome decides.
@@ -471,9 +498,9 @@ export interface PreviewAdjustStrategyVerify
  *
  * Carries no {@link AccountProjection}: the account it describes ends up empty,
  * so there is no position left to weigh — what a caller wants to know is the
- * payout.
+ * payout. The market it happened in is still named, as everywhere else.
  **/
-export interface PreviewExitStrategyVerify {
+export interface PreviewExitStrategyVerify extends CreditOperationMarket {
   operation: "CloseCreditAccount";
   /**
    * True when the account is closed permanently (facade `closeCreditAccount`
@@ -481,14 +508,6 @@ export interface PreviewExitStrategyVerify {
    * (plain multicall).
    */
   permanent: boolean;
-  /**
-   * Credit manager the account belongs to
-   */
-  creditManager: Address;
-  /**
-   * Human-readable credit manager name
-   */
-  name: string;
   /**
    * Credit account that is being closed
    */
@@ -522,7 +541,7 @@ export interface PreviewExitStrategyVerify {
  * Carries no {@link AccountProjection} for the same reason the exit does not:
  * the loan ends here, so the risk metrics have nothing left to describe.
  **/
-export interface PreviewRepayStrategyVerify {
+export interface PreviewRepayStrategyVerify extends CreditOperationMarket {
   operation: "RepayCreditAccount";
   /**
    * True when the account is closed permanently (facade `closeCreditAccount`
@@ -530,14 +549,6 @@ export interface PreviewRepayStrategyVerify {
    * (plain multicall).
    */
   permanent: boolean;
-  /**
-   * Credit manager the account belongs to
-   */
-  creditManager: Address;
-  /**
-   * Human-readable credit manager name
-   */
-  name: string;
   /**
    * Credit account that is being repaid
    */
@@ -592,20 +603,12 @@ export type PreviewInstantStrategyVerify =
  * the actual claim token materializes later, when the withdrawal is claimed and
  * the recorded (if any) is resumed
  */
-export interface PreviewDelayedStrategyVerify {
+export interface PreviewDelayedStrategyVerify extends CreditOperationMarket {
   operation: "DelayedCreditAccountOperation";
   /**
    * Credit account the operation is performed on
    */
   creditAccount: Address;
-  /**
-   * Credit manager the account belongs to
-   */
-  creditManager: Address;
-  /**
-   * Human-readable credit manager name
-   */
-  name: string;
   /**
    * Decoded from the withdrawal request's extraData; undefined when the
    * request carries no intent (e.g. Mellow)

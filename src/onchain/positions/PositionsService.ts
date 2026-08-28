@@ -24,6 +24,7 @@ import type { CreditAccountData } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
 import { getAccountTargetCollateral } from "../chain/chains.js";
 import { DUST_THRESHOLD } from "../constants/index.js";
+import { creditOperationMarket } from "../market/credit/creditOperationMarket.js";
 import {
   bpsToRay,
   calcBorrowApy,
@@ -31,6 +32,7 @@ import {
   healthFactorBps,
   usdToNumber,
 } from "../market/math.js";
+import { collateralPriceInUnderlying } from "../market/oracle/collateralPriceInUnderlying.js";
 import {
   borrowRateAtUtilization,
   type RateModelParams,
@@ -40,7 +42,10 @@ import { strategyName } from "../market/strategyName.js";
 import { AddressMap } from "../utils/index.js";
 import { calcBorrowRate } from "./calcBorrowRate.js";
 import { calcHealthFactor } from "./calcHealthFactor.js";
-import { calcLiquidationPrice } from "./calcLiquidationPrice.js";
+import {
+  calcLiquidationPrice,
+  soleNonUnderlyingCollateral,
+} from "./calcLiquidationPrice.js";
 import { calcTimeToLiquidationMs } from "./calcTimeToLiquidationMs.js";
 import {
   type AccountSnapshot,
@@ -288,6 +293,29 @@ export class PositionsService extends SDKConstruct {
   }
 
   /**
+   * What the collateral {@link liquidationPrice} is quoted for costs in the
+   * market underlying right now, in the same `PRICE_DECIMALS` fixed point —
+   * the pair a form shows beside the liquidation price. `null` under exactly
+   * the conditions that leave the liquidation price `null`, plus an oracle
+   * that cannot answer for either side.
+   **/
+  public currentPrice(snapshot: AccountSnapshot): bigint | null {
+    const market = this.sdk.marketRegister.findByCreditManager(
+      snapshot.creditManager,
+    );
+    const underlying = market.pool.underlying;
+    const collateral = soleNonUnderlyingCollateral(snapshot, underlying);
+    if (!collateral) {
+      return null;
+    }
+    return collateralPriceInUnderlying(
+      market.priceOracle,
+      collateral,
+      underlying,
+    );
+  }
+
+  /**
    * Every derived number of an account state at once — the whole
    * {@link AccountMetrics} half of a projection.
    *
@@ -366,8 +394,9 @@ export class PositionsService extends SDKConstruct {
     const { priceOracle } = market;
 
     return {
-      creditManager,
-      name: this.sdk.marketRegister.findCreditManager(creditManager).name,
+      ...creditOperationMarket(
+        this.sdk.marketRegister.findCreditManager(creditManager),
+      ),
       totalValue: market.toUnderlyingAmount(totalValue),
       totalDebt: market.toUnderlyingAmount(totalDebt),
       netValue: market.toUnderlyingAmount(totalValue - totalDebt),

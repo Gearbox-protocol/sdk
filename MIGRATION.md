@@ -371,9 +371,11 @@ every projection field a route decides is prefixed `est` on the preview side:
 | `timeToLiquidation`, `liquidationPrice`, `leverage` | `estTimeToLiquidation`, `estLiquidationPrice`, `estLeverage` |
 
 `totalDebt` and `quotas` are unprefixed on both sides: the calls name them
-outright, so there is one answer regardless of how the swap lands. `assetsChange`,
-`quotasChange` and `totalDebtChange` keep their names too — `prepare` reports no
-deltas, so there is nothing to confuse them with.
+outright, so there is one answer regardless of how the swap lands. So is the
+market half — `creditManager`, `name`, `curator`, `liquidationDiscount` — which
+no swap can move. `assetsChange`, `quotasChange` and `totalDebtChange` keep their
+names too — `prepare` reports no deltas, so there is nothing to confuse them
+with.
 
 The borrow rate is prefixed even though the debt and the quotas are all it is
 made of, because half of the breakdown is normalized against them and half
@@ -514,19 +516,40 @@ The threshold now weighs the magnitude, so a repayment reports a negative
 
 ### The projection names its own market
 
-`AccountProjection` gained three fields, so every producer of one — the two
+`AccountProjection` gained four fields, so every producer of one — the two
 credit previews, `OperationState` and `OpenStrategyPreview` — now carries them:
 
 | Field | Type | Was |
 | --- | --- | --- |
 | `creditManager` | `Address` | on the previews only; a simulation made the caller carry it |
 | `name` | `string` | on the previews only |
+| `curator` | `Address` | read off the market configurator by the caller |
+| `liquidationDiscount` | `Bps` | read off the credit manager's fees by the caller |
 | `netValue` | `TokenAmount` | on `PreviewOpenStrategyVerify` and `OpenStrategyPreview` only; elsewhere the caller subtracted |
+
+The four market fields are **`CreditOperationMarket`**, exported beside
+`AccountProjection` and filled from one place (`creditOperationMarket(suite)`),
+so they cannot drift between the two halves. The results that carry no
+projection carry it too — `PreviewExitStrategyVerify`,
+`PreviewRepayStrategyVerify` and `PreviewDelayedStrategyVerify` — because the
+market an operation happened in is worth naming even where the position it left
+behind is empty. `liquidationDiscount` is `liquidationPremium + feeLiquidation`,
+the figure a position screen labels "Liquidation Discount", *not* the credit
+manager's `liquidationDiscount` (which is `100% − liquidationPremium`).
 
 `netValue` is `totalValue − totalDebt`, the position's own funds. The read model
 leaves a strategy caller to do that subtraction; a projection reports it, so an
 "own funds" row reads the same wherever it appears rather than being derived on
 some screens and read on others.
+
+`prepare` carries one field beyond the projection, on `OperationState` and
+`OpenStrategyPreview`: **`currentPrice`**, what the position's collateral costs
+in the underlying right now, in the same 8-decimal fixed point as
+`liquidationPrice` so a screen reads the two as a pair (`null` unless the
+account holds exactly one non-underlying asset the oracle can price). A preview
+is not asked for it — it reports what a transaction does, not what the market
+costs while a form is open — so it is the one field the cross-check between the
+halves has nothing to compare.
 
 **`checkSimulation` lost its `creditManager` input.** It takes the market off
 the state now, which is what makes it the same call shape as `checkOperation`:

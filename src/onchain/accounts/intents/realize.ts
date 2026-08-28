@@ -538,7 +538,15 @@ export async function realize(
     toUnderlying: (from, amount) => price(from, underlying, amount),
   });
 
-  const state: OperationState = { ...projection, priceImpact };
+  const state: OperationState = {
+    ...projection,
+    priceImpact,
+    // What the collateral trades at while the form is open, off the same
+    // expected-branch snapshot the projection was taken from: the price a
+    // liquidation price is read against has to be the price of the position
+    // being reported.
+    currentPrice: sdk.positions.currentPrice(snapshot),
+  };
 
   return {
     operations,

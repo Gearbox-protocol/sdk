@@ -4,6 +4,7 @@ import type {
 } from "../../model/index.js";
 import {
   AP_WETH_TOKEN,
+  creditOperationMarket,
   MAX_UINT256,
   NO_VERSION,
   type PluginsMap,
@@ -91,8 +92,9 @@ function previewCloseCreditAccount<P extends PluginsMap>(
   return {
     operation: "CloseCreditAccount",
     permanent,
-    creditManager: operation.creditManager,
-    name: sdk.marketRegister.findCreditManager(operation.creditManager).name,
+    ...creditOperationMarket(
+      sdk.marketRegister.findCreditManager(operation.creditManager),
+    ),
     creditAccount: operation.creditAccount,
     // On a malformed multicall the withdrawn amount depends on best-effort
     // replayed balances and may be unreliable
@@ -133,8 +135,9 @@ function previewRepayCreditAccount<P extends PluginsMap>(
   return {
     operation: "RepayCreditAccount",
     permanent,
-    creditManager: operation.creditManager,
-    name: sdk.marketRegister.findCreditManager(operation.creditManager).name,
+    ...creditOperationMarket(
+      sdk.marketRegister.findCreditManager(operation.creditManager),
+    ),
     creditAccount: operation.creditAccount,
     collateralAdded: collateralAdded.map(a =>
       market.priceOracle.toTokenAmount(a.token, a.balance),

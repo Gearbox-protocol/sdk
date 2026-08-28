@@ -27,6 +27,20 @@ import type { CreditAccountSlice } from "../types.js";
  * assembler and in which order.
  */
 
+/** Market configurator the mock market is governed by — the curator's address. */
+export const MOCK_MARKET_CONFIGURATOR =
+  "0x00000000000000000000000000000000000c0f16" as Address;
+
+/**
+ * Liquidation fees of the mock suite: a 3% premium (the manager reports its
+ * complement) on top of a 1.5% protocol fee, so the discount a screen shows is
+ * 450bps.
+ */
+export const MOCK_LIQUIDATION_FEES = {
+  feeLiquidation: 150,
+  liquidationDiscount: 9700,
+};
+
 /** Recognizable router call embedded in routed leg results. */
 export const MOCK_ROUTER_CALL: MultiCall = {
   target: "0x9999999999999999999999999999999999999999" as Address,
@@ -399,6 +413,8 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
   const expirationDate = args.expirationDate ?? 0;
   const creditManagerSuite = {
     name: "TestCreditManager",
+    marketConfigurator: { address: MOCK_MARKET_CONFIGURATOR },
+    liquidationFees: () => MOCK_LIQUIDATION_FEES,
     creditManager: {
       address: args.creditManager,
       liquidationThresholds,
