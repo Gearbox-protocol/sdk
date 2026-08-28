@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 import type { MultiCall, OnchainSDK } from "../../index.js";
+import { creditOperationMarket } from "../../market/credit/creditOperationMarket.js";
 import { calcPositionLeverage } from "../../market/math.js";
 import type { ConvertFn } from "../../market/oracle/types.js";
 import type { AccountSnapshot } from "../../positions/types.js";
@@ -502,8 +503,7 @@ export async function realize(
 
   const oracle = market.priceOracle;
   const state: OperationState = {
-    creditManager: creditAccount.creditManager,
-    name: suite.name,
+    ...creditOperationMarket(suite),
     totalValue: market.toUnderlyingAmount(totalValue),
     totalDebt: market.toUnderlyingAmount(debt),
     netValue: market.toUnderlyingAmount(totalValue - debt),

@@ -15,6 +15,7 @@ const UNDERLYING = "0x2000000000000000000000000000000000000002" as Address;
 const DIESEL = "0x3000000000000000000000000000000000000003" as Address;
 const WALLET = "0xf0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0" as Address;
 const CREDIT_MANAGER = "0x4000000000000000000000000000000000000004" as Address;
+const CURATOR = "0x5000000000000000000000000000000000000005" as Address;
 const CREDIT_ACCOUNT = "0x5000000000000000000000000000000000000005" as Address;
 
 const rawTx = (tag: string): RawTx => ({
@@ -247,6 +248,8 @@ describe("buildTx — open", () => {
     borrowRate: { total: 0, totalOnDebt: 0, base: 0, quotas: [] },
     timeToLiquidation: null,
     liquidationPrice: null,
+    curator: CURATOR,
+    liquidationDiscount: 0,
   };
   const sim: Extract<OpenStrategySimulate, { ok: true }> = {
     ok: true,
@@ -384,6 +387,8 @@ describe("buildTx — account", () => {
     preview: {
       creditManager: CREDIT_MANAGER,
       name: "Test CM",
+      curator: CURATOR,
+      liquidationDiscount: 0,
       totalValue: amount(UNDERLYING, 3_000n),
       totalDebt: amount(UNDERLYING, 2_000n),
       netValue: amount(UNDERLYING, 1_000n),

@@ -8,6 +8,7 @@ import {
   AP_WETH_TOKEN,
   type Asset,
   calcPositionLeverage,
+  creditOperationMarket,
   DUST_THRESHOLD,
   NO_VERSION,
   type PluginsMap,
@@ -77,8 +78,9 @@ export async function previewOpenCreditAccount<P extends PluginsMap>(
 
   return {
     operation: operation.operation,
-    creditManager: operation.creditManager,
-    name: sdk.marketRegister.findCreditManager(operation.creditManager).name,
+    ...creditOperationMarket(
+      sdk.marketRegister.findCreditManager(operation.creditManager),
+    ),
     targetCollateral: targetAsset
       ? oracle.toTokenAmount(targetAsset.token, targetAsset.balance)
       : undefined,

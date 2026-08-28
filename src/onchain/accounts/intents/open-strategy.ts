@@ -5,6 +5,7 @@ import type {
   TokenAmount,
 } from "../../../model/index.js";
 import type { Asset, MultiCall, OnchainSDK } from "../../index.js";
+import { creditOperationMarket } from "../../market/credit/creditOperationMarket.js";
 import { calcPositionLeverage } from "../../market/math.js";
 import type { ConvertFn } from "../../market/oracle/types.js";
 import type { AccountSnapshot } from "../../positions/types.js";
@@ -213,8 +214,7 @@ export async function previewOpenStrategy(
   });
 
   return {
-    creditManager,
-    name: suite.name,
+    ...creditOperationMarket(suite),
     totalDebt: market.toUnderlyingAmount(debt),
     netValue: market.toUnderlyingAmount(margin),
     totalValue: market.toUnderlyingAmount(margin + debt),

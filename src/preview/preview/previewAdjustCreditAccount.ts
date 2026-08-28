@@ -5,6 +5,7 @@ import {
 import {
   AP_WETH_TOKEN,
   calcPositionLeverage,
+  creditOperationMarket,
   DUST_THRESHOLD,
   NO_VERSION,
   type PluginsMap,
@@ -85,8 +86,9 @@ export async function previewAdjustCreditAccount<P extends PluginsMap>(
 
   return {
     operation: "AdjustCreditAccount",
-    creditManager: operation.creditManager,
-    name: sdk.marketRegister.findCreditManager(operation.creditManager).name,
+    ...creditOperationMarket(
+      sdk.marketRegister.findCreditManager(operation.creditManager),
+    ),
     creditAccount: operation.creditAccount,
     collateralAdded: collateralAdded.map(a =>
       oracle.toTokenAmount(a.token, a.balance),

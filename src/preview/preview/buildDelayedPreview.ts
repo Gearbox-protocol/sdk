@@ -12,6 +12,7 @@ import {
   AssetsMap,
   type ConvertFn,
   calcPositionLeverage,
+  creditOperationMarket,
   DUST_THRESHOLD,
   type OnchainSDK,
 } from "../../onchain/index.js";
@@ -271,8 +272,9 @@ function buildClosePreview(
   return {
     operation: "CloseCreditAccount",
     permanent: false,
-    creditManager: post.creditManager,
-    name: sdk.marketRegister.findCreditManager(post.creditManager).name,
+    ...creditOperationMarket(
+      sdk.marketRegister.findCreditManager(post.creditManager),
+    ),
     creditAccount: post.creditAccount,
     // Oracle estimate computed in the underlying; RWA underlyings convert
     // 1:1 with their vault asset, so the amount holds for `receivedToken`
@@ -303,8 +305,9 @@ function buildAdjustPreview(
   const oracle = market.priceOracle;
   return {
     operation: "AdjustCreditAccount",
-    creditManager: post.creditManager,
-    name: sdk.marketRegister.findCreditManager(post.creditManager).name,
+    ...creditOperationMarket(
+      sdk.marketRegister.findCreditManager(post.creditManager),
+    ),
     creditAccount: post.creditAccount,
     // the resume flow adds nothing from the wallet
     collateralAdded: [],

@@ -4,5 +4,6 @@ export * from "./CreditFacadeV310Contract.js";
 export * from "./CreditManagerV310Contract.js";
 export * from "./CreditSuite.js";
 export * from "./collateralUtils.js";
+export * from "./creditOperationMarket.js";
 export * from "./expectedBalanceDeltas.js";
 export * from "./types.js";
