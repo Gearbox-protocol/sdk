@@ -1,7 +1,7 @@
 import type { Address } from "viem";
-import type { calcQuotaUpdate } from "../../../common-utils/utils/creditAccount/quota-utils.js";
 import { MAX_UINT256 } from "../../constants/math.js";
 import type { Asset, MultiCall, OnchainSDK } from "../../index.js";
+import type { calcQuotaUpdate } from "../quota-utils.js";
 import type { EncodableCreditAccountOperation } from "../types.js";
 import type {
   ClaimableWithdrawal,

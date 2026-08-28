@@ -1,6 +1,6 @@
 import type { Address, Log, TransactionReceipt } from "viem";
-import type { CallTrace } from "../common-utils/utils/trace.js";
 import type { ChainContractsRegister } from "../onchain/index.js";
+import type { CallTrace } from "../onchain/utils/trace.js";
 import { extractTransfers, findFacadeCalls } from "../preview/trace/index.js";
 import { assembleOperations } from "./assembleOperations.js";
 import type {

@@ -1,5 +1,4 @@
 import { type Address, isAddressEqual } from "viem";
-import { BigIntMath } from "../../common-utils/index.js";
 import type {
   AdjustCreditAccountPreview,
   CloseCreditAccountPreview,
@@ -16,6 +15,7 @@ import {
   DUST_THRESHOLD,
   type OnchainSDK,
 } from "../../onchain/index.js";
+import { BigIntMath } from "../../onchain/utils/bigint-math.js";
 import type { CreditAccountState } from "./CreditAccountState.js";
 import type { DetectedDelayedOperation } from "./detectDelayedOperation.js";
 

@@ -7,7 +7,7 @@ import {
 import {
   type CallTrace,
   resolveProtocolCall,
-} from "../../common-utils/utils/trace.js";
+} from "../../onchain/utils/trace.js";
 
 /**
  * Selector of `IPhantomTokenWithdrawer.withdrawPhantomToken(address,uint256)`.

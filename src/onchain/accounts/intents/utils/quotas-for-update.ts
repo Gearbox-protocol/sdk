@@ -1,12 +1,12 @@
 import type { Address } from "viem";
-import {
-  type CalcQuotaUpdateProps,
-  calcQuotaUpdate,
-} from "../../../../common-utils/utils/creditAccount/quota-utils.js";
 import { MIN_INT96 } from "../../../constants/math.js";
 import type { AddressMap, Asset } from "../../../index.js";
 import type { ConvertFn } from "../../../market/oracle/types.js";
 import { TypedObjectUtils } from "../../../utils/mappers.js";
+import {
+  type CalcQuotaUpdateProps,
+  calcQuotaUpdate,
+} from "../../quota-utils.js";
 import type { QuotaUpdateState } from "../operations.js";
 
 interface InitialQuota {

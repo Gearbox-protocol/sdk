@@ -1,8 +1,8 @@
 import type { Address } from "viem";
 import { getAddress, isAddress } from "viem";
-import { BigIntMath } from "../../common-utils/index.js";
 import type { ChainId, Token } from "../../model/index.js";
 import { AddressMap, type OnchainSDK, toBigInt } from "../../onchain/index.js";
+import { BigIntMath } from "../../onchain/utils/bigint-math.js";
 import {
   MerkleXYZApi,
   type MerkleXYZUserRewardsV4Response,

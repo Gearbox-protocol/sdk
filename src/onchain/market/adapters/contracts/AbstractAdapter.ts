@@ -7,10 +7,6 @@ import {
   type Hex,
   zeroAddress,
 } from "viem";
-import {
-  type CallTrace,
-  resolveProtocolCall,
-} from "../../../../common-utils/utils/trace.js";
 import type { ParsedCallV2, RelaxedBaseParams } from "../../../base/index.js";
 import {
   BaseContract,
@@ -22,6 +18,7 @@ import {
   functionArgsToRecord,
   getFunctionSignature,
 } from "../../../utils/index.js";
+import { type CallTrace, resolveProtocolCall } from "../../../utils/trace.js";
 import type {
   LegacyAdapterOperation,
   Transfers,

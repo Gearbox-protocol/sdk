@@ -1,7 +1,7 @@
 import { accountMigratorAbi } from "../../../../abi/AccountMigrator.js";
-import type { CallTrace } from "../../../../common-utils/utils/trace.js";
 import type { ParsedCallV2 } from "../../../base/index.js";
 import type { OnchainSDK } from "../../../OnchainSDK.js";
+import type { CallTrace } from "../../../utils/trace.js";
 import type {
   LegacyAdapterOperation,
   Transfers,

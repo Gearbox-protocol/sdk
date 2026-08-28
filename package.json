@@ -64,11 +64,6 @@
       "import": "./dist/esm/preview/index.js",
       "default": "./dist/cjs/preview/index.js"
     },
-    "./common-utils": {
-      "types": "./dist/types/common-utils/index.d.ts",
-      "import": "./dist/esm/common-utils/index.js",
-      "default": "./dist/cjs/common-utils/index.js"
-    },
     "./rewards": {
       "types": "./dist/types/rewards/index.d.ts",
       "import": "./dist/esm/rewards/index.js",
