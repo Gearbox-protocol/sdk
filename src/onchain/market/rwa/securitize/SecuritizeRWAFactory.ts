@@ -9,6 +9,7 @@ import type { OnchainSDK } from "../../../OnchainSDK.js";
 import type { MultiCall, RawTx } from "../../../types/index.js";
 import { AddressMap, AddressSet } from "../../../utils/index.js";
 import type {
+  GetInvestorOptions,
   GetOpenAccountRequirementsProps,
   IRWAFactory,
   RWACompressorInvestorData,
@@ -177,12 +178,15 @@ export class SecuritizeRWAFactory
    */
   public async getInvestor(
     creditAccount: Address,
-    fromCache?: boolean,
+    options?: GetInvestorOptions,
   ): Promise<Address> {
+    const { fromCache, blockNumber } = options ?? {};
     if (fromCache && this.#investorCache.has(creditAccount)) {
       return this.#investorCache.mustGet(creditAccount);
     }
-    const investor = await this.contract.read.getInvestor([creditAccount]);
+    const investor = await this.contract.read.getInvestor([creditAccount], {
+      blockNumber,
+    });
     if (fromCache) {
       this.#investorCache.upsert(creditAccount, investor);
     }

@@ -294,7 +294,9 @@ async function resolveBorrower(
     if (!factory) {
       return account.owner;
     }
-    const investor = await factory.getInvestor(account.creditAccount, true);
+    const investor = await factory.getInvestor(account.creditAccount, {
+      fromCache: true,
+    });
     if (!investor || hexEq(investor, ADDRESS_0X0)) {
       return account.owner;
     }

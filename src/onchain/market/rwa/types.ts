@@ -143,6 +143,21 @@ export interface GetOpenAccountRequirementsProps {
 }
 
 /**
+ * Options for {@link IRWAFactory.getInvestor}.
+ */
+export interface GetInvestorOptions {
+  /**
+   * If true, use and update an in-memory cache (creditAccount → investor).
+   * On cache miss, loads from contract and stores the result.
+   **/
+  fromCache?: boolean;
+  /**
+   * Block to read at, defaults to latest. Only used on a cache miss.
+   **/
+  blockNumber?: bigint;
+}
+
+/**
  * Shared interface for all RWA factory contracts.
  *
  * Parameterised by a single factory type literal `T` which indexes into
@@ -174,11 +189,12 @@ export interface IRWAFactory<T extends RWAFactoryType = RWAFactoryType>
   /**
    * Returns the investor address for a credit account.
    * @param creditAccount - credit account address
-   * @param fromCache - if true, use and update an in-memory cache
-   *   (creditAccount → investor). On cache miss, loads from contract and
-   *   stores the result for future calls.
+   * @param options - cache and block-pinning options
    **/
-  getInvestor(creditAccount: Address, fromCache?: boolean): Promise<Address>;
+  getInvestor(
+    creditAccount: Address,
+    options?: GetInvestorOptions,
+  ): Promise<Address>;
   /**
    *  Returns address to which approval should be given on collateral token
    *

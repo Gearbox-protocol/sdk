@@ -55,7 +55,9 @@ export class CreditAccountCompressor extends SDKConstruct {
     let investor: Address | undefined;
     if (raw.success) {
       ca = raw;
-      investor = await factory?.getInvestor(raw.creditAccount, false);
+      investor = await factory?.getInvestor(raw.creditAccount, {
+        blockNumber,
+      });
     } else {
       const { txs: priceUpdateTxs } =
         await marketSuite.priceOracle.priceUpdateTxsForAccount(raw);
