@@ -56,7 +56,12 @@ interface BreakdownOverrides {
 
 function merklResponse(
   breakdowns: BreakdownOverrides[],
-  token: Partial<{ address: Address; symbol: string; decimals: number }> = {},
+  token: Partial<{
+    address: Address;
+    symbol: string;
+    decimals: number;
+    price: number;
+  }> = {},
 ) {
   return {
     data: [
@@ -150,7 +155,7 @@ describe("getMerklRewards", () => {
     expect(rewards[0]?.pool).toBe(POOL);
     expect(rewards[0]?.poolToken).toEqual(POOL_TOKEN);
     expect(rewards[0]?.chainId).toBe(1);
-    expect(rewards[0]?.amount).toBe(1_000000n);
+    expect(rewards[0]?.amount.value).toBe(1_000000n);
   });
 
   it("denominates the incentive token from Merkl when the registry has none", async () => {
@@ -165,7 +170,7 @@ describe("getMerklRewards", () => {
 
     // Checksummed, as `Token.address` is documented to be — Merkl sends
     // whatever case it likes.
-    expect(reward?.rewardToken).toEqual({
+    expect(reward?.amount.token).toEqual({
       chainId: 1,
       address: REWARD_TOKEN,
       symbol: "MERKL",
@@ -191,7 +196,7 @@ describe("getMerklRewards", () => {
       account: ACCOUNT,
     });
 
-    expect(reward?.rewardToken).toBe(known);
+    expect(reward?.amount.token).toBe(known);
   });
 
   /**
@@ -230,6 +235,56 @@ describe("getMerklRewards", () => {
     expect(rewards).toEqual([]);
   });
 
+  it("prices the reward off Merkl, which knows tokens the oracles do not", async () => {
+    mockedAxiosGet.mockResolvedValueOnce(
+      merklResponse([{ amount: "1500000" }], { price: 2 }),
+    );
+
+    const [reward] = await getMerklRewards({
+      sdk: buildSdk(),
+      account: ACCOUNT,
+    });
+
+    // 1.5 tokens at 6 decimals, $2 each.
+    expect(reward?.amount.valueUsd).toBe(3);
+  });
+
+  /**
+   * Merkl omits the key outright for what it does not price — points and the
+   * like — so a missing price is `null`, never a zero that would understate a
+   * total without saying so.
+   */
+  it("reports no value for a token Merkl does not price", async () => {
+    mockedAxiosGet.mockResolvedValueOnce(
+      merklResponse([{ amount: "1000000" }]),
+    );
+
+    const [reward] = await getMerklRewards({
+      sdk: buildSdk(),
+      account: ACCOUNT,
+    });
+
+    expect(reward?.amount.valueUsd).toBeNull();
+  });
+
+  // Pricing each breakdown and adding the results would round every one; the
+  // sum is priced once.
+  it("prices the summed amount, not each breakdown", async () => {
+    mockedAxiosGet.mockResolvedValueOnce(
+      merklResponse([{ amount: "1000000" }, { amount: "2500000" }], {
+        price: 10,
+      }),
+    );
+
+    const [reward] = await getMerklRewards({
+      sdk: buildSdk(),
+      account: ACCOUNT,
+    });
+
+    expect(reward?.amount.value).toBe(3_500000n);
+    expect(reward?.amount.valueUsd).toBe(35);
+  });
+
   it("sums several breakdowns of one campaign token", async () => {
     mockedAxiosGet.mockResolvedValueOnce(
       merklResponse([{ amount: "1000000" }, { amount: "2500000" }]),
@@ -240,7 +295,7 @@ describe("getMerklRewards", () => {
       account: ACCOUNT,
     });
 
-    expect(reward?.amount).toBe(3_500000n);
+    expect(reward?.amount.value).toBe(3_500000n);
   });
 
   it("leaves out what is already claimed", async () => {
@@ -256,7 +311,7 @@ describe("getMerklRewards", () => {
       account: ACCOUNT,
     });
 
-    expect(reward?.amount).toBe(600000n);
+    expect(reward?.amount.value).toBe(600000n);
   });
 
   /**

@@ -22,6 +22,12 @@ export interface MerkleXYZUserRewardsV4 {
       chainId: number;
       symbol: string;
       decimals: number;
+      /**
+       * USD price of one whole token. Optional because Merkl omits the key
+       * outright for the tokens it does not price — points and the like —
+       * rather than sending a null.
+       */
+      price?: number;
     };
     breakdowns: Array<{
       reason: string;

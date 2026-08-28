@@ -1,6 +1,6 @@
 import type { Address } from "viem";
-import { getAddress, isAddress } from "viem";
-import type { ChainId, Token } from "../../model/index.js";
+import { formatUnits, getAddress, isAddress } from "viem";
+import type { ChainId, Token, TokenAmount } from "../../model/index.js";
 import { AddressMap, type OnchainSDK, toBigInt } from "../../onchain/index.js";
 import { BigIntMath } from "../../onchain/utils/bigint-math.js";
 import {
@@ -9,7 +9,7 @@ import {
 } from "./merkl-api.js";
 
 /**
- * One claimable Merkl liquidity-mining reward, denominated.
+ * One claimable Merkl liquidity-mining reward, denominated and priced.
  *
  * Both tokens arrive resolved, so a consumer neither looks one up nor
  * reassembles one out of the loose fields Merkl sends.
@@ -20,10 +20,16 @@ export interface MerklReward {
   readonly pool: Address;
   /** That pool's share token — what the campaign is keyed on. */
   readonly poolToken: Token;
-  /** The incentive token being handed out. */
-  readonly rewardToken: Token;
-  /** Claimable amount, i.e. distributed minus already claimed. Always > 0. */
-  readonly amount: bigint;
+  /**
+   * The incentive token being handed out, how much of it is claimable
+   * (distributed minus already claimed, always > 0) and what that is worth.
+   *
+   * Priced by Merkl, not by the market oracles: a campaign's incentive token
+   * is rarely collateral in the pool it incentivises, so the oracles usually
+   * do not know it — GEAR, which most Gearbox campaigns pay in, among them.
+   * `valueUsd` is `null` for a token Merkl does not price either.
+   */
+  readonly amount: TokenAmount;
 }
 
 type ReportHandler = (e: unknown, description?: string) => void;
@@ -94,8 +100,10 @@ export async function getMerklRewards({
   );
 
   // Keyed by pool and incentive token: one campaign can pay the same token
-  // through several breakdowns, and those are one row to a reader.
-  const claimable = new Map<string, MerklReward>();
+  // through several breakdowns, and those are one row to a reader. Amounts are
+  // summed raw and priced once at the end — pricing each breakdown and adding
+  // the results would round every one of them.
+  const claimable = new Map<string, Claimable>();
 
   for (const chainRewards of merkleXYZLm || []) {
     for (const reward of chainRewards.rewards) {
@@ -123,7 +131,7 @@ export async function getMerklRewards({
         const key = `${pool}_${rewardTokenAddress}`;
         const seen = claimable.get(key);
         if (seen) {
-          claimable.set(key, { ...seen, amount: seen.amount + amount });
+          seen.value += amount;
           continue;
         }
 
@@ -135,14 +143,39 @@ export async function getMerklRewards({
           chainId: sdk.chainId,
           pool,
           poolToken,
-          rewardToken: toRewardToken(sdk, rewardTokenAddress, reward.token),
-          amount,
+          token: toRewardToken(sdk, rewardTokenAddress, reward.token),
+          value: amount,
+          price: reward.token.price,
         });
       }
     }
   }
 
-  return [...claimable.values()];
+  return [...claimable.values()].map(toReward);
+}
+
+/** One row while its breakdowns are still being summed. */
+interface Claimable {
+  chainId: ChainId;
+  pool: Address;
+  poolToken: Token;
+  token: Token;
+  value: bigint;
+  price: number | undefined;
+}
+
+function toReward({ price, token, value, ...rest }: Claimable): MerklReward {
+  return {
+    ...rest,
+    amount: {
+      token,
+      value,
+      valueUsd:
+        price === undefined
+          ? null
+          : Number(formatUnits(value, token.decimals)) * price,
+    },
+  };
 }
 
 /**
