@@ -23,7 +23,10 @@ import type {
   IPriceOracleContract,
   MarketSuite,
 } from "../../market/index.js";
-import { dominantCollateral } from "../../market/index.js";
+import {
+  creditOperationMarket,
+  dominantCollateral,
+} from "../../market/index.js";
 import { usdToNumber } from "../../market/math.js";
 import {
   MidasLiquidatorContract,
@@ -448,9 +451,9 @@ export class LiquidationsService extends SDKConstruct {
     // for RWA markets, values are denominated in the unwrapped asset
     // (e.g. USDC instead of dcUSDC); the wrapped underlying converts 1:1
     const unwrappedUnderlying = this.sdk.tokensMeta.unwrapRWA(suite.underlying);
-    const liquidationDiscount = suite.isExpired
-      ? suite.creditManager.liquidationDiscountExpired
-      : suite.creditManager.liquidationDiscount;
+    // the manager's own figure — the complement of the premium alone, which is
+    // what the liquidator pays; the row's `liquidationDiscount` is the wider one
+    const { liquidationDiscount } = suite.liquidationFees();
 
     const repaymentAmount =
       (ca.totalValue * BigInt(liquidationDiscount)) / PERCENTAGE_FACTOR;
@@ -466,9 +469,9 @@ export class LiquidationsService extends SDKConstruct {
         : 0;
 
     return {
+      ...creditOperationMarket(suite),
       chainId: this.sdk.chainId,
       creditAccount: ca.creditAccount,
-      creditManager: ca.creditManager,
       asset: this.sdk.tokensMeta.mustGetToken(
         this.#mainAsset(ca, market, unwrappedUnderlying),
       ),

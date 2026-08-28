@@ -313,8 +313,8 @@ function expectMetrics(
  * The credit manager is compared case-blind: each side carries through the
  * casing it was handed — checksummed off the parsed calldata on the preview
  * side, lowercased off the account slice on the other — and neither normalises
- * it. The curator comes from the market configurator and is read off the same
- * suite by both, so it is compared as given.
+ * it. The curator comes off the market both read the same suite for, so it is
+ * compared as given.
  */
 function expectSameMarket(
   preview: CreditOperationMarket,
@@ -324,11 +324,11 @@ function expectSameMarket(
     projected.creditManager.toLowerCase(),
   );
   expect(preview.name).toBe(projected.name);
-  expect(preview.curator).toBe(projected.curator);
+  expect(preview.curator).toEqual(projected.curator);
   expect(preview.liquidationDiscount).toBe(projected.liquidationDiscount);
   // Not vacuously: a side that stopped carrying the market half would otherwise
   // agree with the other's `undefined`.
-  expect(preview.curator).toMatch(/^0x[0-9a-fA-F]{40}$/);
+  expect(preview.curator.address).toMatch(/^0x[0-9a-fA-F]{40}$/);
   expect(preview.liquidationDiscount).toBeGreaterThan(0);
 }
 

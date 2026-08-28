@@ -514,7 +514,7 @@ The threshold now weighs the magnitude, so a repayment reports a negative
 `valueUsd` rather than zero.
 
 
-### The projection names its own market
+### Every credit result names its own market
 
 `AccountProjection` gained four fields, so every producer of one — the two
 credit previews, `OperationState` and `OpenStrategyPreview` — now carries them:
@@ -523,18 +523,32 @@ credit previews, `OperationState` and `OpenStrategyPreview` — now carries them
 | --- | --- | --- |
 | `creditManager` | `Address` | on the previews only; a simulation made the caller carry it |
 | `name` | `string` | on the previews only |
-| `curator` | `Address` | read off the market configurator by the caller |
+| `curator` | `Curator` | read off the market configurator by the caller |
 | `liquidationDiscount` | `Bps` | read off the credit manager's fees by the caller |
 | `netValue` | `TokenAmount` | on `PreviewOpenStrategyVerify` and `OpenStrategyPreview` only; elsewhere the caller subtracted |
 
 The four market fields are **`CreditOperationMarket`**, exported beside
 `AccountProjection` and filled from one place (`creditOperationMarket(suite)`),
-so they cannot drift between the two halves. The results that carry no
-projection carry it too — `PreviewExitStrategyVerify`,
-`PreviewRepayStrategyVerify` and `PreviewDelayedStrategyVerify` — because the
-market an operation happened in is worth naming even where the position it left
-behind is empty. `liquidationDiscount` is `liquidationPremium + feeLiquidation`,
-the figure a position screen labels "Liquidation Discount", *not* the credit
+so they cannot drift between the halves. The results that carry no projection
+carry it too — `PreviewExitStrategyVerify`, `PreviewRepayStrategyVerify` and
+`PreviewDelayedStrategyVerify` — because the market an operation happened in is
+worth naming even where the position it left behind is empty.
+
+**`LiquidatableAccount` carries it as well**, so a liquidation row and a
+`prepare` result name a market in one vocabulary. It keeps `creditManager` and
+gains `name`, `curator` and `liquidationDiscount`; `LiquidationDetails`, which
+extends it, gains them with it. Its own two figures are unchanged and still
+weigh the premium alone: `repaymentAmount` is `totalValue` less the premium the
+liquidator keeps, and `estimatedProfit` is that premium — the protocol's
+liquidation fee comes out of what the repayment covers, so neither is
+`totalValue × liquidationDiscount`.
+
+`curator` is the model's `Curator` — the market configurator's address plus the
+display name and page a screen labels it with — the same shape and the same
+getter `StrategyOpportunity.curator` reports, rather than a bare address a
+caller would have to resolve. `liquidationDiscount` is
+`liquidationPremium + feeLiquidation` with the suite's expiration resolved, the
+figure a position screen labels "Liquidation Discount", *not* the credit
 manager's `liquidationDiscount` (which is `100% − liquidationPremium`).
 
 `netValue` is `totalValue − totalDebt`, the position's own funds. The read model
@@ -542,14 +556,16 @@ leaves a strategy caller to do that subtraction; a projection reports it, so an
 "own funds" row reads the same wherever it appears rather than being derived on
 some screens and read on others.
 
-`prepare` carries one field beyond the projection, on `OperationState` and
-`OpenStrategyPreview`: **`currentPrice`**, what the position's collateral costs
-in the underlying right now, in the same 8-decimal fixed point as
-`liquidationPrice` so a screen reads the two as a pair (`null` unless the
-account holds exactly one non-underlying asset the oracle can price). A preview
-is not asked for it — it reports what a transaction does, not what the market
-costs while a form is open — so it is the one field the cross-check between the
-halves has nothing to compare.
+Beyond the projection, `OperationState` and `OpenStrategyPreview` carry the two
+prices only a planned walk can quote, as one interface — **`SimulationPrices`**:
+`priceImpact`, what the routed legs lost to market depth, and **`currentPrice`**,
+what the position's collateral costs in the underlying right now. The latter is
+in the same 8-decimal fixed point and about the same pair as `liquidationPrice`,
+so a screen reads the two as one pair (`null` unless the account holds exactly
+one non-underlying asset the oracle can price). A preview is asked for neither —
+it reports what a transaction does, not what the market costs while a form is
+open — so these are what the cross-check between the halves has nothing to
+compare.
 
 **`checkSimulation` lost its `creditManager` input.** It takes the market off
 the state now, which is what makes it the same call shape as `checkOperation`:

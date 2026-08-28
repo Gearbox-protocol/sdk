@@ -1,6 +1,7 @@
 import type { Address } from "viem";
 import type { ChainScopedFilter, Filterable } from "./filters.js";
 import { isFilterSet } from "./filters.js";
+import type { CreditOperationMarket } from "./previews.js";
 import type {
   AssetType,
   ChainId,
@@ -43,8 +44,12 @@ export interface LiquidatableAccountFilter extends ChainScopedFilter {
 /**
  * A credit account that can be liquidated, with amounts precomputed for
  * manual liquidation.
+ *
+ * The market it lives in is named the same way every other credit result names
+ * it — through {@link CreditOperationMarket} — so a liquidation screen labels
+ * the manager, its curator and the discount from the row it already holds.
  **/
-export interface LiquidatableAccount {
+export interface LiquidatableAccount extends CreditOperationMarket {
   /**
    * Chain the account lives on.
    **/
@@ -53,10 +58,6 @@ export interface LiquidatableAccount {
    * Credit account address.
    **/
   creditAccount: Address;
-  /**
-   * Credit manager the account is opened in.
-   **/
-  creditManager: Address;
   /**
    * Main asset being liquidated: the most valuable enabled non-underlying
    * collateral token. For delayed-withdrawal phantom tokens, the source
@@ -72,12 +73,17 @@ export interface LiquidatableAccount {
   totalValue: TokenAmount;
   /**
    * Estimated amount the liquidator pays to fully liquidate the account:
-   * `totalValue * liquidationDiscount`. Same token as {@link totalValue}.
+   * {@link totalValue} less the premium the liquidator keeps, in the same
+   * token.
+   *
+   * Not `totalValue * (1 - liquidationDiscount)`: {@link liquidationDiscount}
+   * also carries the protocol's own liquidation fee, which comes out of what
+   * the repayment covers rather than off what the liquidator pays.
    **/
   repaymentAmount: TokenAmount;
   /**
-   * Estimated liquidator profit: `totalValue * (1 - liquidationDiscount)`.
-   * Same token as {@link totalValue}.
+   * Estimated liquidator profit: the premium on {@link totalValue}, i.e.
+   * `totalValue - repaymentAmount`, in the same token.
    **/
   estimatedProfit: TokenAmount;
   /**

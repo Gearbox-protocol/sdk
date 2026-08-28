@@ -3,6 +3,7 @@ import { vi } from "vitest";
 import type {
   Amount,
   Bps,
+  Curator,
   Token,
   TokenAmount,
 } from "../../../../model/index.js";
@@ -27,9 +28,16 @@ import type { CreditAccountSlice } from "../types.js";
  * assembler and in which order.
  */
 
-/** Market configurator the mock market is governed by — the curator's address. */
-export const MOCK_MARKET_CONFIGURATOR =
-  "0x00000000000000000000000000000000000c0f16" as Address;
+/**
+ * Curator of the mock market: an unknown market configurator, so it carries no
+ * display name and no page — what the on-chain source answers for a
+ * configurator outside the curated table.
+ */
+export const MOCK_CURATOR: Curator = {
+  address: "0x00000000000000000000000000000000000c0f16" as Address,
+  name: undefined,
+  url: null,
+};
 
 /**
  * Liquidation fees of the mock suite: a 3% premium (the manager reports its
@@ -347,6 +355,8 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
   };
   const market = {
     toUnderlyingAmount,
+    /** {@inheritDoc MarketSuite.curator} */
+    curator: MOCK_CURATOR,
     /** {@inheritDoc MarketSuite.underlying} */
     underlying: args.underlying,
     priceOracle: {
@@ -413,7 +423,6 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
   const expirationDate = args.expirationDate ?? 0;
   const creditManagerSuite = {
     name: "TestCreditManager",
-    marketConfigurator: { address: MOCK_MARKET_CONFIGURATOR },
     liquidationFees: () => MOCK_LIQUIDATION_FEES,
     creditManager: {
       address: args.creditManager,

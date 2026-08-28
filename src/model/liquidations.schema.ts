@@ -1,8 +1,10 @@
 import { z } from "zod/v4";
 import { ZodAddress } from "../onchain/utils/zod.js";
+import { curatorSchema } from "./curators.schema.js";
 import { filterable } from "./filters.schema.js";
 import {
   assetTypeSchema,
+  bpsSchema,
   chainIdSchema,
   timestampSchema,
   tokenAmountSchema,
@@ -30,9 +32,12 @@ export const liquidatableAccountFilterSchema = z.object({
  * {@link LiquidatableAccount}
  **/
 export const liquidatableAccountSchema = z.object({
+  creditManager: ZodAddress(),
+  name: z.string(),
+  curator: curatorSchema,
+  liquidationDiscount: bpsSchema,
   chainId: chainIdSchema,
   creditAccount: ZodAddress(),
-  creditManager: ZodAddress(),
   asset: tokenSchema,
   totalValue: tokenAmountSchema,
   repaymentAmount: tokenAmountSchema,

@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import { describe, expect, it, vi } from "vitest";
-import type { TokenAmount } from "../../model/index.js";
+import type { Curator, TokenAmount } from "../../model/index.js";
 import type { OnchainSDK, RawTx } from "../../onchain/index.js";
 import type {
   LpSimulate,
@@ -15,7 +15,11 @@ const UNDERLYING = "0x2000000000000000000000000000000000000002" as Address;
 const DIESEL = "0x3000000000000000000000000000000000000003" as Address;
 const WALLET = "0xf0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0" as Address;
 const CREDIT_MANAGER = "0x4000000000000000000000000000000000000004" as Address;
-const CURATOR = "0x5000000000000000000000000000000000000005" as Address;
+const CURATOR: Curator = {
+  address: "0x5000000000000000000000000000000000000005" as Address,
+  name: undefined,
+  url: null,
+};
 const CREDIT_ACCOUNT = "0x5000000000000000000000000000000000000005" as Address;
 
 const rawTx = (tag: string): RawTx => ({

@@ -31,11 +31,14 @@ export interface PathLossRate {
 }
 
 /**
- * What the operations leave the account at, in the shared
- * {@link AccountProjection} vocabulary, plus the one thing only a routed walk
- * can report.
+ * The two prices only a planned walk can quote, carried by every simulation
+ * result beside its projection.
+ *
+ * A calldata preview is asked for neither: it reads a transaction that already
+ * names its amounts, and it reports what that transaction does rather than what
+ * the market charges while a form is open.
  */
-export interface OperationState extends AccountProjection {
+export interface SimulationPrices {
   /**
    * What the routed legs lost to market depth. `undefined` where nothing was
    * routed or nothing could be measured — never a manufactured zero.
@@ -44,16 +47,21 @@ export interface OperationState extends AccountProjection {
   /**
    * What the position's collateral costs in the market underlying right now, in
    * the oracle's 8-decimal fixed point — the same scale and the same pair as
-   * {@link liquidationPrice}, so a screen showing both reads them as one pair.
+   * {@link AccountMetrics.liquidationPrice}, so a screen showing both reads
+   * them as one pair.
    *
    * `null` where there is no pair to quote: an account holding zero or several
    * non-underlying assets, or one whose collateral the oracle cannot price.
-   *
-   * Simulations only. A calldata preview is not asked for it: it reports what a
-   * transaction does, not what the market costs while a form is open.
    */
   currentPrice: bigint | null;
 }
+
+/**
+ * What the operations leave the account at, in the shared
+ * {@link AccountProjection} vocabulary, plus the prices only a routed walk can
+ * report.
+ */
+export interface OperationState extends AccountProjection, SimulationPrices {}
 
 /**
  * What a preview yields: the operation chain, the state it projects, and the
@@ -63,7 +71,7 @@ export type IntentPreviewResult =
   | {
       ok: true;
       operations: AccountCalculatorOperation[];
-      preview: OperationState;
+      state: OperationState;
       calls: MultiCall[];
     }
   | PreviewRefusal;
@@ -99,8 +107,8 @@ export interface DelayedStart {
    * the phantom of the in-flight redemption in its place, the debt untouched.
    *
    * This is the state the facade judges when the transaction lands, so it is
-   * the one the engine's guards are applied to — while the `preview` beside it
-   * is where the intent ends up, tail included, which is what a caller asking
+   * the one the engine's guards are applied to — while the `state` beside it is
+   * where the intent ends up, tail included, which is what a caller asking
    * "what does this do to my position" means.
    */
   afterRequest: OperationState;
@@ -111,10 +119,10 @@ export interface DelayedStart {
  * plus what it recorded for the tail.
  *
  * `operations` and `calls` are the request and nothing else — that is the only
- * transaction there is to send now. `preview`, though, is where the intent
- * ends: the state the account reaches once the redemption matures, is claimed
- * and the tail runs, since that is what the caller asked for when they asked
- * to withdraw. The half-way state the request itself lands in is
+ * transaction there is to send now. `state`, though, is where the intent ends:
+ * the account once the redemption matures, is claimed and the tail runs, since
+ * that is what the caller asked for when they asked to withdraw. The half-way
+ * state the request itself lands in is
  * {@link DelayedStart.afterRequest}, and both are validated before either is
  * reported.
  *
@@ -126,7 +134,7 @@ export type DelayedStartResult =
   | {
       ok: true;
       operations: AccountCalculatorOperation[];
-      preview: OperationState;
+      state: OperationState;
       calls: MultiCall[];
       delayed: DelayedStart;
     }

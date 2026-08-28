@@ -1,4 +1,5 @@
 import type { Address, Hex } from "viem";
+import type { Curator } from "./curators.js";
 import type { DelayedIntent } from "./delayed-intents.js";
 import type { BorrowRateBreakdown } from "./positions.js";
 import type { Bps, ChainId, Leverage, TokenAmount } from "./primitives.js";
@@ -157,9 +158,9 @@ export interface PreviewLpVerify {
 
 /**
  * The market a credit operation acts on, reported the same way by every half of
- * the SDK: the calldata previews, the intents engine's projections and the
- * open-strategy walk all carry it, so a screen naming the market needs nothing
- * beside the result it already holds.
+ * the SDK: the calldata previews, the intents engine's projections, the
+ * open-strategy walk and the liquidatable-account rows all carry it, so a screen
+ * naming the market needs nothing beside the result it already holds.
  **/
 export interface CreditOperationMarket {
   /**
@@ -173,11 +174,12 @@ export interface CreditOperationMarket {
    */
   name: string;
   /**
-   * Market configurator of the market {@link creditManager} belongs to — the
-   * on-chain identity of the curator, which is what a curator link and a
-   * curator name resolve from. Not a personal wallet.
+   * Curator of the market {@link creditManager} belongs to, in the same shape
+   * {@link StrategyOpportunity} reports it: the market configurator's address,
+   * plus the display name and the page a screen labels it with when the
+   * configurator is a known one.
    */
-  curator: Address;
+  curator: Curator;
   /**
    * What a liquidation takes off the account, in basis points: the premium the
    * liquidator keeps plus the protocol's own fee.

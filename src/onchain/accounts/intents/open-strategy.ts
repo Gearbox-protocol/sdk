@@ -16,7 +16,7 @@ import {
   assertLeverageAtLeastOne,
   debtForLeverage,
 } from "./math.js";
-import type { CreditAccountSlice, PathLossRate } from "./types.js";
+import type { CreditAccountSlice, SimulationPrices } from "./types.js";
 import {
   collectPriceImpact,
   createRouterPaths,
@@ -52,21 +52,8 @@ export interface OpenStrategyProps {
  * both `minQuota` and `averageQuota`, so there is nothing to gain by dropping one.
  */
 export interface OpenStrategyPreview
-  extends Omit<AccountProjection, "assets" | "quotas"> {
-  /** What the routed leg lost to market depth; `undefined` if not measured. */
-  priceImpact: PathLossRate | undefined;
-  /**
-   * What the position's collateral costs in the market underlying right now, in
-   * the oracle's 8-decimal fixed point — the same scale and the same pair as
-   * {@link liquidationPrice}, so a screen showing both reads them as one pair.
-   *
-   * `null` where there is no pair to quote: an account holding zero or several
-   * non-underlying assets, or one whose collateral the oracle cannot price.
-   *
-   * Simulations only. A calldata preview is not asked for it: it reports what a
-   * transaction does, not what the market costs while a form is open.
-   */
-  currentPrice: bigint | null;
+  extends Omit<AccountProjection, "assets" | "quotas">,
+    SimulationPrices {
   /** Expected post-open balances. */
   averageAssets: TokenAmount[];
   /** Floor post-open balances after slippage. */
