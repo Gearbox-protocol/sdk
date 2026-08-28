@@ -44,18 +44,18 @@ export * from "../../onchain/validation/refusal.js";
 /**
  * What a pool deposit or withdrawal would yield.
  *
- * Shaped like {@link StrategySimulate} so both kinds of simulation are consumed
- * the same way, with the pool's own numbers as the state: the ERC-4626
+ * Shaped like {@link StrategyPrepare} so both kinds of result are consumed the
+ * same way, with the pool's own numbers as the state: the ERC-4626
  * conversion applied to the amount, at the rate of the block the market was
  * loaded at.
  **/
-export type LpSimulate =
+export type LpPrepare =
   | {
       ok: true;
       /**
        * Always empty: a pool operation is a single transaction, so there is no
-       * chain of steps to show. Present so callers can treat both simulations
-       * alike.
+       * chain of steps to show. Present so callers can treat both kinds of
+       * result alike.
        **/
       operations: [];
       /**
@@ -78,7 +78,7 @@ export type LpSimulate =
  * so the reason is a value rather than an exception: too much leverage, too
  * little of the source token, a token the flow does not accept.
  **/
-export type StrategySimulate =
+export type StrategyPrepare =
   | {
       ok: true;
       /**
@@ -104,16 +104,16 @@ export type StrategySimulate =
  * What the leading half of a delayed operation would yield: the request
  * transaction, plus what it recorded for the tail and where that tail leads.
  *
- * Shaped like {@link StrategySimulate} with one field more, so the instant and
+ * Shaped like {@link StrategyPrepare} with one field more, so the instant and
  * the delayed route of the same request are compared side by side — and they
  * are meant to be compared on the same footing, so `state` is the end of the
  * operation in both, not the end of the transaction.
  **/
-export type DelayedStrategySimulate =
+export type DelayedStrategyPrepare =
   | {
       ok: true;
       /**
-       * {@inheritDoc StrategySimulate.operations}
+       * {@inheritDoc StrategyPrepare.operations}
        **/
       operations: AccountCalculatorOperation[];
       /**
@@ -128,7 +128,7 @@ export type DelayedStrategySimulate =
        **/
       state: OperationState;
       /**
-       * {@inheritDoc StrategySimulate.calls}
+       * {@inheritDoc StrategyPrepare.calls}
        **/
       calls: MultiCall[];
       /**
@@ -151,21 +151,21 @@ export type DelayedStrategySimulate =
  * with its refusal in `refused`, which is what lets a form offer exactly the
  * routes that exist; `ok: false` means neither does.
  **/
-export type StrategyRoutesSimulate =
+export type StrategyRoutesPrepare =
   | {
       ok: true;
       /**
        * The router route: one transaction, settled on the spot. `undefined`
        * when the asset cannot be sold, see `refused.instant`.
        **/
-      instant: Extract<StrategySimulate, { ok: true }> | undefined;
+      instant: Extract<StrategyPrepare, { ok: true }> | undefined;
       /**
        * The request half of the redemption route, which
        * {@link IOpportunitiesPrepare.finalize} completes once it matures.
        * `undefined` when the route does not exist — no redemption venue for the
        * asset, or a request that settles at once anyway — see `refused.delayed`.
        **/
-      delayed: Extract<DelayedStrategySimulate, { ok: true }> | undefined;
+      delayed: Extract<DelayedStrategyPrepare, { ok: true }> | undefined;
       /**
        * Why a missing route was refused, see {@link RouteRefusals}.
        **/
@@ -177,7 +177,7 @@ export type StrategyRoutesSimulate =
    **/
   | (PreviewRefusal & {
       /**
-       * {@inheritDoc StrategyRoutesSimulate.refused}
+       * {@inheritDoc StrategyRoutesPrepare.refused}
        **/
       refused: RouteRefusals;
     });
@@ -185,10 +185,10 @@ export type StrategyRoutesSimulate =
 /**
  * What opening a new leveraged position would yield.
  *
- * The only simulation that reports both an expected and a floor branch: opening
+ * The only result that reports both an expected and a floor branch: opening
  * takes both from a single pathfinder call, and `openCA` consumes both.
  **/
-export type OpenStrategySimulate =
+export type OpenStrategyPrepare =
   | { ok: true; state: OpenStrategyState }
   | PreviewRefusal;
 
@@ -200,19 +200,19 @@ export interface PrepareOptions {
   slippage?: number;
   /**
    * Extra quota headroom in PERCENTAGE_FORMAT, to survive price drift between
-   * the simulation and execution.
+   * the preparation and execution.
    **/
   quotaReserve?: number;
 }
 
 /**
- * Position to simulate against. A `StrategyPosition` from
+ * Position to prepare against. A `StrategyPosition` from
  * `sdk.positions.list()` satisfies this, as does a bare key.
  **/
 export type PositionInput = StrategyPositionKey;
 
 /**
- * Pool to simulate against. A `PoolOpportunity` from
+ * Pool to prepare against. A `PoolOpportunity` from
  * `sdk.opportunities.list()` satisfies this, as does a bare key.
  **/
 export type PoolInput = PoolOpportunityKey;
@@ -347,8 +347,8 @@ export interface LpParams {
   tokenIn?: Address;
   /**
    * Token the user receives. Defaults to the only route available for `tokenIn`;
-   * required when the pool offers several, otherwise the simulation reports
-   * `unsupportedTokenPair`.
+   * required when the pool offers several, otherwise the preparation is refused
+   * with `unsupportedTokenPair`.
    **/
   tokenOut?: Address;
 }
@@ -384,23 +384,23 @@ export interface FinalizeParams extends PrepareOptions {
 }
 
 /**
- * Simulations of everything a wallet can do to a pool or a credit account.
+ * Everything a wallet can do to a pool or a credit account, prepared.
  *
  * On-chain only: every method reads live state and, for strategies, asks the
  * pathfinder for real swap paths. Nothing is executed and nothing is signed —
  * the result is the numbers plus the calldata that would produce them.
  *
- * Not to be confused with `src/preview/simulate`, which goes the other way: it
- * takes calldata that already exists and reports what it would do.
+ * Not to be confused with `src/preview`, which goes the other way: it takes
+ * calldata that already exists and reports what it would do.
  **/
 export interface IOpportunitiesPrepare {
   /**
    * Depositing into a pool: underlying in, shares out.
    *
-   * Synchronous, unlike every strategy simulation below: the answer is the
-   * pool's share rate applied to the amount, and that rate is already loaded.
+   * Synchronous, unlike every strategy method below: the answer is the pool's
+   * share rate applied to the amount, and that rate is already loaded.
    **/
-  deposit(pool: PoolInput, params: LpParams): LpSimulate;
+  deposit(pool: PoolInput, params: LpParams): LpPrepare;
 
   /**
    * Taking underlying out of a pool: `amount` is the `tokenOut` the wallet
@@ -409,13 +409,13 @@ export interface IOpportunitiesPrepare {
    * The LP counterpart of {@link withdrawStrategy} / {@link withdrawCollateral},
    * which act on credit accounts.
    **/
-  withdraw(pool: PoolInput, params: LpParams): LpSimulate;
+  withdraw(pool: PoolInput, params: LpParams): LpPrepare;
 
   /**
    * Redeeming pool shares: `amount` is the `tokenIn` the wallet parts with,
    * and the reported state is the underlying it converts to.
    **/
-  redeem(pool: PoolInput, params: LpRedeemParams): LpSimulate;
+  redeem(pool: PoolInput, params: LpRedeemParams): LpPrepare;
 
   /**
    * Opening a leveraged position from wallet collateral.
@@ -426,7 +426,7 @@ export interface IOpportunitiesPrepare {
   openNewStrategy(
     strategy: StrategyInput,
     params: OpenStrategyParams,
-  ): Promise<DataResponse<OpenStrategySimulate>>;
+  ): Promise<DataResponse<OpenStrategyPrepare>>;
 
   /**
    * Growing a position: collateral in, debt drawn on top, both converted into
@@ -437,7 +437,7 @@ export interface IOpportunitiesPrepare {
   depositStrategy(
     position: PositionInput,
     params: DepositStrategyParams,
-  ): Promise<DataResponse<StrategySimulate>>;
+  ): Promise<DataResponse<StrategyPrepare>>;
 
   /**
    * Shrinking a position: part of its net value goes to the wallet and debt is
@@ -446,7 +446,7 @@ export interface IOpportunitiesPrepare {
    * Answers with both routes the withdrawal can take — sold through the router
    * now, or redeemed through the source's issuer and finished days later — since
    * the source token decides which of them exist, see
-   * {@link StrategyRoutesSimulate}.
+   * {@link StrategyRoutesPrepare}.
    *
    * `MAX_UINT256` — or any amount at or above the account's net value — is an
    * exit instead: the quotas are dropped, the position is sold whole in one
@@ -467,7 +467,7 @@ export interface IOpportunitiesPrepare {
   withdrawStrategy(
     position: PositionInput,
     params: WithdrawStrategyParams,
-  ): Promise<DataResponse<StrategyRoutesSimulate>>;
+  ): Promise<DataResponse<StrategyRoutesPrepare>>;
 
   /**
    * Largest partial withdrawal {@link withdrawStrategy} accepts, in underlying
@@ -492,7 +492,7 @@ export interface IOpportunitiesPrepare {
    * A repayment that covers the whole debt clears the account's quotas with it,
    * which the facade requires of a loan going to zero, and asks for the full
    * outstanding amount, so nothing is left owing because interest moved between
-   * this simulation and the transaction. `MAX_UINT256` is how to ask for that
+   * this preparation and the transaction. `MAX_UINT256` is how to ask for that
    * settlement without naming a figure: the wallet is charged the debt plus a
    * 10bps margin for the interest still to come, and whatever the facade does
    * not take stays on the account.
@@ -500,7 +500,7 @@ export interface IOpportunitiesPrepare {
   repayStrategy(
     position: PositionInput,
     params: RepayStrategyParams,
-  ): Promise<DataResponse<StrategySimulate>>;
+  ): Promise<DataResponse<StrategyPrepare>>;
 
   /**
    * Debt {@link repayStrategy} would have to cover to clear the account, in
@@ -520,7 +520,7 @@ export interface IOpportunitiesPrepare {
   adjustLeverage(
     position: PositionInput,
     params: AdjustLeverageParams,
-  ): Promise<DataResponse<StrategyRoutesSimulate>>;
+  ): Promise<DataResponse<StrategyRoutesPrepare>>;
 
   /**
    * Putting the position token onto the account at fixed debt, which lowers
@@ -529,7 +529,7 @@ export interface IOpportunitiesPrepare {
   addCollateral(
     position: PositionInput,
     params: AddCollateralParams,
-  ): Promise<DataResponse<StrategySimulate>>;
+  ): Promise<DataResponse<StrategyPrepare>>;
 
   /**
    * Moving one asset that already sits on the account out to the wallet, at
@@ -541,7 +541,7 @@ export interface IOpportunitiesPrepare {
   withdrawCollateral(
     position: PositionInput,
     params: WithdrawCollateralParams,
-  ): Promise<DataResponse<StrategySimulate>>;
+  ): Promise<DataResponse<StrategyPrepare>>;
 
   /**
    * The leverages a deposit of a given size can reach in this market: the
@@ -584,7 +584,7 @@ export interface IOpportunitiesPrepare {
    * Synchronous, like {@link leverageBand}: it reads loaded token metadata and
    * the position it was handed, so a form can ask on every render. Nothing is
    * quoted here — which of these the router can sell is a different question,
-   * and the answer to it is a simulation.
+   * and the answer to it is a prepared operation.
    **/
   withdrawableCollaterals(position: StrategyPosition): PositionCollateral[];
 
@@ -625,5 +625,5 @@ export interface IOpportunitiesPrepare {
   finalize(
     position: PositionInput,
     params: FinalizeParams,
-  ): Promise<DataResponse<StrategySimulate>>;
+  ): Promise<DataResponse<StrategyPrepare>>;
 }

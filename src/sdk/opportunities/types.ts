@@ -96,7 +96,8 @@ export interface IOpportunitiesOffchainOnly {
  **/
 export interface IOpportunitiesOnchainOnly {
   /**
-   * Simulations of what a deposit, withdrawal or leverage change would do.
+   * What a deposit, withdrawal or leverage change would do, and the calldata
+   * that does it.
    *
    * Absent in `offchain` mode: every one of them reads live account and pool
    * state, and the strategy flows additionally need the pathfinder for real swap

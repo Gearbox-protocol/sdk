@@ -59,7 +59,7 @@ function hfAfter(
   const snapshot: AccountSnapshot = {
     creditManager: CREDIT_MANAGER,
     assets: tokens.map(t => ({ token: t.token, balance: t.balance })),
-    // the simulation ledger quotes only what a quota was bought for
+    // the operation ledger quotes only what a quota was bought for
     quotas: tokens
       .filter(t => t.quota > 0n)
       .map(t => ({ token: t.token, balance: t.quota })),

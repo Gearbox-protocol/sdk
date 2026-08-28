@@ -230,10 +230,11 @@ npx skills add Gearbox-protocol/sdk --skill gearbox-sdk-v13-to-v14
 - **`checkOperation`** joins `previewOperation` and `checkPrerequisites` in `@gearbox-protocol/sdk/preview`: it validates a parsed operation synchronously and reports the most fundamental issue it finds, or `null`.
 - **Refusal details inline their tokens.** `PreviewErrorDetails` now carries `Token` and `TokenAmount` where it carried `Address` and `Asset`, so a row is renderable without a token dictionary.
 - **`marketPaused` covers pools**, `insufficientPoolLiquidity` names which ceiling bound, and three reasons are new: `poolSunset`, `quotaCountExceeded`, `malformedTransaction`.
-- **`checkOperation` weighs a pool payout** against the liquidity the pool holds, refusing at equality as the legacy withdrawal validator did. It does **not** check whether a deposit has a route — that belongs to the simulator, which refuses such a deposit before there is calldata to preview.
-- **Previews report the safe factor** beside the main one (`estSafeHealthFactor` beside `estHealthFactor`), and so does a simulation (`OperationState.safeHealthFactor`); both are always filled in, whether or not the operation hands funds over. On the `est` prefix, see [Two amounts per swap](#two-amounts-per-swap-est-on-what-only-the-floor-is-known-for).
-- **`checkSimulation`** applies a caller's stricter bars to a simulation the engine already accepted, and `checkOperation`/`checkCollateralised` take `currentHealthFactor`/`improvesFrom`, so an operation that raises the factor is not refused from under the bar.
-- **A `prepare` result's `preview` is now `state`**, on every simulation shape, and the open-strategy walk is `buildOpenStrategyState` returning an `OpenStrategyState`. See [A `prepare` result reports a `state`](#a-prepare-result-reports-a-state-not-a-preview).
+- **`checkOperation` weighs a pool payout** against the liquidity the pool holds, refusing at equality as the legacy withdrawal validator did. It does **not** check whether a deposit has a route — that belongs to `prepare`, which refuses such a deposit before there is calldata to preview.
+- **Previews report the safe factor** beside the main one (`estSafeHealthFactor` beside `estHealthFactor`), and so does a `prepare` result (`OperationState.safeHealthFactor`); both are always filled in, whether or not the operation hands funds over. On the `est` prefix, see [Two amounts per swap](#two-amounts-per-swap-est-on-what-only-the-floor-is-known-for).
+- **`checkSimulation`** applies a caller's stricter bars to a `prepare` result the engine already accepted, and `checkOperation`/`checkCollateralised` take `currentHealthFactor`/`improvesFrom`, so an operation that raises the factor is not refused from under the bar.
+- **A `prepare` result's `preview` is now `state`**, on every result shape, and the open-strategy walk is `buildOpenStrategyState` returning an `OpenStrategyState`. See [A `prepare` result reports a `state`](#a-prepare-result-reports-a-state-not-a-preview).
+- **The result types drop `Simulate` for `Prepare`**: `LpPrepare`, `StrategyPrepare`, `DelayedStrategyPrepare`, `StrategyRoutesPrepare`, `OpenStrategyPrepare`, and `PreparedPrices`. See [`prepare` results are named for `prepare`](#prepare-results-are-named-for-prepare).
 
 ### Replace the flat validators with the checks
 
@@ -346,6 +347,23 @@ Both sides fill a projection from one builder, `sdk.positions.projection`
 cross-check that holds them to each other is
 `src/preview/preview/previewMatchesPrepare.test.ts`.
 
+### `prepare` results are named for `prepare`
+
+The namespace was `simulate` when its result types were named, and they kept the
+old word after the rename. One vocabulary now:
+
+| Was | Now |
+| --- | --- |
+| `LpSimulate` | `LpPrepare` |
+| `StrategySimulate` | `StrategyPrepare` |
+| `DelayedStrategySimulate` | `DelayedStrategyPrepare` |
+| `StrategyRoutesSimulate` | `StrategyRoutesPrepare` |
+| `OpenStrategySimulate` | `OpenStrategyPrepare` |
+| `SimulationPrices` | `PreparedPrices` |
+
+`buildTx`'s error message follows: it refuses a "failed `<kind>` preparation"
+where it said "simulation".
+
 ### A `prepare` result reports a `state`, not a `preview`
 
 `preview` was the field's name while the whole engine was called a preview. It
@@ -359,8 +377,8 @@ if (sim.data.ok) {
 }
 ```
 
-Renamed on every `prepare` result — `LpSimulate`, `StrategySimulate`,
-`DelayedStrategySimulate`, `OpenStrategySimulate` — and on the engine's own
+Renamed on every `prepare` result — `LpPrepare`, `StrategyPrepare`,
+`DelayedStrategyPrepare`, `OpenStrategyPrepare` — and on the engine's own
 `IntentPreviewResult` and `DelayedStartResult`. `delayed.afterRequest` is
 untouched: it was already named for the state it describes.
 
@@ -544,7 +562,7 @@ credit previews, `OperationState` and `OpenStrategyState` — now carries them:
 
 | Field | Type | Was |
 | --- | --- | --- |
-| `creditManager` | `Address` | on the previews only; a simulation made the caller carry it |
+| `creditManager` | `Address` | on the previews only; a `prepare` result made the caller carry it |
 | `name` | `string` | on the previews only |
 | `curator` | `Curator` | read off the market configurator by the caller |
 | `liquidationDiscount` | `Bps` | read off the credit manager's fees by the caller |
@@ -580,7 +598,7 @@ leaves a strategy caller to do that subtraction; a projection reports it, so an
 some screens and read on others.
 
 Beyond the projection, `OperationState` and `OpenStrategyState` carry the two
-prices only a planned walk can quote, as one interface — **`SimulationPrices`**:
+prices only a planned walk can quote, as one interface — **`PreparedPrices`**:
 `priceImpact`, what the routed legs lost to market depth, and **`currentPrice`**,
 what the position's collateral costs in the underlying right now. The latter is
 in the same 8-decimal fixed point and about the same pair as `liquidationPrice`,

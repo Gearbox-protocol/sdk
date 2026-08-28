@@ -68,7 +68,7 @@ export class OpportunitiesNamespace
       mergeChainOne(onchain, offchain, this.maxOffchainLagSeconds),
   };
 
-  // the simulations read the whole chain SDK — accounts, pools and the
+  // preparing an operation reads the whole chain SDK — accounts, pools and the
   // pathfinder — rather than the `opportunities` service this namespace merges,
   // so they are built from the source itself and are absent without it; the
   // write side resolves its chain the same way

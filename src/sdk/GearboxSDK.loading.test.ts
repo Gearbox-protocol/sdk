@@ -221,7 +221,7 @@ describe("GearboxSDK loading", () => {
     expect(list).toHaveBeenCalledTimes(2);
   });
 
-  it("a simulation attaches on first use and revalidates only its chain", async () => {
+  it("a prepare call attaches on first use and revalidates only its chain", async () => {
     const { sdk, attach, chains } = build(["Mainnet", "Optimism"]);
     chains.get("Mainnet")?.age(MAX_AGE + 1);
     chains.get("Optimism")?.age(MAX_AGE + 1);
@@ -368,7 +368,7 @@ describe("GearboxSDK loading", () => {
     });
   });
 
-  it("the sync LP simulation before attach throws SdkNotAttachedError, as before", () => {
+  it("the sync LP prepare call before attach throws SdkNotAttachedError, as before", () => {
     const { sdk } = build();
     expect(() =>
       sdk.opportunities.prepare.deposit(

@@ -217,7 +217,7 @@ function collectQuotaChange(
 
 /**
  * SDK `getSingleQuotaChange` requires `assetAfter` to emit quota decreases.
- * Simulation drops zero balances, so fully spent collaterals (e.g. claim
+ * The ledger drops zero balances, so fully spent collaterals (e.g. claim
  * phantom) vanish — reinsert them with balance 0 when they still have
  * initial quota so `calcQuotaUpdate` can zero / remove that quota.
  */

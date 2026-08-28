@@ -35,7 +35,7 @@ export function toCreditAccountSlice(
  * Reads an account by address and narrows it to {@link CreditAccountSlice}.
  *
  * The shared read model's `StrategyPosition` carries neither `tokens` nor
- * `enabledTokensMask` / `creditFacade` / `totalDebtUSD`, so simulating against
+ * `enabledTokensMask` / `creditFacade` / `totalDebtUSD`, so preparing against
  * an existing position costs one account read.
  *
  * @throws When the account is not found in the connected markets.

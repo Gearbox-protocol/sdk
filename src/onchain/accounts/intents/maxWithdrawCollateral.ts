@@ -52,7 +52,7 @@ export function maxWithdrawCollateral(
     return target.balance;
   }
 
-  // A slice assembled for a simulation carries no mask, and that means
+  // A slice assembled for a `prepare` call carries no mask, and that means
   // "unknown" rather than "everything disabled".
   const masked = creditAccount.enabledTokensMask !== 0n;
   const counts = (t: CreditAccountSlice["tokens"][number]): boolean =>

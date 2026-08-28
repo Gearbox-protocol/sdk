@@ -12,9 +12,9 @@ import type {
 import type { IOffchainOpportunities } from "../../offchain/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import type {
-  DelayedStrategySimulate,
-  LpSimulate,
-  StrategyRoutesSimulate,
+  DelayedStrategyPrepare,
+  LpPrepare,
+  StrategyRoutesPrepare,
 } from "../prepare/index.js";
 import type { Mode } from "../types.js";
 import type { IOpportunities } from "./types.js";
@@ -59,16 +59,16 @@ describe("prepare quotes the delayed route with the instant one", () => {
   it("answers the LP flows outright, with no promise to await", () => {
     const pool = {} as PoolOpportunityRef;
     const params = { amount: 1_000n, wallet: WALLET };
-    expectTypeOf(prepare.deposit(pool, params)).toEqualTypeOf<LpSimulate>();
+    expectTypeOf(prepare.deposit(pool, params)).toEqualTypeOf<LpPrepare>();
   });
 
   it("carries the request half in the flow that can be interrupted", () => {
     // one call quotes both routes, so the delayed request is a branch of the
     // answer rather than a method of its own
     expectTypeOf<
-      Extract<StrategyRoutesSimulate, { ok: true }>["delayed"]
+      Extract<StrategyRoutesPrepare, { ok: true }>["delayed"]
     >().toEqualTypeOf<
-      Extract<DelayedStrategySimulate, { ok: true }> | undefined
+      Extract<DelayedStrategyPrepare, { ok: true }> | undefined
     >();
   });
 });

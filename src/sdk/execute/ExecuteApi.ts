@@ -29,9 +29,9 @@ export class ExecuteApi implements IOpportunitiesExecute {
   public async buildTx(request: PrepareRequest): Promise<RawTx> {
     if (!request.sim.ok) {
       // the types rule this out; a caller that skipped them still gets no
-      // transaction out of a simulation that failed
+      // transaction out of a `prepare` result that failed
       throw new Error(
-        `cannot build a transaction from a failed ${request.kind} simulation`,
+        `cannot build a transaction from a failed ${request.kind} preparation`,
       );
     }
     const sdk = this.#chainOf(request.chainId);
@@ -147,10 +147,10 @@ async function accountTx(
 }
 
 /**
- * The coin the simulation asked the wallet for, which the facade wraps out of
+ * The coin the preparation asked the wallet for, which the facade wraps out of
  * `msg.value` before running the multicall. Taken off the collateral step that
  * recorded it rather than from the caller, so it cannot disagree with what was
- * simulated.
+ * prepared.
  **/
 function nativeValue(operations: AccountCalculatorOperation[]): bigint {
   return operations.reduce(

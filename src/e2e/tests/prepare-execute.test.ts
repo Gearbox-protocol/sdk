@@ -118,7 +118,7 @@ describe("prepare → execute on a mainnet fork", () => {
     );
   }
 
-  /** The chain as the simulations will read it: nothing mined after this. */
+  /** The chain as `prepare` will read it: nothing mined after this. */
   async function sync(): Promise<void> {
     const block = await chain.client.getBlock({ blockTag: "latest" });
     await chain.syncState({
@@ -162,7 +162,7 @@ describe("prepare → execute on a mainnet fork", () => {
     targetToken: TARGET_TOKEN,
   };
 
-  /** Simulates the 2x open on the synced state and sends it. */
+  /** Prepares the 2x open on the synced state and sends it. */
   async function openPosition(): Promise<{
     creditAccount: Address;
     before: CreditAccountDataPayload;
@@ -242,7 +242,7 @@ describe("prepare → execute on a mainnet fork", () => {
     await anvil.setNextBlockTimestamp({ timestamp: BigInt(timestamp) });
   }
 
-  /** A flow with a single route: the simulation is the preview. */
+  /** A flow with a single route: the result is the only branch there is. */
   function adjustPreview(
     sim: Awaited<ReturnType<ReturnType<typeof prepare>["depositStrategy"]>>,
   ) {

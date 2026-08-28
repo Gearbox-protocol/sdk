@@ -31,14 +31,14 @@ export interface PathLossRate {
 }
 
 /**
- * The two prices only a planned walk can quote, carried by every simulation
+ * The two prices only a planned walk can quote, carried by every `prepare`
  * result beside its projection.
  *
  * A calldata preview is asked for neither: it reads a transaction that already
  * names its amounts, and it reports what that transaction does rather than what
  * the market charges while a form is open.
  */
-export interface SimulationPrices {
+export interface PreparedPrices {
   /**
    * What the routed legs lost to market depth. `undefined` where nothing was
    * routed or nothing could be measured — never a manufactured zero.
@@ -61,7 +61,7 @@ export interface SimulationPrices {
  * {@link AccountProjection} vocabulary, plus the prices only a routed walk can
  * report.
  */
-export interface OperationState extends AccountProjection, SimulationPrices {}
+export interface OperationState extends AccountProjection, PreparedPrices {}
 
 /**
  * What a preview yields: the operation chain, the state it projects, and the

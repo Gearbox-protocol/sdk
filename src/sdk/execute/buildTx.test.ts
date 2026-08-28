@@ -3,9 +3,9 @@ import { describe, expect, it, vi } from "vitest";
 import type { Curator, TokenAmount } from "../../model/index.js";
 import type { OnchainSDK, RawTx } from "../../onchain/index.js";
 import type {
-  LpSimulate,
-  OpenStrategySimulate,
-  StrategySimulate,
+  LpPrepare,
+  OpenStrategyPrepare,
+  StrategyPrepare,
 } from "../prepare/index.js";
 import { ExecuteApi } from "./ExecuteApi.js";
 
@@ -35,7 +35,7 @@ const DEPOSIT_META = { type: "classic", zapper: undefined } as const;
 const WITHDRAW_META = { type: "classic", zapper: undefined } as const;
 const CALL = { target: POOL, callData: "0xdead" as const };
 
-/** A priced amount of `address`, which is what the simulations report in. */
+/** A priced amount of `address`, which is what a `prepare` result reports in. */
 const amount = (address: Address, value: bigint): TokenAmount => ({
   token: {
     chainId: CHAIN_ID,
@@ -89,7 +89,7 @@ function mockChain(overrides?: {
 }
 
 describe("buildTx — pool", () => {
-  const sim: Extract<LpSimulate, { ok: true }> = {
+  const sim: Extract<LpPrepare, { ok: true }> = {
     ok: true,
     operations: [],
     state: {
@@ -130,7 +130,7 @@ describe("buildTx — pool", () => {
 
   it("withdraw: the tx is PoolService.removeLiquidity's on the underlying the sim priced", async () => {
     const { execute, sdk, txs } = mockChain();
-    const withdrawSim: Extract<LpSimulate, { ok: true }> = {
+    const withdrawSim: Extract<LpPrepare, { ok: true }> = {
       ok: true,
       operations: [],
       state: {
@@ -167,7 +167,7 @@ describe("buildTx — pool", () => {
 
   it("redeem: the tx is PoolService.removeLiquidity's on the shares the sim priced", async () => {
     const { execute, sdk, txs } = mockChain();
-    const redeemSim: Extract<LpSimulate, { ok: true }> = {
+    const redeemSim: Extract<LpPrepare, { ok: true }> = {
       ok: true,
       operations: [],
       state: {
@@ -256,7 +256,7 @@ describe("buildTx — open", () => {
     curator: CURATOR,
     liquidationDiscount: 0,
   };
-  const sim: Extract<OpenStrategySimulate, { ok: true }> = {
+  const sim: Extract<OpenStrategyPrepare, { ok: true }> = {
     ok: true,
     state,
   };
@@ -290,7 +290,7 @@ describe("buildTx — open", () => {
     });
   });
 
-  it("throws on a failed simulation", async () => {
+  it("throws on a refused preparation", async () => {
     const { execute, sdk } = mockChain();
 
     await expect(
@@ -303,7 +303,7 @@ describe("buildTx — open", () => {
         collateral,
         ethAmount: 0n,
       }),
-    ).rejects.toThrow(/failed open simulation/);
+    ).rejects.toThrow(/failed open preparation/);
     expect(sdk.accounts.openCA).not.toHaveBeenCalled();
   });
 
@@ -386,7 +386,7 @@ describe("buildTx — open", () => {
 });
 
 describe("buildTx — account", () => {
-  const sim: Extract<StrategySimulate, { ok: true }> = {
+  const sim: Extract<StrategyPrepare, { ok: true }> = {
     ok: true,
     operations: [],
     state: {
@@ -411,7 +411,7 @@ describe("buildTx — account", () => {
     calls: [CALL, { target: POOL, callData: "0xbeef" }],
   };
 
-  it("submits the simulation's own multicall through executeCaUpdate on the re-read account", async () => {
+  it("submits the result's own multicall through executeCaUpdate on the re-read account", async () => {
     const { execute, sdk, txs, account } = mockChain();
 
     const tx = await execute.buildTx({
@@ -476,7 +476,7 @@ describe("buildTx — account", () => {
     ).rejects.toThrow(/credit account not found/);
   });
 
-  it("throws on a failed simulation", async () => {
+  it("throws on a refused preparation", async () => {
     const { execute, sdk } = mockChain();
 
     await expect(
@@ -487,7 +487,7 @@ describe("buildTx — account", () => {
         wallet: WALLET,
         sim: { ok: false, reason: "debtOutOfRange" } as never,
       }),
-    ).rejects.toThrow(/failed account simulation/);
+    ).rejects.toThrow(/failed account preparation/);
     expect(sdk.accounts.executeCaUpdate).not.toHaveBeenCalled();
   });
 });

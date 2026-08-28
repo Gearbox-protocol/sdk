@@ -34,17 +34,17 @@ import type {
   FinalizeParams,
   IOpportunitiesPrepare,
   LpParams,
+  LpPrepare,
   LpRedeemParams,
-  LpSimulate,
   OpenStrategyParams,
-  OpenStrategySimulate,
+  OpenStrategyPrepare,
   PoolInput,
   PositionInput,
   PrepareOptions,
   RepayStrategyParams,
   StrategyInput,
-  StrategyRoutesSimulate,
-  StrategySimulate,
+  StrategyPrepare,
+  StrategyRoutesPrepare,
   WithdrawCollateralParams,
   WithdrawStrategyParams,
 } from "./types.js";
@@ -53,7 +53,7 @@ import { withdrawableCollaterals } from "./withdrawable-collaterals.js";
 /**
  * The chain's SDK, resolved on the spot.
  *
- * The LP simulations need it synchronously, because they only do arithmetic on
+ * The LP methods need it synchronously, because they only do arithmetic on
  * loaded state and have nothing to await; the execute namespace resolves its
  * chain the same way.
  **/
@@ -67,7 +67,7 @@ export type ChainOf = (chainId: ChainId) => OnchainSDK;
  * protocol knowledge stays in `CreditAccountOperationsService` and
  * `PoolService`.
  *
- * A simulation names one chain, so it reads through
+ * A prepared operation names one chain, so it reads through
  * {@link MultichainConstruct.queryChain}: there is no second source to fall back
  * to, hence a chain the SDK does not cover, or one that fails the read, throws
  * rather than answering with empty metadata.
@@ -96,7 +96,7 @@ export class PrepareApi
   public async finalize(
     position: PositionInput,
     params: FinalizeParams,
-  ): Promise<DataResponse<StrategySimulate>> {
+  ): Promise<DataResponse<StrategyPrepare>> {
     return this.queryChain({
       network: position.chainId,
       run: async sdk => {
@@ -119,7 +119,7 @@ export class PrepareApi
   /**
    * {@inheritDoc IOpportunitiesPrepare.deposit}
    **/
-  public deposit(pool: PoolInput, params: LpParams): LpSimulate {
+  public deposit(pool: PoolInput, params: LpParams): LpPrepare {
     const chain = this.sdk.chain(pool.chainId);
     const { marketRegister, pools } = chain;
     const tokenIn =
@@ -147,7 +147,7 @@ export class PrepareApi
       meta: pools.getDepositMetadata(pool.pool, tokenIn, tokenOut),
     });
     // An on-demand RWA market takes deposits through its liquidity provider
-    // rather than a transaction of ours, so there is nothing to simulate.
+    // rather than a transaction of ours, so there is nothing to prepare.
     if (!call) {
       return unroutable(chain, tokenIn, tokenOut);
     }
@@ -158,7 +158,7 @@ export class PrepareApi
   /**
    * {@inheritDoc IOpportunitiesPrepare.withdraw}
    **/
-  public withdraw(pool: PoolInput, params: LpParams): LpSimulate {
+  public withdraw(pool: PoolInput, params: LpParams): LpPrepare {
     const chain = this.sdk.chain(pool.chainId);
     const { pools } = chain;
     // Withdrawals are paid in shares, and the share token *is* the pool.
@@ -193,7 +193,7 @@ export class PrepareApi
   /**
    * {@inheritDoc IOpportunitiesPrepare.redeem}
    **/
-  public redeem(pool: PoolInput, params: LpRedeemParams): LpSimulate {
+  public redeem(pool: PoolInput, params: LpRedeemParams): LpPrepare {
     const chain = this.sdk.chain(pool.chainId);
     const { pools } = chain;
     const tokenIn = params.tokenIn ?? pool.pool;
@@ -228,7 +228,7 @@ export class PrepareApi
   public async openNewStrategy(
     strategy: StrategyInput,
     params: OpenStrategyParams,
-  ): Promise<DataResponse<OpenStrategySimulate>> {
+  ): Promise<DataResponse<OpenStrategyPrepare>> {
     return this.queryChain({
       network: strategy.chainId,
       run: sdk => {
@@ -261,7 +261,7 @@ export class PrepareApi
   public async depositStrategy(
     position: PositionInput,
     params: DepositStrategyParams,
-  ): Promise<DataResponse<StrategySimulate>> {
+  ): Promise<DataResponse<StrategyPrepare>> {
     return this.#startIntent(position, params, {
       type: "DEPOSIT",
       token: params.token,
@@ -278,7 +278,7 @@ export class PrepareApi
   public async withdrawStrategy(
     position: PositionInput,
     params: WithdrawStrategyParams,
-  ): Promise<DataResponse<StrategyRoutesSimulate>> {
+  ): Promise<DataResponse<StrategyRoutesPrepare>> {
     return this.#startRoutes(position, params, {
       type: "WITHDRAW",
       amount: params.amount,
@@ -310,7 +310,7 @@ export class PrepareApi
   public async repayStrategy(
     position: PositionInput,
     params: RepayStrategyParams,
-  ): Promise<DataResponse<StrategySimulate>> {
+  ): Promise<DataResponse<StrategyPrepare>> {
     return this.#startIntent(position, params, {
       type: "REPAY",
       token: params.token,
@@ -341,7 +341,7 @@ export class PrepareApi
   public async adjustLeverage(
     position: PositionInput,
     params: AdjustLeverageParams,
-  ): Promise<DataResponse<StrategyRoutesSimulate>> {
+  ): Promise<DataResponse<StrategyRoutesPrepare>> {
     return this.#startRoutes(position, params, {
       type: "ADJUST_LEVERAGE",
       targetLeverage: params.targetLeverage,
@@ -355,7 +355,7 @@ export class PrepareApi
   public async addCollateral(
     position: PositionInput,
     params: AddCollateralParams,
-  ): Promise<DataResponse<StrategySimulate>> {
+  ): Promise<DataResponse<StrategyPrepare>> {
     return this.#startIntent(position, params, {
       type: "ADD_COLLATERAL",
       token: params.token,
@@ -370,7 +370,7 @@ export class PrepareApi
   public async withdrawCollateral(
     position: PositionInput,
     params: WithdrawCollateralParams,
-  ): Promise<DataResponse<StrategySimulate>> {
+  ): Promise<DataResponse<StrategyPrepare>> {
     return this.#startIntent(position, params, {
       type: "WITHDRAW_ASSET",
       token: params.token,
@@ -439,7 +439,7 @@ export class PrepareApi
     position: PositionInput,
     options: PrepareOptions,
     intent: DelayableIntent,
-  ): Promise<DataResponse<StrategyRoutesSimulate>> {
+  ): Promise<DataResponse<StrategyRoutesPrepare>> {
     return this.queryChain({
       network: position.chainId,
       run: async sdk =>
@@ -461,7 +461,7 @@ export class PrepareApi
     position: PositionInput,
     options: PrepareOptions,
     intent: StartIntent,
-  ): Promise<DataResponse<StrategySimulate>> {
+  ): Promise<DataResponse<StrategyPrepare>> {
     return this.queryChain({
       network: position.chainId,
       run: async sdk => {
@@ -513,7 +513,7 @@ function unroutable(
   sdk: OnchainSDK,
   from: Address,
   to: Address | undefined,
-): LpSimulate {
+): LpPrepare {
   return refuse("unsupportedTokenPair", {
     from: toToken(sdk, from),
     to: to === undefined ? undefined : toToken(sdk, to),

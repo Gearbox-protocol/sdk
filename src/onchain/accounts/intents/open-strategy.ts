@@ -16,7 +16,7 @@ import {
   assertLeverageAtLeastOne,
   debtForLeverage,
 } from "./math.js";
-import type { CreditAccountSlice, SimulationPrices } from "./types.js";
+import type { CreditAccountSlice, PreparedPrices } from "./types.js";
 import {
   collectPriceImpact,
   createRouterPaths,
@@ -53,7 +53,7 @@ export interface OpenStrategyProps {
  */
 export interface OpenStrategyState
   extends Omit<AccountProjection, "assets" | "quotas">,
-    SimulationPrices {
+    PreparedPrices {
   /** Expected post-open balances. */
   averageAssets: TokenAmount[];
   /** Floor post-open balances after slippage. */

@@ -138,7 +138,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     });
 
     expect(meta.chains[0]?.status).toBe("success");
-    if (!data.ok) throw new Error(`simulate refused: ${data.reason}`);
+    if (!data.ok) throw new Error(`prepare refused: ${data.reason}`);
     // the credit manager's strategyTargetCollateral stands in for an unnamed target token
     expect(data.state.totalDebt.value).toBe(40000000000n);
     expect(
@@ -157,7 +157,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       amount: 10000000000n,
     });
 
-    if (!data.ok) throw new Error(`simulate refused: ${data.reason}`);
+    if (!data.ok) throw new Error(`prepare refused: ${data.reason}`);
     // 100 UND of margin at the account's 2x borrows another 100
     expect(data.state.totalDebt.value).toBe(DEBT + 10000000000n);
   });
@@ -171,7 +171,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     });
 
     expect(meta.chains[0]?.status).toBe("success");
-    if (!data.ok) throw new Error(`simulate refused: ${data.reason}`);
+    if (!data.ok) throw new Error(`prepare refused: ${data.reason}`);
     expect(data.state.totalDebt.value).toBe(DEBT - 20000000000n);
     expect(data.operations.map(op => op.type)).toEqual([
       "addCollateral",
@@ -198,7 +198,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       amount: max,
       to: WALLET,
     });
-    if (!data.ok) throw new Error(`simulate refused: ${data.reason}`);
+    if (!data.ok) throw new Error(`prepare refused: ${data.reason}`);
   });
 
   it("maxWithdraw answers in underlying, and withdrawStrategy takes it", async () => {
@@ -211,7 +211,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       amount: max,
       to: WALLET,
     });
-    if (!data.ok) throw new Error(`simulate refused: ${data.reason}`);
+    if (!data.ok) throw new Error(`prepare refused: ${data.reason}`);
     // this market has no redemption venue, so only the instant route answers
     expect(data.instant).toBeDefined();
     expect(data.refused.delayed).toBe("noDelayedRoute");
@@ -224,7 +224,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       amount: TVL,
       to: WALLET,
     });
-    if (!data.ok) throw new Error(`simulate refused: ${data.reason}`);
+    if (!data.ok) throw new Error(`prepare refused: ${data.reason}`);
     expect(data.instant?.state.totalDebt.value).toBe(0n);
     expect(data.instant?.state.assets).toEqual([]);
   });
@@ -236,7 +236,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       amount: MAX_UINT256,
       to: WALLET,
     });
-    if (!data.ok) throw new Error(`simulate refused: ${data.reason}`);
+    if (!data.ok) throw new Error(`prepare refused: ${data.reason}`);
     const exit = data.instant;
     if (!exit) throw new Error("expected the instant route");
 
@@ -267,7 +267,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       token: UND,
       amount: MAX_UINT256,
     });
-    if (!data.ok) throw new Error(`simulate refused: ${data.reason}`);
+    if (!data.ok) throw new Error(`prepare refused: ${data.reason}`);
 
     expect(data.operations.map(op => op.type)).toEqual([
       "addCollateral",
@@ -288,7 +288,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       targetLeverage: 300n,
       token: POS,
     });
-    if (!data.ok) throw new Error(`simulate refused: ${data.reason}`);
+    if (!data.ok) throw new Error(`prepare refused: ${data.reason}`);
     // collateral is the invariant: 500 of it at 3x is 1000 of debt
     expect(data.instant?.state.totalDebt.value).toBe(TVL);
   });
@@ -307,7 +307,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     });
 
     if (!added.data.ok || !taken.data.ok) {
-      throw new Error("simulate refused a flow that leaves debt alone");
+      throw new Error("prepare refused a flow that leaves debt alone");
     }
     expect(added.data.state.totalDebt.value).toBe(DEBT);
     expect(taken.data.state.totalDebt.value).toBe(DEBT);
@@ -369,7 +369,7 @@ describe("PrepareApi — the two-transaction route", () => {
       to: WALLET,
     });
 
-    if (!data.ok) throw new Error(`simulate refused: ${data.reason}`);
+    if (!data.ok) throw new Error(`prepare refused: ${data.reason}`);
     const start = data.delayed;
     if (!start) throw new Error(`no delayed route: ${data.refused.delayed}`);
 
@@ -396,7 +396,7 @@ describe("PrepareApi — the two-transaction route", () => {
       targetLeverage: 150n,
     });
 
-    if (!data.ok) throw new Error(`simulate refused: ${data.reason}`);
+    if (!data.ok) throw new Error(`prepare refused: ${data.reason}`);
     expect(data.delayed?.delayed.record).toEqual({ type: "DECREASE_LEVERAGE" });
   });
 
