@@ -248,6 +248,7 @@ describe("buildTx — open", () => {
     borrowRate: { total: 0, totalOnDebt: 0, base: 0, quotas: [] },
     timeToLiquidation: null,
     liquidationPrice: null,
+    currentPrice: null,
     curator: CURATOR,
     liquidationDiscount: 0,
   };
@@ -389,6 +390,7 @@ describe("buildTx — account", () => {
       name: "Test CM",
       curator: CURATOR,
       liquidationDiscount: 0,
+      currentPrice: null,
       totalValue: amount(UNDERLYING, 3_000n),
       totalDebt: amount(UNDERLYING, 2_000n),
       netValue: amount(UNDERLYING, 1_000n),

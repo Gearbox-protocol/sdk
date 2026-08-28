@@ -67,6 +67,18 @@ export interface OpenStrategyPreview
   safeHealthFactor: Bps;
   /** What the routed leg lost to market depth; `undefined` if not measured. */
   priceImpact: PathLossRate | undefined;
+  /**
+   * What the position's collateral costs in the market underlying right now, in
+   * the oracle's 8-decimal fixed point — the same scale and the same pair as
+   * {@link liquidationPrice}, so a screen showing both reads them as one pair.
+   *
+   * `null` where there is no pair to quote: an account holding zero or several
+   * non-underlying assets, or one whose collateral the oracle cannot price.
+   *
+   * Simulations only. A calldata preview is not asked for it: it reports what a
+   * transaction does, not what the market costs while a form is open.
+   */
+  currentPrice: bigint | null;
   /** Expected post-open balances. */
   averageAssets: TokenAmount[];
   /** Floor post-open balances after slippage. */
@@ -203,6 +215,7 @@ export async function previewOpenStrategy(
     borrowRate: sdk.positions.borrowRate(snapshot, projectedPool),
     timeToLiquidation: sdk.positions.timeToLiquidation(snapshot, projectedPool),
     liquidationPrice: sdk.positions.liquidationPrice(snapshot),
+    currentPrice: sdk.positions.currentPrice(snapshot),
   };
   assertCollateralised(metrics.healthFactor, false);
 

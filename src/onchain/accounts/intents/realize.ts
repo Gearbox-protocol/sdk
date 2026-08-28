@@ -484,6 +484,7 @@ export async function realize(
     borrowRate: sdk.positions.borrowRate(snapshot, projectedPool),
     timeToLiquidation: sdk.positions.timeToLiquidation(snapshot, projectedPool),
     liquidationPrice: sdk.positions.liquidationPrice(snapshot),
+    currentPrice: sdk.positions.currentPrice(snapshot),
   };
   // A call that hands funds over is checked against safe prices on-chain, so
   // the reported health factor is not the one that decides whether it lands.

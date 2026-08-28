@@ -1,9 +1,10 @@
-import { isAddressEqual } from "viem";
+import { type Address, isAddressEqual } from "viem";
 import { DUST_THRESHOLD } from "../constants/math.js";
 import {
   type CalcLiquidationPriceProps,
   calcLiquidationPriceForTarget,
 } from "./calcLiquidationPriceForTarget.js";
+import type { AccountSnapshot } from "./types.js";
 
 /**
  * Liquidation price of an account state's target collateral, in the oracle's
@@ -15,15 +16,28 @@ import {
 export function calcLiquidationPrice(
   props: CalcLiquidationPriceProps,
 ): bigint | null {
-  const { snapshot, underlying } = props;
+  const targetToken = soleNonUnderlyingCollateral(
+    props.snapshot,
+    props.underlying,
+  );
+  if (!targetToken) {
+    return null;
+  }
+  return calcLiquidationPriceForTarget({ ...props, targetToken });
+}
+
+/**
+ * The one collateral a liquidation price — and the current price beside it —
+ * can be quoted for: the account's single non-dust, non-underlying asset.
+ * `null` when it holds none or several, which is the case neither figure
+ * exists for.
+ **/
+export function soleNonUnderlyingCollateral(
+  snapshot: AccountSnapshot,
+  underlying: Address,
+): Address | null {
   const targets = snapshot.assets.filter(
     a => a.balance > DUST_THRESHOLD && !isAddressEqual(a.token, underlying),
   );
-  if (targets.length !== 1) {
-    return null;
-  }
-  return calcLiquidationPriceForTarget({
-    ...props,
-    targetToken: targets[0].token,
-  });
+  return targets.length === 1 ? targets[0].token : null;
 }
