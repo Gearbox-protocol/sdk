@@ -43,6 +43,7 @@ import {
   LIQUIDATION_APPROVAL_BUFFER,
   LIQUIDATION_COMPRESSOR_V313_ADDRESS,
 } from "./constants.js";
+import { skipLiquidatableAccount } from "./skipLiquidatableAccount.js";
 import type {
   BuildLiquidationTxProps,
   GetLiquidatableAccountsProps,
@@ -62,7 +63,6 @@ export class LiquidationsService extends SDKConstruct {
   /**
    * Returns all liquidatable credit accounts: accounts with health factor
    * below 1 plus accounts of expired credit managers with outstanding debt.
-   * Accounts whose collateral computation failed are excluded.
    **/
   public async getLiquidatableAccounts(
     props?: GetLiquidatableAccountsProps,
@@ -80,11 +80,14 @@ export class LiquidationsService extends SDKConstruct {
 
     return [...unhealthy, ...expired]
       .flatMap(ca => {
-        // collateral computation reverted (e.g. dead price feed) — amounts
-        // cannot be computed, such accounts are excluded from the list
-        if (!ca.success) {
+        if (
+          skipLiquidatableAccount(
+            ca,
+            token => this.sdk.tokensMeta.get(token)?.contractType,
+          )
+        ) {
           this.logger?.warn(
-            `cannot compute liquidation details for ${ca.creditAccount}: collateral computation failed`,
+            `skipping liquidatable account ${ca.creditAccount}`,
           );
           return [];
         }
