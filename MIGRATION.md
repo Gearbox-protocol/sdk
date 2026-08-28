@@ -427,3 +427,4 @@ invisible while the negative fields (`assetsChange`, `quotasChange`) were the
 only ones carrying it; `totalDebtChange` and `debtRepaid` would have joined them.
 The threshold now weighs the magnitude, so a repayment reports a negative
 `valueUsd` rather than zero.
+
