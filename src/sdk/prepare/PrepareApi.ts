@@ -1,5 +1,11 @@
 import type { Address } from "viem";
-import type { Bps, ChainId, DataResponse } from "../../model/index.js";
+import type {
+  Bps,
+  ChainId,
+  DataResponse,
+  PositionCollateral,
+  StrategyPosition,
+} from "../../model/index.js";
 import type {
   Asset,
   CreditAccountSlice,
@@ -42,6 +48,7 @@ import type {
   WithdrawCollateralParams,
   WithdrawStrategyParams,
 } from "./types.js";
+import { withdrawableCollaterals } from "./withdrawable-collaterals.js";
 
 /**
  * The chain's SDK, resolved on the spot.
@@ -390,6 +397,18 @@ export class PrepareApi
       collateral,
       targetHF,
     });
+  }
+
+  /**
+   * {@inheritDoc IOpportunitiesPrepare.withdrawableCollaterals}
+   **/
+  public withdrawableCollaterals(
+    position: StrategyPosition,
+  ): PositionCollateral[] {
+    // No `queryChain`, as with `leverageBand`: everything needed is on the
+    // position and in loaded token metadata, and wrapping a filter in a
+    // response would cost the caller the immediacy this answer exists for.
+    return withdrawableCollaterals(this.sdk.chain(position.chainId), position);
   }
 
   /**

@@ -82,6 +82,7 @@ export {
   fetchCreditAccountSlice,
   toCreditAccountSlice,
 } from "./utils/credit-account-slice.js";
+export { isPhantomToken } from "./utils/pick-token.js";
 export type {
   AccountCalculatorOperation,
   CreditAccountSlice,

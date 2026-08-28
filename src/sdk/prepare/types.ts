@@ -3,7 +3,9 @@ import type {
   Bps,
   DataResponse,
   PoolOpportunityKey,
+  PositionCollateral,
   StrategyOpportunityKey,
+  StrategyPosition,
   StrategyPositionKey,
 } from "../../model/index.js";
 import type {
@@ -567,6 +569,24 @@ export interface IOpportunitiesPrepare {
     collateral: readonly Asset[],
     targetHF?: Bps,
   ): LeverageBand | undefined;
+
+  /**
+   * The collaterals an account can actually take out, most valuable first —
+   * what a withdraw-collateral picker offers.
+   *
+   * `StrategyPosition.collaterals` is everything the account holds, in the
+   * order the manager keeps its tokens. Phantoms are in there: the position
+   * reports one as itself and puts the asset it redeems into under
+   * `withdrawals`, and {@link withdrawCollateral} cannot move a balance that
+   * is not transferable. Balances below dust are already gone — the position
+   * drops them as it is built.
+   *
+   * Synchronous, like {@link leverageBand}: it reads loaded token metadata and
+   * the position it was handed, so a form can ask on every render. Nothing is
+   * quoted here — which of these the router can sell is a different question,
+   * and the answer to it is a simulation.
+   **/
+  withdrawableCollaterals(position: StrategyPosition): PositionCollateral[];
 
   /**
    * Largest amount of one collateral {@link withdrawCollateral} can move out

@@ -41,6 +41,7 @@ const mockSDK = {
       addCollateral: notImplemented,
       withdrawCollateral: notImplemented,
       leverageBand: notImplemented,
+      withdrawableCollaterals: notImplemented,
       maxWithdrawCollateral: notImplemented,
       finalize: notImplemented,
     },
