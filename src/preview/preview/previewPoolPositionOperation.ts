@@ -1,4 +1,4 @@
-import type { PreviewLpVerify } from "../../model/index.js";
+import type { PoolPositionOperationPreview } from "../../model/index.js";
 import type { PluginsMap } from "../../onchain/index.js";
 import type { PoolOperation } from "../parse/index.js";
 import { simulatePoolOperation } from "../simulate/index.js";
@@ -7,11 +7,11 @@ import type {
   PreviewOperationOptions,
 } from "../types.js";
 
-export async function previewLpVerify<P extends PluginsMap>(
+export async function previewPoolPositionOperation<P extends PluginsMap>(
   input: PreviewOperationInput<P>,
   operation: PoolOperation,
   options?: PreviewOperationOptions,
-): Promise<PreviewLpVerify> {
+): Promise<PoolPositionOperationPreview> {
   const { sdk, to, calldata } = input;
   const { tokenIn, tokenOut } = operation;
   const market = sdk.marketRegister.findByPool(operation.pool);

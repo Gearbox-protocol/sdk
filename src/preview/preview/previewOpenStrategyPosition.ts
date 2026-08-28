@@ -1,8 +1,8 @@
 import {
   asEstimated,
   ERROR_UNPRICEABLE_TOKEN,
+  type OpenStrategyPositionPreview,
   type OperationPreviewError,
-  type PreviewOpenStrategyVerify,
 } from "../../model/index.js";
 import {
   type AddressMap,
@@ -24,10 +24,10 @@ import {
 } from "./replayInnerOperations.js";
 import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
 
-export async function previewOpenStrategyVerify<P extends PluginsMap>(
+export async function previewOpenStrategyPosition<P extends PluginsMap>(
   input: PreviewOperationInput<P>,
   operation: OpenCreditAccountOperation | RWAOpenCreditAccountOperation,
-): Promise<PreviewOpenStrategyVerify> {
+): Promise<OpenStrategyPositionPreview> {
   const { sdk, value = 0n } = input;
   const market = sdk.marketRegister.findByCreditManager(
     operation.creditManager,

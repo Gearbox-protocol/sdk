@@ -9,7 +9,7 @@ import {
   type OnchainSDK,
 } from "../../onchain/index.js";
 import { PositionsService } from "../../onchain/positions/PositionsService.js";
-import { buildDelayedStrategyVerify } from "./buildDelayedStrategyVerify.js";
+import { buildDelayedStrategyPositionOperationPreview } from "./buildDelayedStrategyPositionOperationPreview.js";
 import { CreditAccountState } from "./CreditAccountState.js";
 import type { DetectedDelayedOperation } from "./detectDelayedOperation.js";
 
@@ -245,7 +245,7 @@ function amt(token: Address, value: unknown) {
   });
 }
 
-describe("buildDelayedStrategyVerify CLOSE_ACCOUNT", () => {
+describe("buildDelayedStrategyPositionOperationPreview CLOSE_ACCOUNT", () => {
   // Post-instant state of the step-1 close tx from tmp/rwa/step1.json:
   // all ACRED redeemed into the phantom token, debt untouched
   const account = makeAccount({
@@ -266,7 +266,7 @@ describe("buildDelayedStrategyVerify CLOSE_ACCOUNT", () => {
   });
 
   it("previews an account closure with the leftover after full repayment", () => {
-    const preview = buildDelayedStrategyVerify(
+    const preview = buildDelayedStrategyPositionOperationPreview(
       account,
       before,
       detected({ type: "CLOSE_ACCOUNT", to: OWNER }),
@@ -290,7 +290,7 @@ describe("buildDelayedStrategyVerify CLOSE_ACCOUNT", () => {
   it("floors receivedAmount at zero when the debt exceeds the total value", () => {
     const indebted = account.clone();
     indebted.totalDebt = 999_999_999_999_999n;
-    const preview = buildDelayedStrategyVerify(
+    const preview = buildDelayedStrategyPositionOperationPreview(
       indebted,
       before,
       detected({ type: "CLOSE_ACCOUNT", to: OWNER }),
@@ -305,7 +305,7 @@ describe("buildDelayedStrategyVerify CLOSE_ACCOUNT", () => {
   });
 
   it("does not mutate the input account state", () => {
-    buildDelayedStrategyVerify(
+    buildDelayedStrategyPositionOperationPreview(
       account,
       before,
       detected({ type: "CLOSE_ACCOUNT", to: OWNER }),
@@ -318,7 +318,7 @@ describe("buildDelayedStrategyVerify CLOSE_ACCOUNT", () => {
   });
 });
 
-describe("buildDelayedStrategyVerify DECREASE_LEVERAGE", () => {
+describe("buildDelayedStrategyPositionOperationPreview DECREASE_LEVERAGE", () => {
   it("claims and repays the debt with the claimed amount", () => {
     // Post-instant state: everything was redeemed into the phantom token,
     // the pre-transaction state (the diff base) held nothing
@@ -329,7 +329,7 @@ describe("buildDelayedStrategyVerify DECREASE_LEVERAGE", () => {
       quotas: new AssetsMap([{ token: PHANTOM, balance: 900n }]),
     });
     const before = makeAccount({ debt: 500n, totalDebt: 600n });
-    const preview = buildDelayedStrategyVerify(
+    const preview = buildDelayedStrategyPositionOperationPreview(
       account,
       before,
       detected({ type: "DECREASE_LEVERAGE" }),
@@ -369,7 +369,7 @@ describe("buildDelayedStrategyVerify DECREASE_LEVERAGE", () => {
       totalDebt: 1500n,
     });
     const before = makeAccount({ debt: 1000n, totalDebt: 1500n });
-    const preview = buildDelayedStrategyVerify(
+    const preview = buildDelayedStrategyPositionOperationPreview(
       account,
       before,
       detected({ type: "DECREASE_LEVERAGE" }),
@@ -388,7 +388,7 @@ describe("buildDelayedStrategyVerify DECREASE_LEVERAGE", () => {
   });
 });
 
-describe("buildDelayedStrategyVerify WITHDRAW_COLLATERAL", () => {
+describe("buildDelayedStrategyPositionOperationPreview WITHDRAW_COLLATERAL", () => {
   it("withdraws the claim token and repays with the rest of the claim, capped by debtRepaid", () => {
     const account = makeAccount({
       balances: new AssetsMap([{ token: PHANTOM, balance: 1000n }]),
@@ -396,7 +396,7 @@ describe("buildDelayedStrategyVerify WITHDRAW_COLLATERAL", () => {
       totalDebt: 600n,
     });
     const before = makeAccount({ debt: 500n, totalDebt: 600n });
-    const preview = buildDelayedStrategyVerify(
+    const preview = buildDelayedStrategyPositionOperationPreview(
       account,
       before,
       detected({
@@ -428,7 +428,7 @@ describe("buildDelayedStrategyVerify WITHDRAW_COLLATERAL", () => {
       totalDebt: 600n,
     });
     const before = makeAccount({ debt: 500n, totalDebt: 600n });
-    const preview = buildDelayedStrategyVerify(
+    const preview = buildDelayedStrategyPositionOperationPreview(
       account,
       before,
       detected({
@@ -462,7 +462,7 @@ describe("buildDelayedStrategyVerify WITHDRAW_COLLATERAL", () => {
       totalDebt: 600n,
     });
     const before = makeAccount({ debt: 500n, totalDebt: 600n });
-    const preview = buildDelayedStrategyVerify(
+    const preview = buildDelayedStrategyPositionOperationPreview(
       account,
       before,
       detected({
@@ -489,7 +489,7 @@ describe("buildDelayedStrategyVerify WITHDRAW_COLLATERAL", () => {
     const account = makeAccount({
       balances: new AssetsMap([{ token: PHANTOM, balance: 100n }]),
     });
-    const preview = buildDelayedStrategyVerify(
+    const preview = buildDelayedStrategyPositionOperationPreview(
       account,
       makeAccount(),
       detected({
@@ -521,7 +521,7 @@ describe("buildDelayedStrategyVerify WITHDRAW_COLLATERAL", () => {
       totalDebt: 60_000n,
     });
     const before = makeAccount({ debt: 50_000n, totalDebt: 60_000n });
-    const preview = buildDelayedStrategyVerify(
+    const preview = buildDelayedStrategyPositionOperationPreview(
       account,
       before,
       detected({
@@ -565,7 +565,7 @@ describe("buildDelayedStrategyVerify WITHDRAW_COLLATERAL", () => {
       debt: 500n,
       totalDebt: 600n,
     });
-    const preview = buildDelayedStrategyVerify(
+    const preview = buildDelayedStrategyPositionOperationPreview(
       account,
       before,
       detected({
@@ -607,7 +607,7 @@ describe("buildDelayedStrategyVerify WITHDRAW_COLLATERAL", () => {
       debt: 4000n,
       totalDebt: 5000n,
     });
-    const preview = buildDelayedStrategyVerify(
+    const preview = buildDelayedStrategyPositionOperationPreview(
       account,
       before,
       detected({
@@ -633,7 +633,7 @@ describe("buildDelayedStrategyVerify WITHDRAW_COLLATERAL", () => {
   });
 });
 
-describe("buildDelayedStrategyVerify claim-only", () => {
+describe("buildDelayedStrategyPositionOperationPreview claim-only", () => {
   const account = makeAccount({
     balances: new AssetsMap([
       { token: PHANTOM, balance: 1000n },
@@ -672,7 +672,7 @@ describe("buildDelayedStrategyVerify claim-only", () => {
   };
 
   it("applies only the claim step for resume intents with an unrecoverable swap target", () => {
-    const preview = buildDelayedStrategyVerify(
+    const preview = buildDelayedStrategyPositionOperationPreview(
       account,
       before,
       detected({ type: "DEPOSIT" }),
@@ -684,7 +684,7 @@ describe("buildDelayedStrategyVerify claim-only", () => {
   });
 
   it("applies only the claim step when the intent is undefined (Mellow, legacy txs)", () => {
-    const preview = buildDelayedStrategyVerify(
+    const preview = buildDelayedStrategyPositionOperationPreview(
       account,
       before,
       detected(undefined),
@@ -697,7 +697,7 @@ describe("buildDelayedStrategyVerify claim-only", () => {
   });
 });
 
-describe("buildDelayedStrategyVerify unpriceable tokens", () => {
+describe("buildDelayedStrategyPositionOperationPreview unpriceable tokens", () => {
   it("sets ERROR_UNPRICEABLE_TOKEN and counts only priceable tokens", () => {
     const account = makeAccount({
       balances: new AssetsMap([
@@ -706,7 +706,7 @@ describe("buildDelayedStrategyVerify unpriceable tokens", () => {
         { token: UNPRICEABLE, balance: 50n },
       ]),
     });
-    const preview = buildDelayedStrategyVerify(
+    const preview = buildDelayedStrategyPositionOperationPreview(
       account,
       makeAccount(),
       detected(undefined),

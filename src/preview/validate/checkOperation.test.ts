@@ -3,9 +3,9 @@ import { resolve } from "node:path";
 import { type Address, custom } from "viem";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import type {
-  PreviewAdjustStrategyVerify,
-  PreviewLpVerify,
-  PreviewOpenStrategyVerify,
+  AdjustStrategyPositionPreview,
+  OpenStrategyPositionPreview,
+  PoolPositionOperationPreview,
   TokenAmount,
 } from "../../model/index.js";
 import {
@@ -60,8 +60,8 @@ beforeAll(() => {
 
 /** A healthy adjustment of the fixture's account, as the preview reports one. */
 function adjust(
-  over: Partial<PreviewAdjustStrategyVerify> = {},
-): PreviewAdjustStrategyVerify {
+  over: Partial<AdjustStrategyPositionPreview> = {},
+): AdjustStrategyPositionPreview {
   return {
     operation: "AdjustCreditAccount",
     name: "KPK WETH",
@@ -83,13 +83,13 @@ function adjust(
     estLiquidationPrice: null,
     estLeverage: 2,
     ...over,
-  } as PreviewAdjustStrategyVerify;
+  } as AdjustStrategyPositionPreview;
 }
 
 /** The same account at the moment it is opened, as the preview reports one. */
 function open(
-  over: Partial<PreviewOpenStrategyVerify> = {},
-): PreviewOpenStrategyVerify {
+  over: Partial<OpenStrategyPositionPreview> = {},
+): OpenStrategyPositionPreview {
   return {
     operation: "OpenCreditAccount",
     name: "KPK WETH",
@@ -107,11 +107,11 @@ function open(
     estLiquidationPrice: null,
     estLeverage: 2,
     ...over,
-  } as PreviewOpenStrategyVerify;
+  } as OpenStrategyPositionPreview;
 }
 
 const check = (
-  preview: PreviewAdjustStrategyVerify | PreviewOpenStrategyVerify,
+  preview: AdjustStrategyPositionPreview | OpenStrategyPositionPreview,
   options: Parameters<typeof checkOperation>[1] = {},
 ) => checkOperation({ sdk, preview }, options);
 
@@ -451,7 +451,9 @@ describe("checkOperation", () => {
 });
 
 describe("checkOperation — pool operations", () => {
-  const deposit = (over: Partial<PreviewLpVerify> = {}): PreviewLpVerify =>
+  const deposit = (
+    over: Partial<PoolPositionOperationPreview> = {},
+  ): PoolPositionOperationPreview =>
     ({
       operation: "Deposit",
       pool: POOL,
@@ -467,7 +469,7 @@ describe("checkOperation — pool operations", () => {
         valueUsd: null,
       },
       ...over,
-    }) as PreviewLpVerify;
+    }) as PoolPositionOperationPreview;
 
   it("passes a deposit into a live pool", () => {
     expect(checkOperation({ sdk, preview: deposit() })).toBeNull();

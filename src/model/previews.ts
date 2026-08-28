@@ -5,7 +5,7 @@ import type { BorrowRateBreakdown } from "./positions.js";
 import type { Bps, ChainId, Leverage, TokenAmount } from "./primitives.js";
 
 /**
- * ERC4626 pool operation kind, as surfaced on a {@link PreviewLpVerify}.
+ * ERC4626 pool operation kind, as surfaced on a {@link PoolPositionOperationPreview}.
  **/
 export type PoolOperationType = "Deposit" | "Mint" | "Withdraw" | "Redeem";
 
@@ -114,7 +114,7 @@ export interface OperationPreviewError {
  * `prepare.deposit`, `prepare.withdraw` and `prepare.redeem`, read off calldata
  * rather than planned into it.
  **/
-export interface PreviewLpVerify {
+export interface PoolPositionOperationPreview {
   operation: PoolOperationType;
   /**
    * Pool address
@@ -429,7 +429,7 @@ export interface AccountStateChange {
  * counterpart of `prepare.openNewStrategy`, read off calldata rather than
  * planned into it.
  **/
-export interface PreviewOpenStrategyVerify extends EstimatedProjection {
+export interface OpenStrategyPositionPreview extends EstimatedProjection {
   operation: "OpenCreditAccount" | "RWAOpenCreditAccount";
   /**
    * Collateral token this position is a strategy in: the first quoted token,
@@ -460,7 +460,7 @@ export interface PreviewOpenStrategyVerify extends EstimatedProjection {
  * `addCollateral`, `withdrawCollateral`, `adjustLeverage`), read off calldata
  * rather than planned into it.
  **/
-export interface PreviewAdjustStrategyVerify
+export interface AdjustStrategyPositionPreview
   extends EstimatedProjection,
     AccountStateChange {
   operation: "AdjustCreditAccount";
@@ -502,7 +502,7 @@ export interface PreviewAdjustStrategyVerify
  * so there is no position left to weigh — what a caller wants to know is the
  * payout. The market it happened in is still named, as everywhere else.
  **/
-export interface PreviewExitStrategyVerify extends CreditOperationMarket {
+export interface ExitStrategyPositionPreview extends CreditOperationMarket {
   operation: "CloseCreditAccount";
   /**
    * True when the account is closed permanently (facade `closeCreditAccount`
@@ -543,7 +543,7 @@ export interface PreviewExitStrategyVerify extends CreditOperationMarket {
  * Carries no {@link AccountProjection} for the same reason the exit does not:
  * the loan ends here, so the risk metrics have nothing left to describe.
  **/
-export interface PreviewRepayStrategyVerify extends CreditOperationMarket {
+export interface RepayStrategyPositionPreview extends CreditOperationMarket {
   operation: "RepayCreditAccount";
   /**
    * True when the account is closed permanently (facade `closeCreditAccount`
@@ -571,7 +571,7 @@ export interface PreviewRepayStrategyVerify extends CreditOperationMarket {
   /**
    * Total debt repaid: principal + accrued interest + fees, in underlying.
    *
-   * The same quantity a {@link PreviewAdjustStrategyVerify} reports as
+   * The same quantity a {@link AdjustStrategyPositionPreview} reports as
    * `totalDebtChange`, with the sign a repayment screen reads: positive for
    * what the wallet parted with.
    */
@@ -594,10 +594,10 @@ export interface PreviewRepayStrategyVerify extends CreditOperationMarket {
  * account: what the transaction does in the same block, before any delayed
  * withdrawal is claimed.
  */
-export type PreviewInstantStrategyVerify =
-  | PreviewAdjustStrategyVerify
-  | PreviewExitStrategyVerify
-  | PreviewRepayStrategyVerify;
+export type InstantStrategyPositionOperationPreview =
+  | AdjustStrategyPositionPreview
+  | ExitStrategyPositionPreview
+  | RepayStrategyPositionPreview;
 
 /**
  * Preview of a multicall that requests a delayed withdrawal (e.g. Securitize
@@ -605,7 +605,8 @@ export type PreviewInstantStrategyVerify =
  * the actual claim token materializes later, when the withdrawal is claimed and
  * the recorded (if any) is resumed
  */
-export interface PreviewDelayedStrategyVerify extends CreditOperationMarket {
+export interface DelayedStrategyPositionOperationPreview
+  extends CreditOperationMarket {
   operation: "DelayedCreditAccountOperation";
   /**
    * Credit account the operation is performed on
@@ -620,13 +621,13 @@ export interface PreviewDelayedStrategyVerify extends CreditOperationMarket {
    * What this transaction does right now: the delayed withdrawal is
    * represented by the phantom token among the account's assets
    */
-  instantPreview: PreviewInstantStrategyVerify;
+  instantPreview: InstantStrategyPositionOperationPreview;
   /**
    * Best-effort state after the withdrawal is claimed and the intent is
    * resumed; claim-only (phantom burned, claim token received) when
    * `intent` is undefined
    */
-  delayedPreview: PreviewInstantStrategyVerify;
+  delayedPreview: InstantStrategyPositionOperationPreview;
 }
 
 /**
@@ -635,9 +636,9 @@ export interface PreviewDelayedStrategyVerify extends CreditOperationMarket {
  * withdrawal operations are supported.
  */
 export type OperationPreview =
-  | PreviewLpVerify
-  | PreviewOpenStrategyVerify
-  | PreviewAdjustStrategyVerify
-  | PreviewExitStrategyVerify
-  | PreviewRepayStrategyVerify
-  | PreviewDelayedStrategyVerify;
+  | PoolPositionOperationPreview
+  | OpenStrategyPositionPreview
+  | AdjustStrategyPositionPreview
+  | ExitStrategyPositionPreview
+  | RepayStrategyPositionPreview
+  | DelayedStrategyPositionOperationPreview;

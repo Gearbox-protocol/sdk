@@ -14,15 +14,15 @@ import type {
   PreviewOperationInput,
   PreviewOperationOptions,
 } from "../types.js";
-import { buildDelayedStrategyVerify } from "./buildDelayedStrategyVerify.js";
+import { buildDelayedStrategyPositionOperationPreview } from "./buildDelayedStrategyPositionOperationPreview.js";
 import { isCloseOrRepay } from "./detectCloseOrRepay.js";
 import { resolveDelayedClaimIntent } from "./detectDelayedClaim.js";
 import { detectDelayedOperation } from "./detectDelayedOperation.js";
 import { UnsupportedOperationError } from "./errors.js";
-import { previewAdjustStrategyVerify } from "./previewAdjustStrategyVerify.js";
-import { previewExitOrRepayStrategyVerify } from "./previewExitOrRepayStrategyVerify.js";
-import { previewLpVerify } from "./previewLpVerify.js";
-import { previewOpenStrategyVerify } from "./previewOpenStrategyVerify.js";
+import { previewAdjustStrategyPosition } from "./previewAdjustStrategyPosition.js";
+import { previewExitOrRepayStrategyPosition } from "./previewExitOrRepayStrategyPosition.js";
+import { previewOpenStrategyPosition } from "./previewOpenStrategyPosition.js";
+import { previewPoolPositionOperation } from "./previewPoolPositionOperation.js";
 import {
   type ReplayableOperation,
   replayMulticall,
@@ -39,19 +39,19 @@ export async function previewOperation<P extends PluginsMap = PluginsMap>(
   const operation = parseOperationCalldata(input);
 
   if (isPoolOperation(operation)) {
-    return previewLpVerify(input, operation, options);
+    return previewPoolPositionOperation(input, operation, options);
   }
 
   if (
     operation.operation === "OpenCreditAccount" ||
     operation.operation === "RWAOpenCreditAccount"
   ) {
-    return previewOpenStrategyVerify(input, operation);
+    return previewOpenStrategyPosition(input, operation);
   }
 
   if (operation.operation === "CloseCreditAccount") {
     const resolved = await resolveCreditAccount(input, operation, options);
-    const preview = await previewExitOrRepayStrategyVerify(
+    const preview = await previewExitOrRepayStrategyPosition(
       input,
       operation,
       true,
@@ -118,8 +118,8 @@ async function previewMulticallOperation<P extends PluginsMap>(
   // A multicall that fully repays the debt (`decreaseDebt(MAX)`) is a
   // zero-debt closure/repay: the account stays open but debt is cleared.
   const instantPreview = isCloseOrRepay(operation.multicall)
-    ? await previewExitOrRepayStrategyVerify(input, operation, false, options)
-    : await previewAdjustStrategyVerify(input, operation, options);
+    ? await previewExitOrRepayStrategyPosition(input, operation, false, options)
+    : await previewAdjustStrategyPosition(input, operation, options);
 
   const delayed = detectDelayedOperation(sdk, operation.multicall);
   if (!delayed) {
@@ -158,7 +158,7 @@ async function previewMulticallOperation<P extends PluginsMap>(
     ),
     intent: delayed.intent,
     instantPreview,
-    delayedPreview: buildDelayedStrategyVerify(
+    delayedPreview: buildDelayedStrategyPositionOperationPreview(
       after.account,
       before,
       delayed,

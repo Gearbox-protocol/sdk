@@ -1,10 +1,10 @@
 import { type Address, isAddressEqual } from "viem";
 import type {
+  AdjustStrategyPositionPreview,
   DelayedWithdrawCollateralIntent,
+  ExitStrategyPositionPreview,
+  InstantStrategyPositionOperationPreview,
   OperationPreviewError,
-  PreviewAdjustStrategyVerify,
-  PreviewExitStrategyVerify,
-  PreviewInstantStrategyVerify,
 } from "../../model/index.js";
 import { asEstimated, ERROR_UNPRICEABLE_TOKEN } from "../../model/index.js";
 import type { DelayedWithdrawalRequest } from "../../onchain/index.js";
@@ -41,14 +41,14 @@ import type { DetectedDelayedOperation } from "./detectDelayedOperation.js";
  * @param sdk - Market data source for the position metrics of the resulting
  * state; read synchronously, no network access.
  */
-export function buildDelayedStrategyVerify(
+export function buildDelayedStrategyPositionOperationPreview(
   afterInstant: CreditAccountState,
   before: CreditAccountState,
   detected: DetectedDelayedOperation,
   convert: ConvertFn,
   receivedToken: Address,
   sdk: OnchainSDK,
-): PreviewInstantStrategyVerify {
+): InstantStrategyPositionOperationPreview {
   const { request, intent } = detected;
 
   const post = afterInstant.clone();
@@ -263,7 +263,7 @@ function buildClosePreview(
   converter: SafeConverter,
   receivedToken: Address,
   sdk: OnchainSDK,
-): PreviewExitStrategyVerify {
+): ExitStrategyPositionPreview {
   const totalValue = totalValueInUnderlying(post, converter.convert, 0n);
   const oracle = sdk.marketRegister.findByCreditManager(
     post.creditManager,
@@ -291,7 +291,7 @@ function buildAdjustPreview(
   collateralWithdrawn: AssetsMap,
   converter: SafeConverter,
   sdk: OnchainSDK,
-): PreviewAdjustStrategyVerify {
+): AdjustStrategyPositionPreview {
   const snap = post.toSnapshot(
     totalValueInUnderlying(post, converter.convert, DUST_THRESHOLD),
   );
@@ -299,7 +299,7 @@ function buildAdjustPreview(
   const oracle = market.priceOracle;
   return {
     operation: "AdjustCreditAccount",
-    // {@inheritDoc previewAdjustStrategyVerify} — the same shared builder, so
+    // {@inheritDoc previewAdjustStrategyPosition} — the same shared builder, so
     // the far side of a delayed operation is described exactly as the near side
     // of an instant one. Debt taken on leaves the pool, debt repaid returns to
     // it.

@@ -3,10 +3,10 @@ import { resolve } from "node:path";
 import { type Address, custom, type Hex } from "viem";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import type {
-  PreviewAdjustStrategyVerify,
-  PreviewDelayedStrategyVerify,
-  PreviewExitStrategyVerify,
-  PreviewOpenStrategyVerify,
+  AdjustStrategyPositionPreview,
+  DelayedStrategyPositionOperationPreview,
+  ExitStrategyPositionPreview,
+  OpenStrategyPositionPreview,
 } from "../../model/index.js";
 import {
   type CreditAccountData,
@@ -340,7 +340,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
       calldata: txs.open.calldata,
       sender: investor,
       value: 0n,
-    })) as PreviewOpenStrategyVerify;
+    })) as OpenStrategyPositionPreview;
 
     expect(preview).toMatchObject({
       operation: spec.openOperation,
@@ -393,7 +393,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         value: 0n,
       },
       { creditAccount: afterOpen },
-    )) as PreviewDelayedStrategyVerify;
+    )) as DelayedStrategyPositionOperationPreview;
 
     expect(preview).toMatchObject({
       operation: "DelayedCreditAccountOperation",
@@ -481,7 +481,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         value: 0n,
       },
       { creditAccount: afterRequest },
-    )) as PreviewAdjustStrategyVerify;
+    )) as AdjustStrategyPositionPreview;
 
     expect(preview).toMatchObject({
       operation: "AdjustCreditAccount",
@@ -534,7 +534,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         value: 0n,
       },
       { creditAccount: afterClaim },
-    )) as PreviewDelayedStrategyVerify;
+    )) as DelayedStrategyPositionOperationPreview;
 
     expect(preview).toMatchObject({
       operation: "DelayedCreditAccountOperation",
@@ -600,7 +600,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         value: 0n,
       },
       { creditAccount: afterCloseRequest },
-    )) as PreviewExitStrategyVerify;
+    )) as ExitStrategyPositionPreview;
 
     // decreaseDebt(MAX) + withdrawCollateral(MAX) and no new withdrawal
     // request: a zero-debt closure (the account stays open but empty)
