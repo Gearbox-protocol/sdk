@@ -187,8 +187,8 @@ export async function previewOpenStrategy(
   // has to clear the collateral check.
   const snapshot: AccountSnapshot = {
     creditManager,
-    assets: minAssets,
-    quotas: minQuota,
+    assets: averageAssets,
+    quotas: averageQuota,
     totalDebt: debt,
     totalValue: margin + debt,
   };
